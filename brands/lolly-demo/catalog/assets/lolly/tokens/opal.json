@@ -1,0 +1,825 @@
+{
+  "$description": "Lolly Demo, Lolly's own design system and the first one built on Lolly. Its palette is Opal: every colour is a treat or a piece of nature, remembered by name and never by number; a tint keeps its parent's name. Liquorice is the ink, Sugar the paper, Spearmint the light accent and Green Apple the dark one, and green stays a quiet nod to the family Lolly grew up in. Outfit sets headings, SUSE the text and italics, SUSE Mono the code; all three are served by the shell, so this pack ships no font files. Layered DTCG in the starter's shape: a shared 'base' set (named colours, the chart spectrum, faces and logo slots) plus light and dark sets with the seven semantic slots and the slide roles.",
+  "$metadata": {
+    "tokenSetOrder": [
+      "base",
+      "light",
+      "dark"
+    ]
+  },
+  "$themes": [
+    {
+      "name": "light",
+      "selectedTokenSets": {
+        "base": "enabled",
+        "light": "enabled"
+      }
+    },
+    {
+      "name": "dark",
+      "selectedTokenSets": {
+        "base": "enabled",
+        "dark": "enabled"
+      }
+    }
+  ],
+  "base": {
+    "color": {
+      "$type": "color",
+      "brand": {
+        "$description": "Opal's named colours, in groups. What each one is for travels in its tools.lolly.opal extension. The greens by lightness (Spearmint, Bunyapine, Green Apple, Pandanus, Avocado), with Khaki and Olive beside them; the warm run from deep red to soft yellow (Ochre, Bauxite, Outback, Arvo, Banksia, Honey, Wattle); earth and sand (Bark, Pancake, Beach, Meringue); the flowers (Fuchsia, after Correa, the native fuchsia, Donut and Jacaranda) and the waters (Lagoon and Sky, Reef and Swell); and ink and light (Void, Liquorice and its tints, Basalt, Pebble, Sugar, Daylight).",
+        "spearmint": {
+          "$value": "#033633",
+          "$description": "Spearmint",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Dark green, a step cooler than Pine. The light-theme accent, the home ground and the dark in the reverse and mono marks."
+            },
+            "com.suse.lolly": { "cmyk": [100, 31, 59, 79], "spot": { "name": "H190_L020_C020", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "bunyapine": {
+          "$value": "#008657",
+          "$description": "Bunyapine",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "The mark's green: the swirl and the giveaway lolly."
+            },
+            "com.suse.lolly": { "cmyk": [88, 25, 82, 5], "spot": { "name": "H160_L050_C045", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "green-apple": {
+          "$value": "#50c369",
+          "$description": "Green Apple",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Bright green, a step warmer than Jungle. The dark-theme accent and calls to action."
+            },
+            "com.suse.lolly": { "cmyk": [72, 0, 82, 0], "spot": { "name": "H145_L070_C060", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "pandanus": {
+          "$value": "#ace1ad",
+          "$description": "Pandanus",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "A light leaf green for raised washes and selected states."
+            },
+            "com.suse.lolly": { "cmyk": [42, 0, 46, 0], "spot": { "name": "H140_L085_C030", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "avocado": {
+          "$value": "#edf6e0",
+          "$description": "Avocado",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "The palest wash, for pages and paper where Lolly shows itself."
+            },
+            "com.suse.lolly": { "cmyk": [11, 0, 19, 0], "spot": { "name": "H125_L095_C010", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "khaki": {
+          "$value": "#444f05",
+          "$description": "Khaki",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Deep olive drab, paired with Olive: grounds, type on the pale washes and charts. Sugar on Khaki 8.9:1."
+            },
+            "com.suse.lolly": { "cmyk": [29, 0, 100, 75], "spot": { "name": "H110_L030_C035", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "olive": {
+          "$value": "#818e44",
+          "$description": "Olive",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Muted green for grounds and charts."
+            },
+            "com.suse.lolly": { "cmyk": [51, 26, 85, 18], "spot": { "name": "H110_L055_C040", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "ochre": {
+          "$value": "#72251c",
+          "$description": "Ochre",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Deep red: error text on light under High contrast."
+            },
+            "com.suse.lolly": { "cmyk": [8, 99, 100, 62], "spot": { "name": "H035_L025_C040", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "bauxite": {
+          "$value": "#a43427",
+          "$description": "Bauxite",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Warm burgundy red for errors and anything destructive."
+            },
+            "com.suse.lolly": { "cmyk": [8, 91, 93, 33], "spot": { "name": "H035_L040_C060", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "outback": {
+          "$value": "#c55123",
+          "$description": "Outback",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Red earth, for charts and illustration."
+            },
+            "com.suse.lolly": { "cmyk": [19, 78, 100, 3], "spot": { "name": "H045_L050_C065", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "arvo": {
+          "$value": "#ef9275",
+          "$description": "Arvo",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Afternoon light: the error red for text on dark surfaces."
+            },
+            "com.suse.lolly": { "cmyk": [0, 53, 53, 2], "spot": { "name": "H040_L070_C045", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "banksia": {
+          "$value": "#ee9138",
+          "$description": "Banksia",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Warm orange for charts and illustration."
+            },
+            "com.suse.lolly": { "cmyk": [1, 51, 87, 2], "spot": { "name": "H060_L070_C065", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "honey": {
+          "$value": "#fac044",
+          "$description": "Honey",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Gold: highlights, the stage spotlight and unsaved work."
+            },
+            "com.suse.lolly": { "cmyk": [1, 28, 82, 0], "spot": { "name": "H080_L080_C070", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "wattle": {
+          "$value": "#fdec9e",
+          "$description": "Wattle",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "A soft light yellow, after the wattle in flower: highlights, notes and sunny grounds, a lighter step from Honey. Liquorice on Wattle 15.7:1."
+            },
+            "com.suse.lolly": { "cmyk": [2, 4, 48, 1], "spot": { "name": "H095_L090_C040", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "bark": {
+          "$value": "#734f31",
+          "$description": "Bark",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Brown for grounds, illustration and charts."
+            },
+            "com.suse.lolly": { "cmyk": [41, 63, 87, 44], "spot": { "name": "H060_L035_C025", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "pancake": {
+          "$value": "#d8b890",
+          "$description": "Pancake",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Warm tan for grounds and illustration."
+            },
+            "com.suse.lolly": { "cmyk": [15, 28, 47, 4], "spot": { "name": "H075_L075_C025", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "beach": {
+          "$value": "#f2e1bf",
+          "$description": "Beach",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Light sand between Honey and Meringue, for warm grounds."
+            },
+            "com.suse.lolly": { "cmyk": [4, 10, 29, 3], "spot": { "name": "H085_L090_C020", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "meringue": {
+          "$value": "#f9f7ef",
+          "$description": "Meringue",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Warm off-white for pages and paper."
+            },
+            "com.suse.lolly": { "cmyk": [0, 1, 5, 3], "spot": { "name": "H095_L095_C005", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "fuchsia": {
+          "$value": "#da1889",
+          "$description": "Fuchsia",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Correa, the native fuchsia: a vivid pink for celebrations, highlights and illustration. Sugar on Fuchsia 4.7:1, and 4.0:1 as a part on Liquorice."
+            },
+            "com.suse.lolly": { "cmyk": [12, 99, 0, 0], "spot": { "name": "H350_L050_C075", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "donut": {
+          "$value": "#f39dbd",
+          "$description": "Donut",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Pink icing for celebrations and illustration."
+            },
+            "com.suse.lolly": { "cmyk": [0, 51, 4, 0], "spot": { "name": "H355_L075_C035", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "jacaranda": {
+          "$value": "#7476e0",
+          "$description": "Jacaranda",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "The jacaranda's purple, wherever it is the right colour. An AI association is fine."
+            },
+            "com.suse.lolly": { "cmyk": [67, 52, 0, 0], "spot": { "name": "H290_L055_C055", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "lagoon": {
+          "$value": "#1a85c4",
+          "$description": "Lagoon",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Deep blue water, paired with Sky: links, charts and illustration, never one of Lolly's own grounds. Liquorice on Lagoon 4.6:1."
+            },
+            "com.suse.lolly": { "cmyk": [82, 37, 1, 2], "spot": { "name": "H255_L050_C045", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "sky": {
+          "$value": "#5fcaff",
+          "$description": "Sky",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Bright sky blue, paired with Lagoon: illustration, highlights and charts. Liquorice on Sky 10.1:1."
+            },
+            "com.suse.lolly": { "cmyk": [62, 4, 0, 0], "spot": { "name": "H235_L075_C040", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "reef": {
+          "$value": "#25c2c2",
+          "$description": "Reef",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Turquoise, the dramatic relief: information and the moment that matters most."
+            },
+            "com.suse.lolly": { "cmyk": [73, 0, 34, 0], "spot": { "name": "H195_L070_C040", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "swell": {
+          "$value": "#b6f1f1",
+          "$description": "Swell",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "The palest aqua, paired with Reef: a wash behind turquoise content. Liquorice on Swell 15:1."
+            },
+            "com.suse.lolly": { "cmyk": [36, 0, 17, 0], "spot": { "name": "H200_L085_C020", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "void": {
+          "$value": "#000000",
+          "$description": "Void",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "True black, a step below Liquorice: the stage at its darkest, mattes and letterboxes, and grounds for OLED screens. Sugar on Void 21:1."
+            },
+            "com.suse.lolly": { "cmyk": [71, 60, 43, 100], "spot": { "name": "H000_L005_C000", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "liquorice": {
+          "$value": "#09141a",
+          "$description": "Liquorice",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "The darkest colour: text everywhere and the cool hull of the dark theme."
+            },
+            "com.suse.lolly": { "cmyk": [89, 48, 32, 100], "spot": { "name": "H240_L005_C005", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "liquorice-raised": {
+          "$value": "#121d24",
+          "$description": "Liquorice raised",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "A raised surface on the Liquorice hull."
+            },
+            "com.suse.lolly": { "cmyk": [94, 47, 30, 100], "spot": { "name": "H240_L010_C005", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "liquorice-panel": {
+          "$value": "#1c282f",
+          "$description": "Liquorice panel",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "A panel on the Liquorice hull."
+            },
+            "com.suse.lolly": { "cmyk": [89, 55, 38, 87], "spot": { "name": "H235_L015_C005", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "basalt": {
+          "$value": "#373e44",
+          "$description": "Basalt",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Dark rock: edges and panels on dark, heavy type on light."
+            },
+            "com.suse.lolly": { "cmyk": [68, 48, 37, 71], "spot": { "name": "H250_L025_C005", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "pebble": {
+          "$value": "#99a0a4",
+          "$description": "Pebble",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "Mid grey for hairlines, and quiet text on dark."
+            },
+            "com.suse.lolly": { "cmyk": [36, 24, 23, 20], "spot": { "name": "H240_L065_C005", "book": "freieFarbe HLC Colour Atlas XL" } }
+          }
+        },
+        "sugar": {
+          "$value": "#ffffff",
+          "$description": "Sugar",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "White: the swirl's other half, light surfaces and text on dark."
+            },
+            "com.suse.lolly": { "cmyk": [0, 0, 0, 0] }
+          }
+        },
+        "daylight": {
+          "$value": "#ffffff",
+          "$description": "Daylight",
+          "$extensions": {
+            "tools.lolly.opal": {
+              "use": "The brightest white a screen can show: plain white on ordinary screens, and about 1,000 nits on HDR screens where HDR colour is drawn. For the export flash, highlights and the spotlight's hot centre.",
+              "hdr": { "display-p3": [1, 1, 1], "rec2100-pq": [0.75, 0.75, 0.75], "nits": 1000 }
+            },
+            "com.suse.lolly": { "cmyk": [0, 0, 0, 0] }
+          }
+        }
+      },
+      "spectrum": {
+        "$description": "Charts and data, in this order. A verdict never relies on colour alone: it always carries an icon and a word.",
+        "green-apple": {
+          "$value": "{color.brand.green-apple}",
+          "$description": "Green Apple"
+        },
+        "reef": {
+          "$value": "{color.brand.reef}",
+          "$description": "Reef"
+        },
+        "honey": {
+          "$value": "{color.brand.honey}",
+          "$description": "Honey"
+        },
+        "donut": {
+          "$value": "{color.brand.donut}",
+          "$description": "Donut"
+        },
+        "banksia": {
+          "$value": "{color.brand.banksia}",
+          "$description": "Banksia"
+        },
+        "olive": {
+          "$value": "{color.brand.olive}",
+          "$description": "Olive"
+        },
+        "outback": {
+          "$value": "{color.brand.outback}",
+          "$description": "Outback"
+        },
+        "bark": {
+          "$value": "{color.brand.bark}",
+          "$description": "Bark"
+        }
+      }
+    },
+    "font": {
+      "$type": "fontFamily",
+      "brand": {
+        "$value": "SUSE",
+        "$description": "Text and italics: SUSE, served by the shell, so it resolves on every profile without font files in this pack. SIL OFL 1.1."
+      },
+      "display": {
+        "$value": "Outfit",
+        "$description": "Headings: Outfit, served by the shell. Outfit has no italics, so emphasis falls back to SUSE."
+      },
+      "italic": {
+        "$value": "SUSE",
+        "$description": "Italics: SUSE, because Outfit has none."
+      },
+      "mono": {
+        "$value": "SUSE Mono",
+        "$description": "Code, readouts and data: SUSE Mono, served by the shell. SIL OFL 1.1."
+      }
+    },
+    "asset": {
+      "logo": {
+        "$description": "Lolly's own marks, shipped in this pack's catalog (lolly/logo/*). The mark is square, so horizontal and vertical share one file per treatment.",
+        "horizontal-primary": {
+          "$type": "asset",
+          "$value": "lolly/logo/primary"
+        },
+        "horizontal-primary-reverse": {
+          "$type": "asset",
+          "$value": "lolly/logo/reverse"
+        },
+        "horizontal-mono": {
+          "$type": "asset",
+          "$value": "lolly/logo/mono"
+        },
+        "horizontal-mono-reverse": {
+          "$type": "asset",
+          "$value": "lolly/logo/mono-reverse"
+        },
+        "vertical-primary": {
+          "$type": "asset",
+          "$value": "lolly/logo/primary"
+        },
+        "vertical-primary-reverse": {
+          "$type": "asset",
+          "$value": "lolly/logo/reverse"
+        },
+        "vertical-mono": {
+          "$type": "asset",
+          "$value": "lolly/logo/mono"
+        },
+        "vertical-mono-reverse": {
+          "$type": "asset",
+          "$value": "lolly/logo/mono-reverse"
+        }
+      }
+    }
+  },
+  "light": {
+    "color": {
+      "$type": "color",
+      "semantic": {
+        "$description": "The seven semantic slots for the light look, the crystal chalice: Liquorice on Sugar with a Spearmint accent.",
+        "primary": {
+          "$value": "{color.brand.spearmint}",
+          "$description": "The accent: Spearmint, 13.3:1 with a Sugar label"
+        },
+        "on-primary": {
+          "$value": "{color.brand.sugar}",
+          "$description": "Text and icons on the accent"
+        },
+        "secondary": {
+          "$value": "{color.brand.bunyapine}",
+          "$description": "Supporting accent: the mark green"
+        },
+        "surface": {
+          "$value": "{color.brand.sugar}",
+          "$description": "Canvas and page background"
+        },
+        "text": {
+          "$value": "{color.brand.liquorice}",
+          "$description": "Main foreground, 18.6:1 on Sugar"
+        },
+        "muted": {
+          "$value": "{color.brand.basalt}",
+          "$description": "Secondary foreground"
+        },
+        "edge": {
+          "$value": "{color.brand.pebble}",
+          "$description": "Hairlines and borders"
+        }
+      },
+      "role": {
+        "muted-ink": {
+          "$value": "{color.brand.basalt}",
+          "$description": "Captions, labels, axis years and descriptions: quieter than the text colour."
+        },
+        "secondary-ink": {
+          "$value": "{color.brand.basalt}",
+          "$description": "Secondary text on a card."
+        },
+        "strong-card-ink": {
+          "$value": "{color.brand.liquorice}",
+          "$description": "Secondary text on a strong card."
+        },
+        "accent-ink": {
+          "$value": "{color.brand.spearmint}",
+          "$description": "Accent text: subtitles, emphasised runs and markers."
+        },
+        "accent": {
+          "$value": "{color.brand.bunyapine}",
+          "$description": "Accent marks: dots, ticks and check marks."
+        },
+        "alert-ink": {
+          "$value": "{color.brand.bauxite}",
+          "$description": "Text that warns: a risk, a lock-in, the thing to avoid."
+        },
+        "hairline": {
+          "$value": "{color.brand.pebble}",
+          "$description": "Rules, axes and dividers on the slide ground."
+        },
+        "card-hairline": {
+          "$value": "{color.brand.pebble}",
+          "$description": "A rule drawn on a card."
+        },
+        "track": {
+          "$value": "{color.brand.pandanus}",
+          "$description": "Bars and tracks of a timeline or chart."
+        },
+        "card": {
+          "$value": "{color.brand.avocado}",
+          "$description": "A neutral card or table cell."
+        },
+        "quiet-card": {
+          "$value": "{color.brand.avocado}",
+          "$description": "A neutral panel that takes the brand ground in the dark theme."
+        },
+        "mint-card": {
+          "$value": "{color.brand.pandanus}",
+          "$description": "A lightly tinted card."
+        },
+        "strong-card": {
+          "$value": "{color.brand.wattle}",
+          "$description": "An emphasised card: the column or cell the slide argues for."
+        },
+        "alert-card": {
+          "$value": "{color.brand.beach}",
+          "$description": "A card that warns."
+        },
+        "quiet-alert-card": {
+          "$value": "{color.brand.meringue}",
+          "$description": "A card that warns, quieter in the dark theme."
+        },
+        "alert-tint": {
+          "$value": "{color.brand.arvo}",
+          "$description": "A fill that warns: the bar or block to avoid."
+        },
+        "alt-surface": {
+          "$value": "{color.brand.avocado}",
+          "$description": "An alternative slide ground."
+        }
+      },
+      "chrome": {
+        "$description": "The app's own chrome in the light look: Liquorice ink on Avocado, with Sugar for cards and menus. Muted and hover are left out, so the shell works them out from the page. Unsaved work is Honey deep, because Honey itself is too pale to read on a light page.",
+        "page": {
+          "$value": "{color.brand.avocado}",
+          "$description": "The page: Avocado."
+        },
+        "raised": {
+          "$value": "{color.brand.sugar}",
+          "$description": "Cards, side panels and the top bar."
+        },
+        "overlay": {
+          "$value": "{color.brand.sugar}",
+          "$description": "Menus, dialogs and popovers."
+        },
+        "edge": {
+          "$value": "{color.brand.pandanus}",
+          "$description": "Hairlines and field edges."
+        },
+        "ink": {
+          "$value": "{color.brand.liquorice}",
+          "$description": "Body text on the chrome."
+        },
+        "muted-ink": {
+          "$value": "{color.brand.basalt}",
+          "$description": "Secondary text on the chrome."
+        },
+        "unsaved": {
+          "$value": "#b57c0a",
+          "$description": "Honey deep: Honey at OKLCH lightness .63, so the unsaved mark reads 3:1 on the light chrome."
+        }
+      }
+    }
+  },
+  "dark": {
+    "color": {
+      "$type": "color",
+      "semantic": {
+        "$description": "The seven semantic slots for the dark look, the stealth ship: Sugar on a Liquorice hull with a Green Apple accent.",
+        "primary": {
+          "$value": "{color.brand.green-apple}",
+          "$description": "The accent: Green Apple, with a Liquorice label"
+        },
+        "on-primary": {
+          "$value": "{color.brand.liquorice}",
+          "$description": "Text and icons on the accent"
+        },
+        "secondary": {
+          "$value": "{color.brand.bunyapine}",
+          "$description": "Supporting accent: the mark green"
+        },
+        "surface": {
+          "$value": "{color.brand.liquorice}",
+          "$description": "Canvas and page background: the Liquorice hull"
+        },
+        "text": {
+          "$value": "{color.brand.sugar}",
+          "$description": "Main foreground, 18.6:1 on Liquorice"
+        },
+        "muted": {
+          "$value": "{color.brand.pebble}",
+          "$description": "Secondary foreground, 7:1 on Liquorice"
+        },
+        "edge": {
+          "$value": "{color.brand.basalt}",
+          "$description": "Hairlines and borders"
+        }
+      },
+      "role": {
+        "muted-ink": {
+          "$value": "{color.brand.pebble}",
+          "$description": "Captions, labels, axis years and descriptions: quieter than the text colour."
+        },
+        "secondary-ink": {
+          "$value": "{color.brand.pebble}",
+          "$description": "Secondary text on a card."
+        },
+        "strong-card-ink": {
+          "$value": "{color.brand.sugar}",
+          "$description": "Secondary text on a strong card."
+        },
+        "accent-ink": {
+          "$value": "{color.brand.green-apple}",
+          "$description": "Accent text: subtitles, emphasised runs and markers."
+        },
+        "accent": {
+          "$value": "{color.brand.green-apple}",
+          "$description": "Accent marks: dots, ticks and check marks."
+        },
+        "alert-ink": {
+          "$value": "{color.brand.arvo}",
+          "$description": "Text that warns: a risk, a lock-in, the thing to avoid."
+        },
+        "hairline": {
+          "$value": "{color.brand.basalt}",
+          "$description": "Rules, axes and dividers on the slide ground."
+        },
+        "card-hairline": {
+          "$value": "{color.brand.basalt}",
+          "$description": "A rule drawn on a card."
+        },
+        "track": {
+          "$value": "{color.brand.liquorice-panel}",
+          "$description": "Bars and tracks of a timeline or chart."
+        },
+        "card": {
+          "$value": "{color.brand.liquorice-raised}",
+          "$description": "A neutral card or table cell."
+        },
+        "quiet-card": {
+          "$value": "{color.brand.spearmint}",
+          "$description": "A neutral panel that takes the brand ground in the dark theme."
+        },
+        "mint-card": {
+          "$value": "{color.brand.liquorice-panel}",
+          "$description": "A lightly tinted card."
+        },
+        "strong-card": {
+          "$value": "{color.brand.basalt}",
+          "$description": "An emphasised card: the column or cell the slide argues for."
+        },
+        "alert-card": {
+          "$value": "{color.brand.ochre}",
+          "$description": "A card that warns."
+        },
+        "quiet-alert-card": {
+          "$value": "{color.brand.liquorice-panel}",
+          "$description": "A card that warns, quieter in the dark theme."
+        },
+        "alert-tint": {
+          "$value": "{color.brand.bauxite}",
+          "$description": "A fill that warns: the bar or block to avoid."
+        },
+        "alt-surface": {
+          "$value": "{color.brand.liquorice-raised}",
+          "$description": "An alternative slide ground."
+        }
+      },
+      "chrome": {
+        "$description": "The app's own chrome in the dark look: Sugar ink on the Liquorice hull, with its raised surface and panel for cards and menus. Hover is left out, so the shell works it out from the page. Unsaved work is Honey.",
+        "page": {
+          "$value": "{color.brand.liquorice}",
+          "$description": "The page: Liquorice."
+        },
+        "raised": {
+          "$value": "{color.brand.liquorice-raised}",
+          "$description": "Cards, side panels and the top bar."
+        },
+        "overlay": {
+          "$value": "{color.brand.liquorice-panel}",
+          "$description": "Menus, dialogs and popovers."
+        },
+        "muted": {
+          "$value": "{color.brand.liquorice-panel}",
+          "$description": "Wells, tracks and quiet fills."
+        },
+        "hover": {
+          "$value": "#263239",
+          "$description": "Hover: a step above the panel, so Pebble's secondary text keeps 4.5:1 on a hovered row."
+        },
+        "edge": {
+          "$value": "{color.brand.basalt}",
+          "$description": "Hairlines and field edges."
+        },
+        "ink": {
+          "$value": "{color.brand.sugar}",
+          "$description": "Body text on the chrome."
+        },
+        "muted-ink": {
+          "$value": "{color.brand.pebble}",
+          "$description": "Secondary text on the chrome."
+        },
+        "unsaved": {
+          "$value": "{color.brand.honey}",
+          "$description": "Unsaved work: Honey."
+        }
+      }
+    }
+  },
+  "$extensions": {
+    "com.suse.lolly": {
+      "emoji": {
+        "schemaVersion": 1,
+        "primary": {
+          "id": "community/emoji/fluent/flat",
+          "pin": {
+            "version": "2026.8.24"
+          },
+          "checksum": "sha256:b64f604e6977245bc79b99468a12ecccada32822cf74bbe7cb0cc34fca14b62f"
+        },
+        "fallbacks": [],
+        "metricsPolicy": "inline-em-v1",
+        "treatment": {
+          "mode": "snap",
+          "strengthBps": 10000,
+          "palette": [
+            { "id": "{color.brand.spearmint}", "hex": "#033633" },
+            { "id": "{color.brand.bunyapine}", "hex": "#008657" },
+            { "id": "{color.brand.green-apple}", "hex": "#50c369" },
+            { "id": "{color.brand.pandanus}", "hex": "#ace1ad" },
+            { "id": "{color.brand.avocado}", "hex": "#edf6e0" },
+            { "id": "{color.brand.khaki}", "hex": "#444f05" },
+            { "id": "{color.brand.olive}", "hex": "#818e44" },
+            { "id": "{color.brand.ochre}", "hex": "#72251c" },
+            { "id": "{color.brand.bauxite}", "hex": "#a43427" },
+            { "id": "{color.brand.outback}", "hex": "#c55123" },
+            { "id": "{color.brand.arvo}", "hex": "#ef9275" },
+            { "id": "{color.brand.banksia}", "hex": "#ee9138" },
+            { "id": "{color.brand.honey}", "hex": "#fac044" },
+            { "id": "{color.brand.wattle}", "hex": "#fdec9e" },
+            { "id": "{color.brand.bark}", "hex": "#734f31" },
+            { "id": "{color.brand.pancake}", "hex": "#d8b890" },
+            { "id": "{color.brand.beach}", "hex": "#f2e1bf" },
+            { "id": "{color.brand.meringue}", "hex": "#f9f7ef" },
+            { "id": "{color.brand.fuchsia}", "hex": "#da1889" },
+            { "id": "{color.brand.donut}", "hex": "#f39dbd" },
+            { "id": "{color.brand.jacaranda}", "hex": "#7476e0" },
+            { "id": "{color.brand.lagoon}", "hex": "#1a85c4" },
+            { "id": "{color.brand.sky}", "hex": "#5fcaff" },
+            { "id": "{color.brand.reef}", "hex": "#25c2c2" },
+            { "id": "{color.brand.swell}", "hex": "#b6f1f1" },
+            { "id": "{color.brand.void}", "hex": "#000000" },
+            { "id": "{color.brand.liquorice}", "hex": "#09141a" },
+            { "id": "{color.brand.liquorice-raised}", "hex": "#121d24" },
+            { "id": "{color.brand.liquorice-panel}", "hex": "#1c282f" },
+            { "id": "{color.brand.basalt}", "hex": "#373e44" },
+            { "id": "{color.brand.pebble}", "hex": "#99a0a4" },
+            { "id": "{color.brand.sugar}", "hex": "#ffffff" },
+            { "id": "{color.brand.daylight}", "hex": "#ffffff" },
+            { "id": "{color.spectrum.green-apple}", "hex": "#50c369" },
+            { "id": "{color.spectrum.reef}", "hex": "#25c2c2" },
+            { "id": "{color.spectrum.honey}", "hex": "#fac044" },
+            { "id": "{color.spectrum.donut}", "hex": "#f39dbd" },
+            { "id": "{color.spectrum.banksia}", "hex": "#ee9138" },
+            { "id": "{color.spectrum.olive}", "hex": "#818e44" },
+            { "id": "{color.spectrum.outback}", "hex": "#c55123" },
+            { "id": "{color.spectrum.bark}", "hex": "#734f31" },
+            { "id": "{color.semantic.primary}", "hex": "#033633" },
+            { "id": "{color.semantic.on-primary}", "hex": "#ffffff" },
+            { "id": "{color.semantic.secondary}", "hex": "#008657" },
+            { "id": "{color.semantic.surface}", "hex": "#ffffff" },
+            { "id": "{color.semantic.text}", "hex": "#09141a" },
+            { "id": "{color.semantic.muted}", "hex": "#373e44" },
+            { "id": "{color.semantic.edge}", "hex": "#99a0a4" },
+            { "id": "{color.role.muted-ink}", "hex": "#373e44" },
+            { "id": "{color.role.secondary-ink}", "hex": "#373e44" },
+            { "id": "{color.role.strong-card-ink}", "hex": "#09141a" },
+            { "id": "{color.role.accent-ink}", "hex": "#033633" },
+            { "id": "{color.role.accent}", "hex": "#008657" },
+            { "id": "{color.role.alert-ink}", "hex": "#a43427" },
+            { "id": "{color.role.hairline}", "hex": "#99a0a4" },
+            { "id": "{color.role.card-hairline}", "hex": "#99a0a4" },
+            { "id": "{color.role.track}", "hex": "#ace1ad" },
+            { "id": "{color.role.card}", "hex": "#edf6e0" },
+            { "id": "{color.role.quiet-card}", "hex": "#edf6e0" },
+            { "id": "{color.role.mint-card}", "hex": "#ace1ad" },
+            { "id": "{color.role.strong-card}", "hex": "#fdec9e" },
+            { "id": "{color.role.alert-card}", "hex": "#f2e1bf" },
+            { "id": "{color.role.quiet-alert-card}", "hex": "#f9f7ef" },
+            { "id": "{color.role.alert-tint}", "hex": "#ef9275" }
+          ],
+          "recipe": "emoji-treatment-v1"
+        }
+      }
+    }
+  }
+}

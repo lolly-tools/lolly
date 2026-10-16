@@ -1,0 +1,75 @@
+{
+  "v": 1,
+  "assets": [
+    {
+      "id": "lolly/demo/lorikeet-lollipop",
+      "source": "/catalog/assets/lolly/demo/lorikeet-lollipop.jpg",
+      "credits": {
+        "title": "Lorikeet with a Lolly",
+        "license": "CC0-1.0"
+      },
+      "products": [
+        {
+          "v": 1,
+          "sourceSha256": "cce68cc1b65f2d2beded4f96d0e8302ed8fa245473dd0c798c8f1ad670113592",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.248.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 320,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "59c387dae1144fc46fe5d0690cbbb8f896c54a3a0da4fc22b02b5b6fbcd6e9db",
+          "file": "out.59c387dae1144fc4.webp",
+          "width": 320,
+          "height": 516,
+          "size": 27478,
+          "credits": {
+            "title": "Lorikeet with a Lolly",
+            "license": "CC0-1.0"
+          }
+        },
+        {
+          "v": 1,
+          "sourceSha256": "cce68cc1b65f2d2beded4f96d0e8302ed8fa245473dd0c798c8f1ad670113592",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.248.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 640,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "db55986a3f77e5bb7c37d5d288442c542c9463038f6740f3e4ffb5407237c68f",
+          "file": "out.db55986a3f77e5bb.webp",
+          "width": 640,
+          "height": 1032,
+          "size": 67042,
+          "credits": {
+            "title": "Lorikeet with a Lolly",
+            "license": "CC0-1.0"
+          }
+        },
+        {
+          "v": 1,
+          "sourceSha256": "cce68cc1b65f2d2beded4f96d0e8302ed8fa245473dd0c798c8f1ad670113592",
+          "signerVersion": "ca:0310877a51b1a56bcf27bc09bb729f83b2735e98b1711855f7fef62846cd1f40:engine:1.248.0:sharp:0.35.5:rendition:1",
+          "spec": {
+            "w": 1280,
+            "fit": "inside",
+            "format": "webp",
+            "q": 80
+          },
+          "sha256": "64352afbe255f9b84093e848560cef02b44c6bd8212fe0f4b01e908d16d3e00f",
+          "file": "out.64352afbe255f9b8.webp",
+          "width": 1280,
+          "height": 2063,
+          "size": 202308,
+          "credits": {
+            "title": "Lorikeet with a Lolly",
+            "license": "CC0-1.0"
+          }
+        }
+      ]
+    }
+  ]
+}

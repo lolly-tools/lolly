@@ -1,0 +1,75 @@
+{
+  "name": "Photo Colour Treatments",
+  "description": "Colour treatments for photo assets, derived from the brand palette: greyscale plus soft two-colour duotone washes (shadow maps to shadows, highlight to highlights), a three-stop deep tritone and a Tone photo look (an OKLab gradient map from the brand ink to a soft light tone that keeps white type legible, with a darker variant for a dark theme). Chosen at pick time and baked at resolve. 'None' is the plain photo (no id suffix).",
+  "treatments": [
+    {
+      "id": "greyscale",
+      "label": "Greyscale",
+      "kind": "greyscale",
+      "previewBg": "#f0f0f0"
+    },
+    {
+      "id": "brand",
+      "label": "Brand",
+      "kind": "duotone",
+      "shadow": "#3e1127",
+      "highlight": "#ffd9eb"
+    },
+    {
+      "id": "green",
+      "label": "Green",
+      "kind": "duotone",
+      "shadow": "#002d0c",
+      "highlight": "#d0f3d4"
+    },
+    {
+      "id": "ember",
+      "label": "Ember",
+      "kind": "duotone",
+      "shadow": "#411403",
+      "highlight": "#ffdccd"
+    },
+    {
+      "id": "indigo",
+      "label": "Indigo",
+      "kind": "duotone",
+      "shadow": "#1e1e47",
+      "highlight": "#e0e5ff"
+    },
+    {
+      "id": "deep",
+      "label": "Deep",
+      "kind": "duotone",
+      "shadow": "#000000",
+      "mid": "#3e1127",
+      "highlight": "#da1889",
+      "previewBg": "#3e1127"
+    },
+    {
+      "id": "tone",
+      "label": "Tone",
+      "kind": "gradient-map",
+      "stops": [
+        "#121212",
+        "#8a4c68",
+        "#b1b1b1"
+      ],
+      "amount": 100,
+      "contrast": 16,
+      "lightness": -4,
+      "previewBg": "#121212",
+      "themes": {
+        "dark": {
+          "stops": [
+            "#030303",
+            "#242424",
+            "#90526d"
+          ],
+          "amount": 100,
+          "contrast": 18,
+          "lightness": 0
+        }
+      }
+    }
+  ]
+}
