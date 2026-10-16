@@ -13,10 +13,14 @@ Run it locally with:
 LOLLY_PROFILE=lolly-demo pnpm run dev:web
 ```
 
-Nothing ships this profile yet. lolly.tools, the release workflows, the
-Dockerfiles and `scripts/data/ship-targets.json` still name `lolly-start`, and
-switching the public build is a production change that goes through the
-deployment handoff with one named owner.
+lolly.tools ships this profile: `scripts/data/ship-targets.json` and the
+lolly.tools jobs in `.github/workflows/deployment-suse.yml` (the web frontend and
+image, its probe, the MCP browser image and the /info build) build with
+`lolly-demo`.
+The packaged apps keep `lolly-start` through `release-frontend.yml`'s default,
+and the Dockerfiles' own defaults stay `lolly-start`. Putting a build on the
+live site is still a production change that goes through the deployment
+handoff with one named owner.
 
 ## What's in the pack
 

@@ -31,7 +31,7 @@ function environment(bin: string): NodeJS.ProcessEnv {
 }
 
 test('managed targets retain catalog coverage without a Vercel production identity', () => {
-  assert.deepEqual(shipProfiles(), ['lolly-start']);
+  assert.deepEqual(shipProfiles(), ['lolly-demo']);
   assert.equal(shipTargets()[0]?.driver, 'k3s');
   assert.equal(shipTargets()[0]?.project, 'lolly-public');
   assert.match(shipTargetError(shipTargets()[0]!, '') ?? '', /operator-managed K3s/);
@@ -144,4 +144,57 @@ test('model adapter rejects incomplete or retired opt-ins before touching its as
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+// One job's block from a workflow file: from `  <id>:` to the next top-level job.
+function workflowJob(workflow: string, id: string): string {
+  const start = workflow.indexOf(`\n  ${id}:\n`);
+  assert.ok(start >= 0, `no ${id} job`);
+  const rest = workflow.slice(start + 1);
+  const next = rest.slice(1).search(/\n {2}(?:#|[a-z0-9-]+:\n)/);
+  return next < 0 ? rest : rest.slice(0, next + 1);
+}
+
+test('every lolly.tools build uses the ship target profile, and the packaged apps keep lolly-start', () => {
+  const profile = shipTargets().find(target => target.name === 'lolly-public')?.profile;
+  const read = (path: string) => readFileSync(join(ROOT, path), 'utf8');
+  assert.equal(profile, 'lolly-demo');
+  const workflow = read('.github/workflows/deployment-suse.yml');
+  assert.match(workflowJob(workflow, 'web-frontend'), new RegExp(`^ +profile: ${profile}$`, 'm'));
+  for (const job of ['web-image', 'mcp-image', 'mcp-browser-image']) {
+    assert.match(workflowJob(workflow, job), new RegExp(`--build-arg LOLLY_PROFILE=${profile} `));
+  }
+  for (const job of ['web-image', 'service-images', 'mcp-image', 'mcp-browser-image']) {
+    assert.match(workflowJob(workflow, job), new RegExp(`--label org\\.lolly\\.profile=${profile} `));
+  }
+  for (const job of ['probe-web-shell', 'info-docs']) {
+    assert.match(workflowJob(workflow, job), new RegExp(`^ +LOLLY_PROFILE: ${profile}$`, 'm'));
+  }
+  for (const job of ['web-frontend', 'web-image', 'probe-web-shell', 'service-images', 'mcp-image', 'mcp-browser-image', 'info-docs']) {
+    assert.doesNotMatch(workflowJob(workflow, job), /lolly-start/, `${job} still builds with lolly-start`);
+  }
+  // The whole file, not only the jobs listed above: a receipt check that dropped its
+  // LOLLY_PROFILE would fall back to lolly-start at dispatch, so every profile
+  // the file sets must be the ship profile and lolly-start must not appear at all.
+  assert.doesNotMatch(workflow, /lolly-start/);
+  const profiles = [...workflow.matchAll(/LOLLY_PROFILE[=:] ?([a-z0-9-]+)|org\.lolly\.profile=([a-z0-9-]+)|^ +profile: ([a-z0-9-]+)$/gm)]
+    .map(m => m[1] ?? m[2] ?? m[3]);
+  assert.ok(profiles.length >= 10, `expected every lolly.tools job to set a profile, found ${profiles.length}`);
+  assert.deepEqual([...new Set(profiles)], [profile]);
+  const reusable = read('.github/workflows/release-frontend.yml');
+  assert.match(reusable, /^ {6}profile:\n {8}required: false\n {8}type: string\n {8}default: lolly-start$/m);
+  assert.match(reusable, /^ {2}LOLLY_PROFILE: \$\{\{ inputs\.profile \}\}$/m);
+  assert.equal(reusable.match(/brands\/\$\{\{ inputs\.profile \}\}\/catalog\/tools/g)?.length, 2);
+  assert.doesNotMatch(reusable, /brands\/lolly-start\//);
+  // The packaged apps call the same workflow and must keep its lolly-start default.
+  for (const app of ['desktop-extra', 'linux-rpm', 'flatpak', 'ios-release', 'linux-arm64', 'macos-intel']) {
+    const caller = read(`.github/workflows/${app}.yml`);
+    assert.match(caller, /uses: \.\/\.github\/workflows\/release-frontend\.yml/, `${app} no longer calls release-frontend.yml`);
+    assert.doesNotMatch(caller, /^ +profile: /m, `${app} must not pass a profile`);
+  }
+  // The web build's origin guard: the ship profile canonicalises to the target's domain.
+  const target = shipTargets().find(t => t.name === 'lolly-public');
+  const vite = readFileSync(join(ROOT, 'shells/web/vite.config.js'), 'latin1');
+  const canon = vite.match(/const CANON_BY_PROFILE = \{([^}]*)\}/)?.[1] ?? '';
+  assert.match(canon, new RegExp(`'${profile}': '${target?.domain?.replace(/\./g, '\\.')}'`), 'the shipped profile keeps the canonical-origin guard');
 });
