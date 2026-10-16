@@ -1274,7 +1274,7 @@ box-shadow: var(--ui-elevation-control);
 .valid-item-badge.is-bad  { color: hsl(var(--vf-fail)); background: hsl(var(--vf-fail) / 0.12); }
 .valid-item-badge.is-warn { color: hsl(var(--vf-warn)); background: hsl(var(--vf-warn) / 0.14); }
 .valid-item-badge.is-none { color: var(--ui-color-text-muted); background: color-mix(in srgb, var(--ui-color-surface-muted) 50%, transparent); }
-.valid-item-badge.is-busy { color: var(--ui-color-text-muted); background: color-mix(in srgb, var(--ui-color-surface-muted) 40%, transparent); border-style: dashed; }
+.valid-item-badge.is-busy { color: var(--ui-color-text-muted); background: color-mix(in srgb, var(--ui-color-surface-muted) 40%, transparent); }
 
 /* Maker pill - the "who made it" lead on an intact collapsed row, mirroring the
    timeline's maker pills: Lolly reads the same glossy green as the good badge,

@@ -136,6 +136,7 @@
     "check:workflow-pins": "node --test tests/workflow-pins.test.ts",
     "check:maintainability": "node scripts/check-maintainability-budget.ts",
     "maintainability:baseline": "node scripts/check-maintainability-budget.ts --write",
+    "check:house-rules": "node scripts/check-house-rules.ts",
     "check:locale-markup": "node scripts/validate-locale-markup.ts",
     "check:parser-assurance": "node scripts/check-parser-assurance.ts",
     "build:rebrand-fixtures": "node scripts/build-rebrand-fixtures.ts",

@@ -54,7 +54,6 @@
   color: var(--ui-color-action-primary);
 }
 .dl-section .dl-button[aria-pressed="mixed"] {
-  border-style: dashed;
   border-color: var(--ui-color-border-default);
 }
 .dl-section .dl-button:disabled,

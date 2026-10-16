@@ -78,7 +78,7 @@
 .cl-filter-label { display: flex; align-items: center; gap: 10px; color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); }
 .cl-mode-filter { min-height: var(--ui-size-target); padding: 10px 32px 10px 12px; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); background: var(--ui-color-surface-raised); color: var(--ui-color-text-default); font-size: var(--ui-type-body); }
 .cl-result-count { margin: 0 0 32px; font: var(--ui-type-caption)/1.5 var(--font-mono); color: var(--ui-color-text-muted); }
-.cl-empty { text-align: center; border: 1px dashed var(--ui-color-border-default); border-radius: var(--ui-radius-panel); padding: 40px 16px; margin-bottom: 40px; }
+.cl-empty { text-align: center; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel); padding: 40px 16px; margin-bottom: 40px; }
 .cl-empty p { color: var(--ui-color-text-muted); }
 .cl-component-section .cl-section-head { padding-bottom: 16px; border-bottom: 1px solid var(--ui-color-border-default); flex-wrap: wrap; }
 .cl-component-section .cl-section-head h2 { font-size: var(--ui-type-heading); }

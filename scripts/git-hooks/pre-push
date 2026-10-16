@@ -19,3 +19,5 @@ printf '→ pre-push: vernacular gate…\n'
 "$node_bin" scripts/check-code-comment-vernacular.ts || { printf '\n✗ code-comment vernacular failed - fix, or bypass with: git push --no-verify\n'; exit 1; }
 "$node_bin" scripts/check-docs-vernacular.ts || { printf '\n✗ docs vernacular failed - fix, or bypass with: git push --no-verify\n'; exit 1; }
 printf '✓ vernacular clean\n'
+printf '→ pre-push: house rules…\n'
+"$node_bin" scripts/check-house-rules.ts || { printf '\n✗ house rules failed - see the reasons above\n'; exit 1; }

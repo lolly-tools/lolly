@@ -693,7 +693,7 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 .fc-empty-add {
   pointer-events: auto; cursor: pointer; font: inherit; font-weight: 600;
   padding: 12px 20px; border-radius: var(--radius-md);
-  border: 1.5px dashed hsl(var(--border)); background: hsl(var(--card) / 0.82);
+  border: 1.5px solid hsl(var(--border)); background: hsl(var(--card) / 0.82);
   color: hsl(var(--muted-foreground)); backdrop-filter: blur(3px);
 }
 .fc-empty-add:hover { border-color: hsl(var(--primary)); color: hsl(var(--foreground)); }

@@ -98,8 +98,9 @@
 .app-history-entry-meta time { color: var(--ui-color-text-muted); font-variant-numeric: tabular-nums; }
 .app-history-kind { display: inline-flex; align-items: center; gap: .35rem; font-weight: 600; color: var(--ui-color-text-muted); }
 .app-history-kind svg { width: var(--ui-type-body); height: var(--ui-type-body); }
-.app-history-row[data-kind=milestone] .app-history-kind { color: var(--ui-color-action-primary); }
-.app-history-row[data-kind=milestone] { border-inline-start: 3px solid var(--ui-color-selection-border); }
+.app-history-row[data-kind=milestone] { background: color-mix(in srgb, var(--ui-color-selection-border) 12%, var(--ui-color-surface-canvas)); }
+.app-history-row[data-kind=milestone] .app-history-kind { color: var(--ui-color-text-default); }
+.app-history-row[data-kind=milestone] .app-history-kind svg { color: var(--ui-color-action-primary); }
 .app-history-entry-context { display: flex; align-items: center; flex-wrap: wrap; column-gap: .7rem; row-gap: .3rem; font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); }
 .app-history-tool { font-weight: 550; }
 .app-history-project { display: inline-flex; align-items: center; gap: .35rem; min-width: 0; max-width: 100%; color: inherit; text-decoration: none; }
@@ -129,7 +130,7 @@
 .app-history-pagination { display: flex; justify-content: space-between; gap: var(--ui-space-control-block); padding-block: 1rem; }
 .app-history-pagination > :last-child { margin-inline-start: auto; }
 .app-history-note { margin: 1rem 0 0; padding-block-start: 1rem; border-block-start: 1px solid var(--ui-color-border-default); font-size: var(--ui-type-caption); line-height: 1.7; color: var(--ui-color-text-muted); }
-.app-history-empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 3.5rem 1rem; border: 1px dashed var(--ui-color-border-default); border-radius: var(--ui-radius-card); }
+.app-history-empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 3.5rem 1rem; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-card); }
 .app-history-empty > .app-history-icon { width: 4rem; height: 4rem; border-radius: var(--radius-round); background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); }
 .app-history-empty > .app-history-icon svg { width: 1.75rem; height: 1.75rem; }
 .app-history-empty h3 { font-size: var(--ui-type-heading); margin: 1.25rem 0 .5rem; }
