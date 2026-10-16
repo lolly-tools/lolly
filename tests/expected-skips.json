@@ -1242,41 +1242,6 @@
       "owner": "tests"
     },
     {
-      "file": "tests/deep-link-state.browser.test.ts",
-      "fullName": "Design workspace state restores while Share contains only content and output",
-      "reason": "LOLLY_DEEP_LINK_TEST_URL environment variable not set",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/deep-link-state.browser.test.ts",
-      "fullName": "live Gallery and Assets filters agree with reload and browser history",
-      "reason": "LOLLY_DEEP_LINK_TEST_URL environment variable not set",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/deep-link-state.browser.test.ts",
-      "fullName": "path shortcuts and installed-app view forms preserve queries in the actual router",
-      "reason": "LOLLY_DEEP_LINK_TEST_URL environment variable not set",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/deep-link-state.browser.test.ts",
-      "fullName": "settings focus, open cards and search restore without changing saved preferences",
-      "reason": "LOLLY_DEEP_LINK_TEST_URL environment variable not set",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/deep-link-state.browser.test.ts",
-      "fullName": "tool content and output settings survive first sync, a fresh context and same-tool navigation",
-      "reason": "LOLLY_DEEP_LINK_TEST_URL environment variable not set",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
       "file": "tests/design-authoring-sleepwalking.test.ts",
       "fullName": "one package call carries the authored Sleepwalking deck to the delivered session, media and findings",
       "reason": "the private Sleepwalking authoring fixture is not on this machine (set LOLLY_AUTHOR_SLEEPWALKING and LOLLY_CHECK_SLEEPWALKING)",
