@@ -66,39 +66,129 @@ export class PdfMatrix {
   }
 }
 
-/** Fill and stroke alpha, the only graphics-state entries the walkers set. */
+/** PDF blend modes by their CSS mix-blend-mode names. plus-lighter and plus-darker have none. */
+export const PDF_BLEND_MODES: Record<string, string> = {
+  normal: 'Normal', multiply: 'Multiply', screen: 'Screen', overlay: 'Overlay', darken: 'Darken',
+  lighten: 'Lighten', 'color-dodge': 'ColorDodge', 'color-burn': 'ColorBurn', 'hard-light': 'HardLight',
+  'soft-light': 'SoftLight', difference: 'Difference', exclusion: 'Exclusion', hue: 'Hue',
+  saturation: 'Saturation', color: 'Color', luminosity: 'Luminosity',
+};
+
+/** Fill and stroke alpha and a blend mode, the graphics-state entries the walkers set. */
 export class PdfGState {
   opacity: number;
   strokeOpacity: number;
-  constructor(opts: { opacity?: number; 'stroke-opacity'?: number } = {}) {
+  /** A PDF blend mode name such as HardLight; Normal when absent. */
+  blend: string | null;
+  constructor(opts: { opacity?: number; 'stroke-opacity'?: number; blend?: string | null } = {}) {
     this.opacity = opts.opacity ?? 1;
     this.strokeOpacity = opts['stroke-opacity'] ?? this.opacity;
+    this.blend = opts.blend ?? null;
   }
 }
 
-/** An axial or radial gradient, painted with the `sh` operator. */
+/**
+ * An axial or radial gradient, painted with the `sh` operator. Colours are 0 to 255
+ * per channel: three for DeviceRGB, one for DeviceGray, which is how a gradient's stop
+ * opacities travel as the luminosity of a soft mask.
+ */
 export class PdfShadingPattern {
   type: 'axial' | 'radial';
   coords: number[];
   colors: { offset: number; color: number[] }[];
-  constructor(type: 'axial' | 'radial', coords: number[], colors: { offset: number; color: number[] }[]) {
+  space: 'DeviceRGB' | 'DeviceGray';
+  constructor(type: 'axial' | 'radial', coords: number[], colors: { offset: number; color: number[] }[], space: 'DeviceRGB' | 'DeviceGray' = 'DeviceRGB') {
     this.type = type;
     this.coords = coords;
     this.colors = colors;
+    this.space = space;
   }
 }
 
+/**
+ * A gradient fill: the shading's key, the matrix from gradient space to the current
+ * user space and optionally the key of a DeviceGray shading of the stop opacities.
+ */
+export interface ShadingFill { key: string; matrix?: PdfMatrix; alpha?: string }
+
 type Style = 'S' | 'D' | 'F' | 'DF' | 'FD' | 'f' | 'f*' | 'B' | 'B*' | 'n' | null | undefined;
 
-interface PageState {
-  page: PDFPage;
-  w: number;
-  h: number;
+/** Where operators and resource uses go: a page, or a form XObject being recorded. */
+interface Sink {
   ops: string[];
   fonts: Set<string>;
   images: Set<string>;
   shadings: Set<string>;
   gstates: Set<string>;
+  forms: Set<string>;
+  patterns: Set<string>;
+  /** The fill alpha in force, and the values q has saved. A group starts at 1. */
+  alpha: number;
+  /** The transform in force from user space to this stream's own space, as a b c d e f. */
+  ctm: number[];
+  /** From this stream's own space to the page's: identity for a page, where a group is drawn for a group. */
+  toPage: number[];
+  saved: { alpha: number; ctm: number[] }[];
+}
+
+interface PageState extends Sink {
+  page: PDFPage;
+  w: number;
+  h: number;
+}
+
+/**
+ * A form XObject: a transparency group a translucent SVG group is painted through, or
+ * the luminosity group of a soft mask. `bbox` is in the space the form was drawn in.
+ */
+interface FormEntry { name: string; sink: Sink; bbox: number[]; space: 'DeviceRGB' | 'DeviceGray'; matrix?: number[] }
+
+const IDENTITY = [1, 0, 0, 1, 0, 0];
+const newSink = (ctm: number[] = IDENTITY, toPage: number[] = IDENTITY): Sink => ({
+  ops: [], fonts: new Set(), images: new Set(), shadings: new Set(), gstates: new Set(), forms: new Set(), patterns: new Set(),
+  alpha: 1, ctm, toPage, saved: [],
+});
+
+/** Matrix product in the a b c d e f order: `n` applies first, then `m`. */
+function matMul(m: number[], n: number[]): number[] {
+  return [
+    m[0]! * n[0]! + m[2]! * n[1]!, m[1]! * n[0]! + m[3]! * n[1]!,
+    m[0]! * n[2]! + m[2]! * n[3]!, m[1]! * n[2]! + m[3]! * n[3]!,
+    m[0]! * n[4]! + m[2]! * n[5]! + m[4]!, m[1]! * n[4]! + m[3]! * n[5]! + m[5]!,
+  ];
+}
+
+function matInvert(m: number[]): number[] | null {
+  const det = m[0]! * m[3]! - m[1]! * m[2]!;
+  if (!Number.isFinite(det) || Math.abs(det) < 1e-12) return null;
+  return [m[3]! / det, -m[1]! / det, -m[2]! / det, m[0]! / det, (m[2]! * m[5]! - m[3]! * m[4]!) / det, (m[1]! * m[4]! - m[0]! * m[5]!) / det];
+}
+
+/** One box cut to another, kept at least a point wide so a form is never empty. */
+function clipBox(b: number[], to: number[]): number[] {
+  const x0 = Math.max(b[0]!, to[0]!), y0 = Math.max(b[1]!, to[1]!);
+  return [x0, y0, Math.max(x0 + 1, Math.min(b[2]!, to[2]!)), Math.max(y0 + 1, Math.min(b[3]!, to[3]!))];
+}
+
+/** A box's four corners through a matrix, boxed again, as [x0, y0, x1, y1]. */
+function boxThrough(m: number[], b: number[]): number[] {
+  const pts = [[b[0]!, b[1]!], [b[2]!, b[1]!], [b[0]!, b[3]!], [b[2]!, b[3]!]].map(([x, y]) => [m[0]! * x! + m[2]! * y! + m[4]!, m[1]! * x! + m[3]! * y! + m[5]!]);
+  const xs = pts.map(p => p[0]!), ys = pts.map(p => p[1]!);
+  return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+}
+
+/** The extent of buffered path operators, padded by a point, for a mask form's bounding box. */
+function pathOpsBox(ops: readonly string[]): number[] {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const add = (x: number, y: number): void => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); };
+  for (const op of ops) {
+    const parts = op.trim().split(/\s+/);
+    const name = parts.pop();
+    const v = parts.map(Number);
+    if (name === 're') { add(v[0]!, v[1]!); add(v[0]! + v[2]!, v[1]! + v[3]!); continue; }
+    for (let i = 0; i + 1 < v.length; i += 2) add(v[i]!, v[i + 1]!);
+  }
+  return Number.isFinite(x0) ? [x0 - 1, y0 - 1, x1 + 1, y1 + 1] : [0, 0, 0, 0];
 }
 
 interface FontEntry {
@@ -118,15 +208,30 @@ interface FontEntry {
 
 interface ImageEntry { name: string; src: string }
 interface ShadingEntry { name: string; pattern: PdfShadingPattern }
-interface GStateEntry { name: string; gs: PdfGState }
+/** Fill and stroke alpha, or a soft mask whose luminosity group is the form `mask`. */
+interface GStateEntry { name: string; gs?: PdfGState; mask?: string }
+/** A shading pattern: the shading and the matrix from its space to the space of the stream that paints with the pattern. */
+interface PatternEntry { name: string; shading: string; matrix: number[] }
 
 /** Up to four decimals, never exponent notation (which PDF does not accept). */
 function num(v: number): string {
+  return fixed(v, 4);
+}
+
+function fixed(v: number, places: number): string {
   if (!Number.isFinite(v)) return '0';
-  const s = v.toFixed(4);
+  const s = v.toFixed(places);
   const trimmed = s.includes('.') ? s.replace(/\.?0+$/, '') : s;
   return trimmed === '' || trimmed === '-' || trimmed === '-0' ? '0' : trimmed;
 }
+
+/**
+ * A matrix entry with the precision a change of space needs. A soft mask is restated
+ * in page points through a form Matrix that is the inverse of the page transform, so at
+ * 300 points per user unit an entry is about 0.00333; four places would write 0.0033
+ * and move a mask edge by several pixels.
+ */
+const fine = (v: number): string => fixed(v, 10);
 
 /** Two decimals with trailing zeros dropped, the colour-operator form. */
 function f2(v: number): string {
@@ -203,10 +308,17 @@ export class PdfDoc {
   private drawOp = '0 G';
   private pages: PageState[] = [];
   private current!: PageState;
+  /** Where the next operator goes: the current page, or the form being recorded. */
+  private sink!: Sink;
+  private sinkStack: Sink[] = [];
   private fonts = new Map<string, FontEntry>();
   private images = new Map<string, ImageEntry>();
   private shadings = new Map<string, ShadingEntry>();
   private gstates = new Map<string, GStateEntry>();
+  private forms = new Map<string, FormEntry>();
+  private patterns = new Map<string, PatternEntry>();
+  /** The gradient text is filled with until cleared, instead of the text colour. */
+  private textFill: ShadingFill | null = null;
   private vfs = new Map<string, Uint8Array>();
   private activeFont: FontEntry;
   private fontSize = 16;
@@ -233,10 +345,9 @@ export class PdfDoc {
   // ── page + stream plumbing ──────────────────────────────────────────────────
 
   private newPage(w: number, h: number): void {
-    this.current = {
-      page: this.doc.addPage([w, h]), w, h, ops: [],
-      fonts: new Set(), images: new Set(), shadings: new Set(), gstates: new Set(),
-    };
+    this.current = { page: this.doc.addPage([w, h]), w, h, ...newSink([1, 0, 0, -1, 0, h]) };
+    this.sink = this.current;
+    this.sinkStack.length = 0;
     this.pages.push(this.current);
     // Change of basis: the rest of this stream is written top-left, y-down.
     this.out(`1 0 0 -1 0 ${num(h)} cm`);
@@ -254,7 +365,89 @@ export class PdfDoc {
   }
 
   private out(op: string): void {
-    this.current.ops.push(op);
+    this.sink.ops.push(op);
+  }
+
+  /** The current page's size in points. */
+  pageSize(): { w: number; h: number } {
+    return { w: this.current.w, h: this.current.h };
+  }
+
+  /**
+   * A soft mask's luminosity group, recorded in the current user space, restated in
+   * page points with its box at the origin, through the form Matrix. Every viewer draws
+   * the two the same, but Quartz (macOS Preview) sizes a mask from its box in the
+   * form's own units, so a mask written in small user units, such as a large viewBox
+   * scaled down, came out cut to a corner of itself there, and inside a group the
+   * mask has to be in page points for Quartz to place it at all. The box is cut to the
+   * page, which is all a mask can show.
+   */
+  private maskInPagePoints(sink: Sink, bbox: number[]): { sink: Sink; bbox: number[]; matrix?: number[] } {
+    const toPage = matMul(this.sink.toPage, this.sink.ctm);
+    const inverse = matInvert(toPage);
+    if (!inverse) return { sink, bbox };
+    const [x0, y0, x1, y1] = clipBox(boxThrough(toPage, bbox), [-1, -1, this.current.w + 1, this.current.h + 1]);
+    return {
+      sink: { ...sink, ops: [`${matMul([1, 0, 0, 1, -x0!, -y0!], toPage).map(fine).join(' ')} cm`, ...sink.ops] },
+      bbox: [0, 0, x1! - x0!, y1! - y0!],
+      matrix: matMul(inverse, [1, 0, 0, 1, x0!, y0!]),
+    };
+  }
+
+  // ── transparency groups ─────────────────────────────────────────────────────
+
+  /**
+   * Record what follows into a form XObject instead of the page, until endGroup().
+   * A translucent group with several children has to be composited as one picture
+   * and then faded; fading each child on its own lets the ones underneath show
+   * through where they overlap. Groups nest.
+   */
+  beginGroup(): this {
+    this.flushPath();
+    const parent = this.sink;
+    this.sinkStack.push(parent);
+    this.sink = newSink(IDENTITY, matMul(parent.toPage, parent.ctm));
+    return this;
+  }
+
+  /**
+   * Close the group begun last. `bbox` is its extent in the space it was drawn in. A
+   * DeviceGray group is one meant as a soft mask, whose luminosity is the coverage.
+   */
+  endGroup(bbox: number[], space: 'DeviceRGB' | 'DeviceGray' = 'DeviceRGB'): string {
+    this.flushPath();
+    const sink = this.sink;
+    this.sink = this.sinkStack.pop() ?? this.current;
+    const key = `fm${this.forms.size + 1}`;
+    const form = space === 'DeviceGray' ? this.maskInPagePoints(sink, bbox) : { sink, bbox };
+    this.forms.set(key, { name: `Fm${this.forms.size + 1}`, space, ...form });
+    return key;
+  }
+
+  /**
+   * Paint a recorded group, faded as a whole by `alpha`, blended with what is beneath by
+   * `blend` (a PDF blend mode name) and, when `mask` is the key of a DeviceGray group,
+   * shown only where that group is light.
+   */
+  paintGroup(key: string, alpha = 1, mask?: string, blend?: string | null): this {
+    const form = this.forms.get(key);
+    if (!form) return this;
+    this.sink.forms.add(key);
+    this.saveGraphicsState();
+    const mode = blend && blend !== 'Normal' ? blend : null;
+    if (alpha < 1 || mode) this.setGState(new PdfGState({ opacity: alpha, 'stroke-opacity': alpha, blend: mode }));
+    if (mask && this.forms.has(mask)) this.useMask(mask);
+    this.out(`/${form.name} Do`);
+    this.restoreGraphicsState();
+    return this;
+  }
+
+  /** Set a soft mask whose luminosity group is the form `mask`, in the current space. */
+  private useMask(mask: string): void {
+    const gsKey = `mask:${mask}`;
+    if (!this.gstates.has(gsKey)) this.gstates.set(gsKey, { name: `GM${this.gstates.size + 1}`, mask });
+    this.sink.gstates.add(gsKey);
+    this.out(`/${this.gstates.get(gsKey)!.name} gs`);
   }
 
   // ── colour and line state ───────────────────────────────────────────────────
@@ -308,30 +501,66 @@ export class PdfDoc {
   }
 
   saveGraphicsState(): this {
+    this.sink.saved.push({ alpha: this.sink.alpha, ctm: this.sink.ctm });
     this.out('q');
     return this;
   }
 
   restoreGraphicsState(): this {
+    const prior = this.sink.saved.pop();
+    this.sink.alpha = prior?.alpha ?? 1;
+    this.sink.ctm = prior?.ctm ?? this.sink.ctm;
     this.out('Q');
     return this;
   }
 
+  /**
+   * The fill alpha a gs operator would replace here. PDF sets alpha rather than
+   * multiplying, so a painter that sets its own inside an element the walker has
+   * faded multiplies by this value.
+   */
+  currentAlpha(): number {
+    return this.sink.alpha;
+  }
+
   setGState(gs: PdfGState): this {
-    const key = `${gs.opacity}:${gs.strokeOpacity}`;
+    const key = `${gs.opacity}:${gs.strokeOpacity}:${gs.blend ?? ''}`;
     let entry = this.gstates.get(key);
     if (!entry) {
       entry = { name: `GA${this.gstates.size + 1}`, gs };
       this.gstates.set(key, entry);
     }
-    this.current.gstates.add(key);
+    this.sink.gstates.add(key);
+    this.sink.alpha = gs.opacity;
     this.out(`/${entry.name} gs`);
     return this;
   }
 
   setCurrentTransformationMatrix(m: PdfMatrix): this {
     this.out(`${m.toString()} cm`);
+    this.sink.ctm = matMul(this.sink.ctm, [m.a, m.b, m.c, m.d, m.e, m.f]);
     return this;
+  }
+
+  /**
+   * Fill the text that follows with a gradient instead of the text colour, until cleared
+   * with null. The text stays live: it is set with its font as before, and the gradient
+   * is a shading pattern in the Pattern colour space. Stop opacities, when the fill
+   * carries them, fade the glyphs through a soft mask of the same text.
+   */
+  setTextFill(fill: ShadingFill | null): this {
+    this.textFill = fill && this.shadings.get(fill.key)?.pattern.colors.length ? fill : null;
+    return this;
+  }
+
+  /** The pattern for a shading drawn in the current user space, numbered once per placement. */
+  private patternFor(fill: ShadingFill): string {
+    const local = fill.matrix ? [fill.matrix.a, fill.matrix.b, fill.matrix.c, fill.matrix.d, fill.matrix.e, fill.matrix.f] : IDENTITY;
+    const matrix = matMul(this.sink.ctm, local);
+    const key = `${fill.key}:${matrix.map(num).join(' ')}`;
+    if (!this.patterns.has(key)) this.patterns.set(key, { name: `P${this.patterns.size + 1}`, shading: fill.key, matrix });
+    this.sink.patterns.add(key);
+    return this.patterns.get(key)!.name;
   }
 
   /**
@@ -383,21 +612,36 @@ export class PdfDoc {
   clipEvenOdd(): this { return this.clip('evenodd'); }
   discardPath(): this { this.flushPath(); this.out('n'); return this; }
   stroke(): this { this.flushPath(); this.out('S'); return this; }
-  fill(pattern?: { key: string; matrix?: PdfMatrix }): this { return this.paint('f', pattern); }
-  fillEvenOdd(pattern?: { key: string; matrix?: PdfMatrix }): this { return this.paint('f*', pattern); }
-  fillStroke(pattern?: { key: string; matrix?: PdfMatrix }): this { return this.paint('B', pattern); }
+  fill(pattern?: ShadingFill): this { return this.paint('f', pattern); }
+  fillEvenOdd(pattern?: ShadingFill): this { return this.paint('f*', pattern); }
+  fillStroke(pattern?: ShadingFill): this { return this.paint('B', pattern); }
 
-  private paint(op: string, pattern?: { key: string; matrix?: PdfMatrix }): this {
+  private paint(op: string, pattern?: ShadingFill): this {
     const entry = pattern && typeof pattern === 'object' ? this.shadings.get(pattern.key) : undefined;
     // No entry, or a gradient with no stops (buildShading would return null and the
     // stream would name a resource the page never carries): paint the plain fill.
     if (!entry?.pattern.colors.length) { this.flushPath(); this.out(op); return this; }
-    this.current.shadings.add(pattern!.key);
+    this.sink.shadings.add(pattern!.key);
+    const clipOp = op === 'f*' ? 'W* n' : 'W n';
+    const matrix = `${(pattern!.matrix ?? new PdfMatrix(1, 0, 0, 1, 0, 0)).toString()} cm`;
     // q first, then the path, so the clip the path sets is undone by the matching Q.
     this.out('q');
+    const alpha = pattern!.alpha ? this.shadings.get(pattern!.alpha) : undefined;
+    if (alpha?.pattern.colors.length) {
+      // Stop opacities have no place in a shading's colour function, so they travel as
+      // a soft mask: a luminosity group painting the same path with a grey shading of
+      // the alphas. It is drawn in the space this graphics state is set in, which is
+      // why it repeats the path and the gradient matrix exactly.
+      const mask = newSink();
+      mask.ops.push(...this.pathOps, clipOp, matrix, `/${alpha.name} sh`);
+      mask.shadings.add(pattern!.alpha!);
+      const form = `fm${this.forms.size + 1}`;
+      this.forms.set(form, { name: `Fm${this.forms.size + 1}`, space: 'DeviceGray', ...this.maskInPagePoints(mask, pathOpsBox(this.pathOps)) });
+      this.useMask(form);
+    }
     this.flushPath();
-    this.out(op === 'f*' ? 'W* n' : 'W n');
-    this.out(`${(pattern!.matrix ?? new PdfMatrix(1, 0, 0, 1, 0, 0)).toString()} cm`);
+    this.out(clipOp);
+    this.out(matrix);
     this.out(`/${entry.name} sh`);
     this.out('Q');
     return this;
@@ -472,7 +716,7 @@ export class PdfDoc {
       entry = { name: `I${this.images.size + 1}`, src };
       this.images.set(src, entry);
     }
-    this.current.images.add(src);
+    this.sink.images.add(src);
     // The image's own unit square is y-up, so its placement matrix flips back.
     this.out('q');
     this.out(`${num(w)} 0 0 ${num(-h)} ${num(x)} ${num(y + h)} cm`);
@@ -560,27 +804,70 @@ export class PdfDoc {
     catch { return std.widthOfTextAtSize(toWinAnsi(text), size); }
   }
 
-  text(text: string, x: number, y: number, opts: { align?: string; baseline?: string } = {}): this {
+  /**
+   * Set a string at x, y (the baseline). `render` picks the text render mode: 'fill' (the
+   * default) paints the glyphs; 'invisible' (mode 3) paints nothing and keeps the words
+   * searchable and copyable; 'clip' (mode 7) adds the glyphs to the clip for what is
+   * painted next. A clip outlives the call, so the caller brackets it with
+   * saveGraphicsState and restoreGraphicsState.
+   */
+  text(text: string, x: number, y: number, opts: { align?: string; baseline?: string; render?: 'fill' | 'invisible' | 'clip' } = {}): this {
     if (text == null) return this;
     const font = this.activeFont;
     const lines = String(text).split('\n');
     const rgb = parseHexColor(this.textColor);
     const lead = this.fontSize * 1.15;
-    this.current.fonts.add(font.key);
-    this.out('q');
-    this.out('BT');
-    this.out(`/${font.name} ${num(this.fontSize)} Tf`);
-    this.out(colorOp(rgb[0], rgb[1], rgb[2], false));
+    this.sink.fonts.add(font.key);
+    const show: string[] = [];
+    let left = Infinity, right = -Infinity;
     lines.forEach((line, i) => {
       if (!line) return;
       const w = this.widthOf(line, font, this.fontSize);
       const align = opts.align ?? 'left';
       const lx = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
+      left = Math.min(left, lx);
+      right = Math.max(right, lx + w);
       // The text matrix carries its own y flip, so glyphs sit upright inside the
       // page's top-left change of basis. y is the baseline.
-      this.out(`1 0 0 -1 ${num(lx)} ${num(y + i * lead)} Tm`);
-      this.out(`${this.encodeText(line, font)} Tj`);
+      show.push(`1 0 0 -1 ${num(lx)} ${num(y + i * lead)} Tm`, `${this.encodeText(line, font)} Tj`);
     });
+    const size = `/${font.name} ${num(this.fontSize)} Tf`;
+    if (opts.render === 'clip' || opts.render === 'invisible') {
+      // No q around a clip, which has to last until the caller's own Q.
+      if (opts.render === 'invisible') this.out('q');
+      this.out('BT');
+      this.out(size);
+      this.out(opts.render === 'clip' ? '7 Tr' : '3 Tr');
+      for (const op of show) this.out(op);
+      this.out('ET');
+      // The render mode is graphics state: back to filling for text drawn before the Q.
+      this.out(opts.render === 'clip' ? '0 Tr' : 'Q');
+      return this;
+    }
+    const fill = this.textFill;
+    this.out('q');
+    if (fill) {
+      const alpha = fill.alpha ? this.shadings.get(fill.alpha) : undefined;
+      if (alpha?.pattern.colors.length) {
+        // The stop opacities: the same glyphs as a clip (render mode 7), painted with the
+        // grey shading, as the luminosity of a soft mask.
+        const mask = newSink();
+        mask.fonts.add(font.key);
+        mask.shadings.add(fill.alpha!);
+        mask.ops.push('BT', size, '7 Tr', ...show, 'ET', `${(fill.matrix ?? new PdfMatrix(1, 0, 0, 1, 0, 0)).toString()} cm`, `/${alpha.name} sh`);
+        const pad = this.fontSize;
+        const bbox = [left - pad, y - 2 * pad, right + pad, y + (lines.length - 1) * lead + pad];
+        const form = `fm${this.forms.size + 1}`;
+        this.forms.set(form, { name: `Fm${this.forms.size + 1}`, space: 'DeviceGray', ...this.maskInPagePoints(mask, bbox) });
+        this.useMask(form);
+      }
+      this.out('/Pattern cs');
+      this.out(`/${this.patternFor(fill)} scn`);
+    }
+    this.out('BT');
+    this.out(size);
+    if (!fill) this.out(colorOp(rgb[0], rgb[1], rgb[2], false));
+    for (const op of show) this.out(op);
     this.out('ET');
     this.out('Q');
     return this;
@@ -647,9 +934,10 @@ export class PdfDoc {
     for (const [src] of this.images) imageRefs.set(src, await this.embedImage(src));
 
     // Only fonts a run actually drew with: a document whose text was all outlined
-    // to paths carries no font object at all, which is what PDF/X wants to see.
+    // to paths carries no font object at all, which is what PDF/X wants to see. A
+    // run drawn inside a transparency group counts too.
     const drawn = new Set<string>();
-    for (const page of this.pages) for (const key of page.fonts) drawn.add(key);
+    for (const sink of [...this.pages, ...[...this.forms.values()].map(f => f.sink)]) for (const key of sink.fonts) drawn.add(key);
     const fontRefs = new Map<string, PDFRef>();
     for (const key of drawn) {
       const font = this.fonts.get(key);
@@ -660,20 +948,53 @@ export class PdfDoc {
     const shadingRefs = new Map<string, PDFRef | null>();
     for (const [key, entry] of this.shadings) shadingRefs.set(key, buildShading(ctx, entry.pattern));
 
+    // Forms are numbered first, because a group can hold another group and the soft
+    // mask in an ExtGState points at its luminosity group.
+    const formRefs = new Map<string, PDFRef>();
+    for (const key of this.forms.keys()) formRefs.set(key, ctx.nextRef());
+
     const gstateRefs = new Map<string, PDFRef>();
     for (const [key, entry] of this.gstates) {
-      gstateRefs.set(key, ctx.register(ctx.obj({
-        Type: 'ExtGState', ca: entry.gs.opacity, CA: entry.gs.strokeOpacity,
-      })));
+      gstateRefs.set(key, ctx.register(ctx.obj(entry.mask
+        ? { Type: 'ExtGState', SMask: { Type: 'Mask', S: 'Luminosity', G: formRefs.get(entry.mask)!, BC: [0] } }
+        : { Type: 'ExtGState', ca: entry.gs!.opacity, CA: entry.gs!.strokeOpacity, ...(entry.gs!.blend ? { BM: entry.gs!.blend } : {}) })));
+    }
+
+    const patternRefs = new Map<string, PDFRef | null>();
+    for (const [key, entry] of this.patterns) {
+      const shading = shadingRefs.get(entry.shading);
+      patternRefs.set(key, shading ? ctx.register(ctx.obj({ PatternType: 2, Shading: shading, Matrix: entry.matrix })) : null);
+    }
+
+    // A form leaves out the obsolete ProcSet, which a file of many small groups pays for
+    // once per group.
+    const resourcesOf = (sink: Sink, form = false): PdfResources => {
+      const resources: PdfResources = form ? {} : { ProcSet: ['PDF', 'Text', 'ImageB', 'ImageC', 'ImageI'] };
+      collect(resources, 'Font', sink.fonts, this.fonts, fontRefs);
+      collect(resources, 'XObject', sink.images, this.images, imageRefs);
+      collect(resources, 'XObject', sink.forms, this.forms, formRefs);
+      collect(resources, 'Shading', sink.shadings, this.shadings, shadingRefs);
+      collect(resources, 'ExtGState', sink.gstates, this.gstates, gstateRefs);
+      collect(resources, 'Pattern', sink.patterns, this.patterns, patternRefs);
+      return resources;
+    };
+    for (const [key, form] of this.forms) {
+      // A soft mask's luminosity group must state its colour space. A content group
+      // states none and blends in its parent's, so a CMYK print export keeps its PDF/X
+      // claim (packages/node-shell/src/pdfx.ts groupCsOk refuses an RGB group). A content
+      // group is isolated, as the CSS stacking context it stands for is: a blend mode
+      // inside one blends with what the group itself drew, not with the page.
+      const group = form.space === 'DeviceGray'
+        ? { S: 'Transparency', CS: 'DeviceGray' }
+        : { S: 'Transparency', I: true };
+      ctx.assign(formRefs.get(key)!, ctx.flateStream(form.sink.ops.join('\n'), {
+        Type: 'XObject', Subtype: 'Form', BBox: form.bbox, ...(form.matrix ? { Matrix: form.matrix.map(v => Number(fine(v))) } : {}), Group: group,
+        Resources: resourcesOf(form.sink, true),
+      }));
     }
 
     for (const page of this.pages) {
-      const resources: PdfResources = { ProcSet: ['PDF', 'Text', 'ImageB', 'ImageC', 'ImageI'] };
-      collect(resources, 'Font', page.fonts, this.fonts, fontRefs);
-      collect(resources, 'XObject', page.images, this.images, imageRefs);
-      collect(resources, 'Shading', page.shadings, this.shadings, shadingRefs);
-      collect(resources, 'ExtGState', page.gstates, this.gstates, gstateRefs);
-      page.page.node.set(PDFName.of('Resources'), ctx.obj(resources));
+      page.page.node.set(PDFName.of('Resources'), ctx.obj(resourcesOf(page)));
       page.page.node.set(PDFName.of('Contents'), ctx.register(ctx.flateStream(page.ops.join('\n'))));
     }
 
@@ -771,7 +1092,9 @@ function collect(
   refs: Map<string, PDFRef | null>,
 ): void {
   if (!used.size) return;
-  const dict: Record<string, PDFRef> = {};
+  // Merged into what the category already holds: images and forms are both XObjects.
+  const prior = resources[category];
+  const dict: Record<string, PDFRef> = prior && !Array.isArray(prior) ? prior : {};
   for (const key of used) {
     const entry = registry.get(key);
     const ref = refs.get(key);
@@ -861,7 +1184,8 @@ function buildShading(ctx: PDFContext, pattern: PdfShadingPattern): PDFRef | nul
   if (!stops.length) return null;
   if (stops[0]!.offset !== 0) stops.unshift({ offset: 0, color: stops[0]!.color });
   if (stops[stops.length - 1]!.offset !== 1) stops.push({ offset: 1, color: stops[stops.length - 1]!.color });
-  const unit = (color: number[]): number[] => [0, 1, 2].map(c => Math.max(0, Math.min(1, (color[c] ?? 0) / 255)));
+  const channels = pattern.space === 'DeviceGray' ? [0] : [0, 1, 2];
+  const unit = (color: number[]): number[] => channels.map(c => Math.max(0, Math.min(1, (color[c] ?? 0) / 255)));
   const fns: PDFRef[] = [];
   const bounds: number[] = [];
   const encode: number[] = [];
@@ -885,7 +1209,7 @@ function buildShading(ctx: PDFContext, pattern: PdfShadingPattern): PDFRef | nul
     : ctx.register(ctx.obj({ FunctionType: 3, Domain: [0, 1], Functions: fns, Bounds: bounds, Encode: encode }));
   return ctx.register(ctx.obj({
     ShadingType: pattern.type === 'axial' ? 2 : 3,
-    ColorSpace: 'DeviceRGB',
+    ColorSpace: pattern.space,
     Coords: pattern.coords,
     Function: fn,
     Extend: [true, true],

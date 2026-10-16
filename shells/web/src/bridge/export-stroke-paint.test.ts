@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Stroke resolution for the PDF vector walker - guarded in a REAL browser, against the
- * REAL catalog artwork, through the REAL exported helpers.
+ * Stroke resolution for the PDF SVG painter - guarded in a REAL browser, against the
+ * REAL catalog artwork, through the painter's REAL style reader (StyleScope in
+ * export-pdf-svg-style.ts).
  *
  * ## Why this test exists
  *
@@ -12,7 +13,9 @@
  * then the inline `style=""` attribute, then give up. Neither read can see a class rule, so
  * every stroke resolved to 'none' and the artwork exported to PDF as flat fills with EVERY
  * outline missing. Fill was unaffected the whole time, because resolveColor() had always
- * fallen back to getComputedStyle. That asymmetry is the bug; strokeOf/strokeWidthOf close it.
+ * fallen back to getComputedStyle. That asymmetry was the bug. The painter now reads every
+ * property from the computed style, so a class rule, an inline style and a presentation
+ * attribute rank as the browser ranks them when it paints.
  *
  * ## Why it needs a real browser (and is therefore gated)
  *
@@ -35,7 +38,7 @@ import { readFile } from 'node:fs/promises';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '../../../..');
-const EXPORT_MODULE = join(HERE, 'export.ts');
+const STYLE_MODULE = join(HERE, 'export-pdf-svg-style.ts');
 
 // The reference artwork: 103 shapes, most of them stroked ONLY by a class. Lives in the
 // private SUSE brand pack, so it is absent under lolly-start / public CI - skip cleanly,
@@ -62,21 +65,21 @@ const SKIP_ART = !existsSync(ART) && 'SUSE brand pack not mounted (see profiles.
 const SKIP = SKIP_BROWSER || SKIP_ART;
 
 /**
- * Bundle the real export.ts for the browser and hang the two helpers off `window`.
- * esbuild tree-shakes to just the paint resolvers (~35 KB), so this stays fast.
+ * Bundle the painter's style module for the browser and hang a stroke reader off
+ * `window`: the paint and width the painter would draw an element with.
  */
 async function bundleHelpers(): Promise<string> {
   const { build } = await import('esbuild');
   const out = await build({
     stdin: {
-      contents: `import { strokeOf, strokeWidthOf } from ${JSON.stringify(EXPORT_MODULE)};
-                 window.strokeOf = strokeOf; window.strokeWidthOf = strokeWidthOf;`,
+      contents: `import { StyleScope } from ${JSON.stringify(STYLE_MODULE)};
+                 const scope = new StyleScope();
+                 window.strokeOf = (el) => scope.get(el, 'stroke') || 'none';
+                 window.strokeWidthOf = (el) => scope.num(el, 'stroke-width', 1);`,
       resolveDir: HERE,
       loader: 'ts',
     },
     bundle: true, write: false, format: 'iife', platform: 'browser', logLevel: 'silent',
-    // export.ts reaches a CSS side-effect import through a lazy chain (the durable
-    // probe in format-support.ts); esbuild has no output path here, so drop the sheets.
     loader: { ".css": "empty" },
   });
   return out.outputFiles[0]!.text;
@@ -96,7 +99,7 @@ async function inPage<T>(markup: string, fn: (...a: any[]) => T): Promise<T> {
 
 // ─── the regression: real artwork, real helpers ───────────────────────────────
 
-test('strokeOf: a class-declared stroke on the real catalog artwork resolves (PDF outlines)',
+test('a class-declared stroke on the real catalog artwork resolves (PDF outlines)',
   { skip: SKIP }, async () => {
     const svg = await readFile(ART, 'utf8');
     const r = await inPage(svg, () => {
@@ -129,7 +132,7 @@ test('strokeOf: a class-declared stroke on the real catalog artwork resolves (PD
 
 // ─── precedence + defaults ───────────────────────────────────────────────────
 
-test('strokeOf/strokeWidthOf: attribute > inline style > CSS class, and SVG defaults',
+test('stroke paint and width rank as the browser paints them, with the SVG defaults',
   { skip: SKIP_BROWSER }, async () => {
     const markup = `<svg viewBox="0 0 10 10">
       <style>.k{stroke:#003e37;stroke-width:4px}</style>
@@ -144,17 +147,20 @@ test('strokeOf/strokeWidthOf: attribute > inline style > CSS class, and SVG defa
       const w = window as any;
       const at = (id: string) => document.getElementById(id)!;
       const pick = (id: string) => [w.strokeOf(at(id)), w.strokeWidthOf(at(id))];
+      const cs = getComputedStyle(at('attr'));
       return { cls: pick('cls'), inline: pick('inline'), attr: pick('attr'),
-               bare: pick('bare'), off: pick('off'), cc: pick('cc') };
+               bare: pick('bare'), off: pick('off'), cc: pick('cc'),
+               painted: pick('attr'), attrComputed: [cs.stroke, parseFloat(cs.strokeWidth)] };
     });
 
-    // The class rule is the ONLY declaration → must come from the computed fallback.
+    // The class rule is the ONLY declaration.
     assert.deepEqual(r.cls, ['rgb(0, 62, 55)', 4]);
-    // An inline style and an attribute each still win over the class - the fallback is a
-    // fallback, not an override. (Both also beat the class in the real cascade, so a
-    // computed-only implementation would pass this too; the point is we didn't regress it.)
-    assert.deepEqual(r.inline, ['#ff0000', 9]);
-    assert.deepEqual(r.attr, ['#00ff00', 7]);
+    // An inline style beats the class. A presentation attribute ranks BELOW any style
+    // rule, so the class wins over stroke="#00ff00": Chromium paints #003e37 there, and
+    // the old attribute-first reader drew the wrong colour.
+    assert.deepEqual(r.inline, ['rgb(255, 0, 0)', 9]);
+    assert.deepEqual(r.attr, ['rgb(0, 62, 55)', 4]);
+    assert.deepEqual(r.painted, r.attrComputed, 'the attribute row reads exactly what the browser computes');
     // Nothing declared: stroke's initial value is none, stroke-width's is 1. Getting this
     // wrong would paint outlines onto artwork that never asked for them.
     assert.deepEqual(r.bare, ['none', 1]);

@@ -130,7 +130,7 @@
     },
     {
       "file": "shells/web/src/bridge/export-stroke-paint.test.ts",
-      "fullName": "strokeOf: a class-declared stroke on the real catalog artwork resolves (PDF outlines)",
+      "fullName": "a class-declared stroke on the real catalog artwork resolves (PDF outlines)",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
       "capability": "brand:suse",
       "owner": "shells/web"
