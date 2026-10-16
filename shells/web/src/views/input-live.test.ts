@@ -4,11 +4,11 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { loadTool, type ToolManifest } from '../../../../engine/src/loader.ts';
 import { createRuntime } from '../../../../engine/src/runtime.ts';
-import { buildInputModel, type InputSpec } from '../../../../engine/src/inputs.ts';
+import { buildInputModel, type InputSpec, type InputValue } from '../../../../engine/src/inputs.ts';
 import { createLiveSession, documentRevision } from '../lib/live-agent.ts';
 import { createHistory } from './tool-history.ts';
 import { commitToolTransaction, transactionHistoryValues } from './tool-transaction.ts';
-import { inputLiveEditor, liveInputState } from './input-live.ts';
+import { inputLiveEditor, liveInputState, type InputLiveDeps } from './input-live.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 
 let sequence = 0;
@@ -135,11 +135,11 @@ test('the admitted input receipt stays stable when rendering later sees another 
   assert.equal((await call(session, 'document.apply', { inputValues: { url: 'https://agent.example' }, transactionId: 'stable' })).result.revision, result.revision);
 });
 
-function simple(inputs: InputSpec[]) {
+function simple(inputs: InputSpec[], history: InputLiveDeps['history'] = { commit: async () => { throw new Error('must not commit'); }, top: () => null, undo() {} }) {
   const manifest: ToolManifest = { id: 'input-fixture', name: 'Inputs', version: '1.0.0', engineVersion: '^1.0.0', status: 'official', render: { width: 100, height: 100, formats: ['svg'], convertPaths: false }, inputs };
   const model = buildInputModel(manifest);
   const runtime = { getModel: () => model };
-  const editor = inputLiveEditor({ documentId: 'doc:restricted', manifest, runtime, engine: 'test', surface: 'web', size: () => ({ width: 100, height: 100 }), history: { commit: async () => { throw new Error('must not commit'); }, top: () => null, undo() {} }, readOnly: () => false, label: note => note, exportSvg: async () => new Blob(['<svg/>']) });
+  const editor = inputLiveEditor({ documentId: 'doc:restricted', manifest, runtime, engine: 'test', surface: 'web', size: () => ({ width: 100, height: 100 }), history, readOnly: () => false, label: note => note, exportSvg: async () => new Blob(['<svg/>']) });
   return { manifest, model, editor };
 }
 
@@ -151,9 +151,34 @@ test('file-only tools are inspectable, omit uploaded bytes and refuse edits; hid
   assert.equal(doc.mode, 'read'); assert.equal(doc.inputSchema.properties.file.readOnly, true);
   assert.deepEqual(doc.inputValues, {}); assert.deepEqual(doc.omittedInputs, [{ id: 'file', reason: 'file' }]);
   assert.ok(!JSON.stringify(doc).includes('private.txt')); assert.ok(!JSON.stringify(doc).includes('10,20,30,40'));
-  const file = fixture.model[0]!.value as { bytes: Uint8Array }; file.bytes[0] = 99;
+  // A new pick replaces the bytes. Same name and size, different content.
+  const file = fixture.model[0]!.value as { bytes: Uint8Array };
+  fixture.model[0]!.value = { ...file, bytes: new Uint8Array([99, 20, 30, 40]) };
   assert.notEqual((await call(session, 'document.get')).result.revision, doc.revision);
   assert.match((await call(session, 'document.apply', { inputValues: { file: null } })).error.message, /read-only/);
+});
+
+test('each file buffer is hashed once across document.get, ifRevision and apply', async () => {
+  let committed: object | null = null;
+  const fixture = simple([{ id: 'file', type: 'file', label: 'Private file' }, { id: 'text', type: 'text' }], {
+    commit: async values => { for (const [id, value] of Object.entries(values)) fixture.model.find(item => item.id === id)!.value = value as InputValue; committed = { values }; },
+    top: () => committed, undo() {},
+  });
+  const bytes = new Uint8Array(1 << 20).fill(7);
+  fixture.model[0]!.value = { __file: true, name: 'large.bin', mime: 'application/octet-stream', size: bytes.length, bytes, url: null };
+  const session = createLiveSession(fixture.editor); await hello(session);
+  const doc = (await call(session, 'document.get')).result;
+  // A write into the same buffer is invisible once it has been hashed, so an
+  // unchanged revision shows that later reads did not walk the bytes again.
+  bytes[0] = 99;
+  assert.equal((await call(session, 'document.get')).result.revision, doc.revision);
+  const applied = await call(session, 'document.apply', { inputValues: { text: 'agent' }, ifRevision: doc.revision });
+  assert.equal(applied.error, undefined, JSON.stringify(applied.error));
+  assert.equal(applied.result.revision, applied.result.currentRevision);
+  assert.equal((await call(session, 'document.get')).result.revision, applied.result.currentRevision);
+  // The hash follows content, not identity: a fresh copy of the written bytes is read.
+  fixture.model[0]!.value = { ...fixture.model[0]!.value as object, bytes: bytes.slice() };
+  assert.notEqual((await call(session, 'document.get')).result.revision, applied.result.currentRevision);
 });
 
 test('generic snapshots and patches reject uploaded references and non-JSON values, including nested unknown fields', async () => {
