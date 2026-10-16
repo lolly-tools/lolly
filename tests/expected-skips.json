@@ -1704,6 +1704,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/docs-unified.test.ts",
+      "fullName": "built public pages retain old HTML and Markdown paths and copied Work assets",
+      "reason": "Run build:info to inspect generated pages.",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
       "file": "tests/docs-vernacular.test.ts",
       "fullName": "built pages carry no fingerprint unicode in visible text or spoken attributes",
       "reason": "no built /info on disk (run pnpm run build:info) - enforced where the site is built",
