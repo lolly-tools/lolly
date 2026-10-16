@@ -158,6 +158,7 @@ test('empty pushes, unchanged refs and deletes skip source and wording checks', 
     assert.equal(result.status, 0, result.output);
     assert.match(result.output, /0 distinct commit tip\(s\) checked/);
     assert.doesNotMatch(result.output, /vernacular gate/);
+    assert.doesNotMatch(result.output, /house rules/);
   }
 });
 
@@ -197,15 +198,19 @@ test('hook forwards ref updates and uses Node directly before wording checks', t
   const f = fixture(t);
   f.write('scripts/check-code-comment-vernacular.ts', 'console.log("code wording checked");\n');
   f.write('scripts/check-docs-vernacular.ts', 'console.log("docs wording checked");\n');
+  f.write('scripts/check-house-rules.ts', 'console.log("house rules checked");\n');
   const result = f.run(update(f.valid), true);
   assert.equal(result.status, 0, result.output);
   assert.match(result.output, /code wording checked/);
   assert.match(result.output, /docs wording checked/);
+  assert.match(result.output, /house rules checked/);
   assert.ok(result.output.indexOf('distinct commit tip') < result.output.indexOf('code wording checked'));
+  assert.ok(result.output.indexOf('docs wording checked') < result.output.indexOf('house rules checked'));
   f.write('shells/web/src/lib/widget.ts', 'export const widget = 2;\n\n');
   const failed = f.run(update(f.commit()), true);
   assert.equal(failed.status, 1, failed.output);
   assert.doesNotMatch(failed.output, /code wording checked/);
+  assert.doesNotMatch(failed.output, /house rules checked/);
 });
 
 test('malformed updates fail and SHA-256 deletion records parse correctly', () => {

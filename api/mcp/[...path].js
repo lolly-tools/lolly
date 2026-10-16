@@ -103012,7 +103012,7 @@ function swatchesFromColors(colors) {
   });
 }
 function withoutRoleTokens(record41) {
-  return Object.fromEntries(Object.entries(record41 ?? {}).filter(([path]) => !path.startsWith("color.role.")));
+  return Object.fromEntries(Object.entries(record41 ?? {}).filter(([path]) => !path.startsWith("color.role.") && !path.startsWith("color.chrome.")));
 }
 function sortedRecord(record41) {
   const out = {};
@@ -141215,7 +141215,7 @@ function themeSlotFills(filled2, candidates2) {
     return at < 0 ? SLOT_FILL_GROUPS.length : at;
   };
   const seen = /* @__PURE__ */ new Set();
-  const ordered = candidates2.map((c, index2) => ({ ...c, hex: c.hex.toUpperCase(), index: index2 })).filter((c) => /^[0-9A-F]{6}$/.test(c.hex)).sort((a, b) => rank(a.path) - rank(b.path) || a.index - b.index).filter((c) => {
+  const ordered = candidates2.map((c, index2) => ({ ...c, hex: c.hex.toUpperCase(), index: index2 })).filter((c) => !c.path.startsWith("color.chrome.")).filter((c) => /^[0-9A-F]{6}$/.test(c.hex)).sort((a, b) => rank(a.path) - rank(b.path) || a.index - b.index).filter((c) => {
     if (seen.has(c.hex)) return false;
     seen.add(c.hex);
     return true;
@@ -149823,7 +149823,7 @@ import { readFileSync as readFileSync3 } from "node:fs";
 function colorTokensFromDtcg(file) {
   const out = /* @__PURE__ */ new Map();
   for (const entry2 of createTokenSet(file).query({ type: "color" })) {
-    if (typeof entry2.path === "string" && typeof entry2.value === "string" && !entry2.path.startsWith("color.role.")) out.set(entry2.path, entry2.value);
+    if (typeof entry2.path === "string" && typeof entry2.value === "string" && !entry2.path.startsWith("color.role.") && !entry2.path.startsWith("color.chrome.")) out.set(entry2.path, entry2.value);
   }
   return out;
 }
@@ -149832,7 +149832,7 @@ function darkColorsFromDtcg(file) {
   if (!dark) return void 0;
   const out = /* @__PURE__ */ new Map();
   for (const entry2 of createTokenSet(file, { theme: dark.name }).query({ type: "color" })) {
-    if (typeof entry2.path === "string" && typeof entry2.value === "string" && !entry2.path.startsWith("color.role.")) out.set(entry2.path, entry2.value);
+    if (typeof entry2.path === "string" && typeof entry2.value === "string" && !entry2.path.startsWith("color.role.") && !entry2.path.startsWith("color.chrome.")) out.set(entry2.path, entry2.value);
   }
   return out.size > 0 ? out : void 0;
 }

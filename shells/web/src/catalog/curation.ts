@@ -3,7 +3,7 @@
 import { instanceFetch, instancePath, getInstanceBase } from '../lib/instance.ts';
 import type { AssetMetaRecord } from '../bridge/assets.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
-import { readCatalogJson } from './metadata.ts';
+import { readCatalogJson } from './asset-record.ts';
 import { selectedAssetFile } from '../lib/asset-files.ts';
 
 export interface CatalogField { id: string; label: string; kind: 'text' | 'date' | 'url' | 'select'; required?: boolean; options?: string[] }

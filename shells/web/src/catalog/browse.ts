@@ -3,11 +3,9 @@
 import { instanceFetch, instancePath, getInstanceBase } from '../lib/instance.ts';
 import { versionedTileUrl } from '../lib/asset-thumb-src.ts';
 import { catalogMetadataRef, type AssetMetaRecord } from '../bridge/assets.ts';
+import { CatalogBrowseError, readCatalogJson, isCatalogAsset, absolutizeCatalogAsset } from './asset-record.ts';
+export { CatalogBrowseError } from './asset-record.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
-import { readCatalogJson, absolutizeCatalogAsset, CatalogBrowseError } from './metadata.ts';
-export { CatalogBrowseError } from './metadata.ts';
-const asset = (value: unknown): value is AssetMetaRecord => !!value && typeof value === 'object'
-  && typeof (value as AssetMetaRecord).id === 'string' && Array.isArray((value as AssetMetaRecord).formats);
 
 export const ASSET_BROWSE_LIMIT = 100;
 export interface BrowseFilters { q?: string; source?: string; types?: string; tag?: string; taxonomyKind?: string; taxonomyId?: string; scope?: string }
@@ -58,7 +56,7 @@ export class AssetBrowser {
       const allowed = live ? value.capabilities?.liveFilters : value.capabilities?.indexedFilters;
       if (Object.entries(filters).some(([key, value]) => value && !allowed?.includes(key))) throw new CatalogBrowseError('This Work server does not support the requested shared filters. Update Work before using this browse mode.', 422);
       const entries = live ? value.results : value.assets;
-      if (!Array.isArray(entries) || entries.length > ASSET_BROWSE_LIMIT || entries.some(entry => !asset(entry))
+      if (!Array.isArray(entries) || entries.length > ASSET_BROWSE_LIMIT || entries.some(entry => !isCatalogAsset(entry))
         || (!live && (!Number.isInteger(value.total) || value.total < entries.length || !(value.nextCursor === null || typeof value.nextCursor === 'string') || !value.facets))) throw new CatalogBrowseError('The server returned an invalid asset page.');
       if (generation !== this.generation || origin !== getInstanceBase()) return;
       this.supported = true; this.index = index; this.mode = live ? 'live' : 'indexed';

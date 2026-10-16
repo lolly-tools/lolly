@@ -361,7 +361,7 @@ body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([h
 .collab-comment-pin::after { content: attr(data-number); position: absolute; inset-block-start: calc(-1 * var(--sp-1)); inset-inline-end: calc(-1 * var(--sp-1)); background: inherit; color: inherit; border-radius: var(--radius-round); padding-inline: var(--sp-1); font-size: var(--fs-xs); font-weight: 700; }
 /* Resolved pins appear only under the Resolved filter, dimmed; a deleted object's pin stays muted where it stood. */
 .collab-comment-pin.is-resolved { opacity: .55; }
-.collab-comment-pin.is-missing { background: var(--ui-color-surface-muted); color: var(--ui-color-text-muted); border: 1px dashed currentColor; }
+.collab-comment-pin.is-missing { background: var(--ui-color-surface-muted); color: var(--ui-color-text-muted); border: 1px solid currentColor; }
 .collab-comments-badge {
   position: absolute;
   inset-block-start: calc(-1 * var(--sp-1));

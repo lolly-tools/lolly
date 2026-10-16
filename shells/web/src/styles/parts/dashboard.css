@@ -345,7 +345,7 @@
   background: var(--ui-color-surface-canvas); border: 1px solid var(--ui-color-border-default);
   border-radius: var(--ui-radius-panel);
 }
-.dash-dev-stat.is-skeleton { background: color-mix(in srgb, var(--ui-color-surface-muted) 40%, transparent); border-style: dashed; }
+.dash-dev-stat.is-skeleton { background: color-mix(in srgb, var(--ui-color-surface-muted) 40%, transparent); }
 .dash-dev-stat-icon { position: absolute; top: .75rem; right: .8rem; width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); color: color-mix(in srgb, var(--ui-color-text-muted) 50%, transparent); }
 .dash-dev-stat-icon svg { width: 100%; height: 100%; display: block; }
 .dash-dev-stat-label { font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: .14em; color: var(--ui-color-text-muted); }
@@ -602,7 +602,7 @@
 .dash-cap-empty {
   margin: .2rem 0 0; padding: 1.4rem 1rem; text-align: center;
   color: var(--ui-color-text-muted); font-size: var(--fs-lg);
-  border: 1px dashed var(--ui-color-border-default); border-radius: var(--ui-radius-surface);
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-surface);
 }
 /* The filter hides cards and whole sections with [hidden]. The UA's
    `[hidden] { display: none }` is a plain type-less rule, so the class rules
@@ -690,7 +690,7 @@
 .dash-cap-peek li { position: relative; padding-left: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dash-cap-peek li::before { content: '›'; position: absolute; left: 0; color: hsl(var(--primary) / .7); font-weight: 700; }
 
-.dash-cap-foot { display: flex; align-items: center; gap: .5rem; margin-top: .1rem; padding-top: .55rem; border-top: 1px dashed hsl(var(--border)); }
+.dash-cap-foot { display: flex; align-items: center; gap: .5rem; margin-top: .1rem; padding-top: .55rem; border-top: 1px solid hsl(var(--border)); }
 .dash-cap-n { flex: 0 0 auto; font-size: calc(.6rem * var(--a11y-fs)); font-weight: 700; padding: .12rem .45rem; border-radius: var(--radius-pill); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
 .dash-cap-more { margin-left: auto; font-size: var(--fs-xs); font-weight: 700; color: hsl(var(--primary)); opacity: .7; transform: translateX(-2px); transition: opacity var(--dur-1) ease, transform var(--dur-1) ease; }
 .dash-cap-card:hover .dash-cap-more, .dash-cap-card:focus-visible .dash-cap-more { opacity: 1; transform: none; }

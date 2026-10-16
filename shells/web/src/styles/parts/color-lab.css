@@ -199,8 +199,8 @@
   gap: 0.15rem;
   padding: 1rem;
   box-shadow: inset 0 0 0 1px hsl(0 0% 0% / 0.12);
-  /* The swatch's own text colour is set inline from the engine's contrast
-     ratio, so the label is readable on any subject. */
+  /* The swatch's own text colour is set inline from swatchInk (brand-vars.ts):
+     white or black, whichever APCA scores higher on the subject as painted. */
   transition: background 0.16s ease, color 0.16s ease;
 }
 .lab-sw-vals { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }

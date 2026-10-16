@@ -270,7 +270,8 @@
    --lolly-mark (this same tone at the guest's hue), and every reader takes
    var(--lolly-mark, var(--lolly-tone)). LOLLY_TONE_HEX in brand-vars.ts holds
    the same two colours; lolly-tone-contract.test.ts keeps them equal. */
-:root {
+:root,
+[data-theme="light"] {
   --lolly-tone: #033633;
 }
 [data-theme="dark"],
@@ -458,15 +459,17 @@
   --background:             0 0% 100%;
   --foreground:             224 71% 4%;
   /* The theme's ink as the RENDER CANVAS sees it - always the base value, never
-     the high-contrast one. parts/base.css's `body { color: hsl(var(--foreground)) }`
-     is inherited by tool markup (most templates set no colour of their own and
-     several draw with `currentColor`), on the live canvas AND on the offscreen
-     stages an export is captured from. Following the THEME there is intended and
-     long-standing; following a comfort PREFERENCE is not - it would change
-     exported pixels and bake into cached session thumbnails. So each theme
-     declares its ink twice and the canvas boundary in parts/a11y.css restores
-     this one. Keep the two in step; brand-vars.ts emits the same pair for a
-     runtime-constructed brand theme. */
+     the high-contrast one and never a design pack's chrome ink.
+     parts/base.css's `body { color: hsl(var(--foreground)) }` is inherited by
+     tool markup (most templates set no colour of their own and several draw
+     with `currentColor`), on the live canvas AND on the offscreen stages an
+     export is captured from. Following the THEME there is intended and
+     long-standing; following a comfort PREFERENCE or a pack's room is not - it
+     would change exported pixels and bake into cached session thumbnails. So
+     each theme declares its ink twice and the canvas boundary in
+     parts/a11y.css always restores this one. Keep the two in step;
+     brand-vars.ts emits the same pair for a runtime-constructed brand theme,
+     and a pack's `color.chrome.*` group never sets this one. */
   --foreground-canvas:      224 71% 4%;
 
   --card:                   0 0% 99%;
@@ -573,7 +576,9 @@
    before boot and when "Interface follows the design system" is off; with it
    on (the default), brand-vars.ts re-constructs this block at runtime from any
    pack whose `color.semantic.*` primaries resolve (see brandThemeCss). The
-   suse and lolly-start packs both declare them. */
+   suse and lolly-start packs both declare them. A pack may replace the light
+   and dark surfaces through a `color.chrome.*` group, and the brand surfaces
+   only when its document declares a theme named `brand` (lib/brand-chrome.ts). */
 [data-theme="brand"] {
   color-scheme: dark;
 
@@ -698,6 +703,12 @@
       block always declares `color-scheme: dark` and its lightness stops are
       fixed at OKLCH L .29–.40, i.e. never a light ground: white ink measures
       APCA Lc 94+ against the worst hue at the lightest stop.
+    • A pack's LIGHT and DARK chrome (`color.chrome.*`, lib/brand-chrome.ts).
+      brand-vars.ts excludes those blocks under High contrast, so the blocks
+      below govern the whole room there and Lolly's measured High contrast
+      surfaces hold for every pack. A pack's brand chrome (only from a document
+      that declares a `brand` theme) stays in force, and the brand block below
+      wins over its inks and edges.
 
    Numbers below are APCA Lc (0.98G-4g), sign dropped; the bar is Lc ≥ 75 for
    body text and ≥ 90 for the main ink-on-background pair. This is a CONTRAST

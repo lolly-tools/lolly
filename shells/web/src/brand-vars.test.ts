@@ -9,7 +9,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { hexToHslTriple, chromeBrandCss, brandThemeCss, brandFontStack, brandRadiusValue, brandSpaceValue, brandMarkHue, brandMarkPrimary, lollyMarkCss, lollyMarkHex, LOLLY_TONE_HEX, highContrastAccent, apcaLcAbs, HC_TARGET_LC, uiTokenCssValue, contrastText,
-  hslTripleToHex, THEME_SURFACES, THEME_DESTRUCTIVE, brandSurfaceHexes, FOCUS_RING_RATIO, CONTROL_RATIO, dangerText, dangerTextSurfaces, dangerTextCss, DANGER_TEXT_RATIO, DANGER_TEXT_HC_LC } from './brand-vars.ts';
+  hslTripleToHex, THEME_SURFACES, THEME_DESTRUCTIVE, brandSurfaceHexes, FOCUS_RING_RATIO, CONTROL_RATIO, dangerText, dangerTextSurfaces, dangerTextCss, DANGER_TEXT_RATIO, DANGER_TEXT_HC_LC,
+  SWATCH_INK, SWATCH_INK_NEAR_TIE_LC, swatchInk, swatchGround } from './brand-vars.ts';
 import { apcaContrast } from '../../../engine/src/color-tools.ts';
 import { hexToOklch, oklchToHex, contrastRatio, parseHex } from '../../../engine/src/brand-derive.ts';
 
@@ -199,6 +200,91 @@ test('apcaLcAbs matches the engine apcaContrast (the port must not drift)', () =
   // The reference pair the engine's own suite pins (APCA-1.0.98G).
   assert.ok(Math.abs(apcaLcAbs('#000000', '#ffffff') - 106.04) < 0.01);
   assert.ok(Number.isNaN(apcaLcAbs('not-a-hex', '#ffffff')));
+});
+
+// ── Labels on a colour: the swatch ink ───────────────────────────────────────
+
+test('swatchInk: white on dark colours, dark ink on light ones, by the higher APCA |Lc|', () => {
+  // Opal, the palette in the report: hovering Spearmint showed its name in black.
+  // Each row is the pick, then the |Lc| of white and of the dark ink on that colour.
+  const rows: Array<[name: string, hex: string, ink: string, white: number, dark: number]> = [
+    ['Spearmint', '#033633', SWATCH_INK.light, 102.61, 0],
+    ['Liquorice', '#09141a', SWATCH_INK.light, 107.23, 0],
+    ['Wattle', '#fdec9e', SWATCH_INK.dark, 10.66, 94.43],
+    ['Avocado', '#edf6e0', SWATCH_INK.dark, 0, 98.66],
+    ['Sugar', '#ffffff', SWATCH_INK.dark, 0, 106.04],
+    // The mid tones, where only the comparison decides.
+    ['Bunyapine', '#008657', SWATCH_INK.light, 76.92, 32.63],
+    ['Green Apple', '#50c369', SWATCH_INK.dark, 48.72, 60.03],
+    ['Honey', '#fac044', SWATCH_INK.dark, 32.39, 75.07],
+    ['Bauxite', '#a43427', SWATCH_INK.light, 87.42, 21.69],
+  ];
+  for (const [name, hex, ink, white, dark] of rows) {
+    const lcWhite = apcaLcAbs(SWATCH_INK.light, hex);
+    const lcDark = apcaLcAbs(SWATCH_INK.dark, hex);
+    assert.ok(Math.abs(lcWhite - white) < 0.01, `${name}: white Lc ${lcWhite.toFixed(2)}, expected ${white}`);
+    assert.ok(Math.abs(lcDark - dark) < 0.01, `${name}: dark ink Lc ${lcDark.toFixed(2)}, expected ${dark}`);
+    assert.equal(swatchInk(hex), ink, `${name} ${hex}`);
+  }
+  assert.deepEqual({ ...SWATCH_INK }, { light: '#ffffff', dark: '#000000' });
+});
+
+test('where APCA and WCAG 2 disagree the label follows APCA, and a near tie goes to the WCAG 2 ratio', () => {
+  // contrastText (WCAG 2) gives each of these black. APCA reads white clearly better:
+  // the pink from the Colour Lab test, the components library's Persimmon and the
+  // Colour Lab's default subject, oklch(62% 0.19 260).
+  const rows: Array<[hex: string, white: number, dark: number]> = [
+    ['#cf6ca9', 65.39, 44.11],
+    ['#e0542a', 70.41, 39.17],
+    ['#3a81f6', 69.75, 39.82],
+  ];
+  for (const [hex, white, dark] of rows) {
+    assert.ok(Math.abs(apcaLcAbs(SWATCH_INK.light, hex) - white) < 0.01, `${hex}: white Lc ${white}`);
+    assert.ok(Math.abs(apcaLcAbs(SWATCH_INK.dark, hex) - dark) < 0.01, `${hex}: dark ink Lc ${dark}`);
+    assert.equal(contrastText(hex), '#000000', `${hex}: WCAG 2 prefers black`);
+    assert.equal(swatchInk(hex), SWATCH_INK.light, `${hex}: the label takes white`);
+  }
+  // A near tie: white 54.55 against black 54.54 on #a5a0b9, where white is only
+  // 2.52:1. Inside SWATCH_INK_NEAR_TIE_LC the WCAG 2 ratio picks, and black is 8.33:1.
+  assert.equal(SWATCH_INK_NEAR_TIE_LC, 3);
+  const lilac = '#a5a0b9';
+  assert.ok(apcaLcAbs(SWATCH_INK.light, lilac) > apcaLcAbs(SWATCH_INK.dark, lilac), 'APCA alone would give white');
+  assert.ok(Math.abs(apcaLcAbs(SWATCH_INK.light, lilac) - apcaLcAbs(SWATCH_INK.dark, lilac)) <= SWATCH_INK_NEAR_TIE_LC);
+  assert.ok(Math.abs(contrastRatio(SWATCH_INK.light, lilac) - 2.52) < 0.01);
+  assert.equal(swatchInk(lilac), SWATCH_INK.dark, 'the near tie goes to black');
+  // Jungle is a near tie too (white 53.57, black 55.47), and both rules give black.
+  assert.equal(swatchInk('#30ba78'), SWATCH_INK.dark);
+});
+
+test('swatchInk reads a colour the way the swatch paints it: any CSS form, wide gamut and alpha', () => {
+  // The tool view hands the picker each token's CSS face, so Spearmint reaches the
+  // tooltip as color(srgb ...), never as hex. Every form has to give the same ground.
+  for (const face of ['#033633', '#033633ff', 'color(srgb 0.011765 0.211765 0.2)', 'rgb(3 54 51)', 'rgb(3, 54, 51)']) {
+    assert.equal(swatchGround(face), '#033633', face);
+    assert.equal(swatchInk(face), SWATCH_INK.light, face);
+  }
+  for (const face of ['oklch(30% 0.05 180)', 'color(display-p3 0.1 0.2 0.2)', 'navy', 'rebeccapurple']) {
+    assert.equal(swatchInk(face), SWATCH_INK.light, face);
+  }
+  assert.equal(swatchInk('white'), SWATCH_INK.dark);
+  // Outside sRGB: scored as the sRGB colour a screen shows, the gamut-mapped yellow.
+  assert.equal(swatchInk('color(display-p3 1 1 0)'), SWATCH_INK.dark);
+  // Translucent: composited over what the label sits on, so the backdrop decides.
+  assert.equal(swatchGround('#00000033', '#ffffff'), '#cccccc', '20% black over white');
+  assert.equal(swatchInk('#00000033', '#ffffff'), SWATCH_INK.dark);
+  assert.equal(swatchGround('#00000033', '#030712'), '#02060e', 'the same over the dark page');
+  assert.equal(swatchInk('#00000033', '#030712'), SWATCH_INK.light);
+  assert.equal(swatchGround('transparent', '#030712'), '#030712');
+  // No backdrop: the caller cannot see the ground, so the colour stands at full
+  // strength rather than over a guessed white. Transparent then has no ground.
+  assert.equal(swatchGround('#00000033'), '#000000');
+  assert.equal(swatchGround('oklch(30% 0.05 180 / 0.4)'), swatchGround('oklch(30% 0.05 180)'));
+  assert.equal(swatchInk('transparent'), null);
+  // Unreadable is null, never a guess: black on an unread colour was the bug.
+  for (const junk of ['var(--brand-primary)', 'currentColor', '', 'not-a-colour', 'color-mix(in srgb, red, blue)']) {
+    assert.equal(swatchInk(junk), null, JSON.stringify(junk));
+  }
+  assert.equal(swatchInk('#033633', 'junk'), null, 'an unreadable backdrop is no ground either');
 });
 
 test('highContrastAccent lifts any hue over the target Lc while holding hue and chroma', () => {
@@ -432,7 +518,7 @@ function staticBlock(head: string): Map<string, string> {
 }
 
 const STATIC = {
-  light: () => staticBlock(':root,\n[data-theme="light"] {'),
+  light: () => staticBlock(':root,\n[data-theme="light"] {\n  color-scheme: light;'),
   dark: () => staticBlock('\n[data-theme="dark"] {\n  color-scheme: dark;'),
   brand: () => staticBlock('\n[data-theme="brand"] {\n  color-scheme: dark;'),
 } as const;
@@ -836,4 +922,131 @@ test("the brand-hued mark stays readable at every hue: 4.5:1 on light and dark g
     const dark = lollyMarkHex(hue, 'dark');
     assert.ok(contrastRatio(dark, '#090e1a') >= 4.5, `dark mark ${dark} (hue ${hue}) on #090e1a: ${contrastRatio(dark, '#090e1a').toFixed(2)}`);
   }
+});
+
+// ── A pack's own chrome (lib/brand-chrome.ts) ────────────────────────────────
+
+const { createTokenSet } = await import('../../../engine/src/tokens.ts');
+const { CHROME_SEL, DANGER_WASH_ALPHA, applyChromeAccent, tokenValueToHex } = await import('./brand-vars.ts');
+const { deriveChrome, resolvePackChrome, chromeIssues } = await import('./lib/brand-chrome.ts');
+
+const SUSE_PAIR = [{ primary: '#0c322c', onPrimary: '#f7f7f5' }, { primary: '#30ba78', onPrimary: '#08211d' }] as const;
+const START_PAIR = [{ primary: '#1d1d1d', onPrimary: '#ffffff' }, { primary: '#ffffff', onPrimary: '#1d1d1d' }] as const;
+
+/** lolly-start's newsprint room, as the C1 plan gives it (section 5). */
+function newsprint(): import('./lib/brand-chrome.ts').PackChrome {
+  const light = deriveChrome('light', { page: '#fcfaf6', raised: '#fefdfa', overlay: '#ffffff', muted: '#f3f0e9', hover: '#eeebe4', edge: '#dbd7cf', ink: '#171612', 'muted-ink': '#5e5b53' })!;
+  const dark = deriveChrome('dark', { page: '#171612', raised: '#201e1a', overlay: '#201e1a', muted: '#282621', hover: '#32302b', edge: '#403d36', ink: '#eae8e2', 'muted-ink': '#c1bdb5' })!;
+  assert.deepEqual([...chromeIssues('light', light, apcaLcAbs), ...chromeIssues('dark', dark, apcaLcAbs)], []);
+  return { light, dark, unsaved: {}, issues: [] };
+}
+
+/** The Opal fixture's chrome and primaries, resolved through the engine per theme. */
+async function opal(): Promise<{ chrome: import('./lib/brand-chrome.ts').PackChrome; light: { primary: string | null; onPrimary: string | null }; dark: { primary: string | null; onPrimary: string | null } }> {
+  const doc = JSON.parse(readFileSync(new URL('../../../tests/fixtures/pack-chrome/opal.json', import.meta.url), 'utf8'));
+  const tokens = {
+    resolve: async (ref: string, opts: { theme?: string } = {}) => createTokenSet(doc, { theme: opts.theme }).resolve(ref),
+    themes: async () => createTokenSet(doc).themes(),
+  };
+  const pair = async (theme: string) => ({
+    primary: tokenValueToHex(await tokens.resolve('{color.semantic.primary}', { theme })),
+    onPrimary: tokenValueToHex(await tokens.resolve('{color.semantic.on-primary}', { theme })),
+  });
+  return { chrome: await resolvePackChrome(tokens, { toHex: tokenValueToHex, lc: apcaLcAbs }), light: await pair('light'), dark: await pair('dark') };
+}
+
+/** Selector to declarations, for every block of a generated sheet, in order. */
+function sheetBlocks(css: string): Array<[string, Map<string, string>]> {
+  return [...css.matchAll(/([^{}\n][^{}]*) \{\n([^}]*)\n\}/g)].map((m) => [m[1]!, declsOf(m[2]!)]);
+}
+
+test('without pack chrome the sheet is what it was: no chrome, null and an empty group are identical', () => {
+  for (const [light, dark] of [SUSE_PAIR, START_PAIR]) {
+    const before = chromeBrandCss(light, dark);
+    assert.equal(chromeBrandCss(light, dark, null), before);
+    assert.equal(chromeBrandCss(light, dark, undefined, '#b00020'), before, 'a danger red alone adds nothing');
+    assert.equal(chromeBrandCss(light, dark, { unsaved: {}, issues: [] }), before);
+    assert.equal(chromeBrandCss(light, dark, { unsaved: {}, issues: ['dark: page #fcfaf6 has OKLCH lightness 0.986, outside 0 to 0.4'] }), before);
+  }
+});
+
+test("lolly-start's newsprint chrome leaves its noir brand theme untouched", () => {
+  const css = chromeBrandCss(START_PAIR[0], START_PAIR[1], newsprint());
+  const brand = sheetBlocks(css).filter(([sel]) => sel === '[data-theme="brand"]');
+  assert.equal(brand.length, 1, 'one brand block: the constructed noir, no brand chrome');
+  assert.ok(css.includes(brandThemeCss('#1d1d1d', '#ffffff')), 'the noir block is byte for byte the construction');
+  // The pack's chrome never declares the render canvas's ink. --foreground-canvas
+  // is what parts/a11y.css's canvas boundary restores, whatever --foreground the
+  // pack sets, so an export keeps the theme's own ink (tests/pack-chrome.browser.test.ts
+  // reads that cascade in a browser).
+  assert.equal(css.split('--foreground-canvas').length - 1, 1, 'only the constructed brand theme declares --foreground-canvas');
+  // Its light and dark blocks carry the newsprint triples.
+  const blocks = new Map(sheetBlocks(css));
+  assert.equal(blocks.get(CHROME_SEL.light)?.get('background'), hexToHslTriple('#fcfaf6'));
+  assert.equal(blocks.get(CHROME_SEL.dark)?.get('card'), hexToHslTriple('#201e1a'));
+});
+
+test('Opal: per-theme chrome blocks, gated off under High contrast, with reading error text and Honey for unsaved work', async () => {
+  const { chrome, light, dark } = await opal();
+  const css = chromeBrandCss(light, dark, chrome);
+  const blocks = sheetBlocks(css);
+  const bySel = new Map(blocks);
+  const expect: Record<'light' | 'dark', Record<string, string>> = {
+    light: { background: '#edf6e0', card: '#ffffff', popover: '#ffffff', muted: '#e2ebd6', secondary: '#e2ebd6', accent: '#dde6d0', border: '#ace1ad', input: '#ace1ad', foreground: '#09141a', 'card-foreground': '#09141a', 'muted-foreground': '#373e44' },
+    dark: { background: '#09141a', card: '#121d24', popover: '#1c282f', muted: '#1c282f', accent: '#2d3a41', border: '#373e44', foreground: '#ffffff', 'popover-foreground': '#ffffff', 'muted-foreground': '#99a0a4' },
+  };
+  for (const theme of ['light', 'dark'] as const) {
+    const decls = bySel.get(CHROME_SEL[theme]);
+    assert.ok(decls, `a ${theme} chrome block`);
+    for (const [name, hex] of Object.entries(expect[theme])) assert.equal(decls!.get(name), hexToHslTriple(hex), `${theme} --${name}`);
+    assert.equal(decls!.get('foreground-canvas'), undefined, `${theme}: never the canvas ink`);
+    assert.equal(decls!.get('primary'), undefined, `${theme}: never the accent`);
+    // Every arm steps aside under High contrast, and none leads with the attribute.
+    for (const arm of CHROME_SEL[theme].split(', ')) {
+      assert.ok(arm.includes(':not([data-a11y-contrast="high"])'), `${theme} arm ${arm}`);
+      assert.ok(!arm.startsWith('html[data-a11y-contrast'), `${theme} arm ${arm}`);
+    }
+    // The error-text red reads 4.5:1 on every pack surface and on a danger wash over the resting ones.
+    const text = hslTripleToHex(decls!.get('destructive-text')!)!;
+    const c = chrome[theme]!;
+    const fill = hslTripleToHex(THEME_DESTRUCTIVE[theme])!;
+    const resting = [c.page, c.raised, c.overlay, c.muted];
+    const washes = resting.map((s) => {
+      const t = parseHex(fill)!, b = parseHex(s)!;
+      return '#' + [0, 1, 2].map((i) => Math.round(t[i]! * DANGER_WASH_ALPHA + b[i]! * (1 - DANGER_WASH_ALPHA)).toString(16).padStart(2, '0')).join('');
+    });
+    for (const s of [...resting, c.hover, ...washes]) {
+      assert.ok(contrastRatio(text, s) >= DANGER_TEXT_RATIO - 0.05, `${theme}: ${text} on ${s} reads ${contrastRatio(text, s).toFixed(2)}`);
+    }
+    // The static text red did not read on all of them, which is why the block states a red of its own.
+    const staticText = hslTripleToHex(STATIC[theme]().get('destructive-text')!)!;
+    assert.ok([...resting, c.hover, ...washes].some((s) => contrastRatio(staticText, s) < DANGER_TEXT_RATIO), `${theme}: the static red needed the walk`);
+  }
+  // Unsaved: three ungated blocks, Honey deep in light, Honey in dark and in brand (from dark).
+  // The light one stays off a dark or brand root, so a theme with no colour of its own
+  // keeps the stylesheets' fallback rather than inheriting light's.
+  const warn = blocks.filter(([, decls]) => decls.has('brand-warn')).map(([sel, decls]) => [sel, decls.get('brand-warn'), decls.get('brand-warn-ink')]);
+  assert.deepEqual(warn, [
+    [':root:not([data-theme="dark"]):not([data-theme="brand"]), [data-theme="light"]', '#b57c0a', '#000000'],
+    ['[data-theme="dark"]', '#fac044', '#000000'],
+    ['[data-theme="brand"]', '#fac044', '#000000'],
+  ]);
+  // The pack blocks sit after Lolly's mark and before the High contrast blocks.
+  const order = blocks.map(([sel]) => sel);
+  assert.ok(order.indexOf(CHROME_SEL.light) > order.lastIndexOf('[data-theme="dark"], [data-theme="brand"]'));
+  assert.ok(order.indexOf(CHROME_SEL.dark) < order.findIndex((sel) => sel.startsWith('html[data-a11y-contrast')));
+});
+
+test("pack chrome walks the design system's own danger red when it declares one", async () => {
+  const { chrome, light, dark } = await opal();
+  const bauxite = '#a43427';
+  const css = chromeBrandCss(light, dark, chrome, bauxite);
+  const text = hslTripleToHex(new Map(sheetBlocks(css)).get(CHROME_SEL.light)!.get('destructive-text')!)!;
+  const d = Math.abs(hexToOklch(text)!.h - hexToOklch(bauxite)!.h);
+  assert.ok(Math.min(d, 360 - d) < 6, `${text} keeps Bauxite's hue`);
+  assert.ok(contrastRatio(text, chrome.light!.page) >= DANGER_TEXT_RATIO);
+});
+
+test('applyChromeAccent is a no-op without a document', () => {
+  assert.equal(applyChromeAccent(SUSE_PAIR[0], SUSE_PAIR[1], newsprint()), '');
 });

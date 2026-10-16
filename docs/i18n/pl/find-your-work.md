@@ -73,7 +73,7 @@ To, co wraca, zależy od tego, jak wyszedłeś i którego narzędzia użyłeś:
 
 - **Zamknąłeś kartę albo wróciłeś innym razem.** Niezapisana praca przepada, z wyjątkiem [narzędzi, które zapisują w trakcie pracy](#which-tools-save-as-you-work): otwórz tę pracę z **Projektów**.
 - **Przeładowałeś stronę w tej samej karcie.** Twoje ustawienia wracają z adresu strony. W narzędziach, które nie zapisują w trakcie pracy, obrazy i pliki, które dodałeś z urządzenia, oraz jednowierszowy tekst dłuższy niż 150 znaków nie wracają, ponieważ adres ich nie przechowuje.
-- **Nacisnąłeś Start albo przycisk wstecz w lewym górnym rogu.** Jeśli coś zmieniłeś od ostatniego zapisu, pobrania albo skopiowania, okno **Niezapisane zmiany** pyta, czy najpierw zapisać. **Zapisz i wyjdź** zapisuje pracę i przenosi cię do **Projektów** albo z powrotem do folderu projektu, z którego otworzyłeś pracę. **Wyjdź bez zapisywania** odrzuca twoje zmiany: zapisany element wraca do stanu z ostatniego zapisu, a kreacja, której nigdy nie zapisałeś, znika z **Projektów**. **Anuluj** zatrzymuje cię w narzędziu.
+- **Nacisnąłeś Start albo przycisk wstecz w lewym górnym rogu.** Jeśli coś zmieniłeś od ostatniego zapisu, pobrania albo skopiowania, okno **Niezapisane edycje** pyta, czy najpierw zapisać. **Zapisz i wyjdź** zapisuje pracę i przenosi cię do **Projektów** albo z powrotem do folderu projektu, z którego otworzyłeś pracę. **Wyjdź mimo to** odrzuca twoje zmiany: zapisany element wraca do stanu z ostatniego zapisu, a kreacja, której nigdy nie zapisałeś, znika z **Projektów**. **Anuluj** zatrzymuje cię w narzędziu.
 
 Lolly pyta tylko wtedy, gdy naciśniesz **Start** albo przycisk wstecz w narzędziu. Zamknięcie karty, przeładowanie i własny przycisk Wstecz przeglądarki nigdy nie pytają. Aby mieć pewność, naciśnij **Zapisz jako** albo **Zapisz** w panelu eksportu, zanim opuścisz narzędzie.
 
@@ -89,7 +89,7 @@ W aplikacji webowej każde narzędzie, które tworzy dokument, zapisuje w trakci
 - 3D i Darkroom, które przyjmują własny plik;
 - narzędzie, w którym nie ma nic do zmiany, takie jak Countdown.
 
-W pozostałych narzędziach pierwsza zmiana umieszcza pracę w **Projektach** tak, jakbyś ją zapisał, a kolejne zmiany są zachowywane w trakcie pracy, gdy tylko narzędzie skończy rysować. Dzięki temu niezapisana kreacja nadal jest w Projektach po zamknięciu karty i otwiera się ponownie ze swoimi zmianami oznaczonymi jako niezapisane. **Wyjdź bez zapisywania** nadal je odrzuca, a Historia zachowuje kopię odrzuconych zmian przez 30 dni. Ponowne otwarcie narzędzia z ekranu startowego zaczyna nową kreację; otwórz wcześniejszą z Projektów.
+W pozostałych narzędziach pierwsza zmiana umieszcza pracę w **Projektach** tak, jakbyś ją zapisał, a kolejne zmiany są zachowywane w trakcie pracy, gdy tylko narzędzie skończy rysować. Dzięki temu niezapisana kreacja nadal jest w Projektach po zamknięciu karty i otwiera się ponownie ze swoimi zmianami oznaczonymi jako niezapisane. **Wyjdź mimo to** nadal je odrzuca, a Historia zachowuje kopię odrzuconych zmian przez 30 dni. Ponowne otwarcie narzędzia z ekranu startowego zaczyna nową kreację; otwórz wcześniejszą z Projektów.
 
 Przy włączonej [Synchronizacji](/info/sync.html) kreacja założona w ten sposób trafia na twoje inne urządzenia jak wszystko inne w Projektach. Jej wersje zostają na urządzeniu, na którym powstały.
 

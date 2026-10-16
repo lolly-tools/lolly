@@ -9,7 +9,7 @@ import { assetFileMetas } from './asset-file-meta.ts';
 export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaRecord[], sessionBlobKeys: Set<string>, keepIds: Set<string>, urls: { evict(key: string): void; evictPrefix(prefix: string): void }, deferredProviders: readonly string[] = []): Promise<{ blobs: number; meta: number }> {
   if (deferredProviders.length) {
     const providers = new Set(deferredProviders);
-    const held = (await db.getAll('asset-meta')).filter(meta => typeof meta.provider === 'string' && providers.has(meta.provider) && (keepIds.has(meta.id) || [...sessionBlobKeys].some(key => key.startsWith(`${meta.id}:`) || key.startsWith(`${meta.id}?file=`))));
+    const held = (await db.getAll('asset-meta')).filter(meta => typeof meta.provider === 'string' && providers.has(meta.provider) && (keepIds.has(meta.id) || [...keepIds].some(id => id.startsWith(`${meta.id}?file=`)) || [...sessionBlobKeys].some(key => key.startsWith(`${meta.id}:`) || key.startsWith(`${meta.id}?file=`))));
     currentAssets = [...currentAssets, ...held];
   }
   const cacheAssets = (await Promise.all(currentAssets.map(a => Array.isArray(a.meta?.assetFiles) ? assetFileMetas(a) : [a]))).flat();

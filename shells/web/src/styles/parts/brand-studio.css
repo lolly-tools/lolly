@@ -377,8 +377,8 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
    section 4.2). ONE tile per token: an assignment re-points an alias, it never
    makes a second swatch, so this corner glyph is how an assigned colour looks
    different from an unassigned one. Paper on a dark tile, ink on a light one -
-   the caller measures the swatch's lightness, because a text-shadow alone is
-   not readable over a pale ground. */
+   swatches.ts picks by the swatch ink (whichever APCA scores higher) and sets
+   .is-onlight, because a text-shadow alone is not readable over a pale ground. */
 .be-swatch-role {
   position: absolute; right: 4px; bottom: 2px;
   font-family: var(--font-mono); font-size: var(--fs-2xs); font-weight: 700;
@@ -635,6 +635,10 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
   border-color: hsl(var(--primary) / .55);
   outline: 2px solid hsl(var(--ring)); outline-offset: 2px;
 }
+.be-logo-drop.is-dragover { border-style: solid; border-color: hsl(var(--primary)); background: hsl(var(--primary) / .08); }
+/* The cue says "Drop to add" in place of "Not set", whose muted text would fall
+   under 4.5:1 on the wash in the light theme. */
+.be-logo-drop.is-dragover .be-logo-empty { visibility: hidden; }
 .be-logo-art {
   
   background-image:
@@ -1354,6 +1358,7 @@ background-image:
 .be-logo-identity-head { display: flex; align-items: baseline; gap: .6rem; }
 .be-logo-identity-name { margin: 0; font-size: var(--fs-sm); font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: hsl(var(--foreground)); }
 .be-logo-slot[data-treatment="custom"] .be-logo-art { background: hsl(var(--muted) / .35); padding: .5rem; }
+/* The whole form is a drop area for its mark (lib/file-drop-tile.ts), hence the dashes. */
 .be-logo-addmark {
   display: grid; gap: .45rem; align-content: center; padding: .7rem;
   border: 1px dashed hsl(var(--border)); border-radius: calc(var(--radius) * .55);
@@ -1368,6 +1373,13 @@ background-image:
 /* It is styled as a button and now behaves like one for the keyboard too: the
    file input inside is visually-hidden (focusable), so the label carries the ring. */
 .be-logo-addmark-pick:focus-within { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.be-logo-addmark.is-dragover { border-style: solid; border-color: hsl(var(--primary)); background: hsl(var(--primary) / .08); }
+/* While a file is over the form, the cue sits where the Choose file button was
+   (centred on its row: the form's padding plus half the height difference), so
+   it covers neither the name field nor the button's label. Opacity, not
+   visibility, so a picker holding the keyboard focus does not lose the focus. */
+.be-logo-addmark.is-dragover .be-logo-addmark-pick { opacity: 0; }
+.be-logo-addmark.is-dragover::after { inset-block-end: 1.15rem; }
 .be-logo-addidentity { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 1.1rem; padding-top: 1.1rem; border-top: 1px solid hsl(var(--border) / .7); }
 .be-logo-addidentity input {
   flex: 1 1 16rem; min-width: 0; padding: .45rem .6rem; font: inherit; font-size: var(--fs-md);
@@ -1538,7 +1550,7 @@ background-image:
 .be-grad-stopwrap:focus-within .be-grad-stopdel { display: inline-flex; }
 .be-grad-stopdel:hover { color: hsl(var(--destructive-text)); border-color: hsl(var(--destructive) / .5); }
 .be-grad-addstop {
-  width: 22px; height: 22px; border: 1px dashed hsl(var(--border)); border-radius: var(--radius-sm);
+  width: 22px; height: 22px; border: 1px solid hsl(var(--border)); border-radius: var(--radius-sm);
   background: transparent; color: hsl(var(--muted-foreground)); cursor: pointer; font-size: var(--fs-md); line-height: 1;
 }
 .be-grad-addstop:hover { border-color: hsl(var(--primary) / .55); color: hsl(var(--foreground)); }
@@ -2022,8 +2034,8 @@ html[data-a11y-motion="reduce"] .start:has(> .stu-sheet) .be-bulkbar { transitio
 /* ── "In other spaces": the per-target face list ────────────────────────────
    One row per space or press the swatch can be expressed in. A row is either
    derived or authored, and the difference has to be readable at a glance -
-   that is the whole point of the control, so `is-set` carries weight and an
-   accent rail rather than a subtle tint. */
+   that is the whole point of the control, so `is-set` carries a full wash and a
+   heavier key rather than a faint tint. */
 .be-faces { display: flex; flex-direction: column; gap: var(--sp-1); }
 .be-face {
   display: grid;
@@ -2040,11 +2052,11 @@ html[data-a11y-motion="reduce"] .start:has(> .stu-sheet) .be-bulkbar { transitio
 .be-face:nth-child(odd) { background: hsl(var(--muted) / 0.4); }
 .be-face-key { font-weight: 600; color: hsl(var(--muted-foreground)); }
 .be-face-val { font-family: var(--font-mono); font-size: var(--fs-xs); overflow: hidden; text-overflow: ellipsis; }
-/* Authored: an accent rail on the leading edge and a heavier key. Not a
-   one-sided BORDER on a card - this is a row in a list, and the rail is the
-   list's own emphasis, which is a different thing from a bordered box. */
-.be-face.is-set { background: hsl(var(--primary) / 0.09); box-shadow: inset 2px 0 0 hsl(var(--primary)); }
-.be-face.is-set .be-face-key { color: hsl(var(--foreground)); }
+/* Authored: a full wash across the row and a heavier key. No edge rail: a
+   stripe on one edge of a rounded row breaks the house rule, and the wash
+   already marks the row. The pressed Set button says it in words. */
+.be-face.is-set { background: hsl(var(--primary) / 0.12); }
+.be-face.is-set .be-face-key { color: hsl(var(--foreground)); font-weight: 700; }
 /* An override whose profile is not mounted: shown, never actionable. Dimmed and
    italic, carried by weight and colour rather than by a dashed border - dashed
    means drop area in this language and nothing else. */

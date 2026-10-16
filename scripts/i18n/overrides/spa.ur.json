@@ -909,8 +909,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "{workspace} میں آپ کا رول صرف دیکھنے کی اجازت دیتا ہے۔ اپنا رول بدلنے کے لیے {workspace} کے ایڈمن سے کہیں۔",
   "This is view only. Make a copy to keep your changes.": "یہ صرف دیکھنے کے لیے ہے۔ اپنی تبدیلیاں رکھنے کے لیے کاپی بنائیں۔",
   "Save changes to {project}?": "کیا تبدیلیاں {project} میں محفوظ کریں؟",
-  "Leave without saving keeps your changes on this device.": "محفوظ کیے بغیر چھوڑنے پر آپ کی تبدیلیاں اس ڈیوائس پر رہتی ہیں۔",
-  "Stay": "رکیں",
   "Save a copy on this device": "اس ڈیوائس پر کاپی محفوظ کریں",
   "Copy saved on this device.": "کاپی اس ڈیوائس پر محفوظ ہو گئی۔",
   "Where should the copy go?": "کاپی کہاں جائے؟",
@@ -1216,5 +1214,8 @@
   "WebGPU initialisation timed out. Reload Lolly to try again.": "WebGPU شروع ہونے کا وقت ختم ہو گیا۔ دوبارہ کوشش کرنے کے لیے Lolly کو دوبارہ لوڈ کریں۔",
   "WebGPU initialisation expired. Reload Lolly to try again.": "WebGPU شروع کرنے کی میعاد ختم ہو گئی۔ دوبارہ کوشش کرنے کے لیے Lolly کو دوبارہ لوڈ کریں۔",
   "The graphics device was lost. Reload Lolly to reconnect.": "گرافکس ڈیوائس سے رابطہ ٹوٹ گیا۔ دوبارہ جڑنے کے لیے Lolly کو دوبارہ لوڈ کریں۔",
-  "Reload": "دوبارہ لوڈ کریں"
+  "Reload": "دوبارہ لوڈ کریں",
+  "Unsaved edits": "غیر محفوظ ترامیم",
+  "Save now or abandon your changes.": "ابھی محفوظ کریں یا اپنی تبدیلیاں ترک کر دیں۔",
+  "Leave anyway": "پھر بھی چھوڑیں"
 }

@@ -1,5 +1,5 @@
 {
-  "$description": "Lolly starter tokens - ink-and-paper scaffolding, and nothing else. One neutral ramp (1 Ink through 9 Paper) carries surfaces, text and hairlines, and every semantic slot in both themes aliases into it, so a fresh install renders in black and white and the accent is ink until somebody picks a colour. A design system grows by ADDING colours in the #/start studio, not by clearing out a big preset palette. Layered DTCG: a shared 'base' set with the neutral ramp, the two faces (shell-served, no font binaries in this pack) and the default logo slots (asset.logo.*) pointing at the shipped Lolly marks, plus per-theme semantic slots that alias into the ramp. $values are hex; the engine's colorToHex reads either hex or oklch. Replace the lot via the #/start wizard or 'npm run ingest:brand'.",
+  "$description": "Lolly starter tokens - ink-and-paper scaffolding, and nothing else. One neutral ramp (1 Ink through 9 Paper) carries surfaces, text and hairlines, and every semantic slot in both themes aliases into it, so a fresh install renders in black and white and the accent is ink until somebody picks a colour. A design system grows by ADDING colours in the #/start studio, not by clearing out a big preset palette. Layered DTCG: a shared 'base' set with the neutral ramp, the two faces (shell-served, no font binaries in this pack) and the default logo slots (asset.logo.*) pointing at the shipped Lolly marks, plus per-theme semantic slots that alias into the ramp. The light and dark sets also carry Lolly's newsprint app chrome as color.chrome.* roles: literal warm greys the app wears, which the palette and a rebrand do not count. $values are hex; the engine's colorToHex reads either hex or oklch. Replace the lot via the #/start wizard or 'npm run ingest:brand'.",
   "$metadata": {
     "tokenSetOrder": [
       "base",
@@ -212,6 +212,41 @@
           "$value": "{color.ramp.neutral.8}",
           "$description": "An alternative slide ground."
         }
+      },
+      "chrome": {
+        "$description": "The app's own chrome in the light theme: Lolly's newsprint room, warm paper with near-black ink. Roles the app wears, so the palette and a rebrand do not count them. Literal colours, because the neutral ramp stays true grey.",
+        "page": {
+          "$value": "#fcfaf6",
+          "$description": "The page behind everything: newsprint paper."
+        },
+        "raised": {
+          "$value": "#fefdfa",
+          "$description": "Cards, side panels and the top bar."
+        },
+        "overlay": {
+          "$value": "#ffffff",
+          "$description": "Menus, dialogs and popovers."
+        },
+        "muted": {
+          "$value": "#f3f0e9",
+          "$description": "Wells, tracks and quiet fills."
+        },
+        "hover": {
+          "$value": "#eeebe4",
+          "$description": "Hover and active surfaces."
+        },
+        "edge": {
+          "$value": "#dbd7cf",
+          "$description": "Hairlines and field edges."
+        },
+        "ink": {
+          "$value": "#171612",
+          "$description": "Body text on the chrome."
+        },
+        "muted-ink": {
+          "$value": "#5e5b53",
+          "$description": "Secondary text on the chrome."
+        }
       }
     }
   },
@@ -309,6 +344,41 @@
         "alt-surface": {
           "$value": "{color.ramp.neutral.1}",
           "$description": "An alternative slide ground."
+        }
+      },
+      "chrome": {
+        "$description": "The app's own chrome in the dark theme: Lolly's newsprint room, warm charcoal with off-white ink. Roles the app wears, as in the light set.",
+        "page": {
+          "$value": "#171612",
+          "$description": "The page behind everything: warm charcoal."
+        },
+        "raised": {
+          "$value": "#201e1a",
+          "$description": "Cards, side panels and the top bar."
+        },
+        "overlay": {
+          "$value": "#201e1a",
+          "$description": "Menus, dialogs and popovers."
+        },
+        "muted": {
+          "$value": "#282621",
+          "$description": "Wells, tracks and quiet fills."
+        },
+        "hover": {
+          "$value": "#32302b",
+          "$description": "Hover and active surfaces."
+        },
+        "edge": {
+          "$value": "#403d36",
+          "$description": "Hairlines and field edges."
+        },
+        "ink": {
+          "$value": "#eae8e2",
+          "$description": "Body text on the chrome."
+        },
+        "muted-ink": {
+          "$value": "#c1bdb5",
+          "$description": "Secondary text on the chrome."
         }
       }
     }

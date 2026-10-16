@@ -40,8 +40,9 @@ export const logoTile = (_bedit: BrandEditorCtx, v: string, identity: string, sl
   const hint = slot ? t('Click to replace') : (tm ? tm.hint : t('A mark named its own way.'));
   // An empty slot says what it IS - "Not set", in the muted register - rather
   // than showing a bare "+" that reads as an instruction (plan 182 section
-  // 4.2). The whole tile is still the drop target and the file input's label,
-  // so nothing about adding a mark changed; only the words did.
+  // 4.2). The whole tile is the file input's label and its drop target:
+  // data-file-drop marks it, and logo-intake.ts wires the drop through
+  // lib/file-drop-tile.ts to the same placement a picked file takes.
   const body = slot
     ? `<span class="be-logo-art"><img src="${escapeText(slot.url)}" alt="${escapeText(tRaw('{name} logo', { name }))}" loading="lazy"></span>`
     : `<span class="be-logo-empty">${t('Not set')}</span>`;
@@ -52,7 +53,7 @@ export const logoTile = (_bedit: BrandEditorCtx, v: string, identity: string, sl
   return `<div class="be-logo-slot${slot ? ' is-filled' : ''}" data-be-logo="${escapeText(v)}" data-treatment="${treatment ?? 'custom'}">
         <div class="be-logo-slot-head"><span class="be-logo-slot-name">${escapeText(name)}</span>
           ${slot ? `<button type="button" class="be-logo-del" data-logo-del="${escapeText(v)}" data-identity="${escapeText(identity)}" aria-label="${escapeText(tRaw('Remove the {name} mark', { name }))}">&#x2715;</button>` : ''}</div>
-        <label class="be-logo-drop">
+        <label class="be-logo-drop" data-file-drop data-drop-label="${escapeText(slot ? t('Drop to replace') : t('Drop to add'))}">
           ${body}
           <input type="file" class="be-logo-file visually-hidden" data-logo-file="${escapeText(v)}" data-identity="${escapeText(identity)}" accept="image/png,image/jpeg,image/svg+xml,image/webp" aria-label="${escapeText(tRaw('Replace the {name} mark', { name }))}">
         </label>
@@ -91,7 +92,7 @@ export const paintLogos = async (bedit: BrandEditorCtx): Promise<void> => {
       cls: ' be-logo-group--custom',
       filled: customs.length > 0,
       body: `${customTiles}
-            <form class="be-logo-addmark" data-logo-addmark data-identity="${escapeText(identity)}">
+            <form class="be-logo-addmark" data-logo-addmark data-identity="${escapeText(identity)}" data-file-drop data-drop-label="${escapeText(t('Drop to add'))}">
               <input type="text" class="be-logo-addmark-name" data-addmark-name placeholder="${escapeText(t('Name it - Icon, Crest…'))}" autocomplete="off" spellcheck="false" aria-label="${escapeText(t('Custom mark name'))}">
               <label class="be-btn be-logo-addmark-pick">${t('Choose file…')}
                 <input type="file" class="visually-hidden" data-addmark-file accept="image/png,image/jpeg,image/svg+xml,image/webp" aria-label="${escapeText(t('Choose a file for this mark'))}"></label>

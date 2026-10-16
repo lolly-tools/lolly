@@ -11,7 +11,7 @@ import type { Mat2D } from '@lolly/engine';
 import { textStrokeAttrs, canVectoriseText, textBaselineY, applyTextTransform } from './text-svg.ts';
 import { createInlineTextContext, emitInlineTextSvg, isReplaced } from './export-text.ts';
 import type { InlineTextContext } from './export-text.ts';
-export { decoFlags, mergeDeco, isReplaced, visualLines } from './export-text.ts';
+export { decoFlags, mergeDeco, isReplaced, visualLines, pdfInlineNonText } from './export-text.ts';
 export type { Deco } from './export-text.ts';
 import { resolveVectorFont } from './font-registry.ts';
 import { namespaceInlinedSvgIds } from './svg-inline-ids.ts';

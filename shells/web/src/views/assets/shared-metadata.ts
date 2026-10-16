@@ -44,20 +44,52 @@ export async function mountSharedMetadata(root: HTMLElement, ref: AssetRef, refr
   const origin = getInstanceBase(), controller = new AbortController();
   root.closest('dialog')?.addEventListener('close', () => controller.abort(), { once: true });
   const alive = () => root.isConnected && !controller.signal.aborted && origin === getInstanceBase();
-  root.innerHTML = `<p role="status">${t('Loading shared asset details…')}</p>`;
+  const element = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string): HTMLElementTagNameMap[K] => {
+    const node = root.ownerDocument.createElement(tag);
+    if (text !== undefined) node.textContent = text;
+    return node;
+  };
+  const statusLine = (text: string) => { const node = element('p', text); node.setAttribute('role', 'status'); return node; };
+  root.replaceChildren(statusLine(t('Loading shared asset details…')));
   try {
     const value = await inspectCatalogAsset(id, controller.signal); if (!alive()) return;
     const fields = validFields(value.fieldDefs);
     const values = value.fields ?? {};
-    const input = (field: CatalogField) => `<label class="cat-shared-field">${esc(field.label)}${field.required ? ` (${t('required')})` : ''}${field.kind === 'select'
-      ? `<select class="field-input" aria-label="${esc(field.label)}" name="${field.id}"${field.required ? ' required' : ''}><option value=""></option>${(field.options ?? []).map(option => `<option value="${esc(option)}"${values[field.id] === option ? ' selected' : ''}>${esc(option)}</option>`).join('')}</select>`
-      : `<input class="field-input" aria-label="${esc(field.label)}" name="${field.id}" type="${field.kind === 'date' ? 'date' : field.kind === 'url' ? 'url' : 'text'}" value="${esc(values[field.id] ?? '')}" maxlength="4000"${field.required ? ' required' : ''}>`}</label>`;
-    root.innerHTML = `${sourceFactsHtml(value, ref, source)}<details><summary>${t('Organisation metadata')}</summary><p>${t('These fields belong to this organisation. Source metadata stays with the connected library.')}</p>
-      ${fields.length ? value.canEdit ? `<form>${fields.map(input).join('')}<button type="submit" class="btn">${t('Save metadata')}</button><p role="status" data-metadata-status></p></form>`
-        : `<dl>${fields.map(field => row(field.label, values[field.id] ?? t('Not recorded'))).join('')}</dl>` : `<p>${t('No organisation fields are configured.')}</p>`}
-      ${value.fieldsUpdatedAt ? `<p>${t('Last organisation edit')}: ${esc(date(value.fieldsUpdatedAt))}</p>` : ''}</details>
-      ${value.textIndex ? `<section class="cat-shared-index"><h3>${t('Shared text search')}</h3><p role="status" data-index-status>${indexLabel(value)}</p>${value.textIndex.source ? `<p>${esc(value.textIndex.source.method === 'ocr' ? t('Text recognition') : t('Document text'))} · ${esc(date(value.textIndex.source.reviewedAt))}</p>` : ''}
-      ${value.canEdit && value.textIndex.status !== 'none' ? `<button type="button" class="btn btn--ghost" data-clear-index>${t('Remove indexed text')}</button>` : ''}</section>` : ''}`;
+    const facts = element('div'); facts.innerHTML = sourceFactsHtml(value, ref, source);
+    const details = element('details');
+    details.append(element('summary', t('Organisation metadata')), element('p', t('These fields belong to this organisation. Source metadata stays with the connected library.')));
+    if (!fields.length) details.append(element('p', t('No organisation fields are configured.')));
+    else if (!value.canEdit) {
+      const list = element('dl'); list.className = 'cat-details-meta';
+      for (const field of fields) { const entry = element('div'); entry.append(element('dt', field.label), element('dd', values[field.id] ?? t('Not recorded'))); list.append(entry); }
+      details.append(list);
+    } else {
+      const form = element('form');
+      for (const field of fields) {
+        const label = element('label', field.label + (field.required ? ` (${t('required')})` : '')); label.className = 'cat-shared-field';
+        const control = field.kind === 'select' ? element('select') : element('input');
+        if (control instanceof HTMLSelectElement) {
+          const blank = element('option'); blank.value = ''; control.append(blank);
+          for (const option of field.options ?? []) { const node = element('option', option); node.value = option; control.append(node); }
+        } else { control.type = field.kind === 'date' ? 'date' : field.kind === 'url' ? 'url' : 'text'; control.maxLength = 4000; }
+        control.className = 'field-input'; control.name = field.id; control.required = !!field.required;
+        control.setAttribute('aria-label', field.label); control.value = values[field.id] ?? '';
+        label.append(control); form.append(label);
+      }
+      const button = element('button', t('Save metadata')); button.type = 'submit'; button.className = 'btn';
+      const status = statusLine(''); status.dataset.metadataStatus = '';
+      form.append(button, status); details.append(form);
+    }
+    if (value.fieldsUpdatedAt) details.append(element('p', `${t('Last organisation edit')}: ${date(value.fieldsUpdatedAt)}`));
+    root.replaceChildren(...facts.childNodes, details);
+    if (value.textIndex) {
+      const section = element('section'); section.className = 'cat-shared-index';
+      const status = statusLine(indexLabel(value)); status.dataset.indexStatus = '';
+      section.append(element('h3', t('Shared text search')), status);
+      if (value.textIndex.source) section.append(element('p', `${value.textIndex.source.method === 'ocr' ? t('Text recognition') : t('Document text')} · ${date(value.textIndex.source.reviewedAt)}`));
+      if (value.canEdit && value.textIndex.status !== 'none') { const button = element('button', t('Remove indexed text')); button.type = 'button'; button.className = 'btn btn--ghost'; button.dataset.clearIndex = ''; section.append(button); }
+      root.append(section);
+    }
     root.querySelector<HTMLButtonElement>('[data-clear-index]')?.addEventListener('click', async event => {
       if (!alive()) return;
       const button = event.currentTarget as HTMLButtonElement, status = root.querySelector<HTMLElement>('[data-index-status]')!; button.disabled = true;
@@ -82,7 +114,8 @@ export async function mountSharedMetadata(root: HTMLElement, ref: AssetRef, refr
     });
   } catch {
     if (!alive()) return;
-    root.innerHTML = `<p role="status">${t('Shared asset details could not be loaded. Check your access and connection.')}</p><button type="button" class="btn btn--ghost">${t('Retry details')}</button>`;
+    const retry = element('button', t('Retry details')); retry.type = 'button'; retry.className = 'btn btn--ghost';
+    root.replaceChildren(statusLine(t('Shared asset details could not be loaded. Check your access and connection.')), retry);
     root.querySelector('button')?.addEventListener('click', () => { if (alive()) void mountSharedMetadata(root, ref, refresh, source); }, { once: true });
   }
 }
