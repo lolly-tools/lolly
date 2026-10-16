@@ -632,7 +632,7 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    and sits under the outline and the handles. The accent token follows the theme. */
 .fc-zone {
   position: absolute; inset: 0; width: 100%; height: 100%;
-  overflow: visible; pointer-events: none; animation: fc-zone-in 120ms ease-out;
+  overflow: visible; pointer-events: none; animation: fc-zone-in var(--ui-motion-feedback) ease-out;
 }
 .fc-zone polygon { fill: hsl(var(--primary) / 0.16); }
 @keyframes fc-zone-in { from { opacity: 0; } }
