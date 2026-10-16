@@ -1,5 +1,6 @@
 # Proof cases
 
+
 > This chapter is a draft for review, dated 2026-09-24.  
 
 This chapter lists the cases the document model must be proved against. Each case is a paper example now and an executable fixture later (plan section 17). None of them is built.
@@ -155,6 +156,23 @@ The plan's section 18 names five of these cases as the ones that run before any 
 | 5 | 21, preservation round trip | What is preserved across save, restart and an older client (R10, R11) |
 
 The patch envelope and the source-aware diff land when their semantics are fixed in [Source rows, payloads and patches](source-and-patches.html) and [Packaging, identity and migration](packaging.html), not before (plan section 18). Cases 13, 15 and 16 are the evidence those semantics are settled.
+
+## Source and history implementation evidence
+
+The source-history suites exercise maintained resource and review boundaries.
+`tests/source-history.browser.test.ts` covers exact selected-file reads, source
+overwrite with an unchanged token, saved revisions, restart and explicit missing
+bytes. `tests/source-history-package.test.ts` exercises the existing editable
+package vehicle and distinguishes imported operation reports from execution
+observed on this device. `tests/asset-version.test.ts` also binds credential
+collection to each exact source version used by an export.
+
+The Work [source-review suite](https://github.com/lolly-tools/lolly-work/blob/24955a47957d820d4e1d6a9d0a835b0e02aeb77b/tests/catalog-source-review.test.ts) covers a frozen purpose, activation
+target and file membership, replacement after request, and hidden proof members.
+These are focused implementation cases. They do not establish vendor-native
+history, historical source attributes, complete shared usage, replayable imported
+recipes or approval of later output bytes. No new portable evidence part or
+shared document record is emitted by these cases.
 
 ## Open points
 

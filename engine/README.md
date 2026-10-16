@@ -133,7 +133,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `appstream.ts` | 120 |  | yes | `tests/appstream.test.ts` | – |
 | `asset-modifiers.ts` | 51 | Asset reference syntax, without icon rendering or photo processing dependencies. | no | none | – |
 | `asset-provider.ts` | 15 | Pure grammar for logical asset references. | yes | `tests/asset-provider.test.ts` | – |
-| `asset-version.ts` | 54 | Explicit asset versions, portable through typed state and URL-mode values. | yes | `tests/asset-version.test.ts` | – |
+| `asset-version.ts` | 57 | Explicit asset versions, portable through typed state and URL-mode values. | yes | `tests/asset-version.test.ts` | – |
 | `audio-analyse.ts` | 536 | Audio analysis - decoded PCM in, a per-frame reactivity track out. | yes | `tests/audio-analyse.test.ts` | – |
 | `audio-clean.test.ts` | 29 |  | no | none | – |
 | `audio-clean.ts` | 153 | Deterministic PCM finishing shared by host.audio implementations. | yes | `tests/audio-clean.test.ts` | – |

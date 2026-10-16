@@ -537,6 +537,10 @@ export function buildSheet(dt: DetailsCtx): void {
   fileSlot.dataset.assetFiles = '';
   dlg.querySelector('.cat-details-body')?.prepend(fileSlot);
   mountAssetFileList(fileSlot, ref, selected => cat.details.openDetails(selected, dt.initialTheme, dt.initialTreatment));
+  const historySlot = document.createElement('div'); fileSlot.after(historySlot);
+  void import('./source-history.ts').then(({ mountSourceHistory }) => {
+    if (historySlot.isConnected) mountSourceHistory(historySlot, ref, cat.host.assets);
+  });
   if (ref.meta?.provider || ref.id.startsWith('inst/')) {
     const metadata = document.createElement('div'); metadata.dataset.sharedMetadata = ''; fileSlot.after(metadata);
     void import('./shared-metadata.ts').then(({ mountSharedMetadata }) => mountSharedMetadata(metadata, ref, () => { void cat.remote?.load(); }, cat.sourceStatuses.find(source => source.id === ref.meta?.provider)));

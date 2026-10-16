@@ -49,6 +49,7 @@ import { FROZEN_PREFIX } from './version-assets.ts';
 // (scripts/check-bundle-budget.ts).
 const assetHistory = () => import('./asset-history.ts');
 import type { AssetRef, AssetQuery } from '@lolly-tools/core/host-v1';
+import type { CatalogHistoryDb } from './catalog-history.ts';
 import type { IconTheme } from '../../../../engine/src/icon-theme.ts';
 import type { PhotoTreatment } from '../../../../engine/src/photo-treatment.ts';
 
@@ -184,17 +185,9 @@ interface AssetRefSource {
   baked?: boolean;
 }
 
-/** One readwrite transaction over a single store. */
-interface AssetsTx {
-  store: {
-    put(value: AssetMetaRecord): Promise<unknown>;
-    delete(key: string): Promise<unknown>;
-  };
-  done: Promise<void>;
-}
-
 /** The slice of the idb database this API touches (the asset-* + user-assets stores). */
 export interface AssetsDb {
+  objectStoreNames?: { contains(name: string): boolean };
   get(store: 'profile', key: string): Promise<unknown>;
   get(store: 'user-assets', id: string): Promise<UserAssetRecord | undefined>;
   get(store: 'asset-meta', id: string): Promise<AssetMetaRecord | undefined>;
@@ -207,7 +200,7 @@ export interface AssetsDb {
   put(store: 'user-assets', record: UserAssetRecord): Promise<unknown>;
   put(store: 'asset-blob', blob: Blob, key: string): Promise<unknown>;
   delete(store: 'user-assets' | 'asset-blob', id: string): Promise<void>;
-  transaction(store: 'asset-meta' | 'asset-blob', mode: 'readwrite'): AssetsTx;
+  transaction: CatalogHistoryDb['transaction'];
 }
 
 const OBJECT_URL_CACHE = new Map<string, string>(); // key → blob URL, kept alive while bridge is.
@@ -448,6 +441,9 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
   };
 
   const api = {
+    async _sourceHistory(id: string) {
+      return (await import('./catalog-history.ts')).catalogSourceHistory(db as CatalogHistoryDb, id);
+    },
     async resolveProvider(ref: { provider: string; scope: string; path: string }): Promise<AssetRef | null> {
       if (ref.provider === 'catalog' || ref.provider === 'library') {
         try { return await api.get([ref.scope, ref.path].filter(Boolean).join('/')); } catch { return null; }
@@ -462,6 +458,29 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       return null;
     },
     async get(id: string, opts: { format?: string; version?: string; tokenSelection?: Readonly<Record<string, string>> } = {}): Promise<AssetRef> {
+      if (opts.version?.startsWith('sha256-') && opts.version.includes('.')) {
+        const history = await import('./catalog-history.ts');
+        const { observation, blob } = await history.readCatalogContent(db as CatalogHistoryDb, id, { version: opts.version, format: opts.format });
+        return { ...await toAssetRef({ ...observation.record, version: observation.version, blob,
+          cacheKey: `library:${observation.key}`, checksum: observation.sha256,
+          meta: { ...observation.record.meta, sourceObservation: { observedAt: observation.observedAt,
+            sourceVersion: observation.sourceVersion, sourceOrigin: observation.sourceOrigin, mappingRevision: observation.mappingRevision,
+            metadataScope: observation.metadataScope, metadataOrigin: observation.metadataOrigin, metadataCompleteness: observation.metadataCompleteness,
+            metadataFreshness: observation.metadataFreshness, representation: observation.representation, currentAuthority: 'not-checked' } } }, 'library'),
+          pin: { version: observation.version, format: observation.format } };
+      }
+      const ref = await api._getCurrent(id, opts);
+      // Continuous brand documents and presentation modifiers retain their
+      // existing live semantics. A file placement records the original read.
+      if (opts.version !== undefined || ref.source !== 'library' || ['tokens', 'palette', 'ratecard'].includes(ref.type)
+        || !db.objectStoreNames?.contains('asset-observations') || parseThemedAssetId(id).theme || parseTreatedAssetId(id).treatment || isZzfxmRef(id)) return ref;
+      const blob = await api._getBlob(id, { format: ref.format });
+      if (!blob) throw new Error('Could not retain the selected source file.');
+      await verifyAssetChecksum(blob, { format: ref.format, url: '', checksum: ref.checksum });
+      const retained = await (await import('./catalog-history.ts')).retainCatalogRead(db as CatalogHistoryDb, ref, blob, assertQuotaRoom);
+      return { ...await toAssetRef({ ...retained, blob, cacheKey: `library:${id}:${ref.format}:${retained.version}` }, 'library'), pin: retained.pin };
+    },
+    async _getCurrent(id: string, opts: { format?: string; version?: string; tokenSelection?: Readonly<Record<string, string>> } = {}): Promise<AssetRef> {
       // A PROCEDURAL asset: `zzfxm:<seed>[:<style>]` names a song that is
       // synthesised on demand, not a file anything stores. There are no bytes
       // to look up, so the ref resolves to ITSELF (`url === id`), and the
@@ -528,7 +547,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       if (!storedMeta) throw new Error(`Asset not in catalog: ${id}`);
       const currentMeta = await fileMeta(storedMeta, parsedFile.file);
       const historical = opts.version !== undefined && opts.version !== currentMeta.version;
-      const meta = historical ? { ...currentMeta, version: opts.version!, checksum: undefined } : currentMeta;
+      const meta = historical ? { ...currentMeta, version: opts.version!, checksum: undefined, width: undefined, height: undefined } : currentMeta;
 
       const format = pickFormat(meta, opts.format);
       if (opts.format && format.format !== opts.format) throw new Error(`Asset format unavailable: ${id} (${opts.format})`);
@@ -539,7 +558,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       // clip's authored length is invisible to the picker badge and the
       // timeline.
       const durationMs = authoredDurationMs(format);
-      const refMeta = {
+      const refMeta = historical ? { name: id, historicalMetadata: 'unavailable' } : {
         ...withoutReservedMeta(meta.meta),
         name: meta.name,
         tags: meta.tags,
@@ -662,7 +681,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         }, 'library');
       }
 
-      return toAssetRef({ ...meta, blob: await loadBlob(), format: format.format, meta: refMeta }, 'library');
+      return toAssetRef({ ...meta, blob: await loadBlob(), format: format.format, checksum: historical ? undefined : format.checksum ?? meta.checksum, meta: refMeta }, 'library');
     },
 
     /**
@@ -1123,6 +1142,10 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       id: string,
       opts: { format?: string; version?: string; fetchIfMissing?: boolean } = {},
     ): Promise<Blob | null> {
+      if (opts.version?.startsWith('sha256-') && opts.version.includes('.')) {
+        try { return (await (await import('./catalog-history.ts')).readCatalogContent(db as CatalogHistoryDb, id, { version: opts.version, format: opts.format })).blob; }
+        catch { return null; }
+      }
       // `user/...` ids live in the user-assets store as one already-resolved
       // blob (no format/version keying). Mirror get()'s resolution order so
       // callers like the tokens bridge can read a user-installed document by id.
@@ -1215,9 +1238,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     /**
      * Internal: called by syncAssets after writing new metadata.
      *
-     * Keeps a blob only if it passes both tests:
-     *   1. Its version is current (matches the catalog index).
-     *   2. It is either core-tier (always prefetched) OR referenced by a saved session.
+     * Keeps core files, explicit downloads, and exact saved dependencies. An
+     * exact dependency survives source replacement or index withdrawal.
      *
      * This prevents on-demand blobs from accumulating when a user browses the
      * asset picker without saving a session.
@@ -1262,7 +1284,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     // version.
     async credential(id: string): Promise<{ store: Uint8Array; format: string } | null> {
       const { assetCredential } = await import('./asset-cache-maintenance.ts');
-      return assetCredential(db, id, key => api.get(key), CREDENTIAL_CACHE, MAX_CREDENTIAL_SCAN_BYTES);
+      return assetCredential(db, id, (key, opts) => api.get(key, opts), CREDENTIAL_CACHE, MAX_CREDENTIAL_SCAN_BYTES);
     },
   };
   return api;
@@ -1548,7 +1570,9 @@ export class AssetChecksumError extends Error {}
 export async function verifyAssetChecksum(blob: Blob, format: AssetFormat | undefined): Promise<void> {
   if (!format?.checksum || !globalThis.crypto?.subtle) return;
   const actual = await sriForBlob(blob);
-  if (actual !== format.checksum) {
+  const expected = /^[a-f0-9]{64}$/.test(format.checksum)
+    ? `sha256-${btoa(String.fromCharCode(...format.checksum.match(/../g)!.map(hex => Number.parseInt(hex, 16))))}` : format.checksum;
+  if (actual !== expected) {
     throw new AssetChecksumError(
       `Asset checksum mismatch for ${format.url}: expected ${format.checksum}, got ${actual}`,
     );

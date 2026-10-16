@@ -56,6 +56,16 @@ test('shared Assets pages retain selections, exact filters, file choice and meta
     assert.match(page.url(), /file%3Dbbbb|file=bbbb/);
     const reopened = await page.evaluate(async () => { const bridge = '/src/bridge/assets.ts', storage = '/src/bridge/db.ts'; const api = (await import(bridge)).createAssetsAPI(await (await import(storage)).openDB()); const ref = await api.get('ext/dam/item-0?file=' + 'b'.repeat(24)); return { id: ref.id, name: ref.meta.name }; });
     assert.equal(reopened.id, 'ext/dam/item-0?file=' + 'b'.repeat(24)); assert.equal(reopened.name, 'square.svg');
+    await page.getByText('Source history', { exact: true }).click();
+    await page.getByText('Held reads on this device', { exact: true }).waitFor();
+    await page.getByText('Observed source version: 1234567890123456', { exact: true }).first().waitFor();
+    if (process.env.LOLLY_ASSETS_EVIDENCE) { await mkdir(process.env.LOLLY_ASSETS_EVIDENCE, { recursive: true }); await page.screenshot({ path: `${process.env.LOLLY_ASSETS_EVIDENCE}/source-history-desktop.png` }); }
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByText('Held reads on this device', { exact: true }).scrollIntoViewIfNeeded();
+    assert.equal(await page.locator('.cat-details-body').evaluate(element => element.scrollWidth <= element.clientWidth), true);
+    if (process.env.LOLLY_ASSETS_EVIDENCE) await page.screenshot({ path: `${process.env.LOLLY_ASSETS_EVIDENCE}/source-history-mobile.png` });
+    await page.setViewportSize({ width: 1360, height: 1000 });
+    await page.getByText('Source history', { exact: true }).click();
     await page.getByText('Organisation metadata', { exact: true }).click();
     assert.equal(await page.getByLabel('Credit <script>literal</script>', { exact: true }).inputValue(), '<img src=x onerror=alert(1)>');
     assert.equal(await page.locator('.cat-details-body form img, .cat-details-body form script').count(), 0, 'metadata labels and values remain text');
