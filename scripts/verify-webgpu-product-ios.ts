@@ -117,16 +117,25 @@ async function signOwnedApp(app: string, output: string, runId: string, profileP
 
 function argument(argv: string[], name: string): string | undefined { return argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3); }
 
-async function prepare(output: string, sourceSha: string): Promise<void> {
+async function prepare(output: string, sourceSha: string, upgradePath?: string): Promise<void> {
   const sources = await productSourceReceipt(repo, IOS_PRODUCT_SOURCES);
   requireSourceSha(sourceSha, String(sources.sourceSha)); assert.equal(sources.sourceDirty, '', 'Prepare from a clean reviewed source tree.');
+  const previous = upgradePath ? JSON.parse(await readFile(resolve(upgradePath), 'utf8')) as IosProductReceipt : null;
+  if (previous) {
+    assert.equal(previous.identifier, productProbeIdentity(previous.runId));
+    assert.equal(previous.platform, 'ios');
+    assert.equal(previous.status, 'built and development signed; not installed or launched');
+    await validateReceiptFiles(previous, dirname(resolve(upgradePath!)));
+    await signedAppChecks(previous);
+  }
   await mkdir(dirname(output), { recursive: true }); await mkdir(output);
-  const runId = randomUUID(), config = iosProbeConfig(runId);
+  const runId = previous?.runId ?? randomUUID(), config = iosProbeConfig(runId);
   await mkdir(join(output, 'apple-inputs'));
   for (const [name, path] of Object.entries(IOS_APPLE_INPUTS)) await cp(join(repo, path), join(output, 'apple-inputs', name), { errorOnExist: true, force: false });
   writeMarker(output); await writeFile(join(output, 'probe-config.json'), JSON.stringify(config, null, 2) + '\n', { flag: 'wx' });
   await writeFile(join(output, 'environment.json'), JSON.stringify({ version: 1, platform: 'ios', runId, identifier: config.identifier,
     date: new Date().toISOString(), status: 'prepared; no build, device install or launch', release: false, sources, sourceSha,
+    upgradeFrom: previous ? { receipt: resolve(upgradePath!), appSha256: previous.appSha256, identifier: previous.identifier } : null,
     scope: 'Standalone onboarding test app using the normal native startup without the GPU probe feature. Opens from its icon without launch environment. Development signed, unsigned catalog, not for release. GPU corpus execution is disabled in this build-only source derivation.' }, null, 2) + '\n', { flag: 'wx' });
 }
 
@@ -239,12 +248,12 @@ export async function verifyIosProduct(argv = process.argv.slice(2)): Promise<nu
   assert.ok(!argv.includes('--run'), 'This standalone manual client test cannot run or claim the GPU corpus.');
   const modes = argv.filter(value => ['--prepare', '--build'].includes(value));
   assert.equal(modes.length, 1, 'Choose exactly one explicit prepare, build or run step.');
-  for (const value of argv) assert.ok(['--prepare', '--build', '--run'].includes(value) || /^--(output|profile|identity|device)=.+$/.test(value), 'Unknown physical-product argument.');
+  for (const value of argv) assert.ok(['--prepare', '--build', '--run'].includes(value) || /^--(output|profile|identity|device|upgrade-from)=.+$/.test(value), 'Unknown physical-product argument.');
   const requested = argument(argv, 'output'); assert.ok(requested, 'Select the exact owned --output directory.');
   const output = resolve(repo, requested), sourceSha = process.env.LOLLY_WEBGPU_SOURCE_SHA ?? '';
   assert.equal(process.env.LOLLY_RELEASE_BUILD, undefined, 'Use a qualification invocation, not a release build.');
   requireSourceSha(sourceSha, local('git', ['-C', repo, 'rev-parse', 'HEAD']).trim());
-  if (modes[0] === '--prepare') { await prepare(output, sourceSha); return 0; }
+  if (modes[0] === '--prepare') { await prepare(output, sourceSha, argument(argv, 'upgrade-from')); return 0; }
   const path = join(output, 'environment.json'), receipt = JSON.parse(await readFile(path, 'utf8')) as IosProductReceipt & Record<string, unknown>;
   assert.equal(receipt.identifier, productProbeIdentity(receipt.runId)); assert.equal(receipt.platform, 'ios');
   requireSourceSha(sourceSha, String(receipt.sources.sourceSha));
