@@ -625,6 +625,9 @@ test('a parked rail taller than its band scrolls inside it, with full-size butto
   assert.ok(rail, 'one rule caps the parked rail');
   assert.match(rail!.body, /max-height:\s*100%/, 'the rail is capped at its band');
   assert.match(rail!.body, /overflow-y:\s*auto/, 'and scrolls when it is longer');
+  // Left alone, overflow-x computes to auto too, and where scrollbars take space the
+  // first layout's vertical bar leaves a stray horizontal bar at the rail's foot.
+  assert.match(rail!.body, /overflow-x:\s*hidden|overflow:\s*hidden\s+auto/, 'and never scrolls sideways');
   assert.match(rail!.body, /box-sizing:\s*border-box/, 'its padding counts inside the cap');
   const items = rules.find((r) => r.sel === `${parked} > .fc-toolbar :is(.fc-btn, .fc-grip, .fc-sep)`);
   assert.ok(items && /flex-shrink:\s*0/.test(items.body), 'capping never squashes a button, the grip or a divider');
