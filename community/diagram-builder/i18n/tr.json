@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "Blueprint",
   "inputs.diagramPreset.options.mono": "Minimal mono",
   "inputs.diagramType.label": "Diyagram türü",
-  "inputs.diagramType.help": "Org/Zihin haritası, her kartın üst öğesinden bir ağaç oluşturur. Layercake/Kanban, kartları “Group” kimliğine göre gruplar (yığılmış bantlar veya yan yana sütunlar). Süreç/Zaman çizelgesi/Döngü, kartları akış/sıraya göre dizer. Piramit, Matris ve Gantt'ın kendi kontrolleri aşağıdadır.",
+  "inputs.diagramType.help": "Göstermek istediğin ilişkiyi seç. Org şeması ve Zihin haritası: her kartın üst öğesinden oluşan bir hiyerarşi. Layercake: soyutlama düzeyleri, her “Grup” için bir bant. Kanban: duruma göre iş, her “Grup” için bir sütun; sütun bir durumdur, bir sahip değil. Süreç: oklardan gelen yönlü adımlar ve geri dönüş bağlantıları. Zaman çizelgesi: sırayla ve eşit aralıklı olaylar, süre göstermez. Döngü: kart sırasıyla dönen bir çevrim. Piramit: sıralı aşamalar. Matris: dört kategori, ölçülmüş değerler değil. Gantt: görev süreleri; tarihli tek bir kart bir zaman ekseni ve her “Grup” için bir kulvar ekler.",
   "inputs.diagramType.options.org": "Org şeması (hiyerarşi)",
   "inputs.diagramType.options.mindmap": "Zihin haritası",
   "inputs.diagramType.options.layercake": "Layercake (katmanlı mimari)",

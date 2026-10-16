@@ -502,7 +502,8 @@ function normaliseNodes(rawNodes) {
       score: (Array.isArray(b.score) && b.score.length === 2 && isFinite(b.score[0]) && isFinite(b.score[1])) ? b.score : null,
       _start: num(b.ganttStart, NaN), _len: num(b.ganttLen, NaN),
       _sd: startDay ? startDay.day : NaN, _ed: endDay ? endDay.day : NaN,
-      _milestone: b.milestone === true,
+      // A shared link decodes a card field as text, so 'true' and '1' count as well.
+      _milestone: b.milestone === true || b.milestone === 'true' || b.milestone === '1',
       _dateNotes: dateNotes(startDay, endDay, label || id),
       stroke: trim(b.stroke), strokeWidth: num(b.strokeWidth, NaN),
       x: 0, y: 0, w: 0, h: 0

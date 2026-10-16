@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "Blueprint",
   "inputs.diagramPreset.options.mono": "Mono minimalista",
   "inputs.diagramType.label": "Tipo de diagrama",
-  "inputs.diagramType.help": "Organograma/Mapa mental constroem uma árvore a partir do campo “Reporta-se a” de cada cartão. Camadas/Kanban agrupam os cartões pelo ID de “Grupo” (faixas empilhadas ou colunas lado a lado). Processo/Linha do tempo/Ciclo organizam os cartões ao longo do fluxo/ordem. Pirâmide, Matriz e Gantt têm controles próprios abaixo.",
+  "inputs.diagramType.help": "Escolha a relação que você quer mostrar. Organograma e Mapa mental: uma hierarquia a partir do campo “Reporta-se a” de cada cartão. Camadas: níveis de abstração, uma faixa por “Grupo”. Kanban: trabalho por estado, uma coluna por “Grupo”; uma coluna é um estado, não um responsável. Processo: etapas com direção e ligações de retorno a partir das setas. Linha do tempo: eventos em ordem, com espaçamento igual e sem duração. Ciclo: um loop na ordem dos cartões. Pirâmide: etapas classificadas. Matriz: quatro categorias, não valores medidos. Gantt: duração das tarefas; um cartão com data adiciona um eixo de tempo e uma raia por “Grupo”.",
   "inputs.diagramType.options.org": "Organograma (hierarquia)",
   "inputs.diagramType.options.mindmap": "Mapa mental",
   "inputs.diagramType.options.layercake": "Camadas (arquitetura em camadas)",

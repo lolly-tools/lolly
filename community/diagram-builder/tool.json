@@ -204,7 +204,7 @@
       "label": "Diagram type",
       "type": "select",
       "default": "org",
-      "help": "Org/Mind map build a tree from each card's parent. Layercake/Kanban group cards by their “Group” ID (stacked bands vs side-by-side columns). Process/Timeline/Cycle lay cards out along flow/order. Pyramid, Matrix and Gantt have their own controls below.",
+      "help": "Pick the relationship to show. Org chart and Mind map: a hierarchy from each card's parent. Layercake: levels of abstraction, one band per “Group”. Kanban: work by state, one column per “Group”; a column is a state, not an owner. Process: directed steps and return links from the connections. Timeline: events in order, evenly spaced, with no durations. Cycle: a loop in card order. Pyramid: ranked stages. Matrix: four categories, not measured values. Gantt: task durations; one dated card adds a time axis and a lane per “Group”.",
       "options": [
         {
           "value": "org",

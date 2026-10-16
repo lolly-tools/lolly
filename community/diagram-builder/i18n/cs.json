@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "Modrotisk",
   "inputs.diagramPreset.options.mono": "Minimalistické mono",
   "inputs.diagramType.label": "Typ diagramu",
-  "inputs.diagramType.help": "Org diagram / myšlenková mapa vytvoří strom z nadřízeného každé karty. Layercake/Kanban seskupí karty podle jejich ID „Group“ (pásma na sobě vs. sloupce vedle sebe). Proces/Časová osa/Cyklus rozmístí karty podle toku/pořadí. Pyramida, Matice a Gantt mají vlastní ovládací prvky níže.",
+  "inputs.diagramType.help": "Vyber vztah, který chceš ukázat. Organizační diagram a myšlenková mapa: hierarchie podle nadřízeného každé karty. Layercake: úrovně abstrakce, jedno pásmo pro každou „Skupinu“. Kanban: práce podle stavu, jeden sloupec pro každou „Skupinu“; sloupec je stav, ne vlastník. Proces: kroky se směrem a zpětná propojení ze šipek. Časová osa: události v pořadí, rovnoměrně rozmístěné, bez trvání. Cyklus: smyčka v pořadí karet. Pyramida: seřazené stupně. Matice: čtyři kategorie, ne naměřené hodnoty. Gantt: trvání úkolů; jedna karta s datem přidá časovou osu a pruh pro každou „Skupinu“.",
   "inputs.diagramType.options.org": "Organizační diagram (hierarchie)",
   "inputs.diagramType.options.mindmap": "Myšlenková mapa",
   "inputs.diagramType.options.layercake": "Layercake (vrstvená architektura)",
