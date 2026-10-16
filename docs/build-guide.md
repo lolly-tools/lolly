@@ -81,7 +81,7 @@ git submodule update --init --checkout brands/suse
 LOLLY_PROFILE=suse pnpm run dev:web
 ```
 
-(`./setup.sh --suse` mounts it and selects the profile in one go.) Without it, `pnpm run profile` reports `lolly-start` as active - the blank brand, which is the correct default for anyone not doing SUSE-specific work, and the profile the public site and CI build against.
+(`./setup.sh --suse` mounts it and selects the profile in one go.) Without it, `pnpm run profile` reports `lolly-start` as active - the blank brand, which is the correct default for anyone not doing SUSE-specific work, and the profile CI builds against. lolly.tools ships `lolly-demo`, the profile `scripts/data/ship-targets.json` sets for the site.
 
 ### If something fails
 

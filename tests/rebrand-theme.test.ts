@@ -64,8 +64,8 @@ function darkColorsOf(tokensFile: string): Record<string, string> {
   const doc: unknown = JSON.parse(readFileSync(path.join(ROOT, tokensFile), 'utf8'));
   const out: Record<string, string> = {};
   for (const entry of createTokenSet(doc, { theme: 'dark' }).query({ type: 'color' })) {
-    // The shells' readers leave the themed role tokens out (plan 291 W4), and so does this one.
-    if (typeof entry.value === 'string' && !entry.path.startsWith('color.role.')) out[entry.path] = entry.value;
+    // The shells' readers leave the themed role tokens out (plan 291 W4) and the app chrome a pack states, and so does this one.
+    if (typeof entry.value === 'string' && !entry.path.startsWith('color.role.') && !entry.path.startsWith('color.chrome.')) out[entry.path] = entry.value;
   }
   return out;
 }

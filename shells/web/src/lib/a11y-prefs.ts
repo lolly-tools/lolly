@@ -30,6 +30,8 @@
  * the same one the other three serve.
  */
 
+import { syncThemeColorMeta } from './theme-color.ts';
+
 export interface A11yPrefs {
   reduceMotion?: boolean;
   highContrast?: boolean;
@@ -92,13 +94,20 @@ function syncJellyMotion(reduce: boolean): void {
   if (view && root.getAttribute(JELLY_MOTION_ATTR) !== before) view.dispatchEvent(new view.Event(JELLY_MOTION_EVENT));
 }
 
-/** Apply prefs to <html> and keep the FOUC mirror in step. */
+/**
+ * Apply prefs to <html> and keep the FOUC mirror in step. A change of High
+ * contrast also moves the address bar (`<meta name="theme-color">`) to the page
+ * now in force: a design pack's light and dark room steps aside under High
+ * contrast (brand-vars.ts), so the page colour changes with the attribute.
+ */
 export function applyA11yPrefs(prefs: A11yPrefs | undefined): void {
   const d = document.documentElement.dataset;
+  const contrastBefore = d.a11yContrast;
   for (const [key, attr, value] of ATTRS) {
     if (prefs?.[key]) d[attr] = value;
     else delete d[attr];
   }
+  if (d.a11yContrast !== contrastBefore) syncThemeColorMeta();
   syncJellyMotion(Boolean(prefs?.reduceMotion));
   try {
     const on = ATTRS.filter(([key]) => prefs?.[key]).map(([key]) => key);

@@ -35,6 +35,7 @@ import '../styles/matte.css';
 import { mountModal } from '../components/modal.ts';
 import { fmtBytes } from '../lib/format.ts';
 import { escapeHtml } from '../lib/html.ts';
+import { bindFileDropTiles } from '../lib/file-drop-tile.ts';
 import { t, tRaw } from '../i18n.ts';
 import { MATTE_DEFAULT_MODEL, MATTE_MODEL_SPEC } from '../lib/matte-models.ts';
 import {
@@ -147,7 +148,7 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
           <button type="button" class="matte-close" aria-label="${escapeHtml(t('Close'))}">&times;</button>
         </header>
         <div class="matte-body">
-          <label class="matte-choose" data-choose hidden>
+          <label class="matte-choose" data-choose data-file-drop data-drop-label="${escapeHtml(t('Drop to use this photo'))}" hidden>
             <input type="file" class="visually-hidden" accept="image/*" data-file />
             <span class="matte-choose-label">${t('Choose a photo, or drop or paste one here')}</span>
           </label>
@@ -232,9 +233,30 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
 
     modelSel.value = defaultModel;
 
+    // Paste while the choose step is up (no source adopted yet): a screenshot or a
+    // copied image goes straight in, as the step's label promises. Bound to the
+    // document and removed when the dialog closes.
+    const firstImageFile = (dt: DataTransfer | null): File | null => {
+      for (const item of Array.from(dt?.items ?? [])) {
+        if (item.kind === 'file' && item.type.startsWith('image/')) {
+          const f = item.getAsFile();
+          if (f) return f;
+        }
+      }
+      const f = dt?.files?.[0];
+      return f?.type.startsWith('image/') ? f : null;
+    };
+    const onPaste = (e: ClipboardEvent): void => {
+      if (srcFrame || chooseEl.hidden) return;
+      const file = firstImageFile(e.clipboardData);
+      if (file) { e.preventDefault(); void loadSource(file); }
+    };
+    document.addEventListener('paste', onPaste);
+
     // Closing tears down the DIALOG only. It deliberately aborts nothing: an
     // enqueued run belongs to the job registry now, and its ✕ lives in the toast.
     const cleanup = (): void => {
+      document.removeEventListener('paste', onPaste);
       modal.close();
     };
     let settled = false;
@@ -360,6 +382,15 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
     fileInput.addEventListener('change', () => {
       const file = fileInput.files?.[0];
       if (file) void loadSource(file);
+    });
+    // The choose step is dashed, so it takes a dropped photo through the same
+    // loadSource a picked one takes: a file that will not decode gets the same
+    // sentence either way.
+    bindFileDropTiles(overlay, {
+      inputOf: () => fileInput,
+      onFiles: (_tile, files) => { const file = files[0]; if (file) return loadSource(file); },
+      onRefuse: () => showStatus(t('Drop one file at a time here.'), true),
+      busy: () => chooseEl.hidden,
     });
 
     // Run ENQUEUES and closes. The feasibility gate above still decides whether this

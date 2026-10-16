@@ -7,7 +7,7 @@
 .projects-shared-head h2, .team-project-head h2 { margin: 0; font-size: var(--fs-xl); font-weight: 700; overflow-wrap: anywhere; }
 .projects-shared-head p, .team-project-notice { margin: var(--sp-1) 0; color: var(--ui-color-text-muted); font-size: var(--fs-sm); line-height: 1.5; }
 .projects-shared-status, .team-project-empty {
-  padding: var(--sp-6); margin: 0; border: 1px dashed var(--ui-color-border-default);
+  padding: var(--sp-6); margin: 0; border: 1px solid var(--ui-color-border-default);
   border-radius: var(--ui-radius-surface); color: var(--ui-color-text-muted); font-size: var(--fs-md);
 }
 .team-project-content { min-width: 0; }

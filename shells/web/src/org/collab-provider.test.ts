@@ -56,8 +56,10 @@ class FakeSocket implements CollabSocket {
   onclose: ((ev: CollabCloseEvent) => void) | null = null;
   onerror: ((ev: unknown) => void) | null = null;
 
-  constructor(url: string) {
+  readonly protocols?: string[];
+  constructor(url: string, protocols?: string[]) {
     this.url = url;
+    this.protocols = protocols;
     FakeSocket.made.push(this);
   }
 
@@ -1159,4 +1161,43 @@ test('a comment frame is delivered at once, even while a recovery copy is being 
   assert.deepEqual(heard, [{ threadId: 't1', revision: 2 }]);
   finish(); await h.handle.persisted();
   h.handle.close(); await h.handle.persisted();
+});
+
+
+test('a signed-in native client exchanges its HTTP session for fresh room tickets on reconnect', async ctx => {
+  const { _setBaseForTests, setInstanceSession } = await import('../lib/instance.ts');
+  const priorWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+  const priorLocation = Object.getOwnPropertyDescriptor(globalThis, 'location');
+  let exchanges = 0;
+  Object.defineProperty(globalThis, 'location', { configurable: true, value: { origin: 'tauri://localhost', href: 'tauri://localhost/' } });
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: { __TAURI_INTERNALS__: { invoke: async (_cmd: string, args: { request: { url: string; method: string; headers: Array<[string, string]> } }) => {
+    assert.equal(args.request.url, 'https://work.example/api/v1/collab/sessions/room/socket-ticket');
+    assert.equal(args.request.method, 'POST');
+    assert.equal(new Map(args.request.headers).get('cookie'), 'lw_session=native-member');
+    exchanges++;
+    return { status: 200, statusText: 'OK', url: args.request.url, headers: [['content-type', 'application/json']],
+      body: [...new TextEncoder().encode(JSON.stringify({ ticket: String(exchanges).repeat(64) }))] };
+  } } } });
+  ctx.after(async () => {
+    await setInstanceSession(null); _setBaseForTests('');
+    if (priorWindow) Object.defineProperty(globalThis, 'window', priorWindow); else delete (globalThis as { window?: unknown }).window;
+    if (priorLocation) Object.defineProperty(globalThis, 'location', priorLocation); else delete (globalThis as { location?: unknown }).location;
+  });
+  _setBaseForTests('https://work.example');
+  await setInstanceSession('lw_session=native-member');
+  FakeSocket.made = [];
+  const timers: Array<() => void> = [];
+  const handle = createWorkCollabProvider('room', {
+    clientId: 'native-a', instanceBase: 'https://work.example', href: 'tauri://localhost/', socket: FakeSocket,
+    store: memoryStore(), setTimer: fn => { timers.push(fn); return fn; }, clearTimer: () => {},
+  });
+  ctx.after(() => handle.close());
+  await handle.connect();
+  assert.equal(FakeSocket.made[0]?.url, 'wss://work.example/ws/collab/room');
+  assert.deepEqual(FakeSocket.made[0]?.protocols, ['lolly-collab-v1', `lolly-ticket.${'1'.repeat(64)}`]);
+  FakeSocket.made[0]!.dropped();
+  timers.shift()!();
+  for (let i = 0; i < 5; i++) await new Promise(resolve => setImmediate(resolve));
+  assert.equal(exchanges, 2);
+  assert.deepEqual(FakeSocket.made[1]?.protocols, ['lolly-collab-v1', `lolly-ticket.${'2'.repeat(64)}`]);
 });

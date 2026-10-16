@@ -16,7 +16,9 @@
  *   - the dialog never touches host.matte.run itself and never awaits the run;
  *   - the job's completion reaches the caller through opts.onComplete;
  *   - closing (Cancel or Escape) before Run enqueues nothing, and closing does NOT
- *     abort an enqueued job.
+ *     abort an enqueued job;
+ *   - the choose step takes a dropped or pasted photo through the same loadSource a
+ *     picked one takes, and the paste listener goes when the dialog closes.
  *
  * lib/matte-job.ts is stubbed with a spy, so no model, canvas or C2PA signer is
  * involved; the decode is faked at the createImageBitmap/canvas boundary (jsdom has
@@ -73,7 +75,11 @@ globalThis.cancelAnimationFrame = ((h: number) => dom.window.cancelAnimationFram
 // The decode boundary: jsdom has no ImageBitmap and no 2D context, so hand the
 // dialog a fixed 8×6 source frame.
 const SRC_W = 8, SRC_H = 6;
-(globalThis as Record<string, unknown>).createImageBitmap = async () => ({ width: SRC_W, height: SRC_H, close() {} });
+// Anything that is not an image fails to decode, as it does in a browser.
+(globalThis as Record<string, unknown>).createImageBitmap = async (blob: Blob) => {
+  if (!blob.type.startsWith('image/')) throw new Error('The source image could not be decoded.');
+  return { width: SRC_W, height: SRC_H, close() {} };
+};
 (dom.window.HTMLCanvasElement.prototype as unknown as { getContext: () => unknown }).getContext = () => ({
   drawImage() {},
   putImageData() {},
@@ -235,4 +241,97 @@ test('every openMatteDialog call site passes an onComplete hook', async () => {
     }
     assert.ok(calls > 0, `${file} still calls openMatteDialog`);
   }
+});
+
+// ── the choose step takes a dropped or pasted photo ───────────────────────────
+
+/** A drag event as jsdom can carry one: a plain Event with a dataTransfer. */
+function dragEvent(type: string, files: File[]): Event {
+  const ev = new dom.window.Event(type, { bubbles: true, cancelable: true });
+  Object.defineProperty(ev, 'dataTransfer', { value: { files, types: ['Files'], dropEffect: 'none' } });
+  return ev;
+}
+function pasteEvent(file: File): Event {
+  const ev = new dom.window.Event('paste', { bubbles: true, cancelable: true });
+  const items = [{ kind: 'file', type: file.type, getAsFile: () => file }];
+  Object.defineProperty(ev, 'clipboardData', { value: { items, files: [file] } });
+  return ev;
+}
+const png = (name = 'drop.png'): File => new File([new Uint8Array([1, 2, 3, 4])], name, { type: 'image/png' });
+const note = (): File => new File(['hello'], 'notes.txt', { type: 'text/plain' });
+
+async function openEmpty(): Promise<{ closed: Promise<void>; el: HTMLElement; choose: HTMLElement }> {
+  resetJobs();
+  const closed = openMatteDialog(makeHost() as never, { onComplete: () => {} });
+  await settle();
+  const el = overlay()!;
+  const choose = el.querySelector<HTMLElement>('[data-choose]')!;
+  assert.equal(choose.hidden, false, 'with no source the choose step shows');
+  return { closed, el, choose };
+}
+async function closeDialog(el: HTMLElement, closed: Promise<void>): Promise<void> {
+  el.querySelector<HTMLButtonElement>('.matte-cancel')!.dispatchEvent(new W.MouseEvent('click', { bubbles: true }));
+  await closed;
+}
+
+test('a photo dropped on the choose step loads as a picked one does', async () => {
+  const { closed, el, choose } = await openEmpty();
+  assert.equal(choose.dataset.dropLabel, 'Drop to use this photo');
+  const over = dragEvent('dragover', [png()]);
+  choose.dispatchEvent(over);
+  assert.equal(over.defaultPrevented, true, 'the step answers the drag');
+  assert.ok(choose.classList.contains('is-dragover'), 'and draws its drag-over state');
+  choose.dispatchEvent(dragEvent('drop', [png()]));
+  await settle();
+  assert.equal(choose.classList.contains('is-dragover'), false);
+  const src = el.querySelector<HTMLElement>('[data-source]')!;
+  assert.equal(src.hidden, false, 'the source line appears');
+  assert.equal(src.textContent, `drop.png - ${SRC_W}×${SRC_H}px`);
+  assert.equal(choose.hidden, true, 'and the choose step steps aside');
+  await closeDialog(el, closed);
+});
+
+test('a dropped file that is not an image gets the picker’s sentence', async () => {
+  const { closed, el, choose } = await openEmpty();
+  choose.dispatchEvent(dragEvent('drop', [note()]));
+  await settle();
+  const status = el.querySelector<HTMLElement>('[data-status]')!;
+  assert.equal(status.hidden, false);
+  assert.equal(status.textContent, "Couldn't read that image. Try another one.");
+  assert.equal(choose.hidden, false, 'the choose step stays for another try');
+  // The picker path, with the same file, says the same thing.
+  status.hidden = true; status.textContent = '';
+  const input = el.querySelector<HTMLInputElement>('[data-file]')!;
+  Object.defineProperty(input, 'files', { value: [note()], configurable: true });
+  input.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  await settle();
+  assert.equal(status.textContent, "Couldn't read that image. Try another one.");
+  await closeDialog(el, closed);
+});
+
+test('two photos dropped at once are refused, one file at a time', async () => {
+  const { closed, el, choose } = await openEmpty();
+  choose.dispatchEvent(dragEvent('drop', [png('a.png'), png('b.png')]));
+  await settle();
+  const status = el.querySelector<HTMLElement>('[data-status]')!;
+  assert.equal(status.textContent, 'Drop one file at a time here.');
+  assert.equal(el.querySelector<HTMLElement>('[data-source]')!.hidden, true, 'nothing was loaded');
+  await closeDialog(el, closed);
+});
+
+test('a pasted image loads while the choose step shows, and paste stops when the dialog closes', async () => {
+  const { closed, el } = await openEmpty();
+  const paste = pasteEvent(png('pasted.png'));
+  dom.window.document.dispatchEvent(paste);
+  await settle();
+  assert.equal(paste.defaultPrevented, true, 'the dialog took the paste');
+  assert.equal(el.querySelector<HTMLElement>('[data-source]')!.textContent, `pasted.png - ${SRC_W}×${SRC_H}px`);
+  await closeDialog(el, closed);
+  // Closed with nothing loaded, so only a removed listener explains a paste left alone.
+  const empty = await openEmpty();
+  await closeDialog(empty.el, empty.closed);
+  const later = pasteEvent(png('later.png'));
+  dom.window.document.dispatchEvent(later);
+  await settle();
+  assert.equal(later.defaultPrevented, false, 'a closed dialog no longer listens for paste');
 });

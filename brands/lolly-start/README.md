@@ -25,7 +25,11 @@ and committed like any other build artifact of the parent repo.
   alias into the ramps and honor the contract's WCAG contrast floors. The
   web shell's token bridge discovers it generically (the first catalog asset
   with `type: "tokens"`), and the shells project the semantic slots onto the
-  tool canvas as `--primary`, `--surface`, … custom properties.
+  tool canvas as `--primary`, `--surface`, … custom properties. The light and
+  dark sets also state Lolly's newsprint app chrome as `color.chrome.*` roles
+  (literal warm colours that the palette and a rebrand do not count), which the
+  web shell paints as this pack's room (see `docs/design-tokens.md`, "App chrome
+  from a design pack").
 - **No tools of its own.** Every tool this profile offers comes from
   `community/`, which is brand-agnostic by construction. `tools/` here holds a
   README and nothing else, so `profiles.json` can mount the pack the same way it

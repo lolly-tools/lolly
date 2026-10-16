@@ -403,7 +403,9 @@ function slotLuminance(hex: string): number {
  * semantic tokens, each in the order the design system states them. When the brand
  * runs out of distinct colours the slots repeat the accents already set, so no slot
  * ever falls back to a colour the brand does not have. Slots `filled` already holds
- * are left alone. Deterministic: the same tokens give the same theme.
+ * are left alone. The app chrome a pack states (`color.chrome.*`) is never a
+ * candidate: it describes a use in the app, not a colour of the brand. Deterministic:
+ * the same tokens give the same theme.
  */
 export function themeSlotFills(
   filled: ReadonlyMap<SchemeSlotV1, string>,
@@ -417,6 +419,7 @@ export function themeSlotFills(
   const seen = new Set<string>();
   const ordered = candidates
     .map((c, index) => ({ ...c, hex: c.hex.toUpperCase(), index }))
+    .filter((c) => !c.path.startsWith('color.chrome.'))
     .filter((c) => /^[0-9A-F]{6}$/.test(c.hex))
     .sort((a, b) => rank(a.path) - rank(b.path) || a.index - b.index)
     .filter((c) => {

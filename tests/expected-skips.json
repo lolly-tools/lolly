@@ -3466,6 +3466,13 @@
       "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
       "capability": "brand:suse",
       "owner": "tests"
+    },
+    {
+      "file": "tests/pack-chrome.test.ts",
+      "fullName": "suse: every theme that states color.chrome.* passes the chrome checks",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
     }
   ]
 }

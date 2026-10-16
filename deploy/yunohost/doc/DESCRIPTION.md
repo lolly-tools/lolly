@@ -1,3 +1,8 @@
+**For accounts, shared projects and server features, choose
+[Lolly Work for YunoHost](https://github.com/lolly-tools/lolly-work_ynh).** It
+includes the Lolly web app with the Work server, PostgreSQL and host-account
+sign-in. This package installs static Lolly only; it does not install Work.
+
 Lolly makes on-brand creative assets - images, PDFs, video, audio, slides and documents - from simple inputs, entirely in the browser. Nothing you make leaves the device: files, brand and history live in the browser's own storage, so the server only hands out the app.
 
 - **Your brand, once.** Import design tokens (DTCG, Tokens Studio, Penpot) or build the brand in the app; every tool then renders inside those constraints.

@@ -493,6 +493,7 @@ jobs:
       connector_origins: ${{ vars.VITE_CONNECTOR_ORIGINS }}
       ca_enrollment_trust_json: ${{ vars.VITE_CA_ENROLLMENT_TRUST_JSON }}
       live_relay: https://lolly.tools/live
+      profile: lolly-demo
     secrets:
       LOLLY_CATALOG_SIGNING_KEY: ${{ secrets.LOLLY_CATALOG_SIGNING_KEY }}
 
@@ -570,7 +571,7 @@ jobs:
 
       - name: Verify the frontend artifact against the reviewed source
         env:
-          LOLLY_PROFILE: lolly-start
+          LOLLY_PROFILE: lolly-demo
           LOLLY_RELEASE_SOURCE: ${{ inputs.expected_source }}
         run: node scripts/release-frontend-receipt.ts --verify web "$RUNNER_TEMP/lolly-signed-web"
 
@@ -595,8 +596,8 @@ jobs:
             --label org.opencontainers.image.title=lolly-web \
             --label "org.opencontainers.image.version=$IMAGE_VERSION" \
             --label "org.opencontainers.image.created=$IMAGE_CREATED" \
-            --label org.lolly.profile=lolly-start \
-            --build-arg LOLLY_PROFILE=lolly-start \
+            --label org.lolly.profile=lolly-demo \
+            --build-arg LOLLY_PROFILE=lolly-demo \
             --build-arg "LOLLY_RELEASE_SOURCE=$EXPECTED_SOURCE" \
             --build-arg "VITE_CATALOG_PUBLIC_KEY_JWK=$VITE_CATALOG_PUBLIC_KEY_JWK" \
             --build-arg "VITE_CONNECTOR_ORIGINS=${VITE_CONNECTOR_ORIGINS:-}" \
@@ -609,7 +610,7 @@ jobs:
           container=$(docker create "lolly-candidate-web:$EXPECTED_SOURCE")
           trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
           docker cp "$container:/usr/share/nginx/html/." "$RUNNER_TEMP/lolly-qualified-web/"
-          LOLLY_PROFILE=lolly-start LOLLY_RELEASE_SOURCE="$EXPECTED_SOURCE" \
+          LOLLY_PROFILE=lolly-demo LOLLY_RELEASE_SOURCE="$EXPECTED_SOURCE" \
             node scripts/release-frontend-receipt.ts --verify web "$RUNNER_TEMP/lolly-qualified-web"
           node scripts/verify-release-catalog.ts --root "$RUNNER_TEMP/lolly-qualified-web" \
             --public-key "$RUNNER_TEMP/lolly-image-receipts/public.jwk.json" \
@@ -688,7 +689,7 @@ jobs:
         shell: bash
     env:
       EXPECTED_SOURCE: ${{ inputs.expected_source }}
-      LOLLY_PROFILE: lolly-start
+      LOLLY_PROFILE: lolly-demo
       ONNXRUNTIME_NODE_INSTALL_CUDA: skip
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -805,7 +806,7 @@ jobs:
               --label "org.opencontainers.image.title=lolly-${service}" \
               --label "org.opencontainers.image.version=$IMAGE_VERSION" \
               --label "org.opencontainers.image.created=$IMAGE_CREATED" \
-              --label org.lolly.profile=lolly-start \
+              --label org.lolly.profile=lolly-demo \
               -f "deploy/docker/${service}.Dockerfile" \
               -t "lolly-candidate-${service}:$EXPECTED_SOURCE" .
           done
@@ -938,8 +939,8 @@ jobs:
             --label org.opencontainers.image.title=lolly-mcp \
             --label "org.opencontainers.image.version=$IMAGE_VERSION" \
             --label "org.opencontainers.image.created=$IMAGE_CREATED" \
-            --label org.lolly.profile=lolly-start \
-            --build-arg LOLLY_PROFILE=lolly-start \
+            --label org.lolly.profile=lolly-demo \
+            --build-arg LOLLY_PROFILE=lolly-demo \
             -f deploy/docker/mcp.Dockerfile \
             -t "lolly-candidate-mcp:$EXPECTED_SOURCE" .
 
@@ -1109,8 +1110,8 @@ jobs:
             --label org.opencontainers.image.title=lolly-mcp-browser \
             --label "org.opencontainers.image.version=$IMAGE_VERSION" \
             --label "org.opencontainers.image.created=$IMAGE_CREATED" \
-            --label org.lolly.profile=lolly-start \
-            --build-arg LOLLY_PROFILE=lolly-start \
+            --label org.lolly.profile=lolly-demo \
+            --build-arg LOLLY_PROFILE=lolly-demo \
             -f deploy/docker/mcp-browser.Dockerfile \
             -t "lolly-candidate-mcp-browser:$EXPECTED_SOURCE" .
 
@@ -1258,7 +1259,7 @@ jobs:
         shell: bash
     env:
       EXPECTED_SOURCE: ${{ inputs.expected_source }}
-      LOLLY_PROFILE: lolly-start
+      LOLLY_PROFILE: lolly-demo
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:

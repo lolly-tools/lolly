@@ -432,7 +432,7 @@ function staticBlock(head: string): Map<string, string> {
 }
 
 const STATIC = {
-  light: () => staticBlock(':root,\n[data-theme="light"] {'),
+  light: () => staticBlock(':root,\n[data-theme="light"] {\n  color-scheme: light;'),
   dark: () => staticBlock('\n[data-theme="dark"] {\n  color-scheme: dark;'),
   brand: () => staticBlock('\n[data-theme="brand"] {\n  color-scheme: dark;'),
 } as const;
@@ -836,4 +836,131 @@ test("the brand-hued mark stays readable at every hue: 4.5:1 on light and dark g
     const dark = lollyMarkHex(hue, 'dark');
     assert.ok(contrastRatio(dark, '#090e1a') >= 4.5, `dark mark ${dark} (hue ${hue}) on #090e1a: ${contrastRatio(dark, '#090e1a').toFixed(2)}`);
   }
+});
+
+// ── A pack's own chrome (lib/brand-chrome.ts) ────────────────────────────────
+
+const { createTokenSet } = await import('../../../engine/src/tokens.ts');
+const { CHROME_SEL, DANGER_WASH_ALPHA, applyChromeAccent, tokenValueToHex } = await import('./brand-vars.ts');
+const { deriveChrome, resolvePackChrome, chromeIssues } = await import('./lib/brand-chrome.ts');
+
+const SUSE_PAIR = [{ primary: '#0c322c', onPrimary: '#f7f7f5' }, { primary: '#30ba78', onPrimary: '#08211d' }] as const;
+const START_PAIR = [{ primary: '#1d1d1d', onPrimary: '#ffffff' }, { primary: '#ffffff', onPrimary: '#1d1d1d' }] as const;
+
+/** lolly-start's newsprint room, as the C1 plan gives it (section 5). */
+function newsprint(): import('./lib/brand-chrome.ts').PackChrome {
+  const light = deriveChrome('light', { page: '#fcfaf6', raised: '#fefdfa', overlay: '#ffffff', muted: '#f3f0e9', hover: '#eeebe4', edge: '#dbd7cf', ink: '#171612', 'muted-ink': '#5e5b53' })!;
+  const dark = deriveChrome('dark', { page: '#171612', raised: '#201e1a', overlay: '#201e1a', muted: '#282621', hover: '#32302b', edge: '#403d36', ink: '#eae8e2', 'muted-ink': '#c1bdb5' })!;
+  assert.deepEqual([...chromeIssues('light', light, apcaLcAbs), ...chromeIssues('dark', dark, apcaLcAbs)], []);
+  return { light, dark, unsaved: {}, issues: [] };
+}
+
+/** The Opal fixture's chrome and primaries, resolved through the engine per theme. */
+async function opal(): Promise<{ chrome: import('./lib/brand-chrome.ts').PackChrome; light: { primary: string | null; onPrimary: string | null }; dark: { primary: string | null; onPrimary: string | null } }> {
+  const doc = JSON.parse(readFileSync(new URL('../../../tests/fixtures/pack-chrome/opal.json', import.meta.url), 'utf8'));
+  const tokens = {
+    resolve: async (ref: string, opts: { theme?: string } = {}) => createTokenSet(doc, { theme: opts.theme }).resolve(ref),
+    themes: async () => createTokenSet(doc).themes(),
+  };
+  const pair = async (theme: string) => ({
+    primary: tokenValueToHex(await tokens.resolve('{color.semantic.primary}', { theme })),
+    onPrimary: tokenValueToHex(await tokens.resolve('{color.semantic.on-primary}', { theme })),
+  });
+  return { chrome: await resolvePackChrome(tokens, { toHex: tokenValueToHex, lc: apcaLcAbs }), light: await pair('light'), dark: await pair('dark') };
+}
+
+/** Selector to declarations, for every block of a generated sheet, in order. */
+function sheetBlocks(css: string): Array<[string, Map<string, string>]> {
+  return [...css.matchAll(/([^{}\n][^{}]*) \{\n([^}]*)\n\}/g)].map((m) => [m[1]!, declsOf(m[2]!)]);
+}
+
+test('without pack chrome the sheet is what it was: no chrome, null and an empty group are identical', () => {
+  for (const [light, dark] of [SUSE_PAIR, START_PAIR]) {
+    const before = chromeBrandCss(light, dark);
+    assert.equal(chromeBrandCss(light, dark, null), before);
+    assert.equal(chromeBrandCss(light, dark, undefined, '#b00020'), before, 'a danger red alone adds nothing');
+    assert.equal(chromeBrandCss(light, dark, { unsaved: {}, issues: [] }), before);
+    assert.equal(chromeBrandCss(light, dark, { unsaved: {}, issues: ['dark: page #fcfaf6 has OKLCH lightness 0.986, outside 0 to 0.4'] }), before);
+  }
+});
+
+test("lolly-start's newsprint chrome leaves its noir brand theme untouched", () => {
+  const css = chromeBrandCss(START_PAIR[0], START_PAIR[1], newsprint());
+  const brand = sheetBlocks(css).filter(([sel]) => sel === '[data-theme="brand"]');
+  assert.equal(brand.length, 1, 'one brand block: the constructed noir, no brand chrome');
+  assert.ok(css.includes(brandThemeCss('#1d1d1d', '#ffffff')), 'the noir block is byte for byte the construction');
+  // The pack's chrome never declares the render canvas's ink. --foreground-canvas
+  // is what parts/a11y.css's canvas boundary restores, whatever --foreground the
+  // pack sets, so an export keeps the theme's own ink (tests/pack-chrome.browser.test.ts
+  // reads that cascade in a browser).
+  assert.equal(css.split('--foreground-canvas').length - 1, 1, 'only the constructed brand theme declares --foreground-canvas');
+  // Its light and dark blocks carry the newsprint triples.
+  const blocks = new Map(sheetBlocks(css));
+  assert.equal(blocks.get(CHROME_SEL.light)?.get('background'), hexToHslTriple('#fcfaf6'));
+  assert.equal(blocks.get(CHROME_SEL.dark)?.get('card'), hexToHslTriple('#201e1a'));
+});
+
+test('Opal: per-theme chrome blocks, gated off under High contrast, with reading error text and Honey for unsaved work', async () => {
+  const { chrome, light, dark } = await opal();
+  const css = chromeBrandCss(light, dark, chrome);
+  const blocks = sheetBlocks(css);
+  const bySel = new Map(blocks);
+  const expect: Record<'light' | 'dark', Record<string, string>> = {
+    light: { background: '#edf6e0', card: '#ffffff', popover: '#ffffff', muted: '#e2ebd6', secondary: '#e2ebd6', accent: '#dde6d0', border: '#ace1ad', input: '#ace1ad', foreground: '#09141a', 'card-foreground': '#09141a', 'muted-foreground': '#373e44' },
+    dark: { background: '#09141a', card: '#121d24', popover: '#1c282f', muted: '#1c282f', accent: '#2d3a41', border: '#373e44', foreground: '#ffffff', 'popover-foreground': '#ffffff', 'muted-foreground': '#99a0a4' },
+  };
+  for (const theme of ['light', 'dark'] as const) {
+    const decls = bySel.get(CHROME_SEL[theme]);
+    assert.ok(decls, `a ${theme} chrome block`);
+    for (const [name, hex] of Object.entries(expect[theme])) assert.equal(decls!.get(name), hexToHslTriple(hex), `${theme} --${name}`);
+    assert.equal(decls!.get('foreground-canvas'), undefined, `${theme}: never the canvas ink`);
+    assert.equal(decls!.get('primary'), undefined, `${theme}: never the accent`);
+    // Every arm steps aside under High contrast, and none leads with the attribute.
+    for (const arm of CHROME_SEL[theme].split(', ')) {
+      assert.ok(arm.includes(':not([data-a11y-contrast="high"])'), `${theme} arm ${arm}`);
+      assert.ok(!arm.startsWith('html[data-a11y-contrast'), `${theme} arm ${arm}`);
+    }
+    // The error-text red reads 4.5:1 on every pack surface and on a danger wash over the resting ones.
+    const text = hslTripleToHex(decls!.get('destructive-text')!)!;
+    const c = chrome[theme]!;
+    const fill = hslTripleToHex(THEME_DESTRUCTIVE[theme])!;
+    const resting = [c.page, c.raised, c.overlay, c.muted];
+    const washes = resting.map((s) => {
+      const t = parseHex(fill)!, b = parseHex(s)!;
+      return '#' + [0, 1, 2].map((i) => Math.round(t[i]! * DANGER_WASH_ALPHA + b[i]! * (1 - DANGER_WASH_ALPHA)).toString(16).padStart(2, '0')).join('');
+    });
+    for (const s of [...resting, c.hover, ...washes]) {
+      assert.ok(contrastRatio(text, s) >= DANGER_TEXT_RATIO - 0.05, `${theme}: ${text} on ${s} reads ${contrastRatio(text, s).toFixed(2)}`);
+    }
+    // The static text red did not read on all of them, which is why the block states a red of its own.
+    const staticText = hslTripleToHex(STATIC[theme]().get('destructive-text')!)!;
+    assert.ok([...resting, c.hover, ...washes].some((s) => contrastRatio(staticText, s) < DANGER_TEXT_RATIO), `${theme}: the static red needed the walk`);
+  }
+  // Unsaved: three ungated blocks, Honey deep in light, Honey in dark and in brand (from dark).
+  // The light one stays off a dark or brand root, so a theme with no colour of its own
+  // keeps the stylesheets' fallback rather than inheriting light's.
+  const warn = blocks.filter(([, decls]) => decls.has('brand-warn')).map(([sel, decls]) => [sel, decls.get('brand-warn'), decls.get('brand-warn-ink')]);
+  assert.deepEqual(warn, [
+    [':root:not([data-theme="dark"]):not([data-theme="brand"]), [data-theme="light"]', '#b57c0a', '#000000'],
+    ['[data-theme="dark"]', '#fac044', '#000000'],
+    ['[data-theme="brand"]', '#fac044', '#000000'],
+  ]);
+  // The pack blocks sit after Lolly's mark and before the High contrast blocks.
+  const order = blocks.map(([sel]) => sel);
+  assert.ok(order.indexOf(CHROME_SEL.light) > order.lastIndexOf('[data-theme="dark"], [data-theme="brand"]'));
+  assert.ok(order.indexOf(CHROME_SEL.dark) < order.findIndex((sel) => sel.startsWith('html[data-a11y-contrast')));
+});
+
+test("pack chrome walks the design system's own danger red when it declares one", async () => {
+  const { chrome, light, dark } = await opal();
+  const bauxite = '#a43427';
+  const css = chromeBrandCss(light, dark, chrome, bauxite);
+  const text = hslTripleToHex(new Map(sheetBlocks(css)).get(CHROME_SEL.light)!.get('destructive-text')!)!;
+  const d = Math.abs(hexToOklch(text)!.h - hexToOklch(bauxite)!.h);
+  assert.ok(Math.min(d, 360 - d) < 6, `${text} keeps Bauxite's hue`);
+  assert.ok(contrastRatio(text, chrome.light!.page) >= DANGER_TEXT_RATIO);
+});
+
+test('applyChromeAccent is a no-op without a document', () => {
+  assert.equal(applyChromeAccent(SUSE_PAIR[0], SUSE_PAIR[1], newsprint()), '');
 });

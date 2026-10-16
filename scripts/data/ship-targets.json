@@ -1,12 +1,12 @@
 {
-  "$comment": "Catalog coverage and explicitly configured deployment targets. lolly.tools uses the operator-managed UpCloud K3s sovereign profile after the 2026-10-07 cutover; scripts/ship.ts refuses to deploy this managed target before running the gate or uploading. The profile remains here so scripts/gate.ts still validates lolly-start. Optional deployments to other instances require an explicit supported driver and their own project, domain and team configuration; there is no implicit Vercel adapter.",
+  "$comment": "Catalog coverage and explicitly configured deployment targets. lolly.tools uses the operator-managed UpCloud K3s sovereign profile after the 2026-10-07 cutover; scripts/ship.ts refuses to deploy this managed target before running the gate or uploading. The profile remains here so scripts/gate.ts validates the profile lolly.tools ships: lolly-demo, Lolly's own demo brand. Optional deployments to other instances require an explicit supported driver and their own project, domain and team configuration; there is no implicit Vercel adapter.",
   "team": "",
   "targets": [
     {
       "name": "lolly-public",
       "project": "lolly-public",
       "driver": "k3s",
-      "profile": "lolly-start",
+      "profile": "lolly-demo",
       "domain": "lolly.tools",
       "liveRelay": "https://lolly.ing/live"
     }

@@ -16,6 +16,7 @@
  * here rather than redeclaring them, so the persisted key has exactly one
  * definition.
  */
+import { isTauriShell } from './native-shell.ts';
 import { openDB } from '../bridge/db.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 
@@ -25,27 +26,7 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
  *  '') without it, so this needs its own marker. */
 export const CHOICE_KEY = 'instance-choice-made';
 
-/** True inside any Tauri shell (desktop or mobile) - same feature-detect
- *  lib/instance.ts's own (unexported) hasTauriInternals() uses. */
-export function isTauriShell(): boolean {
-  return typeof window !== 'undefined'
-    && typeof (window as { __TAURI_INTERNALS__?: { invoke?: unknown } }).__TAURI_INTERNALS__?.invoke === 'function';
-}
-
-/**
- * True inside the Tauri MOBILE shell (iOS or Android). The mobile build sets
- * VITE_LOLLY_APP_SHELL; the user-agent test covers a mobile build made before
- * that value existed. iPadOS WebKit reports a Mac user agent, so a Mac user
- * agent with multi-touch counts as mobile too.
- */
-export function isTauriMobileShell(): boolean {
-  if (!isTauriShell()) return false;
-  const shell = import.meta.env?.VITE_LOLLY_APP_SHELL;
-  if (shell) return shell === 'tauri-mobile';
-  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-  return /Android|iPhone|iPad|iPod/.test(ua)
-    || (/Macintosh/.test(ua) && typeof navigator !== 'undefined' && navigator.maxTouchPoints > 1);
-}
+export { isTauriShell, isTauriMobileShell } from './native-shell.ts';
 
 /** Has the user ever settled the first-run instance choice? Unreadable
  *  storage counts as "yes" - same reasoning as welcome-dialog's

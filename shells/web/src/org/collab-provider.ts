@@ -953,13 +953,14 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
   /**
    * The endpoint, or a refusal. An explicit `opts.url` is the documented escape
    * hatch (a deployment that terminates the gateway elsewhere, and every test) and
-   * is taken as given; a DERIVED endpoint must be same-origin, because the gateway
+   * is taken as given; a browser endpoint must be same-origin, because the gateway
    * authenticates from a `SameSite=Lax` cookie a browser will not attach to a
-   * cross-site upgrade - see collab-protocol.ts's header. Refusing here turns an
+   * cross-site upgrade. Native shells exchange their stored HTTP session for a
+   * one-use ticket on each connection. Refusing unsupported endpoints turns an
    * undiagnosable reconnect loop into one stated reason.
    */
-  async function endpoint(): Promise<string> {
-    if (opts.url) return opts.url;
+  async function endpoint(): Promise<{ url: string; protocols?: string[] }> {
+    if (opts.url) return { url: opts.url };
     const rel = `${COLLAB_WS_PATH}/${encodeURIComponent(sessionId)}`;
     const base = await resolveBase();
     // Same rule as lib/instance.ts's `instancePath` for a root-relative path: the
@@ -969,8 +970,13 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
       ?? (globalThis as { location?: { href?: string } }).location?.href
       ?? 'https://localhost/';
     const url = collabSocketUrl(path, href);
-    if (isCrossOriginSocket(url, href)) throw new Error(CROSS_ORIGIN_REASON);
-    return url;
+    if (isCrossOriginSocket(url, href)) {
+      const { nativeSocketProtocols } = await import('./native-socket.ts');
+      const protocols = await nativeSocketProtocols(base, sessionId);
+      if (!protocols) throw new Error(CROSS_ORIGIN_REASON);
+      return { url, protocols };
+    }
+    return { url };
   }
 
   async function open(): Promise<void> {
@@ -986,9 +992,9 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
     if (ended || sock || opening) return;
     opening = true;
     if (status !== 'reconnecting') setStatus('connecting');
-    let url: string;
+    let endpointInfo: { url: string; protocols?: string[] };
     try {
-      url = await endpoint();
+      endpointInfo = await endpoint();
       opening = false;
     } catch (e) {
       opening = false;
@@ -1012,7 +1018,7 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
     }
     let s: CollabSocket;
     try {
-      s = new Ctor(url);
+      s = new Ctor(endpointInfo.url, endpointInfo.protocols);
     } catch {
       scheduleReconnect();
       return;

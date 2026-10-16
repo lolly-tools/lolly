@@ -180,8 +180,9 @@ function toSwatch(
   } else if (at('spectrum') >= 0) { kind = 'spectrum'; group = 'Spectrum'; }
   else if (at('custom') >= 0) { kind = 'custom'; group = 'Custom'; }
   // A themed role token (`color.role.*` in a theme set, plan 291 W4) is a role like a
-  // semantic slot: one value per theme, structural, filed under the theme's Roles.
-  else if (at('semantic') >= 0 || (set !== null && rest[0] === 'color' && rest[1] === 'role')) {
+  // semantic slot: one value per theme, structural, filed under the theme's Roles. So is
+  // the app chrome a pack states (`color.chrome.*`): a use in the app, not a brand colour.
+  else if (at('semantic') >= 0 || (set !== null && rest[0] === 'color' && (rest[1] === 'role' || rest[1] === 'chrome'))) {
     kind = 'semantic'; deletable = false;
     group = `Roles · ${set ? prettify(set) : 'Theme'}`;
   }
