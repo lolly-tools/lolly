@@ -161,16 +161,16 @@ test('every lolly.tools build uses the ship target profile, and the packaged app
   assert.equal(profile, 'lolly-demo');
   const workflow = read('.github/workflows/deployment-suse.yml');
   assert.match(workflowJob(workflow, 'web-frontend'), new RegExp(`^ +profile: ${profile}$`, 'm'));
-  for (const job of ['web-image', 'mcp-browser-image']) {
+  for (const job of ['web-image', 'mcp-image', 'mcp-browser-image']) {
     assert.match(workflowJob(workflow, job), new RegExp(`--build-arg LOLLY_PROFILE=${profile} `));
   }
-  for (const job of ['web-image', 'service-images', 'mcp-browser-image']) {
+  for (const job of ['web-image', 'service-images', 'mcp-image', 'mcp-browser-image']) {
     assert.match(workflowJob(workflow, job), new RegExp(`--label org\\.lolly\\.profile=${profile} `));
   }
   for (const job of ['probe-web-shell', 'info-docs']) {
     assert.match(workflowJob(workflow, job), new RegExp(`^ +LOLLY_PROFILE: ${profile}$`, 'm'));
   }
-  for (const job of ['web-frontend', 'web-image', 'probe-web-shell', 'service-images', 'mcp-browser-image', 'info-docs']) {
+  for (const job of ['web-frontend', 'web-image', 'probe-web-shell', 'service-images', 'mcp-image', 'mcp-browser-image', 'info-docs']) {
     assert.doesNotMatch(workflowJob(workflow, job), /lolly-start/, `${job} still builds with lolly-start`);
   }
   // The whole file, not only the jobs listed above: a receipt check that dropped its

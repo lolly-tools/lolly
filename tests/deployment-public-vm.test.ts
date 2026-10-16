@@ -449,7 +449,7 @@ test('the browser-free MCP image boots under chart bounds, renders without a bro
   assert.match(mcp, /needs: \[chart, public-vm, source-qualification\]\n/);
   assert.doesNotMatch(mcp, /probe-web-shell|lolly-probe-web|web-release-gate|seccomp=|LOLLY_WEB_BASE/);
   assert.match(mcp, /-f deploy\/docker\/mcp\.Dockerfile/);
-  assert.match(mcp, /--build-arg LOLLY_PROFILE=lolly-start/);
+  assert.match(mcp, /--build-arg LOLLY_PROFILE=lolly-demo /);
   assert.match(mcp, /test ! -e brands\/suse\/tools/);
   const boot = mcp.slice(mcp.indexOf('- name: Boot native MCP'), mcp.indexOf('- name: Render without a browser'));
   const render = mcp.slice(mcp.indexOf('- name: Render without a browser'), mcp.indexOf('- name: Publish only the qualified MCP image digest'));

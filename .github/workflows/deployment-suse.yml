@@ -939,8 +939,8 @@ jobs:
             --label org.opencontainers.image.title=lolly-mcp \
             --label "org.opencontainers.image.version=$IMAGE_VERSION" \
             --label "org.opencontainers.image.created=$IMAGE_CREATED" \
-            --label org.lolly.profile=lolly-start \
-            --build-arg LOLLY_PROFILE=lolly-start \
+            --label org.lolly.profile=lolly-demo \
+            --build-arg LOLLY_PROFILE=lolly-demo \
             -f deploy/docker/mcp.Dockerfile \
             -t "lolly-candidate-mcp:$EXPECTED_SOURCE" .
 
