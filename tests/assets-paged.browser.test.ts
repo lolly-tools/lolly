@@ -4,12 +4,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
-const origin = process.env.LOLLY_ASSETS_TEST_URL;
+const origin = process.env.LOLLY_ASSETS_TEST_URL ?? process.env.LOLLY_IMPORT_TEST_URL;
 const entry = (i: number) => ({ id: `ext/dam/item-${i}`, provider: 'dam', name: `Artwork ${String(i).padStart(6, '0')}`, type: 'vector', tier: 'on-demand', version: '1234567890123456',
   formats: [{ format: 'svg', url: `/catalog/ext/dam/item-${i}/wide` }, { format: 'svg', url: `/catalog/ext/dam/item-${i}/square` }, { format: 'thumb', url: `/catalog/ext/dam/item-${i}/thumb` }],
   meta: { providerLabel: 'Campaign library', providerSections: ['Launch'], providerCollections: [], assetFiles: ['wide', 'square'].map((name, j) => ({ id: (j ? 'b' : 'a').repeat(24), name: `${name}.svg`, format: 'svg', role: 'original', url: `/catalog/ext/dam/item-${i}/${name}` })) } });
 
-test('shared Assets pages retain selections, exact filters, file choice and metadata curation', { skip: origin ? false : 'set LOLLY_ASSETS_TEST_URL to a running web shell', timeout: 120_000 }, async () => {
+test('shared Assets pages retain selections, exact filters, file choice and metadata curation', { skip: origin ? false : 'set LOLLY_ASSETS_TEST_URL or LOLLY_IMPORT_TEST_URL to a running web shell', timeout: 120_000 }, async () => {
   assert.ok(['localhost', '127.0.0.1'].includes(new URL(origin!).hostname));
   const browser = await getBrowser(), context = await browser.newContext({ viewport: { width: 1360, height: 1000 } });
   const page = await context.newPage(); const errors: string[] = [], requests: URL[] = [], writes: unknown[] = [];
