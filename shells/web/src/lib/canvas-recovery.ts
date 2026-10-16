@@ -4,7 +4,16 @@ import { decodeCanvasAsset } from '@lolly-tools/core/canvas-asset-v1';
 import type { InputModelItem } from '../../../../engine/src/inputs.ts';
 import { rowIdField } from './row-id.ts';
 
-export interface CanvasRecoveryDraft { id: string; values: Record<string, unknown>; label: string }
+export interface CanvasRecoveryDraft {
+  id: string; values: Record<string, unknown>; label: string;
+  /**
+   * Present when the draft comes from a live room's archive on this device, which the room
+   * keeps for one account and workspace. The room replays that archive on every connect.
+   * `kept()` reports that the device library now holds the copy, so the room stops
+   * replaying the copy.
+   */
+  archive?: { kept(): void };
+}
 const drafts = new WeakMap<object, { records: CanvasRecoveryDraft[]; listeners: Set<(draft: CanvasRecoveryDraft) => void> }>();
 function state(runtime: object) {
   let value = drafts.get(runtime);
@@ -12,12 +21,13 @@ function state(runtime: object) {
   return value;
 }
 /** Retain a separate device copy. Recovery never applies a patch to the shared runtime. */
-export function retainCanvasRecovery(runtime: object, values: Record<string, unknown>, label: string, id: string = crypto.randomUUID()): void {
+export function retainCanvasRecovery(runtime: object, values: Record<string, unknown>, label: string, id: string = crypto.randomUUID(),
+  archive?: CanvasRecoveryDraft['archive']): void {
   const encoded = JSON.stringify(values);
   if (encoded.length > 16_000_000) throw new Error('Recovery copy is too large to save.');
   const value = state(runtime);
   if (value.records.some(record => record.id === id)) return;
-  const draft = { id, values: JSON.parse(encoded) as Record<string, unknown>, label };
+  const draft: CanvasRecoveryDraft = { id, values: JSON.parse(encoded) as Record<string, unknown>, label, ...(archive ? { archive } : {}) };
   value.records.push(draft); if (value.records.length > 8) value.records.shift();
   for (const listener of value.listeners) listener(draft);
 }

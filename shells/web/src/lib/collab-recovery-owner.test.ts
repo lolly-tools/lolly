@@ -12,7 +12,8 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https
 globalThis.location = dom.window.location as unknown as Location;
 
 const {
-  RECOVERY_OWNER_KEY, RECOVERY_SLOT_PREFIX, ownsRecoveryCopy, recoveryOrigin, recoveryOwner, recoveryOwnerTag, withoutRecoveryOwner,
+  RECOVERY_OWNER_KEY, RECOVERY_SLOT_PREFIX, ownsRecoveryCopy, rebindRecoveryCopy, recoveryHolder, recoveryOrigin, recoveryOwner, recoveryOwnerTag,
+  withoutRecoveryOwner,
 } = await import('./collab-recovery-owner.ts');
 const { _setBaseForTests } = await import('./instance.ts');
 
@@ -57,4 +58,26 @@ test('recoveryOwnerTag uses the workspace base, else the page origin', () => {
 
 test('withoutRecoveryOwner drops the tag and keeps the work', () => {
   assert.deepEqual(withoutRecoveryOwner({ headline: 'Hi', __label: 'Canvas', [RECOVERY_OWNER_KEY]: { origin: 'x', account: 'y', at: AT } }), { headline: 'Hi', __label: 'Canvas' });
+});
+
+test('recoveryHolder tells this account, an unbound copy, an earlier address, saved work and another account apart', () => {
+  const tagged = (origin: string, account: string) => ({ headline: 'Hi', [RECOVERY_OWNER_KEY]: { origin, account, at: AT } });
+  assert.equal(recoveryHolder(tagged('https://work.test/', 'u1'), 'https://work.test', 'u1'), 'this-account');
+  assert.equal(recoveryHolder(tagged('https://work.test', ''), 'https://work.test', 'u1'), 'unbound', 'written before the account was recorded');
+  assert.equal(recoveryHolder(tagged('https://old.test', ''), 'https://work.test', 'u1'), 'unbound');
+  assert.equal(recoveryHolder(tagged('https://old.test', 'u1'), 'https://work.test', 'u1'), 'earlier-address');
+  assert.equal(recoveryHolder({ headline: 'Saved as my own work' }, 'https://work.test', 'u1'), 'saved-work');
+  assert.equal(recoveryHolder(tagged('https://work.test', 'u2'), 'https://work.test', 'u1'), 'another-account');
+  assert.equal(recoveryHolder(tagged('https://old.test', 'u2'), 'https://work.test', 'u1'), 'another-account');
+  assert.equal(recoveryHolder(tagged('https://work.test', 'u1'), 'https://work.test', ''), 'another-account', 'no account proves nothing');
+  assert.equal(recoveryHolder({ [RECOVERY_OWNER_KEY]: { account: 'u1' } }, 'https://work.test', 'u1'), 'another-account', 'an unreadable tag is never claimed');
+  assert.equal(recoveryHolder(tagged('https://work.test', ''), 'https://work.test', ''), 'this-account', 'a private pairing keeps its own copies');
+});
+
+test('rebindRecoveryCopy binds the copy to this account and workspace and keeps when it was written', () => {
+  const copy = { headline: 'Hi', [RECOVERY_OWNER_KEY]: { origin: 'https://old.test', account: '', at: AT } };
+  const rebound = rebindRecoveryCopy(copy, 'https://work.test/', 'u1');
+  assert.deepEqual(rebound, { headline: 'Hi', [RECOVERY_OWNER_KEY]: { origin: 'https://work.test', account: 'u1', at: AT } });
+  assert.equal(ownsRecoveryCopy(rebound, 'https://work.test', 'u1'), true, 'Sign out finds a rebound copy');
+  assert.deepEqual(copy[RECOVERY_OWNER_KEY], { origin: 'https://old.test', account: '', at: AT }, 'the stored value is not changed in place');
 });

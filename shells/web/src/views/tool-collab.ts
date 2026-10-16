@@ -454,8 +454,10 @@ export async function mountToolCollab(opts: ToolCollabOptions): Promise<ToolColl
     // org principal), not the room seat's `userId`: Sign out finds them by that id.
     const recoveryView = mountCollabRecovery(runtime, opts.libraryHost ?? opts.host, stage, currentSession, () => handle.self.account);
     steps.unshift(() => recoveryView.teardown());
+    // The room replays its archive on every connect, until the library holds the copy.
     if (handle.recoveryIn) steps.unshift(handle.recoveryIn.subscribe(copy => {
-      retainCanvasRecovery(runtime, canvasRecoveryValues(runtime.getModel(), copy.ops), 'Recovered edit', copy.id);
+      retainCanvasRecovery(runtime, canvasRecoveryValues(runtime.getModel(), copy.ops), 'Recovered edit', copy.id,
+        { kept: () => handle.recoveryKept?.(copy.id) });
     }));
 
     // Both hosts are WEB-BRIDGE slices (`_exportUserAssets` and friends), wider than the
