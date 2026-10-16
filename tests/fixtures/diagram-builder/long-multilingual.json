@@ -1,12 +1,12 @@
 {
   "id": "long-multilingual",
   "title": "Long multilingual labels",
-  "purpose": "An org chart pasted as tab-separated rows, with long labels in German, Japanese, Arabic, Hindi, Vietnamese, French with decomposed accents, Korean, Traditional Chinese, Ukrainian, Thai and an emoji sequence. Every label and detail survives wrapping, URL encoding and reload code point for code point; wrapping never splits a grapheme; the Arabic card is drawn right to left.",
+  "purpose": "An org chart pasted as tab-separated rows, with long labels in German, Japanese, Arabic, Hindi, Vietnamese, French with decomposed accents, Korean, Traditional Chinese, Ukrainian, Thai and an emoji sequence, plus a card whose label and detail are long runs of decomposed accents with no spaces, so every line break inside them is forced. Every label and detail survives wrapping, URL encoding and reload code point for code point; wrapping never splits a grapheme, so no line starts with a combining mark; the Arabic card is drawn right to left.",
   "inputs": {
     "look": "soft",
     "source": "table",
     "diagramType": "org",
-    "table": "id\tlabel\tdetail\tparent\nhq\tInternationale Produktentwicklungsabteilung\tHauptsitz und Koordination\t\ntokyo\t東京オフィス・アジア太平洋地域デザインセンター\tデザインとリサーチ\thq\ncairo\tمركز خدمة العملاء للشرق الأوسط وشمال أفريقيا\tالدعم والتوطين\thq\ndelhi\tउत्पाद अनुसंधान और उपयोगकर्ता अनुभव टीम\tअनुसंधान\thq\nsaigon\tTrung tâm Kỹ thuật Phần mềm Thành phố Hồ Chí Minh\tKỹ thuật\ttokyo\nlyon\tRe\u0301sume\u0301 des retours clients et accessibilite\u0301\tE\u0301quipe qualite\u0301\thq\nseoul\t서울 연구소 데이터 플랫폼 및 분석 팀\t데이터\ttokyo\ntaipei\t臺北使用者研究與無障礙設計小組\t研究\ttokyo\nkyiv\tВідділ локалізації та перекладів\tПереклад\tcairo\nbangkok\tศูนย์วิจัยและพัฒนาผลิตภัณฑ์ภาคตะวันออกเฉียงเหนือ\tวิจัย\tdelhi\nsupport\tSupport 24/7 🌍 👩🏽\u200d💻 rund um die Uhr\tHelp desk\thq"
+    "table": "id\tlabel\tdetail\tparent\nhq\tInternationale Produktentwicklungsabteilung\tHauptsitz und Koordination\t\ntokyo\t東京オフィス・アジア太平洋地域デザインセンター\tデザインとリサーチ\thq\ncairo\tمركز خدمة العملاء للشرق الأوسط وشمال أفريقيا\tالدعم والتوطين\thq\ndelhi\tउत्पाद अनुसंधान और उपयोगकर्ता अनुभव टीम\tअनुसंधान\thq\nsaigon\tTrung tâm Kỹ thuật Phần mềm Thành phố Hồ Chí Minh\tKỹ thuật\ttokyo\nlyon\tRe\u0301sume\u0301 des retours clients et accessibilite\u0301\tE\u0301quipe qualite\u0301\thq\nseoul\t서울 연구소 데이터 플랫폼 및 분석 팀\t데이터\ttokyo\ntaipei\t臺北使用者研究與無障礙設計小組\t研究\ttokyo\nkyiv\tВідділ локалізації та перекладів\tПереклад\tcairo\nbangkok\tศูนย์วิจัยและพัฒนาผลิตภัณฑ์ภาคตะวันออกเฉียงเหนือ\tวิจัย\tdelhi\nsupport\tSupport 24/7 🌍 👩🏽\u200d💻 rund um die Uhr\tHelp desk\thq\naccents\te\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301\te\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302\tlyon"
   },
   "census": {
     "diagramType": "org",
@@ -22,7 +22,8 @@
       { "id": "taipei", "label": "臺北使用者研究與無障礙設計小組", "detail": "研究", "parent": "tokyo" },
       { "id": "kyiv", "label": "Відділ локалізації та перекладів", "detail": "Переклад", "parent": "cairo" },
       { "id": "bangkok", "label": "ศูนย์วิจัยและพัฒนาผลิตภัณฑ์ภาคตะวันออกเฉียงเหนือ", "detail": "วิจัย", "parent": "delhi" },
-      { "id": "support", "label": "Support 24/7 🌍 👩🏽\u200d💻 rund um die Uhr", "detail": "Help desk", "parent": "hq" }
+      { "id": "support", "label": "Support 24/7 🌍 👩🏽\u200d💻 rund um die Uhr", "detail": "Help desk", "parent": "hq" },
+      { "id": "accents", "label": "e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301e\u0301", "detail": "e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302e\u0323\u0302", "parent": "lyon" }
     ],
     "edges": [],
     "groups": []
@@ -32,6 +33,7 @@
       "tab-separated id, label, detail and parent columns with a header row",
       "right-to-left text",
       "combining marks kept in their decomposed form",
+      "forced breaks inside a long run of decomposed accents with no spaces, made between graphemes",
       "an emoji ZWJ sequence with a skin tone modifier",
       "scripts written without spaces between words"
     ],

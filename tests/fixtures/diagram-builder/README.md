@@ -8,7 +8,7 @@ Six recorded diagrams for `community/diagram-builder`. Each file pairs a source 
 | `dense-architecture.json` | DOT with clusters | Twenty cards in four groups and twenty-four links, including undirected and two-way links |
 | `dated-roadmap.json` | Visual cards | Dated Gantt bars in three lanes, a milestone and dependency links |
 | `repeated-messages.json` | Mermaid sequenceDiagram | Eight ordered messages, with repeats between the same two participants |
-| `long-multilingual.json` | Tab-separated table | Long labels in ten languages and eight scripts, decomposed accents, right-to-left text and an emoji sequence |
+| `long-multilingual.json` | Tab-separated table | Long labels in ten languages and eight scripts, decomposed accents, right-to-left text, an emoji sequence, and a run of decomposed accents with no spaces that wrapping must break between graphemes |
 | `sparse-legacy-url.json` | A shared link | Compact rows with trailing fields left out, opened by the Legacy renderer |
 
 ## File format
