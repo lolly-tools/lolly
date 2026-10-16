@@ -861,6 +861,40 @@ test('a travel that engages after the preview began eases in rather than jumping
   } finally { f.destroy(); }
 });
 
+test('fingers that go just past where the scale or the travel engages and come back to where they began commit nothing', async () => {
+  // Held past the tap's window, so the preview has begun with nothing engaged. Each case
+  // goes out 1 px a frame until its part engages, then walks back to the start.
+  const cases: Array<[string, Pt, Pt, (i: number) => [Pt, Pt], number]> = [
+    ['100 px apart, both fingers out 7 px', [150, 200], [250, 200], (i) => [[150 - i, 200], [250 + i, 200]], 7],
+    ['40 px apart, both fingers out 7 px', [180, 200], [220, 200], (i) => [[180 - i, 200], [220 + i, 200]], 7],
+    ['both fingers right 11 px', [160, 200], [240, 200], (i) => [[160 + i, 200], [240 + i, 200]], 11],
+  ];
+  for (const [label, a0, b0, at, n] of cases) {
+    const f = mount(ONE());
+    try {
+      f.select(['a']);
+      await settle();
+      const before = rectOf(f.byId('a'));
+      down(f, a0, b0);
+      await to(f, a0, b0, 1600);
+      for (let i = 1; i <= n; i++) await to(f, ...at(i), 1600 + i * 16);
+      assert.notDeepEqual(shownRect(f.el('a')), before, `${label}: the part engaged and the preview moved`);
+      let against = 0;
+      for (let i = n - 1; i >= 0; i--) {
+        await to(f, ...at(i), 1600 + (2 * n - i) * 16);
+        // The box never shrinks below, or passes, where it began: that would be against the fingers.
+        const [l, , w] = shownRect(f.el('a'));
+        against = Math.max(against, 200 - w!, n === 11 ? 100 - l! : 0);
+      }
+      assert.equal(against, 0, `${label}: no frame moves the box against the fingers`);
+      assert.deepEqual(shownRect(f.el('a')), before, `${label}: the preview is back where it began`);
+      await up(f, a0, b0, 2400);
+      assert.equal(f.writes(), 0, `${label}: nothing to commit`);
+      assert.deepEqual(rectOf(f.byId('a')), before, `${label}: the row is unchanged`);
+    } finally { f.destroy(); }
+  }
+});
+
 test('a quick twist with close fingers keeps the turn the tap\'s hold-back saw: 90 degrees turns the box 75', async () => {
   const f = mount(ONE());
   try {
