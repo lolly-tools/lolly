@@ -5364,7 +5364,7 @@ const PATHWAY_HUB: Record<Pathway, string> = {
  */
 interface SitemapSection { hub: Pathway; label: string; slugs: string[] }
 const FOOTER_SECTIONS: SitemapSection[] = [
-  { hub: 'quickstart', label: 'Start here', slugs: ['index', 'make-something', 'install', 'supported-environments', 'organisation', 'faq'] },
+  { hub: 'quickstart', label: 'Start here', slugs: ['index', 'make-something', 'install', 'supported-environments', 'organisation', 'project-asset-transfers', 'faq'] },
   { hub: 'quickstart', label: 'Compare', slugs: ['positioning', 'compare',
     'compare-canva', 'compare-adobe', 'compare-figma', 'compare-penpot',
     'compare-render-apis', 'compare-brand-portals', 'compare-converters'] },
@@ -5497,7 +5497,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   agenda: 'checklist', presenting: 'monitor', 'interactive-pages': 'globe', 'sequence-editor': 'clock', 'hdr-editing': 'sliders', animating: 'layers', exporting: 'download', formats: 'convert', positioning: 'sliders', compare: 'checklist',
   'compare-canva': 'checklist', 'compare-adobe': 'checklist', 'compare-figma': 'checklist', 'compare-render-apis': 'checklist', 'compare-converters': 'checklist',
   'compare-penpot': 'checklist', 'compare-brand-portals': 'checklist',
-  'make-something': 'pentool', install: 'download', 'supported-environments': 'check', organisation: 'people', faq: 'document',
+  'make-something': 'pentool', install: 'download', 'supported-environments': 'check', organisation: 'people', 'project-asset-transfers': 'folder', faq: 'document',
   // Operator playbooks (plans/177)
   sales: 'people', press: 'document', marketing: 'photos', legal: 'lock',
   // Concepts: the locked rule set, the same-every-time check, the link as the artifact.
