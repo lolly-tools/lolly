@@ -3,6 +3,7 @@ import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 import { expandQuery } from '../engine/src/url-pack.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_DEEP_LINK_TEST_URL;
 const skip = origin ? false : 'LOLLY_DEEP_LINK_TEST_URL environment variable not set';
@@ -11,6 +12,10 @@ after(closeBrowser);
 
 async function open(path: string) {
   const context = await (await getBrowser()).newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
+  // A returning visitor, as in the other browser journeys. On an unbranded install
+  // (lolly-start, the profile CI serves) a first visit to the gallery opens the
+  // welcome as a modal, which makes the search field inert.
+  await context.addInitScript(() => { for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1'); });
   const page = await context.newPage();
   page.setDefaultTimeout(30_000);
   await page.goto(origin! + path);
@@ -50,6 +55,11 @@ test('tool content and output settings survive first sync, a fresh context and s
 test('live Gallery and Assets filters agree with reload and browser history', { skip, timeout: 90_000 }, async () => {
   const { page, context } = await open('/#/?q=qr');
   try {
+    // A cold gallery paints from the slim tool index, then mounts again once the full
+    // catalog arrives. Each mount rebuilds the shared search field, so text typed
+    // before the second mount is lost with the field it was typed into.
+    await page.waitForLoadState('networkidle'); await shellSettled(page);
+    await page.waitForFunction(() => (document.querySelector('.gallery-search') as HTMLInputElement)?.value === 'qr');
     await page.locator('.gallery-search').fill('chart');
     await page.waitForFunction(() => new URLSearchParams(location.hash.split('?')[1]).get('q') === 'chart');
     await page.locator('#spotlight-listbox').waitFor({ state: 'visible' });
@@ -140,6 +150,14 @@ test('path shortcuts and installed-app view forms preserve queries in the actual
     await page.goto(origin! + '/' + hash);
     await page.locator('.projects-view').waitFor();
     assert.ok(page.url().includes('view=list'));
+    // Training and courses is opt-in (66842c888), and with it off #/learning shows a notice
+    // instead of the course editor. Turn it on as Settings does, in the profile; each route
+    // below loads the page afresh, and boot copies the profile's flags into the mirror.
+    await page.evaluate(async () => {
+      const path = '/src/lib/host-ref.ts'; const host = (await import(path)).getHostRef();
+      const profile = await host.profile.get();
+      await host.profile.set({ ...profile, featureFlags: { ...profile.featureFlags, 'training-courses': true } });
+    });
     for (const route of ['history', 'learning']) {
       const target = await page.evaluate(async name => { const path = '/src/lib/deep-link.ts'; return (await import(path)).deepLinkToHash(`lolly://${name}`); }, route);
       assert.equal(target, `#/${route}`);
