@@ -4,6 +4,7 @@ import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { designMaterialOf } from '../../../../engine/src/design-system.ts';
 /** Idle catalog-cache housekeeping, loaded after catalog synchronization. */
 import type { AssetsDb, AssetMetaRecord, TrashedUserAssetRow } from './assets.ts';
+import type { CatalogHistoryDb } from './catalog-history.ts';
 import { assetFileMetas } from './asset-file-meta.ts';
 
 export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaRecord[], sessionBlobKeys: Set<string>, keepIds: Set<string>, urls: { evict(key: string): void; evictPrefix(prefix: string): void }, deferredProviders: readonly string[] = []): Promise<{ blobs: number; meta: number }> {
@@ -14,11 +15,6 @@ export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaReco
   }
   const cacheAssets = (await Promise.all(currentAssets.map(a => Array.isArray(a.meta?.assetFiles) ? assetFileMetas(a) : [a]))).flat();
 
-  // All keys that exist at the current catalog version.
-  const currentVersionKeys = new Set(
-    cacheAssets.flatMap(a => a.formats.map(f => `${a.id}:${f.format}:${a.version}`)),
-  );
-
   // Core-tier blobs are kept unconditionally (needed for offline).
   const keepBlobKeys = new Set(
     cacheAssets
@@ -28,7 +24,9 @@ export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaReco
 
   // Non-core blobs are kept only if a saved session references them (and they're current).
   for (const key of sessionBlobKeys) {
-    if (currentVersionKeys.has(key)) keepBlobKeys.add(key);
+    // Exact held dependencies survive source replacement and index withdrawal.
+    // They remain device-held work, not renewed source or delivery authority.
+    keepBlobKeys.add(key);
   }
 
   const validIds = new Set(currentAssets.map(a => a.id));
@@ -68,6 +66,7 @@ export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaReco
     const tx = db.transaction('asset-blob', 'readwrite');
     await Promise.all(staleBlobs.map(k => tx.store.delete(k)));
     await tx.done;
+    await (await import('./catalog-history.ts')).removePrunedObservations(db as CatalogHistoryDb, staleBlobs);
     // Revoke whatever live object URLs minted for these now-deleted blobs.
     // toAssetRef keys library URLs as `library:<blobKey>` and themed
     // icon bakes as `library:<blobKey>:t:<theme>:<colours>`. Evict both
@@ -124,15 +123,16 @@ export async function assetBytes(target: AssetRef | string): Promise<Uint8Array>
 
 /** Export-time credential inspection, loaded only when credentials are requested. */
 import { isZzfxmRef } from '../../../../engine/src/zzfxm-ref.ts';
-import { parseThemedAssetId, parseTreatedAssetId } from '../../../../engine/src/asset-modifiers.ts';
+import { assetDependency } from '../../../../engine/src/asset-version.ts';
 type Credential = { store: Uint8Array; format: string } | null;
-export async function assetCredential(db: AssetsDb, id: string, resolve: (id: string) => Promise<AssetRef>, cache: Map<string, Credential>, maxBytes: number): Promise<Credential> {
+export async function assetCredential(db: AssetsDb, id: string, resolve: (id: string, opts?: { version: string; format?: string }) => Promise<AssetRef>, cache: Map<string, Credential>, maxBytes: number): Promise<Credential> {
+  const dependency = assetDependency({ id });
   // A procedural ref identifies a song that is COMPOSED on demand - there are no
   // stored bytes to carry a credential, and fetching the scheme only produces
   // the browser's own "cannot load" console error before the error handler.
-  if (isZzfxmRef(id)) return null;
-  if (id.startsWith('user/')) {
-    const rec = await db.get('user-assets', id);
+  if (isZzfxmRef(dependency.id)) return null;
+  if (dependency.id.startsWith('user/')) {
+    const rec = dependency.pin ? await (await import('./asset-history.ts')).readUserAssetVersion(db, dependency.id, dependency.pin.version) : await db.get('user-assets', dependency.id);
     if (!rec?.credential || !rec.credentialFormat) return null;
     return { store: rec.credential, format: rec.credentialFormat };
   }
@@ -140,9 +140,8 @@ export async function assetCredential(db: AssetsDb, id: string, resolve: (id: st
   if (cached !== undefined) return cached;
   let out: { store: Uint8Array; format: string } | null = null;
   try {
-    const themed = parseThemedAssetId(id), treated = parseTreatedAssetId(id);
-    const ref = await resolve(themed.theme ? themed.baseId : treated.baseId);
-    const blob = await (await fetch(ref.url)).blob();
+    const ref = await resolve(dependency.id, dependency.pin);
+    const blob = await (await fetch(ref.original?.url ?? ref.url)).blob();
     if (blob.size <= maxBytes) {
       const { extractC2paStore } = await import('../../../../engine/src/c2pa-verify.ts');
       const ex = extractC2paStore(new Uint8Array(await blob.arrayBuffer()));

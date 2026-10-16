@@ -16,6 +16,7 @@ export interface RevisionAssetStatus {
   version?: string;
   format?: string;
   replacement?: RevisionAssetReplacement;
+  observation?: { observedAt: string; sourceVersion?: string; representation: string; metadataScope: 'observed-at-read' };
 }
 export interface RevisionAssetReport { revisionId: string; assets: RevisionAssetStatus[]; truncated: boolean }
 export interface RevisionFidelityAPI {
@@ -48,6 +49,14 @@ async function assetStatus(db: IDBPDatabase, dep: RevisionDependency): Promise<R
     return { ...row, status: 'missing', replacement };
   }
   if (dep.source !== 'library' || dep.id.startsWith('user/')) return row;
+  const content = await import('./catalog-history.ts');
+  if (dep.pin && content.isCatalogContentVersion(dep.pin.version)) {
+    try {
+      const { observation } = await content.readCatalogContent(db, dep.id, dep.pin);
+      return { ...row, status: 'saved', observation: { observedAt: observation.observedAt, sourceVersion: observation.sourceVersion,
+        representation: observation.representation, metadataScope: observation.metadataScope } };
+    } catch { return { ...row, status: 'missing' }; }
+  }
   const tx = db.transaction(['asset-meta', 'asset-blob']);
   const meta = await tx.objectStore('asset-meta').get(dep.id) as { type: string; version?: string; formats: Array<{ format: string }> } | undefined;
   const version = dep.pin?.version ?? meta?.version;

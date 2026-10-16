@@ -64,7 +64,7 @@ import type {
   RightsDecisionV1, RightsEvaluationV1, UseContextV1,
 } from '@lolly-tools/core/rights-v1';
 import { parseProviderRef } from './asset-provider.ts';
-import { assetVersionPin, decodeAssetVersion, unavailablePinnedAsset, type AssetVersionPin } from './asset-version.ts';
+import { assetVersionPin, assetDependency, decodeAssetVersion, unavailablePinnedAsset, type AssetVersionPin } from './asset-version.ts';
 
 /** One state emission: the current model plus the hydrated template. */
 export interface RuntimeState {
@@ -2078,7 +2078,7 @@ export async function createRuntime(
         const note = (v: unknown): void => {
           if (v && typeof v === 'object') {
             const { id, source } = v as { id?: unknown; source?: unknown };
-            if (typeof id === 'string' && (source === 'user' || source === 'library')) ids.add(id);
+            if (typeof id === 'string' && (source === 'user' || source === 'library')) ids.add(assetDependency(v as AssetRef).key);
           }
         };
         for (const input of model) {

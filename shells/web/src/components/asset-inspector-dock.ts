@@ -81,6 +81,7 @@ export function mountAssetInspectorDock(dialog: HTMLDialogElement): () => void {
   const watched = [[fileSection, files], [techSection, tech], [usageSection, usage], [textSection, text], [checks, passport]] as const;
   const refresh = () => {
     if (disposed) return;
+    for (const section of body.querySelectorAll<HTMLDetailsElement>('[data-source-history]')) enhance(section, 'source-history');
     if (checks && body.lastElementChild !== checks) body.append(checks);
     for (const [section, node] of watched) if (section && node) {
       const hidden = node.hidden || !node.hasChildNodes();

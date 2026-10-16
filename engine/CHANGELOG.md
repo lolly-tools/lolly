@@ -8,6 +8,7 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 
 ## 1.261.0
 
+- Preserve selected-file identity in versioned resource dependencies and collect source credentials by the exact version used in an export.
 - Add managed certificate enrollment, CSR and key proof validation, independently configured issuer trust, and signed certificate status checks. Existing certificate APIs keep their supported signatures.
 - Add optional personal-data sharing metadata. Generated share links review declared personal and profile-bound fields while raw URL parsing and CLI input contracts keep their existing behavior.
 - Extend signed catalog resource verification to published previews and dependent tool files.

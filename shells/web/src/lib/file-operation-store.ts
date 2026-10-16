@@ -10,6 +10,8 @@ import { FileBatchStore, FILE_BATCH_REPORT_BYTES, interruptedOperationReport, ty
 export { interruptedOperationReport } from './file-batch-store.ts';
 
 export interface LocalFileOperation {
+  /** Device observation is never inherited from a portable report. */
+  origin?: 'observed-here' | 'imported';
   id: string; state: 'running' | 'succeeded' | 'failed' | 'cancelled' | 'interrupted';
   input: FileFactsV1; request: FileOperationRequestV1; report?: FileOperationReportV1;
   createdAt: number; updatedAt: number; leaseUntil: number;
@@ -84,7 +86,7 @@ export class FileOperationStore {
     const used = all.reduce((sum, r) => sum + r.storedBytes + (r.leaseUntil > Date.now() ? r.reservedBytes : 0), 0);
     if (all.length >= 100 || used + reserve > this.limit) { await tx.done; throw new Error('Local result history is full. Download and remove older results first.'); }
     const now = Date.now();
-    const record: LocalFileOperation = { id: batchLink?.operationId ?? crypto.randomUUID(), ...(batchLink ? { batchId: batchLink.batchId } : {}), state: 'running', input, request, createdAt: now, updatedAt: now, leaseUntil: now + LEASE_MS, reservedBytes: reserve, storedBytes: 0 };
+    const record: LocalFileOperation = { origin: 'observed-here', id: batchLink?.operationId ?? crypto.randomUUID(), ...(batchLink ? { batchId: batchLink.batchId } : {}), state: 'running', input, request, createdAt: now, updatedAt: now, leaseUntil: now + LEASE_MS, reservedBytes: reserve, storedBytes: 0 };
     await jobs.add(record); await tx.done; return record;
   }
   async heartbeat(id: string): Promise<void> {
@@ -166,7 +168,7 @@ export class FileOperationStore {
     const used = all.reduce((n, r) => n + r.storedBytes + (r.leaseUntil > Date.now() ? r.reservedBytes : 0), 0);
     if (all.length >= 100 || used + (output?.size ?? 0) > this.limit) { await tx.done; throw new Error('Local result history is full. Keep the backup and remove older results before retrying.'); }
     if (output) await tx.objectStore('file-operation-blobs').put(output, record.id);
-    await jobs.add({ ...meta, backend: 'idb', reservedBytes: 0, storedBytes: output?.size ?? 0, leaseUntil: 0, outputName: output?.name, outputMime: output?.type } satisfies LocalFileOperation);
+    await jobs.add({ ...meta, origin: 'imported', backend: 'idb', reservedBytes: 0, storedBytes: output?.size ?? 0, leaseUntil: 0, outputName: output?.name, outputMime: output?.type } satisfies LocalFileOperation);
     await tx.done;
   }
   async remove(id: string): Promise<void> {

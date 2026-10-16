@@ -39132,6 +39132,11 @@ var init_tool_url = __esm({
 });
 
 // engine/src/asset-modifiers.ts
+function parseFileAssetId(id3) {
+  if (typeof id3 !== "string" || id3.includes("://")) return { baseId: id3, file: null };
+  const match = /^([^?]+)\?file=([a-f0-9]{24})$/.exec(id3);
+  return match ? { baseId: match[1], file: match[2] } : { baseId: id3, file: null };
+}
 function styledFile(id3, style) {
   if (id3.includes("://")) return null;
   const match = new RegExp(`^([^?]+\\?file=[a-f0-9]{24})&${style}=([a-z0-9][a-z0-9-]*)$`).exec(id3);
@@ -39205,7 +39210,9 @@ function decodeAssetVersion(id3) {
 function assetDependency(value) {
   const decoded = decodeAssetVersion(value.id);
   const pin = assetVersionPin(value) ?? decoded.pin;
-  const id3 = stripAssetModifiers(decoded.id);
+  const themed = parseThemedAssetId(decoded.id), treated = parseTreatedAssetId(decoded.id);
+  const unstyled = themed.theme ? themed.baseId : treated.baseId;
+  const id3 = parseFileAssetId(unstyled).file ? unstyled : stripAssetModifiers(decoded.id);
   return { id: id3, key: encodeAssetVersion(id3, pin), modifier: decoded.id.slice(id3.length), pin };
 }
 function unavailablePinnedAsset(id3, pin, value) {
@@ -50609,7 +50616,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         const note2 = (v) => {
           if (v && typeof v === "object") {
             const { id: id3, source } = v;
-            if (typeof id3 === "string" && (source === "user" || source === "library")) ids2.add(id3);
+            if (typeof id3 === "string" && (source === "user" || source === "library")) ids2.add(assetDependency(v).key);
           }
         };
         for (const input of model2) {

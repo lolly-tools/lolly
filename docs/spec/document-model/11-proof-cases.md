@@ -1,5 +1,22 @@
 # Proof cases
 
+## Source and history implementation evidence
+
+The source-history suites exercise maintained resource and review boundaries.
+`tests/source-history.browser.test.ts` covers exact selected-file reads, source
+overwrite with an unchanged token, saved revisions, restart and explicit missing
+bytes. `tests/source-history-package.test.ts` exercises the existing editable
+package vehicle and distinguishes imported operation reports from execution
+observed on this device. `tests/asset-version.test.ts` also binds credential
+collection to each exact source version used by an export.
+
+Work's `tests/catalog-source-review.test.ts` covers a frozen purpose, activation
+target and file membership, replacement after request, and hidden proof members.
+These are focused implementation cases. They do not establish vendor-native
+history, historical source attributes, complete shared usage, replayable imported
+recipes or approval of later output bytes. No new portable evidence part or
+shared document record is emitted by these cases.
+
 > This chapter is a draft for review, dated 2026-09-24.  
 
 This chapter lists the cases the document model must be proved against. Each case is a paper example now and an executable fixture later (plan section 17). None of them is built.
