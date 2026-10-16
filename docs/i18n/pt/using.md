@@ -91,7 +91,7 @@ A pré-visualização sempre mostra exatamente o que será exportado.
 
 **Toque**
 
-- **Pinça** para dar zoom, **arraste** para deslocar, **toque duplo** para voltar ao ajuste.
+- **Pinça** para dar zoom, **arraste** para deslocar, **toque duplo** para voltar ao ajuste. Na tela livre, dois dedos sobre um objeto selecionado escalam, giram e movem a seleção (veja [Redimensionar, dimensionar e girar](#resize-scale-and-rotate)).
 
 **Clique para ir direto a um controle:** clique em qualquer elemento do design e o campo correspondente na barra lateral recebe foco e é rolado até ficar visível - no caso de um grupo de linhas repetidas, ele abre exatamente a linha que você clicou, então editar o que você vê está a um toque de distância.
 
@@ -110,6 +110,37 @@ Ferramentas de tela livre adicionam uma superfície de trabalho *ao redor* da pr
 ![O canvas livre do Design - a prancheta com a área de trabalho ao redor](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Espelhe uma seleção.** Clique com o botão direito em qualquer caixa e escolha **Espelhar horizontalmente** ou **Espelhar verticalmente** para espelhá-la no lugar, ou pressione `Shift+H` / `Shift+V` no teclado - Shift, porque um `V` isolado é a ferramenta Ponteiro. Cada caixa selecionada se espelha em seu próprio eixo em um único passo de desfazer, e o espelhamento é uma transformação real, então ele permanece no SVG, PDF e PNG exportados, não só no canvas.
+
+### Redimensionar, dimensionar e girar
+
+Selecione um objeto e arraste uma alça para mudar seu tamanho, ou a alça redonda abaixo da seleção para girar o objeto. Um arraste de tamanho funciona em um de dois modos:
+
+- **Redimensionar**, o padrão, muda só a caixa. O texto reflui para o novo tamanho, e o tamanho da fonte, a espessura do traço, o raio dos cantos e os efeitos continuam como estavam.
+- **Escala** aumenta ou diminui o objeto inteiro com seu conteúdo: tamanho da fonte, traço, raio dos cantos, sombra, desfoque, preenchimento e espaçamento mudam todos na mesma proporção.
+
+Pressione `K` para ativar ou desativar Escala. Sem teclado, escolha **Modo Escala** no menu do Lolly, ou mantenha pressionado o botão **Ponteiro** na barra de ferramentas (ou clique nele com o botão direito) e escolha **Escala**; em uma tela de toque, a barra do objeto também tem um interruptor de Escala. Enquanto Escala está ativa, o botão Ponteiro mostra o ícone de Escala e cada alça tem um ponto no meio. `V` ou **Escape** volta para Redimensionar e mantém a seleção. Escala fica desativada sempre que um documento abre, para que ninguém escale traços por acidente. Cada escala é um passo de desfazer, com o rótulo **Escala**.
+
+**Escalar por um número.** Com Escala ativa, ou com vários objetos selecionados, clique no indicador da barra do objeto para abrir o popover **Escala**. Digite uma porcentagem, ou uma largura ou altura para que os outros dois valores acompanhem, escolha na grade 3 x 3 o ponto que fica parado e escolha **Aplicar**. O resultado é um único passo de desfazer, sem precisar arrastar. Com Escala desativada, vários objetos mudam só de tamanho e posição.
+
+**Vários objetos.** Uma seleção de vários objetos tem alças nas bordas além dos cantos. Um arraste de canto muda largura e altura livremente enquanto todo objeto da seleção estiver na vertical ou girado em quartos de volta inteiros, e a seleção não contiver grupo nem círculo. Caso contrário, a seleção mantém suas proporções: suas alças mostram o cursor de escala e, enquanto você arrasta, o indicador acrescenta **Proporcional**. Enquanto você redimensiona ou escala, um pequeno rótulo ao lado da seleção mostra o tamanho, ou a porcentagem no modo Escala.
+
+**As teclas que você segura durante um arraste** têm efeito assim que você as pressiona ou solta (a folha de atalhos, `?`, também as lista):
+
+| Segurar | Redimensionar ou escalar | Girar | Mover |
+|---|---|---|---|
+| **Shift** | Mantém as proporções (Escala sempre faz isso) | Gira em passos de 15 graus | Sem mudança |
+| **Alt** (Option) | Trabalha a partir do centro | Gira livremente | Desliga o encaixe e a grade |
+| **Cmd/Ctrl** | Desliga o encaixe e a grade | Gira livremente | Desliga o encaixe e a grade |
+
+Sem nenhuma tecla, um giro é puxado para os 15 graus mais próximos quando chega a 4 graus deles. Pranchetas não giram, então não têm alça de rotação.
+
+**Segure em qualquer ponto da borda.** Não é preciso acertar uma alça com exatidão. Cada lado de uma seleção é uma faixa de redimensionamento em todo o seu comprimento, e com mouse ou caneta há uma zona de rotação logo fora de cada canto. O ponteiro mostra o que um arraste fará, girado para combinar com a seleção. Um toque numa faixa ou zona só vira redimensionamento ou giro quando você começa a arrastar, então um simples clique continua selecionando, adicionando à seleção ou desmarcando como antes. Um objeto bloqueado não tem alças, faixas nem zonas.
+
+**Objetos pequenos continuam móveis.** Em um objeto de 25 pixels de tela ou menos, as alças do meio, que apertariam os cantos, se escondem e as outras alças se afastam um pouco do contorno, de modo que um toque no objeto o move. Com 10 pixels ou menos, as alças de canto também somem, e uma linha fina mantém uma alça em cada ponta. Um toque logo ao lado de uma linha fina ou de um objeto minúsculo, longe das alças, também move o objeto.
+
+**Áreas de pega grandes.** Em uma tela de toque as zonas de pega são grandes: cada zona de canto tem um quarto da largura e da altura da seleção na tela, entre 24 e 44 pixels, e cada zona lateral cobre o trecho entre dois cantos. Quando a seleção é pequena demais para isso, as zonas vão para fora do contorno, então um toque no meio ainda move a seleção. A zona sob o ponteiro, ou sob um dedo apoiado, fica sombreada. Para ter as mesmas zonas com mouse ou caneta, ative **Áreas de pega grandes** no menu do Lolly. A configuração fica apenas neste dispositivo.
+
+**Dois dedos sobre uma seleção.** Em uma tela de toque, ponha dois dedos sobre um objeto selecionado: faça pinça para escalar a seleção, gire para girá-la ou mova os dois dedos para carregá-la. Tudo o que os dois dedos fazem conta como um único passo de desfazer. Com Escala ativa, a pinça escala também o conteúdo; com Escala desativada, a pinça redimensiona a seleção em proporção. Um giro é puxado para os 15 graus mais próximos quando está perto, e um movimento com dois dedos nunca encaixa. Dois dedos em qualquer outro lugar continuam dando zoom e deslocando a vista, e um toque com dois dedos continua abrindo o menu. O primeiro dedo precisa cair sobre a seleção e o segundo precisa vir logo em seguida, sobre a seleção ou logo fora da borda dela. Se a seleção contém uma prancheta ou um objeto bloqueado, cobre a maior parte da vista ou passa da borda da vista, dois dedos dão zoom e deslocam a vista.
 
 ### Camadas e Inspetor
 

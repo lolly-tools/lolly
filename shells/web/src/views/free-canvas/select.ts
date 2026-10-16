@@ -130,27 +130,38 @@ export function freshId(fc: FcCtx, boxes: Box[]): string {
  *  minted rows without one. Returns the SAME array when nothing was missing, so a
  *  caller commits only on a real change. Inert for a tool with no id field. */
 export const withIds = (fc: FcCtx, boxes: Box[]): Box[] => { const { cfg, hasIdField } = fc; return (hasIdField ? ensureRowIds(boxes, cfg.idField) : boxes); };
-export function commit(fc: FcCtx, nextBoxes: Box[], patch: Record<string, unknown> = {}, label = 'Edit layout'): void {
+/**
+ * Commit the rows (and any other inputs in `patch`) as one undo step. A `label` is that
+ * step's name in the history, on the plain row write as well as on a patch. `scaledText`
+ * holds the text frames a Scale grew together with their story: an auto size still
+ * fits them, so they keep it, where an authored resize fixes the frame's size.
+ */
+export function commit(fc: FcCtx, nextBoxes: Box[], patch: Record<string, unknown> = {}, label?: string, scaledText?: ReadonlySet<string>): void {
   const { blockId, onDirty, runtime } = fc;
   if (fc.opts?.canEdit?.() === false) return;
+  const name = label ?? 'Edit layout';
   const groupSizeAxes = fc.hierarchy?.groupSizeAxes?.(nextBoxes);
   if (fc.frameCfg && fc.timeCfg) nextBoxes = retimeSceneMembers(getBoxes(fc), nextBoxes, { ...frameFields(fc), startField: fc.timeCfg.startField });
   try {
   nextBoxes = fc.hierarchy?.prepareCommit(nextBoxes, Array.isArray(patch.pages) ? patch.pages as import('@lolly/engine').DesignPage[] : undefined) || nextBoxes;
-    if (fc.cv.textDocumentInput) nextBoxes = resizeDesignTextFrames(getBoxes(fc), nextBoxes);
+    if (fc.cv.textDocumentInput) {
+      const before = getBoxes(fc);
+      nextBoxes = resizeDesignTextFrames(scaledText?.size ? before.filter((b, i) => !scaledText.has(idOf(fc, b, i))) : before, nextBoxes);
+    }
     const source = runtime.getModel().find(i => i.id === blockId)?.value;
     if (fc.layout && Array.isArray(source)) nextBoxes = fc.layout.sourceEdit(source, nextBoxes, groupSizeAxes);
     patch = { ...fc.layout?.trackPatch(nextBoxes), ...patch };
-    if (fc.storyFlow?.reconcile(nextBoxes, patch, label)) return;
+    if (fc.storyFlow?.reconcile(nextBoxes, patch, name)) return;
     const next = withIds(fc, nextBoxes);
     onDirty?.(blockId);
     if (Object.keys(patch).length) {
       for (const id of Object.keys(patch)) onDirty?.(id);
       const values = { ...patch, [blockId]: next };
-      if (fc.history?.commit) void fc.history.commit(values, label).catch(fc.layout.failure);
+      if (fc.history?.commit) void fc.history.commit(values, name).catch(fc.layout.failure);
       else if (runtime.applyPatch) { fc.history?.changed?.(); void runtime.applyPatch(values).catch(fc.layout.failure); }
       else throw new Error('This canvas cannot commit layout tracks and layers together.');
-    } else runtime.setInput(blockId, next);
+    } else if (label !== undefined && fc.history?.named) fc.history.named(label, () => runtime.setInput(blockId, next));
+    else runtime.setInput(blockId, next);
   } catch (error) { fc.layout.failure(error); }
 }
 // ── frame containment-on-drop (plan 93 F1b-1) ────────────────────────────────

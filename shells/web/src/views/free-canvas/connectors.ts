@@ -125,12 +125,22 @@ export function setRealConnectorsHidden(fc: FcCtx, hidden: boolean): void {
   if (el) el.style.visibility = hidden ? 'hidden' : '';
   fc.liveConnectHidden = hidden;
 }
-// The rect used to anchor an edge to a box: the LIVE DOM rect when present (mid-drag),
-// else the model rect. Rotation is ignored (org cards are axis-aligned).
+/** The rect a live gesture recorded for box `id` (see applyLiveRect), only while one
+ *  is live. It is the rect the box is drawn at even when the element keeps its start
+ *  size under a Scale preview, which a parse of `el.style` cannot see. */
+function gestureRect(fc: FcCtx, id: string): EdgeRect | null {
+  const r = fc.gesture ? fc.liveRects?.get(id) : undefined;
+  return r ? { x: r.x, y: r.y, w: r.w, h: r.h } : null;
+}
+// The rect used to anchor an edge to a box: the gesture's live rect mid-drag, else the
+// LIVE DOM rect when present, else the model rect. Rotation is ignored (org cards are
+// axis-aligned).
 export function boxRectById(fc: FcCtx, boxes: Box[], id: string): EdgeRect | null {
   const { canvasEl, cfg } = fc;
   const i = fc.select.indexOfId(boxes, id);
   if (i < 0) return null;
+  const live = gestureRect(fc, id);
+  if (live) return live;
   const el = canvasEl.querySelector<HTMLElement>(`.lolly-box[data-box-id="${fc.keys.cssEscape(id)}"]`);
   if (el?.style.left) {
     const fo = fc.stage.frameOffsetOfEl(el);
@@ -204,9 +214,10 @@ export function previewHeads(_fc: FcCtx,
   }
   return { pts, heads };
 }
-/** Every box's rect for routing: the LIVE DOM rect when there is one (mid-drag), else
- *  the model rect. Resolved in ONE querySelectorAll + one pass, so a connected drag
- *  redraws in O(boxes + lines) rather than two DOM queries per line. */
+/** Every box's rect for routing: the gesture's live rect mid-drag, else the LIVE DOM
+ *  rect when there is one, else the model rect. Resolved in ONE querySelectorAll + one
+ *  pass, so a connected drag redraws in O(boxes + lines) rather than two DOM queries
+ *  per line. */
 export function liveRectById(fc: FcCtx, boxes: Box[]): Map<string, EdgeRect> {
   const { canvasEl, cfg } = fc;
   const liveEls = new Map<string, HTMLElement>();
@@ -217,6 +228,11 @@ export function liveRectById(fc: FcCtx, boxes: Box[]): Map<string, EdgeRect> {
   const rectById = new Map<string, EdgeRect>();
   for (let i = 0; i < boxes.length; i++) {
     const id = fc.select.idOf(boxes[i], i);
+    const live = gestureRect(fc, id);
+    if (live) {
+      rectById.set(id, live);
+      continue;
+    }
     const el = liveEls.get(id);
     if (el?.style.left) {
       const fo = fc.stage.frameOffsetOfEl(el);

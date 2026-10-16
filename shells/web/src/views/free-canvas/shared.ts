@@ -47,7 +47,6 @@ export interface Metrics {
   scale: number;
 }
 export type HandleName = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
-export type Corner = 'nw' | 'ne' | 'se' | 'sw';
 
 /** One entry of a `canvas.addKinds` list - a "kind" the add-box menu can create. */
 export interface AddKind {
@@ -64,6 +63,9 @@ export interface BlockFieldDef {
   id: string;
   default?: unknown;
   options?: Array<{ value?: unknown; label?: string }>;
+  /** A number field's manifest bounds, read into `fc.boxFieldBounds` for Scale's clamps. */
+  min?: unknown;
+  max?: unknown;
 }
 export interface FontOption {
   value: string;
@@ -370,6 +372,11 @@ export interface HistoryApi {
   changed?(): void;
   /** The entry the next undo would take, by identity (plans/289 D1: an agent undoes only its own). */
   top?(): object | null;
+  /** Run one plain input write whose undo step is called `label`. Without a name the
+   *  history describes the rows that changed, and a Scale (sizes and content at once)
+   *  reads as no single gesture. The write keeps setInput's undo, which reverts only
+   *  this edit's fields when someone else edited the rows since. */
+  named?(label: string, write: () => void): void;
 }
 
 /**
@@ -548,7 +555,9 @@ export interface PopGrid {
 // enabled state has to follow the history stack rather than the moment it opened.
 // `on` makes a row a RADIO rather than a command - set it (even to false) and the row
 // reports `aria-checked` and paints its current state. Used by the pen's spline-type menu,
-// where the point of opening it is to see which type you are already on.
+// where the point of opening it is to see which type you are already on. `check` with
+// `on` makes the row a CHECKBOX instead: a setting that is on or off on its own, such as
+// "Large grab areas", rather than one choice of several.
 export interface PopAction {
   sep?: undefined;
   grid?: undefined;
@@ -560,15 +569,22 @@ export interface PopAction {
   keepOpen?: boolean;
   key?: string;
   on?: boolean;
+  check?: boolean;
 }
 export type PopItem = PopSep | PopGrid | PopAction;
 
+/** The fields of a pointer event a gesture frame reads. A modifier key pressed or
+ *  released mid-drag re-runs the last frame with the new modifier state, so this is
+ *  also what that replay builds. */
+export type GesturePointer = Pick<PointerEvent, 'pointerId' | 'clientX' | 'clientY' | 'shiftKey' | 'altKey' | 'metaKey' | 'ctrlKey'>;
 // Gesture state - filled in by beginGesture with pointerId/startClient.
 export interface GestureBase {
   pointerId: number;
   startClient: Point;
   snapIndex?: CanvasSnapIndex | null;
   origin?: Point;
+  /** The last pointer frame applied, replayed when a modifier key changes. */
+  lastMove?: GesturePointer;
 }
 export interface TapGesture extends GestureBase {
   type: 'tap';
@@ -651,6 +667,12 @@ export interface ResizeGesture extends GestureBase {
   startRect: Rect;
   others: AABB[];
   liveRect?: Rect;
+  /** Scale mode at the press: the aspect is forced and the content scales by `k`. */
+  content?: boolean;
+  /** The live uniform factor of a Scale, for the commit and the readouts. */
+  k?: number;
+  /** The row at the press, which a Scale's content is computed from. */
+  startBox?: Box;
 }
 export interface RotateGesture extends GestureBase {
   type: 'rotate';
@@ -660,21 +682,89 @@ export interface RotateGesture extends GestureBase {
   pointerStartDeg: number;
   liveRect?: Rect;
 }
+/**
+ * A selection-level resize or scale, from one of the selection's 8 handles. `origin` is
+ * the PRESS in native px and every frame reads the pointer's travel from it, so nothing
+ * changes at the press, wherever inside the handle it was. `aabb` (the authored start
+ * bounds) is rebuilt by a collaboration rebase from the rebased `startBoxes`; the point
+ * a frame holds still (the opposite corner or edge midpoint, or the centre with Alt)
+ * follows from `aabb` and `handle` each frame (free-canvas-transform.ts
+ * `transformSelection`), so it is not stored.
+ */
 export interface GScaleGesture extends GestureBase {
   type: 'gscale';
   sel: number[];
   startBoxes: Box[];
-  anchor: Point;
-  origDist: number;
+  handle: HandleName;
+  aabb: Bounds;
+  origin: Point;
+  /** Snap targets: every row outside the set, as a move and a resize take them. */
+  others: AABB[];
+  /** The live factor, for the commit's zero-delta guard and a readout. */
+  k?: number;
   liveBoxes?: Box[];
+  /** Scale mode at the press: every member's content scales by `k` as well. */
+  content?: boolean;
+  /** A Resize of a set that can only keep its proportions (a group row or a circle in it,
+   *  or a member turned off a quarter turn): one factor drives both axes, and the readout
+   *  says so. Decided at the press and again by a collaboration rebase. */
+  proportional?: boolean;
 }
+/**
+ * A selection-level rotation about `centre`. Angles are measured in NATIVE px from
+ * the press (`origin`), so a pan mid-drag or a rebased centre keeps one pivot for the
+ * pointer and the boxes alike.
+ */
 export interface GRotateGesture extends GestureBase {
   type: 'grotate';
   sel: number[];
   startBoxes: Box[];
   centre: Point;
-  centerClient: Point;
+  origin: Point;
   pointerStartDeg: number;
+  /** The live turn in degrees, for the commit's zero-delta guard. */
+  deg?: number;
+  liveBoxes?: Box[];
+}
+/**
+ * Two fingers on the selection (plan 311): the spread scales it, a twist turns it and
+ * the midpoint carries it, in one undo step (pinch.ts). `pointerId` is the second
+ * finger, whose press claimed the pair, and `pointerA` the first; both are captured
+ * and the gesture ends when either lifts. The start points are native px, so a
+ * collaboration rebase needs only the rows: every frame derives from `startBoxes`.
+ */
+export interface PinchGesture extends GestureBase {
+  type: 'pinch';
+  pointerA: number;
+  /** The rows the pinch scales and carries: Scale mode's widened set, as gscale takes. */
+  sel: number[];
+  /** Which of `sel` turn, by position: never an artboard, nor a row Scale mode added. */
+  turns: boolean[];
+  startBoxes: Box[];
+  /** Each finger where the pinch began, native px. */
+  startA: Point;
+  startB: Point;
+  /** Each finger's latest client point, applied once a frame. */
+  curA: Point;
+  curB: Point;
+  /** Scale mode at the claim: the content scales by `k` as well. */
+  content?: boolean;
+  /** pinchTransform's engage state, fed back on every finger move. */
+  scaleEngaged?: boolean;
+  engagedAt?: number | null;
+  travelEngaged?: boolean;
+  /** Both fingers (client px) when the preview began, once the pair could no longer be a
+   *  tap, and what had engaged by then: those parts ease in from here (pinch.ts). */
+  shownFrom?: [Point, Point];
+  early?: { turn: boolean; travel: boolean };
+  /** Both fingers (client px) when the scale began to show, which it eases in from. */
+  scaleFrom?: [Point, Point];
+  /** How far each eased part has caught up, 0 to 1; never goes back. */
+  ease?: { from: number; scale: number };
+  /** The live factor and turn: the commit scales the content by `k`, and both name the
+   *  preview kind peers are shown. */
+  k?: number;
+  deg?: number;
   liveBoxes?: Box[];
 }
 // Pen tool (Stage D). Drawing is `pendraw` - one gesture per NODE, not one per path, since
@@ -729,7 +819,8 @@ export type Gesture =
   | PenNodeGesture
   | PenHandleGesture
   | PenMarqueeGesture
-  | LineGesture;
+  | LineGesture
+  | PinchGesture;
 export type FilledBaseFields = 'pointerId' | 'startClient';
 export type GestureInit =
   | Omit<TapGesture, FilledBaseFields>
@@ -746,7 +837,13 @@ export type GestureInit =
   | Omit<PenNodeGesture, FilledBaseFields>
   | Omit<PenHandleGesture, FilledBaseFields>
   | Omit<PenMarqueeGesture, FilledBaseFields>
-  | Omit<LineGesture, FilledBaseFields>;
+  | Omit<LineGesture, FilledBaseFields>
+  | Omit<PinchGesture, FilledBaseFields>;
+
+/** The pointers a gesture follows: its own, and a pinch's first finger as well. */
+export const gesturePointers = (g: Gesture): number[] => (g.type === 'pinch' ? [g.pointerId, g.pointerA] : [g.pointerId]);
+/** Does this pointer's move or release belong to the gesture? */
+export const ownsPointer = (g: Gesture, pointerId: number): boolean => pointerId === g.pointerId || (g.type === 'pinch' && pointerId === g.pointerA);
 
 export const HANDLES: HandleName[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
 export const SNAP_PX = 6;
@@ -1102,6 +1199,11 @@ export interface TouchPt {
   x: number;
   y: number;
   moved: number;
+  /** Where the finger is now: a pinch starts there, and the stage takes a finger back from there. */
+  cx: number;
+  cy: number;
+  /** A finger, not a pen: only a finger is handed to the stage's pinch and pan. */
+  touch: boolean;
 }
 /** railSession is an ES module binding now: importers read it live and write it through here. */
 export function setRailSession(value: { left: number; top: number } | null): void { railSession = value; }

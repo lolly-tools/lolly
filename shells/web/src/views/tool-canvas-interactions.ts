@@ -71,6 +71,10 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
       };
       return lease;
     },
+    foreignClaims: () => {
+      const self = capability.owner?.();
+      return capability.list().filter(claim => !active.has(claim.id) && (self === undefined || claim.owner !== self));
+    },
   });
   const offClaims = capability.subscribe(claims => {
     for (const id of active.keys()) if (!claims.some(claim => claim.id === id)) stop(id, true);

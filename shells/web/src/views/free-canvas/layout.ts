@@ -134,7 +134,7 @@ export function placementReady(fc: FcCtx): boolean {
   }
 }
 export function gestureReady(fc: FcCtx, type: string): boolean {
-  return !['move', 'resize', 'rotate', 'gscale', 'grotate'].includes(type) || placementReady(fc);
+  return !['move', 'resize', 'rotate', 'gscale', 'grotate', 'pinch'].includes(type) || placementReady(fc);
 }
 function needsEvaluatedPlacement(source: Box[], proposed: Box[]): boolean {
   const originals = new Map(source.map((row) => [key(row), row])),

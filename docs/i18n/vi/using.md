@@ -91,7 +91,7 @@ Bản xem trước luôn hiển thị chính xác thứ sẽ được xuất ra.
 
 **Cảm ứng**
 
-- **Chụm hai ngón** để thu phóng, **kéo** để di chuyển khung nhìn, **nhấp đúp** để đặt lại về vừa khung.
+- **Chụm** để thu phóng, **kéo** để lia, **nhấp đúp** để đặt lại vừa khung. Trên canvas tự do, hai ngón tay đặt trên một đối tượng đang chọn sẽ co giãn, xoay và di chuyển phần đã chọn thay vì khung nhìn (xem [Đổi kích thước, co giãn và xoay](#resize-scale-and-rotate)).
 
 **Nhấp để nhảy tới điều khiển tương ứng:** nhấp vào phần tử bất kỳ trong thiết kế và trường nhập tương ứng ở thanh bên sẽ được focus và cuộn vào tầm nhìn - với một nhóm hàng lặp lại, nó mở ra đúng hàng bạn vừa nhấp, nên sửa thứ bạn đang nhìn chỉ cách một cú chạm.
 
@@ -110,6 +110,37 @@ Các công cụ canvas tự do thêm một bề mặt làm việc *bao quanh* kh
 ![Canvas tự do của Design - khung tranh cùng bảng dán bao quanh nó](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Lật một lựa chọn.** Nhấp chuột phải vào bất kỳ khối nào và chọn **Lật ngang** hoặc **Lật dọc** để phản chiếu nó tại chỗ, hoặc nhấn `Shift+H` / `Shift+V` từ bàn phím - dùng Shift, vì `V` đơn thuần là công cụ Con trỏ. Mỗi khối được chọn phản chiếu theo trục riêng của nó trong một bước hoàn tác, và phép phản chiếu là một phép biến đổi thực sự, nên nó vẫn giữ nguyên trong SVG, PDF và PNG xuất ra chứ không chỉ trên canvas.
+
+### Đổi kích thước, co giãn và xoay
+
+Chọn một đối tượng, rồi kéo một tay nắm để đổi kích thước, hoặc kéo tay nắm tròn bên dưới phần đã chọn để xoay đối tượng. Kéo để đổi kích thước có hai chế độ:
+
+- **Đổi kích thước**, mặc định, chỉ thay đổi khung. Văn bản xuống dòng lại theo kích thước mới, còn cỡ chữ, độ dày nét viền, bán kính góc và hiệu ứng giữ nguyên.
+- **Tỷ lệ** phóng to hoặc thu nhỏ cả đối tượng cùng nội dung: cỡ chữ, nét viền, bán kính góc, bóng đổ, làm mờ, đệm và khoảng cách đều thay đổi cùng một mức.
+
+Nhấn `K` để bật hoặc tắt chế độ Tỷ lệ. Nếu không có bàn phím, hãy chọn **Chế độ Tỷ lệ** trong menu Lolly, hoặc nhấn giữ nút **Con trỏ** trên thanh công cụ (hoặc nhấp chuột phải vào nút đó) rồi chọn **Tỷ lệ**; trên màn hình cảm ứng, thanh đối tượng cũng có nút bật/tắt Tỷ lệ. Khi Tỷ lệ đang bật, nút Con trỏ hiện biểu tượng Tỷ lệ và mỗi tay nắm có một chấm ở giữa. `V` hoặc **Escape** quay lại Đổi kích thước và giữ nguyên phần đã chọn. Tỷ lệ luôn tắt mỗi khi mở một tài liệu, nên không ai vô tình co giãn nét viền. Mỗi lần Tỷ lệ là một bước hoàn tác, có nhãn **Tỷ lệ**.
+
+**Co giãn theo con số.** Khi Tỷ lệ đang bật, hoặc khi chọn nhiều đối tượng, hãy nhấp vào số hiển thị trên thanh đối tượng để mở bảng **Tỷ lệ**. Nhập một tỷ lệ phần trăm, hoặc chiều rộng hay chiều cao để hai giá trị còn lại tự cập nhật theo, chọn điểm đứng yên trên lưới 3 x 3 rồi chọn **Áp dụng**. Kết quả là một bước hoàn tác, không cần kéo. Khi Tỷ lệ tắt, nhiều đối tượng chỉ thay đổi kích thước và vị trí.
+
+**Nhiều đối tượng.** Phần đã chọn gồm nhiều đối tượng có tay nắm ở các cạnh chứ không chỉ ở các góc. Kéo góc sẽ đổi chiều rộng và chiều cao tự do khi mọi đối tượng trong phần đã chọn đều thẳng đứng hoặc xoay theo bội số của một phần tư vòng, và phần đã chọn không có nhóm hay hình tròn. Nếu không, phần đã chọn giữ nguyên tỷ lệ: các tay nắm hiện con trỏ co giãn, và trong lúc bạn kéo, số hiển thị có thêm **Theo tỷ lệ**. Khi bạn đổi kích thước hoặc co giãn, một nhãn nhỏ cạnh phần đã chọn cho biết kích thước, hoặc phần trăm trong chế độ Tỷ lệ.
+
+**Các phím giữ khi kéo** có tác dụng ngay khi bạn nhấn hoặc thả (bảng phím tắt, `?`, cũng liệt kê chúng):
+
+| Giữ | Đổi kích thước hoặc co giãn | Xoay | Di chuyển |
+|---|---|---|---|
+| **Shift** | Giữ nguyên tỷ lệ (Tỷ lệ luôn giữ) | Xoay từng bước 15 độ | Không đổi |
+| **Alt** (Option) | Lấy tâm làm gốc | Xoay tự do | Tắt bắt dính và lưới |
+| **Cmd/Ctrl** | Tắt bắt dính và lưới | Xoay tự do | Tắt bắt dính và lưới |
+
+Khi không giữ phím nào, góc xoay được kéo về bội số 15 độ gần nhất khi lệch không quá 4 độ. Bảng vẽ không xoay được, nên không có tay nắm xoay.
+
+**Nắm ở bất kỳ đâu dọc theo cạnh.** Bạn không cần nhắm đúng tay nắm. Mỗi cạnh của phần đã chọn là một dải đổi kích thước chạy suốt chiều dài, và với chuột hoặc bút có thêm vùng xoay ngay bên ngoài mỗi góc. Con trỏ cho biết thao tác kéo sẽ làm gì, xoay theo hướng của phần đã chọn. Nhấn vào một dải hoặc vùng chỉ trở thành đổi kích thước hay xoay khi bạn bắt đầu kéo, nên một cú nhấp thường vẫn chọn, thêm vào phần đã chọn hoặc bỏ chọn như trước. Đối tượng bị khóa không có tay nắm, dải hay vùng.
+
+**Đối tượng nhỏ vẫn di chuyển được.** Với đối tượng rộng 25 pixel màn hình trở xuống, các tay nắm giữa chen sát góc sẽ ẩn đi và các tay nắm còn lại dịch ra ngoài đường viền một chút, nên nhấn lên đối tượng sẽ di chuyển đối tượng. Từ 10 pixel trở xuống, các tay nắm góc cũng biến mất, và một đường mảnh giữ lại một tay nắm ở mỗi đầu. Nhấn ngay cạnh một đường mảnh hoặc một đối tượng rất nhỏ, miễn là không trúng tay nắm, cũng di chuyển đối tượng.
+
+**Vùng nắm lớn.** Trên màn hình cảm ứng, các vùng nắm lớn hơn: mỗi vùng góc bằng một phần tư chiều rộng và chiều cao của phần đã chọn trên màn hình, giữ trong khoảng 24 đến 44 pixel, và mỗi vùng cạnh phủ đoạn giữa hai góc. Khi phần đã chọn quá nhỏ, các vùng dời ra ngoài đường viền, nên nhấn vào giữa vẫn di chuyển phần đã chọn. Vùng nằm dưới con trỏ, hoặc dưới ngón tay đang giữ, được tô bóng. Để có các vùng tương tự với chuột hoặc bút, hãy bật **Vùng nắm lớn** trong menu Lolly. Thiết lập này chỉ được lưu trên thiết bị này.
+
+**Hai ngón tay trên phần đã chọn.** Trên màn hình cảm ứng, đặt hai ngón tay lên một đối tượng đang chọn: chụm để co giãn phần đã chọn, xoay hai ngón để xoay phần đã chọn hoặc di chuyển cả hai ngón để mang phần đã chọn đi. Mọi thao tác của hai ngón tay được tính là một bước hoàn tác. Khi Tỷ lệ bật, chụm cũng co giãn nội dung; khi Tỷ lệ tắt, chụm đổi kích thước phần đã chọn theo tỷ lệ. Góc xoay được kéo về bội số 15 độ gần nhất khi gần, và di chuyển bằng hai ngón không bao giờ bắt dính. Hai ngón tay ở nơi khác vẫn thu phóng và lia khung nhìn, và chạm hai ngón vẫn mở menu. Ngón thứ nhất phải đặt lên phần đã chọn và ngón thứ hai phải theo sau nhanh, đặt lên phần đã chọn hoặc ngay bên ngoài mép của phần đó. Nếu phần đã chọn có bảng vẽ hoặc đối tượng bị khóa, chiếm phần lớn khung nhìn hoặc vượt ra ngoài mép khung nhìn, hai ngón tay sẽ thu phóng và lia khung nhìn.
 
 ### Các lớp và Bảng kiểm tra
 

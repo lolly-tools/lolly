@@ -91,7 +91,7 @@ La vista previa siempre muestra exactamente lo que se exportará.
 
 **Táctil**
 
-- **Pellizca** para hacer zoom, **arrastra** para desplazarte, **toca dos veces** para restablecer el ajuste.
+- **Pellizca** para hacer zoom, **arrastra** para desplazarte, **toca dos veces** para restablecer el ajuste. En el lienzo libre, dos dedos sobre un objeto seleccionado escalan, rotan y mueven la selección en su lugar (consulta [Redimensionar, escalar y rotar](#resize-scale-and-rotate)).
 
 **Clic para ir a un control:** haz clic en cualquier elemento del diseño y el control correspondiente de la barra lateral recibe el foco y se desplaza a la vista - en un grupo de filas repetibles despliega exactamente la fila en la que hiciste clic, así que editar lo que ves está a un toque de distancia.
 
@@ -110,6 +110,37 @@ Las herramientas de lienzo libre añaden una superficie de trabajo *alrededor* d
 ![El lienzo libre de Design - la mesa de trabajo con la zona de pegado que la rodea](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Voltea una selección.** Haz clic derecho en cualquier caja y elige **Flip horizontal** o **Flip vertical** para reflejarla en su sitio, o pulsa `Shift+H` / `Shift+V` desde el teclado - Shift, porque una `V` sola es la herramienta Puntero. Cada caja seleccionada se refleja en su propio eje en un solo paso de deshacer, y el reflejo es una transformación real, así que se mantiene en el SVG, PDF y PNG exportados y no solo en el lienzo.
+
+### Redimensionar, escalar y rotar
+
+Selecciona un objeto y luego arrastra un tirador para cambiar su tamaño, o el tirador redondo bajo la selección para rotar el objeto. Un arrastre de tamaño funciona en uno de dos modos:
+
+- **Redimensionar**, el modo por defecto, cambia solo el recuadro. El texto se reajusta al nuevo tamaño, y el tamaño de fuente, el grosor del trazo, el radio de las esquinas y los efectos se quedan como estaban.
+- **Escala** agranda o reduce el objeto entero con su contenido: tamaño de fuente, trazo, radio de las esquinas, sombra, desenfoque, relleno y espaciado cambian todos en la misma proporción.
+
+Pulsa `K` para activar o desactivar Escala. Sin teclado, elige **Modo Escala** en el menú de Lolly, o mantén pulsado el botón **Puntero** de la barra de herramientas (o haz clic derecho en él) y elige **Escala**; en una pantalla táctil, la barra de objeto también tiene un interruptor de Escala. Mientras Escala está activada, el botón Puntero muestra el icono de Escala y cada tirador tiene un punto en el centro. `V` o **Escape** vuelve a Redimensionar y conserva tu selección. Escala está desactivada cada vez que se abre un documento, para que nadie escale trazos por accidente. Cada escalado es un paso de deshacer, con la etiqueta **Escala**.
+
+**Escalar con un número.** Con Escala activada, o con varios objetos seleccionados, haz clic en el indicador de la barra de objeto para abrir el panel **Escala**. Escribe un porcentaje, o un ancho o un alto y los otros dos valores se ajustan solos, luego elige en la cuadrícula de 3 x 3 el punto que se queda quieto y elige **Aplicar**. El resultado es un único paso de deshacer, sin necesidad de arrastrar. Con Escala desactivada, varios objetos cambian solo de tamaño y posición.
+
+**Varios objetos.** Una selección de varios objetos tiene tiradores en sus bordes además de en sus esquinas. Un arrastre de esquina cambia el ancho y el alto libremente mientras cada objeto de la selección esté derecho o girado en cuartos de vuelta completos, y la selección no contenga ningún grupo ni círculo. En otro caso, la selección mantiene sus proporciones: sus tiradores muestran el cursor de escala y, mientras arrastras, el indicador añade **Proporcional**. Mientras redimensionas o escalas, una pequeña etiqueta junto a la selección muestra el tamaño, o el porcentaje en modo Escala.
+
+**Las teclas que mantienes durante un arrastre** surten efecto en cuanto las pulsas o las sueltas (la hoja de atajos, `?`, también las lista):
+
+| Mantener | Redimensionar o escalar | Rotar | Mover |
+|---|---|---|---|
+| **Shift** | Mantiene las proporciones (Escala siempre lo hace) | Gira en pasos de 15 grados | Sin cambios |
+| **Alt** (Option) | Trabaja desde el centro | Gira libremente | Desactiva el ajuste y la cuadrícula |
+| **Cmd/Ctrl** | Desactiva el ajuste y la cuadrícula | Gira libremente | Desactiva el ajuste y la cuadrícula |
+
+Sin ninguna tecla, un giro es atraído hacia los 15 grados más cercanos cuando llega a 4 grados de ellos. Las áreas de diseño no rotan, así que no tienen tirador de rotación.
+
+**Agarra en cualquier punto del borde.** No hace falta acertar exactamente un tirador. Cada lado de una selección es una franja de redimensionado en toda su longitud, y con ratón o lápiz hay una zona de rotación justo fuera de cada esquina. El puntero muestra lo que hará un arrastre, girado para coincidir con la selección. Una pulsación en una franja o zona solo se convierte en redimensionado o giro cuando empiezas a arrastrar, así que un simple clic sigue seleccionando, añadiendo a la selección o deseleccionando como antes. Un objeto bloqueado no tiene tiradores, franjas ni zonas.
+
+**Los objetos pequeños siguen siendo movibles.** En un objeto de 25 píxeles de pantalla o menos, los tiradores del medio, que amontonarían las esquinas, se ocultan y los demás tiradores se alejan un poco del contorno, de modo que una pulsación sobre el objeto lo mueve. Con 10 píxeles o menos desaparecen también los tiradores de esquina, y una línea fina conserva un tirador en cada extremo. Una pulsación justo al lado de una línea fina o de un objeto diminuto, sin tocar sus tiradores, también mueve el objeto.
+
+**Áreas de agarre grandes.** En una pantalla táctil las zonas de agarre son grandes: cada zona de esquina mide un cuarto del ancho y del alto de la selección en pantalla, entre 24 y 44 píxeles, y cada zona lateral cubre el tramo entre dos esquinas. Cuando la selección es demasiado pequeña para eso, las zonas pasan al exterior de su contorno, así que una pulsación en el medio sigue moviendo la selección. La zona bajo tu puntero, o bajo un dedo apoyado, aparece sombreada. Para obtener las mismas zonas con ratón o lápiz, activa **Áreas de agarre grandes** en el menú de Lolly. El ajuste se guarda solo en este dispositivo.
+
+**Dos dedos sobre una selección.** En una pantalla táctil, pon dos dedos sobre un objeto seleccionado: pellizca para escalar la selección, gira para rotarla o mueve ambos dedos para llevarla. Todo lo que hagan los dos dedos cuenta como un único paso de deshacer. Con Escala activada, un pellizco escala también el contenido; con Escala desactivada, el pellizco redimensiona la selección en proporción. Un giro es atraído hacia los 15 grados más cercanos cuando está cerca, y un movimiento con dos dedos nunca se ajusta. Dos dedos en cualquier otro sitio siguen haciendo zoom y desplazando la vista, y un toque con dos dedos sigue abriendo el menú. El primer dedo debe caer sobre la selección y el segundo debe seguirlo enseguida, sobre la selección o justo fuera de su borde. Si la selección contiene un área de diseño o un objeto bloqueado, cubre la mayor parte de la vista o sobrepasa el borde de la vista, dos dedos hacen zoom y desplazan la vista en su lugar.
 
 ### Capas e Inspector
 

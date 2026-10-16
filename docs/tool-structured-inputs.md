@@ -66,7 +66,7 @@ A `blocks` input carrying a `canvas` object is the free-form WYSIWYG artboard be
 
 Three of the `canvas` keys turn a plain box canvas into a **diagram editor**:
 
-- **`grid`** - `{ size, default }`. Opt into snap-to-grid: the overlay rounds drag/resize to a lattice of `size` canvas px, starting on when `default` is true (per-axis alignment guides still win; holding Alt disables the snap).
+- **`grid`** - `{ size, default }`. Opt into snap-to-grid: the overlay rounds drag/resize to a lattice of `size` canvas px, starting on when `default` is true (per-axis alignment guides still win; holding Cmd/Ctrl turns the snap off while resizing, and Alt or Cmd/Ctrl turns the snap off while moving).
 - **`fixedCanvas`** - `true` locks the canvas to `render.width`/`render.height`: the shell withholds `setCanvasSize` and ignores reserved `?width`/`?height`, so box coordinates stay 1:1 with the render size. **Required whenever a hook draws into a fixed-viewBox overlay** - e.g. connector arrows in an `<svg>` sized to the artboard.
 - **`connect`** - opts into connector authoring: a Connect-mode rail button (click a source box, then targets), a live connector preview and an Auto-arrange (tidy-tree) button. **Edges are stored as rows of a _second_ `blocks` input** named by `input`; the tool's `hooks.js` reads that array and renders the arrows (as an SVG of filled paths - one artboard-sized `<svg>` per the `org-chart` pattern). The `*Field` keys name sub-fields of that connectors block:
 
