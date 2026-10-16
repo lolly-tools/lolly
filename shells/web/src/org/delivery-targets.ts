@@ -3,18 +3,20 @@
  * Organisation-owned delivery targets projected by the optional control plane.
  *
  * This adapter deliberately contains no provider credentials or provider
- * options. The shell receives only a safe fixed-target descriptor, signs the
- * exact Lolly export, and hands those bytes back to the instance. Personal
+ * options. The shell receives only a safe fixed-target descriptor. Exports
+ * carry signed bytes; shared originals use an explicit server-side selector. Personal
  * destinations stay in their existing device-owned drivers and coexist with
  * these targets even when both use the same provider kind.
  */
-import { instanceFetch, instancePath } from '../lib/instance.ts';
+import { getSessionSource } from '../lib/session-source.ts';
+import { getInstanceBase, instanceFetch, instancePath } from '../lib/instance.ts';
 import {
   registerSendTarget,
   unregisterSendTarget,
   type SendOutcome,
   type SendPayload,
   type SendTarget,
+  type ProjectFileSendSource,
 } from '../lib/send-target.ts';
 
 export interface OrgDeliveryDestination {
@@ -24,6 +26,7 @@ export interface OrgDeliveryDestination {
   formats: string[];
   maxBytes: number;
   visibility: 'private' | 'public';
+  projectFiles?: true;
 }
 
 interface DeliveryWire {
@@ -94,15 +97,45 @@ export function createOrgDeliveryTarget(
   instanceName: string,
   fetcher: OrgDeliveryFetch = instanceFetch,
 ): SendTarget {
+  const complete = async (response: Response, assertCurrent?: () => void): Promise<SendOutcome> => {
+    const body = await readWire(response);
+    if (!response.ok) throw new Error(errorMessage(response, body));
+    if (!body || !('state' in body) || typeof body.id !== 'string') throw new Error('The delivery service returned an unreadable receipt');
+    if (body.state === 'rejected' || body.state === 'cancelled') throw new Error(body.error || `This delivery was ${body.state}`);
+    if (body.state !== 'failed') return outcome(destination, body);
+    assertCurrent?.();
+    const retried = await fetcher(instancePath(`/api/v1/deliveries/${encodeURIComponent(body.id)}/retry`), { method: 'POST' });
+    const retryBody = await readWire(retried);
+    if (!retried.ok) throw new Error(errorMessage(retried, retryBody));
+    if (!retryBody || !('state' in retryBody) || retryBody.state === 'failed' || retryBody.state === 'rejected' || retryBody.state === 'cancelled') {
+      throw new Error(retryBody && 'state' in retryBody && retryBody.error ? retryBody.error : 'Delivery retry failed');
+    }
+    return outcome(destination, retryBody);
+  };
   return {
     id: registryId(destination.id),
     kind: destination.kind,
     scope: 'organization',
     label: destination.label,
     formats: destination.formats.map((format) => format.toLowerCase()),
-    sources: ['export'],
+    sources: destination.projectFiles ? ['export', 'asset'] : ['export'],
+    ...(destination.projectFiles ? { sendProjectFile: async (source: ProjectFileSendSource) => {
+      if (!source.projectId || !source.fileId || !/^[a-f0-9]{64}$/.test(source.checksum)) throw new Error('Open the shared original again before sending');
+      const base = getInstanceBase(), workspace = getSessionSource();
+      const assertCurrent = () => {
+        if (base !== getInstanceBase() || workspace !== getSessionSource()) throw new Error('The connected workspace changed. Open the file again.');
+      };
+      const query = new URLSearchParams({ projectId: source.projectId, fileId: source.fileId, checksum: source.checksum });
+      const key = `project-v1-${await sha256(new TextEncoder().encode(JSON.stringify([destination.id, source.projectId, source.fileId, source.checksum, source.name ?? null])))}`;
+      assertCurrent();
+      return complete(await fetcher(`${instancePath(`/api/v1/destinations/${encodeURIComponent(destination.id)}/deliveries`)}?${query}`, {
+        method: 'POST', headers: { 'idempotency-key': key },
+      }), assertCurrent);
+    } } : {}),
     requiresCredential: true,
-    hint: `A signed Lolly export is sent through ${instanceName} to this organisation-managed destination. Personal destinations stay separate.`,
+    hint: destination.projectFiles
+      ? `Send a shared original or signed export through ${instanceName}. The destination's access rules apply separately.`
+      : `A signed Lolly export is sent through ${instanceName} to this organisation-managed destination. Personal destinations stay separate.`,
     available: () => true,
     async send(payload) {
       if (payload.bytes.byteLength > destination.maxBytes) {
@@ -119,30 +152,7 @@ export function createOrgDeliveryTarget(
         },
         body: payload.bytes.slice().buffer as ArrayBuffer,
       });
-      const body = await readWire(response);
-      if (!response.ok) throw new Error(errorMessage(response, body));
-      if (!body || !('state' in body) || typeof body.id !== 'string') {
-        throw new Error('The delivery service returned an unreadable receipt');
-      }
-      if (body.state === 'rejected' || body.state === 'cancelled') {
-        throw new Error(body.error || `This delivery was ${body.state}`);
-      }
-      if (body.state === 'failed') {
-        // A 200 failed record is an idempotent replay: this is necessarily a
-        // second explicit press by the person, so it is also their retry intent.
-        const retried = await fetcher(instancePath(`/api/v1/deliveries/${encodeURIComponent(body.id)}/retry`), {
-          method: 'POST',
-        });
-        const retryBody = await readWire(retried);
-        if (!retried.ok) throw new Error(errorMessage(retried, retryBody));
-        if (!retryBody || !('state' in retryBody) || retryBody.state === 'failed') {
-          throw new Error(retryBody && 'state' in retryBody && retryBody.error
-            ? retryBody.error
-            : 'Delivery retry failed');
-        }
-        return outcome(destination, retryBody);
-      }
-      return outcome(destination, body);
+      return complete(response);
     },
   };
 }

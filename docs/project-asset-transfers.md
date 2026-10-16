@@ -40,9 +40,17 @@ submissions awaiting review. A retry returns your existing pending submission.
 
 **Send to** offers connected destinations that accept this asset format and
 allow asset uploads. The destination receives the original file bytes under its
-own access rules. Export-only organisation destinations are excluded. A DAM
-connection used for browsing does not acquire upload capability. Cloudinary,
-Orange Logic, Papirfly, Air and Adobe tenant write qualification is separate.
+own access rules. Work can also offer fixed Brandfolder and Cloudinary destinations
+when an administrator explicitly enables shared-original delivery. These sends use
+the verified server original without downloading it to this device first. The result
+reports delivery, review or a retryable failure. Export-only organisation destinations
+are excluded. A DAM connection used for browsing does not acquire upload capability.
+
+Brandfolder creates a new asset in a fixed section. Cloudinary's first writer stores
+an authenticated raw original in a fixed dynamic asset folder. Both check the remote
+original's digest before reporting delivery. A Brandfolder create timeout may require
+operator reconciliation; do not create another delivery to bypass that result. Tenant
+write qualification and configuration are separate from connecting a read-only source.
 
 These workflows require shared project files and folders on Work. Project-to-library
 submission requires the server-side project-source intake API. Update Work before

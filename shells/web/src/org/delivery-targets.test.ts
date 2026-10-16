@@ -57,6 +57,34 @@ test('delivery idempotency is deterministic for the exact target, metadata and b
   assert.match(first, /^shell-v1-[a-f0-9]{64}$/);
 });
 
+test('DAM asset capability is offered only for shared originals and sends an empty-body selector', async () => {
+  const source = { projectId: 'p1', fileId: 'f1', checksum: 'a'.repeat(64) };
+  const dam = { ...destination, kind: 'brandfolder', projectFiles: true as const };
+  applyOrgDeliveryTargets([dam], 'Fixture');
+  try {
+    assert.equal(sendTargetsFor('png', 'export').length, 1);
+    assert.deepEqual(sendTargetsFor('png', 'asset'), []);
+    assert.equal(sendTargetsFor('png', 'asset', source).length, 1);
+    assert.deepEqual(sendTargetsFor('mp4', 'asset', source), []);
+  } finally { clearOrgDeliveryTargets(); }
+  const calls: Array<{ url: string; init?: RequestInit }> = [];
+  const target = createOrgDeliveryTarget(dam, 'Fixture', async (url, init) => {
+    calls.push({ url: String(url), init });
+    return json(201, { id: 'del_project', state: 'delivered' });
+  });
+  assert.equal((await target.sendProjectFile!(source)).label, 'Delivered to Press archive');
+  await target.sendProjectFile!(source);
+  await target.sendProjectFile!({ ...source, fileId: 'other' });
+  await target.sendProjectFile!({ ...source, name: 'Renamed.png' });
+  const request = calls[0]!, url = new URL(request.url, 'https://fixture.test');
+  assert.equal(request.init?.method, 'POST'); assert.equal(request.init?.body, undefined);
+  assert.equal(url.searchParams.get('projectId'), source.projectId); assert.equal(url.searchParams.get('fileId'), source.fileId);
+  assert.equal(url.searchParams.get('checksum'), source.checksum); assert.equal(url.searchParams.has('name'), false);
+  const key = (call: typeof request) => new Headers(call.init?.headers).get('idempotency-key');
+  assert.equal(key(calls[0]!), key(calls[1]!)); assert.notEqual(key(calls[0]!), key(calls[2]!));
+  assert.notEqual(key(calls[0]!), key(calls[3]!), 'a renamed original can be sent as a new deliberate delivery');
+});
+
 test('org target posts exact bytes with an idempotency key and returns a receipt', async () => {
   const calls: Array<{ url: string; init?: RequestInit }> = [];
   const target = createOrgDeliveryTarget(destination, 'Example Cooperative', async (url, init) => {
