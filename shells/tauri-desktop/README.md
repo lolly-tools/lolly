@@ -225,7 +225,7 @@ On Windows the tool route is part of the initial page URL, so the document-start
 Two boot-path facts this depends on, both **load-bearing**:
 
 - **The window must be a real `.app` bundle.** WKWebView spawns its WebContent process over XPC and a bare `target/release/lolly-desktop` can't - the window opens but no page ever loads. Test the *bundled* binary, never the loose one.
-- **Interactive first-run gates must be skipped headlessly.** `maybeShowFirstRunInstanceSheet` (shells/web `lib/instance-choice.ts`) `await`s a modal on a fresh Tauri shell, *before* the first catalog sync - with no human it hangs boot forever and the tool never mounts (rAF runs, nothing appears, no error - a nasty silent stall). That function now early-returns when `window.__LOLLY_CLI__` is set.
+- **Interactive first-run gates must be skipped headlessly.** A modal that boot `await`s on a fresh Tauri shell, *before* the first catalog sync, hangs a headless render forever: rAF runs, nothing appears, no error. The first-run instance sheet did exactly this until it was retired (plan 320 D2: the app boots local and the sheet opens from Settings only). Any future boot gate must early-return when `window.__LOLLY_CLI__` is set.
 
 ### The bundled Node CLI (plans/202 WP1.3)
 
