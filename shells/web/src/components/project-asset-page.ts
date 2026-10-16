@@ -15,6 +15,7 @@ export interface ProjectAssetPageOptions {
   asset?: AssetRef; host?: HostV1;
   name: string; url: string; contentType: string; backHref: string; metadata?: string;
   download(): Promise<void>;
+  actions?: readonly { label: string; run(): void }[];
   downloadError?(error: unknown): string;
   preview?: { open(onClose: (ref: AssetRef) => void): AssetPreviewHandle; link(ref: AssetRef): string };
 }
@@ -86,5 +87,7 @@ export function buildProjectAssetPage(opts: ProjectAssetPageOptions): ProjectAss
       if (opts.asset) mountAssetFileList(panel, ref, selected => { void open(selected); });
     }
   }
-  panel.append(back, heading, meta, preview, download, status); return panel;
+  panel.append(back, heading, meta, preview, download);
+  for (const action of opts.actions ?? []) { const button = document.createElement('button'); button.type = 'button'; button.className = 'btn'; button.textContent = action.label; button.addEventListener('click', action.run); panel.append(button); }
+  panel.append(status); return panel;
 }

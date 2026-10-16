@@ -18,6 +18,7 @@ export function remoteOps(cat: CatCtx) {
   let tag = new URLSearchParams(cat.params).get('tag') ?? '';
   const shared = (ref: AssetRef | undefined) => !!ref && (!!ref.meta?.provider || ref.id.startsWith('inst/'));
   const filters = (): BrowseFilters | null => {
+    if (cat.projects?.active()) return null;
     if (['device', 'projects', 'catalog'].includes(cat.sourceSelection)) return null;
     const out: BrowseFilters = { scope: 'shared', q: cat.query, tag };
     if (cat.typeFilter !== 'all') out.types = [...TYPE_FILTER_TYPES[cat.typeFilter]].join(',');

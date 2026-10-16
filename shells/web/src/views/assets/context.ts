@@ -33,6 +33,7 @@ import type { wiringOps } from './wiring.ts';
 import type { CatalogSourceStatus } from '../../lib/asset-source-tree.ts';
 import type { sourcesOps } from './sources.ts';
 export interface CatCtx {
+  projects?: ReturnType<typeof import('./projects.ts').projectsOps>;
   remote?: ReturnType<typeof import('./remote.ts').remoteOps>;
   preview?: AssetPreviewOptions;
   detailsOpening?: boolean;

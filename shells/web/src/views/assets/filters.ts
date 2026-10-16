@@ -41,7 +41,7 @@ export function assetGridHtml(cat: CatCtx, group: string, items: AssetRef[]): st
 // (assets-filter.test.ts). This view keeps the mutable state; the module owns
 // the logic. These wrappers just bind the current state to it, so every call
 // site in mountCatalog reads exactly as it did before the extraction.
-export const visibleAssets = (cat: CatCtx): AssetRef[] => visibleAssetsRule(cat.allAssets, cat.hiddenSet, assetBaseId).filter(a => matchesAssetSource(a, cat.sourceSelection));
+export const visibleAssets = (cat: CatCtx): AssetRef[] => cat.projects?.active() ? cat.projects.visible() : visibleAssetsRule(cat.allAssets, cat.hiddenSet, assetBaseId).filter(a => matchesAssetSource(a, cat.sourceSelection));
 export const matchesType = (cat: CatCtx, a: AssetRef): boolean => matchesTypeRule(a, cat.typeFilter);
 export const playableHere = (cat: CatCtx, a: AssetRef): boolean =>
   (cat.modulesPlayable !== false || !isModuleFormat(a.format))

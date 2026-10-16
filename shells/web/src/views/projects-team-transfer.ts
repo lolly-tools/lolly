@@ -24,15 +24,14 @@ import { isBatchSlot } from '../lib/batch-slots.ts';
 import { isRecord } from '../lib/util/guards.ts';
 import { startJob } from '../lib/jobs.ts';
 import { icon } from '../lib/icons.ts';
-import { actionButton } from '../components/action-button.ts';
-import { mountModal } from '../components/modal.ts';
+import { chooseTeamDestination } from '../org/team-destination-picker.ts';
 import { confirmDialog } from '../components/confirm-dialog.ts';
 import { announce } from '../a11y.ts';
 import { t, tRaw } from '../i18n.ts';
 import { canWriteProject } from '../org/team-access.ts';
 import { teamSaveInputs } from '../org/team-save.ts';
 import { duplicateTeamFile, listTeamFiles, teamFileMessage, uploadTeamFile, type TeamFile } from '../org/team-files.ts';
-import { createTeamFolder, listTeamFolders, moveTeamFolderItem, teamFolderHref, teamFolderPath, TeamFolderError } from '../org/team-folders.ts';
+import { createTeamFolder, moveTeamFolderItem, teamFolderHref } from '../org/team-folders.ts';
 
 export type LocalItemKind = 'session' | 'image' | 'folder';
 export interface LocalProjectItem { kind: LocalItemKind; ref: string }
@@ -145,61 +144,7 @@ export function onTeamMoveClick(event: Event, items: readonly LocalProjectItem[]
   return true;
 }
 
-/** Ask which shared project, and which folder in it, takes the items. */
-export async function chooseTeamDestination(): Promise<{ project: string; folder: string | null } | undefined> {
-  const source = getSessionSource();
-  if (!source?.write || source.write.projectOptions().canSave === false) return;
-  const got = await readSourceProjects(source);
-  if (source !== getSessionSource()) return;
-  if (!got.ok) { announce(tRaw('Shared projects could not be loaded. Try again.')); return; }
-  const projects = got.items.filter(project => canWriteProject(project.myRole));
-  if (!projects.length) { announce(tRaw('There is no shared project you can save to.')); return; }
-  return new Promise(resolve => {
-    let request = 0, ready = false;
-    const node = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = ''): HTMLElementTagNameMap[K] => {
-      const el = document.createElement(tag); el.className = cls; el.textContent = text; return el;
-    };
-    const modal = mountModal<{ project: string; folder: string | null }>('', {
-      className: 'modal team-move-dialog', ariaLabel: tRaw('Move to a shared project'),
-      onClose: value => { ++request; resolve(value ?? undefined); },
-    });
-    const title = node('h2', 'modal-title', tRaw('Move to a shared project'));
-    const projectLabel = node('label', 'document-agent-field', tRaw('Shared project')), projectSelect = node('select', 'field-select');
-    for (const project of projects) { const option = node('option', '', project.name); option.value = project.id; projectSelect.append(option); }
-    projectLabel.append(projectSelect);
-    const folderLabel = node('label', 'document-agent-field', tRaw('Folder')), folderSelect = node('select', 'field-select');
-    folderLabel.append(folderSelect);
-    const status = node('p', 'team-project-notice'); status.setAttribute('role', 'status');
-    const controls = node('div', 'modal-actions'), cancel = actionButton(tRaw('Cancel'), 'close'), move = actionButton(tRaw('Move'), 'move', true);
-    move.disabled = true;
-    controls.append(cancel, move); modal.el.append(title, projectLabel, folderLabel, status, controls);
-    const load = async (): Promise<void> => {
-      const ticket = ++request, project = projects.find(entry => entry.id === projectSelect.value)!;
-      ready = false; move.disabled = true; folderSelect.replaceChildren(); status.textContent = tRaw('Loading…');
-      let folders: Awaited<ReturnType<typeof listTeamFolders>> = [];
-      try { folders = await listTeamFolders(projectSelect.value); }
-      catch (error) {
-        // An instance without shared folders still takes items at the project root.
-        if (!(error instanceof TeamFolderError && error.status === 404)) {
-          if (modal.el.isConnected && ticket === request) status.textContent = tRaw('Folders could not be loaded. Choose another project or try again.');
-          return;
-        }
-      }
-      if (!modal.el.isConnected || ticket !== request || source !== getSessionSource()) return;
-      const root = node('option', '', project.name); root.value = ''; folderSelect.append(root);
-      for (const folder of folders) {
-        const option = node('option', '', teamFolderPath(folders, folder.id).map(part => part.name).join(' / '));
-        option.value = folder.id; folderSelect.append(option);
-      }
-      ready = true; move.disabled = false; status.textContent = '';
-    };
-    projectSelect.addEventListener('change', () => { void load(); });
-    cancel.addEventListener('click', () => modal.close());
-    move.addEventListener('click', () => { if (ready) modal.close({ project: projectSelect.value, folder: folderSelect.value || null }); });
-    projectSelect.focus();
-    void load();
-  });
-}
+export { chooseTeamDestination } from '../org/team-destination-picker.ts';
 
 /** Only one move at a time: a second drop of the same tiles must not copy them twice. */
 let running = false;

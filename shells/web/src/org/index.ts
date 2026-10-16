@@ -1188,8 +1188,9 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
         label: () => (workspaceName() ? tRaw('Submit to {name}', { name: workspaceName() }) : t('Submit to the catalog')),
         accepts: () => orgConfig()?.can?.['catalog.submit'] === true,
         open: (subject) => {
+          const openedSession = session, openedBase = getInstanceBase();
           import('./catalog-submit.ts')
-            .then((m) => m.openCatalogSubmitDialog(subject, workspaceName()))
+            .then((m) => { if (session === openedSession && getInstanceBase() === openedBase && orgConfig()?.can?.['catalog.submit'] === true) m.openCatalogSubmitDialog(subject, workspaceName(), session?.kind === 'member' ? session.user.groups : []); })
             .catch(() => { /* additive; never break the caller */ });
         },
       });
@@ -1213,8 +1214,9 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       // project-creation options (can['project.create'], sharing.groups).
       unregisterSessionSource?.();
       unregisterSessionSource = registerSessionSource(
-        createInstanceSessionSource(orgConfigState?.instance?.name || t('your organisation'), () => orgConfig(),
+        { ...createInstanceSessionSource(orgConfigState?.instance?.name || t('your organisation'), () => orgConfig(),
           createSourceFiles(() => (session?.kind === 'member' ? session.user.sub : 'none'))),
+          scope: session?.kind === 'member' ? session.user.sub : undefined },
       );
       // The signed-in member's linked sign-ins, as a card in the profile view's
       // instance section, through the generic lib/profile-sections.ts seam (so the

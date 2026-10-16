@@ -7,6 +7,9 @@
  * a value (an event listener), goes through `cat.<module>.<fn>`. Extracted verbatim
  * from mountCatalog() by scripts/split-closure.ts.
  */
+import { getInstanceBase } from '../../lib/instance.ts';
+import { getSessionSource } from '../../lib/session-source.ts';
+import { readAssetViewerBytes } from '../../lib/asset-viewer-source.ts';
 import { escape as escapeText, safeHref } from '../../utils.ts';
 import { sendTargetId, sendTargetsFor } from '../../lib/send-target.ts';
 import { t } from '../../i18n.ts';
@@ -143,6 +146,7 @@ export async function prepareSelectionDownload(cat: CatCtx, ref: AssetRef, appea
 // ponytail: no per-provider format conversion here - add if a social target's
 // format gap (svg → png) ever comes up in practice.
 export async function openSendDialog(cat: CatCtx, ref: AssetRef): Promise<void> {
+  const projectSource = ref.meta?.projectFileId ? getSessionSource() : undefined, projectBase = getInstanceBase();
   const format = String(ref.format || 'bin').toLowerCase();
   const name = String(ref.meta?.name ?? ref.id);
   try {
@@ -155,6 +159,7 @@ export async function openSendDialog(cat: CatCtx, ref: AssetRef): Promise<void> 
   closeDownloadDialog(cat);
   const content = `
       <h2 class="cat-dl-title">${t('Send {name}', { name })}</h2>
+      ${projectSource ? `<p>${t('The destination receives a copy of the original file. Its access rules apply separately from this project.')}</p>` : ''}
       ${offered.length ? `
       <div class="cat-dl-section">
         <span class="cat-dl-label">${t('Send to')}</span>
@@ -204,7 +209,16 @@ export async function openSendDialog(cat: CatCtx, ref: AssetRef): Promise<void> 
         choice = picked;
       }
       label.textContent = t('Sending…');
-      const blob = await cat.bulk.credentialedBytes(ref);
+      if (projectSource && (projectSource !== getSessionSource() || projectBase !== getInstanceBase())) throw new Error(t('The connected workspace changed. Open the file again.'));
+      if (projectSource) {
+        const { listTeamFiles } = await import('../../org/team-files.ts');
+        const listed = await listTeamFiles(String(ref.meta?.projectId));
+        if (!listed.files.some(file => file.id === ref.meta?.projectFileId && file.checksum === ref.meta?.projectChecksum)) throw new Error(t('This shared file is unavailable or changed. Open it again.'));
+      }
+      const blob = projectSource
+        ? new Blob([await readAssetViewerBytes(ref.original?.url ?? ref.url, new AbortController().signal) as BlobPart])
+        : await cat.bulk.credentialedBytes(ref);
+      if (projectSource && (projectSource !== getSessionSource() || projectBase !== getInstanceBase())) throw new Error(t('The connected workspace changed. Open the file again.'));
       const out = await target.send({
         bytes: new Uint8Array(await blob.arrayBuffer()),
         name,

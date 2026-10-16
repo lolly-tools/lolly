@@ -12,7 +12,9 @@ export function mount(cat: CatCtx): void {
   const focusedId = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>('[data-source-node]')?.dataset.sourceNode;
   root.replaceChildren(); root.hidden = !cat.sourcesOpen;
   const assets = cat.allAssets.filter(a => !cat.hiddenSet.has(a.id));
-  cat.sourceDispose = mountAssetSourceNavigation(root, cat.remote?.tree() ?? buildAssetSourceTree(assets, cat.sourceStatuses), cat.sourceSelection, cat.sourceExpanded, cat.sourceStatuses, id => {
+  const tree = cat.remote?.tree() ?? buildAssetSourceTree(assets, cat.sourceStatuses);
+  const shared = cat.projects?.tree(); if (shared) tree.splice(3, 0, shared);
+  cat.sourceDispose = mountAssetSourceNavigation(root, tree, cat.sourceSelection, cat.sourceExpanded, cat.sourceStatuses, id => {
     cat.sourceSelection = id; updateRouteParams({ sourceNode: id === 'all' ? null : id }); cat.sections.renderBody();
   }, () => { if (cat.sourcePrefsKey) void cat.host.state.save(cat.sourcePrefsKey, { expanded: [...cat.sourceExpanded].slice(0, 256) }).catch(() => {}); });
   const actions = document.createElement('div'); actions.className = 'asset-source-actions';
