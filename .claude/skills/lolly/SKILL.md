@@ -94,7 +94,9 @@ Read the references needed for the chosen tool and surface:
 6. **Check before you hand over.** `lolly_check` (MCP) or `lolly check` (CLI)
    runs every check in one findings list: structure, the painted page, brand and
    house rules, Verify layout clues and, given the source, fidelity to it. Fix each
-   finding at its `layerId`, then check again; `exitCode` `0` is clean.
+   finding at its `layerId`, then check again; `exitCode` `0` is clean. It does
+   not judge a diagram: for a Diagrams export, follow the review loop in
+   `reference/diagrams.md`.
 7. **Share the editable link.** When the human will iterate, hand them the
    `lolly.tools` link, not just the bytes.
 

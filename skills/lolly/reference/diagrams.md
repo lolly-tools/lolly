@@ -374,9 +374,11 @@ file with the hand-over.
 2. Read the effective design system (`lolly system context --json` or
    `lolly://design-context`), then choose the meaning, type, look and destination.
 3. Validate the actual inputs: `lolly validate diagram-builder
-   --inputs=diagram.json --document` or `lolly_validate`. Fix every unknown input
-   and every value outside the declared options; an unknown key is otherwise
-   dropped with no error.
+   --inputs=diagram.json --document` or `lolly_validate`. Read `ok` and `errors`
+   in the output: `lolly validate` exits 0 either way. Fix every unknown input and
+   every value outside the declared options. `lolly run` refuses an unknown flag
+   and `lolly_render` refuses invalid inputs, but a link drops an unknown key with
+   no notice.
 4. Render a draft and look at it: `lolly run diagram-builder … --export=svg | lolly
    look - --output=look.png`, or `lolly_look`. Enlarge dense labels with
    `--region` or `region`.
@@ -395,8 +397,11 @@ could not be read. The app shows the same notices below the canvas, and exports
 leave them out. The notices are not complete: a return link such as a retry can
 push later steps a rank further out and run one connection alongside another with
 no notice. Look at every render. Automatic diagram findings are planned, not
-available, and `lolly check` and `lolly_check` check Design documents only; they
-say nothing about a Diagrams import.
+available. `lolly check` and `lolly_check` judge Design documents. On a Diagrams
+export they skip the structure, render and brand families, and a Diagrams SVG
+currently fails the verify family's passive-SVG check (exit 1). Nothing in them
+compares the result with the diagram source, so they say nothing about a Diagrams
+import.
 <!-- /SHARE:diagram-review -->
 
 ## Complexity budgets
@@ -438,7 +443,9 @@ Return:
 Each block below validates against the manifest (`tests/agent-skill.test.ts`
 checks them). Save one as `diagram.json` and run `lolly validate diagram-builder
 --inputs=diagram.json --document`; give the same object as `inputs` to
-`lolly_validate` and `lolly_render`.
+`lolly_validate` and `lolly_render`. `lolly run` takes no `--inputs`, so pass the
+same values as flags, with each list as JSON, for example `--nodes='[…]'` and
+`--arrows='[…]'`.
 
 A branching process from cards with stable IDs, flowing right:
 

@@ -136,12 +136,19 @@ test('the diagram decision tables use only what the Diagrams manifest declares',
     for (const o of input.options ?? []) declared.add(o.value);
     for (const f of input.fields ?? []) { declared.add(f.id); for (const o of f.options ?? []) declared.add(o.value); }
   }
+  // Each table's Route column is found from its header, since the two tables put it in different places.
+  const cells = (row: string) => row.split('|').map((s) => s.trim());
+  const tables = choose.split(/\n\s*\n/).map((b) => b.split('\n').filter((l) => l.startsWith('|'))).filter((rows) => rows.length > 0);
+  assert.deepEqual(tables.map((rows) => cells(rows[0]!)[1]), ['Explanation', 'Pattern'], 'diagrams.md must hold the Explanation and Pattern tables');
   const routed = new Set<string>();
-  for (const row of choose.split('\n').filter((l) => l.startsWith('| ') && !l.startsWith('| Explanation') && !l.startsWith('| Pattern'))) {
-    const route = row.split(' | ')[1] ?? '';
-    for (const [, token] of route.matchAll(/`([^`]+)`/g)) {
-      assert.ok(declared.has(token!), `the decision table routes to \`${token}\`, which the Diagrams manifest does not declare`);
-      if (types.includes(token!)) routed.add(token!);
+  for (const [header, , ...rows] of tables) {
+    const column = cells(header!).indexOf('Route');
+    assert.ok(column > 0, `the decision table "${header}" has no Route column`);
+    for (const row of rows) {
+      for (const [, token] of (cells(row)[column] ?? '').matchAll(/`([^`]+)`/g)) {
+        assert.ok(declared.has(token!), `the decision table routes to \`${token}\`, which the Diagrams manifest does not declare`);
+        if (types.includes(token!)) routed.add(token!);
+      }
     }
   }
   assert.deepEqual([...routed].sort(), [...types].sort(), 'the decision tables must route to every diagram type');
