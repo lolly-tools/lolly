@@ -13,7 +13,7 @@ import { announce } from '../../a11y.js';
 import { CENTRE_LOW } from '../../bridge/audio-envelope.ts';
 import { _exportNotice, _setExportNoticeSink } from '../../bridge/export.ts';
 import { linkHelpDescriptions, wireHelpTips } from '../../components/help-tip.js';
-import { currentLang, t, tRaw } from '../../i18n.ts';
+import { t, tRaw } from '../../i18n.ts';
 import { DeliveryResult } from '../../lib/delivery-result.ts';
 import { chooseLocationDeliver, deliverFile } from '../../lib/deliver-file.ts';
 import { mountDownloadRecovery } from '../../lib/download-recovery.ts';
@@ -1211,13 +1211,6 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
           framePages.length > 0 &&
           !!el!.querySelector<HTMLInputElement>('[data-action="pdf-notes-handout"]')?.checked;
         const outputBase = notesHandout ? `${filename}-speaker-notes` : filename;
-        // A SCORM course package (plans/180 M-D1): not one render but a zip of them - every
-        // artboard as a still, the narrated film with its caption sidecar, the fonts, the
-        // manifest, the adapter and a launch page. bridge/export-scorm.ts owns the
-        // packaging; this branch owns the two things only the live app can do, which is why
-        // they go in as closures: photograph an artboard at its rest pose, and encode the
-        // film. Placed BEFORE the still fan-out because it consumes the same pages for a
-        // different purpose (a zip of loose images is not a course).
         if (notesHandout) {
           const [handoutModule, sequence] = await Promise.all([
             import('../design-notes-handout.ts'),
@@ -1293,131 +1286,6 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             { shutter: true, detail: t('Speaker notes handout'), onCancel: cancelExport }
           );
           await deliver(downloadedBlob!, `${outputBase}.pdf`);
-        } else if (fmt === 'scorm') {
-          const { buildScormPackage, collectScormFonts } = await import(
-            '../../bridge/export-scorm.ts'
-          );
-          const { narrationSlicesFromModel } = await import('../../lib/narration.ts');
-          const { applySequenceTime, restoreSequenceTime, beginAuthoredDom, OFF_CLASS } =
-            await import('../../bridge/sequence-dom.ts');
-          // SVG where the deck is vector, PNG otherwise - the tool's own format list decides,
-          // exactly as the docs-shot pipeline does.
-          const stillFmt = formats.includes('svg') ? 'svg' : 'png';
-          // Same stage discipline as the fan-out below: lift the playhead's `.seq-off`, hold
-          // ONE set of authored styles across every page, and put both back afterwards. The
-          // film renderer needs the stage handed back first, so the release is a closure that
-          // can be called twice.
-          const seqOff = canvasEl ? [...canvasEl.querySelectorAll<HTMLElement>('.seq-off')] : [];
-          seqOff.forEach((o) => { o.classList.remove('seq-off'); });
-          const seqRoot = canvasEl;
-          const releaseAuthored = seqRoot ? beginAuthoredDom(seqRoot) : null;
-          let stageHeld = true;
-          const releaseStage = (): void => {
-            if (!stageHeld) return;
-            stageHeld = false;
-            if (seqRoot) restoreSequenceTime(seqRoot);
-            releaseAuthored?.();
-            seqOff.forEach((o) => { o.classList.add('seq-off'); });
-          };
-          // A deck is NARRATED when a page holds an audio marker. A bed lives on the
-          // pasteboard, outside every page, so it does not make a deck narrated by itself.
-          const narrated = !!canvasEl?.querySelector('[data-pdf-page] [data-audio-src]');
-          const filmFmt = formats.includes('mp4')
-            ? 'mp4'
-            : formats.includes('webm')
-              ? 'webm'
-              : null;
-          const scormPages: HTMLElement[] = pageEls.length ? pageEls : canvasEl ? [canvasEl] : [];
-          let pkg: Awaited<ReturnType<typeof buildScormPackage>>;
-          try {
-            pkg = await exportUnscaled(
-              async (report) =>
-                buildScormPackage({
-                  title: filename,
-                  lang: currentLang(),
-                  // The engine has no i18n, so the launch page's own words arrive from here or
-                  // the package ships English chrome under a non-English `<html lang>`.
-                  // The three templated ones go through t() with NO params on purpose: the
-                  // catalog string keeps its {n}/{total}/{title} for the launch page's own
-                  // one-line substitution, which is the only place the numbers exist.
-                  labels: {
-                    previous: t('Previous'),
-                    next: t('Next'),
-                    slide: t('Slide {n}'),
-                    slideOf: t('Slide {n} of {total}'),
-                    captions: t('Captions'),
-                    video: t('{title} video'),
-                  },
-                  // T4: the caption sidecar cut from each clip's OWN word timings, clamped to
-                  // its slide. Without it the package's .vtt existed only when the burned-in
-                  // caption boxes did, so deleting them (or narrating with captions off) sent
-                  // an uncaptioned video into an LMS while the exact timings sat unused on
-                  // every narration clip.
-                  narration: narrationSlicesFromModel(runtime.getModel()),
-                  signal: exportAbort.signal,
-                  onProgress: (done, total) => {
-                    report?.(done, total);
-                  },
-                  slides: scormPages.map((page) => ({
-                    el: page,
-                    notes: page.getAttribute('data-frame-notes') || undefined,
-                    alt: page.getAttribute('data-frame-name') || undefined,
-                  })),
-                  fonts: await collectScormFonts(canvasEl),
-                  renderStill: async (el) => {
-                    // AT REST, not mid-entrance - the fan-out's rule, and for the same reason:
-                    // a page whose boxes fade in over 400 ms photographs half-transparent.
-                    if (seqRoot) {
-                      applySequenceTime(seqRoot, restMsOf(el));
-                      for (const o of seqRoot.querySelectorAll<HTMLElement>(`.${OFF_CLASS}`)) {
-                        o.classList.remove(OFF_CLASS);
-                      }
-                    }
-                    const node = el as HTMLElement;
-                    const blob = await runtime.export(node, stillFmt, {
-                      ...opts,
-                      width: node.offsetWidth,
-                      height: node.offsetHeight,
-                    });
-                    return {
-                      bytes: new Uint8Array(await blob.arrayBuffer()),
-                      ext: stillFmt === 'svg' ? 'svg' : 'png',
-                    };
-                  },
-                  renderFilm:
-                    narrated && filmFmt
-                      ? async () => {
-                          // The compositor poses the document itself, so hand the stage back before it
-                          // runs rather than filming through this branch's still-life scaffolding.
-                          releaseStage();
-                          // `live` is dropped deliberately: "Record live" films the screen, and a
-                          // course package wants the deterministic render at full quality.
-                          const { live: _live, ...vp } = ta.video.videoParams();
-                          const blob = await runtime.export(exportTargetNode(canvasEl), filmFmt, {
-                            ...opts,
-                            ...vp,
-                          });
-                          return {
-                            bytes: new Uint8Array(await blob.arrayBuffer()),
-                            ext: filmFmt,
-                            // The same cues the moving export ships (plans/180 section 4): the timed
-                            // composition's own caption boxes, else the tool audio's cached word
-                            // timings. Never a second pass over audio we synthesised.
-                            captionsVtt: (await ta.audio.captionText())?.vtt,
-                          };
-                        }
-                      : null,
-                }),
-              { shutter: true, detail: fmtLabel(fmt), onCancel: cancelExport }
-            );
-          } finally {
-            releaseStage();
-          }
-          downloadedBlob = pkg.blob;
-          // A course package is an archive, not a render: the 'renders' auto-save must not
-          // store it under the format tag, exactly as the multi-page zip must not.
-          downloadedIsZip = true;
-          await deliver(pkg.blob, `${filename}-scorm.zip`);
         } else if (
           pageEls.length >= 1 &&
           !isAnimated &&
