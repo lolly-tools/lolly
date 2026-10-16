@@ -29,8 +29,7 @@ export interface CaptionText {
 // `penpot` is spelled out rather than left to extFor's fallback: the archive IS a
 // zip, and only its `application/x-penpot` blob type keeps the MIME sniff below from
 // renaming the download to .zip - which Penpot's own Import will not take.
-// `scorm` IS a zip and wants the .zip extension (an LMS import takes one); the branch
-// below names the file itself, so this entry only covers any other path that asks.
+// `scorm` IS a zip and wants the .zip extension (an LMS import takes one).
 export const FMT_EXT: Record<string, string> = {
   'jxl-lossless': 'jxl',
   'pdf-cmyk': 'pdf',
