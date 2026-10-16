@@ -931,6 +931,9 @@
    pointer-events, for controls that do not honour it). Cooperative only - the
    server is the hard gate. */
 .input-locked { display: block; opacity: .6; pointer-events: none; }
+/* A locked asset slot shows what is set, not ways to change it: Change, the clear
+   cross and the slot actions read as available even when dimmed (plan 320 G3). */
+.input-locked :is(.asset-slot-source, .asset-clear, .slot-actions, .asset-edit) { display: none; }
 
 /* Long labels ellipsise on the TEXT SPAN rather than on the label box, so a help
    button sitting in the same label keeps its focus ring uncropped. The label box
