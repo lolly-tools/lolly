@@ -270,3 +270,15 @@ decompression returns those same bytes. Edge image optimisers, metadata strippin
 resizing and transcoding must be off for these files. Verify a rendition's own
 credential and its parent in [Verify](/info/verify-yourself.html), then check that
 an export using the asset still embeds the original.
+
+### Inspect and curate shared assets
+
+Connected libraries appear in Assets beside the files on your device. The source facts panel shows the indexed version, sync status, mapped approval and availability windows. Unknown values stay unknown. Source approval does not establish permission for every channel or use; access to files is checked when opened. Original and rendition labels describe the file offered by the connection.
+
+Organisation metadata belongs to Lolly Work. A curator with `catalog.edit` can change configured text, select, date and URL fields. Ordinary members see the values without edit controls. These fields do not change names, descriptions or tags in the upstream library. Work owns the field definitions and audits changes.
+
+The shared library uses the main Assets search bar. Indexed browse searches names, descriptions, tags, organisation fields and saved extracted text with exact filters and bounded pages. Live search asks permitted sources for a limited candidate set; the UI identifies unavailable sources and refuses incompatible filters rather than dropping them.
+
+For an image, SVG or PDF, choose **Read text**, then review the extracted words. Extraction runs on your device. **Add reviewed text to shared search** explicitly sends the reviewed excerpt to Work; nothing is uploaded by the extraction action itself. Only curators can publish or remove indexed text. The index accepts up to 8192 characters and records the selected file, indexed revision, extraction method, reviewer and time. It does not establish that every page or every word was read.
+
+If that indexed source revision changes, its previously reviewed words stop matching shared search. Open the current asset and read again. Asset details show this stale state and offer **Remove indexed text**. Older text records without a source revision remain searchable for compatibility and are labelled unverified. A revision records the current catalog snapshot; upstream revocation and source changes become known through the existing sync and file-resolution paths.

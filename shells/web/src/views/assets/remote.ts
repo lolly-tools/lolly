@@ -5,6 +5,7 @@ import { TYPE_FILTER_TYPES, parseCatQuery } from '../assets-filter.ts';
 import { escape as esc } from '../../utils.ts';
 import { t } from '../../i18n.ts';
 import { updateRouteParams } from '../../lib/url-state.ts';
+import { setSearchBarQuery } from '../../components/search-bar.ts';
 import { buildAssetSourceTree, sourceNodeId, type AssetSourceNode } from '../../lib/asset-source-tree.ts';
 import { assetListHead } from './layout.ts';
 import type { CatCtx } from './context.ts';
@@ -80,7 +81,10 @@ export function remoteOps(cat: CatCtx) {
     const liveAllowed = !unsupportedQuery() && !!cat.query && cat.typeFilter === 'all' && !tag && !filters()?.taxonomyKind;
     return `<section class="cat-remote" aria-label="${t('Shared library')}" aria-busy="${loading}">
       <h2>${t('Shared library')}</h2>
+      <p data-shared-query>${browser.mode === 'live' ? t('Search mode: live sources') : t('Search mode: indexed library')}${cat.query ? ` · ${esc(t('Search'))}: ${esc(cat.query)}` : ''}</p>
+      ${browser.mode === 'indexed' ? `<p class="cat-remote-note">${t('Use the search bar to find names, descriptions, tags, organisation fields and saved text in the shared catalog.')}</p>` : ''}
       <div class="cat-remote-controls"><label>${t('Type')} <select class="field-input" data-shared-type>${['all', ...Object.keys(TYPE_FILTER_TYPES)].map(type => `<option value="${type}"${type === cat.typeFilter ? ' selected' : ''}>${t(({ all: 'All types', image: 'Images', vector: 'Vectors', motion: 'Motion', '3d': '3D', lut: 'LUTs', audio: 'Audio', text: 'Text and data', font: 'Fonts' } as Record<string, string>)[type]!)}</option>`).join('')}</select></label><label>${t('Tag')} <select class="field-input" data-shared-tag><option value="">${t('All tags')}</option>${[...tags].map(([name, count]) => `<option value="${esc(name)}"${name === tag ? ' selected' : ''}>${esc(name)} (${count})</option>`).join('')}</select></label>
+      ${cat.query ? `<button type="button" class="btn btn--ghost" data-shared-action="clear-search">${t('Clear shared search')}</button>` : ''}
       <button type="button" class="btn btn--ghost" data-shared-action="refresh">${t('Refresh')}</button>
       <button type="button" class="btn btn--ghost" data-shared-action="live"${liveAllowed && !loading ? '' : ' disabled'} title="${t('Live search supports text and source only. Indexed browse supports exact filters.')}">${t('Search live sources')}</button>
       ${browser.mode === 'live' ? `<button type="button" class="btn" data-shared-action="refresh">${t('Indexed browse')}</button>` : ''}</div>
@@ -96,6 +100,7 @@ export function remoteOps(cat: CatCtx) {
   };
   const click = (event: Event) => {
     const action = (event.target as Element).closest<HTMLElement>('[data-shared-action]')?.dataset.sharedAction;
+    if (action === 'clear-search') { event.preventDefault(); setSearchBarQuery(''); return; }
     if (action) { event.preventDefault(); void load(action === 'next' ? 'next' : action === 'previous' ? 'previous' : 'reset', action === 'live'); }
   };
   const change = (event: Event) => {
