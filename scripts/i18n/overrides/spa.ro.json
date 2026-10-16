@@ -908,8 +908,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Rolul tău în {workspace} îți permite doar vizualizarea. Roagă un administrator al {workspace} să îți schimbe rolul.",
   "This is view only. Make a copy to keep your changes.": "Aceasta este doar vizualizare. Fă o copie pentru a-ți păstra modificările.",
   "Save changes to {project}?": "Salvezi modificările în {project}?",
-  "Leave without saving keeps your changes on this device.": "Dacă pleci fără să salvezi, modificările tale rămân pe acest dispozitiv.",
-  "Stay": "Rămâi",
   "Save a copy on this device": "Salvează o copie pe acest dispozitiv",
   "Copy saved on this device.": "Copie salvată pe acest dispozitiv.",
   "Where should the copy go?": "Unde să ajungă copia?",
@@ -1215,5 +1213,8 @@
   "WebGPU initialisation timed out. Reload Lolly to try again.": "Inițializarea WebGPU a durat prea mult. Reîncarcă Lolly ca să încerci din nou.",
   "WebGPU initialisation expired. Reload Lolly to try again.": "Inițializarea WebGPU a expirat. Reîncarcă Lolly ca să încerci din nou.",
   "The graphics device was lost. Reload Lolly to reconnect.": "Conexiunea cu dispozitivul grafic s-a pierdut. Reîncarcă Lolly ca să te reconectezi.",
-  "Reload": "Reîncarcă"
+  "Reload": "Reîncarcă",
+  "Unsaved edits": "Editări nesalvate",
+  "Save now or abandon your changes.": "Salvează acum sau renunță la modificări.",
+  "Leave anyway": "Ieși oricum"
 }

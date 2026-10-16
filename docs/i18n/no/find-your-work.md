@@ -73,7 +73,7 @@ Hva som kommer tilbake, avhenger av hvordan du forlot og hvilket verktøy du bru
 
 - **Du lukket fanen, eller kom tilbake en annen gang.** Ulagret arbeid er borte, unntatt i [verktøyene som lagrer mens du jobber](#which-tools-save-as-you-work): åpne det arbeidet fra **Prosjekter**.
 - **Du lastet siden på nytt i samme fane.** Innstillingene dine kommer tilbake fra sideadressen. I verktøy som ikke lagrer mens du jobber, kommer bilder og filer du har lagt til fra enheten din, og enkeltlinjetekst lengre enn 150 tegn, ikke tilbake, fordi adressen ikke inneholder dem.
-- **Du trykte Hjem, eller tilbakeknappen øverst til venstre.** Hvis du har endret noe siden du sist lagret, lastet ned eller kopierte, spør dialogen **Ulagrede endringer** om du vil lagre først. **Lagre & forlat** lagrer arbeidet og tar deg til **Prosjekter**, eller tilbake til prosjektmappen du åpnet arbeidet fra. **Forlat uten å lagre** forkaster endringene dine: et lagret element går tilbake til slik du sist lagret det, og en kreasjon du aldri lagret, forlater **Prosjekter**. **Avbryt** holder deg igjen i verktøyet.
+- **Du trykte Hjem, eller tilbakeknappen øverst til venstre.** Hvis du har endret noe siden du sist lagret, lastet ned eller kopierte, spør dialogen **Ulagrede redigeringer** om du vil lagre først. **Lagre & forlat** lagrer arbeidet og tar deg til **Prosjekter**, eller tilbake til prosjektmappen du åpnet arbeidet fra. **Forlat likevel** forkaster endringene dine: et lagret element går tilbake til slik du sist lagret det, og en kreasjon du aldri lagret, forlater **Prosjekter**. **Avbryt** holder deg igjen i verktøyet.
 
 Lolly spør bare når du trykker **Hjem** eller tilbakeknappen i et verktøy. Å lukke fanen, laste på nytt og nettleserens egen tilbakeknapp spør aldri. For å være sikker, trykk **Lagre som**, eller **Lagre** i eksportpanelet, før du forlater et verktøy.
 
@@ -89,7 +89,7 @@ I nettappen lagrer hvert verktøy som lager et dokument, mens du jobber: Design,
 - 3D og Darkroom, som tar sin egen fil;
 - et verktøy uten noe å endre, som Countdown.
 
-I de andre verktøyene arkiverer den første endringen din arbeidet i **Prosjekter** som om du hadde lagret, og senere endringer lagres mens du jobber, når verktøyet er ferdig med å tegne. Så en ulagret kreasjon blir værende i Prosjekter etter at du har lukket fanen, og åpnes igjen med endringene markert som ulagret. **Forlat uten å lagre** forkaster dem likevel, og Historikk beholder en kopi av de forkastede endringene i 30 dager. Å åpne verktøyet igjen fra hjemskjermen starter en ny kreasjon; åpne den tidligere fra Prosjekter.
+I de andre verktøyene arkiverer den første endringen din arbeidet i **Prosjekter** som om du hadde lagret, og senere endringer lagres mens du jobber, når verktøyet er ferdig med å tegne. Så en ulagret kreasjon blir værende i Prosjekter etter at du har lukket fanen, og åpnes igjen med endringene markert som ulagret. **Forlat likevel** forkaster dem fortsatt, og Historikk beholder en kopi av de forkastede endringene i 30 dager. Å åpne verktøyet igjen fra hjemskjermen starter en ny kreasjon; åpne den tidligere fra Prosjekter.
 
 Med [Synk](/info/sync.html) på går en kreasjon som er arkivert på denne måten, til dine andre enheter som alt annet i Prosjekter. Versjonene dens blir på enheten der de ble laget.
 

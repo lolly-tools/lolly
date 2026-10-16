@@ -11,14 +11,14 @@
  * "From an instance" (section 3.6) is a later milestone and is not rendered
  * until it works - never a door that opens on nothing.
  */
-import { brandSpecimenHtml, type BrandPreview } from './brand-specimen.ts';
+import { brandSpecimenHtml, specimenInk, type BrandPreview } from './brand-specimen.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { isTauriShell } from '../instance-choice.ts';
 import { escape } from '../../utils.ts';
 import { icon } from '../icons.ts';
 import { confirmDialog, promptDialog } from '../../components/confirm-dialog.ts';
 import { createTokenSet } from '@lolly/engine';
-import { brandFontStack, tokenValueToHex, contrastText } from '../../brand-vars.ts';
+import { brandFontStack, tokenValueToHex, SWATCH_INK } from '../../brand-vars.ts';
 import type { DesignSystemRecord } from './registry.ts';
 import { createDesignSystem, type ManageHost } from './manage.ts';
 import { prepareDesignSystemRemoval, removeAndSwitchDesignSystem } from './remove-coordinator.ts';
@@ -107,7 +107,7 @@ export async function previewOf(host: CardHost, record: DesignSystemRecord): Pro
       .filter((value): value is string => !!value)
       .filter((value, i, all) => all.indexOf(value) === i);
     const font = brandFontStack(tokens.resolve('font.brand'), fallback) ?? fallback;
-    const dark = contrastText(colors[0] ?? '#172b29') === '#ffffff';
+    const dark = specimenInk(colors[0] ?? '#172b29') === SWATCH_INK.light;
     const variants = dark ? ['vertical-primary-reverse', 'vertical-primary'] : ['vertical-primary', 'vertical-primary-reverse'];
     let logoUrl: string | undefined;
     for (const variant of variants) {

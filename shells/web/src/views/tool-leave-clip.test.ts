@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * views/tool-leave.ts recordedClipBytes: when the Unsaved changes dialog says
+ * views/tool-leave.ts recordedClipBytes: when the Unsaved edits dialog says
  * "Includes a {size} video clip". Plan 302 gave every upload its stored length
  * in meta.bytes, so the line must key on a recorded take, never on bytes alone.
  *

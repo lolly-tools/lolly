@@ -1,227 +1,126 @@
-# Lolly Tools
+# Lolly
 
-Powerfully reproducible assets & tools.
-Deterministic, fast, open-source platform - bring your own brand. 
+<img src="icon.svg" alt="Lolly's green and white lollipop" width="80"/>
 
-<img src="icon.svg" alt="Lolly Icon - Large green and white lollipop candy" width="350"/>
+**Make graphics, documents and video from simple inputs.**
 
-**Try it now.** [lolly.tools](https://lolly.tools) runs in the browser and installs as an app. Nothing you make ever leaves your device without your say. Desktop, mobile and command-line builds are on the [releases page](https://github.com/lolly-tools/lolly/releases).
+Lolly is an open-source creative platform. Pick a tool, add your words, images or data, and download a finished file. Your design system supplies the colours, fonts and assets.
 
-**Read first.** The platform is explained at [lolly.tools/info](https://lolly.tools/info/), with one door each for [creators](https://lolly.tools/info/create/creators.html), [builders](https://lolly.tools/info/build/builders.html) and [operators](https://lolly.tools/info/operate/operators.html), a [quickstart](https://lolly.tools/info/start/quickstart.html), and the [trust pages](https://lolly.tools/info/trust/trust.html) that back each claim with the mechanism that enforces it.
+Build a layout once, choose what other people can change, and share it as a tool. They fill in the fields; the tool handles the layout and design rules.
 
-> **We built Lolly for ourselves.** SUSE needed thousands of on-brand files, each with its name sealed inside, made without handing anything to outside services. So we built a tool that does all of it on the device, and released it as open source, like everything else we make. We keep maintaining it because we use it every day. **There is no obligation:** everything here works with or without us.
+[Open Lolly](https://lolly.tools) · [Make your first file](https://lolly.tools/info/start/make-something.html) · [Downloads](https://github.com/lolly-tools/lolly/releases) · [Documentation](https://lolly.tools/info/)
 
-## What is Lolly Tools
+## What can I make?
 
-A platform that hosts a library of small, focused tools that produce deterministic creative assets. 
-Users need no design skill, no vendor lock-in and no internet to render, and the platform is designed to add premium production-quality rendering certainty to variable data. 
+Start with a focused tool, or arrange your own text, images and shapes on the Design canvas.
 
-It's also your personal DAM - every logo, palette, font and upload lives in an on-device catalog, hydrated and supercharged by your design system and tools. 
+| I need to... | Try... |
+| --- | --- |
+| Make a QR code for a link | [QR Code](https://lolly.tools/#/tool/qr-code) |
+| Frame a screenshot for a post or presentation | [Frame](https://lolly.tools/#/tool/frame) |
+| Turn a recording into a video with a moving waveform | [Audiogram](https://lolly.tools/#/tool/audiogram) |
+| Turn data into a chart or diagram | [Chart](https://lolly.tools/#/tool/chart) or [Diagrams](https://lolly.tools/#/tool/diagram-builder) |
+| Build a layout I can reuse | [Design](https://lolly.tools/#/tool/design) |
+| Remove hidden metadata or shrink a PDF locally | [Strip Hidden Data](https://lolly.tools/#/tool/strip-data) or [Compress](https://lolly.tools/#/tool/compress-pdf) |
 
-Tools can be used via a:
-* Web app - installable offline progressive web app 
-* Mobile and Desktop installable packages. 
-* and of course, the Command Line - plus a full-screen terminal UI (TUI). 
+Choose a tool, change its inputs, then use **Export** to download. The public app needs no account. [Make your first file](docs/make-something.md) walks you through a QR code.
 
+## Why Lolly?
 
+- **Set the design rules once.** Keep the layout and permitted choices consistent while people make the next version.
+- **Work on your device.** Edit, render and transform files locally. Download the resources a tool needs, then render and export offline.
+- **Keep the inputs as well as the file.** Save your work to edit later, or share a link that reopens its settings. Local uploads need to travel separately from a plain link.
+- **Make one or make many.** Use the app for a single file, a table of values for a batch, or the command line for a repeatable workflow.
+- **Use and extend the source.** Run your own copy and add tools. There is no per-seat software licence fee.
 
-**Organisation services are optional.** [lolly.work](https://github.com/lolly-tools/lolly-work) is part of the same Lolly project, maintained and deployed separately. Pair it with these apps for OIDC SSO, SCIM provisioning, group permissions, shared catalogs and projects, work collabs, approvals, governed delivery, server render jobs and audit records. Standalone Lolly remains independent. See [organisation use](docs/organisation.md) and [deployment](docs/deployment.md) for the split, including which data reaches the service.
+Optional network features, sharing, Sync and organisation services have their own data flows. The [privacy guide](docs/privacy.md) explains what stays local and what uses a service. For offline preparation, see [Available offline](docs/profile.md#available-offline).
 
-## Why deploy Lolly in your organization? 
+## Bring your own design system
 
-* Hard-coded constraints of design decisions.
-* Free, open-source platform - the engine, every shell and the schemas are MPL-2.0. Documentation content is CC BY-SA 4.0, with attribution to lolly.tools. Tools and assets are just data: bring your own brand content (SUSE's tool & asset packs are proprietary - see [Licensing & structure](#licensing--structure)).
-* Unlimited scale, No SaaS fees. 
-* Low-or-Zero server costs: Lolly uses local device compute. 
-* Builds for Mac, Windows, Linux, iOS, Android, web and the command line. 
-* Huge format support - **50 in, 56 out** (35 round-trip; the live register is `docs/site/formats-catalog.json`, and `tests/readme-formats.test.ts` keeps these three numbers pinned to it). Export: SVG · EPS · CMYK EPS · EMF · DXF · PDF · Print PDF (CMYK) · PPTX · PNG · Animated PNG · JPEG · WebP · Animated WebP · AVIF · TIFF · CMYK TIFF · ICO · **PSD** · EXR · Radiance HDR · MP4 · WebM · GIF · Animated SVG · dotLottie · MP3 · M4A · WAV · Opus · HTML · MD · TXT · CSV · JSON · ICS · VCF · ZIP. Import adds layered **PSD · PSB · XCF**, HEIC, MOV, GLB · glTF, audio & tracker (OGG · FLAC · MIDI · MOD) and live designs from Illustrator · InDesign · Figma · Penpot. EXR and Radiance HDR are floating-point HDR masters written through `host.codec` by tools that compute float pixels, and via the CLI - the web export picker does not offer them. AVIF encodes through the browser's own `canvas.toBlob`, and M4A · Opus through WebCodecs, so both depend on the browser build. Plus **design tokens & palettes** - import DTCG and Tokens Studio; export DTCG · ASE · GPL · CSS variables.
-* Print-ready output: CMYK PDF & TIFF, physical units, bleed, crop/registration marks, colour bars and press (FOGRA/SWOP) profiles. 
-* Infinite deterministic media creation.
-* Renders and exports offline - the engine makes no network call, and the shells need none at render time once a tool's assets, fonts, shaping WASM and any on-device model have been fetched once (the PWA caches them on first use; Settings → Available offline pre-fetches the lot). (Optional MCP, CA, network integrations and lolly.work organisation services have separate data flows; see `docs/server-surface.md`.)
-* Full command-line support.
-* Save tokens, tell your model to try Lolly first!
+Add colours, fonts and logos in **Brand Studio**, or import design tokens from DTCG, Tokens Studio or Penpot. Community tools use your active design system.
 
+Import supported Figma, Penpot, Illustrator, InDesign or PDF designs into the canvas. Check the converted layout and fonts, then use **Share with rules** to choose editable inputs and package a reusable tool.
 
+[Set up your design system](docs/quickstart.md) · [Import a design](docs/design-import.md) · [Share a design with rules](docs/create-a-tool.md)
 
-## What this is **not**
+## Get the file you need
 
-- An unconstrained design suite. Lolly ships a real open canvas - the Design tool,
-  with a pen, node editing, keyframes, decks and presenting - so "not a design
-  tool" would be untrue. What it is not is a place to escape the brand: every
-  colour, face and asset on that canvas is the brand's own, so free arrangement
-  never becomes off-brand output. Ideation that has to leave the brand system
-  belongs in Illustrator or Figma; the finished file comes back through Design's
-  Import a design and becomes governed, reproducible output.
+Export images, vectors, PDFs, editable PowerPoint decks, audio or video where the tool supports them. Print workflows include physical sizes, bleed, crop marks and CMYK output.
 
-See `docs/positioning.md` for the full market comparison.
+The format register covers **50 in, 56 out** (35 round-trip). Availability depends on the tool, browser and export path; the [format guide](https://lolly.tools/info/formats.html) gives the details.
 
-## Repository layout
+Authoring tools can attach **Content Credentials**, a signed record of how a file was made. [Read about credentials and identity](docs/content-credentials-identity.md).
 
-`lolly` contains the engine, shells, community tool pack, docs and the MCP and CA services as plain directories. The optional organisation service lives in the sibling [lolly-work repository](https://github.com/lolly-tools/lolly-work). The one exception is `brands/suse`, a **private** git submodule: SUSE's tool and asset pack, which stays out of the public tree.
+## Run Lolly locally
 
-```
-lolly/
-├── engine/                         # platform-agnostic core (the open-source heart)
-├── packages/                       # @lolly-tools/core (tool-author SDK, the HostV1 contract) + node-shell
-├── schemas/                        # JSON Schemas for tool.json, assets, AssetRef
-├── scripts/                        # catalog build/validate, brand ingest, deploy
-├── tests/                          # engine + contract tests
-├── api/                            # Vercel functions (mcp, ca)
-├── docs/                           # architecture, guides, /info generator
-├── community/                      # community-safe tools (data, not code; MPL-2.0)
-├── brands/
-│   ├── lolly-start/                # blank starter brand (neutral tokens only)
-│   └── suse/          → suse-lolly # PRIVATE submodule: SUSE tools + brand catalog
-├── services/
-│   ├── mcp/                        # Model Context Protocol server
-│   └── ca/                         # device-credential Certificate Authority
-└── shells/
-    ├── web/                        # installable PWA
-    ├── cli/                        # command line
-    ├── tui/                        # terminal UI
-    ├── tauri-desktop/               # macOS / Linux / Windows
-    ├── tauri-mobile/                # iOS / Android
-    └── chrome-extension/
-```
-
-**Critical separation:** `engine/` knows nothing about SUSE. Brand-specific content lives in **brand packs** (`brands/suse` - private; `brands/lolly-start` - the blank starter brand), brand-agnostic tools in `community/`; the shells, services and engine are MPL-2.0, and documentation content is CC BY-SA 4.0. There is no repo-root `tools/`/`catalog/` view on disk: `packages/node-shell/src/content-roots.ts` resolves which tool pack and catalog a build uses, from `profiles.json`, at runtime - `contentRoots()`, `toolFile()`, `catalogFile()`, and `materializeInto()` for the one place a real copy is still needed (`dist/`, for static hosting). Set `LOLLY_PROFILE=suse` or `LOLLY_PROFILE=lolly-start` to choose explicitly; otherwise it resolves the same way the old profile switcher did (the declared default, else the first profile whose packs are complete - `lolly-start` on a public clone, since `brands/suse` is absent).
-
-## Architectural commitments
-
-These decisions are settled. Changing any of them is a major undertaking:
-
-1. **Declarative tools.** A tool is a manifest + template + assets. Inputs are declared in the manifest, not inferred from template tokens. `hooks.js` is an optional escape hatch for tools that need imperative behavior (chart.js rendering, QR encoding).
-
-2. **Tools and assets are data, not bundled code.** Clients sync them from a signed manifest URL. New tools and assets don't require app updates.
-
-3. **Capability bridge.** Tools never touch the filesystem, network or DOM-outside-template directly. They call a versioned `host.*` API. This is what makes the same tool work in browser, Tauri and CLI.
-
-4. **Stable asset IDs forever.** `suse/logo/primary` is a contract. Never reuse, never rename. Version in the manifest, never in the path.
-
-5. **URL mode is first-class.** Every input must be expressible as URL params. CLI mode = headless DOM (jsdom) + URL mode + file output. One render path.
-
-6. **Storage via the bridge.** Tools call `host.state.save()` / `host.state.load()`. The bridge picks IndexedDB (web), filesystem (Tauri) or memory (CLI). Tools never know which.
-
-7. **Maturity tags.** Every tool declares `status: official | community | experimental`. Experimental tools watermark their exports. This is the structural answer to the risk that every tool in the gallery reads as carrying the same weight.
-
-## Getting started
-
-**Fresh macOS or openSUSE machine? One command does it all:**
-
-```bash
-git clone https://github.com/lolly-tools/lolly.git && cd lolly && ./setup.sh
-```
-
-`./setup.sh` installs the prerequisites (git, Node), runs `pnpm install` and builds a content profile - then tells you what to run next. SUSE devs add `--suse` to mount the private brand pack. Full details, the manual path and troubleshooting are in **[INSTALL.md](INSTALL.md)**.
-
-Prefer to do it by hand? It's a plain clone. Use Node 26 for development and primary CI (see `.nvmrc`). The package minimum remains 22.18; Node 24 compatibility and native qualification workflows are retained. Older Node fails `pnpm install`, because the scripts run TypeScript directly via native type-stripping. INSTALL.md has the table.
+Development uses Node 26 ([`.nvmrc`](.nvmrc)) and pnpm 11.26.0 ([`package.json`](package.json)). The package minimum is Node 22.18.
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git
 cd lolly
-npm install --global pnpm@11.26.0   # the pinned package manager, once (or use Corepack)
-pnpm install                        # picks a content profile automatically; see below
-```
-
-SUSE devs with access to the private brand pack opt in next, with `git submodule update --init --checkout brands/suse`. A public clone skips that step.
-
-Then run the web shell and open http://localhost:5173:
-
-```bash
+npm install --global pnpm@11.26.0
+pnpm install
 pnpm run dev:web
 ```
 
-In a second terminal, run a tool headlessly and validate the catalog:
+Open <http://localhost:5173>. The web app needs a browser with a working WebGPU adapter and graphics acceleration. See [supported environments](docs/supported-environments.md) for the tested combinations.
+
+A public clone includes community tools and the neutral **Lolly Start** design system. SUSE's private brand pack is optional.
+
+On macOS or openSUSE, `./setup.sh` can install prerequisites and dependencies. See [INSTALL.md](INSTALL.md) for setup help, or [Releases](https://github.com/lolly-tools/lolly/releases) for packaged apps.
+
+## Automate the repeat work
+
+The CLI uses the same engine as the app. From your checkout, make a QR code as SVG:
 
 ```bash
-pnpm run cli qr-code --url=https://suse.com --output=./qr.svg
-pnpm run validate:catalog
+pnpm run cli qr-code --url=https://example.com --output=./qr.svg
 ```
 
-Once it is running, **[docs/make-something.md](docs/make-something.md)** walks a first render in about 60 seconds (no account, nothing to configure), and **[docs/quickstart.md](docs/quickstart.md)** covers making Lolly wear your own brand.
+Use tool inputs in scripts, URLs and batch jobs, or let AI agents call tools through the optional MCP server. Fresh signatures, timestamps and browser encoders can change exported bytes; the [determinism guide](docs/determinism.md) explains reproducibility and its limits.
 
-**Content profiles.** Which tool pack and catalog a build uses is resolved at runtime from `profiles.json` by `packages/node-shell/src/content-roots.ts`, no view written to disk: the private `brands/suse` pack (skipped automatically on a clone if you don't have access - it's `update = none`) plus the public `community/` tools, or the blank **lolly-start** brand if `brands/suse` is absent. Everything still builds and runs either way. Switch explicitly:
+[CLI guide](docs/cli.md) · [URL inputs](docs/url-mode.md) · [MCP server](docs/mcp.md)
 
-```bash
-pnpm run profile               # print the resolved profile and its roots
-LOLLY_PROFILE=suse pnpm run dev:web         # SUSE brand pack (needs: git submodule update --init --checkout brands/suse)
-LOLLY_PROFILE=lolly-start pnpm run dev:web  # blank starter brand: community tools + neutral tokens
-```
+## Use Lolly with a team
 
-See `docs/authoring-tools.md` to build your first tool, and [Development](#development) below for where each change goes. Writing a tool without cloning the platform? `npm i -D @lolly-tools/core` installs the tool-author SDK from npm: the `HostV1` contract types, the manifest validator and a mock host for testing hooks headlessly (see [`packages/core/README.md`](packages/core/README.md)). A new brand pack can be generated from design tokens with `pnpm run ingest:brand` (DTCG / Tokens Studio / Penpot exports).
+Lolly began at SUSE, where people needed to make on-brand files without sending their work to outside services. It is maintained as open source and can run independently of SUSE.
 
-## The CLI
+For organisation sign-in, shared assets and projects, approvals, work collaboration, audit records or server rendering, add [lolly.work](https://github.com/lolly-tools/lolly-work). This optional service is maintained separately. Hosting and operations have their own costs.
 
-`lolly` runs any tool from the terminal through the same engine and the same render path as the web shell - it *is* URL mode under a different transport, so `--url=x` is the value the app reads from `?url=x`. That makes it the build-pipeline, CI and scripting surface: generate an OG card at build time, fan a CSV out into 400 badges, render-check the whole catalog as a gate.
+[Organisation guide](docs/organisation.md) · [Self-hosting and deployment](docs/deployment.md) · [Current status and adoption](docs/adoption-governance.md)
 
-```bash
-pnpm --silent run cli qr-code --url=https://suse.com --export=png > qr.png
-```
+## Build on Lolly
 
-Exports carry Content Credentials by default, signed on-device - for the formats that can hold a manifest (PNG, JPEG, WebP, AVIF, GIF, APNG, TIFF, SVG, PDF, MP4, WebM, MP3, M4A, WAV, OGG, Opus, FLAC, HTML, CSS, JS, MD); EPS, EMF, DXF, PPTX, PSD, EXR, HDR, ICO, DOCX, ZIP and the plain-text formats have no container for one, and on-device utilities never stamp. To sign as **you** - so a recipient who pins your root reads *Verified* with your address on it rather than an anonymous signer - point it at your own key and certificate chain:
+A tool is a manifest and template, with optional styles, assets and JavaScript hooks. Tools are distributed as content, so adding a tool does not require a new app release.
 
-```bash
-pnpm --silent run cli qr-code --url=https://suse.com --output=./qr.svg \
-  --sign-key=~/.config/lolly/signing-key.pem --sign-cert=./signing-chain.pem
-```
+The **engine** loads tools and drives rendering. Each **shell** supplies the platform features it needs through a versioned **bridge**. That keeps brands and platform-specific code out of the engine.
 
-Full command surface in [`docs/cli.md`](docs/cli.md); the setup path from a clean machine to a working, trusted signing identity is [`docs/cli-signing.md`](docs/cli-signing.md).
+### Repository layout
 
-## Development
+| Path | What you will find |
+| --- | --- |
+| [`engine/`](engine/) | Rendering, inputs, templates and export logic |
+| [`shells/`](shells/) | Web, desktop, mobile, command-line and terminal apps |
+| [`community/`](community/) | Tools that work with different design systems |
+| [`brands/`](brands/) | Design systems, assets and brand-specific tools |
+| [`packages/`](packages/) | The tool-author SDK and shared components |
+| [`schemas/`](schemas/) | Contracts for tool manifests and assets |
+| [`services/`](services/) | Optional MCP and certificate services |
+| [`docs/`](docs/) | Guides, architecture and the documentation site |
 
-The current creative-shell source requires a usable WebGPU adapter and device,
-including the frontend embedded by Tauri. The shell checks for them while it
-boots: the gallery paints at once, and no tool opens until the check has passed.
-Serve the web shell over HTTPS or localhost with graphics acceleration enabled;
-a browser offers no WebGPU to a plain-HTTP address, and the shell says so.
-Acquisition failure shows guidance for using a supported environment. Browser LUT
-photo grading uses the `lut-webgpu-v1` recipe; existing CLI pixel recipes remain
-in place during this first migration slice. CLI inspection and ordinary engine
-operations do not acquire a graphics device. Embedded webviews and physical
-devices need separate qualification, and `pnpm run check:release` refuses a
-release until `docs/supported-environments.md` publishes a result for each
-required environment. The signed frontend builds refuse too
-(`scripts/build-release-web.ts`, used by the web image, Vercel and every Tauri
-package), so neither the public web image nor a package can be built from main
-before then; CI's verified instance shell and `scripts/ship.ts` refuse as well.
-The gate covers only the web shell and the apps. The MCP browser probe boots
-the shell with software WebGPU through SwiftShader; it qualifies container
-rendering independently of the physical frontend environment table. The CA and
-Penpot images and the `/info` docs need no WebGPU. `deployment-suse.yml` builds
-these images and docs from main in jobs that never ask the frontend gate and
-publishes the images to GHCR. The docs are kept as a build artifact only.
-Nothing serves that artifact yet, so a deployment still serves the `/info`
-baked into its web image until a deploy step
-serves the artifact instead (an open follow-up). (Vercel deploys the web shell
-and its functions as one unit, so that retired path stays held with the web
-shell.) To qualify the packaged webviews, dispatch a packaging workflow with
-`webgpu_qualification` (or set `LOLLY_WEBGPU_QUALIFICATION_BUILD=1` for a Tauri
-frontend build): the build skips the gate, signs nothing, and is marked not for
-release, and the release tools refuse such a build (`scripts/webgpu-qualification.ts`).
+Start with the [tool-authoring guide](docs/authoring-tools.md), [architecture overview](docs/overview.md) or [glossary](docs/glossary.md).
 
-`pnpm run test:webgpu` runs required browser conformance against the Rust/WASM
-and TypeScript references. See the [pixel kernel guide](packages/node-shell/wasm/pixel-kernel/README.md)
-for limits, rebuilding and explicit software-adapter CI configuration.
+### Contributing
 
-> **New contributor?** Start at **[CONTRIBUTING.md](CONTRIBUTING.md)** - it routes you through the clone, content profiles, which file goes where, and the commands to run before a PR. Auditors and anyone touching a parser or a crypto module should read **[docs/threat-model.md](docs/threat-model.md)** and **[docs/parser-inventory.md](docs/parser-inventory.md)**.
+Bug reports, documentation, tools and code improvements are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers setup and checks. [Open an issue](https://github.com/lolly-tools/lolly/issues) with what you were trying to make and what happened.
 
-Lolly is one repository, with one private submodule (see [Repository layout](#repository-layout)). A plain clone and a normal commit are almost always what you want.
+Report security issues privately using [SECURITY.md](SECURITY.md).
 
-**Clone / update**
+## Licensing & structure
 
-```bash
-git clone https://github.com/lolly-tools/lolly.git
-```
+Code is [MPL-2.0](LICENSE). Documentation content is [CC BY-SA 4.0](docs/LICENSE), with attribution to [lolly.tools](https://lolly.tools).
 
-SUSE devs with access to the private brand pack can opt in at any time:
-
-```bash
-git submodule update --init --checkout brands/suse
-```
-
-**Where your changes go** - almost everywhere, a change is one commit in this repo. The one exception is `brands/suse`: a change there is a commit inside that submodule, then a pointer commit here recording it. See **[CONTRIBUTING.md section 4](CONTRIBUTING.md#4-where-your-changes-go)** for the full breakdown, including why a community tool change still needs `pnpm run build:catalog:all` (the generated catalog index is per brand, so a SUSE-profile build needs its own rebuild even though the tool lives in this repo).
-
-**Deploying.** `lolly.tools` and `lolly.ing` use operator-managed UpCloud K3s releases. Use the [sovereign deployment profile](deploy/helm/profiles/sovereign/README.md) and the instance's current deployment handoff. `pnpm run gate` still checks the release; `scripts/ship.ts` refuses these managed targets before building or uploading. Explicit Vercel and internal IT adapters remain available for separately configured instances. See [`scripts/README.md`](scripts/README.md).
+Brand packs and bundled assets carry their own licences and notices. SUSE's proprietary tools and assets stay in the optional private `brands/suse` submodule. Third-party software, fonts and other material retain their stated licences; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 ## Current tools
 
@@ -291,16 +190,3 @@ The Lolly Start (blank brand) catalog ships **61 tools** today - 60 listed in th
 | Wordmark | Type a word, get a pure-path vector wordmark in your brand font - recipients never need the font installed. |
 | Work Avatar | A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face. |
 <!-- tools-table:end -->
-
-The `utility` "Offline Utilities" section always renders last in the gallery.
-
-## Licensing & structure
-
-This is one repository (see [Repository layout](#repository-layout)), with one private submodule for the SUSE brand pack.
-
-- **Code** - including the documentation generator and code examples - is **[MPL-2.0](LICENSE)**.
-- **Documentation content** is **[CC BY-SA 4.0](docs/LICENSE)**, with attribution to [lolly.tools](https://lolly.tools). Third-party material keeps its stated licence.
-- **Tool content ships as brand packs.** `community/` holds the brand-agnostic tools; `brands/suse/` (private submodule `suse-lolly`) holds the SUSE tools and catalog - including its licensed PremiumBeat music, which stays private with the pack. See each pack's `NOTICE.md`.
-- **Fonts** ship inside each brand pack under the SIL Open Font License 1.1 - the SUSE pack carries the **SUSE** and **SUSE Mono** typefaces (neither the MPL nor SUSE-proprietary; "SUSE" is a SUSE trademark). They appear at `catalog/fonts/` in a build.
-
-Bundled third-party attributions are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

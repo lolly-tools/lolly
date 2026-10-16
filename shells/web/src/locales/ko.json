@@ -2619,7 +2619,6 @@
   "Know before you enrol: your email address is written into every file you export while enrolled. It stays in every copy you share and cannot be removed later, even after the certificate expires.": "등록 전 알아두세요: 등록 중 내보내는 모든 파일에 이메일 주소가 기록돼요. 공유하는 모든 사본에 남으며 인증서가 만료된 뒤에도 제거할 수 없어요.",
   "L × C": "L × C",
   "L × H": "L × H",
-  "Leave without saving keeps your changes on this device.": "저장하지 않고 나가면 변경 내용이 이 기기에 남습니다.",
   "LOCK": "잠금",
   "LSB steganography likely": "LSB 스테가노그래피일 가능성 높음",
   "Lab axes": "Lab 축",
@@ -2666,7 +2665,6 @@
   "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.": "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.",
   "Leave this instance?": "이 인스턴스에서 나가시겠어요?",
   "Leave this member out of the copy": "Leave this member out of the copy",
-  "Leave without saving": "저장하지 않고 나가기",
   "Left inset": "왼쪽 안쪽 여백",
   "Left offset": "왼쪽 오프셋",
   "Left out because the source artwork was refused:": "Left out because the source artwork was refused:",
@@ -4212,7 +4210,6 @@
   "SEAL signature": "SEAL 서명",
   "SEAL signature did not verify": "SEAL 서명을 검증하지 못했어요",
   "SEAL signature is internally consistent": "SEAL 서명이 내부적으로 일관돼요",
-  "Stay": "머무르기",
   "SUSE Photos": "SUSE 사진",
   "SVG artwork": "SVG artwork",
   "Same style": "같은 스타일",
@@ -6006,7 +6003,6 @@
   "You can manage these any time from your Profile, under “Available offline”. Voice and other models download automatically the first time you use them.": "이 항목들은 언제든 프로필의 “오프라인 사용 가능”에서 관리할 수 있어요. 음성 및 기타 모델은 처음 사용할 때 자동으로 다운로드돼요.",
   "You can only replace this with the same kind of file (for example, an image with an image).": "이것은 같은 종류의 파일로만 바꿀 수 있어요 (예: 이미지는 이미지로).",
   "You can save up to eight scenes. Delete one to add another.": "You can save up to eight scenes. Delete one to add another.",
-  "You have unsaved changes. <br>Would you like to save before leaving?": "저장되지 않은 변경 사항이 있어요. <br>나가기 전에 저장할까요?",
   "You hold rates for this job. Show costs?": "이 작업의 요금을 보유하고 있어요. 비용을 표시할까요?",
   "Your LUT": "내 LUT",
   "Your LinkedIn session ended - connect again in Profile": "LinkedIn 세션이 종료됐어요. 프로필에서 다시 연결하세요.",
@@ -7925,5 +7921,8 @@
   "No transition tokens in this context.": "No transition tokens in this context.",
   "Applies Enter duration and geometry easing. Opacity keeps the preset easing.": "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
   "This layer timing control cannot apply a delay. Choose a transition with zero delay.": "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
-  "Reading transition tokens…": "Reading transition tokens…"
+  "Reading transition tokens…": "Reading transition tokens…",
+  "Unsaved edits": "저장되지 않은 편집 내용",
+  "Save now or abandon your changes.": "지금 저장하거나 변경 사항을 버리세요.",
+  "Leave anyway": "그래도 나가기"
 }

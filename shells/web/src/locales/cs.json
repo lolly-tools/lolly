@@ -2619,7 +2619,6 @@
   "Know before you enrol: your email address is written into every file you export while enrolled. It stays in every copy you share and cannot be removed later, even after the certificate expires.": "Věz předem: tvoje e-mailová adresa se zapíše do každého souboru, který exportuješ po zapsání. Zůstává v každé kopii, kterou sdílíš, a nelze ji později odstranit, ani po vypršení certifikátu.",
   "L × C": "L × C",
   "L × H": "L × H",
-  "Leave without saving keeps your changes on this device.": "Pokud odejdete bez uložení, změny zůstanou na tomto zařízení.",
   "LOCK": "ZAMKNOUT",
   "LSB steganography likely": "Pravděpodobně LSB steganografie",
   "Lab axes": "Osy Lab",
@@ -2666,7 +2665,6 @@
   "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.": "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.",
   "Leave this instance?": "Opustit tuto instanci?",
   "Leave this member out of the copy": "Leave this member out of the copy",
-  "Leave without saving": "Odejít bez uložení",
   "Left inset": "Levý vnitřní okraj",
   "Left offset": "Levý odstup",
   "Left out because the source artwork was refused:": "Left out because the source artwork was refused:",
@@ -4212,7 +4210,6 @@
   "SEAL signature": "SEAL podpis",
   "SEAL signature did not verify": "SEAL podpis se nepodařilo ověřit",
   "SEAL signature is internally consistent": "SEAL podpis je vnitřně konzistentní",
-  "Stay": "Zůstat",
   "SUSE Photos": "SUSE Photos",
   "SVG artwork": "SVG artwork",
   "Same style": "Stejný styl",
@@ -6006,7 +6003,6 @@
   "You can manage these any time from your Profile, under “Available offline”. Voice and other models download automatically the first time you use them.": "Toto můžeš kdykoli spravovat ve svém profilu v části „Dostupné offline“. Hlas a další modely se stáhnou automaticky při prvním použití.",
   "You can only replace this with the same kind of file (for example, an image with an image).": "Toto můžeš nahradit jen stejným typem souboru (například obrázek obrázkem).",
   "You can save up to eight scenes. Delete one to add another.": "You can save up to eight scenes. Delete one to add another.",
-  "You have unsaved changes. <br>Would you like to save before leaving?": "Máš neuložené změny. <br>Chceš je před odchodem uložit?",
   "You hold rates for this job. Show costs?": "Pro tuto zakázku máš sazby. Zobrazit náklady?",
   "Your LUT": "Tvůj LUT",
   "Your LinkedIn session ended - connect again in Profile": "Tvoje relace LinkedIn skončila - připoj se znovu v Profilu",
@@ -7925,5 +7921,8 @@
   "No transition tokens in this context.": "No transition tokens in this context.",
   "Applies Enter duration and geometry easing. Opacity keeps the preset easing.": "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
   "This layer timing control cannot apply a delay. Choose a transition with zero delay.": "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
-  "Reading transition tokens…": "Reading transition tokens…"
+  "Reading transition tokens…": "Reading transition tokens…",
+  "Unsaved edits": "Neuložené úpravy",
+  "Save now or abandon your changes.": "Ulož změny teď, nebo je zahoď.",
+  "Leave anyway": "Přesto odejít"
 }

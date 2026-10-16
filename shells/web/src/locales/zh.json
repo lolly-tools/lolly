@@ -2663,7 +2663,6 @@
   "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.": "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.",
   "Leave this instance?": "离开此实例?",
   "Leave this member out of the copy": "Leave this member out of the copy",
-  "Leave without saving": "不保存并离开",
   "Left inset": "左侧内边距",
   "Left offset": "左侧偏移",
   "Left out because the source artwork was refused:": "Left out because the source artwork was refused:",
@@ -5993,7 +5992,6 @@
   "You can manage these any time from your Profile, under “Available offline”. Voice and other models download automatically the first time you use them.": "你可以随时在“个人资料”的“离线可用”下管理这些内容。语音及其他模型会在你首次使用时自动下载。",
   "You can only replace this with the same kind of file (for example, an image with an image).": "你只能用同类文件替换它（例如用图像替换图像）。",
   "You can save up to eight scenes. Delete one to add another.": "You can save up to eight scenes. Delete one to add another.",
-  "You have unsaved changes. <br>Would you like to save before leaving?": "你有未保存的更改。<br>是否要在离开前保存？",
   "You hold rates for this job. Show costs?": "你已持有此任务的价格。要显示费用吗？",
   "Your LUT": "你的 LUT",
   "Your LinkedIn session ended - connect again in Profile": "你的 LinkedIn 会话已结束 - 请在“个人资料”中重新连接",
@@ -7404,8 +7402,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "你在 {workspace} 的角色只能查看。请联系 {workspace} 的管理员更改你的角色。",
   "This is view only. Make a copy to keep your changes.": "当前为仅查看。创建副本即可保留你的更改。",
   "Save changes to {project}?": "将更改保存到 {project}？",
-  "Leave without saving keeps your changes on this device.": "不保存直接离开，你的更改会保留在此设备上。",
-  "Stay": "留下",
   "Save a copy on this device": "在此设备上保存副本",
   "Copy saved on this device.": "副本已保存在此设备上。",
   "Where should the copy go?": "副本放到哪里？",
@@ -7925,5 +7921,8 @@
   "No transition tokens in this context.": "No transition tokens in this context.",
   "Applies Enter duration and geometry easing. Opacity keeps the preset easing.": "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
   "This layer timing control cannot apply a delay. Choose a transition with zero delay.": "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
-  "Reading transition tokens…": "Reading transition tokens…"
+  "Reading transition tokens…": "Reading transition tokens…",
+  "Unsaved edits": "未保存的编辑",
+  "Save now or abandon your changes.": "立即保存，或放弃你的更改。",
+  "Leave anyway": "仍要离开"
 }
