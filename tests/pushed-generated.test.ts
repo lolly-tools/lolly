@@ -60,7 +60,7 @@ function fixture(t: test.TestContext) {
   write('engine/src/sample.ts', '/** Example module. */\nexport const engine = 1;\n');
   write('engine/README.md', '<!-- engine-modules:start -->\n<!-- engine-modules:end -->\n');
   write('tests/fuzz/targets.ts', 'export const targets = [];\n');
-  for (const script of [WEB, ENGINE, 'scripts/check-pushed-generated.ts']) {
+  for (const script of [WEB, ENGINE, 'scripts/check-pushed-generated.ts', 'scripts/check-pushed-plans.ts']) {
     write(script, readFileSync(join(ROOT, script), 'utf8'));
   }
   git('init', '-q', '-b', 'main');
@@ -204,6 +204,8 @@ test('hook forwards ref updates and uses Node directly before wording checks', t
   assert.match(result.output, /code wording checked/);
   assert.match(result.output, /docs wording checked/);
   assert.match(result.output, /house rules checked/);
+  assert.match(result.output, /Private plans: no plans\/ files in 1 pushed tip\(s\)/);
+  assert.ok(result.output.indexOf('no plans/ files') < result.output.indexOf('distinct commit tip'));
   assert.ok(result.output.indexOf('distinct commit tip') < result.output.indexOf('code wording checked'));
   assert.ok(result.output.indexOf('docs wording checked') < result.output.indexOf('house rules checked'));
   f.write('shells/web/src/lib/widget.ts', 'export const widget = 2;\n\n');
