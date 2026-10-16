@@ -2,7 +2,7 @@
 
 > This chapter is a draft for review, dated 2026-09-24.  
 
-This is that status chapter. It records what is decided, what the final review corrected, what is still Andy's to answer, what is not built and the order the work starts in. The other eleven chapters state the model: [constitution](constitution.html), [records](records.html), [source rows and patches](source-and-patches.html), [operations](operations.html), [values and time](values-and-time.html), [evaluation](evaluation.html), [policy](policy.html), [conformance](conformance.html), [extensions](extensions.html), [packaging](packaging.html) and [proof cases](proof-cases.html).
+This is that status chapter. It records what is decided, what the final review corrected, how Andy answered the six questions that were his, what is not built and the order the work starts in. The other eleven chapters state the model: [constitution](constitution.html), [records](records.html), [source rows and patches](source-and-patches.html), [operations](operations.html), [values and time](values-and-time.html), [evaluation](evaluation.html), [policy](policy.html), [conformance](conformance.html), [extensions](extensions.html), [packaging](packaging.html) and [proof cases](proof-cases.html).
 
 ## What this draft is
 
@@ -12,7 +12,7 @@ No shared type is frozen before the counterexample fixtures pass (plan section 1
 
 This draft makes no conformance claim and states no threshold (C8), and it sets no latency target because the current evidence justifies none (plan section 18, review gate 5). It adds no reproducibility promise beyond the ones `docs/determinism.md` already makes. The probe numbers appear in one chapter, [conformance](conformance.html), as evidence that a single whole-image number cannot separate a lost caption from a half-pixel shift (C8).
 
-The notice at the head of every chapter must stay until this chapter records that people have read the draft (`plans/276-execution.md` section 5). That review has not happened, so this chapter records no reading. The chapters that most need it are the constitution, the source rows and patches, the policy and the conformance chapters, because each fixes semantics the later contracts are built on (`plans/276-execution.md` section 5).
+The notice at the head of every chapter must stay until this chapter records that people have read the draft (`plans/276-execution.md` section 5). No reading has been recorded yet, so the notice stays. Andy's answers of 2026-10-16 to the six questions below settle those questions only. They are a separate decision from the reading, and they do not lift the notice. The chapters that most need it are the constitution, the source rows and patches, the policy and the conformance chapters, because each fixes semantics the later contracts are built on (`plans/276-execution.md` section 5).
 
 ## Confirmed decisions
 
@@ -76,18 +76,18 @@ Codex reviewed the finalised plan on 2026-09-24. Every finding was checked again
 
 Five compatibility gates came from the same review and are stated in the chapters they affect. The public `requires` field keeps its meaning. Diff gains a source-aware path. An unmet extension is refused at the operation boundary. Aggregate work is bounded, and not only expression size. Incremental edits are measured on a device before any responsiveness claim.
 
-## Open questions
+## Answered questions
 
-Six questions are Andy's. Each has a default so that drafting proceeds without an answer (plan section 16), and a chapter that depends on one states the question and its default in its Open points (`plans/276-execution.md` section 1A).
+Six questions were Andy's. Each had a recommended default so that drafting could proceed without an answer (plan section 16). On 2026-10-16 Andy accepted the defaults for Q1 to Q5 as this table states them, and recorded Q6 as decided: the specification is public from its first draft. A chapter that depends on one of these questions states the decision in its Open points (`plans/276-execution.md` section 1A). The last column keeps the evidence that would reopen a question.
 
-| ID | Question | Default | Evidence that would change it |
+| ID | Question | Decision, 2026-10-16 | Evidence that would reopen it |
 |---|---|---|---|
-| Q1 | The first editable interchange routes per pilot. | The four routes and three edits in the conformance chapter. | A customer route that outranks them. |
-| Q2 | The granularity and persistence of a local rejection. | Per rule, instance-scoped, recorded on the session record against a fingerprint of the facts. A derived tool revision is a Design tool export and is not part of 0.1 (R6). | A need to share a rejected state as a reusable tool. |
-| Q3 | What freshness a governed-claim export needs, and who states it. | Freshness is a policy rule the instance issues, with a validity interval and a stated behaviour when it cannot be established. With no such rule the held policy is enforced, and the receipt says which policy version was evaluated and when it was last attested. Leave and "Make an editable copy" keep their current meanings (R7). | An organisation that needs a hard deadline, or a fully offline site. |
-| Q4 | What non-recordable means for a local utility and for a live-input tool. | Utility: capture off, retention none, replay semantic from pinned inputs. Live input: capture unsupported unless the person turns it on, retention session, replay none. | A regulated workflow that needs durable receipts for utilities. |
-| Q5 | Who may publish a suite under the `lolly` namespace, and how a local or Work suite is named. | Suites under `lolly/*` are published from this repository's continuous integration only, instances publish under `work:<instance>/*`, people publish under `local/*` and an acceptance record always states the suite it judged (R8). | A partner programme that needs a shared namespace. |
-| Q6 | Whether the specification is public from the first draft. | Yes, because `docs/constraints.md`, `docs/determinism.md` and `docs/reproducibility.md` already make public promises this model keeps. | A reason to keep the drafts private until the pilots pass. |
+| Q1 | The first editable interchange routes per pilot. | Default accepted. The four routes and three edits in the conformance chapter. | A customer route that outranks them. |
+| Q2 | The granularity and persistence of a local rejection. | Default accepted. Per rule, instance-scoped, recorded on the session record against a fingerprint of the facts. A derived tool revision is a Design tool export and is not part of 0.1 (R6). | A need to share a rejected state as a reusable tool. |
+| Q3 | What freshness a governed-claim export needs, and who states it. | Default accepted. Freshness is a policy rule the instance issues, with a validity interval and a stated behaviour when it cannot be established. With no such rule the held policy is enforced, and the receipt says which policy version was evaluated and when it was last attested. Leave and "Make an editable copy" keep their current meanings (R7). | An organisation that needs a hard deadline, or a fully offline site. |
+| Q4 | What non-recordable means for a local utility and for a live-input tool. | Default accepted. Utility: capture off, retention none, replay semantic from pinned inputs. Live input: capture unsupported unless the person turns it on, retention session, replay none. | A regulated workflow that needs durable receipts for utilities. |
+| Q5 | Who may publish a suite under the `lolly` namespace, and how a local or Work suite is named. | Default accepted. Suites under `lolly/*` are published from this repository's continuous integration only, instances publish under `work:<instance>/*`, people publish under `local/*` and an acceptance record always states the suite it judged (R8). | A partner programme that needs a shared namespace. |
+| Q6 | Whether the specification is public from the first draft. | Public, decided. The specification is published from its first draft, because `docs/constraints.md`, `docs/determinism.md` and `docs/reproducibility.md` already make public promises this model keeps. | A reason to keep the drafts private until the pilots pass. |
 
 ## What is not built
 
@@ -116,6 +116,8 @@ The work starts in this order, each step small.
 
 Two rules bind that order. No shared type may be frozen before the fixtures in step 2 pass (C1, C2, C3, C4, C7). The patch envelope and the source-aware diff land only after the semantics in [source rows and patches](source-and-patches.html) and in [packaging](packaging.html) are settled, never before (plan section 18, R1). This draft states them as draft shapes and builds neither.
 
+On 2026-10-16 Andy also decided when the shared core types may be added. `DependencyGraphV1` and `ComponentDefinitionV1`, which plan 190 defines, and `OutcomeV1` and `FindingV1`, which this model defines (R5), may be added to `packages/core` after the counterexample fixtures in step 2 pass, and not earlier. Step 3 still limits what is added then to the smallest types the fixtures justify, starting with the outcome and finding types. Until then each of the four stays a draft shape.
+
 ## Completion criteria for the planning phase
 
 | Criterion | State |
@@ -128,7 +130,7 @@ Two rules bind that order. No shared type may be frozen before the fixtures in s
 | Fidelity, timing and editable preservation each have a testable contract | Met, one of them supported by a probe |
 | Package and identity compatibility and legacy execution classifications agreed | Met |
 | The counterexamples pass as contract fixtures before any shared type is frozen | Outstanding |
-| Andy's answers to Q1 to Q6, or acceptance of the defaults | Outstanding |
+| Andy's answers to Q1 to Q6, or acceptance of the defaults | Met on 2026-10-16: the Q1 to Q5 defaults accepted, and Q6 decided as public |
 | Specification drafting started | In progress: this draft |
 
 ## Change log
@@ -158,14 +160,16 @@ Two rules bind that order. No shared type may be frozen before the fixtures in s
 | 2026-10-14 | Plan 295 P3f draws strokes on the internal WebGPU raster path as the fill of the region each one paints: a CSS border as the ring inside the box, and a pen stroke outlined with its cap, join and mitre limit. Conformance records the stroke rules and their controls, and a finding about the Design renderer: it offsets a pen shape's svg by its stroke pad and Chromium snaps a fractional pad, so odd round-capped widths draw 0.5 px off their geometry. The path stays internal and opt-in; no export, shared type or release changes. Affects R9 and R15. |
 | 2026-10-14 | Plan 295 P3f paints linear and radial gradients on the internal WebGPU raster path over each box's own coverage, placed as CSS places a background image. Conformance records the gradient rules: shape regions keep their band, and gradient interiors must sit within 2 levels of the Design renderer, with two controls. The path stays internal and opt-in; no export, shared type or release changes. Affects R9 and R15. |
 | 2026-10-14 | Plan 295 P3f draws rounded and elliptical frames on the internal WebGPU raster path and clips the rows to the box inside the frame's border. Conformance records the clip rule and its control, and that a harness judging transparent pixels must judge them over a backdrop that cannot hide a colour, such as a checkerboard. The path stays internal and opt-in; no export, shared type or release changes. Affects R9 and R15. |
+| 2026-10-16 | Andy answered the six questions. The defaults for Q1 to Q5 are accepted as documented, and Q6 is recorded as decided: the specification is public from its first draft. Every chapter's Open points now state the decisions instead of open defaults. The shared core types `DependencyGraphV1`, `ComponentDefinitionV1`, `OutcomeV1` and `FindingV1` may be added after the counterexample fixtures pass, and not earlier. The draft notice stays on every chapter, because these answers record no reading of the chapters. Affects R5, R6, R7 and R8. |
 
 A change to any chapter must add a row here with its date and what changed, so that the chapter sources in `docs/spec/document-model/` carry one history (`plans/276-execution.md` section 1A). A row lists the resolution ids the change affects, which is this specification's own convention.
 
 ## Open points
 
-- **Q6. Whether the specification is public from the first draft.** Default from plan section 16: yes, published from `docs/` to the `/info` site, because `docs/constraints.md`, `docs/determinism.md` and `docs/reproducibility.md` already make public promises this model keeps. Evidence that would change it: a reason to keep the drafts private until the pilots pass.
+- **Q6. Whether the specification is public from the first draft.** Decided on 2026-10-16: yes, published from `docs/` to the `/info` site, because `docs/constraints.md`, `docs/determinism.md` and `docs/reproducibility.md` already make public promises this model keeps. Evidence that would reopen it: a reason to keep the drafts private until the pilots pass.
+- **The reading of the chapters.** Still open. The notice at the head of every chapter stays until this chapter records that people have read the draft, starting with the constitution, source rows and patches, policy and conformance chapters.
 
-The other five questions are recorded in the open questions table above with their defaults, and each is carried, unanswered, by the chapter it touches: Q1 and Q5 in [conformance](conformance.html), Q2 and Q3 in [policy](policy.html), Q4 in [operations](operations.html).
+The other five questions are in the answered questions table above, and each chapter they touch states the decision: Q1 and Q5 in [conformance](conformance.html), Q2 and Q3 in [policy](policy.html), Q4 in [operations](operations.html).
 
 ## Precedents
 
