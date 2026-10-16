@@ -817,17 +817,35 @@ test('Scale shares the pointer\'s rail slot: the rail keeps its ten buttons and 
         const btns = [...document.querySelectorAll<HTMLElement>('.fc-toolbar .fc-btn')].filter((b) => b.offsetParent);
         const rows = new Map<number, number>();
         for (const b of btns) { const y = Math.round(b.getBoundingClientRect().y); rows.set(y, (rows.get(y) ?? 0) + 1); }
+        const stage = document.querySelector<HTMLElement>('.tool-stage')!;
+        const barFoot = document.querySelector('.design-topbar')?.getBoundingClientRect().bottom ?? 0;
+        // The way a person reaches a button: scroll the rail itself (or the column it sits
+        // in), never the stage, which is overflow hidden and only scrolls from script.
+        const scroller = (b: HTMLElement): HTMLElement | null => {
+          for (let p = b.parentElement; p && p !== stage; p = p.parentElement) {
+            if (/auto|scroll/.test(getComputedStyle(p).overflowY) && p.scrollHeight > p.clientHeight) return p;
+          }
+          return null;
+        };
         const reach = btns.map((b) => {
+          const sc = scroller(b);
+          if (sc) {
+            const s = sc.getBoundingClientRect(), r0 = b.getBoundingClientRect();
+            if (r0.top < s.top) sc.scrollTop -= s.top - r0.top; else if (r0.bottom > s.bottom) sc.scrollTop += r0.bottom - s.bottom;
+          }
           const r = b.getBoundingClientRect(); const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
-          return { name: b.getAttribute('aria-label') ?? b.className, swatch: b.classList.contains('fc-color-btn'), ok: !!hit && (hit === b || b.contains(hit)) };
+          const whole = r.top >= barFoot - 1 && r.bottom <= innerHeight + 1;
+          return { name: b.getAttribute('aria-label') ?? b.className, ok: whole && !!hit && (hit === b || b.contains(hit)) };
         });
-        return { count: btns.length, own: !!document.querySelector('.fc-btn-scale'), rows: [...rows.values()], reach };
+        return { count: btns.length, own: !!document.querySelector('.fc-btn-scale'), rows: [...rows.values()], reach, stageScrolled: stage.scrollTop + stage.scrollLeft };
       });
       assert.equal(rail.own, false, `${tag}: no Scale button of its own`);
       assert.equal(rail.count, 10, `${tag}: the rail has the ten buttons it had before Scale`);
       if (navOpen) assert.deepEqual(rail.rows, [5, 5], `${tag}: the navigator's tool grid fills two whole rows`);
-      // A short window never reached the colour swatch at the foot of the rail; every tool above it takes a press.
-      assert.deepEqual(rail.reach.filter((b) => !b.ok && !(height < 550 && b.swatch)).map((b) => b.name), [], `${tag}: every rail button takes a press`);
+      // A short window used to lose the Lolly menu under the top bar and the swatch off the foot.
+      assert.deepEqual(rail.reach.filter((b) => !b.ok).map((b) => b.name), [], `${tag}: every rail button is reachable, whole and below the top bar, and takes a press`);
+      assert.equal(rail.stageScrolled, 0, `${tag}: reaching them never scrolled the stage`);
+      await page.evaluate(() => { for (const el of document.querySelectorAll<HTMLElement>('.fc-toolbar, .fc-toolbar-dock, .fc-nav, .fc-nav *')) el.scrollTop = 0; });
       // The slot's menu: a right-click offers the pointer and Scale.
       const slot = page.locator('.fc-btn-pointer');
       await slot.click({ button: 'right' });
@@ -864,6 +882,84 @@ test('Scale shares the pointer\'s rail slot: the rail keeps its ten buttons and 
     await page.screenshot({ path: shotPath('phone-scale-on') });
     assert.deepEqual(errors, []);
     await ctx.close();
+  } finally { await browser.close(); }
+});
+
+test('a short window scrolls the parked rail: the wheel reaches Invite and the swatch without panning the canvas, and the Lolly menu sits below the top bar', opts, async () => {
+  const browser = await launch();
+  try {
+    for (const [width, height] of [[844, 390], [680, 425]] as const) {
+      const tag = `${width}x${height}`;
+      const { ctx, page, errors } = await open(browser, [{ id: 'big', kind: 'box', x: 100, y: 100, w: 200, h: 120, bg: '#88c4a0' }], { width, height });
+      const state = (): Promise<{ parked: boolean; scrollTop: number; scrollable: boolean; canvas: number[]; take: Record<string, boolean> }> => page.evaluate(() => {
+        const bar = document.querySelector<HTMLElement>('.fc-toolbar')!;
+        const dock = bar.parentElement!;
+        const s = bar.getBoundingClientRect();
+        const foot = document.querySelector('.design-topbar')?.getBoundingClientRect().bottom ?? 0;
+        // Wholly inside the rail's visible box, below the top bar, and on top where it is pressed.
+        const takes = (b: Element | null): boolean => {
+          if (!b) return false;
+          const r = b.getBoundingClientRect(), hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+          return r.top >= Math.max(s.top, foot) - 1 && r.bottom <= Math.min(s.bottom, innerHeight) + 1 && !!hit && (hit === b || b.contains(hit));
+        };
+        const c = document.getElementById('tool-canvas')!.getBoundingClientRect();
+        return {
+          parked: dock.classList.contains('fc-toolbar-dock') && !dock.classList.contains('is-detached') && !document.querySelector('.tool-stage.has-tl-reserve'),
+          scrollTop: bar.scrollTop,
+          scrollable: bar.scrollHeight > bar.clientHeight,
+          canvas: [Math.round(c.x), Math.round(c.y)],
+          take: {
+            menu: takes(bar.querySelector('.fc-btn-lolly')),
+            invite: takes(bar.querySelector('[aria-label="Invite agents"]')),
+            swatch: takes(bar.querySelector('.fc-color-btn')),
+          },
+        };
+      });
+      const top = await state();
+      assert.ok(top.parked, `${tag}: the rail is parked in its dock`);
+      assert.ok(top.scrollable, `${tag}: the rail is longer than its band, so it scrolls`);
+      assert.equal(top.take.menu, true, `${tag}: at rest the Lolly menu is whole, below the top bar, and takes a press`);
+      await page.screenshot({ path: shotPath(`rail-${tag}-short-top`) });
+
+      const box = (await page.locator('.fc-toolbar').boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.wheel(0, 600);
+      await page.waitForFunction(() => {
+        const bar = document.querySelector<HTMLElement>('.fc-toolbar')!;
+        return bar.scrollTop + bar.clientHeight >= bar.scrollHeight - 1;
+      });
+      await frames(page);
+      const foot = await state();
+      assert.ok(foot.scrollTop > 0, `${tag}: the wheel scrolled the rail`);
+      assert.deepEqual(foot.canvas, top.canvas, `${tag}: and did not pan the canvas`);
+      assert.equal(foot.take.invite, true, `${tag}: Invite takes a press`);
+      assert.equal(foot.take.swatch, true, `${tag}: the paint swatch takes a press`);
+      await page.screenshot({ path: shotPath(`rail-${tag}-short-foot`) });
+
+      await page.mouse.wheel(0, -600);
+      await page.waitForFunction(() => document.querySelector<HTMLElement>('.fc-toolbar')!.scrollTop === 0);
+      await frames(page);
+      assert.equal((await state()).take.menu, true, `${tag}: scrolling back brings the Lolly menu back`);
+
+      // The keyboard route: focusing the swatch scrolls the rail down to the swatch.
+      const trigger = page.locator('.fc-toolbar .fc-color-btn .color-trigger');
+      await trigger.focus();
+      await frames(page);
+      const focused = await state();
+      assert.ok(focused.scrollTop > 0 && focused.take.swatch, `${tag}: a focused swatch is scrolled into view`);
+      assert.deepEqual(focused.canvas, top.canvas, `${tag}: and the canvas stays put`);
+      // The swatch's picker is a fixed popover, so the scrolling rail never clips the picker.
+      await trigger.click();
+      const popover = await page.evaluate(() => {
+        const p = document.querySelector('.fc-toolbar .color-popover:not([hidden])');
+        if (!p) return null;
+        const r = p.getBoundingClientRect(), hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+        return { inView: r.top >= 0 && r.bottom <= innerHeight + 1 && r.left >= 0, onTop: !!hit && p.contains(hit) };
+      });
+      assert.deepEqual(popover, { inView: true, onTop: true }, `${tag}: the swatch opens its picker in view and on top`);
+      assert.deepEqual(errors, []);
+      await ctx.close();
+    }
   } finally { await browser.close(); }
 });
 
