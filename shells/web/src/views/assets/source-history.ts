@@ -40,7 +40,7 @@ export function mountSourceHistory(root: HTMLElement, ref: AssetRef, assets: { _
         p(t('Only recorded use on this device is shown. Attributes come from the device index at the recorded read; current access, processing and delivery permission are checked separately.'));
         if (!id.startsWith('inst/')) return;
         const response = await instanceFetch(instancePath(`/api/v1/catalog/assets/${id}/versions`), { cache: 'no-store', signal: controller.signal });
-        const remote = await readCatalogJson(response) as { head: number; versions?: Array<{ version: number; formats: Array<{ format: string; checksum: string }> }>; sourceReviews?: Array<{ state: string; sourceReview: { purpose: string; target: string; files: Array<{ version: number; format: string; sha256: string }> } }> };
+        const remote = await readCatalogJson(response) as { head: number; sourceReviewCapability?: { kind: string; maxFileBytes: number } | null; versions?: Array<{ version: number; formats: Array<{ format: string; checksum: string; size: number }> }>; sourceReviews?: Array<{ state: string; sourceReview: { purpose: string; target: string; files: Array<{ version: number; format: string; sha256: string }> } }> };
         if (!alive()) return;
         p(t('Current instance file versions: {count}', { count: remote.versions?.length ?? 0 }));
         p(t('Historical source attributes are not recorded by the instance.'));
@@ -49,6 +49,7 @@ export function mountSourceHistory(root: HTMLElement, ref: AssetRef, assets: { _
           p(`${review.sourceReview.purpose} · ${review.sourceReview.target} · ${review.state}`);
           for (const file of review.sourceReview.files) p(`${t('Version')} ${file.version} · ${file.format} · SHA-256 ${file.sha256}`);
         }
+        if (remote.sourceReviewCapability?.kind !== 'frozen-instance-originals-v1') return;
         const request = document.createElement('button'); request.type = 'button'; request.className = 'btn'; request.textContent = t('Request source review'); content.append(request);
         request.addEventListener('click', () => {
           request.disabled = true;
@@ -63,7 +64,7 @@ export function mountSourceHistory(root: HTMLElement, ref: AssetRef, assets: { _
               label('Review purpose', purpose); label('Activation target', target); label('Approval chain', chain); label('File version', file);
               for (const value of chains.chains ?? []) { const option = document.createElement('option'); option.value = value.id; option.textContent = value.name; chain.append(option); }
               const choices: Array<{ assetId: string; version: number; format: string; sha256: string; representation: 'original' }> = [];
-              for (const version of remote.versions ?? []) for (const format of version.formats) if (/^[a-f0-9]{64}$/.test(format.checksum)) {
+              for (const version of remote.versions ?? []) for (const format of version.formats) if (/^[a-f0-9]{64}$/.test(format.checksum) && format.size <= remote.sourceReviewCapability!.maxFileBytes) {
                 const option = document.createElement('option'); option.value = String(choices.length); option.textContent = `${t('Version')} ${version.version} · ${format.format}`;
                 option.selected = version.version === remote.head; file.append(option);
                 choices.push({ assetId: id, version: version.version, format: format.format, sha256: format.checksum, representation: 'original' });

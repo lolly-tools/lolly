@@ -70,9 +70,10 @@ test('saved source pins retain selected files and observed attributes through ov
 
 test('the source-history form sends an explicit file version, purpose and activation target', { skip, timeout: 30_000 }, async () => {
   const browser = await chromium.launch({ headless: true }), page = await browser.newPage();
+  let capable = true;
   try {
     await page.route(`${origin}/`, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Review source</title><main></main>' }));
-    await page.route('**/api/v1/catalog/assets/inst/hero/versions', route => route.fulfill({ json: { head: 1, metadataHistory: 'not-recorded', versions: [{ version: 1, formats: [{ format: 'png', checksum: 'a'.repeat(64) }] }], sourceReviews: [] } }));
+    await page.route('**/api/v1/catalog/assets/inst/hero/versions', route => route.fulfill({ json: { head: 1, ...(capable ? { sourceReviewCapability: { kind: 'frozen-instance-originals-v1', maxFileBytes: 64 * 1024 * 1024 } } : {}), metadataHistory: 'not-recorded', versions: [{ version: 1, formats: [{ format: 'png', size: 100, checksum: 'a'.repeat(64) }] }], sourceReviews: [] } }));
     await page.route('**/api/v1/chains', route => route.fulfill({ json: { chains: [{ id: 'brand', name: 'Brand review' }] } }));
     let sent: Record<string, any> | undefined;
     await page.route('**/api/v1/approvals', route => { sent = route.request().postDataJSON(); return route.fulfill({ status: 201, json: { id: 'review-created' } }); });
@@ -88,5 +89,13 @@ test('the source-history form sends an explicit file version, purpose and activa
     await page.getByText('Source review requested. Approval applies only to this file version, purpose and target.', { exact: true }).waitFor();
     assert.deepEqual(sent?.sourceReview, { purpose: 'Print creative review', target: 'launch:print', files: [{ assetId: 'inst/hero', version: 1, format: 'png', sha256: 'a'.repeat(64), representation: 'original' }] });
     assert.equal(sent?.subjectType, 'source-review');
+    capable = false;
+    await page.evaluate(async () => {
+      const path = '/src/views/assets/source-history.ts', root = document.querySelector('main')!; root.replaceChildren();
+      (await import(path)).mountSourceHistory(root, { id: 'inst/hero', source: 'library', type: 'raster', format: 'png', url: '' }, {});
+    });
+    await page.getByText('Source history', { exact: true }).click();
+    await page.getByText('Current instance file versions: 1', { exact: true }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Request source review', exact: true }).count(), 0, 'older servers retain history without offering unsupported review');
   } finally { await browser.close(); }
 });
