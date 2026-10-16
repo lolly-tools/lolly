@@ -771,12 +771,6 @@ async function importBrandLollyDrop(
     });
     await switchDesignSystem(host as unknown as Parameters<typeof switchDesignSystem>[0], record.id, { noRemount: true });
     playSfx('drop');
-    if (summary.packInstance) {
-      // The pack chose where community content comes from - that IS the
-      // instance choice, so the first-run chooser must not re-ask.
-      const { markInstanceChoiceMade } = await import('./instance-choice.ts');
-      await markInstanceChoiceMade();
-    }
     if (summary.packTools > 0) {
       const { syncCatalog } = await import('../catalog/sync.ts');
       await syncCatalog(host as unknown as Parameters<typeof syncCatalog>[0]).catch(() => { /* next boot */ });

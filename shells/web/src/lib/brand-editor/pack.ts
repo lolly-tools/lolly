@@ -75,12 +75,6 @@ export const importPack = async (bedit: BrandEditorCtx, source: File | Unzipped)
     typeof File !== 'undefined' && source instanceof File ? await source.arrayBuffer() : source as Unzipped,
   );
   await reload(bedit);
-  if (summary.packInstance) {
-    // The pack chose the instance base - the first-run chooser must not re-ask.
-    void import('../instance-choice.ts')
-      .then(({ markInstanceChoiceMade }) => markInstanceChoiceMade())
-      .catch(() => { /* best-effort */ });
-  }
   if (summary.packTools > 0) {
     // An instance pack (plans/131) arrived tools + catalog entries beside the
     // brand: resync now so the gallery lists them without a reload/boot, then
