@@ -129,8 +129,11 @@ export function teamRoleOf(value: unknown): TeamRole | undefined {
  *  each carried only when the server sent it in the right type. Pure. */
 const VIAS: readonly TeamProjectVia[] = ['owner', 'member', 'group', 'custom-group', 'everyone', 'admin'];
 
-function projectExtras(p: { myRole?: unknown; updatedByName?: unknown; createdAt?: unknown; via?: unknown; audience?: unknown; listed?: unknown; lastOpenedAt?: unknown }): Pick<TeamProjectRef, 'myRole' | 'updatedByName' | 'createdAt' | 'via' | 'audience' | 'listed' | 'lastOpenedAt'> {
+function projectExtras(p: { myRole?: unknown; updatedByName?: unknown; createdAt?: unknown; via?: unknown; audience?: unknown; listed?: unknown; lastOpenedAt?: unknown; visibility?: unknown }): Pick<TeamProjectRef, 'myRole' | 'updatedByName' | 'createdAt' | 'via' | 'audience' | 'listed' | 'lastOpenedAt' | 'visibility'> {
   const myRole = teamRoleOf(p.myRole);
+  const groups = typeof p.visibility === 'object' && p.visibility !== null && Array.isArray((p.visibility as { groups?: unknown }).groups)
+    ? ((p.visibility as { groups: unknown[] }).groups).filter((g): g is string => typeof g === 'string' && !!g.trim()) : null;
+  const visibility: TeamProjectVisibility | undefined = p.visibility === 'private' ? 'private' : groups?.length ? { groups } : undefined;
   const name = typeof p.updatedByName === 'string' && p.updatedByName.trim() ? p.updatedByName.trim() : undefined;
   const via = typeof p.via === 'string' && (VIAS as readonly string[]).includes(p.via) ? p.via as TeamProjectVia : undefined;
   const opened = typeof p.lastOpenedAt === 'string' && Number.isFinite(Date.parse(p.lastOpenedAt)) ? p.lastOpenedAt : undefined;
@@ -138,6 +141,7 @@ function projectExtras(p: { myRole?: unknown; updatedByName?: unknown; createdAt
     ...(myRole ? { myRole } : {}), ...(name ? { updatedByName: name } : {}), ...(typeof p.createdAt === 'string' ? { createdAt: p.createdAt } : {}),
     ...(via ? { via } : {}), ...(p.audience === 'instance' || p.audience === 'restricted' ? { audience: p.audience } : {}),
     ...(p.listed === 'pinned' || p.listed === 'hidden' ? { listed: p.listed } : {}), ...(opened ? { lastOpenedAt: opened } : {}),
+    ...(visibility ? { visibility } : {}),
   };
 }
 

@@ -14,7 +14,7 @@
  * The server decides every action again; these only keep the shell from offering a
  * control that would be refused.
  */
-import type { TeamRole } from '../lib/session-source.ts';
+import type { TeamProjectRef, TeamRole } from '../lib/session-source.ts';
 import { loadedLang, tRaw } from '../i18n.ts';
 import { relTime } from '../lib/rel-time.ts';
 
@@ -253,6 +253,17 @@ export function activityLabel(item: { updatedByName?: string; updatedAt?: string
   if (name && time) return tRaw('Edited by {name}, {time}', { name, time });
   if (name) return tRaw('Edited by {name}', { name });
   return time;
+}
+
+/** Who a team project is for, in a few words. A private project used to read
+ *  "Shared project", which is a privacy statement and a wrong one (plan 320 J10).
+ *  "Shared project" stays for a source that does not say. Plain text. */
+export function projectAudienceLabel(p: Pick<TeamProjectRef, 'via' | 'visibility'>): string {
+  if (p.via === 'everyone') return tRaw('Shared with everyone');
+  if (p.via === 'admin') return tRaw('Workspace project');
+  if (p.visibility === 'private') return tRaw('Private project');
+  if (p.visibility) return tRaw('Everyone in {group}', { group: p.visibility.groups.join(', ') });
+  return tRaw('Shared project');
 }
 
 /** "1 session" or "{n} sessions": the app's two-form plural (whole sentences in the

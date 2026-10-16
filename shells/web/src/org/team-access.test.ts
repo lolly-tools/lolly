@@ -17,7 +17,7 @@ const {
   invitePolicy, peopleAccess, teamSaveChoice, canWriteProject, isManagerPlus, activityLabel,
   parseInviteEmails, inviteLinkKind, inviteResultText, shownInviteStatus, waitingAddresses, peopleMessage, roleLabel, inviteRoleOf,
   sessionCountLabel, teamPickerEmpty, conflictCopy, longRelTime, passwordTickDefault, dayLabel, invitationLines,
-  requestAskText, requestAskedText, requestAnsweredText, requestRefusalText, roleHelpText,
+  requestAskText, requestAskedText, requestAnsweredText, requestRefusalText, roleHelpText, projectAudienceLabel,
 } = await import('./team-access.ts');
 
 const NOW = Date.parse('2026-10-02T12:00:00Z');
@@ -307,4 +307,14 @@ test('peopleMessage: a new link has its own daily limit and treats a missing inv
   assert.equal(peopleMessage(429, 'link'), 'That is a lot of new links for one day. Try again tomorrow.');
   assert.equal(peopleMessage(404, 'link'), 'That person or invitation has already changed.');
   assert.match(peopleMessage(429, 'invite'), /addresses for one hour/);
+});
+
+// Plan 320 J10: a private project read "Shared project", a wrong privacy statement.
+test('projectAudienceLabel: says who the project is for', () => {
+  assert.equal(projectAudienceLabel({ visibility: 'private' }), 'Private project');
+  assert.equal(projectAudienceLabel({ via: 'owner', visibility: 'private' }), 'Private project');
+  assert.equal(projectAudienceLabel({ visibility: { groups: ['Marketing', 'Brand team'] } }), 'Everyone in Marketing, Brand team');
+  assert.equal(projectAudienceLabel({ via: 'everyone', visibility: 'private' }), 'Shared with everyone', 'the workspace-wide share wins');
+  assert.equal(projectAudienceLabel({ via: 'admin', visibility: 'private' }), 'Workspace project');
+  assert.equal(projectAudienceLabel({}), 'Shared project', 'an older source that does not say');
 });
