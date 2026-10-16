@@ -201,6 +201,10 @@ export interface CollabSessionHandle {
   readonly comments?: import('./canvas-comments.ts').CanvasCommentsCapability;
   readonly claims?: import('./canvas-interaction.ts').CanvasClaimCapability;
   readonly recoveryIn?: CollabStream<{ id: string; ops: readonly CanvasOp[] }>;
+  /** This device's library now holds the copy `recoveryIn` delivered as `id`, so the room
+   *  stops replaying that copy. A later reconnect raises nothing, and a copy the person
+   *  removes stays removed. */
+  readonly recoveryKept?: (id: string) => void;
   /** A work gateway already meters each authenticated sender. Its combined feed
    * includes checkpoint projections; still validate every op against this model. */
   readonly admission?: 'work-room';

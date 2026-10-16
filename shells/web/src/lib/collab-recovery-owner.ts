@@ -49,6 +49,33 @@ export function ownsRecoveryCopy(data: unknown, origin: string, account: string 
   return !!owner && !!account && owner.account === account && recoveryOrigin(owner.origin) === recoveryOrigin(origin);
 }
 
+/**
+ * Who holds the copy already in a draft's slot, seen from `account` on the workspace at
+ * `origin`:
+ * - `this-account`: the copy is this account's on this workspace.
+ * - `unbound`: written with no account (a private pairing, or a build from before copies
+ *   recorded the account) while this account is known.
+ * - `earlier-address`: written by this account under another workspace address.
+ * - `saved-work`: no owner tag, because the person saved the copy as their own work or it
+ *   was written before copies were tagged.
+ * - `another-account`: another account's copy, or an owner tag that cannot be read.
+ * Pure.
+ */
+export type RecoveryHolder = 'this-account' | 'unbound' | 'earlier-address' | 'saved-work' | 'another-account';
+export function recoveryHolder(data: unknown, origin: string, account: string): RecoveryHolder {
+  const owner = recoveryOwner(data);
+  if (!owner) return data && typeof data === 'object' && RECOVERY_OWNER_KEY in data ? 'another-account' : 'saved-work';
+  if (owner.account !== account) return owner.account === '' && account ? 'unbound' : 'another-account';
+  return recoveryOrigin(owner.origin) === recoveryOrigin(origin) ? 'this-account' : 'earlier-address';
+}
+
+/** `data` bound to `account` on the workspace at `origin`. It keeps the time the copy was
+ *  first written, so the 30-day limit still counts from then. Pure. */
+export function rebindRecoveryCopy(data: Record<string, unknown>, origin: string, account: string): Record<string, unknown> {
+  const at = recoveryOwner(data)?.at ?? new Date().toISOString();
+  return { ...data, [RECOVERY_OWNER_KEY]: { origin: recoveryOrigin(origin), account, at } satisfies RecoveryOwner };
+}
+
 /** The tag a copy written now by `account` on the active workspace carries. */
 export function recoveryOwnerTag(account: string, at: Date = new Date()): RecoveryOwner {
   const origin = getInstanceBase() || globalThis.location?.origin || '';
