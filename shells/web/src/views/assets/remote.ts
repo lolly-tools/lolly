@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** A bounded shared-library page beside device assets, with retained explicit selections. */
 import { AssetBrowser, CatalogBrowseError, type BrowseFilters } from '../../catalog/browse.ts';
+import { getInstanceBase } from '../../lib/instance.ts';
 import { TYPE_FILTER_TYPES, parseCatQuery } from '../assets-filter.ts';
 import { escape as esc } from '../../utils.ts';
 import { t } from '../../i18n.ts';
@@ -11,9 +12,19 @@ import { assetListHead } from './layout.ts';
 import type { CatCtx } from './context.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 
+/**
+ * Whether each instance provides shared browsing, as far as this page session has heard:
+ * true once it returned a valid page, false after a 404 or a reply that is not JSON (a static
+ * host, or the HTML a dev server falls back to). Keyed by instance base, so another instance
+ * is asked again. A refusal, an outage or a network error answers neither way and is not kept.
+ */
+const answers = new Map<string, boolean>();
+
 export function remoteOps(cat: CatCtx) {
   const browser = new AssetBrowser();
-  let signature = '', disposed = false, timer: ReturnType<typeof setTimeout> | undefined;
+  // An instance already known to have no shared library is neither asked nor shown again.
+  if (answers.get(getInstanceBase()) === false) browser.supported = false;
+  let signature = '', painted = '', disposed = false, timer: ReturnType<typeof setTimeout> | undefined;
   let pendingRefresh: ReturnType<typeof setTimeout> | undefined;
   let tag = new URLSearchParams(cat.params).get('tag') ?? '';
   const shared = (ref: AssetRef | undefined) => !!ref && (!!ref.meta?.provider || ref.id.startsWith('inst/'));
@@ -39,16 +50,36 @@ export function remoteOps(cat: CatCtx) {
     cat.assetById = new Map([...cat.allAssets, ...browser.refs, ...retained].map(ref => [ref.id, ref]));
     cat.searchHaystack = null;
   };
+  // The section shows only after this instance returned a valid page, on this mount or an earlier one.
+  const confirmed = () => browser.supported === true || (browser.supported === null && answers.get(getInstanceBase()) === true);
   const paint = () => { if (!disposed && cat.mounted) { reconcile(); cat.sections.renderBody(); cat.sources.mount(); } };
+  // What the Sources rail reads from this module.
+  const rail = () => JSON.stringify([!!browser.supported, browser.page?.facets.taxonomy ?? null, cat.sourceStatuses]);
+  // Redraw only what a load changed. The body repaints when device groups lose shared records
+  // or the answer changes a rule outside the section, such as an empty type filter falling back
+  // to All. Otherwise the section is swapped in place, or left alone when its markup is the
+  // same, as it always is while the section stays hidden.
+  const refresh = (supported: boolean | null, sources: string) => {
+    if (disposed || !cat.mounted) return;
+    const count = cat.allAssets.length; reconcile();
+    const answered = browser.supported !== supported;
+    if (cat.allAssets.length !== count || (answered && (browser.supported !== false || supported === true || cat.filters.typeBucketEmpty()))) { paint(); return; }
+    if (markup() !== painted && !cat.sections.renderShared()) { paint(); return; }
+    if (rail() !== sources) cat.sources.mount();
+  };
   const unsupportedQuery = () => { const query = parseCatQuery(cat.query); return query.tags.length || query.types.length || query.flags.length || query.categories.length || query.collections.length || query.sources.length; };
   const load = async (direction: 'reset' | 'next' | 'previous' | 'retry' = 'reset', live = false) => {
     const query = filters(); if (!query) return;
-    if (unsupportedQuery()) { browser.page = null; browser.refs = []; browser.error = new CatalogBrowseError('Use the shared Type, Tag and source controls for exact filters. Search operators are not supported in shared browse.'); paint(); return; }
-    const operation = browser.load(query, direction, live);
-    paint(); await operation;
+    let supported = browser.supported, sources = rail();
+    if (unsupportedQuery()) { browser.page = null; browser.refs = []; browser.error = new CatalogBrowseError('Use the shared Type, Tag and source controls for exact filters. Search operators are not supported in shared browse.'); refresh(supported, sources); return; }
+    const base = getInstanceBase(), operation = browser.load(query, direction, live);
+    refresh(supported, sources); supported = browser.supported; sources = rail();
+    const answer = await operation;
     if (disposed || !cat.mounted) return;
-    if (browser.error?.status === 401 || browser.error?.status === 403) {
-      for (const [id, ref] of cat.assetById) if (shared(ref)) { cat.assetById.delete(id); cat.selected.delete(id); }
+    if (!live && answer !== null) answers.set(base, answer);
+    let dropped = false;
+    if (confirmed() && (browser.error?.status === 401 || browser.error?.status === 403)) {
+      for (const [id, ref] of cat.assetById) if (shared(ref)) { cat.assetById.delete(id); dropped = cat.selected.delete(id) || dropped; }
       cat.sections.closeDetails();
     }
     if (browser.page?.sources) {
@@ -56,7 +87,7 @@ export function remoteOps(cat: CatCtx) {
       for (const source of browser.page.sources) merged.set(source.id, source);
       cat.sourceStatuses = [...merged.values()];
     }
-    paint();
+    if (dropped) paint(); else refresh(supported, sources);
     clearTimeout(pendingRefresh);
     if (browser.page?.sources?.some(source => source.status === 'pending')) pendingRefresh = setTimeout(() => { if (!disposed && cat.mounted) void load(); }, 3000);
   };
@@ -67,8 +98,8 @@ export function remoteOps(cat: CatCtx) {
     browser.dispose();
     if (query && browser.supported !== false) timer = setTimeout(() => { void load(); }, 180);
   };
-  const html = () => {
-    if (!filters() || browser.supported === false) return '';
+  const markup = () => {
+    if (!filters() || !confirmed()) return '';
     const { page, loading, error } = browser;
     const status = loading ? t('Loading shared assets…') : error ? t(error.message)
       : page ? browser.mode === 'live' ? t('Live results are a limited candidate set. Use indexed browse for exact filters and counts.')
@@ -80,7 +111,7 @@ export function remoteOps(cat: CatCtx) {
     const options = page?.facets.tags ?? [];
     const tags = new Map(options.map(value => [value.name, value.count])); if (tag && !tags.has(tag)) tags.set(tag, 0);
     const liveAllowed = !unsupportedQuery() && !!cat.query && cat.typeFilter === 'all' && !tag && !filters()?.taxonomyKind;
-    return `<section class="cat-remote" aria-label="${t('Shared library')}" aria-busy="${loading}">
+    return `<section class="cat-remote" data-shared-library aria-label="${t('Shared library')}" aria-busy="${loading}">
       <h2>${t('Shared library')}</h2>
       <p data-shared-query>${browser.mode === 'live' ? t('Search mode: live sources') : t('Search mode: indexed library')}${cat.query ? ` · ${esc(t('Search'))}: ${esc(cat.query)}` : ''}</p>
       ${browser.mode === 'indexed' ? `<p class="cat-remote-note">${t('Use the search bar to find names, descriptions, tags, organisation fields and saved text in the shared catalog.')}</p>` : ''}
@@ -99,6 +130,8 @@ export function remoteOps(cat: CatCtx) {
       ${[...cat.selected].some(id => shared(cat.assetById.get(id)) && !browser.refs.some(ref => ref.id === id)) ? `<p class="cat-remote-note">${t('Your selection includes assets on other pages. Clear the selection before choosing a different batch.')}</p>` : ''}
     </section>`;
   };
+  // Every paint of the section goes through here, so a later load knows what is on screen.
+  const html = () => (painted = markup());
   const click = (event: Event) => {
     const action = (event.target as Element).closest<HTMLElement>('[data-shared-action]')?.dataset.sharedAction;
     if (action === 'clear-search') { event.preventDefault(); setSearchBarQuery(''); return; }

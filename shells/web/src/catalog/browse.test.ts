@@ -52,6 +52,16 @@ test('refused, unavailable and unsupported servers remain distinct and clear sta
   }
 });
 
+test('a load answers whether the server provides shared browsing only when the reply settles the question', async () => {
+  const answer = (respond: () => Promise<Response>) => new AssetBrowser(respond).load({ scope: 'shared' });
+  assert.equal(await answer(async () => Response.json(page('first'))), true);
+  assert.equal(await answer(async () => new Response('<!doctype html>', { headers: { 'content-type': 'text/html' } })), false, 'an HTML fallback is not an API');
+  assert.equal(await answer(async () => new Response('', { status: 404 })), false);
+  for (const status of [401, 403, 503]) assert.equal(await answer(async () => new Response('', { status })), null, `a ${status} answers neither way`);
+  assert.equal(await answer(() => Promise.reject(new TypeError('Failed to fetch'))), null, 'a network error answers neither way');
+  assert.equal(await answer(async () => Response.json({ capabilities, assets: 'not a page' })), null, 'JSON that is not a valid page answers neither way');
+});
+
 test('a server cannot turn a bounded page request into a whole-library response', async () => {
   const browser = new AssetBrowser(async () => Response.json({ ...page('first'), assets: Array.from({ length: 101 }, (_, i) => entry(String(i))) }));
   await browser.load({}); assert.equal(browser.page, null); assert.match(browser.error!.message, /invalid asset page/);
