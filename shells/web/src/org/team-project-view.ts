@@ -14,7 +14,7 @@ import { confirmDialog, promptDialog } from '../components/confirm-dialog.ts';
 import { duplicateProjectItem } from './team-project-duplicate.ts';
 import { mountTeamProjectActions } from './team-project-actions.ts';
 import { orgConfig } from './index.ts';
-import { activityLabel, canWriteProject, invitePolicy, isManagerPlus, peopleAccess, roleLabel } from './team-access.ts';
+import { activityLabel, canWriteProject, invitePolicy, isManagerPlus, peopleAccess, projectAudienceLabel, roleLabel } from './team-access.ts';
 import { buildNewProjectForm } from './team-project-form.ts';
 import { buildPeoplePanel, copyText } from './team-people.ts';
 import { deleteTeamSession, renameTeamProject, renameTeamSession, teamProjectLinkUrl } from './project-members.ts';
@@ -134,7 +134,7 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
     const head = node('header', undefined, 'team-project-head'), identity = node('div', undefined, 'team-project-identity');
     const glyph = node('span', undefined, 'team-project-glyph'); glyph.innerHTML = icon('folderUsers'); glyph.setAttribute('aria-hidden', 'true');
     const title = node('div'), name = node('h2', project.name); name.tabIndex = -1;
-    title.append(name, node('p', [tRaw('Shared project'), project.myRole ? roleLabel(project.myRole) : ''].filter(Boolean).join(' · '), 'team-project-notice'));
+    title.append(name, node('p', [projectAudienceLabel(project), project.myRole ? roleLabel(project.myRole) : ''].filter(Boolean).join(' · '), 'team-project-notice'));
     identity.append(glyph, title); head.append(identity);
     const actions = node('div', undefined, 'team-project-actions action-toolbar');
     if (isManagerPlus(projectRole)) {
