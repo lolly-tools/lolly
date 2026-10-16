@@ -54,12 +54,26 @@ test('refused, unavailable and unsupported servers remain distinct and clear sta
 
 test('a load answers whether the server provides shared browsing only when the reply settles the question', async () => {
   const answer = (respond: () => Promise<Response>) => new AssetBrowser(respond).load({ scope: 'shared' });
+  const refusal = (status: number) => Response.json({ error: { code: 'UNAUTHORIZED', message: 'this deployment is sign-in gated' } }, { status });
   assert.equal(await answer(async () => Response.json(page('first'))), true);
+  for (const status of [401, 403]) {
+    const browser = new AssetBrowser(async () => refusal(status));
+    assert.equal(await browser.load({ scope: 'shared' }), true, `a JSON ${status} is Work refusing the visitor, so shared browsing exists`);
+    assert.equal(browser.supported, null, 'a refusal is not a page'); assert.match(browser.error!.message, /Sign in to browse shared assets/);
+  }
   assert.equal(await answer(async () => new Response('<!doctype html>', { headers: { 'content-type': 'text/html' } })), false, 'an HTML fallback is not an API');
   assert.equal(await answer(async () => new Response('', { status: 404 })), false);
-  for (const status of [401, 403, 503]) assert.equal(await answer(async () => new Response('', { status })), null, `a ${status} answers neither way`);
+  for (const status of [401, 403]) assert.equal(await answer(async () => new Response('', { status })), null, `a ${status} with no body answers neither way`);
+  assert.equal(await answer(async () => new Response('<p>Sign in</p>', { status: 401, headers: { 'content-type': 'text/html' } })), null, 'an HTML refusal could come from any host');
+  for (const status of [500, 503]) assert.equal(await answer(async () => Response.json({ error: { code: 'UNAVAILABLE' } }, { status })), null, `a ${status} answers neither way`);
+  assert.equal(await answer(async () => Response.json({ error: { code: 'INVALID_INPUT' } }, { status: 422 })), null, 'a 422 answers neither way');
+  assert.equal(await answer(async () => Response.json({ ...page('first'), capabilities: undefined })), null, 'a server without the requested filters answers neither way');
   assert.equal(await answer(() => Promise.reject(new TypeError('Failed to fetch'))), null, 'a network error answers neither way');
   assert.equal(await answer(async () => Response.json({ capabilities, assets: 'not a page' })), null, 'JSON that is not a valid page answers neither way');
+  let finish!: (response: Response) => void;
+  const held = new AssetBrowser(() => new Promise<Response>(resolve => { finish = resolve; }));
+  const cancelled = held.load({ scope: 'shared' }); held.dispose(); finish(refusal(401));
+  assert.equal(await cancelled, null, 'a cancelled load answers neither way, even when the late reply is a JSON refusal');
 });
 
 test('a server cannot turn a bounded page request into a whole-library response', async () => {

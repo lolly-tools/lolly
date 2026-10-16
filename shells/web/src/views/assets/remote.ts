@@ -14,9 +14,10 @@ import type { AssetRef } from '@lolly-tools/core/host-v1';
 
 /**
  * Whether each instance provides shared browsing, as far as this page session has heard:
- * true once it returned a valid page, false after a 404 or a reply that is not JSON (a static
- * host, or the HTML a dev server falls back to). Keyed by instance base, so another instance
- * is asked again. A refusal, an outage or a network error answers neither way and is not kept.
+ * true once it returned a valid page or refused the visitor in JSON (a gated Work server asking
+ * them to sign in), false after a 404 or a reply that is not JSON (a static host, or the HTML a
+ * dev server falls back to). Keyed by instance base, so another instance is asked again. An
+ * outage, a network error or a refusal with no JSON body answers neither way and is not kept.
  */
 const answers = new Map<string, boolean>();
 
@@ -50,7 +51,9 @@ export function remoteOps(cat: CatCtx) {
     cat.assetById = new Map([...cat.allAssets, ...browser.refs, ...retained].map(ref => [ref.id, ref]));
     cat.searchHaystack = null;
   };
-  // The section shows only after this instance returned a valid page, on this mount or an earlier one.
+  // The section shows only after this instance confirmed shared browsing, on this mount or an
+  // earlier one. A JSON refusal confirms without a page, and the section then asks the visitor
+  // to sign in; the 401/403 clean-up in load() runs once confirmed.
   const confirmed = () => browser.supported === true || (browser.supported === null && answers.get(getInstanceBase()) === true);
   const paint = () => { if (!disposed && cat.mounted) { reconcile(); cat.sections.renderBody(); cat.sources.mount(); } };
   // What the Sources rail reads from this module.

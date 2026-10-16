@@ -81,9 +81,9 @@ for (const [index, [name, respond]] of noSharedLibrary.entries()) {
   });
 }
 
-test('a network error, an outage or a refusal shows and repaints nothing, and the next mount asks again', async t => {
+test('a network error, an outage or a refusal with no JSON body shows and repaints nothing, and the next mount asks again', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
-  const failures = [() => Promise.reject(new TypeError('Failed to fetch')), async () => new Response('', { status: 503 }), async () => Response.json({ error: { code: 'UNAUTHORIZED' } }, { status: 401 })];
+  const failures = [() => Promise.reject(new TypeError('Failed to fetch')), async () => new Response('', { status: 503 }), async () => Response.json({ error: { code: 'UNAVAILABLE' } }, { status: 502 }), async () => new Response('', { status: 401 })];
   const original = globalThis.fetch; let calls = 0; globalThis.fetch = async () => failures[calls++]!();
   const paints: string[] = [], mounts: Array<ReturnType<typeof remoteOps>> = [];
   const mount = () => { const cat = fixture(paints), remote = remoteOps(cat); cat.remote = remote; mounts.push(remote); return remote; };
@@ -98,6 +98,35 @@ test('a network error, an outage or a refusal shows and repaints nothing, and th
     }
     assert.deepEqual(paints, []);
   } finally { for (const remote of mounts) remote.dispose(); globalThis.fetch = original; _setBaseForTests(''); }
+});
+
+test('a JSON refusal confirms the shared library: the section asks the visitor to sign in, and a later mount shows it at once', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const original = globalThis.fetch; let calls = 0;
+  globalThis.fetch = async () => { calls++; return Response.json({ error: { code: 'UNAUTHORIZED', message: 'this deployment is sign-in gated' } }, { status: 401 }); };
+  _setBaseForTests('https://gated.example');
+  const paints: string[] = [], cat = fixture(paints), remote = remoteOps(cat); cat.remote = remote;
+  let closed = 0; cat.sections.closeDetails = () => { closed++; };
+  // A provider record from the synced catalog, selected before the refusal arrives.
+  const held = { id: 'ext/dam/held', type: 'vector', format: 'svg', url: '/catalog/ext/dam/held/wide', meta: { provider: 'dam' } } as unknown as AssetRef;
+  cat.assetById.set(held.id, held); cat.selected.add(held.id);
+  let later: ReturnType<typeof remoteOps> | undefined;
+  try {
+    assert.equal(remote.html(), '', 'nothing shows before the server answers');
+    await remote.load();
+    assert.equal(calls, 1);
+    assert.match(remote.html(), /Shared library[\s\S]*Sign in to browse shared assets\./);
+    assert.equal(cat.assetById.has(held.id), false, 'the refusal still removes shared records');
+    assert.equal(cat.selected.has(held.id), false, 'and their selections');
+    assert.equal(closed, 1, 'and closes any shared asset left open');
+    assert.deepEqual(paints, ['body', 'sources'], 'dropping a selection repaints the body once');
+    const next = fixture(paints); later = remoteOps(next); next.remote = later;
+    assert.match(later.html(), /Shared library/, 'a later mount shows the section before its own reply');
+    paints.length = 0; later.sync(); t.mock.timers.tick(180); await settle();
+    assert.equal(calls, 2);
+    assert.match(later.html(), /Sign in to browse shared assets\./);
+    assert.deepEqual(paints, ['shared', 'shared'], 'its loading state and refusal replace the section in place');
+  } finally { remote.dispose(); later?.dispose(); globalThis.fetch = original; _setBaseForTests(''); }
 });
 
 test('a valid page shows the shared library; later loads swap the section in place or leave it alone', async t => {

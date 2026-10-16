@@ -36,9 +36,11 @@ export class AssetBrowser {
   private request: typeof instanceFetch;
   constructor(request: typeof instanceFetch = instanceFetch) { this.request = request; }
   dispose(): void { this.generation++; this.controller?.abort(); this.loading = false; }
-  /** Resolves true when a valid page arrived and false when the server has no shared browsing:
-   *  a 404, or a reply that is not JSON. A refusal, an outage, a network error and a request
-   *  that was replaced, cancelled or never sent resolve null, because they answer neither way. */
+  /** Resolves true when the server confirms shared browsing: a valid page, or a 401 or 403 sent
+   *  as JSON, which is Work refusing this visitor rather than lacking the feature. False when the
+   *  server has none: a 404, or a reply that is not JSON. An outage, a 422, a network error, a
+   *  refusal with no JSON body and a request that was replaced, cancelled or never sent resolve
+   *  null, because they answer neither way. */
   async load(filters: BrowseFilters, direction: 'reset' | 'next' | 'previous' | 'retry' = 'reset', live = false): Promise<boolean | null> {
     const generation = ++this.generation, origin = getInstanceBase();
     this.controller?.abort(); this.controller = new AbortController();
@@ -53,8 +55,12 @@ export class AssetBrowser {
     if (live) {
       if (filters.types || filters.tag || filters.taxonomyKind || !filters.q) { this.loading = false; this.error = new CatalogBrowseError('Live search requires text and supports only a source filter. Use indexed browse for exact filters.'); return null; }
     } else if (this.cursors[index]) params.set('cursor', this.cursors[index]!);
+    let refusedAsJson = false;
     try {
       const response = await this.request(instancePath(`/api/v1/catalog/${live ? 'search' : 'assets'}?${params}`), { cache: 'no-store', signal: AbortSignal.any([this.controller.signal, AbortSignal.timeout(15_000)]) });
+      // Work refuses a visitor with a JSON error body. The same status as HTML or with no body
+      // could come from any host or proxy, so that refusal says nothing about shared browsing.
+      refusedAsJson = (response.status === 401 || response.status === 403) && !!response.headers.get('content-type')?.includes('json');
       const value = await readCatalogJson(response) as AssetBrowsePage & { results?: AssetMetaRecord[]; providersUnavailable?: string[] };
       const allowed = live ? value.capabilities?.liveFilters : value.capabilities?.indexedFilters;
       if (Object.entries(filters).some(([key, value]) => value && !allowed?.includes(key))) throw new CatalogBrowseError('This Work server does not support the requested shared filters. Update Work before using this browse mode.', 422);
@@ -73,7 +79,8 @@ export class AssetBrowser {
       this.error = error instanceof CatalogBrowseError ? error : new CatalogBrowseError('Shared assets are unavailable. Device assets are still available.');
       if (this.error.status === 404) this.supported = false;
       this.page = null; this.refs = [];
-      return this.error.status === 404 ? false : null;
+      if (this.error.status === 404) return false;
+      return refusedAsJson ? true : null;
     } finally { if (generation === this.generation) this.loading = false; }
   }
 }
