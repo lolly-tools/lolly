@@ -28,7 +28,7 @@ test('ordinary network errors are not evidence of a stale app', () => {
   for (const message of ['Failed to fetch', 'Load failed', 'NetworkError when attempting to fetch resource.', 'Tool unavailable']) {
     assert.equal(looksLikeChunkError(new TypeError(message)), false);
   }
-  for (const message of ['Failed to fetch dynamically imported module: /assets/view-123.js', 'Importing a module script failed.', 'Unable to preload CSS for /assets/view-123.css']) {
+  for (const message of ['Failed to fetch dynamically imported module: /_app/view-123.js', 'Importing a module script failed.', 'Unable to preload CSS for /_app/view-123.css']) {
     assert.equal(looksLikeChunkError(new Error(message)), true);
   }
   const f = fixture();
@@ -53,8 +53,8 @@ test('tool libraries, styles and prefetches cannot trigger shell recovery', () =
   f.fail('script', '/tools/demo/lib/loader.js');
   f.fail('link', '/tools/demo/styles.css', { rel: 'stylesheet' });
   f.fail('link', '/tools/demo/hooks.js', { rel: 'prefetch', as: 'fetch' });
-  f.fail('link', '/assets/optional-123.js', { rel: 'prefetch' });
-  f.fail('script', 'https://elsewhere.example.test/assets/app-123.js', { type: 'module' });
+  f.fail('link', '/_app/optional-123.js', { rel: 'prefetch' });
+  f.fail('script', 'https://elsewhere.example.test/_app/app-123.js', { type: 'module' });
   assert.equal(f.recoveries(), 0);
   f.dom.window.close();
 });
@@ -62,8 +62,8 @@ test('tool libraries, styles and prefetches cannot trigger shell recovery', () =
 test('unhandled web app module and bundled stylesheet failures still recover', () => {
   const f = fixture();
   assert.equal(f.reject(new TypeError('Importing a module script failed.')).defaultPrevented, true);
-  f.fail('script', '/assets/view-123.js', { type: 'module' });
-  f.fail('link', '/assets/view-123.css?version=1', { rel: 'stylesheet' });
+  f.fail('script', '/_app/view-123.js', { type: 'module' });
+  f.fail('link', '/_app/view-123.css?version=1', { rel: 'stylesheet' });
   assert.equal(f.recoveries(), 3);
   f.dom.window.close();
 });
@@ -71,8 +71,8 @@ test('unhandled web app module and bundled stylesheet failures still recover', (
 test('native bundled apps never auto-recover from background loading errors', () => {
   const f = fixture(true);
   f.reject(new TypeError('Importing a module script failed.'));
-  f.fail('script', '/assets/view-123.js', { type: 'module' });
-  f.fail('link', '/assets/view-123.css', { rel: 'stylesheet' });
+  f.fail('script', '/_app/view-123.js', { type: 'module' });
+  f.fail('link', '/_app/view-123.css', { rel: 'stylesheet' });
   assert.equal(f.recoveries(), 0);
   f.dom.window.close();
 });
