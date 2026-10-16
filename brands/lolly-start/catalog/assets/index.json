@@ -34,7 +34,7 @@
       "name": "Lolly Mark - Primary",
       "description": "The Lolly swirl mark, full colour, for light backgrounds. The blank starter's default logo (square, so it serves both the horizontal and vertical slots). Replace it with your own in the #/start Brand studio.",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "tier": "core",
       "tags": [
         "logo",
@@ -46,8 +46,8 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/logo/primary.svg",
-          "checksum": "sha256-NWmujlVZ1zygr2em+Zf3aFJUrr3l1OJK9w2O7Sz+8rY=",
-          "size": 19479
+          "checksum": "sha256-nzoCn5xty8mlLv3OGfW3IxDsH/sAeSjQeCmxP68r4o0=",
+          "size": 19263
         }
       ],
       "added": "2026-08-23"
@@ -57,7 +57,7 @@
       "name": "Lolly Mark - Reverse",
       "description": "The Lolly swirl mark, full colour, for dark backgrounds. The starter's default reverse logo, and the dark-mode variant of the app icon.",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "tier": "core",
       "tags": [
         "logo",
@@ -70,8 +70,8 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/logo/reverse.svg",
-          "checksum": "sha256-zXo3qFxarWE1FeQyfE+2q47t4RwDhm7lnq2BznFe56s=",
-          "size": 20301
+          "checksum": "sha256-EcV12TmKIWchQaXcBxvwnKmNu/G9QhhxINc7qHlsSTE=",
+          "size": 20085
         }
       ],
       "added": "2026-08-23"
@@ -81,7 +81,7 @@
       "name": "Lolly Mark - Mono",
       "description": "The Lolly swirl mark, one colour, for light backgrounds. The starter's default mono logo.",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "tier": "core",
       "tags": [
         "logo",
@@ -93,8 +93,8 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/logo/mono.svg",
-          "checksum": "sha256-WIAYZJMPOpN9KRvRutBVHKse7+3wG9AeKKRAMhnYkLk=",
-          "size": 17711
+          "checksum": "sha256-QldS2GJMWVYrRMjczL4dT/9cnpAE22L5imCyiIrMYWU=",
+          "size": 17491
         }
       ],
       "added": "2026-08-23"
@@ -104,7 +104,7 @@
       "name": "Lolly Mark - Mono reverse",
       "description": "The Lolly swirl mark, one colour, for dark backgrounds. The starter's default mono reverse logo.",
       "type": "vector",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "tier": "core",
       "tags": [
         "logo",
@@ -117,8 +117,8 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/logo/mono-reverse.svg",
-          "checksum": "sha256-HKdZbrfwOO9hBPfk0US9n1LjpC7PO97O7awGIqfva/w=",
-          "size": 15448
+          "checksum": "sha256-N5RHuEXHDVEibQGnZH89MvG3ge+HlfLuocE2Z+7UAfg=",
+          "size": 15240
         }
       ],
       "added": "2026-08-23"
@@ -932,7 +932,7 @@
       "name": "Lolly Spin (animated)",
       "description": "The Lolly swirl as a self-contained animated SVG - three nested spirals rotating at a calm 9/18/27s cadence (the mark's own motion, slowed for comfort) with a slow hue drift on a brand-tinted gradient, calmed under prefers-reduced-motion. The swirl and the background inherit the active brand's colours when placed live, and it makes a handy default subject for testing filters, grading and animation. A removable example - delete it any time.",
       "type": "vector",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "tier": "core",
       "tags": [
         "animation",
@@ -948,10 +948,10 @@
         {
           "format": "svg",
           "url": "/catalog/assets/lolly/demo/lolly-spin.svg",
-          "checksum": "sha256-H3A6NRnHxKninD8rFAWSaiAv2Yc6dW1Xcvn1eQ3aDxw=",
+          "checksum": "sha256-8n81vq90bBgKRikvEP2SAuRWGlEal2AOeczJ/bfqkcM=",
           "width": 542,
           "height": 542,
-          "size": 10628
+          "size": 13386
         }
       ],
       "added": "2026-08-10"

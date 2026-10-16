@@ -130,7 +130,11 @@ against 37 in CMYK.
   (`catalog/tools/index.sig.json`) need keys that the maintainer provisions, so
   this pack's tool index is unsigned and `lolly/tokens/opal` and the derived
   palette documents carry no Content Credentials. The shared files keep the
-  credentials they were shipped with.
+  credentials they were shipped with, apart from Lolly's four marks. On
+  15 Oct 2026 the reverse, mono and mono-reverse marks took Spearmint as their
+  dark in place of Pine, so their old manifests described other bytes. The
+  primary mark's manifest no longer matched its artwork either. The four marks
+  were signed again after the Spearmint change; PR #305 lists the steps.
 - **Share cards.** `catalog/og/` holds placeholders. The card generator puts a
   branded pack on its dark theme's surface, which for Lolly Demo is Liquorice, while
   Lolly's own cards are green; the cards wait for Lolly Demo's own share-card designs
@@ -145,5 +149,3 @@ against 37 in CMYK.
   SwiftShader adapter the generator pins.
 - **The show.** The cast, studio sweeps, stick overlays, the glass disc, tool
   prizes, an OG set and the stage master arrive in a later change.
-- **Spearmint marks.** Lolly's reverse, mono and mono-reverse marks still carry
-  Pine. Spearmint replaces it once the marks can be signed again.
