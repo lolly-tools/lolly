@@ -1,21 +1,5 @@
 # Proof cases
 
-## Source and history implementation evidence
-
-The source-history suites exercise maintained resource and review boundaries.
-`tests/source-history.browser.test.ts` covers exact selected-file reads, source
-overwrite with an unchanged token, saved revisions, restart and explicit missing
-bytes. `tests/source-history-package.test.ts` exercises the existing editable
-package vehicle and distinguishes imported operation reports from execution
-observed on this device. `tests/asset-version.test.ts` also binds credential
-collection to each exact source version used by an export.
-
-Work's `tests/catalog-source-review.test.ts` covers a frozen purpose, activation
-target and file membership, replacement after request, and hidden proof members.
-These are focused implementation cases. They do not establish vendor-native
-history, historical source attributes, complete shared usage, replayable imported
-recipes or approval of later output bytes. No new portable evidence part or
-shared document record is emitted by these cases.
 
 > This chapter is a draft for review, dated 2026-09-24.  
 
@@ -217,3 +201,20 @@ The other open questions are settled in other chapters. Q5 is answered in [Confo
 - `community/strip-data/tool.json`
 - `tests/chart-spec.test.ts`
 - `plans/276-document-model-evidence/README.md`
+
+## Source and history implementation evidence
+
+The source-history suites exercise maintained resource and review boundaries.
+`tests/source-history.browser.test.ts` covers exact selected-file reads, source
+overwrite with an unchanged token, saved revisions, restart and explicit missing
+bytes. `tests/source-history-package.test.ts` exercises the existing editable
+package vehicle and distinguishes imported operation reports from execution
+observed on this device. `tests/asset-version.test.ts` also binds credential
+collection to each exact source version used by an export.
+
+The Work [source-review suite](https://github.com/lolly-tools/lolly-work/blob/24955a47957d820d4e1d6a9d0a835b0e02aeb77b/tests/catalog-source-review.test.ts) covers a frozen purpose, activation
+target and file membership, replacement after request, and hidden proof members.
+These are focused implementation cases. They do not establish vendor-native
+history, historical source attributes, complete shared usage, replayable imported
+recipes or approval of later output bytes. No new portable evidence part or
+shared document record is emitted by these cases.
