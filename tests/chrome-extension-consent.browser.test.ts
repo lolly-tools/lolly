@@ -46,7 +46,13 @@ test('an installed extension shows protected approval and returns cancellation w
     assert.equal(await approval.locator('#target').textContent(), 'https://target.example.test/page');
     assert.match(await approval.locator('body').innerText(), /Signed-in page contents may include private information/);
     assert.equal(targetVisits, 0);
-    await approval.getByRole('button', { name: 'Cancel', exact: true }).click();
+    const approvalClosed = approval.waitForEvent('close');
+    await approval.getByRole('button', { name: 'Cancel', exact: true }).click().catch((error: unknown) => {
+      // Cancel closes the popup before Chromium always acknowledges the click.
+      if (!(error instanceof Error) || !approval.isClosed()
+        || !error.message.includes('Target page, context or browser has been closed')) throw error;
+    });
+    await approvalClosed;
     await page.waitForFunction(() => !!(window as unknown as Record<string, unknown>).fixtureReply);
     const reply = await page.evaluate(() => (window as unknown as Record<string, unknown>).fixtureReply as { ok: boolean; error: string });
     assert.equal(reply.ok, false);
