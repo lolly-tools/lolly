@@ -36,11 +36,13 @@ import { t, tRaw } from '../i18n.ts';
 import { escape, NAV_EVENTS } from '../utils.ts';
 import { icon } from '../lib/icons.ts';
 import { announce } from '../a11y.ts';
+import { historySettled } from '../lib/overlay-back.ts';
 import { mountModal } from './modal.ts';
-import { markInstanceChoiceMade } from '../lib/instance-choice.ts';
-import { getInstanceBase, setInstanceBase, instanceFetch } from '../lib/instance.ts';
-import { validateInstanceUrl, shapeProbeResult, shapeInstanceManifest, type ProbeOutcome, type ManifestOutcome } from '../lib/instance-probe.ts';
-import { syncCatalog } from '../catalog/sync.ts';
+import { isTauriShell, markInstanceChoiceMade } from '../lib/instance-choice.ts';
+import { getInstanceBase, initInstanceBase, setInstanceBase, instanceFetch } from '../lib/instance.ts';
+import { validateInstanceUrl, probeConnection, isAccountInstance, workspaceAppUrl, type ProbeOutcome, type ProbedInstance } from '../lib/instance-probe.ts';
+import { wireDeviceCodeSignIn } from '../org/device-sign-in.ts';
+import { jsonBody, safeFetch } from '../lib/instance-json.ts';
 import { importBackup, MAX_RESTORE_TOTAL_BYTES } from '../data-transfer.ts';
 import { backupImportLine } from '../lib/backup-summary.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
@@ -96,7 +98,8 @@ function probeErrorMessage(outcome: Extract<ProbeOutcome, { ok: false }>): strin
 
 type Step =
   | { kind: 'choose' }
-  | { kind: 'connect'; url: string; error?: string; probing: boolean; probed?: { base: string; toolCount: number; manifest?: ManifestOutcome } }
+  | { kind: 'connect'; url: string; error?: string; probing: boolean; probed?: ProbedInstance }
+  | { kind: 'account'; name: string }
   | { kind: 'import'; url: string; busy: boolean; error?: string; summary?: string };
 
 /**
@@ -115,14 +118,22 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
   const firstRun = !!opts.firstRun;
   return new Promise((resolve) => {
     let step: Step = { kind: 'choose' };
+    let reloadOnClose = false;
+    let stopSignIn: (() => void) | undefined;
+    const useServerBrand = async (): Promise<void> => {
+      const registry = (host as unknown as { designSystems?: { setActive(id: string): Promise<void> } }).designSystems;
+      await registry?.setActive('shipped');
+    };
 
     const modal = mountModal<void>(renderStep(), {
       className: 'instance-sheet',
       ariaLabel: t('Lolly instance'),
       initialFocus: (el) => el.querySelector<HTMLElement>('[data-act="choose-bundled"]') ?? el.querySelector<HTMLElement>('button, input'),
       onClose: async () => {
+        stopSignIn?.();
         NAV_EVENTS.forEach(ev => window.removeEventListener(ev, onNav));
         if (firstRun) await markInstanceChoiceMade();
+        if (reloadOnClose) { await historySettled(); location.reload(); }
         resolve();
       },
     });
@@ -138,6 +149,8 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
     function renderStep(): string {
       if (step.kind === 'choose') return renderChoose();
       if (step.kind === 'connect') return renderConnect(step);
+      if (step.kind === 'account') return `<h2 class="modal-title">${t('Sign in to {name}', { name: step.name })}</h2>
+        <p class="modal-msg">${t('Sign in to load your brand, team projects and shared sessions.')}</p><div data-instance-sign-in></div>`;
       return renderImport(step);
     }
 
@@ -187,12 +200,12 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
           </div>`
         : '';
       const probe = s.probed
-        ? `${card}<p class="instance-probe instance-probe--ok">${t('✓ Found {n} tools at {base}.', { n: s.probed.toolCount, base: s.probed.base })}</p>`
+        ? `${card}${s.probed.toolCount === null ? '' : `<p class="instance-probe instance-probe--ok">${t('✓ Found {n} tools at {base}.', { n: s.probed.toolCount, base: s.probed.base })}</p>`}`
         : '';
       const err = s.error ? `<p class="instance-probe instance-probe--err">${escape(s.error)}</p>` : '';
       return `
         <h2 class="modal-title">${t('Connect to a Lolly instance')}</h2>
-        <p class="modal-msg">${t('Enter the web address of the Lolly deployment to use.')}</p>
+        <p class="modal-msg">${isTauriShell() ? t('Enter the web address of the Lolly deployment to use.') : t('Enter your workspace address. It opens in this browser so you can sign in and use its brand and shared sessions.')}</p>
         <div class="instance-field-row">
           <input type="url" class="field-input field-input--mono" id="instance-url" placeholder="https://your-instance.example.com" value="${escape(s.url)}" inputmode="url" autocomplete="off" spellcheck="false">
         </div>
@@ -201,8 +214,8 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
         <div class="modal-actions">
           <button type="button" class="btn" data-act="connect-back">${t('Back')}</button>
           ${s.probed
-            ? `<button type="button" class="btn btn--primary" data-act="connect-confirm">${t('Use this instance')}</button>`
-            : `<button type="button" class="btn btn--primary" data-act="connect-probe"${s.probing ? ' disabled' : ''}>${s.probing ? t('Checking…') : t('Check & connect')}</button>`}
+            ? `<button type="button" class="btn btn--primary" data-act="connect-confirm"${s.probing ? ' disabled' : ''}>${t('Use this instance')}</button>`
+            : `<button type="button" class="btn btn--primary" data-act="connect-probe"${s.probing ? ' disabled' : ''}>${s.probing ? t('Checking…') : isTauriShell() ? t('Check & connect') : t('Open this instance')}</button>`}
         </div>
       `;
     }
@@ -262,7 +275,16 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
       const act = target?.closest<HTMLElement>('[data-act]')?.dataset.act;
       if (!act) return;
 
-      if (act === 'choose-bundled') { goImportStep(); return; }
+      if (act === 'choose-bundled') {
+        void (async () => {
+          await initInstanceBase();
+          if (!modal.el.isConnected) return;
+          if (getInstanceBase()) { await setInstanceBase(null); reloadOnClose = !firstRun; }
+          await useServerBrand();
+          goImportStep();
+        })();
+        return;
+      }
       if (act === 'choose-connect') { step = { kind: 'connect', url: '', probing: false }; repaint('#instance-url'); return; }
       if (act === 'connect-back') { step = { kind: 'choose' }; repaint(); return; }
 
@@ -271,31 +293,19 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
         const raw = modal.el.querySelector<HTMLInputElement>('#instance-url')?.value ?? '';
         const valid = validateInstanceUrl(raw);
         if (!valid.ok) { step = { ...step, url: raw, error: valid.message, probed: undefined }; repaint('#instance-url'); return; }
+        if (!isTauriShell()) {
+          // Navigation works even when CSP or CORS prevents discovery from this origin.
+          location.assign(workspaceAppUrl(valid.base, location.hash));
+          return;
+        }
         step = { ...step, url: raw, error: undefined, probing: true, probed: undefined };
         repaint();
         void (async () => {
           try {
-            // The catalog probe decides; the optional instance manifest only
-            // enriches the card (a plain deployment has none - not an error).
-            const [resp, manifest] = await Promise.all([
-              instanceFetch(`${valid.base}/catalog/tools/index.json`),
-              (async (): Promise<ManifestOutcome> => {
-                try {
-                  const r = await instanceFetch(`${valid.base}/api/v1/instance`);
-                  let mBody: unknown;
-                  try { mBody = await r.json(); } catch { mBody = undefined; }
-                  return shapeInstanceManifest(r.status, r.ok, mBody);
-                } catch {
-                  return { found: false };
-                }
-              })(),
-            ]);
-            let body: unknown;
-            try { body = await resp.json(); } catch { body = undefined; }
-            const outcome = shapeProbeResult(resp.status, resp.ok, body);
-            if (step.kind !== 'connect') return;
+            const outcome = await probeConnection(valid.base);
+            if (step.kind !== 'connect' || !modal.el.isConnected) return;
             step = outcome.ok
-              ? { ...step, probing: false, probed: { base: valid.base, toolCount: outcome.toolCount, manifest } }
+              ? { ...step, probing: false, probed: outcome.instance }
               : { ...step, probing: false, error: probeErrorMessage(outcome) };
           } catch (e) {
             if (step.kind !== 'connect') return;
@@ -307,18 +317,41 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
       }
 
       if (act === 'connect-confirm') {
-        if (step.kind !== 'connect' || !step.probed) return;
-        const base = step.probed.base;
+        if (step.kind !== 'connect' || !step.probed || step.probing) return;
+        const { base, manifest } = step.probed;
+        step = { ...step, probing: true, error: undefined };
+        repaint();
         void (async () => {
-          await setInstanceBase(base);
           try {
-            // "sync's public resync/bust entry" - the same exported function
-            // gallery.ts's own empty-catalog retry button calls.
-            await syncCatalog(host as unknown as Parameters<typeof syncCatalog>[0]);
-          } catch { /* offline - sync falls back to cache; the instance is still set */ }
-          window.dispatchEvent(new Event('lolly:remount'));
-          announce(tRaw('Connected to {base}.', { base }));
-          goImportStep();
+            if (isAccountInstance(manifest) && !isTauriShell()) {
+              // Login cookies, private catalog reads and sockets belong to this origin.
+              if (firstRun) await markInstanceChoiceMade();
+              location.assign(workspaceAppUrl(base, location.hash));
+              return;
+            }
+            // Finish the persisted read before writing the choice or a new session.
+            await initInstanceBase();
+            if (!modal.el.isConnected) return;
+            await setInstanceBase(base);
+            reloadOnClose = !firstRun;
+            if (!modal.el.isConnected) { if (reloadOnClose) location.reload(); return; }
+            if (isAccountInstance(manifest) && manifest.found) {
+              const session = await jsonBody<{ kind?: string }>(await safeFetch('/api/auth/session', undefined, 6000));
+              if (!modal.el.isConnected) return;
+              if (session?.kind === 'member') { await useServerBrand(); modal.close(); return; }
+              step = { kind: 'account', name: manifest.name };
+              repaint();
+              const slot = modal.el.querySelector<HTMLElement>('[data-instance-sign-in]')!;
+              stopSignIn = wireDeviceCodeSignIn(slot, async () => { await useServerBrand(); modal.close(); });
+              return;
+            }
+            await useServerBrand();
+            announce(tRaw('Connected to {base}.', { base }));
+            goImportStep();
+          } catch (error) {
+            if (step.kind === 'connect') step = { ...step, probing: false, error: error instanceof Error ? error.message : String(error) };
+            repaint();
+          }
         })();
         return;
       }

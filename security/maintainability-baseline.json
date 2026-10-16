@@ -159,11 +159,8 @@
       "shells/web/src/lib/clip-thumbs.ts"
     ],
     [
-      "shells/web/src/catalog/sync.ts",
       "shells/web/src/components/instance-sheet.ts",
-      "shells/web/src/lib/instance-choice.ts",
-      "shells/web/src/lib/model-prefetch.ts",
-      "shells/web/src/lib/offline-manager.ts"
+      "shells/web/src/lib/instance-choice.ts"
     ],
     [
       "shells/web/src/components/neuro-dock.ts",

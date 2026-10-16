@@ -1076,13 +1076,13 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // user dismisses the trim card).
   'lib/upload-dropzone.ts': 2,
   'org/approval-dialog.ts': 3,
-  // Reviewed 2026-08-24 (1 → 4, the gate's device-code option, plans/145): the
-  // gate card itself (unchanged review - t() escapes its params, the action is
-  // safeHref-gated); the device slot's idle button and note() are static markup
-  // plus t() strings with no interpolated params; the code display interpolates
-  // the server's verificationUri through a t() param (escaped by t()) and the
-  // user code through escape().
-  'org/index.ts': 4,
+  // The gate card escapes translated params and gates its action with safeHref.
+  // Its three device-code sinks moved to the shared sign-in module below.
+  'org/index.ts': 1,
+  // The idle button and note() contain fixed markup and translated copy without
+  // params. The code display escapes userCode with escape(); t() escapes the
+  // server's verificationUri param. Browser navigation checks the instance origin.
+  'org/device-sign-in.ts': 3,
   'org/share-links.ts': 4,
   'pro/blocks-editor.ts': 4,
   'pro/folder-export.ts': 2,
