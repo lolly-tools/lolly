@@ -1550,7 +1550,7 @@ background-image:
 .be-grad-stopwrap:focus-within .be-grad-stopdel { display: inline-flex; }
 .be-grad-stopdel:hover { color: hsl(var(--destructive-text)); border-color: hsl(var(--destructive) / .5); }
 .be-grad-addstop {
-  width: 22px; height: 22px; border: 1px dashed hsl(var(--border)); border-radius: var(--radius-sm);
+  width: 22px; height: 22px; border: 1px solid hsl(var(--border)); border-radius: var(--radius-sm);
   background: transparent; color: hsl(var(--muted-foreground)); cursor: pointer; font-size: var(--fs-md); line-height: 1;
 }
 .be-grad-addstop:hover { border-color: hsl(var(--primary) / .55); color: hsl(var(--foreground)); }
@@ -2034,8 +2034,8 @@ html[data-a11y-motion="reduce"] .start:has(> .stu-sheet) .be-bulkbar { transitio
 /* ── "In other spaces": the per-target face list ────────────────────────────
    One row per space or press the swatch can be expressed in. A row is either
    derived or authored, and the difference has to be readable at a glance -
-   that is the whole point of the control, so `is-set` carries weight and an
-   accent rail rather than a subtle tint. */
+   that is the whole point of the control, so `is-set` carries a full wash and a
+   heavier key rather than a faint tint. */
 .be-faces { display: flex; flex-direction: column; gap: var(--sp-1); }
 .be-face {
   display: grid;
@@ -2052,11 +2052,11 @@ html[data-a11y-motion="reduce"] .start:has(> .stu-sheet) .be-bulkbar { transitio
 .be-face:nth-child(odd) { background: hsl(var(--muted) / 0.4); }
 .be-face-key { font-weight: 600; color: hsl(var(--muted-foreground)); }
 .be-face-val { font-family: var(--font-mono); font-size: var(--fs-xs); overflow: hidden; text-overflow: ellipsis; }
-/* Authored: an accent rail on the leading edge and a heavier key. Not a
-   one-sided BORDER on a card - this is a row in a list, and the rail is the
-   list's own emphasis, which is a different thing from a bordered box. */
-.be-face.is-set { background: hsl(var(--primary) / 0.09); box-shadow: inset 2px 0 0 hsl(var(--primary)); }
-.be-face.is-set .be-face-key { color: hsl(var(--foreground)); }
+/* Authored: a full wash across the row and a heavier key. No edge rail: a
+   stripe on one edge of a rounded row breaks the house rule, and the wash
+   already marks the row. The pressed Set button says it in words. */
+.be-face.is-set { background: hsl(var(--primary) / 0.12); }
+.be-face.is-set .be-face-key { color: hsl(var(--foreground)); font-weight: 700; }
 /* An override whose profile is not mounted: shown, never actionable. Dimmed and
    italic, carried by weight and colour rather than by a dashed border - dashed
    means drop area in this language and nothing else. */
