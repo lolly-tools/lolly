@@ -13,7 +13,7 @@ const originalId = 'fil_abcdefghijklmnopqrstuv', copiedId = 'fil_zyxwvutsrqponml
 test('shared folders browse without originals, copy into nested destinations and submit originals to review', { skip: origin ? false : 'set LOLLY_ASSETS_TEST_URL or LOLLY_IMPORT_TEST_URL to a running shell', timeout: 120_000 }, async () => {
   assert.ok(['localhost', '127.0.0.1'].includes(new URL(origin!).hostname));
   const browser = await getBrowser(), context = await browser.newContext({ viewport: { width: 1360, height: 1000 } }), page = await context.newPage();
-  const errors: string[] = [], submissions: URL[] = [], uploads: unknown[] = [];
+  const errors: string[] = [], submissions: URL[] = [], deliveries: URL[] = [], uploads: unknown[] = [];
   let originalReads = 0, copied: Record<string, unknown> | null = null, placed = false, denied = false;
   const original = { id: originalId, projectId: 'p1', name: 'Campaign.png', size: png.length, checksum, contentType: 'image/png', ready: true, asset: { type: 'raster', format: 'png' } };
   const folders = (project: string) => [{ id: 'parent', projectId: project, name: 'Campaign', parentId: null, items: [] }, { id: 'nested', projectId: project, name: 'Approved', parentId: 'parent', items: project === 'p1' ? [{ kind: 'file', ref: originalId }] : placed ? [{ kind: 'file', ref: copiedId }] : [] }];
@@ -25,6 +25,11 @@ test('shared folders browse without originals, copy into nested destinations and
     if (url.pathname.endsWith('/submissions')) return route.fulfill({ json: { submissions: [] } });
     if (url.pathname.endsWith('/submit')) { submissions.push(url); assert.equal(route.request().postData() ?? '', ''); return route.fulfill({ status: 201, json: { assetId: 'inst/new', state: 'submitted', duplicate: false } }); }
     return route.fulfill({ status: 404, json: {} });
+  });
+  await page.route('**/api/v1/destinations/dam/deliveries*', route => {
+    deliveries.push(new URL(route.request().url()));
+    assert.equal(route.request().postData() ?? '', '');
+    return route.fulfill({ status: 201, json: { id: 'del_original', state: 'delivered' } });
   });
   await page.route('**/api/v1/projects/**', route => {
     const url = new URL(route.request().url()), method = route.request().method(), project = url.pathname.split('/')[4];
@@ -45,6 +50,8 @@ test('shared folders browse without originals, copy into nested destinations and
       const targets = '/src/lib/send-target.ts';
       (await import(targets)).registerSendTarget({ id: 'fixture-writer', kind: 'gdrive', label: 'Writable fixture', formats: ['png'], sources: ['asset'], available: () => true, async send(payload: { bytes: Uint8Array }) { (window as unknown as { sentProjectBytes: number[] }).sentProjectBytes = [...payload.bytes]; return { label: 'File delivered' }; } });
       (await import(targets)).registerSendTarget({ id: 'fixture-export', kind: 'gdrive', label: 'Export-only fixture', formats: ['png'], sources: ['export'], available: () => true, async send() { throw new Error('Asset must not enter an export-only target'); } });
+      const governed = '/src/org/delivery-targets.ts';
+      (await import(targets)).registerSendTarget((await import(governed)).createOrgDeliveryTarget({ id: 'dam', kind: 'brandfolder', label: 'Brandfolder fixture', formats: ['png'], maxBytes: 1048576, visibility: 'private', projectFiles: true }, 'Fixture', (url: string, init?: RequestInit) => fetch(url, init)));
       const sources = '/src/lib/session-source.ts', submitters = '/src/lib/catalog-submit.ts', dialog = '/src/org/catalog-submit.ts';
       (await import(sources)).registerSessionSource({ label: 'Fixture', scope: 'fixture-user', listProjects: async () => [{ id: 'p1', name: 'Source project', myRole: 'editor' }, { id: 'p2', name: 'Destination project', myRole: 'editor' }], listSessions: async () => [], fetchSession: async () => null,
         write: { projectOptions: () => ({ canCreate: true, canSave: true, canShareFiles: true, groups: [] }) } });
@@ -76,6 +83,12 @@ test('shared folders browse without originals, copy into nested destinations and
     await page.locator('.cat-details [data-inspector-section="export"] > summary').click();
     await page.locator('.cat-details [data-act="send"]').click();
     assert.equal(await page.getByRole('button', { name: 'Export-only fixture', exact: true }).count(), 0);
+    const beforeDam = originalReads;
+    await page.getByRole('button', { name: 'Brandfolder fixture', exact: true }).click();
+    await page.getByText('Delivered to Brandfolder fixture', { exact: true }).waitFor();
+    assert.equal(deliveries.length, 1); assert.equal(deliveries[0]?.searchParams.get('fileId'), originalId);
+    assert.equal(deliveries[0]?.searchParams.get('checksum'), checksum);
+    assert.equal(originalReads, beforeDam, 'governed delivery uses the server original without a browser download');
     await page.getByRole('button', { name: 'Writable fixture', exact: true }).click();
     await page.getByText('File delivered', { exact: true }).waitFor();
     assert.deepEqual(await page.evaluate(() => (window as unknown as { sentProjectBytes: number[] }).sentProjectBytes), [...png]);

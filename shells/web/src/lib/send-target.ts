@@ -58,6 +58,11 @@ export interface SendOutcome {
 }
 
 export type SendSource = 'export' | 'asset';
+export interface ProjectFileSendSource {
+  projectId: string; fileId: string; checksum: string;
+  /** Idempotency hint only; the server owns the actual delivered filename. */
+  name?: string;
+}
 
 export interface SendTarget {
   /** Stable registry identity. Defaults to `kind` for existing personal
@@ -74,12 +79,14 @@ export interface SendTarget {
   /** Export formats this target accepts (lowercase); absent = every format. */
   formats?: readonly string[];
   /** Surfaces that may offer this destination. Absent = both, preserving the
-   *  original behaviour. Governed delivery is export-only: catalog assets are
-   *  not implicitly promoted into organisation publishing routes. */
+   *  original behaviour. Governed delivery is export-only unless it explicitly
+   *  supports a shared-project selector; other assets stay outside that route. */
   sources?: readonly SendSource[];
   /** Ask the export surface for a Lolly Content Credential on the exact bytes
    *  it sends. Used by governed delivery's server-side provenance gate. */
   requiresCredential?: boolean;
+  /** Organisation asset sends accept only an immutable shared-project selector. */
+  sendProjectFile?(source: ProjectFileSendSource): Promise<SendOutcome>;
   /** Cheap render-time gate: is this target usable on this build/shell right
    *  now (config present, platform capable)? Never triggers auth or network. */
   available(): boolean;
@@ -126,11 +133,12 @@ export function unregisterSendTarget(id: string): void {
  *  order. Empty (the default) = the export panel shows nothing. A provider the
  *  user switched off in Feature flags is excluded here, so no caller needs its
  *  own check. */
-export function sendTargetsFor(format: string, source: SendSource = 'export'): SendTarget[] {
+export function sendTargetsFor(format: string, source: SendSource = 'export', projectFile?: ProjectFileSendSource): SendTarget[] {
   const f = format.toLowerCase();
   return [...targets.values()].filter(t =>
     (t.scope === 'organization' || connectorEnabled(t.kind)) &&
     t.available() &&
+    (source !== 'asset' || !t.sendProjectFile || !!projectFile) &&
     (!t.sources || t.sources.includes(source)) &&
     (!t.formats || t.formats.includes(f)));
 }
