@@ -152,8 +152,25 @@ test('colorIdentity needs both halves, and isRoleKey knows a role from a ramp', 
     'the same key, recoloured, is a different colour',
   );
   assert.equal(isRoleKey('color.semantic.primary'), true);
+  assert.equal(isRoleKey('color.role.muted-ink'), true, 'a themed role token is a role');
+  assert.equal(isRoleKey('color.chrome.page'), true, 'and so is the app chrome a pack states');
   assert.equal(isRoleKey('color.ramp.primary.4'), false);
   assert.equal(isRoleKey('color.custom.semantically-red'), false, 'a word is not a segment');
+  assert.equal(isRoleKey('color.custom.chrome.page'), false, 'chrome counts only as the group after color');
+});
+
+test('the app chrome a pack states is a role, so it is neither a starter colour nor an own one', () => {
+  const doc = starter();
+  const chrome = walkSwatches(doc, 'light').filter(s => s.key.startsWith('color.chrome.'));
+  assert.equal(chrome.length, 8, 'the starter states its newsprint chrome in the light set');
+  // Someone recolours the page: that edits a role, so it adds no colour to the design system.
+  const page = (((doc.light as Rec).color as Rec).chrome as Rec).page as Rec;
+  page.$value = '#ffffff';
+
+  const report = reportOwnership({ doc, starterDoc: starter() });
+  assert.equal(report.counts.ownColors, 0);
+  assert.equal(report.counts.starterColors, STARTER_SWATCHES);
+  assert.equal([...report.colors.keys()].some(key => key.startsWith('color.chrome.')), false, 'a role never gets an entry');
 });
 
 test('starterColorIds carries both theme spellings of a role', () => {

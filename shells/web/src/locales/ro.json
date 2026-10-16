@@ -2663,7 +2663,6 @@
   "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.": "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.",
   "Leave this instance?": "Părăsești această instanță?",
   "Leave this member out of the copy": "Leave this member out of the copy",
-  "Leave without saving": "Ieși fără să salvezi",
   "Left inset": "Margine interioară stângă",
   "Left offset": "Deplasare stângă",
   "Left out because the source artwork was refused:": "Left out because the source artwork was refused:",
@@ -5993,7 +5992,6 @@
   "You can manage these any time from your Profile, under “Available offline”. Voice and other models download automatically the first time you use them.": "Poți gestiona acestea oricând din Profilul tău, la „Disponibil offline”. Modelele vocale și celelalte se descarcă automat prima dată când le folosești.",
   "You can only replace this with the same kind of file (for example, an image with an image).": "Poți înlocui asta doar cu același tip de fișier (de exemplu, o imagine cu o imagine).",
   "You can save up to eight scenes. Delete one to add another.": "You can save up to eight scenes. Delete one to add another.",
-  "You have unsaved changes. <br>Would you like to save before leaving?": "Ai modificări nesalvate. <br>Vrei să salvezi înainte de a ieși?",
   "You hold rates for this job. Show costs?": "Ai tarife pentru această lucrare. Afișez costurile?",
   "Your LUT": "LUT-ul tău",
   "Your LinkedIn session ended - connect again in Profile": "Sesiunea ta LinkedIn s-a încheiat - conectează-te din nou în Profil",
@@ -7404,8 +7402,6 @@
   "Your role on {workspace} lets you view only. Ask an admin of {workspace} to change your role.": "Rolul tău în {workspace} îți permite doar vizualizarea. Roagă un administrator al {workspace} să îți schimbe rolul.",
   "This is view only. Make a copy to keep your changes.": "Aceasta este doar vizualizare. Fă o copie pentru a-ți păstra modificările.",
   "Save changes to {project}?": "Salvezi modificările în {project}?",
-  "Leave without saving keeps your changes on this device.": "Dacă pleci fără să salvezi, modificările tale rămân pe acest dispozitiv.",
-  "Stay": "Rămâi",
   "Save a copy on this device": "Salvează o copie pe acest dispozitiv",
   "Copy saved on this device.": "Copie salvată pe acest dispozitiv.",
   "Where should the copy go?": "Unde să ajungă copia?",
@@ -7925,5 +7921,8 @@
   "No transition tokens in this context.": "No transition tokens in this context.",
   "Applies Enter duration and geometry easing. Opacity keeps the preset easing.": "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
   "This layer timing control cannot apply a delay. Choose a transition with zero delay.": "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
-  "Reading transition tokens…": "Reading transition tokens…"
+  "Reading transition tokens…": "Reading transition tokens…",
+  "Unsaved edits": "Editări nesalvate",
+  "Save now or abandon your changes.": "Salvează acum sau renunță la modificări.",
+  "Leave anyway": "Ieși oricum"
 }

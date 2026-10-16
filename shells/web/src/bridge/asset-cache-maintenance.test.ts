@@ -47,4 +47,8 @@ test('a partial index keeps saved provider files without retaining unselected ca
   assert.equal(f.records.has(unused.id), false); assert.equal(f.blobs.has('ext/dam/unused:jpg:2'), false);
   await pruneAssetCache(f.db, [], new Set([saved]), new Set(), f.urls, []);
   assert.equal(f.records.has(id), false, 'a removed source is not mistaken for a deferred page');
+  const downloaded = fixture([saved], [held]);
+  await pruneAssetCache(downloaded.db, [], new Set(), new Set([variant]), downloaded.urls, ['dam']);
+  assert.equal(downloaded.records.has(id), true, 'an explicit selected-file download retains its group metadata');
+  assert.equal(downloaded.blobs.has(saved), true);
 });

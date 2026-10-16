@@ -946,6 +946,65 @@ test('the swatch name tip never survives a pick, an Escape, or the swatch leavin
   sw3.remove();
 });
 
+// ── The swatch tip's ink ─────────────────────────────────────────────────────
+// Hovering Spearmint in the Design tool's Colour panel showed "Spearmint" in black
+// on #033633. The tool view hands the picker each token's CSS face (views/tool/
+// setup.ts), so the swatch value was `color(srgb ...)`, which the hex-only rule
+// could not read and answered with black. The chip now takes the swatch ink:
+// white or black, whichever APCA scores higher on what the label sits on.
+
+test('the swatch tip writes a dark swatch\'s name in white and a light one\'s in black, whatever form the colour takes', async () => {
+  setSwatches([
+    { value: '#033633', wide: 'color(srgb 0.011765 0.211765 0.2)', label: 'Spearmint', group: 'Opal', ref: '{color.opal.spearmint}' },
+    { value: '#09141a', wide: 'oklch(18.6% 0.0204 236.4)', label: 'Liquorice', group: 'Opal', ref: '{color.opal.liquorice}' },
+    { value: '#fdec9e', wide: 'color(srgb 0.992157 0.92549 0.619608)', label: 'Wattle', group: 'Opal', ref: '{color.opal.wattle}' },
+    { value: '#a43427', label: 'Bauxite', group: 'Opal', ref: null },
+    { value: '#00000033', label: 'Shade', group: 'Opal', ref: null },
+    { value: 'transparent', label: 'Transparent', group: null, ref: null },
+  ]);
+  const { field } = mount('#033633', { float: true });
+  field.querySelector<HTMLElement>('.color-trigger')!
+    .dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  const hover = async (name: string): Promise<HTMLElement> => {
+    const sw = field.querySelector<HTMLElement>(`.color-swatch[data-name="${name}"]`)!;
+    sw.dispatchEvent(new dom.window.MouseEvent('mouseover', { bubbles: true }));
+    await wait(300);
+    const tip = document.querySelector<HTMLElement>('.swatch-name-tip')!;
+    assert.equal(tip.classList.contains('is-shown'), true, `${name}: the chip is up`);
+    assert.equal(tip.textContent, name);
+    return tip;
+  };
+  const paint = (tip: HTMLElement, prop: string): string => tip.style.getPropertyValue(prop);
+
+  const spearmint = await hover('Spearmint');
+  assert.equal(paint(spearmint, '--swatch-c'), 'color(srgb 0.011765 0.211765 0.2)',
+    'the chip is painted with the face the swatch is painted with');
+  assert.equal(paint(spearmint, '--swatch-ink'), '#ffffff', 'the word Spearmint is white');
+  assert.equal(paint(spearmint, '--swatch-halo'), '#000000', 'and its High contrast halo is the other ink');
+  assert.equal(paint(spearmint, 'color'), '', 'the ink travels as a custom property, so the stylesheet applies it');
+  assert.equal(paint(await hover('Liquorice'), '--swatch-ink'), '#ffffff', 'an oklch() face reads too');
+  assert.equal(paint(await hover('Bauxite'), '--swatch-ink'), '#ffffff', 'a hex with no face');
+  const wattle = await hover('Wattle');
+  assert.equal(paint(wattle, '--swatch-ink'), '#000000', 'a light colour takes the dark ink');
+  assert.equal(paint(wattle, '--swatch-halo'), '#ffffff', 'with a white halo for High contrast');
+  const none = await hover('Transparent');
+  assert.equal(paint(none, '--swatch-c'), '#c9ccd1', 'Transparent keeps its neutral chip');
+  assert.equal(paint(none, '--swatch-ink'), '#000000');
+
+  // A translucent swatch shows the surface under it, and so does its chip: 20% black
+  // is a light grey on a white panel and near black on the dark page.
+  const grid = field.querySelector<HTMLElement>('.color-swatches')!;
+  grid.style.background = '#ffffff';
+  const onWhite = await hover('Shade');
+  assert.equal(paint(onWhite, '--swatch-base'), '#ffffff');
+  assert.equal(paint(onWhite, '--swatch-ink'), '#000000');
+  grid.style.background = '#030712';
+  const onDark = await hover('Shade');
+  assert.equal(paint(onDark, '--swatch-base'), '#030712', 'the base is the surface the swatch sits on');
+  assert.equal(paint(onDark, '--swatch-ink'), '#ffffff');
+  document.body.dispatchEvent(new dom.window.Event('pointerdown', { bubbles: true }));
+});
+
 // ══ colour NAMES (plan 179 A17) ═══════════════════════════════════════════════
 //
 // "Colour: aqua #ffa3e9" was announced for a pink artboard fill. A name picked by

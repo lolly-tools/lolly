@@ -7,10 +7,14 @@ commands below and the instance's current deployment handoff.
 
 The desktop shells and the YunoHost package fetch the same URLs from
 `https://lolli.li/models/` (`VITE_MODELS_BASE`), the `lolly` bucket on UpCloud
-Object Storage. Publish a family there with
-`node scripts/upload-models.ts --family=<name>` (dry run first with `--dry-run`;
-the script only adds keys under `models/<name>/`, skips files already present at
-the same size and never deletes), then run `node scripts/gen-models-manifest.ts`.
+Object Storage. Run `node scripts/gen-models-manifest.ts` first, then publish a
+family with
+`node scripts/publish-models.ts --source-root=<models-dir> --family=<name>`
+(dry run first with `--dry-run`; `upload-models.ts` is the same command under its
+old name). The publisher writes the content-addressed directory
+`models/<family>@<hash16>/` and the legacy alias `models/<family>/`, checks each
+public copy's full bytes against the manifest and refuses to replace a published
+key; a changed model gets a new hashed directory.
 The `sing` family (rondocode's singing models, plan 301) is opt-in: fetch its files
 with `node scripts/vendor-models.ts --only=sing` before staging a release.
 
@@ -29,6 +33,16 @@ URLs through its existing web service. Mount a verified model release read-only
 at `/usr/share/nginx/html/models`. Model bytes remain separate from application
 image builds; the public nginx configuration supplies GET, HEAD, Range, CORS and
 cache headers. Each provider uses the same release and verification commands.
+
+The web client fetches only content-addressed paths,
+`/models/<family>@<hash16>/<file>`: each manifest entry's `immutableUrl`, where
+`<hash16>` is the first 16 hexadecimal characters of its `directorySha256`. The
+plain `/models/<family>/<file>` paths are legacy aliases that it identifies files
+by and does not fetch. The `stage` and `verify` commands below still handle only
+the alias paths, so a staged tree on its own does not serve the current client.
+Until they handle the addressed layout, build a mounted tree from the addressed
+objects as the [published images guide](../docker/README.md#model-files)
+shows, checking every file against its manifest `sha256`.
 
 Prepare the complete model set from explicitly reviewed local roots. The
 committed `shells/web/models-manifest.json` selects exact URLs and sizes. Put any

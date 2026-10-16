@@ -183,8 +183,9 @@ export function assignFrames(fc: FcCtx, nextBoxes: Box[], touched: Set<number>, 
 // placed on a dark artboard was near-black on near-black - at fit zoom on a phone that
 // is not "hard to read", it is nothing on screen at all, and typing changes nothing.
 //
-// The flip is `contrastText`, the shell's ONE inversion rule (brand-vars.ts), used
-// twice: once on the ground and once on the seeded ink. When both want the SAME overlay
+// The flip is `contrastText` (brand-vars.ts), the chrome accent's WCAG 2 rule (a label
+// drawn on a swatch takes `swatchInk` instead), used twice: once on the ground and once
+// on the seeded ink. When both want the SAME overlay
 // ink they sit on the same side of the flip point, which is exactly the dark-on-dark /
 // light-on-light case - and it is the only case that gets rewritten. A seed that already
 // reads on its ground is left byte-identical, so a light artboard (every shipped default)

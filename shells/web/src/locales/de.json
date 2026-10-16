@@ -2619,7 +2619,6 @@
   "Know before you enrol: your email address is written into every file you export while enrolled. It stays in every copy you share and cannot be removed later, even after the certificate expires.": "Bevor Sie sich anmelden: Ihre E-Mail-Adresse wird in jede Datei geschrieben, die Sie während der Anmeldung exportieren. Sie bleibt in jeder Kopie, die Sie teilen, und kann später nicht entfernt werden, auch nicht nach Ablauf des Zertifikats.",
   "L × C": "L × C",
   "L × H": "L × H",
-  "Leave without saving keeps your changes on this device.": "Wenn Sie ohne Speichern gehen, bleiben Ihre Änderungen auf diesem Gerät.",
   "LOCK": "SPERREN",
   "LSB steganography likely": "Wahrscheinlich LSB-Steganografie",
   "Lab axes": "Lab-Achsen",
@@ -2666,7 +2665,6 @@
   "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.": "Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.",
   "Leave this instance?": "Diese Instanz verlassen?",
   "Leave this member out of the copy": "Leave this member out of the copy",
-  "Leave without saving": "Verlassen ohne zu speichern",
   "Left inset": "Innenabstand links",
   "Left offset": "Versatz links",
   "Left out because the source artwork was refused:": "Left out because the source artwork was refused:",
@@ -4212,7 +4210,6 @@
   "SEAL signature": "SEAL-Signatur",
   "SEAL signature did not verify": "SEAL-Signatur konnte nicht verifiziert werden",
   "SEAL signature is internally consistent": "SEAL-Signatur ist intern konsistent",
-  "Stay": "Bleiben",
   "SUSE Photos": "SUSE Photos",
   "SVG artwork": "SVG artwork",
   "Same style": "Gleicher Stil",
@@ -6006,7 +6003,6 @@
   "You can manage these any time from your Profile, under “Available offline”. Voice and other models download automatically the first time you use them.": "Sie können diese jederzeit in Ihrem Profil unter „Offline verfügbar“ verwalten. Sprach- und andere Modelle werden bei der ersten Nutzung automatisch heruntergeladen.",
   "You can only replace this with the same kind of file (for example, an image with an image).": "Sie können dies nur durch dieselbe Dateiart ersetzen (zum Beispiel ein Bild durch ein Bild).",
   "You can save up to eight scenes. Delete one to add another.": "You can save up to eight scenes. Delete one to add another.",
-  "You have unsaved changes. <br>Would you like to save before leaving?": "Sie haben nicht gespeicherte Änderungen. <br>Möchten Sie vor dem Verlassen speichern?",
   "You hold rates for this job. Show costs?": "Sie haben Preise für diesen Auftrag hinterlegt. Kosten anzeigen?",
   "Your LUT": "Ihr LUT",
   "Your LinkedIn session ended - connect again in Profile": "Ihre LinkedIn-Sitzung ist beendet - verbinden Sie sich erneut in Profil",
@@ -7925,5 +7921,8 @@
   "No transition tokens in this context.": "No transition tokens in this context.",
   "Applies Enter duration and geometry easing. Opacity keeps the preset easing.": "Applies Enter duration and geometry easing. Opacity keeps the preset easing.",
   "This layer timing control cannot apply a delay. Choose a transition with zero delay.": "This layer timing control cannot apply a delay. Choose a transition with zero delay.",
-  "Reading transition tokens…": "Reading transition tokens…"
+  "Reading transition tokens…": "Reading transition tokens…",
+  "Unsaved edits": "Nicht gespeicherte Bearbeitungen",
+  "Save now or abandon your changes.": "Speichern Sie jetzt oder verwerfen Sie Ihre Änderungen.",
+  "Leave anyway": "Trotzdem verlassen"
 }

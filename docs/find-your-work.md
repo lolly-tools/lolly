@@ -79,7 +79,7 @@ What comes back depends on how you left and which tool you used:
 
 - **You closed the tab, or came back another time.** Unsaved work is gone, except in the [tools that save as you work](#which-tools-save-as-you-work): open that work from **Projects**.
 - **You reloaded the page in the same tab.** Your settings come back from the page address. In tools that do not save as you work, pictures and files you added from your device, and single-line text longer than 150 characters, do not come back, because the address does not hold them.
-- **You pressed Home, or the back button at the top left.** If you changed something since you last saved, downloaded or copied, an **Unsaved changes** dialog asks whether to save first. **Save & leave** saves the work and takes you to **Projects**, or back to the project folder you opened the work from. **Leave without saving** discards your changes: a saved item goes back to how you last saved it, and a creation you never saved leaves **Projects**. **Cancel** keeps you in the tool.
+- **You pressed Home, or the back button at the top left.** If you changed something since you last saved, downloaded or copied, an **Unsaved edits** dialog asks whether to save first. **Save & leave** saves the work and takes you to **Projects**, or back to the project folder you opened the work from. **Leave anyway** discards your changes: a saved item goes back to how you last saved it, and a creation you never saved leaves **Projects**. **Cancel** keeps you in the tool.
 
 Lolly asks only when you press **Home** or the back button in a tool. Closing the tab, reloading and your browser's own Back button never ask. To be sure, press **Save as**, or **Save** in the export panel, before you leave a tool.
 
@@ -97,7 +97,7 @@ In the web app, every tool that makes a document saves as you work: Design, Char
 - 3D and Darkroom, which take a file of their own;
 - a tool with nothing to change, such as Countdown.
 
-In the other tools, your first change files the work in **Projects** as if you had saved, and later changes are kept as you work, once the tool has finished drawing. So an unsaved creation is still in Projects after you close the tab and reopens with its changes marked unsaved. **Leave without saving** still discards them, and History keeps a copy of the discarded edits for 30 days. Opening the tool again from the home screen starts a new creation; open the earlier one from Projects.
+In the other tools, your first change files the work in **Projects** as if you had saved, and later changes are kept as you work, once the tool has finished drawing. So an unsaved creation is still in Projects after you close the tab and reopens with its changes marked unsaved. **Leave anyway** still discards them, and History keeps a copy of the discarded edits for 30 days. Opening the tool again from the home screen starts a new creation; open the earlier one from Projects.
 
 With [Sync](/info/sync.html) on, a creation filed this way goes to your other devices like anything else in Projects. Its versions stay on the device where they were made.
 

@@ -78,7 +78,8 @@
    lands, with a one-shot flash to draw the eye. The resting amber persists until
    the user saves (markSessionSaved removes the class). No --warning token exists
    (see tool-chrome.css's aspect-ratio warning), so this is --brand-warn - the
-   ACTIVE BRAND's own colour closest in hue to red/yellow, scanned + kept current
+   pack's declared unsaved colour (`color.chrome.unsaved`) or else the ACTIVE
+   BRAND's own colour closest in hue to red/yellow, scanned + kept current
    by brand-vars.ts's nearestWarmHex (recomputed on every brand change, so a
    user's own colour choice takes over automatically) - with the static Amber
    #b28727 (src/palette.ts) as the tokenless fallback. --brand-warn-ink is
@@ -4002,8 +4003,9 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
     max-height: 92dvh;
     display: flex;
     flex-direction: column;
-    border-right: none;
-    border-bottom: 1px solid hsl(var(--border));
+    /* A full hairline, never the bottom edge alone: a one-sided border would
+       taper away round the rounded bottom corners. */
+    border: 1px solid hsl(var(--border));
     border-radius: 0 0 var(--ui-radius-panel) var(--ui-radius-panel);
     box-shadow: var(--shadow-3);
     transition: height 0.34s var(--ease-out); /* confident, decelerating settle */

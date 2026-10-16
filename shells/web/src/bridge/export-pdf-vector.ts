@@ -13,6 +13,7 @@ import { splitCssArgs, parseGradientStop, parseGradientAngle, parseRadialGradien
 import { objectPositionFractions } from './export-css.ts';
 import { FINISH_MASK_CMYK, buildCmykPaletteMap, cmykKey } from '@lolly/engine';
 import type { BrandPaletteEntry, PaletteHit, PaletteSpotHit } from '@lolly/engine';
+import type { PDFDict as PdfDict, PDFDocument, PDFObject } from 'pdf-lib';
 import type { ClipShape } from '../../../../engine/src/css-paint.ts';
 import type { CornerRadii, CornerPair } from '../../../../engine/src/css-box.ts';
 
@@ -219,15 +220,6 @@ export function gradStopToRgb(raw: string, index: number, total: number): Rgb | 
 
 // Shared with print finishing in browser-free Design exports.
 export { brandSwatchPalette } from '@lolly-tools/node-shell/pdf-finishing';
-
-// Approximate SVG opacity by blending with white, used where there is no per-element opacity.
-export function blendSvgWithWhite(rgb: Rgb, opacity: number): Rgb {
-  return [
-    Math.round(rgb[0] * opacity + 255 * (1 - opacity)),
-    Math.round(rgb[1] * opacity + 255 * (1 - opacity)),
-    Math.round(rgb[2] * opacity + 255 * (1 - opacity)),
-  ];
-}
 
 // Parse numeric args from an SVG path data segment string.
 export function parseSvgPathArgs(str: string): number[] {
@@ -655,11 +647,57 @@ export function substitutePdfRgb(
     });
 }
 
-export function svgLen(val: string | number | null | undefined, total: number): number {
-  if (!val) return 0;
-  const s = String(val);
-  if (s.endsWith('%')) return (parseFloat(s) / 100) * total;
-  return parseFloat(s) || 0;
+/**
+ * The CMYK pass for gradients. substitutePdfRgb converts the rg and RG colours of
+ * every content stream, but a shading keeps its colours in function dictionaries that
+ * no content stream holds. This converts each DeviceRGB shading the same way, through
+ * the brand palette first and the engine's conversion after, and marks the shading
+ * DeviceCMYK, so a gradient prints in process colour and the PDF/X check (shadingCsOk)
+ * finds no unmanaged RGB. A palette spot inside a gradient goes in as its process
+ * alternate: blending between inks would need a DeviceN shading. Returns how many
+ * shadings changed.
+ */
+export async function convertShadingsToCmyk(pdfDoc: PDFDocument, paletteMap: Map<string, PaletteHit>, used?: Set<string>): Promise<number> {
+  const { PDFName, PDFDict, PDFArray, PDFRef } = await import('pdf-lib');
+  const ctx = pdfDoc.context;
+  const resolve = (v: PDFObject | undefined): PDFObject | undefined => (v instanceof PDFRef ? ctx.lookup(v) : v);
+  const dictOf = (v: PDFObject | undefined): PdfDict | null => { const d = resolve(v); return d instanceof PDFDict ? d : null; };
+  const rgbOf = (v: PDFObject | undefined): number[] | null => {
+    const arr = resolve(v);
+    const out = arr instanceof PDFArray ? arr.asArray().map(n => Number(n.toString())) : [];
+    return out.length === 3 && out.every(Number.isFinite) ? out : null;
+  };
+  const typeOf = (fn: PdfDict): number => Number(String(fn.get(PDFName.of('FunctionType'))));
+  const partsOf = (fn: PdfDict): PDFObject[] | null => { const a = resolve(fn.get(PDFName.of('Functions'))); return a instanceof PDFArray ? a.asArray() : null; };
+  // Only the forms the writer produces: exponential functions, stitched or alone.
+  const convertible = (v: PDFObject | undefined): boolean => {
+    const fn = dictOf(v);
+    if (!fn) return false;
+    if (typeOf(fn) === 2) return Boolean(rgbOf(fn.get(PDFName.of('C0'))) && rgbOf(fn.get(PDFName.of('C1'))));
+    return typeOf(fn) === 3 && (partsOf(fn)?.every(convertible) ?? false);
+  };
+  const done = new Set<PdfDict>();
+  const convert = (v: PDFObject | undefined): void => {
+    const fn = dictOf(v);
+    if (!fn || done.has(fn)) return;
+    done.add(fn);
+    if (typeOf(fn) === 3) { partsOf(fn)?.forEach(convert); return; }
+    for (const k of ['C0', 'C1']) {
+      const [r, g, b] = rgbOf(fn.get(PDFName.of(k)))!;
+      fn.set(PDFName.of(k), ctx.obj(pdfColorHit(r!, g!, b!, paletteMap, used)?.cmyk ?? rgbToCmyk(r!, g!, b!)));
+    }
+  };
+  let count = 0;
+  for (const [, obj] of ctx.enumerateIndirectObjects()) {
+    if (!(obj instanceof PDFDict) || !obj.get(PDFName.of('ShadingType'))) continue;
+    if (!String(obj.get(PDFName.of('ColorSpace'))).includes('DeviceRGB')) continue;
+    const fn = obj.get(PDFName.of('Function'));
+    if (!convertible(fn)) continue;
+    convert(fn);
+    obj.set(PDFName.of('ColorSpace'), PDFName.of('DeviceCMYK'));
+    count++;
+  }
+  return count;
 }
 
 // Map a CSS object-position to the equivalent SVG preserveAspectRatio alignment keyword

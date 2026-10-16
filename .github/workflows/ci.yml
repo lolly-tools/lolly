@@ -713,6 +713,13 @@ jobs:
       - name: Web shell maintainability no-growth ratchet
         run: pnpm run check:maintainability
 
+      # The shell's CSS house rules: no rail on a rounded element, dashed only for
+      # drop areas, durations from the motion tokens, both Reduce motion switches
+      # on anything that moves and no custom property that nothing defines. A
+      # per-file ratchet: counts only go down.
+      - name: CSS house rules ratchet
+        run: pnpm run check:house-rules
+
       - name: No new first-party Biome diagnostics
         run: pnpm run lint:changed --all
 
@@ -750,6 +757,11 @@ jobs:
 
       - name: Validate catalog (no manifest/index drift, asset checksums)
         run: pnpm run validate:catalog
+
+      # The public demo brand (Lolly Demo) is a plain directory too, so a public clone can
+      # validate it; the plain step above only sees the lolly-start fallback.
+      - name: Validate the lolly-demo catalog
+        run: node scripts/validate-catalog.ts --profile=lolly-demo
 
   # Catalog-wide render gate - `lolly smoke` renders every tool in the active profile
   # at manifest defaults (sequential, browser-free: first Node-native format, html as

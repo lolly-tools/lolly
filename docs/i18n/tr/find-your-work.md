@@ -73,7 +73,7 @@ Neyin geri geldiği, nasıl ayrıldığına ve hangi aracı kullandığına bağ
 
 - **Sekmeyi kapattın, ya da başka bir zaman geri döndün.** Kaydedilmemiş çalışma, [çalışırken kaydeden araçlar](#which-tools-save-as-you-work) dışında kaybolur: o çalışmayı **Projeler**'den aç.
 - **Sayfayı aynı sekmede yeniden yükledin.** Ayarların sayfa adresinden geri gelir. Çalışırken kaydetmeyen araçlarda, cihazından eklediğin görseller ve dosyalar, ve 150 karakterden uzun tek satırlık metin geri gelmez, çünkü adres onları tutmaz.
-- **Ana sayfa'ya ya da sol üstteki geri düğmesine bastın.** Son kaydetmenden, indirmenden ya da kopyalamandan bu yana bir şey değiştirdiysen, bir **Kaydedilmemiş değişiklikler** penceresi önce kaydetmek isteyip istemediğini sorar. **Kaydet & çık** çalışmayı kaydeder ve seni **Projeler**'e, ya da çalışmayı açtığın proje klasörüne geri götürür. **Kaydetmeden çık** değişikliklerini geri alır: kaydedilmiş bir öge en son kaydettiğin hâline döner, hiç kaydetmediğin bir oluşum ise **Projeler**'den ayrılır. **İptal** seni araçta tutar.
+- **Ana sayfa'ya ya da sol üstteki geri düğmesine bastın.** Son kaydetmenden, indirmenden ya da kopyalamandan bu yana bir şey değiştirdiysen, bir **Kaydedilmemiş düzenlemeler** penceresi önce kaydetmek isteyip istemediğini sorar. **Kaydet & çık** çalışmayı kaydeder ve seni **Projeler**'e, ya da çalışmayı açtığın proje klasörüne geri götürür. **Yine de çık** değişikliklerini geri alır: kaydedilmiş bir öge en son kaydettiğin hâline döner, hiç kaydetmediğin bir oluşum ise **Projeler**'den ayrılır. **İptal** seni araçta tutar.
 
 Lolly yalnızca bir araçta **Ana sayfa**'ya ya da geri düğmesine bastığında sorar. Sekmeyi kapatmak, yeniden yüklemek ve tarayıcının kendi Geri düğmesi hiçbir zaman sormaz. Emin olmak için bir araçtan ayrılmadan önce **Farklı kaydet**'e, ya da dışa aktarım panelinde **Kaydet**'e bas.
 
@@ -89,7 +89,7 @@ Web uygulamasında, bir belge oluşturan her araç çalışırken kaydeder: Desi
 - kendi dosyalarını alan 3D ve Darkroom;
 - değiştirilecek hiçbir şeyi olmayan bir araç, örneğin Countdown.
 
-Bu araçlarda, ilk değişikliğin çalışmayı sanki kaydetmişsin gibi **Projeler**'e dosyalar, sonraki değişiklikler de araç çizimini bitirdikten sonra, çalışırken tutulur. Yani kaydedilmemiş bir oluşum, sekmeyi kapattıktan sonra bile Projeler'de kalır ve değişiklikleri kaydedilmemiş olarak işaretlenmiş biçimde yeniden açılır. **Kaydetmeden çık** yine de bunları geri alır, ve Geçmiş atılan düzenlemelerin bir kopyasını 30 gün boyunca tutar. Aracı ana ekrandan yeniden açmak yeni bir oluşum başlatır; öncekini Projeler'den aç.
+Bu araçlarda, ilk değişikliğin çalışmayı sanki kaydetmişsin gibi **Projeler**'e dosyalar, sonraki değişiklikler de araç çizimini bitirdikten sonra, çalışırken tutulur. Yani kaydedilmemiş bir oluşum, sekmeyi kapattıktan sonra bile Projeler'de kalır ve değişiklikleri kaydedilmemiş olarak işaretlenmiş biçimde yeniden açılır. **Yine de çık** bunları her durumda geri alır, ve Geçmiş atılan düzenlemelerin bir kopyasını 30 gün boyunca tutar. Aracı ana ekrandan yeniden açmak yeni bir oluşum başlatır; öncekini Projeler'den aç.
 
 [Sync](/info/sync.html) açıkken, bu şekilde dosyalanan bir oluşum, Projeler'deki her şey gibi diğer cihazlarına da gider. Sürümleri ise yapıldıkları cihazda kalır.
 

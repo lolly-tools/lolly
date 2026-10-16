@@ -86,7 +86,9 @@ test('vercel.json redirects the root /sitemap.xml permanently to the /info sitem
 
 test('the probe covers every discovery route', () => {
   assert.deepEqual(DISCOVERY_ROUTES.map((r) => r.path).sort(), [
-    '/info/sitemap.xml', '/info/start/quickstart.md', '/llms.txt', '/robots.txt', '/sitemap.xml',
+    '/.well-known/lolly.json', '/agents.md', '/info/agents.md', '/info/llms.txt',
+    '/info/sitemap.xml', '/info/start/quickstart.md', '/llms-full.txt', '/llms.txt',
+    '/openapi.json', '/robots.txt', '/sitemap.xml',
   ]);
 });
 
@@ -144,6 +146,14 @@ test('root sitemap: accepts a permanent redirect to /info/sitemap.xml only', () 
   assert.match(classifyDiscoveryResponse(r, { status: 308, contentType: '', location: '/' }).join('\n'), /Location/);
 });
 
+test('JSON discovery refuses app HTML, wrong MIME types and non-object bodies', () => {
+  const r = route('json');
+  assert.deepEqual(classifyDiscoveryResponse(r, { status: 200, contentType: 'application/json; charset=utf-8', body: '{"openapi":"3.1.0"}' }), []);
+  assert.match(classifyDiscoveryResponse(r, { status: 200, contentType: 'text/plain', body: '{}' }).join('\n'), /application\/json/);
+  assert.match(classifyDiscoveryResponse(r, { status: 200, contentType: 'application/json', body: APP_SHELL }).join('\n'), /HTML page/);
+  assert.match(classifyDiscoveryResponse(r, { status: 200, contentType: 'application/json', body: 'not found' }).join('\n'), /JSON object/);
+});
+
 // The probe loop, over an injected fetch (no sockets)
 
 test('the probe sends HEAD then a bounded GET, with the bypass header and no redirect following', async () => {
@@ -170,7 +180,13 @@ test('the probe sends HEAD then a bounded GET, with the bypass header and no red
       case '/robots.txt': return new Response(body(ROBOTS_TEXT), { headers: { 'content-type': 'text/plain; charset=utf-8' } });
       case '/info/sitemap.xml': return new Response(method === 'HEAD' ? null : bigSitemap(), { headers: { 'content-type': 'application/xml' } });
       case '/sitemap.xml': return new Response(null, { status: 308, headers: { location: '/info/sitemap.xml' } });
-      case '/llms.txt': return new Response(body('# Lolly\n'), { headers: { 'content-type': 'text/plain; charset=utf-8' } });
+      case '/llms.txt':
+      case '/llms-full.txt':
+      case '/info/llms.txt': return new Response(body('# Lolly\n'), { headers: { 'content-type': 'text/plain; charset=utf-8' } });
+      case '/agents.md':
+      case '/info/agents.md': return new Response(body('# Lolly agents\n'), { headers: { 'content-type': 'text/markdown; charset=utf-8' } });
+      case '/openapi.json':
+      case '/.well-known/lolly.json': return new Response(body('{}'), { headers: { 'content-type': 'application/json' } });
       case '/info/start/quickstart.md': return new Response(body('# Quickstart\n'), { headers: { 'content-type': 'text/markdown; charset=utf-8' } });
       default: return new Response(body(APP_SHELL), { headers: { 'content-type': 'text/html; charset=utf-8' } });
     }

@@ -288,3 +288,198 @@ test('a gradient with no stops paints the plain fill instead of naming a missing
   const res = pdf.getPage(0).node.Resources();
   assert.ok(!res.get(lib.PDFName.of('Shading')), 'no shading resource is declared for a pattern that never painted');
 });
+
+/** The decoded content of a form XObject in page one's resources. */
+function formOf(pdf: any, lib: any, name: string): { dict: any; content: string } {
+  const res = pdf.getPage(0).node.Resources();
+  const form = pdf.context.lookup(res.lookup(lib.PDFName.of('XObject'), lib.PDFDict).get(lib.PDFName.of(name)));
+  return { dict: form.dict, content: new TextDecoder('latin1').decode(inflateSync(Buffer.from(form.contents))) };
+}
+
+test('a group is drawn into a transparency form and painted once, faded as a whole', async () => {
+  const doc = await createPdfDoc({ format: [100, 100] });
+  doc.beginGroup();
+  doc.setFillColor(255, 0, 0);
+  doc.rect(0, 0, 50, 50, 'F');
+  doc.setFont('helvetica', 'normal');
+  doc.text('in a group', 5, 5);
+  doc.paintGroup(doc.endGroup([0, 0, 100, 100]), 0.5);
+  const { content, pdf, lib } = await readBack(doc);
+
+  assert.match(content, /q\n\/GA1 gs\n\/Fm1 Do\nQ/, 'the page paints the form under one alpha');
+  assert.doesNotMatch(content, /50 50 re/, 'what the group drew is in the form, not on the page');
+  const form = formOf(pdf, lib, 'Fm1');
+  assert.equal(String(form.dict.get(lib.PDFName.of('Subtype'))), '/Form');
+  assert.equal(String(form.dict.get(lib.PDFName.of('BBox'))), '[ 0 0 100 100 ]');
+  const group = form.dict.lookup(lib.PDFName.of('Group'), lib.PDFDict);
+  assert.equal(String(group.get(lib.PDFName.of('S'))), '/Transparency');
+  assert.equal(group.get(lib.PDFName.of('CS')), undefined,
+    'a content group blends in its parent space, so a CMYK print export keeps its PDF/X claim');
+  assert.match(form.content, /0 0 50 50 re\nf/);
+  assert.match(form.content, /Tj/);
+  const formRes = form.dict.lookup(lib.PDFName.of('Resources'), lib.PDFDict);
+  assert.ok(formRes.get(lib.PDFName.of('Font')), 'a font used only inside the group is declared on the form and written');
+});
+
+test('groups nest, and a DeviceGray group masks another by its luminosity', async () => {
+  const doc = await createPdfDoc({ format: [100, 100] });
+  doc.beginGroup();
+  doc.beginGroup();
+  doc.rect(0, 0, 10, 10, 'F');
+  doc.paintGroup(doc.endGroup([0, 0, 100, 100]), 0.25);
+  const outer = doc.endGroup([0, 0, 100, 100]);
+  doc.beginGroup();
+  doc.setFillColor(255, 255, 255);
+  doc.rect(0, 0, 5, 5, 'F');
+  const mask = doc.endGroup([0, 0, 100, 100], 'DeviceGray');
+  doc.paintGroup(outer, 1, mask);
+  const { content, pdf, lib } = await readBack(doc);
+
+  assert.match(content, /q\n\/GM\d+ gs\n\/Fm2 Do\nQ/, 'the outer group is painted through the soft mask, with no alpha state');
+  const outerForm = formOf(pdf, lib, 'Fm2');
+  assert.match(outerForm.content, /\/Fm1 Do/, 'the inner group is painted inside the outer one');
+  const gs = pdf.getPage(0).node.Resources().lookup(lib.PDFName.of('ExtGState'), lib.PDFDict);
+  const maskGs = [...gs.entries()].map(([, ref]: [unknown, any]) => pdf.context.lookup(ref)).find((d: any) => d.get(lib.PDFName.of('SMask')));
+  const smask = maskGs.lookup(lib.PDFName.of('SMask'), lib.PDFDict);
+  assert.equal(String(smask.get(lib.PDFName.of('S'))), '/Luminosity');
+  assert.equal(String(smask.get(lib.PDFName.of('BC'))), '[ 0 ]', 'outside the mask is black, so nothing shows there');
+  const maskForm = pdf.context.lookup(smask.get(lib.PDFName.of('G')));
+  const group = maskForm.dict.lookup(lib.PDFName.of('Group'), lib.PDFDict);
+  assert.equal(String(group.get(lib.PDFName.of('CS'))), '/DeviceGray', 'a luminosity group states its colour space, as PDF requires');
+});
+
+test('a gradient with stop opacities paints through a soft mask of a grey shading', async () => {
+  const doc = await createPdfDoc({ format: [100, 100] });
+  doc.addShadingPattern('c', new doc.ShadingPattern('radial', [50, 50, 0, 50, 50, 40], [
+    { offset: 0, color: [255, 0, 0] }, { offset: 1, color: [0, 0, 255] },
+  ]));
+  doc.addShadingPattern('a', new doc.ShadingPattern('radial', [50, 50, 0, 50, 50, 40], [
+    { offset: 0, color: [255] }, { offset: 1, color: [0] },
+  ], 'DeviceGray'));
+  doc.rect(10, 10, 80, 80, null);
+  doc.fill({ key: 'c', alpha: 'a' });
+  const { content, pdf, lib } = await readBack(doc);
+
+  assert.match(content, /q\n\/GM1 gs\n10 10 80 80 re\nW n\n1 0 0 1 0 0 cm\n\/Sh1 sh\nQ/, 'the mask is set before the clipped shading paints');
+  const smask = pdf.context.lookup(pdf.getPage(0).node.Resources().lookup(lib.PDFName.of('ExtGState'), lib.PDFDict).get(lib.PDFName.of('GM1')))
+    .lookup(lib.PDFName.of('SMask'), lib.PDFDict);
+  const maskForm = pdf.context.lookup(smask.get(lib.PDFName.of('G')));
+  const maskContent = new TextDecoder('latin1').decode(inflateSync(Buffer.from(maskForm.contents)));
+  assert.match(maskContent, /10 10 80 80 re\nW n\n1 0 0 1 0 0 cm\n\/Sh2 sh/, 'the mask repeats the path and paints the grey shading');
+  const grey = pdf.context.lookup(maskForm.dict.lookup(lib.PDFName.of('Resources'), lib.PDFDict).lookup(lib.PDFName.of('Shading'), lib.PDFDict).get(lib.PDFName.of('Sh2')));
+  assert.equal(String(grey.get(lib.PDFName.of('ColorSpace'))), '/DeviceGray');
+  assert.equal(String(grey.get(lib.PDFName.of('ShadingType'))), '3');
+});
+
+test('the writer knows the fill alpha in force, so a painter inside a fade can multiply by it', async () => {
+  const doc = await createPdfDoc({ format: [100, 100] });
+  assert.equal(doc.currentAlpha(), 1);
+  doc.saveGraphicsState();
+  doc.setGState(new doc.GState({ opacity: 0.5 }));
+  assert.equal(doc.currentAlpha(), 0.5);
+  doc.beginGroup();
+  assert.equal(doc.currentAlpha(), 1, 'a transparency group starts at full alpha, as PDF resets alpha there');
+  doc.paintGroup(doc.endGroup([0, 0, 1, 1]), 0.25);
+  assert.equal(doc.currentAlpha(), 0.5, 'painting a group restores the state around its own alpha');
+  doc.restoreGraphicsState();
+  assert.equal(doc.currentAlpha(), 1);
+});
+
+test('a soft mask is written in page points with its box at the origin, so Quartz places the whole mask', async () => {
+  // Quartz (macOS Preview) sizes a mask from its box in the form's own units; a mask in
+  // small user units came out cut to a corner of itself there.
+  const doc = await createPdfDoc({ format: [200, 100] });
+  doc.setCurrentTransformationMatrix(new doc.Matrix(0.25, 0, 0, 0.25, 0, 0));
+  doc.addShadingPattern('c', new doc.ShadingPattern('axial', [0, 0, 800, 0], [{ offset: 0, color: [255, 0, 0] }, { offset: 1, color: [0, 0, 255] }]));
+  doc.addShadingPattern('a', new doc.ShadingPattern('axial', [0, 0, 800, 0], [{ offset: 0, color: [255] }, { offset: 1, color: [0] }], 'DeviceGray'));
+  doc.rect(0, 0, 800, 400, null);
+  doc.fill({ key: 'c', alpha: 'a' });
+  const { pdf, lib } = await readBack(doc);
+  const smask = pdf.context.lookup(pdf.getPage(0).node.Resources().lookup(lib.PDFName.of('ExtGState'), lib.PDFDict).get(lib.PDFName.of('GM1')))
+    .lookup(lib.PDFName.of('SMask'), lib.PDFDict);
+  const form = pdf.context.lookup(smask.get(lib.PDFName.of('G')));
+  const box = form.dict.get(lib.PDFName.of('BBox')).asArray().map((n: any) => Number(n.toString()));
+  assert.deepEqual(box.slice(0, 2), [0, 0], 'the box starts at the origin');
+  assert.ok(box[2] <= 202 && box[3] <= 102, `the box is in page points, cut to the page: [${box.join(' ')}]`);
+  assert.ok(form.dict.get(lib.PDFName.of('Matrix')), 'a Matrix takes the page points back to user space');
+  const content = new TextDecoder('latin1').decode(inflateSync(Buffer.from(form.contents)));
+  assert.match(content.split('\n')[0]!, / cm$/, 'the stream opens by mapping user space onto those points');
+});
+
+test('live text fills through a shading pattern placed in the page\'s own space', async () => {
+  const doc = await createPdfDoc({ format: [200, 100] });
+  doc.addShadingPattern('g', new doc.ShadingPattern('axial', [0, 0, 100, 0], [{ offset: 0, color: [255, 0, 0] }, { offset: 1, color: [0, 0, 255] }]));
+  doc.setTextFill({ key: 'g' });
+  doc.setFont('helvetica', 'bold');
+  doc.text('WIDE', 10, 50);
+  doc.setTextFill(null);
+  doc.text('plain', 10, 90);
+  const { content, pdf, lib } = await readBack(doc);
+  assert.match(content, /q\n\/Pattern cs\n\/P1 scn\nBT\n[^\n]+ Tf\n[^\n]+ Tm\n<[^>]*> Tj\nET\nQ/, 'the gradient text is set with Tj in the Pattern colour space');
+  assert.match(content, /BT\n[^\n]+ Tf\n0\.? g\n/, 'and text after the fill is cleared takes its colour again');
+  const pattern = pdf.context.lookup(pdf.getPage(0).node.Resources().lookup(lib.PDFName.of('Pattern'), lib.PDFDict).get(lib.PDFName.of('P1')));
+  assert.equal(String(pattern.get(lib.PDFName.of('PatternType'))), '2');
+  assert.equal(String(pattern.get(lib.PDFName.of('Matrix'))), '[ 1 0 0 -1 0 100 ]', 'the pattern is placed through the page\'s top-left change of basis');
+});
+
+test('a group can be painted with a blend mode', async () => {
+  const doc = await createPdfDoc({ format: [100, 100] });
+  doc.beginGroup();
+  doc.rect(0, 0, 10, 10, 'F');
+  doc.paintGroup(doc.endGroup([0, 0, 10, 10]), 1, undefined, 'HardLight');
+  const { content, pdf, lib } = await readBack(doc);
+  assert.match(content, /q\n\/GA1 gs\n\/Fm1 Do\nQ/);
+  const gs = pdf.context.lookup(pdf.getPage(0).node.Resources().lookup(lib.PDFName.of('ExtGState'), lib.PDFDict).get(lib.PDFName.of('GA1')));
+  assert.equal(String(gs.get(lib.PDFName.of('BM'))), '/HardLight');
+  const form = pdf.context.lookup(pdf.getPage(0).node.Resources().lookup(lib.PDFName.of('XObject'), lib.PDFDict).get(lib.PDFName.of('Fm1')));
+  assert.equal(String(form.dict.lookup(lib.PDFName.of('Group'), lib.PDFDict).get(lib.PDFName.of('I'))), 'true', 'an isolated group, as the CSS stacking context it stands for');
+});
+
+test('live text with stop opacities fades through a soft mask of the same glyphs', async () => {
+  const doc = await createPdfDoc({ format: [200, 100] });
+  doc.addShadingPattern('c', new doc.ShadingPattern('axial', [0, 0, 100, 0], [{ offset: 0, color: [255, 0, 0] }, { offset: 1, color: [0, 0, 255] }]));
+  doc.addShadingPattern('a', new doc.ShadingPattern('axial', [0, 0, 100, 0], [{ offset: 0, color: [255] }, { offset: 1, color: [0] }], 'DeviceGray'));
+  doc.setTextFill({ key: 'c', alpha: 'a' });
+  doc.setFont('helvetica', 'bold');
+  doc.text('FADE', 10, 50);
+  doc.setTextFill(null);
+  const { content, pdf, lib } = await readBack(doc);
+  assert.match(content, /q\n\/GM1 gs\n\/Pattern cs\n\/P1 scn\nBT/, 'the mask is set before the pattern fill');
+  const smask = pdf.context.lookup(pdf.getPage(0).node.Resources().lookup(lib.PDFName.of('ExtGState'), lib.PDFDict).get(lib.PDFName.of('GM1')))
+    .lookup(lib.PDFName.of('SMask'), lib.PDFDict);
+  const form = pdf.context.lookup(smask.get(lib.PDFName.of('G')));
+  const body = new TextDecoder('latin1').decode(inflateSync(Buffer.from(form.contents)));
+  assert.match(body, /BT\n[^\n]+ Tf\n7 Tr\n[^\n]+ Tm\n<[^>]*> Tj\nET\n[^\n]+ cm\n\/Sh2 sh/, 'the mask clips to the glyphs and paints the grey shading');
+  assert.ok(form.dict.lookup(lib.PDFName.of('Resources'), lib.PDFDict).get(lib.PDFName.of('Font')), 'the mask carries the font it sets');
+});
+
+test('a soft mask\'s form Matrix keeps its precision at a large scale', async () => {
+  // 300 points to the user unit: the Matrix back to user space is a third of a hundredth,
+  // which four decimal places would write as 0.0033 and so move a mask edge by pixels.
+  const doc = await createPdfDoc({ format: [400, 300] });
+  doc.setCurrentTransformationMatrix(new doc.Matrix(300, 0, 0, 300, 0, 0));
+  doc.addShadingPattern('c', new doc.ShadingPattern('axial', [0, 0, 1, 0], [{ offset: 0, color: [255, 0, 0] }, { offset: 1, color: [0, 0, 255] }]));
+  doc.addShadingPattern('a', new doc.ShadingPattern('axial', [0, 0, 1, 0], [{ offset: 0, color: [255] }, { offset: 1, color: [0] }], 'DeviceGray'));
+  doc.rect(0, 0, 1, 0.8, null);
+  doc.fill({ key: 'c', alpha: 'a' });
+  const { pdf, lib } = await readBack(doc);
+  const smask = pdf.context.lookup(pdf.getPage(0).node.Resources().lookup(lib.PDFName.of('ExtGState'), lib.PDFDict).get(lib.PDFName.of('GM1')))
+    .lookup(lib.PDFName.of('SMask'), lib.PDFDict);
+  const form = pdf.context.lookup(smask.get(lib.PDFName.of('G')));
+  const m = form.dict.get(lib.PDFName.of('Matrix')).asArray().map((n: any) => Number(n.toString()));
+  assert.ok(Math.abs(m[0] - 1 / 300) < 1e-9, `the scale is written in full: ${m[0]}`);
+});
+
+test('text can be set invisible to stay searchable, or as a clip for what is painted next', async () => {
+  const doc = await createPdfDoc({ format: [200, 100] });
+  doc.setFont('helvetica', 'normal');
+  doc.text('hidden', 10, 30, { render: 'invisible' });
+  doc.saveGraphicsState();
+  doc.text('clipped', 10, 70, { render: 'clip' });
+  doc.rect(0, 40, 200, 40, 'F');
+  doc.restoreGraphicsState();
+  doc.text('after', 10, 95);
+  const { content } = await readBack(doc);
+  assert.match(content, /q\nBT\n[^\n]+ Tf\n3 Tr\n[^\n]+ Tm\n<[^>]*> Tj\nET\nQ/, 'invisible text is render mode 3, undone by its own Q');
+  assert.match(content, /q\nBT\n[^\n]+ Tf\n7 Tr\n[^\n]+ Tm\n<[^>]*> Tj\nET\n0 Tr\n[^\n]+ re\nf\nQ/, 'a clip is render mode 7 with no Q of its own, so the rect after it is clipped');
+});

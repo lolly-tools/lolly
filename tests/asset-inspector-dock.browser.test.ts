@@ -4,12 +4,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
-const origin = process.env.LOLLY_ASSETS_TEST_URL;
+const origin = process.env.LOLLY_ASSETS_TEST_URL ?? process.env.LOLLY_IMPORT_TEST_URL;
 const entry = { id: 'ext/dam/art', name: 'Campaign artwork', provider: 'dam', type: 'vector', version: '1234567890123456',
   formats: [{ format: 'svg', url: '/catalog/ext/dam/art/one' }],
   meta: { providerLabel: 'Campaign library', assetFiles: [{ id: 'a'.repeat(24), name: 'art.svg', format: 'svg', role: 'original', url: '/catalog/ext/dam/art/one' }] } };
 
-test('asset inspector resizes, collapses and keeps the complete journey readable at narrow widths', { skip: origin ? false : 'set LOLLY_ASSETS_TEST_URL to a local web shell', timeout: 120_000 }, async () => {
+test('asset inspector resizes, collapses and keeps the complete journey readable at narrow widths', { skip: origin ? false : 'set LOLLY_ASSETS_TEST_URL or LOLLY_IMPORT_TEST_URL to a local web shell', timeout: 120_000 }, async () => {
   assert.ok(['localhost', '127.0.0.1'].includes(new URL(origin!).hostname));
   const browser = await getBrowser(), context = await browser.newContext({ viewport: { width: 1360, height: 1000 } }), page = await context.newPage();
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
@@ -63,6 +63,7 @@ test('asset inspector resizes, collapses and keeps the complete journey readable
     await page.getByRole('button', { name: 'Expand asset details', exact: true }).click(); assert.equal(await grip.getAttribute('aria-valuenow'), '380');
     if (process.env.LOLLY_ASSETS_EVIDENCE) { await mkdir(process.env.LOLLY_ASSETS_EVIDENCE, { recursive: true }); await page.screenshot({ path: `${process.env.LOLLY_ASSETS_EVIDENCE}/inspector-desktop.png` }); }
     await grip.focus(); await page.keyboard.press('Home'); await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForFunction(() => !document.querySelector('.cat-details')?.classList.contains('is-inspector-collapsed'));
     assert.equal(await grip.isVisible(), false); assert.equal(await dialog.evaluate(node => node.classList.contains('is-inspector-collapsed')), false);
     await page.locator('.valid-steps').scrollIntoViewIfNeeded(); await noOverflow();
     assert.ok((await page.locator('.cat-details-close').boundingBox())!.y >= 0);
@@ -70,6 +71,7 @@ test('asset inspector resizes, collapses and keeps the complete journey readable
     assert.equal(await page.locator('.cat-inspector-scroll').evaluate(node => node instanceof HTMLElement && node.inert), false);
     if (process.env.LOLLY_ASSETS_EVIDENCE) await page.screenshot({ path: `${process.env.LOLLY_ASSETS_EVIDENCE}/inspector-mobile.png` });
     await page.setViewportSize({ width: 1360, height: 1000 });
+    await page.waitForFunction(() => document.querySelector('.cat-details')?.classList.contains('is-inspector-collapsed'));
     assert.equal(await dialog.evaluate(node => node.classList.contains('is-inspector-collapsed')), true);
     await page.getByRole('button', { name: 'Expand asset details', exact: true }).click();
     await page.locator('.cat-details-close').click(); await page.locator('.cat-remote .cat-tile-open').first().click();

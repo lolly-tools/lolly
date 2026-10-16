@@ -142,7 +142,7 @@ test('gallery renders branded templates, preserves their framing, and invalidate
   skip: origin ? false : 'set LOLLY_GALLERY_TEST_URL to a local Vite shell', timeout: 120_000,
 }, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, channel: process.env.LOLLY_BROWSER_CHANNEL });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, reducedMotion: 'reduce' });
   const errors: string[] = [], artworkRequests: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
@@ -158,6 +158,12 @@ test('gallery renders branded templates, preserves their framing, and invalidate
     await design.locator('.gcar-slide.is-loaded').first().waitFor({ timeout: 60_000 });
     const cover = design.locator('.gcar-img').first();
     assert.ok((await cover.getAttribute('src'))?.startsWith('data:image/'));
+    const previewText = await cover.evaluate(i => {
+      const svg = new DOMParser().parseFromString(atob((i as HTMLImageElement).src.split(',')[1]!), 'image/svg+xml');
+      return { outlines: svg.querySelectorAll('path').length, editableText: svg.querySelectorAll('text').length };
+    });
+    assert.ok(previewText.outlines > 0, 'the SVG image carries the brand font outlines');
+    assert.equal(previewText.editableText, 0, 'an image cannot inherit fonts installed in the app');
     assert.equal(await design.locator('.gcar-open').first().getAttribute('href'), '#/tool/design?template=brand-starter');
     assert.deepEqual(await cover.evaluate(i => [(i as HTMLImageElement).naturalWidth, (i as HTMLImageElement).naturalHeight]), [1920, 1080]);
     await page.locator('.ftile[data-tool="design"] .ftile-img.is-active').first().waitFor({ timeout: 60_000 });

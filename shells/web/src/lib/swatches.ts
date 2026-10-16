@@ -19,6 +19,7 @@
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from './icons.ts';
+import { swatchInk, SWATCH_INK } from '../brand-vars.ts';
 import type { PaletteEntry } from '../palette.ts';
 
 export const isTransparent = (hex: string): boolean => !hex || hex.toLowerCase() === 'transparent';
@@ -139,11 +140,10 @@ export interface SwatchTileOptions {
    *  (plan 182 section 4.2). Decorative and aria-hidden: the Roles strip is
    *  where roles are listed and named, and the tile's accessible label is kept
    *  fresh in place by the studio's own recolour paths, which know nothing about
-   *  roles. Omit it and the tile is byte-identical to what it always was. */
+   *  roles. Omit it and the tile is byte-identical to what it always was. The
+   *  mark's ink is the tile's own call (swatchTakesDarkInk), so every caller
+   *  measures by the one rule. */
   roleGlyph?: string;
-  /** md only: the tile is light enough that the mark needs ink rather than
-   *  paper. The caller measures - it already holds the swatch's OKLCH. */
-  roleOnLight?: boolean;
 }
 
 /** The tile's accessible name - the visible grid is shape-only, so name + hex
@@ -155,8 +155,20 @@ export function tileLabel(name: string, hex: string, locked: boolean): string {
     : tRaw('{name} - {hex}', { name, hex: hexPart });
 }
 
+/** Whether a label on this swatch takes the dark ink (swatchInk, brand-vars.ts).
+ *  A tile's markup is built as a string over a checkerboard that follows the theme,
+ *  which it cannot see, so a translucent swatch is judged at full strength. */
+export function swatchTakesDarkInk(hex: string): boolean {
+  return swatchInk(hex) === SWATCH_INK.dark;
+}
+
+/** Re-ink a tile's role mark after an in-place recolour (the grid's live paths). */
+export function syncRoleMarkInk(tile: Element, hex: string): void {
+  tile.querySelector('.be-swatch-role')?.classList.toggle('is-onlight', swatchTakesDarkInk(hex));
+}
+
 export function swatchTile(entry: SwatchTileEntry, opts: SwatchTileOptions = {}): string {
-  const { size = 'md', idx, editable = true, roleGlyph = '', roleOnLight = false } = opts;
+  const { size = 'md', idx, editable = true, roleGlyph = '' } = opts;
   const trans = !entry.hex || entry.hex === 'transparent';
   const sw = escape(trans ? 'transparent' : entry.hex);
   if (size === 'sm') {
@@ -168,7 +180,7 @@ export function swatchTile(entry: SwatchTileEntry, opts: SwatchTileOptions = {})
   const idxAttr = idx != null ? ` data-be-tile="${escape(String(idx))}"` : '';
   const stateCls = editable ? `${trans ? ' is-empty' : ''}${entry.locked ? ' is-pinned' : ''}` : '';
   const mark = roleGlyph
-    ? `<span class="be-swatch-role${roleOnLight ? ' is-onlight' : ''}" aria-hidden="true">${escape(roleGlyph)}</span>`
+    ? `<span class="be-swatch-role${swatchTakesDarkInk(entry.hex) ? ' is-onlight' : ''}" aria-hidden="true">${escape(roleGlyph)}</span>`
     : '';
   return `
     <button type="button" class="be-swatch${stateCls}"${idxAttr}

@@ -1,6 +1,7 @@
 # Public Lolly on an UpCloud or Evroc VM
 
-This recipe serves the public `lolly-start` site from one HTTPS origin. It uses
+This recipe serves the public `lolly-demo` site, the profile
+`scripts/data/ship-targets.json` sets for lolly.tools, from one HTTPS origin. It uses
 four bounded containers: the signed web shell, the combined MCP gateway and live
 agent relay, the certificate authority, and the Penpot adapter. Caddy runs on the
 host. Model files are a verified read-only release mounted into the web container.
@@ -17,7 +18,8 @@ moves. This document does not declare an untested candidate ready.
 | Route | Service and behavior |
 | --- | --- |
 | `/`, client routes, `/t/<id>`, `/design`, view aliases | Signed web shell and real generated pages |
-| `/docs`, translated and door-based `/docs/...`, `/info/...` | Generated documentation; missing files return 404 |
+| `/docs`, `/documentation` (with optional trailing slash) | Permanent redirects to `/info`, preserving query strings |
+| Translated and door-based `/docs/...`, `/info/...` | Generated documentation; missing files return 404 |
 | `/agents.md`, `/llms.txt`, `/llms-full.txt`, `/openapi.json`, `/.well-known/lolly.json` | Published discovery files with their proper MIME types |
 | `/robots.txt`, `/sitemap.xml`, `/t/layout-studio` | Robots file and permanent redirects preserving query strings |
 | `/tool/<id>.<format>` | Existing public render handler, limits and format refusals |
@@ -47,7 +49,7 @@ Caddy and honored by the handlers only for the measured direct proxy IP.
 ## Prepare one qualified release
 
 Use a clean source checkout and approved release runner. Build public images with
-`LOLLY_PROFILE=lolly-start`. Do not initialize or mount the private SUSE pack for
+`LOLLY_PROFILE=lolly-demo`. Do not initialize or mount the private SUSE pack for
 this public release. Record the source commit, test receipts, image digests,
 published catalog verification key and model release inventory together.
 
@@ -60,7 +62,7 @@ docker buildx build --no-cache-filter verify \
   -f deploy/docker/web.Dockerfile \
   --build-context "release-frontend=/approved/frontend" \
   --build-arg "LOLLY_RELEASE_SOURCE=<reviewed-commit-sha>" \
-  --build-arg LOLLY_PROFILE=lolly-start \
+  --build-arg LOLLY_PROFILE=lolly-demo \
   --build-arg "VITE_CATALOG_PUBLIC_KEY_JWK=$VITE_CATALOG_PUBLIC_KEY_JWK" \
   -t <approved-registry>/lolly-web:<release> .
 ```

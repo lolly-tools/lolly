@@ -4,8 +4,8 @@
  * lives in views/tool-leave.ts and bridge/revision-discard.ts, each tested on its
  * own; this pins that the tool view actually routes through them:
  *
- *   1. the Unsaved changes dialog's "Leave without saving" (behind Home, the back
- *      pill and Bulk from rows) runs leaveWithoutSaving, never a bare navigation;
+ *   1. the Unsaved edits dialog's "Leave anyway" (behind Home, the back pill and
+ *      Bulk from rows) runs leaveWithoutSaving, never a bare navigation;
  *   2. leaveWithoutSaving discards, then waits for the dialog's Back entry to be
  *      popped, then rewrites the entry being left, and only then navigates;
  *   3. an edit present when the tool mounts (a creation not at its last save, or
@@ -15,6 +15,8 @@
  * WHY A SOURCE SCAN: mountTool cannot be imported outside Vite (see
  * views/tool-template-mount.test.ts). Reads the whole feature, views/tool.ts plus
  * views/tool/*.ts, so moving a function between modules does not break the guard.
+ * The dialog itself lives in views/tool-leave-dialog.ts, which
+ * tool-leave-dialog.test.ts builds in a DOM.
  *
  * Run directly:  node --test shells/web/src/views/tool-leave-wiring.test.ts
  */
@@ -29,21 +31,22 @@ const stripComments = (src: string): string => src.replace(/\/\*[\s\S]*?\*\//g, 
   .split('\n').map(line => { const at = line.search(/(^|[^:])\/\//); return at === -1 ? line : line.slice(0, at === 0 ? 0 : at + 1); }).join('\n');
 const feature = stripComments([join(HERE, 'tool.ts'), ...readdirSync(join(HERE, 'tool')).filter(f => f.endsWith('.ts') && !f.endsWith('.test.ts')).map(f => join(HERE, 'tool', f))]
   .map(file => readFileSync(file, 'utf8')).join('\n'));
+const dialogSource = stripComments(readFileSync(join(HERE, 'tool-leave-dialog.ts'), 'utf8'));
 
 /** The `{ … }` body that follows `head`, by brace matching. */
-function bodyAfter(head: string): string {
-  const at = feature.indexOf(head);
+function bodyAfter(head: string, source = feature): string {
+  const at = source.indexOf(head);
   assert.notEqual(at, -1, `expected \`${head}\` in the tool view`);
-  const open = feature.indexOf('{', at);
+  const open = source.indexOf('{', at);
   let depth = 0;
-  for (let i = open; i < feature.length; i++) {
-    if (feature[i] === '{') depth++;
-    else if (feature[i] === '}' && --depth === 0) return feature.slice(open, i + 1);
+  for (let i = open; i < source.length; i++) {
+    if (source[i] === '{') depth++;
+    else if (source[i] === '}' && --depth === 0) return source.slice(open, i + 1);
   }
   throw new Error(`unbalanced body after ${head}`);
 }
 
-test('every Unsaved changes dialog leaves through leaveWithoutSaving', () => {
+test('every Unsaved edits dialog leaves through leaveWithoutSaving', () => {
   for (const head of ['export function backPillIntercept(', 'export const openBulk = ']) {
     const body = bodyAfter(head);
     assert.match(body, /showUnsavedDialog\(/, head);
@@ -99,13 +102,17 @@ test('a team document: Save, Cmd-S and the leave prompt reach the document scope
   // The view announces each mount to the scope seam and takes it down with the mount.
   assert.match(feature, /const stopScope = mountDocumentScope\(\{ toolId, view: viewEl,/);
   assert.match(bodyAfter('viewEl._cleanup = () =>'), /stopScope\(\);/);
-  // The Unsaved changes dialog asks the scope's question when there is one.
-  const dialog = bodyAfter('export function showUnsavedDialog(');
+  // The Unsaved edits dialog asks the scope's question when there is one.
+  const dialog = bodyAfter('export function showUnsavedDialog(', dialogSource);
   assert.match(dialog, /const scoped = leaveQuestion\(\);/);
-  assert.match(dialog, /scoped \? escapeText\(scoped\) : t\('Unsaved changes'\)/, 'the question is escaped into the heading');
-  assert.match(dialog, /scoped \? t\('Stay'\) : t\('Cancel'\)/);
+  assert.match(dialog, /scoped \? escapeText\(scoped\) : t\('Unsaved edits'\)/, 'the question is escaped into the heading');
+  // The question changes only the title: the sentence and the three buttons are the same.
+  assert.match(dialog, /<p[^>]*>\$\{t\('Save now or abandon your changes\.'\)\}<\/p>/);
+  assert.match(dialog, /btn\('leave', t\('Leave anyway'\)\)/);
+  assert.match(dialog, /btn\('cancel', t\('Cancel'\)\)/);
+  assert.doesNotMatch(dialog, /t\('(?:Leave without saving|Stay)'\)/);
   // The draft is kept only where that question was asked: a viewer's team document gets
-  // the ordinary dialog, and its Leave without saving discards, as the dialog says.
+  // the ordinary dialog, and its Leave anyway discards, as the dialog says.
   const leave = stripComments(readFileSync(join(HERE, 'tool-leave.ts'), 'utf8'));
   assert.match(leave, /if \(opts\.keep \?\? documentLeavePrompt\(\) !== null\) return \{ outcome: 'unchanged', kept: slot \};/);
   assert.doesNotMatch(leave, /documentScopeClaimed/, 'claiming the document is not enough to keep its draft');

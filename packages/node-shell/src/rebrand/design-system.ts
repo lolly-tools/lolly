@@ -62,12 +62,14 @@ import { RebrandPipelineError } from './pipeline.ts';
 /**
  * The colour tokens of a DTCG brand file, as token path to value, read through
  * the engine's token set: the file's sets merged for its default theme, every
- * `{alias}` followed, and every `color` entry whose value is a string kept.
+ * `{alias}` followed, and every `color` entry whose value is a string kept. The
+ * themed role tokens (`color.role.*`) and the app chrome a pack states
+ * (`color.chrome.*`) are left out: they describe a use, not a colour of the brand.
  */
 export function colorTokensFromDtcg(file: unknown): Map<string, string> {
   const out = new Map<string, string>();
   for (const entry of createTokenSet(file).query({ type: 'color' })) {
-    if (typeof entry.path === 'string' && typeof entry.value === 'string' && !entry.path.startsWith('color.role.')) out.set(entry.path, entry.value);
+    if (typeof entry.path === 'string' && typeof entry.value === 'string' && !entry.path.startsWith('color.role.') && !entry.path.startsWith('color.chrome.')) out.set(entry.path, entry.value);
   }
   return out;
 }
@@ -80,14 +82,15 @@ export const DARK_THEME_NAME = /(^|[\s/_-])dark$/i;
  * the file names as dark, composed over its base the way the default theme is, as
  * token path to value. Undefined when the file names no dark theme or it states no
  * colour. The web reader (`readDarkColors` there) makes the same read through
- * `host.tokens`, so a themed plan compiles the same bytes on both surfaces.
+ * `host.tokens`, so a themed plan compiles the same bytes on both surfaces. Roles
+ * and app chrome stay out, as in `colorTokensFromDtcg`.
  */
 export function darkColorsFromDtcg(file: unknown): Map<string, string> | undefined {
   const dark = createTokenSet(file).themes().find((one) => DARK_THEME_NAME.test(one.name.trim()));
   if (!dark) return undefined;
   const out = new Map<string, string>();
   for (const entry of createTokenSet(file, { theme: dark.name }).query({ type: 'color' })) {
-    if (typeof entry.path === 'string' && typeof entry.value === 'string' && !entry.path.startsWith('color.role.')) out.set(entry.path, entry.value);
+    if (typeof entry.path === 'string' && typeof entry.value === 'string' && !entry.path.startsWith('color.role.') && !entry.path.startsWith('color.chrome.')) out.set(entry.path, entry.value);
   }
   return out.size > 0 ? out : undefined;
 }

@@ -4,12 +4,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
-const origin = process.env.LOLLY_ASSETS_TEST_URL;
+const origin = process.env.LOLLY_ASSETS_TEST_URL ?? process.env.LOLLY_IMPORT_TEST_URL;
 const entry = (i: number) => ({ id: `ext/dam/item-${i}`, provider: 'dam', name: `Artwork ${String(i).padStart(6, '0')}`, type: 'vector', tier: 'on-demand', version: '1234567890123456',
   formats: [{ format: 'svg', url: `/catalog/ext/dam/item-${i}/wide` }, { format: 'svg', url: `/catalog/ext/dam/item-${i}/square` }, { format: 'thumb', url: `/catalog/ext/dam/item-${i}/thumb` }],
   meta: { providerLabel: 'Campaign library', providerSections: ['Launch'], providerCollections: [], assetFiles: ['wide', 'square'].map((name, j) => ({ id: (j ? 'b' : 'a').repeat(24), name: `${name}.svg`, format: 'svg', role: 'original', url: `/catalog/ext/dam/item-${i}/${name}` })) } });
 
-test('shared Assets pages retain selections, exact filters, file choice and metadata curation', { skip: origin ? false : 'set LOLLY_ASSETS_TEST_URL to a running web shell', timeout: 120_000 }, async () => {
+test('shared Assets pages retain selections, exact filters, file choice and metadata curation', { skip: origin ? false : 'set LOLLY_ASSETS_TEST_URL or LOLLY_IMPORT_TEST_URL to a running web shell', timeout: 120_000 }, async () => {
   assert.ok(['localhost', '127.0.0.1'].includes(new URL(origin!).hostname));
   const browser = await getBrowser(), context = await browser.newContext({ viewport: { width: 1360, height: 1000 } });
   const page = await context.newPage(); const errors: string[] = [], requests: URL[] = [], writes: unknown[] = [];
@@ -21,7 +21,7 @@ test('shared Assets pages retain selections, exact filters, file choice and meta
     if (denied) return route.fulfill({ status: 403, json: { error: { message: 'Denied' } } });
     if (url.pathname.startsWith('/api/v1/catalog/text-index/')) { const body = route.request().postDataJSON(); writes.push(body); indexedText = body.text ?? ''; return route.fulfill({ json: { ok: true } }); }
     if (url.pathname.endsWith('/meta')) { writes.push(route.request().postDataJSON()); return route.fulfill({ json: { ok: true } }); }
-    if (url.pathname !== '/api/v1/catalog/assets') { const asset = entry(Number(url.pathname.match(/item-(\d+)/)?.[1] ?? 0)); return route.fulfill({ json: { ...asset, canEdit: true, fields: { region: 'EMEA' }, fieldDefs: [{ id: 'region', label: 'Region', kind: 'select', options: ['EMEA', 'APAC'] }],
+    if (url.pathname !== '/api/v1/catalog/assets') { const asset = entry(Number(url.pathname.match(/item-(\d+)/)?.[1] ?? 0)); return route.fulfill({ json: { ...asset, canEdit: true, fields: { region: 'EMEA', credit: '<img src=x onerror=alert(1)>' }, fieldDefs: [{ id: 'region', label: 'Region', kind: 'select', options: ['EMEA', 'APAC'] }, { id: 'credit', label: 'Credit <script>literal</script>', kind: 'text' }],
       textIndex: { revision: 'revision-one', assetVersion: asset.version, status: indexedText ? 'current' : 'none', characters: indexedText.length }, textIndexFiles: asset.meta.assetFiles } }); }
     requests.push(url); const offset = Number(url.searchParams.get('cursor') ?? 0), tagged = url.searchParams.has('tag');
     return route.fulfill({ json: { capabilities: { indexedFilters: ['q', 'scope', 'source', 'types', 'tag', 'taxonomyKind', 'taxonomyId'] }, assets: Array.from({ length: tagged ? 10 : 100 }, (_, i) => entry(offset + i)), total: tagged ? 10 : 100_000, nextCursor: tagged ? null : String(offset + 100), version: 'fixture', complete: true,
@@ -57,6 +57,8 @@ test('shared Assets pages retain selections, exact filters, file choice and meta
     const reopened = await page.evaluate(async () => { const bridge = '/src/bridge/assets.ts', storage = '/src/bridge/db.ts'; const api = (await import(bridge)).createAssetsAPI(await (await import(storage)).openDB()); const ref = await api.get('ext/dam/item-0?file=' + 'b'.repeat(24)); return { id: ref.id, name: ref.meta.name }; });
     assert.equal(reopened.id, 'ext/dam/item-0?file=' + 'b'.repeat(24)); assert.equal(reopened.name, 'square.svg');
     await page.getByText('Organisation metadata', { exact: true }).click();
+    assert.equal(await page.getByLabel('Credit <script>literal</script>', { exact: true }).inputValue(), '<img src=x onerror=alert(1)>');
+    assert.equal(await page.locator('.cat-details-body form img, .cat-details-body form script').count(), 0, 'metadata labels and values remain text');
     await page.getByLabel('Region', { exact: true }).selectOption('APAC');
     await page.getByRole('button', { name: 'Save metadata', exact: true }).click();
     await page.getByText('Metadata saved.', { exact: true }).waitFor();

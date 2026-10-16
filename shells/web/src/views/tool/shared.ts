@@ -13,12 +13,9 @@ import type { DepthSetting, HdrSettings, VideoUrlSettings } from '@lolly/engine'
 import type { InputModelItem, InputValue } from '../../../../../engine/src/inputs.js';
 import type { ExportAudio } from '../../bridge/audio-envelope.ts';
 import { promptDialog } from '../../components/confirm-dialog.ts';
-import { mountModal } from '../../components/modal.ts';
 import type { ToolDesignSystemRegistry } from '../tool-design-system-context.ts';
-import { jellyActive } from '../../lib/jelly.ts';
 import { t } from '../../i18n.ts';
 import { urlProfileValue } from '../../lib/press-profile-embed.ts';
-import { playSfx } from '../../lib/sfx.ts';
 import { openShareDialog } from '../../components/share-dialog.ts';
 import type { ShareDialogLolly } from '../../components/share-dialog.ts';
 import type { ShareDocument } from '../../lib/share-sections.ts';
@@ -32,8 +29,6 @@ import type { EmojiParamPair } from '../../lib/emoji-prefs.ts';
 import { isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks } from '../tool-actions.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { agentGuidanceHost, agentInvitationHost } from '../../lib/agent-invitation-host.ts';
-import { leaveQuestion } from '../tool-leave.ts';
-import { escape as escapeText } from '../../utils.ts';
 
 // ── The chosen emoji set, for every writer of this tool's URL ────────────────
 //
@@ -919,68 +914,6 @@ export function resolveCanvasAnnotations(canvasEl: HTMLElement): void {
   }
 }
 
-// onSave: optional async () => void that performs the save and navigates on
-// success (the caller owns both). We invoke and await it directly (from the
-// modal's onClose, after the dialog has been dismissed) rather than firing a
-// button click, so "Save & leave" reliably saves *then* leaves instead of
-// trusting a fire-and-forget click + timer. Built on the shared mountModal
-// lifecycle (components/modal.ts) - Escape and a backdrop click dismiss as
-// Cancel like every other app dialog. Over a document that belongs somewhere else
-// (a team project) the dialog asks that place's question instead ("Save changes to
-// Brand refresh?", views/tool-leave.ts leaveQuestion), and says that leaving keeps the
-// edits on this device: Save, Leave without saving, Stay.
-export function showUnsavedDialog(
-  onSave: (() => Promise<void> | void) | null,
-  onLeave: () => void,
-  detail?: string
-): void {
-  // Under the jelly flag the three actions become soft-body buttons (accent
-  // "Save & leave", neutral platinum for the two exits), mirroring the confirm-
-  // dialog.ts actionBtn mapping. The jelly host must NOT carry the box-painting
-  // .unsaved-* classes (they'd paint a second capsule behind its canvas) - the
-  // delegated [data-act] click handler retargets composed shadow clicks to the
-  // host, so it fires unchanged; a layout-only .unsaved-btn-jelly class stays.
-  const btn = (act: 'save' | 'leave' | 'cancel', label: string): string => {
-    const nativeClass = { save: 'unsaved-save', leave: 'unsaved-leave', cancel: 'unsaved-cancel' }[
-      act
-    ];
-    return jellyActive()
-      ? `<jelly-button class="unsaved-btn-jelly"${act === 'save' ? '' : ' variant="platinum"'} data-act="${act}">${label}</jelly-button>`
-      : `<button type="button" class="${nativeClass}" data-act="${act}">${label}</button>`;
-  };
-  const scoped = leaveQuestion();
-  const content = `
-    <div class="unsaved-dialog-body">
-      <h2>${scoped ? escapeText(scoped) : t('Unsaved changes')}</h2>
-      <p>${scoped ? t('Leave without saving keeps your changes on this device.') : t('You have unsaved changes. <br>Would you like to save before leaving?')}</p>
-      <!-- ${detail ? `<p class="unsaved-dialog-detail">${detail}</p>` : ''} -->
-      <div class="unsaved-dialog-actions">
-        ${onSave ? btn('save', scoped ? t('Save') : t('Save &amp; leave')) : ''}
-        ${btn('leave', t('Leave without saving'))}
-        ${btn('cancel', scoped ? t('Stay') : t('Cancel'))}
-      </div>
-    </div>
-  `;
-  const modal = mountModal<'save' | 'leave' | undefined>(content, {
-    className: 'unsaved-dialog',
-    onClose: async (result) => {
-      if (result === 'save') await onSave?.();
-      else if (result === 'leave') onLeave();
-      else playSfx('land'); // Cancel / Escape / backdrop - reverse-liftoff settle
-    },
-  });
-  modal.el.dataset.sfxClose = 'off'; // this dialog owns its dismiss cue ('land' on Cancel), not the generic shoo
-  playSfx('crystal'); // a light glass-elevator lift as the save decision rises up
-  modal.el.addEventListener('click', (e) => {
-    const act =
-      e.target instanceof Element
-        ? e.target.closest<HTMLElement>('[data-act]')?.dataset.act
-        : undefined;
-    if (act === 'save') modal.close('save');
-    else if (act === 'leave') modal.close('leave');
-    else if (act === 'cancel') modal.close(undefined);
-  });
-}
 export type ExportReport = (done: number, total: number) => void;
 
 // Motion preview-generation hook - scripts/build-animated-previews.ts calls this to

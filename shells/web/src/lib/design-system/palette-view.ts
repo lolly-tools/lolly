@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MPL-2.0
-import { contrastRatio } from '@lolly/engine';
 import { escape as esc } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { setSwatchGroup, type BrandSwatch } from '../brand-doc.ts';
@@ -20,7 +19,7 @@ export interface PaletteViewOptions {
 /** Shared tile stays the edit target; the sibling checkbox makes selection discoverable. */
 export function paletteCard(s: BrandSwatch, idx: number, roleGlyph?: string): string {
   return `<div class="be-pal-card" data-reorder-row="${esc(s.key)}">
-    ${swatchTile({ label: s.name, hex: s.hex, locked: !!s.lock }, { idx, roleGlyph, roleOnLight: contrastRatio(s.hex, '#000000') > contrastRatio(s.hex, '#ffffff') })}
+    ${swatchTile({ label: s.name, hex: s.hex, locked: !!s.lock }, { idx, roleGlyph })}
     <label class="be-pal-check"><input type="checkbox" data-be-select="${idx}" aria-label="${esc(tRaw('Select {name}', { name: s.name }))}"><span aria-hidden="true"></span></label>
     <button type="button" class="be-pal-reorder" data-reorder-handle aria-pressed="false" aria-label="${esc(tRaw('Reorder {name}', { name: s.name }))}" title="${esc(tRaw('Drag to reorder within this group. Or press Space, use arrow keys, then Space to drop.'))}">${icon('grip', { size: 16, filled: true })}</button>
     <span class="be-pal-name">${esc(s.name)}</span><code class="be-pal-hex">${esc(s.hex || 'transparent')}</code>

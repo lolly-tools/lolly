@@ -110,7 +110,7 @@ test('a save made from a dialog clears the mark on the tool entry, not on the di
 
 // ── A document that belongs somewhere else (plan 75 J6 step 6) ───────────────────
 
-test('a team document asks its own question and keeps its device draft on Leave without saving', async () => {
+test('a team document asks its own question and keeps its device draft on Leave anyway', async () => {
   const scope = await import('../lib/document-scope.ts');
   const { leaveQuestion } = await import('./tool-leave.ts');
   scope._resetDocumentScopeForTests();
@@ -140,7 +140,7 @@ test('a team document asks its own question and keeps its device draft on Leave 
   scope._resetDocumentScopeForTests();
 });
 
-test('a viewer\'s document: the ordinary dialog, so Leave without saving discards as it says', async () => {
+test('a viewer\'s document: the ordinary dialog, so Leave anyway discards as its sentence says', async () => {
   const scope = await import('../lib/document-scope.ts');
   scope._resetDocumentScopeForTests();
   // The document belongs to a team project (the scope claims it) but this person may only

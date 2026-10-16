@@ -37,7 +37,7 @@ import type { Unit } from '../../../../../engine/src/units.js';
 import { navigateTo } from '../../nav.ts';
 import { sessionName } from '../tool-session-name.ts';
 import { fmtBytes, openEmbedEditor } from '../tool-inputs.ts';
-import { collectExportParams, isTextEditing, shareDialogOptions, showShareDialog, showUnsavedDialog, shrinkUrl, wireUpCopyUrl } from './shared.ts';
+import { collectExportParams, isTextEditing, shareDialogOptions, showShareDialog, shrinkUrl, wireUpCopyUrl } from './shared.ts';
 import { emojiDocumentCredits, emojiDocumentStyle, onEmojiDocumentChange, setEmojiDocumentStyle } from './emoji-doc.ts';
 import type { EmojiControlMount, InspectorEmojiPort } from '../design-inspector.ts';
 import { createDocumentThemeController } from '../../lib/document-theme.ts';
@@ -81,6 +81,7 @@ const lazyEmojiControl: EmojiControlMount = (container, opts) => {
 import type { MotionCaptureOpts } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
 import { discardUnsavedWork, leftEntryHref, localDocument, recordedClipBytes, rewriteLeftEntry, syncEntryMark } from '../tool-leave.ts';
+import { showUnsavedDialog } from '../tool-leave-dialog.ts';
 import { unfileSession } from '../tool-revision-history.ts';
 import { historySettled } from '../../lib/overlay-back.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
@@ -320,7 +321,7 @@ function discardFailure(error: unknown): string {
       : t('Edits kept because storage refused the change.');
 }
 /**
- * "Leave without saving" discards the work (plan 277 P1): the saved item goes back
+ * "Leave anyway" discards the work (plan 277 P1): the saved item goes back
  * to its last explicit save, or a never-saved creation leaves Projects, and the
  * entry being left stops holding the discarded edits for Back to bring back. The
  * dialog's own Back entry is popped first, so the tool's entry is current when it

@@ -14,6 +14,7 @@ import { t } from '../../i18n.ts';
 import { SITE_MAX_URL_CHARS, normalizeSiteUrl } from '../../lib/design-system/sources/website.ts';
 import type { StartSource } from '../../lib/design-system/start-route.ts';
 import { takePendingDesignSystemFile } from '../../lib/drop-router.ts';
+import { hasVisibleFileDrop } from '../../lib/file-drop-tile.ts';
 import { icon } from '../../lib/icons.ts';
 import type { IconName } from '../../lib/icons.ts';
 import { playSfx } from '../../lib/sfx.ts';
@@ -21,6 +22,10 @@ import { escape as escapeText } from '../../utils.ts';
 import { SOURCE_TILES, WEBSITE_TILE } from './shared.ts';
 import type { PickerSource } from './shared.ts';
 import { bindOp, type StartCtx } from './context.ts';
+
+/** Drop areas a room answers itself: the choose-a-file tiles (lib/file-drop-tile.ts)
+ *  and the Logos room's intake zone. */
+const ROOM_DROP_AREAS = '[data-file-drop], [data-be-logo-intake]';
 
 /** The tiles this device can actually offer. Website leads when it is there
  *  (plan 97 section 5's order) and is simply absent when it is not. */
@@ -409,6 +414,10 @@ export function wireSources(start: StartCtx): void {
   shell.addEventListener('dragover', (e) => {
     if (!e.dataTransfer?.types.includes('Files')) return;
     e.preventDefault();
+    // A room with drop areas of its own keeps the drag: opening the importer would
+    // cover the area the person is aiming for. In the Logos room that is the intake
+    // zone, which is always shown, and the slot tiles in any open fold.
+    if (hasVisibleFileDrop(shell, ROOM_DROP_AREAS)) return;
     // A drag reports its items' TYPE (never their data), which is enough to open
     // on the stage the drop is about to need instead of flashing the wrong one.
     const dragged = e.dataTransfer.items?.[0]?.type ?? '';

@@ -873,7 +873,7 @@ const RASTER_PREVIEWS: Record<string, string> = {
   'audiogram.look6.svg':
     'MilkDrop revival: a feedback/warp shader pass into the canvas. One embedded <image>, 1,804 B of surviving markup, and nothing about a per-pixel warp is expressible as geometry.',
   'booth-studio.svg':
-    'A photo-booth strip of real photographs. The walker embeds them as one composite <image>; 525 B of markup is left, and a photograph has no geometry by definition.',
+    'A 3-D exhibition booth that three.js renders into a <canvas>, so the walker gets one embedded <image> (93% of the file) and 373 B of markup, with no geometry behind the picture.',
   'darkroom.svg':
     'Darkroom is a photo grader: the graded frame is a bitmap the tool draws into a <canvas>. One embedded <image>, 450 B of surviving markup. (The grain looks 1/3 are .webp above for the same reason, encoded rather than wrapped.)',
   'darkroom.look0.svg':
@@ -965,6 +965,59 @@ const RASTER_PREVIEWS: Record<string, string> = {
 };
 
 /**
+ * Changes to the list above for a pack whose previews were captured on their own.
+ *
+ * The shared list stays true of suse and lolly-start, which were measured together.
+ * lolly-demo's previews were captured on 15 Oct 2026 from Lolly Demo's own content with the
+ * current generator, which encodes a raster as WebP where the older captures wrapped
+ * it in an <svg>. Some of this pack's files differ from lolly-start's in spelling and
+ * a few in kind: prompt-card's traced illustration is lolly-start content, and Lolly Demo's
+ * card is plain text. `drop` takes a shared entry off that pack's list and says why it does not hold
+ * there; `add` gives the pack's own rasters their reasons, measured on its files. The
+ * both-ways checks run on the result, and a `drop` naming no shared entry fails.
+ */
+const RASTER_PREVIEW_CHANGES: Record<string, { drop: Record<string, string>; add: Record<string, string> }> = {
+  'lolly-demo': {
+    drop: {
+      '3d-studio.svg': 'This pack carries the same WebGL frame as 3d-studio.webp, added below.',
+      'darkroom.look1.webp': 'This pack carries the grain look as darkroom.look1.svg, added below.',
+      'darkroom.look3.webp': 'This pack carries the grain look as darkroom.look3.svg, added below.',
+      'backdrop.look2.svg':
+        'The Neural drift capture keeps real markup here: its one <image> is 46% of the file, under the 60% line.',
+      'frame.look2.svg':
+        'No capture ships: the composed Synth render did not draw in the headless capture, so the gallery renders this look live.',
+      'prompt-card.webp': "Lolly Demo ships no generated illustration, so this pack's prompt card is plain text and stays SVG.",
+    },
+    add: {
+      '3d-studio.webp':
+        'The studio is a WebGL scene: lights, shadows and depth of field are rendered by three.js into a <canvas> and read back as pixels, the frame the shared 3d-studio.svg entry describes, encoded as WebP (19,872 B).',
+      'darkroom.look1.svg':
+        'Faded matte with grain 45: darkroom bakes grain, halation and dust per pixel into a <canvas>, so the capture is one embedded <image>, 96% of the file, with 451 B of markup around it.',
+      'darkroom.look3.svg':
+        'Classic black and white with grain 35: the same canvas texture pass as look 1. One embedded <image>, 95% of the file, 448 B of markup.',
+      'finish-preview.look3.svg':
+        "The plate itself: the spot UV gloss plate is a per-pixel threshold of the artwork's lightness at 62, so there is no geometry to recover. One embedded <image>, 93% of the file, 550 B of markup.",
+      'frame.look0.svg':
+        "Browser frame around the Mesh Gradient tool's Flow mode, a WebGL fragment shader (the gradient.look2 class): one embedded <image>, 64% of the file, inside 3,707 B of frame markup.",
+      'spatial-photo.webp':
+        'Spatial photo draws its stage with WebGL2 into a <canvas>, and with no photo picked it refuses to export, so the capture is a screenshot of the empty stage and its prompt (7,594 B).',
+      'timezone.look1.webp':
+        'Infrastructure atlas: the walker writes the world map as 248,785 B of SVG in 28 shapes, a few very long paths, past the 140 KB ceiling; 47,554 B as WebP. Measured before svgo on 15 Oct 2026.',
+    },
+  },
+};
+
+/** The raster list for the active profile: the shared entries with that pack's changes. */
+const PREVIEW_PROFILE = contentRoots().profile;
+const RASTER_ALLOWED: Record<string, string> = (() => {
+  const changes = RASTER_PREVIEW_CHANGES[PREVIEW_PROFILE];
+  if (!changes) return RASTER_PREVIEWS;
+  const out: Record<string, string> = { ...RASTER_PREVIEWS };
+  for (const name of Object.keys(changes.drop)) delete out[name];
+  return Object.assign(out, changes.add);
+})();
+
+/**
  * The few previews that fit in NO format, each with a byte ceiling and the measurement
  * behind it. An exception, not a raised budget: it applies to one named file, the file
  * must still stay under the ceiling declared here, and the gate keeps biting at 300/150
@@ -1012,9 +1065,11 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
   const isLook = (f: string): boolean => /\.look\d+\.[a-z0-9]+$/i.test(f);
   const kb = (n: number): string => Math.round(n / 1024).toLocaleString();
 
-  // A checkout that has never run `pnpm run previews` has no dir at all. Skip the whole
-  // block there rather than reporting every allowlist entry as stale - same tolerance the
-  // bundle-sig check above applies to a missing bundle.json.
+  // A checkout that has never run `pnpm run previews` has no preview images at all: no
+  // dir, or only the .gitkeep a new pack is laid out with and the empty bundle.json that
+  // build:catalog writes regardless. Skip the whole block there rather than reporting
+  // every allowlist entry as stale - same tolerance the bundle-sig check above applies
+  // to a missing bundle.json.
   const sizes = new Map<string, number>();
   if (existsSync(previewsDir)) {
     for (const f of readdirSync(previewsDir).sort()) {
@@ -1023,14 +1078,14 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
     }
   }
 
-  if (sizes.size) {
+  if ([...sizes.keys()].some(isImage)) {
     // Classified on content: a .webp is a raster, and so is an .svg that turns out to be
     // one embedded bitmap in a wrapper.
     const rasters = [...sizes.keys()].filter((f) => isImage(f) && (
       !/\.svg$/i.test(f) || isRasterInSvgClothing(readFileSync(join(previewsDir, f), 'utf8'))
     ));
 
-    const unexplained = rasters.filter((f) => !(f in RASTER_PREVIEWS));
+    const unexplained = rasters.filter((f) => !(f in RASTER_ALLOWED));
     if (unexplained.length) {
       errors.push(
         `catalog/previews: ${unexplained.length} raster preview${unexplained.length === 1 ? '' : 's'} with no written reason - ` +
@@ -1046,7 +1101,7 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
     // obvious: the same name carrying real vector content now is a win to record, a
     // different extension is a re-encode, and nothing at all - for a tool + look this
     // profile does ship - is a preview someone deleted without deleting its reason.
-    for (const name of Object.keys(RASTER_PREVIEWS).sort()) {
+    for (const name of Object.keys(RASTER_ALLOWED).sort()) {
       if (rasters.includes(name)) continue;
       if (!previewShippable(name)) continue;   // a sibling brand pack's file, not this one's
       const now = [...sizes.keys()].find((f) => isImage(f) && previewBase(f) === previewBase(name));
@@ -1057,9 +1112,20 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
           : `catalog/previews: RASTER_PREVIEWS lists "${name}" but that preview is ${now} now - delete the entry, its reason stopped being true`);
     }
 
-    for (const [name, why] of Object.entries(RASTER_PREVIEWS)) {
+    for (const [name, why] of Object.entries(RASTER_ALLOWED)) {
       if (why.trim().length <= 40) {
         errors.push(`catalog/previews: RASTER_PREVIEWS["${name}"] reason is too short to re-check later - say what the walker physically cannot recover`);
+      }
+    }
+
+    // A pack's change list fails both ways too: a drop must still name a shared entry
+    // and say why it does not hold for this pack.
+    for (const [name, why] of Object.entries(RASTER_PREVIEW_CHANGES[PREVIEW_PROFILE]?.drop ?? {})) {
+      if (!(name in RASTER_PREVIEWS)) {
+        errors.push(`catalog/previews: RASTER_PREVIEW_CHANGES["${PREVIEW_PROFILE}"] drops "${name}", which the shared list no longer has - delete the drop`);
+      }
+      if (why.trim().length <= 40) {
+        errors.push(`catalog/previews: RASTER_PREVIEW_CHANGES["${PREVIEW_PROFILE}"].drop["${name}"] needs a reason over 40 characters`);
       }
     }
 

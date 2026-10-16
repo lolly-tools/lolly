@@ -34,7 +34,7 @@ export const ROBOTS_SITEMAP_LINE = 'Sitemap: https://lolly.tools/info/sitemap.xm
 /** How much of each body the GET reads before it cancels. */
 export const BODY_LIMIT = 8192;
 
-export type DiscoveryKind = 'robots' | 'sitemap' | 'text' | 'markdown' | 'redirect';
+export type DiscoveryKind = 'robots' | 'sitemap' | 'text' | 'markdown' | 'json' | 'redirect';
 
 export interface DiscoveryRoute {
   path: string;
@@ -46,6 +46,12 @@ export const DISCOVERY_ROUTES: readonly DiscoveryRoute[] = [
   { path: '/info/sitemap.xml', kind: 'sitemap' },
   { path: '/sitemap.xml', kind: 'redirect' },
   { path: '/llms.txt', kind: 'text' },
+  { path: '/llms-full.txt', kind: 'text' },
+  { path: '/agents.md', kind: 'markdown' },
+  { path: '/openapi.json', kind: 'json' },
+  { path: '/.well-known/lolly.json', kind: 'json' },
+  { path: '/info/llms.txt', kind: 'text' },
+  { path: '/info/agents.md', kind: 'markdown' },
   { path: '/info/start/quickstart.md', kind: 'markdown' },
 ];
 
@@ -65,6 +71,7 @@ const MIME: Record<Exclude<DiscoveryKind, 'redirect'>, { test: RegExp; want: str
   sitemap: { test: /^(?:application|text)\/xml\b/i, want: 'application/xml' },
   text: { test: /^text\/plain\b/i, want: 'text/plain' },
   markdown: { test: /^text\/markdown\b/i, want: 'text/markdown' },
+  json: { test: /^application\/json\b/i, want: 'application/json' },
 };
 
 function looksLikeHtml(body: string): boolean {
@@ -114,6 +121,8 @@ export function classifyDiscoveryResponse(route: DiscoveryRoute, res: ProbeRespo
   } else if (route.kind === 'sitemap') {
     if (!body.replace(/^﻿/, '').startsWith('<?xml')) problems.push('the body does not start with <?xml');
     if (!body.includes('<urlset')) problems.push(`no <urlset in the first ${BODY_LIMIT} bytes`);
+  } else if (route.kind === 'json' && !body.trimStart().startsWith('{')) {
+    problems.push('the body does not start with a JSON object');
   }
   return problems;
 }
