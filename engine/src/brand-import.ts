@@ -156,6 +156,47 @@ function stableStringify(v: unknown): string {
 }
 
 /**
+ * Older Tokens Studio exports (the plugin's default before its W3C DTCG setting)
+ * spell a token `value` / `type` / `description`, without the `$`. The reader only
+ * walks `$value`, so such a file used to read as zero tokens while Install still
+ * offered to install an empty system (plan 320 S3). A node counts as an older token
+ * when it has `value`, a string `type` and no `$value`; the copy renames those three
+ * keys and leaves every other key, `$extensions` included, as it was. Copy on write:
+ * the input comes back unchanged, by reference, when nothing matched.
+ */
+function fromOlderTokenFormat(node: unknown, count: { n: number }, depth = 0): unknown {
+  if (!isRecord(node) || depth > 64) return node;
+  // Own properties only, defined rather than assigned: a key spelled `__proto__`
+  // (the file is untrusted) must stay a key and never swap a prototype.
+  const put = (obj: UnknownRecord, key: string, value: unknown): void => {
+    Object.defineProperty(obj, key, { value, enumerable: true, writable: true, configurable: true });
+  };
+  if (!Object.hasOwn(node, '$value') && Object.hasOwn(node, 'value') && typeof node.type === 'string') {
+    const out: UnknownRecord = {};
+    for (const [key, value] of Object.entries(node)) {
+      const renamed = key === 'value' || key === 'type' || key === 'description' ? `$${key}` : key;
+      if (!Object.hasOwn(out, renamed)) put(out, renamed, value);
+    }
+    count.n++;
+    return out;
+  }
+  let copy: UnknownRecord | null = null;
+  for (const [key, child] of Object.entries(node)) {
+    if (key.startsWith('$')) continue;
+    const next = fromOlderTokenFormat(child, count, depth + 1);
+    if (next !== child) {
+      copy ??= { ...node };
+      put(copy, key, next);
+    }
+  }
+  return copy ?? node;
+}
+
+function olderFormatWarning(n: number): string[] {
+  return n ? [`${n} token${n === 1 ? '' : 's'} in the older Tokens Studio format (value and type) read as $value and $type`] : [];
+}
+
+/**
  * Classify an already-parsed monolithic token document (container shape 1).
  * `source` is 'tokens-studio' when the doc carries `$themes`/`$metadata`
  * (top-level keys are sets), plain 'dtcg' otherwise (one implicit set).
@@ -172,7 +213,9 @@ export function coerceTokensDoc(json: unknown): TokensExtraction {
   const studio = '$themes' in json || '$metadata' in json;
   const issue = topLevelSetIssue(json) ?? structureIssue(json, { nodes: 0 });
   if (issue) return { doc: null, warnings: [issue], source: studio ? 'tokens-studio' : 'dtcg' };
-  return { doc: json, warnings: [], source: studio ? 'tokens-studio' : 'dtcg' };
+  const older = { n: 0 };
+  const doc = fromOlderTokenFormat(json, older) as UnknownRecord;
+  return { doc, warnings: olderFormatWarning(older.n), source: studio ? 'tokens-studio' : 'dtcg' };
 }
 
 /**
@@ -205,6 +248,7 @@ export function assembleTokenSetFiles(files: Record<string, unknown>): TokensExt
   // is attacker-/user-controlled) must become an own key, not a prototype swap.
   const doc: UnknownRecord = Object.create(null);
   const structure = { nodes: 0 };
+  const older = { n: 0 };
   let setCount = 0;
   for (const path of paths) {
     let body: unknown;
@@ -249,9 +293,10 @@ export function assembleTokenSetFiles(files: Record<string, unknown>): TokensExt
         source: 'token-set-files',
       };
     }
-    doc[path.slice(0, -'.json'.length)] = body;
+    doc[path.slice(0, -'.json'.length)] = fromOlderTokenFormat(body, older);
     setCount++;
   }
+  warnings.push(...olderFormatWarning(older.n));
   // $themes/$metadata alone carry no tokens; a doc without a single set is unusable.
   if (!setCount) {
     warnings.push('no token set files found');

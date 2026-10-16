@@ -523,6 +523,16 @@ export async function handleImportFile(start: StartCtx, file: File): Promise<voi
     );
     return;
   }
+  // A document the reader finds nothing in would install an empty design system
+  // (plan 320 S3), so it gets the same refusal as no document at all.
+  let readable = true;
+  try { readable = summarizeTokensDoc(doc).tokenCount > 0; } catch { /* the stats below say what they can */ }
+  if (!readable) {
+    start.feedback.showImportError(
+      tRaw('No tokens found: {reason}.', { reason: warnings[0] ?? t('unrecognised document') })
+    );
+    return;
+  }
   start.importedDoc = doc;
   start.importedLabel = fileRoute.label || t('My brand');
   const statLine = statLineFor(start, doc);
