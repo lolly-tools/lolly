@@ -26,6 +26,7 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { listLogos } from '../../brand-logos.ts';
 import { roleAssignments } from '../roles.ts';
 import { activeDesignSystemSource } from '../active.ts';
+import { STARTER_TOKENS_ID, readStarterTokens, type StarterHost } from '../starter.ts';
 import { reportOwnership, isNeutralRampKey, radiusValue, FONT_ROLES } from '../ownership.ts';
 import type { ColorRef, OwnershipReport } from '../ownership.ts';
 import { brandFontFamilies } from '../../register-user-fonts.ts';
@@ -124,36 +125,29 @@ const OWN_COLORS_ENOUGH = 3;
  *  the cheapest honest answer to "has a palette been generated here". */
 const GENERATED_RAMP = /(^|\.)ramp\.secondary\./;
 
-/** The starter catalog's placeholder tokens asset (brands/lolly-start). Matching
- *  it is the shell's existing "unbranded" test - views/gallery.ts gates the
- *  first-run welcome on the same id - and it is the one tokens asset that means
- *  nothing has been furnished yet. Exported because the Colours room needs the
- *  same asset for the same reason (a starter swatch it did not write), and two
- *  copies of a well-known id is how they drift apart. */
-export const STARTER_TOKENS_ID = 'lolly/tokens/brand';
+export { STARTER_TOKENS_ID };
 
 const EMPTY_MODEL: OverviewModel = {
   furnished: false, colors: [], colorCount: 0, fonts: [], logoCount: 0, tokenCount: 0, starterCount: 0,
 };
 
 /**
- * The shipped starter document (brands/lolly-start's tokens asset), or null.
+ * The blank starter document (starter.ts), or null.
  *
  * A first write copies that whole ramp into the user's own document, so from
- * then on the user owns 25 colours nobody chose. Reading the SHIPPED bytes back
- * is what lets a caller tell those apart from the ones a person added, by
+ * then on the user owns 25 colours nobody chose. Reading the starter's bytes
+ * back is what lets a caller tell those apart from the ones a person added, by
  * comparing path and value - no schema change, no flag on the token, and
  * nothing to migrate on a document that predates the idea.
  *
- * Null on any brand whose catalog ships no such asset (SUSE's, an ingested
- * pack), and null before boot sync has cached it - both mean "nothing to
- * attribute", which is exactly the behaviour every caller had before.
+ * Every new design system starts from this document whichever brand the build
+ * ships, so it is the reference on every brand. A brand whose own colours never
+ * came from it (SUSE's, an ingested pack) matches nothing, so nothing is
+ * attributed there, which is the behaviour every caller had before.
  */
 export async function readStarterDoc(host: OverviewHost): Promise<unknown> {
-  const assets = host.assets as unknown as { _getBlob?(id: string): Promise<Blob | null> };
   try {
-    const blob = await assets._getBlob?.(STARTER_TOKENS_ID);
-    return blob ? JSON.parse(await blob.text()) : null;
+    return (await readStarterTokens(host as unknown as StarterHost)).doc;
   } catch { return null; }
 }
 

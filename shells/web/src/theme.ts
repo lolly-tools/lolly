@@ -15,6 +15,7 @@
 
 import { icon } from './lib/icons.ts';
 import { syncJellyMode } from './lib/jelly.ts';
+import { syncThemeColorMeta } from './lib/theme-color.ts';
 
 export type Theme = 'light' | 'dark' | 'brand';
 
@@ -42,15 +43,6 @@ export function currentTheme(): string {
   return document.documentElement.dataset.theme || localStorage.getItem('theme') || 'light';
 }
 
-// Per-theme address-bar / PWA chrome colour, matching each theme's page
-// background (tokens.css --background). Keeps mobile/PWA chrome in step with the
-// active theme instead of pinning it to the SUSE dark-green.
-const THEME_COLORS: Record<string, string> = {
-  light: '#ffffff',
-  dark: '#030711',   // 224 71% 4%
-  brand: '#0c322c',  // the static (SUSE-palette) construction's background
-};
-
 // Handle for the transition-class cleanup timer. Module-scoped so rapid theme
 // switches clear the pending timeout instead of letting an earlier one fire early
 // and cut the current transition short.
@@ -75,16 +67,9 @@ export function applyTheme(theme: string, animate = true, persist = true): void 
   html.dataset.theme = theme;
   if (persist) localStorage.setItem('theme', theme);
 
-  // Keep the browser/PWA chrome colour in step with the theme. Prefer the LIVE
-  // --background triple (the brand theme is constructed at runtime, so the
-  // static map can't know its surface); the map covers pre-CSS edge cases.
-  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-  if (meta) {
-    const triple = getComputedStyle(html).getPropertyValue('--background').trim();
-    const fallback = THEME_COLORS[theme];
-    if (triple) meta.content = `hsl(${triple})`;
-    else if (fallback) meta.content = fallback;
-  }
+  // Keep the browser/PWA chrome colour in step with the theme (lib/theme-color.ts),
+  // instead of pinning it to the SUSE dark-green.
+  syncThemeColorMeta();
 
   // Keep the browser-tab favicon in step with the app theme (dark/brand wear the
   // reverse mark). Setting the href in JS follows the in-app toggle live - the

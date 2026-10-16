@@ -143,6 +143,8 @@ export interface SessionSourceWriter {
 }
 
 export interface SessionSource {
+  /** Account identity for durable transfer receipts, scoped to the connected instance. */
+  scope?: string;
   /** A short, already-localised name for the section heading (e.g. the instance name). */
   label: string;
   listProjects(): Promise<TeamProjectRef[]>;

@@ -53,12 +53,15 @@ test('walkSwatches finds the starter brand’s ramps and one theme’s roles', (
   // colour, not by clearing a big preset (chart tools fall back to their own palette
   // until a spectrum exists).
   // Plan 291 W4 added the 17 themed role tokens (`color.role.*`: inks, hairlines, card
-  // tints) to each theme set; they are roles like the 7 semantic slots.
+  // tints) to each theme set; they are roles like the 7 semantic slots. Lolly's newsprint
+  // app chrome adds 8 more (`color.chrome.*`: page, raised, overlay, muted, hover, edge,
+  // ink and muted ink), also roles.
   assert.equal(ramps.length, 9, 'neutral only, 9 steps');
   assert.equal(spectrum.length, 0, 'the starter ships no spectrum - the user adds one');
-  assert.equal(roles.length, 24);
+  assert.equal(roles.length, 32);
   assert.equal(roles.filter(x => x.key.startsWith('color.role.')).length, 17, 'the themed role tokens are roles');
-  assert.equal(s.length, 33, '9 ramp steps + 7 semantic slots + 17 role tokens is the whole starter palette');
+  assert.equal(roles.filter(x => x.key.startsWith('color.chrome.')).length, 8, 'the app chrome tokens are roles');
+  assert.equal(s.length, 41, '9 ramp steps + 7 semantic slots + 17 role tokens + 8 chrome tokens is the whole starter palette');
   assert.equal(s.length, ramps.length + spectrum.length + roles.length, 'no swatch is walked twice or missed');
 
   // Dark roles are filtered out entirely (they'd duplicate primary/surface/…).
@@ -70,14 +73,18 @@ test('roles resolve their {alias} to a real hex (the tiles must never be blank)'
   const s = walkSwatches(doc, 'light', resolverFor(doc, 'light'));
   const roles = s.filter(x => x.kind === 'semantic');
 
+  // The app chrome (`color.chrome.*`) is literal warm colour: the neutral ramp stays true
+  // grey, so those eight roles are not aliases into the ramp.
+  const isChrome = (key: string): boolean => key.startsWith('color.chrome.');
   for (const r of roles) {
-    assert.ok(r.isAlias, `${r.key} should be stored as an alias`);
+    if (!isChrome(r.key)) assert.ok(r.isAlias, `${r.key} should be stored as an alias`);
     assert.match(r.hex, /^#[0-9a-f]{6}$/i, `${r.key} must resolve to a hex, got ${JSON.stringify(r.hex)}`);
   }
   // Without a resolver, an alias has no colour of its own - the exact bug the
   // resolver argument exists to prevent.
   const blind = walkSwatches(doc, 'light').filter(x => x.kind === 'semantic');
-  assert.ok(blind.every(r => r.hex === ''));
+  assert.ok(blind.filter(r => !isChrome(r.key)).every(r => r.hex === ''));
+  assert.ok(blind.filter(r => isChrome(r.key)).every(r => /^#[0-9a-f]{6}$/i.test(r.hex)), 'a literal needs no resolver');
 });
 
 test('the theme argument selects which set’s roles surface', () => {
@@ -91,6 +98,33 @@ test('the theme argument selects which set’s roles surface', () => {
   const surfL = light.find(r => r.key === 'color.semantic.surface')!;
   const surfD = dark.find(r => r.key === 'color.semantic.surface')!;
   assert.notEqual(surfL.hex.toLowerCase(), surfD.hex.toLowerCase());
+});
+
+test('a color.chrome.* leaf is a role: semantic, filed under its theme’s Roles, not deletable, shown once per theme', () => {
+  const doc = load();
+  const light = walkSwatches(doc, 'light', resolverFor(doc, 'light'));
+  const dark = walkSwatches(doc, 'dark', resolverFor(doc, 'dark'));
+  const shown = (list: typeof light, key: string) => list.filter(x => x.key === key);
+
+  assert.equal(shown(light, 'color.chrome.page').length, 1, 'once in the light walk');
+  assert.equal(shown(dark, 'color.chrome.page').length, 1, 'once in the dark walk');
+  const lightPage = shown(light, 'color.chrome.page')[0]!;
+  const darkPage = shown(dark, 'color.chrome.page')[0]!;
+  assert.deepEqual(
+    [lightPage.kind, lightPage.set, lightPage.group, lightPage.deletable],
+    ['semantic', 'light', 'Roles · Light', false],
+  );
+  assert.deepEqual(
+    [darkPage.kind, darkPage.set, darkPage.group, darkPage.deletable],
+    ['semantic', 'dark', 'Roles · Dark', false],
+  );
+  assert.notEqual(lightPage.hex.toLowerCase(), darkPage.hex.toLowerCase(), 'one value per theme');
+  // All eight slots, in both walks, and none of them palette material.
+  for (const list of [light, dark]) {
+    const chrome = list.filter(x => x.key.startsWith('color.chrome.'));
+    assert.deepEqual(chrome.map(x => x.key.slice('color.chrome.'.length)).sort(), ['edge', 'hover', 'ink', 'muted', 'muted-ink', 'overlay', 'page', 'raised']);
+    assert.ok(chrome.every(x => x.kind === 'semantic' && !x.deletable));
+  }
 });
 
 test('roles are structural (not deletable); ramps, spectrum + custom are the user’s', () => {

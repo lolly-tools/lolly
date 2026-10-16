@@ -1365,7 +1365,7 @@ export function stepsHtml(report: VerifyReport): string {
     <details class="valid-steps valid-panel valid-panel-disclosure" open>
       <summary class="valid-panel-summary">
         <span class="valid-panel-summary-title">${svgIcon('clock')}<span>${t('Credential journey')}</span></span>
-        <span class="valid-panel-summary-meta">${t('{n} steps', { n: acts.length })}</span>
+        <span class="valid-panel-summary-meta">${acts.length === 1 ? t('1 step') : t('{n} steps', { n: acts.length })}</span>
         <span class="valid-disclosure-chev" aria-hidden="true">${ICON_CHEVRON}</span>
       </summary>
       <p class="valid-origin-note">${escape(journeyEvidenceLabel(report))}</p><ol class="valid-steps-list">${rows}</ol>

@@ -91,7 +91,7 @@ Pratinjau selalu menampilkan persis apa yang akan diekspor.
 
 **Sentuh**
 
-- **Cubit** untuk zoom, **seret** untuk menggeser, **ketuk dua kali** untuk kembali ke ukuran pas.
+- **Cubit** untuk zoom, **seret** untuk menggeser, **ketuk dua kali** untuk mengatur ulang agar pas. Di kanvas bebas, dua jari pada objek yang dipilih justru menskalakan, memutar, dan memindahkan pilihan (lihat [Ubah ukuran, skala, dan putar](#resize-scale-and-rotate)).
 
 **Klik untuk melompat ke sebuah kontrol:** klik elemen mana pun di desain dan input sidebar yang sesuai akan mendapat fokus lalu tergulir ke tampilan - untuk grup baris berulang, baris yang tepat Anda klik akan terbuka, jadi menyunting apa yang Anda lihat hanya sejauh satu ketukan.
 
@@ -110,6 +110,37 @@ Tool kanvas bebas menambahkan area kerja *di sekeliling* artboard, seperti meja 
 ![Kanvas bebas Design - artboard beserta meja kerja di sekitarnya](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Balik sebuah seleksi.** Klik kanan kotak mana pun dan pilih **Flip horizontal** atau **Flip vertical** untuk mencerminkannya di tempat, atau tekan `Shift+H` / `Shift+V` dari keyboard - Shift, karena `V` saja adalah alat Pointer. Setiap kotak terpilih mencerminkan pada porosnya sendiri dalam satu langkah undo, dan pencerminan tersebut adalah transformasi sungguhan, sehingga bertahan pada SVG, PDF dan PNG yang diekspor, bukan hanya di kanvas.
+
+### Ubah ukuran, skala, dan putar
+
+Pilih sebuah objek, lalu seret handle untuk mengubah ukurannya, atau seret handle bundar di bawah pilihan untuk memutar objek. Seretan ukuran bekerja dalam salah satu dari dua mode:
+
+- **Ubah ukuran**, yang menjadi default, hanya mengubah kotak. Teks dibungkus ulang mengikuti ukuran baru, sedangkan ukuran font, lebar stroke, radius sudut, dan efek tetap seperti semula.
+- **Skala** membesarkan atau mengecilkan seluruh objek beserta isinya: ukuran font, stroke, radius sudut, bayangan, blur, padding, dan jarak semuanya berubah dengan besar yang sama.
+
+Tekan `K` untuk menyalakan atau mematikan Skala. Tanpa keyboard, pilih **Mode Skala** di menu Lolly, atau tekan dan tahan tombol **Penunjuk** di rel alat (atau klik kanan tombol itu) lalu pilih **Skala**; di layar sentuh, bilah objek juga punya sakelar Skala. Selama Skala aktif, tombol Penunjuk menampilkan ikon Skala dan setiap handle punya titik di tengahnya. `V` atau **Escape** mengembalikan ke Ubah ukuran dan mempertahankan pilihan Anda. Skala selalu nonaktif saat dokumen dibuka, agar tidak ada yang menskalakan stroke secara tidak sengaja. Setiap Skala adalah satu langkah urungkan, berlabel **Skala**.
+
+**Skala dengan angka.** Saat Skala aktif, atau saat beberapa objek dipilih, klik keterangan di bilah objek untuk membuka popover **Skala**. Ketik persentase, atau lebar atau tinggi dan dua nilai lainnya ikut menyesuaikan, pilih titik yang tetap diam pada kisi 3 × 3, lalu pilih **Terapkan**. Hasilnya satu langkah urungkan, tanpa perlu menyeret. Saat Skala nonaktif, beberapa objek hanya berubah ukuran dan posisi.
+
+**Beberapa objek.** Pilihan beberapa objek punya handle di tepi selain di sudut. Seretan sudut mengubah lebar dan tinggi secara bebas selama setiap objek dalam pilihan tegak atau diputar dengan kelipatan seperempat putaran penuh, dan pilihan tidak memuat grup atau lingkaran. Jika tidak, pilihan mempertahankan proporsinya: handle-nya menampilkan kursor skala, dan selama Anda menyeret, keterangan menambahkan **Proporsional**. Saat Anda mengubah ukuran atau menskalakan, label kecil di samping pilihan menampilkan ukuran, atau persentase dalam mode Skala.
+
+**Tombol yang ditahan saat menyeret** berlaku begitu ditekan atau dilepas (lembar pintasan, `?`, juga mencantumkannya):
+
+| Tahan | Mengubah ukuran atau menskalakan | Memutar | Memindahkan |
+|---|---|---|---|
+| **Shift** | Mempertahankan proporsi (Skala selalu begitu) | Berputar dengan langkah 15 derajat | Tidak ada perubahan |
+| **Alt** (Option) | Bekerja dari tengah | Berputar bebas | Mematikan snap dan kisi |
+| **Cmd/Ctrl** | Mematikan snap dan kisi | Berputar bebas | Mematikan snap dan kisi |
+
+Tanpa tombol yang ditahan, putaran ditarik ke kelipatan 15 derajat terdekat begitu berjarak 4 derajat darinya. Artboard tidak berputar, jadi tidak punya handle putar.
+
+**Pegang di mana saja di sepanjang tepi.** Anda tidak perlu mengenai handle dengan tepat. Setiap sisi pilihan adalah strip ubah ukuran di sepanjang sisinya, dan dengan mouse atau pena ada zona putar tepat di luar setiap sudut. Penunjuk menampilkan apa yang akan dilakukan seretan, diputar mengikuti pilihan. Tekanan di strip atau zona baru menjadi pengubahan ukuran atau putaran setelah Anda mulai menyeret, sehingga klik biasa tetap memilih, menambah ke pilihan, atau membatalkan pilihan seperti sebelumnya. Objek terkunci tidak punya handle, strip, atau zona.
+
+**Objek kecil tetap bisa dipindahkan.** Pada objek selebar 25 piksel layar atau kurang, handle tengah yang berdesakan dengan sudut disembunyikan dan handle lainnya bergeser sedikit keluar dari garis tepi, sehingga menekan objek akan memindahkannya. Pada 10 piksel atau kurang, handle sudut ikut hilang, dan garis tipis tetap punya satu handle di setiap ujung. Menekan tepat di samping garis tipis atau objek yang sangat kecil, di luar handle-nya, juga memindahkan objek.
+
+**Area genggam besar.** Di layar sentuh, zona genggam berukuran besar: zona setiap sudut seperempat lebar dan tinggi pilihan di layar, dijaga antara 24 dan 44 piksel, dan zona setiap sisi mencakup bagian di antara dua sudut. Jika pilihan terlalu kecil untuk itu, zona bergeser ke luar garis tepinya, sehingga menekan bagian tengah tetap memindahkan pilihan. Zona di bawah penunjuk, atau di bawah jari yang menekan, diarsir. Untuk mendapatkan zona yang sama dengan mouse atau pena, aktifkan **Area genggam besar** di menu Lolly. Pengaturan ini hanya disimpan di perangkat ini.
+
+**Dua jari pada pilihan.** Di layar sentuh, letakkan dua jari pada objek yang dipilih: cubit untuk menskalakan pilihan, putar jari untuk memutarnya, atau gerakkan kedua jari untuk membawanya. Apa pun yang dilakukan dua jari dihitung sebagai satu langkah urungkan. Saat Skala aktif, cubitan juga menskalakan isinya; saat nonaktif, cubitan mengubah ukuran pilihan secara proporsional. Putaran ditarik ke kelipatan 15 derajat terdekat jika sudah dekat, dan gerakan dua jari tidak pernah snap. Dua jari di tempat lain tetap melakukan zoom dan menggeser tampilan, dan ketukan dua jari tetap membuka menu. Jari pertama harus mendarat di pilihan dan jari kedua harus menyusul dengan cepat, di pilihan atau tepat di luar tepinya. Jika pilihan memuat artboard atau objek terkunci, menutupi sebagian besar tampilan, atau melewati tepi tampilan, dua jari justru melakukan zoom dan menggeser.
 
 ### Layer dan Inspektor
 

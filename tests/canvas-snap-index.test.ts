@@ -14,9 +14,11 @@ import {
   applyGestureMove,
   beginGesture,
   endGesture,
+  gesturesOps,
   otherAABBs,
   snapThreshNative,
 } from '../shells/web/src/views/free-canvas/gestures.ts';
+import { selectionTransformOps } from '../shells/web/src/views/free-canvas/selection-transform.ts';
 import type { FcCtx } from '../shells/web/src/views/free-canvas/context.ts';
 import type { GestureInit } from '../shells/web/src/views/free-canvas/shared.ts';
 
@@ -276,7 +278,7 @@ test('steady indexed queries read no sibling bounds after gesture preparation', 
   assert.equal(reads, 0);
 });
 
-test('create, move and resize retain gesture snapshots, Alt/grid precedence and layout readiness gates', () => {
+test('create, move, resize and selection scale retain gesture snapshots, the modifier table and layout readiness gates', () => {
   const dom = new JSDOM('<body></body>');
   const previousDocument = globalThis.document;
   const previousRaf = globalThis.requestAnimationFrame;
@@ -284,7 +286,7 @@ test('create, move and resize retain gesture snapshots, Alt/grid precedence and 
   globalThis.requestAnimationFrame = () => 1;
   try {
     function fixture(
-      type: 'create' | 'move' | 'resize',
+      type: 'create' | 'move' | 'resize' | 'gscale',
       grid: boolean,
       lines: SnapLines,
       ready = true
@@ -326,10 +328,14 @@ test('create, move and resize retain gesture snapshots, Alt/grid precedence and 
         chromeSync: { renderChromeLive: () => {}, renderChrome: () => {} },
         connectors: { liveConnUpdate: () => {} },
       } as unknown as FcCtx;
+      fc.gestures = gesturesOps(fc);
+      fc.selectionTransform = selectionTransformOps(fc);
       const init = {
         type,
         others,
-        origin: { x: 0, y: 0 },
+        // A selection scale reads its travel from the press on its se corner, so the
+        // pointer below is where that corner is dragged to.
+        origin: type === 'gscale' ? { x: 60, y: 50 } : { x: 0, y: 0 },
         seed: {},
         index: 0,
         handle: 'se',
@@ -337,13 +343,20 @@ test('create, move and resize retain gesture snapshots, Alt/grid precedence and 
         sel: [0],
         start: new Map([[0, { x: 20, y: 20, w: 40, h: 30 }]]),
         selAABB: bounds(20, 20, 40, 30),
+        startBoxes: [row],
+        aabb: bounds(20, 20, 40, 30),
       } as GestureInit;
       beginGesture(fc, { pointerId: 1, clientX: 0, clientY: 0 } as PointerEvent, init);
       return { fc, canvasReads: () => canvasReads };
     }
-    for (const type of ['create', 'move', 'resize'] as const) {
+    // The modifier table: a create always snaps; a move drops the guides for Alt, ⌘ or
+    // Ctrl; a resize and a selection scale keep them for Alt (from the centre) and drop
+    // them for ⌘ or Ctrl.
+    const snaps = (type: 'create' | 'move' | 'resize' | 'gscale', alt: boolean, cmd: boolean): boolean =>
+      type === 'create' || (type === 'move' ? !alt && !cmd : !cmd);
+    for (const type of ['create', 'move', 'resize', 'gscale'] as const) {
       for (const grid of [false, true])
-        for (const altKey of [false, true]) {
+        for (const [altKey, metaKey, ctrlKey] of [[false, false, false], [true, false, false], [false, true, false], [false, false, true]] as const) {
           const lines = { x: [99], y: [64], angled: [{ x: 98, y: 65, rotation: 37 }] };
           const indexed = fixture(type, grid, lines);
           const legacy = fixture(type, grid, lines);
@@ -360,13 +373,19 @@ test('create, move and resize retain gesture snapshots, Alt/grid precedence and 
               clientX,
               clientY,
               altKey,
+              metaKey,
+              ctrlKey,
               shiftKey: false,
             } as PointerEvent;
             applyGestureMove(indexed.fc, event);
             applyGestureMove(legacy.fc, event);
-            if (type === 'create' || !altKey) {
-              assert.ok(indexed.fc.gesture!.snapIndex);
+            const tag = `${type} grid=${grid} alt=${altKey} meta=${metaKey} ctrl=${ctrlKey}`;
+            if (snaps(type, altKey, metaKey || ctrlKey)) {
+              assert.ok(indexed.fc.gesture!.snapIndex, `${tag}: snaps`);
               snapshot ??= indexed.fc.gesture!.snapIndex;
+            } else {
+              assert.equal(indexed.canvasReads(), 0, `${tag}: no snapping, so no index`);
+              assert.equal(indexed.fc.guidesEl.innerHTML, '', `${tag}: and no guide`);
             }
             assert.strictEqual(
               indexed.fc.gesture!.snapIndex,
@@ -381,6 +400,39 @@ test('create, move and resize retain gesture snapshots, Alt/grid precedence and 
           endGesture(legacy.fc, true);
           assert.equal(indexed.fc.gesture, null);
         }
+    }
+    // A selection scale snaps its dragged corner to a sibling's edge (x 98) and centre
+    // (y 80) lines, and ⌘ or Ctrl leaves the corner on the pointer.
+    for (const [metaKey, ctrlKey] of [[false, false], [true, false], [false, true]] as const) {
+      const scale = fixture('gscale', false, {});
+      applyGestureMove(scale.fc, { pointerId: 1, clientX: 107, clientY: 79, metaKey, ctrlKey } as PointerEvent);
+      const g = scale.fc.gesture;
+      assert.ok(g?.type === 'gscale' && g.liveBoxes);
+      const r = g.liveBoxes[0]!;
+      assert.deepEqual([Number(r.x) + Number(r.w), Number(r.y) + Number(r.h)], metaKey || ctrlKey ? [107, 79] : [108, 80]);
+      assert.equal(scale.fc.guidesEl.childElementCount, metaKey || ctrlKey ? 0 : 2);
+      endGesture(scale.fc, true);
+    }
+    // A free corner snaps to an angled authoring guide, as a single box's corner does.
+    // Shift makes the drag uniform, and one factor for both axes cannot put a corner on a
+    // slope, so the guide is not offered.
+    const rad = (37 * Math.PI) / 180;
+    const onSlope = { x: 98 - 40 * Math.cos(rad), y: 65 - 40 * Math.sin(rad) };
+    for (const shiftKey of [false, true]) {
+      const scale = fixture('gscale', false, { angled: [{ x: 98, y: 65, rotation: 37 }] });
+      // 2 px off the slope, under the 3 px threshold (6 screen px at scale 2).
+      const clientX = onSlope.x - 2 * Math.sin(rad), clientY = onSlope.y + 2 * Math.cos(rad);
+      applyGestureMove(scale.fc, { pointerId: 1, clientX, clientY, shiftKey } as PointerEvent);
+      const g = scale.fc.gesture;
+      assert.ok(g?.type === 'gscale' && g.liveBoxes);
+      const r = g.liveBoxes[0]!;
+      const corner = [Number(r.x) + Number(r.w), Number(r.y) + Number(r.h)];
+      if (shiftKey) assert.equal(scale.fc.guidesEl.childElementCount, 0, 'Shift: no slope');
+      else {
+        assert.deepEqual(corner, [Math.round(onSlope.x), Math.round(onSlope.y)], 'the corner on the slope');
+        assert.equal(scale.fc.guidesEl.childElementCount, 1, 'and the slope drawn');
+      }
+      endGesture(scale.fc, true);
     }
     const blocked = fixture('move', false, {}, false);
     assert.equal(blocked.fc.gesture, undefined);

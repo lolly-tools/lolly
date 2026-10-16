@@ -25,6 +25,8 @@ import type { UserTool } from './user-tools.ts';
 export type CatalogSubmitKind = 'upload' | 'template' | 'user-tool';
 
 export interface CatalogSubmitSubject {
+  /** A shared file selected for server-side admission without uploading its preview. */
+  projectFile?: { projectId: string; fileId: string; checksum: string };
   kind: CatalogSubmitKind;
   /** A stable reference the submitter can use to find this thing's earlier submission,
    *  e.g. `template:<id>`. */

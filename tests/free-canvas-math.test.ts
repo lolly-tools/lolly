@@ -16,7 +16,7 @@ import {
   num, boxRect, withRect, boxAABB, boxCorners, hitTest, marqueeHit,
   moveBoxes, resizeRect, alignBoxes, distributeBoxes, reorderZ,
   seedBox, normDragRect, snapAngle, clampBoxToCanvas, selectionAABB,
-  snapMove, snapPoint, scaleGroup, rotateGroup,
+  snapMove, snapPoint, scaleGroup, rotateGroup, rotateRectAbout,
   gradientLine, gradientPosAt, gradientAngleAt,
   resolveFrame, frameLocalXY, cascadeFrameMove, seedFrameOrder, renumberFrameOrder,
   framesInPageOrder, activeFrameIdFor, nextFrameOrder, seedFrameOrders,
@@ -28,7 +28,7 @@ import {
   pathEndTangents, pathEndPoints,
   liftRows, applyLift, liftDepths, liftSlots, liftCanCrop, LIFT_EFF_STEP, LIFT_EFF_CEIL, LIFT_STRENGTH,
   layoutArtboards,
-  posedRect,
+  posedRect, uniformScaleFloor, SCALE_K_FLOOR,
 } from '../shells/web/src/views/free-canvas-math.ts';
 import type { SeqPose } from '../shells/web/src/views/free-canvas-math.ts';
 import { KF_Z_FIELD_CLAMP, depthForEff } from '../engine/src/keyframes.ts';
@@ -180,6 +180,22 @@ test('resizeRect respects minSize', () => {
   assert.equal(r.h, 8);
 });
 
+test('resizeRect keepThin floors only the driven sides, and a thin side at its own size', () => {
+  const rule = { x: 100, y: 100, w: 400, h: 2, rot: 0 };
+  // By default both sides rise to minSize, which the deck editor relies on.
+  assert.deepEqual(resizeRect(rule, 'e', 40, 0, { minSize: 8 }), { x: 100, y: 97, w: 440, h: 8, rot: 0 });
+  // keepThin: lengthening a rule from an end keeps its thickness.
+  assert.deepEqual(resizeRect(rule, 'e', 40, 0, { minSize: 8, keepThin: true }), { x: 100, y: 100, w: 440, h: 2, rot: 0 });
+  // A driven thin side never falls below its own size, and never jumps up to minSize.
+  assert.equal(resizeRect(rule, 's', 0, -1, { minSize: 8, keepThin: true }).h, 2);
+  assert.equal(resizeRect(rule, 's', 0, 4, { minSize: 8, keepThin: true }).h, 6);
+  // A side at or over minSize keeps the usual floor.
+  const box = { x: 0, y: 0, w: 100, h: 100, rot: 0 };
+  assert.deepEqual(resizeRect(box, 'se', -200, -200, { minSize: 8, keepThin: true }), { x: 0, y: 0, w: 8, h: 8, rot: 0 });
+  // A 0-wide line gets the usual floor on the side the handle drives.
+  assert.equal(resizeRect({ x: 0, y: 0, w: 0, h: 50, rot: 0 }, 'e', -5, 0, { minSize: 8, keepThin: true }).w, 8);
+});
+
 test('resizeRect on a ROTATED box preserves the fixed world corner', () => {
   const start = { x: 100, y: 100, w: 120, h: 80, rot: 30 };
   // The corner opposite 'se' is 'nw' == TL == corners[0].
@@ -211,6 +227,105 @@ test('resizeRect keepAspect keeps a square square on an EDGE drag (circle invari
   near(east.w, east.h, 1e-6);
   const south = resizeRect({ x: 0, y: 0, w: 300, h: 300, rot: 0 }, 's', 0, -70, { minSize: 8, keepAspect: true });
   near(south.w, south.h, 1e-6);
+});
+
+// Plan 311 M1: `mirror` and `aspectFrom` are opt-in. The defaults are what the deck
+// editor and the free canvas called before, so they stay byte-identical.
+test('resizeRect: the new options default to the old behaviour for every handle and rotation', () => {
+  const handles = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'] as const;
+  for (const rot of [0, 30, 90, 180]) for (const handle of handles) {
+    const start = { x: 10, y: 20, w: 120, h: 80, rot };
+    for (const [dx, dy] of [[25, -10], [-300, 40], [0, 0]]) {
+      for (const base of [{}, { keepAspect: true }, { fromCentre: true }, { keepAspect: true, fromCentre: true }, { minSize: 24 }]) {
+        const before = resizeRect(start, handle, dx!, dy!, base);
+        assert.deepEqual(resizeRect(start, handle, dx!, dy!, { ...base, mirror: false, aspectFrom: 'width' }), before);
+        // mirror alone is inert without fromCentre, and aspectFrom alone without keepAspect.
+        if (!('fromCentre' in base)) assert.deepEqual(resizeRect(start, handle, dx!, dy!, { ...base, mirror: true }), before);
+        if (!('keepAspect' in base)) assert.deepEqual(resizeRect(start, handle, dx!, dy!, { ...base, aspectFrom: 'dominant' }), before);
+      }
+    }
+  }
+});
+
+test('resizeRect fromCentre without mirror moves the dragged edge HALF the pointer delta', () => {
+  const r = resizeRect({ x: 0, y: 0, w: 100, h: 50, rot: 0 }, 'e', 20, 0, { fromCentre: true });
+  assert.deepEqual([r.x, r.w], [-10, 120]);
+  assert.equal(r.x + r.w, 110); // the pointer is at 120
+});
+
+test('resizeRect mirror: the dragged edge follows the pointer and the opposite edge moves the same distance the other way', () => {
+  const r = resizeRect({ x: 0, y: 0, w: 100, h: 50, rot: 0 }, 'e', 20, 0, { fromCentre: true, mirror: true });
+  assert.deepEqual([r.x, r.y, r.w, r.h], [-20, 0, 140, 50]);
+  assert.equal(r.x + r.w, 120);
+  const corner = resizeRect({ x: 0, y: 0, w: 100, h: 100, rot: 0 }, 'nw', -10, -30, { fromCentre: true, mirror: true });
+  assert.deepEqual([corner.x, corner.y, corner.w, corner.h], [-10, -30, 120, 160]);
+  // Rotated 90: the box's own +x is screen +y, and the centre stays put.
+  const turned = resizeRect({ x: 0, y: 0, w: 100, h: 50, rot: 90 }, 'e', 0, 20, { fromCentre: true, mirror: true });
+  near(turned.w, 140); near(turned.h, 50);
+  near(turned.x + turned.w / 2, 50); near(turned.y + turned.h / 2, 25);
+});
+
+test('resizeRect aspectFrom dominant: a vertical-only Shift drag on a corner still resizes', () => {
+  const start = { x: 0, y: 0, w: 100, h: 50, rot: 0 };
+  const width = resizeRect(start, 'se', 0, 60, { minSize: 8, keepAspect: true });
+  assert.deepEqual([width.w, width.h], [100, 50]); // the old rule reads the width only
+  const dom = resizeRect(start, 'se', 0, 60, { minSize: 8, keepAspect: true, aspectFrom: 'dominant' });
+  near(dom.w, 220); near(dom.h, 110);
+  assert.deepEqual([dom.x, dom.y], [0, 0]);
+});
+
+test('resizeRect aspectFrom dominant follows the axis whose relative change is larger', () => {
+  const start = { x: 0, y: 0, w: 100, h: 50, rot: 0 };
+  const wide = resizeRect(start, 'se', 50, 10, { keepAspect: true, aspectFrom: 'dominant' }); // 1.5 vs 1.2
+  near(wide.w, 150); near(wide.h, 75);
+  const tall = resizeRect(start, 'se', 10, 50, { keepAspect: true, aspectFrom: 'dominant' }); // 1.1 vs 2
+  near(tall.w, 200); near(tall.h, 100);
+  const shrink = resizeRect(start, 'nw', 60, 5, { keepAspect: true, aspectFrom: 'dominant' }); // 0.4 vs 0.9
+  near(shrink.w, 40); near(shrink.h, 20);
+  near(shrink.x + shrink.w, 100); near(shrink.y + shrink.h, 50); // se corner held
+  // An edge follows its own axis about the opposite edge's midpoint.
+  const east = resizeRect(start, 'e', 50, 999, { keepAspect: true, aspectFrom: 'dominant' });
+  assert.deepEqual([east.x, east.y, east.w, east.h], [0, -12.5, 150, 75]);
+});
+
+test('resizeRect aspectFrom dominant clamps ONE factor, so a 120x10 box keeps its aspect at minSize', () => {
+  const r = resizeRect({ x: 0, y: 0, w: 120, h: 10, rot: 0 }, 'se', -60, 0, { minSize: 8, keepAspect: true, aspectFrom: 'dominant' });
+  near(r.w, 96); near(r.h, 8);
+  const edge = resizeRect({ x: 0, y: 0, w: 120, h: 10, rot: 0 }, 'e', -60, 0, { minSize: 8, keepAspect: true, aspectFrom: 'dominant' });
+  near(edge.w, 96); near(edge.h, 8);
+});
+
+test('resizeRect aspectFrom dominant with keepThin holds a side already under minSize at its own size', () => {
+  const rule = { x: 100, y: 300, w: 300, h: 4, rot: 0 };
+  const opts = { minSize: 8, keepAspect: true, aspectFrom: 'dominant' as const, keepThin: true };
+  // A Shift drag of the e handle 270 px in: k = 0.1, and the 4 px side stays 4 px, held on its anchor.
+  assert.deepEqual(resizeRect(rule, 'e', -270, 0, opts), { x: 100, y: 300, w: 30, h: 4, rot: 0 });
+  // The se corner holds the nw corner.
+  assert.deepEqual(resizeRect(rule, 'se', -270, 0, opts), { x: 100, y: 300, w: 30, h: 4, rot: 0 });
+  // Growing still scales both sides.
+  assert.deepEqual(resizeRect(rule, 'se', 300, 0, opts), { x: 100, y: 300, w: 600, h: 8, rot: 0 });
+  // Without keepThin (the deck editor's call) the thin side scales with k, as before.
+  near(resizeRect(rule, 'e', -270, 0, { minSize: 8, keepAspect: true, aspectFrom: 'dominant' }).h, 0.4);
+});
+
+test('resizeRect aspectFrom dominant with a mirrored from-centre drag, rotated', () => {
+  const r = resizeRect({ x: 0, y: 0, w: 100, h: 100, rot: 0 }, 'se', 10, 4, { keepAspect: true, aspectFrom: 'dominant', fromCentre: true, mirror: true });
+  assert.deepEqual([r.x, r.y, r.w, r.h], [-10, -10, 120, 120]);
+  // At 30 degrees the anchor (the opposite corner) stays put and the aspect holds.
+  const start = { x: 100, y: 100, w: 120, h: 80, rot: 30 };
+  const before = boxCorners(box(start), CFG)[0]!;
+  const t = resizeRect(start, 'se', 40, 25, { keepAspect: true, aspectFrom: 'dominant' });
+  const after = boxCorners({ x: t.x, y: t.y, w: t.w, h: t.h, rot: 30 }, CFG)[0]!;
+  near(after.x, before.x); near(after.y, before.y);
+  near(t.w / t.h, 1.5);
+});
+
+test('uniformScaleFloor: the smaller side decides; a side under minSize is exempt', () => {
+  near(uniformScaleFloor(120, 10, 8), 0.8);
+  near(uniformScaleFloor(200, 0, 8), 0.04);
+  near(uniformScaleFloor(200, 4, 8), 0.04);
+  assert.equal(uniformScaleFloor(4, 4, 8), SCALE_K_FLOOR);
+  assert.equal(uniformScaleFloor(10000, 10000, 8), SCALE_K_FLOOR);
 });
 
 test('moveBoxes shifts only the selected indices', () => {
@@ -359,8 +474,11 @@ test('scaleGroup scales positions + sizes about the anchor, keeping the anchor f
   assert.deepEqual([out[0].x, out[0].y, out[0].w, out[0].h], [100, 100, 200, 200]);
   // b's centre (350,150) → (100,100)+2*(250,50)=(600,200); size 200 → x=500,y=100
   assert.deepEqual([out[1].x, out[1].y, out[1].w, out[1].h], [500, 100, 200, 200]);
-  assert.equal(out[1].fontSize, 80);            // text scaled
-  assert.equal(out[1].radius, 40);              // radius scaled
+  // The font size and radius come back times k as well, but the canvas commits only the
+  // geometry: Resize is geometry only, and Scale mode scales content through
+  // scaleBoxContent (free-canvas-transform.ts), not through these two fields.
+  assert.equal(out[1].fontSize, 80, 'a by-product the Resize commit drops');
+  assert.equal(out[1].radius, 40, 'a by-product the Resize commit drops');
 });
 
 test('rotateGroup rotates member centres about the pivot and adds to each rotation', () => {
@@ -370,6 +488,16 @@ test('rotateGroup rotates member centres about the pivot and adds to each rotati
   const c = { x: out[0].x + out[0].w / 2, y: out[0].y + out[0].h / 2 };
   near(c.x, 0, 1e-6); near(c.y, 150, 1e-6);
   assert.equal(out[0].rot, 100);                // 10 + 90
+});
+
+test('rotateRectAbout swings the centre round the pivot, keeps the size and wraps the angle', () => {
+  const r = rotateRectAbout({ x: 100, y: -50, w: 100, h: 60, rot: 170 }, { x: 0, y: 0 }, 90);
+  near(r.x + r.w / 2, 20, 1e-6); near(r.y + r.h / 2, 150, 1e-6); // (150, -20) a quarter turn on
+  assert.deepEqual([r.w, r.h], [100, 60]);
+  assert.equal(r.rot, -100, '170 + 90 wraps into [-180, 180)');
+  // rotateGroup is the same turn, written onto the row.
+  const out: any = rotateGroup([box({ id: 'a', x: 100, y: -50, w: 100, h: 60, rot: 170 })], [0], { x: 0, y: 0 }, 90, CFG);
+  near(out[0].x, r.x, 1e-9); near(out[0].y, r.y, 1e-9); assert.equal(out[0].rot, r.rot);
 });
 
 test('selectionAABB unions rotated boxes', () => {

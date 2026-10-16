@@ -72,6 +72,9 @@ export function setMode(fc: FcCtx,
   }
   if (next === 'create') enterCreate(fc, o.kind);
   syncModeUI(fc);
+  // Scale is a mode of the pointer, so every other tool ends Scale. The new tool
+  // announces itself, so this exit stays quiet.
+  if (next !== 'select') fc.scaleMode?.set(false, { quiet: true });
 }
 /** Back to the pointer, from anywhere - Escape's mode rung, and every internal "this
  *  gesture consumed the tool" exit. */
@@ -80,11 +83,15 @@ export const toPointer = (fc: FcCtx, draft: 'commit' | 'discard' = 'commit'): vo
 };
 /** The pointer as an EXPLICIT user choice (the rail button, `V`). Announced, because the
  *  other two tools announce themselves and a mode change no screen reader hears is not a
- *  mode change; the internal exits above stay quiet, or every edge click would speak. */
+ *  mode change; the internal exits above stay quiet, or every edge click would speak.
+ *  The plain pointer is Resize, so it also leaves Scale mode and says both in one
+ *  sentence: a second announcement would replace the first before a screen reader spoke. */
 export const pickPointer = (fc: FcCtx): void => {
   fc.nodeToolActive = false; // the plain pointer is NOT the Node tool
   toPointer(fc);
-  announce(t('Pointer on - click to select, drag to move.'));
+  const wasScale = fc.scaleContent;
+  fc.scaleMode.set(false, { quiet: true });
+  announce(wasScale ? t('Pointer on, Scale mode off - click to select, drag to move.') : t('Pointer on - click to select, drag to move.'));
 };
 /** Toggle the Node tool. Turning it on drops any other tool (it is a select sub-mode)
  *  and, if exactly one path box is selected, jumps straight into editing it - the
@@ -100,6 +107,7 @@ export function toggleNodeTool(fc: FcCtx): void {
   }
   if (fc.mode !== 'select') setMode(fc, 'select'); // exit pen/create/connect
   fc.nodeToolActive = true;
+  fc.scaleMode.set(false, { quiet: true }); // node editing has no box to scale
   const boxes = fc.select.getBoxes();
   if (fc.selection.size === 1) {
     const id = [...fc.selection][0]!;
@@ -185,6 +193,9 @@ export function syncModeUI(fc: FcCtx): void {
   flag(modeBtns.pen, fc.mode === 'pen');
   flag(modeBtns.line, fc.mode === 'line');
   flag(fc.nodeToolBtn, fc.nodeToolActive);
+  // A tool switch need not repaint the chrome, and only the pointer has grab zones: the
+  // handles take their own presses again in any other tool (plan 311, zones.ts).
+  fc.zones?.syncGrab();
 }
 // Auto-arrange the connected cards into a tidy top-down hierarchy. Roots (cards with
 // nothing pointing AT them) are laid out left-to-right; each child sits under its parent,

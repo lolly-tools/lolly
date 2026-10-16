@@ -91,7 +91,7 @@ The preview always shows exactly what will export.
 
 **Touch**
 
-- **Pinch** to zoom, **drag** to pan, **double-tap** to reset to fit.
+- **Pinch** to zoom, **drag** to pan, **double-tap** to reset to fit. On the free canvas, two fingers on a selected object scale, turn and move the selection instead (see [Resize, scale and rotate](#resize-scale-and-rotate)).
 
 **Click to jump to a control:** click any element in the design and the matching sidebar input gets focus and scrolls into view - for a repeating row group it folds open the exact row you clicked, so editing what you see is one tap away.
 
@@ -110,6 +110,37 @@ Free-canvas tools add a working surface *around* the artboard, like a designer's
 ![Design's free canvas - the artboard with its surrounding pasteboard](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Flip a selection.** Right-click any box and choose **Flip horizontal** or **Flip vertical** to mirror it in place, or press `Shift+H` / `Shift+V` from the keyboard - Shift, because a bare `V` is the Pointer tool. Each selected box mirrors on its own axis in one undo step, and the mirror is a real transform, so it holds in the exported SVG, PDF and PNG rather than only on the canvas.
+
+### Resize, scale and rotate
+
+Select an object, then drag a handle to change its size, or drag the round handle below the selection to turn the object. A size drag works in one of two modes:
+
+- **Resize**, the default, changes the box only. Text rewraps to the new size, and font size, stroke width, corner radius and effects stay as they were.
+- **Scale** grows or shrinks the whole object with its content: font size, stroke, corner radius, shadow, blur, padding and spacing all change by the same amount.
+
+Press `K` to turn Scale on or off. Without a keyboard, choose **Scale mode** in the Lolly menu, or press and hold the **Pointer** button on the tool rail (or right-click it) and choose **Scale**; on a touch screen the object bar has a Scale toggle too. While Scale is on, the Pointer button shows the Scale icon and each handle has a dot in its middle. `V` or **Escape** returns to Resize and keeps your selection. Scale is off whenever a document opens, so nobody scales strokes by accident. Each Scale is one undo step, labelled **Scale**.
+
+**Scale by a number.** With Scale on, or with several objects selected, click the readout on the object bar to open the **Scale** popover. Type a percentage, or a width or a height and the other two follow, then pick the point that stays still on the 3 x 3 grid and choose **Apply**. The result is one undo step, with no drag needed. With Scale off, several objects change size and position only.
+
+**Several objects.** A selection of several objects has handles on its edges as well as its corners. A corner drag changes width and height freely while every object in the selection is upright or turned by whole quarter turns, and the selection holds no group or circle. Otherwise the selection keeps its proportions: its handles show the scale cursor, and while you drag, the readout adds **Proportional**. While you resize or scale, a small label next to the selection shows the size, or the percentage in Scale mode.
+
+**Keys you hold during a drag** take effect as soon as you press or release them (the shortcut sheet, `?`, lists them too):
+
+| Hold | Resizing or scaling | Rotating | Moving |
+|---|---|---|---|
+| **Shift** | Keeps the proportions (Scale always does) | Turns in 15 degree steps | No change |
+| **Alt** (Option) | Works from the centre | Turns freely | Turns snapping and the grid off |
+| **Cmd/Ctrl** | Turns snapping and the grid off | Turns freely | Turns snapping and the grid off |
+
+With no key held, a turn is pulled to the nearest 15 degrees once it comes within 4 degrees of one. Artboards don't rotate, so they have no rotate handle.
+
+**Grab anywhere along an edge.** You don't need to hit a handle exactly. Each side of a selection is a resize strip along its whole length, and with a mouse or a pen there is a rotate zone just outside each corner. The pointer shows what a drag will do, turned to match the selection. A press in a strip or zone becomes a resize or a turn only once you start dragging, so a plain click still selects, adds to the selection or deselects as before. A locked object has no handles, strips or zones.
+
+**Small objects stay movable.** On an object 25 screen pixels or less across, the middle handles that would crowd the corners hide and the other handles move a little way out from the outline, so a press on the object moves the object. At 10 pixels or less the corner handles go too, and a thin line keeps a handle at each end. A press just beside a thin line or a tiny object, still clear of its handles, moves the object too.
+
+**Large grab areas.** On a touch screen the grab zones are large: each corner zone is a quarter of the selection's width and height on screen, kept between 24 and 44 pixels, and each side zone covers the stretch between two corners. When the selection is too small for that, the zones move outside its outline, so a press in the middle still moves the selection. The zone under your pointer, or under a finger you hold down, is shaded. To get the same zones with a mouse or a pen, turn on **Large grab areas** in the Lolly menu. The setting is kept on this device only.
+
+**Two fingers on a selection.** On a touch screen, put two fingers on a selected object: pinch to scale the selection, twist to turn the selection or move both fingers to carry the selection. Whatever the two fingers do counts as one undo step. With Scale on, a pinch scales the content too; with Scale off, the pinch resizes the selection in proportion. A twist is pulled to the nearest 15 degrees when close, and a two-finger move never snaps. Two fingers anywhere else still zoom and pan the view, and a two-finger tap still opens the menu. The first finger has to land on the selection, and the second has to follow quickly, on the selection or just outside its edge. If the selection holds an artboard or a locked object, covers most of the view or runs past the edge of the view, two fingers zoom and pan instead.
 
 ### Layers and Inspector
 

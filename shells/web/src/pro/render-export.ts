@@ -410,10 +410,12 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
     // watermark/embedMeta/thumbnail are forwarded only when set (compose passes
     // watermark:false + embedMeta:false so an embedded child isn't stamped); batch
     // rows leave them undefined so runtime.export keeps its normal defaults.
-    const exportOpts: { signal?: AbortSignal; width?: string | number; height?: string | number; dpi?: number; watermark?: boolean; embedMeta?: boolean; thumbnail?: boolean; strongPassword?: string; wait?: number; duration?: number; fps?: number; c2pa?: boolean; imprint?: boolean; colorProfile?: string; bleed?: string; cropMarks?: boolean; registrationMarks?: boolean; bleedMarks?: boolean; colorBars?: boolean; provenance?: boolean } = { width: outW, height: outH, dpi, signal };
+    const exportOpts: { signal?: AbortSignal; width?: string | number; height?: string | number; dpi?: number; watermark?: boolean; embedMeta?: boolean; thumbnail?: boolean; convertPaths?: boolean; strongPassword?: string; wait?: number; duration?: number; fps?: number; c2pa?: boolean; imprint?: boolean; colorProfile?: string; bleed?: string; cropMarks?: boolean; registrationMarks?: boolean; bleedMarks?: boolean; colorBars?: boolean; provenance?: boolean } = { width: outW, height: outH, dpi, signal };
     if (watermark !== undefined) exportOpts.watermark = watermark;
     if (embedMeta !== undefined) exportOpts.embedMeta = embedMeta;
     if (thumbnail !== undefined) exportOpts.thumbnail = thumbnail;
+    // An SVG displayed as an image cannot use the page's installed brand fonts.
+    if (thumbnail && fmt === 'svg') exportOpts.convertPaths = true;
     // Content Credentials: a REAL batch/zip render signs by default under the same
     // policy as the tool view's Export button (previously the whole batch pipeline
     // silently skipped signing). Compose children (embedMeta:false) and thumbnails
@@ -580,7 +582,7 @@ export async function renderToolPages(row: BatchRow, host: HostV1, { format, wid
       // box: that box IS this page's output size, and a studio whose curve detail follows
       // the output is built for it. offsetWidth/Height are transform-independent.
       const pageSize = { width: el.offsetWidth, height: el.offsetHeight };
-      pages.push(await withStudioExport(mounted.studio, canvas, () => runtime.export(el, fmt, { watermark: false, embedMeta: false, thumbnail, signal, ...(el === canvas ? pageSize : {}) }), undefined, pageSize));
+      pages.push(await withStudioExport(mounted.studio, canvas, () => runtime.export(el, fmt, { watermark: false, embedMeta: false, thumbnail, signal, ...(thumbnail && fmt === 'svg' ? { convertPaths: true } : {}), ...(el === canvas ? pageSize : {}) }), undefined, pageSize));
       signal?.throwIfAborted();
     }
     return { pages, format: fmt };

@@ -6,10 +6,12 @@ import { instancePath } from '../lib/instance.ts';
 import { tRaw } from '../i18n.ts';
 import { iconNode } from '../lib/icon-node.ts';
 export function mountAssetFileList(into: HTMLElement, ref: AssetRef, choose: (file: AssetRef) => void, accepts?: (file: AssetRef) => boolean): void {
-  const files = assetFiles(ref.meta); if (files.length < 2) return;
+  const files = assetFiles(ref.meta); if (!files.length || (files.length < 2 && ref.meta?.providerOriginalsAvailable !== false && !files.some(file => file.role === 'rendition'))) return;
   const section = document.createElement('section'); section.className = 'asset-file-list'; section.setAttribute('aria-label', tRaw('Asset variations'));
   const h = document.createElement('h3'); h.textContent = tRaw('{count} files / variations', { count: String(files.length) });
-  const hint = document.createElement('p'); hint.className = 'muted'; hint.textContent = tRaw('Choose a file from this asset. File variations are separate from revision history.');
+  const hint = document.createElement('p'); hint.className = 'muted'; hint.textContent = ref.meta?.providerOriginalsAvailable === false
+    ? tRaw('This connection provides renditions. The original file is unavailable.')
+    : tRaw('Choose a file from this asset. File variations are separate from revision history.');
   const search = document.createElement('input'); search.type = 'search'; search.className = 'field-input'; search.placeholder = tRaw('Search file names or formats'); search.setAttribute('aria-label', search.placeholder);
   const rows = document.createElement('div'); rows.className = 'asset-file-rows';
   const selected = selectedAssetFile(ref);
@@ -34,6 +36,6 @@ export function mountAssetFileList(into: HTMLElement, ref: AssetRef, choose: (fi
   search.addEventListener('input', paint); section.append(h, hint, search, rows); into.append(section); paint();
 }
 function fileSummary(file: AssetFile): string {
-  return [file.format.toUpperCase(), file.width && file.height ? `${file.width} × ${file.height}` : '',
+  return [file.format.toUpperCase(), file.role === 'original' ? tRaw('Original') : file.role === 'rendition' ? tRaw('Rendition') : '', file.width && file.height ? `${file.width} × ${file.height}` : '',
     file.size ? `${new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(file.size / (file.size < 1_000_000 ? 1000 : 1_000_000))} ${file.size < 1_000_000 ? 'KB' : 'MB'}` : ''].filter(Boolean).join(' · ');
 }

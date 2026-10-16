@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { mountAssetSourceNavigation } from '../../components/asset-source-navigation.ts';
 import { buildAssetSourceTree } from '../../lib/asset-source-tree.ts';
-import { instanceFetch, getInstanceBase } from '../../lib/instance.ts';
+import { instanceFetch, instancePath, getInstanceBase } from '../../lib/instance.ts';
 import { updateRouteParams } from '../../lib/url-state.ts';
 import { t } from '../../i18n.ts';
 import { setActionButtonContent } from '../../components/action-button.ts';
@@ -12,7 +12,9 @@ export function mount(cat: CatCtx): void {
   const focusedId = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>('[data-source-node]')?.dataset.sourceNode;
   root.replaceChildren(); root.hidden = !cat.sourcesOpen;
   const assets = cat.allAssets.filter(a => !cat.hiddenSet.has(a.id));
-  cat.sourceDispose = mountAssetSourceNavigation(root, buildAssetSourceTree(assets, cat.sourceStatuses), cat.sourceSelection, cat.sourceExpanded, cat.sourceStatuses, id => {
+  const tree = cat.remote?.tree() ?? buildAssetSourceTree(assets, cat.sourceStatuses);
+  const shared = cat.projects?.tree(); if (shared) tree.splice(3, 0, shared);
+  cat.sourceDispose = mountAssetSourceNavigation(root, tree, cat.sourceSelection, cat.sourceExpanded, cat.sourceStatuses, id => {
     cat.sourceSelection = id; updateRouteParams({ sourceNode: id === 'all' ? null : id }); cat.sections.renderBody();
   }, () => { if (cat.sourcePrefsKey) void cat.host.state.save(cat.sourcePrefsKey, { expanded: [...cat.sourceExpanded].slice(0, 256) }).catch(() => {}); });
   const actions = document.createElement('div'); actions.className = 'asset-source-actions';
@@ -32,7 +34,7 @@ export function wire(cat: CatCtx): void {
 }
 export async function refresh(cat: CatCtx): Promise<void> {
   try {
-    const response = await instanceFetch('/api/v1/catalog/sources', { cache: 'no-store' }); if (response.status === 401 || response.status === 403) { cat.sections.closeDetails(); cat.sourceStatuses = []; cat.allAssets = cat.allAssets.filter(a => !a.meta?.provider); cat.sections.renderBody(); cat.sources.mount(); return; } if (!response.ok) return;
+    const response = await instanceFetch(instancePath('/api/v1/catalog/sources'), { cache: 'no-store' }); if (response.status === 401 || response.status === 403) { cat.sections.closeDetails(); cat.sourceStatuses = []; cat.remote?.restrictSources(new Set()); cat.allAssets = cat.allAssets.filter(a => !a.meta?.provider); cat.sections.renderBody(); cat.sources.mount(); return; } if (!response.ok) return;
     const data = await response.json() as { sources?: typeof cat.sourceStatuses; canManage?: boolean; scope?: string };
     if (!cat.mounted) return;
     if (typeof data.scope === 'string' && !cat.sourcePrefsKey) {
@@ -43,6 +45,7 @@ export async function refresh(cat: CatCtx): Promise<void> {
     }
     cat.sourceStatuses = Array.isArray(data.sources) ? data.sources : []; cat.sourceCanManage = data.canManage === true;
     const current = new Set(cat.sourceStatuses.map(s => s.id));
+    cat.remote?.restrictSources(current);
     const viewedProvider = cat.detailsDialog?.dataset.viewerProvider;
     if (viewedProvider && !current.has(viewedProvider)) cat.sections.closeDetails();
     cat.allAssets = cat.allAssets.filter(a => typeof a.meta?.provider !== 'string' || current.has(a.meta.provider));

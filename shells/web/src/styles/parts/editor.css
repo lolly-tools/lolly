@@ -364,6 +364,10 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 /* Undo/redo dim out at the ends of history (same treatment as .history-btn). */
 .fc-btn:disabled { opacity: 0.3; cursor: default; }
 .fc-btn.is-armed { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
+/* The pointer slot holds two tools, the pointer and Scale (K, plan 311), and a glyph for
+   each: the slot's data-variant (scale-mode.ts) shows the one in use. */
+.fc-btn-pointer .fc-slot-scale, .fc-btn-pointer[data-variant="scale"] .fc-slot-pointer { display: none; }
+.fc-btn-pointer[data-variant="scale"] .fc-slot-scale { display: inline; }
 /* Primary actions (Export/Save/Copy/Share) - a touch more prominent than the plain
    tools: brand-accent icons, with Export filled as the lead call-to-action. */
 .fc-btn.fc-action { color: var(--ui-color-action-primary); }
@@ -371,7 +375,8 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 .fc-btn.fc-action-primary { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
 .fc-btn.fc-action-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--ui-color-action-primary) 85%, transparent); }
 /* "Unsaved" cue mirrored from the render pill's Save button - --brand-warn, the
-   active brand's own colour closest in hue to red/yellow (brand-vars.ts
+   pack's declared unsaved colour (`color.chrome.unsaved`) or else the active
+   brand's own colour closest in hue to red/yellow (brand-vars.ts
    nearestWarmHex, recomputed on every brand change), falling back to the
    tokenless Amber #b28727. Shared by every free-canvas host - Design,
    Carousel Maker, Doc Studio - since they all build their toolbar via toolBtn(). */
@@ -505,6 +510,19 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    its behaviour inside this one row is local. Restating the fill pair here would beat the
    primitive from the `views` layer, which is what primitive-guards.test.ts ratchets. */
 .fc-num-go { flex: none; }
+/* The Scale popover (plan 311): the percentage row, the linked width and height (the
+   Position & size panel's labelled cells, `.fc-dims-f`), the 3x3 anchor and its two buttons. */
+.fc-scale-panel .fc-num-row .field-input { flex: 1 1 auto; min-width: 0; }
+.fc-scale-size { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
+.fc-scale-actions { display: flex; justify-content: flex-end; gap: var(--sp-2); }
+/* Why a value was refused, under the fields it describes: the danger hue mixed toward the
+   text colour, so the line reads in light, dark and high contrast alike. */
+.fc-scale-error {
+  margin: 0; font-size: var(--fs-xs); line-height: 1.35;
+  color: color-mix(in oklab, var(--ui-color-status-danger) 60%, var(--ui-color-text-default));
+}
+/* The object bar's Scale toggle on a coarse pointer: a full accent wash while on. */
+.fc-ctxbar .fc-cbtn[data-cx="scale"].is-on { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary)); }
 
 /* Selection overlay - siblings of the canvas, never exported. */
 .fc-overlay { position: absolute; inset: 0; z-index: 12; pointer-events: none; }
@@ -537,10 +555,31 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
 }
 .fc-handle::after { content: ""; position: absolute; inset: -9px; }  /* fat touch target */
-.fc-h-n, .fc-h-s { cursor: ns-resize; }
-.fc-h-e, .fc-h-w { cursor: ew-resize; }
-.fc-h-ne, .fc-h-sw { cursor: nesw-resize; }
-.fc-h-nw, .fc-h-se { cursor: nwse-resize; }
+/* A handle stood off a small box's outline (plan 311) is hit on its own square, so the
+   fat target never covers the box, whose inside stays the move target. */
+.fc-handle[data-outward]::after { content: none; }
+/* Just outside a corner a mouse turns the box (the rotate zones, zones.ts), so while the
+   zones are live (zones.ts sets data-zones on the chrome) a fine pointer hits a corner
+   handle on its own square and the turn starts where the square ends. Where the zones
+   are off (an armed Add kind, a gradient, text, pen or node edit) the corner keeps its
+   fat target, since no zone stands behind the handle there. */
+@media (pointer: fine) {
+  .fc-chrome[data-zones] .fc-handle:is(.fc-h-nw, .fc-h-ne, .fc-h-se, .fc-h-sw)::after { content: none; }
+}
+/* Large grab zones (plan 311, GIMP's crop tool) take the press round a selection for a
+   finger, and for a mouse or a pen with "Large grab areas" on. The resize handles stay
+   drawn and let the press through to their zone (zones.ts sets data-grab on the chrome);
+   the rotate handle keeps its own press. */
+.fc-chrome[data-grab] .fc-handle:not(.fc-h-rotate) { pointer-events: none; }
+/* The resize cursors. Each handle carries the direction it drags on the turned box in
+   `data-fc-dir` (chrome-sync.ts), and the class is the fallback before the first paint.
+   The stage takes the same cursors by data attribute over a grab zone (plan 311: an edge
+   strip, a corner or a rotate zone, which are hit areas rather than elements, zones.ts),
+   and holds one for the length of a drag. */
+.fc-h-n, .fc-h-s, .fc-handle[data-fc-dir="ns-resize"], .tool-stage[data-fc-cursor="ns-resize"] { cursor: ns-resize; }
+.fc-h-e, .fc-h-w, .fc-handle[data-fc-dir="ew-resize"], .tool-stage[data-fc-cursor="ew-resize"] { cursor: ew-resize; }
+.fc-h-ne, .fc-h-sw, .fc-handle[data-fc-dir="nesw-resize"], .tool-stage[data-fc-cursor="nesw-resize"] { cursor: nesw-resize; }
+.fc-h-nw, .fc-h-se, .fc-handle[data-fc-dir="nwse-resize"], .tool-stage[data-fc-cursor="nwse-resize"] { cursor: nwse-resize; }
 .fc-h-rotate {
   width: 14px; height: 14px; margin-left: -7px; margin-top: -7px;
   border-radius: var(--radius-round); cursor: grab; background: hsl(var(--primary)); border-color: #ffffff;
@@ -548,6 +587,67 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 .fc-rot-stem {
   position: absolute; height: 1.5px; background: hsl(var(--primary));
   transform-origin: 0 50%; margin-top: -0.75px; pointer-events: none;
+}
+/* Scale mode (K, plan 311): the resize handles fill with the accent, keyed and dotted in
+   the accent's own ink, so the mode shows on the selection the drag starts from. Resize's
+   handles are white squares keyed in the accent, and a theme whose accent is white (the
+   neutral brand's dark theme) would make an accent fill white on white as well, so the
+   sign is the pair of tokens made to contrast (the accent and the ink on the accent) and
+   the dot, a change of shape that does not rest on colour. The whole handle changes; no
+   edge of a handle is drawn on its own. */
+.fc-chrome[data-scale] .fc-handle:not(.fc-h-rotate) { background: hsl(var(--primary)); border-color: hsl(var(--primary-foreground)); }
+.fc-chrome[data-scale] .fc-handle:not(.fc-h-rotate)::before {
+  content: ""; position: absolute; inset: 0; width: 4px; height: 4px; margin: auto;
+  border-radius: var(--radius-round); background: hsl(var(--primary-foreground)); pointer-events: none;
+}
+/* The scale cursor (plan 311), Penpot's sign that a drag scales in proportion: the resize
+   cursor's direction drawn as two arrows, black with a white keyline like
+   .drag-wrap-cursor, so it reads on any surface in either theme. Scale mode's handles
+   carry it, and so do a set's handles in Resize when the set can only keep its
+   proportions (a group or a circle in it, or a member turned off a quarter turn). Each
+   is keyed on the handle's turned direction, as the stage's held drag cursor is, so the
+   hover and the drag show the same arrow. The plain resize cursor is the fallback. */
+.fc-chrome:is([data-scale], [data-proportional]) .fc-handle[data-fc-dir="ns-resize"],
+.tool-stage[data-fc-cursor="ns-resize"][data-fc-cursor-scale] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, ns-resize; }
+.fc-chrome:is([data-scale], [data-proportional]) .fc-handle[data-fc-dir="ew-resize"],
+.tool-stage[data-fc-cursor="ew-resize"][data-fc-cursor-scale] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath transform='rotate(90 12 12)' d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, ew-resize; }
+.fc-chrome:is([data-scale], [data-proportional]) .fc-handle[data-fc-dir="nesw-resize"],
+.tool-stage[data-fc-cursor="nesw-resize"][data-fc-cursor-scale] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath transform='rotate(45 12 12)' d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, nesw-resize; }
+.fc-chrome:is([data-scale], [data-proportional]) .fc-handle[data-fc-dir="nwse-resize"],
+.tool-stage[data-fc-cursor="nwse-resize"][data-fc-cursor-scale] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath transform='rotate(-45 12 12)' d='M7 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25zM17 1l3.5 5h-2.25v12h2.25l-3.5 5-3.5-5h2.25V6h-2.25z' fill='%23000' stroke='%23fff' stroke-width='2' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, nwse-resize; }
+/* The rotate cursor over a rotate zone just outside a corner (plan 311): an arc round
+   that corner with an arrow at each end, black with a white keyline like the scale cursor,
+   so it reads on any surface in either theme. The four are one arrow in quarter turns;
+   `grab`, the rotate handle's own cursor, is the fallback. */
+.tool-stage[data-fc-cursor="rotate-ne"] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cg transform='rotate(0 12 12)' stroke-linejoin='round'%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23fff' stroke-width='4.5'/%3E%3Cpath d='M2 7l5-3.5v7zM17 22l-3.5-5h7z' fill='%23000' stroke='%23fff' stroke-width='2' paint-order='stroke'/%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E") 12 12, grab; }
+.tool-stage[data-fc-cursor="rotate-se"] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cg transform='rotate(90 12 12)' stroke-linejoin='round'%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23fff' stroke-width='4.5'/%3E%3Cpath d='M2 7l5-3.5v7zM17 22l-3.5-5h7z' fill='%23000' stroke='%23fff' stroke-width='2' paint-order='stroke'/%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E") 12 12, grab; }
+.tool-stage[data-fc-cursor="rotate-sw"] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cg transform='rotate(180 12 12)' stroke-linejoin='round'%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23fff' stroke-width='4.5'/%3E%3Cpath d='M2 7l5-3.5v7zM17 22l-3.5-5h7z' fill='%23000' stroke='%23fff' stroke-width='2' paint-order='stroke'/%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E") 12 12, grab; }
+.tool-stage[data-fc-cursor="rotate-nw"] { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cg transform='rotate(270 12 12)' stroke-linejoin='round'%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23fff' stroke-width='4.5'/%3E%3Cpath d='M2 7l5-3.5v7zM17 22l-3.5-5h7z' fill='%23000' stroke='%23fff' stroke-width='2' paint-order='stroke'/%3E%3Cpath d='M6 7a11 11 0 0 1 11 11' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/g%3E%3C/svg%3E") 12 12, grab; }
+/* A transform drag holds its cursor: every element on the stage shows the stage's, so a
+   handle, a box or a panel the pointer crosses on the way does not swap it out. */
+.tool-stage[data-fc-cursor-held] * { cursor: inherit !important; }
+/* The large grab zone under the pointer, or under a finger's press (plan 311): a full
+   translucent wash over exactly the area where a press takes that zone, drawn from the
+   hit geometry itself (grab-zones.ts). It fills the whole zone, never one edge of it,
+   and sits under the outline and the handles. The accent token follows the theme. */
+.fc-zone {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  overflow: visible; pointer-events: none; animation: fc-zone-in var(--ui-motion-feedback) ease-out;
+}
+.fc-zone polygon { fill: hsl(var(--primary) / 0.16); }
+@keyframes fc-zone-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .fc-zone { animation: none; }
+}
+html[data-a11y-motion="reduce"] .fc-zone { animation: none; }
+/* The size label beside a selection being resized or scaled: W x H, or Scale NN%. It
+   repeats the object bar's readout next to the pointer for when the bar is hidden. */
+.fc-xform-label {
+  position: absolute; z-index: 16; padding: 3px 7px;
+  border-radius: var(--radius-xs); background: hsl(var(--card) / 0.92); color: hsl(var(--foreground));
+  box-shadow: var(--shadow-3), 0 0 0 1px hsl(var(--border));
+  font-size: var(--fs-xs); font-weight: 600; line-height: 1.2;
+  font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none;
 }
 
 /* Rubber-band (create-drag + marquee). */
@@ -693,7 +793,7 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 .fc-empty-add {
   pointer-events: auto; cursor: pointer; font: inherit; font-weight: 600;
   padding: 12px 20px; border-radius: var(--radius-md);
-  border: 1.5px dashed hsl(var(--border)); background: hsl(var(--card) / 0.82);
+  border: 1.5px solid hsl(var(--border)); background: hsl(var(--card) / 0.82);
   color: hsl(var(--muted-foreground)); backdrop-filter: blur(3px);
 }
 .fc-empty-add:hover { border-color: hsl(var(--primary)); color: hsl(var(--foreground)); }
@@ -1383,8 +1483,10 @@ html[data-a11y-motion="reduce"] .fc-toolbar .fc-btn { transition: none; }
 .fc-seg-btn.fc-seg-ic svg { width: var(--fs-xl); height: var(--fs-xl); }
 
 /* Image-position anchor picker: a 3×3 grid where each cell IS its anchor. The dot
-   is a target affordance; the selected cell lights up like any .fc-seg-btn.is-on. */
-.fc-seg.fc-posgrid { display: grid; flex: none; grid-template-columns: repeat(3, 24px); grid-auto-rows: 24px; }
+   is a target affordance; the selected cell lights up like any .fc-seg-btn.is-on.
+   The cells are places on the canvas, which a right-to-left language does not mirror,
+   so the grid keeps the physical order its labels name (Top left at the top left). */
+.fc-seg.fc-posgrid { display: grid; flex: none; grid-template-columns: repeat(3, 24px); grid-auto-rows: 24px; direction: ltr; }
 /* A 3×3 cell is sized by its grid track, not by the segment row - so it clears the
    segment's row height BOTH ways (`.fc-seg-btn` sets a min-height as well now, and
    an unreset floor would push each cell past its 24px track). */
@@ -1875,11 +1977,14 @@ button.fc-readout:empty { display: none; }
    The timeline has a focused, timeline-only sheet. This is the canvas/document
    inventory opened by `?` everywhere else and by the document menu. Native dialog
    lifecycle comes from mountModal; only the compact grouped table is owned here. */
+/* The sheet's dialog is wider than a confirm dialog (.modal's 420 px), so its two columns
+   fit inside it and it never opens scrolled sideways to the focused Done button. */
+.fc-shortcuts-modal { width: min(764px, 92vw); }
 .fc-shortcuts-modal .fc-shortcuts-sheet {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  width: min(720px, 86vw);
+  width: 100%;
   max-height: min(78vh, 760px);
 }
 .fc-shortcuts-title { margin: 0; font-size: var(--fs-xl); }
@@ -1901,6 +2006,12 @@ button.fc-readout:empty { display: none; }
 .fc-shortcuts-group table { width: 100%; border-collapse: collapse; }
 .fc-shortcuts-group td { padding: 4px 0; vertical-align: baseline; font-size: var(--fs-md); }
 .fc-shortcuts-keys { width: 1%; padding-inline-end: 12px !important; white-space: nowrap; }
+/* A gesture row names its gesture in words (the Transform group's two-finger rows): the
+   words wrap, in the text face rather than the key face, so the key column stays as
+   narrow as its widest key chord or word in any language. */
+.fc-shortcuts-keys.fc-shortcuts-gesture { white-space: normal; hyphens: auto; }
+.fc-shortcuts-keys.fc-shortcuts-gesture kbd { min-width: 7.5em; font-family: inherit; }
+.fc-shortcuts-group tr:has(.fc-shortcuts-gesture) td { vertical-align: middle; }
 .fc-shortcuts-keys kbd {
   display: inline-block;
   padding: 2px 7px;

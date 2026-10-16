@@ -516,7 +516,15 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const { baseId: treatedBase, treatment } = parseTreatedAssetId(id);
       const baseId = theme ? themedBase : treatedBase;
       const parsedFile = parseFileAssetId(baseId);
-      const storedMeta = await db.get('asset-meta', parsedFile.baseId);
+      let storedMeta = await db.get('asset-meta', parsedFile.baseId);
+      if (!storedMeta && /^(ext|inst)\//.test(parsedFile.baseId)) {
+        const { readCatalogAsset } = await import('../catalog/asset-record.ts');
+        const incoming = await readCatalogAsset(parsedFile.baseId);
+        if (incoming && (opts.version === undefined || opts.version === incoming.version)) {
+          await api._syncFromIndex([incoming]);
+          storedMeta = incoming;
+        }
+      }
       if (!storedMeta) throw new Error(`Asset not in catalog: ${id}`);
       const currentMeta = await fileMeta(storedMeta, parsedFile.file);
       const historical = opts.version !== undefined && opts.version !== currentMeta.version;
@@ -721,93 +729,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       // directly without a cached blob first. Only flag a placeholder when
       // there's genuinely no URL to resolve (an unresolved/on-demand tier
       // with no static formats[0].url).
-      return Promise.all(filtered.map(async (m): Promise<AssetRef> => {
-        // Pick the format the picker should point at: for video the actual
-        // clip (a <video> plays it), for everything else formats[0], never a
-        // companion still.
-        const primary = m.formats.length ? pickFormat(m) : undefined;
-        // A still poster (a non-animation companion format) for the types
-        // that need one: a lottie thumbnails from it (an <img> can't show
-        // the json); a video can use it as its <video poster>. Excludes the
-        // animation/clip formats.
-        const still = m.formats.find(f => f.format === 'thumb')?.url
-          ?? m.formats.find(f => /^(svg|png|webp|jpe?g|gif|avif)$/i.test(f.format))?.url ?? '';
-        const lottiePoster = m.type === 'lottie' ? still : '';
-        const videoPoster = m.type === 'video' ? still : '';
-        // A 3-D model (GLB) or a LUT (.cube colour grade) tiles from a rendered still:
-        // the companion PNG/WebP (the mesh / lookup table stays `primary`/`url` so the
-        // tool that consumes it still fetches the real file, not the picture of it).
-        const filePoster = (m.type === 'model' || m.type === 'lut')
-          ? still
-          : '';
-        if (primary?.format === 'jxl' && !listing.metadataOnly) return api.get(m.id);
-        const directUrl = lottiePoster || (primary?.url ?? '');
-        // Catalog animated rasters (gif/apng/animated-webp) are authored
-        // type:'raster' and tagged "animated" so the picker badges the
-        // motion (user uploads carry the same flag from ingest). Same-MIME
-        // still/animated can't be told apart otherwise.
-        const animated = m.type === 'raster' && (m.tags?.includes('animated') ?? false);
-        const posterUrl = lottiePoster || videoPoster || filePoster;
-        // The small WebP derivative (scripts/build-thumbnails.ts), if this
-        // raster has one. Surfaced so a grid/list view can show the ~30 KB
-        // thumb instead of the full-res original while a details/zoom view
-        // still resolves `url` (the original) for quality.
-        const thumbUrl = m.formats.find(f => f.format === 'thumb')?.url ?? '';
-        // The playable animation (JSON) for a lottie: `directUrl`/`url`
-        // point at the still poster so an <img> thumbnail works, so surface
-        // the json separately for a looping motion preview
-        // (catalog/picker). Video needs none: its directUrl is the clip.
-        const animationUrl = m.type === 'lottie' ? (m.formats.find(f => f.format === 'json')?.url ?? '') : '';
-        // The primary format's authored length, lifted as get() lifts it, so a
-        // listing can show and sort by a clip's duration without resolving the clip.
-        const durationMs = primary ? authoredDurationMs(primary) : undefined;
-        return {
-          source: 'library',
-          id: m.id,
-          type: m.type,
-          format: primary?.format ?? 'svg',
-          url: directUrl,
-          version: m.version,
-          width: m.width ?? primary?.width,
-          height: m.height ?? primary?.height,
-          meta: {
-            // The entry's own `meta` block (schemas/asset.schema.json): the
-            // type-specific facts a shell needs BEFORE it downloads the bytes,
-            // such as an emoji pack's pin and glyph count. It rides first so the
-            // computed keys below always win a name collision, and the keys that
-            // decide identity or rights are stripped out of it first - the schema
-            // states outright that this blob is "not validated beyond being an
-            // object", so an entry could otherwise answer a question about its
-            // own licence that nothing checked, and answer it differently here
-            // than on the resolved-ref path below.
-            ...withoutReservedMeta(m.meta),
-            name: m.name, tags: m.tags, _placeholder: !directUrl,
-            formats: m.formats.filter(file => file.format !== 'thumb' && !file.rendition).map(file => file.format),
-            ...(m.provider ? { provider: m.provider } : {}),
-            ...(m.description ? { description: m.description } : {}),
-            // The primary format's byte length, straight off the index. A shell
-            // that must refuse a file BEFORE downloading it (an emoji pack has a
-            // 32 MiB ceiling) has nothing else to read: `bytes()` materialises
-            // the whole thing before anyone can check its size.
-            ...(typeof primary?.size === 'number' ? { size: primary.size } : {}),
-            ...(durationMs != null ? { durationMs } : {}),
-            ...(posterUrl ? { posterUrl } : {}),
-            ...(animated ? { animated: true } : {}),
-            ...(thumbUrl ? { thumbUrl } : {}),
-            ...(primary?.checksum ? { originalChecksum: primary.checksum } : {}),
-            ...(m.formats.some(file => file.rendition) ? { renditions: m.formats.filter(file => file.rendition).map(file => ({
-              url: file.url, format: file.format, width: file.width, height: file.height,
-              checksum: file.checksum, of: file.rendition!.of,
-            })) } : {}),
-            ...(animationUrl ? { animationUrl } : {}),
-            ...(m.aiGenerated ? { aiGenerated: m.aiGenerated } : {}),
-            ...(m.added ? { added: m.added } : {}),
-            ...(m.license ? { license: m.license } : {}),
-            ...(m.attribution ? { attribution: m.attribution } : {}),
-            ...(m.rights ? { rights: m.rights } : {}),
-          },
-        };
-      }));
+      return Promise.all(filtered.map(m => m.formats.length && pickFormat(m).format === 'jxl' && !listing.metadataOnly ? api.get(m.id) : catalogMetadataRef(m)));
     },
 
     /**
@@ -1303,9 +1225,9 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * Also prunes metadata for assets no longer in the catalog.
      * Returns { blobs, meta } counts of records deleted.
      */
-    async _pruneStale(currentAssets: AssetMetaRecord[], sessionBlobKeys: Set<string> = new Set(), keepIds: Set<string> = new Set()): Promise<{ blobs: number; meta: number }> {
+    async _pruneStale(currentAssets: AssetMetaRecord[], sessionBlobKeys: Set<string> = new Set(), keepIds: Set<string> = new Set(), deferredProviders: readonly string[] = []): Promise<{ blobs: number; meta: number }> {
       const { pruneAssetCache } = await import('./asset-cache-maintenance.ts');
-      return pruneAssetCache(db, currentAssets, sessionBlobKeys, keepIds, { evict: evictObjectUrl, evictPrefix: evictObjectUrlsByPrefix });
+      return pruneAssetCache(db, currentAssets, sessionBlobKeys, keepIds, { evict: evictObjectUrl, evictPrefix: evictObjectUrlsByPrefix }, deferredProviders);
     },
 
     // v1.183: the bytes behind a ref - blob:, data: and same-origin urls all
@@ -1631,4 +1553,92 @@ export async function verifyAssetChecksum(blob: Blob, format: AssetFormat | unde
       `Asset checksum mismatch for ${format.url}: expected ${format.checksum}, got ${actual}`,
     );
   }
+}
+
+/** Project catalog metadata without fetching any original or scanning the device store. */
+export function catalogMetadataRef(m: AssetMetaRecord): AssetRef {
+  // Pick the format the picker should point at: for video the actual
+  // clip (a <video> plays it), for everything else formats[0], never a
+  // companion still.
+  const primary = m.formats.length ? pickFormat(m) : undefined;
+  // A still poster (a non-animation companion format) for the types
+  // that need one: a lottie thumbnails from it (an <img> can't show
+  // the json); a video can use it as its <video poster>. Excludes the
+  // animation/clip formats.
+  const still = m.formats.find(f => f.format === 'thumb')?.url
+    ?? m.formats.find(f => /^(svg|png|webp|jpe?g|gif|avif)$/i.test(f.format))?.url ?? '';
+  const lottiePoster = m.type === 'lottie' ? still : '';
+  const videoPoster = m.type === 'video' ? still : '';
+  // A 3-D model (GLB) or a LUT (.cube colour grade) tiles from a rendered still:
+  // the companion PNG/WebP (the mesh / lookup table stays `primary`/`url` so the
+  // tool that consumes it still fetches the real file, not the picture of it).
+  const filePoster = (m.type === 'model' || m.type === 'lut')
+    ? still
+    : '';
+  const directUrl = lottiePoster || (primary?.url ?? '');
+  // Catalog animated rasters (gif/apng/animated-webp) are authored
+  // type:'raster' and tagged "animated" so the picker badges the
+  // motion (user uploads carry the same flag from ingest). Same-MIME
+  // still/animated can't be told apart otherwise.
+  const animated = m.type === 'raster' && (m.tags?.includes('animated') ?? false);
+  const posterUrl = lottiePoster || videoPoster || filePoster;
+  // The small WebP derivative (scripts/build-thumbnails.ts), if this
+  // raster has one. Surfaced so a grid/list view can show the ~30 KB
+  // thumb instead of the full-res original while a details/zoom view
+  // still resolves `url` (the original) for quality.
+  const thumbUrl = m.formats.find(f => f.format === 'thumb')?.url ?? '';
+  // The playable animation (JSON) for a lottie: `directUrl`/`url`
+  // point at the still poster so an <img> thumbnail works, so surface
+  // the json separately for a looping motion preview
+  // (catalog/picker). Video needs none: its directUrl is the clip.
+  const animationUrl = m.type === 'lottie' ? (m.formats.find(f => f.format === 'json')?.url ?? '') : '';
+  // The primary format's authored length, lifted as get() lifts it, so a
+  // listing can show and sort by a clip's duration without resolving the clip.
+  const durationMs = primary ? authoredDurationMs(primary) : undefined;
+  return {
+    source: 'library',
+    id: m.id,
+    type: m.type,
+    format: primary?.format ?? 'svg',
+    url: directUrl,
+    version: m.version,
+    width: m.width ?? primary?.width,
+    height: m.height ?? primary?.height,
+    meta: {
+      // The entry's own `meta` block (schemas/asset.schema.json): the
+      // type-specific facts a shell needs BEFORE it downloads the bytes,
+      // such as an emoji pack's pin and glyph count. It rides first so the
+      // computed keys below always win a name collision, and the keys that
+      // decide identity or rights are stripped out of it first - the schema
+      // states outright that this blob is "not validated beyond being an
+      // object", so an entry could otherwise answer a question about its
+      // own licence that nothing checked, and answer it differently here
+      // than on the resolved-ref path below.
+      ...withoutReservedMeta(m.meta),
+      name: m.name, tags: m.tags, _placeholder: !directUrl,
+      formats: m.formats.filter(file => file.format !== 'thumb' && !file.rendition).map(file => file.format),
+      ...(m.provider ? { provider: m.provider } : {}),
+      ...(m.description ? { description: m.description } : {}),
+      // The primary format's byte length, straight off the index. A shell
+      // that must refuse a file BEFORE downloading it (an emoji pack has a
+      // 32 MiB ceiling) has nothing else to read: `bytes()` materialises
+      // the whole thing before anyone can check its size.
+      ...(typeof primary?.size === 'number' ? { size: primary.size } : {}),
+      ...(durationMs != null ? { durationMs } : {}),
+      ...(posterUrl ? { posterUrl } : {}),
+      ...(animated ? { animated: true } : {}),
+      ...(thumbUrl ? { thumbUrl } : {}),
+      ...(primary?.checksum ? { originalChecksum: primary.checksum } : {}),
+      ...(m.formats.some(file => file.rendition) ? { renditions: m.formats.filter(file => file.rendition).map(file => ({
+        url: file.url, format: file.format, width: file.width, height: file.height,
+        checksum: file.checksum, of: file.rendition!.of,
+      })) } : {}),
+      ...(animationUrl ? { animationUrl } : {}),
+      ...(m.aiGenerated ? { aiGenerated: m.aiGenerated } : {}),
+      ...(m.added ? { added: m.added } : {}),
+      ...(m.license ? { license: m.license } : {}),
+      ...(m.attribution ? { attribution: m.attribution } : {}),
+      ...(m.rights ? { rights: m.rights } : {}),
+    },
+  };
 }

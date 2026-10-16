@@ -84,4 +84,4 @@ export function discardedAt(slot: string): number | null {
 
 export const isHiddenSlot = (slot: unknown): boolean =>
   isTrashedSlot(slot) || isTemplateSlot(slot) || isExportPrefsSlot(slot) || isDesignSystemSlot(slot) || isRebrandSlot(slot)
-  || isDiscardedSlot(slot);
+  || isDiscardedSlot(slot) || (typeof slot === 'string' && slot.startsWith('__projectcopy__:'));

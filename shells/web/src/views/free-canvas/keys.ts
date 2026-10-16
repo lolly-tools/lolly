@@ -84,10 +84,10 @@ export function positionCtxBar(fc: FcCtx,
   const r = liveRects?.get(idx[0]!) || boxRect(first, cfg);
   const read = ctxbar.querySelector('[data-cx-readout]');
   if (read)
-    read.textContent =
-      idx.length > 1
+    read.textContent = fc.selectionTransform.transformReadout(liveRects) ??
+      (idx.length > 1
         ? t('{n} selected', { n: idx.length })
-        : `${Math.round(r.x)}, ${Math.round(r.y)}  ·  ${Math.round(r.w)}×${Math.round(r.h)}${r.rot ? '  ·  ' + Math.round(r.rot) + '°' : ''}`;
+        : `${Math.round(r.x)}, ${Math.round(r.y)}  ·  ${Math.round(r.w)}×${Math.round(r.h)}${r.rot ? '  ·  ' + Math.round(r.rot) + '°' : ''}`);
 }
 export function updateToolbarState(fc: FcCtx, _count: number): void {
   // Nothing hard-disabled - align-to-canvas works on a single box; arrange/delete
@@ -111,7 +111,12 @@ export const rectAsBox = (fc: FcCtx, r: Rect): Box => { const { cfg } = fc; retu
   [cfg.hField]: r.h,
   [cfg.rotationField]: r.rot,
 }); };
-export function rotOf(_fc: FcCtx, el: HTMLElement): number {
+/** A live box element's rotation: the gesture's own record while one is live (see
+ *  applyLiveRect), else the `rotate()` in its inline transform. */
+export function rotOf(fc: FcCtx, el: HTMLElement): number {
+  const id = el.getAttribute('data-box-id') ?? el.getAttribute('data-frame-id');
+  const live = fc.gesture && id != null ? fc.liveRects?.get(id) : undefined;
+  if (live) return live.rot ?? 0;
   const t = el.style.transform || '';
   const mm = t.match(/rotate\(([-0-9.]+)deg\)/);
   return mm ? parseFloat(mm[1]!) : 0;
@@ -278,6 +283,13 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
       fc.modes.toPointer('discard');
       return;
     }
+    // Scale mode is the outermost mode: it goes once the surfaces open over it have
+    // closed, and ahead of any deselect, so leaving Scale keeps the selection.
+    if (fc.scaleContent) {
+      e.preventDefault();
+      fc.scaleMode.set(false);
+      return;
+    }
     if (fc.selectedEdges.size) {
       e.preventDefault();
       fc.edges.deselectEdge();
@@ -416,6 +428,15 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
     fc.modes.pickPointer();
     return;
   }
+  // K - Scale mode (Figma's and Penpot's key). Bare K only: Shift+K is not K, and inside
+  // the timeline panel K pauses or keys a frame, a key the bail at the top leaves to the panel.
+  // A held K repeats its keydown, and only the first one toggles: the mode on release is
+  // the one the press chose, not whichever repeat came last.
+  if (!e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey && (e.key === 'k' || e.key === 'K') && !fc.editing) {
+    e.preventDefault();
+    if (!e.repeat) fc.scaleMode.key();
+    return;
+  }
   if (
     !e.metaKey &&
     !e.ctrlKey &&
@@ -436,7 +457,7 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
     cfg.pathField
   ) {
     e.preventDefault();
-    fc.modes.toggleNodeTool();
+    if (!e.repeat) fc.modes.toggleNodeTool(); // a held N toggles once, as K does
     return;
   }
   // Enter / F2 on a selected box → edit its text (select-all so typing replaces it).

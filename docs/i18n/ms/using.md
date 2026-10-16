@@ -91,7 +91,7 @@ Pratonton sentiasa menunjukkan tepat apa yang akan dieksport.
 
 **Sentuh**
 
-- **Cubit** untuk zum, **seret** untuk mengalih pandangan, **ketik dua kali** untuk kembali kepada muat.
+- **Cubit** untuk zum, **seret** untuk menggerakkan paparan, **ketik dua kali** untuk menetapkan semula supaya muat. Pada kanvas bebas, dua jari pada objek yang dipilih sebaliknya menskalakan, memutar dan mengalihkan pilihan (lihat [Saiz semula, skala dan putar](#resize-scale-and-rotate)).
 
 **Klik untuk melompat ke sesuatu kawalan:** klik mana-mana elemen dalam reka bentuk dan input bar sisi yang sepadan mendapat fokus serta ditatal ke paparan - bagi kumpulan baris berulang, ia membuka baris tepat yang anda klik, jadi menyunting apa yang anda lihat hanya satu ketikan jauhnya.
 
@@ -110,6 +110,37 @@ Alat kanvas bebas menambah permukaan kerja *di sekeliling* papan seni, seperti m
 ![Kanvas bebas Design - papan seni beserta meja kerja di sekelilingnya](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Balikkan pilihan.** Klik kanan mana-mana kotak dan pilih **Flip horizontal** atau **Flip vertical** untuk mencerminkannya di tempatnya, atau tekan `Shift+H` / `Shift+V` pada papan kekunci - Shift, kerana `V` sahaja ialah alat Pointer. Setiap kotak yang dipilih mencerminkan pada paksinya sendiri dalam satu langkah undo, dan cerminan itu adalah transform sebenar, jadi ia kekal dalam SVG, PDF dan PNG yang dieksport dan bukan hanya pada kanvas.
+
+### Saiz semula, skala dan putar
+
+Pilih satu objek, kemudian seret pemegang untuk menukar saiznya, atau seret pemegang bulat di bawah pilihan untuk memutar objek. Seretan saiz berfungsi dalam salah satu daripada dua mod:
+
+- **Saiz semula**, iaitu lalai, hanya menukar kotak. Teks dibungkus semula mengikut saiz baharu, manakala saiz fon, lebar strok, jejari sudut dan kesan kekal seperti asal.
+- **Skala** membesarkan atau mengecilkan keseluruhan objek bersama kandungannya: saiz fon, strok, jejari sudut, bayang, kabur, pelapik dan jarak semuanya berubah dengan kadar yang sama.
+
+Tekan `K` untuk menghidupkan atau mematikan Skala. Tanpa papan kekunci, pilih **Mod Skala** dalam menu Lolly, atau tekan dan tahan butang **Penuding** pada rel alat (atau klik kanan padanya) dan pilih **Skala**; pada skrin sentuh, bar objek juga mempunyai togol Skala. Semasa Skala hidup, butang Penuding menunjukkan ikon Skala dan setiap pemegang mempunyai titik di tengahnya. `V` atau **Escape** kembali ke Saiz semula dan mengekalkan pilihan anda. Skala sentiasa mati apabila dokumen dibuka, supaya tiada sesiapa menskalakan strok secara tidak sengaja. Setiap Skala ialah satu langkah buat asal, berlabel **Skala**.
+
+**Skala dengan nombor.** Semasa Skala hidup, atau apabila beberapa objek dipilih, klik bacaan pada bar objek untuk membuka popover **Skala**. Taip peratusan, atau lebar atau tinggi dan dua nilai lain akan mengikut, pilih titik yang kekal pada grid 3 × 3, dan pilih **Guna**. Hasilnya satu langkah buat asal, tanpa perlu menyeret. Semasa Skala mati, beberapa objek hanya berubah saiz dan kedudukan.
+
+**Beberapa objek.** Pilihan beberapa objek mempunyai pemegang pada tepinya selain sudut. Seretan sudut menukar lebar dan tinggi dengan bebas selagi setiap objek dalam pilihan tegak atau diputar dengan gandaan suku pusingan penuh, dan pilihan tidak mengandungi kumpulan atau bulatan. Jika tidak, pilihan mengekalkan kadarnya: pemegangnya menunjukkan kursor skala, dan semasa anda menyeret, bacaan menambah **Berkadar**. Semasa anda menukar saiz atau menskala, label kecil di sebelah pilihan menunjukkan saiz, atau peratusan dalam mod Skala.
+
+**Kekunci yang ditahan semasa menyeret** berkesan sebaik sahaja ditekan atau dilepaskan (helaian pintasan, `?`, turut menyenaraikannya):
+
+| Tahan | Menukar saiz atau menskala | Memutar | Mengalih |
+|---|---|---|---|
+| **Shift** | Mengekalkan kadar (Skala sentiasa begitu) | Berputar dengan langkah 15 darjah | Tiada perubahan |
+| **Alt** (Option) | Berfungsi dari tengah | Berputar bebas | Mematikan snap dan grid |
+| **Cmd/Ctrl** | Mematikan snap dan grid | Berputar bebas | Mematikan snap dan grid |
+
+Tanpa kekunci ditahan, putaran ditarik ke 15 darjah terdekat apabila berada dalam lingkungan 4 darjah daripadanya. Papan lukis tidak berputar, jadi tiada pemegang putar.
+
+**Pegang di mana-mana sepanjang tepi.** Anda tidak perlu tepat mengenai pemegang. Setiap sisi pilihan ialah jalur saiz semula sepanjang sisinya, dan dengan tetikus atau pen terdapat zon putar tepat di luar setiap sudut. Penuding menunjukkan apa yang seretan akan lakukan, diputar mengikut pilihan. Tekanan pada jalur atau zon hanya menjadi saiz semula atau putaran apabila anda mula menyeret, jadi klik biasa tetap memilih, menambah pada pilihan atau menyahpilih seperti dahulu. Objek yang dikunci tiada pemegang, jalur atau zon.
+
+**Objek kecil kekal boleh dialih.** Pada objek selebar 25 piksel skrin atau kurang, pemegang tengah yang sesak dengan sudut disembunyikan dan pemegang lain beralih sedikit ke luar garis luar, jadi menekan objek akan mengalihkannya. Pada 10 piksel atau kurang, pemegang sudut turut hilang, dan garisan nipis mengekalkan satu pemegang pada setiap hujung. Menekan betul-betul di sebelah garisan nipis atau objek yang sangat kecil, di luar pemegangnya, juga mengalihkan objek.
+
+**Kawasan genggam besar.** Pada skrin sentuh, zon genggam adalah besar: zon setiap sudut ialah suku lebar dan tinggi pilihan pada skrin, dikekalkan antara 24 dan 44 piksel, dan zon setiap sisi meliputi bahagian antara dua sudut. Apabila pilihan terlalu kecil untuk itu, zon beralih ke luar garis luarnya, jadi menekan di tengah tetap mengalihkan pilihan. Zon di bawah penuding, atau di bawah jari yang ditekan, diteduhkan. Untuk mendapatkan zon yang sama dengan tetikus atau pen, hidupkan **Kawasan genggam besar** dalam menu Lolly. Tetapan ini disimpan pada peranti ini sahaja.
+
+**Dua jari pada pilihan.** Pada skrin sentuh, letakkan dua jari pada objek yang dipilih: cubit untuk menskalakan pilihan, pulas untuk memutarnya, atau gerakkan kedua-dua jari untuk membawanya. Apa sahaja yang dilakukan dua jari dikira sebagai satu langkah buat asal. Semasa Skala hidup, cubitan turut menskalakan kandungan; semasa mati, cubitan menukar saiz pilihan secara berkadar. Pulasan ditarik ke 15 darjah terdekat apabila hampir, dan gerakan dua jari tidak pernah snap. Dua jari di tempat lain masih menzum dan menggerakkan paparan, dan ketikan dua jari masih membuka menu. Jari pertama mesti mendarat pada pilihan dan jari kedua mesti menyusul dengan cepat, pada pilihan atau betul-betul di luar tepinya. Jika pilihan mengandungi papan lukis atau objek yang dikunci, meliputi kebanyakan paparan atau melepasi tepi paparan, dua jari sebaliknya menzum dan menggerakkan paparan.
 
 ### Lapisan dan Pemeriksa
 

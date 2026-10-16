@@ -222,7 +222,7 @@ test('an intercepting view owns the click until it calls go()', () => {
   assert.equal(backCalls + navigated, 0, 'the unsaved-work dialog is up - nothing has navigated yet');
   assert.equal(typeof release, 'function');
   release!();
-  // The dialog's "Leave without saving" navigates by URL, NEVER history.back(): the
+  // The dialog's "Leave anyway" navigates by URL, NEVER history.back(): the
   // unsaved dialog (mountModal) pushes a same-URL history entry, so a back() would pop
   // THAT entry and keep the user in the tool - the reported bug, hit whenever the tool
   // was entered by in-app navigation (a history-mode pill). Regression guard.

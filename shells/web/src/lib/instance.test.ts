@@ -111,6 +111,16 @@ test('setInstallTag: anything outside the header grammar is refused, not escaped
 });
 
 test('native sessions remain bound to the instance that issued them', async (ctx) => {
+  const NativeRequest = globalThis.Request;
+  // Match the WebView's forbidden-header guard, which Node's Request lacks.
+  globalThis.Request = class extends NativeRequest {
+    constructor(input: RequestInfo | URL, init?: RequestInit) {
+      super(input, init);
+      const set = this.headers.set.bind(this.headers);
+      this.headers.set = (name, value) => { if (name.toLowerCase() !== 'cookie') set(name, value); };
+    }
+  };
+  ctx.after(() => { globalThis.Request = NativeRequest; });
   const savedWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
   const savedLocation = Object.getOwnPropertyDescriptor(globalThis, 'location');
   const requests: Array<{ url: string; headers: Array<[string, string]> }> = [];

@@ -15,7 +15,7 @@ async function galleryNeedsWelcome(host: GalleryHost, isCurrent: () => boolean):
     if (source) return source === 'shipped';
     let tokensId = (await host.assets._findMetaByType('tokens'))?.id;
     if (tokensId === undefined && isCurrent()) {
-      const response = await instanceFetch(instancePath('/catalog/assets/index.json'));
+      const response = await instanceFetch(instancePath('/catalog/assets/index.json?paged=1'));
       if (response.ok) {
         const index = await response.json() as { assets?: Array<{ id?: string; type?: string }> };
         tokensId = index.assets?.find(asset => asset.type === 'tokens')?.id;

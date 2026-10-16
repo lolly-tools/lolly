@@ -715,8 +715,10 @@ test('a menu row opened from the TOP BAR docks its panel to the bar, not to the 
       'the menu\'s owner writes the trigger\'s state - the bar cannot, it does not own the popover');
     const pop = f.stageEl.querySelector<HTMLElement>('.fc-popover')!;
     assert.equal(pop.getAttribute('role'), 'menu');
-    assert.ok([...pop.querySelectorAll('.fc-pop-item')].every((b) => b.getAttribute('role') === 'menuitem'),
+    assert.ok([...pop.querySelectorAll('.fc-pop-item:not([aria-checked])')].every((b) => b.getAttribute('role') === 'menuitem'),
       'every plain row is a menuitem - only the radio rows used to carry a role at all');
+    assert.equal(pop.querySelector('[data-pop="grab-areas"]')?.getAttribute('role'), 'menuitemcheckbox',
+      'a setting that is on or off on its own is a checkbox row');
     assert.equal(dom.window.document.activeElement, pop.querySelector('.fc-pop-item'),
       'opening moves focus INTO the menu: it is appended to the stage, so it is after the whole bar in DOM order');
 

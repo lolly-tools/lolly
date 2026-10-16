@@ -91,7 +91,7 @@ Die Vorschau zeigt immer genau das, was exportiert wird.
 
 **Touch**
 
-- **Pinch-Geste** zum Zoomen, **Ziehen** zum Verschieben, **Doppeltippen** setzt auf die Einpassung zurück.
+- **Pinch-Geste** zum Zoomen, **Ziehen** zum Verschieben, **Doppeltippen** setzt auf die Einpassung zurück. Auf der freien Zeichenfläche skalieren, drehen und verschieben zwei Finger auf einem ausgewählten Objekt stattdessen die Auswahl (siehe [Größe ändern, skalieren und drehen](#resize-scale-and-rotate)).
 
 **Klicken, um zu einem Steuerelement zu springen:** Klicken Sie auf ein beliebiges Element im Design, und die passende Eingabe in der Seitenleiste erhält den Fokus und wird ins Sichtfeld gescrollt - bei einer sich wiederholenden Zeilengruppe klappt genau die Zeile auf, die Sie angeklickt haben, sodass das Bearbeiten des Gesehenen nur einen Tipp entfernt ist.
 
@@ -110,6 +110,37 @@ Tools mit freier Zeichenfläche legen eine Arbeitsfläche *um* das Artboard heru
 ![Designs freie Zeichenfläche - das Artboard mit seinem umgebenden Montagebrett](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Eine Auswahl spiegeln.** Rechtsklicken Sie auf eine beliebige Box und wählen Sie **Flip horizontal** oder **Flip vertical**, um sie an Ort und Stelle zu spiegeln, oder drücken Sie `Shift+H` / `Shift+V` auf der Tastatur - Shift, weil ein bloßes `V` das Pointer-Werkzeug ist. Jede ausgewählte Box spiegelt sich in einem Undo-Schritt entlang ihrer eigenen Achse, und die Spiegelung ist eine echte Transformation, sodass sie im exportierten SVG, PDF und PNG erhalten bleibt und nicht nur auf der Leinwand.
+
+### Größe ändern, skalieren und drehen
+
+Wählen Sie ein Objekt aus und ziehen Sie dann an einem Griff, um seine Größe zu ändern, oder am runden Griff unter der Auswahl, um das Objekt zu drehen. Ein Größenzug arbeitet in einem von zwei Modi:
+
+- **Größe ändern**, der Standard, ändert nur das Feld. Text wird an die neue Größe angepasst umbrochen, Schriftgröße, Konturstärke, Eckenradius und Effekte bleiben, wie sie waren.
+- **Skalieren** vergrößert oder verkleinert das ganze Objekt samt Inhalt: Schriftgröße, Kontur, Eckenradius, Schatten, Unschärfe, Innenabstand und Abstände ändern sich alle um denselben Betrag.
+
+Drücken Sie `K`, um Skalieren ein- oder auszuschalten. Ohne Tastatur wählen Sie im Lolly-Menü **Skalierungsmodus**, oder Sie halten die Schaltfläche **Zeiger** in der Werkzeugleiste gedrückt (oder klicken sie mit der rechten Maustaste an) und wählen **Skalieren**; auf einem Touchscreen hat auch die Objektleiste einen Schalter für Skalieren. Solange Skalieren aktiv ist, zeigt die Zeiger-Schaltfläche das Skalieren-Symbol, und jeder Griff hat einen Punkt in der Mitte. `V` oder **Escape** kehrt zu Größe ändern zurück und behält Ihre Auswahl. Skalieren ist beim Öffnen eines Dokuments immer aus, damit niemand versehentlich Konturen skaliert. Jedes Skalieren ist ein Rückgängig-Schritt mit der Bezeichnung **Skalierung**.
+
+**Skalieren mit einer Zahl.** Klicken Sie bei aktivem Skalieren oder bei mehreren ausgewählten Objekten auf die Anzeige in der Objektleiste, um das Popover **Skalierung** zu öffnen. Geben Sie einen Prozentwert, eine Breite oder eine Höhe ein, worauf die beiden anderen Werte folgen, wählen Sie dann im 3 x 3-Raster den Punkt, der ruhig bleibt, und wählen Sie **Anwenden**. Das Ergebnis ist ein Rückgängig-Schritt, ganz ohne Ziehen. Bei ausgeschaltetem Skalieren ändern mehrere Objekte nur Größe und Position.
+
+**Mehrere Objekte.** Eine Auswahl aus mehreren Objekten hat Griffe an den Kanten und an den Ecken. Ein Eckenzug ändert Breite und Höhe frei, solange jedes Objekt der Auswahl aufrecht oder um ganze Vierteldrehungen gedreht ist und die Auswahl weder Gruppe noch Kreis enthält. Andernfalls behält die Auswahl ihre Proportionen: Die Griffe zeigen den Skalierungszeiger, und während Sie ziehen, ergänzt die Anzeige **Proportional**. Während Sie die Größe ändern oder skalieren, zeigt ein kleines Label neben der Auswahl die Größe an, im Skalierungsmodus den Prozentwert.
+
+**Tasten, die Sie während eines Zugs gedrückt halten**, wirken sofort, sobald Sie sie drücken oder loslassen (die Tastenkürzel-Übersicht, `?`, listet sie ebenfalls auf):
+
+| Halten | Größe ändern oder skalieren | Drehen | Verschieben |
+|---|---|---|---|
+| **Shift** | Behält die Proportionen (Skalieren tut das immer) | Dreht in 15-Grad-Schritten | Keine Änderung |
+| **Alt** (Option) | Arbeitet von der Mitte aus | Dreht frei | Schaltet Einrasten und Raster aus |
+| **Cmd/Ctrl** | Schaltet Einrasten und Raster aus | Dreht frei | Schaltet Einrasten und Raster aus |
+
+Ohne gehaltene Taste rastet eine Drehung auf das nächste 15-Grad-Vielfache ein, sobald sie bis auf 4 Grad herankommt. Artboards lassen sich nicht drehen, sie haben also keinen Drehgriff.
+
+**Überall an der Kante greifen.** Sie müssen einen Griff nicht genau treffen. Jede Seite einer Auswahl ist auf ihrer ganzen Länge ein Streifen zum Ändern der Größe, und mit Maus oder Stift gibt es direkt außerhalb jeder Ecke eine Drehzone. Der Zeiger zeigt, was ein Zug bewirkt, passend zur Auswahl gedreht. Ein Druck in einem Streifen oder einer Zone wird erst zu einer Größenänderung oder Drehung, wenn Sie zu ziehen beginnen; ein einfacher Klick wählt also weiterhin aus, ergänzt die Auswahl oder hebt sie auf wie bisher. Ein gesperrtes Objekt hat keine Griffe, Streifen oder Zonen.
+
+**Kleine Objekte bleiben verschiebbar.** Bei einem Objekt von 25 Bildschirmpixeln Breite oder weniger verschwinden die mittleren Griffe, die die Ecken bedrängen würden, und die übrigen Griffe rücken ein Stück von der Umrisslinie nach außen, sodass ein Druck auf das Objekt das Objekt verschiebt. Bei 10 Pixeln oder weniger verschwinden auch die Eckgriffe, und eine dünne Linie behält an jedem Ende einen Griff. Ein Druck knapp neben einer dünnen Linie oder einem winzigen Objekt, abseits seiner Griffe, verschiebt das Objekt ebenfalls.
+
+**Große Greifbereiche.** Auf einem Touchscreen sind die Greifzonen groß: Jede Eckzone beträgt ein Viertel von Breite und Höhe der Auswahl auf dem Bildschirm, begrenzt auf 24 bis 44 Pixel, und jede Seitenzone deckt den Abschnitt zwischen zwei Ecken ab. Ist die Auswahl dafür zu klein, rücken die Zonen außerhalb ihres Umrisses, sodass ein Druck in der Mitte die Auswahl weiterhin verschiebt. Die Zone unter Ihrem Zeiger oder unter einem aufgelegten Finger ist schattiert. Um dieselben Zonen mit Maus oder Stift zu erhalten, schalten Sie im Lolly-Menü **Große Greifbereiche** ein. Die Einstellung gilt nur für dieses Gerät.
+
+**Zwei Finger auf einer Auswahl.** Legen Sie auf einem Touchscreen zwei Finger auf ein ausgewähltes Objekt: Mit Pinch skalieren Sie die Auswahl, mit einer Drehung drehen Sie sie, und mit beiden Fingern verschieben Sie sie. Alles, was die beiden Finger tun, zählt als ein Rückgängig-Schritt. Bei aktivem Skalieren skaliert ein Pinch auch den Inhalt; bei ausgeschaltetem Skalieren ändert der Pinch die Größe der Auswahl proportional. Eine Drehung rastet in der Nähe auf das nächste 15-Grad-Vielfache ein, und eine Zwei-Finger-Bewegung rastet nie ein. Zwei Finger an anderer Stelle zoomen und schwenken weiterhin die Ansicht, und ein Zwei-Finger-Tipp öffnet weiterhin das Menü. Der erste Finger muss auf der Auswahl landen, und der zweite muss schnell folgen, auf der Auswahl oder knapp außerhalb ihres Rands. Enthält die Auswahl ein Artboard oder ein gesperrtes Objekt, deckt sie den größten Teil der Ansicht ab oder ragt über den Rand der Ansicht hinaus, zoomen und schwenken zwei Finger stattdessen.
 
 ### Ebenen und Inspektor
 

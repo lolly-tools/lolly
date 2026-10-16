@@ -63,7 +63,10 @@ export interface TeamFileUse { id: string; title: string }
 /** Optional controls for one upload: cancel it, and hear how far it got. */
 export interface TeamFileTransfer {
   signal?: AbortSignal;
+  stillCurrent?(): boolean;
   onProgress?(sent: number, total: number): void;
+  onReserved?(id: string): Promise<void>;
+  onAbandoned?(): Promise<void>;
 }
 
 /** An instance that sends no limits: its own refusal decides. */
@@ -227,9 +230,10 @@ function pause(ms: number, signal?: AbortSignal): Promise<void> {
 }
 
 /** One part, retried while the failure could pass (no answer, or the instance busy). */
-async function putPart(path: string, body: Blob, signal?: AbortSignal): Promise<void> {
+async function putPart(path: string, body: Blob, signal?: AbortSignal, current?: () => boolean): Promise<void> {
   for (let attempt = 0; ; attempt++) {
     try {
+      if (current && !current()) throw cancelled();
       await request(path, { method: 'PUT', headers: { 'content-type': 'application/octet-stream' }, body, ...(signal ? { signal } : {}) });
       return;
     } catch (error) {
@@ -255,22 +259,26 @@ async function putFile(projectId: string, list: TeamFileList, blob: Blob, bytes:
     parts.push({ size: part.length, checksum: await checksum(part) });
   }
   const body = JSON.stringify({ name: about.name, size: bytes.length, checksum: hash, contentType: blob.type.split(';')[0] || 'application/octet-stream', parts, asset: about.asset });
-  if (transfer.signal?.aborted) throw cancelled();
+  if (transfer.signal?.aborted || transfer.stillCurrent && !transfer.stillCurrent()) throw cancelled();
   // The begin is never aborted mid-flight: an answer that arrived unread would leave
   // a reservation with no known id. A cancel takes effect at the first part instead.
   const begun = readFile((await readBody(await request(filePath(projectId), { method: 'POST', headers: JSON_HEADERS, body }, limits))).file, projectId);
   if (begun.createdBy) uploaderId = begun.createdBy;
   const at = filePath(projectId, `/${encodeURIComponent(begun.id)}`);
+  let finalizing = false;
   try {
+    await transfer.onReserved?.(begun.id);
     let sent = 0;
     transfer.onProgress?.(0, bytes.length);
     for (let n = 0; n < parts.length; n++) {
       if (transfer.signal?.aborted) throw cancelled();
-      await putPart(`${at}/parts/${n}`, blob.slice(sent, sent + parts[n]!.size), transfer.signal);
+      await putPart(`${at}/parts/${n}`, blob.slice(sent, sent + parts[n]!.size), transfer.signal, transfer.stillCurrent);
       sent += parts[n]!.size;
       transfer.onProgress?.(sent, bytes.length);
     }
     if (transfer.signal?.aborted) throw cancelled();
+    if (transfer.stillCurrent && !transfer.stillCurrent()) throw cancelled();
+    finalizing = true;
     const done = readFile((await readBody(await request(`${at}/finalize`, { method: 'POST', headers: JSON_HEADERS, body: '{}' }))).file, projectId);
     if (!done.ready || done.checksum !== hash || done.size !== bytes.length) throw new TeamFileError(422);
     list.files.unshift(done);
@@ -278,7 +286,15 @@ async function putFile(projectId: string, list: TeamFileList, blob: Blob, bytes:
     limits.instanceRemainingBytes -= done.size;
     return done;
   } catch (error) {
-    await deleteTeamFile(projectId, begun.id).catch(() => {});
+    // Finalize may have succeeded even when its response was lost. Never delete
+    // a ready file, or retry its bytes under a second identity in that case.
+    if (transfer.stillCurrent && !transfer.stillCurrent()) throw error;
+    const ready = (await listTeamFiles(projectId).catch(() => null))?.files.find(f => f.id === begun.id && f.checksum === hash && f.size === bytes.length);
+    if (ready) return ready;
+    if (!finalizing) {
+      await deleteTeamFile(projectId, begun.id);
+      await transfer.onAbandoned?.();
+    }
     throw error;
   }
 }
@@ -366,6 +382,18 @@ export async function uploadTeamFile(projectId: string, blob: Blob, name: string
   const safe = kind.markup ? await defaultSanitizeSvg(bytes) : bytes;
   const clean = new Blob([safe as BlobPart], { type: kind.mime });
   return putFile(projectId, list, clean, safe, describe({ type: kind.type, format: kind.format, meta: { name } }, 'Upload'), transfer);
+}
+
+/** Copy bytes without re-encoding or changing another shared file's placement.
+ * Markup uses the separate upload flow, which explicitly sanitizes SVG markup. */
+export async function copyTeamFile(projectId: string, blob: Blob, name: string, transfer: TeamFileTransfer = {}): Promise<TeamFile> {
+  const list = await listTeamFiles(projectId);
+  if (!blob.size) throw new TeamFileError(422);
+  checkRoom(list.limits, blob.size);
+  const bytes = new Uint8Array(await blob.arrayBuffer()), kind = sniffBeamAsset(bytes);
+  if (kind.markup) throw new Error(tRaw('SVG copies need sanitizing. Download the file and use the shared project upload action.'));
+  const exact = new Blob([bytes as BlobPart], { type: kind.mime });
+  return putFile(projectId, { ...list, files: [] }, exact, bytes, describe({ type: kind.type, format: kind.format, meta: { name } }, 'Upload'), transfer);
 }
 
 /** Create a new file identity with the original verified bytes and metadata. */

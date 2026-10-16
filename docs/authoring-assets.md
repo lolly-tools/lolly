@@ -6,6 +6,29 @@ Those types are what the filter row in Assets is built from, and it only offers 
 
 ![The Assets toolbar - type filter pills on the left and a live asset count beside them, the file-type enum surfaced as a control](/t/url-shot?url=%2F%23%2Fa&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&cropSelector=.cat-toolbar&dark=1&filename=at2-assets-typefilters)
 
+## Shared libraries in Assets
+
+When connected to Work, the Shared library section browses indexed records one page at a
+time. Type, tag and source controls filter on the server before counts and pages are
+returned. Shared rows are ordered by name. Your device assets and design-system panels
+remain available separately, including when a source cannot be reached.
+
+Selections survive page and filter changes. The selection bar can therefore include files
+on another page; clear the selection before starting another batch. Open an asset to choose
+its actual file. A rendition is labelled separately, and a preview does not establish
+original availability. A known source version change is reported rather than silently
+replacing a selected reference. Historical byte retention remains a separate capability.
+
+The inspector's Organisation metadata section shows the Work fields and offers editing
+where your current grant permits. Those values are organisation overlays, separate from
+upstream source facts. Shared source status explains pending sync, cached listings and
+incomplete counts. Live source search is a bounded candidate search; exact filters use
+indexed browse. Update Work before shipping this shared-browser shell: Work must advertise
+support for the requested filters and provide the bounded startup inventory. An older
+server is refused with an update message rather than silently ignoring a filter.
+Shared browse does not interpret the local library's search operators;
+use its Type, Tag and source controls. These paths work without AI processing.
+
 ## Anatomy
 
 ```
@@ -247,3 +270,17 @@ decompression returns those same bytes. Edge image optimisers, metadata strippin
 resizing and transcoding must be off for these files. Verify a rendition's own
 credential and its parent in [Verify](/info/verify-yourself.html), then check that
 an export using the asset still embeds the original.
+
+### Inspect and curate shared assets
+
+Open an asset to inspect its file details. The sidebar keeps Download and **Inspect & verify** in its header, with expanding sections for metadata, sharing, origins and technical details. Drag the divider to resize the sidebar or pull it inward to collapse. The divider also supports arrow keys, Home to collapse and Enter or a double click to reset. Width and section choices are remembered; phone layouts stay fully expanded. The provenance and content-signal lamps are last under **Checks**.
+
+Connected libraries appear in Assets beside the files on your device. The source facts panel shows the indexed version, sync status, mapped approval and availability windows. Unknown values stay unknown. Source approval does not establish permission for every channel or use; access to files is checked when opened. Original and rendition labels describe the file offered by the connection.
+
+Organisation metadata belongs to Lolly Work. A curator with `catalog.edit` can change configured text, select, date and URL fields. Ordinary members see the values without edit controls. These fields do not change names, descriptions or tags in the upstream library. Work owns the field definitions and audits changes.
+
+The shared library uses the main Assets search bar. Indexed browse searches names, descriptions, tags, organisation fields and saved extracted text with exact filters and bounded pages. Live search asks permitted sources for a limited candidate set; the UI identifies unavailable sources and refuses incompatible filters rather than dropping them.
+
+For an image, SVG or PDF, choose **Read text**, then review the extracted words. Extraction runs on your device. **Add reviewed text to shared search** explicitly sends the reviewed excerpt to Work; nothing is uploaded by the extraction action itself. Only curators can publish or remove indexed text. The index accepts up to 8192 characters and records the selected file, indexed revision, extraction method, reviewer and time. It does not establish that every page or every word was read.
+
+If that indexed source revision changes, its previously reviewed words stop matching shared search. Open the current asset and read again. Asset details show this stale state and offer **Remove indexed text**. Older text records without a source revision remain searchable for compatibility and are labelled unverified. A revision records the current catalog snapshot; upstream revocation and source changes become known through the existing sync and file-resolution paths.

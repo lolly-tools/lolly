@@ -35,6 +35,7 @@ import {
   instancePath, getInstanceBase,
   ensureInstallId, setInstallTag, setInstanceSession,
 } from '../lib/instance.ts';
+import { wireDeviceCodeSignIn } from './device-sign-in.ts';
 import { noteCatalogRefused } from '../lib/catalog-access.ts';
 import { setFieldPolicies } from '../lib/field-policy.ts';
 import { beginAiProbe, finishAiProbe, knownManagedAi, startAiPolicyPolling, stopAiPolicyPolling } from './ai-policy.ts';
@@ -870,7 +871,7 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
   // min-height is the shared 44px finger floor (--ui-size-target, styles/tokens.css):
   // the .btn padding alone made this a 32px target on a phone, and it is the one thing
   // on the page a signed-out visitor has to press.
-  const action = linkSafe
+  const action = isTauriShell() ? '' : linkSafe
     ? `<a class="btn btn--primary" href="${escape(href)}" style="display:inline-flex;align-items:center;justify-content:center;min-width:9rem;min-height:var(--ui-size-target)">${t('Sign in')}</a>` // nosemgrep: lolly-href-escape-is-not-scheme-validation - reached only when safeHref(href) passed; an unsafe loginPath drops the anchor and states why
     : `<p style="margin:0;color:hsl(var(--muted-foreground));font-size:.9rem">${t('This instance did not supply a usable sign-in link. Ask whoever runs it to check its configuration.')}</p>`;
   view.innerHTML = `
@@ -894,89 +895,6 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
 }
 
 // ── Device-code sign-in (native shells; the deployment's /activate flow) ─────
-
-interface DeviceStart {
-  deviceCode: string;
-  userCode: string;
-  verificationUri: string;
-  interval?: number;
-  expiresIn?: number;
-}
-
-/** Render + drive the device-code option inside the gate card. Additive and
- *  tolerant like everything in this seam: a deployment without the flow (404 /
- *  501 / no JSON) collapses the affordance to nothing after the first press. */
-function wireDeviceCodeSignIn(slot: HTMLElement): void {
-  const idle = (): void => {
-    // The same 44px finger floor as the gate's Sign in: on a phone app this is the way in.
-    slot.innerHTML = `<button type="button" class="btn" id="org-gate-device-btn" style="min-width:9rem;min-height:var(--ui-size-target)">${t('Sign in with a code on another device')}</button>`;
-    slot.querySelector('#org-gate-device-btn')?.addEventListener('click', () => { void start(); });
-  };
-
-  const note = (msg: string, withRetry = false): void => {
-    slot.innerHTML = `<p style="margin:0;color:hsl(var(--muted-foreground));font-size:.9rem">${msg}</p>`;
-    if (withRetry) idleRetry();
-  };
-  const idleRetry = (): void => {
-    const p = slot.querySelector('p');
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn';
-    btn.style.marginTop = '.75rem';
-    btn.style.minHeight = 'var(--ui-size-target)';
-    btn.textContent = t('Try again');
-    btn.addEventListener('click', () => { void start(); });
-    p?.insertAdjacentElement('afterend', btn);
-  };
-
-  async function start(): Promise<void> {
-    const signInBase = getInstanceBase();
-    note(t('Asking this instance for a code…'));
-    const res = await safeFetch('/api/v1/auth/device', { method: 'POST' }, PROBE_TIMEOUT_MS * 4);
-    const started = await jsonBody<DeviceStart>(res);
-    if (!started?.deviceCode || !started.userCode || !started.verificationUri) {
-      note(t('This instance does not offer code sign-in. Use the sign-in button instead.'));
-      return;
-    }
-    // t() escapes interpolated params (same innerHTML-sink rule as the gate
-    // heading above), so the server-supplied code + URL are safe here.
-    slot.innerHTML = `
-      <p style="margin:0 0 .35rem;font-size:.9rem;color:hsl(var(--muted-foreground))">${t('On any signed-in device, open {url} and enter:', { url: started.verificationUri })}</p>
-      <p style="margin:0 0 .5rem;font-family:ui-monospace,monospace;font-size:1.6rem;letter-spacing:.12em">${escape(started.userCode)}</p>
-      <p id="org-gate-device-status" style="margin:0;font-size:.85rem;color:hsl(var(--muted-foreground))">${t('Waiting for approval - the code lives about ten minutes.')}</p>`;
-    const status = slot.querySelector<HTMLElement>('#org-gate-device-status');
-    const intervalMs = Math.max(2, started.interval ?? 5) * 1000;
-    const deadline = Date.now() + (started.expiresIn ?? 600) * 1000;
-
-    const poll = async (): Promise<void> => {
-      if (!slot.isConnected) return; // gate replaced (navigation) - stop quietly
-      if (getInstanceBase() !== signInBase) return;
-      if (Date.now() > deadline) { note(t('That code expired.'), true); return; }
-      const claim = await jsonBody<{ status: string; cookie?: string }>(
-        await safeFetch('/api/v1/auth/device/token', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ deviceCode: started.deviceCode }),
-        }),
-      );
-      if (claim?.status === 'approved' && claim.cookie) {
-        if (getInstanceBase() !== signInBase) return;
-        // Park the session pair for the Rust transport (instance.ts scopes it
-        // to the instance origin), then reboot into the signed-in app.
-        await setInstanceSession(claim.cookie, signInBase);
-        if (status) status.textContent = t('Signed in - loading…');
-        location.reload();
-        return;
-      }
-      if (claim?.status === 'denied') { note(t('That sign-in was denied from the other device.'), true); return; }
-      if (claim?.status === 'expired') { note(t('That code expired.'), true); return; }
-      setTimeout(() => { void poll(); }, intervalMs);
-    };
-    setTimeout(() => { void poll(); }, intervalMs);
-  }
-
-  idle();
-}
 
 // ── Account chip (header) ─────────────────────────────────────────────────────
 
@@ -1188,8 +1106,9 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
         label: () => (workspaceName() ? tRaw('Submit to {name}', { name: workspaceName() }) : t('Submit to the catalog')),
         accepts: () => orgConfig()?.can?.['catalog.submit'] === true,
         open: (subject) => {
+          const openedSession = session, openedBase = getInstanceBase();
           import('./catalog-submit.ts')
-            .then((m) => m.openCatalogSubmitDialog(subject, workspaceName()))
+            .then((m) => { if (session === openedSession && getInstanceBase() === openedBase && orgConfig()?.can?.['catalog.submit'] === true) m.openCatalogSubmitDialog(subject, workspaceName(), session?.kind === 'member' ? session.user.groups : []); })
             .catch(() => { /* additive; never break the caller */ });
         },
       });
@@ -1213,8 +1132,9 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       // project-creation options (can['project.create'], sharing.groups).
       unregisterSessionSource?.();
       unregisterSessionSource = registerSessionSource(
-        createInstanceSessionSource(orgConfigState?.instance?.name || t('your organisation'), () => orgConfig(),
+        { ...createInstanceSessionSource(orgConfigState?.instance?.name || t('your organisation'), () => orgConfig(),
           createSourceFiles(() => (session?.kind === 'member' ? session.user.sub : 'none'))),
+          scope: session?.kind === 'member' ? session.user.sub : undefined },
       );
       // The signed-in member's linked sign-ins, as a card in the profile view's
       // instance section, through the generic lib/profile-sections.ts seam (so the

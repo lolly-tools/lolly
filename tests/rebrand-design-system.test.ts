@@ -35,12 +35,14 @@ import {
 } from '../engine/src/rebrand-design-system.ts';
 import { THEME_SLOT_TOKENS as PPTX_THEME_SLOT_TOKENS } from '../packages/node-shell/src/design-pptx.ts';
 import type { SlideMasterFileV1 } from '../packages/core/src/index.ts';
-import { resolveProfileDesignSystem } from '../packages/node-shell/src/rebrand/index.ts';
+import { colorTokensFromDtcg, resolveProfileDesignSystem } from '../packages/node-shell/src/rebrand/index.ts';
+import { darkColorsFromDtcg } from '../packages/node-shell/src/rebrand/design-system.ts';
 import { STARTER_COLORS, STARTER_DESIGN_SYSTEM, STARTER_MASTER } from './helpers/rebrand-pipeline.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const MASTERS_FILE = 'brands/lolly-start/catalog/assets/lolly/slides/masters.json';
+const STARTER_TOKENS = 'brands/lolly-start/catalog/assets/lolly/tokens/brand.json';
 
 function input(overrides: Partial<RebrandDesignSystemInputV1> = {}): RebrandDesignSystemInputV1 {
   return {
@@ -105,6 +107,78 @@ test('the same input in a different key order resolves to the same snapshot', as
   assert.equal(JSON.stringify(one.snapshot), JSON.stringify(two.snapshot));
   assert.deepEqual(one.firstPass.swatches, two.firstPass.swatches);
   assert.deepEqual(one.slots, two.slots);
+});
+
+// ─── roles and app chrome are not colours of the brand ───────────────────────
+
+/** A token document the way a pack states one: a ramp, the semantic slots, a Design slide role and the app chrome, in a light and a dark set. */
+const ROLES_AND_CHROME_DOC = {
+  $metadata: { tokenSetOrder: ['base', 'light', 'dark'] },
+  $themes: [
+    { name: 'light', selectedTokenSets: { base: 'enabled', light: 'enabled' } },
+    { name: 'dark', selectedTokenSets: { base: 'enabled', dark: 'enabled' } },
+  ],
+  base: { color: { $type: 'color', ramp: { ink: { $value: '#1d1d1d' }, paper: { $value: '#ffffff' } } } },
+  light: {
+    color: {
+      $type: 'color',
+      semantic: { surface: { $value: '{color.ramp.paper}' }, text: { $value: '{color.ramp.ink}' } },
+      role: { 'muted-ink': { $value: '{color.ramp.ink}' } },
+      chrome: { page: { $value: '#fcfaf6' }, ink: { $value: '#171612' } },
+    },
+  },
+  dark: {
+    color: {
+      $type: 'color',
+      semantic: { surface: { $value: '{color.ramp.ink}' }, text: { $value: '{color.ramp.paper}' } },
+      role: { 'muted-ink': { $value: '{color.ramp.paper}' } },
+      chrome: { page: { $value: '#171612' }, ink: { $value: '#eae8e2' } },
+    },
+  },
+};
+
+test('the token hash, the swatches and the dark colours ignore the Design slide roles and the app chrome', async () => {
+  const app = { 'color.role.muted-ink': '#525252', 'color.chrome.page': '#fcfaf6', 'color.chrome.ink': '#171612' };
+  const dark = { 'color.semantic.surface': '#1d1d1d', 'color.semantic.text': '#ffffff' };
+  const plain = await resolveRebrandDesignSystem(input({ darkColors: dark }));
+  const withApp = await resolveRebrandDesignSystem(input({ colors: { ...input().colors, ...app }, darkColors: { ...dark, ...app } }));
+  assert.equal(withApp.snapshot.tokenHash, plain.snapshot.tokenHash, 'the hash a saved plan is checked against does not move');
+  assert.deepEqual(withApp.input.colors, plain.input.colors);
+  assert.deepEqual(withApp.input.darkColors, dark);
+  assert.deepEqual(withApp.firstPass.swatches, plain.firstPass.swatches);
+  // The filter hides roles only: a real colour still moves the hash.
+  const extra = await resolveRebrandDesignSystem(input({ colors: { ...input().colors, 'color.brand.new': '#aabbcc' } }));
+  assert.notEqual(extra.snapshot.tokenHash, plain.snapshot.tokenHash);
+});
+
+test('the node reader leaves the Design slide roles and the app chrome out of both modes', () => {
+  assert.deepEqual([...colorTokensFromDtcg(ROLES_AND_CHROME_DOC)], [
+    ['color.ramp.ink', '#1d1d1d'],
+    ['color.ramp.paper', '#ffffff'],
+    ['color.semantic.surface', '#ffffff'],
+    ['color.semantic.text', '#1d1d1d'],
+  ]);
+  assert.deepEqual([...(darkColorsFromDtcg(ROLES_AND_CHROME_DOC) ?? [])], [
+    ['color.ramp.ink', '#1d1d1d'],
+    ['color.ramp.paper', '#ffffff'],
+    ['color.semantic.surface', '#1d1d1d'],
+    ['color.semantic.text', '#ffffff'],
+  ]);
+});
+
+test('lolly-start states its newsprint chrome and its rebrand token hash is what it was without', async () => {
+  const withChrome = JSON.parse(readFileSync(path.join(ROOT, STARTER_TOKENS), 'utf8'));
+  assert.ok(withChrome.light.color.chrome && withChrome.dark.color.chrome, 'the pack states the app chrome in both sets');
+  const without = structuredClone(withChrome);
+  delete without.light.color.chrome;
+  delete without.dark.color.chrome;
+  assert.deepEqual([...colorTokensFromDtcg(withChrome)], [...colorTokensFromDtcg(without)], 'the reader sees the same colours');
+  assert.deepEqual([...(darkColorsFromDtcg(withChrome) ?? [])], [...(darkColorsFromDtcg(without) ?? [])]);
+  assert.equal(
+    STARTER_DESIGN_SYSTEM.snapshot.tokenHash,
+    await colorTokenHash(Object.fromEntries(colorTokensFromDtcg(without))),
+    'the starter design system hashes the pack as it was before the chrome',
+  );
 });
 
 test('the snapshot names the master, the preset and the hashes', async () => {

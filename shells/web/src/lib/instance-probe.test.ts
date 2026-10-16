@@ -9,7 +9,7 @@
 // same split as lib/instance.test.ts and lib/drop-router.test.ts.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateInstanceUrl, shapeProbeResult, shapeInstanceManifest } from './instance-probe.ts';
+import { validateInstanceUrl, shapeProbeResult, shapeInstanceManifest, probeConnection, workspaceAppUrl } from './instance-probe.ts';
 
 // ── validateInstanceUrl ──────────────────────────────────────────────────────
 
@@ -93,4 +93,37 @@ test('shapeInstanceManifest: absence is not an error - a plain deployment has no
   assert.deepEqual(shapeInstanceManifest(200, true, '<html>SPA fallback</html>'), { found: false });
   assert.deepEqual(shapeInstanceManifest(200, true, { name: '' }), { found: false });
   assert.deepEqual(shapeInstanceManifest(200, true, { name: 42 }), { found: false });
+});
+
+
+test('a bare server hostname is accepted as HTTPS', () => {
+  assert.deepEqual(validateInstanceUrl('lolly.ing'), { ok: true, base: 'https://lolly.ing' });
+});
+
+test('private Work discovery does not read a protected catalog before sign-in', async (ctx) => {
+  const calls: string[] = [];
+  ctx.mock.method(globalThis, 'fetch', async (input: RequestInfo | URL) => {
+    calls.push(String(input));
+    return new Response(JSON.stringify({ name: 'Private workspace', accessMode: 'gated' }), { status: 200 });
+  });
+  assert.deepEqual(await probeConnection('https://work.example'), { ok: true, instance: {
+    base: 'https://work.example', toolCount: null,
+    manifest: { found: true, name: 'Private workspace', accessMode: 'gated' },
+  } });
+  assert.deepEqual(calls, ['https://work.example/api/v1/instance']);
+});
+
+test('static instances still need a valid catalog, and public Work can offer accounts too', async (ctx) => {
+  ctx.mock.method(globalThis, 'fetch', async (input: RequestInfo | URL) => String(input).endsWith('/api/v1/instance')
+    ? new Response('', { status: 404 })
+    : new Response(JSON.stringify({ tools: [{ id: 'qr-code' }] })));
+  assert.deepEqual(await probeConnection('https://static.example'), { ok: true, instance: {
+    base: 'https://static.example', toolCount: 1, manifest: { found: false },
+  } });
+});
+
+test('web workspace handoff preserves a team invitation and drops device-local routes', () => {
+  assert.equal(workspaceAppUrl('https://work.example/lolly', '#/team/project/one'), 'https://work.example/lolly/#/team/project/one');
+  assert.equal(workspaceAppUrl('https://work.example', '#/p/local-only'), 'https://work.example/');
+  assert.throws(() => workspaceAppUrl('javascript:alert(1)', '#/team/one'));
 });

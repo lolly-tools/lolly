@@ -128,6 +128,24 @@ test('themeSlotFills: brand group first, repeats the accents once the brand runs
   ]).lt2, '3E3E3E', 'a dark theme gets a dark second ground');
 });
 
+test('themeSlotFills: the app chrome a pack states is no candidate for a slot', () => {
+  const filled = new Map([['dk1', '1D1D1D'], ['lt1', 'FFFFFF'], ['accent1', '1D1D1D']] as const);
+  const ramp = [
+    { path: 'color.ramp.neutral.1', hex: '1D1D1D' },
+    { path: 'color.ramp.neutral.7', hex: 'DCDBDC' },
+    { path: 'color.ramp.neutral.8', hex: 'EFEFEF' },
+  ];
+  // Lolly's newsprint chrome sits nearer white than the ramp does and would take Background 2.
+  const chrome = [
+    { path: 'color.chrome.page', hex: 'FCFAF6' },
+    { path: 'color.chrome.raised', hex: 'FEFDFA' },
+  ];
+  const fills = themeSlotFills(filled, [...ramp, ...chrome]);
+  assert.deepEqual(fills, themeSlotFills(filled, ramp), 'the same fills as without the chrome');
+  assert.equal(fills.lt2, 'EFEFEF');
+  assert.deepEqual(themeSlotFills(filled, chrome), {}, 'chrome alone leaves every slot as it was');
+});
+
 test('tokenColorsFromStyle reads the --brand-token-* properties a canvas carries', () => {
   const props = new Map<string, string>([
     ['--brand-primary', '#13294b'],

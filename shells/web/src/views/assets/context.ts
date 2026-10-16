@@ -33,6 +33,8 @@ import type { wiringOps } from './wiring.ts';
 import type { CatalogSourceStatus } from '../../lib/asset-source-tree.ts';
 import type { sourcesOps } from './sources.ts';
 export interface CatCtx {
+  projects?: ReturnType<typeof import('./projects.ts').projectsOps>;
+  remote?: ReturnType<typeof import('./remote.ts').remoteOps>;
   preview?: AssetPreviewOptions;
   detailsOpening?: boolean;
   sourceSelection: string; sourcesOpen: boolean; sourceExpanded: Set<string>; sourceStatuses: CatalogSourceStatus[]; sourceCanManage: boolean; sourceDispose?: () => void; sourcePrefsKey?: string; sources: ReturnType<typeof sourcesOps>;
@@ -119,6 +121,8 @@ export interface CatCtx {
   SWATCH_DOWNLOADS: { fmt: SwatchExportFormat; label: string }[];
   bulkBarCfg: BulkBarConfig;
   dropzoneDispose: (() => void) | null;
+  /** The element the dropzone is mounted in, carried into each later paint. */
+  dropzoneMount: HTMLElement | null;
   detailsMeterDispose: import('../../lib/audio-meter.ts').MeterHandle | null;
   detailsTransport: import('../../lib/audio-transport.ts').AudioTransport | null;
   vizTeardown: (() => void) | null;

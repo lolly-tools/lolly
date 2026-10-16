@@ -21,7 +21,8 @@
  * string reaches the page through textContent.
  */
 import '../styles/catalog-submit.css';
-import { instanceFetch, instancePath } from '../lib/instance.ts';
+import { getSessionSource } from '../lib/session-source.ts';
+import { getInstanceBase, instanceFetch, instancePath } from '../lib/instance.ts';
 import { mountModal } from '../components/modal.ts';
 import { announce } from '../a11y.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -43,7 +44,7 @@ export function submitType(kind: CatalogSubmitSubject['kind']): string | null {
 }
 
 /** The query a submission is sent with. Pure, exported for tests. */
-export function submitQuery(subject: CatalogSubmitSubject, form: { name: string; description: string; tags: string; note: string }): URLSearchParams {
+export function submitQuery(subject: CatalogSubmitSubject, form: { name: string; description: string; tags: string; note: string; groups?: string }): URLSearchParams {
   const q = new URLSearchParams();
   const name = form.name.trim();
   if (name) q.set('name', name);
@@ -54,6 +55,8 @@ export function submitQuery(subject: CatalogSubmitSubject, form: { name: string;
   if (type) q.set('type', type);
   if (subject.toolId) q.set('toolId', subject.toolId);
   if (form.note.trim()) q.set('note', form.note.trim());
+  if (form.groups?.trim()) q.set('groups', form.groups.trim());
+  if (subject.projectFile) for (const [key, value] of Object.entries(subject.projectFile)) q.set(key, value);
   q.set('clientRef', subject.ref);
   return q;
 }
@@ -83,7 +86,8 @@ async function mySubmissions(): Promise<SubmissionRow[]> {
 }
 
 /** Open the dialog for one subject. */
-export function openCatalogSubmitDialog(subject: CatalogSubmitSubject, workspace: string): void {
+export function openCatalogSubmitDialog(subject: CatalogSubmitSubject, workspace: string, groups: readonly string[] = []): void {
+  const source = getSessionSource(), base = getInstanceBase();
   const title = workspace ? tRaw('Submit to {name}', { name: workspace }) : t('Submit to the catalog');
   const lead = subject.kind === 'upload'
     ? t('Offer this file to the shared catalog for others in the workspace to use.')
@@ -93,6 +97,7 @@ export function openCatalogSubmitDialog(subject: CatalogSubmitSubject, workspace
   const modal = mountModal<void>(`
     <h2 class="modal-title" data-title></h2>
     <p class="modal-msg">${escapeHtml(lead)}</p>
+    <p class="modal-msg">${escapeHtml(t("Library access is separate from project access. The workspace may require review before publication."))}</p>
     <p class="catalog-submit-state" data-state role="status" hidden></p>
     <form class="catalog-submit-form" data-form novalidate>
       <label class="catalog-submit-field"><span>${escapeHtml(t('Name'))}</span>
@@ -103,6 +108,8 @@ export function openCatalogSubmitDialog(subject: CatalogSubmitSubject, workspace
         <input type="text" class="field-input" data-tags placeholder="${escapeHtml(t('Separate tags with commas'))}"></label>
       <label class="catalog-submit-field"><span>${escapeHtml(t('Note to the reviewer'))}</span>
         <textarea class="field-input" data-note rows="3" maxlength="500"></textarea></label>
+      <label class="catalog-submit-field"><span>${escapeHtml(t('Library audience'))}</span>
+        <select class="field-input" data-groups aria-label="${escapeHtml(t('Library audience'))}"><option value="">${escapeHtml(t('Everyone in the workspace'))}</option>${groups.map(group => `<option value="${escapeHtml(group)}">${escapeHtml(group)}</option>`).join('')}</select></label>
       <p class="catalog-submit-error" data-error role="alert" hidden></p>
       <div class="modal-actions">
         <button type="button" class="btn" data-act="cancel">${escapeHtml(t('Cancel'))}</button>
@@ -156,8 +163,11 @@ export function openCatalogSubmitDialog(subject: CatalogSubmitSubject, workspace
     submit.disabled = true;
     void (async () => {
       try {
+        const current = () => base === getInstanceBase() && source === getSessionSource();
+        if (!current()) { fail(t('The connected workspace changed. Close this dialog and try again.')); submit.disabled = false; return; }
         const body = await subject.body();
-        const query = submitQuery(subject, { name: name.value, description: description.value, tags: tags.value, note: note.value });
+        if (!current()) { fail(t('The connected workspace changed. Close this dialog and try again.')); submit.disabled = false; return; }
+        const query = submitQuery(subject, { name: name.value, description: description.value, tags: tags.value, note: note.value, groups: q<HTMLSelectElement>('[data-groups]').value });
         const res = await instanceFetch(instancePath(`/api/v1/catalog/submit?${query}`), {
           method: 'POST',
           headers: { 'content-type': body.type || 'application/octet-stream' },
@@ -166,7 +176,7 @@ export function openCatalogSubmitDialog(subject: CatalogSubmitSubject, workspace
         const answer = (await res.json().catch(() => null)) as { state?: string; duplicate?: boolean; error?: { message?: string } } | null;
         if (!res.ok) { fail(answer?.error?.message || t('The workspace could not take this submission.')); submit.disabled = false; return; }
         const done = answer?.duplicate
-          ? t('This is already in the catalog.')
+          ? answer.state === 'submitted' ? t('Already submitted. It is waiting for review.') : t('This is already in the catalog.')
           : answer?.state === 'submitted'
             ? t('Sent. It is waiting for review.')
             : workspace ? tRaw('Live in {name}.', { name: workspace }) : t('Live in the catalog.');

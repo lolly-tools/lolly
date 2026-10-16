@@ -41,7 +41,7 @@ export function assetGridHtml(cat: CatCtx, group: string, items: AssetRef[]): st
 // (assets-filter.test.ts). This view keeps the mutable state; the module owns
 // the logic. These wrappers just bind the current state to it, so every call
 // site in mountCatalog reads exactly as it did before the extraction.
-export const visibleAssets = (cat: CatCtx): AssetRef[] => visibleAssetsRule(cat.allAssets, cat.hiddenSet, assetBaseId).filter(a => matchesAssetSource(a, cat.sourceSelection));
+export const visibleAssets = (cat: CatCtx): AssetRef[] => cat.projects?.active() ? cat.projects.visible() : visibleAssetsRule(cat.allAssets, cat.hiddenSet, assetBaseId).filter(a => matchesAssetSource(a, cat.sourceSelection));
 export const matchesType = (cat: CatCtx, a: AssetRef): boolean => matchesTypeRule(a, cat.typeFilter);
 export const playableHere = (cat: CatCtx, a: AssetRef): boolean =>
   (cat.modulesPlayable !== false || !isModuleFormat(a.format))
@@ -95,10 +95,10 @@ export function uploadsSectionHtml(cat: CatCtx, items: AssetRef[]): string {
     : '';
   // Drag files in or click to browse - the shared upload dropzone component
   // (lib/upload-dropzone.ts, extracted from this view so #/start can mount it too)
-  // renders into this placeholder after every body paint: the innerHTML rebuilds
-  // destroy the previous instance, so mountDropzone() re-mounts it (called from
-  // render()/renderBody()). data-empty grows the zone into the roomier column
-  // layout when it IS the section (no uploads yet).
+  // mounts into this placeholder on the first paint; every later paint's placeholder
+  // is replaced by that same mounted element, so its file input is never swapped out
+  // (mountDropzone(), called from render()/renderBody()). data-empty grows the zone
+  // into the roomier column layout when the zone is the whole section (no uploads yet).
   const dropzone = `<div data-dropzone-mount${items.length ? '' : ' data-empty'}></div>`;
   // The authoring row beside the drop area. "Script audio" (type a script,
   // generate speech on-device via the optional host.speech bridge, v1.96) is
@@ -133,7 +133,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
   // A delete can empty the active filter's bucket - its toolbar button would vanish
   // (shownFilters below only offers non-empty buckets) while the filter kept hiding
   // every asset with no visible control explaining why. Fall back to All instead.
-  if (cat.typeFilter !== 'all' && !cat.allAssets.some(a => matchesTypeRule(a, cat.typeFilter))) cat.typeFilter = 'all';
+  if ((!cat.remote || cat.remote.browser.supported === false) && cat.typeFilter !== 'all' && !cat.allAssets.some(a => matchesTypeRule(a, cat.typeFilter))) cat.typeFilter = 'all';
   // Filter by search first; the count + category buckets both read the matched set.
   const visible = visibleAssets(cat).filter(cat.filters.matchesQuery).filter(cat.filters.matchesType).filter(cat.filters.playableHere);
 
@@ -147,6 +147,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
       </div>`;
   }
 
+  if (cat.allAssets.length === 0 && cat.remote?.browser.supported) return uploadsSectionHtml(cat, []);
   if (cat.allAssets.length === 0) {
     // A genuinely empty library still leads with the uploads section - its drop area
     // is exactly what a brand-new profile needs first.

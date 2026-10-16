@@ -73,7 +73,7 @@ Co se vrátí, závisí na tom, jak jsi odešel/odešla a který nástroj jsi po
 
 - **Zavřel/a jsi kartu, nebo ses vrátil/a jindy.** Neuložená práce zmizí, kromě [nástrojů, které ukládají za chodu](#which-tools-save-as-you-work): otevři tu práci z **Projektů**.
 - **Znovu jsi načetl/a stránku ve stejné kartě.** Tvoje nastavení se vrátí z adresy stránky. V nástrojích, které neukládají za chodu, se obrázky a soubory, které jsi přidal/a ze zařízení, a jednořádkový text delší než 150 znaků nevrátí, protože je adresa neuchovává.
-- **Stiskl/a jsi Domů, nebo tlačítko zpět vlevo nahoře.** Pokud jsi něco změnil/a od posledního uložení, stažení nebo zkopírování, dialog **Neuložené změny** se zeptá, jestli chceš nejdřív uložit. **Uložit & odejít** uloží práci a přenese tě do **Projektů**, nebo zpátky do složky projektu, ze které jsi práci otevřel/a. **Odejít bez uložení** zahodí tvoje změny: uložená položka se vrátí do stavu, ve kterém jsi ji naposledy uložil/a, a výtvor, který jsi nikdy neuložil/a, opustí **Projekty**. **Zrušit** tě nechá v nástroji.
+- **Stiskl/a jsi Domů, nebo tlačítko zpět vlevo nahoře.** Pokud jsi něco změnil/a od posledního uložení, stažení nebo zkopírování, dialog **Neuložené úpravy** se zeptá, jestli chceš nejdřív uložit. **Uložit & odejít** uloží práci a přenese tě do **Projektů**, nebo zpátky do složky projektu, ze které jsi práci otevřel/a. **Přesto odejít** zahodí tvoje změny: uložená položka se vrátí do stavu, ve kterém jsi ji naposledy uložil/a, a výtvor, který jsi nikdy neuložil/a, opustí **Projekty**. **Zrušit** tě nechá v nástroji.
 
 Lolly se zeptá, jen když stiskneš **Domů** nebo tlačítko zpět v nástroji. Zavření karty, znovunačtení a vlastní tlačítko Zpět tvého prohlížeče se nikdy neptají. Pro jistotu stiskni **Uložit jako**, nebo **Uložit** v exportním panelu, než nástroj opustíš.
 
@@ -89,7 +89,7 @@ Ve webové aplikaci ukládá za chodu každý nástroj, který vytváří dokume
 - 3D a Darkroom, které mají svůj vlastní soubor;
 - nástroj, na kterém není co měnit, jako Countdown.
 
-V ostatních nástrojích tvoje první změna zařadí práci do **Projektů**, jako bys ji uložil/a, a další změny se ukládají za chodu, jakmile nástroj dokreslí. Neuložený výtvor tak zůstává v Projektech i po zavření karty a znovu se otevře se svými změnami označenými jako neuložené. **Odejít bez uložení** je přesto zahodí, a Historie uchová kopii zahozených úprav na 30 dní. Opětovné otevření nástroje z domovské obrazovky začne nový výtvor; ten dřívější otevři z Projektů.
+V ostatních nástrojích tvoje první změna zařadí práci do **Projektů**, jako bys ji uložil/a, a další změny se ukládají za chodu, jakmile nástroj dokreslí. Neuložený výtvor tak zůstává v Projektech i po zavření karty a znovu se otevře se svými změnami označenými jako neuložené. **Přesto odejít** je i tak zahodí, a Historie uchová kopii zahozených úprav na 30 dní. Opětovné otevření nástroje z domovské obrazovky začne nový výtvor; ten dřívější otevři z Projektů.
 
 Se zapnutou [Synchronizací](/info/sync.html) putuje takto založený výtvor na tvá další zařízení jako cokoli jiného v Projektech. Jeho verze zůstávají na zařízení, kde vznikly.
 

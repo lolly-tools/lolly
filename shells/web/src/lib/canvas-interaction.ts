@@ -17,6 +17,9 @@ export interface CanvasInteractionLease {
 }
 export interface CanvasInteractionPort {
   acquire(target: CanvasClaimTarget, lost: () => void): Promise<CanvasInteractionLease>;
+  /** The live claims other participants hold, so an edit can step around a field
+   *  someone else is writing (a Scale leaves text a collaborator is typing in alone). */
+  foreignClaims?(): readonly CanvasClaim[];
 }
 const ports = new WeakMap<object, CanvasInteractionPort>();
 export const canvasInteractions = (runtime: object): CanvasInteractionPort | undefined => ports.get(runtime);

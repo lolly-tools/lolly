@@ -190,7 +190,7 @@ tools/<id>/
 | `scripts/` | `build-catalog-index.ts`, `checksum-assets.ts`, `validate-catalog.ts`, `ingest-brand.ts`, … |
 | `api/` | Vercel serverless functions. `api/mcp/[...path].js` and `api/ca/[...path].js` are GENERATED esbuild bundles (`scripts/build-mcp-fn.ts` / `scripts/build-ca-fn.ts`) - never hand-edit them; CI's api-bundles job rebuilds and fails on drift |
 | `docs/` | architecture, authoring guides, positioning, URL mode; `build.ts` builds the info site |
-| `plans/` | **gitignored, local to the maintainer's machine** - any `plans/NN-…` reference in code comments or docs points at a file that is not in any repo. Treat those as citations you cannot follow, not as required reading |
+| `plans/` | **gitignored, local to the maintainer's machine** - any `plans/NN-…` reference in code comments or docs points at a file that is not in any repo. Treat those as citations you cannot follow, not as required reading. Never `git add -f` a file there: this repository is public, the pre-push hook (`scripts/check-pushed-plans.ts`) refuses a new commit that adds one and `tests/no-tracked-plans.test.ts` fails CI while any is tracked |
 
 Local validation exports, screenshots, experiment corpora, scratch scripts and
 machine-specific run reports belong under `plans/`. Keep reusable test fixtures,

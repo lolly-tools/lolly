@@ -11,6 +11,8 @@ if [ "$actual" != "$expected" ]; then
   printf '✗ pre-push needs Node %s from .nvmrc (found %s). Run nvm use, or set LOLLY_NODE to that Node executable.\n' "$expected" "$actual"
   exit 1
 fi
+printf '→ pre-push: private plans…\n'
+printf '%s\n' "$updates" | "$node_bin" scripts/check-pushed-plans.ts --pre-push || exit 1
 printf '→ pre-push: generated source maps…\n'
 printf '%s\n' "$updates" | "$node_bin" scripts/check-pushed-generated.ts --pre-push || exit 1
 # A delete publishes no source. Keep branch cleanup independent of checkout wording.
@@ -19,3 +21,5 @@ printf '→ pre-push: vernacular gate…\n'
 "$node_bin" scripts/check-code-comment-vernacular.ts || { printf '\n✗ code-comment vernacular failed - fix, or bypass with: git push --no-verify\n'; exit 1; }
 "$node_bin" scripts/check-docs-vernacular.ts || { printf '\n✗ docs vernacular failed - fix, or bypass with: git push --no-verify\n'; exit 1; }
 printf '✓ vernacular clean\n'
+printf '→ pre-push: house rules…\n'
+"$node_bin" scripts/check-house-rules.ts || { printf '\n✗ house rules failed - see the reasons above\n'; exit 1; }

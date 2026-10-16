@@ -175,6 +175,28 @@ export function buildToolbar(fc: FcCtx): void {
   };
   const lollyItems = (): PopItem[] => {
     const items: PopItem[] = [];
+    // "Large grab areas" (plan 311): GIMP-sized grab zones round a selection for a mouse
+    // or a pen, as a finger always has. A device-local view preference like Rulers and
+    // guides, and it sits with them; every free-canvas tool has the zones, so it is
+    // offered with or without a top bar.
+    const grabRow: PopItem = {
+      label: t('Large grab areas'),
+      icon: icon(SVG.grabAreas),
+      key: 'grab-areas',
+      on: fc.largeGrab,
+      check: true,
+      run: () => fc.grabZones.toggle(),
+    };
+    // Scale mode (K, plan 311) as a checked row beside it: where a phone's compact layout
+    // shows no rail and no object bar, this menu is the one route to Scale without a key.
+    const scaleRow: PopItem = {
+      label: t('Scale mode'),
+      icon: icon(SVG.scaleMode),
+      key: 'scale-mode',
+      on: fc.scaleContent,
+      check: true,
+      run: () => (fc.scaleContent ? fc.scaleMode.toggle() : fc.scaleMode.pick()),
+    };
     // Export leads - it's the star of the Lolly menu. Present is added LAST (very bottom).
     if (actions && !barMounted) {
       items.push({
@@ -370,6 +392,7 @@ export function buildToolbar(fc: FcCtx): void {
           });
         }
       }
+      items.push(scaleRow, grabRow);
       items.push({
         label: t('Keyboard shortcuts'),
         icon: icon(SVG.info),
@@ -401,6 +424,11 @@ export function buildToolbar(fc: FcCtx): void {
           runtime.setInput('transition', next);
         },
       });
+    }
+    // Without a top bar there is no view group above, so the two rows stand alone.
+    if (!barMounted) {
+      if (items.length) items.push({ sep: true });
+      items.push(scaleRow, grabRow);
     }
     // Present is the VERY LAST row (Andy: Export is the star; Present sits at the bottom),
     // set off by its own separator and next to the Slide transition it uses (plan 112).
@@ -484,12 +512,18 @@ export function buildToolbar(fc: FcCtx): void {
   // again - discoverable only if you already knew, which is what "trapped in the current
   // tool" meant. Its own click is not a no-op even when it is already lit: it also leaves
   // point editing and finishes a draft.
+  // The slot also holds Scale (K, plan 311), as Figma's Move and Scale share one slot: a
+  // hold or a right-click offers both, and while Scale is on the slot shows Scale and a
+  // click keeps the mode. It carries both glyphs; fc.scaleMode sets the slot's variant
+  // and name, and editor.css shows the variant's glyph.
   modeBtns.select = toolBtn(fc, 
-    t('Pointer - select and move (V)'),
-    SVG.pointer,
-    () => fc.modes.pickPointer(),
-    'fc-btn-pointer'
+    t('Pointer - select and move (V). Hold for Scale (K)'),
+    `<g class="fc-slot-pointer">${SVG.pointer}</g><g class="fc-slot-scale">${SVG.scaleMode}</g>`,
+    () => fc.scaleMode.pickSlot(),
+    'fc-btn-pointer',
+    (b) => fc.scaleMode.openMenu(b)
   );
+  fc.scaleMode.sync();
   const add = toolBtn(fc, t('Add a box'), SVG.add, () => fc.menus.openAddMenu(add), 'fc-btn-add');
   modeBtns.create = add;
   // Pen (opt-in via canvas.pathField - a tool with nowhere to store an authored path has
@@ -733,7 +767,7 @@ export function fillPopover(fc: FcCtx, el: HTMLElement, items: PopItem[]): void 
     // A row in a `role="menu"` has to be a menuitem, or the container's role makes the
     // whole popover unnavigable to a screen reader: only the radio rows carried one,
     // so every plain row (Export, Undo, Custom CSS…) announced as a bare button.
-    b.setAttribute('role', it.on !== undefined ? 'menuitemradio' : 'menuitem');
+    b.setAttribute('role', it.on === undefined ? 'menuitem' : it.check ? 'menuitemcheckbox' : 'menuitemradio');
     if (it.on !== undefined) b.setAttribute('aria-checked', String(it.on));
     if (it.key) b.dataset.pop = it.key;
     b.disabled = it.disabled === true;

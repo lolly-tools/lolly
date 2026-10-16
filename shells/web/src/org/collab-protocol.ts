@@ -387,7 +387,7 @@ export interface CollabSocket {
   onerror: ((ev: unknown) => void) | null;
 }
 
-export type CollabSocketCtor = new (url: string) => CollabSocket;
+export type CollabSocketCtor = new (url: string, protocols?: string[]) => CollabSocket;
 
 /** `WebSocket.OPEN`. Spelled out so this module needs no DOM lib at runtime. */
 export const SOCKET_OPEN = 1;

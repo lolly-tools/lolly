@@ -2,6 +2,7 @@
 import { assetViewerKind } from '../../lib/asset-viewer-source.ts';
 import { mountAssetFormatViewer } from '../../components/asset-format-viewer.ts';
 import { mountAssetViewerDetails } from '../../components/asset-viewer-details.ts';
+import { mountAssetInspectorDock } from '../../components/asset-inspector-dock.ts';
 import { openAssetInText } from '../../lib/text-handoff.ts';
 import { mountModelPreview } from '../../lib/model-preview.ts';
 import { mountSpecialPreview } from './special-preview.ts';
@@ -45,6 +46,7 @@ import type { RewordCandidate, } from '@lolly/engine';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { licenceLabel, readAssetRightsRecord, type AssetRightsMeta } from '../../lib/asset-rights.ts';
 import { lollyBadge } from '../../lib/lolly-badge.ts';
+import { projectRefSubject } from '../../org/project-catalog-submit.ts';
 import { openCatalogSubmit, uploadSubject } from '../../lib/catalog-submit.ts';
 import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, svgTextToDataUrl } from './shared.ts';
 import type { EmojiPackAbsence, EmojiPackTileMeta } from './shared.ts';
@@ -426,7 +428,7 @@ export function buildSheet(dt: DetailsCtx): void {
           <h3 class="cat-inspector-heading">${t('Content Credentials & origins')}</h3>
           <div class="cat-passport" data-passport></div>
           ${showVerify ? `<div class="cat-details-cred">
-            <button type="button" class="btn cat-act-verify" data-act="verify">${SHIELD_ICON}<span>${t('Check Content Credentials')}</span></button>
+            <button type="button" class="btn cat-act-verify" data-act="verify">${SHIELD_ICON}<span>${t('Inspect & verify')}</span></button>
             <div class="cat-cred-lolly" hidden>${lollyBadge('lg')}<span class="cat-cred-lolly-sub">${t('This file’s Content Credential records a Lolly export, intact.')}</span></div>
             <div class="cat-cred-panels" hidden></div>
           </div>` : ''}
@@ -483,6 +485,7 @@ export function buildSheet(dt: DetailsCtx): void {
   // mounted INSIDE this dialog so it paints above the ::backdrop.
   dt.dlAsPopover = null;
   let clearSiteInspection: (() => void) | undefined;
+  let disposeInspector: (() => void) | undefined;
   const modal = mountModal(content, {
     className: 'cat-details',
     backStack: !cat.preview,
@@ -490,6 +493,7 @@ export function buildSheet(dt: DetailsCtx): void {
     onEscape: () => dt.sheet.dismissLayer(),
     onClose: () => {
       clearSiteInspection?.();
+      disposeInspector?.();
       destroyModelPreview?.();
       destroySpecialPreview?.();
       dt.formatViewer?.destroy();
@@ -530,8 +534,14 @@ export function buildSheet(dt: DetailsCtx): void {
     if (preview) destroySpecialPreview = mountSpecialPreview(preview, ref, cat);
   }
   const fileSlot = document.createElement('div');
+  fileSlot.dataset.assetFiles = '';
   dlg.querySelector('.cat-details-body')?.prepend(fileSlot);
   mountAssetFileList(fileSlot, ref, selected => cat.details.openDetails(selected, dt.initialTheme, dt.initialTreatment));
+  if (ref.meta?.provider || ref.id.startsWith('inst/')) {
+    const metadata = document.createElement('div'); metadata.dataset.sharedMetadata = ''; fileSlot.after(metadata);
+    void import('./shared-metadata.ts').then(({ mountSharedMetadata }) => mountSharedMetadata(metadata, ref, () => { void cat.remote?.load(); }, cat.sourceStatuses.find(source => source.id === ref.meta?.provider)));
+  }
+  disposeInspector = mountAssetInspectorDock(dlg);
   dt.previewStatusDispose = mountAssetPreviewStatus(dlg.querySelector<HTMLElement>('.cat-details-preview')!, Number(ref.meta?.bytes ?? ref.meta?.size ?? 0));
   cat.detailsDialog = dlg; dlg.dataset.viewerProvider = String(ref.meta?.provider ?? '');
   cat.detailsModal = modal;
@@ -944,6 +954,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       if (span) span.textContent = t('Reading…');
       const alive = (): boolean => cat.detailsDialog === dlg;
       try {
+        const textReview = await (await import('./shared-text-index.ts')).prepareSharedTextReview(ref, box, () => { void cat.remote?.load(); });
         const dr = await import('../doc-read.ts');
         let text: string | null = null;
         let source: 'digital' | 'ocr' = 'digital';
@@ -995,6 +1006,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
         const panel = analyzeVerifyText(text, source);
         box.innerHTML = `<pre class="cat-text-preview cat-text-ocr">${cat.thumbs.catHighlightHtml(text, panel.marks)}</pre>${cat.thumbs.catTextSignalsHtml(panel)}${notesHtml}`;
         box.hidden = false;
+        textReview?.offer(text, source);
         await cat.thumbs.persistAiSignals(ref, panel, source);
       } catch (err) {
         host.log('warn', 'catalog: doc/vector read failed', { error: String((err as Error)?.message ?? err) });
@@ -1041,6 +1053,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
         else announce(t('The text could not be read.'));
       };
       let frame: { width: number; height: number; data: Uint8ClampedArray };
+      const textReview = await (await import('./shared-text-index.ts')).prepareSharedTextReview(ref, box, () => { void cat.remote?.load(); });
       try {
         frame = await cat.thumbs.rasterToOcrFrame(ref.url);
       } catch {
@@ -1061,6 +1074,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
             const panel = analyzeVerifyText(text, 'ocr');
             if (alive()) {
               if (box) { box.innerHTML = `<pre class="cat-text-preview cat-text-ocr">${cat.thumbs.catHighlightHtml(text, panel.marks)}</pre>${cat.thumbs.catTextSignalsHtml(panel)}`; box.hidden = false; }
+              textReview?.offer(text, 'ocr');
               // Announce what actually happened: the clipboard write can be refused
               // (permissions, unfocused document), and "copied" would then be a lie.
               let copied = true;
@@ -1295,7 +1309,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       } catch { announce(t('Could not flag AI origins.')); }
       return;
     }
-    if (act === 'add-to-project') { await cat.bulk.addToProject([ref.id]); return; }
+    if (act === 'add-to-project') { await cat.bulk.addToProject([ref.id], [ref]); return; }
     // "Download as" (text assets): a format menu anchored to its toolbar button,
     // mounted inside THIS dialog. The items carry data-act="dl-text", so their
     // clicks bubble to this same dispatcher - the menu is pure presentation.
@@ -1487,7 +1501,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     else if (act === 'recategorise') await cat.userAssets.recategorise(ref);
     else if (act === 'replace') await cat.userAssets.replaceUserAsset(ref);
     else if (act === 'rename') await cat.userAssets.renameUserAsset(ref);
-    else if (act === 'catalog-submit') openCatalogSubmit(uploadSubject(ref));
+    else if (act === 'catalog-submit') openCatalogSubmit(projectRefSubject(ref) ?? uploadSubject(ref));
     else if (act === 'edit-tags') { await cat.userAssets.editTags([ref]); dt.openDetails(cat, cat.assetById.get(ref.id) ?? ref); }
     else if (act === 'hide') await cat.userAssets.setHidden(base, true);
     else if (act === 'unhide') await cat.userAssets.setHidden(base, false);

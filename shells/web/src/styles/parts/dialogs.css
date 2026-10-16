@@ -159,10 +159,11 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
 /* With the template card present the dialog carries TWO peer cards side by side
    (plans/226 WP-1), so it needs the room; a project-only save keeps 480px. */
 .save-dialog--wide { max-width: 640px; }
-/* The unsaved-changes guard has three actions ("Save & leave" / "Leave without
-   saving" / "Cancel"); at 380px they wrap to two rows (worse with the wider
-   jelly capsules). Give it room to lay them out on one line - applies in both
-   jelly on/off. Still clamped to 90vw above, so mobile stacks them as before. */
+/* The unsaved-edits guard has the kangaroo beside its text and three actions
+   ("Save & leave" / "Leave anyway" / "Cancel"); at 380px they wrap to two rows
+   (worse with the wider jelly capsules). Give it room to lay them out on one
+   line - applies in both jelly on/off. Still clamped to 90vw above, so a phone
+   wraps them (see .unsaved-dialog-actions below). */
 .unsaved-dialog { max-width: 540px; }
 
 /* The dimmed-and-blurred backdrop, declared once for every dialog that wants it.
@@ -506,6 +507,47 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   margin: 0;
 }
 
+/* The tool view's Unsaved edits dialog (views/tool-leave-dialog.ts) leads with
+   Lolly's kangaroo beside the title and the sentence, top-aligned. The drawing is
+   about as tall as those two lines and shrinks on a narrow screen. /pro's batch
+   guard has no lead, so none of these rules apply to that dialog. */
+.unsaved-dialog-lead {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-6);
+}
+.unsaved-dialog-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+.unsaved-dialog-text h2 {
+  font-size: var(--ui-type-lead);
+  font-weight: 700;
+  line-height: 1.25;
+}
+/* Lolly's own device takes Lolly's tone at the guest's hue (--lolly-mark, else
+   --lolly-tone), mixed most of the way towards the theme's secondary ink so it
+   reads as a quiet green-grey companion rather than an accent. The joey is filled
+   with --kg-ground, the card behind him, so the outline he stands in front of
+   stays hidden. */
+.unsaved-dialog-art {
+  flex: none;
+  width: calc(52px * var(--a11y-fs));
+  height: calc(52px * var(--a11y-fs));
+  color: color-mix(in oklab, var(--lolly-mark, var(--lolly-tone)) 40%, hsl(var(--muted-foreground)));
+  --kg-ground: hsl(var(--card));
+}
+.unsaved-dialog-art svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.kg .kg-joey { fill: var(--kg-ground, Canvas); }
+@media (max-width: 480px) {
+  .unsaved-dialog-art { width: calc(44px * var(--a11y-fs)); height: calc(44px * var(--a11y-fs)); }
+}
+@media (forced-colors: active) {
+  .unsaved-dialog-art { color: CanvasText; --kg-ground: Canvas; }
+}
+
 /* Size/detail line (e.g. "Includes a 6.2 MB video clip") - a quieter chip below the prompt. */
 .unsaved-dialog-detail {
   font-size: var(--fs-sm);
@@ -516,9 +558,12 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   padding: 8px 10px;
 }
 
+/* One row of pills, wrapping when the dialog is too narrow for all three. The
+   gap leaves room for each button's focus ring and its offset, with an 8px floor
+   so a brand with tight spacing cannot close it up. */
 .unsaved-dialog-actions {
   display: flex;
-  gap: 3px;
+  gap: max(var(--sp-4), 8px);
   justify-content: space-between;
   margin-top: 8px;
   flex-wrap: wrap;
@@ -529,7 +574,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
 .unsaved-save {
   padding: 6px 14px;
   border: none;
-  border-radius: var(--radius);
+  border-radius: var(--ui-radius-pill);
   /* fill (background/color) lives in parts/buttons.css's .btn--primary alias list */
   font: inherit;
   font-size: var(--fs-md);
@@ -545,7 +590,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
 .unsaved-cancel {
   padding: 6px 14px;
   border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
+  border-radius: var(--ui-radius-pill);
   background: transparent;
   color: hsl(var(--foreground));
   font: inherit;
@@ -559,23 +604,18 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
     background: hsl(var(--accent));
   }
 
-  /* On mobile the three actions wrap awkwardly with space-between (uneven rows,
-     a lone button). Stack them full-width with comfortable tap targets; the
-     primary "Save & leave" stays on top. */
   /* Jelly variant (flag): the soft-body buttons paint their own capsule on a
      canvas, so they don't take the .unsaved-* box classes - just keep them from
      stretching oddly in the flex row. */
   .unsaved-dialog-actions jelly-button { flex: 0 0 auto; }
 
+  /* On a phone the actions keep wrapping rather than stacking: each one grows to
+     fill its row, so "Save & leave" stays first and a lone last button spans the
+     dialog. Every target is a comfortable 44px tall. */
   @media (max-width: 640px) {
-    .unsaved-dialog-actions {
-      flex-direction: column;
-      flex-wrap: nowrap;
-      gap: 8px;
-    }
+    .unsaved-dialog-actions jelly-button { flex: 1 1 auto; }
     .unsaved-dialog-actions button,
     .unsaved-dialog-actions jelly-button {
-      width: 100%;
       min-height: 44px;
     }
   }

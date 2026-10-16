@@ -2,15 +2,15 @@
 import { retainCanvasRecovery } from '../../lib/canvas-recovery.ts';
 import { charsFromDom, markdownFromChars } from '../rich-text.ts';
 import { canvasInteractions, type CanvasInteractionLease } from '../../lib/canvas-interaction.ts';
-import { boxRect, withRect } from '../free-canvas-math.ts';
+import { boxRect, selectionAABB, withRect } from '../free-canvas-math.ts';
 import type { Box } from '../free-canvas-math.ts';
 import type { FcCtx } from './context.ts';
-import type { Gesture, Rect } from './shared.ts';
+import type { Gesture, GesturePointer, Rect } from './shared.ts';
 
 interface GestureLease {
   gesture: Gesture;
   lease?: CanvasInteractionLease;
-  move?: PointerEvent;
+  move?: GesturePointer;
   ids: string[];
   claimed: Set<string>;
   selected: string[];
@@ -23,7 +23,7 @@ const gestures = new WeakMap<FcCtx, GestureLease>();
 const texts = new WeakMap<FcCtx, { id: string; lease?: CanvasInteractionLease }>();
 function indices(g: Gesture): number[] {
   return g.type === 'move' ? [...g.sel] : g.type === 'resize' || g.type === 'rotate' ? [g.index]
-    : g.type === 'gscale' || g.type === 'grotate' ? g.sel : [];
+    : g.type === 'gscale' || g.type === 'grotate' || g.type === 'pinch' ? g.sel : [];
 }
 export function beginCanvasGesture(fc: FcCtx): void {
   const port = canvasInteractions(fc.runtime), g = fc.gesture;
@@ -64,7 +64,7 @@ export function beginCanvasGesture(fc: FcCtx): void {
     fc.gestures.cancelGesture(); fc.stage.flash((error as Error).message);
   });
 }
-export function canvasGestureReady(fc: FcCtx, move?: PointerEvent): boolean {
+export function canvasGestureReady(fc: FcCtx, move?: GesturePointer): boolean {
   const state = gestures.get(fc);
   if (state && !state.lease) { if (move) state.move = move; return false; }
   if (state) {
@@ -81,11 +81,43 @@ export function canvasGestureReady(fc: FcCtx, move?: PointerEvent): boolean {
       g.start = new Map(selected.map(i => [i, state.baseline.get(fc.select.idOf(boxes[i], i))!]));
     } else if (g.type === 'resize' || g.type === 'rotate') {
       g.index = selected[0]!; g.startRect = state.baseline.get(state.selected[0]!)!;
-    } else if (g.type === 'gscale' || g.type === 'grotate') {
+      // A Scale's start row follows the rebase as gscale's start rows do: the current row
+      // at the baseline geometry, which the layout half of its commit reads.
+      if (g.type === 'resize' && g.startBox) g.startBox = withRect(boxes[g.index]!, g.startRect, fc.cfg);
+    } else if (g.type === 'gscale' || g.type === 'grotate' || g.type === 'pinch') {
+      // A pinch derives every frame from its start rows and its fingers' start points,
+      // so the rebased rows below are all it needs.
+      const live = g.liveBoxes && new Map(g.liveBoxes.map((box, i) => [fc.select.idOf(box, i), box]));
       g.sel = selected;
       g.startBoxes = boxes.map((box, i) => {
         const baseline = state.baseline.get(fc.select.idOf(box, i)); return baseline ? withRect(box, baseline, fc.cfg) : box;
       });
+      // The last frame's rows follow their ids as well, so a lift that comes before the
+      // next frame commits what that frame showed for every row of the selection, even
+      // when a peer's write has moved the rows to new places in the array since.
+      if (live) {
+        const moved = new Set(selected);
+        g.liveBoxes = g.startBoxes.map((box, i) => {
+          const row = moved.has(i) ? live.get(fc.select.idOf(box, i)) : undefined;
+          return row ? withRect(box, boxRect(row, fc.cfg), fc.cfg) : box;
+        });
+      }
+      // The pivot and the bounds (and with them the anchor every gscale frame derives)
+      // follow the rebased start, and the press keeps its place, so the first frame after
+      // a grant reads no change at the press point rather than a jump about the bounds the
+      // press was measured against. Every gscale frame reads its travel from the press,
+      // for a corner and an edge alike. A peer may have turned a member onto or off a
+      // quarter turn before the grant, so the uniform fallback of a Resize is decided again.
+      const startBoxes = g.startBoxes;
+      const pivotSel = g.type === 'grotate' ? g.sel.filter(i => !fc.gestures.isFrameRow(startBoxes[i])) : g.sel;
+      const a = selectionAABB(startBoxes, pivotSel, fc.cfg);
+      if (a && g.type === 'gscale') {
+        g.aabb = a;
+        if (!g.content) g.proportional = fc.selectionTransform.proportional(startBoxes, g.sel);
+      } else if (a && g.type === 'grotate') {
+        g.centre = { x: (a.minX + a.maxX) / 2, y: (a.minY + a.maxY) / 2 };
+        g.pointerStartDeg = (Math.atan2(g.origin.y - g.centre.y, g.origin.x - g.centre.x) * 180) / Math.PI;
+      }
     }
     state.prepared = boxes;
   }
@@ -98,6 +130,12 @@ export function previewCanvasRect(fc: FcCtx, index: number, rect: Rect): void {
   state.rects.set(id, rect);
   state.dirty = true;
 }
+/** What peers are shown a gesture doing. A pinch turns once its twist has turned the
+ *  selection, resizes once its spread has scaled the selection, and otherwise moves. */
+function previewKind(g: Gesture): 'move' | 'resize' | 'rotate' {
+  if (g.type === 'pinch') return g.deg ? 'rotate' : g.k != null && g.k !== 1 ? 'resize' : 'move';
+  return g.type === 'move' ? 'move' : g.type === 'resize' || g.type === 'gscale' ? 'resize' : 'rotate';
+}
 /** Publish a complete gesture frame after every selected object's live DOM write. */
 export function flushCanvasPreview(fc: FcCtx): void {
   const state = gestures.get(fc);
@@ -107,7 +145,7 @@ export function flushCanvasPreview(fc: FcCtx): void {
   const cascaded = fc.select.cascadeFrameChildren(boxes, next, indices(state.gesture));
   const g = state.gesture;
   state.dirty = false;
-  state.lease.preview({ kind: g.type === 'move' ? 'move' : g.type === 'resize' || g.type === 'gscale' ? 'resize' : 'rotate', phase: 'active',
+  state.lease.preview({ kind: previewKind(g), phase: 'active',
     objects: cascaded.flatMap((box, i) => {
       const id = fc.select.idOf(box, i); if (!state.claimed.has(id)) return [];
       const r = boxRect(box, fc.cfg); return [{ id, x: r.x, y: r.y, w: r.w, h: r.h, rot: r.rot ?? 0 }];
@@ -119,7 +157,11 @@ export function finishCanvasGesture(fc: FcCtx, committed: boolean): void {
   state?.lease?.finish(committed);
   if (!committed && fc.gesture) {
     const boxes = fc.select.getBoxes();
-    for (const i of indices(fc.gesture)) if (boxes[i]) fc.gestures.applyLiveRect(i, boxRect(boxes[i], fc.cfg));
+    // Artboards go back first: a member drawn inside a page is placed against the page's
+    // own offset, which must be the restored one, not the place the preview left the page.
+    const rows = indices(fc.gesture).filter(i => boxes[i]);
+    const frame = (i: number): number => (fc.gestures.isFrameRow(boxes[i]) ? 0 : 1);
+    for (const i of [...rows].sort((a, b) => frame(a) - frame(b))) fc.gestures.applyLiveRect(i, boxRect(boxes[i], fc.cfg));
   }
 }
 export function claimCanvasText(fc: FcCtx, id: string, resume: () => void): boolean {

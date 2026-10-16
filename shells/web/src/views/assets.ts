@@ -55,6 +55,8 @@ import { DOWNLOAD_ICON, PENCIL_ICON, REPLACE_ICON, STAR_ICON, TAG_ICON, TRASH_IC
 import type { CatalogHost } from './assets/shared.ts';
 import { actionsOps } from './assets/actions.ts';
 import type { AssetPreviewOptions, CatCtx } from './assets/context.ts';
+import { projectsOps } from './assets/projects.ts';
+import { remoteOps } from './assets/remote.ts';
 import { sourcesOps } from './assets/sources.ts';
 import { tilesOps } from './assets/tiles.ts';
 import { thumbsOps } from './assets/thumbs.ts';
@@ -350,7 +352,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
       { id: 'convert', icon: icon('duplicate'), label: () => t('Convert'), disabled: () => !cat.actions.canConvert(cat.actions.selection()), title: () => cat.actions.canConvert(cat.actions.selection()) ? t('Choose a supported transformation') : t('No conversion accepts this selection.') },
       { id: 'compare', icon: icon('duplicate'), label: () => t('Compare'), hidden: () => !cat.bulk.canCompareSelection() },
       { id: 'fav', icon: STAR_ICON, label: () => (cat.bulk.allSelectedFav() ? t('Unfavourite') : t('Favourite')) },
-      { id: 'add-to-project', icon: icon('folder'), label: () => t('Add to project'), title: () => t('Reference the selection into a project folder - nothing is copied, the files stay in Assets') },
+      { id: 'add-to-project', icon: icon('folder'), label: () => t('Add to project'), title: () => t('Add references to a device folder or copy files to a shared project folder') },
       { id: 'download', icon: DOWNLOAD_ICON, label: () => selected.size > 1 ? t('Download selection') : t('Download'), title: () => t('Download the selected files as one ZIP') },
       { id: 'hide', icon: icon('eye'), label: () => (cat.bulk.allSelectedHidden() ? t('Unhide') : t('Hide')) },
       { id: 'replace', icon: REPLACE_ICON, label: () => t('Replace'), title: () => t('Swap in a new file, keeping the same image - every saved session, tool and project that uses it updates to the new one'), hidden: () => !cat.bulk.singleSelectedUploadRef() },
@@ -361,8 +363,9 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     ],
   }; cat.bulkBarCfg = bulkBarCfg;
 
-  // The mounted upload dropzone's teardown, if any (lib/upload-dropzone.ts).
+  // The mounted upload dropzone's teardown and element, if any (lib/upload-dropzone.ts).
   cat.dropzoneDispose = null;
+  cat.dropzoneMount = null;
 
   // ── asset details modal ─────────────────────────────────────────────────────────
   // Opened by clicking a tile OR by a share deep link (/#/a?asset=<id>). Holds the big
@@ -477,7 +480,16 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     cat.sections.closeDetails();
     cat.downloads.closeDownloadDialog();
     closeConfirmDialogs();
+    // The dropzone outlives each repaint, so the view's own exit ends the zone: a trim
+    // question still open is answered with the original file instead of holding the
+    // app-wide upload lane on a card nobody can reach once the view is gone.
+    cat.sections.disposeDropzone();
   };
+
+  cat.projects = projectsOps(cat);
+  cat.remote = remoteOps(cat);
+  const cleanupWithRemote = (viewEl as ViewElement)._cleanup;
+  (viewEl as ViewElement)._cleanup = () => { cat.projects?.dispose(); cat.remote?.dispose(); cleanupWithRemote?.(); };
 
   // Loading skeleton (plans/132 WP-M): a toolbar shell and one quiet grid row
   // paint immediately while reload() is in flight, replaced wholesale by the

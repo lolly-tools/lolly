@@ -95,7 +95,7 @@ async fn remote_fetch_inner(request: RemoteFetchRequest) -> Result<RemoteFetchRe
             .map_err(|_| "The remote service could not be reached.".to_string())?;
         let status = response.status();
 
-        if status.is_redirection() {
+        if follows_redirect(status.as_u16()) {
             if hop == MAX_REDIRECTS {
                 return Err("The remote service redirected too many times.".into());
             }
@@ -147,6 +147,11 @@ async fn remote_fetch_inner(request: RemoteFetchRequest) -> Result<RemoteFetchRe
         });
     }
     Err("The remote request could not be completed.".into())
+}
+
+// A 304 validates cached bytes; it is not a redirect and has no Location.
+fn follows_redirect(status: u16) -> bool {
+    matches!(status, 301 | 302 | 303 | 307 | 308)
 }
 
 fn validate_url(raw: &str) -> Result<Url, String> {
@@ -360,6 +365,16 @@ fn is_public_v6(address: Ipv6Addr) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn cache_validation_responses_do_not_follow_redirects() {
+        for code in [200, 204, 300, 304, 404] {
+            assert!(!follows_redirect(code), "{code}");
+        }
+        for code in [301, 302, 303, 307, 308] {
+            assert!(follows_redirect(code), "{code}");
+        }
+    }
 
     #[test]
     fn address_policy_rejects_local_private_metadata_and_documentation_space() {

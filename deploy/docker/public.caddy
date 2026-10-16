@@ -30,6 +30,21 @@
 			Permissions-Policy "camera=(self), microphone=(self), display-capture=(self), geolocation=()"
 			defer
 		}
+		# Discovery belongs to the static documentation, before the app fallback.
+		@docs_entry path /docs /docs/ /documentation /documentation/
+		redir @docs_entry /info{?query} 308
+		redir /sitemap.xml /info/sitemap.xml{?query} 308
+		rewrite /agents.md /info/agents.md
+		rewrite /llms.txt /info/llms.txt
+		rewrite /llms-full.txt /info/llms-full.txt
+		rewrite /openapi.json /info/openapi.json
+		rewrite /.well-known/lolly.json /info/well-known-lolly.json
+		rewrite /robots.txt /robots-lolly-tools.txt
+		@docs_markdown path_regexp docs_markdown ^/info/.*\.md$
+		header @docs_markdown {
+			Content-Type "text/markdown; charset=utf-8"
+			defer
+		}
 		@api_surface path /api/* /live/* /tool/* /.well-known/oauth-authorization-server* /.well-known/oauth-protected-resource*
 		header @api_surface Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'"
 		# Browser API calls belong to this exact origin. Agent calls may omit Origin.

@@ -73,7 +73,7 @@ Ce revine depinde de cum ai plecat și ce instrument ai folosit:
 
 - **Ai închis fila, sau ai revenit altă dată.** Lucrarea nesalvată dispare, cu excepția [instrumentelor care salvează pe măsură ce lucrezi](#which-tools-save-as-you-work): deschide acea lucrare din **Proiecte**.
 - **Ai reîncărcat pagina în aceeași filă.** Setările tale revin din adresa paginii. În instrumentele care nu salvează pe măsură ce lucrezi, fotografiile și fișierele pe care le-ai adăugat de pe dispozitivul tău, și textul pe un singur rând mai lung de 150 de caractere, nu revin, fiindcă adresa nu le conține.
-- **Ai apăsat Acasă, sau butonul de înapoi din stânga sus.** Dacă ai schimbat ceva de la ultima salvare, descărcare sau copiere, un dialog **Modificări nesalvate** te întreabă dacă vrei să salvezi întâi. **Salvează și ieși** salvează lucrarea și te duce la **Proiecte**, sau înapoi la folderul de proiect din care ai deschis lucrarea. **Ieși fără să salvezi** îți anulează modificările: un element salvat revine la felul în care l-ai salvat ultima dată, iar o creație pe care n-ai salvat-o niciodată părăsește **Proiecte**. **Anulează** te ține în instrument.
+- **Ai apăsat Acasă, sau butonul de înapoi din stânga sus.** Dacă ai schimbat ceva de la ultima salvare, descărcare sau copiere, un dialog **Editări nesalvate** te întreabă dacă vrei să salvezi întâi. **Salvează și ieși** salvează lucrarea și te duce la **Proiecte**, sau înapoi la folderul de proiect din care ai deschis lucrarea. **Ieși oricum** îți anulează modificările: un element salvat revine la felul în care l-ai salvat ultima dată, iar o creație pe care n-ai salvat-o niciodată părăsește **Proiecte**. **Anulează** te ține în instrument.
 
 Lolly întreabă doar când apeși **Acasă** sau butonul de înapoi într-un instrument. Închiderea filei, reîncărcarea și butonul propriu de înapoi al browserului tău nu întreabă niciodată. Ca să fii sigur, apasă **Salvează ca**, sau **Salvează** din panoul de export, înainte să părăsești un instrument.
 
@@ -89,7 +89,7 @@ Lolly întreabă doar când apeși **Acasă** sau butonul de înapoi într-un in
 - 3D și Darkroom, care preiau un fișier propriu;
 - un instrument fără nimic de schimbat, cum ar fi Countdown.
 
-În celelalte instrumente, prima ta modificare depune lucrarea în **Proiecte** ca și cum ai fi salvat, iar modificările ulterioare sunt păstrate pe măsură ce lucrezi, odată ce instrumentul a terminat de desenat. Așa că o creație nesalvată rămâne în Proiecte după ce închizi fila și reapare cu modificările ei marcate ca nesalvate. **Ieși fără să salvezi** tot le anulează, iar Istoricul păstrează o copie a modificărilor abandonate timp de 30 de zile. Deschiderea din nou a instrumentului din ecranul principal pornește o creație nouă; deschide-o pe cea anterioară din Proiecte.
+În celelalte instrumente, prima ta modificare depune lucrarea în **Proiecte** ca și cum ai fi salvat, iar modificările ulterioare sunt păstrate pe măsură ce lucrezi, odată ce instrumentul a terminat de desenat. Așa că o creație nesalvată rămâne în Proiecte după ce închizi fila și reapare cu modificările ei marcate ca nesalvate. **Ieși oricum** tot le anulează, iar Istoricul păstrează o copie a modificărilor abandonate timp de 30 de zile. Deschiderea din nou a instrumentului din ecranul principal pornește o creație nouă; deschide-o pe cea anterioară din Proiecte.
 
 Cu [Sync](/info/sync.html) activat, o creație depusă astfel ajunge pe celelalte dispozitive ale tale ca orice altceva din Proiecte. Versiunile ei rămân pe dispozitivul pe care au fost făcute.
 

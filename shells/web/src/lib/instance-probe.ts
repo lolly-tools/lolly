@@ -8,7 +8,7 @@
  * two have no such import, so instance-sheet.test.ts can exercise them
  * directly without pulling that in.
  */
-import { normalizeInstanceBase } from './instance.ts';
+import { instanceFetch, normalizeInstanceBase } from './instance.ts';
 
 export type UrlValidation = { ok: true; base: string } | { ok: false; message: string };
 
@@ -20,7 +20,7 @@ export type UrlValidation = { ok: true; base: string } | { ok: false; message: s
  *  thrown backup-import error (err.message passed straight through). */
 export function validateInstanceUrl(input: string): UrlValidation {
   try {
-    return { ok: true, base: normalizeInstanceBase(input) };
+    return { ok: true, base: normalizeInstanceBase(/^[^/:\s]+\.[^/:\s]+(?::\d+)?(?:\/[^\s]*)?$/.test(input.trim()) ? `https://${input.trim()}` : input) };
   } catch (e) {
     return { ok: false, message: e instanceof Error ? e.message : String(e) };
   }
@@ -70,4 +70,38 @@ export function shapeProbeResult(status: number, ok: boolean, body: unknown): Pr
   const tools = (body as { tools?: unknown }).tools;
   if (!Array.isArray(tools)) return { ok: false, reason: 'shape' };
   return { ok: true, toolCount: tools.length };
+}
+
+/** A Work manifest is discoverable before its private catalog is readable. */
+export function isAccountInstance(manifest: ManifestOutcome): boolean {
+  return manifest.found && ['open', 'gated', 'per-tool'].includes(manifest.accessMode ?? '');
+}
+
+export interface ProbedInstance {
+  base: string;
+  toolCount: number | null;
+  manifest: ManifestOutcome;
+}
+
+/** Public discovery first; private content is read only after sign-in. */
+export async function probeConnection(base: string): Promise<{ ok: true; instance: ProbedInstance } | Exclude<ProbeOutcome, { ok: true }>> {
+  let manifest: ManifestOutcome = { found: false };
+  try {
+    const response = await instanceFetch(`${base}/api/v1/instance`);
+    let body: unknown;
+    try { body = await response.json(); } catch { /* not a manifest */ }
+    manifest = shapeInstanceManifest(response.status, response.ok, body);
+  } catch { /* static deployments need only the catalog */ }
+  if (isAccountInstance(manifest)) return { ok: true, instance: { base, toolCount: null, manifest } };
+  const response = await instanceFetch(`${base}/catalog/tools/index.json`);
+  let body: unknown;
+  try { body = await response.json(); } catch { /* shapeProbeResult reports the refusal */ }
+  const outcome = shapeProbeResult(response.status, response.ok, body);
+  return outcome.ok ? { ok: true, instance: { base, toolCount: outcome.toolCount, manifest } } : outcome;
+}
+
+/** Web accounts work at the workspace origin, with its own first-party cookie. */
+export function workspaceAppUrl(base: string, hash: string): string {
+  const target = `${normalizeInstanceBase(base)}/`;
+  return hash.startsWith('#/team/') ? target + hash : target;
 }

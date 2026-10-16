@@ -198,10 +198,11 @@ export const bodyHtml = (cat: CatCtx): string => {
   return bodyMarkup(cat);
 };
 const bodyMarkup = (cat: CatCtx): string =>
-  `${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all' || !['all', 'catalog'].includes(cat.sourceSelection ?? 'all')) ? '' : swatchesSectionHtml(cat) + fontsSectionHtml(cat)}`;
+  cat.projects?.active() ? cat.projects.html() : `${cat.remote?.html() ?? ''}${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all' || !['all', 'catalog'].includes(cat.sourceSelection ?? 'all')) ? '' : swatchesSectionHtml(cat) + fontsSectionHtml(cat)}`;
 export const bulkBarHtml = (cat: CatCtx): string => { const { bulkBarCfg } = cat; return buildBulkBar(bulkBarCfg); };
 export function render(cat: CatCtx): void {
   const { viewEl } = cat;
+  cat.projects?.sync(); cat.remote?.sync(); cat.remote?.reconcile(); cat.projects?.reconcile();
   cat.bulk.pruneSelection();
   viewEl.innerHTML = `
       <div class="catalog"${cardSizeAttr(cat.cardSize)}${layoutAttr(cat.catLayout)}${densityAttr(cat.catDensity)}>
@@ -297,30 +298,49 @@ export function mountEmojiSpecimenGrid(cat: CatCtx): void {
     ? mountEmojiSpecimens(body, host, (id) => { const meta = emojiPackMeta(cat.assetById.get(id)); return meta ? emojiPackSource(meta) : null; }, () => cat.mounted)
     : null;
 }
-// (Re)mount the shared upload dropzone into the uploads section's placeholder. Called
-// after every body (re)render - the innerHTML rebuild orphans the previous instance, so
-// tear it down first (a mid-ingest re-mount is safe: the component's single-flight
-// ingest guard is module-level, and an in-flight ingest still delivers its onAdded).
-// Files ingest through the SAME storeUserUpload path as the asset picker (downscale/
-// sanitise/credential-preserve/animated-sniff); onAdded reloads so the new tiles land
-// in "Your uploads".
+// Mount the shared upload dropzone into the uploads section's placeholder once per view,
+// then put that same element back in place of the placeholder every later paint emits.
+// A body re-render (a search keystroke, a shared-library page arriving, a finished
+// upload) rebuilds the markup around the zone, but its file input has to stay the one
+// a person is choosing files for: the native picker delivers its files to the input
+// that opened the picker, and a replaced input has no listener left, so those files
+// would be dropped without a word. Only the placeholder's attributes (data-empty) are
+// copied over. Files ingest through the SAME storeUserUpload path as the asset picker
+// (downscale/sanitise/credential-preserve/animated-sniff); onAdded reloads so the new
+// tiles appear in "Your uploads".
 export function mountDropzone(cat: CatCtx): void {
   const { host, viewEl } = cat;
-  cat.dropzoneDispose?.();
-  cat.dropzoneDispose = null;
-  const mount = viewEl.querySelector<HTMLElement>('[data-dropzone-mount]');
-  if (!mount) return;   // no uploads section this paint (a total sync failure)
-  cat.dropzoneDispose = mountUploadDropzone(mount, host as unknown as PickerHost, {
-    allowUrl: true,
-    onAdded: async () => { if (!cat.mounted) return; await cat.tiles.reload(); if (cat.mounted) rerender(cat); },
-  });
+  const placeholder = viewEl.querySelector<HTMLElement>('[data-dropzone-mount]');
+  if (!placeholder) { disposeDropzone(cat); return; }   // no uploads section this paint (a total sync failure)
+  let mount = cat.dropzoneMount;
+  if (mount && cat.dropzoneDispose) {
+    if (placeholder !== mount) {
+      for (const name of mount.getAttributeNames()) if (!placeholder.hasAttribute(name)) mount.removeAttribute(name);
+      for (const { name, value } of Array.from(placeholder.attributes)) mount.setAttribute(name, value);
+      placeholder.replaceWith(mount);
+    }
+  } else {
+    mount = cat.dropzoneMount = placeholder;
+    cat.dropzoneDispose = mountUploadDropzone(mount, host as unknown as PickerHost, {
+      allowUrl: true,
+      onAdded: async () => { if (!cat.mounted) return; await cat.tiles.reload(); if (cat.mounted) rerender(cat); },
+    });
+  }
   // The roomier "this IS the section" layout when there are no uploads yet.
   mount.querySelector('.updz')?.classList.toggle('updz--empty', mount.hasAttribute('data-empty'));
+}
+/** End the dropzone: the view is leaving, or this paint has no uploads section. An
+ *  ingest still running finishes without asking anything more (lib/upload-dropzone.ts). */
+export function disposeDropzone(cat: CatCtx): void {
+  cat.dropzoneDispose?.();
+  cat.dropzoneDispose = null;
+  cat.dropzoneMount = null;
 }
 export function renderBody(cat: CatCtx): void {
   const { viewEl } = cat;
   const body = viewEl.querySelector<HTMLElement>('.catalog-body');
   if (!body) { render(cat); return; }
+  cat.projects?.sync(); cat.remote?.sync(); cat.remote?.reconcile(); cat.projects?.reconcile();
   cat.bulk.pruneSelection();
   body.innerHTML = bodyHtml(cat);
   mountFavStrip(cat);
@@ -444,6 +464,7 @@ export async function maybeHealTtsClip(cat: CatCtx, ref: AssetRef): Promise<void
 }
 // The canonical shareable link that reopens this modal from the catalog view.
 export const assetLink = (cat: CatCtx, ref: AssetRef): string =>
+  ref.meta?.projectFileId ? `${location.origin}${appPathname()}#/p?team=${encodeURIComponent(String(ref.meta.projectId))}&asset=${encodeURIComponent(String(ref.meta.projectFileId))}` :
   `${location.origin}${appPathname()}${cat.preview?.link?.(ref) ?? `#/a?asset=${encodeURIComponent(ref.id)}`}`;
 // The previous/next asset for the details modal's lightbox paging - in on-screen grid
 // order, skipping tiles inside a collapsed group so paging matches what's visible.
@@ -529,6 +550,7 @@ export function sectionsOps(cat: CatCtx) {
     mountPdfThumbGrid: bindOp(cat, mountPdfThumbGrid),
     mountEmojiSpecimenGrid: bindOp(cat, mountEmojiSpecimenGrid),
     mountDropzone: bindOp(cat, mountDropzone),
+    disposeDropzone: bindOp(cat, disposeDropzone),
     renderBody: bindOp(cat, renderBody),
     fillStorageChip: bindOp(cat, fillStorageChip),
     rerender: bindOp(cat, rerender),

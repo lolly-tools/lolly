@@ -79,7 +79,7 @@ import { t } from '../i18n.ts';
 import { mountDesignGuides } from './design-guides.ts';
 import { SVG, icon } from './free-canvas-icons.ts';
 import { railSession, } from './free-canvas/shared.ts';
-import type { AddKind, CanvasCfg, ConnectCfg, Corner, DeepLinkState, FieldCfg, FontOption, ImportMode, InitFreeCanvasOpts, RuntimeApi, TouchPt } from './free-canvas/shared.ts';
+import type { AddKind, CanvasCfg, ConnectCfg, DeepLinkState, FieldCfg, FontOption, ImportMode, InitFreeCanvasOpts, RuntimeApi, TouchPt } from './free-canvas/shared.ts';
 import type { FcCtx } from './free-canvas/context.ts';
 import { helpersOps } from './free-canvas/helpers.ts';
 import { selectOps } from './free-canvas/select.ts';
@@ -121,6 +121,11 @@ import { chromeSyncOps } from './free-canvas/chrome-sync.ts';
 import { keysOps } from './free-canvas/keys.ts';
 import { editorStateOps } from './free-canvas/editor-state.ts';
 import { slideMastersOps } from './free-canvas/slide-masters.ts';
+import { scaleModeOps } from './free-canvas/scale-mode.ts';
+import { selectionTransformOps } from './free-canvas/selection-transform.ts';
+import { zonesOps } from './free-canvas/zones.ts';
+import { grabZonesOps, storedLargeGrab } from './free-canvas/grab-zones.ts';
+import { pinchOps } from './free-canvas/pinch.ts';
 import { preloadGeometryKernels } from '../bridge/geometry-host.ts';
 export { clampRailPos, stageBlockers, ctxTopBand, centreCtxBar, FC_TILT } from './free-canvas/shared.ts';
 export type { DeepLinkState, CtxTopBand } from './free-canvas/shared.ts';
@@ -251,6 +256,11 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.keys = keysOps(fc);
   fc.editorState = editorStateOps(fc);
   fc.slideMasters = slideMastersOps(fc);
+  fc.scaleMode = scaleModeOps(fc);
+  fc.selectionTransform = selectionTransformOps(fc);
+  fc.zones = zonesOps(fc);
+  fc.grabZones = grabZonesOps(fc);
+  fc.pinch = pinchOps(fc);
   fc.opts = opts;
 
   const {
@@ -638,12 +648,19 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // wants to keep - so a real mode would fight that invariant. Mutually exclusive with the
   // other tools: picking pen/create/connect (or the plain pointer) clears it.
   fc.nodeToolActive = false;
+  // Scale mode (K): the same kind of select sub-mode, and never restored from a save -
+  // every mount starts in Resize (see free-canvas/scale-mode.ts).
+  fc.scaleContent = false;
+  // "Large grab areas" (plan 311): GIMP-sized grab zones for a mouse and a pen as well
+  // as a finger. A device-local view preference, read once per mount (grab-zones.ts).
+  fc.largeGrab = storedLargeGrab();
   fc.armedKind = null; // the create gesture's seed; set iff mode === 'create'
   fc.gesture = null; // active pointer gesture
-  // The pointerType of the last press ON THE CANVAS. A touch laptop reports `pointer:
-  // coarse` for the whole document while the user is on the trackpad (see
-  // timeline-panel.ts's EDGE_PX_COARSE), so anything that MOVES the canvas asks the event
-  // rather than the media query - a trackpad user must never have the stage zoom under them.
+  // The pointerType of the last press ON THE CANVAS or on a selection handle. A touch
+  // laptop reports `pointer: coarse` for the whole document while the user is on the
+  // trackpad (see timeline-panel.ts's EDGE_PX_COARSE), so anything that MOVES the canvas
+  // asks the event rather than the media query - a trackpad user must never have the
+  // stage zoom under them.
   fc.lastPointerKind = '';
   fc.editing = null; // { id, el, prev } while editing a box's text inline
   fc.disposed = false;
@@ -1690,6 +1707,16 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // not acquire a field its URL wire cannot carry merely because this editor knows the
   // conventional name.
   const declaredBoxFields = new Set((input.fields || []).map((f) => f.id)); fc.declaredBoxFields = declaredBoxFields;
+  // The manifest bounds of each box field that declares one, for Scale's clamps (plan
+  // 311): a blocks input stores what it is given, so a scaled stroke or font size is
+  // held to the field's own min/max here rather than by the write.
+  const boxFieldBounds = new Map<string, { min?: number; max?: number }>();
+  const bound = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
+  for (const f of input.fields || []) {
+    const min = bound(f.min), max = bound(f.max);
+    if (min !== undefined || max !== undefined) boxFieldBounds.set(f.id, { ...(min !== undefined && { min }), ...(max !== undefined && { max }) });
+  }
+  fc.boxFieldBounds = boxFieldBounds;
   const styleFields = [...new Set([
     cfg.fillField, cfg.gradField, cfg.opacityField, cfg.shapeField, cfg.radiusField,
     cfg.fitField, cfg.imgPosField, cfg.blendField,
@@ -1778,7 +1805,6 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // name when there is one, and a double-click turns it into a one-field editor: Enter or
   // a click away saves, Escape cancels. Single click still solos the frame.
   fc.renamingFrameId = '';
-  const OPPOSITE: Record<Corner, Corner> = { nw: 'se', ne: 'sw', se: 'nw', sw: 'ne' }; fc.OPPOSITE = OPPOSITE;
 
   /**
    * The fixed stage chrome the contextual bar has to keep off, in STAGE coordinates:
@@ -1827,6 +1853,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   document.addEventListener('copy', fc.modes.onCopy);
   document.addEventListener('cut', fc.modes.onCut);
   stageEl.addEventListener('pointermove', fc.keys.onStagePointerMove, { passive: true });
+  const unwireZones = fc.zones.wire(); // the grab zones' hover cursor (plan 311)
+  const unwirePinch = fc.pinch.wire(); // Safari's own pinch events while two fingers hold the selection
   stageEl.addEventListener('wheel', fc.keys.onStageWheel, { passive: true });
   // The camera's wheel (plans/104 section 8) - on the CANVAS, not the stage, and non-passive
   // so a claimed notch can be preventDefault()ed. It runs BEFORE `tool-stage-nav`'s
@@ -2287,6 +2315,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       // for the enhancer's own reap would hold a WebGL context until some other tool paints.
       void sceneSelection?.then(m => m.destroyDesignScenes()).catch(() => {});
       fc.disposed = true;
+      // A drag in flight holds capture-phase modifier listeners on the window.
+      fc.gestureKeysOff?.();
+      fc.gestureKeysOff = null;
       // FIRST, so nothing that throws later in this teardown can leave the stage's
       // bottom band reserved for a panel that no longer exists.
       fc.timeline.destroyTimeline();
@@ -2327,6 +2358,8 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       document.removeEventListener('copy', fc.modes.onCopy);
       document.removeEventListener('cut', fc.modes.onCut);
       stageEl.removeEventListener('pointermove', fc.keys.onStagePointerMove);
+      unwireZones();
+      unwirePinch();
       stageEl.removeEventListener('wheel', fc.keys.onStageWheel);
       stageEl.removeEventListener('transitionend', fc.keys.onStageTransitionEnd);
       canvasEl.removeEventListener('wheel', fc.contextBar.onCameraWheel as EventListener);

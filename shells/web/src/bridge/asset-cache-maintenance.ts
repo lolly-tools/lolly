@@ -1,11 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { AssetRef } from '@lolly-tools/core/host-v1';
+import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { designMaterialOf } from '../../../../engine/src/design-system.ts';
 /** Idle catalog-cache housekeeping, loaded after catalog synchronization. */
 import type { AssetsDb, AssetMetaRecord, TrashedUserAssetRow } from './assets.ts';
 import { assetFileMetas } from './asset-file-meta.ts';
 
-export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaRecord[], sessionBlobKeys: Set<string>, keepIds: Set<string>, urls: { evict(key: string): void; evictPrefix(prefix: string): void }): Promise<{ blobs: number; meta: number }> {
+export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaRecord[], sessionBlobKeys: Set<string>, keepIds: Set<string>, urls: { evict(key: string): void; evictPrefix(prefix: string): void }, deferredProviders: readonly string[] = []): Promise<{ blobs: number; meta: number }> {
+  if (deferredProviders.length) {
+    const providers = new Set(deferredProviders);
+    const held = (await db.getAll('asset-meta')).filter(meta => typeof meta.provider === 'string' && providers.has(meta.provider) && (keepIds.has(meta.id) || [...keepIds].some(id => id.startsWith(`${meta.id}?file=`)) || [...sessionBlobKeys].some(key => key.startsWith(`${meta.id}:`) || key.startsWith(`${meta.id}?file=`))));
+    currentAssets = [...currentAssets, ...held];
+  }
   const cacheAssets = (await Promise.all(currentAssets.map(a => Array.isArray(a.meta?.assetFiles) ? assetFileMetas(a) : [a]))).flat();
 
   // All keys that exist at the current catalog version.
@@ -85,7 +91,7 @@ export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaReco
 
 /** Write fresh metadata and retire bytes when a DAM changes URLs without a version bump. */
 export async function syncAssetIndex(db: AssetsDb, assets: AssetMetaRecord[], source: { origin: string; tokensHead?: string | null } | undefined, invalidate: (key: string) => void): Promise<void> {
-  const old = new Map((await db.getAll('asset-meta')).map(meta => [meta.id, meta]));
+  const old = new Map((await Promise.all(assets.map(meta => db.get('asset-meta', meta.id)))).filter((meta): meta is AssetMetaRecord => !!meta).map(meta => [meta.id, meta]));
   for (const incoming of assets) {
     const previous = old.get(incoming.id);
     if (!previous || previous.version !== incoming.version || JSON.stringify(previous.formats) === JSON.stringify(incoming.formats)) continue;
@@ -108,9 +114,10 @@ export async function assetBytes(target: AssetRef | string): Promise<Uint8Array>
   const url = typeof target === 'string' ? target : target.original?.url ?? target.url;
   if (!url) throw new Error('asset has no url');
   const ok = url.startsWith('blob:') || url.startsWith('data:') || url.startsWith('/')
-    || (typeof location !== 'undefined' && url.startsWith(location.origin + '/'));
+    || (typeof location !== 'undefined' && url.startsWith(location.origin + '/'))
+    || url.startsWith(instancePath('/catalog/'));
   if (!ok) throw new Error(`host.assets.bytes: ${url.slice(0, 40)} is not an asset url of this origin - use host.net.fetch with an allowlist`);
-  const res = await fetch(url);
+  const res = await instanceFetch(url);
   if (!res.ok) throw new Error(`host.assets.bytes: HTTP ${res.status}`);
   return new Uint8Array(await res.arrayBuffer());
 }

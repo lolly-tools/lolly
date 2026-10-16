@@ -61,10 +61,12 @@ export function sidebarHtml(dt: DetailsCtx): string {
     button('download', configurable ? t('Download…') : t('Download'), DOWNLOAD_ICON, 'cat-act-download'),
     dt.isTextAsset && !shared ? button('dl-as', t('Download as'), DOWNLOAD_ICON, 'cat-act-dl-as', 'aria-haspopup="menu" aria-expanded="false"') : '',
     button('share', t('Copy link'), SHARE_ICON, 'cat-act-share'),
-    !shared ? button('send', t('Send to…'), icon('upload'), 'cat-act-send') : '',
+    !shared || ref.meta?.projectFileId ? button('send', t('Send to…'), icon('upload'), 'cat-act-send') : '',
     !shared ? button('prepare', t('Prepare for sharing'), icon('shield')) : '',
   ].join('');
-  const management = shared ? '' : `<details class="cat-action-group">
+  const projectFile = !!ref.meta?.projectFileId;
+  const projectActions = `${button('add-to-project', t('Copy to shared project…'), icon('folder'))}${catalogSubmitter('upload') ? button('catalog-submit', catalogSubmitter('upload')!.label(), icon('upload')) : ''}`;
+  const management = projectFile ? `<details class="cat-action-group" open><summary>${t('File')}</summary><div class="cat-act-row">${projectActions}</div></details>` : shared ? '' : `<details class="cat-action-group">
     <summary>${t('File')}</summary><div class="cat-act-row">
       ${button('add-to-project', t('Add to project…'), icon('folder'))}
       ${button('recategorise', t('Recategorise…'), TAG_ICON)}

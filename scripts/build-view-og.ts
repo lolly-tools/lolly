@@ -24,7 +24,9 @@
  * Card art is a dark "brand-system" panel (docs/og-image.ts → createViewCardRenderer):
  * the brand field, an accent app-icon tile, the view title + one-line description, a
  * large translucent watermark of the same icon - cohesive as a family, distinct from the
- * tool cards, which frame a preview of the tool's output. Rendering goes through OUR OWN
+ * tool cards, which frame a preview of the tool's output. A pack whose tokens select
+ * Opal's designs gets Opal's house card instead (docs/og-opal.ts), titled with the view
+ * and printing its share path. Rendering goes through OUR OWN
  * render path (Chromium via Playwright - scripts/lib/rasterize-svg-browser.ts), not
  * resvg, so a card is shaped the way the app paints and can't drift. The browser isn't
  * on the Vercel build, so - exactly like the tool cards and catalog/previews - the PNGs
@@ -315,7 +317,7 @@ async function main(): Promise<void> {
     const gated = sigs[v.slug] === sig && existsSync(cardPath);
     if (renderer && !(PRESERVE && existsSync(cardPath)) && !gated) {
       try {
-        const png = await renderer.render({ title: v.title, description: v.description, iconSvg: v.icon });
+        const png = await renderer.render({ title: v.title, description: v.description, iconSvg: v.icon, slug: v.slug });
         // Stamp our own share card with the Lolly Imprint + "made with Lolly" C2PA
         // before committing (see scripts/lib/stamp-media.ts).
         const stamped = await stampBitmap(png, 'png', { id: v.slug, name: v.title });

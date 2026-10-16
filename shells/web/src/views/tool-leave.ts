@@ -20,11 +20,11 @@
  *
  * A document that belongs somewhere else (a team project, lib/document-scope.ts) is
  * different again (plan 75 J6 step 6): the dialog asks "Save changes to Brand
- * refresh?" ({@link leaveQuestion}), Save writes to the project, and Leave without
- * saving means "not to the project", so the device draft automatic history made is
+ * refresh?" ({@link leaveQuestion}), Save & leave writes to the project and Leave
+ * anyway means "not to the project", so the device draft automatic history made is
  * kept rather than discarded, and Back returns to the draft. That holds only where the
  * dialog asked that question: a viewer's document, and one in a live collab, get the
- * ordinary dialog, whose Leave without saving discards, as it says.
+ * ordinary dialog, whose Leave anyway discards, as its sentence says.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { WebStateAPI } from '../bridge/state.ts';
@@ -52,7 +52,7 @@ const RECORDED_TAKE_ID = /^(user\/recording\/|recording\.[a-z0-9]+$)/;
 
 /**
  * The stored size of a recorded video take among a tool's input values, for the
- * Unsaved changes dialog's "Includes a {size} video clip" line. Null when there
+ * Unsaved edits dialog's "Includes a {size} video clip" line. Null when there
  * is none. Bytes alone prove nothing: every upload carries its stored length in
  * meta.bytes (plan 302). So the id must be a take's, and the type must be video,
  * because a screenshot or a voiceover shares the take namespace.
@@ -81,7 +81,7 @@ export async function discardUnsavedWork(opts: {
   unfile?(slot: string): Promise<void>;
   /** Keep the device draft instead of discarding the draft. Defaults to whether the
    *  leave dialog asked the document's own question ({@link leaveQuestion}): only then
-   *  did Leave without saving mean "not to the project" rather than "discard". */
+   *  does Leave anyway mean "not to the project" rather than "discard". */
   keep?: boolean;
 }): Promise<{ outcome: DiscardResult['outcome']; kept: string | null }> {
   if (!opts.controller) return { outcome: 'unchanged', kept: opts.slot() };
@@ -156,7 +156,7 @@ export function entryHoldsUnsavedEdits(toolId: string): boolean {
   return entryState()[UNSAVED_KEY] === toolId;
 }
 
-/** The Unsaved changes dialog's question over a document that belongs somewhere else
+/** The Unsaved edits dialog's question over a document that belongs somewhere else
  *  ("Save changes to Brand refresh?"), or null for the ordinary dialog. */
 export function leaveQuestion(): string | null {
   return documentLeavePrompt();

@@ -116,6 +116,22 @@ export interface ResizeOpts {
   minSize?: number;
   keepAspect?: boolean;
   fromCentre?: boolean;
+  /** With `fromCentre`, the dragged edge follows the pointer and the opposite edge
+   *  mirrors it (Figma, Penpot), so the size changes by twice the projected delta.
+   *  Off by default: the dragged edge then moves half the pointer delta, which the
+   *  deck editor still relies on. */
+  mirror?: boolean;
+  /** How `keepAspect` picks the axis that drives a corner drag. 'width' (the default)
+   *  drives the height from the width. 'dominant' follows whichever axis changed more
+   *  relative to its start size (Figma), so a vertical-only Shift drag still resizes,
+   *  and clamps one uniform factor with {@link uniformScaleFloor}. */
+  aspectFrom?: 'width' | 'dominant';
+  /** Floor only the sides the handle drives, and a side already thinner than `minSize`
+   *  at its own size: lengthening a 2 px rule from an end keeps the rule 2 px thick.
+   *  Off by default, which raises both sides to `minSize`, as the deck editor expects.
+   *  On the 'dominant' aspect path, which has its own uniform floor, a side already
+   *  thinner than `minSize` never scales below its own size. */
+  keepThin?: boolean;
 }
 
 /** Options for {@link scaleGroup}. */
@@ -331,16 +347,31 @@ export function moveBoxes(boxes: Box[], indices: number[], dx: number, dy: numbe
 }
 
 // Handle → local sign of the corner/edge being dragged. 0 = free on that axis.
-const HANDLE_SIGN: Record<HandleName, [number, number]> = {
+export const HANDLE_SIGN: Readonly<Record<HandleName, readonly [number, number]>> = {
   n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0],
   ne: [1, -1], nw: [-1, -1], se: [1, 1], sw: [-1, 1],
 };
+
+/** The smallest uniform factor a uniform scale may reach (Figma's `rescale` floor). */
+export const SCALE_K_FLOOR = 0.01;
+
+/**
+ * The smallest uniform factor that keeps a `w`×`h` box at `minSize` or more: the
+ * smaller side decides. A side already under `minSize` (a 0-height line, a hairline)
+ * is exempt, so a line scales on its length alone; a box with both sides under
+ * `minSize` sets no limit beyond {@link SCALE_K_FLOOR}.
+ */
+export function uniformScaleFloor(w: number, h: number, minSize: number): number {
+  const sides = [w, h].filter((s) => Number.isFinite(s) && s >= minSize && s > 0);
+  return sides.length ? Math.max(SCALE_K_FLOOR, minSize / Math.min(...sides)) : SCALE_K_FLOOR;
+}
 
 /**
  * Resize one box by dragging `handle`, given the TOTAL pointer delta (native px)
  * since the gesture began and the box's rect AT gesture start (`startRect`).
  * Rotation-aware: the opposite anchor stays fixed in world space.
- * opts: { minSize, keepAspect, fromCentre }.
+ * opts: { minSize, keepAspect, fromCentre, mirror, aspectFrom }; the last two default
+ * to the deck editor's behaviour (see {@link ResizeOpts}).
  */
 export function resizeRect(startRect: StartRect, handle: HandleName, dxTotal: number, dyTotal: number, opts: ResizeOpts = {}): Rect {
   const minSize = opts.minSize ?? 8;
@@ -352,21 +383,38 @@ export function resizeRect(startRect: StartRect, handle: HandleName, dxTotal: nu
   // Pointer delta projected onto the local axes.
   const dLocalX = dxTotal * ax.x + dyTotal * ax.y;
   const dLocalY = dxTotal * ay.x + dyTotal * ay.y;
-  let newW = startRect.w + (hx === 0 ? 0 : hx * dLocalX);
-  let newH = startRect.h + (hy === 0 ? 0 : hy * dLocalY);
-  newW = Math.max(minSize, newW);
-  newH = Math.max(minSize, newH);
+  // A mirrored from-centre drag moves both edges, so the size changes twice as fast.
+  const grow = opts.fromCentre && opts.mirror ? 2 : 1;
+  let newW = startRect.w + (hx === 0 ? 0 : grow * hx * dLocalX);
+  let newH = startRect.h + (hy === 0 ? 0 : grow * hy * dLocalY);
 
-  if (opts.keepAspect && startRect.w > 0 && startRect.h > 0) {
-    const aspect = startRect.w / startRect.h;
-    if (hx !== 0 && hy !== 0) {
-      // Corner drag: drive height from width along the aspect.
-      newH = Math.max(minSize, newW / aspect);
-      newW = newH * aspect;
-    } else if (hx !== 0) {
-      newH = newW / aspect;
-    } else if (hy !== 0) {
-      newW = newH * aspect;
+  if (opts.keepAspect && opts.aspectFrom === 'dominant' && startRect.w > 0 && startRect.h > 0) {
+    // One factor for both sides: a corner follows the axis that moved further
+    // relative to its size, an edge follows its own axis.
+    const sx = newW / startRect.w, sy = newH / startRect.h;
+    const raw = hy === 0 ? sx : hx === 0 ? sy : Math.abs(sx - 1) >= Math.abs(sy - 1) ? sx : sy;
+    const k = Math.max(uniformScaleFloor(startRect.w, startRect.h, minSize), raw);
+    // With `keepThin`, a side already thinner than minSize (the floor exempts it) never
+    // shrinks below its own size, as a set's members do: a Shift drag that shortens a
+    // 4 px rule keeps the rule 4 px thick rather than rounding it away.
+    const side = (s: number): number => (opts.keepThin ? Math.max(s * k, Math.min(s, minSize)) : s * k);
+    newW = side(startRect.w);
+    newH = side(startRect.h);
+  } else {
+    const thin = (side: number, driven: boolean): number => (!driven ? 0 : side > 0 ? Math.min(minSize, side) : minSize);
+    newW = Math.max(opts.keepThin ? thin(startRect.w, hx !== 0) : minSize, newW);
+    newH = Math.max(opts.keepThin ? thin(startRect.h, hy !== 0) : minSize, newH);
+    if (opts.keepAspect && startRect.w > 0 && startRect.h > 0) {
+      const aspect = startRect.w / startRect.h;
+      if (hx !== 0 && hy !== 0) {
+        // Corner drag: drive height from width along the aspect.
+        newH = Math.max(minSize, newW / aspect);
+        newW = newH * aspect;
+      } else if (hx !== 0) {
+        newH = newW / aspect;
+      } else if (hy !== 0) {
+        newW = newH * aspect;
+      }
     }
   }
 
@@ -1260,8 +1308,14 @@ export function normDragRect(x0: number, y0: number, x1: number, y1: number, min
 // ── Group transforms (multi-selection: scale + rotate about a pivot) ──────────
 // A group / multi-selection scales UNIFORMLY (shear-free - a rotated box can't
 // represent a non-uniform scale) about a fixed `anchor`, and rotates rigidly about
-// a fixed `centre`. Text size + corner radius scale with the group so it reads as
-// real scaling. Both return NEW boxes arrays.
+// a fixed `centre`. Both return NEW boxes arrays.
+//
+// scaleGroup also returns the font size and corner radius times k. Neither the canvas
+// nor the deck editor calls it now: a selection resize or Scale goes through
+// transformSelection and scaleMembersAt in free-canvas-transform.ts, which keep a side
+// thinner than minSize at its own size instead of raising it to minSize. Resize, the default, is geometry only;
+// Scale mode (K, plan 311) scales content through scaleBoxContent, which covers every
+// content length and the manifest bounds.
 
 export function scaleGroup(boxes: Box[], indices: number[], anchor: Point, k: number, cfg: BoxFieldConfig, opts: ScaleOpts = {}): Box[] {
   const set = new Set(indices);
@@ -1283,15 +1337,19 @@ export function scaleGroup(boxes: Box[], indices: number[], anchor: Point, k: nu
   });
 }
 
+/** One rect of a set turned `deltaDeg` about `centre`: its centre swings round the pivot and its own angle turns by the same amount. */
+export function rotateRectAbout(r: Rect, centre: Point, deltaDeg: number): Rect {
+  const c = rectCentre(r);
+  const v = rotateVec(c.x - centre.x, c.y - centre.y, deltaDeg);
+  return { ...r, x: centre.x + v.x - r.w / 2, y: centre.y + v.y - r.h / 2, rot: normAngle(r.rot + deltaDeg) };
+}
+
 export function rotateGroup(boxes: Box[], indices: number[], centre: Point, deltaDeg: number, cfg: BoxFieldConfig): Box[] {
   const set = new Set(indices);
   return boxes.map((b, i) => {
     if (!set.has(i)) return b;
-    const r = boxRect(b, cfg);
-    const c = rectCentre(r);
-    const v = rotateVec(c.x - centre.x, c.y - centre.y, deltaDeg);
-    const nc = { x: centre.x + v.x, y: centre.y + v.y };
-    return withRect(b, { x: nc.x - r.w / 2, y: nc.y - r.h / 2, rot: normAngle(r.rot + deltaDeg) }, cfg);
+    const { x, y, rot } = rotateRectAbout(boxRect(b, cfg), centre, deltaDeg);
+    return withRect(b, { x, y, rot }, cfg);
   });
 }
 

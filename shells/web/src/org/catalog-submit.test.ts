@@ -12,6 +12,7 @@ import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { latestFor, stateText, submitQuery } from './catalog-submit.ts';
 import { templateSubject, uploadSubject } from '../lib/catalog-submit.ts';
+import { projectFileSubject } from './project-catalog-submit.ts';
 
 const tpl = templateSubject({ id: 't1', toolId: 'design', name: 'Poster', values: { doc: '{}' }, createdAt: '', updatedAt: '' });
 
@@ -68,6 +69,23 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
 
 const { openCatalogSubmitDialog } = await import('./catalog-submit.ts');
 const settle = (): Promise<void> => new Promise((r) => setTimeout(r, 10));
+
+test('shared originals submit source identifiers with an empty body and explicit audience, retaining pending state on replay', async () => {
+  document.body.replaceChildren(); posted = null; earlier = [];
+  answer = { status: 200, body: { state: 'submitted', duplicate: true } };
+  const subject = projectFileSubject('private-project', { id: 'file-one', name: 'Hero', checksum: 'a'.repeat(64) });
+  openCatalogSubmitDialog(subject, 'Work', ['design']);
+  const form = document.querySelector<HTMLFormElement>('[data-form]')!;
+  document.querySelector<HTMLSelectElement>('[data-groups]')!.value = 'design';
+  form.dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));
+  await settle();
+  const sent = posted as { url: string; text: string } | null;
+  assert.ok(sent); const query = new URL(sent.url, 'https://work.test').searchParams;
+  assert.equal(query.get('projectId'), 'private-project'); assert.equal(query.get('fileId'), 'file-one'); assert.equal(query.get('checksum'), 'a'.repeat(64));
+  assert.equal(query.get('groups'), 'design'); assert.equal(query.get('type'), null); assert.equal(sent.text, '');
+  assert.match(document.querySelector('[data-state]')!.textContent!, /waiting for review/);
+  document.body.replaceChildren(); answer = { status: 201, body: { state: 'submitted', duplicate: false } };
+});
 
 test('the dialog shows an earlier submission, sends the JSON, and says it is waiting for review', async () => {
   earlier = [{ id: 'inst/1', state: 'returned', clientRef: 'template:t1', comment: 'wrong logo', at: '2026-10-01' }];

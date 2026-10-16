@@ -36,7 +36,7 @@ globalThis.fetch = (async (input: string | URL | Request) => {
   requests.push(url);
   if (status !== 200) return new Response('', { status });
   if (url.endsWith('/catalog/tools/index.json')) return Response.json(TOOLS);
-  if (url.endsWith('/catalog/assets/index.json')) return Response.json(ASSETS);
+  if (url.endsWith('/catalog/assets/index.json?paged=1')) return Response.json(ASSETS);
   return new Response('not found', { status: 404 });
 }) as typeof fetch;
 
@@ -163,7 +163,7 @@ test('a refusal remembered from last boot: once signed in, a token read waits fo
   await syncing;
   assert.equal(await read, '#30ba78', 'the read is served from the synced store');
   // `as`: the deepEqual above narrowed `requests` to an empty tuple.
-  const assetIndexAsks = (requests as string[]).filter(u => u.endsWith('/catalog/assets/index.json')).length;
+  const assetIndexAsks = (requests as string[]).filter(u => u.endsWith('/catalog/assets/index.json?paged=1')).length;
   assert.equal(assetIndexAsks, 1, 'the asset index is fetched once, by the sync');
 });
 
@@ -171,7 +171,7 @@ test('no refusal on record: the sign-in answer is never waited for', async () =>
   let asked = 0;
   await syncCatalog(mockHost(), undefined, undefined, async () => { asked++; return true; });
   assert.equal(asked, 0, 'a public deployment never waits on the control plane');
-  assert.ok(requests.some(u => u.endsWith('/catalog/assets/index.json')));
+  assert.ok(requests.some(u => u.endsWith('/catalog/assets/index.json?paged=1')));
   assert.equal(localStorage.getItem(REFUSED_KEY), null, 'nothing is written');
 });
 
@@ -217,7 +217,7 @@ test('a failed prepared request reaches the normal offline fallback', async () =
   const prepared = prepareAssetCatalogFetch();
   await prepared;
   await syncCatalog(mockHost(), () => {}, undefined, undefined, prepared);
-  assert.equal(requests.filter(url => url.endsWith('/catalog/assets/index.json')).length, 1);
+  assert.equal(requests.filter(url => url.endsWith('/catalog/assets/index.json?paged=1')).length, 1);
   assert.equal(catalogRefused(), false);
   assert.equal(networkStatus.offline, true);
   assert.equal(chipShown(), true);

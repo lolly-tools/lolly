@@ -16,6 +16,8 @@ import type { SlideMasterFileV1 } from '@lolly-tools/core';
 import {
   MASTER_ASSET_TAGS,
   readActiveDesignSystem,
+  readColors,
+  readDarkColors,
   readFonts,
   readMasterFile,
   resolveActiveDesignSystem,
@@ -166,6 +168,26 @@ test('with no registry the shipped design system is the one named', async () => 
 
 test('a host with no assets and no tokens has nothing to read', async () => {
   assert.equal(await resolveActiveDesignSystem({}), null);
+});
+
+test('the colours read leave out the Design slide roles and the app chrome, in both modes', async () => {
+  const entries = (mode: 'light' | 'dark') => [
+    { path: 'color.semantic.surface', type: 'color', value: mode === 'light' ? '#ffffff' : '#1d1d1d' },
+    { path: 'color.brand.accent', type: 'color', value: '#2244cc' },
+    { path: 'color.role.muted-ink', type: 'color', value: '#525252' },
+    { path: 'color.chrome.page', type: 'color', value: mode === 'light' ? '#fcfaf6' : '#171612' },
+    { path: 'color.chrome.ink', type: 'color', value: mode === 'light' ? '#171612' : '#eae8e2' },
+    { path: 'font.brand', type: 'fontFamily', value: 'Stub Sans' },
+  ];
+  const tokens = {
+    async get(opts?: { theme?: string }) {
+      const list = entries(opts?.theme === 'dark' ? 'dark' : 'light');
+      return { query: (filter?: { type?: string }) => list.filter((entry) => !filter?.type || entry.type === filter.type) };
+    },
+    async themes() { return [{ name: 'light' }, { name: 'dark' }]; },
+  };
+  assert.deepEqual([...(await readColors(tokens))], [['color.semantic.surface', '#ffffff'], ['color.brand.accent', '#2244cc']]);
+  assert.deepEqual(await readDarkColors(tokens), { 'color.semantic.surface': '#1d1d1d', 'color.brand.accent': '#2244cc' });
 });
 
 test('faces are absent when the token set names none', async () => {

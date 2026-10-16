@@ -44,6 +44,7 @@ security posture).
 | [make-something.md](make-something.md) | end user | One first lesson: make a QR code, download it, check that it scans and save an editable copy, with no account or setup. Links to an audiogram and a filtered photo as other first projects. The first click for a brand-new visitor. |
 | [install.md](install.md) | end user | Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap 16 RPMs, the Flatpak, the Android APK, plus Windows, iOS, the CLI and the TUI. The destination of the landing hero's download rail. |
 | [supported-environments.md](supported-environments.md) | end user and operator | Published browser and app qualification results, their platform limits, and the web-only release scope while native qualification remains open. |
+| [project-asset-transfers.md](project-asset-transfers.md) | end user | Browse shared project folders, copy files, submit originals to the workspace library and send files to connected destinations. |
 | [organisation.md](organisation.md) | end user | Connect to an organisation's Lolly, with progressive disclosure for optional lolly.work identity, shared work, policies and data handling. |
 
 ## For Creators
@@ -58,7 +59,7 @@ security posture).
 | [brand-studio.md](brand-studio.md) | end user | The Brand Studio at `#/start`: logos, colours, type, tokens and files, plus how a brand pack moves between devices. |
 | [3d-studio.md](3d-studio.md) | end user | Guided and expert 3D image creation: SVG extrusion, model imports, materials, lighting, depth, alpha and reusable scenes. |
 | [profile.md](profile.md) | end user | Profiles as the on-device working identity a tool pre-fills from, and how they differ from the platform brand and from capabilities. |
-| [find-your-work.md](find-your-work.md) | end user | Where saved work, downloads and earlier versions are; what reload, a closed tab, the Unsaved changes dialog, cleared browser data and each delete do; moving work to another device by Sync, backup or .lolly. |
+| [find-your-work.md](find-your-work.md) | end user | Where saved work, downloads and earlier versions are; what reload, a closed tab, the Unsaved edits dialog, cleared browser data and each delete do; moving work to another device by Sync, backup or .lolly. |
 | [sync.md](sync.md) | end user | Keeping one person's devices in step through storage they nominate (Dropbox, Google Drive, OneDrive, Nextcloud / WebDAV, S3), with no Lolly server or Lolly Work in the path: what syncs, the choices per browser and app, conflicts and undo, optional encryption, per-provider set-up and the registrations a host or app build needs. |
 | [search.md](search.md) | end user | The one field at the bottom of every screen: which routes carry it, what each provider reaches (tools, saved sessions, assets, settings, docs), the spotlight chord, and what it deliberately does not index. |
 | [ask.md](ask.md) | end user | Ask Lolly (`#/ask`): typed questions answered verbatim from this documentation with a citation and an Open-in-docs link - retrieved, never generated - plus navigate-only matches from the app. |

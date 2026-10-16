@@ -11,7 +11,7 @@ function group(version = '2'): AssetMetaRecord {
 }
 function fixture(keys: string[], metas: AssetMetaRecord[] = []) {
   const blobs = new Set(keys), records = new Map(metas.map(m => [m.id, m]));
-  const db = { getAllKeys: async (s: string) => [...(s === 'asset-blob' ? blobs : records.keys())], getAll: async () => [...records.values()],
+  const db = { get: async (_s: string, key: string) => records.get(key), getAllKeys: async (s: string) => [...(s === 'asset-blob' ? blobs : records.keys())], getAll: async () => [...records.values()],
     delete: async (_s: string, key: string) => { blobs.delete(key); }, put: async () => {},
     transaction: (s: string) => ({ store: { delete: async (key: string) => { if (s === 'asset-blob') blobs.delete(key); else records.delete(key); },
       put: async (value: AssetMetaRecord) => { records.set(value.id, value); } }, done: Promise.resolve() }) } as unknown as AssetsDb;
@@ -36,4 +36,19 @@ test('a DAM URL change at the same version retires old group and variation bytes
   await syncAssetIndex(f.db, [changed], undefined, key => { invalidated.push(key); });
   assert.deepEqual([...f.blobs], []); assert.deepEqual(new Set(invalidated), new Set([`${id}:jpg:2`, `${variant}:jpg:2`]));
   assert.equal(f.records.get(id), changed);
+});
+
+test('a partial index keeps saved provider files without retaining unselected catalog pages', async () => {
+  const saved = `${variant}:jpg:2`, held = { ...group(), provider: 'dam' };
+  const unused = { ...held, id: 'ext/dam/unused' };
+  const f = fixture([saved, 'ext/dam/unused:jpg:2'], [held, unused]);
+  await pruneAssetCache(f.db, [], new Set([saved]), new Set(), f.urls, ['dam']);
+  assert.equal(f.records.has(id), true); assert.equal(f.blobs.has(saved), true);
+  assert.equal(f.records.has(unused.id), false); assert.equal(f.blobs.has('ext/dam/unused:jpg:2'), false);
+  await pruneAssetCache(f.db, [], new Set([saved]), new Set(), f.urls, []);
+  assert.equal(f.records.has(id), false, 'a removed source is not mistaken for a deferred page');
+  const downloaded = fixture([saved], [held]);
+  await pruneAssetCache(downloaded.db, [], new Set(), new Set([variant]), downloaded.urls, ['dam']);
+  assert.equal(downloaded.records.has(id), true, 'an explicit selected-file download retains its group metadata');
+  assert.equal(downloaded.blobs.has(saved), true);
 });
