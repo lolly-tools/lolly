@@ -226,6 +226,17 @@ function isHiddenAttrs(attrs: Record<string, string>): boolean {
     || /display\s*:\s*none/.test(style) || /visibility\s*:\s*hidden/.test(style);
 }
 
+/** Text whose extent only a layout engine knows: the font, its metrics and the run. */
+const LIVE_TEXT = new Set(['text', 'tspan', 'textpath']);
+
+/**
+ * The visible artwork's box in root user units, or null when the markup cannot
+ * say. Live text is the case that matters: a wordmark set in `<text>` has no
+ * geometry here, so measuring the shapes around it would offer a trim that cuts
+ * the words off and read a horizontal lockup as vertical (plan 320 S7). Visible
+ * live text therefore returns null; trim makes no offer and classification falls
+ * back to the artboard. Text inside a definition or a hidden group does not count.
+ */
 export function svgContentBounds(svgText: string): Box | null {
   let box: LocalBox | null = null;
   const stack: Frame[] = [{ name: '#root', matrix: IDENTITY, hidden: false, skip: false }];
@@ -244,6 +255,7 @@ export function svgContentBounds(svgText: string): Box | null {
     if (!tag.selfClose) stack.push({ name: tag.name, matrix, hidden, skip });
 
     if (skip || hidden) continue;
+    if (LIVE_TEXT.has(tag.name)) return null;
     const local = shapeBox(tag.name, tag.attrs);
     if (!local) continue;
     const hull = transformedHull(local, matrix);
