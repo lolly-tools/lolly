@@ -115,7 +115,7 @@ interface CatalogCore {
 }
 
 async function readCatalogCore(base: string): Promise<CatalogCore> {
-  const resp = await instanceFetch(`${base}/catalog/assets/index.json`, { cache: 'no-cache' });
+  const resp = await instanceFetch(`${base}/catalog/assets/index.json?paged=1`, { cache: 'no-cache' });
   if (!resp.ok) throw new Error(`${base} hosts no catalog (${resp.status}).`);
   const idx = await resp.json() as { brandTokens?: string | null; assets?: CatalogCore['assets'] };
   const assets = idx.assets ?? [];

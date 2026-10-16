@@ -213,7 +213,7 @@ test('hosted removal reviews the destination catalogue and refuses a changed des
   const savedFetch = globalThis.fetch;
   let name = 'Alpha Tokens';
   globalThis.fetch = async input => {
-    assert.equal(String(input), '/catalog/assets/index.json');
+    assert.equal(String(input), '/catalog/assets/index.json?paged=1');
     return Response.json({ brandTokens: 'alpha/tokens/brand', assets: [
       { id: 'alpha/tokens/brand', type: 'tokens', name, version: '1', formats: [{ format: 'json', checksum: name }] },
     ] });

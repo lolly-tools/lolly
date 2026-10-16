@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 export interface AssetSourceNode { id: string; label: string; count?: number; children?: AssetSourceNode[]; selectable?: boolean }
-export interface CatalogSourceStatus { id: string; label: string; status: 'current' | 'stale' | 'unavailable' | 'pending'; count?: number; lastSyncedAt?: string }
+export interface CatalogSourceStatus { id: string; label: string; status: 'current' | 'stale' | 'unavailable' | 'pending'; count?: number; lastSyncedAt?: string; truncated?: boolean; incomplete?: boolean }
 interface Taxonomy { id: string; name: string; kind: 'section' | 'collection' | 'folder'; parentId?: string }
 export function assetTaxonomy(asset: AssetRef): Taxonomy[] {
   const actual = asset.meta?.providerTaxonomy;

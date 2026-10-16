@@ -17,7 +17,7 @@ test('Profile creates and reopens editable systems beside a locked deployment br
     await page.addInitScript(() => {
       for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1');
     });
-    await page.route('**/catalog/assets/index.json', async route => {
+    await page.route('**/catalog/assets/index.json?paged=1', async route => {
       const response = await route.fetch();
       if (response.status() === 304) { await route.fulfill({ response }); return; }
       const index = await response.json();
@@ -113,7 +113,7 @@ test('cold catalog and welcome progress while the local profile read is pending'
         releaseProfileRead: () => { released = true; for (const fire of pending.splice(0)) fire(); },
       });
     });
-    const assets = page.waitForRequest('**/catalog/assets/index.json');
+    const assets = page.waitForRequest('**/catalog/assets/index.json?paged=1');
     await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => (window as unknown as { profileReadWaiting(): boolean }).profileReadWaiting());
     await assets;
@@ -130,7 +130,7 @@ test('cold brand discovery shares a slow asset sync without a second index reque
   try {
     const page = await browser.newPage();
     let reads = 0;
-    await page.route('**/catalog/assets/index.json', async route => {
+    await page.route('**/catalog/assets/index.json?paged=1', async route => {
       reads++;
       await new Promise<void>(resolve => setTimeout(resolve, 750));
       await route.continue();

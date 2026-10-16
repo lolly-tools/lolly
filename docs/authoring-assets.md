@@ -6,6 +6,29 @@ Those types are what the filter row in Assets is built from, and it only offers 
 
 ![The Assets toolbar - type filter pills on the left and a live asset count beside them, the file-type enum surfaced as a control](/t/url-shot?url=%2F%23%2Fa&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&cropSelector=.cat-toolbar&dark=1&filename=at2-assets-typefilters)
 
+## Shared libraries in Assets
+
+When connected to Work, the Shared library section browses indexed records one page at a
+time. Type, tag and source controls filter on the server before counts and pages are
+returned. Shared rows are ordered by name. Your device assets and design-system panels
+remain available separately, including when a source cannot be reached.
+
+Selections survive page and filter changes. The selection bar can therefore include files
+on another page; clear the selection before starting another batch. Open an asset to choose
+its actual file. A rendition is labelled separately, and a preview does not establish
+original availability. A known source version change is reported rather than silently
+replacing a selected reference. Historical byte retention remains a separate capability.
+
+The inspector's Organisation metadata section shows the Work fields and offers editing
+where your current grant permits. Those values are organisation overlays, separate from
+upstream source facts. Shared source status explains pending sync, cached listings and
+incomplete counts. Live source search is a bounded candidate search; exact filters use
+indexed browse. Update Work before shipping this shared-browser shell: Work must advertise
+support for the requested filters and provide the bounded startup inventory. An older
+server is refused with an update message rather than silently ignoring a filter.
+Shared browse does not interpret the local library's search operators;
+use its Type, Tag and source controls. These paths work without AI processing.
+
 ## Anatomy
 
 ```

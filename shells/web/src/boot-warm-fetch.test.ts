@@ -155,7 +155,7 @@ async function runAssetWarm(seed: (dom: JSDOM) => void): Promise<string[]> {
 }
 
 test('a fresh document warms only its uncached asset index', async () => {
-  assert.deepEqual(await runAssetWarm(() => {}), ['/catalog/assets/index.json']);
+  assert.deepEqual(await runAssetWarm(() => {}), ['/catalog/assets/index.json?paged=1']);
   for (const key of ['sbt-tool-index', 'sbt-catalog:assets-index', 'lolly:catalog-refused:same-origin']) {
     assert.deepEqual(await runAssetWarm(dom => dom.window.localStorage.setItem(key, '1')), [], key);
   }
