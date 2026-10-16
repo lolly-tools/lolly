@@ -749,7 +749,10 @@ test('a bare text node between tspans moves the pen by its own width', { skip: S
   assert.match(pic.text.replace(/\s+/g, ' '), /Alpha beta gamma/, 'the words read in order, a space apart');
   const pdf = inkSpan(pic.at, pic.width, 20, 80), screen = inkSpan(pic.screen, pic.width, 20, 80);
   assert.ok(pdf && screen && Math.abs(pdf[1] - screen[1]) <= 8, `the line ends where the browser ends the line: ${pdf?.[1]} against ${screen?.[1]}`);
-  const green = inkSpan(pic.at, pic.width, 20, 80, c => c[1] > 150 && c[0] < 100), greenOnScreen = inkSpan(pic.screen, pic.width, 20, 80, c => c[1] > 150 && c[0] < 100);
+  // Pure green only: the screen's subpixel antialiasing gives white glyphs cyan left edges
+  // (low red, high green and blue), which a red-and-green test alone mistakes for "beta".
+  const isGreen = (c: [number, number, number]) => c[1] > 150 && c[0] < 100 && c[2] < 100;
+  const green = inkSpan(pic.at, pic.width, 20, 80, isGreen), greenOnScreen = inkSpan(pic.screen, pic.width, 20, 80, isGreen);
   assert.ok(green && greenOnScreen && Math.abs(green[0] - greenOnScreen[0]) <= 6, `"beta" starts at the browser's x: ${green?.[0]} against ${greenOnScreen?.[0]}`);
 });
 
