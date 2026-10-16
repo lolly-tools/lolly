@@ -29,6 +29,8 @@
 // scripts/check-bundle-budget.ts.
 import { colorToHex, isAlias } from '../../../engine/src/tokens.ts';
 import { parseOklch, oklchToHex, hexToOklch, parseHex, contrastRatio } from '../../../engine/src/brand-derive.ts';
+// Already on the boot path: tokens.ts's colorToHex parses colours with these two.
+import { parseColor, colorToSrgb8 } from '../../../engine/src/css-color.ts';
 import { chromeFollowsDesignSystem } from './lib/chrome-follow.ts';
 import { CHROME_SLOTS, CHROME_THEMES, declaresUnsaved, resolvePackChrome, type ChromeTheme, type ChromeThemeName, type PackChrome } from './lib/brand-chrome.ts';
 import { syncThemeColorMeta } from './lib/theme-color.ts';
@@ -427,7 +429,8 @@ export function tokenValueToHex(value: unknown): string | null {
  * Shared chrome ink: choose the higher-contrast black/white using linear sRGB
  * luminance. This guarantees at least 4.5:1 on an opaque sRGB fill, including
  * mid greens. Authored artwork still uses --brand-on-primary unchanged;
- * the high-contrast preference retains its separate APCA search.
+ * the high-contrast preference retains its separate APCA search. Reads hex
+ * only; a label drawn on a swatch colour takes swatchInk (below) instead.
  */
 export function contrastText(hex: string): string {
   const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(hex);
@@ -582,6 +585,74 @@ export function apcaLcAbs(textHex: string, bgHex: string): number {
     ? (ybg ** normBG - ytxt ** normTXT) * scale
     : (ybg ** revBG - ytxt ** revTXT) * scale;
   return Math.abs(sapc) < loClip ? 0 : (Math.abs(sapc) - offset) * 100;
+}
+
+// ── Labels on a colour: the swatch ink ───────────────────────────────────────
+// The colour picker's swatch name chip, its value pill and dial disc, the
+// Colour Lab's swatch and ramp steps, Brand Studio's role marks and draft
+// shades and the design-system specimen all put a short label straight onto an
+// arbitrary colour. Those labels follow APCA: white or the dark ink, whichever
+// reads with the higher |Lc| against the colour the label sits on, scored by
+// apcaLcAbs above. Two inks and one comparison, so there is no threshold to tune.
+//
+// contrastText stays the ink for the chrome accent (the primary button, the
+// warn pill), where WCAG 2's 4.5:1 is the number the app guarantees. The two
+// rules agree on dark and light colours and part only in the mid tones, where
+// APCA is the better judge of a short label: on the pink #cf6ca9 white scores
+// Lc 65 and black Lc 44, while WCAG 2 prefers black.
+
+/** The two inks a label on a colour chooses between. */
+export const SWATCH_INK = { light: '#ffffff', dark: '#000000' } as const;
+
+/**
+ * The opaque `#rrggbb` a label drawn on `fill` actually sits on. `fill` is any
+ * colour the engine's parser reads: hex with or without alpha, rgb(), hsl(),
+ * oklch(), color(display-p3 ...), a named colour or `transparent`. A colour
+ * outside sRGB is taken as the sRGB colour a screen shows, because APCA is
+ * fitted to sRGB.
+ *
+ * A translucent colour is composited over `backdrop`, which is read as opaque.
+ * A caller that cannot see what lies under the colour (markup built as a string,
+ * over a surface that follows the theme) leaves `backdrop` out, and the colour
+ * is then judged at full strength; `transparent` has no strength, so it has no
+ * ground without one. Null when nothing parses: a `var()` or a token has to be
+ * resolved by the caller, which has the cascade.
+ */
+export function swatchGround(fill: string, backdrop?: string): string | null {
+  const top = parseColor(fill);
+  if (!top) return null;
+  const [r, g, b, alpha] = colorToSrgb8(top);
+  const hex = (...v: number[]): string =>
+    `#${v.map((n) => Math.round(n).toString(16).padStart(2, '0')).join('')}`;
+  if (backdrop == null) return alpha > 0 ? hex(r, g, b) : null;
+  const under = parseColor(backdrop);
+  if (!under) return null;
+  const [br, bg, bb] = colorToSrgb8(under);
+  const over = (v: number, u: number): number => v * alpha + u * (1 - alpha);
+  return hex(over(r, br), over(g, bg), over(b, bb));
+}
+
+/** Within this many Lc of each other the two inks read alike to APCA, and the
+ *  WCAG 2 ratio picks instead. On #a5a0b9 white scores Lc 54.6 and black 54.5,
+ *  but white is only 2.52:1 there, so the near tie goes to black. */
+export const SWATCH_INK_NEAR_TIE_LC = 3;
+
+/**
+ * The ink for a label drawn on `fill`: SWATCH_INK.light when white scores the
+ * higher APCA |Lc| against `swatchGround(fill, backdrop)`, else SWATCH_INK.dark.
+ * A near tie (SWATCH_INK_NEAR_TIE_LC) goes to the ink with the higher WCAG 2
+ * ratio, and an exact one to the dark ink. Null when there is no ground to
+ * measure, so an unread colour is never mistaken for a light one and handed black.
+ */
+export function swatchInk(fill: string, backdrop?: string): string | null {
+  const ground = swatchGround(fill, backdrop);
+  if (!ground) return null;
+  const white = apcaLcAbs(SWATCH_INK.light, ground);
+  const dark = apcaLcAbs(SWATCH_INK.dark, ground);
+  const lightWins = Math.abs(white - dark) <= SWATCH_INK_NEAR_TIE_LC
+    ? contrastRatio(SWATCH_INK.light, ground) > contrastRatio(SWATCH_INK.dark, ground)
+    : white > dark;
+  return lightWins ? SWATCH_INK.light : SWATCH_INK.dark;
 }
 
 /** The primary/ink pair a theme would use at lightness `l`, if any ink clears

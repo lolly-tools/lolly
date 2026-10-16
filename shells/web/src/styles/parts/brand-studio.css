@@ -377,8 +377,8 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
    section 4.2). ONE tile per token: an assignment re-points an alias, it never
    makes a second swatch, so this corner glyph is how an assigned colour looks
    different from an unassigned one. Paper on a dark tile, ink on a light one -
-   the caller measures the swatch's lightness, because a text-shadow alone is
-   not readable over a pale ground. */
+   swatches.ts picks by the swatch ink (whichever APCA scores higher) and sets
+   .is-onlight, because a text-shadow alone is not readable over a pale ground. */
 .be-swatch-role {
   position: absolute; right: 4px; bottom: 2px;
   font-family: var(--font-mono); font-size: var(--fs-2xs); font-weight: 700;

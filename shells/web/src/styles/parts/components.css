@@ -481,11 +481,17 @@ html[data-a11y-motion="reduce"] .profile-link .profile-link-mark .lolly-mark__sp
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-/* Floating swatch-name chip - painted in the swatch's own colour (--sw-c) with a
-   black/white contrast label (set inline by showSwatchTip). Fixed to the body so the
-   scrolling swatch grid never clips it; pointer-events:none so it never intercepts a
-   click on the swatch below - slide straight to the next one. Anchored above the swatch
-   (JS sets left/top to its top-centre; the translate lifts + centres the chip). The tiny
+/* Floating swatch-name chip - painted in the swatch's own colour. showSwatchTip
+   (color-field.ts) sets four custom properties: --swatch-c, the value the swatch is
+   painted with; --swatch-base, the opaque surface under a translucent swatch, so
+   the chip reads as the swatch does; --swatch-ink, white or black, whichever APCA
+   scores higher against that pair (brand-vars.ts swatchInk); and --swatch-halo,
+   the other ink, which only High contrast draws (below). The ring is the
+   ink too, so the chip stays distinct on any page in every theme: a dark chip on the
+   dark page, a white one on white. Fixed to the body so the scrolling swatch grid
+   never clips it; pointer-events:none so it never intercepts a click on the swatch
+   below - slide straight to the next one. Anchored above the swatch (JS sets
+   left/top to its top-centre; the translate lifts + centres the chip). The tiny
    pop-in delay is done in JS (a 240ms timer before .is-shown), so it only fades in. */
 .swatch-name-tip {
   position: fixed;
@@ -500,9 +506,22 @@ html[data-a11y-motion="reduce"] .profile-link .profile-link-mark .lolly-mark__sp
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.1s ease;
-  box-shadow: 0 2px 10px #0005, inset 0 0 0 1px #ffffff30;
+  background: linear-gradient(var(--swatch-c, #c9ccd1), var(--swatch-c, #c9ccd1)) var(--swatch-base, #fff);
+  color: var(--swatch-ink, #000);
+  /* Lifted like the app's own tooltip (.lolly-tooltip): the floating elevation. */
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--swatch-ink, #000) 30%, transparent), var(--ui-elevation-floating);
 }
 .swatch-name-tip.is-shown { opacity: 1; }
+/* High contrast: the ring at full strength, a hairline of the label's own ink, and
+   a 1px halo of the other ink (--swatch-halo) round the letters. On a mid tone
+   neither ink reaches the High contrast bar of Lc 80 against the swatch itself
+   (Green Apple tops out at 60), so the halo gives every glyph an edge of its own. */
+html[data-a11y-contrast="high"] .swatch-name-tip {
+  box-shadow: inset 0 0 0 1px var(--swatch-ink, #000), var(--ui-elevation-floating);
+  text-shadow:
+    -1px 0 var(--swatch-halo, #fff), 1px 0 var(--swatch-halo, #fff),
+    0 -1px var(--swatch-halo, #fff), 0 1px var(--swatch-halo, #fff);
+}
 /* Explicit media playback in Performance UI. The wrapper keeps controls as
    siblings of a tile's primary action, including picker cards made of buttons. */
 .motion-preview-wrap { position: relative; min-width: 0; min-height: 0; }
