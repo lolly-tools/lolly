@@ -132,13 +132,18 @@ html:has(.tool-view.is-chrome-hidden) .edge-dock-drop { display: none !important
    is pointer-transparent, so its scrollbar could not be dragged, and a scrolling dock
    would clip the rail's own shadow. Tooltips are portalled (lib/tooltips.ts) and the
    colour popover is fixed, so the clip reaches neither. Every item keeps its size, or
-   the capped column squashes the 40px buttons to fit. `:where` keeps the selectors weak,
+   the capped column squashes the 40px buttons to fit. The sideways axis is hidden, not
+   left to compute to auto: where scrollbars take space (Windows and Linux, or "always
+   show scrollbars"), the first layout's vertical bar narrows the rail below its buttons
+   and Chromium keeps a stray horizontal bar at the foot even after the rail widens to
+   fit. Nothing in the rail overflows sideways. `:where` keeps the selectors weak,
    so the compact palette below still wins on touch, and it leaves out the timeline
    column, which scrolls the dock itself (below), and a dragged rail. */
 :where(.tool-stage:not(.has-tl-reserve)) .fc-toolbar-dock:not(.is-detached) { padding-block: 8px; }
 :where(.tool-stage:not(.has-tl-reserve) .fc-toolbar-dock:not(.is-detached)) > .fc-toolbar {
   box-sizing: border-box;
   max-height: 100%;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
