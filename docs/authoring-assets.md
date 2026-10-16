@@ -273,6 +273,8 @@ an export using the asset still embeds the original.
 
 ### Inspect and curate shared assets
 
+Open an asset to inspect its file details. The sidebar keeps Download and **Inspect & verify** in its header, with expanding sections for metadata, sharing, origins and technical details. Drag the divider to resize the sidebar or pull it inward to collapse. The divider also supports arrow keys, Home to collapse and Enter or a double click to reset. Width and section choices are remembered; phone layouts stay fully expanded. The provenance and content-signal lamps are last under **Checks**.
+
 Connected libraries appear in Assets beside the files on your device. The source facts panel shows the indexed version, sync status, mapped approval and availability windows. Unknown values stay unknown. Source approval does not establish permission for every channel or use; access to files is checked when opened. Original and rendition labels describe the file offered by the connection.
 
 Organisation metadata belongs to Lolly Work. A curator with `catalog.edit` can change configured text, select, date and URL fields. Ordinary members see the values without edit controls. These fields do not change names, descriptions or tags in the upstream library. Work owns the field definitions and audits changes.
