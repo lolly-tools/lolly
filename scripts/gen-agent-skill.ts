@@ -16,6 +16,11 @@
  * The prose around them is hand-written and left alone. `tests/agent-skill.test.ts`
  * runs this in --check mode and fails on any drift.
  *
+ * The Diagrams tool skill (`community/diagram-builder/skill/workflow.md`) is filled
+ * from `reference/diagrams.md` here too, before the public tool skills are built,
+ * so the tool's guidance and the overall reference come from one source
+ * (`scripts/lib/diagram-skill.ts`).
+ *
  * Usage:
  *   node scripts/gen-agent-skill.ts            write the blocks + mirror
  *   node scripts/gen-agent-skill.ts --check    exit 1 if anything would change
@@ -32,6 +37,7 @@ import {
 import { resolve, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generatePublicToolSkills } from './lib/tool-skills.ts';
+import { diagramBlocks, sharedBlocks, workflowBlocks, type DiagramManifest } from './lib/diagram-skill.ts';
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const skillDir = resolve(repoRoot, 'skills', 'lolly');
@@ -180,6 +186,7 @@ function manifest(id: string): Manifest {
 const chart = manifest('chart');
 const design = manifest('design');
 const deck = manifest('deck-studio');
+const diagram = readJson<DiagramManifest>(resolve(communityDir, 'diagram-builder', 'tool.json'));
 const designBoxes = design.inputs.find((i) => i.id === 'boxes');
 const deckBlock = deck.inputs.find((i) => i.id === 'deck');
 if (!designBoxes?.fields) throw new Error('gen-agent-skill: design boxes block/fields not found');
@@ -202,19 +209,36 @@ const edits: Record<string, Record<string, string>> = {
     'deck-inputs': inputTable(deck.inputs.filter((i) => i.id !== 'deck')),
     'deck-block': inputTable(deckBlock.fields),
   },
+  'reference/diagrams.md': diagramBlocks(diagram),
 };
 
 let drift = false;
 const report: string[] = [];
 
 // 1) Rewrite the marked blocks in the source skill files.
+const generated: Record<string, string> = {};
 for (const [rel, blocks] of Object.entries(edits)) {
   const file = resolve(skillDir, rel);
   const next = applyBlocks(file, blocks);
+  generated[rel] = next;
   const prev = readFileSync(file, 'utf-8');
   if (next !== prev) {
     drift = true;
     report.push(`  generated blocks differ: skills/lolly/${rel}`);
+    if (!check) writeFileSync(file, next, 'utf-8');
+  }
+}
+
+// 1b) The Diagrams tool skill's workflow takes its tables and shared prose from
+// reference/diagrams.md. It is written before the public tool skills are built below.
+{
+  const file = resolve(communityDir, 'diagram-builder', 'skill', 'workflow.md');
+  const prev = readFileSync(file, 'utf-8');
+  const shared = sharedBlocks(generated['reference/diagrams.md']!);
+  const next = applyBlocks(file, workflowBlocks(prev, edits['reference/diagrams.md']!, shared));
+  if (next !== prev) {
+    drift = true;
+    report.push('  generated blocks differ: community/diagram-builder/skill/workflow.md');
     if (!check) writeFileSync(file, next, 'utf-8');
   }
 }
