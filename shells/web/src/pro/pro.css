@@ -1,3 +1,4 @@
+@import '../styles/parts/export-format-picker.css';
 /* Cascade layer: this whole lazy-loaded sheet sits in the `views` layer
    (order declared once in styles/app.css). Wrapping it means its rules keep a
    fixed priority - above chrome/primitives/base, below overrides/a11y - no
@@ -13,85 +14,70 @@
  */
 
 .pro-wrap {
-  /* Full-bleed app frame: a fixed column that owns the whole viewport so the
-     grid can fill it. Toolbar takes the top ~48px; the grid fills down to a
-     32px gap at the bottom. The "← Tools" pill is fixed on top (z-index 100). */
-  position: fixed;
-  inset: 0;
-  width: auto;
-  padding: 0 0 32px;
-  display: flex;
-  flex-direction: column;
-  color: hsl(var(--foreground));
-  background: hsl(var(--background));
+  position: fixed; inset: 0; display: flex; flex-direction: column;
+  padding: 0 0 max(.75rem, env(safe-area-inset-bottom));
+  color: hsl(var(--foreground)); background: hsl(var(--background));
 }
-
-/* Header title + subtitle were removed - the toolbar is the top bar now. */
-.pro-exit { font-size: calc(.85rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); white-space: nowrap; }
-.pro-exit:hover { color: hsl(var(--foreground)); }
-
-/* Toolbar */
-.pro-toolbar {
-  flex: none;
-  height: 48px;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: .6rem;
-  /* One scrolling row so the grid below always starts at a fixed 48px. Left pad
-     clears the fixed "← Tools" pill (top/left 1.25rem). */
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 0 1rem 0 8rem;
-  margin: 0;
-
+.pro-header {
+  display: flex; align-items: center; gap: .75rem; flex: none;
+  min-height: 76px; padding: .75rem 1rem;
+  border-bottom: 1px solid hsl(var(--border));
 }
-.pro-spacer { flex: none; } /* desktop: the toolbar group grows to fill, so the spacer is inert here; it only pushes controls right on mobile (see media query) */
-.pro-toolbar-sep { width: 1px; align-self: stretch; background: hsl(var(--border)); margin: .1rem .25rem; }
-.pro-count { font-size: calc(.8rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
-.pro-collapsed-bar .pro-count { margin-left: auto; white-space: nowrap;     font-weight: 600;color: hsl(var(--foreground) / 1);
-
-} /* pushed to the right of the columns bar */
-.pro-collapsed-bar {    max-height: 30vh;
-    overflow: auto;}
-/* Collapsible toolbar: on wide screens the group is just an inline flex row and
-   the hamburger is hidden. The narrow-screen behaviour is in the media query. */
-.pro-toolbar-group { display: flex; align-items: center; gap: .6rem; min-width: 0; flex: 1 1 auto; } /* grow so the zip-name field can take the full remaining toolbar width */
-.pro-hamburger { display: none; flex: none; }
-
+.pro-header .pro-back { flex: none; position: static; margin: 0; }
+.pro-heading { flex: 1; min-width: 0; }
+.pro-heading h1 { margin: 0; font-size: calc(1.15rem * var(--a11y-fs)); font-weight: 650; }
+.pro-heading p { margin: .2rem 0 0; color: hsl(var(--muted-foreground)); font-size: calc(.8rem * var(--a11y-fs)); }
+.pro-header .lang-fab { position: static; flex: none; }
+.pro-toolbar, .pro-table-tools {
+  flex: none; display: flex; align-items: center; gap: .6rem;
+  padding: .75rem 1rem; min-width: 0;
+}
+.pro-toolbar { border-bottom: 1px solid hsl(var(--border)); }
+.pro-toolbar-group { display: flex; flex: 1; align-items: center; flex-wrap: wrap; gap: .75rem; min-width: 0; }
+.pro-toolbar .pro-format { white-space: nowrap; }
+.pro-hamburger { display: none; }
+.pro-table-tools { padding-bottom: .5rem; flex-wrap: wrap; }
+.pro-tools-spacer { flex: 1; }
+.pro-selection-bar {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .65rem;
+  margin: 0 1rem .6rem; padding: .5rem .65rem; min-height: 42px;
+  background: hsl(var(--muted) / .45); border-radius: var(--ui-radius-panel);
+  font-size: calc(.78rem * var(--a11y-fs));
+}
+.pro-selection-bar.has-selection { background: hsl(var(--primary) / .1); }
+.pro-selection-bar [data-selection-count] { font-weight: 600; }
+.pro-selection-hint { color: hsl(var(--muted-foreground)); margin-left: auto; font-size: calc(.72rem * var(--a11y-fs)); }
+.pro-selection-bar [data-selected-actions] { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.pro-selection-bar [hidden] { display: none; }
+.pro-selection-bar [data-edit-selected] { max-width: 15rem; }
+.pro-selection-bar [data-undo-remove] { margin-left: auto; }
+.pro-count { color: hsl(var(--muted-foreground)); font-size: calc(.75rem * var(--a11y-fs)); margin-left: auto; }
+.pro-grid-footer { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .65rem .3rem; font-size: calc(.75rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); flex: none; }
+.pro-pagination { display: flex; align-items: center; gap: .7rem; }
+.pro-pagination[hidden] { display: none; }
+.pro-columns { flex: none; max-height: 25vh; overflow: auto; font-size: calc(.78rem * var(--a11y-fs)); border-top: 1px solid hsl(var(--border)); }
+.pro-columns summary { cursor: pointer; padding: .6rem .3rem; font-weight: 600; }
+.pro-columns summary span { color: hsl(var(--muted-foreground)); font-weight: 400; margin-left: .5rem; }
+.pro-columns summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; }
+.pro-wrap .btn { flex-shrink: 0; }
+.pro-wrap .btn--labelled { min-height: 34px; }
+.pro-wrap .btn--sm.btn--labelled { min-height: 30px; }
 @media (max-width: 720px) {
-  /* Tuck the controls behind a hamburger so even a phone can drive batch mode.
-     Collapse at ≈720px - keeps the full toolbar on laptops/tablets. Keep in sync
-     with the matchMedia query in index.js that relocates the format/sessions
-     controls. */
-  .pro-toolbar { position: relative; overflow: visible; padding-left: 8.5rem; min-height: 48px; height: auto; flex-wrap: wrap; }
+  .pro-header { min-height: 64px; padding: .6rem .75rem; gap: .5rem; }
+  .pro-heading p { display: none; }
+  .pro-header #pro-sessions { padding: .4rem .5rem; font-size: calc(.75rem * var(--a11y-fs)); }
+  .pro-header #pro-sessions svg { display: none; }
+  .pro-toolbar { position: relative; padding: .6rem .75rem; justify-content: space-between; }
   .pro-hamburger { display: inline-flex; }
-  /* Group becomes a dropdown, so the spacer goes back to pushing zoom/render right. */
-  .pro-spacer { flex: 1; }
-  .pro-toolbar-group {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    flex-direction: column;
-    align-items: stretch;
-    gap: .4rem;
-    margin: 0;
-    padding: .6rem;
-    background: hsl(var(--popover));
-    color: hsl(var(--popover-foreground));
-    border: 1px solid hsl(var(--border));
-    box-shadow: 0 12px 32px rgba(0, 0, 0, .22);
-    z-index: 20;
-  }
+  .pro-toolbar-group { display: none; position: absolute; top: 100%; left: .75rem; right: .75rem; padding: 1rem; z-index: 20; background: hsl(var(--popover)); border: 1px solid hsl(var(--border)); border-radius: var(--ui-radius-panel); box-shadow: var(--ui-elevation-control); }
   .pro-toolbar.is-open .pro-toolbar-group { display: flex; }
-  .pro-toolbar-group .pro-toolbar-sep { display: none; }
-  .pro-toolbar-group .pro-format { justify-content: space-between; }
-  .pro-toolbar-group .pro-format input { width: auto; flex: 1; }
-  .pro-toolbar-group .pro-format select { flex: 1; }
-  .pro-toolbar-group .pro-btn { text-align: left; }
+  .pro-toolbar-group .pro-zip { flex-basis: 100%; }
+  .pro-table-tools { flex-wrap: nowrap; overflow-x: auto; padding: .6rem .75rem; }
+  .pro-tools-spacer { display: none; }
+  .pro-selection-bar { margin: 0 .75rem .5rem; }
+  .pro-selection-hint { display: none; }
+  .pro-grid-footer { flex-wrap: wrap; }
+  .pro-pagination { margin-left: auto; }
 }
 .pro-format { font-size: calc(.8rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); display: inline-flex; align-items: center; gap: .4rem; }
 
@@ -143,36 +129,9 @@
 /* Active unit shown beside the Width/Height column headers. */
 .pro-col-unit { font-weight: 400; color: hsl(var(--muted-foreground)); }
 
-/* Zip-name field: the ".zip" is a static suffix rendered inside the field so
-   it's clear the batch downloads as a single archive (the "Zip name" label is
-   gone). The wrapper carries the border; the input itself is borderless. */
-.pro-zip { gap: .25rem; padding: .5rem; border: 0; border-radius: calc(var(--radius) * .35); background: hsl(var(--background)); flex: 1 1 auto; min-width: 0; }
-.pro-zip:focus-within { border-color: hsl(var(--ring)); }
-/* The input sizes to its content (width set in JS via the mirror span below) so
-   ".zip" trails the last character the user types. The wrapper still flexes to
-   fill the toolbar, so the empty space to the right stays a clickable target. */
-/* Not the shared box: a borderless oversized name field whose only chrome is
-   the wrapper. It states font/colour itself now that the deleted rule above no
-   longer hands them out (a bare input inherits neither). */
-.pro-zip input { font: inherit; font-size: calc(1.5rem * var(--a11y-fs)); color: hsl(var(--foreground)); border: none; background: transparent; flex: 0 0 auto; min-width: 0; width: auto; padding: 0; text-align: left; }
-.pro-zip input:focus { outline: none; }
-/* ".zip" rendered as a small uppercase pill so it reads as a format badge that
-   trails the typed name. The border has no colour of its own → currentColor. */
-.pro-zip-ext {
-  flex: none;
-  color: hsl(var(--muted-foreground));
-  font-size: calc(.8rem * var(--a11y-fs));
-  white-space: nowrap;
-  padding: .25em .5em;
-  padding-top: .2em;
-  border: 2px solid;
-  border-radius: .5em;
-  letter-spacing: .03em;
-  text-transform: uppercase;
-  font-weight: 700;
-}
-/* Hidden mirror: matches the input's font so JS can measure the typed text width. */
-.pro-zip-measure { position: absolute; left: -9999px; top: 0; visibility: hidden; white-space: pre; pointer-events: none; font-size: calc(1.5rem * var(--a11y-fs)); }
+.pro-zip { flex: 1; min-width: 10rem; }
+.pro-zip input { min-width: 4rem; width: 11rem; max-width: 100%; flex: 1; }
+.pro-zip-ext { color: hsl(var(--muted-foreground)); }
 .pro-btn {
   font: inherit;
   font-size: calc(.85rem * var(--a11y-fs));
@@ -200,7 +159,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 5px;
+  padding: 0 1rem;
   overflow: hidden;
 }
 .pro-grid-scroll { flex: 1; min-height: 0; overflow: auto; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .5); }
@@ -222,7 +181,7 @@
 
 /* ── Drag-resize grab zones (handled by resize.js via geometry) ─────────────── */
 /* Row height: a strip along each row's bottom grid line - grab anywhere across. */
-.pro-grid tbody td:not(.pro-cell-template):not(.pro-cell-actions) { position: relative; }
+.pro-grid tbody td:not(.pro-cell-template):not(.pro-cell-actions):not(.pro-cell-select):not(.pro-cell-drag) { position: relative; }
 .pro-grid tbody td::after {
   content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 6px;
   cursor: row-resize; z-index: 4;
@@ -253,7 +212,7 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
   top: 0;
   background: hsl(var(--card));
   z-index: 2;
-  font-weight: 700;
+  font-weight: 600;
   white-space: normal; /* headings may wrap so a column can be narrower than its title */
   vertical-align: bottom;
   overflow: hidden;
@@ -277,7 +236,7 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
   overflow-wrap: anywhere;
   line-height: 1.18;
 }
-.pro-col-label:hover { color: hsl(var(--primary)); text-decoration: underline; }
+.pro-col-label { cursor: default; }
 .pro-col-flag {
   font-size: calc(.6rem * var(--a11y-fs)); text-transform: uppercase; letter-spacing: .04em;
   color: hsl(var(--muted-foreground)); border: 1px solid hsl(var(--border));
@@ -290,7 +249,7 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
   background: transparent; border-radius: 6px;
 }
 .pro-fill-btn:hover { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
-.pro-fill-btn svg { pointer-events: none; }
+.pro-fill-btn svg { pointer-events: none; width: 16px; height: 16px; }
 
 /* Left gutter holding the drag grip: a hard fixed width, pinned to the left edge
    (sticky) right alongside the template column so reordering stays reachable while
@@ -299,14 +258,14 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
 .pro-col-drag, .pro-cell-drag {
   width: 2em; min-width: 2em; max-width: 2em;
   padding: 0; text-align: center; vertical-align: middle;
-  position: sticky; left: 0; background: hsl(var(--card)); z-index: 1;
+  position: sticky; left: 68px; background: hsl(var(--card)); z-index: 1;
 }
 .pro-grid thead .pro-col-drag { z-index: 3; }
 
 /* min-width:0 so the template column can be dragged narrow like any other (the
    header truncates with an ellipsis); its default width keeps it comfortable.
    Sits to the right of the 2em drag gutter, hence the sticky offset. */
-.pro-col-template, .pro-cell-template { min-width: 0; position: sticky; left: 2em; background: hsl(var(--card)); z-index: 1; }
+.pro-col-template, .pro-cell-template { min-width: 0; position: sticky; left: calc(68px + 2em); background: hsl(var(--card)); z-index: 1; }
 .pro-grid thead .pro-col-template { z-index: 3; }
 
 /* The remove-row column stays pinned to the right edge, mirroring the sticky
@@ -434,7 +393,7 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
   background: hsl(var(--background)); color: hsl(var(--muted-foreground));
 }
 .pro-eye:hover, .pro-fmt:hover { color: hsl(var(--primary)); border-color: hsl(var(--primary)); background: hsl(var(--accent)); }
-.pro-eye svg, .pro-fmt svg { pointer-events: none; }
+.pro-eye svg, .pro-fmt svg { pointer-events: none; width: 16px; height: 16px; }
 /* The format pill widens to hold the extension label (e.g. WEBP). */
 .pro-fmt { width: 2.4rem; }
 .pro-fmt-ext { font-size: calc(.62rem * var(--a11y-fs)); font-weight: 600; line-height: 1; letter-spacing: .02em; pointer-events: none; }
@@ -703,17 +662,12 @@ body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; us
 .pro-sess-csv .pro-btn { font-size: calc(.8rem * var(--a11y-fs)); }
 
 /* Progress + log */
-.pro-progress {
-  flex: none;
-  max-height: 32vh;
-  overflow: auto;
-  margin: .6rem 1.25rem 0;
-  border: 1px solid hsl(var(--border));
-  min-height:5em;
-  border-radius: calc(var(--radius) * .5);
-  padding: 1rem;
-  background: hsl(var(--card));
-}
+.pro-results { flex: none; margin: .5rem 1rem 0; max-height: 30vh; overflow: auto; border: 1px solid hsl(var(--border)); border-radius: var(--ui-radius-panel); background: hsl(var(--card)); }
+.pro-results:not(:has(.pro-progress:not([hidden]))) { display: none; }
+.pro-results > summary { padding: .6rem .75rem; cursor: pointer; font-size: calc(.78rem * var(--a11y-fs)); font-weight: 600; }
+.pro-results > summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; }
+.pro-progress { padding: .75rem; }
+
 .pro-progress-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .6rem; }
 .pro-progress-msg { color: hsl(var(--muted-foreground)); font-size: calc(.9rem * var(--a11y-fs)); margin: 0; }
 
@@ -900,4 +854,73 @@ body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; us
 .pro-blk-asset:hover { box-shadow: inset 0 1px #fff2, 0 .12rem .4rem #0004; }
 .pro-blk-asset:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 .pro-blk-add { margin-top: .7rem; width: 100%; }
+.pro-col-select, .pro-cell-select {
+  width: 68px; min-width: 68px; max-width: 68px; position: sticky; left: 0;
+  background: hsl(var(--card)); z-index: 2; text-align: center;
+}
+.pro-grid th.pro-col-select { text-align: center; z-index: 4; }
+.pro-row-check { display: flex; align-items: center; justify-content: center; gap: .45rem; cursor: pointer; min-height: 42px; padding: .3rem; }
+.pro-row-check span { color: hsl(var(--muted-foreground)); font-size: calc(.7rem * var(--a11y-fs)); font-variant-numeric: tabular-nums; min-width: 1.3rem; }
+.pro-grid tbody tr.is-selected > td { background-color: color-mix(in srgb, hsl(var(--primary)) 9%, hsl(var(--card))); }
+.pro-grid tbody tr.is-selected .pro-row-check span { color: hsl(var(--foreground)); font-weight: 700; }
+.pro-grid tbody tr:hover > td { background-color: color-mix(in srgb, hsl(var(--primary)) 5%, hsl(var(--card))); }
+.pro-grid tbody tr.is-selected:hover > td { background-color: color-mix(in srgb, hsl(var(--primary)) 13%, hsl(var(--card))); }
+.pro-cell-select::after { display: none; }
+.pro-row-check:focus-within { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; }
+.pro-addrow { display: flex; align-items: center; gap: .5rem; padding: .75rem; position: sticky; left: 0; }
+.pro-empty-hint { display: flex; align-items: flex-start; gap: .75rem; padding: 1rem; margin: .5rem 0 0; border: 0; background: hsl(var(--muted) / .35); border-radius: var(--ui-radius-panel); }
+.pro-empty-hint p { margin: .35rem 0 0; max-width: 48rem; color: hsl(var(--muted-foreground)); font-size: calc(.8rem * var(--a11y-fs)); line-height: 1.5; }
+.pro-empty-hint-icon { color: hsl(var(--muted-foreground)); }
+.pro-empty-hint-icon svg { width: 24px; height: 24px; }
+.pro-grid .pro-col-label { font-weight: 600; }
+.pro-col-head .pro-fill-btn { position: static; color: hsl(var(--muted-foreground)); transform: none; opacity: 1; flex: none; }
+@media (max-width: 720px) {
+  #pro-grid-host { padding: 0 .75rem; }
+  .pro-empty-hint { padding: .7rem; }
+}
+
+.pro-hide-col { border: 0; background: transparent; color: hsl(var(--muted-foreground)); cursor: pointer; padding: .2rem; display: inline-flex; border-radius: 4px; }
+.pro-hide-col svg { width: 14px; height: 14px; }
+.pro-hide-col:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.pro-hide-col:focus-visible { outline: 2px solid hsl(var(--ring)); }
+@media (max-width: 720px) {
+  .pro-cell-template { position: relative; left: auto; z-index: 0; }
+  .pro-col-template { left: auto; }
+}
+
+
+.pro-wrap:has([data-fmt-panel]:not([hidden])) { z-index: 9501; }
+.pro-toolbar:has([data-fmt-panel]:not([hidden])) { position: relative; z-index: 50; }
+.pro-format-picker { position: relative; }
+.pro-format-picker .fmt-trigger { border: 1px solid hsl(var(--border)); border-radius: var(--ui-radius-control); padding: .4rem .6rem; font-size: calc(.8rem * var(--a11y-fs)); }
+.pro-format-picker .fmt-pop { width: min(34rem, calc(100vw - 2rem)); max-width: none; z-index: 40; white-space: normal; }
+.pro-selection-bar.has-cell-selection:not(.has-selection) [data-selection-count], .pro-selection-bar.has-cell-selection [data-selection-hint] { display: none; }
+.pro-selection-bar [data-cell-actions] { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.pro-selection-bar [data-cell-actions][hidden] { display: none; }
+[data-cell-count] { font-weight: 600; }
+.pro-cell-hint { color: hsl(var(--muted-foreground)); font-size: calc(.72rem * var(--a11y-fs)); }
+.pro-grid tbody tr > td.is-cell-selected { background-color: color-mix(in srgb, hsl(var(--primary)) 14%, hsl(var(--card))); }
+/* Join the outer edges into one focus ring without moving the grid's borders. */
+.pro-grid td.is-cell-selected:not(.pro-cell--editing) { outline: none; border-radius: 0; }
+.pro-grid td.is-cell-selected::before {
+  content: ''; position: absolute; inset: -.5px; z-index: 1;
+  pointer-events: none; border: 0 solid hsl(var(--ring));
+}
+.pro-grid td.cell-range-top::before { border-top-width: 2px; }
+.pro-grid td.cell-range-bottom::before { border-bottom-width: 2px; }
+.pro-grid td.cell-range-left::before { border-left-width: 2px; }
+.pro-grid td.cell-range-right::before { border-right-width: 2px; }
+.pro-grid td.cell-range-top.cell-range-left::before { border-top-left-radius: 4px; }
+.pro-grid td.cell-range-top.cell-range-right::before { border-top-right-radius: 4px; }
+.pro-grid td.cell-range-bottom.cell-range-left::before { border-bottom-left-radius: 4px; }
+.pro-grid td.cell-range-bottom.cell-range-right::before { border-bottom-right-radius: 4px; }
+.pro-grid td:not(.pro-cell--editing) .pro-control { cursor: cell; }
+@media (max-width: 720px) {
+  .pro-format-picker .fmt-pop { position: fixed; inset: 1rem; width: auto; max-height: none; z-index: 50; }
+  .pro-format-picker .fmt-pop-head { display: flex; justify-content: space-between; align-items: center; }
+  .pro-cell-hint { display: none; }
+  .pro-selection-bar { flex-wrap: nowrap; overflow-x: auto; min-height: calc(3.5rem * var(--a11y-fs)); }
+  .pro-selection-bar [data-selected-actions], .pro-selection-bar [data-cell-actions] { flex-wrap: nowrap; white-space: nowrap; }
+  .pro-selection-bar [data-selection-count] { white-space: nowrap; }
+}
 }

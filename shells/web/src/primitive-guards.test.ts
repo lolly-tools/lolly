@@ -231,7 +231,6 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   'lib/recording-tips.ts': 1,
   'lib/upload-dropzone.ts': 1,
   'pro/blocks-editor.ts': 3,
-  'pro/grid.ts': 5,
   'pro/run-overlay.ts': 1,
   'views/assets.ts': 1,   // +2 2026-08-18: INTERP_ICON + FIT_ICON zoom-pill glyphs (inline, like ZOOM_IN/OUT_ICON)
   'views/assets/shared.ts': 21,   // 2026-09-25: the view-options sliders glyph went to the shared button. 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts (the zoom-pill and treatment glyph constants)
@@ -1091,7 +1090,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // 10 as of 2026-07-31: +1 for the run-level print-settings popover (openPrintPopover).
   // Reviewed - its only interpolations are escape(t(…)) labels, escape()d CMYK
   // condition ids/labels, and a parsed bleed number; the checkbox states are booleans.
-  'pro/index.ts': 10,
+  'pro/index.ts': 9,
   'pro/render-export.ts': 1,
   // 9 as of 2026-07-31: +2 for the retry's failure line, which writes into whichever
   // .pro-log is LIVE (the retry rebuilds the mount, so the element this run captured may
@@ -1192,7 +1191,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // category accordion after a setFormats narrowing. Reviewed - format ids and
   // labels are escape()d, category labels are escape(t(…)) literals, and the
   // chevron comes from the shared icon() generator.
-  'views/export-format-picker.ts': 1,
+  'components/export-format-picker.ts': 1,
   'views/export-preflight.ts': 1,
   // 41 as of 2026-08-07: +1 for the Line tool's drawLineRubber (connectLayer.innerHTML,
   // plan 90) - coordinates via cf2 (numbers), colour via cAttr (strips <>"), and the

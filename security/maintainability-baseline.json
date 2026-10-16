@@ -339,7 +339,7 @@
     "shells/web/src/pro/batch.ts": 1,
     "shells/web/src/pro/folder-export.ts": 3,
     "shells/web/src/pro/grid.ts": 3,
-    "shells/web/src/pro/index.ts": 47,
+    "shells/web/src/pro/index.ts": 40,
     "shells/web/src/pro/io.ts": 1,
     "shells/web/src/pro/preflight-rows.ts": 1,
     "shells/web/src/pro/run-overlay.ts": 1,

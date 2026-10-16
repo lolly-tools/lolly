@@ -293,6 +293,7 @@ export function tryMountCostSlot(ta: ActionsCtx): void {
 export function disposeActions(ta: ActionsCtx): void {
   const { canvasEl, costSlotUnsub, el, isDesignTool } = ta;
   ta.disposeFidelityWarning();
+  ta.formatPicker?.destroy();
   void ta.automaticHistory?.flush();
   ta.automaticHistory?.dispose();
   if (isDesignTool) {

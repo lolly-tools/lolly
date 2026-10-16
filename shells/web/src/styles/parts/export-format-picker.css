@@ -1,0 +1,135 @@
+/* Shared format menu used by the export panel and Batch. */
+@layer views {
+/* Grouped format picker (views/export-format-picker.ts). The native select is
+   hidden (value carrier only); the trigger takes its visual place as the fused
+   right half of the name.format pill - the SAME dress as the select it
+   replaced (`.tool-actions select:not(.field-select)` above), so the pill
+   reads solid and its --radius corners are unchanged. The dropdown floats
+   over the rows below (a compact context menu): opening it must never move
+   the settings underneath. */
+.fmt-trigger {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 9px 12px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid transparent;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font: inherit;
+  font-size: var(--fs-md);
+  cursor: pointer;
+  transition: border-color var(--dur-1);
+}
+.fmt-trigger:hover:not(:focus) { border-color: hsl(var(--ring) / 0.4); }
+.fmt-trigger .fmt-chev { width: var(--fs-lg); height: var(--fs-lg); opacity: .6; }
+.fmt-trigger[aria-expanded="true"] .fmt-chev { transform: rotate(180deg); }
+/* The row anchors the dropdown. */
+.filename-extension { position: relative; }
+.fmt-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-end: 0;
+  z-index: 6;   /* over the sticky actions dock (3) and every settings row */
+  min-width: min(260px, 100%);
+  max-width: 100%;
+  max-height: min(420px, 55dvh);
+  overflow-y: auto;
+  padding: var(--sp-5);
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+  border: 0;
+  box-shadow: inset 0 0 0 1px #0002, inset 0 1.5px .5px #fff1, 0 12px 32px #00000038;
+}
+.fmt-pop-head { display: none; }
+.fmt-cat + .fmt-cat { margin-top: 10px; padding-top: 10px; border-top: 1px solid hsl(var(--border)); }
+.fmt-cat-head {
+  padding: 0 2px 6px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--ui-type-tracking-label);
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.fmt-cat-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-5) var(--sp-3);
+}
+.fmt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border:0;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.fmt-chip .fmt-chip-ic {
+  width: var(--fs-md);
+  height: var(--fs-md);
+  opacity: .45;
+  flex: 0 0 auto;
+}
+/* Resting paint ONLY on the un-pressed state: the chosen chip's primary FILL
+   comes from buttons.css's alias list (R2 - the fill pair is declared once),
+   which is in the earlier `primitives` layer - a restated background here
+   (views layer) would beat it at any specificity. */
+.fmt-chip:not([aria-pressed="true"]) {
+  background: hsl(var(--background));
+  color: inherit;
+}
+.fmt-chip[aria-pressed="true"] { border-color: hsl(var(--primary)); }
+.fmt-show-all {
+  width: 100%;
+  margin-top: var(--sp-5);
+  padding: 8px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.fmt-show-all:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+/* On a phone this is a modal sub-view of the export sheet, not a desktop
+   popover with coordinates that can start off-screen or extend under the
+   browser chrome. */
+@media (max-width: 640px), (max-height: 430px) and (pointer: coarse) {
+  .export-popup .fmt-pop {
+    position: fixed;
+    inset: calc(var(--safe-top, 0px) + 10px) 10px calc(var(--safe-bottom, 0px) + var(--vv-bottom, 0px) + 10px);
+    z-index: 100004;
+    min-width: 0;
+    max-width: none;
+    max-height: none;
+    padding: 14px;
+    border-radius: calc(var(--radius) * 1.5);
+  }
+  .fmt-pop-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    margin: -6px -4px 10px;
+    padding: 0 4px 8px;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .fmt-pop-head button {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: var(--radius);
+    background: transparent;
+    color: inherit;
+    font-size: 22px;
+  }
+  .fmt-chip { min-height: 44px; padding-inline: 14px; }
+  .fmt-show-all { min-height: 44px; }
+}
+
+}

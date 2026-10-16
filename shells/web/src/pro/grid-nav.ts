@@ -272,7 +272,7 @@ export function createGridNav(container: HTMLElement, opts: GridNavOptions = {})
   function onDblClick(e: MouseEvent) {
     const target = e.target;
     const td = target instanceof HTMLElement ? target.closest<HTMLElement>(CELL_SEL) : null;
-    if (td && target === td) beginEdit(td); // dbl-click on cell chrome → edit
+    if (td) beginEdit(td);
   }
 
   container.addEventListener('focusin', onFocusIn);

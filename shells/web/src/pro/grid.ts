@@ -15,7 +15,8 @@ import { cellInput, isCellEditable } from './model.ts';
 import { controlHtml } from './controls.ts';
 import { colorFieldHtml } from '../components/color-field.ts';
 import { escapeHtml } from '../lib/util/escape.ts';
-import { t } from '../i18n.ts';
+import { t, tRaw } from '../i18n.ts';
+import { icon } from '../lib/icons.ts';
 import { toUnit, UNITS } from '@lolly/engine';
 import type { Unit } from '../../../../engine/src/units.ts';
 
@@ -66,7 +67,10 @@ interface GridCtx {
   assetPicker: boolean;
   unit?: Unit;
   dpi?: number;
-  firstname?: string;
+  rowOffset?: number;
+  totalRows?: number;
+  page?: number;
+  pages?: number;
   collapsed?: Set<string>;
 }
 
@@ -85,12 +89,10 @@ interface ExportCol {
 
 const esc = escapeHtml;
 
-const EYE_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>`;
-const BUCKET_SVG = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 11-8-8-8.5 8.5a1.5 1.5 0 0 0 0 2L8 19a1.5 1.5 0 0 0 2 0z"/><path d="m5 2 5 5"/><path d="M2 13h15"/><path d="M22 20a2 2 0 1 1-4 0c0-1.5 2-3.5 2-3.5s2 2 2 3.5z"/></svg>`;
-const DOC_SVG = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
-// Two-column dot grip - the universal "grab to drag" affordance (see reorder.js).
-const GRIP_SVG = `<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>`;
-const WARNING_SVG = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+const EYE_SVG = icon('eye');
+const BUCKET_SVG = icon('pen');
+const DOC_SVG = icon('document');
+const GRIP_SVG = icon('grip');
 
 // Structural columns keep a sensible default width; data columns do not (see
 // dataWidthStyle) so they flex-share the leftover space and the table fits.
@@ -125,24 +127,22 @@ function headerCell(col: Column, widths: Record<string, number> | undefined): st
       : col.reason
         ? `<span class="pro-col-flag" title="${esc(col.reason)}" aria-label="${esc(col.reason)}">≠</span>`
         : '';
-  // The label itself is the collapse control (distinct from the Fill button).
+  // Labels stay readable beside separate fill and hide controls.
   return `<th class="pro-col" data-col="${esc(col.key)}" style="${dataWidthStyle(col.key, widths)}">
     <div class="pro-col-head">
-      <button type="button" class="pro-col-label" data-collapse-col="${esc(col.key)}"
-        title="Hide “${esc(col.label)}” - click its tag below to bring it back">${esc(col.label)}</button>
+      <span class="pro-col-label">${esc(col.label)}</span>
       ${action}
+      <button type="button" class="pro-hide-col" data-collapse-col="${esc(col.key)}" aria-label="${esc(tRaw('Hide {name} column', { name: col.label }))}" title="${esc(tRaw('Hide {name} column', { name: col.label }))}">${icon('eyeOff')}</button>
     </div>
   </th>`;
 }
 
-/** Header cell for a collapsible export-dimension column (Save as / Width / …).
- * The label is the collapse control, exactly like a data column, but it carries
- * no Fill button and its restore tag is styled apart and pinned to the front. */
+/** Export columns have a separate hide action and restore through Columns. */
 function exportHeaderCell(col: ExportCol, widths: Record<string, number> | undefined): string {
   return `<th class="pro-col-fixed" data-col="${esc(col.key)}" style="${widthStyle(col.key, widths)}">
     <div class="pro-col-head">
-      <button type="button" class="pro-col-label" data-collapse-col="${esc(col.key)}"
-        title="Hide “${esc(col.label)}” - restore it from the tag at the front of the bar below">${esc(col.label)}</button>
+      <span class="pro-col-label">${esc(col.label)}</span>
+      <button type="button" class="pro-hide-col" data-collapse-col="${esc(col.key)}" aria-label="${esc(tRaw('Hide {name} column', { name: col.label }))}" title="${esc(tRaw('Hide {name} column', { name: col.label }))}">${icon('eyeOff')}</button>
     </div>
   </th>`;
 }
@@ -162,10 +162,10 @@ function addRowsHtml(rows: GridRow[]): string {
   const hasEmpty = rows.some(r => !r.toolId);
   const fillDisabled = !(hasSource && hasEmpty);
   return `<div class="pro-addrow">
-    <button type="button" class="pro-btn" data-add-rows="1" title="Add one row (⌘/Ctrl+Enter)">+ Row</button>
-    <button type="button" class="pro-btn" data-add-rows="5" title="Add five rows">+5</button>
-    <button type="button" class="pro-btn pro-fill-last" data-fill-last${fillDisabled ? ' disabled' : ''}
-      title="Copy the last row that has a template into every empty row below">Fill last</button>
+    <button type="button" class="btn btn--sm" data-add-rows="1" title="Add one row (⌘/Ctrl+Enter)">${t('Add row')}</button>
+    <button type="button" class="btn btn--sm" data-add-rows="5" title="Add five rows">${t('Add 5 rows')}</button>
+    <button type="button" class="btn btn--sm pro-fill-last" data-fill-last${fillDisabled ? ' disabled' : ''}
+      title="Copy the last row that has a template into every empty row below">${t('Fill empty rows')}</button>
   </div>`;
 }
 
@@ -196,7 +196,7 @@ function columnsBarHtml(visible: Column[], hidden: Column[], queued: number, col
   const count = queued
     ? `<span class="pro-count">${queued} render${queued === 1 ? '' : 's'} queued</span>`
     : '';
-  return `<div class="pro-collapsed-bar">${hideAll}${showAll}${exportTags}${restore}${count}</div>`;
+  return `<details class="pro-columns"><summary>${t('Columns')} <span>${tRaw('{n} hidden', { n: hidden.length + collapsedExport.length })}</span></summary><div class="pro-collapsed-bar">${hideAll}${showAll}${exportTags}${restore}${count}</div></details>`;
 }
 
 /** One data cell: editable control, read-only default, or greyed "not present". */
@@ -251,10 +251,8 @@ function dataCell(col: Column, row: GridRow, ctx: GridCtx): string {
     <span class="pro-cell-default">default</span></td>`;
 }
 
-/** One batch row: template + filename + a cell per column + remove button.
- * Exported so the host can append a single row incrementally (see addRows in
- * index.js) without rebuilding the whole table. */
-export function bodyRow(row: GridRow, columns: Column[], ctx: GridCtx): string {
+/** Render a row with its original position, also used for single-row updates. */
+export function bodyRow(row: GridRow, columns: Column[], ctx: GridCtx, index = 0): string {
   const uid = esc(row.uid);
   const tool = ctx.toolById.get(row.toolId); // O(1) - Map.get(undefined/'') is undefined, same as .find() for blank rows
   // Experimental tools flag the template cell (class .pro-exp) instead of a text
@@ -298,7 +296,7 @@ export function bodyRow(row: GridRow, columns: Column[], ctx: GridCtx): string {
 
   const filenameCell = `<td class="pro-cell pro-cell-fixed" data-row="${uid}" data-col="__filename">
     <input class="pro-control" type="text" data-filename data-row="${uid}"
-      value="${esc(row.filename ?? '')}" placeholder="auto" autocomplete="off" spellcheck="false">
+      aria-label="${esc(tRaw('File name, row {n}', { n: index + 1 }))}" value="${esc(row.filename ?? '')}" placeholder="auto" autocomplete="off" spellcheck="false">
   </td>`;
 
   // Per-row export dimensions, in this row's unit. The unit + DPI default to the
@@ -315,7 +313,7 @@ export function bodyRow(row: GridRow, columns: Column[], ctx: GridCtx): string {
   };
   const dimCell = (col: string, attr: string, val: number | undefined, native: number | undefined): string => `<td class="pro-cell pro-cell-fixed" data-row="${uid}" data-col="${col}">
     <input class="pro-control pro-num" type="number" min="0" step="any" ${attr} data-row="${uid}"
-      value="${val != null ? esc(val) : ''}" placeholder="${ph(native)}" autocomplete="off"
+      aria-label="${esc(col === '__width' ? t('Output width') : t('Output height'))}" value="${val != null ? esc(val) : ''}" placeholder="${ph(native)}" autocomplete="off"
       title="Output ${col === '__width' ? 'width' : 'height'} in ${unit} · drag to scrub">
   </td>`;
   const widthCell = dimCell('__width', 'data-out-width', row.outWidth, nativeW);
@@ -332,7 +330,7 @@ export function bodyRow(row: GridRow, columns: Column[], ctx: GridCtx): string {
   </td>`;
   const dpiCell = `<td class="pro-cell pro-cell-fixed${isPx ? ' pro-cell-muted' : ''}" data-row="${uid}" data-col="__dpi">
     <input class="pro-control pro-num" type="number" min="36" max="1200" step="1" data-out-dpi data-row="${uid}"
-      value="${row.dpi != null ? esc(row.dpi) : ''}" placeholder="${esc(ctx.dpi ?? 300)}" ${isPx ? 'disabled' : ''}
+      aria-label="${t('Raster resolution in DPI')}" value="${row.dpi != null ? esc(row.dpi) : ''}" placeholder="${esc(ctx.dpi ?? 300)}" ${isPx ? 'disabled' : ''}
       title="Raster DPI for physical units (ignored for px and vector formats)">
   </td>`;
 
@@ -353,7 +351,8 @@ export function bodyRow(row: GridRow, columns: Column[], ctx: GridCtx): string {
       title="Drag to reorder row" aria-label="Drag to reorder row">${GRIP_SVG}</button>
   </td>`;
 
-  return `<tr data-row="${uid}"${row.height ? ` style="height:${row.height}px"` : ''}>
+  return `<tr data-row="${uid}" aria-rowindex="${index + 2}" aria-selected="false"${row.height ? ` style="height:${row.height}px"` : ''}>
+    <td class="pro-cell-select"><label class="pro-row-check"><input type="checkbox" class="field-check" data-select-row="${uid}" aria-label="${esc(tRaw('Select row {n}', { n: index + 1 }))}"><span aria-hidden="true">${index + 1}</span></label></td>
     ${dragCell}
     ${templateCell}
     ${exportCell('__filename', filenameCell)}
@@ -361,7 +360,7 @@ export function bodyRow(row: GridRow, columns: Column[], ctx: GridCtx): string {
     ${exportCell('__height', heightCell)}
     ${exportCell('__unit', unitCell)}
     ${exportCell('__dpi', dpiCell)}
-    ${cells}
+    ${cells || '<td class="pro-cell-spacer" aria-hidden="true"></td>'}
     <td class="pro-cell-actions">
       <button type="button" class="pro-row-remove" data-action="remove-row" data-row="${uid}"
         title="Remove row" aria-label="Remove row">✕</button>
@@ -387,27 +386,24 @@ export function renderGridHtml(state: GridState, columns: Column[], ctx: GridCtx
     .map(c => exportHeaderCell(c, widths))
     .join('');
   const head = `<thead><tr>
-    <th class="pro-col-drag" aria-hidden="true"></th>
+    <th class="pro-col-select" scope="col"><input type="checkbox" class="field-check" data-select-page aria-label="${t('Select all rows on this page')}"></th>
+    <th class="pro-col-drag" aria-label="${t('Reorder rows')}"></th>
     <th class="pro-col-template" data-col="__template" style="${widthStyle('__template', widths)}">Template</th>
     ${exportHead}
-    ${columns.map(c => headerCell(c, widths)).join('')}
+    ${columns.map(c => headerCell(c, widths)).join('') || '<th aria-hidden="true"></th>'}
     <th class="pro-col-actions"></th>
   </tr></thead>`;
 
-  const body = `<tbody>${state.rows.map(r => bodyRow(r, columns, ctx)).join('')}</tbody>`;
+  const body = `<tbody>${state.rows.map((r, index) => bodyRow(r, columns, ctx, (ctx.rowOffset ?? 0) + index)).join('')}</tbody>`;
 
-  // Greet returning Pros by name when they've saved one (Profile → First name);
-  // fall back to the generic welcome otherwise.
-  const name = ctx.firstname?.trim();
-  const greeting = name ? `<strong>${esc(name)}, you're a pro!:</strong>` : `<strong>Welcome Pro:</strong>`;
-  const emptyHint = columns.length === 0 && hidden.length === 0
-    ? `<div class="pro-empty-hint">
-        <span class="pro-empty-hint-icon">${WARNING_SVG}</span>
-        <p class="pro-empty-hint-text">${greeting} Pick a tool to begin.
-        Fill any value down a whole column at once.</p>
-      </div>`
+  const emptyHint = !state.rows.some(row => row.toolId)
+    ? `<div class="pro-empty-hint"><span class="pro-empty-hint-icon">${icon('table')}</span><div><strong>${t('Start with a template or a CSV')}</strong><p>${t('Choose a template in the first row, then duplicate it or paste data from your spreadsheet. Select rows to edit or export them together.')}</p></div></div>`
     : '';
+  const total = ctx.totalRows ?? state.rows.length;
+  const page = ctx.page ?? 0;
+  const pages = ctx.pages ?? 1;
+  const pagination = `<div class="pro-grid-footer"><span>${total ? tRaw('Rows {from} to {to} of {total}', { from: (ctx.rowOffset ?? 0) + 1, to: (ctx.rowOffset ?? 0) + state.rows.length, total }) : t('No rows')}</span><div class="pro-pagination"${pages === 1 ? ' hidden' : ''}><button type="button" class="btn btn--sm" data-batch-page="previous"${page === 0 ? ' disabled' : ''}>${t('Previous')}</button><span>${tRaw('Page {page} of {pages}', { page: page + 1, pages })}</span><button type="button" class="btn btn--sm" data-batch-page="next"${page + 1 === pages ? ' disabled' : ''}>${t('Next')}</button></div></div>`;
 
   const queued = state.rows.filter(r => r.toolId).length;
-  return `<div class="pro-grid-scroll"><table class="pro-grid">${head}${body}</table>${addRowsHtml(state.rows)}</div>${columnsBarHtml(columns, hidden, queued, collapsedExport)}${emptyHint}`;
+  return `<div class="pro-grid-scroll"><table class="pro-grid" style="min-width:${330 + EXPORT_COLS.filter(c => !collapsed.has(c.key)).reduce((width, c) => width + (widths[c.key] ?? COL_DEFAULTS[c.key] ?? DEFAULT_COL_W), 0) + columns.reduce((width, c) => width + (widths[c.key] ?? 150), 0)}px" role="grid" aria-label="${t('Batch rows')}" aria-multiselectable="true" aria-rowcount="${total + 1}">${head}${body}</table>${addRowsHtml(state.rows)}</div>${pagination}${columnsBarHtml(columns, hidden, queued, collapsedExport)}${emptyHint}`;
 }
