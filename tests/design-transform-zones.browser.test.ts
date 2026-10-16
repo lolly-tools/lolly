@@ -670,11 +670,15 @@ test('two fingers on the selection: a pinch scales it in one undo step, a twist 
     await page.keyboard.press('Escape');
     await page.locator('.fc-context-menu').waitFor({ state: 'detached' });
 
-    // Scale mode: a pinch scales the text size with the box.
+    // Scale mode: a pinch scales the text size with the box. The preview eases in over
+    // the 14 px after the two-finger tap's hold-back and the lift commits what it shows,
+    // so the fingers move 30 px each, as in the first pinch, and the spread still goes
+    // 1.5 times (120 to 180): they leave the tap's 14 px at the fifth step and the preview
+    // has caught up by the lift.
     await pick(page, 'txt');
     await page.keyboard.press('k');
     c = await centre('txt');
-    await pinch(client, { x: c.x - 30, y: c.y }, { x: c.x + 30, y: c.y }, { x: -15, y: 0 }, { x: 15, y: 0 });
+    await pinch(client, { x: c.x - 60, y: c.y }, { x: c.x + 60, y: c.y }, { x: -30, y: 0 }, { x: 30, y: 0 });
     const t = await row(page, 'txt');
     near(num(t, 'fontSize'), 60, 1, 'pinch in Scale mode scales the text');
     await undoTo(page, before);

@@ -37,9 +37,9 @@
  * the tap's next 14 px of finger travel (pinchCatchUp). A scale or a travel that engages
  * later follows the fingers from the frame it engages on, and makes up what they did
  * before that frame over the next 14 px (shownPinch), so a scale and the travel it starts
- * keep the content under a finger that stays still. Nothing jumps and nothing stays
- * behind the fingers. The lift commits exactly what the preview shows, even while it is
- * still easing in. A resting pair commits nothing.
+ * keep the content under a finger that stays still. Nothing jumps, nothing stays behind
+ * the fingers and nothing moves against them. The lift commits exactly what the preview
+ * shows, even while it is still easing in. A resting pair commits nothing.
  * Scale mode scales the content too; otherwise the pinch is a uniform resize. A single
  * box turns about its own centre and a set about the centre of its bounds, with the
  * rotate handles' soft magnet (pinchMembers).
@@ -273,15 +273,22 @@ function follow(fc: FcCtx, g: PinchGesture): PinchResult {
   return res;
 }
 
+/** The share of `owed`, 0 to 1, that may come off `change` without passing 0, so a part
+ *  never shows a change against the fingers' own. */
+const room = (change: number, owed: number): number => (owed ? Math.min(1, Math.max(0, change / owed)) : 1);
+
 /**
  * What the preview shows of a frame. What had engaged when the preview began eases in
  * by `from`. A scale or a travel that engaged later shows its change at the fingers less
  * what it owes (its change at the last frame before it engaged) times what is left of
  * its own ease: it moves with the fingers from the frame it engages on, and has made up
  * the rest once they have travelled the tap's 14 px further, so it neither jumps by what
- * the fingers did before nor stays behind them. A scale and the travel it starts owe
- * from the same frame and ease alike, which keeps the content under a still finger. A
- * turn counts from where it engaged, so one that engages later owes nothing.
+ * the fingers did before nor stays behind them. What it still owes is capped at its
+ * change now, so fingers that come back toward where they began bring the preview back
+ * with them and never past: the factor stops at 1 and each axis of the travel at 0. A
+ * scale and the travel it starts owe from the same frame and ease alike, and the travel
+ * takes the scale's cap too, which keeps the content under a still finger. A turn counts
+ * from where it engaged, so one that engages later owes nothing.
  */
 function shownPinch(
   g: PinchGesture,
@@ -294,13 +301,17 @@ function shownPinch(
     turn: early.turn ? ease.from : 1,
     travel: early.travel ? ease.from : 1,
   });
-  const owedScale = (g.scaleOwed ?? 0) * (1 - ease.scale);
-  const owedTravel = 1 - ease.travel;
+  const owedK = (g.scaleOwed ?? 0) * (1 - ease.scale);
+  const capK = room(eased.k - 1, owedK);
+  // A scale and the travel it starts share their frame: follow notes both with one array.
+  const withScale = g.scaleFrom && g.scaleFrom === g.travelFrom ? capK : 1;
+  const owedX = (g.travelOwed?.x ?? 0) * (1 - ease.travel) * withScale;
+  const owedY = (g.travelOwed?.y ?? 0) * (1 - ease.travel) * withScale;
   return {
     ...eased,
-    k: eased.k - owedScale,
-    dx: eased.dx - (g.travelOwed?.x ?? 0) * owedTravel,
-    dy: eased.dy - (g.travelOwed?.y ?? 0) * owedTravel,
+    k: eased.k - owedK * capK,
+    dx: eased.dx - owedX * room(eased.dx, owedX),
+    dy: eased.dy - owedY * room(eased.dy, owedY),
   };
 }
 
