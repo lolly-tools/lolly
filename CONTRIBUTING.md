@@ -75,6 +75,11 @@ and use the Node version in `.nvmrc` (`nvm use`). The hook invokes Node directly
 `LOLLY_NODE` can name that executable when a Git client has a different PATH.
 The hook does not invoke a package manager or install dependencies.
 
+The hook first refuses new commits that add or change a file under `plans/`.
+That folder is gitignored and private to one machine, and `git add -f` is the
+only way a file there gets committed. Deleting a tracked `plans/` file passes.
+Check a branch with `node scripts/check-pushed-plans.ts HEAD`.
+
 Before the wording checks, the hook checks the web source map and engine module
 table in each distinct commit tip being pushed. Branch creation, forced updates,
 multiple refs and annotated tags use Git's supplied object IDs. Deletions skip
