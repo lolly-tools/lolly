@@ -266,16 +266,17 @@ test('a same-origin 302 to /e/ or /o/ still answers through the Tauri transport'
   assert.ok(hasInstanceSession(), 'nor unbind the session from the instance that issued it');
 });
 
-test('the native command follows that hop and reports the final address', () => {
+// The pure parts of that hop (a 302 is followed, both token addresses pass the
+// request boundary, a same-origin hop keeps the credentials and another origin
+// does not) are Rust unit tests in each remote_fetch.rs, run by the tauri CI
+// shard. The hop loop itself is inline network code, so only its two lines are
+// pinned here.
+test('the native hop loop reports the final address and drops credentials off origin', () => {
   for (const shell of ['tauri-desktop', 'tauri-mobile']) {
     const source = readFileSync(new URL(`../../../${shell}/src-tauri/src/remote_fetch.rs`, import.meta.url), 'utf8');
-    assert.match(source, /fn follows_redirect\(status: u16\) -> bool \{\s*matches!\(status, 301 \| 302 \| 303 \| 307 \| 308\)/,
-      `${shell} follows a 302`);
     assert.match(source, /if origin\(&url\) != origin\(&next\) \{\s*headers\.remove\(AUTHORIZATION\);\s*headers\.remove\(COOKIE\);\s*\}/,
       `${shell} keeps credentials on the instance origin and drops them on a hop to another one`);
     assert.match(source, /let final_url = response\.url\(\)\.to_string\(\);[\s\S]*?url: final_url,/,
       `${shell} reports the address the bytes came from`);
-    const maxUrl = /const MAX_URL_BYTES: usize = (\d+) \* 1024;/.exec(source);
-    assert.ok(maxUrl && O_TOKEN_URL.length < Number(maxUrl[1]) * 1024, `${shell} accepts a presigned /o/ address`);
   }
 });
