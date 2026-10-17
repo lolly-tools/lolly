@@ -3,8 +3,8 @@ import { updateRouteParams } from '../lib/url-state.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { SavedStateData, WebStateAPI } from '../bridge/state.ts';
 import type { RevisionCursor } from '../bridge/revision-records.ts';
-import { createAutomaticHistory, type AutomaticHistory } from './automatic-history.ts';
-import { flatExportNode } from './tool-action-helpers.ts';
+import { createAutomaticHistory, type AutomaticHistory, type SaveOutcome } from './automatic-history.ts';
+import { THUMB_CAPTURE_TIMEOUT_MS, flatExportNode } from './tool-action-helpers.ts';
 import { markSyncDirty } from '../lib/sync-service.ts';
 import { isCapturableCollabHistory, type CollabHistoryCapability } from '../lib/collab-history.ts';
 import type { CollabSessionHandle } from '../lib/collab-session.ts';
@@ -13,7 +13,8 @@ import type { HistoryWireEntry } from '../collab/history-exchange.ts';
 import { historyParticipation, type HistoryManifest } from './tool-history-adapters.ts';
 import { mountRevisionHistoryControl } from './tool-history-controls.ts';
 import { t } from '../i18n.ts';
-import { awaitsEmojiPins } from './tool-session-snapshot.ts';
+import { awaitsEmojiPins, stampMatchesStyle } from './tool-session-snapshot.ts';
+import type { EmojiStyleV1 } from '@lolly-tools/core';
 export { historyParticipation, trackRevisionInput } from './tool-history-adapters.ts';
 
 /** A browser entry remembers its local document without putting a device-local
@@ -54,6 +55,11 @@ export const PREVIEW_MAX_ELEMENTS = 400;
  * Mutable so a test can shorten the waits.
  */
 export const PREVIEW_TIMING = { quietMs: 4000, idleTimeoutMs: 2000, intervalMs: 3 * 60_000 };
+
+/** The longest the emoji pins' follow-up waits for an explicit save's picture. The
+ * Save action gives up on its capture after THUMB_CAPTURE_TIMEOUT_MS and says so;
+ * the margin lets that word arrive first. Mutable so a test can shorten the wait. */
+export const SAVE_PICTURE_TIMING = { waitMs: THUMB_CAPTURE_TIMEOUT_MS + 2000 };
 
 /** Resolve once the page has been quiet for `ms` and the browser is idle. */
 function quietAndIdle(ms: number): Promise<void> {
@@ -154,7 +160,7 @@ export function mountActionHistory(opts: {
   snapshot(): SavedStateData;
   /** The runtime's emoji state feed, so a write made before the chosen set's artwork
    *  pins arrived is followed by one that carries them. */
-  onEmojiChange?(listener: (state: { assets?: readonly unknown[] }) => void): () => void;
+  onEmojiChange?(listener: (state: { assets?: readonly unknown[]; style?: EmojiStyleV1 | null }) => void): () => void;
   /** The document's words, for a preview when there is no artboard to photograph. */
   previewWords?(): readonly string[];
 }): AutomaticHistory | undefined {
@@ -215,7 +221,25 @@ export function mountActionHistory(opts: {
       if (slot && folder) void folderStore(opts.host).then(store => store.moveItem(slot, folder, 'session')).catch(() => {});
     },
   });
-  const changed = (): void => { changes++; controller.changed(); };
+  // An explicit save writes its record first and takes its picture after
+  // (tool-actions/saving.ts), and the controller drops that picture when the
+  // creation changed in between. Pins arriving in that gap change nothing the picture
+  // shows, so their follow-up waits until the picture is attached, is not coming, or
+  // the cap has passed. Counted at once, they cost the save its picture, and their
+  // draft moves the record past the save, which keeps the picture off the Projects
+  // tile as well.
+  let savesWriting = 0, pictureDue = false, pinsWaiting = false;
+  let pictureCap: ReturnType<typeof setTimeout> | undefined;
+  // The emoji stamp of the latest explicit save: only pins for that style wait.
+  let savedStamp: unknown;
+  // An edit's write carries the pins too, so nothing is left waiting after one.
+  const changed = (): void => { pinsWaiting = false; changes++; controller.changed(); };
+  const pictureSettled = (): void => {
+    // A later save is still writing: its own picture is the one to wait for.
+    if (savesWriting) return;
+    clearTimeout(pictureCap); pictureDue = false;
+    if (pinsWaiting) changed();
+  };
   const onInput = (event: Event): void => {
     const target = event.target as HTMLElement;
     if (target.matches('[data-action="filename"], [data-action="format"], [data-action^="export-"], [data-action^="print-"], [data-action^="mark-"], [data-action="cmyk-profile"]')) changed();
@@ -224,13 +248,38 @@ export function mountActionHistory(opts: {
   const offEmoji = opts.onEmojiChange?.(emoji => {
     if (!pinlessWrite || !emoji.assets?.length) return;
     pinlessWrite = false;
-    changed();
+    // Another set's pins mean the person changed the set during the save, which
+    // is an edit like any other and makes the picture out of date.
+    if (pictureDue && stampMatchesStyle(savedStamp, emoji.style)) pinsWaiting = true;
+    else changed();
   });
   return { ...controller, changed, async save(slot, data) {
     if (awaitsEmojiPins(data)) pinlessWrite = true;
-    return controller.save(slot, data);
+    savedStamp = data.__emoji;
+    savesWriting++; pictureDue = true; clearTimeout(pictureCap);
+    let outcome: SaveOutcome | undefined;
+    try {
+      outcome = await controller.save(slot, data);
+      return outcome;
+    } finally {
+      savesWriting--;
+      // Only a recorded save gets its picture through attachSaveThumbnail. The cap
+      // covers a caller that never sends one; the Save action always does.
+      if (outcome === 'recorded') { clearTimeout(pictureCap); pictureCap = setTimeout(pictureSettled, SAVE_PICTURE_TIMING.waitMs); }
+      else pictureSettled();
+    }
+  }, async attachSaveThumbnail(thumb) {
+    try { await controller.attachSaveThumbnail(thumb); } finally { pictureSettled(); }
+  }, flush() {
+    // Hiding or leaving: the record gets the pins now, even if the picture then
+    // finds the record moved on.
+    if (pinsWaiting) changed();
+    return controller.flush();
+  }, close() {
+    if (pinsWaiting) changed();
+    return controller.close();
   }, dispose() {
-    live = false;
+    live = false; clearTimeout(pictureCap);
     controller.dispose(); offEmoji?.();
     opts.el?.removeEventListener('input', onInput); opts.el?.removeEventListener('change', onInput);
   } };
