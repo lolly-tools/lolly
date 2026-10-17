@@ -1746,6 +1746,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'components/token-context-strip.ts': 1,
   'components/token-review-proof.ts': 1,
   'components/token-workspace.ts': 7,
+  // The saved-work check repaints only its own section: session labels, tool ids,
+  // paths and failure text go through escape(); counts, times and copy are t() output.
+  'lib/token-consumer-index.ts': 1,
   'views/components-token-examples.ts': 1,
   'views/design-token-bindings.ts': 1,
   // 2026-10-07 (plan 75 G19): a viewer's locked control is the sidebar's own control
