@@ -11,9 +11,11 @@
  *   B  side-file   a `file` input at any depth, and the default action bar
  *   C  settings    a `file` input at any depth, and `render.actions: []`
  *   D  recording   a `camera`, `microphone` or `screen` capability
- * Class A keeps history now. B waits until a file's bytes can be left out of the
- * snapshot, C until its settings can be kept by the file's fingerprint (it must never
- * file a creation in Projects), and D until a capture can pause checkpoints.
+ * Classes A and B keep history. B's file inputs are recorded as not kept (historyRedact):
+ * history and Save keep each file's name, type and size, never its bytes, and a reopened
+ * document asks for the file again. C waits until its settings can be kept by the file's
+ * fingerprint (it must never file a creation in Projects), and D until a capture can
+ * pause checkpoints.
  */
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
 import exceptionsFile from './tool-history-exceptions.json' with { type: 'json' };
@@ -46,7 +48,11 @@ export type HistoryManifest = Pick<ToolManifest, 'id'> & {
 /** Live device input a capture reads. `compose`, `capture` (a page render) and
  *  `wasm` are not live input, so they do not select class D. */
 const LIVE_DEVICE_CAPS: ReadonlySet<string> = new Set(['camera', 'microphone', 'screen']);
-const DURABLE_TYPES: ReadonlySet<string> = new Set(['text', 'longtext', 'number', 'boolean', 'color', 'select', 'asset', 'date', 'time', 'datetime-local', 'url', 'vector', 'table', 'blocks']);
+/** The input types history keeps. A `file` input is kept as a record that it was not
+ *  kept (historyRedact), so it is in the list. */
+const DURABLE_TYPES: ReadonlySet<string> = new Set(['text', 'longtext', 'number', 'boolean', 'color', 'select', 'asset', 'date', 'time', 'datetime-local', 'url', 'vector', 'table', 'blocks', 'file']);
+/** The longest file name a not-kept record keeps. */
+const MAX_NAME = 255;
 const MAX_DEPTH = 32;
 
 /** Tools kept out by name, each with the reason the gate found. */
@@ -90,8 +96,92 @@ function durable(inputs: readonly InputLike[], depth = 0): boolean {
 export function historyParticipation(manifest: HistoryManifest, shared: boolean): HistoryParticipation {
   const notKept = fileInputPaths(manifest.inputs);
   if (shared) return { mode: 'none', localHistory: false, recordDeviceActivity: false, notKept };
-  const enrolled = historyClass(manifest) === 'document' && historyException(manifest.id) === null && durable(manifest.inputs ?? []);
+  const cls = historyClass(manifest);
+  const enrolled = (cls === 'document' || cls === 'side-file') && historyException(manifest.id) === null && durable(manifest.inputs ?? []);
   return { mode: enrolled ? 'document' : 'none', localHistory: enrolled, recordDeviceActivity: true, notKept };
+}
+
+/** What history keeps in place of a file it does not keep: the file's name, type and
+ *  size, never its bytes. The engine reads it as an empty file input (it carries no
+ *  bytes), so a reopened document asks for the file again rather than claiming to have the file. */
+export interface NotKeptFile { notKept: true; name: string; mime: string; size: number }
+
+export function isNotKeptFile(value: unknown): value is NotKeptFile {
+  return !!value && typeof value === 'object' && !Array.isArray(value) && (value as { notKept?: unknown }).notKept === true
+    && typeof (value as { name?: unknown }).name === 'string';
+}
+
+/** The not-kept record for one value in a file slot: a loaded file becomes its record,
+ *  a record stays, an empty slot stays empty, and anything else is dropped as empty. */
+function notKeptRecord(value: unknown): unknown {
+  if (value === null || value === undefined || isNotKeptFile(value)) return value;
+  if (typeof value === 'object' && !Array.isArray(value) && (value as { __file?: unknown }).__file) {
+    const file = value as { name?: unknown; mime?: unknown; size?: unknown };
+    return { notKept: true, name: typeof file.name === 'string' ? file.name.slice(0, MAX_NAME) : '',
+      mime: typeof file.mime === 'string' ? file.mime.slice(0, MAX_NAME) : '',
+      size: typeof file.size === 'number' && Number.isFinite(file.size) ? file.size : 0 } satisfies NotKeptFile;
+  }
+  return null;
+}
+
+/** `fn` applied to the value at one path (see fileInputPaths): a top-level input, or the
+ *  field of every row of a blocks input, rows inside rows included. The record comes
+ *  back unchanged, the same object, when `fn` changes nothing. */
+function mapPath(record: Record<string, unknown>, path: readonly string[], fn: (value: unknown) => unknown): Record<string, unknown> {
+  const [key, ...rest] = path;
+  if (key === undefined || !Object.hasOwn(record, key)) return record;
+  const value = record[key];
+  let next: unknown = value;
+  if (!rest.length) next = Array.isArray(value) ? mapList(value, fn) : fn(value);
+  else if (Array.isArray(value)) {
+    const rows = value.map(row => (row && typeof row === 'object' && !Array.isArray(row) ? mapPath(row as Record<string, unknown>, rest, fn) : row));
+    if (rows.some((row, i) => row !== value[i])) next = rows;
+  }
+  return next === value ? record : { ...record, [key]: next };
+}
+/** A `multiple` file input's list, each entry mapped and the empty ones left out. */
+function mapList(list: readonly unknown[], fn: (value: unknown) => unknown): unknown[] {
+  const out = list.map(fn).filter(item => item !== null && item !== undefined);
+  return out.length === list.length && out.every((item, i) => item === list[i]) ? list as unknown[] : out;
+}
+function mapPaths<T extends Record<string, unknown>>(data: T, notKept: readonly string[], fn: (value: unknown) => unknown): T {
+  let out: Record<string, unknown> = data;
+  for (const path of notKept) out = mapPath(out, path.split('.'), fn);
+  return out as T;
+}
+
+/**
+ * The document as history and Save keep it where the document has history (plan 277
+ * P4, class B): every file at a `notKept` path is recorded as not kept (NotKeptFile),
+ * so no copy history keeps holds a file's bytes. Everything else is untouched, and a
+ * document with nothing to leave out comes back as the same object.
+ */
+export function historyRedact<T extends Record<string, unknown>>(data: T, notKept: readonly string[]): T {
+  return notKept.length ? mapPaths(data, notKept, notKeptRecord) : data;
+}
+
+/** The names of the files a kept document records as not kept, in path and row order. */
+export function notKeptFiles(data: Readonly<Record<string, unknown>>, notKept: readonly string[]): string[] {
+  const names: string[] = [];
+  mapPaths(data as Record<string, unknown>, notKept, value => { if (isNotKeptFile(value)) names.push(value.name); return value; });
+  return names;
+}
+
+/** A kept document as the engine reads it back: each not-kept record is an empty file
+ *  slot, null for one file and an empty list for a `multiple` input. */
+export function withoutNotKept<T extends Record<string, unknown>>(data: T, notKept: readonly string[]): T {
+  return mapPaths(data, notKept, value => (isNotKeptFile(value) ? null : value));
+}
+
+/**
+ * `load` reading a saved record in the form history keeps. A record can still hold
+ * a file's bytes: a save made before history kept the tool, a Make variants copy, a
+ * .lolly or multi-edit save. The controller adopts what this returns, so the adopted
+ * revision records each file as not kept; the stored record stays as it was saved
+ * until the next draft replaces it with the kept snapshot.
+ */
+export function loadKept<T extends Record<string, unknown>>(load: (slot: string) => Promise<T | null>, notKept: readonly string[]): (slot: string) => Promise<T | null> {
+  return async slot => { const data = await load(slot); return data && historyRedact(data, notKept); };
 }
 
 /** Protect the immediate edit, then the final inputs after its async hook.

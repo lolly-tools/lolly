@@ -12,6 +12,7 @@ import { t } from '../../i18n.ts';
 import { markSyncDirty } from '../../lib/sync-service.ts';
 import { navigateTo } from '../../nav.js';
 import { snapshotSession } from '../tool-session-snapshot.ts';
+import { historyRedact } from '../tool-history-adapters.ts';
 import { THUMB_CAPTURE_TIMEOUT_MS, captureThumbnail } from '../tool-action-helpers.ts';
 import { jellyActive } from '../../lib/jelly.ts';
 import { documentScopeClaimed, saveInDocumentScope } from '../../lib/document-scope.ts';
@@ -35,8 +36,13 @@ export const saveBtnHtml = (ta: ActionsCtx) =>
     : `<button data-action="save" data-sfx="save" class="save-btn" title="Save to your library">${SAVE_SVG}<span data-save-label>Save</span></button>`; };
 // The exact payload a save persists - live input values plus the `__` markers
 // (tool identity + export settings). Shared by performSave and the "Make
-// variants" action so a variant is byte-for-byte a normal saved session.
+// variants" action so a variant is byte-for-byte a normal saved session, except
+// that a save where history keeps the document goes through keptSnapshot below.
 export const sessionSnapshot = (ta: ActionsCtx) => { const { el, experience, manifest, runtime } = ta; return snapshotSession(el, manifest, runtime, experience, readBleed, readMarks); };
+// The same payload as history keeps it: each file input recorded as not kept (plan 277
+// P4, class B). Automatic history writes this, and so does Save where history keeps the
+// document, because the record a save writes is the one recovery drafts replace.
+export const keptSnapshot = (ta: ActionsCtx) => historyRedact(sessionSnapshot(ta), ta.experience.notKept ?? []);
 // Put a Save button back to rest a moment after its "Saved" confirmation.
 function restoreSaveButton(btn: HTMLButtonElement): void {
   const label = btn.querySelector<HTMLElement>('[data-save-label]') ?? btn;
@@ -98,7 +104,7 @@ export async function performSave(ta: ActionsCtx,
     // Reuse the session's slot after the first save (or when resuming an existing
     // session) so a re-save updates it in place; only mint a new slot the first time.
     const slot = ta.activeSlot || `${manifest.id}:${Date.now()}`;
-    const data = sessionSnapshot(ta);
+    const data = ta.automaticHistory ? keptSnapshot(ta) : sessionSnapshot(ta);
     // Durable FIRST. The thumbnail is best-effort decoration, but it used to be
     // AWAITED ahead of the write - so in a throttled tab (hidden or occluded:
     // rAF frozen, waitForQuiescence stalled) the put trailed the click by up to
@@ -216,6 +222,7 @@ export function savingOps(ta: ActionsCtx) {
     exportCompleted: bindOp(ta, exportCompleted),
     saveBtnHtml: bindOp(ta, saveBtnHtml),
     sessionSnapshot: bindOp(ta, sessionSnapshot),
+    keptSnapshot: bindOp(ta, keptSnapshot),
     performSave: bindOp(ta, performSave),
     settleSaveButton: bindOp(ta, settleSaveButton),
     quickSaveFolder: bindOp(ta, quickSaveFolder),

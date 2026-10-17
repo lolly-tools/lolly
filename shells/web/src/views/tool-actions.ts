@@ -51,7 +51,7 @@ function mountHistory(ta: ActionsCtx): ActionsApi['history'] {
     enabled: experience.localHistory, host, toolId: manifest.id, el, canvas: canvasEl,
     getSlot: () => ta.activeSlot, setSlot: slot => { ta.activeSlot = slot; },
     takeFolder: () => { const folder = ta.fileIntoFolder; ta.fileIntoFolder = null; return folder; },
-    snapshot: ta.saving.sessionSnapshot, initial: experience.historyBase,
+    snapshot: ta.saving.keptSnapshot, notKept: experience.notKept, initial: experience.historyBase,
     onEmojiChange: listener => runtime.onEmojiChange(listener),
     previewWords: () => documentWords(manifest.inputs ?? [], new Map(runtime.getModel().map(item => [item.id, item.value]))),
   });
@@ -139,7 +139,7 @@ function renderActions(
     // history without one.
     ta.automaticHistory = mountHistory(ta);
     const kept = {
-      getSlot: () => ta.activeSlot, history: ta.automaticHistory, sessionState: ta.saving.sessionSnapshot,
+      getSlot: () => ta.activeSlot, history: ta.automaticHistory, sessionState: ta.saving.sessionSnapshot, keptSnapshot: ta.saving.keptSnapshot,
       // Leaving the view protects the last edits and stops the controller, as the full bar's dispose does.
       dispose: (): void => { void ta.automaticHistory?.flush(); ta.automaticHistory?.dispose(); },
     };
@@ -421,6 +421,7 @@ function renderActions(
     setExperience: ta.video.setExperience,
     stopAudioPreview: ta.audio.stopAudioPreview,
     sessionState: ta.saving.sessionSnapshot,
+    keptSnapshot: ta.saving.keptSnapshot,
     getSlot: () => ta.activeSlot,
     history: ta.automaticHistory,
     dispose: ta.preflight.disposeActions,
