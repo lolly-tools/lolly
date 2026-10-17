@@ -702,6 +702,9 @@ export type { TokenAxis, TokenAxisOption, AxisWindow, RotationPolicy } from './t
 export { COLOURWAY_GROUP, COLOURWAY_ROLES, COLOURWAY_ID, colourwaySetName, colourwayPath, colourwayAxis, canonicalFirst } from './colourway.ts';
 export { colourwayFamily, pickColourway, withColourway, liftToColourways, addColourway } from './colourway.ts';
 export type { ColourwayRole, ColourwayLead, RotationContext, ColourwayPick, ColourwayEdit, LiftOptions, ColourwayValues, AddColourwayOptions } from './colourway.ts';
+// Editing an existing set of colourways (plans/319 A2, the Brand Studio's data layer).
+export { renameColourway, reorderColourways, setCanonicalColourway, removeColourway, duplicateColourway, colourwaysEditable, colourwayRolesOf, MAX_COLOURWAY_NAME } from './colourway.ts';
+export type { DuplicateColourwayOptions } from './colourway.ts';
 export {
   parseOklch, formatOklch, hexToOklch, oklchToHex, mixOklch, contrastRatio, deriveBrandTokens,
   RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,

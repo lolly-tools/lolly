@@ -400,6 +400,12 @@ export interface LiftOptions {
   id?: string;
   /** The canonical colourway's display name. Default `Main`. */
   name?: string;
+  /**
+   * Re-point the surface too, so each colourway can carry a tinted background.
+   * Default false. Rebuild palette sets it when the document it replaces had
+   * already re-pointed its surface, so the colourways it keeps still link.
+   */
+  surface?: boolean;
 }
 
 /**
@@ -411,6 +417,8 @@ export interface LiftOptions {
  * look, under every combination of the document's other theme groups, before and
  * after, and refuses the edit if a single value, type, description or extension
  * differs. A document that already has a colourway group is returned unchanged.
+ * With `surface: true` the surface moves into the colourway as well, under the
+ * same check.
  *
  * Refused, with reasons, when the document has no light/dark group, when a look
  * has no token set of its own, when another theme group sets a slot, when a slot
@@ -440,7 +448,8 @@ export function liftToColourways(doc: unknown, opts: LiftOptions = {}): Colourwa
   if (record(next.$metadata) && Array.isArray(next.$metadata.tokenSetOrder)) next.$metadata.tokenSetOrder = [...next.$metadata.tokenSetOrder, set];
   const colourways: TokenAxis = { group: COLOURWAY_GROUP, kind: 'colourway', canonical: id, rotation: null, options: [{ id, name, canonical: true }] };
 
-  const reasons = COLOURWAY_ROLES.flatMap(role => liftRole(next, role, mode, colourways));
+  const lifting: ColourwayRole[] = opts.surface ? [...COLOURWAY_ROLES, 'surface'] : [...COLOURWAY_ROLES];
+  const reasons = lifting.flatMap(role => liftRole(next, role, mode, colourways));
   if (reasons.length) return { ok: false, reasons };
   // The guarantee, checked rather than assumed: every selection resolves exactly as before.
   const changed = unchanged(doc, next, selections, 'Lifting');
@@ -487,9 +496,7 @@ export function addColourway(doc: unknown, opts: AddColourwayOptions): Colourway
   if (foreign.length || unset.length) {
     return { ok: false, reasons: ['This design system encodes its colourways its own way, so Lolly can choose between them but cannot add one.'] };
   }
-  if (!COLOURWAY_ID.test(opts.id)) reasons.push(`${opts.id} is not a usable colourway id: use lowercase letters, digits and hyphens.`);
-  if (themeIds(next).has(opts.id)) reasons.push(`The design system already has a theme called ${opts.id}.`);
-  if (!opts.name.trim()) reasons.push('A colourway needs a name.');
+  reasons.push(...idReasons(next, opts.id), ...nameReasons(next, colourways, opts.name));
   for (const option of mode.options) {
     const values = opts.values[option.id];
     if (!values) { reasons.push(`Give the ${option.name} colours for ${opts.name}.`); continue; }
@@ -530,14 +537,309 @@ export function addColourway(doc: unknown, opts: AddColourwayOptions): Colourway
   const changed = unchanged(before, next, selections, 'Adding this colourway');
   if (changed.length) return { ok: false, reasons: changed };
   // ...and every role of every pairing, the new colourway's included, is a colour.
+  const broken = unresolvedRoles(next, mode, colourways.group, [...colourways.options, { id: opts.id, name: opts.name.trim() }], roles);
+  return broken.length ? { ok: false, reasons: broken } : { ok: true, doc: next };
+}
+
+/** Reasons a pairing of look and colourway leaves a role without a colour; empty when every role resolves. */
+function unresolvedRoles(doc: Rec, mode: TokenAxis, group: string, options: ReadonlyArray<{ id: string; name: string }>, roles: readonly ColourwayRole[]): string[] {
   for (const look of mode.options) {
-    for (const option of [...colourways.options, { id: opts.id, name: opts.name.trim() }]) {
-      const set = createTokenSet(next, { selection: { [mode.group]: look.id, [colourways.group]: option.id } });
+    for (const option of options) {
+      const set = createTokenSet(doc, { selection: { [mode.group]: look.id, [group]: option.id } });
       for (const role of roles) {
         const value = set.resolve(`color.semantic.${role}`);
-        if (typeof value !== 'string' || isAlias(value)) return { ok: false, reasons: [`The ${option.name} ${role} in the ${look.name} theme would not resolve to a colour.`] };
+        if (typeof value !== 'string' || isAlias(value)) return [`The ${option.name} ${role} in the ${look.name} theme would not resolve to a colour.`];
       }
     }
   }
-  return { ok: true, doc: next };
+  return [];
+}
+
+// ─── Editing the colourways a document already has ──────────────────────────
+//
+// The same discipline as the lift and the add: work on a clone, change only what
+// the edit names, then resolve every token under every explicit selection before
+// and after, and refuse the edit when anything a remaining choice draws moved.
+// A selection that leaves the colourway out falls to the canonical one, so making
+// a different colourway canonical changes that default on purpose; every explicit
+// choice still resolves as before.
+
+/** The longest colourway name the editing functions accept. */
+export const MAX_COLOURWAY_NAME = 80;
+
+const FOREIGN_ENCODING = 'This design system encodes its colourways its own way, so Lolly can choose between them but cannot change them.';
+
+function idReasons(doc: Rec, id: string): string[] {
+  if (!COLOURWAY_ID.test(id)) return [`${id} is not a usable colourway id: use lowercase letters, digits and hyphens.`];
+  return themeIds(doc).has(id) ? [`The design system already has a theme called ${id}.`] : [];
+}
+
+/**
+ * Reasons a colourway may not take a name. A theme request (`colors({ theme })`)
+ * matches an option by id or by name, so a colourway called "light" would answer
+ * a request for the light look. Names are compared without regard to case, so
+ * two colourways never differ only in capitals either. `except` is the
+ * colourway being renamed.
+ */
+function nameReasons(doc: Rec, colourways: TokenAxis, name: string, except?: string): string[] {
+  const wanted = name.trim();
+  if (!wanted) return ['A colourway needs a name.'];
+  if (wanted.length > MAX_COLOURWAY_NAME) return [`A colourway name can have at most ${MAX_COLOURWAY_NAME} characters.`];
+  const lower = wanted.toLowerCase();
+  for (const entry of themeEntries(doc)) {
+    const own = groupOf(entry) === colourways.group;
+    if (own && optionIdOf(entry) === except) continue;
+    const taken = [entry.id, entry.name].some(v => typeof v === 'string' && v.trim().toLowerCase() === lower);
+    if (!taken) continue;
+    return [own ? `Another colourway is already called ${wanted}.` : `The design system already has a theme called ${wanted}, so a colourway cannot use that name.`];
+  }
+  return [];
+}
+
+/**
+ * Every explicit selection of the given groups: one option from each, every
+ * combination. Null when there are more than `MAX_CHECKED_SELECTIONS`, so an
+ * edit is refused rather than checked partly.
+ */
+function everySelection(axes: readonly TokenAxis[]): Record<string, string>[] | null {
+  let combos: Record<string, string>[] = [{}];
+  for (const axis of axes) {
+    combos = combos.flatMap(c => axis.options.map(o => ({ ...c, [axis.group]: o.id })));
+    if (combos.length > MAX_CHECKED_SELECTIONS) return null;
+  }
+  return combos;
+}
+
+interface Editable { next: Rec; axes: TokenAxis[]; colourways: TokenAxis }
+
+/**
+ * A clone of the document and its colourway group, or the reasons it cannot be
+ * edited. `encoded` also requires the encoding Lolly writes (every colourway turns
+ * on one set of its own, and every look links its primary, on-primary and
+ * secondary to `color.colourway.*`), which removing and duplicating need because
+ * they move whole sets. Renaming, reordering and choosing the canonical colourway
+ * touch only `$themes`, so they work on any colourway group.
+ */
+function editable(doc: unknown, encoded: boolean): Editable | { reasons: string[] } {
+  if (!record(doc)) return { reasons: ['This design system has no colourways yet.'] };
+  const { axes } = readTokenAxes(doc);
+  const colourways = axisOfKind(axes, 'colourway');
+  if (!colourways) return { reasons: ['This design system has no colourways yet.'] };
+  if (encoded) {
+    const mode = modeAxis(axes);
+    if (!mode) return { reasons: ['Colourways need a design system with light and dark themes.'] };
+    const foreign = COLOURWAY_ROLES.some(role => !isLifted(doc, role, mode)) || colourways.options.some(o => colourwaySetOf(doc, colourways, o.id) === null);
+    if (foreign) return { reasons: [FOREIGN_ENCODING] };
+  }
+  return { next: structuredClone(doc), axes, colourways };
+}
+
+/** The before/after check every edit below ends with. */
+function checked(before: unknown, next: Rec, axes: readonly TokenAxis[], verb: string): ColourwayEdit {
+  const selections = everySelection(axes);
+  if (!selections) return { ok: false, reasons: tooMany(verb.toLowerCase()) };
+  const changed = unchanged(before, next, selections, verb);
+  return changed.length ? { ok: false, reasons: changed } : { ok: true, doc: next };
+}
+
+/** The first `$themes` entry of a group with an option id. */
+const entryOf = (doc: Rec, group: string, id: string): Rec | undefined =>
+  themeEntries(doc).find(t => groupOf(t) === group && optionIdOf(t) === id);
+
+/**
+ * Put a group's entries in a new order. The entries keep the positions the group
+ * already holds in `$themes`, so the order of other groups is untouched. A
+ * duplicate entry the resolver skips stays where it is.
+ */
+function placeEntries(doc: Rec, group: string, order: readonly string[]): void {
+  const list = doc.$themes as unknown[];
+  const firsts = new Map<string, number>();
+  list.forEach((t, i) => {
+    if (!record(t) || groupOf(t) !== group) return;
+    const id = optionIdOf(t);
+    if (id && !firsts.has(id)) firsts.set(id, i);
+  });
+  const slots = [...firsts.values()].sort((a, b) => a - b);
+  const entries = order.map(id => list[firsts.get(id)!]);
+  slots.forEach((slot, i) => { list[slot] = entries[i]; });
+}
+
+/** The axis annotation on one entry, created when absent. */
+function axisAnnotation(entry: Rec): Rec {
+  annotate(entry, {});
+  return ((entry.$extensions as Rec)[TOKEN_EXT] as Rec).axis as Rec;
+}
+
+/**
+ * Give a colourway a new display name. Its id never changes: ids are what
+ * artefacts store. When the entry has no `id` of its own (the resolver then uses
+ * its name as the id), the old name is written as the id first, so a stored
+ * choice keeps pointing at the same colourway. A stored `activeThemes` entry that
+ * used the old name is rewritten to the id for the same reason.
+ *
+ * Refused for an empty or overlong name, or one that another theme already uses
+ * as an id or a name (see `nameReasons`).
+ */
+export function renameColourway(doc: unknown, id: string, name: string): ColourwayEdit {
+  const found = editable(doc, false);
+  if ('reasons' in found) return { ok: false, reasons: found.reasons };
+  const { next, axes, colourways } = found;
+  if (!colourways.options.some(o => o.id === id)) return { ok: false, reasons: [`${id} is not a colourway in this design system.`] };
+  const reasons = nameReasons(next, colourways, name, id);
+  if (reasons.length) return { ok: false, reasons };
+  const entry = entryOf(next, colourways.group, id)!;
+  const oldName = typeof entry.name === 'string' ? entry.name : id;
+  if (typeof entry.id !== 'string') entry.id = id;
+  entry.name = name.trim();
+  // `activeThemes` matches by id or by name; a stored name would stop matching.
+  const meta = record(next.$metadata) ? next.$metadata as Rec : null;
+  if (meta && Array.isArray(meta.activeThemes) && oldName !== id) {
+    const group = colourways.group;
+    meta.activeThemes = meta.activeThemes.map(t => (t === oldName ? id : t === `${group}/${oldName}` ? `${group}/${id}` : t));
+  }
+  return checked(doc, next, axes, 'Renaming this colourway');
+}
+
+/**
+ * Put the colourways in a new order: `order` lists every colourway id once. The
+ * canonical colourway stays first, because the first option is also the canonical
+ * one for a reader that ignores the mark (plans/319, axis meaning); to put another
+ * colourway first, make it canonical. Only `$themes` changes; set order is left
+ * alone, since one colourway set is on at a time and their order decides nothing.
+ */
+export function reorderColourways(doc: unknown, order: readonly string[]): ColourwayEdit {
+  const found = editable(doc, false);
+  if ('reasons' in found) return { ok: false, reasons: found.reasons };
+  const { next, axes, colourways } = found;
+  const ids = colourways.options.map(o => o.id);
+  if (order.length !== ids.length || new Set(order).size !== order.length || order.some(id => !ids.includes(id))) {
+    return { ok: false, reasons: ['Name every colourway exactly once.'] };
+  }
+  if (order[0] !== colourways.canonical) return { ok: false, reasons: ['The canonical colourway stays first. Make another colourway canonical to put that one first.'] };
+  placeEntries(next, colourways.group, order);
+  return checked(doc, next, axes, 'Reordering the colourways');
+}
+
+/**
+ * Make a colourway the canonical one: the colourway an artefact uses when it
+ * chooses none, the one the app's own colours follow. The mark moves to its entry
+ * (and to the document's root `themeAxes` entry, when the group states its
+ * canonical there) and the entry moves first, so the mark and the first-option
+ * rule agree. Every artefact that stored a colourway keeps that colourway.
+ */
+export function setCanonicalColourway(doc: unknown, id: string): ColourwayEdit {
+  const found = editable(doc, false);
+  if ('reasons' in found) return { ok: false, reasons: found.reasons };
+  const { next, axes, colourways } = found;
+  if (!colourways.options.some(o => o.id === id)) return { ok: false, reasons: [`${id} is not a colourway in this design system.`] };
+  for (const entry of themeEntries(next)) {
+    if (groupOf(entry) !== colourways.group) continue;
+    const mine = optionIdOf(entry) === id;
+    const axis = record(entry.$extensions) && record((entry.$extensions as Rec)[TOKEN_EXT]) ? ((entry.$extensions as Rec)[TOKEN_EXT] as Rec).axis : undefined;
+    if (mine) axisAnnotation(entry).canonical = true;
+    else if (record(axis)) delete axis.canonical;
+  }
+  const root = record(next.$extensions) && record((next.$extensions as Rec)[TOKEN_EXT]) ? ((next.$extensions as Rec)[TOKEN_EXT] as Rec).themeAxes : undefined;
+  if (record(root) && record(root[colourways.group]) && typeof (root[colourways.group] as Rec).canonical === 'string') (root[colourways.group] as Rec).canonical = id;
+  placeEntries(next, colourways.group, [id, ...colourways.options.map(o => o.id).filter(o => o !== id)]);
+  return checked(doc, next, axes, 'Choosing the canonical colourway');
+}
+
+/**
+ * Remove a colourway: its `$themes` entry, and its set unless another theme also
+ * turns that set on. A stored choice of it (`$metadata.activeThemeSelection`,
+ * `activeThemes`) is cleared, so the document falls back to the canonical
+ * colourway rather than naming one that is gone. An artefact that stored this
+ * colourway now draws the canonical one, which the resolver reports.
+ *
+ * Refused for the canonical colourway (make another one canonical first) and on a
+ * document that encodes colourways its own way. Every pairing of the remaining
+ * colourways must resolve exactly as before.
+ */
+export function removeColourway(doc: unknown, id: string): ColourwayEdit {
+  const found = editable(doc, true);
+  if ('reasons' in found) return { ok: false, reasons: found.reasons };
+  const { next, colourways } = found;
+  const option = colourways.options.find(o => o.id === id);
+  if (!option) return { ok: false, reasons: [`${id} is not a colourway in this design system.`] };
+  if (id === colourways.canonical) return { ok: false, reasons: [`Make another colourway canonical before removing ${option.name}.`] };
+  const set = colourwaySetOf(next, colourways, id)!;
+  const entry = entryOf(next, colourways.group, id)!;
+  next.$themes = (next.$themes as unknown[]).filter(t => t !== entry);
+  const shared = themeEntries(next).some(t => enabledSets(t).includes(set));
+  const meta = record(next.$metadata) ? next.$metadata as Rec : null;
+  if (!shared) {
+    delete next[set];
+    if (meta && Array.isArray(meta.tokenSetOrder)) meta.tokenSetOrder = meta.tokenSetOrder.filter(s => s !== set);
+    if (meta && Array.isArray(meta.activeSets)) meta.activeSets = meta.activeSets.filter(s => s !== set);
+  }
+  if (meta && record(meta.activeThemeSelection) && meta.activeThemeSelection[colourways.group] === id) delete meta.activeThemeSelection[colourways.group];
+  if (meta && Array.isArray(meta.activeThemes)) {
+    const names = new Set([id, option.name, `${colourways.group}/${id}`, `${colourways.group}/${option.name}`]);
+    meta.activeThemes = meta.activeThemes.filter(t => !(typeof t === 'string' && names.has(t)));
+  }
+  // Checked over what is left: every remaining pairing must draw what it drew.
+  return checked(doc, next, readTokenAxes(next).axes, 'Removing this colourway');
+}
+
+export interface DuplicateColourwayOptions {
+  /** The copy's id. */
+  id: string;
+  /** The copy's display name. */
+  name: string;
+}
+
+/**
+ * Copy a colourway under a new id and name: its set is cloned whole (links
+ * included, so a copy of a colourway that follows a ramp step follows the same
+ * step) and the copy goes last. Refused on a document that encodes colourways
+ * its own way, and when the id or name is taken. Every existing pairing must
+ * resolve exactly as before, and every role of the copy must resolve to a colour.
+ */
+export function duplicateColourway(doc: unknown, id: string, opts: DuplicateColourwayOptions): ColourwayEdit {
+  const found = editable(doc, true);
+  if ('reasons' in found) return { ok: false, reasons: found.reasons };
+  const { next, axes, colourways } = found;
+  const mode = modeAxis(axes)!;
+  if (!colourways.options.some(o => o.id === id)) return { ok: false, reasons: [`${id} is not a colourway in this design system.`] };
+  const reasons = [...idReasons(next, opts.id), ...nameReasons(next, colourways, opts.name)];
+  if (reasons.length) return { ok: false, reasons };
+  const set = colourwaySetName(opts.id);
+  if (record(next[set])) return { ok: false, reasons: [`The design system already has a token set called ${set}.`] };
+  next[set] = structuredClone(next[colourwaySetOf(next, colourways, id)!]);
+  const entry: Rec = { id: opts.id, name: opts.name.trim(), group: colourways.group, selectedTokenSets: { [set]: 'enabled' } };
+  annotate(entry, { kind: 'colourway' });
+  (next.$themes as unknown[]).push(entry);
+  if (record(next.$metadata) && Array.isArray(next.$metadata.tokenSetOrder)) next.$metadata.tokenSetOrder = [...next.$metadata.tokenSetOrder, set];
+  const result = checked(doc, next, axes, 'Copying this colourway');
+  if (!result.ok) return result;
+  const roles: ColourwayRole[] = isLifted(next, 'surface', mode) ? [...COLOURWAY_ROLES, 'surface'] : [...COLOURWAY_ROLES];
+  const broken = unresolvedRoles(next, mode, colourways.group, [{ id: opts.id, name: opts.name.trim() }], roles);
+  return broken.length ? { ok: false, reasons: broken } : result;
+}
+
+/**
+ * Whether Lolly can add, copy and remove colourways in this document, and why
+ * not. A document with no colourway group answers with the lift's own reasons,
+ * so a caller can say why the first extra lead cannot be added before trying.
+ */
+export function colourwaysEditable(doc: unknown): { ok: true } | { ok: false; reasons: string[] } {
+  if (!colourwayAxis(doc)) {
+    const lifted = liftToColourways(doc);
+    return lifted.ok ? { ok: true } : { ok: false, reasons: lifted.reasons };
+  }
+  const found = editable(doc, true);
+  return 'reasons' in found ? { ok: false, reasons: found.reasons } : { ok: true };
+}
+
+/**
+ * The roles every look links to the colourways: `primary`, `on-primary` and
+ * `secondary`, plus `surface` once a colourway has tinted the surface. Empty when the
+ * document has no colourway group or no light and dark group.
+ */
+export function colourwayRolesOf(doc: unknown): ColourwayRole[] {
+  if (!record(doc) || !colourwayAxis(doc)) return [];
+  const mode = modeAxis(readTokenAxes(doc).axes);
+  if (!mode) return [];
+  return ([...COLOURWAY_ROLES, 'surface'] as ColourwayRole[]).filter(role => isLifted(doc, role, mode));
 }
