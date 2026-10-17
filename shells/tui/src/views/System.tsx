@@ -21,9 +21,10 @@ import { Tabs } from '../components/Tabs.tsx';
 import { Footer } from '../components/Footer.tsx';
 import type { NavTarget } from '../nav.ts';
 import { defaultExportDir } from '../store.ts';
+import { SystemTokens } from './SystemTokens.tsx';
 
-type Mode = 'browse' | 'colour' | 'import' | 'resource' | 'switch';
-export type SystemAction = Exclude<Mode, 'browse' | 'switch'>;
+type Mode = 'browse' | 'colour' | 'import' | 'resource' | 'switch' | 'tokens';
+export type SystemAction = Exclude<Mode, 'browse' | 'switch' | 'tokens'>;
 interface Summary { tokens: number; colours: number; themes: number; resources: number }
 
 export function System({ onNav, onQuit, initialAction }: {
@@ -133,7 +134,7 @@ export function System({ onNav, onQuit, initialAction }: {
   };
 
   useInput((input, key) => {
-    if (working) return;
+    if (working || mode === 'tokens') return;
     if (mode === 'colour' || mode === 'import' || mode === 'resource') {
       if (key.escape) { setMode('browse'); setStatus(''); }
       return;
@@ -158,11 +159,15 @@ export function System({ onNav, onQuit, initialAction }: {
     if (input === 'a') return open('resource');
     if (input === 'e') { void exportSystem(); return; }
     if (input === 'u') { setSwitchSel(Math.max(0, systems.findIndex(s => s.id === active?.id))); return open('switch'); }
+    if (input === 't') return open('tokens');
   });
 
   const prompt = mode === 'colour' ? 'Colour value'
     : mode === 'import' ? '.lolly, tokens, Penpot, token zip or SVG path'
       : 'Logo, font, PDF, image or reference path';
+
+  // The inspector owns the screen; it comes back here with any stored choices re-read.
+  if (mode === 'tokens') return <SystemTokens onBack={() => { setMode('browse'); void reload(); }} />;
 
   return (
     <Box flexDirection="column" width={cols} height={rows}>
@@ -188,6 +193,7 @@ export function System({ onNav, onQuit, initialAction }: {
             <Text><Text bold color={theme.accentName}>a</Text>  Add a resource  <Text color={theme.dim}>{compact ? 'logo · font · PDF · image' : 'logo · font · PDF · image · anything in between'}</Text></Text>
             <Text><Text bold color={theme.accentName}>e</Text>  Export .lolly   <Text color={theme.dim}>{compact ? 'tokens + retained resources' : 'portable tokens plus every retained resource'}</Text></Text>
             <Text><Text bold color={theme.accentName}>u</Text>  Switch system   <Text color={theme.dim}>{systems.length} on this device</Text></Text>
+            <Text><Text bold color={theme.accentName}>t</Text>  Inspect tokens  <Text color={theme.dim}>{compact ? 'choices · issues · trace' : 'theme choices, issues, and why each token has its value'}</Text></Text>
           </Box>
         ) : mode === 'switch' ? (
           <Box flexDirection="column" flexShrink={0}>
@@ -212,7 +218,7 @@ export function System({ onNav, onQuit, initialAction }: {
         {status ? <Box marginTop={1}><Text color={status.startsWith('✓') ? theme.accentName : theme.warn}>{status}</Text></Box> : null}
       </Box>
       <Footer shortcuts={mode === 'browse'
-        ? [{ key: 'c', label: 'colour' }, { key: 'i', label: 'import' }, { key: 'a', label: 'add' }, { key: 'e', label: 'export' }, { key: 'u', label: 'switch' }, { key: 'q', label: 'quit' }]
+        ? [{ key: 'c', label: 'colour' }, { key: 'i', label: 'import' }, { key: 'a', label: 'add' }, { key: 'e', label: 'export' }, { key: 'u', label: 'switch' }, { key: 't', label: 'tokens' }, { key: 'q', label: 'quit' }]
         : [{ key: 'enter', label: 'continue' }, { key: 'esc', label: 'back' }]} />
     </Box>
   );

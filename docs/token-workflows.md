@@ -17,6 +17,16 @@ lolly qr-code --url=https://example.com --_themes='{"appearance":"night","densit
 
 The app's light/dark appearance and accessibility preferences remain separate from these authored design choices.
 
+## In the terminal and over MCP
+
+In the TUI, press `t` in the **System** view to inspect tokens. The inspector reads the design system a terminal render uses: the active terminal system, or the content profile's tokens when no terminal system is active. Its header shows the source, a short revision digest, one choice per theme group, the effective set order and any issues. `g` picks a theme group and `o` steps its choice. The header then reads **Preview**, and nothing is written. `/` searches token paths, `x` lists only tokens with issues, and `Enter` opens a token's trace: its authored and resolved values, the winning set and override order, its issues and declared roles, then the tokens it reads and the tokens that read this one. `Enter` on a step opens that token; `Esc` goes back.
+
+`s` reviews the previewed choices and states how many resolved values change. `y` stores them in `$metadata.activeThemeSelection` on the active terminal system, so later CLI and TUI renders use them. A content profile is read-only here. If another shell changes the system after the review starts, the review stores nothing and shows the current choices again.
+
+Agents call `lolly_inspect_tokens` on the MCP server for the same report as JSON. It reads the server's design system, the one `lolly://design-context` describes, or a `tokens` document given with the call. `selection` takes the `_themes` object and `theme` takes one theme name. The answer holds the effective and stored choices, a `preview` flag, the diagnostics, a page of tokens and, with `token`, a trace in both directions. A trace follows up to `depth` steps (8 by default, at most 16) and lists at most 200 tokens in each direction. With the Beacon example as `tokens`, `selection: {"appearance": "night"}` and `token: "border.exampleOutline"` return the night border, which reads `color.semantic.primary` and `stroke.exampleWidth`.
+
+Counts in the TUI and over MCP cover token references and declared roles in the inspected document. Tool hooks and other documents are outside that scope.
+
 ## Linked values
 
 Open the three-dot **Input actions** menu beside a field label to find its **Design token** status, compatible-token picker and link actions alongside **Use as a tool input** (or **Reset this input** in a generated tool). Numeric, text and font-family select controls can link compatible tokens. Token details stay inside this menu so ordinary data-entry rows remain clean. A number consumer accepts number tokens and absolute dimensions converted at CSS 96 DPI. Relative units need a reference context and are rejected by this adapter. Select controls keep their allowed-choice validation.

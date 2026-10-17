@@ -26,8 +26,8 @@ The web app is a static PWA. A deployment can serve those files alone, add selec
 `lolly_transform`, `lolly_redact`, `lolly_verify`, `lolly_rebrand`,
 `lolly_read`, `lolly_check`, `lolly_measure_text`, `lolly_validate`,
 `lolly_compile`, `lolly_diff`, `lolly_inspect`, `lolly_measure`,
-`lolly_package`, `lolly_compose`, `lolly_look`, `lolly_sample_color`,
-`lolly_trace_edges`) so an
+`lolly_package`, `lolly_compose`, `lolly_inspect_tokens`, `lolly_look`,
+`lolly_sample_color`, `lolly_trace_edges`) so an
 AI agent can produce finished, rule-bound assets. The serverless tier renders
 browser-free formats.
 The full endpoint at `mcp.lolly.tools` drives a headless browser for
