@@ -36,7 +36,7 @@ export async function operationComparisonPair(before: File, after: File, host: H
       if (findings.some(f => !f.propertyId) || new Set(findings.map(f => f.propertyId)).size !== findings.length) throw new Error('DOCX property identities could not be verified.');
       const properties = Object.fromEntries(findings.map(f => [f.propertyId!, { label: f.label, location: f.location, value: f.value }]));
       sides.push({ identity: { id: index ? 'docx-copy' : 'docx-original', kind: 'file', label: index ? 'Copy document properties' : 'Original document properties' }, bytes,
-        content: { kind: 'structure', value: properties }, fidelity: { level: 'partial', limitations: ['Only supported DOCX core and custom properties, Company and Manager are compared. Visible content, rendered appearance and other package data are not compared.', 'Property values use previews of up to 2048 characters. Changes beyond those previews may be unavailable.'] } });
+        content: { kind: 'structure', value: properties }, fidelity: { level: 'partial', limitations: ['Only supported DOCX core and custom properties, Company and Manager are compared, together with supported Template, hyperlink base, application and statistics fields. Visible content, rendered appearance and other package data are not compared.', 'Property values use previews of up to 2048 characters. Changes beyond those previews may be unavailable.'] } });
     }
     return { mode: 'json', request: { version: 1, before: sides[0]!, after: sides[1]!, options: { mode: 'structure' } } };
   }
