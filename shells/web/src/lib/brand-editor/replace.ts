@@ -7,7 +7,8 @@
  * a value (an event listener), goes through `bedit.<module>.<fn>`. Extracted verbatim
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
-import { colorToHex, createTokenSet, deriveBrandTokens } from '@lolly/engine';
+import { colorToHex, deriveBrandTokens } from '@lolly/engine';
+import { carryLeads, leadTokenSet } from '../design-system/leads.ts';
 import { carryPaletteGroups } from '../design-system/palette-groups.ts';
 import { RAMP_IDS, getExcludedSwatches, getSwatchFaces, getSwatchPrintOverride, isRec, overlayRampCurves, primaryAnchorPath, setSemanticRampAlias, setSwatchCmykLock, setSwatchExcluded, setSwatchFace, setSwatchSpotLock, setSwatchValue, walkSwatches } from '../brand-doc.ts';
 import type { BrandSwatch } from '../brand-doc.ts';
@@ -103,7 +104,24 @@ export const buildReplacement = (bedit: BrandEditorCtx): { next: Record<string, 
     }
   }
 
-  const nextKeys = new Set(walkSwatches(next, bedit.currentTheme).map(s => s.key));
+  // Leads (plans/319) - a design system with colourways keeps every one. The
+  // derive above re-derived the CANONICAL lead, as it re-derives the primary of a
+  // system with one lead; carryLeads lifts the fresh doc under that lead's id and
+  // name and copies every other lead across as it was (sets, $themes entries,
+  // order, a tinted surface), pinning a kept lead's colour that followed a
+  // rebuilt shade. A doc whose colourways Lolly cannot edit is not rebuilt at
+  // all: a fresh derive would drop them.
+  let leads: ReplacePlan['leads'];
+  const carried = carryLeads(bedit.doc, next);
+  if (!carried.ok) {
+    announce(tRaw("Couldn't rebuild the palette: {reason}", { reason: carried.reasons.join(' ') }), { assertive: true });
+    return null;
+  }
+  next = carried.doc;
+  if (carried.canonical) leads = { canonical: carried.canonical.name, kept: carried.kept.map(k => k.name), pinned: carried.pinned };
+  const canonical = carried.canonical?.id ?? null;
+
+  const nextKeys = new Set(walkSwatches(next, bedit.state.editContext()).map(s => s.key));
 
   // Role carry - a hand-assigned secondary/surface/text survives the rebuild.
   // Deliberately NOT primary or on-primary: the wing's own picker IS the
@@ -112,14 +130,17 @@ export const buildReplacement = (bedit: BrandEditorCtx): { next: Record<string, 
   // Per THEME, because the roles are: a surface assigned in light mode has no
   // business landing in the dark theme's set (see roles.ts). A role kept in
   // both themes is one kept role, not two, so the count is over the names.
+  // Per LEAD too, for the one lead the rebuild re-derives: the canonical lead's
+  // own secondary goes back into that lead, and every other lead was carried whole.
   const rolesCarried = new Set<string>();
     for (const th of ['light', 'dark'] as const) {
-      const before = readRoles(bedit.doc, th);
+      const ctx = { lead: canonical, mode: th };
+      const before = readRoles(bedit.doc, ctx);
       for (const role of ['secondary', 'surface', 'text'] as const) {
         const ref = before[role].ref;
         if (!ref || ref.startsWith('color.ramp.') || ref.startsWith('color.semantic.')) continue;
         if (!nextKeys.has(ref)) continue;
-        if (assignRole(next, role, ref, th)) rolesCarried.add(role);
+        if (assignRole(next, role, ref, ctx)) rolesCarried.add(role);
       }
     }
   const rolesKept = rolesCarried.size;
@@ -133,7 +154,7 @@ export const buildReplacement = (bedit: BrandEditorCtx): { next: Record<string, 
   let excluded = 0;
   {
     const wasExcluded = getExcludedSwatches(bedit.doc);
-    const keys = new Set(walkSwatches(next, bedit.currentTheme).map(s => s.key));
+    const keys = new Set(walkSwatches(next, bedit.state.editContext()).map(s => s.key));
     for (const k of wasExcluded) if (keys.has(k)) { setSwatchExcluded(next, k, true); excluded++; }
   }
 
@@ -143,7 +164,7 @@ export const buildReplacement = (bedit: BrandEditorCtx): { next: Record<string, 
   // swapped yet - resolveTokenRef still answers from it) and pin the ones the
   // fresh doc can no longer answer, so an exported pack never carries a
   // dangling ref. Aliases that still resolve keep tracking their swatch.
-  const nextSet = createTokenSet(next, { theme: bedit.currentTheme === 'dark' ? 'dark' : 'light' });
+  const nextSet = leadTokenSet(next, { lead: canonical, mode: bedit.state.editContext().mode });
   const pinnedStops = materializeGradientAliases(next, ref => colorToHex(nextSet.resolve(ref)) == null, bedit.state.resolveTokenRef);
 
   const lightSet = isRec(next.light) ? next.light as Record<string, unknown> : next;
@@ -155,6 +176,7 @@ export const buildReplacement = (bedit: BrandEditorCtx): { next: Record<string, 
       roles, kept, curves: RAMP_IDS.filter(r => curves[r]).length,
       locks: (priorLock?.cmyk ? 1 : 0) + (priorLock?.spot ? 1 : 0),
       excluded, pinnedStops, rolesKept,
+      ...(leads ? { leads } : {}),
     },
   };
 };
@@ -183,6 +205,23 @@ export const renderReview = (bedit: BrandEditorCtx, plan: ReplacePlan): void => 
     li(bedit, `${plan.roles === 1 ? t('1 role re-derived') : tRaw('{n} roles re-derived', { n: plan.roles })}${
         plan.rolesKept ? tRaw(', {n} kept as assigned', { n: plan.rolesKept }) : ''}`),
   ];
+  // With colourways (plans/319) the card counts per lead: the canonical lead
+  // follows the new starting colour, every other lead keeps its own colours, and
+  // a kept lead's colour that followed a rebuilt shade is pinned. The roles every
+  // lead shares (surface, text) are part of the re-derived count above. Lead
+  // names are text a person typed, and these lines become markup, so the names
+  // are escaped. A design system with one lead gets none of these lines.
+  if (plan.leads) {
+    const { canonical, kept, pinned } = plan.leads;
+    bits.push(li(bedit, tRaw('The {name} colourway follows the new starting colour', { name: escapeText(canonical) })));
+    if (kept.length) {
+      const names = kept.map(name => escapeText(name)).join(', ');
+      bits.push(li(bedit, kept.length === 1
+        ? tRaw('1 other colourway keeps its own colours: {names}', { names })
+        : tRaw('{n} other colourways keep their own colours: {names}', { n: kept.length, names })));
+    }
+    if (pinned) bits.push(li(bedit, pinned === 1 ? t('1 colour in the other colourways stays as it was') : tRaw('{n} colours in the other colourways stay as they were', { n: pinned })));
+  }
   if (plan.kept) bits.push(li(bedit, plan.kept === 1 ? t('1 added colour kept') : tRaw('{n} added colours kept', { n: plan.kept })));
   if (plan.curves) bits.push(li(bedit, plan.curves === 1 ? t('1 shade curve re-anchored') : tRaw('{n} shade curves re-anchored', { n: plan.curves })));
   if (plan.locks) bits.push(li(bedit, plan.locks === 1 ? t('1 print lock re-pinned') : tRaw('{n} print locks re-pinned', { n: plan.locks })));
@@ -190,7 +229,7 @@ export const renderReview = (bedit: BrandEditorCtx, plan: ReplacePlan): void => 
   if (plan.pinnedStops) bits.push(li(bedit, plan.pinnedStops === 1 ? t('1 gradient stop keeps its colour') : tRaw('{n} gradient stops keep their colour', { n: plan.pinnedStops })));
   reviewEl.innerHTML = `
       <p class="be-review-title">${t('Rebuild the palette?')}</p>
-      <div class="be-specs">${specCard(t('Current'), createTokenSet(bedit.doc, { theme: 'light' }))}${bedit.pendingReplacement ? specCard(t('Proposed'), createTokenSet(bedit.pendingReplacement, { theme: 'light' })) : ''}</div>
+      <div class="be-specs">${specCard(t('Current'), leadTokenSet(bedit.doc, 'light'))}${bedit.pendingReplacement ? specCard(t('Proposed'), leadTokenSet(bedit.pendingReplacement, 'light')) : ''}</div>
       <ul class="be-review-list">${bits.join('')}</ul>
       <div class="be-review-actions">
         <button type="button" class="be-cta" data-be-review-go>${t('Apply rebuilt palette')}</button>
