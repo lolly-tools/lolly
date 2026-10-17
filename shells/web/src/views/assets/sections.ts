@@ -209,7 +209,7 @@ export function render(cat: CatCtx): void {
         ${cat.tiles.catalogTopbarHtml()}
         <h1 class="visually-hidden">${t('Assets')}</h1>
         <button type="button" class="btn btn--labelled btn--ghost" data-browse-sources>${actionButtonContent(t('Browse sources'), 'folder')}</button>
-        <div class="catalog-workspace"><aside class="asset-sources" aria-label="${t('Sources')}"></aside><div class="catalog-body">${bodyHtml(cat)}</div></div>
+        <div class="catalog-workspace"><div class="asset-sources-column"><aside class="asset-sources" aria-label="${t('Sources')}"></aside></div><div class="catalog-body">${bodyHtml(cat)}</div></div>
         ${bulkBarHtml(cat)}
       </div>`;
   cat.wiring.wire();
