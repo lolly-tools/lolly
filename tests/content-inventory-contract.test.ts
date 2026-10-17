@@ -63,6 +63,7 @@ const FULL_SLIDE: InventorySlideV1 = {
     }],
     plain: 'Sleep\nwell',
     hidden: true,
+    recognition: { model: 'ppocr-v5-mobile', modelVersion: 'v5-mobile', languages: ['en', 'fr'], confidence: 0.91, minConfidence: 0.84, lines: 2 },
   }],
   notes: {
     text: 'OPENING\nOpen with the question.\n\nSources: two studies.',
@@ -88,6 +89,7 @@ const FULL_SLIDE: InventorySlideV1 = {
   charts: [{ objectId: 'chart-6', type: 'bar', categories: ['A', 'B'], series: [{ name: 'Hours', values: [6.5, 7] }] }],
   objects: [{ id: 'sp-2', kind: 'text', class: 'content', hidden: true }, { id: 'sp-9', kind: 'shape', class: 'decoration' }],
   thumbnail: { file: `${SHA_B}.png`, width: 640, height: 360 },
+  flattened: true,
 };
 
 /** Every optional field present. */
@@ -146,6 +148,7 @@ test('the maximal sample and the schema declare the same keys on every object', 
   assert.deepEqual(keys(FULL_SLIDE), props(DEFS.slide!));
   assert.deepEqual(keys(text), props(DEFS.text!));
   assert.deepEqual(keys(text.box), props(DEFS.box!));
+  assert.deepEqual(keys(text.recognition!), props(DEFS.recognition!));
   assert.deepEqual(keys(text.paragraphs[0]!), props(DEFS.paragraph!));
   assert.deepEqual(keys(text.paragraphs[0]!.runs[0]!), props(DEFS.run!));
   assert.deepEqual(keys(FULL_SLIDE.notes!), props(notesObject));
@@ -208,6 +211,9 @@ test('malformed inventories are refused', () => {
       ((((s.text as Rows)[0]!.paragraphs as Rows)[0]!.runs as Rows)[0]!).weight = 0;
     })],
     ['an unknown alignment', slideWith((s) => { (((s.text as Rows)[0]!.paragraphs as Rows)[0]!).align = 'start'; })],
+    ['a recognition confidence over 1', slideWith((s) => { ((s.text as Rows)[0]!.recognition as Json).confidence = 1.2; })],
+    ['a recognition without a model', slideWith((s) => { delete ((s.text as Rows)[0]!.recognition as Json).model; })],
+    ['a recognition read from no lines', slideWith((s) => { ((s.text as Rows)[0]!.recognition as Json).lines = 0; })],
     ['an unknown picture kind', slideWith((s) => { (s.pictures as Rows)[0]!.kind = 'illustration'; })],
     ['a picture with a bad mime', slideWith((s) => { (s.pictures as Rows)[0]!.mime = 'png'; })],
     ['a picture without a hash', slideWith((s) => { delete (s.pictures as Rows)[0]!.sha256; })],
@@ -217,6 +223,7 @@ test('malformed inventories are refused', () => {
     ['a chart series without values', slideWith((s) => { (s.charts as Rows)[0]!.series = [{ name: 'x' }]; })],
     ['an object without a class', slideWith((s) => { s.objects = [{ id: 'a', kind: 'text' }]; })],
     ['hidden as a word', slideWith((s) => { (s.objects as Rows)[0]!.hidden = 'yes'; })],
+    ['flattened as a word', slideWith((s) => { s.flattened = 'scan'; })],
     ['a thumbnail without a height', slideWith((s) => { s.thumbnail = { file: 'a.png', width: 10 }; })],
     ['a thumbnail of zero width', slideWith((s) => { s.thumbnail = { file: 'a.png', width: 0, height: 10 }; })],
     ['an empty fallback ref', slideWith((s) => { (s.pictures as Rows)[0]!.fallbackRef = ''; })],

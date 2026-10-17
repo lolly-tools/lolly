@@ -1,0 +1,455 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/read-extract-v1.schema.json",
+  "title": "read-extract-v1",
+  "description": "A file's words, tables and pictures as one list of blocks in reading order, bounded by a page range and a character budget, each block naming its page and source object. Text the file states is kept apart from text read from pixels, and recognised text carries its model and confidence. Plan 203 rank 10. Mirrors packages/core/src/read-extract-v1.ts; each exported const array there has one named $defs entry holding its enum in the same order.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "inventory",
+    "source",
+    "request",
+    "pages",
+    "blocks",
+    "chars",
+    "complete",
+    "warnings"
+  ],
+  "properties": {
+    "version": {
+      "const": "lolly/read-extract-v1"
+    },
+    "inventory": {
+      "const": "lolly/content-inventory-v1",
+      "description": "The inventory contract the blocks were projected from."
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "sha256",
+        "bytes",
+        "kind",
+        "pages"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "bytes": {
+          "$ref": "#/$defs/count"
+        },
+        "kind": {
+          "$ref": "#/$defs/sourceKind"
+        },
+        "pages": {
+          "$ref": "#/$defs/count",
+          "description": "Pages, slides or layers the file holds."
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pages",
+        "kinds"
+      ],
+      "properties": {
+        "pages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/pageNumber"
+          },
+          "description": "The pages read, 1-based, ascending."
+        },
+        "kinds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/blockKind"
+          }
+        },
+        "maxChars": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The budget in characters of block text, not bytes of JSON."
+        },
+        "minConfidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "from": {
+          "$ref": "#/$defs/blockId"
+        }
+      }
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/page"
+      }
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/block"
+      }
+    },
+    "chars": {
+      "$ref": "#/$defs/count"
+    },
+    "complete": {
+      "type": "boolean"
+    },
+    "next": {
+      "$ref": "#/$defs/blockId",
+      "description": "When complete is false: the first block left out, to pass back as from."
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/warning"
+      }
+    }
+  },
+  "$defs": {
+    "blockKind": {
+      "enum": [
+        "text",
+        "table",
+        "chart",
+        "picture",
+        "notes"
+      ]
+    },
+    "origin": {
+      "enum": [
+        "authored",
+        "text-layer",
+        "recognized"
+      ]
+    },
+    "pageRead": {
+      "enum": [
+        "text-layer",
+        "recognized",
+        "not-read"
+      ]
+    },
+    "sourceKind": {
+      "enum": [
+        "pptx",
+        "pdf",
+        "psd"
+      ]
+    },
+    "textRole": {
+      "enum": [
+        "title",
+        "subtitle",
+        "body",
+        "label",
+        "caption",
+        "page-number",
+        "footer",
+        "other"
+      ]
+    },
+    "pictureKind": {
+      "enum": [
+        "photo",
+        "icon",
+        "logo",
+        "background",
+        "picture"
+      ]
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Lower-case hex SHA-256."
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "pixels": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "mime": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+/[a-z0-9.+-]+$"
+    },
+    "box": {
+      "description": "A rectangle in fractions of the slide; 0 to 1 on the slide, outside that range for an object partly off it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "height": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "recognition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "confidence",
+        "minConfidence",
+        "lines"
+      ],
+      "description": "How the words of a text frame were read from pixels: which recogniser read them and how sure it was. The scores are the recogniser's own, never a claim that the words are right.",
+      "properties": {
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The recogniser's model id, pdf-text-layer for a scan's own text layer, or unknown when the reading named none."
+        },
+        "modelVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Mean of the line confidences, weighted by each line's characters."
+        },
+        "minConfidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "lines": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "warning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "pageNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "blockId": {
+      "type": "string",
+      "pattern": "^p[1-9][0-9]*\\.(0|[1-9][0-9]*)$"
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "number",
+        "blocks"
+      ],
+      "properties": {
+        "number": {
+          "$ref": "#/$defs/pageNumber"
+        },
+        "scanned": {
+          "type": "boolean",
+          "description": "The page is one picture of its text, as a scan is."
+        },
+        "read": {
+          "$ref": "#/$defs/pageRead"
+        },
+        "blocks": {
+          "$ref": "#/$defs/count"
+        }
+      }
+    },
+    "picture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "sha256",
+        "mime",
+        "kind"
+      ],
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "mime": {
+          "$ref": "#/$defs/mime"
+        },
+        "width": {
+          "$ref": "#/$defs/pixels"
+        },
+        "height": {
+          "$ref": "#/$defs/pixels"
+        },
+        "kind": {
+          "$ref": "#/$defs/pictureKind"
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "chart": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "values"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "page",
+        "order",
+        "kind",
+        "text"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/blockId"
+        },
+        "page": {
+          "$ref": "#/$defs/pageNumber"
+        },
+        "order": {
+          "$ref": "#/$defs/count"
+        },
+        "kind": {
+          "$ref": "#/$defs/blockKind"
+        },
+        "text": {
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "role": {
+          "$ref": "#/$defs/textRole"
+        },
+        "objectId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "box": {
+          "$ref": "#/$defs/box"
+        },
+        "recognition": {
+          "$ref": "#/$defs/recognition"
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "chart": {
+          "$ref": "#/$defs/chart"
+        },
+        "picture": {
+          "$ref": "#/$defs/picture"
+        },
+        "partial": {
+          "type": "boolean",
+          "description": "The budget cut this block's text short."
+        }
+      }
+    }
+  }
+}

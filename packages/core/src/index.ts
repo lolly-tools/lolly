@@ -231,14 +231,22 @@ export type {
 // `lolly read`, `lolly_read` and the check's fidelity family. Types and constants only.
 export {
   CONTENT_INVENTORY_VERSION, INVENTORY_SOURCE_KINDS, INVENTORY_TEXT_ROLES, INVENTORY_PICTURE_KINDS,
-  INVENTORY_ALIGNMENTS,
+  INVENTORY_ALIGNMENTS, TEXT_LAYER_MODEL,
 } from './content-inventory-v1.ts';
 export type {
   InventorySourceKindV1, InventoryTextRoleV1, InventoryPictureKindV1, InventoryAlignV1, InventoryBoxV1,
   InventoryRunV1, InventoryParagraphV1, InventoryTextV1, InventoryNotesV1, InventoryCropV1, InventoryPictureV1,
   InventoryTableV1, InventoryChartV1, InventoryObjectV1, InventorySlideV1, InventoryMediaV1, InventorySourceV1,
-  InventoryThumbnailV1, ContentInventoryV1,
+  InventoryThumbnailV1, InventoryRecognitionV1, ContentInventoryV1,
 } from './content-inventory-v1.ts';
+
+// read-extract-v1 - plan 203 rank 10: a file's words, tables and pictures as blocks in
+// reading order, bounded by pages and a character budget. Types and constants only.
+export { READ_EXTRACT_VERSION, EXTRACT_BLOCK_KINDS, EXTRACT_ORIGINS, EXTRACT_PAGE_READS } from './read-extract-v1.ts';
+export type {
+  ExtractBlockKindV1, ExtractOriginV1, ExtractPageReadV1, ExtractSourceV1, ExtractRequestV1, ExtractPageV1,
+  ExtractPictureV1, ExtractChartV1, ExtractBlockV1, ReadExtractV1,
+} from './read-extract-v1.ts';
 
 // design-package-v1 - plan 291 W8: what `lolly package` and `lolly_package` report after
 // writing a Design document as a reopenable .lolly session. Types and constants only.

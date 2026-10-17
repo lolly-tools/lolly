@@ -19,18 +19,32 @@
  *   - with `thumbnails` as well, each slide is drawn once through the faithful
  *     compile and resvg, and written beside the pictures as `<sha256>.png`.
  *
- * No browser, no model, no network. jsdom parses the XML when the caller passes
- * no parser, imported only when needed so a host without it can still pass its own.
+ *   - with `ocr`, the slides that are pictures of their text are rebuilt from their
+ *     regions and read one crop at a time, and each frame read that way records the
+ *     model, its release and languages from the node catalogue, and its confidence;
+ *   - what the file carries that could act elsewhere (an Office package's macros,
+ *     controls and embedded objects by part name, a PDF's scripts, launch actions and
+ *     attachments from the Verify structure walk) is counted into warnings. None of
+ *     it is run or opened.
+ *
+ * No browser, no network, and no model unless the caller passes one. jsdom parses
+ * the XML when the caller passes no parser, imported only when needed so a host
+ * without it can still pass its own.
  */
 
 import { createHash } from 'node:crypto';
 import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { compileFaithful, framePreviewSvg, inventoryFromSource, readPptx, type InventoryMediaInputV1, type InventoryNotesParaInputV1 } from '@lolly/engine';
+import {
+  activeContentWarnings, compileFaithful, framePreviewSvg, inventoryFromSource, ooxmlActiveContent, readPptx,
+  type ActiveContentV1, type InventoryMediaInputV1, type InventoryNotesParaInputV1, type InventoryRecognizerV1,
+} from '@lolly/engine';
 import type { ContentInventoryV1, DeckCensusV1, InventoryCropV1, SourceDeckV1 } from '@lolly-tools/core';
 
+import { OCR_MODELS } from './ml/ocr-models.ts';
 import { inflatePptx } from './pptx.ts';
+import type { FlattenedOcrV1 } from './rebrand/flattened.ts';
 import { MEDIA_REF_PREFIX, pictureDimensions, readDeck, type PipelineMediaV1, type RebrandXmlParserV1 } from './rebrand/pipeline.ts';
 import { nodeRebrandFs, writeAtomic } from './rebrand-project-store.ts';
 import { rasterizeSvgToPng } from './raster.ts';
@@ -49,6 +63,18 @@ export interface ReadInventoryInputV1 {
   thumbnails?: boolean;
   /** Media over this many bytes is left unstored and reported, as the rebrand reader does. */
   maxMediaBytes?: number;
+  /**
+   * Text recognition for the slides that are pictures of their text, one crop at a
+   * time (`nodeFlattenedOcr` in `rebrand/ocr-node.ts` adapts the node runner). Such
+   * a slide is then rebuilt from its regions and its words carry the model and
+   * confidence. Without it the slide stays one picture, and only a scan's own text
+   * layer gives its words.
+   */
+  ocr?: FlattenedOcrV1;
+  /** The model `ocr` reads with, recorded on every frame it read. */
+  ocrModel?: string;
+  /** What a slide that stays a picture records when no `ocr` was passed: `not-run` (default) or `unavailable`. */
+  ocrMissing?: 'not-run' | 'unavailable';
   signal?: AbortSignal;
 }
 
@@ -257,6 +283,9 @@ export async function readContentInventory(input: ReadInventoryInputV1): Promise
     name: input.name,
     parseXml,
     ...(input.maxMediaBytes !== undefined ? { maxMediaBytes: input.maxMediaBytes } : {}),
+    ...(input.ocr ? { ocr: input.ocr } : {}),
+    ...(input.ocr && input.ocrModel ? { ocrModel: input.ocrModel } : {}),
+    ...(!input.ocr && input.ocrMissing ? { ocrMissing: input.ocrMissing } : {}),
     ...(input.signal ? { signal: input.signal } : {}),
   });
   const { source, census } = read;
@@ -265,9 +294,12 @@ export async function readContentInventory(input: ReadInventoryInputV1): Promise
   let crops: Map<string, InventoryCropV1> | undefined;
   let svgParts: Map<string, Uint8Array> | undefined;
   const warnings: Array<{ code: string; message: string }> = [];
+  let active: ActiveContentV1 = {};
   if (source.source.kind === 'pptx') {
     try {
-      const extras = pptxExtras(await inflatePptx(input.bytes), parseXml, source);
+      const parts = await inflatePptx(input.bytes);
+      active = ooxmlActiveContent(Object.keys(parts));
+      const extras = pptxExtras(parts, parseXml, source);
       notesParas = extras.notesParas;
       crops = extras.crops;
       svgParts = extras.svgs;
@@ -276,7 +308,10 @@ export async function readContentInventory(input: ReadInventoryInputV1): Promise
       // structure and the crops, so it is reported rather than fatal.
       warnings.push({ code: 'notes-structure-unavailable', message: `The notes paragraphs and picture crops could not be read again: ${(err as Error).message}` });
     }
+  } else if (source.source.kind === 'pdf') {
+    active = await pdfActiveContent(input.bytes);
   }
+  warnings.push(...activeContentWarnings(active));
 
   // A drawing is reported as its SVG: the package's own part when the deck is a
   // pptx, else the copy the reader kept on the object. Several drawings that share
@@ -370,7 +405,39 @@ export async function readContentInventory(input: ReadInventoryInputV1): Promise
     ...(crops ? { crops } : {}),
     ...(vectors.size > 0 ? { vectors } : {}),
     ...(thumbnails ? { thumbnails } : {}),
+    recognizers: RECOGNIZERS,
     warnings,
   });
   return { inventory, media, written, reused, source, census };
+}
+
+/** The node OCR catalogue as the inventory reads it: each model's release and languages. */
+const RECOGNIZERS: ReadonlyMap<string, InventoryRecognizerV1> = new Map(OCR_MODELS.map((m) => [m.id, { version: m.version, languages: m.languages }]));
+
+/**
+ * The scripts, launch actions and attachments a PDF carries, from the structure
+ * walk Verify uses (`pdf-structure.ts`). Counted, never run or opened. A file the
+ * walk cannot load reports nothing here; the read itself already stood.
+ */
+async function pdfActiveContent(bytes: Uint8Array): Promise<ActiveContentV1> {
+  try {
+    const [{ loadPdfDocument }, { scanPdfStructure }] = await Promise.all([import('./pdf-read.ts'), import('./pdf-structure.ts')]);
+    const findings = scanPdfStructure(await loadPdfDocument(bytes));
+    const leading = (label: string): number => {
+      const found = findings.find((f) => f.label === label);
+      if (!found) return 0;
+      const n = /^(\d+)/.exec(found.detail);
+      return n ? Number(n[1]) : 1;
+    };
+    const out: ActiveContentV1 = {};
+    const scripts = leading('JavaScript');
+    const launches = leading('Launch actions');
+    const embedded = leading('Attachments');
+    if (scripts) out.scripts = scripts;
+    if (launches) out.launches = launches;
+    if (embedded) out.embedded = embedded;
+    return out;
+  } catch {
+    return {};
+  }
 }

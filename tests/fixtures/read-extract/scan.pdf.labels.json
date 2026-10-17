@@ -1,0 +1,96 @@
+{
+  "fixture": "scan.pdf",
+  "version": 1,
+  "builder": "scripts/build-read-extract-fixtures.ts",
+  "licence": "MPL-2.0",
+  "about": "Two scanned pages with no text layer, in English and French: one picture per page, with a faint line on the second page that a recogniser should be less sure of.",
+  "pages": [
+    {
+      "page": 1,
+      "languages": [
+        "en"
+      ],
+      "scanned": true,
+      "read": "recognized",
+      "blocks": [
+        {
+          "text": "READ THIS PAGE",
+          "origin": "recognized"
+        },
+        {
+          "text": "THE SECOND LINE IS SMALLER",
+          "origin": "recognized"
+        },
+        {
+          "text": "A THIRD AND FINAL LINE.",
+          "origin": "recognized"
+        }
+      ],
+      "picture": {
+        "width": 816,
+        "height": 1056
+      },
+      "drawn": [
+        {
+          "text": "READ THIS PAGE",
+          "x": 80,
+          "y": 110,
+          "scale": 7,
+          "ink": "#111111"
+        },
+        {
+          "text": "THE SECOND LINE IS SMALLER",
+          "x": 80,
+          "y": 300,
+          "scale": 4,
+          "ink": "#111111"
+        },
+        {
+          "text": "A THIRD AND FINAL LINE.",
+          "x": 80,
+          "y": 480,
+          "scale": 4,
+          "ink": "#111111"
+        }
+      ]
+    },
+    {
+      "page": 2,
+      "languages": [
+        "fr"
+      ],
+      "scanned": true,
+      "read": "recognized",
+      "blocks": [
+        {
+          "text": "LA QUALITÉ COMPTE",
+          "origin": "recognized"
+        },
+        {
+          "text": "UNE LIGNE CLAIRE EST PLUS DURE",
+          "origin": "recognized"
+        }
+      ],
+      "picture": {
+        "width": 816,
+        "height": 1056
+      },
+      "drawn": [
+        {
+          "text": "LA QUALITÉ COMPTE",
+          "x": 80,
+          "y": 130,
+          "scale": 7,
+          "ink": "#111111"
+        },
+        {
+          "text": "UNE LIGNE CLAIRE EST PLUS DURE",
+          "x": 80,
+          "y": 330,
+          "scale": 4,
+          "ink": "#b4b4b4"
+        }
+      ]
+    }
+  ]
+}
