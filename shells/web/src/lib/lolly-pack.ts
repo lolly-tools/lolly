@@ -45,7 +45,22 @@ import {
   verifyIntegrity,
   unzipBundle,
   readJson,
+  sha256,
 } from './bundle.ts';
+import {
+  PORTABILITY_PART,
+  buildPortabilityReport,
+  checkPortability,
+  collectLinkedDependencies,
+  portabilitySummary,
+  portableLink,
+  readPortabilityReport,
+  type LollyPortabilityCheck,
+  type LollyPortabilityReport,
+  type LollyPortabilitySources,
+  type LollyPortabilitySummary,
+  type LollyReceiver,
+} from './lolly-portability.ts';
 import {
   collectSessionAssetRefs,
   createBeamIngest,
@@ -102,6 +117,12 @@ export const LOLLY_MAX_TEMPLATES = 200;
  *  share of your own uploads carries no extra file. Additive: `minReader` stays 1
  *  and a reader that predates it simply never looks for it. */
 export const CREDITS_PART = 'CREDITS.txt';
+/** The portability report (plan 203, rank 9): every dependency the file needs and
+ *  whether it is embedded, available, linked, withheld or missing. Additive: written
+ *  under the integrity map, and an older reader never opens the part.
+ *  lib/lolly-portability.ts holds the rules. */
+export { PORTABILITY_PART };
+export type { LollyDependency, LollyDependencyStatus, LollyPortabilityReport, LollyPortabilityCheck, LollyReceiver } from './lolly-portability.ts';
 
 // ── Renovation projects (plan 274 section 3.5) ────────────────────────────────
 
@@ -216,6 +237,8 @@ export interface LollyAssetEntry {
   licensed?: boolean;
   /** Why the bytes were held back, in plain words (plan 253). */
   holdReason?: string;
+  /** Whether a deployment rule or a licence condition held the bytes back. */
+  holdKind?: 'policy' | 'licence' | 'unknown';
   /** The canonical licence name, when one was recorded. */
   licence?: string;
   /** The readable credit the source asks for, when one was recorded. */
@@ -319,6 +342,9 @@ export interface LollyManifest {
   /** Present when a renovation project travels (plan 274 section 3.5). Orthogonal to
    *  `kind`: a file may carry a renovation on its own, or beside a project's sessions. */
   renovation?: LollyRenovationManifest;
+  /** The totals of `portability.json`, so an intake can describe the file from the
+   *  manifest alone. Absent on files written before the report existed. */
+  portability?: LollyPortabilitySummary;
   integrity?: Record<string, string> | null;
 }
 
@@ -451,6 +477,9 @@ export interface LollySummary {
   toolFiles: number;
   /** The trust class of the carried tool, when one was embedded. */
   toolTrust?: LollyToolTrust;
+  /** The portability report's totals (see `portability.json`). Always set by the
+   *  builder; optional so a summary written by hand elsewhere stays valid. */
+  portability?: Pick<LollyPortabilityReport, 'selfContained' | 'counts'>;
 }
 
 export interface LollyBuildInput {
@@ -475,6 +504,10 @@ export interface LollyBuildInput {
    *  shell resolves + integrity-checks the files and decides `trust`; this module just
    *  writes them under `tool/` and records them. Omit ⇒ the tool travels by reference. */
   tool?: LollyToolBundle;
+  /** How far a receiving device can trust the tool when it travels by reference,
+   *  as far as the sender can tell. The portability report reads `signed-catalog` as
+   *  available from the catalog and `custom` as missing; omit it when unknown. */
+  toolTrust?: LollyToolTrust;
   creator?: LollyCreator | null;
   /** The font faces the rendered canvas used, collected by the shell (lib/session-fonts.ts).
    *  Identity only - no font bytes ever travel in a `.lolly`. */
@@ -643,12 +676,13 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
   // folder's pictures travel with it even when no session uses them. A renovation adds
   // the media its project and parts point at - added to the project's closure rather
   // than instead of it, so a file carrying both keeps both sets of pictures.
-  const refs = collectSessionAssetRefs(
-    project
-      ? (renovation ? { project: projectClosure(project), renovationMedia: renovationMedia(renovation) } : projectClosure(project))
-      : renovation ? renovationClosure(renovation, input.session)
-      : { session: input.session, templates: input.templates?.map(template => template?.values) },
-  );
+  const closure = project
+    ? (renovation ? { project: projectClosure(project), renovationMedia: renovationMedia(renovation) } : projectClosure(project))
+    : renovation ? renovationClosure(renovation, input.session)
+    : { session: input.session, templates: input.templates?.map(template => template?.values) };
+  const refs = collectSessionAssetRefs(closure);
+  // The references that travel as addresses rather than bytes, for the portability report.
+  const links = collectLinkedDependencies(closure);
   const byId = new Map(input.userAssets.map(r => [r.id, r]));
 
   const entries: Record<string, BundleEntry> = {};
@@ -705,6 +739,7 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
         label: lib?.label ?? id, type: lib?.type ?? 'data', format: lib?.format ?? '', mime: lib?.mime ?? '',
         ...(lib?.licensed ? { licensed: true } : {}),
         ...(lib?.holdReason ? { holdReason: lib.holdReason } : {}),
+        ...(lib?.licensed && lib.holdKind ? { holdKind: lib.holdKind } : {}),
         ...(lib?.licence ? { licence: lib.licence } : {}),
         ...(lib?.credit ? { credit: lib.credit } : {}),
       });
@@ -765,17 +800,10 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
   if (credits) entries[CREDITS_PART] = strToU8(credits);
 
   const byReferenceCount = assets.filter(a => a.kind === 'asset-ref').length;
-  const summary: LollySummary = {
-    assetCount: assets.length - byReferenceCount,
-    byReferenceCount,
-    totalBytes,
-    hasLicensed,
-    licensedExcluded,
-    credits: Boolean(credits || input.toolCredits),
-    ...(input.creator?.name ? { creatorName: input.creator.name } : {}),
-    toolFiles: bundledTool?.files.length ?? 0,
-    ...(bundledTool ? { toolTrust: bundledTool.trust } : {}),
-  };
+  const assetCount = assets.length - byReferenceCount;
+  // A font file is recorded by address, and an address can carry a signed query.
+  // Root-relative paths and asset ids pass unchanged, so a rebuild still finds them.
+  const fonts = (input.fonts ?? []).map(font => (font.file ? { ...font, file: portableLink(font.file) } : font));
 
   // Integrity over every payload part (session + blobs + tool files), BEFORE the
   // manifest (which carries the map) and the README - mirroring bundle.ts's contract.
@@ -793,7 +821,7 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
   const toolManifest = toolManifestBytes ? JSON.parse(toolManifestBytes instanceof Blob ? await toolManifestBytes.text() : new TextDecoder().decode(toolManifestBytes)) : null;
   const featureReader = lollyFeatureReader({ toolId: input.toolId,
     session: project || input.kind === 'tool' ? null : input.session, project, templates, toolManifest });
-  const manifest: LollyManifest = {
+  const body: Omit<LollyManifest, 'portability' | 'integrity'> = {
     format: LOLLY_FILE_FORMAT,
     formatVersion: LOLLY_FILE_VERSION,
     minReader: featureReader > 1 ? featureReader : hasEmojiSubsets ? LOLLY_EMOJI_SUBSET_MIN_READER : renovation ? LOLLY_RENOVATION_MIN_READER : input.kind === 'project' ? LOLLY_PROJECT_MIN_READER : input.kind === 'tool' ? 2 : 1,
@@ -803,10 +831,10 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
     tool: { id: input.toolId, ...(input.toolVersion ? { version: input.toolVersion } : {}) },
     ...(input.thumb ? { thumb: input.thumb } : project?.sessions.find(x => x.thumb)?.thumb ? { thumb: project.sessions.find(x => x.thumb)!.thumb } : {}),
     exportedAt: new Date().toISOString(),
-    counts: { assets: summary.assetCount, byReference: byReferenceCount, bytes: totalBytes },
+    counts: { assets: assetCount, byReference: byReferenceCount, bytes: totalBytes },
     creator: input.creator ?? null,
     assets,
-    ...(input.fonts?.length ? { fonts: [...input.fonts] } : {}),
+    ...(fonts.length ? { fonts } : {}),
     ...(bundledTool ? { bundledTool } : {}),
     ...(designSystem ? { designSystem: {
       ...(designSystem.label ? { label: designSystem.label } : {}),
@@ -816,7 +844,30 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
     ...(templates.length ? { templates: { count: templates.length } } : {}),
     ...(projectManifest ? { project: projectManifest } : {}),
     ...(renovation ? { renovation } : {}),
-    ...(integrity ? { integrity } : {}),
+  };
+  // The portability report is built from the manifest it describes, so a file read
+  // back without one is described by the same rules. It rides the integrity map like
+  // every other payload part, and the manifest repeats its totals.
+  const report = await buildPortabilityReport(portabilitySources(
+    { ...body, ...(integrity ? { integrity } : {}) },
+    path => Object.hasOwn(entries, path),
+    { ...(input.toolTrust ? { toolTrust: input.toolTrust } : {}), links },
+  ));
+  const reportBytes = strToU8(JSON.stringify(report, null, 2));
+  entries[PORTABILITY_PART] = reportBytes;
+  if (integrity) integrity[PORTABILITY_PART] = await sha256(reportBytes);
+  const manifest: LollyManifest = { ...body, portability: portabilitySummary(report), ...(integrity ? { integrity } : {}) };
+  const summary: LollySummary = {
+    assetCount,
+    byReferenceCount,
+    totalBytes,
+    hasLicensed,
+    licensedExcluded,
+    credits: Boolean(credits || input.toolCredits),
+    ...(input.creator?.name ? { creatorName: input.creator.name } : {}),
+    toolFiles: bundledTool?.files.length ?? 0,
+    ...(bundledTool ? { toolTrust: bundledTool.trust } : {}),
+    portability: { selfContained: report.selfContained, counts: { ...report.counts } },
   };
   // Put the routing manifest first. The universal intake can then describe a
   // multi-hundred-megabyte file after reading only its first ZIP entry instead
@@ -1210,6 +1261,14 @@ function lollyReadme(manifest: LollyManifest, summary: LollySummary): string {
     `Assets:   ${summary.assetCount} embedded, ${summary.byReferenceCount} by reference`,
     `Exported: ${manifest.exportedAt}`,
   ];
+  const counts = summary.portability?.counts;
+  if (counts) {
+    lines.push('', `Portability: ${counts.embedded} embedded, ${counts.available} available, ${counts.linked} linked, ${counts.withheld} withheld, ${counts.missing} missing`,
+      `${PORTABILITY_PART} lists every dependency this design needs: the tool, assets, fonts,`,
+      'design system and links. Each one is embedded in this file (with its checksum),',
+      'available from the reader\'s own catalog, linked from an address, withheld by a',
+      'rule, or missing, with the reason. It never holds a password, token or signed address.');
+  }
   if (manifest.bundledTool) {
     lines.push('', `This file includes the tool itself (under tool/), so it opens even on a`,
       `device that doesn't already have "${manifest.bundledTool.id}".`);
@@ -1338,6 +1397,82 @@ export async function readLollyFile(bytes: ArrayBuffer | Uint8Array): Promise<Lo
     if (featureReader > 1) throw new Error(`This .lolly file has an invalid Design feature reader gate (requires reader ${featureReader}).`);
   }
   return { manifest, session, templates, files: files as Record<string, Uint8Array>, ...(designSystem !== undefined ? { designSystem } : {}), ...(project ? { project } : {}), ...(renovation ? { renovation } : {}) };
+}
+
+/** Manifest tool ids that stand for a container, not a tool a reader opens. */
+const CONTAINER_TOOL_IDS: ReadonlySet<string> = new Set([LOLLY_PROJECT_TOOL_ID, LOLLY_RENOVATION_TOOL_ID]);
+
+/**
+ * What the portability report is built from, read off a manifest. The builder and
+ * the reader share it: the builder adds what only the sender knows (the trust of a
+ * tool left out, the links its document held), and a file written before the report
+ * existed is described by the same rules from what its manifest records.
+ */
+function portabilitySources(
+  manifest: Omit<LollyManifest, 'portability'>,
+  has: (path: string) => boolean,
+  extra: { toolTrust?: LollyToolTrust; links?: { links: LollyPortabilitySources['links']; truncated: boolean } } = {},
+): LollyPortabilitySources {
+  const tools: Array<{ id: string; version?: string; trust?: LollyToolTrust }> = [];
+  if (manifest.kind === 'project') {
+    const seen = new Set<string>();
+    for (const entry of manifest.project?.sessions ?? []) {
+      if (seen.has(entry.toolId) || CONTAINER_TOOL_IDS.has(entry.toolId)) continue;
+      seen.add(entry.toolId);
+      tools.push({ id: entry.toolId, ...(entry.toolVersion ? { version: entry.toolVersion } : {}) });
+    }
+  } else if (manifest.kind !== 'tool' && !CONTAINER_TOOL_IDS.has(manifest.tool.id)) {
+    tools.push({ id: manifest.tool.id, ...(manifest.tool.version ? { version: manifest.tool.version } : {}), ...(extra.toolTrust ? { trust: extra.toolTrust } : {}) });
+  }
+  const parts: NonNullable<LollyPortabilitySources['parts']>[number][] = [];
+  if (manifest.designSystem && has(DESIGN_SYSTEM_PART)) {
+    parts.push({ kind: 'design-system', id: manifest.designSystem.id || 'design-system', label: manifest.designSystem.label || 'Design system', path: DESIGN_SYSTEM_PART });
+  }
+  if (has(TEMPLATES_PART)) {
+    const count = manifest.templates?.count ?? 0;
+    parts.push({ kind: 'templates', id: 'templates', label: count ? `${count} template${count === 1 ? '' : 's'}` : 'Templates', path: TEMPLATES_PART });
+  }
+  return {
+    integrity: manifest.integrity,
+    assets: Array.isArray(manifest.assets) ? manifest.assets : [],
+    tools,
+    ...(manifest.bundledTool ? { bundledTool: manifest.bundledTool } : {}),
+    ...(Array.isArray(manifest.fonts) ? { fonts: manifest.fonts } : {}),
+    parts,
+    ...(extra.links ? { links: extra.links.links, linksTruncated: extra.links.truncated } : {}),
+  };
+}
+
+/**
+ * The portability report of a parsed `.lolly`. The carried `portability.json` when the
+ * integrity map vouches for it and it reads as a report; otherwise one derived from
+ * the manifest and the document's own values, so a file written before the report
+ * existed is described too.
+ */
+export async function readLollyPortability(contents: LollyFileContents): Promise<LollyPortabilityReport> {
+  const { manifest, files } = contents;
+  const part = files[PORTABILITY_PART];
+  if (part && (!manifest.integrity || manifest.integrity[PORTABILITY_PART])) {
+    let raw: unknown = null;
+    try { raw = JSON.parse(new TextDecoder().decode(part)); } catch { /* not a report: derive one below */ }
+    const carried = readPortabilityReport(raw);
+    if (carried) return carried;
+  }
+  const links = collectLinkedDependencies({
+    session: contents.session,
+    sessions: contents.project?.sessions.map(entry => entry.data),
+    templates: contents.templates.map(template => template.values),
+  });
+  return buildPortabilityReport(portabilitySources(manifest, path => !!files[path], { links }));
+}
+
+/**
+ * Check a parsed `.lolly` against a receiving device with networking off: which
+ * dependencies open there as they are. `receiver` answers from local state only, and
+ * an empty one is an empty profile. Nothing is fetched or written.
+ */
+export async function checkLollyPortability(contents: LollyFileContents, receiver: LollyReceiver = {}): Promise<LollyPortabilityCheck> {
+  return checkPortability(contents, await readLollyPortability(contents), receiver);
 }
 
 /** A carried tool pulled out of a parsed `.lolly`, ready to hand to the installer.

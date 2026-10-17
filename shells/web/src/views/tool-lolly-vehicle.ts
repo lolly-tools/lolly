@@ -34,9 +34,19 @@ import { packRights } from '../lib/redistribution.ts';
  * (unsigned build, a tool absent from the envelope, a sideloaded tool) is `custom`.
  */
 async function coarseToolTrust(toolId: string): Promise<LollyToolTrust> {
+  return (await referencedToolTrust(toolId)) ?? 'custom';
+}
+
+/**
+ * The same read for the portability report, which must not guess: undefined when the
+ * deployment has no signed catalog to consult (an unsigned build, or an envelope that
+ * could not be read), so a catalog tool on such a build is never reported missing.
+ */
+async function referencedToolTrust(toolId: string): Promise<LollyToolTrust | undefined> {
   const integ = await getToolIntegrity().catch(() => null);
   const signed = integ?.envelope?.files;
-  return signed && Object.hasOwn(signed, `${toolId}/tool.json`) ? 'signed-catalog' : 'custom';
+  if (!signed) return undefined;
+  return Object.hasOwn(signed, `${toolId}/tool.json`) ? 'signed-catalog' : 'custom';
 }
 
 
@@ -94,6 +104,9 @@ export function makeLollyVehicle(
     // Carry the tool's own files only on request - resolving them fetches every file.
     // A resolve failure (missing core files) degrades to a tool-less .lolly, never an error.
     const tool = includeTool ? await resolveToolBundle(toolId, manifest).catch(() => null) : null;
+    // A tool left out travels by id. The portability report says whether a receiving
+    // device can expect it from the signed catalog, or only from the sender.
+    const toolTrust = tool ? undefined : await referencedToolTrust(toolId).catch(() => undefined);
     // A raster thumbnail rides in the manifest so an importer - and the desktop
     // file managers' thumbnailer (plans/174 #3) - has a tile without rendering.
     // This closure has no canvas access, so the tile is the newest SAVED slot's
@@ -139,6 +152,7 @@ export function makeLollyVehicle(
       includeLicensed,
       creator,
       ...(tool ? { tool } : {}),
+      ...(toolTrust ? { toolTrust } : {}),
       appVersion,
       engineVersion: ENGINE_VERSION,
     });
