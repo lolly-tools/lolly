@@ -13,7 +13,8 @@
  * - The whole archive matches the in-memory writer's (lib/bundle.ts memoryArchive)
  *   byte for byte, and ZipStream matches fflate's zipSync for the same parts.
  * - Saved results keep the exact bytes their Content Credentials sign.
- * - Large blobs are read in bounded slices, never whole.
+ * - Large blobs are read in bounded slices, never whole: uploads, saved results
+ *   and saved versions, both when they are checked and when they are archived.
  * - The history file keeps the rules decided on 27 September 2026: the 384 MiB
  *   limit, only the oldest automatic checkpoints left out, a history that cannot
  *   fit refused whole, and none of it, nor discarded edits, in a sync copy.
@@ -29,6 +30,8 @@ import { unzipSync, zipSync, type Zippable } from 'fflate';
 import { exportBackup, importBackup } from '../shells/web/src/data-transfer.ts';
 import { entrySink, memoryArchive, type BundleEntry } from '../shells/web/src/lib/bundle.ts';
 import { ONE_SHOT_DEFLATE_MAX, ZipStream, streamedArchive } from '../shells/web/src/lib/zip-stream.ts';
+import { READ_CHUNK_BYTES } from '../shells/web/src/lib/stream-hash.ts';
+import { FileOperationStore } from '../shells/web/src/lib/file-operation-store.ts';
 import { writeBackupSessions, type BackupState } from '../shells/web/src/lib/backup-sessions.ts';
 import type { FileHistorySnapshot } from '../shells/web/src/lib/file-history-backup.ts';
 import type { RevisionArchive } from '../shells/web/src/bridge/revision-archive-format.ts';
@@ -244,6 +247,74 @@ test('a large blob is read in bounded slices for its checksum and referenced, ne
   assert.deepEqual(slices, [4 * 1024 * 1024, 4 * 1024 * 1024, 1024 * 1024 + 123]);
   const out = unzipSync(await bytesOf(zip.finish()));
   assert.equal(hex(out['video.mp4']!), hex(data));
+});
+
+// Blobs that record every slice taken and refuse to be read whole, under a label.
+const slicesRead = new Map<string, number[]>();
+function noteSlice(label: string, size: number, start = 0, end = size): void {
+  slicesRead.set(label, [...(slicesRead.get(label) ?? []), end - start]);
+}
+const readWhole = (label: string): never => { throw new Error(`${label} was read whole`); };
+class WatchedBlob extends Blob {
+  readonly label: string;
+  constructor(label: string, parts: BlobPart[], options?: BlobPropertyBag) { super(parts, options); this.label = label; }
+  override slice(start?: number, end?: number, type?: string): Blob { noteSlice(this.label, this.size, start, end); return super.slice(start, end, type); }
+  override arrayBuffer(): Promise<ArrayBuffer> { return readWhole(this.label); }
+  override text(): Promise<string> { return readWhole(this.label); }
+  override stream(): ReturnType<Blob['stream']> { return readWhole(this.label); }
+}
+class WatchedFile extends File {
+  readonly label: string;
+  constructor(label: string, parts: BlobPart[], name: string, options?: FilePropertyBag) { super(parts, name, options); this.label = label; }
+  override slice(start?: number, end?: number, type?: string): Blob { noteSlice(this.label, this.size, start, end); return super.slice(start, end, type); }
+  override arrayBuffer(): Promise<ArrayBuffer> { return readWhole(this.label); }
+  override text(): Promise<string> { return readWhole(this.label); }
+  override stream(): ReturnType<Blob['stream']> { return readWhole(this.label); }
+}
+function assertSliced(label: string, size: number): void {
+  const read = slicesRead.get(label) ?? [];
+  assert.ok(read.length > 1, `${label} was read in slices`);
+  assert.ok(read.every(n => n <= READ_CHUNK_BYTES), `${label} was read 4 MiB or less at a time: ${read.join(', ')}`);
+  const total = read.reduce((n, r) => n + r, 0);
+  assert.equal(total % size, 0, `${label}: each read covers the whole file`);
+}
+
+test('exportBackup checks and archives uploads, saved results and saved versions in bounded slices, with their exact bytes', async (context) => {
+  fixClock(context);
+  const f = fixture();
+  const history = await f.host.fileHistory.export();
+  const assets = await f.host.assets._exportUserAssets();
+  const upload = noise(READ_CHUNK_BYTES * 2 + 101, 21), version = noise(READ_CHUNK_BYTES + 202, 22), result = noise(READ_CHUNK_BYTES * 2 + 303, 23);
+  assets[1]!.blob = new WatchedBlob('upload', [upload as BlobPart], { type: 'font/woff2' });
+  const saved = history.assetVersions[0]!;
+  saved.bytes = version.length; saved.sha256 = hex(version);
+  saved.record.blob = new WatchedBlob('version', [version as BlobPart], { type: 'image/png' });
+  const operation = history.operations[0]!;
+  operation.report = { ...operation.report!, outputs: [{ name: 'big.png', format: 'png', mime: 'image/png', size: result.length, sha256: hex(result) }] };
+  operation.output = new WatchedFile('result', [result as BlobPart], 'big.png', { type: 'image/png' });
+
+  const { blob } = await exportBackup(deps(f), { mode: 'manual' });
+  assertSliced('upload', upload.length);
+  assertSliced('version', version.length);
+  assertSliced('result', result.length);
+  const parts = unzipSync(await bytesOf(blob));
+  const manifest = JSON.parse(new TextDecoder().decode(parts['manifest.json']!)) as { integrity: Record<string, string> };
+  for (const [name, bytes] of [['assets/blobs/1.bin', upload], ['file-history/versions/0.bin', version], ['file-history/results/0.bin', result]] as const) {
+    assert.equal(hex(parts[name]!), hex(bytes), `${name} holds the source bytes`);
+    assert.equal(manifest.integrity[name], `sha256-${createHash('sha256').update(bytes).digest('base64')}`, `${name} has its digest`);
+  }
+});
+
+test('a saved result read back from the store is checked in bounded slices', async () => {
+  const bytes = noise(READ_CHUNK_BYTES * 2 + 55, 31);
+  const stored = new WatchedFile('stored', [bytes as BlobPart], '6b0b1437-f729-4b69-b021-32c80f463fb0', { type: 'image/png' });
+  const record = { id: '6b0b1437-f729-4b69-b021-32c80f463fb0', state: 'succeeded', backend: 'opfs', outputName: 'big.png', outputMime: 'image/png',
+    report: { outputs: [{ name: 'big.png', format: 'png', mime: 'image/png', size: bytes.length, sha256: hex(bytes) }] } };
+  const db = { get: async (store: string) => (store === 'file-operations' ? record : undefined) };
+  const directory = { getFileHandle: async () => ({ getFile: async () => stored }) };
+  const output = await new FileOperationStore(db as never, directory as never).getOutput(record.id);
+  assert.equal(output!.size, bytes.length);
+  assertSliced('stored', bytes.length);
 });
 
 test('parts go in one at a time, names are unique and an aborted part leaves no trace', async () => {

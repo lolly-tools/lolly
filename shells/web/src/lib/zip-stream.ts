@@ -7,10 +7,12 @@
  * backup of a large library therefore needed about three times its size in memory
  * at the end. `ZipStream` keeps the parts where they already are instead:
  *
- * - A stored part that is a Blob (an upload, a saved result) is read once, in
+ * - A stored part that is a Blob (an upload, a saved result) is read once here, in
  *   bounded chunks, for its CRC-32 and SHA-256, and the archive Blob refers to
  *   that Blob rather than copying the bytes. They are never re-encoded, so a file carrying
- *   Content Credentials keeps the exact bytes its signature covers.
+ *   Content Credentials keeps the exact bytes its signature covers. (File history
+ *   checks saved results and versions against their recorded digests before they
+ *   come here, also in bounded chunks.)
  * - A part written in chunks (a large JSON file) is checksummed and deflated as the
  *   chunks arrive.
  * - Headers and small parts are gathered and turned into Blobs every few

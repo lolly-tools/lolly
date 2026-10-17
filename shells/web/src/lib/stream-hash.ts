@@ -132,6 +132,20 @@ export async function sha256Of(bytes: Uint8Array): Promise<Uint8Array> {
   return new Sha256().update(bytes).digest();
 }
 
+/** Lowercase hex SHA-256 of a Blob, the form file facts and asset versions record.
+ *  Up to one read it goes to Web Crypto whole; a larger Blob is hashed in slices,
+ *  so checking a 256 MiB saved version never holds it in memory. */
+export async function sha256HexOfBlob(blob: Blob, chunkBytes = READ_CHUNK_BYTES): Promise<string> {
+  let digest: Uint8Array;
+  if (blob.size <= chunkBytes) digest = await sha256Of(new Uint8Array(await blob.arrayBuffer()));
+  else {
+    const sha = new Sha256();
+    await readBlobChunks(blob, chunk => { sha.update(chunk); }, chunkBytes);
+    digest = sha.digest();
+  }
+  return Array.from(digest, b => b.toString(16).padStart(2, '0')).join('');
+}
+
 /** CRC-32 and, when asked, SHA-256 of a Blob, from one bounded read. */
 export async function hashBlob(blob: Blob, withSha256: boolean, chunkBytes = READ_CHUNK_BYTES): Promise<{ crc: number; sha256: Uint8Array | null }> {
   const crc = new Crc32();
