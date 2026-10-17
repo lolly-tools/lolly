@@ -148,7 +148,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `brand-context.ts` | 56 | Portable facts and explicit rules derived from the selected token document. | yes | `tests/brand-context.test.ts` | – |
 | `brand-derive.ts` | 789 | Brand derivation. | yes | `tests/brand-derive.test.ts` | – |
 | `brand-evidence.ts` | 55 | Bounded style observations shared by saved-page and browser capture readers. | yes | indirect | – |
-| `brand-import.ts` | 800 | Brand token ingestion. | yes | `tests/brand-import.test.ts` | yes |
+| `brand-import.ts` | 845 | Brand token ingestion. | yes | `tests/brand-import.test.ts` | yes |
 | `brand-map.ts` | 424 | Brand mapper. | yes | `tests/brand-map.test.ts` | – |
 | `brand-policy.ts` | 52 | Shared managed-input projection and evidence checks. | no | `tests/brand-policy.test.ts` | – |
 | `brand-resources.ts` | 24 | Asset dependencies in brand vocabulary, independent of labels and rule prose. | no | indirect | – |
