@@ -55,10 +55,14 @@ invalidate signatures, remove colour profiles or discard JPEG HDR gain maps.
 Visible content needs its own review; **Redact** opens the selected original in
 its existing utility, and its exported copy can return to preparation. Opening a
 utility leaves the preparation view, so finish or download other copies first.
-Supported DOCX files can remove selected core/custom properties, Company and
-Manager from a new copy. Other application properties and Office content remain
+Supported DOCX files can remove selected core/custom properties, Company, Manager,
+Template, hyperlink base, application name and version, and document statistics
+from a new copy. Other application properties and Office content remain
 inspect-only. Property-dependent fields, bound controls and digital-signature data
-prevent cleanup. Audio, OCR and language-model expansion remain separate work.
+prevent cleanup; a field or relative link that uses one of the newer properties keeps
+that property, and files with charts, pictures, shapes or embedded objects keep the
+application name and version. Audio, OCR and language-model expansion remain
+separate work.
 
 Jobs accept up to 100 files, 32 MiB each and 64 MiB total. Text inspection stops at
 1 MiB per file/value; ZIP inspection has a global 300-member limit, three archive
