@@ -6,7 +6,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildExportMeta } from '../engine/src/metadata.ts';
+import { readFileSync } from 'node:fs';
+
+import {
+  buildExportMeta, designRecordOf, designRecordEnvironment, designRecordWords, designRecordXml, readDesignRecord,
+  readDesignRecordXml, parseThemeChoices, pdfKeywords, themesSelection, toolCredit,
+} from '../engine/src/metadata.ts';
+import { addColourway, liftToColourways } from '../engine/src/colourway.ts';
 
 const hostWith = (profile: Record<string, unknown>): any => ({
   profile: { get: async () => profile },
@@ -73,4 +79,161 @@ test('buildExportMeta: missing/throwing profile is tolerated', async () => {
   const m2 = await buildExportMeta({ profile: { get: async () => { throw new Error('nope'); } } } as any, { name: 'T' });
   assert.equal(m2.author, '');                                            // swallowed
   assert.equal(m2.software, 'Lolly');
+});
+
+// ─── The design-system record (plans/319 A7) ────────────────────────────────
+
+type Rec = Record<string, unknown>;
+const START = (): Rec => JSON.parse(readFileSync(new URL('../brands/lolly-start/catalog/assets/lolly/tokens/brand.json', import.meta.url), 'utf8'));
+
+/** The public Lolly Start system with a second lead, Persimmon, beside the canonical Main. */
+function colourwayDoc(): Rec {
+  const lifted = liftToColourways(START(), { id: 'main', name: 'Main' });
+  assert.ok(lifted.ok);
+  const added = addColourway(lifted.doc, { id: 'persimmon', name: 'Persimmon', values: {
+    light: { primary: '#c2410c', 'on-primary': '#ffffff', secondary: '#7c2d12' },
+    dark: { primary: '#fb923c', 'on-primary': '#111111', secondary: '#fed7aa' },
+  } });
+  assert.ok(added.ok);
+  return added.doc;
+}
+
+const ACME = { id: 'acme', label: 'Acme', source: 'local' as const, active: true, locked: false, headId: null };
+const snapshotOf = (document: unknown, extra: Rec = {}): any => ({
+  document, system: ACME, version: 'latest', selection: { choices: { '': 'dark', colourway: 'persimmon' } }, ...extra,
+});
+const ANDY = { useDetails: true, firstname: 'Andy', lastname: 'Fitzsimon' };
+
+test('design record: absent without a snapshot, so every existing meta is byte-identical', async () => {
+  const before = await buildExportMeta(hostWith({}), { id: 'chart', name: 'Chart' }, ANDY);
+  const none = await buildExportMeta(hostWith({}), { id: 'chart', name: 'Chart' }, ANDY, null, {});
+  const nullSnap = await buildExportMeta(hostWith({}), { id: 'chart', name: 'Chart' }, ANDY, null, { snapshot: null });
+  for (const m of [none, nullSnap]) {
+    assert.equal(JSON.stringify(m), JSON.stringify(before));
+    assert.equal('designSystem' in m || 'designVersion' in m || 'themes' in m, false);
+  }
+  assert.equal(before.description, 'Made with https://lolly.tools : Chart by Andy Fitzsimon');
+  assert.deepEqual(pdfKeywords(before), ['Lolly', 'https://lolly.tools/t/chart'], 'the keywords a PDF has always carried');
+});
+
+test('design record: the colourway joins the tool name in the description, the label stays out', async () => {
+  const m = await buildExportMeta(hostWith({}), { id: 'chart', name: 'Chart' }, ANDY, null, { snapshot: snapshotOf(colourwayDoc()) });
+  assert.deepEqual(m.designSystem, { id: 'acme', label: 'Acme' });
+  assert.deepEqual(m.themes, [{ group: 'colourway', kind: 'colourway', id: 'persimmon', name: 'Persimmon' }]);
+  assert.equal('designVersion' in m, false, 'the edit head is never recorded as a version');
+  assert.equal(m.description, 'Made with https://lolly.tools : Chart (Persimmon colourway) by Andy Fitzsimon');
+  assert.equal(m.description.includes('Acme'), false, 'the design system label is in the record, never the description');
+  assert.equal(toolCredit(m), 'Chart (Persimmon colourway)');
+  assert.equal(designRecordWords(m), 'Acme · Colourway: Persimmon');
+});
+
+test('design record: the light/dark choice is not recorded, because the pixels show it', async () => {
+  const m = await buildExportMeta(hostWith({}), { name: 'Chart' }, {}, null, { snapshot: snapshotOf(colourwayDoc()) });
+  assert.equal(m.themes!.some((t) => t.group === ''), false);
+});
+
+test('design record: a canonical colourway nobody picked is still the one that drew the export', async () => {
+  const m = await buildExportMeta(hostWith({}), { name: 'Chart' }, {}, null, { snapshot: snapshotOf(colourwayDoc(), { selection: {} }) });
+  assert.deepEqual(m.themes, [{ group: 'colourway', kind: 'colourway', id: 'main', name: 'Main' }]);
+  assert.equal(m.description, 'Made with https://lolly.tools : Chart (Main colourway)');
+  // A partial choice map is completed by the resolver rather than dropping the group.
+  const partial = await buildExportMeta(hostWith({}), { name: 'Chart' }, {}, null, { snapshot: snapshotOf(colourwayDoc(), { selection: { choices: { '': 'light' } } }) });
+  assert.equal(partial.themes?.[0]?.id, 'main');
+});
+
+test('design record: no tool name means a bare description that gains nothing', async () => {
+  const m = await buildExportMeta(hostWith({}), {}, {}, null, { snapshot: snapshotOf(colourwayDoc()) });
+  assert.equal(m.description, 'Made with https://lolly.tools');
+  assert.equal(m.themes?.[0]?.id, 'persimmon', 'the record itself is still written');
+});
+
+test('design record: a bindToMeta description is the author\'s own words and gains nothing', async () => {
+  const m = await buildExportMeta(hostWith({}), { name: 'Chart' }, {}, [{ bindToMeta: 'description', value: 'Quarterly revenue' }],
+    { snapshot: snapshotOf(colourwayDoc()) });
+  assert.equal(m.description, 'Quarterly revenue');
+  assert.equal(m.themes?.[0]?.id, 'persimmon');
+});
+
+test('design record: a tool that ignores the colourway records none and names none', async () => {
+  const m = await buildExportMeta(hostWith({}), { name: 'Scanline', tokenAxes: { colourway: 'ignore' } }, {}, null, { snapshot: snapshotOf(colourwayDoc()) });
+  assert.equal('themes' in m, false);
+  assert.equal(m.description, 'Made with https://lolly.tools : Scanline');
+  assert.deepEqual(m.designSystem, { id: 'acme', label: 'Acme' }, 'the design system is still recorded');
+});
+
+test('design record: a published version is recorded, the head never is', async () => {
+  for (const head of ['latest', 'head', null, '']) {
+    const m = await buildExportMeta(hostWith({}), { name: 'Chart' }, {}, null, { snapshot: snapshotOf(START(), { version: head }) });
+    assert.equal('designVersion' in m, false, String(head));
+  }
+  const m = await buildExportMeta(hostWith({}), { name: 'Chart' }, {}, null, { snapshot: snapshotOf(START(), { version: '2026-10' }) });
+  assert.equal(m.designVersion, '2026-10');
+  assert.equal('themes' in m, false, 'a system with only light and dark records no theme');
+  assert.equal(m.description, 'Made with https://lolly.tools : Chart', 'no colourway, no change to the description');
+});
+
+test('design record: other non-mode groups are recorded by their own name; one-option groups are not', () => {
+  const doc = {
+    base: { ink: { $type: 'color', $value: '#000000' } },
+    light: { ink: { $value: '#111111' } }, dark: { ink: { $value: '#eeeeee' } },
+    compact: {}, roomy: {}, only: {},
+    $themes: [
+      { name: 'light', selectedTokenSets: { base: 'source', light: 'enabled' } },
+      { name: 'dark', selectedTokenSets: { base: 'source', dark: 'enabled' } },
+      { name: 'Compact', id: 'compact', group: 'density', selectedTokenSets: { compact: 'enabled' } },
+      { name: 'Roomy', id: 'roomy', group: 'density', selectedTokenSets: { roomy: 'enabled' } },
+      { name: 'Only', id: 'only', group: 'single', selectedTokenSets: { only: 'enabled' } },
+    ],
+  };
+  const r = designRecordOf({ document: doc, system: null, version: null, selection: { choices: { density: 'roomy' } } });
+  assert.deepEqual(r, { themes: [{ group: 'density', id: 'roomy', name: 'Roomy' }] });
+  assert.equal(designRecordWords(r), 'density: Roomy');
+});
+
+test('design record: only an id that reads as a design-system id is recorded', () => {
+  const bad = designRecordOf({ document: null, system: { ...ACME, id: 'Not An Id!' }, version: null, selection: {} });
+  assert.equal('designSystem' in bad, false);
+  const unnamed = designRecordOf({ document: null, system: { ...ACME, label: '  ' }, version: null, selection: {} });
+  assert.deepEqual(unnamed.designSystem, { id: 'acme', label: 'acme' }, 'an empty label falls back to the id');
+});
+
+test('design record: flat credential keys round-trip, with the theme list as one canonical JSON string', async () => {
+  const m = await buildExportMeta(hostWith({}), { name: 'Chart' }, {}, null, { snapshot: snapshotOf(colourwayDoc(), { version: '2026-10' }) });
+  const env = designRecordEnvironment(m);
+  assert.deepEqual(Object.keys(env), ['designSystem', 'designSystemLabel', 'designVersion', 'themes']);
+  for (const v of Object.values(env)) assert.equal(typeof v, 'string', 'Verify keeps only scalar values');
+  assert.equal(env.themes, '[{"group":"colourway","id":"persimmon","kind":"colourway","name":"Persimmon"}]');
+  assert.deepEqual(readDesignRecord(env), { designSystem: m.designSystem, designVersion: '2026-10', themes: m.themes });
+  assert.deepEqual(designRecordEnvironment({}), {}, 'nothing to record, nothing written');
+  assert.equal(readDesignRecord({ tool: 'Chart' }), null);
+  assert.deepEqual(themesSelection(m.themes), { colourway: 'persimmon' });
+});
+
+test('design record: a foreign record is bounded and shape-checked on the way back in', () => {
+  assert.deepEqual(parseThemeChoices('not json'), []);
+  assert.deepEqual(parseThemeChoices('{"group":"x"}'), []);
+  assert.deepEqual(parseThemeChoices('x'.repeat(9000)), []);
+  assert.deepEqual(parseThemeChoices(JSON.stringify([{ group: 'g', id: '' }, { group: 1, id: 'a' }, { group: 'g', id: 'b', kind: 'evil' }])),
+    [{ group: 'g', id: 'b', name: 'b' }], 'an unknown kind is dropped, a malformed entry skipped');
+  assert.equal(parseThemeChoices(JSON.stringify(Array.from({ length: 40 }, (_, i) => ({ group: `g${i}`, id: 'a' })))).length, 16);
+  const r = readDesignRecord({ designSystem: '../etc', designSystemLabel: 'x', designVersion: 'latest' });
+  assert.equal(r, null, 'a path-like id is no design-system id, and latest is the head');
+  assert.equal(readDesignRecord({ designSystem: 'acme', designSystemLabel: 'L'.repeat(500) })!.designSystem!.label.length, 200);
+});
+
+test('design record: the lolly: XML properties escape typed text and read back verbatim', () => {
+  const meta = { designSystem: { id: 'acme', label: 'Smith & <Jones> "Co"' }, themes: [{ group: 'colourway', kind: 'colourway' as const, id: 'a', name: 'R&D' }] };
+  const xml = designRecordXml(meta);
+  assert.equal(xml[0], '<lolly:DesignSystem>acme</lolly:DesignSystem>');
+  assert.equal(xml[1], '<lolly:DesignSystemLabel>Smith &amp; &lt;Jones&gt; "Co"</lolly:DesignSystemLabel>');
+  assert.equal(xml.join('').includes('<Jones>'), false);
+  assert.deepEqual(readDesignRecordXml(xml.join('')), meta);
+  assert.deepEqual(designRecordXml({}), []);
+  assert.equal(readDesignRecordXml('<x:xmpmeta/>'), null);
+});
+
+test('design record: PDF keywords name the record after the keywords a PDF always carried', async () => {
+  const m = await buildExportMeta(hostWith({}), { id: 'chart', name: 'Chart' }, {}, null, { snapshot: snapshotOf(colourwayDoc(), { version: '2026-10' }) });
+  assert.deepEqual(pdfKeywords(m), ['Lolly', 'https://lolly.tools/t/chart', 'Design system: Acme', 'Design version: 2026-10', 'Colourway: Persimmon']);
+  assert.deepEqual(pdfKeywords(null), []);
 });

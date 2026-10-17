@@ -440,12 +440,17 @@
     "ExportOpts": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "1e5109b65280395abe57ada07c0d99ffa169bab5811263c9e889ef7fa36f08c7"
+      "sha256": "5af2e76c13be287507cf6dfafa4347a0abdd5deb57942f701a335276fb43c970"
     },
     "ExportMeta": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "0a5d937b3cb6703fa9bd2c6ad99f96da8a38e07c0b7a48b3db472073c863c0e5"
+      "sha256": "e9d75a8dad28101823a0c13756a035fe740af012bcdd6fa37284484900880e4f"
+    },
+    "ExportThemeChoice": {
+      "module": "export.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "5991cdc40e86fa5f304aa7ea78c0d9e895d6705fd308dce49a6af345743da33d"
     },
     "FontEmbeddingV1": {
       "module": "fonts.ts",
