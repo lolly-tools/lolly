@@ -173,6 +173,17 @@ export function withoutNotKept<T extends Record<string, unknown>>(data: T, notKe
   return mapPaths(data, notKept, value => (isNotKeptFile(value) ? null : value));
 }
 
+/**
+ * `load` reading a saved record in the form history keeps. A record can still hold
+ * a file's bytes: a save made before history kept the tool, a Make variants copy, a
+ * .lolly or multi-edit save. The controller adopts what this returns, so the adopted
+ * revision records each file as not kept; the stored record stays as it was saved
+ * until the next draft replaces it with the kept snapshot.
+ */
+export function loadKept<T extends Record<string, unknown>>(load: (slot: string) => Promise<T | null>, notKept: readonly string[]): (slot: string) => Promise<T | null> {
+  return async slot => { const data = await load(slot); return data && historyRedact(data, notKept); };
+}
+
 /** Protect the immediate edit, then the final inputs after its async hook.
  * Merely rendering/playing an animation does not count as another edit. */
 export function trackRevisionInput<T>(result: Promise<T>, changed: () => void): Promise<T> {

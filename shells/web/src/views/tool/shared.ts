@@ -242,6 +242,10 @@ export interface ActionsApi {
    *  and takes only the `__export_*` half: those markers live in this panel's DOM and
    *  nowhere else, so a session sent without them reopens at tool defaults. */
   sessionState?: () => Record<string, unknown>;
+  /** The same record as history keeps it, each file input recorded as not kept: what
+   *  automatic history checkpoints, so History compares a version with this. The full
+   *  `sessionState` stays the source for a download, rules, templates and collab. */
+  keptSnapshot?: () => Record<string, unknown>;
   /** The saved-session slot this panel writes to: the resumed session's slot, or
    *  the one the first save minted, or null before any save. Read by the Save
    *  dialog to preselect the project the session is ALREADY filed in (plans/142 W1). */
