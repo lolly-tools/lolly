@@ -33,8 +33,8 @@
  * is refused with a clear Error. Every decompressed part is size-capped before
  * decode; the scan is bounded by input length (regex `matchAll` is linear - no
  * size-field-driven loop that a crafted value could spin forever, the "GIF
- * lesson"); rows/cols/cells are hard-capped so a sheet claiming cell `XFD1048576`
- * can't balloon the grid.
+ * lesson"); rows/cols/cells are hard-capped, and so is the padded grid, so a sheet
+ * claiming cell `XFD1048576` can't balloon the grid.
  */
 
 import { unzipSync } from 'fflate';
@@ -93,6 +93,11 @@ const MAX_TOTAL_BYTES = 256 * 1024 * 1024;
 const MAX_COLS = 16384;
 // Absolute cell backstop, independent of the row/col caps.
 const MAX_CELLS = 2_000_000;
+/** Slots in the padded grid (rows x widest row). MAX_CELLS counts only the cells
+ *  present, and a sparse sheet holding just A1 and XFD1048576 would pad to 17
+ *  billion slots. The default 1,000-row limit at Excel's full width (16,384,000)
+ *  fits, so only a caller that raises the limit can reach this. */
+export const MAX_GRID_CELLS = 16_777_216;
 
 // ─── public API ──────────────────────────────────────────────────────────────
 
@@ -106,6 +111,25 @@ const MAX_CELLS = 2_000_000;
  *         macro-enabled, or it carries no readable worksheet.
  */
 export function readXlsx(bytes: Uint8Array, opts: ReadXlsxOpts = {}): ReadXlsxResult {
+  return openXlsx(bytes).read(opts);
+}
+
+/** An unzipped workbook. Each read reuses the one unzip and shared string table. */
+export interface XlsxWorkbook {
+  /** The worksheets in tab order, as {@link listXlsxSheets} lists them. */
+  sheets(): XlsxSheetInfo[];
+  /** Read one worksheet, exactly as {@link readXlsx} does. */
+  read(opts?: ReadXlsxOpts): ReadXlsxResult;
+}
+
+/**
+ * Unzip an .xlsx once so that several worksheets can be read without unzipping
+ * the file again for each one.
+ *
+ * @throws if the bytes are not a zip, the zip is truncated/corrupt, or the file
+ *         is macro-enabled.
+ */
+export function openXlsx(bytes: Uint8Array): XlsxWorkbook {
   if (!(bytes instanceof Uint8Array) || bytes.length === 0) {
     throw new Error('The file is empty.');
   }
@@ -113,11 +137,6 @@ export function readXlsx(bytes: Uint8Array, opts: ReadXlsxOpts = {}): ReadXlsxRe
   if (!(bytes[0] === 0x50 && bytes[1] === 0x4b)) {
     throw new Error('This isn’t an .xlsx file (not a zip archive).');
   }
-
-  const limit =
-    Number.isFinite(opts.limit) && (opts.limit as number) > 0
-      ? Math.floor(opts.limit as number)
-      : DEFAULT_XLSX_ROW_LIMIT;
 
   let entries: Record<string, Uint8Array>;
   try {
@@ -151,25 +170,38 @@ export function readXlsx(bytes: Uint8Array, opts: ReadXlsxOpts = {}): ReadXlsxRe
     throw new Error('This workbook is macro-enabled (.xlsm) - open it as a plain .xlsx.');
   }
 
-  const chosen = resolveSheet(store, opts.sheet);
-  if (!chosen) {
-    throw new Error(
-      opts.sheet === undefined
-        ? 'The workbook has no readable worksheet.'
-        : `The workbook has no sheet ${typeof opts.sheet === 'number' ? `at index ${opts.sheet}` : `named “${opts.sheet}”`}.`,
-    );
-  }
-  const sheetXml = store.text(chosen.path);
-  if (sheetXml == null) throw new Error('The chosen sheet is missing or too large.');
+  let declared: SheetEntry[] | undefined;
+  let shared: string[] | undefined;
+  const sheetList = (): SheetEntry[] => (declared ??= allSheets(store));
 
-  const shared = readSharedStrings(store);
-
-  const formulas: FormulaState = { mode: opts.cells === 'formulas' ? 'formulas' : 'cached', shared: new Map(), cells: 0, kept: 0 };
-  const { rows, truncated } = readSheet(sheetXml, shared, limit, formulas);
-  if (!rows.length) throw new Error('That sheet has no cells.');
   return {
-    rows, truncated, sheetPath: chosen.path, sheetName: chosen.name || undefined, formulaCells: formulas.cells,
-    ...(formulas.mode === 'formulas' ? { formulaResultsKept: formulas.kept } : {}),
+    sheets: () => sheetList().map((s, index) => ({ name: s.name || `Sheet ${index + 1}`, index })),
+    read(opts = {}) {
+      const limit =
+        Number.isFinite(opts.limit) && (opts.limit as number) > 0
+          ? Math.floor(opts.limit as number)
+          : DEFAULT_XLSX_ROW_LIMIT;
+      const chosen = resolveSheet(store, sheetList(), opts.sheet);
+      if (!chosen) {
+        throw new Error(
+          opts.sheet === undefined
+            ? 'The workbook has no readable worksheet.'
+            : `The workbook has no sheet ${typeof opts.sheet === 'number' ? `at index ${opts.sheet}` : `named “${opts.sheet}”`}.`,
+        );
+      }
+      const sheetXml = store.text(chosen.path);
+      if (sheetXml == null) throw new Error('The chosen sheet is missing or too large.');
+
+      shared ??= readSharedStrings(store);
+
+      const formulas: FormulaState = { mode: opts.cells === 'formulas' ? 'formulas' : 'cached', shared: new Map(), cells: 0, kept: 0 };
+      const { rows, truncated } = readSheet(sheetXml, shared, limit, formulas);
+      if (!rows.length) throw new Error(truncated ? 'That sheet is too large to read.' : 'That sheet has no cells.');
+      return {
+        rows, truncated, sheetPath: chosen.path, sheetName: chosen.name || undefined, formulaCells: formulas.cells,
+        ...(formulas.mode === 'formulas' ? { formulaResultsKept: formulas.kept } : {}),
+      };
+    },
   };
 }
 
@@ -291,8 +323,7 @@ function firstSheetPath(store: PartStore): string | null {
 /** Resolve the requested sheet (index or name) to a present { path, name }. Returns
  *  the first readable sheet when `want` is undefined; null when the named/indexed
  *  sheet is absent or its part is missing. */
-function resolveSheet(store: PartStore, want: number | string | undefined): SheetEntry | null {
-  const sheets = allSheets(store);
+function resolveSheet(store: PartStore, sheets: SheetEntry[], want: number | string | undefined): SheetEntry | null {
   if (want === undefined) {
     const first = sheets.find((s) => store.has(s.path));
     if (first) return first;
@@ -459,9 +490,23 @@ function readSheet(
 
   if (maxRow < 0 || maxCol < 0) return { rows: [], truncated };
 
-  const width = maxCol + 1;
+  let width = maxCol + 1;
+  let lastRow = maxRow;
+  // Padding is rows x widest row, which a sparse sheet makes far larger than its
+  // cell count. Rows past the grid budget are dropped, like rows past the limit.
+  if ((maxRow + 1) * width > MAX_GRID_CELLS) {
+    truncated = true;
+    const fit = Math.floor(MAX_GRID_CELLS / width);
+    width = 0;
+    lastRow = -1;
+    for (const [r, cols] of grid) {
+      if (r >= fit) continue;
+      if (r > lastRow) lastRow = r;
+      for (const c of cols.keys()) if (c >= width) width = c + 1;
+    }
+  }
   const rows: string[][] = [];
-  for (let r = 0; r <= maxRow; r++) {
+  for (let r = 0; r <= lastRow; r++) {
     const src = grid.get(r);
     const row = new Array<string>(width).fill('');
     if (src) for (const [c, v] of src) row[c] = v;
@@ -542,8 +587,9 @@ const NUMBER_AT = /\d+(?:\.\d*)?(?:[eE][+-]?\d+)?/y;
 
 /**
  * Move every relative A1 reference in a formula by (dr, dc). Absolute parts
- * (`$A`, `$1`) stay put. String literals, quoted sheet names and bracketed
- * structured or external references are copied unchanged. Returns null when a
+ * (`$A`, `$1`) stay put. String literals, sheet names (quoted, or unquoted in
+ * `Q1!` and `Q1:Q4!`) and bracketed structured or external references are
+ * copied unchanged. Returns null when a
  * moved reference would leave the sheet, a quote or bracket is unterminated, or
  * the formula uses a whole-row or whole-column range, so the caller keeps the
  * cached value rather than emit a formula that differs from the workbook's.
@@ -580,6 +626,22 @@ export function shiftFormula(formula: string, dr: number, dc: number): string | 
       continue;
     }
     const prevIsName = i > 0 && NAME_CHAR.test(formula[i - 1]!);
+    // An unquoted sheet range such as Q1:Q4!B2 names sheets, whatever they look
+    // like, so `name:name!` is copied as it stands.
+    if (!prevIsName && NAME_CHAR.test(ch)) {
+      WORD_AT.lastIndex = i;
+      const first = WORD_AT.exec(formula)![0];
+      if (formula[i + first.length] === ':') {
+        WORD_AT.lastIndex = i + first.length + 1;
+        const last = WORD_AT.exec(formula)?.[0];
+        const bang = i + first.length + 1 + (last?.length ?? 0);
+        if (last && formula[bang] === '!') {
+          out += formula.slice(i, bang + 1);
+          i = bang + 1;
+          continue;
+        }
+      }
+    }
     if (!prevIsName && /[A-Za-z$]/.test(ch)) {
       REF_AT.lastIndex = i;
       const ref = REF_AT.exec(formula);

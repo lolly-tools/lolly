@@ -8,10 +8,12 @@ import { writeOut } from './output.ts';
 import { usageError } from './exit-codes.ts';
 import { isOn } from './args.ts';
 
-/** The data conversion choices, passed only when given: a digits-only --sheet is a position. */
-function dataFlags(flags: Record<string, string>, allSheets: boolean): Record<string, string | number | boolean> {
-  const out: Record<string, string | number | boolean> = {};
-  if (flags.sheet !== undefined) out.sheet = /^\d+$/.test(flags.sheet) ? Number(flags.sheet) : flags.sheet;
+/** The data conversion choices, passed only when given. --sheet stays text: the
+ *  engine matches a worksheet name first and reads digits that match no name as
+ *  a 0-based position, so --sheet=2024 finds a sheet named 2024. */
+function dataFlags(flags: Record<string, string>, allSheets: boolean): Record<string, string | boolean> {
+  const out: Record<string, string | boolean> = {};
+  if (flags.sheet !== undefined) out.sheet = flags.sheet;
   if (allSheets) out.allSheets = true;
   for (const key of ['cells', 'delimiter', 'encoding', 'header']) if (flags[key] !== undefined) out[key] = flags[key]!;
   return out;
@@ -21,7 +23,7 @@ export async function filesCli(args: string[], flags: Record<string, string>, js
   const [verb, path] = args;
   const emit = async (value: unknown): Promise<void> => { if (json) await emitResult(value); else await writeOut(`${JSON.stringify(value, null, 2)}\n`); };
   if (verb === 'schema') { await emit({ request: fileOperationRequestSchemaV1, report: fileOperationReportSchemaV1, targets: NODE_FILE_TARGETS }); return; }
-  if (!path || !['inspect', 'convert'].includes(verb ?? '')) throw usageError('lolly files inspect <file> | files convert <file> --to=jpeg --output=<new-file> [--max-edge=1920 --quality=0.92 --target-bytes=200000] [--sheet=<name|index> | --all-sheets] [--cells=cached|formulas] [--delimiter=auto|comma|semicolon|tab|pipe] [--encoding=auto|utf-8|windows-1252|...] [--header=first-row|none|generate] | files schema');
+  if (!path || !['inspect', 'convert'].includes(verb ?? '')) throw usageError('lolly files inspect <file> | files convert <file> --to=jpeg --output=<new-file> [--max-edge=1920 --quality=0.92 --target-bytes=200000] [--sheet=<name|position, 0 for the first> | --all-sheets] [--cells=cached|formulas] [--delimiter=auto|comma|semicolon|tab|pipe] [--encoding=auto|utf-8|windows-1252|...] [--header=first-row|none|generate] | files schema');
   const file = await readOperationFile(path);
   if (verb === 'inspect') { await emit(await describeOperationFile(file)); return; }
   if (!flags.to || !flags.output) throw usageError('Conversion needs --to=<format> and --output=<new-file>. Existing files are never overwritten.');
