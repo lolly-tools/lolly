@@ -51,7 +51,7 @@ function mountHistory(ta: ActionsCtx): ActionsApi['history'] {
     enabled: experience.localHistory, host, toolId: manifest.id, el, canvas: canvasEl,
     getSlot: () => ta.activeSlot, setSlot: slot => { ta.activeSlot = slot; },
     takeFolder: () => { const folder = ta.fileIntoFolder; ta.fileIntoFolder = null; return folder; },
-    snapshot: ta.saving.sessionSnapshot, initial: experience.historyBase,
+    snapshot: ta.saving.keptSnapshot, initial: experience.historyBase,
     onEmojiChange: listener => runtime.onEmojiChange(listener),
     previewWords: () => documentWords(manifest.inputs ?? [], new Map(runtime.getModel().map(item => [item.id, item.value]))),
   });

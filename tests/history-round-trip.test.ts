@@ -117,11 +117,11 @@ test('edits: each type gets a second value, and an empty blocks input gets a row
 });
 
 /** A tool that exists only for this test, read from memory. */
-function synthetic(id: string, hooks: string | null, template = '<p>{{title}}</p>'): { tool: PackTool; fetchFile: (path: string) => Promise<string> } {
+function synthetic(id: string, hooks: string | null, template = '<p>{{title}}</p>', extraInputs: { id: string; type: string; label: string }[] = []): { tool: PackTool; fetchFile: (path: string) => Promise<string> } {
   const manifest = {
     id, name: id, version: '1.0.0', engineVersion: '^1.0.0', status: 'experimental',
     render: { width: 400, height: 200, formats: ['html'], actions: ['copy', 'download', 'save'] },
-    inputs: [{ id: 'title', type: 'text', label: 'Title', default: 'Hello' }],
+    inputs: [{ id: 'title', type: 'text', label: 'Title', default: 'Hello' }, ...extraInputs],
     ...(hooks ? { hooks: { onInit: true } } : {}),
   };
   const files: Record<string, string> = { [`${id}/tool.json`]: JSON.stringify(manifest), [`${id}/template.html`]: template, ...(hooks ? { [`${id}/hooks.js`]: hooks } : {}) };
@@ -159,6 +159,19 @@ test('the gate reports a value that changes on every mount, a temporary blob: UR
   assert.equal(dated.ok, true, 'the same instant renders the same markup');
   assert.equal(dated.clock, 'render', 'a day later the render moves, which is reported and does not block');
   assert.deepEqual(dated.static.clock.map(c => c.name), ['new Date()']);
+});
+
+test('a side file is recorded as not kept, and the reopened render is the live one without the file', { timeout: 60_000 }, async () => {
+  // The template shows the loaded file's name, so the live render with the file differs
+  // from any reopened render: the case passes only because the record lists the file as
+  // not kept and the comparison removes the file from the live document first.
+  const side = synthetic('history-audit-side-file', null, '<p>{{title}} {{doc.name}}</p>', [{ id: 'doc', type: 'file', label: 'Document' }]);
+  assert.equal(side.tool.historyClass, 'side-file');
+  const verdict = await auditTool(side.tool, { fetchFile: side.fetchFile });
+  assert.equal(verdict.ok, true, JSON.stringify(verdict.cases));
+  const file = verdict.cases.find(c => c.name === 'file doc loaded');
+  assert.equal(file?.outcome, 'identical', file?.detail ?? '');
+  assert.match(file?.note ?? '', /doc is recorded as not kept \(history-audit\.bin\)/);
 });
 
 test('without runtime.whenSettled (engine 1.225), the gate still waits for a raced-out hook and its late patch', { timeout: 30_000 }, async () => {
