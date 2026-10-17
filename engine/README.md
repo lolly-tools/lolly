@@ -573,7 +573,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `token-recipes.ts` | 89 | Bounded colour, spacing and modular type recipes. | yes | none | – |
 | `token-selection.ts` | 86 | Theme group selection, deterministic set precedence and bounded transport parsing. | yes | indirect | – |
 | `token-transition-bindings.test.ts` | 298 | Enter transitions keep a usable duration and curve across source and local edits. | no | none | – |
-| `token-workflows.test.ts` | 228 | Token workflow contracts across resolution, binding, recipes and pinned fonts. | no | none | – |
+| `token-workflows.test.ts` | 474 | Token workflow contracts across resolution, binding, recipes, pinned fonts and the shared token fixtures. | no | none | – |
 | `tokens.ts` | 449 | Design tokens: a platform-agnostic DTCG model. | yes | `tests/tokens.test.ts` | – |
 | `tone-curve.ts` | 140 | tone-curve.ts - a photo tone curve: control points on the 0..255 scale, the text form an input stores them in, and the curve drawn through them. | no | indirect | – |
 | `tool-url.ts` | 173 | Lolly tool-URL recognition. | yes | `tests/tool-url.test.ts` | – |
