@@ -1645,6 +1645,13 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // is the only thing that may reach it. The pack's own bytes were checksummed
   // before they were parsed, so nothing here comes from a document.
   'components/emoji-style-control.ts': 2,
+  // 2026-10-17, plans/319 A4: the Design system section's choices. One innerHTML
+  // pass per draw; every label (a group or option name the design system wrote)
+  // goes through the shared escape helper, rows and options are addressed by
+  // numeric index so no design-system id reaches the markup, the help tip is the
+  // shared component's own markup, and the swatch colours are set through the
+  // CSSOM after a plain-hex check, never interpolated.
+  'components/theme-choices.ts': 1,
   // 2026-09-14, the learning module's four author-facing panels. Each is one
   // innerHTML pass over a record the author is editing, and every value that came
   // from a person goes through the shared escape helper: the course title, each

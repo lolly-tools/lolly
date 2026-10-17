@@ -27,6 +27,10 @@ import { exportCheckFindings, exportCheckLines } from '../export-check.ts';
 import type { PreflightRow } from '../export-preflight.ts';
 import { fmtLabel, isC2paFmt, isCmykFmt, printEnabled } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
+import { DOCUMENT_THEME_EVENT } from '../../lib/document-theme.ts';
+
+/** The palette re-read each mounted panel registered on `window`, dropped with the panel. */
+const paletteRereads = new WeakMap<ActionsCtx, () => void>();
 
 /** DOM truths, the only channel through which the stage reaches the engine. */
 export function stageFacts(ta: ActionsCtx): Fact<StageFacts> {
@@ -353,6 +357,8 @@ export function disposeActions(ta: ActionsCtx): void {
   // The rights row listens on the runtime's emoji changes; drop it with the panel.
   ta.rightsRow?.destroy();
   ta.rightsRow = undefined;
+  paletteRereads.get(ta)?.();
+  paletteRereads.delete(ta);
 }
 export async function refreshCost(ta: ActionsCtx): Promise<void> {
   const { PRICEABLE_KINDS, el, host, reachedViaLink } = ta;
@@ -469,10 +475,16 @@ export function seedPreflightFacts(ta: ActionsCtx): void {
   // become `{ known:false, why:'not-resolved' }`, so the engine withholds the
   // plate ceiling instead of counting starter swatches as if they were the brand's.
   ta.palette = { known: false, why: 'not-resolved' };
-  void (async () => {
+  // Read again when the document's theme choice changes (plans/319 A4): a colourway
+  // enables its own sets, so the swatches, their spot inks and their CMYK can differ.
+  // A generation guard keeps a slow earlier read from landing over a later one.
+  let generation = 0;
+  const readPalette = async (): Promise<void> => {
+    const mine = ++generation;
     try {
       const colors = await host.tokens?.colors?.();
-      if (!Array.isArray(colors) || colors.length === 0) return; // stays 'not-resolved'
+      if (mine !== generation) return;
+      if (!Array.isArray(colors) || colors.length === 0) return; // stays as it was
       ta.palette = {
         known: true,
         value: colors.map((s) => ({
@@ -485,9 +497,16 @@ export function seedPreflightFacts(ta: ActionsCtx): void {
       };
       ta.preflight.refreshPreflight();
     } catch {
-      /* stays 'not-resolved' - never a fabricated empty palette */
+      /* stays as it was - never a fabricated empty palette */
     }
-  })();
+  };
+  void readPalette();
+  if (typeof window !== 'undefined') {
+    const onThemeChange = (): void => { void readPalette(); };
+    window.addEventListener(DOCUMENT_THEME_EVENT, onThemeChange);
+    paletteRereads.get(ta)?.();
+    paletteRereads.set(ta, () => window.removeEventListener(DOCUMENT_THEME_EVENT, onThemeChange));
+  }
 }
 
 export function buildPreflightManifest(ta: ActionsCtx): void {
