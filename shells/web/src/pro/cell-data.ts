@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
 import { coerceCell } from './io.ts';
-import { UNITS } from '@lolly/engine';
+import { UNITS, isTokenValue } from '@lolly/engine';
+import { flattenValue, type InputValue } from '../../../../engine/src/inputs.ts';
+import { writeStoredInput } from '../lib/token-bulk-link.ts';
 
 interface CellRow {
   toolId: string; manifest: ToolManifest | null; values: Record<string, unknown>;
@@ -20,6 +22,8 @@ export function readCell(row: CellRow, key: string, defaults: { unit: string; dp
   const value = row.values[key] ?? input.default;
   if (value == null) return '';
   if (input.type === 'asset') return typeof value === 'string' ? value : String((value as { id?: string }).id ?? '');
+  // A token-linked cell copies the value it shows, not the link record.
+  if (isTokenValue(value)) return String(flattenValue(value));
   return typeof value === 'object' ? JSON.stringify(value) : String(value);
 }
 
@@ -40,11 +44,12 @@ export function writeCell(row: CellRow, key: string, raw: string): boolean {
   }
   const input = row.manifest?.inputs.find(input => input.id === key);
   if (!input) return false;
+  // Scalar writes follow the engine's restore rule: a value pasted over a token link records the link.
   if (raw === '') {
     if (input.type === 'blocks') row.values[key] = [];
     else if (input.type === 'boolean') row.values[key] = false;
-    else if (['text', 'longtext', 'url', 'date', 'time', 'datetime-local'].includes(input.type)) row.values[key] = '';
-    else delete row.values[key];
+    else if (['text', 'longtext', 'url', 'date', 'time', 'datetime-local'].includes(input.type)) writeStoredInput(row.values, key, '');
+    else writeStoredInput(row.values, key, undefined);
     return true;
   }
   if (input.type === 'vector' || input.type === 'table') {
@@ -53,5 +58,32 @@ export function writeCell(row: CellRow, key: string, raw: string): boolean {
   }
   const value = coerceCell(input, raw);
   if (value === undefined) return false;
-  row.values[key] = value; return true;
+  writeStoredInput(row.values, key, value); return true;
+}
+
+/**
+ * Write a value from a cell control, a colour pick or a Fill into one row. Scalar
+ * writes follow the engine's restore rule: a value over a token link records that
+ * link, so a later bulk link keeps it as an override; a link clears the record.
+ */
+export function writeControlValue(row: Pick<CellRow, 'values'>, key: string, value: InputValue | undefined): void {
+  writeStoredInput(row.values, key, value);
+}
+
+/**
+ * Write one pasted row whose cells are mapped to input ids (a header or column
+ * mapping, not position). Each cell is coerced by this row's own declaration, and
+ * cells it cannot take are skipped. Returns how many values were written.
+ */
+export function writeMappedRow(row: CellRow, cells: readonly string[], ids: readonly (string | null)[]): number {
+  const byId = new Map((row.manifest?.inputs ?? []).map(input => [input.id, input]));
+  let filled = 0;
+  cells.forEach((raw, c) => {
+    const id = ids[c];
+    const input = id ? byId.get(id) : undefined;
+    if (!input) return;
+    const value = coerceCell(input, raw);
+    if (value !== undefined) { writeControlValue(row, id!, value); filled++; }
+  });
+  return filled;
 }

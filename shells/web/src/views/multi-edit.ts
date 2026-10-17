@@ -50,9 +50,10 @@ import { mountProfileFab } from '../components/profile-menu.ts';
 import { mountZoomHud } from '../components/zoom-hud.ts';
 import { startBatchExport } from '../lib/batch-job.ts';
 import { MULTI_EDIT_MIN, MULTI_EDIT_MAX } from '../lib/multi-edit-limits.ts';
-import { memberSaveValues, applySharedEdit } from '../lib/multi-edit-lazy.ts';
+import { memberSaveValues, applySharedEdit, runtimeSaveValues, sessionSaveData, sessionSeedValues } from '../lib/multi-edit-lazy.ts';
 import { createSinglePreviewer } from '../lib/multi-edit-single.ts';
 import { setupMobileSheet } from '../lib/mobile-sheet.ts';
+import { mountMemberTokenActions, mountSharedTokenActions } from '../lib/multi-edit-token-links.ts';
 
 import type { WebToolHost, PanelEl } from './tool.ts';
 import type { InputModelItem, InputValue, InputSpec } from '../../../../engine/src/inputs.js';
@@ -120,11 +121,6 @@ const ZOOM_OUT_ICON = svg('<line x1="5" y1="12" x2="19" y2="12"/>');
 const ZOOM_IN_ICON = svg('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>');
 const FIT_ICON = svg('<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>');
 
-/** Current values of a runtime's model as a plain map (what a session persists). */
-function modelValues(runtime: Runtime): Record<string, InputValue> {
-  return Object.fromEntries(runtime.getModel().map(i => [i.id, i.value]));
-}
-
 const num = (v: unknown): number | undefined => {
   const n = Number(v);
   return Number.isFinite(n) && n > 0 ? n : undefined;
@@ -179,8 +175,8 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
     let tool: LoadedTool;
     try { tool = await getTool(toolId); }
     catch { fail(`The tool "${toolId}" for one session isn't in this catalog.`); return; }
-    const values: Record<string, InputValue> = {};
-    for (const [k, v] of Object.entries(data)) if (!k.startsWith('__')) values[k] = v as InputValue;
+    // Inputs plus the token context, so each session renders in its own theme choices.
+    const values = sessionSeedValues(data);
     members.push({
       slot,
       label: String(entry.label || data.__label || tool.manifest.name || toolId),
@@ -474,7 +470,7 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
         else m.needsPaint = true;
         return;
       }
-      if (activeSingle === null) { previewer.schedule(m.slot, m.tool.manifest.id, memberSaveValues(m, modelValues), m.canvasEl, retireThumb(m)); return; }
+      if (activeSingle === null) { previewer.schedule(m.slot, m.tool.manifest.id, memberSaveValues(m, runtimeSaveValues), m.canvasEl, retireThumb(m)); return; }
       m.needsPaint = true;
       return;
     }
@@ -709,6 +705,13 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
     members.forEach(m => m.panelEl._inputsDispose?.());
   });
 
+  // Token links: each session card acts on its own runtime; the Shared card plans a
+  // link across every session that declares the input and reviews it first
+  // (lib/multi-edit-token-links.ts). A built runtime repaints through its own
+  // subscription; an unbuilt one only needs the sidebar to read its seed again.
+  if (sharedPanel) cleanups.push(mountSharedTokenActions(sharedPanel, host, sharedMembersOf, scheduleSidebar));
+  for (const m of members) cleanups.push(mountMemberTokenActions(m.panelEl, m, host, scheduleSidebar));
+
   // Opening a collapsed card renders its (lazily-skipped) panel.
   viewEl.querySelectorAll<HTMLDetailsElement>('details[data-me-card]').forEach(card => {
     card.addEventListener('toggle', () => { if (card.open) scheduleSidebar(); });
@@ -880,10 +883,9 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
     const opts = exportOpts(i);
     // A live cell's runtime is authoritative; a never-created cell saves the values it
     // was seeded with plus any shared edits buffered into m.values (lib/multi-edit-lazy).
-    const values = memberSaveValues(m, modelValues);
+    // The token context comes from those values alone (lib/multi-edit-lazy sessionSaveData).
     const data: SavedStateData = {
-      ...m.data,
-      ...values,
+      ...sessionSaveData(m.data, memberSaveValues(m, runtimeSaveValues)),
       __toolId: m.tool.manifest.id,
       __toolVersion: m.tool.manifest.version,
       __export_format: opts.format ?? '',
