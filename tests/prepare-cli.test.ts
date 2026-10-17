@@ -55,6 +55,10 @@ test('CLI Company and Manager choices preserve the unselected field and reject s
     assert.doesNotMatch(report.stdout, /Private fixture company|Private fixture manager/); assert.deepEqual(new Uint8Array(await readFile(input)), bytes);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
+test('CLI help names the supported DOCX application properties', async () => {
+  const { stdout } = await run(process.execPath, [cli, 'prepare', '--help']);
+  for (const name of ['Company', 'Manager', 'Template', 'hyperlink base', 'application name and version', 'statistics']) assert(stdout.includes(name), name);
+});
 test('CLI DOCX cleanup reports failed guards and retains the original without a cleanup claim', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'lolly-docx-unsupported-'));
   try {

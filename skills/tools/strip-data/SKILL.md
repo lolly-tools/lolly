@@ -5,7 +5,7 @@ description: "Operate the Lolly Strip Hidden Data tool (strip-data) using its de
 
 # Strip Hidden Data
 
-Tool ID: `strip-data`. Tool version: `1.3.0`. Engine range: `^1.259.0`.
+Tool ID: `strip-data`. Tool version: `1.4.0`. Engine range: `^1.264.0`.
 
 Remove selected DOCX properties or image and PDF metadata, and inspect other Office hidden content, on your device.
 

@@ -101,13 +101,15 @@ SHA-256. Selecting that original for comparison does not save or upload the file
 
 Strip Hidden Data and Prepare for sharing also inspect DOCX, PPTX and XLSX files
 on your device. Supported DOCX files can remove selected core and custom properties,
-Company and Manager from a new copy. Unselected properties, other application properties, comments, revisions,
-links, hidden content and embedded objects are retained. Other Office content remains
-inspect-only. Private previews stay behind a reveal control.
+Company, Manager, Template, hyperlink base, application name and version, and
+document statistics from a new copy. Unselected properties, other application
+properties, comments, revisions, links, hidden content and embedded objects are
+retained. Other Office content remains inspect-only. Private previews stay behind a
+reveal control.
 
 | Office format | Package content inspected | Removal supported |
 |---|---|---|
-| DOCX | Core, application and custom properties; comments and authors; tracked-change markers and previews; hidden text runs; external relationships; embedded objects | Selected author, last saved by, created/modified/last printed dates, title, subject, description, keywords, custom properties, Company and Manager |
+| DOCX | Core, application and custom properties; comments and authors; tracked-change markers and previews; hidden text runs; external relationships; embedded objects | Selected author, last saved by, created/modified/last printed dates, title, subject, description, keywords, custom properties, Company, Manager, Template, hyperlink base, application name and version, and statistics (total editing time and page, word, character, line and paragraph counts) |
 | PPTX | Properties; comments and author records; speaker notes; hidden-slide markers; external relationships; embedded objects and supported nested workbooks | None |
 | XLSX | Properties; comments and notes; hidden-sheet, row and column markers; defined names; external relationships and connections; external-link and pivot cache surfaces; embedded objects | None |
 
@@ -120,13 +122,23 @@ retained. Macro content is identified but never executed; legacy binary Office
 formats and XLSB remain uninspected. External references are never fetched.
 
 DOCX cleanup supports the transitional DOCX package format with canonical core,
-custom and extended property parts. Only Company and Manager can be removed from
-extended properties. Template, HyperlinkBase, producer information, statistics and
-other application properties are retained. Extended digital-signature data also
-prevents cleanup. Signed, macro-enabled, encrypted, malformed, renamed or nested
-Office packages remain inspect-only. Files with property-dependent Word fields or
-XML-bound content controls also remain inspect-only: removing a property could change
-the displayed document when Word updates those bindings. Cached field text cannot
+custom and extended property parts. From extended properties, Company, Manager,
+Template, HyperlinkBase, Application, AppVersion and the statistics TotalTime, Pages,
+Words, Characters, CharactersWithSpaces, Lines and Paragraphs can be removed.
+DocSecurity, heading and part titles, link flags and other application properties
+are retained. Removing Template leaves any attached template link in the document
+settings, where the census reports it as an external relationship. Some readers
+choose compatibility behaviour from the application name and version, so removing
+them can change how those readers lay out the copy. When a Word field shows one of
+these values (TEMPLATE, EDITTIME, NUMPAGES, NUMWORDS or NUMCHARS), that property is
+retained. Link fields and relative external links also keep HyperlinkBase, because
+their targets resolve against that base address. The inspection lists each property
+kept this way.
+Extended digital-signature data prevents cleanup. Signed, macro-enabled, encrypted,
+malformed, renamed or nested Office packages remain inspect-only. Files with other
+property-dependent Word fields, such as DOCPROPERTY or AUTHOR, or XML-bound content
+controls also remain inspect-only: removing a property could change the displayed
+document when Word updates those bindings. Cached field text cannot
 establish that the next rendering will retain the same appearance.
 XML parts with unconventional filename extensions and Word XML relationship targets
 that cannot be safely inspected also remain inspect-only, including incorrectly
