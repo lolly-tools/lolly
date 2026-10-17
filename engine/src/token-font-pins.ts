@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
-/** Release font identity, byte validation and render projections. */
-import type { PinnedAsset } from './design-version.ts';
+/** Release font identity, byte validation, face matching and render projections. */
+import type { PinnedAsset, PinnedFontFace } from './design-version.ts';
 import { sha256Hex } from './bytes.ts';
 
 /** A release alias addresses exact face bytes while keeping the authored family intact. */
@@ -60,4 +60,21 @@ function mapFontFamilies(source: unknown, aliases: Map<string, string>): unknown
 export async function verifyPinnedFontBytes(pin: PinnedAsset, bytes: Uint8Array | null): Promise<Uint8Array> {
   if (!bytes || await sha256Hex(bytes) !== pin.sha256) throw new Error(`Pinned font ${pin.font?.family ?? pin.id} is missing or its bytes changed.`);
   return bytes;
+}
+
+/** A face's declared weight is one value or a variable range such as `100 900`. */
+export function faceCoversWeight(declared: string, weight: number): boolean {
+  const [low, high = low] = declared.trim().split(/\s+/).map(Number);
+  return Number.isFinite(low) && Number.isFinite(high) && weight >= low! && weight <= high!;
+}
+
+/**
+ * Token typography asks for one family, weight and slant. A nearer weight, another slant or a
+ * fallback family is reported rather than substituted, because composed text pins the bytes.
+ */
+export function pinnedFaceMismatch(request: { family: string; weight: number; italic: boolean }, face: Pick<PinnedFontFace, 'family' | 'weight' | 'style'> | null | undefined): string | null {
+  const slant = request.italic ? ' italic' : '';
+  if (!face || face.family.trim().toLowerCase() !== request.family.trim().toLowerCase()) return `No installed face for ${request.family}${slant}. Install the font or choose another token.`;
+  if ((face.style === 'italic' || face.style === 'oblique') !== request.italic || !faceCoversWeight(face.weight, request.weight)) return `${request.family} has no installed face at weight ${request.weight}${slant}. Install that face or choose another token.`;
+  return null;
 }
