@@ -25,7 +25,7 @@
 
 import { strFromU8 } from 'fflate';
 import type { Unzipped } from 'fflate';
-import { unzipAsync } from './zip.ts';
+import { unzipAsync, zipAsync } from './zip.ts';
 import { bytesToBase64 } from './util/bytes.ts';
 
 /** An fflate entry: raw bytes, or the `[bytes, opts]` tuple used to skip
@@ -57,6 +57,91 @@ export async function sha256(bytes: Uint8Array): Promise<string> {
 /** Normalise an entry to its bytes (drops the `{level:0}` tuple wrapper). */
 function entryBytes(v: BundleEntry): Uint8Array {
   return v instanceof Uint8Array ? v : v[0];
+}
+
+// ── Where parts are written (plan 203 R4) ──────────────────────────────────────
+// A backup's parts used to be gathered into one entry map and zipped at the end.
+// They are now written through a PartSink: the streamed archive in
+// lib/zip-stream.ts, which never holds the whole backup, or entrySink below, which
+// fills an entry map exactly as before for the callers and tests that want one.
+
+/** A part being written in chunks. Nothing of it is in the archive until `close()`. */
+export interface PartWriter {
+  /** Bytes written so far. */
+  readonly bytes: number;
+  write(chunk: Uint8Array): Promise<void>;
+  close(): Promise<void>;
+  /** Drop the part. The archive is left as it was before it was opened. */
+  abort(): void;
+}
+
+/** Where a bundle's parts go, in the order they should appear. One part at a time. */
+export interface PartSink {
+  /** A part in memory, deflated unless `stored` (already-compressed bytes stay as they are). */
+  bytes(name: string, data: Uint8Array, stored?: boolean): Promise<void>;
+  /** A stored part whose bytes are in a Blob: read in chunks, never re-encoded. */
+  blob(name: string, blob: Blob): Promise<void>;
+  /** A deflated part written in chunks. */
+  open(name: string): PartWriter;
+}
+
+/** The uncompressed size of every part, and the largest one. */
+export interface BundleStats { total: number; largest: { name: string; bytes: number } }
+
+/** A PartSink that ends as one ZIP Blob. */
+export interface BundleArchive extends PartSink {
+  readonly stats: BundleStats;
+  /** The `manifest.integrity` map for the parts so far; null without Web Crypto. */
+  integrity(): Promise<Record<string, string> | null>;
+  finish(): Promise<Blob>;
+}
+
+/** Write parts into an entry map, the in-memory shape zipAsync takes. */
+export function entrySink(entries: Record<string, BundleEntry>): PartSink {
+  return {
+    async bytes(name, data, stored = false) { entries[name] = stored ? [data, { level: 0 }] : data; },
+    async blob(name, blob) { entries[name] = [new Uint8Array(await blob.arrayBuffer()), { level: 0 }]; },
+    open(name) {
+      const chunks: Uint8Array[] = [];
+      let size = 0;
+      return {
+        get bytes() { return size; },
+        async write(chunk) { chunks.push(chunk); size += chunk.length; },
+        async close() {
+          const whole = new Uint8Array(size);
+          let at = 0;
+          for (const chunk of chunks) { whole.set(chunk, at); at += chunk.length; }
+          entries[name] = whole;
+        },
+        abort() { chunks.length = 0; size = 0; },
+      };
+    },
+  };
+}
+
+/**
+ * The in-memory archive: every part held in an entry map, integrity hashed over the
+ * map and the whole ZIP built by zipAsync, the way exportBackup wrote a backup
+ * before it streamed. Kept as the reference the streamed archive is measured and
+ * tested against (tests/backup-streaming.test.ts, scripts/bench-backup-finalise.ts).
+ */
+export function memoryArchive(): BundleArchive {
+  const entries: Record<string, BundleEntry> = {};
+  const sink = entrySink(entries);
+  return {
+    ...sink,
+    get stats(): BundleStats {
+      const stats: BundleStats = { total: 0, largest: { name: '', bytes: 0 } };
+      for (const [name, entry] of Object.entries(entries)) {
+        const bytes = entryBytes(entry).byteLength;
+        stats.total += bytes;
+        if (bytes > stats.largest.bytes) stats.largest = { name, bytes };
+      }
+      return stats;
+    },
+    integrity: () => buildIntegrity(entries),
+    finish: async () => new Blob([(await zipAsync(entries)) as BlobPart], { type: 'application/zip' }),
+  };
 }
 
 /** Parse one JSON part out of an unzipped bundle; null when absent or malformed. */

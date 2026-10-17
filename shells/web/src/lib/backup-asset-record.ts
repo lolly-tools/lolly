@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Binary fields travel as ZIP entries, never JSON-ified typed arrays. */
-import type { BundleEntry } from './bundle.ts';
+import { entrySink, type BundleEntry, type PartSink } from './bundle.ts';
 
 function credentialBytes(value: unknown): Uint8Array {
   if (value instanceof Uint8Array) {
@@ -16,18 +16,26 @@ function credentialBytes(value: unknown): Uint8Array {
   return Uint8Array.from(values);
 }
 
-export async function packBackupAsset(record: Record<string, unknown>, prefix: string, entries: Record<string, BundleEntry>): Promise<Record<string, unknown>> {
+/** Write a record's bytes as stored parts and return its metadata. The blob goes
+ * to the sink as a Blob, so a streamed archive reads it in chunks rather than
+ * holding it (plan 203 R4); its bytes, and any Content Credentials, stay exact. */
+export async function writeBackupAsset(record: Record<string, unknown>, prefix: string, sink: PartSink): Promise<Record<string, unknown>> {
   const { blob, credential, ...meta } = record;
   const result: Record<string, unknown> = { ...meta, _file: null, _mime: '' };
   if (blob instanceof Blob) {
     result._file = `${prefix}.bin`; result._mime = blob.type;
-    entries[`${prefix}.bin`] = [new Uint8Array(await blob.arrayBuffer()), { level: 0 }];
+    await sink.blob(`${prefix}.bin`, blob);
   }
   if (credential != null) {
     result._credentialFile = `${prefix}.c2pa`;
-    entries[`${prefix}.c2pa`] = [credentialBytes(credential), { level: 0 }];
+    await sink.bytes(`${prefix}.c2pa`, credentialBytes(credential), true);
   }
   return result;
+}
+
+/** writeBackupAsset into an in-memory entry map. */
+export function packBackupAsset(record: Record<string, unknown>, prefix: string, entries: Record<string, BundleEntry>): Promise<Record<string, unknown>> {
+  return writeBackupAsset(record, prefix, entrySink(entries));
 }
 
 export function unpackBackupAsset(meta: Record<string, unknown>, files: Record<string, Uint8Array>, prefix: string): Record<string, unknown> {

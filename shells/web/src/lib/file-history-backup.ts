@@ -5,8 +5,8 @@ import type { IDBPDatabase } from 'idb';
 import { strToU8, type Unzipped } from 'fflate';
 import { allUserAssetVersions, importUserAssetVersion, validateUserAssetVersion, type UserAssetVersion } from '../bridge/asset-history.ts';
 import { localFileOperations, validatePortableOperation, interruptedOperationReport, type PortableFileOperation, type FileOperationStore } from './file-operation-store.ts';
-import { packBackupAsset, unpackBackupAsset } from './backup-asset-record.ts';
-import { readJson, type BundleEntry } from './bundle.ts';
+import { unpackBackupAsset, writeBackupAsset } from './backup-asset-record.ts';
+import { entrySink, readJson, type BundleEntry, type PartSink } from './bundle.ts';
 import { portableFileBatch, validateFileBatch, type PortableFileBatch } from './file-batch-store.ts';
 
 export interface FileHistorySnapshot { assetVersions: UserAssetVersion[]; operations: PortableFileOperation[]; batches?: PortableFileBatch[] }
@@ -15,8 +15,10 @@ export interface FileHistoryBackup {
   export(): Promise<FileHistorySnapshot>;
   restore(snapshot: FileHistorySnapshot): Promise<FileHistorySummary>;
 }
-// ZIP assembly still holds bytes in memory. Refuse before reading large blobs,
-// with no silent omissions; streaming multi-GB backups need a separate path.
+// Export now streams these bytes into the archive (writeFileHistory), but import
+// still unzips a whole backup in memory, so the limit stays until restore streams
+// too: a backup this build writes must be one it can read back. Refuse before
+// reading large blobs, with no silent omissions.
 export const MAX_HISTORY_BACKUP_BYTES = 256 * 1024 * 1024;
 export const FILE_HISTORY_PART = 'file-history.json';
 export const FILE_HISTORY_PREFIX = 'file-history/';
@@ -45,25 +47,33 @@ function checkBatches(snapshot: FileHistorySnapshot): void {
   }
 }
 
-export async function packFileHistory(snapshot: FileHistorySnapshot, entries: Record<string, BundleEntry>): Promise<void> {
+/** Write the history's parts through a sink. Saved results and version bytes go as
+ * Blobs, so a streamed archive reads each in chunks instead of holding them all
+ * (plan 203 R4); every byte, Content Credentials included, is stored as it is. */
+export async function writeFileHistory(snapshot: FileHistorySnapshot, sink: PartSink): Promise<void> {
   checkSize(snapshot);
   checkBatches(snapshot);
   const versions = [];
   for (const [i, v] of snapshot.assetVersions.entries()) {
     await validateUserAssetVersion(v);
-    versions.push({ ...v, record: await packBackupAsset({ ...v.record }, `${FILE_HISTORY_PREFIX}versions/${i}`, entries) });
+    versions.push({ ...v, record: await writeBackupAsset({ ...v.record }, `${FILE_HISTORY_PREFIX}versions/${i}`, sink) });
   }
   const operations = [];
   for (const [i, r] of snapshot.operations.entries()) {
     await validatePortableOperation(r);
     const { output, ...meta } = r;
     const path = output ? `${FILE_HISTORY_PREFIX}results/${i}.bin` : null;
-    if (output && path) entries[path] = [new Uint8Array(await output.arrayBuffer()), { level: 0 }];
+    if (output && path) await sink.blob(path, output);
     operations.push({ ...meta, _file: path });
   }
   const json = strToU8(JSON.stringify({ version: snapshot.batches ? 2 : 1, assetVersions: versions, operations, ...(snapshot.batches ? { batches: snapshot.batches } : {}) }));
   if (json.byteLength > 4 * 1024 * 1024) throw new Error('File history metadata exceeds the 4 MB backup limit.');
-  entries[FILE_HISTORY_PART] = json;
+  await sink.bytes(FILE_HISTORY_PART, json);
+}
+
+/** writeFileHistory into an in-memory entry map. */
+export function packFileHistory(snapshot: FileHistorySnapshot, entries: Record<string, BundleEntry>): Promise<void> {
+  return writeFileHistory(snapshot, entrySink(entries));
 }
 
 /** Validate every history part before the caller mutates profile or asset data. */
