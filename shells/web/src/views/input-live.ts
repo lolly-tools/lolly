@@ -27,15 +27,37 @@ function jsonProblem(value: unknown, seen = new Set<object>(), depth = 0): Omiss
   return null;
 }
 
+interface BinaryFingerprint { readonly binaryLength: number; readonly binaryHash: string }
+
+/**
+ * Hashes remembered per buffer and byte range, so a large file costs one pass
+ * rather than one per revision read. The shell replaces file bytes with a new
+ * array on every pick and never writes into them, so a remembered hash stays exact.
+ */
+const fingerprints = new WeakMap<ArrayBufferLike, Map<string, BinaryFingerprint>>();
+
+function binaryFingerprint(value: ArrayBuffer | ArrayBufferView): BinaryFingerprint {
+  const buffer = ArrayBuffer.isView(value) ? value.buffer : value;
+  const offset = ArrayBuffer.isView(value) ? value.byteOffset : 0;
+  const length = value.byteLength;
+  const range = `${offset}:${length}`;
+  const ranges = fingerprints.get(buffer) ?? new Map<string, BinaryFingerprint>();
+  const known = ranges.get(range);
+  if (known) return known;
+  // A detached buffer reports zero bytes, and a view over it cannot be built.
+  const bytes = length ? new Uint8Array(buffer, offset, length) : new Uint8Array(0);
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < bytes.length; i++) hash = Math.imul(hash ^ bytes[i]!, 0x01000193);
+  const fingerprint = Object.freeze({ binaryLength: length, binaryHash: (hash >>> 0).toString(16) });
+  ranges.set(range, fingerprint);
+  fingerprints.set(buffer, ranges);
+  return fingerprint;
+}
+
 /** Fingerprint binary input state without returning its bytes to an agent. */
 function revisionValue(value: unknown, seen = new Set<object>()): unknown {
   if (!value || typeof value !== 'object') return value;
-  if (ArrayBuffer.isView(value) || value instanceof ArrayBuffer) {
-    const bytes = ArrayBuffer.isView(value) ? new Uint8Array(value.buffer, value.byteOffset, value.byteLength) : new Uint8Array(value);
-    let hash = 0x811c9dc5;
-    for (const byte of bytes) hash = Math.imul(hash ^ byte, 0x01000193);
-    return { binaryLength: bytes.length, binaryHash: (hash >>> 0).toString(16) };
-  }
+  if (ArrayBuffer.isView(value) || value instanceof ArrayBuffer) return binaryFingerprint(value);
   if (seen.has(value)) return '[circular]';
   seen.add(value);
   const result = Array.isArray(value) ? value.map(item => revisionValue(item, seen)) : Object.fromEntries(Object.entries(value).map(([key, item]) => [key, revisionValue(item, seen)]));
