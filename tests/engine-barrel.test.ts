@@ -304,6 +304,16 @@ const EXPECTED: readonly string[] = [
   'deriveColourwaySlots',
   'ColourwaySlotOptions',
   'ColourwaySlots',
+  // plans/319 A4: the manifest `tokenAxes` opt-out.
+  'ignoresTokenAxes',
+  'effectiveAxisKinds',
+  'ignoredTokenAxes',
+  'pinIgnoredTokenAxes',
+  'describeIgnoredTokenChoice',
+  'IgnoredTokenAxis',
+  'IgnoredTokenChoice',
+  'PinnedTokenSelection',
+  'ToolTokenAxes',
 
   'DesignTextBox',
   'ShapedTextLine',

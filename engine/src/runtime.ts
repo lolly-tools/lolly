@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { withTokenSelection } from './token-context.ts';
-import { parseTokenSelection } from './token-selection.ts';
+import { parseTokenSelection, resolveTokenSelection } from './token-selection.ts';
+import { ignoresTokenAxes, pinIgnoredTokenAxes, type IgnoredTokenChoice } from './tool-token-axes.ts';
 import { resolveTokenBinding } from './token-binding.ts';
 /**
  * Runtime - orchestrates the 5-step lifecycle for a single mounted tool.
@@ -56,7 +57,7 @@ import type { EmojiLineSource } from './emoji-line.ts';
 import type { VerifiedEmojiPack } from './emoji-pack.ts';
 import type { C2paSourceIngredient } from './c2pa.ts';
 import type {
-  HostV1, AssetRef, ExportFormat, ExportOpts, MediaFrame, TokenSet,
+  HostV1, AssetRef, ExportFormat, ExportOpts, MediaFrame, TokenSet, TokenSelection,
   AudioLevel, RecordOpts, RecordSession, IngredientCredential, SourceIngredient,
 } from './bridge/host-v1.ts';
 import type {
@@ -309,6 +310,14 @@ export interface Runtime {
   /** The document's token theme choices in force (`_themes`, `__tokenSelection`), or undefined for the defaults. */
   readonly tokenSelection?: Record<string, string>;
   /**
+   * Requested theme choices this tool's manifest `tokenAxes` overrode (plans/319):
+   * a link or a caller asked for, say, a colourway the tool ignores, and the tool
+   * renders in that group's canonical option instead. Set at mount and by every
+   * `setTokenSelection`; empty when nothing was overridden. A shell reports these
+   * rather than dropping the choice silently.
+   */
+  readonly ignoredTokenChoices?: readonly IgnoredTokenChoice[];
+  /**
    * Show the document in other token theme choices (plan 291 W4, v1.244): re-scope the
    * runtime's token reads (its own and the hooks'), re-resolve every linked colour under
    * them, run the surface pass and the asset refs again, then run onInput for each input
@@ -555,6 +564,20 @@ export async function createRuntime(
   // One live token scope (plan 291 W4): every reader of host.tokens, the hooks included,
   // goes through `scopedTokens`, which setTokenSelection swaps for another theme.
   const unscopedHost = host;
+  // A tool whose colours are its content opts out of a kind of theme group
+  // (manifest `tokenAxes`, plans/319): each group of that kind is pinned to its
+  // canonical option here, before the first token read, so the hooks, the linked
+  // colours, the canvas variables a shell paints from `tokenSelection` and the
+  // saved session all draw the canonical option. A requested choice the pin
+  // overrode is kept in `ignoredTokenChoices` for the shell to report.
+  const tokenAxes = ignoresTokenAxes(tool.manifest.tokenAxes) ? tool.manifest.tokenAxes : null;
+  let ignoredTokenChoices: IgnoredTokenChoice[] = [];
+  async function pinForTool(requested: Record<string, string> | undefined): Promise<{ selection: Record<string, string> | undefined; ignored: IgnoredTokenChoice[] }> {
+    if (!tokenAxes || !unscopedHost.tokens) return { selection: requested, ignored: [] };
+    const resolved = await choicesInForce(unscopedHost.tokens, requested);
+    return resolved ? pinIgnoredTokenAxes(requested, resolved, tokenAxes) : { selection: requested, ignored: [] };
+  }
+  if (tokenAxes) ({ selection: tokenSelection, ignored: ignoredTokenChoices } = await pinForTool(tokenSelection));
   let scopedTokens = tokenSelection ? withTokenSelection(unscopedHost, tokenSelection).tokens : unscopedHost.tokens;
   let themeGeneration = 0;
   // The token set of the theme in force, read by the last resolve (mount, resolveRefs,
@@ -1311,6 +1334,7 @@ export async function createRuntime(
 
   return {
     get tokenSelection() { return tokenSelection ? structuredClone(tokenSelection) : undefined; },
+    get ignoredTokenChoices() { return ignoredTokenChoices.map(choice => ({ ...choice })); },
     getModel: () => model,
     getHydrated,
     getHydratedString,
@@ -1658,9 +1682,19 @@ export async function createRuntime(
 
     async setTokenSelection(selection) {
       const next = parseTokenSelection(JSON.stringify(selection ?? {}));
-      tokenSelection = next && Object.keys(next).length ? structuredClone(next) : undefined;
-      scopedTokens = tokenSelection ? withTokenSelection(unscopedHost, tokenSelection).tokens : unscopedHost.tokens;
       const generation = ++themeGeneration;
+      let applied = next && Object.keys(next).length ? structuredClone(next) : undefined;
+      // The tool's `tokenAxes` pin applies to a switch exactly as to the mount. Only a
+      // tool that declares one waits on the read, so every other tool's switch takes
+      // effect before its first await, as it always has.
+      if (tokenAxes) {
+        const pinned = await pinForTool(applied);
+        if (generation !== themeGeneration) return;
+        applied = pinned.selection;
+        ignoredTokenChoices = pinned.ignored;
+      }
+      tokenSelection = applied;
+      scopedTokens = tokenSelection ? withTokenSelection(unscopedHost, tokenSelection).tokens : unscopedHost.tokens;
       // The cached surface context is the old theme's (its table and token set). The pass
       // below rebuilds it only when a row is auto, so drop it here: a mark added after
       // the switch must not be picked against the previous theme.
@@ -2353,6 +2387,40 @@ function inputNeedsAssetResolve(input: InputModelItem): boolean {
       assetFields.some(f => assetRefId((item as { [k: string]: unknown })[f.id]) !== null));
   }
   return false;
+}
+
+/**
+ * The theme groups of the host's design system and the option each is drawn in
+ * under `requested`, for the `tokenAxes` pin. Read from the render snapshot when the
+ * host has one (the same document the canvas resolves), else from `inspect`, else
+ * from the theme list alone, with each group on its canonical option. Null when
+ * the host cannot say, and then nothing is pinned.
+ */
+async function choicesInForce(tokens: NonNullable<HostV1['tokens']>, requested: Record<string, string> | undefined): Promise<Pick<TokenSelection, 'groups' | 'choices'> | null> {
+  const opts = requested ? { selection: requested } : {};
+  try {
+    if (tokens.snapshot) {
+      const snapshot = await tokens.snapshot();
+      if (snapshot.document) return resolveTokenSelection(snapshot.document, opts);
+    }
+    if (tokens.inspect) return (await tokens.inspect(opts)).selection;
+    const themes = await tokens.themes();
+    const groups = new Map<string, TokenSelection['groups'][number]>();
+    for (const theme of themes) {
+      const id = theme.group ?? '';
+      const group = groups.get(id) ?? { id, options: [], ...(theme.kind ? { kind: theme.kind } : {}) };
+      const option = theme.id ?? theme.name;
+      group.options.push({ id: option, name: theme.name });
+      if (theme.canonical) group.canonical = option;
+      groups.set(id, group);
+    }
+    const list = [...groups.values()];
+    const choices: Record<string, string> = {};
+    for (const group of list) choices[group.id] = requested?.[group.id] ?? group.canonical ?? group.options[0]!.id;
+    return { groups: list, choices };
+  } catch {
+    return null;
+  }
 }
 
 /**
