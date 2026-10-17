@@ -37,7 +37,7 @@ import { waitForExport, type ExportWait } from '@lolly-tools/node-shell/export-w
 import { checksInOpenedPage, openSessionInPage, OpenSessionError, packageDesignSession, sessionQuery, shortenUrls } from '@lolly-tools/node-shell/open-session';
 import { readFile, stat } from 'node:fs/promises';
 import { loadToolCached } from './catalog.ts';
-import { withHost } from './host.ts';
+import { followRuntimeSelection, withHost } from './host.ts';
 import { withAudioScope } from './audio-runs.ts';
 import { prerenderSongInputs, recordedSongs, songIngredientsIn, type ComputedAudioFailure, type ComputedAudioRun, type RondoCaps } from '@lolly-tools/node-shell/audio';
 import type { Jsdom } from './host.ts';
@@ -327,7 +327,10 @@ async function mountAndDraw(
   const canvas = dom.window.document.getElementById('canvas');
   if (!canvas) throw new RenderError('render canvas missing');
   // A `_themes` choice the tool's manifest `tokenAxes` ignores (plans/319 A4) renders
-  // in the canonical option; the caller is told so rather than left to wonder.
+  // in the canonical option; the caller is told so rather than left to wonder. The
+  // bridge follows the runtime from here, so the emoji palette below and the export's
+  // own reads (the eps-cmyk palette) draw that option too, not the one the request named.
+  followRuntimeSelection(host, runtime.tokenSelection, tokenSelection);
   const ignoredThemes = ignoredThemeNotes(runtime.ignoredTokenChoices, tool.manifest.name);
   // The set is chosen BEFORE the first pass: setEmojiStyle redraws a tree it has
   // already drawn, and there is nothing drawn yet, so this costs one pass.
@@ -369,8 +372,11 @@ export function themeChoiceNotes(
  * mounts that runtime and hands back only bytes, so the decision is read again
  * here from the same design system. Only a tool that declares `tokenAxes`, asked
  * for theme choices, pays for the read.
+ *
+ * Exported for the test that pins this seam (tests/token-axes-run.test.ts);
+ * `render` is its only caller.
  */
-async function browserTierThemeNotes(
+export async function browserTierThemeNotes(
   toolId: string,
   profile: Profile,
   tokenSelection: Record<string, string> | undefined,

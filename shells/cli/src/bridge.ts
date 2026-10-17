@@ -325,6 +325,40 @@ function rondoRecordOf(bytes: Uint8Array): RondoSourceV1 | null {
   }
 }
 
+/** Each CLI bridge's way to move its own reads to another theme selection, keyed by the bridge. */
+const selectionFollowers = new WeakMap<HostV1, (selection: Record<string, string>) => void>();
+
+/** Two selections name the same choices, whatever their key order. */
+function sameSelection(a: Record<string, string> | undefined, b: Record<string, string> | undefined): boolean {
+  const ka = Object.keys(a ?? {}), kb = Object.keys(b ?? {});
+  return ka.length === kb.length && ka.every((key) => Object.hasOwn(b ?? {}, key) && b![key] === a![key]);
+}
+
+/**
+ * Move a CLI bridge to the theme selection its runtime applied (plans/319 A4).
+ *
+ * A bridge is built before any runtime exists, scoped to the link's `_themes`. The
+ * runtime may apply another selection: a tool's manifest `tokenAxes` pins every
+ * group of an ignored kind to its canonical option. What the bridge reads for
+ * itself after the mount (the eps-cmyk palette, an export's asset reads) and what
+ * a shell reads from it (the canvas variables, the emoji palette, the brand font)
+ * must then follow the runtime, the way the web shell's token bridge follows the
+ * address it rewrites. Nothing moves when the runtime kept the link's choices, so
+ * every tool without a pin reads exactly as before. A host that is not a CLI
+ * bridge is left alone. Returns whether the bridge moved.
+ */
+export function followRuntimeSelection(
+  host: HostV1,
+  runtimeSelection: Record<string, string> | undefined,
+  linkSelection: Record<string, string> | undefined,
+): boolean {
+  if (!runtimeSelection || sameSelection(runtimeSelection, linkSelection)) return false;
+  const follow = selectionFollowers.get(host);
+  if (!follow) return false;
+  follow(runtimeSelection);
+  return true;
+}
+
 export async function createCliBridge(
   { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
@@ -1639,6 +1673,10 @@ function rootSvgOf(node: Element | null): Element | null {
     },
   };
 
+  // followRuntimeSelection moves this bridge. Every token and asset read above reads
+  // `tokenSelection` when it is called, and the token-set cache is keyed by it, so
+  // nothing resolved under the link's choice is served after the move.
+  selectionFollowers.set(host, (next) => { tokenSelection = structuredClone(next); });
   return host;
 }
 

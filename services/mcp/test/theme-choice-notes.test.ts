@@ -5,10 +5,12 @@
  *
  * The browser-free tier reads the runtime's own `ignoredTokenChoices`; the browser
  * tier's runtime lives in the web shell, so the server makes the same decision
- * again from the manifest, the request and the token document. These pin both
- * seams against the public Lolly Start design system lifted to two colourways,
- * the fixture shape tests/colourway.test.ts uses, plus one real render of a tool
- * that declares no `tokenAxes`, which must say nothing.
+ * again from the manifest, the request and the token document. These pin the
+ * pure decision and its wording, against the public Lolly Start design system
+ * lifted to two colourways (the fixture shape tests/colourway.test.ts uses), plus
+ * one real render of a tool that declares no `tokenAxes`, which must say nothing.
+ * The wiring, a real render of a tool that ignores the colourway through both
+ * tiers' seams, is pinned in tests/token-axes-run.test.ts.
  *
  * Run with: node --test services/mcp/test/theme-choice-notes.test.ts
  */

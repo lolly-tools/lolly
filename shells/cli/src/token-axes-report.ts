@@ -13,8 +13,9 @@
  * The sentence comes from the engine (`describeIgnoredTokenChoice`), the same one
  * the MCP render notes use.
  */
-import { describeIgnoredTokenChoice, withTokenSelection, type IgnoredTokenChoice } from '@lolly/engine';
+import { describeIgnoredTokenChoice, type IgnoredTokenChoice } from '@lolly/engine';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { followRuntimeSelection } from './bridge.ts';
 import { warn } from './output.ts';
 
 /** The warning code a machine reader keys on. */
@@ -34,18 +35,19 @@ export function reportIgnoredThemeChoices(
   return choices.length;
 }
 
-/** Two selections name the same choices, whatever their key order. */
-function sameSelection(a: Record<string, string> | undefined, b: Record<string, string> | undefined): boolean {
-  const ka = Object.keys(a ?? {}), kb = Object.keys(b ?? {});
-  return ka.length === kb.length && ka.every((key) => b?.[key] === a?.[key]);
-}
-
 /**
- * The host the canvas variables (`--brand-*`) are painted from. The CLI bridge is
- * scoped to the link's `_themes`; when the runtime holds another selection (a tool's
- * `tokenAxes` pinned a group), the canvas follows the runtime, as the web shell's
- * does, so a template's `var(--brand-primary)` and a hook's token read agree.
+ * What every `lolly run` does once its runtime is mounted: the bridge follows the
+ * selection the runtime applied (bridge.ts `followRuntimeSelection`), so the canvas
+ * variables, the export's CMYK palette and every other read after the mount draw the
+ * option the tool renders in, and each requested choice the tool ignored is reported.
+ * Returns how many were reported.
  */
-export function canvasTokenHost(host: HostV1, runtimeSelection: Record<string, string> | undefined, bridgeSelection: Record<string, string> | undefined): HostV1 {
-  return runtimeSelection && !sameSelection(runtimeSelection, bridgeSelection) ? withTokenSelection(host, runtimeSelection) : host;
+export function settleThemeChoices(
+  host: HostV1,
+  runtime: { readonly tokenSelection?: Record<string, string>; readonly ignoredTokenChoices?: readonly IgnoredTokenChoice[] },
+  linkSelection: Record<string, string> | undefined,
+  toolName: string,
+): number {
+  followRuntimeSelection(host, runtime.tokenSelection, linkSelection);
+  return reportIgnoredThemeChoices(runtime, toolName);
 }

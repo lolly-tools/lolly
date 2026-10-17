@@ -46,7 +46,7 @@ import { pickFramePage } from './frame-page.ts';
 import { isOn, rightsMode } from './args.ts';
 import type { HostV1, Profile, ExportOpts } from '@lolly-tools/core/host-v1';
 import { note, warn, writeOut, isStrict } from './output.ts';
-import { canvasTokenHost, reportIgnoredThemeChoices } from './token-axes-report.ts';
+import { settleThemeChoices } from './token-axes-report.ts';
 import { EXIT, usageError, unavailableHere, refused, authError } from './exit-codes.ts';
 import { themeRuns, themedOutputPath, themesPlan } from './themes.ts';
 
@@ -672,7 +672,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // is simply absent from the link - same as the web.)
   if (share) {
     const runtime = await createRuntime(tool, host, values, { ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection });
-    reportIgnoredThemeChoices(runtime, tool.manifest.name);
+    settleThemeChoices(host, runtime, parsedUrl.tokenSelection, tool.manifest.name);
     const q = serializeUrlState(runtime.getModel(), { cuts, sampleTimes, motionBlur, sequenceRange, ...video, vq: video.quality, tokenSelection: runtime.tokenSelection });
     await writeOut(`https://lolly.tools/#/tool/${tool.manifest.id}${q ? '?' + q : ''}\n`);
     return;
@@ -722,7 +722,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
       );
     }
     const runtime = await createRuntime(tool, host, values, { ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection });
-    reportIgnoredThemeChoices(runtime, tool.manifest.name);
+    settleThemeChoices(host, runtime, parsedUrl.tokenSelection, tool.manifest.name);
     const fileIn = (tool.manifest.inputs ?? []).find(i => i.type === 'file');
     let tier = 'node';
     let bytes: Uint8Array;
@@ -838,8 +838,9 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // The runtime resolves asset refs (catalog ids → AssetRefs with a `format`), which
   // the matchExportFormat default below reads - so it's created before format resolution.
   const runtime = await createRuntime(tool, host, values, { ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection });
-  // A `--_themes` choice the tool's `tokenAxes` ignores is said, never dropped silently.
-  reportIgnoredThemeChoices(runtime, tool.manifest.name);
+  // A `--_themes` choice the tool's `tokenAxes` ignores is said, never dropped silently,
+  // and from here on the bridge reads in the option the tool renders in.
+  settleThemeChoices(host, runtime, parsedUrl.tokenSelection, tool.manifest.name);
   let productionInputs: Record<string, string> | undefined;
   let browserProductionInputs: Record<string, string> | undefined;
   const productionContract = productionPath ? await (await import('@lolly-tools/node-shell/production')).productionContractFile(productionPath) : undefined;
@@ -1051,7 +1052,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
     // BEFORE hydration, so a template's var(--brand-primary, fallback) reads the
     // same brand via web, URL mode, and CLI (plans/archive/brand-token-contract.md section 7).
     const canvas = dom.window.document.getElementById('canvas')!;
-    await applyBrandVars(canvas, canvasTokenHost(host, runtime.tokenSelection, parsedUrl.tokenSelection));
+    await applyBrandVars(canvas, host);
     canvas.innerHTML = runtime.getHydrated();
     if (sampled && !canvas.querySelector('[data-sequence]')) {
       throw unavailableHere('Timeline samples need a timed composition.', 'SAMPLES_UNAVAILABLE');
