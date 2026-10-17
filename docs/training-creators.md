@@ -176,7 +176,7 @@ Litmos publicly lists SCORM 1.2, SCORM 2004 and xAPI/Tin Can support. That does 
 
 Ask a partner which format and edition they accept, their package size limit and which learner browsers they support. For example, Moodle documents SCORM 1.2 support and does not provide native SCORM 2004 support. [Moodle SCORM FAQ](https://docs.moodle.org/502/en/SCORM_FAQ).
 
-You do not enter LRS credentials in the authoring screen. An xAPI package expects the customer's LMS to provide launch authorization. A standalone xAPI ZIP opened outside that launch will not create a learning record.
+You do not enter LRS credentials in the authoring screen. An xAPI package expects the customer's LMS to provide launch authorization. A standalone xAPI ZIP opened outside that launch will not create a learning record. If the connection drops, the learner's browser keeps unsent progress where storage allows. The next launch of the same attempt from the LMS delivers the saved copy, unless the LMS already has newer progress.
 
 ## Test in Litmos or a partner LMS
 
