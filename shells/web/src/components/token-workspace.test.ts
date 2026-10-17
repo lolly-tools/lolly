@@ -124,12 +124,12 @@ test('saved work and tools are checked only on request, inside the detail, with 
     for (let i = 0; i < 20 && !s.root.querySelector('[data-tw-consumers] li'); i++) await new Promise(resolve => setTimeout(resolve, 0));
     assert.equal(loads, 1);
     const section = s.find('[data-tw-consumers]').textContent!;
-    assert.match(section, /follow this token: 1 of 1 read\./);
+    assert.match(section, /link this token directly: 1 of 1 read\./);
     assert.match(section, /has not loaded on this device, so no tools are counted/);
     assert.match(section, /Night poster/);
     assert.equal(s.find('[data-tw-status]').textContent, 'Saved work check finished.');
     s.workspace.select('Surface');
-    assert.match(s.find('[data-tw-consumers]').textContent!, /follow this token: 0 of 1 read\./);
+    assert.match(s.find('[data-tw-consumers]').textContent!, /link this token directly: 0 of 1 read\./);
     assert.equal(loads, 1);
   } finally { s.workspace.teardown(); s.dom.window.close(); }
   const plain = setup();

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
-import { test } from 'node:test';
+import { mock, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { withBlockTokenBinding } from '../../../../engine/src/token-block-bindings.ts';
 import {
   buildTokenConsumerIndex, createTokenConsumerCheck, manifestTokenUses, sessionTokenUses, summariseTokenConsumers,
-  tokenConsumerIndexStale, tokenConsumerSectionHtml, tokenConsumerSentences, webTokenConsumerSources,
+  TOKEN_CONSUMER_STALE_CHECK_MS, tokenConsumerIndexStale, tokenConsumerSectionHtml, tokenConsumerSentences, webTokenConsumerSources,
   type TokenConsumerSessionEntry, type TokenConsumerSources,
 } from './token-consumer-index.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
@@ -107,10 +107,10 @@ test('the index counts distinct sessions and tools inside labelled scopes, and n
   assert.equal(summary.tools.matched, 1);
   assert.ok(!summary.uses.some(use => use.id.startsWith('__trash__')), 'hidden slots are not saved work');
   const sentences = tokenConsumerSentences(summary, true).join(' ');
-  assert.match(sentences, /follow this token: 1 of 3 read\./);
+  assert.match(sentences, /link this token directly: 1 of 3 read\./);
   assert.match(sentences, /custom value that remembers this token: 1\./);
   assert.match(sentences, /not read, so not counted: 1\./);
-  assert.match(sentences, /Tools in the mounted catalog that use this token as a default or example: 1 of 1 read\./);
+  assert.match(sentences, /Tools in the mounted catalog that name this token directly as a default or example: 1 of 1 read\./);
   assert.match(sentences, /Tools not read, so not counted: 1\./);
   assert.doesNotMatch(sentences, /\ball\b|\bevery\b|\bnone use\b/i);
 });
@@ -119,6 +119,24 @@ test('the catalog types bare colour aliases in sessions of the same tool', async
   const sources = fakeSources({ 'poster:1': { accent: INK } }, { listSessions: async () => [{ slot: 'poster:1', toolId: 'poster' }] });
   const index = await buildTokenConsumerIndex(sources);
   assert.deepEqual(summariseTokenConsumers(index, 'color.brand.ink').uses.filter(use => use.scope === 'local-sessions').map(use => use.kind), ['linked']);
+});
+
+test('counts are direct: a link to an alias counts under the alias, and the scope says so', async () => {
+  const sources = fakeSources({ 'design:1': { text: { ref: '{color.text.primary}', value: '#111111' } } }, {
+    listTools: async () => [{ id: 'poster', name: 'Poster' }],
+    loadManifest: async () => ({ inputs: [{ id: 'accent', type: 'color', default: '{color.text.primary}' }] }),
+  });
+  const index = await buildTokenConsumerIndex(sources);
+  const primitive = summariseTokenConsumers(index, 'color.brand.ink');
+  const alias = summariseTokenConsumers(index, 'color.text.primary');
+  assert.equal(primitive.sessions.following, 0);
+  assert.equal(primitive.tools.matched, 0);
+  assert.equal(alias.sessions.following, 1);
+  assert.equal(alias.tools.matched, 1);
+  const lines = tokenConsumerSentences(primitive, false).join(' ');
+  assert.match(lines, /link this token directly: 0 of 1 read\./);
+  assert.match(lines, /name this token directly as a default or example: 0 of 1 read\./);
+  assert.match(tokenConsumerSectionHtml({ status: 'ready', index, stale: false }, 'color.brand.ink'), /Links to another token that refers to this one are counted under that token\./);
 });
 
 test('a source that cannot list is unavailable rather than zero, and limits are reported as skipped', async () => {
@@ -148,6 +166,49 @@ test('saving, adding or removing a session makes an index stale; hidden slots do
   assert.equal(await tokenConsumerIndexStale(index, sources), false);
   sources.entries[0]!.updatedAt = '2026-10-17T00:00:00Z';
   assert.equal(await tokenConsumerIndexStale(index, sources), true);
+});
+
+test('after a check, renders list saved sessions at most once per interval, and not at all once stale', async () => {
+  const dom = new JSDOM('<div data-root></div>', { url: 'https://lolly.test/#/start' });
+  Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement });
+  mock.timers.enable({ apis: ['Date'], now: 1_000_000 });
+  const settle = async (): Promise<void> => { for (let i = 0; i < 5; i++) await new Promise(resolve => setTimeout(resolve, 0)); };
+  try {
+    const sources = fakeSources({ a: {}, b: {} });
+    const list = sources.listSessions!;
+    let lists = 0;
+    sources.listSessions = async () => { lists++; return list(); };
+    const root = dom.window.document.querySelector<HTMLElement>('[data-root]')!;
+    const said: string[] = [];
+    const check = createTokenConsumerCheck(sources, { root: () => root, announce: message => said.push(message) });
+    const render = (): void => { root.innerHTML = check.html('x'); };
+    render();
+    check.click(root.querySelector<HTMLElement>('[data-tw-consumers-check]')!);
+    for (let i = 0; i < 20 && !said.length; i++) await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(lists, 1);
+    for (let i = 0; i < 5; i++) render();
+    await settle();
+    assert.equal(lists, 1, 'the check has just listed the sessions');
+    mock.timers.tick(TOKEN_CONSUMER_STALE_CHECK_MS);
+    render(); render();
+    await settle();
+    assert.equal(lists, 2, 'one list per interval');
+    sources.entries[0]!.updatedAt = '2026-10-17T00:00:00Z';
+    render();
+    await settle();
+    assert.equal(lists, 2, 'still inside the interval');
+    mock.timers.tick(TOKEN_CONSUMER_STALE_CHECK_MS);
+    render();
+    await settle();
+    assert.equal(lists, 3);
+    assert.match(root.textContent!, /Saved sessions changed after this check/);
+    mock.timers.tick(TOKEN_CONSUMER_STALE_CHECK_MS);
+    render();
+    await settle();
+    assert.equal(lists, 3, 'a stale index is not listed again');
+    assert.match(root.textContent!, /Saved sessions changed after this check/);
+    check.dispose();
+  } finally { mock.timers.reset(); dom.window.close(); }
 });
 
 test('every section state states its scope, and ready lists the uses it found', async () => {
@@ -183,11 +244,11 @@ test('the check paints only its section, keeps focus on its button and announces
     release();
     for (let i = 0; i < 20 && !said.length; i++) await new Promise(resolve => setTimeout(resolve, 0));
     assert.deepEqual(said, ['Saved work check finished.']);
-    assert.match(root.textContent!, /follow this token: 1 of 1 read\./);
+    assert.match(root.textContent!, /link this token directly: 1 of 1 read\./);
     assert.equal(dom.window.document.activeElement, root.querySelector('[data-tw-consumers-check]'));
     // Another token reads the same index without a second check.
     root.innerHTML = check.html('line.body');
-    assert.match(root.textContent!, /follow this token: 1 of 1 read\./);
+    assert.match(root.textContent!, /link this token directly: 1 of 1 read\./);
     assert.equal(check.click(dom.window.document.querySelector<HTMLElement>('#other')!), false);
     check.dispose();
   } finally { dom.window.close(); }
@@ -202,7 +263,8 @@ test('the web sources read the state bridge, the loaded catalog index and the se
     },
     tokens: { activeRecord: async () => ({ id: 'beacon', label: 'Beacon' }) },
   } as unknown as Pick<HostV1, 'state' | 'tokens'>;
-  const sources = webTokenConsumerSources(host);
+  const requested: string[] = [];
+  const sources = webTokenConsumerSources(host, toolId => async path => { requested.push(`${toolId} ${path}`); return JSON.stringify({ id: toolId, inputs: [] }); });
   assert.deepEqual(await sources.listSessions!(), [
     { slot: 's1', toolId: 'design', label: undefined, updatedAt: 'now', designSystem: { id: 'beacon', label: 'Beacon' } },
     { slot: 's2', toolId: 'qr', label: undefined, updatedAt: 'now' },
@@ -214,7 +276,11 @@ test('the web sources read the state bridge, the loaded catalog index and the se
   try {
     delete global.__toolIndex;
     assert.equal(await sources.listTools!(), null);
-    global.__toolIndex = { tools: [{ id: 'poster', name: 'Poster' }, { id: 'qr' }, { name: 'no id' }] };
+    // A tool added from a file is merged into the same list, marked `_installed`; it is not catalog scope.
+    global.__toolIndex = { tools: [{ id: 'poster', name: 'Poster' }, { id: 'qr' }, { name: 'no id' }, { id: 'side', name: 'Side', _installed: true }] };
     assert.deepEqual(await sources.listTools!(), [{ id: 'poster', name: 'Poster' }, { id: 'qr', name: 'qr' }]);
   } finally { global.__toolIndex = previous; }
+  // Manifests are requested in the loader's `<toolId>/tool.json` form, which its signed-catalog fallback needs.
+  assert.deepEqual(await sources.loadManifest!('poster'), { id: 'poster', inputs: [] });
+  assert.deepEqual(requested, ['poster poster/tool.json']);
 });

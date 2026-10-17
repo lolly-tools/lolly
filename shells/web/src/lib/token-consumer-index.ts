@@ -5,10 +5,11 @@
  * Two sources, each with its own scope: saved sessions in this device's storage, and
  * the tool manifests of the mounted catalog. Every count carries how many items the
  * source listed, how many were read, how many were skipped and how many a size limit
- * cut short, so a result never reads as a total. Shared projects, other devices,
- * History checkpoints, sideloaded tool manifests and values that tool hooks compute
- * are outside both sources. The index is built on request, kept in memory and never
- * written anywhere.
+ * cut short, so a result never reads as a total. Counts are direct references to one
+ * path: a link to an alias of that path counts under the alias. Shared projects, other
+ * devices, History checkpoints, sideloaded tool manifests and values that tool hooks
+ * compute are outside both sources. The index is built on request, kept in memory and
+ * never written anywhere.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { aliasPath, isAlias } from '../../../../engine/src/tokens.ts';
@@ -269,7 +270,7 @@ export interface TokenConsumerSummary {
   uses: readonly TokenConsumerUse[];
 }
 
-/** Counts distinct sessions and tools for one path, within the index's scopes. */
+/** Counts distinct sessions and tools that reference this exact path, within the index's scopes. */
 export function summariseTokenConsumers(index: TokenConsumerIndex, path: string): TokenConsumerSummary {
   const uses = index.uses.get(path) ?? [];
   const bySession = new Map<string, TokenConsumerUse[]>();
@@ -288,13 +289,13 @@ export function summariseTokenConsumers(index: TokenConsumerIndex, path: string)
   return { path, uses, sessions: { ...index.sessions, following, customOnly, thisSystem, otherSystem, unrecorded }, tools: { ...index.tools, matched: toolIds.size } };
 }
 
-/** Plain sentences for a summary. Each count states the scope it covers; none is a total. */
+/** Plain sentences for a summary. Each count states the scope it covers, direct references only; none is a total. */
 export function tokenConsumerSentences(summary: TokenConsumerSummary, systemKnown: boolean): string[] {
   const out: string[] = [];
   const s = summary.sessions;
   if (!s.available) out.push(t('Saved sessions on this device could not be listed, so none are counted.'));
   else {
-    out.push(t('Saved sessions on this device that follow this token: {n} of {read} read.', { n: s.following, read: s.read }));
+    out.push(t('Saved sessions on this device that link this token directly: {n} of {read} read.', { n: s.following, read: s.read }));
     if (s.customOnly) out.push(t('Saved sessions with a custom value that remembers this token: {n}.', { n: s.customOnly }));
     if (systemKnown && s.following + s.customOnly) out.push(t('Of those, saved with this design system active: {same}. With another design system: {other}. No design system recorded: {none}.', { same: s.thisSystem, other: s.otherSystem, none: s.unrecorded }));
     if (s.skipped) out.push(t('Saved sessions not read, so not counted: {n}.', { n: s.skipped }));
@@ -303,7 +304,7 @@ export function tokenConsumerSentences(summary: TokenConsumerSummary, systemKnow
   const c = summary.tools;
   if (!c.available) out.push(t('The tool catalog has not loaded on this device, so no tools are counted.'));
   else {
-    out.push(t('Tools in the mounted catalog that use this token as a default or example: {n} of {read} read.', { n: c.matched, read: c.read }));
+    out.push(t('Tools in the mounted catalog that name this token directly as a default or example: {n} of {read} read.', { n: c.matched, read: c.read }));
     if (c.skipped) out.push(t('Tools not read, so not counted: {n}.', { n: c.skipped }));
   }
   return out;
@@ -319,6 +320,8 @@ function kindLabel(kind: TokenConsumerKind): string {
   }
 }
 const USE_LIMIT = 50;
+/** The shortest gap between two staleness checks. Each one lists every saved session. */
+export const TOKEN_CONSUMER_STALE_CHECK_MS = 15_000;
 
 export type TokenConsumerState =
   | { status: 'idle' }
@@ -329,7 +332,7 @@ export type TokenConsumerState =
 
 /** The section body for one token path. Pure, so a test can read every state. */
 export function tokenConsumerSectionHtml(state: TokenConsumerState, path: string): string {
-  const scope = `<p>${t('Shared projects, other devices, earlier versions in History, the defaults of tools added from files and values that tool hooks compute are not counted.')}</p>`;
+  const scope = `<p>${t('Shared projects, other devices, earlier versions in History, the defaults of tools added from files and values that tool hooks compute are not counted. Links to another token that refers to this one are counted under that token.')}</p>`;
   const again = (label: string): string => `<button type="button" class="btn btn--ghost" data-tw-consumers-check>${label}</button>`;
   let body: string;
   if (state.status === 'idle') body = `<p>${t('Look through the saved sessions and mounted tools on this device for references to this token. One check covers every token in this workspace.')}</p>${scope}${again(t('Check saved work and tools'))}`;
@@ -359,7 +362,7 @@ export interface TokenConsumerCheck {
 export function createTokenConsumerCheck(sources: TokenConsumerSources, options: { root(): ParentNode | null; announce(message: string): void }): TokenConsumerCheck {
   let state: TokenConsumerState = { status: 'idle' };
   let controller: AbortController | undefined;
-  let disposed = false, checkingStale = false;
+  let disposed = false, checkingStale = false, lastStaleCheck = -Infinity;
   const section = (): HTMLElement | null => options.root()?.querySelector<HTMLElement>('[data-tw-consumers]') ?? null;
   const paint = (): void => {
     const el = section();
@@ -369,8 +372,9 @@ export function createTokenConsumerCheck(sources: TokenConsumerSources, options:
     if (focused) section()?.querySelector<HTMLElement>('button')?.focus();
   };
   const checkStale = (index: TokenConsumerIndex): void => {
-    if (checkingStale) return;
+    if (checkingStale || Date.now() - lastStaleCheck < TOKEN_CONSUMER_STALE_CHECK_MS) return;
     checkingStale = true;
+    lastStaleCheck = Date.now();
     void tokenConsumerIndexStale(index, sources).then(stale => {
       if (!disposed && stale && state.status === 'ready' && state.index === index && !state.stale) { state = { ...state, stale }; paint(); }
     }, () => undefined).finally(() => { checkingStale = false; });
@@ -390,6 +394,8 @@ export function createTokenConsumerCheck(sources: TokenConsumerSources, options:
       } });
       if (disposed || controller !== current) return;
       state = { status: 'ready', index, stale: false };
+      // The check has just listed every session, so the next staleness check can wait.
+      lastStaleCheck = Date.now();
       options.announce(t('Saved work check finished.'));
     } catch (error) {
       if (disposed || controller !== current) return;
@@ -400,7 +406,7 @@ export function createTokenConsumerCheck(sources: TokenConsumerSources, options:
   }
   return {
     html(path) {
-      if (state.status === 'ready') checkStale(state.index);
+      if (state.status === 'ready' && !state.stale) checkStale(state.index);
       return tokenConsumerSectionHtml(state, path);
     },
     click(target) {
@@ -412,8 +418,11 @@ export function createTokenConsumerCheck(sources: TokenConsumerSources, options:
   };
 }
 
-/** The web shell's sources: this browser's saved sessions and the loaded catalog index. */
-export function webTokenConsumerSources(host: Pick<HostV1, 'state' | 'tokens'>): TokenConsumerSources {
+/**
+ * The web shell's sources: this browser's saved sessions and the loaded catalog index.
+ * `fetchFileFor` defaults to the catalog loader's own fetch.
+ */
+export function webTokenConsumerSources(host: Pick<HostV1, 'state' | 'tokens'>, fetchFileFor?: (toolId: string) => (path: string) => Promise<string>): TokenConsumerSources {
   return {
     async listSessions() {
       const entries = await host.state.list();
@@ -426,11 +435,13 @@ export function webTokenConsumerSources(host: Pick<HostV1, 'state' | 'tokens'>):
     async listTools() {
       const index = (globalThis as { __toolIndex?: { tools?: unknown } }).__toolIndex;
       if (!index || !Array.isArray(index.tools)) return null;
-      return index.tools.flatMap((tool: unknown) => record(tool) && typeof tool.id === 'string' ? [{ id: tool.id, name: typeof tool.name === 'string' ? tool.name : tool.id }] : []);
+      // Tools added from files are merged into the same list; they are outside the catalog scope.
+      return index.tools.flatMap((tool: unknown) => record(tool) && typeof tool.id === 'string' && tool._installed !== true ? [{ id: tool.id, name: typeof tool.name === 'string' ? tool.name : tool.id }] : []);
     },
     async loadManifest(id) {
-      const { makeFetchFile } = await import('../bridge/tool-loader.ts');
-      return JSON.parse(await makeFetchFile(id)('tool.json')) as unknown;
+      const fetchFile = fetchFileFor ?? (await import('../bridge/tool-loader.ts')).makeFetchFile;
+      // The loader's `<toolId>/<file>` form, which the signed-catalog fallback URL is built from.
+      return JSON.parse(await fetchFile(id)(`${id}/tool.json`)) as unknown;
     },
     async systemId() {
       const { activeDesignSystemRecord } = await import('./design-system/active.ts');
