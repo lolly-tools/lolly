@@ -62,6 +62,16 @@ Use a same-origin iframe without an opaque sandbox origin for this pattern. DOM 
 
 The event is untrusted client input. It establishes neither learner identity nor proof that a person paid attention. It contains no learner name, email, token or authoring inputs. A listening integration owns any further collection or transmission.
 
+## Experimental xAPI recovery
+
+The Tin Can and cmi5 players keep unsent statements and progress in the browser's IndexedDB where storage allows, so a later launch can still deliver what a dropped connection or a closed page left behind. The record belongs to one attempt: the LRS endpoint, activity, learner and registration. It never holds the xAPI authorization, the launch URL or the cmi5 fetch URL.
+
+A later launch of the same attempt replays the record only after that launch is authorized. It first reads the attempt's progress document to confirm the new authorization. Statements keep their original identifiers and timestamps and are sent in the order they were made, before the new launch's own statements. cmi5 also matches the session: statements from another session are dropped and never relabelled, and a session that had already queued its terminated statement delivers that statement and refuses to continue.
+
+Progress written during an outage replaces the LRS document only when that document is unchanged since the browser copy was made. Newer progress from another device therefore wins. Review and browse launches keep that progress for a later normal launch. A statement the LRS refuses outright is dropped instead of holding back later records. An authorization failure keeps the record for a later launch, except for an older statement that a newly authorized launch is still refused permission to send.
+
+The record is a recovery aid, not a learner record store. It stays in one browser profile, site-data deletion or private browsing can remove the record, and the LMS remains authoritative. When storage cannot open, retries last only while the page stays open.
+
 ## Future platform adapter boundary
 
 A future custom-platform adapter can reuse the module, compiled payload, completion reducer and player. It must define authenticated launch, learner and attempt identity, release pinning, server read/write semantics, conflict handling, retries, expiry and a verified finish acknowledgement. The receiving platform owns consent and retention rules for its records. Versioned capability negotiation must be additive; static export must continue to work without that adapter.
@@ -72,4 +82,4 @@ Cross-origin hosting will need a separately versioned message protocol with an e
 
 The export preflight freezes the course and prepares the actual ZIP before publication. The final compressed size is checked against the author-supplied destination limit. Changing the draft or destination invalidates readiness. A saved version stores its exact artifact and checksum. Another target uses its frozen content and media, and an existing target downloads its existing bytes.
 
-Static browser integration tests cover resume, completion, storage conflicts, release isolation and the observation event. The LMS adapters have local lifecycle and package tests. Live SUSE Litmos and partner acceptance remains required; experimental xAPI output is not a conformance claim.
+Static browser integration tests cover resume, completion, storage conflicts, release isolation and the observation event. The LMS adapters have local lifecycle and package tests, and the xAPI recovery tests replay records across simulated page loads. Live SUSE Litmos and partner acceptance remains required; experimental xAPI output is not a conformance claim.
