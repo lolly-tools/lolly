@@ -225,7 +225,6 @@
   "packages/node-shell/src/design-pptx.ts": 5,
   "packages/node-shell/src/desktop-renderer.ts": 10,
   "packages/node-shell/src/emoji.ts": 2,
-  "packages/node-shell/src/format-sniff.ts": 2,
   "packages/node-shell/src/hdr.ts": 4,
   "packages/node-shell/src/hook-worker.ts": 1,
   "packages/node-shell/src/image-redact.ts": 2,

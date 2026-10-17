@@ -37,7 +37,8 @@
 
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -440,4 +441,38 @@ test('a transform tool still runs with no format flag at all', async () => {
   const out = join(root, `xform-${seq++}.bin`);
   await run({ toolId: 'xform-tool', params: {}, outputPath: out });
   assert.equal(existsSync(out), true);
+});
+
+// ── 10. --export-report reads the written file back ──────────────────────────
+//
+// The report compares what the run asked for with what the finished bytes hold, and
+// is bound to those bytes by SHA-256. A requested size the file does not carry is a
+// warning, so --strict can refuse a file that is not what was asked for.
+
+test('--export-report writes a report bound to the bytes that were written', async () => {
+  const out = outPath('svg'), report = outPath('json');
+  await run({ toolId: 'vec-tool', params: { 'export-report': report }, outputPath: out, format: 'svg' });
+  const written = await readFile(out);
+  const r = JSON.parse(await readFile(report, 'utf8'));
+  assert.equal(r.$format, 'lolly-export-report');
+  assert.equal(r.output.sha256, createHash('sha256').update(written).digest('hex'));
+  assert.equal(r.checks.find((c: { property: string }) => c.property === 'format').state, 'match');
+  // The width row is read from the file, not echoed from a request: none was given.
+  const width = r.checks.find((c: { property: string }) => c.property === 'width');
+  assert.equal(width.state, 'reported');
+  assert.equal(width.actual.value, Number(/<svg[^>]*\swidth="([\d.]+)/.exec(written.toString('utf8'))![1]));
+});
+
+test('--export-report compares a requested size with the size in the file, and --share is refused', async () => {
+  const out = outPath('svg'), report = outPath('json');
+  await run({ toolId: 'vec-tool', params: { 'export-report': report, width: '240', height: '160' }, outputPath: out, format: 'svg' });
+  const r = JSON.parse(await readFile(report, 'utf8'));
+  assert.equal(r.requested.width, 240);
+  const width = r.checks.find((c: { property: string }) => c.property === 'width');
+  assert.deepEqual(width.requested, { known: true, value: 240 });
+  assert.equal(width.state, 'match');
+  await assert.rejects(
+    () => run({ toolId: 'vec-tool', params: { 'export-report': outPath('json') }, outputPath: outPath('svg'), format: 'svg', share: true }),
+    (e: Error & { kind?: string }) => { assert.equal(e.kind, 'CONFLICTING_FLAGS'); return true; },
+  );
 });

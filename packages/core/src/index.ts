@@ -49,9 +49,11 @@ export type {
   Severity, UnknownReason, Fact, QuantityKind, QuantityUnit, Bound, Count,
   FindingId, Evidence, Finding, PreflightReport,
   ReportedDimension, ReportedSize, ReportedSettings, ReportedJob,
+  ExportProperty, ExportValue, ExportCheckState, ExportCheck, ExportReport,
 } from './preflight.ts';
 export {
   SEVERITY_RANK, knownFact, unknownFact, PREFLIGHT_FORMAT, PREFLIGHT_FORMAT_VERSION,
+  EXPORT_REPORT_FORMAT, EXPORT_REPORT_FORMAT_VERSION,
 } from './preflight.ts';
 
 // Money - the currency-formatting helper and the serialised money-bearing artifact

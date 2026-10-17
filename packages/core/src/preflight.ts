@@ -278,6 +278,26 @@ export type FindingId =
   // offered, so the engine's `settings.format-not-offered` can never see it, and
   // without this caveat the substitution is silent until the zip is opened.
   | 'collect.format-substituted'
+  // The export report: requested settings compared with facts read from the
+  // finished file (`ExportReport` below). Each one describes the output bytes.
+  | 'output.format-differs'
+  | 'output.size-differs'
+  | 'output.page-size-differs'
+  | 'output.pages-differ'
+  | 'output.dpi-differs'
+  | 'output.dpi-missing'
+  | 'output.duration-differs'
+  | 'output.animation-flattened'
+  | 'output.alpha-lost'
+  | 'output.colour-model-differs'
+  | 'output.hdr-not-signalled'
+  | 'output.credential-missing'
+  | 'output.credential-present'
+  | 'output.encryption-missing'
+  | 'output.fonts-not-embedded'
+  | 'output.live-text'
+  | 'output.over-byte-budget'
+  | 'output.unverified'
   | (string & {});
 
 /** Structured, never pre-formatted, always JSON-safe. */
@@ -416,3 +436,75 @@ export interface PreflightReport {
 export const PREFLIGHT_FORMAT = 'lolly-preflight';
 /** Bumped only on a breaking change to `PreflightReport`. */
 export const PREFLIGHT_FORMAT_VERSION = 1;
+
+// ─── The export report: requested versus actual ─────────────────────────────
+//
+// Preflight states what the settings will produce before a render. The export
+// report is the other half: after the file exists, each requested property is
+// compared with a value read from the output bytes. A value the bytes cannot
+// supply is an unknown `Fact` with its reason, never a guess and never a pass.
+
+/** One compared property. The open union keeps a newer report readable. */
+export type ExportProperty =
+  | 'format' | 'bytes' | 'width' | 'height' | 'page-width' | 'page-height' | 'pages'
+  | 'dpi' | 'duration' | 'frames' | 'nature' | 'alpha' | 'colour' | 'icc' | 'hdr'
+  | 'metadata' | 'credential' | 'encryption' | 'fonts'
+  | (string & {});
+
+/** A requested or measured value. Units are fixed per property and stated in `basis`. */
+export type ExportValue = string | number | boolean | null;
+
+/**
+ * The outcome for one property.
+ *
+ * `reported` means nothing was requested, so the measured value is stated and
+ * nothing was compared. `unchecked` means something was requested and the bytes
+ * could not answer; a finding with `needs` says why.
+ */
+export type ExportCheckState = 'match' | 'differs' | 'reported' | 'unchecked';
+
+/** One property of the finished file, requested value beside measured value. */
+export interface ExportCheck {
+  readonly property: ExportProperty;
+  readonly requested: Fact<ExportValue>;
+  readonly actual: Fact<ExportValue>;
+  readonly state: ExportCheckState;
+  /** Where the measured value came from, e.g. `'png.IHDR'` or `'pdf.page.TrimBox'`. */
+  readonly basis: string;
+  /** The absolute difference allowed before `differs`, in the property's unit. */
+  readonly tolerance?: number;
+}
+
+/**
+ * The serialised comparison of one export with the file it produced.
+ *
+ * `output.sha256` binds every measured value to exact bytes: a copy that differs
+ * by one byte is a different file and needs a new report. Like `PreflightReport`,
+ * there is no total, currency, rate or monetary field here.
+ */
+export interface ExportReport {
+  readonly $format: 'lolly-export-report';
+  readonly formatVersion: 1;
+  /** The `ENGINE_VERSION` that produced the report. */
+  readonly engine: string;
+  readonly output: {
+    readonly sha256: string;
+    readonly bytes: number;
+    /** The container read from the bytes, or null when no signature matched. */
+    readonly container: string | null;
+  };
+  /** The request the file was compared against, echoed as plain values. */
+  readonly requested: Readonly<Record<string, ExportValue>>;
+  readonly checks: readonly ExportCheck[];
+  /** Severity-ordered, the same vocabulary and invariants as `PreflightReport.findings`. */
+  readonly findings: readonly Finding[];
+  /** Every finding with `needs` set. */
+  readonly gaps: readonly Finding[];
+  /** Fixed sentences that qualify every report, such as what a present credential does not prove. */
+  readonly statements: readonly string[];
+}
+
+/** The `$format` discriminator for an export report on disk. */
+export const EXPORT_REPORT_FORMAT = 'lolly-export-report';
+/** Bumped only on a breaking change to `ExportReport`. */
+export const EXPORT_REPORT_FORMAT_VERSION = 1;

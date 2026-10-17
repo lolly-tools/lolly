@@ -72,6 +72,9 @@ export const VALUE_FLAGS = new Set([
   // deliberately no flag that takes the KEY or its passphrase: argv is visible in `ps`
   // to every user on the machine, kept in shell history, and echoed into CI logs.
   'production', 'production-reference', 'production-report', 'production-repairs', 'sign-key', 'sign-cert', 'recipe', 'rules', 'review-file', 'choices', 'save-recipe', 'report',
+  // `--export-report` takes the path the requested-versus-actual report is written to
+  // (`-` for stderr). A bare form parsing to "1" would write a file literally named "1".
+  'export-report',
   // `--rights=private` states that this render is not being delivered to anyone.
   // A bare form parsing to "1" would be a value the reader refuses anyway, but
   // refusing it here names the one spelling instead of reporting an odd value.

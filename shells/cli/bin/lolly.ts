@@ -346,6 +346,11 @@ Export options:
                            delivery claim is recorded. There is no flag for ignoring a
                            licence condition: a render whose sources still need a
                            decision prints them and exits 4
+  --export-report=<path>   after writing, compare what this run asked for with what the
+                           file holds (format, size, pages, length, alpha, colour, HDR,
+                           credential presence, encryption, fonts) and write the report
+                           as JSON; \`-\` writes it to stderr. Each difference warns, so
+                           --strict exits 4 when the file is not what was asked for
 
 Link options:
   --z=<token>              a packed share link's state

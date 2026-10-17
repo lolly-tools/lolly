@@ -1501,6 +1501,14 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
           }
           songReadback = blob;
         }
+        // The export check (plan 203 rank 12): the delivered bytes read back against the
+        // settings. A difference joins the degradation notes on the card. A speaker-notes
+        // handout is a different document from the one the settings describe.
+        if (downloadedBlob && !notesHandout) {
+          for (const line of await ta.preflight.exportCheck(downloadedBlob, { format: fmt, archive: downloadedIsZip })) {
+            _exportNotice(line);
+          }
+        }
         revokeTrackUrls();
         bumpMetric('filesRendered');
         recordFormat(fmt); // local usage metric
