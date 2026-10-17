@@ -185,10 +185,10 @@ The outcome vocabulary those run records merge into is in [operations and outcom
 
 ## Open points
 
-- **Q2, granularity and persistence of local rejection.** Default: per rule, instance-scoped, recorded on the session record with a fingerprint of the facts the decision was made about (R6). A derived tool revision is a Design tool export and is not part of 0.1. It touches this chapter because the session record travels inside a container verbatim, so a recorded waiver is carried with the instance and must be scoped to the revision it names (C7). [Constraints, authority and local choice](policy.html) owns the decision. Evidence that would change it: a need to share a rejected state as a reusable tool.
-- **Q6, whether the specification is public from the first draft.** Default: yes. The chapters publish to `/info/build/`, since the constraints, determinism and reproducibility pages already make public promises this model has to keep. The draft notice stays at the head of every chapter until the status chapter says otherwise. The [status chapter](status.html) records the answer.
+- **Q2, granularity and persistence of local rejection.** Decided on 2026-10-16 by accepting the default: per rule, instance-scoped, recorded on the session record with a fingerprint of the facts the decision was made about (R6). A derived tool revision is a Design tool export and is not part of 0.1. It touches this chapter because the session record travels inside a container verbatim, so a recorded waiver is carried with the instance and must be scoped to the revision it names (C7). [Constraints, authority and local choice](policy.html) owns the rule side. Evidence that would reopen it: a need to share a rejected state as a reusable tool.
+- **Q6, whether the specification is public from the first draft.** Decided on 2026-10-16: yes. The chapters publish to `/info/build/`, since the constraints, determinism and reproducibility pages already make public promises this model has to keep. The draft notice stays at the head of every chapter until the status chapter says otherwise. The [status chapter](status.html) records the decision.
 
-The other open questions do not touch this chapter.
+The other questions do not touch this chapter.
 
 ## Precedents
 
