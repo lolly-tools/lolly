@@ -62,7 +62,7 @@ function pickDesignSystemFile(): Promise<File | null> {
 export function sourceLine(record: DesignSystemRecord, now = Date.now()): string {
   const s = record.source;
   switch (s.kind) {
-    case 'shipped': return catalogSourceLabel();
+    case 'shipped': return catalogSourceLabel(record);
     case 'local': return s.forkedFrom ? t('Made here, copied from {name}', { name: s.forkedFrom.id }) : t('Made here');
     case 'file': return s.publisher ? t('From a file by {publisher}', { publisher: s.publisher }) : t('From a file');
     case 'hosted': {
@@ -123,6 +123,11 @@ export async function previewOf(host: CardHost, record: DesignSystemRecord): Pro
   } catch { return { font: fallback, colors: [] }; }
 }
 
+/** "1 colour", "16 colours": the card read "1 colours" (plan 320 S10). */
+function colourCount(n: number): string {
+  return t(n === 1 ? '{n} colour' : '{n} colours', { n });
+}
+
 export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, bytes: number | undefined, preview: BrandPreview, adminHref?: string | null): string {
   const active = r.id === activeId;
   const removable = r.source.kind !== 'shipped';
@@ -134,7 +139,7 @@ export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, by
       <div class="ds-row-main">
         <h3 class="ds-row-label">${escape(r.label)}${r.locked ? `<span class="ds-row-lock" title="${escape(t('Read-only'))}">${icon('lock', { size: 14 })}</span>` : ''}</h3>
         <span class="ds-row-source">${escape(sourceLine(r))}</span>
-        <span class="ds-row-facts">${t('{n} colours', { n: preview.colorCount ?? preview.colors.length })}${size ? ` <span>·</span> ${escape(size)}` : ''}</span>
+        <span class="ds-row-facts">${colourCount(preview.colorCount ?? preview.colors.length)}${size ? ` <span>·</span> ${escape(size)}` : ''}</span>
         ${catalogSourceHtml(r, adminHref)}
       </div>
       <div class="ds-row-actions">

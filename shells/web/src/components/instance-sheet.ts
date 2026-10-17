@@ -32,7 +32,7 @@ import { historySettled } from '../lib/overlay-back.ts';
 import { mountModal } from './modal.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import { getInstanceBase, initInstanceBase, setInstanceBase, instanceFetch } from '../lib/instance.ts';
-import { validateInstanceUrl, probeConnection, isAccountInstance, workspaceAppUrl, type ProbeOutcome, type ProbedInstance } from '../lib/instance-probe.ts';
+import { validateInstanceUrl, probeConnection, isAccountInstance, workspaceAppUrl, type ProbeOutcome, type ProbedInstance, type UrlProblem } from '../lib/instance-probe.ts';
 import { wireDeviceCodeSignIn } from '../org/device-sign-in.ts';
 import { jsonBody, safeFetch } from '../lib/instance-json.ts';
 import { importBackup, MAX_RESTORE_TOTAL_BYTES } from '../data-transfer.ts';
@@ -278,7 +278,7 @@ export function openInstanceSheet(host: HostV1, opts: { start?: 'connect' } = {}
         if (step.kind !== 'connect') return;
         const raw = modal.el.querySelector<HTMLInputElement>('#instance-url')?.value ?? '';
         const valid = validateInstanceUrl(raw);
-        if (!valid.ok) { step = { ...step, url: raw, error: valid.message, probed: undefined }; repaint('#instance-url'); return; }
+        if (!valid.ok) { step = { ...step, url: raw, error: urlProblemText(valid.reason), probed: undefined }; repaint('#instance-url'); return; }
         if (!isTauriShell()) {
           // Navigation works even when CSP or CORS prevents discovery from this origin.
           location.assign(workspaceAppUrl(valid.base, location.hash));
@@ -374,6 +374,14 @@ export function openInstanceSheet(host: HostV1, opts: { start?: 'connect' } = {}
       void file.arrayBuffer().then(runImport);
     });
   });
+}
+
+/** A refused address, in the reader's language. lib/instance.ts throws English
+ *  on purpose (it has no i18n), so the sheet words the reason itself. */
+function urlProblemText(reason: UrlProblem): string {
+  if (reason === 'not-https') return tRaw('Use an address that starts with https://');
+  if (reason === 'credentials') return tRaw('Leave the user name and password out of the address.');
+  return tRaw('That is not a web address. Check it and try again.');
 }
 
 /* isTauriShell lives in lib/instance-choice.ts, a leaf module the boot path can
