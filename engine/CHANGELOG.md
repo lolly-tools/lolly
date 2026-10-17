@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.262.0
+
+- Outline Design underline in shared SVG, SVGZ and PDF drawing. The line follows the Design HTML reference's CSS auto placement, thickness and pixel rounding, and skip-ink clears it around each cluster outline returned by `text.toPath`, cut on whole pixels. CJK, Hangul, slashes and low lines keep the line, and decorated spaces that hang at a wrap are underlined. A host without clusters, an unreadable outline or an unjudged pictograph retains the `text-decoration` finding.
+- Drawn Design text lines carry the decorated spaces that hang past the line end as an optional `hanging` list.
+
 ## 1.261.0
 
 - Preserve selected-file identity in versioned resource dependencies and collect source credentials by the exact version used in an export.
