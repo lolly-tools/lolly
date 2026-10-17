@@ -144,7 +144,7 @@ const row = (report: LollyPortabilityReport, kind: LollyDependency['kind'], id: 
   return found;
 };
 
-test('portableLink keeps scheme, host and path, and never a credential', () => {
+test('portableLink keeps scheme, host and path, and drops what carries a credential', () => {
   assert.equal(portableLink('https://wrong-user:s3cret-pass@cdn.example.com/a/photo.png?X-Amz-Signature=SIG-0123456789&token=x#frag'), 'https://cdn.example.com/a/photo.png');
   assert.equal(portableLink('https://files.example.com/s/9fK2pQ7xLm4nR8tV3wY6zB1c/photo.png'), 'https://files.example.com/s/{redacted}/photo.png',
     'an opaque, digit-bearing path segment reads as a token');
@@ -159,6 +159,21 @@ test('portableLink keeps scheme, host and path, and never a credential', () => {
   assert.equal(portableLink('lolly/logo/primary'), 'lolly/logo/primary', 'a catalog id is an identifier, not an address');
   assert.equal(portableLink(`user/uploads/deck.zip?file=${'a'.repeat(24)}`), `user/uploads/deck.zip?file=${'a'.repeat(24)}`,
     'a file selection inside an upload is part of its identity');
+
+  // A short share key, scattered digits through letters, reads as a token too.
+  assert.equal(portableLink('https://www.dropbox.com/s/a1b2c3d4e5f6g7h/photo.png?dl=0'), 'https://www.dropbox.com/s/{redacted}/photo.png');
+  assert.equal(portableLink('https://cdn.example.com/2026-10-17-launch/summer2026/hero.png'), 'https://cdn.example.com/2026-10-17-launch/summer2026/hero.png',
+    'a date and a slug with one run of digits stay readable');
+  // An address with no authority loses its query and fragment.
+  assert.equal(portableLink('mailto:user@example.com?subject=SECRET'), 'mailto:user@example.com');
+  assert.equal(portableLink('cdn.example.com/a.png?token=SECRET'), 'cdn.example.com/a.png', 'a host and path with no scheme is an address');
+  assert.equal(portableLink('cdn.example.com/s/9fK2pQ7xLm4nR8tV3wY6zB1c/a.png'), 'cdn.example.com/s/{redacted}/a.png');
+  assert.equal(portableLink('media/hero.png#token=SECRET'), 'media/hero.png', 'only the version pin is a fragment an id may keep');
+  assert.equal(portableLink('/api/v1/files/f2?access=SECRET'), '/api/v1/files/f2');
+  // The parts of an asset id that are its identity pass unchanged.
+  const pinned = `lolly/logo/primary?theme=dark#lolly-version=${encodeURIComponent('["2.0.0",null]')}`;
+  assert.equal(portableLink(pinned), pinned, 'a theme and a version pin are part of the id');
+  assert.equal(portableLink('user/render/1697000000000-Poster-final2x3y'), 'user/render/1697000000000-Poster-final2x3y', 'an upload id is never redacted');
 });
 
 test('a .lolly carries a per-dependency report under the integrity map, with checksums', async () => {
@@ -312,6 +327,30 @@ test('a file with its tool and its uploads is self-contained and opens complete 
   assert.equal(result.check.ready, true, 'every dependency opens on an empty device with networking off');
 });
 
+test('a catalog asset sent by id is available, and one the catalog could not supply is missing', async () => {
+  const session = { logo: { source: 'library', id: 'lolly/logo/primary', type: 'vector', format: 'svg', url: '/catalog/logo.svg' } };
+  // No resolveLibrary: no catalog was asked, as in a Projects batch download.
+  const byId = await buildLollyFile({ session, toolId: 'design', userAssets: [] });
+  const byIdContents = await readLollyFile(new Uint8Array(await byId.blob.arrayBuffer()));
+  const sent = row(await readLollyPortability(byIdContents), 'asset', 'lolly/logo/primary');
+  assert.equal(sent.status, 'available');
+  assert.match(sent.reason!, /travels by catalog id/);
+
+  // A resolver that returns null: the sender's catalog was asked and could not supply the bytes.
+  const unsupplied = await buildLollyFile({ session, toolId: 'design', userAssets: [], resolveLibrary: async () => null });
+  const unsuppliedContents = await readLollyFile(new Uint8Array(await unsupplied.blob.arrayBuffer()));
+  const gone = row(await readLollyPortability(unsuppliedContents), 'asset', 'lolly/logo/primary');
+  assert.equal(gone.status, 'missing');
+  assert.match(gone.reason!, /sender's catalog could not supply/);
+  assert.doesNotMatch(gone.reason!, /can still show/, 'the reason does not contradict the status');
+
+  // A file written before the report: nothing in it shows a catalog was asked, so the
+  // reference reads as travelling by id.
+  const { [PORTABILITY_PART]: _part, ...olderFiles } = byIdContents.files;
+  const derived = await readLollyPortability({ ...byIdContents, files: olderFiles });
+  assert.equal(row(derived, 'asset', 'lolly/logo/primary').status, 'available');
+});
+
 test('a custom tool left out of the file is reported missing, with the reason', async () => {
   const built = await buildLollyFile({ session: { title: 'Hi' }, toolId: 'my-fork', toolTrust: 'custom', userAssets: [] });
   const contents = await readLollyFile(new Uint8Array(await built.blob.arrayBuffer()));
@@ -400,4 +439,10 @@ test('the link walk is bounded and keeps the first-seen order', () => {
   const bounded = collectLinkedDependencies(many);
   assert.equal(bounded.links.length, 1000);
   assert.equal(bounded.truncated, true, 'a document with more links than the cap says so');
+
+  const named = collectLinkedDependencies({
+    a: { source: 'remote', id: 'https://one.example/c.png', meta: { name: 'Photo #2?' } },
+    b: { source: 'remote', id: 'https://one.example/d.png', meta: { name: 'https://one.example/d.png?token=SECRET' } },
+  }).links;
+  assert.deepEqual(named.map(link => link.label), ['Photo #2?', 'https://one.example/d.png'], 'a name in words stays whole; a name that is an address is cleaned');
 });

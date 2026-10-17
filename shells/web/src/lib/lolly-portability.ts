@@ -10,8 +10,8 @@
  *  - `embedded`: the bytes are in this file, with the SRI digest the integrity map
  *    vouches for.
  *  - `available`: not in the file, and a reader is expected to supply the
- *    dependency itself (a tool the signed catalog lists, a catalog font recorded by
- *    identity, a face that ships with Lolly).
+ *    dependency itself (a tool the signed catalog lists, a catalog asset sent by its
+ *    id, a catalog font recorded by identity, a face that ships with Lolly).
  *  - `linked`: not in the file on purpose. The reader fetches or renders the
  *    dependency from an address each time the document opens (a web address, a
  *    Lolly tool link, a file on an organisation server).
@@ -19,13 +19,17 @@
  *    licence condition, or no licence recorded).
  *  - `missing`: the document needs the dependency, the file does not carry the
  *    bytes, and nothing suggests a reader will have them (a stale upload, catalog
- *    bytes the sender could not read, a custom tool left out, a temporary address).
+ *    bytes the sender's catalog could not supply, a custom tool left out, a
+ *    temporary address).
  *
- * The report never holds a credential. A link keeps its scheme, host and path; the
- * user name, password, query and fragment are dropped, and a long opaque path
- * segment (where capability tokens usually live) reads `{redacted}`. The
- * document's own values still hold the full address, because the document needs
- * the address to draw.
+ * Credentials are kept out by rule, not by promise. A web address keeps its scheme,
+ * host and path and loses its user name, password, query and fragment. A path
+ * segment shaped like a key (long and opaque, a three-part token, or letters with
+ * digits scattered through them) reads `{redacted}`. Any other address (`mailto:`, a
+ * host and path with no scheme) loses its query and fragment too. Asset ids pass
+ * unchanged. The rule looks only at the characters of each segment, so a short key
+ * written into a path can remain. The document's own values still hold the full address,
+ * because the document needs the address to draw.
  *
  * `checkPortability` is the other half. Given a parsed file and what a receiving
  * device has, it says which dependencies open there with no network at all. An
@@ -112,6 +116,10 @@ export interface LollyPortabilitySources {
   parts?: ReadonlyArray<{ kind: 'design-system' | 'templates'; id: string; label: string; path: string }>;
   links?: readonly LollyDependency[];
   linksTruncated?: boolean;
+  /** No catalog was asked for bytes, so a catalog asset not in the file travels by
+   *  its id on purpose (`available`). Unset, an unresolved catalog asset is one the
+   *  sender's catalog could not supply (`missing`). */
+  catalogByReference?: boolean;
 }
 
 // The sentences a row carries. They are written into the file, not shown as
@@ -121,7 +129,8 @@ const REASON = {
   toolById: 'Not in this file. A device opens the document in its own copy of this tool.',
   toolCustom: 'Not in this file, and the signed catalog does not list this tool. Only a device that already has the tool can open the document.',
   uploadMissing: 'The upload was not on the sending device when this file was made.',
-  catalogMissing: 'The catalog bytes could not be read when this file was made. A device with the same catalog can still show this asset.',
+  catalogById: 'Not in this file. It travels by catalog id, and a reader with the same catalog shows it.',
+  catalogMissing: 'The sender\'s catalog could not supply these bytes when this file was made.',
   webLink: 'Fetched from a web address each time the document opens.',
   toolLink: 'Rendered again from a Lolly tool link each time the document opens. A device with that tool renders the link offline.',
   serverLink: 'A file on an organisation server. The reader needs access to that server.',
@@ -142,35 +151,54 @@ const SRI_RE = /^sha256-[A-Za-z0-9+/]{43}=$/;
 const HEX_RE = /^[0-9a-f]{64}$/i;
 const AUTHORITY_RE = /^[a-z][a-z0-9+.-]*:\/\//i;
 const TEMPORARY_RE = /^(?:blob|data):/i;
+// An asset id: a first segment with no dot (so never a host name), then a path, then
+// only the query forms that are part of an asset's identity (`?file=`, a theme or a
+// treatment) and the version pin. See engine/src/asset-modifiers.ts and asset-version.ts.
+const ASSET_ID_RE = /^[A-Za-z0-9][\w-]*(?:\/[^/?#:\s]+)*(?:\?file=[a-f0-9]{24}(?:&(?:theme|treatment)=[a-z0-9][a-z0-9-]*)?|\?(?:theme|treatment)=[a-z0-9][a-z0-9-]*)?(?:#lolly-version=[^#\s]*)?$/;
+// A label that is itself an address: a scheme, a leading slash, or a host and a path.
+const ADDRESS_LABEL_RE = /^(?:[a-z][a-z0-9+.-]*:|\/|[\w-]+(?:\.[\w-]+)+\/)/i;
 
 // ── Links without credentials ─────────────────────────────────────────────────
 
 /** A path segment that looks like a capability token rather than a name: long,
- *  opaque and digit-bearing with no file extension, or three dotted parts (a JWT). */
+ *  opaque and digit-bearing with no file extension, three dotted parts (a JWT), or
+ *  ten or more letters and digits with the digits scattered through them (a share
+ *  key such as `a1b2c3d4e5f6g7h`). A date or a slug with one run of digits stays. */
 function opaqueSegment(segment: string): boolean {
   if (/^[\w-]{8,}\.[\w-]{8,}\.[\w-]{8,}$/.test(segment)) return true;
+  if (segment.length >= 10 && /^[A-Za-z0-9]+$/.test(segment) && /[A-Za-z]/.test(segment) && (segment.match(/\d+/g)?.length ?? 0) >= 3) return true;
   return segment.length >= 20 && /^[\w~%-]+$/.test(segment) && /\d/.test(segment) && /[A-Za-z]/.test(segment);
 }
 
+const redactPath = (path: string): string => path.split('/').map(segment => (opaqueSegment(segment) ? '{redacted}' : segment)).join('/');
+
 /**
  * An address in the form the report may hold. A URL with an authority keeps its scheme,
- * host and path; the user name, password, query and fragment never pass, and an
- * opaque path segment reads `{redacted}`. A `blob:` or `data:` address keeps only
- * its scheme, and a root-relative path (a shell-served font) loses its query and
- * fragment. Anything else (a catalog id, an upload id, a project file id) is an
- * identifier rather than an address and comes back unchanged: `?file=` there is
- * part of the identity.
+ * host and path; the user name, password, query and fragment never pass. A `blob:` or
+ * `data:` address keeps only its scheme. An asset id (a catalog id, an upload id, a
+ * project file id) is an identifier rather than an address and comes back unchanged:
+ * `?file=` there is part of the identity. Anything else (a root-relative path such as
+ * a shell-served font, `mailto:`, a host and path with no scheme) loses its query and
+ * fragment. In every address an opaque path segment reads `{redacted}`.
  */
 export function portableLink(raw: string): string {
   const value = raw.trim();
   if (TEMPORARY_RE.test(value)) return value.slice(0, value.indexOf(':') + 1).toLowerCase();
-  if (value.startsWith('/') && !value.startsWith('//')) return value.split(/[?#]/)[0] ?? '';
   const address = value.startsWith('//') ? `https:${value}` : lollySchemeToHttps(value);
-  if (!AUTHORITY_RE.test(address)) return value;
-  let url: URL;
-  try { url = new URL(address); } catch { return address.slice(0, address.indexOf(':') + 1).toLowerCase(); }
-  const path = url.pathname.split('/').map(segment => (opaqueSegment(segment) ? '{redacted}' : segment)).join('/');
-  return `${url.protocol}//${url.host}${path}`;
+  if (AUTHORITY_RE.test(address)) {
+    let url: URL;
+    try { url = new URL(address); } catch { return address.slice(0, address.indexOf(':') + 1).toLowerCase(); }
+    return `${url.protocol}//${url.host}${redactPath(url.pathname)}`;
+  }
+  if (ASSET_ID_RE.test(value)) return value;
+  return redactPath(value.split(/[?#]/)[0] ?? '');
+}
+
+/** A label in the form the report may hold. A label that is itself an address is
+ *  cleaned like one; a name in words keeps its punctuation, so "Photo #2" stays whole. */
+function portableLabel(raw: string): string {
+  const value = raw.trim();
+  return ADDRESS_LABEL_RE.test(value) ? portableLink(value) : value;
 }
 
 // ── Linked references in the document ────────────────────────────────────────
@@ -191,7 +219,7 @@ function linkRow(rec: Record<string, unknown>, raw: string): LollyDependency {
   const name = typeof meta.name === 'string' ? meta.name.trim().slice(0, 200) : '';
   const version = versionOf(rec), checksum = digestOf(rec.checksum);
   const base = {
-    kind: 'link' as const, id, label: name ? portableLink(name) : id,
+    kind: 'link' as const, id, label: name ? portableLabel(name) : id,
     ...(version ? { version } : {}), ...(checksum ? { checksum } : {}),
   };
   if (TEMPORARY_RE.test(raw.trim())) return { ...base, status: 'missing', reason: REASON.temporary };
@@ -263,9 +291,10 @@ function assetIdentity(raw: string): { id: string; version?: string } {
   }
 }
 
-function assetRow(asset: LollyAssetEntry, integrity: LollyPortabilitySources['integrity']): LollyDependency {
+function assetRow(asset: LollyAssetEntry, src: LollyPortabilitySources): LollyDependency {
+  const { integrity } = src;
   const { id, version } = assetIdentity(asset.id);
-  const label = asset.label && asset.label !== asset.id ? portableLink(asset.label) : id;
+  const label = asset.label && asset.label !== asset.id ? portableLabel(asset.label) : id;
   const base = {
     kind: 'asset' as const, id, label,
     ...(version ? { version } : {}),
@@ -288,6 +317,7 @@ function assetRow(asset: LollyAssetEntry, integrity: LollyPortabilitySources['in
   }
   if (asset.source === 'user') return { ...base, status: 'missing', reason: REASON.uploadMissing };
   if (AUTHORITY_RE.test(asset.id)) return { ...base, status: 'linked', reason: REASON.webLink };
+  if (src.catalogByReference) return { ...base, status: 'available', reason: REASON.catalogById };
   return { ...base, status: 'missing', reason: REASON.catalogMissing };
 }
 
@@ -346,7 +376,7 @@ export async function buildPortabilityReport(src: LollyPortabilitySources): Prom
   }
   const embedded = new Map<string, LollyDependency>();
   for (const asset of src.assets) {
-    const row = assetRow(asset, src.integrity);
+    const row = assetRow(asset, src);
     rows.push(row);
     if (row.status === 'embedded' && !embedded.has(row.id)) embedded.set(row.id, row);
   }

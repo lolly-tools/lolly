@@ -83,12 +83,14 @@ Before any rebuild, a `.lolly` says what it carries. Each file holds `portabilit
 | Status | What it means |
 |---|---|
 | `embedded` | The bytes are in the file, with the sha256 digest the file's integrity map vouches for. A carried tool records one digest over its whole file list. |
-| `available` | Not in the file, and a reader is expected to have it already: a tool the signed catalog lists, a catalog font recorded by its digest, a face that ships with Lolly. |
+| `available` | Not in the file, and a reader is expected to have it already: a tool the signed catalog lists, a catalog asset sent by its id, a catalog font recorded by its digest, a face that ships with Lolly. |
 | `linked` | Not in the file on purpose. The design fetches it from a web address, renders it again from a Lolly tool link, or reads it from an organisation server each time it opens. |
 | `withheld` | The sender had the bytes and a rule kept them out: a brand lock, a licence condition, or no licence recorded. `CREDITS.txt` gives the same reason. |
-| `missing` | The design needs it and nothing supplies it: an upload that was no longer on the sending device, catalog bytes the sender could not read, a custom tool left out of the file, a temporary address. |
+| `missing` | The design needs it and nothing supplies it: an upload that was no longer on the sending device, catalog bytes the sender's catalog could not supply, a custom tool left out of the file, a temporary address. |
 
-The report never holds a password, a token or a signed address. A link keeps its scheme, host and path, and a long opaque path segment is replaced with `{redacted}`. The design's own values still hold the full address, because the design needs the address to draw. The manifest repeats the five totals, and `lolly.txt` prints them in plain text.
+A catalog asset is `available` when the file was made without asking a catalog for bytes, as the Projects view's batch download and `scripts/pack-project.ts` do: the asset travels by its id on purpose. It is `missing` only when the sender's catalog was asked and could not supply the bytes. A file written before the report existed does not record which happened, so a reader treats the catalog as asked when the file carries or holds back at least one catalog asset.
+
+The report keeps credentials out by rule. A web address keeps its scheme, host and path and loses its user name, password, query and fragment, which is where signed addresses and most tokens live. Any other address, such as a `mailto:` link or a host and path with no scheme, loses its query and fragment too. A path segment shaped like a key (long and opaque, a three-part token, or letters with digits scattered through them) is replaced with `{redacted}`. Asset ids pass unchanged, because a reader finds an asset by its id. The rule looks only at the characters of each segment, so a short key written into a path can remain: treat the report as a list of where each dependency comes from, not as a scrubbed copy of every address. The design's own values still hold the full address, because the design needs the address to draw. The manifest repeats the five totals, and `lolly.txt` prints them in plain text.
 
 The same report drives an offline check: open the file on an empty profile with networking turned off, and each dependency comes back `ready`, `needs-network`, `held-back`, `unavailable` or `damaged` (the report says a dependency is carried and the bytes disagree). The check reads the file and asks the receiving device what it already has. It never fetches anything.
 
@@ -109,7 +111,9 @@ One more honest limit: the rebuild renders through the CLI. A file exported from
 | An artifact and its session rebuild to the same bytes, and a changed input reports why | `tests/reproducibility-rebuild.test.ts` |
 | A raster or PDF rebuild is refused rather than answered with a coin flip | `tests/reproducibility-rebuild.test.ts` - `a raster or PDF artifact is refused, not guessed at` |
 | A `.lolly` whose parts do not match its integrity map is refused before anything is believed | `tests/reproducibility-rebuild.test.ts` - `the node reader refuses a .lolly whose parts do not match its integrity map` |
-| A `.lolly` lists every dependency with its status and checksum, and holds no credential | `shells/web/src/lib/lolly-portability.test.ts` - `a .lolly carries a per-dependency report under the integrity map, with checksums` |
+| A `.lolly` lists every dependency with its status and checksum, and the credentials in its test document stay out | `shells/web/src/lib/lolly-portability.test.ts` - `a .lolly carries a per-dependency report under the integrity map, with checksums` |
+| An address loses its query, fragment and key-shaped segments, and an asset id passes unchanged | `shells/web/src/lib/lolly-portability.test.ts` - `portableLink keeps scheme, host and path, and drops what carries a credential` |
+| A catalog asset sent by id reads available, and one the sender's catalog could not supply reads missing | `shells/web/src/lib/lolly-portability.test.ts` - `a catalog asset sent by id is available, and one the catalog could not supply is missing` |
 | An empty profile with networking off opens what the file carries, reports the rest and makes no network request | `shells/web/src/lib/lolly-portability.test.ts` - `an empty profile with networking off opens what the file carries and reports the rest` |
 
 ## Limits
