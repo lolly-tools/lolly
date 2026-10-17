@@ -13,6 +13,7 @@
  */
 import { cellInput, isCellEditable } from './model.ts';
 import { controlHtml } from './controls.ts';
+import { batchCanRender } from './batch-render-format.ts';
 import { colorFieldHtml } from '../components/color-field.ts';
 import { escapeHtml } from '../lib/util/escape.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -260,7 +261,7 @@ export function bodyRow(row: GridRow, columns: Column[], ctx: GridCtx, index = 0
   const isExp = tool && tool.status === 'experimental';
 
   // Per-row format: a document-icon dropdown, sitting to the LEFT of the name.
-  const formats = row.manifest?.render?.formats ?? [];
+  const formats = (row.manifest?.render?.formats ?? []).filter(batchCanRender);
   // Face shows the blank document icon until a format is chosen, then the
   // extension (e.g. PNG) in a small semibold label.
   const fmtFace = row.format

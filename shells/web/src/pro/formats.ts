@@ -4,7 +4,7 @@ import type { ToolManifest } from '../../../../engine/src/loader.ts';
 import { fmtLabel, keepFormat } from '../lib/export-format-info.ts';
 import { wireFormatPicker } from '../components/export-format-picker.ts';
 import { getExportPolicy } from '../lib/export-policy.ts';
-import { learningEnabled } from '../lib/learning-feature.ts';
+import { batchCanRender } from './batch-render-format.ts';
 
 interface FormatSource { id: string; formats?: readonly string[] }
 interface FormatState { format: string; rows: { manifest: ToolManifest | null }[] }
@@ -17,7 +17,7 @@ export function batchFormats(tools: readonly FormatSource[], state: FormatState,
     const manifest = loaded.get(source.id);
     const declared = manifest?.render.formats ?? expandDerivedFormats([...(source.formats ?? [])]);
     const allowed = getExportPolicy()?.formatsFor(source.id);
-    const supported = declared.filter(f => (f !== 'scorm' || learningEnabled()) && keepFormat(f, codec && !!manifest?.hooks?.exportStill));
+    const supported = declared.filter(f => batchCanRender(f) && keepFormat(f, codec && !!manifest?.hooks?.exportStill));
     const narrowed = allowed ? supported.filter(f => allowed.includes(f)) : supported;
     for (const f of narrowed.length ? narrowed : supported) formats.add(f === 'jpeg' ? 'jpg' : f);
   }
