@@ -26,7 +26,9 @@ test('the Sources rail resizes from its grip, keeps the width and leaves the lis
 
     const rail = await box('.asset-sources'), strip = await box('.asset-sources-grip'), body = await box('.catalog-body');
     assert.equal(Math.round(rail.width), 240, 'the default width');
-    assert.equal(Math.round(body.left - rail.right), 20, 'the grip takes no room from the rail or the listing');
+    const gap = await page.locator('.catalog-workspace').first().evaluate(element => parseFloat(getComputedStyle(element).columnGap));
+    assert.ok(gap > 0, 'the workspace has a gap');
+    assert.equal(Math.round(body.left - rail.right), Math.round(gap), 'the grip takes no room from the rail or the listing');
     assert.ok(strip.left < body.left && strip.right > rail.right, 'the grip lies across the gap');
     assert.equal(Math.round(strip.height), Math.round(rail.height), 'the grip is as tall as the rail');
 
