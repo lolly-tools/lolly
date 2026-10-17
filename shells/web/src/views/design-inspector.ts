@@ -605,6 +605,12 @@ function inspectorFocusKey(scroll: HTMLElement, node: Element | null, q: (value:
     const d = (node as HTMLElement).dataset;
     const tokenSection = node.closest<HTMLElement>('[data-token-section]');
     if (tokenSection) return `[data-token-section="${q(tokenSection.dataset.tokenSection)}"] ${node.hasAttribute('data-design-token-property') ? '[data-design-token-property]' : 'summary'}`;
+    // The context strip's controls. Follow goes away once pressed, so its focus moves
+    // to Inspect, or to the disclosure where the port has no Inspect.
+    if (node.closest('[data-token-context]')) {
+      if (node.closest('summary')) return '[data-token-context] summary';
+      if (d?.tokenContextInspect != null || d?.tokenContextFollow != null) return '[data-token-context-inspect], [data-token-context] summary';
+    }
     const seg = node.closest<HTMLElement>('.fc-seg');
     if (seg && d?.v != null) return `.fc-seg[data-seg="${q(seg.dataset.seg)}"] .fc-seg-btn[data-v="${q(d.v)}"]`;
     for (const attr of ['fld', 'doc', 'nf', 'dm', 'mp', 'arr', 'act', 'head', 'webInteract', 'webStop'] as const) {
@@ -1316,7 +1322,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // With artboards on the canvas each one paints its own fill, so the document colour only
     // seeds the next artboard; saying so is what stops a pick that shows nothing reading as a bug.
     return colorRow(hasFrames() ? t('Default fill') : t('Background'), 'fc-insp-bg', model.getInput('background'))
-      + documentThemeRows(opts.theme)
+      + documentThemeRows(opts.theme, scroll)
       + (model.getInput('editingRange') == null ? '' : docSelectRow(t('Colour'), 'editingRange', [['sdr', t('SDR')], ['hdr', t('HDR / wide gamut')]], t('Preview depends on your display. Export HDR is chosen separately.')))
       + emojiDocRows();
   }

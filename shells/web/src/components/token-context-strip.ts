@@ -141,7 +141,7 @@ function contextSentence(model: TokenContextModel): string {
 
 const choiceText = (choice: TokenContextChoice): string => `${choice.group}: ${choice.option}`;
 
-function detailsHtml(model: TokenContextModel): string {
+function detailsHtml(model: TokenContextModel, open: boolean): string {
   const rows: string[] = [`<dt>${t('Context')}</dt><dd>${esc(contextSentence(model))}</dd>`];
   if (model.source) rows.push(`<dt>${t('Source')}</dt><dd>${esc(model.source)}${model.instance ? ` (${esc(model.instance)})` : ''}</dd>`);
   if (model.locked) rows.push(`<dt>${t('Editing')}</dt><dd>${esc(t('Read-only. Start can make an editable copy.'))}</dd>`);
@@ -153,13 +153,15 @@ function detailsHtml(model: TokenContextModel): string {
     const items = model.unavailable.map((choice) => `<li>${esc(t('{choice} is not offered by this design system, so its default is used.', { choice }))}</li>`).join('');
     rows.push(`<dt>${t('Fallbacks')}</dt><dd><ul>${items}</ul></dd>`);
   }
-  return `<details class="token-context-details" data-token-context-details><summary>${icon('chevronRight', { size: 14, className: 'section-card-chev' })}<span>${t('Source and fallbacks')}</span></summary><dl>${rows.join('')}</dl></details>`;
+  return `<details class="token-context-details" data-token-context-details${open ? ' open' : ''}><summary>${icon('chevronRight', { size: 14, className: 'section-card-chev' })}<span>${t('Source and fallbacks')}</span></summary><dl>${rows.join('')}</dl></details>`;
 }
 
 /** The actions a caller wires: the read-only inspector, and returning a document to the design system's choices. */
 export interface TokenContextActions {
   inspect?: boolean;
   follow?: boolean;
+  /** Draw the disclosure open, so a caller that repaints keeps the state the person chose. */
+  open?: boolean;
 }
 
 /** The strip's inner markup. Every value from a document or a system record is escaped. */
@@ -172,7 +174,7 @@ export function tokenContextStripBody(model: TokenContextModel, actions: TokenCo
     + (model.shown.length ? `<p>${esc(model.shown.map(choiceText).join(' · '))}</p>` : '')
     + (actions.inspect ? `<button type="button" class="btn btn--ghost btn--sm" data-token-context-inspect>${t('Inspect tokens')}</button>` : '')
     + (actions.follow && model.scope === 'document' ? `<button type="button" class="btn btn--ghost btn--sm" data-token-context-follow>${t('Follow the design system')}</button>` : '')
-    + detailsHtml(model);
+    + detailsHtml(model, !!actions.open);
 }
 
 /** The whole strip as markup, for a surface that builds its panel from a string. */

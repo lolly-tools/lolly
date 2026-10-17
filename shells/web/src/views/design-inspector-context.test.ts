@@ -59,22 +59,27 @@ const SNAPSHOT: TokensSnapshot = {
   selection: { choices: { '': 'light' } },
 };
 
-/** A theme port over one light/dark group, recording what the strip asks of the port. */
+/**
+ * A theme port over one light/dark group, recording what the strip asks of the port.
+ * `hooks.changed` stands in for the controller's `onChange`, which the session wires
+ * to the inspector's `sync()`; a test that sets it gets the production rebuild.
+ */
 function themePort(opts: { selection?: ThemeSelection; groups?: boolean; context?: boolean } = {}) {
   let selection = opts.selection;
   const calls: string[] = [];
+  const hooks = { changed: () => {} };
   const port: DocumentThemePort = {
     groups: () => (opts.groups === false ? [] : [{
       id: '', label: 'Theme', options: [{ id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }], active: selection?.[''] ?? 'light',
     }]),
-    choose: async (group, option) => { calls.push(`choose ${option}`); selection = { [group]: option }; },
+    choose: async (group, option) => { calls.push(`choose ${option}`); selection = { [group]: option }; hooks.changed(); },
     ...(opts.context === false ? {} : {
       context: (): DocumentTokenContext => (selection ? { snapshot: SNAPSHOT, selection } : { snapshot: SNAPSHOT }),
       inspect: async () => { calls.push('inspect'); },
-      follow: async () => { calls.push('follow'); selection = undefined; },
+      follow: async () => { calls.push('follow'); selection = undefined; hooks.changed(); },
     }),
   };
-  return { port, calls };
+  return { port, calls, hooks };
 }
 
 function mount(theme: DocumentThemePort) {
@@ -167,6 +172,43 @@ test('the strip repaints when the document choice changes', async () => {
     await settle();
     h.sync();
     assert.match(h.strip()!.textContent!, /Follows the design system/);
+  } finally { h.destroy(); }
+});
+
+test('focus and the open disclosure survive the rebuild a strip action causes', async () => {
+  const theme = themePort({ selection: { '': 'dark' } });
+  const h = mount(theme.port);
+  theme.hooks.changed = () => { h.sync(); };
+  try {
+    // Open Source and fallbacks, then choose a theme: the choice rebuilds the column.
+    h.strip()!.querySelector<HTMLElement>('summary')!.click();
+    await settle();
+    assert.equal(h.strip()!.querySelector('details')!.open, true);
+    [...h.themeRow()!.querySelectorAll<HTMLButtonElement>('.fc-seg-btn')][0]!.click();
+    await settle();
+    assert.deepEqual(theme.calls, ['choose light']);
+    assert.equal(h.strip()!.querySelector('details')!.open, true, 'the disclosure the person opened stays open');
+
+    // Back to a document choice, then Follow from the keyboard: the button goes away.
+    [...h.themeRow()!.querySelectorAll<HTMLButtonElement>('.fc-seg-btn')][1]!.click();
+    await settle();
+    const follow = h.strip()!.querySelector<HTMLButtonElement>('[data-token-context-follow]')!;
+    follow.focus();
+    follow.click();
+    await settle();
+    assert.deepEqual(theme.calls, ['choose light', 'choose dark', 'follow']);
+    assert.equal(h.strip()!.querySelector('[data-token-context-follow]'), null, 'nothing left to follow');
+    assert.ok(h.el.contains(document.activeElement), 'focus stays in the column, not on the page');
+    assert.ok(document.activeElement!.hasAttribute('data-token-context-inspect'), 'focus moves to the strip\'s Inspect action');
+    assert.equal(h.strip()!.querySelector('details')!.open, true);
+
+    // The disclosure's own control keeps focus through a rebuild, and closing it is kept too.
+    const summary = h.strip()!.querySelector<HTMLElement>('summary')!;
+    summary.focus();
+    summary.click();
+    h.sync();
+    assert.equal(document.activeElement, h.strip()!.querySelector('summary'));
+    assert.equal(h.strip()!.querySelector('details')!.open, false);
   } finally { h.destroy(); }
 });
 

@@ -22,8 +22,28 @@ import { t } from '../i18n.ts';
  */
 export const THEME_SEG = 'lolly-doc-theme-';
 
-/** The context strip, then one segmented row per theme group. Empty without a port. */
-export function documentThemeRows(port: DocumentThemePort | undefined): string {
+/** Whether the person left the strip's Source and fallbacks disclosure open, by column. */
+const disclosureOpen = new WeakMap<HTMLElement, boolean>();
+
+/**
+ * Whether to draw the disclosure open. The column calls this while it builds the markup
+ * that replaces the strip, so the strip on screen is read first. It is read from the
+ * markup, not from a `toggle` listener: the toggle event is queued, and a rebuild that
+ * runs before it would close a disclosure the person had just opened.
+ */
+function keptOpen(column: HTMLElement | undefined): boolean {
+  if (!column) return false;
+  const details = column.querySelector<HTMLDetailsElement>('[data-token-context-details]');
+  if (details) disclosureOpen.set(column, details.open);
+  return disclosureOpen.get(column) ?? false;
+}
+
+/**
+ * The context strip, then one segmented row per theme group. Empty without a port.
+ * `column` is the element the rows are rebuilt in. Passing it keeps the disclosure open
+ * or shut across rebuilds.
+ */
+export function documentThemeRows(port: DocumentThemePort | undefined, column?: HTMLElement): string {
   if (!port) return '';
   const context = port.context?.();
   const strip = context
@@ -32,7 +52,7 @@ export function documentThemeRows(port: DocumentThemePort | undefined): string {
       scope: context.selection ? 'document' : 'system',
       choices: 'document',
       compact: true,
-    }), { inspect: !!port.inspect, follow: !!port.follow })
+    }), { inspect: !!port.inspect, follow: !!port.follow, open: keptOpen(column) })
     : '';
   return strip + port.groups().map((g, gi) => {
     const tip = helpTip(t('Colours linked to the design system follow this choice.'));
