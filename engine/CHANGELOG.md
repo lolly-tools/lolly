@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.267.0
+
+- Add `penpotSvgLayoutFindings`. Flex and grid layouts declared in a legacy Penpot SVG export produce one `penpot.layout.svg-static` finding per container, with its Penpot layer name. Those pages import at their exported positions without layout rules. An SVG without layout metadata produces no finding and no layout is inferred from how its artwork is arranged.
+- Export the `LayoutFinding` and `PenpotSvgLayout` types from the engine barrel.
+
 ## 1.266.0
 
 - Outline Design underline in shared SVG, SVGZ and PDF drawing. The line follows the Design HTML reference's CSS auto placement, thickness and pixel rounding, and skip-ink clears it around each cluster outline returned by `text.toPath`, cut on whole pixels. CJK, Hangul, slashes and low lines keep the line, and decorated spaces that hang at a wrap are underlined in their own colour. A host without clusters, an unreadable outline or an unjudged pictograph retains the `text-decoration` finding.

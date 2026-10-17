@@ -15,6 +15,29 @@ export function penpotHasLayout(shapes: Record<string, Row>): boolean {
   return Object.values(shapes).some(shape => shape.layout === 'flex' || shape.layout === 'grid');
 }
 
+/** One `penpot:layout` declaration read from a legacy Penpot SVG page. */
+export interface PenpotSvgLayout { id?: string; name?: string; layout?: string }
+
+/**
+ * A legacy SVG page declares layouts beside artwork Penpot has already positioned. Its
+ * drawn elements carry no parent and children records, so there is no membership to
+ * map. Each declared container becomes a finding and the page keeps its exported
+ * positions. Records without a declaration produce nothing: no layout is inferred.
+ */
+export function penpotSvgLayoutFindings(layouts: readonly PenpotSvgLayout[]): LayoutFinding[] {
+  const findings: LayoutFinding[] = [], seen = new Set<string>();
+  for (const entry of layouts) {
+    const layout = String(entry.layout ?? '').trim().toLowerCase(), id = String(entry.id ?? '').trim();
+    if (!layout || (id && seen.has(id))) continue;
+    if (id) seen.add(id);
+    const name = String(entry.name ?? '').trim().slice(0, 80);
+    const kind = layout === 'flex' || layout === 'grid' ? `a ${layout} layout` : 'a layout';
+    findings.push({ id, code: 'penpot.layout.svg-static',
+      message: `${name ? `The Penpot layer “${name}”` : 'A Penpot layer'} uses ${kind}. This SVG import keeps its layers at their exported positions without the layout rules. Import the .penpot export to keep the layout editable.` });
+  }
+  return findings;
+}
+
 /** Mirrors children_paint_order in the pinned newer renderer, including flex direction. */
 export function penpotChildrenPaintOrder(shape: Row, shapes: Record<string, Row>): string[] {
   const ids = Array.isArray(shape.shapes) ? shape.shapes.map(String) : [];

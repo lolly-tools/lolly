@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
 import { buildPenpotEntries, boxesToPenpotDoc, seededPenpotUuid, PENPOT_ROOT_ID } from '../engine/src/penpot-file.ts';
 import { finalizeBoxes, penpotShapeToNode } from '../engine/src/design-map.ts';
-import { exportPenpotLayout, importPenpotLayouts, penpotChildrenPaintOrder } from '../engine/src/penpot-layout.ts';
+import { exportPenpotLayout, importPenpotLayouts, penpotChildrenPaintOrder, penpotSvgLayoutFindings } from '../engine/src/penpot-layout.ts';
 import { createDesignLayoutEvaluator } from '../engine/src/design-layout.ts';
 import { loadLayoutKernel } from '../packages/node-shell/src/layout-kernel-node.ts';
 
@@ -157,6 +157,54 @@ test('static imports keep the original rows and static exports add no layout att
   }
 });
 
+test('legacy SVG layout declarations become static-copy findings and nothing is inferred', () => {
+  const findings = penpotSvgLayoutFindings([
+    { id: 'toolbar', name: 'Toolbar', layout: 'flex' }, { id: 'gallery', name: 'Gallery', layout: 'GRID ' },
+    { id: 'toolbar', name: 'Toolbar again', layout: 'flex' }, { name: '', layout: 'masonry' },
+    { id: 'plain', name: 'Plain', layout: '' }, { id: 'blank', name: 'Blank', layout: '  ' }, { id: 'none', name: 'None' }]);
+  assert.deepEqual(findings.map(finding => [finding.id, finding.code]),
+    [['toolbar', 'penpot.layout.svg-static'], ['gallery', 'penpot.layout.svg-static'], ['', 'penpot.layout.svg-static']]);
+  assert.match(findings[0]!.message, /^The Penpot layer “Toolbar” uses a flex layout\./);
+  assert.match(findings[1]!.message, /“Gallery” uses a grid layout\./);
+  assert.match(findings[2]!.message, /^A Penpot layer uses a layout\./);
+  for (const finding of findings) assert.match(finding.message, /exported positions without the layout rules\. Import the \.penpot export/);
+  assert.deepEqual(penpotSvgLayoutFindings([]), []);
+  const long = penpotSvgLayoutFindings([{ name: 'x'.repeat(500), layout: 'flex' }])[0]!;
+  assert.ok(long.message.includes(`“${'x'.repeat(80)}”`));
+});
+
+// Penpot's SVG export metadata: a penpot:shape record first in each shape group, its
+// layout on a nested penpot:layout element (frontend/src/app/main/ui/shapes/export.cljs).
+const legacyPenpotSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:penpot="https://penpot.app/xmlns" width="600" height="300" viewBox="0 0 600 300">
+  <g id="shape-11111111-1111-4111-8111-111111111111">
+    <penpot:shape penpot:name="Toolbar" penpot:type="frame">
+      <penpot:layout penpot:layout="flex" penpot:layout-flex-dir="row" penpot:layout-gap-row="8" penpot:layout-gap-column="12"/>
+    </penpot:shape>
+    <rect x="0" y="0" width="300" height="80" fill="#eeeeee"/>
+    <g id="shape-22222222-2222-4222-8222-222222222222">
+      <penpot:shape penpot:name="Button" penpot:type="rect">
+        <penpot:layout-item penpot:layout-item-h-sizing="fix" penpot:layout-item-v-sizing="fix"/>
+      </penpot:shape>
+      <rect x="12" y="20" width="80" height="40" fill="#336699"/>
+    </g>
+  </g>
+  <g id="shape-33333333-3333-4333-8333-333333333333">
+    <penpot:shape penpot:name="Gallery" penpot:type="frame">
+      <penpot:layout penpot:layout="grid" penpot:layout-grid-dir="row">
+        <penpot:grid-rows><penpot:grid-track penpot:index="0" penpot:type="auto"/></penpot:grid-rows>
+        <penpot:grid-columns><penpot:grid-track penpot:index="0" penpot:type="flex" penpot:value="1"/></penpot:grid-columns>
+        <penpot:grid-cells/>
+      </penpot:layout>
+    </penpot:shape>
+    <rect x="320" y="0" width="260" height="200" fill="#dddddd"/>
+    <rect x="330" y="10" width="100" height="100" fill="#993366"/>
+  </g>
+</svg>`;
+const plainSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200">
+  <g id="layout-grid"><rect x="0" y="0" width="100" height="100" fill="#111111"/><rect x="110" y="0" width="100" height="100" fill="#222222"/>
+  <rect x="0" y="110" width="100" height="100" fill="#333333"/><rect x="110" y="110" width="100" height="100" fill="#444444"/></g>
+</svg>`;
+
 const browserOrigin =
   process.env.LOLLY_LAYOUT_TEST_URL ??
   process.env.LOLLY_IMPORT_TEST_URL ??
@@ -202,6 +250,49 @@ test('browser Penpot parser and artboard import keep dynamic owners and track id
     }
     assert.equal(new Set(result.trackRows.map(track => track.id)).size, 2);
     for (const track of result.trackRows) assert.equal(byId.get(track.container)?.layout, 'grid');
+  } finally { await browser.close(); }
+});
+
+test('browser legacy Penpot SVG imports keep positioned artwork and report each declared layout', {
+  skip: browserOrigin ? false : 'Set LOLLY_IMPORT_TEST_URL or LOLLY_EXPORT_TEST_URL to a local Vite shell.', timeout: 90_000,
+}, async () => {
+  const zipped = zipSync({ 'Page 1.svg': strToU8(legacyPenpotSvg), 'Page 2.svg': strToU8(plainSvg) });
+  const { chromium } = await import('playwright');
+  const channel = process.env.LOLLY_BROWSER_CHANNEL;
+  const browser = await chromium.launch({ headless: true, ...(channel ? { channel } : {}) });
+  try {
+    const page = await browser.newPage();
+    await page.goto(browserOrigin!);
+    const result = await page.evaluate(async ({ bytes, legacy, plain }) => {
+      const parserPath = '/src/views/design-import.ts', bridgePath = '/src/bridge/index.ts';
+      const [{ parseDesignFile, parseDesignArtboards }, { createBridge }] = await Promise.all([import(parserPath), import(bridgePath)]);
+      const host = await createBridge(), warnings = { zip: [] as string[], frames: [] as string[], legacy: [] as string[], plain: [] as string[] };
+      const log = (key: keyof typeof warnings) => (message: string) => { warnings[key].push(message); };
+      const zip = new File([new Uint8Array(bytes)], 'legacy.zip');
+      const single = await parseDesignFile(zip, { host, interactive: false, log: log('zip') });
+      const artboards = await parseDesignArtboards(zip, { host, interactive: false, log: log('frames') });
+      const legacySvg = await parseDesignFile(new File([legacy], 'board.svg', { type: 'image/svg+xml' }), { host, interactive: false, log: log('legacy') });
+      const plainResult = await parseDesignFile(new File([plain], 'plain.svg', { type: 'image/svg+xml' }), { host, interactive: false, log: log('plain') });
+      return { single, artboards, legacySvg, plainResult, warnings };
+    }, { bytes: [...zipped], legacy: legacyPenpotSvg, plain: plainSvg });
+    const noLayout = (boxes: Row[]) => {
+      for (const box of boxes) assert.deepEqual(Object.keys(box).filter(key => key.startsWith('layout')), [], `box ${box.id} gained layout fields`);
+    };
+    // Four drawn rectangles on page 1 and four on page 2; the metadata records are never drawn.
+    assert.equal(result.single.boxes.length, 8); noLayout(result.single.boxes);
+    assert.equal(result.single.layoutTracks, undefined);
+    assert.deepEqual(result.single.layoutFindings.map((finding: Row) => finding.id),
+      ['11111111-1111-4111-8111-111111111111', '33333333-3333-4333-8333-333333333333']);
+    for (const finding of result.single.layoutFindings) assert.ok(result.warnings.zip.includes(finding.message));
+    for (const list of Object.values(result.warnings)) assert.equal(list.some(message => /penpot:/i.test(message)), false, list.join('\n'));
+    assert.equal(result.artboards.frames.length, 2);
+    assert.equal(result.artboards.frames[0].layoutFindings.length, 2);
+    assert.equal(result.artboards.frames[1].layoutFindings, undefined);
+    for (const frame of result.artboards.frames) noLayout(frame.boxes);
+    assert.equal(result.legacySvg.layoutFindings.length, 2); noLayout(result.legacySvg.boxes);
+    assert.equal(result.plainResult.boxes.length, 4); noLayout(result.plainResult.boxes);
+    assert.equal(result.plainResult.layoutFindings, undefined); assert.equal(result.plainResult.layoutTracks, undefined);
+    assert.deepEqual(result.warnings.plain, []);
   } finally { await browser.close(); }
 });
 
