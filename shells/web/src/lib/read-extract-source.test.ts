@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { unzipSync, zipSync } from 'fflate';
+import { PDFDocument, PDFName, PDFString, StandardFonts } from 'pdf-lib';
 import type { OcrLine } from '@lolly-tools/core/host-v1';
 import { readExtract } from '../../../../engine/src/read-extract.ts';
 import { scoreExtract } from '../../../../engine/src/read-extract-quality.ts';
@@ -117,4 +118,23 @@ test('a deck that carries macros reads without running them and says so', async 
   parts['ppt/vbaProject.bin'] = new TextEncoder().encode('Sub AutoOpen(): End Sub');
   const out = await readExtractSource({ name: 'deck.pptm', bytes: zipSync(parts, { level: 0 }) }, { parseXml });
   assert.deepEqual(out.inventory.warnings.map((w) => w.code), ['macros-not-run']);
+});
+
+test('a PDF that carries a script and an attachment reads without running or opening them, here and on the host alike', async () => {
+  const doc = await PDFDocument.create();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  doc.addPage([400, 300]).drawText('Quarterly figures', { x: 40, y: 240, size: 18, font });
+  doc.catalog.set(PDFName.of('OpenAction'), doc.context.obj({ Type: 'Action', S: 'JavaScript', JS: PDFString.of('app.alert("opened")') }));
+  await doc.attach(new TextEncoder().encode('hidden notes'), 'notes.txt', { mimeType: 'text/plain' });
+  const bytes = await doc.save();
+
+  const web = await readExtractSource({ name: 'active.pdf', bytes }, { parseXml });
+  const host = await readContentInventory({ bytes, name: 'active.pdf' });
+  for (const [where, inventory] of [['web', web.inventory], ['host', host.inventory]] as const) {
+    const codes = inventory.warnings.map((w) => w.code);
+    assert.ok(codes.includes('scripts-not-run'), `${where}: the script is reported (${codes.join(', ')})`);
+    assert.ok(codes.includes('embedded-not-opened'), `${where}: the attachment is reported (${codes.join(', ')})`);
+  }
+  assert.deepEqual(web.inventory.warnings, host.inventory.warnings, 'both readers give the same warnings');
+  assert.match(readExtract(web.inventory).blocks.map((b) => b.text ?? '').join(' '), /Quarterly figures/);
 });

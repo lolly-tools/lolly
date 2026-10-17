@@ -21,12 +21,16 @@
  * runs under node against the committed fixtures.
  *
  * NOTHING THE FILE CARRIES IS RUN. An Office package's macros, controls and
- * embedded objects are counted by part name and reported, never opened.
+ * embedded objects are counted by part name, and a PDF's scripts, launch actions
+ * and attachments by the Verify structure walk (`pdfActiveContent`, which
+ * `lolly read` calls too). Each is reported in the inventory's warnings, never run
+ * or opened.
  */
 
 import type { ContentInventoryV1, SlideSourceV1, SourceDeckV1 } from '@lolly-tools/core';
 import type { OcrLine } from '@lolly-tools/core/host-v1';
 import type { PdfImageCodec, PdfResourceDecoders } from '@lolly-tools/node-shell/pdf-read';
+import { pdfActiveContent } from '@lolly-tools/node-shell/pdf-active-content';
 import { inflatePptx } from '@lolly-tools/node-shell/pptx';
 import { flattenedPictureOf, reconstructFlattenedSlide, type FlattenedOcrV1 } from '@lolly-tools/node-shell/rebrand/flattened';
 import { sourceDeckFromPdf } from '@lolly-tools/node-shell/rebrand/source-pdf';
@@ -224,6 +228,7 @@ export async function readExtractSource(file: { name: string; bytes: Uint8Array 
         ...(readers.codec ? { codec: readers.codec } : {}),
         ...(readers.decoders ? { decoders: readers.decoders } : {}),
       });
+      active = await pdfActiveContent(bytes);
     } else {
       const decode = await deps.psdDecode?.();
       source = await sourceDeckFromPsd(bytes, {
