@@ -1697,6 +1697,21 @@ box-shadow:none;
 
 .preflight-fix { display: block; min-height: 44px; margin-block-start: var(--sp-3); white-space: normal; }
 
+/* The design-system record card (tool-actions markup.ts madeWithRow, plans/319): a
+   pre-checked toggle, then the exact words the export writes and the description as
+   it will read. Outside Content protection, so it is in view at the moment of export.
+   `.section-card` sets display:flex, so the hidden attribute needs its own rule. */
+.export-madewith { gap: var(--sp-2); }
+.export-madewith[hidden] { display: none; }
+.madewith-line {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+  overflow-wrap: anywhere;
+}
+.madewith-line[data-madewith-record] { color: hsl(var(--foreground)); }
+.madewith-description { font-size: var(--fs-xs); }
+
 /* Licence picker (tool-actions markup.ts licenceRow), inside Content protection. */
 .export-licence-pick {
   display: flex;

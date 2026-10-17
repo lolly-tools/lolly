@@ -193,6 +193,10 @@ export function resolveExportFormat(tview: ToolViewCtx): void {
   // Held on the runtime so the source credits, the export's metadata, the saved
   // record and the address bar all read one value. An unknown id clears it.
   tview.runtime.setOutputLicence?.(tview.urlLicence || (tview.initialValues.__export_licence as string | undefined) || null);
+  // `_madewith=0` leaves the design-system record out (plans/319). Held on the
+  // runtime like the licence, so the export panel's card, a deep-link export and
+  // every other export from this mount read one switch.
+  if (tview.openedSession.url.madeWith === false) tview.runtime.setMadeWith?.(false);
   // Rewrite the URL hash query string to reflect the current tool state so the
   // page is shareable and bookmarkable. Uses replaceState - no history entry.
   // Params the user has explicitly touched - only these are written to the URL.

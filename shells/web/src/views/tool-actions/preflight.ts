@@ -359,6 +359,8 @@ export function disposeActions(ta: ActionsCtx): void {
   ta.rightsRow = undefined;
   paletteRereads.get(ta)?.();
   paletteRereads.delete(ta);
+  // So does the design-system record card (plans/319).
+  ta.notes.disposeMadeWith();
 }
 export async function refreshCost(ta: ActionsCtx): Promise<void> {
   const { PRICEABLE_KINDS, el, host, reachedViaLink } = ta;
