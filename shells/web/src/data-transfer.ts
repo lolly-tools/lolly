@@ -39,14 +39,13 @@
  */
 
 import { strToU8 } from 'fflate';
-import { assetRecordsToImport, packBackupSessions, restoreBackupSessions, type BackupState, type BackupHistoryMode } from './lib/backup-sessions.ts';
+import { assetRecordsToImport, restoreBackupSessions, writeBackupSessions, type BackupState, type BackupHistoryMode } from './lib/backup-sessions.ts';
 import { backupOwnCounts } from './lib/backup-summary.ts';
 import { mergeProfileRecords } from './lib/profile-merge.ts';
 import { isDiscardedSlot } from './lib/batch-slots.ts';
-import { zipAsync } from './lib/zip.ts';
 import {
-  BUNDLE_HEADER, README_NAME, buildIntegrity, readJson, unzipBundle, verifyIntegrity,
-  type BundleEntry,
+  BUNDLE_HEADER, README_NAME, readJson, unzipBundle, verifyIntegrity,
+  type BundleArchive,
 } from './lib/bundle.ts';
 
 export const BACKUP_FORMAT = 'lolly-backup';
@@ -171,9 +170,13 @@ interface BackupManifest {
 // minReader gate - is the shared bundle format (lib/bundle.ts), identical to the
 // brand pack's. Only the payload below differs.
 //
-// Zipping goes through lib/zip.ts: worker-offloaded in a real browser (a backup
-// can be tens of MB of images - the synchronous path froze the tab for seconds),
-// sync fallback in no-Worker contexts like the headless round-trip test.
+// Export streams (plan 203 R4): parts go one by one into lib/zip-stream.ts, which
+// refers to uploads and saved results where they already are, hashes them in
+// bounded chunks and deflates large JSON as it is written, so finishing a backup
+// no longer holds the whole archive in memory two or three times over. For the
+// same parts and time it writes exactly the archive the in-memory writer wrote;
+// only a history file past 16 MiB is compressed in pieces, which leaves that
+// part's bytes and digest as they were.
 //
 // Restore bounds: declared-size caps checked BEFORE each entry inflates - a
 // restore should never balloon a small hostile zip into gigabytes of memory.
@@ -326,28 +329,31 @@ function backupFilename(profile: Record<string, unknown>, storage: BackupStorage
 
 /**
  * Read everything the user owns (through the bridge) and pack it into one zip Blob.
+ * `archive` is where the parts go: the streamed archive by default, or the
+ * in-memory one (lib/bundle.ts memoryArchive) the streamed one is checked against.
  * @param {{ host: object, storage: Storage }} deps
  * @returns {Promise<{ blob: Blob, filename: string, summary: object }>}
  */
 export async function exportBackup(
   { host, storage }: { host: BackupHost; storage: BackupStorage },
   options: BackupHistoryMode = {},
+  archive?: BundleArchive,
 ): Promise<{ blob: Blob; filename: string; summary: BackupSummary; ids: BackupIds; size: BackupSize }> {
-  const entries: Record<string, BundleEntry> = {};
-  const { slots, ...sessionSummary } = await packBackupSessions(host.state, entries, options);
+  const out = archive ?? (await import('./lib/zip-stream.ts')).streamedArchive();
+  const { slots, ...sessionSummary } = await writeBackupSessions(host.state, out, options);
   const ids: BackupIds = { sessions: slots, assets: [], designSystems: [], prefs: [] };
-  // Read/history-budget first: a large result library must fail before we copy
-  // hundreds of unrelated asset blobs into the ZIP's in-memory entry map.
+  // Read/history-budget first: a large result library must fail before any of the
+  // hundreds of unrelated asset blobs are read.
   const history = host.fileHistory ? await host.fileHistory.export() : null;
   if (history) {
-    const { packFileHistory } = await import('./lib/file-history-backup.ts');
-    await packFileHistory(history, entries);
+    const { writeFileHistory } = await import('./lib/file-history-backup.ts');
+    await writeFileHistory(history, out);
   }
 
   // Profile.
   const profile = await host.profile.get();
   const hasProfile = !!profile && Object.keys(profile).length > 0;
-  if (hasProfile) entries['profile.json'] = strToU8(JSON.stringify(profile, null, 2));
+  if (hasProfile) await out.bytes('profile.json', strToU8(JSON.stringify(profile, null, 2)));
 
   // The design-system records (plans/186 section 3.9): the material itself
   // travels as user assets below; the records are what names it and says which
@@ -358,7 +364,7 @@ export async function exportBackup(
       const [records, activeId] = await Promise.all([registry.list(), registry.activeId()]);
       const own = records.filter(r => r.source.kind !== 'shipped');
       ids.designSystems = own.map(r => r.id);
-      if (own.length) entries['design-systems.json'] = strToU8(JSON.stringify({ active: activeId, records: own }, null, 2));
+      if (own.length) await out.bytes('design-systems.json', strToU8(JSON.stringify({ active: activeId, records: own }, null, 2)));
     }
   } catch { /* no registry on this host - the assets still carry the material */ }
 
@@ -366,11 +372,11 @@ export async function exportBackup(
   // file and keep the rest (id/type/format/dims/version/meta) as metadata.
   const userAssets = await host.assets._exportUserAssets();
   const assetMeta = [];
-  const { packBackupAsset } = await import('./lib/backup-asset-record.ts');
+  const { writeBackupAsset } = await import('./lib/backup-asset-record.ts');
   for (let i = 0; i < userAssets.length; i++) {
-    assetMeta.push(await packBackupAsset(userAssets[i]!, `assets/blobs/${i}`, entries));
+    assetMeta.push(await writeBackupAsset(userAssets[i]!, `assets/blobs/${i}`, out));
   }
-  entries['assets.json'] = strToU8(JSON.stringify(assetMeta, null, 2));
+  await out.bytes('assets.json', strToU8(JSON.stringify(assetMeta, null, 2)));
   ids.assets = userAssets.map(r => String(r.id ?? '')).filter(Boolean);
 
   // Preferences / local metrics - only the user-owned keys.
@@ -379,7 +385,7 @@ export async function exportBackup(
     const v = storage.getItem(key);
     if (v != null) prefs[key] = v;
   }
-  entries['prefs.json'] = strToU8(JSON.stringify(prefs, null, 2));
+  await out.bytes('prefs.json', strToU8(JSON.stringify(prefs, null, 2)));
   ids.prefs = Object.keys(prefs);
 
   const summary: BackupSummary = {
@@ -408,24 +414,19 @@ export async function exportBackup(
   // truncated or mangled in transit (USB, email, AirDrop) fails with a clear message
   // instead of a confusing half-restore. Best-effort: omitted when Web Crypto isn't
   // available, and an older reader without integrity support ignores it harmlessly.
-  const integrity = await buildIntegrity(entries);
+  const integrity = await out.integrity();
   if (integrity) manifest.integrity = integrity;
 
-  entries['manifest.json'] = strToU8(JSON.stringify(manifest, null, 2));
+  await out.bytes('manifest.json', strToU8(JSON.stringify(manifest, null, 2)));
 
   // Human-readable summary for anyone opening the zip. Added AFTER the integrity loop so
   // it's not integrity-protected (it's a README, regenerated each export, not payload),
   // and recognised as a known part on import so it never counts as `skipped`.
-  entries[README_NAME] = strToU8(backupReadme({ summary, profile, filename }));
+  await out.bytes(README_NAME, strToU8(backupReadme({ summary, profile, filename })));
 
-  const size: BackupSize = { total: 0, largest: { name: '', bytes: 0 } };
-  for (const [name, entry] of Object.entries(entries)) {
-    const bytes = (Array.isArray(entry) ? entry[0] : entry).byteLength;
-    size.total += bytes;
-    if (bytes > size.largest.bytes) size.largest = { name, bytes };
-  }
-  const zipped = await zipAsync(entries); // off-thread in the browser; sync fallback elsewhere
-  const blob = new Blob([zipped as BlobPart], { type: 'application/zip' });
+  const { total, largest } = out.stats;
+  const size: BackupSize = { total, largest: { ...largest } };
+  const blob = await out.finish();
   return { blob, filename, summary, ids, size };
 }
 
