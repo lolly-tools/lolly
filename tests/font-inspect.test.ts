@@ -13,6 +13,7 @@ import { fontSubsetRefusal, readSfntDirectory, FONT_SUBSET_REFUSALS } from '../e
 import { sfntToWoff, sfntKind } from '../engine/src/font-convert.ts';
 import { createNodeFontsAPI } from '../packages/node-shell/src/fonts.ts';
 import { subsetWithSkera, type SkeraWasm } from '../packages/node-shell/src/font-subset-wasm.ts';
+import { overlappingCmap4Font, cmap12Font } from './helpers/font-cmap-fixture.ts';
 
 const OUTFIT = new Uint8Array(readFileSync(new URL('../shells/web/public/fonts/Outfit[wght].ttf', import.meta.url)));
 const SKERA = readFileSync(new URL('../packages/node-shell/wasm/skera/skera.wasm', import.meta.url));
@@ -203,6 +204,40 @@ test('output that fails the check is refused rather than returned', async () => 
     },
   };
   await assert.rejects(subsetFontForText(OUTFIT, { text: 'a' }, emptied), /no longer maps to its glyph/);
+});
+
+test('overlapping cmap format 4 segments are read once per code point', () => {
+  // 2,000 segments that each claim U+0000 up to their own end, over one glyph
+  // array that maps every odd code point: walking every segment's whole range
+  // would cost about 127 million lookups and 64 million raw ranges.
+  const font = overlappingCmap4Font(2000);
+  const t0 = performance.now();
+  const info = inspectFont(font);
+  const ms = performance.now() - t0;
+  assert.ok(ms < 2000, `inspection took ${ms.toFixed(0)} ms`);
+  assert.ok(info.coverage.ranges.length <= 32_768);
+  assert.equal(info.coverage.characters, 32_767, 'the odd code points U+0001 to U+FFFD');
+  assert.equal(info.coverage.ranges.length, 32_767);
+  assert.deepEqual(info.coverage.ranges.slice(0, 2), [[1, 1], [3, 3]]);
+  assert.deepEqual(info.coverage.ranges.at(-1), [0xfffd, 0xfffd]);
+  assert.equal(info.coverage.blocks.find((block) => block.name === 'Basic Latin')?.characters, 64);
+  assert.equal(info.coverage.blocks.reduce((n, block) => n + block.characters, 0), 32_767);
+  assert.deepEqual(glyphsForText(font, 'ABC\uFFFD\uFFFC'), { glyphs: [1], kept: [0x41, 0x43, 0xfffd], missing: [0x42, 0xfffc] });
+
+  // End codes that stop ascending end the readable segments, so a table of
+  // identical full-range segments reads as its first.
+  const shared = overlappingCmap4Font(2000, { sharedEnd: true });
+  assert.equal(inspectFont(shared).coverage.characters, 32_767);
+  assert.deepEqual(glyphsForText(shared, 'AB'), { glyphs: [1], kept: [0x41], missing: [0x42] });
+});
+
+test('cmap format 12 groups are read while they ascend, and adjacent groups merge', () => {
+  const repeats = Array.from({ length: 1000 }, () => [0x41, 0x5a, 1] as const);
+  const font = cmap12Font([[0x30, 0x39, 27], [0x41, 0x4d, 1], [0x4e, 0x5a, 14], ...repeats, [0x61, 0x7a, 1]], 40);
+  const info = inspectFont(font);
+  assert.deepEqual(info.coverage.ranges, [[0x30, 0x39], [0x41, 0x5a]]);
+  assert.equal(info.coverage.characters, 36);
+  assert.deepEqual(glyphsForText(font, '09ANZaz'), { glyphs: [1, 14, 26, 27, 36], kept: [0x30, 0x39, 0x41, 0x4e, 0x5a], missing: [0x61, 0x7a] });
 });
 
 test('block counts split ranges across blocks and keep the remainder as Other', () => {

@@ -18,7 +18,9 @@
  *
  * Hostile-input posture follows font-convert.ts: every read is bounds-checked,
  * counts are validated against the table length before a loop, and allocation is
- * capped. WOFF input is unwrapped by font-convert.ts's bounded `woffToSfnt`.
+ * capped. The cmap readers visit each code point or group once, however the
+ * table's segments overlap. WOFF input is unwrapped by font-convert.ts's bounded
+ * `woffToSfnt`.
  */
 
 import type { FontInspectionV1, FontSubsetRequestV1, FontSubsetResultV1, FontsAPI, FontBlockCoverageV1 } from './bridge/host-v1.ts';
@@ -152,10 +154,14 @@ function mergeRanges(ranges: Array<[number, number]>): Array<[number, number]> {
 
 function readCmap4(b: Uint8Array, t: SfntTable, rel: number, numGlyphs: number): Cmap {
   if (!inTable(t, rel, 14)) return EMPTY_CMAP;
-  const segCount = u16(b, t.off + rel + 6) >> 1;
-  const ends = t.off + rel + 14, starts = ends + segCount * 2 + 2, deltas = starts + segCount * 2, offsets = deltas + segCount * 2;
-  if (!segCount || offsets + segCount * 2 > t.off + t.len) return EMPTY_CMAP;
+  const declared = u16(b, t.off + rel + 6) >> 1;
+  const ends = t.off + rel + 14, starts = ends + declared * 2 + 2, deltas = starts + declared * 2, offsets = deltas + declared * 2;
+  if (!declared || offsets + declared * 2 > t.off + t.len) return EMPTY_CMAP;
   const tableEnd = t.off + t.len;
+  // The spec requires strictly ascending end codes, and the binary search in gid()
+  // depends on that, so reading stops at the first segment that breaks the order.
+  let segCount = 1;
+  while (segCount < declared && u16(b, ends + segCount * 2) > u16(b, ends + (segCount - 1) * 2)) segCount++;
   const lookupIn = (seg: number, cp: number): number => {
     const start = u16(b, starts + seg * 2), delta = u16(b, deltas + seg * 2), rangeOffset = u16(b, offsets + seg * 2);
     let gid: number;
@@ -168,9 +174,14 @@ function readCmap4(b: Uint8Array, t: SfntTable, rel: number, numGlyphs: number):
     }
     return gid < numGlyphs ? gid : 0;
   };
+  // A segment owns only the code points above the previous end code, the same
+  // rule gid() applies, so overlapping segments cannot repeat work: the scan
+  // visits each code point at most once (65,535 lookups and 32,768 ranges).
   const ranges: Array<[number, number]> = [];
+  let floor = 0;
   for (let seg = 0; seg < segCount; seg++) {
-    const start = u16(b, starts + seg * 2), end = u16(b, ends + seg * 2);
+    const start = Math.max(u16(b, starts + seg * 2), floor), end = u16(b, ends + seg * 2);
+    floor = end + 1;
     if (start > end) continue;
     let open = -1;
     for (let cp = start; cp <= end; cp++) {
@@ -199,27 +210,40 @@ function readCmap12(b: Uint8Array, t: SfntTable, rel: number, numGlyphs: number)
   if (!inTable(t, rel, 16)) return EMPTY_CMAP;
   const count = u32(b, t.off + rel + 12);
   if (!inTable(t, rel + 16, count * 12)) return EMPTY_CMAP;
-  const groups: Array<[number, number, number]> = [];
+  // Groups must ascend without overlapping (the spec's rule, and gid()'s binary
+  // search), so reading stops at the first group that does not. Each kept group
+  // then covers code points no other group does: at most 1,114,112 groups, held
+  // as plain numbers, however many the table declares.
+  const firsts: number[] = [], lasts: number[] = [], glyphs: number[] = [];
+  let floor = 0;
   for (let i = 0; i < count; i++) {
     const at = t.off + rel + 16 + i * 12;
     let first = u32(b, at), last = Math.min(u32(b, at + 4), 0x10ffff);
     let glyph = u32(b, at + 8);
-    if (first > last || glyph >= numGlyphs) continue;
+    if (first < floor) break;
+    if (first > last) continue;
+    floor = last + 1;
+    if (glyph >= numGlyphs) continue;
     // Keep only the part of the group whose glyph ids exist; glyph 0 is .notdef.
     last = Math.min(last, first + (numGlyphs - 1 - glyph));
     if (glyph === 0) { first++; glyph = 1; }
-    if (first <= last) groups.push([first, last, glyph]);
+    if (first <= last) { firsts.push(first); lasts.push(last); glyphs.push(glyph); }
   }
-  groups.sort((x, y) => x[0] - y[0]);
+  const ranges: Array<[number, number]> = [];
+  firsts.forEach((first, k) => {
+    const tail = ranges[ranges.length - 1];
+    if (tail && first === tail[1] + 1) tail[1] = lasts[k]!;
+    else ranges.push([first, lasts[k]!]);
+  });
   return {
-    ranges: mergeRanges(groups.map(([first, last]) => [first, last])),
+    ranges,
     gid(cp) {
-      let lo = 0, hi = groups.length - 1;
+      let lo = 0, hi = firsts.length - 1;
       while (lo <= hi) {
-        const mid = (lo + hi) >> 1, [first, last, glyph] = groups[mid]!;
-        if (cp < first) hi = mid - 1;
-        else if (cp > last) lo = mid + 1;
-        else return glyph + (cp - first);
+        const mid = (lo + hi) >> 1;
+        if (cp < firsts[mid]!) hi = mid - 1;
+        else if (cp > lasts[mid]!) lo = mid + 1;
+        else return glyphs[mid]! + (cp - firsts[mid]!);
       }
       return 0;
     },
@@ -279,9 +303,15 @@ export function coverageByBlock(ranges: ReadonlyArray<readonly [number, number]>
   const addOther = (first: number, last: number) => {
     other += last - first + 1; otherFirst = Math.min(otherFirst, first); otherLast = Math.max(otherLast, last);
   };
+  // Ranges arrive ascending, so the block search resumes where the last range
+  // left it and the whole count stays linear (it restarts if they do not ascend).
+  let from = 0, previous = -1;
   for (const [first, last] of ranges) {
+    if (first < previous) from = 0;
+    previous = first;
+    while (from < BLOCKS.length && BLOCKS[from]![1] < first) from++;
     let cp = first;
-    for (let i = 0; i < BLOCKS.length && cp <= last; i++) {
+    for (let i = from; i < BLOCKS.length && cp <= last; i++) {
       const [blockFirst, blockLast] = BLOCKS[i]!;
       if (blockLast < cp) continue;
       if (blockFirst > last) break;

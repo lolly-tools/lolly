@@ -295,7 +295,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `file-data.ts` | 42 | Values-only table conversion shared by browser and Node file operations. | yes | `tests/file-data.test.ts` | – |
 | `file-metadata.ts` | 1687 | Embedded-metadata reader | yes | `tests/file-metadata.test.ts` | yes |
 | `font-convert.ts` | 348 | Font container interconversion - TTF/OTF ⇄ WOFF1, DOM-free and synchronous. | yes | `tests/font-convert.test.ts` | – |
-| `font-inspect.ts` | 422 | Font file inspection and verified subsetting to chosen text, DOM-free. | yes | `tests/font-inspect.test.ts` | yes |
+| `font-inspect.ts` | 452 | Font file inspection and verified subsetting to chosen text, DOM-free. | yes | `tests/font-inspect.test.ts` | yes |
 | `font-subset-policy.ts` | 122 | Whether a font's own tables permit glyph subsetting, read straight off the sfnt directory with no imports, so the Skera worker runtime can enforce it too. | no | indirect | – |
 | `forensic.ts` | 12 | Byte-bound AI evidence, located motifs, coverage and gated calibration. | yes | `tests/forensic.test.ts` | – |
 | `forensic/calibration.ts` | 168 | Candidate fits remain unavailable until reviewed, preregistered gates pass. | no | none | – |

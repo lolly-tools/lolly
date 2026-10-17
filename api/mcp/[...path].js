@@ -89149,10 +89149,12 @@ function mergeRanges(ranges) {
 }
 function readCmap4(b, t, rel, numGlyphs) {
   if (!inTable(t, rel, 14)) return EMPTY_CMAP;
-  const segCount = u166(b, t.off + rel + 6) >> 1;
-  const ends = t.off + rel + 14, starts = ends + segCount * 2 + 2, deltas = starts + segCount * 2, offsets = deltas + segCount * 2;
-  if (!segCount || offsets + segCount * 2 > t.off + t.len) return EMPTY_CMAP;
+  const declared = u166(b, t.off + rel + 6) >> 1;
+  const ends = t.off + rel + 14, starts = ends + declared * 2 + 2, deltas = starts + declared * 2, offsets = deltas + declared * 2;
+  if (!declared || offsets + declared * 2 > t.off + t.len) return EMPTY_CMAP;
   const tableEnd = t.off + t.len;
+  let segCount = 1;
+  while (segCount < declared && u166(b, ends + segCount * 2) > u166(b, ends + (segCount - 1) * 2)) segCount++;
   const lookupIn = (seg4, cp) => {
     const start = u166(b, starts + seg4 * 2), delta = u166(b, deltas + seg4 * 2), rangeOffset = u166(b, offsets + seg4 * 2);
     let gid;
@@ -89166,8 +89168,10 @@ function readCmap4(b, t, rel, numGlyphs) {
     return gid < numGlyphs ? gid : 0;
   };
   const ranges = [];
+  let floor = 0;
   for (let seg4 = 0; seg4 < segCount; seg4++) {
-    const start = u166(b, starts + seg4 * 2), end = u166(b, ends + seg4 * 2);
+    const start = Math.max(u166(b, starts + seg4 * 2), floor), end = u166(b, ends + seg4 * 2);
+    floor = end + 1;
     if (start > end) continue;
     let open3 = -1;
     for (let cp = start; cp <= end; cp++) {
@@ -89200,29 +89204,42 @@ function readCmap12(b, t, rel, numGlyphs) {
   if (!inTable(t, rel, 16)) return EMPTY_CMAP;
   const count4 = u326(b, t.off + rel + 12);
   if (!inTable(t, rel + 16, count4 * 12)) return EMPTY_CMAP;
-  const groups = [];
+  const firsts = [], lasts = [], glyphs2 = [];
+  let floor = 0;
   for (let i = 0; i < count4; i++) {
     const at = t.off + rel + 16 + i * 12;
     let first = u326(b, at), last = Math.min(u326(b, at + 4), 1114111);
     let glyph = u326(b, at + 8);
-    if (first > last || glyph >= numGlyphs) continue;
+    if (first < floor) break;
+    if (first > last) continue;
+    floor = last + 1;
+    if (glyph >= numGlyphs) continue;
     last = Math.min(last, first + (numGlyphs - 1 - glyph));
     if (glyph === 0) {
       first++;
       glyph = 1;
     }
-    if (first <= last) groups.push([first, last, glyph]);
+    if (first <= last) {
+      firsts.push(first);
+      lasts.push(last);
+      glyphs2.push(glyph);
+    }
   }
-  groups.sort((x, y) => x[0] - y[0]);
+  const ranges = [];
+  firsts.forEach((first, k) => {
+    const tail = ranges[ranges.length - 1];
+    if (tail && first === tail[1] + 1) tail[1] = lasts[k];
+    else ranges.push([first, lasts[k]]);
+  });
   return {
-    ranges: mergeRanges(groups.map(([first, last]) => [first, last])),
+    ranges,
     gid(cp) {
-      let lo = 0, hi = groups.length - 1;
+      let lo = 0, hi = firsts.length - 1;
       while (lo <= hi) {
-        const mid3 = lo + hi >> 1, [first, last, glyph] = groups[mid3];
-        if (cp < first) hi = mid3 - 1;
-        else if (cp > last) lo = mid3 + 1;
-        else return glyph + (cp - first);
+        const mid3 = lo + hi >> 1;
+        if (cp < firsts[mid3]) hi = mid3 - 1;
+        else if (cp > lasts[mid3]) lo = mid3 + 1;
+        else return glyphs2[mid3] + (cp - firsts[mid3]);
       }
       return 0;
     }
@@ -89245,9 +89262,13 @@ function coverageByBlock(ranges) {
     otherFirst = Math.min(otherFirst, first);
     otherLast = Math.max(otherLast, last);
   };
+  let from = 0, previous2 = -1;
   for (const [first, last] of ranges) {
+    if (first < previous2) from = 0;
+    previous2 = first;
+    while (from < BLOCKS.length && BLOCKS[from][1] < first) from++;
     let cp = first;
-    for (let i = 0; i < BLOCKS.length && cp <= last; i++) {
+    for (let i = from; i < BLOCKS.length && cp <= last; i++) {
       const [blockFirst, blockLast] = BLOCKS[i];
       if (blockLast < cp) continue;
       if (blockFirst > last) break;
