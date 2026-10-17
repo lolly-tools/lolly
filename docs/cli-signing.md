@@ -273,7 +273,9 @@ Note what the default does **not** do: a stranger's CA is not trusted because it
 
 Content Credentials and the Lolly Imprint are **on by default** for `lolly run`, matching the app exactly ([contract section 12, O2](https://github.com/lolly-tools/lolly/blob/main/plans/73-cli-ga-contract.md)). A tool opts out for everyone through its manifest (`render.c2pa: false`, or `privacy: 'on-device'`); a run opts out with `--c2pa=off`, `--imprint=0`, or `--no-provenance` for all of them at once.
 
-What a credential embeds: the tool and its input digest, the output format and dimensions, the surface (`cli`), the Node version and OS, a timestamp, the action history, your author details when `useDetails` is on and - with an identity - your certificate chain.
+What a credential embeds: the tool and its input digest, the output format and dimensions, the surface (`cli`), the Node version and OS, a timestamp, the action history, your author details when `useDetails` is on, the [design system, version and colourway](/info/exporting.html#the-design-system-record) the render drew with and - with an identity - your certificate chain.
+
+**The design-system record has its own switch.** The CLI identifies its design system the way the app does: the active terminal design system, else the catalog's own tokens, labelled from that asset's name. The record goes into the credential and into the file's own metadata, and the CLI prints the words the finished file carries on standard error (`Recorded the design system: Acme · Colourway: Persimmon.`), read back from the file. `--no-madewith` (or `--_madewith=0`) leaves the record out. `--no-provenance` leaves the record alone: the record holds no timestamp, so two runs with the same design system still write the same bytes.
 
 **Byte-reproducibility.** Both marks embed a fresh timestamp, so two identical runs no longer produce identical bytes. `--no-provenance` is the one word that buys determinism back, and `smoke` and `batch` apply it themselves. `--no-provenance` together with `--sign-key` is a refusal rather than a guess:
 
