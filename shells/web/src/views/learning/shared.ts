@@ -2,7 +2,7 @@
 import type { SourceDisplay } from './context.ts';
 import type { LearningBlock } from '@lolly-tools/core/learning-v1';
 import type { LearningRendition } from '../../../../../engine/src/learning/delivery.ts';
-import { escape as esc } from '../../utils.ts';
+import { escape as esc, safeHref } from '../../utils.ts';
 import {
   contentIcon,
   contentLabels,
@@ -195,10 +195,11 @@ export function exportMarkup(v: ExportView): string {
     ${errors.length ? `<section class="learning-notice" data-tone="error"><h3>${errors.length} ${errors.length === 1 ? 'item to fix' : 'items to fix'}</h3>${findingList(errors)}</section>` : '<p class="learning-notice">The course structure is ready. The next check prepares the media and measures the final ZIP.</p>'}
     ${reviews.length ? `<details class="learning-handoff" data-delivery-reviews><summary>${reviews.length} ${reviews.length === 1 ? 'accessibility item' : 'accessibility items'} to review</summary>${findingList(reviews)}</details>` : '<p class="learning-hint">Use learner preview to check explanations, captions and reading order.</p>'}
     ${v.checking ? '<div><progress aria-label="Preparing course"></progress><p class="learning-hint">Preparing the package. You can continue editing; a content change cancels this check.</p></div>' : ''}`;
+  const docHref = preset.documentation && safeHref(preset.documentation) ? esc(preset.documentation) : '';
   const download = `<div class="learning-package-ready"><span class="learning-content-icon">${icon('check', { size: 24 })}</span><div><strong>${v.saved ? 'Version saved' : 'Your package is ready'}</strong><p class="learning-hint">${esc(targetLabel(v.target))} / ${(v.bytes / 1_000_000).toFixed(2)} MB (${v.bytes.toLocaleString()} bytes)</p></div></div>
     <p class="learning-notice" data-tone="success">${v.saved ? 'The finished files are kept on this device. Check your downloads folder for the ZIP.' : `The ZIP includes every selected lesson and its finished content.${v.maxMB ? ' It is within your destination upload limit.' : ''}`}</p>
     ${!v.original && !v.saved ? `<label>Version notes<textarea class="field-input" data-delivery-note placeholder="What changed in this version?" ${v.active ? 'disabled' : ''}>${esc(v.note)}</textarea></label>` : ''}
-    <section class="learning-handoff"><h3>${v.target === 'static' ? 'Publish on your website' : preset.generic ? 'Import into your LMS' : `Import into ${esc(preset.name)}`}</h3><p>${v.target === 'static' ? 'Extract the ZIP and upload all files together to your website. Link to index.html. Progress stays in the learner’s browser.' : 'Upload the unopened ZIP to a test course. Verify launch, resume and completion before assigning learners.'}</p><details data-delivery-handoff><summary>Full handoff instructions</summary><p class="learning-hint">${esc(preset.instructions)}</p><p class="learning-hint">${esc(learningHandoff(v.target))}</p>${preset.documentation ? `<p><a href="${esc(preset.documentation)}" target="_blank" rel="noopener noreferrer">${esc(preset.name)} documentation</a></p>` : ''}</details></section>
+    <section class="learning-handoff"><h3>${v.target === 'static' ? 'Publish on your website' : preset.generic ? 'Import into your LMS' : `Import into ${esc(preset.name)}`}</h3><p>${v.target === 'static' ? 'Extract the ZIP and upload all files together to your website. Link to index.html. Progress stays in the learner’s browser.' : 'Upload the unopened ZIP to a test course. Verify launch, resume and completion before assigning learners.'}</p><details data-delivery-handoff><summary>Full handoff instructions</summary><p class="learning-hint">${esc(preset.instructions)}</p><p class="learning-hint">${esc(learningHandoff(v.target))}</p>${docHref ? `<p><a href="${docHref}" target="_blank" rel="noopener noreferrer">${esc(preset.name)} documentation</a></p>` : ''}</details></section>
     ${v.saved ? '<button type="button" class="btn btn--ghost" data-delivery-report>Download handoff report</button>' : ''}`;
   const next =
     v.step === 0
