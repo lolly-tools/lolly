@@ -72,6 +72,16 @@ Design keeps links in an appended metadata field alongside ordinary scalar prope
 
 Typography, shadow, border, transition and gradient token composites support bounded nested aliases in the [supported composite fields](https://www.designtokens.org/tr/2025.10/format/#composite-types). Incompatible reference types stay visible in the inspector. Unknown token types, `$ref` and `$extends` remain retained source data and are reported where unsupported.
 
+## Linking many documents at once
+
+Batch and Multi-edit can link one token across many rows or sessions. In Batch, open a column's **Fill** popover; numeric, text and choice columns have a **Design token** section beside the fill value. In Multi-edit, each session card has the same **Input actions** menu as a tool sidebar and acts on that session only. The **Shared** card's menu reaches every session that declares the input.
+
+Choosing a token opens a review before anything changes. Each row or session shows its current value and the value it would get, resolved in that document's own theme choices and checked against its own input. Plain values are selected. A custom value that replaced a link, or a link to another token, is kept unless you select that document. A document that cannot take the token, or whose input is read-only, stays in the list with the reason. **Apply** writes only the selected documents; **Cancel** writes nothing.
+
+**Make custom** keeps each linked document at its own value and records the link for later. **Restore link** appears when every document records the same previous link, and its review selects those documents.
+
+In the Batch grid, a linked cell is shaded and its accessible name includes the token path. A value typed, pasted or filled over a linked cell becomes a custom value that records the link, as in a tool sidebar. Cell copy and CSV export carry the value shown, not the link. Rows opened from saved sessions keep the session's theme choices and recorded links, and render with those choices.
+
 ## Reviewing changes
 
 Source edits, generated scales and upstream comparisons capture the current document. The review includes authored changes and indirect resolved changes. An intervening token edit, system switch or referenced resource change invalidates Apply.

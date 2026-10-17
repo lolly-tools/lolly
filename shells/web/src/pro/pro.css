@@ -352,6 +352,9 @@ body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; 
 .pro-asset-clear:hover::before,
 .pro-asset-clear:focus-visible::before { content: '✕'; }
 .pro-cell:has(button[data-asset-pick][data-selected]) { background: hsl(var(--primary) / .07); }
+/* A cell linked to a design token: the same full wash as a picked asset, with the
+   token path in the cell's title (grid.ts). */
+.pro-cell.pro-cell--linked { background: hsl(var(--primary) / .07); }
 /* Size, fill and tick come from `.field-check`; the cell only has to centre it.
    (It was a 1rem UA box with an accent-color one-liner until the primitive.) */
 .pro-cell input[type="checkbox"].pro-control {
@@ -597,6 +600,10 @@ body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; us
    intrinsic size - `width:auto` shrink-to-fits an empty box to ZERO. */
 .pro-popover-control input[type="checkbox"].pro-control { width: calc(16px * var(--a11y-fs)); }
 .pro-popover-actions { display: flex; justify-content: flex-end; gap: .5rem; }
+.pro-popover-token { display: grid; gap: .4rem; margin-bottom: .7rem; }
+.pro-popover-subtitle { font-weight: 600; font-size: calc(.8rem * var(--a11y-fs)); }
+.pro-popover-token .input-token-note { margin: 0; }
+.pro-popover-token .token-binding-field { flex-direction: column; align-items: stretch; }
 
 /* Run-level print settings popover (bleed, marks, CMYK press profile).
    Same box as every other /pro popover - only the inner layout is new. */

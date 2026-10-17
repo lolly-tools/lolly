@@ -14,6 +14,7 @@
  */
 import type { InputValue } from '../../../../engine/src/inputs.js';
 import type { Runtime } from '../../../../engine/src/runtime.js';
+import { writeStoredInput } from './token-bulk-link.ts';
 
 export interface LazyMember {
   /** null until the cell nears the viewport (or its card opens, or it leads a shared input). */
@@ -34,9 +35,11 @@ export function memberSaveValues(
 
 /** Apply a fanned-out shared edit to one member: through its runtime when live, else
  *  buffered into its seed so createRuntime picks it up when the cell is finally built.
- *  Either way the value is written and the member is marked dirty. */
+ *  Either way the value is written and the member is marked dirty. The seed follows
+ *  the runtime's restore rule: a value written over a token link records that link,
+ *  so a frozen cell can still offer Restore link once it is built. */
 export async function applySharedEdit(m: LazyMember, id: string, value: InputValue): Promise<void> {
   if (m.runtime) await m.runtime.setInput(id, value);
-  else m.values[id] = value;
+  else writeStoredInput(m.values, id, value);
   m.dirty = true;
 }

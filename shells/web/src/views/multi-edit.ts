@@ -29,7 +29,7 @@ import { shareUrlState } from '../lib/share-privacy.ts';
 import { updateRouteParams } from '../lib/url-state.ts';
 import '../styles/parts/tool.css';        // .tool-inputs control styles (shared chunk with the tool view)
 import '../styles/parts/multi-edit.css';
-import { UNITS, buildEmbedUrl, buildInputModel } from '@lolly/engine';
+import { UNITS, buildEmbedUrl, buildInputModel, tokenRestoreRefsOf } from '@lolly/engine';
 import { setPendingToolSeed } from '../lib/drop-router.ts';
 import { navigateTo } from '../nav.ts';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
@@ -53,6 +53,8 @@ import { MULTI_EDIT_MIN, MULTI_EDIT_MAX } from '../lib/multi-edit-limits.ts';
 import { memberSaveValues, applySharedEdit } from '../lib/multi-edit-lazy.ts';
 import { createSinglePreviewer } from '../lib/multi-edit-single.ts';
 import { setupMobileSheet } from '../lib/mobile-sheet.ts';
+import { TOKEN_CONTEXT_KEYS } from '../lib/token-bulk-link.ts';
+import { mountMemberTokenActions, mountSharedTokenActions } from '../lib/multi-edit-token-links.ts';
 
 import type { WebToolHost, PanelEl } from './tool.ts';
 import type { InputModelItem, InputValue, InputSpec } from '../../../../engine/src/inputs.js';
@@ -120,9 +122,17 @@ const ZOOM_OUT_ICON = svg('<line x1="5" y1="12" x2="19" y2="12"/>');
 const ZOOM_IN_ICON = svg('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>');
 const FIT_ICON = svg('<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>');
 
-/** Current values of a runtime's model as a plain map (what a session persists). */
+/** Current values of a runtime's model as a plain map (what a session persists),
+ *  with its theme choices and the previous link of each custom value, as the tool
+ *  view's own save records them (views/tool-session-snapshot.ts). */
 function modelValues(runtime: Runtime): Record<string, InputValue> {
-  return Object.fromEntries(runtime.getModel().map(i => [i.id, i.value]));
+  const model = runtime.getModel();
+  const links = tokenRestoreRefsOf(model);
+  return {
+    ...Object.fromEntries(model.map(i => [i.id, i.value])),
+    ...(Object.keys(links).length ? { __tokenLinks: links } : {}),
+    ...(runtime.tokenSelection ? { __tokenSelection: runtime.tokenSelection } : {}),
+  };
 }
 
 const num = (v: unknown): number | undefined => {
@@ -180,7 +190,10 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
     try { tool = await getTool(toolId); }
     catch { fail(`The tool "${toolId}" for one session isn't in this catalog.`); return; }
     const values: Record<string, InputValue> = {};
-    for (const [k, v] of Object.entries(data)) if (!k.startsWith('__')) values[k] = v as InputValue;
+    // Inputs plus the token context (theme choices, previous links) the runtime seeds
+    // from, so each session renders and reviews token links in its own choices.
+    const context = new Set<string>(TOKEN_CONTEXT_KEYS);
+    for (const [k, v] of Object.entries(data)) if (!k.startsWith('__') || context.has(k)) values[k] = v as InputValue;
     members.push({
       slot,
       label: String(entry.label || data.__label || tool.manifest.name || toolId),
@@ -709,6 +722,13 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
     members.forEach(m => m.panelEl._inputsDispose?.());
   });
 
+  // Token links: each session card acts on its own runtime; the Shared card plans a
+  // link across every session that declares the input and reviews it first
+  // (lib/multi-edit-token-links.ts). A built runtime repaints through its own
+  // subscription; an unbuilt one only needs the sidebar to read its seed again.
+  if (sharedPanel) cleanups.push(mountSharedTokenActions(sharedPanel, host, sharedMembersOf, scheduleSidebar));
+  for (const m of members) cleanups.push(mountMemberTokenActions(m.panelEl, m, host, scheduleSidebar));
+
   // Opening a collapsed card renders its (lazily-skipped) panel.
   viewEl.querySelectorAll<HTMLDetailsElement>('details[data-me-card]').forEach(card => {
     card.addEventListener('toggle', () => { if (card.open) scheduleSidebar(); });
@@ -881,8 +901,12 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
     // A live cell's runtime is authoritative; a never-created cell saves the values it
     // was seeded with plus any shared edits buffered into m.values (lib/multi-edit-lazy).
     const values = memberSaveValues(m, modelValues);
+    // The token context comes from `values` alone, so a link restored here does not
+    // leave the record's earlier Restore reference behind.
+    const kept: SavedStateData = { ...m.data };
+    for (const key of TOKEN_CONTEXT_KEYS) delete kept[key];
     const data: SavedStateData = {
-      ...m.data,
+      ...kept,
       ...values,
       __toolId: m.tool.manifest.id,
       __toolVersion: m.tool.manifest.version,
