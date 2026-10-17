@@ -88,6 +88,14 @@ lolly system sync incoming.tokens.json --base=earlier.tokens.json --revision=rel
 
 `sync` performs a base/local/incoming comparison and records source revision and digests. Its default is review only. `--apply` updates the active terminal system after a revision check; conflicts require `--keep-local`. External files use `--output`. The web review accepts exact earlier and incoming JSON files. Each conflict shows earlier, local and incoming definitions and needs a Keep local or Use incoming decision before Apply.
 
+## Saved work and tools that use a token
+
+The inspector's **Used by** list covers references inside the token document. Below that list, **Check saved work and tools** looks for the selected token in two more places on this device: saved sessions in this browser's storage, and the tool manifests of the mounted catalog. One check covers every token in the workspace, so choosing another token shows its results without a second check. The check runs only on request, can be cancelled and writes nothing.
+
+A saved session follows a token when one of its inputs, Design layer properties, rich-text run colours or composed paragraph settings links that token. A session that keeps a custom value but remembers the link for **Restore link** is counted separately. Sessions in the Trash, project templates and discarded drafts are left out. A tool counts when the token is the default of a colour or number input or block field, or a value in one of its examples. Each count states how many sessions or tools were read. Sessions and manifests that could not be read, or that fall past the size limits, are reported as not counted rather than as zero.
+
+Shared projects, other devices, earlier versions in History, the defaults of tools added from files and values that tool hooks compute are outside both scopes. A result describes this device at the time shown. When saved sessions change afterwards, the section notes the change and offers **Check again**. Sessions also record which design system was active when they were saved, so the result separates sessions saved with this system from sessions saved with another one.
+
 ## Published fonts
 
 New locally published font pins include family, weight, slant and subset descriptors. Replacing or deleting a pinned face preserves its exact bytes through the existing deduplicated copy-on-write store. Web rendering uses isolated release family names for CSS and vector shaping. The Node resolver verifies pinned bytes and supplies variable weights and subset fallback faces.
