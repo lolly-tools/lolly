@@ -173,6 +173,8 @@ export interface InspectorActions {
   openGradient(ids: string[]): void;
   /** Align / distribute / z-order verbs, by the overlay's existing op names. */
   arrange(op: string): void;
+  /** Scale the selection by `k` about its centre, content included, as one undo step (the Scale popover's commit). False when nothing was written. */
+  scaleSelection?(k: number): boolean;
   /** Open the timeline panel on the given box's inspector group ('time' | 'animate' | 'keyframes'). */
   openTimeline(group: string, id: string): void;
   /**

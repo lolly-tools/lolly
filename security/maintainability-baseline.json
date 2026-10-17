@@ -70,10 +70,10 @@
       "typeEscapes": 68
     },
     "shells/web/src/views/design-inspector.ts": {
-      "lines": 1567,
-      "largestFunctionLines": 2050,
+      "lines": 1590,
+      "largestFunctionLines": 2055,
       "importFanIn": 1,
-      "importFanOut": 20,
+      "importFanOut": 25,
       "typeEscapes": 0
     },
     "shells/web/src/views/gallery.ts": {

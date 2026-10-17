@@ -107,6 +107,8 @@ import type { IconName } from '../lib/icons.ts';
 import { colorFieldHtml, wireColorField, resolveColorVar, colorVarLabel } from '../components/color-field.ts';
 import { designColorValue } from '../lib/design-color.ts';
 import { numField } from '../components/num-field.ts';
+import { areaRow, readRow, selectRow, textRow, toggleRow } from './design-inspector-rows.ts';
+import { createAspectLocks, sizeAndScaleRows, wireAspectLocks } from './design-inspector-aspect.ts';
 import { helpTip, wireHelpTips, unwireHelpTips, linkHelpDescriptions } from '../components/help-tip.ts';
 import type { NumFieldHandle } from '../components/num-field.ts';
 import {
@@ -743,6 +745,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const target = event.target as HTMLDetailsElement;
     if (target.matches?.('[data-advanced-text]')) advancedTextOpen = target.open;
   }, true);
+  const aspectLocks = createAspectLocks();
+  wireAspectLocks(scroll, aspectLocks);
   /** The number cells built for the CURRENT markup, and the sliders they mirror. */
   let numSpecs: NumSpec[] = [];
   let numMounted: NumFieldHandle[] = [];
@@ -986,11 +990,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
 
   // ── row builders (this column's own; the shared ones come from free-canvas-fields) ──
 
-  const textRow = (label: string, field: string, value: unknown, placeholder = ''): string =>
-    `<label class="fc-row fc-insp-text"><span>${label}</span>`
-    + `<input type="text" class="field-input" data-fld="${escape(field)}" data-kind="str" spellcheck="false"`
-    + ` autocomplete="off" value="${escape(String(value ?? ''))}" placeholder="${escape(placeholder)}"></label>`;
-
   /**
    * A number cell: a placeholder in the section markup now, a real `numField`
    * mounted into it as soon as the markup is written (see `mountNums`).
@@ -1080,26 +1079,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       + (value === 'mixed' ? ` aria-valuetext="${escape(t('Mixed'))}"` : '') + '>'
       + numCell('', field, value, { name: label, min, max, pair: key, ...o }));
 
-  const toggleRow = (label: string, field: string, on: boolean): string =>
-    `<label class="fc-row fc-row-toggle field-toggle"><span>${label}</span>`
-    + `<input type="checkbox" class="field-check" data-fld="${escape(field)}" data-kind="bool"${on ? ' checked' : ''}></label>`;
-
-  const selectRow = (label: string, field: string, choices: Array<[string, string]>, cur: unknown, mixed = false): string =>
-    `<label class="fc-row"><span>${label}</span>`
-    + `<select class="field-select field-select--sm" data-fld="${escape(field)}" data-kind="str">`
-    + (mixed ? `<option value="" disabled selected>${t('Mixed')}</option>` : '')
-    + choices.map(([v, l]) => opt(v, l, mixed ? null : cur)).join('') + '</select></label>';
-
   const colorRow = (label: string, id: string, raw: unknown, extra = '', mixed = false): string =>
     `<div class="fc-row"><span>${label}</span><span class="fc-cfield">${colorField(id, raw, label, mixed)}</span>${extra}</div>`;
-
-  const readRow = (label: string, value: string): string =>
-    `<div class="fc-row fc-insp-read"><span>${label}</span><b>${escape(value)}</b></div>`;
-
-  const areaRow = (label: string, field: string, value: unknown, placeholder = ''): string =>
-    `<label class="fc-insp-area"><span>${label}</span>`
-    + `<textarea class="field-input" rows="4" data-fld="${escape(field)}" data-kind="str"`
-    + ` placeholder="${escape(placeholder)}">${escape(String(value ?? ''))}</textarea></label>`;
 
   /**
    * A row that opens another surface. FRAMED, with a trailing chevron, because
@@ -1442,9 +1423,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     return `<div class="fc-dims-row"><span class="fc-dims-ic" data-tip="${escape(t('Position'))}">${icon('move')}</span>`
       + `${dimCell(t('X'), cfg.xField, dimOf(b, cfg.xField, 0), { name: t('X') })}`
       + `${dimCell(t('Y'), cfg.yField, dimOf(b, cfg.yField, 0), { name: t('Y') })}</div>`
-      + `<div class="fc-dims-row"><span class="fc-dims-ic" data-tip="${escape(t('Size'))}">${icon('resize')}</span>`
-      + `${dimCell(t('W'), cfg.wField, Math.max(1, dimOf(b, cfg.wField, 1)), { min: 1, max: 100000, name: t('Width') })}`
-      + `${dimCell(t('H'), cfg.hField, Math.max(1, dimOf(b, cfg.hField, 1)), { min: 1, max: 100000, name: t('Height') })}</div>`
+      + sizeAndScaleRows({ model, cfg, id: renderedIds[0] ?? '', w: dimOf(b, cfg.wField, 1), h: dimOf(b, cfg.hField, 1), dimCell, numCell,
+        scale: CSS_PX_PER_UNIT[documentUnit()], scaleSelection: actions.scaleSelection, resync: () => sync(true) }, aspectLocks)
       + (cfg.rotationField
         ? `<div class="fc-dims-row"><span class="fc-dims-ic" data-tip="${escape(t('Rotation'))}">${icon('rotateCw')}</span>`
           + numCell(t('R'), cfg.rotationField, Math.round(clampN(fv(b, cfg.rotationField), 0, -180, 180)),
