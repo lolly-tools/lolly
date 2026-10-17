@@ -67,13 +67,16 @@
 .tile-title,
 .gtile-name {
   font-size: var(--fs-lg);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.2;
   color: var(--ui-color-text-default);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.gtile--view .gtile-name, .gtile-name {
+  font-size: var(--ui-type-lead) !important;
+  font-weight: 450;}
 .cat-tile-sub,
 .tile-sub { font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
 

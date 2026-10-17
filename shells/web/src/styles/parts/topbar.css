@@ -158,9 +158,9 @@
   gap: 4px;
   background: var(--ui-color-surface-raised);
   color: var(--ui-color-text-default);
-  border: 1px solid var(--ui-color-border-default);
+  border: 0;
   border-radius: var(--ui-radius-card);
-  box-shadow: var(--ui-elevation-floating);
+  box-shadow:var(--ui-elevation-floating), var(--ui-effect-bevel), var(--ui-elevation-floating);
 }
 @media (prefers-reduced-motion: no-preference) {
   .profile-menu { animation: profile-menu-in var(--ui-motion-overlay) var(--ui-motion-standard) both; transform-origin: top right; }
