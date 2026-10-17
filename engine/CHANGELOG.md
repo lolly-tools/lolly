@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.262.0
+
+- Add optional `host.pdf.fromImages`, which builds a PDF with one PNG or JPEG per page. JPEG data is embedded without re-encoding, camera orientation is applied, and Exif, XMP, IPTC, comments and appended pictures are left out. Pages are sized from the image resolution or fitted to A4 or US Letter.
+- `host.pdf.organize` results may carry an `effects` list reporting what the operation keeps, breaks or drops among bookmarks, annotations, links, form fields and signatures. When the source has no producer name or dates, the new PDF from a page operation has none either, instead of pdf-lib's own.
+- Pages 1.1 accepts images alongside PDFs, converts formats other than PNG and JPEG with `host.images`, and shows the effects report before download.
+
 ## 1.261.0
 
 - Preserve selected-file identity in versioned resource dependencies and collect source credentials by the exact version used in an export.

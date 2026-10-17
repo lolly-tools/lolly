@@ -30,5 +30,6 @@
   "synth::name": "Synt",
   "synth::description": "Ett visuellt instrument du spelar. Fyra scener körs live på GPU:n: flytande bläck, en partikelsvärm som flyger mot din rubrik eller din logotyp, ett återkopplingsfält och din egen kamera. Varje färg kommer från din varumärkespalett, och bilden rör sig efter din pekare, ett musikspår och en MIDI-styrenhet. Exportera en stillbild eller en sömlös loop.",
   "icon::description": "Favicon- och app-ikonmakare - en flerstorleks .ico, PNG och SVG, eller hela appkitet som en enda zip-fil.",
-  "diagram-builder::description": "Organisationsscheman, flödesscheman, tidslinjer och mer - från kort, text, Mermaid, DOT eller CSV."
+  "diagram-builder::description": "Organisationsscheman, flödesscheman, tidslinjer och mer - från kort, text, Mermaid, DOT eller CSV.",
+  "pages::description": "Ändra ordning, rotera, extrahera, ta bort, slå ihop eller dela PDF-sidor, eller gör om bilder till en PDF, på din enhet."
 }

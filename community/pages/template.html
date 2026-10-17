@@ -1,9 +1,9 @@
 <main class="utility"><div class="pages-root" data-operation="{{operation}}" data-pages="{{pagesText}}" data-total-pages="{{totalPages}}">
-  {{#unless hasFile}}<section class="empty"><div class="mark">▤</div><h1>Arrange PDF pages</h1><p>Choose one or more PDFs, then drag every page into the order you need.</p><button class="btn btn--primary" type="button" data-file-pick>Choose PDFs…</button><small>Processed on this device. Never uploaded.</small></section>{{/unless}}
+  {{#unless hasFile}}<section class="empty"><div class="mark">▤</div><h1>Arrange PDF pages</h1><p>Choose PDFs or images, then drag every page into the order you need. Images become pages of the new PDF.</p><button class="btn btn--primary" type="button" data-file-pick>Choose files…</button><small>Processed on this device. Never uploaded.</small></section>{{/unless}}
   {{#if hasFile}}<section class="card">
-    <header><div><strong title="{{fileName}}">{{fileName}}</strong><span>{{fileSize}}</span></div><button type="button" class="btn btn--ghost quiet" data-file-pick>Add PDFs…</button></header>
+    <header><div><strong title="{{fileName}}">{{fileName}}</strong><span>{{fileSize}}</span></div><button type="button" class="btn btn--ghost quiet" data-file-pick>Add files…</button></header>
 
-    <section class="documents" aria-label="Selected PDF files">
+    <section class="documents" aria-label="Selected files">
       {{#each documents}}<div class="document"><span class="document-number">{{number}}</span><span class="document-name" title="{{name}}">{{name}}</span><small>{{pageLabel}}</small><button class="btn btn--ghost btn--sm" type="button" data-remove-file="{{index}}" aria-label="Remove {{name}}">×</button></div>{{/each}}
     </section>
 
@@ -22,6 +22,12 @@
         <option value="180" {{#if (eq rotationText "180")}}selected{{/if}}>180°</option>
         <option value="270" {{#if (eq rotationText "270")}}selected{{/if}}>270° clockwise</option>
       </select></label>{{/if}}
+      {{#if hasImages}}<label><span>Image pages</span><select class="field-select field-select--sm" data-input-id="imagePageSize">
+        <option value="image" {{#if (eq imagePageSize "image")}}selected{{/if}}>Match each image</option>
+        <option value="a4" {{#if (eq imagePageSize "a4")}}selected{{/if}}>A4</option>
+        <option value="letter" {{#if (eq imagePageSize "letter")}}selected{{/if}}>US Letter</option>
+      </select></label>
+      {{#if fitsPaper}}<label><span>Margin (mm)</span><input class="field-input field-input--sm" data-input-id="imageMargin" type="number" min="0" max="50" step="1" value="{{imageMarginText}}"></label>{{/if}}{{/if}}
       <small id="pages-help">{{pagesHelp}}</small>
     </section>
 
@@ -37,15 +43,16 @@
         {{#each preview}}<figure class="page {{#if chosen}}chosen{{/if}}" data-page-card data-page="{{page}}" data-occurrence="{{occurrence}}" data-chosen="{{#if chosen}}true{{else}}false{{/if}}" draggable="{{#if ../isReorder}}true{{else}}false{{/if}}" title="{{sourceName}}, page {{localPage}} · {{sizeLabel}}">
           <div class="page-preview"><div class="page-paper" style="width:{{previewWidth}}px;height:{{previewHeight}}px">{{#if svg}}{{{svg}}}{{else}}<span class="missing-preview">Page {{localPage}}<br>Preview unavailable</span>{{/if}}</div></div>
           {{#if ../canSelect}}<button type="button" class="btn btn--ghost page-select quiet" data-page-select aria-pressed="{{#if chosen}}true{{else}}false{{/if}}">{{#if chosen}}✓ Selected{{else}}Select page{{/if}}</button>{{/if}}
-          <figcaption><span class="page-number">{{page}}</span><span class="page-origin">PDF {{document}} · p{{localPage}}</span></figcaption>
+          <figcaption><span class="page-number">{{page}}</span><span class="page-origin">{{origin}}</span></figcaption>
           {{#if ../isReorder}}<div class="page-moves"><button class="btn btn--ghost btn--sm" type="button" data-page-move="-1" aria-label="Move position {{ordinal}} left" {{#if first}}disabled{{/if}}>←</button><span aria-hidden="true">⠿ drag</span><button class="btn btn--ghost btn--sm" type="button" data-page-move="1" aria-label="Move position {{ordinal}} right" {{#if last}}disabled{{/if}}>→</button></div><label class="move-to">Move to <input class="field-input field-input--sm field-input--auto" type="number" min="1" max="{{../orderLength}}" value="{{ordinal}}" data-move-to aria-label="Move position {{ordinal}} to position"></label>{{/if}}
         </figure>{{/each}}
         {{#if previewUnavailable}}<p class="muted preview-note">Some previews could not be rendered. Page positions still work; export validates the actual PDF. {{previewError}}</p>{{/if}}
       </section>
       {{#if pending}}<div class="notice" role="status">Preparing page result…</div>{{/if}}
       {{#if ready}}<div class="result" role="status"><strong>{{summary}}</strong><span>{{operations}}</span>{{#if sizeAfter}}<span>Output size {{sizeAfter}}</span>{{/if}}</div>{{/if}}
+      {{#if hasChanges}}<section class="changes" aria-label="What changes in the new PDF"><strong>What changes</strong><ul>{{#each changes}}<li class="change change--{{outcome}}" data-change-outcome="{{outcome}}">{{message}}</li>{{/each}}</ul></section>{{/if}}
       <button type="button" class="btn btn--primary download" data-export-file data-export-archive="{{archiveName}}" data-busy-label="Working…" {{#unless ready}}disabled{{/unless}}>{{#if isSplit}}Download split PDFs{{else}}Download PDF{{/if}}</button>
-      <p class="muted">Every page keeps its original dimensions. Document metadata is preserved; re-saving invalidates an existing digital signature.</p>
+      <p class="muted">PDF pages keep their original size, and the new file keeps the first PDF's document details.</p>
     {{/if}}
   </section>{{/if}}
 </div></main>

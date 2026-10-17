@@ -1,15 +1,35 @@
 [
   {
     "id": "source",
-    "label": "PDFs",
+    "label": "PDFs and images",
     "type": "file",
     "multiple": true,
     "accept": [
       "application/pdf",
-      ".pdf"
+      ".pdf",
+      "image/png",
+      ".png",
+      "image/jpeg",
+      ".jpg",
+      ".jpeg",
+      "image/webp",
+      ".webp",
+      "image/gif",
+      ".gif",
+      "image/avif",
+      ".avif",
+      "image/heic",
+      ".heic",
+      "image/heif",
+      ".heif",
+      "image/bmp",
+      ".bmp",
+      "image/tiff",
+      ".tif",
+      ".tiff"
     ],
     "maxSize": 104857600,
-    "help": "Choose one or more PDFs. Their pages form one draggable sequence and stay on this device."
+    "help": "Choose PDFs, images or both. Every page and image forms one draggable sequence and stays on this device."
   },
   {
     "id": "operation",
@@ -82,5 +102,42 @@
         "label": "270° clockwise"
       }
     ]
+  },
+  {
+    "id": "imagePageSize",
+    "label": "Image page size",
+    "type": "select",
+    "default": "image",
+    "help": "How pages made from images are sized. A4 and US Letter fit each image inside the page, turned to match the image.",
+    "options": [
+      {
+        "value": "image",
+        "label": "Match each image"
+      },
+      {
+        "value": "a4",
+        "label": "A4"
+      },
+      {
+        "value": "letter",
+        "label": "US Letter"
+      }
+    ]
+  },
+  {
+    "id": "imageMargin",
+    "label": "Image margin (mm)",
+    "type": "number",
+    "default": 0,
+    "min": 0,
+    "max": 50,
+    "step": 1,
+    "showIf": {
+      "imagePageSize": [
+        "a4",
+        "letter"
+      ]
+    },
+    "help": "Space around each image on an A4 or US Letter page."
   }
 ]
