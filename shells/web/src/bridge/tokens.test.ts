@@ -17,6 +17,9 @@ import assert from 'node:assert/strict';
 import { createTokensAPI, installUserTokens, BrandLockedError, VersionExistsError, AUTOMATION_DESIGN_SYSTEM_GLOBAL } from './tokens.ts';
 import { createAssetsAPI } from './assets.ts';
 import { applyBrandVars } from '../brand-vars.ts';
+import { readFileSync } from 'node:fs';
+import { JSDOM } from 'jsdom';
+import { addColourway } from '../../../../engine/src/colourway.ts';
 import { TOKEN_EXT } from '../../../../engine/src/tokens.ts';
 import { duringAssetSync, pendingAssetSync } from '../lib/asset-sync.ts';
 
@@ -697,4 +700,102 @@ test('the route _themes scopes the render surface in the hash form and in a tool
     place({ hash: '#/tool/design', search: `?_themes=${dark}` });
     assert.equal(await api.resolve('{color.semantic.text}'), '#111111');
   } finally { at(''); }
+});
+
+// ── The family of leads (plans/319, milestone A5) ────────────────────────────
+
+const DEMO_DOC = (): Record<string, unknown> =>
+  JSON.parse(readFileSync(new URL('../../../../brands/lolly-demo/catalog/assets/lolly/tokens/opal.json', import.meta.url), 'utf8'));
+
+/** Lolly Demo with two more colourways: Main (canonical, its own lead), Persimmon and Lagoon. */
+function threeLeadDoc(): Record<string, unknown> {
+  let doc = DEMO_DOC();
+  const values = (light: string, dark: string) => ({
+    light: { primary: light, 'on-primary': '#ffffff', secondary: '#222222' },
+    dark: { primary: dark, 'on-primary': '#111111', secondary: '#eeeeee' },
+  });
+  for (const [id, name, light, dark] of [['persimmon', 'Persimmon', '#c2410c', '#fb923c'], ['lagoon', 'Lagoon', '#0e7490', '#22d3ee']] as const) {
+    const result = addColourway(doc, { id, name, values: values(light, dark) });
+    assert.ok(result.ok, result.ok ? '' : result.reasons.join(' '));
+    doc = result.doc;
+  }
+  return doc;
+}
+
+const tokensFor = (doc: unknown) =>
+  createTokensAPI({ assets: createAssetsAPI(memDb({ ...CATALOG_TOKENS(), blobs: { 'lolly/tokens/brand:json:1.0.0': docBlob(doc) } })) });
+
+test('family() lists every lead canonical first in the route\'s look, and marks the route\'s colourway', async () => {
+  stubFetch({});
+  const api = tokensFor(threeLeadDoc());
+  const choices = (sel: Record<string, string>) => encodeURIComponent(JSON.stringify(sel));
+  try {
+    const plain = await api.family!('primary');
+    assert.deepEqual(plain.map(m => [m.id, m.canonical, m.active]), [['main', true, true], ['persimmon', false, false], ['lagoon', false, false]]);
+    assert.deepEqual(plain.slice(1).map(m => m.value), ['#c2410c', '#0e7490'], 'the light look by default');
+    at(`#/tool/chart?_themes=${choices({ '': 'dark', colourway: 'lagoon' })}`);
+    const routed = await api.family!('primary');
+    assert.deepEqual(routed.map(m => [m.id, m.active]), [['main', false], ['persimmon', false], ['lagoon', true]]);
+    assert.deepEqual(routed.slice(1).map(m => m.value), ['#fb923c', '#22d3ee'], 'the route\'s dark look');
+    assert.deepEqual((await api.family!('secondary')).slice(1).map(m => m.value), ['#eeeeee', '#eeeeee']);
+    assert.deepEqual((await api.axes!()).map(a => [a.group, a.kind, a.canonical]), [['', 'mode', 'light'], ['colourway', 'colourway', 'main']]);
+    // A published version answers through the same surface, so it has the reads too.
+    assert.equal(typeof api.forVersion('latest').family, 'function');
+  } finally { at(''); }
+});
+
+test('family() is empty for a design system with one lead, and axes() for one with no theme groups', async () => {
+  stubFetch({});
+  assert.deepEqual(await tokensFor(DEMO_DOC()).family!('primary'), []);
+  assert.deepEqual(await tokensFor(DOC).family!('primary'), []);
+  assert.deepEqual(await tokensFor(DOC).axes!(), []);
+});
+
+/** A real element: the lead painter reads the style it already carries. */
+const realEl = (): HTMLElement => new JSDOM('<div></div>').window.document.querySelector('div') as unknown as HTMLElement;
+const leadVars = (el: HTMLElement): string[] =>
+  Array.from({ length: el.style.length }, (_, i) => el.style.item(i)).filter(n => n.startsWith('--brand-lead-')).sort();
+
+test('applyBrandVars paints the family as --brand-lead-1..n and --brand-lead-count, canonical first', async () => {
+  stubFetch({});
+  const el = realEl();
+  await applyBrandVars(el, { tokens: tokensFor(threeLeadDoc()) });
+  assert.equal(el.style.getPropertyValue('--brand-lead-2'), '#c2410c');
+  assert.equal(el.style.getPropertyValue('--brand-lead-3'), '#0e7490');
+  assert.equal(el.style.getPropertyValue('--brand-lead-count'), '3');
+  assert.equal(el.style.getPropertyValue('--brand-lead-1'), el.style.getPropertyValue('--brand-primary'), 'the canonical lead is the canvas lead here');
+});
+
+test('a one-lead design system paints exactly the canvas a host without the family paints', async () => {
+  stubFetch({});
+  for (const doc of [DEMO_DOC(), DOC]) {
+    const tokens = tokensFor(doc);
+    const withIt = realEl();
+    const without = realEl();
+    await applyBrandVars(withIt, { tokens });
+    const { family: _family, axes: _axes, ...older } = tokens;
+    await applyBrandVars(without, { tokens: older });
+    assert.equal(withIt.getAttribute('style'), without.getAttribute('style'));
+    assert.deepEqual(leadVars(withIt), []);
+  }
+});
+
+test('a repaint removes the lead variables the new family no longer has', async () => {
+  stubFetch({});
+  const el = realEl();
+  await applyBrandVars(el, { tokens: tokensFor(threeLeadDoc()) });
+  assert.deepEqual(leadVars(el), ['--brand-lead-1', '--brand-lead-2', '--brand-lead-3', '--brand-lead-count']);
+  // Two leads now: the third goes, the count follows.
+  const two = threeLeadDoc();
+  (two.$themes as Array<{ id?: string }>).splice((two.$themes as Array<{ id?: string }>).findIndex(t => t.id === 'lagoon'), 1);
+  await applyBrandVars(el, { tokens: tokensFor(two) });
+  assert.deepEqual(leadVars(el), ['--brand-lead-1', '--brand-lead-2', '--brand-lead-count']);
+  assert.equal(el.style.getPropertyValue('--brand-lead-count'), '2');
+  // A design system with one lead: none are left, whatever was painted before.
+  await applyBrandVars(el, { tokens: tokensFor(DEMO_DOC()) });
+  assert.deepEqual(leadVars(el), []);
+  // A family read that fails leaves no lead behind either.
+  await applyBrandVars(el, { tokens: tokensFor(threeLeadDoc()) });
+  await applyBrandVars(el, { tokens: { ...tokensFor(DEMO_DOC()), family: async () => { throw new Error('offline'); } } });
+  assert.deepEqual(leadVars(el), []);
 });

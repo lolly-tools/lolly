@@ -111,7 +111,7 @@ interface TokensHost {
  *  the cache-buster. What `createTokensAPI` returns for the head, and what
  *  `forVersion` returns for a published version - one implementation, so a
  *  version can never resolve by different rules from the head. */
-export type TokenDocSurface = TokensAPI & { raw(): Promise<unknown>; bust(): void };
+export type TokenDocSurface = TokensAPI & Required<Pick<TokensAPI, 'axes' | 'family'>> & { raw(): Promise<unknown>; bust(): void };
 
 /** The web shell's tokens surface: HostV1's TokensAPI plus the cache-buster, the
  *  brand-lock query and the version reads (plans/97 section 6a). */
@@ -512,6 +512,15 @@ function tokenSurface(loadDoc: () => Promise<unknown>): TokenDocSurface {
     raw: () => doc(),
     /** Theme names declared in the document. */
     themes: async () => (await ensure()).themes(),
+    /** Every theme group with its meaning (plans/319); structure only. */
+    axes: async () => (await import('../../../../engine/src/token-context.ts')).tokenAxesOf(await doc()),
+    /** Every colourway's colour for one role, canonical first (plans/319). Reads
+     *  through the per-selection memo above, so a family read and the `get()` of
+     *  the same choices share one token set. */
+    family: async (role, opts = {}) => {
+      const { tokenFamily } = await import('../../../../engine/src/token-context.ts');
+      return tokenFamily(await doc(), role, opts, ensure);
+    },
     /** Drop the memoised document and per-theme sets. */
     bust() { setByTheme.clear(); docPromise = null; },
   };
@@ -836,6 +845,8 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
     resolve: async (ref, opts = {}) => { syncOverride(); return render.resolve(ref, opts); },
     themes: async () => { syncOverride(); return render.themes(); },
     inspect: async (opts = {}) => { syncOverride(); return render.inspect!(opts); },
+    axes: async () => { syncOverride(); return render.axes(); },
+    family: async (role, opts = {}) => { syncOverride(); return render.family(role, opts); },
     /** The EDIT HEAD's document (see WebTokensAPI.raw). */
     raw: () => head.raw(),
     /** The id the head was discovered at (see WebTokensAPI.headId). */

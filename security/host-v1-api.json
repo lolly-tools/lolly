@@ -1227,10 +1227,25 @@
       "kind": "FirstStatement",
       "sha256": "de730f525fa7ec21273ddda3d64680347a804529d25849af031bcbe4eebaaf96"
     },
+    "TokenRotationPolicy": {
+      "module": "tokens.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "8cd06cbe18eb2c44c05875386bfac58575957ef19453db5119dd3a1419d92545"
+    },
+    "TokenAxisInfo": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a004d50a06a23570bf135144b649edd68c78272e8779cc80658eac3a16133168"
+    },
+    "TokenFamilyMember": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "3945312470d588a1198d92d12ba4a4eb7b914217b6993a3dcd25edd6f343850e"
+    },
     "TokenSelection": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "c9e71fd4c7910f005195fec71b3ddbbcf61bdd9ae22d7132c95e4babaa6df37c"
+      "sha256": "04ea0bc8566037e6aae9efa6dcc4f12aa0047c323b3b842d2707316350a99240"
     },
     "TokenSource": {
       "module": "tokens.ts",
@@ -1250,7 +1265,7 @@
     "TokensAPI": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "d9aedaf8953d8cbbefb87124600cfbcf74c05c64dcd8817153a3f6342fa1b494"
+      "sha256": "fe3ed0dded48ed993c6f4461410d7bb3c99ddc1ec85612d62c9774a6748f16ab"
     },
     "TokensSnapshot": {
       "module": "tokens.ts",
@@ -1265,7 +1280,7 @@
     "TokenSet": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "852fd55a53bab12bb043a9c07514294808e0b95e36861598d7365bd6b08d103a"
+      "sha256": "380c2faf3f4a27a957d92d24375964889c58f05b69b1132f88d52c0e4c20c79e"
     },
     "TokenEntry": {
       "module": "tokens.ts",

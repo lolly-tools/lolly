@@ -30,7 +30,7 @@ export {
   IN_REALM_ONLY_HOOK_NAMES,
 } from '../../../../engine/src/hook-worker-core.ts';
 export type {
-  HostShape, HostSeeds, HookInitMsg, HookInvokeMsg, HookHostReplyMsg, HookDisposeMsg, HookWorkerIn,
+  HostShape, HostSeeds, HookInitMsg, HookInvokeMsg, HookHostReplyMsg, HookDisposeMsg, HookTokensMsg, HookWorkerIn,
   WorkerHookName, InRealmOnlyHookName, HookInitDoneMsg, HookInvokeDoneMsg, HookReportMsg,
   HookHostCallMsg, HookLogMsg, HookWorkerOut, HookWorkerPort,
 } from '../../../../engine/src/hook-worker-core.ts';

@@ -34,6 +34,44 @@ export type TokenAxisKind = 'mode' | 'colourway' | 'expression' | 'medium' | 'co
 /** Every `TokenAxisKind`, in documentation order. */
 export const TOKEN_AXIS_KINDS: readonly TokenAxisKind[] = Object.freeze(['mode', 'colourway', 'expression', 'medium', 'contrast', 'density', 'campaign', 'brand']);
 
+/** How a series picks a colourway for each new artefact (plans/319). See `pickColourway` in the engine. */
+export type TokenRotationPolicy = 'canonical' | 'cycle' | 'by-key' | 'shuffle' | 'by-date';
+
+/**
+ * One theme group of the document with what it means (plans/319), as
+ * `host.tokens.axes()` lists the group. Structure only: which option is in force for a
+ * read is a selection, reported by `inspect()` and applied by every read.
+ */
+export interface TokenAxisInfo {
+  /** The source group id; `''` for themes with no group. */
+  group: string;
+  /** The declared kind, or null when the group declares none. */
+  kind: TokenAxisKind | null;
+  /** The canonical option's id: the one marked canonical, else the first authored. */
+  canonical: string;
+  /** The group's default rotation policy, or null when none is declared. */
+  rotation: TokenRotationPolicy | null;
+  /** Options in authored order. `window` is an inclusive pair of ISO dates. */
+  options: { id: string; name: string; canonical: boolean; window?: { from?: string; to?: string } }[];
+}
+
+/**
+ * One lead of the family (plans/319): a colourway and the colour it gives one
+ * role in the current look. `host.tokens.family()` lists them canonical first.
+ */
+export interface TokenFamilyMember {
+  /** The colourway's theme id. Permanent: a series stores this id. */
+  id: string;
+  /** The colourway's display name. */
+  name: string;
+  /** True for the design system's canonical colourway. */
+  canonical: boolean;
+  /** True for the colourway this read resolves to, which is the one the artefact uses. */
+  active: boolean;
+  /** The role's resolved colour as a hex string. */
+  value: string;
+}
+
 export interface TokenSelection {
   groups: {
     id: string;
@@ -102,6 +140,28 @@ export interface TokensAPI {
    * that declares a kind, the canonical theme carries `canonical: true`.
    */
   themes(): Promise<{ name: string; group: string | null; id?: string; kind?: TokenAxisKind; canonical?: true }[]>;
+  /**
+   * Every theme group of the document with its kind, canonical option, rotation
+   * and options (plans/319). Optional/additive: an older shell omits it, and a
+   * tool feature-detects the member. Structure only, so it ignores the read options the
+   * other members take.
+   */
+  axes?(): Promise<TokenAxisInfo[]>;
+  /**
+   * The family (plans/319): every colourway's colour for one role, canonical
+   * first, in the look this read resolves to. `role` is a semantic slot name
+   * (`primary`, the default, or `secondary`, `on-primary`, ...) or a full token
+   * path. `opts` works as it does for `get()`: the document's choices apply, a
+   * `theme` picks a look and keeps the rest, a `selection` replaces them. The
+   * colourway group is set per member, so the answer lists every lead whatever
+   * colourway the artefact uses; the member the read resolves to has `active`.
+   *
+   * An empty list when the design system has no colourway group, and a colourway
+   * whose role does not resolve to a colour is left out. A tool treats fewer than
+   * two members as no family and draws exactly as it would without this member.
+   * Optional/additive: feature-detect the member.
+   */
+  family?(role?: string, opts?: TokenResolveOptions): Promise<TokenFamilyMember[]>;
   /**
    * Every design system this device holds, in the host's own listing order
    * (v1.173, plans/186). Optional/additive: a shell that holds exactly one system

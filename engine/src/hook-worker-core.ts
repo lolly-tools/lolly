@@ -30,6 +30,7 @@ import { makeColorApi } from './color-tools.ts';
 import { makeGeomApi } from './geom-api.ts';
 import { inspectTokenDocument } from './token-inspect.ts';
 import { tokenSelectionKey } from './token-selection.ts';
+import { tokenAxesOf, tokenFamily } from './token-context.ts';
 import { createTokenSet, aliasPath } from './tokens.ts';
 import type { HostV1, TokenSet, TokenResolveOptions } from './bridge/host-v1.ts';
 
@@ -63,9 +64,14 @@ export interface HookInitMsg {
 export interface HookInvokeMsg { t: 'invoke'; runId: number; callId: number; name: string; ctx: Record<string, unknown> }
 export interface HookHostReplyMsg { t: 'host-reply'; runId: number; hostCallId: number; ok: boolean; value?: unknown; error?: string }
 export interface HookDisposeMsg { t: 'dispose'; runId: number }
-/** The document's theme choices changed (`Runtime.setTokenSelection`): the run's
- *  co-located tokens answer from this snapshot from now on, so an isolated hook
- *  reads the new theme exactly as an in-realm hook does. */
+/**
+ * The owning thread's token document changed under a mounted run (plans/319): the
+ * document's theme choices moved (`Runtime.setTokenSelection`, the executor's
+ * `tokensChanged`), or the design system was edited. The run's co-located tokens
+ * answer from this snapshot from now on, so an isolated hook reads the new choices
+ * exactly as an in-realm hook does. The owner posts it BEFORE the invoke that
+ * needs it, and messages arrive in order.
+ */
 export interface HookTokensMsg { t: 'tokens'; runId: number; tokenDoc: unknown | null; tokenExcluded: string[] }
 export type HookWorkerIn = HookInitMsg | HookInvokeMsg | HookHostReplyMsg | HookDisposeMsg | HookTokensMsg;
 
@@ -291,8 +297,10 @@ export function createHookWorkerCore(port: HookWorkerPort, opts: HookWorkerCoreO
   /** Build the co-located tokens surface from the snapshotted doc - a local
    *  per-theme TokenSet cache; the async signatures just wrap the sync result.
    *  `swap` replaces the document under the same object, so a hook that kept a
-   *  reference to `host.tokens` reads the new theme too. */
-  function makeTokens(initialDoc: unknown, excluded: string[]): { tokens: NonNullable<HostV1['tokens']>; swap: (doc: unknown, excluded: string[]) => void } {
+   *  reference to `host.tokens` reads the new theme too. `axes` and `family`
+   *  (plans/319) are built only when the owning host has them, so an isolated
+   *  hook feature-detects exactly what an in-realm one would. */
+  function makeTokens(initialDoc: unknown, excluded: string[], members: readonly string[] = []): { tokens: NonNullable<HostV1['tokens']>; swap: (doc: unknown, excluded: string[]) => void } {
     let doc = initialDoc;
     const byTheme = new Map<string, TokenSet>();
     let excl = new Set(excluded);
@@ -312,6 +320,8 @@ export function createHookWorkerCore(port: HookWorkerPort, opts: HookWorkerCoreO
       inspect: async (o = {}) => inspectTokenDocument(doc, o),
       resolve: async (ref, o = {}) => ensure(o).resolve(ref),
       themes: async () => ensure().themes(),
+      ...(members.includes('axes') ? { axes: async () => tokenAxesOf(doc) } : {}),
+      ...(members.includes('family') ? { family: async (role?: string, o: TokenResolveOptions = {}) => tokenFamily(doc, role, o, ensure) } : {}),
       colors: async (o = {}) => {
         const list = ensure(o).colors();
         if (!excl.size) return list;
@@ -340,7 +350,7 @@ export function createHookWorkerCore(port: HookWorkerPort, opts: HookWorkerCoreO
       geom: apis.geom,
     };
     if (msg.tokenDoc != null) {
-      const made = makeTokens(msg.tokenDoc, msg.tokenExcluded);
+      const made = makeTokens(msg.tokenDoc, msg.tokenExcluded, msg.hostShape.tokens ?? []);
       host.tokens = made.tokens;
       owner.setTokens = made.swap;
     }
@@ -467,7 +477,7 @@ export function createHookWorkerCore(port: HookWorkerPort, opts: HookWorkerCoreO
     if (msg.t === 'tokens') {
       // A run mounted with no tokens has none to follow, and a failed snapshot
       // (null) keeps the theme the hooks already read rather than blanking the tokens.
-      if (msg.tokenDoc != null) runs.get(msg.runId)?.setTokens?.(msg.tokenDoc, msg.tokenExcluded);
+      if (msg.tokenDoc != null) runs.get(msg.runId)?.setTokens?.(msg.tokenDoc, Array.isArray(msg.tokenExcluded) ? msg.tokenExcluded : []);
       return;
     }
     if (msg.t === 'dispose') {
