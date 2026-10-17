@@ -197,3 +197,24 @@ test('a render with no recorded source prints no rights block at all', { skip: S
   assert.doesNotMatch(run.stderr, /Rights:/);
   assert.match(await readFile(join(root, 'plain.html'), 'utf8'), /Plain text/);
 });
+
+// The first test above accepts either answer, because whether a credential is
+// written depends on the format and the settings. These two name the setting and
+// read the written file, so the Rights block's claim is checked against the bytes.
+test('with Content Credentials on, the Rights block says credits are included exactly when the written file carries them', { skip: SKIP }, async () => {
+  const run = await render('stamped', [`--emoji=${TWEMOJI_PIN}`, '--c2pa=on']);
+  assert.equal(run.code, 0, run.stderr);
+  const { verifyC2pa } = await import('../engine/src/c2pa-verify.ts');
+  const report = await verifyC2pa(new Uint8Array(await readFile(join(root, 'stamped.html'))));
+  const carried = report.state === 'valid' && (report.ingredients ?? []).some((ingredient) => /grinning face/.test(ingredient.title ?? ''));
+  assert.equal(/Credits included in this file's metadata\./.test(run.stderr), carried, run.stderr);
+  assert.equal(/Credits are NOT in this file/.test(run.stderr), !carried, run.stderr);
+});
+
+test('with Content Credentials off, the same render says its credit is not in the file', { skip: SKIP }, async () => {
+  const run = await render('unstamped', [`--emoji=${TWEMOJI_PIN}`, '--c2pa=off']);
+  assert.equal(run.code, 0, run.stderr);
+  assert.match(run.stderr, /Credits are NOT in this file/);
+  assert.doesNotMatch(run.stderr, /Credits included in this file's metadata/);
+  assert.match(run.stderr, /CC BY 4\.0/, 'the credit is printed to deliver another way');
+});
