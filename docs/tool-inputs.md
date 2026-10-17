@@ -18,7 +18,7 @@ Each declaration becomes a real control, built by the shell from the input model
 | `longtext`       | string                                                    | textarea            |
 | `number`         | number                                                    | input or slider     |
 | `boolean`        | boolean                                                   | checkbox            |
-| `color`          | string (hex)                                              | color picker, or constrained to a palette asset via `palette: "asset/id"` |
+| `color`          | string (hex)                                              | color picker; `palette: "colourway-leads"` offers the design system's colourway leads (see below) |
 | `select`         | string (one of `options[].value`); an option may carry `width`/`height`/`unit` to set the export page size | dropdown            |
 | `asset`          | `AssetRef` object (id, url, type, etc.)                   | host-provided asset picker |
 | `date`           | ISO date string                                           | text input in the sidebar; native date field in the `/pro` grid |
@@ -31,6 +31,8 @@ Each declaration becomes a real control, built by the shell from the input model
 | `table`          | `{ columns: string[], rows: string[][] }` - a user-defined grid where the column headings AND rows are data (unlike `blocks`, whose fields you declare) | minimal grid editor with spreadsheet paste (TSV / Markdown / CSV), copy-out and a pop-out floating window |
 
 For existing flat `blocks` inputs, `tableColumns: ["place", "label", "annotation"]` opts into this same editor, with fixed headings in the requested field order (remaining fields follow). Objects, row ids and positional URL encoding stay unchanged. All fields must be scalar; nested or conditional blocks keep their block editor. Timezone is the reference. Paste accepts matching field ids or labels as spreadsheet headers, or a plain city list in the first column.
+
+A `color` input with `"palette": "colourway-leads"` offers the design system's colourway leads as its swatches: every colourway's lead colour in the artefact's look, canonical first, each labelled with the colourway's name. Add `"swatchesOnly": true` to hide the free picker so a person can only choose a lead. A chosen lead is stored as a plain colour, not a token link. With fewer than two colourways the field offers the design system's ordinary palette, so the input works the same on every design system. Any other `palette` value is read as a palette asset id; the field does not read that asset yet and offers the ordinary palette.
 
 A `table` input is the batch-creation primitive: paste a table copied from Excel / Google Sheets / Notion / Slack / Markdown and it replaces the whole grid; the Copy button writes TSV *and* a real HTML `<table>` back to the clipboard so the round trip into collaboration tools is lossless. Cells can hold whole paragraphs. Pair it with [`render.paginate`](/info/tool-manifest.html#the-render-block) and each row becomes a page. In URL mode the entire table is ONE compact param; in the CLI, `--<inputId>-data=table.csv` fills it from a CSV/TSV/Markdown file.
 

@@ -143,8 +143,19 @@ Design tokens (DTCG) for the active theme. The host UI sources colour-picker swa
 | `colors(opts?)` | `Promise<ColorSwatch[]>` | Colour tokens as picker-ready swatches |
 | `resolve(ref, opts?)` | `Promise<unknown>` | Resolve a `{dotted.path}` alias (or bare path) to a concrete value |
 | `themes()` | `Promise<{ name, group, id?, kind?, canonical? }[]>` | Themes declared in the document. `id` is present when the file gives one, and `kind` when the theme's group states one, such as `mode` or `colourway`; in such a group the canonical theme carries `canonical: true` (engine 1.265) |
+| `axes()` *(optional)* | `Promise<TokenAxisInfo[]>` | Every theme group with its `group` id, `kind` (or `null`), `canonical` option id, default `rotation` (or `null`) and `options` in authored order, each with `id`, `name`, `canonical` and an optional date `window`. Structure only, so it takes no read options |
+| `family(role?, opts?)` *(optional)* | `Promise<TokenFamilyMember[]>` | Every colourway's colour for one role, canonical first, in the look the read resolves to. `role` is a slot name (`primary`, the default, `secondary`, `on-primary`) or a full token path. `opts` works as for `get()`. Each member carries the colourway's `id`, `name`, `canonical`, `active` (the colourway this read resolves to) and `value` (a hex colour). Empty when the design system has no colourway group |
 
 Optional and additive - a shell without it just doesn't offer token-driven UI.
+
+**The family of leads.** A tool that uses several colours at once, such as chart series or a gradient's shuffle, can draw on every colourway's lead rather than one primary. `family()` lists them whatever colourway the artefact uses, and the artefact's own one has `active: true`. Treat fewer than two members as no family, and draw exactly as you would on a shell without the member:
+
+```js
+const family = typeof host.tokens?.family === 'function' ? await host.tokens.family('primary') : [];
+const leads = family.length >= 2 ? family.map((m) => m.value) : [];
+```
+
+The web shell, the CLI and the hook Worker answer `family()` and `axes()` from the same engine functions, scoped to the artefact's choices like every other read. The canvas carries the same family as CSS variables, `--brand-lead-1` onwards, described in [Authoring tools](/info/authoring-tools.html). A hook that keeps colours it read in `onInit` should compare `{color.semantic.primary}` (and any other slot it depends on) on each `onInput`, and read again when the value changed: a colourway or look switch re-points the slots without running `onInit`.
 
 ## `host.pdf` *(optional)*
 
