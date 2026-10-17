@@ -228,7 +228,27 @@ pnpm run cli learning build module.json --format=scorm12 --output=course.zip
 pnpm run cli learning build module.json --format=static --output=website.zip
 ```
 
-The input follows the SDK's `learning-module-v1.schema.json` for original courses or `learning-module-v2.schema.json` for formatted text and practice quizzes. The editor upgrades a draft to schema 2 when either feature is added. Existing schema 1 drafts and saved packages remain readable. For this CLI path, export saved tool sources to media first. Set each asset source's `url` to a relative file path beside the module JSON, with its `format` matching the file. The command reads only files within that directory, including when resolving symbolic links. It refuses to overwrite an existing output file. Use `--json` for a machine-readable build result and checksum.
+The input follows the SDK's `learning-module-v1.schema.json` for original courses or `learning-module-v2.schema.json` for formatted text and practice quizzes. The editor upgrades a draft to schema 2 when either feature is added. Existing schema 1 drafts and saved packages remain readable. It refuses to overwrite an existing output file. Use `--json` for a machine-readable build result and checksum.
+
+Content can come from two kinds of source:
+
+- **A saved tool session.** The CLI renders the session with the installed tool, in the block's chosen rendition. These renders carry no Content Credentials or Imprint. Still pages render each page of a paged or framed document on its own, at that page's size. A `pageIds` list renders only the listed frames, in that order. A session saved with a different tool version renders with the installed version, and the build prints a note.
+- **A local file.** Set the asset source's `url` to a relative file path beside the module JSON, with its `format` matching the file. The command reads only files within that directory, including when resolving symbolic links.
+
+Some sessions cannot be reproduced in a terminal, and the build stops with the reason instead of packaging something different:
+
+| Stop | What to do |
+| --- | --- |
+| The tool has no export for the block's content type | Choose another rendition in the editor, or export a finished file and use it as a local file source. |
+| The tool's export is a format the CLI cannot package | Choose another rendition in the editor, or export a finished file and use it as a local file source. |
+| The session uses a file uploaded on the device that saved it | On that device, export the content and use the exported file as a local file source. |
+| The session points an image at a path on this computer | Use a local file source for that content instead. A saved session never reads a file by its path. |
+| A video block, and no browser renderer is installed | Run `lolly install-browser`, or set `LOLLY_BROWSER_CHANNEL=chrome` to use an installed Chrome. You can also export the video in the editor and use the file. |
+| A video from frames of different sizes | Make the frames the same size, or export the video and use the file. |
+
+A stop exits with the CLI's usual codes: 2 when only a change to the module can fix the source, and 3 when this installation cannot render the source. The message starts with the lesson title.
+
+A saved session can draw on work that asks for a credit, such as an emoji set under CC BY. These renders carry no Content Credentials, so the credit is not in the file. The build still writes the package, prints a Rights block for each such session with the credit text, and exits with 4. With `--json`, `ok` is `false` and `result.rightsDecisionsRequired` lists the content blocks. Add each credit where the course shows that content before you share the course.
 
 ## Give teams reusable material tools
 
