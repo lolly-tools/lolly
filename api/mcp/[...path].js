@@ -39098,9 +39098,12 @@ function paragraphSlants(resolver, story, paragraph) {
 function editedLocally(resolver, story, paragraph, cached2) {
   const t = cached2.typography, faces = new Set(facesOf2(cached2.faces[textTypographyFaceKey(t.fontFamily, t.fontWeight)]));
   if (resolver.paragraph(story, paragraph).lineHeight !== t.lineHeight) return true;
-  const values = offsets(story, paragraph).map((at) => resolver.character(story, paragraph, at));
-  const shown = [(value) => value.size === t.fontSize, (value) => (value.weight ?? 400) === t.fontWeight, (value) => (value.tracking ?? 0) === t.letterSpacing, (value) => !!value.font && faces.has(value.font)];
-  return shown.some((test) => !values.some(test));
+  const runs2 = offsets(story, paragraph).map((at) => ({ value: resolver.character(story, paragraph, at), named: resolver.named(story.spans.find((span) => span.start <= at && span.end > at)?.style).character }));
+  const shown = [["size", (value) => value.size === t.fontSize], ["weight", (value) => (value.weight ?? 400) === t.fontWeight], ["tracking", (value) => (value.tracking ?? 0) === t.letterSpacing], ["font", (value) => !!value.font && faces.has(value.font)]];
+  return shown.some(([key2, test]) => {
+    const linked = runs2.filter((run3) => run3.named[key2] === void 0);
+    return linked.length > 0 && !linked.some((run3) => test(run3.value));
+  });
 }
 function mapSpans(story, ranges) {
   const pieces = [];

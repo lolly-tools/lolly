@@ -548,7 +548,7 @@
     {
       "version": 1,
       "toolId": "design",
-      "toolVersion": "1.50.1",
+      "toolVersion": "1.51.0",
       "toolVersionRange": "^1.50.0",
       "skillRevision": "1.0.0",
       "origin": "authored",
