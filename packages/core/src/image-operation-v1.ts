@@ -52,7 +52,12 @@ export async function encodeToTargetBytes<T extends { size: number }>(encode: (q
   return best;
 }
 
-export function conversionFindings(kind: string, target: string): FileOperationFindingV1[] {
+/**
+ * The loss report for one conversion. `options` is the request's options
+ * record: data conversions read their worksheet, formula, delimiter, encoding
+ * and heading choices from it so the report states what this copy did.
+ */
+export function conversionFindings(kind: string, target: string, options: Readonly<Record<string, unknown>> = {}): FileOperationFindingV1[] {
   const warning = (code: string, message: string): FileOperationFindingV1 => ({ code, severity: 'warning', message });
   if (target === 'jxl-recompress') return [warning('jpeg-reconstruction', 'The complete original JPEG, including metadata, is retained. Restoration is checked byte for byte before the copy is saved. Compression savings are not guaranteed.')];
   if (target === 'jpeg-original') return [warning('jpeg-restored', 'Restores the original encoded JPEG and its metadata without rendering new pixels.')];
@@ -74,11 +79,49 @@ export function conversionFindings(kind: string, target: string): FileOperationF
   }
   if (['pdf', 'docx', 'pptx'].includes(kind)) return [warning('layout-not-preserved', 'Markdown extracts content, not page layout. Check reading order, tables and images before delivery.'),
     ...(kind === 'pdf' ? [warning('text-layer-only', 'Reads an existing text layer, without OCR. PDFs above 200 pages are refused rather than silently truncated.')] : [])];
-  if (['csv', 'tsv', 'xlsx', 'json'].includes(kind)) return [warning('values-only', 'Converts cell values, not formatting or formulas. Excel input uses the first sheet.'),
-    ...(target === 'json' ? [warning('json-headers', 'Column headings become object keys. Duplicate or empty headings are refused.')] : []),
-    ...(target === 'tsv' ? [warning('tsv-whitespace', 'Tabs and line breaks within cells become spaces.')] : [])];
+  if (['csv', 'tsv', 'xlsx', 'json'].includes(kind)) return dataConversionFindings(kind, target, options);
   if (['ttf', 'otf', 'woff'].includes(kind)) return [warning('font-container', 'Keeps the outline format. Font licensing and embedding rights are not verified; WOFF wrapper metadata is not carried into an unpacked font.')];
   return [];
+}
+
+function dataConversionFindings(kind: string, target: string, options: Readonly<Record<string, unknown>>): FileOperationFindingV1[] {
+  const warning = (code: string, message: string): FileOperationFindingV1 => ({ code, severity: 'warning', message });
+  const info = (code: string, message: string): FileOperationFindingV1 => ({ code, severity: 'info', message });
+  const findings: FileOperationFindingV1[] = [];
+  if (kind === 'xlsx') {
+    findings.push(options.cells === 'formulas'
+      ? warning('values-only', 'Converts cell contents, not formatting, charts or comments. Formula cells keep their formula text, starting with =, instead of their saved results. A shared formula is rewritten for each cell; a cell that cannot be rewritten safely keeps its saved result. Spreadsheet apps may recalculate formula text when they open the copy.')
+      : warning('values-only', 'Converts cell values, not formatting, charts or comments. Formula cells become the results last saved in the workbook; they are not recalculated.'));
+    findings.push(warning('number-formats', 'Number formats are not applied: a date becomes its stored serial number, such as 45123, and a percentage its fraction.'));
+    findings.push(warning('worksheets', options.allSheets === true
+      ? 'Each worksheet with cells becomes its own file in a ZIP. manifest.json lists every sheet with its file, row and column counts and SHA-256, and names any empty or chart sheet that was skipped.'
+      : options.sheet !== undefined
+        ? 'Uses the chosen worksheet. Other worksheets are not included.'
+        : 'Uses the first worksheet. Other worksheets are not included; choose a worksheet, or all worksheets, to include them.'));
+  } else {
+    findings.push(warning('values-only', 'Converts cell values, not formatting.'));
+    findings.push(info('text-encoding', !options.encoding || options.encoding === 'auto'
+      ? 'Reads UTF-8, or UTF-16 with a byte order mark. Text that is not valid UTF-8 is read as Windows-1252; choose the encoding if characters look wrong.'
+      : 'Reads the text in the chosen encoding. A file that does not match it is refused rather than converted with damaged characters.'));
+    if (kind !== 'json') {
+      findings.push(info('delimiter', !options.delimiter || options.delimiter === 'auto'
+        ? 'Splits columns on tabs when the text has any, reads a Markdown table, and otherwise splits on commas, or on semicolons when they split every row evenly and commas do not. A quoted value can hold the delimiter and line breaks.'
+        : options.delimiter === 'tab'
+          ? 'Splits columns on tabs. TSV has no quoting, so quotes stay part of the value.'
+          : 'Splits columns on the chosen delimiter. A quoted value can hold the delimiter and line breaks.'));
+    }
+  }
+  if (options.header === 'generate') {
+    findings.push(warning('generated-headings', target === 'json'
+      ? 'Headings Column 1, Column 2 and so on are added and become object keys; the first row stays data.'
+      : 'A heading row of Column 1, Column 2 and so on is added above the first row.'));
+  } else if (target === 'json') {
+    findings.push(options.header === 'none'
+      ? info('json-headers', 'No heading row: each row becomes an array of values.')
+      : warning('json-headers', 'Column headings become object keys. Duplicate or empty headings are refused.'));
+  }
+  if (target === 'tsv') findings.push(warning('tsv-whitespace', 'Tabs and line breaks within cells become spaces.'));
+  return findings;
 }
 
 export function conversionReport(input: FileFactsV1, output: FileFactsV1, kind: string, options: ImageConversionOptions): FileOperationReportV1 {

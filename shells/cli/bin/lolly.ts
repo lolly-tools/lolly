@@ -506,7 +506,7 @@ async function main(): Promise<void> {
     return;
   }
   if (cmd === 'files') {
-    if (args.some(arg => /^--(?:to|max-edge|quality|target-bytes|background)$/.test(arg))) throw usageError('File operation options need explicit values: --to=jpeg --quality=0.92 --max-edge=1920.');
+    if (args.some(arg => /^--(?:to|max-edge|quality|target-bytes|background|sheet|cells|delimiter|encoding|header)$/.test(arg))) throw usageError('File operation options need explicit values: --to=jpeg --quality=0.92 --max-edge=1920 --sheet=Budget.');
     const { filesCli } = await import('../src/files.ts');
     await filesCli(positionals.slice(1), flags, g.json);
     return;
