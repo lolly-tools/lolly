@@ -3,7 +3,7 @@
   "toolId": "diagram-builder",
   "toolVersion": "1.8.1",
   "toolVersionRange": "^1.8.1",
-  "skillRevision": "1.0.0",
+  "skillRevision": "1.1.0",
   "origin": "authored",
   "references": [
     "reference/inputs.json",
@@ -12,8 +12,8 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "d6d2694c7b41a9ae48f3e4e86d428c21db58c57842bd65f1fd4b1297f67bb480",
-      "bytes": 1597
+      "sha256": "e36b5b1175eaab2da3bd06e0f224e0668c118d95b9c6f78da1d5716a76d3712b",
+      "bytes": 1735
     },
     "reference/inputs.json": {
       "sha256": "7cb980af7165910076e84098f0416e5167136dc426a968d8b7bb03fcaf67b059",
@@ -24,8 +24,8 @@
       "bytes": 1069
     },
     "skill/workflow.md": {
-      "sha256": "69d128781b1d6040ad87728d8a75b0f726a2244089afc2645c0fdecb03896114",
-      "bytes": 1801
+      "sha256": "ef50eaeeae0d63692a89a2357b3e0474d2847b3b0d4a139b0cafa1c8418101b9",
+      "bytes": 15925
     }
   }
 }
