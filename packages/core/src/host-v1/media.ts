@@ -65,16 +65,23 @@ export interface MediaTrimOpts {
   /** v1.262. Turn the picture clockwise by this many degrees, on top of the source's
    *  own orientation. */
   rotate?: 0 | 90 | 180 | 270;
-  /** v1.262. `exact` (the default) re-encodes the picture when `start` falls between key
-   *  frames. `keyframe` copies from the key frame at or before `start` instead, so the
-   *  clip can begin earlier than asked. */
-  cut?: 'exact' | 'keyframe';
+  /** v1.262. How a clip starts when `start` falls between key frames, where a copy cannot
+   *  begin. `exact` (the default) starts at `start`: MP4 and MOV copy from the key frame
+   *  before and write an edit list telling players to skip the frames before `start`
+   *  (see `MediaTrimReport.hiddenLeadIn`); other containers re-encode the picture.
+   *  `reencode` re-encodes the picture in every container, so nothing before `start` is
+   *  kept. `keyframe` copies from the key frame at or before `start`, so the clip can
+   *  begin earlier than asked. A picture re-encoded for another reason (a sharing size,
+   *  a size limit, a turn the container cannot store, a codec it cannot carry) always
+   *  starts at `start`. */
+  cut?: 'exact' | 'reencode' | 'keyframe';
   /** v1.262. Largest shorter edge, in pixels, for a sharing copy. Never enlarges; 0 or
    *  absent keeps the source size. */
   maxShortEdge?: number;
-  /** v1.262. Aim for a file of at most this many bytes by re-encoding at a computed
-   *  bitrate. Applies to a clip that keeps its picture; the result reports whether the
-   *  written file met the target. */
+  /** v1.262. Aim for a file of at most this many bytes. Applies to a clip that keeps its
+   *  picture. A copy that already fits is kept as a copy; otherwise the picture is
+   *  re-encoded at a computed bitrate, never above the source's own. The result reports
+   *  whether the written file met the target. */
   targetBytes?: number;
 }
 
@@ -166,12 +173,19 @@ export interface MediaTrimReport {
   actualStart: number;
   /** Seconds from the key frame at or before `requestedStart` to `requestedStart`. */
   keyFrameGap: number;
+  /** Seconds of picture before `actualStart` that the written file keeps and its edit
+   *  list tells players to skip: an MP4 or MOV `exact` cut copied from the key frame
+   *  before. Editors and upload sites that ignore edit lists show those frames. Absent
+   *  when the file holds nothing before `actualStart`. */
+  hiddenLeadIn?: number;
   tracks: MediaTrimTrackReport[];
   sync?: MediaSyncCheck;
   orientation?: MediaOrientationCheck;
   color?: MediaColorCheck;
   /** Displayed size of the written picture or image. */
   size?: { width: number; height: number };
+  /** A size limit's outcome. `attempts` counts the files written, a copy included; the
+   *  smallest is the one returned. */
   target?: { bytes: number; met: boolean; attempts: number };
 }
 

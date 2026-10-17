@@ -11,12 +11,18 @@
  *   - an exact cut on a key frame copies both tracks byte for byte and reports it,
  *     with sound and picture matched packet for packet,
  *   - a fast cut between key frames starts at the earlier key frame and says by how
- *     much, while an exact cut there asks for a re-encode and, where none is
- *     possible, refuses with a hint instead of dropping the picture,
+ *     much,
+ *   - an exact MP4 cut there copies from the key frame and reports the lead-in its
+ *     edit list hides, while WebM (which cannot hide one) or a `reencode` cut asks
+ *     for a re-encode and, where none is possible, refuses with a hint instead of
+ *     dropping the picture,
+ *   - a picture re-encoded for another reason (a sharing size, a turn WebM cannot
+ *     store) never offers a fast cut, because the cut is not what re-encodes it,
  *   - a start inside the key frame's own display time still copies,
  *   - a turn into MP4 sets the orientation value without touching the packets,
  *   - a sound track that cannot be carried over is refused, never silently left out,
- *   - removed and secondary tracks are listed with their reason.
+ *   - removed and secondary tracks are listed with their reason,
+ *   - a size limit a copy already meets keeps the copy.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -170,11 +176,62 @@ test('a fast cut between key frames starts at the earlier key frame and reports 
   assert.equal(report.sync?.ok, true);
 });
 
-test('an exact cut between key frames needs a re-encode and refuses rather than drop the picture', async () => {
+test('an exact MP4 cut between key frames copies from the key frame and reports the hidden lead-in', async () => {
   const src = await makeSource({ format: 'mp4' });
+  const r = await trimMedia(src.bytes, { start: 0.6, end: 0.9, sourceName: 'clip.mp4' });
+  const report = r.report!;
+  assert.equal(report.method, 'copy');
+  assert.equal(r.lossless, true);
+  assert.ok(Math.abs(report.actualStart - 0.6) < 1e-6, 'players that follow the edit list start where asked');
+  assert.ok(Math.abs(report.keyFrameGap - 0.1) < 1e-6);
+  assert.ok(Math.abs(report.hiddenLeadIn! - 0.1) < 0.002, `frames 15 to 17 are kept before the start, hidden (${report.hiddenLeadIn})`);
+  assert.ok(Math.abs(r.durationAfter - 0.3) < 1e-6);
+  assert.deepEqual((await firstVideoPacket(r.bytes)).data, src.video[15], 'the copy begins on the key frame');
+  assert.equal(report.sync?.method, 'packets');
+  assert.equal(report.sync?.ok, true);
+  // A cut on a key frame keeps nothing before the start.
+  const onKey = await trimMedia(src.bytes, { start: 0.5, end: 0.9, sourceName: 'clip.mp4' });
+  assert.equal(onKey.report!.hiddenLeadIn, undefined);
+});
+
+test('an exact cut WebM cannot hide, or a reencode cut, refuses rather than drop the picture and says which cut copies', async () => {
+  const webm = await makeSource({ format: 'webm', audio: null });
   await assert.rejects(
-    () => trimMedia(src.bytes, { start: 0.6, end: 0.9, sourceName: 'clip.mp4' }),
-    (e: Error) => /picture would be left out/.test(e.message) && /fast cut/i.test(e.message),
+    () => trimMedia(webm.bytes, { start: 0.6, end: 0.9, sourceName: 'clip.webm' }),
+    (e: Error) => /picture would be left out/.test(e.message) && /Choose a fast cut to copy the picture/.test(e.message),
+  );
+  const mp4 = await makeSource({ format: 'mp4' });
+  await assert.rejects(
+    () => trimMedia(mp4.bytes, { start: 0.6, end: 0.9, cut: 'reencode', sourceName: 'clip.mp4' }),
+    (e: Error) => /picture would be left out/.test(e.message) && /Choose an exact or fast cut to copy the picture/.test(e.message),
+  );
+});
+
+test('a picture re-encoded for another reason never offers a fast cut', async () => {
+  const src = await makeSource({ format: 'mp4' });
+  // A sharing size re-encodes the picture whatever the cut, so the hint asks for Original size.
+  // Exact (an MP4 copy with the lead-in hidden) and Fast both copy once it is undone.
+  for (const cut of ['exact', 'keyframe'] as const) {
+    await assert.rejects(
+      () => trimMedia(src.bytes, { start: 0.6, end: 0.9, cut, maxShortEdge: 8, sourceName: 'clip.mp4' }),
+      (e: Error) => /picture would be left out/.test(e.message) && /Choose Original size to copy the picture/.test(e.message)
+        && !/fast cut/.test(e.message),
+    );
+  }
+  // A reencode cut still re-encodes at Original size, so the hint asks for both changes.
+  await assert.rejects(
+    () => trimMedia(src.bytes, { start: 0.6, end: 0.9, cut: 'reencode', maxShortEdge: 8, sourceName: 'clip.mp4' }),
+    (e: Error) => /Choose Original size and choose an exact or fast cut to copy the picture/.test(e.message),
+  );
+  // Under a limit no copy can meet, a Fast cut's hint gives only the limit.
+  await assert.rejects(
+    () => trimMedia(src.bytes, { start: 0.6, end: 0.9, cut: 'keyframe', targetBytes: 100, sourceName: 'clip.mp4' }),
+    (e: Error) => /picture would be left out/.test(e.message) && /Clear the size limit to copy the picture/.test(e.message),
+  );
+  // WebM has no orientation setting, so a turn redraws the picture; another container is the way out.
+  await assert.rejects(
+    () => trimMedia(src.bytes, { start: 0.6, end: 0.9, container: 'webm', rotate: 90, sourceName: 'clip.mp4' }),
+    (e: Error) => /picture would be left out/.test(e.message) && /Try another container/.test(e.message) && !/fast cut/.test(e.message),
   );
 });
 
@@ -211,7 +268,8 @@ test('sound that cannot be carried over is refused, never silently left out', as
   const src = await makeSource({ format: 'webm', audio: 'opus' });
   await assert.rejects(
     () => trimMedia(src.bytes, { start: 0.5, end: 0.8, sourceName: 'clip.webm' }),
-    (e: Error) => /opus sound would be left out/.test(e.message) && /Remove audio/.test(e.message),
+    (e: Error) => /opus sound would be left out/.test(e.message) && /Try another container, or turn on Remove audio\./.test(e.message)
+      && !/copy the picture/.test(e.message),
   );
   // Removing the sound on purpose is fine, and says so.
   const muted = await trimMedia(src.bytes, { start: 0.5, end: 0.8, mute: true, sourceName: 'clip.webm' });
@@ -237,11 +295,18 @@ test('a secondary sound track is listed as left out with its reason', async () =
   assert.equal(r.report!.method, 'copy');
 });
 
-test('a size limit applies only to clips with a picture and reports its outcome', async () => {
+test('a size limit applies only to clips with a picture, keeps a copy that fits and reports its outcome', async () => {
   const src = await makeSource({ format: 'mp4' });
   // Sound only: the limit is ignored, so the copy path still runs and no target is reported.
   const audio = await trimMedia(src.bytes, { start: 0, end: 0.5, audioOnly: 'm4a', targetBytes: 10, sourceName: 'clip.mp4' });
   assert.equal(audio.report!.target, undefined);
-  // With a picture the limit forces a re-encode, which node cannot do.
-  await assert.rejects(() => trimMedia(src.bytes, { start: 0, end: 0.5, targetBytes: 1_000_000, sourceName: 'clip.mp4' }), /picture would be left out/);
+  // A copy well inside the limit stays a copy: re-encoding would only lose quality.
+  const roomy = await trimMedia(src.bytes, { start: 0, end: 0.5, targetBytes: 1_000_000, sourceName: 'clip.mp4' });
+  assert.equal(roomy.report!.method, 'copy');
+  assert.deepEqual(roomy.report!.target, { bytes: 1_000_000, met: true, attempts: 1 });
+  // A limit the copy cannot meet needs a re-encode, which node cannot do.
+  await assert.rejects(
+    () => trimMedia(src.bytes, { start: 0, end: 0.5, targetBytes: 100, sourceName: 'clip.mp4' }),
+    (e: Error) => /picture would be left out/.test(e.message) && /Clear the size limit to copy the picture/.test(e.message),
+  );
 });

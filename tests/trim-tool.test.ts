@@ -9,12 +9,15 @@
  * fake host.media.trim that records its options and answers with a canned result:
  *   - each setting reaches the host as the documented MediaTrimOpts field,
  *   - the report becomes readable notes: copied or re-encoded tracks with the reason,
- *     where the clip starts against the key frames, sync, orientation, colour and the
- *     size limit, with failed checks marked as warnings,
+ *     where the clip starts against the key frames (a fast cut is offered only when the
+ *     cut alone re-encodes the picture, and frames kept for players to skip are named),
+ *     sync, orientation, colour and the size limit, with failed checks marked as
+ *     warnings,
  *   - an app whose host predates the report refuses a poster or contact sheet rather
  *     than hand back a clip in its place,
  *   - downloads are named for what they hold,
- *   - the template shows the controls each mode needs and renders the notes,
+ *   - the template shows the controls each mode needs and renders the notes, and keeps
+ *     Make on screen whenever a mode other than Clip is chosen,
  *   - every control in the template is a manifest input, and no input id collides with
  *     a reserved URL parameter.
  */
@@ -73,6 +76,8 @@ test('each setting reaches host.media.trim as its MediaTrimOpts field', async ()
   const shared = { start: 2, end: 6, rotate: '90' };
   const a = await run({ ...shared, cut: 'keyframe', shareSize: '720', maxMB: 8 }, () => clip({}));
   assert.equal(a.opts.cut, 'keyframe');
+  assert.equal((await run({ ...shared, cut: 'reencode' }, () => clip({}))).opts.cut, 'reencode');
+  assert.equal((await run({ ...shared, cut: 'bogus' }, () => clip({}))).opts.cut, 'exact', 'an unknown cut falls back to the default');
   assert.equal(a.opts.maxShortEdge, 720);
   assert.equal(a.opts.targetBytes, 8 * 1048576);
   assert.equal(a.opts.rotate, 90);
@@ -111,19 +116,49 @@ test('a copy report reads as a fast copy with each track and check in plain word
   assert.ok(!patch.notes.some((n) => n.warn), 'nothing failed, so nothing is a warning');
 });
 
-test('re-encodes say why, and an exact cut between key frames offers the fast cut', async () => {
+test('re-encodes say why, and a picture re-encoded for more than the cut is not offered a fast cut', async () => {
+  // H.264 into WebM re-encodes in either cut mode, so a fast cut would copy nothing.
   const { patch } = await run({ start: 2.53, end: 6, container: 'webm', rotate: '90' }, () => clip({
     method: 'mixed', requestedStart: 2.53, actualStart: 2.53, keyFrameGap: 0.53,
     tracks: [
-      { kind: 'video', codec: 'avc', outputCodec: 'vp9', action: 're-encode', reasons: ['cut-between-key-frames', 'codec-not-in-container', 'rotation-needs-pixels'] },
+      { kind: 'video', codec: 'avc', outputCodec: 'vp9', action: 're-encode', reasons: ['codec-not-in-container', 'rotation-needs-pixels'] },
       { kind: 'audio', codec: 'opus', outputCodec: 'opus', action: 'copy', reasons: [] },
     ],
     orientation: { requested: 90, sourceRotation: 0, outputRotation: 0, method: 'pixels', width: 720, height: 1280, expectedWidth: 720, expectedHeight: 1280, ok: true },
   }, { container: 'webm', lossless: false }));
   assert.equal(patch.methodText, 'Partly re-encoded');
-  assert.equal(patch.notes[0]!.text, 'H.264 re-encoded to VP9 because the start falls 0.53s after the nearest key frame; WebM cannot carry H.264; WebM has no orientation setting, so the turn is drawn into the picture');
-  assert.ok(patch.notes.some((n) => n.label === 'Start' && /A fast cut would start 0.53s earlier/.test(n.text)));
+  assert.equal(patch.notes[0]!.text, 'H.264 re-encoded to VP9 because WebM cannot carry H.264; WebM has no orientation setting, so the turn is drawn into the picture');
+  assert.ok(!patch.notes.some((n) => n.label === 'Start'), 'no start note: the clip starts where asked and no cut would copy the picture');
   assert.ok(patch.notes.some((n) => n.label === 'Orientation' && /by drawing the turn into the picture/.test(n.text)));
+  // A host that lists the cut beside another reason still gets no fast-cut offer.
+  const both = await run({ start: 2.53, end: 6, shareSize: '720' }, () => clip({
+    method: 're-encode', requestedStart: 2.53, actualStart: 2.53, keyFrameGap: 0.53,
+    tracks: [{ kind: 'video', codec: 'avc', outputCodec: 'avc', action: 're-encode', reasons: ['cut-between-key-frames', 'resize'] }],
+  }, { lossless: false }));
+  assert.ok(!both.patch.notes.some((n) => /fast cut/.test(n.text)));
+});
+
+test('an exact cut re-encoded only for the key frames offers the fast cut', async () => {
+  const { patch } = await run({ start: 2.53, end: 6, container: 'webm' }, () => clip({
+    method: 'mixed', requestedStart: 2.53, actualStart: 2.53, keyFrameGap: 0.53,
+    tracks: [
+      { kind: 'video', codec: 'vp9', outputCodec: 'vp9', action: 're-encode', reasons: ['cut-between-key-frames'] },
+      { kind: 'audio', codec: 'opus', outputCodec: 'opus', action: 'copy', reasons: [] },
+    ],
+  }, { container: 'webm', lossless: false }));
+  assert.equal(patch.notes[0]!.text, 'VP9 re-encoded because the start falls 0.53s after the nearest key frame');
+  assert.ok(patch.notes.some((n) => n.label === 'Start' && n.text === 'Starts exactly at your start point. A fast cut would start 0.53s earlier without re-encoding the picture.'));
+});
+
+test('an exact MP4 copy says which frames it keeps for players to skip', async () => {
+  const { patch } = await run({ start: 2.53, end: 6 }, () => clip({
+    requestedStart: 2.53, actualStart: 2.53, keyFrameGap: 0.53, hiddenLeadIn: 0.53,
+    tracks: [{ kind: 'video', codec: 'avc', outputCodec: 'avc', action: 'copy', reasons: [] }],
+  }));
+  assert.equal(patch.methodText, 'Fast copy: no re-encode, no quality lost');
+  const start = patch.notes.find((n) => n.label === 'Start');
+  assert.ok(start && !start.warn);
+  assert.equal(start.text, 'Plays from your start point. The file also holds the 0.53s before your start point, back to the key frame, marked for players to skip; some editors and upload sites show those frames. Choose the Re-encode cut to leave them out.');
 });
 
 test('a fast cut says where the clip really starts', async () => {
@@ -205,4 +240,13 @@ test('the template shows the controls each mode needs and renders the report', a
 
   const gifHtml = await render({ container: 'gif' }, () => clip({ method: 'frames' }, { container: 'gif', mime: 'image/gif' }));
   assert.ok(!controls(gifHtml).includes('cut') && controls(gifHtml).includes('rotate'), 'a GIF can turn but has no key frames to cut on');
+
+  // Trim's canvas layout hides the sidebar, so the template is the only way back to Clip
+  // when a poster frame or contact sheet was chosen and the file became a sound file.
+  const song = { source: { name: 'song.mp3', mime: 'audio/mpeg', size: 4, url: 'blob:y', bytes: new Uint8Array(4) } };
+  const stuck = await render({ ...song, make: 'poster' }, () => clip({}));
+  assert.match(stuck, /Poster frames and contact sheets need a video\. Choose Clip/);
+  assert.ok(controls(stuck).includes('make'), 'Make stays on screen to switch back to Clip');
+  const audioClip = await render(song, () => clip({}, { container: 'mp3', mime: 'audio/mpeg' }));
+  assert.ok(!controls(audioClip).includes('make'), 'a sound file making a clip has nothing else to make');
 });

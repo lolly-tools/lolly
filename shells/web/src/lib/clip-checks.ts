@@ -11,9 +11,9 @@
  *     source's own bytes, whether sound and picture are still in step, whether the
  *     picture is the right way up, and whether the declared colour information
  *     survived.
- * The arithmetic for the sharing copy (size cap and bitrate budget) and the contact
- * sheet (frame times and grid) lives here too, so it is tested without a canvas or an
- * encoder.
+ * The arithmetic for the sharing copy (size cap, bitrate budget and whether a plain
+ * copy already fits) and the contact sheet (frame times and grid) lives here too, so it
+ * is tested without a canvas or an encoder.
  */
 import type { EncodedPacket, EncodedPacketSink, Input, InputTrack, InputVideoTrack } from 'mediabunny';
 import type { MediaColorCheck, MediaOrientationCheck, MediaSyncCheck } from '@lolly-tools/core/host-v1';
@@ -145,6 +145,12 @@ export async function copiedOffset(MB: Mediabunny, source: InputTrack, written: 
   return match.timestamp - first.timestamp;
 }
 
+/** Seconds of picture a written file keeps before its start for players to skip (an MP4
+ *  or MOV edit list's lead-in), or 0 when it starts on its first frame. */
+export function leadIn(video: ClipTrackFacts | null): number {
+  return video && video.start < -TIME_EPSILON ? -video.start : 0;
+}
+
 function clamp(value: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, value));
 }
@@ -246,15 +252,53 @@ export function shareDimensions(width: number, height: number, maxShortEdge: num
 
 /** Container overhead and rate-control drift held back from a size budget. */
 const TARGET_HEADROOM = 0.92;
+/** Container overhead held back when a copy's packet bytes are already known. */
+const COPY_HEADROOM = 0.97;
 /** Below this the picture is not worth sending; a budget that needs less is reported as
  *  unmet rather than pursued. */
 export const MIN_VIDEO_BPS = 100_000;
 
-/** The video bitrate that fits `targetBytes` over `seconds`, after the sound's share. */
-export function bitrateForTarget(targetBytes: number, seconds: number, audioBps: number): { videoBps: number; feasible: boolean } {
+/**
+ * The bitrate a copy of `track` from `start` to `end` carries: the packet bytes from the
+ * key frame at or before `start` up to `end`, over that span. Reads packet sizes only,
+ * no media data. Null when the range holds no packets.
+ */
+export async function rangeBitrate(MB: Mediabunny, track: InputTrack, start: number, end: number): Promise<number | null> {
+  const sink = new MB.EncodedPacketSink(track);
+  const first = await sink.getKeyPacket(start, { metadataOnly: true }) ?? await sink.getFirstPacket({ metadataOnly: true });
+  if (!first) return null;
+  let bytes = 0, last = first.timestamp;
+  for await (const packet of sink.packets(first, undefined, { metadataOnly: true })) {
+    if (packet.timestamp >= end) break;
+    bytes += packet.byteLength;
+    last = Math.max(last, packet.timestamp + packet.duration);
+  }
+  const span = last - first.timestamp;
+  return bytes > 0 && span > 0 ? (bytes * 8) / span : null;
+}
+
+/** Whether a copy whose packets come to `copyBytes` should fit in `targetBytes`. */
+export function copyFitsTarget(copyBytes: number, targetBytes: number): boolean {
+  return copyBytes > 0 && copyBytes <= targetBytes * COPY_HEADROOM;
+}
+
+/**
+ * The video bitrate that fits `targetBytes` over `seconds`, after the sound's share.
+ * Never above the source's own `sourceVideoBps`, scaled by `areaScale` (output pixels
+ * over source pixels) for a smaller sharing size: encoding above the source's rate only
+ * writes a larger file with less quality. `capped` says the source, not the limit, set
+ * the rate. A `sourceVideoBps` of 0 means unknown and leaves the rate uncapped.
+ */
+export function bitrateForTarget(
+  targetBytes: number, seconds: number, audioBps: number, sourceVideoBps = 0, areaScale = 1,
+): { videoBps: number; feasible: boolean; capped: boolean } {
   const total = seconds > 0 ? (targetBytes * 8 * TARGET_HEADROOM) / seconds : 0;
-  const videoBps = Math.floor(total - audioBps);
-  return videoBps >= MIN_VIDEO_BPS ? { videoBps, feasible: true } : { videoBps: MIN_VIDEO_BPS, feasible: false };
+  const budget = Math.floor(total - audioBps);
+  const cap = sourceVideoBps > 0 ? Math.max(1, Math.floor(sourceVideoBps * clamp(areaScale, 0, 1))) : Infinity;
+  if (cap <= budget) return { videoBps: cap, feasible: true, capped: true };
+  return budget >= MIN_VIDEO_BPS
+    ? { videoBps: budget, feasible: true, capped: false }
+    : { videoBps: Math.min(MIN_VIDEO_BPS, cap), feasible: false, capped: false };
 }
 
 /** The bitrate for one more attempt after a file came out at `writtenBytes`. */

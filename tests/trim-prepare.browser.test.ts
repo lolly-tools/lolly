@@ -14,7 +14,9 @@
  *   - a fast cut copies from the key frame before, and its first frame is that key
  *     frame,
  *   - a turn into WebM redraws the picture and the report sees the turned size,
- *   - a sharing size shrinks the picture, and a size limit reports its outcome,
+ *   - a sharing size shrinks the picture and starts where asked even in Fast mode, a
+ *     size limit a copy already meets keeps the copy, and a tighter one re-encodes and
+ *     reports its outcome,
  *   - a poster frame is the frame at the start point, and a contact sheet has the laid
  *     out size with every frame drawn.
  * Every case uses WebM codecs, which every Chromium build encodes, so nothing here
@@ -96,16 +98,29 @@ describe('trim clip preparation (browser tier)', { skip: gate ?? false, concurre
   });
 
   test('a sharing size shrinks the picture and a size limit reports its outcome', async () => {
-    const small = await trim({ start: 0, end: at(60), maxShortEdge: 120, cut: 'keyframe' });
+    // A picture re-encoded for the size starts where asked, even in Fast mode.
+    const small = await trim({ start: at(40), end: at(70), maxShortEdge: 120, cut: 'keyframe' });
     assert.ok(videoTrack(small)?.reasons.includes('resize'));
+    assert.ok(!videoTrack(small)?.reasons.includes('cut-between-key-frames'));
+    assert.ok(Math.abs(small.report.actualStart - at(40)) < 1e-6, 'not moved back to the frame 30 key frame');
     assert.deepEqual(small.report.size, { width: 160, height: 120 });
     assert.equal(small.report.orientation?.ok, true);
 
-    const limited = await trim({ start: 0, end: at(60), targetBytes: 40_000, cut: 'keyframe' });
+    // The limits are set against the plain copy's own size.
+    const copy = await trim({ start: 0, end: at(60), cut: 'keyframe' });
+    assert.equal(videoTrack(copy)?.action, 'copy');
+
+    const roomy = await trim({ start: 0, end: at(60), targetBytes: copy.size * 2, cut: 'keyframe' });
+    assert.equal(videoTrack(roomy)?.action, 'copy', 'a copy that fits is kept');
+    assert.deepEqual(roomy.report.target, { bytes: copy.size * 2, met: true, attempts: 1 });
+
+    const tight = Math.floor(copy.size / 2);
+    const limited = await trim({ start: 0, end: at(60), targetBytes: tight, cut: 'keyframe' });
     const target = limited.report.target!;
-    assert.equal(target.bytes, 40_000);
-    assert.equal(target.met, limited.size <= 40_000, 'the outcome is measured on the written file');
+    assert.equal(target.bytes, tight);
+    assert.equal(target.met, limited.size <= tight, 'the outcome is measured on the written file');
     assert.ok(target.attempts >= 1 && target.attempts <= 2);
+    assert.equal(videoTrack(limited)?.action, 're-encode');
     assert.ok(videoTrack(limited)?.reasons.includes('target-size'));
   });
 

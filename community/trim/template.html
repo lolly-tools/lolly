@@ -7,7 +7,7 @@
     <div><strong>{{rangeText}}</strong><span>{{modeText}}</span></div>
    </div>
    <section class="controls" aria-label="Trim settings">
-    {{#if isVideo}}<label>Make<select class="field-select field-select--sm" data-input-id="make">
+    {{#if showMake}}<label>Make<select class="field-select field-select--sm" data-input-id="make">
      <option value="clip" {{#if (eq make "clip")}}selected{{/if}}>Clip</option><option value="poster" {{#if (eq make "poster")}}selected{{/if}}>Poster frame</option><option value="sheet" {{#if (eq make "sheet")}}selected{{/if}}>Contact sheet</option>
     </select></label>{{/if}}
     <label>{{startLabel}}<input class="field-input field-input--sm" type="number" min="0" step="0.01" data-input-id="start" value="{{start}}"></label>
@@ -19,7 +19,7 @@
     <label>Extract audio<select class="field-select field-select--sm" data-input-id="audioOnly"><option value="off" {{#if (eq audioOnly "off")}}selected{{/if}}>No</option><option value="m4a" {{#if (eq audioOnly "m4a")}}selected{{/if}}>M4A</option><option value="opus" {{#if (eq audioOnly "opus")}}selected{{/if}}>Opus</option><option value="wav" {{#if (eq audioOnly "wav")}}selected{{/if}}>WAV</option></select></label>
     {{/if}}
     {{#if clipVideo}}
-    <label>Cut<select class="field-select field-select--sm" data-input-id="cut"><option value="exact" {{#if (eq cut "exact")}}selected{{/if}}>Exact · re-encodes the picture when needed</option><option value="keyframe" {{#if (eq cut "keyframe")}}selected{{/if}}>Fast · starts at the key frame before</option></select></label>
+    <label>Cut<select class="field-select field-select--sm" data-input-id="cut"><option value="exact" {{#if (eq cut "exact")}}selected{{/if}}>Exact · starts at your start point</option><option value="reencode" {{#if (eq cut "reencode")}}selected{{/if}}>Re-encode · keeps nothing before the start</option><option value="keyframe" {{#if (eq cut "keyframe")}}selected{{/if}}>Fast · starts at the key frame before</option></select></label>
     <label>Sharing size<select class="field-select field-select--sm" data-input-id="shareSize"><option value="original" {{#if (eq shareSize "original")}}selected{{/if}}>Original size</option><option value="1080" {{#if (eq shareSize "1080")}}selected{{/if}}>1080p</option><option value="720" {{#if (eq shareSize "720")}}selected{{/if}}>720p</option><option value="480" {{#if (eq shareSize "480")}}selected{{/if}}>480p</option></select></label>
     <label>Size limit (MB, 0 = none)<input class="field-input field-input--sm" type="number" min="0" step="1" data-input-id="maxMB" value="{{maxMB}}"></label>
     {{/if}}

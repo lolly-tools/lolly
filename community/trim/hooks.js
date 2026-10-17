@@ -16,7 +16,7 @@ function options(v){
  if(m==='poster'){o.output='poster';delete o.end;}
  if(m==='sheet'){o.output='contact-sheet';o.sheetFrames=Number(v.frames)||12;}
  if(m!=='clip'){o.image=v.imageFormat==='png'?'png':'jpeg';return o;}
- o.cut=v.cut==='keyframe'?'keyframe':'exact';
+ o.cut=v.cut==='keyframe'||v.cut==='reencode'?v.cut:'exact';
  if(SHARE_EDGES[v.shareSize])o.maxShortEdge=SHARE_EDGES[v.shareSize];
  if(Number(v.maxMB)>0)o.targetBytes=Math.round(Number(v.maxMB)*1048576);
  return o;
@@ -44,6 +44,7 @@ function trackLine(t,rep,box){
  if(t.action==='drop')return{label:what,text:name+' left out: '+why.join('; ')};
  return{label:what,text:name+' re-encoded'+(t.outputCodec&&t.outputCodec!==t.codec?' to '+codecName(t.outputCodec):'')+' because '+why.join('; ')};
 }
+function onlyReason(rep,kind,reason){var t=(rep.tracks||[]).filter(function(x){return x.kind===kind;})[0],why=t&&t.action==='re-encode'?t.reasons||[]:[];return why.length===1&&why[0]===reason;}
 function describe(o,r,v){
  var rep=r.report,m=mode(v);
  if(!rep){if(m!=='clip')throw new Error('This version of the app cannot make poster frames or contact sheets yet. Update the app, or choose Clip.');o.notes=[{label:'Note',text:'This version of the app does not report how the clip was made, and ignores turning, sharing size and size limits.'}];return;}
@@ -53,7 +54,9 @@ function describe(o,r,v){
  if(m==='clip'&&rep.actualStart<rep.requestedStart-0.0005&&rep.keyFrameGap>=0.0005){
   var early=rep.requestedStart-rep.actualStart;
   notes.push({label:'Start',text:v.cut!=='keyframe'?'Starts on the key frame already showing at your start point.':'Starts at '+fmtTime(rep.actualStart)+', the key frame '+fmtTime(early)+' before your start point.'});
- }else if((rep.tracks||[]).some(function(t){return(t.reasons||[]).indexOf('cut-between-key-frames')>=0;})){
+ }else if(rep.hiddenLeadIn>0){
+  notes.push({label:'Start',text:'Plays from your start point. The file also holds the '+fmtTime(rep.hiddenLeadIn)+' before your start point, back to the key frame, marked for players to skip; some editors and upload sites show those frames. Choose the Re-encode cut to leave them out.'});
+ }else if(onlyReason(rep,'video','cut-between-key-frames')){
   notes.push({label:'Start',text:'Starts exactly at your start point. A fast cut would start '+fmtTime(rep.keyFrameGap)+' earlier without re-encoding the picture.'});
  }
  var s=rep.sync;
@@ -72,9 +75,10 @@ function describe(o,r,v){
  o.notes=notes;
 }
 async function compute(ctx){
- var v=vals(ctx.model),f=v.source,m=mode(v),o={hasFile:false,available:false,fileName:'',fileSize:'',sourceUrl:'',isVideo:false,error:'',rangeText:'',modeText:'',pending:false,done:false,durationText:'',containerText:'',cutText:'',sizeAfter:'',sizeText:'',methodText:'',notes:[],isClip:m==='clip',isPoster:m==='poster',isSheet:m==='sheet',clipVideo:false,startLabel:'Start (seconds)',downloadLabel:'Download clip'};
+ var v=vals(ctx.model),f=v.source,m=mode(v),o={hasFile:false,available:false,fileName:'',fileSize:'',sourceUrl:'',isVideo:false,error:'',rangeText:'',modeText:'',pending:false,done:false,durationText:'',containerText:'',cutText:'',sizeAfter:'',sizeText:'',methodText:'',notes:[],isClip:m==='clip',isPoster:m==='poster',isSheet:m==='sheet',clipVideo:false,showMake:false,startLabel:'Start (seconds)',downloadLabel:'Download clip'};
  if(!f||!f.bytes)return o;
  o.hasFile=true;o.fileName=f.name||'clip';o.fileSize=fmtBytes(f.size||f.bytes.length);o.sourceUrl=f.url||'';o.isVideo=String(f.mime||f.type||'').indexOf('video/')===0||/\.(mp4|mov|m4v|webm|mkv)$/i.test(f.name||'');
+ o.showMake=o.isVideo||!o.isClip;
  o.clipVideo=o.isClip&&o.isVideo&&(!v.audioOnly||v.audioOnly==='off')&&v.container!=='gif';
  o.canTurn=o.isVideo&&(!o.isClip||!v.audioOnly||v.audioOnly==='off');
  if(o.isPoster){o.startLabel='Poster frame at (seconds)';o.downloadLabel='Download poster frame';}
@@ -84,7 +88,7 @@ async function compute(ctx){
  const start=Math.max(0,Number(v.start)||0),end=Number(v.end)||0;
  o.rangeText=o.isPoster?'Frame at '+fmtTime(start):fmtTime(start)+' → '+(end>0?fmtTime(end):'end');
  o.modeText=o.isPoster?'Poster frame · '+(v.imageFormat==='png'?'PNG':'JPEG'):o.isSheet?'Contact sheet · '+(Number(v.frames)||12)+' frames':v.audioOnly&&v.audioOnly!=='off'?'Extract '+String(v.audioOnly).toUpperCase():(v.container==='gif'?'Animated GIF':(v.container==='keep'?'Keep container':String(v.container).toUpperCase()))+(v.mute?' · muted':'');
- if(!o.isClip&&!o.isVideo){o.error='Poster frames and contact sheets need a video.';return o;}
+ if(!o.isClip&&!o.isVideo){o.error='Poster frames and contact sheets need a video. Choose Clip, or replace the file with a video.';return o;}
  if(!o.isPoster&&end>0&&end<=start){o.error='End must be after start. Use 0 for the end of the file.';return o;}
  o.pending=true;if(ctx.report)ctx.report(o);
  try{

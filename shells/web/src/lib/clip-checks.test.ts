@@ -6,15 +6,17 @@
  *
  * The sync, orientation and colour checks are pure functions of container facts, so
  * they are pinned here with hand-built facts, including the failures a real file would
- * only show after a faulty encode. The two functions that read packets (key frame
- * search and copy detection) run against small synthetic containers.
+ * only show after a faulty encode. The functions that read packets (key frame search,
+ * copy detection and a copy's bitrate) run against small synthetic containers, and the
+ * size limit arithmetic is pinned with the numbers a phone clip would give.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as mb from 'mediabunny';
 import {
   MIN_VIDEO_BPS, bitrateForTarget, checkColor, checkOrientation, checkSync, clockLabel, colorLabel, copiedOffset,
-  keyFrameCut, normaliseRotation, readClipFacts, retryBitrate, shareDimensions, sheetLayout, sheetTimes,
+  copyFitsTarget, keyFrameCut, leadIn, normaliseRotation, rangeBitrate, readClipFacts, retryBitrate, shareDimensions,
+  sheetLayout, sheetTimes,
   type ClipFacts, type ClipVideoFacts,
 } from './clip-checks.ts';
 
@@ -103,10 +105,36 @@ test('shareDimensions caps the shorter edge, keeps the aspect, rounds to even an
 test('bitrateForTarget leaves room for sound and overhead, and reports a budget too small to meet', () => {
   const fit = bitrateForTarget(10_000_000, 60, 128_000);
   assert.equal(fit.feasible, true);
+  assert.equal(fit.capped, false);
   assert.equal(fit.videoBps, Math.floor((10_000_000 * 8 * 0.92) / 60 - 128_000));
-  assert.deepEqual(bitrateForTarget(1_000_000, 600, 128_000), { videoBps: MIN_VIDEO_BPS, feasible: false });
+  assert.deepEqual(bitrateForTarget(1_000_000, 600, 128_000), { videoBps: MIN_VIDEO_BPS, feasible: false, capped: false });
   assert.equal(retryBitrate(1_000_000, 12_000_000, 10_000_000), Math.floor(1_000_000 * (10 / 12) * 0.95));
   assert.equal(retryBitrate(150_000, 50_000_000, 1_000_000), MIN_VIDEO_BPS);
+});
+
+test('bitrateForTarget never asks for more than the source carries', () => {
+  // A 100 MB limit on a 60 s, 8 Mbps phone clip: the limit alone would ask for about
+  // 12.7 Mbps, a larger and lossier file than the source's own 8 Mbps.
+  const MB = 1024 * 1024;
+  const roomy = bitrateForTarget(100 * MB, 60, 128_000, 8_000_000);
+  assert.deepEqual(roomy, { videoBps: 8_000_000, feasible: true, capped: true });
+  // A half-second clip with an ordinary limit would ask for hundreds of Mbps.
+  assert.equal(bitrateForTarget(25 * MB, 0.5, 128_000, 6_000_000).videoBps, 6_000_000);
+  // A sharing size scales the cap by the pixels kept: 720p from 1080p keeps 4/9 of them.
+  const shared = bitrateForTarget(100 * MB, 60, 128_000, 9_000_000, (1280 * 720) / (1920 * 1080));
+  assert.ok(shared.capped && Math.abs(shared.videoBps - 4_000_000) <= 1, String(shared.videoBps));
+  // A tight limit still sets the rate under the cap.
+  const tight = bitrateForTarget(20 * MB, 60, 128_000, 8_000_000);
+  assert.equal(tight.capped, false);
+  assert.equal(tight.videoBps, Math.floor((20 * MB * 8 * 0.92) / 60 - 128_000));
+  // An unknown source rate (0) leaves the limit in charge.
+  assert.equal(bitrateForTarget(100 * MB, 60, 128_000, 0).capped, false);
+});
+
+test('copyFitsTarget keeps a copy whose packets fit with room for the container', () => {
+  assert.equal(copyFitsTarget(60_000_000, 100_000_000), true, 'a 60 MB copy fits a 100 MB limit');
+  assert.equal(copyFitsTarget(99_000_000, 100_000_000), false, 'too close to the limit once the container is added');
+  assert.equal(copyFitsTarget(0, 100_000_000), false, 'an unknown size is not assumed to fit');
 });
 
 test('sheetTimes spreads frames over the range and clamps the count', () => {
@@ -166,6 +194,27 @@ test('keyFrameCut finds the key frame at or before the start and whether a copy 
   } finally {
     input.dispose();
   }
+});
+
+test('rangeBitrate counts the packets a copy carries, from the key frame before the start', async () => {
+  const input = open(await vp9File(30, 10));
+  try {
+    const track = (await input.getPrimaryVideoTrack())!;
+    // From 0.5 s a copy begins on the frame 10 key frame and runs to frame 23.
+    let bytes = 0;
+    for (let i = 10; i <= 23; i++) bytes += 10 + (i % 3);
+    const bps = await rangeBitrate(mb, track, 0.5, 0.79);
+    assert.ok(bps !== null && Math.abs(bps - (bytes * 8) / (14 / 30)) < 1, String(bps));
+  } finally {
+    input.dispose();
+  }
+});
+
+test('leadIn reads the picture a written file keeps before its start', () => {
+  assert.ok(Math.abs(leadIn(video({ start: -0.1 })) - 0.1) < 1e-9);
+  assert.equal(leadIn(video({ start: 0 })), 0);
+  assert.equal(leadIn(video({ start: -0.0001 })), 0, 'timescale rounding is not a lead-in');
+  assert.equal(leadIn(null), 0);
 });
 
 test('copiedOffset recognises copied packets and rejects new ones', async () => {

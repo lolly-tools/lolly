@@ -12,15 +12,16 @@
   "render": { "width": 860, "height": 620, "formats": ["mp4", "webm", "gif", "m4a", "opus", "wav", "jpg", "png"], "export": false, "layout": "canvas", "actions": [] },
   "hooks": { "onInit": true, "onInput": true, "exportFile": true },
   "inputs": [
-    { "id": "source", "label": "Audio or video", "type": "file", "accept": ["audio/*", "video/*", ".mp4", ".mov", ".webm", ".mkv", ".wav", ".mp3", ".m4a", ".ogg", ".opus"], "maxSize": 1073741824, "help": "Read and converted locally. Large files can take a while when an exact cut needs re-encoding." },
+    { "id": "source", "label": "Audio or video", "type": "file", "accept": ["audio/*", "video/*", ".mp4", ".mov", ".webm", ".mkv", ".wav", ".mp3", ".m4a", ".ogg", ".opus"], "maxSize": 1073741824, "help": "Read and converted locally. Large files can take a while when the picture needs re-encoding." },
     { "id": "make", "label": "Make", "type": "select", "default": "clip", "options": [
       { "value": "clip", "label": "Clip" }, { "value": "poster", "label": "Poster frame" }, { "value": "sheet", "label": "Contact sheet" }
     ], "help": "A poster frame is the picture at the start point. A contact sheet spreads frames across the range." },
     { "id": "start", "label": "Start (seconds)", "type": "number", "default": 0, "min": 0, "step": 0.01 },
     { "id": "end", "label": "End (seconds)", "type": "number", "default": 0, "min": 0, "step": 0.01, "help": "0 means the end of the file." },
     { "id": "cut", "label": "Cut", "type": "select", "default": "exact", "options": [
-      { "value": "exact", "label": "Exact · re-encodes the picture when needed" }, { "value": "keyframe", "label": "Fast · starts at the key frame before" }
-    ], "help": "A copy can only begin on a key frame. A fast cut keeps the original packets and may start a little early." },
+      { "value": "exact", "label": "Exact · starts at your start point" }, { "value": "reencode", "label": "Re-encode · keeps nothing before the start" },
+      { "value": "keyframe", "label": "Fast · starts at the key frame before" }
+    ], "help": "A copy can only begin on a key frame. Exact copies MP4 and MOV from the key frame before and marks the frames before your start for players to skip; some editors and upload sites show them. WebM and MKV re-encode the picture instead. Re-encode always re-encodes the picture, so nothing before the start is kept. Fast keeps the original packets and may start a little early." },
     { "id": "container", "label": "Container", "type": "select", "default": "keep", "options": [
       { "value": "keep", "label": "Keep source container" }, { "value": "mp4", "label": "MP4" },
       { "value": "webm", "label": "WebM" }, { "value": "gif", "label": "GIF · up to 15 seconds" }
@@ -38,7 +39,7 @@
       { "value": "original", "label": "Original size" }, { "value": "1080", "label": "1080p" },
       { "value": "720", "label": "720p" }, { "value": "480", "label": "480p" }
     ], "help": "Re-encodes to a smaller picture. Never enlarges." },
-    { "id": "maxMB", "label": "Size limit (MB)", "type": "number", "default": 0, "min": 0, "step": 1, "help": "0 means no limit. A limit re-encodes the clip at a bitrate meant to fit and reports whether it did." },
+    { "id": "maxMB", "label": "Size limit (MB)", "type": "number", "default": 0, "min": 0, "step": 1, "help": "0 means no limit. A copy that already fits is kept. Otherwise the clip is re-encoded at a bitrate meant to fit, never above the source's own, and the report says whether it did." },
     { "id": "frames", "label": "Frames", "type": "select", "default": "12", "options": [
       { "value": "6", "label": "6" }, { "value": "9", "label": "9" }, { "value": "12", "label": "12" },
       { "value": "16", "label": "16" }, { "value": "25", "label": "25" }

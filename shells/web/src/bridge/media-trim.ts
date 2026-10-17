@@ -5,7 +5,8 @@
  * A clip goes through one mediabunny Conversion, which copies each track's packets
  * when it can and re-encodes when it must. This module decides what the Conversion
  * cannot: where the cut starts against the key frames, the size and bitrate of a
- * sharing copy, and that a track the user kept is never left out without a word.
+ * sharing copy (or that a plain copy already fits), and that a track the user kept is
+ * never left out without a word.
  * After writing it re-opens the output and reports what happened, measured on the
  * written bytes (lib/clip-checks.ts): which tracks are byte-identical copies, whether
  * sound and picture are still in step, which way up the picture is and whether the
@@ -20,9 +21,9 @@ import type {
   InputVideoTrack, OutputFormat, Quality,
 } from 'mediabunny';
 import {
-  SHEET_FRAMES, bitrateForTarget, checkColor, checkOrientation, checkSync, clockLabel, copiedOffset,
-  keyFrameCut, normaliseRotation, readClipFacts, retryBitrate, shareDimensions, sheetLayout, sheetTimes,
-  type ClipFacts, type ClipRotation,
+  SHEET_FRAMES, bitrateForTarget, checkColor, checkOrientation, checkSync, clockLabel, copiedOffset, copyFitsTarget,
+  keyFrameCut, leadIn, normaliseRotation, rangeBitrate, readClipFacts, retryBitrate, shareDimensions, sheetLayout,
+  sheetTimes, type ClipFacts, type ClipRotation, type ClipVideoFacts, type KeyFrameCut,
 } from '../lib/clip-checks.ts';
 import type { FrameProvider } from './sequence-providers.ts';
 
@@ -33,7 +34,8 @@ interface TrimRange { start: number; end: number; duration: number; rotate: Clip
 
 /** Sound bitrate a size-limited copy re-encodes to when the source's is much higher. */
 const SHARE_AUDIO_BPS = 128_000;
-/** Encodes a size limit may take: the first at the computed bitrate, one corrected retry. */
+/** Files a size limit may write: the first (a copy when one fits, else an encode at the
+ *  computed bitrate) and one corrected retry. */
 const MAX_TARGET_ATTEMPTS = 2;
 /** Longest poster edge; a larger frame is scaled down to keep the canvas affordable. */
 const POSTER_MAX_EDGE = 4096;
@@ -226,29 +228,128 @@ const DISCARD_PHRASES: Record<DiscardedTrack['reason'], string> = {
   cannot_copy: 'it cannot be copied',
 };
 
-interface ClipPlan {
+type CutMode = NonNullable<MediaTrimOpts['cut']>;
+interface PictureSize { width: number; height: number }
+
+/** What a clip keeps and changes, before any choice about the cut or a size limit. */
+interface ClipSetup {
   kind: OutputKind;
   spec: OutputSpec;
-  start: number;
-  end: number;
+  range: TrimRange;
+  cutMode: CutMode;
+  cut: KeyFrameCut | null;
   rotate: ClipRotation;
   keepVideo: boolean;
   keepAudio: boolean;
-  cutBetweenKeys: boolean;
-  resize: { width: number; height: number } | null;
+  resize: PictureSize | null;
   shortEdge: 'width' | 'height';
   audioCodec: 'aac' | 'opus' | 'pcm-s16' | undefined;
-  audioQuality: Quality | undefined;
-  hint: string;
+  /** Why the picture is re-encoded whatever the cut or size limit. */
+  pictureReasons: MediaTrimReason[];
 }
 
-function videoOptions(MB: Mediabunny, plan: ClipPlan, videoBps: number): ConversionVideoOptions {
+/** How a size limit shapes one attempt. */
+interface SizeChoice {
+  /** A copy would not fit, so the limit alone needs the picture re-encoded. */
+  forces: boolean;
+  /** Picture bitrate for a re-encode, never above the source's own. */
+  videoBps: number;
+  /** The limit, not the source, set `videoBps`. */
+  limitSets: boolean;
+  audioQuality: Quality | undefined;
+}
+
+interface ClipPlan extends ClipSetup {
+  start: number;
+  end: number;
+  cutBetweenKeys: boolean;
+  /** Re-encode bitrate for the picture; 0 copies or leaves the encoder's default. */
+  videoBps: number;
+  limitForces: boolean;
+  limitSets: boolean;
+  audioQuality: Quality | undefined;
+}
+
+/** The size-limit facts measured on the source range, read once per clip. */
+interface SizeFacts {
+  targetBytes: number;
+  /** The source's own rates over the range a copy would carry; 0 when unknown. */
+  videoBps: number;
+  audioBps: number;
+  /** Whether a copy of the range should fit as it is. */
+  copyFits: boolean;
+  /** Output pixels over source pixels for a sharing size, else 1. */
+  areaScale: number;
+}
+
+/** Output formats that keep packets before the start in full and tell players to skip them. */
+function hidesLeadIn(spec: OutputSpec): boolean {
+  return spec.format.negativeTimestampSupport === 'full';
+}
+
+/** Why the picture must be re-encoded, mirroring the checks mediabunny makes before a copy. */
+function pictureReasons(spec: OutputSpec, video: ClipVideoFacts, rotate: ClipRotation, resize: PictureSize | null): MediaTrimReason[] {
+  const reasons: MediaTrimReason[] = [];
+  if (!video.codec || !spec.format.getSupportedVideoCodecs().some((c) => c === video.codec)) reasons.push('codec-not-in-container');
+  if ((video.rotation + rotate) % 360 !== 0 && !spec.format.supportsVideoTransformationMetadata) reasons.push('rotation-needs-pixels');
+  if (resize) reasons.push('resize');
+  return reasons;
+}
+
+/**
+ * Where the clip starts and what is re-encoded. A copy begins on a key frame. Inside the
+ * key frame's own display time the first frame is the one asked for, so the copy starts
+ * on the key frame. Further in, a fast cut starts early; an exact cut copies with the
+ * lead-in hidden where the container can (MP4, MOV) and re-encodes the picture
+ * elsewhere; a `reencode` cut always re-encodes. A picture re-encoded for any other
+ * reason can start on any frame, so it starts where asked.
+ */
+function planClip(s: ClipSetup, size: SizeChoice | null): ClipPlan {
+  const reencode = s.keepVideo && (s.pictureReasons.length > 0 || Boolean(size?.forces));
+  let start = s.range.start, cutBetweenKeys = false;
+  const cut = s.cut;
+  if (s.keepVideo && !reencode && cut && cut.keyTime !== null && cut.gap > 0) {
+    if (cut.aligned || s.cutMode === 'keyframe') start = cut.keyTime;
+    else if (s.cutMode === 'reencode' || !hidesLeadIn(s.spec)) cutBetweenKeys = true;
+  }
+  const picture = reencode || cutBetweenKeys;
+  return {
+    ...s, start, end: s.range.end, cutBetweenKeys,
+    videoBps: picture && size ? size.videoBps : 0,
+    limitForces: Boolean(size?.forces), limitSets: picture && Boolean(size?.limitSets),
+    audioQuality: size?.audioQuality,
+  };
+}
+
+/** The size choice for one attempt. `forces` is true when a copy will not fit. */
+function sizeChoice(MB: Mediabunny, s: ClipSetup, facts: SizeFacts, forces: boolean): SizeChoice {
+  const squeeze = forces && s.keepAudio && facts.audioBps > SHARE_AUDIO_BPS * 1.25;
+  const audioBps = squeeze ? SHARE_AUDIO_BPS : facts.audioBps;
+  const budget = bitrateForTarget(facts.targetBytes, s.range.end - s.range.start, audioBps, facts.videoBps, facts.areaScale);
+  return {
+    forces, videoBps: budget.videoBps, limitSets: !budget.capped,
+    audioQuality: squeeze ? new MB.Quality({ bitrate: SHARE_AUDIO_BPS }) : undefined,
+  };
+}
+
+async function sizeFacts(
+  MB: Mediabunny, s: ClipSetup, primaries: Primaries, targetBytes: number, shown: { w: number; h: number } | null,
+): Promise<SizeFacts> {
+  const from = Math.min(s.range.start, s.cut?.keyTime ?? s.range.start);
+  const videoBps = primaries.video ? (await rangeBitrate(MB, primaries.video, from, s.range.end)) ?? 0 : 0;
+  const audioBps = s.keepAudio && primaries.audio ? (await rangeBitrate(MB, primaries.audio, from, s.range.end)) ?? SHARE_AUDIO_BPS : 0;
+  const copyBytes = ((videoBps + audioBps) * (s.range.end - from)) / 8;
+  const areaScale = s.resize && shown ? (s.resize.width * s.resize.height) / (shown.w * shown.h) : 1;
+  return { targetBytes, videoBps, audioBps, copyFits: videoBps > 0 && copyFitsTarget(copyBytes, targetBytes), areaScale };
+}
+
+function videoOptions(MB: Mediabunny, plan: ClipPlan): ConversionVideoOptions {
   if (!plan.keepVideo) return { discard: true };
   const options: ConversionVideoOptions = {};
   if (plan.rotate) options.rotate = plan.rotate;
   if (plan.cutBetweenKeys) options.forceTranscode = true;
   if (plan.resize) options[plan.shortEdge] = plan.resize[plan.shortEdge];
-  if (videoBps > 0) options.quality = new MB.Quality({ bitrate: videoBps, bitrateMode: 'variable' });
+  if (plan.videoBps > 0) options.quality = new MB.Quality({ bitrate: plan.videoBps, bitrateMode: 'variable' });
   return options;
 }
 
@@ -260,19 +361,57 @@ function audioOptions(plan: ClipPlan): ConversionAudioOptions {
   return options;
 }
 
-async function convertOnce(MB: Mediabunny, input: Input, plan: ClipPlan, videoBps: number): Promise<Uint8Array> {
+function listText(items: string[]): string {
+  return items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
+}
+
+/**
+ * Every setting to change so the picture is copied, or none when no setting can do it
+ * (a codec or a turn the container cannot carry). The cut is named only when it would
+ * still re-encode the picture once the other settings are undone.
+ */
+function copySteps(plan: ClipPlan): string[] {
+  if (!plan.keepVideo || plan.pictureReasons.some((r) => r !== 'resize')) return [];
+  const steps: string[] = [];
+  if (plan.resize) steps.push('choose Original size');
+  if (plan.limitForces) steps.push('clear the size limit');
+  const bare: ClipSetup = { ...plan, pictureReasons: [] };
+  if (planClip(bare, null).cutBetweenKeys) {
+    const exactCopies = plan.cutMode === 'reencode' && !planClip({ ...bare, cutMode: 'exact' }, null).cutBetweenKeys;
+    steps.push(exactCopies ? 'choose an exact or fast cut' : 'choose a fast cut');
+  }
+  return steps;
+}
+
+/** What the user can change when the picture or the sound cannot be carried over. */
+function refusalHint(plan: ClipPlan, lostPicture: boolean, lostSound: boolean): string {
+  const ways = new Set<string>();
+  if (lostPicture || !lostSound) {
+    const steps = copySteps(plan);
+    ways.add(steps.length ? `${listText(steps)} to copy the picture` : 'try another container');
+  }
+  if (lostSound) {
+    ways.add(plan.audioCodec ? 'choose another audio format' : 'try another container');
+    if (plan.keepVideo) ways.add('turn on Remove audio');
+  }
+  const text = [...ways].join(', or ');
+  return `${text.charAt(0).toUpperCase()}${text.slice(1)}.`;
+}
+
+async function convertOnce(MB: Mediabunny, input: Input, plan: ClipPlan): Promise<Uint8Array> {
   const target = new MB.BufferTarget();
   // A fresh format per attempt: a size-limit retry writes a second Output.
   const output = new MB.Output({ format: outputSpec(MB, plan.kind).format, target });
   const conversion = await MB.Conversion.init({
     input, output, tracks: 'primary', trim: { start: plan.start, end: plan.end }, showWarnings: false,
-    video: videoOptions(MB, plan, videoBps), audio: audioOptions(plan),
+    video: videoOptions(MB, plan), audio: audioOptions(plan),
   });
   // A track the user kept must not vanish from a valid conversion without a word.
   const lost = conversion.discardedTracks.filter((d) => d.reason !== 'discarded_by_user');
   if (lost.length || !conversion.isValid) {
     const reasons = await Promise.all(lost.map(async (d) => `the ${await d.track.getCodec() || 'unknown'} ${d.track.type === 'video' ? 'picture' : 'sound'} would be left out because ${DISCARD_PHRASES[d.reason]}`));
-    throw new Error(`media trim: cannot produce ${plan.spec.container}${reasons.length ? `: ${reasons.join('; ')}` : ''}. ${plan.hint}`.trim());
+    const hint = refusalHint(plan, lost.some((d) => d.track.type === 'video'), lost.some((d) => d.track.type === 'audio'));
+    throw new Error(`media trim: cannot produce ${plan.spec.container}${reasons.length ? `: ${reasons.join('; ')}` : ''}. ${hint}`);
   }
   try {
     await conversion.execute();
@@ -283,13 +422,10 @@ async function convertOnce(MB: Mediabunny, input: Input, plan: ClipPlan, videoBp
   return new Uint8Array(target.buffer);
 }
 
-function videoReasons(plan: ClipPlan, codec: string | null, videoBps: number): MediaTrimReason[] {
-  const reasons: MediaTrimReason[] = [];
-  if (plan.cutBetweenKeys) reasons.push('cut-between-key-frames');
-  if (!codec || !plan.spec.format.getSupportedVideoCodecs().some((c) => c === codec)) reasons.push('codec-not-in-container');
-  if (plan.rotate && !plan.spec.format.supportsVideoTransformationMetadata) reasons.push('rotation-needs-pixels');
-  if (plan.resize) reasons.push('resize');
-  if (videoBps > 0) reasons.push('target-size');
+function videoReasons(plan: ClipPlan): MediaTrimReason[] {
+  const reasons: MediaTrimReason[] = plan.cutBetweenKeys ? ['cut-between-key-frames'] : [];
+  reasons.push(...plan.pictureReasons);
+  if (plan.limitSets || (plan.limitForces && !plan.pictureReasons.length)) reasons.push('target-size');
   return reasons.length ? reasons : ['container-timing'];
 }
 
@@ -305,7 +441,7 @@ interface Primaries { video: InputVideoTrack | null; audio: InputAudioTrack | nu
 
 async function trackReports(
   input: Input, plan: ClipPlan, primaries: Primaries, written: Primaries,
-  videoBps: number, offsets: { video: number | null; audio: number | null },
+  offsets: { video: number | null; audio: number | null },
 ): Promise<MediaTrimTrackReport[]> {
   const reports: MediaTrimTrackReport[] = [];
   for (const track of await input.getTracks()) {
@@ -324,14 +460,14 @@ async function trackReports(
     }
     const outputCodec = (await out.getCodec()) ?? null;
     const copied = (isVideo ? offsets.video : offsets.audio) !== null;
-    const reasons = copied ? [] : isVideo ? videoReasons(plan, codec, videoBps) : audioReasons(plan, codec);
+    const reasons = copied ? [] : isVideo ? videoReasons(plan) : audioReasons(plan, codec);
     reports.push({ kind, codec, outputCodec, action: copied ? 'copy' : 're-encode', reasons });
   }
   return reports;
 }
 
 async function measure(
-  MB: Mediabunny, input: Input, plan: ClipPlan, primaries: Primaries, facts: ClipFacts, bytes: Uint8Array, videoBps: number,
+  MB: Mediabunny, input: Input, plan: ClipPlan, primaries: Primaries, facts: ClipFacts, bytes: Uint8Array,
 ): Promise<MediaTrimReport> {
   const outInput = new MB.Input({ formats: MB.ALL_FORMATS, source: new MB.BufferSource(bytes) });
   try {
@@ -341,13 +477,15 @@ async function measure(
       video: primaries.video && written.video && plan.keepVideo ? await copiedOffset(MB, primaries.video, written.video, plan.start) : null,
       audio: primaries.audio && written.audio && plan.keepAudio ? await copiedOffset(MB, primaries.audio, written.audio, plan.start) : null,
     };
-    const tracks = await trackReports(input, plan, primaries, written, videoBps, offsets);
+    const tracks = await trackReports(input, plan, primaries, written, offsets);
     const kept = tracks.filter((t) => t.action !== 'drop');
     const copies = kept.filter((t) => t.action === 'copy').length;
     const report: MediaTrimReport = {
       method: copies === kept.length ? 'copy' : copies === 0 ? 're-encode' : 'mixed',
       requestedStart: 0, actualStart: plan.start, keyFrameGap: 0, tracks,
     };
+    const hidden = plan.keepVideo ? leadIn(outFacts.video) : 0;
+    if (hidden > 0) report.hiddenLeadIn = hidden;
     if (plan.keepVideo && plan.keepAudio) report.sync = checkSync(facts, outFacts, plan.start, plan.end, offsets);
     if (plan.keepVideo && facts.video && outFacts.video) {
       report.orientation = checkOrientation(facts.video, outFacts.video, plan.rotate, plan.resize);
@@ -371,54 +509,51 @@ async function clipTrim(MB: Mediabunny, input: Input, opts: MediaTrimOpts, range
   const facts = await readClipFacts(MB, input);
   const keepVideo = !audioOnly && primaries.video !== null;
   const keepAudio = primaries.audio !== null && !(opts.mute && !audioOnly);
-
-  // A copy begins on a key frame. Inside the key frame's own display time the first
-  // frame is the one asked for; further in, a fast cut starts early and an exact cut
-  // re-encodes the picture.
-  let start = range.start, keyFrameGap = 0, cutBetweenKeys = false;
-  if (keepVideo && primaries.video) {
-    const cut = await keyFrameCut(MB, primaries.video, range.start);
-    keyFrameGap = cut.gap;
-    if (cut.keyTime !== null && cut.gap > 0) {
-      if (cut.aligned || opts.cut === 'keyframe') start = cut.keyTime;
-      else cutBetweenKeys = true;
-    }
-  }
-
-  const sideways = range.rotate % 180 !== 0;
+  const spec = outputSpec(MB, requested);
+  const rotate = keepVideo ? range.rotate : 0;
+  const sideways = rotate % 180 !== 0;
   const shown = facts.video ? { w: sideways ? facts.video.displayHeight : facts.video.displayWidth, h: sideways ? facts.video.displayWidth : facts.video.displayHeight } : null;
   const resize = keepVideo && shown && opts.maxShortEdge ? shareDimensions(shown.w, shown.h, opts.maxShortEdge) : null;
-  const targetBytes = keepVideo && Number(opts.targetBytes) > 0 ? Number(opts.targetBytes) : 0;
-  let audioBps = 0, audioQuality: Quality | undefined;
-  if (targetBytes && keepAudio && primaries.audio) {
-    const measured = (await primaries.audio.getAverageBitrate()) ?? SHARE_AUDIO_BPS;
-    if (measured > SHARE_AUDIO_BPS * 1.25) { audioBps = SHARE_AUDIO_BPS; audioQuality = new MB.Quality({ bitrate: SHARE_AUDIO_BPS }); }
-    else audioBps = measured;
-  }
-  const plan: ClipPlan = {
-    kind: requested, spec: outputSpec(MB, requested), start, end: range.end, rotate: keepVideo ? range.rotate : 0, keepVideo, keepAudio,
-    cutBetweenKeys, resize, shortEdge: shown && shown.w < shown.h ? 'width' : 'height',
+  const setup: ClipSetup = {
+    kind: requested, spec, range, rotate, keepVideo, keepAudio, resize,
+    cutMode: opts.cut === 'keyframe' || opts.cut === 'reencode' ? opts.cut : 'exact',
+    cut: keepVideo && primaries.video ? await keyFrameCut(MB, primaries.video, range.start) : null,
+    shortEdge: shown && shown.w < shown.h ? 'width' : 'height',
     audioCodec: audioOnly === 'm4a' ? 'aac' : audioOnly === 'opus' ? 'opus' : audioOnly === 'wav' ? 'pcm-s16' : undefined,
-    audioQuality,
-    hint: cutBetweenKeys ? 'Choose a fast cut to copy the picture instead, or turn on Remove audio if the sound is the problem.' : keepAudio && keepVideo ? 'Try another container, or turn on Remove audio.' : 'Try another container.',
+    pictureReasons: keepVideo && facts.video ? pictureReasons(spec, facts.video, rotate, resize) : [],
   };
 
-  const budget = targetBytes ? bitrateForTarget(targetBytes, range.end - start, audioBps) : null;
-  let videoBps = budget?.videoBps ?? 0;
-  let bytes = await convertOnce(MB, input, plan, videoBps), attempts = 1;
-  while (budget && bytes.length > targetBytes && attempts < MAX_TARGET_ATTEMPTS && videoBps > retryBitrate(videoBps, bytes.length, targetBytes)) {
-    videoBps = retryBitrate(videoBps, bytes.length, targetBytes);
-    bytes = await convertOnce(MB, input, plan, videoBps);
+  // A size limit keeps a copy that already fits. Otherwise the picture is re-encoded at a
+  // bitrate meant to fit, and once more lower down if the first file is still too large.
+  // The smallest file written is the one returned.
+  const targetBytes = keepVideo && Number(opts.targetBytes) > 0 ? Number(opts.targetBytes) : 0;
+  const sizing = targetBytes ? await sizeFacts(MB, setup, primaries, targetBytes, shown) : null;
+  let plan = planClip(setup, sizing ? sizeChoice(MB, setup, sizing, !sizing.copyFits) : null);
+  let last = { plan, bytes: await convertOnce(MB, input, plan) };
+  let best = last, attempts = 1;
+  while (sizing && last.bytes.length > targetBytes && attempts < MAX_TARGET_ATTEMPTS) {
+    // A copy runs at the source's own rate.
+    const from = last.plan.videoBps || sizing.videoBps;
+    const videoBps = from > 0 ? retryBitrate(from, last.bytes.length, targetBytes) : 0;
+    if (!(videoBps > 0) || (last.plan.videoBps && videoBps >= last.plan.videoBps)) break;
+    const choice = sizeChoice(MB, setup, sizing, true);
+    plan = planClip(setup, { ...choice, videoBps: Math.min(choice.videoBps, videoBps), limitSets: true });
+    try {
+      last = { plan, bytes: await convertOnce(MB, input, plan) };
+    } catch {
+      break; // The file already written stands, reported as over the limit.
+    }
     attempts++;
+    if (last.bytes.length < best.bytes.length) best = last;
   }
 
-  const report = await measure(MB, input, plan, primaries, facts, bytes, videoBps);
+  const report = await measure(MB, input, best.plan, primaries, facts, best.bytes);
   report.requestedStart = range.start;
-  report.keyFrameGap = keyFrameGap;
-  if (targetBytes) report.target = { bytes: targetBytes, met: bytes.length <= targetBytes, attempts };
+  report.keyFrameGap = setup.cut?.gap ?? 0;
+  if (targetBytes) report.target = { bytes: targetBytes, met: best.bytes.length <= targetBytes, attempts };
   return {
-    bytes, mime: plan.spec.mime, container: plan.spec.container,
-    durationBefore: range.duration, durationAfter: range.end - start, lossless: report.method === 'copy', report,
+    bytes: best.bytes, mime: spec.mime, container: spec.container,
+    durationBefore: range.duration, durationAfter: range.end - best.plan.start, lossless: report.method === 'copy', report,
   };
 }
 

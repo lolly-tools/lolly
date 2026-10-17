@@ -655,7 +655,7 @@
     "MediaTrimOpts": {
       "module": "media.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "38db5bc1120e2b19e73a561ac74fc1e96628fe860aec412a640da4e910eb43de"
+      "sha256": "145d1de76079caf0818116bd6b5e595a746c2fbecb25f2af0056610140fc5c6a"
     },
     "MediaTrimResult": {
       "module": "media.ts",
@@ -690,7 +690,7 @@
     "MediaTrimReport": {
       "module": "media.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "2e3f01f65b83a25aa25763a008020378f4fafbdf44128364fdf99143cf3771d9"
+      "sha256": "63fe595887958db1f3bc040fe51e79652fd56fd2b3c1f4852262cb73c3c3ba06"
     },
     "MediaFrame": {
       "module": "media.ts",

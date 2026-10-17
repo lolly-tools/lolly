@@ -17,7 +17,7 @@
       ".opus"
     ],
     "maxSize": 1073741824,
-    "help": "Read and converted locally. Large files can take a while when an exact cut needs re-encoding."
+    "help": "Read and converted locally. Large files can take a while when the picture needs re-encoding."
   },
   {
     "id": "make",
@@ -65,14 +65,18 @@
     "options": [
       {
         "value": "exact",
-        "label": "Exact · re-encodes the picture when needed"
+        "label": "Exact · starts at your start point"
+      },
+      {
+        "value": "reencode",
+        "label": "Re-encode · keeps nothing before the start"
       },
       {
         "value": "keyframe",
         "label": "Fast · starts at the key frame before"
       }
     ],
-    "help": "A copy can only begin on a key frame. A fast cut keeps the original packets and may start a little early."
+    "help": "A copy can only begin on a key frame. Exact copies MP4 and MOV from the key frame before and marks the frames before your start for players to skip; some editors and upload sites show them. WebM and MKV re-encode the picture instead. Re-encode always re-encodes the picture, so nothing before the start is kept. Fast keeps the original packets and may start a little early."
   },
   {
     "id": "container",
@@ -185,7 +189,7 @@
     "default": 0,
     "min": 0,
     "step": 1,
-    "help": "0 means no limit. A limit re-encodes the clip at a bitrate meant to fit and reports whether it did."
+    "help": "0 means no limit. A copy that already fits is kept. Otherwise the clip is re-encoded at a bitrate meant to fit, never above the source's own, and the report says whether it did."
   },
   {
     "id": "frames",
