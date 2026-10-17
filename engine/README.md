@@ -397,7 +397,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `pdfx.ts` | 288 | PDF/X-4 metadata authority: pure strings + small descriptor objects, no PDF byte-wrangling. | yes | `tests/pdfx.test.ts` | – |
 | `penpot-bindings.ts` | 216 | Applied-token bindings for the `.penpot` writer (plans/222). | yes | indirect | – |
 | `penpot-file.ts` | 2306 | `.penpot` writer - a Lolly document (plus the brand's tokens) → the binfile-v3 archive Penpot itself exports and imports (plans/178). | yes | `tests/penpot-file.test.ts` | – |
-| `penpot-layout.ts` | 188 | Current binfile-v3 layout properties. | yes | `tests/penpot-layout.test.ts` | yes |
+| `penpot-layout.ts` | 211 | Current binfile-v3 layout properties. | yes | `tests/penpot-layout.test.ts` | yes |
 | `photo-look.ts` | 452 | Brand photo looks baked into raster pixels (plan 291 W7). | yes | `tests/photo-look.test.ts` | – |
 | `photo-treatment.ts` | 277 |  | yes | indirect | – |
 | `pixel-watermark.ts` | 478 | Lolly pixel watermark - block-DCT spread-spectrum | yes | `tests/pixel-watermark.test.ts` | – |

@@ -1391,5 +1391,7 @@
   "Zoom and pan the view": "Zoom e panoramica della vista",
   "Anchor": "Punto di ancoraggio",
   "Enter a scale from 1% to 10000%.": "Inserisci una scala dall'1% al 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Puntatore - seleziona e sposta (V). Tieni premuto per Scala (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Puntatore - seleziona e sposta (V). Tieni premuto per Scala (K)",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 layout di Penpot è stato importato con posizioni fisse. Importa l'esportazione .penpot per mantenerlo modificabile.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} layout di Penpot sono stati importati con posizioni fisse. Importa l'esportazione .penpot per mantenerli modificabili."
 }

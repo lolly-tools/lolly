@@ -7966,5 +7966,7 @@
   "While rotating: turn in 15 degree steps": "回転中: 15度ずつ回転",
   "Zoom and pan the view": "表示をズーム・パン",
   "Enter a scale from 1% to 10000%.": "1% から 10000% までのスケールを入力してください。",
-  "Pointer - select and move (V). Hold for Scale (K)": "ポインター - 選択と移動（V）。長押しでスケール（K）"
+  "Pointer - select and move (V). Hold for Scale (K)": "ポインター - 選択と移動（V）。長押しでスケール（K）",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Penpot のレイアウト 1 件を固定位置でインポートしました。編集できる状態を保つには、.penpot の書き出しをインポートしてください。",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Penpot のレイアウト {n} 件を固定位置でインポートしました。編集できる状態を保つには、.penpot の書き出しをインポートしてください。"
 }

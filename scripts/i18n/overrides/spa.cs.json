@@ -1254,5 +1254,7 @@
   "Zoom and pan the view": "Přiblížit a posouvat zobrazení",
   "Anchor": "Ukotvení",
   "Enter a scale from 1% to 10000%.": "Zadej měřítko od 1 % do 10000 %.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Ukazatel - výběr a přesun (V). Podrž pro Měřítko (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Ukazatel - výběr a přesun (V). Podrž pro Měřítko (K)",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Importován 1 layout z Penpotu s pevnými pozicemi. Aby zůstal upravitelný, importuj export .penpot.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Importováno {n} layoutů z Penpotu s pevnými pozicemi. Aby zůstaly upravitelné, importuj export .penpot."
 }

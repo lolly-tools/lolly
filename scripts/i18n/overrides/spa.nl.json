@@ -1252,5 +1252,7 @@
   "Zoom and pan the view": "De weergave zoomen en pannen",
   "Anchor": "Ankerpunt",
   "Enter a scale from 1% to 10000%.": "Voer een schaal in van 1% tot 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Pointer - selecteren en verplaatsen (V). Houd ingedrukt voor Schalen (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Pointer - selecteren en verplaatsen (V). Houd ingedrukt voor Schalen (K)",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 Penpot-lay-out is geïmporteerd met vaste posities. Importeer de .penpot-export om die bewerkbaar te houden.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot-lay-outs zijn geïmporteerd met vaste posities. Importeer de .penpot-export om ze bewerkbaar te houden."
 }

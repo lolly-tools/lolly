@@ -7966,5 +7966,7 @@
   "While rotating: turn in 15 degree steps": "Beim Drehen: in 15-Grad-Schritten drehen",
   "Zoom and pan the view": "Ansicht zoomen und schwenken",
   "Enter a scale from 1% to 10000%.": "Geben Sie eine Skalierung von 1 % bis 10000 % ein.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Zeiger - auswählen und verschieben (V). Halten für Skalieren (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Zeiger - auswählen und verschieben (V). Halten für Skalieren (K)",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 Penpot-Layout wurde mit festen Positionen importiert. Importieren Sie den .penpot-Export, damit es bearbeitbar bleibt.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot-Layouts wurden mit festen Positionen importiert. Importieren Sie den .penpot-Export, damit sie bearbeitbar bleiben."
 }

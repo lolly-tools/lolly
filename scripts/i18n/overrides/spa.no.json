@@ -1391,5 +1391,7 @@
   "Zoom and pan the view": "Zoom og panorer visningen",
   "Anchor": "Ankerpunkt",
   "Enter a scale from 1% to 10000%.": "Skriv inn en skala fra 1 % til 10000 %.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Peker - velg og flytt (V). Hold inne for Skala (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Peker - velg og flytt (V). Hold inne for Skala (K)",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 Penpot-layout ble importert med faste posisjoner. Importer .penpot-eksporten for å holde den redigerbar.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot-layouter ble importert med faste posisjoner. Importer .penpot-eksporten for å holde dem redigerbare."
 }

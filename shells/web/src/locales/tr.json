@@ -7966,5 +7966,7 @@
   "While rotating: turn in 15 degree steps": "Döndürürken: 15 derecelik adımlarla döndür",
   "Zoom and pan the view": "Görünümü yakınlaştır ve kaydır",
   "Enter a scale from 1% to 10000%.": "%1 ile %10000 arasında bir ölçek gir.",
-  "Pointer - select and move (V). Hold for Scale (K)": "İşaretçi - seç ve taşı (V). Ölçek (K) için basılı tut"
+  "Pointer - select and move (V). Hold for Scale (K)": "İşaretçi - seç ve taşı (V). Ölçek (K) için basılı tut",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 Penpot yerleşimi sabit konumlarla içe aktarıldı. Düzenlenebilir kalması için .penpot dışa aktarımını içe aktar.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot yerleşimi sabit konumlarla içe aktarıldı. Düzenlenebilir kalmaları için .penpot dışa aktarımını içe aktar."
 }

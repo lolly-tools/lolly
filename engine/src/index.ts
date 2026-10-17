@@ -1209,8 +1209,9 @@ export type { InterchangeRate, InterchangeClip, InterchangeSequence } from './pr
 export { readIdmlSpreads } from './idml-read.ts';
 
 export { createDesignLayoutEvaluator, hasDesignLayout, validateDesignLayout, designLayoutSourceEdit, parseLayoutTrack } from './design-layout.ts';
-export type { LayoutRequest, LayoutSolver, LayoutSolverOutput, LayoutEvaluation, LayoutMeasure, LayoutGrid } from './design-layout.ts';
-export { penpotChildrenPaintOrder, importPenpotLayouts, exportPenpotLayout, penpotHasLayout } from './penpot-layout.ts';
+export type { LayoutRequest, LayoutSolver, LayoutSolverOutput, LayoutEvaluation, LayoutMeasure, LayoutGrid, LayoutFinding } from './design-layout.ts';
+export { penpotChildrenPaintOrder, importPenpotLayouts, exportPenpotLayout, penpotHasLayout, penpotSvgLayoutFindings } from './penpot-layout.ts';
+export type { PenpotSvgLayout } from './penpot-layout.ts';
 export { designLayoutDescendants, remapDesignLayout } from './design-layout.ts';
 
 export { createDesignLayoutMeasurer, resolveDesignLayoutFonts } from './design-layout-resources.ts';

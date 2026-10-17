@@ -1260,5 +1260,7 @@
   "Zoom and pan the view": "縮放及平移檢視",
   "Anchor": "錨點",
   "Enter a scale from 1% to 10000%.": "請輸入 1% 到 10000% 之間的縮放比例。",
-  "Pointer - select and move (V). Hold for Scale (K)": "指標 - 選取與移動（V）。長按可選縮放（K）"
+  "Pointer - select and move (V). Hold for Scale (K)": "指標 - 選取與移動（V）。長按可選縮放（K）",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "已將 1 個 Penpot 版面以固定位置匯入。若要保持可編輯，請匯入 .penpot 匯出檔。",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "已將 {n} 個 Penpot 版面以固定位置匯入。若要保持可編輯，請匯入 .penpot 匯出檔。"
 }

@@ -1262,5 +1262,7 @@
   "Zoom and pan the view": "I-zoom at i-pan ang view",
   "Anchor": "Angkla",
   "Enter a scale from 1% to 10000%.": "Maglagay ng scale mula 1% hanggang 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Pointer - pumili at ilipat (V). I-hold para sa Scale (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Pointer - pumili at ilipat (V). I-hold para sa Scale (K)",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 Penpot layout ang na-import na may fixed na posisyon. I-import ang .penpot export para manatili itong editable.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot layout ang na-import na may fixed na posisyon. I-import ang .penpot export para manatili silang editable."
 }
