@@ -1,16 +1,19 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Bake a brand photo look into a picture's pixels in this realm (plan 291 W7):
- * decode, apply the engine's look (engine/src/photo-look.ts), encode. Runs on the
- * main thread or inside photo-look.worker.ts; it touches no `document` when an
- * OffscreenCanvas exists.
+ * decode, apply the look, encode. Every kind runs on WebGPU (plan 295 phase 1): a
+ * LUT samples on the GPU after the engine's contrast/lightness grade, and a
+ * gradient-map, greyscale or duotone look runs the engine's tables
+ * (photoLookPixelPlan) on the GPU. engine/src/photo-look.ts stays the reference
+ * the GPU recipes are compared against. Runs on the main thread or inside
+ * photo-look.worker.ts; it touches no `document` when an OffscreenCanvas exists.
  */
-import { applyPhotoLook, resolvePhotoLook } from '../../../../engine/src/photo-look.ts';
+import { applyPhotoLook, photoLookPixelPlan, resolvePhotoLook } from '../../../../engine/src/photo-look.ts';
 import type { GradeLut } from '../../../../engine/src/grade.ts';
 import type { PhotoTreatment } from '../../../../engine/src/photo-treatment.ts';
 import { PIXEL_KERNEL_MAX_PIXELS } from '../../../../packages/node-shell/src/pixel-kernel-contract.ts';
 
-/** Existing non-LUT bake ceiling. LUT frames use the smaller pixel-kernel admission limit. */
+/** The non-LUT bake ceiling; their GPU recipes work in bounded chunks. LUT frames use the smaller pixel-kernel admission limit. */
 export const PHOTO_LOOK_MAX_PIXELS = 64 * 1024 * 1024;
 
 export interface PhotoLookBakeRequest {
@@ -38,6 +41,7 @@ export async function bakePhotoLookInRealm(req: PhotoLookBakeRequest, signal?: A
     signal?.throwIfAborted();
     const { width, height } = bitmap;
     const look = resolvePhotoLook(req.look, req.theme);
+    const plan = look.kind === 'lut' ? null : photoLookPixelPlan(req.look, { ...(req.theme ? { theme: req.theme } : {}) });
     const maxPixels = look.kind === 'lut' ? PIXEL_KERNEL_MAX_PIXELS : PHOTO_LOOK_MAX_PIXELS;
     if (!width || !height || width * height > maxPixels) throw new Error(`photo look: ${width}x${height} is outside the bake limit`);
     const canvas: OffscreenCanvas | HTMLCanvasElement = typeof OffscreenCanvas !== 'undefined'
@@ -54,8 +58,9 @@ export async function bakePhotoLookInRealm(req: PhotoLookBakeRequest, signal?: A
       const amount = typeof look.amount === 'number' && Number.isFinite(look.amount) ? look.amount / 100 : 1;
       const { gradeLutWebGpu } = await import('../lib/webgpu/lut.ts');
       image.data.set(await gradeLutWebGpu(image.data, req.lut, amount, signal));
-    } else {
-      applyPhotoLook(image.data, width, height, req.look, { ...(req.theme ? { theme: req.theme } : {}) });
+    } else if (plan) {
+      const { applyPhotoLookWebGpu } = await import('../lib/webgpu/photo-look.ts');
+      image.data.set(await applyPhotoLookWebGpu(image.data, plan, { signal }));
     }
     signal?.throwIfAborted();
     ctx.putImageData(image, 0, 0);

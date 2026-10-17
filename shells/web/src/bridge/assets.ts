@@ -16,7 +16,7 @@
 
 import { parseThemedAssetId, parseTreatedAssetId, stripAssetModifiers, parseFileAssetId } from '../../../../engine/src/asset-modifiers.ts';
 import type { GradeLut } from '../../../../engine/src/grade.ts';
-import { LUT_GPU_RECIPE } from '../../../../packages/node-shell/src/pixel-kernel-recipe.ts';
+import { photoLookGpuRecipe } from '../../../../packages/node-shell/src/pixel-kernel-recipe.ts';
 // c2pa-verify is LAZY on purpose. It is the entry to the whole provenance
 // cluster (c2pa + c2pa-extract + c2pa-containers + c2pa-verdict + c2pa-trust +
 // video-meta, ~65 KB gz), and this module is on the boot path, so a static
@@ -52,6 +52,7 @@ import type { AssetRef, AssetQuery } from '@lolly-tools/core/host-v1';
 import type { CatalogHistoryDb } from './catalog-history.ts';
 import type { IconTheme } from '../../../../engine/src/icon-theme.ts';
 import type { PhotoTreatment } from '../../../../engine/src/photo-treatment.ts';
+import type { PhotoLookBakeRequest } from './photo-look-raster.ts';
 
 /** One resolvable file for a catalog asset (an entry in AssetMetaRecord.formats). */
 interface AssetFormat {
@@ -332,6 +333,12 @@ export interface AssetsApiOptions {
    * _deleteUserAsset).
    */
   preservePinned?: (id: string, opts?: { reclaiming?: boolean }) => Promise<void>;
+  /**
+   * The photo look bake; by default the bridge's (bridge/photo-look-bake.ts, a
+   * Worker where the browser has one). Every look kind bakes on WebGPU, so a test
+   * in a realm without a graphics device passes a stand-in here.
+   */
+  bakePhotoLook?: (req: PhotoLookBakeRequest) => Promise<Blob>;
 }
 
 export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
@@ -356,8 +363,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
   // reproduces (gradient-map, lut), or any look on an upload or an inline picture,
   // is baked into raster bytes here, once per (picture, look, theme): concurrent
   // resolves of one bake share it, and a finished bake is an object URL keyed by
-  // photoLookCacheKey plus the LUT recipe revision. LUT bake failures propagate;
-  // other treatments retain their existing plain-picture fallback.
+  // photoLookCacheKey plus the kind's WebGPU recipe (plan 295). A bake failure
+  // propagates, so no picture is served untreated under a look's id.
   const lookBakes = new Map<string, Promise<Blob>>();
   const lutReads = new Map<string, Promise<GradeLut | null>>();
   const lutFor = (lutId: string | undefined): Promise<GradeLut | null> => {
@@ -381,8 +388,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         const { resolvePhotoLook } = await import('../../../../engine/src/photo-look.ts');
         const lut = look.kind === 'lut' ? await lutFor(resolvePhotoLook(look, themeKey).lut) : null;
         if (look.kind === 'lut' && !lut) throw new Error(`the LUT of photo look ${look.id} is unavailable`);
-        const { bakePhotoLookBlob } = await import('./photo-look-bake.ts');
-        return bakePhotoLookBlob({ blob, look, ...(themeKey !== 'base' ? { theme: themeKey } : {}), ...(lut ? { lut } : {}) });
+        const bake = opts.bakePhotoLook ?? (await import('./photo-look-bake.ts')).bakePhotoLookBlob;
+        return bake({ blob, look, ...(themeKey !== 'base' ? { theme: themeKey } : {}), ...(lut ? { lut } : {}) });
       })().finally(() => { lookBakes.delete(cacheKey); });
       lookBakes.set(cacheKey, pending);
     }
@@ -406,15 +413,16 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       if (!def || healLegacyType(rec) !== 'raster' || !rec.blob) return toAssetRef({ ...rec, id, cacheKey: plainKey }, 'user');
       const { photoLookThemeKey, photoLookCacheKey } = await import('../../../../engine/src/photo-look.ts');
       const themeKey = photoLookThemeKey(def, opts.tokenSelection);
-      const cacheKey = photoLookCacheKey(baseId, rec.version ?? 'x', def, themeKey) + (def.kind === 'lut' ? `:${LUT_GPU_RECIPE}` : '');
-      const meta = { ...rec.meta, treatment, baseId, ...(def.kind === 'lut' ? { lookRecipe: LUT_GPU_RECIPE } : {}), ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) };
+      const recipe = photoLookGpuRecipe(def.kind);
+      const cacheKey = photoLookCacheKey(baseId, rec.version ?? 'x', def, themeKey) + (recipe ? `:${recipe}` : '');
+      const meta = { ...rec.meta, treatment, baseId, ...(recipe ? { lookRecipe: recipe } : {}), ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) };
       if (OBJECT_URL_CACHE.has(cacheKey)) return toAssetRef({ ...rec, id, cacheKey, baked: true, meta, format: OBJECT_URL_FORMAT.get(cacheKey) ?? rec.format }, 'user');
       try {
         const baked = await bakeLook(cacheKey, rec.blob, def, themeKey);
         OBJECT_URL_FORMAT.set(cacheKey, bakedFormat(baked));
         return await toAssetRef({ ...rec, id, blob: baked, format: bakedFormat(baked), cacheKey, baked: true, meta }, 'user');
       } catch (error) {
-        if (def.kind === 'lut') throw error;
+        if (recipe) throw error;
         console.warn(`[assets] photo look ${treatment} was not applied to ${baseId}:`, error);
         return toAssetRef({ ...rec, id, cacheKey: plainKey }, 'user');
       }
@@ -423,8 +431,9 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     if (!def || ref.type !== 'raster') return { ...ref, id };
     const { photoLookThemeKey, photoLookCacheKey } = await import('../../../../engine/src/photo-look.ts');
       const themeKey = photoLookThemeKey(def, opts.tokenSelection);
-    const cacheKey = photoLookCacheKey(inlineKey(baseId), 'x', def, themeKey) + (def.kind === 'lut' ? `:${LUT_GPU_RECIPE}` : '');
-    const meta = { ...ref.meta, treatment, ...(def.kind === 'lut' ? { lookRecipe: LUT_GPU_RECIPE } : {}), ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) };
+    const recipe = photoLookGpuRecipe(def.kind);
+    const cacheKey = photoLookCacheKey(inlineKey(baseId), 'x', def, themeKey) + (recipe ? `:${recipe}` : '');
+    const meta = { ...ref.meta, treatment, ...(recipe ? { lookRecipe: recipe } : {}), ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) };
     const cached = OBJECT_URL_CACHE.get(cacheKey);
     if (cached) return { ...ref, id, url: cached, format: OBJECT_URL_FORMAT.get(cacheKey) ?? ref.format, meta };
     try {
@@ -434,7 +443,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       OBJECT_URL_FORMAT.set(cacheKey, bakedFormat(baked));
       return { ...ref, id, url, format: bakedFormat(baked), meta };
     } catch (error) {
-      if (def.kind === 'lut') throw error;
+      if (recipe) throw error;
       console.warn('[assets] photo look was not applied to an inline picture:', error);
       return { ...ref, id };
     }
@@ -628,15 +637,16 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
           // A theme variant picks the definition (plan 291 W7); a look only pixels reproduce bakes here.
           const themeKey = photoLookThemeKey(def, opts.tokenSelection);
           if (isRasterPhotoLook(def)) {
-            const cacheKey = photoLookCacheKey(`${baseId}:${format.format}`, version ?? 'x', def, themeKey) + (def.kind === 'lut' ? `:${LUT_GPU_RECIPE}` : '');
-            const lookMeta = { ...refMeta, treatment, baseId, ...(def.kind === 'lut' ? { lookRecipe: LUT_GPU_RECIPE } : {}), ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) };
+            const recipe = photoLookGpuRecipe(def.kind);
+            const cacheKey = photoLookCacheKey(`${baseId}:${format.format}`, version ?? 'x', def, themeKey) + (recipe ? `:${recipe}` : '');
+            const lookMeta = { ...refMeta, treatment, baseId, ...(recipe ? { lookRecipe: recipe } : {}), ...(themeKey !== 'base' ? { lookTheme: themeKey } : {}) };
             if (OBJECT_URL_CACHE.has(cacheKey)) return toAssetRef({ ...meta, id, format: OBJECT_URL_FORMAT.get(cacheKey) ?? format.format, cacheKey, meta: lookMeta }, 'library');
             try {
               const baked = await bakeLook(cacheKey, await loadBlob(), def, themeKey);
               OBJECT_URL_FORMAT.set(cacheKey, bakedFormat(baked));
               return await toAssetRef({ ...meta, id, blob: baked, format: bakedFormat(baked), cacheKey, meta: lookMeta }, 'library');
             } catch (error) {
-              if (def.kind === 'lut') throw error;
+              if (recipe) throw error;
               console.warn(`[assets] photo look ${treatment} was not applied to ${baseId}:`, error);
               def = undefined;
             }
