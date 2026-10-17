@@ -2,7 +2,15 @@
 
 Open Start's Tokens room to inspect all retained definitions, including custom paths and inactive source sets. The browser shows authored and resolved values, the winning set, override order, direct references and token dependents. Declared brand roles and consumer slots appear separately from token dependents; declarations do not establish observed usage or a rule check. Counts cover the token document being inspected. Other documents and dynamic hooks are outside that scope.
 
-Read-only systems offer the same inspection. The **Inspect tokens** action in a tool sidebar reads the effective render version and its captured theme choices. Trying another choice in this inspector is labelled **Preview**; **Return to render choices** restores the captured context without editing the document. Start reads the editable head. These can differ when a published version is active.
+Read-only systems offer the same inspection. Start reads the editable head. A document reads the render version, which can differ from the head when a published version is active.
+
+## Design system context
+
+In Design, open the inspector's **Canvas** tab. Its **Style & look** section shows a context strip above the **Theme** row. The strip says which design system and render version the document draws with, and where the system came from. It reads **Chosen for this document** when the document made its own theme choices, and **Follows the design system** when it has none. **Source and fallbacks** lists every theme choice, marks a read-only system and lists any choice this design system does not offer, with the default used in its place.
+
+**Inspect tokens** opens the render version with the document's choices. Trying another choice in this inspector is labelled **Preview**; **Return to render choices** restores the captured choices. The inspector edits neither the document nor the design system. **Follow the design system** removes the document's own choices, so its linked values follow the design system's stored choices again.
+
+The same strip labels each side of a comparison and the version a release records. A token review's before and after renders are labelled **Editable head** and **Candidate**, each with its theme choices. **Publish a version** in Start's Versions room shows the editable head that publishing records. Tool sidebars do not show the strip; token details stay in each field's **Input actions** menu.
 
 ## Theme choices
 
@@ -11,6 +19,8 @@ Each imported theme group has its own control. Choices use source group names an
 Documents store choices in `$metadata.activeThemeSelection`. Render links use `_themes`, a JSON object in the reserved underscore namespace. Sessions carry `__tokenSelection`.
 
 A tool can still ask for one theme by name, as in `host.tokens.colors({ theme: 'light' })`. That request picks the theme in the group that declares it, and every other group keeps its choice. For each of those groups the order is: its entry in an explicit `selection` when one is given (a given selection replaces the document's stored choices whole), otherwise the document's stored choice; then `activeThemes`; then the group's canonical option. A hook that asks for light therefore still draws the artefact's colourway. Engine versions before 1.265 reset every other group to its first option on such a request. A theme name that no group declares is reported and changes nothing else.
+
+A Design document's **Theme** row changes only that document. The choice is saved with the document as `__tokenSelection`, travels in its link as `_themes` and comes back when the document reopens. The design system's stored choices stay as they were, and other documents keep their own.
 
 ```sh
 lolly system inspect --file=beacon.tokens.json --_themes='{"appearance":"night","density":"roomy"}' --json

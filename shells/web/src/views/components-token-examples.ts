@@ -4,7 +4,7 @@ import type { InputModelItem, InputValue } from '../../../../engine/src/inputs.t
 import { flattenValue } from '../../../../engine/src/inputs.ts';
 import { createTokenSet } from '../../../../engine/src/tokens.ts';
 import { mountTokenBindingField } from '../components/token-binding-field.ts';
-import { mountTokenContextStrip } from '../components/token-context-strip.ts';
+import { documentSnapshot, mountTokenContextStrip, type TokenContextOptions } from '../components/token-context-strip.ts';
 import { openTokenInspector } from '../components/token-workspace.ts';
 import { escape as esc } from '../utils.ts';
 import { t } from '../i18n.ts';
@@ -41,6 +41,38 @@ export function wireTokenBindingExamples(root: HTMLElement): () => void {
   return () => { disposers.forEach(dispose => { dispose(); }); };
 }
 
+/** Two theme groups, so the context strips below have choices to name. */
+const themed = {
+  base: { surface: { $type: 'color', $value: '#ffffff' } },
+  night: { surface: { $type: 'color', $value: '#111111' } },
+  $themes: [
+    { id: 'day', name: 'Day', group: 'appearance', selectedTokenSets: { base: 'enabled' } },
+    { id: 'night', name: 'Night', group: 'appearance', selectedTokenSets: { base: 'enabled', night: 'enabled' } },
+    { id: 'compact', name: 'Compact', group: 'density', selectedTokenSets: {} },
+    { id: 'roomy', name: 'Roomy', group: 'density', selectedTokenSets: {} },
+  ],
+  $metadata: { tokenSetOrder: ['base', 'night'], activeThemeSelection: { appearance: 'day', density: 'compact' } },
+};
+
+/**
+ * The context strip as each surface draws it: a captured render version, Design's
+ * Document controls with choices the document made itself, and the head and candidate
+ * shown on comparison and release surfaces.
+ */
 export function wireTokenContextExample(root: HTMLElement): () => void {
-  return mountTokenContextStrip(root, snapshot, () => openTokenInspector(host, undefined, () => root.isConnected));
+  const inspect = (): Promise<void> => openTokenInspector(host, undefined, () => root.isConnected);
+  const disposers = [mountTokenContextStrip(root, snapshot, inspect)];
+  const system = snapshot.system;
+  const variants: [TokensSnapshot, TokenContextOptions][] = [
+    [{ ...snapshot, document: themed }, { selection: { appearance: 'night', density: 'compact' }, scope: 'document', choices: 'document', compact: true }],
+    [documentSnapshot(themed, { system }), { context: 'head' }],
+    [documentSnapshot(themed, { system, selection: { appearance: 'night', density: 'roomy' } }), { context: 'candidate' }],
+  ];
+  const strips = variants.map(([variant, opts]) => {
+    const strip = document.createElement('div');
+    root.parentElement?.append(strip);
+    disposers.push(mountTokenContextStrip(strip, variant, opts.context ? null : inspect, opts));
+    return strip;
+  });
+  return () => { disposers.forEach((dispose) => { dispose(); }); strips.forEach((strip) => { strip.remove(); }); };
 }
