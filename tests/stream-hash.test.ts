@@ -10,7 +10,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { crc32 } from 'node:zlib';
-import { Crc32, READ_CHUNK_BYTES, Sha256, hashBlob, readBlobChunks, sha256Of } from '../shells/web/src/lib/stream-hash.ts';
+import { Crc32, READ_CHUNK_BYTES, Sha256, hashBlob, readBlobChunks, sha256HexOfBlob, sha256Of } from '../shells/web/src/lib/stream-hash.ts';
 
 function pattern(n: number): Uint8Array {
   const out = new Uint8Array(n);
@@ -61,6 +61,20 @@ test('hashBlob reads a large Blob in bounded slices and gives the same digests a
   const small = await hashBlob(new Blob([pattern(10) as BlobPart]), true);
   assert.equal(Buffer.from(small.sha256!).toString('hex'), createHash('sha256').update(pattern(10)).digest('hex'));
   assert.equal(READ_CHUNK_BYTES, 4 * 1024 * 1024);
+});
+
+test('sha256HexOfBlob gives the hex digest from slices for a large Blob and one read for a small one', async () => {
+  const data = pattern(300_000);
+  const reads: number[] = [];
+  class Watched extends Blob {
+    override slice(start?: number, end?: number, type?: string): Blob { reads.push((end ?? this.size) - (start ?? 0)); return super.slice(start, end, type); }
+    override arrayBuffer(): Promise<ArrayBuffer> { throw new Error('the whole Blob must not be read'); }
+  }
+  assert.equal(await sha256HexOfBlob(new Watched([data as BlobPart]), 64 * 1024), createHash('sha256').update(data).digest('hex'));
+  assert.ok(reads.length === 5 && reads.every(n => n <= 64 * 1024), `slices ${reads}`);
+  for (const n of [0, 10, 64 * 1024]) {
+    assert.equal(await sha256HexOfBlob(new Blob([pattern(n) as BlobPart]), 64 * 1024), createHash('sha256').update(pattern(n)).digest('hex'), `n=${n}`);
+  }
 });
 
 test('readBlobChunks hands out the bytes in order and fails on a short read', async () => {

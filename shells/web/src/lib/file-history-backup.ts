@@ -47,9 +47,10 @@ function checkBatches(snapshot: FileHistorySnapshot): void {
   }
 }
 
-/** Write the history's parts through a sink. Saved results and version bytes go as
- * Blobs, so a streamed archive reads each in chunks instead of holding them all
- * (plan 203 R4); every byte, Content Credentials included, is stored as it is. */
+/** Write the history's parts through a sink. Saved results and version bytes are
+ * checked against their recorded SHA-256 and then go to the sink as Blobs, both in
+ * 4 MiB slices, so a streamed archive never holds one whole (plan 203 R4); every
+ * byte, Content Credentials included, is stored as it is. */
 export async function writeFileHistory(snapshot: FileHistorySnapshot, sink: PartSink): Promise<void> {
   checkSize(snapshot);
   checkBatches(snapshot);

@@ -4,7 +4,7 @@ import type { IDBPDatabase } from 'idb';
 import type { FileFactsV1, FileOperationReportV1 } from '@lolly-tools/core/file-v1';
 import { safeFileName } from '@lolly-tools/core/file-v1';
 import { assertFileOperationReport, assertFileOperationRequest, type FileOperationRequestV1 } from '@lolly-tools/core/file-operation-v1';
-import { sha256Bytes } from './file-conversion.ts';
+import { sha256HexOfBlob } from './stream-hash.ts';
 import { openDB } from '../bridge/db.ts';
 import { FileBatchStore, FILE_BATCH_REPORT_BYTES, interruptedOperationReport, type FileBatchLink, type LocalFileBatch } from './file-batch-store.ts';
 export { interruptedOperationReport } from './file-batch-store.ts';
@@ -41,7 +41,7 @@ export async function validatePortableOperation(record: PortableFileOperation): 
     const expected = record.report?.outputs[0];
     if (!expected || record.report?.outputs.length !== 1 || !(record.output instanceof File) || record.output.size > OUTPUT_LIMIT
       || expected.size !== record.output.size || expected.name !== record.output.name || safeFileName(expected.name) !== expected.name || expected.mime !== record.output.type || !expected.sha256
-      || await sha256Bytes(new Uint8Array(await record.output.arrayBuffer())) !== expected.sha256) throw new Error('Saved result integrity check failed.');
+      || await sha256HexOfBlob(record.output) !== expected.sha256) throw new Error('Saved result integrity check failed.');
   } else if (record.output) throw new Error('An incomplete operation cannot contain a saved result.');
 }
 async function resultDirectory(): Promise<FileSystemDirectoryHandle | null> {
@@ -142,7 +142,9 @@ export class FileOperationStore {
     const blob = record.backend === 'opfs' ? await this.directory?.getFileHandle(id).then(h => h.getFile()).catch(() => null) : await this.db.get('file-operation-blobs', id) as Blob | undefined;
     if (!blob) return null;
     const expected = record.report?.outputs[0];
-    if (expected?.size !== blob.size || expected.sha256 && await sha256Bytes(new Uint8Array(await blob.arrayBuffer())) !== expected.sha256) throw new Error('Saved result integrity check failed. Retry with the original file.');
+    // Hashed in slices, so checking a result read back for a backup or a download
+    // never holds a 128 MiB file whole.
+    if (expected?.size !== blob.size || expected.sha256 && await sha256HexOfBlob(blob) !== expected.sha256) throw new Error('Saved result integrity check failed. Retry with the original file.');
     return new File([blob], record.outputName ?? 'result', { type: record.outputMime });
   }
   /** Restores terminal history atomically. Never resurrects a lease or replaces a
