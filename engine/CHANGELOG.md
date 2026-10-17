@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.276.0
+
+- Add optional `host.fonts`. `inspect` reads a TTF, OTF or WOFF file's own tables: names, outline format, weight class and `wght` range, variation axes, named instances, mapped characters per Unicode block and the `OS/2.fsType` statement. `subset` keeps only the glyphs chosen text needs through the shell's Skera runtime, keeps glyph ids and checks the output bytes before returning them.
+- Subsetting honours the font's own flags. Restricted licence embedding, no subsetting, bitmap-only embedding and a missing OS/2 table each refuse, as do outlines other than TrueType, which the pinned Skera build would drop. The Skera runtime enforces the same refusals for every caller, the PDF writer included. A subset is never a rights grant.
+- The web, desktop, CLI, TUI and MCP shells attach `host.fonts`. Convert Font 1.1 reports coverage and weights and offers a subset to chosen characters.
+
 ## 1.275.0
 
 - `host.media.trim` takes optional `output` (`clip`, `poster` or `contact-sheet`), `image`, `sheetFrames`, `rotate`, `cut` (`exact`, `reencode` or `keyframe`), `maxShortEdge` and `targetBytes`. Shells that predate them ignore the fields; the Trim tool refuses a poster or contact sheet from such a shell instead of returning a clip. An `exact` MP4 or MOV cut between key frames stays a copy with an edit list, as before; `reencode` re-encodes the picture so nothing before the start is kept. A size limit keeps a copy that already fits and never encodes above the source's own bitrate.

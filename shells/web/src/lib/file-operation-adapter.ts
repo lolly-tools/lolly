@@ -33,7 +33,7 @@ export async function runWebFileOperation(file: File, request: FileOperationRequ
       if (request.operation === 'media.transmux') return { metadata: 'changed', findings: [{ code: 'container-rewritten', severity: 'warning', message: 'Media packets are copied without re-encoding. Container metadata may change; source content credentials are not carried. Copies that would drop tracks are refused.' }] };
       if (['jxl-recompress', 'jpeg-original'].includes(request.target)) return { metadata: 'preserved', findings: conversionFindings('raster', request.target) };
       const kind = ['jxl', 'png', 'jpeg', 'jpg', 'webp', 'gif', 'avif', 'bmp', 'tiff'].includes(input.format) ? 'raster' : input.format;
-      const raster = kind === 'raster' || ['svg', 'svgz'].includes(kind) && !['svg', 'svgz'].includes(request.target);
+      const raster = kind === 'raster' || ['svg', 'svgz'].includes(kind) && !['svg', 'svgz', 'svg-fit'].includes(request.target);
       return { metadata: request.target === 'pdf-clean' ? 'changed' : ['pdf-split', 'pdf-pages-png'].includes(request.target) ? 'removed' : raster ? 'removed' : ['svg', 'svgz'].includes(kind) ? 'preserved' : 'not-checked', findings: conversionFindings(input.format === 'jxl' ? 'jxl' : kind, request.target, request.options) };
     },
     async execute(source, operation) {

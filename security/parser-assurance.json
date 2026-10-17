@@ -1093,6 +1093,18 @@
         "fuzzCoverage": "`design-hierarchy` mutates document JSON and derived or supplied operation/patch lists through nested duplicate, cascade remove, reparent, reorder validation and final graph admission",
         "notes": "The existing three-argument operations API remains valid; optional page metadata provides page-definition validation. Without explicit metadata, page IDs are inferred only for ownership-coherence checks. Grid and linked-story duplication require document metadata and are refused by the row-only API; group geometry patches require the canvas transform path. These are visible refusals, not partial edits."
       }
+    },
+    "engine/src/font-inspect.ts": {
+      "fuzzTargets": [
+        "font-inspect"
+      ],
+      "details": {
+        "inputSource": "A TTF, OTF or WOFF file the person drops on Convert Font or hands to `host.fonts`, and the subsetter's output bytes when they are verified",
+        "bounds": "64 MiB input; WOFF unwrapped by font-convert.ts's capped inflate; every table read is checked against its directory length; fvar at most 64 axes and 1,024 instances; cmap format 12 groups clamped to existing glyph ids and U+10FFFF; at most 100,000 UTF-16 units of requested text; names at most 256 characters with control characters removed",
+        "directTests": "`tests/font-inspect.test.ts`, `tests/font-convert-tool.test.ts`",
+        "fuzzCoverage": "`font-inspect` mutates a real variable TTF and its WOFF wrapper through `inspectFont` and `glyphsForText`",
+        "notes": "Reads cmap formats 4 and 12 only; other formats report no coverage. WOFF2 and collections are refused by name. The subset path refuses before any work on outlines other than TrueType and on restricting fsType values (font-subset-policy.ts), then re-parses the output with the same reader."
+      }
     }
   }
 }

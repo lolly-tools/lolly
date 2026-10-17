@@ -610,6 +610,8 @@ export { buildLinuxPack, buildHomeTarball, packageRender } from './linux-pack.ts
 export type { FontFile } from './linux-pack.ts';
 export { fontMetainfo, desktopEntry, metainfoPath } from './appstream.ts';
 export { sfntKind, sfntToWoff, woffToSfnt, fontConversionTargets, convertFontContainer } from './font-convert.ts';
+export { inspectFont, createFontsAPI } from './font-inspect.ts';
+export type { FontSubsetRunner } from './font-inspect.ts';
 export { sourceToGrid, gridToTarget, readDataGrid, readDataOptions, convertDataFile, DATA_DELIMITERS, DATA_TEXT_ENCODINGS, DATA_HEADER_MODES, DATA_CELL_MODES } from './file-data.ts';
 export type { DataConversionOptions, DataConversionResult, DataReadFacts, DataSheetsManifestV1, DataSheetFileV1, DataDelimiter, DataTextEncoding, DataHeaderMode, DataCellMode } from './file-data.ts';
 export { videoProvenanceTags, embedMp4Meta, embedWebmMeta } from './video-meta.ts';

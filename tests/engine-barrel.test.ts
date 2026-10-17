@@ -24,6 +24,8 @@ const EXPECTED: readonly string[] = [
   'characterErrorRate', 'editDistance', 'normaliseForScore', 'scoreExtract', 'wordErrorRate',
   // Additive 1.262 bounded JPEG marker walker for placing JPEGs on PDF pages.
   'JpegScan', 'JpegSegment', 'jpegSegmentBody', 'scanJpegSegments',
+  // Additive 1.262 font inspection and verified subsetting (host.fonts).
+  'FontSubsetRunner', 'createFontsAPI', 'inspectFont',
   // Additive 1.261 managed enrollment and issuer status validation.
   'EnrollmentPolicy', 'EnrollmentProviderPolicy', 'EnrollmentTrustBundle', 'VerifiedCrl',
   'createEnrollmentCsr', 'enrollmentProofMessage', 'parseEnrollmentTrustBundle',
