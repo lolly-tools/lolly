@@ -536,6 +536,10 @@ export async function handleImportFile(start: StartCtx, file: File): Promise<voi
   start.importedDoc = doc;
   start.importedLabel = fileRoute.label || t('My brand');
   const statLine = statLineFor(start, doc);
+  // The families the file names, said on the card the way the Penpot card says
+  // them: a token file's fonts used to go unmentioned (plan 320 S4).
+  let declaredFonts: string[] = [];
+  try { declaredFonts = proposeFontsFromTokens(doc, []).missing; } catch { /* no type line */ }
   // Built before the call, not inside it: `mappingReviewHtml` is what decides
   // whether there is a question on this card (it sets `pendingRoles`), and the
   // announcement has to carry that question - it is the one thing the card
@@ -545,6 +549,7 @@ export async function handleImportFile(start: StartCtx, file: File): Promise<voi
       ${statLine ? `<p class="start-import-stats">${escapeText(statLine)}</p>` : ''}
       ${warnings.length ? `<p class="start-import-warn">${escapeText(warnings.join(' · '))}</p>` : ''}
         ${tokenCompatibilityHtml(doc)}
+      ${declaredFonts.length ? `<p class="start-import-stats">${escapeText(tRaw('Type: {list}', { list: declaredFonts.slice(0, 4).join(', ') }))}</p>` : ''}
       ${mappingReviewHtml(start, doc)}
       <div class="start-color-actions">
         <button type="button" class="be-cta start-cta--import" data-install-import>${
