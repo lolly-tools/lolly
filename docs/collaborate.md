@@ -76,7 +76,7 @@ A **private collab** is a live editing link between two devices. One person invi
 
 Two things follow from that, and it helps to have them straight before you invite anyone.
 
-- **The person who invites owns the session.** The saved session lives on the inviting device. The joining device gets a working copy that is deliberately never written into its own Projects. That copy is real, editable and exportable on the joining device, but it is not filed there and it does not survive the collab.
+- **The person who invites owns the session.** The saved session lives on the inviting device, and that device keeps its History as you work, with the other person's changes included. The joining device gets a working copy that is deliberately never written into its own Projects or History. That copy is real, editable and exportable on the joining device, but it is not filed there and it does not survive the collab.
 - **Anyone holding the invite can join and edit.** The invite is the key. Send it through a channel you would send the work itself through, and treat a re-sent invite as a re-shared document.
 
 The feature is on by default. It carries a **beta** pill in the profile settings, which is where you can also turn it off. Turning it off means an invite link opened on that device offers to turn it back on rather than dead-ending.

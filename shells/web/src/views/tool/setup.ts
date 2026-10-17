@@ -24,7 +24,7 @@ import { createInteractiveToolRuntime as createRuntime } from '../../lib/mount-r
 import { attachCollabPlumbing } from '../../lib/collab-plumbing.ts';
 import { getCollabSessionSource } from '../../lib/collab-session-source.ts';
 import { takeAssetOpeningSeed } from '../../lib/asset-open-handoff.ts';
-import { takeCarriedMountState, takeEphemeralState, pendingLiveCollab } from '../../lib/collab-live-mount.ts';
+import { hostDurableHistory, takeCarriedMountState, takeEphemeralState, pendingLiveCollab } from '../../lib/collab-live-mount.ts';
 import { createMemoryStateAPI } from '../../lib/ephemeral-state.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { captureNeutralPinned } from '../../lib/capture-neutral.ts';
@@ -893,6 +893,9 @@ export function mountActions(tview: ToolViewCtx): void {
   restoreDesignPublication(runtime, tview.initialValues.__designPublication);
   restoreRebrandHandoff(runtime, tview.initialValues[REBRAND_HANDOFF_MARKER]);
   if (tview.initialValues.__presentation) tview.presentationScene = readScene(tview.initialValues.__presentation);
+  // A P2P host owns the shared document (plan 221 section 9), so its own history keeps
+  // the converged document; every other shared mount keeps none on this device.
+  const hostHistory = ephemeralState ? null : hostDurableHistory(toolId, collabHandle);
   const actionsApi = renderActions(
     actionsEl,
     tview.tool.manifest,
@@ -918,7 +921,7 @@ export function mountActions(tview: ToolViewCtx): void {
         ...(tview.presentationScene ? { __presentation: tview.presentationScene } : {}),
         ...carriedEmojiPins(runtime.emoji, tview.initialValues),
         ...tview.documentMeta?.() }),
-      ...historyParticipation(tview.tool.manifest, !!collabHandle || !!ephemeralState || !!getCollabSessionSource()),
+      ...historyParticipation(tview.tool.manifest, (!!collabHandle && !hostHistory) || !!ephemeralState || !!getCollabSessionSource()),
     }
   ); tview.actionsApi = actionsApi;
   if (!tview.isFull && !tview.autoExport && !tview.autoCopy) mountLifecycle.add('recovery notice', mountRecoveryNotice(viewEl, {
@@ -940,6 +943,7 @@ export function mountActions(tview: ToolViewCtx): void {
     tview.revisionChanged = (): void => { priorChanged(); capture.changed(); };
     mountLifecycle.add('collab history capture', () => { capture.flush(); capture.dispose(); });
   }
+  if (hostHistory) mountLifecycle.add('host history peer edits', hostHistory.onPeerEdit(() => tview.revisionChanged()));
   // "Load from peer" appears only when the transport negotiated the shared-history
   // capability (plan 221 section 9); the handle carries the request/fetch the mount wired.
   const peerHistory = collabHandle?.requestPeerHistory && collabHandle.requestPeerRevision

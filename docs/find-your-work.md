@@ -83,7 +83,7 @@ What comes back depends on how you left and which tool you used:
 
 Lolly asks only when you press **Home** or the back button in a tool. Closing the tab, reloading and your browser's own Back button never ask. To be sure, press **Save as**, or **Save** in the export panel, before you leave a tool.
 
-When automatic recovery is unavailable, a note beside the editing controls explains what to keep. In an imported-file tool, save your settings and keep the original files too. In a recording tool or a utility with no Save action, save or download the result before leaving. The native apps identify when you need to save manually. A private collaboration's history is temporary; save a separate copy before the session ends.
+When automatic recovery is unavailable, a note beside the editing controls explains what to keep. In an imported-file tool, save your settings and keep the original files too. In a recording tool or a utility with no Save action, save or download the result before leaving. The native apps identify when you need to save manually. In a private collaboration, the person who invited keeps the document and its history on their device, including the other person's changes. The person who joined works on a temporary copy, so they should save a separate copy before the session ends.
 
 ::: note Left without saving by mistake?
 In tools that save as you work, History keeps a copy of the discarded edits. Open the **History** page, find them under **Changes** and press **Open as a copy**. In other tools the changes are gone.

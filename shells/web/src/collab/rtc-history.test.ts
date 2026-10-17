@@ -37,6 +37,17 @@ test('the host shares its session; an invitee keeps memory-only history', () => 
   assert.equal(invitee.canSaveCopy, true);
 });
 
+test('only the host declares that its device keeps the shared document; the log stays session-only', () => {
+  // The host's durable record is its own local history (lib/collab-live-mount.ts
+  // hostDurableHistory). This log never becomes durable, for either role.
+  const host = createP2PCollabHistory({ role: 'writer', host: true });
+  assert.equal(host.persistence, 'durable');
+  assert.equal(host.durability, 'session');
+  const invitee = createP2PCollabHistory({ role: 'writer', host: false });
+  assert.equal(invitee.persistence, 'memory');
+  assert.equal(createP2PCollabHistory({ role: 'observer', host: false }).persistence, 'memory');
+});
+
 test('dispose drops every retained checkpoint so a remount begins empty', async () => {
   const history = createP2PCollabHistory({ role: 'writer', host: false });
   const entry = history.capture({ documentId: 'doc', toolId: 'design', actorId: 'peer-1', data: { title: 'x' } });
