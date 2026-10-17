@@ -1084,3 +1084,19 @@ test('the qualification broker never asks iOS to exit', async () => {
   assert.match(reader, /#\[cfg\(target_os = "ios"\)\]\s*emit\(json!\(\{ "event": "failure", "runId": run_id, "error": "Qualification input closed" \}\)\);/);
 });
 
+test('on iOS the broker takes commands from its own inbox and refuses every exit request', async () => {
+  // CI has no Rust toolchain, so the broker's own unit tests run locally; this pins the wiring they rely on.
+  const source = await readFile(new URL('../shells/tauri-shared/webgpu-product-broker.rs', import.meta.url), 'utf8');
+  assert.match(source, /const INBOX_DIRECTORY: &str = "webgpu-product-commands";/);
+  const select = source.slice(source.indexOf('fn command_input()'), source.indexOf('impl Broker {'));
+  assert.match(select, /if cfg!\(target_os = "ios"\) \{\s*Inbox::open\(std::env::temp_dir\(\)\.join\(INBOX_DIRECTORY\)\)\.map\(Input::Inbox\)\s*\} else \{\s*Ok\(Input::Stream\(/);
+  const setup = source.slice(source.indexOf('pub fn setup('), source.indexOf('pub fn route'));
+  assert.match(setup, /if cfg!\(target_os = "ios"\) \{\s*app\.handle\(\)\.plugin\(exit_guard\(\)\)\?;\s*\}/);
+  // Stale lines from an earlier launch are removed before the page can report ready.
+  assert.ok(setup.indexOf('let mut input = command_input();') >= 0 && setup.indexOf('let mut input = command_input();') < setup.indexOf('std::thread::spawn'));
+  assert.doesNotMatch(setup, /std::io::stdin\(\)/);
+  const guard = source.slice(source.indexOf('fn exit_guard'), source.indexOf('pub fn prepare('));
+  assert.match(guard, /RunEvent::ExitRequested \{ code, api, \.\. \} = event \{\s*api\.prevent_exit\(\);/);
+  assert.match(source, /fn refuse_exit\(&self, code: Option<i32>\) -> Option<Value> \{[\s\S]*?if state\.failed \{\s*return None;\s*\}\s*state\.failed = true;/);
+});
+

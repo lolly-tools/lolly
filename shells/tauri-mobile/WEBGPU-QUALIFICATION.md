@@ -140,9 +140,20 @@ node scripts/verify-webgpu-product-ios.ts --run \
   --device="$DEVICE_IDENTIFIER"
 ```
 
-The console transports the existing bounded qualification protocol. No network
-test server, external fixture navigation or WebView preference override is
-used. The existing corpus assertions and deadlines apply unchanged.
+The console carries the app's replies in the existing bounded qualification
+protocol. iOS starts the app with no usable standard input, so the
+qualification app reads each command line from an inbox in its own data
+container instead: one file per line at
+`tmp/webgpu-product-commands/<sequence>-<bytes>.line`, numbered from 1 for each
+launch and copied there with `devicectl device copy to --domain-type
+appDataContainer`. The byte count lets the app wait for a copy that is still in
+progress. On start the app removes lines an earlier launch left unread, so the
+host sends nothing before the ready event. The run step does not yet write to
+this inbox, so the automated corpus still cannot run on a device. While it
+qualifies, the iOS app also refuses every exit request, because tao 0.37.1
+aborts an iOS app that asks to exit. No network test server, external fixture
+navigation or WebView preference override is used. The existing corpus
+assertions and deadlines apply unchanged.
 
 ## Read the evidence
 
