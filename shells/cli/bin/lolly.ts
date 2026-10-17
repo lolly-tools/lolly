@@ -350,7 +350,8 @@ Export options:
                            file holds (format, size, pages, length, alpha, colour, HDR,
                            credential presence, encryption, fonts) and write the report
                            as JSON; \`-\` writes it to stderr. Each difference warns, so
-                           --strict exits 4 when the file is not what was asked for
+                           --strict exits 4 when the file is not what was asked for.
+                           Refused for on-device transforms, which request nothing
 
 Link options:
   --z=<token>              a packed share link's state

@@ -28,7 +28,7 @@ import { attachC2paStore } from '../engine/src/c2pa-containers.ts';
 import type { PreflightJob } from '../engine/src/preflight.ts';
 import type { Finding } from '@lolly-tools/core';
 import {
-  bytesOf, encryptedPdf, fakeStore, gif, jpeg, mp4, pdf, rgbPng, rgbaPng,
+  bytesOf, encryptedPdf, fakeStore, gif, jpeg, mp4, pdf, printSheetSvg, rgbPng, rgbaPng,
 } from './helpers/output-fixtures.ts';
 
 const px = (value: number) => ({ value, unit: 'px' as const });
@@ -196,6 +196,66 @@ test('page size: a TrimBox is compared with the trim, not with the media box', a
   const r = await verifyExport({ format: 'pdf', size: { width: mm(210), height: mm(297), dpi: 300 }, bleed: mm(3) }, bytes);
   assert.equal(row(r, 'page-width').state, 'match');
   assert.equal(row(r, 'page-width').basis, 'pdf.page.TrimBox');
+});
+
+// The print writers draw the trim onto a larger sheet when a bleed or a mark is set.
+// CMYK TIFF has print intent on by default in the web shell (3 mm bleed, colour bars
+// and provenance), so every Print TIFF export with a set size takes this path.
+const mmPt = (v: number) => (v / 25.4) * 72;
+const sheetOf = (wMm: number, hMm: number, bleedMm: number, marks: Record<string, boolean>) =>
+  computePrintGeometry({ trimWpt: mmPt(wMm), trimHpt: mmPt(hMm), bleedPt: mmPt(bleedMm), marks });
+const cmykTiff = (w: number, h: number, dpi: number) =>
+  packTiff(new Uint8Array(w * h * 4), { width: w, height: h, dpi, samplesPerPixel: 4, photometric: 5 });
+// The rounding renderCmykTiff (shells/web/src/bridge/export.ts) applies to the sheet.
+const sheetPx = (pt: number, dpi: number) => Math.max(1, Math.round((pt * dpi) / 72));
+
+test('CMYK TIFF with bleed and marks: the file is compared with the whole sheet at the requested DPI', async () => {
+  const marks = { crop: true, colorBars: true, provenance: true };
+  const geo = sheetOf(50, 50, 3, marks);
+  const w = sheetPx(geo.page.w, 300), h = sheetPx(geo.page.h, 300);
+  const request: ExportRequest = { format: 'cmyk-tiff', size: { width: mm(50), height: mm(50), dpi: 300 }, bleed: mm(3), marks };
+  const r = await verifyExport(request, cmykTiff(w, h, 300));
+  assert.equal(row(r, 'width').state, 'match');
+  assert.equal(row(r, 'height').state, 'match');
+  assert.deepEqual(row(r, 'width').requested, { known: true, value: w });
+  assert.ok(!ids(r).includes('output.size-differs'));
+  assert.equal(row(r, 'dpi').state, 'match');
+  // A file at the bare trim size is the one that differs, and the message says why.
+  const bare = await verifyExport(request, cmykTiff(591, 591, 300));
+  assert.match(find(bare, 'output.size-differs')!.message, new RegExp(`591 x 591 pixels; ${w} x ${h} was expected for the requested size with its bleed and marks`));
+  // Without bleed or marks the sheet is the trim.
+  const plain = await verifyExport({ format: 'cmyk-tiff', size: { width: mm(50), height: mm(50), dpi: 300 }, bleed: null, marks: null }, cmykTiff(591, 591, 300));
+  assert.equal(row(plain, 'width').state, 'match');
+});
+
+test('CMYK TIFF with bleed and a pixel size: the sheet is counted at 96 DPI, as the writer exports it', async () => {
+  const geo = computePrintGeometry({ trimWpt: 600 * 0.75, trimHpt: 400 * 0.75, bleedPt: mmPt(3), marks: {} });
+  const w = sheetPx(geo.page.w, 96), h = sheetPx(geo.page.h, 96);
+  // The web panel keeps a DPI value even for pixels, and the export does not use that value.
+  const r = await verifyExport({ format: 'cmyk-tiff', size: { width: px(600), height: px(400), dpi: 300 }, bleed: mm(3) }, cmykTiff(w, h, 96));
+  assert.equal(row(r, 'width').state, 'match');
+  assert.equal(row(r, 'height').state, 'match');
+});
+
+test('SVG print sheet: the trim recorded on the root is compared with the requested size', async () => {
+  const marks = { crop: true };
+  const geo = sheetOf(50, 50, 3, marks);
+  const r = await verifyExport({ format: 'svg', size: { width: mm(50), height: mm(50), dpi: 300 }, bleed: mm(3), marks }, printSheetSvg(geo));
+  assert.equal(row(r, 'page-width').state, 'match');
+  assert.equal(row(r, 'page-height').state, 'match');
+  assert.equal(row(r, 'page-width').basis, 'svg.data-trim-box');
+  assert.ok(!ids(r).includes('output.page-size-differs'));
+  // A root that records only its media box is compared with the whole sheet.
+  const media = await verifyExport({ format: 'svg', size: { width: mm(50), height: mm(50), dpi: 300 }, bleed: mm(3), marks }, printSheetSvg(geo, { boxes: 'media' }));
+  assert.equal(row(media, 'page-width').state, 'match');
+  // A pixel request against a sheet in points is compared as a page too.
+  const pxGeo = computePrintGeometry({ trimWpt: 300 * 0.75, trimHpt: 200 * 0.75, bleedPt: mmPt(3), marks });
+  const pxr = await verifyExport({ format: 'svg', size: { width: px(300), height: px(200), dpi: 96 }, bleed: mm(3), marks }, printSheetSvg(pxGeo));
+  assert.equal(row(pxr, 'page-width').state, 'match');
+  assert.ok(!ids(pxr).includes('output.size-differs') && !ids(pxr).includes('output.page-size-differs'));
+  // And a sheet whose trim is not the requested size still differs.
+  const off = await verifyExport({ format: 'svg', size: { width: mm(60), height: mm(50), dpi: 300 }, bleed: mm(3), marks }, printSheetSvg(geo));
+  assert.match(find(off, 'output.page-size-differs')!.message, /50 x 50 mm; 60 x 50 mm was requested/);
 });
 
 test('pages: a different count warns, an equal count matches, an unread count is a gap', async () => {

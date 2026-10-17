@@ -686,6 +686,18 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // don't use a render format at all - short-circuit before the format checks.
   if (isFileTransform(tool.manifest)) {
     if (productionPath) throw new Error('Production verification is unavailable for file-transform exports.');
+    // `--export-report` is refused here for the same reason as `--export` below: the report
+    // compares a render with the format, size and settings it was asked for, and nothing
+    // here was asked for. This branch returns before the report block, so accepting the
+    // flag would write no report and say nothing.
+    if (exportReportPath) {
+      throw usageError(
+        `"${toolId}" is an on-device transform (file in → file out), so --export-report has nothing to compare: ` +
+        'the report sets a render beside the format, size and settings it was asked for, and a transform\'s output ' +
+        'follows the file you gave it. Drop the flag. No file was written.',
+        'UNSUPPORTED_FLAG',
+      );
+    }
     // `--export=` on a transform is REFUSED, not ignored. A transform's output container
     // follows its INPUT file (and whatever the tool's own inputs say); the reserved
     // `format` param never reaches the hook. Accepting it printed

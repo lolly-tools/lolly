@@ -80,9 +80,10 @@ import { writePsd } from '../../engine/src/psd-write.ts';
 import { readXcf } from '../../engine/src/xcf.ts';
 import type { InflateFn } from '../../engine/src/raster-layers.ts';
 import { buildXcf } from '../helpers/xcf-fixture.ts';
-import { deflateRawSync, inflateSync } from 'node:zlib';
+import { deflateRawSync, deflateSync, inflateSync } from 'node:zlib';
 import { sniffAnimatedRaster, sniffVideoContainer } from '../../engine/src/media-sniff.ts';
 import { inspectOutput } from '../../engine/src/output-facts.ts';
+import { computePrintGeometry } from '../../engine/src/print-marks.ts';
 import * as outputFixtures from '../helpers/output-fixtures.ts';
 import { interpretPdfPage, parseToUnicode, type PdfNode } from '../../engine/src/pdf-map.ts';
 import { pdfNodesToSvg, cullPdfNodes, pdfNodeExtent } from '../../engine/src/pdf-svg.ts';
@@ -276,7 +277,8 @@ export const mediaSniffTarget: FuzzTarget = {
 
 // ─── output-facts: the export report's readers over finished files ─────────
 // Every container the report reads, including a PDF whose page tree sits in a
-// compressed object stream, so mutations reach the inflate budget as well.
+// compressed object stream, so mutations reach the inflate budget as well, an SVG
+// print sheet, and short copies of the inputs that made the first readers quadratic.
 export const outputFactsTarget: FuzzTarget = {
   name: 'output-facts',
   async seeds() {
@@ -287,6 +289,9 @@ export const outputFactsTarget: FuzzTarget = {
       f.bytesOf('<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="297mm"><text>a</text></svg>'),
       f.bytesOf('%!PS-Adobe-3.0 EPSF-3.0\n%%HiResBoundingBox: 0 0 595.28 841.89\n0 0 0 1 setcmykcolor\n'),
       packTiff(new Uint8Array(12), { width: 2, height: 2, dpi: 300 }),
+      f.printSheetSvg(computePrintGeometry({ trimWpt: 141.73, trimHpt: 141.73, bleedPt: 8.5, marks: { crop: true } })),
+      // Short copies of the shapes that once made a reader quadratic, so mutations start near them.
+      ...Object.values(f.pathologicalOutputs(4096, b => new Uint8Array(deflateSync(b)))),
     ];
   },
   async invoke(bytes) {

@@ -28,13 +28,13 @@ import type {
 } from '@lolly-tools/core';
 import { SEVERITY_RANK } from '@lolly-tools/core';
 import type { Dimension } from './units.ts';
-import { toPixels, toPoints } from './units.ts';
+import { CSS_DPI, toPixels, toPoints } from './units.ts';
 import type { PrintMarksFlags } from './print-marks.ts';
 import { computePrintGeometry } from './print-marks.ts';
 import { acceptedFormats, SNIFFED_FORMAT_LABEL } from './format-sniff.ts';
 import { inspectOutput, type OutputFacts } from './output-facts.ts';
 import type { PreflightJob } from './preflight.ts';
-import { CUTS_FORMATS, HDR_FORMATS, MOTION_FORMATS, RASTER_FORMATS, SEPARATING_FORMATS } from './preflight.ts';
+import { CUTS_FORMATS, HDR_FORMATS, MOTION_FORMATS, PRINT_MARK_FORMATS, RASTER_FORMATS, SEPARATING_FORMATS } from './preflight.ts';
 import { sha256Hex } from './bytes.ts';
 import { ENGINE_VERSION } from './version.ts';
 
@@ -244,6 +244,19 @@ function sizePair(c: Ctx, props: readonly [string, string], expected: [number, n
   }
 }
 
+/**
+ * The sheet print finishing draws the trim onto, in points, or null when the
+ * request asks for no bleed and no mark. `computePrintGeometry` is the same source
+ * the PDF, SVG, EPS and CMYK TIFF writers use, and its page size does not depend
+ * on the palette.
+ */
+function printSheet(req: ExportRequest, size: NonNullable<ExportRequest['size']>): { w: number; h: number } | null {
+  const bleedPt = isDim(req.bleed) ? toPoints(req.bleed) : 0;
+  const marks = req.marks ?? {};
+  if (!(bleedPt > 0) && !Object.values(marks).some(Boolean)) return null;
+  return computePrintGeometry({ trimWpt: toPoints(size.width), trimHpt: toPoints(size.height), bleedPt, marks }).page;
+}
+
 const checkSize: Check = c => {
   const { req, fmt, facts } = c;
   const size = req.size;
@@ -253,36 +266,57 @@ const checkSize: Check = c => {
       ? 'The requested size describes one board and this export holds several, so it was not compared.'
       : undefined;
   const physicalRequest = !!size && size.width.unit !== 'px';
-  const pixels: [number, number] | null = size && PIXEL_FORMATS.has(fmt)
-    ? [toPixels(size.width, size.dpi), toPixels(size.height, size.dpi)]
-    : size && fmt === 'svg' && !physicalRequest ? [size.width.value, size.height.value] : null;
+  const page = facts.page;
+  // With a bleed or any mark, a print format's file is the whole sheet: the trim plus
+  // the bleed plus the band that holds the marks.
+  const sheet = size && PRINT_MARK_FORMATS.has(fmt) ? printSheet(req, size) : null;
+  // An SVG is compared as a page when the request is physical, or when the file is a
+  // print sheet whose root states its boxes in points (data-trim-box, data-media-box).
+  const svgAsPage = fmt === 'svg' && !!size && (physicalRequest || (page.known && page.value.box !== 'svg-root'));
+  let pixels: [number, number] | null = null;
+  if (size && PIXEL_FORMATS.has(fmt)) {
+    if (sheet) {
+      // The CMYK TIFF writer composes the artwork onto a sheet of this size, with its
+      // rounding. A pixel request is exported at the CSS 96 DPI whatever the DPI field says.
+      const dpi = physicalRequest ? size.dpi : CSS_DPI;
+      const sheetPx = (pt: number): number => Math.max(1, Math.round((pt * dpi) / 72));
+      pixels = [sheetPx(sheet.w), sheetPx(sheet.h)];
+    } else {
+      pixels = [toPixels(size.width, size.dpi), toPixels(size.height, size.dpi)];
+    }
+  } else if (size && fmt === 'svg' && !svgAsPage) {
+    pixels = [size.width.value, size.height.value];
+  }
   if (PIXEL_FORMATS.has(fmt) || fmt === 'svg' || facts.width.known) {
+    const withSheet = !!sheet && PIXEL_FORMATS.has(fmt);
     sizePair(c, ['width', 'height'], pixels, [facts.width, facts.height], facts.basis.width ?? 'pixel-size', 1,
-      (a, e) => `The file is ${num(a[0])} x ${num(a[1])} pixels; ${num(e[0])} x ${num(e[1])} was requested.`,
+      (a, e) => withSheet
+        ? `The file is ${num(a[0])} x ${num(a[1])} pixels; ${num(e[0])} x ${num(e[1])} was expected for the requested size with its bleed and marks.`
+        : `The file is ${num(a[0])} x ${num(a[1])} pixels; ${num(e[0])} x ${num(e[1])} was requested.`,
       'output.size-differs', pixels ? skip : undefined);
   }
-  const pageWanted = !!size && (PAGE_FORMATS.has(fmt) || (fmt === 'svg' && physicalRequest));
-  if (!pageWanted && !facts.page.known) return;
+  const pageWanted = !!size && (PAGE_FORMATS.has(fmt) || svgAsPage);
+  if (!pageWanted && !page.known) return;
   let expected: [number, number] | null = null;
+  let againstSheet = false;
   if (pageWanted && size) {
-    const trimW = toPoints(size.width), trimH = toPoints(size.height);
-    expected = [trimW, trimH];
-    const bleedPt = isDim(req.bleed) ? toPoints(req.bleed) : 0;
-    const marks = req.marks ?? {};
-    const anyMark = Object.values(marks).some(Boolean);
-    if (facts.page.known && facts.page.value.box !== 'TrimBox' && fmt !== 'svg' && (bleedPt > 0 || anyMark)) {
-      const geo = computePrintGeometry({ trimWpt: trimW, trimHpt: trimH, bleedPt, marks });
-      expected = [geo.page.w, geo.page.h];
+    expected = [toPoints(size.width), toPoints(size.height)];
+    // A file that states its trim (a PDF TrimBox, an SVG data-trim-box) is compared with
+    // the trim. One that states only its outer page is compared with the whole sheet.
+    if (sheet && page.known && (page.value.box === 'MediaBox' || page.value.box === 'BoundingBox')) {
+      expected = [sheet.w, sheet.h];
+      againstSheet = true;
     }
   }
-  const page = facts.page;
   const pw: Fact<number> = page.known ? { known: true, value: page.value.width } : page;
   const ph: Fact<number> = page.known ? { known: true, value: page.value.height } : page;
   const unit = size && size.width.unit !== 'px' ? size.width.unit : 'pt';
   const inUnit = (pt: number): string => unit === 'mm' ? num((pt / 72) * 25.4) : unit === 'cm' ? num((pt / 72) * 2.54) : unit === 'in' ? num(pt / 72) : num(pt);
   const unitLabel = unit === 'mm' || unit === 'cm' || unit === 'in' ? unit : 'pt';
   sizePair(c, ['page-width', 'page-height'], expected, [pw, ph], facts.basis.page ?? 'page-box', 1,
-    (a, e) => `The page is ${inUnit(a[0])} x ${inUnit(a[1])} ${unitLabel}; ${inUnit(e[0])} x ${inUnit(e[1])} ${unitLabel} was requested.`,
+    (a, e) => againstSheet
+      ? `The page is ${inUnit(a[0])} x ${inUnit(a[1])} ${unitLabel}; ${inUnit(e[0])} x ${inUnit(e[1])} ${unitLabel} was expected for the requested size with its bleed and marks.`
+      : `The page is ${inUnit(a[0])} x ${inUnit(a[1])} ${unitLabel}; ${inUnit(e[0])} x ${inUnit(e[1])} ${unitLabel} was requested.`,
     'output.page-size-differs', expected ? skip : undefined);
   if (page.known && !page.value.uniform) {
     c.findings.push({

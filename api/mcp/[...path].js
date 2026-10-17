@@ -70971,7 +70971,7 @@ var init_format_sniff = __esm({
 });
 
 // engine/src/output-facts.ts
-import { unzlibSync as unzlibSync2 } from "fflate";
+import { Unzlib, unzlibSync as unzlibSync2 } from "fflate";
 function latin1(b, start = 0, end = b.length) {
   let s = "";
   for (let i = start; i < end; i += 32768) s += String.fromCharCode(...b.subarray(i, Math.min(end, i + 32768)));
@@ -71100,41 +71100,106 @@ function svgLength(value) {
   if (!Number.isFinite(n7) || n7 <= 0) return null;
   return unit2 === "px" ? { px: n7, pt: n7 * 0.75 } : { pt: n7 * POINTS_PER[unit2] };
 }
+function svgRootTag(text9, f) {
+  const open3 = /<svg\b/i.exec(text9);
+  if (!open3) return null;
+  const close = text9.indexOf(">", open3.index);
+  if (close < 0 || close - open3.index > SVG_ROOT_TAG_MAX) {
+    f.limits.push("svg-root-unread");
+    return null;
+  }
+  return text9.slice(open3.index, close + 1);
+}
+function svgBox(value) {
+  const nums = (value ?? "").trim().split(/\s+/).map(Number);
+  if (nums.length !== 4 || !nums.every(Number.isFinite) || nums[2] <= 0 || nums[3] <= 0) return null;
+  return { w: nums[2], h: nums[3] };
+}
+function countMatches(text9, re) {
+  let n7 = 0;
+  re.lastIndex = 0;
+  while (re.exec(text9)) n7++;
+  return n7;
+}
+function forwardSearch(text9, needle) {
+  let searchedFrom = -1, found = -1;
+  return (from) => {
+    if (searchedFrom >= 0 && searchedFrom <= from && (found < 0 || found >= from)) return found;
+    searchedFrom = from;
+    found = text9.indexOf(needle, from);
+    return found;
+  };
+}
 function pdfObjects(b, bin, f, budget3) {
   const objects = /* @__PURE__ */ new Map();
-  const re = /(\d+)\s+\d+\s+obj\b/g;
-  for (let guard = 0; guard < OUTPUT_MAX_STRUCTURES; guard++) {
-    const m2 = re.exec(bin);
-    if (!m2) break;
+  const re = new RegExp(PDF_OBJ_HEADER.source, "g");
+  const endobjAt = forwardSearch(bin, "endobj"), endstreamAt = forwardSearch(bin, "endstream");
+  let m2 = re.exec(bin);
+  for (let guard = 0; m2 && guard < OUTPUT_MAX_STRUCTURES; guard++) {
     const num18 = Number(m2[1]), bodyAt = m2.index + m2[0].length;
-    const endobj = bin.indexOf("endobj", bodyAt);
-    const span = bin.slice(bodyAt, endobj < 0 ? Math.min(bin.length, bodyAt + 65536) : endobj);
+    const next2 = re.exec(bin);
+    const nextAt = next2 ? next2.index : bin.length;
+    const endobj = endobjAt(bodyAt);
+    const spanEnd = Math.min(endobj < 0 ? bodyAt + PDF_DICT_MAX : endobj, nextAt);
+    const span = bin.slice(bodyAt, spanEnd);
     const kw = /stream(?:\r\n|\r|\n)/.exec(span);
     const streamKw = kw ? bodyAt + kw.index : -1;
-    const dictEnd = streamKw >= 0 ? streamKw : bodyAt + span.length;
-    const dict = bin.slice(bodyAt, Math.min(dictEnd, bodyAt + 65536));
+    const dictEnd = streamKw >= 0 ? streamKw : spanEnd;
+    const dict = bin.slice(bodyAt, Math.min(dictEnd, bodyAt + PDF_DICT_MAX));
     let stream;
+    m2 = next2;
     if (streamKw >= 0) {
       let s = streamKw + 6;
       if (bin[s] === "\r") s++;
       if (bin[s] === "\n") s++;
-      const lenRef = /\/Length\s+(\d+)\s+\d+\s+R/.exec(dict), lenDirect = /\/Length\s+(\d+)(?!\s+\d+\s+R)/.exec(dict);
+      const lenRef = /\/Length\s+(\d+)\s+\d+\s+R/.exec(dict), lenDirect = /\/Length\s+(\d+)(?!\d)(?!\s+\d+\s+R)/.exec(dict);
       let len2 = lenDirect ? Number(lenDirect[1]) : -1;
       if (len2 < 0 && lenRef) {
         const r5 = /^\s*(\d+)/.exec(objects.get(Number(lenRef[1]))?.dict ?? "");
         if (r5) len2 = Number(r5[1]);
       }
       if (len2 < 0 || s + len2 > b.length) {
-        const e = bin.indexOf("endstream", s);
+        const e = endstreamAt(s);
         len2 = e < 0 ? 0 : e - s;
       }
       stream = b.subarray(s, s + len2);
-      re.lastIndex = s + len2;
+      if (next2 && next2.index < s + len2) {
+        re.lastIndex = s + len2;
+        m2 = re.exec(bin);
+      }
     }
     objects.set(num18, { dict, stream });
     if (stream && /\/Type\s*\/ObjStm\b/.test(dict)) expandObjectStream(dict, stream, objects, f, budget3);
   }
   return objects;
+}
+function inflateCapped(data, cap) {
+  const bound = data.length * DEFLATE_MAX_RATIO + 64;
+  if (bound < cap) {
+    const out2 = bound <= 131072 ? unzlibSync2(data, { out: new Uint8Array(bound) }) : unzlibSync2(data);
+    return out2.length > cap ? null : out2;
+  }
+  const chunks = [];
+  let total = 0;
+  const z = new Unzlib((chunk6) => {
+    total += chunk6.length;
+    if (total <= cap) chunks.push(chunk6);
+  });
+  let at = 0;
+  do {
+    const end = Math.min(data.length, at + INFLATE_INPUT_CHUNK);
+    z.push(data.subarray(at, end), end === data.length);
+    at = end;
+  } while (at < data.length && total <= cap);
+  if (total > cap) return null;
+  if (chunks.length === 1) return chunks[0];
+  const out = new Uint8Array(total);
+  let o = 0;
+  for (const c of chunks) {
+    out.set(c, o);
+    o += c.length;
+  }
+  return out;
 }
 function inflate(dict, data, f, budget3) {
   if (!/\/Filter\s*(?:\/FlateDecode|\[\s*\/FlateDecode\s*\])/.test(dict)) {
@@ -71145,13 +71210,15 @@ function inflate(dict, data, f, budget3) {
     f.limits.push("pdf-inflate-budget");
     return null;
   }
+  const cap = Math.min(budget3.left, PDF_STREAM_INFLATE_MAX);
   try {
-    const out = unzlibSync2(data, { out: new Uint8Array(Math.min(budget3.left, 8 * 1024 * 1024) + 1) });
-    budget3.left -= out.length;
-    if (out.length > 8 * 1024 * 1024) {
-      f.limits.push("pdf-stream-over-budget");
+    const out = inflateCapped(data, cap);
+    if (!out) {
+      budget3.left -= cap;
+      f.limits.push(cap < PDF_STREAM_INFLATE_MAX ? "pdf-inflate-budget" : "pdf-stream-over-budget");
       return null;
     }
+    budget3.left -= out.length;
     return out;
   } catch {
     f.limits.push("pdf-stream-unreadable");
@@ -71164,21 +71231,41 @@ function expandObjectStream(dict, data, objects, f, budget3) {
   if (!raw || !n7 || n7 > 1e5) return;
   const text9 = latin1(raw);
   const header = text9.slice(0, first).trim().split(/\s+/).map(Number);
+  let previous2 = -1;
   for (let i = 0; i + 1 < header.length && i / 2 < n7; i += 2) {
     const start = first + header[i + 1], next2 = i + 3 < header.length ? first + header[i + 3] : text9.length;
-    if (Number.isFinite(start) && start < text9.length) objects.set(header[i], { dict: text9.slice(start, Math.min(next2, start + 65536)) });
+    if (!Number.isFinite(start) || start < previous2) {
+      f.limits.push("pdf-object-stream-offsets");
+      return;
+    }
+    previous2 = start;
+    if (start < text9.length) objects.set(header[i], { dict: text9.slice(start, Math.min(next2, start + PDF_DICT_MAX)) });
   }
 }
+function arrayAfter(dict, key2) {
+  const name = `/${key2}`;
+  for (let at = dict.indexOf(name); at >= 0; at = dict.indexOf(name, at + name.length)) {
+    let p = at + name.length;
+    while (p < dict.length && isPdfSpace(dict.charCodeAt(p))) p++;
+    if (dict[p] !== "[") continue;
+    const close = dict.indexOf("]", p + 1);
+    return close < 0 ? void 0 : dict.slice(p + 1, close);
+  }
+  return void 0;
+}
 function boxOf2(dict, key2, objects) {
-  const inline = new RegExp(`/${key2}\\s*\\[([^\\]]*)\\]`).exec(dict)?.[1];
+  const inline = arrayAfter(dict, key2);
   const viaRef = inline === void 0 ? (() => {
     const r5 = ref(dict, key2);
-    return r5 === null ? void 0 : /\[([^\]]*)\]/.exec(objects.get(r5)?.dict ?? "")?.[1];
+    if (r5 === null) return void 0;
+    const target2 = objects.get(r5)?.dict ?? "";
+    const open3 = target2.indexOf("["), close = open3 < 0 ? -1 : target2.indexOf("]", open3 + 1);
+    return close < 0 ? void 0 : target2.slice(open3 + 1, close);
   })() : inline;
   const nums = viaRef?.trim().split(/\s+/).map(Number);
   return nums && nums.length === 4 && nums.every(Number.isFinite) ? nums : null;
 }
-var OUTPUT_INSPECT_MAX_BYTES, OUTPUT_TEXT_SCAN_MAX_BYTES, OUTPUT_PDF_INFLATE_BUDGET, OUTPUT_MAX_STRUCTURES, known, unknown, CREDENTIAL_CONTAINERS, u16be2, u32be2, u16le, u24le, u32le2, tag4, round2, readPng2, readJpeg2, readWebp2, readGif2, readTiff, child, readHeif2, readMp4, uintAt, floatAt, readWebm, POINTS_PER, attr, readSvg2, readEps, readZip2, readBmp, STANDARD_14, ref, readPdf, READERS;
+var OUTPUT_INSPECT_MAX_BYTES, OUTPUT_TEXT_SCAN_MAX_BYTES, OUTPUT_PDF_INFLATE_BUDGET, OUTPUT_MAX_STRUCTURES, known, unknown, CREDENTIAL_CONTAINERS, u16be2, u32be2, u16le, u24le, u32le2, tag4, round2, readPng2, readJpeg2, readWebp2, readGif2, readTiff, child, readHeif2, readMp4, uintAt, floatAt, readWebm, POINTS_PER, attr, SVG_ROOT_TAG_MAX, readSvg2, readEps, readZip2, readBmp, STANDARD_14, PDF_DICT_MAX, PDF_STREAM_INFLATE_MAX, INFLATE_INPUT_CHUNK, DEFLATE_MAX_RATIO, PDF_OBJ_HEADER, PDF_REF, ref, isPdfSpace, readPdf, READERS;
 var init_output_facts = __esm({
   "engine/src/output-facts.ts"() {
     "use strict";
@@ -71659,34 +71746,43 @@ var init_output_facts = __esm({
     };
     POINTS_PER = { pt: 1, pc: 12, in: 72, mm: 72 / 25.4, cm: 72 / 2.54, q: 72 / 101.6 };
     attr = (tag3, name) => new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i").exec(tag3)?.slice(1).find((v) => v !== void 0);
+    SVG_ROOT_TAG_MAX = 256 * 1024;
     readSvg2 = (b, f) => {
       if (b.length > OUTPUT_TEXT_SCAN_MAX_BYTES) {
         f.limits.push("svg-over-scan-budget");
         return;
       }
       const text9 = new TextDecoder("utf-8").decode(b);
-      const root2 = /<svg\b[^>]*>/i.exec(text9)?.[0];
+      const root2 = svgRootTag(text9, f);
       if (!root2) return;
       const w = svgLength(attr(root2, "width")), h = svgLength(attr(root2, "height"));
+      const trim2 = svgBox(attr(root2, "data-trim-box"));
+      const sheet = !!svgBox(attr(root2, "data-media-box"));
+      if (trim2) {
+        f.page = known({ width: round2(trim2.w), height: round2(trim2.h), box: "TrimBox", uniform: true });
+        f.basis.page = "svg.data-trim-box";
+      }
       if (w && h) {
         if (w.px !== void 0 && h.px !== void 0) {
           f.width = known(round2(w.px));
           f.height = known(round2(h.px));
           f.basis.width = f.basis.height = "svg.root";
         }
-        f.page = known({ width: round2(w.pt), height: round2(h.pt), box: "svg-root", uniform: true });
-        f.basis.page = "svg.root";
+        if (!trim2) {
+          f.page = known({ width: round2(w.pt), height: round2(h.pt), box: sheet ? "MediaBox" : "svg-root", uniform: true });
+          f.basis.page = "svg.root";
+        }
       } else {
         f.width = unknown("not-set");
         f.height = unknown("not-set");
-        f.page = unknown("not-set");
+        if (!trim2) f.page = unknown("not-set");
       }
-      const images = [...text9.matchAll(/<image\b[^>]*>/gi)].length;
+      const images = countMatches(text9, /<image\b/gi);
       f.nature = known(images > 0 ? "mixed" : "vector");
       f.basis.nature = "svg.image-elements";
-      f.liveText = known([...text9.matchAll(/<text\b/gi)].length);
+      f.liveText = known(countMatches(text9, /<text\b/gi));
       f.basis.liveText = "svg.text-elements";
-      f.fontFaces = known([...text9.matchAll(/@font-face\b/gi)].length);
+      f.fontFaces = known(countMatches(text9, /@font-face\b/gi));
       f.basis.fontFaces = "svg.font-face-rules";
       f.metadata = known(/<metadata\b|xmpmeta/i.test(text9));
       f.basis.metadata = "svg.metadata";
@@ -71765,10 +71861,17 @@ var init_output_facts = __esm({
       f.basis.frames = "bmp";
     };
     STANDARD_14 = /^\/(?:Times-(?:Roman|Bold|Italic|BoldItalic)|Helvetica(?:-Bold|-Oblique|-BoldOblique)?|Courier(?:-Bold|-Oblique|-BoldOblique)?|Symbol|ZapfDingbats)$/;
+    PDF_DICT_MAX = 65536;
+    PDF_STREAM_INFLATE_MAX = 8 * 1024 * 1024;
+    INFLATE_INPUT_CHUNK = 4096;
+    DEFLATE_MAX_RATIO = 1100;
+    PDF_OBJ_HEADER = /(?<!\d)(\d{1,10})\s+\d{1,5}\s+obj\b/g;
+    PDF_REF = /(?<!\d)(\d{1,10})\s+\d{1,5}\s+R/g;
     ref = (dict, key2) => {
       const m2 = new RegExp(`/${key2}\\s+(\\d+)\\s+\\d+\\s+R`).exec(dict);
       return m2 ? Number(m2[1]) : null;
     };
+    isPdfSpace = (code) => code === 32 || code >= 9 && code <= 13 || code === 160;
     readPdf = (b, f) => {
       if (b.length > OUTPUT_TEXT_SCAN_MAX_BYTES) {
         f.limits.push("pdf-over-scan-budget");
@@ -71794,8 +71897,8 @@ var init_output_facts = __esm({
         seen.add(num18);
         const media = boxOf2(node.dict, "MediaBox", objects) ?? inherited2;
         if (/\/Type\s*\/Pages\b/.test(node.dict)) {
-          const kids2 = /\/Kids\s*\[([^\]]*)\]/.exec(node.dict)?.[1] ?? "";
-          for (const k of kids2.matchAll(/(\d+)\s+\d+\s+R/g)) visit(Number(k[1]), media, depth + 1, seen);
+          const kids2 = arrayAfter(node.dict, "Kids") ?? "";
+          for (const k of kids2.matchAll(PDF_REF)) visit(Number(k[1]), media, depth + 1, seen);
           return;
         }
         const trim2 = boxOf2(node.dict, "TrimBox", objects), use = trim2 ?? media;
@@ -71964,6 +72067,12 @@ function sizePair(c, props, expected, actual, basis, tolerance, describe3, id3, 
     });
   }
 }
+function printSheet(req, size) {
+  const bleedPt = isDim2(req.bleed) ? toPoints(req.bleed) : 0;
+  const marks = req.marks ?? {};
+  if (!(bleedPt > 0) && !Object.values(marks).some(Boolean)) return null;
+  return computePrintGeometry({ trimWpt: toPoints(size.width), trimHpt: toPoints(size.height), bleedPt, marks }).page;
+}
 function compareExport(request2, facts2) {
   const req = request2 && typeof request2 === "object" ? request2 : { format: "" };
   const c = { req, fmt: typeof req.format === "string" ? req.format.toLowerCase() : "", facts: facts2, checks: [], findings: [] };
@@ -72105,8 +72214,23 @@ var init_preflight_output = __esm({
       const size = req.size;
       const skip = req.archive ? "The file is a ZIP of several outputs, so the requested size was not compared with it." : isNum(req.boards) && req.boards > 1 ? "The requested size describes one board and this export holds several, so it was not compared." : void 0;
       const physicalRequest = !!size && size.width.unit !== "px";
-      const pixels2 = size && PIXEL_FORMATS.has(fmt4) ? [toPixels(size.width, size.dpi), toPixels(size.height, size.dpi)] : size && fmt4 === "svg" && !physicalRequest ? [size.width.value, size.height.value] : null;
+      const page3 = facts2.page;
+      const sheet = size && PRINT_MARK_FORMATS.has(fmt4) ? printSheet(req, size) : null;
+      const svgAsPage = fmt4 === "svg" && !!size && (physicalRequest || page3.known && page3.value.box !== "svg-root");
+      let pixels2 = null;
+      if (size && PIXEL_FORMATS.has(fmt4)) {
+        if (sheet) {
+          const dpi = physicalRequest ? size.dpi : CSS_DPI;
+          const sheetPx = (pt) => Math.max(1, Math.round(pt * dpi / 72));
+          pixels2 = [sheetPx(sheet.w), sheetPx(sheet.h)];
+        } else {
+          pixels2 = [toPixels(size.width, size.dpi), toPixels(size.height, size.dpi)];
+        }
+      } else if (size && fmt4 === "svg" && !svgAsPage) {
+        pixels2 = [size.width.value, size.height.value];
+      }
       if (PIXEL_FORMATS.has(fmt4) || fmt4 === "svg" || facts2.width.known) {
+        const withSheet = !!sheet && PIXEL_FORMATS.has(fmt4);
         sizePair(
           c,
           ["width", "height"],
@@ -72114,26 +72238,22 @@ var init_preflight_output = __esm({
           [facts2.width, facts2.height],
           facts2.basis.width ?? "pixel-size",
           1,
-          (a, e) => `The file is ${num6(a[0])} x ${num6(a[1])} pixels; ${num6(e[0])} x ${num6(e[1])} was requested.`,
+          (a, e) => withSheet ? `The file is ${num6(a[0])} x ${num6(a[1])} pixels; ${num6(e[0])} x ${num6(e[1])} was expected for the requested size with its bleed and marks.` : `The file is ${num6(a[0])} x ${num6(a[1])} pixels; ${num6(e[0])} x ${num6(e[1])} was requested.`,
           "output.size-differs",
           pixels2 ? skip : void 0
         );
       }
-      const pageWanted = !!size && (PAGE_FORMATS.has(fmt4) || fmt4 === "svg" && physicalRequest);
-      if (!pageWanted && !facts2.page.known) return;
+      const pageWanted = !!size && (PAGE_FORMATS.has(fmt4) || svgAsPage);
+      if (!pageWanted && !page3.known) return;
       let expected = null;
+      let againstSheet = false;
       if (pageWanted && size) {
-        const trimW = toPoints(size.width), trimH = toPoints(size.height);
-        expected = [trimW, trimH];
-        const bleedPt = isDim2(req.bleed) ? toPoints(req.bleed) : 0;
-        const marks = req.marks ?? {};
-        const anyMark = Object.values(marks).some(Boolean);
-        if (facts2.page.known && facts2.page.value.box !== "TrimBox" && fmt4 !== "svg" && (bleedPt > 0 || anyMark)) {
-          const geo = computePrintGeometry({ trimWpt: trimW, trimHpt: trimH, bleedPt, marks });
-          expected = [geo.page.w, geo.page.h];
+        expected = [toPoints(size.width), toPoints(size.height)];
+        if (sheet && page3.known && (page3.value.box === "MediaBox" || page3.value.box === "BoundingBox")) {
+          expected = [sheet.w, sheet.h];
+          againstSheet = true;
         }
       }
-      const page3 = facts2.page;
       const pw = page3.known ? { known: true, value: page3.value.width } : page3;
       const ph = page3.known ? { known: true, value: page3.value.height } : page3;
       const unit2 = size && size.width.unit !== "px" ? size.width.unit : "pt";
@@ -72146,7 +72266,7 @@ var init_preflight_output = __esm({
         [pw, ph],
         facts2.basis.page ?? "page-box",
         1,
-        (a, e) => `The page is ${inUnit(a[0])} x ${inUnit(a[1])} ${unitLabel}; ${inUnit(e[0])} x ${inUnit(e[1])} ${unitLabel} was requested.`,
+        (a, e) => againstSheet ? `The page is ${inUnit(a[0])} x ${inUnit(a[1])} ${unitLabel}; ${inUnit(e[0])} x ${inUnit(e[1])} ${unitLabel} was expected for the requested size with its bleed and marks.` : `The page is ${inUnit(a[0])} x ${inUnit(a[1])} ${unitLabel}; ${inUnit(e[0])} x ${inUnit(e[1])} ${unitLabel} was requested.`,
         "output.page-size-differs",
         expected ? skip : void 0
       );
@@ -144116,7 +144236,7 @@ import {
   PDFRawStream,
   decodePDFRawStream
 } from "pdf-lib";
-import { Inflate as Inflate2, unzlibSync as unzlibSync4, Unzlib } from "fflate";
+import { Inflate as Inflate2, unzlibSync as unzlibSync4, Unzlib as Unzlib2 } from "fflate";
 function dictOf(ctx, o) {
   const v = ctx.lookup(o);
   return v instanceof PDFRawStream ? v.dict : v instanceof PDFDict ? v : null;
@@ -144147,7 +144267,7 @@ function decodedText(ctx, o) {
 function pdfLatin1(bytes2) {
   return bytesToBin(bytes2);
 }
-function inflateCapped(input, cap) {
+function inflateCapped2(input, cap) {
   const zlib = inflateStepped(input, cap, "zlib");
   if (!zlib.failed) return zlib.bytes;
   const raw = hasZlibHeader(input) ? inflateStepped(input.subarray(2), cap, "raw") : null;
@@ -144169,7 +144289,7 @@ function inflateStepped(input, cap, kind) {
     parts.push(take);
     total += take.length;
   };
-  const inflater = kind === "zlib" ? new Unzlib(onData) : new Inflate2(onData);
+  const inflater = kind === "zlib" ? new Unzlib2(onData) : new Inflate2(onData);
   let failed2 = false;
   try {
     for (let at = 0; at < input.length && total < cap; at += INFLATE_STEP) {
@@ -144199,7 +144319,7 @@ function pdfStreamBytes(stream, cap = Number.POSITIVE_INFINITY) {
   }
   const filters = filterList(stream.dict.context, stream.dict.get(PDFName.of("Filter")));
   if (!filters.length) return trim2(stream.getContents());
-  if (filters.length === 1 && filters[0] === "FlateDecode") return inflateCapped(stream.getContents(), Math.max(0, Math.floor(cap)));
+  if (filters.length === 1 && filters[0] === "FlateDecode") return inflateCapped2(stream.getContents(), Math.max(0, Math.floor(cap)));
   try {
     return trim2(decodePDFRawStream(stream).decode());
   } catch {
@@ -150577,7 +150697,7 @@ var init_adobe_psd_node = __esm({
 import { createHash as createHash2 } from "node:crypto";
 import { existsSync as existsSync5, readFileSync as readFileSync2 } from "node:fs";
 import { join as join6 } from "node:path";
-import { Unzlib as Unzlib2, unzlibSync as unzlibSync5 } from "fflate";
+import { Unzlib as Unzlib3, unzlibSync as unzlibSync5 } from "fflate";
 function pipelineReaderFor(kind) {
   return kind === "pdf" ? PDF_PIPELINE_READER : kind === "psd" ? PSD_PIPELINE_READER : PIPELINE_READER;
 }
@@ -150709,7 +150829,7 @@ function pictureDimensions(bytes2) {
 }
 function pngInflatesWithin(bytes2, limit2) {
   let total = 0;
-  const inflater = new Unzlib2((chunk6) => {
+  const inflater = new Unzlib3((chunk6) => {
     total += chunk6.length;
   });
   try {

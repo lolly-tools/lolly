@@ -124,3 +124,69 @@ export const encryptedPdf = (): Uint8Array => bytesOf([
   '%%EOF',
 ].join('\n'));
 
+
+/** The boxes of a print geometry in points, as `computePrintGeometry` returns them. */
+interface SheetBoxes {
+  readonly page: { readonly w: number; readonly h: number };
+  readonly boxes: { readonly media: Box; readonly bleed: Box; readonly trim: Box };
+}
+interface Box { readonly x: number; readonly y: number; readonly w: number; readonly h: number }
+
+/**
+ * An SVG print sheet laid out the way shells/web/src/bridge/export.ts
+ * `wrapArtworkSvgWithMarks` writes one: an outer root sized to the whole sheet in
+ * points, the boxes recorded as data attributes, the artwork nested in the bleed
+ * box and one crop mark. `boxes: 'media'` leaves out data-trim-box and data-bleed-box.
+ */
+export function printSheetSvg(geo: SheetBoxes, opts: { boxes?: 'all' | 'media' } = {}): Uint8Array {
+  const n = (v: number): string => String(Math.round(v * 1000) / 1000);
+  const P = (v: number): string => n((v * 96) / 72);
+  const box = (b: Box): string => `${n(b.x)} ${n(b.y)} ${n(b.w)} ${n(b.h)}`;
+  const { media, bleed, trim } = geo.boxes;
+  const recorded = opts.boxes === 'media'
+    ? `data-media-box="${box(media)}"`
+    : `data-media-box="${box(media)}" data-bleed-box="${box(bleed)}" data-trim-box="${box(trim)}"`;
+  return bytesOf([
+    '<?xml version="1.0" standalone="no"?>',
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${n(geo.page.w)}pt" height="${n(geo.page.h)}pt" viewBox="0 0 ${P(geo.page.w)} ${P(geo.page.h)}" ${recorded}>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" x="${P(bleed.x)}" y="${P(bleed.y)}" width="${P(bleed.w)}" height="${P(bleed.h)}" preserveAspectRatio="none"><rect width="100" height="100" fill="#c00"/></svg>`,
+    `<g class="print-marks"><line x1="0" y1="${P(trim.y)}" x2="${P(trim.x - 6)}" y2="${P(trim.y)}" stroke="#000" stroke-width="0.667"/></g>`,
+    '</svg>',
+  ].join(''));
+}
+
+/**
+ * Inputs that made the first readers quadratic, each about `size` bytes: a PDF
+ * that is one run of digits, object headers with no endstream or endobj, a run
+ * of whitespace between two numbers, a page tree holding a run of digits and
+ * unclosed box arrays, many tiny compressed streams, and SVG start tags that
+ * never close.
+ */
+export function pathologicalOutputs(size: number, zlib: (b: Uint8Array) => Uint8Array): Record<string, Uint8Array> {
+  const fill = (unit: string, n = size): string => unit.repeat(Math.ceil(n / unit.length)).slice(0, n);
+  const tiny = zlib(bytesOf('0 0 0 rg'));
+  const streams: Uint8Array[] = [bytesOf('%PDF-1.7\n')];
+  for (let i = 1, total = 0; total < size; i++) {
+    const head = bytesOf(`${i} 0 obj <</Filter/FlateDecode/Length ${tiny.length}>>stream\n`), tail = bytesOf('\nendstream endobj\n');
+    streams.push(head, tiny, tail);
+    total += head.length + tiny.length + tail.length;
+  }
+  return {
+    'PDF of digits': bytesOf(`%PDF-1.7\n${'1'.repeat(size)}`),
+    'PDF objects without endstream': bytesOf(`%PDF-1.7\n${fill('1 0 obj <<>> stream\n')}`),
+    'PDF objects without endobj': bytesOf(`%PDF-1.7\n${fill('1 0 obj <</A 1>>\n')}`),
+    'PDF objects with one far endobj': bytesOf(`%PDF-1.7\n${fill('1 0 obj <</A 1>>\n')}endobj`),
+    'PDF whitespace between numbers': bytesOf(`%PDF-1.7\n1${' '.repeat(size)}1          x`),
+    'PDF page tree of digit runs and unclosed boxes': bytesOf([
+      '%PDF-1.7',
+      '1 0 obj <</Type/Catalog/Pages 2 0 R>> endobj',
+      '2 0 obj <</Type/Pages/Kids[3 0 R 4 0 R]/Count 2>> endobj',
+      `3 0 obj <</Type/Pages/Kids[${'1'.repeat(60_000)}]>> endobj`,
+      `4 0 obj <</Type/Page${'/MediaBox['.repeat(6_000)} >> endobj`,
+      fill('% padding\n', Math.max(0, size - 120_200)),
+    ].join('\n')),
+    'PDF of many tiny compressed streams': concat(streams),
+    'SVG start tags that never close': bytesOf(fill('<svg ')),
+    'SVG image tags that never close': bytesOf(`<svg width="10" height="10">${fill('<image ')}`),
+  };
+}

@@ -386,7 +386,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `office-xml.ts` | 155 | Small, bounded XML census tree. | no | indirect | – |
 | `ogg.ts` | 199 | Ogg (RFC 3533) page + Opus comment-header primitives, shared by the C2PA write side (c2pa-containers.ts placeOgg) and the read side (c2pa-extract.ts extractC2paFromOgg). | no | indirect | – |
 | `ooxml-props.ts` | 44 | Shared OPC docProps/core.xml writer (plans/144 Wave 2 G3): one core-properties shape for every OOXML package the engine writes (pptx.ts, docx.ts), so the authorship fields cannot drift between them. | no | `tests/ooxml-props.test.ts` | – |
-| `output-facts.ts` | 818 | Facts read from a finished export's bytes: container, pixel and page size, page count, timing, alpha channel, colour model, metadata, credential presence, encryption and fonts. | yes | `tests/output-facts.test.ts` | yes |
+| `output-facts.ts` | 985 | Facts read from a finished export's bytes: container, pixel and page size, page count, timing, alpha channel, colour model, metadata, credential presence, encryption and fonts. | yes | `tests/output-facts.test.ts` | yes |
 | `packbits.ts` | 97 | PackBits run-length coding (TIFF 6.0 section 9) - the byte compression Photoshop calls "RLE" for PSD channel data (compression method 1) and TIFF uses for Compression=32773. | yes | `tests/packbits.test.ts` | – |
 | `palette-export.ts` | 171 | Palette exchange - serialise a flat list of named colours as a standalone file in one of several interchange formats: a DTCG design-tokens JSON (nested under each swatch's canonical dotted key), a plain CSS… | yes | `tests/palette-export.test.ts` | – |
 | `pdf-artwork.ts` | 342 | Vector artwork detection - find the logos on a page full of shapes. | yes | `tests/pdf-artwork.test.ts` | – |
@@ -411,7 +411,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `pptx-patch.ts` | 352 | pptx-patch.ts: SURGICAL rebrand of an unzipped .pptx part map (Pipeline A, plans/49-fable-new-potential-pptx.md section 2.2 / track E2). | yes | `tests/pptx-patch.test.ts` | yes |
 | `pptx-read.ts` | 2978 | pptx-read.ts: PARSE an unzipped .pptx part map into a read-model. | yes | `tests/pptx-read.test.ts` | yes |
 | `pptx.ts` | 1443 | PPTX (PowerPoint / OOXML) builder. | yes | `tests/pptx.test.ts` | – |
-| `preflight-output.ts` | 534 | The export report: each requested property beside the value read from the finished file. | yes | `tests/preflight-output.test.ts` | – |
+| `preflight-output.ts` | 568 | The export report: each requested property beside the value read from the finished file. | yes | `tests/preflight-output.test.ts` | – |
 | `preflight.ts` | 1584 | Preflight: pre-export findings over a plain job description. | yes | `tests/preflight.test.ts` | – |
 | `premiere-xml.ts` | 111 | Supported Final Cut Pro 7 XML interchange, also accepted by Premiere. | yes | indirect | – |
 | `prepare-document.ts` | 219 | Bounded local document scopes and source-range edits for preparation jobs. | no | `tests/prepare-document.test.ts` | – |

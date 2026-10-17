@@ -12,10 +12,18 @@
  * Pure and total: no DOM, no I/O, no clock, and `inspectOutput` never throws.
  * Each container reader runs under a guard, walks with explicit caps, and a
  * reader that fails leaves its facts unknown and records a limit.
+ *
+ * Linear in time as well as bounded in size, because `inspectOutput` runs on
+ * the web shell's main thread after an export. A cap on the number of objects
+ * does not stop a scan that is itself proportional to the rest of the file, so
+ * no text scan here may restart from every later position: searches only move
+ * forward, number runs use bounded counts, and no pattern ends in an unbounded
+ * `[^>]*` or `[^\]]*` that a missing delimiter would rescan.
+ * `tests/output-facts.test.ts` holds the inputs that once broke this.
  */
 
 import type { Fact, UnknownReason } from '@lolly-tools/core';
-import { unzlibSync } from 'fflate';
+import { Unzlib, unzlibSync } from 'fflate';
 import { sniffFormat, type SniffedFormat } from './format-sniff.ts';
 import { scanJpegSegments, JPEG_APP_IDS } from './jpeg-segments.ts';
 import { readMpfIndex } from './file-metadata.ts';
@@ -33,7 +41,11 @@ export const OUTPUT_MAX_STRUCTURES = 200_000;
 export type OutputNature = 'raster' | 'vector' | 'mixed' | 'archive';
 export type OutputColour = 'rgb' | 'cmyk' | 'gray' | 'indexed' | 'mixed';
 
-/** A page or artboard size in points (1/72 inch), and the box it was read from. */
+/**
+ * A page or artboard size in points (1/72 inch), and the box it was read from.
+ * An SVG print sheet reports `TrimBox` from its `data-trim-box`, or `MediaBox`
+ * when the root carries only `data-media-box`; any other SVG root is `svg-root`.
+ */
 export interface OutputPage {
   readonly width: number;
   readonly height: number;
@@ -572,22 +584,61 @@ function svgLength(value: string | undefined): { px?: number; pt?: number } | nu
 const attr = (tag: string, name: string): string | undefined =>
   new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, 'i').exec(tag)?.slice(1).find(v => v !== undefined);
 
+/** Longest root start tag read. Lolly's own roots are a few hundred bytes. */
+const SVG_ROOT_TAG_MAX = 256 * 1024;
+
+/**
+ * The first `<svg` start tag, or null. One search for the tag and one for its
+ * closing `>`: a pattern such as `/<svg\b[^>]*>/` retries from every later
+ * `<svg` when no `>` follows, which is quadratic in the length of the file.
+ */
+function svgRootTag(text: string, f: Builder): string | null {
+  const open = /<svg\b/i.exec(text);
+  if (!open) return null;
+  const close = text.indexOf('>', open.index);
+  if (close < 0 || close - open.index > SVG_ROOT_TAG_MAX) { f.limits.push('svg-root-unread'); return null; }
+  return text.slice(open.index, close + 1);
+}
+
+/** An `x y w h` box in points, as the print wrapper writes data-trim-box and data-media-box. */
+function svgBox(value: string | undefined): { w: number; h: number } | null {
+  const nums = (value ?? '').trim().split(/\s+/).map(Number);
+  if (nums.length !== 4 || !nums.every(Number.isFinite) || nums[2]! <= 0 || nums[3]! <= 0) return null;
+  return { w: nums[2]!, h: nums[3]! };
+}
+
+/** Occurrences of a pattern with no variable-length tail, counted without building an array. */
+function countMatches(text: string, re: RegExp): number {
+  let n = 0;
+  re.lastIndex = 0;
+  while (re.exec(text)) n++;
+  return n;
+}
+
 const readSvg: Reader = (b, f) => {
   if (b.length > OUTPUT_TEXT_SCAN_MAX_BYTES) { f.limits.push('svg-over-scan-budget'); return; }
   const text = new TextDecoder('utf-8').decode(b);
-  const root = /<svg\b[^>]*>/i.exec(text)?.[0];
+  const root = svgRootTag(text, f);
   if (!root) return;
   const w = svgLength(attr(root, 'width')), h = svgLength(attr(root, 'height'));
+  // A print sheet (shells/web/src/bridge/export.ts wrapArtworkSvgWithMarks) is sized to
+  // the whole sheet in points and records its trim and media boxes on the root.
+  const trim = svgBox(attr(root, 'data-trim-box'));
+  const sheet = !!svgBox(attr(root, 'data-media-box'));
+  if (trim) {
+    f.page = known({ width: round2(trim.w), height: round2(trim.h), box: 'TrimBox', uniform: true }); f.basis.page = 'svg.data-trim-box';
+  }
   if (w && h) {
     if (w.px !== undefined && h.px !== undefined) { f.width = known(round2(w.px)); f.height = known(round2(h.px)); f.basis.width = f.basis.height = 'svg.root'; }
-    f.page = known({ width: round2(w.pt!), height: round2(h.pt!), box: 'svg-root', uniform: true }); f.basis.page = 'svg.root';
+    if (!trim) { f.page = known({ width: round2(w.pt!), height: round2(h.pt!), box: sheet ? 'MediaBox' : 'svg-root', uniform: true }); f.basis.page = 'svg.root'; }
   } else {
-    f.width = unknown('not-set'); f.height = unknown('not-set'); f.page = unknown('not-set');
+    f.width = unknown('not-set'); f.height = unknown('not-set');
+    if (!trim) f.page = unknown('not-set');
   }
-  const images = [...text.matchAll(/<image\b[^>]*>/gi)].length;
+  const images = countMatches(text, /<image\b/gi);
   f.nature = known(images > 0 ? 'mixed' : 'vector'); f.basis.nature = 'svg.image-elements';
-  f.liveText = known([...text.matchAll(/<text\b/gi)].length); f.basis.liveText = 'svg.text-elements';
-  f.fontFaces = known([...text.matchAll(/@font-face\b/gi)].length); f.basis.fontFaces = 'svg.font-face-rules';
+  f.liveText = known(countMatches(text, /<text\b/gi)); f.basis.liveText = 'svg.text-elements';
+  f.fontFaces = known(countMatches(text, /@font-face\b/gi)); f.basis.fontFaces = 'svg.font-face-rules';
   f.metadata = known(/<metadata\b|xmpmeta/i.test(text)); f.basis.metadata = 'svg.metadata';
   f.colour = known('rgb'); f.basis.colour = 'svg';
   f.alpha = unknown('needs-render');
@@ -649,38 +700,117 @@ const STANDARD_14 = /^\/(?:Times-(?:Roman|Bold|Italic|BoldItalic)|Helvetica(?:-B
 
 interface PdfObject { readonly dict: string; readonly stream?: Uint8Array }
 
-/** Objects by number, newest definition last-wins, with object streams expanded in file order. */
+/** Longest PDF object dictionary kept, in characters. */
+const PDF_DICT_MAX = 65_536;
+/** Largest single PDF stream inflated. */
+const PDF_STREAM_INFLATE_MAX = 8 * 1024 * 1024;
+/** Compressed bytes handed to the inflater at a time, so one push cannot expand past the cap by much. */
+const INFLATE_INPUT_CHUNK = 4096;
+/** Deflate's largest expansion is 1032 to 1; the margin covers the zlib header and trailer. */
+const DEFLATE_MAX_RATIO = 1100;
+
+/**
+ * `indexOf(needle, from)` for positions that only move forward, remembering the
+ * last answer: the first match at or after `from` is also the first match at or
+ * after any later position up to it, and after a miss every later search misses.
+ * Each byte is therefore searched once, where a fresh `indexOf` per object
+ * rescans to the end of the file for every object that lacks the keyword.
+ */
+function forwardSearch(text: string, needle: string): (from: number) => number {
+  let searchedFrom = -1, found = -1;
+  return from => {
+    if (searchedFrom >= 0 && searchedFrom <= from && (found < 0 || found >= from)) return found;
+    searchedFrom = from;
+    found = text.indexOf(needle, from);
+    return found;
+  };
+}
+
+/** An object header (`12 0 obj`). The lookbehind and bounded counts keep a run of digits linear. */
+const PDF_OBJ_HEADER = /(?<!\d)(\d{1,10})\s+\d{1,5}\s+obj\b/g;
+/** An indirect reference (`12 0 R`) in an array, bounded the same way. */
+const PDF_REF = /(?<!\d)(\d{1,10})\s+\d{1,5}\s+R/g;
+
+/**
+ * Objects by number, newest definition last-wins, with object streams expanded in
+ * file order.
+ *
+ * Linear in the length of the file: each object's dictionary ends at its stream
+ * keyword, its `endobj` or the next object header, whichever comes first, so no
+ * two dictionaries overlap; the `endobj` and `endstream` searches only move forward.
+ */
 function pdfObjects(b: Uint8Array, bin: string, f: Builder, budget: { left: number }): Map<number, PdfObject> {
   const objects = new Map<number, PdfObject>();
-  const re = /(\d+)\s+\d+\s+obj\b/g;
-  for (let guard = 0; guard < OUTPUT_MAX_STRUCTURES; guard++) {
-    const m = re.exec(bin);
-    if (!m) break;
+  const re = new RegExp(PDF_OBJ_HEADER.source, 'g');
+  const endobjAt = forwardSearch(bin, 'endobj'), endstreamAt = forwardSearch(bin, 'endstream');
+  let m = re.exec(bin);
+  for (let guard = 0; m && guard < OUTPUT_MAX_STRUCTURES; guard++) {
     const num = Number(m[1]), bodyAt = m.index + m[0].length;
-    const endobj = bin.indexOf('endobj', bodyAt);
+    // The next header, read now: it bounds this object, and it is the next object
+    // unless this object's stream data runs past that header.
+    const next = re.exec(bin);
+    const nextAt = next ? next.index : bin.length;
+    const endobj = endobjAt(bodyAt);
     // The stream keyword, if any, comes before the first endobj (stream data may
     // itself contain the letters "endobj", which only moves that search later).
-    const span = bin.slice(bodyAt, endobj < 0 ? Math.min(bin.length, bodyAt + 65_536) : endobj);
+    const spanEnd = Math.min(endobj < 0 ? bodyAt + PDF_DICT_MAX : endobj, nextAt);
+    const span = bin.slice(bodyAt, spanEnd);
     const kw = /stream(?:\r\n|\r|\n)/.exec(span);
     const streamKw = kw ? bodyAt + kw.index : -1;
-    const dictEnd = streamKw >= 0 ? streamKw : bodyAt + span.length;
-    const dict = bin.slice(bodyAt, Math.min(dictEnd, bodyAt + 65_536));
+    const dictEnd = streamKw >= 0 ? streamKw : spanEnd;
+    const dict = bin.slice(bodyAt, Math.min(dictEnd, bodyAt + PDF_DICT_MAX));
     let stream: Uint8Array | undefined;
+    m = next;
     if (streamKw >= 0) {
       let s = streamKw + 6;
       if (bin[s] === '\r') s++;
       if (bin[s] === '\n') s++;
-      const lenRef = /\/Length\s+(\d+)\s+\d+\s+R/.exec(dict), lenDirect = /\/Length\s+(\d+)(?!\s+\d+\s+R)/.exec(dict);
+      // `(?!\d)` stops a backtrack from reading `/Length 12 0 R` as a direct length of 1.
+      const lenRef = /\/Length\s+(\d+)\s+\d+\s+R/.exec(dict), lenDirect = /\/Length\s+(\d+)(?!\d)(?!\s+\d+\s+R)/.exec(dict);
       let len = lenDirect ? Number(lenDirect[1]) : -1;
       if (len < 0 && lenRef) { const r = /^\s*(\d+)/.exec(objects.get(Number(lenRef[1]))?.dict ?? ''); if (r) len = Number(r[1]); }
-      if (len < 0 || s + len > b.length) { const e = bin.indexOf('endstream', s); len = e < 0 ? 0 : e - s; }
+      if (len < 0 || s + len > b.length) { const e = endstreamAt(s); len = e < 0 ? 0 : e - s; }
       stream = b.subarray(s, s + len);
-      re.lastIndex = s + len;
+      // Headers inside the stream data are not objects: resume the scan after the data.
+      if (next && next.index < s + len) { re.lastIndex = s + len; m = re.exec(bin); }
     }
     objects.set(num, { dict, stream });
     if (stream && /\/Type\s*\/ObjStm\b/.test(dict)) expandObjectStream(dict, stream, objects, f, budget);
   }
   return objects;
+}
+
+/**
+ * Inflate zlib data up to `cap` bytes, or return null when it holds more. The
+ * input is pushed in small pieces, so the work and the memory stay proportional
+ * to what is produced, never to a buffer sized for the worst case.
+ */
+function inflateCapped(data: Uint8Array, cap: number): Uint8Array | null {
+  // Deflate expands at most 1032 to 1, so short data cannot reach the cap: inflate it
+  // in one call, which skips the streaming inflater's working buffers. Very short data
+  // gets an output buffer of its largest possible size, since without one the inflater
+  // starts at 128 KiB, and a file of many tiny streams would allocate that for each.
+  const bound = data.length * DEFLATE_MAX_RATIO + 64;
+  if (bound < cap) {
+    const out = bound <= 131_072 ? unzlibSync(data, { out: new Uint8Array(bound) }) : unzlibSync(data);
+    return out.length > cap ? null : out;
+  }
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  const z = new Unzlib(chunk => { total += chunk.length; if (total <= cap) chunks.push(chunk); });
+  // At least one push, so empty data reaches the inflater and fails there as it should.
+  let at = 0;
+  do {
+    const end = Math.min(data.length, at + INFLATE_INPUT_CHUNK);
+    z.push(data.subarray(at, end), end === data.length);
+    at = end;
+  } while (at < data.length && total <= cap);
+  if (total > cap) return null;
+  if (chunks.length === 1) return chunks[0]!;
+  const out = new Uint8Array(total);
+  let o = 0;
+  for (const c of chunks) { out.set(c, o); o += c.length; }
+  return out;
 }
 
 /** Inflate a FlateDecode stream within the shared budget, or return null and record why. */
@@ -690,10 +820,15 @@ function inflate(dict: string, data: Uint8Array, f: Builder, budget: { left: num
     return /\/Filter\b/.test(dict) ? null : data;
   }
   if (budget.left <= 0) { f.limits.push('pdf-inflate-budget'); return null; }
+  const cap = Math.min(budget.left, PDF_STREAM_INFLATE_MAX);
   try {
-    const out = unzlibSync(data, { out: new Uint8Array(Math.min(budget.left, 8 * 1024 * 1024) + 1) });
+    const out = inflateCapped(data, cap);
+    if (!out) {
+      budget.left -= cap;
+      f.limits.push(cap < PDF_STREAM_INFLATE_MAX ? 'pdf-inflate-budget' : 'pdf-stream-over-budget');
+      return null;
+    }
     budget.left -= out.length;
-    if (out.length > 8 * 1024 * 1024) { f.limits.push('pdf-stream-over-budget'); return null; }
     return out;
   } catch {
     f.limits.push('pdf-stream-unreadable');
@@ -707,9 +842,14 @@ function expandObjectStream(dict: string, data: Uint8Array, objects: Map<number,
   if (!raw || !n || n > 100_000) return;
   const text = latin1(raw);
   const header = text.slice(0, first).trim().split(/\s+/).map(Number);
+  let previous = -1;
   for (let i = 0; i + 1 < header.length && i / 2 < n; i += 2) {
     const start = first + header[i + 1]!, next = i + 3 < header.length ? first + header[i + 3]! : text.length;
-    if (Number.isFinite(start) && start < text.length) objects.set(header[i]!, { dict: text.slice(start, Math.min(next, start + 65_536)) });
+    // Offsets rise through an object stream. One that falls back would let members
+    // share text, so the total read could grow past the stream's own length.
+    if (!Number.isFinite(start) || start < previous) { f.limits.push('pdf-object-stream-offsets'); return; }
+    previous = start;
+    if (start < text.length) objects.set(header[i]!, { dict: text.slice(start, Math.min(next, start + PDF_DICT_MAX)) });
   }
 }
 
@@ -717,9 +857,36 @@ const ref = (dict: string, key: string): number | null => {
   const m = new RegExp(`/${key}\\s+(\\d+)\\s+\\d+\\s+R`).exec(dict);
   return m ? Number(m[1]) : null;
 };
+
+const isPdfSpace = (code: number): boolean => code === 32 || (code >= 9 && code <= 13) || code === 160;
+
+/**
+ * The text inside the first `/<key> [ ... ]` array, or undefined. A search for
+ * the key and one for the closing bracket: the pattern `/Key\s*\[([^\]]*)\]`
+ * rescans to the end of the dictionary from every later occurrence of the key.
+ */
+function arrayAfter(dict: string, key: string): string | undefined {
+  const name = `/${key}`;
+  for (let at = dict.indexOf(name); at >= 0; at = dict.indexOf(name, at + name.length)) {
+    let p = at + name.length;
+    while (p < dict.length && isPdfSpace(dict.charCodeAt(p))) p++;
+    if (dict[p] !== '[') continue;
+    // No closing bracket after this array means none after any later one either.
+    const close = dict.indexOf(']', p + 1);
+    return close < 0 ? undefined : dict.slice(p + 1, close);
+  }
+  return undefined;
+}
+
 function boxOf(dict: string, key: string, objects: Map<number, PdfObject>): number[] | null {
-  const inline = new RegExp(`/${key}\\s*\\[([^\\]]*)\\]`).exec(dict)?.[1];
-  const viaRef = inline === undefined ? (() => { const r = ref(dict, key); return r === null ? undefined : /\[([^\]]*)\]/.exec(objects.get(r)?.dict ?? '')?.[1]; })() : inline;
+  const inline = arrayAfter(dict, key);
+  const viaRef = inline === undefined ? (() => {
+    const r = ref(dict, key);
+    if (r === null) return undefined;
+    const target = objects.get(r)?.dict ?? '';
+    const open = target.indexOf('['), close = open < 0 ? -1 : target.indexOf(']', open + 1);
+    return close < 0 ? undefined : target.slice(open + 1, close);
+  })() : inline;
   const nums = viaRef?.trim().split(/\s+/).map(Number);
   return nums && nums.length === 4 && nums.every(Number.isFinite) ? nums : null;
 }
@@ -743,8 +910,8 @@ const readPdf: Reader = (b, f) => {
     seen.add(num);
     const media = boxOf(node.dict, 'MediaBox', objects) ?? inherited;
     if (/\/Type\s*\/Pages\b/.test(node.dict)) {
-      const kids = /\/Kids\s*\[([^\]]*)\]/.exec(node.dict)?.[1] ?? '';
-      for (const k of kids.matchAll(/(\d+)\s+\d+\s+R/g)) visit(Number(k[1]), media, depth + 1, seen);
+      const kids = arrayAfter(node.dict, 'Kids') ?? '';
+      for (const k of kids.matchAll(PDF_REF)) visit(Number(k[1]), media, depth + 1, seen);
       return;
     }
     const trim = boxOf(node.dict, 'TrimBox', objects), use = trim ?? media;

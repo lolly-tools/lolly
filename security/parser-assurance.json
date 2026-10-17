@@ -248,9 +248,9 @@
       ],
       "details": {
         "inputSource": "A finished export read back for the export report: raster, video, SVG, EPS, PDF and ZIP bytes produced by a shell or handed to `lolly run --export-report`",
-        "bounds": "512 MiB per file before any reader runs; 64 MiB for text scans (PDF, SVG, EPS); 32 MiB inflated in total and 8 MiB per PDF stream; 200,000 chunks, blocks or entries per container; 10,000 ISO boxes per level; PDF page-tree depth 64 and 10,000 leaves; 64 KiB per PDF object dictionary; 100,000 objects per object stream",
+        "bounds": "512 MiB per file before any reader runs; 64 MiB for text scans (PDF, SVG, EPS); 32 MiB inflated in total and 8 MiB per PDF stream, inflated in 4 KiB input pieces so the work stops near the cap; 200,000 chunks, blocks or entries per container; 10,000 ISO boxes per level; PDF page-tree depth 64 and 10,000 leaves; 64 KiB per PDF object dictionary; 100,000 objects per object stream, whose offsets must rise; 256 KiB for the SVG root tag. Time is linear in the bytes read: PDF dictionaries end at the next object header so none overlap, the endobj and endstream searches only move forward, number runs are matched with bounded counts and SVG tags without a variable-length tail, and `tests/output-facts.test.ts` reads about 2 MB of each input that once made a reader quadratic within a fixed time budget",
         "directTests": "`tests/output-facts.test.ts`, `tests/preflight-output.test.ts`",
-        "fuzzCoverage": "`output-facts` mutates PNG, JPEG, GIF, WebP, TIFF, MP4, WebM, SVG, EPS and PDF seeds, including a page tree inside a compressed object stream",
+        "fuzzCoverage": "`output-facts` mutates PNG, JPEG, GIF, WebP, TIFF, MP4, WebM, SVG, EPS and PDF seeds, including a page tree inside a compressed object stream, an SVG print sheet and short copies of the inputs that once made a reader quadratic",
         "notes": "Total by construction: every reader runs under a guard and an unread value stays an unknown `Fact` with a recorded limit. Container detection is `engine/src/format-sniff.ts`, shared with the Node output guard. Credential presence uses `extractC2paStore` and is never reported as verification."
       }
     },

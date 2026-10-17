@@ -437,6 +437,24 @@ test('--export on a transform tool is refused rather than dropped', async () => 
   );
 });
 
+test('--export-report on a transform tool is refused rather than ignored', async () => {
+  // The transform path returns before the report is written, so an accepted flag
+  // used to exit 0 with no report and no warning.
+  const out = outPath('bin'), report = outPath('json');
+  await assert.rejects(
+    () => run({ toolId: 'xform-tool', params: { 'export-report': report }, outputPath: out }),
+    (e: Error & { exit?: number; kind?: string }) => {
+      assert.equal(e.exit, 2);
+      assert.equal(e.kind, 'UNSUPPORTED_FLAG');
+      assert.match(e.message, /on-device transform/);
+      assert.match(e.message, /--export-report/);
+      return true;
+    },
+  );
+  assert.equal(existsSync(out), false);
+  assert.equal(existsSync(report), false);
+});
+
 test('a transform tool still runs with no format flag at all', async () => {
   const out = join(root, `xform-${seq++}.bin`);
   await run({ toolId: 'xform-tool', params: {}, outputPath: out });

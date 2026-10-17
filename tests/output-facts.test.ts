@@ -19,8 +19,10 @@ import { packApng } from '../engine/src/apng.ts';
 import { packTiff } from '../engine/src/tiff.ts';
 import { storeZip } from '../engine/src/zip.ts';
 import { attachC2paStore } from '../engine/src/c2pa-containers.ts';
+import { computePrintGeometry } from '../engine/src/print-marks.ts';
+import { zlibSync } from 'fflate';
 import {
-  bytesOf, encryptedPdf, fakeStore, gif, jpeg, mp4, pdf, rgbPng, rgbaPng, webm, webp,
+  bytesOf, concat, encryptedPdf, fakeStore, gif, jpeg, mp4, pathologicalOutputs, pdf, printSheetSvg, rgbPng, rgbaPng, webm, webp,
 } from './helpers/output-fixtures.ts';
 
 const isUnknown = (f: { known: boolean }, label: string): void => assert.equal(f.known, false, `${label} must be unknown`);
@@ -164,6 +166,21 @@ test('SVG in pixels: the pixel size, and vector when there is no image element',
   assert.equal(value(f.liveText, 'live text'), 0);
 });
 
+test('SVG print sheet: data-trim-box is the page, and data-media-box alone marks the root as the sheet', () => {
+  const mmPt = (v: number) => (v / 25.4) * 72;
+  const geo = computePrintGeometry({ trimWpt: mmPt(50), trimHpt: mmPt(50), bleedPt: mmPt(3), marks: { crop: true } });
+  const f = inspectOutput(printSheetSvg(geo));
+  const page = value(f.page, 'page');
+  assert.equal(page.box, 'TrimBox');
+  assert.ok(Math.abs(page.width - mmPt(50)) < 0.01 && Math.abs(page.height - mmPt(50)) < 0.01, JSON.stringify(page));
+  assert.equal(f.basis.page, 'svg.data-trim-box');
+  // The outer root is in points, so it states no pixel size.
+  isUnknown(f.width, 'pixel width of a sheet sized in points');
+  const media = value(inspectOutput(printSheetSvg(geo, { boxes: 'media' })).page, 'page');
+  assert.equal(media.box, 'MediaBox');
+  assert.ok(Math.abs(media.width - geo.page.w) < 0.01, JSON.stringify(media));
+});
+
 test('EPS: the high-resolution bounding box and process colour operators', () => {
   const f = inspectOutput(bytesOf('%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 595 842\n%%HiResBoundingBox: 0 0 595.28 841.89\n%%Title: x\n0 0 0 1 setcmykcolor\n'));
   assert.equal(f.container, 'eps');
@@ -191,6 +208,40 @@ test('PDF: TrimBox wins over MediaBox, and CMYK operators read as CMYK', async (
   assert.equal(page.box, 'TrimBox');
   assert.ok(Math.abs(page.width - (595.28 - 18)) < 0.01);
   assert.equal(value(f.colour, 'colour'), 'cmyk');
+});
+
+test('PDF: an indirect /Length with a multi-digit object number is followed, not read as a length of 1', () => {
+  const content = '1 0 0 rg 0 0 10 10 re f';
+  const f = inspectOutput(bytesOf([
+    '%PDF-1.4',
+    `12 0 obj ${content.length} endobj`,
+    '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj',
+    '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj',
+    '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Contents 4 0 R >> endobj',
+    `4 0 obj << /Length 12 0 R >>\nstream\n${content}\nendstream\nendobj`,
+    'trailer << /Root 1 0 R /Size 13 >>',
+    '%%EOF',
+  ].join('\n')));
+  assert.equal(value(f.colour, 'colour'), 'rgb');
+});
+
+test('PDF: a large compressed stream inflates in pieces, and one past 8 MiB is a named limit', () => {
+  const wrap = (data: Uint8Array): Uint8Array => concat([
+    bytesOf('%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n'
+      + '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Contents 4 0 R >> endobj\n'
+      + `4 0 obj << /Length ${data.length} /Filter /FlateDecode >>\nstream\n`),
+    data,
+    bytesOf('\nendstream\nendobj\ntrailer << /Root 1 0 R /Size 5 >>\n%%EOF'),
+  ]);
+  // Varied operands, so the compressed stream is too long for the one-call path.
+  let ops = '';
+  for (let i = 0; ops.length < 400_000; i++) ops += `0 0 ${(i * 7919 % 1000) / 1000} 0 k ${i % 97} ${i % 89} 3 3 re f\n`;
+  const read = inspectOutput(wrap(zlibSync(bytesOf(ops))));
+  assert.equal(value(read.colour, 'colour'), 'cmyk');
+  assert.deepEqual(read.limits, []);
+  const bomb = inspectOutput(wrap(zlibSync(bytesOf('0 0 0 1 k '.repeat(900_000)), { level: 9 })));
+  assert.ok(bomb.limits.includes('pdf-stream-over-budget'), bomb.limits.join(','));
+  assert.equal(bomb.colour.known, false);
 });
 
 test('PDF: an /Encrypt trailer entry is reported as encrypted', () => {
@@ -236,6 +287,20 @@ test('every truncation of every fixture is read without throwing', async () => {
       const f: OutputFacts = inspectOutput(bytes.subarray(0, n));
       assert.equal(f.bytes, n);
     }
+  }
+});
+
+test('time: each input that made a reader quadratic is read in linear time at about 2 MB', () => {
+  // Measured locally at under 150 ms each; the first readers took seconds at 80 KB on
+  // some of these shapes. The budget is generous for a loaded CI runner, and a
+  // quadratic reader at this size would take minutes.
+  const BUDGET_MS = 3000;
+  for (const [name, bytes] of Object.entries(pathologicalOutputs(2 * 1024 * 1024, b => zlibSync(b)))) {
+    const t = performance.now();
+    const f = inspectOutput(bytes);
+    const ms = performance.now() - t;
+    assert.ok(f.container === 'pdf' || f.container === 'svg', `${name}: ${f.container}`);
+    assert.ok(ms < BUDGET_MS, `${name} took ${Math.round(ms)} ms`);
   }
 });
 
