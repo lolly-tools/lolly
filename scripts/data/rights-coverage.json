@@ -78,6 +78,7 @@
         "shells/web/src/views/file-operation-history.ts",
         "shells/web/src/views/file-batch-history.ts",
         "shells/web/src/views/pdf-extract.ts",
+        "shells/web/src/views/read-extract.ts",
         "shells/web/src/views/pptx-import.ts",
         "shells/web/src/views/tool/setup.ts",
         "shells/web/src/lib/drop-router.ts",
