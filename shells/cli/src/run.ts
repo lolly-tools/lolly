@@ -280,6 +280,7 @@ async function runToolCliThemes(args: RunToolCliArgs, spec: string): Promise<voi
     for (const run of runs) {
       const { themes: _spec, ...rest } = args.params;
       const params: Record<string, string> = { ...rest, _themes: JSON.stringify(run.selection) };
+      if (rest['export-report'] && rest['export-report'] !== '-') params['export-report'] = themedOutputPath(rest['export-report'], run.theme);
       if (replay) stdinReplay = { bytes: replay, used: false };
       await runToolCli({ ...args, params, outputPath: themedOutputPath(args.outputPath!, run.theme) });
     }
@@ -331,8 +332,10 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   const productionPath = params.production, productionReference = params['production-reference'], productionReport = params['production-report'];
   if (productionPath && share) throw new Error('Production verification requires rendered bytes.');
   if (!productionPath && (productionReference || productionReport)) throw new Error('Production options require --production.');
+  const exportReportPath = params['export-report'];
+  if (exportReportPath && share) throw usageError('--export-report reads the rendered file; --share prints a link and renders nothing. Drop one of them.', 'CONFLICTING_FLAGS');
   params = { ...params };
-  delete params.production; delete params['production-reference']; delete params['production-report'];
+  delete params.production; delete params['production-reference']; delete params['production-report']; delete params['export-report'];
   // Lazy import - jsdom is heavy and we only need it when actually rendering.
   const jsdom = await import('jsdom');
   const dom = new jsdom.JSDOM('<!DOCTYPE html><html><body><div id="canvas"></div></body></html>', {
@@ -999,6 +1002,8 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   }
 
   let finalFormat = sampled ? sampleOutputFormat(targetFormat, cuts, sampleTimes) : targetFormat;         // the format actually written (may fall back to html)
+  // What was asked for, kept before any fallback reassigns finalFormat, so the export report compares the file with the request.
+  const requestedFormat = finalFormat;
   let buf: Buffer;
   let usedBrowser = false;                // a pooled browser was launched → tear it down before exit
   let webShellExport = false;             // the Tier-B web shell produced the bytes → it owns c2pa
@@ -1492,6 +1497,27 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // included" is a reading of the file and not a claim about the intention.
   await reportRights(runtime, buf, finalFormat, rights, wantC2pa && C2PA_FORMATS.includes(finalFormat));
 
+  // The export report (plan 203 rank 12): each property this run asked for beside the
+  // value read back from these finished bytes, after the last byte operation above.
+  if (exportReportPath) {
+    const { verifyExport, parseDimension } = await import('@lolly/engine');
+    const bleedDim = bleed ? parseDimension(bleed) : null;
+    const report = await verifyExport({
+      format: requestedFormat,
+      ...(width && height ? { size: { width: { value: width, unit: unit ?? 'px' }, height: { value: height, unit: unit ?? 'px' }, dpi: dpi ?? 300 } } : {}),
+      ...(bleed ? { bleed: bleedDim } : {}),
+      ...(parsedUrl.marks ? { marks: parsedUrl.marks } : {}),
+      ...(video.seconds ? { durationMs: video.seconds * 1000 } : {}),
+      ...(C2PA_FORMATS.includes(finalFormat) ? { credential: wantC2pa } : {}),
+      ...(password ? { password: true } : {}),
+      ...(hdr ? { hdr: true } : {}),
+    }, new Uint8Array(buf));
+    const json = JSON.stringify(report, null, 2) + '\n';
+    if (exportReportPath === '-') process.stderr.write(json); else await writeFile(exportReportPath, json);
+    // A difference is a promise this run did not keep, so --strict turns it into an exit code.
+    for (const f of report.findings) if (f.severity !== 'info') warn('EXPORT_REPORT_DIFFERS', f.message, 'gate');
+  }
+
   if (productionPath) {
     try {
       const { inspectProductionBytes, productionFile } = await import('@lolly-tools/node-shell/production');
@@ -1672,6 +1698,8 @@ export function exportFailure(format: string, failure: Error, domFreeError: Erro
 export const CLI_FLAGS = new Set([
   'press-profile', 'user-profile', 'link-password', 'html-fallback', 'help', 'version',
   'text', 'password-stdin', 'share', 'link', 'verify', 'rate-card', 'production', 'production-reference', 'production-report', 'production-repairs',
+  // `--export-report=<path|->` writes the requested-versus-actual report for the finished file.
+  'export-report',
   // The one-word provenance opt-out (contract section 12 O2). Consumed in the render path
   // above; listed here so it is never reported as "not an input of <tool>".
   'no-provenance',

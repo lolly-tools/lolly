@@ -10,6 +10,9 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.262 export report: requested settings beside facts read from the output bytes.
+  'ExportCheck', 'ExportReport', 'ExportRequest', 'ExportValue', 'OutputFacts',
+  'compareExport', 'exportRequestFromJob', 'inspectOutput', 'verifyExport',
   // Additive 1.261 managed enrollment and issuer status validation.
   'EnrollmentPolicy', 'EnrollmentProviderPolicy', 'EnrollmentTrustBundle', 'VerifiedCrl',
   'createEnrollmentCsr', 'enrollmentProofMessage', 'parseEnrollmentTrustBundle',
