@@ -30,5 +30,6 @@
   "synth::name": "Synth",
   "synth::description": "Wizualny instrument, na którym grasz. Cztery sceny działają na żywo na GPU: płynny atrament, rój cząsteczek lecący w stronę Twojego nagłówka albo Twojego logo, efekt sprzężenia zwrotnego i Twoja własna kamera. Każdy kolor pochodzi z Twojej palety marki, a obraz reaguje na Twój kursor, na utwór muzyczny i na kontroler MIDI. Eksportuj nieruchomy kadr albo bezszwową pętlę.",
   "icon::description": "Kreator favicon i ikon aplikacji - wielorozmiarowy plik .ico, PNG i SVG, albo cały zestaw aplikacji w jednym archiwum zip.",
-  "diagram-builder::description": "Schematy organizacyjne, schematy blokowe, osie czasu i inne - z kart, tekstu, Mermaid, DOT lub CSV."
+  "diagram-builder::description": "Schematy organizacyjne, schematy blokowe, osie czasu i inne - z kart, tekstu, Mermaid, DOT lub CSV.",
+  "pages::description": "Zmień kolejność, obróć, wyodrębnij, usuń, połącz lub podziel strony PDF albo zamień obrazy w PDF na swoim urządzeniu."
 }

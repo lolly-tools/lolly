@@ -107,6 +107,9 @@ export {
 } from './image-meta.ts';
 export { stripMetadata, isStrippableFormat, hasResidualMetadata } from './strip-metadata.ts';
 export type { StripFormat } from './strip-metadata.ts';
+// The bounded JPEG marker walker, shared with the shells' PDF image placement.
+export { scanJpegSegments, jpegSegmentBody } from './jpeg-segments.ts';
+export type { JpegScan, JpegSegment } from './jpeg-segments.ts';
 export {
   embedWatermark, detectWatermark, canCarryWatermark, WATERMARK_VERSION, DEFAULT_STRENGTH,
   LOSSLESS_STRENGTH, DETECT_THRESHOLD, MIN_IMPRINT_BLOCKS, detectionThreshold, V2_BAND_SIZE,

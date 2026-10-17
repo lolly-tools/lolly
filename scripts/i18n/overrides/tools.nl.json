@@ -30,5 +30,6 @@
   "synth::name": "Synth",
   "synth::description": "Een visueel instrument waar je op speelt. Vier scènes draaien live op de GPU: vloeibare inkt, een zwerm deeltjes die op je titel of logo afvliegt, een feedbackveld en je eigen camera. Elke kleur komt uit je merkpalet, en het beeld reageert op je cursor, op een muzieknummer en op een MIDI-controller. Exporteer een still of een naadloze loop.",
   "icon::description": "Favicon- en app-iconmaker - een .ico, PNG en SVG in meerdere formaten, of de hele app-iconenset als één zip-bestand.",
-  "diagram-builder::description": "Organogrammen, stroomdiagrammen, tijdlijnen en meer - vanuit kaarten, tekst, Mermaid, DOT of CSV."
+  "diagram-builder::description": "Organogrammen, stroomdiagrammen, tijdlijnen en meer - vanuit kaarten, tekst, Mermaid, DOT of CSV.",
+  "pages::description": "Herschik, roteer, haal eruit, verwijder, voeg samen of splits PDF-pagina's, of zet afbeeldingen om in een PDF, op je apparaat."
 }

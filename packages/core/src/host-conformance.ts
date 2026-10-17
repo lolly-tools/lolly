@@ -45,7 +45,7 @@ export const HOST_V1_METHODS: Record<HostApi, ApiMethods> = {
   text: { required: ['toPath', 'preload'], optional: ['axisDefaults', 'fontUrl', 'characters', 'fontInfo', 'shapeRun', 'layoutRuns'] },
   textTools: { required: ['operations', 'run', 'highlight'], optional: [] },
   emoji: { required: ['sets', 'manifest', 'artwork', 'parseXml'], optional: ['install','dependencies','renderText','renderSvg'] },
-  pdf: { required: ['analyze', 'strip', 'compress'], optional: ['redact', 'pages', 'organize', 'stamp', 'lock'] },
+  pdf: { required: ['analyze', 'strip', 'compress'], optional: ['redact', 'pages', 'organize', 'fromImages', 'stamp', 'lock'] },
   compare: { required: ['run'], optional: ['visual'] },
   prepare: { required: ['inspect', 'apply'], optional: [] },
   pptx: { required: ['inspect', 'rebrand'], optional: [] },

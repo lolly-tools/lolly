@@ -5,9 +5,9 @@ description: "Operate the Lolly Pages tool (pages) using its declared inputs and
 
 # Pages
 
-Tool ID: `pages`. Tool version: `1.0.1`. Engine range: `^1.0.0`.
+Tool ID: `pages`. Tool version: `1.1.0`. Engine range: `^1.0.0`.
 
-Reorder, rotate, extract, delete, merge or split PDF pages on your device.
+Reorder, rotate, extract, delete, merge or split PDF pages, or turn images into a PDF, on your device.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 
@@ -26,6 +26,8 @@ This is an on-device utility. File bytes require a separately permitted file rou
 | pages | text |  |
 | previewPage | number |  |
 | rotation | select |  |
+| imagePageSize | select |  |
+| imageMargin | number |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 
