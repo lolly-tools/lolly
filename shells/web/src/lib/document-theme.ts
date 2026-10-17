@@ -19,10 +19,19 @@
  *
  * A theme is document state, not a chrome preference: the app's own light and dark
  * (components/theme-toggle.ts) is a separate setting, never read here.
+ *
+ * ONE controller per mounted tool (plans/319 A4). The tool sidebar's Design system
+ * section (components/theme-choices.ts) and the Design inspector's Document section
+ * both draw from the same `DocumentThemeController`, created once by the tool view
+ * (views/tool/stage-layout.ts), so a choice made in either is the choice both show.
+ * A tool's manifest `tokenAxes` hides the groups it ignores from both.
  */
-import type { HostV1, TokensSnapshot } from '@lolly-tools/core/host-v1';
+import type { HostV1, TokenAxisKind, TokensSnapshot } from '@lolly-tools/core/host-v1';
+import type { ToolTokenAxes } from '@lolly-tools/core';
 import { parseTokenSelection, resolveTokenSelection } from '../../../../engine/src/token-selection.ts';
 import { withTokenSelection } from '../../../../engine/src/token-context.ts';
+import { createTokenSet } from '../../../../engine/src/tokens.ts';
+import { effectiveAxisKinds, ignoredTokenAxes } from '../../../../engine/src/tool-token-axes.ts';
 import { t } from '../i18n.ts';
 import { isIframeMode } from './iframe-mode.ts';
 import { routeParams, updateRouteParams } from './url-state.ts';
@@ -30,10 +39,20 @@ import { themeOptionLabel } from './theme-option-label.ts';
 
 export type ThemeSelection = Record<string, string>;
 
+/** The colours a colourway gives in the look in force, as `#rrggbb`. */
+export interface ThemeOptionSwatch {
+  lead: string;
+  partner: string | null;
+}
+
 /** One theme a group offers. `label` is what a person reads. */
 export interface DocumentThemeOption {
   id: string;
   label: string;
+  /** The option an artefact is drawn in when it chooses none. */
+  canonical: boolean;
+  /** A colourway's lead and partner, so a control can show the colour itself. */
+  swatch?: ThemeOptionSwatch;
 }
 
 /** One theme group of the active design system, with the option in force. */
@@ -41,8 +60,17 @@ export interface DocumentThemeGroup {
   /** The group id (`''` for a design system whose themes declare no group). */
   id: string;
   label: string;
+  /** What choosing changes: the declared kind, `mode` for the ungrouped light and
+   *  dark group, or null for a group that says nothing about itself. */
+  kind: TokenAxisKind | null;
+  canonical: string;
   options: DocumentThemeOption[];
   active: string;
+}
+
+export interface DocumentThemeGroupOpts {
+  /** The tool's manifest `tokenAxes`: a group of an ignored kind is not offered. */
+  tokenAxes?: ToolTokenAxes | null;
 }
 
 /** The runtime surface a theme switch needs. `setTokenSelection` is optional so a
@@ -54,26 +82,87 @@ export interface ThemeRuntime {
 
 export { themeOptionLabel };
 
+/** What a kind of group is called, in the person's language. */
+export function themeKindLabel(kind: TokenAxisKind): string {
+  switch (kind) {
+    case 'mode': return t('Mode');
+    case 'colourway': return t('Colourway');
+    case 'expression': return t('Expression');
+    case 'medium': return t('Medium');
+    case 'contrast': return t('Contrast');
+    case 'density': return t('Density');
+    case 'campaign': return t('Campaign');
+    case 'brand': return t('Brand');
+  }
+}
+
+/** A group id as words: `brand-line` reads "Brand line". A design system's own name,
+ *  so it is not translated. */
+export function humanGroupId(id: string): string {
+  const words = id.replace(/[-_./]+/g, ' ').replace(/\s+/g, ' ').trim();
+  return words ? words[0]!.toUpperCase() + words.slice(1) : '';
+}
+
+const HEX = /^#[0-9a-f]{6}$/i;
+
+/** The lead and partner one colourway gives under the other groups' choices. */
+function colourwaySwatch(doc: unknown, choices: ThemeSelection, group: string, option: string): ThemeOptionSwatch | undefined {
+  const colours = createTokenSet(doc, { selection: { ...choices, [group]: option } }).colors();
+  const read = (path: string): string | null => {
+    const value = colours.find((s) => s.path === path)?.value;
+    return typeof value === 'string' && HEX.test(value) ? value.toLowerCase() : null;
+  };
+  const lead = read('color.semantic.primary');
+  return lead ? { lead, partner: read('color.semantic.secondary') } : undefined;
+}
+
 /**
  * The groups a document can switch between, with the option in force in each.
  * Only a group with more than one option is a choice, so a design system that
- * declares one theme (or none) gives an empty list and no control is drawn.
+ * declares one theme (or none) gives an empty list and no control is drawn. A
+ * group of a kind the tool ignores (`tokenAxes`) is left out as well.
+ *
+ * Colourway groups come first, because choosing the lead is the choice people
+ * make most; every other group keeps its authored order. Labels are for people:
+ * the kind's name when the group declares one (and is the only group of that
+ * kind), else the group id as words. A colourway's options carry the lead and
+ * partner they give in the look in force.
  */
-export function documentThemeGroups(doc: unknown, selection?: ThemeSelection): DocumentThemeGroup[] {
+export function documentThemeGroups(doc: unknown, selection?: ThemeSelection, opts: DocumentThemeGroupOpts = {}): DocumentThemeGroup[] {
   const resolved = resolveTokenSelection(doc, selection ? { selection } : {});
-  return resolved.groups
-    .filter((group) => group.options.length > 1)
-    .map((group) => ({
+  const kinds = effectiveAxisKinds(resolved.groups);
+  const ignored = new Set(ignoredTokenAxes(resolved.groups, opts.tokenAxes).map((axis) => axis.group));
+  const leadsFirst = (group: { id: string }): number => (kinds.get(group.id) === 'colourway' ? 0 : 1);
+  const offered = resolved.groups
+    .filter((group) => group.options.length > 1 && !ignored.has(group.id))
+    .sort((a, b) => leadsFirst(a) - leadsFirst(b));
+  const perKind = new Map<TokenAxisKind, number>();
+  for (const group of offered) {
+    const kind = kinds.get(group.id);
+    if (kind) perKind.set(kind, (perKind.get(kind) ?? 0) + 1);
+  }
+  return offered.map((group) => {
+    const kind = kinds.get(group.id) ?? null;
+    const canonical = group.canonical ?? group.options[0]!.id;
+    const shared = kind ? (perKind.get(kind) ?? 0) > 1 : false;
+    const label = kind && !(shared && group.id) ? themeKindLabel(kind) : humanGroupId(group.id) || t('Theme');
+    return {
       id: group.id,
-      label: group.id || t('Theme'),
-      options: group.options.map((option) => ({ id: option.id, label: themeOptionLabel(option.name) })),
-      active: resolved.choices[group.id] ?? group.options[0]!.id,
-    }));
+      label,
+      kind,
+      canonical,
+      options: group.options.map((option) => {
+        const swatch = kind === 'colourway' ? colourwaySwatch(doc, resolved.choices, group.id, option.id) : undefined;
+        return { id: option.id, label: themeOptionLabel(option.name), canonical: option.id === canonical, ...(swatch ? { swatch } : {}) };
+      }),
+      active: resolved.choices[group.id] ?? canonical,
+    };
+  });
 }
 
 /** The whole selection after choosing `option` in `group`: every other group keeps
  *  the option it shows now, so the result is explicit and survives a default change. */
-export function withThemeChoice(groups: readonly DocumentThemeGroup[], group: string, option: string): ThemeSelection {
+export function withThemeChoice(groups: readonly Pick<DocumentThemeGroup, 'id' | 'active'>[], group: string, option: string): ThemeSelection {
   const next: ThemeSelection = {};
   for (const g of groups) next[g.id] = g.active;
   next[group] = option;
@@ -158,12 +247,25 @@ export interface ThemeSwitchDeps {
   writeRoute(selection: ThemeSelection | null): void;
   /** The choice is document state: the session has an unsaved change now. */
   markDirty(): void;
+  /**
+   * Re-read whatever else in the shell latched a resolved colour when the tool
+   * mounted (the colour field's swatches), from a host scoped to the new choice.
+   * Cosmetic: a failure leaves the old swatches standing and never undoes the switch.
+   */
+  refresh?(host: HostV1): Promise<unknown>;
 }
+
+/** The event a switch announces on `window`, for a surface that keeps its own copy
+ *  of a resolved colour (the export panel's palette). `detail` is the selection. */
+export const DOCUMENT_THEME_EVENT = 'lolly:document-theme-changed';
 
 /**
  * Switch the document to `selection`. The address is written first, so the token
  * bridge already answers in the new theme when the runtime repaints; a runtime that
- * refuses the change puts the address back. Returns whether anything changed.
+ * refuses the change puts the address back. A runtime may apply a different
+ * selection than it was handed (a tool's `tokenAxes` pins an ignored group to its
+ * canonical option), and then the address, the canvas and the swatches follow what
+ * it applied. Returns whether anything changed.
  */
 export async function switchDocumentTheme(deps: ThemeSwitchDeps, selection: ThemeSelection): Promise<boolean> {
   const { runtime } = deps;
@@ -178,8 +280,15 @@ export async function switchDocumentTheme(deps: ThemeSwitchDeps, selection: Them
     deps.writeRoute(before && Object.keys(before).length ? before : null);
     throw error;
   }
+  const applied = runtime.tokenSelection ?? selection;
+  if (!sameThemeSelection(applied, selection)) deps.writeRoute(Object.keys(applied).length ? applied : null);
+  const themed = themedHost(deps.host, applied);
   const canvas = deps.canvas();
-  if (canvas) await deps.paint(canvas, themedHost(deps.host, selection)).catch(() => { /* cosmetic, as at mount */ });
+  if (canvas) await deps.paint(canvas, themed).catch(() => { /* cosmetic, as at mount */ });
+  await deps.refresh?.(themed).catch(() => { /* cosmetic: the old swatches stay */ });
+  if (typeof window !== 'undefined' && typeof CustomEvent === 'function') {
+    window.dispatchEvent(new CustomEvent(DOCUMENT_THEME_EVENT, { detail: { ...applied } }));
+  }
   deps.markDirty();
   return true;
 }
@@ -194,12 +303,16 @@ export interface DocumentTokenContext {
   selection?: ThemeSelection;
 }
 
-/** What the Design inspector's Document section is handed (views/design-inspector.ts). */
+/** What a surface that shows the theme choices is handed: the Design inspector's
+ *  Document section and the tool sidebar's Design system section. */
 export interface DocumentThemePort {
   /** The groups to draw, each with more than one option; empty draws nothing. */
   groups(): DocumentThemeGroup[];
   /** Choose `option` in `group`. Resolves once the canvas shows the new theme. */
   choose(group: string, option: string): Promise<void>;
+  /** Hear every change to the groups or the choice, whichever surface made the change.
+   *  Optional so a test port can leave it out. Returns the way to stop. */
+  subscribe?(listener: () => void): () => void;
   /** The design-system context strip's data, or null before it is read or on a host with no snapshot. */
   context?(): DocumentTokenContext | null;
   /** Open the read-only token inspector on what the document draws with. */
@@ -213,6 +326,7 @@ export interface DocumentThemeController extends DocumentThemePort {
   ready: Promise<void>;
   /** Read the themes again (after a design-system switch). */
   refresh(): Promise<void>;
+  subscribe(listener: () => void): () => void;
   context(): DocumentTokenContext | null;
   inspect(): Promise<void>;
   follow(): Promise<void>;
@@ -220,8 +334,8 @@ export interface DocumentThemeController extends DocumentThemePort {
 }
 
 export interface DocumentThemeControllerDeps extends Omit<ThemeSwitchDeps, 'paint' | 'writeRoute'> {
-  /** Repaint the surface that shows the choice (the inspector's `sync`). */
-  onChange(): void;
+  /** Repaint the surface that shows the choice. A second surface subscribes instead. */
+  onChange?(): void;
   paint?: ThemeSwitchDeps['paint'];
   writeRoute?: ThemeSwitchDeps['writeRoute'];
   /** The design system's token document. Defaults to the host's render snapshot. */
@@ -230,6 +344,8 @@ export interface DocumentThemeControllerDeps extends Omit<ThemeSwitchDeps, 'pain
   readSnapshot?(): Promise<TokensSnapshot | null>;
   /** Open the read-only token inspector over `host`. Defaults to the shared inspector modal. */
   openInspector?(host: HostV1, current: () => boolean): Promise<void>;
+  /** The tool's manifest `tokenAxes`; a group of an ignored kind is never offered. */
+  tokenAxes?: ToolTokenAxes | null;
 }
 
 /** The selection the document chose itself, or undefined while it follows the design system. */
@@ -237,9 +353,11 @@ const ownSelection = (runtime: ThemeRuntime): ThemeSelection | undefined =>
   runtime.tokenSelection && Object.keys(runtime.tokenSelection).length ? structuredClone(runtime.tokenSelection) : undefined;
 
 /**
- * The state behind the theme control: the declared themes, read once and again on
+ * The state behind the theme controls: the declared themes, read once and again on
  * a design-system switch, and the choices, applied one at a time in the order they
- * were made so two quick presses cannot land out of order.
+ * were made so two quick presses cannot land out of order. Every surface that shows
+ * the choice subscribes to this one object, so none can show a choice the others
+ * do not.
  *
  * It also holds the design-system context the Document section's strip shows. Every
  * write here goes to the document (runtime, address, canvas, session) and never to
@@ -250,6 +368,13 @@ export function createDocumentThemeController(deps: DocumentThemeControllerDeps)
   let snapshot: TokensSnapshot | null = null;
   let disposed = false;
   let queue: Promise<unknown> = Promise.resolve();
+  const listeners = new Set<() => void>();
+  if (deps.onChange) listeners.add(deps.onChange);
+  const notify = (): void => {
+    for (const listener of [...listeners]) {
+      try { listener(); } catch (error) { console.warn('[theme] a surface could not show the change:', error); }
+    }
+  };
   const readSnapshot = deps.readSnapshot ?? (async () => (await deps.host.tokens?.snapshot?.()) ?? null);
   const openInspector = deps.openInspector ?? (async (host: HostV1, current: () => boolean) => {
     const { openTokenInspector } = await import('../components/token-workspace.ts');
@@ -262,6 +387,20 @@ export function createDocumentThemeController(deps: DocumentThemeControllerDeps)
   const switchDeps: ThemeSwitchDeps = { ...deps, paint, writeRoute: deps.writeRoute ?? writeThemesRoute };
   const supported = (): boolean => typeof deps.runtime.setTokenSelection === 'function';
 
+  // Resolving the groups reads the whole token document once per colourway, and the
+  // inspector asks on every sync, so the answer is kept until the document or the
+  // selection changes.
+  let memo: { doc: unknown; key: string; groups: DocumentThemeGroup[] } | null = null;
+  const groups = (): DocumentThemeGroup[] => {
+    if (!doc || !supported()) return [];
+    const selection = deps.runtime.tokenSelection;
+    const key = JSON.stringify(selection ? Object.entries(selection).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)) : null);
+    if (memo && memo.doc === doc && memo.key === key) return memo.groups;
+    const next = documentThemeGroups(doc, selection, { tokenAxes: deps.tokenAxes ?? null });
+    memo = { doc, key, groups: next };
+    return next;
+  };
+
   async function refresh(): Promise<void> {
     let nextSnapshot: TokensSnapshot | null = null;
     let next: unknown = null;
@@ -270,16 +409,16 @@ export function createDocumentThemeController(deps: DocumentThemeControllerDeps)
     if (disposed) return;
     snapshot = nextSnapshot;
     doc = next;
-    deps.onChange();
+    memo = null;
+    notify();
   }
   const ready = refresh();
   const onSystemChange = (): void => { void refresh(); };
   if (typeof window !== 'undefined') window.addEventListener('lolly:design-system-changed', onSystemChange);
 
-  const groups = (): DocumentThemeGroup[] => (doc && supported() ? documentThemeGroups(doc, deps.runtime.tokenSelection) : []);
-  /** Run one switch after the ones before it, then repaint. Going back to the design
-   *  system's choices reads the design system again: the snapshot read while the
-   *  document had choices of its own carries those choices, not the system's. */
+  /** Run one switch after the ones before it, then tell every surface. Going back to
+   *  the design system's choices reads the design system again: the snapshot read
+   *  while the document had choices of its own carries those choices, not the system's. */
   const enqueue = (next: () => ThemeSelection | null): Promise<void> => {
     const run = queue.then(async () => {
       if (disposed) return;
@@ -287,7 +426,7 @@ export function createDocumentThemeController(deps: DocumentThemeControllerDeps)
       if (!selection) return;
       await switchDocumentTheme(switchDeps, selection);
       if (disposed) return;
-      if (Object.keys(selection).length) deps.onChange(); else await refresh();
+      if (Object.keys(selection).length) notify(); else await refresh();
     });
     queue = run.catch(() => { /* the caller hears about it; the queue keeps going */ });
     return run;
@@ -297,10 +436,22 @@ export function createDocumentThemeController(deps: DocumentThemeControllerDeps)
     ready,
     refresh,
     groups,
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => { listeners.delete(listener); };
+    },
     choose(group, option) {
       return enqueue(() => {
         const current = groups();
-        return current.some((g) => g.id === group && g.options.some((o) => o.id === option)) ? withThemeChoice(current, group, option) : null;
+        if (!current.some((g) => g.id === group && g.options.some((o) => o.id === option))) return null;
+        // A group the tool ignores is not offered, but it stays explicit on its
+        // canonical option, so the runtime has nothing to pin back.
+        const next = withThemeChoice(current, group, option);
+        if (doc) {
+          const all = resolveTokenSelection(doc, deps.runtime.tokenSelection ? { selection: deps.runtime.tokenSelection } : {});
+          for (const axis of ignoredTokenAxes(all.groups, deps.tokenAxes)) next[axis.group] = axis.canonical;
+        }
+        return next;
       });
     },
     context() {
@@ -317,6 +468,7 @@ export function createDocumentThemeController(deps: DocumentThemeControllerDeps)
     },
     dispose() {
       disposed = true;
+      listeners.clear();
       if (typeof window !== 'undefined') window.removeEventListener('lolly:design-system-changed', onSystemChange);
     },
   };

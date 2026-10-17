@@ -1945,7 +1945,9 @@ function themePort(opts: { fail?: boolean; options?: Array<{ id: string; label: 
   const chosen: Array<[string, string]> = [];
   const options = opts.options ?? [{ id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }];
   const port = {
-    groups: () => (options.length > 1 ? [{ id: '', label: 'Theme', options, active }] : []),
+    groups: () => (options.length > 1
+      ? [{ id: '', label: 'Theme', kind: 'mode' as const, canonical: 'light', options: options.map((o) => ({ ...o, canonical: o.id === 'light' })), active }]
+      : []),
     choose: async (group: string, option: string) => {
       chosen.push([group, option]);
       if (opts.fail) throw new Error('refused');

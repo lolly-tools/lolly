@@ -14,8 +14,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import {
-  createDocumentThemeController, documentThemeGroups, readThemesRoute, sameThemeSelection,
-  switchDocumentTheme, syncThemesRoute, themedHost, themeOptionLabel, withThemeChoice,
+  createDocumentThemeController, DOCUMENT_THEME_EVENT, documentThemeGroups, humanGroupId, readThemesRoute, sameThemeSelection,
+  switchDocumentTheme, syncThemesRoute, themedHost, themeKindLabel, themeOptionLabel, withThemeChoice,
 } from './document-theme.ts';
 import type { ThemeRuntime, ThemeSelection, ThemeSwitchDeps } from './document-theme.ts';
 
@@ -47,8 +47,10 @@ test('a design system with light and dark offers one group of two, labelled for 
   const groups = documentThemeGroups(LIGHT_DARK);
   assert.equal(groups.length, 1);
   assert.equal(groups[0]!.id, '');
-  assert.equal(groups[0]!.label, 'Theme');
-  assert.deepEqual(groups[0]!.options, [{ id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }]);
+  assert.equal(groups[0]!.label, 'Mode', 'the ungrouped light and dark group is read as the mode');
+  assert.equal(groups[0]!.kind, 'mode');
+  assert.equal(groups[0]!.canonical, 'light');
+  assert.deepEqual(groups[0]!.options, [{ id: 'light', label: 'Light', canonical: true }, { id: 'dark', label: 'Dark', canonical: false }]);
   assert.equal(groups[0]!.active, 'light', 'no selection means the first theme, as createTokenSet does');
   assert.equal(documentThemeGroups(LIGHT_DARK, { '': 'dark' })[0]!.active, 'dark');
 });
@@ -58,8 +60,62 @@ test('one theme, no themes and a single-option group draw no control', () => {
   assert.deepEqual(documentThemeGroups({ color: { a: { $type: 'color', $value: '#000' } } }), []);
   assert.deepEqual(documentThemeGroups(null), []);
   const grouped = documentThemeGroups(GROUPED, { mode: 'd' });
-  assert.deepEqual(grouped.map((g) => [g.id, g.label, g.active]), [['mode', 'mode', 'd']]);
+  assert.deepEqual(grouped.map((g) => [g.id, g.label, g.kind, g.active]), [['mode', 'Mode', null, 'd']],
+    'a group that declares no kind is named by its id, as words');
   assert.equal(themeOptionLabel('Tight'), 'Tight', 'a name the app does not know is the design system\'s own');
+});
+
+test('group labels are the kind\'s name, or the id as words when two groups share a kind', () => {
+  assert.equal(humanGroupId('brand-line'), 'Brand line');
+  assert.equal(humanGroupId('product_family/web'), 'Product family web');
+  assert.equal(humanGroupId(''), '');
+  assert.equal(themeKindLabel('colourway'), 'Colourway');
+  const axis = (kind: string) => ({ $extensions: { 'com.suse.lolly': { axis: { kind } } } });
+  const doc = {
+    a: {}, b: {}, c: {}, d: {}, e: {}, f: {},
+    $themes: [
+      { id: 'a', name: 'A', group: 'leads', selectedTokenSets: { a: 'enabled' }, ...axis('colourway') },
+      { id: 'b', name: 'B', group: 'leads', selectedTokenSets: { b: 'enabled' }, ...axis('colourway') },
+      { id: 'c', name: 'C', group: 'product-leads', selectedTokenSets: { c: 'enabled' }, ...axis('colourway') },
+      { id: 'd', name: 'D', group: 'product-leads', selectedTokenSets: { d: 'enabled' }, ...axis('colourway') },
+      { id: 'roomy', name: 'Roomy', group: 'spacing', selectedTokenSets: { e: 'enabled' }, ...axis('density') },
+      { id: 'tight', name: 'Tight', group: 'spacing', selectedTokenSets: { f: 'enabled' }, ...axis('density') },
+    ],
+  };
+  assert.deepEqual(documentThemeGroups(doc).map((g) => [g.id, g.label, g.kind]), [
+    ['leads', 'Leads', 'colourway'], ['product-leads', 'Product leads', 'colourway'], ['spacing', 'Density', 'density'],
+  ]);
+});
+
+/** Lolly Start with a canonical colourway and Persimmon, the A0 fixture shape. */
+async function colourwayDoc(): Promise<Record<string, unknown>> {
+  const { readFileSync } = await import('node:fs');
+  const { liftToColourways, addColourway } = await import('../../../../engine/src/colourway.ts');
+  const start = JSON.parse(readFileSync(new URL('../../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json', import.meta.url), 'utf8'));
+  const lifted = liftToColourways(start, { id: 'main', name: 'Main' });
+  assert.ok(lifted.ok);
+  const added = addColourway(lifted.doc, { id: 'persimmon', name: 'Persimmon', values: {
+    light: { primary: '#c2410c', 'on-primary': '#ffffff', secondary: '#7c2d12' },
+    dark: { primary: '#fb923c', 'on-primary': '#111111', secondary: '#fed7aa' },
+  } });
+  assert.ok(added.ok);
+  return added.doc;
+}
+
+test('a colourway group carries each lead and partner in the look in force, and a tool can ignore it', async () => {
+  const doc = await colourwayDoc();
+  const groups = documentThemeGroups(doc);
+  assert.deepEqual(groups.map((g) => [g.id, g.label, g.kind]), [['colourway', 'Colourway', 'colourway'], ['', 'Mode', 'mode']],
+    'the colourway leads, though the file authors light and dark first');
+  const colourway = groups[0]!;
+  assert.deepEqual(colourway.options.map((o) => [o.id, o.label, o.canonical]), [['main', 'Main', true], ['persimmon', 'Persimmon', false]]);
+  assert.deepEqual(colourway.options[1]!.swatch, { lead: '#c2410c', partner: '#7c2d12' });
+  assert.deepEqual(documentThemeGroups(doc, { '': 'dark', colourway: 'main' })[0]!.options[1]!.swatch, { lead: '#fb923c', partner: '#fed7aa' },
+    'in dark, the dots show the dark leads');
+  assert.match(colourway.options[0]!.swatch!.lead, /^#[0-9a-f]{6}$/);
+  assert.equal(groups[1]!.options[0]!.swatch, undefined, 'only a colourway draws as colour');
+  assert.deepEqual(documentThemeGroups(doc, undefined, { tokenAxes: { colourway: 'ignore' } }).map((g) => g.id), ['']);
+  assert.deepEqual(documentThemeGroups(doc, undefined, { tokenAxes: { mode: 'ignore', colourway: 'ignore' } }), []);
 });
 
 test('a choice keeps every other group explicit, and selections compare by content', () => {
@@ -217,5 +273,75 @@ test('with the real engine runtime, a choice re-resolves linked colours and the 
   assert.deepEqual(routes, [{ '': 'dark' }]);
   assert.equal(dirty, 1);
   assert.deepEqual(controller.groups().map((g) => g.active), ['dark']);
+  controller.dispose();
+});
+
+test('two surfaces on one controller see every choice, whichever one made it', async () => {
+  const f = fakes(undefined);
+  const controller = createDocumentThemeController({ ...f.deps, readDocument: async () => LIGHT_DARK });
+  const sidebar: string[] = [];
+  const inspector: string[] = [];
+  const offSidebar = controller.subscribe(() => sidebar.push(controller.groups()[0]?.active ?? 'none'));
+  controller.subscribe(() => inspector.push(controller.groups()[0]?.active ?? 'none'));
+  await controller.ready;
+  assert.deepEqual(sidebar, ['light'], 'both hear the first read');
+  await controller.choose('', 'dark');
+  assert.deepEqual(sidebar, ['light', 'dark']);
+  assert.deepEqual(inspector, ['light', 'dark']);
+  offSidebar();
+  await controller.choose('', 'light');
+  assert.deepEqual(sidebar, ['light', 'dark'], 'a surface that left hears nothing more');
+  assert.deepEqual(inspector, ['light', 'dark', 'light']);
+  assert.equal(controller.groups(), controller.groups(), 'the groups are kept until the choice or the document changes');
+  controller.dispose();
+});
+
+test('a switch re-reads the latched swatches and announces itself after the canvas repaints', async () => {
+  const f = fakes({ '': 'light' });
+  const seen: unknown[] = [];
+  const onEvent = (event: Event): void => { seen.push((event as CustomEvent).detail); };
+  const target = new EventTarget();
+  const g = globalThis as { window?: unknown; CustomEvent?: unknown };
+  const hadWindow = 'window' in g;
+  const priorWindow = g.window;
+  g.window = target;
+  target.addEventListener(DOCUMENT_THEME_EVENT, onEvent);
+  try {
+    await switchDocumentTheme({ ...f.deps, refresh: async (scoped) => { f.log.push('refresh'); await scoped.tokens!.resolve('{x}'); } }, { '': 'dark' });
+  } finally {
+    target.removeEventListener(DOCUMENT_THEME_EVENT, onEvent);
+    if (hadWindow) g.window = priorWindow; else delete g.window;
+  }
+  assert.deepEqual(f.log, ['route {"":"dark"}', 'runtime {"":"dark"}', 'paint tool-canvas', 'refresh', 'dirty']);
+  assert.deepEqual(f.reads, [{ '': 'dark' }, { '': 'dark' }], 'the swatches are read under the new choice, like the canvas');
+  assert.deepEqual(seen, [{ '': 'dark' }]);
+});
+
+test('when the runtime applies a different selection, the address and the canvas follow what it applied', async () => {
+  const f = fakes({ '': 'light' });
+  // A runtime whose tool ignores the colourway, so it pins the group back to canonical.
+  let held: ThemeSelection | undefined = { '': 'light', colourway: 'main' };
+  const runtime: ThemeRuntime = {
+    get tokenSelection() { return held; },
+    async setTokenSelection(next) { f.log.push(`runtime ${JSON.stringify(next)}`); held = { ...next, colourway: 'main' }; },
+  };
+  await switchDocumentTheme({ ...f.deps, runtime }, { '': 'dark', colourway: 'persimmon' });
+  assert.deepEqual(f.log, [
+    'route {"":"dark","colourway":"persimmon"}', 'runtime {"":"dark","colourway":"persimmon"}',
+    'route {"":"dark","colourway":"main"}', 'paint tool-canvas', 'dirty',
+  ]);
+  assert.deepEqual(f.reads, [{ '': 'dark', colourway: 'main' }]);
+});
+
+test('the controller never offers a group the tool ignores, and keeps that group on canonical when another changes', async () => {
+  const doc = await colourwayDoc();
+  const f = fakes(undefined);
+  const controller = createDocumentThemeController({ ...f.deps, readDocument: async () => doc, tokenAxes: { colourway: 'ignore' } });
+  await controller.ready;
+  assert.deepEqual(controller.groups().map((g) => g.id), ['']);
+  await controller.choose('colourway', 'persimmon');
+  assert.equal(f.log.length, 0, 'an ignored group cannot be chosen through the controller');
+  await controller.choose('', 'dark');
+  assert.deepEqual(f.runtime.tokenSelection, { '': 'dark', colourway: 'main' });
   controller.dispose();
 });
