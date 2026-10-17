@@ -6,8 +6,9 @@
  * nested archives, decompression bombs, names and MIME types that lie, non-Latin and
  * very long names, colour-managed and HDR images and a multi-sheet workbook.
  *
- * Most fixtures are generated here, with Node's own zlib as the compressor, so no
- * shared Lolly writer can hide a reader mistake. The third-party files are the
+ * Most fixtures are generated here, compressed by the corpus's own DEFLATE writer
+ * (`deflate.ts`), so no shared Lolly writer can hide a reader mistake and every Node
+ * build makes the same bytes. The third-party files are the
  * unchanged copies already committed under tests/fixtures with their licences. The
  * README beside this file lists every fixture, its source and its licence;
  * `tests/file-intake-corpus.test.ts` runs each one through every intake path, and
@@ -16,6 +17,7 @@
 import { readFileSync } from 'node:fs';
 import zlib from 'node:zlib';
 import { readZip, srgbIccProfile } from '@lolly/engine';
+import { deflateLiterals, deflateZeros, zlibLiterals } from './deflate.ts';
 
 /** What a fixture exercises. A fixture can belong to several families. */
 export type Family =
@@ -62,22 +64,6 @@ const crc32 = (bytes: Uint8Array, prev = 0): number => zlib.crc32(bytes, prev) >
 const blob = (bytes: Uint8Array): Blob => new Blob([bytes as BlobPart]);
 const fixtureFile = (rel: string): Uint8Array => new Uint8Array(readFileSync(new URL(`../${rel}`, import.meta.url)));
 
-/**
- * A raw DEFLATE stream of `mib` MiB of zeros, made from one fully flushed 1 MiB
- * block repeated, so a bomb costs a few hundred kilobytes to build rather than its
- * expanded size. A full flush resets the window, so the copies never reference
- * each other, and a final empty fixed block closes the stream.
- */
-function zeroDeflate(mib: number): { data: Uint8Array; crc: number; size: number } {
-  const zeros = new Uint8Array(MiB);
-  const block = zlib.deflateRawSync(zeros, { level: 9, finishFlush: zlib.constants.Z_FULL_FLUSH });
-  const data = new Uint8Array(block.length * mib + 2);
-  let crc = 0;
-  for (let i = 0; i < mib; i++) { data.set(block, i * block.length); crc = crc32(zeros, crc); }
-  data.set([0x03, 0x00], block.length * mib);
-  return { data, crc, size: mib * MiB };
-}
-
 // ── ZIP (hand-written, so corrupt variants are possible) ──────────────────────
 
 interface ZipMember {
@@ -93,7 +79,7 @@ interface ZipMember {
 const storedMember = (name: string, bytes: Uint8Array): ZipMember =>
   ({ name, data: bytes, method: 0, crc: crc32(bytes), size: bytes.length });
 const deflatedMember = (name: string, bytes: Uint8Array): ZipMember =>
-  ({ name, data: new Uint8Array(zlib.deflateRawSync(bytes)), method: 8, crc: crc32(bytes), size: bytes.length });
+  ({ name, data: deflateLiterals(bytes), method: 8, crc: crc32(bytes), size: bytes.length });
 
 function zipOf(members: readonly ZipMember[], eocd: { count?: number } = {}): Uint8Array {
   const locals: Uint8Array[] = [];
@@ -195,7 +181,7 @@ function pngOf(opts: { width: number; height: number; depth?: 8 | 16; rgb: [numb
     Uint8Array.from([137, 80, 78, 71, 13, 10, 26, 10]),
     pngChunk('IHDR', ihdr),
     ...(opts.before ?? []),
-    pngChunk('IDAT', new Uint8Array(zlib.deflateSync(raw))),
+    pngChunk('IDAT', zlibLiterals(raw)),
     ...(opts.after ?? []),
     pngChunk('IEND', new Uint8Array(0)),
   ]);
@@ -205,7 +191,7 @@ function pngOf(opts: { width: number; height: number; depth?: 8 | 16; rgb: [numb
 function apngOf(): Uint8Array {
   const frame = (rgb: [number, number, number]): Uint8Array => {
     const row = Uint8Array.from([0, ...rgb, ...rgb]);
-    return new Uint8Array(zlib.deflateSync(concat([row, row])));
+    return zlibLiterals(concat([row, row]));
   };
   const fctl = (seq: number): Uint8Array => {
     const d = new Uint8Array(26);
@@ -380,7 +366,7 @@ export const CORPUS: readonly Fixture[] = [
     build: async () => blob(fixtureFile('jxl/pq-gradient.jxl')) },
   { id: 'icc-srgb-png', name: 'swatch-srgb.png', type: 'image/png', families: ['icc-hdr'],
     holds: 'A 4x4 PNG with an embedded sRGB ICC profile in an iCCP chunk.', source: `${GENERATED} The profile bytes come from engine/src/color.ts.`,
-    build: async () => blob(pngOf({ width: 4, height: 4, rgb: [224, 69, 123], before: [pngChunk('iCCP', concat([enc.encode('sRGB IEC61966-2.1\0'), Uint8Array.from([0]), new Uint8Array(zlib.deflateSync(srgbIccProfile()))]))] })) },
+    build: async () => blob(pngOf({ width: 4, height: 4, rgb: [224, 69, 123], before: [pngChunk('iCCP', concat([enc.encode('sRGB IEC61966-2.1\0'), Uint8Array.from([0]), zlibLiterals(srgbIccProfile())]))] })) },
   { id: 'hdr-pq-png', name: 'hdr-pq-bt2020.png', type: 'image/png', families: ['icc-hdr'],
     holds: 'A 16-bit PNG tagged BT.2020 PQ by cICP, with mastering display and light level chunks.', source: GENERATED,
     build: async () => blob(pngOf({ width: 2, height: 2, depth: 16, rgb: [200, 120, 40], before: [
@@ -467,7 +453,11 @@ export const CORPUS: readonly Fixture[] = [
     build: async () => blob(zipOf([storedMember('same.txt', enc.encode('first')), storedMember('same.txt', enc.encode('second'))])) },
   { id: 'targz-truncated', name: 'backup.tar.gz', type: 'application/gzip', families: ['corrupt-archive'],
     holds: 'A gzip-compressed tar cut off halfway.', source: GENERATED,
-    build: async () => { const g = new Uint8Array(zlib.gzipSync(tarOf([{ name: 'a.txt', bytes: enc.encode('tar member\n') }]))); return blob(g.subarray(0, g.length >> 1)); } },
+    build: async () => {
+      const tar = tarOf([{ name: 'a.txt', bytes: enc.encode('tar member\n') }]);
+      const g = gzipOf(deflateLiterals(tar), crc32(tar), tar.length);
+      return blob(g.subarray(0, g.length >> 1));
+    } },
   { id: 'tar-bad-checksum', name: 'bundle.tar', type: 'application/x-tar', families: ['corrupt-archive'],
     holds: 'A tar whose header checksum is wrong.', source: GENERATED,
     build: async () => blob(tarOf([{ name: 'a.txt', bytes: enc.encode('tar member\n') }], { badChecksum: true })) },
@@ -477,24 +467,24 @@ export const CORPUS: readonly Fixture[] = [
 
   // Decompression bombs: small files that declare or expand to far more.
   { id: 'bomb-flat-zip', name: 'wallpapers.zip', type: 'application/zip', families: ['bomb'], adversarial: true,
-    holds: 'A 400 KB ZIP whose two members declare 200 MiB of zeros each: over the 256 MiB import budget, under the engine default.', source: GENERATED,
-    build: async () => { const z = zeroDeflate(200); return blob(zipOf(['a.png', 'b.png'].map((name) => ({ name, data: z.data, method: 8 as const, crc: z.crc, size: z.size })))); } },
+    holds: 'A 420 KB ZIP whose two members declare 200 MiB of zeros each: over the 256 MiB import budget, under the engine default.', source: GENERATED,
+    build: async () => { const z = deflateZeros(200); return blob(zipOf(['a.png', 'b.png'].map((name) => ({ name, data: z.data, method: 8 as const, crc: z.crc, size: z.size })))); } },
   { id: 'bomb-lying-size', name: 'tiny.zip', type: 'application/zip', families: ['bomb'], adversarial: true,
     holds: 'A ZIP whose member declares 1 KiB but inflates to 64 MiB.', source: GENERATED,
-    build: async () => { const z = zeroDeflate(64); return blob(zipOf([{ name: 'small.txt', data: z.data, method: 8, crc: crc32(new Uint8Array(1024)), size: 1024 }])); } },
+    build: async () => { const z = deflateZeros(64); return blob(zipOf([{ name: 'small.txt', data: z.data, method: 8, crc: crc32(new Uint8Array(1024)), size: 1024 }])); } },
   { id: 'bomb-svgz', name: 'map.svgz', type: 'image/svg+xml', families: ['bomb'], adversarial: true,
-    holds: 'A 400 KB gzip stream that declares 400 MiB, over the 320 MiB gunzip ceiling.', source: GENERATED,
-    build: async () => { const z = zeroDeflate(400); return blob(gzipOf(z.data, z.crc, z.size)); } },
+    holds: 'A 420 KB gzip stream that declares 400 MiB, over the 320 MiB gunzip ceiling.', source: GENERATED,
+    build: async () => { const z = deflateZeros(400); return blob(gzipOf(z.data, z.crc, z.size)); } },
   { id: 'bomb-targz', name: 'logs.tar.gz', type: 'application/gzip', families: ['bomb'], adversarial: true,
     holds: 'A gzip-compressed stream that declares 400 MiB, over the tar archive limit.', source: GENERATED,
-    build: async () => { const z = zeroDeflate(400); return blob(gzipOf(z.data, z.crc, z.size)); } },
+    build: async () => { const z = deflateZeros(400); return blob(gzipOf(z.data, z.crc, z.size)); } },
   { id: 'bomb-dotlottie', name: 'loading.lottie', type: 'application/zip+dotlottie', families: ['bomb', 'animated'], adversarial: true,
     holds: 'A dotLottie whose animation part declares 200 MiB of zeros.', source: GENERATED,
-    build: async () => { const z = zeroDeflate(200); return blob(zipOf([deflatedMember('manifest.json', enc.encode('{"version":"1","animations":[{"id":"a"}]}')), { name: 'animations/a.json', data: z.data, method: 8, crc: z.crc, size: z.size }])); } },
+    build: async () => { const z = deflateZeros(200); return blob(zipOf([deflatedMember('manifest.json', enc.encode('{"version":"1","animations":[{"id":"a"}]}')), { name: 'animations/a.json', data: z.data, method: 8, crc: z.crc, size: z.size }])); } },
   { id: 'bomb-lolly', name: 'big handoff.lolly', type: 'application/vnd.lolly+zip', families: ['bomb', 'lolly'], adversarial: true,
     holds: 'A .lolly with a readable manifest and a part that declares 600 MiB, over the 512 MiB part limit.', source: GENERATED,
     build: async () => {
-      const z = zeroDeflate(600);
+      const z = deflateZeros(600);
       const manifest = { format: 'lolly-share', version: 1, minReader: 1, kind: 'session', tool: { id: 'qr-code' }, counts: { assets: 1, bytes: z.size } };
       return blob(zipOf([
         deflatedMember('manifest.json', enc.encode(JSON.stringify(manifest))),
@@ -508,7 +498,7 @@ export const CORPUS: readonly Fixture[] = [
   { id: 'bomb-nested-bytes', name: 'archive of archives.zip', type: 'application/zip', families: ['bomb'], adversarial: true,
     holds: 'A ZIP of five ZIPs that each expand to 64 MiB: 320 MiB in all, over the 256 MiB budget the nested reads share.', source: GENERATED,
     build: async () => {
-      const z = zeroDeflate(64);
+      const z = deflateZeros(64);
       const inner = zipOf([{ name: 'zeros.txt', data: z.data, method: 8, crc: z.crc, size: z.size }]);
       return blob(zipOf(Array.from({ length: 5 }, (_, i) => storedMember(`part-${i + 1}.zip`, inner))));
     } },

@@ -534,11 +534,18 @@ test('every fixture runs through every door it can reach', () => {
 test('each door does what the corpus records for each fixture', () => {
   const known = JSON.parse(fs.readFileSync(OUTCOMES, 'utf8')) as typeof outcomes;
   assert.deepEqual(Object.keys(known).sort(), Object.keys(outcomes).sort(), 'outcomes.json covers exactly the corpus');
+  // Every difference at once, so one run shows the whole extent of a change.
+  const differ: string[] = [];
   for (const f of CORPUS) {
     for (const door of doorsFor(f)) {
-      assert.deepEqual(outcomes[f.id]![door], known[f.id]?.[door], `${f.id} through ${door}`);
+      try {
+        assert.deepEqual(outcomes[f.id]![door], known[f.id]?.[door]);
+      } catch (err) {
+        differ.push(`${f.id} through ${door}: ${errorText(err)}`);
+      }
     }
   }
+  if (differ.length) assert.fail(`${differ.length} runs differ from outcomes.json\n\n${differ.join('\n\n')}`);
 });
 
 test('adversarial files stay inside their memory budget on every door', (t) => {
@@ -555,11 +562,11 @@ test('adversarial files stay inside their memory budget on every door', (t) => {
 });
 
 test('a drop sniff reads a declared bomb without inflating it', () => {
-  // The chooser's classification once inflated a 400 KB zip to 400 MiB to learn it was
+  // The chooser's classification once inflated a 420 KB zip to 400 MiB to learn it was
   // not a dotLottie. Every chooser door shares that sniff.
   for (const door of ['gallery-drop', 'pwa-launch', 'pwa-share', 'desktop-open', 'ios-open', 'android-share']) {
     const r = result('bomb-flat-zip', door);
-    assert.ok(r.peakBytes < ADVERSARIAL_PEAK, `${door} peaked at ${mib(r.peakBytes)} MiB on a 400 KB zip`);
+    assert.ok(r.peakBytes < ADVERSARIAL_PEAK, `${door} peaked at ${mib(r.peakBytes)} MiB on a 420 KB zip`);
   }
   assert.deepEqual(result('bomb-flat-zip', 'gallery-drop').records, [], 'nothing from the bomb reaches the library');
 });

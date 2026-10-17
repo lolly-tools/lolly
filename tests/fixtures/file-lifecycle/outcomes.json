@@ -317,7 +317,7 @@
       }
     },
     "utility-input": {
-      "read": 2440
+      "read": 2790
     },
     "utility-convert": {
       "kind": "raster"
@@ -338,7 +338,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 2440
+      "read": 2790
     },
     "ios-open": {
       "asked": [
@@ -374,7 +374,7 @@
       ]
     },
     "utility-input": {
-      "read": 148
+      "read": 164
     },
     "utility-convert": {
       "kind": "raster"
@@ -395,7 +395,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 148
+      "read": 164
     },
     "ios-open": {
       "asked": [
@@ -427,7 +427,7 @@
       }
     },
     "utility-input": {
-      "read": 200
+      "read": 213
     },
     "utility-convert": {
       "kind": "raster"
@@ -448,7 +448,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 200
+      "read": 213
     },
     "ios-open": {
       "asked": [
@@ -473,7 +473,7 @@
       }
     },
     "utility-input": {
-      "read": 2661
+      "read": 4510
     },
     "utility-convert": {
       "kind": "xlsx"
@@ -494,7 +494,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 2661
+      "read": 4510
     },
     "ios-open": {
       "asked": [
@@ -988,7 +988,7 @@
       }
     },
     "utility-input": {
-      "read": 269
+      "read": 272
     },
     "utility-convert": {
       "kind": "raster"
@@ -1009,7 +1009,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 269
+      "read": 272
     },
     "ios-open": {
       "asked": [
@@ -1142,7 +1142,7 @@
       "refused": "That looks like a XLSX file, not a plain archive - open it with its own importer."
     },
     "utility-input": {
-      "read": 2661
+      "read": 4510
     },
     "utility-convert": {
       "kind": "unknown"
@@ -1163,7 +1163,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 2661
+      "read": 4510
     },
     "ios-open": {
       "asked": [
@@ -1234,7 +1234,7 @@
       }
     },
     "utility-input": {
-      "read": 347
+      "read": 362
     },
     "utility-convert": {
       "kind": "unknown"
@@ -1255,7 +1255,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 347
+      "read": 362
     },
     "ios-open": {
       "asked": [
@@ -1281,7 +1281,7 @@
       }
     },
     "utility-input": {
-      "read": 269
+      "read": 272
     },
     "utility-convert": {
       "kind": "unknown"
@@ -1305,7 +1305,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 269
+      "read": 272
     },
     "ios-open": {
       "said": [
@@ -1340,7 +1340,7 @@
       "refused": "That ZIP could not be read (it may be encrypted or use an unsupported format)."
     },
     "utility-input": {
-      "read": 161
+      "read": 163
     },
     "utility-convert": {
       "kind": "unknown"
@@ -1361,7 +1361,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 161
+      "read": 163
     },
     "ios-open": {
       "asked": [
@@ -1637,14 +1637,14 @@
       ],
       "chose": "unpack",
       "said": [
-        "Upload failed: gunzip: declared output 3148980272 exceeds 268538880 byte limit"
+        "Upload failed: gunzip: declared output 1616928864 exceeds 268538880 byte limit"
       ]
     },
     "picker": {
-      "refused": "gunzip: declared output 3148980272 exceeds 335544320 byte limit"
+      "refused": "gunzip: declared output 1616928864 exceeds 335544320 byte limit"
     },
     "utility-input": {
-      "read": 46
+      "read": 1034
     },
     "utility-convert": {
       "kind": "svgz"
@@ -1665,7 +1665,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 46
+      "read": 1034
     },
     "ios-open": {
       "asked": [
@@ -1743,7 +1743,7 @@
       }
     },
     "utility-input": {
-      "read": 1430
+      "read": 2211
     },
     "utility-convert": {
       "kind": "unknown"
@@ -1773,7 +1773,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 1430
+      "read": 2211
     },
     "ios-open": {
       "asked": [
@@ -1817,7 +1817,7 @@
       "refused": "That archive exceeds the 200-file or 256 MB import limit - unpack it on your device first."
     },
     "utility-input": {
-      "read": 414998
+      "read": 420198
     },
     "utility-convert": {
       "kind": "unknown"
@@ -1838,7 +1838,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 414998
+      "read": 420198
     },
     "ios-open": {
       "asked": [
@@ -1865,7 +1865,7 @@
       "refused": "That ZIP could not be read (it may be encrypted or use an unsupported format)."
     },
     "utility-input": {
-      "read": 66486
+      "read": 67318
     },
     "utility-convert": {
       "kind": "unknown"
@@ -1886,7 +1886,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 66486
+      "read": 67318
     },
     "ios-open": {
       "asked": [
@@ -1913,7 +1913,7 @@
       "refused": "gunzip: declared output 419430400 exceeds 335544320 byte limit"
     },
     "utility-input": {
-      "read": 414820
+      "read": 420020
     },
     "utility-convert": {
       "kind": "svgz"
@@ -1934,7 +1934,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 414820
+      "read": 420020
     },
     "ios-open": {
       "asked": [
@@ -1961,7 +1961,7 @@
       "refused": "gunzip: declared output 419430400 exceeds 335544320 byte limit"
     },
     "utility-input": {
-      "read": 414820
+      "read": 420020
     },
     "utility-convert": {
       "kind": "svgz"
@@ -1982,7 +1982,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 414820
+      "read": 420020
     },
     "ios-open": {
       "asked": [
@@ -2009,7 +2009,7 @@
       "refused": "readZip: entry \"animations/a.json\" expands to 209715200 bytes; maximum is 33554432"
     },
     "utility-input": {
-      "read": 207676
+      "read": 210279
     },
     "utility-convert": {
       "kind": "unknown"
@@ -2030,7 +2030,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 207676
+      "read": 210279
     },
     "ios-open": {
       "asked": [
@@ -2058,7 +2058,7 @@
       }
     },
     "utility-input": {
-      "read": 622558
+      "read": 630383
     },
     "utility-convert": {
       "kind": "unknown"
@@ -2088,7 +2088,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 622558
+      "read": 630383
     },
     "ios-open": {
       "asked": [
@@ -2189,7 +2189,7 @@
       "refused": "Nothing usable found in that zip."
     },
     "utility-input": {
-      "read": 332932
+      "read": 337092
     },
     "utility-convert": {
       "kind": "unknown"
@@ -2210,7 +2210,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 332932
+      "read": 337092
     },
     "ios-open": {
       "asked": [
@@ -2285,7 +2285,7 @@
       }
     },
     "utility-input": {
-      "read": 1494
+      "read": 2275
     },
     "utility-convert": {
       "kind": "unknown"
@@ -2315,7 +2315,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 1494
+      "read": 2275
     },
     "ios-open": {
       "asked": [
@@ -2367,7 +2367,7 @@
       }
     },
     "utility-input": {
-      "read": 1068
+      "read": 1600
     },
     "utility-convert": {
       "kind": "unknown"
@@ -2397,7 +2397,7 @@
       ]
     },
     "desktop-verb": {
-      "read": 1068
+      "read": 1600
     },
     "ios-open": {
       "asked": [
