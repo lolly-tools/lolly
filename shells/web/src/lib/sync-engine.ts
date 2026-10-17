@@ -821,7 +821,11 @@ async function planRecordSync(ctx: PlanContext): Promise<RecordPlan> {
       if (copyKey) {
         const copy = rekeyRecord(here, copyId!);
         const stored = index.records[copyKey];
-        if ((!stored || stored.deletedAt || stored.hash !== here.hash) && !(await stage(copyKey, copy))) continue;
+        if ((!stored || stored.deletedAt || stored.hash !== here.hash) && !(await stage(copyKey, copy))) {
+          // The record waits with its copy, so the conflict is decided again next time.
+          plan.deferred.push({ key, reason: 'too-large' });
+          continue;
+        }
         if (local.get(copyKey)?.hash !== here.hash) plan.writes.push({ key: copyKey, expect: local.get(copyKey)?.hash ?? null, copy: true, record: copy });
       }
       plan.writes.push({ key, expect: here.hash, entry: store, value: storeValue, ...(copyKey ? { requires: copyKey } : {}) });
@@ -989,7 +993,10 @@ export async function syncRecords(deps: BackupDeps, opts: RecordSyncOpts): Promi
       const entry = plan.next.records[key];
       const remote = entry && !entry.deletedAt ? entry.hash : null;
       const here = applied.touched.has(key) ? after.get(key)?.hash ?? null : local.get(key)?.hash ?? null;
-      if (remote === null && here === null) continue;
+      // A tombstone keeps its entry, so this device has a say: content it brings
+      // back later (a restore from Trash moves the record unchanged) is pushed, not
+      // read as the deleted copy coming back from a device that never saw the deletion.
+      if (remote === null && here === null && !entry?.deletedAt) continue;
       entries[key] = { remote, local: here };
       if (remote !== null && (kind === 'profile' || kind === 'design-system')) {
         const body = plan.bodies.get(key) ?? applied.written.get(key)

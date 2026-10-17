@@ -53,12 +53,19 @@ export function recordKey(kind: RecordKind, id = ''): string {
   return KEYED.includes(kind) ? `${kind}/${id}` : kind;
 }
 
+/** A preference this build syncs: only the keys a backup carries, so a store
+ *  entry can never write any other localStorage key on this device. */
+const isSyncedPref = (id: string): boolean => PREF_KEYS.includes(id);
+
 /** The kind and id a key names, or null for a key this build does not know. */
 export function parseRecordKey(key: string): { kind: RecordKind; id: string } | null {
   if (key === 'profile' || key === 'active-design-system') return { kind: key, id: '' };
   const at = key.indexOf('/');
   const kind = key.slice(0, at) as RecordKind;
-  return at > 0 && KEYED.includes(kind) && at < key.length - 1 ? { kind, id: key.slice(at + 1) } : null;
+  if (!(at > 0 && KEYED.includes(kind) && at < key.length - 1)) return null;
+  const id = key.slice(at + 1);
+  // A preference outside the synced set is left as it is, like a kind from a newer build.
+  return kind === 'pref' && !isSyncedPref(id) ? null : { kind, id };
 }
 
 /** Records that are never removed from a device: an absent one is "not set yet". */
@@ -233,7 +240,8 @@ export async function writeLocalRecord(
     if (typeof value.id === 'string') await registryOf(deps)?.setActive(value.id);
   } else if (kind === 'profile') {
     await host.profile.set(structuredClone(value));
-  } else {
+  } else if (kind === 'pref') {
+    if (!isSyncedPref(id)) throw new Error('This preference is not synced.');
     storage.setItem(id, String(value.value ?? ''));
   }
 }
@@ -241,7 +249,8 @@ export async function writeLocalRecord(
 /**
  * Remove one record from this device. False when this record is never removed
  * here: the profile, the active choice, discarded edits, the bytes a published
- * design-system version pins, or a host without the delete call.
+ * design-system version pins, a preference this build does not sync, or a host
+ * without the delete call.
  */
 export async function removeLocalRecord(deps: RecordDeps, kind: RecordKind, id: string): Promise<boolean> {
   const { host, storage } = deps;
@@ -262,7 +271,7 @@ export async function removeLocalRecord(deps: RecordDeps, kind: RecordKind, id: 
     return true;
   }
   if (kind === 'pref') {
-    if (!storage.removeItem) return false;
+    if (!isSyncedPref(id) || !storage.removeItem) return false;
     storage.removeItem(id);
     return true;
   }

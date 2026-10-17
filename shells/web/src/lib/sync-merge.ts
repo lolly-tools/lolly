@@ -47,7 +47,10 @@ export interface IndexEntry {
   writtenBy?: string;
 }
 
-/** What this device knew about one record at its last sync. */
+/** What this device knew about one record at its last sync. A record the store
+ *  holds as a tombstone keeps its entry even when neither side has it, so this
+ *  device has a say: the same content made here again later is an edit, not the
+ *  deleted copy coming back. */
 export interface BaseEntry {
   /** The store's hash then; null when the store held a tombstone or nothing. */
   remote: string | null;

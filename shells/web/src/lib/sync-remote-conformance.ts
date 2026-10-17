@@ -306,7 +306,7 @@ export function runSyncRemoteConformance(name: string, factory: RemoteFactory, o
       run: async (t) => {
         const r = await remote();
         const other = await remote(OTHER_PATH);
-        if (!r.remove || !other.remove) { t.skip('the adapter cannot remove objects (optional; per-record sync then keeps them)'); return; }
+        if (!r.remove || !other.remove) { t.skip('the store adapter has no remove call (optional; per-record sync then keeps the objects)'); return; }
         await other.remove();
         const keepBytes = patternBytes(200, 19);
         const keep = await other.put(keepBytes);

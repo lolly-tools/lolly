@@ -15,7 +15,7 @@ import {
   syncRecords, collectRecordGarbage, RECORD_INDEX_PATH, recordObjectPath, SyncRollbackError, SnapshotPassphraseError,
   type RecordSyncBase, type RecordSyncOpts, type RecordIndex,
 } from './sync-engine.ts';
-import { collectLocalRecords, conflictCopyId, mergeFields } from './sync-records.ts';
+import { collectLocalRecords, conflictCopyId, mergeFields, parseRecordKey, removeLocalRecord, writeLocalRecord } from './sync-records.ts';
 import { isSealedObject } from './sync-keys.ts';
 
 // ── An in-memory store and in-memory devices ────────────────────────────────────
@@ -346,6 +346,66 @@ test('a tombstone leaves the index after its retention; a device that knew the r
   assert.deepEqual(b.data('qr-code:two'), { text: 'v2' });
 });
 
+/** Move a project slot to slot unchanged, as lib/trash.ts does with its revisions:
+ *  the record keeps its own times and data, so its content and hash are the same. */
+function moveSlot(dev: Device, from: string, to: string): void {
+  dev.sessions.set(to, structuredClone(dev.sessions.get(from)!));
+  dev.sessions.delete(from);
+}
+
+test('a project restored from Trash comes back on every device and is never removed', async () => {
+  const clock = at('2026-10-17T09:00:00.000Z');
+  const store = makeStore(clock);
+  const a = makeDevice('Laptop', clock);
+  const b = makeDevice('Phone', clock);
+  await a.save('qr-code:one', { text: 'precious' });
+  await sync(a, store, clock);
+  await sync(b, store, clock);
+
+  tick(clock, 5);
+  moveSlot(a, 'qr-code:one', '__trash__:@abc:qr-code:one');
+  const trashed = await sync(a, store, clock);
+  assert.deepEqual(trashed.tombstoned, ['session/qr-code:one']);
+  await sync(b, store, clock);
+  assert.equal(b.sessions.has('qr-code:one'), false);
+
+  tick(clock, 5);
+  moveSlot(a, '__trash__:@abc:qr-code:one', 'qr-code:one');
+  const restored = await sync(a, store, clock);
+  assert.deepEqual(restored.removedHere, [], 'the restored project is not removed here');
+  assert.deepEqual(restored.pushed, ['session/qr-code:one']);
+  assert.deepEqual(restored.tombstoned, ['session/__trash__:@abc:qr-code:one']);
+  await sync(b, store, clock);
+  for (const dev of [a, b]) {
+    assert.deepEqual(dev.data('qr-code:one'), { text: 'precious' }, dev.name);
+    assert.deepEqual([...dev.sessions.keys()], ['qr-code:one'], dev.name);
+  }
+  const quiet = await sync(a, store, clock);
+  assert.deepEqual([quiet.pushed, quiet.removedHere, quiet.tombstoned], [[], [], []]);
+});
+
+test('content this device deleted and made again unchanged is kept, not taken for the deleted copy', async () => {
+  const clock = at('2026-10-17T09:00:00.000Z');
+  const store = makeStore(clock);
+  const a = makeDevice('Laptop', clock);
+  const b = makeDevice('Phone', clock);
+  await a.save('qr-code:one', { text: 'same again' });
+  const row = structuredClone(a.sessions.get('qr-code:one')!);
+  await sync(a, store, clock);
+  await sync(b, store, clock);
+
+  await a.host.state.delete('qr-code:one');
+  await sync(a, store, clock);
+  await sync(b, store, clock);
+  tick(clock, 5);
+  a.sessions.set('qr-code:one', structuredClone(row));
+  const again = await sync(a, store, clock);
+  assert.deepEqual(again.removedHere, []);
+  assert.deepEqual(again.pushed, ['session/qr-code:one']);
+  await sync(b, store, clock);
+  for (const dev of [a, b]) assert.deepEqual(dev.data('qr-code:one'), { text: 'same again' }, dev.name);
+});
+
 // ── Assets: deduplication, copies, design material ──────────────────────────────
 
 test('identical bytes are stored once, and a rename moves no image bytes', async () => {
@@ -413,6 +473,45 @@ test('an object too large for this shell waits; everything else syncs', async ()
   assert.deepEqual(limited.pushed, ['session/qr-code:one']);
   const later = await sync(a, store, clock);
   assert.deepEqual(later.pushed, ['asset/user/video/1760000000000-0001']);
+});
+
+test('a conflict the store wins waits while this device’s copy is too large to send, and nothing is lost', async () => {
+  const clock = at('2026-10-17T09:00:00.000Z');
+  const store = makeStore(clock);
+  const a = makeDevice('Laptop', clock);
+  const b = makeDevice('Phone app', clock);
+  const id = 'user/raster/1760000000000-0001';
+  const big = 'phone big edit '.repeat(400);
+  a.addAsset(id, 'original');
+  await sync(a, store, clock);
+  await sync(b, store, clock);
+  tick(clock, 5);
+  b.addAsset(id, big);                 // earlier, and larger than the phone app can send
+  tick(clock, 5);
+  a.addAsset(id, 'laptop crop');       // later, so the store's copy wins at the id
+  await sync(a, store, clock);
+
+  for (let round = 0; round < 2; round++) {
+    const limited = await sync(b, store, clock, { maxUploadBytes: 2000 });
+    assert.ok(limited.deferred.some((d) => d.key === `asset/${id}` && d.reason === 'too-large'), 'the record waits with its copy');
+    assert.equal(await b.assetText(id), big, 'this device keeps its own edit');
+  }
+  // Another edit on the laptop meets the same conflict again rather than overwriting.
+  tick(clock, 5);
+  a.addAsset(id, 'laptop second');
+  await sync(a, store, clock);
+  await sync(b, store, clock, { maxUploadBytes: 2000 });
+  assert.equal(await b.assetText(id), big);
+
+  // Once the copy can be sent, both are kept on both devices.
+  const settled = await sync(b, store, clock);
+  await sync(a, store, clock);
+  const conflict = settled.conflicts.find((c) => c.key === `asset/${id}`)!;
+  assert.equal(conflict.kept, 'both');
+  for (const dev of [a, b]) {
+    assert.equal(await dev.assetText(id), 'laptop second', dev.name);
+    assert.equal(await dev.assetText(conflict.copy!.slice('asset/'.length)), big, dev.name);
+  }
 });
 
 // ── History stays on its device ─────────────────────────────────────────────────
@@ -648,6 +747,32 @@ test('an index entry that points outside the objects folder is refused, and noth
   // An index from a newer build that this one cannot read is never replaced, even by force.
   await store.open(RECORD_INDEX_PATH).put(new TextEncoder().encode(JSON.stringify({ ...bad, records: {}, minReader: 9 })));
   await assert.rejects(() => sync(a, store, clock, { force: true }), /newer version/);
+});
+
+test('a store entry for a preference this build does not sync is never written here', async () => {
+  const clock = at('2026-10-17T09:00:00.000Z');
+  const store = makeStore(clock);
+  const a = makeDevice('Laptop', clock);
+  a.prefs.set('theme', 'dark');
+  await sync(a, store, clock);
+  // Someone with write access to the store renames the entry to another localStorage key.
+  const index = await store.index();
+  index.records['pref/lolly:featureFlags'] = index.records['pref/theme']!;
+  delete index.records['pref/theme'];
+  await store.open(RECORD_INDEX_PATH).put(new TextEncoder().encode(JSON.stringify(index)));
+
+  const b = makeDevice('Phone', clock);
+  b.prefs.set('lolly:featureFlags', 'mine');
+  const got = await sync(b, store, clock);
+  assert.equal(b.prefs.get('lolly:featureFlags'), 'mine', 'left as it is');
+  assert.deepEqual(got.pulled.filter((k) => k.startsWith('pref/')), []);
+  assert.ok((await store.index()).records['pref/lolly:featureFlags'], 'the entry is left in the store, like one from a newer build');
+
+  assert.equal(parseRecordKey('pref/lolly:featureFlags'), null);
+  assert.deepEqual(parseRecordKey('pref/theme'), { kind: 'pref', id: 'theme' });
+  await assert.rejects(() => writeLocalRecord(b.deps(), 'pref', 'lolly:featureFlags', { value: 'x' }, new Map()), /not synced/);
+  assert.equal(await removeLocalRecord(b.deps(), 'pref', 'lolly:featureFlags'), false);
+  assert.equal(b.prefs.get('lolly:featureFlags'), 'mine');
 });
 
 test('a store that cannot remove objects keeps them listed and removes nothing', async () => {
