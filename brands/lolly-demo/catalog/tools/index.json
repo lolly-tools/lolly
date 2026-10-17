@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-15T17:33:34.428Z",
+  "generatedAt": "2026-10-17T14:57:53.480Z",
   "tools": [
     {
       "id": "3d",
@@ -6604,7 +6604,7 @@
       "id": "font-convert",
       "name": "Convert Font",
       "description": "Convert a font between TrueType, OpenType and WOFF - on your device.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -6618,7 +6618,10 @@
         "truetype",
         "opentype",
         "typography",
-        "sfnt"
+        "sfnt",
+        "subset",
+        "glyphs",
+        "coverage"
       ],
       "added": "2026-07-08",
       "formats": [

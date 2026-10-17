@@ -15,7 +15,7 @@ function onInit({ model, host }) {
 
 - **Additive only.** Methods may be added in a minor version; never removed or signature-changed without a major bump. When v2 ships, v1 keeps working.
 - **No platform-specific methods.** If only one shell can do something, it sits behind a `capabilities` flag in `tool.json` and shells that can't fulfil it expose a stub/error.
-- **Capabilities gate access.** `net` (`network`), `capture` (`capture`), `compose` (`compose`) and `recorder` (`microphone` / `camera` / `screen`) require a matching flag in the manifest's `capabilities`. `tokens`, `text`, `pdf`, `pptx`, `media`, `audio`, `codec`, `layers`, `speech`, `upscale`, `matte`, `viz`, `color`, `images`, `raster`, `geom`, `connectors` and `c2pa` are optional and present only when the shell provides them (feature-detect, don't flag). Declare what you need.
+- **Capabilities gate access.** `net` (`network`), `capture` (`capture`), `compose` (`compose`) and `recorder` (`microphone` / `camera` / `screen`) require a matching flag in the manifest's `capabilities`. `tokens`, `text`, `pdf`, `pptx`, `media`, `audio`, `codec`, `layers`, `speech`, `upscale`, `matte`, `viz`, `color`, `images`, `raster`, `geom`, `connectors`, `c2pa` and `fonts` are optional and present only when the shell provides them (feature-detect, don't flag). Declare what you need.
 - `host.version` is `'1'`; `host.shell` is one of `web` · `tauri-desktop` · `tauri-mobile` · `cli`.
 
 ## `host.profile`
@@ -157,6 +157,17 @@ On-device PDF inspection, metadata removal and compression (pure pdf-lib for the
 | `compress(bytes, opts?)` | `Promise<{ bytes, before, after, images }>` | Re-save smaller: recompress oversized embedded JPEGs (canvas downsample + re-encode) and re-serialise with object streams. `opts.level` is `'light' \| 'balanced' \| 'strong'`; `opts.grayscale` drops colour. Text/vectors are untouched, and the result is never larger than the input. The lean CLI (no canvas) does the structural pass only |
 
 Feature-detect each method (e.g. `host.pdf?.compress`) - an older shell may provide `analyze`/`strip` but not `compress`, or no `host.pdf` at all.
+
+## `host.fonts` *(font files - optional, v1.262)*
+
+Read a font file's own tables and subset it to chosen text, on-device. Not a gated capability; feature-detect `host.fonts`. The web, desktop, CLI, TUI and MCP shells provide it; the same engine code answers on each, so the facts and the bytes match.
+
+| Method | Returns | Notes |
+|---|---|---|
+| `inspect(bytes)` | `Promise<FontInspectionV1>` | TTF, OTF or WOFF. `container`, `outlines` (`truetype`, `cff`, `cff2`, `bitmap`, `none`), `family`, `style`, `fullName`, `version`, `postScriptName`, `glyphs`, `unitsPerEm`, `weight` (`value`, with `min`/`max` from a `wght` axis), `width`, `italic`, `axes`, named `instances`, `coverage` (`characters`, inclusive code point `ranges`, per-Unicode-block counts), `embedding` (the decoded `OS/2.fsType` and its raw value) and `subsetRefusal`. Rejects WOFF2, collections and anything unreadable |
+| `subset(bytes, { text })` | `Promise<{ bytes, report }>` | Keeps the glyphs `text` needs plus what they depend on, with glyph ids kept. Returns a TrueType sfnt (a WOFF source is unwrapped; deliver it as `.woff` to rewrap). `report` gives `characters`, `kept`, `missing`, `inputBytes`, `outputBytes`, `policy` and `fsType` |
+
+`subset` refuses before any work when the outlines are not TrueType (the pinned Skera build would drop a CFF table) or when the font's own fsType says restricted licence embedding, no subsetting or bitmap embedding only, or when there is no OS/2 table to say anything. The rejection's `code` is the `subsetRefusal` value. Those flags are honoured, never bypassed, and the Skera runtime enforces the same rule for every caller. After subsetting, the output bytes are checked: TrueType outlines, every kept character still mapped to its original glyph with its outline present, and an unchanged fsType. Output that fails is refused. fsType is the only licence signal a font file carries and is not the licence, so a subset is not a rights grant. Convert Font is the reference tool.
 
 ## `host.pptx` *(optional)*
 

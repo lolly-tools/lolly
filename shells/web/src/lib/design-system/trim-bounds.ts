@@ -316,6 +316,160 @@ export function trimSvgToContent(svgText: string, opts?: { pad?: number }): { sv
   return { svg, box };
 }
 
+/** What {@link svgArtworkBounds} measured: the painted box, what it is made of, and anything it could not measure. */
+export interface SvgArtwork {
+  box: Box | null;
+  /** At least one embedded raster image is drawn. */
+  raster: boolean;
+  /** At least one vector shape is drawn. */
+  vector: boolean;
+  /** Drawn content whose painted edge this scan cannot know (text, references, effects). */
+  unmeasurable: string[];
+}
+
+/** Elements whose painted extent needs layout, a reference or a viewport this scan does not resolve. */
+const UNMEASURABLE_TAGS: Record<string, string> = {
+  text: 'text', use: 'a <use> reference', foreignobject: 'embedded HTML', switch: 'a <switch>', svg: 'a nested <svg>',
+};
+
+/** A presentation property from its attribute or the inline style, which wins. */
+function presentation(attrs: Record<string, string>, key: string): string | undefined {
+  const style = new RegExp(`(?:^|;)\\s*${key}\\s*:\\s*([^;]+)`, 'i').exec(attrs.style || '');
+  return (style ? style[1] : attrs[key])?.trim();
+}
+
+interface PaintFrame { name: string; matrix: Matrix; hidden: boolean; skip: boolean; stroke: string; width: string; join: string; cap: string; miter: string }
+
+/**
+ * The PAINTED box of an SVG's drawn content, for fitting its viewBox without
+ * clipping anything: {@link svgContentBounds}'s geometry plus room for strokes
+ * (half the stroke width, times the miter limit for mitred joins and the square
+ * root of two for square caps, which bounds every corner). Stroke properties
+ * inherit through groups. A stylesheet that sets strokes is assumed to stroke
+ * every shape at its widest declared width. Filters, markers, text, references
+ * and nested viewports are reported as unmeasurable instead of guessed at.
+ */
+export function svgArtworkBounds(svgText: string): SvgArtwork {
+  let box: LocalBox | null = null;
+  let raster = false, vector = false, rootSeen = false;
+  const unmeasurable = new Set<string>();
+  const sheets = [...svgText.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map((m) => m[1] ?? '').join('\n');
+  if (/\bfilter\s*:/i.test(sheets)) unmeasurable.add('a stylesheet filter');
+  if (/\bmarker(?:-start|-mid|-end)?\s*:/i.test(sheets)) unmeasurable.add('stylesheet markers');
+  const sheetWidths = [...sheets.matchAll(/stroke-width\s*:\s*([\d.]+)/gi)].map((m) => Number(m[1])).filter(Number.isFinite);
+  // A sheet that strokes anything is taken to stroke every shape at its widest width, mitred.
+  const sheetReach = /\bstroke\s*:\s*(?!none\b)[^;}\s]/i.test(sheets) ? (Math.max(1, ...sheetWidths) / 2) * 4 : 0;
+  const stack: PaintFrame[] = [{ name: '#root', matrix: IDENTITY, hidden: false, skip: false, stroke: 'none', width: '1', join: 'miter', cap: 'butt', miter: '4' }];
+
+  for (const tag of tags(svgText)) {
+    if (tag.closing) {
+      const top = stack[stack.length - 1]!;
+      if (stack.length > 1 && top.name === tag.name) stack.pop();
+      continue;
+    }
+    const top = stack[stack.length - 1]!;
+    const skip = top.skip || NON_RENDERING.has(tag.name);
+    const hidden = top.hidden || isHiddenAttrs(tag.attrs);
+    const matrix = tag.attrs.transform ? multiply(top.matrix, parseTransform(tag.attrs.transform)) : top.matrix;
+    const frame: PaintFrame = {
+      name: tag.name, matrix, hidden, skip,
+      stroke: presentation(tag.attrs, 'stroke') ?? top.stroke,
+      width: presentation(tag.attrs, 'stroke-width') ?? top.width,
+      join: presentation(tag.attrs, 'stroke-linejoin') ?? top.join,
+      cap: presentation(tag.attrs, 'stroke-linecap') ?? top.cap,
+      miter: presentation(tag.attrs, 'stroke-miterlimit') ?? top.miter,
+    };
+    if (!tag.selfClose) stack.push(frame);
+    if (tag.name === 'svg' && !rootSeen) { rootSeen = true; continue; }
+    if (skip || hidden) continue;
+    if (UNMEASURABLE_TAGS[tag.name]) { unmeasurable.add(UNMEASURABLE_TAGS[tag.name]!); continue; }
+    if (presentation(tag.attrs, 'filter') && presentation(tag.attrs, 'filter') !== 'none') unmeasurable.add('a filter effect');
+    if (['marker-start', 'marker-mid', 'marker-end', 'marker'].some((key) => (presentation(tag.attrs, key) ?? 'none') !== 'none')) unmeasurable.add('markers');
+    const local = shapeBox(tag.name, tag.attrs);
+    if (!local) {
+      if (tag.name === 'path' && tag.attrs.d) unmeasurable.add('path data that could not be read');
+      continue;
+    }
+    if (tag.name === 'image') raster = true; else vector = true;
+    let reach = 0;
+    if (tag.name !== 'image') {
+      // Stylesheet rules outrank presentation attributes, so a sheet stroke is a floor.
+      reach = sheetReach;
+      if (frame.stroke !== 'none' && frame.stroke !== 'transparent') {
+        if (/%/.test(frame.width)) { unmeasurable.add('a percentage stroke width'); continue; }
+        const width = Math.max(0, parseFloat(frame.width) || 0);
+        const mitred = !['round', 'bevel'].includes(frame.join);
+        reach = Math.max(reach, (width / 2) * Math.max(mitred ? Math.max(1, parseFloat(frame.miter) || 4) : 1, frame.cap === 'square' ? Math.SQRT2 : 1));
+      }
+    }
+    const paint = reach ? { x0: local.x0 - reach, y0: local.y0 - reach, x1: local.x1 + reach, y1: local.y1 + reach } : local;
+    const hull = transformedHull(paint, matrix);
+    box = box ? unionBox(box, hull) : hull;
+  }
+  return {
+    box: box ? { x: box.x0, y: box.y0, width: box.x1 - box.x0, height: box.y1 - box.y0 } : null,
+    raster, vector, unmeasurable: [...unmeasurable],
+  };
+}
+
+/** CSS pixels per unit for the absolute lengths a root width or height may use. */
+const PX_PER: Record<string, number> = { '': 1, px: 1, pt: 96 / 72, pc: 16, mm: 96 / 25.4, cm: 96 / 2.54, in: 96 };
+
+/** Root width or height with its unit, when it is an absolute length. */
+function rootLength(value: string | undefined): { n: number; unit: string } | null {
+  const m = /^\s*([\d.]+(?:e[+-]?\d+)?)\s*(px|pt|pc|mm|cm|in|)\s*$/i.exec(value ?? '');
+  const n = m ? parseFloat(m[1]!) : NaN;
+  return Number.isFinite(n) && n > 0 ? { n, unit: m![2]!.toLowerCase() } : null;
+}
+
+/** The root's user-unit box: its viewBox, else an absolute width and height in CSS pixels. */
+function rootUserBox(attrs: Record<string, string>, width: { n: number; unit: string } | null, height: { n: number; unit: string } | null): Box | null {
+  const parts = (attrs.viewBox ?? '').trim().split(/[\s,]+/).map(Number);
+  if (parts.length === 4 && parts.every(Number.isFinite) && parts[2]! > 0 && parts[3]! > 0) return { x: parts[0]!, y: parts[1]!, width: parts[2]!, height: parts[3]! };
+  return width && height ? { x: 0, y: 0, width: width.n * PX_PER[width.unit]!, height: height.n * PX_PER[height.unit]! } : null;
+}
+
+export type SvgFitResult =
+  | { ok: true; svg: string; box: Box; before: Box | null; raster: boolean }
+  | { ok: false; reason: string };
+
+/**
+ * Normalise an SVG's bounds: point the root viewBox at the painted artwork (plus
+ * `pad` user units). Only the root `<svg>` tag changes. Every path, shape, text
+ * run and embedded image keeps its bytes and coordinates, and an absolute root
+ * width or height is rescaled in its own unit so one user unit keeps its
+ * physical size (uniformly, unless preserveAspectRatio is none); a relative size
+ * is dropped, leaving the viewBox to size the drawing. Refused, with the reason,
+ * when the artwork cannot be measured exactly, when nothing is drawn, or when
+ * the viewBox already fits. A raster image wrapped in SVG is reported as such:
+ * fitting its bounds does not make it a vector.
+ */
+export function fitSvgToArtwork(svgText: string, opts?: { pad?: number }): SvgFitResult {
+  const rootMatch = /<svg\b[^>]*>/i.exec(svgText);
+  if (!rootMatch) return { ok: false, reason: 'This file has no root <svg> element.' };
+  const art = svgArtworkBounds(svgText);
+  if (art.unmeasurable.length) return { ok: false, reason: `The drawn edge cannot be measured exactly because the SVG contains ${art.unmeasurable.join(', ')}. The viewBox was left as it is.` };
+  if (!art.box || !(art.box.width > 0) || !(art.box.height > 0)) return { ok: false, reason: 'This SVG draws nothing that can be measured, so there are no bounds to fit.' };
+  const pad = Math.max(0, opts?.pad ?? 0);
+  const box: Box = { x: art.box.x - pad, y: art.box.y - pad, width: art.box.width + pad * 2, height: art.box.height + pad * 2 };
+  const rootTag = rootMatch[0];
+  const attrs = parseAttrs(rootTag);
+  const width = rootLength(attrs.width), height = rootLength(attrs.height);
+  const before = rootUserBox(attrs, width, height);
+  if (before && sameBox(before, box)) return { ok: false, reason: 'The viewBox already fits the artwork.' };
+  const sx = width && before ? width.n * PX_PER[width.unit]! / before.width : null;
+  const sy = height && before ? height.n * PX_PER[height.unit]! / before.height : null;
+  const uniform = !/^\s*none\b/i.test(attrs.preserveAspectRatio ?? '');
+  const k = uniform ? Math.min(sx ?? Infinity, sy ?? Infinity) : 0;
+  const length = (side: { n: number; unit: string } | null, scale: number | null, extent: number): string =>
+    side && scale !== null ? `${fmt((uniform ? k : scale) * extent / PX_PER[side.unit]!)}${side.unit}` : '';
+  const sized = [`viewBox="${fmt(box.x)} ${fmt(box.y)} ${fmt(box.width)} ${fmt(box.height)}"`,
+    length(width, sx, box.width) && `width="${length(width, sx, box.width)}"`,
+    length(height, sy, box.height) && `height="${length(height, sy, box.height)}"`].filter(Boolean).join(' ');
+  const tag = rootTag.replace(/\s(width|height|viewBox)\s*=\s*("[^"]*"|'[^']*')/gi, '').replace(/<svg\b/i, `<svg ${sized}`);
+  return { ok: true, svg: svgText.slice(0, rootMatch.index) + tag + svgText.slice(rootMatch.index + rootTag.length), box, before, raster: art.raster && !art.vector };
+}
+
 /** Shared edge-scan: tight box over whichever pixels `hit` calls content.
  *  Scans inward and stops at the first hit per edge, never allocating a
  *  scratch buffer - this runs against full-resolution upload bytes. */

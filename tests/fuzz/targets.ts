@@ -54,9 +54,13 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - layout-abi    : raw WASM layout_alloc/layout_solve bytes through Rust serde_json and modern flex/grid routines
  *   - penpot-layout : importPenpotLayouts + penpotChildrenPaintOrder, then Design request placement/evaluation
  *   - design-guides : v1/v2 guide text/JSON, canonical reparse and finite snap targets without DOM
+ *   - font-inspect  : inspectFont + glyphsForText over a real variable TTF and its WOFF wrapper (sfnt directory, name, fvar, cmap 4/12)
  */
 
 import { storeZip } from '../../engine/src/zip.ts';
+import { inspectFont, glyphsForText } from '../../engine/src/font-inspect.ts';
+import { sfntToWoff } from '../../engine/src/font-convert.ts';
+import { readFileSync } from 'node:fs';
 import { readEmojiPack } from '../../engine/src/emoji-pack.ts';
 import { prepareEmojiSvg, emojiSvgMarkup } from '../../engine/src/emoji-svg.ts';
 import { emojiGraphemes, segmentEmojiText } from '../../engine/src/emoji-segment.ts';
@@ -2052,6 +2056,16 @@ export const designGuidesTarget: FuzzTarget = {
 export const designHierarchyTarget: FuzzTarget = { name: 'design-hierarchy', seeds: designHierarchySeeds, async invoke(bytes) { invokeDesignHierarchy(bytes); } };
 export const lollyHierarchyTarget: FuzzTarget = { name: 'lolly-hierarchy', seeds: lollyHierarchySeeds, async invoke(bytes) { await invokeLollyHierarchy(bytes); } };
 
+export const fontInspectTarget: FuzzTarget = {
+  name: 'font-inspect',
+  async seeds() {
+    const outfit = new Uint8Array(readFileSync(new URL('../../shells/web/public/fonts/Outfit[wght].ttf', import.meta.url)));
+    return [outfit, sfntToWoff(outfit)];
+  },
+  // Contract: a coded Error for anything unreadable; never a hang or an unbounded allocation.
+  async invoke(bytes) { inspectFont(bytes); glyphsForText(bytes, 'Hello, Wörld'); },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
   adobeXmlTarget, adobePsdTarget, idmlReadTarget,
@@ -2070,6 +2084,6 @@ export const ALL_TARGETS: FuzzTarget[] = [
   depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
-  geomTarget, svgItemsTarget,
+  geomTarget, svgItemsTarget, fontInspectTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

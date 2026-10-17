@@ -72,6 +72,7 @@
     "./text": "./src/text.ts",
     "./text-glyphs": "./src/text-glyphs.ts",
     "./font-subset-wasm": "./src/font-subset-wasm.ts",
+    "./fonts": "./src/fonts.ts",
     "./skera.wasm": "./wasm/skera/skera.wasm",
     "./text-svg": "./src/text-svg.ts",
     "./svg-ir": "./src/svg-ir.ts",
@@ -138,6 +139,8 @@
     "src",
     "wasm/adobe-psd",
     "wasm/layout-kernel",
+    "wasm/skera/skera.wasm",
+    "wasm/skera/LICENSES.txt",
     "README.md"
   ],
   "scripts": {

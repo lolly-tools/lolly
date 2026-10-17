@@ -539,7 +539,8 @@ test('ENGINE_VERSION is 1.261.0', () => {
   // 1.260.0 adds the optional isolated-public capture mode.
   // 1.261.0 aligns runtime and delivery policies and preserves structured paint
   // references; the screen capture contract remains unchanged.
-  assert.equal(ENGINE_VERSION, '1.261.0');
+  // 1.262.0 adds host.fonts inspection and subsetting; capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.262.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
