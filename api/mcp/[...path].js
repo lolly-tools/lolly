@@ -115997,14 +115997,26 @@ function gradeTables(contrast3, lightness) {
   }
   return { unit: unit2, linear };
 }
+function lookAmount(look2) {
+  return typeof look2.amount === "number" && Number.isFinite(look2.amount) ? (look2.amount < 0 ? 0 : look2.amount > 100 ? 100 : look2.amount) / 100 : 1;
+}
+function lookGrade(look2) {
+  const finite7 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
+  return gradeTables(finite7(look2.contrast), finite7(look2.lightness));
+}
+function duotoneRamp(look2) {
+  return [look2.shadow ?? "#000000", ...look2.mid ? [look2.mid] : [], look2.highlight ?? "#ffffff"].map((c) => {
+    const v = photoLookHex8(c) ?? [0, 0, 0];
+    return [v[0] / 255, v[1] / 255, v[2] / 255];
+  });
+}
 function applyPhotoLook(rgba2, width, height, look2, opts = {}) {
   if (!(rgba2 instanceof Uint8ClampedArray)) throw new Error("photo look: pixels must be a Uint8ClampedArray");
   if (!Number.isInteger(width) || !Number.isInteger(height) || width < 0 || height < 0 || rgba2.length !== width * height * 4)
     throw new Error(`photo look: ${width}x${height} does not match ${rgba2.length} bytes of RGBA`);
   const def = resolvePhotoLook(look2, opts.theme);
-  const amount = typeof def.amount === "number" && Number.isFinite(def.amount) ? (def.amount < 0 ? 0 : def.amount > 100 ? 100 : def.amount) / 100 : 1;
-  const finite7 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
-  const grade = gradeTables(finite7(def.contrast), finite7(def.lightness));
+  const amount = lookAmount(def);
+  const grade = lookGrade(def);
   if (def.kind === "lut") {
     if (!opts.lut) throw new Error(`photo look ${def.id}: the LUT ${def.lut ?? ""} was not supplied`);
     if (grade) for (let i = 0; i < rgba2.length; i += 4) for (let k = 0; k < 3; k += 1) rgba2[i + k] = grade.unit[rgba2[i + k]] * 255;
@@ -116053,10 +116065,7 @@ function gradientMap(d, def, ta, grade) {
 }
 function lumaMap(d, def, ta, grade) {
   const grey = def.kind === "greyscale";
-  const table = grey ? null : [def.shadow ?? "#000000", ...def.mid ? [def.mid] : [], def.highlight ?? "#ffffff"].map((c) => {
-    const v = photoLookHex8(c) ?? [0, 0, 0];
-    return [v[0] / 255, v[1] / 255, v[2] / 255];
-  });
+  const table = grey ? null : duotoneRamp(def);
   const n7 = table ? table.length - 1 : 0;
   for (let i = 0; i < d.length; i += 4) {
     const r01 = grade ? grade.unit[d[i]] : d[i] / 255;
@@ -116090,7 +116099,7 @@ function photoLookPreviewTable(look2, count4 = 17) {
   const stops = photoLookStops(look2);
   if (stops.length < 2) return [];
   const tlut = photoLookToneTable(stops);
-  const amount = typeof look2.amount === "number" && Number.isFinite(look2.amount) ? (look2.amount < 0 ? 0 : look2.amount > 100 ? 100 : look2.amount) / 100 : 1;
+  const amount = lookAmount(look2);
   const finite7 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
   const contrast3 = Math.max(-100, Math.min(100, finite7(look2.contrast)));
   const light = Math.max(-100, Math.min(100, finite7(look2.lightness))) / 100;

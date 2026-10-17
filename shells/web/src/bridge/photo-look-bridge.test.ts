@@ -199,6 +199,7 @@ test('a catalog look bake is revoked when the catalog prunes its blob, so the ob
   try {
     const api = createAssetsAPI(db as never, { bakePhotoLook: referenceBake });
     const light = await api.get(`${photo.id}?treatment=grade`);
+    assert.equal(light.meta?.lookRecipe, 'gradient-map-webgpu-v1', 'the catalog bake carries its GPU recipe');
     const dark = await api.get(`${photo.id}?treatment=grade`, { tokenSelection: { '': 'dark' } });
     assert.equal(dark.meta?.lookTheme, 'dark');
     assert.notEqual(light.url, dark.url);
@@ -210,4 +211,48 @@ test('a catalog look bake is revoked when the catalog prunes its blob, so the ob
   } finally {
     URL.revokeObjectURL = realRevoke;
   }
+});
+
+test('a gradient-map look on a catalog photo fails visibly when WebGPU is absent', async () => {
+  const palette = { id: 'test/palette/photo-treatments', type: 'palette', tags: ['palette', 'photo-treatments'], version: '1', tier: 'core', formats: [{ format: 'json', url: '/p.json' }] };
+  // Not the pruned photo above, so no bake another test made is served from the object URL cache.
+  const photo = { id: 'test/photo/back', type: 'raster', version: '1', tier: 'on-demand', formats: [{ format: 'jpg', url: '/back.jpg', width: W, height: H }] };
+  const db = {
+    get: async (store: string, key: string) => {
+      if (store === 'asset-meta') return key === palette.id ? palette : key === photo.id ? photo : undefined;
+      if (store === 'asset-blob') {
+        if (key === `${palette.id}:json:1`) return new Blob([JSON.stringify({ treatments: LOOKS })]);
+        if (key === `${photo.id}:jpg:${photo.version}`) return rawImage('image/jpeg', SOURCE, W, H);
+      }
+      return undefined;
+    },
+    getAll: async (store: string) => (store === 'asset-meta' ? [palette, photo] : []),
+  };
+  const api = createAssetsAPI(db as never);
+  await assert.rejects(api.get(`${photo.id}?treatment=grade`), { code: 'WEBGPU_REQUIRED' });
+  const plain = await api.get(photo.id);
+  assert.deepEqual(await bakedPixels(plain.url), SOURCE, 'the original photo remains available');
+});
+
+test('greyscale and duotone looks on an inline picture carry their own recipes and need WebGPU', async () => {
+  const bytes = new Uint8Array(await rawImage('image/jpeg', SOURCE, W, H).arrayBuffer());
+  const inline = `data:image/jpeg;base64,${Buffer.from(bytes).toString('base64')}`;
+  // Without a graphics device first, while the object URL cache holds no bake of this picture.
+  const bare = createAssetsAPI(fakeDb() as never);
+  for (const id of ['mono', 'duo']) {
+    await assert.rejects(bare.get(`${inline}?treatment=${id}`), { code: 'WEBGPU_REQUIRED' }, id);
+  }
+  const api = createAssetsAPI(fakeDb() as never, { bakePhotoLook: referenceBake });
+  bakes.length = 0;
+  for (const [id, recipe] of [['mono', 'greyscale-webgpu-v1'], ['duo', 'duotone-webgpu-v1']] as const) {
+    const ref = await api.get(`${inline}?treatment=${id}`);
+    assert.equal(ref.id, `${inline}?treatment=${id}`, `${id}: the treated id is kept`);
+    assert.equal(ref.meta?.treatment, id);
+    assert.equal(ref.meta?.lookRecipe, recipe, id);
+    const expected = SOURCE.slice();
+    applyPhotoLook(expected, W, H, LOOKS.find(look => look.id === id)!);
+    assert.deepEqual(await bakedPixels(ref.url), expected, id);
+    assert.equal((await api.get(`${inline}?treatment=${id}`)).url, ref.url, `${id}: a second resolve reuses the bake`);
+  }
+  assert.deepEqual(bakes.map(req => req.look.id), ['mono', 'duo']);
 });
