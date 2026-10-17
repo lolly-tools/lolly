@@ -60,7 +60,9 @@ Template, hyperlink base, application name and version, and document statistics
 from a new copy. Other application properties and Office content remain
 inspect-only. Property-dependent fields, bound controls and digital-signature data
 prevent cleanup; a field or relative link that uses one of the newer properties keeps
-that property. Audio, OCR and language-model expansion remain separate work.
+that property, and files with charts, pictures, shapes or embedded objects keep the
+application name and version. Audio, OCR and language-model expansion remain
+separate work.
 
 Jobs accept up to 100 files, 32 MiB each and 64 MiB total. Text inspection stops at
 1 MiB per file/value; ZIP inspection has a global 300-member limit, three archive
