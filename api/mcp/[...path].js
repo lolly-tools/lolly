@@ -152836,11 +152836,12 @@ function cleanJpeg(src) {
 function readPngFacts(bytes2) {
   const u326 = (o) => bytes2[o] * 16777216 + (bytes2[o + 1] << 16 | bytes2[o + 2] << 8 | bytes2[o + 3]);
   if (!isPng(bytes2) || bytes2.length < 33 || !startsWith2(bytes2.subarray(12), "IHDR")) throw refusal2("this PNG is damaged and cannot be placed on a page");
-  const facts2 = { width: u326(16), height: u326(20), ppiX: 0, ppiY: 0 };
+  const facts2 = { width: u326(16), height: u326(20), ppiX: 0, ppiY: 0, animated: false };
   let at = 33;
   for (let n7 = 0; n7 < 4096 && at + 12 <= bytes2.length; n7++) {
     const length2 = u326(at), type = bytes2.subarray(at + 4, at + 8);
     if (startsWith2(type, "IDAT") || startsWith2(type, "IEND")) break;
+    if (startsWith2(type, "acTL")) facts2.animated = true;
     if (startsWith2(type, "pHYs") && length2 === 9 && at + 17 <= bytes2.length && bytes2[at + 16] === 1) {
       facts2.ppiX = ppi(u326(at + 8) * 0.0254);
       facts2.ppiY = ppi(u326(at + 12) * 0.0254);
@@ -152908,6 +152909,7 @@ async function imagesToPdf(images, opts = {}) {
       if (orientation !== 1) turned++;
     } else if (isPng(input)) {
       const png = readPngFacts(input);
+      if (png.animated) throw refusal2(`image ${index2 + 1} is an animated PNG; save it as a still image first`);
       if (png.width * png.height > MAX_PNG_PIXELS) {
         throw refusal2(`image ${index2 + 1} has ${Math.round(png.width * png.height / 1e6)} million pixels; resize it below 40 million first`);
       }
@@ -153397,10 +153399,12 @@ var init_pdf_strip = __esm({
 // packages/node-shell/src/pdf-page-effects.ts
 var pdf_page_effects_exports = {};
 __export(pdf_page_effects_exports, {
+  cutCopyReferences: () => cutCopyReferences,
   pageEffects: () => pageEffects,
+  pointAnnotationsAt: () => pointAnnotationsAt,
   scanPageFeatures: () => scanPageFeatures
 });
-import { PDFArray as PDFArray5, PDFDict as PDFDict4, PDFName as PDFName4, PDFRawStream as PDFRawStream3, PDFRef as PDFRef4 } from "pdf-lib";
+import { PDFArray as PDFArray5, PDFCatalog, PDFDict as PDFDict4, PDFName as PDFName4, PDFNull, PDFPageLeaf, PDFPageTree, PDFRawStream as PDFRawStream3, PDFRef as PDFRef4, PDFStream as PDFStream2 } from "pdf-lib";
 function look2(ctx, o) {
   try {
     return ctx.lookup(o);
@@ -153534,6 +153538,100 @@ function scanPageFeatures(doc) {
   }
   return { bookmarks, signatures, pages };
 }
+function annotsOf(ctx, page3) {
+  return arrOf2(ctx, get3(page3, "Annots")) ?? [];
+}
+function isSignatureValue(o) {
+  if (!(o instanceof PDFDict4)) return false;
+  const type = o.get(PDFName4.of("Type"));
+  return type === PDFName4.of("Sig") || type === PDFName4.of("DocTimeStamp") || o.has(PDFName4.of("ByteRange"));
+}
+function cutCopyReferences(doc, indices) {
+  const ctx = doc.context;
+  const pages = doc.getPages();
+  const copied = /* @__PURE__ */ new Set();
+  for (const i of indices) if (pages[i]) copied.add(i);
+  const keptAnnots = /* @__PURE__ */ new Set(), otherAnnots = /* @__PURE__ */ new Set();
+  pages.forEach((page3, i) => {
+    for (const ref of annotsOf(ctx, page3.node)) if (ref instanceof PDFRef4) (copied.has(i) ? keptAnnots : otherAnnots).add(ref.tag);
+  });
+  for (const tag3 of keptAnnots) otherAnnots.delete(tag3);
+  const undo = [];
+  const remove = (dict, key2, value) => {
+    dict.delete(key2);
+    undo.push(() => {
+      dict.set(key2, value);
+    });
+  };
+  const restore = () => {
+    for (let k = undo.length - 1; k >= 0; k--) undo[k]();
+  };
+  for (const i of copied) {
+    for (const ref of annotsOf(ctx, pages[i].node)) {
+      const link = dictOf3(ctx, ref);
+      if (!link || nameOf3(ctx, get3(link, "Subtype")) !== "Link") continue;
+      const dest = get3(link, "Dest");
+      if (dest && look2(ctx, dest) instanceof PDFArray5) remove(link, PDFName4.of("Dest"), dest);
+      const actionRef = get3(link, "A");
+      const action = dictOf3(ctx, actionRef);
+      if (actionRef && action && nameOf3(ctx, get3(action, "S")) === "GoTo" && look2(ctx, get3(action, "D")) instanceof PDFArray5) remove(link, PDFName4.of("A"), actionRef);
+    }
+  }
+  const cut = (value) => {
+    if (value instanceof PDFRef4 && otherAnnots.has(value.tag)) return true;
+    const target2 = look2(ctx, value);
+    return target2 instanceof PDFPageLeaf || target2 instanceof PDFPageTree || target2 instanceof PDFCatalog || isSignatureValue(target2);
+  };
+  const seen = /* @__PURE__ */ new Set();
+  const pending3 = [];
+  const follow2 = (value) => {
+    const target2 = look2(ctx, value);
+    if ((target2 instanceof PDFDict4 || target2 instanceof PDFArray5 || target2 instanceof PDFStream2) && !seen.has(target2)) {
+      seen.add(target2);
+      pending3.push(target2);
+    }
+  };
+  const walkDict = (dict, skipParent) => {
+    for (const [key2, value] of dict.entries()) {
+      if (skipParent && key2 === PDFName4.of("Parent")) continue;
+      if (cut(value)) remove(dict, key2, value);
+      else follow2(value);
+    }
+  };
+  for (const i of copied) {
+    const node = pages[i].node;
+    seen.add(node);
+    walkDict(node, true);
+    for (const key2 of PDFPageLeaf.InheritableEntries) {
+      if (node.get(PDFName4.of(key2)) !== void 0) continue;
+      const value = node.getInheritableAttribute(PDFName4.of(key2));
+      if (value) follow2(value);
+    }
+  }
+  while (pending3.length) {
+    const object4 = pending3.pop();
+    if (object4 instanceof PDFArray5) {
+      for (let k = 0; k < object4.size(); k++) {
+        const value = object4.get(k);
+        if (cut(value)) {
+          object4.set(k, PDFNull);
+          undo.push(() => {
+            object4.set(k, value);
+          });
+        } else {
+          follow2(value);
+        }
+      }
+    } else {
+      walkDict(object4 instanceof PDFStream2 ? object4.dict : object4, false);
+    }
+  }
+  return restore;
+}
+function pointAnnotationsAt(page3) {
+  const ctx = page3.doc.context;
+  for (const ref of annotsOf(ctx, page3.node)) dictOf3(ctx, ref)?.set(PDFName4.of("P"), page3.ref);
+}
 function say(n7, one, many) {
   return n7 === 1 ? one : many.replace("#", String(n7));
 }
@@ -153582,7 +153680,7 @@ function pageEffects(docs, outputPages, inPlace) {
       feature: "signatures",
       count: signatures,
       outcome: "removed",
-      message: say(signatures, "1 digital signature does not carry over, so the new PDF is unsigned.", "# digital signatures do not carry over, so the new PDF is unsigned.")
+      message: say(signatures, "1 digital signature is removed, so the new PDF is unsigned.", "# digital signatures are removed, so the new PDF is unsigned.") + " A visible signature stamp can still show on its page."
     });
   }
   return effects;
@@ -153903,18 +154001,26 @@ async function organizePdf(bytes2, opts) {
   ];
   const beforeBytes = input.length + extras.reduce((sum, part) => sum + part.length, 0);
   const extraDocs = await Promise.all(extras.map(loadEditablePdf));
-  const { scanPageFeatures: scanPageFeatures2, pageEffects: pageEffects2 } = await Promise.resolve().then(() => (init_pdf_page_effects(), pdf_page_effects_exports));
+  const { scanPageFeatures: scanPageFeatures2, pageEffects: pageEffects2, cutCopyReferences: cutCopyReferences2, pointAnnotationsAt: pointAnnotationsAt2 } = await Promise.resolve().then(() => (init_pdf_page_effects(), pdf_page_effects_exports));
   const features = [primary, ...extraDocs].map(scanPageFeatures2);
   const effects = (pages, inPlace = false) => pageEffects2(features, pages, inPlace);
+  const copyInto = async (target2, from, indices) => {
+    const restore = cutCopyReferences2(from, indices);
+    let copies;
+    try {
+      copies = await target2.copyPages(from, indices);
+    } finally {
+      restore();
+    }
+    for (const page3 of copies) {
+      target2.addPage(page3);
+      pointAnnotationsAt2(page3);
+    }
+  };
   if (extraDocs.length) {
     const combined = await PDFDocument4.create({ updateMetadata: false });
     await copyPdfInfo(source, combined);
-    for (const doc of [primary, ...extraDocs]) {
-      const copied2 = await combined.copyPages(doc, doc.getPageIndices());
-      copied2.forEach((page3) => {
-        combined.addPage(page3);
-      });
-    }
+    for (const doc of [primary, ...extraDocs]) await copyInto(combined, doc, doc.getPageIndices());
     source = combined;
   }
   const beforePages = source.getPageCount();
@@ -153927,10 +154033,7 @@ async function organizePdf(bytes2, opts) {
     for (const group of groups) {
       const doc = await PDFDocument4.create({ updateMetadata: false });
       await copyPdfInfo(source, doc);
-      const pages = await doc.copyPages(source, group.map((n7) => n7 - 1));
-      pages.forEach((page3) => {
-        doc.addPage(page3);
-      });
+      await copyInto(doc, source, group.map((n7) => n7 - 1));
       const part = await save(doc);
       files.push({ bytes: part, pages: group });
       afterBytes += part.length;
@@ -153996,10 +154099,7 @@ async function organizePdf(bytes2, opts) {
   }
   const output = await PDFDocument4.create({ updateMetadata: false });
   await copyPdfInfo(source, output);
-  const copied = await output.copyPages(source, order.map((n7) => n7 - 1));
-  copied.forEach((page3) => {
-    output.addPage(page3);
-  });
+  await copyInto(output, source, order.map((n7) => n7 - 1));
   const out = await save(output);
   const verb = operation === "delete" ? `Deleted ${beforePages - order.length} page${beforePages - order.length === 1 ? "" : "s"}` : operation === "extract" ? `Extracted ${order.length} page${order.length === 1 ? "" : "s"}` : `Reordered ${order.length} pages`;
   return {
@@ -154060,7 +154160,7 @@ async function stampPdf(bytes2, opts) {
 }
 async function lockPdf(bytes2, password) {
   if (!password) throw pdfRefusal("a non-empty open password is required");
-  const { PDFDocument: PDFDocument4, PDFString: PDFString3, PDFHexString: PDFHexString3, PDFRawStream: PDFRawStream5, PDFStream: PDFStream2, PDFDict: PDFDict7, PDFArray: PDFArray8 } = await import("pdf-lib");
+  const { PDFDocument: PDFDocument4, PDFString: PDFString3, PDFHexString: PDFHexString3, PDFRawStream: PDFRawStream5, PDFStream: PDFStream3, PDFDict: PDFDict7, PDFArray: PDFArray8 } = await import("pdf-lib");
   const doc = await PDFDocument4.load(bytes2, { updateMetadata: false });
   const ctx = doc.context;
   const rnd = (n7) => globalThis.crypto.getRandomValues(new Uint8Array(n7));
@@ -154111,7 +154211,7 @@ async function lockPdf(bytes2, password) {
     }
   };
   for (const [ref, value] of ctx.enumerateIndirectObjects()) {
-    if (value instanceof PDFStream2) {
+    if (value instanceof PDFStream3) {
       const encrypted = await encryptObjectBytes(fileKey, rnd(16), new Uint8Array(value.getContents()));
       await walk2(value.dict);
       ctx.assign(ref, PDFRawStream5.of(value.dict, encrypted));
@@ -159413,7 +159513,7 @@ function printGeometryForSize(trimWpt, trimHpt, opts, paletteSource) {
   return computePrintGeometry({ trimWpt, trimHpt, bleedPt, marks, palette, barStyle: opts.barStyle, barRadiusPt: opts.barRadiusPt });
 }
 async function encryptPdfStrong(blob, password) {
-  const { PDFDocument: PDFDocument4, PDFString: PDFString3, PDFHexString: PDFHexString3, PDFRawStream: PDFRawStream5, PDFStream: PDFStream2, PDFDict: PDFDict7, PDFArray: PDFArray8 } = await import("pdf-lib");
+  const { PDFDocument: PDFDocument4, PDFString: PDFString3, PDFHexString: PDFHexString3, PDFRawStream: PDFRawStream5, PDFStream: PDFStream3, PDFDict: PDFDict7, PDFArray: PDFArray8 } = await import("pdf-lib");
   const doc = await PDFDocument4.load(new Uint8Array(await blob.arrayBuffer()), { updateMetadata: false });
   const ctx = doc.context;
   const rnd = (n7) => globalThis.crypto.getRandomValues(new Uint8Array(n7));
@@ -159468,7 +159568,7 @@ async function encryptPdfStrong(blob, password) {
     }
   };
   for (const [ref, obj3] of ctx.enumerateIndirectObjects()) {
-    if (obj3 instanceof PDFStream2) {
+    if (obj3 instanceof PDFStream3) {
       const ct = await encryptObjectBytes(fileKey, rnd(16), new Uint8Array(obj3.getContents()));
       await walk2(obj3.dict);
       ctx.assign(ref, PDFRawStream5.of(obj3.dict, ct));

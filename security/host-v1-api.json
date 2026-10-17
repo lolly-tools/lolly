@@ -740,7 +740,7 @@
     "PdfAPI": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "16864a3d678faace239453e40f146f13e14fedc2aecfbd1f600f844c7c7ff871"
+      "sha256": "d7f3bbd797bd38b7fe1cebeb734ce84f2be58cf1cb5b7a31aa1fadd0e5a7e091"
     },
     "PdfPageOperation": {
       "module": "pdf.ts",

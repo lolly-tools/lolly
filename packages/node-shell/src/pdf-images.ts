@@ -12,9 +12,11 @@
  * block becomes the image's placement matrix, so a portrait phone photo is
  * upright on its page.
  *
- * A PNG goes through pdf-lib's embedPng, which copies the decoded pixels
- * losslessly (alpha becomes a soft mask). Other formats are refused: the Pages
- * tool converts them with host.images first.
+ * A PNG goes through pdf-lib's embedPng, which decodes it to 8-bit RGB with
+ * any alpha as a soft mask. 8-bit pixels are copied without loss; 16-bit
+ * samples are reduced to 8 bits, and the colour profile, gamma and other chunks
+ * are not kept. pdf-lib cannot place an animated PNG, so one is refused by
+ * name, like other formats: the Pages tool converts them with host.images first.
  */
 import type { PDFDocument as PDFDocumentType, PDFImage } from 'pdf-lib';
 import type { PdfImageInput, PdfImagePageSize, PdfImagesOpts, PdfImagesResult } from '@lolly-tools/core/host-v1';
@@ -172,16 +174,24 @@ export function cleanJpeg(src: Uint8Array): CleanJpeg {
   };
 }
 
-interface PngFacts { width: number; height: number; ppiX: number; ppiY: number }
+interface PngFacts {
+  width: number;
+  height: number;
+  ppiX: number;
+  ppiY: number;
+  /** An APNG: an acTL chunk comes before the first IDAT. */
+  animated: boolean;
+}
 
 export function readPngFacts(bytes: Uint8Array): PngFacts {
   const u32 = (o: number): number => bytes[o]! * 0x1000000 + ((bytes[o + 1]! << 16) | (bytes[o + 2]! << 8) | bytes[o + 3]!);
   if (!isPng(bytes) || bytes.length < 33 || !startsWith(bytes.subarray(12), 'IHDR')) throw refusal('this PNG is damaged and cannot be placed on a page');
-  const facts: PngFacts = { width: u32(16), height: u32(20), ppiX: 0, ppiY: 0 };
+  const facts: PngFacts = { width: u32(16), height: u32(20), ppiX: 0, ppiY: 0, animated: false };
   let at = 33;
   for (let n = 0; n < 4096 && at + 12 <= bytes.length; n++) {
     const length = u32(at), type = bytes.subarray(at + 4, at + 8);
     if (startsWith(type, 'IDAT') || startsWith(type, 'IEND')) break;
+    if (startsWith(type, 'acTL')) facts.animated = true;
     if (startsWith(type, 'pHYs') && length === 9 && at + 17 <= bytes.length && bytes[at + 16] === 1) {
       facts.ppiX = ppi(u32(at + 8) * 0.0254);
       facts.ppiY = ppi(u32(at + 12) * 0.0254);
@@ -253,6 +263,7 @@ export async function imagesToPdf(images: PdfImageInput[], opts: PdfImagesOpts =
       if (orientation !== 1) turned++;
     } else if (isPng(input)) {
       const png = readPngFacts(input);
+      if (png.animated) throw refusal(`image ${index + 1} is an animated PNG; save it as a still image first`);
       if (png.width * png.height > MAX_PNG_PIXELS) {
         throw refusal(`image ${index + 1} has ${Math.round(png.width * png.height / 1e6)} million pixels; resize it below 40 million first`);
       }

@@ -24,11 +24,21 @@ function ascii(b, at, text) {
   for (var i = 0; i < text.length; i++) if (b[at + i] !== text.charCodeAt(i)) return false;
   return true;
 }
-// PNG and JPEG go onto a page as they are. Other image formats are converted
-// to PNG with host.images first.
+// An APNG announces its animation in an acTL chunk before the first IDAT.
+function animatedPng(b) {
+  for (var at = 8, n = 0; n < 4096 && at + 8 <= b.length; n++) {
+    if (ascii(b, at + 4, 'acTL')) return true;
+    if (ascii(b, at + 4, 'IDAT')) return false;
+    at += 12 + b[at] * 16777216 + (b[at + 1] << 16) + (b[at + 2] << 8) + b[at + 3];
+  }
+  return false;
+}
+// PNG and JPEG go onto a page as they are. Other image formats, and an animated
+// PNG (which becomes its still picture), are converted to PNG with host.images
+// first.
 function fileKind(f) {
   var b = f.bytes;
-  if (b.length > 8 && b[0] === 0x89 && ascii(b, 1, 'PNG')) return 'image';
+  if (b.length > 8 && b[0] === 0x89 && ascii(b, 1, 'PNG')) return animatedPng(b) ? 'convert' : 'image';
   if (b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image';
   if (pdfMagic(b)) return 'pdf';
   if (ascii(b, 0, 'GIF8') || (ascii(b, 0, 'RIFF') && ascii(b, 8, 'WEBP')) || ascii(b, 4, 'ftyp') || ascii(b, 0, 'BM')
@@ -84,11 +94,14 @@ function documentFor(host, f, v) {
   if (!cache.has(k)) {
     var made = Promise.resolve().then(function () {
       if (kind !== 'convert') return { bytes: f.bytes, converted: false };
-      if (!host.images || typeof host.images.encode !== 'function') throw new Error((f.name || 'This image') + ' must be a PNG or JPEG in this app.');
-      return host.images.encode(f.bytes, { format: 'png' }).then(function (r) { return { bytes: r.bytes, converted: true }; });
+      var animated = f.bytes[0] === 0x89 && ascii(f.bytes, 1, 'PNG');
+      if (!host.images || typeof host.images.encode !== 'function') {
+        throw new Error((f.name || 'This image') + (animated ? ' is an animated PNG; save it as a still image first.' : ' must be a PNG or JPEG in this app.'));
+      }
+      return host.images.encode(f.bytes, { format: 'png' }).then(function (r) { return { bytes: r.bytes, converted: !animated, animated: animated }; });
     }).then(function (picture) {
       return host.pdf.fromImages([{ bytes: picture.bytes }], opts).then(function (r) {
-        return { bytes: r.bytes, image: true, converted: picture.converted, turned: r.turned || 0,
+        return { bytes: r.bytes, image: true, converted: picture.converted, animated: !!picture.animated, turned: r.turned || 0,
           metadataLeftOut: r.metadataLeftOut || 0, extraPicturesLeftOut: r.extraPicturesLeftOut || 0 };
       });
     });
@@ -102,8 +115,10 @@ function imageNotes(docs) {
   var count = function (pick) { return docs.reduce(function (n, d) { return n + (pick(d) ? 1 : 0); }, 0); };
   var converted = count(function (d) { return d.converted; }), turned = count(function (d) { return d.turned; });
   var stripped = count(function (d) { return d.metadataLeftOut; }), extra = count(function (d) { return d.extraPicturesLeftOut; });
+  var animated = count(function (d) { return d.animated; });
   var notes = [];
   if (converted) notes.push({ outcome: 'kept', message: 'Converted ' + plural(converted, 'image') + ' to PNG before placing ' + (converted === 1 ? 'it.' : 'them.') });
+  if (animated) notes.push({ outcome: 'removed', message: 'Placed ' + plural(animated, 'animated PNG') + ' as a still picture, without the animation.' });
   if (turned) notes.push({ outcome: 'kept', message: 'Turned ' + plural(turned, 'photo') + ' upright using the camera orientation.' });
   if (stripped) notes.push({ outcome: 'removed', message: 'Left out photo details such as location and camera data from ' + plural(stripped, 'image') + '.' });
   if (extra) notes.push({ outcome: 'removed', message: 'Left out extra pictures stored after the main image in ' + plural(extra, 'file') + '.' });
