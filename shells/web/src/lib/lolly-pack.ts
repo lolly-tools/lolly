@@ -796,7 +796,8 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
   const byReferenceCount = assets.filter(a => a.kind === 'asset-ref').length;
   const assetCount = assets.length - byReferenceCount;
   // A font file is recorded by address, and an address can carry a signed query.
-  // Root-relative paths and asset ids pass unchanged, so a rebuild still finds them.
+  // An asset id passes unchanged and a shell path keeps its readable path, so a
+  // rebuild still finds them.
   const fonts = (input.fonts ?? []).map(font => (font.file ? { ...font, file: portableLink(font.file) } : font));
 
   // Integrity over every payload part (session + blobs + tool files), BEFORE the
@@ -845,7 +846,10 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
   const report = await buildPortabilityReport(portabilitySources(
     { ...body, ...(integrity ? { integrity } : {}) },
     path => Object.hasOwn(entries, path),
-    { ...(input.toolTrust ? { toolTrust: input.toolTrust } : {}), links },
+    // With no resolveLibrary (a Projects batch download, scripts/pack-project.ts) no
+    // catalog was asked for bytes, so a catalog asset travels by its id rather than
+    // going missing.
+    { ...(input.toolTrust ? { toolTrust: input.toolTrust } : {}), links, catalogByReference: !input.resolveLibrary },
   ));
   const reportBytes = strToU8(JSON.stringify(report, null, 2));
   entries[PORTABILITY_PART] = reportBytes;
@@ -1261,7 +1265,9 @@ function lollyReadme(manifest: LollyManifest, summary: LollySummary): string {
       `${PORTABILITY_PART} lists every dependency this design needs: the tool, assets, fonts,`,
       'design system and links. Each one is embedded in this file (with its checksum),',
       'available from the reader\'s own catalog, linked from an address, withheld by a',
-      'rule, or missing, with the reason. It never holds a password, token or signed address.');
+      'rule, or missing, with the reason. Each address in it loses any user name,',
+      'password, query and fragment, and a key-shaped path segment reads {redacted}.',
+      'The rule looks only at the characters of a segment, so a short key can remain.');
   }
   if (manifest.bundledTool) {
     lines.push('', `This file includes the tool itself (under tool/), so it opens even on a`,
@@ -1399,13 +1405,14 @@ const CONTAINER_TOOL_IDS: ReadonlySet<string> = new Set([LOLLY_PROJECT_TOOL_ID, 
 /**
  * What the portability report is built from, read off a manifest. The builder and
  * the reader share it: the builder adds what only the sender knows (the trust of a
- * tool left out, the links its document held), and a file written before the report
- * existed is described by the same rules from what its manifest records.
+ * tool left out, the links its document held, whether a catalog was asked for bytes),
+ * and a file written before the report existed is described by the same rules from
+ * what its manifest records.
  */
 function portabilitySources(
   manifest: Omit<LollyManifest, 'portability'>,
   has: (path: string) => boolean,
-  extra: { toolTrust?: LollyToolTrust; links?: { links: LollyPortabilitySources['links']; truncated: boolean } } = {},
+  extra: { toolTrust?: LollyToolTrust; links?: { links: LollyPortabilitySources['links']; truncated: boolean }; catalogByReference?: boolean } = {},
 ): LollyPortabilitySources {
   const tools: Array<{ id: string; version?: string; trust?: LollyToolTrust }> = [];
   if (manifest.kind === 'project') {
@@ -1434,6 +1441,7 @@ function portabilitySources(
     ...(Array.isArray(manifest.fonts) ? { fonts: manifest.fonts } : {}),
     parts,
     ...(extra.links ? { links: extra.links.links, linksTruncated: extra.links.truncated } : {}),
+    ...(extra.catalogByReference ? { catalogByReference: true } : {}),
   };
 }
 
@@ -1457,7 +1465,12 @@ export async function readLollyPortability(contents: LollyFileContents): Promise
     sessions: contents.project?.sessions.map(entry => entry.data),
     templates: contents.templates.map(template => template.values),
   });
-  return buildPortabilityReport(portabilitySources(manifest, path => !!files[path], { links }));
+  // An older file does not record whether the sender asked a catalog for bytes. Only
+  // an asked catalog carries a catalog asset or holds one back, so when the file shows
+  // neither, its catalog references are read as travelling by id.
+  const assets = Array.isArray(manifest.assets) ? manifest.assets : [];
+  const catalogAsked = assets.some(asset => asset.source === 'library' && (asset.kind === 'asset' || asset.licensed === true));
+  return buildPortabilityReport(portabilitySources(manifest, path => !!files[path], { links, catalogByReference: !catalogAsked }));
 }
 
 /**
