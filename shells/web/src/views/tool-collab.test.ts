@@ -640,3 +640,55 @@ test('a recovery copy written in a work room is counted by Sign out for the memb
     collab.teardown();
   }
 });
+
+// ── the room's archive replays on every connect (plans 300 and 303) ───────────
+
+test('reconnecting to a room whose archived copy is already on this device raises no draft and lets the room forget it', async () => {
+  // A plain reload or reconnect replays the room's archive through `recoveryIn`. The copy is
+  // already in the library, here written before copies recorded the account, which used to
+  // show "Recovery copy could not be saved here" on every reconnect.
+  const { recoveryOwner, RECOVERY_OWNER_KEY } = await import('../lib/collab-recovery-owner.ts');
+  const origin = dom.window.location.origin, at = new Date(Date.now() - 60_000).toISOString();
+  const saved = new Map<string, object>([['collab-recovery:archived-1', { headline: 'kept', [RECOVERY_OWNER_KEY]: { origin, account: '', at } }]]);
+  const writes: string[] = [];
+  const state = {
+    load: async (slot: string) => saved.get(slot) ?? null,
+    save: async (slot: string, value: object) => { writes.push(slot); saved.set(slot, value); },
+    delete: async (slot: string) => { saved.delete(slot); },
+    list: async () => [...saved.keys()].map(slot => ({ slot, toolId: 'qr-code', toolVersion: '1', updatedAt: new Date().toISOString() })),
+  };
+  const kept: string[] = [];
+  const archived = { id: 'archived-1', ops: [{ k: 'param', key: 'headline', value: 'kept', origin: { client: 'seed', clock: 0 } }] as CanvasOp[] };
+  const l = layout(), clock = fakeClock();
+  const transport = fakeHandle({
+    self: { clientId: 'ME', userId: 'usr_8f3a', account: 'u_ana', name: 'Ana' },
+    recoveryIn: { subscribe: fn => { fn(archived); return () => {}; } },
+    recoveryKept: id => { kept.push(id); },
+  });
+  const collab = await mountToolCollab({
+    handle: transport.handle,
+    runtime: fakeRuntime(),
+    toolManifest: { id: 'qr-code' },
+    host: null,
+    libraryHost: { state } as never,
+    stage: l.stage,
+    canvas: l.canvas,
+    sidebar: l.sidebar,
+    colors: [{ hex: '#aa0000', oklch: { l: 0.7, c: 0.12, h: 20 } }] as never,
+    now: clock.now,
+    setTimer: clock.setTimer,
+    clearTimer: clock.clearTimer,
+    raf: (fn) => { fn(); },
+  });
+  try {
+    for (let i = 0; i < 40 && !kept.length; i++) await new Promise(resolve => setTimeout(resolve, 0));
+    assert.deepEqual(kept, ['archived-1'], 'the room is told the library holds the copy');
+    const notice = l.stage.querySelector<HTMLElement>('.collab-recovery')!;
+    assert.equal(notice.hidden, true, 'no stage notice');
+    assert.doesNotMatch(notice.textContent ?? '', /could not be saved/);
+    assert.equal(recoveryOwner(saved.get('collab-recovery:archived-1'))?.account, 'u_ana', 'bound to the member, as Sign out looks it up');
+    assert.deepEqual(writes, ['collab-recovery:archived-1'], 'one write to bind it, and no second copy');
+  } finally {
+    collab.teardown();
+  }
+});
