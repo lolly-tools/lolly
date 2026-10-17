@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { assetViewerSource, detectedViewerKind, readAssetViewerResponse } from './asset-viewer-source.ts';
+import { assetViewerKind, assetViewerSource, detectedViewerKind, readAssetViewerResponse } from './asset-viewer-source.ts';
 test('the descriptor retains selected file identity and the original URL', () => {
   const ref = { id: 'ext/provider/asset?file=012345678901234567890123', type: 'data' as const, source: 'library' as const, format: 'pdf', version: 'revision-2', url: '/catalog/ext/provider/asset/attachment', meta: { thumbUrl: '/thumb', name: 'Second PDF' } };
   const descriptor = assetViewerSource(ref);
@@ -11,6 +11,13 @@ test('content recognition handles generic MIME and rejects misleading extensions
   assert.equal(detectedViewerKind(new TextEncoder().encode('%PDF-1.7\n')), 'pdf');
   assert.equal(detectedViewerKind(new TextEncoder().encode('wOF2rest')), 'font');
   assert.equal(detectedViewerKind(new TextEncoder().encode('not a font or PDF')), 'existing');
+});
+test('Type 1 fonts are fonts by extension and by header, while other PostScript stays converted', () => {
+  assert.equal(assetViewerKind('pfa'), 'font'); assert.equal(assetViewerKind('pfb'), 'font'); assert.equal(assetViewerKind('ttc'), 'font');
+  assert.equal(detectedViewerKind(new TextEncoder().encode('%!PS-AdobeFont-1.0: Example-Regular 001.000\n')), 'font');
+  const pfb = new Uint8Array([0x80, 0x01, 20, 0, 0, 0, ...new TextEncoder().encode('%!FontType1-1.0: Ex\n')]);
+  assert.equal(detectedViewerKind(pfb), 'font');
+  assert.equal(detectedViewerKind(new TextEncoder().encode('%!PS-Adobe-3.0 EPSF-3.0\n')), 'converted');
 });
 test('a streaming response without length is capped and cancelled', async () => {
   let cancelled = false;
