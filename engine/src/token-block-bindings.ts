@@ -97,7 +97,8 @@ export function readBlockRunBindings(raw: unknown): Record<string, BlockTokenBin
   return result;
 }
 
-function encodeBindings(links: Record<string, BlockTokenBinding>, runs: Record<string, BlockTokenBinding> = {}): string {
+/** Canonical metadata for links and run links, within the stored size limits. */
+export function encodeBindings(links: Record<string, BlockTokenBinding>, runs: Record<string, BlockTokenBinding> = {}): string {
   const all: Record<string, unknown> = { ...links };
   delete all[RUN_LINKS_KEY];
   if (Object.keys(runs).length) all[RUN_LINKS_KEY] = runs;
@@ -126,6 +127,8 @@ export function reconcileBlockTokenBindings(rows: InputValue[], metadataField: s
     const links = readBlockTokenBindings(row[metadataField]);
     let changed = false;
     for (const [field, link] of Object.entries(links)) if (!link.custom && !sameScalar(row[field], link.value)) {
+      // Composed text keeps whole typography under its own key and reconciles it itself.
+      if (link.adapter === 'typography' && !(field in row)) continue;
       links[field] = { ...link, custom: true }; changed = true;
     }
     // Dash overrides and the style form one consumer: an authored dash array wins

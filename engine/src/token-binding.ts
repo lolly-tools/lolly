@@ -3,7 +3,7 @@
 import type { TokenEntry } from './bridge/host-v1.ts';
 import { isAlias, toSwatch } from './tokens.ts';
 import { swatchFace } from './color-face.ts';
-import { parseDimension, toCssPx } from './units.ts';
+import { isUnit, toCssPx, type Dimension } from './units.ts';
 import { adaptTokenEntry, type TokenAdapter } from './token-consumer-adapters.ts';
 
 export interface TokenConsumer {
@@ -17,6 +17,13 @@ export interface TokenConsumer {
   colorTarget?: 'srgb' | 'display-p3' | 'rec2020';
 }
 export interface TokenBindingResult { status: 'linked' | 'unresolved' | 'incompatible'; value?: string | number; reason?: string; adapter?: TokenAdapter }
+
+/** Absolute dimensions, including zero and negative values such as letter spacing. The consumer range decides. */
+function tokenDimension(raw: unknown): Dimension | null {
+  const text = typeof raw === 'string' ? raw : raw && typeof raw === 'object' ? `${(raw as { value?: unknown }).value}${(raw as { unit?: unknown }).unit}` : '';
+  const match = text.trim().match(/^(-?(?:\d+(?:\.\d+)?|\.\d+))\s*([a-z]*)$/i), unit = (match?.[2] || 'px').toLowerCase();
+  return match && isUnit(unit) ? { value: Number(match[1]), unit } : null;
+}
 
 /** Consumer adapters validate types and units before a link can replace a literal. */
 export function resolveTokenBinding(entry: TokenEntry | undefined, consumer: TokenConsumer): TokenBindingResult {
@@ -49,8 +56,7 @@ export function resolveTokenBinding(entry: TokenEntry | undefined, consumer: Tok
   } else if (consumer.type === 'number') {
     if (entry.type === 'number' && typeof entry.value === 'number') value = entry.value;
     else if (entry.type === 'dimension') {
-      const raw = entry.value;
-      const dim = parseDimension(typeof raw === 'string' ? raw : raw && typeof raw === 'object' ? `${(raw as { value?: unknown }).value}${(raw as { unit?: unknown }).unit}` : '');
+      const dim = tokenDimension(entry.value);
       if (!dim) return bad('This field needs an absolute dimension. Relative units need an explicit reference context.');
       value = toCssPx(dim);
     } else return bad('This numeric field accepts number or absolute dimension tokens.');
