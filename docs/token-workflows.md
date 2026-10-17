@@ -157,7 +157,7 @@ Choosing a token opens a review before anything changes. Each row or session sho
 
 **Make custom** keeps each linked document at its own value and records the link for later. **Restore link** appears when every document records the same previous link, and its review selects those documents.
 
-In the Batch grid, a linked cell is shaded and its accessible name includes the token path. A value typed, pasted or filled over a linked cell becomes a custom value that records the link, as in a tool sidebar. Cell copy and CSV export carry the value shown, not the link. Rows opened from saved sessions keep the session's theme choices and recorded links, and render with those choices.
+In the Batch grid, a linked cell is shaded and its accessible name includes the token path. A value typed, picked, pasted or filled over a linked cell becomes a custom value that records the link, as in a tool sidebar. Cell copy and CSV export carry the value shown, not the link. Rows opened from saved sessions keep the session's theme choices and recorded links, and render with those choices.
 
 ## Reviewing changes
 

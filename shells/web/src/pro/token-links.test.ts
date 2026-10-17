@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Token links in the Batch grid: rows opened from sessions keep their token context,
- * linked cells show and copy the value they render, a value typed or pasted over a
- * link records it for Restore, and the Fill popover's Design token section writes
- * reviewed links into the rows in place.
+ * linked cells show and copy the value they render, a value typed, picked, filled or
+ * pasted over a link records it for Restore (so a later bulk link keeps it), and the
+ * Fill popover's Design token section writes reviewed links into the rows in place.
  *
  * Run directly:  node --import ./tests/css-stub.mjs --test shells/web/src/pro/token-links.test.ts
  */
@@ -26,11 +26,12 @@ Dlg.showModal = function (this: HTMLDialogElement) { this.setAttribute('open', '
 Dlg.close = function (this: HTMLDialogElement) { this.removeAttribute('open'); };
 
 const { rowFromToolSession } = await import('./folder-rows.ts');
-const { readCell, writeCell } = await import('./cell-data.ts');
+const { readCell, writeCell, writeControlValue, writeMappedRow } = await import('./cell-data.ts');
 const { batchToCsv } = await import('./io.ts');
 const { deriveColumns } = await import('./model.ts');
 const { bodyRow } = await import('./grid.ts');
 const { mountBatchTokenSection } = await import('./token-links.ts');
+const { planMemberLink } = await import('../lib/token-bulk-field.ts');
 
 const manifest = { id: 'poster', name: 'Poster', render: { width: 100, height: 100, formats: ['png'] }, inputs: [
   { id: 'gap', type: 'number', label: 'Gap', min: 0, max: 100 },
@@ -56,6 +57,31 @@ test('a linked cell copies and exports the value it shows, and a paste over it r
   assert.doesNotMatch(csv, /object|space\.gap/);
   assert.equal(writeCell(row, 'gap', '12'), true);
   assert.deepEqual(row.values, { gap: 12, __tokenLinks: { gap: '{space.gap}' } });
+});
+
+test('a value typed, picked or filled over a linked cell records the link, and a link clears the record', () => {
+  const row = { values: { gap: { ...linked }, ink: { ref: '{color.ink}', value: '#112233' } } as Record<string, unknown> };
+  writeControlValue(row, 'gap', 12);
+  writeControlValue(row, 'ink', '#ff0000');
+  assert.deepEqual(row.values, { gap: 12, ink: '#ff0000', __tokenLinks: { gap: '{space.gap}', ink: '{color.ink}' } });
+  writeControlValue(row, 'gap', 14);
+  assert.deepEqual(row.values.__tokenLinks, { gap: '{space.gap}', ink: '{color.ink}' }, 'a value over a value keeps the record');
+  writeControlValue(row, 'ink', { ref: '{color.ink}', value: '#112233' });
+  assert.deepEqual(row.values, { gap: 14, ink: { ref: '{color.ink}', value: '#112233' }, __tokenLinks: { gap: '{space.gap}' } });
+});
+
+test('a mapped paste over a linked cell records the link, so a later bulk link keeps that row', async () => {
+  const set = createTokenSet({ space: { gap: { $type: 'number', $value: 36 } } });
+  const host = { tokens: { get: async () => set } } as unknown as HostV1;
+  const pasted = { uid: 'a', toolId: 'poster', manifest, values: { gap: { ...linked }, ink: '#000000' } as Record<string, InputValue> };
+  const plain = { uid: 'b', toolId: 'poster', manifest, values: { gap: 4 } as Record<string, InputValue> };
+  assert.equal(writeMappedRow(pasted, ['12', 'Ada'], ['gap', null]), 1, 'an unmapped cell is skipped');
+  assert.equal(writeMappedRow(plain, ['12'], ['gap']), 1);
+  assert.deepEqual(pasted.values, { gap: 12, ink: '#000000', __tokenLinks: { gap: '{space.gap}' } });
+  assert.deepEqual(plain.values, { gap: 12 });
+  const member = (row: typeof plain) => ({ slot: row.uid, label: row.uid, tool: { manifest }, runtime: null, values: row.values, dirty: false });
+  const plan = await planMemberLink(host, [member(pasted), member(plain)], 'gap', '{space.gap}', false);
+  assert.deepEqual(plan.items.map(item => [item.key, item.status, item.include]), [['a', 'override', false], ['b', 'change', true]]);
 });
 
 test('the grid marks a linked cell and names its token for assistive technology', () => {

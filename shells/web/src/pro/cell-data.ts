@@ -2,7 +2,7 @@
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
 import { coerceCell } from './io.ts';
 import { UNITS, isTokenValue } from '@lolly/engine';
-import { flattenValue } from '../../../../engine/src/inputs.ts';
+import { flattenValue, type InputValue } from '../../../../engine/src/inputs.ts';
 import { writeStoredInput } from '../lib/token-bulk-link.ts';
 
 interface CellRow {
@@ -59,4 +59,31 @@ export function writeCell(row: CellRow, key: string, raw: string): boolean {
   const value = coerceCell(input, raw);
   if (value === undefined) return false;
   writeStoredInput(row.values, key, value); return true;
+}
+
+/**
+ * Write a value from a cell control, a colour pick or a Fill into one row. Scalar
+ * writes follow the engine's restore rule: a value over a token link records that
+ * link, so a later bulk link keeps it as an override; a link clears the record.
+ */
+export function writeControlValue(row: Pick<CellRow, 'values'>, key: string, value: InputValue | undefined): void {
+  writeStoredInput(row.values, key, value);
+}
+
+/**
+ * Write one pasted row whose cells are mapped to input ids (a header or column
+ * mapping, not position). Each cell is coerced by this row's own declaration, and
+ * cells it cannot take are skipped. Returns how many values were written.
+ */
+export function writeMappedRow(row: CellRow, cells: readonly string[], ids: readonly (string | null)[]): number {
+  const byId = new Map((row.manifest?.inputs ?? []).map(input => [input.id, input]));
+  let filled = 0;
+  cells.forEach((raw, c) => {
+    const id = ids[c];
+    const input = id ? byId.get(id) : undefined;
+    if (!input) return;
+    const value = coerceCell(input, raw);
+    if (value !== undefined) { writeControlValue(row, id!, value); filled++; }
+  });
+  return filled;
 }
