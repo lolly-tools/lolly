@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.262.0
+
+- `host.media.trim` takes optional `output` (`clip`, `poster` or `contact-sheet`), `image`, `sheetFrames`, `rotate`, `cut` (`exact` or `keyframe`), `maxShortEdge` and `targetBytes`. Shells that predate them ignore the fields; the Trim tool refuses a poster or contact sheet from such a shell instead of returning a clip.
+- `MediaTrimResult.report` says what happened to each source track (copied byte for byte, re-encoded with stable reason codes, or left out) and what was checked on the written bytes: sound against picture, which way up the picture is, declared colour information, displayed size and a size limit's outcome. A track the user kept is never left out silently; the web shell refuses with the reason instead.
+
 ## 1.261.0
 
 - Preserve selected-file identity in versioned resource dependencies and collect source credentials by the exact version used in an export.

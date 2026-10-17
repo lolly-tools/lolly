@@ -233,7 +233,6 @@
     "shells/web/src/bridge/identity.ts": 1,
     "shells/web/src/bridge/index.ts": 8,
     "shells/web/src/bridge/live-capture.ts": 1,
-    "shells/web/src/bridge/media-trim.ts": 4,
     "shells/web/src/bridge/media.ts": 1,
     "shells/web/src/bridge/mediabunny-mux.ts": 2,
     "shells/web/src/bridge/recorder.ts": 1,
