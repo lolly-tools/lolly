@@ -182,7 +182,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `color-tools.ts` | 727 | Colour tools: perceptual metrics and ramp math on top of brand-derive's OKLab core. | yes | `tests/color-tools.test.ts` | – |
 | `color-vision.ts` | 211 | Colour-vision-deficiency (CVD) simulation - Machado, Oliveira & Fernandes (2009). | yes | `tests/color-vision.test.ts` | – |
 | `color.ts` | 387 | Colour profiles for exports: platform-agnostic, no DOM, no network. | yes | `tests/color.test.ts` | – |
-| `colourway.ts` | 444 | Colourways: several lead colours in one design system (plans/319). | yes | `tests/colourway.test.ts` | – |
+| `colourway.ts` | 446 | Colourways: several lead colours in one design system (plans/319). | yes | `tests/colourway.test.ts` | – |
 | `compare-alignment.ts` | 36 | Unique-key matching keeps the longest common order instead of moving every later item. | no | none | – |
 | `compare-budget.ts` | 70 | Work and output limits shared by comparison algorithms. | no | `tests/compare-budget.test.ts` | – |
 | `compare-document.ts` | 79 | Extracted units retain their original locations and disclose ambiguous matching. | no | none | – |
@@ -576,7 +576,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `token-selection.ts` | 113 | Theme group selection, deterministic set precedence and bounded transport parsing. | yes | indirect | – |
 | `token-transition-bindings.test.ts` | 298 | Enter transitions keep a usable duration and curve across source and local edits. | no | none | – |
 | `token-workflows.test.ts` | 238 | Token workflow contracts across resolution, binding, recipes and pinned fonts. | no | none | – |
-| `tokens.ts` | 459 | Design tokens: a platform-agnostic DTCG model. | yes | `tests/tokens.test.ts` | – |
+| `tokens.ts` | 464 | Design tokens: a platform-agnostic DTCG model. | yes | `tests/tokens.test.ts` | – |
 | `tone-curve.ts` | 140 | tone-curve.ts - a photo tone curve: control points on the 0..255 scale, the text form an input stores them in, and the curve drawn through them. | no | indirect | – |
 | `tool-url.ts` | 173 | Lolly tool-URL recognition. | yes | `tests/tool-url.test.ts` | – |
 | `trusted-sites.ts` | 141 | Trusted sites (plan 288 section 5.3): the entries a person, a brand or an organisation lists as "may be contacted without asking", and the one matcher every consumer shares (the Sandbox's fetch-and-inline, a Design web… | no | `tests/trusted-sites.test.ts` | – |
