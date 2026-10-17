@@ -78,6 +78,20 @@ lolly validate ./poster.svg --rebuild ./poster.lolly
 
 The scope is narrow on purpose. Only `svg`, `emf`, `eps`, `dxf` and `csv` can be compared, because those are the formats whose output comes from the engine's own emitters and is byte-stable across a double render. Asking to rebuild a `png`, `jpg`, `webp` or `pdf` is refused with exit 2 rather than answered: raster and PDF output is laid out and rasterised by a browser engine whose version is part of the result, which is a [determinism](/info/determinism.html) question with a format-by-format answer. Content Credentials are switched off for the rebuild and stripped from the delivered SVG before comparing, since a credential is signed with a fresh key at a fresh timestamp and can never be byte-equal to itself.
 
+Before any rebuild, a `.lolly` says what it carries. Each file holds `portability.json`, one row for every dependency the design needs: the tool, each asset, each font face, the design system, the templates and any link. Every row has one of five statuses:
+
+| Status | What it means |
+|---|---|
+| `embedded` | The bytes are in the file, with the sha256 digest the file's integrity map vouches for. A carried tool records one digest over its whole file list. |
+| `available` | Not in the file, and a reader is expected to have it already: a tool the signed catalog lists, a catalog font recorded by its digest, a face that ships with Lolly. |
+| `linked` | Not in the file on purpose. The design fetches it from a web address, renders it again from a Lolly tool link, or reads it from an organisation server each time it opens. |
+| `withheld` | The sender had the bytes and a rule kept them out: a brand lock, a licence condition, or no licence recorded. `CREDITS.txt` gives the same reason. |
+| `missing` | The design needs it and nothing supplies it: an upload that was no longer on the sending device, catalog bytes the sender could not read, a custom tool left out of the file, a temporary address. |
+
+The report never holds a password, a token or a signed address. A link keeps its scheme, host and path, and a long opaque path segment is replaced with `{redacted}`. The design's own values still hold the full address, because the design needs the address to draw. The manifest repeats the five totals, and `lolly.txt` prints them in plain text.
+
+The same report drives an offline check: open the file on an empty profile with networking turned off, and each dependency comes back `ready`, `needs-network`, `held-back`, `unavailable` or `damaged` (the report says a dependency is carried and the bytes disagree). The check reads the file and asks the receiving device what it already has. It never fetches anything.
+
 One more honest limit: the rebuild renders through the CLI. A file exported from the browser was serialised by the web shell, whose SVG writer is not byte-identical to the terminal's, so comparing one of those reports `content`. Compare a CLI export with the CLI, and use the reason list on a web export to see whether the engine, the tool or a font moved under it.
 
 ## The receipts
@@ -95,6 +109,8 @@ One more honest limit: the rebuild renders through the CLI. A file exported from
 | An artifact and its session rebuild to the same bytes, and a changed input reports why | `tests/reproducibility-rebuild.test.ts` |
 | A raster or PDF rebuild is refused rather than answered with a coin flip | `tests/reproducibility-rebuild.test.ts` - `a raster or PDF artifact is refused, not guessed at` |
 | A `.lolly` whose parts do not match its integrity map is refused before anything is believed | `tests/reproducibility-rebuild.test.ts` - `the node reader refuses a .lolly whose parts do not match its integrity map` |
+| A `.lolly` lists every dependency with its status and checksum, and holds no credential | `shells/web/src/lib/lolly-portability.test.ts` - `a .lolly carries a per-dependency report under the integrity map, with checksums` |
+| An empty profile with networking off opens what the file carries, reports the rest and makes no network request | `shells/web/src/lib/lolly-portability.test.ts` - `an empty profile with networking off opens what the file carries and reports the rest` |
 
 ## Limits
 
