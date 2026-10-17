@@ -96,6 +96,12 @@
     "reason": "drop area: the Unpack PDF view's file well, wired in views/pdf-extract.ts"
   },
   {
+    "file": "shells/web/src/styles/parts/read-extract.css",
+    "rule": "H2",
+    "selector": ".rx-drop",
+    "reason": "drop area: the Read and extract file well, wired with dragover and drop in views/read-extract.ts"
+  },
+  {
     "file": "shells/web/src/styles/parts/rebrand-intake.css",
     "rule": "H2",
     "selector": ".rb-drop",

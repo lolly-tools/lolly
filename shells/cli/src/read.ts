@@ -18,14 +18,21 @@
  * `--thumbnails` (with `--media`) also draws each slide as a PNG there, recorded as the
  * slide's `thumbnail`.
  *
+ * `--extract` writes the file as blocks in reading order instead (plan 203, rank 10):
+ * the engine's `readExtract` over the same inventory, bounded by `--pages` and
+ * `--max-chars` and continued with `--from`, as plain text, Markdown (`--markdown`) or
+ * a `ReadExtractV1` envelope (`--json`). `--ocr` reads the text of pages that are
+ * pictures with the text recognition model on this machine, and never downloads the model.
+ *
  * Needs no catalog and no browser: the verb is content-free.
  */
 
 import { readFile, stat } from 'node:fs/promises';
 import { basename, resolve } from 'node:path';
-import type { ContentInventoryV1 } from '@lolly-tools/core';
-import { ContentInventoryError, readContentInventory } from '@lolly-tools/node-shell/content-inventory';
-import { RebrandPipelineError } from '@lolly-tools/node-shell/rebrand';
+import type { ContentInventoryV1, ReadExtractV1 } from '@lolly-tools/core';
+import { extractMarkdown, extractPlainText, readExtract, ReadExtractError } from '@lolly/engine';
+import { ContentInventoryError, readContentInventory, type ReadInventoryInputV1 } from '@lolly-tools/node-shell/content-inventory';
+import { nodeFlattenedOcr, RebrandPipelineError } from '@lolly-tools/node-shell/rebrand';
 import { cleanControlChars } from '@lolly-tools/node-shell/verdict-report';
 import { CliError, EXIT, usageError } from './exit-codes.ts';
 import { emitResult } from './envelope.ts';
@@ -39,6 +46,18 @@ export interface ReadCliOptions {
   force?: boolean;
   /** Draw each slide as a PNG under `media`. */
   thumbnails?: boolean;
+  /** Read the text of pages that are pictures with the cached text recognition model. */
+  ocr?: boolean;
+  /** Write blocks in reading order (`ReadExtractV1`) instead of the inventory. */
+  extract?: boolean;
+  /** With `extract`: a page expression. */
+  pages?: string;
+  /** With `extract`: the character budget, as typed. */
+  maxChars?: string;
+  /** With `extract`: the block to continue from. */
+  from?: string;
+  /** With `extract`: Markdown rather than plain text. */
+  markdown?: boolean;
 }
 
 /** Exit and envelope kind for each reader failure code. */
@@ -107,21 +126,91 @@ export function inventoryOutline(inventory: ContentInventoryV1): string {
   return `${lines.join('\n')}\n`;
 }
 
+/**
+ * The extract's own text, with the control characters a crafted file could use to
+ * rewrite the terminal turned to spaces. Line breaks and tabs are the extract's
+ * structure, so they stay.
+ */
+const cleanText = (text: string): string => Array.from(text, (ch) => {
+  const code = ch.charCodeAt(0);
+  return (code < 0x20 && code !== 0x09 && code !== 0x0a) || (code >= 0x7f && code < 0xa0) ? ' ' : ch;
+}).join('');
+
+/** The extract flags, refused without `--extract` so a bound is never silently ignored. */
+function checkExtractFlags(opts: ReadCliOptions): number | undefined {
+  const given: Array<[string, unknown]> = [['pages', opts.pages], ['max-chars', opts.maxChars], ['from', opts.from], ['markdown', opts.markdown || undefined]];
+  if (!opts.extract) {
+    const stray = given.find(([, value]) => value !== undefined);
+    if (stray) throw usageError(`--${stray[0]} shapes the extract: add --extract.`, 'MISSING_ARGUMENT');
+    return undefined;
+  }
+  if (opts.markdown && opts.json) throw usageError('--markdown writes Markdown and --json writes the envelope; choose one.', 'CONFLICTING_FLAGS');
+  if (opts.maxChars === undefined) return undefined;
+  if (!/^[1-9][0-9]{0,9}$/.test(opts.maxChars)) throw usageError(`--max-chars takes a whole number of characters, such as 20000 (got "${opts.maxChars}").`, 'BAD_FLAG_VALUE');
+  return Number(opts.maxChars);
+}
+
+/** Text recognition for pages that are pictures, or the reason it cannot run here. Downloads nothing. */
+async function ocrRead(wanted: boolean | undefined): Promise<{ read: Pick<ReadInventoryInputV1, 'ocr' | 'ocrModel' | 'ocrMissing'>; unavailable?: string }> {
+  if (!wanted) return { read: {} };
+  const runner = await nodeFlattenedOcr();
+  if (runner.ok) return { read: { ocr: runner.ocr, ocrModel: runner.model } };
+  return { read: { ocrMissing: 'unavailable' }, unavailable: runner.message };
+}
+
+/** One line on standard error: what the extract holds, and where to continue. */
+function extractSummary(extract: ReadExtractV1, name: string): string {
+  const blocks = extract.blocks.length;
+  const pages = extract.request.pages;
+  const span = pages.length === extract.source.pages ? `${pages.length} page${pages.length === 1 ? '' : 's'}` : `page${pages.length === 1 ? '' : 's'} ${pages.join(', ')}`;
+  const recognised = extract.blocks.filter((b) => b.origin === 'recognized').length;
+  let summary = `Extracted ${blocks} block${blocks === 1 ? '' : 's'} (${extract.chars} characters) from ${span} of ${name}`;
+  if (recognised) summary += `, ${recognised} read by text recognition`;
+  summary += '.';
+  if (!extract.complete && extract.next) summary += ` Stopped at the budget: continue with --from=${extract.next}.`;
+  return summary;
+}
+
 export async function readCli(positionals: string[], opts: ReadCliOptions = {}): Promise<number> {
   if (positionals.length > 1) throw usageError(`lolly read takes one deck; got ${positionals.length}.`, 'TOO_MANY_ARGUMENTS');
   if (opts.media === '') throw usageError('--media needs a value: write --media=<folder>.', 'MISSING_FLAG_VALUE');
   if (opts.thumbnails && opts.media === undefined) throw usageError('--thumbnails writes beside the pictures: add --media=<folder>.', 'MISSING_ARGUMENT');
+  const maxChars = checkExtractFlags(opts);
   const { bytes, name } = await readSource(positionals[0] ?? '');
   const mediaDir = opts.media !== undefined ? resolve(process.cwd(), opts.media) : undefined;
+  const ocr = await ocrRead(opts.ocr);
+  if (ocr.unavailable) note(ocr.unavailable);
   let read: Awaited<ReturnType<typeof readContentInventory>>;
   try {
     read = await readContentInventory({
       bytes, name, ...(mediaDir ? { mediaDir } : {}), ...(opts.force ? { force: true } : {}), ...(opts.thumbnails ? { thumbnails: true } : {}),
+      ...ocr.read,
     });
   } catch (err) {
     throw asCliError(err);
   }
   const { inventory, written, reused } = read;
+  if (opts.extract) {
+    let extract: ReadExtractV1;
+    try {
+      extract = readExtract(inventory, {
+        ...(opts.pages !== undefined ? { pages: opts.pages } : {}),
+        ...(maxChars !== undefined ? { maxChars } : {}),
+        ...(opts.from !== undefined ? { from: opts.from } : {}),
+      });
+    } catch (err) {
+      if (err instanceof ReadExtractError) throw new CliError(err.message, EXIT.USAGE, kindOf(err.code), err.code);
+      throw err;
+    }
+    if (opts.json) {
+      await emitResult(extract);
+      return EXIT.OK;
+    }
+    await writeOut(cleanText(opts.markdown ? extractMarkdown(extract) : extractPlainText(extract)));
+    note(extractSummary(extract, clean(name)));
+    for (const w of extract.warnings) note(`Note (${clean(w.code)}): ${clean(w.message)}`);
+    return EXIT.OK;
+  }
   if (opts.json) {
     await emitResult(inventory);
     return EXIT.OK;

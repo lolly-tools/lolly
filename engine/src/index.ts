@@ -1194,7 +1194,16 @@ export type { DesignPathLayer, EdgeTraceOptions, TracedEdge } from './edge-trace
 // The content inventory (plan 291 W2): what a read deck says, slide by slide, projected
 // from the rebrand source and census. `lolly read`, `lolly_read` and `lolly check` share the one projection.
 export { inventoryFromSource } from './content-inventory.ts';
-export type { InventoryFromSourceOptsV1, InventoryMediaInputV1, InventoryNotesParaInputV1 } from './content-inventory.ts';
+export type { InventoryFromSourceOptsV1, InventoryMediaInputV1, InventoryNotesParaInputV1, InventoryRecognizerV1 } from './content-inventory.ts';
+// Read and extract (plan 203 rank 10): an inventory as blocks in reading order, bounded by pages and
+// a character budget, with recognised text kept apart from authored text; and its quality measures.
+export {
+  readExtract, parsePageSelection, originOfText, extractPlainText, extractMarkdown, ReadExtractError, ooxmlActiveContent,
+  activeContentWarnings,
+} from './read-extract.ts';
+export type { ReadExtractOptsV1, ReadExtractErrorCode, ActiveContentV1 } from './read-extract.ts';
+export { scoreExtract, characterErrorRate, wordErrorRate, editDistance, normaliseForScore, MATCH_CER } from './read-extract-quality.ts';
+export type { LabelledBlockV1, ExtractScoreV1 } from './read-extract-quality.ts';
 
 // Surface-aware logos and icons (plan 291 W4): `<id>?theme=auto` takes the variant the
 // surface under the layer asks for, through one resolver the runtime, check, compose and

@@ -409,6 +409,8 @@ const MIN_COLUMN_FILL = 0.25;
 const MAX_COLUMNS = 4;
 /** The structure tree is followed when it ranks at least this share of the text objects. */
 const MIN_TAGGED_SHARE = 0.6;
+/** A line set this much larger than the body is a heading, left out of the gutter search. */
+const HEADING_SIZES = 1.25;
 
 const idCmp = (a: SourceObjectV1, b: SourceObjectV1): number => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 
@@ -418,10 +420,18 @@ function median(xs: number[]): number {
   return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2;
 }
 
-/** Column cuts in px, or none when the page's text does not split believably. */
-function columnCuts(texts: SourceObjectV1[]): number[] {
+/**
+ * Column cuts in px, or none when the page's text does not split believably. A
+ * heading set larger than the body is left out of the search: a full-width title
+ * over two columns would otherwise cover the gutter, and the columns would be read
+ * across, line by line. The title then crosses the cut and keeps its own place.
+ */
+function columnCuts(all: SourceObjectV1[]): number[] {
+  if (all.length < MIN_COLUMN_LINES * 2) return [];
+  const sizeOf = (o: SourceObjectV1): number => (o.text?.paras[0]?.runs[0]?.sizePt ?? 12) * PX_PER_PT;
+  const body = median(all.map(sizeOf));
+  const texts = all.filter((o) => sizeOf(o) <= body * HEADING_SIZES);
   if (texts.length < MIN_COLUMN_LINES * 2) return [];
-  const body = median(texts.map((o) => (o.text?.paras[0]?.runs[0]?.sizePt ?? 12) * PX_PER_PT));
   const spans = texts.map((o) => [o.box.x, o.box.x + Math.max(1, o.box.w)] as const).sort((a, b) => a[0] - b[0]);
   const cuts: Array<{ x: number; gap: number }> = [];
   let reach = spans[0]![1];
