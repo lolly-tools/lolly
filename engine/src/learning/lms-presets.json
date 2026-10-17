@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "presets": [
+    {
+      "id": "website",
+      "version": 1,
+      "name": "Website",
+      "generic": true,
+      "aliases": ["Static website"],
+      "target": "static",
+      "launch": null,
+      "limits": { "packageMB": null, "stateChars": null },
+      "media": null,
+      "instructions": "Extract the ZIP and upload every file together to an HTTP(S) website, keeping the relative paths. Link to index.html.",
+      "documentation": null,
+      "evidence": []
+    },
+    {
+      "id": "other-scorm12",
+      "version": 1,
+      "name": "Other LMS",
+      "generic": true,
+      "aliases": [],
+      "target": "scorm12",
+      "launch": null,
+      "limits": { "packageMB": null, "stateChars": null },
+      "media": null,
+      "instructions": "Import the unopened ZIP as a SCORM 1.2 package in a test course.",
+      "documentation": null,
+      "evidence": []
+    },
+    {
+      "id": "other-scorm2004",
+      "version": 1,
+      "name": "Other LMS",
+      "generic": true,
+      "aliases": [],
+      "target": "scorm2004",
+      "launch": null,
+      "limits": { "packageMB": null, "stateChars": null },
+      "media": null,
+      "instructions": "Confirm that the LMS supports SCORM 2004 4th Edition, then import the unopened ZIP in a test course.",
+      "documentation": null,
+      "evidence": []
+    },
+    {
+      "id": "other-tincan",
+      "version": 1,
+      "name": "Other LMS",
+      "generic": true,
+      "aliases": [],
+      "target": "tincan",
+      "launch": null,
+      "limits": { "packageMB": null, "stateChars": null },
+      "media": null,
+      "instructions": "Import the unopened ZIP as a Tin Can package. The LMS launch must supply learner identity, registration and temporary LRS authorization.",
+      "documentation": null,
+      "evidence": []
+    },
+    {
+      "id": "other-cmi5",
+      "version": 1,
+      "name": "Other LMS",
+      "generic": true,
+      "aliases": [],
+      "target": "cmi5",
+      "launch": null,
+      "limits": { "packageMB": null, "stateChars": null },
+      "media": null,
+      "instructions": "Import the unopened ZIP as a cmi5 course. It needs a cmi5 launch and is not a Tin Can package.",
+      "documentation": null,
+      "evidence": []
+    },
+    {
+      "id": "litmos-scorm12",
+      "version": 1,
+      "name": "Litmos",
+      "generic": false,
+      "aliases": ["SAP Litmos"],
+      "target": "scorm12",
+      "launch": null,
+      "limits": { "packageMB": null, "stateChars": null },
+      "media": null,
+      "instructions": "Add the unopened ZIP to a test course as a SCORM 1.2 module. Record the import settings and launch mode used.",
+      "documentation": "https://www.litmos.com/platform/content-authoring/",
+      "evidence": []
+    },
+    {
+      "id": "moodle-scorm12",
+      "version": 1,
+      "name": "Moodle",
+      "generic": false,
+      "aliases": [],
+      "target": "scorm12",
+      "launch": null,
+      "limits": { "packageMB": null, "stateChars": null },
+      "media": null,
+      "instructions": "In a test course, add a SCORM package activity and upload the unopened ZIP. Moodle does not provide native SCORM 2004 support.",
+      "documentation": "https://docs.moodle.org/502/en/SCORM_FAQ",
+      "evidence": []
+    }
+  ]
+}

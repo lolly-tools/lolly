@@ -6,7 +6,7 @@ import type {
   LearningTarget,
 } from '@lolly-tools/core/learning-v1';
 import { learningSummary } from '../../../../../engine/src/learning/delivery.ts';
-import { exportMarkup } from './shared.ts';
+import { exportMarkup, presetNotice } from './shared.ts';
 import { courseFocus } from '../../lib/learning-ui.ts';
 import {
   checkLearningExportSize,
@@ -14,6 +14,13 @@ import {
   learningHandoff,
 } from '../../../../../engine/src/learning/preflight.ts';
 import { checkLearningModule } from '../../../../../engine/src/learning/module.ts';
+import {
+  learningPresetByRef,
+  learningPresetFor,
+  learningPresetRef,
+  learningPresetStatus,
+  learningPresetTarget,
+} from '../../../../../engine/src/learning/presets.ts';
 import {
   compileLearningModule,
   type CompiledLearning,
@@ -230,7 +237,10 @@ export function deliveryOps(ctx: LearningCtx): LearningCtx['delivery'] {
       await new Promise<void>((resolve) => setTimeout(resolve, 0));
       signal.throwIfAborted();
       const bytes = retainedBytes || buildLearningPackage(compiled, target);
-      checkLearningExportSize(bytes.length, settings.maxMB);
+      checkLearningExportSize(
+        bytes.length,
+        settings.maxMB || learningPresetFor(settings.destination, target).limits.packageMB || 0
+      );
       const digest = await hash(bytes);
       signal.throwIfAborted();
       if (fingerprint !== key())
@@ -305,7 +315,9 @@ export function deliveryOps(ctx: LearningCtx): LearningCtx['delivery'] {
         });
         const artifact = {
           target: prepared.target,
-          preset: prepared.target === 'static' ? 'browser-progress-v1' : 'unverified',
+          preset: learningPresetRef(
+            learningPresetFor(prepared.settings.destination, prepared.target)
+          ),
           filename,
           hash: prepared.hash,
           asset,
@@ -359,6 +371,9 @@ export function deliveryOps(ctx: LearningCtx): LearningCtx['delivery'] {
   const report = async () => {
     const artifact = saved?.artifacts.find((a) => a.target === ctx.target);
     if (!artifact || !saved) return;
+    // Versions saved before the registry record a plain label that no preset matches.
+    const preset = learningPresetByRef(artifact.preset);
+    const status = preset && learningPresetStatus(preset);
     const text = JSON.stringify(
       {
         schemaVersion: 1,
@@ -374,7 +389,23 @@ export function deliveryOps(ctx: LearningCtx): LearningCtx['delivery'] {
         summary: learningSummary(saved.snapshot),
         checks: checkLearningModule(saved.snapshot),
         handoff: learningHandoff(artifact.target),
-        compatibility: 'Receiving website or LMS acceptance testing is required.',
+        preset: preset
+          ? {
+              ref: artifact.preset,
+              name: preset.name,
+              target: preset.target,
+              status: status!.label,
+              launch: preset.launch,
+              limits: preset.limits,
+              media: preset.media,
+              instructions: preset.instructions,
+              documentation: preset.documentation,
+              evidence: preset.evidence,
+            }
+          : { ref: artifact.preset },
+        compatibility: status?.tested
+          ? `${status.detail} Test this tenant's settings before assigning learners.`
+          : `${status ? `${status.label}. ${status.detail} ` : ''}Receiving website or LMS acceptance testing is required.`,
       },
       null,
       2
@@ -425,32 +456,61 @@ export function deliveryOps(ctx: LearningCtx): LearningCtx['delivery'] {
     recovery.append(recoveryTitle, recoveryStatus);
     modal.el.querySelector('[data-learning-panel]')!.after(recovery);
     paint();
-    modal.el
-      .querySelector<HTMLElement>(
-        step === 0 ? '[data-delivery-target]' : `[data-delivery-step="${step}"]`
-      )
-      ?.focus();
-    modal.el.addEventListener('change', (event) => {
-      const el = event.target as HTMLInputElement;
-      if (ctx.checking || saving) return;
-      if (el.matches('[data-delivery-target]')) ctx.target = el.value as LearningTarget;
-      else if (el.matches('[data-delivery-name]')) ctx.exportSettings.destination = el.value;
-      else if (el.matches('[data-delivery-limit]')) ctx.exportSettings.maxMB = Number(el.value);
-      else return;
+    // The current step, not the LMS field, takes focus so a phone keyboard stays closed.
+    modal.el.querySelector<HTMLElement>(`[data-delivery-step="${step}"]`)?.focus();
+    const settingsChanged = () => {
       checked = undefined;
       saved = undefined;
       message = '';
       tone = 'info';
-      if (el.matches('[data-delivery-target]')) paint();
       void ctx.persistence
         .save()
         .catch((error) =>
           status(error instanceof Error ? error.message : 'Settings could not be saved.')
         );
+    };
+    // A listed LMS name selects its preset's format at once. The status changes in
+    // place rather than by repainting, so typing keeps the caret and a pending click.
+    const chooseDestination = (value: string): boolean => {
+      const before = ctx.target;
+      ctx.exportSettings.destination = value;
+      ctx.target = learningPresetTarget(value, ctx.target);
+      const root = modal?.el;
+      if (root) {
+        const notice = presetNotice(value, ctx.target);
+        const select = root.querySelector<HTMLSelectElement>('[data-delivery-target]');
+        if (select) select.value = ctx.target;
+        const box = root.querySelector<HTMLElement>('[data-delivery-preset]');
+        if (box) box.dataset.tone = notice.tone;
+        for (const [attr, text] of [
+          ['data-delivery-preset-label', notice.label],
+          ['data-delivery-preset-detail', notice.detail],
+          ['data-delivery-format', notice.format],
+        ] as const) {
+          const node = root.querySelector(`[${attr}]`);
+          if (node) node.textContent = text;
+        }
+        const limit = root.querySelector<HTMLInputElement>('[data-delivery-limit]');
+        if (limit) limit.placeholder = notice.limit;
+      }
+      return ctx.target !== before;
+    };
+    modal.el.addEventListener('change', (event) => {
+      const el = event.target as HTMLInputElement;
+      if (ctx.checking || saving) return;
+      if (el.matches('[data-delivery-target]')) ctx.target = el.value as LearningTarget;
+      else if (el.matches('[data-delivery-name]')) chooseDestination(el.value);
+      else if (el.matches('[data-delivery-limit]')) ctx.exportSettings.maxMB = Number(el.value);
+      else return;
+      settingsChanged();
+      if (el.matches('[data-delivery-target]')) paint();
     });
     modal.el.addEventListener('input', (event) => {
-      const el = event.target as HTMLTextAreaElement;
+      const el = event.target as HTMLInputElement | HTMLTextAreaElement;
       if (el.matches('[data-delivery-note]')) note = el.value;
+      else if (el.matches('[data-delivery-name]') && !ctx.checking && !saving) {
+        if (chooseDestination(el.value)) settingsChanged();
+      }
     });
     modal.el.addEventListener('click', (event) => {
       const el = (event.target as Element).closest<HTMLButtonElement>('button');

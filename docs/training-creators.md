@@ -133,11 +133,11 @@ In an LMS launch, **Save and exit** saves the current place and ends the session
 Review findings name the lesson and content item. Choose **Fix item** to open the relevant field. After a repair, **Export course** returns to **Review**; the updated content must pass a fresh package check.
 
 1. Choose **Export course** at the top of the course editor. The dialog guides you through **Destination**, **Review** and **Download**.
-2. Under **Destination**, select **Website**, a SCORM format, or an experimental xAPI format. You can record the receiving website or LMS name. Enter its upload limit in MB when known, or leave it blank. Choose **Review course** to continue.
+2. Under **Destination**, search the **LMS or website** list and choose a named LMS, **Website** or **Other LMS**. A named LMS selects its delivery format; any other name keeps the format you chose. **Delivery format** still lists every standard, so an administrator can pick the exact edition the receiving platform accepts. Enter the upload limit in MB when known, or leave it blank. Choose **Review course** to continue.
 3. Review the lesson counts, required and optional content, language and completion rule. Resolve the items marked **to fix**. **Fix item** takes you to the affected lesson or content. Review accessibility findings in learner preview.
 4. Choose **Check and prepare package**. Lolly resolves sources, renders their content and checks the exact ZIP size. A missing source, unsupported rendition or size limit stops the check. No content is silently dropped.
 5. A successful check opens **Download** with the exact package size. Review the handoff instructions and enter version notes, then choose **Save version and download ZIP**. Lolly stores that exact checked package on this device before requesting the download.
-6. Keep the ZIP and **Download handoff report** with the delivery record. The report includes the version, checksum, destination, size and remaining review items.
+6. Keep the ZIP and **Download handoff report** with the delivery record. The report includes the version, checksum, destination, LMS preset, size and remaining review items.
 
 The progress job offers cancellation. **Continue editing** closes the dialog while checking continues; changing the draft invalidates and cancels that check. Leaving the module cancels unfinished checking. Reopen **Export course** to see a completed check. Changing content, format or destination settings requires another check. Cancellation never creates a partial course package.
 
@@ -177,6 +177,12 @@ Litmos publicly lists SCORM 1.2, SCORM 2004 and xAPI/Tin Can support. That does 
 Ask a partner which format and edition they accept, their package size limit and which learner browsers they support. For example, Moodle documents SCORM 1.2 support and does not provide native SCORM 2004 support. [Moodle SCORM FAQ](https://docs.moodle.org/502/en/SCORM_FAQ).
 
 You do not enter LRS credentials in the authoring screen. An xAPI package expects the customer's LMS to provide launch authorization. A standalone xAPI ZIP opened outside that launch will not create a learning record. If the connection drops, the learner's browser keeps unsent progress where storage allows. The next launch of the same attempt from the LMS delivers the saved copy, unless the LMS already has newer progress.
+
+### LMS presets and the Tested label
+
+Each named LMS in the list is a preset: a versioned record that selects one delivery format and holds its import steps, any confirmed limits and its test evidence. A saved package records the preset and version it was built for. Choosing a preset does not change the course content or the files inside the package.
+
+The destination shows **Standard target** with "This LMS has not been tested" until a preset carries recorded evidence for that exact format and a named LMS version. **Tested** needs a recorded import, learner launch, media check, completion and resume. A successful ZIP import alone does not earn the label. **Website** and **Other LMS** are standard targets and never show **Tested**. No preset is marked **Tested** yet. When a preset records a confirmed upload limit, the package check uses it unless you enter your own. Presets never hold credentials, tenant addresses or learner details.
 
 ## Test in Litmos or a partner LMS
 
