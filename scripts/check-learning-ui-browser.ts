@@ -129,7 +129,7 @@ try {
   );
   await modal.locator('[data-delivery-step="0"]').click();
   await modal.getByLabel('Delivery format').selectOption('static');
-  await modal.getByLabel('Website or LMS name (optional)').fill('Partner portal');
+  await modal.getByLabel('LMS or website', { exact: true }).fill('Partner portal');
   await modal.getByLabel('Upload limit (MB, optional)').fill('20');
   await modal.getByRole('button', { name: 'Review course', exact: true }).click();
   await modal.getByRole('button', { name: 'Check and prepare package', exact: true }).click();
@@ -139,7 +139,7 @@ try {
   await modal.getByLabel('Version notes').fill('Initial partner course.');
   await modal.locator('[data-delivery-step="0"]').click();
   assert.equal(
-    await modal.getByLabel('Website or LMS name (optional)').inputValue(),
+    await modal.getByLabel('LMS or website', { exact: true }).inputValue(),
     'Partner portal'
   );
   await modal.getByLabel('Upload limit (MB, optional)').fill('25');

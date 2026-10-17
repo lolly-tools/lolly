@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import type { LearningTarget } from '@lolly-tools/core/learning-v1';
 import { newLearningModule } from '../../../../../engine/src/learning/module.ts';
-import { exportMarkup, presetNotice } from './shared.ts';
+import { destinationTarget, exportMarkup, presetNotice } from './shared.ts';
 
 const view = (step: number, destination: string, target: LearningTarget) =>
   new JSDOM(
@@ -74,6 +74,45 @@ test('the in-place notice matches the rendered one', () => {
     notice.limit
   );
   assert.equal(notice.limit, 'No limit supplied');
+});
+
+test('a name that matches a preset only part way gives the starting format back', () => {
+  for (const [typed, start, prefix, midway] of [
+    ['Moodle Workplace', 'scorm2004', 'Moodle', 'scorm12'],
+    ['Website builder', 'scorm12', 'Website', 'static'],
+  ] as const) {
+    const doc = view(0, '', start);
+    const root = doc.body.firstElementChild as HTMLElement;
+    const input = doc.querySelector<HTMLInputElement>('[data-delivery-name]')!;
+    const focus = (type: string) =>
+      input.dispatchEvent(new doc.defaultView!.FocusEvent(type, { bubbles: true }));
+    let target: LearningTarget = start;
+    const resolve = destinationTarget(root, () => target);
+    focus('focusin');
+    const seen = new Map<string, LearningTarget>();
+    // One resolution per keystroke, the way the input handler runs.
+    for (let i = 1; i <= typed.length; i++) {
+      target = resolve(typed.slice(0, i));
+      seen.set(typed.slice(0, i), target);
+    }
+    assert.equal(seen.get(prefix), midway, `${prefix} selects its preset's format`);
+    assert.equal(target, start, `${typed} keeps the format chosen before typing`);
+    // The change event that follows the last keystroke resolves to the same format.
+    focus('focusout');
+    assert.equal(resolve(typed), start);
+  }
+
+  // A listed name still selects its preset, and the next edit starts from that format.
+  const doc = view(0, '', 'scorm2004');
+  const input = doc.querySelector<HTMLInputElement>('[data-delivery-name]')!;
+  let target: LearningTarget = 'scorm2004';
+  const resolve = destinationTarget(doc.body.firstElementChild as HTMLElement, () => target);
+  input.dispatchEvent(new doc.defaultView!.FocusEvent('focusin', { bubbles: true }));
+  for (const value of ['M', 'Mo', 'Moodle']) target = resolve(value);
+  assert.equal(target, 'scorm12');
+  input.dispatchEvent(new doc.defaultView!.FocusEvent('focusout', { bubbles: true }));
+  input.dispatchEvent(new doc.defaultView!.FocusEvent('focusin', { bubbles: true }));
+  assert.equal(resolve('Moodle Workplace'), 'scorm12');
 });
 
 test('review and handoff carry the preset status and its import instructions', () => {

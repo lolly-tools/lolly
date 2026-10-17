@@ -107,6 +107,7 @@ import {
   learningPresetChoices,
   learningPresetFor,
   learningPresetStatus,
+  learningPresetTarget,
 } from '../../../../../engine/src/learning/presets.ts';
 import { icon } from '../../lib/icons.ts';
 import { targetLabel } from '../../lib/learning-ui.ts';
@@ -126,6 +127,23 @@ export function presetNotice(destination: string, target: LearningTarget) {
       ? `${preset.limits.packageMB} MB from the ${preset.name} preset`
       : 'No limit supplied',
   };
+}
+
+/**
+ * Resolves each LMS name edit in `root` from the format in place when the name field
+ * took focus, so a name that matches a preset only on the way to an unlisted name
+ * ("Moodle" in "Moodle Workplace") gives that format back.
+ */
+export function destinationTarget(root: HTMLElement, current: () => LearningTarget) {
+  let base: LearningTarget | undefined;
+  const isName = (event: Event) => (event.target as Element).matches('[data-delivery-name]');
+  root.addEventListener('focusin', (event) => {
+    if (isName(event)) base = current();
+  });
+  root.addEventListener('focusout', (event) => {
+    if (isName(event)) base = undefined;
+  });
+  return (name: string): LearningTarget => learningPresetTarget(name, base ?? current());
 }
 
 interface ExportView {

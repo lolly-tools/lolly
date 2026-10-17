@@ -6,7 +6,7 @@ import type {
   LearningTarget,
 } from '@lolly-tools/core/learning-v1';
 import { learningSummary } from '../../../../../engine/src/learning/delivery.ts';
-import { exportMarkup, presetNotice } from './shared.ts';
+import { destinationTarget, exportMarkup, presetNotice } from './shared.ts';
 import { courseFocus } from '../../lib/learning-ui.ts';
 import {
   checkLearningExportSize,
@@ -19,7 +19,6 @@ import {
   learningPresetFor,
   learningPresetRef,
   learningPresetStatus,
-  learningPresetTarget,
 } from '../../../../../engine/src/learning/presets.ts';
 import {
   compileLearningModule,
@@ -471,10 +470,11 @@ export function deliveryOps(ctx: LearningCtx): LearningCtx['delivery'] {
     };
     // A listed LMS name selects its preset's format at once. The status changes in
     // place rather than by repainting, so typing keeps the caret and a pending click.
+    const nameTarget = destinationTarget(modal.el, () => ctx.target);
     const chooseDestination = (value: string): boolean => {
       const before = ctx.target;
       ctx.exportSettings.destination = value;
-      ctx.target = learningPresetTarget(value, ctx.target);
+      ctx.target = nameTarget(value);
       const root = modal?.el;
       if (root) {
         const notice = presetNotice(value, ctx.target);
