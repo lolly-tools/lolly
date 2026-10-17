@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-import { mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
@@ -11,9 +11,18 @@ import {
   type LearningRenderable,
 } from '../../../engine/src/learning/delivery.ts';
 import { buildLearningPackage } from '../../../packages/learning-player/src/package.ts';
+import { assetIdForUrl } from '../../../engine/src/bake.ts';
+import type { AssetRef } from '../../../engine/src/bridge/host-v1.ts';
 import type { sessionToParams } from './rebuild.ts';
 import { emitResult } from './envelope.ts';
-import { CliError, errorKind, exitCodeFor, unavailableHere, usageError } from './exit-codes.ts';
+import {
+  CliError,
+  EXIT,
+  errorKind,
+  exitCodeFor,
+  unavailableHere,
+  usageError,
+} from './exit-codes.ts';
 import { note, writeOut } from './output.ts';
 
 const mimes: Record<string, string> = {
@@ -69,18 +78,53 @@ export const cliSessionRenderer: LearningSessionRenderer = {
   },
 };
 
-/** Files uploaded on the device that saved a session. Their bytes never travel in the module. */
-function deviceOnlyFiles(value: unknown, found = new Set<string>()): Set<string> {
-  if (typeof value === 'string') {
-    if (/^user\/\S+$/.test(value)) found.add(value);
-  } else if (Array.isArray(value)) {
-    for (const item of value) deviceOnlyFiles(item, found);
-  } else if (value && typeof value === 'object') {
-    const record = value as Record<string, unknown>;
-    if (record.source === 'user' && typeof record.id === 'string') found.add(record.id);
-    for (const item of Object.values(record)) deviceOnlyFiles(item, found);
+type SessionInput = { id: string; type: string; fields?: readonly { id: string; type?: string }[] };
+
+/**
+ * Files uploaded on the device that saved a session. Their bytes never travel in the
+ * module, and the serializer drops a `user/` id from an asset input or a block's asset
+ * field, so the render would quietly differ. Only those values are read: reserved `__`
+ * keys such as `__emojiAssets` are never rendered from.
+ */
+function deviceOnlyFiles(manifest: LearningSessionManifest, values: Record<string, unknown>) {
+  const upload = (value: unknown): boolean => {
+    let id: unknown = value;
+    if (value && typeof value === 'object') {
+      try {
+        id = assetIdForUrl(value as AssetRef);
+      } catch {
+        return false;
+      }
+    }
+    return typeof id === 'string' && id.startsWith('user/');
+  };
+  let found = 0;
+  for (const input of (manifest.inputs ?? []) as readonly SessionInput[]) {
+    const value = values[input.id];
+    if (input.type === 'asset' && upload(value)) found++;
+    if (input.type !== 'blocks' || !Array.isArray(value)) continue;
+    const assetFields = (input.fields ?? []).filter((f) => f.type === 'asset');
+    for (const row of value)
+      if (row && typeof row === 'object')
+        for (const field of assetFields)
+          if (upload((row as Record<string, unknown>)[field.id])) found++;
   }
   return found;
+}
+
+/**
+ * Whether the render would read this asset id from disk. The CLI loads an asset param
+ * that points at a file relative to the working directory, which would let a module pull
+ * in files outside its own directory. A path-shaped id is refused even when nothing is there.
+ */
+async function namesLocalPath(id: string): Promise<boolean> {
+  if (isAbsolute(id) || /^~|^\.\.?([\\/]|$)/.test(id) || id.split(/[\\/]/).includes('..'))
+    return true;
+  try {
+    return (await stat(resolve(process.cwd(), id))).isFile();
+  } catch {
+    return false;
+  }
 }
 
 const kindLabel: Record<LearningBlock['kind'], string> = {
@@ -114,19 +158,19 @@ export async function renderLearningSession(
     );
   const rendition = learningRenditions(manifest).find((r) => r.kind === block.kind);
   if (!rendition)
-    throw unavailableHere(
+    throw usageError(
       `"${toolId}" cannot export ${kindLabel[block.kind]}. Choose another rendition in the editor, or ${exportFirst}.`,
-      'LEARNING_RENDITION_UNAVAILABLE'
+      'LEARNING_NO_RENDITION'
     );
   const mime = mimes[rendition.format];
   if (!mime)
     throw unavailableHere(
       `The CLI cannot package ${rendition.format} output from "${toolId}". Choose another rendition in the editor, or ${exportFirst}.`,
-      'LEARNING_RENDITION_UNAVAILABLE'
+      'LEARNING_FORMAT_UNAVAILABLE'
     );
-  const local = deviceOnlyFiles(values).size;
+  const local = deviceOnlyFiles(manifest, values);
   if (local)
-    throw unavailableHere(
+    throw usageError(
       `This session uses ${local === 1 ? 'a file' : `${local} files`} uploaded on the device that saved it, and the CLI cannot read ${local === 1 ? 'that file' : 'those files'}. On that device, ${exportFirst}.`,
       'LEARNING_DEVICE_FILE'
     );
@@ -134,14 +178,23 @@ export async function renderLearningSession(
     throw usageError(
       'A page selection applies only to still pages. Remove pageIds from this source.'
     );
+
+  const { sessionToParams } = await import('./rebuild.ts');
+  const { params } = sessionToParams(manifest, values);
+  // Checked on the params the render receives, which are the values it would read from disk.
+  for (const input of (manifest.inputs ?? []) as readonly SessionInput[]) {
+    const id = input.type === 'asset' ? params[input.id] : undefined;
+    if (id && (await namesLocalPath(id)))
+      throw usageError(
+        `This session's "${input.id}" points at a local file path, which a saved session cannot read. Use a local file source for this content instead.`,
+        'LEARNING_LOCAL_PATH'
+      );
+  }
   if (block.kind === 'video' && !(await renderer.motionAvailable()))
     throw unavailableHere(
       `Rendering motion needs the browser renderer, which is not installed here. Run \`lolly install-browser\` or set LOLLY_BROWSER_CHANNEL=chrome, or ${exportFirst}.`,
       'MOTION_RENDERER_UNAVAILABLE'
     );
-
-  const { sessionToParams } = await import('./rebuild.ts');
-  const { params } = sessionToParams(manifest, values);
   // The emoji set a session was drawn with travels as the same reserved params a link uses.
   const emoji = values.__emoji;
   if (emoji && typeof emoji === 'object' && !Array.isArray(emoji))
@@ -265,6 +318,10 @@ export async function learningCli(
     );
   const root = await realpath(dirname(resolve(input)));
   let sessions = 0;
+  // Blocks whose render still needs a rights decision. A render records that only in the
+  // exit code and writes its file anyway, so each session render is watched on its own
+  // and the course takes the same exit code a single render would.
+  const rightsDecisionsRequired: string[] = [];
   // The compiler prefixes a source failure with its lesson title as a plain Error, so
   // the original is kept to give the CLI its exit code and stable kind.
   let failure: unknown;
@@ -274,7 +331,15 @@ export async function learningCli(
     async (block) => {
       try {
         if (block.source?.kind !== 'session') return await readLocalAsset(root, block);
-        const files = await renderLearningSession(block, renderer);
+        const before = process.exitCode;
+        process.exitCode = undefined;
+        let files: LearningBytes[];
+        try {
+          files = await renderLearningSession(block, renderer);
+        } finally {
+          if (process.exitCode) rightsDecisionsRequired.push(block.id);
+          process.exitCode = before;
+        }
         sessions++;
         return files;
       } catch (error) {
@@ -297,10 +362,19 @@ export async function learningCli(
     bytes: bytes.length,
     sha256: createHash('sha256').update(bytes).digest('hex'),
     renderedSessions: sessions,
+    rightsDecisionsRequired,
   };
-  if (json) await emitResult(result);
-  else
+  const exit = rightsDecisionsRequired.length ? EXIT.REFUSED : EXIT.OK;
+  if (exit && !process.exitCode) process.exitCode = exit;
+  if (json) await emitResult(result, exit);
+  else {
     await writeOut(
       `Created ${result.output} (${result.bytes} bytes${sessions ? `, ${sessions} saved ${sessions === 1 ? 'session' : 'sessions'} rendered` : ''}). ${target === 'static' ? 'Upload the extracted files to your website and test the course.' : 'Test this version in your LMS before assigning learners.'}\n`
     );
+    const held = rightsDecisionsRequired.length;
+    if (held)
+      note(
+        `${held === 1 ? 'One saved session needs' : `${held} saved sessions need`} a rights decision before this course is shared. See the Rights ${held === 1 ? 'block' : 'blocks'} above, and add each credit where the course shows that content.`
+      );
+  }
 }

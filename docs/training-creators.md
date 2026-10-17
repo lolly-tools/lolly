@@ -240,11 +240,15 @@ Some sessions cannot be reproduced in a terminal, and the build stops with the r
 | Stop | What to do |
 | --- | --- |
 | The tool has no export for the block's content type | Choose another rendition in the editor, or export a finished file and use it as a local file source. |
+| The tool's export is a format the CLI cannot package | Choose another rendition in the editor, or export a finished file and use it as a local file source. |
 | The session uses a file uploaded on the device that saved it | On that device, export the content and use the exported file as a local file source. |
+| The session points an image at a path on this computer | Use a local file source for that content instead. A saved session never reads a file by its path. |
 | A video block, and no browser renderer is installed | Run `lolly install-browser`, or set `LOLLY_BROWSER_CHANNEL=chrome` to use an installed Chrome. You can also export the video in the editor and use the file. |
 | A video from frames of different sizes | Make the frames the same size, or export the video and use the file. |
 
-A stop exits with the CLI's usual codes: 2 for a module that needs changing, 3 for something this installation cannot render. The message starts with the lesson title.
+A stop exits with the CLI's usual codes: 2 when only a change to the module can fix the source, and 3 when this installation cannot render the source. The message starts with the lesson title.
+
+A saved session can draw on work that asks for a credit, such as an emoji set under CC BY. These renders carry no Content Credentials, so the credit is not in the file. The build still writes the package, prints a Rights block for each such session with the credit text, and exits with 4. With `--json`, `ok` is `false` and `result.rightsDecisionsRequired` lists the content blocks. Add each credit where the course shows that content before you share the course.
 
 ## Give teams reusable material tools
 
