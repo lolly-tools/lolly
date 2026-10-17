@@ -111997,9 +111997,394 @@ function strikeGeometry(metrics, size, width, baseline = 0) {
   const top = baseline - Math.round(ascent) + 2 * ascent / 3 - height / 2;
   return { y: Math.floor(top + 0.5) - baseline, height: Math.floor(height), width };
 }
+function underlineGeometry(size, baseline = 0) {
+  if (!Number.isFinite(size) || size <= 0 || size > 16384 || !Number.isFinite(baseline) || Math.abs(baseline) > 1e7) return null;
+  const thickness = Math.max(1, size / 10);
+  const gap = Math.max(1, Math.ceil(thickness / 2));
+  return { y: Math.floor(baseline + gap + 0.5) - baseline, height: Math.floor(thickness), top: gap + 0.5, bottom: gap + thickness - 0.5, dilation: Math.min(thickness, 13) };
+}
+function skipsInk(codePoint) {
+  if (NO_SKIP.has(codePoint)) return false;
+  for (let i = 0; i < NO_SKIP_RANGES.length; i += 2) if (codePoint >= NO_SKIP_RANGES[i] && codePoint <= NO_SKIP_RANGES[i + 1]) return false;
+  const ch = String.fromCodePoint(codePoint);
+  if (EMOJI.test(ch)) return false;
+  return PICTOGRAPH.test(ch) ? void 0 : true;
+}
+function bezierAt2(p, t, axis) {
+  const s = 1 - t;
+  return p.length === 3 ? s * s * p[0][axis] + 2 * s * t * p[1][axis] + t * t * p[2][axis] : s * s * s * p[0][axis] + 3 * s * s * t * p[1][axis] + 3 * s * t * t * p[2][axis] + t * t * t * p[3][axis];
+}
+function curveCrossings(p, y) {
+  const turns = [];
+  if (p.length === 3) {
+    const den = p[0].y - 2 * p[1].y + p[2].y;
+    if (den !== 0) turns.push((p[0].y - p[1].y) / den);
+  } else {
+    const a = -p[0].y + 3 * p[1].y - 3 * p[2].y + p[3].y, b = 2 * (p[0].y - 2 * p[1].y + p[2].y), c = p[1].y - p[0].y;
+    if (a === 0) {
+      if (b !== 0) turns.push(-c / b);
+    } else {
+      const disc = b * b - 4 * a * c;
+      if (disc >= 0) {
+        const r5 = Math.sqrt(disc);
+        turns.push((-b - r5) / (2 * a), (-b + r5) / (2 * a));
+      }
+    }
+  }
+  const bounds = [0, ...turns.filter((t) => t > 0 && t < 1).sort((u, v) => u - v), 1];
+  const ts = [];
+  const add3 = (t) => {
+    if (ts[ts.length - 1] !== t) ts.push(t);
+  };
+  for (let i = 0; i + 1 < bounds.length; i++) {
+    let lo = bounds[i], hi = bounds[i + 1];
+    let flo = bezierAt2(p, lo, "y") - y;
+    const fhi = bezierAt2(p, hi, "y") - y;
+    if (flo === 0) add3(lo);
+    if (fhi === 0) {
+      add3(hi);
+      continue;
+    }
+    if (flo === 0 || flo < 0 === fhi < 0) continue;
+    for (let k = 0; k < 60; k++) {
+      const mid3 = (lo + hi) / 2, fm = bezierAt2(p, mid3, "y") - y;
+      if (fm < 0 === flo < 0) {
+        lo = mid3;
+        flo = fm;
+      } else hi = mid3;
+    }
+    add3((lo + hi) / 2);
+  }
+  return ts.map((t) => bezierAt2(p, t, "x"));
+}
+function inkIntercept(d, top, bottom) {
+  let left = Infinity, right = -Infinity;
+  const expand2 = (x) => {
+    if (x < left) left = x;
+    if (x > right) right = x;
+  };
+  const segment2 = (p) => {
+    const ys = p.map((q) => q.y);
+    if (top > Math.max(...ys) || Math.min(...ys) > bottom) return;
+    for (const edge of [top, bottom]) {
+      if (p.length === 2) {
+        const t = (edge - p[0].y) / (p[1].y - p[0].y);
+        if (t >= 0 && t < 1) expand2(p[0].x + t * (p[1].x - p[0].x));
+      } else for (const x of curveCrossings(p, edge)) expand2(x);
+    }
+    for (const q of p) if (top < q.y && q.y < bottom) expand2(q.x);
+  };
+  const tokens3 = d.match(/[A-Za-z]|[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g) ?? [];
+  let at = { x: 0, y: 0 }, start = at, i = 0, command = "";
+  const num17 = () => {
+    const v = Number(tokens3[i++]);
+    if (!Number.isFinite(v)) throw new Error("number");
+    return v;
+  };
+  const point3 = () => {
+    const x = num17();
+    return { x, y: num17() };
+  };
+  try {
+    while (i < tokens3.length) {
+      if (/[A-Za-z]/.test(tokens3[i])) command = tokens3[i++];
+      else if (!command || command === "Z") return void 0;
+      if (command === "M") {
+        at = start = point3();
+        command = "L";
+        continue;
+      }
+      if (command === "Z") {
+        if (at.x !== start.x || at.y !== start.y) segment2([at, start]);
+        at = start;
+        continue;
+      }
+      let next2;
+      if (command === "L") next2 = [point3()];
+      else if (command === "H") next2 = [{ x: num17(), y: at.y }];
+      else if (command === "V") next2 = [{ x: at.x, y: num17() }];
+      else if (command === "Q") next2 = [point3(), point3()];
+      else if (command === "C") next2 = [point3(), point3(), point3()];
+      else return void 0;
+      segment2([at, ...next2]);
+      at = next2[next2.length - 1];
+    }
+  } catch {
+    return void 0;
+  }
+  return left < right ? [left, right] : null;
+}
+function underlineInkGaps(text9, clusters, band) {
+  if (!clusters) return null;
+  const gaps = [];
+  for (const cluster2 of clusters) {
+    const codePoint = text9.codePointAt(cluster2.start);
+    const skip = codePoint === void 0 ? void 0 : skipsInk(codePoint);
+    if (skip === false) continue;
+    const hit = inkIntercept(cluster2.d, band.top, band.bottom);
+    if (hit === void 0) return null;
+    if (!hit) continue;
+    if (skip === void 0) return null;
+    gaps.push(hit);
+  }
+  return gaps;
+}
+function underlineSpans(origin, width, gaps, dilation) {
+  const cuts = gaps.map(([l, r5]) => [Math.floor(origin + l - dilation + 0.5) - origin, Math.floor(origin + r5 + dilation + 0.5) - origin]).sort((a, b) => a[0] - b[0]);
+  const spans = [];
+  let x = 0;
+  for (const [l, r5] of cuts) {
+    const end = Math.min(l, width);
+    if (end > x) spans.push({ x, width: end - x });
+    if (r5 > x) x = r5;
+  }
+  if (width > x) spans.push({ x, width: width - x });
+  return spans;
+}
+var NO_SKIP, NO_SKIP_RANGES, EMOJI, PICTOGRAPH;
 var init_text_decoration = __esm({
   "engine/src/text-decoration.ts"() {
     "use strict";
+    NO_SKIP = /* @__PURE__ */ new Set([
+      47,
+      92,
+      95,
+      711,
+      714,
+      715,
+      729,
+      8224,
+      8225,
+      8240,
+      8251,
+      8252,
+      8258,
+      8263,
+      8264,
+      8265,
+      8273,
+      8413,
+      8414,
+      8448,
+      8451,
+      8453,
+      8457,
+      8458,
+      8467,
+      8470,
+      8481,
+      8491,
+      8507,
+      8528,
+      8529,
+      8530,
+      8575,
+      8585,
+      8967,
+      8978,
+      9166,
+      9251,
+      9632,
+      9633,
+      9634,
+      9642,
+      9643,
+      9649,
+      9650,
+      9651,
+      9654,
+      9655,
+      9660,
+      9661,
+      9664,
+      9665,
+      9670,
+      9671,
+      9673,
+      9675,
+      9676,
+      9711,
+      9733,
+      9734,
+      9742,
+      9750,
+      9751,
+      9888,
+      10003,
+      10010,
+      10047,
+      10048,
+      10070,
+      10083,
+      11034,
+      65040,
+      65041,
+      65042,
+      65049,
+      65309,
+      127232,
+      127488,
+      127543,
+      127788,
+      127798,
+      127869,
+      128063,
+      128335,
+      129339,
+      129350
+    ]);
+    NO_SKIP_RANGES = [
+      4352,
+      4607,
+      8534,
+      8538,
+      8544,
+      8555,
+      8560,
+      8571,
+      9150,
+      9164,
+      9312,
+      9362,
+      9372,
+      9471,
+      9678,
+      9683,
+      9698,
+      9702,
+      9728,
+      9731,
+      9824,
+      9839,
+      9842,
+      9853,
+      10102,
+      10111,
+      11904,
+      12255,
+      12272,
+      12333,
+      12337,
+      12591,
+      12592,
+      12687,
+      12688,
+      12735,
+      12736,
+      12783,
+      12800,
+      13311,
+      13312,
+      19903,
+      19904,
+      19967,
+      19968,
+      40959,
+      43360,
+      43391,
+      44032,
+      55215,
+      55216,
+      55295,
+      63584,
+      63586,
+      63744,
+      64255,
+      65072,
+      65135,
+      65280,
+      65292,
+      65294,
+      65306,
+      65311,
+      65519,
+      65664,
+      65791,
+      94176,
+      94207,
+      94208,
+      100351,
+      100352,
+      101119,
+      110592,
+      110847,
+      110848,
+      110895,
+      110960,
+      111359,
+      127248,
+      127273,
+      127280,
+      127305,
+      127312,
+      127337,
+      127344,
+      127369,
+      127490,
+      127513,
+      127515,
+      127534,
+      127536,
+      127537,
+      127547,
+      127567,
+      127570,
+      127743,
+      127777,
+      127786,
+      127892,
+      127903,
+      127949,
+      127950,
+      127956,
+      127967,
+      127985,
+      127986,
+      127989,
+      127991,
+      128253,
+      128254,
+      128318,
+      128330,
+      128360,
+      128371,
+      128374,
+      128377,
+      128379,
+      128399,
+      128401,
+      128404,
+      128407,
+      128419,
+      128421,
+      128487,
+      128489,
+      128506,
+      128592,
+      128639,
+      128710,
+      128715,
+      128717,
+      128719,
+      128723,
+      128724,
+      128729,
+      128731,
+      128736,
+      128746,
+      128749,
+      128755,
+      128765,
+      128767,
+      129280,
+      129291,
+      129737,
+      129740,
+      131072,
+      196607
+    ];
+    EMOJI = new RegExp("\\p{Emoji_Presentation}", "u");
+    PICTOGRAPH = new RegExp("\\p{Extended_Pictographic}", "u");
   }
 });
 
@@ -112341,7 +112726,8 @@ async function drawDesignText(spec, shaper, opts = {}) {
         baseline: round23(border + offset + line.baseline),
         x: round23(border + result.pad + shift),
         width: line.width,
-        runs: line.runs
+        runs: line.runs,
+        ...line.hanging ? { hanging: line.hanging } : {}
       };
     })
   };
@@ -112443,18 +112829,22 @@ async function measureCore(spec, shaper, draw) {
       for (let k = span.start; k < z; k++) faces.set(faceKey(faceAt[k]), faceAt[k]);
       lineFaces.push([...faces.values()]);
       if (draw) {
-        const runs2 = [];
         let x = 0;
-        for (let k = span.start; k < z; ) {
-          const n7 = segAt[k];
-          const stop = Math.min(z, segStart[n7] + segments[n7].text.length);
-          let width = 0;
-          for (let i2 = k; i2 < stop; i2++) width += advances[i2];
-          runs2.push({ text: drawn.slice(k, stop), x, width, face: segments[n7].face, seg: segments[n7] });
-          x += width;
-          k = stop;
-        }
-        pendingRuns.push({ width: round23(w), runs: runs2 });
+        const place2 = (from, to) => {
+          const out = [];
+          for (let k = from; k < to; ) {
+            const n7 = segAt[k];
+            const stop = Math.min(to, segStart[n7] + segments[n7].text.length);
+            let width = 0;
+            for (let i2 = k; i2 < stop; i2++) width += advances[i2];
+            out.push({ text: drawn.slice(k, stop), x, width, face: segments[n7].face, seg: segments[n7] });
+            x += width;
+            k = stop;
+          }
+          return out;
+        };
+        const runs2 = place2(span.start, z);
+        pendingRuns.push({ width: round23(w), runs: runs2, hanging: place2(z, span.end) });
       }
     });
   }
@@ -112547,19 +112937,19 @@ async function measureCore(spec, shaper, draw) {
   }
   if (s.border) notes.push(`A ${s.border} px border inside the box narrows the text area on both sides.`);
   if (/\t/.test(s.text)) notes.push("Tabs are measured as the face draws the tab character, not as tab stops.");
-  const drawnLines2 = pendingRuns.map((line, i) => ({
-    baseline: baselines[i] ?? 0,
-    width: line.width,
-    runs: line.runs.map((run3) => ({
-      text: run3.text,
-      x: round23(run3.x),
-      width: round23(run3.width),
-      face: faceOf(run3.face),
-      ...run3.seg.run?.color ? { color: run3.seg.run.color } : {},
-      ...run3.seg.run?.underline ? { underline: true } : {},
-      ...run3.seg.run?.strike ? { strike: true } : {}
-    }))
-  }));
+  const drawRun = (run3) => ({
+    text: run3.text,
+    x: round23(run3.x),
+    width: round23(run3.width),
+    face: faceOf(run3.face),
+    ...run3.seg.run?.color ? { color: run3.seg.run.color } : {},
+    ...run3.seg.run?.underline ? { underline: true } : {},
+    ...run3.seg.run?.strike ? { strike: true } : {}
+  });
+  const drawnLines2 = pendingRuns.map((line, i) => {
+    const hanging = line.hanging.filter((run3) => run3.seg.run?.underline || run3.seg.run?.strike);
+    return { baseline: baselines[i] ?? 0, width: line.width, runs: line.runs.map(drawRun), ...hanging.length ? { hanging: hanging.map(drawRun) } : {} };
+  });
   return { result, drawn: drawnLines2 };
 }
 function specFlag(v, dflt) {
@@ -114222,11 +114612,16 @@ async function outlineDesignDrawText(page3, toPath, strikeMetrics) {
     let decorated = false, missing = false;
     words3.outlines = [];
     delete words3.strikes;
+    delete words3.underlines;
     for (const line of layout2.lines) {
       const row = [];
       const strikes = [];
+      const underlines = [];
       for (const run3 of line.runs) {
-        if (run3.underline) decorated = true;
+        const origin = op.box.x + line.x + run3.x;
+        const band2 = run3.underline ? underlineGeometry(m2.size, op.box.y + line.baseline) : null;
+        if (run3.underline && !band2) decorated = true;
+        underlines.push(band2 && !run3.text.trim() ? { y: band2.y, height: band2.height, spans: underlineSpans(origin, run3.width, [], band2.dilation) } : null);
         const variations = run3.face.variations ? Object.entries(run3.face.variations).map(([axis, value]) => `${axis}=${value}`) : void 0;
         let strike = null;
         if (run3.strike) {
@@ -114248,17 +114643,33 @@ async function outlineDesignDrawText(page3, toPath, strikeMetrics) {
           continue;
         }
         try {
-          const { d } = await toPath({ text: run3.text, fontUrl: run3.face.file, fontSize: m2.size, ...features.length ? { features } : {}, ...m2.tracking ? { letterSpacing: m2.tracking } : {}, ...variations ? { variations } : {} });
-          row.push(d);
+          const shaped = await toPath({ text: run3.text, fontUrl: run3.face.file, fontSize: m2.size, ...features.length ? { features } : {}, ...m2.tracking ? { letterSpacing: m2.tracking } : {}, ...variations ? { variations } : {}, ...band2 ? { clusters: true } : {} });
+          row.push(shaped.d);
+          if (band2) {
+            const gaps = underlineInkGaps(run3.text, shaped.clusters, band2);
+            if (gaps) underlines[underlines.length - 1] = { y: band2.y, height: band2.height, spans: underlineSpans(origin, run3.width, gaps, band2.dilation) };
+            else decorated = true;
+          }
         } catch {
           row.push(null);
           missing = true;
         }
       }
+      const hanging = line.hanging?.filter((run3) => run3.underline) ?? [];
+      const last = line.runs.length - 1, band = hanging.length ? underlineGeometry(m2.size, op.box.y + line.baseline) : null;
+      if (hanging.length && (last < 0 || !band)) decorated = true;
+      else if (band && row[last] !== null) {
+        const pieces = hanging.map((run3) => ({ x: run3.x - line.runs[last].x, width: run3.width }));
+        underlines[last] = { y: band.y, height: band.height, spans: [...underlines[last]?.spans ?? [], ...pieces] };
+      }
       words3.outlines.push(row);
       if (line.runs.some((run3) => run3.strike) || words3.strikes) {
         words3.strikes ??= words3.outlines.slice(0, -1).map((r5) => r5.map(() => null));
         words3.strikes.push(strikes);
+      }
+      if (line.runs.some((run3) => run3.underline) || hanging.length || words3.underlines) {
+        words3.underlines ??= words3.outlines.slice(0, -1).map((r5) => r5.map(() => null));
+        words3.underlines.push(underlines);
       }
     }
     if (decorated) page3.findings.push({ id: op.id, feature: "text-decoration" });
@@ -121046,13 +121457,13 @@ ${signals.findings.map((f) => f.label).join("\n")}`;
     case "emoji-cipher": {
       if (s("direction") === "decode") {
         out = text9;
-        EMOJI.forEach((e, i) => {
+        EMOJI2.forEach((e, i) => {
           out = out.split(e).join((ALPHABET + "0123456789")[i]);
         });
       } else
         out = text9.replace(
           /[a-z0-9]/gi,
-          (c) => EMOJI[(ALPHABET + "0123456789").indexOf(c.toLowerCase())]
+          (c) => EMOJI2[(ALPHABET + "0123456789").indexOf(c.toLowerCase())]
         );
       notes.push("A novelty cipher, not encryption. Emoji encoding does not preserve letter case.");
       break;
@@ -121113,7 +121524,7 @@ ${date.getTime() / 1e3} seconds`;
   }
   return { text: out, format, notes, ...details ? { details } : {} };
 }
-var B64, EMOJI, ALPHABET, LOREM;
+var B64, EMOJI2, ALPHABET, LOREM;
 var init_text_tools2 = __esm({
   "engine/src/text-tools.ts"() {
     "use strict";
@@ -121130,7 +121541,7 @@ var init_text_tools2 = __esm({
     init_text_logs();
     init_text_formats();
     B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    EMOJI = [
+    EMOJI2 = [
       "\u{1F34E}",
       "\u{1F41D}",
       "\u{1F431}",
@@ -130774,6 +131185,10 @@ function wordsSvg(op, words3) {
       const outline2 = words3.outlines?.[li]?.[ri];
       if (outline2 !== void 0 && outline2 !== null) {
         const ink2 = run3.color && /^#[0-9a-fA-F]{3,8}$/.test(run3.color) ? run3.color : words3.ink;
+        const underline = words3.underlines?.[li]?.[ri];
+        if (underline) for (const span of underline.spans) {
+          if (span.width > 0) shapes2 += `<rect x="${round25(box4.x + line.x + run3.x + span.x)}" y="${round25(box4.y + line.baseline + underline.y)}" width="${round25(span.width)}" height="${round25(underline.height)}"${colorPaint("fill", ink2, ink2 === words3.ink ? words3.inkOpacity : void 0)}/>`;
+        }
         if (outline2) {
           shapes2 += `<path transform="translate(${round25(box4.x + line.x + run3.x)} ${round25(box4.y + line.baseline)})" d="${svgEscape(outline2)}"${colorPaint("fill", ink2, ink2 === words3.ink ? words3.inkOpacity : void 0)}/>`;
         }
@@ -159162,9 +159577,12 @@ ${clipTo({ box: inner, shape })}`;
           if (d === void 0 || d === null) continue;
           const ink = run3.color && /^#[0-9a-fA-F]{3,8}$/.test(run3.color) ? run3.color : words3.ink;
           const strike = words3.strikes?.[li]?.[ri];
-          if (!d && !strike) continue;
+          const underline = words3.underlines?.[li]?.[ri];
+          const under = underline?.spans.filter((s) => s.width > 0).map((s) => `${n6(s.x)} ${n6(underline.y)} ${n6(s.width)} ${n6(underline.height)} re`).join(" ");
+          if (!d && !strike && !under) continue;
           out += `q ${opacityGs(ink === words3.ink ? words3.inkOpacity : void 0)}${color5(ink, "rg")} 1 0 0 1 ${n6(box4.x + line.x + run3.x)} ${n6(box4.y + line.baseline)} cm
-${d ? `${svgPath2(d)}f
+${under ? `${under} f
+` : ""}${d ? `${svgPath2(d)}f
 ` : ""}${strike && strike.width > 0 ? `0 ${n6(strike.y)} ${n6(strike.width)} ${n6(strike.height)} re f
 ` : ""}Q
 `;
