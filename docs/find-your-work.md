@@ -94,10 +94,11 @@ In the web app, every tool that makes a document saves as you work: Design, Char
 
 - tools that work on a file you bring, such as Redact, Sign or Convert Image, because Lolly never keeps a copy of that file;
 - tools that record from your camera, microphone or screen, such as Record, Screen Capture and Voice Recorder;
-- 3D and Darkroom, which take a file of their own;
 - a tool with nothing to change, such as Countdown.
 
 In the other tools, your first change files the work in **Projects** as if you had saved, and later changes are kept as you work, once the tool has finished drawing. So an unsaved creation is still in Projects after you close the tab and reopens with its changes marked unsaved. **Leave anyway** still discards them, and History keeps a copy of the discarded edits for 30 days. Opening the tool again from the home screen starts a new creation; open the earlier one from Projects.
+
+3D and Darkroom save as you work, but they do not keep a file you load into them, such as a 3D model or a LUT. History and **Save** keep the file's name, type and size, not the file. When you open the work again, a note says which file it was, and the tool works without it until you load it again. Keep your original files.
 
 With [Sync](/info/sync.html) on, a creation filed this way goes to your other devices like anything else in Projects. Its versions stay on the device where they were made.
 
