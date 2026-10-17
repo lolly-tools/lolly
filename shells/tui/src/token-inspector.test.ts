@@ -3,8 +3,9 @@
  * The TUI token inspector (plan 286 M5) by keyboard at 80 columns: the captured
  * context and one choice per group, a choice step shown as a preview, search, a
  * token's trace and a step through it, the reviewed store on the active terminal
- * system, the refusal for a bundled profile, and the stale-review refusal when
- * another shell edits the system between the review and the store.
+ * system, the refusal for a bundled profile, the stale-review refusal when another
+ * shell edits the system between the review and the store, a broken reference from
+ * the header to the trace, and the layout on terminals down to 80x24 and 60x18.
  *
  * `design-systems.ts` reads $LOLLY_STATE_DIR at call time, so it is set here, once,
  * before anything reads the store.
@@ -215,12 +216,75 @@ test('a review goes stale when another shell edits the system first, and nothing
   } finally { ui.unmount(); ui.cleanup(); }
 });
 
+test('a broken reference shows in the header, the issues-only list, the trace and a step that cannot open', async () => {
+  const broken = structuredClone(BEACON) as Record<string, Record<string, Record<string, unknown>>>;
+  broken.foundation!.identity!.Broken = { $type: 'color', $value: '{identity.Gone}' };
+  await createNodeDesignSystem({ label: 'Broken Beacon', tokens: broken, source: { kind: 'file', name: 'broken.tokens.json' } });
+  const SystemTokens = await loadView<ComponentType<{ onBack: () => void }>>('./views/SystemTokens.tsx', 'SystemTokens');
+  const { ui, frame, fits } = mount(SystemTokens, () => {});
+  try {
+    await until(() => frame().includes('1 token with issues; x lists them'), 'The header issue line');
+    assert.ok(frame().includes('11 tokens · page 1 of 1'));
+    fits('the list with an issue');
+    ui.stdin.write('x');
+    await until(() => frame().includes('1 token with issues · page 1 of 1'), 'The issues-only list');
+    assert.match(frame(), /› identity\.Broken .* {2}1 issue\b/);
+    fits('the issues-only list');
+    ui.stdin.write('\r');
+    await until(() => frame().includes('Issues  Reference identity.Gone has no active definition.'), 'The trace issue');
+    assert.ok(frame().includes('identity.Gone  missing'));
+    fits('the trace with a missing step');
+    ui.stdin.write('\r');
+    await until(() => frame().includes('No active definition answers identity.Gone with these choices.'), 'The missing step status');
+    assert.ok(frame().includes('Issues  Reference identity.Gone'), 'the trace stays open');
+    fits('the missing step status');
+  } finally { ui.unmount(); ui.cleanup(); }
+});
+
+test('at 80x24 and 80x25 a trace with a declared role and a status line stays inside the frame', async () => {
+  const roles = structuredClone(BEACON) as Record<string, Record<string, Record<string, Record<string, unknown[]>>>>;
+  roles.$extensions!['com.suse.lolly']!.brandSystem!.roles!.push({ id: 'outline', label: 'Outline', resources: [{ type: 'token', path: 'border.exampleOutline' }] });
+  await createNodeDesignSystem({ label: 'Beacon roles', tokens: roles, source: { kind: 'file', name: 'roles.tokens.json' } });
+  const SystemTokens = await loadView<ComponentType<{ onBack: () => void }>>('./views/SystemTokens.tsx', 'SystemTokens');
+  for (const [cols, rows] of [[80, 24], [80, 25]] as const) {
+    const { ui, frame, fits } = mount(SystemTokens, () => {}, cols, rows);
+    try {
+      await until(() => frame().includes('appearance: Day'), `The list at ${cols}x${rows}`);
+      fits(`the list at ${cols}x${rows}`);
+      ui.stdin.write('/');
+      await until(() => frame().includes('Search paths'), 'The search field');
+      await tick();
+      ui.stdin.write('outline');
+      await tick();
+      ui.stdin.write('\r');
+      await until(() => frame().includes('1 token matching "outline"'), 'The filtered list');
+      ui.stdin.write('\r');
+      await until(() => frame().includes('Declared roles  Outline (outline)'), `The trace at ${cols}x${rows}`);
+      fits(`the trace at ${cols}x${rows}`);
+      ui.stdin.write('r');
+      await until(() => frame().includes('Back to the stored choices.'), 'The status line');
+      assert.ok(frame().includes('No issues found in this document.'), 'the header is intact');
+      assert.ok(frame().includes('Declared roles  Outline (outline)'));
+      assert.ok(frame().includes('› reads    color.semantic.primary'), 'the selected step stays in view');
+      fits(`the trace with a status at ${cols}x${rows}`);
+      ui.stdin.write('o');
+      await until(() => frame().includes('appearance: Night'), 'The night preview');
+      ui.stdin.write('s');
+      await until(() => frame().includes('Store appearance night, density compact on Beacon roles?'), 'The review');
+      fits(`the review at ${cols}x${rows}`);
+      ui.stdin.write(ESC);
+      await until(() => frame().includes('Nothing was stored.'), 'The cancelled review');
+      fits(`the list with a status at ${cols}x${rows}`);
+    } finally { ui.unmount(); ui.cleanup(); }
+  }
+});
+
 test('a long list and a wide trace keep the footer on screen, at full size and on a small terminal', async () => {
   const wide: Record<string, unknown> = { root: { $type: 'color', $value: '#000000' } };
   for (let i = 0; i < 40; i++) wide[`leaf${String(i).padStart(2, '0')}`] = { $type: 'color', $value: '{root}' };
   await createNodeDesignSystem({ label: 'Fan out', tokens: wide, source: { kind: 'file', name: 'fan.json' } });
   const SystemTokens = await loadView<ComponentType<{ onBack: () => void }>>('./views/SystemTokens.tsx', 'SystemTokens');
-  for (const [cols, rows] of [[80, 30], [60, 20]] as const) {
+  for (const [cols, rows] of [[80, 30], [80, 24], [60, 20], [60, 18]] as const) {
     const { ui, frame, fits } = mount(SystemTokens, () => {}, cols, rows);
     try {
       await until(() => frame().includes('41 tokens'), `The list at ${cols}x${rows}`);
@@ -232,6 +296,9 @@ test('a long list and a wide trace keep the footer on screen, at full size and o
       ui.stdin.write('\r');
       await until(() => frame().includes('Reads 0 · read by 40'), `The trace at ${cols}x${rows}`);
       fits(`the trace at ${cols}x${rows}`);
+      ui.stdin.write('s');
+      await until(() => frame().includes('already the stored choices'), 'The no-change refusal in the trace');
+      fits(`the trace with a status at ${cols}x${rows}`);
       for (let i = 0; i < 30; i++) ui.stdin.write(DOWN);
       await until(() => frame().includes('› read by  leaf30'), 'The trace scrolled to the 31st dependent');
       fits(`the scrolled trace at ${cols}x${rows}`);

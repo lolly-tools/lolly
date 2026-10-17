@@ -14,12 +14,20 @@ import { readTerminalTokenSource, stepChoice, storeTerminalChoices, terminalValu
 import { useTermSize } from '../hooks.ts';
 import { theme } from '../theme.ts';
 import { Tabs } from '../components/Tabs.tsx';
-import { Footer } from '../components/Footer.tsx';
+import { Footer, footerLines, type Shortcut } from '../components/Footer.tsx';
 
 type Pane = 'list' | 'search' | 'trace' | 'confirm';
 interface Review { candidate: Record<string, unknown>; changes: number }
 
 const choiceLine = (choices: Record<string, string>): string => Object.entries(choices).map(([group, id]) => `${group || 'theme'} ${id}`).join(', ');
+
+const CONFIRM_KEYS: Shortcut[] = [{ key: 'y', label: 'store' }, { key: 'esc', label: 'keep reviewing' }];
+const SEARCH_KEYS: Shortcut[] = [{ key: 'enter', label: 'search' }, { key: 'esc', label: 'cancel' }];
+const TRACE_KEYS: Shortcut[] = [{ key: '↑↓', label: 'step' }, { key: 'enter', label: 'open' }, { key: 'g/o', label: 'choice' }, { key: 'r', label: 'stored' }, { key: 's', label: 'store' }, { key: 'esc', label: 'back' }];
+const LIST_KEYS: Shortcut[] = [{ key: '↑↓', label: 'move' }, { key: '←→', label: 'page' }, { key: 'enter', label: 'trace' }, { key: '/', label: 'search' }, { key: 'x', label: 'issues' }, { key: 'g/o', label: 'choice' }, { key: 'r', label: 'stored' }, { key: 's', label: 'store' }, { key: 'esc', label: 'back' }];
+const LIST_NOTE = 'g picks a theme group, o steps its choice. Choices are a preview until stored.';
+// A status message and the margin above it.
+const STATUS_LINES = 2;
 
 export function SystemTokens({ onBack }: { onBack: () => void }) {
   const { cols, rows } = useTermSize();
@@ -54,10 +62,11 @@ export function SystemTokens({ onBack }: { onBack: () => void }) {
   const inspection = useMemo(() => source ? inspectTokenDocument(source.doc, asked) : null, [source, asked]);
   const context = useMemo(() => source && inspection ? tokenReportContext(source.doc, inspection, source.origin, asked) : null, [source, inspection, asked]);
   const issues = useMemo(() => inspection ? tokenIssues(inspection) : null, [inspection]);
-  // Rows left for the list after the tabs, frame, header, status line and footer.
-  const pageSize = Math.max(3, rows - (compact ? 13 : 19));
-  // The trace header takes more lines than the list's count line.
-  const traceRows = Math.max(3, pageSize - (compact ? 4 : 6));
+  // Lines around the body: the tabs, the frame's border, margin and padding, the title,
+  // the header (each line truncates to one) and the spacer under it.
+  const around = compact ? 1 + 2 + 3 : 1 + 1 + 2 + 2 + 1 + 4 + 1;
+  // The list keeps room for a status line so its pages hold still when one appears.
+  const pageSize = Math.max(1, rows - around - STATUS_LINES - footerLines(LIST_KEYS, compact ? undefined : LIST_NOTE, cols) - 1);
   const list = useMemo(() => inspection ? listTokenRows(inspection, { query, issuesOnly, offset: page * pageSize, limit: pageSize }) : null, [inspection, query, issuesOnly, page, pageSize]);
   const pages = list ? Math.max(1, Math.ceil(list.total / pageSize)) : 1;
   const current = trail.at(-1);
@@ -65,6 +74,11 @@ export function SystemTokens({ onBack }: { onBack: () => void }) {
   const steps: { step: TokenTraceStepV1; kind: 'reads' | 'read by' }[] = trace
     ? [...trace.references.map(s => ({ step: s, kind: 'reads' as const })), ...trace.dependents.map(s => ({ step: s, kind: 'read by' as const }))]
     : [];
+  // The trace header draws its title, values, issues and step count, plus the override
+  // order and any declared roles outside the compact layout. The window follows the
+  // selected step, so it can shrink while a status line shows.
+  const traceHead = compact ? 5 : 6 + (trace?.declaredConsumers.length ? 1 : 0);
+  const traceRows = Math.max(1, rows - around - (status ? STATUS_LINES : 0) - footerLines(TRACE_KEYS, undefined, cols) - traceHead);
 
   // A filter or choice change can shorten the list; keep the page and cursor inside the list.
   useEffect(() => { if (page >= pages) setPage(pages - 1); }, [page, pages]);
@@ -189,7 +203,7 @@ export function SystemTokens({ onBack }: { onBack: () => void }) {
         {compact ? null : <Text wrap="truncate" color={theme.dim}>Override order  {trace.candidates.map(c => `${c.set ?? 'implicit'} (${c === trace.source ? 'winning' : c.active ? 'overridden' : 'inactive'})`).join(' · ') || 'none'}</Text>}
         <Text wrap="truncate" color={trace.diagnostics.length ? theme.warn : theme.dim}>{trace.diagnostics.length ? `Issues  ${trace.diagnostics.map(d => d.message).join(' ')}` : 'Issues  none'}</Text>
         {compact || !trace.declaredConsumers.length ? null : <Text wrap="truncate" color={theme.dim}>Declared roles  {trace.declaredConsumers.map(c => `${c.label} (${c.roleId})`).join(', ')}</Text>}
-        <Text color={theme.dim}>{`Reads ${trace.references.length} · read by ${trace.dependents.length}${trace.truncated ? ' · stopped at a limit' : ''}  (token references in this document only)`}</Text>
+        <Text color={theme.dim} wrap="truncate">{`Reads ${trace.references.length} · read by ${trace.dependents.length}${trace.truncated ? ' · stopped at a limit' : ''}  (token references in this document only)`}</Text>
         {steps.length ? steps.slice(windowStart, windowStart + traceRows).map(({ step: s, kind }, n) => (
           <Text key={`${kind}:${s.path}`} inverse={windowStart + n === step} wrap="truncate">
             {windowStart + n === step ? '›' : ' '} {kind === 'reads' ? 'reads   ' : 'read by '} {'  '.repeat(s.depth - 1)}{s.path}  <Text color={s.missing ? theme.warn : theme.dim}>{s.missing ? 'missing' : terminalValue(s.resolved, valueWidth)}</Text>
@@ -221,10 +235,7 @@ export function SystemTokens({ onBack }: { onBack: () => void }) {
     </Box>
   ) : null;
 
-  const shortcuts = pane === 'confirm' ? [{ key: 'y', label: 'store' }, { key: 'esc', label: 'keep reviewing' }]
-    : pane === 'search' ? [{ key: 'enter', label: 'search' }, { key: 'esc', label: 'cancel' }]
-      : pane === 'trace' ? [{ key: '↑↓', label: 'step' }, { key: 'enter', label: 'open' }, { key: 'g/o', label: 'choice' }, { key: 'r', label: 'stored' }, { key: 's', label: 'store' }, { key: 'esc', label: 'back' }]
-        : [{ key: '↑↓', label: 'move' }, { key: '←→', label: 'page' }, { key: 'enter', label: 'trace' }, { key: '/', label: 'search' }, { key: 'x', label: 'issues' }, { key: 'g/o', label: 'choice' }, { key: 'r', label: 'stored' }, { key: 's', label: 'store' }, { key: 'esc', label: 'back' }];
+  const shortcuts = pane === 'confirm' ? CONFIRM_KEYS : pane === 'search' ? SEARCH_KEYS : pane === 'trace' ? TRACE_KEYS : LIST_KEYS;
 
   return (
     <Box flexDirection="column" width={cols} height={rows}>
@@ -237,7 +248,7 @@ export function SystemTokens({ onBack }: { onBack: () => void }) {
         {confirm}
         {status ? <Box marginTop={1}><Text color={status.startsWith('✓') ? theme.accentName : theme.warn} wrap="truncate">{status}</Text></Box> : null}
       </Box>
-      <Footer shortcuts={shortcuts} note={pane === 'list' && !compact ? 'g picks a theme group, o steps its choice. Choices are a preview until stored.' : undefined} />
+      <Footer shortcuts={shortcuts} note={pane === 'list' && !compact ? LIST_NOTE : undefined} />
     </Box>
   );
 }
