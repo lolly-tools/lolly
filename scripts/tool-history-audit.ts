@@ -39,7 +39,8 @@
  * covered as well. One more case per tool: a record saved before
  * history adopts (saved through the state bridge with no revision store, reopened
  * with one, adopted by the automatic-history controller, edited and saved; the save
- * must be recorded as a revision with the edit in the record). The case "mount at
+ * must be recorded as a revision with the edit in the record; a class B tool's
+ * record holds its loaded file's bytes, which history adopts as not kept). The case "mount at
  * defaults files nothing" needs the app's own chrome, so it runs in the browser
  * lane (tests/history-round-trip.browser.test.ts) with the real upload store.
  *
@@ -68,7 +69,7 @@ import type { IDBPDatabase } from 'idb';
 import { JSDOM, VirtualConsole } from 'jsdom';
 
 import { createRuntime, inRealmHookExecutor, type HookExecutor, type Hooks, type Runtime } from '../engine/src/runtime.ts';
-import { fileInputPaths, historyClass as manifestHistoryClass, historyRedact, notKeptFiles, withoutNotKept, type HistoryClass, type HistoryManifest } from '../shells/web/src/views/tool-history-adapters.ts';
+import { fileInputPaths, historyClass as manifestHistoryClass, historyRedact, loadKept, notKeptFiles, withoutNotKept, type HistoryClass, type HistoryManifest } from '../shells/web/src/views/tool-history-adapters.ts';
 import { loadTool, type LoadedTool, type ToolManifest } from '../engine/src/loader.ts';
 import { parseUrlState } from '../engine/src/url-mode.ts';
 import { bakeAssetRef } from '../engine/src/bake.ts';
@@ -770,9 +771,11 @@ async function auditOne(tool: PackTool, roots: ContentRoots, det: Determinism, o
     await withTimeout((async () => { await web.migrateBlockRowIds(runtime); await settle(runtime); })(), MOUNT_TIMEOUT_MS, 'settling');
     return { runtime, tool: loaded };
   };
-  // What keptSnapshot hands history: Save's snapshot with each file input recorded as not kept.
-  const snapshot = (runtime: Runtime): SavedData =>
-    historyRedact(web.snapshotSession(null, manifest, runtime as never, experience as never, () => '', () => '') as SavedData, notKept);
+  // Save's snapshot as sessionSnapshot takes it (a loaded file keeps its bytes), and as
+  // keptSnapshot hands it to history, each file input recorded as not kept.
+  const fullSnapshot = (runtime: Runtime): SavedData =>
+    web.snapshotSession(null, manifest, runtime as never, experience as never, () => '', () => '') as SavedData;
+  const snapshot = (runtime: Runtime): SavedData => historyRedact(fullSnapshot(runtime), notKept);
 
   const { db } = web.memoryDb();
   const state: WebState = web.createStateAPI(db as never, web.createRevisionStore(db as unknown as IDBPDatabase));
@@ -956,7 +959,7 @@ async function auditOne(tool: PackTool, roots: ContentRoots, det: Determinism, o
   }
 
   // A record saved before history adopts, then an edit saved through the controller.
-  verdict.adopt = await adoptCase(tool, manifest, mount, settle, snapshot, web).catch(error => ({ name: verdict.adopt.name, outcome: 'error' as const, detail: (error as Error).message }));
+  verdict.adopt = await adoptCase(tool, manifest, mount, settle, { full: fullSnapshot, kept: snapshot }, web).catch(error => ({ name: verdict.adopt.name, outcome: 'error' as const, detail: (error as Error).message }));
 
   verdict.ok = verdict.cases.length > 0 && verdict.cases.every(c => c.outcome === 'identical' || c.outcome === 'skipped') && (verdict.adopt.outcome === 'identical' || verdict.adopt.outcome === 'skipped');
   verdict.ms = performance.now() - started;
@@ -968,21 +971,39 @@ async function auditOne(tool: PackTool, roots: ContentRoots, det: Determinism, o
  * Save through a state bridge that has no revision store, as a session saved
  * before history existed; reopen with the store; let the controller adopt it;
  * edit; Save. The save must be recorded as a revision (`recorded`, not written
- * around a paused history as `stored`) and the record must hold the edit.
+ * around a paused history as `stored`) and the record must hold the edit. A class B
+ * tool saves that record with its first file input loaded and the file's bytes kept,
+ * as Save did before history kept the tool (and a Make variants copy still does):
+ * the controller adopts it through loadKept, as the app's does, so history must not
+ * pause, and the saved edit must record the file as not kept.
  */
 async function adoptCase(tool: PackTool, manifest: ToolManifest, mount: (v: Record<string, InputValue>) => Promise<Mounted>,
-  settle: (rt: Runtime) => Promise<void>, snapshot: (rt: Runtime) => SavedData, web: WebModules): Promise<CaseResult> {
+  settle: (rt: Runtime) => Promise<void>, snapshots: { full: (rt: Runtime) => SavedData; kept: (rt: Runtime) => SavedData }, web: WebModules): Promise<CaseResult> {
   const name = 'a record saved before history adopts';
   const t0 = performance.now();
   const editable = (manifest.inputs ?? []).map(i => i as InputSpecLike).filter(i => EDITED_TYPES.includes(i.type as typeof EDITED_TYPES[number]));
   if (!editable.length) return { name, outcome: 'skipped', detail: 'no input of an edited type' };
+  const snapshot = snapshots.kept;
+  const notKept = fileInputPaths(manifest.inputs);
+  const file = tool.historyClass === 'side-file' ? (manifest.inputs ?? []).find(i => i.type === 'file') as InputSpecLike | undefined : undefined;
   const { db } = web.memoryDb();
   const legacy = web.createStateAPI(db as never);
   const slot = `${tool.id}:history-audit-legacy`;
   const first = await mount({});
-  const saved = snapshot(first.runtime);
+  if (file) {
+    const value = { __file: true, name: AUDIT_FILE_NAME, mime: 'application/octet-stream', size: 8, bytes: new Uint8Array(8), url: null };
+    await withTimeout((async () => { await first.runtime.setInput(file.id, (file.multiple ? [value] : value) as unknown as InputValue); await settle(first.runtime); })(), MOUNT_TIMEOUT_MS, 'loading the file');
+  }
+  const saved = file ? snapshots.full(first.runtime) : snapshot(first.runtime);
   first.runtime.destroy();
   await legacy.save(slot, saved as never);
+  if (file) {
+    // The case only means something when the record really holds the bytes history refuses.
+    const held = (await legacy.load(slot))?.[file.id];
+    if (!ArrayBuffer.isView((Array.isArray(held) ? held[0] : held as { bytes?: unknown } | undefined)?.bytes)) {
+      return { name, outcome: 'error', detail: `the record saved before history does not hold the bytes of ${file.id}, so the adopt has no file to leave out`, ms: performance.now() - t0 };
+    }
+  }
   const state = web.createStateAPI(db as never, web.createRevisionStore(db as unknown as IDBPDatabase));
   const opened = await web.openToolSession(state, manifest, parseUrlState(`slot=${encodeURIComponent(slot)}`, manifest));
   const reopened = await mount(opened.values);
@@ -991,7 +1012,7 @@ async function adoptCase(tool: PackTool, manifest: ToolManifest, mount: (v: Reco
   const controller = web.createAutomaticHistory({
     history: state.history!, ...(opened.cursor ? { initial: opened.cursor } : {}), toolId: tool.id,
     getSlot: () => active, setSlot: next => { active = next; }, snapshot: () => snapshot(reopened.runtime) as never,
-    load: s => state.load(s), capture: async () => null, saved() {}, store: (s, d) => state.save(s, d),
+    load: loadKept(s => state.load(s), notKept), capture: async () => null, saved() {}, store: (s, d) => state.save(s, d),
     failure: message => { failures.push(message); },
   });
   try {
@@ -1004,17 +1025,21 @@ async function adoptCase(tool: PackTool, manifest: ToolManifest, mount: (v: Reco
     await settle(reopened.runtime);
     const outcome = await controller.save(slot, snapshot(reopened.runtime) as never);
     const record = await state.load(slot) as SavedData;
-    const before = web.canonicalRevisionData(web.pinRevisionAssets(saved as never));
+    const before = web.canonicalRevisionData(web.pinRevisionAssets(historyRedact(saved, notKept) as never));
     const expected = web.canonicalRevisionData(web.pinRevisionAssets(snapshot(reopened.runtime) as never));
     const entries = (await state.history!.list({ slot })).entries.length;
+    const named = file ? notKeptFiles(record, [file.id]) : [];
     const problems = [
       ...(outcome !== 'recorded' ? [`Save was ${outcome}, not recorded as a revision (${controller.status()})`] : []),
       ...(failures.length ? [`history reported: ${failures.join(' / ')}`] : []),
       ...(firstDifference(before, record) === null ? ['the record still holds the old save'] : []),
       ...(firstDifference(expected, record) ? [`the record is not the saved edit: ${firstDifference(expected, record)}`] : []),
       ...(entries < 2 ? [`${entries} revision(s) after adopt and save, expected 2`] : []),
+      ...(file && (named.length !== 1 || named[0] !== AUDIT_FILE_NAME) ? [`the saved edit does not record ${file.id} as not kept: ${JSON.stringify(record[file.id]) ?? 'undefined'}`] : []),
     ];
-    return { name, outcome: problems.length ? 'differs' : 'identical', ...(problems.length ? { detail: problems.join('; ') } : {}), ms: performance.now() - t0 };
+    return { name, outcome: problems.length ? 'differs' : 'identical', ...(problems.length ? { detail: problems.join('; ') } : {}),
+      ...(file ? { note: `the record was saved with ${file.id} loaded and its bytes kept, as a save made before history kept this tool` } : {}),
+      ms: performance.now() - t0 };
   } finally {
     controller.dispose();
     reopened.runtime.destroy();
