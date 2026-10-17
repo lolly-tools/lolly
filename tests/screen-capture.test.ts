@@ -540,6 +540,7 @@ test('ENGINE_VERSION is 1.262.0', () => {
   // 1.261.0 aligns runtime and delivery policies and preserves structured paint
   // references; the screen capture contract remains unchanged.
   // 1.262.0 states the Design layout participation rule; capture is unchanged.
+  // 1.263.0 adds whole typography links on composed text; capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.262.0');
 });
 
