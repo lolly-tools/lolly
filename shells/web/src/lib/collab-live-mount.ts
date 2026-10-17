@@ -112,8 +112,9 @@
  *
  * The other side of the same rule: the inviter OWNS the document, so the inviter's
  * device keeps its history, peer edits included. The tool view keeps local history off
- * for every shared mount; {@link hostDurableHistory} is the one exception, and it answers
- * only for the plan this module adopted with a real store, never for an ephemeral one.
+ * for every shared mount ({@link mountHistoryRole}); {@link hostDurableHistory} is the one
+ * exception, and it answers only for the plan this module adopted with a real store,
+ * never for an ephemeral one.
  */
 
 import { getCollabMount, registerCollabMount, takeParked } from './collab-mount.ts';
@@ -687,6 +688,49 @@ export function hostDurableHistory(
         frame(() => { queued = false; if (live) listener(); });
       });
       return () => { live = false; off(); };
+    },
+  };
+}
+
+/** How one tool mount takes part in history on this device. */
+export interface MountHistoryRole {
+  /** The P2P host's durable capture ({@link hostDurableHistory}), or `null`. */
+  readonly hostHistory: HostDurableHistory | null;
+  /**
+   * The `shared` argument to `historyParticipation`: true keeps no local history here.
+   * Every live or ephemeral mount is shared except the P2P host.
+   */
+  readonly shared: boolean;
+  /**
+   * Send accepted peer edits to the host's own history controller and to nothing else.
+   * The session log is left out on purpose: it stamps every checkpoint with this
+   * client's name (`lib/collab-history-capture.ts`), so a peer's edit there would read
+   * as the host's. Returns the unsubscribe, or `null` when nothing was subscribed: the
+   * mount is not the host, or its tool keeps no local history.
+   */
+  followPeerEdits(durable: { changed(): void } | null | undefined): (() => void) | null;
+}
+
+/**
+ * The history role `views/tool/setup.ts` gives a mount, kept here so a test can run the
+ * same decision the view ships. `ephemeralState` is the memory bridge the mount was
+ * armed with, if any, and `sessionSource` says a transport is still registered.
+ */
+export function mountHistoryRole(opts: {
+  readonly toolId: string;
+  readonly collabHandle: CollabSessionHandle | null | undefined;
+  readonly ephemeralState: WebStateAPI | null | undefined;
+  readonly sessionSource: boolean;
+  readonly frame?: (fn: () => void) => void;
+}): MountHistoryRole {
+  const hostHistory = opts.ephemeralState ? null
+    : hostDurableHistory(opts.toolId, opts.collabHandle, opts.frame ? { frame: opts.frame } : {});
+  return {
+    hostHistory,
+    shared: (!!opts.collabHandle && !hostHistory) || !!opts.ephemeralState || opts.sessionSource,
+    followPeerEdits(durable) {
+      if (!hostHistory || !durable) return null;
+      return hostHistory.onPeerEdit(() => { durable.changed(); });
     },
   };
 }
