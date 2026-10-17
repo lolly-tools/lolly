@@ -46,6 +46,10 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **Design tokens.** The DTCG-format values a design system is made of: colours, type, spacing, gradients. Tools read them through `host.tokens`, and community tools take their look from them. Importable from DTCG, Tokens Studio and Penpot files.
 
+**Theme group.** One choice a design system offers, such as light or dark, or roomy or compact. Each option turns on token sets; an artefact picks one option per group. A group can say what kind of choice it is: `mode` for light and dark, `colourway` for the lead colour, and a few more. A group that says nothing behaves as a plain choice.
+
+**Colourway.** One of several lead colours a design system offers, with the colour that sits on it and a partner colour, chosen per artefact. Organisations that rotate their primary colour across pieces use colourways. A colourway combines with light and dark rather than replacing them. One colourway is canonical, and an artefact that chooses none is drawn in the canonical one. See [Token workflows](/info/token-workflows.html#colourways).
+
 **Design system vs brand.** The same thing seen from two sides. User-facing copy says *design system* because people who do not think of themselves as a brand use Lolly too. Code contracts keep the word brand (`brands/`, `brand-*.ts`, `--brand-*`).
 
 ## Sessions and editing

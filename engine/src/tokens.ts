@@ -27,12 +27,13 @@
  * exactly this, and Penpot round-trips it untouched.
  */
 
-import type { TokenSet, TokenEntry, ColorSwatch, SpotColor, TokenResolveOptions } from './bridge/host-v1.ts';
+import type { TokenSet, TokenEntry, ColorSwatch, SpotColor, TokenResolveOptions, TokenAxisKind } from './bridge/host-v1.ts';
 import { parseOklch, oklchToHex } from './brand-derive.ts';
 import { colorCss } from './color-face.ts';
 import { parseColor, colorToHexString } from './css-color.ts';
 import { readFaces } from './color-faces.ts';
 import { tokenSetNames, resolveTokenSelection } from './token-selection.ts';
+import { readTokenAxes } from './token-axes.ts';
 import { TOKEN_COMPOSITE_FIELDS, compositeElementType } from './token-composite.ts';
 
 // Vendor extension namespace for Lolly-specific token metadata (CMYK anchors, swatch
@@ -249,15 +250,24 @@ export function createTokenSet(doc: unknown, opts: TokenResolveOptions = {}): To
     colors(): ColorSwatch[] {
       return [...map.values()].filter(e => e.type === 'color').map(toSwatch);
     },
-    /** Theme names declared in the document. */
-    themes(): { name: string; group: string | null }[] {
+    /**
+     * Theme names declared in the document, in source order. `id` is present when
+     * the source gives one, and `kind` when the theme's group declares what it
+     * means (plans/319: `mode`, `colourway`, ...).
+     */
+    themes(): { name: string; group: string | null; id?: string; kind?: TokenAxisKind }[] {
       const themesArr = isRecord(doc) && Array.isArray(doc.$themes) ? doc.$themes : null;
       if (!themesArr) return [];
+      const kinds = new Map(readTokenAxes(doc).axes.filter(a => a.kind).map(a => [a.group, a.kind!]));
       return themesArr.map((t) => {
         const r = isRecord(t) ? t : {};
+        const id = strOrNull(r.id);
+        const kind = kinds.get(strOrNull(r.group) ?? '');
         return {
-          name: strOrNull(r.name) ?? strOrNull(r.id) ?? '',
+          name: strOrNull(r.name) ?? id ?? '',
           group: strOrNull(r.group),
+          ...(id ? { id } : {}),
+          ...(kind ? { kind } : {}),
         };
       });
     },

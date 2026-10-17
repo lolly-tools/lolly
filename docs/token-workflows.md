@@ -8,7 +8,9 @@ Read-only systems offer the same inspection. The **Inspect tokens** action in a 
 
 Each imported theme group has its own control. Choices use source group names and source theme ids, falling back to the theme name when the source has no id. Previewing writes nothing. **Use these choices for this system** creates a review; **Apply reviewed change** commits the choices through Start's existing persistence and undo path.
 
-Documents store choices in `$metadata.activeThemeSelection`. Render links use `_themes`, a JSON object in the reserved underscore namespace. Sessions carry `__tokenSelection`. Existing `{theme}` bridge calls retain their single-theme behavior.
+Documents store choices in `$metadata.activeThemeSelection`. Render links use `_themes`, a JSON object in the reserved underscore namespace. Sessions carry `__tokenSelection`.
+
+A tool can still ask for one theme by name, as in `host.tokens.colors({ theme: 'light' })`. That request picks the theme in the group that declares it, and every other group keeps its choice: an explicit `selection`, then the document's stored choice, then `activeThemes`, then the group's first option. A hook that asks for light therefore still draws the artefact's colourway. Engine versions before 1.262 reset every other group to its first option on such a request. A theme name that no group declares is reported and changes nothing else.
 
 ```sh
 lolly system inspect --file=beacon.tokens.json --_themes='{"appearance":"night","density":"roomy"}' --json
@@ -16,6 +18,77 @@ lolly qr-code --url=https://example.com --_themes='{"appearance":"night","densit
 ```
 
 The app's light/dark appearance and accessibility preferences remain separate from these authored design choices.
+
+## What a theme group means
+
+A Tokens Studio `$themes` group is only a name. A design system can also say what choosing between the group's options changes, so Lolly can treat light and dark differently from a choice of lead colour. The statement goes on each entry of the group, under the `com.suse.lolly` extension key:
+
+```json
+{ "name": "Persimmon", "group": "colourway", "selectedTokenSets": { "colourway/persimmon": "enabled" },
+  "$extensions": { "com.suse.lolly": { "axis": { "kind": "colourway" } } } }
+```
+
+| Field | Describes | Meaning |
+| --- | --- | --- |
+| `kind` | the group | `mode` (light, dark and similar looks), `colourway` (which lead colour fills the primary role), or one of `expression`, `medium`, `contrast`, `density`, `campaign`, `brand` |
+| `rotation` | the group | The default way a series picks an option: `canonical`, `cycle`, `by-key`, `shuffle` or `by-date` (see [Colourways](#colourways)) |
+| `canonical` | one option | `true` on the option an artefact uses when it chooses none. Without it, the first option is canonical |
+| `window` | one option | `{ "from": "2026-12-01", "to": "2026-12-31" }`, inclusive ISO dates, read by `by-date` |
+
+Every entry that states `kind` or `rotation` must agree; a disagreement is reported and the first statement is used. A file whose theme entries cannot carry extensions can state the group facts once at the document root instead, as `"$extensions": { "com.suse.lolly": { "themeAxes": { "colourway": { "kind": "colourway", "canonical": "pine" } } } }`. An entry's own statement wins over the root. Lolly gives behaviour to `mode` and `colourway` today. The other kinds are kept, shown and resolved as plain theme choices. A group with no kind, or a kind this version does not know, resolves exactly as it did before kinds existed, and the inspector reports an unknown kind.
+
+`lolly system inspect --json` and `host.tokens.inspect()` list each group with its `kind` and `canonical` option. `host.tokens.themes()` gives each theme its `id`, when the file has one, and its group's `kind`.
+
+## Colourways
+
+Some organisations rotate several lead colours: one poster leads with Pine, the next with Persimmon. A colourway is one of those leads, together with the colour that sits on it and a partner colour. It is a theme group of kind `colourway`, and it combines with light and dark: any colourway can be drawn in any look.
+
+A colourway cannot simply override `color.semantic.primary`. Token sets apply in set order, not group by group, so a Persimmon set placed after the light and dark sets would give the same primary to both looks. Instead each colourway holds its colours per look, and the light and dark sets link the role slots to them:
+
+```json
+{
+  "light": { "color": { "$type": "color", "semantic": {
+    "primary":    { "$value": "{color.colourway.light.primary}" },
+    "on-primary": { "$value": "{color.colourway.light.on-primary}" },
+    "secondary":  { "$value": "{color.colourway.light.secondary}" },
+    "text":       { "$value": "{color.brand.ink}" } } } },
+  "dark": { "...": "the same links, through color.colourway.dark" },
+  "colourway/pine": { "color": { "$type": "color", "colourway": {
+    "light": { "primary": { "$value": "{color.brand.pine}" }, "on-primary": { "$value": "#ffffff" }, "secondary": { "$value": "{color.brand.jungle}" } },
+    "dark":  { "primary": { "$value": "{color.brand.jungle}" }, "on-primary": { "$value": "#000000" }, "secondary": { "$value": "{color.brand.mint}" } } } } },
+  "colourway/persimmon": { "color": { "$type": "color", "colourway": {
+    "light": { "primary": { "$value": "#c2410c" }, "on-primary": { "$value": "#ffffff" }, "secondary": { "$value": "#7c2d12" } },
+    "dark":  { "primary": { "$value": "#fb923c" }, "on-primary": { "$value": "#111111" }, "secondary": { "$value": "#fed7aa" } } } } },
+  "$themes": [
+    { "name": "light", "selectedTokenSets": { "base": "enabled", "light": "enabled" }, "$extensions": { "com.suse.lolly": { "axis": { "kind": "mode" } } } },
+    { "name": "dark", "selectedTokenSets": { "base": "enabled", "dark": "enabled" }, "$extensions": { "com.suse.lolly": { "axis": { "kind": "mode" } } } },
+    { "id": "pine", "name": "Pine", "group": "colourway", "selectedTokenSets": { "colourway/pine": "enabled" }, "$extensions": { "com.suse.lolly": { "axis": { "kind": "colourway", "canonical": true } } } },
+    { "id": "persimmon", "name": "Persimmon", "group": "colourway", "selectedTokenSets": { "colourway/persimmon": "enabled" }, "$extensions": { "com.suse.lolly": { "axis": { "kind": "colourway" } } } }
+  ]
+}
+```
+
+The path segment after `color.colourway` is the look's theme id (`light`, `dark`). Every colourway re-points `primary`, `on-primary` and `secondary`. A colourway can also re-point `surface` for a tinted background, in which case every look links its surface the same way and the other colourways keep their own. Slots no colourway re-points, such as `text`, `muted` and `edge`, stay ordinary values in the light and dark sets. A colourway id may not repeat any other theme id in the file, so `light` and `dark` are never colourway ids.
+
+Imported files often encode colourways their own way, for example by overriding the semantic slots in each colourway set. Selection still works on such files. The colourway helpers described below read the slots through the resolver, so they work on these files too, but only the shape above can be converted and edited by the engine's colourway functions.
+
+**Choosing a colourway.** A link carries the choice with the other theme choices: `_themes={"":"dark","colourway":"persimmon"}`. The CLI takes the same JSON in `--_themes`. On `lolly run`, `--themes=all` exports each look once in the canonical colourway, and naming a colourway, as in `--themes=Persimmon`, exports in that colourway.
+
+**Series.** A series of artefacts can pick its colourways by a rule. The rule is applied when each artefact is made, and the artefact stores the colourway it got, never the rule, so adding a colourway later changes what a rule picks for new work and leaves every existing artefact as it was.
+
+| Rule | Picks |
+| --- | --- |
+| `canonical` | The canonical colourway, every time |
+| `cycle` | The next colourway in order for each artefact, canonical first |
+| `by-key` | A fixed colourway for each value of a field, such as a speaker or a product, from a hash of the value |
+| `shuffle` | A seeded random order that uses every colourway once before any repeats |
+| `by-date` | The colourway whose `window` contains the date, else the canonical one |
+
+The same seed, key, date and position pick the same colourway on every computer, because the engine supplies no clock and no random source of its own.
+
+**Penpot.** A `.penpot` export keeps the colourway group and its sets, and opens with the canonical colourway turned on so the links resolve. Penpot's theme record has no field for the `kind`, so the group arrives in Penpot, and comes back from Penpot, as a plain theme group.
+
+**Engine functions.** `engine/src/colourway.ts` holds the pure helpers: `liftToColourways` converts a single-lead system into one with a canonical colourway and refuses the edit unless every token in every look resolves exactly as before; `addColourway` adds one; `colourwayFamily` lists every colourway's colour for a role, canonical first; `pickColourway` applies a rule; `withColourway` merges a pick into a theme selection. `deriveColourwaySlots` in `engine/src/brand-derive.ts` gives a new lead's primary, on-primary and secondary for one look, the same values a whole design system derived from that colour would use. Brand Studio does not author colourways yet, and tools do not show a colourway control yet; for now a colourway file is written by hand, by a script, or with these functions.
 
 ## Linked values
 

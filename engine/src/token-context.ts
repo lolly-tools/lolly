@@ -3,9 +3,16 @@
 import type { HostV1, TokenResolveOptions } from './bridge/host-v1.ts';
 import { resolveTokenSelection } from './token-selection.ts';
 
-/** Explicit API options supersede a document's default choices, including legacy theme calls. */
+/**
+ * A document's choices under a tool's own read options. An explicit `selection`
+ * replaces the document's choices. A `theme` (`colors({ theme: 'light' })`) keeps
+ * them: the resolver lets the theme decide only the groups it names, so a hook
+ * that asks for light still gets the document's colourway (plans/319). Before
+ * engine 1.262 a theme call dropped the document's choices altogether.
+ */
 export function scopedTokenOptions(selection: Record<string, string> | undefined, opts: TokenResolveOptions = {}): TokenResolveOptions {
-  return opts.selection !== undefined || opts.theme ? opts : { selection, ...opts };
+  if (opts.selection !== undefined || selection === undefined) return opts;
+  return { ...opts, selection };
 }
 
 /** A document's choices scope token reads without changing the shell's active system. */
