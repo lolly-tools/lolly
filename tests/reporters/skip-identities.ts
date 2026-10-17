@@ -34,7 +34,7 @@ export function capabilityFor(reason: string): string {
   // A live service whose token only a person signing in can grant: no variable enables it.
   if (/oauth|signing in|sign in|credential/.test(value)) return 'credentials';
   // The store under test does not offer what the case checks, on any machine.
-  if (/no write precondition/.test(value)) return 'service-limit';
+  if (/no write precondition|no remove call/.test(value)) return 'service-limit';
   if (/env|set |opt-in|enabled/.test(value)) return 'environment';
   return 'unspecified';
 }

@@ -55,6 +55,12 @@ test('the exact content someone deleted does not come back from a device without
   assert.equal(act({ here: 'b', base: undefined, store: tomb('a'), hasBase: false }), 'push');
 });
 
+test('a device that saw the deletion has a say: the same content made again here is pushed', () => {
+  // The base keeps an entry for a tombstoned record, so a restore from Trash wins.
+  assert.equal(act({ here: 'a', base: base(null, null), store: tomb('a'), hasBase: true }), 'push');
+  assert.equal(act({ here: null, base: base(null, null), store: tomb('a'), hasBase: true }), 'keep');
+});
+
 test('a record that is never deleted reads an absent copy as unchanged', () => {
   assert.equal(act({ here: null, base: base('a'), store: live('a'), hasBase: true, neverDeleted: true }), 'keep');
   assert.equal(act({ here: null, base: base('a'), store: live('b'), hasBase: true, neverDeleted: true }), 'pull');
