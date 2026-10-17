@@ -292,7 +292,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `epub-read.ts` | 398 | epub-read.ts - READ an EPUB back to titled chapters of markdown text. | yes | `tests/epub-read.test.ts` | yes |
 | `epub.ts` | 164 | EPUB 3 writer - pure, DOM-free, platform-agnostic. | yes | `tests/epub.test.ts` | – |
 | `exr.ts` | 504 | OpenEXR encoder - scanline, HALF (float16) or FLOAT (32-bit), NONE/ZIPS/ZIP. | no | `tests/exr.test.ts` | – |
-| `file-data.ts` | 42 | Values-only table conversion shared by browser and Node file operations. | yes | `tests/file-data.test.ts` | – |
+| `file-data.ts` | 472 | Table conversion shared by browser and Node file operations. | yes | `tests/file-data.test.ts` | – |
 | `file-metadata.ts` | 1687 | Embedded-metadata reader | yes | `tests/file-metadata.test.ts` | yes |
 | `font-convert.ts` | 348 | Font container interconversion - TTF/OTF ⇄ WOFF1, DOM-free and synchronous. | yes | `tests/font-convert.test.ts` | – |
 | `forensic.ts` | 12 | Byte-bound AI evidence, located motifs, coverage and gated calibration. | yes | `tests/forensic.test.ts` | – |
@@ -598,7 +598,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `x509-read.ts` | 230 | Shared X.509 parsing and certificate signature verification. | no | none | – |
 | `x509.ts` | 316 | DER / X.509 authority - pure, DOM-free (globalThis.crypto only; browsers and Node 18+). | yes | `tests/x509.test.ts` | yes |
 | `xcf.ts` | 623 | GIMP XCF reader - the second layered-bitmap import format beside psd.ts, decoding into the same {@link LayeredRasterDoc}. | yes | `tests/xcf.test.ts` | yes |
-| `xlsx-import.ts` | 553 | xlsx-import.ts - read the first worksheet of an .xlsx into a plain grid. | yes | `tests/xlsx-import.test.ts` | – |
+| `xlsx-import.ts` | 779 | xlsx-import.ts - read one worksheet of an .xlsx into a plain grid. | yes | `tests/xlsx-import.test.ts` | – |
 | `xlsx-write.ts` | 267 | xlsx-write.ts - write a plain grid out as a valid SpreadsheetML .xlsx. | yes | `tests/xlsx-write.test.ts` | – |
 | `xml-escape.ts` | 16 | The one XML text/attribute escaper for the document writers (EPUB, ODT, AppStream). | no | `tests/xml-escape.test.ts` | – |
 | `xmp-fields.ts` | 48 | Bounded XMP/RDF property reader for metadata evidence, including namespace aliases. | no | none | – |
