@@ -55,6 +55,27 @@ export interface MediaTrimOpts {
   audioOnly?: false | 'm4a' | 'opus' | 'wav';
   sourceName?: string;
   sourceMime?: string;
+  /** v1.262. `clip` (the default) writes media. `poster` writes the frame at `start` as
+   *  an image. `contact-sheet` writes one image of frames spread across the range. */
+  output?: 'clip' | 'poster' | 'contact-sheet';
+  /** v1.262. Image format for a poster or contact sheet; `jpeg` when absent. */
+  image?: 'jpeg' | 'png';
+  /** v1.262. Frames on a contact sheet, clamped to 4..36; 12 when absent. */
+  sheetFrames?: number;
+  /** v1.262. Turn the picture clockwise by this many degrees, on top of the source's
+   *  own orientation. */
+  rotate?: 0 | 90 | 180 | 270;
+  /** v1.262. `exact` (the default) re-encodes the picture when `start` falls between key
+   *  frames. `keyframe` copies from the key frame at or before `start` instead, so the
+   *  clip can begin earlier than asked. */
+  cut?: 'exact' | 'keyframe';
+  /** v1.262. Largest shorter edge, in pixels, for a sharing copy. Never enlarges; 0 or
+   *  absent keeps the source size. */
+  maxShortEdge?: number;
+  /** v1.262. Aim for a file of at most this many bytes by re-encoding at a computed
+   *  bitrate. Applies to a clip that keeps its picture; the result reports whether the
+   *  written file met the target. */
+  targetBytes?: number;
 }
 
 export interface MediaTrimResult {
@@ -68,6 +89,90 @@ export interface MediaTrimResult {
   frameCount?: number;
   /** Present when the source exposes a decoded sample count cheaply. */
   audioSampleCount?: number;
+  /** v1.262. What the shell did to each track and what it checked on the written
+   *  bytes. Older shells leave the report out. */
+  report?: MediaTrimReport;
+}
+
+/** Why a track was re-encoded or left out. Stable codes; a tool words them. */
+export type MediaTrimReason =
+  | 'cut-between-key-frames'
+  | 'codec-not-in-container'
+  | 'format-requested'
+  | 'rotation-needs-pixels'
+  | 'resize'
+  | 'target-size'
+  | 'container-timing'
+  | 'removed-by-request'
+  | 'not-primary';
+
+/** One source track and the action taken on the track. */
+export interface MediaTrimTrackReport {
+  kind: 'video' | 'audio' | 'other';
+  /** The source codec, or null when the container does not say. */
+  codec: string | null;
+  /** The written codec, or null when the track was left out. */
+  outputCodec: string | null;
+  /** `copy` means the written packets are byte-identical to the source's. */
+  action: 'copy' | 're-encode' | 'drop';
+  reasons: MediaTrimReason[];
+}
+
+/** Sound against picture, measured on the written file and on the source range. Skews
+ *  are seconds the sound starts or ends after the picture; negative means before. */
+export interface MediaSyncCheck {
+  startSkew: number;
+  expectedStartSkew: number;
+  endSkew: number;
+  expectedEndSkew: number;
+  /** One video frame or one audio packet, whichever is longer. */
+  tolerance: number;
+  /** `packets` when both tracks were copied and matched packet for packet; `ranges`
+   *  when a re-encoded track was compared by its start and end times. */
+  method: 'packets' | 'ranges';
+  ok: boolean;
+}
+
+/** Which way up the written picture is, against what was asked for. */
+export interface MediaOrientationCheck {
+  requested: 0 | 90 | 180 | 270;
+  sourceRotation: number;
+  outputRotation: number;
+  /** `flag`: the container's orientation value was set and the pixels were not touched.
+   *  `pixels`: the turn was drawn into the picture. `none`: nothing was asked for. */
+  method: 'flag' | 'pixels' | 'none';
+  width: number;
+  height: number;
+  expectedWidth: number;
+  expectedHeight: number;
+  ok: boolean;
+}
+
+/** The declared colour information of the picture before and after. */
+export interface MediaColorCheck {
+  /** A short label such as `bt709` or `bt2020 pq`, or null when nothing is declared. */
+  source: string | null;
+  output: string | null;
+  kept: boolean;
+}
+
+export interface MediaTrimReport {
+  /** `frames` for a poster, contact sheet or GIF drawn from decoded frames. */
+  method: 'copy' | 're-encode' | 'mixed' | 'frames';
+  requestedStart: number;
+  /** Where the written media begins in source time. Earlier than `requestedStart` after
+   *  a key frame cut, or by less than a frame when the start was snapped to its key
+   *  frame. */
+  actualStart: number;
+  /** Seconds from the key frame at or before `requestedStart` to `requestedStart`. */
+  keyFrameGap: number;
+  tracks: MediaTrimTrackReport[];
+  sync?: MediaSyncCheck;
+  orientation?: MediaOrientationCheck;
+  color?: MediaColorCheck;
+  /** Displayed size of the written picture or image. */
+  size?: { width: number; height: number };
+  target?: { bytes: number; met: boolean; attempts: number };
 }
 
 /** One camera frame as raw RGBA pixels - DOM-free, so the engine can pass it to a hook. */

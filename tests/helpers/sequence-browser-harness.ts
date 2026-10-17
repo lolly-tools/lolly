@@ -26,6 +26,8 @@ import { createVideoProvider } from '../../shells/web/src/bridge/sequence-provid
 import { parseSequenceStage, frameTimestamps, activeSpanTimestamps, toCodedError } from '../../shells/web/src/bridge/sequence-plan.ts';
 import { HIGH_WATER } from '../../shells/web/src/bridge/video-encode-core.ts';
 import { buildMediabunnyMux } from '../../shells/web/src/bridge/mediabunny-mux.ts';
+import { trimMedia } from '../../shells/web/src/bridge/media-trim.ts';
+import type { MediaTrimOpts } from '../../packages/core/src/host-v1.ts';
 import { MAX_LIVE_PROVIDERS } from '../../shells/web/src/bridge/sequence-render.ts';
 // `createExportAPI` is also the plans/104 section 7 P3 funnel's front door: `walkToSvg` renders
 // SVG through it, which is how `main.ts`'s `__lollyWalkerShot` reaches the walker too - 
@@ -1057,6 +1059,28 @@ async function audioRms(key: string, windows: [number, number][]): Promise<numbe
   }
 }
 
+/**
+ * host.media.trim over a stored clip (tests/trim-prepare.browser.test.ts). The written
+ * bytes are stored under a new key so decodeCodes can read them; an image result also
+ * reports its size and the frame code painted at its top.
+ */
+async function trim(key: string, opts: MediaTrimOpts): Promise<Any> {
+  const source = new Uint8Array(await (blobs.get(key) as Blob).arrayBuffer());
+  const { bytes, ...result } = await trimMedia(source, opts);
+  const out = put(new Blob([bytes as BlobPart], { type: result.mime }));
+  let image: Any = null;
+  if (result.mime.startsWith('image/')) {
+    const bitmap = await createImageBitmap(blobs.get(out) as Blob);
+    const cvs = new OffscreenCanvas(bitmap.width, bitmap.height);
+    const ctx = cvs.getContext('2d', { willReadFrequently: true }) as Any;
+    ctx.drawImage(bitmap, 0, 0);
+    const px = ctx.getImageData(0, 0, bitmap.width, bitmap.height).data;
+    image = { width: bitmap.width, height: bitmap.height, code: readCode(px, bitmap.width, { x: 0, y: 0, w: bitmap.width, h: bitmap.height }) };
+    bitmap.close();
+  }
+  return { ...result, key: out, size: bytes.length, image };
+}
+
 async function hasAudioTrack(key: string): Promise<boolean> {
   const { mb, formats } = await MB_FORMATS();
   const input = new mb.Input({ formats, source: new mb.BlobSource(blobs.get(key) as Blob) });
@@ -1834,7 +1858,7 @@ const goldenDeps: GoldenDeps = { exportSeq, buildStage, blob: (key) => blobs.get
   probe, makeClip, truncate, makeBed, makeRampBed, waveformPeaks, exportSeq, buildStage, filmstripCodes,
   decodeCodes, frameHashes, blobSha, frameDelta, frameSelfDelta, audioRms, hasAudioTrack, beginRawComparison, takeRawComparison,
   driveProvider, stalledProvider, elementRotationProbe, alphaWebmProbe, stillAt, cutsAt, fidelity, resetCounters, firstFramePixels,
-  blobBytes, blobDiff, trackColors, rowRun, vectorStillAt, exportViaApi, walkToSvg, posedVsHatch,
+  blobBytes, blobDiff, trackColors, rowRun, vectorStillAt, exportViaApi, walkToSvg, posedVsHatch, trim,
   constants: { HIGH_WATER, MAX_LIVE_PROVIDERS, CODE_BITS },
 };
 (globalThis as Any).__SEQ_READY = true;

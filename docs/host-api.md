@@ -240,6 +240,23 @@ A **`MediaFrame`** is `{ width, height, data: Uint8ClampedArray (RGBA), t }` - p
 
 You rarely call `subscribe` yourself. A tool declares an **`onFrame`** hook and the runtime drives it once per camera frame - it owns the start → subscribe → `onFrame` → re-render loop and **drops overlapping frames** so a slow per-frame render self-throttles. The shell shows a "Go live" toggle that calls `runtime.startLive()` / `runtime.stopLive()` (released on unmount, so no camera outlives the tool). See [Authoring Tools](/info/authoring-tools.html) for the `onFrame` pattern; the four `filter-*` tools are the reference. Web + Tauri (its webview) provide it via `getUserMedia`; the headless CLI does not.
 
+### `host.media.trim` *(prepare a clip - optional)*
+
+`trim(bytes, opts)` cuts, converts or turns an uploaded audio or video file with the shell's own codecs and resolves to `{ bytes, mime, container, durationBefore, durationAfter, lossless, report? }`. The web shell provides the method; the CLI does not, so feature-detect `host.media?.trim`. The Trim tool (`community/trim`) is the reference.
+
+| Option | Meaning |
+|---|---|
+| `start`, `end` | The range in seconds; an `end` of 0 means the end of the file |
+| `container` | `keep`, `mp4`, `webm` or `gif` |
+| `mute`, `audioOnly` | Remove the sound, or keep only the sound as `m4a`, `opus` or `wav` |
+| `output` *(v1.262)* | `clip` (the default), `poster` (the frame at `start`) or `contact-sheet` (frames spread across the range) |
+| `image`, `sheetFrames` *(v1.262)* | `jpeg` or `png` for a poster or contact sheet; 4 to 36 frames on a sheet |
+| `rotate` *(v1.262)* | 0, 90, 180 or 270 degrees clockwise, on top of the source's own orientation |
+| `cut` *(v1.262)* | `exact` re-encodes the picture when `start` falls between key frames; `keyframe` copies from the key frame before instead, so the clip may begin early |
+| `maxShortEdge`, `targetBytes` *(v1.262)* | A sharing copy: the largest shorter edge in pixels (never enlarged) and a file size to aim for |
+
+From engine **1.262** the result carries a `report`, measured on the written bytes rather than predicted. `tracks` lists every source track as `copy` (the written packets are byte-identical to the source's), `re-encode` or `drop`, with stable reason codes such as `cut-between-key-frames`, `codec-not-in-container` or `rotation-needs-pixels` for the tool to put into words. `actualStart` and `keyFrameGap` show where the clip really begins. `sync` compares when sound and picture start and end against the same range of the source, within one frame or audio packet, and matches the two tracks packet for packet when both were copied. `orientation` checks the displayed size against the requested turn, `color` compares the declared colour information, and `target` says whether a size limit was met. A track the user kept is never left out silently: when a browser cannot copy or re-encode a track, `trim` rejects with the reason.
+
 ## `host.recorder` *(device capture - optional, v1.17; capability: `microphone` / `camera` / `screen`)*
 
 Record the microphone (and optionally the camera) to a finished media Blob, plus a DOM-free **level meter** for a pre-record sound check. The dual of `host.media`: where `media` is a live frame *source*, `recorder` is a *sink* - the shell owns `getUserMedia` + `MediaRecorder` and the engine only ever sees plain numbers (`AudioLevel`) and finished Blobs, never a `MediaStream` or `<video>`. Because recording prompts for a permission a shell may be unable to grant, it **is** gated - declare `"microphone"` (and `"camera"` for video) in `capabilities`; the headless CLI provides none. Feature-detect `host.recorder`.

@@ -27,8 +27,8 @@
  *     picture, so a source that has video whose codec the target cannot carry returns
  *     null rather than quietly writing a soundtrack-only file. A secondary track whose
  *     codec is illegal (for example an AAC sound track into WebM, which only takes
- *     Opus or Vorbis) is DROPPED and counted, and the rewrite proceeds with the tracks
- *     that are legal.
+ *     Opus or Vorbis) is DROPPED, counted and listed with its reason in `tracks`, and
+ *     the rewrite proceeds with the tracks that are legal.
  * A genuine cancel is abortive, not a fall-back: the signal is checked between packets
  * and re-thrown as an AbortError, because a cancel means stop, not try the slow path.
  *
@@ -96,8 +96,21 @@ export interface TransmuxResult {
   /** How many source tracks were dropped because their codec is not legal in the
    *  target container (subtitle tracks are always dropped, see the module note). */
   droppedTracks: number;
+  /** Every source track in container order and whether it was copied, so a caller can
+   *  say which track a copy would lose and why rather than only how many. */
+  tracks: TransmuxTrackReport[];
   /** Total duration in seconds, read from the source. */
   durationSec: number;
+}
+
+/** One source track in a container rewrite. A dropped track carries its reason:
+ *  `codec-not-in-container` when the target cannot carry its codec, `no-packet-copy`
+ *  for a track type this module cannot copy verbatim (subtitles, see the module note). */
+export interface TransmuxTrackReport {
+  kind: 'video' | 'audio' | 'other';
+  codec: string | null;
+  action: 'copy' | 'drop';
+  reason?: 'codec-not-in-container' | 'no-packet-copy';
 }
 
 function transmuxCancelled(ctx: TransmuxCtx): boolean {
@@ -199,12 +212,14 @@ export async function transmuxContainer(
     let keptVideoCodec: VideoCodec | null = null;
     let keptAudioCodec: AudioCodec | null = null;
     let dropped = 0;
+    const reports: TransmuxTrackReport[] = [];
 
     for (const track of tracks) {
       if (track.isVideoTrack()) {
         sourceHasVideo = true;
         const codec = await track.getCodec();
-        if (!codec || !legalVideo.has(codec)) { dropped++; continue; }
+        if (!codec || !legalVideo.has(codec)) { dropped++; reports.push({ kind: 'video', codec, action: 'drop', reason: 'codec-not-in-container' }); continue; }
+        reports.push({ kind: 'video', codec, action: 'copy' });
         const decoderConfig = await track.getDecoderConfig();
         const packetSource = new MB.EncodedVideoPacketSource(codec);
         // Preserve the display rotation the source recorded, so a phone video written
@@ -224,7 +239,8 @@ export async function transmuxContainer(
         });
       } else if (track.isAudioTrack()) {
         const codec = await track.getCodec();
-        if (!codec || !legalAudio.has(codec)) { dropped++; continue; }
+        if (!codec || !legalAudio.has(codec)) { dropped++; reports.push({ kind: 'audio', codec, action: 'drop', reason: 'codec-not-in-container' }); continue; }
+        reports.push({ kind: 'audio', codec, action: 'copy' });
         const decoderConfig = await track.getDecoderConfig();
         const packetSource = new MB.EncodedAudioPacketSource(codec);
         const languageCode = track.languageCode;
@@ -241,6 +257,7 @@ export async function transmuxContainer(
         // A subtitle or other track type mediabunny does not expose as an encoded
         // packet reader. Nothing to copy verbatim, so it is dropped (see the note).
         dropped++;
+        reports.push({ kind: 'other', codec: (await track.getCodec()) ?? null, action: 'drop', reason: 'no-packet-copy' });
       }
     }
 
@@ -325,7 +342,7 @@ export async function transmuxContainer(
     return {
       blob, container: target, ext: info.ext, mime: info.mime,
       videoCodec: keptVideoCodec, audioCodec: keptAudioCodec,
-      droppedTracks: dropped, durationSec,
+      droppedTracks: dropped, tracks: reports, durationSec,
     };
   } catch (err) {
     // A genuine cancel must propagate; anything else means this source cannot be

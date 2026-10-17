@@ -6,6 +6,16 @@ import { DEFAULT_IMAGE_OPTIONS, conversionFindings, sha256Bytes, validateImageOp
 import { isJxl } from '../../../../engine/src/jxl.ts';
 import { convert, detectKind, targetsForSource, type Target } from './convert-codecs.ts';
 
+/** The tracks a container copy would lose, in words: `the AAC sound track (WebM cannot carry it)`. */
+export function droppedTrackList(tracks: ReadonlyArray<{ kind: string; codec: string | null; action: string; reason?: string }>, container: string): string {
+  const parts = tracks.filter((t) => t.action === 'drop').map((t) => {
+    const what = t.kind === 'video' ? 'picture' : t.kind === 'audio' ? 'sound' : 'subtitle or data';
+    const why = t.reason === 'codec-not-in-container' ? `${container} cannot carry it` : 'it cannot be copied without re-encoding';
+    return `the ${t.codec ? `${t.codec.toUpperCase()} ` : ''}${what} track (${why})`;
+  });
+  return parts.length ? parts.join(' and ') : 'a track';
+}
+
 export async function describeFile(file: File, signal?: AbortSignal): Promise<FileFactsV1> {
   validateConvertFiles([file]);
   signal?.throwIfAborted();
@@ -33,7 +43,7 @@ export async function runWebFileOperation(file: File, request: FileOperationRequ
         const { BlobSource } = await import('mediabunny');
         const result = await transmuxContainer(new BlobSource(source), operation.target as 'mp4' | 'mov' | 'mkv' | 'webm', { signal });
         if (!result) throw new Error('That container cannot carry this media.');
-        if (result.droppedTracks) throw new Error('That copy would drop media or subtitle tracks. Choose a compatible container; the original is unchanged.');
+        if (result.droppedTracks) throw new Error(`That copy would drop ${droppedTrackList(result.tracks, operation.target === 'webm' ? 'WebM' : operation.target.toUpperCase())}. Choose a compatible container; the original is unchanged.`);
         return new File([result.blob], safeFileName(`${source.name.replace(/\.[^.]+$/, '')}.${result.ext}`), { type: result.mime });
       }
       if (operation.operation !== 'convert') throw new Error('This adapter supports the convert operation.');
