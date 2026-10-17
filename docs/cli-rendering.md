@@ -62,7 +62,7 @@ Default/live text, composed text stories, standard-password PDFs, credentialed p
 
 A static Design frame also exports as `svgz` without a browser: it is gzip of the same operations SVG, with the same dimensions and metadata. Select a frame with `--s=<frame-id>`. Design preserves a shared link's **Convert paths** setting; default words stay editable. SVGZ uses the same whole-page admission checks as SVG. Composed stories, watermark, credentialed pictures, themed assets and unsupported artwork go to the browser tier once, with the reason reported; a recorded hook failure writes no file and is never retried.
 
-Outlined strike-through keeps each run's font weight, variation, colour and placement in SVG, SVGZ and PDF. The shared drawing pipeline uses the same font instance that shapes the words. Underlines and runs whose decoration metrics cannot be resolved retain the browser route.
+Outlined strike-through and underline keep each run's font weight, variation, colour and placement in SVG, SVGZ and PDF. The shared drawing pipeline uses the same font instance that shapes the words, and clears an underline around descenders the way the browser does. Runs whose decoration metrics or glyph outlines cannot be resolved retain the browser route.
 
 
 Which tier is available here is not a guess: `lolly list --json` reports it per tier, with a reason for each one that is missing. See [Discovery, for an agent](/info/cli-automation.html#discovery-for-an-agent).
