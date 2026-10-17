@@ -674,7 +674,45 @@ function safeJson(obj) {
 //   • monochrome - fewer than 4 spectrum hues → the template auto-adds patterns
 // A brand/host that can't supply a piece leaves it null and the template falls
 // back to its shipped hand-tuned palette (older shells stay byte-identical).
+//
+// A design system with several colourways (plans/319) also gives a FAMILY: every
+// colourway's lead in the current look, from host.tokens.family. The leads head
+// the spectrum, follow Primary and Secondary in the ordered palette, and supply
+// the second hue of the alternate and diverging ramps. Fewer than two leads is no
+// family, so a one-lead design system charts exactly as it did before.
 let BRAND = null;
+// The colours BRAND was resolved under. A colourway or look switch changes them,
+// and onInput re-resolves BRAND without re-running onInit (which would reset the
+// user's inputs).
+let BRAND_KEY = null;
+
+async function brandKey() {
+  try {
+    if (typeof host === 'undefined' || !host || !host.tokens || !host.tokens.resolve) return '';
+    const read = async (slot) => {
+      try { const v = await host.tokens.resolve('{color.semantic.' + slot + '}'); return typeof v === 'string' ? v : JSON.stringify(v == null ? null : v); }
+      catch (e) { return ''; }
+    };
+    return JSON.stringify([await read('primary'), await read('secondary'), await read('surface')]);
+  } catch (e) { return ''; }
+}
+
+// The family of leads, the artefact's own colourway first, then the others in the
+// design system's order. [] for fewer than two, or a shell without the API.
+async function brandLeads() {
+  try {
+    if (typeof host === 'undefined' || !host || !host.tokens || typeof host.tokens.family !== 'function') return [];
+    const family = (await host.tokens.family('primary')) || [];
+    const ordered = family.filter((m) => m && m.active).concat(family.filter((m) => m && !m.active));
+    const out = [], seen = new Set();
+    for (const m of ordered) {
+      const v = normHex(m.value);
+      if (!v || seen.has(v)) continue;
+      seen.add(v); out.push({ name: String(m.name || v), value: v, active: !!m.active });
+    }
+    return out.length >= 2 ? out : [];
+  } catch (e) { return []; }
+}
 
 function normHex(x) {
   return typeof x === 'string' && /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(x.trim()) ? x.trim().toLowerCase() : null;
@@ -697,7 +735,10 @@ async function resolveBrandColors() {
     async function sem(name) { return token('color.semantic.' + name); }
 
     // ── categorical spectrum (as before; .value is already resolved hex) ────
+    // The family's leads come first when there is a family.
+    const leads = await brandLeads();
     const spectrum = [], seen = new Set();
+    for (const l of leads) { seen.add(l.value); spectrum.push(l.value); }
     for (const s of swatchesRaw) {
       const v = normHex(s.value);
       if (!v || seen.has(v)) continue;
@@ -742,7 +783,10 @@ async function resolveBrandColors() {
       // semantic hue, or - when that's near-neutral / too close - the most
       // chromatic spectrum hue that's far from vib.
       let second = (vib === secondary) ? primary : secondary;
-      if (chroma(second) < 0.04 || (c.deltaE && c.deltaE(second, vib) < 0.12)) {
+      // Family first: another colourway's lead, when one stands apart from vib.
+      const lead2 = leads.find((l) => !l.active && chroma(l.value) >= 0.04 && (!c.deltaE || c.deltaE(l.value, vib) >= 0.12));
+      if (lead2) second = lead2.value;
+      else if (chroma(second) < 0.04 || (c.deltaE && c.deltaE(second, vib) < 0.12)) {
         let best = null, bestScore = -1;
         for (const s of (spectrum || [])) {
           if (c.deltaE && c.deltaE(s, vib) < 0.12) continue;
@@ -788,6 +832,7 @@ async function resolveBrandColors() {
     const surfaceHex = toHex(surface) || '#ffffff', textHex = toHex(text) || '#111111';
     pushSwatch('Primary', primaryHex, 'color.semantic.primary');
     pushSwatch('Secondary', secondaryHex, 'color.semantic.secondary');
+    for (const l of leads) pushSwatch(l.name, l.value, '');   // the other colourways' leads
     for (const s of swatchesRaw) { const hx = toHex(s.value); if (hx && chroma(hx) >= 0.03) pushSwatch(s.name, s.value, s.path); }   // brand hues
     if (c.mix) {                                    // tints + shades = variations of the lead hues
       for (const base of [primaryHex, secondaryHex]) {
@@ -1889,6 +1934,7 @@ function d3Md(inp) {
 function brandDegraded(b) { return !b || (!b.primary && !b.spectrum && !b.ramps); }
 
 async function onInit({ model }) {
+  BRAND_KEY = await brandKey();
   BRAND = await resolveBrandColors();
   const modePatch = legacyModePatch(model);
   const guidedPatch = recommendationInputPatch(model, modePatch, null);
@@ -1899,8 +1945,16 @@ async function onInput({ model, id }) {
   // A theme or colourway switch (id '__tokens') changes every colour BRAND was read
   // from, so it is read again in the new choice, as a fresh mount in that choice
   // would read it. onInit is not run again, because it would reset the inputs.
-  if (id === '__tokens') { try { BRAND = await resolveBrandColors(); } catch (e) { /* keep prior */ } }
-  else if (brandDegraded(BRAND)) { try { const b = await resolveBrandColors(); if (!brandDegraded(b)) BRAND = b; } catch (e) { /* keep prior */ } }
+  // Any other edit re-reads the brand when it was not ready at mount, or when the
+  // colours it was read under have moved since.
+  if (id === '__tokens') {
+    try { BRAND = await resolveBrandColors(); BRAND_KEY = await brandKey(); } catch (e) { /* keep prior */ }
+  } else {
+    const key = await brandKey();
+    if (brandDegraded(BRAND) || key !== BRAND_KEY) {
+      try { const b = await resolveBrandColors(); if (!brandDegraded(b)) { BRAND = b; BRAND_KEY = key; } } catch (e) { /* keep prior */ }
+    }
+  }
   const modePatch = legacyModePatch(model);
   const guidedPatch = recommendationInputPatch(model, modePatch, id);
   const inputPatch = Object.assign({}, modePatch, guidedPatch);

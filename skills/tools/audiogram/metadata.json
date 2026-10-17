@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "audiogram",
-  "toolVersion": "2.7.5",
-  "toolVersionRange": "2.7.5",
+  "toolVersion": "2.8.0",
+  "toolVersionRange": "2.8.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "da1bea1f51a668186eaf3e44e875d045c85f267b661c5448b58a258ea1f40f95",
+      "sha256": "ac2906efb90586a53ca809e212c397be20859bccba1b33d22e84e5f60c3f64f8",
       "bytes": 2091
     },
     "reference/inputs.json": {
