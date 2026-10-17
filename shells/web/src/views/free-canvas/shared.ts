@@ -756,11 +756,18 @@ export interface PinchGesture extends GestureBase {
   /** Both fingers (client px) when the preview began, once the pair could no longer be a
    *  tap, and what had engaged by then: those parts ease in from here (pinch.ts). */
   shownFrom?: [Point, Point];
-  early?: { turn: boolean; travel: boolean };
-  /** Both fingers (client px) when the scale began to show, which it eases in from. */
+  early?: { scale: boolean; turn: boolean; travel: boolean };
+  /** Both fingers (client px) at the last frame, held back or shown. */
+  lastFrame?: [Point, Point];
+  /** A scale or a travel that engaged after the preview began: both fingers (client px)
+   *  where it began to show, which it eases in from, and what it owes, its whole change
+   *  at the last frame before it engaged (the factor's change from 1, native px). */
   scaleFrom?: [Point, Point];
+  scaleOwed?: number;
+  travelFrom?: [Point, Point];
+  travelOwed?: Point;
   /** How far each eased part has caught up, 0 to 1; never goes back. */
-  ease?: { from: number; scale: number };
+  ease?: { from: number; scale: number; travel: number };
   /** The live factor and turn: the commit scales the content by `k`, and both name the
    *  preview kind peers are shown. */
   k?: number;
