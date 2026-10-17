@@ -465,6 +465,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/backup-streaming.test.ts",
+      "fullName": "finishing a backup with the streamed writer takes well under half the memory of the in-memory one",
+      "reason": "memory guard - set BENCH=1 to run (spawns two measured processes)",
+      "capability": "benchmark",
+      "owner": "tests"
+    },
+    {
       "file": "tests/brand-import.test.ts",
       "fullName": "cross-container equivalence: all available real sources agree",
       "reason": "penpot-start example materials not on this machine",
