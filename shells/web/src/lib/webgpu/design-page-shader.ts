@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { DESIGN_RASTER_MAX_CLIP_POINTS } from '../../../../../engine/src/design-draw-raster.ts';
+
 /** The primitive shader in parts, so the gradient pass draws exactly the primitive's coverage. */
 const PRIMITIVE_HEAD = /* wgsl */ `
 struct Primitive { box: vec4<f32>, color: vec4<f32>, shape: vec4<f32>, mirror: vec4<f32> }
@@ -370,13 +372,58 @@ const clipPart = (binding: number) => /* wgsl */ `
 @group(0) @binding(${binding}) var<uniform> clip: Primitive;
 fn clipCoverage(position: vec2<f32>) -> f32 { return primitiveCoverage(position, clip); }
 `;
-/** A fragment whose coverage is multiplied by the clip's just before `anchor`, which must occur once. */
-function clipped(fragment: string, anchor: string): string {
+
+/** Bytes of one row clip uniform: bounds, the point count, then the points two to a vector. */
+export const DESIGN_ROW_CLIP_BYTES = 32 + DESIGN_RASTER_MAX_CLIP_POINTS * 8;
+/**
+ * A row's clip polygon bound at `binding`, in output pixels, and its coverage at a pixel: the
+ * pixel's area-weighted winding over the polygon's edges under the nonzero rule, summed as
+ * the fill pass sums a fill's edges.
+ */
+const rowClipPart = (binding: number) => /* wgsl */ `
+struct RowClip { bounds: vec4<f32>, count: vec4<u32>, points: array<vec4<f32>, ${DESIGN_RASTER_MAX_CLIP_POINTS / 2}> }
+@group(0) @binding(${binding}) var<uniform> rowClip: RowClip;
+fn rowClipPoint(i: u32) -> vec2<f32> {
+  let pair = rowClip.points[i / 2u];
+  return select(pair.xy, pair.zw, i % 2u == 1u);
+}
+fn rowClipMean(u: f32, v: f32) -> f32 {
+  if abs(v - u) < 1e-6 { return clamp((u + v) * 0.5, 0.0, 1.0); }
+  let cu = select(select(u - 0.5, u * u * 0.5, u < 1.0), 0.0, u < 0.0);
+  let cv = select(select(v - 0.5, v * v * 0.5, v < 1.0), 0.0, v < 0.0);
+  return (cv - cu) / (v - u);
+}
+fn rowClipCoverage(position: vec2<f32>) -> f32 {
+  let pixel = floor(position);
+  let b = rowClip.bounds;
+  if pixel.x + 1.0 <= b.x || pixel.x >= b.z || pixel.y + 1.0 <= b.y || pixel.y >= b.w { return 0.0; }
+  let n = rowClip.count.x;
+  var winding = 0.0;
+  for (var i = 0u; i < n; i++) {
+    let a = rowClipPoint(i);
+    let e = rowClipPoint(select(i + 1u, 0u, i + 1u == n));
+    if a.y == e.y { continue; }
+    let top = max(min(a.y, e.y), pixel.y);
+    let bottom = min(max(a.y, e.y), pixel.y + 1.0);
+    if top >= bottom { continue; }
+    let slope = (e.x - a.x) / (e.y - a.y);
+    winding += select(-1.0, 1.0, e.y > a.y) * (bottom - top)
+      * rowClipMean(a.x + slope * (top - a.y) - pixel.x, a.x + slope * (bottom - a.y) - pixel.x);
+  }
+  return min(abs(winding), 1.0);
+}
+`;
+/** A fragment whose coverage is multiplied by each named coverage just before `anchor`, which must occur once. */
+function covered(fragment: string, anchor: string, factors: readonly string[]): string {
   const at = fragment.indexOf(anchor);
   if (at < 0 || fragment.indexOf(anchor, at + 1) >= 0) throw new Error(`The clip anchor does not occur exactly once: ${anchor}`);
-  return `${fragment.slice(0, at)}  coverage = coverage * clipCoverage(v.position.xy);\n${fragment.slice(at)}`;
+  return `${fragment.slice(0, at)}${factors.map(f => `  coverage = coverage * ${f}(v.position.xy);\n`).join('')}${fragment.slice(at)}`;
 }
+const clipped = (fragment: string, anchor: string) => covered(fragment, anchor, ['clipCoverage']);
 const PRIMITIVE_STRUCT = PRIMITIVE_HEAD.slice(PRIMITIVE_HEAD.indexOf('struct Primitive'), PRIMITIVE_HEAD.indexOf('struct Size'));
+const PRIMITIVE_ANCHOR = '  if scanlineRectangle {\n    // Byte paint';
+const FILL_ANCHOR = '  let alpha = f.color.a * clamp(coverage, 0.0, 1.0);';
+const GRADIENT_ANCHOR = '  // The colour at the pixel centre';
 
 /**
  * The same passes inside the frame's clip, as Chromium clips a board's children: each
@@ -384,7 +431,23 @@ const PRIMITIVE_STRUCT = PRIMITIVE_HEAD.slice(PRIMITIVE_HEAD.indexOf('struct Pri
  * keeps the shaders above.
  */
 export const DESIGN_PAGE_CLIPPED_SHADER = PRIMITIVE_HEAD + PRIMITIVE_VERTEX + PRIMITIVE_COVERAGE + PRIMITIVE_SELECT + clipPart(2)
-  + clipped(PRIMITIVE_FRAGMENT, '  if scanlineRectangle {\n    // Byte paint');
-export const DESIGN_FILL_CLIPPED_SHADER = PRIMITIVE_STRUCT + clipped(DESIGN_FILL_SHADER, '  let alpha = f.color.a * clamp(coverage, 0.0, 1.0);')
+  + clipped(PRIMITIVE_FRAGMENT, PRIMITIVE_ANCHOR);
+export const DESIGN_FILL_CLIPPED_SHADER = PRIMITIVE_STRUCT + clipped(DESIGN_FILL_SHADER, FILL_ANCHOR)
   + PRIMITIVE_COVERAGE + PRIMITIVE_SELECT + clipPart(3);
-export const DESIGN_GRADIENT_CLIPPED_SHADER = clipped(DESIGN_GRADIENT_SHADER, '  // The colour at the pixel centre') + clipPart(4);
+export const DESIGN_GRADIENT_CLIPPED_SHADER = clipped(DESIGN_GRADIENT_SHADER, GRADIENT_ANCHOR) + clipPart(4);
+
+/**
+ * The passes inside a row's clip polygon, as Chromium draws an element with
+ * `clip-path: polygon()`: each draw's coverage times the polygon's. The bindings follow the
+ * frame's clip when the row lies inside both.
+ */
+const ROW = ['rowClipCoverage'], BOTH = ['clipCoverage', 'rowClipCoverage'];
+export const DESIGN_PAGE_ROW_CLIPPED_SHADER = PRIMITIVE_HEAD + PRIMITIVE_VERTEX + PRIMITIVE_COVERAGE + rowClipPart(2)
+  + covered(PRIMITIVE_FRAGMENT, PRIMITIVE_ANCHOR, ROW);
+export const DESIGN_FILL_ROW_CLIPPED_SHADER = covered(DESIGN_FILL_SHADER, FILL_ANCHOR, ROW) + rowClipPart(3);
+export const DESIGN_GRADIENT_ROW_CLIPPED_SHADER = covered(DESIGN_GRADIENT_SHADER, GRADIENT_ANCHOR, ROW) + rowClipPart(4);
+export const DESIGN_PAGE_BOTH_CLIPPED_SHADER = PRIMITIVE_HEAD + PRIMITIVE_VERTEX + PRIMITIVE_COVERAGE + PRIMITIVE_SELECT + clipPart(2) + rowClipPart(3)
+  + covered(PRIMITIVE_FRAGMENT, PRIMITIVE_ANCHOR, BOTH);
+export const DESIGN_FILL_BOTH_CLIPPED_SHADER = PRIMITIVE_STRUCT + covered(DESIGN_FILL_SHADER, FILL_ANCHOR, BOTH)
+  + PRIMITIVE_COVERAGE + PRIMITIVE_SELECT + clipPart(3) + rowClipPart(4);
+export const DESIGN_GRADIENT_BOTH_CLIPPED_SHADER = covered(DESIGN_GRADIENT_SHADER, GRADIENT_ANCHOR, BOTH) + clipPart(4) + rowClipPart(5);

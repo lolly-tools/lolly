@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * P3f fills (pen shapes, strokes, gradients, frames and outlined words) against the real
- * Design renderer.
+ * P3f fills (pen shapes, strokes and their dashes, gradients, frames, rows clipped by other
+ * rows and outlined words) against the real Design renderer.
  *
  * Primitives keep their zero-slack comparison in design-draw-webgpu.browser.test.ts.
  * Fills are judged within a declared band (plan 295, decision of 2026-10-14): Chromium
@@ -49,7 +49,12 @@ type ProbeWindow = Window & { designRasterProbe: FillProbe };
  * snaps it by; 0.01% against Chromium's SVG); a border 1 px wider differs in 3.72%, a pen
  * stroke 1 px wider in 2.82%. Frames on the Mac: every region of a rounded, bordered board
  * and an elliptical one at 0.01% or less, rows clipped included; without the frame's clip
- * the rows crossing its edge differ in up to 24% and the corners in up to 76%.
+ * the rows crossing its edge differ in up to 24% and the corners in up to 76%. Dashes on the
+ * Mac: every dashed region at 0.05% or less, curves and dots included; with the dashes placed
+ * by exact arc length rather than the browser's measure the dotted blob rose to 0.43%. The
+ * dashed zig drawn solid differs in 2.19%, the mitred zig with each dash 2 px longer in 1.51%.
+ * Row clips on the Mac: every clipped row at 0.04% or less, inside the board's clip as well;
+ * drawn without their clips the clipped rows differ in 4.71% to 28.26%.
  */
 const REPORT_ONLY = process.env.LOLLY_DESIGN_GPU_FILL_CALIBRATE === '1';
 const FILL_SLACK = REPORT_ONLY && process.env.LOLLY_FILL_SLACK ? Number(process.env.LOLLY_FILL_SLACK) : 0;
@@ -159,6 +164,48 @@ const ovalRows: DesignBoxRowV1[] = [
   on({ id: 'top', kind: 'path', x: 110, y: -30, w: 100, h: 90, path: triangle, bg: '#e8590c' }),
   on({ id: 'lower', kind: 'box', x: 200, y: 160, w: 120, h: 90, shape: 'ellipse', bg: '#0b7285', rot: 15 }),
 ];
+/**
+ * Dashed pen strokes as Design's path hook writes them: the keyword patterns and authored
+ * lengths, on straight runs and curves, open and closed, with each cap and join. The closed
+ * triangle's pattern ends inside a dash, so its last dash runs on into its first across the
+ * starting corner. Every pad is a whole pixel.
+ */
+const dashRows: DesignBoxRowV1[] = [
+  { id: 'page', kind: 'frame', x: 0, y: 0, w: 320, h: 240, bg: '#ffffff' },
+  on({ id: 'zig', kind: 'path', x: 15, y: 15, w: 90, h: 60, path: zig, stroke: '#e03131', strokeW: 4, strokeDash: 'dashed' }),
+  on({ id: 'mitre', kind: 'path', x: 125, y: 20, w: 75, h: 50, path: zig, stroke: '#1971c2', strokeW: 5, strokeJoin: 'miter', strokeCap: 'butt', strokeDash: 'dashed', strokeDashLen: 10, strokeGapLen: 6 }),
+  on({ id: 'wave', kind: 'path', x: 220, y: 15, w: 85, h: 60, path: wave, stroke: '#2f9e44', strokeW: 3, strokeDash: 'dashed', strokeDashLen: 9, strokeGapLen: 6 }),
+  on({ id: 'dots', kind: 'path', x: 15, y: 95, w: 80, h: 70, path: blob, stroke: '#5f3dc4', strokeW: 4, strokeDash: 'dotted' }),
+  on({ id: 'squares', kind: 'path', x: 120, y: 100, w: 80, h: 50, path: diagonal, stroke: '#c2255c', strokeW: 4, strokeDash: 'dotted', strokeCap: 'square' }),
+  on({ id: 'blocks', kind: 'path', x: 215, y: 95, w: 90, h: 60, path: zig, stroke: '#e8590c', strokeW: 4, strokeDash: 'dotted', strokeCap: 'butt', strokeJoin: 'miter' }),
+  on({ id: 'closed', kind: 'path', x: 15, y: 175, w: 90, h: 55, path: triangle, stroke: '#0b7285', strokeW: 4, strokeJoin: 'miter', strokeCap: 'butt', strokeDash: 'dashed', strokeDashLen: 18, strokeGapLen: 6 }),
+  on({ id: 'filled', kind: 'path', x: 125, y: 170, w: 80, h: 60, path: blob, bg: '#ffd43b', stroke: '#495057', strokeW: 3, strokeDash: 'dashed', strokeDashLen: 8, strokeGapLen: 5 }),
+  on({ id: 'turned', kind: 'path', x: 225, y: 178, w: 80, h: 45, path: zig, stroke: '#212529', strokeW: 3, strokeDash: 'dashed', strokeDashLen: 7, strokeGapLen: 5, rot: 20 }),
+];
+/**
+ * Rows clipped by another row's silhouette (Design's `clip-path: polygon()`): a bordered box
+ * with a gradient inside a circle, a stroked pen shape turned inside a turned rectangle, a
+ * rounded box with a radial gradient inside an ellipse and a dashed stroke inside a diamond.
+ */
+const clipRows: DesignBoxRowV1[] = [
+  { id: 'page', kind: 'frame', x: 0, y: 0, w: 320, h: 240, bg: '#ffffff' },
+  on({ id: 'disc', kind: 'box', x: 20, y: 20, w: 90, h: 90, shape: 'circle', bg: '#e9ecef' }),
+  on({ id: 'cut', kind: 'box', x: 10, y: 40, w: 130, h: 50, bg: '#e03131', grad: 'lin.srgb_90_ffffff00-0_1c7ed6-100', stroke: '#212529', strokeW: 4, clip: 'disc' }),
+  on({ id: 'tilt', kind: 'box', x: 185, y: 30, w: 80, h: 55, rot: 25, bg: '#f1f3f5' }),
+  on({ id: 'blade', kind: 'path', x: 165, y: 12, w: 120, h: 90, path: blob, bg: '#12b886', stroke: '#087f5b', strokeW: 4, clip: 'tilt', rot: -10 }),
+  on({ id: 'oval', kind: 'box', x: 40, y: 130, w: 120, h: 80, shape: 'ellipse', bg: '#fff3bf' }),
+  on({ id: 'ramp', kind: 'box', x: 20, y: 150, w: 160, h: 50, shape: 'rounded', radius: 12, grad: 'rad.srgb_0_fab005-0_7048e8-100', clip: 'oval' }),
+  on({ id: 'diamond', kind: 'box', x: 210, y: 135, w: 70, h: 70, rot: 45, bg: '#f8f0fc' }),
+  on({ id: 'line', kind: 'path', x: 190, y: 120, w: 110, h: 100, path: zig, stroke: '#c2255c', strokeW: 5, strokeDash: 'dashed', clip: 'diamond' }),
+];
+/** A rounded, bordered board that clips its rows, whose rows are clipped by other rows as well. */
+const clippedBoardRows: DesignBoxRowV1[] = [
+  { id: 'page', kind: 'frame', x: 0, y: 0, w: 320, h: 240, bg: '#f8f9fa', shape: 'rounded', radius: 28, stroke: '#495057', strokeW: 6 },
+  on({ id: 'hole', kind: 'box', x: -30, y: -30, w: 120, h: 120, shape: 'circle', bg: '#dee2e6' }),
+  on({ id: 'cross', kind: 'box', x: -20, y: 15, w: 140, h: 60, bg: '#e03131', grad: 'lin.srgb_0_ffffff00-0_fab005-100', clip: 'hole' }),
+  on({ id: 'band', kind: 'box', x: 220, y: 120, w: 120, h: 70, rot: 15 }),
+  on({ id: 'wing', kind: 'path', x: 230, y: 100, w: 120, h: 110, path: blob, bg: '#1c7ed6', stroke: '#1864ab', strokeW: 4, clip: 'band' }),
+];
 const textRows: DesignBoxRowV1[] = [
   { id: 'page', kind: 'frame', x: 0, y: 0, w: 320, h: 240, bg: '#ffffff' },
   on({ id: 'title', kind: 'text', x: 10, y: 10, w: 300, h: 60, text: 'Design', fontSize: 40 }),
@@ -205,9 +252,11 @@ function frameRegions(drawing: DesignDrawPage, sx: number, sy: number) {
 /**
  * The inside of each unturned box with a gradient, in output pixels, inset past its outline
  * (and an ellipse's curve) so edge coverage stays out and only the gradient's colour is judged.
+ * A box clipped by another row has the clip's edge running through its inside, so it is
+ * judged by its region alone.
  */
 function gradientInteriors(drawing: DesignDrawPage, sx: number, sy: number) {
-  return drawing.ops.filter(op => op.op === 'shape' && op.shape.kind !== 'path' && !op.pose?.rot && op.fills.some(f => f.kind !== 'color')).map(op => {
+  return drawing.ops.filter(op => op.op === 'shape' && op.shape.kind !== 'path' && !op.pose?.rot && !op.clip && op.fills.some(f => f.kind !== 'color')).map(op => {
     const border = op.op === 'shape' && op.stroke ? op.stroke.width : 0;
     const ix = 0.3 * op.box.w / 2 + border + 2, iy = 0.3 * op.box.h / 2 + border + 2;
     return { id: `${op.id}:inside`, x: (op.box.x + ix) * sx, y: (op.box.y + iy) * sy, w: (op.box.w - 2 * ix) * sx, h: (op.box.h - 2 * iy) * sy };
@@ -272,7 +321,8 @@ test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within
     return d;
   };
   const cases: DesignGpuCase[] = [];
-  for (const [name, rows] of [['paths', pathRows], ['strokes', strokeRows], ['gradients', gradientRows], ['board', boardRows], ['oval', ovalRows], ['text', textRows]] as const) {
+  for (const [name, rows] of [['paths', pathRows], ['strokes', strokeRows], ['gradients', gradientRows], ['board', boardRows], ['oval', ovalRows], ['text', textRows],
+    ['dashes', dashRows], ['clips', clipRows], ['clipped-board', clippedBoardRows]] as const) {
     const drawing = await drawn(rows);
     for (const scale of [1, 2]) cases.push({ key: `${name}-${scale}`, rows, drawing, scaleX: scale, scaleY: scale, original: true });
   }
@@ -413,6 +463,29 @@ test('opt-in Design GPU fills draw pen shapes, strokes and outlined words within
       const failed = opened.filter(r => fault(r, 1)).map(r => r.id);
       if (REPORT_ONLY) t.diagnostic(`control ${c.key} without its clip: ${opened.map(r => `${r.id} ${detail(r)}`).join(', ')}`);
       else assert.ok(failed.length, `the band catches a frame that does not clip its rows (${c.key})`);
+    }
+    if (c.key === 'dashes-1') {
+      // Negative controls: the dashed zig drawn solid, and the mitred zig with each dash 2 px
+      // longer over the same period, must each fail their regions.
+      const solid = structuredClone(c.drawing), plain = solid.ops.find(op => op.id === 'zig')!;
+      if (plain.op === 'shape' && plain.stroke) delete plain.stroke.dash;
+      const longer = structuredClone(c.drawing), mitre = longer.ops.find(op => op.id === 'mitre')!;
+      if (mitre.op === 'shape' && mitre.stroke?.dash) mitre.stroke.dash = [mitre.stroke.dash[0] + 2, mitre.stroke.dash[1] - 2];
+      for (const [id, page] of [['zig', solid], ['mitre', longer]] as const) {
+        const [region] = (await compare(await render(page, width, height), regions.filter(r => r.id === id))).regions;
+        if (REPORT_ONLY) t.diagnostic(`control ${id} with changed dashes: ${region ? detail(region) : 'no region'}`);
+        else assert.ok(region && fault(region, 1), `the band catches changed dashes (${id})`);
+      }
+    }
+    if (c.key === 'clips-1' || c.key === 'clipped-board-1') {
+      // Negative control: the same page with no row clipped by another must fail in every clipped row.
+      const open = structuredClone(c.drawing);
+      for (const op of open.ops) delete op.clip;
+      const clipped = regions.filter(r => c.drawing.ops.some(op => op.id === r.id && op.clip));
+      const opened = (await compare(await render(open, width, height), clipped)).regions;
+      const failed = opened.filter(r => fault(r, 1)).map(r => r.id);
+      if (REPORT_ONLY) t.diagnostic(`control ${c.key} without row clips: ${opened.map(r => `${r.id} ${detail(r)}`).join(', ')}`);
+      else assert.deepEqual(failed, clipped.map(r => r.id), `the band catches each row drawn without its clip (${c.key})`);
     }
     if (c.key === 'text-1') {
       // Negative control: the narrowest word left out must fail its ink check.
