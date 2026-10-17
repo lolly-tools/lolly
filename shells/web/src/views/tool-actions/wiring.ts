@@ -1505,9 +1505,11 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
         // settings. A difference joins the degradation notes on the card. A speaker-notes
         // handout is a different document from the one the settings describe.
         if (downloadedBlob && !notesHandout) {
-          for (const line of await ta.preflight.exportCheck(downloadedBlob, { format: fmt, archive: downloadedIsZip })) {
-            _exportNotice(line);
-          }
+          // Not awaited: the file has already reached the user, and the post-export
+          // bookkeeping below (prefs, activity, the details ask) must not wait on a read-back.
+          void ta.preflight.exportCheck(downloadedBlob, { format: fmt, archive: downloadedIsZip })
+            .then((lines) => { for (const line of lines) _exportNotice(line); })
+            .catch(() => {});
         }
         revokeTrackUrls();
         bumpMetric('filesRendered');
