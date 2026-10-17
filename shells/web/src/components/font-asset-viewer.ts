@@ -51,9 +51,12 @@ export async function mountFontAssetViewer(root: HTMLElement, bytes: Uint8Array,
 
 /** A face chooser over a TTC/OTC. Each choice is copied out as its own sfnt, and the previous face is released once the new one is showing. */
 async function mountCollection(root: HTMLElement, collection: Uint8Array, source: AssetViewerSource, signal: AbortSignal, host?: HostV1): Promise<() => void> {
-  const faces = collectionFaces(collection);
+  const faces = collectionFaces(collection), readable = faces.filter(face => face.extension);
   const select = document.createElement('select'); select.className = 'field-select';
-  for (const face of faces) { const option = document.createElement('option'); option.value = String(face.index); option.textContent = face.label || tRaw('Face {n}', { n: face.index + 1 }); select.append(option); }
+  for (const face of faces) {
+    const option = document.createElement('option'); option.value = String(face.index); option.disabled = !face.extension;
+    option.textContent = face.extension ? face.label || tRaw('Face {n}', { n: face.index + 1 }) : tRaw('Face {n} (damaged)', { n: face.index + 1 }); select.append(option);
+  }
   const chooser = viewerField('Face', select, document.createElement('div'));
   const stem = (source.name.split('/').pop() ?? '').replace(/\.[^.]+$/, '') || 'font';
   let shown: (() => void) | undefined, loading: AbortController | undefined;
@@ -63,7 +66,7 @@ async function mountCollection(root: HTMLElement, collection: Uint8Array, source
     loading = own; signal.addEventListener('abort', stop, { once: true });
     try {
       const face = extractCollectionFace(collection, index);
-      const dispose = await mountFace(root, { sfnt: face, original: face, filename: `${stem}-${index + 1}.${faces[index]!.extension}`, collection: { chooser, index, count: faces.length } }, source, own.signal, host);
+      const dispose = await mountFace(root, { sfnt: face, original: face, filename: `${stem}-${index + 1}.${faces[index]?.extension ?? 'ttf'}`, collection: { chooser, index, count: faces.length } }, source, own.signal, host);
       if (own.signal.aborted) { dispose(); return; }
       shown?.(); shown = dispose; loading = undefined;
       if (focused) select.focus();
@@ -81,8 +84,9 @@ async function mountCollection(root: HTMLElement, collection: Uint8Array, source
     root.replaceChildren(toolbar, status);
   };
   select.addEventListener('change', () => { void show(Number(select.value)).catch(failed); });
-  // When the first face cannot load, the chooser stays so another face can be tried.
-  await show(0).catch(error => { if (faces.length > 1) failed(error); else throw error; });
+  // The first readable face opens. When it cannot load, the chooser stays so another face can be tried.
+  select.value = String(readable[0]!.index);
+  await show(readable[0]!.index).catch(error => { if (readable.length > 1) failed(error); else throw error; });
   return () => { loading?.abort(); shown?.(); shown = undefined; };
 }
 
