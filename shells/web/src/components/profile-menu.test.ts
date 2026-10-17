@@ -74,6 +74,18 @@ test('click opens the menu with the consolidated rows', async () => {
   assert.equal(menu(), null, 'detach removes the popover');
 });
 
+// Plan 320 J11: in a workspace that locks its design system there is nothing to set up.
+test('Set up your brand is offered unless the design system is locked', async () => {
+  for (const locked of [false, true]) {
+    const lockHost = { ...host, tokens: { isLocked: async () => locked } } as unknown as Parameters<typeof attachProfileMenu>[1];
+    const detach = attachProfileMenu(trigger(), lockHost);
+    trigger().dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }));
+    await tick(); await tick();
+    assert.equal(!!menu()!.querySelector('[data-act="brand"]'), !locked, locked ? 'hidden when locked' : 'offered when editable');
+    detach();
+  }
+});
+
 test('opens on desktop too (no longer gated to the mobile breakpoint)', () => {
   const saved = window.matchMedia;
   // Desktop: no max-width query matches.
