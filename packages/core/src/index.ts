@@ -24,6 +24,10 @@ export type { FileFactsV1, FileReferenceV1, FileOperationFindingV1, FileOperatio
  *  unrecognised spelling from drifting apart. */
 export { KNOWN_FINISH_KINDS } from './host-v1.ts';
 
+/** The theme-group kinds a design system can declare (v1.262), as a value, so the
+ *  engine's axis reader and any schema check share one list. */
+export { TOKEN_AXIS_KINDS } from './host-v1.ts';
+
 export { validateTool, validateCanvasOp } from './validate.ts';
 export type { ValidationIssue, ValidationResult } from './validate.ts';
 

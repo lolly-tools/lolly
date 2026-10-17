@@ -139,10 +139,10 @@ Design tokens (DTCG) for the active theme. The host UI sources colour-picker swa
 
 | Method | Returns | Notes |
 |---|---|---|
-| `get(opts?)` | `Promise<TokenSet>` | Resolved token set for the active (or `opts.theme`) theme |
+| `get(opts?)` | `Promise<TokenSet>` | Resolved token set for the active choices. `opts.selection` replaces them; `opts.theme` picks that theme in the group that declares it and keeps the other groups' choices (engine 1.262) |
 | `colors(opts?)` | `Promise<ColorSwatch[]>` | Colour tokens as picker-ready swatches |
 | `resolve(ref, opts?)` | `Promise<unknown>` | Resolve a `{dotted.path}` alias (or bare path) to a concrete value |
-| `themes()` | `Promise<{ name, group }[]>` | Theme names declared in the document |
+| `themes()` | `Promise<{ name, group, id?, kind?, canonical? }[]>` | Themes declared in the document. `id` is present when the file gives one, and `kind` when the theme's group states one, such as `mode` or `colourway`; in such a group the canonical theme carries `canonical: true` (engine 1.262) |
 
 Optional and additive - a shell without it just doesn't offer token-driven UI.
 

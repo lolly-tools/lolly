@@ -682,11 +682,19 @@ export { RUN_LINKS_KEY, blockColourFields, hasDesignColourRefs, normaliseDesignC
 export type { DesignColourRefIssue, DesignColourRefOptions } from './token-block-bindings.ts';
 export type { TokenImpact } from './token-inspect.ts';
 export { resolveTokenSelection, tokenSelectionKey, parseTokenSelection } from './token-selection.ts';
+// 1.262 (plans/319): what a theme group means, and colourways - several leads in one
+// design system, chosen per artefact and composed with light and dark.
+export { readTokenAxes, axisOfKind, modeAxis, ROTATION_POLICIES } from './token-axes.ts';
+export type { TokenAxis, TokenAxisOption, AxisWindow, RotationPolicy } from './token-axes.ts';
+export { COLOURWAY_GROUP, COLOURWAY_ROLES, COLOURWAY_ID, colourwaySetName, colourwayPath, colourwayAxis, canonicalFirst } from './colourway.ts';
+export { colourwayFamily, pickColourway, withColourway, liftToColourways, addColourway } from './colourway.ts';
+export type { ColourwayRole, ColourwayLead, RotationContext, ColourwayPick, ColourwayEdit, LiftOptions, ColourwayValues, AddColourwayOptions } from './colourway.ts';
 export {
   parseOklch, formatOklch, hexToOklch, oklchToHex, mixOklch, contrastRatio, deriveBrandTokens,
   RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,
 } from './brand-derive.ts';
-export type { Oklch, BrandDeriveOptions } from './brand-derive.ts';
+export { deriveColourwaySlots } from './brand-derive.ts';
+export type { Oklch, BrandDeriveOptions, ColourwaySlotOptions, ColourwaySlots } from './brand-derive.ts';
 export { gamutSolid, projectGamutSolid, projectSolidPoint, projectSolidPoints, solidPointOklch, labSolidUnit, gamutSolidToSvg, shadedSolidFill } from './gamut-solid.ts';
 // A brand colour's faces: one canonical value plus per-space/per-profile
 // overrides. The generalisation of PrintLock - the export walkers consult it, so
