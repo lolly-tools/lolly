@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The web bridge's photo look bake (plan 291 W7): a Worker when the browser can
- * decode and encode there (OffscreenCanvas), else the main thread. LUT sampling
- * requires WebGPU in either realm; other treatments keep their existing recipe.
+ * decode and encode there (OffscreenCanvas), else the main thread. Every look
+ * requires WebGPU in either realm. LUT bakes share one persistent worker and a
+ * bounded queue; the other kinds keep a worker per bake, and their GPU recipe
+ * bounds each bake's graphics memory by working in chunks.
  */
 import type { PhotoLookBakeRequest } from './photo-look-raster.ts';
 import { WebGpuError } from '../lib/webgpu/device.ts';

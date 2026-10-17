@@ -10,6 +10,12 @@
  * for by a raw-RGBA "image" format (an 8-byte size header and the pixels). Node has
  * no global Worker, so this runs the main-thread path the Worker path shares.
  *
+ * Every look kind bakes on WebGPU (plan 295), and Node has no graphics device. The
+ * bridge's caching and theme behaviour is checked here through a stand-in bake that
+ * runs the TypeScript reference; without the stand-in each kind fails visibly. The
+ * GPU recipes themselves are compared with the reference in
+ * tests/webgpu-photo-look.browser.test.ts.
+ *
  * Run: node --test shells/web/src/bridge/photo-look-bridge.test.ts
  */
 import { test, before, after } from 'node:test';
@@ -17,12 +23,13 @@ import assert from 'node:assert/strict';
 import { createAssetsAPI } from './assets.ts';
 import { applyPhotoLook } from '../../../../engine/src/photo-look.ts';
 import type { PhotoTreatment } from '../../../../engine/src/photo-treatment.ts';
-import { bakePhotoLookInRealm } from './photo-look-raster.ts';
+import { bakePhotoLookInRealm, photoLookOutputType, type PhotoLookBakeRequest } from './photo-look-raster.ts';
 
 const LOOKS: PhotoTreatment[] = [{
   id: 'grade', kind: 'gradient-map', stops: ['#1b2a33', '#7a9a8c', '#f4f1ea'], amount: 90, contrast: 12,
   themes: { dark: { stops: ['#050608', '#1b2a33', '#b8d4c8'], amount: 95 } },
-}, { id: 'film', kind: 'lut', lut: 'test/lut/film', amount: 80 }];
+}, { id: 'film', kind: 'lut', lut: 'test/lut/film', amount: 80 },
+{ id: 'mono', kind: 'greyscale', amount: 70 }, { id: 'duo', kind: 'duotone', shadow: '#47190d', highlight: '#ffd3bd' }];
 const W = 8, H = 4;
 
 function rawImage(type: string, data: Uint8ClampedArray, w: number, h: number): Blob {
@@ -60,9 +67,9 @@ before(() => {
 });
 after(() => { const g = globalThis as Record<string, unknown>; for (const [k, v] of Object.entries(saved)) g[k] = v; });
 
-function fakeDb() {
+function fakeDb(uploadId = 'user/1/photo') {
   const palette = { id: 'test/palette/photo-treatments', type: 'palette', tags: ['palette', 'photo-treatments'], version: '1', tier: 'core', formats: [{ format: 'json', url: '/p.json' }] };
-  const upload = { id: 'user/1/photo', type: 'raster', format: 'jpg', version: '1', blob: rawImage('image/jpeg', SOURCE, W, H), width: W, height: H, meta: { name: 'photo' } };
+  const upload = { id: uploadId, type: 'raster', format: 'jpg', version: '1', blob: rawImage('image/jpeg', SOURCE, W, H), width: W, height: H, meta: { name: 'photo' } };
   const reads: string[] = [];
   const db = {
     reads,
@@ -78,18 +85,28 @@ function fakeDb() {
   return db;
 }
 
+/** The TypeScript reference in place of the WebGPU bake, which Node cannot run. */
+const bakes: PhotoLookBakeRequest[] = [];
+async function referenceBake(req: PhotoLookBakeRequest): Promise<Blob> {
+  bakes.push(req);
+  const { w, h, data } = await readRaw(req.blob);
+  applyPhotoLook(data, w, h, req.look, { ...(req.theme ? { theme: req.theme } : {}), ...(req.lut ? { lut: req.lut } : {}) });
+  return rawImage(req.output ?? photoLookOutputType(req.blob.type), data, w, h);
+}
+
 async function bakedPixels(url: string): Promise<Uint8ClampedArray> {
   return (await readRaw(await (await fetch(url)).blob())).data;
 }
 
 test('an upload with a look resolves to baked pixels, and the theme picks the variant', async () => {
   const db = fakeDb();
-  const api = createAssetsAPI(db as never);
+  const api = createAssetsAPI(db as never, { bakePhotoLook: referenceBake });
   const light = await api.get('user/1/photo?treatment=grade');
   assert.equal(light.id, 'user/1/photo?treatment=grade', 'the treated id is kept');
   assert.equal(light.source, 'user');
   assert.equal(light.format, 'jpg');
   assert.equal(light.meta?.treatment, 'grade');
+  assert.equal(light.meta?.lookRecipe, 'gradient-map-webgpu-v1', 'the bake carries its GPU recipe');
   const expected = SOURCE.slice();
   applyPhotoLook(expected, W, H, LOOKS[0]!);
   assert.deepEqual(await bakedPixels(light.url), expected);
@@ -113,6 +130,30 @@ test('an upload with a look the pack does not declare is the plain picture, not 
   assert.deepEqual(await bakedPixels(ref.url), SOURCE);
   const plain = await api.get('user/1/photo');
   assert.equal(ref.url, plain.url, 'the plain picture shares the upload\'s own object URL');
+});
+
+test('greyscale and duotone looks on an upload carry their own recipes', async () => {
+  const api = createAssetsAPI(fakeDb() as never, { bakePhotoLook: referenceBake });
+  bakes.length = 0;
+  for (const [id, recipe] of [['mono', 'greyscale-webgpu-v1'], ['duo', 'duotone-webgpu-v1']] as const) {
+    const ref = await api.get(`user/1/photo?treatment=${id}`);
+    assert.equal(ref.meta?.lookRecipe, recipe, id);
+    const expected = SOURCE.slice();
+    applyPhotoLook(expected, W, H, LOOKS.find(look => look.id === id)!);
+    assert.deepEqual(await bakedPixels(ref.url), expected, id);
+    assert.equal((await api.get(`user/1/photo?treatment=${id}`)).url, ref.url, `${id}: a second resolve reuses the bake`);
+  }
+  assert.deepEqual(bakes.map(req => req.look.id), ['mono', 'duo']);
+});
+
+test('gradient-map, greyscale and duotone looks on an upload fail visibly when WebGPU is absent', async () => {
+  // A fresh upload, so no bake another test made is served from the object URL cache.
+  const api = createAssetsAPI(fakeDb('user/2/photo') as never);
+  for (const id of ['grade', 'mono', 'duo']) {
+    await assert.rejects(api.get(`user/2/photo?treatment=${id}`), { code: 'WEBGPU_REQUIRED' }, id);
+  }
+  const plain = await api.get('user/2/photo');
+  assert.deepEqual(await bakedPixels(plain.url), SOURCE, 'the original upload remains available');
 });
 
 test('an upload with a LUT look fails visibly when WebGPU is absent', async () => {
@@ -156,7 +197,7 @@ test('a catalog look bake is revoked when the catalog prunes its blob, so the ob
   const realRevoke = URL.revokeObjectURL;
   URL.revokeObjectURL = (url: string) => { revoked.push(url); realRevoke.call(URL, url); };
   try {
-    const api = createAssetsAPI(db as never);
+    const api = createAssetsAPI(db as never, { bakePhotoLook: referenceBake });
     const light = await api.get(`${photo.id}?treatment=grade`);
     const dark = await api.get(`${photo.id}?treatment=grade`, { tokenSelection: { '': 'dark' } });
     assert.equal(dark.meta?.lookTheme, 'dark');

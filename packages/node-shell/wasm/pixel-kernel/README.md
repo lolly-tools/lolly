@@ -49,6 +49,19 @@ Workspaces and the LUT worker expire after 30 seconds idle. Cancellation/failure
 releases the affected workspace; loss invalidates every resource on that device.
 Worker cancellation holds admission until cleanup acknowledgement or termination.
 
+Gradient-map, greyscale and duotone photo looks have recipes of their own,
+`gradient-map-webgpu-v1`, `greyscale-webgpu-v1` and `duotone-webgpu-v1`, run by
+`shells/web/src/lib/webgpu/photo-look.ts`. Their reference is the TypeScript bake
+in `engine/src/photo-look.ts`, not this module: the engine builds the look's
+grade, decode and tone tables (`photoLookPixelPlan`) and the shader repeats the
+per-pixel arithmetic in float32. A frame runs in chunks of at most 1,048,576
+pixels through the shared frame workspace, so one bake holds three 4 MiB frame
+buffers for any photo up to 67,108,864 pixels. These kinds keep a worker per
+bake; LUT bakes keep the shared worker and queue. The browser suite
+`tests/webgpu-photo-look.browser.test.ts` compares every kind with the reference
+under the same one-code bound, with exact alpha and exact zero-amount cases, and
+checks chunk seams, cancellation and loss recovery.
+
 The required browser suite checks chain equivalence to sequential GPU passes,
 warm allocation reuse, smaller readback ranges, cancellation and loss recovery.
 Reports include complete cold/warm PNG bakes paired with fresh-worker bakes.
