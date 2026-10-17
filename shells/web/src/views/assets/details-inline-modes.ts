@@ -76,18 +76,25 @@ export async function enterInlineGrade(dt: DetailsCtx): Promise<void> {
       const { host } = dt;
         // Sign + save exactly like the crop mode's "Save to Assets": the same
         // signed bytes a download would carry, with the honest colour step. The
-        // video grade's provenance builder is op-level, so the credited-LUT
-        // attribution (SUSE7 is CC BY) rides the same c2pa.color_adjustments
-        // action parameters here as it does on a graded clip.
+        // video grade's provenance builder is op-level, so a preset LUT's credit
+        // (SUSE7 is CC BY) rides the same c2pa.color_adjustments action
+        // parameters here as it does on a graded clip. The LUT's record also
+        // goes to the rules as a transformation input beside the photo's own
+        // record, so each is credited under its own licence; a failed stamp that
+        // drops a credit either licence asks for fails this job.
         const { videoProvenanceFor } = await import('../../lib/video-jobs.ts');
-        const prov = videoProvenanceFor('grade', { lutLabel: g.lutLabel || undefined, lutCredit: g.lutCredit });
+        const prov = videoProvenanceFor('grade', { lutLabel: g.lutLabel || undefined, ...(g.lutSource ? { lut: g.lutSource } : {}) });
         const detail: Record<string, string> = {
           ...(g.lutLabel ? { look: g.lutLabel } : {}),
           intensity: String(Math.round(g.intensity * 100)),
           ...(g.grain > 0 ? { grain: String(Math.round(g.grain * 100)), grainSize: String(g.grainSize) } : {}),
           ...(g.vignette > 0 ? { vignette: String(Math.round(g.vignette * 100)) } : {}),
         };
-        const signed = await cat.downloads.signDerived(ref, blob, format, { edits: prov.actions as C2paActionInput[], detail });
+        const signed = await cat.downloads.signDerived(ref, blob, format, {
+          edits: prov.actions as C2paActionInput[],
+          detail,
+          ...(g.lutSource ? { sources: [g.lutSource] } : {}),
+        });
         const base = String(ref.meta?.name ?? ref.id.split('/').pop() ?? 'image').replace(/\.[a-z0-9]+$/i, '');
         const slug = base.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
         const id = `user/grade/${Date.now()}-${slug || 'grade'}`;

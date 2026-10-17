@@ -8,7 +8,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { licenceLabel } from './asset-rights.ts';
+import { licenceLabel, readAssetRightsRecord } from './asset-rights.ts';
 
 const short = (license: string): string | undefined => licenceLabel({ license })?.short;
 
@@ -58,4 +58,14 @@ test('the legacy licence string wins over the structured record, as everywhere e
     rights: { works: [{ id: 'w', creators: [], rights: [{ declaration: 'CC-BY-4.0', status: 'parsed' }] }] },
   });
   assert.equal(label?.short, 'CC0 1.0');
+});
+
+test('the record keeps a revision and a well-formed source hash, and drops a malformed one', () => {
+  const hash = `sha256:${'ab'.repeat(32)}`;
+  const kept = readAssetRightsRecord({ works: [{ id: 'w', creators: [], rights: [], revision: 'v1.2.0', sourceHash: hash }] });
+  assert.equal(kept?.revision, 'v1.2.0');
+  assert.equal(kept?.sourceHash, hash);
+  const dropped = readAssetRightsRecord({ id: 'w', creators: [], rights: [], revision: 'x'.repeat(300), sourceHash: 'sha256-notHex' });
+  assert.equal(dropped?.revision, undefined);
+  assert.equal(dropped?.sourceHash, undefined);
 });
