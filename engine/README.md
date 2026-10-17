@@ -182,7 +182,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `color-tools.ts` | 727 | Colour tools: perceptual metrics and ramp math on top of brand-derive's OKLab core. | yes | `tests/color-tools.test.ts` | – |
 | `color-vision.ts` | 211 | Colour-vision-deficiency (CVD) simulation - Machado, Oliveira & Fernandes (2009). | yes | `tests/color-vision.test.ts` | – |
 | `color.ts` | 387 | Colour profiles for exports: platform-agnostic, no DOM, no network. | yes | `tests/color.test.ts` | – |
-| `colourway.ts` | 543 | Colourways: several lead colours in one design system (plans/319). | yes | `tests/colourway.test.ts` | – |
+| `colourway.ts` | 845 | Colourways: several lead colours in one design system (plans/319). | yes | `tests/colourway.test.ts` | – |
 | `compare-alignment.ts` | 36 | Unique-key matching keeps the longest common order instead of moving every later item. | no | none | – |
 | `compare-budget.ts` | 70 | Work and output limits shared by comparison algorithms. | no | `tests/compare-budget.test.ts` | – |
 | `compare-document.ts` | 79 | Extracted units retain their original locations and disclose ambiguous matching. | no | none | – |
