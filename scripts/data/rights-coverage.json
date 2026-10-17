@@ -1047,7 +1047,7 @@
     "docx": { "status": "not-assessed", "note": "Office core properties carry the person's own details; no source credit is written." },
     "odt": { "status": "not-assessed", "note": "No source credit is written." },
     "penpot": { "status": "not-assessed", "note": "No credential container and no credits file." },
-    "scorm": { "status": "not-assessed", "note": "Built by the export panel from the rendered pages (bridge/export-scorm.ts), outside renderFormatDispatch. Not traced for credentials or receipts." },
+    "scorm": { "status": "not-assessed", "note": "Not rendered by renderFormatDispatch, and Batch never renders it. Choosing it in the export panel opens the course workflow, so the package is built by delivery.learning-course. Not traced for credentials or receipts." },
     "txt": { "status": "not-assessed", "note": "Text payload with no credential." },
     "json": { "status": "not-assessed", "note": "Data payload with no credential." },
     "csv": { "status": "not-assessed", "note": "Data payload with no credential." },
