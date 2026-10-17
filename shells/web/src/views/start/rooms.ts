@@ -52,9 +52,21 @@ export const syncVersionsEntry = (start: StartCtx): void => {
  *  Called from the two paths the studio already refreshes on - every room
  *  change and every committed edit - so a studio that grows mid-session
  *  reveals them without a reload, whichever room the edit was made in. */
+/** "Fonts for Linux (.rpm)" packs the design system's own font files, so the row
+ *  waits for one: with none it could only answer "No fonts to package yet" (plan
+ *  320 S10). Re-read on every refresh, so adding a face reveals the row. The test
+ *  is the export handler's own (exporting.ts). */
+const syncFontPackage = (start: StartCtx): void => {
+  const btn = start.shell.querySelector<HTMLElement>('[data-start-get-on-device]');
+  if (!btn || !start.worthExporting) return;
+  const assets = start.host.assets as unknown as { _listUserAssets?: () => Promise<Array<{ id?: string; type?: string }>> };
+  void assets._listUserAssets?.().then((list) => {
+    btn.hidden = !list.some(a => a.type === 'font' && typeof a.id === 'string' && a.id.startsWith('user/fonts/'));
+  }, () => { /* the row stays as it is */ });
+};
 export const refreshFurnished = (start: StartCtx): void => {
   const { host } = start;
-  if (start.worthExporting) return; // the harder latch is set, so both are
+  if (start.worthExporting) { syncFontPackage(start); return; } // the harder latch is set, so both are
   void readOverview(host as unknown as Parameters<typeof readOverview>[0])
     .then((model) => {
     const { furnishedOnly, importBtn, shell } = start;
@@ -63,7 +75,8 @@ export const refreshFurnished = (start: StartCtx): void => {
       if (model.furnished && importBtn) importBtn.hidden = false;
       if (!model.worthExporting) return;
       start.worthExporting = true;
-      for (const el of furnishedOnly) el.hidden = false;
+      for (const el of furnishedOnly) if (!el.matches('[data-start-get-on-device]')) el.hidden = false;
+      syncFontPackage(start);
       syncVersionsEntry(start);
     })
     .catch(() => {
