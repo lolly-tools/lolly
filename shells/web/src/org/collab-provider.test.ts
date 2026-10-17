@@ -296,6 +296,20 @@ test('a local op goes out as an ops frame; a remote one lands in the doc and is 
   h.handle.close();
 });
 
+test('own writes under a transform claim carry its id: the keyframe track and every field the claim lists', async () => {
+  const h = await harness();
+  const target = { kind: 'transform', collection: 'boxes', ids: ['a'], fields: ['fontSize'] };
+  joinNow(h, { interactionVersion: 1, claims: [{ id: 'c1', owner: 'conn-me', name: 'Me', target, expiresAt: Date.now() + 10_000 }] });
+  h.socket().sent.length = 0;
+  const field = (name: string, clock: number): CanvasOp =>
+    ({ k: 'field', col: 'boxes', id: 'a', field: name, value: 1, origin: origin('dev-a', clock) });
+  for (const [i, name] of ['kf', 'fontSize', 'fill'].entries()) h.handle.adapter.apply(field(name, i + 1));
+  await h.handle.persisted();
+  const frames = h.socket().framesOfType('ops') as Array<{ claimId?: string; ops: Array<{ field: string }> }>;
+  assert.deepEqual(frames.map(f => [f.claimId, f.ops.map(op => op.field)]), [['c1', ['kf', 'fontSize']], [undefined, ['fill']]]);
+  h.handle.close();
+});
+
 test('peer echo does not acknowledge durable storage or apply twice', async () => {
   const h = await harness();
   joinNow(h);
