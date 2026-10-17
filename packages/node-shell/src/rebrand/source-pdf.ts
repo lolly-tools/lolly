@@ -409,7 +409,7 @@ const MIN_COLUMN_FILL = 0.25;
 const MAX_COLUMNS = 4;
 /** The structure tree is followed when it ranks at least this share of the text objects. */
 const MIN_TAGGED_SHARE = 0.6;
-/** A line set this much larger than the body is a heading, left out of the gutter search. */
+/** A line set this much larger than the body is a heading, left out when a first gutter search finds none. */
 const HEADING_SIZES = 1.25;
 
 const idCmp = (a: SourceObjectV1, b: SourceObjectV1): number => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
@@ -421,16 +421,27 @@ function median(xs: number[]): number {
 }
 
 /**
- * Column cuts in px, or none when the page's text does not split believably. A
- * heading set larger than the body is left out of the search: a full-width title
- * over two columns would otherwise cover the gutter, and the columns would be read
+ * Column cuts in px, or none when the page's text does not split believably. The
+ * search runs over every line first. Only when that finds no gutter does it run
+ * again without the headings, the lines set larger than the body: a full-width
+ * title over two columns covers the gutter, and the columns would otherwise be read
  * across, line by line. The title then crosses the cut and keeps its own place.
+ * Searching all lines first keeps a page whose small print outnumbers its body
+ * (a sidebar beside the main column) split where it already was, since there the
+ * median size is the small print and the body would pass for headings.
  */
 function columnCuts(all: SourceObjectV1[]): number[] {
   if (all.length < MIN_COLUMN_LINES * 2) return [];
   const sizeOf = (o: SourceObjectV1): number => (o.text?.paras[0]?.runs[0]?.sizePt ?? 12) * PX_PER_PT;
   const body = median(all.map(sizeOf));
-  const texts = all.filter((o) => sizeOf(o) <= body * HEADING_SIZES);
+  const found = cutsAmong(all, body);
+  if (found.length) return found;
+  const unheaded = all.filter((o) => sizeOf(o) <= body * HEADING_SIZES);
+  return unheaded.length < all.length ? cutsAmong(unheaded, body) : [];
+}
+
+/** The gutters between these lines, `body` px being the page's body size. */
+function cutsAmong(texts: SourceObjectV1[], body: number): number[] {
   if (texts.length < MIN_COLUMN_LINES * 2) return [];
   const spans = texts.map((o) => [o.box.x, o.box.x + Math.max(1, o.box.w)] as const).sort((a, b) => a[0] - b[0]);
   const cuts: Array<{ x: number; gap: number }> = [];

@@ -95,6 +95,7 @@
     "./inspect-render": "./src/inspect-render.ts",
     "./pdf": "./src/pdf.ts",
     "./pdf-structure": "./src/pdf-structure.ts",
+    "./pdf-active-content": "./src/pdf-active-content.ts",
     "./pdf-file-operation": "./src/pdf-file-operation.ts",
     "./canvas": "./src/canvas.ts",
     "./pdf-redact": "./src/pdf-redact.ts",

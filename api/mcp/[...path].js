@@ -146751,7 +146751,12 @@ function columnCuts(all) {
   if (all.length < MIN_COLUMN_LINES2 * 2) return [];
   const sizeOf3 = (o) => (o.text?.paras[0]?.runs[0]?.sizePt ?? 12) * PX_PER_PT;
   const body = median9(all.map(sizeOf3));
-  const texts = all.filter((o) => sizeOf3(o) <= body * HEADING_SIZES);
+  const found = cutsAmong(all, body);
+  if (found.length) return found;
+  const unheaded = all.filter((o) => sizeOf3(o) <= body * HEADING_SIZES);
+  return unheaded.length < all.length ? cutsAmong(unheaded, body) : [];
+}
+function cutsAmong(texts, body) {
   if (texts.length < MIN_COLUMN_LINES2 * 2) return [];
   const spans = texts.map((o) => [o.box.x, o.box.x + Math.max(1, o.box.w)]).sort((a, b) => a[0] - b[0]);
   const cuts = [];
@@ -152132,59 +152137,6 @@ var init_ocr_models = __esm({
   }
 });
 
-// packages/node-shell/src/rebrand-project-store.ts
-import { mkdir, readFile as readFile5, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
-import { randomUUID } from "node:crypto";
-import { dirname as dirname4, join as join8 } from "node:path";
-async function writeAtomic(fs, path, data) {
-  const dir = dirname4(path);
-  const temp = join8(dir, `${TEMP_PREFIX}${randomUUID()}`);
-  await fs.mkdir(dir, { recursive: true });
-  try {
-    await fs.writeFile(temp, data);
-    await fs.rename(temp, path);
-  } catch (err) {
-    try {
-      await fs.rm(temp, { force: true });
-    } catch {
-    }
-    throw err;
-  }
-}
-var TEMP_PREFIX, nodeRebrandFs;
-var init_rebrand_project_store = __esm({
-  "packages/node-shell/src/rebrand-project-store.ts"() {
-    "use strict";
-    TEMP_PREFIX = ".tmp-";
-    nodeRebrandFs = {
-      mkdir: (path, opts) => mkdir(path, opts),
-      readFile: async (path) => new Uint8Array(await readFile5(path)),
-      readFileText: (path) => readFile5(path, "utf8"),
-      writeFile: (path, data) => writeFile(path, data),
-      rename: (from, to) => rename(from, to),
-      readdir: (path) => readdir(path),
-      rm: (path, opts) => rm(path, opts),
-      exists: async (path) => {
-        try {
-          await stat(path);
-          return true;
-        } catch {
-          return false;
-        }
-      },
-      createExclusive: async (path) => {
-        try {
-          await writeFile(path, "", { flag: "wx" });
-          return true;
-        } catch (err) {
-          if (err?.code === "EEXIST") return false;
-          throw err;
-        }
-      }
-    };
-  }
-});
-
 // packages/node-shell/src/pdf-structure.ts
 var pdf_structure_exports = {};
 __export(pdf_structure_exports, {
@@ -152592,6 +152544,88 @@ var init_pdf_structure = __esm({
   }
 });
 
+// packages/node-shell/src/pdf-active-content.ts
+async function pdfActiveContent(bytes2) {
+  try {
+    const [{ loadPdfDocument: loadPdfDocument2 }, { scanPdfStructure: scanPdfStructure2 }] = await Promise.all([Promise.resolve().then(() => (init_pdf_read(), pdf_read_exports)), Promise.resolve().then(() => (init_pdf_structure(), pdf_structure_exports))]);
+    const findings = scanPdfStructure2(await loadPdfDocument2(bytes2));
+    const leading = (label4) => {
+      const found = findings.find((f) => f.label === label4);
+      if (!found) return 0;
+      const n7 = /^(\d+)/.exec(found.detail);
+      return n7 ? Number(n7[1]) : 1;
+    };
+    const out = {};
+    const scripts = leading("JavaScript");
+    const launches = leading("Launch actions");
+    const embedded = leading("Attachments");
+    if (scripts) out.scripts = scripts;
+    if (launches) out.launches = launches;
+    if (embedded) out.embedded = embedded;
+    return out;
+  } catch {
+    return {};
+  }
+}
+var init_pdf_active_content = __esm({
+  "packages/node-shell/src/pdf-active-content.ts"() {
+    "use strict";
+  }
+});
+
+// packages/node-shell/src/rebrand-project-store.ts
+import { mkdir, readFile as readFile5, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { dirname as dirname4, join as join8 } from "node:path";
+async function writeAtomic(fs, path, data) {
+  const dir = dirname4(path);
+  const temp = join8(dir, `${TEMP_PREFIX}${randomUUID()}`);
+  await fs.mkdir(dir, { recursive: true });
+  try {
+    await fs.writeFile(temp, data);
+    await fs.rename(temp, path);
+  } catch (err) {
+    try {
+      await fs.rm(temp, { force: true });
+    } catch {
+    }
+    throw err;
+  }
+}
+var TEMP_PREFIX, nodeRebrandFs;
+var init_rebrand_project_store = __esm({
+  "packages/node-shell/src/rebrand-project-store.ts"() {
+    "use strict";
+    TEMP_PREFIX = ".tmp-";
+    nodeRebrandFs = {
+      mkdir: (path, opts) => mkdir(path, opts),
+      readFile: async (path) => new Uint8Array(await readFile5(path)),
+      readFileText: (path) => readFile5(path, "utf8"),
+      writeFile: (path, data) => writeFile(path, data),
+      rename: (from, to) => rename(from, to),
+      readdir: (path) => readdir(path),
+      rm: (path, opts) => rm(path, opts),
+      exists: async (path) => {
+        try {
+          await stat(path);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      createExclusive: async (path) => {
+        try {
+          await writeFile(path, "", { flag: "wx" });
+          return true;
+        } catch (err) {
+          if (err?.code === "EEXIST") return false;
+          throw err;
+        }
+      }
+    };
+  }
+});
+
 // packages/node-shell/src/content-inventory.ts
 var content_inventory_exports = {};
 __export(content_inventory_exports, {
@@ -152830,34 +152864,13 @@ async function readContentInventory(input) {
   });
   return { inventory: inventory2, media, written, reused, source, census };
 }
-async function pdfActiveContent(bytes2) {
-  try {
-    const [{ loadPdfDocument: loadPdfDocument2 }, { scanPdfStructure: scanPdfStructure2 }] = await Promise.all([Promise.resolve().then(() => (init_pdf_read(), pdf_read_exports)), Promise.resolve().then(() => (init_pdf_structure(), pdf_structure_exports))]);
-    const findings = scanPdfStructure2(await loadPdfDocument2(bytes2));
-    const leading = (label4) => {
-      const found = findings.find((f) => f.label === label4);
-      if (!found) return 0;
-      const n7 = /^(\d+)/.exec(found.detail);
-      return n7 ? Number(n7[1]) : 1;
-    };
-    const out = {};
-    const scripts = leading("JavaScript");
-    const launches = leading("Launch actions");
-    const embedded = leading("Attachments");
-    if (scripts) out.scripts = scripts;
-    if (launches) out.launches = launches;
-    if (embedded) out.embedded = embedded;
-    return out;
-  } catch {
-    return {};
-  }
-}
 var ContentInventoryError, parser, MIME_EXT2, errorCode, THUMBNAIL_LONG_EDGE_PX, DRAWABLE, RECOGNIZERS;
 var init_content_inventory2 = __esm({
   "packages/node-shell/src/content-inventory.ts"() {
     "use strict";
     init_src2();
     init_ocr_models();
+    init_pdf_active_content();
     init_pptx3();
     init_pipeline();
     init_rebrand_project_store();

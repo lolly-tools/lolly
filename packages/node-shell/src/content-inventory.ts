@@ -24,8 +24,9 @@
  *     model, its release and languages from the node catalogue, and its confidence;
  *   - what the file carries that could act elsewhere (an Office package's macros,
  *     controls and embedded objects by part name, a PDF's scripts, launch actions and
- *     attachments from the Verify structure walk) is counted into warnings. None of
- *     it is run or opened.
+ *     attachments from the Verify structure walk, through `pdf-active-content.ts`, which
+ *     the web shell's Read and extract view calls too) is counted into warnings. None
+ *     of it is run or opened.
  *
  * No browser, no network, and no model unless the caller passes one. jsdom parses
  * the XML when the caller passes no parser, imported only when needed so a host
@@ -43,6 +44,7 @@ import {
 import type { ContentInventoryV1, DeckCensusV1, InventoryCropV1, SourceDeckV1 } from '@lolly-tools/core';
 
 import { OCR_MODELS } from './ml/ocr-models.ts';
+import { pdfActiveContent } from './pdf-active-content.ts';
 import { inflatePptx } from './pptx.ts';
 import type { FlattenedOcrV1 } from './rebrand/flattened.ts';
 import { MEDIA_REF_PREFIX, pictureDimensions, readDeck, type PipelineMediaV1, type RebrandXmlParserV1 } from './rebrand/pipeline.ts';
@@ -413,31 +415,3 @@ export async function readContentInventory(input: ReadInventoryInputV1): Promise
 
 /** The node OCR catalogue as the inventory reads it: each model's release and languages. */
 const RECOGNIZERS: ReadonlyMap<string, InventoryRecognizerV1> = new Map(OCR_MODELS.map((m) => [m.id, { version: m.version, languages: m.languages }]));
-
-/**
- * The scripts, launch actions and attachments a PDF carries, from the structure
- * walk Verify uses (`pdf-structure.ts`). Counted, never run or opened. A file the
- * walk cannot load reports nothing here; the read itself already stood.
- */
-async function pdfActiveContent(bytes: Uint8Array): Promise<ActiveContentV1> {
-  try {
-    const [{ loadPdfDocument }, { scanPdfStructure }] = await Promise.all([import('./pdf-read.ts'), import('./pdf-structure.ts')]);
-    const findings = scanPdfStructure(await loadPdfDocument(bytes));
-    const leading = (label: string): number => {
-      const found = findings.find((f) => f.label === label);
-      if (!found) return 0;
-      const n = /^(\d+)/.exec(found.detail);
-      return n ? Number(n[1]) : 1;
-    };
-    const out: ActiveContentV1 = {};
-    const scripts = leading('JavaScript');
-    const launches = leading('Launch actions');
-    const embedded = leading('Attachments');
-    if (scripts) out.scripts = scripts;
-    if (launches) out.launches = launches;
-    if (embedded) out.embedded = embedded;
-    return out;
-  } catch {
-    return {};
-  }
-}
