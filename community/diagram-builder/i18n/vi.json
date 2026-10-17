@@ -10,7 +10,7 @@
   "inputs.diagramPreset.options.blueprint": "Bản vẽ kỹ thuật",
   "inputs.diagramPreset.options.mono": "Đơn sắc tối giản",
   "inputs.diagramType.label": "Loại sơ đồ",
-  "inputs.diagramType.help": "Sơ đồ tổ chức/Sơ đồ tư duy dựng cây phân cấp dựa vào cấp trên của mỗi thẻ. Layercake/Kanban nhóm các thẻ theo mã “Nhóm” (dải xếp chồng so với cột đặt cạnh nhau). Quy trình/Dòng thời gian/Chu trình sắp xếp thẻ theo luồng/thứ tự. Kim tự tháp, Ma trận và Gantt có các tùy chỉnh riêng ở bên dưới.",
+  "inputs.diagramType.help": "Chọn mối quan hệ bạn muốn thể hiện. Sơ đồ tổ chức và Sơ đồ tư duy: phân cấp dựa vào cấp trên của mỗi thẻ. Layercake: các mức trừu tượng, mỗi “Nhóm” một dải. Kanban: công việc theo trạng thái, mỗi “Nhóm” một cột; cột là trạng thái, không phải người phụ trách. Quy trình: các bước có hướng và liên kết quay lại, lấy từ các mũi tên. Dòng thời gian: sự kiện theo thứ tự, cách đều nhau, không có thời lượng. Chu trình: vòng lặp theo thứ tự thẻ. Kim tự tháp: các bậc xếp hạng. Ma trận: bốn nhóm phân loại, không phải giá trị đo được. Gantt: thời lượng công việc; chỉ cần một thẻ có ngày là có thêm trục thời gian và mỗi “Nhóm” một làn.",
   "inputs.diagramType.options.org": "Sơ đồ tổ chức (phân cấp)",
   "inputs.diagramType.options.mindmap": "Sơ đồ tư duy",
   "inputs.diagramType.options.layercake": "Layercake (kiến trúc phân lớp)",

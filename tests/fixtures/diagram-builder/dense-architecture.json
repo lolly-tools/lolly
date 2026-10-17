@@ -1,0 +1,80 @@
+{
+  "id": "dense-architecture",
+  "title": "Dense architecture overview",
+  "purpose": "Twenty services in four DOT clusters with twenty-four links, above the advisory reader budget. Clusters become stacked groups. Labelled, dashed, dotted, undirected and two-way links keep their meaning, and one unsupported graph attribute is reported instead of being applied.",
+  "inputs": {
+    "look": "flow",
+    "source": "dot",
+    "dot": "digraph platform {\n  rankdir=TB\n  splines=ortho\n  node [shape=box]\n  subgraph cluster_edge {\n    label=\"Edge\"\n    cdn [label=\"CDN\"]\n    waf [label=\"Web firewall\"]\n    gateway [label=\"API gateway\"]\n    admin [label=\"Admin console\"]\n  }\n  subgraph cluster_services {\n    label=\"Services\"\n    identity [label=\"Identity\"]\n    catalog [label=\"Catalog\"]\n    orders [label=\"Orders\"]\n    payments [label=\"Payments\"]\n    search [label=\"Search\"]\n    recs [label=\"Recommendations\"]\n    notify [label=\"Notifications\"]\n  }\n  subgraph cluster_data {\n    label=\"Data\"\n    users_db [label=\"Users DB\", shape=cylinder]\n    orders_db [label=\"Orders DB\", shape=cylinder]\n    search_index [label=\"Search index\", shape=cylinder]\n    cache [label=\"Cache\", shape=cylinder]\n    objects [label=\"Object storage\", shape=cylinder]\n  }\n  subgraph cluster_platform {\n    label=\"Platform\"\n    queue [label=\"Event queue\"]\n    scheduler [label=\"Scheduler\"]\n    logs [label=\"Log store\"]\n    metrics [label=\"Metrics\"]\n  }\n  cdn -> waf -> gateway\n  admin -> gateway\n  gateway -> identity\n  gateway -> catalog\n  gateway -> orders\n  gateway -> search\n  identity -> users_db\n  catalog -> cache\n  catalog -> recs\n  recs -> search_index\n  search -> search_index\n  orders -> orders_db\n  orders -> objects [label=\"invoices\"]\n  orders -> payments [label=\"charge\"]\n  payments -> orders [label=\"result\", style=dashed]\n  orders -> queue [label=\"order placed\", style=dashed]\n  queue -> notify\n  queue -> search [label=\"reindex\", style=dotted]\n  scheduler -> queue\n  identity -> logs [dir=none]\n  orders -> logs [dir=none]\n  payments -> logs [dir=none]\n  gateway -> metrics [dir=both]\n}"
+  },
+  "census": {
+    "diagramType": "layercake",
+    "direction": "down",
+    "nodes": [
+      { "id": "cdn", "label": "CDN", "shape": "box", "group": "cluster-edge" },
+      { "id": "waf", "label": "Web firewall", "shape": "box", "group": "cluster-edge" },
+      { "id": "gateway", "label": "API gateway", "shape": "box", "group": "cluster-edge" },
+      { "id": "admin", "label": "Admin console", "shape": "box", "group": "cluster-edge" },
+      { "id": "identity", "label": "Identity", "shape": "box", "group": "cluster-services" },
+      { "id": "catalog", "label": "Catalog", "shape": "box", "group": "cluster-services" },
+      { "id": "orders", "label": "Orders", "shape": "box", "group": "cluster-services" },
+      { "id": "payments", "label": "Payments", "shape": "box", "group": "cluster-services" },
+      { "id": "search", "label": "Search", "shape": "box", "group": "cluster-services" },
+      { "id": "recs", "label": "Recommendations", "shape": "box", "group": "cluster-services" },
+      { "id": "notify", "label": "Notifications", "shape": "box", "group": "cluster-services" },
+      { "id": "users-db", "source": "users_db", "label": "Users DB", "shape": "cylinder", "group": "cluster-data" },
+      { "id": "orders-db", "source": "orders_db", "label": "Orders DB", "shape": "cylinder", "group": "cluster-data" },
+      { "id": "search-index", "source": "search_index", "label": "Search index", "shape": "cylinder", "group": "cluster-data" },
+      { "id": "cache", "label": "Cache", "shape": "cylinder", "group": "cluster-data" },
+      { "id": "objects", "label": "Object storage", "shape": "cylinder", "group": "cluster-data" },
+      { "id": "queue", "label": "Event queue", "shape": "box", "group": "cluster-platform" },
+      { "id": "scheduler", "label": "Scheduler", "shape": "box", "group": "cluster-platform" },
+      { "id": "logs", "label": "Log store", "shape": "box", "group": "cluster-platform" },
+      { "id": "metrics", "label": "Metrics", "shape": "box", "group": "cluster-platform" }
+    ],
+    "edges": [
+      { "from": "cdn", "to": "waf", "label": "" },
+      { "from": "waf", "to": "gateway", "label": "" },
+      { "from": "admin", "to": "gateway", "label": "" },
+      { "from": "gateway", "to": "identity", "label": "" },
+      { "from": "gateway", "to": "catalog", "label": "" },
+      { "from": "gateway", "to": "orders", "label": "" },
+      { "from": "gateway", "to": "search", "label": "" },
+      { "from": "identity", "to": "users-db", "label": "" },
+      { "from": "catalog", "to": "cache", "label": "" },
+      { "from": "catalog", "to": "recs", "label": "" },
+      { "from": "recs", "to": "search-index", "label": "" },
+      { "from": "search", "to": "search-index", "label": "" },
+      { "from": "orders", "to": "orders-db", "label": "" },
+      { "from": "orders", "to": "objects", "label": "invoices" },
+      { "from": "orders", "to": "payments", "label": "charge" },
+      { "from": "payments", "to": "orders", "label": "result", "style": "dashed" },
+      { "from": "orders", "to": "queue", "label": "order placed", "style": "dashed" },
+      { "from": "queue", "to": "notify", "label": "" },
+      { "from": "queue", "to": "search", "label": "reindex", "style": "dotted" },
+      { "from": "scheduler", "to": "queue", "label": "" },
+      { "from": "identity", "to": "logs", "label": "", "heads": "none" },
+      { "from": "orders", "to": "logs", "label": "", "heads": "none" },
+      { "from": "payments", "to": "logs", "label": "", "heads": "none" },
+      { "from": "gateway", "to": "metrics", "label": "", "heads": "both" }
+    ],
+    "groups": [
+      { "id": "cluster-edge", "source": "cluster_edge", "label": "Edge", "members": ["cdn", "waf", "gateway", "admin"] },
+      { "id": "cluster-services", "source": "cluster_services", "label": "Services", "members": ["identity", "catalog", "orders", "payments", "search", "recs", "notify"] },
+      { "id": "cluster-data", "source": "cluster_data", "label": "Data", "members": ["users-db", "orders-db", "search-index", "cache", "objects"] },
+      { "id": "cluster-platform", "source": "cluster_platform", "label": "Platform", "members": ["queue", "scheduler", "logs", "metrics"] }
+    ]
+  },
+  "features": {
+    "supported": [
+      "DOT clusters as stacked groups, in source order",
+      "node defaults with per-node shape overrides",
+      "edge chains, labels, dashed and dotted styles",
+      "dir=none and dir=both"
+    ],
+    "simplified": [
+      "clusters are drawn as stacked groups with their cards in source order; Graphviz rank placement inside a cluster is not reproduced"
+    ],
+    "unsupported": ["skipped: splines=ortho"]
+  }
+}

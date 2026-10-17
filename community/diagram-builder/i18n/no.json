@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "Blåkopi",
   "inputs.diagramPreset.options.mono": "Minimal mono",
   "inputs.diagramType.label": "Diagramtype",
-  "inputs.diagramType.help": "Org/tankekart bygger et tre ut fra hvert korts overordnede kort. Layercake/Kanban grupperer kort etter «Gruppe»-IDen (stablede bånd i stedet for kolonner side ved side). Prosess/tidslinje/syklus legger kort langs flyt/rekkefølge. Pyramide, Matrise og Gantt har egne kontroller nedenfor.",
+  "inputs.diagramType.help": "Velg relasjonen du vil vise. Organisasjonskart og Tankekart: et hierarki ut fra hvert korts overordnede kort. Layercake: abstraksjonsnivåer, ett bånd per «Gruppe». Kanban: arbeid etter status, én kolonne per «Gruppe»; en kolonne er en status, ikke en eier. Prosess: rettede steg og returlenker fra pilene. Tidslinje: hendelser i rekkefølge, med lik avstand og uten varighet. Syklus: en løkke i kortrekkefølge. Pyramide: rangerte trinn. Matrise: fire kategorier, ikke målte verdier. Gantt: varighet for oppgaver; ett datert kort legger til en tidsakse og én bane per «Gruppe».",
   "inputs.diagramType.options.org": "Organisasjonskart (hierarki)",
   "inputs.diagramType.options.mindmap": "Tankekart",
   "inputs.diagramType.options.layercake": "Layercake (lagdelt arkitektur)",
