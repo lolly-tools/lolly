@@ -36,6 +36,14 @@ test('validateInstanceUrl: rejects embedded credentials', () => {
   assert.match((result as { message: string }).message, /credentials/);
 });
 
+test('validateInstanceUrl: says why, as a reason the sheet can translate', () => {
+  const reason = (input: string): unknown => (validateInstanceUrl(input) as { reason?: string }).reason;
+  assert.equal(reason('http://example.com'), 'not-https');
+  assert.equal(reason('ftp://example.com'), 'not-https');
+  assert.equal(reason('https://user:pass@example.com'), 'credentials');
+  assert.equal(reason('not a url'), 'invalid');
+});
+
 // ── shapeProbeResult ─────────────────────────────────────────────────────────
 
 test('shapeProbeResult: a real tool index → ok with the count', () => {

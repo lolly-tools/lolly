@@ -58,3 +58,15 @@ test('without a start step the sheet opens at the choice, and Back returns to it
   el.dispatchEvent(new dom.window.Event('cancel'));
   await closed;
 });
+
+test('a refused address is explained in the sheet, not in the parser\'s English', async () => {
+  const closed = openInstanceSheet({} as Host, { start: 'connect' });
+  const el = sheet();
+  el.querySelector<HTMLInputElement>('#instance-url')!.value = 'http://work.example.com';
+  el.querySelector<HTMLButtonElement>('[data-act="connect-probe"]')!.click();
+  const error = el.querySelector('.instance-probe--err')?.textContent ?? '';
+  assert.equal(error, 'Use an address that starts with https://');
+  assert.doesNotMatch(error, /Instance URL/);
+  el.querySelector<HTMLButtonElement>('[data-act="connect-back"]')!.click();
+  await closed;
+});

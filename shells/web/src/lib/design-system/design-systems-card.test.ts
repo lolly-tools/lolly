@@ -219,3 +219,15 @@ test('source facts report cached origin, version and checksum without claiming t
     assert.match(catalogSourceHtml({ ...record, headId: '', catalog: { available: false } }), /No selected tokens asset/);
   } finally { networkStatus.offline = false; _setBaseForTests(''); }
 });
+
+// Plan 320 S10: the starter every build carries is bundled with the app, not
+// managed by an instance that lolly.tools does not have; and one colour is singular.
+test('the starter reads Bundled with this app; a deployment brand reads Managed by this instance', async () => {
+  const { sourceLine, designSystemCardHtml } = await import('./design-systems-card.ts');
+  const shipped = (headId: string) => ({ id: 'shipped', label: 'X', ns: '', headId, source: { kind: 'shipped' }, locked: false, createdAt: 0, lastUsedAt: 0 }) as never;
+  assert.equal(sourceLine(shipped('lolly/tokens/brand')), 'Bundled with this app');
+  assert.equal(sourceLine(shipped('acme/tokens/brand')), 'Managed by this instance');
+  const one = designSystemCardHtml(records[0] as never, 'active', undefined, { font: 'x', colors: ['#000000'], colorCount: 1 });
+  assert.match(one, />1 colour</);
+  assert.doesNotMatch(one, /1 colours/);
+});
