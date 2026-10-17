@@ -27,7 +27,7 @@ export const DESIGN_RASTER_MAX_FILL_EDGES = 65_536;
 export const DESIGN_RASTER_MAX_STOPS = 256;
 /** Points in one row's clip polygon; Design writes four for a rectangle and 48 for an ellipse. */
 export const DESIGN_RASTER_MAX_CLIP_POINTS = 64;
-/** Dashes in one stroke. */
+/** Dashes in one stroke; a dot outlines to four curves, so the merge's budget caps dots near 2000. */
 export const DESIGN_RASTER_MAX_DASHES = 4096;
 /** How far a flattened edge may stray from its curve, in output pixels. */
 const FLATTEN_TOLERANCE_PX = 1 / 32;
@@ -317,9 +317,9 @@ interface Chord { distance: number; curve: number; t: number }
  * its control points lie within `tolerance` of the points a third and two thirds along its
  * chord (at most 20 times), and the chords' lengths summed. Exact arc length would place a
  * dash on a curve up to half a pixel later than the browser does. A curve of no length adds
- * no chord, so no dash ever starts on one.
+ * no chord, so no dash ever starts on one. Null past the chord budget.
  */
-function measure(curves: readonly Cubic[], tolerance: number): Chord[] {
+function measure(curves: readonly Cubic[], tolerance: number): Chord[] | null {
   const chords: Chord[] = [];
   let distance = 0;
   const strays = (q: Cubic) => Math.max(Math.abs(q[2] - q[0] - (q[6] - q[0]) / 3), Math.abs(q[3] - q[1] - (q[7] - q[1]) / 3)) > tolerance
@@ -333,7 +333,10 @@ function measure(curves: readonly Cubic[], tolerance: number): Chord[] {
     const next = distance + Math.hypot(q[6] - q[0], q[7] - q[1]);
     if (next > distance) { distance = next; chords.push({ distance, curve, t: t1 }); }
   };
-  curves.forEach((q, i) => { visit(i, q, 0, 1, 0); });
+  for (const [i, q] of curves.entries()) {
+    visit(i, q, 0, 1, 0);
+    if (chords.length > DESIGN_RASTER_MAX_FILL_EDGES) return null;
+  }
   return chords;
 }
 
@@ -348,10 +351,12 @@ function dashContours(path: GeomPath, pattern: readonly [number, number], tolera
   const dashes: Contour[] = [];
   for (const source of path) {
     const curves = (source.closed ? closeContour(source) : source).curves;
-    const chords = measure(curves, tolerance), length = chords.at(-1)?.distance ?? 0;
+    const chords = measure(curves, tolerance);
+    if (!chords) return null;
+    const length = chords.at(-1)?.distance ?? 0;
     if (!(length > 0)) continue;
     if (dashes.length + length / (pattern[0] + pattern[1]) > DESIGN_RASTER_MAX_DASHES) return null;
-    const drawn = [...new Set(chords.map(c => c.curve))];
+    const drawn = [...new Set(chords.map(c => c.curve))], order = new Map(drawn.map((c, i) => [c, i]));
     // A distance's curve and t: the first chord that reaches it, read linearly in t across that chord.
     const at = (d: number): [number, number] => {
       let lo = 0, hi = chords.length - 1;
@@ -366,7 +371,7 @@ function dashContours(path: GeomPath, pattern: readonly [number, number], tolera
       const [c0, t0] = at(from), [c1, t1] = at(Math.min(length, to));
       if (c0 === c1) return [subCubic(curves[c0]!, t0, t1)];
       const head = t0 < 1 ? [subCubic(curves[c0]!, t0, 1)] : [];
-      return [...head, ...drawn.filter(c => c > c0 && c < c1).map(c => [...curves[c]!] as Cubic), subCubic(curves[c1]!, 0, t1)];
+      return [...head, ...drawn.slice(order.get(c0)! + 1, order.get(c1)!).map(c => [...curves[c]!] as Cubic), subCubic(curves[c1]!, 0, t1)];
     };
     const start = dashes.length;
     // A closed contour's first dash is drawn last.
@@ -419,7 +424,14 @@ function strokeFill(op: DrawOp, tolerance: number, measureTolerance: number, fin
       // Each dash is outlined on its own and the merge below unites them. Outlined together,
       // `strokeToPath` reads a point within half the width of a butt end as painted, so it
       // took the outline of a dash shorter than the width for a hole and dropped that dash.
-      outline = dashed.flatMap(dash => strokeToPath([dash], s.width, options));
+      outline = [];
+      let curves = 0;
+      for (const dash of dashed) {
+        const part = strokeToPath([dash], s.width, options);
+        curves += curveCount(part);
+        if (curves > MAX_FILL_CURVES) return reject('raster-budget');
+        outline.push(...part);
+      }
     } else outline = strokeToPath(path, s.width, options);
   } else {
     // A centred stroke on a box is the preview reading, which this renderer does not draw.
