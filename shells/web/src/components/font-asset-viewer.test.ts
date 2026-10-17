@@ -57,6 +57,19 @@ test('a quick change of face leaves only the last choice loaded', async () => {
   } finally { dom.window.close(); }
 });
 
+test('a damaged face is listed but cannot be chosen, and the first readable face opens', async () => {
+  const { dom, fonts, root } = setup();
+  try {
+    const pair = packCollection([sfntFace(NOTO_HEBREW), sfntFace(OUTFIT)]), data = new DataView(pair.buffer);
+    data.setUint32(data.getUint32(12), 0x12345678);
+    const dispose = await mountFontAssetViewer(root, pair, source('ttc', 'pair.ttc'), new AbortController().signal);
+    const select = root.querySelector<HTMLSelectElement>('.asset-viewer-toolbar select')!;
+    assert.deepEqual([...select.options].map(option => [option.textContent, option.disabled]), [['Face 1 (damaged)', true], ['Outfit Thin', false]]);
+    assert.equal(select.value, '1'); assert.equal(detail(root, 'Collection face'), '2 / 2'); assert.equal(fonts.size, 1);
+    dispose(); assert.equal(fonts.size, 0);
+  } finally { dom.window.close(); }
+});
+
 test('a Type 1 font is described with an unsupported note and never loaded as a face', async () => {
   const { dom, fonts, root } = setup();
   try {
