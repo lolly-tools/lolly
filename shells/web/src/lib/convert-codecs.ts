@@ -37,15 +37,17 @@ export function targetsFor(kind: string): Target[] {
         { id: 'otf', label: 'OpenType (.otf)', ext: 'otf', mime: 'font/otf' },
         { id: 'woff', label: 'Web font (.woff)', ext: 'woff', mime: 'font/woff' },
       ];
-    // An SVG reaches its compressed sibling AND the whole raster matrix (the engine
-    // rasterises it at its intrinsic size). We do NOT offer vector→vector transcoding
-    // (svg→eps/dxf/emf/wmf): the engine's vector writers walk a rendered tool canvas,
-    // not arbitrary source SVG, so those would misconvert - a follow-on (plans/84).
+    // An SVG reaches its compressed sibling, a copy with its viewBox fitted to the
+    // painted artwork (only the root tag changes), AND the whole raster matrix (the
+    // engine rasterises it at its intrinsic size). We do NOT offer vector→vector
+    // transcoding (svg→eps/dxf/emf/wmf): the engine's vector writers walk a rendered
+    // tool canvas, not arbitrary source SVG, so those would misconvert - a follow-on (plans/84).
     case 'svg': case 'svgz':
       return [
         kind === 'svg'
           ? { id: 'svgz', label: 'Compressed SVG (.svgz)', ext: 'svgz', mime: 'image/svg+xml' }
           : { id: 'svg', label: 'SVG (.svg)', ext: 'svg', mime: 'image/svg+xml' },
+        SVG_FIT,
         ...RASTER_OUT,
       ];
     // A raster can re-encode to any raster + wrap into PDF/ICO, but cannot become true vector.
@@ -83,6 +85,9 @@ export async function targetsForSource(kind: string, bytes: Uint8Array, signal?:
   }
   return targets;
 }
+
+/** SVG bounds normalisation: the root viewBox fitted to the painted artwork. */
+const SVG_FIT: Target = { id: 'svg-fit', label: 'SVG fitted to its artwork (.svg)', ext: 'svg', mime: 'image/svg+xml' };
 
 /** Markdown out. A deck/document carrying images downloads as a zip instead (the
  *  markdown at the root plus its `media/` files) - see markdownDownload. */
@@ -157,6 +162,14 @@ export async function convert(bytes: Uint8Array, kind: string, target: Target, f
   // SVG⇄SVGZ - exact-byte gzip, no render (keeps the credential + outlined text intact).
   if (kind === 'svg' && target.id === 'svgz') return new Blob([gzip(bytes) as BlobPart], { type: target.mime });
   if (kind === 'svgz' && target.id === 'svg') return new Blob([gunzip(bytes) as BlobPart], { type: target.mime });
+  // Bounds normalisation rewrites only the root tag (size options do not apply);
+  // anything it cannot measure is refused with the reason.
+  if ((kind === 'svg' || kind === 'svgz') && target.id === 'svg-fit') {
+    const { fitSvgToArtwork } = await import('./design-system/trim-bounds.ts');
+    const fit = fitSvgToArtwork(new TextDecoder().decode(kind === 'svgz' ? gunzip(bytes) : bytes));
+    if (!fit.ok) throw new Error(fit.reason);
+    return new Blob([fit.svg], { type: target.mime });
+  }
   // Tabular data - decode the source to a ragged grid (row 0 = header), re-encode to
   // the target. Pure byte/text work, no canvas. An .xlsx reads its first sheet.
   if (kind === 'xlsx' || kind === 'csv' || kind === 'tsv' || kind === 'json') {

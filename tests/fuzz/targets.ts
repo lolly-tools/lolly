@@ -54,9 +54,13 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - layout-abi    : raw WASM layout_alloc/layout_solve bytes through Rust serde_json and modern flex/grid routines
  *   - penpot-layout : importPenpotLayouts + penpotChildrenPaintOrder, then Design request placement/evaluation
  *   - design-guides : v1/v2 guide text/JSON, canonical reparse and finite snap targets without DOM
+ *   - font-inspect  : inspectFont + glyphsForText over a real variable TTF, its WOFF wrapper and crafted overlapping cmap 4/12 tables (sfnt directory, name, fvar, cmap 4/12)
  */
 
 import { storeZip } from '../../engine/src/zip.ts';
+import { inspectFont, glyphsForText } from '../../engine/src/font-inspect.ts';
+import { sfntToWoff } from '../../engine/src/font-convert.ts';
+import { readFileSync } from 'node:fs';
 import { readEmojiPack } from '../../engine/src/emoji-pack.ts';
 import { prepareEmojiSvg, emojiSvgMarkup } from '../../engine/src/emoji-svg.ts';
 import { emojiGraphemes, segmentEmojiText } from '../../engine/src/emoji-segment.ts';
@@ -79,6 +83,7 @@ import { writePsd } from '../../engine/src/psd-write.ts';
 import { readXcf } from '../../engine/src/xcf.ts';
 import type { InflateFn } from '../../engine/src/raster-layers.ts';
 import { buildXcf } from '../helpers/xcf-fixture.ts';
+import { overlappingCmap4Font, cmap12Font } from '../helpers/font-cmap-fixture.ts';
 import { deflateRawSync, inflateSync } from 'node:zlib';
 import { sniffAnimatedRaster, sniffVideoContainer } from '../../engine/src/media-sniff.ts';
 import { interpretPdfPage, parseToUnicode, type PdfNode } from '../../engine/src/pdf-map.ts';
@@ -2052,6 +2057,19 @@ export const designGuidesTarget: FuzzTarget = {
 export const designHierarchyTarget: FuzzTarget = { name: 'design-hierarchy', seeds: designHierarchySeeds, async invoke(bytes) { invokeDesignHierarchy(bytes); } };
 export const lollyHierarchyTarget: FuzzTarget = { name: 'lolly-hierarchy', seeds: lollyHierarchySeeds, async invoke(bytes) { await invokeLollyHierarchy(bytes); } };
 
+export const fontInspectTarget: FuzzTarget = {
+  name: 'font-inspect',
+  async seeds() {
+    const outfit = new Uint8Array(readFileSync(new URL('../../shells/web/public/fonts/Outfit[wght].ttf', import.meta.url)));
+    // The crafted seeds stay under the harness's 64 KB hang-check size: 4,000
+    // overlapping full-range format 4 segments, and format 12 groups that overlap.
+    const overlap12 = cmap12Font([[0x41, 0x5a, 1], ...Array.from({ length: 2000 }, () => [0, 0x10ffff, 1] as const)], 27);
+    return [outfit, sfntToWoff(outfit), overlappingCmap4Font(4000, { glyphArray: 4096 }), overlap12];
+  },
+  // Contract: a coded Error for anything unreadable; never a hang or an unbounded allocation.
+  async invoke(bytes) { inspectFont(bytes); glyphsForText(bytes, 'Hello, Wörld'); },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   layoutAbiTarget, penpotLayoutTarget, designGuidesTarget, designHierarchyTarget, lollyHierarchyTarget,
   adobeXmlTarget, adobePsdTarget, idmlReadTarget,
@@ -2070,6 +2088,6 @@ export const ALL_TARGETS: FuzzTarget[] = [
   depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
-  geomTarget, svgItemsTarget,
+  geomTarget, svgItemsTarget, fontInspectTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

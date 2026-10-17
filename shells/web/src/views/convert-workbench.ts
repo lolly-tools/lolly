@@ -101,10 +101,11 @@ export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[
   const showNotes = (): void => {
     root.querySelector<HTMLElement>('[data-notes]')!.innerHTML = conversionFindings(isJxl(first.bytes) ? 'jxl' : first.kind, format.value).map(f => `<p>${escapeHtml(t(f.message))}</p>`).join('');
     const lossy = ['jpeg', 'webp', 'avif', 'jxl'].includes(format.value);
-    const reversible = ['jxl-recompress', 'jpeg-original'].includes(format.value);
-    if (edge) edge.disabled = reversible;
+    // Exact-byte JPEG paths and the SVG viewBox fit never resize or compress.
+    const fixedSize = ['jxl-recompress', 'jpeg-original', 'svg-fit'].includes(format.value);
+    if (edge) edge.disabled = fixedSize;
     const targetBytes = root.querySelector<HTMLInputElement>('[data-target-bytes]');
-    if (targetBytes) targetBytes.disabled = reversible;
+    if (targetBytes) targetBytes.disabled = fixedSize;
     if (quality) quality.disabled = !lossy;
     const note = root.querySelector<HTMLElement>('[data-quality-note]');
     if (note) note.textContent = lossy ? t('Higher keeps more detail. File size depends on the image.') : t('This format does not use the quality slider.');

@@ -26,6 +26,8 @@ import type { ConnectorsAPI } from './connectors.ts';
 
 import type { ExportAPI } from './export.ts';
 
+import type { FontsAPI } from './fonts.ts';
+
 import type { GeomAPI } from './geom.ts';
 
 import type { ImagesAPI } from './images.ts';
@@ -171,6 +173,16 @@ export interface HostV1 {
 
   /** Local bounded text/structure comparison of immutable snapshots. (v1.189) */
   compare?: CompareAPI;
+
+  /**
+   * Font files - read a TTF, OTF or WOFF file's own tables (names, outline
+   * format, weights, axes, character coverage, embedding flags) and subset it to
+   * chosen text with the shell's Skera runtime. The fsType statement is honoured,
+   * never bypassed: a restricted or no-subsetting font is refused. Optional/
+   * additive (v1.262) and NOT gated by a `capabilities` flag: feature-detect
+   * `host.fonts`. Runs locally; the bytes are never uploaded.
+   */
+  fonts?: FontsAPI;
 
   /**
    * PPTX inspect + rebrand. Reads an uploaded .pptx deck (slide count, theme,

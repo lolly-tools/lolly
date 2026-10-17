@@ -600,6 +600,8 @@ export { buildLinuxPack, buildHomeTarball, packageRender } from './linux-pack.ts
 export type { FontFile } from './linux-pack.ts';
 export { fontMetainfo, desktopEntry, metainfoPath } from './appstream.ts';
 export { sfntKind, sfntToWoff, woffToSfnt, fontConversionTargets, convertFontContainer } from './font-convert.ts';
+export { inspectFont, createFontsAPI } from './font-inspect.ts';
+export type { FontSubsetRunner } from './font-inspect.ts';
 export { sourceToGrid, gridToTarget } from './file-data.ts';
 export { videoProvenanceTags, embedMp4Meta, embedWebmMeta } from './video-meta.ts';
 export { embedWavInfo } from './riff-meta.ts';

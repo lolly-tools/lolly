@@ -5,9 +5,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12M12 4v16M9 20h6"/></svg>
       </div>
       <h2>Convert a font</h2>
-      <p>Drag a TrueType (.ttf), OpenType (.otf) or WOFF file anywhere onto this area, or choose one below. Pick a target container in the sidebar and download the converted font.</p>
+      <p>Drag a TrueType (.ttf), OpenType (.otf) or WOFF file anywhere onto this area, or choose one below. See its outlines, weights and character coverage, pick a target container in the sidebar, and keep every glyph or only the characters you need.</p>
       <button type="button" class="fc-pick" data-file-pick>Choose a font…</button>
-      <p class="fc-empty-note">Everything happens in your browser. Your font is never uploaded, and the glyph outlines are never changed.</p>
+      <p class="fc-empty-note">Everything happens on your device. Your font is never uploaded, and the glyph outlines it keeps are never changed.</p>
     </div>
   {{/unless}}
 
@@ -24,6 +24,15 @@
         <span class="fc-badge fc-badge--target">{{targetLabel}}</span>
       </div>
       <p class="fc-note">{{note}}</p>
+      {{#if subsetNote}}<p class="fc-subset">{{subsetNote}}</p>{{/if}}
+      {{#if details}}
+        <dl class="fc-details">
+          {{#each details}}
+            <div class="fc-row"><dt>{{label}}</dt><dd>{{value}}</dd></div>
+          {{/each}}
+        </dl>
+      {{/if}}
+      {{#if detailsNote}}<p class="fc-note">{{detailsNote}}</p>{{/if}}
     </div>
   {{/if}}
 </div>
