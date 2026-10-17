@@ -59,7 +59,8 @@ import {
 } from '@lolly/engine';
 import { rasterSize } from './svg-unpack.ts';
 import { prepareSvgText, readTextContent, anchorToAlign, styleProp, attrNum } from './design-import-text.ts';
-import { isPenpotMetadata, penpotAttr, readPenpotSvgLayouts } from './design-import-penpot-svg.ts';
+import { isPenpotMetadata, penpotAttr, readPenpotSvgLayouts, NON_DRAWN_CONTAINERS } from './design-import-penpot-svg.ts';
+export { layoutFindingsNote } from './design-import-penpot-svg.ts';
 import type { UnpackHandle } from './unpack-open.ts';
 import type { PdfPageSvg, EmbeddedFont, EmbeddedImage, EmbeddedImageScan, ExtractedVector } from './pdf-import.ts';
 import { strFromU8 } from 'fflate';
@@ -133,9 +134,8 @@ const MAX_FIG_DATA_BYTES = 256 * 1024 * 1024;
 // Elements that are never drawn on their own (definitions / metadata / containers).
 // <g> is intentionally NOT here: it's a container we recurse into, not a leaf.
 const SKIP_TAGS = new Set([
-  'defs', 'clippath', 'mask', 'symbol', 'style', 'script',
-  'title', 'desc', 'metadata', 'filter', 'lineargradient',
-  'radialgradient', 'pattern', 'marker',
+  ...NON_DRAWN_CONTAINERS, 'style', 'script',
+  'title', 'desc', 'metadata', 'filter', 'lineargradient', 'radialgradient',
 ]);
 
 /**
@@ -534,10 +534,10 @@ async function svgToNodes(
   return { nodes, width: Math.round(canvasW), height: Math.round(canvasH), fontSubstitutions };
 }
 
-// A Penpot SVG can declare flex or grid layouts beside artwork Penpot already
-// positioned. The engine reports each declared container and the page imports at
-// its exported positions. An SVG without the metadata reports nothing, and no
-// layout is ever inferred from where things sit.
+// A page SVG from Penpot's legacy zip export can declare flex or grid layouts beside
+// artwork Penpot already positioned. The engine reports each declared container and
+// the page imports at its exported positions. An SVG without the metadata reports
+// nothing, and no layout is ever inferred from where things sit.
 function reportSvgLayouts(svgEl: Element, warn: (msg: string) => void): LayoutFinding[] {
   const findings = penpotSvgLayoutFindings(readPenpotSvgLayouts(svgEl));
   for (const finding of findings) warn(finding.message);
@@ -782,7 +782,8 @@ async function parsePenpotZip(files: Record<string, Uint8Array>, { host, warn, i
       const svgEl = sanitizeSvg(svgText);
       if (!svgEl) { warn(`Skipped an unreadable Penpot page (${path}).`); continue; }
       const { nodes, width: w, height: h } = await svgToNodes(svgEl, { host, warn, penpot: true, zipFiles: files, map });
-      allNodes.push(...nodes); layoutFindings.push(...reportSvgLayouts(svgEl, warn));
+      // A page that draws nothing (the zip's components.svg) reports no layouts.
+      allNodes.push(...nodes); if (nodes.length) layoutFindings.push(...reportSvgLayouts(svgEl, warn));
       width = Math.max(width, w); height = Math.max(height, h);
     }
     if (!allNodes.length) throw new Error('This Penpot file didn’t contain any importable pages.');

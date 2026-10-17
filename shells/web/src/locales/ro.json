@@ -7971,5 +7971,7 @@
   "Draft quality": "Calitate ciornă",
   "Draft rule": "Regulă în ciornă",
   "Choose the original file": "Alege fișierul original",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Originalele nu sunt salvate în istoricul fișierelor. Alege originalul ca să-l compari cu copia salvată; hash-ul lui trebuie să se potrivească."
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Originalele nu sunt salvate în istoricul fișierelor. Alege originalul ca să-l compari cu copia salvată; hash-ul lui trebuie să se potrivească.",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 layout Penpot a fost importat cu poziții fixe. Importă exportul .penpot ca să rămână editabil.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} layouturi Penpot au fost importate cu poziții fixe. Importă exportul .penpot ca să rămână editabile."
 }

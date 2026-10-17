@@ -1627,5 +1627,7 @@
   "YAML structure comparison needs finite numbers and safe integers. Choose Text mode.": "YAML の構造比較には有限の数値と安全な整数が必要です。テキストモードを選んでください。",
   "YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison.": "YAML のデータ値を比較します。コメント、キーの順序、引用符、書式はこの比較の対象外です。",
   "Choose the original file": "オリジナルのファイルを選択",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "オリジナルはファイル履歴に保存されません。保存されたコピーと比較するにはオリジナルを選んでください。ハッシュが一致する必要があります。"
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "オリジナルはファイル履歴に保存されません。保存されたコピーと比較するにはオリジナルを選んでください。ハッシュが一致する必要があります。",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Penpot のレイアウト 1 件を固定位置でインポートしました。編集できる状態を保つには、.penpot の書き出しをインポートしてください。",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Penpot のレイアウト {n} 件を固定位置でインポートしました。編集できる状態を保つには、.penpot の書き出しをインポートしてください。"
 }

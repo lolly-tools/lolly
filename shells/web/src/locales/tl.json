@@ -7971,5 +7971,7 @@
   "Draft quality": "Kalidad ng draft",
   "Draft rule": "Draft na panuntunan",
   "Choose the original file": "Piliin ang orihinal na file",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Hindi sine-save sa history ng file ang mga orihinal. Piliin ang orihinal para ihambing ito sa naka-save na kopya; dapat tumugma ang hash nito."
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Hindi sine-save sa history ng file ang mga orihinal. Piliin ang orihinal para ihambing ito sa naka-save na kopya; dapat tumugma ang hash nito.",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 Penpot layout ang na-import na may fixed na posisyon. I-import ang .penpot export para manatili itong editable.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot layout ang na-import na may fixed na posisyon. I-import ang .penpot export para manatili silang editable."
 }

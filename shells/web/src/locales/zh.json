@@ -7971,5 +7971,7 @@
   "Draft quality": "草稿质量",
   "Draft rule": "草稿规则",
   "Choose the original file": "选择原始文件",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "原件不会保存在文件历史记录中。请选择原件，与已保存的副本进行比较；其哈希值必须一致。"
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "原件不会保存在文件历史记录中。请选择原件，与已保存的副本进行比较；其哈希值必须一致。",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "已将 1 个 Penpot 版式以固定位置导入。如需保持可编辑，请导入 .penpot 导出文件。",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "已将 {n} 个 Penpot 版式以固定位置导入。如需保持可编辑，请导入 .penpot 导出文件。"
 }

@@ -1629,5 +1629,7 @@
   "YAML structure comparison needs finite numbers and safe integers. Choose Text mode.": "Kailangan ng paghahambing ng istruktura ng YAML ng mga may hangganang numero at ligtas na integer. Piliin ang Teksto na mode.",
   "YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison.": "Inihahambing ang mga halaga ng data ng YAML. Labas sa paghahambing na ito ang mga komento, pagkakasunod ng key, panipi at formatting.",
   "Choose the original file": "Piliin ang orihinal na file",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Hindi sine-save sa history ng file ang mga orihinal. Piliin ang orihinal para ihambing ito sa naka-save na kopya; dapat tumugma ang hash nito."
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Hindi sine-save sa history ng file ang mga orihinal. Piliin ang orihinal para ihambing ito sa naka-save na kopya; dapat tumugma ang hash nito.",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 Penpot layout ang na-import na may fixed na posisyon. I-import ang .penpot export para manatili itong editable.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot layout ang na-import na may fixed na posisyon. I-import ang .penpot export para manatili silang editable."
 }

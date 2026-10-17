@@ -1757,5 +1757,7 @@
   "YAML structure comparison needs finite numbers and safe integers. Choose Text mode.": "YAML 구조 비교에는 유한한 숫자와 안전한 정수가 필요해요. 텍스트 모드를 선택하세요.",
   "YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison.": "YAML 데이터 값을 비교해요. 주석, 키 순서, 따옴표, 서식은 이 비교에 포함되지 않아요.",
   "Choose the original file": "원본 파일 선택",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "원본은 파일 기록에 저장되지 않아요. 저장된 사본과 비교하려면 원본을 선택하세요. 해시가 일치해야 해요."
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "원본은 파일 기록에 저장되지 않아요. 저장된 사본과 비교하려면 원본을 선택하세요. 해시가 일치해야 해요.",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Penpot 레이아웃 1개를 고정된 위치로 가져왔어요. 편집 가능한 상태로 유지하려면 .penpot 내보내기 파일을 가져오세요.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Penpot 레이아웃 {n}개를 고정된 위치로 가져왔어요. 편집 가능한 상태로 유지하려면 .penpot 내보내기 파일을 가져오세요."
 }

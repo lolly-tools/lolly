@@ -1619,5 +1619,7 @@
   "YAML structure comparison needs finite numbers and safe integers. Choose Text mode.": "YAML-structuurvergelijking heeft eindige getallen en veilige gehele getallen nodig. Kies de modus Tekst.",
   "YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison.": "YAML-gegevenswaarden worden vergeleken. Opmerkingen, sleutelvolgorde, aanhalingstekens en opmaak vallen buiten deze vergelijking.",
   "Choose the original file": "Kies het originele bestand",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Originelen worden niet in de bestandsgeschiedenis opgeslagen. Kies het origineel om het met de opgeslagen kopie te vergelijken; de hash moet overeenkomen."
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Originelen worden niet in de bestandsgeschiedenis opgeslagen. Kies het origineel om het met de opgeslagen kopie te vergelijken; de hash moet overeenkomen.",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 Penpot-lay-out is geïmporteerd met vaste posities. Importeer de .penpot-export om die bewerkbaar te houden.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot-lay-outs zijn geïmporteerd met vaste posities. Importeer de .penpot-export om ze bewerkbaar te houden."
 }
