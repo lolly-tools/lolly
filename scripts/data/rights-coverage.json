@@ -1,5 +1,5 @@
 {
-  "_note": "Plan 253 Phase 0 surface-coverage register: every delivery, import and source-census path, with what it carries for creative rights today. tests/rights-coverage.test.ts keeps it whole: every export format, every format in docs/site/formats-catalog.json, every drop route, every web file that hands bytes to a download, share or clipboard, every Send driver and every file that builds a provenance ingredient or evaluates rights must be registered here, every code path must exist, and any status that claims something must point at a test that proves the claim. Statuses describe the route, not a promise about a work: a delivery route can only carry the sources the census paths hand it, and only the emoji census is complete today. To register a new path, add an entry with an honest status; when in doubt it is not-assessed.",
+  "_note": "Plan 253 Phase 0 surface-coverage register: every delivery, import and source-census path, with what it carries for creative rights today. tests/rights-coverage.test.ts keeps it whole: every export format, every format in docs/site/formats-catalog.json, every file extension the app accepts or routes, every drop route, every web file that hands bytes to a download, share or clipboard, every CLI, TUI and MCP file that writes or returns bytes, every Send driver and every file that builds a provenance ingredient or evaluates rights must be registered here, every code path must exist, and any status that claims something must point at a test that proves the claim. Statuses describe the route, not a promise about a work: a delivery route can only carry the sources the census paths hand it, and only the emoji census is complete today. To register a new path, add an entry with an honest status; when in doubt it is not-assessed.",
   "statuses": {
     "covered": "Source credits are written into a Content Credential and a readable credit is prepared, and the route reads the delivered bytes back and says credits are included only when every required source is found.",
     "metadata-only": "Credits or licence records travel as readable text beside the work, such as a CREDITS.txt companion, or as declared records, with no Content Credential carrying them.",
@@ -25,7 +25,10 @@
       { "file": "tests/c2pa-formats.test.ts", "test": "every stampable format is round-tripped by SOME suite, none silently untested" },
       { "file": "tests/rights-attribution.test.ts", "test": "a real stamped file reads back confirmed, and a file missing the source does not" },
       { "file": "tests/rights-runtime.test.ts", "test": "an export reads its own bytes back before it says the credits are in the file" },
-      { "file": "tests/rights-runtime.test.ts", "test": "a credential that was never written never reads as delivered" }
+      { "file": "tests/rights-runtime.test.ts", "test": "a credential that was never written never reads as delivered" },
+      { "file": "tests/rights-export-bridge.test.ts", "test": "the export bridge stamps the source, reads the finished bytes back and reports one confirmed receipt" },
+      { "file": "tests/rights-export-bridge.test.ts", "test": "with Content Credentials off the bridge still reads back, and says the credit is not in the file" },
+      { "file": "tests/rights-export-bridge.test.ts", "test": "a stamp that fails ships the bytes, and the receipt says the credit did not travel" }
     ]
   },
   "paths": [
@@ -43,10 +46,15 @@
         "shells/web/src/views/tool-actions/wiring.ts",
         "shells/web/src/views/record-control.ts",
         "shells/web/src/lib/deliver-file.ts",
-        "shells/web/src/lib/download-recovery.ts"
+        "shells/web/src/lib/download-recovery.ts",
+        "shells/web/src/lib/delivery-result.ts",
+        "shells/web/src/bridge/index.ts",
+        "shells/web/src/bridge/download.ts",
+        "shells/web/src/bridge/export-save-picker.ts",
+        "shells/web/src/views/export-package-options.ts"
       ],
       "evidence": "c2pa-readback",
-      "note": "The runtime evaluates the census and hands the plan to host.export.render; the bridge stamps every format in C2PA_FORMATS and reads the finished bytes back before reporting a receipt. With Content Credentials off, or for an on-device tool, no credential is written and the receipt reports the credit as not delivered. A retry from the delivery panel re-hands the same bytes."
+      "note": "The runtime evaluates the census and hands the plan to host.export.render; the bridge stamps every format in C2PA_FORMATS and reads the finished bytes back before reporting a receipt. tests/rights-export-bridge.test.ts drives that wiring through the real bridge on a PNG: a stamped file reports readback-confirmed, and with Content Credentials off or a failed stamp the receipt reports the credit as not delivered. Every other covered format is shown to take and read back a credential by its container round-trip, not by a bridge test of its own. With Content Credentials off, or for an on-device tool, no credential is written. The save picker and a retry from the delivery panel re-hand the same bytes."
     },
     {
       "id": "delivery.tool-hook-bytes",
@@ -59,19 +67,30 @@
     {
       "id": "delivery.on-device-transform",
       "kind": "delivery",
-      "title": "On-device transforms of the person's own file: utility exportFile hooks, Convert, PDF extract and Office to Markdown",
+      "title": "On-device transforms of the person's own file: utility exportFile hooks (one file or a bulk ZIP), Convert, PDF extract, Office to Markdown, and the CLI and MCP file utilities",
       "status": "raw-utility",
       "code": [
         "engine/src/runtime.ts",
         "community/font-convert/hooks.js",
         "shells/web/src/views/convert-workbench.ts",
+        "shells/web/src/lib/convert-codecs.ts",
+        "shells/web/src/lib/office-text.ts",
         "shells/web/src/views/file-operation-history.ts",
         "shells/web/src/views/file-batch-history.ts",
         "shells/web/src/views/pdf-extract.ts",
         "shells/web/src/views/pptx-import.ts",
-        "shells/web/src/lib/drop-router.ts"
+        "shells/web/src/views/tool/setup.ts",
+        "shells/web/src/lib/drop-router.ts",
+        "shells/cli/src/run.ts",
+        "shells/cli/src/files.ts",
+        "shells/cli/src/adobe.ts",
+        "shells/cli/src/document.ts",
+        "shells/cli/src/read.ts",
+        "services/mcp/src/tools.ts",
+        "services/mcp/src/file-resources.ts",
+        "services/mcp/src/read.ts"
       ],
-      "note": "Bytes in, bytes out on the device, through host.export.file or a direct download. Nothing adds or claims a source credit, and a third party's credit can be lost in the conversion; Convert keeps a JSON report per file and per batch."
+      "note": "Bytes in, bytes out on the device, through host.export.file or a direct download. Nothing adds or claims a source credit, and a third party's credit can be lost in the conversion; Convert keeps a JSON report per file and per batch. The same holds for lolly run with a transform tool, lolly files, lolly adobe (a preserved PSD copy and its reports), lolly document optimize, lolly read and lolly_read with the pictures they extract, lolly_transform, lolly_redact and MCP's private file handles."
     },
     {
       "id": "delivery.strip-hidden-data",
@@ -88,9 +107,9 @@
     {
       "id": "delivery.prepare-for-sharing",
       "kind": "delivery",
-      "title": "Prepare for sharing: prepared copies, the recipe and the report",
+      "title": "Prepare for sharing (the panel and lolly prepare): prepared copies, the recipe and the report",
       "status": "not-assessed",
-      "code": ["shells/web/src/components/prepare/panel.ts", "shells/web/src/components/prepare/outputs.ts"],
+      "code": ["shells/web/src/components/prepare/panel.ts", "shells/web/src/components/prepare/outputs.ts", "shells/cli/src/prepare.ts"],
       "note": "Not traced for rights. The panel downloads or delivers the prepared copies, a preparation recipe and a report; whether a third party's credit survives a preparation is not checked."
     },
     {
@@ -297,6 +316,22 @@
       "note": "Text the person wrote or kept as an asset. No source record exists for quoted text, and nothing is inferred from a quotation or a name (plan 253, section 6.2)."
     },
     {
+      "id": "delivery.data-downloads",
+      "kind": "delivery",
+      "title": "Spreadsheet view downloads: the current grid as CSV, TSV, XLSX or JSON",
+      "status": "not-assessed",
+      "code": ["shells/web/src/views/data.ts"],
+      "note": "Writes the grid as it stands after editing. The rows can come from someone else's dataset, and a data source's licence is not recorded (import.data), so a dataset's attribution or share-alike terms do not travel."
+    },
+    {
+      "id": "delivery.learning-course",
+      "kind": "delivery",
+      "title": "Learning course packages (static, SCORM 1.2, SCORM 2004, Tin Can and cmi5) and the handoff report, from the app and lolly learning",
+      "status": "not-assessed",
+      "code": ["shells/web/src/views/learning/delivery.ts", "shells/web/src/views/learning/publishing.ts", "packages/learning-player/src/package.ts", "shells/cli/src/learning.ts"],
+      "note": "Not traced for rights. A package carries the course's media and the player, with no credits file, source record or receipt."
+    },
+    {
       "id": "delivery.presentation-recording",
       "kind": "delivery",
       "title": "Presentation recordings",
@@ -306,6 +341,19 @@
         { "file": "shells/web/src/bridge/capture-clip-c2pa.test.ts", "test": "a transcoded take adds an honest c2pa.converted step after the capture" }
       ],
       "note": "The take carries a capture credential recording how it was made. It does not identify any work shown on screen."
+    },
+    {
+      "id": "delivery.capture-takes",
+      "kind": "delivery",
+      "title": "Saved recordings: voice takes (native container or MP3) and screen captures",
+      "status": "credential-only",
+      "code": ["shells/web/src/lib/audio-take.ts", "shells/web/src/views/screen-capture-control.ts", "shells/web/src/bridge/export.ts"],
+      "evidence": [
+        { "file": "shells/web/src/bridge/capture-clip-c2pa.test.ts", "test": "the audio take asserts the same shape a camera take does, minus the camera" },
+        { "file": "shells/web/src/bridge/capture-clip-c2pa.test.ts", "test": "a transcoded take adds an honest c2pa.converted step after the capture" },
+        { "file": "tests/export-action-steps.test.ts", "test": "screen capture: created is screenCapture (NOT digitalCapture)" }
+      ],
+      "note": "Each take is signed by stampCaptureClip with its capture context and saved through host.export.file; an MP3 re-encode is re-signed as transcoded. The tests exercise stampCaptureClip and the capture steps, not these save buttons. Bytes the placer refuses are saved unsigned. Nothing identifies a work heard or shown in the take."
     },
     {
       "id": "delivery.contact-sheets",
@@ -334,10 +382,10 @@
     {
       "id": "delivery.backup-export",
       "kind": "delivery",
-      "title": "Data backup and Export everything",
+      "title": "Data backup and Export everything (the app and the TUI)",
       "status": "not-assessed",
-      "code": ["shells/web/src/views/profile/storage.ts", "shells/web/src/data-transfer.ts"],
-      "note": "A backup of this device's data for another install. It can hold library assets that are other people's works, and it carries no credits file. Not traced for which history and source bytes it includes (plan 253, section 11)."
+      "code": ["shells/web/src/views/profile/storage.ts", "shells/web/src/data-transfer.ts", "shells/tui/src/store.ts"],
+      "note": "A backup of this device's data for another install. It can hold library assets that are other people's works, and it carries no credits file. Not traced for which history and source bytes it includes (plan 253, section 11). The TUI's backup zips every saved project with the profile and folder list."
     },
     {
       "id": "delivery.history-archive",
@@ -350,18 +398,25 @@
     {
       "id": "delivery.app-surface-export",
       "kind": "delivery",
-      "title": "App surfaces exported as Penpot files",
+      "title": "App surfaces and the component library exported as Penpot files and tokens",
       "status": "not-assessed",
-      "code": ["shells/web/src/lib/app-surface-export.ts"],
-      "note": "Renders an app-owned surface with the active brand through the Penpot writer. Brand assets travel and no source is recorded."
+      "code": ["shells/web/src/lib/app-surface-export.ts", "shells/web/src/views/components.ts"],
+      "note": "Renders an app-owned surface with the active brand through the Penpot writer; the component library view exports the interface components and their tokens the same way. Brand assets travel and no source is recorded."
     },
     {
       "id": "delivery.batch-render",
       "kind": "delivery",
-      "title": "Batch renders and their ZIP",
+      "title": "Batch renders and folder batches, delivered as a ZIP or one combined PDF",
       "status": "not-assessed",
-      "code": ["shells/web/src/pro/render-export.ts", "shells/web/src/pro/zip.ts", "shells/web/src/pro/index.ts"],
-      "note": "Each row renders through the runtime with the session's recorded decisions, so a stampable row carries its credential. No per-output rights receipt is shown and the ZIP holds no credits index (plan 253, section 7.3)."
+      "code": [
+        "shells/web/src/pro/render-export.ts",
+        "shells/web/src/pro/zip.ts",
+        "shells/web/src/pro/index.ts",
+        "shells/web/src/pro/run-overlay.ts",
+        "shells/web/src/pro/folder-export.ts",
+        "shells/web/src/lib/background-delivery.ts"
+      ],
+      "note": "Each row renders through the runtime with the session's recorded decisions, so a stampable row carries its credential. No per-output rights receipt is shown and the ZIP holds no credits index (plan 253, section 7.3). The finished file waits in the background delivery surface until it is saved or the next run starts."
     },
     {
       "id": "delivery.verify-report",
@@ -386,9 +441,12 @@
         "shells/web/src/org/account-chip.ts",
         "shells/web/src/components/rate-cards-manager.ts",
         "shells/web/src/lib/agent-copy.ts",
-        "shells/web/src/pro/index.ts"
+        "shells/web/src/pro/index.ts",
+        "shells/web/src/components/compare-results.ts",
+        "shells/web/src/components/compare-visual-results.ts",
+        "shells/web/src/views/timeline-panel/marks.ts"
       ],
-      "note": "Evidence and production reports, design context, recovery copies, rate card templates, the AI instructions text and the batch CSV. None is a creative delivery."
+      "note": "Evidence and production reports, Compare's comparison reports, design context, recovery copies, rate card templates, the AI instructions text, the batch CSV and a timeline's chapter markers as WebVTT. None is a creative delivery."
     },
     {
       "id": "delivery.catalog-renditions",
@@ -404,26 +462,120 @@
     {
       "id": "delivery.cli-render",
       "kind": "delivery",
-      "title": "CLI render",
-      "status": "covered",
+      "title": "CLI tool render (lolly run <tool>), browser-free tier",
+      "status": "not-assessed",
       "code": ["shells/cli/src/run.ts", "shells/cli/src/bridge.ts", "shells/cli/src/args.ts"],
       "evidence": [
         { "file": "tests/rights-cli.test.ts", "test": "a CC BY set prints its credit and exits 0" },
-        { "file": "tests/rights-cli.test.ts", "test": "a recoloured CC BY-SA set names the decision, writes the file, and exits non-zero" }
+        { "file": "tests/rights-cli.test.ts", "test": "a recoloured CC BY-SA set names the decision, writes the file, and exits non-zero" },
+        { "file": "tests/rights-cli.test.ts", "test": "with Content Credentials on, the Rights block says credits are included exactly when the written file carries them" },
+        { "file": "tests/rights-cli.test.ts", "test": "with Content Credentials off, the same render says its credit is not in the file" }
       ],
-      "note": "Covered for formats in C2PA_FORMATS with Content Credentials on: the Rights block reads the written file back before saying credits are in the file. For any other format it prints the credit and records no delivery."
+      "note": "The Rights block evaluates the emoji census, prints the credit and reads the written file back, so it never says credits are in a file that lacks them. No format on this tier has been shown to carry the credit: the HTML export is the canvas element's markup rather than a document, so the credential embed refuses it and the block says the credit is not in the file; Markdown from a page needs the browser tier; and an SVG-root tool places no emoji. A production repair run writes its bytes the same way."
+    },
+    {
+      "id": "delivery.cli-render-browser",
+      "kind": "delivery",
+      "title": "CLI tool render, browser tier",
+      "status": "not-assessed",
+      "code": ["shells/cli/src/run.ts", "packages/node-shell/src/browser-tier.ts"],
+      "note": "When a render escalates to the browser tier, the web shell draws and stamps the file and the CLI does not stamp it again. The Rights block still reads the finished bytes back against the CLI's own emoji census, so every other source the page drew is unrecorded. No test drives this tier for credits (as delivery.mcp-render-browser)."
+    },
+    {
+      "id": "delivery.cli-batch",
+      "kind": "delivery",
+      "title": "CLI batch: many renders from one CSV or TSV into a directory",
+      "status": "not-assessed",
+      "code": ["shells/cli/src/batch.ts"],
+      "note": "Each row runs the single CLI render, so a row carries what that route carries. The directory holds no credits index binding each file to its sources (plan 253, section 7.3)."
+    },
+    {
+      "id": "delivery.cli-design-session",
+      "kind": "delivery",
+      "title": "CLI export of a saved Design session or document (lolly run <design-session.lolly>, lolly run design --document)",
+      "status": "not-assessed",
+      "code": ["shells/cli/src/design-session.ts", "shells/cli/src/design-tool.ts"],
+      "note": "The file is opened and exported in the web shell through its URL-mode export, the same route a person's browser takes. The CLI prints no Rights block for these runs and no test checks what the written file carries."
+    },
+    {
+      "id": "delivery.design-package",
+      "kind": "delivery",
+      "title": "Design documents and .lolly packages from the terminal and MCP (lolly compose, lolly package, lolly document package, lolly_package)",
+      "status": "not-assessed",
+      "code": ["shells/cli/src/compose.ts", "shells/cli/src/package.ts", "shells/cli/src/document.ts", "services/mcp/src/package.ts"],
+      "note": "Not traced for rights. A package carries the document and the pictures it names; whether the app's reviewed redistribution rules and CREDITS.txt (delivery.lolly-pack) apply here is not checked."
+    },
+    {
+      "id": "delivery.cli-mix",
+      "kind": "delivery",
+      "title": "lolly mix: a design timeline's soundtrack as a WAV",
+      "status": "credential-only",
+      "code": ["shells/cli/src/mix.ts"],
+      "evidence": [
+        { "file": "tests/cli-mix-song.test.ts", "test": "a song mix is signed: the credential records the song, declares how it was made, and is not flagged as AI" },
+        { "file": "tests/cli-mix-song.test.ts", "test": "--c2pa=off writes the song mix with no credential, and says so" }
+      ],
+      "note": "A mix that holds a Rondocode song is signed with one source ingredient per song, read back before the terminal is told. A mix with no song is written with no credential, other clips are not recorded and no licence is evaluated."
+    },
+    {
+      "id": "delivery.cli-speak",
+      "kind": "delivery",
+      "title": "lolly speak: synthesised speech as a WAV, and lolly transcribe",
+      "status": "not-assessed",
+      "code": ["shells/cli/src/speak.ts"],
+      "note": "The WAV is written with no credential and no record of the voice model. lolly transcribe prints a transcript of the person's own file."
+    },
+    {
+      "id": "delivery.cli-derived-images",
+      "kind": "delivery",
+      "title": "lolly upscale, matte and depth: a new PNG made from an image",
+      "status": "not-assessed",
+      "code": ["shells/cli/src/ml-cli.ts"],
+      "note": "The PNG is written with no credential, so a source image's own credential and credit do not travel, unlike the app's derived assets (delivery.derived-assets). The same file prints OCR text, AI-detection scores and rewording suggestions, which are reports."
+    },
+    {
+      "id": "delivery.look-pictures",
+      "kind": "delivery",
+      "title": "Look pictures for an agent: lolly look, lolly_look and the live Design document's look",
+      "status": "not-assessed",
+      "code": ["shells/cli/src/look.ts", "services/mcp/src/look.ts", "services/mcp/src/live.ts"],
+      "note": "A PNG of a design, drawn so an agent can see it, with no credential. It is an inspection picture, but it shows whatever works the design places and nothing stops it being saved and shared."
+    },
+    {
+      "id": "delivery.rebrand-terminal",
+      "kind": "delivery",
+      "title": "Rebrand from the CLI, the TUI and MCP: renovated decks, plans and reports",
+      "status": "not-assessed",
+      "code": ["shells/cli/src/rebrand.ts", "shells/tui/src/rebrand-session.ts", "services/mcp/src/rebrand.ts"],
+      "note": "Not traced for rights. Writes the renovated deck, its plan and its report, with no credits file or receipt (delivery.rebrand is the app's route)."
+    },
+    {
+      "id": "delivery.cli-linux-package",
+      "kind": "delivery",
+      "title": "Linux packages from the terminal: lolly pack and lolly icons (RPM)",
+      "status": "not-assessed",
+      "code": ["shells/cli/src/pack.ts"],
+      "note": "A font or icon package carries the licence string its author passes with --license. Nothing checks that declaration against the fonts or icons inside."
+    },
+    {
+      "id": "delivery.cli-design-system",
+      "kind": "delivery",
+      "title": "lolly system: design system export, token candidates and design context files",
+      "status": "not-assessed",
+      "code": ["shells/cli/src/system.ts"],
+      "note": "system export packs the active terminal design system, with its fonts, logos and tokens, into one file. Not traced for rights: no credits file and no licence check (delivery.brand-pack-export is the app's route). The same command saves token candidates and design context reports."
     },
     {
       "id": "delivery.mcp-render",
       "kind": "delivery",
       "title": "MCP lolly_render, browser-free tier",
-      "status": "covered",
+      "status": "not-assessed",
       "code": ["services/mcp/src/render.ts", "services/mcp/src/tools.ts"],
       "evidence": [
         { "file": "services/mcp/test/emoji-ingredients.test.ts", "test": "the render result says credits are in the file only after reading them back" },
         { "file": "services/mcp/test/emoji-ingredients.test.ts", "test": "a file that records no source never reports its credits as delivered" }
       ],
-      "note": "Covered for formats in C2PA_FORMATS with Content Credentials on (a password-locked PDF is not stamped). creditsInFile is measured by reading the bytes back."
+      "note": "creditsInFile is measured by reading the delivered bytes back, so the answer never says credits are in a file that lacks them; the tests stamp and read a PNG directly rather than through a render. No format on this tier has been shown to carry the emoji credit: the HTML render is the canvas element's markup, which the credential embed refuses, and an SVG-root tool places no emoji."
     },
     {
       "id": "delivery.mcp-render-browser",
@@ -434,12 +586,63 @@
       "note": "The web shell draws the render; the service re-establishes only the emoji census for the rights answer. Every other source the page drew is unrecorded."
     },
     {
+      "id": "delivery.mcp-render-get",
+      "kind": "delivery",
+      "title": "Public GET render for embed URLs (/tool/<id>.<ext>)",
+      "status": "not-assessed",
+      "code": ["services/mcp/src/render-get.ts"],
+      "note": "Content Credentials are always off here, so one URL always yields the same bytes for the cache. No credential, credit or receipt travels with an embedded image, and the response carries no rights answer."
+    },
+    {
+      "id": "delivery.mcp-result-links",
+      "kind": "delivery",
+      "title": "MCP results held behind a private download link",
+      "status": "not-assessed",
+      "code": ["services/mcp/src/result-files.ts", "services/mcp/src/gateway.ts", "services/mcp/src/server.ts"],
+      "note": "A result over 1 MiB is kept byte for byte for five minutes behind a link bound to the caller's bearer token. The bytes carry whatever the tool that made them carried; the link adds and checks nothing."
+    },
+    {
+      "id": "delivery.mcp-brand-resources",
+      "kind": "delivery",
+      "title": "Brand assets and tokens served to an agent as MCP resources",
+      "status": "not-assessed",
+      "code": ["services/mcp/src/resources.ts"],
+      "note": "Logos and other brand files leave as bytes with no credit or licence record attached. Not traced further."
+    },
+    {
+      "id": "delivery.image-proxy",
+      "kind": "delivery",
+      "title": "Public image proxy",
+      "status": "not-assessed",
+      "code": ["services/mcp/src/image-proxy.ts"],
+      "note": "Fetches a public image by URL and relays its bytes as fetched. No source URL, creator or licence is recorded (import.url-assets is the matching import)."
+    },
+    {
       "id": "delivery.tui-export",
       "kind": "delivery",
       "title": "TUI export and batch export",
       "status": "not-assessed",
       "code": ["shells/tui/src/engine-render.ts", "shells/tui/src/batch-export.ts"],
       "note": "Stamps a credential through the shared Node options for stampable formats. No Rights block, credit or readback."
+    },
+    {
+      "id": "delivery.terminal-reports-and-app-data",
+      "kind": "delivery",
+      "title": "Terminal reports, the JSON envelope and app data (CLI and TUI)",
+      "status": "raw-utility",
+      "code": [
+        "shells/cli/src/output.ts",
+        "shells/cli/src/envelope.ts",
+        "shells/cli/src/check.ts",
+        "shells/cli/src/measure-text.ts",
+        "shells/cli/src/preflight.ts",
+        "shells/cli/src/validate.ts",
+        "shells/cli/src/rebuild.ts",
+        "shells/cli/src/models.ts",
+        "shells/cli/src/smoke.ts",
+        "shells/tui/src/folders.ts"
+      ],
+      "note": "The standard output writer and JSON envelope every command uses; check, measure, preflight and validation reports; the reproducibility receipt; model downloads; the catalog render gate's check renders; and the TUI's folder list. None is a creative delivery, and a command that writes a work is registered under its own path."
     },
     {
       "id": "delivery.native-save",
@@ -935,5 +1138,94 @@
     "ODT": { "delivery": ["export:odt", "delivery.text-documents"] },
     "GZ": { "import": ["import.archive", "import.library-upload"], "delivery": ["export:tar.gz", "delivery.on-device-transform"] },
     "TAR": { "import": ["import.archive"], "delivery": ["export:tar.gz", "delivery.engine-library-writers"] }
+  },
+  "importExtensions": {
+    "_note": "Every file extension the library upload accepts (UPLOAD_ACCEPT) or the drop router and asset picker name, mapped to the import paths that read each one. tests/rights-coverage.test.ts reads the extensions from the code, so a new one fails until it is listed here: under byExtension with its import paths, in the text bucket, or in notRead with the reason.",
+    "text": {
+      "_note": "Plain text, prose, markup, data lines and source code. Each is stored as a text asset by the library upload.",
+      "paths": ["import.library-upload"],
+      "extensions": [
+        "txt", "md", "markdown", "text", "log", "html", "htm", "xml", "css", "scss", "less", "js", "jsx", "mjs", "cjs", "ts", "tsx", "vue", "svelte",
+        "astro", "py", "rb", "go", "rs", "java", "c", "h", "hpp", "cc", "cpp", "cs", "swift", "kt", "kts", "php", "pl", "lua", "sql", "r", "scala",
+        "sh", "bash", "zsh", "fish", "yaml", "yml", "toml", "ini", "cfg", "conf", "jsonl", "ndjson"
+      ]
+    },
+    "notRead": {
+      "_note": "Named by the drop router only so that an EPUB or ODT package is never unpacked as an archive or opened as a design. No route reads these files.",
+      "extensions": ["epub", "odt"]
+    },
+    "byExtension": {
+      "png": ["import.library-upload"],
+      "apng": ["import.library-upload"],
+      "jpg": ["import.library-upload"],
+      "jpeg": ["import.library-upload"],
+      "webp": ["import.library-upload"],
+      "gif": ["import.library-upload"],
+      "avif": ["import.library-upload"],
+      "jxl": ["import.library-upload"],
+      "heic": ["import.library-upload"],
+      "heif": ["import.library-upload"],
+      "bmp": ["import.library-upload"],
+      "ico": ["import.library-upload"],
+      "cur": ["import.library-upload"],
+      "tif": ["import.library-upload"],
+      "tiff": ["import.library-upload"],
+      "svgz": ["import.library-upload"],
+      "hdr": ["import.library-upload"],
+      "exr": ["import.library-upload"],
+      "svg": ["import.library-upload", "import.design-files"],
+      "mp4": ["import.library-upload"],
+      "m4v": ["import.library-upload"],
+      "webm": ["import.library-upload"],
+      "mov": ["import.library-upload"],
+      "mkv": ["import.library-upload"],
+      "mp3": ["import.library-upload"],
+      "wav": ["import.library-upload"],
+      "ogg": ["import.library-upload"],
+      "oga": ["import.library-upload"],
+      "opus": ["import.library-upload"],
+      "m4a": ["import.library-upload"],
+      "aac": ["import.library-upload"],
+      "flac": ["import.library-upload"],
+      "mid": ["import.library-upload"],
+      "midi": ["import.library-upload"],
+      "mod": ["import.library-upload"],
+      "xm": ["import.library-upload"],
+      "it": ["import.library-upload"],
+      "s3m": ["import.library-upload"],
+      "stm": ["import.library-upload"],
+      "mtm": ["import.library-upload"],
+      "rondo": ["import.library-upload"],
+      "rondo.json": ["import.library-upload"],
+      "mogrt": ["import.library-upload"],
+      "3mf": ["import.library-upload"],
+      "glb": ["import.library-upload"],
+      "stl": ["import.library-upload"],
+      "ttf": ["import.library-upload"],
+      "otf": ["import.library-upload"],
+      "woff": ["import.library-upload"],
+      "woff2": ["import.library-upload"],
+      "json": ["import.library-upload", "import.design-files", "import.design-system", "import.data"],
+      "lottie": ["import.library-upload", "import.design-files"],
+      "pdf": ["import.library-upload", "import.design-files", "import.pdf-and-office", "import.on-device-utility"],
+      "ai": ["import.design-files", "import.pdf-and-office"],
+      "pptx": ["import.library-upload", "import.design-files", "import.pdf-and-office"],
+      "docx": ["import.pdf-and-office"],
+      "csv": ["import.data", "import.library-upload"],
+      "tsv": ["import.data", "import.library-upload"],
+      "xlsx": ["import.data", "import.library-upload"],
+      "psd": ["import.layered-files", "import.pdf-and-office"],
+      "psb": ["import.layered-files", "import.pdf-and-office"],
+      "xcf": ["import.layered-files"],
+      "fig": ["import.design-files"],
+      "idml": ["import.design-files"],
+      "indd": ["import.design-files"],
+      "penpot": ["import.design-files", "import.design-system"],
+      "zip": ["import.archive", "import.tool-install", "import.design-system", "import.design-files"],
+      "tar": ["import.archive"],
+      "tar.gz": ["import.archive"],
+      "tgz": ["import.archive"],
+      "lolly": ["import.lolly-file", "import.design-system"]
+    }
   }
 }

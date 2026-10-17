@@ -4,11 +4,12 @@
  * Phase 0) stays whole and honest.
  *
  * Whole: every export format, every format the public register lists, every
- * drop route, every web file that hands bytes to a download, share or clipboard,
- * every Send driver and every file that builds a provenance ingredient or
- * evaluates rights must be registered. Each set is read from the code itself,
- * so a new format or delivery path fails here until someone records what it
- * carries.
+ * file extension the app accepts or routes, every drop route, every web file
+ * that hands bytes to a download, share or clipboard, every CLI, TUI and MCP
+ * file that writes or returns bytes, every Send driver and every file that
+ * builds a provenance ingredient or evaluates rights must be registered. Each
+ * set is read from the code itself, so a new format or delivery path fails here
+ * until someone records what it carries.
  *
  * Honest: a status that claims something must point at a test that proves the
  * claim, a format claimed as covered must be one the bridge stamps, and a
@@ -20,7 +21,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { C2PA_FORMATS } from '../engine/src/c2pa-containers.ts';
 
@@ -38,6 +39,11 @@ interface Register {
   paths: PathEntry[];
   exportFormats: Record<string, FormatEntry>;
   formats: Record<string, { import?: string[]; delivery?: string[] }>;
+  importExtensions: {
+    text: { paths: string[]; extensions: string[] };
+    notRead: { extensions: string[] };
+    byExtension: Record<string, string[]>;
+  };
 }
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -208,19 +214,117 @@ test('every drop route is an import path, exactly once', () => {
   assert.deepEqual([...owners].filter(([, ids]) => ids.length > 1), [], 'a drop route belongs to one import path');
 });
 
+/** Web modules whose job is to hand bytes over. Importing a value from one is delivering. */
+const WEB_DELIVERY_HELPERS = [
+  'shells/web/src/bridge/anchor-save.ts',
+  'shells/web/src/bridge/download.ts',
+  'shells/web/src/bridge/export-save-picker.ts',
+  'shells/web/src/lib/background-delivery.ts',
+  'shells/web/src/lib/deliver-file.ts',
+  'shells/web/src/lib/download-recovery.ts',
+  'shells/web/src/lib/share-file.ts',
+];
+
+/** The repo-relative files a source file imports values from, statically or with import(). */
+function valueImports(file: string): string[] {
+  const src = read(file);
+  const specifiers = [
+    ...[...src.matchAll(/^\s*(?:import|export)\s+(?!type\b)[^;'"]*?\bfrom\s+'([^']+)'/gm)].map(match => match[1]!),
+    ...[...src.matchAll(/\bimport\(\s*'([^']+)'\s*\)/g)].map(match => match[1]!),
+  ];
+  return specifiers.filter(spec => spec.startsWith('.')).map(spec => posix.join(posix.dirname(file), spec));
+}
+
+const deliveryCode = (): Set<string> => new Set(register.paths.filter(entry => entry.kind === 'delivery').flatMap(entry => entry.code));
+
 test('every web file that hands bytes to a download, share or clipboard is a registered path', () => {
-  const DELIVERS = /\bexport\.download\(|\bsaveBlob\(|\banchorSave(?:Url)?\(|\bdeliverFile\(|\bshareFile\(|new ClipboardItem\(|navigator\.share\(/;
-  const delivering = sourceFiles('shells/web/src').filter(file => DELIVERS.test(read(file)));
-  assert.ok(delivering.length >= 40, `found only ${delivering.length} delivering files; the scan has broken`);
-  const deliveryCode = new Set(register.paths.filter(entry => entry.kind === 'delivery').flatMap(entry => entry.code));
-  assert.deepEqual(delivering.filter(file => !deliveryCode.has(file)), [], `these files deliver bytes and no delivery path lists them. ${HOW}`);
+  // The HostV1 export verbs, every wrapper around them, the clipboard and the share
+  // sheet. A route built on any of these, or on a module that only delivers, is a path.
+  const DELIVERS = new RegExp([
+    String.raw`\.export\??\.(?:download|file|share)\??\.?\(`,
+    String.raw`\b(?:saveBlob|saveSequential|anchorSave(?:Url)?|deliverFile|deliverBlob|deliverWithRecovery|deliverBatchFile|attachDeliveryResult|offerDownloadRecovery|saveFileWithPicker|consumeSaveAsNext|shareFile|markdownDownload)\(`,
+    String.raw`new ClipboardItem\(|navigator\.share\(`,
+  ].join('|'));
+  for (const helper of WEB_DELIVERY_HELPERS) assert.ok(existsSync(join(ROOT, helper)), `${helper} moved; update WEB_DELIVERY_HELPERS in this test`);
+  const helpers = new Set(WEB_DELIVERY_HELPERS);
+  const delivering = sourceFiles('shells/web/src').filter(file => DELIVERS.test(read(file)) || valueImports(file).some(dep => helpers.has(dep)));
+  assert.ok(delivering.length >= 70, `found only ${delivering.length} delivering files; the scan has broken`);
+  const registered = deliveryCode();
+  assert.deepEqual(delivering.filter(file => !registered.has(file)), [], `these files deliver bytes and no delivery path lists them. ${HOW}`);
+});
+
+test('every CLI, TUI and MCP file that writes or returns bytes is a registered path', () => {
+  // A file written to disk or standard output, a byte block or result link returned
+  // to an agent, or bytes in an HTTP body. App data and reports count too: they are
+  // registered as raw-utility, so a new writer has to say which it is.
+  const WRITES = /\bwriteFile(?:Sync)?\(|\bcreateWriteStream\(|\bwriteOut\(|process\.stdout\.write\(/;
+  const RETURNS = /\.toString\('base64'\)|\bhold(?:Result)?\(|\bbody: [\w.]*(?:bytes|Bytes|buf|blob)\b/;
+  const writing = [
+    ...['shells/cli/src', 'shells/tui/src'].flatMap(sourceFiles).filter(file => WRITES.test(read(file))),
+    ...sourceFiles('services/mcp/src').filter(file => WRITES.test(read(file)) || RETURNS.test(read(file))),
+  ];
+  assert.ok(writing.length >= 45, `found only ${writing.length} writing files; the scan has broken`);
+  const registered = deliveryCode();
+  assert.deepEqual(writing.filter(file => !registered.has(file)), [], `these files write or return bytes and no delivery path lists them. ${HOW}`);
+});
+
+/** Every name in an extension pattern such as /\.(jpe?g|tar\.gz)$/i or /\.rondo(?:\.json)?$/i. */
+function expandExtensions(alternative: string): string[] {
+  const optionalSuffix = /^(.*)\(\?:\\\.([a-z0-9]+)\)\?$/.exec(alternative);
+  if (optionalSuffix) return [...expandExtensions(optionalSuffix[1]!), ...expandExtensions(`${optionalSuffix[1]}\\.${optionalSuffix[2]}`)];
+  const optionalChar = alternative.indexOf('?');
+  if (optionalChar > 0) {
+    return [
+      ...expandExtensions(alternative.slice(0, optionalChar - 1) + alternative.slice(optionalChar + 1)),
+      ...expandExtensions(alternative.slice(0, optionalChar) + alternative.slice(optionalChar + 1)),
+    ];
+  }
+  return [alternative.replace(/\\\./g, '.').toLowerCase()];
+}
+
+/** Every extension the library upload accepts or the drop router and asset picker name. */
+function importExtensionUniverse(): Map<string, string[]> {
+  const out = new Map<string, string[]>();
+  const add = (ext: string, source: string): void => { out.set(ext, [...new Set([...(out.get(ext) ?? []), source])]); };
+  const accept = /export const UPLOAD_ACCEPT =\s*'([^']+)'/.exec(read('shells/web/src/lib/upload-types.ts'))?.[1] ?? '';
+  for (const ext of captures(accept, /(?:^|,)\.([a-z0-9]+)/g, 80, 'UPLOAD_ACCEPT extensions')) add(ext.toLowerCase(), 'UPLOAD_ACCEPT');
+  const files = ['shells/web/src/lib/drop-router.ts', 'shells/web/src/lib/upload-types.ts', 'shells/web/src/views/picker.ts'];
+  for (const file of files) {
+    const patterns = captures(read(file), /\/\\\.(\([^/]*?\)|[a-z0-9]+(?:\(\?:\\\.[a-z0-9]+\)\?)?\??)\$\/[a-z]*/g, 3, `extension patterns in ${file}`);
+    for (const pattern of patterns) {
+      const group = pattern.startsWith('(') && !pattern.startsWith('(?:') && pattern.endsWith(')');
+      for (const alternative of group ? pattern.slice(1, -1).split('|') : [pattern]) {
+        for (const ext of expandExtensions(alternative)) add(ext, file.split('/').pop()!);
+      }
+    }
+  }
+  return out;
+}
+
+test('every file extension the app accepts or routes maps to a registered import path', () => {
+  const map = register.importExtensions;
+  const universe = importExtensionUniverse();
+  assert.ok(universe.size >= 100, `found only ${universe.size} extensions; the scan has broken`);
+  const owners = new Map<string, string[]>();
+  const claim = (ext: string, where: string): void => { owners.set(ext, [...(owners.get(ext) ?? []), where]); };
+  for (const ext of map.text.extensions) claim(ext, 'text');
+  for (const ext of map.notRead.extensions) claim(ext, 'notRead');
+  for (const ext of Object.keys(map.byExtension)) claim(ext, 'byExtension');
+  const unregistered = [...universe].filter(([ext]) => !owners.has(ext)).map(([ext, from]) => `.${ext} (${from.join(', ')})`);
+  assert.deepEqual(unregistered, [], `extensions with no import path. Add each to importExtensions in ${REGISTER_FILE}: byExtension with the import paths that read it, the text bucket, or notRead with the reason in its note.`);
+  assert.deepEqual([...owners.keys()].filter(ext => !universe.has(ext)).sort(), [], 'these importExtensions entries name an extension nothing accepts or routes any more');
+  assert.deepEqual([...owners].filter(([, where]) => where.length > 1), [], 'an extension is listed once');
+  for (const ref of [...map.text.paths, ...Object.values(map.byExtension).flat()]) {
+    assert.equal(pathById.get(ref)?.kind, 'import', `importExtensions: ${ref} is not a registered import path`);
+  }
+  for (const [ext, refs] of Object.entries(map.byExtension)) assert.ok(refs.length > 0, `.${ext} lists at least one import path`);
 });
 
 test('every built-in Send driver is registered as a delivery path', () => {
   const body = functionBody('shells/web/src/lib/send-targets-builtin.ts', 'export async function registerBuiltinSendTargets(');
   const drivers = captures(body, /import\('\.\/([^']+)'\)/g, 5, 'Send drivers').map(name => `shells/web/src/lib/${name}`);
-  const deliveryCode = new Set(register.paths.filter(entry => entry.kind === 'delivery').flatMap(entry => entry.code));
-  assert.deepEqual(drivers.filter(file => !deliveryCode.has(file)), [], `these Send drivers have no delivery path. ${HOW}`);
+  const registered = deliveryCode();
+  assert.deepEqual(drivers.filter(file => !registered.has(file)), [], `these Send drivers have no delivery path. ${HOW}`);
 });
 
 test('every file that builds a provenance ingredient or evaluates rights is registered', () => {
