@@ -173,8 +173,9 @@ test('legacy SVG layout declarations become static-copy findings and nothing is 
   assert.ok(long.message.includes(`“${'x'.repeat(80)}”`));
 });
 
-// Penpot's SVG export metadata: a penpot:shape record first in each shape group, its
-// layout on a nested penpot:layout element (frontend/src/app/main/ui/shapes/export.cljs).
+// The page metadata of Penpot's legacy zip export: a penpot:shape record first in each
+// shape group, its layout on a nested penpot:layout element
+// (frontend/src/app/main/ui/shapes/export.cljs). A board exported as SVG has none.
 const legacyPenpotSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:penpot="https://penpot.app/xmlns" width="600" height="300" viewBox="0 0 600 300">
   <g id="shape-11111111-1111-4111-8111-111111111111">
     <penpot:shape penpot:name="Toolbar" penpot:type="frame">
@@ -199,6 +200,16 @@ const legacyPenpotSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="ht
     <rect x="320" y="0" width="260" height="200" fill="#dddddd"/>
     <rect x="330" y="10" width="100" height="100" fill="#993366"/>
   </g>
+</svg>`;
+// The zip's components.svg: every component master under <defs><symbol>, with full
+// metadata, never drawn and never a page.
+const legacyComponentsSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:penpot="https://penpot.app/xmlns" version="1.1" style="display:none" fill="none">
+  <defs><symbol id="44444444-4444-4444-8444-444444444444" viewBox="0 0 120 40" penpot:path="Buttons"><title>Button</title>
+    <g id="shape-55555555-5555-4555-8555-555555555555">
+      <penpot:shape penpot:name="Button master" penpot:type="frame"><penpot:layout penpot:layout="flex" penpot:layout-flex-dir="row"/></penpot:shape>
+      <rect width="120" height="40" fill="#336699"/>
+    </g>
+  </symbol></defs>
 </svg>`;
 const plainSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200">
   <g id="layout-grid"><rect x="0" y="0" width="100" height="100" fill="#111111"/><rect x="110" y="0" width="100" height="100" fill="#222222"/>
@@ -256,7 +267,10 @@ test('browser Penpot parser and artboard import keep dynamic owners and track id
 test('browser legacy Penpot SVG imports keep positioned artwork and report each declared layout', {
   skip: browserOrigin ? false : 'Set LOLLY_IMPORT_TEST_URL or LOLLY_EXPORT_TEST_URL to a local Vite shell.', timeout: 90_000,
 }, async () => {
-  const zipped = zipSync({ 'Page 1.svg': strToU8(legacyPenpotSvg), 'Page 2.svg': strToU8(plainSvg) });
+  const zipped = zipSync({
+    'Page 1.svg': strToU8(legacyPenpotSvg), 'Page 2.svg': strToU8(plainSvg),
+    'aaaaaaaa-0000-4000-8000-00000000000f/components.svg': strToU8(legacyComponentsSvg),
+  });
   const { chromium } = await import('playwright');
   const channel = process.env.LOLLY_BROWSER_CHANNEL;
   const browser = await chromium.launch({ headless: true, ...(channel ? { channel } : {}) });
@@ -278,13 +292,14 @@ test('browser legacy Penpot SVG imports keep positioned artwork and report each 
     const noLayout = (boxes: Row[]) => {
       for (const box of boxes) assert.deepEqual(Object.keys(box).filter(key => key.startsWith('layout')), [], `box ${box.id} gained layout fields`);
     };
-    // Four drawn rectangles on page 1 and four on page 2; the metadata records are never drawn.
+    // Four drawn rectangles on page 1 and four on page 2; the metadata records are never
+    // drawn, and components.svg adds no boxes, no frame and no finding.
     assert.equal(result.single.boxes.length, 8); noLayout(result.single.boxes);
     assert.equal(result.single.layoutTracks, undefined);
     assert.deepEqual(result.single.layoutFindings.map((finding: Row) => finding.id),
       ['11111111-1111-4111-8111-111111111111', '33333333-3333-4333-8333-333333333333']);
     for (const finding of result.single.layoutFindings) assert.ok(result.warnings.zip.includes(finding.message));
-    for (const list of Object.values(result.warnings)) assert.equal(list.some(message => /penpot:/i.test(message)), false, list.join('\n'));
+    for (const list of Object.values(result.warnings)) assert.equal(list.some(message => /penpot:|Button master/i.test(message)), false, list.join('\n'));
     assert.equal(result.artboards.frames.length, 2);
     assert.equal(result.artboards.frames[0].layoutFindings.length, 2);
     assert.equal(result.artboards.frames[1].layoutFindings, undefined);

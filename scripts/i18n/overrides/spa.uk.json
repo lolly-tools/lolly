@@ -1389,5 +1389,7 @@
   "Zoom and pan the view": "Масштабувати й переміщувати вигляд",
   "Anchor": "Точка прив'язки",
   "Enter a scale from 1% to 10000%.": "Введіть масштаб від 1% до 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Курсор - вибір і переміщення (V). Утримуйте для масштабу (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Курсор - вибір і переміщення (V). Утримуйте для масштабу (K)",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Імпортовано 1 макет Penpot з фіксованими позиціями. Імпортуйте експорт .penpot, щоб він залишився редагованим.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Імпортовано {n} макетів Penpot з фіксованими позиціями. Імпортуйте експорт .penpot, щоб вони залишилися редагованими."
 }

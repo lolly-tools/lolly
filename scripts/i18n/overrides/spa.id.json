@@ -1260,5 +1260,7 @@
   "Zoom and pan the view": "Zoom dan geser tampilan",
   "Anchor": "Titik jangkar",
   "Enter a scale from 1% to 10000%.": "Masukkan skala dari 1% sampai 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Penunjuk - pilih dan pindahkan (V). Tahan untuk Skala (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Penunjuk - pilih dan pindahkan (V). Tahan untuk Skala (K)",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 tata letak Penpot diimpor dengan posisi tetap. Impor ekspor .penpot agar tata letak itu tetap bisa diedit.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} tata letak Penpot diimpor dengan posisi tetap. Impor ekspor .penpot agar semuanya tetap bisa diedit."
 }

@@ -7966,5 +7966,7 @@
   "While rotating: turn in 15 degree steps": "أثناء التدوير: تدوير بخطوات 15 درجة",
   "Zoom and pan the view": "تكبير العرض وتحريكه",
   "Enter a scale from 1% to 10000%.": "أدخل نسبة تحجيم من 1% إلى 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "المؤشر - تحديد وتحريك (V). اضغط مطولًا للتحجيم (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "المؤشر - تحديد وتحريك (V). اضغط مطولًا للتحجيم (K)",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "تم استيراد تخطيط Penpot واحد بمواضع ثابتة. استورد ملف تصدير .penpot لإبقائه قابلاً للتحرير.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "تم استيراد {n} من تخطيطات Penpot بمواضع ثابتة. استورد ملف تصدير .penpot لإبقائها قابلة للتحرير."
 }

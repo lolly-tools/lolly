@@ -15,7 +15,7 @@ export function penpotHasLayout(shapes: Record<string, Row>): boolean {
   return Object.values(shapes).some(shape => shape.layout === 'flex' || shape.layout === 'grid');
 }
 
-/** One `penpot:layout` declaration read from a legacy Penpot SVG page. */
+/** One `penpot:layout` declaration read from a page SVG of a legacy Penpot zip export. */
 export interface PenpotSvgLayout { id?: string; name?: string; layout?: string }
 
 /**

@@ -7966,5 +7966,7 @@
   "While rotating: turn in 15 degree steps": "Khi xoay: xoay từng bước 15 độ",
   "Zoom and pan the view": "Thu phóng và lia khung nhìn",
   "Enter a scale from 1% to 10000%.": "Nhập tỷ lệ từ 1% đến 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Con trỏ - chọn và di chuyển (V). Giữ để chọn Tỷ lệ (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Con trỏ - chọn và di chuyển (V). Giữ để chọn Tỷ lệ (K)",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Đã nhập 1 bố cục Penpot với vị trí cố định. Hãy nhập bản xuất .penpot để giữ bố cục có thể chỉnh sửa.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Đã nhập {n} bố cục Penpot với vị trí cố định. Hãy nhập bản xuất .penpot để giữ các bố cục có thể chỉnh sửa."
 }

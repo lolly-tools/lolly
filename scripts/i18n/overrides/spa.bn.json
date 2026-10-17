@@ -1261,5 +1261,7 @@
   "Zoom and pan the view": "ভিউ জুম ও প্যান করুন",
   "Anchor": "অ্যাঙ্কর বিন্দু",
   "Enter a scale from 1% to 10000%.": "1% থেকে 10000%-এর মধ্যে একটি স্কেল লিখুন।",
-  "Pointer - select and move (V). Hold for Scale (K)": "পয়েন্টার - নির্বাচন ও সরানো (V)। স্কেল (K)-এর জন্য চেপে ধরুন"
+  "Pointer - select and move (V). Hold for Scale (K)": "পয়েন্টার - নির্বাচন ও সরানো (V)। স্কেল (K)-এর জন্য চেপে ধরুন",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Penpot-এর 1টি লেআউট নির্দিষ্ট অবস্থানে ইমপোর্ট হয়েছে। এটি এডিটযোগ্য রাখতে .penpot এক্সপোর্টটি ইমপোর্ট করুন।",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Penpot-এর {n}টি লেআউট নির্দিষ্ট অবস্থানে ইমপোর্ট হয়েছে। এগুলো এডিটযোগ্য রাখতে .penpot এক্সপোর্টটি ইমপোর্ট করুন।"
 }

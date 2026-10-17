@@ -1260,5 +1260,7 @@
   "Zoom and pan the view": "Zoomer et déplacer la vue",
   "Anchor": "Ancrage",
   "Enter a scale from 1% to 10000%.": "Saisis une échelle comprise entre 1 % et 10000 %.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Pointeur - sélectionner et déplacer (V). Maintiens pour Échelle (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Pointeur - sélectionner et déplacer (V). Maintiens pour Échelle (K)",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 mise en page Penpot a été importée avec des positions fixes. Importe l'export .penpot pour qu'elle reste modifiable.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} mises en page Penpot ont été importées avec des positions fixes. Importe l'export .penpot pour qu'elles restent modifiables."
 }

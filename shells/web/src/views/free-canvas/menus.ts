@@ -188,6 +188,7 @@ export async function importAsArtboards(fc: FcCtx,
   if (!frameCfg) throw new Error(t('This tool has no artboards.'));
   let frames: ArtboardFrameInput[];
   let background: string | undefined;
+  let layoutNote = '';
   if (opts.frames) {
     // Pages a caller already holds as authored rows (the renovation handoff). No file
     // is read and no picker opens: everything below is the same layout the file path runs.
@@ -195,7 +196,7 @@ export async function importAsArtboards(fc: FcCtx,
     background = opts.background;
   } else {
     if (!f) throw new Error(t('Nothing importable was found in that file.'));
-    const { parseDesignArtboards } = await import('../design-import.ts');
+    const { parseDesignArtboards, layoutFindingsNote } = await import('../design-import.ts');
     const pages = fc.pendingImport?.rules ? await (await import('../design-rules-pages.ts')).chooseRulesPages(f) : undefined;
     const res = await parseDesignArtboards(f, {
       host: host as any,
@@ -206,6 +207,7 @@ export async function importAsArtboards(fc: FcCtx,
     });
     frames = res.frames;
     background = res.background;
+    layoutNote = layoutFindingsNote(res.frames.flatMap((frame) => frame.layoutFindings ?? []));
   }
   // A caller that handed over its own pages did not choose a file, so it is not told
   // about one.
@@ -291,6 +293,7 @@ export async function importAsArtboards(fc: FcCtx,
         ? t('1 page had no size, so it was left out.')
         : t('{n} pages had no size, so they were left out.', { n: missing })
     );
+  if (layoutNote) opts.onLayoutNote?.(layoutNote);
   return laid.length;
 }
 /**
@@ -346,6 +349,11 @@ export interface ArtboardImportOpts {
   keepIds?: boolean;
   /** Told about anything that could not be honoured. */
   onWarning?: (message: string) => void;
+  /**
+   * Told, once the pages are laid, the sentence to show after the result when the
+   * file's Penpot layouts came in as fixed positions. Not called when none did.
+   */
+  onLayoutNote?: (note: string) => void;
   /**
    * Told once, when `keepIds` was asked for, whether the rows kept their own ids. A
    * caller whose records name those ids needs that as a fact, not as a message it has
@@ -561,13 +569,14 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
         status.textContent = n === 1 ? t('Added 1 scene.') : t('Added {n} scenes.', { n });
       } else if (importMode === 'artboards') {
         // "As artboards": one frame per page, the parts editable (importAsArtboards above).
+        let layoutNote = '';
         const n = await importAsArtboards(fc, f, (m: string) => {
           status.textContent = m;
-        });
+        }, { onLayoutNote: (note: string) => { layoutNote = ` ${note}`; } });
         status.classList.add('is-ok');
-        status.textContent = n === 1 ? t('Added 1 artboard.') : t('Added {n} artboards.', { n });
+        status.textContent = (n === 1 ? t('Added 1 artboard.') : t('Added {n} artboards.', { n })) + layoutNote;
       } else {
-        const { parseDesignFile, countPenpotComponents, parseDesignTemplates } = await import(
+        const { parseDesignFile, countPenpotComponents, parseDesignTemplates, layoutFindingsNote } = await import(
           '../design-import.ts'
         );
         // A design system's component masters can also be saved as reusable
@@ -611,10 +620,13 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
         if (setCanvasSize && res.width > 0 && res.height > 0)
           setCanvasSize(res.width, res.height, 'px');
         status.classList.add('is-ok');
+        // Penpot layouts that came in as fixed positions are counted after the result,
+        // which the template pass below keeps as the start of each message.
+        const layoutNote = layoutFindingsNote(res.layoutFindings);
         const imported =
-          boxes.length === 1
+          (boxes.length === 1
             ? t('Imported 1 object.')
-            : t('Imported {n} objects.', { n: boxes.length });
+            : t('Imported {n} objects.', { n: boxes.length })) + (layoutNote ? ` ${layoutNote}` : '');
         status.textContent = imported;
         const { showImportedFontNotice } = await import('../design-import-text.ts');
         await showImportedFontNotice(res.fontSubstitutions, fc.canvasEl);

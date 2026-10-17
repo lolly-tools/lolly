@@ -1391,5 +1391,7 @@
   "Zoom and pan the view": "Мащабирай и премествай изгледа",
   "Anchor": "Опорна точка",
   "Enter a scale from 1% to 10000%.": "Въведи мащаб от 1% до 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Показалец - избери и премести (V). Задръж за Мащаб (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Показалец - избери и премести (V). Задръж за Мащаб (K)",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 оформление от Penpot е импортирано с фиксирани позиции. Импортирай .penpot експорта, за да остане редактируемо.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} оформления от Penpot са импортирани с фиксирани позиции. Импортирай .penpot експорта, за да останат редактируеми."
 }

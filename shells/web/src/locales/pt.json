@@ -7966,5 +7966,7 @@
   "While rotating: turn in 15 degree steps": "Ao girar: girar em passos de 15 graus",
   "Zoom and pan the view": "Ampliar e deslocar a vista",
   "Enter a scale from 1% to 10000%.": "Insira uma escala de 1% a 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Ponteiro - selecionar e mover (V). Segure para Escala (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Ponteiro - selecionar e mover (V). Segure para Escala (K)",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 layout do Penpot foi importado com posições fixas. Importe a exportação .penpot para mantê-lo editável.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} layouts do Penpot foram importados com posições fixas. Importe a exportação .penpot para mantê-los editáveis."
 }

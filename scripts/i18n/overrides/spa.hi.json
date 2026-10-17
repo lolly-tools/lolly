@@ -1261,5 +1261,7 @@
   "Zoom and pan the view": "दृश्य को ज़ूम और पैन करें",
   "Anchor": "एंकर बिंदु",
   "Enter a scale from 1% to 10000%.": "1% से 10000% के बीच स्केल दर्ज करें।",
-  "Pointer - select and move (V). Hold for Scale (K)": "पॉइंटर - चुनें और खिसकाएँ (V)। स्केल (K) के लिए दबाए रखें"
+  "Pointer - select and move (V). Hold for Scale (K)": "पॉइंटर - चुनें और खिसकाएँ (V)। स्केल (K) के लिए दबाए रखें",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Penpot का 1 लेआउट तय पोज़िशन के साथ इंपोर्ट हुआ। इसे एडिट करने योग्य रखने के लिए .penpot एक्सपोर्ट इंपोर्ट करें।",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Penpot के {n} लेआउट तय पोज़िशन के साथ इंपोर्ट हुए। इन्हें एडिट करने योग्य रखने के लिए .penpot एक्सपोर्ट इंपोर्ट करें।"
 }

@@ -7966,5 +7966,7 @@
   "While rotating: turn in 15 degree steps": "회전 중: 15도 단위로 회전",
   "Zoom and pan the view": "보기 확대/축소 및 이동",
   "Enter a scale from 1% to 10000%.": "1%에서 10000% 사이로 배율을 입력해 주세요.",
-  "Pointer - select and move (V). Hold for Scale (K)": "포인터 - 선택하고 이동 (V). 길게 누르면 배율 (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "포인터 - 선택하고 이동 (V). 길게 누르면 배율 (K)",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Penpot 레이아웃 1개를 고정된 위치로 가져왔어요. 편집 가능한 상태로 유지하려면 .penpot 내보내기 파일을 가져오세요.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Penpot 레이아웃 {n}개를 고정된 위치로 가져왔어요. 편집 가능한 상태로 유지하려면 .penpot 내보내기 파일을 가져오세요."
 }
