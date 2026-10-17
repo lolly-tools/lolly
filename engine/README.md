@@ -182,7 +182,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `color-tools.ts` | 727 | Colour tools: perceptual metrics and ramp math on top of brand-derive's OKLab core. | yes | `tests/color-tools.test.ts` | – |
 | `color-vision.ts` | 211 | Colour-vision-deficiency (CVD) simulation - Machado, Oliveira & Fernandes (2009). | yes | `tests/color-vision.test.ts` | – |
 | `color.ts` | 387 | Colour profiles for exports: platform-agnostic, no DOM, no network. | yes | `tests/color.test.ts` | – |
-| `colourway.ts` | 446 | Colourways: several lead colours in one design system (plans/319). | yes | `tests/colourway.test.ts` | – |
+| `colourway.ts` | 543 | Colourways: several lead colours in one design system (plans/319). | yes | `tests/colourway.test.ts` | – |
 | `compare-alignment.ts` | 36 | Unique-key matching keeps the longest common order instead of moving every later item. | no | none | – |
 | `compare-budget.ts` | 70 | Work and output limits shared by comparison algorithms. | no | `tests/compare-budget.test.ts` | – |
 | `compare-document.ts` | 79 | Extracted units retain their original locations and disclose ambiguous matching. | no | none | – |
@@ -397,7 +397,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `pdf-text.ts` | 1260 | PDF text reconstruction: positioned glyph runs to reading-ordered prose. | yes | `tests/pdf-text.test.ts` | – |
 | `pdfx.ts` | 288 | PDF/X-4 metadata authority: pure strings + small descriptor objects, no PDF byte-wrangling. | yes | `tests/pdfx.test.ts` | – |
 | `penpot-bindings.ts` | 216 | Applied-token bindings for the `.penpot` writer (plans/222). | yes | indirect | – |
-| `penpot-file.ts` | 2327 | `.penpot` writer - a Lolly document (plus the brand's tokens) → the binfile-v3 archive Penpot itself exports and imports (plans/178). | yes | `tests/penpot-file.test.ts` | – |
+| `penpot-file.ts` | 2330 | `.penpot` writer - a Lolly document (plus the brand's tokens) → the binfile-v3 archive Penpot itself exports and imports (plans/178). | yes | `tests/penpot-file.test.ts` | – |
 | `penpot-layout.ts` | 188 | Current binfile-v3 layout properties. | yes | `tests/penpot-layout.test.ts` | yes |
 | `photo-look.ts` | 452 | Brand photo looks baked into raster pixels (plan 291 W7). | yes | `tests/photo-look.test.ts` | – |
 | `photo-treatment.ts` | 277 |  | yes | indirect | – |
@@ -557,7 +557,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `text-wrap.ts` | 73 | Explicit same-artboard obstacles produce bounded line-band exclusions. | no | `tests/text-wrap.test.ts` | – |
 | `tiff.ts` | 224 | Baseline TIFF encoder (uncompressed, single strip, little-endian). | yes | `tests/tiff.test.ts` | – |
 | `timebase.ts` | 31 | Project time stays in seconds; frame arithmetic always goes through this module. | no | `tests/timebase.test.ts` | – |
-| `token-axes.ts` | 191 | Theme groups and what they mean (plans/319). | yes | indirect | – |
+| `token-axes.ts` | 192 | Theme groups and what they mean (plans/319). | yes | indirect | – |
 | `token-binding.ts` | 68 | Typed consumer adapters for token-linked scalar inputs. | yes | none | – |
 | `token-block-bindings.test.ts` | 118 | Property links keep scalar rendering, portable overrides and explicit cached fallbacks. | no | none | – |
 | `token-block-bindings.ts` | 496 | Portable links on scalar block properties, with explicit local overrides. | yes | indirect | – |
@@ -573,7 +573,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `token-inspect.ts` | 136 | Retained token provenance, reference diagnostics and semantic change impact. | yes | none | – |
 | `token-merge.ts` | 61 | Bounded three-way token source merges with explicit conflict decisions. | yes | none | – |
 | `token-recipes.ts` | 89 | Bounded colour, spacing and modular type recipes. | yes | none | – |
-| `token-selection.ts` | 113 | Theme group selection, deterministic set precedence and bounded transport parsing. | yes | indirect | – |
+| `token-selection.ts` | 119 | Theme group selection, deterministic set precedence and bounded transport parsing. | yes | indirect | – |
 | `token-transition-bindings.test.ts` | 298 | Enter transitions keep a usable duration and curve across source and local edits. | no | none | – |
 | `token-workflows.test.ts` | 238 | Token workflow contracts across resolution, binding, recipes and pinned fonts. | no | none | – |
 | `tokens.ts` | 464 | Design tokens: a platform-agnostic DTCG model. | yes | `tests/tokens.test.ts` | – |
