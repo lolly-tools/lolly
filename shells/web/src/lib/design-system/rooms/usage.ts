@@ -65,7 +65,8 @@ export function mountUsageRoom(el: HTMLElement, opts: { host: UsageHost; readonl
     for (const card of container.querySelectorAll<HTMLElement>('article')) if (expanded.has(card.dataset.example)) card.querySelector('details')?.setAttribute('open', '');
   };
   const paint = (): void => {
-    const themes = createTokenSet(doc).themes();
+    // A mode is a look (light, dark); colourways (plans/319) are another axis and get their own control.
+    const themes = createTokenSet(doc).themes().filter(theme => theme.kind !== 'colourway');
     const groupFor = (id: string): string => system.guide?.groups.find(group => group.ruleIds.includes(id))?.label ?? '';
     el.innerHTML = `<header class="usage-head"><div><p class="start-eyebrow">${e(activeLabel || system.label)}</p><h2>${t('Usage & rules')}</h2><p>${t('Put your brand’s choices to work. See what people can change, what stays fixed and what Lolly can check.')}</p></div>${!opts.readonly ? `<button class="btn btn--primary" type="button" data-add>${icon('plus', { size: 16 })} ${t('Add rule')}</button>` : `<span class="usage-badge">${t('Read-only')}</span>`}</header>
       <section class="usage-rules" aria-label="${e(t('Brand rules'))}">${system.rules.length ? system.rules.map(rule => {

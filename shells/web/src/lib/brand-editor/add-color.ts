@@ -100,11 +100,13 @@ export const addColorEntries = (bedit: BrandEditorCtx, entries: ColorEntry[], re
     if (path) added.push({ path, name, hex: e.hex });
   }
   if (!added.length) return 0;
-  // Deliberately UNSCOPED (no theme), for the reason the chip's own "Use as
+  // Deliberately UNSCOPED (no context), for the reason the chip's own "Use as
   // primary?" is: a colour someone names as their primary is the primary in
-  // both themes, unlike surface and text, which each theme inverts.
+  // both themes, unlike surface and text, which each theme inverts. With
+  // colourways, unscoped means the canonical lead in both modes: the other
+  // leads keep their own primaries.
   const first = added[0]!;
-  const firstKey = walkSwatches(bedit.doc, bedit.currentTheme)
+  const firstKey = walkSwatches(bedit.doc, bedit.state.editContext())
     .find(s => s.path.length === first.path.length && s.path.every((seg, i) => seg === first.path[i]))?.key;
   const tookPrimary = !!(wasEmpty && added.length === 1 && firstKey && assignRole(bedit.doc, 'primary', firstKey));
   bedit.ramps.repaintPalette(); bedit.state.persist(true); playSfx('click');
@@ -135,11 +137,11 @@ export function syncAddPlaceholder(bedit: BrandEditorCtx): void {
     ? `${t('Paste a colour')} · ${COLOR_NOTATION_EXAMPLES}`
     : t('Paste a colour, or a list');
 }
-/** The theme the strip is reading, and therefore the ONE it may write. A
- *  derived doc's light and dark roles are deliberately inverted (surface is
- *  the lightest neutral in one and the darkest in the other), so an unscoped
- *  write from here would overwrite dark mode with the light theme's choices. */
-export const roleTheme = (bedit: BrandEditorCtx): string => (bedit.currentTheme === 'dark' ? 'dark' : 'light');
+// Role reads and writes from the strip take `bedit.state.editContext()`: the
+// mode the strip is reading, and therefore the ONE it may write, plus the lead.
+// A derived doc's light and dark roles are deliberately inverted (surface is the
+// lightest neutral in one and the darkest in the other), so an unscoped write
+// from the strip would overwrite dark mode with the light theme's choices.
 export function wireAddedChip(bedit: BrandEditorCtx): void {
   const { addedEl } = bedit;
   addedEl?.addEventListener('click', (e) => {
@@ -152,9 +154,10 @@ export function wireAddedChip(bedit: BrandEditorCtx): void {
       return;
     }
     if (!target.closest('[data-be-added-primary]') || !bedit.addedSwatch) return;
-    // Deliberately UNSCOPED (no theme), for the reason takePrimaryFromLogo
+    // Deliberately UNSCOPED (no context), for the reason takePrimaryFromLogo
     // states: a colour someone names as their primary is the brand's primary in
-    // both themes, unlike surface and text, which each theme inverts.
+    // both themes, unlike surface and text, which each theme inverts. With
+    // colourways, that is the canonical lead in both modes.
     const path = bedit.addedSwatch.path;
     const name = bedit.addedSwatch.name;
     const key = bedit.swatches.find(s => s.path.length === path.length && s.path.every((seg, i) => seg === path[i]))?.key;
@@ -199,7 +202,6 @@ export function addColorOps(bedit: BrandEditorCtx) {
     addColorEntries: bindOp(bedit, addColorEntries),
     addField: bindOp(bedit, addField),
     syncAddPlaceholder: bindOp(bedit, syncAddPlaceholder),
-    roleTheme: bindOp(bedit, roleTheme),
     wireAddedChip: bindOp(bedit, wireAddedChip),
     wireAddColorMount: bindOp(bedit, wireAddColorMount),
   };

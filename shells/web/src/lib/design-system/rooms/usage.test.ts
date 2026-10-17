@@ -65,3 +65,22 @@ test('a house rule reads as checked in Design, an unknown kind as unchecked', as
   assert.match(future.textContent ?? '', /Unchecked/);
   assert.match(future.textContent ?? '', /no checker/);
 });
+
+test('the Brand mode list offers the looks only, because a colourway is another axis (plans/319)', async () => {
+  const { deriveBrandTokens } = await import('@lolly/engine');
+  const { addLead } = await import('../leads.ts');
+  const added = addLead(deriveBrandTokens({ primary: '#0c322c', name: 'Test' }), { colour: '#e05a2b', name: 'Persimmon', canonical: { name: 'Pine' } });
+  assert.ok(added.ok, added.ok ? '' : added.reasons.join(' '));
+  const own = (added.doc.$extensions ?? {}) as Record<string, Record<string, unknown>>;
+  const doc = { ...added.doc, $extensions: { ...own, 'com.suse.lolly': { ...(own['com.suse.lolly'] ?? {}), ...DOC.$extensions['com.suse.lolly'] } } };
+  const leadHost = {
+    tokens: { raw: async () => doc, snapshot: async () => ({ document: doc }), active: async () => ({ label: 'Test brand' }) },
+  } as unknown as UsageHost;
+  const el = document.createElement('div');
+  document.body.append(el);
+  mountUsageRoom(el, { host: leadHost, readonly: true });
+  for (let i = 0; i < 40 && !el.querySelector('[data-mode]'); i++) await new Promise((r) => setTimeout(r, 5));
+  const options = [...el.querySelectorAll<HTMLOptionElement>('[data-mode] option')].map(o => o.value);
+  assert.deepEqual(options, ['', 'light', 'dark'], 'Pine and Persimmon are not modes');
+  el.remove();
+});

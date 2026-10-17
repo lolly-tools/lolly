@@ -31,7 +31,12 @@ export function addPaletteGroup(doc: unknown, raw: string): string | null {
   return writeGroups(doc, [...groups, name]) ? name : null;
 }
 
-/** Rename/ungroup leaves in both themes, retaining their token keys and aliases. */
+/**
+ * Rename/ungroup leaves in both themes, retaining their token keys and aliases.
+ * The walk sees the canonical lead: a colourway's own colours are never tiles
+ * (brand-doc.ts skips their sets), so no lead holds a grouped swatch the other
+ * leads do not.
+ */
 export function changePaletteGroup(doc: unknown, from: string, to: string | null): boolean {
   const name = to == null ? null : groupName(to);
   if (name === '' || !paletteGroups(doc).includes(from)) return false;
@@ -44,7 +49,8 @@ export function changePaletteGroup(doc: unknown, from: string, to: string | null
   return writeGroups(doc, paletteGroups(doc).filter(g => g !== from || g === target));
 }
 
-/** Carry display organisation through a shade rebuild, including empty groups. */
+/** Carry display organisation through a shade rebuild, including empty groups.
+ *  Both themes, each walked for the canonical lead (see `changePaletteGroup`). */
 export function carryPaletteGroups(from: unknown, to: unknown): void {
   const order = paletteOrder(from);
   if (order.length) writePaletteOrder(to, order);

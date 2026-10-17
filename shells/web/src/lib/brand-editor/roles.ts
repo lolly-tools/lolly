@@ -7,7 +7,7 @@
  * a value (an event listener), goes through `bedit.<module>.<fn>`. Extracted verbatim
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
-import { createTokenSet } from '@lolly/engine';
+import { leadTokenSet } from '../design-system/leads.ts';
 import { tRaw } from '../../i18n.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
@@ -34,7 +34,7 @@ export const renderUseAs = (bedit: BrandEditorCtx): void => {
   const cur = bedit.selected >= 0 ? bedit.swatches[bedit.selected] : null;
   useasRow.hidden = !cur || cur.kind === 'semantic';
   if (useasRow.hidden || !cur) return;
-  const held = readRoles(bedit.doc, bedit.addColor.roleTheme());
+  const held = readRoles(bedit.doc, bedit.state.editContext());
   useasRow.querySelectorAll<HTMLElement>('[data-be-useas]').forEach(b => {
     const role = b.dataset.beUseas as RoleId | undefined;
     b.setAttribute('aria-pressed', String(!!role && held[role]?.ref === cur.key));
@@ -51,13 +51,13 @@ export function wireRolesStrip(bedit: BrandEditorCtx): void {
   const { editorEl, paletteHooks, rolesMount, undoStack } = bedit;
   const rolesStrip = rolesMount ? mountRolesStrip(rolesMount, {
     doc: () => bedit.doc as Record<string, unknown>,
-    theme: bedit.addColor.roleTheme,
+    context: bedit.state.editContext,
     // Four slots until there is a palette, then every slot a tool can read
     // (plan 182 section 5.7 step 1). Seven rows in front of somebody who has
     // just added their first colour is a form; four is a strip.
     ids: () => (bedit.beat >= 2 ? ROLE_IDS_ALL : ROLE_IDS),
     resolve: (key) => {
-      try { return createTokenSet(bedit.doc, { theme: bedit.addColor.roleTheme() }).resolve(key); }
+      try { return leadTokenSet(bedit.doc, bedit.state.editContext()).resolve(key); }
       catch { return null; }
     },
     swatches: bedit.roles.roleSwatchOptions,
@@ -65,7 +65,7 @@ export function wireRolesStrip(bedit: BrandEditorCtx): void {
     // the role can't land in) re-renders the strip so the picker snaps back to
     // the truth, rather than persisting nothing and announcing success.
     assign: (role, key) => {
-      if (!assignRole(bedit.doc, role, key, bedit.addColor.roleTheme())) { rolesStrip?.render(); return; }
+      if (!assignRole(bedit.doc, role, key, bedit.state.editContext())) { rolesStrip?.render(); return; }
       bedit.ramps.repaintPalette(); bedit.state.persist(true);
       announce(tRaw('{role} is now {name}', { role: roleLabel(role), name: bedit.roles.nameOfKey(key) }));
     },
@@ -74,7 +74,7 @@ export function wireRolesStrip(bedit: BrandEditorCtx): void {
       // reads, and nothing on screen holds the swatch it pointed at. Snapshot
       // first, and drop it again if there turned out to be nothing to remove.
       bedit.state.pushUndo(tRaw('Clear {role}', { role: roleLabel(role) }));
-      if (!clearRole(bedit.doc, role, bedit.addColor.roleTheme())) { undoStack.pop(); rolesStrip?.render(); return; }
+      if (!clearRole(bedit.doc, role, bedit.state.editContext())) { undoStack.pop(); rolesStrip?.render(); return; }
       bedit.ramps.repaintPalette(); bedit.state.persist(true);
       announce(tRaw('{role} is not set', { role: roleLabel(role) }));
     },
@@ -100,7 +100,7 @@ export async function wireUseAs(bedit: BrandEditorCtx): Promise<void> {
     // takes the same snapshot; assigning is not destructive and does not. The
     // snapshot is dropped again if the write turned out to change nothing.
     if (wasSet) bedit.state.pushUndo(tRaw('Clear {role}', { role: roleLabel(role) }));
-    const wrote = wasSet ? clearRole(bedit.doc, role, bedit.addColor.roleTheme()) : assignRole(bedit.doc, role, key, bedit.addColor.roleTheme());
+    const wrote = wasSet ? clearRole(bedit.doc, role, bedit.state.editContext()) : assignRole(bedit.doc, role, key, bedit.state.editContext());
     if (!wrote) {
       if (wasSet) undoStack.pop();
       bedit.roles.renderUseAs(); // the button's pressed state describes the doc, not the tap

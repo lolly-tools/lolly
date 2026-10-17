@@ -26,12 +26,25 @@
  *
  * Contrast is reported APCA-first, WCAG second (house rule): the Lc and its band
  * are the readout, the 2.1 ratio rides the tooltip.
+ *
+ * LEADS (plans/319 A2). Every read and write takes an editing context, `{ lead,
+ * mode }` (leads.ts), where it used to take a theme string; a bare string still
+ * means that mode of the canonical lead, so a single-lead document reads and
+ * writes exactly as before. In a design system with colourways, the mode's
+ * `primary`, `on-primary` and `secondary` slots (and `surface`, once a colourway
+ * tints it) are LINKS every lead shares, and the colour lives in the lead's own
+ * set. A role read follows the link to the lead being edited, and a role write
+ * goes to that lead's colour, never to the link: writing a swatch into the mode's
+ * slot would cut every other lead loose from that role. Such a role is always
+ * set, so clearing one is refused; a lead is removed whole or not at all.
  */
 
 import { colorToHex, contrastRatio, apcaVerdict, tokenSetNames, TOKEN_EXT } from '@lolly/engine';
 import type { ApcaUse } from '@lolly/engine';
 import { escape } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
+import { colourwaySetsOf, editContextOf, isColourwayLink, leadSlotPath } from './leads.ts';
+import type { EditContextInput } from './leads.ts';
 
 type Rec = Record<string, unknown>;
 
@@ -114,12 +127,19 @@ const SET_KEYS = ['base', 'light', 'dark'] as const;
  * Once the engine says layered, `base`/`light`/`dark` are answered by name: that
  * IS the derived shape, and naming them keeps a stray extra top-level group out
  * of the theme handling below.
+ *
+ * A colourway's own set (plans/319) is a set, but never a home for roles: it
+ * holds one lead's colours, which a role reaches through the mode's link. So an
+ * import named some other way never has a colourway set picked as its role set.
  */
 function setKeysOf(doc: Rec): string[] {
   const names = tokenSetNames(doc);
   if (!names) return [];
   const known = SET_KEYS.filter(k => isRec(doc[k]));
-  return known.length ? known : names;
+  if (known.length) return known;
+  const leadSets = colourwaySetsOf(doc);
+  const own = names.filter(k => !leadSets.has(k));
+  return own.length ? own : names;
 }
 
 /**
@@ -142,7 +162,7 @@ function roleSetOf(doc: Rec, keys: string[]): string {
 }
 
 /**
- * Which sets a role write goes into, and a read looks at.
+ * Which mode sets a role write goes into, and a read looks at.
  *
  * A derived document carries the roles once per THEME, and the two are
  * deliberately different - `deriveBrandTokens` inverts surface and text so the
@@ -160,6 +180,8 @@ function roleSetOf(doc: Rec, keys: string[]): string {
  * the root, addressed as the empty prefix.
  */
 function roleSets(doc: unknown, theme?: string): string[][] {
+  // The prefixes of the mode-level slots. A slot that links to the colourways is
+  // followed to the lead's own colour by `roleLocations`, below.
   if (!isRec(doc)) return [[]];
   const keys = setKeysOf(doc);
   if (!keys.length) return [[]];
@@ -179,6 +201,32 @@ function at(doc: unknown, path: string[]): Rec | null {
   return isRec(node) ? node : null;
 }
 
+/**
+ * One place a role's value lives.
+ *
+ *  - `slot`: the mode's own `color.semantic.<role>` (every single-lead system).
+ *  - `lead`: the lead's own colour, which the mode's slot links to.
+ *  - `locked`: the slot links to the colourways, but the lead has no single set
+ *    of its own (a file that encodes colourways its own way). Read, never written.
+ */
+interface RoleLocation { path: string[]; kind: 'slot' | 'lead' | 'locked' }
+
+/**
+ * Where one role's value lives for an editing context: one location per mode
+ * set {@link roleSets} names. `ctx` undefined means every mode of the canonical
+ * lead, the deliberate both-modes write.
+ */
+function roleLocations(doc: unknown, role: string, ctx?: EditContextInput): RoleLocation[] {
+  const c = ctx === undefined || ctx === null ? null : editContextOf(ctx);
+  return roleSets(doc, c?.mode).map((prefix): RoleLocation => {
+    const slot = [...prefix, 'color', 'semantic', role];
+    const value = at(doc, slot)?.$value;
+    if (!isColourwayLink(value, role)) return { path: slot, kind: 'slot' };
+    const lead = leadSlotPath(doc, value, role, c?.lead);
+    return lead ? { path: lead, kind: 'lead' } : { path: slot, kind: 'locked' };
+  });
+}
+
 /** One role's current state in one theme. */
 export interface RoleState {
   /** The dotted swatch key this role points at, or null when it holds a literal
@@ -188,20 +236,24 @@ export interface RoleState {
   hex: string;
   /** True when the slot holds a colour of its own rather than a reference. */
   literal: boolean;
+  /** Present when the value is the lead's own colour, reached through the
+   *  mode's colourway link (plans/319). Such a role is re-pointed, never
+   *  cleared. Absent on every single-lead document. */
+  lead?: true;
 }
 
 const UNSET: RoleState = { ref: null, hex: '', literal: false };
 
 /**
- * Read one semantic slot's raw `$value` from the theme's set. Not exported: the
+ * Read one role's raw `$value` for an editing context: the mode's slot, or the
+ * lead's own colour when the slot links to the colourways. Not exported: the
  * strip only ever needs the four assignable roles plus the pairing colours,
  * both of which go through the wrappers below.
  */
-function slotValue(doc: unknown, theme: string, slot: string): unknown {
-  const [prefix] = roleSets(doc, theme);
-  const semantic = at(doc, [...(prefix ?? []), 'color', 'semantic']);
-  const leaf = semantic && isRec(semantic[slot]) ? semantic[slot] as Rec : null;
-  return leaf ? leaf.$value : undefined;
+function slotRead(doc: unknown, ctx: EditContextInput, slot: string): { raw: unknown; lead: boolean } {
+  const [loc] = roleLocations(doc, slot, ctx ?? 'light');
+  const leaf = loc ? at(doc, loc.path) : null;
+  return { raw: leaf ? leaf.$value : undefined, lead: loc?.kind === 'lead' };
 }
 
 /**
@@ -212,13 +264,15 @@ function slotValue(doc: unknown, theme: string, slot: string): unknown {
  * behaves identically here), then the alias target, so a bare doc + a shallow
  * resolver still resolves to a colour.
  */
-function hexOfSlot(raw: unknown, slot: string, resolve?: (key: string) => unknown): string {
+function hexOfSlot(raw: unknown, slot: string, resolve?: (key: string) => unknown, lead = false): string {
   if (raw === undefined) return '';
   const direct = colorToHex(raw);
   if (typeof direct === 'string' && direct.startsWith('#')) return direct;
   const ref = aliasTarget(raw);
   if (!ref || !resolve) return '';
-  for (const key of [`color.semantic.${slot}`, ref]) {
+  // A lead's own colour resolves its target first: the role's key answers for
+  // whichever lead the resolver was built for, which need not be this one.
+  for (const key of lead ? [ref, `color.semantic.${slot}`] : [`color.semantic.${slot}`, ref]) {
     try {
       const got = colorToHex(resolve(key));
       if (typeof got === 'string' && got.startsWith('#')) return got;
@@ -229,12 +283,14 @@ function hexOfSlot(raw: unknown, slot: string, resolve?: (key: string) => unknow
 
 /** One slot's resolved hex ('' when absent/unresolvable) - the pairing colours
  *  (`on-primary`, `text`, `surface`) read through this. */
-function semanticHex(doc: unknown, theme: string, slot: string, resolve?: (key: string) => unknown): string {
-  return hexOfSlot(slotValue(doc, theme, slot), slot, resolve);
+function semanticHex(doc: unknown, ctx: EditContextInput, slot: string, resolve?: (key: string) => unknown): string {
+  const { raw, lead } = slotRead(doc, ctx, slot);
+  return hexOfSlot(raw, slot, resolve, lead);
 }
 
 /**
- * Every assignable role's current target, for one theme.
+ * Every assignable role's current target, for one editing context (a lead in a
+ * mode; a bare string is that mode of the canonical lead).
  *
  * `resolve` supplies the colour for an `{alias}` exactly as `walkSwatches` does,
  * so this module stays pure: without it a role that references a ramp step reads
@@ -244,14 +300,14 @@ function semanticHex(doc: unknown, theme: string, slot: string, resolve?: (key: 
  * set" is told apart from a literal (`literal: true`, `hex` filled).
  */
 export function readRoles(
-  doc: unknown, theme = 'light', resolve?: (key: string) => unknown,
+  doc: unknown, ctx: EditContextInput = 'light', resolve?: (key: string) => unknown,
 ): Record<RoleId, RoleState> {
   const out = {} as Record<RoleId, RoleState>;
   for (const role of ROLE_IDS_ALL) {
-    const raw = slotValue(doc, theme, role);
-    if (raw === undefined) { out[role] = { ...UNSET }; continue; }
+    const { raw, lead } = slotRead(doc, ctx, role);
+    if (raw === undefined) { out[role] = { ...UNSET, ...(lead ? { lead: true as const } : {}) }; continue; }
     const ref = aliasTarget(raw);
-    out[role] = { ref, hex: hexOfSlot(raw, role, resolve), literal: ref === null };
+    out[role] = { ref, hex: hexOfSlot(raw, role, resolve, lead), literal: ref === null, ...(lead ? { lead: true as const } : {}) };
   }
   return out;
 }
@@ -269,9 +325,9 @@ export function readRoles(
  * one generate as four choices.
  */
 export function roleAssignments(
-  doc: unknown, theme = 'light', resolve?: (key: string) => unknown,
+  doc: unknown, ctx: EditContextInput = 'light', resolve?: (key: string) => unknown,
 ): Partial<Record<RoleId, { key: string; hex: string }>> {
-  const roles = readRoles(doc, theme, resolve);
+  const roles = readRoles(doc, ctx, resolve);
   const out: Partial<Record<RoleId, { key: string; hex: string }>> = {};
   for (const role of ROLE_IDS) {
     const s = roles[role];
@@ -295,53 +351,111 @@ function stampGroup(leaf: Rec): void {
 /**
  * Point `color.semantic.<role>` at a swatch key.
  *
- * `theme` names the theme being edited and is what a UI must pass: a themed
- * document's roles are per-theme and deliberately inverted between them, so an
- * unscoped write from a light-theme strip would overwrite the dark theme's
+ * `ctx` names the lead and mode being edited and is what a UI must pass: a
+ * themed document's roles are per-mode and deliberately inverted between them,
+ * so an unscoped write from a light-mode strip would overwrite the dark mode's
  * surface and text with the light ones. Omit it only for a value that genuinely
- * belongs to both themes (see {@link roleSets}); on a single-set or layered
- * import it makes no difference - there is one set either way.
+ * belongs to both modes (see {@link roleSets}); the write then goes to the
+ * canonical lead in every mode. On a single-set or layered import it makes no
+ * difference - there is one set either way.
  *
  * Creates the `color.semantic` group when it is absent, keeps any `$description`
  * and print lock already on the slot, and stamps the engine's group hint.
  * Refuses a `color.semantic.*` target: a role aliasing a role chains, and the
- * chain breaks the moment either end is reassigned.
+ * chain breaks the moment either end is reassigned. A `color.colourway.*`
+ * target is refused for the same reason: it is a lead's colour, not a swatch.
+ *
+ * In a design system with colourways, a role the colourways re-point is written
+ * into the lead's own colour, and the mode's link is left alone; a role whose
+ * link Lolly cannot follow is refused (see the module header).
  *
  * Only the named role is touched. See the module header for why `on-primary`,
  * `muted` and `edge` are left exactly as they were.
  */
-export function assignRole(doc: unknown, role: RoleId, swatchKey: string, theme?: string): boolean {
+export function assignRole(doc: unknown, role: RoleId, swatchKey: string, ctx?: EditContextInput): boolean {
   if (!isRec(doc) || !isRoleId(role)) return false;
   const key = String(swatchKey ?? '').trim().replace(/^\{|\}$/g, '');
-  if (!key || key.startsWith('color.semantic.')) return false;
+  if (!key || key.startsWith('color.semantic.') || key.startsWith('color.colourway.')) return false;
+  const locations = roleLocations(doc, role, ctx);
+  if (locations.some(loc => loc.kind === 'locked')) return false;
   let wrote = false;
-  for (const prefix of roleSets(doc, theme)) {
-    const color = at(doc, [...prefix, 'color']);
-    if (!color) continue;
-    const semantic = isRec(color.semantic) ? color.semantic as Rec : (color.semantic = {} as Rec);
-    const prev = isRec(semantic[role]) ? semantic[role] as Rec : null;
+  for (const loc of locations) {
+    const parent = loc.kind === 'lead' ? groupAt(doc, loc.path.slice(0, -1)) : semanticGroupAt(doc, loc.path.slice(0, -3));
+    if (!parent) continue;
+    const prev = isRec(parent[role]) ? parent[role] as Rec : null;
     const leaf: Rec = prev ?? {};
     leaf.$value = `{${key}}`;
     leaf.$type = 'color';
-    stampGroup(leaf);
-    semantic[role] = leaf;
+    // The palette heading belongs on the role's slot. A lead's own colour is
+    // never a tile, so it carries no heading of its own.
+    if (loc.kind === 'slot') stampGroup(leaf);
+    parent[role] = leaf;
     wrote = true;
   }
   return wrote;
 }
 
-/** Drop a role. `theme` scopes it exactly as {@link assignRole}'s does - the
- *  theme being edited, or every theme set when omitted. A system with no roles
- *  is valid, so this is an ordinary action and not a repair. False when there
- *  was nothing to remove. */
-export function clearRole(doc: unknown, role: RoleId, theme?: string): boolean {
+/** A mode set's `color.semantic` group, created when the set has a `color`
+ *  group but no roles yet; null when the set holds no colour at all. */
+function semanticGroupAt(doc: Rec, prefix: string[]): Rec | null {
+  const color = at(doc, [...prefix, 'color']);
+  if (!color) return null;
+  if (!isRec(color.semantic)) color.semantic = {};
+  return color.semantic as Rec;
+}
+
+/** The group at `path` inside a lead's set, creating the groups under the set;
+ *  null when the set itself is missing. */
+function groupAt(doc: Rec, path: string[]): Rec | null {
+  if (!isRec(doc[path[0] ?? ''])) return null;
+  let node = doc;
+  for (const seg of path) {
+    if (!isRec(node[seg])) node[seg] = {};
+    node = node[seg] as Rec;
+  }
+  return node;
+}
+
+/** Drop a role. `ctx` scopes it exactly as {@link assignRole}'s does - the
+ *  lead and mode being edited, or every mode when omitted. A system with no
+ *  roles is valid, so this is an ordinary action and not a repair. False when
+ *  there was nothing to remove, and for a role the colourways re-point: every
+ *  lead has its own primary, on-primary and secondary, and removing one would
+ *  leave that lead's link pointing at nothing. */
+export function clearRole(doc: unknown, role: RoleId, ctx?: EditContextInput): boolean {
   if (!isRec(doc) || !isRoleId(role)) return false;
+  const locations = roleLocations(doc, role, ctx);
+  if (locations.some(loc => loc.kind !== 'slot')) return false;
   let removed = false;
-  for (const prefix of roleSets(doc, theme)) {
-    const semantic = at(doc, [...prefix, 'color', 'semantic']);
+  for (const loc of locations) {
+    const semantic = at(doc, loc.path.slice(0, -1));
     if (semantic && role in semantic) { delete semantic[role]; removed = true; }
   }
   return removed;
+}
+
+/**
+ * Write a colour value (a literal, or a `{path}` alias) into a role, wherever
+ * the role keeps its value for the context: the mode's slot, or the lead's own
+ * colour. The literal write that detaches a slot from its ramp step, for the
+ * callers that pin the colour a person actually used (brand-propose.ts).
+ * `ctx` omitted means the canonical lead in every mode. Creates the slot when
+ * absent and keeps everything else on it; false when nothing was written.
+ */
+export function setRoleValue(doc: unknown, role: RoleId, value: string, ctx?: EditContextInput): boolean {
+  if (!isRec(doc) || !ROLE_IDS_ALL.includes(role)) return false;
+  const locations = roleLocations(doc, role, ctx);
+  if (locations.some(loc => loc.kind === 'locked')) return false;
+  let wrote = false;
+  for (const loc of locations) {
+    const parent = loc.kind === 'lead' ? groupAt(doc, loc.path.slice(0, -1)) : semanticGroupAt(doc, loc.path.slice(0, -3));
+    if (!parent) continue;
+    if (!isRec(parent[role])) parent[role] = {};
+    const leaf = parent[role] as Rec;
+    leaf.$value = value;
+    wrote = true;
+  }
+  return wrote;
 }
 
 // ── Contrast ─────────────────────────────────────────────────────────────────
@@ -413,13 +527,13 @@ export interface RoleReadout extends RoleState {
  * it gets.
  */
 export function roleReadouts(
-  doc: unknown, theme = 'light', resolve?: (key: string) => unknown,
+  doc: unknown, ctx: EditContextInput = 'light', resolve?: (key: string) => unknown,
 ): Record<RoleId, RoleReadout> {
-  const roles = readRoles(doc, theme, resolve);
-  const textHex = roles.text.hex || semanticHex(doc, theme, 'text', resolve);
-  const surfaceHex = roles.surface.hex || semanticHex(doc, theme, 'surface', resolve);
-  const onPrimary = semanticHex(doc, theme, 'on-primary', resolve) || textHex;
-  const primaryHex = roles.primary.hex || semanticHex(doc, theme, 'primary', resolve);
+  const roles = readRoles(doc, ctx, resolve);
+  const textHex = roles.text.hex || semanticHex(doc, ctx, 'text', resolve);
+  const surfaceHex = roles.surface.hex || semanticHex(doc, ctx, 'surface', resolve);
+  const onPrimary = semanticHex(doc, ctx, 'on-primary', resolve) || textHex;
+  const primaryHex = roles.primary.hex || semanticHex(doc, ctx, 'primary', resolve);
   /** Roles that are INK: the slot itself is the foreground. */
   const isInk = (role: RoleId): boolean =>
     role === 'text' || role === 'muted' || role === 'edge' || role === 'on-primary';
@@ -486,6 +600,9 @@ export interface RoleRow {
    *  The derive maintains it against the primary so the pair passes, and
    *  re-pointing it by hand is how a system stops being readable. */
   derived: boolean;
+  /** The role is the lead's own colour (plans/319): it can be re-pointed but
+   *  not cleared, so the picker offers no empty choice for the row. */
+  required: boolean;
 }
 
 export interface RolesModel {
@@ -516,7 +633,7 @@ export function rampStepName(name: string, key: string): string {
 
 /**
  * The strip's model. Pure: everything the markup needs, computed from the
- * document, the theme, and the swatches on offer.
+ * document, the editing context (a lead in a mode), and the swatches on offer.
  *
  * `swatches` is expected to be pre-filtered to the non-semantic ones (a role
  * cannot take a role) - the caller has that list already from `walkSwatches`,
@@ -542,10 +659,10 @@ function quietWhereQuietIsRight(id: RoleId, c: RoleContrast | null): RoleContras
 }
 
 export function buildRolesModel(
-  doc: unknown, theme: string, swatches: RoleSwatchOption[], resolve?: (key: string) => unknown,
+  doc: unknown, ctx: EditContextInput, swatches: RoleSwatchOption[], resolve?: (key: string) => unknown,
   ids: readonly RoleId[] = ROLE_IDS,
 ): RolesModel {
-  const readouts = roleReadouts(doc, theme, resolve);
+  const readouts = roleReadouts(doc, ctx, resolve);
   const options = swatches.filter(s => !s.key.startsWith('color.semantic.'));
   const byKey = new Map(options.map(s => [s.key, s]));
   const primaryRef = readouts.primary.ref ?? '';
@@ -576,6 +693,7 @@ export function buildRolesModel(
       selected: !starter && !follows && r.ref && byKey.has(r.ref) ? r.ref : '',
       contrast: quietWhereQuietIsRight(id, r.contrast),
       derived: !ASSIGNABLE_ROLES.includes(id),
+      required: !!r.lead,
     };
   });
   return { rows, options };
@@ -618,7 +736,7 @@ function apcaHtml(c: RoleContrast | null): string {
  * nothing has been chosen for it; a row with a real choice behind it keeps "Not
  * set", which is what selecting the empty option would DO.
  */
-function optionsHtml(options: RoleSwatchOption[], selected: string, placeholder: string): string {
+function optionsHtml(options: RoleSwatchOption[], selected: string, placeholder: string, required = false): string {
   const opt = (s: RoleSwatchOption): string =>
     `<option value="${escape(s.key)}"${s.key === selected ? ' selected' : ''}>${escape(s.name)}</option>`;
   const groups = new Map<string, RoleSwatchOption[]>();
@@ -634,7 +752,9 @@ function optionsHtml(options: RoleSwatchOption[], selected: string, placeholder:
     g ? `<optgroup label="${escape(g)}">${list.map(opt).join('')}</optgroup>` : list.map(opt).join('')).join('');
   const starterBody = starters.length
     ? `<optgroup label="${escape(t('Starter'))}">${starters.map(opt).join('')}</optgroup>` : '';
-  return `<option value=""${selected ? '' : ' selected'}>${escape(placeholder)}</option>${body}${starterBody}`;
+  // A lead's own role cannot be emptied (clearRole refuses), so its empty option
+  // stays as the label of a literal value and cannot be chosen.
+  return `<option value=""${selected ? '' : ' selected'}${required ? ' disabled' : ''}>${escape(placeholder)}</option>${body}${starterBody}`;
 }
 
 /** The strip's markup for a model. Pure, so its shape is unit-tested headless. */
@@ -653,7 +773,7 @@ export function rolesStripHtml(model: RolesModel): string {
         ? `<span class="be-role-derived">${escape(t('Derived'))}</span>`
         : `<select class="field-select be-role-pick" data-be-role-pick="${escape(row.id)}"
               aria-label="${escape(tRaw('Colour for {role}', { role: row.label }))}">${
-          optionsHtml(model.options, row.selected, rolePlaceholder(row))}</select>`}
+          optionsHtml(model.options, row.selected, rolePlaceholder(row), row.required)}</select>`}
     </div>`).join('')}</div>`;
 }
 
@@ -674,8 +794,9 @@ function rolePlaceholder(row: RoleRow): string {
  *  hold a reference to one. */
 export interface RolesCtx {
   doc: () => Record<string, unknown>;
-  /** 'light' | 'dark' - which theme's roles are being edited. */
-  theme: () => string;
+  /** Which lead's roles, in which mode, are being edited (`{ lead, mode }`; a
+   *  bare 'light' | 'dark' is that mode of the canonical lead). */
+  context: () => EditContextInput;
   /** Resolves an `{alias}` to a colour, typically a `createTokenSet` lookup. */
   resolve?: (key: string) => unknown;
   /** Assignable swatches, non-semantic, already resolved to hex. */
@@ -685,9 +806,10 @@ export interface RolesCtx {
    *  strip by re-rendering it. */
   ids?: () => readonly RoleId[];
   /** The room does the write (`assignRole`), the repaint and the persist - this
-   *  module never touches the document from the DOM half. Write the theme you
-   *  are reading: pass `theme()` through to `assignRole`/`clearRole`, or a strip
-   *  showing the light theme edits the dark one too. */
+   *  module never touches the document from the DOM half. Write the context you
+   *  are reading: pass `context()` through to `assignRole`/`clearRole`, or a
+   *  strip showing the light mode edits the dark one too (and, with colourways,
+   *  a strip showing one lead edits another). */
   assign: (role: RoleId, key: string) => void;
   clear: (role: RoleId) => void;
 }
@@ -734,7 +856,7 @@ function patchStrip(mount: HTMLElement, model: RolesModel): boolean {
     // row stops being a stand-in the moment an own colour takes it), so it is
     // rewritten here rather than left saying "Choose…" over a real choice.
     const blank = sel?.querySelector<HTMLOptionElement>('option[value=""]');
-    if (blank) blank.textContent = rolePlaceholder(row);
+    if (blank) { blank.textContent = rolePlaceholder(row); blank.disabled = row.required; }
     el.querySelector<HTMLElement>('.be-role-sw')?.style.setProperty('--sw', row.hex || 'transparent');
     const name = el.querySelector<HTMLElement>('.be-role-name');
     if (name) name.textContent = row.label;
@@ -785,7 +907,7 @@ export function mountRolesStrip(mount: HTMLElement, ctx: RolesCtx): { render: ()
   let sig: string | null = null;
   const render = (): void => {
     const ids = ctx.ids?.() ?? ROLE_IDS;
-    const model = buildRolesModel(ctx.doc(), ctx.theme(), ctx.swatches(), ctx.resolve, ids);
+    const model = buildRolesModel(ctx.doc(), ctx.context(), ctx.swatches(), ctx.resolve, ids);
     // The row set rides the signature: widening the strip is a rebuild, and
     // patchStrip would otherwise be handed a model with more rows than the DOM
     // has and report failure one frame later than it should.

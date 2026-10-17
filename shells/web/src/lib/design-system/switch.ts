@@ -37,6 +37,7 @@ import { bustLivePalette } from '../live-palette.ts';
 import { invalidateVizPalette } from '../viz-palette.ts';
 import { bustChipPairs } from '../particles.ts';
 import { setSwatches } from '../../components/color-field.ts';
+import { withoutLeadColours } from './leads.ts';
 
 /** Fired on `window` after a switch, before any remount. `detail` is the new record. */
 export const DESIGN_SYSTEM_CHANGED_EVENT = 'lolly:design-system-changed';
@@ -132,8 +133,9 @@ export async function switchDesignSystem(host: SwitchHost, id: string, opts: Swi
   invalidateVizPalette();
   bustChipPairs();
   try {
-    const swatches = await host.tokens?.colors?.();
-    if (swatches?.length) setSwatches(swatches.map(s => ({ value: s.value, label: s.name, group: s.group, ref: s.ref })));
+    // A colourway's own colours (plans/319) are a lead's roles, never picker swatches.
+    const swatches = withoutLeadColours((await host.tokens?.colors?.()) ?? []);
+    if (swatches.length) setSwatches(swatches.map(s => ({ value: s.value, label: s.name, group: s.group, ref: s.ref })));
   } catch { /* the built-in palette stands */ }
 
   // 6. Tell the page, then remount what may be remounted.

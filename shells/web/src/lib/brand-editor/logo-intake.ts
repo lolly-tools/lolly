@@ -7,7 +7,8 @@
  * a value (an event listener), goes through `bedit.<module>.<fn>`. Extracted verbatim
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
-import { colorToHex, createTokenSet } from '@lolly/engine';
+import { colorToHex } from '@lolly/engine';
+import { leadTokenSet } from '../design-system/leads.ts';
 import { LOGO_ORIENTATIONS, LOGO_SLUG_RE, LOGO_TREATMENTS, removeLogo, splitVariant, variantLabel } from '../brand-logos.ts';
 import type { LogoVariant } from '../brand-logos.ts';
 import { hasPendingLogoFiles, takePendingLogoFiles } from '../design-system/pending-files.ts';
@@ -123,7 +124,7 @@ export const addLogoFiles = async (bedit: BrandEditorCtx, files: File[]): Promis
 export const monoInk = (bedit: BrandEditorCtx): string => {
   const { MONO_INK_FALLBACK } = bedit;
   try {
-    return colorToHex(createTokenSet(bedit.doc, { theme: 'light' }).resolve('color.semantic.text')) ?? MONO_INK_FALLBACK;
+    return colorToHex(leadTokenSet(bedit.doc, 'light').resolve('color.semantic.text')) ?? MONO_INK_FALLBACK;
   } catch { return MONO_INK_FALLBACK; }
 };
 export const derivedName = (_bedit: BrandEditorCtx, name: string, suffix: string): string =>

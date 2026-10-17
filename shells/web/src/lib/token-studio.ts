@@ -28,6 +28,7 @@
 
 import { colorToHex, isAlias, aliasPath, TOKEN_EXT } from '@lolly/engine';
 import { isRec, leafAt, prettify } from './brand-doc.ts';
+import { colourwaySetsOf } from './design-system/leads.ts';
 
 type Rec = Record<string, unknown>;
 
@@ -49,7 +50,10 @@ export interface StudioToken {
   angle?: number;
 }
 
-/** Top-level DTCG token sets a derived brand uses (mirrors brand-doc). */
+/** Top-level DTCG token sets a derived brand uses (mirrors brand-doc). A
+ *  colourway's own set (`colourway/<id>`, plans/319) is a set too, but holds
+ *  one lead's colours and never a studio token, so `listStudioTokens` skips
+ *  every colourway set. */
 const SET_KEYS = new Set(['base', 'light', 'dark']);
 
 /** Each kind's group segment + the DTCG $type its group and leaves carry. */
@@ -193,12 +197,16 @@ function writeAngle(leaf: Rec, angle: number): void {
  * base/light/dark set prefix) is one of the studio homes AND its effective
  * DTCG $type (own or inherited, when present at all) agrees with that kind - 
  * so `color.*`, `font.*`, `asset.*` and `shape.radius` never surface here,
- * and neither does a mislabeled leaf squatting in a studio group.
+ * and neither does a mislabeled leaf squatting in a studio group. A colourway's
+ * own set is skipped whole: the studio's tokens belong to the whole design
+ * system, and a token there would be listed once per lead under one key.
  */
 export function listStudioTokens(doc: unknown): StudioToken[] {
   const out: StudioToken[] = [];
+  const leadSets = colourwaySetsOf(doc);
   const walk = (node: unknown, path: string[], inherited: string | null): void => {
     if (!isRec(node)) return;
+    if (path.length === 1 && leadSets.has(path[0]!)) return;
     const type = typeof node.$type === 'string' ? node.$type : inherited;
     if ('$value' in node) {
       const t = toToken(path, node, type);
@@ -321,7 +329,8 @@ export function renameStudioToken(doc: unknown, path: string[], name: string): b
 /**
  * Remove a token, then prune now-empty ancestor groups (objects left holding
  * only $-metadata) along its path - including the emptied `base.<group>` - 
- * stopping short of the doc root and of a top-level set (`base` survives).
+ * stopping short of the doc root and of a top-level set (`base` survives, and
+ * so does a colourway's own set).
  */
 export function deleteStudioToken(doc: unknown, path: string[]): boolean {
   const parent = leafAt(doc, path.slice(0, -1));
@@ -330,7 +339,7 @@ export function deleteStudioToken(doc: unknown, path: string[]): boolean {
   delete parent[leaf];
   for (let end = path.length - 1; end >= 1; end--) {
     const gPath = path.slice(0, end);
-    if (gPath.length === 1 && SET_KEYS.has(gPath[0]!)) break;
+    if (gPath.length === 1 && (SET_KEYS.has(gPath[0]!) || colourwaySetsOf(doc).has(gPath[0]!))) break;
     const g = leafAt(doc, gPath);
     if (!g || Object.keys(g).some(k => !k.startsWith('$'))) break;
     const gParent = leafAt(doc, gPath.slice(0, -1));

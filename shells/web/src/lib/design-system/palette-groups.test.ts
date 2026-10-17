@@ -67,3 +67,27 @@ test('display ordering survives rebuilds and JSON without changing token resolut
   assert.deepEqual(paletteOrder(next), keys);
   assert.deepEqual(paletteOrder({ $extensions: { [TOKEN_EXT]: { paletteOrder: [1, null, 'x', 'x'] } } }), ['x']);
 });
+
+test('palette groups on a system with three leads move swatches and leave every lead as it was', async () => {
+  const { deriveBrandTokens } = await import('@lolly/engine');
+  const { addLead, listLeads } = await import('./leads.ts');
+  const one = addLead(deriveBrandTokens({ primary: '#0c322c', name: 'Test' }), { colour: '#e05a2b', name: 'Persimmon' });
+  assert.ok(one.ok);
+  const two = addLead(one.doc, { colour: '#0e7490', name: 'Waterhole' });
+  assert.ok(two.ok);
+  const doc = two.doc;
+  const coral = addSwatch(doc, 'custom', 'Coral', '#ef775d')!;
+  addPaletteGroup(doc, 'Summer');
+  setSwatchGroup(doc, coral, 'Summer');
+  const leads = JSON.stringify(listLeads(doc));
+  const sets = JSON.stringify(Object.fromEntries(Object.entries(doc).filter(([k]) => k.startsWith('colourway/'))));
+  assert.equal(changePaletteGroup(doc, 'Summer', 'Winter'), true);
+  assert.deepEqual(walkSwatches(doc, 'light').filter(s => s.group === 'Winter').map(s => s.key), ['color.custom.coral']);
+  assert.equal(JSON.stringify(listLeads(doc)), leads);
+  assert.equal(JSON.stringify(Object.fromEntries(Object.entries(doc).filter(([k]) => k.startsWith('colourway/')))), sets, 'no colourway set was written');
+  const to = structuredClone(doc);
+  setSwatchGroup(to, coral, null);
+  carryPaletteGroups(doc, to);
+  assert.deepEqual(walkSwatches(to, 'dark').filter(s => s.group === 'Winter').map(s => s.key), ['color.custom.coral']);
+  assert.equal(JSON.stringify(listLeads(to)), leads);
+});

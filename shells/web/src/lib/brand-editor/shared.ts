@@ -4,10 +4,11 @@
  * constants and pure helpers that used to sit above mountBrandEditor(). Moved here verbatim so
  * no feature module has to import the orchestrator file. The brand editor (colour, type and logo rooms of /start).
  */
-import { apcaContrast, colorFaces, colorToHex, colorToHexString, colorToSrgb, contrastRatio, convertColor, createTokenSet, deriveBrandTokens, gamutMapSrgb, parseColor as parseCssColor, rampOklab } from '@lolly/engine';
+import { apcaContrast, colorFaces, colorToHex, colorToHexString, colorToSrgb, contrastRatio, convertColor, deriveBrandTokens, gamutMapSrgb, parseColor as parseCssColor, rampOklab } from '@lolly/engine';
 import type { BrandDeriveOptions, SchemeKind, StoredFace } from '@lolly/engine';
 import { mountedSources, parseProfileLimit, profileFor } from '../color-profiles.ts';
 import { draftShades } from '../design-system/palette-draft.ts';
+import { leadTokenSet } from '../design-system/leads.ts';
 import type { FinishKind, HostV1, SpotColor, TokenSet } from '@lolly-tools/core/host-v1';
 import { RAMP_IDS, prettify } from '../brand-doc.ts';
 import type { BrandSwatch, RampId } from '../brand-doc.ts';
@@ -310,8 +311,10 @@ export function deriveSafe(opts: BrandDeriveOptions): Record<string, unknown> | 
   try { return deriveBrandTokens(opts) as Record<string, unknown>; } catch { return null; }
 }
 export function previewHtml(doc: Record<string, unknown>, sel: { neutral: number; secondary: number; steps: number; curves?: CurveMarks; palette?: string[] }): string {
-  const light = createTokenSet(doc, { theme: 'light' });
-  const dark = createTokenSet(doc, { theme: 'dark' });
+  // The canonical lead in each mode, pinned, so a stored colourway choice never
+  // decides what the preview of a palette shows.
+  const light = leadTokenSet(doc, 'light');
+  const dark = leadTokenSet(doc, 'dark');
   const present = new Set(sel.palette?.map(hex => hex.toLowerCase()));
   const choices = RAMP_IDS.map(ramp => {
     const shades = draftShades(doc, ramp);
@@ -843,6 +846,11 @@ export interface ReplacePlan {
   steps: number; ramps: number; rebuilt: number; spectrumRebuilt: number;
   roles: number; kept: number; curves: number; locks: number;
   excluded: number; pinnedStops: number; rolesKept: number;
+  /** With colourways (plans/319): the canonical lead the rebuild re-derives, the
+   *  names of the other leads it keeps, and how many of their colours followed a
+   *  rebuilt shade and were pinned to the colour they had. Absent on a design
+   *  system with one lead. */
+  leads?: { canonical: string; kept: string[]; pinned: number };
 }
 
 export type RasterLogoStats = Parameters<typeof classifyLogoRasterStats>[0];

@@ -7,7 +7,7 @@
  * a value (an event listener), goes through `bedit.<module>.<fn>`. Extracted verbatim
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
-import { RAMP_STEPS_MAX, RAMP_STEPS_MIN, SCHEME_KINDS, colorToHex, colorToHexString, createTokenSet, deserializeCurve, generateAnalogous, generateSchemeAccents, parseColor as parseCssColor } from '@lolly/engine';
+import { RAMP_STEPS_MAX, RAMP_STEPS_MIN, SCHEME_KINDS, colorToHex, colorToHexString, deserializeCurve, generateAnalogous, generateSchemeAccents, parseColor as parseCssColor } from '@lolly/engine';
 import { nameColor } from '../color-namer.ts';
 import { palettePreviewSvgs } from '../palette-preview.ts';
 import { addDraftShades, draftShades } from '../design-system/palette-draft.ts';
@@ -28,6 +28,7 @@ import { announce } from '../../a11y.ts';
 import { playSfx } from '../sfx.ts';
 import { helpTip } from '../../components/help-tip.ts';
 import { ROLE_IDS, readRoles, roleLabel } from '../design-system/roles.ts';
+import { leadTokenSet } from '../design-system/leads.ts';
 import { CONTRASTS, DEFAULT_PRIMARY, FOREGROUNDS, INTENSITIES, PALETTE_FORMATS, RAMP_LABEL, SCHEMES, TYPE_ROLES, deriveSafe, finishLabel, mountPrintLock, previewHtml, typeRoleCardHtml } from './shared.ts';
 import type { Contrast, Fg, HarmonyKind, Scheme, Surface } from './shared.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
@@ -119,7 +120,7 @@ export const paletteHexes = (bedit: BrandEditorCtx): string[] => {
     const material = bedit.swatches.filter(s => s.kind !== 'semantic');
     const chosen = material.filter(s => !bedit.ramps.isStarterSwatch(s) || paletteGroups(bedit.doc).includes(groupName(s.group)));
     const pool = chosen.length ? chosen : material;
-    const primaryRole = readRoles(bedit.doc, bedit.currentTheme === 'dark' ? 'dark' : 'light').primary.ref;
+    const primaryRole = readRoles(bedit.doc, bedit.state.editContext()).primary.ref;
     const lead = pool.find(s => s.key === primaryRole);
     if (lead) add(lead.hex);
     for (const s of pool.filter(s => s.kind === 'custom' || s.kind === 'spectrum')) add(s.hex);
@@ -158,7 +159,7 @@ export const renderPreviews = (bedit: BrandEditorCtx): void => {
     const empty = document.createElement('p'); empty.className = 'be-preview-empty';
     empty.textContent = t('Add a colour to see it in context.'); previewsEl.replaceChildren(empty); return;
   }
-  const set = createTokenSet(bedit.doc, { theme: bedit.currentTheme === 'dark' ? 'dark' : 'light' });
+  const set = leadTokenSet(bedit.doc, bedit.state.editContext());
   const role = (name: string): string | undefined => colorToHex(set.resolve(`color.semantic.${name}`)) ?? undefined;
   const scenes = palettePreviewSvgs(colors, { roles: bedit.previewSelection.length ? undefined : {
     primary: role('primary'), secondary: role('secondary'), surface: role('surface'), text: role('text'), onPrimary: role('on-primary'),
@@ -210,7 +211,8 @@ export const renderPrintChips = (bedit: BrandEditorCtx): void => {
 export const reseedFromDoc = (bedit: BrandEditorCtx): void => {
   const { curves, preview, primaryLock, stepsSlider, stepsVal } = bedit;
   try {
-    const set = createTokenSet(bedit.doc, { theme: 'light' });
+    // The canonical lead's light primary, pinned (see loadDocument).
+    const set = leadTokenSet(bedit.doc, 'light');
     bedit.primary = tokenValueToHex(set.resolve('color.semantic.primary')) ?? bedit.primary;
     const g = set.query({ type: 'color' }).filter(tk => /^color\.ramp\.primary\.\d+$/.test(tk.path));
     if (g.length >= RAMP_STEPS_MIN) bedit.steps = Math.min(RAMP_STEPS_MAX, g.length);
@@ -232,7 +234,7 @@ export const reseedFromDoc = (bedit: BrandEditorCtx): void => {
   }
   // New shade suggestions follow the current starting colour.
   const fresh = deriveSafe({ primary: bedit.primary, scheme: bedit.scheme, surface: bedit.surface, contrast: bedit.contrast, steps: bedit.steps, foreground: bedit.foreground });
-  if (preview && fresh) preview.innerHTML = previewHtml(fresh, { neutral: bedit.neutralStep, secondary: bedit.secondaryStep, steps: bedit.steps, curves: bedit.ramps.curveMarks(), palette: walkSwatches(bedit.doc, bedit.currentTheme).filter(s => s.kind !== 'semantic').flatMap(s => s.hex ? [s.hex] : []) });
+  if (preview && fresh) preview.innerHTML = previewHtml(fresh, { neutral: bedit.neutralStep, secondary: bedit.secondaryStep, steps: bedit.steps, curves: bedit.ramps.curveMarks(), palette: walkSwatches(bedit.doc, bedit.state.editContext()).filter(s => s.kind !== 'semantic').flatMap(s => s.hex ? [s.hex] : []) });
   renderScreen(bedit);
   primaryLock?.render();
   renderGenerator(bedit);
@@ -389,7 +391,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
               </div>
             </details>
           </div>
-          <div class="be-preview" data-be-preview>${initialDraft ? previewHtml(initialDraft, { neutral: bedit.neutralStep, secondary: bedit.secondaryStep, steps: bedit.steps, curves: bedit.ramps.curveMarks(), palette: walkSwatches(bedit.doc, bedit.currentTheme).filter(s => s.kind !== 'semantic').flatMap(s => s.hex ? [s.hex] : []) }) : ''}</div>
+          <div class="be-preview" data-be-preview>${initialDraft ? previewHtml(initialDraft, { neutral: bedit.neutralStep, secondary: bedit.secondaryStep, steps: bedit.steps, curves: bedit.ramps.curveMarks(), palette: walkSwatches(bedit.doc, bedit.state.editContext()).filter(s => s.kind !== 'semantic').flatMap(s => s.hex ? [s.hex] : []) }) : ''}</div>
         </div>
       </div>
 

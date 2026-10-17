@@ -7,7 +7,8 @@
  * a value (an event listener), goes through `bedit.<module>.<fn>`. Extracted verbatim
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
-import { colorToHex, createTokenSet } from '@lolly/engine';
+import { colorToHex } from '@lolly/engine';
+import { leadTokenSet } from '../design-system/leads.ts';
 import { paletteHtml } from '../design-system/palette-view.ts';
 import { paletteOrder } from '../design-system/palette-order.ts';
 import { paletteGroups } from '../design-system/palette-groups.ts';
@@ -41,7 +42,7 @@ export const curveMarks = (bedit: BrandEditorCtx): CurveMarks => { const { curve
 // tokenless / unresolvable doc, exactly like the Palette Lab tool's `bg`.
 export const surfaceHex = (bedit: BrandEditorCtx): string => {
   try {
-    const v = createTokenSet(bedit.doc, { theme: bedit.currentTheme === 'dark' ? 'dark' : 'light' }).resolve('color.semantic.surface');
+    const v = leadTokenSet(bedit.doc, bedit.state.editContext()).resolve('color.semantic.surface');
     return colorToHex(v) ?? '#ffffff';
   } catch { return '#ffffff'; }
 };
@@ -70,10 +71,10 @@ export const roleGlyphsNow = (bedit: BrandEditorCtx): Map<string, string> => {
   const out = new Map<string, string>();
   let resolve: ((key: string) => unknown) | undefined;
   try {
-    const set = createTokenSet(bedit.doc, { theme: bedit.currentTheme === 'dark' ? 'dark' : 'light' });
+    const set = leadTokenSet(bedit.doc, bedit.state.editContext());
     resolve = (key: string) => set.resolve(key);
   } catch { /* unresolvable doc - no marks rather than wrong ones */ }
-  const held = readRoles(bedit.doc, bedit.currentTheme === 'dark' ? 'dark' : 'light', resolve);
+  const held = readRoles(bedit.doc, bedit.state.editContext(), resolve);
   for (const role of ROLE_IDS) {
     const ref = held[role]?.ref;
     const glyph = ROLE_GLYPH[role];
@@ -88,14 +89,14 @@ export const repaintPalette = (bedit: BrandEditorCtx): void => {
   // as a blank chip.
   let resolve: ((key: string) => unknown) | undefined;
   try {
-    const set = createTokenSet(bedit.doc, { theme: bedit.currentTheme === 'dark' ? 'dark' : 'light' });
+    const set = leadTokenSet(bedit.doc, bedit.state.editContext());
     resolve = (key: string) => set.resolve(key);
   } catch { /* a malformed doc still lists its literal swatches */ }
   // Excluded keys (a "deleted" derived step/role - the token stays, the tile
   // goes) are filtered here, so the grid, wheel, picker swatches and gradient
   // stop grids all inherit the exclusion from this one seam.
   const excluded = new Set(getExcludedSwatches(bedit.doc));
-  bedit.swatches = walkSwatches(bedit.doc, bedit.currentTheme, resolve).filter(s => !excluded.has(s.key));
+  bedit.swatches = walkSwatches(bedit.doc, bedit.state.editContext(), resolve).filter(s => !excluded.has(s.key));
   if (palMount) {
     // Keep user-folded sections folded across the innerHTML replace (every
     // group renders `open` by default) - the same re-render/state guard the

@@ -8,6 +8,8 @@
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
 import { RAMP_STEPS_MAX, RAMP_STEPS_MIN, aliasPath, colorToHex, createTokenSet, deriveBrandTokens, deserializeCurve } from '@lolly/engine';
+import { leadTokenSet, withoutLeadColours } from '../design-system/leads.ts';
+import type { EditContext } from '../design-system/leads.ts';
 import { installUserTokens } from '../../bridge/tokens.ts';
 import { isUserDesignSystemActive } from '../design-system/active.ts';
 import { saveWithStoredLogos } from '../brand-logos.ts';
@@ -27,6 +29,16 @@ import { bindOp, type BrandEditorCtx } from './context.ts';
 // carries - and grow/shrink as the user adds or deletes them. Roles (aliases)
 // are skipped (they duplicate the ramp step they point at); transparent leads.
 // refreshSwatches repopulates the already-open inline grid in place.
+/**
+ * The lead and mode every surface of the room reads and writes (plans/319):
+ * the app theme's mode, and the canonical lead until the room offers a lead
+ * switcher. On a design system with one lead this is the same context the room
+ * always used, so nothing it reads or writes changes.
+ */
+export const editContext = (bedit: BrandEditorCtx): EditContext => ({
+  lead: bedit.currentLead ?? null,
+  mode: bedit.currentTheme === 'dark' ? 'dark' : 'light',
+});
 export const syncPickerSwatches = (bedit: BrandEditorCtx): void => {
   const { root } = bedit;
   const opts = bedit.swatches
@@ -45,7 +57,7 @@ export const resolveTokenRef = (bedit: BrandEditorCtx, ref: string): string | nu
   const hit = bedit.swatches.find(s => s.key === key && s.hex);
   if (hit) return hit.hex;
   try {
-    return colorToHex(createTokenSet(bedit.doc, { theme: bedit.currentTheme === 'dark' ? 'dark' : 'light' }).resolve(ref)) ?? null;
+    return colorToHex(leadTokenSet(bedit.doc, editContext(bedit)).resolve(ref)) ?? null;
   } catch { return null; }
 };
 export const pushUndo = (bedit: BrandEditorCtx, label: string): void => {
@@ -89,7 +101,7 @@ export const persist = (bedit: BrandEditorCtx, immediate = false): void => {
       void applyChromeBrandVars(host);
       // Reflect the new palette in every picker without a tool remount.
       try {
-        const cols = (await tokens?.colors?.()) ?? [];
+        const cols = withoutLeadColours((await tokens?.colors?.()) ?? []);
         setSwatches(cols.map(c => ({ value: c.value, label: c.name, group: c.group, ref: c.ref })));
       } catch { /* pickers refresh on next tool mount regardless */ }
     } catch (err) {
@@ -133,7 +145,7 @@ export const renderPreview = (bedit: BrandEditorCtx): void => {
     const themesOpen = preview.querySelector<HTMLDetailsElement>('.be-draft-themes')?.open;
     const focusedStep = document.activeElement instanceof HTMLElement && preview.contains(document.activeElement)
       ? { ramp: document.activeElement.dataset.beRamp, step: document.activeElement.dataset.beStep } : null;
-    preview.innerHTML = previewHtml(next, { neutral: bedit.neutralStep, secondary: bedit.secondaryStep, steps: bedit.steps, curves: bedit.ramps.curveMarks(), palette: walkSwatches(bedit.doc, bedit.currentTheme).filter(s => s.kind !== 'semantic').flatMap(s => s.hex ? [s.hex] : []) });
+    preview.innerHTML = previewHtml(next, { neutral: bedit.neutralStep, secondary: bedit.secondaryStep, steps: bedit.steps, curves: bedit.ramps.curveMarks(), palette: walkSwatches(bedit.doc, editContext(bedit)).filter(s => s.kind !== 'semantic').flatMap(s => s.hex ? [s.hex] : []) });
     const themes = preview.querySelector<HTMLDetailsElement>('.be-draft-themes');
     if (themes && themesOpen) themes.open = true;
     if (focusedStep?.ramp && focusedStep.step) preview.querySelector<HTMLElement>(`[data-be-ramp="${focusedStep.ramp}"][data-be-step="${focusedStep.step}"]`)?.focus({ preventScroll: true });
@@ -198,10 +210,12 @@ export async function loadDocument(bedit: BrandEditorCtx): Promise<void> {
   // genuinely unbranded install (no real doc yet) falls back to DEFAULT_PRIMARY.
   // Scheme/surface/contrast aren't recoverable (deriveBrandTokens doesn't persist
   // its own input options into the doc), so those stay at their usual defaults.
+  // With colourways the seed is the CANONICAL lead's light primary, pinned: it is
+  // the lead Rebuild palette re-derives, whatever colourway a tool route stored.
   bedit.primary = DEFAULT_PRIMARY;
   if (installedDoc) {
     try {
-      bedit.primary = tokenValueToHex(createTokenSet(installedDoc, { theme: 'light' }).resolve('color.semantic.primary')) ?? DEFAULT_PRIMARY;
+      bedit.primary = tokenValueToHex(leadTokenSet(installedDoc, 'light').resolve('color.semantic.primary')) ?? DEFAULT_PRIMARY;
     } catch { /* malformed/tokenless doc - keep the default seed */ }
   }
   bedit.scheme = 'mono'; bedit.surface = 'light'; bedit.contrast = 'comfort';
@@ -236,6 +250,7 @@ export function seedHarmony(bedit: BrandEditorCtx): void {
   bedit.analogCount = 3;   // number of accents (2–5)
   bedit.analogAngle = 30;  // hue step in degrees between consecutive accents (10–45)
   bedit.currentTheme = document.documentElement.dataset.theme || 'light';
+  bedit.currentLead = null;
 
   // ── Per-ramp tonal curves - the editable master behind each ramp's steps ─────
   // Loaded from the installed doc's ramp-group $extensions; ABSENT on a curve-less
@@ -300,6 +315,7 @@ export function wirePreview(bedit: BrandEditorCtx): void {
 
 export function stateOps(bedit: BrandEditorCtx) {
   return {
+    editContext: bindOp(bedit, editContext),
     syncPickerSwatches: bindOp(bedit, syncPickerSwatches),
     resolveTokenRef: bindOp(bedit, resolveTokenRef),
     pushUndo: bindOp(bedit, pushUndo),
