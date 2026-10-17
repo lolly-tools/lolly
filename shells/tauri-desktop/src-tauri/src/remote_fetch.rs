@@ -304,6 +304,62 @@ mod tests {
         }
     }
 
+    // A Work instance answers a byte route with a same-origin 302 to a token
+    // address that lasts minutes: /e/i/<sha256>.<ext>?dt= for instance-private
+    // catalog bytes, /o/<key>.<ext>?X-Amz-... for offloaded project files.
+    // shells/web/src/lib/instance.test.ts covers what the shell does with the
+    // final answer.
+    fn token_addresses() -> (String, String) {
+        let e_token = format!(
+            "https://work.example/e/i/{}.png?dt=1.k1.1760702400.{}",
+            "a".repeat(64),
+            "d".repeat(43)
+        );
+        let o_token = format!(
+            "https://work.example/o/{}.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256\
+             &X-Amz-Credential=EXAMPLEKEY%2F20261017%2Feu-north-1%2Fs3%2Faws4_request\
+             &X-Amz-Date=20261017T120000Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host\
+             &X-Amz-Signature={}",
+            "b".repeat(64),
+            "c".repeat(64)
+        );
+        (e_token, o_token)
+    }
+
+    #[test]
+    fn token_addresses_pass_the_request_boundary_unchanged() {
+        let (e_token, o_token) = token_addresses();
+        for token in [&e_token, &o_token] {
+            assert!(token.len() <= MAX_URL_BYTES, "{token}");
+            assert_eq!(validate_url(token).unwrap().as_str(), token.as_str());
+        }
+    }
+
+    #[test]
+    fn a_same_origin_token_hop_keeps_credentials_and_another_origin_does_not() {
+        let (e_token, o_token) = token_addresses();
+        assert!(follows_redirect(302));
+        // The loop joins the Location header onto the address it asked for,
+        // validates the result and compares origins before the next request.
+        let catalog = validate_url("https://work.example/catalog/inst/asset-1/png?v=3").unwrap();
+        let next = validate_url(catalog.join(e_token.trim_start_matches("https://work.example")).unwrap().as_str()).unwrap();
+        assert_eq!(next.as_str(), e_token);
+        assert_eq!(origin(&catalog), origin(&next), "a relative Location keeps cookie and authorization");
+        let file = validate_url("https://work.example/api/v1/projects/p1/files/f1").unwrap();
+        let next = validate_url(file.join(&o_token).unwrap().as_str()).unwrap();
+        assert_eq!(next.as_str(), o_token);
+        assert_eq!(origin(&file), origin(&next), "an absolute Location on the same origin keeps them too");
+        for elsewhere in [
+            "https://storage.example/o/key.webp?X-Amz-Signature=abc",
+            "https://work.example:8443/e/i/key.png?dt=1",
+            "https://cdn.work.example/e/i/key.png?dt=1",
+        ] {
+            let next = validate_url(catalog.join(elsewhere).unwrap().as_str()).unwrap();
+            assert_ne!(origin(&catalog), origin(&next), "{elsewhere} drops cookie and authorization");
+        }
+        assert!(validate_url(catalog.join("http://work.example/e/i/key.png?dt=1").unwrap().as_str()).is_err());
+    }
+
     #[test]
     fn address_policy_rejects_local_private_metadata_and_documentation_space() {
         for raw in [
