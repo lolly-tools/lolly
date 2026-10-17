@@ -119,10 +119,10 @@ Each of those plans keeps its own build sequence. This chapter settles only the 
 
 ## Open points
 
-- **Q2, granularity and persistence of local rejection.** Default: per rule, instance scoped, recorded on the session record with a fingerprint (R6). A derived tool revision is a Design tool export and is not part of 0.1. This touches the instance record, which already carries `rightsDecisions` keyed by work and kind with a fingerprint (`engine/src/session-record.ts`). The rule side is in [constraints, authority and local choice](policy.html). Evidence that would change it: a need to share a rejected state as a reusable tool.
-- **Q6, whether the specification is public from the first draft.** Default: yes, published under `/info/` with the draft notice, since the constraints, determinism and reproducibility pages already make public promises this model has to keep. Evidence that would change it: a reason to keep the drafts private until the pilots pass. The [status chapter](status.html) records the answer.
+- **Q2, granularity and persistence of local rejection.** Decided on 2026-10-16 by accepting the default: per rule, instance scoped, recorded on the session record with a fingerprint (R6). A derived tool revision is a Design tool export and is not part of 0.1. This touches the instance record, which already carries `rightsDecisions` keyed by work and kind with a fingerprint (`engine/src/session-record.ts`). The rule side is in [constraints, authority and local choice](policy.html). Evidence that would reopen it: a need to share a rejected state as a reusable tool.
+- **Q6, whether the specification is public from the first draft.** Decided on 2026-10-16: yes, published under `/info/` with the draft notice, since the constraints, determinism and reproducibility pages already make public promises this model has to keep. Evidence that would reopen it: a reason to keep the drafts private until the pilots pass. The [status chapter](status.html) records the decision.
 
-The other open questions are settled in other chapters. Q1 and Q5 are answered in [Conformance and fidelity](conformance.html). Q3 is answered in [Constraints, authority and local choice](policy.html). Q4 is answered in [Operations and outcomes](operations.html).
+The other questions were decided the same day and are stated in other chapters. Q1 and Q5 are answered in [Conformance and fidelity](conformance.html). Q3 is answered in [Constraints, authority and local choice](policy.html). Q4 is answered in [Operations and outcomes](operations.html).
 
 ## Precedents
 

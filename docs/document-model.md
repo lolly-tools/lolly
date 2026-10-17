@@ -14,11 +14,11 @@ This is a draft for review, dated 2026-09-24. Nothing in it is normative until t
 
 | State | What it covers |
 |---|---|
-| Decided | Thirteen confirmed directions (D1 to D13) and fifteen resolutions from evidence (R1 to R15). Nine corrections from the final review (C1 to C9) are folded in. |
-| Open | Six open questions (Q1 to Q6). Each carries a recommended default, and the draft reads on that default until the question is answered. |
+| Decided | Thirteen confirmed directions (D1 to D13), fifteen resolutions from evidence (R1 to R15) and six answered questions (Q1 to Q6). Nine corrections from the final review (C1 to C9) are folded in. |
+| Open | The review of the chapters themselves. The draft notice stays until the status chapter records that people have read them. |
 | Not built | Every type, every schema and every fixture. This draft adds nothing to `packages/core` and nothing to `schemas/`. |
 
-A D id is a confirmed direction. An R id is a resolution proposed from evidence; it stands unless the review overturns it. A C id is a correction the final review made before drafting started.
+A D id is a confirmed direction. An R id is a resolution proposed from evidence; it stands unless the review overturns it. A C id is a correction the final review made before drafting started. A Q id is a question the maintainer answered on 2026-10-16, accepting the recommended defaults for Q1 to Q5 and recording Q6 as decided: the specification is public from its first draft.
 
 ## Where to read the specification
 
@@ -47,7 +47,7 @@ Read a chapter, then send what you found, quoting the chapter and heading. Open 
 
 - No conformance for any shell. A conformance suite produces a measured report and an authority records an acceptance; the two are never merged (R8).
 - No threshold. The comparator probe in the conformance chapter shows only that one whole-image number cannot separate a lost caption from a half-pixel shift. Calibration comes after review (R9).
-- No frozen type. The counterexamples in the proof cases must pass as contract fixtures before anything is added to `packages/core` or `schemas/`.
+- No frozen type. The counterexamples in the proof cases must pass as contract fixtures before anything is added to `packages/core` or `schemas/`. The shared core types `DependencyGraphV1`, `ComponentDefinitionV1`, `OutcomeV1` and `FindingV1` follow the same rule: they may be added after those fixtures pass, and not earlier.
 - No determinism or reproducibility claim beyond the ones [Determinism](/info/determinism.html) and [Reproducibility](/info/reproducibility.html) already make.
 - No cloud dependency. The core evaluates on the device. A governed client that loses its connection must keep enforcing the policy it holds (R7). The web shell does not do that yet: once its cached copy is 24 hours old and the server cannot be reached, it fails closed ([policy chapter](/info/spec/document-model/policy.html)).
 - Nothing about spatial output or fabrication beyond an extension boundary. Both stay written explorations. This draft commits to building neither (D5).

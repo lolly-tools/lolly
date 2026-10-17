@@ -26,7 +26,7 @@ Each suite declares named features, and each feature is marked core or extended 
 
 Requiredness is scoped to the affected operation or output (R11). Missing motion support must never block inspection or a still export that has no motion dependency (R11), which is the rule the four gates in `packages/core/src/host-v1/apis.ts` and `schemas/tool.schema.json` already follow.
 
-Independent authors, Work instances and local people may publish suites and feature namespaces under their own namespace and version (D10, plan section 10.2). A suite namespace carries publisher identity. What names they take, and who may publish under `lolly/*`, is open as Q5 below, with its default recorded there.
+Independent authors, Work instances and local people may publish suites and feature namespaces under their own namespace and version (D10, plan section 10.2). A suite namespace carries publisher identity. What names they take, and who may publish under `lolly/*`, is Q5 below, decided on 2026-10-16 by accepting its default.
 
 ### Fixtures
 
@@ -172,9 +172,9 @@ Each route must declare preservation separately for six dimensions: appearance, 
 
 A route is tested by a meaningful edit after import, followed by an export, followed by a comparison across all six dimensions (R14). The required edits are moving a layer, changing a text run and swapping a token.
 
-The first routes are proposed, not settled. They are Q1 below, and the table states them as the recommended default.
+The first routes are Q1 below. Andy accepted them on 2026-10-16 as the table states them.
 
-| Pilot | Proposed route | What exists today |
+| Pilot | First route | What exists today |
 |---|---|---|
 | Design | To and from Penpot. | The `.penpot` writer in `engine/src/penpot-file.ts`; the editable import is `parsePenpotBinfile` in `shells/web/src/views/design-import.ts` over the pure mapper `engine/src/design-map.ts` (the Unpack reader in `shells/web/src/views/penpot-import.ts` extracts, it does not round trip). |
 | Design | To native PPTX and back. | The deck reader `readPptx` in `engine/src/pptx-read.ts`, reached by the Rebrand source path in `packages/node-shell/src/pptx.ts`. |
@@ -211,10 +211,10 @@ This draft adds no conformance or reproducibility claim beyond the ones `docs/de
 
 ## Open points
 
-- **Q1. The first editable interchange routes per pilot.** Default from plan section 16: the four routes and three edits in the editable round trips section above. Evidence that would change it: a customer route that outranks them.
-- **Q5. Who may publish a suite under the `lolly` namespace, and how a local or Work suite is named.** Default from plan section 16: `lolly/*` suites are published from this repository's continuous integration only, Work instances publish under `work:<instance>/*`, local people publish under `local/*` and an acceptance record always states the suite it judged. Evidence that would change it: a partner programme that needs a shared namespace.
+- **Q1. The first editable interchange routes per pilot.** Decided on 2026-10-16 by accepting the default from plan section 16: the four routes and three edits in the editable round trips section above. Evidence that would reopen it: a customer route that outranks them.
+- **Q5. Who may publish a suite under the `lolly` namespace, and how a local or Work suite is named.** Decided on 2026-10-16 by accepting the default from plan section 16: `lolly/*` suites are published from this repository's continuous integration only, Work instances publish under `work:<instance>/*`, local people publish under `local/*` and an acceptance record always states the suite it judged. Evidence that would reopen it: a partner programme that needs a shared namespace.
 
-The other open questions are carried in other chapters, each with its recommended default and none of them yet answered (plan section 16). Q2 and Q3 are in [Constraints, authority and local choice](policy.html). Q4 is in [Operations and outcomes](operations.html). Q6 is in [Status and open points](status.html).
+The other questions are carried in other chapters, each decided on 2026-10-16 (plan section 16). Q2 and Q3 are in [Constraints, authority and local choice](policy.html). Q4 is in [Operations and outcomes](operations.html). Q6 is in [Status and open points](status.html).
 
 ## Precedents
 
