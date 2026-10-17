@@ -1749,7 +1749,7 @@
             "properties": {
               "palette": {
                 "type": "string",
-                "description": "Asset ID of a palette asset to constrain choices. If omitted, free color picker."
+                "description": "Asset ID of a palette asset to constrain choices, or `colourway-leads` to offer the design system's colourway leads: every colourway's primary in the document's look, canonical first. With fewer than two colourways the field offers the ordinary palette. If omitted, free color picker."
               },
               "swatchesOnly": {
                 "type": "boolean",

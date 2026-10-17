@@ -14,7 +14,7 @@ import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import {
   lchTrackGradients, LCH_MAX, colorFieldHtml, wireColorField, setSwatches, runBoundaries,
-  swatchName, resolveColorVar, colorVarLabel,
+  swatchName, resolveColorVar, colorVarLabel, setSwatchSource, provideSwatchSource, LEADS_SWATCH_SOURCE, colourwayLeadSwatches,
 } from './color-field.ts';
 import type { ColorChangeDetail, ColorFieldValue, WireColorFieldOpts } from './color-field.ts';
 import { colorSpaces } from './color-spaces.ts';
@@ -1286,4 +1286,113 @@ test('Escape cancels the picker before its parent even when focus is outside', a
     assert.equal(field.querySelector<HTMLElement>('.color-popover')!.hidden, true);
     assert.equal(document.activeElement, trigger);
   }
+});
+
+// ── Named swatch sources: the colourway leads (plans/319) ────────────────────
+
+const LEADS_A = [
+  { value: '#033633', label: 'Main', group: 'Colourway', ref: null },
+  { value: '#c2410c', label: 'Persimmon', group: 'Colourway', ref: null },
+  { value: '#0e7490', label: 'Lagoon', group: 'Colourway', ref: null },
+];
+
+/** Open a field's popover and read the swatch values its grid offers. */
+function openSwatches(field: HTMLElement): string[] {
+  field.querySelector<HTMLElement>('.color-trigger')!
+    .dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+  return [...field.querySelectorAll<HTMLElement>('[data-swatch-value]')].map((b) => b.dataset.swatchValue!);
+}
+
+test('a field with a swatch source offers that list, and the shared palette while the source is empty', () => {
+  setSwatches([{ value: '#30ba78', label: 'Jungle', group: 'Brand', ref: null }, { value: '#ffffff', label: 'White', group: 'Brand', ref: null }]);
+  setSwatchSource(LEADS_SWATCH_SOURCE, null);
+  try {
+    const empty = mount('#123456', { float: true, swatchSource: LEADS_SWATCH_SOURCE });
+    assert.equal(empty.field.dataset.swatchSource, LEADS_SWATCH_SOURCE);
+    assert.deepEqual(openSwatches(empty.field), ['#30ba78', '#ffffff'], 'one lead, no family: the ordinary palette');
+
+    setSwatchSource(LEADS_SWATCH_SOURCE, LEADS_A);
+    const leads = mount('#123456', { float: true, swatchSource: LEADS_SWATCH_SOURCE });
+    assert.deepEqual(openSwatches(leads.field), ['#033633', '#c2410c', '#0e7490']);
+    // A pick is a plain colour: a lead outside the document's colourway has no token here.
+    leads.field.querySelector<HTMLElement>('[data-swatch-value="#c2410c"]')!
+      .dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+    assert.equal(leads.seen.at(-1)!.value, '#c2410c');
+
+    // Every other field keeps the shared list, and its markup is what it always was.
+    assert.deepEqual(openSwatches(mount('#123456', { float: true }).field), ['#30ba78', '#ffffff']);
+    assert.equal(colorFieldHtml('cf', '#123456', { swatchSource: undefined }), colorFieldHtml('cf', '#123456', {}));
+    // A colourway's lead is called by its colourway's name wherever it shows.
+    assert.equal(swatchName('#c2410c'), 'Persimmon');
+  } finally { setSwatchSource(LEADS_SWATCH_SOURCE, null); }
+});
+
+test('a provided source is read again on every open, and the grid follows a changed list', async () => {
+  let list: typeof LEADS_A | null = LEADS_A;
+  let reads = 0;
+  await provideSwatchSource(LEADS_SWATCH_SOURCE, async () => { reads += 1; return list; });
+  try {
+    assert.equal(reads, 1, 'read once when provided, so the first open already has the list');
+    const first = mount('#123456', { float: true, swatchSource: LEADS_SWATCH_SOURCE });
+    assert.deepEqual(openSwatches(first.field), ['#033633', '#c2410c', '#0e7490']);
+    // A look switch gives every lead a new value; the next open reads them again.
+    list = [{ ...LEADS_A[0]!, value: '#30ba78' }, { ...LEADS_A[1]!, value: '#fb923c' }];
+    const second = mount('#123456', { float: true, swatchSource: LEADS_SWATCH_SOURCE });
+    assert.deepEqual(openSwatches(second.field), ['#033633', '#c2410c', '#0e7490'], 'the last list shows at once');
+    await wait(0);
+    assert.deepEqual([...second.field.querySelectorAll<HTMLElement>('[data-swatch-value]')].map((b) => b.dataset.swatchValue), ['#30ba78', '#fb923c']);
+    assert.ok(reads >= 3);
+    // A design system that drops to one lead: the source empties and the shared palette returns.
+    list = null;
+    const third = mount('#123456', { float: true, swatchSource: LEADS_SWATCH_SOURCE });
+    openSwatches(third.field);
+    await wait(0);
+    assert.ok(![...third.field.querySelectorAll<HTMLElement>('[data-swatch-value]')].some((b) => b.dataset.swatchValue === '#fb923c'));
+  } finally {
+    await provideSwatchSource(LEADS_SWATCH_SOURCE, null);
+    setSwatchSource(LEADS_SWATCH_SOURCE, null);
+  }
+});
+
+test('the leads list comes from the family, each lead named after its colourway, and is null below two leads', async () => {
+  const member = (id: string, value: string) => ({ id, name: id[0]!.toUpperCase() + id.slice(1), canonical: id === 'main', active: id === 'main', value });
+  const roles: unknown[] = [];
+  const tokens = (members: ReturnType<typeof member>[]) => ({ family: async (role?: string) => { roles.push(role); return members; } });
+  assert.deepEqual(await colourwayLeadSwatches(tokens([member('main', '#033633'), member('persimmon', '#c2410c')])), [
+    { value: '#033633', label: 'Main', group: 'Colourway', ref: null },
+    { value: '#c2410c', label: 'Persimmon', group: 'Colourway', ref: null },
+  ]);
+  assert.deepEqual(roles, ['primary']);
+  assert.equal(await colourwayLeadSwatches(tokens([member('main', '#033633')])), null);
+  assert.equal(await colourwayLeadSwatches(tokens([])), null);
+  assert.equal(await colourwayLeadSwatches({}), null, 'a surface without the family read');
+  assert.equal(await colourwayLeadSwatches(undefined), null);
+});
+
+test('read through the runtime\'s live choices, the leads follow a look switch', async () => {
+  const { liveThemedHost } = await import('../lib/document-theme.ts');
+  const { createTokenSet } = await import('../../../../engine/src/tokens.ts');
+  const { tokenFamily } = await import('../../../../engine/src/token-context.ts');
+  const { addColourway } = await import('../../../../engine/src/colourway.ts');
+  let doc = JSON.parse(readFileSync(new URL('../../../../brands/lolly-demo/catalog/assets/lolly/tokens/opal.json', import.meta.url), 'utf8')) as Record<string, unknown>;
+  const r = addColourway(doc, { id: 'persimmon', name: 'Persimmon', values: {
+    light: { primary: '#c2410c', 'on-primary': '#ffffff', secondary: '#7c2d12' },
+    dark: { primary: '#fb923c', 'on-primary': '#111111', secondary: '#fed7aa' },
+  } });
+  assert.ok(r.ok);
+  doc = r.doc;
+  const host = {
+    version: '1', shell: 'web', log() {},
+    tokens: {
+      get: async (o = {}) => createTokenSet(doc, o), colors: async (o = {}) => createTokenSet(doc, o).colors(),
+      resolve: async (ref: string, o = {}) => createTokenSet(doc, o).resolve(ref), themes: async () => createTokenSet(doc).themes(),
+      family: (role?: string, o = {}) => tokenFamily(doc, role, o),
+    },
+  } as unknown as Parameters<typeof liveThemedHost>[0];
+  const runtime: { tokenSelection?: Record<string, string> } = { tokenSelection: { '': 'light', colourway: 'main' } };
+  const live = liveThemedHost(host, runtime);
+  const values = async () => (await colourwayLeadSwatches(live.tokens as never))?.map((s) => s.value);
+  assert.equal((await values())?.[1], '#c2410c', 'the light look');
+  runtime.tokenSelection = { '': 'dark', colourway: 'persimmon' };
+  assert.equal((await values())?.[1], '#fb923c', 'the same reader, after the switch, reads the dark look');
 });
