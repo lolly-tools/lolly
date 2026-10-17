@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { crc32 } from 'node:zlib';
 import { PDFDocument, PDFName } from 'pdf-lib';
 import { packPng } from '@lolly/engine';
 import { createPdfAPI, organizePdf } from '../src/pdf.ts';
@@ -145,6 +146,14 @@ test('paper sizes fit each image and turn the page to match it', async () => {
   assert.deepEqual(doc.getPages().map(p => [p.getWidth(), p.getHeight()]), [[841.89, 595.28], [595.28, 841.89]]);
 });
 
+/** A one-pixel PNG with an acTL chunk after IHDR, which is how an APNG announces its animation. */
+function animatedPng(): Uint8Array {
+  const still = packPng(new Uint8Array(4), { width: 1, height: 1 });
+  const body = [...Buffer.from('acTL', 'latin1'), 0, 0, 0, 2, 0, 0, 0, 0];
+  const crc = crc32(new Uint8Array(body));
+  return new Uint8Array([...still.subarray(0, 33), 0, 0, 0, 8, ...body, crc >>> 24, (crc >>> 16) & 255, (crc >>> 8) & 255, crc & 255, ...still.subarray(33)]);
+}
+
 test('images refuse what they cannot place, without decoding oversized PNGs', async () => {
   const api = createPdfAPI();
   await assert.rejects(() => api.fromImages!([]), /at least one PNG or JPEG/);
@@ -152,6 +161,11 @@ test('images refuse what they cannot place, without decoding oversized PNGs', as
   const header = packPng(new Uint8Array(4), { width: 1, height: 1 });
   header.set([0, 0, 0x27, 0x10, 0, 0, 0x27, 0x10], 16);
   await assert.rejects(() => api.fromImages!([{ bytes: header }]), /100 million pixels/);
+  // pdf-lib would throw a bare error on an animated PNG; it is refused by name first.
+  assert.equal(readPngFacts(animatedPng()).animated, true);
+  assert.equal(readPngFacts(packPng(new Uint8Array(4), { width: 1, height: 1 })).animated, false);
+  await assert.rejects(() => api.fromImages!([{ bytes: JPEG }, { bytes: animatedPng() }]),
+    (error: Error) => error.name === 'PdfTransformError' && /image 2 is an animated PNG/.test(error.message));
 });
 
 test('image pages go through Pages like any PDF and leave no producer credit', async () => {

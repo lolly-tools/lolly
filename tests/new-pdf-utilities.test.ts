@@ -201,6 +201,29 @@ test('Pages names an images-only PDF after the first image and refuses what it c
   try { assert.match(odd.getHydrated(), /notes\.txt is not a PDF or an image\./); } finally { odd.destroy(); }
 });
 
+test('Pages places an animated PNG as its still picture, through host.images', async () => {
+  const tool = await communityTool('pages');
+  // A PNG signature, an IHDR chunk, then the acTL chunk that makes it an APNG.
+  const head = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, ...Buffer.from('IHDR'), 0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 8, ...Buffer.from('acTL'), 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0];
+  const apng = imageFile('wave.png', 'image/png', head, 1);
+  const calls = { fromImages: [] as any[], encode: [] as any[], organize: [] as any[] };
+  const runtime = await createRuntime(tool, imagePagesHost(calls), { source: [apng] } as never);
+  try {
+    const html = runtime.getHydrated();
+    assert.equal(calls.encode.length, 1);
+    assert.equal(calls.encode[0].bytes, apng.bytes);
+    assert.notEqual(calls.fromImages[0].images[0].bytes, apng.bytes, 'the still picture is placed, not the animated file');
+    const changes = [...html.matchAll(/data-change-outcome="(\w+)">([^<]+)</g)].map(m => [m[1], m[2]]);
+    assert.deepEqual(changes, [['removed', 'Placed 1 animated PNG as a still picture, without the animation.']]);
+  } finally { runtime.destroy(); }
+
+  const noEncoder = imagePagesHost(calls);
+  delete noEncoder.images;
+  const refused = await createRuntime(tool, noEncoder, { source: [apng] } as never);
+  try { assert.match(refused.getHydrated(), /wave\.png is an animated PNG; save it as a still image first\./); } finally { refused.destroy(); }
+});
+
 test('Sign renders direct drawing and asset controls on a mixed-size-aware page and exports drawn ink', async () => {
   const tool = await communityTool('sign');
   const checked = validateManifest(tool.manifest);

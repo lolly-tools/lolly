@@ -68,7 +68,11 @@ export interface PdfAPI {
    * them. Page expressions are 1-based (`1-3,7,10-`); repeated page numbers are
    * retained for reorder/extract and rejected where they would be ambiguous.
    * Document metadata is carried from the primary input and no producer credit
-   * is added. Encrypted documents and XFA forms are refused by name.
+   * is added. Encrypted documents and XFA forms are refused by name. When the
+   * pages are copied into a new PDF (every operation except rotating a single
+   * PDF), nothing on a page that is not in the output comes along through a
+   * link, form field or reply that refers to it, and signature values (signer,
+   * date, certificate) are left out.
    */
   organize?(bytes: Uint8Array, opts: PdfOrganizeOpts): Promise<PdfOrganizeResult>;
 
@@ -76,8 +80,10 @@ export interface PdfAPI {
    * Optional v1.262: build a new PDF with one image per page, in the given
    * order. JPEG data is embedded without re-encoding, its camera orientation is
    * applied to the page, and its Exif, XMP, IPTC, comment and appended
-   * secondary-image data is left out. PNG pixels are copied losslessly. Other
-   * formats are refused, so a tool converts them first (host.images.encode).
+   * secondary-image data is left out. 8-bit PNG pixels are copied without
+   * loss; a 16-bit PNG is reduced to 8 bits per channel, and PNG colour
+   * profiles are not kept. Animated PNGs and other formats are refused by name,
+   * so a tool converts them first (host.images.encode).
    * Feature-detect `host.pdf?.fromImages`. Runs locally.
    */
   fromImages?(images: PdfImageInput[], opts?: PdfImagesOpts): Promise<PdfImagesResult>;
