@@ -202,7 +202,7 @@ export const BACKUP_READER_VERSION = 1;
 // catalog 'sbt-tool-index'). theme + sidebarWidth are prefs; ct-metrics is the
 // local-only activity tally shown on the profile page. There is no bridge for these
 // (they're synchronous UI state), and webview localStorage is the same on every shell.
-const PREF_KEYS = ['theme', 'sidebarWidth', 'ct-metrics'];
+export const PREF_KEYS = ['theme', 'sidebarWidth', 'ct-metrics'];
 
 // The parts this reader understands. Anything else in a bundle is a part from a
 // newer (forward-compatible) writer - left untouched and counted as `skipped` so
