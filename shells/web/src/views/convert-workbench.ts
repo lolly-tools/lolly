@@ -16,6 +16,7 @@ import { runWebFileOperation, describeFile } from '../lib/file-operation-adapter
 import { localFileOperations } from '../lib/file-operation-store.ts';
 import { runSavedFileOperation } from '../lib/saved-file-operation.ts';
 import { attachFileResultActions } from './file-result-actions.ts';
+import { DATA_SOURCE_KINDS, dataOptionsHtml, wireDataOptions } from './convert-data-options.ts';
 
 export interface ConvertSource { file: File; bytes: Uint8Array; kind: string; targets: Target[] }
 interface Completed { blob: Blob; name: string; report: FileOperationReportV1; operationId: string; original: File }
@@ -23,6 +24,7 @@ interface Completed { blob: Blob; name: string; report: FileOperationReportV1; o
 export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[], host: HostV1, initialTarget?: string): () => void {
   const first = sources[0]!;
   const imageSource = sources.every(s => ['raster', 'svg', 'svgz'].includes(s.kind));
+  const dataSource = sources.length === 1 && DATA_SOURCE_KINDS.includes(first.kind);
   const targets = first.targets.filter(target => sources.every(s => s.targets.some(t => t.id === target.id)));
   const urls = new Set<string>();
   let active = true, running = false;
@@ -64,6 +66,7 @@ export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[
           <button type="button" class="btn" data-preset="jpeg"><strong>${t('Easy to share')}</strong><span>${t('JPEG · up to 2400 px')}</span></button>
         </div>` : ''}
         <label class="convert-field">${t('Output format')}<select data-format>${targets.map(target => `<option value="${target.id}" ${target === defaultTarget ? 'selected' : ''}>${escapeHtml(t(target.label))}</option>`).join('')}</select></label>
+        ${dataSource ? dataOptionsHtml(first.kind) : ''}
         ${imageSource ? `<details class="convert-advanced"><summary>${t('Size, quality & background')}</summary>
           <div class="convert-options">
             <label class="convert-field">${t('Longest edge (px)')}<input data-edge type="number" min="0" max="16384" step="1" value="0"><small>${t('0 keeps the original size. Never enlarged; proportions stay the same.')}</small></label>
@@ -99,7 +102,7 @@ export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[
   const zipButton = root.querySelector<HTMLButtonElement>('[data-zip]')!;
   const setStatus = (value: string): void => { if (active) status.textContent = value; };
   const showNotes = (): void => {
-    root.querySelector<HTMLElement>('[data-notes]')!.innerHTML = conversionFindings(isJxl(first.bytes) ? 'jxl' : first.kind, format.value).map(f => `<p>${escapeHtml(t(f.message))}</p>`).join('');
+    root.querySelector<HTMLElement>('[data-notes]')!.innerHTML = conversionFindings(isJxl(first.bytes) ? 'jxl' : first.kind, format.value, data?.read() ?? {}).map(f => `<p>${escapeHtml(t(f.message))}</p>`).join('');
     const lossy = ['jpeg', 'webp', 'avif', 'jxl'].includes(format.value);
     const reversible = ['jxl-recompress', 'jpeg-original'].includes(format.value);
     if (edge) edge.disabled = reversible;
@@ -116,6 +119,8 @@ export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[
       b.setAttribute('aria-pressed', String(id === format.value && Number(edge?.value || 0) === presetEdge && (id === 'png' || Number(quality?.value) === presetQuality)));
     });
   };
+  // The reading choices change the loss report, so the notes follow them too.
+  const data = dataSource ? wireDataOptions(root, first, () => showNotes()) : null;
   format.addEventListener('change', showNotes);
   quality?.addEventListener('input', () => { root.querySelector('[data-quality-value]')!.textContent = `${quality.value}%`; showNotes(); });
   edge?.addEventListener('input', showNotes);
@@ -175,14 +180,14 @@ export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[
     controls.forEach(control => { control.disabled = true; });
     stopButton.hidden = false; stopButton.disabled = false;
     let succeeded = 0, failed = 0, cancelled = 0;
-    const request: FileOperationRequestV1 = { version: 1, operation: 'convert', target: target.id, options: ['jxl-recompress', 'jpeg-original'].includes(target.id) ? {} : { ...options } };
+    const request: FileOperationRequestV1 = { version: 1, operation: 'convert', target: target.id, options: ['jxl-recompress', 'jpeg-original'].includes(target.id) ? {} : data ? data.read() : { ...options } };
     let heartbeat: ReturnType<typeof setInterval> | undefined;
     let batchWarning = '';
     try {
       const store = await localFileOperations();
       // Persist ALL selected members before hashing, reserving or encoding any file.
       const batch = await store.batches.create(sources.map(source => ({ file: source.file,
-        outputName: allocateFileName(`${source.file.name.replace(/\.[^.]+$/, '') || 'converted'}.${target.ext}`, reserved),
+        outputName: allocateFileName(`${source.file.name.replace(/\.[^.]+$/, '') || 'converted'}.${data?.zip() ? 'zip' : target.ext}`, reserved),
       })), request);
       heartbeat = setInterval(() => { void store.batches.heartbeat(batch.id).catch(() => {}); }, 30_000);
       for (let i = 0; i < sources.length; i++) {

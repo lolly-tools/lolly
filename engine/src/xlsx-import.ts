@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * xlsx-import.ts - read the first worksheet of an .xlsx into a plain grid.
+ * xlsx-import.ts - read one worksheet of an .xlsx into a plain grid.
  *
  * The spreadsheet sibling of `data-import.ts`'s CSV path: an .xlsx is a zip of
  * XML parts, so this unzips it (fflate) and returns `string[][]` - the same
@@ -14,6 +14,10 @@
  * bounds-safe string/regex reader (no DOM, no injected parser). Numbers, dates
  * and formulae surface as their cached string value; styling/number-format is
  * not applied (a date shows its serial or cached text, matching a CSV paste).
+ * With `cells: 'formulas'` a formula cell yields its formula text instead
+ * (`=SUM(A1:A3)`); a shared formula is rewritten for each cell it covers, and a
+ * cell whose formula cannot be rewritten safely keeps its cached value and is
+ * counted in `formulaResultsKept`.
  *
  * ── STRUCTURE OF AN .xlsx (only the parts we read) ────────────────────────────
  *   • xl/workbook.xml - <sheets><sheet name r:id=…/>: sheet ORDER.
@@ -42,6 +46,9 @@ export interface ReadXlsxOpts {
   /** Which worksheet to read: a 0-based index into {@link listXlsxSheets}, or an
    *  exact sheet name. Defaults to the first sheet (byte-identical to omitting it). */
   sheet?: number | string;
+  /** `'cached'` (default) returns each formula cell's saved result; `'formulas'`
+   *  returns its formula text, starting with `=`. */
+  cells?: 'cached' | 'formulas';
 }
 
 /** Result of {@link readXlsx}: the chosen sheet's cells + a truncation flag. */
@@ -54,6 +61,11 @@ export interface ReadXlsxResult {
   sheetPath: string;
   /** the human sheet name of the part read (from workbook.xml), when known. */
   sheetName?: string;
+  /** cells in the returned rows that carry a formula, in either mode. */
+  formulaCells?: number;
+  /** with `cells: 'formulas'`, formula cells returned as their cached value
+   *  because their formula text could not be recovered for that cell. */
+  formulaResultsKept?: number;
 }
 
 /** One worksheet of a workbook, in workbook (tab) order. */
@@ -85,10 +97,11 @@ const MAX_CELLS = 2_000_000;
 // ─── public API ──────────────────────────────────────────────────────────────
 
 /**
- * Read the first worksheet of an .xlsx into a `string[][]` grid.
+ * Read one worksheet of an .xlsx (the first unless `opts.sheet` names another)
+ * into a `string[][]` grid.
  *
  * @param bytes the raw file bytes (the shell reads the file; this owns unzip).
- * @param opts  optional row limit.
+ * @param opts  optional row limit, sheet and formula mode.
  * @throws if the bytes are not a zip, the zip is truncated/corrupt, the file is
  *         macro-enabled, or it carries no readable worksheet.
  */
@@ -151,9 +164,13 @@ export function readXlsx(bytes: Uint8Array, opts: ReadXlsxOpts = {}): ReadXlsxRe
 
   const shared = readSharedStrings(store);
 
-  const { rows, truncated } = readSheet(sheetXml, shared, limit);
+  const formulas: FormulaState = { mode: opts.cells === 'formulas' ? 'formulas' : 'cached', shared: new Map(), cells: 0, kept: 0 };
+  const { rows, truncated } = readSheet(sheetXml, shared, limit, formulas);
   if (!rows.length) throw new Error('That sheet has no cells.');
-  return { rows, truncated, sheetPath: chosen.path, sheetName: chosen.name || undefined };
+  return {
+    rows, truncated, sheetPath: chosen.path, sheetName: chosen.name || undefined, formulaCells: formulas.cells,
+    ...(formulas.mode === 'formulas' ? { formulaResultsKept: formulas.kept } : {}),
+  };
 }
 
 /**
@@ -353,10 +370,20 @@ function collectText(fragment: string): string {
 
 // ─── sheet cells ─────────────────────────────────────────────────────────────
 
+/** Formula handling for one sheet read: the mode, each shared formula's master
+ *  (keyed by its `si` group) and the counts reported back to the caller. */
+interface FormulaState {
+  mode: 'cached' | 'formulas';
+  shared: Map<string, { text: string; row: number; col: number }>;
+  cells: number;
+  kept: number;
+}
+
 function readSheet(
   xml: string,
   shared: string[],
   limit: number,
+  formulas: FormulaState,
 ): { rows: string[][]; truncated: boolean } {
   // Sparse fill: rowIndex → (colIndex → value). We track the max column so the
   // final grid is padded rectangular (gaps → '').
@@ -416,7 +443,8 @@ function readSheet(
       break outer;
     }
 
-    const value = cellValue(attrs, inner, shared);
+    const formula = inner.includes('<f') ? formulaText(inner, rowIdx, colIdx, formulas) : undefined;
+    const value = formula ?? cellValue(attrs, inner, shared);
     if (value === '') continue; // don't materialise blank cells (still padded later)
 
     let row = grid.get(rowIdx);
@@ -468,6 +496,142 @@ function cellValue(attrs: string, inner: string, shared: string[]): string {
   }
   // number / date / error - the literal cached value in <v>.
   return decodeXml(firstElemText(inner, 'v'));
+}
+
+// ─── formulas ────────────────────────────────────────────────────────────────
+
+/**
+ * Count a formula cell and, in formula mode, return its text as `=<formula>`.
+ * Returns undefined when the cell should show its cached value instead: always
+ * in cached mode, and in formula mode when the text cannot be recovered.
+ *
+ * A shared formula stores its text once, on the first cell of the range
+ * (`<f t="shared" ref="B2:B9" si="0">A2*2</f>`); every other cell carries only
+ * `<f t="shared" si="0"/>`. Excel derives each cell's formula by moving the
+ * relative references by the cell's offset from that first cell, so the same is
+ * done here. The first cell always precedes the others in document order.
+ */
+function formulaText(inner: string, row: number, col: number, state: FormulaState): string | undefined {
+  const m = /<f\b([^>]*?)(?:\/>|>([\s\S]*?)<\/f>)/.exec(inner);
+  if (!m) return undefined;
+  state.cells++;
+  if (state.mode === 'cached') return undefined;
+  const fAttrs = m[1] ?? '';
+  const own = m[2] ? decodeXml(m[2]) : '';
+  let text: string | null = own;
+  if (attr(fAttrs, 't') === 'shared') {
+    const si = attr(fAttrs, 'si') ?? '';
+    if (own) state.shared.set(si, { text: own, row, col });
+    else {
+      const master = state.shared.get(si);
+      text = master ? shiftFormula(master.text, row - master.row, col - master.col) : null;
+    }
+  }
+  if (!text) { state.kept++; return undefined; }
+  return `=${text}`;
+}
+
+// Excel's last row (1,048,576) as a 0-based bound.
+const MAX_ROWS = 1_048_576;
+// Characters that continue a name, a function or a sheet label. A reference
+// that touches one of these is part of a longer word, not a cell address.
+const NAME_CHAR = /[\p{L}\p{N}_.$\\?]/u;
+const REF_AT = /(\$?)([A-Za-z]{1,3})(\$?)(\d{1,7})/y;
+const WORD_AT = /[\p{L}\p{N}_.$\\?]+/uy;
+const NUMBER_AT = /\d+(?:\.\d*)?(?:[eE][+-]?\d+)?/y;
+
+/**
+ * Move every relative A1 reference in a formula by (dr, dc). Absolute parts
+ * (`$A`, `$1`) stay put. String literals, quoted sheet names and bracketed
+ * structured or external references are copied unchanged. Returns null when a
+ * moved reference would leave the sheet, a quote or bracket is unterminated, or
+ * the formula uses a whole-row or whole-column range, so the caller keeps the
+ * cached value rather than emit a formula that differs from the workbook's.
+ */
+export function shiftFormula(formula: string, dr: number, dc: number): string | null {
+  if (dr === 0 && dc === 0) return formula;
+  let out = '';
+  let i = 0;
+  while (i < formula.length) {
+    const ch = formula[i]!;
+    if (ch === '"' || ch === "'") {
+      let j = i + 1;
+      for (;;) {
+        const close = formula.indexOf(ch, j);
+        if (close < 0) return null;
+        if (formula[close + 1] === ch) { j = close + 2; continue; }
+        j = close + 1;
+        break;
+      }
+      out += formula.slice(i, j);
+      i = j;
+      continue;
+    }
+    if (ch === '[') {
+      let depth = 0;
+      let j = i;
+      for (; j < formula.length; j++) {
+        if (formula[j] === '[') depth++;
+        else if (formula[j] === ']' && --depth === 0) break;
+      }
+      if (j >= formula.length) return null;
+      out += formula.slice(i, j + 1);
+      i = j + 1;
+      continue;
+    }
+    const prevIsName = i > 0 && NAME_CHAR.test(formula[i - 1]!);
+    if (!prevIsName && /[A-Za-z$]/.test(ch)) {
+      REF_AT.lastIndex = i;
+      const ref = REF_AT.exec(formula);
+      const next = ref ? (formula[i + ref[0].length] ?? '') : '';
+      if (ref && !NAME_CHAR.test(next) && next !== '(' && next !== '!' && next !== '[') {
+        const colAbs = ref[1]!, rowAbs = ref[3]!;
+        const c = colToIndex(ref[2]!);
+        const r = Number.parseInt(ref[4]!, 10) - 1;
+        if (c >= 0 && c < MAX_COLS && r >= 0 && r < MAX_ROWS) {
+          const nc = colAbs ? c : c + dc;
+          const nr = rowAbs ? r : r + dr;
+          if (nc < 0 || nc >= MAX_COLS || nr < 0 || nr >= MAX_ROWS) return null;
+          out += `${colAbs}${indexToCol(nc)}${rowAbs}${nr + 1}`;
+          i += ref[0].length;
+          continue;
+        }
+      }
+    }
+    if (!prevIsName && /\d/.test(ch)) {
+      NUMBER_AT.lastIndex = i;
+      const num = NUMBER_AT.exec(formula)![0];
+      // A number touching a colon is a whole-row range such as 2:5.
+      if (formula[i + num.length] === ':' || formula[i - 1] === ':') return null;
+      out += num;
+      i += num.length;
+      continue;
+    }
+    if (NAME_CHAR.test(ch)) {
+      WORD_AT.lastIndex = i;
+      const word = WORD_AT.exec(formula)![0];
+      // Letters touching a colon are a whole-column range such as A:C.
+      if (/^\$?[A-Za-z]{1,3}$/.test(word) && (formula[i + word.length] === ':' || formula[i - 1] === ':')) return null;
+      out += word;
+      i += word.length;
+      continue;
+    }
+    out += ch;
+    i++;
+  }
+  return out;
+}
+
+/** 0-based column index to its letters (0 → "A", 26 → "AA"). */
+function indexToCol(index: number): string {
+  let n = index + 1;
+  let s = '';
+  while (n > 0) {
+    const rem = (n - 1) % 26;
+    s = String.fromCharCode(65 + rem) + s;
+    n = Math.floor((n - 1) / 26);
+  }
+  return s;
 }
 
 // ─── A1 refs ─────────────────────────────────────────────────────────────────
