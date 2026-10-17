@@ -4027,7 +4027,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.261.0";
+    ENGINE_VERSION = "1.262.0";
   }
 });
 
@@ -98756,10 +98756,11 @@ function designLayoutRequest(container, children2, tracks) {
     align_content: String(container.layoutAlignContent || "start"),
     justify: String(container.layoutJustify || "start"),
     justify_items: String(container.layoutJustifyItems || "start"),
-    sizing: [
-      mode(container, "W") === "fill" ? "fixed" : mode(container, "W"),
-      mode(container, "H") === "fill" ? "fixed" : mode(container, "H")
-    ],
+    // A hidden container keeps its stored size, as a hidden group does, instead of letting
+    // Hug collapse the container around members hidden along with the container.
+    sizing: ["W", "H"].map(
+      (axis) => on2(container.hidden) || mode(container, axis) === "fill" ? "fixed" : mode(container, axis)
+    ),
     items: items2,
     columns: cols,
     rows: rows2
@@ -98859,7 +98860,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
           )
         ).sort();
         const shape = fields2.map((k) => [k, r5[k]]);
-        if (isText(r5) && !r5.textStory && !on2(r5.hidden) && !on2(r5.layoutAbsolute) && (mode(r5, "W") === "hug" || mode(r5, "H") === "hug"))
+        if (isText(r5) && !r5.textStory && inFlow(r5) && (mode(r5, "W") === "hug" || mode(r5, "H") === "hug"))
           shape.push(["intrinsic", r5]);
         if (r5.kind === "image" && (mode(r5, "W") === "hug" || mode(r5, "H") === "hug"))
           shape.push(["image", r5.image]);
@@ -98921,7 +98922,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
           }
           for (const n7 of members) {
             let r5 = boxes[n7];
-            if (r5.kind === "image" && r5.image && !on2(r5.hidden) && !on2(r5.layoutAbsolute) && (mode(r5, "W") === "hug" || mode(r5, "H") === "hug")) {
+            if (r5.kind === "image" && r5.image && inFlow(r5) && (mode(r5, "W") === "hug" || mode(r5, "H") === "hug")) {
               const image = r5.image, iw = Number(image.width), ih = Number(image.height);
               if (![iw, ih].every((n8) => Number.isFinite(n8) && n8 > 0 && n8 <= MAX_LAYOUT_SCALAR))
                 throw new Error(
@@ -98931,9 +98932,9 @@ function createDesignLayoutEvaluator(solve3, measure3) {
               const height = mode(r5, "H") === "hug" ? width * ih / iw : number2(r5.h);
               boxes[n7] = r5 = { ...r5, w: width, h: height };
             }
-            if (!measure3 && isText(r5) && !r5.textStory && !on2(r5.hidden) && !on2(r5.layoutAbsolute) && (mode(r5, "W") === "hug" || mode(r5, "H") === "hug"))
+            if (!measure3 && isText(r5) && !r5.textStory && inFlow(r5) && (mode(r5, "W") === "hug" || mode(r5, "H") === "hug"))
               throw new Error("Text with content sizing needs a font measurement capability.");
-            if (!measure3 || !isText(r5) || r5.textStory || on2(r5.hidden) || on2(r5.layoutAbsolute) || mode(r5, "W") !== "hug" && mode(r5, "H") !== "hug")
+            if (!measure3 || !isText(r5) || r5.textStory || !inFlow(r5) || mode(r5, "W") !== "hug" && mode(r5, "H") !== "hug")
               continue;
             const measured = await measure3(
               r5,
@@ -99111,7 +99112,7 @@ function remapDesignLayout(rows2, tracks, copies) {
     tracks: tracks.filter((t) => copies.has(String(t.container))).map((t) => ({ ...t, container: copies.get(String(t.container)) }))
   };
 }
-var MAX_LAYOUT_LAYERS, MAX_LAYOUT_TRACKS, MAX_LAYOUT_OWNER_RECORDS, MAX_LAYOUT_SCALAR, MAX_LAYOUT_TEXT_LAYER_CHARS, MAX_LAYOUT_TEXT_DOCUMENT_CHARS, MAX_LAYOUT_TRACKS_PER_AXIS, MAX_LAYOUT_GRID_CELLS, MAX_LAYOUT_GRID_WORK, MAX_LAYOUT_PASSES, MAX_LAYOUT_REFLOW_WORK, MAX_LAYOUT_SOLVER_CACHE_ENTRIES, MAX_LAYOUT_SOLVER_CACHE_BYTES, MAX_LAYOUT_PROJECTION_KEY_CHARS, MAX_LAYOUT_PROJECTIONS, hasDesignLayout, on2, number2, mode, owner, hierarchyOwner, id, isText, sides, limit;
+var MAX_LAYOUT_LAYERS, MAX_LAYOUT_TRACKS, MAX_LAYOUT_OWNER_RECORDS, MAX_LAYOUT_SCALAR, MAX_LAYOUT_TEXT_LAYER_CHARS, MAX_LAYOUT_TEXT_DOCUMENT_CHARS, MAX_LAYOUT_TRACKS_PER_AXIS, MAX_LAYOUT_GRID_CELLS, MAX_LAYOUT_GRID_WORK, MAX_LAYOUT_PASSES, MAX_LAYOUT_REFLOW_WORK, MAX_LAYOUT_SOLVER_CACHE_ENTRIES, MAX_LAYOUT_SOLVER_CACHE_BYTES, MAX_LAYOUT_PROJECTION_KEY_CHARS, MAX_LAYOUT_PROJECTIONS, hasDesignLayout, on2, number2, mode, owner, hierarchyOwner, id, isText, inFlow, sides, limit;
 var init_design_layout = __esm({
   "engine/src/design-layout.ts"() {
     "use strict";
@@ -99140,6 +99141,7 @@ var init_design_layout = __esm({
     hierarchyOwner = (r5, byId) => byId.get(String(r5.group || ""))?.kind === "group" ? String(r5.group) : owner(r5);
     id = (r5) => String(r5.id || "");
     isText = (r5) => r5.kind === "text" || typeof r5.text === "string" && r5.text.length > 0;
+    inFlow = (r5) => !on2(r5.hidden) && !on2(r5.layoutAbsolute);
     sides = (r5, prefix) => ["Top", "Right", "Bottom", "Left"].map((k) => number2(r5[prefix + k]));
     limit = (r5, k) => r5[k] === "" || r5[k] == null ? null : Number(r5[k]);
   }

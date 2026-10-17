@@ -81,6 +81,13 @@ const hierarchyOwner = (r: Row, byId: ReadonlyMap<string, Row>): string =>
 const id = (r: Row): string => String(r.id || '');
 const isText = (r: Row): boolean =>
   r.kind === 'text' || (typeof r.text === 'string' && r.text.length > 0);
+/**
+ * Participation rule: a member leaves flex or grid flow only when it or an owner is hidden,
+ * or when it is placed absolutely. Timeline and presentation state (start, dur, lane,
+ * ignored, enter, exit, build, kf) is applied at paint time and never reaches the solver,
+ * so a timed member keeps its slot at every playhead position and build step.
+ */
+const inFlow = (r: Row): boolean => !on(r.hidden) && !on(r.layoutAbsolute);
 
 /** Whole track choices are scalar values: one collaboration write cannot tear type from value. */
 export function parseLayoutTrack(value: unknown): LayoutTrack {
@@ -508,10 +515,11 @@ export function designLayoutRequest(
     align_content: String(container.layoutAlignContent || 'start'),
     justify: String(container.layoutJustify || 'start'),
     justify_items: String(container.layoutJustifyItems || 'start'),
-    sizing: [
-      mode(container, 'W') === 'fill' ? 'fixed' : mode(container, 'W'),
-      mode(container, 'H') === 'fill' ? 'fixed' : mode(container, 'H'),
-    ],
+    // A hidden container keeps its stored size, as a hidden group does, instead of letting
+    // Hug collapse the container around members hidden along with the container.
+    sizing: (['W', 'H'] as const).map((axis) =>
+      on(container.hidden) || mode(container, axis) === 'fill' ? 'fixed' : mode(container, axis)
+    ),
     items,
     columns: cols,
     rows,
@@ -638,12 +646,12 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
             )
             .sort();
           const shape = fields.map((k) => [k, r[k]]);
-          // Only intrinsically sized plain text can make content affect geometry.
+          // Only intrinsically sized plain text can make content affect geometry. Timing
+          // fields stay out of this key, so a timing edit does no layout work (see inFlow).
           if (
             isText(r) &&
             !r.textStory &&
-            !on(r.hidden) &&
-            !on(r.layoutAbsolute) &&
+            inFlow(r) &&
             (mode(r, 'W') === 'hug' || mode(r, 'H') === 'hug')
           )
             shape.push(['intrinsic', r]);
@@ -725,8 +733,7 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
             if (
               r.kind === 'image' &&
               r.image &&
-              !on(r.hidden) &&
-              !on(r.layoutAbsolute) &&
+              inFlow(r) &&
               (mode(r, 'W') === 'hug' || mode(r, 'H') === 'hug')
             ) {
               const image = r.image as Row,
@@ -749,8 +756,7 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
               !measure &&
               isText(r) &&
               !r.textStory &&
-              !on(r.hidden) &&
-              !on(r.layoutAbsolute) &&
+              inFlow(r) &&
               (mode(r, 'W') === 'hug' || mode(r, 'H') === 'hug')
             )
               throw new Error('Text with content sizing needs a font measurement capability.');
@@ -758,8 +764,7 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
               !measure ||
               !isText(r) ||
               r.textStory ||
-              on(r.hidden) ||
-              on(r.layoutAbsolute) ||
+              !inFlow(r) ||
               (mode(r, 'W') !== 'hug' && mode(r, 'H') !== 'hug')
             )
               continue;

@@ -239,7 +239,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `design-idml.ts` | 147 | Deterministic IDML for static Design text, rectangular/oval frames and still images. | no | indirect | – |
 | `design-layer-ops.ts` | 337 | Design layer edits by stable id (plans/289 D1): `layerOperations` (add, duplicate, remove, reparent, reorder) and `layerPatches` (set fields on one layer). | no | `tests/design-layer-ops.test.ts` | – |
 | `design-layout-resources.ts` | 80 | Font role names for layout measurement, matching the canvas's brand font variables. | yes | `tests/design-layout-resources.test.ts` | – |
-| `design-layout.ts` | 977 | Design's layout adapter. | yes | `tests/design-layout.test.ts` | – |
+| `design-layout.ts` | 982 | Design's layout adapter. | yes | `tests/design-layout.test.ts` | – |
 | `design-lottie.ts` | 105 | Authored Design values into the shared sequence compiler, identical on every host. | no | `tests/design-lottie.test.ts` | – |
 | `design-map.ts` | 2174 | Design-file → Design boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
 | `design-page-svg.ts` | 228 | A Design page exported as SVG from drawing operations (plan 295, phase 3, P3d). | no | `tests/design-page-svg.test.ts` | – |

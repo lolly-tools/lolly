@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.262.0
+
+- Design layouts state one participation rule for hidden and timed members. Only a hidden member, its hidden owners and absolute placement leave flex or grid flow. Start, duration, lane, cuts, Enter, Exit, build steps and keyframes are paint-time state, so a timed member keeps its slot at every playhead position and build step, and timing edits do no layout work.
+- A hidden layout container keeps its stored size instead of collapsing Hug sizing around the members hidden with it, matching hidden groups. Visible layouts are unchanged.
+
 ## 1.261.0
 
 - Preserve selected-file identity in versioned resource dependencies and collect source credentials by the exact version used in an export.
