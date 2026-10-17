@@ -283,6 +283,14 @@ function specOf(fc: FcCtx): ContentScaleSpec {
   return spec;
 }
 
+/** Every row field a Scale commit can write besides the geometry. The gesture's claim
+ *  lists them, so the room refuses a peer's write to one while the Scale holds the claim. */
+export function scaleFields(fc: FcCtx): string[] {
+  const spec = specOf(fc), declared = fc.declaredBoxFields ?? new Set<string>();
+  return [...spec.lengths, spec.dashArray, spec.textWrap, spec.webView, fc.cv.textFrameField,
+    ...['layoutX', 'layoutY'].filter((f) => declared.has(f))].filter((f): f is string => !!f);
+}
+
 /**
  * The content half of a Scale commit, merged onto the rows the geometry commit already
  * built: each member's content lengths scaled on that row, its layout modes kept, and
@@ -498,6 +506,7 @@ export function selectionTransformOps(fc: FcCtx) {
     paintLabel: bindOp(fc, paintLabel),
     hideLabel: bindOp(fc, hideLabel),
     withScale: bindOp(fc, withScale),
+    scaleFields: bindOp(fc, scaleFields),
     applyScale: bindOp(fc, applyScale),
   };
 }
