@@ -9,8 +9,8 @@ Roughly 778,000 lines of TypeScript, tests included, and 60,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 548 files, 209,011 lines | 276 files, 91,742 lines | 8 files, 1,446 lines |
-| `lib/` | 798 files, 163,343 lines | 461 files, 89,260 lines | 13 files, 1,820 lines |
+| `views/` | 548 files, 209,057 lines | 276 files, 91,871 lines | 8 files, 1,446 lines |
+| `lib/` | 799 files, 163,436 lines | 461 files, 89,288 lines | 13 files, 1,820 lines |
 | `bridge/` | 224 files, 54,994 lines | 134 files, 27,911 lines | none |
 | `components/` | 125 files, 28,295 lines | 54 files, 14,039 lines | 22 files, 1,345 lines |
 | `org/` | 80 files, 20,184 lines | 56 files, 16,607 lines | none |
@@ -20,7 +20,7 @@ Roughly 778,000 lines of TypeScript, tests included, and 60,000 lines of CSS.
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
 | `styles/` | none | 10 files, 1,977 lines | 131 files, 54,628 lines |
 
-Plus 52 `.ts`/`.js` files at the top level of `src/`, 18,494 lines all told, of which 26 are tests and 3 are ambient declarations. `main.ts` is 2,329 of that.
+Plus 52 `.ts`/`.js` files at the top level of `src/`, 18,487 lines all told, of which 26 are tests and 3 are ambient declarations. `main.ts` is 2,322 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -60,7 +60,7 @@ Do not be ambushed by these. The largest source files, by line count:
 |---|---|---|
 | 6,243 | `bridge/export.ts` | yes, but mostly gated. `export-audio-bed.test.ts` imports `bedStartOffset` and `connectMusic` directly and always runs; the SVG and PDF emission is covered by ten `chromiumOrSkip()` suites (`export-m3`, `export-paint-order`, `export-stroke-paint`, `export-shadow-fidelity`, `export-pdf-shadow-fidelity`, `export-emf-eps-shadow`, `export-atomic-inline`, `export-backdrop-blur`, `export-form-controls`, `export-text-emission`) that esbuild-bundle the real `renderSvgFromHtml` and drive it in Chromium, and which **self-skip** when no Chromium is installed. `export-text-emission` is the newest and covers the `<path>`-vs-`<text>` decision layer specifically; unlike the SUSE-gated golden suite it is brand-independent, so it runs on `lolly-start` too. |
 | 3,954 | `views/valid.ts` | `valid-verdict.test.ts` only |
-| 3,859 | `views/tool-inputs.ts` | none |
+| 3,840 | `views/tool-inputs.ts` | none |
 | 3,775 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
 | 3,656 | `views/color-lab.ts` | yes |
 | 3,187 | `bridge/sequence-render.ts` | yes |
@@ -74,8 +74,8 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,557 | `views/timeline-math.ts` | yes |
 | 2,448 | `views/free-canvas-math.ts` | yes |
 | 2,419 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
-| 2,329 | `main.ts` | yes |
-| 2,264 | `lib/drop-router.ts` | yes |
+| 2,322 | `main.ts` | yes |
+| 2,286 | `lib/drop-router.ts` | yes |
 | 2,207 | `views/present-mode.ts` | yes |
 | 2,154 | `components/color-field.ts` | yes |
 <!-- web-src-largest:end -->
