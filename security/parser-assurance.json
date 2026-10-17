@@ -1100,10 +1100,10 @@
       ],
       "details": {
         "inputSource": "A TTF, OTF or WOFF file the person drops on Convert Font or hands to `host.fonts`, and the subsetter's output bytes when they are verified",
-        "bounds": "64 MiB input; WOFF unwrapped by font-convert.ts's capped inflate; every table read is checked against its directory length; fvar at most 64 axes and 1,024 instances; cmap format 12 groups clamped to existing glyph ids and U+10FFFF; at most 100,000 UTF-16 units of requested text; names at most 256 characters with control characters removed",
+        "bounds": "64 MiB input; WOFF unwrapped by font-convert.ts's capped inflate; every table read is checked against its directory length; fvar at most 64 axes and 1,024 instances; cmap format 4 scans each code point at most once, so one cmap costs at most 65,535 lookups and 32,768 ranges however its segments overlap; cmap format 12 keeps at most 1,114,112 non-overlapping groups, clamped to existing glyph ids and U+10FFFF; at most 100,000 UTF-16 units of requested text; names at most 256 characters with control characters removed",
         "directTests": "`tests/font-inspect.test.ts`, `tests/font-convert-tool.test.ts`",
-        "fuzzCoverage": "`font-inspect` mutates a real variable TTF and its WOFF wrapper through `inspectFont` and `glyphsForText`",
-        "notes": "Reads cmap formats 4 and 12 only; other formats report no coverage. WOFF2 and collections are refused by name. The subset path refuses before any work on outlines other than TrueType and on restricting fsType values (font-subset-policy.ts), then re-parses the output with the same reader."
+        "fuzzCoverage": "`font-inspect` mutates a real variable TTF, its WOFF wrapper and crafted fonts whose cmap format 4 segments and format 12 groups overlap, through `inspectFont` and `glyphsForText`",
+        "notes": "Reads cmap formats 4 and 12 only; other formats report no coverage. Reading stops at the first format 4 end code that does not ascend and at the first format 12 group that overlaps or goes backwards; the spec requires both in ascending order. WOFF2 and collections are refused by name. The subset path refuses before any work on outlines other than TrueType and on restricting fsType values (font-subset-policy.ts), then re-parses the output with the same reader."
       }
     }
   }
