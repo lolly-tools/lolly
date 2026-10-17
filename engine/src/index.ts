@@ -186,6 +186,13 @@ export type {
   Finding, FindingId, Severity, Count, Bound, QuantityKind, QuantityUnit,
   Fact, UnknownReason, Evidence,
 } from './preflight.ts';
+// The export report - the other half of preflight. After an export, each requested
+// property is compared with a value read from the output bytes, and the report is
+// bound to those bytes by SHA-256 (plan 203 rank 12).
+export { verifyExport, compareExport, exportRequestFromJob } from './preflight-output.ts';
+export type { ExportRequest, ExportCheck, ExportReport, ExportValue } from './preflight-output.ts';
+export { inspectOutput } from './output-facts.ts';
+export type { OutputFacts } from './output-facts.ts';
 // Rate card - the printer's own card, stored and validated (never a source of
 // prices). parseRateCard is the pure reader; computeCost is the Phase 4 arithmetic
 // (integer minor units, no currency formatting) that multiplies the card's rates by

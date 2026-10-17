@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.262.0
+
+- Add the export report. `verifyExport(request, bytes)` compares each requested property with a value read from the finished file: container, pixel or page size, page count, resolution, duration and frames, alpha channel, colour model, HDR signalling, Content Credentials presence, encryption and fonts. The report is bound to the output by SHA-256, and a value the bytes cannot supply is a named gap rather than a pass.
+- `inspectOutput(bytes)` reads those facts with bounded readers for PNG, APNG, JPEG, WebP, GIF, TIFF, AVIF, HEIC, MP4, WebM, SVG, EPS, PDF (including compressed object streams), ZIP and BMP. `exportRequestFromJob(job)` derives the request from a preflight job and never treats a manifest default as a request.
+- Container detection and the requested-format table move into the engine (`format-sniff.ts`) so the Node output guard, the web shell and the report share one table. The Node shells keep their refusal unchanged.
+- `@lolly-tools/core` 1.5 adds the `ExportReport` vocabulary beside `PreflightReport`.
+
 ## 1.261.0
 
 - Preserve selected-file identity in versioned resource dependencies and collect source credentials by the exact version used in an export.
