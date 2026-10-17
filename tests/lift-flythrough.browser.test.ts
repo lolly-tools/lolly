@@ -568,6 +568,39 @@ describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, conc
   });
 
   // ── 2b. the cached shadow plate is a CACHE, not a cheaper lane ──────────────
+  //
+  // BOTH RENDERS COMPOSITE THE SAME PLATES. Every render photographs its own plates, so
+  // comparing two full renders used to compare two captures as well as the two filter
+  // paths, and on the Linux software-GPU runner the capture is what moved. Four CI
+  // failures between 13 and 15 October 2026 (jobs 115046633524, 116058177064,
+  // 116597117524 and 116691167548, browser shards 1/4 and 3/4) printed the raw
+  // comparison and the source diagnostic below, and all four say the same thing:
+  //
+  //   • exactly ONE lifted text layer differs, and it differs whole. In each report the
+  //     largest channel delta is the caption colour minus the colour under the caption:
+  //     "Gallery" (219,228,247) over the header (22,33,60) is 197/195/187, "Street Map"
+  //     white over (60,180,90) is 195/75/165, "Mesh Gradient" white over (230,190,40) is
+  //     25/65/214. The changed region is the caption plus its depth shadow, in all four
+  //     sampled frames. Rendering this stage with that one caption deleted from the
+  //     control reproduces each report: the same deltas, and the same changed region to
+  //     the pixel on its left, top and bottom edges (the right edge follows the font,
+  //     which is narrower on macOS). So one render drew that layer from an empty plate;
+  //   • the odd render is either one. Three times it was the uncached control, once the
+  //     cached render, and the odd frames repeat byte for byte across jobs (902cba10 for
+  //     frame 0 appeared on the control side in one job and on the cached side in
+  //     another), so the cache is not what produced them;
+  //   • the diagnostic re-run, two more renders with every plate read back as it was
+  //     captured, matched itself and matched the stable side of the failed pair in all
+  //     four.
+  //
+  // The cards, the header and the background are rectangles and never differed; only
+  // plates that hold nothing but `<text>` did. Why one of those sometimes comes back
+  // empty on that runner (glyphs missing from the raster, or a capture that threw, which
+  // `rasterBox` also draws as nothing) is a capture question, not a cache one, and it
+  // stays open. What this test claims is that the cache preserves pixels, so the control
+  // records its captures and the cached render is answered from that recording
+  // (`plates: 'record'` / `'replay'`, tests/helpers/sequence-plate-share.ts). Any
+  // difference left is the cache's own, and a capture that threw is still reported.
 
   test('cached and uncached shadows encode the SAME source pixels, and the cache is what makes this affordable', async () => {
     const r = await page().evaluate(async ({ spec, fps, width, last, prefix }) => {
@@ -579,13 +612,15 @@ describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, conc
       // before P3.1 and the path the numbers below are measured against.
       const idx = [0, Math.round(last / 3), Math.round((2 * last) / 3), last];
       S.beginRawComparison();
+      S.beginPlateShare();
       try {
         console.info(`${prefix} uncached render starting`);
-        const off = await S.exportSeq(spec, 'mp4', { fps, width, fxCacheBytes: 0, rawFrames: idx, rawDiagnosticSide: 'control' });
+        const off = await S.exportSeq(spec, 'mp4', { fps, width, fxCacheBytes: 0, rawFrames: idx, rawDiagnosticSide: 'control', plates: 'record' });
         console.info(`${prefix} uncached render completed`);
         console.info(`${prefix} cached render starting`);
-        const on = await S.exportSeq(spec, 'mp4', { fps, width, rawFrames: idx, rawDiagnosticSide: 'cached' });
+        const on = await S.exportSeq(spec, 'mp4', { fps, width, rawFrames: idx, rawDiagnosticSide: 'cached', plates: 'replay' });
         console.info(`${prefix} cached render completed`);
+        const plates = S.takePlateShare();
         console.info(`${prefix} sampled-frame decoding starting`);
         const onPixels = on.key ? await S.frameHashes(on.key, idx, fps) : [];
         const offPixels = off.key ? await S.frameHashes(off.key, idx, fps) : [];
@@ -598,28 +633,30 @@ describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, conc
           const control = new AbortController();
           const deadline = setTimeout(() => control.abort(), 30_000);
           S.beginRawComparison();
+          S.beginPlateShare();
           try {
             const diagnosticOff = await S.exportSeq(spec, 'mp4', {
               fps, width, fxCacheBytes: 0, rawFrames: idx, rawDiagnosticSide: 'control',
-              captureSourceDiagnostic: true, signal: control.signal,
+              captureSourceDiagnostic: true, signal: control.signal, plates: 'record',
             });
             const diagnosticOn = control.signal.aborted ? null : await S.exportSeq(spec, 'mp4', {
               fps, width, rawFrames: idx, rawDiagnosticSide: 'cached',
-              captureSourceDiagnostic: true, signal: control.signal,
+              captureSourceDiagnostic: true, signal: control.signal, plates: 'replay',
             });
             sourceDiagnostic = { diagnosticOnly: true, originalFailurePreserved: true,
               timedOut: control.signal.aborted, controlRefused: !!diagnosticOff.error,
-              cachedRefused: !diagnosticOn || !!diagnosticOn.error, comparison: S.takeRawComparison(true) };
+              cachedRefused: !diagnosticOn || !!diagnosticOn.error, plates: S.takePlateShare(),
+              comparison: S.takeRawComparison(true) };
           } catch {
             sourceDiagnostic = { diagnosticOnly: true, originalFailurePreserved: true, refused: true };
-          } finally { clearTimeout(deadline); S.takeRawComparison(); }
+          } finally { clearTimeout(deadline); S.takeRawComparison(); S.takePlateShare(); }
         }
         return {
           on: { err: on.error, size: on.size, ms: on.ms, raw: on.rawHashes, pix: onPixels },
           off: { err: off.error, size: off.size, ms: off.ms, raw: off.rawHashes, pix: offPixels },
-          rawMismatch, sourceDiagnostic,
+          plates, rawMismatch, sourceDiagnostic,
         };
-      } finally { S.takeRawComparison(); }
+      } finally { S.takeRawComparison(); S.takePlateShare(); }
     }, { spec, fps: GATE_FPS, width: GATE_WIDTH, last: LAST, prefix: SHADOW_STAGE_PREFIX });
 
     if (!mp4 && r.on.err) {
@@ -630,6 +667,14 @@ describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, conc
     assert.equal(r.on.err, null, `the cached render failed: ${JSON.stringify(r.on.err)}`);
     if (r.rawMismatch) say(`[lift-shadow raw mismatch] ${JSON.stringify(r.rawMismatch)}`);
     if (r.sourceDiagnostic) say(`[lift-shadow source diagnostic only] ${JSON.stringify(r.sourceDiagnostic)}`);
+    // The pair is only a cache comparison if the cached render drew the control's
+    // plates, every one of them and nothing else.
+    assert.equal(r.plates.refused, null, `the cached render could not reuse the control's plates: ${r.plates.refused}`);
+    assert.ok(r.plates.recorded > 0, 'the control captured no plates to share');
+    assert.equal(r.plates.replayed, r.plates.recorded, 'the cached render drew every plate the control captured');
+    // A capture that threw is drawn as nothing in BOTH renders, so it cannot fail the
+    // cache claim, but it is an export with a layer missing and worth seeing in the log.
+    if (r.plates.failed) say(`[lift-shadow capture failed] ${r.plates.failed} of ${r.plates.recorded} plate captures threw and were drawn as nothing: ${r.plates.failures.join(' | ')}`);
     // Exact RGBA at VideoEncoder.encode isolates the cache from lossy encoding.
     // The software CI encoder does not promise repeatable quantization or bytes.
     assert.equal(r.on.raw?.length, 4, 'all four cached source frames were captured');
@@ -642,12 +687,16 @@ describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, conc
       assert.equal(r.on.size, r.off.size, 'the stable encoder produces equal container sizes');
     }
 
+    // The control paid for the captures and the cached render did not, so the capture
+    // time comes off the control before the two are compared.
     const frames = LAST + 1;
     const per = (ms: number): number => Math.round(ms / frames);
+    const offMs = Math.max(0, r.off.ms - r.plates.captureMs);
     say(`[demo] 3b. depth shadows @${GATE_WIDTH}px/${GATE_FPS}fps over ${rows.length} lifted layers `
       + `(${rows.filter((r, i) => layers[i]!.viewBox).length} of them cut to their own ink): `
-      + `${per(r.off.ms)} ms/frame uncached → ${per(r.on.ms)} ms/frame cached `
-      + `(${(r.off.ms / Math.max(1, r.on.ms)).toFixed(1)}×), identical source pixels; ${r.off.size}/${r.on.size} B encoded`);
+      + `${per(offMs)} ms/frame uncached → ${per(r.on.ms)} ms/frame cached `
+      + `(${(offMs / Math.max(1, r.on.ms)).toFixed(1)}×), identical source pixels from ${r.plates.recorded} shared plates `
+      + `(captured once in ${Math.round(r.plates.captureMs)} ms); ${r.off.size}/${r.on.size} B encoded`);
   });
 
   // ── 3. the posed still stays VECTOR, and so does the lifted artwork ─────────
@@ -743,6 +792,8 @@ interface RunLike {
 interface SeqApi {
   beginRawComparison(): void;
   takeRawComparison(includeEqual?: boolean): unknown | null;
+  beginPlateShare(): void;
+  takePlateShare(): { recorded: number; replayed: number; captureMs: number; refused: string | null; failed: number; failures: string[] };
   exportSeq(spec: unknown, format: 'mp4' | 'webm' | 'gif' | 'apng', opts?: Record<string, unknown>): Promise<RunLike>;
   exportViaApi(spec: unknown, format: string, opts?: Record<string, unknown>): Promise<RunLike>;
   blobBytes(key: string): Promise<string>;

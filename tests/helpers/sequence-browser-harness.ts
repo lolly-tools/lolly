@@ -46,6 +46,7 @@ import { createSequenceTime } from '../../shells/web/src/bridge/sequence-dom.ts'
 // module of its own, handed what it needs, so this file does not grow again.
 import { goldenApi, perfApi, type GoldenDeps } from './sequence-golden-harness.ts';
 import { newSourceCaptureDiagnostics, observeSourceCaptures, type SourceCaptureDiagnostics } from './sequence-capture-diagnostics.ts';
+import { newPlateShare, plateShareSummary, recordPlates, replayPlates, type PlateShare, type PlateShareSummary } from './sequence-plate-share.ts';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Any = any;
@@ -510,6 +511,20 @@ function beginRawComparison(): void {
   rawDiagnosticPair = { control: null, cached: null, bytes: 0 };
 }
 
+// One render's plate captures, replayed into the next (`plates: 'record'` then
+// `plates: 'replay'`), so a pair compares the compositor and not two captures.
+let plateShare: PlateShare | null = null;
+
+function beginPlateShare(): void {
+  plateShare = newPlateShare();
+}
+
+function takePlateShare(): PlateShareSummary {
+  const summary = plateShareSummary(plateShare);
+  plateShare = null;
+  return summary;
+}
+
 function diagnosticWord(value: string | null): string | null {
   return value != null && /^[a-zA-Z0-9-]{1,24}$/.test(value) ? value : null;
 }
@@ -724,7 +739,7 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
   instrument();
   resetCounters();
   const target = buildStage(spec);
-  const { applyClockAtMs, freezeVideos, deviceMemory, worker, gl, breakWorker, heartbeat, fxCacheBytes, rawFrames, rawDiagnosticSide, captureSourceDiagnostic, ...renderOpts } = opts as Any;
+  const { applyClockAtMs, freezeVideos, deviceMemory, worker, gl, breakWorker, heartbeat, fxCacheBytes, rawFrames, rawDiagnosticSide, captureSourceDiagnostic, plates, ...renderOpts } = opts as Any;
   const undo: (() => void)[] = [];
   const rawHashes: Promise<string>[] = [];
   const pair = rawDiagnosticPair;
@@ -844,7 +859,14 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
   }
   const t0 = performance.now();
   let restoreCaptures: (() => void) | undefined;
+  let restorePlates: (() => void) | undefined;
   try {
+    if (plates === 'record' || plates === 'replay') {
+      if (!plateShare) throw new Error('plate sharing needs beginPlateShare() first');
+      const module = await import('dom-to-image-more');
+      const library = module.default ?? module;
+      restorePlates = plates === 'record' ? recordPlates(library, plateShare) : replayPlates(library, plateShare);
+    }
     if (diagnostic && captureSourceDiagnostic === true) {
       const module = await import('dom-to-image-more');
       restoreCaptures = observeSourceCaptures(module.default ?? module, diagnostic.source);
@@ -869,7 +891,7 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
       error: toCodedError(err), stack: (err as Error)?.stack ?? '', beat: { ...beat }, counters: { ...counters },
       frames: stage ? frameTimestamps(stage.totalMs, fps).length : 0, fps,
     };
-  } finally { restoreCaptures?.(); }
+  } finally { restoreCaptures?.(); restorePlates?.(); }
 }
 
 /**
@@ -1833,6 +1855,7 @@ const goldenDeps: GoldenDeps = { exportSeq, buildStage, blob: (key) => blobs.get
   golden: goldenApi(goldenDeps), perf: perfApi(goldenDeps),
   probe, makeClip, truncate, makeBed, makeRampBed, waveformPeaks, exportSeq, buildStage, filmstripCodes,
   decodeCodes, frameHashes, blobSha, frameDelta, frameSelfDelta, audioRms, hasAudioTrack, beginRawComparison, takeRawComparison,
+  beginPlateShare, takePlateShare,
   driveProvider, stalledProvider, elementRotationProbe, alphaWebmProbe, stillAt, cutsAt, fidelity, resetCounters, firstFramePixels,
   blobBytes, blobDiff, trackColors, rowRun, vectorStillAt, exportViaApi, walkToSvg, posedVsHatch,
   constants: { HIGH_WATER, MAX_LIVE_PROVIDERS, CODE_BITS },
