@@ -5,14 +5,14 @@ This file exists so you can find the code for a feature without reading all of i
 The counts below are GENERATED - `pnpm run build:web-src-readme`, checked in CI by `pnpm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
-Roughly 777,000 lines of TypeScript, tests included, and 60,000 lines of CSS.
+Roughly 778,000 lines of TypeScript, tests included, and 60,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
 | `views/` | 548 files, 208,986 lines | 275 files, 91,660 lines | 8 files, 1,446 lines |
-| `lib/` | 798 files, 163,285 lines | 460 files, 89,166 lines | 13 files, 1,820 lines |
+| `lib/` | 801 files, 163,502 lines | 462 files, 89,292 lines | 13 files, 1,820 lines |
 | `bridge/` | 224 files, 54,992 lines | 134 files, 27,911 lines | none |
-| `components/` | 125 files, 28,295 lines | 54 files, 14,039 lines | 22 files, 1,345 lines |
+| `components/` | 125 files, 28,364 lines | 55 files, 14,110 lines | 22 files, 1,345 lines |
 | `org/` | 80 files, 20,184 lines | 56 files, 16,607 lines | none |
 | `collab/` | 20 files, 13,532 lines | 22 files, 14,132 lines | none |
 | `pro/` | 29 files, 9,116 lines | 13 files, 1,855 lines | 3 files, 1,249 lines |
@@ -39,7 +39,7 @@ If the feature is about producing bytes rather than showing a screen, skip the v
 
 **`bridge/`**: the web implementation of `HostV1`, one file per capability, composed by `index.ts`. Everything to do with turning a rendered DOM node into a file is here: `export.ts` and its satellites (`export-pdf-vector.ts`, `export-pdfx.ts`, `export-css.ts`, `export-image-meta.ts`, `export-pptx.ts`), `svg-ir.ts`, `text.ts` and `text-svg.ts` (HarfBuzz text-to-path), `font-registry.ts`, the `sequence-*.ts` and `video-encode*.ts` family for motion export, plus `state.ts`, `assets.ts`, `pdf.ts`, `pptx.ts`, `capture.ts`, `recorder.ts`, `media.ts`, `images.ts`, `audio.ts` and `viz.ts`. Six of them are now re-export shims over `packages/node-shell/src/` (`pdf.ts`, `pdf-structure.ts`, `pptx.ts`, `net.ts`, `svg-ir.ts`, `text-svg.ts`) - the terminal shells run the same code, and plans/202 WP1.1 moved the implementations into the package so `shells/cli` no longer imports across the submodule boundary. Treat their public exports as a contract with other shells and edit the node-shell file, not the shim. Four more are replaced wholesale at build time by the Tauri desktop shell (`state.ts`, `capture.ts`, `export.ts`, `capabilities-provided.ts`; the mobile shell overrides the same set minus `capture.ts`), which puts their public exports under the same rule.
 
-**`lib/`**: 144 modules of shared helpers, and the part of the tree that is honestly **grep-first**. There is no hierarchy and no index; names are descriptive and that is the whole navigation story. Clusters worth knowing exist rather than discovering by accident: brand (`brand-editor.ts`, `brand-doc.ts`, `brand-logos.ts`, `brand-seal.ts`, `brand-studio-tabs.ts`), fonts (`font-utils.ts`, `google-fonts.ts`, `load-user-fonts.ts`, `register-user-fonts.ts`), audio and atmosphere (`audio-*.ts`, `ambience-*.ts`, `atmosphere.ts`, `butterchurn-viz.ts`), colour (`color-formats.ts`, `color-namer.ts`, `color-profiles.ts`, `display-gamut.ts`, `gamut-slider.ts`), policy and gating (`export-policy.ts`, `field-policy.ts`, `input-policy.ts`, `c2pa-policy.ts`), and the mount chokepoint `mount-runtime.ts`. When you want a helper, grep `lib/` for the noun before you write a new file.
+**`lib/`**: 144 modules of shared helpers, and the part of the tree that is honestly **grep-first**. There is no hierarchy and no index; names are descriptive and that is the whole navigation story. Clusters worth knowing exist rather than discovering by accident: brand (`brand-editor.ts`, `brand-doc.ts`, `brand-logos.ts`, `brand-seal.ts`, `brand-studio-tabs.ts`), fonts (`font-utils.ts`, `font-collection.ts`, `font-type1.ts`, `google-fonts.ts`, `load-user-fonts.ts`, `register-user-fonts.ts`), audio and atmosphere (`audio-*.ts`, `ambience-*.ts`, `atmosphere.ts`, `butterchurn-viz.ts`), colour (`color-formats.ts`, `color-namer.ts`, `color-profiles.ts`, `display-gamut.ts`, `gamut-slider.ts`), policy and gating (`export-policy.ts`, `field-policy.ts`, `input-policy.ts`, `c2pa-policy.ts`), and the mount chokepoint `mount-runtime.ts`. When you want a helper, grep `lib/` for the noun before you write a new file.
 
 **`components/`**: 28 reusable UI primitives and widgets with no route of their own: `modal.ts`, `confirm-dialog.ts`, `share-dialog.ts`, `body-popover.ts`, `custom-slider.ts`, `color-field.ts`, `back-pill.ts`, `footer-nav.ts`, `view-topbar.ts`, `profile-menu.ts`, `theme-toggle.ts`, `lang-menu.ts`, `fonts-manager.ts`, `profiles-manager.ts`, `headshot-cropper.ts` and friends. `views/components.ts` renders a browsable gallery of these at `#/components`.
 
