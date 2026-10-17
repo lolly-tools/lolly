@@ -307,6 +307,8 @@ Tools expose only the inputs that are meant to vary - everything else (colours, 
 
 **Reset:** *Clear changes* returns every input to its defaults.
 
+**Design system choices:** when the design system offers more than one colourway, a light and a dark look or another theme choice, a **Design system** section under the controls holds them. Each colourway is a dot in its own colours, light and dark are two buttons, and any other choice is a list. The choice belongs to this piece: every colour linked to the design system follows it, it travels in the link and the saved session, and the app's own colours stay as they are. Design shows the same choices in the Inspector's **Canvas** tab. A tool whose colours are its content can stay on the canonical colourway, and then offers no colourway here ([Colourways](/info/token-workflows.html#colourways)).
+
 ### Undo and redo
 
 **Cmd/Ctrl-Z** steps back and **Cmd/Ctrl-Shift-Z** (or **Cmd/Ctrl-Y**) steps forward again. The same pair sits as **Undo** and **Redo** buttons in the row above the controls - on the free canvas they're on the tool rail instead - and each greys out while there's nothing left to take back. Every step says what it was: undo a colour and a small message tells you which input it just restored, with a **Redo** button in it for the way back.

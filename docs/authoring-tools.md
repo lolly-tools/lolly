@@ -80,3 +80,13 @@ values still load, and local saved sessions retain the values.
 
 A tool relying on this declaration must require engine 1.261.0 or later. The
 property does not encrypt an input, alter an export or sanitize its content.
+
+## Colours that are the content
+
+A design system can offer several colourways, and a person picks one per piece in the tool sidebar's **Design system** section. Every colour a tool links to the design system follows that choice, which is what most tools want. A tool whose colours are its content, such as a tonal ramp or a palette pinned to a dataset, can opt out in its manifest:
+
+```json
+{ "tokenAxes": { "colourway": "ignore" } }
+```
+
+The keys are the kinds of theme group described in [What a theme group means](/info/token-workflows.html#what-a-theme-group-means): `mode`, `colourway`, `expression`, `medium`, `contrast`, `density`, `campaign` and `brand`. The only value is `"ignore"`. For each kind it ignores, the tool renders in that group's canonical option whatever a link, a saved session or the design system's stored choice asks for, and the sidebar does not offer that group in this tool. `"mode": "ignore"` keeps a print piece in the canonical look; in a design system that declares no `mode` group, the light and dark themes with no group count as the mode. When a link or the CLI asks for an option the tool ignores, `lolly run` prints a `THEME_CHOICE_IGNORED` warning and an MCP render adds the same sentence to its warnings, so the request is never dropped without a word. Engines older than the field refuse a manifest that declares `tokenAxes`, so a tool that uses the field raises its `engineVersion` floor to the release that added the field, as listed in `engine/CHANGELOG.md`.
