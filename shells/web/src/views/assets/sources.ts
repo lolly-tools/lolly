@@ -5,7 +5,13 @@ import { instanceFetch, instancePath, getInstanceBase } from '../../lib/instance
 import { updateRouteParams } from '../../lib/url-state.ts';
 import { t } from '../../i18n.ts';
 import { setActionButtonContent } from '../../components/action-button.ts';
+import { clampWidth, mountSplitter, readStoredWidths, writeStoredWidths } from '../../lib/splitter.ts';
 import { bindOp, type CatCtx } from './context.ts';
+/** The rail's width is a per-viewer chrome preference, kept in browser storage like the asset inspector's. */
+export const SOURCES_WIDTH_KEY = 'lolly:asset-sources';
+export const SOURCES_WIDTH = { min: 180, initial: 240, max: 480 } as const;
+/** Room the listing keeps beside the rail: 320px plus the 20px workspace gap. asset-source-navigation.css caps the column with the same 340px. */
+export const LISTING_ROOM = 340;
 export function mount(cat: CatCtx): void {
   cat.sourceDispose?.();
   const root = cat.viewEl.querySelector<HTMLElement>('.asset-sources'); if (!root) return;
@@ -26,8 +32,26 @@ export function mount(cat: CatCtx): void {
   if (selectedStatus && selectedStatus.status !== 'current') { const note = document.createElement('p'); note.className = 'asset-source-health'; note.setAttribute('role', 'status'); note.textContent = t(selectedStatus.status === 'unavailable' ? 'This source is unavailable. Other sources can still be browsed.' : selectedStatus.status === 'pending' ? 'This source is syncing.' : 'Showing the last available listing. File access is checked when opened.'); if (selectedStatus.lastSyncedAt) note.title = new Date(selectedStatus.lastSyncedAt).toLocaleString(); root.append(note); }
   if (cat.sourceSelection !== 'all') { const clear = document.createElement('button'); clear.type = 'button'; clear.className = 'btn btn--ghost btn--sm'; clear.textContent = t('All sources'); clear.addEventListener('click', () => { cat.sourceSelection = 'all'; updateRouteParams({ sourceNode: null }); cat.sections.renderBody(); mount(cat); }); root.append(clear); }
 }
+/** The grip on the rail's edge (lib/splitter.ts). The grip sits in the column beside the rail, so it survives `mount` rebuilding the rail. */
+export function resizable(cat: CatCtx): void {
+  const column = cat.viewEl.querySelector<HTMLElement>('.asset-sources-column'), rail = column?.querySelector<HTMLElement>('.asset-sources'); if (!column || !rail) return;
+  const { min, initial } = SOURCES_WIDTH;
+  let width = clampWidth(readStoredWidths(SOURCES_WIDTH_KEY).width ?? initial, min, SOURCES_WIDTH.max);
+  // A narrow window caps the rail without forgetting the wanted width; the stylesheet applies the same cap.
+  const max = () => Math.max(min, Math.min(SOURCES_WIDTH.max, (column.parentElement?.clientWidth ?? 0) - LISTING_ROOM));
+  const shown = () => Math.min(width, max());
+  const apply = () => column.style.setProperty('--asset-sources-width', `${width}px`);
+  const grip = document.createElement('div'); grip.className = 'asset-sources-grip'; column.append(grip); apply();
+  const splitter = mountSplitter({ grip, controls: rail, panel: 'start', label: t('Resize the Sources panel'), valueText: px => t('{width} pixels wide', { width: px }), hint: t('Drag to resize. Use arrow keys to resize, or Enter to reset.'),
+    value: shown, limits: () => ({ min, max: max(), initial: Math.min(initial, max()) }),
+    set: (px, done) => { width = px; apply(); if (done) writeStoredWidths(SOURCES_WIDTH_KEY, { width }); return shown(); },
+    reset: () => { width = initial; apply(); writeStoredWidths(SOURCES_WIDTH_KEY, {}); } });
+  // The window may have changed size since the last move, so the value is read again on focus.
+  grip.addEventListener('focus', splitter.sync);
+}
 export function wire(cat: CatCtx): void {
   mount(cat);
+  resizable(cat);
   const button = cat.viewEl.querySelector<HTMLElement>('[data-browse-sources]');
   button?.setAttribute('aria-expanded', String(cat.sourcesOpen));
   button?.addEventListener('click', () => { cat.sourcesOpen = !cat.sourcesOpen; button.setAttribute('aria-expanded', String(cat.sourcesOpen)); const rail = cat.viewEl.querySelector<HTMLElement>('.asset-sources'); if (rail) { rail.hidden = !cat.sourcesOpen; if (cat.sourcesOpen) rail.querySelector<HTMLElement>('[tabindex="0"]')?.focus(); } });
