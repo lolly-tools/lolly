@@ -7,7 +7,7 @@ import { cachePolicy } from '../packages/core/src/delivery-v1.ts';
 import type { DeliveryClass } from '../packages/core/src/delivery-v1.ts';
 import { CATALOG_SIG_ALG, catalogIndexPath, signCatalogEnvelope } from '../engine/src/catalog-integrity.ts';
 import type { CatalogSignatureEnvelope } from '../engine/src/catalog-integrity.ts';
-import { absentHash16, catalogProbeSamples, deriveCatalogSamples, rotatingWindow } from '../scripts/lib/edge-probe-catalog.ts';
+import { absentHash16, catalogProbeSamples, deriveCatalogSamples, derivedSampleCovers, rotatingWindow } from '../scripts/lib/edge-probe-catalog.ts';
 import { main, probeSample } from '../scripts/edge-probe.ts';
 
 const sha = (text: string): string => createHash('sha256').update(text).digest('hex');
@@ -66,6 +66,8 @@ function origin(bytes: Map<string, { text: string; cls: DeliveryClass }>, seen: 
     const p = cachePolicy(file.cls), etag = `"${sha(file.text)}"`, coded = /gzip/.test(sent.get('accept-encoding') ?? '') && file.text.length > 1024;
     const headers = { 'cache-control': p.cacheControl, 'cdn-cache-control': p.cdnCacheControl, etag, vary: 'Accept-Encoding', ...(coded ? { 'content-encoding': 'gzip' } : {}) };
     if (sent.get('if-none-match') === etag) return new Response(null, { status: 304, headers });
+    const range = /^bytes=0-(\d+)$/.exec(sent.get('range') ?? '');
+    if (range && sent.get('if-range') === etag) return new Response(file.text.slice(0, Number(range[1]) + 1), { status: 206, headers: { ...headers, 'content-range': `bytes 0-${range[1]}/${file.text.length}` } });
     return new Response(file.text, { headers });
   };
 }
@@ -156,21 +158,40 @@ test('a missing hashed path answered by the app shell or with immutable headers 
   assert.equal((await probeSample(sample, origin(new Map()))).passed, true);
 });
 
-test('the CLI records the derivation and replaces default samples with signed ones', async () => {
-  const { bytes, publicKey } = await fixture(), previousFetch = globalThis.fetch, previousKey = process.env.DELIVERY_CATALOG_PUBLIC_KEY_JWK, previousLog = console.log;
+test('the CLI records the derivation, replaces plain samples and keeps reviewed checks', async () => {
+  const { bytes, publicKey } = await fixture(), previousFetch = globalThis.fetch, previousLog = console.log;
+  const previous = { key: process.env.DELIVERY_CATALOG_PUBLIC_KEY_JWK, cookie: process.env.EDGE_PROBE_CATALOG_TEST_COOKIE };
   const lines: string[] = [];
-  globalThis.fetch = origin(bytes); process.env.DELIVERY_CATALOG_PUBLIC_KEY_JWK = publicKey; console.log = (line: string) => { lines.push(line); };
+  globalThis.fetch = origin(bytes); process.env.DELIVERY_CATALOG_PUBLIC_KEY_JWK = publicKey; process.env.EDGE_PROBE_CATALOG_TEST_COOKIE = 'reader=a';
+  console.log = (line: string) => { lines.push(line); };
   try {
     assert.equal(await main(['--catalog', '--catalog-origins', ORIGIN, '--catalog-rotation', '1', '--samples', fileURLToPath(new URL('./fixtures/edge-probe-catalog-samples.json', import.meta.url))]), 0);
-    const summary = JSON.parse(lines.join('\n')) as { passed: boolean; results: Array<{ path: string; passed: boolean }> };
-    assert.equal(summary.passed, true);
+    const summary = JSON.parse(lines.join('\n')) as { passed: boolean; results: Array<{ path: string; passed: boolean; failures: string[] }> };
+    assert.equal(summary.passed, true, JSON.stringify(summary.results.filter(result => !result.passed)));
     assert.equal(summary.results[0]!.path, '/catalog/tools/index.sig.json');
-    assert.equal(summary.results.filter(result => result.path === '/catalog/tools/index.json').length, 1, 'the signed sample replaces the default one');
+    const at = (path: string) => summary.results.filter(result => result.path === path).length;
+    assert.equal(at('/catalog/tools/index.json'), 1, 'the signed sample replaces a plain shell sample');
+    assert.equal(at('/catalog/assets/index.json'), 2, 'a credentialed reviewed sample runs beside the signed one');
+    assert.equal(at('/catalog/previews/alpha.svg'), 2, 'a range-checked reviewed sample runs beside the signed one');
     await assert.rejects(main(['--catalog', '--catalog-origins', 'http://catalog.test']), /HTTPS origins/);
   } finally {
     globalThis.fetch = previousFetch; console.log = previousLog;
-    if (previousKey === undefined) delete process.env.DELIVERY_CATALOG_PUBLIC_KEY_JWK; else process.env.DELIVERY_CATALOG_PUBLIC_KEY_JWK = previousKey;
+    for (const [name, value] of [['DELIVERY_CATALOG_PUBLIC_KEY_JWK', previous.key], ['EDGE_PROBE_CATALOG_TEST_COOKIE', previous.cookie]] as const) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
   }
+});
+
+test('a derived sample replaces a planned one only when it checks everything that one does', () => {
+  const derived = { origin: ORIGIN, path: '/catalog/tools/index.json', cls: 'public-revalidate' as const, sha256: 'a'.repeat(64), compress: true, checkConditional: true, requireStrongETag: true };
+  const plain = { origin: ORIGIN, path: derived.path, cls: 'public-revalidate' as const };
+  assert.equal(derivedSampleCovers({ ...plain, compress: true, checkConditional: true }, derived), true, 'a built-in shell sample');
+  assert.equal(derivedSampleCovers({ ...plain, sha256: derived.sha256 }, derived), true, 'the same expected bytes');
+  for (const extra of [{ credentialEnv: 'COOKIE' }, { checkRange: true }, { stripC2pa: 'svg' as const }, { requireCors: true }, { boundedAgeSec: 60 },
+    { cls: 'public-immutable' as const }, { status: 401 }, { sha256: 'b'.repeat(64) }, { size: 3 }, { method: 'HEAD' as const }]) {
+    assert.equal(derivedSampleCovers({ ...plain, ...extra }, derived), false, JSON.stringify(extra));
+  }
+  assert.equal(derivedSampleCovers({ ...plain, compress: true }, { ...derived, compress: false }), false, 'a compression check the derived sample skips');
 });
 
 test('asset index paths cannot steer the probe off its origin or out of the catalog', () => {

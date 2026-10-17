@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 import { cachePolicy } from '../packages/core/src/delivery-v1.ts';
 import type { DeliveryClass } from '../packages/core/src/delivery-v1.ts';
 import { measureProbeBody } from './lib/edge-probe-bytes.ts';
-import { deriveCatalogSamples } from './lib/edge-probe-catalog.ts';
+import { deriveCatalogSamples, derivedSampleCovers } from './lib/edge-probe-catalog.ts';
 import type { CatalogDerivation } from './lib/edge-probe-catalog.ts';
 import { modelCorsFailures, modelCorsOrigins, PUBLIC_MODEL_CORS_ORIGINS } from './lib/model-cors.ts';
 
@@ -178,7 +178,7 @@ export function modelProbeSamples(manifest: Array<{ url: string; size: number; s
 export async function main(args = process.argv.slice(2)): Promise<number> {
   const option = (name: string) => args[args.indexOf(name) + 1];
   if (args.includes('--help')) {
-    console.log('node scripts/edge-probe.ts [--samples sample.json] [--out receipt.json] [--observe]\nSamples contain origin, path, cls and optional status/sha256/size/boundedAgeSec/credentialEnv/compress/checkConditional/checkRange/stripC2pa. --models hashes immutable models and monitors alias HEAD/size on three hosts. --full-legacy --legacy-reference reference.json hashes aliases against archived {origin,path,size,sha256} records. --catalog [--catalog-origins https://lolly.tools] [--catalog-rotation N] derives hashed public samples, 304 and 404 checks from each live signed catalog; DELIVERY_CATALOG_PUBLIC_KEY_JWK pins the key, and qualification fails without it. Paired credentialEnv names with credentialType:cookie test distinct private readers. GET and HEAD only. --observe records failures without qualifying the target.');
+    console.log('node scripts/edge-probe.ts [--samples sample.json] [--out receipt.json] [--observe]\nSamples contain origin, path, cls and optional status/sha256/size/boundedAgeSec/credentialEnv/compress/checkConditional/checkRange/stripC2pa. --models hashes immutable models and monitors alias HEAD/size on three hosts. --full-legacy --legacy-reference reference.json hashes aliases against archived {origin,path,size,sha256} records. --catalog [--catalog-origins https://lolly.tools] [--catalog-rotation N] derives hashed public samples, 304 and 404 checks from each live signed catalog; DELIVERY_CATALOG_PUBLIC_KEY_JWK pins the key, and qualification fails without it. Without --samples, the built-in lolly.tools and lolly.ing shell samples also run. Paired credentialEnv names with credentialType:cookie test distinct private readers. GET and HEAD only. --observe records failures without qualifying the target.');
     return 0;
   }
   const samples: ProbeSample[] = args.includes('--samples') ? JSON.parse(readFileSync(option('--samples')!, 'utf8')) : [
@@ -200,9 +200,9 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
     for (const origin of probeOrigins(args.includes('--catalog-origins') ? option('--catalog-origins')! : 'https://lolly.tools', 'Catalog')) {
       const derived = await deriveCatalogSamples(origin, { rotation, publicKey: process.env.DELIVERY_CATALOG_PUBLIC_KEY_JWK || undefined });
       derivations.push(derived.result);
-      // Signed expectations replace a default sample for the same URL.
-      const urls = new Set(derived.samples.map(sample => new URL(sample.path, sample.origin).href));
-      planned = [...planned.filter(sample => !urls.has(new URL(sample.path, sample.origin).href)), ...derived.samples];
+      // A signed sample replaces a planned one at its URL only when it checks everything that one does.
+      const signed = new Map(derived.samples.map(sample => [new URL(sample.path, sample.origin).href, sample]));
+      planned = [...planned.filter(sample => { const match = signed.get(new URL(sample.path, sample.origin).href); return !match || !derivedSampleCovers(sample, match); }), ...derived.samples];
     }
   }
   if (!Array.isArray(planned) || planned.length > 2000) throw new Error('Invalid probe sample count');

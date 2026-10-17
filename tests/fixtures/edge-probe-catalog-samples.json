@@ -1,3 +1,5 @@
 [
-  { "origin": "https://catalog.test", "path": "/catalog/tools/index.json", "cls": "public-revalidate" }
+  { "origin": "https://catalog.test", "path": "/catalog/tools/index.json", "cls": "public-revalidate", "compress": true, "checkConditional": true },
+  { "origin": "https://catalog.test", "path": "/catalog/assets/index.json", "cls": "public-revalidate", "credentialEnv": "EDGE_PROBE_CATALOG_TEST_COOKIE", "credentialType": "cookie" },
+  { "origin": "https://catalog.test", "path": "/catalog/previews/alpha.svg", "cls": "public-revalidate", "checkRange": true }
 ]

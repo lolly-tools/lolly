@@ -96,6 +96,18 @@ export function catalogProbeSamples(origin: string, envelope: CatalogSignatureEn
   return samples;
 }
 
+/**
+ * Whether a derived sample checks everything a planned one at the same URL does.
+ * A reviewed sample with a credential, range, C2PA, CORS or age check, or with a
+ * different expectation, runs alongside the derived one instead of being dropped.
+ */
+export function derivedSampleCovers(planned: ProbeSample, derived: ProbeSample): boolean {
+  if (planned.credentialEnv || planned.checkRange || planned.stripC2pa || planned.requireCors || planned.boundedAgeSec !== undefined) return false;
+  if ((['compress', 'checkConditional', 'requireStrongETag'] as const).some(check => planned[check] && !derived[check])) return false;
+  return planned.cls === derived.cls && (planned.status ?? 200) === (derived.status ?? 200) && (planned.method ?? 'GET') === (derived.method ?? 'GET')
+    && (planned.sha256 ?? derived.sha256) === derived.sha256 && (planned.size ?? derived.size) === derived.size;
+}
+
 /** Bounded so a dishonest Content-Length cannot make derivation unbounded. */
 async function boundedBytes(response: Response): Promise<Uint8Array> {
   const reader = response.body?.getReader();
