@@ -1,0 +1,3 @@
+[
+  { "origin": "https://catalog.test", "path": "/catalog/tools/index.json", "cls": "public-revalidate" }
+]

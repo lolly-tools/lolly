@@ -195,6 +195,22 @@ environment variables named by `credentialEnv`, never URLs or receipt files:
 node scripts/edge-probe.ts --samples /path/to/samples.json --out /path/to/private-receipt.json
 ```
 
+For a public catalog, `--catalog` derives samples from the live signed index
+instead of a hand-written list. Pin the catalog public key in the environment:
+
+```bash
+DELIVERY_CATALOG_PUBLIC_KEY_JWK="$(cat catalog-public.jwk)" \
+  node scripts/edge-probe.ts --catalog --catalog-origins https://your-host.example --out /path/to/receipt.json
+```
+
+The probe verifies the signature first and takes every expected hash from the
+signed index. It checks the hashed indexes, a daily rotation of hashed tool,
+preview and asset files with the legacy names they replace, a warm 304 for each,
+and one missing address per hashed family, which must answer 404 without being
+stored. Requests carry no cookies or bearer tokens. A catalog that refuses
+anonymous readers or carries an instance scope yields no samples, so private
+catalogs still need a reviewed sample list.
+
 Include identity and compressed bytes, cold 200 and warm 304 requests, ranges,
 model hashes, signed images, anonymous refusals and two different authorised
 readers of private resources. A failed check blocks qualification. `--observe`

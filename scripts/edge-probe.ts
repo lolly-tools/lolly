@@ -6,6 +6,8 @@ import { pathToFileURL } from 'node:url';
 import { cachePolicy } from '../packages/core/src/delivery-v1.ts';
 import type { DeliveryClass } from '../packages/core/src/delivery-v1.ts';
 import { measureProbeBody } from './lib/edge-probe-bytes.ts';
+import { deriveCatalogSamples } from './lib/edge-probe-catalog.ts';
+import type { CatalogDerivation } from './lib/edge-probe-catalog.ts';
 import { modelCorsFailures, modelCorsOrigins, PUBLIC_MODEL_CORS_ORIGINS } from './lib/model-cors.ts';
 
 export interface ProbeSample {
@@ -151,15 +153,16 @@ export async function probeSample(sample: ProbeSample, fetcher = fetch) {
 }
 export interface ModelAliasReference { origin: string; path: string; size: number; sha256: string }
 /** Explicit deployment origins, never a URL carrying a path or credentials. */
-export function modelProbeOrigins(value: string): string[] {
+export function probeOrigins(value: string, label = 'Model'): string[] {
   const origins = value.split(',').map(item => {
     const url = new URL(item.trim());
-    if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/' || url.search || url.hash) throw new Error('Model hosts must be HTTPS origins without paths or credentials');
+    if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/' || url.search || url.hash) throw new Error(`${label} hosts must be HTTPS origins without paths or credentials`);
     return url.origin;
   });
-  if (!origins.length || origins.length > 8) throw new Error('Configure between one and eight model origins');
+  if (!origins.length || origins.length > 8) throw new Error(`Configure between one and eight ${label.toLowerCase()} origins`);
   return [...new Set(origins)];
 }
+export const modelProbeOrigins = (value: string): string[] => probeOrigins(value, 'Model');
 export function modelProbeSamples(manifest: Array<{ url: string; size: number; sha256?: string; immutableUrl?: string }>, origins = ['https://lolly.tools', 'https://lolly.ing', 'https://lolli.li'], options: { fullLegacy?: boolean; legacyReferences?: ModelAliasReference[] } = {}): ProbeSample[] {
   return origins.flatMap(origin => manifest.flatMap(file => {
     if (!file.sha256 || !/^[a-f0-9]{64}$/.test(file.sha256) || !file.immutableUrl) throw new Error('Model probe requires complete hashed manifest entries');
@@ -175,24 +178,37 @@ export function modelProbeSamples(manifest: Array<{ url: string; size: number; s
 export async function main(args = process.argv.slice(2)): Promise<number> {
   const option = (name: string) => args[args.indexOf(name) + 1];
   if (args.includes('--help')) {
-    console.log('node scripts/edge-probe.ts [--samples sample.json] [--out receipt.json] [--observe]\nSamples contain origin, path, cls and optional status/sha256/size/boundedAgeSec/credentialEnv/compress/checkConditional/checkRange/stripC2pa. --models hashes immutable models and monitors alias HEAD/size on three hosts. --full-legacy --legacy-reference reference.json hashes aliases against archived {origin,path,size,sha256} records. Paired credentialEnv names with credentialType:cookie test distinct private readers. GET and HEAD only. --observe records failures without qualifying the target.');
+    console.log('node scripts/edge-probe.ts [--samples sample.json] [--out receipt.json] [--observe]\nSamples contain origin, path, cls and optional status/sha256/size/boundedAgeSec/credentialEnv/compress/checkConditional/checkRange/stripC2pa. --models hashes immutable models and monitors alias HEAD/size on three hosts. --full-legacy --legacy-reference reference.json hashes aliases against archived {origin,path,size,sha256} records. --catalog [--catalog-origins https://lolly.tools] [--catalog-rotation N] derives hashed public samples, 304 and 404 checks from each live signed catalog; DELIVERY_CATALOG_PUBLIC_KEY_JWK pins the key, and qualification fails without it. Paired credentialEnv names with credentialType:cookie test distinct private readers. GET and HEAD only. --observe records failures without qualifying the target.');
     return 0;
   }
   const samples: ProbeSample[] = args.includes('--samples') ? JSON.parse(readFileSync(option('--samples')!, 'utf8')) : [
     ...['https://lolly.tools', 'https://lolly.ing'].flatMap(origin => [
-      { origin, path: '/', cls: 'public-revalidate' as const, compress: true },
-      { origin, path: '/sw.js', cls: 'public-revalidate' as const, compress: true },
-      { origin, path: '/catalog/tools/index.json', cls: origin.endsWith('.ing') ? 'person-private' as const : 'public-revalidate' as const, status: origin.endsWith('.ing') ? 401 : 200, compress: true },
+      { origin, path: '/', cls: 'public-revalidate' as const, compress: true, checkConditional: true },
+      { origin, path: '/sw.js', cls: 'public-revalidate' as const, compress: true, checkConditional: true },
+      { origin, path: '/catalog/tools/index.json', cls: origin.endsWith('.ing') ? 'person-private' as const : 'public-revalidate' as const, status: origin.endsWith('.ing') ? 401 : 200, compress: true, checkConditional: true },
     ]),
   ];
   if (args.includes('--full-legacy') && !args.includes('--legacy-reference')) throw new Error('--full-legacy requires --legacy-reference <archived-alias-json>');
   if (args.includes('--models') || args.includes('--full-legacy')) samples.push(...modelProbeSamples(JSON.parse(readFileSync(new URL('../shells/web/models-manifest.json', import.meta.url), 'utf8')), args.includes('--model-origins') ? modelProbeOrigins(option('--model-origins')!) : undefined, {
     fullLegacy: args.includes('--full-legacy'), legacyReferences: args.includes('--legacy-reference') ? JSON.parse(readFileSync(option('--legacy-reference')!, 'utf8')) : undefined,
   }));
-  if (!Array.isArray(samples) || samples.length > 2000) throw new Error('Invalid probe sample count');
-  const results = [];
+  const derivations: CatalogDerivation[] = [];
+  let planned = samples;
+  if (args.includes('--catalog')) {
+    const rotation = args.includes('--catalog-rotation') ? Number(option('--catalog-rotation')) : undefined;
+    if (rotation !== undefined && !Number.isSafeInteger(rotation)) throw new Error('--catalog-rotation must be an integer');
+    for (const origin of probeOrigins(args.includes('--catalog-origins') ? option('--catalog-origins')! : 'https://lolly.tools', 'Catalog')) {
+      const derived = await deriveCatalogSamples(origin, { rotation, publicKey: process.env.DELIVERY_CATALOG_PUBLIC_KEY_JWK || undefined });
+      derivations.push(derived.result);
+      // Signed expectations replace a default sample for the same URL.
+      const urls = new Set(derived.samples.map(sample => new URL(sample.path, sample.origin).href));
+      planned = [...planned.filter(sample => !urls.has(new URL(sample.path, sample.origin).href)), ...derived.samples];
+    }
+  }
+  if (!Array.isArray(planned) || planned.length > 2000) throw new Error('Invalid probe sample count');
+  const results: Array<Awaited<ReturnType<typeof probeSample>> | CatalogDerivation> = [...derivations];
   // Bounded concurrency avoids bursts against a live shared workspace.
-  for (let i = 0; i < samples.length; i += 4) results.push(...await Promise.all(samples.slice(i, i + 4).map(s => probeSample(s))));
+  for (let i = 0; i < planned.length; i += 4) results.push(...await Promise.all(planned.slice(i, i + 4).map(s => probeSample(s))));
   const receipt = { format: 'lolly-delivery-probe-v1', checkedAt: new Date().toISOString(), mode: args.includes('--observe') ? 'observation' : 'qualification', passed: results.every(r => r.passed), results };
   if (args.includes('--out')) writeFileSync(option('--out')!, `${JSON.stringify(receipt, null, 2)}\n`, { mode: 0o600 });
   console.log(JSON.stringify({ ...receipt, results: results.map(r => ({ origin: r.origin, path: r.path, passed: r.passed, failures: r.observations.flatMap(o => o.failures) })) }, null, 2));
