@@ -281,6 +281,17 @@ test('Dolphin verbs route the selected file directly to their named utility', ()
   assert.match(convert, /takePendingConvertFile\(\)/);
 });
 
+test('a handed-over or bulk-picked file meets its input cap before the tool reads it', () => {
+  // seedDirect reads the file a Dolphin verb handed over, and wireBulkRows each file of
+  // a bulk run. Both read through cappedFileRef, as the sidebar picker does, so a file
+  // over the input's maxSize is refused before its bytes are read into memory.
+  const tool = readFeature(path.join(ROOT, 'shells/web/src/views/tool.ts'));
+  assert.match(tool, /cappedFileRef\(directFile, directInput\)/);
+  assert.match(tool, /cappedFileRef\(picked\[i\]!, fileSpec\)/);
+  assert.doesNotMatch(tool, /fileToRef\(directFile/);
+  assert.doesNotMatch(tool, /fileToRef\(picked\[i\]/);
+});
+
 test('desktop export and window polish use native, bounded platform facilities', () => {
   const cargo = readFileSync(path.join(DESKTOP, 'src-tauri/Cargo.toml'), 'utf8');
   const rust = readFileSync(path.join(DESKTOP, 'src-tauri/src/lib.rs'), 'utf8');

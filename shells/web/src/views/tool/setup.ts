@@ -57,6 +57,7 @@ import { asRow } from '../tool-types.ts';
 import { openToolSession } from '../tool-session-open.ts';
 import { carriedEmojiPins } from '../tool-session-snapshot.ts';
 import { _sliderDragging, fileToRef, fmtBytes, makeBlocksDropper, syncInputs } from '../tool-inputs.ts';
+import { cappedFileRef, fileInputCap } from '../../lib/file-input-ref.ts';
 import { notifyToolInputMount, guardDocumentEdits, policyValuesFor } from '../../lib/input-policy.ts';
 import { createLiveControls, mountSidebarLiveControls, registerLiveControls } from '../live-controls.ts';
 import { mountCaptureSignin } from '../capture-signin.ts';
@@ -290,10 +291,14 @@ export async function seedDirect(tview: ToolViewCtx): Promise<void> {
     // Seed its declared file input before the runtime is born, exactly like the
     // layered-file seed above, so onInit sees the right source and no empty-state
     // frame flashes first. Explicit URL/session values retain precedence.
+    // The handed-over file meets the cap the sidebar picker applies, before any read.
     const directFile = takePendingToolFile(toolId);
     const directInput = tview.tool.manifest.inputs?.find((i) => i.type === 'file');
-    if (directFile && directInput) {
-      const ref = await fileToRef(directFile);
+    const ref = directFile && directInput ? await cappedFileRef(directFile, directInput) : null;
+    if (directFile && directInput && !ref) {
+      announce(t('That file is too large (max {size}).', { size: fmtBytes(fileInputCap(directInput)) }), { assertive: true });
+    }
+    if (ref && directInput) {
       tview.initialValues = {
         [directInput.id]: directInput.multiple ? [ref] : ref,
         ...tview.initialValues,
@@ -987,7 +992,7 @@ export function wireBulkRows(tview: ToolViewCtx): void {
   // button - a background/navigate-away job would need a fresh runtime per file.
   if (bulkFilesId) {
     const fileSpec = tview.tool.manifest.inputs.find((i) => i.id === bulkFilesId) as
-      | { accept?: string[] }
+      | { accept?: string[]; maxSize?: number }
       | undefined;
     const picker = document.createElement('input');
     picker.type = 'file';
@@ -1016,7 +1021,10 @@ export function wireBulkRows(tview: ToolViewCtx): void {
         const { entries, failed } = await collectBulkFiles(
           picked.map((f) => ({ name: f.name })),
           async (i) => {
-            await runtime.setInput(bulkFilesId, await fileToRef(picked[i]!));
+            // Each file meets the input's cap before it is read; an oversized one is skipped.
+            const ref = await cappedFileRef(picked[i]!, fileSpec);
+            if (!ref) throw new Error(t('That file is too large (max {size}).', { size: fmtBytes(fileInputCap(fileSpec)) }));
+            await runtime.setInput(bulkFilesId, ref);
             const res = await runtime.exportFile();
             return Array.isArray(res) ? res : [res];
           },

@@ -19,7 +19,6 @@ import {
   buildEmbedUrl,
   parseToolUrl,
   parseDataRows,
-  DEFAULT_FILE_MAX_BYTES,
   bakeAssetRef,
   parseColor,
   colorToHexString,
@@ -92,6 +91,7 @@ import { assetInputThumbnail } from './inputs-asset-thumb.ts';
 // honest glyph and upgrades in place once its peaks are measured.
 import { mountAudioThumbs } from './picker.ts';
 import { asRow, type BlockRow } from './tool-types.ts';
+import { cappedFileRef, fileInputCap, fileToRef } from '../lib/file-input-ref.ts';
 import type { WebToolHost, PanelEl, EmbedDescribe, FlatpickrHost } from './tool.ts';
 
 // The id scope for one emoji table's artwork, so no two roots walked into this
@@ -221,23 +221,6 @@ export let _sliderDragging = false;
 // being dragged to a new position. Module-scoped so it survives the closure of a
 // single renderInputs pass (the panel only rebuilds on drop).
 let _blockDrag: BlockDrag | null = null;
-
-/**
- * Read a picked / dropped File into the in-memory FileRef the input model carries
- * (bytes + metadata). The bytes live only in memory and are never uploaded - the
- * url is a local object URL for previews. Shared by the sidebar file-picker and
- * the canvas drop zone so both produce an identical model value.
- */
-async function fileToRef(file: File): Promise<InputFile> {
-  return {
-    __file: true,
-    name: file.name,
-    mime: file.type || 'application/octet-stream',
-    size: file.size,
-    bytes: new Uint8Array(await file.arrayBuffer()),
-    url: URL.createObjectURL(file),
-  };
-}
 
 /**
  * Drop the caret in a block's first editable field - used right after "+ Add" so a
@@ -1024,14 +1007,12 @@ export function renderInputs(
       const native = control.querySelector<HTMLInputElement>('.file-native');
       const trigger = control.querySelector<HTMLButtonElement>('.file-trigger');
       const multiple = control.dataset.multiple === '1';
-      const cap = input.maxSize ?? DEFAULT_FILE_MAX_BYTES;
+      const cap = fileInputCap(input);
       // Read a File into a FileRef, enforcing the size cap; null when rejected.
       const toRef = async (file: File): Promise<InputFile | null> => {
-        if (file.size > cap) {
-          announce(`“${file.name}” is too large (max ${fmtBytes(cap)}).`, { assertive: true });
-          return null;
-        }
-        return await fileToRef(file);
+        const ref = await cappedFileRef(file, input);
+        if (!ref) announce(`“${file.name}” is too large (max ${fmtBytes(cap)}).`, { assertive: true });
+        return ref;
       };
       const currentRefs = (): InputFile[] => {
         const v = runtime.getModel().find((i) => i.id === id)?.value;
