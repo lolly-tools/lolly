@@ -392,14 +392,6 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
             ${madeWithNotice}
             <div id="tool-inputs" class="tool-inputs"></div>
             ${
-              /* Emoji (plans/252). OUTSIDE #tool-inputs on purpose: renderInputs wipes
-                  that container with innerHTML on every model change and only emits
-                  section heads for declared inputs, and this is not an input - it is
-                  chrome for a runtime service every tool gets. Hidden until the runtime
-                  reports the host can load sets (onEmojiChange), so a shell with no
-                  packs shows nothing rather than an empty promise. */ ''
-            }
-            ${
               /* The design system's choices for this document (plans/319 A4):
                   colourway, mode and any other theme group. Chrome for the same
                   reason as Emoji below, and outside #tool-inputs for the same
@@ -410,6 +402,14 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
               <summary class="input-section-summary"><span class="input-section-title"><span class="input-section-icon" aria-hidden="true">${icon('palette', { size: 14 })}</span>${escapeText(t('Design system'))}</span></summary>
               <div class="input-section-body" id="theme-section-body"></div>
             </details>
+            ${
+              /* Emoji (plans/252). OUTSIDE #tool-inputs on purpose: renderInputs wipes
+                  that container with innerHTML on every model change and only emits
+                  section heads for declared inputs, and this is not an input - it is
+                  chrome for a runtime service every tool gets. Hidden until the runtime
+                  reports the host can load sets (onEmojiChange), so a shell with no
+                  packs shows nothing rather than an empty promise. */ ''
+            }
             <details class="input-section" id="emoji-section" hidden>
               <summary class="input-section-summary"><span class="input-section-title"><span class="input-section-icon" aria-hidden="true">${icon('smile', { size: 14 })}</span>${escapeText(t('Emoji'))}</span></summary>
               <div class="input-section-body" id="emoji-section-body"></div>

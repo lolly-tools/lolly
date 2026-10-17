@@ -6,13 +6,15 @@
  * design system offers nothing to choose; it appears when a choice arrives
  * without a remount; it opens on its first show only for a colourway and never
  * reopens a fold the person closed; a switch re-seeds the colour field's
- * swatches from the scoped host; and a destroyed section stops listening.
+ * swatches from the scoped host; and a destroyed section stops listening. In the
+ * sidebar markup the section sits above Emoji, each under its own comment.
  *
  * Run directly:  node --import ./tests/css-stub.mjs --test shells/web/src/views/tool/theme-section.test.ts
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
+import { readFileSync } from 'node:fs';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://lolly.tools/' });
 for (const k of ['window', 'document', 'HTMLElement', 'HTMLButtonElement', 'HTMLSelectElement', 'HTMLDetailsElement', 'Element', 'Node', 'Event', 'KeyboardEvent', 'MouseEvent', 'CustomEvent', 'localStorage']) {
@@ -116,4 +118,20 @@ test('a switch re-seeds the colour field swatches from the scoped host and redra
   await refreshThemeSwatches(scoped as never, null, sink);
   assert.equal(seeded.length, 2, 'the mount seeds with no grid to redraw');
   assert.equal(redrawn.length, 1);
+});
+
+test('in the sidebar markup the section sits above Emoji, each element under its own comment', () => {
+  const source = readFileSync(new URL('./stage-layout.ts', import.meta.url), 'utf8');
+  const at = (needle: string): number => {
+    const index = source.indexOf(needle);
+    assert.ok(index >= 0, `stage-layout.ts holds ${needle}`);
+    return index;
+  };
+  const order = [
+    at("The design system's choices for this document"),
+    at('id="theme-section"'),
+    at('Emoji (plans/252). OUTSIDE #tool-inputs'),
+    at('id="emoji-section"'),
+  ];
+  assert.deepEqual(order, [...order].sort((a, b) => a - b), 'Design system comment, Design system section, Emoji comment, Emoji section');
 });
