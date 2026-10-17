@@ -145,6 +145,8 @@ In **Find matching colours**, the harmony generator suggests matching accent col
 
 Adding a suggested colour or shade group keeps the rest of your palette. For a complete replacement, open **Rebuild the whole palette…** and press **Preview full rebuild**. The review explains the changes: how many roles stay as you assigned them, how many colours you added yourself are kept, how many shade curves get re-anchored, how many print locks re-pinned, how many hidden shades stay hidden, how many gradient stops keep their colour.
 
+A design system with [colourways](token-workflows.md#colourways) keeps every colourway through a rebuild. The canonical colourway follows the new starting colour, as the primary of a design system with one lead does. Every other colourway keeps its own colours, its name, its place in the order and its settings. A colour in another colourway that followed a shade the rebuild changes keeps the colour it had. The review says which colourway follows the new colour and lists the colourways that keep their own colours. Lolly does not rebuild a design system that encodes its colourways in a way Lolly cannot edit, because a rebuild would lose them; the room says why.
+
 **Apply rebuilt palette** on that card commits it; **Cancel** walks away and changes nothing. Once it has run, the card offers **Undo** with focus already on it - and a checkpoint of the whole design system is taken *before* the swap, so "put it back the way it was" is a restore rather than a lost afternoon.
 
 ### The palette, the chart and each swatch
