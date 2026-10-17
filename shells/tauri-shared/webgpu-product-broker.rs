@@ -1193,7 +1193,7 @@ mod tests {
             let state = queue.lock().unwrap();
             assert_eq!((state.last, state.commands.len()), (1, 1));
         }
-        let mut closed = Input::Stream(Box::new(std::io::Cursor::new(Vec::new())));
+        let mut closed = Input::Stream(Box::new(std::io::empty()));
         assert!(closed.next_line().unwrap().is_none());
         let mut unbounded = Input::Stream(Box::new(std::io::Cursor::new(vec![
             b'x';
