@@ -253,6 +253,7 @@ export async function createLearningTracking(
   let etag: string | null = null;
   const stateUrl = (stateId: string) =>
     new URL(`activities/state?${query}&stateId=${encodeURIComponent(stateId)}`, base);
+  const fail = (message: string, status = 0) => Object.assign(new Error(message), { status });
   const request = async (url: URL, init: RequestInit, missing = false): Promise<Response> => {
     let response: Response | undefined;
     for (let retry = 0; retry < 3; retry++) {
@@ -270,14 +271,17 @@ export async function createLearningTracking(
       if (response && response.status < 500 && response.status !== 429) break;
       await new Promise((resolve) => w.setTimeout(resolve, 250 * 2 ** retry));
     }
-    if (response?.status === 409 || response?.status === 412)
-      throw new Error(
-        'Progress changed in another session. Relaunch this module before continuing.'
+    const status = response?.status || 0;
+    if (status === 409 || status === 412)
+      throw fail(
+        'Progress changed in another session. Relaunch this module before continuing.',
+        status
       );
-    if (response?.status === 401 || response?.status === 403)
-      throw new Error('Your LMS authorization has expired. Relaunch this module.');
-    throw new Error('Progress could not be saved to the LMS. Check your connection and retry.');
+    if (status === 401 || status === 403)
+      throw fail('Your LMS authorization has expired. Relaunch this module.', status);
+    throw fail('Progress could not be saved to the LMS. Check your connection and retry.', status);
   };
+  const statusOf = (error: unknown) => (error as { status?: number }).status || 0;
   let context: Record<string, unknown> = { registration };
   let readOnly = false;
   if (!cmi5 && params.get('grouping'))
@@ -302,76 +306,310 @@ export async function createLearningTracking(
     if (!readOnly && launch.moveOn !== 'Completed' && launch.moveOn !== 'NotApplicable')
       throw new Error('This completion-only module requires a Completed move-on setting.');
   }
+  const sessionId = cmi5
+    ? String(
+        (context.extensions as Record<string, unknown>)[
+          'https://w3id.org/xapi/cmi5/context/extensions/sessionid'
+        ]
+      )
+    : '';
+
+  // Unsent statements and progress outlive a closed page under this attempt's
+  // identity. Authorization and launch URLs are never stored, so a later launch
+  // of the same attempt has to authorize any replay. Each statement carries the
+  // cmi5 session that made it (empty for Tin Can), and `started` and `ended`
+  // list the cmi5 sessions that queued initialized and terminated.
+  type Entry = { session: string; body: string };
+  type Pending = {
+    v: 1;
+    statements: Entry[];
+    state: string | null;
+    base: string | null;
+    started: string[];
+    ended: string[];
+  };
+  const blank = (): Pending => ({
+    v: 1,
+    statements: [],
+    state: null,
+    base: null,
+    started: [],
+    ended: [],
+  });
+  const strings = (list: unknown) =>
+    Array.isArray(list) && list.every((s) => typeof s === 'string');
+  const valid = (r: Partial<Pending> | undefined): r is Pending =>
+    !!r &&
+    r.v === 1 &&
+    Array.isArray(r.statements) &&
+    r.statements.every((s) => !!s && typeof s.session === 'string' && typeof s.body === 'string') &&
+    strings(r.started) &&
+    strings(r.ended) &&
+    (r.state === null || typeof r.state === 'string') &&
+    (r.base === null || typeof r.base === 'string');
+  const sorted = (value: unknown): unknown =>
+    Array.isArray(value)
+      ? value.map(sorted)
+      : value && typeof value === 'object'
+        ? Object.fromEntries(
+            Object.keys(value)
+              .sort()
+              .map((k) => [k, sorted((value as Record<string, unknown>)[k])])
+          )
+        : value;
+  const key = JSON.stringify([
+    target,
+    base.origin + base.pathname,
+    activityId,
+    sorted(actor),
+    registration,
+  ]);
+  let memory = blank();
+  let db: IDBDatabase | null = null;
+  try {
+    db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const open = w.indexedDB.open('lolly-learning-recovery', 1);
+      open.onupgradeneeded = () => open.result.createObjectStore('pending');
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+      open.onblocked = () => reject(new Error('Browser recovery storage is busy.'));
+    });
+  } catch {
+    db = null;
+  }
+  /** Reads, or changes in one transaction, this attempt's record. Memory takes over if storage fails. */
+  const update = (change?: (record: Pending) => void) =>
+    new Promise<Pending>((resolve) => {
+      let settled = false;
+      const local = () => {
+        if (settled) return;
+        settled = true;
+        db = null;
+        change?.(memory);
+        resolve(memory);
+      };
+      if (!db) return local();
+      let record = blank();
+      try {
+        const tx = db.transaction('pending', change ? 'readwrite' : 'readonly');
+        const store = tx.objectStore('pending');
+        const read = store.get(key);
+        read.onsuccess = () => {
+          record = valid(read.result) ? read.result : blank();
+          if (!change) return;
+          change(record);
+          if (
+            record.statements.length ||
+            record.state !== null ||
+            record.started.length ||
+            record.ended.length
+          )
+            store.put(record, key);
+          else store.delete(key);
+        };
+        tx.oncomplete = () => {
+          if (settled) return;
+          settled = true;
+          memory = record;
+          resolve(record);
+        };
+        tx.onerror = tx.onabort = local;
+      } catch {
+        local();
+      }
+    });
+  const forget = (...bodies: string[]) =>
+    update((record) => {
+      record.statements = record.statements.filter((s) => !bodies.includes(s.body));
+    });
+  const compose = (verb: string) => {
+    const ctx = structuredClone(context);
+    if (cmi5) {
+      const activities = (ctx.contextActivities || {}) as Record<string, unknown>;
+      const category = Array.isArray(activities.category) ? [...activities.category] : [];
+      for (const id of [
+        'https://w3id.org/xapi/cmi5/context/categories/cmi5',
+        ...(verb === 'completed' ? ['https://w3id.org/xapi/cmi5/context/categories/moveon'] : []),
+      ]) {
+        if (!category.some((c) => c.id === id)) category.push({ id });
+      }
+      ctx.contextActivities = { ...activities, category };
+    }
+    return JSON.stringify({
+      id: w.crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      actor,
+      verb: { id: `http://adlnet.gov/expapi/verbs/${verb}` },
+      object: { objectType: 'Activity', id: activityId },
+      context: ctx,
+      ...(['completed', 'terminated'].includes(verb)
+        ? {
+            result: {
+              duration: `PT${((Date.now() - started) / 1000).toFixed(2)}S`,
+              ...(verb === 'completed' ? { completion: true } : {}),
+            },
+          }
+        : {}),
+    });
+  };
+  /**
+   * Stores a statement before the first send, just ahead of `before` when that
+   * is still queued. Every retry then sends the same ID and timestamp.
+   */
+  const queue = async (verb: string, before = '') => {
+    const body = compose(verb);
+    await update((record) => {
+      const at = before ? record.statements.findIndex((s) => s.body === before) : -1;
+      record.statements.splice(at < 0 ? record.statements.length : at, 0, {
+        session: sessionId,
+        body,
+      });
+      const marks =
+        verb === 'initialized' ? record.started : verb === 'terminated' ? record.ended : null;
+      if (cmi5 && marks && !marks.includes(sessionId)) marks.push(sessionId);
+    });
+    return body;
+  };
+  const replayed = new Set<string>();
+  const forbidden = new Set<string>();
+  /**
+   * Sends this session's unsent statements in the order they were made,
+   * stopping before `until`. Another open cmi5 session's statements stay for
+   * that session to send under its own authorization.
+   */
+  const flush = async (until = '') => {
+    for (;;) {
+      const entry = (await update()).statements.find(
+        (s) => s.session === sessionId && !forbidden.has(s.body)
+      );
+      if (!entry || entry.body === until) return;
+      const { body } = entry;
+      const old = replayed.has(body);
+      try {
+        await request(new URL('statements', base), { method: 'POST', body });
+      } catch (error) {
+        const status = statusOf(error);
+        // A 403 on an older statement may be the LMS closing that statement to
+        // this launch. Set it aside and drop it only once the LRS accepts one
+        // of this launch's own statements. A 401 says the credentials are bad,
+        // so every record stays.
+        if (old && status === 403) {
+          forbidden.add(body);
+          continue;
+        }
+        // Any other definite refusal cannot be fixed by sending the same
+        // statement again, and keeping it would hold back every later one.
+        if (status >= 400 && status < 500 && ![401, 403, 408, 429].includes(status)) {
+          await forget(body);
+          if (old) continue;
+        }
+        throw error;
+      }
+      if (old || !forbidden.size) await forget(body);
+      else {
+        await forget(body, ...forbidden);
+        forbidden.clear();
+      }
+    }
+  };
+
+  const recovered = await update((record) => {
+    // Another cmi5 session's statements lost their authorization with that session.
+    if (cmi5) {
+      record.statements = record.statements.filter((s) => s.session === sessionId);
+      record.started = record.started.filter((s) => s === sessionId);
+      record.ended = record.ended.filter((s) => s === sessionId);
+    }
+  });
+  for (const { body } of recovered.statements) replayed.add(body);
+  const progressId = 'lolly.progress.v1';
+  if (recovered.statements.length || (!readOnly && recovered.state !== null)) {
+    // Reading the attempt's document first proves this launch's authorization
+    // before any older record is replayed.
+    const current = await request(stateUrl(progressId), { method: 'GET' }, true);
+    const pending = recovered.state;
+    if (!readOnly && pending !== null) {
+      const text = current.status === 404 ? null : await current.text();
+      const tag = current.headers.get('ETag');
+      // Only the document this copy replaced may be overwritten. Newer LMS progress wins.
+      if (
+        text !== pending &&
+        (text === null ? recovered.base === null : !!tag && tag === recovered.base)
+      ) {
+        try {
+          await request(stateUrl(progressId), {
+            method: 'PUT',
+            body: pending,
+            headers: tag ? { 'If-Match': tag } : { 'If-None-Match': '*' },
+          });
+        } catch (error) {
+          if (statusOf(error) !== 409 && statusOf(error) !== 412) throw error;
+        }
+      }
+      await update((record) => {
+        if (record.state === pending) record.state = record.base = null;
+      });
+    }
+  }
+  if (cmi5 && recovered.ended.includes(sessionId)) {
+    // This session was already ending: deliver its own records, never new ones.
+    await flush().catch(() => {});
+    throw new Error('This learning session has ended. Relaunch it from your LMS.');
+  }
+  const opening = cmi5 && recovered.started.includes(sessionId) ? '' : await queue('initialized');
+  try {
+    await flush();
+  } catch (error) {
+    // A launch that cannot connect records nothing of its own.
+    if (opening)
+      await update((record) => {
+        record.statements = record.statements.filter((s) => s.body !== opening);
+        record.started = record.started.filter((s) => s !== sessionId);
+      });
+    throw error;
+  }
   let terminated = false;
   let completionSent = false;
-  const pending = new Map<string, string>();
-  const statement = async (verb: string) => {
-    let body = pending.get(verb);
-    if (!body) {
-      const ctx = structuredClone(context);
-      if (cmi5) {
-        const activities = (ctx.contextActivities || {}) as Record<string, unknown>;
-        const category = Array.isArray(activities.category) ? [...activities.category] : [];
-        for (const id of [
-          'https://w3id.org/xapi/cmi5/context/categories/cmi5',
-          ...(verb === 'completed' ? ['https://w3id.org/xapi/cmi5/context/categories/moveon'] : []),
-        ]) {
-          if (!category.some((c) => c.id === id)) category.push({ id });
-        }
-        ctx.contextActivities = { ...activities, category };
-      }
-      body = JSON.stringify({
-        id: w.crypto.randomUUID(),
-        timestamp: new Date().toISOString(),
-        actor,
-        verb: { id: `http://adlnet.gov/expapi/verbs/${verb}` },
-        object: { objectType: 'Activity', id: activityId },
-        context: ctx,
-        ...(['completed', 'terminated'].includes(verb)
-          ? {
-              result: {
-                duration: `PT${((Date.now() - started) / 1000).toFixed(2)}S`,
-                ...(verb === 'completed' ? { completion: true } : {}),
-              },
-            }
-          : {}),
-      });
-      pending.set(verb, body);
-    }
-    await request(new URL('statements', base), { method: 'POST', body });
-    pending.delete(verb);
-  };
-  await statement('initialized');
+  let closing = '';
   return {
     readOnly,
     read: async () => {
-      const r = await request(stateUrl('lolly.progress.v1'), { method: 'GET' }, true);
+      const r = await request(stateUrl(progressId), { method: 'GET' }, true);
       etag = r.headers.get('ETag');
       return r.status === 404 ? '' : await r.text();
     },
     save: async (state, completed) => {
       if (terminated) throw new Error('This learning session has ended.');
       if (readOnly) return;
-      const r = await request(stateUrl('lolly.progress.v1'), {
+      await update((record) => {
+        record.state = state;
+        record.base = etag;
+      });
+      const r = await request(stateUrl(progressId), {
         method: 'PUT',
         body: state,
         headers: etag ? { 'If-Match': etag } : { 'If-None-Match': '*' },
       });
       etag = r.headers.get('ETag');
       if (!etag) {
-        const check = await request(stateUrl('lolly.progress.v1'), { method: 'GET' });
+        const check = await request(stateUrl(progressId), { method: 'GET' });
         etag = check.headers.get('ETag');
       }
+      await update((record) => {
+        if (record.state === state) record.state = record.base = null;
+      });
+      // After a failed Exit, completion still goes ahead of the queued terminated.
       if (completed && !completionSent) {
-        await statement('completed');
+        await queue('completed', closing);
         completionSent = true;
       }
+      await flush(closing);
     },
     finish: async () => {
-      if (!terminated) {
-        await statement('terminated');
-        terminated = true;
-      }
+      if (terminated) return;
+      if (!closing) closing = await queue('terminated');
+      await flush();
+      terminated = true;
     },
   };
 }
