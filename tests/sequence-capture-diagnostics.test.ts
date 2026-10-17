@@ -7,7 +7,7 @@ import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
 import { newSourceCaptureDiagnostics, observeSourceCaptures, SOURCE_CAPTURE_BYTE_LIMIT,
   SOURCE_CAPTURE_IMAGE_LIMIT, SOURCE_CAPTURE_LIMIT } from './helpers/sequence-capture-diagnostics.ts';
-import { newPlateShare, plateShareSummary, recordPlates, replayPlates, shotSignature } from './helpers/sequence-plate-share.ts';
+import { newPlateShare, plateInk, plateShareSummary, recordPlates, replayPlates, shotSignature } from './helpers/sequence-plate-share.ts';
 
 const node = (images: unknown[] = []) => ({ querySelectorAll: () => images });
 const canvas = (bytes = new Uint8ClampedArray([20, 40, 60, 255])) => ({ width: 1, height: 1,
@@ -117,7 +117,8 @@ for (const mismatch of [false, true]) {
   test(`the actual cache comparison observes source only after original mismatch=${mismatch}`, async () => {
     const calls: { captureSourceDiagnostic?: boolean; signal?: AbortSignal; plates?: string }[] = [];
     let pair = 0, shares = 0, taken = 0;
-    const shareSummary = (n: number) => ({ recorded: 12, replayed: 12, captureMs: n, refused: null, failed: 0, failures: [] });
+    const shareSummary = (n: number) => ({ recorded: 12, replayed: 12, captureMs: n, refused: null, failed: 0, failures: [],
+      empty: 0, emptyPlates: [], unread: 0 });
     const originalOff = Array(4).fill('a'.repeat(64)), originalOn = Array(4).fill((mismatch ? 'b' : 'a').repeat(64));
     const deadlines: number[] = [], cleared: unknown[] = [];
     const context = { window: { SEQ: {
@@ -190,7 +191,8 @@ test('a recorded capture is passed through unchanged and replayed as the same ca
     assert.equal(await library.toCanvas(shotNode('20'), shot(200)), second);
   } finally { stopReplay(); }
   assert.equal(calls.length, 2, 'a replay never captures');
-  assert.deepEqual(plateShareSummary(share), { recorded: 2, replayed: 2, captureMs: 10, refused: null, failed: 0, failures: [] });
+  assert.deepEqual(plateShareSummary(share), { recorded: 2, replayed: 2, captureMs: 10, refused: null, failed: 0, failures: [],
+    empty: 0, emptyPlates: [], unread: 2 }, 'stand-in canvases have no readback, and the summary says so rather than calling them empty');
 });
 
 test('a replay refuses a capture that does not match the recording, and says so on the share', async () => {
@@ -248,7 +250,8 @@ test('a capture that failed while recording fails again on replay, so both rende
   finally { stopReplay(); }
   assert.deepEqual(plateShareSummary(share), {
     recorded: 1, replayed: 1, captureMs: share.captureMs, refused: null, failed: 1, failures: ['capture refused'],
-  });
+    empty: 0, emptyPlates: [], unread: 0,
+  }, 'a capture that threw has no plate to read back');
 });
 
 test('plate sharing restores the library and keeps a later independent replacement', () => {
@@ -268,4 +271,70 @@ test('a shot signature names the node shape and shot options without carrying im
   assert.match(signature, /"42"/);
   assert.notEqual(signature, shotSignature(shotNode('42', 'https://private.invalid/other'), shot(300, 200)));
   assert.equal(shotSignature(null, undefined), shotSignature({}, {}));
+});
+
+// ── empty plates: what plate sharing would otherwise hide ─────────────────────
+
+const plate = (alpha: number[], width = alpha.length, height = 1) => {
+  const data = new Uint8ClampedArray(alpha.length * 4);
+  alpha.forEach((a, i) => { data[i * 4] = 255; data[i * 4 + 3] = a; });
+  let reads = 0;
+  return { width, height, get reads() { return reads; },
+    getContext: () => ({ getImageData: (_x: number, _y: number, w: number, h: number) => {
+      reads++; assert.deepEqual([w, h], [width, height]); return { data };
+    } }) };
+};
+
+test('a plate is empty only when every pixel has zero alpha, and unreadable plates are not guessed', () => {
+  assert.equal(plateInk(plate([0, 0, 0, 0])), 'empty', 'colour under zero alpha is still nothing');
+  assert.equal(plateInk(plate([0, 0, 1, 0])), 'ink', 'one faint pixel is ink');
+  assert.equal(plateInk({ ...plate([]), width: 0, height: 4 }), 'empty', 'a plate with no area draws nothing');
+  assert.equal(plateInk({ ...plate([0]), width: SOURCE_CAPTURE_BYTE_LIMIT / 4 + 1 }), 'unread', 'past the readback limit');
+  assert.equal(plateInk({ width: 1, height: 1, getContext: () => null }), 'unread', 'no 2d readback');
+  assert.equal(plateInk({ width: 1, height: 1, getContext: () => ({ getImageData() { throw new Error('tainted'); } }) }), 'unread');
+  assert.equal(plateInk({ width: 2, height: 1, getContext: () => ({ getImageData: () => ({ data: new Uint8ClampedArray(4) }) }) }), 'unread',
+    'a short readback is not an empty plate');
+  assert.equal(plateInk({ width: 1.5, height: 1, getContext: () => null }), 'unread');
+  for (const stand of [null, undefined, {}, { id: 'plate' }]) assert.equal(plateInk(stand), 'unread');
+});
+
+test('the summary names recorded plates that came back empty, read only when it is taken', async () => {
+  const plates = [plate([0, 9]), plate([0, 0]), null, plate([0, 0, 0]), { width: 1, height: 1, getContext: () => null }];
+  let calls = 0;
+  const library = { async toCanvas(_node: unknown, _options: unknown): Promise<unknown> {
+    const next = plates[calls++];
+    if (next === null) throw new Error('capture refused');
+    return next;
+  } };
+  const share = newPlateShare();
+  const stopRecording = recordPlates(library, share);
+  for (let i = 0; i < plates.length; i++) await library.toCanvas(shotNode(String(i)), shot(100)).catch(() => null);
+  stopRecording();
+  const stopReplay = replayPlates(library, share);
+  try {
+    for (let i = 0; i < plates.length; i++) await library.toCanvas(shotNode(String(i)), shot(100)).catch(() => null);
+  } finally { stopReplay(); }
+  const read = () => plates.map(p => (p && 'reads' in p ? p.reads : 0));
+  assert.deepEqual(read(), [0, 0, 0, 0, 0], 'neither render had its plates read back');
+  const summary = plateShareSummary(share);
+  assert.deepEqual(read(), [1, 1, 0, 1, 0], 'each recorded plate is read once, when the summary is taken');
+  assert.equal(summary.refused, null);
+  assert.equal(summary.failed, 1, 'the capture that threw is reported as failed, not as empty');
+  assert.equal(summary.empty, 2);
+  assert.deepEqual(summary.emptyPlates, [{ at: 2, node: 'div.lolly-box[z=1]' }, { at: 4, node: 'div.lolly-box[z=3]' }],
+    'positions count from 1 in capture order, and each names the node it photographed');
+  assert.equal(summary.unread, 1);
+});
+
+test('the empty plate list is capped, the count is not, and a stage plate is told apart from a layer box', () => {
+  const share = newPlateShare();
+  const stage = { tagName: 'DIV', className: 'artboard', getAttribute: () => null, querySelectorAll: () => [] };
+  share.shots.push({ signature: shotSignature(stage, shot(100)), canvas: plate([0]), error: null, failed: false });
+  for (let i = 1; i < 20; i++) share.shots.push({ signature: shotSignature(shotNode(String(i)), shot(100)), canvas: plate([0]), error: null, failed: false });
+  const summary = plateShareSummary(share);
+  assert.equal(summary.empty, 20);
+  assert.equal(summary.emptyPlates.length, 16);
+  assert.deepEqual(summary.emptyPlates.slice(0, 2), [{ at: 1, node: 'div.artboard' }, { at: 2, node: 'div.lolly-box[z=1]' }]);
+  assert.deepEqual(plateShareSummary(null), { recorded: 0, replayed: 0, captureMs: 0, refused: 'no plate share was started',
+    failed: 0, failures: [], empty: 0, emptyPlates: [], unread: 0 });
 });

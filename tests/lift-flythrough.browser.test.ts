@@ -600,7 +600,14 @@ describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, conc
   // stays open. What this test claims is that the cache preserves pixels, so the control
   // records its captures and the cached render is answered from that recording
   // (`plates: 'record'` / `'replay'`, tests/helpers/sequence-plate-share.ts). Any
-  // difference left is the cache's own, and a capture that threw is still reported.
+  // difference left is the cache's own.
+  //
+  // The price is that a lost plate no longer fails this test, because both renders now
+  // draw the same lost plate. So the log reports a lost plate either way, as a log line
+  // and never an assertion: a capture that threw (`[lift-shadow capture failed]`) and a
+  // layer plate that came back fully transparent (`[lift-shadow empty plate]`, read back
+  // once both renders are done). Every layer plate in this fixture holds some ink, so
+  // either line is the export defect.
 
   test('cached and uncached shadows encode the SAME source pixels, and the cache is what makes this affordable', async () => {
     const r = await page().evaluate(async ({ spec, fps, width, last, prefix }) => {
@@ -667,14 +674,21 @@ describe('plans/104 P3 - the Lift-layers exit demo', { skip: gate ?? false, conc
     assert.equal(r.on.err, null, `the cached render failed: ${JSON.stringify(r.on.err)}`);
     if (r.rawMismatch) say(`[lift-shadow raw mismatch] ${JSON.stringify(r.rawMismatch)}`);
     if (r.sourceDiagnostic) say(`[lift-shadow source diagnostic only] ${JSON.stringify(r.sourceDiagnostic)}`);
+    // A capture that threw, or a plate that came back fully transparent, is drawn as
+    // nothing in BOTH renders, so neither can fail the cache claim. Both are still an
+    // export with a layer missing, so they go in the log, never into an assertion. The
+    // stage background plate (the artboard with every box hidden) is empty by design
+    // here, because this fixture's stage is transparent, so only layer boxes count. These
+    // come before the share assertions so a refused share still shows them.
+    if (r.plates.failed) say(`[lift-shadow capture failed] ${r.plates.failed} of ${r.plates.recorded} plate captures threw and were drawn as nothing: ${r.plates.failures.join(' | ')}`);
+    const lost = r.plates.emptyPlates.filter((plate) => plate.node.includes('.lolly-box'));
+    if (lost.length) say(`[lift-shadow empty plate] ${lost.map((plate) => `${plate.at} (${plate.node})`).join(', ')} of ${r.plates.recorded}: a layer plate came back fully transparent and both renders drew that layer as nothing`);
+    if (r.plates.unread) say(`[lift-shadow plate unread] ${r.plates.unread} of ${r.plates.recorded} recorded plates could not be read back, so an empty one among them would not be reported`);
     // The pair is only a cache comparison if the cached render drew the control's
     // plates, every one of them and nothing else.
     assert.equal(r.plates.refused, null, `the cached render could not reuse the control's plates: ${r.plates.refused}`);
     assert.ok(r.plates.recorded > 0, 'the control captured no plates to share');
     assert.equal(r.plates.replayed, r.plates.recorded, 'the cached render drew every plate the control captured');
-    // A capture that threw is drawn as nothing in BOTH renders, so it cannot fail the
-    // cache claim, but it is an export with a layer missing and worth seeing in the log.
-    if (r.plates.failed) say(`[lift-shadow capture failed] ${r.plates.failed} of ${r.plates.recorded} plate captures threw and were drawn as nothing: ${r.plates.failures.join(' | ')}`);
     // Exact RGBA at VideoEncoder.encode isolates the cache from lossy encoding.
     // The software CI encoder does not promise repeatable quantization or bytes.
     assert.equal(r.on.raw?.length, 4, 'all four cached source frames were captured');
@@ -793,7 +807,10 @@ interface SeqApi {
   beginRawComparison(): void;
   takeRawComparison(includeEqual?: boolean): unknown | null;
   beginPlateShare(): void;
-  takePlateShare(): { recorded: number; replayed: number; captureMs: number; refused: string | null; failed: number; failures: string[] };
+  takePlateShare(): {
+    recorded: number; replayed: number; captureMs: number; refused: string | null;
+    failed: number; failures: string[]; empty: number; emptyPlates: { at: number; node: string }[]; unread: number;
+  };
   exportSeq(spec: unknown, format: 'mp4' | 'webm' | 'gif' | 'apng', opts?: Record<string, unknown>): Promise<RunLike>;
   exportViaApi(spec: unknown, format: string, opts?: Record<string, unknown>): Promise<RunLike>;
   blobBytes(key: string): Promise<string>;

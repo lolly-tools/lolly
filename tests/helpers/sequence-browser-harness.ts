@@ -512,7 +512,8 @@ function beginRawComparison(): void {
 }
 
 // One render's plate captures, replayed into the next (`plates: 'record'` then
-// `plates: 'replay'`), so a pair compares the compositor and not two captures.
+// `plates: 'replay'`), so a pair compares the compositor and not two captures. Take the
+// share only after both renders: its summary reads the recorded plates back.
 let plateShare: PlateShare | null = null;
 
 function beginPlateShare(): void {
