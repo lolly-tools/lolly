@@ -651,6 +651,55 @@ test('runVideoJob: a clip with its own credential keeps it; the unsigned record 
   assert.match(String((o.inputs as Record<string, string>).credits), /Clip by Jo Example/, 'the readable credit still travels');
 });
 
+/** A lossless packet copy in a container the stamp cannot write. */
+const unstampableCopy = (ext: 'mov' | 'mkv') => async (_b: Blob, inSec: number, outSec: number) => ({
+  blob: new Blob(['copied']), container: ext, ext, mime: `video/${ext}`, videoCodec: 'avc', audioCodec: 'aac',
+  droppedTracks: 0, requestedInSec: inSec, requestedOutSec: outSec, snappedInSec: inSec, snappedOutSec: outSec,
+  snapped: false, durationSec: outSec - inSec,
+});
+/** The real stamp's contract: new bytes for a stampable format, the same blob otherwise. */
+const formatAwareStamp = (cap: { calls: Array<{ format: string; o: Record<string, unknown> }> }) =>
+  async (_h: unknown, blob: Blob, format: string, o: Record<string, unknown>) => {
+    cap.calls.push({ format, o });
+    return format === 'mp4' || format === 'webm' ? new Blob(['signed']) : blob;
+  };
+
+for (const ext of ['mov', 'mkv'] as const) {
+  test(`runVideoJob trim: a CC BY clip whose lossless copy is ${ext} saves through the transcode trim as a stamped MP4`, async () => {
+    const { host, uploaded } = fakeHost();
+    const cap = { calls: [] as Array<{ format: string; o: Record<string, unknown> }> };
+    const writer = fakeWriter('mp4');
+    const deps = { ...baseDeps(cap, null, writer), stamp: formatAwareStamp(cap), losslessTrim: unstampableCopy(ext) };
+    const ref = await runVideoJob(host as never, {
+      op: 'trim', source: { ...CC_BY_CLIP, format: ext } as never, sourceName: `surf.${ext}`,
+      trim: { fps: 0, bitrate: 8_000_000 }, range: { startSec: 1, endSec: 2 },
+    } as never, {}, deps as never);
+    assert.ok(ref);
+    assert.equal(writer.frames.length, 3, 'the transcode trim encoded every frame');
+    assert.equal(cap.calls.length, 1);
+    assert.equal(cap.calls[0]!.format, 'mp4');
+    const ingredients = cap.calls[0]!.o.ingredients as Array<Record<string, unknown>>;
+    assert.equal(ingredients[0]!.credential, 'none', 'the unsigned source ingredient rides into the MP4');
+    assert.match(String((cap.calls[0]!.o.inputs as Record<string, string>).credits), /Clip by Jo Example/);
+    assert.equal(uploaded.length, 1);
+    assert.equal(uploaded[0]!.format, 'mp4');
+  });
+}
+
+test('runVideoJob trim: a clip with no licence keeps its lossless mov copy', async () => {
+  const { host, uploaded } = fakeHost();
+  const cap = { calls: [] as Array<{ format: string; o: Record<string, unknown> }> };
+  const writer = fakeWriter('mp4');
+  const deps = { ...baseDeps(cap, null, writer), stamp: formatAwareStamp(cap), losslessTrim: unstampableCopy('mov') };
+  const ref = await runVideoJob(host as never, {
+    op: 'trim', source: { id: 'tr', type: 'video', url: 'blob:tr', format: 'mov' } as never, sourceName: 'talk.mov',
+    trim: { fps: 0, bitrate: 8_000_000 }, range: { startSec: 1, endSec: 2 },
+  } as never, {}, deps as never);
+  assert.ok(ref);
+  assert.equal(writer.frames.length, 0, 'nothing asks for a credit, so the byte-lossless copy stands');
+  assert.equal(uploaded[0]!.format, 'mov');
+});
+
 test('runVideoJob trim: pixels pass through untouched, the range reaches the reader AND the audio slice', async () => {
   const { host, uploaded } = fakeHost();
   const cap = { calls: [] as Array<{ format: string; o: Record<string, unknown> }> };

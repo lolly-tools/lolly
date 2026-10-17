@@ -121,6 +121,12 @@ export class DerivedCreditError extends Error {
   }
 }
 
+/** What to tell the user when a derived save or download failed: the credit
+ *  failure in its own words, anything else as the caller's general message. */
+export function derivedFailureMessage(err: unknown, fallback: string): string {
+  return err instanceof DerivedCreditError ? err.message : fallback;
+}
+
 /** Formats embedC2pa can stamp (png/jpg/webp/gif/svg/tiff/pdf/…). */
 export const STAMPABLE_FORMATS = new Set<string>(C2PA_FORMATS as readonly string[]);
 

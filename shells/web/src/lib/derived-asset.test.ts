@@ -20,6 +20,7 @@ globalThis.document = dom.window.document;
 
 const {
   signDerived, signDerivedOutcome, derivedRights, derivedSourceWork, derivedOperations, DerivedCreditError,
+  derivedFailureMessage,
 } = await import('./derived-asset.ts');
 const { videoProvenanceFor, lutCreditOf } = await import('./video-jobs.ts');
 const { PRESET_LUTS, lutSource } = await import('./preset-luts.ts');
@@ -194,6 +195,24 @@ test('a required credit the file cannot carry is a failure, not a quiet unsigned
   assert.equal(refused.state, 'delivery-failed');
   assert.equal(refused.blob, broken);
   await assert.rejects(() => signDerived(host, photo(CC_BY), brokenPng(), 'png', CROP), DerivedCreditError);
+});
+
+test('the catalog crop and icon download routes tell the user when the credit could not travel', async () => {
+  const err = await signDerived(host, photo(CC_BY), pngBlob(), 'bmp', CROP).catch((e: unknown) => e);
+  assert.equal(derivedFailureMessage(err, 'general'), (err as Error).message);
+  assert.equal(derivedFailureMessage(new Error('Failed to fetch'), 'general'), 'general', 'other failures keep the general message');
+  // Each route used to catch, log and close with nothing said.
+  const { readFileSync } = await import('node:fs');
+  const read = (rel: string): string => readFileSync(new URL(rel, import.meta.url), 'utf8');
+  const crop = read('../views/assets/details-inline-modes.ts');
+  for (const logLine of ["'Catalog crop save failed'", "'Catalog crop failed'"]) {
+    const at = crop.indexOf(logLine);
+    assert.ok(at > 0, logLine);
+    assert.match(crop.slice(at, at + 300), /announce\(derivedFailureMessage\(err, /, `${logLine} is announced`);
+  }
+  const icon = read('../views/assets/downloads.ts');
+  const at = icon.indexOf("'Catalog download failed'");
+  assert.match(icon.slice(at, at + 300), /announce\(derivedFailureMessage\(err, /);
 });
 
 test('optional provenance stays best-effort: no licence, or a licence that asks for no credit, still ships', async () => {

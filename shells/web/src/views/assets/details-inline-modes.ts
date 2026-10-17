@@ -12,6 +12,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { showUndoToast } from '../../lib/undo-toast.ts';
 import { assetAiKind } from '../../lib/genai-pill.ts';
 import { announce } from '../../a11y.ts';
+import { derivedFailureMessage } from '../../lib/derived-asset.ts';
 import type { VideoJobHost } from '../../lib/video-jobs.ts';
 import type { C2paActionInput } from '../../../../../engine/src/c2pa.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
@@ -363,7 +364,10 @@ export async function enterInlineCrop(dt: DetailsCtx): Promise<void> {
         made.ref = await host.assets.get(id);
       };
       try { await cat.downloads.downloadCrop(ref, vector, svgText, imgEl, crop.getFrac(), fmt(), { theme, treatment, origSvg, transform: tfActive() ? tf : undefined }, save); }
-      catch (err) { host.log?.('error', 'Catalog crop save failed', { id: ref.id, error: String(err) }); }
+      catch (err) {
+        host.log?.('error', 'Catalog crop save failed', { id: ref.id, error: String(err) });
+        announce(derivedFailureMessage(err, t('Could not save the file. Please try again.')), { assertive: true });
+      }
       exit();
       if (made.ref) {
         announce(tRaw('Crop saved to your uploads as "{name}".', { name: String(made.ref.meta?.name ?? made.ref.id) }));
@@ -373,7 +377,10 @@ export async function enterInlineCrop(dt: DetailsCtx): Promise<void> {
     }
     if (tgt.closest('.cat-crop-go')) {
       try { await cat.downloads.downloadCrop(ref, vector, svgText, imgEl, crop.getFrac(), fmt(), { theme, treatment, origSvg, transform: tfActive() ? tf : undefined }); }
-      catch (err) { host.log?.('error', 'Catalog crop failed', { id: ref.id, error: String(err) }); }
+      catch (err) {
+        host.log?.('error', 'Catalog crop failed', { id: ref.id, error: String(err) });
+        announce(derivedFailureMessage(err, t('Could not prepare this download.')), { assertive: true });
+      }
       exit();   // back to the detail view after a successful (or failed) download
     }
   });

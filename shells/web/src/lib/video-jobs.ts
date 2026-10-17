@@ -73,7 +73,7 @@ import {
 import { packGifAlpha } from './gif-alpha.ts';
 import type { LosslessTrimCtx, LosslessTrimResult } from './lossless-trim.ts';
 import { startJob, type JobHandle } from './jobs.ts';
-import { DerivedCreditError, derivedRights, type DerivedSource } from './derived-asset.ts';
+import { DerivedCreditError, STAMPABLE_FORMATS, derivedRights, type DerivedSource } from './derived-asset.ts';
 import { t, tRaw } from '../i18n.ts';
 import type {
   AssetRef, HostV1, MatteModelId, UpscaleModelId,
@@ -1624,6 +1624,7 @@ export async function runVideoJob(
     : (req.upscale?.fps ?? 30);
 
   const reader = await openReader(sourceBlob, fps, req.range);
+  const sourceRef = typeof req.source === 'object' && !(req.source instanceof Blob) ? req.source : null;
 
   // Stamp the output bytes, save the derived user asset, resolve its ref. The single
   // finish path both the transcode pipeline and the lossless fast path below run
@@ -1640,7 +1641,6 @@ export async function runVideoJob(
     // (lib/derived-asset.ts). A graded clip's LUT joins the rules as a transformation
     // input. Best-effort while no licence asks for a credit - a failed sign still
     // ships; when one does, a file that could not carry the credit fails the job.
-    const sourceRef = typeof req.source === 'object' && !(req.source instanceof Blob) ? req.source : null;
     const rights = derivedRights(sourceRef, {
       edits: prov.actions as C2paActionInput[],
       sources: req.op === 'grade' && req.grade?.lut ? [req.grade.lut] : [],
@@ -1723,6 +1723,15 @@ export async function runVideoJob(
       // (runFramePipeline's cancelled branch), never a job failure.
       if ((e as Error | null)?.name === 'AbortError') { await reader.close(); return null; }
       throw e;
+    }
+    // A QuickTime or Matroska copy cannot carry Content Credentials. When the source's
+    // licence asks for a credit, drop the copy and let the transcoding trim below write
+    // a file that can carry it, rather than fail the job after the copy.
+    if (fast && !STAMPABLE_FORMATS.has(fast.ext) && derivedRights(sourceRef, {
+      edits: videoProvenanceFor('trim').actions as C2paActionInput[], format: fast.ext,
+    })?.required.length) {
+      host.log?.('info', 'Video job: lossless trim skipped, its container cannot carry the required credit', { format: fast.ext });
+      fast = null;
     }
     if (fast) {
       // The packet copy decoded nothing; drop the reader we opened only for its dims.
