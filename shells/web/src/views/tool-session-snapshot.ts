@@ -87,6 +87,12 @@ export function carriedEmojiPins(
   return { __emojiAssets: structuredClone(pins) };
 }
 
+/** Whether a record's emoji stamp is for this style, so pins resolved for the style
+ *  are the ones a write without pins was waiting for. */
+export function stampMatchesStyle(stamp: unknown, style: EmojiStyleV1 | null | undefined): boolean {
+  return !!style && sameEmojiStamp(stamp, emojiParams(style));
+}
+
 /** A snapshot has an emoji set chosen but carries none of its artwork pins yet. */
 export function awaitsEmojiPins(data: Readonly<Record<string, unknown>>): boolean {
   const stamp = data.__emoji;

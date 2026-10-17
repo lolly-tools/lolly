@@ -126,8 +126,11 @@ export async function performSave(ta: ActionsCtx,
       new Promise<null>((resolve) => setTimeout(() => resolve(null), THUMB_CAPTURE_TIMEOUT_MS)),
     ])
       .then((thumb) => {
-        if (!thumb || gen !== ta.saveGen) return undefined;
-        return outcome === 'recorded' && history ? history.attachSaveThumbnail(thumb) : host.state.save(slot, data, thumb);
+        if (gen !== ta.saveGen) return undefined;
+        // A recorded save always hears back, with null when no picture came, so
+        // history holds nothing for this picture longer than the capture takes.
+        if (outcome === 'recorded' && history) return history.attachSaveThumbnail(thumb);
+        return thumb ? host.state.save(slot, data, thumb) : undefined;
       })
       .catch(() => {
         /* the thumbnail is an extra - the session is already saved */
