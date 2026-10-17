@@ -5,11 +5,11 @@ import type { TextCharacterV1, TextDocumentV1, TextFrameV1, TextLayoutRequestV1,
 import { formatStoryParagraphs, formatStoryRange, replaceStoryRange, storyParagraphIds, textStyleResolver, snapTextRange, importTextFragment, parseTextDocument, applyTextCleanup, styleTextRange, defineTextStyle, nextParagraphStyle } from '@lolly/engine';
 import type { TextInsertion, TextSpanPatch, TextCleanupPreview, TextStyleCommand } from '@lolly/engine';
 import { mountNativeText, nativeTextChange } from './text-native.ts';
-import { acquireEditorFonts, nativeFontFamily, pinEditorFont } from './text-editor-fonts.ts';
+import { acquireEditorFonts, nativeFontFamily, pinEditorFont, pinTypographyFaces } from './text-editor-fonts.ts';
 import { copyTextFragment, pastedTextHtml, TEXT_CLIPBOARD_MIME } from './text-clipboard.ts';
 import { textTypographyPreview } from './text-typography-preview.ts';
 import { t } from '../i18n.ts';
-import { bindParagraphToken } from '../../../../engine/src/text-token-bindings.ts';
+import { bindParagraphToken, bindParagraphTypography, textTypographySlants, type TextTypographyLink } from '../../../../engine/src/text-token-bindings.ts';
 import type { TokenValue } from '../../../../engine/src/tokens.ts';
 import { hitNativeTextStop } from './text-native-hit.ts';
 import { rebaseTextEdit } from './text-edit-rebase.ts';
@@ -262,6 +262,20 @@ export function mountTextEditor(element: HTMLElement, options: TextEditorOptions
     },
     paragraphToken(field: string, binding?: TokenValue) {
       pendingSelection = logicalRange(); write(bindParagraphToken(current.document, story, storyParagraphIds(story, logicalRange()), field, binding), binding ? t('Link paragraph token') : t('Make paragraph custom'));
+    },
+    /** Link pins the token's faces first; link, Make custom and Restore each write once. */
+    async paragraphTypography(link?: TextTypographyLink) {
+      const revision = story.revision, selected = logicalRange(), ids = storyParagraphIds(story, selected);
+      let faces: Awaited<ReturnType<typeof pinTypographyFaces>> | undefined;
+      if (link) {
+        const before = generation; element.dataset.textPending = 'true'; options.changed?.();
+        try { faces = await track(pinTypographyFaces(link.typography, textTypographySlants(current.document, story, ids), story.source)); }
+        finally { if (generation === before) delete element.dataset.textPending; options.changed?.(); }
+        if (disposed || revision !== story.revision) throw new Error(t('The text changed while its font loaded. Link the token again.'));
+        for (const font of faces.fonts) typingFonts.set(font.id, font);
+      }
+      const result = bindParagraphTypography(current.document, story, ids, link && faces ? { ...link, ...faces } : undefined);
+      pendingSelection = selected; write(result.story, link ? t('Link typography token') : t('Make typography custom'));
     },
     paragraph(patch: TextParagraphStyleV1, label: string) {
       pendingSelection = logicalRange(); write(formatStoryParagraphs(story, storyParagraphIds(story, logicalRange()), patch), label);

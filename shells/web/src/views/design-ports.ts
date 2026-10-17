@@ -25,6 +25,7 @@ export interface TextPropertyState {
   paragraphTokenMixed?: string[];
   paragraphTokenActive?: Record<string, import('../../../../engine/src/token-block-bindings.ts').BlockTokenBinding>;
   paragraphTokenRestores?: Record<string, string>;
+  paragraphTypography?: { active?: import('../../../../engine/src/token-block-bindings.ts').BlockTokenBinding; mixed: boolean; restoreRef?: string };
   frame: TextFrameV1;
   family: string;
   styles: TextStyleControlState;
@@ -37,6 +38,8 @@ export interface TextPropertyPort {
   typography?(ids:string[]):import('../lib/text-typography-controls.ts').TextTypographyPort;
   read(ids: string[]): TextPropertyState | null;
   apply(ids: string[], command: TextPropertyCommand, label: string): void;
+  /** Whole typography on composed paragraphs; rejects with a reason, such as a missing face. */
+  typographyToken?(ids: string[], link?: import('../../../../engine/src/text-token-bindings.ts').TextTypographyLink): Promise<void>;
   subscribe(listener: () => void): () => void;
 }
 

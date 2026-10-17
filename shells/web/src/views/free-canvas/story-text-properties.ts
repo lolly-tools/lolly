@@ -3,10 +3,10 @@
 import { formatStoryRange, formatStoryParagraphs, textStyleResolver, styleTextRange, defineTextStyle } from '@lolly/engine';
 import type { TextCharacterV1 } from '@lolly-tools/core';
 import type { TextPropertyCommand, TextPropertyPort, TextPropertyState } from '../design-ports.ts';
-import { bindParagraphToken, paragraphTokenState } from '../../../../../engine/src/text-token-bindings.ts';
+import { bindParagraphToken, bindParagraphTypography, paragraphTokenState, paragraphTypographyState, textTypographySlants, type TextTypographyChange, type TextTypographyLink } from '../../../../../engine/src/text-token-bindings.ts';
 import { textTypographyPreview } from '../../lib/text-typography-preview.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import { pinEditorFont } from '../../lib/text-editor-fonts.ts';
+import { pinEditorFont, pinTypographyFaces } from '../../lib/text-editor-fonts.ts';
 import { announce } from '../../a11y.ts';
 import { t } from '../../i18n.ts';
 import { bindOp, type FcCtx } from './context.ts';
@@ -30,7 +30,7 @@ export function read(fc: FcCtx, ids: string[]): TextPropertyState | null {
     paragraphOverrides: !!paragraph.paragraph && Object.keys(paragraph.paragraph).length > 0,
     characterOverrides: stories.some(item => item.spans.some(span => !!span.character && (!active || span.end > active.range.start && span.start <= active.range.end))) };
   const tokenState = paragraphTokenState(snapshot.document, stories, active?.range);
-  return { paragraphTokenSelection: tokenState.selection, paragraphTokenActive: tokenState.active, paragraphTokenMixed: tokenState.mixed, paragraphTokenRestores: tokenState.restoreRefs, scope: active ? active.range.start === active.range.end ? 'caret' : 'range' : 'story', storyIds, character, mixed: [...mixed], paragraph: tokenState.paragraph, frame: frames[0]!, styles, appliedScale:active ? active.layout?.frames.find(frame=>frame.id===ids[0])?.appliedScale??1 : frames[0]!.shrink ? fc.storyText.peek({document:snapshot.document,storyId:story.id,frames:snapshot.frames.filter(frame=>frame.storyId===story.id)})?.layout.frames.find(frame=>frame.id===ids[0])?.appliedScale??1 : 1, linked:stories.some(story=>story.frameIds.length>1), family: snapshot.document.fonts.find(font => font.id === character.font)?.family ?? '' };
+  return { paragraphTokenSelection: tokenState.selection, paragraphTokenActive: tokenState.active, paragraphTokenMixed: tokenState.mixed, paragraphTokenRestores: tokenState.restoreRefs, paragraphTypography: paragraphTypographyState(snapshot.document, stories, active?.range), scope: active ? active.range.start === active.range.end ? 'caret' : 'range' : 'story', storyIds, character, mixed: [...mixed], paragraph: tokenState.paragraph, frame: frames[0]!, styles, appliedScale:active ? active.layout?.frames.find(frame=>frame.id===ids[0])?.appliedScale??1 : frames[0]!.shrink ? fc.storyText.peek({document:snapshot.document,storyId:story.id,frames:snapshot.frames.filter(frame=>frame.storyId===story.id)})?.layout.frames.find(frame=>frame.id===ids[0])?.appliedScale??1 : 1, linked:stories.some(story=>story.frameIds.length>1), family: snapshot.document.fonts.find(font => font.id === character.font)?.family ?? '' };
 }
 function family(fc: FcCtx, value: string): string {
   const probe = document.createElement('span'); probe.style.fontFamily = fc.helpers.fontStackFor(value); fc.canvasEl.append(probe);
@@ -69,11 +69,33 @@ export async function apply(fc: FcCtx, ids: string[], command: TextPropertyComma
     await fc.storyText.write(snapshot, label);
   } catch (error) { announce(error instanceof Error ? error.message : String(error)); }
 }
+/** Whole typography: pin the faces, then link, Make custom or Restore in one history step. */
+export async function linkTypography(fc: FcCtx, ids: string[], link?: TextTypographyLink): Promise<void> {
+  const state = read(fc, ids); if (!state) throw new Error(t('Select a text frame.'));
+  const active = ids.length === 1 && fc.editing?.id === ids[0] ? fc.editing?.composed?.editor : undefined;
+  if (active) return active.paragraphTypography(link);
+  const snapshot = fc.storyText.read(), revision = JSON.stringify(snapshot.document);
+  const stories = snapshot.document.stories.filter(story => state.storyIds.includes(story.id));
+  let change: TextTypographyChange | undefined;
+  if (link) {
+    const slants = [...new Set(stories.flatMap(story => textTypographySlants(snapshot.document, story, story.paragraphs.map(paragraph => paragraph.id))))];
+    change = { ...link, ...await pinTypographyFaces(link.typography, slants, stories.map(story => story.source).join('\n')) };
+    if (JSON.stringify(fc.storyText.read().document) !== revision) throw new Error(t('The text changed while its font loaded. Link the token again.'));
+  }
+  let fonts = snapshot.document.fonts;
+  snapshot.document.stories = snapshot.document.stories.map(story => {
+    if (!state.storyIds.includes(story.id)) return story;
+    const result = bindParagraphTypography({ ...snapshot.document, fonts }, story, story.paragraphs.map(paragraph => paragraph.id), change);
+    fonts = result.fonts; return result.story;
+  });
+  snapshot.document.fonts = fonts;
+  await fc.storyText.write(snapshot, link ? t('Link typography token') : t('Make typography custom'));
+}
 export function port(fc: FcCtx): TextPropertyPort {
   return { typography:ids=>({read:()=>read(fc,ids)?.character??{},write:(value,label)=>{void apply(fc,ids,{kind:'character',value},label);},
     async info(){const state=read(fc,ids),snapshot=fc.storyText.read(),font=snapshot.document.fonts.find(font=>font.id===state?.character.font),api=(fc.host as HostV1).text;if(!font||!api?.fontInfo)throw new Error(t('Font metadata is unavailable.'));return api.fontInfo(font);},
     preview(value){const state=read(fc,ids);if(!state)return Promise.reject(new Error(t('Select a text frame.')));const active=ids.length===1&&fc.editing?.id===ids[0]?fc.editing?.composed?.editor:undefined;if(active)return active.previewTypography(value);const snapshot=fc.storyText.read(),story=snapshot.document.stories.find(story=>story.id===state.storyIds[0])!;return textTypographyPreview(snapshot.document,story,{start:0,end:0},{...state.character,...value},request=>fc.storyText.layout(request));},
-    error:error=>announce(error instanceof Error?error.message:String(error))}), read: ids => read(fc, ids), apply: (ids, command, label) => { void apply(fc, ids, command, label); }, subscribe(listener) {
+    error:error=>announce(error instanceof Error?error.message:String(error))}), read: ids => read(fc, ids), apply: (ids, command, label) => { void apply(fc, ids, command, label); }, typographyToken: (ids, link) => linkTypography(fc, ids, link), subscribe(listener) {
     const off = fc.runtime.subscribe(listener); fc.canvasEl.addEventListener('lolly:text-selection-change', listener);
     return () => { off?.(); fc.canvasEl.removeEventListener('lolly:text-selection-change', listener); };
   } };
