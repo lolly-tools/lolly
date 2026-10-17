@@ -38,6 +38,8 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
   }
   const unregister = registerCanvasInteractions(runtime, {
     async acquire(target, lost) {
+      // The room refuses a second claim over the same objects, so a committing claim is
+      // reused as granted, with its own fields, rather than widened.
       const reusable = [...active.values()].find(entry => entry.committing
         && entry.claim.target.kind === target.kind && entry.claim.target.collection === target.collection
         && entry.claim.target.field === target.field && entry.claim.target.param === target.param
@@ -55,7 +57,10 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
         id: claim.id,
         preview(value) {
           if (active.get(claim.id) !== entry || entry.generation !== generation) return;
-          entry.preview = { ...value, claimId: claim.id, collection: target.collection };
+          // A room on an older contract grants the claim without its fields and would drop a
+          // 'scale' preview whole, so there a Scale shows as the resize it showed before.
+          const kind = value.kind === 'scale' && !claim.target.fields ? 'resize' : value.kind;
+          entry.preview = { ...value, kind, claimId: claim.id, collection: target.collection };
           previewId = claim.id; session.updateSurface({ preview: entry.preview });
         },
         finish(committed) {
@@ -105,11 +110,13 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
       return objects.get(id) ?? null;
     }
     const placements: Array<{ key: string; id: string; name: string; color: string; ghost: boolean;
-      geometry: { w: number; h: number; rot: number }; left: number; top: number; width: number; height: number;
-      element?: HTMLElement; source?: string }> = [];
-    // Read camera metrics before any mounted overlay writes.
-    function place(key: string, id: string, geometry: { x: number; y: number; w: number; h: number; rot: number }, name: string, color: string, ghost = false) {
+      geometry: { w: number; h: number; rot: number }; layout: { w: number; h: number };
+      left: number; top: number; width: number; height: number; element?: HTMLElement; source?: string }> = [];
+    // Read camera metrics before any mounted overlay writes. A scaled ghost lays its copy out
+    // at the committed size, so its text and strokes grow with the box rather than reflow.
+    function place(key: string, id: string, geometry: { x: number; y: number; w: number; h: number; rot: number }, name: string, color: string, ghost = false, scaled = false) {
       const artwork = object(id); if (!artwork) return;
+      const layout = scaled ? { w: artwork.w, h: artwork.h } : geometry;
       used.add(key);
       const point = toClient({ x: geometry.x, y: geometry.y });
       const extent = toClient({ x: geometry.x + geometry.w, y: geometry.y + geometry.h });
@@ -121,7 +128,7 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
       const visible = !rect.width || !rect.height || (left + width / 2 + halfW >= -64 && left + width / 2 - halfW <= rect.width + 64
         && top + height / 2 + halfH >= -64 && top + height / 2 - halfH <= rect.height + 64);
       const source = ghost && visible ? artwork.element?.outerHTML : undefined;
-      placements.push({ key, id, geometry, name, color, ghost, source, element: artwork.element ?? undefined,
+      placements.push({ key, id, geometry, layout, name, color, ghost, source, element: artwork.element ?? undefined,
         left, top, width, height });
     }
     for (const peer of session.presence.roster()) {
@@ -132,7 +139,7 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
         const matches = preview.phase === 'committing' && preview.objects.every(row => {
           const current = object(row.id); return current && (['x', 'y', 'w', 'h', 'rot'] as const).every(key => Math.abs(current[key] - row[key]) < 0.1);
         });
-        if (!matches) for (const row of preview.objects) place(`preview:${preview.claimId}:${row.id}`, row.id, row, claim.name, color, true);
+        if (!matches) for (const row of preview.objects) place(`preview:${preview.claimId}:${row.id}`, row.id, row, claim.name, color, true, preview.kind === 'scale');
       }
       if (state.location !== surface.id()) continue;
       for (const id of state.selection ?? []) {
@@ -142,7 +149,7 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
     for (const claim of claims) if (claim.owner !== capability!.owner?.() && claim.target.kind === 'text' && claim.target.collection === surface.collection) {
       for (const id of claim.target.ids) { const current = object(id); if (current) place(`text:${claim.id}:${id}`, id, current, `${claim.name} · editing text`, '#6554c0'); }
     }
-    for (const { key, id, geometry, name, color, ghost, source, element, left, top, width, height } of placements) {
+    for (const { key, id, geometry, layout, name, color, ghost, source, element, left, top, width, height } of placements) {
       let entry = nodes.get(key);
       if (!entry) {
         const node = root.ownerDocument.createElement('div');
@@ -154,7 +161,7 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
         label.style.cssText = 'position:absolute;inset-inline-start:0;bottom:100%;font:12px system-ui;padding:2px 4px;white-space:nowrap;color:white';
         node.append(label); root.append(node); entry = { node }; nodes.set(key, entry);
       }
-      entry.geometry = geometry; entry.width = width; entry.height = height;
+      entry.geometry = layout; entry.width = width; entry.height = height;
       if (ghost && source === undefined) {
         refiner.delete(key); entry.source = undefined; entry.revision = undefined;
         entry.node.querySelector('.collab-preview-content')?.remove();
@@ -172,7 +179,7 @@ export function mountCanvasInteractions(runtime: object, handle: CollabSessionHa
         });
       }
       const content = entry.node.querySelector<HTMLElement>('.collab-preview-content');
-      if (content) sizePreviewContent(content, geometry.w, geometry.h, width, height);
+      if (content) sizePreviewContent(content, layout.w, layout.h, width, height);
       Object.assign(entry.node.style, { left: `${left}px`, top: `${top}px`, width: `${width}px`, height: `${height}px`,
         transform: `rotate(${geometry.rot}deg)`, outline: `2px ${ghost ? 'dashed' : 'solid'} ${color}`, opacity: ghost ? '0.65' : '1' });
       const label = entry.node.querySelector<HTMLElement>('.collab-object-label')!;
