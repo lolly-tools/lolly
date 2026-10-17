@@ -101,6 +101,11 @@ panels, the top bar, the menus and the text on them, one room per theme. Put a
 is an optional colour, and an alias into your own palette is the normal way to
 write one.
 
+The app reads its colours in the canonical option of every theme group that
+declares a kind, apart from light and dark. A design system with
+[colourways](/info/token-workflows.html#colourways) therefore keeps the app on
+its canonical lead while an artefact on the canvas uses another.
+
 | Slot | Sets | For | Left out |
 |---|---|---|---|
 | `page` | `--background` | the page | the theme keeps Lolly's room, because the other surfaces need a page |

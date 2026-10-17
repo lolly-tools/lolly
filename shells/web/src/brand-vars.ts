@@ -49,10 +49,45 @@ const SLOTS = [
 /** A resolvable tokens document - the head, or a published design-system version
  *  (plans/97 section 6a). Both answer the same two reads, which is the point. */
 interface BrandTokens {
-  resolve(ref: string, opts?: { theme?: string }): Promise<unknown>;
-  colors?(opts?: { theme?: string }): Promise<Array<{ value: string; ref?: string; path?: string; faces?: Record<string,string|number[]>; css?: string }>>;
+  resolve(ref: string, opts?: { theme?: string; selection?: Record<string, string> }): Promise<unknown>;
+  colors?(opts?: { theme?: string; selection?: Record<string, string> }): Promise<Array<{ value: string; ref?: string; path?: string; faces?: Record<string,string|number[]>; css?: string }>>;
   /** The document's `$themes`, so pack chrome reads a brand set only when one is declared. */
-  themes?(): Promise<Array<{ name: string }>>;
+  themes?(): Promise<Array<{ name: string; group?: string | null; id?: string; kind?: string; canonical?: true }>>;
+}
+
+/**
+ * The tokens surface the app chrome reads: the same one the canvas reads, with
+ * every theme group that declares a kind, other than light and dark, pinned to
+ * its canonical theme (plans/319 decision 2). The chrome belongs to the device,
+ * the canvas to the artefact. The render surface carries the open artefact's
+ * choices (a route's `_themes` becomes the document's stored selection), so
+ * without the pin a Persimmon poster would turn the app's accent, favicon and
+ * logo tint Persimmon.
+ *
+ * Light and dark stay the caller's to pick: chrome reads both explicitly. A read
+ * that passes its own `selection` is left alone, and a design system whose
+ * groups declare no kind (every pack before colourways) is read exactly as
+ * before, because there is nothing to pin.
+ */
+export function chromeTokens(tk: BrandTokens | undefined): BrandTokens | undefined {
+  if (!tk?.themes) return tk;
+  const themes = tk.themes.bind(tk);
+  let pins: Promise<Record<string, string> | null> | null = null;
+  const pinned = (): Promise<Record<string, string> | null> => pins ??= themes().then((list) => {
+    const out: Record<string, string> = {};
+    for (const t of list) if (t.canonical && t.kind && t.kind !== 'mode') out[t.group ?? ''] = t.id ?? t.name;
+    return Object.keys(out).length ? out : null;
+  }).catch(() => null);
+  const scoped = async <O extends { selection?: Record<string, string> }>(opts: O | undefined): Promise<O | undefined> => {
+    if (opts?.selection !== undefined) return opts;
+    const selection = await pinned();
+    return selection ? { ...(opts ?? {}), selection } as O : opts;
+  };
+  return {
+    resolve: async (ref, opts) => tk.resolve(ref, await scoped(opts)),
+    ...(tk.colors ? { colors: async (opts?: { theme?: string; selection?: Record<string, string> }) => tk.colors!(await scoped(opts)) } : {}),
+    themes,
+  };
 }
 
 /** The host slice this module reads - the (optional) tokens resolver, plus
@@ -1501,8 +1536,10 @@ export async function applyChromeBrandVars(host: BrandVarsHost): Promise<void> {
   // `host.tokens` IS the render surface (plans/97 section 6a): the web bridge resolves
   // the version ladder behind its own reads, so chrome and the tool canvas below
   // paint from one answer and cannot disagree. Nothing to resolve here, and
-  // nothing published means the head, exactly as before section 6a.
-  const tk: BrandTokens | undefined = host.tokens;
+  // nothing published means the head, exactly as before section 6a. The chrome
+  // reads it through chromeTokens, which keeps every colourway (and any other
+  // authored choice except light/dark) on the canonical option.
+  const tk: BrandTokens | undefined = chromeTokens(host.tokens);
 
   const resolveHex = async (slot: string, theme: string): Promise<string | null> => {
     try {

@@ -116,10 +116,11 @@ test('axis kinds, canonical options, rotation and windows are read from entries 
   assert.deepEqual(groups.colourway!.options.map(o => o.id), ['main', 'persimmon']);
   const themes = createTokenSet(doc).themes();
   assert.deepEqual(themes.filter(t => t.group === 'colourway'), [
-    { name: 'Main', group: 'colourway', id: 'main', kind: 'colourway' },
+    { name: 'Main', group: 'colourway', id: 'main', kind: 'colourway', canonical: true },
     { name: 'Persimmon', group: 'colourway', id: 'persimmon', kind: 'colourway' },
   ]);
-  assert.deepEqual(themes.filter(t => t.group === null).map(t => t.kind), ['mode', 'mode']);
+  assert.deepEqual(themes.filter(t => t.group === null).map(t => [t.kind, t.canonical]), [['mode', true], ['mode', undefined]]);
+  assert.deepEqual(createTokenSet(FIXTURES['Lolly Demo']!()).themes(), [{ name: 'light', group: null }, { name: 'dark', group: null }], 'a group with no kind lists exactly as before');
 
   const rooted: Rec = {
     a: {}, b: {}, c: {},

@@ -74,6 +74,8 @@ Imported files often encode colourways their own way, for example by overriding 
 
 **Choosing a colourway.** A link carries the choice with the other theme choices: `_themes={"":"dark","colourway":"persimmon"}`. The CLI takes the same JSON in `--_themes`. On `lolly run`, `--themes=all` exports each look once in the canonical colourway, and naming a colourway, as in `--themes=Persimmon`, exports in that colourway.
 
+**The app's own colours.** The app's accent, favicon and logo tint follow the canonical colourway whatever the open artefact uses: the app belongs to the device, the canvas to the artefact. The same holds for any other group with a kind, except light and dark, which follow the app's appearance setting. A Persimmon poster shows Persimmon on the canvas and the canonical colour in the app around the poster.
+
 **Series.** A series of artefacts can pick its colourways by a rule. The rule is applied when each artefact is made, and the artefact stores the colourway it got, never the rule, so adding a colourway later changes what a rule picks for new work and leaves every existing artefact as it was.
 
 | Rule | Picks |

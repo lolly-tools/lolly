@@ -253,21 +253,26 @@ export function createTokenSet(doc: unknown, opts: TokenResolveOptions = {}): To
     /**
      * Theme names declared in the document, in source order. `id` is present when
      * the source gives one, and `kind` when the theme's group declares what it
-     * means (plans/319: `mode`, `colourway`, ...).
+     * means (plans/319: `mode`, `colourway`, ...). In such a group the canonical
+     * theme also carries `canonical: true`, so a reader can pin the group to it
+     * (the app chrome does) without a second document read. Groups with no kind
+     * carry neither, so their listing is unchanged.
      */
-    themes(): { name: string; group: string | null; id?: string; kind?: TokenAxisKind }[] {
+    themes(): { name: string; group: string | null; id?: string; kind?: TokenAxisKind; canonical?: true }[] {
       const themesArr = isRecord(doc) && Array.isArray(doc.$themes) ? doc.$themes : null;
       if (!themesArr) return [];
-      const kinds = new Map(readTokenAxes(doc).axes.filter(a => a.kind).map(a => [a.group, a.kind!]));
+      const axes = new Map(readTokenAxes(doc).axes.filter(a => a.kind).map(a => [a.group, a]));
       return themesArr.map((t) => {
         const r = isRecord(t) ? t : {};
         const id = strOrNull(r.id);
-        const kind = kinds.get(strOrNull(r.group) ?? '');
+        const axis = axes.get(strOrNull(r.group) ?? '');
+        const optionId = id ?? strOrNull(r.name);
         return {
           name: strOrNull(r.name) ?? id ?? '',
           group: strOrNull(r.group),
           ...(id ? { id } : {}),
-          ...(kind ? { kind } : {}),
+          ...(axis ? { kind: axis.kind! } : {}),
+          ...(axis && optionId === axis.canonical ? { canonical: true as const } : {}),
         };
       });
     },

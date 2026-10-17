@@ -98,9 +98,10 @@ export interface TokensAPI {
   inspect?(opts?: TokenResolveOptions): Promise<TokenInspection>;
   /**
    * Theme names declared in the document. Since v1.262 each entry may also carry
-   * the theme's `id` (when the source has one) and its group's `kind`.
+   * the theme's `id` (when the source has one) and its group's `kind`; in a group
+   * that declares a kind, the canonical theme carries `canonical: true`.
    */
-  themes(): Promise<{ name: string; group: string | null; id?: string; kind?: TokenAxisKind }[]>;
+  themes(): Promise<{ name: string; group: string | null; id?: string; kind?: TokenAxisKind; canonical?: true }[]>;
   /**
    * Every design system this device holds, in the host's own listing order
    * (v1.173, plans/186). Optional/additive: a shell that holds exactly one system
@@ -201,8 +202,8 @@ export interface TokenSet {
   resolve(ref: string): unknown;
   query(filter?: { type?: string }): TokenEntry[];
   colors(): ColorSwatch[];
-  /** Since v1.262 an entry may carry the source `id` and its group's `kind`. */
-  themes(): { name: string; group: string | null; id?: string; kind?: TokenAxisKind }[];
+  /** Since v1.262 an entry may carry the source `id`, its group's `kind` and, in a group with a kind, `canonical: true`. */
+  themes(): { name: string; group: string | null; id?: string; kind?: TokenAxisKind; canonical?: true }[];
 }
 
 export interface TokenEntry {
