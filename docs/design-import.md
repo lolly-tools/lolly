@@ -49,6 +49,8 @@ Grid tracks accept `auto`, pixel sizes such as `120px`, fractions such as `1fr`,
 
 Native Penpot imports retain supported flex and grid rules, including nested ownership. The solver uses Penpot's modern Rust implementation. Native exports carry editable rules and membership. A group participates in its parent's layout as one item. **Fill** scales its contents with the allocated size; **Hug** fits the visible content in the group's own axes and also works outside a dynamic layout. A resize that would skew a rotated child produces a finding and leaves the document unchanged. Review those findings before continuing.
 
+A Penpot SVG export imports with every layer at the position Penpot exported. The import lists each flex or grid layout the SVG declares and brings those layers in without the layout rules; use the native `.penpot` export to keep the rules editable. A plain SVG never gains a layout from the way its artwork is arranged.
+
 Layout rules travel in saved sessions, templates and generated tools. Files containing dynamic layouts require `.lolly` reader version 6. SVG, PDF and raster exports use the settled geometry; an export waits for the latest layout to appear or asks you to retry. No website code is generated.
 
 ## Groups and pages

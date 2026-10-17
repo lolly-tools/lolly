@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.262.0
+
+- Add `penpotSvgLayoutFindings`. Flex and grid layouts declared in a legacy Penpot SVG export produce one `penpot.layout.svg-static` finding per container, with its Penpot layer name. Those pages import at their exported positions without layout rules. An SVG without layout metadata produces no finding and no layout is inferred from how its artwork is arranged.
+- Export the `LayoutFinding` and `PenpotSvgLayout` types from the engine barrel.
+
 ## 1.261.0
 
 - Preserve selected-file identity in versioned resource dependencies and collect source credentials by the exact version used in an export.

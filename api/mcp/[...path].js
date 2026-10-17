@@ -4027,7 +4027,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.261.0";
+    ENGINE_VERSION = "1.262.0";
   }
 });
 
@@ -99149,6 +99149,22 @@ var init_design_layout = __esm({
 function penpotHasLayout(shapes2) {
   return Object.values(shapes2).some((shape) => shape.layout === "flex" || shape.layout === "grid");
 }
+function penpotSvgLayoutFindings(layouts) {
+  const findings = [], seen = /* @__PURE__ */ new Set();
+  for (const entry2 of layouts) {
+    const layout2 = String(entry2.layout ?? "").trim().toLowerCase(), id3 = String(entry2.id ?? "").trim();
+    if (!layout2 || id3 && seen.has(id3)) continue;
+    if (id3) seen.add(id3);
+    const name = String(entry2.name ?? "").trim().slice(0, 80);
+    const kind = layout2 === "flex" || layout2 === "grid" ? `a ${layout2} layout` : "a layout";
+    findings.push({
+      id: id3,
+      code: "penpot.layout.svg-static",
+      message: `${name ? `The Penpot layer \u201C${name}\u201D` : "A Penpot layer"} uses ${kind}. This SVG import keeps its layers at their exported positions without the layout rules. Import the .penpot export to keep the layout editable.`
+    });
+  }
+  return findings;
+}
 function penpotChildrenPaintOrder(shape, shapes2) {
   const ids2 = Array.isArray(shape.shapes) ? shape.shapes.map(String) : [];
   if (shape.layout !== "flex" && shape.layout !== "grid") return ids2;
@@ -139282,6 +139298,7 @@ __export(src_exports, {
   penpotHasLayout: () => penpotHasLayout,
   penpotPathContentToD: () => penpotPathContentToD,
   penpotShapeToNode: () => penpotShapeToNode,
+  penpotSvgLayoutFindings: () => penpotSvgLayoutFindings,
   penpotTokenClosure: () => penpotTokenClosure,
   penpotTokensJson: () => penpotTokensJson,
   penpotUuid: () => penpotUuid,
