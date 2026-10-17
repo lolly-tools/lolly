@@ -8,13 +8,16 @@
  * CSSOM, the mode as a segmented radio group, anything else as a labelled select;
  * every control is a keyboard radio group with one tab stop; a press reaches the
  * shared controller, and a change made elsewhere (the Design inspector) redraws
- * this control.
+ * this control. A control is named by its group label alone and described by the
+ * section tip (checked in a real browser too), and a press made before an earlier
+ * switch has finished is the one that counts.
  *
  * Run directly:  node --import ./tests/css-stub.mjs --test shells/web/src/components/theme-choices.test.ts
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
+import { existsSync } from 'node:fs';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://lolly.tools/' });
 for (const k of ['window', 'document', 'HTMLElement', 'HTMLButtonElement', 'HTMLSelectElement', 'HTMLDetailsElement', 'Element', 'Node', 'Event', 'KeyboardEvent', 'MouseEvent', 'CustomEvent', 'localStorage']) {
@@ -137,4 +140,102 @@ test('the section tip opens from its button and closes with Escape, inside the c
   assert.equal(f.chosen.length, 0, 'the tip never chooses anything');
   control.destroy();
   assert.equal((el as HTMLElement & { _helpTipsWired?: boolean })._helpTipsWired, undefined, 'a destroyed control drops its tip wiring');
+});
+
+test('each control is named by its group label alone and described by the section tip', () => {
+  const el = host();
+  mountThemeChoices(el, fakeController([COLOURWAY, MODE]).controller);
+  const [colourway, mode] = [...el.querySelectorAll<HTMLElement>('[role="radiogroup"]')];
+  const label = el.querySelector<HTMLElement>(`#${colourway!.getAttribute('aria-labelledby')}`)!;
+  assert.equal(label.textContent, 'Colourway');
+  assert.equal(label.querySelector('button'), null, 'the tip button is outside the name, so it never reads "Colourway More info"');
+  const pop = el.querySelector<HTMLElement>('.help-tip-pop')!;
+  assert.equal(colourway!.getAttribute('aria-describedby'), pop.id, 'the tip describes the row it sits on');
+  assert.equal(mode!.hasAttribute('aria-describedby'), false, 'a row without a tip is described by nothing');
+
+  const other = host();
+  mountThemeChoices(other, fakeController([DENSITY, MODE]).controller);
+  const select = other.querySelector<HTMLSelectElement>('select[data-theme-row="0"]')!;
+  assert.equal(other.querySelector(`#${select.getAttribute('aria-labelledby')}`)?.querySelector('button'), null);
+  assert.equal(select.getAttribute('aria-describedby'), other.querySelector('.help-tip-pop')!.id);
+});
+
+/** Chromium, to read the accessible name a browser gives each control; the test skips without Chromium. */
+async function chromiumOrSkip(): Promise<{ chromium: typeof import('playwright').chromium } | string> {
+  let chromium: typeof import('playwright').chromium;
+  try { ({ chromium } = await import('playwright')); } catch { return 'playwright not installed'; }
+  try {
+    const path = chromium.executablePath();
+    if (!path || !existsSync(path)) return 'no Chromium (pnpm exec playwright install chromium)';
+  } catch { return 'no Chromium (pnpm exec playwright install chromium)'; }
+  return { chromium };
+}
+const browser = await chromiumOrSkip();
+
+test('a browser names the colourway row "Colourway" and the select "Density", not the tip button too', { skip: typeof browser === 'string' ? browser : false }, async () => {
+  const a = host();
+  mountThemeChoices(a, fakeController([COLOURWAY, MODE]).controller);
+  const b = host();
+  mountThemeChoices(b, fakeController([DENSITY, MODE]).controller);
+  const launched = await (browser as { chromium: typeof import('playwright').chromium }).chromium.launch();
+  try {
+    const page = await launched.newPage();
+    await page.setContent(`<div id="a">${a.innerHTML}</div><div id="b">${b.innerHTML}</div>`);
+    assert.equal(await page.locator('#a').getByRole('radiogroup', { name: 'Colourway', exact: true }).count(), 1);
+    assert.equal(await page.locator('#a').getByRole('radiogroup', { name: 'Mode', exact: true }).count(), 1);
+    assert.equal(await page.locator('#b').getByRole('combobox', { name: 'Density', exact: true }).count(), 1);
+  } finally {
+    await launched.close();
+  }
+});
+
+/** A controller whose switch takes a moment, as the runtime's re-resolve and repaint do,
+ *  and which applies the presses in order. */
+function slowController(initial: typeof MODE[]) {
+  let groups = structuredClone(initial);
+  const listeners = new Set<() => void>();
+  const chosen: string[] = [];
+  let queue = Promise.resolve();
+  const controller = {
+    groups: () => groups,
+    subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
+    choose(group: string, option: string) {
+      chosen.push(option);
+      const run = queue.then(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        groups = groups.map((g) => (g.id === group ? { ...g, active: option } : g));
+        for (const listener of listeners) listener();
+      });
+      queue = run;
+      return run;
+    },
+  };
+  return { controller, chosen, active: () => groups[0]!.active };
+}
+const settle = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 100));
+
+test('a second press made before the first switch lands is the press that counts', async () => {
+  const el = host();
+  const slow = slowController([MODE]);
+  mountThemeChoices(el, slow.controller);
+  radios(el, 0)[1]!.click();
+  radios(el, 0)[0]!.click();
+  assert.equal(radios(el, 0)[0]!.getAttribute('aria-checked'), 'true', 'the row shows the last press at once');
+  await settle();
+  assert.deepEqual(slow.chosen, ['dark', 'light'], 'both presses reach the controller, in order');
+  assert.equal(slow.active(), 'light');
+  assert.equal(radios(el, 0)[0]!.getAttribute('aria-checked'), 'true');
+
+  const keys = host();
+  const keyed = slowController([MODE]);
+  mountThemeChoices(keys, keyed.controller);
+  radios(keys, 0)[0]!.focus();
+  key(radios(keys, 0)[0]!, 'ArrowRight');
+  key(document.activeElement!, 'ArrowLeft');
+  await new Promise((resolve) => setTimeout(resolve, 30));
+  assert.equal(document.activeElement, radios(keys, 0)[0], 'the first switch landing leaves focus on the latest press');
+  await settle();
+  assert.deepEqual(keyed.chosen, ['dark', 'light']);
+  assert.equal(keyed.active(), 'light');
+  assert.equal(document.activeElement, radios(keys, 0)[0]);
 });

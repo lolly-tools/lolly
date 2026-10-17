@@ -19,7 +19,9 @@
  *
  * Every row is reachable by keyboard and named for a screen reader: the dots and
  * the segments are ARIA radio groups with one tab stop and arrow keys, each dot
- * named by its colourway, and the select is a native select with a label.
+ * named by its colourway, and the select is a native select with a label. Each
+ * control is named by its group label alone; the section tip on the first row
+ * describes that row's control and stays out of its name.
  * Ids the design system wrote never reach the markup; rows and options are
  * addressed by index, and labels are escaped.
  */
@@ -69,26 +71,41 @@ export function mountThemeChoices(el: HTMLElement, port: DocumentThemePort, opts
       + `>${inner}</button>`;
   }
 
+  /** Presses the controller has not confirmed yet, by group id: the option the row
+   *  shows meanwhile, and which press that was. */
+  const pending = new Map<string, { option: string; press: number }>();
+  let presses = 0;
+
+  /** The option a row shows: the latest press while its switch is on the way, else the choice in force. */
+  function shownOption(group: DocumentThemeGroup): string {
+    const want = pending.get(group.id)?.option;
+    return want !== undefined && group.options.some((o) => o.id === want) ? want : group.active;
+  }
+
   function rowHtml(group: DocumentThemeGroup, gi: number): string {
     const labelId = `${id}-${gi}`;
     const kind = rowKind(group);
-    const activeIndex = Math.max(0, group.options.findIndex((o) => o.id === group.active));
-    // One tip for the section, on its first row: what the choices change.
+    const shown = shownOption(group);
+    const activeIndex = Math.max(0, group.options.findIndex((o) => o.id === shown));
+    // One tip for the section, on its first row: what the choices change. The control
+    // is named by the label text alone and described by the tip, so a screen reader
+    // reads "Colourway", then the tip, never the tip button's own name.
     const tip = gi === 0 ? helpTip(t('Colours linked to the design system follow this choice.')) : null;
-    const label = `<span class="field-label theme-choice-label" id="${labelId}"><span>${escapeText(group.label)}</span>${tip ? tip.button : ''}</span>`;
+    const label = `<span class="field-label theme-choice-label"><span id="${labelId}">${escapeText(group.label)}</span>${tip ? tip.button : ''}</span>`;
+    const names = `aria-labelledby="${labelId}"${tip ? ` aria-describedby="${tip.id}"` : ''}`;
     let control: string;
     if (kind === 'swatches') {
       const dots = group.options.map((o, oi) => radio(gi, oi, oi === activeIndex, 'theme-swatch',
         '<span class="theme-swatch-dot" aria-hidden="true"></span>', o.label, true)).join('');
-      control = `<div class="theme-swatches" role="radiogroup" aria-labelledby="${labelId}">${dots}`
+      control = `<div class="theme-swatches" role="radiogroup" ${names}>${dots}`
         + `<span class="theme-swatch-name" aria-hidden="true">${escapeText(group.options[activeIndex]?.label ?? '')}</span></div>`;
     } else if (kind === 'segments') {
       const segments = group.options.map((o, oi) => radio(gi, oi, oi === activeIndex, 'badge-select-opt',
         `<span class="badge-select-label">${escapeText(o.label)}</span>`, o.label, false)).join('');
-      control = `<div class="badge-select badge-select--segmented" role="radiogroup" aria-labelledby="${labelId}">${segments}</div>`;
+      control = `<div class="badge-select badge-select--segmented" role="radiogroup" ${names}>${segments}</div>`;
     } else {
       const options = group.options.map((o, oi) => `<option value="${oi}"${oi === activeIndex ? ' selected' : ''}>${escapeText(o.label)}</option>`).join('');
-      control = `<select class="field-select" data-theme-row="${gi}" aria-labelledby="${labelId}">${options}</select>`;
+      control = `<select class="field-select" data-theme-row="${gi}" ${names}>${options}</select>`;
     }
     return `<div class="field-row theme-choice${tip ? ' help-tip-host' : ''}" data-theme-kind="${kind}">${label}${control}${tip ? tip.pop : ''}</div>`;
   }
@@ -123,20 +140,24 @@ export function mountThemeChoices(el: HTMLElement, port: DocumentThemePort, opts
   function choose(gi: number, oi: number): void {
     const group = drawn[gi];
     const option = group?.options[oi];
-    if (!group || !option || option.id === group.active) return;
-    // The press shows at once; the controller's redraw confirms it, or puts the
-    // row back on the choice still in force when the switch fails.
-    el.querySelectorAll<HTMLElement>(`[role="radio"][data-theme-row="${gi}"]`).forEach((button) => {
-      const on = Number(button.dataset.themeOption) === oi;
-      button.classList.toggle('is-on', on);
-      button.setAttribute('aria-checked', on ? 'true' : 'false');
-      button.tabIndex = on ? 0 : -1;
-    });
-    const name = el.querySelector<HTMLElement>(`.theme-choice:nth-child(${gi + 1}) .theme-swatch-name`);
-    if (name) name.textContent = option.label;
-    void port.choose(group.id, option.id).catch((error: unknown) => {
-      console.warn('[theme] the choice could not be applied:', error);
+    // Compared with what the row shows, not with the choice in force: a second press
+    // made before the first switch has finished (straight back, or two quick arrow keys) is
+    // the one that counts. The controller applies presses in the order they were made.
+    if (!group || !option || option.id === shownOption(group)) return;
+    const press = ++presses;
+    pending.set(group.id, { option: option.id, press });
+    // The press shows at once and stays shown while earlier switches land. The last
+    // press's answer settles the row: on the choice now in force, or back on the one
+    // still in force when the switch fails.
+    draw();
+    const settle = (): void => {
+      if (pending.get(group.id)?.press !== press) return;
+      pending.delete(group.id);
       draw();
+    };
+    void port.choose(group.id, option.id).then(settle, (error: unknown) => {
+      console.warn('[theme] the choice could not be applied:', error);
+      settle();
     });
   }
 
