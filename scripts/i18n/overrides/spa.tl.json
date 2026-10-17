@@ -1631,5 +1631,12 @@
   "Choose the original file": "Piliin ang orihinal na file",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Hindi sine-save sa history ng file ang mga orihinal. Piliin ang orihinal para ihambing ito sa naka-save na kopya; dapat tumugma ang hash nito.",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 Penpot layout ang na-import na may fixed na posisyon. I-import ang .penpot export para manatili itong editable.",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot layout ang na-import na may fixed na posisyon. I-import ang .penpot export para manatili silang editable."
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot layout ang na-import na may fixed na posisyon. I-import ang .penpot export para manatili silang editable.",
+  "Open a workspace": "Magbukas ng workspace",
+  "Use an address that starts with https://": "Gumamit ng address na nagsisimula sa https://",
+  "Leave the user name and password out of the address.": "Huwag isama ang user name at password sa address.",
+  "That is not a web address. Check it and try again.": "Hindi ito web address. Suriin ito at subukan ulit.",
+  "Private project": "Pribadong project",
+  "The server could not send the latest tools - showing saved content": "Hindi naipadala ng server ang mga pinakabagong tool - ipinapakita ang naka-save na content",
+  "{n} colour": "{n} kulay"
 }

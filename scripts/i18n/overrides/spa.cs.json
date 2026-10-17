@@ -1623,5 +1623,12 @@
   "Choose the original file": "Vybrat původní soubor",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Originály se neukládají do historie souborů. Vyber originál a porovnej ho s uloženou kopií; jeho hash se musí shodovat.",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Importován 1 layout z Penpotu s pevnými pozicemi. Aby zůstal upravitelný, importuj export .penpot.",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Importováno {n} layoutů z Penpotu s pevnými pozicemi. Aby zůstaly upravitelné, importuj export .penpot."
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Importováno {n} layoutů z Penpotu s pevnými pozicemi. Aby zůstaly upravitelné, importuj export .penpot.",
+  "Open a workspace": "Otevřít pracovní prostor",
+  "Use an address that starts with https://": "Použij adresu, která začíná https://",
+  "Leave the user name and password out of the address.": "Z adresy vynech uživatelské jméno a heslo.",
+  "That is not a web address. Check it and try again.": "To není webová adresa. Zkontroluj ji a zkus to znovu.",
+  "Private project": "Soukromý projekt",
+  "The server could not send the latest tools - showing saved content": "Server nemohl poslat nejnovější nástroje - zobrazuje se uložený obsah",
+  "{n} colour": "{n} barva"
 }

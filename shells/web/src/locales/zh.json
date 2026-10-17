@@ -7973,5 +7973,12 @@
   "Choose the original file": "选择原始文件",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "原件不会保存在文件历史记录中。请选择原件，与已保存的副本进行比较；其哈希值必须一致。",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "已将 1 个 Penpot 版式以固定位置导入。如需保持可编辑，请导入 .penpot 导出文件。",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "已将 {n} 个 Penpot 版式以固定位置导入。如需保持可编辑，请导入 .penpot 导出文件。"
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "已将 {n} 个 Penpot 版式以固定位置导入。如需保持可编辑，请导入 .penpot 导出文件。",
+  "Open a workspace": "打开工作空间",
+  "Use an address that starts with https://": "请使用以 https:// 开头的地址",
+  "Leave the user name and password out of the address.": "请不要在地址中包含用户名和密码。",
+  "That is not a web address. Check it and try again.": "这不是网址。请检查后重试。",
+  "Private project": "私密项目",
+  "The server could not send the latest tools - showing saved content": "服务器无法发送最新的工具，正在显示已保存的内容",
+  "{n} colour": "{n} 种颜色"
 }

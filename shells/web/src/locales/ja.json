@@ -7973,5 +7973,12 @@
   "Choose the original file": "オリジナルのファイルを選択",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "オリジナルはファイル履歴に保存されません。保存されたコピーと比較するにはオリジナルを選んでください。ハッシュが一致する必要があります。",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Penpot のレイアウト 1 件を固定位置でインポートしました。編集できる状態を保つには、.penpot の書き出しをインポートしてください。",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Penpot のレイアウト {n} 件を固定位置でインポートしました。編集できる状態を保つには、.penpot の書き出しをインポートしてください。"
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Penpot のレイアウト {n} 件を固定位置でインポートしました。編集できる状態を保つには、.penpot の書き出しをインポートしてください。",
+  "Open a workspace": "ワークスペースを開く",
+  "Use an address that starts with https://": "https:// で始まるアドレスを入力してください",
+  "Leave the user name and password out of the address.": "アドレスにユーザー名とパスワードは含めないでください。",
+  "That is not a web address. Check it and try again.": "ウェブアドレスではありません。確認してもう一度お試しください。",
+  "Private project": "非公開プロジェクト",
+  "The server could not send the latest tools - showing saved content": "サーバーから最新のツールを取得できませんでした。保存済みのコンテンツを表示中",
+  "{n} colour": "{n}件のカラー"
 }

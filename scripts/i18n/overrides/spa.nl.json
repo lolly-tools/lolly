@@ -1621,5 +1621,12 @@
   "Choose the original file": "Kies het originele bestand",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Originelen worden niet in de bestandsgeschiedenis opgeslagen. Kies het origineel om het met de opgeslagen kopie te vergelijken; de hash moet overeenkomen.",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 Penpot-lay-out is geïmporteerd met vaste posities. Importeer de .penpot-export om die bewerkbaar te houden.",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot-lay-outs zijn geïmporteerd met vaste posities. Importeer de .penpot-export om ze bewerkbaar te houden."
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot-lay-outs zijn geïmporteerd met vaste posities. Importeer de .penpot-export om ze bewerkbaar te houden.",
+  "Open a workspace": "Een werkruimte openen",
+  "Use an address that starts with https://": "Gebruik een adres dat begint met https://",
+  "Leave the user name and password out of the address.": "Laat de gebruikersnaam en het wachtwoord uit het adres weg.",
+  "That is not a web address. Check it and try again.": "Dat is geen webadres. Controleer het en probeer het opnieuw.",
+  "Private project": "Privéproject",
+  "The server could not send the latest tools - showing saved content": "De server kon de nieuwste tools niet sturen - opgeslagen inhoud wordt getoond",
+  "{n} colour": "{n} kleur"
 }

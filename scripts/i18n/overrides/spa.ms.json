@@ -1628,5 +1628,12 @@
   "Choose the original file": "Pilih fail asal",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Fail asal tidak disimpan dalam sejarah fail. Pilih fail asal untuk membandingkannya dengan salinan yang disimpan; hashnya mesti sepadan.",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 susun atur Penpot diimport dengan kedudukan tetap. Import eksport .penpot supaya ia kekal boleh diedit.",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} susun atur Penpot diimport dengan kedudukan tetap. Import eksport .penpot supaya semuanya kekal boleh diedit."
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} susun atur Penpot diimport dengan kedudukan tetap. Import eksport .penpot supaya semuanya kekal boleh diedit.",
+  "Open a workspace": "Buka ruang kerja",
+  "Use an address that starts with https://": "Gunakan alamat yang bermula dengan https://",
+  "Leave the user name and password out of the address.": "Jangan masukkan nama pengguna dan kata laluan dalam alamat.",
+  "That is not a web address. Check it and try again.": "Itu bukan alamat web. Semak dan cuba lagi.",
+  "Private project": "Projek peribadi",
+  "The server could not send the latest tools - showing saved content": "Pelayan tidak dapat menghantar alat terkini - memaparkan kandungan tersimpan",
+  "{n} colour": "{n} warna"
 }

@@ -7973,5 +7973,12 @@
   "Choose the original file": "Velg originalfilen",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Originaler lagres ikke i filhistorikken. Velg originalen for å sammenligne den med den lagrede kopien; hashen må stemme.",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 Penpot-layout ble importert med faste posisjoner. Importer .penpot-eksporten for å holde den redigerbar.",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot-layouter ble importert med faste posisjoner. Importer .penpot-eksporten for å holde dem redigerbare."
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot-layouter ble importert med faste posisjoner. Importer .penpot-eksporten for å holde dem redigerbare.",
+  "Open a workspace": "Åpne et arbeidsområde",
+  "Use an address that starts with https://": "Bruk en adresse som begynner med https://",
+  "Leave the user name and password out of the address.": "La brukernavn og passord stå utenfor adressen.",
+  "That is not a web address. Check it and try again.": "Dette er ikke en nettadresse. Sjekk den og prøv igjen.",
+  "Private project": "Privat prosjekt",
+  "The server could not send the latest tools - showing saved content": "Serveren kunne ikke sende de nyeste verktøyene - viser lagret innhold",
+  "{n} colour": "{n} farge"
 }
