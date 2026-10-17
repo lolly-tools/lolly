@@ -19,6 +19,13 @@
  * Schemes are scored and filtered, not merely enumerated - "good contrast" is measured
  * (hue separation + perceptual distance + tonal range), so a brand whose colours are all
  * muddy variations of each other gets fewer schemes rather than bad ones.
+ *
+ * AUTHORED LEADS REPLACE THE GUESS (plans/319). A design system with two or more
+ * colourways has said which colours lead, so each colourway becomes one scheme, in the
+ * design system's order (canonical first), named after the colourway, with its own
+ * partner (`secondary`) as the counterpoint when the pair contrasts, else the best of the
+ * other leads. The family guess above stays for a design system with one lead, as a
+ * proposal and never as authority.
  */
 import { deltaEOk, hexToOklch } from '@lolly/engine';
 import {
@@ -112,8 +119,85 @@ function scorePair(field: Candidate, counter: Candidate): number {
   return hueGap * 0.45 + perceptual * 0.35 + counter.l * 0.2;
 }
 
+/** One authored lead for the visualizer: a colourway's primary and, when it has one, its partner. */
+export interface VizLead {
+  /** The colourway's id. Becomes part of the scheme id, so it stays stable while the colour changes. */
+  id: string;
+  /** The colourway's display name, shown in the scheme menu. */
+  name: string;
+  /** The lead colour (`color.semantic.primary` in this colourway). */
+  hex: string;
+  /** The colourway's partner (`color.semantic.secondary`), the first counterpoint tried. */
+  partner?: string | null;
+}
+
+function candidateOf(hex: string | null | undefined, name: string): Candidate | null {
+  const h = typeof hex === 'string' && /^#[0-9a-f]{6}$/i.test(hex.trim()) ? hex.trim().toLowerCase() : null;
+  const o = h ? hexToOklch(h) : null;
+  return h && o ? { hex: h, l: o.l, c: o.c, h: o.h, name } : null;
+}
+
+/** The lightness band a field hero reads in: the band `families()` aims for. */
+const FIELD_L_MIN = 0.35;
+const FIELD_L_MAX = 0.85;
+
+/** Whether a colour can carry the visualizer's field: real colour, mid-toned. */
+function carriesField(c: Candidate | null): c is Candidate {
+  return !!c && c.c >= MIN_HERO_CHROMA && c.l > FIELD_L_MIN && c.l < FIELD_L_MAX;
+}
+
+/**
+ * One scheme per authored lead, in the order given (the design system's, canonical
+ * first). The field is built around the lead from the brand's own colours plus every
+ * lead and partner, so a lead whose colourway is not the active one still has its own
+ * colour to ramp from. The counterpoint is the colourway's partner when that pair
+ * clears `MIN_SCHEME_SCORE`, else the best-scoring other lead, else none.
+ *
+ * A lead too dark, too pale or too grey to carry a field (an ink-dark lead, as some
+ * design systems use in light mode) hands the field to its own partner when the
+ * partner can carry one. The scheme keeps the colourway's id and name either way.
+ */
+function leadSchemes(values: readonly string[], leads: readonly VizLead[]): VizScheme[] {
+  const pool = [...values, ...leads.flatMap((l) => [l.hex, ...(l.partner ? [l.partner] : [])])];
+  const fields = leads.map((lead) => {
+    const own = candidateOf(lead.hex, lead.name);
+    const partner = candidateOf(lead.partner, lead.name);
+    const swap = !carriesField(own) && carriesField(partner);
+    return { lead, field: swap ? partner : own, partner: swap ? null : partner };
+  });
+  const out: VizScheme[] = [];
+  const seen = new Set<string>();
+  for (const { lead, field, partner } of fields) {
+    if (!field) continue;
+    const id = `colourway-${lead.id}`;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const palette = buildVizPalette(pool, field.hex);
+    let best: { c: Candidate; score: number } | null = partner && partner.hex !== field.hex
+      ? { c: partner, score: scorePair(field, partner) }
+      : null;
+    if (!best || best.score < MIN_SCHEME_SCORE) {
+      best = null;
+      for (const other of fields) {
+        if (other.lead === lead || !other.field || other.field.hex === field.hex) continue;
+        const score = scorePair(field, other.field);
+        if (!best || score > best.score) best = { c: other.field, score };
+      }
+    }
+    if (!best || best.score < MIN_SCHEME_SCORE) {
+      out.push({ id, name: lead.name, palette, score: 0 });
+      continue;
+    }
+    out.push({ id, name: lead.name, palette: { ...palette, contrast: hexToVizRgb(best.c.hex) ?? palette.contrast }, score: best.score });
+  }
+  return out.slice(0, MAX_SCHEMES);
+}
+
 /**
  * Derive the schemes a brand supports.
+ *
+ * With two or more authored `leads` (plans/319) the schemes are the colourways, see
+ * `leadSchemes`; fewer than two leads changes nothing below.
  *
  * Every chromatic family becomes a field; each is paired with the best-scoring distant
  * family as its counterpoint. Pairings below `MIN_SCHEME_SCORE` are dropped rather than
@@ -126,7 +210,12 @@ export function deriveVizSchemes(
   values: readonly string[],
   labels?: readonly (string | undefined)[],
   accentHint?: string | null,
+  leads?: readonly VizLead[] | null,
 ): VizScheme[] {
+  if (leads && leads.length >= 2) {
+    const authored = leadSchemes(values, leads);
+    if (authored.length >= 2) return authored;
+  }
   const reps = families(values, labels);
   if (reps.length === 0) {
     const palette = buildVizPalette(values);
@@ -181,16 +270,42 @@ function hexOf(c: readonly [number, number, number]): string {
 
 let cached: Promise<VizScheme[]> | null = null;
 
+/** One member of `host.tokens.family()`: the fields this module reads. */
+interface FamilyMember { id: string; name: string; value: string }
+
+/** The token slice the schemes read: the colours, plus the family when the host has one (plans/319). */
+export interface VizSchemesHost {
+  tokens?: VizPaletteHost['tokens'] & { family?(role?: string): Promise<FamilyMember[]> };
+}
+
+/**
+ * The authored leads, each with its partner, or null for fewer than two. A host
+ * without `family`, or one that fails, gives null, which leaves the schemes as the
+ * palette guess.
+ */
+export async function vizLeads(host?: VizSchemesHost): Promise<VizLead[] | null> {
+  const family = host?.tokens?.family;
+  if (typeof family !== 'function') return null;
+  try {
+    const [primary, secondary] = await Promise.all([family.call(host!.tokens, 'primary'), family.call(host!.tokens, 'secondary').catch(() => [])]);
+    if (!Array.isArray(primary) || primary.length < 2) return null;
+    const partners = new Map((Array.isArray(secondary) ? secondary : []).map((m) => [m.id, m.value]));
+    return primary.map((m) => ({ id: m.id, name: m.name, hex: m.value, partner: partners.get(m.id) ?? null }));
+  } catch {
+    return null;
+  }
+}
+
 /** The session's schemes, derived from the brand's tokens once and cached. */
-export function vizSchemes(host?: VizPaletteHost): Promise<VizScheme[]> {
-  cached ??= Promise.resolve(host?.tokens?.colors?.())
-    .then((cs) => {
+export function vizSchemes(host?: VizSchemesHost): Promise<VizScheme[]> {
+  cached ??= Promise.all([Promise.resolve(host?.tokens?.colors?.()), vizLeads(host)])
+    .then(([cs, leads]) => {
       // Keep the CHARTS/DATA-VIZ-ONLY spectrum out of the visualiser's colour moods (Andy,
       // plans/147): SUSE's `color.spectrum.*` (Lilac, Teal, …) are for infographics, and
       // their token names carry that whole note - which would otherwise show as a scheme
       // label. The visualiser rides the brand's CORE colours (jungle/waterhole/persimmon/…).
       const usable = (cs ?? []).filter((c) => !isDataVizOnly(c));
-      return deriveVizSchemes(usable.map((c) => c.value), usable.map((c) => nameOf(c)), liveAccentHint());
+      return deriveVizSchemes(usable.map((c) => c.value), usable.map((c) => nameOf(c)), liveAccentHint(), leads);
     })
     .catch(() => deriveVizSchemes([]));
   return cached;
@@ -211,7 +326,7 @@ function nameOf(c: { value: string } & { name?: unknown }): string | undefined {
   return typeof c.name === 'string' && c.name.trim() ? c.name.trim() : undefined;
 }
 
-/** Drop the cache - tests, and a live token edit. */
+/** Drop the cache - tests, a live token edit, and a design-system switch (lib/design-system/switch.ts). */
 export function invalidateVizSchemes(): void {
   cached = null;
 }

@@ -17,7 +17,7 @@
  *   4. the chrome paint under its generation token, then the theme so the PWA
  *      colour follows the new background - and the record's own theme when it
  *      declares one;
- *   5. the four caches that had no buster before this plan;
+ *   5. the caches that had no buster before this plan, the visualizer's schemes among them;
  *   6. the `lolly:design-system-changed` event, then a remount for the
  *      stateless views only. A mounted tool is never torn down under someone's
  *      work: the caller is told it needs a reload and shows the banner.
@@ -35,6 +35,7 @@ import { applyChromeBrandVars } from '../../brand-vars.ts';
 import { applyTheme, currentTheme } from '../../theme.ts';
 import { bustLivePalette } from '../live-palette.ts';
 import { invalidateVizPalette } from '../viz-palette.ts';
+import { invalidateVizSchemes } from '../viz-schemes.ts';
 import { bustChipPairs } from '../particles.ts';
 import { setSwatches } from '../../components/color-field.ts';
 import { withoutLeadColours } from './leads.ts';
@@ -131,6 +132,7 @@ export async function switchDesignSystem(host: SwitchHost, id: string, opts: Swi
   // 5. The session caches nothing else busts.
   bustLivePalette(host);
   invalidateVizPalette();
+  invalidateVizSchemes();
   bustChipPairs();
   try {
     // A colourway's own colours (plans/319) are a lead's roles, never picker swatches.

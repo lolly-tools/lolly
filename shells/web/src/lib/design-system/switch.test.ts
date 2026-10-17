@@ -233,3 +233,18 @@ test('hosted removal reviews the destination catalogue and refuses a changed des
     assert.doesNotMatch(offline.message, /SUSE|Alpha|Beta/);
   } finally { globalThis.fetch = savedFetch; _setBaseForTests(''); }
 });
+
+test('a switch drops the visualizer\'s colour schemes, so the next read derives them from the new system (plans/319)', async () => {
+  const { vizSchemes, invalidateVizSchemes } = await import('../viz-schemes.ts');
+  const schemesFrom = (values: string[]) => ({ tokens: { colors: async () => values.map((value) => ({ value, name: value })) } });
+  invalidateVizSchemes();
+  try {
+    const before = await vizSchemes(schemesFrom(['#30ba78']));
+    assert.deepEqual(before.map((s) => s.id), ['30ba78'], 'the outgoing system\'s one green family');
+    const r = await rig();
+    _setBaseForTests('');
+    await switchDesignSystem(r.host as unknown as Parameters<typeof switchDesignSystem>[0], 'shipped', { route: 'gallery', resync: r.resync, setBase: r.setBase });
+    const after = await vizSchemes(schemesFrom(['#fe7c3f']));
+    assert.deepEqual(after.map((s) => s.id), ['fe7c3f'], 'read again from the incoming system, not served from the cache');
+  } finally { invalidateVizSchemes(); }
+});
