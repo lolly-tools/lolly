@@ -70,7 +70,7 @@ export async function apply(fc: FcCtx, ids: string[], command: TextPropertyComma
   } catch (error) { announce(error instanceof Error ? error.message : String(error)); }
 }
 /** Whole typography: pin the faces, then link, Make custom or Restore in one history step. */
-export async function linkTypography(fc: FcCtx, ids: string[], link?: TextTypographyLink): Promise<void> {
+export async function linkTypography(fc: FcCtx, ids: string[], link?: TextTypographyLink, pinFaces = pinTypographyFaces): Promise<void> {
   const state = read(fc, ids); if (!state) throw new Error(t('Select a text frame.'));
   const active = ids.length === 1 && fc.editing?.id === ids[0] ? fc.editing?.composed?.editor : undefined;
   if (active) return active.paragraphTypography(link);
@@ -79,7 +79,7 @@ export async function linkTypography(fc: FcCtx, ids: string[], link?: TextTypogr
   let change: TextTypographyChange | undefined;
   if (link) {
     const slants = [...new Set(stories.flatMap(story => textTypographySlants(snapshot.document, story, story.paragraphs.map(paragraph => paragraph.id))))];
-    change = { ...link, ...await pinTypographyFaces(link.typography, slants, stories.map(story => story.source).join('\n')) };
+    change = { ...link, ...await pinFaces(link.typography, slants, stories.map(story => story.source).join('\n')) };
     if (JSON.stringify(fc.storyText.read().document) !== revision) throw new Error(t('The text changed while its font loaded. Link the token again.'));
   }
   let fonts = snapshot.document.fonts;

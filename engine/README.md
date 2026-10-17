@@ -548,9 +548,9 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `text-tabs.ts` | 24 | Tab fields follow authored stops measured from the paragraph's writing edge. | no | none | – |
 | `text-thai.ts` | 47 | Deterministic dictionary segmentation; unknown runs remain intact. | no | `tests/text-thai.test.ts` | – |
 | `text-thread-commands.ts` | 129 | Atomic story ownership commands. | yes | `tests/text-thread-commands.test.ts` | – |
-| `text-token-bindings.ts` | 287 | Paragraph and whole typography links refresh in the shared runtime before composition or export. | no | none | – |
+| `text-token-bindings.ts` | 290 | Paragraph and whole typography links refresh in the shared runtime before composition or export. | no | none | – |
 | `text-tools.ts` | 557 | On-device text transformations with platform services injected by the host. | yes | indirect | – |
-| `text-typography-bindings.test.ts` | 171 | Whole typography on composed text uses pinned faces and keeps one undo step per action. | no | none | – |
+| `text-typography-bindings.test.ts` | 190 | Whole typography on composed text uses pinned faces and keeps one undo step per action. | no | none | – |
 | `text-unicode.ts` | 96 | Unicode 17 source analysis. | no | `tests/text-unicode.test.ts` | – |
 | `text-vector.ts` | 78 | Conversion consumes settled output, including its decorations, artwork and path poses. | no | `tests/text-vector.test.ts` | – |
 | `text-watermark.ts` | 227 | Statistical text watermark - the green-list scheme of Kirchenbauer et al., "A Watermark for Large Language Models" (arXiv:2301.10226), as Lolly's own generation paths embed it and /verify detects it. | yes | `tests/text-watermark.test.ts` | – |

@@ -8,7 +8,7 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 
 ## 1.262.0
 
-- Composed paragraphs can link a whole typography token. Font, size, weight, tracking and line height apply together, and link, Make custom and Restore are each one undo step. Linking clears size, weight, tracking and font overrides inside the linked paragraphs in the same step; italic runs take the pinned italic face.
+- Composed paragraphs can link a whole typography token. Font, size, weight, tracking and line height apply together, and link, Make custom and Restore are each one undo step. Linking clears size, weight, tracking and font overrides inside the linked paragraphs in the same step; italic runs take the pinned italic face. A named character style that sets its own size, weight, tracking or font keeps that value and does not make the link custom.
 - The link records the exact font faces it uses as document font resources pinned by content digest, keyed by family and weight for each slant. Theme refresh applies new values only when every face they need was pinned for the link; otherwise the text keeps its last values and the link reports the missing face. Shells pin faces at the token's exact weight and slant and refuse a nearer weight or another family.
 - Token dimensions may now be zero or negative where the consumer range allows, so typography tokens with zero or negative letter spacing link instead of being refused.
 

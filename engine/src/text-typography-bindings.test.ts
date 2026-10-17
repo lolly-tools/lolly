@@ -143,6 +143,25 @@ test('a whole-paragraph override makes the link custom while word emphasis keeps
   assert.equal(refreshed.stories[0]!.paragraphs[1]!.paragraph?.character?.size, 30);
 });
 
+test('a paragraph wholly under a named style with its own weight or font keeps an active link', () => {
+  const story = createTextStory('s1', 'Strong words\ncode', index => `p${index}`);
+  story.spans = [{ start: 0, end: 12, style: 'strong' }, { start: 13, end: 17, style: 'code' }];
+  const mono = font('font-mono', 'Mono', '9');
+  const document = parseTextDocument({ version: 1, fonts: [old, mono], styles: [{ id: 'strong', name: 'Strong', kind: 'character', character: { weight: 900, tracking: 1 } }, { id: 'code', name: 'Code', kind: 'character', character: { font: 'font-mono', size: 10 } }], stories: [story] });
+  const result = bindParagraphTypography(document, document.stories[0]!, ['p0', 'p1'], change());
+  const doc = parseTextDocument({ ...document, fonts: result.fonts, stories: [result.story] });
+  const state = paragraphTypographyState(doc, doc.stories);
+  assert.equal(state.active?.ref, '{heading}');
+  assert.equal(state.restoreRef, undefined);
+  const refreshed = parseTextDocument(resolveTextDocumentTokenBindings(serializeTextDocument(doc), tokens({ ...heading, fontSize: { value: 30, unit: 'px' } })));
+  assert.equal(link(refreshed.stories[0]!)?.custom, undefined);
+  assert.equal(link(refreshed.stories[0]!, 1)?.custom, undefined);
+  assert.equal(refreshed.stories[0]!.paragraphs[0]!.paragraph?.character?.size, 30);
+  // A local override that hides the link across the paragraph still makes it custom.
+  const whole = formatStoryRange(doc.stories[0]!, { start: 0, end: 12 }, { character: { size: 50 } });
+  assert.equal(paragraphTypographyState({ ...doc, stories: [whole] }, [whole], { start: 2, end: 2 }).restoreRef, '{heading}');
+});
+
 test('other paragraph edits keep the typography link', () => {
   const document = linked(), story = document.stories[0]!;
   const aligned = formatStoryParagraphs(story, ['p0'], { align: 'center' });

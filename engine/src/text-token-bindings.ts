@@ -157,13 +157,16 @@ export function textTypographySlants(textDocument: TextDocumentV1, story: TextSt
   return (['normal', 'italic'] as const).filter(slant => found.has(slant));
 }
 
-/** A paragraph edited locally no longer shows the link anywhere, so it becomes custom. */
+/**
+ * A paragraph edited locally no longer shows the link anywhere, so it becomes custom. A run whose
+ * named character style sets a property never showed the link for it, so it is left out.
+ */
 function editedLocally(resolver: Resolver, story: TextStoryV1, paragraph: TextParagraphV1, cached: Cached): boolean {
   const t = cached.typography, faces = new Set(facesOf(cached.faces[textTypographyFaceKey(t.fontFamily, t.fontWeight)]));
   if (resolver.paragraph(story, paragraph).lineHeight !== t.lineHeight) return true;
-  const values = offsets(story, paragraph).map(at => resolver.character(story, paragraph, at));
-  const shown: Array<(value: TextCharacterV1) => boolean> = [value => value.size === t.fontSize, value => (value.weight ?? 400) === t.fontWeight, value => (value.tracking ?? 0) === t.letterSpacing, value => !!value.font && faces.has(value.font)];
-  return shown.some(test => !values.some(test));
+  const runs = offsets(story, paragraph).map(at => ({ value: resolver.character(story, paragraph, at), named: resolver.named(story.spans.find(span => span.start <= at && span.end > at)?.style).character }));
+  const shown: Array<[keyof TextCharacterV1, (value: TextCharacterV1) => boolean]> = [['size', value => value.size === t.fontSize], ['weight', value => (value.weight ?? 400) === t.fontWeight], ['tracking', value => (value.tracking ?? 0) === t.letterSpacing], ['font', value => !!value.font && faces.has(value.font)]];
+  return shown.some(([key, test]) => { const linked = runs.filter(run => run.named[key] === undefined); return linked.length > 0 && !linked.some(run => test(run.value)); });
 }
 
 /** Rewrites span formatting inside the given paragraph ranges, splitting spans at their edges. */
