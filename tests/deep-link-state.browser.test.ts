@@ -55,9 +55,8 @@ test('tool content and output settings survive first sync, a fresh context and s
 test('live Gallery and Assets filters agree with reload and browser history', { skip, timeout: 90_000 }, async () => {
   const { page, context } = await open('/#/?q=qr');
   try {
-    // A cold gallery paints from the slim tool index, then mounts again once the full
-    // catalog arrives. Each mount rebuilds the shared search field, so text typed
-    // before the second mount is lost with the field it was typed into.
+    // Settle first: the WebGPU check can hold a modal over the page. Typing before the
+    // full catalog replaces the slim first paint has its own test below.
     await page.waitForLoadState('networkidle'); await shellSettled(page);
     await page.waitForFunction(() => (document.querySelector('.gallery-search') as HTMLInputElement)?.value === 'qr');
     await page.locator('.gallery-search').fill('chart');
@@ -80,6 +79,44 @@ test('live Gallery and Assets filters agree with reload and browser history', { 
     params = new URLSearchParams(new URL(page.url()).hash.split('?')[1]); assert.equal(params.get('type'), 'all');
     assert.deepEqual(await page.locator('.cat-group:not(.is-collapsed)').evaluateAll(nodes => nodes.map(node => (node as HTMLElement).dataset.group)), before);
   } finally { await context.close(); }
+});
+
+test('search text typed during the slim first paint survives the full catalog redraw with its case, focus and caret', { skip, timeout: 90_000 }, async () => {
+  // Hold the full tool index back so the gallery stays on its slim first paint while
+  // the field is typed into, then let it through and watch the redraw.
+  let releaseIndex = (): void => {};
+  const indexHeld = new Promise<void>(resolve => { releaseIndex = resolve; });
+  const context = await (await getBrowser()).newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
+  await context.addInitScript(() => { for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1'); });
+  await context.route(url => url.pathname.endsWith('/catalog/tools/index.json'), async route => { await indexHeld; await route.continue(); });
+  try {
+    const page = await context.newPage();
+    page.setDefaultTimeout(30_000);
+    await page.goto(origin! + '/#/');
+    await shellSettled(page);
+    await page.waitForFunction(() => {
+      const w = window as unknown as { __toolIndexSlim?: unknown; __toolIndex?: unknown };
+      return !!w.__toolIndexSlim && !w.__toolIndex && !!document.querySelector('.tool-masonry .gtile');
+    });
+    await page.locator('.gallery-search').click();
+    await page.keyboard.type('Chart');
+    await page.keyboard.press('ArrowLeft');
+    await page.keyboard.press('ArrowLeft');
+    await page.evaluate(() => document.querySelector('.tool-masonry')!.setAttribute('data-slim-paint', ''));
+    releaseIndex();
+    await page.waitForFunction(() => {
+      const grid = document.querySelector('.tool-masonry');
+      return !!(window as unknown as { __toolIndex?: unknown }).__toolIndex && !!grid && !grid.hasAttribute('data-slim-paint') && !!grid.querySelector('.gtile');
+    });
+    const field = await page.evaluate(() => {
+      const el = document.querySelector<HTMLInputElement>('.gallery-search')!;
+      return { value: el.value, focused: document.activeElement === el, caret: [el.selectionStart, el.selectionEnd] };
+    });
+    assert.deepEqual(field, { value: 'Chart', focused: true, caret: [3, 3] }, 'the redraw keeps the typed text, its focus and its caret');
+    await page.waitForFunction(() => new URLSearchParams(location.hash.split('?')[1]).get('q') === 'chart');
+    await page.waitForFunction(() => !document.querySelector('.gtile[data-tool-id="chart"]')?.classList.contains('is-filtered')
+      && !!document.querySelector('.gtile[data-tool-id="qr-code"]')?.classList.contains('is-filtered'));
+  } finally { releaseIndex(); await context.close(); }
 });
 
 test('Design workspace state restores while Share contains only content and output', { skip, timeout: 120_000 }, async () => {

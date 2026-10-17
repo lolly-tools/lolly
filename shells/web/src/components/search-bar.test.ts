@@ -42,7 +42,7 @@ globalThis.localStorage = dom.window.localStorage;
   () => ({ matches: true });
 
 const { initSearchBar, applySearchBarRoute, claimSearchBar, clearSearchBar, setSearchBarValue,
-  registerSpotlightHook, currentSearchRoute } = await import('./search-bar.ts');
+  registerSpotlightHook, currentSearchRoute, prepareSearchBarNavigation } = await import('./search-bar.ts');
 const { SEARCH_DEBOUNCE_MS } = await import('../lib/search/match.ts');
 
 const bar = (): HTMLElement | null => document.querySelector('footer.gallery-footer');
@@ -278,6 +278,128 @@ test('the chord (⌃Space or ⌘Space) focuses the field and pings the hook, onl
   release();
 });
 
+// ── A held remount (the gallery redrawn when the full catalog arrives) ────────
+// One cycle as navigate() runs it: hold, the outgoing release, the route change,
+// then the incoming claim. A claim's own `value` stands in for the ?q= the new
+// mount reads back from the address.
+
+/** Hold, release, re-apply the same route; returns nothing - the caller claims next. */
+function remount(release: () => void, route = 'gallery'): void {
+  prepareSearchBarNavigation(true);
+  release();
+  applySearchBarRoute('search', route);
+}
+
+test('a held remount keeps the typed text, the field, its focus and caret, and the new view hears the text', async () => {
+  applySearchBarRoute('search', 'gallery');
+  const outgoing: string[] = [];
+  const releaseA = claimSearchBar({ placeholder: 'Search tools…', autoFocus: true, onQuery: (q) => outgoing.push(q) });
+  const field = input();
+  field.focus();
+  type('Chart'); // typed during the first paint: its debounce has not fired
+  field.setSelectionRange(3, 3);
+  hookLog.length = 0;
+  remount(releaseA);
+  const incoming: string[] = [];
+  const releaseB = claimSearchBar({ placeholder: 'Search tools…', value: '', autoFocus: true, onQuery: (q) => incoming.push(q) });
+  assert.equal(input(), field, 'the same field, never rebuilt');
+  assert.equal(field.value, 'Chart');
+  assert.equal(document.activeElement, field);
+  assert.deepEqual([field.selectionStart, field.selectionEnd], [3, 3]);
+  await settle();
+  assert.deepEqual(outgoing, [], 'the torn-down view never hears the text');
+  assert.deepEqual(incoming, ['Chart'], 'the remounted view filters by what was typed');
+  assert.deepEqual(hookLog, ['q:Chart'], 'the overlay stays open and hears the interrupted keystroke once');
+  releaseB();
+});
+
+test('a held remount after the debounce fired keeps the exact text and tells the overlay nothing new', async () => {
+  applySearchBarRoute('search', 'gallery');
+  const releaseA = claimSearchBar({ placeholder: 'Search tools…', onQuery: () => {} });
+  type('QR Code ');
+  await settle();
+  hookLog.length = 0;
+  remount(releaseA);
+  const incoming: string[] = [];
+  // The address holds the gallery's normalised copy, lowercased and trimmed.
+  const releaseB = claimSearchBar({ placeholder: 'Search tools…', value: 'qr code', onQuery: (q) => incoming.push(q) });
+  assert.equal(input().value, 'QR Code ', 'the field keeps what was typed, not the normalised copy');
+  await settle();
+  assert.deepEqual(incoming, ['QR Code ']);
+  assert.deepEqual(hookLog, [], 'no route change and no repeated query reach the overlay');
+  releaseB();
+  // Nothing to hand over when the field already matches the claim.
+  const releaseC = claimSearchBar({ placeholder: 'Search tools…', onQuery: () => {} });
+  type('logo');
+  await settle();
+  remount(releaseC);
+  const quiet: string[] = [];
+  const releaseD = claimSearchBar({ placeholder: 'Search tools…', value: 'logo', onQuery: (q) => quiet.push(q) });
+  await settle();
+  assert.deepEqual(quiet, []);
+  releaseD();
+});
+
+test('a held remount whose claim brings a new placeholder rebuilds the field with text, focus and caret kept', () => {
+  applySearchBarRoute('search', 'gallery');
+  const releaseA = claimSearchBar({ placeholder: 'Search tools…', onQuery: () => {} });
+  input().focus();
+  type('Kart');
+  input().setSelectionRange(1, 3, 'backward');
+  remount(releaseA);
+  // A locale arrival re-mounts the same view with translated chrome.
+  const releaseB = claimSearchBar({ placeholder: 'Buscar herramientas…', onQuery: () => {} });
+  assert.equal(input().placeholder, 'Buscar herramientas…');
+  assert.equal(input().value, 'Kart');
+  assert.equal(document.activeElement, input());
+  assert.deepEqual([input().selectionStart, input().selectionEnd, input().selectionDirection], [1, 3, 'backward']);
+  assert.equal(clearBtn().hidden, false);
+  releaseB();
+});
+
+test('a held remount does not pull focus back into the field', () => {
+  applySearchBarRoute('search', 'gallery');
+  const releaseA = claimSearchBar({ placeholder: 'Search tools…', autoFocus: true, onQuery: () => {} });
+  type('qr');
+  input().blur();
+  remount(releaseA);
+  const releaseB = claimSearchBar({ placeholder: 'Search tools…', autoFocus: true, onQuery: () => {} });
+  assert.notEqual(document.activeElement, input(), 'a redraw leaves focus where the user put it');
+  assert.equal(input().value, 'qr');
+  releaseB();
+});
+
+test('a hold that meets another route resets the bar as an ordinary release would', () => {
+  applySearchBarRoute('search', 'gallery');
+  const releaseA = claimSearchBar({ placeholder: 'Search tools…', value: 'qr' });
+  hookLog.length = 0;
+  prepareSearchBarNavigation(true);
+  releaseA();
+  applySearchBarRoute('none', 'tool');
+  assert.equal(input().placeholder, 'Search Lolly…');
+  assert.equal(input().value, '');
+  assert.deepEqual(hookLog, ['r:tool:none'], 'a real route change still reaches the overlay');
+  // The next claim is ordinary again: its own value wins.
+  applySearchBarRoute('search', 'gallery');
+  const releaseB = claimSearchBar({ placeholder: 'Search tools…', value: 'gradient' });
+  assert.equal(input().value, 'gradient');
+  releaseB();
+});
+
+test('a hold left by a remount that never claimed gives way to the next ordinary navigation', () => {
+  applySearchBarRoute('search', 'gallery');
+  const releaseA = claimSearchBar({ placeholder: 'Search tools…', onQuery: () => {} });
+  type('chart');
+  remount(releaseA); // the remounted view fails before it claims the bar
+  assert.equal(input().value, 'chart', 'the field waits for the claim that never came');
+  // A #/?q=gradient hand-off on the same route is a new query, not a redraw.
+  prepareSearchBarNavigation(false);
+  applySearchBarRoute('search', 'gallery');
+  const releaseB = claimSearchBar({ placeholder: 'Search tools…', value: 'gradient', onQuery: () => {} });
+  assert.equal(input().value, 'gradient');
+  releaseB();
+});
+
 // ── The route table (static scan of main.ts - see the header) ────────────────
 
 const MAIN_SRC = readFileSync(fileURLToPath(new URL('../main.ts', import.meta.url)), 'utf8');
@@ -311,4 +433,13 @@ test('navigate() applies the route footer mode + name; boot mounts the singleton
   const barAt = MAIN_SRC.indexOf('initSearchBar()');
   const spotAt = MAIN_SRC.indexOf('initSpotlightBoot(host)');
   assert.ok(spotAt > barAt && barAt > 0, 'initSpotlightBoot(host) boots directly after initSearchBar()');
+});
+
+test('navigate() holds the bar for a forced remount of the same search route, before the outgoing cleanup', () => {
+  const navAt = MAIN_SRC.indexOf('async function navigate(');
+  const holdAt = MAIN_SRC.indexOf("prepareSearchBarNavigation(opts.force === true && routeSig === prevSig && ROUTES[route.name].footer === 'search');");
+  const cleanupAt = MAIN_SRC.indexOf("try { view._cleanup?.(); } catch (e) { console.error('[nav] outgoing view cleanup threw:', e); }");
+  assert.ok(navAt > 0 && holdAt > navAt, 'navigate() holds the bar for a same-signature forced remount');
+  assert.ok(cleanupAt > holdAt, 'the hold is in place before the outgoing view releases its claim');
+  assert.equal(MAIN_SRC.match(/prepareSearchBarNavigation\(/g)?.length, 1, 'navigate() is the one caller');
 });
