@@ -32,14 +32,21 @@
  *                   catalog do not agree
  *   font            a face the .lolly's receipt names cannot be resolved here, or
  *                   resolves to a different file
+ *   design-system   the artifact records a design system, version or colourway
+ *                   (plans/319) and the rebuild drew with a different one
  *   content         the bytes differ and none of the above explains it - with the first
  *                   differing offset, because "somewhere" is not an answer
+ *
+ * The rebuild draws in the design version and the theme choice that made the artifact:
+ * the session's own saved choice first, then what the artifact's design-system record
+ * names. The design system itself is this machine's; the CLI does not switch systems.
  */
 
 import { readFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, extname, basename } from 'node:path';
-import { verifyC2pa, buildInputModel, serializeUrlState, ENGINE_VERSION } from '@lolly/engine';
+import { verifyC2pa, buildInputModel, serializeUrlState, ENGINE_VERSION, readDesignRecord, readFileDesignRecord, themesSelection, designRecordWords } from '@lolly/engine';
+import type { DesignRecord } from '@lolly/engine';
 import type { InputValue } from '../../../engine/src/inputs.ts';
 import { readLollyFile, bundledToolFiles, sriSha256, stripSvgC2pa } from '@lolly-tools/node-shell/lolly-file';
 import type { LollyFileContents, LollyFont } from '@lolly-tools/node-shell/lolly-file';
@@ -55,7 +62,7 @@ export const REBUILDABLE_FORMATS = ['svg', 'emf', 'eps', 'dxf', 'csv'] as const;
 
 /** One thing that moved. `code` is the stable machine handle; `detail` is prose. */
 export interface RebuildReason {
-  code: 'engine-version' | 'tool-version' | 'font' | 'content';
+  code: 'engine-version' | 'tool-version' | 'font' | 'design-system' | 'content';
   detail: string;
 }
 
@@ -153,6 +160,10 @@ export async function rebuildSession(artifactPath: string, lollyPath: string): P
 
   const tool = await loadToolOrThrow(toolId, fetchFile ?? readToolFile);
   const { params, assetRefs } = sessionToParams(tool.manifest, pack.session);
+  // The design version and theme choice the artifact records (plans/319) fill what the
+  // session does not say, so a file drawn in a colourway is rebuilt in that colourway.
+  const recorded = await artifactDesignRecord(artifact);
+  Object.assign(params, designParams(recorded, params));
 
   const dir = await mkdtemp(join(tmpdir(), 'lolly-rebuild-'));
   let rebuilt: Uint8Array;
@@ -181,7 +192,7 @@ export async function rebuildSession(artifactPath: string, lollyPath: string): P
 
   const identical = left.equals(right);
   const firstDiff = identical ? -1 : firstDifference(left, right);
-  const reasons = identical ? [] : await collectReasons(artifact, pack, tool.manifest, left, right, firstDiff, format);
+  const reasons = identical ? [] : await collectReasons(artifact, pack, tool.manifest, left, right, firstDiff, format, recorded, readFileDesignRecord(rebuilt));
 
   return {
     artifact: artifactPath,
@@ -228,6 +239,13 @@ export function sessionToParams(
     if (typeof v === 'string' && v.trim() && v !== '0') params[param] = v.trim();
     else if (typeof v === 'number' && v > 0) params[param] = String(v);
   };
+  // The theme chosen in each token group (plans/319), saved with the session as
+  // `__tokenSelection`: the same `_themes` param a link carries.
+  const selection = session.__tokenSelection;
+  if (selection && typeof selection === 'object' && !Array.isArray(selection)) {
+    const choices = Object.fromEntries(Object.entries(selection as Record<string, unknown>).filter((e): e is [string, string] => typeof e[1] === 'string'));
+    if (Object.keys(choices).length) params._themes = JSON.stringify(choices);
+  }
   carry('__export_width', 'width');
   carry('__export_height', 'height');
   carry('__export_dpi', 'dpi');
@@ -254,6 +272,8 @@ async function collectReasons(
   right: Buffer,
   firstDiff: number,
   format: string,
+  recorded: DesignRecord | null = null,
+  rebuiltRecord: DesignRecord | null = null,
 ): Promise<RebuildReason[]> {
   const reasons: RebuildReason[] = [];
 
@@ -294,7 +314,15 @@ async function collectReasons(
     if (reason) reasons.push({ code: 'font', detail: reason });
   }
 
-  // (d) the fallback, and only when nothing above explained it.
+  // (d) the design system (plans/319). Only when BOTH sides name one: the artifact's
+  // record, and the record the rebuilt file wrote about this machine's system. One
+  // side without a record is "could not tell", which is not a reason.
+  const drawn = designRecordWords(recorded), here = designRecordWords(rebuiltRecord);
+  if (drawn && here && drawn !== here) {
+    reasons.push({ code: 'design-system', detail: `the artifact was drawn with ${drawn}; this rebuild drew with ${here}` });
+  }
+
+  // (e) the fallback, and only when nothing above explained the difference.
   if (!reasons.length) {
     reasons.push({ code: 'content', detail: `the rendered bytes differ from offset ${firstDiff}: ${diffHint(left, right, firstDiff, format)}` });
   }
@@ -350,4 +378,38 @@ function diffHint(a: Buffer, b: Buffer, at: number, format: string): string {
       : JSON.stringify(slice.toString('utf8')).slice(1, -1);
   };
   return `delivered "${show(a)}" vs rebuilt "${show(b)}"`;
+}
+
+/**
+ * The design-system record the artifact carries (plans/319): its credential's export
+ * assertion first, then the `lolly:` properties of its own metadata. Null when it
+ * carries neither.
+ */
+async function artifactDesignRecord(artifact: Uint8Array): Promise<DesignRecord | null> {
+  try {
+    const env = (await verifyC2pa(artifact, {})).environment as Record<string, unknown> | null | undefined;
+    const fromCredential = readDesignRecord(env ?? null);
+    if (fromCredential) return fromCredential;
+  } catch { /* no credential: the file's own metadata may still say */ }
+  return readFileDesignRecord(artifact);
+}
+
+/**
+ * The params a record adds to a rebuild: `designv` for a published version and
+ * `_themes` for the theme choices, each only where the session's own params say
+ * nothing. A session's saved choice is what the person picked, so it wins over the
+ * record; the record's choices fill the groups the session does not name.
+ */
+export function designParams(record: DesignRecord | null, params: Readonly<Record<string, string>>): Record<string, string> {
+  if (!record) return {};
+  const out: Record<string, string> = {};
+  if (record.designVersion && !params.designv) out.designv = record.designVersion;
+  const recordedThemes = themesSelection(record.themes);
+  if (recordedThemes) {
+    let saved: Record<string, string> = {};
+    try { saved = params._themes ? JSON.parse(params._themes) as Record<string, string> : {}; } catch { saved = {}; }
+    const merged = { ...recordedThemes, ...saved };
+    if (JSON.stringify(merged) !== JSON.stringify(saved)) out._themes = JSON.stringify(merged);
+  }
+  return out;
 }

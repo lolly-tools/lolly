@@ -13,10 +13,10 @@
  * reads the file as trusted.
  */
 import { createHash } from 'node:crypto';
-import { summarizeInputs, matchesShowIf, ENGINE_VERSION, collectAiIngredientDeclarations, exportActionSteps } from '@lolly/engine';
+import { summarizeInputs, matchesShowIf, ENGINE_VERSION, collectAiIngredientDeclarations, exportActionSteps, designRecordEnvironment } from '@lolly/engine';
 import { modelToValues, flattenValue } from '../../../engine/src/inputs.ts';
 import type { embedC2pa, C2paSigner } from '@lolly/engine';
-import type { Profile } from '@lolly-tools/core/host-v1';
+import type { ExportMeta, Profile } from '@lolly-tools/core/host-v1';
 
 /** The (unexported-by-name) options bag `embedC2pa` accepts. */
 export type ExportC2paOpts = NonNullable<Parameters<typeof embedC2pa>[2]>;
@@ -34,6 +34,14 @@ export interface BuildExportC2paOpts {
   /** Credential validity window in days (URL mode's `c2pa=N`; default 30). */
   days?: number | null;
   profile?: Profile;
+  /**
+   * The metadata the export embedded (`runtime.lastExportMeta`). Its design-system
+   * record (plans/319) becomes the same flat `designSystem`, `designSystemLabel`,
+   * `designVersion` and `themes` keys the web shell writes, so a CLI-, TUI- or
+   * MCP-made credential gives the design system and colourway a browser-made one
+   * would. Absent, or with the record off, the credential carries none of them.
+   */
+  meta?: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes'> | null;
   /**
    * An enrolled signing identity (key + x5chain). Absent = the ephemeral
    * self-signed on-device signer, byte-for-byte the behaviour that shipped before
@@ -102,6 +110,7 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
     environment: {
       surface,
       format, tool: name,
+      ...designRecordEnvironment(o.meta),
       date: new Date().toISOString(),
       ...(sizeLine ? { dimensions: sizeLine } : {}),
       ...(Object.keys(inputs).length ? { inputs } : {}),

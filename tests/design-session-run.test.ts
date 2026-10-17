@@ -67,6 +67,12 @@ test('a saved Design session takes the session path; its flags are settled befor
   assert.deepEqual(designSessionRunPlan({ export: 'png', 'no-provenance': '1' }), { format: 'png', provenance: { c2pa: false, imprint: false } });
   assert.deepEqual(designSessionRunPlan({ c2pa: 'off', imprint: '1' }), { format: 'png', provenance: { c2pa: false, imprint: true } });
   assert.throws(() => designSessionRunPlan({ 'no-provenance': '1', imprint: '1' }), /--no-provenance turns every provenance mark off/);
+  // The design-system record (plans/319) is its own switch: --no-provenance leaves it
+  // alone, and --no-madewith or --_madewith=0 sends `_madewith=0` to the export URL.
+  assert.deepEqual(designSessionRunPlan({ 'no-madewith': '1' }), { format: 'png', provenance: { madeWith: false } });
+  assert.deepEqual(designSessionRunPlan({ _madewith: '0' }), { format: 'png', provenance: { madeWith: false } });
+  assert.deepEqual(designSessionRunPlan({ _madewith: '1' }), { format: 'png' });
+  assert.deepEqual(designSessionRunPlan({ 'no-provenance': '1', 'no-madewith': '1' }), { format: 'png', provenance: { c2pa: false, imprint: false, madeWith: false } });
   // --force is the flag compose and package take to replace an output; run always
   // replaces its output, so it is accepted and changes nothing.
   assert.deepEqual(designSessionRunPlan({ export: 'pptx', output: 'x.pptx', force: '1' }), { format: 'pptx', output: 'x.pptx' });

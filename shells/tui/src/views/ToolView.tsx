@@ -32,7 +32,7 @@ import { MultilineInput } from '../components/MultilineInput.tsx';
 import { join, basename, extname } from 'node:path';
 import { readFile, writeFile, mkdir, stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { isToolUrl, parseDataRows, parseTableText, c2paDefaultOn, imprintDefaultOn, isImprintFormat, isImprintContainerFormat } from '@lolly/engine';
+import { isToolUrl, parseDataRows, parseTableText, c2paDefaultOn, imprintDefaultOn, isImprintFormat, isImprintContainerFormat, designRecordWords } from '@lolly/engine';
 import type { ProvenanceManifest } from '@lolly/engine';
 import { loadAssets } from '../catalog.ts';
 import type { AssetRow } from '../catalog.ts';
@@ -124,7 +124,7 @@ const C2PA_DAYS = [0, 7, 30, 90, 365];
 // web shell's isDurableFmt (views/tool-actions.ts). The embed itself runs in the web
 // shell's export path, so a durable export always routes via the Tier-B browser.
 const DURABLE_FMTS = ['png', 'jpg', 'jpeg', 'webp', 'avif', 'tiff'];
-type ExportKey = 'format' | 'width' | 'height' | 'unit' | 'dpi' | 'filename' | 'folder' | 'c2pa' | 'imprint' | 'durable' | 'password';
+type ExportKey = 'format' | 'width' | 'height' | 'unit' | 'dpi' | 'filename' | 'folder' | 'madewith' | 'c2pa' | 'imprint' | 'durable' | 'password';
 // Export-settings rows. `cycle` fields step with ←/→; `text` fields open an editor.
 const EXPORT_FIELDS: Array<{ key: ExportKey; label: string; kind: 'cycle' | 'text' }> = [
   { key: 'format', label: 'Format', kind: 'cycle' },
@@ -134,6 +134,9 @@ const EXPORT_FIELDS: Array<{ key: ExportKey; label: string; kind: 'cycle' | 'tex
   { key: 'dpi', label: 'DPI', kind: 'text' },
   { key: 'filename', label: 'Filename', kind: 'text' },
   { key: 'folder', label: 'Folder', kind: 'text' },
+  // The design-system record (plans/319): shown with the exact words it writes, so it
+  // is visible at the moment of export, and toggled off per export like the marks.
+  { key: 'madewith', label: 'Design system', kind: 'cycle' },
   { key: 'c2pa', label: 'C2PA', kind: 'cycle' },
   { key: 'imprint', label: 'Imprint', kind: 'cycle' },
   { key: 'durable', label: 'Durable', kind: 'cycle' },
@@ -210,6 +213,8 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
   const [dpi, setDpi] = useState('300');
   const [c2paIdx, setC2paIdx] = useState(0);
   const [imprintOn, setImprintOn] = useState(true);    // Lolly Imprint (pixel watermark) - on by default, opt-out per export
+  const [madeWithOn, setMadeWithOn] = useState(true);  // design-system record (plans/319) - on by default, opt-out per export
+  const [madeWithLine, setMadeWithLine] = useState(''); // the words that record writes, '' when there is nothing to record
   const [durableOn, setDurableOn] = useState(false);   // opt-in durable (TrustMark) credential - raster only, Tier-B
   const [filename, setFilename] = useState('');
   const [password, setPassword] = useState('');   // standard PDF open-password (from ?password= or typed)
@@ -377,6 +382,8 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
         // for render.c2pa:false and on-device privacy tools). Read from the manifest so
         // the terminal matches the web shell and CLI rather than defaulting on its own.
         setImprintOn(rv.imprint ?? imprintDefaultOn(m.manifest as unknown as ProvenanceManifest));
+        // `_madewith=0` in a link leaves the design-system record out; absent records the system.
+        setMadeWithOn(rv.madeWith !== false);
         setDurableOn(Boolean(rv.durable));
         setFilename(rv.filename ? rv.filename : slug(m.manifest.name ?? toolId));
         setPassword(rv.password ?? '');
@@ -473,6 +480,17 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
       setMockup(buildMockup(scratch as unknown as Parameters<typeof buildMockup>[0], Math.max(12, previewCols), Math.max(4, previewRows)));
     } catch { setMockup(null); }
   }, [rev, isUtility, transform, capture, stacked, runtime, bridge.dom, previewCols, previewRows]);
+
+  // The design-system record's words (plans/319), read again after every edit: a
+  // theme choice or a bound description changes what an export writes.
+  useEffect(() => {
+    if (!runtime || typeof runtime.madeWithPreview !== 'function') { setMadeWithLine(''); return; }
+    let alive = true;
+    runtime.madeWithPreview()
+      .then(p => { if (alive) setMadeWithLine(p ? designRecordWords(p.record) : ''); })
+      .catch(() => { if (alive) setMadeWithLine(''); });
+    return () => { alive = false; };
+  }, [rev, runtime]);
 
   function refresh(): void {
     if (runtime) {
@@ -683,6 +701,9 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
       case 'dpi': return unit === 'px' ? `${dpi || '300'} (physical units only)` : (dpi || '300');
       case 'filename': return outName;
       case 'folder': return outDir;
+      case 'madewith': return madeWithLine
+        ? (madeWithOn ? `on · records ${madeWithLine}` : 'off · records nothing')
+        : 'nothing to record';
       case 'c2pa': { const d = C2PA_DAYS[c2paIdx] ?? 0; return d === 0 ? 'off' : `on · ${d}-day cert`; }
       case 'imprint': return isImprintFormat(fmt)
         // A container (pdf/pdf-cmyk/pptx) marks only the raster images it embeds, so a
@@ -887,6 +908,9 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
       // Tier-B path forwards imprint=0/1 (an undefined would let the web shell re-default
       // it on, silently overriding an opt-out). Only sent for formats that carry pixels.
       imprint: isImprintFormat(fmt) ? imprintOn : undefined,
+      // The design-system record, as an explicit boolean for the same reason: the
+      // Tier-B path forwards only the opt-out, as `_madewith=0`.
+      madeWith: madeWithOn,
       // Durable credential: only meaningful for raster formats the mark can ride in;
       // routes the export via the Tier-B web shell, whose durableEmbedCanvas embeds it.
       durable: durableOn && DURABLE_FMTS.includes(fmt) ? true : undefined,
@@ -1121,6 +1145,7 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
         else if (f.key === 'unit') setUnitIdx(i => (i + (fwd ? 1 : -1) + UNITS.length) % UNITS.length);
         else if (f.key === 'c2pa') setC2paIdx(i => (i + (fwd ? 1 : -1) + C2PA_DAYS.length) % C2PA_DAYS.length);
         else if (f.key === 'imprint') setImprintOn(v => !v);
+        else if (f.key === 'madewith') setMadeWithOn(v => !v);
         else if (f.key === 'durable') setDurableOn(v => !v);
         return;
       }

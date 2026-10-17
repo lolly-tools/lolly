@@ -148,3 +148,22 @@ test('Node exports use the same fingerprints and omit device details', async () 
 test('empty model → empty digest (never throws)', () => {
   assert.deepEqual(summarizeInputs([]), {});
 });
+
+// The design-system record (plans/319 A7) in the Node credential builder the CLI, TUI
+// and MCP share: the same flat keys the web builder writes, only when the export's own
+// metadata carries a record, so the record off means none of them in the credential.
+test('Node credentials carry the design-system record only when the export recorded one', () => {
+  const base = { surface: 'cli' as const, manifest: { id: 'chart', name: 'Chart' }, model: [], format: 'svg' };
+  const without = buildExportC2paOpts(base).environment as Record<string, unknown>;
+  for (const key of ['designSystem', 'designSystemLabel', 'designVersion', 'themes']) assert.equal(key in without, false, key);
+  const off = buildExportC2paOpts({ ...base, meta: { } }).environment as Record<string, unknown>;
+  assert.equal('designSystem' in off, false, 'a meta with the record off adds nothing');
+  const on = buildExportC2paOpts({ ...base, meta: {
+    designSystem: { id: 'acme', label: 'Acme' }, designVersion: '2026-10',
+    themes: [{ group: 'colourway', kind: 'colourway', id: 'persimmon', name: 'Persimmon' }],
+  } }).environment as Record<string, unknown>;
+  assert.equal(on.designSystem, 'acme');
+  assert.equal(on.designSystemLabel, 'Acme');
+  assert.equal(on.designVersion, '2026-10');
+  assert.equal(on.themes, '[{"group":"colourway","id":"persimmon","kind":"colourway","name":"Persimmon"}]');
+});

@@ -18,12 +18,12 @@ import {
   C2PA_FORMATS, embedC2pa, buildInputModel, serializeUrlState, parseProductionSpec,
   parseDimension, toPixels, PENPOT_MIME,
   attributionCredits, checkAttributionReadback, verifyC2pa, describeIgnoredTokenChoice,
-  ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection,
+  ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection, readFileDesignRecord,
 } from '@lolly/engine';
 import type { C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes } from '@lolly/engine';
 import type { RightsEvaluationV1 } from '@lolly-tools/core/rights-v1';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
-import type { ExportFormat, ExportOpts, Profile, InputFile, HostV1 } from '@lolly-tools/core/host-v1';
+import type { ExportFormat, ExportMeta, ExportOpts, Profile, InputFile, HostV1 } from '@lolly-tools/core/host-v1';
 import type { ToolManifest } from '../../../engine/src/loader.ts';
 // Relative imports (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // Vercel MCP bundle, where a bare workspace specifier would dangle (see bridge.ts).
@@ -105,6 +105,8 @@ export interface RenderOpts {
   /** The limits a rondocode song in this render runs under (audio-runs.ts
    *  `rondoCapsFor`). Unset: the hosted caps, the safe default for a public route. */
   rondo?: RondoCaps;
+  /** The design-system record (the `_madewith` param, plans/319): false leaves it out. */
+  madeWith?: boolean | null;
 }
 
 /**
@@ -233,6 +235,8 @@ function exportOpts(o: RenderOpts): ExportOpts & { password?: string } {
   // enforce that). Dropping it here made the same URL render differently on MCP
   // than on the CLI - depth=float silently came back as 16-bit HALF.
   if (o.depth && o.depth !== 'auto') opts.depth = o.depth;
+  // `_madewith=0` leaves the design-system record out of the file (plans/319).
+  if (o.madeWith === false) opts.madeWith = false;
   // MCP has no brand-palette surface of its own, so the HDR view transform runs with
   // hdr.ts's includeWhite default only: near-whites get real above-1.0 headroom, brand
   // colours do not glow the way a CLI/web export with a resolved palette does.
@@ -482,7 +486,7 @@ async function renderTierA(
   emoji: EmojiRequest,
   productionContract?: import('@lolly/engine').ProductionSpec,
   tokenSelection?: Record<string, string>,
-): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; rights: RightsEvaluationV1; warnings: string[]; productionInputs?: Record<string, string> }> {
+): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; rights: RightsEvaluationV1; warnings: string[]; productionInputs?: Record<string, string>; meta: ExportMeta | null }> {
   return withHost(profile, async (dom, host) => {
     const { runtime, canvas, warnings } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection);
     let productionInputs: Record<string, string> | undefined;
@@ -526,6 +530,9 @@ async function renderTierA(
       // asking for a file has said nothing about where it goes.
       rights: runtime.rights({ delivery: { format: fmt, canCarryCredential: C2PA_FORMATS.includes(fmt) } }),
       warnings,
+      // The metadata the export embedded, so the credential stamped below names
+      // the same design system and colourway (plans/319).
+      meta: runtime.lastExportMeta,
     };
   }, tokenSelection ? { tokenSelection } : {});
 }
@@ -854,6 +861,8 @@ export async function designSessionOf(query: string): Promise<{ bytes: Uint8Arra
 export async function stampC2pa(
   bytes: Uint8Array, fmt: string, manifest: ToolManifest, values: Record<string, unknown>, o: RenderOpts,
   ingredients: C2paSourceIngredient[] = [],
+  /** The design-system record the file's own metadata carries (plans/319), for the credential. */
+  meta: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes'> | null = null,
 ): Promise<Uint8Array> {
   // The shared node-shell payload (dimensions, inputs digest, date, author gate),
   // so an MCP-made asset inspects as richly as a CLI/TUI/browser-made one.
@@ -865,6 +874,7 @@ export async function stampC2pa(
     dims: { width: o.width ?? null, height: o.height ?? null, unit: o.unit ?? null, dpi: o.dpi ?? null },
     days: o.c2pa?.days,
     profile: o.profile,
+    meta,
     // One componentOf source ingredient per distinct glyph this render placed,
     // carrying the pack's own licence, creator and the exact bytes it came from.
     // Without it an MCP export that drew CC BY artwork records no licence for it.
@@ -953,6 +963,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     // The `hdr=` request, the CLI/MCP's only float pixel source (see exportOpts).
     hdr: o.hdr ?? st.hdr ?? null,
     depth: o.depth ?? st.depth ?? undefined,
+    madeWith: o.madeWith ?? st.madeWith ?? null,
   };
   const profile = o.profile ?? {};
   // The set and treatment travel in the query, so one reader answers for the
@@ -972,6 +983,8 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
   let placed: C2paSourceIngredient[] = [];
   // What those sources ask of a delivery, for the same tier and the same reason.
   let evaluation: RightsEvaluationV1 | null = null;
+  // The metadata a browser-free render embedded, for the credential below.
+  let recorded: ExportMeta | null = null;
 
   const floatScene = needsFloatScene(toolId, values.editingRange, exportFmt, merged.hdr);
   if (floatScene && o.noBrowser) throw new RenderError('HDR Design composition requires the browser render tier.');
@@ -982,6 +995,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
       const r = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile, emoji, productionContract, st.tokenSelection);
       placed = r.ingredients;
       evaluation = r.rights;
+      recorded = r.meta;
       warnings.push(...r.warnings);
       out = { bytes: r.bytes, mime: r.mime, tier: 'A', productionInputs: r.productionInputs };
     } catch (e) {
@@ -1004,6 +1018,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
       // The raster below is that SVG, so it placed the same artwork.
       placed = svg.ingredients;
       evaluation = svg.rights;
+      recorded = svg.meta;
       warnings.push(...svg.warnings);
       const px = targetPx(merged.width, merged.unit, merged.dpi);
       const png = await svgToPng(new TextDecoder().decode(svg.bytes), px, merged.background, o.maxRasterPixels);
@@ -1064,7 +1079,11 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
   const songsIn = out.tier.startsWith('B') && AUDIO_BEARING.has(exportFmt) ? await songIngredientsIn(out.bytes) : [];
   if (songsIn.length) placed = [...placed, ...songsIn];
   if (!sampled && merged.c2pa?.on && C2PA_FORMATS.includes(exportFmt as ExportFormat) && !(exportFmt === 'pdf' && merged.password)) {
-    try { bytes = await stampC2pa(bytes, exportFmt, tool.manifest, values, merged, placed); }
+    // The design-system record (plans/319): what the browser-free render embedded, or,
+    // for bytes the browser tier wrote, the record those bytes carry in their own
+    // metadata, so the credential that replaces the browser's gives the same system.
+    const record = out.tier.startsWith('B') ? readFileDesignRecord(bytes) : recorded;
+    try { bytes = await stampC2pa(bytes, exportFmt, tool.manifest, values, merged, placed, record); }
     catch (e) { warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
   } else if (!sampled && merged.c2pa?.on) {
     warnings.push(`Format "${fmt}" cannot carry Content Credentials - skipped.`);

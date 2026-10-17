@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * `lolly run <design-session.lolly> --export=<fmt> [--output=<file>] [--s=<frame>]
- * [--c2pa=on|off] [--imprint=0|1] [--no-provenance] [--theme=<name> | --_themes=<json> |
+ * [--c2pa=on|off] [--imprint=0|1] [--no-provenance] [--no-madewith] [--theme=<name> | --_themes=<json> |
  * --themes=<a,b|all>] [--file=<tokens.json>]` (plan 291 W8): export a saved Design session with the web shell's
  * own exporter. `--themes` (M4) exports the one session once per theme, to
  * <stem>-<theme>.<ext> beside --output; `--theme` exports it once in one theme, to
@@ -28,10 +28,11 @@ import { usageError } from './exit-codes.ts';
 export const DESIGN_SESSION_EXPORT_FORMATS: readonly DesignSessionExportFormat[] = ['pptx', 'pdf', 'png', 'svg', 'jpg', 'jpeg', 'webp'];
 
 /** The flags this path reads, plus the process-wide ones every verb accepts. */
-export const SESSION_RUN_FLAGS = new Set(['export', 'output', 's', 'c2pa', 'imprint', 'no-provenance', 'themes', 'theme', '_themes', 'file', 'force', 'quiet', 'verbose', 'strict']);
+export const SESSION_RUN_FLAGS = new Set(['export', 'output', 's', 'c2pa', 'imprint', 'no-provenance', 'no-madewith', '_madewith', 'themes', 'theme', '_themes', 'file', 'force', 'quiet', 'verbose', 'strict']);
 
-/** The provenance settings the export URL carries. Absent means the app's own default. */
-export interface SessionProvenance { c2pa?: boolean; imprint?: boolean }
+/** The provenance settings the export URL carries. Absent means the app's own default.
+ *  `madeWith: false` leaves the design-system record out (plans/319). */
+export interface SessionProvenance { c2pa?: boolean; imprint?: boolean; madeWith?: boolean }
 
 /** A number as Design's renderer reads one (community/design/hooks.js `num`). */
 function rendererNumber(value: unknown): number {
@@ -109,7 +110,7 @@ export function isDesignSessionFile(contents: LollyFileContents): boolean {
 export function designSessionRunPlan(flags: Record<string, string>): { format: DesignSessionExportFormat; output?: string; frame?: string; provenance?: SessionProvenance; themes?: string; theme?: string; selection?: Record<string, string> } {
   for (const key of Object.keys(flags)) {
     if (key === 'trust-tool') throw usageError('--trust-tool is for a reusable tool file. This is a saved Design session, which carries no code to trust; run it without the flag.', 'CONFLICTING_FLAGS');
-    if (!SESSION_RUN_FLAGS.has(key)) throw usageError(`--${key} is not an option of a saved Design session. It takes --export, --output, --s, --c2pa, --imprint, --no-provenance, --theme, --_themes, --themes, --file and --force.`, 'UNKNOWN_FLAG');
+    if (!SESSION_RUN_FLAGS.has(key)) throw usageError(`--${key} is not an option of a saved Design session. It takes --export, --output, --s, --c2pa, --imprint, --no-provenance, --no-madewith, --theme, --_themes, --themes, --file and --force.`, 'UNKNOWN_FLAG');
   }
   const format = (flags.export || 'png').toLowerCase();
   if (!(DESIGN_SESSION_EXPORT_FORMATS as readonly string[]).includes(format)) {
@@ -128,6 +129,9 @@ export function designSessionRunPlan(flags: Record<string, string>): { format: D
   const provenance: SessionProvenance = bare
     ? { c2pa: false, imprint: false }
     : { ...(c2pa !== undefined ? { c2pa } : {}), ...(imprint !== undefined ? { imprint } : {}) };
+  // The design-system record is its own switch, not one of the marks --no-provenance
+  // turns off: it carries no timestamp, so it never costs a byte-identical render.
+  if (isOn(flags['no-madewith']) || (flags._madewith !== undefined && !isOn(flags._madewith))) provenance.madeWith = false;
   const themes = themesPlan(flags, flags.output);
   const one = sessionThemeChoice(flags, themes !== null);
   return {

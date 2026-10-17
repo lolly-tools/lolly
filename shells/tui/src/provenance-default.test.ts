@@ -55,3 +55,11 @@ test('the resolved imprint boolean is forwarded explicitly, never left undefined
   assert.match(SRC, /imprint: isImprintFormat\(fmt\) \? imprintOn : undefined/,
     'send an explicit boolean so every tier agrees, gated to formats that carry pixels');
 });
+
+test('the design-system record is an export row that shows its words and forwards its switch (plans/319)', () => {
+  assert.match(SRC, /\{ key: 'madewith', label: 'Design system', kind: 'cycle' \}/,
+    'the record must be visible at the moment of export, on its own row');
+  assert.match(SRC, /runtime\.madeWithPreview\(\)/, 'the row shows the words the export will write');
+  assert.match(SRC, /setMadeWithOn\(rv\.madeWith !== false\)/, 'a link\'s _madewith=0 starts it off; absent records');
+  assert.match(SRC, /madeWith: madeWithOn,/, 'the export carries the switch as an explicit boolean');
+});
