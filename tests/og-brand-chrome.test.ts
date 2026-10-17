@@ -122,7 +122,9 @@ const PROFILES: Record<string, FixtureAsset[] | null> = {
   opalcards: [tokensAsset('acme/tokens/brand', tokensWithExtension({ shareCards: 'opal', emoji: {} }))],
   neoncards: [tokensAsset('acme/tokens/brand', tokensWithExtension({ shareCards: 'neon' }))],
   objectcards: [tokensAsset('acme/tokens/brand', tokensWithExtension({ shareCards: { design: 'opal' } }))],
-  // The Opal tokens asset id without the declaration selects nothing.
+  // Lolly Demo's tokens asset id without the declaration selects nothing, and
+  // nor does its former id, the deprecated alias lolly/tokens/opal.
+  demoidonly: [tokensAsset('lolly/tokens/demo', tokensDoc(ACME))],
   opalidonly: [tokensAsset('lolly/tokens/opal', tokensDoc(ACME))],
 };
 
@@ -306,7 +308,7 @@ test('12. a pack selects Opal\'s designs by declaring shareCards: "opal" in its 
   assert.equal(declared.cards, 'opal');
   // The declaration picks the designs; the colours are still read as before.
   assert.deepEqual(colours(declared), { field: ACME.surface, accent: ACME.primary, ink: ACME.text });
-  for (const profile of ['fixture', 'neoncards', 'objectcards', 'opalidonly', 'starter', 'noindex', 'badjson']) {
+  for (const profile of ['fixture', 'neoncards', 'objectcards', 'demoidonly', 'opalidonly', 'starter', 'noindex', 'badjson']) {
     assert.equal(fixtureChrome(profile).cards, null, profile);
   }
   assert.equal(loadBrandChrome(join(FIX, 'tools')).cards, null, 'no profiles.json');
@@ -376,8 +378,8 @@ test('14. the renderers draw Opal\'s designs for lolly-demo and the brand layout
 });
 
 test('15. only lolly-demo\'s tokens declare Opal\'s designs', () => {
-  const opal = JSON.parse(read('brands/lolly-demo/catalog/assets/lolly/tokens/opal.json'));
-  assert.equal(opal.$extensions['com.suse.lolly'].shareCards, 'opal');
+  const demo = JSON.parse(read('brands/lolly-demo/catalog/assets/lolly/tokens/demo.json'));
+  assert.equal(demo.$extensions['com.suse.lolly'].shareCards, 'opal');
   const starter = JSON.parse(read('brands/lolly-start/catalog/assets/lolly/tokens/brand.json'));
   assert.equal(starter.$extensions?.['com.suse.lolly']?.shareCards, undefined);
 });

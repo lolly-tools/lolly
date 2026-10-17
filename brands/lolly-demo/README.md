@@ -24,14 +24,23 @@ handoff with one named owner.
 
 ## What's in the pack
 
-- **The Lolly Demo design system** (`catalog/assets/lolly/tokens/opal.json`;
-  the asset id `lolly/tokens/opal` follows the palette's name). A layered DTCG
-  document in the starter's shape: a shared
+- **The Lolly Demo design system** (`catalog/assets/lolly/tokens/demo.json`,
+  asset id `lolly/tokens/demo`). A layered DTCG document in the starter's
+  shape: a shared
   `base` set with Opal's named colours, the chart spectrum, the faces and the
   logo slots, plus `light` and `dark` sets with the seven semantic slots and the
-  slide roles. It is the pack's only `tokens` asset, so the shell's token bridge
-  discovers it, and because its id is not the starter's `lolly/tokens/brand` the
-  shell treats this install as branded.
+  slide roles. The index declares it with `"brandTokens": "lolly/tokens/demo"`, so
+  the shell's token bridge discovers it, and because its id is not the
+  starter's `lolly/tokens/brand` the shell treats this install as branded.
+- **The former id, kept as an alias.** The design system shipped as
+  `lolly/tokens/opal` from 16 October 2026, after its palette. Asset ids
+  are permanent, so that entry stays in the index with `"deprecated": true` and
+  `"replacedBy": "lolly/tokens/demo"`, reading the same `demo.json`: a saved
+  reference to the old id still resolves, while discovery, the asset browser and
+  queries only offer `lolly/tokens/demo`. The alias comes after the design system
+  in the index and has no `brand` tag, because the CLI, the MCP server and the
+  share-card builder pick the first tokens asset by index order or by that tag;
+  `validate:catalog` fails when those readers would disagree with `brandTokens`.
 - **Shared rows, byte for byte.** The Lolly marks (`lolly/logo/*`), the demo
   assets (`lolly/demo/*`, including `lolly/demo/lolly-spin`, which community
   tools need to validate), the loops, songs, modules, LUTs, 3D models, slide
@@ -144,7 +153,7 @@ against 37 in CMYK.
 
 - **Signing.** `pnpm run sign:credentials:catalog` and the catalog signature
   (`catalog/tools/index.sig.json`) need keys that the maintainer provisions, so
-  this pack's tool index is unsigned and `lolly/tokens/opal` and the derived
+  this pack's tool index is unsigned and `lolly/tokens/demo` and the derived
   palette documents carry no Content Credentials. The shared files keep the
   credentials they were shipped with, apart from Lolly's four marks. On
   15 Oct 2026 the reverse, mono and mono-reverse marks took Spearmint as their
