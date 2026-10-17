@@ -115,7 +115,7 @@ export const RENDER_GET_BYTE_STABLE: readonly string[] = ['svg', 'emf', 'eps', '
 export const MCP_TOOLS: readonly string[] = [
   'lolly_compile', 'lolly_inspect', 'lolly_measure', 'lolly_validate', 'lolly_diff', 'lolly_package',
   'lolly_list_tools', 'lolly_describe_tool', 'lolly_build_url', 'lolly_render',
-  'lolly_transform', 'lolly_rebrand', 'lolly_read', 'lolly_check', 'lolly_measure_text', 'lolly_compose', 'lolly_redact', 'lolly_verify',
+  'lolly_transform', 'lolly_rebrand', 'lolly_read', 'lolly_check', 'lolly_measure_text', 'lolly_compose', 'lolly_inspect_tokens', 'lolly_redact', 'lolly_verify',
   'lolly_look', 'lolly_sample_color', 'lolly_trace_edges',
 ];
 

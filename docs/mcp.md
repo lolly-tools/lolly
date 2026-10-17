@@ -97,7 +97,7 @@ Browsers without site tools keep the normal interface. The existing MCP server a
 
 Every tool input and every export control an agent can set is a URL query parameter, and the one table that defines them is [URL mode](/info/url-mode.html): inputs by id (or `urlKey`), and the reserved export names - `format`, `width`/`height`/`unit`/`dpi`, `profile`, `password`, `bleed`/`marks`, `c2pa`/`imprint`/`durable`/`meta`, `hdr`/`depth`, `cuts`, `s`, `lang`, `emoji`/`emojifx`, and for the motion formats `fps`, `seconds`, `wait`, `codec` and `vq`. The MCP `query` argument, a share link, the CLI's `--flag=value` pairs and the hot-linkable render URL are that one contract under four transports, so an agent that has learnt the table has learnt all four; `lolly_list_tools` and `lolly_describe_tool` return each tool's inputs in the same vocabulary. Nothing here is a second API to memorise.
 
-## The twenty-one tools
+## The twenty-two tools
 
 **Discover and describe:**
 
@@ -118,6 +118,12 @@ Every tool input and every export control an agent can set is a URL query parame
 | `lolly_package` | Package a Design document as a `.lolly` the Lolly app reopens as the same document, with its pictures and its name. Give `document` (a boxes array, `{boxes}` or `{values: {boxes}}`) or `toolId: "design"` with `inputs`; `assets` carries the bytes of each placeholder picture, base64, by the `image` value that draws it; `source` is a deck whose pictures resolve `user/media/<sha256>` references and the `photo:<12 hex>` keys `lolly_compose` suggests; `label` is the name. Every other picture must be a catalog id of the server's profile, and anything unresolved is refused unless `allowMissingMedia`. Returns the file and a report of what was carried and read back, the same report as `lolly package --json`. A compiled document of another tool is packaged as before and answers `{legacy: true, manifest}`. |
 | `lolly_measure_text` | Where a plain Design text layer's lines break and how tall it is, before it is drawn: each line with its width and a `nearEdge` flag, the height, the `scrollHeight` the canvas reports and, with `height`, whether the box clips the text. Pass `text` and `width` (plus any of the layer's fields, or a `style` id to measure it as an authored layer), or a `document` to measure every plain text layer. The same measure as `lolly measure --text --json`. It reads no file, so it works on the open endpoint. |
 | `lolly_compose` | Slides laid out from the slide master's archetypes, as a Design document with the master's furniture, margins and bindings. Pass a `spec` (`slides`, each with an `archetype` and its `slots`) and, for `from` references and notes, the deck's `inventory` or the deck itself as `source`. It returns the document, a report of what each slide filled and dropped and which text slots clip (`fit: "shrink"` steps them down), the source wording the slides change as `edits` for `lolly_check`, and the pictures named. `mode: "list"` returns the archetypes; `mode: "suggest"` a first spec for a deck. The same composer as `lolly compose --json`. A hosted server receives a deck passed as `source`. |
+
+**Explain the design system:**
+
+| Tool | Does |
+|---|---|
+| `lolly_inspect_tokens` | Why a design token has its value, without rendering: the effective theme choices (one per group, which fell to a default, and the set order), issues such as missing references, cycles and unknown choices, and a page of tokens with resolved values (`query`, `type`, `set`, `issuesOnly`, `offset`, `limit`). With `token`, the authored and resolved value, the winning set and override order, the roles the document declares and a bounded trace of the tokens it reads and the tokens that read this one (`depth`, 8 by default). Reads this server's design system, the one `lolly://design-context` describes, or a `tokens` document you pass; `selection` takes a render link's `_themes` object and `theme` one theme name. Choices are a preview and nothing is written. The same report as the TUI's token inspector. |
 
 **Build a link or render:**
 
@@ -320,7 +326,7 @@ In Claude Code the same connection is one command:
 claude mcp add --transport http lolly https://lolly.tools/api/mcp
 ```
 
-In a hosted assistant, add a custom connector with that URL and leave the OAuth fields blank. A quick check with `curl` (expect a JSON list of the twenty-one tools):
+In a hosted assistant, add a custom connector with that URL and leave the OAuth fields blank. A quick check with `curl` (expect a JSON list of the twenty-two tools):
 
 ```bash
 curl -s -X POST https://lolly.tools/api/mcp \
@@ -358,7 +364,7 @@ The full endpoint also accepts the raw token directly, so scripted clients skip 
 }
 ```
 
-A quick check with `curl` (expect a JSON list of the twenty-one tools, plus the `files_*` tools when the connection is scoped; no token returns `401`):
+A quick check with `curl` (expect a JSON list of the twenty-two tools, plus the `files_*` tools when the connection is scoped; no token returns `401`):
 
 ```bash
 curl -s -X POST https://mcp.lolly.tools/mcp \

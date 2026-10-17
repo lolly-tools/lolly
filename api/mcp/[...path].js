@@ -175577,6 +175577,339 @@ async function callMeasureText(args, env = process.env, limits = STRUCTURED_LIMI
   }
 }
 
+// services/mcp/src/token-inspect.ts
+init_src2();
+init_design_brief2();
+
+// packages/node-shell/src/token-report.ts
+init_src2();
+import { createHash as createHash10 } from "node:crypto";
+var TOKEN_REPORT_LIMITS = Object.freeze({
+  /** Rows a token list returns when the caller gives no limit. */
+  listDefault: 50,
+  /** The most rows one list returns. */
+  listMax: 200,
+  /** Reference steps a trace follows when the caller gives no depth. */
+  depthDefault: 8,
+  /** The most reference steps a trace follows. */
+  depthMax: 16,
+  /** Tokens one trace direction lists before it stops. */
+  traceNodes: 200,
+  /** Document diagnostics, and token issues, each list holds. */
+  issues: 100
+});
+var TokenReportError = class extends Error {
+  code;
+  constructor(code, message) {
+    super(message);
+    this.name = "TokenReportError";
+    this.code = code;
+  }
+};
+var clampWhole = (value, fallback, min, max) => typeof value === "number" && Number.isFinite(value) ? Math.min(max, Math.max(min, Math.trunc(value))) : fallback;
+function tokenRevision(doc) {
+  return `sha256:${createHash10("sha256").update(canonicalJson(doc ?? null)).digest("hex")}`;
+}
+function storedTokenChoices(doc) {
+  return resolveTokenSelection(doc, {}).choices;
+}
+function tokenReportContext(doc, inspection, origin, requested = {}) {
+  const { diagnostics: _diagnostics, ...selection } = inspection.selection;
+  const stored = storedTokenChoices(doc);
+  const asked = {
+    ...requested.theme !== void 0 ? { theme: requested.theme } : {},
+    ...requested.selection !== void 0 ? { selection: { ...requested.selection } } : {}
+  };
+  return {
+    origin: { ...origin },
+    revision: tokenRevision(doc),
+    requested: asked,
+    selection,
+    stored,
+    preview: canonicalJson(stored) !== canonicalJson(selection.choices)
+  };
+}
+function tokenIssues(inspection) {
+  const issues = [];
+  let withIssues = 0;
+  let total = 0;
+  for (const token2 of inspection.tokens) {
+    if (!token2.diagnostics.length) continue;
+    withIssues++;
+    total += token2.diagnostics.length;
+    for (const issue2 of token2.diagnostics) if (issues.length < TOKEN_REPORT_LIMITS.issues) issues.push({ ...issue2 });
+  }
+  return { diagnostics: inspection.diagnostics.slice(0, TOKEN_REPORT_LIMITS.issues).map((d) => ({ ...d })), issues, withIssues, total };
+}
+function tokenRow(token2) {
+  return {
+    path: token2.path,
+    type: token2.type,
+    set: token2.source?.set ?? null,
+    active: !!token2.source,
+    ...token2.source && token2.resolved !== void 0 ? { resolved: token2.resolved } : {},
+    issues: token2.diagnostics.length
+  };
+}
+function listTokenRows(inspection, query2 = {}) {
+  const text9 = query2.query?.trim().toLowerCase() ?? "";
+  const matches3 = inspection.tokens.filter((token2) => (!text9 || token2.path.toLowerCase().includes(text9)) && (!query2.type || token2.type === query2.type) && (!query2.set || token2.candidates.some((c) => (c.set ?? "") === query2.set)) && (!query2.issuesOnly || token2.diagnostics.length > 0));
+  const limit2 = clampWhole(query2.limit, TOKEN_REPORT_LIMITS.listDefault, 1, TOKEN_REPORT_LIMITS.listMax);
+  const offset = clampWhole(query2.offset, 0, 0, Number.MAX_SAFE_INTEGER);
+  return { total: matches3.length, offset, limit: limit2, rows: matches3.slice(offset, offset + limit2).map(tokenRow) };
+}
+function walkTrace(start, byPath, next2, depth) {
+  const steps = [];
+  const seen = /* @__PURE__ */ new Set([start.path]);
+  let frontier = [start];
+  for (let level2 = 1; frontier.length; level2++) {
+    const following = [];
+    for (const node of frontier) {
+      for (const path of next2(node)) {
+        if (seen.has(path)) continue;
+        if (level2 > depth || steps.length >= TOKEN_REPORT_LIMITS.traceNodes) return { steps, truncated: true };
+        seen.add(path);
+        const token2 = byPath.get(path);
+        steps.push({
+          path,
+          depth: level2,
+          via: node.path,
+          type: token2?.type ?? null,
+          ...token2?.source ? token2.resolved !== void 0 ? { resolved: token2.resolved } : {} : { missing: true }
+        });
+        if (token2?.source) following.push(token2);
+      }
+    }
+    frontier = following;
+  }
+  return { steps, truncated: false };
+}
+function traceToken(inspection, path, depth = TOKEN_REPORT_LIMITS.depthDefault) {
+  const byPath = new Map(inspection.tokens.map((t) => [t.path, t]));
+  const token2 = byPath.get(path);
+  if (!token2) return null;
+  const steps = clampWhole(depth, TOKEN_REPORT_LIMITS.depthDefault, 1, TOKEN_REPORT_LIMITS.depthMax);
+  const references = walkTrace(token2, byPath, (t) => t.references, steps);
+  const dependents = walkTrace(token2, byPath, (t) => t.usedBy, steps);
+  return {
+    path: token2.path,
+    type: token2.type,
+    ...token2.authored !== void 0 ? { authored: token2.authored } : {},
+    ...token2.resolved !== void 0 ? { resolved: token2.resolved } : {},
+    source: token2.source,
+    candidates: token2.candidates,
+    declaredConsumers: token2.declaredConsumers ?? [],
+    diagnostics: token2.diagnostics,
+    references: references.steps,
+    dependents: dependents.steps,
+    depth: steps,
+    truncated: references.truncated || dependents.truncated
+  };
+}
+function similarTokenPaths(inspection, path, count4 = 5) {
+  const wanted = path.toLowerCase();
+  const leaf = wanted.split(".").pop() ?? wanted;
+  const near = inspection.tokens.filter((t) => t.path.toLowerCase().includes(wanted));
+  const others = inspection.tokens.filter((t) => !near.includes(t) && leaf && t.path.toLowerCase().split(".").pop() === leaf);
+  return [...near, ...others].slice(0, count4).map((t) => t.path);
+}
+function tokenReport(doc, opts) {
+  const requested = {
+    ...opts.theme !== void 0 ? { theme: opts.theme } : {},
+    ...opts.selection !== void 0 ? { selection: opts.selection } : {}
+  };
+  const inspection = inspectTokenDocument(doc, requested);
+  const context = tokenReportContext(doc, inspection, opts.origin, requested);
+  const issues = tokenIssues(inspection);
+  const list4 = listTokenRows(inspection, opts);
+  let trace;
+  if (opts.token !== void 0) {
+    const found = traceToken(inspection, opts.token, opts.depth);
+    if (!found) {
+      const near = similarTokenPaths(inspection, opts.token);
+      throw new TokenReportError("token.unknown", `This document has no token ${opts.token}.${near.length ? ` Similar paths: ${near.join(", ")}.` : " Pass query to search the paths."}`);
+    }
+    trace = found;
+  }
+  const active = inspection.tokens.filter((t) => t.source).length;
+  return {
+    format: "lolly-token-report",
+    version: 1,
+    scope: "token-document",
+    context,
+    counts: { tokens: inspection.tokens.length, active, inactive: inspection.tokens.length - active, withIssues: issues.withIssues, diagnostics: inspection.diagnostics.length },
+    diagnostics: issues.diagnostics,
+    issues: issues.issues,
+    list: list4,
+    ...trace ? { trace } : {},
+    truncated: inspection.truncated || inspection.diagnostics.length > issues.diagnostics.length || issues.total > issues.issues.length
+  };
+}
+
+// services/mcp/src/token-inspect.ts
+var INSPECT_TOKEN_CODES = {
+  "request.invalid": true,
+  "tokens.unavailable": true,
+  "tokens.unreadable": true,
+  "token.unknown": true,
+  "output.too-large": true,
+  internal: true
+};
+var TOKEN_INSPECT_TOOL_CODES = Object.keys(INSPECT_TOKEN_CODES);
+var ANY_VALUE = {};
+var STR_OR_NULL = { type: ["string", "null"] };
+var TOKEN_DIAGNOSTIC_OUT = obj2({ code: { enum: ["selection", "missing", "cycle", "type", "unsupported", "limit"] }, path: STR2, message: STR2 });
+var TOKEN_SOURCE_OUT = obj2({ set: STR_OR_NULL, location: STR2, type: STR_OR_NULL, value: ANY_VALUE, active: BOOL2, description: STR2, extensions: { type: "object" } }, ["value", "description", "extensions"]);
+var TRACE_STEP_OUT = obj2({ path: STR2, depth: INT2, via: STR2, type: STR_OR_NULL, resolved: ANY_VALUE, missing: { const: true } }, ["resolved", "missing"]);
+var CHOICE_MAP_OUT = { type: "object", additionalProperties: STR2 };
+var TOKEN_REPORT_OUT = obj2({
+  format: { const: "lolly-token-report" },
+  version: { const: 1 },
+  scope: { const: "token-document" },
+  context: obj2({
+    origin: obj2({ kind: { enum: ["terminal", "profile", "supplied"] }, id: STR2, label: STR2, tokensAsset: STR2 }, ["id", "label", "tokensAsset"]),
+    revision: STR2,
+    requested: obj2({ theme: STR2, selection: CHOICE_MAP_OUT }, ["theme", "selection"]),
+    selection: obj2({
+      groups: { type: "array", items: obj2({ id: STR2, options: { type: "array", items: obj2({ id: STR2, name: STR2 }) } }) },
+      choices: CHOICE_MAP_OUT,
+      defaults: { type: "array", items: STR2 },
+      sets: { type: "array", items: STR2 }
+    }),
+    stored: CHOICE_MAP_OUT,
+    preview: BOOL2
+  }),
+  counts: obj2({ tokens: INT2, active: INT2, inactive: INT2, withIssues: INT2, diagnostics: INT2 }),
+  diagnostics: { type: "array", items: TOKEN_DIAGNOSTIC_OUT },
+  issues: { type: "array", items: TOKEN_DIAGNOSTIC_OUT },
+  list: obj2({
+    total: INT2,
+    offset: INT2,
+    limit: INT2,
+    rows: { type: "array", items: obj2({ path: STR2, type: STR_OR_NULL, set: STR_OR_NULL, active: BOOL2, resolved: ANY_VALUE, issues: INT2 }, ["resolved"]) }
+  }),
+  trace: obj2({
+    path: STR2,
+    type: STR_OR_NULL,
+    authored: ANY_VALUE,
+    resolved: ANY_VALUE,
+    source: { oneOf: [TOKEN_SOURCE_OUT, { type: "null" }] },
+    candidates: { type: "array", items: TOKEN_SOURCE_OUT },
+    declaredConsumers: {
+      type: "array",
+      items: obj2({ roleId: STR2, label: STR2, bindings: { type: "array", items: obj2({ id: STR2, tool: STR2, slot: STR2, modes: { type: "array", items: STR2 } }, ["tool", "modes"]) } })
+    },
+    diagnostics: { type: "array", items: TOKEN_DIAGNOSTIC_OUT },
+    references: { type: "array", items: TRACE_STEP_OUT },
+    dependents: { type: "array", items: TRACE_STEP_OUT },
+    depth: INT2,
+    truncated: BOOL2
+  }, ["authored", "resolved"]),
+  truncated: BOOL2
+}, ["trace"]);
+var TOKEN_INSPECT_OUTPUT_SCHEMA = { type: "object", oneOf: [TOKEN_REPORT_OUT, errorOut(TOKEN_INSPECT_TOOL_CODES)] };
+var INSPECT_TOKEN_ARGS = {
+  tokens: { type: "object", description: "A token document to inspect instead of this server's design system: DTCG, a Tokens Studio export with $themes and $metadata, or a lolly-design-context file.", additionalProperties: true },
+  theme: { type: "string", description: "One theme by name, id or group/name, as a single-theme render link gives one. Not taken with selection." },
+  selection: { type: "object", description: 'One theme id per theme group, e.g. {"appearance":"night","density":"roomy"}: the _themes value of a render link. A group left out takes its default choice, as a render link does.', additionalProperties: { type: "string" } },
+  token: { type: "string", description: "A dotted token path to explain and trace, e.g. color.semantic.primary." },
+  depth: { type: "integer", minimum: 1, maximum: TOKEN_REPORT_LIMITS.depthMax, description: `Reference steps the trace follows in each direction (default ${TOKEN_REPORT_LIMITS.depthDefault}).` },
+  query: { type: "string", description: "List only tokens whose path contains this text (case-insensitive)." },
+  type: { type: "string", description: "List only tokens of this $type, e.g. color or dimension." },
+  set: { type: "string", description: "List only tokens with a definition in this source set." },
+  issuesOnly: { type: "boolean", description: "List only tokens that carry an issue." },
+  offset: { type: "integer", minimum: 0, description: "Skip this many matching tokens (default 0)." },
+  limit: { type: "integer", minimum: 1, maximum: TOKEN_REPORT_LIMITS.listMax, description: `List at most this many tokens (default ${TOKEN_REPORT_LIMITS.listDefault}).` }
+};
+var TOKEN_INSPECT_TOOL_DEF = {
+  name: "lolly_inspect_tokens",
+  description: "Explain a design system's tokens without rendering: the effective theme choices (one per group, which fell to a default, and the set order), issues such as missing references, cycles and unknown choices, and a page of tokens with their resolved values. Name a token to get its authored and resolved value, the winning set and override order, the roles the document declares for the token, and a bounded trace of the tokens it reads (towards its primitives) and the tokens that read this one. Reads this server's design system (the one lolly://design-context describes) unless you pass tokens. Choices are a preview; nothing is written. Counts cover this token document only, not tool hooks or other documents.",
+  inputSchema: { type: "object", properties: INSPECT_TOKEN_ARGS, additionalProperties: false },
+  outputSchema: TOKEN_INSPECT_OUTPUT_SCHEMA
+};
+var isTokenRecord = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+var invalidTokenRequest = (message) => new ToolCodeError("request.invalid", message);
+function textArg(args, key2, max = 1024) {
+  const value = args[key2];
+  if (value === void 0) return void 0;
+  if (typeof value !== "string" || !value.trim()) throw invalidTokenRequest(`${key2} must be a non-empty string.`);
+  if (value.length > max) throw invalidTokenRequest(`${key2} is longer than ${max} characters.`);
+  return value;
+}
+function wholeArg(args, key2, min, max) {
+  const value = args[key2];
+  if (value === void 0) return void 0;
+  if (typeof value !== "number" || !Number.isInteger(value) || value < min || value > max) throw invalidTokenRequest(`${key2} must be a whole number from ${min} to ${max}.`);
+  return value;
+}
+function tokenSourceOf(args) {
+  if (args.tokens !== void 0) {
+    if (!isTokenRecord(args.tokens)) throw new ToolCodeError("tokens.unreadable", "tokens must be a token document object.");
+    const out = coerceTokensDoc(contextTokens(args.tokens));
+    if (!out.doc) throw new ToolCodeError("tokens.unreadable", `tokens is not a readable token document${out.warnings[0] ? `: ${out.warnings[0]}` : "."}`);
+    return { doc: out.doc, origin: { kind: "supplied" } };
+  }
+  const profile2 = readProfileTokenDocument();
+  if (!profile2) throw new ToolCodeError("tokens.unavailable", "This server's content profile ships no design tokens. Pass tokens to inspect a document of your own.");
+  return { doc: profile2.doc, origin: { kind: "profile", id: profile2.profile, ...profile2.label ? { label: profile2.label } : {}, tokensAsset: profile2.tokensAsset } };
+}
+function choicesSentence(choices2) {
+  const entries = Object.entries(choices2);
+  return entries.length ? entries.map(([group, id3]) => `${group || "theme"} ${id3}`).join(", ") : "no theme groups";
+}
+async function callInspectTokens(args, env = process.env, limits = STRUCTURED_LIMITS) {
+  const ctx = { env, limits };
+  try {
+    const extra = Object.keys(args).find((key2) => !Object.hasOwn(INSPECT_TOKEN_ARGS, key2));
+    if (extra) throw invalidTokenRequest(`lolly_inspect_tokens takes ${Object.keys(INSPECT_TOKEN_ARGS).join(", ")}, not ${extra}.`);
+    const theme = textArg(args, "theme", 256);
+    if (theme !== void 0 && args.selection !== void 0) throw invalidTokenRequest("Pass theme or selection, not both.");
+    let selection;
+    if (args.selection !== void 0) {
+      if (!isTokenRecord(args.selection)) throw invalidTokenRequest("selection must be an object of theme group ids to theme ids.");
+      try {
+        selection = parseTokenSelection(JSON.stringify(args.selection));
+      } catch (err) {
+        throw invalidTokenRequest(err instanceof Error ? err.message : String(err));
+      }
+    }
+    const token2 = textArg(args, "token");
+    const depth = wholeArg(args, "depth", 1, TOKEN_REPORT_LIMITS.depthMax);
+    if (depth !== void 0 && token2 === void 0) throw invalidTokenRequest("depth sets how far a trace follows: pass it with token.");
+    if (args.issuesOnly !== void 0 && typeof args.issuesOnly !== "boolean") throw invalidTokenRequest("issuesOnly must be true or false.");
+    const list4 = {
+      query: textArg(args, "query"),
+      type: textArg(args, "type", 256),
+      set: textArg(args, "set"),
+      issuesOnly: args.issuesOnly === true ? true : void 0,
+      offset: wholeArg(args, "offset", 0, Number.MAX_SAFE_INTEGER),
+      limit: wholeArg(args, "limit", 1, TOKEN_REPORT_LIMITS.listMax)
+    };
+    const { doc, origin } = tokenSourceOf(args);
+    const report4 = tokenReport(doc, {
+      origin,
+      ...theme !== void 0 ? { theme } : {},
+      ...selection !== void 0 ? { selection } : {},
+      ...token2 !== void 0 ? { token: token2 } : {},
+      ...depth !== void 0 ? { depth } : {},
+      ...Object.fromEntries(Object.entries(list4).filter(([, value]) => value !== void 0))
+    });
+    const name = origin.kind === "profile" ? `${origin.label ?? origin.id} (content profile ${origin.id})` : "the supplied document";
+    const problems = [
+      report4.counts.diagnostics ? plural4(report4.counts.diagnostics, "document issue") : "",
+      report4.counts.withIssues ? `${plural4(report4.counts.withIssues, "token")} with issues` : ""
+    ].filter(Boolean).join(" and ");
+    const traced = report4.trace ? ` ${report4.trace.path} reads ${plural4(report4.trace.references.length, "token")} and is read by ${plural4(report4.trace.dependents.length, "token")}${report4.trace.truncated ? " (trace stopped at a limit)" : ""}.` : "";
+    const sentence = `Inspected ${plural4(report4.counts.tokens, "token")} in ${name} with ${choicesSentence(report4.context.selection.choices)}${report4.context.preview ? " (a preview; the stored choices differ)" : ""}: ${problems || "no issues"}.${traced}`;
+    const structured = JSON.parse(JSON.stringify(report4));
+    return success2(sentence, structured, [], ctx, "output.too-large", "pass a smaller limit, a query, or a token.");
+  } catch (err) {
+    if (err instanceof ToolCodeError && Object.hasOwn(INSPECT_TOKEN_CODES, err.code)) return failure3(err);
+    if (err instanceof TokenReportError) return failure3(new ToolCodeError(err.code, err.message));
+    return failure3(new ToolCodeError("internal", err instanceof Error ? err.message : String(err)));
+  }
+}
+
 // schemas/design-compose-v1.schema.json
 var design_compose_v1_schema_default = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
@@ -176453,7 +176786,7 @@ init_src2();
 init_src();
 init_file_v1();
 init_design_lolly();
-import { createHash as createHash10 } from "node:crypto";
+import { createHash as createHash11 } from "node:crypto";
 
 // schemas/design-package-v1.schema.json
 var design_package_v1_schema_default = {
@@ -176959,7 +177292,7 @@ async function callPackage(args, resolveDesign, env = process.env, limits = PACK
       } catch (err) {
         throw new ToolCodeError("input.unsupported", `The compiled document could not be packaged: ${err instanceof Error ? err.message : String(err)}`);
       }
-      const sha2563 = createHash10("sha256").update(packed2.bytes).digest("hex");
+      const sha2563 = createHash11("sha256").update(packed2.bytes).digest("hex");
       const name2 = "document.lolly";
       const structured = { legacy: true, manifest: packed2.manifest, bytes: packed2.bytes.byteLength, sha256: sha2563 };
       const block2 = { type: "resource", resource: { uri: resourceUri2("package", sha2563, name2), mimeType: LOLLY_MIME2, blob: Buffer.from(packed2.bytes).toString("base64") } };
@@ -177024,7 +177357,7 @@ function isFileTransform(manifest) {
 // services/mcp/src/result-files.ts
 init_file_v1();
 init_delivery_v1();
-import { createHash as createHash11, createHmac, randomUUID as randomUUID2 } from "node:crypto";
+import { createHash as createHash12, createHmac, randomUUID as randomUUID2 } from "node:crypto";
 import { mkdtemp as mkdtemp4, readFile as readFile28, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
 import { tmpdir as tmpdir5 } from "node:os";
 import { join as join29 } from "node:path";
@@ -177036,7 +177369,7 @@ var ENTRY_LIMIT = 200;
 var PATH_PATTERN = /^\/api\/mcp\/files\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 function bearerPrincipal(header) {
   const bearer = /^Bearer\s+(.+)$/i.exec(header ?? "")?.[1]?.trim();
-  return bearer ? createHash11("sha256").update(bearer).digest("hex") : null;
+  return bearer ? createHash12("sha256").update(bearer).digest("hex") : null;
 }
 function privateFileScopeEnabled(env) {
   return env.LOLLY_MCP_PRIVATE_FILES === "1" && !!env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && (env.LOLLY_MCP_REPLICAS === void 0 || env.LOLLY_MCP_REPLICAS === "1");
@@ -177098,7 +177431,7 @@ var ResultFiles = class {
       this.directory ??= mkdtemp4(join29(tmpdir5(), "lolly-mcp-results-"));
       file = join29(await this.directory, id3);
       await writeFile7(file, bytes2, { flag: "wx", mode: 384 });
-      const digest2 = createHash11("sha256").update(bytes2).digest("hex");
+      const digest2 = createHash12("sha256").update(bytes2).digest("hex");
       const dt = await signDeliveryToken({ v: 1, kid: "mcp1", exp: expires, cls: "person-private" }, path, { canonicalHost: base.host, subject: owner3 }, await this.key(base.host, secret));
       const filename = safeFileName(name);
       this.entries.set(id3, { owner: owner3, path, file, expires, size: bytes2.byteLength, sha256: digest2, mime: /^[\w.+-]+\/[\w.+-]+(?:;[\x20-\x7e]*)?$/.test(mime2) ? mime2 : "application/octet-stream", name: filename });
@@ -177127,7 +177460,7 @@ var ResultFiles = class {
     const status = await verifyDeliveryToken(token2, path, { canonicalHost: host, cls: "person-private", pattern: PATH_PATTERN, subject: owner3, maxSkewSec: 0 }, /* @__PURE__ */ new Map([["mcp1", await this.key(host, secret)]]), Math.floor(this.now() / 1e3));
     if (status !== "ok") return null;
     const bytes2 = await readFile28(entry2.file);
-    if (bytes2.byteLength !== entry2.size || createHash11("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
+    if (bytes2.byteLength !== entry2.size || createHash12("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
     if (entry2.expires <= Math.floor(this.now() / 1e3)) return null;
     return { bytes: bytes2, mime: entry2.mime, name: entry2.name, etag: `"${entry2.sha256}"` };
   }
@@ -177457,6 +177790,7 @@ var TOOL_DEFS = [
   }),
   MEASURE_TEXT_TOOL_DEF,
   COMPOSE_TOOL_DEF,
+  TOKEN_INSPECT_TOOL_DEF,
   {
     name: "lolly_redact",
     description: "Redact regions of an image, SVG or PDF on-device. Covered content is destroyed and the file rebuilt, not drawn over: the returned file has no metadata, no trailing bytes and, for a PDF, no text layer. Instructions are the same canonical string a Lolly share link carries, so one string can be applied to every file of an identical layout. The tool re-checks its own output and returns an error with nothing attached when a check fails. Not watermarked; Content Credentials only when resign is set.",
@@ -178017,6 +178351,8 @@ ${audio}` : ""}` },
         return await callRead(args);
       case "lolly_check":
         return await callCheck(args, resolveDesignForCheck);
+      case "lolly_inspect_tokens":
+        return await callInspectTokens(args);
       case "lolly_measure_text":
         return await callMeasureText(args);
       case "lolly_compose":
@@ -178090,7 +178426,7 @@ ${audio}` : ""}` },
 }
 async function serverInstructions() {
   const { tools } = await loadIndex();
-  return `Lolly MCP server (engine ${ENGINE_VERSION}) - generate structured, on-brand creative assets for this instance. ${tools.length} tools available. Start with a focused lolly_list_tools query and optional limit; then use lolly_describe_tool \u2192 lolly_validate when needed \u2192 lolly_render. For a known recipe, skip redundant discovery and validation when the render call can validate it. A successful render is complete when its requested checks pass; review is only needed for a named requirement this instance cannot measure. Use lolly_build_url for a shareable/editable link without rendering, lolly_transform for on-device file utilities, lolly_rebrand to renovate a .pptx deck into this design system in stages (capabilities, plan, compile, inspect), lolly_read to read what a deck says (text in reading order with roles, speaker notes, pictures, tables), lolly_check to check a Design document, .lolly or export in one findings list (read lolly://design-context first to brief yourself on the brand), lolly_redact to destroy regions of an image/SVG/PDF from one reusable instruction string, and lolly_verify to check a file's Content Credentials (C2PA). For Design, rows may carry authoring keys ($in for artboard coordinates, $style for the brand's text styles, $points or $d for paths, $stack, $grid and $table for layouts); lolly_measure_text says where a text box's lines break before you place it, lolly_compose lays slides out from the slide master's archetypes as a Design document, and lolly_package writes a .lolly the app reopens. Brand assets, tokens, and tool docs are available as resources (lolly://catalog, lolly://assets, lolly://tool/{id}, lolly://tool/{id}/preview, lolly://asset/{id}, lolly://tokens, lolly://design-context).`;
+  return `Lolly MCP server (engine ${ENGINE_VERSION}) - generate structured, on-brand creative assets for this instance. ${tools.length} tools available. Start with a focused lolly_list_tools query and optional limit; then use lolly_describe_tool \u2192 lolly_validate when needed \u2192 lolly_render. For a known recipe, skip redundant discovery and validation when the render call can validate it. A successful render is complete when its requested checks pass; review is only needed for a named requirement this instance cannot measure. Use lolly_build_url for a shareable/editable link without rendering, lolly_transform for on-device file utilities, lolly_rebrand to renovate a .pptx deck into this design system in stages (capabilities, plan, compile, inspect), lolly_read to read what a deck says (text in reading order with roles, speaker notes, pictures, tables), lolly_check to check a Design document, .lolly or export in one findings list (read lolly://design-context first to brief yourself on the brand), lolly_inspect_tokens to explain a design token's value, theme choices, issues and references, lolly_redact to destroy regions of an image/SVG/PDF from one reusable instruction string, and lolly_verify to check a file's Content Credentials (C2PA). For Design, rows may carry authoring keys ($in for artboard coordinates, $style for the brand's text styles, $points or $d for paths, $stack, $grid and $table for layouts); lolly_measure_text says where a text box's lines break before you place it, lolly_compose lays slides out from the slide master's archetypes as a Design document, and lolly_package writes a .lolly the app reopens. Brand assets, tokens, and tool docs are available as resources (lolly://catalog, lolly://assets, lolly://tool/{id}, lolly://tool/{id}/preview, lolly://asset/{id}, lolly://tokens, lolly://design-context).`;
 }
 var GENERIC_PROMPT = "create-branded-asset";
 var GENERIC_PROMPT_DEF = {
@@ -178312,7 +178648,7 @@ init_file_operation_v1();
 init_file_v1();
 import { open as open2 } from "node:fs/promises";
 import { basename as basename4 } from "node:path";
-import { createHash as createHash12 } from "node:crypto";
+import { createHash as createHash13 } from "node:crypto";
 
 // packages/core/src/image-operation-v1.ts
 var DEFAULT_IMAGE_OPTIONS = { maxEdge: 0, quality: 0.92, background: "#ffffff" };
@@ -178436,7 +178772,7 @@ async function describeOperationFile(file, signal) {
   const format = detected === "jpg" ? "jpeg" : detected ?? file.name.split(".").pop()?.toLowerCase() ?? "unknown";
   const jxl = isJxl(bytes2) ? (await runJxl({ operation: "probe", bytes: bytes2 }, signal)).info : void 0;
   const dimensions = jxl ? { w: jxl.width, h: jxl.height } : imageDimensions(bytes2, file.type);
-  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash12("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
+  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash13("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
 }
 async function runNodeFileOperation(file, request2, signal, execution = "device") {
   return executeFileOperationV1(file, request2, {
@@ -179038,10 +179374,10 @@ async function dispatch(req, context = {}) {
 
 // services/mcp/src/render-get.ts
 init_src2();
-import { createHash as createHash14 } from "node:crypto";
+import { createHash as createHash15 } from "node:crypto";
 
 // services/mcp/src/rate-limit.ts
-import { createHash as createHash13 } from "node:crypto";
+import { createHash as createHash14 } from "node:crypto";
 var RateLimitUnavailableError = class extends Error {
   code = "rate-limit-unavailable";
   constructor(message = "Durable rate limiter is unavailable") {
@@ -179175,7 +179511,7 @@ function createRateLimiter(env, namespace3 = "mcp", onWrite) {
   return new MemoryRateLimiter();
 }
 function digestKey(namespace3, scope2, subject) {
-  return createHash13("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
+  return createHash14("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
 }
 function normalizeRestUrl(raw) {
   let url;
@@ -179645,10 +179981,10 @@ async function renderGet(path, query2, opts) {
   for (const key2 of dropped) params2.delete(key2);
   const sorted = new URLSearchParams(params2);
   sorted.sort();
-  const etag = `"${createHash14("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt4}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
+  const etag = `"${createHash15("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt4}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
   const cacheHeaders = {
     ...deliveryHeaders("public-bounded", { tokenBearing: true }),
-    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash14("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
+    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash15("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
     vary: "Accept-Encoding",
     etag,
     "x-robots-tag": "noindex"
@@ -179737,7 +180073,7 @@ function renderFailure(e) {
 }
 
 // services/mcp/src/image-proxy.ts
-import { createHash as createHash15 } from "node:crypto";
+import { createHash as createHash16 } from "node:crypto";
 init_delivery_v1();
 var PATH_RE2 = /\/fetch-image$/;
 function matchImageProxyPath(path) {
@@ -179846,13 +180182,13 @@ async function proxyImage(reqUrl, opts) {
     if (name === "TimeoutError" || name === "AbortError") return errorResponse2(504, "That address took too long to answer.");
     return errorResponse2(502, `Couldn't fetch that URL: ${e.message}`);
   }
-  const etag = `"${createHash15("sha256").update(bytes2).digest("hex")}"`;
+  const etag = `"${createHash16("sha256").update(bytes2).digest("hex")}"`;
   const headers = {
     "content-type": rawType,
     ...deliveryHeaders(privateResponse ? "person-private" : "public-bounded", { boundedAgeSec: cacheAge, tokenBearing: true }),
     etag,
     vary: "Accept-Encoding",
-    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash15("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
+    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash16("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
     "content-security-policy": "sandbox",
     "x-content-type-options": "nosniff",
     "content-disposition": "inline",
@@ -180133,7 +180469,7 @@ function errorPage(message) {
 }
 
 // services/mcp/src/gateway.ts
-import { createHash as createHash16 } from "node:crypto";
+import { createHash as createHash17 } from "node:crypto";
 
 // services/mcp/src/admission-namespace.ts
 function admissionNamespace(env) {
@@ -180499,7 +180835,7 @@ function createGateway(env = process.env, options2 = {}) {
         return;
       }
       const auth = String(req.headers["authorization"] || "anonymous");
-      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash16("sha256").update(auth).digest("hex");
+      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash17("sha256").update(auth).digest("hex");
       const refusal2 = await limited(limiter, "mcp", principal, positiveInt(env.LOLLY_MCP_RPM, open3 ? 60 : 120));
       if (refusal2) return send(res, refusal2);
       const spent = await overBudget(budget3);
