@@ -243,6 +243,35 @@ test('outlined underlines sit under the baseline in the run paint, cleared aroun
   assert.equal(plain.ops[0]!.words!.layout!.lines[0]!.hanging, undefined, 'a hanging space outside the underline is not carried');
 });
 
+test('the line under a hanging space takes that space\'s own ink, as its own fragment in CSS does', async () => {
+  const hang = async (text: string) => {
+    const draw = compileDesignDraw([{ id: 'w', kind: 'text', x: 0, y: 0, w: 50, h: 100, text, fontSize: 20, align: 'left', valign: 'top' }] as never, { width: 100, height: 100 });
+    await layoutDesignDrawText(draw, shaper);
+    await outlineDesignDrawText(draw, async (opts) => ({ d: '', ...(opts.clusters ? { clusters: [] } : {}) }));
+    const words = draw.ops[0]!.words!, line = words.layout!.lines[0]!;
+    const svg = designDrawSvg(draw, emit);
+    const file = Buffer.from(designDrawPdf([{ page: draw, pictures: new Map(), size: { w: 100, h: 100 } }])).toString('latin1');
+    const pdf = [...file.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)].map((m) => { try { return inflateSync(Buffer.from(m[1]!, 'latin1')).toString('latin1'); } catch { return m[1]!; } }).join('\n');
+    const rect = (x: number, width: number, fill: string) => `<rect x="${line.x + x}" y="${line.baseline + 1}" width="${width}" height="2" fill="${fill}"/>`;
+    return { draw, words, rect, svg, pdf, origin: `1 0 0 1 ${line.x} ${line.baseline} cm\n` };
+  };
+  const red = await hang('{u|ab}{u #ff0000| cd}');
+  assert.deepEqual(red.draw.findings, []);
+  assert.deepEqual(red.words.underlines![0], [{ y: 1, height: 2, spans: [{ x: 0, width: 20 }, { x: 20, width: 5, ink: '#ff0000' }] }]);
+  assert.ok(red.svg.includes(red.rect(0, 20, red.words.ink) + red.rect(20, 5, '#ff0000')), 'the run keeps its ink and the space\'s line is red');
+  assert.ok(red.pdf.includes(`q 1 0 0 rg ${red.origin}20 1 5 2 re f\nQ\n`), 'PDF paints the space\'s piece in red after the run');
+
+  const plain = await hang('{u #ff0000|ab}{u| cd}');
+  assert.deepEqual(plain.words.underlines![0]![0]!.spans, [{ x: 0, width: 20 }, { x: 20, width: 5, ink: plain.words.ink }], 'a default space after a red run takes the row ink');
+  assert.ok(plain.svg.includes(plain.rect(0, 20, '#ff0000') + plain.rect(20, 5, plain.words.ink)));
+
+  const green = await hang('ab{u #00ff00| cd}');
+  assert.deepEqual(green.words.underlines![0], [{ y: 1, height: 2, spans: [{ x: 20, width: 5, ink: '#00ff00' }] }], 'only the space is underlined');
+  assert.ok(green.svg.includes(green.rect(20, 5, '#00ff00')));
+  assert.equal(green.svg.match(/height="2"/g)?.length, 2, 'the line is the space\'s piece and the second line\'s');
+  assert.ok(green.pdf.includes(`q 0 1 0 rg ${green.origin}20 1 5 2 re f\nQ\n`));
+});
+
 test('a picture reads its fit, keyword or framing, and is clipped inside the border at the inner radius', () => {
   const pic = (extra: Record<string, unknown>) => (compileDesignRow({ id: 'p', kind: 'image', x: 0, y: 0, w: 200, h: 100, image: 'a/b', ...extra }, { x: 0, y: 0 }) as DrawShapeOp).picture!;
   assert.deepEqual([pic({}).fit, pic({ fit: 'stretch' }).fit, pic({ fit: 'scale-down' }).fit], ['contain', 'contain', 'scale-down'], 'the renderer reads an unknown fit as contain');

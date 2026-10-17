@@ -229,12 +229,12 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `design-compose-suggest.ts` | 1354 | A first compose spec for a source deck (plan 291 W6, `lolly compose --suggest`, `lolly_compose` in suggest mode): one slide per source slide, each with a master archetype, its slots filled by reference to the inventory… | yes | `tests/design-compose-suggest.test.ts` | – |
 | `design-compose.ts` | 2033 | Compose Design slides from slide-master archetypes (plan 291 W6, contract `@lolly-tools/core` design-compose-v1). | yes | `tests/design-compose.test.ts` | – |
 | `design-draw-lottie.ts` | 133 | The internal legacy dotLottie vector reading and its operation consumer. | no | `tests/design-draw-lottie.test.ts` | – |
-| `design-draw-pdf.ts` | 515 | Drawing operations written as PDF (plan 295, phase 3, P3d). | no | `tests/design-draw-pdf.test.ts` | – |
+| `design-draw-pdf.ts` | 521 | Drawing operations written as PDF (plan 295, phase 3, P3d). | no | `tests/design-draw-pdf.test.ts` | – |
 | `design-draw-penpot.ts` | 126 | Penpot's existing flat-primitive and gradient reading, separate from Design's CSS geometry. | no | `tests/design-draw-penpot.test.ts` | – |
 | `design-draw-pptx.ts` | 275 | The native deck's primitive, linear-gradient and single-path reading, distinct from Design's CSS geometry. | no | `tests/design-draw-pptx.test.ts` | – |
-| `design-draw-raster.ts` | 545 | Internal P3f admission. | no | `tests/design-draw-raster.test.ts` | – |
-| `design-draw-svg.ts` | 416 | Drawing operations written as SVG (plan 295, phase 3, P3a). | no | indirect | – |
-| `design-draw.ts` | 927 | Authored Design rows compiled into drawing operations (plan 295, phase 3, P3a). | no | `tests/design-draw.test.ts` | – |
+| `design-draw-raster.ts` | 546 | Internal P3f admission. | no | `tests/design-draw-raster.test.ts` | – |
+| `design-draw-svg.ts` | 422 | Drawing operations written as SVG (plan 295, phase 3, P3a). | no | indirect | – |
+| `design-draw.ts` | 930 | Authored Design rows compiled into drawing operations (plan 295, phase 3, P3a). | no | `tests/design-draw.test.ts` | – |
 | `design-hierarchy.ts` | 256 | Document ownership is independent of geometry and the active editor canvas. | yes | `tests/design-hierarchy.test.ts` | – |
 | `design-house-rules.ts` | 493 | House rules for a Design document (plan 291 W1 and W3): brand rule records whose kind is one of `DESIGN_HOUSE_RULE_KINDS`, checked layer by layer against the boxes a Design document stores. | yes | `tests/design-house-rules.test.ts` | – |
 | `design-idml.ts` | 147 | Deterministic IDML for static Design text, rectangular/oval frames and still images. | no | indirect | – |
@@ -509,7 +509,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `text-assist.ts` | 131 | Source-referenced, bounded prompts and acceptance rules for local text assistance. | no | indirect | – |
 | `text-cleanup.ts` | 46 | Optional, reviewable typography edits; never an automatic source normalizer. | yes | `tests/text-cleanup.test.ts` | – |
 | `text-composition-cache.ts` | 48 | A host-owned workspace reuses unchanged paragraphs and their settled flow prefix. | no | `tests/text-composition-cache.test.ts` | – |
-| `text-decoration.ts` | 224 | CSS decoration paint for drawn text: the strike from font-instance ascent facts, and the underline with the gaps skip-ink clears, validated before drawing. | no | `tests/text-decoration.test.ts` | – |
+| `text-decoration.ts` | 225 | CSS decoration paint for drawn text: the strike from font-instance ascent facts, and the underline with the gaps skip-ink clears, validated before drawing. | no | `tests/text-decoration.test.ts` | – |
 | `text-design-wrap.ts` | 15 | Design adapts its authored boxes into the generic text-wrap placement contract. | yes | none | – |
 | `text-design.ts` | 63 | Append-only Design text fields share one source document and independent frame geometry. | yes | `tests/text-design.test.ts` | – |
 | `text-display.ts` | 21 | Display case preserves authored offsets, including characters that expand when capitalised. | no | none | – |

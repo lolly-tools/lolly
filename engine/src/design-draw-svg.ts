@@ -316,16 +316,22 @@ function wordsSvg(op: DrawOp, words: DrawWords): string {
       const outline = words.outlines?.[li]?.[ri];
       if (outline !== undefined && outline !== null) {
         const ink = run.color && /^#[0-9a-fA-F]{3,8}$/.test(run.color) ? run.color : words.ink;
-        // CSS paints an underline before its run's glyphs and a strike after them.
+        // CSS paints an underline before its run's glyphs and a strike after them. A hanging
+        // space in another ink is a later fragment, so its pieces follow.
         const underline = words.underlines?.[li]?.[ri];
-        if (underline) for (const span of underline.spans) {
-          if (span.width > 0) shapes += `<rect x="${round2(box.x + line.x + run.x + span.x)}" y="${round2(box.y + line.baseline + underline.y)}" width="${round2(span.width)}" height="${round2(underline.height)}"${colorPaint('fill', ink, ink === words.ink ? words.inkOpacity : undefined)}/>`;
-        }
+        const under = (own: boolean) => {
+          if (underline) for (const span of underline.spans) {
+            const paint = span.ink ?? ink;
+            if (span.width > 0 && (span.ink === undefined) === own) shapes += `<rect x="${round2(box.x + line.x + run.x + span.x)}" y="${round2(box.y + line.baseline + underline.y)}" width="${round2(span.width)}" height="${round2(underline.height)}"${colorPaint('fill', paint, paint === words.ink ? words.inkOpacity : undefined)}/>`;
+          }
+        };
+        under(true);
         if (outline) {
           shapes += `<path transform="translate(${round2(box.x + line.x + run.x)} ${round2(box.y + line.baseline)})" d="${svgEscape(outline)}"${colorPaint('fill', ink, ink === words.ink ? words.inkOpacity : undefined)}/>`;
         }
         const strike = words.strikes?.[li]?.[ri];
         if (strike && strike.width > 0) shapes += `<rect x="${round2(box.x + line.x + run.x)}" y="${round2(box.y + line.baseline + strike.y)}" width="${round2(strike.width)}" height="${round2(strike.height)}"${colorPaint('fill', ink, ink === words.ink ? words.inkOpacity : undefined)}/>`;
+        under(false);
         return;
       }
       if (!run.text) return;

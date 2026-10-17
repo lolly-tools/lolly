@@ -327,14 +327,15 @@ function strokeFill(op: DrawOp, tolerance: number, findings: DesignRasterFinding
 
 /**
  * An operation's outlined words as fills, one per run, in paint order. Words the box
- * clip would cut, words over a box that fades as a group, and runs left as live text
- * are refused rather than drawn differently.
+ * clip would cut, words over a box that fades as a group, runs left as live text and
+ * underlined or struck words are refused rather than drawn differently.
  */
 function wordFills(op: DrawOp, tolerance: number, findings: DesignRasterFinding[]): DesignRasterFill[] | null {
   const words = op.words, layout = words?.layout;
   if (!words) return [];
   const reject = (feature: string): null => { findings.push({ id: op.id.slice(0, 256), feature }); return null; };
   if (!layout || !words.outlines) return reject('raster-live-text');
+  if ([words.underlines, words.strikes].some(rows => rows?.some(row => row.some(Boolean)))) return reject('raster-decoration');
   const shape: Exclude<DrawShape, { kind: 'path' }> | null = op.op === 'shape' && op.shape.kind !== 'path' ? op.shape : op.op === 'shape' ? null : { kind: 'rect', radius: 0 };
   if (!shape) return reject('raster-words');
   if (op.opacity < 100 && op.op === 'shape' && op.fills.length) return reject('raster-group');

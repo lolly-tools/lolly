@@ -229,6 +229,26 @@ test('fills refuse dashes, centred box strokes, words the box would clip, group 
   assert.deepEqual(await findings(live), ['raster-live-text:words']);
 });
 
+test('underlined and struck words are refused, because only their glyphs would be filled', async () => {
+  const decorated = async (text: string) => {
+    const page = compileDesignDraw([{ id: 'frame', kind: 'frame', w: 200, h: 120, bg: '#ffffff' },
+      { id: 'words', kind: 'text', x: 10, y: 10, w: 180, h: 60, text, fontSize: 16, align: 'left' }] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' });
+    await layoutDesignDrawText(page, shaper);
+    // Each glyph a box above the baseline, so skip-ink clears nothing.
+    const box = (i: number, size: number) => `M${i * size / 2} ${-size / 3}H${(i + 1) * size / 2}V0H${i * size / 2}Z`;
+    await outlineDesignDrawText(page, async ({ text, fontSize, clusters }) => {
+      const parts = [...text].map((ch, i) => ({ start: i, d: ch.trim() ? box(i, fontSize) : '' }));
+      return { d: parts.map(p => p.d).join(''), ...(clusters ? { clusters: parts } : {}) };
+    }, async () => ({ upem: 1000, ascent: 980 }));
+    assert.deepEqual(page.findings, [], 'the drawing compiler places the line');
+    const a = prepareDesignRaster(page);
+    return a.ok ? [] : a.findings.map(f => `${f.feature}:${f.id}`);
+  };
+  assert.deepEqual(await decorated('gap ab'), []);
+  assert.deepEqual(await decorated('{u|gap} ab'), ['raster-decoration:words']);
+  assert.deepEqual(await decorated('gap {s|ab}'), ['raster-decoration:words']);
+});
+
 test('strokes become the fill of the region they paint, over the fills and under the words', async () => {
   const line = encodeAuthoredPaths([{ kind: 'cubic', closed: false, nodes: [{ x: 0, y: 0.5 }, { x: 1, y: 0.5 }] }] as never) ?? '';
   const a = prepareDesignRaster(await fillPage([
