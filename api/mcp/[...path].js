@@ -113787,7 +113787,9 @@ async function outlineDesignDrawText(page3, toPath, strikeMetrics) {
       const last = line.runs.length - 1, band = hanging.length ? underlineGeometry(m2.size, op.box.y + line.baseline) : null;
       if (hanging.length && (last < 0 || !band)) decorated = true;
       else if (band && row[last] !== null) {
-        const pieces = hanging.map((run3) => ({ x: run3.x - line.runs[last].x, width: run3.width }));
+        const ink = (run3) => run3.color && /^#[0-9a-fA-F]{3,8}$/.test(run3.color) ? run3.color : words3.ink;
+        const lastInk = ink(line.runs[last]);
+        const pieces = hanging.map((run3) => ({ x: run3.x - line.runs[last].x, width: run3.width, ...ink(run3) !== lastInk ? { ink: ink(run3) } : {} }));
         underlines[last] = { y: band.y, height: band.height, spans: [...underlines[last]?.spans ?? [], ...pieces] };
       }
       words3.outlines.push(row);
@@ -130368,14 +130370,19 @@ function wordsSvg(op, words3) {
       if (outline2 !== void 0 && outline2 !== null) {
         const ink2 = run3.color && /^#[0-9a-fA-F]{3,8}$/.test(run3.color) ? run3.color : words3.ink;
         const underline = words3.underlines?.[li]?.[ri];
-        if (underline) for (const span of underline.spans) {
-          if (span.width > 0) shapes2 += `<rect x="${round25(box4.x + line.x + run3.x + span.x)}" y="${round25(box4.y + line.baseline + underline.y)}" width="${round25(span.width)}" height="${round25(underline.height)}"${colorPaint("fill", ink2, ink2 === words3.ink ? words3.inkOpacity : void 0)}/>`;
-        }
+        const under = (own3) => {
+          if (underline) for (const span of underline.spans) {
+            const paint2 = span.ink ?? ink2;
+            if (span.width > 0 && span.ink === void 0 === own3) shapes2 += `<rect x="${round25(box4.x + line.x + run3.x + span.x)}" y="${round25(box4.y + line.baseline + underline.y)}" width="${round25(span.width)}" height="${round25(underline.height)}"${colorPaint("fill", paint2, paint2 === words3.ink ? words3.inkOpacity : void 0)}/>`;
+          }
+        };
+        under(true);
         if (outline2) {
           shapes2 += `<path transform="translate(${round25(box4.x + line.x + run3.x)} ${round25(box4.y + line.baseline)})" d="${svgEscape(outline2)}"${colorPaint("fill", ink2, ink2 === words3.ink ? words3.inkOpacity : void 0)}/>`;
         }
         const strike = words3.strikes?.[li]?.[ri];
         if (strike && strike.width > 0) shapes2 += `<rect x="${round25(box4.x + line.x + run3.x)}" y="${round25(box4.y + line.baseline + strike.y)}" width="${round25(strike.width)}" height="${round25(strike.height)}"${colorPaint("fill", ink2, ink2 === words3.ink ? words3.inkOpacity : void 0)}/>`;
+        under(false);
         return;
       }
       if (!run3.text) return;
@@ -158727,14 +158734,21 @@ ${clipTo({ box: inner, shape })}`;
           const ink = run3.color && /^#[0-9a-fA-F]{3,8}$/.test(run3.color) ? run3.color : words3.ink;
           const strike = words3.strikes?.[li]?.[ri];
           const underline = words3.underlines?.[li]?.[ri];
-          const under = underline?.spans.filter((s) => s.width > 0).map((s) => `${n6(s.x)} ${n6(underline.y)} ${n6(s.width)} ${n6(underline.height)} re`).join(" ");
-          if (!d && !strike && !under) continue;
-          out += `q ${opacityGs(ink === words3.ink ? words3.inkOpacity : void 0)}${color5(ink, "rg")} 1 0 0 1 ${n6(box4.x + line.x + run3.x)} ${n6(box4.y + line.baseline)} cm
-${under ? `${under} f
+          const pieces = underline?.spans.filter((s) => s.width > 0) ?? [];
+          const rect = (s) => `${n6(s.x)} ${n6(underline?.y ?? 0)} ${n6(s.width)} ${n6(underline?.height ?? 0)} re`;
+          const under = pieces.filter((s) => s.ink === void 0).map(rect).join(" ");
+          const origin = `1 0 0 1 ${n6(box4.x + line.x + run3.x)} ${n6(box4.y + line.baseline)} cm
+`;
+          if (d || strike || under) out += `q ${opacityGs(ink === words3.ink ? words3.inkOpacity : void 0)}${color5(ink, "rg")} ${origin}${under ? `${under} f
 ` : ""}${d ? `${svgPath2(d)}f
 ` : ""}${strike && strike.width > 0 ? `0 ${n6(strike.y)} ${n6(strike.width)} ${n6(strike.height)} re f
 ` : ""}Q
 `;
+          for (const s of pieces) {
+            if (s.ink !== void 0) out += `q ${opacityGs(s.ink === words3.ink ? words3.inkOpacity : void 0)}${color5(s.ink, "rg")} ${origin}${rect(s)} f
+Q
+`;
+          }
         }
       }
       return `${out}Q

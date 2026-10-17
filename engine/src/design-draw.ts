@@ -840,12 +840,15 @@ export async function outlineDesignDrawText(page: DesignDrawPage, toPath: DrawTe
         } catch { row.push(null); missing = true; }
       }
       // Spaces hanging past the line end are fragments of their own with nothing to clear,
-      // so their line runs on from the last run's. A strike over them is not drawn yet.
+      // so their line runs on from the last run's, in each fragment's own ink. A strike
+      // over them is not drawn yet.
       const hanging = line.hanging?.filter((run) => run.underline) ?? [];
       const last = line.runs.length - 1, band = hanging.length ? underlineGeometry(m.size, op.box.y + line.baseline) : null;
       if (hanging.length && (last < 0 || !band)) decorated = true;
       else if (band && row[last] !== null) {
-        const pieces = hanging.map((run) => ({ x: run.x - line.runs[last]!.x, width: run.width }));
+        const ink = (run: { color?: string }) => (run.color && /^#[0-9a-fA-F]{3,8}$/.test(run.color) ? run.color : words.ink);
+        const lastInk = ink(line.runs[last]!);
+        const pieces = hanging.map((run) => ({ x: run.x - line.runs[last]!.x, width: run.width, ...(ink(run) !== lastInk ? { ink: ink(run) } : {}) }));
         underlines[last] = { y: band.y, height: band.height, spans: [...(underlines[last]?.spans ?? []), ...pieces] };
       }
       words.outlines.push(row);

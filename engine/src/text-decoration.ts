@@ -32,8 +32,9 @@ export function strikeGeometry(metrics: StrikeMetrics | null, size: number, widt
   return { y: Math.floor(top + .5) - baseline, height: Math.floor(height), width };
 }
 
-/** One painted piece of an underline, measured from the run's start. */
-export interface DrawUnderlineSpan { x: number; width: number }
+/** One painted piece of an underline, measured from the run's start. A piece under a hanging
+ * space whose ink differs from the run's carries that `ink`. */
+export interface DrawUnderlineSpan { x: number; width: number; ink?: string }
 /** An underline relative to the run's baseline: the pieces left once skip-ink clears glyph ink.
  * On a line's last run the pieces may reach past the run, under the spaces that hang there. */
 export interface DrawUnderline { y: number; height: number; spans: DrawUnderlineSpan[] }
