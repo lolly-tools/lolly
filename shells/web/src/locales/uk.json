@@ -7966,5 +7966,12 @@
   "While rotating: turn in 15 degree steps": "Під час повороту: повертати кроками по 15 градусів",
   "Zoom and pan the view": "Масштабувати й переміщувати вигляд",
   "Enter a scale from 1% to 10000%.": "Введіть масштаб від 1% до 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Курсор - вибір і переміщення (V). Утримуйте для масштабу (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Курсор - вибір і переміщення (V). Утримуйте для масштабу (K)",
+  "Open a workspace": "Відкрити робочий простір",
+  "Use an address that starts with https://": "Використайте адресу, що починається з https://",
+  "Leave the user name and password out of the address.": "Не вказуйте в адресі ім'я користувача й пароль.",
+  "That is not a web address. Check it and try again.": "Це не вебадреса. Перевірте її та спробуйте ще раз.",
+  "Private project": "Приватний проєкт",
+  "The server could not send the latest tools - showing saved content": "Сервер не зміг надіслати найновіші інструменти - показано збережений вміст",
+  "{n} colour": "{n} колір"
 }

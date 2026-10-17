@@ -1391,5 +1391,12 @@
   "Zoom and pan the view": "Мащабирай и премествай изгледа",
   "Anchor": "Опорна точка",
   "Enter a scale from 1% to 10000%.": "Въведи мащаб от 1% до 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Показалец - избери и премести (V). Задръж за Мащаб (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Показалец - избери и премести (V). Задръж за Мащаб (K)",
+  "Open a workspace": "Отвори работно пространство",
+  "Use an address that starts with https://": "Използвай адрес, който започва с https://",
+  "Leave the user name and password out of the address.": "Махни потребителското име и паролата от адреса.",
+  "That is not a web address. Check it and try again.": "Това не е уеб адрес. Провери го и опитай отново.",
+  "Private project": "Личен проект",
+  "The server could not send the latest tools - showing saved content": "Сървърът не можа да изпрати най-новите инструменти: показва се запазено съдържание",
+  "{n} colour": "{n} цвят"
 }

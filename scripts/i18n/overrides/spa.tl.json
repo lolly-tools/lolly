@@ -1262,5 +1262,12 @@
   "Zoom and pan the view": "I-zoom at i-pan ang view",
   "Anchor": "Angkla",
   "Enter a scale from 1% to 10000%.": "Maglagay ng scale mula 1% hanggang 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Pointer - pumili at ilipat (V). I-hold para sa Scale (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Pointer - pumili at ilipat (V). I-hold para sa Scale (K)",
+  "Open a workspace": "Magbukas ng workspace",
+  "Use an address that starts with https://": "Gumamit ng address na nagsisimula sa https://",
+  "Leave the user name and password out of the address.": "Huwag isama ang user name at password sa address.",
+  "That is not a web address. Check it and try again.": "Hindi ito web address. Suriin ito at subukan ulit.",
+  "Private project": "Pribadong project",
+  "The server could not send the latest tools - showing saved content": "Hindi naipadala ng server ang mga pinakabagong tool - ipinapakita ang naka-save na content",
+  "{n} colour": "{n} kulay"
 }

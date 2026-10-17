@@ -7966,5 +7966,12 @@
   "While rotating: turn in 15 degree steps": "回転中: 15度ずつ回転",
   "Zoom and pan the view": "表示をズーム・パン",
   "Enter a scale from 1% to 10000%.": "1% から 10000% までのスケールを入力してください。",
-  "Pointer - select and move (V). Hold for Scale (K)": "ポインター - 選択と移動（V）。長押しでスケール（K）"
+  "Pointer - select and move (V). Hold for Scale (K)": "ポインター - 選択と移動（V）。長押しでスケール（K）",
+  "Open a workspace": "ワークスペースを開く",
+  "Use an address that starts with https://": "https:// で始まるアドレスを入力してください",
+  "Leave the user name and password out of the address.": "アドレスにユーザー名とパスワードは含めないでください。",
+  "That is not a web address. Check it and try again.": "ウェブアドレスではありません。確認してもう一度お試しください。",
+  "Private project": "非公開プロジェクト",
+  "The server could not send the latest tools - showing saved content": "サーバーから最新のツールを取得できませんでした。保存済みのコンテンツを表示中",
+  "{n} colour": "{n}件のカラー"
 }

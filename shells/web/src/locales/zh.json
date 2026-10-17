@@ -7966,5 +7966,12 @@
   "While rotating: turn in 15 degree steps": "旋转时：以 15 度为步长旋转",
   "Zoom and pan the view": "缩放和平移视图",
   "Enter a scale from 1% to 10000%.": "请输入 1% 到 10000% 之间的缩放比例。",
-  "Pointer - select and move (V). Hold for Scale (K)": "指针 - 选择与移动 (V)。长按可选缩放 (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "指针 - 选择与移动 (V)。长按可选缩放 (K)",
+  "Open a workspace": "打开工作空间",
+  "Use an address that starts with https://": "请使用以 https:// 开头的地址",
+  "Leave the user name and password out of the address.": "请不要在地址中包含用户名和密码。",
+  "That is not a web address. Check it and try again.": "这不是网址。请检查后重试。",
+  "Private project": "私密项目",
+  "The server could not send the latest tools - showing saved content": "服务器无法发送最新的工具，正在显示已保存的内容",
+  "{n} colour": "{n} 种颜色"
 }

@@ -1396,5 +1396,12 @@
   "Zoom and pan the view": "تكبير العرض وتحريكه",
   "Anchor": "نقطة الارتكاز",
   "Enter a scale from 1% to 10000%.": "أدخل نسبة تحجيم من 1% إلى 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "المؤشر - تحديد وتحريك (V). اضغط مطولًا للتحجيم (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "المؤشر - تحديد وتحريك (V). اضغط مطولًا للتحجيم (K)",
+  "Open a workspace": "فتح مساحة عمل",
+  "Use an address that starts with https://": "استخدم عنوانًا يبدأ بـ https://",
+  "Leave the user name and password out of the address.": "احذف اسم المستخدم وكلمة المرور من العنوان.",
+  "That is not a web address. Check it and try again.": "هذا ليس عنوان ويب. تحقق منه وحاول مرة أخرى.",
+  "Private project": "مشروع خاص",
+  "The server could not send the latest tools - showing saved content": "تعذر على الخادم إرسال أحدث الأدوات: يُعرض المحتوى المحفوظ",
+  "{n} colour": "{n} لون"
 }

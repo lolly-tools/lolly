@@ -7966,5 +7966,12 @@
   "While rotating: turn in 15 degree steps": "旋轉時：以 15 度為單位旋轉",
   "Zoom and pan the view": "縮放及平移檢視",
   "Enter a scale from 1% to 10000%.": "請輸入 1% 到 10000% 之間的縮放比例。",
-  "Pointer - select and move (V). Hold for Scale (K)": "指標 - 選取與移動（V）。長按可選縮放（K）"
+  "Pointer - select and move (V). Hold for Scale (K)": "指標 - 選取與移動（V）。長按可選縮放（K）",
+  "Open a workspace": "開啟工作空間",
+  "Use an address that starts with https://": "請使用以 https:// 開頭的位址",
+  "Leave the user name and password out of the address.": "請不要在位址中包含使用者名稱和密碼。",
+  "That is not a web address. Check it and try again.": "這不是網址。請檢查後再試一次。",
+  "Private project": "私人專案",
+  "The server could not send the latest tools - showing saved content": "伺服器無法傳送最新的工具，正在顯示已儲存的內容",
+  "{n} colour": "{n} 個色彩"
 }

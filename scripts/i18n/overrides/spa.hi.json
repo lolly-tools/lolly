@@ -1261,5 +1261,12 @@
   "Zoom and pan the view": "दृश्य को ज़ूम और पैन करें",
   "Anchor": "एंकर बिंदु",
   "Enter a scale from 1% to 10000%.": "1% से 10000% के बीच स्केल दर्ज करें।",
-  "Pointer - select and move (V). Hold for Scale (K)": "पॉइंटर - चुनें और खिसकाएँ (V)। स्केल (K) के लिए दबाए रखें"
+  "Pointer - select and move (V). Hold for Scale (K)": "पॉइंटर - चुनें और खिसकाएँ (V)। स्केल (K) के लिए दबाए रखें",
+  "Open a workspace": "वर्कस्पेस खोलें",
+  "Use an address that starts with https://": "https:// से शुरू होने वाला पता इस्तेमाल करें",
+  "Leave the user name and password out of the address.": "पते में यूज़र नाम और पासवर्ड न डालें।",
+  "That is not a web address. Check it and try again.": "यह वेब पता नहीं है। जाँचकर फिर कोशिश करें।",
+  "Private project": "निजी प्रोजेक्ट",
+  "The server could not send the latest tools - showing saved content": "सर्वर नवीनतम टूल नहीं भेज सका: सहेजी गई सामग्री दिखाई जा रही है",
+  "{n} colour": "{n} रंग"
 }

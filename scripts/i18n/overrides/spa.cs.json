@@ -1254,5 +1254,12 @@
   "Zoom and pan the view": "Přiblížit a posouvat zobrazení",
   "Anchor": "Ukotvení",
   "Enter a scale from 1% to 10000%.": "Zadej měřítko od 1 % do 10000 %.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Ukazatel - výběr a přesun (V). Podrž pro Měřítko (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Ukazatel - výběr a přesun (V). Podrž pro Měřítko (K)",
+  "Open a workspace": "Otevřít pracovní prostor",
+  "Use an address that starts with https://": "Použij adresu, která začíná https://",
+  "Leave the user name and password out of the address.": "Z adresy vynech uživatelské jméno a heslo.",
+  "That is not a web address. Check it and try again.": "To není webová adresa. Zkontroluj ji a zkus to znovu.",
+  "Private project": "Soukromý projekt",
+  "The server could not send the latest tools - showing saved content": "Server nemohl poslat nejnovější nástroje - zobrazuje se uložený obsah",
+  "{n} colour": "{n} barva"
 }

@@ -7966,5 +7966,12 @@
   "While rotating: turn in 15 degree steps": "Durante la rotazione: ruota a scatti di 15 gradi",
   "Zoom and pan the view": "Zoom e panoramica della vista",
   "Enter a scale from 1% to 10000%.": "Inserisci una scala dall'1% al 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Puntatore - seleziona e sposta (V). Tieni premuto per Scala (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Puntatore - seleziona e sposta (V). Tieni premuto per Scala (K)",
+  "Open a workspace": "Apri uno spazio di lavoro",
+  "Use an address that starts with https://": "Usa un indirizzo che inizia con https://",
+  "Leave the user name and password out of the address.": "Togli nome utente e password dall'indirizzo.",
+  "That is not a web address. Check it and try again.": "Questo non è un indirizzo web. Controllalo e riprova.",
+  "Private project": "Progetto privato",
+  "The server could not send the latest tools - showing saved content": "Il server non ha potuto inviare gli strumenti più recenti - contenuto salvato visualizzato",
+  "{n} colour": "{n} colore"
 }

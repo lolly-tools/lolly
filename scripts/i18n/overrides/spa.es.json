@@ -1260,5 +1260,12 @@
   "Zoom and pan the view": "Hacer zoom y desplazar la vista",
   "Anchor": "Anclaje",
   "Enter a scale from 1% to 10000%.": "Introduce una escala del 1% al 10000%.",
-  "Pointer - select and move (V). Hold for Scale (K)": "Puntero - seleccionar y mover (V). Mantén pulsado para Escala (K)"
+  "Pointer - select and move (V). Hold for Scale (K)": "Puntero - seleccionar y mover (V). Mantén pulsado para Escala (K)",
+  "Open a workspace": "Abrir un espacio de trabajo",
+  "Use an address that starts with https://": "Usa una dirección que empiece por https://",
+  "Leave the user name and password out of the address.": "Quita el nombre de usuario y la contraseña de la dirección.",
+  "That is not a web address. Check it and try again.": "Eso no es una dirección web. Revísala e inténtalo de nuevo.",
+  "Private project": "Proyecto privado",
+  "The server could not send the latest tools - showing saved content": "El servidor no pudo enviar las herramientas más recientes - mostrando contenido guardado",
+  "{n} colour": "{n} color"
 }

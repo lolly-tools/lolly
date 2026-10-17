@@ -1261,5 +1261,12 @@
   "Zoom and pan the view": "ভিউ জুম ও প্যান করুন",
   "Anchor": "অ্যাঙ্কর বিন্দু",
   "Enter a scale from 1% to 10000%.": "1% থেকে 10000%-এর মধ্যে একটি স্কেল লিখুন।",
-  "Pointer - select and move (V). Hold for Scale (K)": "পয়েন্টার - নির্বাচন ও সরানো (V)। স্কেল (K)-এর জন্য চেপে ধরুন"
+  "Pointer - select and move (V). Hold for Scale (K)": "পয়েন্টার - নির্বাচন ও সরানো (V)। স্কেল (K)-এর জন্য চেপে ধরুন",
+  "Open a workspace": "একটি ওয়ার্কস্পেস খুলুন",
+  "Use an address that starts with https://": "https:// দিয়ে শুরু হওয়া একটি ঠিকানা ব্যবহার করুন",
+  "Leave the user name and password out of the address.": "ঠিকানা থেকে ব্যবহারকারীর নাম ও পাসওয়ার্ড বাদ দিন।",
+  "That is not a web address. Check it and try again.": "এটি কোনো ওয়েব ঠিকানা নয়। দেখে নিয়ে আবার চেষ্টা করুন।",
+  "Private project": "ব্যক্তিগত প্রজেক্ট",
+  "The server could not send the latest tools - showing saved content": "সার্ভার সর্বশেষ টুল পাঠাতে পারেনি: সংরক্ষিত কনটেন্ট দেখানো হচ্ছে",
+  "{n} colour": "{n}টি রং"
 }
