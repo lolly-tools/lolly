@@ -95,6 +95,27 @@ test('timing edits reuse the evaluated layout and never reach the solver', async
     assert.deepEqual(geometry(timed.boxes), geometry(control.boxes), name);
   }
   assert.equal(requests.length, calls);
+  // Content-sized text is keyed by its content, and that key still leaves timing fields out.
+  let measured = 0;
+  const hug = { kind: 'text', text: 'Shown on the second click', layoutW: 'hug', layoutH: 'hug' };
+  const warm = createDesignLayoutEvaluator(solve, async () => {
+    measured++;
+    return { width: 80, height: 20 };
+  });
+  const hugControl = await warm(flexRow(hug));
+  assert.ok(measured > 0);
+  near(hugControl.boxes[3]!.x, 200);
+  for (const [name, timing] of TIMED) {
+    measured = 0;
+    const timed = await warm(flexRow({ ...hug, ...timing }));
+    assert.equal(measured, 0, `${name}: no text measurement`);
+    assert.equal(timed.passes, 0, name);
+    assert.equal(timed.solved, 0, name);
+    assert.deepEqual(geometry(timed.boxes), geometry(hugControl.boxes), name);
+  }
+  measured = 0;
+  await warm(flexRow({ ...hug, text: 'Shown on the third click' }));
+  assert.ok(measured > 0, 'a content edit is measured again');
   const hidden = await cached(flexRow({ build: 2, hidden: true }));
   assert.ok(hidden.solved > 0);
   assert.equal(hidden.boxes[3]!.x, 110);

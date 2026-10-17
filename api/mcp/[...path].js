@@ -98861,7 +98861,7 @@ function createDesignLayoutEvaluator(solve3, measure3) {
         ).sort();
         const shape = fields2.map((k) => [k, r5[k]]);
         if (isText(r5) && !r5.textStory && inFlow(r5) && (mode(r5, "W") === "hug" || mode(r5, "H") === "hug"))
-          shape.push(["intrinsic", r5]);
+          shape.push(["intrinsic", withoutTiming(r5)]);
         if (r5.kind === "image" && (mode(r5, "W") === "hug" || mode(r5, "H") === "hug"))
           shape.push(["image", r5.image]);
         return shape;
@@ -99112,7 +99112,7 @@ function remapDesignLayout(rows2, tracks, copies) {
     tracks: tracks.filter((t) => copies.has(String(t.container))).map((t) => ({ ...t, container: copies.get(String(t.container)) }))
   };
 }
-var MAX_LAYOUT_LAYERS, MAX_LAYOUT_TRACKS, MAX_LAYOUT_OWNER_RECORDS, MAX_LAYOUT_SCALAR, MAX_LAYOUT_TEXT_LAYER_CHARS, MAX_LAYOUT_TEXT_DOCUMENT_CHARS, MAX_LAYOUT_TRACKS_PER_AXIS, MAX_LAYOUT_GRID_CELLS, MAX_LAYOUT_GRID_WORK, MAX_LAYOUT_PASSES, MAX_LAYOUT_REFLOW_WORK, MAX_LAYOUT_SOLVER_CACHE_ENTRIES, MAX_LAYOUT_SOLVER_CACHE_BYTES, MAX_LAYOUT_PROJECTION_KEY_CHARS, MAX_LAYOUT_PROJECTIONS, hasDesignLayout, on2, number2, mode, owner, hierarchyOwner, id, isText, inFlow, sides, limit;
+var MAX_LAYOUT_LAYERS, MAX_LAYOUT_TRACKS, MAX_LAYOUT_OWNER_RECORDS, MAX_LAYOUT_SCALAR, MAX_LAYOUT_TEXT_LAYER_CHARS, MAX_LAYOUT_TEXT_DOCUMENT_CHARS, MAX_LAYOUT_TRACKS_PER_AXIS, MAX_LAYOUT_GRID_CELLS, MAX_LAYOUT_GRID_WORK, MAX_LAYOUT_PASSES, MAX_LAYOUT_REFLOW_WORK, MAX_LAYOUT_SOLVER_CACHE_ENTRIES, MAX_LAYOUT_SOLVER_CACHE_BYTES, MAX_LAYOUT_PROJECTION_KEY_CHARS, MAX_LAYOUT_PROJECTIONS, hasDesignLayout, on2, number2, mode, owner, hierarchyOwner, id, isText, inFlow, TIMING_FIELDS, withoutTiming, sides, limit;
 var init_design_layout = __esm({
   "engine/src/design-layout.ts"() {
     "use strict";
@@ -99142,6 +99142,21 @@ var init_design_layout = __esm({
     id = (r5) => String(r5.id || "");
     isText = (r5) => r5.kind === "text" || typeof r5.text === "string" && r5.text.length > 0;
     inFlow = (r5) => !on2(r5.hidden) && !on2(r5.layoutAbsolute);
+    TIMING_FIELDS = /* @__PURE__ */ new Set([
+      "start",
+      "dur",
+      "lane",
+      "ignored",
+      "enter",
+      "enterMs",
+      "enterEase",
+      "exit",
+      "exitMs",
+      "exitEase",
+      "build",
+      "kf"
+    ]);
+    withoutTiming = (r5) => Object.fromEntries(Object.entries(r5).filter(([k]) => !TIMING_FIELDS.has(k)));
     sides = (r5, prefix) => ["Top", "Right", "Bottom", "Left"].map((k) => number2(r5[prefix + k]));
     limit = (r5, k) => r5[k] === "" || r5[k] == null ? null : Number(r5[k]);
   }

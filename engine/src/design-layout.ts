@@ -83,11 +83,28 @@ const isText = (r: Row): boolean =>
   r.kind === 'text' || (typeof r.text === 'string' && r.text.length > 0);
 /**
  * Participation rule: a member leaves flex or grid flow only when it or an owner is hidden,
- * or when it is placed absolutely. Timeline and presentation state (start, dur, lane,
- * ignored, enter, exit, build, kf) is applied at paint time and never reaches the solver,
- * so a timed member keeps its slot at every playhead position and build step.
+ * or when it is placed absolutely. Timeline and presentation state (TIMING_FIELDS) is applied
+ * at paint time and never reaches the solver, so a timed member keeps its slot at every
+ * playhead position and build step.
  */
 const inFlow = (r: Row): boolean => !on(r.hidden) && !on(r.layoutAbsolute);
+const TIMING_FIELDS = new Set([
+  'start',
+  'dur',
+  'lane',
+  'ignored',
+  'enter',
+  'enterMs',
+  'enterEase',
+  'exit',
+  'exitMs',
+  'exitEase',
+  'build',
+  'kf',
+]);
+/** Text measurement reads none of the timing fields, so they stay out of layout cache keys. */
+const withoutTiming = (r: Row): Row =>
+  Object.fromEntries(Object.entries(r).filter(([k]) => !TIMING_FIELDS.has(k)));
 
 /** Whole track choices are scalar values: one collaboration write cannot tear type from value. */
 export function parseLayoutTrack(value: unknown): LayoutTrack {
@@ -654,7 +671,7 @@ export function createDesignLayoutEvaluator(solve: LayoutSolver, measure?: Layou
             inFlow(r) &&
             (mode(r, 'W') === 'hug' || mode(r, 'H') === 'hug')
           )
-            shape.push(['intrinsic', r]);
+            shape.push(['intrinsic', withoutTiming(r)]);
           if (r.kind === 'image' && (mode(r, 'W') === 'hug' || mode(r, 'H') === 'hug'))
             shape.push(['image', r.image]);
           return shape;
