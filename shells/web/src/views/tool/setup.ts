@@ -38,7 +38,7 @@ import { inferDesignIntent } from '../design-workspace.ts';
 import { createHistory, historyTokenLinks } from '../tool-history.ts';
 import { mountBackPill } from '../../components/back-pill.ts';
 import { autoOpenToolGuide, showToolGuide } from '../../components/tool-guide.ts';
-import { collectBulkFiles } from '../../lib/bulk-files.ts';
+import { zipBulkFiles } from '../../lib/bulk-files.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { readScene } from '../present-production/scene.ts';
 import { announce } from '../../a11y.ts';
@@ -1013,22 +1013,21 @@ export function wireBulkRows(tview: ToolViewCtx): void {
       // returns to it rather than sitting on the last file of the batch.
       const prevFile = runtime.getModel().find((i) => i.id === bulkFilesId)?.value ?? null;
       try {
-        const { entries, failed } = await collectBulkFiles(
+        // Each result is framed into the archive as it is made (plan 203 R4), so
+        // the batch never holds every converted file at once.
+        const { storeZip } = await import('@lolly/engine');
+        const { blob, failed } = await zipBulkFiles(
           picked.map((f) => ({ name: f.name })),
           async (i) => {
             await runtime.setInput(bulkFilesId, await fileToRef(picked[i]!));
             const res = await runtime.exportFile();
             return Array.isArray(res) ? res : [res];
           },
+          storeZip,
           (done, total) => tip(`${t('Converting')} ${done}/${total}…`)
         );
-        if (!entries.length)
-          throw new Error(t('Every file failed to convert - try different files.'));
-        const { storeZip } = await import('@lolly/engine');
-        const zip = storeZip(entries);
-        await tview.host.export.file(new Blob([zip as BlobPart], { type: 'application/zip' }), {
-          filename: `${toolId}-bulk.zip`,
-        });
+        if (!blob) throw new Error(t('Every file failed to convert - try different files.'));
+        await tview.host.export.file(blob, { filename: `${toolId}-bulk.zip` });
         tip(failed.length ? `${failed.length} ${t('skipped')}` : idleTip);
       } catch (err) {
         console.error('bulk-from-files failed:', err);

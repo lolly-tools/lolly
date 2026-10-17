@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
-import { strToU8 } from 'fflate';
 import type { RevisionArchiveAPI, RevisionArchive, RevisionArchiveSummary } from '../bridge/revision-archive-format.ts';
 import { MAX_REVISION_ARCHIVE_BYTES } from '../bridge/revision-limits.ts';
-import { readJson, type BundleEntry } from './bundle.ts';
+import { entrySink, readJson, type BundleEntry, type PartSink, type PartWriter } from './bundle.ts';
 import { isDiscardedSlot } from './batch-slots.ts';
 
 interface SessionRow { slot: string; toolId?: unknown; toolVersion?: unknown; label?: unknown; thumb?: string | null; updatedAt?: string | null; savedAt?: string | null }
@@ -87,6 +86,32 @@ export async function assetRecordsToImport<T extends { id?: unknown; meta?: unkn
 export interface PackedSessions { sessions: number; slots: string[]; revisions?: number; recoveryDrafts?: number; checkpointsLeftOut?: number }
 
 /**
+ * Write the revision archive as `revision-history.json`, in chunks, and return its
+ * size in bytes. The part goes into the archive only when it is within `limit`;
+ * past that the part is dropped and the rest is only counted, so the caller learns
+ * the full overshoot without the file ever being held (plan 203 R4).
+ */
+async function writeRevisionArchive(sink: PartSink, history: RevisionArchive, limit: number): Promise<number> {
+  const { writeJson } = await import('./json-stream.ts');
+  let part: PartWriter | null = sink.open('revision-history.json');
+  let total = 0;
+  try {
+    // Three levels: the archive, its lists, and then each document, checkpoint
+    // and draft stringified whole, so one checkpoint is the most held at once.
+    await writeJson(history, async chunk => {
+      total += chunk.length;
+      if (part && total > limit) { part.abort(); part = null; }
+      if (part) await part.write(chunk);
+    }, { depth: 2 });
+    if (part) await part.close();
+  } catch (error) {
+    part?.abort();
+    throw error;
+  }
+  return total;
+}
+
+/**
  * Sessions, and for a manual backup the history that goes with them.
  *
  * Device sync (`mode: 'sync'`) carries current sessions only (decision 5). Hidden
@@ -94,40 +119,65 @@ export interface PackedSessions { sessions: number; slots: string[]; revisions?:
  * open them, stay on the device they were made on, like history itself (Andy's
  * decision of 27 September 2026); Trash slots travel as before, following the
  * profile record.
+ *
+ * Both files are written in chunks (plan 203 R4), with the same bytes the single
+ * `JSON.stringify` calls gave. The history file keeps the rules decided on 27
+ * September 2026 (plan 277 P4 section 5): it must fit `limit`, the 384 MiB backup
+ * limit; only the oldest automatic checkpoints may be left out to make it fit,
+ * and the count is reported; and a history that cannot fit is refused whole, never
+ * cut short. `limit` is a parameter only so tests can reach that rule without
+ * writing 384 MiB.
  */
-export async function packBackupSessions(state: BackupState, entries: Record<string, BundleEntry>, options: BackupHistoryMode): Promise<PackedSessions> {
+export async function writeBackupSessions(state: BackupState, sink: PartSink, options: BackupHistoryMode, limit = MAX_REVISION_ARCHIVE_BYTES): Promise<PackedSessions> {
   let leftOut = 0;
   const archive = async (maxBytes: number): Promise<RevisionArchive> => {
     leftOut = 0;
     return state.history!.backup.export({ maxBytes, leftOut: count => { leftOut = count; } });
   };
-  let history = options.mode !== 'sync' && state.history ? await archive(MAX_REVISION_ARCHIVE_BYTES) : null;
+  let history = options.mode !== 'sync' && state.history ? await archive(limit) : null;
   if (history) {
-    let bytes = strToU8(JSON.stringify(history));
+    let bytes = await writeRevisionArchive(sink, history, limit);
     // The archive measures itself before it is serialised; if the file still comes
     // out over the limit, it is made again with the overshoot and a margin taken off.
-    if (bytes.byteLength > MAX_REVISION_ARCHIVE_BYTES) {
-      history = await archive(MAX_REVISION_ARCHIVE_BYTES - (bytes.byteLength - MAX_REVISION_ARCHIVE_BYTES) - 1024 * 1024);
-      bytes = strToU8(JSON.stringify(history));
+    if (bytes > limit) {
+      history = await archive(limit - (bytes - limit) - 1024 * 1024);
+      bytes = await writeRevisionArchive(sink, history, limit);
     }
-    if (bytes.byteLength > MAX_REVISION_ARCHIVE_BYTES) throw new Error('Complete revision history exceeds the 384 MiB backup limit. No partial history backup was created.');
-    entries['revision-history.json'] = bytes;
+    if (bytes > limit) throw new Error('Complete revision history exceeds the 384 MiB backup limit. No partial history backup was created.');
   }
   // History's read transaction owns its sessions too. Do not pair a checkpoint
   // archive with a current snapshot captured later in another tab.
-  const sessions: Array<SessionRow & { data: unknown }> = history?.documents.map(row => ({ ...row.state })) ?? [];
-  const captured = new Set(sessions.map(row => row.slot));
-  for (const row of await state.list()) {
-    if (captured.has(row.slot) || (options.mode === 'sync' && isDiscardedSlot(row.slot))) continue;
-    const data = await state.load(row.slot);
-    if (data) sessions.push({ slot: row.slot, toolId: row.toolId, toolVersion: row.toolVersion,
-      label: row.label ?? null, thumb: row.thumb ?? null, updatedAt: row.updatedAt ?? null,
-      ...(row.savedAt ? { savedAt: row.savedAt } : {}), data });
+  const { jsonArrayWriter } = await import('./json-stream.ts');
+  const part = sink.open('sessions.json');
+  const slots: string[] = [];
+  try {
+    const rows = jsonArrayWriter(chunk => part.write(chunk), 2);
+    for (const row of history?.documents ?? []) { await rows.item({ ...row.state }); slots.push(row.state.slot); }
+    const captured = new Set(slots);
+    // Each other session is read, written and let go in turn, never all held at once.
+    for (const row of await state.list()) {
+      if (captured.has(row.slot) || (options.mode === 'sync' && isDiscardedSlot(row.slot))) continue;
+      const data = await state.load(row.slot);
+      if (!data) continue;
+      await rows.item({ slot: row.slot, toolId: row.toolId, toolVersion: row.toolVersion,
+        label: row.label ?? null, thumb: row.thumb ?? null, updatedAt: row.updatedAt ?? null,
+        ...(row.savedAt ? { savedAt: row.savedAt } : {}), data });
+      slots.push(row.slot);
+    }
+    await rows.end();
+    await part.close();
+  } catch (error) {
+    part.abort();
+    throw error;
   }
-  entries['sessions.json'] = strToU8(JSON.stringify(sessions, null, 2));
-  return { sessions: sessions.length, slots: sessions.map(row => row.slot),
+  return { sessions: slots.length, slots,
     ...(history ? { revisions: history.revisions.length, recoveryDrafts: history.recoveries.length } : {}),
     ...(leftOut ? { checkpointsLeftOut: leftOut } : {}) };
+}
+
+/** writeBackupSessions into an in-memory entry map. */
+export function packBackupSessions(state: BackupState, entries: Record<string, BundleEntry>, options: BackupHistoryMode): Promise<PackedSessions> {
+  return writeBackupSessions(state, entrySink(entries), options);
 }
 
 /** Called before profile/assets/preferences writes. History validates the complete
