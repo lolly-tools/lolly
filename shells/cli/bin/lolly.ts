@@ -161,6 +161,15 @@ Usage:
                                            other bytes under that name refuse (exit 4)
                         [--thumbnails]     also draw each slide there as a PNG
                         [--force]          replace those files instead
+                        [--ocr]            read the text of pages that are pictures,
+                                           with the text recognition model on this machine
+                        [--extract]        blocks in reading order instead: text with
+                                           where its words came from, tables, pictures
+                        [--pages=<range>]  only these pages, such as 1-3,7 (with --extract)
+                        [--max-chars=N]    stop at N characters and name the block to
+                                           continue from (with --extract)
+                        [--from=<block>]   continue from that block (with --extract)
+                        [--markdown]       write the extract as Markdown
   lolly check <file|-> [--json]            every check for a Design document (.json), a
                                            .lolly or an export (.pdf, .pptx, .png, .jpg,
                                            .webp, .svg), in one findings list: structure,
@@ -538,6 +547,10 @@ async function main(): Promise<void> {
     const { readCli } = await import('../src/read.ts');
     process.exitCode = await readCli(positionals.slice(1), {
       json: g.json, ...(flags.media !== undefined ? { media: flags.media } : {}), force: isOn(flags.force), thumbnails: isOn(flags.thumbnails),
+      extract: isOn(flags.extract), markdown: isOn(flags.markdown), ocr: isOn(flags.ocr),
+      ...(flags.pages !== undefined ? { pages: flags.pages } : {}),
+      ...(flags['max-chars'] !== undefined ? { maxChars: flags['max-chars'] } : {}),
+      ...(flags.from !== undefined ? { from: flags.from } : {}),
     });
     return;
   }

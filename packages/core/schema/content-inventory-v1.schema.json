@@ -205,6 +205,54 @@
         "hidden": {
           "type": "boolean",
           "description": "The page does not show this text: a PDF's invisible text, as a scanned page's OCR layer is. Other hidden objects are left out of text and listed only under objects."
+        },
+        "recognition": {
+          "$ref": "#/$defs/recognition",
+          "description": "Set when the words were read from pixels: text recognition over a page that is a picture of its text, or the text layer a scan carries. Absent for text the file states as text."
+        }
+      }
+    },
+    "recognition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "confidence",
+        "minConfidence",
+        "lines"
+      ],
+      "description": "How the words of a text frame were read from pixels: which recogniser read them and how sure it was. The scores are the recogniser's own, never a claim that the words are right.",
+      "properties": {
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The recogniser's model id, pdf-text-layer for a scan's own text layer, or unknown when the reading named none."
+        },
+        "modelVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Mean of the line confidences, weighted by each line's characters."
+        },
+        "minConfidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "lines": {
+          "type": "integer",
+          "minimum": 1
         }
       }
     },
@@ -506,6 +554,10 @@
         },
         "thumbnail": {
           "$ref": "#/$defs/thumbnail"
+        },
+        "flattened": {
+          "type": "boolean",
+          "description": "The source marks the slide as one picture of its text: a scanned page, or a slide printed as an image. Its words are in text only when a scan's text layer or text recognition read them."
         }
       }
     },

@@ -138,18 +138,24 @@ export const REBRAND_PATH_FLAGS = ['plan-out', 'plan', 'preset', 'out-dir', 'sou
 export const REBRAND_BOOL_FLAGS = ['accept-suggestions', 'auto-match', 'dry-run', 'keep-going', 'offline', 'force', 'resume', 'recursive', 'ocr'] as const;
 /**
  * `lolly read` flags that take a value. A bare form is refused in bin/lolly.ts: a bare
- * `--media` parsing to "1" would write the pictures into a folder called "1". `media`
- * is a folder for `read` only, so it stays off the global VALUE_FLAGS list.
+ * `--media` parsing to "1" would write the pictures into a folder called "1", and a bare
+ * `--pages` would read page 1 alone. `media` is a folder for `read` only, so it stays
+ * off the global VALUE_FLAGS list. `pages`, `max-chars` and `from` bound `--extract`.
  */
-export const READ_VALUE_FLAGS = ['media'] as const;
+export const READ_VALUE_FLAGS = ['media', 'pages', 'max-chars', 'from'] as const;
 /**
  * `lolly check` flags that take a value, refused bare in bin/lolly.ts. `page-cap` is
  * here because a bare one parsing to "1" would read one page and call the rest clean;
  * `file` because a bare one would read a design system from a file called "1".
  */
 export const CHECK_VALUE_FLAGS = ['source', 'file', 'theme', 'browser', 'page-cap', 'edits', 'themes'] as const;
-/** `lolly read`'s on/off flags: `force` overwrites pictures, `thumbnails` draws each slide beside them. */
-export const READ_BOOL_FLAGS = ['force', 'thumbnails'] as const;
+/**
+ * `lolly read`'s on/off flags: `force` overwrites pictures, `thumbnails` draws each slide
+ * beside them, `extract` writes blocks in reading order instead of the inventory,
+ * `markdown` writes that extract as Markdown, and `ocr` reads the text of pages that
+ * are pictures with the cached model.
+ */
+export const READ_BOOL_FLAGS = ['force', 'thumbnails', 'extract', 'markdown', 'ocr'] as const;
 /** `lolly check`'s on/off flags: `ocr` lets Verify read the text in pictures. */
 export const CHECK_BOOL_FLAGS = ['ocr'] as const;
 /**
