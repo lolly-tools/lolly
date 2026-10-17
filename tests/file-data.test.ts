@@ -183,3 +183,44 @@ test('an all-worksheets conversion fails whole, naming the sheet, and needs a wo
   assert.equal(single.zip, false);
   assert.deepEqual(JSON.parse(single.bytes as string), [{ a: '1' }]);
 });
+
+// ─── size bounds, worksheet names made of digits and one unzip ───────────────
+
+test('a tiny workbook claiming cell XFD1048576 is refused, not padded to the full sheet', () => {
+  const sparse = workbook([{ name: 'Sparse', rows: `<row r="1">${cell('A1', 'a')}</row><row r="1048576">${cell('XFD1048576', 'z')}</row>` }]);
+  assert.ok(sparse.length < 1024);
+  assert.throws(() => sourceToGrid('xlsx', sparse), /larger than the converter can read in full/);
+});
+
+test('text and JSON whose padded grid would pass the budget are refused before padding', () => {
+  const wideLine = `a${','.repeat(20_000)}\n${'x\n'.repeat(1000)}`;
+  assert.throws(() => sourceToGrid('csv', utf8(wideLine)), /table is larger than the converter can read in full/);
+  assert.throws(() => sourceToGrid('csv', utf8(wideLine.replaceAll(',', ';')), { delimiter: 'semicolon' }), /table is larger/);
+  const wideMarkdown = `|${'|'.repeat(20_000)}\n${'| x |\n'.repeat(1000)}`;
+  assert.throws(() => sourceToGrid('csv', utf8(wideMarkdown)), /table is larger/);
+  const uniqueKeys = JSON.stringify(Array.from({ length: 5000 }, (_, i) => ({ [`k${i}`]: i })));
+  assert.throws(() => sourceToGrid('json', utf8(uniqueKeys)), /table is larger/);
+});
+
+test('a worksheet named with digits is found by name, and other digits are a 0-based position', () => {
+  const years = workbook([
+    { name: 'Summary', rows: `<row r="1">${cell('A1', 'summary')}</row>` },
+    { name: '2024', rows: `<row r="1">${cell('A1', 'year')}</row>` },
+    { name: '1', rows: `<row r="1">${cell('A1', 'named one')}</row>` },
+  ]);
+  assert.deepEqual(sourceToGrid('xlsx', years, { sheet: '2024' }), [['year']]);
+  assert.deepEqual(sourceToGrid('xlsx', years, { sheet: '1' }), [['named one']], 'a name wins over a position');
+  assert.deepEqual(sourceToGrid('xlsx', years, { sheet: '0' }), [['summary']]);
+  assert.deepEqual(sourceToGrid('xlsx', years, { sheet: 1 }), [['year']], 'a number is always a position');
+  assert.throws(() => sourceToGrid('xlsx', years, { sheet: '7' }), /no worksheet named “7” and no worksheet at position 7 \(0 is the first\)/);
+});
+
+test('an all-worksheets conversion unzips the workbook once for every sheet', async () => {
+  const bytes = BOOK.slice();
+  const pending = convertDataFile('xlsx', bytes, 'csv', { allSheets: true }, 'book.xlsx');
+  // The conversion runs up to its first await before this line. Zeroing the file
+  // then means any later sheet read that unzipped the file again would fail.
+  bytes.fill(0);
+  const result = await pending;
+  assert.deepEqual(result.manifest!.files.map((f) => f.file), ['01-Budget.csv', '03-Q1_Q2_ notes.csv']);
+});

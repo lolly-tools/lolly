@@ -89285,13 +89285,15 @@ var init_font_convert = __esm({
 // engine/src/xlsx-import.ts
 import { unzipSync } from "fflate";
 function readXlsx(bytes2, opts = {}) {
+  return openXlsx(bytes2).read(opts);
+}
+function openXlsx(bytes2) {
   if (!(bytes2 instanceof Uint8Array) || bytes2.length === 0) {
     throw new Error("The file is empty.");
   }
   if (!(bytes2[0] === 80 && bytes2[1] === 75)) {
     throw new Error("This isn\u2019t an .xlsx file (not a zip archive).");
   }
-  const limit2 = Number.isFinite(opts.limit) && opts.limit > 0 ? Math.floor(opts.limit) : DEFAULT_XLSX_ROW_LIMIT;
   let entries;
   try {
     let budget3 = MAX_TOTAL_BYTES;
@@ -89310,25 +89312,34 @@ function readXlsx(bytes2, opts = {}) {
   if (store.has("xl/vbaProject.bin")) {
     throw new Error("This workbook is macro-enabled (.xlsm) - open it as a plain .xlsx.");
   }
-  const chosen = resolveSheet(store, opts.sheet);
-  if (!chosen) {
-    throw new Error(
-      opts.sheet === void 0 ? "The workbook has no readable worksheet." : `The workbook has no sheet ${typeof opts.sheet === "number" ? `at index ${opts.sheet}` : `named \u201C${opts.sheet}\u201D`}.`
-    );
-  }
-  const sheetXml = store.text(chosen.path);
-  if (sheetXml == null) throw new Error("The chosen sheet is missing or too large.");
-  const shared = readSharedStrings(store);
-  const formulas = { mode: opts.cells === "formulas" ? "formulas" : "cached", shared: /* @__PURE__ */ new Map(), cells: 0, kept: 0 };
-  const { rows: rows2, truncated } = readSheet(sheetXml, shared, limit2, formulas);
-  if (!rows2.length) throw new Error("That sheet has no cells.");
+  let declared;
+  let shared;
+  const sheetList = () => declared ??= allSheets(store);
   return {
-    rows: rows2,
-    truncated,
-    sheetPath: chosen.path,
-    sheetName: chosen.name || void 0,
-    formulaCells: formulas.cells,
-    ...formulas.mode === "formulas" ? { formulaResultsKept: formulas.kept } : {}
+    sheets: () => sheetList().map((s, index2) => ({ name: s.name || `Sheet ${index2 + 1}`, index: index2 })),
+    read(opts = {}) {
+      const limit2 = Number.isFinite(opts.limit) && opts.limit > 0 ? Math.floor(opts.limit) : DEFAULT_XLSX_ROW_LIMIT;
+      const chosen = resolveSheet(store, sheetList(), opts.sheet);
+      if (!chosen) {
+        throw new Error(
+          opts.sheet === void 0 ? "The workbook has no readable worksheet." : `The workbook has no sheet ${typeof opts.sheet === "number" ? `at index ${opts.sheet}` : `named \u201C${opts.sheet}\u201D`}.`
+        );
+      }
+      const sheetXml = store.text(chosen.path);
+      if (sheetXml == null) throw new Error("The chosen sheet is missing or too large.");
+      shared ??= readSharedStrings(store);
+      const formulas = { mode: opts.cells === "formulas" ? "formulas" : "cached", shared: /* @__PURE__ */ new Map(), cells: 0, kept: 0 };
+      const { rows: rows2, truncated } = readSheet(sheetXml, shared, limit2, formulas);
+      if (!rows2.length) throw new Error(truncated ? "That sheet is too large to read." : "That sheet has no cells.");
+      return {
+        rows: rows2,
+        truncated,
+        sheetPath: chosen.path,
+        sheetName: chosen.name || void 0,
+        formulaCells: formulas.cells,
+        ...formulas.mode === "formulas" ? { formulaResultsKept: formulas.kept } : {}
+      };
+    }
   };
 }
 function listXlsxSheets(bytes2) {
@@ -89400,8 +89411,7 @@ function firstSheetPath(store) {
   const sheets = store.keys().filter((k) => /^xl\/worksheets\/sheet\d+\.xml$/i.test(k)).sort((a, b) => sheetNum(a) - sheetNum(b));
   return sheets[0] ?? null;
 }
-function resolveSheet(store, want) {
-  const sheets = allSheets(store);
+function resolveSheet(store, sheets, want) {
   if (want === void 0) {
     const first = sheets.find((s) => store.has(s.path));
     if (first) return first;
@@ -89515,9 +89525,21 @@ function readSheet(xml2, shared, limit2, formulas) {
     if (rowIdx > maxRow) maxRow = rowIdx;
   }
   if (maxRow < 0 || maxCol < 0) return { rows: [], truncated };
-  const width = maxCol + 1;
+  let width = maxCol + 1;
+  let lastRow = maxRow;
+  if ((maxRow + 1) * width > MAX_GRID_CELLS) {
+    truncated = true;
+    const fit = Math.floor(MAX_GRID_CELLS / width);
+    width = 0;
+    lastRow = -1;
+    for (const [r5, cols] of grid) {
+      if (r5 >= fit) continue;
+      if (r5 > lastRow) lastRow = r5;
+      for (const c of cols.keys()) if (c >= width) width = c + 1;
+    }
+  }
   const rows2 = [];
-  for (let r5 = 0; r5 <= maxRow; r5++) {
+  for (let r5 = 0; r5 <= lastRow; r5++) {
     const src = grid.get(r5);
     const row = new Array(width).fill("");
     if (src) for (const [c, v] of src) row[c] = v;
@@ -89603,6 +89625,20 @@ function shiftFormula(formula, dr, dc) {
       continue;
     }
     const prevIsName = i > 0 && NAME_CHAR.test(formula[i - 1]);
+    if (!prevIsName && NAME_CHAR.test(ch)) {
+      WORD_AT.lastIndex = i;
+      const first = WORD_AT.exec(formula)[0];
+      if (formula[i + first.length] === ":") {
+        WORD_AT.lastIndex = i + first.length + 1;
+        const last = WORD_AT.exec(formula)?.[0];
+        const bang = i + first.length + 1 + (last?.length ?? 0);
+        if (last && formula[bang] === "!") {
+          out += formula.slice(i, bang + 1);
+          i = bang + 1;
+          continue;
+        }
+      }
+    }
     if (!prevIsName && /[A-Za-z$]/.test(ch)) {
       REF_AT.lastIndex = i;
       const ref = REF_AT.exec(formula);
@@ -89714,7 +89750,7 @@ function decodeXml(s) {
     }
   });
 }
-var DEFAULT_XLSX_ROW_LIMIT, MAX_PART_BYTES3, MAX_TOTAL_BYTES, MAX_COLS, MAX_CELLS, MAX_ROWS2, NAME_CHAR, REF_AT, WORD_AT, NUMBER_AT, REF_RE;
+var DEFAULT_XLSX_ROW_LIMIT, MAX_PART_BYTES3, MAX_TOTAL_BYTES, MAX_COLS, MAX_CELLS, MAX_GRID_CELLS, MAX_ROWS2, NAME_CHAR, REF_AT, WORD_AT, NUMBER_AT, REF_RE;
 var init_xlsx_import = __esm({
   "engine/src/xlsx-import.ts"() {
     "use strict";
@@ -89723,6 +89759,7 @@ var init_xlsx_import = __esm({
     MAX_TOTAL_BYTES = 256 * 1024 * 1024;
     MAX_COLS = 16384;
     MAX_CELLS = 2e6;
+    MAX_GRID_CELLS = 16777216;
     MAX_ROWS2 = 1048576;
     NAME_CHAR = /[\p{L}\p{N}_.$\\?]/u;
     REF_AT = /(\$?)([A-Za-z]{1,3})(\$?)(\d{1,7})/y;
@@ -90062,22 +90099,7 @@ function sourceToGrid(kind, bytes2, options2 = {}) {
   return readDataGrid(kind, bytes2, options2).grid;
 }
 function readDataGrid(kind, bytes2, options2 = {}) {
-  if (kind === "xlsx") {
-    const read = readXlsx(bytes2, {
-      limit: CONVERT_ROW_LIMIT,
-      ...options2.sheet !== void 0 ? { sheet: options2.sheet } : {},
-      ...options2.cells === "formulas" ? { cells: "formulas" } : {}
-    });
-    if (read.truncated) throw new Error("This worksheet is larger than the converter can read in full. No rows were dropped; split the workbook and try again.");
-    return {
-      grid: read.rows,
-      facts: {
-        ...read.sheetName ? { sheet: read.sheetName } : {},
-        formulaCells: read.formulaCells ?? 0,
-        ...read.formulaResultsKept !== void 0 ? { formulaResultsKept: read.formulaResultsKept } : {}
-      }
-    };
-  }
+  if (kind === "xlsx") return readWorksheet(openXlsx(bytes2), options2);
   const { text: text9, encoding } = decodeDataText(bytes2, options2.encoding ?? "auto");
   if (kind === "json") {
     let parsed;
@@ -90088,13 +90110,40 @@ function readDataGrid(kind, bytes2, options2 = {}) {
     }
     if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Expected a non-empty JSON array of rows.");
     if (Array.isArray(parsed[0])) return { grid: parsed.map((r5) => r5.map((c) => String(c ?? ""))), facts: { encoding } };
-    const keys2 = [];
-    for (const row of parsed) for (const k of Object.keys(row ?? {})) if (!keys2.includes(k)) keys2.push(k);
+    const seen = /* @__PURE__ */ new Set();
+    for (const row of parsed) for (const k of Object.keys(row ?? {})) seen.add(k);
+    const keys2 = [...seen];
+    if ((parsed.length + 1) * keys2.length > MAX_GRID_CELLS) throw new Error(TABLE_TOO_LARGE);
     return { grid: [keys2, ...parsed.map((row) => keys2.map((k) => String(row?.[k] ?? "")))], facts: { encoding } };
   }
   const split = splitTable(text9, options2.delimiter ?? "auto");
   if (!split) throw new Error("That file does not parse as CSV/TSV.");
   return { grid: split.grid, facts: { encoding, delimiter: split.delimiter } };
+}
+function readWorksheet(book, options2) {
+  const sheet = chooseSheet(book, options2.sheet);
+  const read = book.read({
+    limit: CONVERT_ROW_LIMIT,
+    ...sheet !== void 0 ? { sheet } : {},
+    ...options2.cells === "formulas" ? { cells: "formulas" } : {}
+  });
+  if (read.truncated) throw new Error("This worksheet is larger than the converter can read in full. No rows were dropped; split the workbook and try again.");
+  return {
+    grid: read.rows,
+    facts: {
+      ...read.sheetName ? { sheet: read.sheetName } : {},
+      formulaCells: read.formulaCells ?? 0,
+      ...read.formulaResultsKept !== void 0 ? { formulaResultsKept: read.formulaResultsKept } : {}
+    }
+  };
+}
+function chooseSheet(book, sheet) {
+  if (typeof sheet !== "string" || !/^\d+$/.test(sheet)) return sheet;
+  const sheets = book.sheets();
+  if (sheets.some((s) => s.name === sheet)) return sheet;
+  const index2 = Number(sheet);
+  if (index2 >= sheets.length) throw new Error(`The workbook has no worksheet named \u201C${sheet}\u201D and no worksheet at position ${sheet} (0 is the first).`);
+  return index2;
 }
 function gridToTarget(grid, targetId, options2 = {}) {
   const header = options2.header ?? "first-row";
@@ -90124,7 +90173,8 @@ async function convertDataFile(kind, bytes2, targetId, options2, sourceName) {
     return { bytes: gridToTarget(grid, targetId, options2), zip: false, facts: [facts2] };
   }
   if (kind !== "xlsx") throw new Error("Only an Excel workbook has worksheets to export separately.");
-  const sheets = listXlsxSheets(bytes2);
+  const book = openXlsx(bytes2);
+  const sheets = book.sheets();
   if (!sheets.length) throw new Error("This workbook does not list its worksheets. Convert one worksheet instead.");
   if (sheets.length > MAX_EXPORT_SHEETS) throw new Error(`This workbook has more than ${MAX_EXPORT_SHEETS} worksheets. Convert the worksheets you need one at a time.`);
   const header = options2.header ?? "first-row";
@@ -90137,7 +90187,7 @@ async function convertDataFile(kind, bytes2, targetId, options2, sourceName) {
   for (const sheet of sheets) {
     let read;
     try {
-      read = readDataGrid("xlsx", bytes2, { ...options2, sheet: sheet.index });
+      read = readWorksheet(book, { ...options2, sheet: sheet.index });
     } catch (error2) {
       const message = error2 instanceof Error ? error2.message : String(error2);
       if (/has no cells/.test(message)) {
@@ -90214,6 +90264,7 @@ function splitTable(text9, delimiter2) {
     return grid2 ? { grid: grid2, delimiter: "tab" } : null;
   }
   if (delimiter2 === "auto" && /^\s*\|.*\|\s*$/m.test(t)) {
+    if (paddedBound(t, "|") > MAX_GRID_CELLS) throw new Error(TABLE_TOO_LARGE);
     const table = parseTableText(t);
     return table ? { grid: [table.columns, ...table.rows], delimiter: "markdown" } : null;
   }
@@ -90300,6 +90351,20 @@ function splitLine(line, delimiter2) {
   cells.push(cur);
   return cells;
 }
+function paddedBound(text9, delimiter2) {
+  let lines = 1;
+  let most = 0;
+  let here = 0;
+  for (let i = 0; i < text9.length; i++) {
+    const ch = text9[i];
+    if (ch === "\n") {
+      lines++;
+      if (here > most) most = here;
+      here = 0;
+    } else if (ch === delimiter2) here++;
+  }
+  return lines * (Math.max(most, here) + 1);
+}
 function widest(rows2) {
   let width = 0;
   for (const r5 of rows2) if (r5.length > width) width = r5.length;
@@ -90316,6 +90381,7 @@ function finishGrid(rows2) {
   const kept2 = rows2.filter(nonBlank);
   if (!kept2.length) return null;
   const width = widest(kept2);
+  if (kept2.length * width > MAX_GRID_CELLS) throw new Error(TABLE_TOO_LARGE);
   return kept2.map((r5) => r5.length < width ? [...r5, ...new Array(width - r5.length).fill("")] : r5);
 }
 function generatedHeadings(grid) {
@@ -90328,7 +90394,7 @@ function safeSheetFileName(name) {
   cleaned = cleaned.replace(/\s+/g, " ").trim().replace(/^\.+/, "").slice(0, 60);
   return cleaned || "sheet";
 }
-var DATA_DELIMITERS, DATA_TEXT_ENCODINGS, DATA_HEADER_MODES, DATA_CELL_MODES, CONVERT_ROW_LIMIT, MAX_EXPORT_SHEETS, MAX_EXPORT_BYTES, KNOWN_OPTIONS, DELIMITER_CHAR;
+var DATA_DELIMITERS, DATA_TEXT_ENCODINGS, DATA_HEADER_MODES, DATA_CELL_MODES, CONVERT_ROW_LIMIT, MAX_EXPORT_SHEETS, MAX_EXPORT_BYTES, KNOWN_OPTIONS, TABLE_TOO_LARGE, DELIMITER_CHAR;
 var init_file_data = __esm({
   "engine/src/file-data.ts"() {
     "use strict";
@@ -90366,6 +90432,7 @@ var init_file_data = __esm({
       encoding: DATA_TEXT_ENCODINGS,
       header: DATA_HEADER_MODES
     };
+    TABLE_TOO_LARGE = "This table is larger than the converter can read in full. No rows were dropped; split the file and try again.";
     DELIMITER_CHAR = { comma: ",", semicolon: ";", tab: "	", pipe: "|" };
   }
 });

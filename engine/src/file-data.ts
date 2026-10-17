@@ -14,7 +14,7 @@
  * `manifest.json`, which lists each sheet's file, row and column counts and
  * SHA-256, and lists each skipped sheet with the reason.
  */
-import { readXlsx, listXlsxSheets } from './xlsx-import.ts';
+import { openXlsx, MAX_GRID_CELLS, type XlsxWorkbook } from './xlsx-import.ts';
 import { writeXlsx } from './xlsx-write.ts';
 import { rowsToCsv } from './data-import.ts';
 import { parseTableText } from './table-text.ts';
@@ -45,7 +45,8 @@ export type DataCellMode = typeof DATA_CELL_MODES[number];
 
 /** The reading and writing choices for one data conversion. */
 export interface DataConversionOptions {
-  /** An .xlsx worksheet: a 0-based index or an exact name. Default the first. */
+  /** An .xlsx worksheet: a 0-based index or an exact name. A digits-only name
+   *  that no worksheet carries is read as a 0-based index. Default the first. */
   sheet?: number | string;
   /** Write every worksheet as its own file in a ZIP with a manifest. */
   allSheets?: boolean;
@@ -105,9 +106,9 @@ export interface DataConversionResult {
 
 /** Excel's own row limit: a conversion reads a whole sheet or refuses the sheet. */
 const CONVERT_ROW_LIMIT = 1_048_576;
-// An all-worksheets export reads the workbook once per sheet and holds every
-// output in memory, so it is bounded by sheet count and by total output size
-// (the same 128 MB in-memory packaging limit as the other ZIP outputs).
+// An all-worksheets export unzips the workbook once, reads each sheet from it and
+// holds every output in memory, so it is bounded by sheet count and by total
+// output size (the same 128 MB in-memory packaging limit as the other ZIP outputs).
 const MAX_EXPORT_SHEETS = 200;
 const MAX_EXPORT_BYTES = 128 * 1024 * 1024;
 
@@ -169,22 +170,7 @@ export function sourceToGrid(kind: string, bytes: Uint8Array, options: DataConve
  *   delimiter and line breaks.
  */
 export function readDataGrid(kind: string, bytes: Uint8Array, options: DataConversionOptions = {}): { grid: string[][]; facts: DataReadFacts } {
-  if (kind === 'xlsx') {
-    const read = readXlsx(bytes, {
-      limit: CONVERT_ROW_LIMIT,
-      ...(options.sheet !== undefined ? { sheet: options.sheet } : {}),
-      ...(options.cells === 'formulas' ? { cells: 'formulas' as const } : {}),
-    });
-    if (read.truncated) throw new Error('This worksheet is larger than the converter can read in full. No rows were dropped; split the workbook and try again.');
-    return {
-      grid: read.rows,
-      facts: {
-        ...(read.sheetName ? { sheet: read.sheetName } : {}),
-        formulaCells: read.formulaCells ?? 0,
-        ...(read.formulaResultsKept !== undefined ? { formulaResultsKept: read.formulaResultsKept } : {}),
-      },
-    };
-  }
+  if (kind === 'xlsx') return readWorksheet(openXlsx(bytes), options);
   const { text, encoding } = decodeDataText(bytes, options.encoding ?? 'auto');
   if (kind === 'json') {
     let parsed: unknown;
@@ -193,13 +179,48 @@ export function readDataGrid(kind: string, bytes: Uint8Array, options: DataConve
     if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Expected a non-empty JSON array of rows.');
     if (Array.isArray(parsed[0])) return { grid: (parsed as unknown[][]).map((r) => r.map((c) => String(c ?? ''))), facts: { encoding } };
     // Array of objects → header = the union of keys in first-seen order.
-    const keys: string[] = [];
-    for (const row of parsed as Record<string, unknown>[]) for (const k of Object.keys(row ?? {})) if (!keys.includes(k)) keys.push(k);
+    const seen = new Set<string>();
+    for (const row of parsed as Record<string, unknown>[]) for (const k of Object.keys(row ?? {})) seen.add(k);
+    const keys = [...seen];
+    if ((parsed.length + 1) * keys.length > MAX_GRID_CELLS) throw new Error(TABLE_TOO_LARGE);
     return { grid: [keys, ...(parsed as Record<string, unknown>[]).map((row) => keys.map((k) => String(row?.[k] ?? '')))], facts: { encoding } };
   }
   const split = splitTable(text, options.delimiter ?? 'auto');
   if (!split) throw new Error('That file does not parse as CSV/TSV.');
   return { grid: split.grid, facts: { encoding, delimiter: split.delimiter } };
+}
+
+const TABLE_TOO_LARGE = 'This table is larger than the converter can read in full. No rows were dropped; split the file and try again.';
+
+/** Read one worksheet of an unzipped workbook for conversion, refusing a sheet
+ *  that the reader would have to cut short. */
+function readWorksheet(book: XlsxWorkbook, options: DataConversionOptions): { grid: string[][]; facts: DataReadFacts } {
+  const sheet = chooseSheet(book, options.sheet);
+  const read = book.read({
+    limit: CONVERT_ROW_LIMIT,
+    ...(sheet !== undefined ? { sheet } : {}),
+    ...(options.cells === 'formulas' ? { cells: 'formulas' as const } : {}),
+  });
+  if (read.truncated) throw new Error('This worksheet is larger than the converter can read in full. No rows were dropped; split the workbook and try again.');
+  return {
+    grid: read.rows,
+    facts: {
+      ...(read.sheetName ? { sheet: read.sheetName } : {}),
+      formulaCells: read.formulaCells ?? 0,
+      ...(read.formulaResultsKept !== undefined ? { formulaResultsKept: read.formulaResultsKept } : {}),
+    },
+  };
+}
+
+/** A worksheet name made only of digits, such as 2024, finds the sheet with that
+ *  name. When no sheet has it, it is a 0-based position, so 1 is the second sheet. */
+function chooseSheet(book: XlsxWorkbook, sheet: number | string | undefined): number | string | undefined {
+  if (typeof sheet !== 'string' || !/^\d+$/.test(sheet)) return sheet;
+  const sheets = book.sheets();
+  if (sheets.some((s) => s.name === sheet)) return sheet;
+  const index = Number(sheet);
+  if (index >= sheets.length) throw new Error(`The workbook has no worksheet named “${sheet}” and no worksheet at position ${sheet} (0 is the first).`);
+  return index;
 }
 
 /** Re-encode a grid to the target data format. Returns bytes for xlsx, a string for
@@ -237,7 +258,8 @@ export async function convertDataFile(kind: string, bytes: Uint8Array, targetId:
     return { bytes: gridToTarget(grid, targetId, options), zip: false, facts: [facts] };
   }
   if (kind !== 'xlsx') throw new Error('Only an Excel workbook has worksheets to export separately.');
-  const sheets = listXlsxSheets(bytes);
+  const book = openXlsx(bytes);
+  const sheets = book.sheets();
   if (!sheets.length) throw new Error('This workbook does not list its worksheets. Convert one worksheet instead.');
   if (sheets.length > MAX_EXPORT_SHEETS) throw new Error(`This workbook has more than ${MAX_EXPORT_SHEETS} worksheets. Convert the worksheets you need one at a time.`);
   const header = options.header ?? 'first-row';
@@ -249,7 +271,7 @@ export async function convertDataFile(kind: string, bytes: Uint8Array, targetId:
   let total = 0;
   for (const sheet of sheets) {
     let read: { grid: string[][]; facts: DataReadFacts };
-    try { read = readDataGrid('xlsx', bytes, { ...options, sheet: sheet.index }); }
+    try { read = readWorksheet(book, { ...options, sheet: sheet.index }); }
     catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       if (/has no cells/.test(message)) { skipped.push({ sheet: sheet.name, index: sheet.index, reason: 'No cells (an empty sheet or a chart sheet).' }); continue; }
@@ -322,6 +344,7 @@ function splitTable(text: string, delimiter: DataDelimiter): { grid: string[][];
     return grid ? { grid, delimiter: 'tab' } : null;
   }
   if (delimiter === 'auto' && /^\s*\|.*\|\s*$/m.test(t)) {
+    if (paddedBound(t, '|') > MAX_GRID_CELLS) throw new Error(TABLE_TOO_LARGE);
     const table = parseTableText(t);
     return table ? { grid: [table.columns, ...table.rows], delimiter: 'markdown' } : null;
   }
@@ -392,6 +415,20 @@ function splitLine(line: string, delimiter: string): string[] {
   return cells;
 }
 
+/** Lines times (the most delimiters on one line + 1): no less than the padded
+ *  size of the grid the text splits into, counted without splitting the text. */
+function paddedBound(text: string, delimiter: string): number {
+  let lines = 1;
+  let most = 0;
+  let here = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '\n') { lines++; if (here > most) most = here; here = 0; }
+    else if (ch === delimiter) here++;
+  }
+  return lines * (Math.max(most, here) + 1);
+}
+
 /** The widest row's length, without spreading a large grid into arguments. */
 function widest(rows: string[][]): number {
   let width = 0;
@@ -409,11 +446,14 @@ function nonBlank(row: string[]): boolean {
   return row.some((c) => c.trim() !== '');
 }
 
-/** Drop blank rows and pad every row to the widest. Null when nothing is left. */
+/** Drop blank rows and pad every row to the widest. Null when nothing is left.
+ *  One very wide line among many short ones would pad past the grid budget, so
+ *  that is refused rather than allocated. */
 function finishGrid(rows: string[][]): string[][] | null {
   const kept = rows.filter(nonBlank);
   if (!kept.length) return null;
   const width = widest(kept);
+  if (kept.length * width > MAX_GRID_CELLS) throw new Error(TABLE_TOO_LARGE);
   return kept.map((r) => (r.length < width ? [...r, ...new Array<string>(width - r.length).fill('')] : r));
 }
 
