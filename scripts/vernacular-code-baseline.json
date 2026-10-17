@@ -1048,7 +1048,7 @@
   "shells/web/src/lib/typing-target.test.ts": 1,
   "shells/web/src/lib/typing-target.ts": 1,
   "shells/web/src/lib/unit-steps.ts": 1,
-  "shells/web/src/lib/upload-dropzone.ts": 7,
+  "shells/web/src/lib/upload-dropzone.ts": 5,
   "shells/web/src/lib/upscale-job.ts": 1,
   "shells/web/src/lib/upscale-models.test.ts": 1,
   "shells/web/src/lib/upscale-worker.ts": 1,
