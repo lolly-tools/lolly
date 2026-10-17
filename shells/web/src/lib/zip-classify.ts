@@ -20,7 +20,8 @@
  * unrecognised / non-zip / unreadable input returns null.
  */
 
-import { readZip, sniffContainer, type ZipEntry } from '@lolly/engine';
+import { sniffContainer, type ZipEntry } from '@lolly/engine';
+import { decodeZipMember, readZipMembers, type ZipRawMember } from '../../../../engine/src/zip.ts';
 
 /** What a PK-zip upload actually is. Only 'archive' is safe to explode to members. */
 export type ZipKind = 'pptx' | 'xlsx' | 'docx' | 'epub' | 'odt' | 'lottie' | 'archive';
@@ -62,19 +63,37 @@ export function classifyZipName(file: { name: string; type: string }): Exclude<Z
 }
 
 const dec = new TextDecoder();
+/** An OCF `mimetype` entry holds one short MIME string. A larger one is not OCF. */
+const MIMETYPE_MAX_BYTES = 1024;
+const NO_BYTES: Uint8Array = new Uint8Array(0);
 
 /**
  * Byte-level classification - the authoritative disambiguation. Returns null when
  * the bytes are not a readable zip at all; otherwise the specific kind, or 'archive'
  * for a plain multi-file zip that carries none of the OOXML/OCF/lottie markers.
+ *
+ * The verdict needs only entry names and the tiny OCF `mimetype`, so the central
+ * directory is read without inflating any other member. A drop sniff of a
+ * small zip that declares hundreds of megabytes therefore costs about its own size;
+ * the size budgets belong to whichever reader extracts the archive later.
  */
 export function classifyZipBytes(bytes: Uint8Array): ZipKind | null {
   if (sniffContainer(bytes) !== 'zip') return null;
-  let entries: ZipEntry[];
+  let members: ZipRawMember[];
   try {
-    entries = readZip(bytes);
+    members = readZipMembers(bytes, { maxEntryBytes: Number.MAX_SAFE_INTEGER, maxTotalBytes: Number.MAX_SAFE_INTEGER });
   } catch {
-    return null; // a malformed / unsupported (ZIP64, encrypted) zip - not safe to explode
+    return null; // a malformed / unsupported (ZIP64, multi-disk) zip - not safe to explode
+  }
+  // Encrypted members or an unknown compression method cannot be read later either.
+  if (members.some((m) => (m.flags & 1) !== 0 || (m.method !== 0 && m.method !== 8))) return null;
+  const entries: ZipEntry[] = [];
+  for (const member of members) {
+    let body = NO_BYTES;
+    if (member.name === 'mimetype' && member.size <= MIMETYPE_MAX_BYTES) {
+      try { body = decodeZipMember(member); } catch { return null; }
+    }
+    entries.push({ name: member.name, bytes: body });
   }
   return classifyZipEntries(entries);
 }
