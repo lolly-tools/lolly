@@ -78,13 +78,13 @@ The maintained receiver is exported by the Lolly tool-author SDK as `@lolly-tool
 pnpm run pack:core
 ```
 
-For SDK 1.1.0, this produces `dist/core-pack/lolly-tools-core-1.1.0.tgz` with compiled JavaScript and TypeScript declarations. Check that `dist/core-pack/manifest.json` records the selected revision in `generatedFrom`. Install the tarball in your page's project, replacing the path with your checkout's absolute path:
+For SDK 1.4.0, this produces `dist/core-pack/lolly-tools-core-1.4.0.tgz` with compiled JavaScript and TypeScript declarations. The number in the file name is the `version` in `packages/core/package.json`, so another revision can produce a different name. Check that `dist/core-pack/manifest.json` records the selected revision in `generatedFrom` and the file name in `core.tarball`. Install the tarball in your page's project, replacing the path with your checkout's absolute path:
 
 ```sh
-npm install /path/to/lolly/dist/core-pack/lolly-tools-core-1.1.0.tgz
+npm install /path/to/lolly/dist/core-pack/lolly-tools-core-1.4.0.tgz
 ```
 
-This route does not depend on SDK 1.1.0 being published to npm. Your page's normal bundler can import the compiled receiver. Set an exact list of origins allowed to frame your page, and call the returned cleanup function when your page unmounts:
+This route does not depend on SDK 1.4.0 being published to npm. Your page's normal bundler can import the compiled receiver. Set an exact list of origins allowed to frame your page, and call the returned cleanup function when your page unmounts:
 
 ```js
 import { attachPresentReceiver } from '@lolly-tools/core/present-receiver';
