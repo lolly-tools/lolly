@@ -1,18 +1,20 @@
 {
   "id": "pages",
   "name": "Pages",
-  "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device.",
-  "version": "1.0.1",
+  "description": "Reorder, rotate, extract, delete, merge or split PDF pages, or turn images into a PDF, on your device.",
+  "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "utility",
   "privacy": "on-device",
-  "tags": ["pdf", "pages", "reorder", "rotate", "extract", "delete", "merge", "split"],
+  "tags": ["pdf", "pages", "reorder", "rotate", "extract", "delete", "merge", "split", "images", "photos", "jpg", "png"],
   "a11yLabel": "PDF page manager for {{fileName}}",
   "render": { "width": 820, "height": 650, "formats": ["pdf", "zip"], "export": false, "layout": "canvas", "actions": [] },
   "hooks": { "onInit": true, "onInput": true, "exportFile": true },
   "inputs": [
-    { "id": "source", "label": "PDFs", "type": "file", "multiple": true, "accept": ["application/pdf", ".pdf"], "maxSize": 104857600, "help": "Choose one or more PDFs. Their pages form one draggable sequence and stay on this device." },
+    { "id": "source", "label": "PDFs and images", "type": "file", "multiple": true,
+      "accept": ["application/pdf", ".pdf", "image/png", ".png", "image/jpeg", ".jpg", ".jpeg", "image/webp", ".webp", "image/gif", ".gif", "image/avif", ".avif", "image/heic", ".heic", "image/heif", ".heif", "image/bmp", ".bmp", "image/tiff", ".tif", ".tiff"],
+      "maxSize": 104857600, "help": "Choose PDFs, images or both. Every page and image forms one draggable sequence and stays on this device." },
     { "id": "operation", "label": "Operation", "type": "select", "default": "reorder", "options": [
       { "value": "reorder", "label": "Reorder" }, { "value": "rotate", "label": "Rotate" },
       { "value": "extract", "label": "Extract" }, { "value": "delete", "label": "Delete" },
@@ -22,6 +24,10 @@
     { "id": "previewPage", "label": "First preview position", "type": "number", "default": 1, "min": 1, "step": 1, "help": "View any part of a long page sequence, 30 thumbnails at a time." },
     { "id": "rotation", "label": "Rotation", "type": "select", "default": "90", "showIf": { "operation": "rotate" }, "options": [
       { "value": "90", "label": "90° clockwise" }, { "value": "180", "label": "180°" }, { "value": "270", "label": "270° clockwise" }
-    ]}
+    ]},
+    { "id": "imagePageSize", "label": "Image page size", "type": "select", "default": "image", "help": "How pages made from images are sized. A4 and US Letter fit each image inside the page, turned to match the image.", "options": [
+      { "value": "image", "label": "Match each image" }, { "value": "a4", "label": "A4" }, { "value": "letter", "label": "US Letter" }
+    ]},
+    { "id": "imageMargin", "label": "Image margin (mm)", "type": "number", "default": 0, "min": 0, "max": 50, "step": 1, "showIf": { "imagePageSize": ["a4", "letter"] }, "help": "Space around each image on an A4 or US Letter page." }
   ]
 }

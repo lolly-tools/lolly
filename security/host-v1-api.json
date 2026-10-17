@@ -740,7 +740,7 @@
     "PdfAPI": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "dfc0e92a1e7015980d63f7302779e7038c64c295f4396a3fe2f3bac76036e102"
+      "sha256": "16864a3d678faace239453e40f146f13e14fedc2aecfbd1f600f844c7c7ff871"
     },
     "PdfPageOperation": {
       "module": "pdf.ts",
@@ -760,7 +760,37 @@
     "PdfOrganizeResult": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "7e08471b9e55dd3f8e077aecf1b2366f4bb7ea2de502ea783d06957164fcecb4"
+      "sha256": "6b76afb5f56ad046abde9cfe65cbac0d54c1f0b9ec5797cd5149cb9ea8a67322"
+    },
+    "PdfPageFeature": {
+      "module": "pdf.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "532e05519605ef10a6878c832af1dc9e68a96ad2c37b9ea6bb18b88ced4d9586"
+    },
+    "PdfPageEffect": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "951a86670ec1955e38fa16c3bf638acdfcf91dd9f57681b7155fef7320df3487"
+    },
+    "PdfImageInput": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "7f5c08e4eabf9b08db121f18607a473c1bad6c1bac6efb2a55333c9a680933f7"
+    },
+    "PdfImagePageSize": {
+      "module": "pdf.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "f309a6182bb936c08775f53ea45e1d39403b55023cb4a8eac45a59d41f433970"
+    },
+    "PdfImagesOpts": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "87418c8f7b650b6986a9222dff24ad9bf86256d8cda65155b6cc5cc58c6b7ca4"
+    },
+    "PdfImagesResult": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d578bbbfac0ad0e5645693d416619e309e6b0ac563a6a0d8a62b45a6337af6c6"
     },
     "PdfStampImage": {
       "module": "pdf.ts",
