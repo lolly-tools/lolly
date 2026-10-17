@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.262.0
+
+- Supported DOCX metadata cleanup can also remove selected Template, HyperlinkBase, Application, AppVersion and document statistics (TotalTime, Pages, Words, Characters, CharactersWithSpaces, Lines and Paragraphs) from the canonical extended-properties part. Source-range deletion keeps other application properties, package declarations and unrelated ZIP members, and each copy is inspected again. Strip Hidden Data 1.4 shows the new choices in the existing review and copy flow.
+- Word fields that show one of these values (TEMPLATE, EDITTIME, NUMPAGES, NUMWORDS, NUMCHARS) keep that property, and link fields or relative external links keep HyperlinkBase; the inspection lists what was kept. DOCPROPERTY fields, bound controls and structured or duplicated values remain inspect-only. Limitations explain that an attached template link stays in the document settings and that some readers choose compatibility behaviour from the application name and version.
+
 ## 1.261.0
 
 - Preserve selected-file identity in versioned resource dependencies and collect source credentials by the exact version used in an export.

@@ -4027,7 +4027,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.261.0";
+    ENGINE_VERSION = "1.262.0";
   }
 });
 
@@ -117340,7 +117340,7 @@ function openDocxMetadata(bytes2, name, limits = {}) {
     if (new Set(members.map((m2) => m2.name.toLowerCase())).size !== members.length || members.some((m2) => /(^\/|\\|\0|(?:^|\/)\.\.?\/)/.test(m2.name))) throw new Error("Ambiguous package names.");
     if (members.some((m2) => /(?:vba|macro|_xmlsignatures)(?:[^/]*\/|[^/]*$)/i.test(m2.name))) return unsupported("Macro or signature parts were identified. This file remains inspect-only.");
     if (members.some((m2) => m2.flags & 1 || ![0, 8].includes(m2.method))) return unsupported("Encrypted or unsupported ZIP members prevent DOCX metadata cleanup.");
-    const comment = zipComment(bytes2, members), budget3 = { nodes: 0 }, trees = /* @__PURE__ */ new Map(), propertyParts = /* @__PURE__ */ new Map();
+    const comment = zipComment(bytes2, members), budget3 = { nodes: 0 }, trees = /* @__PURE__ */ new Map(), propertyParts = /* @__PURE__ */ new Map(), dependent = /* @__PURE__ */ new Set();
     const memberNames = new Set(members.map((member) => member.name));
     for (const member of members) {
       const decoded = decodeZipMember(member);
@@ -117349,6 +117349,7 @@ function openDocxMetadata(bytes2, name, limits = {}) {
       if (/\.rels$/i.test(member.name)) for (const node of officeNodes(root2).filter((node2) => node2.namespace === RELS && node2.name === "Relationship")) {
         const type = node.attrs.Type ?? "";
         if (/macro|vba|signature/i.test(type)) return unsupported("Macro or signature relationships prevent DOCX metadata cleanup.");
+        if (node.attrs.TargetMode?.toLowerCase() === "external" && !/^[A-Za-z][A-Za-z0-9+.-]*:/.test(node.attrs.Target ?? "")) dependent.add("HyperlinkBase");
         if ((type.startsWith(OFFICE2) || type.startsWith("http://purl.oclc.org/ooxml/officeDocument/relationships/")) && WORD_XML_RELATIONS.has(type.slice(type.lastIndexOf("/") + 1)) && !wordXmlTarget(member.name, node.attrs.Target ?? "", node.attrs.TargetMode, memberNames)) return unsupported("A Word XML relationship target cannot be safely inspected. This file remains inspect-only.");
       }
       if (member.name === "[Content_Types].xml" || member.name === "_rels/.rels" || member.name === "word/document.xml" || Object.hasOwn(PARTS, member.name)) trees.set(member.name, root2);
@@ -117356,6 +117357,7 @@ function openDocxMetadata(bytes2, name, limits = {}) {
       if (nodes.some((node) => node.name === "dataBinding")) return unsupported("XML-bound content controls can display document properties. Metadata cleanup is unavailable for this file; the properties and bound content are retained.");
       const instructions = nodes.filter((n7) => n7.name === "instrText").map((n7) => n7.text).join("") + nodes.filter((n7) => n7.name === "fldSimple").map((n7) => Object.entries(n7.attrs).filter(([key2]) => key2.endsWith(":instr") && n7.attributeNamespaces[key2] === WORD).map(([, value]) => value).join("")).join("");
       if (/(?:DOCPROPERTY|AUTHOR|TITLE|SUBJECT|KEYWORDS|COMMENTS|CREATEDATE|SAVEDATE|PRINTDATE|LASTSAVEDBY|REVNUM)/i.test(instructions)) return unsupported("Document fields can display document properties. Metadata cleanup is unavailable for this file; the properties and field content are retained.");
+      for (const [code, names] of EXTENDED_FIELD_CODES) if (code.test(instructions)) for (const field2 of names) dependent.add(field2);
       if (Object.hasOwn(PARTS, member.name)) propertyParts.set(member.name, { member, bytes: decoded, text: propertyText(decoded), properties: [] });
     }
     const types = trees.get("[Content_Types].xml"), relationships = trees.get("_rels/.rels"), doc = trees.get("word/document.xml");
@@ -117370,6 +117372,7 @@ function openDocxMetadata(bytes2, name, limits = {}) {
     if (types.children.some((n7) => /macro|vba|signature/i.test(n7.attrs.ContentType ?? ""))) return unsupported("Macro-enabled or signed package declarations prevent DOCX metadata cleanup.");
     const main = rels.filter((n7) => n7.attrs.Type === `${OFFICE2}officeDocument`);
     if (main.length !== 1 || main[0].attrs.TargetMode || target(main[0].attrs.Target ?? "") !== "word/document.xml" || overridesByName.get("/word/document.xml")?.attrs.ContentType !== MAIN_TYPE) throw new Error("Unsupported main document declaration.");
+    const retained = [];
     for (const [path, spec] of Object.entries(PARTS)) {
       const matching = rels.filter((n7) => n7.attrs.Type === spec.relation);
       const part = propertyParts.get(path), root2 = trees.get(path);
@@ -117408,6 +117411,10 @@ function openDocxMetadata(bytes2, name, limits = {}) {
         }
         if (seen.has(id3)) throw new Error("Ambiguous property identity.");
         seen.add(id3);
+        if (path === "docProps/app.xml" && dependent.has(node.name)) {
+          retained.push(label4);
+          continue;
+        }
         part.properties.push({ id: id3, part: path, label: label4, location: location4, value: officeText(node), offset: node.start, start: node.start, end: node.end });
         if ([...propertyParts.values()].reduce((n7, p) => n7 + p.properties.length, 0) > 2e3) throw new Error("Property count limit reached.");
       }
@@ -117437,12 +117444,13 @@ function openDocxMetadata(bytes2, name, limits = {}) {
       if (!after.supported || JSON.stringify(identity2(after.properties)) !== JSON.stringify(identity2(properties2.filter((p) => !selected.has(p.id))))) throw new Error("DOCX property removal could not be verified.");
       return copied;
     };
-    return { supported: true, properties: properties2, limitations: LIMITS2, remove };
+    const limitations = retained.length ? [`Document fields or relative links use these properties, so they are retained: ${retained.join(", ")}.`, ...LIMITS2] : LIMITS2;
+    return { supported: true, properties: properties2, limitations, remove };
   } catch {
     return unsupported("This DOCX package is malformed, unsupported or exceeds the cleanup limits. It remains inspect-only.");
   }
 }
-var CP, DC, TERMS, CUSTOM, EXTENDED, RELS, TYPES, WORD, OFFICE2, CORE_REL, WORD_XML_RELATIONS, MAIN_TYPE, PARTS, CORE, EXTENDED_FIELDS, LIMITS2;
+var CP, DC, TERMS, CUSTOM, EXTENDED, RELS, TYPES, WORD, OFFICE2, CORE_REL, WORD_XML_RELATIONS, MAIN_TYPE, PARTS, CORE, EXTENDED_FIELDS, EXTENDED_FIELD_CODES, LIMITS2;
 var init_docx_metadata = __esm({
   "engine/src/docx-metadata.ts"() {
     "use strict";
@@ -117476,8 +117484,34 @@ var init_docx_metadata = __esm({
       keywords: { namespace: CP, label: "Keywords" },
       description: { namespace: DC, label: "Description" }
     };
-    EXTENDED_FIELDS = { Company: "Company", Manager: "Manager" };
-    LIMITS2 = ["Only selected DOCX core/custom properties and Company/Manager extended properties can be removed. Comments, revisions, links, hidden content and embedded objects are retained.", "Other properties, XML comments, package names and ZIP comments are retained. No result is certified free of private information."];
+    EXTENDED_FIELDS = {
+      Company: "Company",
+      Manager: "Manager",
+      Template: "Template",
+      HyperlinkBase: "Hyperlink base",
+      Application: "Application",
+      AppVersion: "Application version",
+      TotalTime: "Total editing time",
+      Pages: "Page count",
+      Words: "Word count",
+      Characters: "Character count",
+      CharactersWithSpaces: "Character count with spaces",
+      Lines: "Line count",
+      Paragraphs: "Paragraph count"
+    };
+    EXTENDED_FIELD_CODES = [
+      [/TEMPLATE/i, ["Template"]],
+      [/EDITTIME/i, ["TotalTime"]],
+      [/NUMPAGES/i, ["Pages"]],
+      [/NUMWORDS/i, ["Words"]],
+      [/NUMCHARS/i, ["Characters", "CharactersWithSpaces"]],
+      [/LINK|INCLUDE|\bRD\b/i, ["HyperlinkBase"]]
+    ];
+    LIMITS2 = [
+      "Only selected DOCX core/custom properties and these extended properties can be removed: Company, Manager, Template, Hyperlink base, application name and version, and document statistics. Comments, revisions, links, hidden content and embedded objects are retained.",
+      "Removing Template leaves any attached template link in the document settings. Some readers choose compatibility behaviour from the application name and version, so removing them can change how those readers lay out the copy.",
+      "Other properties, XML comments, package names and ZIP comments are retained. No result is certified free of private information."
+    ];
   }
 });
 
