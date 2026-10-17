@@ -974,7 +974,10 @@ export function penpotTokensJson(doc: unknown, selection?: PenpotThemeSelection)
       const nm = typeof t.name === 'string' ? t.name : '';
       if (covered.has(g) || !nm) return;
       covered.add(g);
-      chosenNames.push(byName.get(nm) === t ? nm : `${g}/${nm}`);
+      // byName holds bare names, `group/name` and ids. An ungrouped theme whose bare
+      // name another group's theme shadows is reached by its id instead.
+      const id = typeof t.id === 'string' && t.id ? t.id : '';
+      chosenNames.push(byName.get(nm) === t ? nm : g ? `${g}/${nm}` : id || nm);
     };
     for (const t of themes) if (canonical.get(groupOf(t)) === (typeof t.id === 'string' && t.id ? t.id : t.name)) pick(t);
     for (const t of themes) pick(t);

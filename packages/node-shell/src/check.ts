@@ -1140,10 +1140,15 @@ function themesToCheck(ds: CheckDesignSystemInputV1 | null, opts: CheckFileOptio
   return wanted;
 }
 
-/** The themes a token document declares, by name; empty when it declares none or cannot be read. */
+/**
+ * The looks a token document declares, by name; empty when it declares none or cannot
+ * be read. Colourways (plans/319) are left out: a colourway is which lead fills the
+ * primary role, not a look a document is checked in, and authoring lowering would
+ * refuse one as a theme name.
+ */
 function themeNamesOf(doc: unknown): string[] {
   try {
-    return createTokenSet(doc, {}).themes().map((t) => t.name).filter(Boolean);
+    return createTokenSet(doc, {}).themes().filter((t) => t.kind !== 'colourway').map((t) => t.name).filter(Boolean);
   } catch {
     return [];
   }

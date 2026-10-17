@@ -415,3 +415,132 @@ test('the design brief lists colourways apart from the looks, and only when ther
   assert.equal(colourways.canonical, 'main');
   assert.equal(colourways.options[1]!.slots.dark!.primary, PERSIMMON.dark!.primary);
 });
+
+// ─── Review fixes (PR #359) ──────────────────────────────────────────────────
+
+const markCanonical = (doc: Rec, id: string): void => {
+  for (const t of doc.$themes as Rec[]) {
+    if (t.group !== 'colourway') continue;
+    ((t.$extensions as Rec)['com.suse.lolly'] as Rec).axis = { kind: 'colourway', canonical: t.id === id };
+  }
+};
+
+test('a group nothing chooses draws its canonical option, wherever the mark sits', () => {
+  const doc = withPersimmon(FIXTURES['Lolly Start']!());
+  markCanonical(doc, 'persimmon');
+  assert.equal(resolveTokenSelection(doc).choices.colourway, 'persimmon');
+  assert.equal(hex(doc, 'color.semantic.primary', { theme: 'light' }), PERSIMMON.light!.primary);
+  assert.equal(pickColourway(colourwayAxis(doc)!, 'canonical').option, 'persimmon');
+  const plain = threeGroups();
+  delete (plain.$metadata as Rec).activeThemeSelection;
+  assert.deepEqual(resolveTokenSelection(plain).choices, { '': 'light', density: 'compact', voice: 'crisp' }, 'an unmarked group still draws its first option');
+});
+
+test('CLI theme runs start from the canonical choices, then a session\'s own, never the system\'s stored choice', async () => {
+  const { themeRuns } = await import('../shells/cli/src/themes.ts');
+  const doc = withPersimmon(FIXTURES['Lolly Start']!());
+  (doc.$metadata as Rec).activeThemeSelection = { colourway: 'persimmon' };
+  assert.deepEqual(themeRuns(doc, 'all').map(r => r.selection), [{ '': 'light', colourway: 'main' }, { '': 'dark', colourway: 'main' }]);
+  assert.deepEqual(themeRuns(doc, 'all', { colourway: 'persimmon' }).map(r => r.selection), [{ '': 'light', colourway: 'persimmon' }, { '': 'dark', colourway: 'persimmon' }]);
+  assert.deepEqual(themeRuns(doc, 'dark', { colourway: 'gone' })[0]!.selection, { '': 'dark', colourway: 'main' }, 'a saved choice the system no longer declares is dropped');
+  const only: Rec = {
+    a: { color: { $type: 'color', x: { $value: '#000000' } } }, b: { color: { $type: 'color', x: { $value: '#ffffff' } } },
+    $themes: [
+      { id: 'a', name: 'A', group: 'cw', selectedTokenSets: { a: 'enabled' }, $extensions: { 'com.suse.lolly': { axis: { kind: 'colourway' } } } },
+      { id: 'b', name: 'B', group: 'cw', selectedTokenSets: { b: 'enabled' }, $extensions: { 'com.suse.lolly': { axis: { kind: 'colourway' } } } },
+    ],
+  };
+  assert.deepEqual(themeRuns(only, 'all').map(r => r.theme), ['A', 'B'], 'a system with only colourways exports each one');
+});
+
+test('the lift checks every combination of the other groups and refuses a slot another group sets', () => {
+  const doc = FIXTURES['Lolly Demo']!();
+  doc.roomy = { space: { $type: 'number', base: { $value: 3 } } };
+  doc.compact = { space: { $type: 'number', base: { $value: 2 } } };
+  (doc.$themes as Rec[]).push(
+    { name: 'compact', group: 'density', selectedTokenSets: { compact: 'enabled' } },
+    { name: 'roomy', group: 'density', selectedTokenSets: { roomy: 'enabled' } },
+  );
+  doc.$metadata = { tokenSetOrder: ['base', 'light', 'dark', 'compact', 'roomy'], activeThemeSelection: { density: 'roomy' } };
+  const next = lifted(doc);
+  for (const density of ['compact', 'roomy']) for (const mode of ['light', 'dark']) {
+    const selection = { '': mode, density };
+    assert.deepEqual(createTokenSet(next, { selection }).colors(), createTokenSet(doc, { selection }).colors().concat(createTokenSet(next, { selection }).colors().filter(s => s.path.startsWith('color.colourway.'))), `${mode} ${density}`);
+  }
+  const clash = FIXTURES['Lolly Demo']!();
+  clash.loud = { color: { $type: 'color', semantic: { primary: { $value: '#ff00ff' } } } };
+  (clash.$themes as Rec[]).push({ name: 'loud', group: 'voice', selectedTokenSets: { loud: 'enabled' } }, { name: 'quiet', group: 'voice', selectedTokenSets: {} });
+  const refused = liftToColourways(clash);
+  assert.match(refused.ok ? '' : refused.reasons.join(' '), /also set by loud, which another theme group turns on/);
+});
+
+test('the lift writes the link into whichever of a look\'s own sets wins', () => {
+  const doc = FIXTURES['Lolly Start']!();
+  doc['light-extra'] = { note: { $type: 'string', $value: 'x' } };
+  const light = (doc.$themes as Rec[]).find(t => t.name === 'light')!;
+  light.selectedTokenSets = { ...(light.selectedTokenSets as Rec), 'light-extra': 'enabled' };
+  doc.$metadata = { tokenSetOrder: ['base', 'light', 'light-extra', 'dark'] };
+  const next = lifted(doc);
+  assert.equal(((((next.light as Rec).color as Rec).semantic as Rec).primary as Rec).$value, '{color.colourway.light.primary}');
+});
+
+test('a colourway after a tinted one keeps the canonical surface instead of breaking', () => {
+  const tinted = addColourway(withPersimmon(FIXTURES['Lolly Demo']!()), {
+    id: 'waterhole', name: 'Waterhole',
+    values: { light: { primary: '#0369a1', 'on-primary': '#ffffff', secondary: '#0c4a6e', surface: '#f0f9ff' }, dark: { primary: '#38bdf8', 'on-primary': '#0b1120', secondary: '#bae6fd' } },
+  });
+  assert.ok(tinted.ok);
+  const plain = addColourway(tinted.doc, { id: 'jungle', name: 'Jungle', values: PERSIMMON });
+  assert.ok(plain.ok, plain.ok ? '' : plain.reasons.join(' '));
+  for (const mode of ['light', 'dark']) {
+    assert.equal(hex(plain.doc, 'color.semantic.surface', { selection: { '': mode, colourway: 'jungle' } }), hex(FIXTURES['Lolly Demo']!(), 'color.semantic.surface', { theme: mode }));
+  }
+});
+
+test('a file that encodes colourways its own way can be chosen from but not added to', () => {
+  const doc: Rec = {
+    base: { color: { $type: 'color', semantic: { primary: { $value: '#111111' }, 'on-primary': { $value: '#ffffff' }, secondary: { $value: '#333333' } } } },
+    light: {}, dark: {},
+    red: { color: { $type: 'color', semantic: { primary: { $value: '#ff0000' } } } },
+    blue: { color: { $type: 'color', semantic: { primary: { $value: '#0000ff' } } } },
+    $themes: [
+      { name: 'light', selectedTokenSets: { base: 'enabled', light: 'enabled' } },
+      { name: 'dark', selectedTokenSets: { base: 'enabled', dark: 'enabled' } },
+      { id: 'red', name: 'Red', group: 'lead', selectedTokenSets: { red: 'enabled' }, $extensions: { 'com.suse.lolly': { axis: { kind: 'colourway' } } } },
+      { id: 'blue', name: 'Blue', group: 'lead', selectedTokenSets: { blue: 'enabled' }, $extensions: { 'com.suse.lolly': { axis: { kind: 'colourway' } } } },
+    ],
+  };
+  assert.deepEqual(colourwayFamily(doc, 'primary', { '': 'light' }).map(l => l.value), ['#ff0000', '#0000ff']);
+  const r = addColourway(doc, { id: 'green', name: 'Green', values: PERSIMMON });
+  assert.match(r.ok ? '' : r.reasons.join(' '), /encodes its colourways its own way/);
+});
+
+test('a root canonical that disagrees with an entry is reported, and the entry wins', () => {
+  const doc: Rec = {
+    a: {}, b: {},
+    $themes: [
+      { name: 'A', group: 'g', selectedTokenSets: { a: 'enabled' }, $extensions: { 'com.suse.lolly': { axis: { kind: 'colourway', canonical: true } } } },
+      { name: 'B', group: 'g', selectedTokenSets: { b: 'enabled' } },
+    ],
+    $extensions: { 'com.suse.lolly': { themeAxes: { g: { canonical: 'B' } } } },
+  };
+  const { axes, diagnostics } = readTokenAxes(doc);
+  assert.equal(axes[0]!.canonical, 'A');
+  assert.match(diagnostics.map(d => d.message).join(' '), /marks A as canonical but the document's axis entry gives B; A is effective/);
+});
+
+test('a Penpot export reaches an ungrouped theme by id when another group shadows its name', async () => {
+  const { penpotTokensJson } = await import('../engine/src/penpot-file.ts');
+  const doc: Rec = {
+    base: { color: { $type: 'color', x: { $value: '#000000' } } },
+    other: { color: { $type: 'color', y: { $value: '#ffffff' } } },
+    $themes: [
+      { id: 'ungrouped-light', name: 'light', selectedTokenSets: { base: 'enabled' } },
+      { id: 'other-light', name: 'light', group: 'other', selectedTokenSets: { other: 'enabled' } },
+    ],
+    $metadata: { tokenSetOrder: ['base', 'other'] },
+  };
+  const meta = penpotTokensJson(doc)!.$metadata as Rec;
+  assert.deepEqual(meta.activeThemes, ['ungrouped-light', 'light'], 'the bare name now reaches the other group, which byName maps it to');
+  assert.deepEqual(meta.activeSets, ['base', 'other']);
+});

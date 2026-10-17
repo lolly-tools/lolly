@@ -57,25 +57,40 @@ interface BrandTokens {
 
 /**
  * The tokens surface the app chrome reads: the same one the canvas reads, with
- * every theme group that declares a kind, other than light and dark, pinned to
- * its canonical theme (plans/319 decision 2). The chrome belongs to the device,
- * the canvas to the artefact. The render surface carries the open artefact's
- * choices (a route's `_themes` becomes the document's stored selection), so
- * without the pin a Persimmon poster would turn the app's accent, favicon and
- * logo tint Persimmon.
+ * every theme group except the light/dark one pinned to its canonical theme
+ * (plans/319 decision 2). The chrome belongs to the device, the canvas to the
+ * artefact. The render surface carries the open artefact's choices (a route's
+ * `_themes` becomes the document's stored selection), and since engine 1.262 a
+ * `{ theme }` read keeps those choices, so without the pin a Persimmon poster
+ * would turn the app's accent, favicon and logo tint Persimmon. The pin covers
+ * groups with no kind too: an imported Tokens Studio file with a plain second
+ * group would otherwise leak that group's route choice the same way.
  *
- * Light and dark stay the caller's to pick: chrome reads both explicitly. A read
- * that passes its own `selection` is left alone, and a design system whose
- * groups declare no kind (every pack before colourways) is read exactly as
- * before, because there is nothing to pin.
+ * The light/dark group is the one of kind `mode`, else the ungrouped `''` group
+ * with no kind (the same rule as `modeAxis` in engine/src/token-axes.ts). It stays the
+ * caller's to pick: chrome reads light and dark explicitly. A group's canonical
+ * theme is the one marked canonical, else its first, which is also what the
+ * resolver draws when nothing chooses the group. A read that passes its own
+ * `selection` is left alone, and a design system with a single theme group
+ * (every pack Lolly ships) gets no pin and is read exactly as before.
  */
 export function chromeTokens(tk: BrandTokens | undefined): BrandTokens | undefined {
   if (!tk?.themes) return tk;
   const themes = tk.themes.bind(tk);
   let pins: Promise<Record<string, string> | null> | null = null;
   const pinned = (): Promise<Record<string, string> | null> => pins ??= themes().then((list) => {
+    const groups = new Map<string, { kind?: string; canonical?: string; first: string }>();
+    for (const t of list) {
+      const group = t.group ?? '';
+      const id = t.id ?? t.name;
+      const entry = groups.get(group) ?? { first: id };
+      if (t.kind) entry.kind = t.kind;
+      if (t.canonical) entry.canonical = id;
+      groups.set(group, entry);
+    }
+    const mode = [...groups].find(([, g]) => g.kind === 'mode')?.[0] ?? (groups.has('') && !groups.get('')!.kind ? '' : undefined);
     const out: Record<string, string> = {};
-    for (const t of list) if (t.canonical && t.kind && t.kind !== 'mode') out[t.group ?? ''] = t.id ?? t.name;
+    for (const [group, g] of groups) if (group !== mode) out[group] = g.canonical ?? g.first;
     return Object.keys(out).length ? out : null;
   }).catch(() => null);
   const scoped = async <O extends { selection?: Record<string, string> }>(opts: O | undefined): Promise<O | undefined> => {
@@ -1537,8 +1552,8 @@ export async function applyChromeBrandVars(host: BrandVarsHost): Promise<void> {
   // the version ladder behind its own reads, so chrome and the tool canvas below
   // paint from one answer and cannot disagree. Nothing to resolve here, and
   // nothing published means the head, exactly as before section 6a. The chrome
-  // reads it through chromeTokens, which keeps every colourway (and any other
-  // authored choice except light/dark) on the canonical option.
+  // reads it through chromeTokens, which keeps every theme group except light and
+  // dark (every colourway included) on its canonical option.
   const tk: BrandTokens | undefined = chromeTokens(host.tokens);
 
   const resolveHex = async (slot: string, theme: string): Promise<string | null> => {

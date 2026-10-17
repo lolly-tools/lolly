@@ -22,9 +22,14 @@ export function tokenSetNames(doc: unknown): string[] | null {
  *   1. `opts.theme`, for the groups that declare an option with that id or name
  *      (or `group/id`, `group/name`). A theme picks one look and decides only
  *      the groups that declare that theme.
- *   2. `opts.selection`, else the document's stored `$metadata.activeThemeSelection`.
+ *   2. The group's entry in `opts.selection` when a selection is given; otherwise
+ *      its entry in the document's stored `$metadata.activeThemeSelection`. A given
+ *      selection replaces the stored one whole, so a group it leaves out does not
+ *      fall back to the stored choice.
  *   3. `$metadata.activeThemes`.
- *   4. The group's first option.
+ *   4. The group's canonical option (plans/319): the one marked `canonical`, else
+ *      the first. A group that marks none therefore draws its first option, as
+ *      every group did before canonical marks existed.
  *
  * Before engine 1.262 a `theme` request also reset every group it did not name to
  * that group's first option, so `colors({ theme: 'light' })` silently dropped a
@@ -48,6 +53,7 @@ export function resolveTokenSelection(doc: unknown, opts: TokenResolveOptions = 
   const choices = new Map<string, string>();
   const enabled = new Set<string>();
   let themeFound = false;
+  const axisOf = new Map(described.axes.map(a => [a.group, a]));
   for (const [group, options] of groups) {
     const byTheme = opts.theme ? named(options, group, opts.theme) : [];
     const wanted = requested && Object.hasOwn(requested, group) ? requested[group] : undefined;
@@ -62,7 +68,8 @@ export function resolveTokenSelection(doc: unknown, opts: TokenResolveOptions = 
       matches = options.filter(o => active.includes(o.id) || active.includes(o.name) || active.includes(`${group}/${o.id}`) || active.includes(`${group}/${o.name}`));
     }
     if (matches.length > 1) issue(`Competing choices in ${groupLabel(group)}; the first is effective.`);
-    const choice = matches[0] ?? options[0]!;
+    const canonical = axisOf.get(group)?.canonical;
+    const choice = matches[0] ?? options.find(o => o.id === canonical) ?? options[0]!;
     if (!matches.length) defaults.push(group);
     choices.set(group, choice.id);
     if (record(choice.raw.selectedTokenSets)) for (const [set, status] of Object.entries(choice.raw.selectedTokenSets)) {
@@ -80,7 +87,6 @@ export function resolveTokenSelection(doc: unknown, opts: TokenResolveOptions = 
     const ordered = meta.tokenSetOrder.filter((s): s is string => typeof s === 'string' && sets.includes(s));
     sets = [...new Set([...ordered, ...sets])];
   }
-  const axisOf = new Map(described.axes.map(a => [a.group, a]));
   return {
     groups: [...groups].map(([id, options]) => {
       const axis = axisOf.get(id);

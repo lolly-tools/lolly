@@ -133,7 +133,7 @@ export function describeAxes(doc: unknown, groups: Map<string, ThemeEntry[]>): {
     const takeKind = (v: unknown, from: string): void => {
       if (v === undefined) return;
       if (typeof v !== 'string') { issue('type', `${from} declares a kind that is not text; it is ignored.`); return; }
-      if (!(TOKEN_AXIS_KINDS as readonly string[]).includes(v)) { issue('unsupported', `${from} declares the kind ${v}, which this version does not know; ${label} is treated as a plain theme group.`); return; }
+      if (!(TOKEN_AXIS_KINDS as readonly string[]).includes(v)) { issue('unsupported', `${from} declares the kind ${v}, which this version does not know; that declaration is ignored.`); return; }
       if (kind === null) { kind = v as TokenAxisKind; kindFrom = from; return; }
       if (kind !== v) issue('selection', `${from} declares the kind ${v} but ${kindFrom} declares ${kind}; ${kind} is effective.`);
     };
@@ -158,9 +158,10 @@ export function describeAxes(doc: unknown, groups: Map<string, ThemeEntry[]>): {
     const marked = options.filter(o => o.canonical);
     if (marked.length > 1) issue('selection', `${label} marks ${marked.length} themes as canonical; ${marked[0]!.name} is effective.`);
     let canonical = marked[0]?.id;
-    if (!canonical && typeof fallback.canonical === 'string') {
-      if (options.some(o => o.id === fallback.canonical)) canonical = fallback.canonical;
-      else issue('selection', `The document's axis entry for ${label} names the canonical theme ${fallback.canonical}, which ${label} does not declare.`);
+    if (typeof fallback.canonical === 'string') {
+      if (!options.some(o => o.id === fallback.canonical)) issue('selection', `The document's axis entry for ${label} gives the canonical theme as ${fallback.canonical}, which ${label} does not declare.`);
+      else if (!canonical) canonical = fallback.canonical;
+      else if (canonical !== fallback.canonical) issue('selection', `${label} marks ${marked[0]!.name} as canonical but the document's axis entry gives ${fallback.canonical}; ${marked[0]!.name} is effective.`);
     }
     canonical ??= options[0]!.id;
     for (const o of options) o.canonical = o.id === canonical;

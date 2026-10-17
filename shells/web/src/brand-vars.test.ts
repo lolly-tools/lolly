@@ -1084,6 +1084,32 @@ test('chrome reads pin every colourway to its canonical option, whatever the art
   assert.equal(hexOf(await chrome.resolve('{color.semantic.primary}', { theme: 'light', selection: { colourway: 'persimmon' } })), '#c2410c');
 });
 
+test('chromeTokens also pins a plain second theme group, so a route choice never reaches the chrome', async () => {
+  const { createTokenSet } = await import('../../../engine/src/tokens.ts');
+  // An imported Tokens Studio file: two groups, no Lolly kinds, the route chose globex.
+  const doc = {
+    base: { color: { $type: 'color', semantic: { primary: { $value: '#000000' } } } },
+    light: {}, dark: {},
+    acme: { color: { $type: 'color', semantic: { primary: { $value: '#0055ff' } } } },
+    globex: { color: { $type: 'color', semantic: { primary: { $value: '#ff0000' } } } },
+    $themes: [
+      { name: 'light', group: 'mode', selectedTokenSets: { base: 'enabled', light: 'enabled' } },
+      { name: 'dark', group: 'mode', selectedTokenSets: { base: 'enabled', dark: 'enabled' } },
+      { name: 'acme', group: 'brand', selectedTokenSets: { acme: 'enabled' } },
+      { name: 'globex', group: 'brand', selectedTokenSets: { globex: 'enabled' } },
+    ],
+    $metadata: { tokenSetOrder: ['base', 'light', 'dark', 'acme', 'globex'], activeThemeSelection: { mode: 'dark', brand: 'globex' } },
+  };
+  const surface = {
+    resolve: async (ref: string, opts?: { theme?: string; selection?: Record<string, string> }) => createTokenSet(doc, opts).resolve(ref),
+    themes: async () => createTokenSet(doc).themes(),
+  };
+  assert.equal(await surface.resolve('{color.semantic.primary}', { theme: 'light' }), '#ff0000', 'the canvas follows the route');
+  const chrome = chromeTokens(surface)!;
+  assert.equal(await chrome.resolve('{color.semantic.primary}', { theme: 'light' }), '#0055ff');
+  assert.equal(await chrome.resolve('{color.semantic.primary}', { theme: 'dark' }), '#0055ff');
+});
+
 test('chromeTokens leaves a design system without colourways exactly as it was', async () => {
   const { createTokenSet } = await import('../../../engine/src/tokens.ts');
   const start = JSON.parse(readFileSync(new URL('../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json', import.meta.url), 'utf8'));

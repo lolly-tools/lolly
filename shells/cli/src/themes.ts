@@ -48,20 +48,31 @@ function declaredThemes(doc: unknown): Array<{ name: string; id: string; group: 
 /**
  * The exports a `--themes` value asks for, in the order given. `all` is every theme the
  * design system declares except its colourways (plans/319): a colourway is which lead
- * fills the primary role, not a look, so `all` exports light and dark and each file
- * keeps the canonical colourway. A named colourway exports in that colourway. A name the design
- * system does not declare is a usage error that lists the ones it does, so a typo
- * never exports the default theme under the typo's name.
+ * fills the primary role, not a look, so `all` exports light and dark. A design system
+ * whose only themes are colourways exports each colourway instead. A named colourway
+ * exports in that colourway. A name the design system does not declare is a usage
+ * error that lists the ones it does, so a typo never exports the default theme under
+ * the typo's name.
+ *
+ * Each run's selection is explicit, so the design system's own stored choice never
+ * leaks in: every group starts on its canonical option, then `base` (a saved
+ * session's own `__tokenSelection`) applies, then the named theme decides its group.
+ * A session saved in Persimmon therefore exports light and dark in Persimmon, and a
+ * tool run exports them in the canonical colourway.
  */
-export function themeRuns(doc: unknown, spec: string): ThemeRun[] {
+export function themeRuns(doc: unknown, spec: string, base?: Readonly<Record<string, string>>): ThemeRun[] {
   const declared = declaredThemes(doc);
-  const colourwayGroups = new Set(resolveTokenSelection(doc).groups.filter((g) => g.kind === 'colourway').map((g) => g.id));
+  const groups = resolveTokenSelection(doc).groups;
+  const colourwayGroups = new Set(groups.filter((g) => g.kind === 'colourway').map((g) => g.id));
+  const start: Record<string, string> = Object.fromEntries(groups.map((g) => [g.id, g.canonical ?? g.options[0]?.id ?? '']));
+  const ids = new Map(groups.map((g) => [g.id, new Set(g.options.map((o) => o.id))]));
+  for (const [group, id] of Object.entries(base ?? {})) if (ids.get(group)?.has(id)) start[group] = id;
   const names = [...new Set(spec.split(',').map((s) => s.trim()).filter(Boolean))];
   if (!names.length) throw usageError('--themes needs at least one theme name, or `all`.', 'BAD_FLAG_VALUE');
   if (!declared.length) {
     throw usageError('--themes needs a design system that declares themes, and the active one declares none. Drop --themes to export once.', 'BAD_FLAG_VALUE');
   }
-  const looks = declared.filter((t) => !colourwayGroups.has(t.group));
+  const looks = declared.some((t) => !colourwayGroups.has(t.group)) ? declared.filter((t) => !colourwayGroups.has(t.group)) : declared;
   const list = names.includes('all') ? looks.map((t) => (declared.filter((o) => o.name === t.name).length > 1 && t.group ? `${t.group}/${t.name}` : t.name)) : names;
   const known = new Set(declared.flatMap((t) => [t.name, t.id, `${t.group}/${t.name}`, `${t.group}/${t.id}`]));
   const unknown = list.filter((name) => !known.has(name));
@@ -72,7 +83,7 @@ export function themeRuns(doc: unknown, spec: string): ThemeRun[] {
       'BAD_FLAG_VALUE',
     );
   }
-  return [...new Set(list)].map((theme) => ({ theme, selection: resolveTokenSelection(doc, { theme }).choices }));
+  return [...new Set(list)].map((theme) => ({ theme, selection: resolveTokenSelection(doc, { theme, selection: start }).choices }));
 }
 
 /**

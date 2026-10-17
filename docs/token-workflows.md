@@ -10,7 +10,7 @@ Each imported theme group has its own control. Choices use source group names an
 
 Documents store choices in `$metadata.activeThemeSelection`. Render links use `_themes`, a JSON object in the reserved underscore namespace. Sessions carry `__tokenSelection`.
 
-A tool can still ask for one theme by name, as in `host.tokens.colors({ theme: 'light' })`. That request picks the theme in the group that declares it, and every other group keeps its choice: an explicit `selection`, then the document's stored choice, then `activeThemes`, then the group's first option. A hook that asks for light therefore still draws the artefact's colourway. Engine versions before 1.262 reset every other group to its first option on such a request. A theme name that no group declares is reported and changes nothing else.
+A tool can still ask for one theme by name, as in `host.tokens.colors({ theme: 'light' })`. That request picks the theme in the group that declares it, and every other group keeps its choice. For each of those groups the order is: its entry in an explicit `selection` when one is given (a given selection replaces the document's stored choices whole), otherwise the document's stored choice; then `activeThemes`; then the group's canonical option. A hook that asks for light therefore still draws the artefact's colourway. Engine versions before 1.262 reset every other group to its first option on such a request. A theme name that no group declares is reported and changes nothing else.
 
 ```sh
 lolly system inspect --file=beacon.tokens.json --_themes='{"appearance":"night","density":"roomy"}' --json
@@ -31,7 +31,7 @@ A Tokens Studio `$themes` group is only a name. A design system can also say wha
 | Field | Describes | Meaning |
 | --- | --- | --- |
 | `kind` | the group | `mode` (light, dark and similar looks), `colourway` (which lead colour fills the primary role), or one of `expression`, `medium`, `contrast`, `density`, `campaign`, `brand` |
-| `rotation` | the group | The default way a series picks an option: `canonical`, `cycle`, `by-key`, `shuffle` or `by-date` (see [Colourways](#colourways)) |
+| `rotation` | the group | The rule `pickColourway` applies when given none: `canonical`, `cycle`, `by-key`, `shuffle` or `by-date` (see [Colourways](#colourways)) |
 | `canonical` | one option | `true` on the option an artefact uses when it chooses none. Without it, the first option is canonical |
 | `window` | one option | `{ "from": "2026-12-01", "to": "2026-12-31" }`, inclusive ISO dates, read by `by-date` |
 
@@ -72,11 +72,11 @@ The path segment after `color.colourway` is the look's theme id (`light`, `dark`
 
 Imported files often encode colourways their own way, for example by overriding the semantic slots in each colourway set. Selection still works on such files. The colourway helpers described below read the slots through the resolver, so they work on these files too, but only the shape above can be converted and edited by the engine's colourway functions.
 
-**Choosing a colourway.** A link carries the choice with the other theme choices: `_themes={"":"dark","colourway":"persimmon"}`. The CLI takes the same JSON in `--_themes`. On `lolly run`, `--themes=all` exports each look once in the canonical colourway, and naming a colourway, as in `--themes=Persimmon`, exports in that colourway.
+**Choosing a colourway.** A link carries the choice with the other theme choices: `_themes={"":"dark","colourway":"persimmon"}`. The CLI takes the same JSON in `--_themes`. On `lolly run`, `--themes=all` exports each look once: in the colourway a saved session was saved in, otherwise in the canonical colourway. Naming a colourway, as in `--themes=Persimmon`, exports in that colourway. A design system whose only themes are colourways exports each colourway under `all`.
 
-**The app's own colours.** The app's accent, favicon and logo tint follow the canonical colourway whatever the open artefact uses: the app belongs to the device, the canvas to the artefact. The same holds for any other group with a kind, except light and dark, which follow the app's appearance setting. A Persimmon poster shows Persimmon on the canvas and the canonical colour in the app around the poster.
+**The app's own colours.** The app's accent, favicon and logo tint follow the canonical colourway whatever the open artefact uses: the app belongs to the device, the canvas to the artefact. The same holds for every other theme group, whether or not it declares a kind, except light and dark, which follow the app's appearance setting. A Persimmon poster shows Persimmon on the canvas and the canonical colour in the app around the poster.
 
-**Series.** A series of artefacts can pick its colourways by a rule. The rule is applied when each artefact is made, and the artefact stores the colourway it got, never the rule, so adding a colourway later changes what a rule picks for new work and leaves every existing artefact as it was.
+**Rules for a series.** The engine can pick colourways for a series of artefacts by a rule. No series or batch flow in the app applies these rules yet; for now only the engine's `pickColourway` function reads them. The design is that the rule is applied when each artefact is made, and the artefact stores the colourway it got, never the rule, so adding a colourway later changes what a rule picks for new work and leaves every existing artefact as it was.
 
 | Rule | Picks |
 | --- | --- |
