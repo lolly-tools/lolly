@@ -448,6 +448,44 @@ test('relative external relationships keep the hyperlink base while absolute lin
   }
 });
 
+test('charts and drawings keep the application name and version in every selection while other properties are still removed', async () => {
+  const { input, app } = applicationFixture(), body = text(part('word/document.xml', input));
+  const drawing = (markup: string, before = ''): Uint8Array => replace('word/document.xml', utf8(body.replace('<w:body>', `${before}<w:body>${markup}`)), input);
+  let chart = storeZipMembers([...members(input), ...members(storeZip([{ name: 'word/charts/chart1.xml', bytes: utf8('<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart/></c:chartSpace>') }]))]);
+  chart = replace('[Content_Types].xml', utf8(text(part('[Content_Types].xml', chart)).replace('</Types>', '<Override PartName="/word/charts/chart1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/></Types>')), chart);
+  chart = replace('word/_rels/document.xml.rels', utf8(text(part('word/_rels/document.xml.rels', chart)).replace('</Relationships>', '<Relationship Id="rIdChart" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="charts/chart1.xml"/></Relationships>')), chart);
+  const kept = ['app:Application', 'app:AppVersion'], others = [...APPLICATION, ...STATISTICS, 'app:Company', 'app:Manager'].filter(id => !kept.includes(id));
+  const variants: [string, Uint8Array][] = [
+    ['DrawingML', drawing('<w:p><w:r><w:drawing><wp:inline><wp:extent cx="914400" cy="914400"/><wp:docPr id="1" name="Chart 1"/></wp:inline></w:drawing></w:r></w:p>')],
+    ['VML picture', drawing('<w:p><w:r><w:pict><v:rect style="width:10pt;height:10pt"/></w:pict></w:r></w:p>')],
+    ['embedded object', drawing('<w:p><w:r><w:object/></w:r></w:p>')],
+    ['VML background', drawing('', '<w:background w:color="FFFFFF"><v:background id="page"/></w:background>')],
+    ['chart part', chart],
+  ];
+  for (const [name, variant] of variants) {
+    independentXml(part('word/document.xml', variant));
+    const doc = openDocxMetadata(variant, 'private-input.docx'); assert.equal(doc.supported, true, name);
+    for (const id of kept) { assert(!doc.properties.some(p => p.id === id), `${name} ${id}`); assert.throws(() => doc.remove([id]), /Invalid DOCX/); }
+    assert(doc.limitations.some(l => l.includes('so they are retained: Application, Application version.')), name);
+    assert.doesNotMatch(JSON.stringify(doc.limitations), privateApplication);
+    const output = doc.remove(others);
+    assert.equal(text(part('docProps/app.xml', output)), withoutElements(app, others), name); independentXml(part('docProps/app.xml', output));
+    for (const member of members(variant)) if (member.name !== 'docProps/app.xml') assert.deepEqual(members(output).find(m => m.name === member.name)!.compressed, member.compressed, `${name} ${member.name}`);
+    const after = openDocxMetadata(output, 'copy.docx'); assert.equal(after.supported, true, name);
+    assert.deepEqual(after.properties.filter(p => p.part === 'docProps/app.xml'), [], name);
+  }
+  // Bulk paths (Prepare's default selection, --strip-hidden-data and --replace-all) take every remove-property group, so none may name these fields.
+  const source = { id: 'doc', name: 'private-chart.docx', bytes: chart }, inspection = await inspectPreparation([source]);
+  assert(!inspection.findings.some(f => f.action === 'remove-property' && kept.includes(f.propertyId!)));
+  const choices = inspection.groups.filter(g => g.action === 'remove-property').map(g => ({ groupId: g.id, replacement: '' }));
+  const result = await applyPreparation([source], inspection, choices), copy = text(part('docProps/app.xml', result.outputs[0]!.bytes));
+  assert.match(copy, /<Application>Private fixture producer<\/Application><AppVersion>16\.0000<\/AppVersion>/); assert.doesNotMatch(copy, /<Company>|<Template>|<Words>/);
+  assert.doesNotMatch(JSON.stringify(result.report), privateApplication);
+  // The base fixture declares the DrawingML and VML namespaces without using them, and both fields stay removable there.
+  assert.match(body, /xmlns:v="urn:schemas-microsoft-com:vml"/); assert.match(body, /xmlns:wp="/);
+  assert(kept.every(id => openDocxMetadata(input, 'file.docx').properties.some(p => p.id === id)));
+});
+
 test('DOCPROPERTY fields and bound controls for the new application fields remain inspect-only', () => {
   const { input } = applicationFixture(), body = text(part('word/document.xml', input));
   for (const name of ['Template', 'HyperlinkBase', 'Application', 'AppVersion', 'TotalTime', 'Pages', 'Words', 'Characters', 'CharactersWithSpaces', 'Lines', 'Paragraphs']) for (const markup of [

@@ -128,8 +128,10 @@ Words, Characters, CharactersWithSpaces, Lines and Paragraphs can be removed.
 DocSecurity, heading and part titles, link flags and other application properties
 are retained. Removing Template leaves any attached template link in the document
 settings, where the census reports it as an external relationship. Some readers
-choose compatibility behaviour from the application name and version, so removing
-them can change how those readers lay out the copy. When a Word field shows one of
+choose chart and drawing compatibility behaviour from the application name and
+version; LibreOffice, for example, shows a chart from a Word 2007 file differently
+without them. Both are therefore retained when the file contains charts, pictures,
+shapes or embedded objects, and the inspection says so. When a Word field shows one of
 these values (TEMPLATE, EDITTIME, NUMPAGES, NUMWORDS or NUMCHARS), that property is
 retained. Link fields and relative external links also keep HyperlinkBase, because
 their targets resolve against that base address. The inspection lists each property
