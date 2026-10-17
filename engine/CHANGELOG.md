@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.271.0
+
+- Web page boxes recognise Slides.com deck links and load the deck's embed form. The embed asks reveal.js to report its slide position to the page that frames it, and keeps only a private deck token, the embed style options and a reveal.js slide address from the original link.
+- Add `revealDeckFrame`, which reports whether a frame's link asks a reveal.js deck for those reports. A self-hosted deck opts in with `postMessageEvents=true` in its own link.
+
 ## 1.270.0
 
 - Add `readExtract`, which turns a content inventory into a `ReadExtractV1` (`@lolly-tools/core/read-extract-v1`): blocks in reading order per page, each naming its source object and box, bounded by a page expression and a character budget, with `next` and `from` to continue. Plain text and Markdown writers keep the source wording and mark recognised blocks.

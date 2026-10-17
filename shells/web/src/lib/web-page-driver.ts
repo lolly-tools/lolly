@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 /** One retained driver per web frame. A page can report only its capabilities and
- * scroll depth; neither a receiver nor an outside page can edit the document. */
+ * scroll depth, or a reveal.js deck its slide position; no page can edit the document. */
 import {
   boundedPresentNumber, dispatchPresentKey, readPresentDepth, scrollPresentPage, validPresentTarget,
   type PresentArrow, type PresentDepth, type PresentScrollTarget,
 } from '../../../../packages/core/src/present-receiver.ts';
 import { parsePresentInteractOpts, type PresentInteractOptions } from '../../../../engine/src/present-interact.ts';
+import { revealDeckFrame } from '../../../../engine/src/web-embed.ts';
+import { readRevealMessage, revealCommand, sameRevealState, type RevealCommand, type RevealDeckState } from './reveal-deck.ts';
 
 export type WebPageOptions = Pick<PresentInteractOptions, 'mode' | 'pageLength' | 'start'>;
 export interface WebPageCapabilities {
-  backend: 'same-origin' | 'receiver' | 'outside';
+  backend: 'same-origin' | 'receiver' | 'reveal' | 'outside';
   key: boolean; scroll: boolean; depth: boolean; checking: boolean;
 }
 export interface WebPageDriver {
@@ -24,6 +26,10 @@ export interface WebPageDriver {
   handKeyboard(on: boolean): void;
   subscribe(callback: () => void): () => void;
   destroy(): void;
+  /** A reveal.js deck's next or previous step: a fragment, then a slide. */
+  step?(direction: 1 | -1): boolean;
+  /** A reveal.js deck's last reported position. */
+  deck?(): RevealDeckState | null;
 }
 const byFrame = new WeakMap<HTMLIFrameElement, WebPageDriver>();
 const byMarker = new WeakMap<HTMLElement, WebPageDriver>();
@@ -54,6 +60,7 @@ class FrameDriver implements WebPageDriver {
   private caps: WebPageCapabilities = { backend: 'outside', key: false, scroll: false, depth: false, checking: true };
   private options: WebPageOptions = { mode: 'none', pageLength: 0, start: 0 };
   private reported: PresentDepth | null = null;
+  private deckState: RevealDeckState | null = null;
   private panY = 0;
   private callbacks = new Set<() => void>();
   private timer: ReturnType<typeof setTimeout> | null = null;
@@ -110,22 +117,29 @@ class FrameDriver implements WebPageDriver {
   }
   private loaded = (): void => {
     if (this.disposed) return;
-    this.unwatch?.(); this.unwatch = null; this.reported = null; this.placesUnavailable = false; this.greeted = false;
+    this.unwatch?.(); this.unwatch = null; this.reported = null; this.deckState = null; this.placesUnavailable = false; this.greeted = false;
     this.hellos.forEach(clearTimeout); this.hellos = [];
     if (this.timer) clearTimeout(this.timer);
     const doc = this.page();
+    // Only a link that asked reveal.js to report is sent reveal.js commands unprompted.
+    const deck = !doc && revealDeckFrame(this.frame.src);
     this.caps = { backend: doc ? 'same-origin' : 'outside', key: !!doc, scroll: !!doc, depth: !!doc, checking: !doc };
     if (doc) this.watchPage(doc);
     this.send('hello'); this.send(this.focused ? 'focus' : 'release');
-    this.hellos = [120, 400, 1000, 2500, 5000].map(ms => setTimeout(() => { if (!this.greeted) this.send('hello'); }, ms));
+    if (deck) this.sendReveal('getState');
+    this.hellos = [120, 400, 1000, 2500, 5000].map(ms => setTimeout(() => {
+      if (!this.greeted) this.send('hello');
+      if (deck && !this.deckState) this.sendReveal('getState');
+    }, ms));
     this.send('slide', { state: this.active ? 'start' : 'stop' });
     if (doc || this.options.mode === 'pan' || this.options.mode === 'places') this.scrollTo(this.options.start);
-    this.timer = setTimeout(() => { this.caps.checking = false; this.capabilitiesChanged(); }, 1800);
+    this.timer = setTimeout(() => { this.caps.checking = false; this.capabilitiesChanged(); }, deck ? 5000 : 1800);
     this.capabilitiesChanged();
   };
   private message = (event: MessageEvent): void => {
     if (this.disposed || event.source !== this.frame.contentWindow || event.origin !== this.origin) return;
     const d: unknown = event.data;
+    if (typeof d === 'string') { this.revealMessage(d); return; }
     if (!d || typeof d !== 'object' || Array.isArray(d)) return;
     const value: Record<string, unknown> = Object.create(null);
     for (const key of ['type', 'v', 'kind', 'can', 'y', 'max']) value[key] = (d as Record<string, unknown>)[key];
@@ -146,6 +160,23 @@ class FrameDriver implements WebPageDriver {
       this.reported = { y: Math.min(y, max), max }; this.emit();
     }
   };
+  /** A receiver or a same-origin page outranks a deck: either can also scroll and report depth. */
+  private revealMessage(data: string): void {
+    const state = readRevealMessage(data);
+    if (!state || this.caps.backend === 'receiver' || this.page()) return;
+    const previous = this.deckState; this.deckState = state;
+    if (this.caps.backend !== 'reveal') {
+      this.caps = { backend: 'reveal', key: true, scroll: false, depth: false, checking: false };
+      if (this.timer) clearTimeout(this.timer);
+      this.hellos.forEach(clearTimeout); this.hellos = [];
+      this.capabilitiesChanged();
+    } else if (!sameRevealState(previous, state)) this.emit();
+  }
+  private sendReveal(method: RevealCommand): boolean {
+    const message = revealCommand(method);
+    if (this.disposed || !message || !this.frame.contentWindow || !/^https?:\/\//.test(this.origin)) return false;
+    try { this.frame.contentWindow.postMessage(message, this.origin); return true; } catch { return false; }
+  }
   private viewport(): { width: number; height: number; scale: number } {
     const width = Math.max(1, this.marker.clientWidth);
     const view = boundedPresentNumber(Number(this.marker.dataset.webView)) || width;
@@ -178,7 +209,15 @@ class FrameDriver implements WebPageDriver {
     if (key !== 'ArrowUp' && key !== 'ArrowDown') return false;
     const doc = this.page();
     if (doc?.defaultView) { const result = dispatchPresentKey(doc.defaultView, key); this.emit(); return result; }
+    // reveal.js moves a deck's vertical stack on its own Up and Down keys.
+    if (this.caps.backend === 'reveal') return this.sendReveal(key === 'ArrowDown' ? 'down' : 'up');
     return this.caps.key && this.caps.backend === 'receiver' && this.send('key', { key });
+  }
+  step(direction: 1 | -1): boolean {
+    return this.caps.backend === 'reveal' && this.sendReveal(direction === 1 ? 'next' : 'prev');
+  }
+  deck(): RevealDeckState | null {
+    return this.caps.backend === 'reveal' && this.deckState ? { ...this.deckState } : null;
   }
   scrollTo(value: PresentScrollTarget): boolean {
     const to = validPresentTarget(value);

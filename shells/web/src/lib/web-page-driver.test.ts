@@ -96,3 +96,58 @@ test('capability observers can query registry during creation and destruction wi
     assert.equal(getWebPageDriver(f.marker as unknown as HTMLElement), null);
   } finally { driver.destroy(); f.dom.window.close(); }
 });
+const revealReport = (state: Record<string, unknown>): string => JSON.stringify({ namespace: 'reveal', eventName: 'slidechanged', state });
+function messenger(f: ReturnType<typeof fixture>) {
+  return (data: unknown, origin = new URL(f.frame.src).origin, source: unknown = f.frame.contentWindow): void => {
+    f.dom.window.dispatchEvent(new f.dom.window.MessageEvent('message', { data, origin, source: source as Window }));
+  };
+}
+const revealPosts = (f: ReturnType<typeof fixture>) => f.posts.filter(post => typeof (post.data as unknown) === 'string') as unknown as { data: string; origin: string }[];
+test('a reveal.js deck is asked for its state at its own origin and accepted only from its frame', () => {
+  const f = fixture('https://slides.com/news/deck/embed?postMessageEvents=true'); const events: string[] = [];
+  f.marker.addEventListener('lolly:web-driver-change', () => events.push('changed'));
+  const driver = createWebPageDriver(f.frame as unknown as HTMLIFrameElement, f.marker as unknown as HTMLElement);
+  const send = messenger(f);
+  try {
+    assert.deepEqual(revealPosts(f).map(post => [post.data, post.origin]), [['{"method":"getState","args":[]}', 'https://slides.com']]);
+    assert.equal(driver.capabilities.checking, true);
+    send(revealReport({ indexh: 2 }), 'https://evil.test'); send(revealReport({ indexh: 2 }), 'https://slides.com', {});
+    send(revealReport({ indexh: 2 }), 'https://slides.com', null);
+    send({ namespace: 'reveal', eventName: 'ready', state: { indexh: 2 } });
+    assert.equal(driver.capabilities.backend, 'outside'); assert.equal(driver.deck!(), null);
+    assert.equal(driver.step!(1), false, 'no step is sent before the deck reports');
+    send(revealReport({ indexh: 2, indexv: 1, private: 'ignored' }));
+    assert.equal(driver.capabilities.backend, 'reveal'); assert.equal(driver.capabilities.checking, false);
+    assert.equal(driver.capabilities.key, true); assert.equal(driver.capabilities.scroll, false); assert.equal(driver.capabilities.depth, false);
+    assert.deepEqual(driver.deck!(), { h: 2, v: 1, f: null });
+    const rows = events.length; let changes = 0; const stop = driver.subscribe(() => changes++);
+    send(revealReport({ indexh: 2, indexv: 1 })); assert.equal(changes, 0, 'a repeated report changes nothing');
+    send(revealReport({ indexh: 3 })); assert.equal(changes, 1); stop();
+    assert.equal(events.length, rows, 'position reports do not rebuild inspector rows');
+    f.posts.length = 0;
+    assert.equal(driver.step!(1), true); assert.equal(driver.step!(-1), true);
+    assert.equal(driver.key('ArrowDown'), true); assert.equal(driver.key('ArrowUp'), true);
+    assert.equal(driver.scrollTo(400), false); assert.equal(driver.depth(), null);
+    assert.deepEqual(revealPosts(f).map(post => JSON.parse(post.data).method), ['next', 'prev', 'down', 'up']);
+    assert.ok(f.posts.every(post => post.origin === 'https://slides.com'), 'commands name the deck origin, never a wildcard');
+    assert.equal(f.marker.dataset.interactOpts, undefined, 'a deck never writes authored options');
+    f.posts.length = 0; f.frame.dispatchEvent(new f.dom.window.Event('load'));
+    assert.equal(driver.capabilities.backend, 'outside'); assert.equal(driver.deck!(), null);
+    assert.equal(revealPosts(f).length, 1, 'a reload asks the deck again');
+  } finally { driver.destroy(); f.dom.window.close(); }
+});
+test('only a link that asked for reports is sent reveal.js commands, and a receiver outranks a deck', () => {
+  const f = fixture(); const driver = createWebPageDriver(f.frame as unknown as HTMLIFrameElement, f.marker as unknown as HTMLElement);
+  const send = messenger(f);
+  try {
+    assert.equal(revealPosts(f).length, 0, 'an ordinary page is never sent reveal.js text');
+    assert.equal(driver.step!(1), false);
+    send(revealReport({ indexh: 0 }));
+    assert.equal(driver.capabilities.backend, 'reveal', 'a deck whose own script reports is recognised');
+    send({ type: 'lolly:present', v: 1, kind: 'ready', can: ['scroll'] });
+    assert.equal(driver.capabilities.backend, 'receiver');
+    send(revealReport({ indexh: 4 }));
+    assert.equal(driver.capabilities.backend, 'receiver'); assert.equal(driver.deck!(), null);
+    assert.equal(driver.step!(1), false);
+  } finally { driver.destroy(); f.dom.window.close(); }
+});
