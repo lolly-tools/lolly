@@ -3,9 +3,9 @@
 import { DESIGN_DRAW_VERSION, paddingArea, type DesignDrawPage, type DrawBox, type DrawOp, type DrawShape } from './design-draw.ts';
 import * as pmath from './geom/portable-math.ts';
 import { parseSvgPath } from './svg-path.ts';
-import { lineToCubic, type Cubic } from './geom/bezier.ts';
+import { lineToCubic, splitCubic, subCubic, type Cubic } from './geom/bezier.ts';
 import { selfUnionChecked } from './geom/boolean.ts';
-import { pathBounds, pathFromSubPaths, type Contour, type GeomPath } from './geom/path.ts';
+import { closeContour, pathBounds, pathFromSubPaths, type Contour, type GeomPath } from './geom/path.ts';
 import { strokeToPath, type CapStyle } from './geom/stroke.ts';
 import type { JoinStyle } from './geom/offset.ts';
 
@@ -13,9 +13,10 @@ export const DESIGN_RASTER_VERSION = 1;
 /**
  * Primitives keep their Skia-matched edge coverage; paths and outlined words are filled
  * by exact per-pixel area over edges flattened to 1/32 output pixel; gradients colour a
- * primitive's coverage per pixel, interpolated premultiplied.
+ * primitive's coverage per pixel, interpolated premultiplied; a row's clip polygon
+ * multiplies the coverage of each of that row's steps by the polygon's exact area coverage.
  */
-export const DESIGN_RASTER_RECIPE = 'design-static-primitives-edge-aa-area-fills-gradients-rgba8-v3';
+export const DESIGN_RASTER_RECIPE = 'design-static-primitives-edge-aa-area-fills-gradients-row-clips-rgba8-v4';
 export const DESIGN_RASTER_MAX_PIXELS = 16 * 1024 * 1024;
 export const DESIGN_RASTER_MAX_OPS = 1024;
 export const DESIGN_RASTER_MAX_DIMENSION = 8192;
@@ -24,8 +25,14 @@ export const DESIGN_RASTER_MAX_EDGES = 262_144;
 export const DESIGN_RASTER_MAX_FILL_EDGES = 65_536;
 /** Stops in one gradient. */
 export const DESIGN_RASTER_MAX_STOPS = 256;
+/** Points in one row's clip polygon; Design writes four for a rectangle and 48 for an ellipse. */
+export const DESIGN_RASTER_MAX_CLIP_POINTS = 64;
+/** Dashes in one stroke; a dot outlines to four curves, so the merge's budget caps dots near 2000. */
+export const DESIGN_RASTER_MAX_DASHES = 4096;
 /** How far a flattened edge may stray from its curve, in output pixels. */
 const FLATTEN_TOLERANCE_PX = 1 / 32;
+/** How far Chromium's path measure lets a curve's control points stray from the chords it measures along, in output pixels. */
+const MEASURE_TOLERANCE_PX = 1 / 2;
 
 export interface DesignRasterFinding { id: string; feature: string }
 export interface DesignRasterPrimitive {
@@ -80,6 +87,20 @@ export interface DesignRasterClip {
   readonly radius: number;
   readonly from: number;
 }
+/**
+ * Another row's silhouette clipping one row, as Design's `clip-path: polygon()` clips it:
+ * the polygon's points as x, y pairs in page coordinates (not turned with the row), their
+ * bounds, and the row's paint steps from `from` up to but not including `to`. Each of
+ * those steps is drawn at its own coverage times the polygon's, under the nonzero rule.
+ */
+export interface DesignRasterRowClip {
+  readonly id: string;
+  readonly points: readonly number[];
+  /** x0, y0, x1, y1. */
+  readonly bounds: readonly [number, number, number, number];
+  readonly from: number;
+  readonly to: number;
+}
 /** One step of the paint order: a primitive, a fill or a gradient, by index. */
 export type DesignRasterPaint = readonly ['primitive' | 'fill' | 'gradient', number];
 
@@ -101,6 +122,8 @@ export interface DesignRasterEvaluation {
   readonly paint: readonly DesignRasterPaint[];
   /** The frame's clip, when it clips its rows inside the page edge. */
   readonly clip: DesignRasterClip | null;
+  /** Rows clipped by another row's silhouette, in paint order. */
+  readonly rowClips: readonly DesignRasterRowClip[];
 }
 export type DesignRasterAdmission = { ok: true; evaluation: DesignRasterEvaluation } | { ok: false; findings: DesignRasterFinding[] };
 
@@ -114,7 +137,7 @@ const dense = (value: readonly unknown[]) => { for (let i = 0; i < value.length;
 function primitive(op: DrawOp, findings: DesignRasterFinding[]): DesignRasterPrimitive | null {
   const reject = (feature: string): null => { findings.push({ id: typeof op?.id === 'string' ? op.id.slice(0, 256) : '', feature }); return null; };
   if (op?.op !== 'shape') return reject('raster-op');
-  if (!keys(op, ['id', 'op', 'box', 'shape', 'fills', 'stroke', 'opacity', 'pose', 'words'])) return reject('raster-feature');
+  if (!keys(op, ['id', 'op', 'box', 'shape', 'fills', 'stroke', 'opacity', 'pose', 'words', 'clip'])) return reject('raster-feature');
   const b = op.box, s = op.shape;
   if (typeof op.id !== 'string' || op.id.length > 256 || !b || !keys(b, ['x', 'y', 'w', 'h'])
     || ![b.x, b.y, b.w, b.h].every(finite) || b.w <= 0 || b.h <= 0
@@ -228,7 +251,7 @@ const rgbOf = (hex: string): [number, number, number] | null =>
 function pathFill(op: DrawOp, tolerance: number, findings: DesignRasterFinding[]): DesignRasterFill | null | undefined {
   const reject = (feature: string): null => { findings.push({ id: op.id.slice(0, 256), feature }); return null; };
   if (op.op !== 'shape' || op.shape.kind !== 'path') return reject('raster-path');
-  if (!keys(op, ['id', 'op', 'box', 'shape', 'fills', 'stroke', 'opacity', 'pose'])) return reject('raster-feature');
+  if (!keys(op, ['id', 'op', 'box', 'shape', 'fills', 'stroke', 'opacity', 'pose', 'clip'])) return reject('raster-feature');
   if (!finite(op.opacity) || op.opacity < 0 || op.opacity > 100 || !Array.isArray(op.fills) || op.fills.length > 1) return reject('raster-paint');
   if (!op.fills.length) return undefined;
   const paint = op.fills[0]!;
@@ -286,18 +309,104 @@ function outlineContour(b: DrawBox, shape: Exclude<DrawShape, { kind: 'path' }>,
 const CAPS: readonly string[] = ['butt', 'round', 'square'];
 const JOINS: readonly string[] = ['miter', 'round', 'bevel'];
 
+/** Where a measured chord ends: the distance along the contour, the curve it lies on and that curve's t there. */
+interface Chord { distance: number; curve: number; t: number }
+
+/**
+ * A contour measured as Chromium's Skia measures it to place dashes: each cubic halved until
+ * its control points lie within `tolerance` of the points a third and two thirds along its
+ * chord (at most 20 times), and the chords' lengths summed. Exact arc length would place a
+ * dash on a curve up to half a pixel later than the browser does. A curve of no length adds
+ * no chord, so no dash ever starts on one. Null past the chord budget.
+ */
+function measure(curves: readonly Cubic[], tolerance: number): Chord[] | null {
+  const chords: Chord[] = [];
+  let distance = 0;
+  const strays = (q: Cubic) => Math.max(Math.abs(q[2] - q[0] - (q[6] - q[0]) / 3), Math.abs(q[3] - q[1] - (q[7] - q[1]) / 3)) > tolerance
+    || Math.max(Math.abs(q[4] - q[0] - 2 * (q[6] - q[0]) / 3), Math.abs(q[5] - q[1] - 2 * (q[7] - q[1]) / 3)) > tolerance;
+  const visit = (curve: number, q: Cubic, t0: number, t1: number, depth: number): void => {
+    if (depth < 20 && strays(q)) {
+      const [a, b] = splitCubic(q, 0.5);
+      visit(curve, a, t0, (t0 + t1) / 2, depth + 1); visit(curve, b, (t0 + t1) / 2, t1, depth + 1);
+      return;
+    }
+    const next = distance + Math.hypot(q[6] - q[0], q[7] - q[1]);
+    if (next > distance) { distance = next; chords.push({ distance, curve, t: t1 }); }
+  };
+  for (const [i, q] of curves.entries()) {
+    visit(i, q, 0, 1, 0);
+    if (chords.length > DESIGN_RASTER_MAX_FILL_EDGES) return null;
+  }
+  return chords;
+}
+
+/**
+ * A path's dashes as Chromium draws `stroke-dasharray` with no offset, the pattern Design's
+ * path hook writes. The pattern restarts on every contour. On a closed contour the first
+ * dash is drawn last, and when the final dash reaches the start the first one continues it,
+ * so the two meet in a join rather than two caps. A dash of no length is a point, which a
+ * round or square cap draws as a dot. Null past the dash budget.
+ */
+function dashContours(path: GeomPath, pattern: readonly [number, number], tolerance: number): GeomPath | null {
+  const dashes: Contour[] = [];
+  for (const source of path) {
+    const curves = (source.closed ? closeContour(source) : source).curves;
+    const chords = measure(curves, tolerance);
+    if (!chords) return null;
+    const length = chords.at(-1)?.distance ?? 0;
+    if (!(length > 0)) continue;
+    if (dashes.length + length / (pattern[0] + pattern[1]) > DESIGN_RASTER_MAX_DASHES) return null;
+    const drawn = [...new Set(chords.map(c => c.curve))], order = new Map(drawn.map((c, i) => [c, i]));
+    // A distance's curve and t: the first chord that reaches it, read linearly in t across that chord.
+    const at = (d: number): [number, number] => {
+      let lo = 0, hi = chords.length - 1;
+      while (lo < hi) { const mid = (lo + hi) >> 1; if (chords[mid]!.distance >= d) hi = mid; else lo = mid + 1; }
+      const chord = chords[lo]!, before = chords[lo - 1];
+      const d0 = before?.distance ?? 0, t0 = before?.curve === chord.curve ? before.t : 0;
+      return [chord.curve, t0 + (chord.t - t0) * Math.min(1, Math.max(0, (d - d0) / (chord.distance - d0)))];
+    };
+    // The curves between two distances. A dash that starts at the very end of one curve does
+    // not keep that curve's last point as a curve of its own, which has no direction to stroke along.
+    const piece = (from: number, to: number): Cubic[] => {
+      const [c0, t0] = at(from), [c1, t1] = at(Math.min(length, to));
+      if (c0 === c1) return [subCubic(curves[c0]!, t0, t1)];
+      const head = t0 < 1 ? [subCubic(curves[c0]!, t0, 1)] : [];
+      return [...head, ...drawn.slice(order.get(c0)! + 1, order.get(c1)!).map(c => [...curves[c]!] as Cubic), subCubic(curves[c1]!, 0, t1)];
+    };
+    const start = dashes.length;
+    // A closed contour's first dash is drawn last.
+    let distance = 0, index = 0, added = false, skip = source.closed;
+    while (distance < length) {
+      added = false;
+      if (index === 0 && !skip) { dashes.push({ closed: false, curves: piece(distance, distance + pattern[0]) }); added = true; }
+      distance += pattern[index]!; index = 1 - index; skip = false;
+    }
+    if (source.closed) {
+      if (!added || dashes.length === start) dashes.push({ closed: false, curves: piece(0, pattern[0]) });
+      else if (pattern[0] > 0) dashes[dashes.length - 1]!.curves.push(...piece(0, pattern[0]));
+    }
+  }
+  return dashes;
+}
+
+/** A dash pattern Design's path hook can write: a dash and a gap, neither negative, together longer than nothing. */
+const dashPattern = (dash: unknown): dash is [number, number] => Array.isArray(dash) && dash.length === 2 && dense(dash)
+  && dash.every(n => finite(n) && n >= 0 && n <= 1e4) && dash[0] + dash[1] > 0;
+
 /**
  * A shape's stroke as the fill of the region it paints, drawn over the shape's fills. A
  * box's stroke is a CSS border: the ring between the box and the box inside the border.
- * A pen shape's stroke is centred on its path and outlined by `strokeToPath` with its cap,
- * its join and SVG's mitre limit. Dashes are refused, and so is a stroke over a fill or
- * words when the operation fades as a group. Undefined when the stroke paints nothing.
+ * A pen shape's stroke is centred on its path, cut into its dashes when it has a pattern,
+ * and outlined by `strokeToPath` with its cap, its join and SVG's mitre limit. A dashed
+ * border is refused, since CSS spaces a border's dashes side by side rather than along the
+ * outline, and so is a stroke over a fill or words when the operation fades as a group.
+ * Undefined when the stroke paints nothing.
  */
-function strokeFill(op: DrawOp, tolerance: number, findings: DesignRasterFinding[]): DesignRasterFill | null | undefined {
+function strokeFill(op: DrawOp, tolerance: number, measureTolerance: number, findings: DesignRasterFinding[]): DesignRasterFill | null | undefined {
   const reject = (feature: string): null => { findings.push({ id: op.id.slice(0, 256), feature }); return null; };
   const s = op.op === 'shape' ? op.stroke : undefined;
   if (op.op !== 'shape' || !s || typeof s !== 'object' || !keys(s, ['color', 'opacity', 'width', 'cap', 'join', 'dash', 'align'])) return reject('raster-stroke');
-  if (s.dash !== undefined) return reject('raster-dash');
+  if (s.dash !== undefined && (op.shape.kind !== 'path' || !dashPattern(s.dash))) return reject('raster-dash');
   const rgb = typeof s.color === 'string' ? rgbOf(s.color) : null;
   if (!rgb || (s.opacity !== undefined && !unit(s.opacity)) || !finite(s.width) || s.width <= 0 || s.width > 1e4) return reject('raster-stroke');
   if (op.opacity < 100 && (op.fills.length || op.words)) return reject('raster-group');
@@ -308,7 +417,22 @@ function strokeFill(op: DrawOp, tolerance: number, findings: DesignRasterFinding
     const path: GeomPath = op.shape.contours.map(contour => ({ closed: contour.closed === true, curves: contour.curves.map(q => [...q] as Cubic) }));
     if (curveCount(path) > MAX_FILL_CURVES || !inRange(path)) return reject('raster-budget');
     // The pose turns and mirrors without scaling, so outlining before it gives the same region.
-    outline = strokeToPath(path, s.width, { cap: cap as CapStyle, join: join as JoinStyle, miterLimit: 4, tol: tolerance });
+    const options = { cap: cap as CapStyle, join: join as JoinStyle, miterLimit: 4, tol: tolerance };
+    if (s.dash) {
+      const dashed = dashContours(path, s.dash, measureTolerance);
+      if (!dashed || curveCount(dashed) > MAX_FILL_CURVES) return reject('raster-budget');
+      // Each dash is outlined on its own and the merge below unites them. Outlined together,
+      // `strokeToPath` reads a point within half the width of a butt end as painted, so it
+      // took the outline of a dash shorter than the width for a hole and dropped that dash.
+      outline = [];
+      let curves = 0;
+      for (const dash of dashed) {
+        const part = strokeToPath([dash], s.width, options);
+        curves += curveCount(part);
+        if (curves > MAX_FILL_CURVES) return reject('raster-budget');
+        outline.push(...part);
+      }
+    } else outline = strokeToPath(path, s.width, options);
   } else {
     // A centred stroke on a box is the preview reading, which this renderer does not draw.
     if (s.align !== 'inside' || s.cap !== undefined || s.join !== undefined) return reject('raster-stroke');
@@ -403,6 +527,18 @@ function gradientOf(op: DrawOp, primitive: number, findings: DesignRasterFinding
     tile: Object.freeze([tile.x, tile.y, tile.w, tile.h]) as DesignRasterGradient['tile'], stops: Object.freeze(flat) });
 }
 
+/** A row's clip polygon as flat x, y pairs in page coordinates, or null when it is not one. */
+function clipPoints(clip: unknown): number[] | null {
+  const points = clip && typeof clip === 'object' && exact(clip, ['points']) ? (clip as { points: unknown }).points : undefined;
+  if (!Array.isArray(points) || points.length < 3 || points.length > DESIGN_RASTER_MAX_CLIP_POINTS || !dense(points)) return null;
+  const flat: number[] = [];
+  for (const p of points) {
+    if (!Array.isArray(p) || p.length !== 2 || !dense(p) || !p.every(n => finite(n) && Math.abs(n) <= 1e6)) return null;
+    flat.push(p[0], p[1]);
+  }
+  return flat;
+}
+
 /** Whole-page admission is synchronous, before any device acquisition or asynchronous work. */
 export function prepareDesignRaster(page: DesignDrawPage, output?: { width: number; height: number; dpi?: number }): DesignRasterAdmission {
   const findings: DesignRasterFinding[] = [];
@@ -416,7 +552,7 @@ export function prepareDesignRaster(page: DesignDrawPage, output?: { width: numb
   const frame = page.frame;
   // The frame paints the whole page, square, rounded or elliptical; primitive admission checks its radius.
   if ((frame?.shape?.kind !== 'rect' && frame?.shape?.kind !== 'ellipse') || !frame.box || frame.box.x !== 0 || frame.box.y !== 0
-    || frame.box.w !== page.width || frame.box.h !== page.height || frame.opacity !== 100 || frame.pose) findings.push({ id: frame?.id ?? '', feature: 'raster-frame' });
+    || frame.box.w !== page.width || frame.box.h !== page.height || frame.opacity !== 100 || frame.pose || frame.clip !== undefined) findings.push({ id: frame?.id ?? '', feature: 'raster-frame' });
   const area = page.clip, edge = area?.box, outline = area?.shape;
   let clip: Omit<DesignRasterClip, 'from'> | null = null;
   if (area !== undefined) {
@@ -426,18 +562,31 @@ export function prepareDesignRaster(page: DesignDrawPage, output?: { width: numb
         && outline.radius >= 0 && outline.radius <= Math.min(edge.w, edge.h) / 2)) findings.push({ id: frame?.id ?? '', feature: 'raster-page-clip' });
     else clip = { box: Object.freeze([edge.x, edge.y, edge.w, edge.h]) as DesignRasterClip['box'], shape: outline.kind, radius: outline.kind === 'rect' ? outline.radius : 0 };
   }
-  const tolerance = FLATTEN_TOLERANCE_PX / Math.max(pixelWidth / (page.width || 1), pixelHeight / (page.height || 1));
+  const scale = Math.max(pixelWidth / (page.width || 1), pixelHeight / (page.height || 1));
+  const tolerance = FLATTEN_TOLERANCE_PX / scale, measureTolerance = MEASURE_TOLERANCE_PX / scale;
   const ops: DesignRasterPrimitive[] = [], fills: DesignRasterFill[] = [], gradients: DesignRasterGradient[] = [], paint: DesignRasterPaint[] = [];
+  const rowClips: DesignRasterRowClip[] = [];
   let from = 0;
   for (const op of [...(frame ? [frame] : []), ...page.ops]) {
     if (op !== frame && !from) from = paint.length;
+    const start = paint.length;
+    // Every step this row paints is drawn inside the polygon of the row that clips this one. Design
+    // writes that polygon in the box's own frame without its mirror, so on a mirrored box it
+    // draws the clip mirrored about the box centre; such a row is refused rather than drawn otherwise.
+    const points = op !== frame && op?.clip !== undefined ? clipPoints(op.clip) : undefined;
+    if (points === null || (points && (op.pose?.flipH || op.pose?.flipV))) { findings.push({ id: typeof op?.id === 'string' ? op.id.slice(0, 256) : '', feature: 'raster-clip' }); continue; }
+    const clipRow = () => {
+      if (!points || paint.length === start) return;
+      rowClips.push(Object.freeze({ id: op.id.slice(0, 256), points: Object.freeze(points), bounds: Object.freeze(boundsOf(points)) as DesignRasterRowClip['bounds'], from: start, to: paint.length }));
+    };
     const addFill = (fill: DesignRasterFill) => { paint.push(Object.freeze(['fill', fills.length]) as DesignRasterPaint); fills.push(fill); };
     if (op?.op === 'shape' && op.shape?.kind === 'path') {
       const fill = pathFill(op, tolerance, findings);
       if (fill === null) continue;
       if (fill) addFill(fill);
-      const stroke = op.stroke ? strokeFill(op, tolerance, findings) : undefined;
+      const stroke = op.stroke ? strokeFill(op, tolerance, measureTolerance, findings) : undefined;
       if (stroke) addFill(stroke);
+      clipRow();
       continue;
     }
     const p = primitive(op, findings);
@@ -446,17 +595,18 @@ export function prepareDesignRaster(page: DesignDrawPage, output?: { width: numb
     const gradient = gradientOf(op, ops.length - 1, findings);
     if (gradient) { paint.push(Object.freeze(['gradient', gradients.length]) as DesignRasterPaint); gradients.push(gradient); }
     // A CSS border paints over the background and under the words.
-    const stroke = op.op === 'shape' && op.stroke ? strokeFill(op, tolerance, findings) : undefined;
+    const stroke = op.op === 'shape' && op.stroke ? strokeFill(op, tolerance, measureTolerance, findings) : undefined;
     if (stroke) addFill(stroke);
     const words = wordFills(op, tolerance, findings);
     for (const fill of words ?? []) addFill(fill);
+    clipRow();
   }
   if (fills.reduce((n, f) => n + f.edges.length / 4, 0) > DESIGN_RASTER_MAX_EDGES) findings.push({ id: '', feature: 'raster-budget' });
   if (findings.length) return { ok: false, findings };
   return { ok: true, evaluation: Object.freeze({ version: DESIGN_RASTER_VERSION, drawingVersion: DESIGN_DRAW_VERSION, recipe: DESIGN_RASTER_RECIPE,
     width: page.width, height: page.height, pixelWidth, pixelHeight, dpi, resources: Object.freeze([]) as readonly [], ops: Object.freeze(ops),
     fills: Object.freeze(fills), gradients: Object.freeze(gradients), paint: Object.freeze(paint),
-    clip: clip && from ? Object.freeze({ ...clip, from }) : null }) };
+    clip: clip && from ? Object.freeze({ ...clip, from }) : null, rowClips: Object.freeze(rowClips) }) };
 }
 
 /** A handed-off fill, checked field by field. */
@@ -489,11 +639,30 @@ function readGradient(g: unknown, primitives: number): DesignRasterGradient | nu
     tile: Object.freeze([...v.tile]) as DesignRasterGradient['tile'], stops: Object.freeze([...v.stops]) });
 }
 
+/** Handed-off row clips, checked field by field: each over a run of paint steps after the first, in order and apart. */
+function readRowClips(value: unknown, steps: number): DesignRasterRowClip[] | null {
+  if (!Array.isArray(value) || !dense(value) || value.length > DESIGN_RASTER_MAX_OPS) return null;
+  const clips: DesignRasterRowClip[] = [];
+  let after = 1;
+  for (const c of value as unknown[]) {
+    const v = c as DesignRasterRowClip;
+    if (!c || typeof c !== 'object' || !exact(v, ['id', 'points', 'bounds', 'from', 'to']) || typeof v.id !== 'string' || v.id.length > 256
+      || !Array.isArray(v.points) || !dense(v.points) || v.points.length % 2 || v.points.length < 6 || v.points.length > DESIGN_RASTER_MAX_CLIP_POINTS * 2
+      || !v.points.every(n => finite(n) && Math.abs(n) <= 1e6) || !Array.isArray(v.bounds) || v.bounds.length !== 4
+      || !Number.isInteger(v.from) || !Number.isInteger(v.to) || v.from < after || v.to <= v.from || v.to > steps) return null;
+    const b = boundsOf(v.points);
+    if (b.some((n, i) => n !== v.bounds[i])) return null;
+    clips.push(Object.freeze({ id: v.id, points: Object.freeze([...v.points]), bounds: Object.freeze(b) as DesignRasterRowClip['bounds'], from: v.from, to: v.to }));
+    after = v.to;
+  }
+  return clips;
+}
+
 /** Validate a worker handoff without trusting a structured clone's former freeze or TypeScript type. */
 export function readDesignRasterEvaluation(value: unknown): DesignRasterEvaluation | null {
   if (!value || typeof value !== 'object') return null;
   const e = value as DesignRasterEvaluation;
-  if (!exact(e, ['version', 'drawingVersion', 'recipe', 'width', 'height', 'pixelWidth', 'pixelHeight', 'dpi', 'resources', 'ops', 'fills', 'gradients', 'paint', 'clip'])
+  if (!exact(e, ['version', 'drawingVersion', 'recipe', 'width', 'height', 'pixelWidth', 'pixelHeight', 'dpi', 'resources', 'ops', 'fills', 'gradients', 'paint', 'clip', 'rowClips'])
     || e.version !== DESIGN_RASTER_VERSION || e.drawingVersion !== DESIGN_DRAW_VERSION || e.recipe !== DESIGN_RASTER_RECIPE
     || !size(e.pixelWidth) || !size(e.pixelHeight) || !finite(e.dpi) || e.dpi < 1 || e.dpi > 9600
     || !Array.isArray(e.resources) || e.resources.length || !Array.isArray(e.ops) || !e.ops.length || e.ops.length > DESIGN_RASTER_MAX_OPS + 1
@@ -510,6 +679,8 @@ export function readDesignRasterEvaluation(value: unknown): DesignRasterEvaluati
     || (c.shape !== 'rect' && c.shape !== 'ellipse') || !finite(c.radius) || c.radius < 0 || c.radius > Math.min(c.box[2], c.box[3]) / 2
     || (c.shape === 'ellipse' && c.radius !== 0))) return null;
   const clip = c && Object.freeze({ box: Object.freeze([...c.box]) as DesignRasterClip['box'], shape: c.shape, radius: c.radius, from: c.from });
+  const rowClips = readRowClips(e.rowClips, e.paint.length);
+  if (!rowClips) return null;
   if (fills.reduce((n, f) => n + f.edges.length / 4, 0) > DESIGN_RASTER_MAX_EDGES) return null;
   // Every primitive, fill and gradient appears once, each kind in its own order, the frame
   // first, and a gradient straight after the primitive it paints.
@@ -538,7 +709,7 @@ export function readDesignRasterEvaluation(value: unknown): DesignRasterEvaluati
   const result = prepareDesignRaster({ version: DESIGN_DRAW_VERSION, width: e.width, height: e.height, background: '', frame: rows[0] as DesignDrawPage['frame'], ops: rows.slice(1), findings: [] }, { width: e.pixelWidth, height: e.pixelHeight, dpi: e.dpi });
   if (!result.ok) return null;
   return Object.freeze({ ...result.evaluation, fills: Object.freeze(fills), gradients: Object.freeze(gradients),
-    paint: Object.freeze(e.paint.map(([kind, index]) => Object.freeze([kind, index]) as DesignRasterPaint)), clip });
+    paint: Object.freeze(e.paint.map(([kind, index]) => Object.freeze([kind, index]) as DesignRasterPaint)), clip, rowClips: Object.freeze(rowClips) });
 }
 
 /** The identity names semantic input and output geometry, never an adapter or GPU resource. */

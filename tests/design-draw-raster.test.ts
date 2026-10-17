@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 import { compileDesignDraw, layoutDesignDrawText, outlineDesignDrawText, type DesignDrawPage, type DrawShapeOp } from '../engine/src/design-draw.ts';
 import type { TextShaperV1 } from '../engine/src/design-text-measure.ts';
 import { encodeAuthoredPaths } from '../engine/src/geom/authored-url.ts';
+import { lineToCubic, type Cubic } from '../engine/src/geom/bezier.ts';
 import { DESIGN_RASTER_RECIPE, designRasterIdentity, prepareDesignRaster, readDesignRasterEvaluation, type DesignRasterEvaluation } from '../engine/src/design-draw-raster.ts';
 import { createDesignRasterRenderer } from '../shells/web/src/lib/webgpu/design-page.ts';
 import { createDesignPageWorker } from '../shells/web/src/lib/webgpu/design-page-worker.ts';
+import * as shaders from '../shells/web/src/lib/webgpu/design-page-shader.ts';
 
 function page(): DesignDrawPage {
   return compileDesignDraw([{ id: 'frame', kind: 'frame', w: 64, h: 48, bg: '#ffffff' },
@@ -29,9 +32,10 @@ test('raster admission freezes detached ordered semantics and output geometry', 
 
 test('coverage recipe revision rejects stale handoffs and changes detached raster identity', () => {
   const current = evaluation();
-  assert.equal(DESIGN_RASTER_RECIPE, 'design-static-primitives-edge-aa-area-fills-gradients-rgba8-v3');
+  assert.equal(DESIGN_RASTER_RECIPE, 'design-static-primitives-edge-aa-area-fills-gradients-row-clips-rgba8-v4');
   assert.equal(current.recipe, DESIGN_RASTER_RECIPE);
-  for (const recipe of ['design-static-primitives-rgba8-v0', 'design-static-primitives-edge-aa-rgba8-v1', 'design-static-primitives-edge-aa-area-fills-rgba8-v2']) {
+  for (const recipe of ['design-static-primitives-rgba8-v0', 'design-static-primitives-edge-aa-rgba8-v1', 'design-static-primitives-edge-aa-area-fills-rgba8-v2',
+    'design-static-primitives-edge-aa-area-fills-gradients-rgba8-v3']) {
     const stale = { ...structuredClone(current), recipe };
     assert.equal(readDesignRasterEvaluation(stale), null, `${recipe} is stale`);
     assert.notEqual(designRasterIdentity(current), designRasterIdentity(stale as DesignRasterEvaluation));
@@ -63,6 +67,9 @@ test('wrong versions, malformed geometry, unresolved colors and size/operation b
 function gpu(fault: 'allocation' | 'map' | 'scope' | 'cancel' | 'loss' | 'cancel-reject' | null = null, failAt = 1) {
   const controller = new AbortController(), cancellation = new AbortController();
   let created = 0, destroyed = 0, allocations = 0, scopes = 0, pipelines = 0;
+  // Each bind group's entries, and the draws in order with the group bound for each.
+  const groups: Array<Array<{ binding: number; resource: { offset?: number; size?: number } }>> = [], draws: Array<[number, number]> = [];
+  let bound = -1;
   const resource = (size = 0) => {
     if (++allocations === failAt && fault === 'allocation') throw new Error('actual allocation fault');
     created++; let dead = false;
@@ -70,18 +77,19 @@ function gpu(fault: 'allocation' | 'map' | 'scope' | 'cancel' | 'loss' | 'cancel
       async mapAsync() { if (fault === 'map') throw new Error('actual mapping fault'); if (fault === 'cancel' || fault === 'cancel-reject') cancellation.abort(new DOMException('cancelled', 'AbortError')); if (fault === 'loss') controller.abort(new Error('actual device loss')); if (fault === 'cancel-reject') throw new Error('late rejected map'); },
       getMappedRange: () => new ArrayBuffer(size), unmap() {} };
   };
-  const pass = { setPipeline() {}, setBindGroup() {}, draw() {}, dispatchWorkgroups() {}, end() {} };
+  const pass = { setPipeline() {}, setBindGroup(_: number, group: { index: number }) { bound = group.index; }, draw(_: number, __: number, ___: number, index: number) { draws.push([index, bound]); }, dispatchWorkgroups() {}, end() {} };
   const device = {
     limits: { maxBufferSize: 1e8, maxStorageBufferBindingSize: 1e8, maxComputeWorkgroupsPerDimension: 65535, maxTextureDimension2D: 8192 },
     createBuffer: (d: { size: number }) => resource(d.size), createTexture: () => resource(),
     createShaderModule: () => ({}), async createRenderPipelineAsync() { pipelines++; return { getBindGroupLayout() {} }; },
-    async createComputePipelineAsync() { pipelines++; return { getBindGroupLayout() {} }; }, createBindGroup: () => ({}),
+    async createComputePipelineAsync() { pipelines++; return { getBindGroupLayout() {} }; },
+    createBindGroup: (d: { entries: (typeof groups)[number] }) => ({ index: groups.push(d.entries) - 1 }),
     queue: { writeBuffer() {}, submit() {} },
     createCommandEncoder: () => ({ beginRenderPass: () => pass, beginComputePass: () => pass, copyBufferToBuffer() {}, finish() {} }),
     pushErrorScope() { scopes++; }, async popErrorScope() { scopes--; if (fault === 'cancel-reject') throw new Error('late rejected scope'); return fault === 'scope' ? new Error('actual validation fault') : null; },
   } as unknown as GPUDevice;
   const render = createDesignRasterRenderer({ run: work => work(device), loss: () => controller.signal });
-  return { render, device, cancellation, counts: () => ({ created, destroyed, allocations, scopes, pipelines }) };
+  return { render, device, cancellation, groups, draws, counts: () => ({ created, destroyed, allocations, scopes, pipelines }) };
 }
 
 test('actual renderer releases every partial allocation, failed map and cancelled/lost job', async t => {
@@ -212,10 +220,12 @@ test('pen shapes and outlined words are admitted as closed, posed fills in paint
   ]) { const v = structuredClone(e) as Record<string, any>; tamper(v); assert.equal(readDesignRasterEvaluation(v), null); }
 });
 
-test('fills refuse dashes, centred box strokes, words the box would clip, group fades and live text', async () => {
+test('fills refuse dashed borders, centred box strokes, words the box would clip, group fades and live text', async () => {
   const findings = async (page: DesignDrawPage) => { const a = prepareDesignRaster(page); return a.ok ? [] : a.findings.map(f => `${f.feature}:${f.id}`); };
   assert.deepEqual(await findings(await fillPage([{ id: 'line', kind: 'path', x: 0, y: 80, w: 50, h: 20, path: triangle, stroke: '#000000', strokeW: 2 }])), []);
-  assert.deepEqual(await findings(await fillPage([{ id: 'dash', kind: 'path', x: 0, y: 80, w: 50, h: 20, path: triangle, stroke: '#000000', strokeW: 2, strokeDash: 'dashed' }])), ['raster-dash:dash']);
+  assert.deepEqual(await findings(await fillPage([{ id: 'dash', kind: 'path', x: 0, y: 80, w: 50, h: 20, path: triangle, stroke: '#000000', strokeW: 2, strokeDash: 'dashed' }])), [], 'a dashed pen stroke is drawn');
+  assert.deepEqual(await findings(await fillPage([{ id: 'dash', kind: 'box', x: 0, y: 80, w: 50, h: 20, bg: '#ff0000', stroke: '#000000', strokeW: 2, strokeDash: 'dashed' }])),
+    ['border-style:dash', 'raster-dash:dash'], 'CSS spaces a dashed border side by side, not as a pattern along the outline');
   assert.deepEqual(await findings(await fillPage([{ id: 'both', kind: 'path', x: 0, y: 80, w: 50, h: 20, path: triangle, bg: '#ff0000', stroke: '#000000', strokeW: 2, opacity: 50 }])), ['raster-group:both']);
   const centred = await fillPage([{ id: 'edge', kind: 'box', x: 0, y: 80, w: 50, h: 20, bg: '#ff0000', stroke: '#000000', strokeW: 2 }]);
   delete (centred.ops.at(-1) as DrawShapeOp).stroke!.align;
@@ -396,4 +406,171 @@ test('overlapping contours are merged before they become a fill, and a fill past
   const b = prepareDesignRaster(compileDesignDraw([{ id: 'frame', kind: 'frame', w: 200, h: 120, bg: '#ffffff' },
     { id: 'comb', kind: 'path', x: 0, y: 0, w: 100, h: 100, path: comb, bg: '#000000' }] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' }));
   assert.deepEqual(!b.ok && b.findings.map(f => `${f.feature}:${f.id}`), ['raster-budget:comb']);
+});
+
+/** A page whose pen shapes run straight between their nodes at an even pace, so each dash falls exactly where the pattern says. */
+function evenPage(rows: Record<string, unknown>[]): DesignDrawPage {
+  const page = compileDesignDraw([{ id: 'frame', kind: 'frame', w: 200, h: 120, bg: '#ffffff' }, ...rows] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' });
+  for (const op of page.ops) {
+    if (op.op === 'shape' && op.shape.kind === 'path') op.shape.contours = op.shape.contours.map(c => ({ closed: c.closed, curves: c.curves.map(q => lineToCubic(q[0], q[1], q[6], q[7])) }));
+  }
+  return page;
+}
+/** The area a fill's closed edges enclose. */
+function edgeArea(edges: readonly number[]): number {
+  let twice = 0;
+  for (let i = 0; i < edges.length; i += 4) twice += edges[i]! * edges[i + 3]! - edges[i + 2]! * edges[i + 1]!;
+  return Math.abs(twice / 2);
+}
+const openLine = encodeAuthoredPaths([{ kind: 'cubic', closed: false, nodes: [{ x: 0, y: 0.5 }, { x: 1, y: 0.5 }] }] as never) ?? '';
+const square = (closed: boolean) => encodeAuthoredPaths([{ kind: 'cubic', closed, nodes: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }] }] as never) ?? '';
+const rails = encodeAuthoredPaths([{ kind: 'cubic', closed: false, nodes: [{ x: 0, y: 0 }, { x: 1, y: 0 }] }, { kind: 'cubic', closed: false, nodes: [{ x: 0, y: 1 }, { x: 1, y: 1 }] }] as never) ?? '';
+
+test('dashes cut a pen stroke as the path hook draws them: per contour, a closed contour joining its first dash to its last, dots under round and square caps', () => {
+  const butt = { stroke: '#000000', strokeW: 4, strokeCap: 'butt', strokeJoin: 'miter', strokeDash: 'dashed' };
+  const a = prepareDesignRaster(evenPage([
+    { id: 'dash', kind: 'path', x: 10, y: 10, w: 100, h: 10, path: openLine, ...butt, strokeDashLen: 10, strokeGapLen: 5 },
+    { id: 'stub', kind: 'path', x: 10, y: 20, w: 92, h: 10, path: openLine, ...butt, strokeDashLen: 10, strokeGapLen: 5 },
+    { id: 'dots', kind: 'path', x: 10, y: 30, w: 96, h: 10, path: openLine, stroke: '#000000', strokeW: 4, strokeDash: 'dotted' },
+    { id: 'squares', kind: 'path', x: 10, y: 50, w: 96, h: 10, path: openLine, stroke: '#000000', strokeW: 4, strokeDash: 'dotted', strokeCap: 'square' },
+    { id: 'joined', kind: 'path', x: 130, y: 10, w: 40, h: 40, path: square(true), ...butt, strokeDashLen: 30, strokeGapLen: 15 },
+    { id: 'apart', kind: 'path', x: 130, y: 70, w: 40, h: 40, path: square(true), ...butt, strokeDashLen: 30, strokeGapLen: 10 },
+    { id: 'rails', kind: 'path', x: 10, y: 80, w: 50, h: 20, path: rails, ...butt, strokeDashLen: 20, strokeGapLen: 10 },
+  // Curves flatten to 1/32 output px, so at 16x each chord sits within 1/512 px of its curve.
+  ]), { width: 3200, height: 1920, dpi: 1536 });
+  assert.ok(a.ok, JSON.stringify(!a.ok && a.findings));
+  const area = (id: string) => edgeArea(a.evaluation.fills.find(f => f.id === `${id}:stroke`)!.edges);
+  const near = (id: string, expected: number, within = 1e-6) => assert.ok(Math.abs(area(id) - expected) <= within, `${id}: ${area(id)} against ${expected}`);
+  near('dash', 7 * 10 * 4, 1e-6);
+  // The last dash is 2 px long, shorter than the stroke is wide, and is still drawn.
+  near('stub', (6 * 10 + 2) * 4, 1e-6);
+  // A zero-length dash every 8 px from the start, not at the end: twelve dots of radius 2,
+  // each written as four cubic arcs and flattened within 1/512 px.
+  near('dots', 12 * Math.PI * 4, 12 * ((2 / 3) * (4 * Math.PI) / 512 + 2.7e-4 * 2 * 4 * Math.PI));
+  near('squares', 12 * 16, 1e-6);
+  // Around a 160 px square, [30, 15] ends inside a dash, which runs on into the first one
+  // across the starting corner and turns it with a mitre: the corner square adds 4 px.
+  near('joined', 30 * 4 + 30 * 4 + (25 + 30) * 4 - 4 + 4);
+  // [30, 10] ends inside a gap, so the first dash is drawn on its own.
+  near('apart', 4 * 30 * 4);
+  // The pattern restarts on the second contour, so each rail carries two whole dashes.
+  near('rails', 4 * 20 * 4);
+  assert.equal(designRasterIdentity(readDesignRasterEvaluation(structuredClone(a.evaluation))!), designRasterIdentity(a.evaluation), 'dashes survive the worker handoff');
+});
+
+test('dashes on a curve cover the curve\'s own length, cut into the pattern', () => {
+  const wave = encodeAuthoredPaths([{ kind: 'cubic', closed: false, nodes: [{ x: 0, y: 0.5, hOutX: 0.4, hOutY: -0.8 }, { x: 1, y: 0.5, hInX: -0.4, hInY: 0.8 }] }] as never) ?? '';
+  const page = compileDesignDraw([{ id: 'frame', kind: 'frame', w: 200, h: 120, bg: '#ffffff' },
+    { id: 'wave', kind: 'path', x: 10, y: 10, w: 160, h: 80, path: wave, stroke: '#000000', strokeW: 2, strokeCap: 'butt', strokeDash: 'dashed', strokeDashLen: 12, strokeGapLen: 8 }] as never,
+  { width: 200, height: 120 }, { effects: true, colors: 'resolved' });
+  const a = prepareDesignRaster(page, { width: 3200, height: 1920, dpi: 1536 });
+  assert.ok(a.ok, JSON.stringify(!a.ok && a.findings));
+  let length = 0;
+  for (const c of (page.ops[0] as DrawShapeOp & { shape: { kind: 'path' } }).shape.contours) for (const q of c.curves as Cubic[]) {
+    let [px, py] = [q[0], q[1]];
+    for (let i = 1; i <= 4096; i++) {
+      const t = i / 4096, u = 1 - t;
+      const x = u * u * u * q[0] + 3 * u * u * t * q[2] + 3 * u * t * t * q[4] + t * t * t * q[6], y = u * u * u * q[1] + 3 * u * u * t * q[3] + 3 * u * t * t * q[5] + t * t * t * q[7];
+      length += Math.hypot(x - px, y - py); px = x; py = y;
+    }
+  }
+  let dashed = 0;
+  for (let d = 0; d < length; d += 20) dashed += Math.min(12, length - d);
+  // A band of width w about a curve flatter than w/2 covers w times its length, and the
+  // measure at 16x strays from the arc length by far less than a thousandth.
+  const covered = edgeArea(a.evaluation.fills[0]!.edges);
+  assert.ok(Math.abs(covered - 2 * dashed) < 1e-3 * 2 * dashed, `${covered} against ${2 * dashed}`);
+});
+
+test('dashed borders, malformed patterns and patterns past the dash budget are refused', () => {
+  const findings = (page: DesignDrawPage) => { const a = prepareDesignRaster(page); return a.ok ? [] : a.findings.map(f => `${f.feature}:${f.id}`); };
+  for (const dash of [[-1, 2], [Number.NaN, 1], [0, 0], [1], [1, 2, 3], 'dashed']) {
+    const page = evenPage([{ id: 'odd', kind: 'path', x: 10, y: 10, w: 100, h: 10, path: openLine, stroke: '#000000', strokeW: 2 }]);
+    (page.ops[0] as DrawShapeOp).stroke!.dash = dash as never;
+    assert.deepEqual(findings(page), ['raster-dash:odd'], JSON.stringify(dash));
+  }
+  assert.deepEqual(findings(evenPage([{ id: 'fine', kind: 'path', x: 10, y: 10, w: 100, h: 10, path: openLine, stroke: '#000000', strokeW: 0.01, strokeDash: 'dotted' }])), ['raster-budget:fine'], 'five thousand dots');
+});
+
+/** A box with a gradient and a border cut by a circle, and a stroked pen shape cut by a turned square. */
+const clippedPage = () => compileDesignDraw([{ id: 'frame', kind: 'frame', w: 200, h: 120, bg: '#ffffff' },
+  { id: 'circle', kind: 'box', x: 20, y: 20, w: 60, h: 60, shape: 'circle', bg: '#dddddd' },
+  { id: 'cut', kind: 'box', x: 10, y: 30, w: 100, h: 40, bg: '#ff0000', grad: 'lin.srgb_90_ffffff-0_00000000-100', stroke: '#000000', strokeW: 3, clip: 'circle', rot: 10 },
+  { id: 'tri', kind: 'path', x: 110, y: 20, w: 80, h: 80, path: triangle, bg: '#0000ff', stroke: '#00ff00', strokeW: 4, clip: 'turned' },
+  { id: 'turned', kind: 'box', x: 130, y: 40, w: 40, h: 40, rot: 30 },
+  { id: 'plain', kind: 'box', x: 10, y: 90, w: 30, h: 20, bg: '#000000' }] as never, { width: 200, height: 120 }, { effects: true, colors: 'resolved' });
+
+test('a row clipped by another row\'s silhouette carries the polygon over each of its paint steps, in page coordinates', () => {
+  const a = prepareDesignRaster(clippedPage());
+  assert.ok(a.ok, JSON.stringify(!a.ok && a.findings));
+  const e = a.evaluation;
+  const name = ([kind, i]: readonly [string, number]) => kind === 'primitive' ? e.ops[i]!.id : kind === 'fill' ? e.fills[i]!.id : e.gradients[i]!.id;
+  assert.deepEqual(e.paint.map(name), ['frame', 'circle', 'cut', 'cut:gradient', 'cut:stroke', 'tri', 'tri:stroke', 'turned', 'plain']);
+  assert.deepEqual(e.rowClips.map(c => [c.id, c.from, c.to, c.points.length / 2]), [['cut', 2, 5, 48], ['tri', 5, 7, 4]], 'each clipped row\'s own steps, and nothing after them');
+  const [circle, turned] = e.rowClips;
+  assert.ok(circle!.bounds.every((n, i) => Math.abs(n - [20, 20, 80, 80][i]!) < 1e-9), `the circle's polygon, not turned with the row: ${circle!.bounds}`);
+  const corner = Math.hypot(20, 20), reach = corner * Math.cos(Math.PI / 4 - Math.PI / 6);
+  assert.ok(Math.abs(turned!.bounds[0] - (150 - reach)) < 1e-9 && Math.abs(turned!.bounds[2] - (150 + reach)) < 1e-9, `the square turned by its own 30 degrees: ${turned!.bounds}`);
+  assert.equal(designRasterIdentity(readDesignRasterEvaluation(structuredClone(e))!), designRasterIdentity(e), 'row clips survive the worker handoff');
+  for (const tamper of [
+    (v: Record<string, any>) => { v.rowClips[0].from = 0; },
+    (v: Record<string, any>) => { v.rowClips[0].to = 6; },
+    (v: Record<string, any>) => { v.rowClips[1].to = 99; },
+    (v: Record<string, any>) => { v.rowClips[1].to = v.rowClips[1].from; },
+    (v: Record<string, any>) => { v.rowClips.reverse(); },
+    (v: Record<string, any>) => { v.rowClips[0].bounds[0] -= 1; },
+    (v: Record<string, any>) => { v.rowClips[0].points.pop(); },
+    (v: Record<string, any>) => { v.rowClips[1].points.length = 4; },
+    (v: Record<string, any>) => { v.rowClips[0].points = Array(130).fill(1); },
+    (v: Record<string, any>) => { v.rowClips[0].extra = 1; },
+    (v: Record<string, any>) => { delete v.rowClips; },
+  ]) { const v = structuredClone(e) as Record<string, any>; tamper(v); assert.equal(readDesignRasterEvaluation(v), null, tamper.toString()); }
+});
+
+test('a clip that is not a polygon is refused, and so are a clip on a mirrored row and a clip on the frame', () => {
+  const findings = (page: DesignDrawPage) => { const a = prepareDesignRaster(page); return a.ok ? [] : a.findings.map(f => `${f.feature}:${f.id}`); };
+  for (const clip of [{ points: [[0, 0], [1, 1]] }, { points: Array.from({ length: 65 }, (_, i) => [i, i % 2]) }, { points: [[0, 0], [1, 0], [Number.NaN, 1]] },
+    { points: [[0, 0], [1, 0], [1, 1, 1]] }, { points: [[0, 0], [1, 0], [1, 1]], rule: 'evenodd' }, null]) {
+    const page = clippedPage(); page.ops.find(op => op.id === 'cut')!.clip = clip as never;
+    assert.deepEqual(findings(page), ['raster-clip:cut'], JSON.stringify(clip));
+  }
+  // Design writes the polygon in the box's own frame without its mirror, so it would draw this clip mirrored.
+  const mirrored = clippedPage(); mirrored.ops.find(op => op.id === 'cut')!.pose = { rot: 10, flipH: true, flipV: false };
+  assert.deepEqual(findings(mirrored), ['raster-clip:cut']);
+  const framed = clippedPage(); framed.frame!.clip = { points: [[0, 0], [10, 0], [10, 10]] };
+  assert.deepEqual(findings(framed), ['raster-frame:frame']);
+});
+
+test('a page with row clips binds each clip at its own offset and draws each clipped step with it', async t => {
+  const prior = new Map<string, unknown>();
+  for (const [key, value] of Object.entries({ GPUBufferUsage: { STORAGE: 1, COPY_DST: 2, UNIFORM: 4, COPY_SRC: 8, MAP_READ: 16 }, GPUTextureUsage: { RENDER_ATTACHMENT: 1, TEXTURE_BINDING: 2 }, GPUMapMode: { READ: 1 } })) {
+    prior.set(key, Reflect.get(globalThis, key)); Reflect.set(globalThis, key, value);
+  }
+  t.after(() => { for (const [key, value] of prior) { if (value === undefined) Reflect.deleteProperty(globalThis, key); else Reflect.set(globalThis, key, value); } });
+  const a = prepareDesignRaster(clippedPage()); assert.ok(a.ok);
+  const f = gpu(); await f.render(a.evaluation);
+  assert.equal(f.counts().pipelines, 5, 'render and readback, then the row-clipped primitive, gradient and fill, each compiled once');
+  const before = f.groups.length, second = await f.render(a.evaluation);
+  assert.deepEqual([second.allocation.created, second.allocation.destroyed, second.allocation.liveBytes], [11, 11, 0], 'the six primitive resources, fills and edges, gradients and stops, and the row clips');
+  // Without a device alignment the clips sit 256-byte aligned, 768 bytes apart.
+  const at = new Map(f.groups.slice(before).flatMap((entries, index) => entries.filter(e => e.resource.size === 544).map(e => [before + index, e.resource.offset] as const)));
+  const drawn = f.draws.slice(-a.evaluation.paint.length).map(([, group]) => at.get(group) ?? null);
+  assert.deepEqual(drawn, [null, null, 0, 0, 0, 768, 768, null, null], 'the circle clips the box\'s three steps, the square the path\'s two');
+  for (let at = 1; at <= 11; at++) {
+    const g = gpu('allocation', at); await assert.rejects(g.render(a.evaluation), /actual allocation fault/);
+    assert.equal(g.counts().created, g.counts().destroyed); assert.equal(g.counts().scopes, 0);
+  }
+});
+
+test('row clip passes multiply coverage by the polygon once and leave the primitive shader text unchanged', () => {
+  // The zero-slack primitive pass draws exactly as before this slice.
+  assert.equal(createHash('sha256').update(shaders.DESIGN_PAGE_SHADER).digest('hex').slice(0, 8), 'c9ddcab2');
+  const factors = (shader: string) => [...shader.matchAll(/coverage = coverage \* (\w+)\(v\.position\.xy\);/g)].map(m => m[1]);
+  for (const [shader, expected] of [
+    [shaders.DESIGN_PAGE_ROW_CLIPPED_SHADER, ['rowClipCoverage']], [shaders.DESIGN_FILL_ROW_CLIPPED_SHADER, ['rowClipCoverage']],
+    [shaders.DESIGN_GRADIENT_ROW_CLIPPED_SHADER, ['rowClipCoverage']], [shaders.DESIGN_PAGE_BOTH_CLIPPED_SHADER, ['clipCoverage', 'rowClipCoverage']],
+    [shaders.DESIGN_FILL_BOTH_CLIPPED_SHADER, ['clipCoverage', 'rowClipCoverage']], [shaders.DESIGN_GRADIENT_BOTH_CLIPPED_SHADER, ['clipCoverage', 'rowClipCoverage']],
+    [shaders.DESIGN_PAGE_CLIPPED_SHADER, ['clipCoverage']], [shaders.DESIGN_PAGE_SHADER, []],
+  ] as const) assert.deepEqual(factors(shader), expected);
+  assert.equal(shaders.DESIGN_ROW_CLIP_BYTES, 544, 'bounds, the point count and 64 points two to a vector');
 });
