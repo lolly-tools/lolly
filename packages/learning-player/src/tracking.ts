@@ -316,33 +316,35 @@ export async function createLearningTracking(
 
   // Unsent statements and progress outlive a closed page under this attempt's
   // identity. Authorization and launch URLs are never stored, so a later launch
-  // of the same attempt has to authorize any replay.
+  // of the same attempt has to authorize any replay. Each statement carries the
+  // cmi5 session that made it (empty for Tin Can), and `started` and `ended`
+  // list the cmi5 sessions that queued initialized and terminated.
+  type Entry = { session: string; body: string };
   type Pending = {
     v: 1;
-    statements: string[];
-    session: string;
+    statements: Entry[];
     state: string | null;
     base: string | null;
-    started: string;
-    ended: string;
+    started: string[];
+    ended: string[];
   };
   const blank = (): Pending => ({
     v: 1,
     statements: [],
-    session: sessionId,
     state: null,
     base: null,
-    started: '',
-    ended: '',
+    started: [],
+    ended: [],
   });
+  const strings = (list: unknown) =>
+    Array.isArray(list) && list.every((s) => typeof s === 'string');
   const valid = (r: Partial<Pending> | undefined): r is Pending =>
     !!r &&
     r.v === 1 &&
     Array.isArray(r.statements) &&
-    r.statements.every((s) => typeof s === 'string') &&
-    typeof r.session === 'string' &&
-    typeof r.started === 'string' &&
-    typeof r.ended === 'string' &&
+    r.statements.every((s) => !!s && typeof s.session === 'string' && typeof s.body === 'string') &&
+    strings(r.started) &&
+    strings(r.ended) &&
     (r.state === null || typeof r.state === 'string') &&
     (r.base === null || typeof r.base === 'string');
   const sorted = (value: unknown): unknown =>
@@ -396,7 +398,12 @@ export async function createLearningTracking(
           record = valid(read.result) ? read.result : blank();
           if (!change) return;
           change(record);
-          if (record.statements.length || record.state !== null || record.started || record.ended)
+          if (
+            record.statements.length ||
+            record.state !== null ||
+            record.started.length ||
+            record.ended.length
+          )
             store.put(record, key);
           else store.delete(key);
         };
@@ -411,9 +418,9 @@ export async function createLearningTracking(
         local();
       }
     });
-  const forget = (body: string) =>
+  const forget = (...bodies: string[]) =>
     update((record) => {
-      record.statements = record.statements.filter((s) => s !== body);
+      record.statements = record.statements.filter((s) => !bodies.includes(s.body));
     });
   const compose = (verb: string) => {
     const ctx = structuredClone(context);
@@ -445,57 +452,76 @@ export async function createLearningTracking(
         : {}),
     });
   };
-  /** Stores a statement before the first send. Every retry then sends the same ID and timestamp. */
-  const queue = async (verb: string) => {
+  /**
+   * Stores a statement before the first send, just ahead of `before` when that
+   * is still queued. Every retry then sends the same ID and timestamp.
+   */
+  const queue = async (verb: string, before = '') => {
     const body = compose(verb);
     await update((record) => {
-      record.statements.push(body);
-      record.session = sessionId;
-      if (verb === 'initialized') record.started = sessionId;
-      if (verb === 'terminated') record.ended = sessionId;
+      const at = before ? record.statements.findIndex((s) => s.body === before) : -1;
+      record.statements.splice(at < 0 ? record.statements.length : at, 0, {
+        session: sessionId,
+        body,
+      });
+      const marks =
+        verb === 'initialized' ? record.started : verb === 'terminated' ? record.ended : null;
+      if (cmi5 && marks && !marks.includes(sessionId)) marks.push(sessionId);
     });
     return body;
   };
   const replayed = new Set<string>();
-  /** Sends unsent statements in the order they were made, stopping before `until`. */
+  const forbidden = new Set<string>();
+  /**
+   * Sends this session's unsent statements in the order they were made,
+   * stopping before `until`. Another open cmi5 session's statements stay for
+   * that session to send under its own authorization.
+   */
   const flush = async (until = '') => {
     for (;;) {
-      const body = (await update()).statements[0];
-      if (!body || body === until) return;
+      const entry = (await update()).statements.find(
+        (s) => s.session === sessionId && !forbidden.has(s.body)
+      );
+      if (!entry || entry.body === until) return;
+      const { body } = entry;
+      const old = replayed.has(body);
       try {
         await request(new URL('statements', base), { method: 'POST', body });
       } catch (error) {
-        // A definite refusal cannot be fixed by sending the same statement
-        // again, and keeping it would hold back every later one. An older
-        // statement the current launch is not authorized to send goes too,
-        // without stopping this launch.
         const status = statusOf(error);
-        const old = replayed.has(body);
-        if (
-          status >= 400 &&
-          status < 500 &&
-          status !== 408 &&
-          status !== 429 &&
-          (old || (status !== 401 && status !== 403))
-        ) {
+        // A 403 on an older statement may be the LMS closing that statement to
+        // this launch. Set it aside and drop it only once the LRS accepts one
+        // of this launch's own statements. A 401 says the credentials are bad,
+        // so every record stays.
+        if (old && status === 403) {
+          forbidden.add(body);
+          continue;
+        }
+        // Any other definite refusal cannot be fixed by sending the same
+        // statement again, and keeping it would hold back every later one.
+        if (status >= 400 && status < 500 && ![401, 403, 408, 429].includes(status)) {
           await forget(body);
           if (old) continue;
         }
         throw error;
       }
-      await forget(body);
+      if (old || !forbidden.size) await forget(body);
+      else {
+        await forget(body, ...forbidden);
+        forbidden.clear();
+      }
     }
   };
 
   const recovered = await update((record) => {
     // Another cmi5 session's statements lost their authorization with that session.
-    if (cmi5 && record.session !== sessionId) {
-      record.statements = [];
-      record.session = sessionId;
-      record.started = record.ended = '';
+    if (cmi5) {
+      record.statements = record.statements.filter((s) => s.session === sessionId);
+      record.started = record.started.filter((s) => s === sessionId);
+      record.ended = record.ended.filter((s) => s === sessionId);
     }
   });
-  for (const body of recovered.statements) replayed.add(body);
+  for (const { body } of recovered.statements) replayed.add(body);
   const progressId = 'lolly.progress.v1';
   if (recovered.statements.length || (!readOnly && recovered.state !== null)) {
     // Reading the attempt's document first proves this launch's authorization
@@ -525,20 +551,20 @@ export async function createLearningTracking(
       });
     }
   }
-  if (cmi5 && recovered.ended === sessionId) {
+  if (cmi5 && recovered.ended.includes(sessionId)) {
     // This session was already ending: deliver its own records, never new ones.
     await flush().catch(() => {});
     throw new Error('This learning session has ended. Relaunch it from your LMS.');
   }
-  const opening = cmi5 && recovered.started === sessionId ? '' : await queue('initialized');
+  const opening = cmi5 && recovered.started.includes(sessionId) ? '' : await queue('initialized');
   try {
     await flush();
   } catch (error) {
     // A launch that cannot connect records nothing of its own.
     if (opening)
       await update((record) => {
-        record.statements = record.statements.filter((s) => s !== opening);
-        if (cmi5) record.started = '';
+        record.statements = record.statements.filter((s) => s.body !== opening);
+        record.started = record.started.filter((s) => s !== sessionId);
       });
     throw error;
   }
@@ -572,8 +598,9 @@ export async function createLearningTracking(
       await update((record) => {
         if (record.state === state) record.state = record.base = null;
       });
-      if (completed && !completionSent && !closing) {
-        await queue('completed');
+      // After a failed Exit, completion still goes ahead of the queued terminated.
+      if (completed && !completionSent) {
+        await queue('completed', closing);
         completionSent = true;
       }
       await flush(closing);

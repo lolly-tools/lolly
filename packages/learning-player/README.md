@@ -29,16 +29,21 @@ launch, held in memory, and excluded from package content.
 Unsent xAPI statements and progress are kept in IndexedDB under the attempt: LRS
 endpoint, activity, learner and registration. The record never holds the
 authorization, the launch URL or the cmi5 fetch URL. A later launch of the same
-attempt replays the record only after its own authorization succeeds, statements
-first and in their original order. cmi5 statements replay only in the session that
-made them; another session's are dropped rather than relabelled, and a session that
-had already queued `terminated` delivers it and refuses to continue. Recovered
-progress replaces the LRS document only when that document is unchanged since the
-copy was made, so newer progress from another device wins. Review and browse
-launches keep that progress for a later normal launch. A statement the LRS refuses
-outright is dropped rather than retried at every launch; an authorization failure
-keeps the record for a later launch. Without storage, retries last only while the
-page stays open.
+attempt replays the record only after its own authorization succeeds: older
+statements go before the new launch's own, in their original order, after any
+recovered progress. Each cmi5 statement records the session that made it and is
+sent only by a page of that session, under that session's token. When two pages of
+one registration are open, each sends only its own statements. A new session drops
+earlier sessions' statements rather than relabelling them, and a session that had
+already queued `terminated` delivers it and refuses to continue. Recovered progress
+replaces the LRS document only when that document is unchanged since the copy was
+made, so newer progress from another device wins. Review and browse launches keep
+that progress for a later normal launch. A statement the LRS refuses outright is
+dropped rather than retried at every launch. A 401 on any statement keeps the whole
+record and fails the launch. A 403 on an older statement sets it aside, and it is
+dropped only once the LRS accepts one of the new launch's own statements. A
+completion reached after a failed exit is still sent before `terminated`. Without
+storage, retries last only while the page stays open.
 
 The xAPI targets are experimental. There is no automatic credential renewal or
 standalone hosted xAPI delivery. The browser record is a recovery aid for one
