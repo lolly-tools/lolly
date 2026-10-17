@@ -36,6 +36,7 @@ import type { UiTokenKind } from '../brand-vars.ts';
 import { listLollyUiTokens, lollyUiOverride, lollyUiTokenDocument, removeLollyUiOverride, setLollyUiOverride } from './lolly-ui-tokens.ts';
 
 import { mountTokenWorkspace } from '../components/token-workspace.ts';
+import { webTokenConsumerSources } from './token-consumer-index.ts';
 
 export interface StudioTabCtx {
   host: HostV1;
@@ -198,7 +199,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
   const workspaceRoot = document.createElement('section');
   mount.prepend(workspaceRoot);
   const workspace = mountTokenWorkspace(workspaceRoot, {
-    read: ctx.doc, host: ctx.host,
+    read: ctx.doc, host: ctx.host, consumers: webTokenConsumerSources(ctx.host),
     commit: candidate => {
       const current = ctx.doc();
       for (const key of Object.keys(current)) delete current[key];
