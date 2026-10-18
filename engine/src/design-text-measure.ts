@@ -438,8 +438,12 @@ export interface DesignTextDrawRunV1 {
   underline?: boolean;
   strike?: boolean;
 }
-/** One drawn line, in the box's own coordinates: the baseline and the line's left edge after alignment. */
-export interface DesignTextDrawLineV1 { baseline: number; x: number; width: number; runs: DesignTextDrawRunV1[] }
+/**
+ * One drawn line, in the box's own coordinates: the baseline and the line's left edge after alignment.
+ * `hanging` holds the decorated spaces that hang past the line end in `pre-wrap`: they take no
+ * room in the line, yet the canvas still underlines or strikes them.
+ */
+export interface DesignTextDrawLineV1 { baseline: number; x: number; width: number; runs: DesignTextDrawRunV1[]; hanging?: DesignTextDrawRunV1[] }
 /** A text layer laid out for drawing, with the measure it was laid out by. */
 export interface DesignTextDrawV1 { measure: TextMeasureV1; lines: DesignTextDrawLineV1[] }
 
@@ -475,12 +479,13 @@ export async function drawDesignText(spec: TextMeasureSpecV1, shaper: TextShaper
         x: round2(border + result.pad + shift),
         width: line.width,
         runs: line.runs,
+        ...(line.hanging ? { hanging: line.hanging } : {}),
       };
     }),
   };
 }
 
-async function measureCore(spec: TextMeasureSpecV1, shaper: TextShaperV1, draw: boolean): Promise<{ result: TextMeasureV1; drawn: Array<{ baseline: number; width: number; runs: DesignTextDrawRunV1[] }> }> {
+async function measureCore(spec: TextMeasureSpecV1, shaper: TextShaperV1, draw: boolean): Promise<{ result: TextMeasureV1; drawn: Array<{ baseline: number; width: number; runs: DesignTextDrawRunV1[]; hanging?: DesignTextDrawRunV1[] }> }> {
   const s = settle(spec);
   const notes: string[] = [];
   const shaped = new Map<string, ShapedFace>();
@@ -497,7 +502,8 @@ async function measureCore(spec: TextMeasureSpecV1, shaper: TextShaperV1, draw: 
   const base: Face = { token: s.token, family: s.family, weight: s.weight, italic: false };
   const lines: TextMeasureLineV1[] = [];
   const lineFaces: Face[][] = [];
-  const pendingRuns: Array<{ width: number; runs: Array<{ text: string; x: number; width: number; face: Face; seg: Segment }> }> = [];
+  type PendingRun = { text: string; x: number; width: number; face: Face; seg: Segment };
+  const pendingRuns: Array<{ width: number; runs: PendingRun[]; hanging: PendingRun[] }> = [];
   const baselines: number[] = [];
   const margin = Math.max(3, 0.04 * s.size);
   let overWide = false;
@@ -587,19 +593,24 @@ async function measureCore(spec: TextMeasureSpecV1, shaper: TextShaperV1, draw: 
       for (let k = span.start; k < z; k++) faces.set(faceKey(faceAt[k]!), faceAt[k]!);
       lineFaces.push([...faces.values()]);
       if (draw) {
-        // The line's runs, each a stretch of one segment, placed by the paragraph's advances.
-        const runs: Array<{ text: string; x: number; width: number; face: Face; seg: Segment }> = [];
+        // The line's runs, each a stretch of one segment, placed by the paragraph's advances;
+        // the hanging spaces after them are placed the same way, past the line's end.
         let x = 0;
-        for (let k = span.start; k < z;) {
-          const n = segAt[k]!;
-          const stop = Math.min(z, segStart[n]! + segments[n]!.text.length);
-          let width = 0;
-          for (let i = k; i < stop; i++) width += advances[i]!;
-          runs.push({ text: drawn.slice(k, stop), x, width, face: segments[n]!.face, seg: segments[n]! });
-          x += width;
-          k = stop;
-        }
-        pendingRuns.push({ width: round2(w), runs });
+        const place = (from: number, to: number): PendingRun[] => {
+          const out: PendingRun[] = [];
+          for (let k = from; k < to;) {
+            const n = segAt[k]!;
+            const stop = Math.min(to, segStart[n]! + segments[n]!.text.length);
+            let width = 0;
+            for (let i = k; i < stop; i++) width += advances[i]!;
+            out.push({ text: drawn.slice(k, stop), x, width, face: segments[n]!.face, seg: segments[n]! });
+            x += width;
+            k = stop;
+          }
+          return out;
+        };
+        const runs = place(span.start, z);
+        pendingRuns.push({ width: round2(w), runs, hanging: place(z, span.end) });
       }
     });
   }
@@ -706,16 +717,16 @@ async function measureCore(spec: TextMeasureSpecV1, shaper: TextShaperV1, draw: 
   }
   if (s.border) notes.push(`A ${s.border} px border inside the box narrows the text area on both sides.`);
   if (/\t/.test(s.text)) notes.push('Tabs are measured as the face draws the tab character, not as tab stops.');
-  const drawnLines = pendingRuns.map((line, i) => ({
-    baseline: baselines[i] ?? 0,
-    width: line.width,
-    runs: line.runs.map((run): DesignTextDrawRunV1 => ({
-      text: run.text, x: round2(run.x), width: round2(run.width), face: faceOf(run.face),
-      ...(run.seg.run?.color ? { color: run.seg.run.color } : {}),
-      ...(run.seg.run?.underline ? { underline: true } : {}),
-      ...(run.seg.run?.strike ? { strike: true } : {}),
-    })),
-  }));
+  const drawRun = (run: PendingRun): DesignTextDrawRunV1 => ({
+    text: run.text, x: round2(run.x), width: round2(run.width), face: faceOf(run.face),
+    ...(run.seg.run?.color ? { color: run.seg.run.color } : {}),
+    ...(run.seg.run?.underline ? { underline: true } : {}),
+    ...(run.seg.run?.strike ? { strike: true } : {}),
+  });
+  const drawnLines = pendingRuns.map((line, i) => {
+    const hanging = line.hanging.filter((run) => run.seg.run?.underline || run.seg.run?.strike);
+    return { baseline: baselines[i] ?? 0, width: line.width, runs: line.runs.map(drawRun), ...(hanging.length ? { hanging: hanging.map(drawRun) } : {}) };
+  });
   return { result, drawn: drawnLines };
 }
 

@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.266.0
+
+- Outline Design underline in shared SVG, SVGZ and PDF drawing. The line follows the Design HTML reference's CSS auto placement, thickness and pixel rounding, and skip-ink clears it around each cluster outline returned by `text.toPath`, cut on whole pixels. CJK, Hangul, slashes and low lines keep the line, and decorated spaces that hang at a wrap are underlined in their own colour. A host without clusters, an unreadable outline or an unjudged pictograph retains the `text-decoration` finding.
+- The internal Design raster path refuses underlined or struck words with `raster-decoration`, since it fills only their glyphs.
+- Drawn Design text lines carry the decorated spaces that hang past the line end as an optional `hanging` list.
+
 ## 1.265.0
 
 - Theme groups can say what they mean. A `$themes` entry may carry `$extensions['com.suse.lolly'].axis` with a `kind` (`mode`, `colourway`, `expression`, `medium`, `contrast`, `density`, `campaign` or `brand`), `canonical`, `rotation` and a date `window`; a document whose themes cannot carry extensions may state the group facts once in a root `themeAxes` map. `TokenSelection.groups[]` gains optional `kind` and `canonical`, and `themes()` entries gain optional `id` and `kind`, plus `canonical: true` on the canonical theme of a group that declares a kind. A group with no kind, or one this version does not know, resolves exactly as before. New module `token-axes.ts`: `readTokenAxes`, `axisOfKind`, `modeAxis`, `ROTATION_POLICIES`. `TOKEN_AXIS_KINDS` is the shared list in `@lolly-tools/core`.

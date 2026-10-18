@@ -183,13 +183,15 @@ test('the CLI writes byte-identical SVG/SVGZ pages with default, live and outlin
   }
 });
 
-test('outlined decoration keeps the existing underline refusal', async () => {
-  for (const value of ['{u|Underline only}', '{u s|Underline and strike}']) {
-    const rows = [boxes[0], { ...boxes[1], text: value }];
-    const out = await designOpsSvgNode(frameNode('cover'), doc(rows), host, { repoRoot: ROOT });
-    assert.ok(out && 'reason' in out);
-    assert.match(out.reason, /text-decoration/, value);
-  }
+test('outlined underline is drawn from the operations, cleared where a descender crosses the line', async () => {
+  const lines = async (value: string) => {
+    const out = await designOpsSvgNode(frameNode('cover'), doc([boxes[0], { ...boxes[1], text: value }]), host, { repoRoot: ROOT });
+    assert.ok(out && 'svg' in out, `${value} is drawn (${out && 'reason' in out ? out.reason : 'no page'})`);
+    assert.doesNotMatch(out.svg, /<text|<tspan/);
+    return [...new JSDOM(out.svg).window.document.querySelectorAll('rect[height="4"]')].map((r) => ['x', 'y', 'width'].map((name) => r.getAttribute(name)));
+  };
+  assert.deepEqual(await lines('{u|Underline only}'), [['188.22', '116', '239.78'], ['447', '116', '4.78']], 'the y clears a gap whose edges sit on whole pixels');
+  assert.deepEqual(await lines('{u s|Underline and strike}'), [['138.5', '116', '363'], ['138.5', '99', '363']], 'the underline goes under the glyphs, the strike over them');
 });
 
 test('the CLI delivers variable-face outlined strikes as identical SVG/SVGZ without a browser', async () => {

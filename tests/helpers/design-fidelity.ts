@@ -133,6 +133,22 @@ export function fidelityPages(): FidelityPage[] {
       ],
     },
     {
+      // Descenders exercise skip-ink; the heavy row also carries a strike, the small row the one-pixel line.
+      name: 'underlines', width: 640, height: 400,
+      rows: [
+        frame('underlines', { bg: '#ffffff' }),
+        on('underlines', { id: 'light', kind: 'text', x: 20, y: 20, w: 280, h: 75, text: '{u|gyp jqy}', fontSize: 48, weight: 300, align: 'left', valign: 'top' }),
+        on('underlines', { id: 'regular', kind: 'text', x: 320, y: 20, w: 300, h: 75, text: '{u #d6336c|Typography}', fontSize: 48, weight: 400, align: 'right', valign: 'bottom' }),
+        on('underlines', { id: 'heavy', kind: 'text', x: 20, y: 105, w: 280, h: 75, text: '{u s|MM MM}', fontSize: 48, weight: 900, align: 'left', valign: 'top' }),
+        on('underlines', { id: 'italic', kind: 'text', x: 320, y: 105, w: 300, h: 75, text: '*{u|gypsy}*.', fontSize: 48, weight: 700, align: 'left', valign: 'top' }),
+        on('underlines', { id: 'mono', kind: 'text', x: 20, y: 195, w: 280, h: 65, text: '{mono u|jpg qp}.', fontSize: 36, weight: 700, tracking: 3, align: 'center', valign: 'top' }),
+        on('underlines', { id: 'clipped', kind: 'text', x: 320, y: 195, w: 220, h: 48, text: '{u #ffffff|Hug me}', fontSize: 32, shape: 'rounded', radius: 20, stroke: '#1971c2', strokeW: 4, bg: '#1864ab', opacity: 65, align: 'left', valign: 'top' }),
+        on('underlines', { id: 'wrapped', kind: 'text', x: 20, y: 265, w: 280, h: 115, text: '{u|Underline jumping glyphs}', fontSize: 28, weight: 400, tracking: 1, lineHeight: 1.5, align: 'left', valign: 'top' }),
+        on('underlines', { id: 'small', kind: 'text', x: 560, y: 195, w: 70, h: 40, text: '{u|quiet}', fontSize: 15, weight: 400, align: 'left', valign: 'top' }),
+        on('underlines', { id: 'turned', kind: 'text', x: 330, y: 270, w: 220, h: 75, text: '{u|Turned gap}', fontSize: 36, weight: 700, rot: 8, flipH: true, bg: '#fff3bf', align: 'center' }),
+      ],
+    },
+    {
       name: 'pictures', width: 640, height: 400,
       rows: [
         frame('pictures', { bg: '#ffffff' }),

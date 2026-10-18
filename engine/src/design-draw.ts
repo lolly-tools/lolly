@@ -25,7 +25,7 @@ import type { DesignBoxRowV1, TextMeasureFontsV1, TextMeasureSpecV1 } from '@lol
 
 import { DESIGN_LINE_HEIGHT, designTextPad, layoutDesignText } from './deck-compile.ts';
 import type { DesignTextRunV1 } from './design-text.ts';
-import { strikeGeometry, type DrawStrike, type StrikeMetrics } from './text-decoration.ts';
+import { strikeGeometry, underlineGeometry, underlineInkGaps, underlineSpans, type DrawStrike, type DrawUnderline, type StrikeMetrics } from './text-decoration.ts';
 import { DICTIONARY_SCRIPT, drawDesignText, textMeasureSpecOfRow, type DesignTextDrawV1, type TextShaperV1 } from './design-text-measure.ts';
 import { segmentEmojiText } from './emoji-segment.ts';
 import { decodeAuthoredPaths } from './geom/authored-url.ts';
@@ -148,6 +148,8 @@ export interface DrawWords {
   outlines?: Array<Array<string | null>>;
   /** Strike-through geometry per laid-out line/run, from that run's font instance. */
   strikes?: Array<Array<DrawStrike | null>>;
+  /** Underline pieces per laid-out line/run, cut where skip-ink clears that run's glyphs. */
+  underlines?: Array<Array<DrawUnderline | null>>;
 }
 /** Fills paint in order, under first; the stroke goes with the last fill. */
 export interface DrawShapeOp extends DrawOpBase {
@@ -782,15 +784,16 @@ export async function layoutDesignDrawText(page: DesignDrawPage, shaper: TextSha
 }
 
 /** The host text-to-path call, typed as in `HostV1.text.toPath`. */
-export type DrawTextToPath = (opts: { text: string; fontUrl: string; fontSize: number; features?: string[]; letterSpacing?: number; variations?: string[] }) => Promise<{ d: string }>;
+export type DrawTextToPath = (opts: { text: string; fontUrl: string; fontSize: number; features?: string[]; letterSpacing?: number; variations?: string[]; clusters?: boolean }) => Promise<{ d: string; clusters?: Array<{ start: number; d: string }> }>;
 /** Internal host facts, not a tool capability or a renderer-produced result. */
 export type DrawStrikeMetrics = (fontUrl: string, variations?: string[]) => Promise<StrikeMetrics | null>;
 
 /**
  * Outline every laid-out run with the host's `text.toPath`, in the face file and axes
  * the measure chose, so the words travel as shapes and the drawing needs no font.
- * Strike-through uses the same face instance's metrics. Underline remains reported
- * until its ink-skipping is qualified; a run the host cannot outline stays text.
+ * Strike-through uses the same face instance's metrics. Underline needs only the size
+ * and baseline; skip-ink reads each cluster's outline, so a host that returns no
+ * clusters leaves the underline reported. A run the host cannot outline stays text.
  */
 export async function outlineDesignDrawText(page: DesignDrawPage, toPath: DrawTextToPath, strikeMetrics?: DrawStrikeMetrics): Promise<void> {
   const metrics = new Map<string, Promise<StrikeMetrics | null>>();
@@ -802,11 +805,17 @@ export async function outlineDesignDrawText(page: DesignDrawPage, toPath: DrawTe
     let decorated = false, missing = false;
     words.outlines = [];
     delete words.strikes;
+    delete words.underlines;
     for (const line of layout.lines) {
       const row: Array<string | null> = [];
       const strikes: Array<DrawStrike | null> = [];
+      const underlines: Array<DrawUnderline | null> = [];
       for (const run of line.runs) {
-        if (run.underline) decorated = true;
+        const origin = op.box.x + line.x + run.x;
+        const band = run.underline ? underlineGeometry(m.size, op.box.y + line.baseline) : null;
+        if (run.underline && !band) decorated = true;
+        // Spaces carry the line with nothing to clear; a run that stays text draws its own.
+        underlines.push(band && !run.text.trim() ? { y: band.y, height: band.height, spans: underlineSpans(origin, run.width, [], band.dilation) } : null);
         const variations = run.face.variations ? Object.entries(run.face.variations).map(([axis, value]) => `${axis}=${value}`) : undefined;
         let strike: DrawStrike | null = null;
         if (run.strike) {
@@ -821,14 +830,35 @@ export async function outlineDesignDrawText(page: DesignDrawPage, toPath: DrawTe
         strikes.push(strike);
         if (!run.text.trim() || !run.face.file) { row.push(run.text.trim() ? null : ''); if (run.text.trim()) missing = true; continue; }
         try {
-          const { d } = await toPath({ text: run.text, fontUrl: run.face.file, fontSize: m.size, ...(features.length ? { features } : {}), ...(m.tracking ? { letterSpacing: m.tracking } : {}), ...(variations ? { variations } : {}) });
-          row.push(d);
+          const shaped = await toPath({ text: run.text, fontUrl: run.face.file, fontSize: m.size, ...(features.length ? { features } : {}), ...(m.tracking ? { letterSpacing: m.tracking } : {}), ...(variations ? { variations } : {}), ...(band ? { clusters: true } : {}) });
+          row.push(shaped.d);
+          if (band) {
+            const gaps = underlineInkGaps(run.text, shaped.clusters, band);
+            if (gaps) underlines[underlines.length - 1] = { y: band.y, height: band.height, spans: underlineSpans(origin, run.width, gaps, band.dilation) };
+            else decorated = true;
+          }
         } catch { row.push(null); missing = true; }
+      }
+      // Spaces hanging past the line end are fragments of their own with nothing to clear,
+      // so their line runs on from the last run's, in each fragment's own ink. A strike
+      // over them is not drawn yet.
+      const hanging = line.hanging?.filter((run) => run.underline) ?? [];
+      const last = line.runs.length - 1, band = hanging.length ? underlineGeometry(m.size, op.box.y + line.baseline) : null;
+      if (hanging.length && (last < 0 || !band)) decorated = true;
+      else if (band && row[last] !== null) {
+        const ink = (run: { color?: string }) => (run.color && /^#[0-9a-fA-F]{3,8}$/.test(run.color) ? run.color : words.ink);
+        const lastInk = ink(line.runs[last]!);
+        const pieces = hanging.map((run) => ({ x: run.x - line.runs[last]!.x, width: run.width, ...(ink(run) !== lastInk ? { ink: ink(run) } : {}) }));
+        underlines[last] = { y: band.y, height: band.height, spans: [...(underlines[last]?.spans ?? []), ...pieces] };
       }
       words.outlines.push(row);
       if (line.runs.some((run) => run.strike) || words.strikes) {
         words.strikes ??= words.outlines.slice(0, -1).map((r) => r.map(() => null));
         words.strikes.push(strikes);
+      }
+      if (line.runs.some((run) => run.underline) || hanging.length || words.underlines) {
+        words.underlines ??= words.outlines.slice(0, -1).map((r) => r.map(() => null));
+        words.underlines.push(underlines);
       }
     }
     if (decorated) page.findings.push({ id: op.id, feature: 'text-decoration' });
