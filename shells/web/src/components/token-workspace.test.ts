@@ -108,3 +108,32 @@ test('wide dependency details retain counts while rendering a bounded reference 
   assert.match(s.find('[data-tw-detail]').textContent!, /100 of 250 references/);
   s.workspace.teardown(); s.dom.window.close();
 });
+
+test('saved work and tools are checked only on request, inside the detail, with a stated scope', async () => {
+  let loads = 0;
+  const consumers = {
+    listSessions: async () => [{ slot: 'poster:1', toolId: 'poster', label: 'Night poster' }],
+    loadSession: async () => { loads++; return { accent: { ref: '{Ink}', value: '#111111' } }; },
+  };
+  const s = setup(undefined, { consumers });
+  try {
+    s.workspace.select('Ink');
+    assert.equal(loads, 0);
+    assert.match(s.find('[data-tw-consumers]').textContent!, /are not counted\./);
+    s.find<HTMLButtonElement>('[data-tw-consumers-check]').click();
+    for (let i = 0; i < 20 && !s.root.querySelector('[data-tw-consumers] li'); i++) await new Promise(resolve => setTimeout(resolve, 0));
+    assert.equal(loads, 1);
+    const section = s.find('[data-tw-consumers]').textContent!;
+    assert.match(section, /link this token directly: 1 of 1 read\./);
+    assert.match(section, /has not loaded on this device, so no tools are counted/);
+    assert.match(section, /Night poster/);
+    assert.equal(s.find('[data-tw-status]').textContent, 'Saved work check finished.');
+    s.workspace.select('Surface');
+    assert.match(s.find('[data-tw-consumers]').textContent!, /link this token directly: 0 of 1 read\./);
+    assert.equal(loads, 1);
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+  const plain = setup();
+  plain.workspace.select('Ink');
+  assert.equal(plain.root.querySelector('[data-tw-consumers]'), null);
+  plain.workspace.teardown(); plain.dom.window.close();
+});

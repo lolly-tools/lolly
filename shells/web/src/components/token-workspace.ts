@@ -9,6 +9,7 @@ import { sha256Hex } from '../../../../engine/src/bytes.ts';
 import { tokenSetNames } from '../../../../engine/src/token-selection.ts';
 import { canonicalJson } from '../../../../engine/src/canonical-json.ts';
 import { usageDependencies } from '../lib/design-system/usage-model.ts';
+import { createTokenConsumerCheck, type TokenConsumerSources } from '../lib/token-consumer-index.ts';
 import { escape as esc } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { changeSummaryHtml } from './change-summary.ts';
@@ -23,6 +24,8 @@ export interface TokenWorkspaceOptions {
   host?: HostV1;
   /** The caller owns persistence, policy and undo. Absent means inspection only. */
   commit?(candidate: Record<string, unknown>): void | Promise<void>;
+  /** Saved work and mounted tools to search for uses. Absent hides that check. */
+  consumers?: TokenConsumerSources;
 }
 const text = (v: unknown): string => v === undefined ? t('Unavailable') : JSON.stringify(v);
 const DETAIL_LIMIT = 100;
@@ -53,6 +56,7 @@ export function mountTokenWorkspace(mount: HTMLElement, options: TokenWorkspaceO
   const status = (message: string): void => { find('[data-tw-status]').textContent = message; };
   const on = (el: HTMLElement, event: string, fn: EventListener): void => { el.addEventListener(event, fn, { signal: abort.signal }); };
   const resolveOptions = (): TokenResolveOptions => ({ selection: choices });
+  const consumers = options.consumers ? createTokenConsumerCheck(options.consumers, { root: () => mount, announce: message => { status(message); } }) : undefined;
   const select = (path: string, push = true): void => {
     if (push && selected) { history.push(selected); history = history.slice(-64); }
     selected = path;
@@ -68,7 +72,7 @@ export function mountTokenWorkspace(mount: HTMLElement, options: TokenWorkspaceO
     detail.innerHTML = `<button type="button" class="btn btn--ghost" data-tw-back ${history.length ? '' : 'disabled'}>${t('Back to previous token')}</button><h4>${esc(token.path)}</h4><p>${esc(token.type ?? t('Unknown type'))} · ${token.source ? esc(token.source.set ?? t('Implicit set')) : t('Inactive definition')}</p>
       ${token.source?.description ? `<p>${esc(token.source.description)}</p>` : ''}<h5>${t('Value')}</h5><dl><dt>${t('Authored')}</dt><dd><code>${esc(text(token.authored))}</code></dd><dt>${t('Resolved')}</dt><dd><code>${esc(text(token.resolved))}</code></dd></dl>
       ${options.commit && token.source ? `<details class="section-card"><summary class="section-card-summary"><span class="section-card-title">${t('Edit source value')}</span></summary><p>${t('This edits the winning token definition in this system. Linked input overrides have their own controls.')}</p><textarea class="field-input" data-tw-source-value rows="4">${esc(text(token.authored))}</textarea><button type="button" class="btn btn--ghost" data-tw-edit-source>${t('Review source edit')}</button></details>` : ''}
-      ${recipe ? `<h5>${t('Generation recipe')}</h5><p>${esc(recipe.id)} · ${esc(recipe.kind)} · v${recipe.version}</p><pre>${esc(text({ base: recipe.base, ratio: recipe.ratio, seed: recipe.seed, count: recipe.count }))}</pre><p>${canonicalJson(token.authored) !== canonicalJson(recipe.outputs[token.path]) || Object.hasOwn(recipe.overrides ?? {}, token.path) ? t('Local generated-value override') : t('Generated value')}</p>${options.commit ? `<button type="button" class="btn btn--ghost" data-tw-reset-generated>${t('Use generated value')}</button>` : ''}` : ''}<h5>${t('References')}</h5>${links(token.references)}<h5>${t('Used by')}</h5><p>${t('Token references in this document only. Dynamic tool hooks and other documents are outside this count.')}</p>${links(token.usedBy)}
+      ${recipe ? `<h5>${t('Generation recipe')}</h5><p>${esc(recipe.id)} · ${esc(recipe.kind)} · v${recipe.version}</p><pre>${esc(text({ base: recipe.base, ratio: recipe.ratio, seed: recipe.seed, count: recipe.count }))}</pre><p>${canonicalJson(token.authored) !== canonicalJson(recipe.outputs[token.path]) || Object.hasOwn(recipe.overrides ?? {}, token.path) ? t('Local generated-value override') : t('Generated value')}</p>${options.commit ? `<button type="button" class="btn btn--ghost" data-tw-reset-generated>${t('Use generated value')}</button>` : ''}` : ''}<h5>${t('References')}</h5>${links(token.references)}<h5>${t('Used by')}</h5><p>${t('Token references in this document only. Dynamic tool hooks and other documents are outside this count.')}</p>${links(token.usedBy)}${consumers?.html(token.path) ?? ''}
       <h5>${t('Issues')}</h5>${token.diagnostics.length ? `<ul>${token.diagnostics.map(d => `<li>${esc(d.message)}</li>`).join('')}</ul>` : `<p>${t('No reference issues found')}</p>`}
       ${token.declaredConsumers?.length ? `<h5>${t('Declared roles and slots')}</h5><p>${t('Declarations in this source document. These are not observed render usage or rule checks.')}</p><ul>${token.declaredConsumers.map(consumer => `<li><strong>${esc(consumer.label)}</strong> <code>${esc(consumer.roleId)}</code>${consumer.bindings.length ? `<ul>${consumer.bindings.map(binding => `<li><code>${esc(binding.tool ?? t('Any tool'))} / ${esc(binding.slot)}</code>${binding.modes?.length ? ` · ${esc(binding.modes.join(', '))}` : ''}</li>`).join('')}</ul>` : ''}</li>`).join('')}</ul>` : ''}
       <h5>${t('Source and override order')}</h5><ol>${token.candidates.map(c => `<li><strong>${esc(c.set ?? t('Implicit set'))}</strong> · ${c.active ? c === token.source ? t('Winning definition') : t('Overridden') : t('Inactive')}<code>${esc(c.location)}</code><pre>${esc(text(c.value))}</pre></li>`).join('')}</ol>`;
@@ -161,7 +165,7 @@ export function mountTokenWorkspace(mount: HTMLElement, options: TokenWorkspaceO
   }
   on(mount, 'click', async event => {
     const target = (event.target as HTMLElement).closest<HTMLElement>('button');
-    if (!target) return;
+    if (!target || consumers?.click(target)) return;
     if (target.hasAttribute('data-tw-return-choices') && renderChoices) { choices = { ...renderChoices }; refresh(); find<HTMLSelectElement>('[data-tw-group]')?.focus(); }
     if (target.dataset.twToken !== undefined) select(target.dataset.twToken);
     if (target.dataset.twRef !== undefined) select(target.dataset.twRef);
@@ -252,7 +256,7 @@ export function mountTokenWorkspace(mount: HTMLElement, options: TokenWorkspaceO
     } catch (error) { if (!disposed) status((error as Error).message); }
   });
   refresh();
-  return { refresh, select, teardown(): void { disposed = true; abort.abort(); proofDispose?.(); mount.replaceChildren(); } };
+  return { refresh, select, teardown(): void { disposed = true; abort.abort(); consumers?.dispose(); proofDispose?.(); mount.replaceChildren(); } };
 }
 
 /** Read-only effective render inspection shares the app's native modal lifecycle. */
