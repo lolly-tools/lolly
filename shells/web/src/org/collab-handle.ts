@@ -436,6 +436,8 @@ export function createWorkCollabHandle(
     assets: opts.assets,
     admission: 'work-room',
     recoveryIn: { subscribe(fn) { recoverySubs.add(fn); for (const copy of provider.recoveries?.() ?? []) fn(copy); return () => { recoverySubs.delete(fn); }; } },
+    // A failed write leaves the copy to replay on the next connect, where it is found kept.
+    recoveryKept: id => { void provider.forgetRecovery?.(id).catch(() => {}); },
     saveIn: { subscribe(fn) { saveSubs.add(fn); fn(saveState()); return () => { saveSubs.delete(fn); }; } },
     adapter: provider.adapter,
     history: provider.history,
