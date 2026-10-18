@@ -107,12 +107,22 @@
  * means the same interception on `host.profile`, which is a wider blast radius (the
  * profile is identity, prefs and a11y, none of which should become ephemeral) and is
  * deliberately left for the wave that can scope it to the folder store alone.
+ *
+ * ── The host's history (plan 221 section 9) ───────────────────────────────────────
+ *
+ * The other side of the same rule: the inviter OWNS the document, so the inviter's
+ * device keeps its history, peer edits included. The tool view keeps local history off
+ * for every shared mount ({@link mountHistoryRole}); {@link hostDurableHistory} is the one
+ * exception, and it answers only for the plan this module adopted with a real store,
+ * never for an ephemeral one.
  */
 
 import { getCollabMount, registerCollabMount, takeParked } from './collab-mount.ts';
 import { registerCollabSessionSource } from './collab-session-source.ts';
 import type { CollabConnection, CollabSeed } from './collab-mount.ts';
-import type { CollabSessionHandle } from './collab-session.ts';
+import type { CollabSessionHandle, CollabStream } from './collab-session.ts';
+import { isCapturableCollabHistory } from './collab-history.ts';
+import type { P2PCollabHistory } from '../collab/rtc-history.ts';
 import type { WebStateAPI } from '../bridge/state.ts';
 // TYPE-ONLY, all four, and that matters rather than being just tidy: this module is on the
 // boot path (main.ts imports it for `installLiveCollabMount`'s side effect), and the
@@ -611,6 +621,118 @@ export function takeCarriedMountState(toolId: string): CarriedMountState | null 
   const state = carried;
   carried = null;
   return state;
+}
+
+/** What a P2P host's mount is given to keep the shared document in its own history. */
+export interface HostDurableHistory {
+  /**
+   * Call `listener` after each accepted peer edit has had a frame to land in this mount's
+   * runtime, so the host's history captures the converged document and not only the
+   * host's own edits. Edits that arrive within one frame call it once. Returns the
+   * unsubscribe.
+   */
+  onPeerEdit(listener: () => void): () => void;
+}
+
+/** The plumbing applies inbound ops on the next animation frame (`lib/collab-plumbing.ts`),
+ *  so a peer edit is read one frame plus one task later. A hidden tab runs no frames, so
+ *  the call waits until the edit can actually land, rather than reading the old model. */
+function afterNextFrame(fn: () => void): void {
+  const later = (): void => { setTimeout(fn, 0); };
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(later);
+  else later();
+}
+
+/**
+ * The P2P host's durable capture for this mount, or `null` for every other mount.
+ *
+ * Section 9 splits persistence by role. The host captures its own document's converged
+ * state, peer edits included, into history it owns; an invitee keeps memory-only history
+ * and writes nothing durable. So this answers only when ALL of these hold:
+ *
+ *  - `handle` is the session this module handed to a mount of `toolId` (a later mount of
+ *    the same tool is single-player and gets its own answer);
+ *  - that plan is not ephemeral and holds no memory bridge, so an acceptor's mount never
+ *    qualifies, whatever its transport says about itself;
+ *  - the transport's P2P history declares host persistence (`collab/rtc-history.ts`). A
+ *    Work room keeps its history on the server and never qualifies.
+ *
+ * The writes themselves are not made here. The tool view runs its ordinary local history
+ * over the mount's own `host.state`, which for this mount is the real store that already
+ * holds the inviter's saved document. Peer identities are not written into those
+ * revisions: on this track they are self-reported, so nothing durable claims them.
+ */
+export function hostDurableHistory(
+  toolId: string,
+  handle: CollabSessionHandle | null | undefined,
+  opts: { readonly frame?: (fn: () => void) => void } = {},
+): HostDurableHistory | null {
+  const plan = adopted;
+  if (!handle || !plan || plan.handle !== handle || plan.toolId !== toolId) return null;
+  if (plan.ephemeral || plan.state !== null) return null;
+  const history = handle.history;
+  if (!isCapturableCollabHistory(history) || (history as Partial<P2PCollabHistory>).persistence !== 'durable') return null;
+  const frame = opts.frame ?? afterNextFrame;
+  // Read by shape, as `views/tool-collab.ts` does: Track A publishes this lane, and a
+  // transport without it still mounts. The host then captures its own edits only.
+  const opsIn = (handle as { opsIn?: CollabStream<readonly unknown[]> }).opsIn;
+  return {
+    onPeerEdit(listener) {
+      if (!opsIn || typeof opsIn.subscribe !== 'function') return () => {};
+      let live = true, queued = false;
+      // The handle emits only ops that can change the document, so a peer restating
+      // what this side already holds is not an edit and calls nothing.
+      const off = opsIn.subscribe(ops => {
+        if (!live || queued || !ops?.length) return;
+        queued = true;
+        frame(() => { queued = false; if (live) listener(); });
+      });
+      return () => { live = false; off(); };
+    },
+  };
+}
+
+/** How one tool mount takes part in history on this device. */
+export interface MountHistoryRole {
+  /** The P2P host's durable capture ({@link hostDurableHistory}), or `null`. */
+  readonly hostHistory: HostDurableHistory | null;
+  /**
+   * The `shared` argument to `historyParticipation`: true keeps no local history here.
+   * Every live or ephemeral mount is shared except the P2P host.
+   */
+  readonly shared: boolean;
+  /**
+   * Send accepted peer edits to the host's own history controller and to nothing else.
+   * The session log is left out on purpose: it stamps every checkpoint with this
+   * client's name (`lib/collab-history-capture.ts`), so a peer's edit there would read
+   * as the host's. Returns the unsubscribe, or `null` when nothing was subscribed: the
+   * mount is not the host, or its tool keeps no local history.
+   */
+  followPeerEdits(durable: { changed(): void } | null | undefined): (() => void) | null;
+}
+
+/**
+ * The history role `views/tool/setup.ts` gives a mount, kept here so a test can run the
+ * same decision the view ships. `ephemeralState` is the memory bridge the mount was
+ * armed with, if any, and `sessionSource` says a transport is still registered.
+ */
+export function mountHistoryRole(opts: {
+  readonly toolId: string;
+  readonly collabHandle: CollabSessionHandle | null | undefined;
+  readonly ephemeralState: WebStateAPI | null | undefined;
+  readonly sessionSource: boolean;
+  readonly frame?: (fn: () => void) => void;
+}): MountHistoryRole {
+  const hostHistory = opts.ephemeralState ? null
+    : hostDurableHistory(opts.toolId, opts.collabHandle, opts.frame ? { frame: opts.frame } : {});
+  return {
+    hostHistory,
+    shared: (!!opts.collabHandle && !hostHistory) || !!opts.ephemeralState || opts.sessionSource,
+    followPeerEdits(durable) {
+      if (!hostHistory || !durable) return null;
+      return hostHistory.onPeerEdit(() => { durable.changed(); });
+    },
+  };
 }
 
 /**

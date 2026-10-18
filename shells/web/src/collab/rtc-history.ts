@@ -12,8 +12,16 @@
  * restore over a live P2P document needs the negotiated barrier protocol (plan 221
  * section 9's `history-v1`), which is later work, so `canRestore` is false even for a host
  * writer whatever `collabHistoryPolicy` allows in principle. "Save a copy" is the only
- * path that turns a shared revision into durable local work, and it goes through the
- * caller's real persistent bridge deliberately - never through this store.
+ * path that turns a shared revision into durable local work on an invitee's device, and
+ * it goes through the caller's real persistent bridge deliberately - never through this
+ * store.
+ *
+ * The host is the one participant whose device keeps the shared document (section 9: the
+ * inviter owns persistence). That durable record is NOT this log: it is the host's own
+ * local history, which captures the converged document, peer edits included, through the
+ * host's real state bridge exactly as it does for any other creation. This module only
+ * says which side of that line it is on, through `persistence`, so the mount can decide
+ * (`lib/collab-live-mount.ts` `hostDurableHistory`). It still writes nothing itself.
  */
 
 import type { SavedStateData } from '../bridge/state.ts';
@@ -24,6 +32,13 @@ import type { CapturableCollabHistory, CollabHistoryCheckpoint, CollabHistoryEnt
 export interface P2PCollabHistory extends CapturableCollabHistory {
   /** Always offered on this track, so the contract's optional member is required here. */
   saveCopy(id: string): Promise<SavedStateData | null>;
+  /**
+   * Where this device keeps the shared document's own history. `durable` for the host:
+   * its local history keeps the converged document in its own store, so this session log
+   * is the only temporary part. `memory` for an invitee: nothing about the session
+   * outlives it here. This log is memory-only either way.
+   */
+  readonly persistence: 'durable' | 'memory';
 }
 
 export interface P2PHistoryOptions {
@@ -57,6 +72,7 @@ export function createP2PCollabHistory(options: P2PHistoryOptions): P2PCollabHis
   return {
     scope: policy.scope,
     durability: policy.durability,
+    persistence: options.host ? 'durable' : 'memory',
     canRestore: false,
     canSaveCopy: policy.canSaveCopy,
 
