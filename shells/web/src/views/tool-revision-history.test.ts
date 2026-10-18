@@ -11,7 +11,10 @@
  *   set still drops it; flush, close and a cap release the wait when no picture comes;
  * - a tool with no export bar (Text) still has its slot remembered by the browser
  *   entry, until the controller is disposed;
- * - a page too large to photograph keeps its checkpoints without a preview.
+ * - a page too large to photograph keeps its checkpoints without a preview;
+ * - a saved record that still holds a file's bytes (a save from before history kept
+ *   the tool, a Make variants copy) is adopted with the file recorded as not kept, so
+ *   history keeps going instead of pausing.
  *
  * Run directly:  node --import ./tests/css-stub.mjs --test shells/web/src/views/tool-revision-history.test.ts
  */
@@ -30,6 +33,7 @@ Object.assign(globalThis, { window: dom.window, document: dom.window.document, l
 const { createStateAPI } = await import('../bridge/state.ts');
 const { createRevisionStore } = await import('../bridge/revision-history.ts');
 const { mountActionHistory, documentWords, PREVIEW_MAX_ELEMENTS, PREVIEW_TIMING, SAVE_PICTURE_TIMING } = await import('./tool-revision-history.ts');
+const { historyRedact, notKeptFiles } = await import('./tool-history-adapters.ts');
 // A preview waits for a pause; the tests shorten the wait, keep the interval long.
 Object.assign(PREVIEW_TIMING, { quietMs: 30, idleTimeoutMs: 10, intervalMs: 60_000 });
 const PNG = new dom.window.Blob([Uint8Array.from([137, 80, 78, 71])], { type: 'image/png' });
@@ -250,6 +254,44 @@ test('a preview waits for a pause, skips a page too large to photograph, and is 
   assert.deepEqual(await photographed(PREVIEW_MAX_ELEMENTS + 100, async checkpoint => { await checkpoint(); await pause(120); }), { renders: 0, kept: 1 });
   // An edit during the wait: no photograph; the next checkpoint offers again.
   assert.equal((await photographed(12, async (checkpoint, changed) => { await checkpoint(); changed(); await pause(120); })).renders, 0);
+});
+
+test('a saved record that still holds a file is adopted with the file recorded as not kept, and history keeps going', async () => {
+  const { db: memory } = memoryDb();
+  const db = memory as unknown as IDBPDatabase;
+  const lut = { __file: true, name: 'warm.cube', mime: 'text/plain', size: 4, bytes: Uint8Array.from([1, 2, 3, 4]), url: null };
+  const slot = 'darkroom:legacy';
+  // Saved the way Save wrote Darkroom before history kept it, with the LUT's bytes.
+  await createStateAPI(db as unknown as StateDb).save(slot, { __toolId: 'darkroom', exposure: 1, lutFile: lut });
+  const state = createStateAPI(db as unknown as StateDb, createRevisionStore(db));
+  let exposure = 1, active: string | null = slot;
+  const controller = mountActionHistory({
+    enabled: true, host: { state, export: { render: async () => PNG } } as never, toolId: 'darkroom', el: null, canvas: null,
+    getSlot: () => active, setSlot: next => { active = next; }, takeFolder: () => null, notKept: ['lutFile'],
+    // keptSnapshot: the live document, which still has the LUT loaded, in the form history keeps.
+    snapshot: () => historyRedact({ __toolId: 'darkroom', exposure, lutFile: lut }, ['lutFile']),
+  });
+  assert.ok(controller);
+  try {
+    // The adopt runs as the controller starts, before any edit.
+    for (let i = 0; i < 100 && !(await state.history!.list({ slot })).entries.length && controller.activity() !== 'paused'; i++) await pause(20);
+    assert.notEqual(controller.activity(), 'paused', controller.status());
+    const adopted = (await state.history!.list({ slot })).entries;
+    assert.equal(adopted.length, 1, 'the saved record is adopted as a saved revision');
+    const kept = await state.history!.read(adopted[0]!.id);
+    assert.deepEqual(notKeptFiles(kept ?? {}, ['lutFile']), ['warm.cube'], 'the revision records the LUT as not kept');
+    const saved = (await state.load(slot))?.lutFile as { bytes?: unknown } | undefined;
+    assert.ok(ArrayBuffer.isView(saved?.bytes), 'the record stays as it was saved until the next draft');
+
+    exposure = 2;
+    controller.changed();
+    await controller.flush();
+    assert.equal(controller.activity(), 'checkpoint', controller.status());
+    assert.equal((await state.history!.list({ slot })).entries.length, 2, 'the edit is a checkpoint');
+    const record = await state.load(slot);
+    assert.equal(record?.exposure, 2);
+    assert.deepEqual(record?.lutFile, { notKept: true, name: 'warm.cube', mime: 'text/plain', size: 4 }, 'the record now keeps the LUT as history does');
+  } finally { controller.dispose(); }
 });
 
 test('documentWords: the first prose longtext, else the first two text inputs, never a JSON value', () => {

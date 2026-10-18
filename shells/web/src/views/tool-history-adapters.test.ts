@@ -12,9 +12,11 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
-import { fileInputPaths, historyClass, historyException, historyParticipation, trackRevisionInput, type HistoryClass, type HistoryManifest } from './tool-history-adapters.ts';
+import { fileInputPaths, historyClass, historyException, historyParticipation, historyRedact, isNotKeptFile, notKeptFiles, trackRevisionInput, withoutNotKept, type HistoryClass, type HistoryManifest } from './tool-history-adapters.ts';
 import { createAutomaticHistory } from './automatic-history.ts';
 import type { RevisionEntry } from '../bridge/revision-history.ts';
+import { captureRevision } from '../bridge/revision-capture.ts';
+import { buildInputModel } from '../../../../engine/src/inputs.ts';
 
 const ROOT = fileURLToPath(new URL('../../../../', import.meta.url));
 const LETTER: Readonly<Record<HistoryClass, 'A' | 'B' | 'C' | 'D'>> = { document: 'A', 'side-file': 'B', settings: 'C', recording: 'D' };
@@ -67,21 +69,22 @@ test('SUSE: the pack adds 12 document tools and 1 recording tool', { skip: suseM
   assert.deepEqual(ids.D, ['top-tail-recorder']);
 });
 
-test('every document tool keeps history unless the exceptions map names it; the other classes wait for their phase', () => {
+test('every document and side-file tool keeps history unless the exceptions map names it; the other classes wait for their phase', () => {
   for (const tool of [...community.values(), ...suse.values()]) {
     const cls = historyClass(tool);
     const local = historyParticipation(tool, false);
-    const expected = cls === 'document' && historyException(tool.id) === null;
+    const expected = (cls === 'document' || cls === 'side-file') && historyException(tool.id) === null;
     assert.equal(local.localHistory, expected, `${tool.id} (${cls})`);
     assert.equal(local.mode, expected ? 'document' : 'none', tool.id);
     assert.equal(local.recordDeviceActivity, true, tool.id);
     assert.deepEqual(historyParticipation(tool, true), { mode: 'none', localHistory: false, recordDeviceActivity: false, notKept: local.notKept }, `${tool.id} shared`);
   }
-  // No class A tool is excepted today: phase 0 found every one round-trips.
-  for (const tool of community.values()) if (historyClass(tool) === 'document') assert.equal(historyException(tool.id), null, tool.id);
-  assert.match(historyException('3d') ?? '', /historyRedact/);
+  // No class A or B tool is excepted today: phase 0 found every document tool round-trips,
+  // and 3d and Darkroom left the map once historyRedact recorded their files as not kept.
+  for (const tool of community.values()) if (historyClass(tool) === 'document' || historyClass(tool) === 'side-file') assert.equal(historyException(tool.id), null, tool.id);
   assert.equal(historyException('constructor'), null, 'a prototype key is not an exception');
-  assert.deepEqual(historyParticipation(community.get('darkroom')!, false).notKept, ['lutFile']);
+  assert.deepEqual(historyParticipation(community.get('darkroom')!, false), { mode: 'document', localHistory: true, recordDeviceActivity: true, notKept: ['lutFile'] });
+  assert.deepEqual(historyParticipation(community.get('3d')!, false), { mode: 'document', localHistory: true, recordDeviceActivity: true, notKept: ['modelUpload'] });
   assert.deepEqual(historyParticipation(community.get('sandbox')!, false), { mode: 'document', localHistory: true, recordDeviceActivity: true, notKept: [] });
 });
 
@@ -99,6 +102,7 @@ test('the rule reads the discriminators the code acts on, with no id list', () =
   const nested: HistoryManifest = { ...base, inputs: [{ id: 'rows', type: 'blocks', fields: [{ id: 'f', type: 'file' }] }] };
   assert.equal(historyClass(nested), 'side-file');
   assert.deepEqual(fileInputPaths(nested.inputs), ['rows.f']);
+  assert.deepEqual(historyParticipation(nested, false), { mode: 'document', localHistory: true, recordDeviceActivity: true, notKept: ['rows.f'] }, 'a file inside a blocks row is recorded as not kept too');
   assert.equal(historyClass({ ...nested, render: { actions: [] } }), 'settings');
   assert.equal(historyParticipation({ ...nested, render: { actions: [] } }, false).mode, 'none', 'class C files nothing until its settings history exists');
   assert.equal(historyClass({ ...base, render: { actions: ['copy', 'download'] } }), 'document', 'no Save action is still a document tool');
@@ -120,4 +124,46 @@ test('a slow hook gets a second checkpoint opportunity after its final input pat
   controller.dispose();
   const failed = Promise.reject(new Error('hook failure')); let calls = 0;
   await assert.rejects(trackRevisionInput(failed, () => { calls++; }), /hook failure/); assert.equal(calls, 1);
+});
+
+/** A loaded file as the web picker and the CLI hand one to the runtime. */
+const loaded = (name: string, size = 4) => ({ __file: true as const, name, mime: 'text/plain', size, bytes: new Uint8Array(size), url: 'blob:http://localhost/1' });
+
+test('historyRedact records every file as not kept: its name, type and size, never its bytes', () => {
+  const data = { title: 'Grade', lutFile: loaded('warm.cube'), frames: [loaded('a.png', 2), loaded('b.png', 3)],
+    rows: [{ __rid: 'r1', label: 'one', f: loaded('one.glb') }, { __rid: 'r2', label: 'two', f: null }], __toolId: 'x' };
+  const kept = historyRedact(data, ['lutFile', 'frames', 'rows.f']);
+  assert.deepEqual(kept.lutFile, { notKept: true, name: 'warm.cube', mime: 'text/plain', size: 4 });
+  assert.deepEqual(kept.frames, [{ notKept: true, name: 'a.png', mime: 'text/plain', size: 2 }, { notKept: true, name: 'b.png', mime: 'text/plain', size: 3 }]);
+  assert.deepEqual(kept.rows, [{ __rid: 'r1', label: 'one', f: { notKept: true, name: 'one.glb', mime: 'text/plain', size: 4 } }, { __rid: 'r2', label: 'two', f: null }]);
+  assert.equal(kept.title, 'Grade'); assert.equal(kept.__toolId, 'x');
+  assert.ok(data.lutFile.bytes instanceof Uint8Array, 'the live document is not changed');
+  // What history refused before ("Save imported files to the library...") it now stores.
+  assert.throws(() => captureRevision(data as never), /library/);
+  assert.doesNotThrow(() => captureRevision(kept as never));
+  assert.equal(JSON.stringify(captureRevision(kept as never).data).includes('blob:'), false, 'no temporary URL is kept either');
+  assert.deepEqual(notKeptFiles(kept, ['lutFile', 'frames', 'rows.f']), ['warm.cube', 'a.png', 'b.png', 'one.glb']);
+  assert.deepEqual(historyRedact(kept, ['lutFile', 'frames', 'rows.f']), kept, 'a kept document is kept as it is');
+});
+
+test('historyRedact leaves a document with nothing to leave out alone, and drops what is not a file', () => {
+  const plain = { title: 'x', lutFile: null, frames: [] as unknown[] };
+  assert.equal(historyRedact(plain, []), plain, 'no file inputs: the same object');
+  assert.equal(historyRedact(plain, ['lutFile', 'frames', 'missing', 'rows.f']), plain, 'empty slots: the same object');
+  const odd = historyRedact({ lutFile: 'C:/fake/path.cube', frames: [loaded('a.png'), 'stray'] }, ['lutFile', 'frames']);
+  assert.equal(odd.lutFile, null, 'a stray value in a file slot is not kept as if it were a file');
+  assert.deepEqual(odd.frames, [{ notKept: true, name: 'a.png', mime: 'text/plain', size: 4 }]);
+  const long = historyRedact({ f: { __file: true, name: 'n'.repeat(400), size: Number.NaN } }, ['f']).f;
+  assert.ok(isNotKeptFile(long)); assert.equal(long.name.length, 255); assert.equal(long.size, 0); assert.equal(long.mime, '');
+  assert.equal(isNotKeptFile({ notKept: true }), false, 'a record carries the file name');
+});
+
+test('a not-kept file reopens as an empty file slot, so nothing claims the file is still there', () => {
+  const kept = historyRedact({ lutFile: loaded('warm.cube'), frames: [loaded('a.png')], rows: [{ f: loaded('one.glb') }] }, ['lutFile', 'frames', 'rows.f']);
+  assert.deepEqual(withoutNotKept(kept, ['lutFile', 'frames', 'rows.f']), { lutFile: null, frames: [], rows: [{ f: null }] });
+  const model = buildInputModel({ inputs: [
+    { id: 'lutFile', type: 'file', label: 'LUT' }, { id: 'frames', type: 'file', label: 'Frames', multiple: true },
+  ] } as never, { initial: kept as never });
+  assert.equal(model.find(i => i.id === 'lutFile')?.value, null, 'the engine reads the record as no file');
+  assert.deepEqual(model.find(i => i.id === 'frames')?.value, []);
 });

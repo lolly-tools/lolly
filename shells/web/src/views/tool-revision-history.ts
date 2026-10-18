@@ -10,7 +10,7 @@ import { isCapturableCollabHistory, type CollabHistoryCapability } from '../lib/
 import type { CollabSessionHandle } from '../lib/collab-session.ts';
 import { createCollabHistoryCapture, type CollabHistoryCapture } from '../lib/collab-history-capture.ts';
 import type { HistoryWireEntry } from '../collab/history-exchange.ts';
-import { historyParticipation, type HistoryManifest } from './tool-history-adapters.ts';
+import { historyParticipation, loadKept, type HistoryManifest } from './tool-history-adapters.ts';
 import { mountRevisionHistoryControl } from './tool-history-controls.ts';
 import { t } from '../i18n.ts';
 import { awaitsEmojiPins, stampMatchesStyle } from './tool-session-snapshot.ts';
@@ -158,6 +158,9 @@ export function mountActionHistory(opts: {
   getSlot(): string | null; setSlot(slot: string): void;
   takeFolder(): string | null | undefined;
   snapshot(): SavedStateData;
+  /** The file input paths history records as not kept (historyParticipation). A saved
+   *  record that still holds a file's bytes is adopted with those files left out. */
+  notKept?: readonly string[];
   /** The runtime's emoji state feed, so a write made before the chosen set's artwork
    *  pins arrived is followed by one that carries them. */
   onEmojiChange?(listener: (state: { assets?: readonly unknown[]; style?: EmojiStyleV1 | null }) => void): () => void;
@@ -200,7 +203,7 @@ export function mountActionHistory(opts: {
   };
   const controller = createAutomaticHistory({
     history: state.history, initial: opts.initial, toolId: opts.toolId, getSlot: opts.getSlot, setSlot: opts.setSlot,
-    snapshot, load: slot => state.load(slot), capture: preview,
+    snapshot, load: loadKept(slot => state.load(slot), opts.notKept ?? []), capture: preview,
     // An explicit save never depends on history: when history cannot record the
     // document, the record is written the way a tool without history writes a save.
     store: (slot, data) => state.save(slot, data),

@@ -11,13 +11,14 @@
  *   node scripts/tool-history-audit.ts --json           # verdicts as JSON on stdout
  *
  * It replays what history stores, not what `lolly smoke` renders. For every tool
- * the manifest rule enrols (class A, the document tools, and class B, which the
- * rule admits once a file input's bytes are left out in phase 4):
+ * the manifest rule enrols (class A, the document tools, and class B, whose file
+ * inputs history records as not kept, see historyRedact):
  *   1. mount the tool at its defaults in the CLI host (jsdom, the engine path every
  *      shell shares), stamp row ids as the tool view does, and wait for its hooks
  *      to settle (see settleRuntime);
  *   2. take the snapshot Save and automatic history take (snapshotSession in
- *      views/tool-session-snapshot.ts) and write it as an automatic checkpoint
+ *      views/tool-session-snapshot.ts, each file input recorded as not kept by
+ *      historyRedact, as keptSnapshot does) and write it as an automatic checkpoint
  *      through the real state bridge and revision store over an in-memory
  *      IndexedDB, so pinRevisionAssets and canonicalRevisionData run exactly as
  *      they do in a commit;
@@ -26,15 +27,20 @@
  *      resolveInitialValue and resolveAssetRefs rebuild the model;
  *   4. compare: the hydrated markup must be byte-identical to the markup the edited
  *      runtime showed, and the reopened document, canonicalised again, must equal
- *      what was stored.
+ *      what was stored, with each file recorded as not kept read back as an empty
+ *      file slot (withoutNotKept), which is how the engine reads such a record.
  * Then it edits the first input of each type to a second value and fills the first
  * image input from each asset source (a catalog id, an upload, a plain http(s) URL
  * from a local server, a Lolly tool link, a data: URL and a baked ref), repeating
- * steps 2 to 4 after each. Every edit starts from the reopened runtime, so editing
- * after a reopen is covered as well. One more case per tool: a record saved before
+ * steps 2 to 4 after each. A class B tool also loads its first file input: the record
+ * must name the file as not kept, and the reopened markup must equal the edited
+ * runtime's once that file is removed from it, since history does not promise the
+ * file. Every edit starts from the reopened runtime, so editing after a reopen is
+ * covered as well. One more case per tool: a record saved before
  * history adopts (saved through the state bridge with no revision store, reopened
  * with one, adopted by the automatic-history controller, edited and saved; the save
- * must be recorded as a revision with the edit in the record). The case "mount at
+ * must be recorded as a revision with the edit in the record; a class B tool's
+ * record holds its loaded file's bytes, which history adopts as not kept). The case "mount at
  * defaults files nothing" needs the app's own chrome, so it runs in the browser
  * lane (tests/history-round-trip.browser.test.ts) with the real upload store.
  *
@@ -63,7 +69,7 @@ import type { IDBPDatabase } from 'idb';
 import { JSDOM, VirtualConsole } from 'jsdom';
 
 import { createRuntime, inRealmHookExecutor, type HookExecutor, type Hooks, type Runtime } from '../engine/src/runtime.ts';
-import { fileInputPaths, historyClass as manifestHistoryClass, type HistoryClass, type HistoryManifest } from '../shells/web/src/views/tool-history-adapters.ts';
+import { fileInputPaths, historyClass as manifestHistoryClass, historyRedact, loadKept, notKeptFiles, withoutNotKept, type HistoryClass, type HistoryManifest } from '../shells/web/src/views/tool-history-adapters.ts';
 import { loadTool, type LoadedTool, type ToolManifest } from '../engine/src/loader.ts';
 import { parseUrlState } from '../engine/src/url-mode.ts';
 import { bakeAssetRef } from '../engine/src/bake.ts';
@@ -85,7 +91,7 @@ export const EXCEPTIONS_PATH = join(ROOT, 'shells/web/src/views/tool-history-exc
 /**
  * The four classes of plan 277 P4 section 2, from the discriminators the code
  * already uses. `document` (class A) is what phase 1 enrols; `side-file` (class B)
- * joins in phase 4 once a file input's bytes are left out of the snapshot;
+ * joins in phase 4, its file inputs recorded as not kept (historyRedact);
  * `settings` (class C, the on-device utilities that remove the action bar) keep
  * their settings by file fingerprint in phase 5; `recording` (class D) pauses
  * checkpoints during a capture from phase 4. The rule itself is the app's own
@@ -114,7 +120,7 @@ export function historyClass(manifest: ManifestLike): HistoryClass {
   return manifestHistoryClass(manifest);
 }
 
-/** The classes the round-trip gate covers: what the rule enrols now or in phase 4. */
+/** The classes the round-trip gate covers: the two the rule enrols. */
 export const GATED_CLASSES: ReadonlySet<HistoryClass> = new Set(['document', 'side-file']);
 
 // ── Packs and the census ────────────────────────────────────────────────────
@@ -727,6 +733,10 @@ export interface AuditOptions {
 }
 
 interface Mounted { runtime: Runtime; tool: LoadedTool }
+/** A loaded file history records as not kept, and the name the record must carry. */
+interface LeftOut { input: InputSpecLike; name: string }
+/** The name of the file the class B case loads. */
+const AUDIT_FILE_NAME = 'history-audit.bin';
 
 /**
  * Audit one tool. The caller owns determinism (installDeterminism) and sets
@@ -753,6 +763,7 @@ async function auditOne(tool: PackTool, roots: ContentRoots, det: Determinism, o
   const settle = (runtime: Runtime): Promise<void> => settleRuntime(runtime, tracked);
   const experience = { sessionMeta: () => (tool.id === 'design' ? { __workspace_intent: 'general' } : {}) };
   const colorInputs = new Set((manifest.inputs ?? []).filter(i => i.type === 'color').map(i => i.id));
+  const notKept = fileInputPaths(manifest.inputs);
 
   const mount = async (values: Record<string, InputValue>): Promise<Mounted> => {
     det.reseed();
@@ -760,18 +771,23 @@ async function auditOne(tool: PackTool, roots: ContentRoots, det: Determinism, o
     await withTimeout((async () => { await web.migrateBlockRowIds(runtime); await settle(runtime); })(), MOUNT_TIMEOUT_MS, 'settling');
     return { runtime, tool: loaded };
   };
-  const snapshot = (runtime: Runtime): SavedData =>
+  // Save's snapshot as sessionSnapshot takes it (a loaded file keeps its bytes), and as
+  // keptSnapshot hands it to history, each file input recorded as not kept.
+  const fullSnapshot = (runtime: Runtime): SavedData =>
     web.snapshotSession(null, manifest, runtime as never, experience as never, () => '', () => '') as SavedData;
+  const snapshot = (runtime: Runtime): SavedData => historyRedact(fullSnapshot(runtime), notKept);
 
   const { db } = web.memoryDb();
   const state: WebState = web.createStateAPI(db as never, web.createRevisionStore(db as unknown as IDBPDatabase));
   let slotCounter = 0;
 
   /** Store the live runtime's snapshot, reopen it, compare. Returns the reopened
-   *  runtime (the base for the next edit) or null when nothing could be stored. */
-  const roundTrip = async (name: string, live: Runtime): Promise<Mounted | null> => {
+   *  runtime (the base for the next edit) or null when nothing could be stored.
+   *  `leftOut` is a loaded file history records as not kept: the reopened markup is
+   *  compared with the live markup after that file is removed from the live runtime. */
+  const roundTrip = async (name: string, live: Runtime, leftOut?: LeftOut): Promise<Mounted | null> => {
     const t0 = performance.now();
-    const liveRender = live.getHydrated();
+    let liveRender = live.getHydrated();
     const data = snapshot(live);
     const slot = `${tool.id}:history-audit-${++slotCounter}`;
     try {
@@ -782,6 +798,18 @@ async function auditOne(tool: PackTool, roots: ContentRoots, det: Determinism, o
     }
     const stored = await state.load(slot) as SavedData;
     if (slotCounter === 1) verdict.storedBytes = new TextEncoder().encode(JSON.stringify(stored)).byteLength;
+    const recorded: string[] = [];
+    if (leftOut) {
+      const names = notKeptFiles(stored, [leftOut.input.id]);
+      if (names.length !== 1 || names[0] !== leftOut.name) recorded.push(`history did not record ${leftOut.input.id} as not kept: ${JSON.stringify(stored[leftOut.input.id]) ?? 'undefined'}`);
+      try {
+        await withTimeout((async () => { await live.setInput(leftOut.input.id, (leftOut.input.multiple ? [] : null) as InputValue); await settle(live); })(), MOUNT_TIMEOUT_MS, 'removing the file');
+      } catch (error) {
+        verdict.cases.push({ name, outcome: 'error', detail: `removing the file from the live runtime failed: ${(error as Error).message}`, ms: performance.now() - t0 });
+        return null;
+      }
+      liveRender = live.getHydrated();
+    }
     let reopened: Mounted;
     try {
       const opened = await web.openToolSession(state, manifest, parseUrlState(`slot=${encodeURIComponent(slot)}`, manifest));
@@ -797,7 +825,8 @@ async function auditOne(tool: PackTool, roots: ContentRoots, det: Determinism, o
       verdict.cases.push({ name, outcome: 'refused', detail: `the reopened document cannot be stored again: ${(error as Error).message}`, ms: performance.now() - t0 });
       return reopened;
     }
-    const caches = setAsideTokenCaches(stored, again, colorInputs);
+    // A file recorded as not kept reopens as an empty slot, which is what history promises.
+    const caches = setAsideTokenCaches(withoutNotKept(stored, notKept), again, colorInputs);
     const valueDiff = firstDifference(caches.stored, caches.reopened);
     const render = reopened.runtime.getHydrated();
     const doc = dom.window.document;
@@ -805,12 +834,14 @@ async function auditOne(tool: PackTool, roots: ContentRoots, det: Determinism, o
     const pinOnly = render !== liveRender && !keyOrderOnly && normaliseEmbeddedJson(render, doc, true) === normaliseEmbeddedJson(liveRender, doc, true);
     const dropped = reopened.runtime.droppedAssets.map(d => `${d.inputId} (${d.reason})`);
     const problems = [
+      ...recorded,
       ...(valueDiff ? [`the reopened document differs: ${valueDiff}`] : []),
       ...(render !== liveRender && !keyOrderOnly && !pinOnly ? [renderDifference(liveRender, render)] : []),
       ...(dropped.length ? [`assets dropped on reopen: ${dropped.join(', ')}`] : []),
     ];
     verdict.cases.push({ name, outcome: problems.length ? 'differs' : 'identical', ...(problems.length ? { detail: problems.join('; ') } : {}),
-      ...(keyOrderOnly || pinOnly || caches.refreshed.length ? { note: [
+      ...(keyOrderOnly || pinOnly || caches.refreshed.length || leftOut ? { note: [
+        ...(leftOut ? [`${leftOut.input.id} is recorded as not kept (${leftOut.name}), so the reopened document is compared with the live one without that file`] : []),
         ...(keyOrderOnly || pinOnly ? ['embedded JSON shows sorted keys after a reopen; arrays and every other byte match'] : []),
         ...(pinOnly ? ['the reopened upload carries the version pin history adds'] : []),
         ...(caches.refreshed.length ? [`token colour cache refreshed on reopen (the ref is kept): ${caches.refreshed.join(', ')}`] : []),
@@ -830,7 +861,7 @@ async function auditOne(tool: PackTool, roots: ContentRoots, det: Determinism, o
     let current: Mounted = base;
     /** Apply an edit to the current runtime, round-trip it, and move on from the
      *  reopened runtime (or from the edited one when nothing could be stored). */
-    const step = async (name: string, edit: (rt: Runtime) => Promise<void>, restore?: (rt: Runtime) => Promise<void>): Promise<void> => {
+    const step = async (name: string, edit: (rt: Runtime) => Promise<void>, restore?: (rt: Runtime) => Promise<void>, leftOut?: LeftOut): Promise<void> => {
       try {
         // A row the app adds carries its id from birth (lib/row-id.ts), so a row an
         // edit adds is stamped the same way before the snapshot.
@@ -839,7 +870,7 @@ async function auditOne(tool: PackTool, roots: ContentRoots, det: Determinism, o
         verdict.cases.push({ name, outcome: 'error', detail: `the edit failed: ${(error as Error).message}` });
         return;
       }
-      const next = await roundTrip(name, current.runtime);
+      const next = await roundTrip(name, current.runtime, leftOut);
       if (next) { retire(current); current = next; }
       else if (restore) await restore(current.runtime).catch(() => {});
     };
@@ -894,12 +925,13 @@ async function auditOne(tool: PackTool, roots: ContentRoots, det: Determinism, o
       }
     }
 
-    // Class B: what history would store with the side file loaded.
+    // Class B: what history stores with the side file loaded, which records the file as not kept.
     if (tool.historyClass === 'side-file') {
-      const file = (manifest.inputs ?? []).find(i => i.type === 'file');
+      const file = (manifest.inputs ?? []).find(i => i.type === 'file') as InputSpecLike | undefined;
       if (file) {
-        const value = { __file: true, name: 'history-audit.bin', mime: 'application/octet-stream', size: 8, bytes: new Uint8Array(8), url: null };
-        await step(`file ${file.id} loaded`, rt => rt.setInput(file.id, (file.multiple ? [value] : value) as unknown as InputValue), rt => rt.setInput(file.id, (file.multiple ? [] : null) as InputValue));
+        const value = { __file: true, name: AUDIT_FILE_NAME, mime: 'application/octet-stream', size: 8, bytes: new Uint8Array(8), url: null };
+        await step(`file ${file.id} loaded`, rt => rt.setInput(file.id, (file.multiple ? [value] : value) as unknown as InputValue),
+          rt => rt.setInput(file.id, (file.multiple ? [] : null) as InputValue), { input: file, name: AUDIT_FILE_NAME });
       }
     }
 
@@ -927,7 +959,7 @@ async function auditOne(tool: PackTool, roots: ContentRoots, det: Determinism, o
   }
 
   // A record saved before history adopts, then an edit saved through the controller.
-  verdict.adopt = await adoptCase(tool, manifest, mount, settle, snapshot, web).catch(error => ({ name: verdict.adopt.name, outcome: 'error' as const, detail: (error as Error).message }));
+  verdict.adopt = await adoptCase(tool, manifest, mount, settle, { full: fullSnapshot, kept: snapshot }, web).catch(error => ({ name: verdict.adopt.name, outcome: 'error' as const, detail: (error as Error).message }));
 
   verdict.ok = verdict.cases.length > 0 && verdict.cases.every(c => c.outcome === 'identical' || c.outcome === 'skipped') && (verdict.adopt.outcome === 'identical' || verdict.adopt.outcome === 'skipped');
   verdict.ms = performance.now() - started;
@@ -939,21 +971,39 @@ async function auditOne(tool: PackTool, roots: ContentRoots, det: Determinism, o
  * Save through a state bridge that has no revision store, as a session saved
  * before history existed; reopen with the store; let the controller adopt it;
  * edit; Save. The save must be recorded as a revision (`recorded`, not written
- * around a paused history as `stored`) and the record must hold the edit.
+ * around a paused history as `stored`) and the record must hold the edit. A class B
+ * tool saves that record with its first file input loaded and the file's bytes kept,
+ * as Save did before history kept the tool (and a Make variants copy still does):
+ * the controller adopts it through loadKept, as the app's does, so history must not
+ * pause, and the saved edit must record the file as not kept.
  */
 async function adoptCase(tool: PackTool, manifest: ToolManifest, mount: (v: Record<string, InputValue>) => Promise<Mounted>,
-  settle: (rt: Runtime) => Promise<void>, snapshot: (rt: Runtime) => SavedData, web: WebModules): Promise<CaseResult> {
+  settle: (rt: Runtime) => Promise<void>, snapshots: { full: (rt: Runtime) => SavedData; kept: (rt: Runtime) => SavedData }, web: WebModules): Promise<CaseResult> {
   const name = 'a record saved before history adopts';
   const t0 = performance.now();
   const editable = (manifest.inputs ?? []).map(i => i as InputSpecLike).filter(i => EDITED_TYPES.includes(i.type as typeof EDITED_TYPES[number]));
   if (!editable.length) return { name, outcome: 'skipped', detail: 'no input of an edited type' };
+  const snapshot = snapshots.kept;
+  const notKept = fileInputPaths(manifest.inputs);
+  const file = tool.historyClass === 'side-file' ? (manifest.inputs ?? []).find(i => i.type === 'file') as InputSpecLike | undefined : undefined;
   const { db } = web.memoryDb();
   const legacy = web.createStateAPI(db as never);
   const slot = `${tool.id}:history-audit-legacy`;
   const first = await mount({});
-  const saved = snapshot(first.runtime);
+  if (file) {
+    const value = { __file: true, name: AUDIT_FILE_NAME, mime: 'application/octet-stream', size: 8, bytes: new Uint8Array(8), url: null };
+    await withTimeout((async () => { await first.runtime.setInput(file.id, (file.multiple ? [value] : value) as unknown as InputValue); await settle(first.runtime); })(), MOUNT_TIMEOUT_MS, 'loading the file');
+  }
+  const saved = file ? snapshots.full(first.runtime) : snapshot(first.runtime);
   first.runtime.destroy();
   await legacy.save(slot, saved as never);
+  if (file) {
+    // The case only means something when the record really holds the bytes history refuses.
+    const held = (await legacy.load(slot))?.[file.id];
+    if (!ArrayBuffer.isView((Array.isArray(held) ? held[0] : held as { bytes?: unknown } | undefined)?.bytes)) {
+      return { name, outcome: 'error', detail: `the record saved before history does not hold the bytes of ${file.id}, so the adopt has no file to leave out`, ms: performance.now() - t0 };
+    }
+  }
   const state = web.createStateAPI(db as never, web.createRevisionStore(db as unknown as IDBPDatabase));
   const opened = await web.openToolSession(state, manifest, parseUrlState(`slot=${encodeURIComponent(slot)}`, manifest));
   const reopened = await mount(opened.values);
@@ -962,7 +1012,7 @@ async function adoptCase(tool: PackTool, manifest: ToolManifest, mount: (v: Reco
   const controller = web.createAutomaticHistory({
     history: state.history!, ...(opened.cursor ? { initial: opened.cursor } : {}), toolId: tool.id,
     getSlot: () => active, setSlot: next => { active = next; }, snapshot: () => snapshot(reopened.runtime) as never,
-    load: s => state.load(s), capture: async () => null, saved() {}, store: (s, d) => state.save(s, d),
+    load: loadKept(s => state.load(s), notKept), capture: async () => null, saved() {}, store: (s, d) => state.save(s, d),
     failure: message => { failures.push(message); },
   });
   try {
@@ -975,17 +1025,21 @@ async function adoptCase(tool: PackTool, manifest: ToolManifest, mount: (v: Reco
     await settle(reopened.runtime);
     const outcome = await controller.save(slot, snapshot(reopened.runtime) as never);
     const record = await state.load(slot) as SavedData;
-    const before = web.canonicalRevisionData(web.pinRevisionAssets(saved as never));
+    const before = web.canonicalRevisionData(web.pinRevisionAssets(historyRedact(saved, notKept) as never));
     const expected = web.canonicalRevisionData(web.pinRevisionAssets(snapshot(reopened.runtime) as never));
     const entries = (await state.history!.list({ slot })).entries.length;
+    const named = file ? notKeptFiles(record, [file.id]) : [];
     const problems = [
       ...(outcome !== 'recorded' ? [`Save was ${outcome}, not recorded as a revision (${controller.status()})`] : []),
       ...(failures.length ? [`history reported: ${failures.join(' / ')}`] : []),
       ...(firstDifference(before, record) === null ? ['the record still holds the old save'] : []),
       ...(firstDifference(expected, record) ? [`the record is not the saved edit: ${firstDifference(expected, record)}`] : []),
       ...(entries < 2 ? [`${entries} revision(s) after adopt and save, expected 2`] : []),
+      ...(file && (named.length !== 1 || named[0] !== AUDIT_FILE_NAME) ? [`the saved edit does not record ${file.id} as not kept: ${JSON.stringify(record[file.id]) ?? 'undefined'}`] : []),
     ];
-    return { name, outcome: problems.length ? 'differs' : 'identical', ...(problems.length ? { detail: problems.join('; ') } : {}), ms: performance.now() - t0 };
+    return { name, outcome: problems.length ? 'differs' : 'identical', ...(problems.length ? { detail: problems.join('; ') } : {}),
+      ...(file ? { note: `the record was saved with ${file.id} loaded and its bytes kept, as a save made before history kept this tool` } : {}),
+      ms: performance.now() - t0 };
   } finally {
     controller.dispose();
     reopened.runtime.destroy();

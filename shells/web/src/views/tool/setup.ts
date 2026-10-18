@@ -924,7 +924,7 @@ export function mountActions(tview: ToolViewCtx): void {
   if (!tview.isFull && !tview.autoExport && !tview.autoCopy) mountLifecycle.add('recovery notice', mountRecoveryNotice(viewEl, {
     manifest: tview.tool.manifest, automatic: !!actionsApi?.history, canSave: !!actionsApi?.save,
     shared: !!collabHandle || !!ephemeralState || !!getCollabSessionSource(), collab: collabHandle?.history,
-    scope: slot ?? toolId, onSave: () => tview.openSaveAs?.(),
+    scope: slot ?? toolId, opened: openedSession.values, onSave: () => tview.openSaveAs?.(),
   }));
   // The retained export file (plans/236) lives only as long as this mount.
   mountLifecycle.add('export delivery result', () => actionsApi?.releaseDelivery?.());
@@ -947,7 +947,8 @@ export function mountActions(tview: ToolViewCtx): void {
     : undefined; tview.peerHistory = peerHistory as ToolViewCtx['peerHistory'];
   const revisionPanel = wireToolRevisionHistory({ state: tview.host.state as import('../../bridge/state.ts').WebStateAPI,
     copyState: libraryHost.state as import('../../bridge/state.ts').WebStateAPI,
-    slot: () => actionsApi?.getSlot?.() ?? null, controller: actionsApi?.history, currentSnapshot: actionsApi?.sessionState,
+    // Compare with current reads what history checkpoints, so a file history does not keep is never a difference.
+    slot: () => actionsApi?.getSlot?.() ?? null, controller: actionsApi?.history, currentSnapshot: actionsApi?.history ? actionsApi.keptSnapshot : actionsApi?.sessionState,
     collab: collabHandle?.history, collaborating: !!collabHandle || !!ephemeralState, root: viewEl, editorBar: tview.designChrome || tview.documentLayout, connected: () => viewEl.isConnected,
     ...(peerHistory ? { peer: peerHistory } : {}) }); tview.revisionPanel = revisionPanel;
   const _openRevisions = () => revisionPanel.open();
