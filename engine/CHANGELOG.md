@@ -6,6 +6,14 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.268.0
+
+- Data conversion takes explicit reading choices: one Excel worksheet by position or name (a name made only of digits that no worksheet carries is a 0-based position), or every worksheet; formula text or the results saved in the workbook; the CSV or TSV delimiter; the text encoding; and whether the first row holds headings, is data, or sits under added `Column 1`, `Column 2` headings. With no choices a file converts as before, apart from the reading fixes in the last item. `readDataOptions`, `readDataGrid` and `convertDataFile` are exported with the option lists shells offer.
+- Converting every worksheet writes one file per sheet into a ZIP with `manifest.json`, which records each sheet's file, row and column counts, SHA-256 and formula counts, and lists empty or chart sheets as skipped. The workbook is unzipped once for all of its sheets; `openXlsx` in `xlsx-import.ts` returns the unzipped workbook that `readXlsx` now reads through.
+- `readXlsx` accepts `cells: 'formulas'` and reports `formulaCells` and `formulaResultsKept`. A shared formula is rewritten for each cell it covers, leaving sheet names alone, including an unquoted sheet range such as `Q1:Q4!`; a formula that cannot be rewritten safely keeps its saved result and is counted.
+- `readXlsx` bounds the padded grid (rows times the widest row) at 16,777,216 slots and flags a sheet cut at that bound as truncated, so a small file holding only `A1` and `XFD1048576` cannot exhaust memory once a caller raises the row limit. The default 1,000-row limit at Excel's full width fits under the bound, so default reads are unchanged.
+- Conversion no longer stops an Excel sheet at 1,000 rows. It reads the whole sheet up to Excel's row limit and refuses a sheet beyond the reader's cell or padded-grid budget rather than cutting it short. CSV, TSV, Markdown and JSON tables whose padded grid would pass the same budget are refused before any padding is allocated. Text that is not valid UTF-8 is read as Windows-1252 instead of gaining replacement characters, a UTF-16 byte order mark is honoured, automatic splitting recognises semicolon-separated files, and a quoted CSV value keeps its line breaks.
+
 ## 1.267.0
 
 - Add `penpotSvgLayoutFindings`. Flex and grid layouts declared in the page SVGs of a legacy Penpot zip export produce one `penpot.layout.svg-static` finding per container, with its Penpot layer name. Those pages import at their exported positions without layout rules. An SVG without layout metadata, such as a board exported from Penpot as SVG, produces no finding and no layout is inferred from how its artwork is arranged.

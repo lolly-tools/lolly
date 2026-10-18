@@ -12,6 +12,11 @@ import { test } from 'node:test';
 const EXPECTED: readonly string[] = [
   // Additive 1.262 static-copy findings for layouts declared in legacy Penpot SVG.
   'LayoutFinding', 'PenpotSvgLayout', 'penpotSvgLayoutFindings',
+  // Additive 1.262 data conversion choices and the all-worksheets manifest.
+  'DATA_CELL_MODES', 'DATA_DELIMITERS', 'DATA_HEADER_MODES', 'DATA_TEXT_ENCODINGS',
+  'DataCellMode', 'DataConversionOptions', 'DataConversionResult', 'DataDelimiter',
+  'DataHeaderMode', 'DataReadFacts', 'DataSheetFileV1', 'DataSheetsManifestV1',
+  'DataTextEncoding', 'convertDataFile', 'readDataGrid', 'readDataOptions',
   // Additive 1.261 managed enrollment and issuer status validation.
   'EnrollmentPolicy', 'EnrollmentProviderPolicy', 'EnrollmentTrustBundle', 'VerifiedCrl',
   'createEnrollmentCsr', 'enrollmentProofMessage', 'parseEnrollmentTrustBundle',

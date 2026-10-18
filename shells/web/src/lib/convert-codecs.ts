@@ -2,7 +2,7 @@
 /** File conversion codecs shared by the workbench and library entry points. */
 import { sfntKind, convertFontContainer, imageDimensions, sniffAnimatedRaster, parseDimension, toCssPx, gzip, gunzip, sniffContainer, encodeBmp, packTiff, joinPageText, storeZip } from '@lolly/engine';
 import { DEFAULT_IMAGE_OPTIONS, resizedDimensions, type ImageConversionOptions } from './file-conversion.ts';
-import { sourceToGrid, gridToTarget } from '@lolly/engine';
+import { convertDataFile, readDataOptions } from '@lolly/engine';
 import { isJxl } from '../../../../engine/src/jxl.ts';
 import { encodeToTargetBytes } from '@lolly-tools/core/image-operation-v1';
 import { convertImageInWorker } from './image-convert-worker.ts';
@@ -51,7 +51,8 @@ export function targetsFor(kind: string): Target[] {
     // A raster can re-encode to any raster + wrap into PDF/ICO, but cannot become true vector.
     case 'raster': return RASTER_OUT;
     // Tabular data - every data format converts to every other (grid round-trip). The
-    // caller drops the source format. An .xlsx converts from its FIRST sheet.
+    // caller drops the source format. The request's data options choose the worksheet
+    // (the first by default, or every sheet into a ZIP), formulas, delimiter and encoding.
     case 'xlsx': case 'csv': case 'tsv': case 'json':
       return DATA_OUT;
     // Documents give up their CONTENT as Markdown (plans/139): a deck through the
@@ -167,10 +168,11 @@ export async function convert(bytes: Uint8Array, kind: string, target: Target, f
   if (kind === 'svg' && target.id === 'svgz') return new Blob([gzip(bytes) as BlobPart], { type: target.mime });
   if (kind === 'svgz' && target.id === 'svg') return new Blob([gunzip(bytes) as BlobPart], { type: target.mime });
   // Tabular data - decode the source to a ragged grid (row 0 = header), re-encode to
-  // the target. Pure byte/text work, no canvas. An .xlsx reads its first sheet.
+  // the target. Pure byte/text work, no canvas. The data choices ride in the same
+  // options record as the image settings; every worksheet at once comes back as a ZIP.
   if (kind === 'xlsx' || kind === 'csv' || kind === 'tsv' || kind === 'json') {
-    const grid = sourceToGrid(kind, bytes);
-    return new Blob([gridToTarget(grid, target.id) as BlobPart], { type: target.mime });
+    const result = await convertDataFile(kind, bytes, target.id, readDataOptions(options), file.name);
+    return new Blob([result.bytes as BlobPart], { type: result.zip ? 'application/zip' : target.mime });
   }
   // Documents → Markdown. The office packages go through the shared extractor (lazy:
   // it pulls fflate + the engine readers); a document that carried images comes back
@@ -264,10 +266,9 @@ export async function convert(bytes: Uint8Array, kind: string, target: Target, f
 
 // ── tabular data conversion (grid round-trip) ────────────────────────────────
 
-/** Decode a data source to a ragged grid (row 0 = header). xlsx→first sheet;
- *  csv/tsv→parseTableText; json→array-of-objects (keys become the header) or
- *  array-of-arrays. Throws a user-ready message on an unreadable source. Exported
- *  for the co-located round-trip test. */
+/** Decode a data source to a ragged grid (row 0 = header), with optional reading
+ *  choices (worksheet, formulas, delimiter, encoding). Throws a user-ready message on
+ *  an unreadable source. Exported for the co-located round-trip test. */
 export { sourceToGrid, gridToTarget } from '@lolly/engine';
 
 /** Decode the source (SVG markup or a raster file) into a <canvas> at its intrinsic
