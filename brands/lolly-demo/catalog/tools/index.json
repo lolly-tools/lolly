@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-17T23:00:58.052Z",
+  "generatedAt": "2026-10-18T22:12:09.586Z",
   "tools": [
     {
       "id": "3d",
@@ -9073,8 +9073,8 @@
     {
       "id": "pages",
       "name": "Pages",
-      "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device.",
-      "version": "1.0.1",
+      "description": "Reorder, rotate, extract, delete, merge or split PDF pages, or turn images into a PDF, on your device.",
+      "version": "1.1.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -9086,7 +9086,11 @@
         "extract",
         "delete",
         "merge",
-        "split"
+        "split",
+        "images",
+        "photos",
+        "jpg",
+        "png"
       ],
       "added": "2026-09-05",
       "formats": [
@@ -9102,107 +9106,107 @@
       "i18n": {
         "ar": {
           "name": "الصفحات",
-          "description": "أعد ترتيب صفحات PDF، أو دوّرها، أو استخرجها، أو احذفها، أو ادمجها، أو قسّمها - على جهازك."
+          "description": "أعد ترتيب صفحات PDF، أو دوّرها، أو استخرجها، أو احذفها، أو ادمجها، أو قسّمها، أو حوّل الصور إلى PDF - على جهازك."
         },
         "bg": {
           "name": "Страници",
-          "description": "Пренареди, завърти, извлечи, изтрий, обедини или раздели PDF страници на устройството си."
+          "description": "Пренареди, завърти, извлечи, изтрий, обедини или раздели PDF страници или превърни изображения в PDF на устройството си."
         },
         "bn": {
           "name": "পৃষ্ঠা",
-          "description": "আপনার ডিভাইসে PDF পৃষ্ঠা পুনর্বিন্যাস করুন, ঘোরান, বের করুন, মুছুন, একত্র করুন বা বিভক্ত করুন।"
+          "description": "আপনার ডিভাইসে PDF পৃষ্ঠা পুনর্বিন্যাস করুন, ঘোরান, বের করুন, মুছুন, একত্র করুন বা বিভক্ত করুন, অথবা ছবি থেকে PDF তৈরি করুন।"
         },
         "cs": {
           "name": "Stránky",
-          "description": "Přeřaď, otoč, vyjmi, smaž, sluč nebo rozděl stránky PDF přímo v zařízení."
+          "description": "Přeřaď, otoč, vyjmi, smaž, sluč nebo rozděl stránky PDF, nebo převeď obrázky do PDF, přímo v zařízení."
         },
         "de": {
           "name": "Seiten",
-          "description": "PDF-Seiten neu anordnen, drehen, extrahieren, löschen, zusammenführen oder aufteilen - auf Ihrem Gerät."
+          "description": "PDF-Seiten neu anordnen, drehen, extrahieren, löschen, zusammenführen oder aufteilen oder Bilder in ein PDF umwandeln - auf Ihrem Gerät."
         },
         "es": {
           "name": "Páginas",
-          "description": "Reordena, gira, extrae, elimina, combina o divide páginas de PDF en tu dispositivo."
+          "description": "Reordena, gira, extrae, elimina, combina o divide páginas de PDF, o convierte imágenes en un PDF, en tu dispositivo."
         },
         "fr": {
           "name": "Pages",
-          "description": "Réordonne, pivote, extrait, supprime, fusionne ou divise des pages PDF sur ton appareil."
+          "description": "Réordonne, pivote, extrait, supprime, fusionne ou divise des pages PDF, ou transforme des images en PDF, sur ton appareil."
         },
         "hi": {
           "name": "पेज",
-          "description": "अपने डिवाइस पर PDF पेज को फिर से क्रमबद्ध करें, घुमाएँ, निकालें, हटाएँ, मर्ज करें या स्प्लिट करें।"
+          "description": "अपने डिवाइस पर PDF पेज को फिर से क्रमबद्ध करें, घुमाएँ, निकालें, हटाएँ, मर्ज करें या स्प्लिट करें, या इमेज से PDF बनाएँ।"
         },
         "id": {
           "name": "Halaman",
-          "description": "Susun ulang, putar, ekstrak, hapus, gabungkan atau pisahkan halaman PDF di perangkat Anda."
+          "description": "Susun ulang, putar, ekstrak, hapus, gabungkan atau pisahkan halaman PDF, atau ubah gambar menjadi PDF, di perangkat Anda."
         },
         "it": {
           "name": "Pagine",
-          "description": "Riordina, ruota, estrai, elimina, unisci o dividi le pagine di un PDF sul tuo dispositivo."
+          "description": "Riordina, ruota, estrai, elimina, unisci o dividi le pagine di un PDF, oppure trasforma delle immagini in un PDF, sul tuo dispositivo."
         },
         "ja": {
           "name": "ページ数",
-          "description": "PDFのページを、デバイス上で並べ替え、回転、抽出、削除、結合、分割できます。"
+          "description": "PDFのページを、デバイス上で並べ替え、回転、抽出、削除、結合、分割できます。画像からPDFを作ることもできます。"
         },
         "ko": {
           "name": "페이지 수",
-          "description": "PDF 페이지를 기기에서 바로 순서 바꾸기, 회전, 추출, 삭제, 병합, 분할할 수 있어요."
+          "description": "PDF 페이지를 기기에서 바로 순서 바꾸기, 회전, 추출, 삭제, 병합, 분할하거나 이미지를 PDF로 만들 수 있어요."
         },
         "ms": {
           "name": "Halaman",
-          "description": "Susun semula, putar, ekstrak, padam, gabung atau pisahkan halaman PDF pada peranti anda."
+          "description": "Susun semula, putar, ekstrak, padam, gabung atau pisahkan halaman PDF, atau tukar imej kepada PDF, pada peranti anda."
         },
         "nl": {
           "name": "Pagina's",
-          "description": "Herschik, roteer, haal eruit, verwijder, voeg samen of splits PDF-pagina's op je apparaat."
+          "description": "Herschik, roteer, haal eruit, verwijder, voeg samen of splits PDF-pagina's, of zet afbeeldingen om in een PDF, op je apparaat."
         },
         "no": {
           "name": "Sider",
-          "description": "Endre rekkefølge, roter, hent ut, slett, slå sammen eller del PDF-sider på enheten din."
+          "description": "Endre rekkefølge, roter, hent ut, slett, slå sammen eller del PDF-sider, eller gjør bilder om til en PDF, på enheten din."
         },
         "pl": {
           "name": "Strony",
-          "description": "Zmień kolejność, obróć, wyodrębnij, usuń, połącz lub podziel strony PDF na swoim urządzeniu."
+          "description": "Zmień kolejność, obróć, wyodrębnij, usuń, połącz lub podziel strony PDF albo zamień obrazy w PDF na swoim urządzeniu."
         },
         "pt": {
           "name": "Páginas",
-          "description": "Reordene, gire, extraia, exclua, mescle ou divida páginas de PDF no seu dispositivo."
+          "description": "Reordene, gire, extraia, exclua, mescle ou divida páginas de PDF, ou transforme imagens em PDF, no seu dispositivo."
         },
         "ro": {
           "name": "Pagini",
-          "description": "Reordonează, rotește, extrage, șterge, îmbină sau împarte pagini PDF pe dispozitivul tău."
+          "description": "Reordonează, rotește, extrage, șterge, îmbină sau împarte pagini PDF ori transformă imagini în PDF pe dispozitivul tău."
         },
         "sv": {
           "name": "Sidor",
-          "description": "Ändra ordning, rotera, extrahera, ta bort, slå ihop eller dela PDF-sidor på din enhet."
+          "description": "Ändra ordning, rotera, extrahera, ta bort, slå ihop eller dela PDF-sidor, eller gör om bilder till en PDF, på din enhet."
         },
         "tl": {
           "name": "Mga Page",
-          "description": "Ayusin ulit, i-rotate, i-extract, burahin, i-merge o hatiin ang mga PDF page sa iyong device."
+          "description": "Ayusin ulit, i-rotate, i-extract, burahin, i-merge o hatiin ang mga PDF page, o gawing PDF ang mga larawan, sa iyong device."
         },
         "tr": {
           "name": "Sayfalar",
-          "description": "PDF sayfalarını cihazında yeniden sırala, döndür, çıkar, sil, birleştir ya da ayır."
+          "description": "PDF sayfalarını cihazında yeniden sırala, döndür, çıkar, sil, birleştir ya da ayır veya görsellerden PDF oluştur."
         },
         "uk": {
           "name": "Сторінки",
-          "description": "Змінюйте порядок, обертайте, витягуйте, видаляйте, об'єднуйте або розділяйте сторінки PDF на своєму пристрої."
+          "description": "Змінюйте порядок, обертайте, витягуйте, видаляйте, об'єднуйте або розділяйте сторінки PDF чи перетворюйте зображення на PDF на своєму пристрої."
         },
         "ur": {
           "name": "صفحات",
-          "description": "اپنے آلے پر PDF صفحات کو دوبارہ ترتیب دیں، گھمائیں، نکالیں، حذف کریں، ضم کریں یا تقسیم کریں۔"
+          "description": "اپنے آلے پر PDF صفحات کو دوبارہ ترتیب دیں، گھمائیں، نکالیں، حذف کریں، ضم کریں یا تقسیم کریں، یا تصاویر سے PDF بنائیں۔"
         },
         "vi": {
           "name": "Số trang",
-          "description": "Sắp xếp lại, xoay, trích xuất, xóa, gộp hoặc tách các trang PDF ngay trên thiết bị của bạn."
+          "description": "Sắp xếp lại, xoay, trích xuất, xóa, gộp hoặc tách các trang PDF, hoặc chuyển ảnh thành PDF, ngay trên thiết bị của bạn."
         },
         "zh-hant": {
           "name": "頁數",
-          "description": "在裝置上重新排序、旋轉、擷取、刪除、合併或分割 PDF 頁面。"
+          "description": "在裝置上重新排序、旋轉、擷取、刪除、合併或分割 PDF 頁面，或將圖片轉成 PDF。"
         },
         "zh": {
           "name": "页数",
-          "description": "在设备上重新排序、旋转、提取、删除、合并或拆分 PDF 页面。"
+          "description": "在设备上重新排序、旋转、提取、删除、合并或拆分 PDF 页面，或将图片转为 PDF。"
         }
       }
     },
