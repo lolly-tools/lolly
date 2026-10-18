@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { HOSTED_FRAME_ORIGINS, allowedOnHostedWeb, parseWebEmbed } from '../engine/src/web-embed.ts';
+import { HOSTED_FRAME_ORIGINS, allowedOnHostedWeb, parseWebEmbed, revealDeckFrame } from '../engine/src/web-embed.ts';
 
 const ctx = { appOrigin: 'https://lolly.tools' };
 const src = (input: string) => parseWebEmbed(input, ctx)?.src ?? null;
@@ -78,6 +78,32 @@ test('providers turn share links into their embed forms', () => {
     'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0&enablejsapi=1&start=5&playsinline=1', 'a pasted embed snippet keeps only its src');
   const code = parseWebEmbed('https://codepen.io/team/pen/abcXYZ', ctx)!;
   assert.equal(code.authorCode, true, 'author code is flagged for the hosted CSP decision');
+});
+
+test('Slides.com decks load their embed form and ask reveal.js to report its position', () => {
+  const deck = parseWebEmbed('https://slides.com/news/make-better-presentations?token=Ab_9-z&style=dark&byline=hidden&share=shown&evil=1#/3/1', ctx)!;
+  assert.equal(deck.provider, 'slides'); assert.equal(deck.kind, 'provider'); assert.equal(deck.host, 'slides.com');
+  assert.equal(deck.src, 'https://slides.com/news/make-better-presentations/embed?token=Ab_9-z&style=dark&byline=hidden&postMessageEvents=true#/3/1');
+  assert.equal(deck.allow, 'fullscreen'); assert.doesNotMatch(deck.sandbox!, /allow-top-navigation|allow-forms/);
+  assert.equal(revealDeckFrame(deck.src), true);
+  assert.equal(src('slides.com/news/make-better-presentations/embed'), 'https://slides.com/news/make-better-presentations/embed?postMessageEvents=true');
+  assert.equal(src('https://www.slides.com/news/make-better-presentations/fullscreen'), 'https://slides.com/news/make-better-presentations/embed?postMessageEvents=true');
+  assert.equal(src('https://slides.com/news/deck?token=bad%20token&style=neon#/<x>'), 'https://slides.com/news/deck/embed?postMessageEvents=true', 'unexpected options are dropped');
+  for (const page of ['https://slides.com/news', 'https://slides.com/news/deck/edit', 'https://slides.com/news/deck/embed/extra', 'https://slides.com/n%20ews/deck']) {
+    const embed = parseWebEmbed(page, ctx)!;
+    assert.equal(embed.provider, 'page', page); assert.equal(revealDeckFrame(embed.src), false, page);
+  }
+  assert.equal(allowedOnHostedWeb(deck), false, 'the hosted frame policy is unchanged');
+});
+
+test('a self-hosted reveal.js deck opts in through its own link', () => {
+  assert.equal(revealDeckFrame('https://talks.example.com/deck/?postMessageEvents=true#/2'), true);
+  assert.equal(revealDeckFrame('http://localhost:8000/?postMessageEvents=1'), true);
+  for (const link of ['https://talks.example.com/deck/', 'https://talks.example.com/?postMessageEvents=false',
+    'https://talks.example.com/#postMessageEvents=true', 'javascript:alert(1)//?postMessageEvents=true', 'not a url']) {
+    assert.equal(revealDeckFrame(link), false, link);
+  }
+  assert.equal(parseWebEmbed('https://talks.example.com/deck/?postMessageEvents=true', ctx)!.src, 'https://talks.example.com/deck/?postMessageEvents=true', 'the link is framed as given');
 });
 
 test('unknown pages get the strict sandbox, loopback dev servers are allowed, refusers are flagged', () => {

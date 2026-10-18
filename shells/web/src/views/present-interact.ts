@@ -2,6 +2,7 @@
 import { parsePresentInteractOpts, pickPresentInteractStop, resolvePresentInteractStops, samplePresentInteractAuto, type PresentInteractDepth, type PresentInteractOptions } from '../../../../engine/src/present-interact.ts';
 import { kfEaseAt } from '../../../../engine/src/keyframes.ts';
 import { getWebPageDriver, type WebPageDriver } from '../lib/web-page-driver.ts';
+import { revealSlideLabel } from '../lib/reveal-deck.ts';
 import { webFrameState } from '../lib/design-web-mount.ts';
 import { parseWebEmbed } from '../../../../engine/src/web-embed.ts';
 import { t } from '../i18n.ts';
@@ -252,6 +253,9 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
       visit.stop = null;
       visit.driver.key(direction === 1 ? 'ArrowDown' : 'ArrowUp'); return true;
     }
+    if (!walk && visit.driver.capabilities.backend === 'reveal') {
+      visit.stop = null; visit.driver.step?.(direction); return true;
+    }
     const stops = resolvePresentInteractStops(visit.opts.stops, dimensions(visit));
     if (stops.length) {
       const position = visit.stop === null ? visit.driver.depth()?.y ?? visit.opts.start : stops[visit.stop]?.depth ?? visit.opts.start;
@@ -331,6 +335,7 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
     if (handed) return t('The page has the keyboard. Use Back to slides to take it back.');
     if (visit.opts.keys === 'none') return t('Up and Down keep moving through the slide stack.');
     if (visit.driver.capabilities.checking) return t('Checking the page…');
+    if (visit.driver.capabilities.backend === 'reveal' && visit.opts.keys === 'scroll') return t('Up and Down step through the embedded deck.');
     if (visit.opts.keys === 'key' && visit.driver.capabilities.key) return t('Up and Down go to the demo.');
     if (!visit.driver.capabilities.scroll) return t('This page cannot scroll here. The clicker still moves the slides.');
     return visit.opts.keys === 'key' ? t('This page cannot receive keys. Up and Down scroll instead.') : t('Up and Down scroll the page.');
@@ -358,8 +363,9 @@ export function mountPresentInteract(config: PresentInteractConfig): PresentInte
     }
     panel.querySelector('.pr-sp-interact-title')!.textContent = current.marker.dataset.webTitle || t('Interactive page');
     panel.querySelector('.pr-sp-interact-info')!.textContent = statusText(current);
-    const depth = current.driver?.depth();
-    panel.querySelector('.pr-sp-interact-depth')!.textContent = current.stop !== null && current.opts.stops.length
+    const depth = current.driver?.depth(), deck = current.driver?.deck?.();
+    panel.querySelector('.pr-sp-interact-depth')!.textContent = deck ? t('Embedded slide {n}', { n: revealSlideLabel(deck) })
+      : current.stop !== null && current.opts.stops.length
       ? t('Stop {n} of {total}', { n: current.stop + 1, total: current.opts.stops.length })
       : depth ? t('Page depth: {n}%', { n: Math.round(depth.max > 0 ? depth.y / depth.max * 100 : 0) }) : '';
   }

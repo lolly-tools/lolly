@@ -355,6 +355,7 @@ export function refreshWebInteractCapability(root: HTMLElement, canvas: HTMLElem
     : page.capabilities.checking ? t('Checking the page…')
       : page.capabilities.backend === 'same-origin' ? t('Lolly can scroll this page.')
         : page.capabilities.backend === 'receiver' ? t('This page listens to the clicker.')
+          : page.capabilities.backend === 'reveal' ? t('This slide deck follows the clicker.')
           : marker?.dataset.interactOpts && parsePresentInteractOpts(marker.dataset.interactOpts)?.mode === 'places' && !page.capabilities.scroll
             ? t('This browser cannot move between places on this page. Choose Pan a taller page instead.')
             : t('This site cannot receive keys. Choose Places or Pan to move through the page.');
