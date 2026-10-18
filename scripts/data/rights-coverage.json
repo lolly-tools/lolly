@@ -275,7 +275,7 @@
       "title": "Template share and export as a template file",
       "status": "not-assessed",
       "code": ["shells/web/src/lib/template-share.ts", "shells/web/src/lib/template-actions.ts"],
-      "note": "Whether a catalog asset may travel is still decided by a licence-name pattern (proprietary, all-rights-reserved, licenseref, premiumbeat) rather than the reviewed rules."
+      "note": "Whether a catalog asset may travel is decided by the reviewed rules in lib/redistribution.ts, the same answer a session share uses. A held-back asset stays an external reference and the file's CREDITS.txt gives the reason. No receipt is measured from the finished file."
     },
     {
       "id": "delivery.brand-pack-export",
@@ -289,7 +289,7 @@
         "shells/web/src/brand-transfer.ts",
         "shells/web/src/views/start/exporting.ts"
       ],
-      "note": "Fonts, logos and tokens travel. The design system package keeps licensed dependencies as external references, decided by the same licence-name pattern as template share; a font package labels itself OFL only when every font is redistributable. No credits file or receipt."
+      "note": "Fonts, logos and tokens travel. The design system package decides whether a catalog asset its sessions use may travel with the reviewed rules in lib/redistribution.ts, as a session share does: a held-back asset stays an external reference, a file picked in the checklist travels as the sender's choice, and the CREDITS.txt inside content/collection.lolly records both. A font package labels itself OFL only when every font is redistributable. Outside that payload there is no credits file, and no receipt is measured."
     },
     {
       "id": "delivery.palette-export",

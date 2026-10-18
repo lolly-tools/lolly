@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { strToU8, unzipSync } from 'fflate';
 import { buildBrandPackage, emptyBrandSelection, readBrandContent, importBrandContent, type BrandPackageHost } from './brand-package.ts';
 import { importBrandPack } from '../../brand-transfer.ts';
-import { readJson, verifyIntegrity } from '../bundle.ts';
+import { README_NAME, readJson, verifyIntegrity } from '../bundle.ts';
 import type { BeamAssetRecord } from '../beam-pack.ts';
 
 function rig() {
@@ -84,6 +84,54 @@ test('selection round trip carries shared session dependencies once, explicit ca
   const refs = added.map(([, s]) => (s.data.image as { id: string }).id);
   assert.equal(refs[0], refs[1]); assert.ok(dst.records.has(refs[0]!));
   assert.equal(dst.slots.get('existing')!.data.title, 'Keep me');
+});
+
+test("a session's catalogue art with no licence recorded stays an external reference, with the reason", async () => {
+  // BEHAVIOUR CHANGE (plan 253): this path used to match the licence label against
+  // `proprietary|all-rights-reserved|licenseref|premiumbeat` and carry everything else,
+  // so art with no licence at all travelled. It now takes the redistribution() answer.
+  const src = rig();
+  src.image('catalog/unmarked', 1, { name: 'Unmarked pattern' });
+  src.image('catalog/house', 2, { name: 'House pattern', license: 'LicenseRef-acme-house' });
+  src.image('catalog/open', 3, { name: 'Open pattern', license: 'CC0-1.0' });
+  src.slots.set('s', { data: { __toolId: 'poster', __label: 'Poster',
+    a: { id: 'catalog/unmarked', source: 'library', url: '' },
+    b: { id: 'catalog/house', source: 'library', url: '' },
+    c: { id: 'catalog/open', source: 'library', url: '' },
+  } });
+  const out = await buildBrandPackage(src.host, 'acme', { sessions: ['s'], assets: [], tools: [] });
+  assert.equal(out.references, 2, 'the two works whose licence does not let them travel stay external');
+  const files = await unpack(out.blob);
+  const content = (await readBrandContent(files))!;
+  const byId = Object.fromEntries(content.payload.manifest.assets.map(a => [a.id, a]));
+  assert.equal(byId['catalog/unmarked']!.kind, 'asset-ref', 'it used to travel by default; it no longer does');
+  assert.equal(byId['catalog/unmarked']!.holdReason, 'licence not recorded');
+  assert.equal(byId['catalog/house']!.kind, 'asset-ref');
+  assert.ok(byId['catalog/house']!.holdReason?.includes('not yet interpreted'), 'a LicenseRef is uninterpreted, not proprietary by spelling');
+  assert.equal(byId['catalog/open']!.kind, 'asset', 'a reviewed licence that permits passing on the file still travels');
+
+  const credits = new TextDecoder().decode(content.payload.files['CREDITS.txt']!);
+  assert.ok(credits.includes('Held back (2)'));
+  assert.ok(credits.includes('reason:  licence not recorded'));
+  assert.ok(credits.includes('reason:  LicenseRef-acme-house is recorded and not yet interpreted'));
+  assert.ok(credits.includes('licence: CC0 1.0'), 'the carried work is listed with its licence');
+  assert.match(new TextDecoder().decode(files[README_NAME]!), /CREDITS\.txt inside content\/collection\.lolly/, 'the outer README points at the reasons');
+});
+
+test("a catalogue file picked in the checklist travels as the sender's choice, and CREDITS.txt says so", async () => {
+  const src = rig();
+  src.image('catalog/picked', 1, { name: 'Picked mark' });
+  const out = await buildBrandPackage(src.host, 'acme', { sessions: [], assets: ['catalog/picked'], tools: [] });
+  assert.equal(out.references, 0);
+  const content = (await readBrandContent(await unpack(out.blob)))!;
+  const entry = content.payload.manifest.assets.find(a => a.id === 'catalog/picked')!;
+  assert.equal(entry.kind, 'asset', 'an explicit pick carries the bytes even with no licence recorded');
+  assert.equal(entry.licensed, true, 'and still records that they are held back by default');
+  const credits = new TextDecoder().decode(content.payload.files['CREDITS.txt']!);
+  assert.ok(credits.includes('Picked mark (catalog/picked)'));
+  assert.ok(credits.includes('licence: not recorded'));
+  assert.ok(credits.includes('included by the sender, who chose to carry bytes held back by default'));
+  assert.ok(!credits.includes('Held back ('), 'nothing is listed as held back when nothing was');
 });
 
 test('ordinary brand import restores the optional collection through the same intake', async () => {
