@@ -23,8 +23,9 @@ import { brandCheckRows, hostBrandCatalog, type BrandCatalogHost } from '../bran
 import { mountedDesignFindingMessage } from '../design-audit-copy.ts';
 import { runDesignChecks } from '../design-checks.ts';
 import { applyPreflight, isPreflightEnabled, preflightView } from '../export-preflight.ts';
+import { exportCheckFindings, exportCheckLines } from '../export-check.ts';
 import type { PreflightRow } from '../export-preflight.ts';
-import { fmtLabel, isCmykFmt, printEnabled } from './shared.ts';
+import { fmtLabel, isC2paFmt, isCmykFmt, printEnabled } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
 /** DOM truths, the only channel through which the stage reaches the engine. */
@@ -131,11 +132,14 @@ export const onDesignCanvasPaint = (ta: ActionsCtx): void => {
   ta.refresh.refreshNotesHandoutUi();
   if (ta.designAuditOpen) void refreshDesignAudit(ta);
 };
-/** Assemble the job from the live panel, run the engine's rules, render the card. */
-export function refreshPreflight(ta: ActionsCtx): void {
-  const { actions, el, formatEl, formats, initialFmt, manifest, preflightManifest, runtime } = ta;
-  if (!actions.includes('download')) return;
-  const fmt = formatEl?.value || initialFmt || formats[0] || '';
+/**
+ * The preflight job the live panel describes, with the size and bleed lines the
+ * card prints beside the job. `format` overrides the format select, for a caller
+ * that already holds the format an export used.
+ */
+export function preflightJob(ta: ActionsCtx, format?: string): { job: PreflightJob; sizeText: string; bleedText: string | null; fmt: string } {
+  const { el, formatEl, formats, initialFmt, manifest, preflightManifest, runtime } = ta;
+  const fmt = format || formatEl?.value || initialFmt || formats[0] || '';
   const unit = ta.refresh.dimUnit() as Unit;
   const dpi = ta.dims.dimDpi();
   const { w, h } = ta.dims.rawDims();
@@ -252,13 +256,20 @@ export function refreshPreflight(ta: ActionsCtx): void {
     : unit === 'px'
       ? `${w} × ${h} px`
       : tRaw('{w} × {h} {unit} at {dpi} DPI', { w: String(w), h: String(h), unit, dpi });
+  return { job, sizeText, bleedText: on && bleedMm > 0 ? `${bleedMm} mm` : null, fmt };
+}
+/** Assemble the job from the live panel, run the engine's rules, render the card. */
+export function refreshPreflight(ta: ActionsCtx): void {
+  const { actions, el } = ta;
+  if (!actions.includes('download')) return;
+  const { job, sizeText, bleedText, fmt } = preflightJob(ta);
   const report = preflight(job);
   applyPreflight(
     el,
     preflightView(isPreflightEnabled() ? report : null, {
       formatLabel: fmt ? fmtLabel(fmt) : '',
       sizeText,
-      bleedText: on && bleedMm > 0 ? `${bleedMm} mm` : null,
+      bleedText,
       additionalRows: ta.designAuditRows,
     })
   );
@@ -267,6 +278,35 @@ export function refreshPreflight(ta: ActionsCtx): void {
   // because each call re-reads the current selection and rewrites the card.
   ta.lastCounts = report.counts;
   void refreshCost(ta);
+}
+/**
+ * The export check, after a delivery: the bytes that reached the user read back
+ * against the settings the panel describes (engine/src/preflight-output.ts owns
+ * the comparison). Returns the lines for the export card: differences only, in
+ * the engine's English, which is the fallback every new finding id uses. Never
+ * throws; the file has already been delivered whatever this finds.
+ */
+export async function exportCheck(ta: ActionsCtx, blob: Blob, delivered: { format: string; archive: boolean }): Promise<string[]> {
+  const { el, runtime } = ta;
+  try {
+    const { job } = preflightJob(ta, delivered.format);
+    // A duration counts as requested only when the user typed it: a tool may otherwise
+    // run to the end of its own material, and a live take lasts as long as the user records.
+    const vp = ta.formatRules.isAnimatedFmt(delivered.format) ? ta.video.videoParams() : null;
+    const transparent = ta.formatRules.isAlphaFmt(delivered.format) &&
+      runtime.getModel().find((i) => i.id === 'transparentBg')?.value === true;
+    const c2paBox = el?.querySelector<HTMLInputElement>('[data-action="pdf-c2pa"]');
+    const findings = await exportCheckFindings(job, blob, {
+      format: delivered.format,
+      ...(delivered.archive ? { archive: true } : {}),
+      durationMs: vp?.durationUserSet && !vp.live ? vp.duration * 1000 : undefined,
+      ...(transparent ? { alpha: 'transparent' as const } : {}),
+      ...(isC2paFmt(delivered.format) && c2paBox ? { credential: c2paBox.checked } : {}),
+    });
+    return exportCheckLines(findings);
+  } catch {
+    return [];
+  }
 }
 // Hydrate the cost-authoring slot when - and only when - an extension actually
 // RESOLVES into it. Gating on slotHasResolved rather than mere element existence
@@ -501,7 +541,9 @@ export function preflightOps(ta: ActionsCtx) {
     onDesignExportOpen: bindOp(ta, onDesignExportOpen),
     onDesignExportClose: bindOp(ta, onDesignExportClose),
     onDesignCanvasPaint: bindOp(ta, onDesignCanvasPaint),
+    preflightJob: bindOp(ta, preflightJob),
     refreshPreflight: bindOp(ta, refreshPreflight),
+    exportCheck: bindOp(ta, exportCheck),
     tryMountCostSlot: bindOp(ta, tryMountCostSlot),
     disposeActions: bindOp(ta, disposeActions),
     refreshCost: bindOp(ta, refreshCost),
