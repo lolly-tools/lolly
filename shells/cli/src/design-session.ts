@@ -179,6 +179,14 @@ function sessionThemeChoice(flags: Record<string, string>, many: boolean): { the
   return { selection: parsed as Record<string, string> };
 }
 
+/** A saved session's `__tokenSelection`, when it is a plain map of strings. */
+function savedSessionSelection(session: Record<string, unknown> | undefined): Record<string, string> | undefined {
+  const raw = session?.__tokenSelection;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+  const entries = Object.entries(raw as Record<string, unknown>).filter((e): e is [string, string] => typeof e[1] === 'string');
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
 /**
  * Export the session and write the bytes to --output, or to stdout. With --themes, the
  * one opened session is exported once per theme, each to <stem>-<theme>.<ext>. With
@@ -201,8 +209,11 @@ export async function runDesignSession(path: string, bytes: Uint8Array, flags: R
   let selection = plan.selection;
   if (plan.themes !== undefined || plan.theme !== undefined) {
     const doc = system.doc ?? null;
-    if (plan.themes !== undefined) runs = themeRuns(doc, plan.themes);
-    else selection = themeRuns(doc, plan.theme!)[0]!.selection;
+    // The session's own saved choices (its colourway, say) carry into every run; the
+    // theme named on the command line then decides only its own group.
+    const saved = savedSessionSelection((contents ?? readLollyFile(bytes, { allowTool: true })).session);
+    if (plan.themes !== undefined) runs = themeRuns(doc, plan.themes, saved);
+    else selection = themeRuns(doc, plan.theme!, saved)[0]!.selection;
   }
   try {
     const results = await exportDesignSessionThemesViaWebShell(bytes, {

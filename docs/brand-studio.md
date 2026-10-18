@@ -318,6 +318,7 @@ Expand **Catalogue source** to inspect the supplied tokens asset, origin, namesp
 
 - **[Using Lolly](/info/using.html)** - the canvas, saving, projects and Assets.
 - **[Design Tokens](/info/design-tokens.html)** - the token model your brand is expressed in.
+- **[Brand architectures](/info/brand-architectures.html)** - how divisions, products, endorsed brands, clients and seasons map onto design systems, colourways and logo identities.
 - **[Exporting & formats](/info/exporting.html)** - print units, CMYK and the formats your brand renders into.
 
 

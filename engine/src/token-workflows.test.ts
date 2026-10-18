@@ -44,7 +44,11 @@ test('explicit axes compose, stable ids survive labels, and legacy theme callers
   assert.equal(createTokenSet(d, opts).resolve('ink'), '#7c3aed');
   assert.deepEqual(createTokenSet(d, opts).resolve('step'), { value: 16, unit: 'px' });
   assert.equal(createTokenSet(d).resolve('ink'), '#eeeedd');
-  assert.deepEqual(createTokenSet(d, { theme: 'Day' }).resolve('step'), { value: 4, unit: 'px' });
+  // A theme decides only the group that declares it (engine 1.265): Day picks the
+  // appearance, and density keeps the document's active Roomy instead of falling
+  // back to Compact, the first density option.
+  assert.equal(createTokenSet(d, { theme: 'Day' }).resolve('ink'), '#7c3aed');
+  assert.deepEqual(createTokenSet(d, { theme: 'Day' }).resolve('step'), { value: 16, unit: 'px' });
   d.$themes[0]!.name = 'A renamed imported choice';
   assert.equal(createTokenSet(d, opts).resolve('ink'), '#7c3aed');
   assert.equal(tokenSelectionKey(opts), tokenSelectionKey({ selection: { density: 'roomy-id', appearance: 'day-id' } }));
@@ -53,13 +57,19 @@ test('explicit axes compose, stable ids survive labels, and legacy theme callers
   assert.equal(invalid.choices.appearance, 'day-id');
 });
 
-test('scoped host defaults leave explicit legacy theme calls intact', async () => {
+test('scoped host theme calls decide their own group and keep the document\'s other choices', async () => {
   const source = layered();
   const host = { tokens: { get: async (opts?: TokenResolveOptions) => createTokenSet(source, opts), resolve: async (ref: string, opts?: TokenResolveOptions) => createTokenSet(source, opts).resolve(ref) } } as unknown as HostV1;
-  const scoped = withTokenSelection(host, { appearance: 'night-id', density: 'roomy-id' });
+  const scoped = withTokenSelection(host, { appearance: 'night-id', density: 'compact-id' });
   assert.equal(await scoped.tokens!.resolve('ink'), '#eeeedd');
   assert.equal(await scoped.tokens!.resolve('ink', { theme: 'Day' }), '#7c3aed');
+  // Before 1.265 the theme call dropped the document's density and drew the
+  // first option; now the document's Compact holds.
   assert.deepEqual((await scoped.tokens!.get({ theme: 'Day' })).resolve('step'), { value: 4, unit: 'px' });
+  const roomy = withTokenSelection(host, { appearance: 'night-id', density: 'roomy-id' });
+  assert.deepEqual((await roomy.tokens!.get({ theme: 'Day' })).resolve('step'), { value: 16, unit: 'px' });
+  // An explicit selection still replaces the document's choices outright.
+  assert.deepEqual((await roomy.tokens!.get({ selection: { density: 'compact-id' } })).resolve('step'), { value: 4, unit: 'px' });
 });
 
 test('inspection retains inactive definitions, winning sources, pointers and reverse edges', () => {
@@ -263,17 +273,20 @@ fixtureTest(['S1', 'S2', 'R1'], 'Larkspur composes stable ids, stored defaults a
   assert.deepEqual(doc, original);
 });
 
-fixtureTest(['S4', 'S5'], 'legacy theme names apply in every group with that name and ignore stored choices', () => {
+fixtureTest(['S4', 'S5'], 'legacy theme names apply in every group with that name and keep the other groups\' stored choices', () => {
   const doc = fixture('larkspur.tokens.json');
+  // Since engine 1.265 (plans/319) a theme decides only the groups that declare it; the
+  // others keep the document's activeThemes (Night, Compact) instead of resetting to
+  // their first option.
   const shared = resolveTokenSelection(doc, { theme: 'Standard' });
-  assert.deepEqual(shared.choices, { appearance: LARK.day, density: LARK.standardDensity, campaign: LARK.standardCampaign });
-  assert.deepEqual(shared.defaults, ['appearance']);
-  assert.deepEqual(resolveTokenSelection(doc, { theme: 'campaign/Standard' }).defaults, ['appearance', 'density']);
+  assert.deepEqual(shared.choices, { appearance: LARK.night, density: LARK.standardDensity, campaign: LARK.standardCampaign });
+  assert.deepEqual(shared.defaults, []);
+  assert.deepEqual(resolveTokenSelection(doc, { theme: 'campaign/Standard' }).choices, { appearance: LARK.night, density: 'lark-compact', campaign: LARK.standardCampaign });
   const partial = resolveTokenSelection(doc, { selection: { density: LARK.standardDensity } });
   assert.deepEqual({ choices: partial.choices, defaults: partial.defaults }, { choices: { appearance: LARK.night, density: LARK.standardDensity, campaign: LARK.standardCampaign }, defaults: ['campaign'] });
   const night = resolveTokenSelection(doc, { theme: 'Night' });
-  assert.deepEqual(night.choices, { appearance: LARK.night, density: LARK.standardDensity, campaign: LARK.standardCampaign });
-  assert.deepEqual(createTokenSet(doc, { theme: 'Night' }).resolve('space.unit'), { value: 4, unit: 'px' });
+  assert.deepEqual(night.choices, { appearance: LARK.night, density: LARK.compact, campaign: LARK.standardCampaign });
+  assert.deepEqual(createTokenSet(doc, { theme: 'Night' }).resolve('space.unit'), { value: 2, unit: 'px' }, 'Night keeps the stored Compact density');
 });
 
 fixtureTest(['R2', 'R3', 'R4'], 'alias chains, gradient stops and shadow fields resolve without rewriting the source', () => {
@@ -427,7 +440,7 @@ fixtureTest(['T5'], 'a legacy value/type sync folder assembles sets and themes b
   assert.equal(assembled.source, 'token-set-files');
   assert.deepEqual(assembled.warnings, []);
   const doc = assembled.doc!;
-  assert.deepEqual(summarizeTokensDoc(doc), { sets: ['core', 'theme/01-light', 'theme/02-dark'], themes: [{ name: 'light', group: null }, { name: 'dark', group: null }], tokenCount: 0, colorCount: 0 });
+  assert.deepEqual(summarizeTokensDoc(doc), { sets: ['core', 'theme/01-light', 'theme/02-dark'], themes: [{ name: 'light', group: null, id: 'd03a5c164300d1517865310f92308f337ca1d9e0' }, { name: 'dark', group: null, id: 'dc9481f8496701c998a183a804313792393dd169' }], tokenCount: 0, colorCount: 0 });
   assert.deepEqual(resolveTokenSelection(doc, { theme: 'dark' }).sets, ['core', 'theme/01-light', 'theme/02-dark']);
   assert.deepEqual((doc.$themes as { $figmaStyleReferences?: unknown }[])[0]?.$figmaStyleReferences, {});
   const report = inspectTokenDocument(doc), compat = tokenCompatibility(doc);

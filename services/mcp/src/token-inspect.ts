@@ -68,7 +68,8 @@ const TOKEN_REPORT_OUT = obj({
     revision: STR,
     requested: obj({ theme: STR, selection: CHOICE_MAP_OUT }, ['theme', 'selection']),
     selection: obj({
-      groups: { type: 'array', items: obj({ id: STR, options: { type: 'array', items: obj({ id: STR, name: STR }) } }) },
+      // kind and canonical arrived with theme-group kinds (engine 1.265, plans/319), both optional.
+      groups: { type: 'array', items: obj({ id: STR, options: { type: 'array', items: obj({ id: STR, name: STR }) }, kind: STR, canonical: STR }, ['kind', 'canonical']) },
       choices: CHOICE_MAP_OUT,
       defaults: { type: 'array', items: STR },
       sets: { type: 'array', items: STR },

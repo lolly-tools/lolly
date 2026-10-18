@@ -57,6 +57,7 @@ security posture).
 | [templates.md](templates.md) | end user | Saved starting points for a tool: saving one from a tool or from Projects, the per-tool "Start with" setting, and managing yours beside the ones a tool ships with. |
 | [Share a design with rules](create-a-tool.md) | Designers | Portable tools from Design |
 | [brand-studio.md](brand-studio.md) | end user | The Brand Studio at `#/start`: logos, colours, type, tokens and files, plus how a brand pack moves between devices. |
+| [brand-architectures.md](brand-architectures.md) | end user | How divisions, products, endorsed brands, clients and seasons map onto design systems, colourways and logo identities, with what to use today and what is not built yet. |
 | [3d-studio.md](3d-studio.md) | end user | Guided and expert 3D image creation: SVG extrusion, model imports, materials, lighting, depth, alpha and reusable scenes. |
 | [profile.md](profile.md) | end user | Profiles as the on-device working identity a tool pre-fills from, and how they differ from the platform brand and from capabilities. |
 | [find-your-work.md](find-your-work.md) | end user | Where saved work, downloads and earlier versions are; what reload, a closed tab, the Unsaved edits dialog, cleared browser data and each delete do; moving work to another device by Sync, backup or .lolly. |
