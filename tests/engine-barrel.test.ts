@@ -22,6 +22,8 @@ const EXPECTED: readonly string[] = [
   'compareExport', 'exportRequestFromJob', 'inspectOutput', 'verifyExport',
   'ActiveContentV1', 'ExtractScoreV1', 'InventoryRecognizerV1', 'LabelledBlockV1', 'MATCH_CER', 'ReadExtractErrorCode', 'ReadExtractOptsV1',
   'characterErrorRate', 'editDistance', 'normaliseForScore', 'scoreExtract', 'wordErrorRate',
+  // Additive 1.262 bounded JPEG marker walker for placing JPEGs on PDF pages.
+  'JpegScan', 'JpegSegment', 'jpegSegmentBody', 'scanJpegSegments',
   // Additive 1.261 managed enrollment and issuer status validation.
   'EnrollmentPolicy', 'EnrollmentProviderPolicy', 'EnrollmentTrustBundle', 'VerifiedCrl',
   'createEnrollmentCsr', 'enrollmentProofMessage', 'parseEnrollmentTrustBundle',

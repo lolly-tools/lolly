@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.274.0
+
+- Add optional `host.pdf.fromImages`, which builds a PDF with one PNG or JPEG per page. JPEG data is embedded without re-encoding, camera orientation is applied, and Exif, XMP, IPTC, comments and appended pictures are left out. 8-bit PNG pixels are copied without loss; 16-bit PNGs are reduced to 8 bits per channel, PNG colour profiles are not kept, and an animated PNG is refused by name. Pages are sized from the image resolution or fitted to A4 or US Letter.
+- `host.pdf.organize` results may carry an `effects` list reporting what the operation keeps, breaks or drops among bookmarks, annotations, links, form fields and signatures. When the source has no producer name or dates, the new PDF from a page operation has none either, instead of pdf-lib's own.
+- An operation that copies pages no longer carries other pages into the new PDF through what the copied pages refer to. A link with an explicit destination loses it, and references to other pages, to annotations on pages that are not copied and to signature values are cut before the copy. Before, deleting a page that another page linked to left the deleted page's content in the file, and every signature value (signer, date, certificate) was kept.
+- Pages 1.1 accepts images alongside PDFs, converts formats other than PNG and JPEG (and an animated PNG, to its still picture) with `host.images`, and shows the effects report before download.
+
 ## 1.272.0
 
 - Add an LMS compatibility preset registry for course packages. Each preset is validated data that selects an existing course target and records its version, known limits, import instructions and compatibility evidence. Credentials, tenant links and vendor-specific code paths are not accepted.

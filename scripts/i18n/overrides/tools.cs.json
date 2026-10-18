@@ -30,5 +30,6 @@
   "synth::name": "Synth",
   "synth::description": "Vizuální nástroj, na který hraješ. Čtyři scény běží živě na GPU: tekutý inkoust, roj částic, který letí na tvůj nadpis nebo logo, pole zpětné vazby a tvá vlastní kamera. Každá barva vychází z palety tvé značky a obraz reaguje na tvůj kurzor, na hudební skladbu i na MIDI ovladač. Exportuj statický snímek nebo nekonečnou smyčku.",
   "icon::description": "Tvorba faviconů a ikon aplikací - vícevelikostní .ico, PNG a SVG, nebo celá sada pro aplikaci v jednom ZIPu.",
-  "diagram-builder::description": "Organizační schémata, vývojové diagramy, časové osy a další - z karet, textu, Mermaid, DOT nebo CSV."
+  "diagram-builder::description": "Organizační schémata, vývojové diagramy, časové osy a další - z karet, textu, Mermaid, DOT nebo CSV.",
+  "pages::description": "Přeřaď, otoč, vyjmi, smaž, sluč nebo rozděl stránky PDF, nebo převeď obrázky do PDF, přímo v zařízení."
 }

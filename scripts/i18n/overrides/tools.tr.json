@@ -30,5 +30,6 @@
   "synth::name": "Synth",
   "synth::description": "Çaldığın bir görsel enstrüman. Dört sahne GPU üzerinde canlı çalışır: akışkan mürekkep, başlığına ya da logona uçan bir parçacık sürüsü, bir geri besleme alanı ve kendi kameran. Her renk marka paletinden gelir; görüntü imlecine, bir müzik parçasına ve bir MIDI kontrolcüsüne tepki verir. Durağan bir görüntü ya da kesintisiz bir döngü olarak dışa aktar.",
   "icon::description": "Favicon ve uygulama simgesi oluşturucu - çok boyutlu bir .ico, PNG ve SVG dosyası, ya da tüm uygulama setini tek bir zip içinde.",
-  "diagram-builder::description": "Organizasyon şemaları, akış şemaları, zaman çizelgeleri ve daha fazlası - kartlardan, metinden, Mermaid, DOT veya CSV'den."
+  "diagram-builder::description": "Organizasyon şemaları, akış şemaları, zaman çizelgeleri ve daha fazlası - kartlardan, metinden, Mermaid, DOT veya CSV'den.",
+  "pages::description": "PDF sayfalarını cihazında yeniden sırala, döndür, çıkar, sil, birleştir ya da ayır veya görsellerden PDF oluştur."
 }

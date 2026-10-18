@@ -30,5 +30,6 @@
   "synth::name": "Synth",
   "synth::description": "Isang visual instrument na iyong tinutugtog. Apat na eksena ang tumatakbo nang live sa GPU: fluid ink, isang particle swarm na lumilipad papunta sa iyong headline o logo, isang feedback field, at ang sarili mong camera. Nanggagaling ang bawat kulay sa iyong brand palette, at gumagalaw ang larawan ayon sa iyong pointer, sa isang music track at sa isang MIDI controller. Mag-export ng still o ng seamless loop.",
   "icon::description": "Favicon at app-icon maker - isang multi-size na .ico, PNG at SVG, o ang buong app kit bilang isang zip.",
-  "diagram-builder::description": "Mga org chart, flowchart, timeline at higit pa - mula sa card, text, Mermaid, DOT o CSV."
+  "diagram-builder::description": "Mga org chart, flowchart, timeline at higit pa - mula sa card, text, Mermaid, DOT o CSV.",
+  "pages::description": "Ayusin ulit, i-rotate, i-extract, burahin, i-merge o hatiin ang mga PDF page, o gawing PDF ang mga larawan, sa iyong device."
 }

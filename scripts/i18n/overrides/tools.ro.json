@@ -30,5 +30,6 @@
   "synth::name": "Synth",
   "synth::description": "Un instrument vizual pe care îl cânți. Patru scene rulează live pe GPU: cerneală fluidă, un roi de particule care zboară spre titlul tău sau logoul tău, un câmp de feedback și camera ta proprie. Fiecare culoare provine din paleta brandului tău, iar imaginea se mișcă odată cu cursorul tău, cu o piesă muzicală și cu un controler MIDI. Exportă o imagine fixă sau o buclă perfectă.",
   "icon::description": "Creator de favicon și iconițe de aplicație - un fișier .ico cu mai multe dimensiuni, PNG și SVG, sau întregul kit de aplicație într-o singură arhivă zip.",
-  "diagram-builder::description": "Organigrame, diagrame flux, cronologii și multe altele - din carduri, text, Mermaid, DOT sau CSV."
+  "diagram-builder::description": "Organigrame, diagrame flux, cronologii și multe altele - din carduri, text, Mermaid, DOT sau CSV.",
+  "pages::description": "Reordonează, rotește, extrage, șterge, îmbină sau împarte pagini PDF ori transformă imagini în PDF pe dispozitivul tău."
 }

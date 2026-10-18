@@ -68,9 +68,25 @@ export interface PdfAPI {
    * them. Page expressions are 1-based (`1-3,7,10-`); repeated page numbers are
    * retained for reorder/extract and rejected where they would be ambiguous.
    * Document metadata is carried from the primary input and no producer credit
-   * is added. Encrypted documents and XFA forms are refused by name.
+   * is added. Encrypted documents and XFA forms are refused by name. When the
+   * pages are copied into a new PDF (every operation except rotating a single
+   * PDF), nothing on a page that is not in the output comes along through a
+   * link, form field or reply that refers to it, and signature values (signer,
+   * date, certificate) are left out.
    */
   organize?(bytes: Uint8Array, opts: PdfOrganizeOpts): Promise<PdfOrganizeResult>;
+
+  /**
+   * Optional v1.262: build a new PDF with one image per page, in the given
+   * order. JPEG data is embedded without re-encoding, its camera orientation is
+   * applied to the page, and its Exif, XMP, IPTC, comment and appended
+   * secondary-image data is left out. 8-bit PNG pixels are copied without
+   * loss; a 16-bit PNG is reduced to 8 bits per channel, and PNG colour
+   * profiles are not kept. Animated PNGs and other formats are refused by name,
+   * so a tool converts them first (host.images.encode).
+   * Feature-detect `host.pdf?.fromImages`. Runs locally.
+   */
+  fromImages?(images: PdfImageInput[], opts?: PdfImagesOpts): Promise<PdfImagesResult>;
 
   /** Place one or more PNG/JPEG stamps using top-left PDF-point coordinates. */
   stamp?(bytes: Uint8Array, opts: PdfStampOpts): Promise<PdfStampResult>;
@@ -109,6 +125,63 @@ export interface PdfOrganizeResult {
   /** Output order expressed as global source page numbers across all inputs. */
   pageOrder: number[];
   operations: string[];
+  /**
+   * Optional v1.262: what the operation does to the bookmarks, annotations,
+   * links, form fields and signatures the inputs carry. Only features that are
+   * present appear. Older shells omit the list.
+   */
+  effects?: PdfPageEffect[];
+}
+
+/** A document feature the Pages operations report on. */
+export type PdfPageFeature = 'bookmarks' | 'annotations' | 'links' | 'forms' | 'signatures';
+
+/**
+ * One line of a page operation's effects report. `kept` means the feature
+ * works as before; `removed` means it is absent from the output; `broken`
+ * means it is still drawn but no longer works; `invalidated` means a digital
+ * signature no longer verifies.
+ */
+export interface PdfPageEffect {
+  feature: PdfPageFeature;
+  /** How many the affected inputs carry. */
+  count: number;
+  outcome: 'kept' | 'removed' | 'broken' | 'invalidated';
+  /** A plain sentence that can be shown as is. */
+  message: string;
+}
+
+export interface PdfImageInput {
+  /** PNG or JPEG bytes. */
+  bytes: Uint8Array;
+}
+
+/**
+ * `image` sizes each page to its image at the resolution the image declares,
+ * or 96 pixels per inch when it declares none. `a4` and `letter` fit each image
+ * inside that paper size, turned to match the image's orientation.
+ */
+export type PdfImagePageSize = 'image' | 'a4' | 'letter';
+
+export interface PdfImagesOpts {
+  /** Default `image`. */
+  pageSize?: PdfImagePageSize;
+  /** Space around a fitted image, in PDF points. Paper sizes only. Default 0, clamped to 0..144. */
+  margin?: number;
+}
+
+export interface PdfImagesResult {
+  bytes: Uint8Array;
+  /** Page count; one page per input image. */
+  pages: number;
+  /** Images turned upright from their camera orientation. */
+  turned: number;
+  /** Images whose Exif, XMP, IPTC, comment or other application data was left out. */
+  metadataLeftOut: number;
+  /** Images with a second picture stored after the main one (a gain map or preview) that was left out. */
+  extraPicturesLeftOut: number;
+  /** Plain sentences describing those changes. */
+  notes: string[];
 }
 
 export interface PdfStampImage {

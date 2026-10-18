@@ -120,6 +120,110 @@ test('Pages previews every page in an open-ended range and selects that same ran
   } finally { runtime.destroy(); }
 });
 
+const imageFile = (name: string, mime: string, head: number[], marker: number): any => {
+  const bytes = new Uint8Array([...head, 0, 0, 0, 0, 0, 0, 0, 0, marker]);
+  return { __file: true, name, mime, size: bytes.length, url: `blob:${name}`, bytes };
+};
+
+function imagePagesHost(calls: { fromImages: any[]; encode: any[]; organize: any[] }, effects: any[] = []): any {
+  return {
+    version: '1', log() {}, profile: { get: async () => ({}) },
+    images: {
+      encode: async (bytes: Uint8Array, opts: any) => { calls.encode.push({ bytes, opts }); return { bytes: new Uint8Array([0x89, 0x50, 0x4e, 0x47, 9]), mime: 'image/png', width: 4, height: 4 }; },
+    },
+    pdf: {
+      fromImages: async (images: any[], opts: any) => {
+        calls.fromImages.push({ images, opts });
+        const jpeg = images[0].bytes[0] === 0xff;
+        return { bytes: new Uint8Array([...PDF_BYTES, 100 + calls.fromImages.length]), pages: 1, turned: jpeg ? 1 : 0, metadataLeftOut: jpeg ? 1 : 0, extraPicturesLeftOut: 0, notes: [] };
+      },
+      pages: async (bytes: Uint8Array) => ({ pages: [{ page: 1, widthPt: 300, heightPt: 200, svg: `<svg data-doc="${bytes.at(-1)}"/>` }], totalPages: 1 }),
+      organize: async (bytes: Uint8Array, opts: any) => {
+        calls.organize.push({ bytes, opts });
+        return { bytes: new Uint8Array([7]), beforePages: 3, afterPages: 3, beforeBytes: 30, afterBytes: 1, pageOrder: [1, 2, 3], operations: ['Reordered 3 pages'], effects };
+      },
+    },
+  };
+}
+
+test('Pages turns images into PDF pages, converting formats it cannot place directly', async () => {
+  const tool = await communityTool('pages');
+  assert.equal(validateManifest(tool.manifest).valid, true);
+  assert.ok(tool.manifest.inputs.find((input: any) => input.id === 'source').accept.includes('image/jpeg'));
+  const calls = { fromImages: [] as any[], encode: [] as any[], organize: [] as any[] };
+  const effects = [{ feature: 'bookmarks', count: 2, outcome: 'removed', message: '2 bookmarks are not carried into the new PDF.' }];
+  const photo = imageFile('holiday.jpg', 'image/jpeg', [0xff, 0xd8, 0xff, 0xe0], 1);
+  const webp = imageFile('sticker.webp', 'image/webp', [...Buffer.from('RIFF\0\0\0\0WEBP')], 2);
+  const runtime = await createRuntime(tool, imagePagesHost(calls, effects), { source: [photo, webp, file('report.pdf', 3)] } as never);
+  try {
+    const html = runtime.getHydrated();
+    assert.equal(calls.encode.length, 1, 'only the WebP is converted');
+    assert.equal(calls.encode[0].bytes, webp.bytes);
+    assert.deepEqual(calls.encode[0].opts, { format: 'png' });
+    assert.equal(calls.fromImages[0].images[0].bytes, photo.bytes, 'a JPEG goes onto its page unchanged');
+    assert.deepEqual(calls.fromImages[0].opts, { pageSize: 'image', margin: 0 });
+    assert.deepEqual(calls.organize.at(-1).opts.extras.map((b: Uint8Array) => b.at(-1)), [102, 3], 'image PDFs and the real PDF follow in order');
+    assert.match(html, /data-input-id="imagePageSize"/);
+    assert.match(html, /<span class="page-origin">Image 1<\/span>/);
+    assert.match(html, /<span class="page-origin">PDF 3 · p1<\/span>/);
+    const changes = [...html.matchAll(/data-change-outcome="(\w+)">([^<]+)</g)].map(m => [m[1], m[2]]);
+    assert.deepEqual(changes, [
+      ['kept', 'Converted 1 image to PNG before placing it.'],
+      ['kept', 'Turned 1 photo upright using the camera orientation.'],
+      ['removed', 'Left out photo details such as location and camera data from 1 image.'],
+      ['removed', '2 bookmarks are not carried into the new PDF.'],
+    ]);
+
+    await runtime.setInput('imagePageSize', 'a4');
+    await runtime.setInput('imageMargin', 10);
+    assert.deepEqual(calls.fromImages.at(-1).opts, { pageSize: 'a4', margin: 28.35 });
+    assert.match(runtime.getHydrated(), /data-input-id="imageMargin"/);
+  } finally { runtime.destroy(); }
+});
+
+test('Pages names an images-only PDF after the first image and refuses what it cannot read', async () => {
+  const tool = await communityTool('pages');
+  const calls = { fromImages: [] as any[], encode: [] as any[], organize: [] as any[] };
+  const png = imageFile('scan.png', 'image/png', [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a], 1);
+  const runtime = await createRuntime(tool, imagePagesHost(calls), { source: [png] } as never);
+  try {
+    assert.match(runtime.getHydrated(), /1 image → 3 pages/);
+    const result = await runtime.exportFile() as any;
+    assert.equal(result.filename, 'scan.pdf');
+  } finally { runtime.destroy(); }
+
+  const older = imagePagesHost(calls);
+  delete older.pdf.fromImages;
+  const noImages = await createRuntime(tool, older, { source: [png] } as never);
+  try { assert.match(noImages.getHydrated(), /Turning images into a PDF is not available in this app\./); } finally { noImages.destroy(); }
+
+  const odd = await createRuntime(tool, imagePagesHost(calls), { source: [{ ...file('notes.txt', 1), mime: 'text/plain', bytes: new Uint8Array([104, 105]) }] } as never);
+  try { assert.match(odd.getHydrated(), /notes\.txt is not a PDF or an image\./); } finally { odd.destroy(); }
+});
+
+test('Pages places an animated PNG as its still picture, through host.images', async () => {
+  const tool = await communityTool('pages');
+  // A PNG signature, an IHDR chunk, then the acTL chunk that makes it an APNG.
+  const head = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, ...Buffer.from('IHDR'), 0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 8, ...Buffer.from('acTL'), 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0];
+  const apng = imageFile('wave.png', 'image/png', head, 1);
+  const calls = { fromImages: [] as any[], encode: [] as any[], organize: [] as any[] };
+  const runtime = await createRuntime(tool, imagePagesHost(calls), { source: [apng] } as never);
+  try {
+    const html = runtime.getHydrated();
+    assert.equal(calls.encode.length, 1);
+    assert.equal(calls.encode[0].bytes, apng.bytes);
+    assert.notEqual(calls.fromImages[0].images[0].bytes, apng.bytes, 'the still picture is placed, not the animated file');
+    const changes = [...html.matchAll(/data-change-outcome="(\w+)">([^<]+)</g)].map(m => [m[1], m[2]]);
+    assert.deepEqual(changes, [['removed', 'Placed 1 animated PNG as a still picture, without the animation.']]);
+  } finally { runtime.destroy(); }
+
+  const noEncoder = imagePagesHost(calls);
+  delete noEncoder.images;
+  const refused = await createRuntime(tool, noEncoder, { source: [apng] } as never);
+  try { assert.match(refused.getHydrated(), /wave\.png is an animated PNG; save it as a still image first\./); } finally { refused.destroy(); }
+});
+
 test('Sign renders direct drawing and asset controls on a mixed-size-aware page and exports drawn ink', async () => {
   const tool = await communityTool('sign');
   const checked = validateManifest(tool.manifest);

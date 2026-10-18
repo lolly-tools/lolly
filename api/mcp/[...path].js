@@ -4027,7 +4027,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.272.0";
+    ENGINE_VERSION = "1.274.0";
   }
 });
 
@@ -9699,10 +9699,10 @@ function resolveAliases(map) {
         const tv = resolve8(target2);
         if (tv !== void 0) {
           e.value = tv;
-          const inherited2 = map.get(target2)?.extensions?.[TOKEN_EXT];
+          const inherited3 = map.get(target2)?.extensions?.[TOKEN_EXT];
           const own3 = e.extensions?.[TOKEN_EXT];
-          if (isRecord(inherited2) && inherited2.faces && (!isRecord(own3) || !own3.faces)) {
-            e.extensions = { ...e.extensions, [TOKEN_EXT]: { ...isRecord(own3) ? own3 : {}, faces: inherited2.faces } };
+          if (isRecord(inherited3) && inherited3.faces && (!isRecord(own3) || !own3.faces)) {
+            e.extensions = { ...e.extensions, [TOKEN_EXT]: { ...isRecord(own3) ? own3 : {}, faces: inherited3.faces } };
           }
           if (e.type == null) {
             const te12 = map.get(target2);
@@ -37526,11 +37526,11 @@ var init_template = __esm({
       const empty2 = new Handlebars.SafeString("");
       if (!ref2 || typeof ref2 !== "object") return empty2;
       const esc7 = Handlebars.escapeExpression;
-      const get3 = (k) => Reflect.get(ref2, k);
-      const url = get3("url");
+      const get4 = (k) => Reflect.get(ref2, k);
+      const url = get4("url");
       if (typeof url !== "string" || !url) return empty2;
-      const type = String(get3("type") ?? "");
-      const meta = get3("meta") && typeof get3("meta") === "object" ? get3("meta") : {};
+      const type = String(get4("type") ?? "");
+      const meta = get4("meta") && typeof get4("meta") === "object" ? get4("meta") : {};
       const hash = options2?.hash ?? {};
       const cls = hash.class != null ? ` class="${esc7(String(hash.class))}"` : "";
       const root2 = options2?.data?.root ?? {};
@@ -37552,7 +37552,7 @@ var init_template = __esm({
       }
       if (type === "video" || /\.(mp4|m4v|mov|webm)($|\?|#)/i.test(url)) {
         const poster = typeof meta.posterUrl === "string" && meta.posterUrl ? ` poster="${esc7(meta.posterUrl)}"` : "";
-        const keyRaw = hash.key != null ? String(hash.key) : typeof get3("id") === "string" ? String(get3("id")) : url;
+        const keyRaw = hash.key != null ? String(hash.key) : typeof get4("id") === "string" ? String(get4("id")) : url;
         const flags = [
           mediaBool(hash.autoplay, true) ? "autoplay" : "",
           mediaBool(hash.loop, true) ? "loop" : "",
@@ -39139,18 +39139,18 @@ function replaceStoryRange(story, range, insertion, options2) {
     const id3 = existing2?.id ?? options2.paragraphId();
     if (used.has(id3)) throw new TextSourceError("duplicate-id", "A paragraph id was reused during the edit.");
     used.add(id3);
-    const inherited3 = existing2 ?? current;
+    const inherited4 = existing2 ?? current;
     const imported = insertion.paragraphs?.find((item2) => item2.start + start === bounds.start);
-    return { ...structuredClone(inherited3), ...bounds, id: id3, ...imported ? { style: void 0, paragraph: structuredClone(imported.paragraph) } : {} };
+    return { ...structuredClone(inherited4), ...bounds, id: id3, ...imported ? { style: void 0, paragraph: structuredClone(imported.paragraph) } : {} };
   });
   const candidates2 = [];
   for (const span of story.spans) if (span.start < start) candidates2.push({ ...span, end: Math.min(start, span.end) });
-  const inherited2 = options2.typing ?? (() => {
+  const inherited3 = options2.typing ?? (() => {
     const at = start === end ? Math.max(current.start, start - 1) : start;
     const span = story.spans.find((item2) => item2.start <= at && item2.end > at);
     return span ? spanStyle(span) : {};
   })();
-  const insertedSpans = insertion.spans ?? (insertion.source ? [{ start: 0, end: insertion.source.length, ...inherited2 }] : []);
+  const insertedSpans = insertion.spans ?? (insertion.source ? [{ start: 0, end: insertion.source.length, ...inherited3 }] : []);
   let previousEnd = 0;
   for (const span of insertedSpans) {
     assertTextRange(insertion.source, span);
@@ -43052,6 +43052,10 @@ function findJpegSegments(bytes2, marker, appId) {
 }
 function findJpegSegment(bytes2, marker, appId) {
   return findJpegSegments(bytes2, marker, appId)[0] ?? null;
+}
+function jpegSegmentBody(bytes2, seg4) {
+  if (seg4.end - seg4.start < 4) return new Uint8Array(0);
+  return bytes2.subarray(seg4.start + 4, Math.min(seg4.end, bytes2.length));
 }
 function jpegSegmentRank(marker, appId) {
   if (marker === 224) return 0;
@@ -58924,9 +58928,9 @@ function castRay(idx, px3, py, ux, uy, ref2, near, budget3, complete = false, bu
     near,
     64 * Number.EPSILON * Math.max(Math.abs(px3), Math.abs(py), Math.abs(qx), Math.abs(qy), 1)
   );
-  const look2 = Math.max(hitTol, 4 * twin, near * 32);
-  const rx0 = Math.min(px3, qx) - look2, rx1 = Math.max(px3, qx) + look2;
-  const ry0 = Math.min(py, qy) - look2, ry1 = Math.max(py, qy) + look2;
+  const look3 = Math.max(hitTol, 4 * twin, near * 32);
+  const rx0 = Math.min(px3, qx) - look3, rx1 = Math.max(px3, qx) + look3;
+  const ry0 = Math.min(py, qy) - look3, ry1 = Math.max(py, qy) + look3;
   let far = 0, net = 0, ok3 = true;
   for (let ci = 0; ci < idx.curves.length; ci++) {
     const ic = idx.curves[ci];
@@ -58945,7 +58949,7 @@ function castRay(idx, px3, py, ux, uy, ref2, near, budget3, complete = false, bu
     for (const hit of hits2) {
       const t = hit.t2;
       const s = (hit.t1 * 2 - 1) * reach2;
-      if (s < -look2) continue;
+      if (s < -look3) continue;
       const tg = tangentAt(c, t);
       const off = Math.abs(s);
       if (bundle && ref2 && off <= 4 * twin && inBundle(bundle, ci, t)) {
@@ -63743,7 +63747,7 @@ function inspectTokenDocument(doc, opts = {}) {
       truncated = true;
       return;
     }
-    const inherited2 = typeof node.$type === "string" ? node.$type : type;
+    const inherited3 = typeof node.$type === "string" ? node.$type : type;
     if ("$ref" in node || "$extends" in node) diagnostics.push({ code: "unsupported", path, message: "JSON Pointer references and group inheritance are retained but not resolved." });
     for (const [key2, child2] of Object.entries(node)) {
       if (++nodes > TOKEN_INSPECTION_LIMIT) {
@@ -63755,10 +63759,10 @@ function inspectTokenDocument(doc, opts = {}) {
       const loc = `${location4}/${pointer(key2)}`;
       if ("$value" in child2) {
         const sources = definitions.get(p) ?? [];
-        sources.push({ set, location: loc, type: typeof child2.$type === "string" ? child2.$type : inherited2, value: structuredClone(child2.$value), active: set === null || selection.sets.includes(set), ...typeof child2.$description === "string" ? { description: child2.$description } : {}, ...record8(child2.$extensions) ? { extensions: structuredClone(child2.$extensions) } : {} });
+        sources.push({ set, location: loc, type: typeof child2.$type === "string" ? child2.$type : inherited3, value: structuredClone(child2.$value), active: set === null || selection.sets.includes(set), ...typeof child2.$description === "string" ? { description: child2.$description } : {}, ...record8(child2.$extensions) ? { extensions: structuredClone(child2.$extensions) } : {} });
         definitions.set(p, sources);
         if ("$ref" in child2) diagnostics.push({ code: "unsupported", path: p, message: "JSON Pointer references are retained but not resolved." });
-      } else walk2(child2, inherited2, p, loc, set, depth + 1);
+      } else walk2(child2, inherited3, p, loc, set, depth + 1);
     }
   }
   const sets = tokenSetNames(d);
@@ -64887,22 +64891,22 @@ function blackWhite(b) {
     tint
   };
 }
-function readPsdAdjustment(get3) {
+function readPsdAdjustment(get4) {
   try {
-    const lv = get3("levl");
+    const lv = get4("levl");
     if (lv) return levels(lv);
-    const cv = get3("curv");
+    const cv = get4("curv");
     if (cv) return curves(cv);
-    const hs = get3("hue2") ?? get3("hue ");
+    const hs = get4("hue2") ?? get4("hue ");
     if (hs) return hueSaturation(hs);
-    const bc = get3("brit");
-    if (bc) return brightnessContrast(bc, get3("CgEd"));
-    const ex = get3("expA");
+    const bc = get4("brit");
+    if (bc) return brightnessContrast(bc, get4("CgEd"));
+    const ex = get4("expA");
     if (ex) return exposure(ex);
-    if (get3("nvrt")) return { kind: "invert" };
-    const cb = get3("blnc");
+    if (get4("nvrt")) return { kind: "invert" };
+    const cb = get4("blnc");
     if (cb) return colorBalance(cb);
-    const bw = get3("blwh");
+    const bw = get4("blwh");
     if (bw) return blackWhite(bw);
   } catch {
   }
@@ -65254,21 +65258,21 @@ function sharpRect(subpaths) {
 function readLayerSemantics(blocks, pixels2, canvas) {
   const notes = [];
   const out = { notes };
-  const get3 = (k) => blocks.get(k);
-  const tySh = get3("TySh") ?? get3("tySh");
+  const get4 = (k) => blocks.get(k);
+  const tySh = get4("TySh") ?? get4("tySh");
   if (tySh) {
     const text9 = readText(tySh, pixels2, notes);
     if (text9) out.text = text9;
   }
-  const soco = get3("SoCo");
-  const vscg = vectorFill(get3("vscg"));
-  const { fill: fillOn, stroke, unreadable } = strokeOf(get3("vstk"));
+  const soco = get4("SoCo");
+  const vscg = vectorFill(get4("vscg"));
+  const { fill: fillOn, stroke, unreadable } = strokeOf(get4("vstk"));
   const fill2 = soco ? descColor(descChild(readVersionedDescriptor(soco)?.value ?? null, "Clr ")) : vscg?.color ?? null;
   if (soco && !fill2) notes.push("The fill colour could not be read; the layer is kept as pixels.");
-  if (get3("GdFl") || vscg?.kind === "GdFl" && fillOn !== false) notes.push("Gradient fill kept as pixels.");
-  if (get3("PtFl") || vscg?.kind === "PtFl" && fillOn !== false) notes.push("Pattern fill kept as pixels.");
-  const mask = get3("vmsk") ?? get3("vsms");
-  const vogk = get3("vogk");
+  if (get4("GdFl") || vscg?.kind === "GdFl" && fillOn !== false) notes.push("Gradient fill kept as pixels.");
+  if (get4("PtFl") || vscg?.kind === "PtFl" && fillOn !== false) notes.push("Pattern fill kept as pixels.");
+  const mask = get4("vmsk") ?? get4("vsms");
+  const vogk = get4("vogk");
   const hasVector = !!(mask || vogk);
   const shapeFill = fillOn === false ? null : fill2;
   const paintable = (shapeFill || stroke) && !(vscg && fillOn !== false && !vscg.color);
@@ -65286,22 +65290,22 @@ function readLayerSemantics(blocks, pixels2, canvas) {
   } else if (!out.text && fill2 && !hasVector) {
     out.fill = fill2;
   }
-  const iOpa = get3("iOpa");
+  const iOpa = get4("iOpa");
   if (iOpa && iOpa.length >= 1 && iOpa[0] < 255) out.fillOpacity = r2(iOpa[0] / 255);
   for (const [k, name] of Object.entries(ADJUSTMENTS)) {
-    if (get3(k)) {
+    if (get4(k)) {
       out.adjustment = name;
       notes.push(`${name} adjustment layer was not applied.`);
-      const value = readPsdAdjustment(get3);
+      const value = readPsdAdjustment(get4);
       if (value) out.adjustmentValue = value;
       break;
     }
   }
-  const fxBlock = get3("lmfx") ?? get3("lfx2");
+  const fxBlock = get4("lmfx") ?? get4("lfx2");
   const effects = fxBlock ? effectsOn(fxBlock) : null;
   if (effects?.length) notes.push(`Layer effects were dropped: ${effects.join(", ")}.`);
-  else if (effects == null && (fxBlock || get3("lrFX"))) notes.push("Layer effects (shadows, glows, strokes) were dropped.");
-  if (get3("SoLd") || get3("PlLd") || get3("SoLE")) notes.push("Smart object kept as pixels.");
+  else if (effects == null && (fxBlock || get4("lrFX"))) notes.push("Layer effects (shadows, glows, strokes) were dropped.");
+  if (get4("SoLd") || get4("PlLd") || get4("SoLE")) notes.push("Smart object kept as pixels.");
   return out.text || out.shape || out.path || out.fill || out.fillOpacity != null || out.adjustment || notes.length ? out : null;
 }
 var CAPS, JOINS, ALIGNS, ADJUSTMENTS, SEMANTIC_BLOCK_KEYS, r2, WEIGHTS, ITALIC, STYLE_WORDS, sameStyle2, EFFECT_NAMES;
@@ -72109,14 +72113,14 @@ var init_output_facts = __esm({
       const rootNum = catalog ? ref(catalog.dict, "Pages") : null;
       const sizes = [];
       let complete = rootNum !== null;
-      const visit = (num18, inherited2, depth, seen) => {
+      const visit = (num18, inherited3, depth, seen) => {
         const node = objects.get(num18);
         if (!node || seen.has(num18) || depth > 64 || sizes.length >= 1e4) {
           complete = false;
           return;
         }
         seen.add(num18);
-        const media = boxOf2(node.dict, "MediaBox", objects) ?? inherited2;
+        const media = boxOf2(node.dict, "MediaBox", objects) ?? inherited3;
         if (/\/Type\s*\/Pages\b/.test(node.dict)) {
           const kids2 = arrayAfter(node.dict, "Kids") ?? "";
           for (const k of kids2.matchAll(PDF_REF)) visit(Number(k[1]), media, depth + 1, seen);
@@ -74613,9 +74617,9 @@ function tpPhases() {
 function createTruePeakLimiter(opts = {}) {
   const rate3 = opts.rate && opts.rate > 0 ? opts.rate : 48e3;
   const ceiling = 10 ** ((opts.ceilingDb ?? -1) / 20);
-  const look2 = Math.max(TP_PHASE_TAPS / 2 + 1, Math.round((opts.lookaheadMs ?? 2.5) / 1e3 * rate3));
+  const look3 = Math.max(TP_PHASE_TAPS / 2 + 1, Math.round((opts.lookaheadMs ?? 2.5) / 1e3 * rate3));
   const relCoef = Math.exp(-1 / ((opts.releaseMs ?? 60) / 1e3 * rate3));
-  const cap = look2 + 2;
+  const cap = look3 + 2;
   const delayL = new Float32Array(cap);
   const delayR = new Float32Array(cap);
   const req = new Float32Array(cap);
@@ -74654,11 +74658,11 @@ function createTruePeakLimiter(opts = {}) {
     written++;
     const tp = Math.max(truePeakOfNewest(), Math.abs(l), Math.abs(r5));
     req[i % cap] = tp > ceiling ? ceiling / tp : 1;
-    while (dqHead < dqTail && deque[dqHead % dqCap] < i - look2) dqHead++;
+    while (dqHead < dqTail && deque[dqHead % dqCap] < i - look3) dqHead++;
     while (dqHead < dqTail && req[deque[(dqTail - 1) % dqCap] % cap] >= req[i % cap]) dqTail--;
     deque[dqTail % dqCap] = i;
     dqTail++;
-    if (written <= look2) return oi;
+    if (written <= look3) return oi;
     const winMin = req[deque[dqHead % dqCap] % cap];
     gain = Math.min(winMin, 1 - (1 - gain) * relCoef);
     const j = emitted % cap;
@@ -74676,7 +74680,7 @@ function createTruePeakLimiter(opts = {}) {
   return {
     process(left, right) {
       const n7 = left.length;
-      const emittable = Math.max(0, written + n7 - look2) - emitted;
+      const emittable = Math.max(0, written + n7 - look3) - emitted;
       const outL = new Float32Array(emittable);
       const outR = new Float32Array(emittable);
       let oi = 0;
@@ -74688,7 +74692,7 @@ function createTruePeakLimiter(opts = {}) {
       const outL = new Float32Array(remain);
       const outR = new Float32Array(remain);
       let oi = 0;
-      for (let i = 0; i < look2 && oi < remain; i++) oi = consume2(0, 0, outL, outR, oi);
+      for (let i = 0; i < look3 && oi < remain; i++) oi = consume2(0, 0, outL, outR, oi);
       emitted = written;
       return [outL, outR];
     },
@@ -85790,10 +85794,10 @@ function readPptx(parts, parseXml) {
         const spTree = descendantByLocal(doc.documentElement, "spTree");
         if (spTree) walkTree(spTree, ctx, slide.nodes, { depth: 0, cascade });
         const slideShowsMaster = attrByLocal(doc.documentElement, "showMasterSp") !== "0";
-        const inherited2 = [];
-        if (master && slideShowsMaster && (!layout2 || layout2.showMasterSp)) inherited2.push(...master.furniture);
-        if (layout2) inherited2.push(...layout2.furniture);
-        if (inherited2.length) slide.inherited = inherited2;
+        const inherited3 = [];
+        if (master && slideShowsMaster && (!layout2 || layout2.showMasterSp)) inherited3.push(...master.furniture);
+        if (layout2) inherited3.push(...layout2.furniture);
+        if (inherited3.length) slide.inherited = inherited3;
         const background = readBackground(doc.documentElement, relsById, deck.theme) ?? layout2?.background ?? master?.background;
         if (background) slide.background = background;
         const audio = readSlideAudio(rels);
@@ -88447,25 +88451,25 @@ function parseSealRecords(bytes2) {
       }
       const pairs2 = extractPairs(entityDecode(interior));
       if (!pairs2) continue;
-      const get3 = (k) => {
+      const get4 = (k) => {
         for (const [key2, val] of pairs2) if (key2 === k) return val;
         return void 0;
       };
-      const sealVer = get3("seal");
-      const domain = get3("d");
-      const kaRaw = get3("ka");
-      const sRaw = get3("s");
+      const sealVer = get4("seal");
+      const domain = get4("d");
+      const kaRaw = get4("ka");
+      const sRaw = get4("s");
       if (sealVer === void 0 || !domain || !kaRaw || sRaw === void 0) continue;
       if (kaRaw !== "rsa" && kaRaw !== "ec") {
-        out.push(makeStub(span, sigSpan, sealVer, domain, kaRaw, get3, `unsupported key algorithm '${kaRaw}' (SEAL defines rsa and ec)`));
+        out.push(makeStub(span, sigSpan, sealVer, domain, kaRaw, get4, `unsupported key algorithm '${kaRaw}' (SEAL defines rsa and ec)`));
         continue;
       }
-      const digestAlgRaw = (get3("da") || "sha256").toLowerCase();
+      const digestAlgRaw = (get4("da") || "sha256").toLowerCase();
       const digestAlg = digestAlgRaw in DIGEST_MAP ? DIGEST_MAP[digestAlgRaw] : void 0;
-      const uid = get3("uid") ?? "";
-      const keyVersion = get3("kv") ?? "1";
-      const id3 = get3("id") ?? null;
-      const sfRaw = get3("sf") || "base64";
+      const uid = get4("uid") ?? "";
+      const keyVersion = get4("kv") ?? "1";
+      const id3 = get4("id") ?? null;
+      const sfRaw = get4("sf") || "base64";
       const dateMatch = /^(date[0-9]*)[:]?(.*)$/.exec(sfRaw);
       const dateScheme = dateMatch && /^date/.test(sfRaw) && dateMatch[1] !== void 0 && dateMatch[2] !== void 0 ? dateMatch[1] : null;
       const sigFormat = dateScheme ? dateMatch[2] || "base64" : sfRaw;
@@ -88496,7 +88500,7 @@ function parseSealRecords(bytes2) {
         P: prevSigStart,
         p: prevSigEnd
       };
-      const byteRangeSpec = get3("b") || "F~S,s~f";
+      const byteRangeSpec = get4("b") || "F~S,s~f";
       let ranges = null;
       try {
         ranges = resolveRanges(byteRangeSpec, ctx);
@@ -88504,7 +88508,7 @@ function parseSealRecords(bytes2) {
         if (!parseError) parseError = `byte range could not be resolved (${e.message})`;
       }
       let inlineKey = null;
-      const pk = get3("pk");
+      const pk = get4("pk");
       if (pk) {
         try {
           inlineKey = base64ToBytes2(pk);
@@ -88540,22 +88544,22 @@ function parseSealRecords(bytes2) {
   }
   return out;
 }
-function makeStub(span, sigSpan, sealVer, domain, ka, get3, parseError) {
+function makeStub(span, sigSpan, sealVer, domain, ka, get4, parseError) {
   return {
     version: Number.parseInt(sealVer, 10) || 1,
     domain,
     keyAlg: ka === "rsa" || ka === "ec" ? ka : "ec",
     digestAlg: null,
-    digestAlgRaw: (get3("da") || "sha256").toLowerCase(),
-    sigFormat: get3("sf") || "base64",
+    digestAlgRaw: (get4("da") || "sha256").toLowerCase(),
+    sigFormat: get4("sf") || "base64",
     dateScheme: null,
     signature: null,
     timestamp: null,
     ranges: null,
-    byteRangeSpec: get3("b") || "F~S,s~f",
-    uid: get3("uid") ?? "",
-    keyVersion: get3("kv") ?? "1",
-    id: get3("id") ?? null,
+    byteRangeSpec: get4("b") || "F~S,s~f",
+    uid: get4("uid") ?? "",
+    keyVersion: get4("kv") ?? "1",
+    id: get4("id") ?? null,
     inlineKey: null,
     recordStart: span.start,
     recordEnd: span.end,
@@ -98399,12 +98403,12 @@ function addColourway(doc, opts) {
   if (record14(next2.$metadata) && Array.isArray(next2.$metadata.tokenSetOrder)) next2.$metadata.tokenSetOrder = [...next2.$metadata.tokenSetOrder, set];
   const changed = unchanged(before, next2, selections2, "Adding this colourway");
   if (changed.length) return { ok: false, reasons: changed };
-  for (const look2 of mode3.options) {
+  for (const look3 of mode3.options) {
     for (const option of [...colourways.options, { id: opts.id, name: opts.name.trim() }]) {
-      const set2 = createTokenSet(next2, { selection: { [mode3.group]: look2.id, [colourways.group]: option.id } });
+      const set2 = createTokenSet(next2, { selection: { [mode3.group]: look3.id, [colourways.group]: option.id } });
       for (const role of roles) {
         const value = set2.resolve(`color.semantic.${role}`);
-        if (typeof value !== "string" || isAlias(value)) return { ok: false, reasons: [`The ${option.name} ${role} in the ${look2.name} theme would not resolve to a colour.`] };
+        if (typeof value !== "string" || isAlias(value)) return { ok: false, reasons: [`The ${option.name} ${role} in the ${look3.name} theme would not resolve to a colour.`] };
       }
     }
   }
@@ -103631,9 +103635,9 @@ function titleFor(draft, action, section, slides) {
   if (draft.shape === "one") return reviewMessage("title.one", { ...one, noun: noun.one, slide: first });
   if (draft.shape === "several") return reviewMessage("title.several", { ...many, nouns: noun.many, count: count4, slide: first });
   if (slides.length < 2) return reviewMessage(`title.several.${action}`, { ...many, nouns: noun.many, count: count4, slide: first });
-  const inherited2 = draft.members.every((member) => member.object?.origin === "master" || member.object?.origin === "layout");
+  const inherited3 = draft.members.every((member) => member.object?.origin === "master" || member.object?.origin === "layout");
   const describes = draft.klass === "template-furniture" || draft.klass === "recurring-text" || draft.klass === "footer";
-  if (section === "attention" && inherited2 && describes) {
+  if (section === "attention" && inherited3 && describes) {
     const fromLayout = draft.members.every((member) => member.object?.origin === "layout");
     return reviewMessage(fromLayout ? "title.layout" : "title.master", { ...one, noun: noun.one, slides: slides.length });
   }
@@ -105223,7 +105227,7 @@ function mergeCoLocatedMarks(groups, rows2, frames) {
       return near !== void 0 && (samePlace(box4, near) || lockup && sideBySide(box4, near));
     });
   });
-  const inherited2 = (group) => group.members.every((id3) => {
+  const inherited3 = (group) => group.members.every((id3) => {
     const origin = rowById.get(id3)?.origin;
     return origin === "master" || origin === "layout";
   });
@@ -105232,7 +105236,7 @@ function mergeCoLocatedMarks(groups, rows2, frames) {
     return box4 && box4.h > 0 ? box4.w / box4.h : 0;
   };
   const inheritedCopy = (a, b) => {
-    if (inherited2(a) === inherited2(b)) return false;
+    if (inherited3(a) === inherited3(b)) return false;
     const x = aspectOf(a);
     const y = aspectOf(b);
     return x > 0 && y > 0 && Math.abs(x - y) <= MARK_ASPECT_SAME * Math.max(x, y);
@@ -105278,7 +105282,7 @@ function mergeCoLocatedMarks(groups, rows2, frames) {
         const enough = (n7) => n7 >= 2 && n7 >= MARK_MERGE_SHARE * Math.min(mine2.size, theirs.size);
         if (!enough(shared) && !(enough([...theirs.keys()].filter((id3) => mine2.has(id3)).length) && inheritedCopy(keeper, other)))
           continue;
-        if (inherited2(keeper) && !inherited2(other)) keeper.exemplar = other.exemplar;
+        if (inherited3(keeper) && !inherited3(other)) keeper.exemplar = other.exemplar;
         adopt(keeper, other.members);
         if (other.unverified?.length)
           keeper.unverified = [
@@ -106085,8 +106089,8 @@ function isPlainTheme(theme) {
 function lookOnLocked(theme, locked) {
   return locked === true && theme.id === "look";
 }
-function themeKey(theme, look2) {
-  const lookColors = look2 && theme.id === "look" && look2.id === theme.lookId ? sortedRecord(look2.colors) : null;
+function themeKey(theme, look3) {
+  const lookColors = look3 && theme.id === "look" && look3.id === theme.lookId ? sortedRecord(look3.colors) : null;
   return JSON.stringify([theme.id, theme.mode ?? null, theme.remap.map((row) => [row.from, row.to]), theme.lookId ?? null, theme.flipDark === true, lookColors]);
 }
 function hexRecord(record44) {
@@ -106419,8 +106423,8 @@ function themedColors(source, theme, opts = {}) {
   }
   let modeColors = sortedRecord(base);
   if (theme.id === "look") {
-    const look2 = opts.look && opts.look.id === theme.lookId ? opts.look : void 0;
-    if (look2) modeColors = sortedRecord({ ...modeColors, ...hexRecord(look2.colors) });
+    const look3 = opts.look && opts.look.id === theme.lookId ? opts.look : void 0;
+    if (look3) modeColors = sortedRecord({ ...modeColors, ...hexRecord(look3.colors) });
     else notes.push({ code: "theme.look-missing", params: { lookId: theme.lookId ?? "" } });
   }
   const remap = /* @__PURE__ */ new Map();
@@ -108215,15 +108219,15 @@ function buildDeckTheme(id3, source, opts = {}) {
     }
     theme = { id: "brand", remap: remapRows(rows2) };
   } else {
-    const look2 = opts.look;
-    if (!look2) return null;
+    const look3 = opts.look;
+    if (!look3) return null;
     const rows2 = /* @__PURE__ */ new Map();
     for (const tokenPath of paths.keys()) {
       const slot = themeSlotOf(tokenPath, light);
-      if (slot && look2.colors[semanticPath2(slot)] !== void 0) rows2.set(tokenPath, semanticPath2(slot));
+      if (slot && look3.colors[semanticPath2(slot)] !== void 0) rows2.set(tokenPath, semanticPath2(slot));
     }
-    theme = { id: "look", remap: remapRows(rows2), lookId: look2.id };
-    name = look2.name;
+    theme = { id: "look", remap: remapRows(rows2), lookId: look3.id };
+    name = look3.name;
   }
   const themed = themedColors(source, theme, opts.look ? { look: opts.look } : {});
   const choice3 = {
@@ -108259,8 +108263,8 @@ function deckThemeChoices(source, opts = {}) {
   }
   for (const choice3 of [light, dark, brand]) if (choice3) out.push(choice3);
   if (opts.locked !== true) {
-    for (const look2 of opts.looks ?? []) {
-      const choice3 = buildDeckTheme("look", source, { look: look2 });
+    for (const look3 of opts.looks ?? []) {
+      const choice3 = buildDeckTheme("look", source, { look: look3 });
       if (choice3) out.push(choice3);
     }
   }
@@ -109531,54 +109535,54 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
   };
   const inherit = (el, parent, style) => {
     const own3 = { ...parent, groups: parent.groups };
-    const get3 = (name) => {
+    const get4 = (name) => {
       const v = prop(el, style, name);
       return v === "inherit" ? void 0 : v;
     };
-    const color6 = get3("color");
+    const color6 = get4("color");
     if (color6) own3.color = color6;
-    const fill2 = get3("fill");
+    const fill2 = get4("fill");
     if (fill2 !== void 0) own3.fill = fill2;
-    const stroke = get3("stroke");
+    const stroke = get4("stroke");
     if (stroke !== void 0) own3.stroke = stroke;
-    const fontSize = lengthOf(get3("font-size"), parent.fontSize);
+    const fontSize = lengthOf(get4("font-size"), parent.fontSize);
     if (fontSize !== void 0 && fontSize > 0) own3.fontSize = fontSize;
-    const sw = lengthIn(get3("stroke-width"), own3, "d");
+    const sw = lengthIn(get4("stroke-width"), own3, "d");
     if (sw !== void 0 && sw >= 0) own3.strokeWidth = sw;
-    const fo = unitOf(get3("fill-opacity"));
+    const fo = unitOf(get4("fill-opacity"));
     if (fo !== void 0) own3.fillOpacity = fo;
-    const so = unitOf(get3("stroke-opacity"));
+    const so = unitOf(get4("stroke-opacity"));
     if (so !== void 0) own3.strokeOpacity = so;
-    const rule = get3("fill-rule");
+    const rule = get4("fill-rule");
     if (rule === "evenodd" || rule === "nonzero") own3.fillRule = rule;
-    const cap = get3("stroke-linecap");
+    const cap = get4("stroke-linecap");
     if (cap === "butt" || cap === "round" || cap === "square") own3.cap = cap;
-    const join32 = get3("stroke-linejoin");
+    const join32 = get4("stroke-linejoin");
     if (join32 === "miter" || join32 === "round" || join32 === "bevel") own3.join = join32;
     else if (join32 === "miter-clip" || join32 === "arcs") own3.join = "miter";
-    const dash = get3("stroke-dasharray");
+    const dash = get4("stroke-dasharray");
     if (dash !== void 0) {
       const list4 = dash === "none" ? [] : dash.split(/[\s,]+/).map((v) => lengthOf(v, own3.fontSize)).filter((v) => v !== void 0 && v >= 0);
       own3.dash = list4.length > 0 && list4.some((v) => v > 0) ? list4.length % 2 ? [...list4, ...list4] : list4 : void 0;
     }
-    const opacity = unitOf(get3("opacity"));
+    const opacity = unitOf(get4("opacity"));
     if (opacity !== void 0) own3.opacity = parent.opacity * opacity;
-    const visibility = get3("visibility");
+    const visibility = get4("visibility");
     if (visibility === "hidden" || visibility === "collapse") own3.visible = false;
     else if (visibility === "visible") own3.visible = true;
-    const family2 = get3("font-family");
+    const family2 = get4("font-family");
     if (family2) own3.fontFamily = familyOf2(family2) ?? own3.fontFamily;
-    const weight = get3("font-weight");
+    const weight = get4("font-weight");
     if (weight) own3.bold = weight === "bold" || weight === "bolder" || Number(weight) >= 600;
-    const fontStyle = get3("font-style");
+    const fontStyle = get4("font-style");
     if (fontStyle) own3.italic = fontStyle === "italic" || fontStyle === "oblique";
-    const anchor = get3("text-anchor");
+    const anchor = get4("text-anchor");
     if (anchor === "start" || anchor === "middle" || anchor === "end") own3.anchor = anchor;
     for (const effect of ["clip-path", "mask", "filter"]) {
-      const v = get3(effect);
+      const v = get4(effect);
       if (v && v !== "none") own3.blocked = "unsupported-paint";
     }
-    const blend2 = get3("mix-blend-mode");
+    const blend2 = get4("mix-blend-mode");
     if (blend2 && blend2 !== "normal") own3.blocked = "unsupported-paint";
     const series = el.getAttribute("data-series") ?? el.getAttribute("data-recolor") ?? el.getAttribute("data-name");
     if (series?.trim()) own3.series = series.trim().slice(0, MAX_SERIES);
@@ -111988,9 +111992,9 @@ function compileTheme(input, opts) {
   const locked = opts.locked === true;
   const stored = plan.designSystem.theme;
   const theme = stored && !isPlainTheme(stored) && !(locked && stored.id === "look") ? stored : null;
-  const look2 = theme?.id === "look" ? opts.looks?.find((one) => one.id === theme.lookId) : void 0;
+  const look3 = theme?.id === "look" ? opts.looks?.find((one) => one.id === theme.lookId) : void 0;
   const source = opts.themeSource ?? themeSourceOf(input.designSystem);
-  const lookOpts = { ...look2 ? { look: look2 } : {}, locked };
+  const lookOpts = { ...look3 ? { look: look3 } : {}, locked };
   const ds = theme ? systemForPlan(input.designSystem, plan, { ...lookOpts, ...source ? { source } : {} }) : input.designSystem;
   const sized = (one) => sizedMaster(one, opts.frameSize);
   const hasGrounds = plan.slides.some((slide) => slide.ground !== void 0);
@@ -117247,11 +117251,11 @@ function buildPenpotEntries(doc, opts = {}) {
       }
       const id3 = uuid();
       if (sh.sourceId) sourceIds.set(sh.sourceId, id3);
-      const nameOf4 = (fallback) => fallback;
+      const nameOf5 = (fallback) => fallback;
       let rec2;
       switch (sh.type) {
         case "board": {
-          rec2 = baseRecord(id3, "frame", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf4("Board"));
+          rec2 = baseRecord(id3, "frame", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf5("Board"));
           const [r12, r26, r32, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
           Object.assign(rec2, { r1: r12, r2: r26, r3: r32, r4: r4v, hideFillOnExport: false, growType: "fixed" });
           if (sh.showContent) rec2.showContent = true;
@@ -117275,7 +117279,7 @@ function buildPenpotEntries(doc, opts = {}) {
         case "group": {
           const kids2 = sh.children.filter(Boolean);
           if (!kids2.length) return null;
-          rec2 = baseRecord(id3, "group", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf4("Group"));
+          rec2 = baseRecord(id3, "group", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf5("Group"));
           rec2.fills = [];
           rec2.strokes = [];
           if (sh.masked) rec2.maskedGroup = true;
@@ -117293,7 +117297,7 @@ function buildPenpotEntries(doc, opts = {}) {
           break;
         }
         case "rect": {
-          rec2 = baseRecord(id3, "rect", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf4("Rectangle"));
+          rec2 = baseRecord(id3, "rect", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf5("Rectangle"));
           const [r12, r26, r32, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
           Object.assign(rec2, { r1: r12, r2: r26, r3: r32, r4: r4v });
           shapeCount++;
@@ -117306,21 +117310,21 @@ function buildPenpotEntries(doc, opts = {}) {
             return null;
           }
           const fills = [{ media: sh.media, keepAspectRatio: sh.keepAspectRatio !== false, opacity: 1 }];
-          rec2 = baseRecord(id3, "rect", { ...sh, fills }, parentId, frameId, pageId, media, uuid, warn2, nameOf4(m2.name || "Image"));
+          rec2 = baseRecord(id3, "rect", { ...sh, fills }, parentId, frameId, pageId, media, uuid, warn2, nameOf5(m2.name || "Image"));
           const [r12, r26, r32, r4v] = radii(sh.radius, fin2(sh.w), fin2(sh.h));
           Object.assign(rec2, { r1: r12, r2: r26, r3: r32, r4: r4v });
           shapeCount++;
           break;
         }
         case "circle": {
-          rec2 = baseRecord(id3, "circle", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf4("Ellipse"));
+          rec2 = baseRecord(id3, "circle", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf5("Ellipse"));
           shapeCount++;
           break;
         }
         case "path": {
           const d = typeof sh.d === "string" ? sh.d.trim() : "";
           if (!d) return null;
-          rec2 = baseRecord(id3, "path", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf4("Path"));
+          rec2 = baseRecord(id3, "path", sh, parentId, frameId, pageId, media, uuid, warn2, nameOf5("Path"));
           rec2.content = d;
           shapeCount++;
           break;
@@ -117328,7 +117332,7 @@ function buildPenpotEntries(doc, opts = {}) {
         case "text": {
           const content2 = textContentRecord(sh, google, nextKey);
           if (!content2) return null;
-          rec2 = baseRecord(id3, "text", { ...sh, fills: [] }, parentId, frameId, pageId, media, uuid, warn2, nameOf4("Text"));
+          rec2 = baseRecord(id3, "text", { ...sh, fills: [] }, parentId, frameId, pageId, media, uuid, warn2, nameOf5("Text"));
           rec2.content = content2;
           rec2.growType = sh.growType ?? "fixed";
           shapeCount++;
@@ -117449,13 +117453,13 @@ function penpotTokensJson(doc, selection) {
   const isTokenLeaf = (v) => isRec6(v) && ("$value" in v || "value" in v);
   const sets = /* @__PURE__ */ Object.create(null);
   const reserved = /* @__PURE__ */ new Set(["$themes", "$metadata", "$description", "$extensions", "$type", "$schema"]);
-  const convert = (node, inherited2) => {
+  const convert = (node, inherited3) => {
     const out2 = /* @__PURE__ */ Object.create(null);
     let kept2 = 0;
     for (const [k, v] of Object.entries(node)) {
       if (k.startsWith("$")) continue;
       if (isTokenLeaf(v)) {
-        const rawType = typeof v.$type === "string" ? v.$type : typeof v.type === "string" ? v.type : inherited2;
+        const rawType = typeof v.$type === "string" ? v.$type : typeof v.type === "string" ? v.type : inherited3;
         const mapped = rawType ? TOKEN_TYPE_MAP[rawType] : void 0;
         if (typeof mapped !== "string") continue;
         const leaf = { $value: "$value" in v ? v.$value : v.value, $type: mapped };
@@ -117464,7 +117468,7 @@ function penpotTokensJson(doc, selection) {
         out2[k] = leaf;
         kept2++;
       } else if (isRec6(v)) {
-        const groupType = typeof v.$type === "string" ? v.$type : inherited2;
+        const groupType = typeof v.$type === "string" ? v.$type : inherited3;
         const sub = convert(v, groupType);
         if (sub) {
           out2[k] = sub;
@@ -117760,12 +117764,12 @@ function boxesToPenpotDoc(boxesIn, o) {
     if (!p) return [];
     return [{ color: p.hex, opacity: p.alpha }];
   };
-  const nameOf4 = (b, fallback) => str6(b.name).trim() || fallback;
+  const nameOf5 = (b, fallback) => str6(b.name).trim() || fallback;
   const lowerBox = (b) => {
     const kind = str6(b.kind) || "box";
     if (kind === "audio" || kind === "camera" || kind === "frame" || kind === "group") return null;
     const x = fin2(b.x), y = fin2(b.y), w = Math.max(1, fin2(b.w, 1)), h = Math.max(1, fin2(b.h, 1));
-    const base = { name: nameOf4(b, kind), x, y, w, h };
+    const base = { name: nameOf5(b, kind), x, y, w, h };
     const effectCapture = effects(b, base);
     let shape = null;
     let textHasRunColor = false;
@@ -117924,7 +117928,7 @@ function boxesToPenpotDoc(boxesIn, o) {
         if (box4.clip || box4.shadow && box4.shadow !== "none" || fin2(box4.blur) > 0 || fin2(box4.bgBlur) > 0) throw new Error("Group masks, shadows and blur need an SVG copy for faithful Penpot export.");
         shape = {
           type: "group",
-          name: nameOf4(box4, "Group"),
+          name: nameOf5(box4, "Group"),
           x: fin2(box4.x),
           y: fin2(box4.y),
           w: Math.max(0.01, fin2(box4.w, 1)),
@@ -117940,7 +117944,7 @@ function boxesToPenpotDoc(boxesIn, o) {
         shape = {
           ...primitive || {},
           type: "board",
-          name: nameOf4(box4, "Artboard"),
+          name: nameOf5(box4, "Artboard"),
           x: fin2(box4.x),
           y: fin2(box4.y),
           w: Math.max(0.01, fin2(box4.w, 1)),
@@ -118001,7 +118005,7 @@ function boxesToPenpotDoc(boxesIn, o) {
         shape = {
           ...primitive || {},
           type: "board",
-          name: nameOf4(box4, "Layout"),
+          name: nameOf5(box4, "Layout"),
           x: fin2(box4.x),
           y: fin2(box4.y),
           w: Math.max(0.01, fin2(box4.w, 1)),
@@ -118055,7 +118059,7 @@ function boxesToPenpotDoc(boxesIn, o) {
       const p = parsePenpotColor(bg) ?? { hex: "#ffffff", alpha: 1 };
       const board = {
         type: "board",
-        name: nameOf4(fb, `Board ${shapes2.length + 1}`),
+        name: nameOf5(fb, `Board ${shapes2.length + 1}`),
         x: fin2(fb.x),
         y: fin2(fb.y),
         w: Math.max(1, fin2(fb.w, 1)),
@@ -118396,14 +118400,14 @@ function svgToPenpotDoc(svgText, o) {
   };
   const frameFor2 = (parent, t) => {
     const a = t.attrs, st = parseStyle2(a.style);
-    const get3 = (k) => st[k] ?? a[k];
+    const get4 = (k) => st[k] ?? a[k];
     const local2 = parseTransform3(a.transform);
     if (local2 === null) {
       note2("unreadable transform");
       return null;
     }
     const f = { ...parent, m: mul2(parent.m, local2) };
-    const fill2 = get3("fill");
+    const fill2 = get4("fill");
     if (fill2 != null) {
       const v = fill2.trim();
       if (/^none$/i.test(v)) f.fill = null;
@@ -118415,9 +118419,9 @@ function svgToPenpotDoc(svgText, o) {
         return null;
       }
     }
-    const fo = get3("fill-opacity");
+    const fo = get4("fill-opacity");
     if (fo != null) f.fillOpacity = clamp(fin2(fo, 1), 0, 1);
-    const stroke = get3("stroke");
+    const stroke = get4("stroke");
     if (stroke != null) {
       const v = stroke.trim();
       if (/^none$/i.test(v)) f.stroke = null;
@@ -118431,34 +118435,34 @@ function svgToPenpotDoc(svgText, o) {
         return null;
       }
     }
-    const sw = get3("stroke-width");
+    const sw = get4("stroke-width");
     if (sw != null) f.strokeWidth = Math.max(0, parseLen(sw, 1));
-    const so = get3("stroke-opacity");
+    const so = get4("stroke-opacity");
     if (so != null) f.strokeOpacity = clamp(fin2(so, 1), 0, 1);
-    const sd = get3("stroke-dasharray");
+    const sd = get4("stroke-dasharray");
     if (sd != null) f.strokeDash = sd.trim();
-    const sc = get3("stroke-linecap");
+    const sc = get4("stroke-linecap");
     if (sc != null) f.strokeCap = sc.trim().toLowerCase();
-    const op = get3("opacity");
+    const op = get4("opacity");
     if (op != null) f.opacity = parent.opacity * clamp(fin2(op, 1), 0, 1);
     else f.opacity = parent.opacity;
-    const ff = get3("font-family");
+    const ff = get4("font-family");
     if (ff != null) f.fontFamily = ff.split(",")[0].trim().replace(/^['"]|['"]$/g, "");
-    const fs = get3("font-size");
+    const fs = get4("font-size");
     if (fs != null) f.fontSize = Math.max(1, parseLen(fs, 16));
-    const fw = get3("font-weight");
+    const fw = get4("font-weight");
     if (fw != null) f.fontWeight = /^bold/i.test(fw) ? 700 : /^normal/i.test(fw) ? 400 : clamp(Math.round(fin2(fw, 400) / 100) * 100, 100, 900);
-    const fst = get3("font-style");
+    const fst = get4("font-style");
     if (fst != null) f.fontStyle = fst.trim().toLowerCase();
-    const ta = get3("text-anchor");
+    const ta = get4("text-anchor");
     if (ta != null) f.textAnchor = ta.trim().toLowerCase();
-    const ls = get3("letter-spacing");
+    const ls = get4("letter-spacing");
     if (ls != null) f.letterSpacing = /normal/i.test(ls) ? 0 : parseLen(ls, 0);
-    const bm = get3("mix-blend-mode");
+    const bm = get4("mix-blend-mode");
     if (bm != null && BLEND_MODES.has(bm.trim())) f.blend = bm.trim();
-    const vis = get3("visibility"), disp = get3("display");
+    const vis = get4("visibility"), disp = get4("display");
     if (vis && /hidden|collapse/i.test(vis) || disp && /none/i.test(disp)) f.visible = false;
-    if (get3("filter") || get3("mask") || get3("clip-path")) {
+    if (get4("filter") || get4("mask") || get4("clip-path")) {
       note2("filter/mask/clip-path is not expressible");
       return null;
     }
@@ -119307,8 +119311,8 @@ function photoLookHex8(hex3) {
   const n7 = parseInt(six, 16);
   return [n7 >> 16 & 255, n7 >> 8 & 255, n7 & 255];
 }
-function photoLookStops(look2) {
-  const raw = Array.isArray(look2.stops) && look2.stops.length ? look2.stops : [look2.shadow, look2.mid, look2.highlight].filter((c) => typeof c === "string" && !!c);
+function photoLookStops(look3) {
+  const raw = Array.isArray(look3.stops) && look3.stops.length ? look3.stops : [look3.shadow, look3.mid, look3.highlight].filter((c) => typeof c === "string" && !!c);
   const n7 = raw.length;
   return raw.map((s, i) => {
     const color6 = typeof s === "string" ? s : s.color;
@@ -119316,18 +119320,18 @@ function photoLookStops(look2) {
     return { color: color6, pos };
   });
 }
-function resolvePhotoLook(look2, theme) {
-  const { themes, ...base } = look2;
+function resolvePhotoLook(look3, theme) {
+  const { themes, ...base } = look3;
   const variant = theme && themes && Object.hasOwn(themes, theme) ? themes[theme] : void 0;
   if (!variant) return base;
   const out = { ...base };
   for (const key2 of VARIANT_KEYS) if (variant[key2] !== void 0) out[key2] = variant[key2];
   return out;
 }
-function photoLookThemeKey(look2, selection) {
-  if (!look2.themes || !selection) return "base";
+function photoLookThemeKey(look3, selection) {
+  if (!look3.themes || !selection) return "base";
   const chosen = new Set(typeof selection === "string" ? [selection] : Object.values(selection).filter((v) => typeof v === "string"));
-  for (const key2 of Object.keys(look2.themes).sort()) if (chosen.has(key2)) return key2;
+  for (const key2 of Object.keys(look3.themes).sort()) if (chosen.has(key2)) return key2;
   return "base";
 }
 function canonical2(value) {
@@ -119338,8 +119342,8 @@ function canonical2(value) {
   }
   return JSON.stringify(value) ?? "null";
 }
-function photoLookDefinitionHash(look2) {
-  const text9 = `${PHOTO_LOOK_RECIPE}|${canonical2(look2)}`;
+function photoLookDefinitionHash(look3) {
+  const text9 = `${PHOTO_LOOK_RECIPE}|${canonical2(look3)}`;
   let h = 2166136261;
   for (let i = 0; i < text9.length; i += 1) {
     h ^= text9.charCodeAt(i);
@@ -119347,12 +119351,12 @@ function photoLookDefinitionHash(look2) {
   }
   return h.toString(16).padStart(8, "0");
 }
-function photoLookCacheKey(baseId, version, look2, themeKey2) {
+function photoLookCacheKey(baseId, version, look3, themeKey2) {
   const source = baseId.startsWith("user/") ? "user" : "library";
-  return `${source}:${baseId}:${version}:look:${look2.id}:${photoLookDefinitionHash(look2)}:${themeKey2 || "base"}`;
+  return `${source}:${baseId}:${version}:look:${look3.id}:${photoLookDefinitionHash(look3)}:${themeKey2 || "base"}`;
 }
-function isRasterPhotoLook(look2) {
-  return look2?.kind === "gradient-map" || look2?.kind === "lut";
+function isRasterPhotoLook(look3) {
+  return look3?.kind === "gradient-map" || look3?.kind === "lut";
 }
 function photoLookToneTable(stops) {
   const labs = stops.map((s) => {
@@ -119404,24 +119408,24 @@ function gradeTables(contrast3, lightness) {
   }
   return { unit: unit2, linear };
 }
-function lookAmount(look2) {
-  return typeof look2.amount === "number" && Number.isFinite(look2.amount) ? (look2.amount < 0 ? 0 : look2.amount > 100 ? 100 : look2.amount) / 100 : 1;
+function lookAmount(look3) {
+  return typeof look3.amount === "number" && Number.isFinite(look3.amount) ? (look3.amount < 0 ? 0 : look3.amount > 100 ? 100 : look3.amount) / 100 : 1;
 }
-function lookGrade(look2) {
+function lookGrade(look3) {
   const finite7 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
-  return gradeTables(finite7(look2.contrast), finite7(look2.lightness));
+  return gradeTables(finite7(look3.contrast), finite7(look3.lightness));
 }
-function duotoneRamp(look2) {
-  return [look2.shadow ?? "#000000", ...look2.mid ? [look2.mid] : [], look2.highlight ?? "#ffffff"].map((c) => {
+function duotoneRamp(look3) {
+  return [look3.shadow ?? "#000000", ...look3.mid ? [look3.mid] : [], look3.highlight ?? "#ffffff"].map((c) => {
     const v = photoLookHex8(c) ?? [0, 0, 0];
     return [v[0] / 255, v[1] / 255, v[2] / 255];
   });
 }
-function applyPhotoLook(rgba2, width, height, look2, opts = {}) {
+function applyPhotoLook(rgba2, width, height, look3, opts = {}) {
   if (!(rgba2 instanceof Uint8ClampedArray)) throw new Error("photo look: pixels must be a Uint8ClampedArray");
   if (!Number.isInteger(width) || !Number.isInteger(height) || width < 0 || height < 0 || rgba2.length !== width * height * 4)
     throw new Error(`photo look: ${width}x${height} does not match ${rgba2.length} bytes of RGBA`);
-  const def = resolvePhotoLook(look2, opts.theme);
+  const def = resolvePhotoLook(look3, opts.theme);
   const amount = lookAmount(def);
   const grade = lookGrade(def);
   if (def.kind === "lut") {
@@ -119502,14 +119506,14 @@ function lumaMap(d, def, ta, grade) {
     d[i + 2] = (b01 + (tb - b01) * ta) * 255;
   }
 }
-function photoLookPreviewTable(look2, count4 = 17) {
-  const stops = photoLookStops(look2);
+function photoLookPreviewTable(look3, count4 = 17) {
+  const stops = photoLookStops(look3);
   if (stops.length < 2) return [];
   const tlut = photoLookToneTable(stops);
-  const amount = lookAmount(look2);
+  const amount = lookAmount(look3);
   const finite7 = (v) => typeof v === "number" && Number.isFinite(v) ? v : 0;
-  const contrast3 = Math.max(-100, Math.min(100, finite7(look2.contrast)));
-  const light = Math.max(-100, Math.min(100, finite7(look2.lightness))) / 100;
+  const contrast3 = Math.max(-100, Math.min(100, finite7(look3.contrast)));
+  const light = Math.max(-100, Math.min(100, finite7(look3.lightness))) / 100;
   const cf = 259 * (contrast3 + 255) / (255 * (259 - contrast3));
   const graded = (s) => {
     let n7 = s * 255;
@@ -125684,23 +125688,23 @@ function clone4(value) {
   return value === void 0 || value === null || typeof value !== "object" ? value : JSON.parse(JSON.stringify(value));
 }
 function studioLookOf(values) {
-  const look2 = {};
+  const look3 = {};
   for (const key2 of STUDIO_LOOK_KEYS) {
     const id3 = studioKeyInput(key2);
     const field2 = studioKeyField(key2);
     if (field2 === null) {
-      if (values[id3] !== void 0) look2[id3] = clone4(values[id3]);
+      if (values[id3] !== void 0) look3[id3] = clone4(values[id3]);
       continue;
     }
     const from = record22(values[id3]);
     if (from[field2] === void 0) continue;
-    const into = record22(look2[id3]);
+    const into = record22(look3[id3]);
     into[field2] = clone4(from[field2]);
-    look2[id3] = into;
+    look3[id3] = into;
   }
-  return look2;
+  return look3;
 }
-function studioApplyLook(values, look2, overrides = []) {
+function studioApplyLook(values, look3, overrides = []) {
   const kept2 = new Set(overrides.map(studioKeyInput));
   const next2 = { ...values };
   for (const key2 of STUDIO_LOOK_KEYS) {
@@ -125708,10 +125712,10 @@ function studioApplyLook(values, look2, overrides = []) {
     if (kept2.has(id3)) continue;
     const field2 = studioKeyField(key2);
     if (field2 === null) {
-      if (look2[id3] !== void 0) next2[id3] = clone4(look2[id3]);
+      if (look3[id3] !== void 0) next2[id3] = clone4(look3[id3]);
       continue;
     }
-    const from = record22(look2[id3]);
+    const from = record22(look3[id3]);
     if (from[field2] === void 0) continue;
     next2[id3] = { ...record22(next2[id3]), [field2]: clone4(from[field2]) };
   }
@@ -126103,8 +126107,8 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
     const upload = image.startsWith("user/") || record25(row.image) && row.image.source === "user";
     if (image && upload) {
       uploads++;
-      const look2 = parseTreatedAssetId(image).treatment;
-      if (look2 && Array.isArray(opts.treatments) && !opts.treatments.includes(look2)) add3("image", "reference", "unknown", image);
+      const look3 = parseTreatedAssetId(image).treatment;
+      if (look3 && Array.isArray(opts.treatments) && !opts.treatments.includes(look3)) add3("image", "reference", "unknown", image);
     } else if (image) {
       const assetId2 = aliasPath(image) ? tokens3.resolve(image) : image;
       if (!allowedAssets.size && !catalogAssets.size || typeof assetId2 !== "string") add3("image", "asset", "unknown", image);
@@ -126612,13 +126616,13 @@ function colourwaySection(doc) {
     options: axis.options.map((option) => ({
       id: option.id,
       name: option.name,
-      slots: Object.fromEntries(looks.map((look2) => {
+      slots: Object.fromEntries(looks.map((look3) => {
         const out = {};
-        for (const c of createTokenSet(doc, { selection: { ...look2.selection, [axis.group]: option.id } }).colors()) {
+        for (const c of createTokenSet(doc, { selection: { ...look3.selection, [axis.group]: option.id } }).colors()) {
           const slot = c.path.startsWith("color.semantic.") ? c.path.slice("color.semantic.".length) : "";
           if (["primary", "on-primary", "secondary", "surface"].includes(slot) && c.value) out[slot] = c.value;
         }
-        return [look2.id, out];
+        return [look3.id, out];
       }))
     }))
   };
@@ -132814,8 +132818,8 @@ function firstPassSource(system) {
 function firstPass(input) {
   const { source, census, preset, previous: previous2, algorithms } = input;
   const theme = input.designSystem.snapshot.theme ?? carriedTheme(previous2, input.designSystem.snapshot);
-  const look2 = theme?.id === "look" ? input.looks?.find((one) => one.id === theme.lookId) : void 0;
-  const themeOpts = { ...look2 ? { look: look2 } : {}, ...input.locked ? { locked: true } : {} };
+  const look3 = theme?.id === "look" ? input.looks?.find((one) => one.id === theme.lookId) : void 0;
+  const themeOpts = { ...look3 ? { look: look3 } : {}, ...input.locked ? { locked: true } : {} };
   const designSystem2 = systemForPlan(input.designSystem, theme ? { designSystem: { theme } } : null, themeOpts);
   const master = designSystem2.master;
   const excluded = new Set(preset?.excludeSlideIds ?? []);
@@ -132848,13 +132852,13 @@ function firstPass(input) {
       if (presetAction !== void 0) plan3.author = "preset";
       else if (review === "accepted" && presetReview === void 0) plan3.author = "rule";
       if (groupId && (klass === "logo-candidate" || klass === "known-logo")) plan3.scope = groupId;
-      const inherited2 = carriedByObject.get(object4.id);
-      if (inherited2) {
-        plan3.decision = inherited2.action;
-        if (inherited2.replacement) plan3.decisionReplacement = inherited2.replacement;
+      const inherited3 = carriedByObject.get(object4.id);
+      if (inherited3) {
+        plan3.decision = inherited3.action;
+        if (inherited3.replacement) plan3.decisionReplacement = inherited3.replacement;
         plan3.review = "accepted";
-        plan3.author = inherited2.author;
-        if (inherited2.scope !== void 0) plan3.scope = inherited2.scope;
+        plan3.author = inherited3.author;
+        if (inherited3.scope !== void 0) plan3.scope = inherited3.scope;
       }
       if (base.replacement && proposal !== "remove") plan3.proposalReplacement = base.replacement;
       const action = plan3.decision ?? proposal;
@@ -139843,10 +139847,10 @@ function mapFontFamilies(source, aliases) {
   const doc = structuredClone(source);
   let nodes = 0;
   const family2 = (v) => typeof v === "string" ? aliases.get(v.toLowerCase()) ?? v : Array.isArray(v) ? v.map(family2) : v;
-  function walk2(v, inherited2, depth) {
+  function walk2(v, inherited3, depth) {
     if (++nodes > 2e4 || depth > 48) throw new Error("The font projection exceeded its scan limit.");
     if (!v || typeof v !== "object" || Array.isArray(v)) return;
-    const obj3 = v, type = obj3.$type ?? inherited2;
+    const obj3 = v, type = obj3.$type ?? inherited3;
     if ("$value" in obj3) {
       if (type === "fontFamily") obj3.$value = family2(obj3.$value);
       if (type === "typography" && obj3.$value && typeof obj3.$value === "object") {
@@ -142954,6 +142958,7 @@ __export(src_exports, {
   isZzfxmRef: () => isZzfxmRef,
   issueLeafCert: () => issueLeafCert,
   joinPageText: () => joinPageText,
+  jpegSegmentBody: () => jpegSegmentBody,
   jwkThumbprint: () => jwkThumbprint,
   kfChannelsUsed: () => kfChannelsUsed,
   kfEaseAt: () => kfEaseAt,
@@ -143394,6 +143399,7 @@ __export(src_exports, {
   scaleAuthored: () => scaleAuthored,
   scaleTextFrame: () => scaleTextFrame,
   scaleTextStory: () => scaleTextStory,
+  scanJpegSegments: () => scanJpegSegments,
   scanPenpotAppliedTokens: () => scanPenpotAppliedTokens,
   scanPenpotUsage: () => scanPenpotUsage,
   scoreArchetypes: () => scoreArchetypes,
@@ -143730,6 +143736,7 @@ var init_src2 = __esm({
     init_software_origin();
     init_image_meta();
     init_strip_metadata();
+    init_jpeg_segments();
     init_pixel_watermark();
     init_watermark_search();
     init_png_unfilter();
@@ -145379,7 +145386,7 @@ async function picOf(ctx, sink, row, box4) {
     ctx.notes.add(`a picture set to ${fit} was placed over its whole box, because its size could not be read`);
   }
   const placed2 = deckPlacePicture(row, box4, intrinsic, fit);
-  const look2 = deckPicLook({ name: str9(row, "name"), flipH: bool2(row, "flipH"), flipV: bool2(row, "flipV"), opacity: opacityOf(row) * 100 });
+  const look3 = deckPicLook({ name: str9(row, "name"), flipH: bool2(row, "flipH"), flipV: bool2(row, "flipV"), opacity: opacityOf(row) * 100 });
   const srcRect = placed2.srcRect;
   const bake = ext === "svg" ? deckSvgBakeRaster(got.bytes, MAX_FALLBACK_PX) : null;
   if (bake) {
@@ -145388,7 +145395,7 @@ async function picOf(ctx, sink, row, box4) {
       ctx.notes.add("a treated picture was left out because this run cannot render it to a raster");
       return null;
     }
-    return { kind: "pic", ...placed2.box, media: addMedia(sink, baked, "png"), ...look2, ...srcRect ? { srcRect } : {} };
+    return { kind: "pic", ...placed2.box, media: addMedia(sink, baked, "png"), ...look3, ...srcRect ? { srcRect } : {} };
   }
   if (ext === "svg") {
     const scale = Math.min(FALLBACK_SCALE, MAX_FALLBACK_PX / Math.max(placed2.drawn.cx / EMU_PER_PX, placed2.drawn.cy / EMU_PER_PX, 1));
@@ -145407,7 +145414,7 @@ async function picOf(ctx, sink, row, box4) {
       media: pngIdx,
       svg: svgIdx,
       name: str9(row, "name") || void 0,
-      ...look2,
+      ...look3,
       ...srcRect ? { srcRect } : {}
     };
   }
@@ -145416,7 +145423,7 @@ async function picOf(ctx, sink, row, box4) {
     ...placed2.box,
     media: addMedia(sink, got.bytes, ext),
     name: str9(row, "name") || void 0,
-    ...look2,
+    ...look3,
     ...srcRect ? { srcRect } : {}
   };
 }
@@ -156851,8 +156858,8 @@ async function markEditor(page3) {
 }
 async function openSessionInPage(page3, base, bytes2, name, opts = {}) {
   const timeout = opts.timeoutMs ?? 12e4;
-  const refusal2 = openRouteRefusal(bytes2);
-  if (refusal2) throw new OpenSessionError(`${name} ${refusal2}. Open it in the app instead.`);
+  const refusal3 = openRouteRefusal(bytes2);
+  if (refusal3) throw new OpenSessionError(`${name} ${refusal3}. Open it in the app instead.`);
   const root2 = base.replace(/\/$/, "");
   const origin = new URL(root2).origin;
   const path = `${OPEN_ROUTE_PREFIX}${randomBytes(16).toString("hex")}/${openRouteFileName(name)}`;
@@ -157087,6 +157094,239 @@ var init_jxl2 = __esm({
   }
 });
 
+// packages/node-shell/src/pdf-images.ts
+function isPng(bytes2) {
+  return bytes2.length > 8 && bytes2[0] === 137 && bytes2[1] === 80 && bytes2[2] === 78 && bytes2[3] === 71;
+}
+function isJpeg(bytes2) {
+  return bytes2.length > 3 && bytes2[0] === 255 && bytes2[1] === 216 && bytes2[2] === 255;
+}
+function refusal2(message) {
+  const err = new Error(`pdf: ${message}`);
+  err.name = "PdfTransformError";
+  return err;
+}
+function startsWith2(bytes2, text9) {
+  if (bytes2.length < text9.length) return false;
+  for (let i = 0; i < text9.length; i++) if (bytes2[i] !== text9.charCodeAt(i)) return false;
+  return true;
+}
+function ppi(value) {
+  return Number.isFinite(value) && value >= 10 && value <= 1e4 ? value : 0;
+}
+function readExifFacts(payload) {
+  const facts2 = { orientation: 1, ppiX: 0, ppiY: 0 };
+  const t = payload.subarray(6);
+  const little = t[0] === 73 && t[1] === 73;
+  if (t.length < 8 || !little && !(t[0] === 77 && t[1] === 77)) return facts2;
+  const u166 = (o) => o < 0 || o + 2 > t.length ? -1 : little ? t[o] | t[o + 1] << 8 : t[o] << 8 | t[o + 1];
+  const u326 = (o) => o < 0 || o + 4 > t.length ? -1 : little ? (t[o] | t[o + 1] << 8 | t[o + 2] << 16) + t[o + 3] * 16777216 : t[o] * 16777216 + (t[o + 1] << 16 | t[o + 2] << 8 | t[o + 3]);
+  if (u166(2) !== 42) return facts2;
+  const ifd = u326(4);
+  const entries = Math.min(512, Math.max(0, u166(ifd)));
+  let x = 0, y = 0, unit2 = 2;
+  const rational = (at) => {
+    const offset = u326(at), num18 = u326(offset), den = u326(offset + 4);
+    return num18 > 0 && den > 0 ? num18 / den : 0;
+  };
+  for (let k = 0; k < entries; k++) {
+    const e = ifd + 2 + k * 12;
+    if (e + 12 > t.length) break;
+    const tag3 = u166(e), type = u166(e + 2);
+    if (tag3 === 274 && type === 3) facts2.orientation = u166(e + 8);
+    else if (tag3 === 282 && type === 5) x = rational(e + 8);
+    else if (tag3 === 283 && type === 5) y = rational(e + 8);
+    else if (tag3 === 296 && type === 3) unit2 = u166(e + 8);
+  }
+  if (!(facts2.orientation >= 1 && facts2.orientation <= 8)) facts2.orientation = 1;
+  const scale = unit2 === 2 ? 1 : unit2 === 3 ? 2.54 : 0;
+  facts2.ppiX = ppi(x * scale);
+  facts2.ppiY = ppi(y * scale);
+  return facts2;
+}
+function cleanJpeg(src) {
+  const scan2 = scanJpegSegments(src);
+  const segments = scan2?.segments ?? [];
+  if (!scan2 || scan2.sos === null || scan2.truncated && segments.at(-1)?.marker !== 218) {
+    throw refusal2("this JPEG is damaged and cannot be placed on a page");
+  }
+  const keep2 = [src.subarray(0, 2)];
+  let width = 0, height = 0, orientation = 1, droppedMetadata = false;
+  let jfifX = 0, jfifY = 0, exifX = 0, exifY = 0;
+  segments.forEach((seg4, n7) => {
+    const { marker } = seg4;
+    const payload = jpegSegmentBody(src, seg4);
+    let kept2 = true;
+    if (marker === 216) {
+      kept2 = false;
+    } else if (marker === 224) {
+      if (startsWith2(payload, "JFIF\0") && payload.length >= 12) {
+        const unit2 = payload[7], scale = unit2 === 1 ? 1 : unit2 === 2 ? 2.54 : 0;
+        jfifX = ppi((payload[8] << 8 | payload[9]) * scale);
+        jfifY = ppi((payload[10] << 8 | payload[11]) * scale);
+      }
+    } else if (marker === 225) {
+      if (startsWith2(payload, "Exif\0")) ({ orientation, ppiX: exifX, ppiY: exifY } = readExifFacts(payload));
+      kept2 = false;
+    } else if (marker === 226) {
+      kept2 = startsWith2(payload, "ICC_PROFILE\0");
+    } else if (marker === 238) {
+      kept2 = startsWith2(payload, "Adobe");
+    } else if (marker >= 227 && marker <= 239 || marker === 254) {
+      kept2 = false;
+    } else if (marker >= 192 && marker <= 207 && marker !== 196 && marker !== 200 && marker !== 204 && payload.length >= 5) {
+      height = payload[1] << 8 | payload[2];
+      width = payload[3] << 8 | payload[4];
+    }
+    if (kept2) keep2.push(src.subarray(seg4.start, seg4.end));
+    else if (marker !== 216) droppedMetadata = true;
+    if (marker === 218) keep2.push(src.subarray(seg4.end, segments[n7 + 1]?.start ?? src.length));
+  });
+  if (!width || !height) throw refusal2("this JPEG has no readable image size");
+  if (scan2.eoi === null) keep2.push(new Uint8Array([255, 217]));
+  const total = keep2.reduce((sum, part) => sum + part.length, 0);
+  const bytes2 = new Uint8Array(total);
+  let at = 0;
+  for (const part of keep2) {
+    bytes2.set(part, at);
+    at += part.length;
+  }
+  let droppedTrailing = false;
+  for (let j = scan2.trailerStart ?? src.length; j + 2 < src.length; j++) {
+    if (src[j] === 255 && src[j + 1] === 216 && src[j + 2] === 255) {
+      droppedTrailing = true;
+      break;
+    }
+  }
+  return {
+    bytes: bytes2,
+    width,
+    height,
+    orientation,
+    ppiX: jfifX || exifX,
+    ppiY: jfifY || exifY,
+    droppedMetadata,
+    droppedTrailing
+  };
+}
+function readPngFacts(bytes2) {
+  const u326 = (o) => bytes2[o] * 16777216 + (bytes2[o + 1] << 16 | bytes2[o + 2] << 8 | bytes2[o + 3]);
+  if (!isPng(bytes2) || bytes2.length < 33 || !startsWith2(bytes2.subarray(12), "IHDR")) throw refusal2("this PNG is damaged and cannot be placed on a page");
+  const facts2 = { width: u326(16), height: u326(20), ppiX: 0, ppiY: 0, animated: false };
+  let at = 33;
+  for (let n7 = 0; n7 < 4096 && at + 12 <= bytes2.length; n7++) {
+    const length2 = u326(at), type = bytes2.subarray(at + 4, at + 8);
+    if (startsWith2(type, "IDAT") || startsWith2(type, "IEND")) break;
+    if (startsWith2(type, "acTL")) facts2.animated = true;
+    if (startsWith2(type, "pHYs") && length2 === 9 && at + 17 <= bytes2.length && bytes2[at + 16] === 1) {
+      facts2.ppiX = ppi(u326(at + 8) * 0.0254);
+      facts2.ppiY = ppi(u326(at + 12) * 0.0254);
+    }
+    at += 12 + length2;
+  }
+  if (!facts2.width || !facts2.height) throw refusal2("this PNG has no readable image size");
+  return facts2;
+}
+function orientationMatrix(o, x, y, w, h) {
+  switch (o) {
+    case 2:
+      return [-w, 0, 0, h, x + w, y];
+    case 3:
+      return [-w, 0, 0, -h, x + w, y + h];
+    case 4:
+      return [w, 0, 0, -h, x, y + h];
+    case 5:
+      return [0, -h, -w, 0, x + w, y + h];
+    case 6:
+      return [0, -h, w, 0, x, y + h];
+    case 7:
+      return [0, h, w, 0, x, y];
+    case 8:
+      return [0, h, -w, 0, x + w, y];
+    default:
+      return [w, 0, 0, h, x, y];
+  }
+}
+function layoutImagePage(w, h, pageSize, margin) {
+  if (pageSize === "a4" || pageSize === "letter") {
+    let [pw2, ph2] = PAPER[pageSize];
+    if (w > h) [pw2, ph2] = [ph2, pw2];
+    const m2 = Math.min(Math.max(0, Number(margin) || 0), 144, pw2 / 2 - 1, ph2 / 2 - 1);
+    const scale2 = Math.min((pw2 - 2 * m2) / w, (ph2 - 2 * m2) / h);
+    const bw = w * scale2, bh = h * scale2;
+    return { width: pw2, height: ph2, box: { x: (pw2 - bw) / 2, y: (ph2 - bh) / 2, w: bw, h: bh } };
+  }
+  let scale = 1;
+  if (Math.max(w, h) > MAX_PAGE_PT) scale = MAX_PAGE_PT / Math.max(w, h);
+  else if (Math.min(w, h) < MIN_PAGE_PT) scale = Math.min(MIN_PAGE_PT / Math.min(w, h), MAX_PAGE_PT / Math.max(w, h));
+  const pw = w * scale, ph = h * scale;
+  return { width: pw, height: ph, box: { x: 0, y: 0, w: pw, h: ph } };
+}
+function plural4(n7, one, many = `${one}s`) {
+  return `${n7} ${n7 === 1 ? one : many}`;
+}
+async function imagesToPdf(images, opts = {}) {
+  const list4 = Array.isArray(images) ? images.filter((image) => image?.bytes?.length) : [];
+  if (!list4.length) throw refusal2("choose at least one PNG or JPEG image");
+  if (list4.length > MAX_IMAGES) throw refusal2(`a PDF can be built from at most ${MAX_IMAGES} images at a time`);
+  const pageSize = opts.pageSize === "a4" || opts.pageSize === "letter" ? opts.pageSize : "image";
+  const { PDFDocument: PDFDocument4, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject } = await import("pdf-lib");
+  const doc = await PDFDocument4.create({ updateMetadata: false });
+  let stripped = 0, trailing = 0, turned = 0;
+  for (const [index2, image] of list4.entries()) {
+    const input = image.bytes instanceof Uint8Array ? image.bytes : new Uint8Array(image.bytes);
+    let embedded, width, height, orientation = 1, ppiX, ppiY;
+    if (isJpeg(input)) {
+      const jpeg = cleanJpeg(input);
+      embedded = await doc.embedJpg(jpeg.bytes);
+      ({ width, height, orientation, ppiX, ppiY } = jpeg);
+      if (jpeg.droppedMetadata) stripped++;
+      if (jpeg.droppedTrailing) trailing++;
+      if (orientation !== 1) turned++;
+    } else if (isPng(input)) {
+      const png = readPngFacts(input);
+      if (png.animated) throw refusal2(`image ${index2 + 1} is an animated PNG; save it as a still image first`);
+      if (png.width * png.height > MAX_PNG_PIXELS) {
+        throw refusal2(`image ${index2 + 1} has ${Math.round(png.width * png.height / 1e6)} million pixels; resize it below 40 million first`);
+      }
+      embedded = await doc.embedPng(input);
+      ({ width, height, ppiX, ppiY } = png);
+    } else {
+      throw refusal2(`image ${index2 + 1} is not a PNG or JPEG; convert it first`);
+    }
+    const storedW = width * 72 / (ppiX || ppiY || DEFAULT_PPI);
+    const storedH = height * 72 / (ppiY || ppiX || DEFAULT_PPI);
+    const sideways = orientation >= 5;
+    const layout2 = layoutImagePage(sideways ? storedH : storedW, sideways ? storedW : storedH, pageSize, Number(opts.margin) || 0);
+    const page3 = doc.addPage([layout2.width, layout2.height]);
+    const name = page3.node.newXObject("Im", embedded.ref);
+    const { x, y, w, h } = layout2.box;
+    page3.pushOperators(pushGraphicsState(), concatTransformationMatrix(...orientationMatrix(orientation, x, y, w, h)), drawObject(name), popGraphicsState());
+  }
+  const bytes2 = await doc.save({ useObjectStreams: true });
+  const notes = [];
+  if (turned) notes.push(`Turned ${plural4(turned, "photo")} upright using the camera orientation.`);
+  if (stripped) notes.push(`Left out photo details such as location and camera data from ${plural4(stripped, "image")}.`);
+  if (trailing) notes.push(`Left out extra pictures stored after the main image in ${plural4(trailing, "file")}.`);
+  return { bytes: bytes2, pages: list4.length, turned, metadataLeftOut: stripped, extraPicturesLeftOut: trailing, notes };
+}
+var MAX_PAGE_PT, MIN_PAGE_PT, DEFAULT_PPI, MAX_PNG_PIXELS, MAX_IMAGES, PAPER;
+var init_pdf_images = __esm({
+  "packages/node-shell/src/pdf-images.ts"() {
+    "use strict";
+    init_src2();
+    MAX_PAGE_PT = 14400;
+    MIN_PAGE_PT = 3;
+    DEFAULT_PPI = 96;
+    MAX_PNG_PIXELS = 4e7;
+    MAX_IMAGES = 2e3;
+    PAPER = {
+      a4: [595.28, 841.89],
+      letter: [612, 792]
+    };
+  }
+});
+
 // packages/node-shell/src/pdf-strip.ts
 var pdf_strip_exports = {};
 __export(pdf_strip_exports, {
@@ -157125,6 +157365,305 @@ var init_pdf_strip = __esm({
   }
 });
 
+// packages/node-shell/src/pdf-page-effects.ts
+var pdf_page_effects_exports = {};
+__export(pdf_page_effects_exports, {
+  cutCopyReferences: () => cutCopyReferences,
+  pageEffects: () => pageEffects,
+  pointAnnotationsAt: () => pointAnnotationsAt,
+  scanPageFeatures: () => scanPageFeatures
+});
+import { PDFArray as PDFArray5, PDFCatalog, PDFDict as PDFDict4, PDFName as PDFName4, PDFNull, PDFPageLeaf, PDFPageTree, PDFRawStream as PDFRawStream3, PDFRef as PDFRef4, PDFStream as PDFStream2 } from "pdf-lib";
+function look2(ctx, o) {
+  try {
+    return ctx.lookup(o);
+  } catch {
+    return void 0;
+  }
+}
+function dictOf3(ctx, o) {
+  const v = look2(ctx, o);
+  return v instanceof PDFRawStream3 ? v.dict : v instanceof PDFDict4 ? v : null;
+}
+function arrOf2(ctx, o) {
+  const v = look2(ctx, o);
+  return v instanceof PDFArray5 ? v.asArray() : null;
+}
+function nameOf3(ctx, o) {
+  const v = look2(ctx, o);
+  return v instanceof PDFName4 ? v.asString().replace(/^\//, "") : null;
+}
+function get3(dict, key2) {
+  return dict.get(PDFName4.of(key2));
+}
+function countOutline(ctx, outlines) {
+  const root2 = dictOf3(ctx, outlines);
+  const first = root2 && get3(root2, "First");
+  if (!first) return 0;
+  const stack = [first];
+  const seen = /* @__PURE__ */ new Set();
+  let count4 = 0;
+  while (stack.length && count4 < MAX_ITEMS3) {
+    const ref2 = stack.pop();
+    if (ref2 instanceof PDFRef4) {
+      if (seen.has(ref2.tag)) continue;
+      seen.add(ref2.tag);
+    }
+    const item2 = dictOf3(ctx, ref2);
+    if (!item2) continue;
+    count4++;
+    const next2 = get3(item2, "Next");
+    const child2 = get3(item2, "First");
+    if (next2) stack.push(next2);
+    if (child2) stack.push(child2);
+  }
+  return count4;
+}
+function inherited2(ctx, start, key2) {
+  let node = start;
+  for (let depth = 0; node && depth < MAX_DEPTH7; depth++) {
+    const value = get3(node, key2);
+    if (value !== void 0) return value;
+    node = dictOf3(ctx, get3(node, "Parent"));
+  }
+  return void 0;
+}
+function fieldTag(ctx, widgetRef, widget) {
+  let ref2 = widgetRef, node = widget;
+  for (let depth = 0; node && depth < MAX_DEPTH7; depth++) {
+    if (get3(node, "T") !== void 0) return ref2 instanceof PDFRef4 ? ref2.tag : null;
+    ref2 = get3(node, "Parent");
+    node = dictOf3(ctx, ref2);
+  }
+  return widgetRef instanceof PDFRef4 ? widgetRef.tag : null;
+}
+function isInternalLink(ctx, link) {
+  if (get3(link, "Dest") !== void 0) return true;
+  const action = dictOf3(ctx, get3(link, "A"));
+  return !!action && nameOf3(ctx, get3(action, "S")) === "GoTo";
+}
+function scanPage(ctx, page3) {
+  const out = { annotations: 0, links: 0, fields: [] };
+  const annots = arrOf2(ctx, get3(page3, "Annots")) ?? [];
+  const fields2 = /* @__PURE__ */ new Set();
+  for (const ref2 of annots.slice(0, MAX_ANNOTS_PER_PAGE)) {
+    const annot = dictOf3(ctx, ref2);
+    if (!annot) continue;
+    const subtype = nameOf3(ctx, get3(annot, "Subtype"));
+    if (subtype === "Link") {
+      if (isInternalLink(ctx, annot)) out.links++;
+    } else if (subtype === "Widget") {
+      if (nameOf3(ctx, inherited2(ctx, annot, "FT")) === "Sig") continue;
+      const tag3 = fieldTag(ctx, ref2, annot);
+      if (tag3) fields2.add(tag3);
+    } else if (subtype !== "Popup") {
+      out.annotations++;
+    }
+  }
+  out.fields = [...fields2];
+  return out;
+}
+function countSignatures(ctx, doc) {
+  const acro = dictOf3(ctx, doc.catalog.get(PDFName4.of("AcroForm")));
+  const stack = (arrOf2(ctx, acro && get3(acro, "Fields")) ?? []).map((ref2) => ({ ref: ref2, depth: 0 }));
+  const seen = /* @__PURE__ */ new Set();
+  let signed = 0, visited = 0;
+  while (stack.length && visited++ < MAX_ITEMS3) {
+    const { ref: ref2, depth } = stack.pop();
+    if (ref2 instanceof PDFRef4) {
+      if (seen.has(ref2.tag)) continue;
+      seen.add(ref2.tag);
+    }
+    const field2 = dictOf3(ctx, ref2);
+    if (!field2) continue;
+    const kids2 = arrOf2(ctx, get3(field2, "Kids"));
+    const isSig = nameOf3(ctx, inherited2(ctx, field2, "FT")) === "Sig";
+    if (isSig && dictOf3(ctx, get3(field2, "V"))) {
+      signed++;
+      continue;
+    }
+    if (kids2 && depth < MAX_DEPTH7) for (const kid of kids2) stack.push({ ref: kid, depth: depth + 1 });
+  }
+  return signed;
+}
+function scanPageFeatures(doc) {
+  const ctx = doc.context;
+  let bookmarks = 0, signatures = 0;
+  try {
+    bookmarks = countOutline(ctx, doc.catalog.get(PDFName4.of("Outlines")));
+  } catch {
+  }
+  try {
+    signatures = countSignatures(ctx, doc);
+  } catch {
+  }
+  const pages = [];
+  for (const page3 of doc.getPages()) {
+    try {
+      pages.push(scanPage(ctx, page3.node));
+    } catch {
+      pages.push({ annotations: 0, links: 0, fields: [] });
+    }
+  }
+  return { bookmarks, signatures, pages };
+}
+function annotsOf(ctx, page3) {
+  return arrOf2(ctx, get3(page3, "Annots")) ?? [];
+}
+function isSignatureValue(o) {
+  if (!(o instanceof PDFDict4)) return false;
+  const type = o.get(PDFName4.of("Type"));
+  return type === PDFName4.of("Sig") || type === PDFName4.of("DocTimeStamp") || o.has(PDFName4.of("ByteRange"));
+}
+function cutCopyReferences(doc, indices) {
+  const ctx = doc.context;
+  const pages = doc.getPages();
+  const copied = /* @__PURE__ */ new Set();
+  for (const i of indices) if (pages[i]) copied.add(i);
+  const keptAnnots = /* @__PURE__ */ new Set(), otherAnnots = /* @__PURE__ */ new Set();
+  pages.forEach((page3, i) => {
+    for (const ref2 of annotsOf(ctx, page3.node)) if (ref2 instanceof PDFRef4) (copied.has(i) ? keptAnnots : otherAnnots).add(ref2.tag);
+  });
+  for (const tag3 of keptAnnots) otherAnnots.delete(tag3);
+  const undo = [];
+  const remove = (dict, key2, value) => {
+    dict.delete(key2);
+    undo.push(() => {
+      dict.set(key2, value);
+    });
+  };
+  const restore = () => {
+    for (let k = undo.length - 1; k >= 0; k--) undo[k]();
+  };
+  for (const i of copied) {
+    for (const ref2 of annotsOf(ctx, pages[i].node)) {
+      const link = dictOf3(ctx, ref2);
+      if (!link || nameOf3(ctx, get3(link, "Subtype")) !== "Link") continue;
+      const dest = get3(link, "Dest");
+      if (dest && look2(ctx, dest) instanceof PDFArray5) remove(link, PDFName4.of("Dest"), dest);
+      const actionRef = get3(link, "A");
+      const action = dictOf3(ctx, actionRef);
+      if (actionRef && action && nameOf3(ctx, get3(action, "S")) === "GoTo" && look2(ctx, get3(action, "D")) instanceof PDFArray5) remove(link, PDFName4.of("A"), actionRef);
+    }
+  }
+  const cut = (value) => {
+    if (value instanceof PDFRef4 && otherAnnots.has(value.tag)) return true;
+    const target2 = look2(ctx, value);
+    return target2 instanceof PDFPageLeaf || target2 instanceof PDFPageTree || target2 instanceof PDFCatalog || isSignatureValue(target2);
+  };
+  const seen = /* @__PURE__ */ new Set();
+  const pending3 = [];
+  const follow2 = (value) => {
+    const target2 = look2(ctx, value);
+    if ((target2 instanceof PDFDict4 || target2 instanceof PDFArray5 || target2 instanceof PDFStream2) && !seen.has(target2)) {
+      seen.add(target2);
+      pending3.push(target2);
+    }
+  };
+  const walkDict = (dict, skipParent) => {
+    for (const [key2, value] of dict.entries()) {
+      if (skipParent && key2 === PDFName4.of("Parent")) continue;
+      if (cut(value)) remove(dict, key2, value);
+      else follow2(value);
+    }
+  };
+  for (const i of copied) {
+    const node = pages[i].node;
+    seen.add(node);
+    walkDict(node, true);
+    for (const key2 of PDFPageLeaf.InheritableEntries) {
+      if (node.get(PDFName4.of(key2)) !== void 0) continue;
+      const value = node.getInheritableAttribute(PDFName4.of(key2));
+      if (value) follow2(value);
+    }
+  }
+  while (pending3.length) {
+    const object4 = pending3.pop();
+    if (object4 instanceof PDFArray5) {
+      for (let k = 0; k < object4.size(); k++) {
+        const value = object4.get(k);
+        if (cut(value)) {
+          object4.set(k, PDFNull);
+          undo.push(() => {
+            object4.set(k, value);
+          });
+        } else {
+          follow2(value);
+        }
+      }
+    } else {
+      walkDict(object4 instanceof PDFStream2 ? object4.dict : object4, false);
+    }
+  }
+  return restore;
+}
+function pointAnnotationsAt(page3) {
+  const ctx = page3.doc.context;
+  for (const ref2 of annotsOf(ctx, page3.node)) dictOf3(ctx, ref2)?.set(PDFName4.of("P"), page3.ref);
+}
+function say(n7, one, many) {
+  return n7 === 1 ? one : many.replace("#", String(n7));
+}
+function pageEffects(docs, outputPages, inPlace) {
+  const all = [];
+  docs.forEach((doc, index2) => {
+    for (const page3 of doc.pages) all.push({ doc: index2, page: page3 });
+  });
+  let annotations = 0, links = 0;
+  const fields2 = /* @__PURE__ */ new Set();
+  for (const n7 of new Set(outputPages)) {
+    const hit = all[n7 - 1];
+    if (!hit) continue;
+    annotations += hit.page.annotations;
+    links += hit.page.links;
+    for (const tag3 of hit.page.fields) fields2.add(`${hit.doc}:${tag3}`);
+  }
+  const bookmarks = docs.reduce((sum, doc) => sum + doc.bookmarks, 0);
+  const signatures = docs.reduce((sum, doc) => sum + doc.signatures, 0);
+  const effects = [];
+  if (bookmarks) {
+    effects.push(inPlace ? { feature: "bookmarks", count: bookmarks, outcome: "kept", message: say(bookmarks, "1 bookmark is kept.", "# bookmarks are kept.") } : { feature: "bookmarks", count: bookmarks, outcome: "removed", message: say(bookmarks, "1 bookmark is not carried into the new PDF.", "# bookmarks are not carried into the new PDF.") });
+  }
+  if (annotations) {
+    effects.push({
+      feature: "annotations",
+      count: annotations,
+      outcome: "kept",
+      message: say(annotations, "1 comment or other annotation stays on its page.", "# comments and other annotations stay on their pages.")
+    });
+  }
+  if (links) {
+    effects.push(inPlace ? { feature: "links", count: links, outcome: "kept", message: say(links, "1 link to another page still works.", "# links to other pages still work.") } : { feature: "links", count: links, outcome: "broken", message: say(links, "1 link to another page no longer works.", "# links to other pages no longer work.") });
+  }
+  if (fields2.size) {
+    const n7 = fields2.size;
+    effects.push(inPlace ? { feature: "forms", count: n7, outcome: "kept", message: say(n7, "1 form field can still be filled in.", "# form fields can still be filled in.") } : { feature: "forms", count: n7, outcome: "broken", message: say(n7, "1 form field can no longer be filled in.", "# form fields can no longer be filled in.") });
+  }
+  if (signatures) {
+    effects.push(inPlace ? {
+      feature: "signatures",
+      count: signatures,
+      outcome: "invalidated",
+      message: say(signatures, "1 digital signature no longer verifies because the PDF is saved again.", "# digital signatures no longer verify because the PDF is saved again.")
+    } : {
+      feature: "signatures",
+      count: signatures,
+      outcome: "removed",
+      message: say(signatures, "1 digital signature is removed, so the new PDF is unsigned.", "# digital signatures are removed, so the new PDF is unsigned.") + " A visible signature stamp can still show on its page."
+    });
+  }
+  return effects;
+}
+var MAX_ITEMS3, MAX_ANNOTS_PER_PAGE, MAX_DEPTH7;
+var init_pdf_page_effects = __esm({
+  "packages/node-shell/src/pdf-page-effects.ts"() {
+    "use strict";
+    MAX_ITEMS3 = 1e4;
+    MAX_ANNOTS_PER_PAGE = 2e3;
+    MAX_DEPTH7 = 32;
+  }
+});
+
 // packages/node-shell/src/pdf.ts
 import { unzlibSync as unzlibSync6 } from "fflate";
 function isoDate2(d) {
@@ -157134,8 +157673,8 @@ function isoDate2(d) {
     return null;
   }
 }
-function readXmpText(doc, PDFName6) {
-  const ref2 = doc.catalog.get(PDFName6.of("Metadata"));
+function readXmpText(doc, PDFName7) {
+  const ref2 = doc.catalog.get(PDFName7.of("Metadata"));
   if (!ref2) return null;
   let stream;
   try {
@@ -157147,7 +157686,7 @@ function readXmpText(doc, PDFName6) {
   try {
     let bytes2 = typeof stream.getContents === "function" ? stream.getContents() : stream.contents;
     if (bytes2 && bytes2.length > 1024 * 1024) return "";
-    const filter = stream.dict?.get(PDFName6.of("Filter"));
+    const filter = stream.dict?.get(PDFName7.of("Filter"));
     if (filter && bytes2) {
       if (!/^\/?FlateDecode$|^\[\s*\/FlateDecode\s*\]$/.test(String(filter))) return "";
       bytes2 = unzlibSync6(bytes2, { out: new Uint8Array(1024 * 1024 + 1) });
@@ -157159,7 +157698,7 @@ function readXmpText(doc, PDFName6) {
   }
 }
 async function analyzePdf(bytes2) {
-  const { PDFDocument: PDFDocument4, PDFName: PDFName6 } = await import("pdf-lib");
+  const { PDFDocument: PDFDocument4, PDFName: PDFName7 } = await import("pdf-lib");
   const doc = await PDFDocument4.load(bytes2, PDF_LOAD_OPTS);
   const findings = [];
   const add3 = (label4, detail, tone = "") => {
@@ -157183,7 +157722,7 @@ async function analyzePdf(bytes2) {
     add3("Modified", isoDate2(doc.getModificationDate()));
   } catch {
   }
-  const xmp = readXmpText(doc, PDFName6);
+  const xmp = readXmpText(doc, PDFName7);
   if (xmp != null) {
     const who = xmpField(xmp, /<dc:creator>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/i) || xmpField(xmp, /<xmp:CreatorTool>([\s\S]*?)<\/xmp:CreatorTool>/i);
     add3("XMP metadata", who ? `XMP packet - ${who}` : "embedded XMP packet", "warn");
@@ -157280,7 +157819,7 @@ async function compressPdf(bytes2, opts = {}) {
   const input = bytes2 instanceof Uint8Array ? bytes2 : new Uint8Array(bytes2);
   const before = input.length;
   const params2 = compressParams(opts);
-  const { PDFDocument: PDFDocument4, PDFName: PDFName6, PDFNumber: PDFNumber4 } = await import("pdf-lib");
+  const { PDFDocument: PDFDocument4, PDFName: PDFName7, PDFNumber: PDFNumber4 } = await import("pdf-lib");
   const doc = await PDFDocument4.load(input, PDF_LOAD_OPTS);
   let images = 0;
   if (hasImageCodec()) {
@@ -157289,7 +157828,7 @@ async function compressPdf(bytes2, opts = {}) {
       const d = obj3?.dict;
       if (!d?.get) continue;
       for (const key2 of ["SMask", "Mask"]) {
-        const ref2 = String(d.get(PDFName6.of(key2)) ?? "");
+        const ref2 = String(d.get(PDFName7.of(key2)) ?? "");
         if (/^\d+ \d+ R$/.test(ref2)) maskRefs.add(ref2);
       }
     }
@@ -157298,15 +157837,15 @@ async function compressPdf(bytes2, opts = {}) {
       if (!(obj3.contents instanceof Uint8Array)) continue;
       const dict = obj3.dict;
       if (!dict?.get) continue;
-      const sub = dict.get(PDFName6.of("Subtype"));
+      const sub = dict.get(PDFName7.of("Subtype"));
       if (!sub || !String(sub).includes("Image")) continue;
-      const filter = dict.get(PDFName6.of("Filter"));
+      const filter = dict.get(PDFName7.of("Filter"));
       if (!filter || String(filter) !== "/DCTDecode") continue;
-      if (!isSafeColorSpace(dict.get(PDFName6.of("ColorSpace")))) continue;
-      if (dict.get(PDFName6.of("SMask"))) continue;
-      const imageMask = dict.get(PDFName6.of("ImageMask"));
+      if (!isSafeColorSpace(dict.get(PDFName7.of("ColorSpace")))) continue;
+      if (dict.get(PDFName7.of("SMask"))) continue;
+      const imageMask = dict.get(PDFName7.of("ImageMask"));
       if (imageMask && String(imageMask) === "true") continue;
-      if (dict.get(PDFName6.of("Decode"))) continue;
+      if (dict.get(PDFName7.of("Decode"))) continue;
       const jpg = obj3.contents;
       if (jpg.length < MIN_IMAGE_BYTES) continue;
       let res;
@@ -157317,11 +157856,11 @@ async function compressPdf(bytes2, opts = {}) {
       }
       if (!res || res.bytes.length >= jpg.length) continue;
       obj3.contents = res.bytes;
-      dict.set(PDFName6.of("Width"), PDFNumber4.of(res.width));
-      dict.set(PDFName6.of("Height"), PDFNumber4.of(res.height));
-      dict.set(PDFName6.of("ColorSpace"), PDFName6.of("DeviceRGB"));
-      dict.set(PDFName6.of("BitsPerComponent"), PDFNumber4.of(8));
-      dict.set(PDFName6.of("Length"), PDFNumber4.of(res.bytes.length));
+      dict.set(PDFName7.of("Width"), PDFNumber4.of(res.width));
+      dict.set(PDFName7.of("Height"), PDFNumber4.of(res.height));
+      dict.set(PDFName7.of("ColorSpace"), PDFName7.of("DeviceRGB"));
+      dict.set(PDFName7.of("BitsPerComponent"), PDFNumber4.of(8));
+      dict.set(PDFName7.of("Length"), PDFNumber4.of(res.bytes.length));
       images++;
     }
   }
@@ -157407,11 +157946,11 @@ async function copyPdfInfo(source, target2) {
   copy(() => source.getModificationDate(), (value) => target2.setModificationDate(value));
   copy(() => source.getKeywords(), (value) => target2.setKeywords(value.split(/\s*,\s*/).filter(Boolean)));
   try {
-    const { PDFName: PDFName6 } = await import("pdf-lib");
-    const xmp = readXmpText(source, PDFName6);
+    const { PDFName: PDFName7 } = await import("pdf-lib");
+    const xmp = readXmpText(source, PDFName7);
     if (xmp && /^\s*(?:<\?xpacket|<x:xmpmeta|<rdf:RDF)/i.test(xmp)) {
       const stream = target2.context.stream(new TextEncoder().encode(xmp), { Type: "Metadata", Subtype: "XML" });
-      target2.catalog.set(PDFName6.of("Metadata"), target2.context.register(stream));
+      target2.catalog.set(PDFName7.of("Metadata"), target2.context.register(stream));
     }
   } catch {
   }
@@ -157423,21 +157962,34 @@ async function organizePdf(bytes2, opts) {
     throw pdfRefusal(`unknown page operation "${String(operation)}"`);
   }
   const { PDFDocument: PDFDocument4, degrees } = await import("pdf-lib");
-  let source = await loadEditablePdf(input);
+  const primary = await loadEditablePdf(input);
+  let source = primary;
   const extras = [
     ...opts.extra?.length ? [opts.extra] : [],
     ...(opts.extras ?? []).filter((part) => part?.length)
   ];
   const beforeBytes = input.length + extras.reduce((sum, part) => sum + part.length, 0);
-  if (extras.length) {
-    const combined = await PDFDocument4.create();
-    await copyPdfInfo(source, combined);
-    for (const doc of [source, ...await Promise.all(extras.map(loadEditablePdf))]) {
-      const copied2 = await combined.copyPages(doc, doc.getPageIndices());
-      copied2.forEach((page3) => {
-        combined.addPage(page3);
-      });
+  const extraDocs = await Promise.all(extras.map(loadEditablePdf));
+  const { scanPageFeatures: scanPageFeatures2, pageEffects: pageEffects2, cutCopyReferences: cutCopyReferences2, pointAnnotationsAt: pointAnnotationsAt2 } = await Promise.resolve().then(() => (init_pdf_page_effects(), pdf_page_effects_exports));
+  const features = [primary, ...extraDocs].map(scanPageFeatures2);
+  const effects = (pages, inPlace = false) => pageEffects2(features, pages, inPlace);
+  const copyInto = async (target2, from, indices) => {
+    const restore = cutCopyReferences2(from, indices);
+    let copies;
+    try {
+      copies = await target2.copyPages(from, indices);
+    } finally {
+      restore();
     }
+    for (const page3 of copies) {
+      target2.addPage(page3);
+      pointAnnotationsAt2(page3);
+    }
+  };
+  if (extraDocs.length) {
+    const combined = await PDFDocument4.create({ updateMetadata: false });
+    await copyPdfInfo(source, combined);
+    for (const doc of [primary, ...extraDocs]) await copyInto(combined, doc, doc.getPageIndices());
     source = combined;
   }
   const beforePages = source.getPageCount();
@@ -157448,12 +158000,9 @@ async function organizePdf(bytes2, opts) {
     const files = [];
     let afterBytes = 0;
     for (const group of groups) {
-      const doc = await PDFDocument4.create();
+      const doc = await PDFDocument4.create({ updateMetadata: false });
       await copyPdfInfo(source, doc);
-      const pages = await doc.copyPages(source, group.map((n7) => n7 - 1));
-      pages.forEach((page3) => {
-        doc.addPage(page3);
-      });
+      await copyInto(doc, source, group.map((n7) => n7 - 1));
       const part = await save(doc);
       files.push({ bytes: part, pages: group });
       afterBytes += part.length;
@@ -157465,7 +158014,8 @@ async function organizePdf(bytes2, opts) {
       beforeBytes,
       afterBytes,
       pageOrder: groups.flat(),
-      operations: [`Split into ${files.length} PDF${files.length === 1 ? "" : "s"}`]
+      operations: [`Split into ${files.length} PDF${files.length === 1 ? "" : "s"}`],
+      effects: effects(groups.flat())
     };
   }
   if (operation === "rotate") {
@@ -157476,27 +158026,32 @@ async function organizePdf(bytes2, opts) {
       page3.setRotation(degrees((current + rotation) % 360));
     }
     const out2 = await save(source);
+    const all = Array.from({ length: beforePages }, (_, i) => i + 1);
     return {
       bytes: out2,
       beforePages,
       afterPages: beforePages,
       beforeBytes,
       afterBytes: out2.length,
-      pageOrder: Array.from({ length: beforePages }, (_, i) => i + 1),
-      operations: [`Rotated ${new Set(selected).size} page${new Set(selected).size === 1 ? "" : "s"} by ${rotation}\xB0`]
+      pageOrder: all,
+      operations: [`Rotated ${new Set(selected).size} page${new Set(selected).size === 1 ? "" : "s"} by ${rotation}\xB0`],
+      // A single PDF is rotated in place; several are copied into one first.
+      effects: effects(all, !extraDocs.length)
     };
   }
   if (operation === "merge") {
     if (!extras.length) throw pdfRefusal("choose at least two PDFs to merge");
     const out2 = await save(source);
+    const all = Array.from({ length: beforePages }, (_, i) => i + 1);
     return {
       bytes: out2,
       beforePages,
       afterPages: source.getPageCount(),
       beforeBytes,
       afterBytes: out2.length,
-      pageOrder: Array.from({ length: beforePages }, (_, i) => i + 1),
-      operations: [`Merged ${extras.length + 1} PDFs \xB7 ${beforePages} pages`]
+      pageOrder: all,
+      operations: [`Merged ${extras.length + 1} PDFs \xB7 ${beforePages} pages`],
+      effects: effects(all)
     };
   }
   let order;
@@ -157511,12 +158066,9 @@ async function organizePdf(bytes2, opts) {
       throw pdfRefusal("give the new page order, for example 3,1-2");
     }
   }
-  const output = await PDFDocument4.create();
+  const output = await PDFDocument4.create({ updateMetadata: false });
   await copyPdfInfo(source, output);
-  const copied = await output.copyPages(source, order.map((n7) => n7 - 1));
-  copied.forEach((page3) => {
-    output.addPage(page3);
-  });
+  await copyInto(output, source, order.map((n7) => n7 - 1));
   const out = await save(output);
   const verb = operation === "delete" ? `Deleted ${beforePages - order.length} page${beforePages - order.length === 1 ? "" : "s"}` : operation === "extract" ? `Extracted ${order.length} page${order.length === 1 ? "" : "s"}` : `Reordered ${order.length} pages`;
   return {
@@ -157526,14 +158078,9 @@ async function organizePdf(bytes2, opts) {
     beforeBytes,
     afterBytes: out.length,
     pageOrder: order,
-    operations: [verb]
+    operations: [verb],
+    effects: effects(order)
   };
-}
-function isPng(bytes2) {
-  return bytes2.length > 8 && bytes2[0] === 137 && bytes2[1] === 80 && bytes2[2] === 78 && bytes2[3] === 71;
-}
-function isJpeg(bytes2) {
-  return bytes2.length > 3 && bytes2[0] === 255 && bytes2[1] === 216 && bytes2[2] === 255;
 }
 async function stampPdf(bytes2, opts) {
   const doc = await loadEditablePdf(bytes2);
@@ -157582,7 +158129,7 @@ async function stampPdf(bytes2, opts) {
 }
 async function lockPdf(bytes2, password) {
   if (!password) throw pdfRefusal("a non-empty open password is required");
-  const { PDFDocument: PDFDocument4, PDFString: PDFString3, PDFHexString: PDFHexString3, PDFRawStream: PDFRawStream4, PDFStream: PDFStream2, PDFDict: PDFDict6, PDFArray: PDFArray7 } = await import("pdf-lib");
+  const { PDFDocument: PDFDocument4, PDFString: PDFString3, PDFHexString: PDFHexString3, PDFRawStream: PDFRawStream5, PDFStream: PDFStream3, PDFDict: PDFDict7, PDFArray: PDFArray8 } = await import("pdf-lib");
   const doc = await PDFDocument4.load(bytes2, { updateMetadata: false });
   const ctx = doc.context;
   const rnd = (n7) => globalThis.crypto.getRandomValues(new Uint8Array(n7));
@@ -157598,7 +158145,7 @@ async function lockPdf(bytes2, password) {
     P,
     encryptMetadata: true
   });
-  const id3 = PDFArray7.withContext(ctx);
+  const id3 = PDFArray8.withContext(ctx);
   id3.push(PDFHexString3.of(hex3(rnd(16))));
   id3.push(PDFHexString3.of(hex3(rnd(16))));
   const enc6 = ctx.obj({
@@ -157619,25 +158166,25 @@ async function lockPdf(bytes2, password) {
   });
   const encString = async (value) => PDFHexString3.of(hex3(await encryptObjectBytes(fileKey, rnd(16), value.asBytes())));
   const walk2 = async (value) => {
-    if (value instanceof PDFDict6) {
+    if (value instanceof PDFDict7) {
       for (const [key2, child2] of value.entries()) {
         if (child2 instanceof PDFString3 || child2 instanceof PDFHexString3) value.set(key2, await encString(child2));
-        else if (child2 instanceof PDFDict6 || child2 instanceof PDFArray7) await walk2(child2);
+        else if (child2 instanceof PDFDict7 || child2 instanceof PDFArray8) await walk2(child2);
       }
-    } else if (value instanceof PDFArray7) {
+    } else if (value instanceof PDFArray8) {
       for (let i = 0; i < value.size(); i++) {
         const child2 = value.get(i);
         if (child2 instanceof PDFString3 || child2 instanceof PDFHexString3) value.set(i, await encString(child2));
-        else if (child2 instanceof PDFDict6 || child2 instanceof PDFArray7) await walk2(child2);
+        else if (child2 instanceof PDFDict7 || child2 instanceof PDFArray8) await walk2(child2);
       }
     }
   };
   for (const [ref2, value] of ctx.enumerateIndirectObjects()) {
-    if (value instanceof PDFStream2) {
+    if (value instanceof PDFStream3) {
       const encrypted = await encryptObjectBytes(fileKey, rnd(16), new Uint8Array(value.getContents()));
       await walk2(value.dict);
-      ctx.assign(ref2, PDFRawStream4.of(value.dict, encrypted));
-    } else if (value instanceof PDFDict6 || value instanceof PDFArray7) await walk2(value);
+      ctx.assign(ref2, PDFRawStream5.of(value.dict, encrypted));
+    } else if (value instanceof PDFDict7 || value instanceof PDFArray8) await walk2(value);
     else if (value instanceof PDFString3 || value instanceof PDFHexString3) ctx.assign(ref2, await encString(value));
   }
   ctx.trailerInfo.Encrypt = ctx.register(enc6);
@@ -157650,6 +158197,7 @@ function createPdfAPI() {
     strip: (bytes2) => stripPdf(bytes2),
     compress: (bytes2, opts) => compressPdf(bytes2, opts),
     organize: (bytes2, opts) => organizePdf(bytes2, opts),
+    fromImages: (images, opts) => imagesToPdf(images, opts),
     stamp: (bytes2, opts) => stampPdf(bytes2, opts),
     lock: (bytes2, password) => lockPdf(bytes2, password)
     // redact (v1.85) is NOT provided here, deliberately: its implementation
@@ -157665,6 +158213,7 @@ var init_pdf2 = __esm({
   "packages/node-shell/src/pdf.ts"() {
     "use strict";
     init_src2();
+    init_pdf_images();
     PDF_LOAD_OPTS = { ignoreEncryption: true, updateMetadata: false };
     INFO_FIELDS = [
       { key: "Author", label: "Author", tone: "warn", get: (d) => d.getAuthor() },
@@ -159977,7 +160526,7 @@ __export(photo_look_exports, {
   PHOTO_LOOK_MAX_PIXELS: () => PHOTO_LOOK_MAX_PIXELS,
   bakePhotoLookBytes: () => bakePhotoLookBytes
 });
-async function bakePhotoLookBytes(bytes2, look2, opts = {}) {
+async function bakePhotoLookBytes(bytes2, look3, opts = {}) {
   if (!isCanvasAvailable()) return null;
   const mime2 = opts.mime && opts.mime !== "application/octet-stream" ? opts.mime : sniffImageMime(bytes2);
   const canvas = await decodeToCanvas(bytes2, mime2);
@@ -159986,7 +160535,7 @@ async function bakePhotoLookBytes(bytes2, look2, opts = {}) {
   if (width * height > PHOTO_LOOK_MAX_PIXELS) throw new Error(`photo look: ${width}x${height} is outside the bake limit`);
   const ctx = canvas.getContext("2d");
   const image = ctx.getImageData(0, 0, width, height);
-  applyPhotoLook(image.data, width, height, look2, { ...opts.theme ? { theme: opts.theme } : {}, ...opts.lut ? { lut: opts.lut } : {} });
+  applyPhotoLook(image.data, width, height, look3, { ...opts.theme ? { theme: opts.theme } : {}, ...opts.lut ? { lut: opts.lut } : {} });
   ctx.putImageData(image, 0, 0);
   const jpeg = /^image\/jpe?g$/i.test(mime2);
   const buf = jpeg ? canvas.toBuffer("image/jpeg", 92) : canvas.toBuffer("image/png");
@@ -162608,12 +163157,12 @@ var init_design_ops_host = __esm({
 // packages/node-shell/src/pdfx.ts
 async function applyPdfX(pdfDoc, opts, intentKind, extra = {}) {
   const lib = await import("pdf-lib");
-  const { PDFName: PDFName6, PDFString: PDFString3, PDFHexString: PDFHexString3 } = lib;
+  const { PDFName: PDFName7, PDFString: PDFString3, PDFHexString: PDFHexString3 } = lib;
   const log = extra.log ?? null;
   const embed = extra.embed ?? null;
   await pdfDoc.flush?.();
   for (const page3 of pdfDoc.getPages()) {
-    if (!page3.node.get(PDFName6.of("TrimBox"))) {
+    if (!page3.node.get(PDFName7.of("TrimBox"))) {
       const mb2 = page3.getMediaBox();
       page3.setTrimBox(mb2.x, mb2.y, mb2.width, mb2.height);
     }
@@ -162625,11 +163174,11 @@ async function applyPdfX(pdfDoc, opts, intentKind, extra = {}) {
     claim = false;
     log?.("info", "PDF/X metadata written without conformance claim: the press condition is named, not embedded (no profile on this device)");
   }
-  if (spec && claim && intentSpace === "CMYK" && (hasDeviceRgbImage(pdfDoc, PDFName6) || !shadingCsOk(pdfDoc, PDFName6))) {
+  if (spec && claim && intentSpace === "CMYK" && (hasDeviceRgbImage(pdfDoc, PDFName7) || !shadingCsOk(pdfDoc, PDFName7))) {
     claim = false;
     log?.("info", "PDF/X conformance claim dropped: unmanaged RGB content (image or shading) under a CMYK output intent");
   }
-  if (spec && claim && intentSpace === "CMYK" && !groupCsOk(pdfDoc, PDFName6)) {
+  if (spec && claim && intentSpace === "CMYK" && !groupCsOk(pdfDoc, PDFName7)) {
     claim = false;
     log?.("info", "PDF/X conformance claim dropped: a transparency group is /DeviceRGB under a CMYK output intent");
   }
@@ -162641,7 +163190,7 @@ async function applyPdfX(pdfDoc, opts, intentKind, extra = {}) {
     claim = false;
     log?.("info", "PDF/X conformance claim dropped: document is AES-256 encrypted (PDF/X-4 forbids encryption)");
   }
-  if (spec) setPdfxOutputIntent(pdfDoc, spec, { PDFName: PDFName6, PDFString: PDFString3, PDFHexString: PDFHexString3 });
+  if (spec) setPdfxOutputIntent(pdfDoc, spec, { PDFName: PDFName7, PDFString: PDFString3, PDFHexString: PDFHexString3 });
   const now2 = /* @__PURE__ */ new Date();
   const producer = opts.meta?.software || "Lolly";
   const documentId = makeDocumentId();
@@ -162655,15 +163204,15 @@ async function applyPdfX(pdfDoc, opts, intentKind, extra = {}) {
   });
   if (!claim) xmp = xmp.replace(/[ \t]*<pdfxid:GTS_PDFXVersion>[^<]*<\/pdfxid:GTS_PDFXVersion>\n/, "");
   const meta = pdfDoc.context.stream(new TextEncoder().encode(xmp), { Type: "Metadata", Subtype: "XML" });
-  pdfDoc.catalog.set(PDFName6.of("Metadata"), pdfDoc.context.register(meta));
+  pdfDoc.catalog.set(PDFName7.of("Metadata"), pdfDoc.context.register(meta));
   const info = pdfDoc.getInfoDict();
   const pdfDate = PDFString3.of(formatPdfDate(now2));
-  info.set(PDFName6.of("Producer"), PDFString3.of(producer));
-  info.set(PDFName6.of("CreationDate"), pdfDate);
-  info.set(PDFName6.of("ModDate"), pdfDate);
-  info.set(PDFName6.of("Trapped"), PDFName6.of("False"));
-  if (claim) info.set(PDFName6.of("GTS_PDFXVersion"), PDFString3.of(PDFX_VERSION));
-  else info.delete(PDFName6.of("GTS_PDFXVersion"));
+  info.set(PDFName7.of("Producer"), PDFString3.of(producer));
+  info.set(PDFName7.of("CreationDate"), pdfDate);
+  info.set(PDFName7.of("ModDate"), pdfDate);
+  info.set(PDFName7.of("Trapped"), PDFName7.of("False"));
+  if (claim) info.set(PDFName7.of("GTS_PDFXVersion"), PDFString3.of(PDFX_VERSION));
+  else info.delete(PDFName7.of("GTS_PDFXVersion"));
   const idHex = documentId.replace(/^uuid:/, "").replace(/-/g, "");
   const id3 = PDFHexString3.of(idHex);
   pdfDoc.context.trailerInfo.ID = pdfDoc.context.obj([id3, id3]);
@@ -162685,7 +163234,7 @@ function outputIntentSpec(intentKind, embed, log) {
   }
   return pdfxOutputIntentSpec(intentKind);
 }
-function setPdfxOutputIntent(pdfDoc, spec, { PDFName: PDFName6, PDFString: PDFString3, PDFHexString: PDFHexString3 }) {
+function setPdfxOutputIntent(pdfDoc, spec, { PDFName: PDFName7, PDFString: PDFString3, PDFHexString: PDFHexString3 }) {
   const str10 = (s) => pdfText2(s, { PDFString: PDFString3, PDFHexString: PDFHexString3 });
   const intent = pdfDoc.context.obj({
     Type: "OutputIntent",
@@ -162694,56 +163243,56 @@ function setPdfxOutputIntent(pdfDoc, spec, { PDFName: PDFName6, PDFString: PDFSt
     OutputCondition: str10(spec.info),
     Info: str10(spec.info)
   });
-  if (spec.registry) intent.set(PDFName6.of("RegistryName"), str10(spec.registry));
+  if (spec.registry) intent.set(PDFName7.of("RegistryName"), str10(spec.registry));
   if (spec.iccBytes) {
     const icc = pdfDoc.context.flateStream(spec.iccBytes, { N: spec.components });
-    intent.set(PDFName6.of("DestOutputProfile"), pdfDoc.context.register(icc));
+    intent.set(PDFName7.of("DestOutputProfile"), pdfDoc.context.register(icc));
   }
-  pdfDoc.catalog.set(PDFName6.of("OutputIntents"), pdfDoc.context.obj([intent]));
+  pdfDoc.catalog.set(PDFName7.of("OutputIntents"), pdfDoc.context.obj([intent]));
 }
 function pdfText2(s, { PDFString: PDFString3, PDFHexString: PDFHexString3 }) {
   return /^[\x20-\x7e]*$/.test(s) ? PDFString3.of(s.replace(/([\\()])/g, "\\$1")) : PDFHexString3.fromText(s);
 }
-function hasDeviceRgbImage(pdfDoc, PDFName6) {
+function hasDeviceRgbImage(pdfDoc, PDFName7) {
   for (const [, obj3] of pdfDoc.context.enumerateIndirectObjects()) {
     const dict = obj3?.dict;
     if (!dict?.get) continue;
-    const sub = dict.get(PDFName6.of("Subtype"));
+    const sub = dict.get(PDFName7.of("Subtype"));
     if (!sub || !String(sub).includes("Image")) continue;
-    const cs = dict.get(PDFName6.of("ColorSpace"));
+    const cs = dict.get(PDFName7.of("ColorSpace"));
     if (cs && String(cs).includes("DeviceRGB")) return true;
   }
   return false;
 }
-function groupCsOk(pdfDoc, PDFName6) {
+function groupCsOk(pdfDoc, PDFName7) {
   const rgbGroup = (group) => {
-    const cs = group?.get?.(PDFName6.of("CS"));
+    const cs = group?.get?.(PDFName7.of("CS"));
     return Boolean(cs && String(cs).includes("DeviceRGB"));
   };
   for (const page3 of pdfDoc.getPages()) {
-    if (rgbGroup(page3.node.get(PDFName6.of("Group")))) return false;
+    if (rgbGroup(page3.node.get(PDFName7.of("Group")))) return false;
   }
   for (const [, obj3] of pdfDoc.context.enumerateIndirectObjects()) {
     const dict = obj3?.dict ?? obj3;
     if (!dict?.get) continue;
-    if (rgbGroup(dict.get(PDFName6.of("Group")))) return false;
-    const type = dict.get(PDFName6.of("Type"));
+    if (rgbGroup(dict.get(PDFName7.of("Group")))) return false;
+    const type = dict.get(PDFName7.of("Type"));
     if (type && String(type).includes("Group") && rgbGroup(dict)) return false;
   }
   return true;
 }
-function shadingCsOk(pdfDoc, PDFName6) {
+function shadingCsOk(pdfDoc, PDFName7) {
   const ctx = pdfDoc.context;
   const rgb3 = (d) => {
-    const cs = d?.get?.(PDFName6.of("ColorSpace"));
+    const cs = d?.get?.(PDFName7.of("ColorSpace"));
     return Boolean(cs && String(cs).includes("DeviceRGB"));
   };
   const bad = (obj3, depth = 0) => {
     const dict = obj3?.dict ?? obj3;
     if (!dict?.get || depth > 4) return false;
-    if (dict.get(PDFName6.of("ShadingType")) && rgb3(dict)) return true;
+    if (dict.get(PDFName7.of("ShadingType")) && rgb3(dict)) return true;
     for (const key2 of ["Shading", "Pattern"]) {
-      const held = ctx.lookup(dict.get(PDFName6.of(key2)));
+      const held = ctx.lookup(dict.get(PDFName7.of(key2)));
       if (!held) continue;
       if (bad(held, depth + 1)) return true;
       for (const [, v] of held.entries?.() ?? []) {
@@ -162758,35 +163307,35 @@ function shadingCsOk(pdfDoc, PDFName6) {
   for (const [, obj3] of ctx.enumerateIndirectObjects()) {
     if (bad(obj3)) return false;
     const dict = obj3?.dict ?? obj3;
-    if (dict?.get && bad(ctx.lookup(dict.get(PDFName6.of("Resources"))), 1)) return false;
+    if (dict?.get && bad(ctx.lookup(dict.get(PDFName7.of("Resources"))), 1)) return false;
   }
   return true;
 }
 function usedFontsEmbedded(pdfDoc, lib) {
-  const { PDFName: PDFName6 } = lib;
+  const { PDFName: PDFName7 } = lib;
   const ctx = pdfDoc.context;
   const descriptorEmbeds = (fd) => {
     if (!fd?.get) return false;
     for (const k of ["FontFile", "FontFile2", "FontFile3"]) {
-      if (fd.get(PDFName6.of(k))) return true;
+      if (fd.get(PDFName7.of(k))) return true;
     }
     return false;
   };
   const fontOk = (dict) => {
     if (!dict?.get) return false;
-    const sub = String(dict.get(PDFName6.of("Subtype")) ?? "");
+    const sub = String(dict.get(PDFName7.of("Subtype")) ?? "");
     if (sub.includes("Type3")) return true;
     if (sub.includes("Type0")) {
-      const kids2 = ctx.lookup(dict.get(PDFName6.of("DescendantFonts")))?.asArray?.() ?? [];
+      const kids2 = ctx.lookup(dict.get(PDFName7.of("DescendantFonts")))?.asArray?.() ?? [];
       if (!kids2.length) return false;
-      return kids2.every((k) => descriptorEmbeds(ctx.lookup(ctx.lookup(k)?.get?.(PDFName6.of("FontDescriptor")))));
+      return kids2.every((k) => descriptorEmbeds(ctx.lookup(ctx.lookup(k)?.get?.(PDFName7.of("FontDescriptor")))));
     }
-    return descriptorEmbeds(ctx.lookup(dict.get(PDFName6.of("FontDescriptor"))));
+    return descriptorEmbeds(ctx.lookup(dict.get(PDFName7.of("FontDescriptor"))));
   };
   for (const { stream, resources } of contentStreams(pdfDoc, lib)) {
-    const fonts = resources?.get ? ctx.lookup(resources.get(PDFName6.of("Font"))) : null;
+    const fonts = resources?.get ? ctx.lookup(resources.get(PDFName7.of("Font"))) : null;
     for (const name of selectedFontNames(stream)) {
-      const entry2 = fonts?.get?.(PDFName6.of(name));
+      const entry2 = fonts?.get?.(PDFName7.of(name));
       if (!entry2) continue;
       if (!fontOk(ctx.lookup(entry2))) return false;
     }
@@ -162800,7 +163349,7 @@ function selectedFontNames(stream) {
   return names;
 }
 function* contentStreams(pdfDoc, lib) {
-  const { PDFName: PDFName6, decodePDFRawStream: decodePDFRawStream4 } = lib;
+  const { PDFName: PDFName7, decodePDFRawStream: decodePDFRawStream4 } = lib;
   const ctx = pdfDoc.context;
   const decode = (obj3) => {
     try {
@@ -162812,7 +163361,7 @@ function* contentStreams(pdfDoc, lib) {
   };
   for (const page3 of pdfDoc.getPages()) {
     const resources = page3.node.Resources?.() ?? null;
-    const contents = page3.node.get(PDFName6.of("Contents"));
+    const contents = page3.node.get(PDFName7.of("Contents"));
     const parts = ctx.lookup(contents)?.asArray?.() ?? [contents];
     for (const part of parts) {
       const stream = decode(ctx.lookup(part));
@@ -162822,9 +163371,9 @@ function* contentStreams(pdfDoc, lib) {
   for (const [, obj3] of ctx.enumerateIndirectObjects()) {
     const dict = obj3?.dict;
     if (!dict?.get) continue;
-    if (!String(dict.get(PDFName6.of("Subtype")) ?? "").includes("Form")) continue;
+    if (!String(dict.get(PDFName7.of("Subtype")) ?? "").includes("Form")) continue;
     const stream = decode(obj3);
-    if (stream) yield { stream, resources: ctx.lookup(dict.get(PDFName6.of("Resources"))) };
+    if (stream) yield { stream, resources: ctx.lookup(dict.get(PDFName7.of("Resources"))) };
   }
 }
 var init_pdfx2 = __esm({
@@ -162873,7 +163422,7 @@ function printGeometryForSize(trimWpt, trimHpt, opts, paletteSource) {
   return computePrintGeometry({ trimWpt, trimHpt, bleedPt, marks, palette, barStyle: opts.barStyle, barRadiusPt: opts.barRadiusPt });
 }
 async function encryptPdfStrong(blob, password) {
-  const { PDFDocument: PDFDocument4, PDFString: PDFString3, PDFHexString: PDFHexString3, PDFRawStream: PDFRawStream4, PDFStream: PDFStream2, PDFDict: PDFDict6, PDFArray: PDFArray7 } = await import("pdf-lib");
+  const { PDFDocument: PDFDocument4, PDFString: PDFString3, PDFHexString: PDFHexString3, PDFRawStream: PDFRawStream5, PDFStream: PDFStream3, PDFDict: PDFDict7, PDFArray: PDFArray8 } = await import("pdf-lib");
   const doc = await PDFDocument4.load(new Uint8Array(await blob.arrayBuffer()), { updateMetadata: false });
   const ctx = doc.context;
   const rnd = (n7) => globalThis.crypto.getRandomValues(new Uint8Array(n7));
@@ -162893,7 +163442,7 @@ async function encryptPdfStrong(blob, password) {
     P,
     encryptMetadata: true
   });
-  const idArr = PDFArray7.withContext(ctx);
+  const idArr = PDFArray8.withContext(ctx);
   idArr.push(PDFHexString3.of(hexU(rnd(16))));
   idArr.push(PDFHexString3.of(hexU(rnd(16))));
   const encDict = ctx.obj({
@@ -162914,25 +163463,25 @@ async function encryptPdfStrong(blob, password) {
   });
   const encStr = async (o) => PDFHexString3.of(hexU(await encryptObjectBytes(fileKey, rnd(16), o.asBytes())));
   const walk2 = async (c) => {
-    if (c instanceof PDFDict6) {
+    if (c instanceof PDFDict7) {
       for (const [k, v] of c.entries()) {
         if (v instanceof PDFString3 || v instanceof PDFHexString3) c.set(k, await encStr(v));
-        else if (v instanceof PDFDict6 || v instanceof PDFArray7) await walk2(v);
+        else if (v instanceof PDFDict7 || v instanceof PDFArray8) await walk2(v);
       }
-    } else if (c instanceof PDFArray7) {
+    } else if (c instanceof PDFArray8) {
       for (let i = 0; i < c.size(); i++) {
         const v = c.get(i);
         if (v instanceof PDFString3 || v instanceof PDFHexString3) c.set(i, await encStr(v));
-        else if (v instanceof PDFDict6 || v instanceof PDFArray7) await walk2(v);
+        else if (v instanceof PDFDict7 || v instanceof PDFArray8) await walk2(v);
       }
     }
   };
   for (const [ref2, obj3] of ctx.enumerateIndirectObjects()) {
-    if (obj3 instanceof PDFStream2) {
+    if (obj3 instanceof PDFStream3) {
       const ct = await encryptObjectBytes(fileKey, rnd(16), new Uint8Array(obj3.getContents()));
       await walk2(obj3.dict);
-      ctx.assign(ref2, PDFRawStream4.of(obj3.dict, ct));
-    } else if (obj3 instanceof PDFDict6 || obj3 instanceof PDFArray7) {
+      ctx.assign(ref2, PDFRawStream5.of(obj3.dict, ct));
+    } else if (obj3 instanceof PDFDict7 || obj3 instanceof PDFArray8) {
       await walk2(obj3);
     } else if (obj3 instanceof PDFString3 || obj3 instanceof PDFHexString3) {
       ctx.assign(ref2, await encStr(obj3));
@@ -164930,8 +165479,8 @@ async function seedPageDesignSystem(page3, doc) {
   }, { key: PAGE_DESIGN_SYSTEM_GLOBAL, value: doc });
 }
 async function openLollyViaWebShell(bytes2, opts) {
-  const refusal2 = openRouteRefusal(bytes2);
-  if (refusal2) throw new BrowserError(`${opts.name} ${refusal2}. Open it in the app instead.`);
+  const refusal3 = openRouteRefusal(bytes2);
+  if (refusal3) throw new BrowserError(`${opts.name} ${refusal3}. Open it in the app instead.`);
   const debug = startDebug();
   debug.step("serve the built web shell");
   const base = (opts.base ?? await webShellBase2()).replace(/\/$/, "");
@@ -165401,7 +165950,7 @@ function passiveForensicSvg(source, parse = (source2) => new DOMParser().parseFr
   const originX = vb.length === 4 ? vb[0] : 0, originY = vb.length === 4 ? vb[1] : 0;
   root2.setAttribute("width", String(width));
   root2.setAttribute("height", String(height));
-  function inherited2(el, key2, fallback) {
+  function inherited3(el, key2, fallback) {
     for (let e = el; e; e = e.parentElement) {
       const v = e.getAttribute(key2);
       if (v !== null) return v;
@@ -165437,7 +165986,7 @@ function passiveForensicSvg(source, parse = (source2) => new DOMParser().parseFr
     return Object.values(b).every(Number.isFinite) ? b : null;
   }
   const lines = [];
-  const hidden4 = (el) => !!el.closest("defs, clipPath") || inherited2(el, "clip-path", "") !== "" || inherited2(el, "display", "") === "none" || inherited2(el, "visibility", "") === "hidden" || Number(inherited2(el, "opacity", "1")) === 0;
+  const hidden4 = (el) => !!el.closest("defs, clipPath") || inherited3(el, "clip-path", "") !== "" || inherited3(el, "display", "") === "none" || inherited3(el, "visibility", "") === "hidden" || Number(inherited3(el, "opacity", "1")) === 0;
   for (const el of root2.querySelectorAll("text")) {
     if (hidden4(el)) continue;
     const text9 = el.textContent?.trim() ?? "";
@@ -165451,7 +166000,7 @@ function passiveForensicSvg(source, parse = (source2) => new DOMParser().parseFr
     const runs2 = spans.length ? spans : [el];
     const sizes = /* @__PURE__ */ new Map();
     for (const run3 of runs2) {
-      const size2 = Number.parseFloat(inherited2(run3, "font-size", "16"));
+      const size2 = Number.parseFloat(inherited3(run3, "font-size", "16"));
       if (Number.isFinite(size2) && size2 > 0)
         sizes.set(size2, (sizes.get(size2) ?? 0) + (run3.textContent?.length ?? 0));
     }
@@ -165462,13 +166011,13 @@ function passiveForensicSvg(source, parse = (source2) => new DOMParser().parseFr
   }
   const rects = [...root2.querySelectorAll("rect")].flatMap((el) => {
     const number10 = (key2) => Number.parseFloat(el.getAttribute(key2) ?? "0");
-    if (hidden4(el) || !parseColorToSrgb8(inherited2(el, "fill", "#000"))) return [];
+    if (hidden4(el) || !parseColorToSrgb8(inherited3(el, "fill", "#000"))) return [];
     const b = box4(el, number10("x"), number10("y"), number10("width"), number10("height"));
     return b && b.width > 0 && b.height > 0 ? [
       {
         box: b,
         radius: Math.max(number10("rx"), number10("ry")),
-        fill: inherited2(el, "fill", "#000")
+        fill: inherited3(el, "fill", "#000")
       }
     ] : [];
   });
@@ -165959,7 +166508,7 @@ function coverageNote(coverage) {
     if (entry2) entry2.pages += 1;
     else seen.set(key2, { reason: `${c.collector} ${c.state}: ${c.reason}`, pages: 1 });
   }
-  return [...seen.values()].slice(0, 4).map((e) => e.pages > 1 ? `${e.reason} (${plural5(e.pages, "page")})` : e.reason).join(" ");
+  return [...seen.values()].slice(0, 4).map((e) => e.pages > 1 ? `${e.reason} (${plural6(e.pages, "page")})` : e.reason).join(" ");
 }
 function enforceHouseRules(findings, doc) {
   const rules = new Map((brandSystemOf(doc)?.rules ?? []).map((r5) => [r5.id, r5]));
@@ -166176,17 +166725,17 @@ async function renderFamily(input, opts, lookup4, layers, name, ds) {
   const findings = mounted.findings.filter(record37).map((f) => checkFindingFromMounted(overMissingPicture(f, missing, lookup4), lookup4));
   const checked = record37(mounted.checked) ? mounted.checked : {};
   const notes = [
-    `Checked ${plural5(Number(checked.overflow) || 0, "text layer")} for clipping, ${Number(checked.contrast) || 0} for contrast and ${Number(checked.fonts) || 0} for font coverage.`
+    `Checked ${plural6(Number(checked.overflow) || 0, "text layer")} for clipping, ${Number(checked.contrast) || 0} for contrast and ${Number(checked.fonts) || 0} for font coverage.`
   ];
   if (session.tokenSelection && opts.theme) notes.push(`The editor was opened in the ${opts.theme} theme.`);
   if (session.designSystem !== void 0) notes.push(`The page resolved linked colours in the ${ds?.origin === "file" ? "--file" : "terminal"} design system this check uses.`);
   if (value.settled === false) notes.push("The canvas had not settled when the checks ran, so layers still painting may be missing.");
   if (typeof value.layers === "number" && value.layers !== layers)
-    notes.push(`The web shell saw ${plural5(value.layers, "layer")} where this document has ${layers}.`);
+    notes.push(`The web shell saw ${plural6(value.layers, "layer")} where this document has ${layers}.`);
   const uploads = new Set(assets.filter((id3) => id3.startsWith("user/")).map((id3) => stripAssetModifiers(id3)));
   const dangling = [...uploads].filter((id3) => !input.media.has(id3)).length;
   if (dangling)
-    notes.push(`${plural5(dangling, "uploaded picture")} named by this document ${dangling === 1 ? "is" : "are"} not in the input and painted empty; text over a missing picture is listed for a visual check.`);
+    notes.push(`${plural6(dangling, "uploaded picture")} named by this document ${dangling === 1 ? "is" : "are"} not in the input and painted empty; text over a missing picture is listed for a visual check.`);
   return { state: familyState("ran", notes.join(" ")), findings };
 }
 async function textMeasureFamily(input, ds, opts, lookup4) {
@@ -166235,7 +166784,7 @@ async function textMeasureFamily(input, ds, opts, lookup4) {
   }
   const unmeasured = report4.skipped.filter((s) => !/hidden/.test(s.reason));
   const why = unmeasured.find((s) => /font file/.test(s.reason))?.reason ?? unmeasured[0]?.reason ?? "";
-  const note2 = `Clipping was predicted from font metrics instead (text-measure): ${plural5(judged, "plain text layer")} measured, ${findings.length} clipped${fallback ? `, ${plural5(fallback, "layer")} not judged (its face has no glyph for some characters, which the canvas draws in a fallback font)` : ""}${unmeasured.length ? `, ${plural5(unmeasured.length, "layer")} not measured (${why.replace(/[.;]\s.*$|\.$/, "")})` : ""}; contrast and font coverage need the browser tier.`;
+  const note2 = `Clipping was predicted from font metrics instead (text-measure): ${plural6(judged, "plain text layer")} measured, ${findings.length} clipped${fallback ? `, ${plural6(fallback, "layer")} not judged (its face has no glyph for some characters, which the canvas draws in a fallback font)` : ""}${unmeasured.length ? `, ${plural6(unmeasured.length, "layer")} not measured (${why.replace(/[.;]\s.*$|\.$/, "")})` : ""}; contrast and font coverage need the browser tier.`;
   return { findings, note: note2 };
 }
 function rasterSize(bytes2) {
@@ -166400,7 +166949,7 @@ function pagesCapped(read, total, unit2) {
     code: "verify.pages-capped",
     family: "verify",
     severity: "warn",
-    message: `Verify read ${read} of ${plural5(total, unit2)}; the other ${total - read} ${total - read === 1 ? "was" : "were"} not checked.`,
+    message: `Verify read ${read} of ${plural6(total, unit2)}; the other ${total - read} ${total - read === 1 ? "was" : "were"} not checked.`,
     needs: "unknown",
     evidence: { read, total },
     suggestion: unit2 === "page" ? "Raise the page cap (up to 100), or check the file in parts." : "Raise the page cap (up to 100), or check the document in parts.",
@@ -166525,11 +167074,11 @@ async function checkFile(bytes2, name, asked = {}) {
     const structure = inspectDesignV1(doc.boxes);
     input.artboards = structure.artboards.length;
     const lookup4 = designLayerLookup(doc.boxes);
-    const authored = lowered.rows === null ? "" : ` The authoring keys were lowered first, to ${plural5(lowered.rows, "stored row")}; finding paths point at those rows.`;
+    const authored = lowered.rows === null ? "" : ` The authoring keys were lowered first, to ${plural6(lowered.rows, "stored row")}; finding paths point at those rows.`;
     const savedNote = saved ? ` The document was saved in the ${saved} theme, so every family checked it in that theme.` : "";
     take(
       "structure",
-      familyState("ran", `Inspected ${plural5(structure.layers.length, "layer")} on ${plural5(structure.artboards.length, "artboard")}.${authored}${savedNote}`),
+      familyState("ran", `Inspected ${plural6(structure.layers.length, "layer")} on ${plural6(structure.artboards.length, "artboard")}.${authored}${savedNote}`),
       [...lowered.notes.map(authoringNoteFinding), ...structure.findings.map(checkFindingFromDesign)]
     );
     const pictures = await guarded(opts.signal, () => imageResolutionFindings(doc, opts, lookup4));
@@ -166537,7 +167086,7 @@ async function checkFile(bytes2, name, asked = {}) {
     else {
       findings.push(...pictures.findings);
       if (pictures.measured)
-        families.structure.reason = `${families.structure.reason} Measured ${plural5(pictures.measured, "picture layer")} for resolution against the size ${pictures.measured === 1 ? "it draws its picture" : "they draw their pictures"} at.`;
+        families.structure.reason = `${families.structure.reason} Measured ${plural6(pictures.measured, "picture layer")} for resolution against the size ${pictures.measured === 1 ? "it draws its picture" : "they draw their pictures"} at.`;
       if (pictures.unread)
         families.structure.reason = `${families.structure.reason} ${pictures.unread === 1 ? "One picture layer has" : `${pictures.unread} picture layers have`} no picture bytes to read here, so ${pictures.unread === 1 ? "its" : "their"} resolution was not checked.`;
     }
@@ -166564,11 +167113,11 @@ async function checkFile(bytes2, name, asked = {}) {
             ...enforceHouseRules(checkFindingsFromHouseRules(rules, lookup4), ds.doc)
           ];
           const notes = [
-            `Compared ${plural5(result.checked.colors, "colour value")}, ${plural5(result.checked.fonts, "font choice")} and ${plural5(result.checked.assets, "asset id")}; checked ${plural5(rules.checked, "house rule")}.`
+            `Compared ${plural6(result.checked.colors, "colour value")}, ${plural6(result.checked.fonts, "font choice")} and ${plural6(result.checked.assets, "asset id")}; checked ${plural6(rules.checked, "house rule")}.`
           ];
           if (theme && !multiTheme) notes.push(`Theme: ${theme}.`);
           const uploads = result.uploads;
-          if (uploads) notes.push(`${plural5(uploads, "uploaded picture")} ${uploads === 1 ? "is" : "are"} not catalog assets and ${uploads === 1 ? "was" : "were"} not reviewed.`);
+          if (uploads) notes.push(`${plural6(uploads, "uploaded picture")} ${uploads === 1 ? "is" : "are"} not catalog assets and ${uploads === 1 ? "was" : "were"} not reviewed.`);
           if (result.coverage.truncated) notes.push("The document has more layers than the brand check reads; the rest were not compared.");
           if (result.notAssessed.length) notes.push(`Not assessed: ${result.notAssessed.join(", ")}.`);
           return { state: familyState("ran", notes.join(" ")), list: list4 };
@@ -166602,7 +167151,7 @@ async function checkFile(bytes2, name, asked = {}) {
           const read2 = result.report.pages.length;
           const total = Math.max(read2, structure.artboards.length);
           return {
-            state: familyState("ran", `Read ${plural5(read2, "artboard")} from the document's own geometry (no OCR, no pixels).${note2 ? ` ${note2}` : ""}`),
+            state: familyState("ran", `Read ${plural6(read2, "artboard")} from the document's own geometry (no OCR, no pixels).${note2 ? ` ${note2}` : ""}`),
             list: [...result.findings, ...read2 < total ? [pagesCapped(read2, total, "artboard")] : []]
           };
         });
@@ -166641,7 +167190,7 @@ async function checkFile(bytes2, name, asked = {}) {
           ...doc.textDocument !== void 0 ? { textDocument: doc.textDocument } : {},
           ...opts.edits ? { edits: opts.edits } : {}
         });
-        return { compared, reason: `Compared ${plural5(source.slides.length, "source slide")} of ${source.source.name} with ${plural5(compared.fidelity.slides.result, "artboard")}.${fidelityNote(compared)}` };
+        return { compared, reason: `Compared ${plural6(source.slides.length, "source slide")} of ${source.source.name} with ${plural6(compared.fidelity.slides.result, "artboard")}.${fidelityNote(compared)}` };
       });
       if (isFailed(result)) families.fidelity = familyState("failed", result.failed);
       else {
@@ -166695,7 +167244,7 @@ async function checkFile(bytes2, name, asked = {}) {
           code: "verify.text.unread",
           family: "verify",
           severity: "warn",
-          message: `${plural5(unread.length, "page")} ${unread.length === 1 ? "carries" : "carry"} no text layer, so the text checks did not run on ${unread.length === 1 ? "it" : "them"}. ${words3.unreadText}`,
+          message: `${plural6(unread.length, "page")} ${unread.length === 1 ? "carries" : "carry"} no text layer, so the text checks did not run on ${unread.length === 1 ? "it" : "them"}. ${words3.unreadText}`,
           needs: "unknown",
           ...unread.length === 1 ? { page: pages[0] } : {},
           evidence: { pages: pages.length > 20 ? `${pages.slice(0, 20).join(", ")} and ${pages.length - 20} more` : pages.join(", ") },
@@ -166704,7 +167253,7 @@ async function checkFile(bytes2, name, asked = {}) {
       }
       if (read2 < total) list4.push(pagesCapped(read2, total, "page"));
       return {
-        state: familyState("ran", `Read ${plural5(read2, "page")}${read2 < total ? ` of ${total}` : ""} from the file (${models}).${note2 ? ` ${note2}` : ""}`),
+        state: familyState("ran", `Read ${plural6(read2, "page")}${read2 < total ? ` of ${total}` : ""} from the file (${models}).${note2 ? ` ${note2}` : ""}`),
         list: list4
       };
     });
@@ -166716,7 +167265,7 @@ async function checkFile(bytes2, name, asked = {}) {
         const { readContentInventory: readContentInventory2 } = await Promise.resolve().then(() => (init_content_inventory2(), content_inventory_exports));
         const own3 = (await readContentInventory2({ bytes: bytes2, name, ...opts.signal ? { signal: opts.signal } : {} })).inventory;
         const compared = checkFidelity(source, inventoryAsBoxes(own3), { notes, ...opts.edits ? { edits: opts.edits } : {} });
-        const reason2 = `Compared ${plural5(source.slides.length, "source slide")} of ${source.source.name} with ${plural5(compared.fidelity.slides.result, "page")} of ${name}.` + (notes ? "" : " Speaker notes were not compared: a PDF does not carry them.") + fidelityNote(compared);
+        const reason2 = `Compared ${plural6(source.slides.length, "source slide")} of ${source.source.name} with ${plural6(compared.fidelity.slides.result, "page")} of ${name}.` + (notes ? "" : " Speaker notes were not compared: a PDF does not carry them.") + fidelityNote(compared);
         return { compared, reason: reason2 };
       });
       if (isFailed(result)) families.fidelity = familyState("failed", result.failed);
@@ -166747,7 +167296,7 @@ async function checkFile(bytes2, name, asked = {}) {
     ...designSystem2 !== void 0 ? { designSystem: designSystem2 } : {}
   };
 }
-var EXIT2, FAMILIES, CHECK_MAX_INPUT_BYTES, SURFACE_WORDS, CheckInputError, record37, plural5, finite6, sha2562, zero, familyState, tierMissing, TEXT_MEASURE_CHECK_MAX_UNITS, IMAGE_MAX_UPSCALE, IMAGE_RESOLUTION_MAX_PICTURES, RASTER_FORMATS2, isFailed, LAYOUT_COLLECTORS, LINKED_COLOUR_FIELDS, DESIGN_CANVAS_BACKGROUND;
+var EXIT2, FAMILIES, CHECK_MAX_INPUT_BYTES, SURFACE_WORDS, CheckInputError, record37, plural6, finite6, sha2562, zero, familyState, tierMissing, TEXT_MEASURE_CHECK_MAX_UNITS, IMAGE_MAX_UPSCALE, IMAGE_RESOLUTION_MAX_PICTURES, RASTER_FORMATS2, isFailed, LAYOUT_COLLECTORS, LINKED_COLOUR_FIELDS, DESIGN_CANVAS_BACKGROUND;
 var init_check = __esm({
   "packages/node-shell/src/check.ts"() {
     "use strict";
@@ -166779,7 +167328,7 @@ var init_check = __esm({
       }
     };
     record37 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    plural5 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
+    plural6 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
     finite6 = (v, fallback = 0) => {
       const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
@@ -167465,7 +168014,7 @@ __export(pdf_file_operation_exports, {
   runPdfFileOperation: () => runPdfFileOperation,
   splitPdfPages: () => splitPdfPages
 });
-import { PDFDocument as PDFDocument3, PDFDict as PDFDict5, PDFName as PDFName5, PDFArray as PDFArray6 } from "pdf-lib";
+import { PDFDocument as PDFDocument3, PDFDict as PDFDict6, PDFName as PDFName6, PDFArray as PDFArray7 } from "pdf-lib";
 async function unsignedPdf(bytes2, signal) {
   if (bytes2.byteLength > 128 * 1024 * 1024) throw new Error("PDF utilities support files up to 128 MB.");
   signal?.throwIfAborted();
@@ -167477,10 +168026,10 @@ async function unsignedPdf(bytes2, signal) {
     if (seen.has(object4)) return;
     seen.add(object4);
     if (++visited > 5e5 || depth > 32) throw new Error("PDF structure exceeds the safe inspection limit.");
-    if (object4 instanceof PDFDict5) {
-      if (object4.has(PDFName5.of("ByteRange")) || object4.get(PDFName5.of("Type")) === PDFName5.of("Sig")) throw new Error("This PDF carries a digital signature. Rewriting would invalidate it; use an unsigned source.");
+    if (object4 instanceof PDFDict6) {
+      if (object4.has(PDFName6.of("ByteRange")) || object4.get(PDFName6.of("Type")) === PDFName6.of("Sig")) throw new Error("This PDF carries a digital signature. Rewriting would invalidate it; use an unsigned source.");
       for (const [, value] of object4.entries()) inspect(value, depth + 1);
-    } else if (object4 instanceof PDFArray6) for (const value of object4.asArray()) inspect(value, depth + 1);
+    } else if (object4 instanceof PDFArray7) for (const value of object4.asArray()) inspect(value, depth + 1);
   };
   for (const [, object4] of document2.context.enumerateIndirectObjects()) inspect(object4);
   signal?.throwIfAborted();
@@ -167494,10 +168043,10 @@ async function runPdfFileOperation(bytes2, target2, signal) {
 }
 async function splitPdfPages(bytes2, signal) {
   const source = await unsignedPdf(bytes2, signal);
-  if (source.catalog.has(PDFName5.of("AcroForm")) || source.catalog.has(PDFName5.of("Names")) || source.catalog.has(PDFName5.of("OpenAction")) || source.catalog.has(PDFName5.of("AA"))) throw new Error("PDF splitting requires a static document without forms, attachments, named actions or scripts.");
+  if (source.catalog.has(PDFName6.of("AcroForm")) || source.catalog.has(PDFName6.of("Names")) || source.catalog.has(PDFName6.of("OpenAction")) || source.catalog.has(PDFName6.of("AA"))) throw new Error("PDF splitting requires a static document without forms, attachments, named actions or scripts.");
   for (const page3 of source.getPages()) {
-    const annotations = page3.node.lookup(PDFName5.of("Annots"));
-    if (annotations && (!(annotations instanceof PDFArray6) || annotations.size() > 0) || page3.node.has(PDFName5.of("AA"))) throw new Error("PDF splitting requires pages without annotations or actions. Use a static source.");
+    const annotations = page3.node.lookup(PDFName6.of("Annots"));
+    if (annotations && (!(annotations instanceof PDFArray7) || annotations.size() > 0) || page3.node.has(PDFName6.of("AA"))) throw new Error("PDF splitting requires pages without annotations or actions. Use a static source.");
   }
   const results = [];
   let total = 0;
@@ -168302,8 +168851,8 @@ function parseStyleAttr(el) {
   }
   return out;
 }
-function prop2(el, style, name, inherited2) {
-  return style[name] ?? el.getAttribute?.(name) ?? inherited2?.[name];
+function prop2(el, style, name, inherited3) {
+  return style[name] ?? el.getAttribute?.(name) ?? inherited3?.[name];
 }
 function len(v, total = 0) {
   if (v == null) return 0;
@@ -168506,7 +169055,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
     return parsed;
   };
   const warn2 = (m2) => host?.log?.("warn", `${LABEL2.toLowerCase()}: ${m2}`);
-  async function visit(el, t, inherited2) {
+  async function visit(el, t, inherited3) {
     if (!el.tagName) return;
     const tag3 = el.tagName.toLowerCase().replace(/^svg:/, "");
     if (SKIP.has(tag3)) return;
@@ -168522,12 +169071,12 @@ async function svgDomToIr(svgEl, ctx = {}) {
     if (tag3 === "g" || tag3 === "a" || tag3 === "svg") {
       const style2 = parseStyleAttr(el);
       const inh = {
-        fill: prop2(el, style2, "fill", inherited2),
-        stroke: prop2(el, style2, "stroke", inherited2),
-        "fill-opacity": prop2(el, style2, "fill-opacity", inherited2),
-        "stroke-opacity": prop2(el, style2, "stroke-opacity", inherited2),
-        "fill-rule": prop2(el, style2, "fill-rule", inherited2),
-        "stroke-width": prop2(el, style2, "stroke-width", inherited2),
+        fill: prop2(el, style2, "fill", inherited3),
+        stroke: prop2(el, style2, "stroke", inherited3),
+        "fill-opacity": prop2(el, style2, "fill-opacity", inherited3),
+        "stroke-opacity": prop2(el, style2, "stroke-opacity", inherited3),
+        "fill-rule": prop2(el, style2, "fill-rule", inherited3),
+        "stroke-width": prop2(el, style2, "stroke-width", inherited3),
         opacity: void 0
         // group opacity does not inherit as a property; applied per-leaf
       };
@@ -168590,22 +169139,22 @@ async function svgDomToIr(svgEl, ctx = {}) {
       warn2("use elements are not supported (skipped)");
       return;
     } else {
-      for (const child2 of el.children || []) await visit(child2, t, inherited2);
+      for (const child2 of el.children || []) await visit(child2, t, inherited3);
       return;
     }
     if (!d.trim()) return;
-    const fillStr = forceStrokeOnly ? "none" : prop2(el, style, "fill", inherited2) ?? "black";
-    const strokeStr = prop2(el, style, "stroke", inherited2) ?? "none";
-    const fillOp = elemOpacity * parseFloat(prop2(el, style, "fill-opacity", inherited2) ?? "1");
-    const strkOp = elemOpacity * parseFloat(prop2(el, style, "stroke-opacity", inherited2) ?? "1");
+    const fillStr = forceStrokeOnly ? "none" : prop2(el, style, "fill", inherited3) ?? "black";
+    const strokeStr = prop2(el, style, "stroke", inherited3) ?? "none";
+    const fillOp = elemOpacity * parseFloat(prop2(el, style, "fill-opacity", inherited3) ?? "1");
+    const strkOp = elemOpacity * parseFloat(prop2(el, style, "stroke-opacity", inherited3) ?? "1");
     let fillRgb = fillOp >= 0.01 ? parseColor2(fillStr) : null;
     let strokeRgb = strkOp >= 0.01 ? parseColor2(strokeStr) : null;
     if (!fillRgb && !strokeRgb) return;
     if (fillRgb) fillRgb = flatten3(fillRgb, fillOp, bg);
     if (strokeRgb) strokeRgb = flatten3(strokeRgb, strkOp, bg);
-    const nonScaling = prop2(el, style, "vector-effect", inherited2) === "non-scaling-stroke";
+    const nonScaling = prop2(el, style, "vector-effect", inherited3) === "non-scaling-stroke";
     const strokeMul = (nonScaling ? 1 : gAvg) * rAvg;
-    const strokeWidth = parseFloat(prop2(el, style, "stroke-width", inherited2) ?? "1") * strokeMul;
+    const strokeWidth = parseFloat(prop2(el, style, "stroke-width", inherited3) ?? "1") * strokeMul;
     const subpaths = parseSvgPath(d).map((sub) => ({
       closed: sub.closed,
       segments: sub.segments.map((seg4) => mapSeg(seg4, mapPt))
@@ -168651,7 +169200,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
       subpaths,
       fill: fillRgb ? rgbObj(fillRgb) : null,
       stroke: strokeRgb ? { ...rgbObj(strokeRgb), width: Math.max(1, strokeWidth) } : null,
-      fillRule: prop2(el, style, "fill-rule", inherited2) === "evenodd" ? "evenodd" : "nonzero"
+      fillRule: prop2(el, style, "fill-rule", inherited3) === "evenodd" ? "evenodd" : "nonzero"
     });
   }
   function liveTextPrim(el, style, m2, r5) {
@@ -170458,7 +171007,7 @@ function grayscaleInPlace(data) {
 }
 async function buildImagePdf(pages) {
   if (!pages.length) throw new Error("This PDF has no pages.");
-  const { PDFDocument: PDFDocument4, PDFName: PDFName6 } = await import("pdf-lib");
+  const { PDFDocument: PDFDocument4, PDFName: PDFName7 } = await import("pdf-lib");
   const doc = await PDFDocument4.create();
   for (const p of pages) {
     const img = await doc.embedJpg(p.jpeg);
@@ -170478,7 +171027,7 @@ async function buildImagePdf(pages) {
     }
   }
   try {
-    doc.catalog.delete(PDFName6.of("Metadata"));
+    doc.catalog.delete(PDFName7.of("Metadata"));
   } catch {
   }
   return doc.save({ useObjectStreams: true, updateFieldAppearances: false });
@@ -170489,11 +171038,11 @@ init_src2();
 init_pdf_read();
 import {
   PDFDocument as PDFDocument2,
-  PDFName as PDFName4,
-  PDFArray as PDFArray5,
-  PDFDict as PDFDict4,
+  PDFName as PDFName5,
+  PDFArray as PDFArray6,
+  PDFDict as PDFDict5,
   PDFNumber as PDFNumber3,
-  PDFRawStream as PDFRawStream3,
+  PDFRawStream as PDFRawStream4,
   decodePDFRawStream as decodePDFRawStream3
 } from "pdf-lib";
 var DEFAULT_MAX_CONTENT = 8 * 1024 * 1024;
@@ -170511,29 +171060,29 @@ function safeMediaBox(page3) {
 function msg2(err) {
   return String(err && err.message || err);
 }
-function dictOf3(ctx, o) {
+function dictOf4(ctx, o) {
   o = ctx.lookup(o);
-  return o instanceof PDFRawStream3 ? o.dict : o instanceof PDFDict4 ? o : null;
+  return o instanceof PDFRawStream4 ? o.dict : o instanceof PDFDict5 ? o : null;
 }
 function getKey2(ctx, o, key2) {
-  const d = dictOf3(ctx, o);
-  return d ? d.get(PDFName4.of(key2)) : void 0;
+  const d = dictOf4(ctx, o);
+  return d ? d.get(PDFName5.of(key2)) : void 0;
 }
 function numOf3(ctx, o) {
   o = ctx.lookup(o);
   return o instanceof PDFNumber3 ? o.asNumber() : null;
 }
-function nameOf3(ctx, o) {
+function nameOf4(ctx, o) {
   o = ctx.lookup(o);
-  return o instanceof PDFName4 ? o.asString().replace(/^\//, "") : null;
+  return o instanceof PDFName5 ? o.asString().replace(/^\//, "") : null;
 }
 function dictEntries3(ctx, o) {
-  const d = dictOf3(ctx, o);
+  const d = dictOf4(ctx, o);
   return d ? [...d.entries()].map(([k, v]) => [k.asString().replace(/^\//, ""), v]) : [];
 }
 function decodedText2(ctx, o) {
   o = ctx.lookup(o);
-  if (o instanceof PDFRawStream3) {
+  if (o instanceof PDFRawStream4) {
     try {
       return pdfLatin1(decodePDFRawStream3(o).decode());
     } catch {
@@ -170549,14 +171098,14 @@ function contentString(ctx, pageNode) {
     const t = decodedText2(ctx, ref2);
     if (t != null) parts.push(t);
   };
-  if (c instanceof PDFArray5) c.asArray().forEach(add3);
+  if (c instanceof PDFArray6) c.asArray().forEach(add3);
   else add3(getKey2(ctx, pageNode, "Contents"));
   return parts.join("\n");
 }
 var RESOURCE_NODE_BUDGET = 4096;
 function extractResources(ctx, resDict, depth, stack = /* @__PURE__ */ new Set(), budget3 = { left: RESOURCE_NODE_BUDGET }, images) {
   const res = { fonts: {}, fontNames: {}, xobjects: {}, extgstates: {}, ocgs: {} };
-  const dict = dictOf3(ctx, resDict);
+  const dict = dictOf4(ctx, resDict);
   if (!dict || depth > 8 || stack.has(dict) || budget3.left-- <= 0) return res;
   stack.add(dict);
   try {
@@ -170578,7 +171127,7 @@ function fillResources2(ctx, res, resDict, depth, stack, budget3, images) {
     res.fontNames[name] = base;
   }
   for (const [name, ref2] of dictEntries3(ctx, getKey2(ctx, resDict, "XObject"))) {
-    const subtype = nameOf3(ctx, getKey2(ctx, ref2, "Subtype"));
+    const subtype = nameOf4(ctx, getKey2(ctx, ref2, "Subtype"));
     if (subtype === "Image") {
       const key2 = images ? `img${images.size}` : `img${name}`;
       if (images) images.set(key2, makeImageDesc2(ctx, ref2));
@@ -170589,7 +171138,7 @@ function fillResources2(ctx, res, resDict, depth, stack, budget3, images) {
       res.xobjects[name] = {
         kind: "form",
         content: decodedText2(ctx, ref2) || "",
-        matrix: mtx instanceof PDFArray5 ? mtx.asArray().map((v) => numOf3(ctx, v) ?? 0) : void 0,
+        matrix: mtx instanceof PDFArray6 ? mtx.asArray().map((v) => numOf3(ctx, v) ?? 0) : void 0,
         resources: sub
       };
       for (const [k, v] of Object.entries(sub.fontNames)) if (!res.fontNames[`${name}/${k}`]) res.fontNames[`${name}/${k}`] = v;
@@ -170605,7 +171154,7 @@ function pdfString2(ctx, o) {
   o = ctx.lookup(o);
   if (!o) return "";
   const s = o;
-  if (typeof s.asString === "function" && !(o instanceof PDFName4)) {
+  if (typeof s.asString === "function" && !(o instanceof PDFName5)) {
     try {
       return s.asString();
     } catch {
@@ -170620,9 +171169,9 @@ function pdfString2(ctx, o) {
   return "";
 }
 function buildFontInfo2(ctx, fontRef) {
-  const subtype = nameOf3(ctx, getKey2(ctx, fontRef, "Subtype")) || "";
+  const subtype = nameOf4(ctx, getKey2(ctx, fontRef, "Subtype")) || "";
   const twoByte = subtype === "Type0";
-  const base = (nameOf3(ctx, getKey2(ctx, fontRef, "BaseFont")) || "").replace(/^[A-Z]{6}\+/, "");
+  const base = (nameOf4(ctx, getKey2(ctx, fontRef, "BaseFont")) || "").replace(/^[A-Z]{6}\+/, "");
   const info = { twoByte, family: base, weight: weightFromName(base) };
   const tuText = decodedText2(ctx, getKey2(ctx, fontRef, "ToUnicode"));
   if (tuText) {
@@ -170646,16 +171195,16 @@ function weightFromName(name) {
   return 400;
 }
 function colorSpaceOf(ctx, o) {
-  const direct = nameOf3(ctx, o);
+  const direct = nameOf4(ctx, o);
   if (direct) return direct;
   const arr = ctx.lookup(o);
-  if (arr instanceof PDFArray5 && arr.size()) return nameOf3(ctx, arr.get(0));
+  if (arr instanceof PDFArray6 && arr.size()) return nameOf4(ctx, arr.get(0));
   return null;
 }
 function filterList2(ctx, o) {
   const v = ctx.lookup(o);
-  if (v instanceof PDFName4) return [v.asString().replace(/^\//, "")];
-  if (v instanceof PDFArray5) return v.asArray().map((x) => nameOf3(ctx, x)).filter(Boolean);
+  if (v instanceof PDFName5) return [v.asString().replace(/^\//, "")];
+  if (v instanceof PDFArray6) return v.asArray().map((x) => nameOf4(ctx, x)).filter(Boolean);
   return [];
 }
 function makeImageDesc2(ctx, ref2, depth = 0) {
@@ -170666,11 +171215,11 @@ function makeImageDesc2(ctx, ref2, depth = 0) {
     height: numOf3(ctx, getKey2(ctx, ref2, "Height")) || 0,
     colorSpace: colorSpaceOf(ctx, getKey2(ctx, ref2, "ColorSpace")),
     bpc: numOf3(ctx, getKey2(ctx, ref2, "BitsPerComponent")) || 8,
-    predictor: numOf3(ctx, getKey2(ctx, dictOf3(ctx, getKey2(ctx, ref2, "DecodeParms")), "Predictor"))
+    predictor: numOf3(ctx, getKey2(ctx, dictOf4(ctx, getKey2(ctx, ref2, "DecodeParms")), "Predictor"))
   };
   if (depth === 0) {
     const smaskRef = getKey2(ctx, ref2, "SMask");
-    if (smaskRef && ctx.lookup(smaskRef) instanceof PDFRawStream3) {
+    if (smaskRef && ctx.lookup(smaskRef) instanceof PDFRawStream4) {
       desc.smask = makeImageDesc2(ctx, smaskRef, 1);
     }
   }
@@ -171417,8 +171966,8 @@ function createNodeSpeechAPI(opts = {}) {
       const words3 = sentence.tokens ?? splitWords(sentence.text);
       const wordPhonemes = [];
       for (const [w, word] of words3.entries()) {
-        const say = sentence.pronunciations?.[w];
-        wordPhonemes.push(say ? phonemesForWord(word, say) : await phonemizeChunk(espeak, word, language));
+        const say2 = sentence.pronunciations?.[w];
+        wordPhonemes.push(say2 ? phonemesForWord(word, say2) : await phonemizeChunk(espeak, word, language));
       }
       for (const chunk6 of chunkByPhonemeLength(words3, wordPhonemes)) {
         if (isAborted()) throw abortError2("speech synthesis aborted");
@@ -172187,22 +172736,22 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
     }
     return pending3;
   }
-  function bakeCliLook(cacheKey2, bytes2, mime2, look2, themeKey2) {
+  function bakeCliLook(cacheKey2, bytes2, mime2, look3, themeKey2) {
     let pending3 = lookBakes.get(cacheKey2);
     if (!pending3) {
       pending3 = (async () => {
-        const lut = look2.kind === "lut" ? await lutFor(resolvePhotoLook(look2, themeKey2).lut) : null;
-        if (look2.kind === "lut" && !lut) throw new Error(`the LUT of photo look ${look2.id} is unavailable`);
+        const lut = look3.kind === "lut" ? await lutFor(resolvePhotoLook(look3, themeKey2).lut) : null;
+        if (look3.kind === "lut" && !lut) throw new Error(`the LUT of photo look ${look3.id} is unavailable`);
         const { bakePhotoLookBytes: bakePhotoLookBytes2 } = await Promise.resolve().then(() => (init_photo_look2(), photo_look_exports));
-        const baked = await bakePhotoLookBytes2(bytes2, look2, { mime: mime2, ...themeKey2 !== "base" ? { theme: themeKey2 } : {}, ...lut ? { lut } : {} });
+        const baked = await bakePhotoLookBytes2(bytes2, look3, { mime: mime2, ...themeKey2 !== "base" ? { theme: themeKey2 } : {}, ...lut ? { lut } : {} });
         if (!baked) {
-          if (!lookCanvasWarned) host.log("warn", `photo look ${look2.id} was left out: this install has no canvas (@napi-rs/canvas) to bake it, so the plain picture is used.`);
+          if (!lookCanvasWarned) host.log("warn", `photo look ${look3.id} was left out: this install has no canvas (@napi-rs/canvas) to bake it, so the plain picture is used.`);
           lookCanvasWarned = true;
           return null;
         }
         return { url: `data:${baked.mime};base64,${Buffer.from(baked.bytes).toString("base64")}`, format: baked.format };
       })().catch((e) => {
-        host.log("warn", `photo look ${look2.id} was not applied: ${e instanceof Error ? e.message : e}`);
+        host.log("warn", `photo look ${look3.id} was not applied: ${e instanceof Error ? e.message : e}`);
         return null;
       });
       lookBakes.set(cacheKey2, pending3);
@@ -176978,14 +177527,14 @@ async function callLookTool(name, args, renderFn) {
   const warnings2 = source.warnings.length ? `
 Warnings: ${source.warnings.join("; ")}` : "";
   if (name === "lolly_look") {
-    const look2 = await lookAt(source, { region: args.region, grid: args.grid, maxSide: args.maxSide }, ctx);
+    const look3 = await lookAt(source, { region: args.region, grid: args.grid, maxSide: args.maxSide }, ctx);
     const text9 = [
       `Looking at ${source.label}: document ${regionText(source.frame)}.`,
-      `Showing ${look2.whole ? "the whole document" : `region ${regionText(look2.region)}`} at ${look2.width} x ${look2.height} px (${Math.round(look2.pxPerUnit * 100) / 100} px per unit).`,
-      look2.spacing ? `Grid every ${Math.round(look2.spacing * 10) / 10} units, numbered on the top and left edges.` : "No grid.",
+      `Showing ${look3.whole ? "the whole document" : `region ${regionText(look3.region)}`} at ${look3.width} x ${look3.height} px (${Math.round(look3.pxPerUnit * 100) / 100} px per unit).`,
+      look3.spacing ? `Grid every ${Math.round(look3.spacing * 10) / 10} units, numbered on the top and left edges.` : "No grid.",
       unitsText(source.units)
     ].join("\n") + warnings2;
-    const content2 = [{ type: "text", text: text9 }, { type: "image", data: Buffer.from(look2.png).toString("base64"), mimeType: "image/png" }];
+    const content2 = [{ type: "text", text: text9 }, { type: "image", data: Buffer.from(look3.png).toString("base64"), mimeType: "image/png" }];
     return { content: content2 };
   }
   if (name === "lolly_sample_color") {
@@ -177821,7 +178370,7 @@ function resourceUri2(tool, sha2563, path) {
   const hex3 = sha2563.replace(/^sha256:/, "").slice(0, 12);
   return `lolly://${tool}/${hex3}/${path.split("/").map(encodeURIComponent).join("/")}`;
 }
-function plural4(n7, one, many = `${one}s`) {
+function plural5(n7, one, many = `${one}s`) {
   return `${n7} ${n7 === 1 ? one : many}`;
 }
 
@@ -178006,7 +178555,7 @@ async function callRead(args, env = process.env, limits = READ_LIMITS) {
       ocr: false,
       note: "No OCR runs on this server: a slide that is one picture of a slide reads as a picture. " + (mode3 === "inline" ? "Each distinct picture is attached once, at the uri its media row gives." : 'Pass media: "inline" for the picture bytes.')
     };
-    const sentence = `${inv.source.name}: ${plural4(counts.slides, "slide")}, ${plural4(counts.text, "text frame")}, notes on ${plural4(counts.notes, "slide")}, ${plural4(counts.pictures, "picture")} from ${plural4(counts.media, "distinct file")}${inline ? "" : `; the inventory is attached as ${inventoryUri}`}.`;
+    const sentence = `${inv.source.name}: ${plural5(counts.slides, "slide")}, ${plural5(counts.text, "text frame")}, notes on ${plural5(counts.notes, "slide")}, ${plural5(counts.pictures, "picture")} from ${plural5(counts.media, "distinct file")}${inline ? "" : `; the inventory is attached as ${inventoryUri}`}.`;
     return success2(sentence, structured, files, ctx, "output.too-large", mode3 === "inline" ? 'ask again with media: "facts", or run lolly read on the CLI.' : "run lolly read on the CLI for this deck.");
   } catch (err) {
     return failure3(asReadError(err));
@@ -178911,7 +179460,7 @@ async function callCheck(args, resolveDesign, env = process.env, limits = CHECK_
       ...manifest !== void 0 ? { designManifest: manifest } : {}
     });
     const s = result.summary;
-    const sentence = `${result.input.name ?? input.name}: ${result.outcome} (exit ${result.exitCode}). ${plural4(s.error, "error")}, ${s.warn} to review, ${plural4(s.info, "note")}. ${familiesLine(result.families)}.`;
+    const sentence = `${result.input.name ?? input.name}: ${result.outcome} (exit ${result.exitCode}). ${plural5(s.error, "error")}, ${s.warn} to review, ${plural5(s.info, "note")}. ${familiesLine(result.families)}.`;
     return success2(sentence, result, [], ctx, "output.too-large", "run lolly check on the CLI for this file.");
   } catch (err) {
     return failure3(asCheckError(err));
@@ -179522,7 +180071,7 @@ async function callMeasureText(args, env = process.env, limits = STRUCTURED_LIMI
       const report4 = await measureDesignRowsReport2(rows2, { ...layerIds ? { layerIds } : {}, ...brief ? { brief } : {} });
       const clipped = report4.measured.filter((l) => l.measure.overflow?.clipped);
       const structured2 = { layers: report4.measured, skipped: report4.skipped };
-      const sentence2 = `Measured ${plural4(report4.measured.length, "plain text layer")}: ${clipped.length ? `${clipped.length} clipped (${clipped.slice(0, 8).map((l) => l.layerId).join(", ")}${clipped.length > 8 ? ", ..." : ""})` : "none clipped"}${report4.skipped.length ? `; ${plural4(report4.skipped.length, "layer")} not measured` : ""}.`;
+      const sentence2 = `Measured ${plural5(report4.measured.length, "plain text layer")}: ${clipped.length ? `${clipped.length} clipped (${clipped.slice(0, 8).map((l) => l.layerId).join(", ")}${clipped.length > 8 ? ", ..." : ""})` : "none clipped"}${report4.skipped.length ? `; ${plural5(report4.skipped.length, "layer")} not measured` : ""}.`;
       return success2(sentence2, structured2, [], ctx, "output.too-large", "pass layerIds for fewer layers, or run lolly measure --text-layers on the CLI.");
     }
     const { spec, note: sized } = await boxSpec(args, brief);
@@ -179530,7 +180079,7 @@ async function callMeasureText(args, env = process.env, limits = STRUCTURED_LIMI
     const m2 = await measureTextNode2(spec);
     if (sized) m2.notes.push(sized);
     const verdict2 = m2.overflow ? m2.overflow.clipped ? `, clipped by ${m2.overflow.y} px` : `, fits with ${-m2.overflow.y} px to spare` : "";
-    const sentence = `${plural4(m2.lineCount, "line")}, ${Math.round(m2.height * 100) / 100} px tall, scrollHeight ${m2.scrollHeight}${verdict2}${m2.nearEdge ? "; a line is near the edge, so widen the box a little" : ""}.`;
+    const sentence = `${plural5(m2.lineCount, "line")}, ${Math.round(m2.height * 100) / 100} px tall, scrollHeight ${m2.scrollHeight}${verdict2}${m2.nearEdge ? "; a line is near the edge, so widen the box a little" : ""}.`;
     const structured = { ...m2 };
     return success2(sentence, structured, [], ctx, "output.too-large", "measure less text in one call.");
   } catch (err) {
@@ -179858,11 +180407,11 @@ async function callInspectTokens(args, env = process.env, limits = STRUCTURED_LI
     });
     const name = origin.kind === "profile" ? `${origin.label ?? origin.id} (content profile ${origin.id})` : "the supplied document";
     const problems = [
-      report4.counts.diagnostics ? plural4(report4.counts.diagnostics, "document issue") : "",
-      report4.counts.withIssues ? `${plural4(report4.counts.withIssues, "token")} with issues` : ""
+      report4.counts.diagnostics ? plural5(report4.counts.diagnostics, "document issue") : "",
+      report4.counts.withIssues ? `${plural5(report4.counts.withIssues, "token")} with issues` : ""
     ].filter(Boolean).join(" and ");
-    const traced = report4.trace ? ` ${report4.trace.path} reads ${plural4(report4.trace.references.length, "token")} and is read by ${plural4(report4.trace.dependents.length, "token")}${report4.trace.truncated ? " (trace stopped at a limit)" : ""}.` : "";
-    const sentence = `Inspected ${plural4(report4.counts.tokens, "token")} in ${name} with ${choicesSentence(report4.context.selection.choices)}${report4.context.preview ? " (a preview; the stored choices differ)" : ""}: ${problems || "no issues"}.${traced}`;
+    const traced = report4.trace ? ` ${report4.trace.path} reads ${plural5(report4.trace.references.length, "token")} and is read by ${plural5(report4.trace.dependents.length, "token")}${report4.trace.truncated ? " (trace stopped at a limit)" : ""}.` : "";
+    const sentence = `Inspected ${plural5(report4.counts.tokens, "token")} in ${name} with ${choicesSentence(report4.context.selection.choices)}${report4.context.preview ? " (a preview; the stored choices differ)" : ""}: ${problems || "no issues"}.${traced}`;
     const structured = JSON.parse(JSON.stringify(report4));
     return success2(sentence, structured, [], ctx, "output.too-large", "pass a smaller limit, a query, or a token.");
   } catch (err) {
@@ -180684,7 +181233,7 @@ async function callCompose(args, env = process.env, limits = STRUCTURED_LIMITS) 
     const node = await Promise.resolve().then(() => (init_design_compose2(), design_compose_exports));
     if (mode3 === "list") {
       const listing = await node.composeArchetypeListing();
-      const sentence2 = `${plural4(listing.archetypes.length, "archetype")} on ${listing.master.id} ${listing.master.version} (${listing.master.origin}).`;
+      const sentence2 = `${plural5(listing.archetypes.length, "archetype")} on ${listing.master.id} ${listing.master.version} (${listing.master.origin}).`;
       return success2(sentence2, listing, [], ctx, "output.too-large", "list on a local server.");
     }
     const max = maxSlides(ctx);
@@ -180715,7 +181264,7 @@ async function callCompose(args, env = process.env, limits = STRUCTURED_LIMITS) 
       const suggested = await node.suggestCompose(sources);
       const assets2 = suggested.assets.map(({ bytes: _bytes, ...rest2 }) => rest2);
       const structured2 = { spec: suggested.spec, reasons: suggested.reasons, assets: assets2, master: suggested.master };
-      const sentence2 = `Suggested ${plural4(suggested.spec.slides.length, "slide")} on ${suggested.master.id} (${suggested.master.origin}); edit the spec, then call lolly_compose with it.`;
+      const sentence2 = `Suggested ${plural5(suggested.spec.slides.length, "slide")} on ${suggested.master.id} (${suggested.master.origin}); edit the spec, then call lolly_compose with it.`;
       return success2(sentence2, structured2, [], ctx, "output.too-large", "pass fewer slides.");
     }
     if (!record42(args.spec) && !Array.isArray(args.spec)) throw new ToolCodeError("spec.invalid", "spec is required: {slides: [{archetype, slots}]}. Call with mode list for the archetypes.");
@@ -180734,9 +181283,9 @@ async function callCompose(args, env = process.env, limits = STRUCTURED_LIMITS) 
     const assets = composed.assets.map(({ bytes: _bytes, ...rest2 }) => rest2);
     const clipped = composed.report.slides.flatMap((s) => (s.fit ?? []).filter((f) => f.overflow).map((f) => f.layerId));
     const unmeasured = composed.unmeasured ?? [];
-    const fitWords = clipped.length || unmeasured.length ? `${clipped.length ? `; ${plural4(clipped.length, "text slot")} still clip (${clipped.slice(0, 6).join(", ")}${clipped.length > 6 ? ", ..." : ""})` : ""}${unmeasured.length ? `; ${plural4(unmeasured.length, "text slot")} not measured (${unmeasured.slice(0, 6).join(", ")}${unmeasured.length > 6 ? ", ..." : ""}), so whether ${unmeasured.length === 1 ? "that slot fits" : "those slots fit"} is not known` : ""}` : "; every text slot fits";
+    const fitWords = clipped.length || unmeasured.length ? `${clipped.length ? `; ${plural5(clipped.length, "text slot")} still clip (${clipped.slice(0, 6).join(", ")}${clipped.length > 6 ? ", ..." : ""})` : ""}${unmeasured.length ? `; ${plural5(unmeasured.length, "text slot")} not measured (${unmeasured.slice(0, 6).join(", ")}${unmeasured.length > 6 ? ", ..." : ""}), so whether ${unmeasured.length === 1 ? "that slot fits" : "those slots fit"} is not known` : ""}` : "; every text slot fits";
     const structured = { document: composed.document, report: composed.report, edits: composed.edits, assets };
-    const sentence = `Composed ${plural4(composed.report.slides.length, "slide")} at ${composed.report.size.width}x${composed.report.size.height} on ${composed.report.master.id} (${composed.report.master.origin})` + fitWords + `${composed.edits.length ? `; ${plural4(composed.edits.length, "source string")} changed or left out, listed as edits for lolly_check` : ""}. Next: lolly_package, then lolly_check.`;
+    const sentence = `Composed ${plural5(composed.report.slides.length, "slide")} at ${composed.report.size.width}x${composed.report.size.height} on ${composed.report.master.id} (${composed.report.master.origin})` + fitWords + `${composed.edits.length ? `; ${plural5(composed.edits.length, "source string")} changed or left out, listed as edits for lolly_check` : ""}. Next: lolly_package, then lolly_check.`;
     return success2(sentence, structured, [], ctx, "output.too-large", "compose fewer slides in one call.");
   } catch (err) {
     return failure3(asComposeError2(err));
@@ -181302,7 +181851,7 @@ async function callPackage(args, resolveDesign, env = process.env, limits = PACK
     const name = `${safeFileName(packed.report.filename || packed.report.label, "Design")}.lolly`;
     const result = { ...packed.report, next: ["lolly_check with file: the returned .lolly", "lolly_render or the Lolly app to open it"] };
     const block = { type: "resource", resource: { uri: resourceUri2("package", result.sha256, name), mimeType: LOLLY_MIME2, blob: Buffer.from(packed.bytes).toString("base64") } };
-    const sentence = `Packaged "${result.label}" as ${name}: ${plural4(result.artboards, "artboard")}, ${plural4(result.layers, "layer")}, ${plural4(result.media.length, "picture")} carried, ${result.bytes} bytes; read back clean.` + (result.warnings.length ? ` ${plural4(result.warnings.length, "note")}.` : "");
+    const sentence = `Packaged "${result.label}" as ${name}: ${plural5(result.artboards, "artboard")}, ${plural5(result.layers, "layer")}, ${plural5(result.media.length, "picture")} carried, ${result.bytes} bytes; read back clean.` + (result.warnings.length ? ` ${plural5(result.warnings.length, "note")}.` : "");
     return success2(sentence, result, [block], ctx, "output.too-large", "run lolly package on the CLI for this document.");
   } catch (err) {
     return failure3(asPackageError(err));
@@ -183105,14 +183654,14 @@ async function callLiveTool(bridge, name, args) {
         if (typeof view?.svg !== "string") return failure4("lolly_live_look: the editor returned no picture.");
         const source = await sourceFromBytes(Buffer.from(view.svg, "utf8"), "image/svg+xml", contentImageRoots(), "the open document");
         if ("error" in source) return failure4(`lolly_live_look: ${source.error}`);
-        const look2 = await lookAt(source, { region: args.region, grid: args.grid, maxSide: args.maxSide }, { fontDirs: [fontsDir()], areaCap: 16e6 });
+        const look3 = await lookAt(source, { region: args.region, grid: args.grid, maxSide: args.maxSide }, { fontDirs: [fontsDir()], areaCap: 16e6 });
         const lines = [
           `Looking at the open document: ${regionText(source.frame)}.`,
-          `Showing ${look2.whole ? "the whole document" : `region ${regionText(look2.region)}`} at ${look2.width} x ${look2.height} px.`,
-          look2.spacing ? `Grid every ${Math.round(look2.spacing * 10) / 10} units, numbered on the top and left edges.` : "No grid.",
+          `Showing ${look3.whole ? "the whole document" : `region ${regionText(look3.region)}`} at ${look3.width} x ${look3.height} px.`,
+          look3.spacing ? `Grid every ${Math.round(look3.spacing * 10) / 10} units, numbered on the top and left edges.` : "No grid.",
           unitsText(source.units)
         ];
-        return { content: [{ type: "text", text: lines.join("\n") }, { type: "image", data: Buffer.from(look2.png).toString("base64"), mimeType: "image/png" }] };
+        return { content: [{ type: "text", text: lines.join("\n") }, { type: "image", data: Buffer.from(look3.png).toString("base64"), mimeType: "image/png" }] };
       }
       case "lolly_live_undo": {
         const result = await bridge.request("history.undo");
@@ -184690,8 +185239,8 @@ function createGateway(env = process.env, options2 = {}) {
     if (path === "/api/mcp/agents" || path === "/agents") {
       if (env.LOLLY_DISABLE_AGENT_CONNECTOR === "1") return send(res, { status: 404, json: { error: "not_found" } });
       if (method !== "POST") return send(res, { status: 405, headers: { allow: "POST, OPTIONS" }, json: { error: "method_not_allowed" } });
-      const refusal2 = await limited(limiter, "agents", clientIp(req, env), positiveInt(env.LOLLY_AGENT_RPM, 120)) || await limited(limiter, "agents-all", "all", positiveInt(env.LOLLY_AGENT_GLOBAL_RPM, 1200)) || await overBudget(budget3);
-      if (refusal2) return send(res, refusal2);
+      const refusal3 = await limited(limiter, "agents", clientIp(req, env), positiveInt(env.LOLLY_AGENT_RPM, 120)) || await limited(limiter, "agents-all", "all", positiveInt(env.LOLLY_AGENT_GLOBAL_RPM, 1200)) || await overBudget(budget3);
+      if (refusal3) return send(res, refusal3);
       if (!String(req.headers["content-type"] ?? "").toLowerCase().startsWith("application/json")) return send(res, { status: 415, json: { error: "Use application/json." } });
       let message;
       try {
@@ -184735,8 +185284,8 @@ function createGateway(env = process.env, options2 = {}) {
       const owner3 = bearerPrincipal(authorization);
       const rawPath = (req.url ?? "").split("?")[0];
       if (!owner3 || rawPath !== path || url.searchParams.getAll("dt").length !== 1 || [...url.searchParams.keys()].some((key2) => key2 !== "dt")) return unavailable();
-      const refusal2 = await limited(limiter, "mcp-files", owner3, positiveInt(env.LOLLY_MCP_RPM, 120)) || await overBudget(budget3);
-      if (refusal2) return send(res, refusal2);
+      const refusal3 = await limited(limiter, "mcp-files", owner3, positiveInt(env.LOLLY_MCP_RPM, 120)) || await overBudget(budget3);
+      if (refusal3) return send(res, refusal3);
       let file;
       try {
         file = await files.fetch(owner3, rawPath, url.searchParams.get("dt") ?? "", publicBase, signingSecret(env));
@@ -184766,8 +185315,8 @@ function createGateway(env = process.env, options2 = {}) {
     if (method === "GET" && path.includes("oauth-protected-resource")) return send(res, protectedResourceMetadata(publicBase));
     if (path.endsWith("/register")) {
       if (method !== "POST") return send(res, { status: 405, headers: { allow: "POST" }, json: { error: "method_not_allowed" } });
-      const refusal2 = await limited(limiter, "oauth", clientIp(req, env), positiveInt(env.LOLLY_OAUTH_RPM, 30));
-      if (refusal2) return send(res, refusal2);
+      const refusal3 = await limited(limiter, "oauth", clientIp(req, env), positiveInt(env.LOLLY_OAUTH_RPM, 30));
+      if (refusal3) return send(res, refusal3);
       let body = {};
       try {
         body = JSON.parse(await readBody(req, OAUTH_BODY_MAX) || "{}");
@@ -184777,8 +185326,8 @@ function createGateway(env = process.env, options2 = {}) {
       return send(res, await register(body, env));
     }
     if (path.endsWith("/authorize")) {
-      const refusal2 = await limited(limiter, "oauth", clientIp(req, env), positiveInt(env.LOLLY_OAUTH_RPM, 30));
-      if (refusal2) return send(res, refusal2);
+      const refusal3 = await limited(limiter, "oauth", clientIp(req, env), positiveInt(env.LOLLY_OAUTH_RPM, 30));
+      if (refusal3) return send(res, refusal3);
       const q = Object.fromEntries(url.searchParams);
       if (method === "GET") return send(res, await authorizeGet(q, env, publicBase));
       if (method === "POST") {
@@ -184794,8 +185343,8 @@ function createGateway(env = process.env, options2 = {}) {
     }
     if (path.endsWith("/token")) {
       if (method !== "POST") return send(res, { status: 405, headers: { allow: "POST" }, json: { error: "method_not_allowed" } });
-      const refusal2 = await limited(limiter, "oauth", clientIp(req, env), positiveInt(env.LOLLY_OAUTH_RPM, 30));
-      if (refusal2) return send(res, refusal2);
+      const refusal3 = await limited(limiter, "oauth", clientIp(req, env), positiveInt(env.LOLLY_OAUTH_RPM, 30));
+      if (refusal3) return send(res, refusal3);
       let form;
       try {
         form = formToObject(await readBody(req, OAUTH_BODY_MAX));
@@ -184821,8 +185370,8 @@ function createGateway(env = process.env, options2 = {}) {
       }
       const auth = String(req.headers["authorization"] || "anonymous");
       const principal = open3 ? `ip:${clientIp(req, env)}` : createHash17("sha256").update(auth).digest("hex");
-      const refusal2 = await limited(limiter, "mcp", principal, positiveInt(env.LOLLY_MCP_RPM, open3 ? 60 : 120));
-      if (refusal2) return send(res, refusal2);
+      const refusal3 = await limited(limiter, "mcp", principal, positiveInt(env.LOLLY_MCP_RPM, open3 ? 60 : 120));
+      if (refusal3) return send(res, refusal3);
       const spent = await overBudget(budget3);
       if (spent) return send(res, spent);
       let raw;
