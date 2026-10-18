@@ -2469,6 +2469,8 @@ test('History compares a checkpoint with the kept snapshot, so a loaded file is 
       .map(f => readFileSync(f, 'utf8')).join('\n');
     assert.match(view, /currentSnapshot: actionsApi\?\.history \? actionsApi\.keptSnapshot : actionsApi\?\.sessionState/);
   } finally { h.dispose(); }
+});
+
 // ── The design-system record card (plans/319 A7) ─────────────────────────────
 //
 // Approved on the condition that the record is visible at the moment of export: a
