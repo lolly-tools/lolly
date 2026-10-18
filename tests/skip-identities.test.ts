@@ -29,6 +29,10 @@ test('skip reasons classify by what is missing', () => {
   );
   assert.equal(capabilityFor('the store keeps no write precondition'), 'service-limit');
   assert.equal(
+    capabilityFor('the store adapter has no remove call (optional; per-record sync then keeps the objects)'),
+    'service-limit',
+  );
+  assert.equal(
     capabilityFor('live S3 run is off: set LOLLY_SYNC_LIVE_S3_ENDPOINT, LOLLY_SYNC_LIVE_S3_SECRET to run it'),
     'environment',
   );

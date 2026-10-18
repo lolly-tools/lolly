@@ -85,6 +85,10 @@ export interface SyncRemote {
    *  paths (debounced push, boot check) skip them rather than popping a sign-in
    *  outside a user gesture. Absent = assumed silent. Manual actions ignore it. */
   canSyncSilently?(): boolean | Promise<boolean>;
+  /** Remove the stored object. Optional: per-record sync (plans/138 B2) uses it to
+   *  clear objects nothing names any more, and without it they stay in the store.
+   *  Removing an object that is not there is not an error. */
+  remove?(): Promise<void>;
 }
 
 /**
@@ -133,5 +137,10 @@ export class MemoryRemote implements SyncRemote {
     this.bytes = bytes.slice();
     this.meta = { rev: `r${++this.seq}`, updatedAt: this.now(), size: bytes.length };
     return { ...this.meta };
+  }
+
+  async remove(): Promise<void> {
+    this.bytes = null;
+    this.meta = null;
   }
 }

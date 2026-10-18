@@ -360,10 +360,24 @@
       "owner": "shells/web"
     },
     {
+      "file": "shells/web/src/lib/drive-sync.test.ts",
+      "fullName": "driveSyncRemote conformance (fake Drive) > remove clears only that path, and removing again or an empty path is fine",
+      "reason": "the store adapter has no remove call (optional; per-record sync then keeps the objects)",
+      "capability": "service-limit",
+      "owner": "shells/web"
+    },
+    {
       "file": "shells/web/src/lib/dropbox-sync.test.ts",
       "fullName": "dropboxSyncRemote conformance (live Dropbox)",
       "reason": "live Dropbox run: no live mode: OAuth access tokens cannot be minted without a person signing in",
       "capability": "credentials",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/lib/dropbox-sync.test.ts",
+      "fullName": "dropboxSyncRemote conformance (fake Dropbox) > remove clears only that path, and removing again or an empty path is fine",
+      "reason": "the store adapter has no remove call (optional; per-record sync then keeps the objects)",
+      "capability": "service-limit",
       "owner": "shells/web"
     },
     {
@@ -374,6 +388,13 @@
       "owner": "shells/web"
     },
     {
+      "file": "shells/web/src/lib/onedrive-sync.test.ts",
+      "fullName": "onedriveSyncRemote conformance (fake Graph) > remove clears only that path, and removing again or an empty path is fine",
+      "reason": "the store adapter has no remove call (optional; per-record sync then keeps the objects)",
+      "capability": "service-limit",
+      "owner": "shells/web"
+    },
+    {
       "file": "shells/web/src/lib/s3-sync.test.ts",
       "fullName": "s3SyncRemote conformance (live bucket)",
       "reason": "live S3 run is off: set LOLLY_SYNC_LIVE_S3_ENDPOINT, LOLLY_SYNC_LIVE_S3_BUCKET, LOLLY_SYNC_LIVE_S3_KEY_ID, LOLLY_SYNC_LIVE_S3_SECRET to run it",
@@ -381,10 +402,24 @@
       "owner": "shells/web"
     },
     {
+      "file": "shells/web/src/lib/s3-sync.test.ts",
+      "fullName": "s3SyncRemote conformance (fake bucket) > remove clears only that path, and removing again or an empty path is fine",
+      "reason": "the store adapter has no remove call (optional; per-record sync then keeps the objects)",
+      "capability": "service-limit",
+      "owner": "shells/web"
+    },
+    {
       "file": "shells/web/src/lib/webdav-sync.test.ts",
       "fullName": "webdavSyncRemote conformance (live server)",
       "reason": "live WebDAV run is off: set LOLLY_SYNC_LIVE_WEBDAV_URL, LOLLY_SYNC_LIVE_WEBDAV_USER, LOLLY_SYNC_LIVE_WEBDAV_APP_PASSWORD to run it",
       "capability": "environment",
+      "owner": "shells/web"
+    },
+    {
+      "file": "shells/web/src/lib/webdav-sync.test.ts",
+      "fullName": "webdavSyncRemote conformance (fake server) > remove clears only that path, and removing again or an empty path is fine",
+      "reason": "the store adapter has no remove call (optional; per-record sync then keeps the objects)",
+      "capability": "service-limit",
       "owner": "shells/web"
     },
     {
