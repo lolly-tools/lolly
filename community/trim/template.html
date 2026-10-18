@@ -1,26 +1,40 @@
 <main class="utility"><div class="trim-root" data-start="{{start}}" data-end="{{end}}" data-duration="{{duration}}">
- {{#unless hasFile}}<section class="empty"><div class="mark">✂</div><h1>Trim a clip</h1><p>Set precise in and out points, then keep, convert, mute or extract the audio.</p><button class="btn btn--primary" type="button" data-file-pick>Choose audio or video…</button><small>Local codecs only. Nothing is uploaded.</small></section>{{/unless}}
+ {{#unless hasFile}}<section class="empty"><div class="mark">✂</div><h1>Trim a clip</h1><p>Cut, turn or shrink a clip, take a poster frame or a contact sheet, or extract the audio.</p><button class="btn btn--primary" type="button" data-file-pick>Choose audio or video…</button><small>Local codecs only. Nothing is uploaded.</small></section>{{/unless}}
  {{#if hasFile}}<section class="card"><header><strong>{{fileName}}</strong><span>{{fileSize}}</span><button type="button" class="btn btn--ghost quiet" data-file-pick>Replace</button></header>
   {{#if available}}<div class="media">{{#if isVideo}}<video controls muted preload="metadata" src="{{sourceUrl}}"></video>{{else}}<audio controls preload="metadata" src="{{sourceUrl}}"></audio>{{/if}}</div>
    <div class="timeline" aria-label="Clip range">
-    <div class="range-handles"><label>In <input class="field-range" type="range" min="0" step="0.01" data-range="start" aria-label="In point" disabled></label><label>Out <input class="field-range" type="range" min="0" step="0.01" data-range="end" aria-label="Out point" disabled></label></div>
+    <div class="range-handles"><label>In <input class="field-range" type="range" min="0" step="0.01" data-range="start" aria-label="In point" disabled></label>{{#unless isPoster}}<label>Out <input class="field-range" type="range" min="0" step="0.01" data-range="end" aria-label="Out point" disabled></label>{{/unless}}</div>
     <div><strong>{{rangeText}}</strong><span>{{modeText}}</span></div>
    </div>
    <section class="controls" aria-label="Trim settings">
-    <label>Start (seconds)<input class="field-input field-input--sm" type="number" min="0" step="0.01" data-input-id="start" value="{{start}}"></label>
-    <label>End (0 = end of file)<input class="field-input field-input--sm" type="number" min="0" step="0.01" data-input-id="end" value="{{end}}"></label>
+    {{#if showMake}}<label>Make<select class="field-select field-select--sm" data-input-id="make">
+     <option value="clip" {{#if (eq make "clip")}}selected{{/if}}>Clip</option><option value="poster" {{#if (eq make "poster")}}selected{{/if}}>Poster frame</option><option value="sheet" {{#if (eq make "sheet")}}selected{{/if}}>Contact sheet</option>
+    </select></label>{{/if}}
+    <label>{{startLabel}}<input class="field-input field-input--sm" type="number" min="0" step="0.01" data-input-id="start" value="{{start}}"></label>
+    {{#unless isPoster}}<label>End (0 = end of file)<input class="field-input field-input--sm" type="number" min="0" step="0.01" data-input-id="end" value="{{end}}"></label>{{/unless}}
+    {{#if isClip}}
     <label>Container<select class="field-select field-select--sm" data-input-id="container" {{#unless (eq audioOnly "off")}}disabled{{/unless}}>
      <option value="keep" {{#if (eq container "keep")}}selected{{/if}}>Keep source container</option><option value="mp4" {{#if (eq container "mp4")}}selected{{/if}}>MP4</option><option value="webm" {{#if (eq container "webm")}}selected{{/if}}>WebM</option><option value="gif" {{#if (eq container "gif")}}selected{{/if}}>GIF · up to 15 seconds</option>
     </select></label>
     <label>Extract audio<select class="field-select field-select--sm" data-input-id="audioOnly"><option value="off" {{#if (eq audioOnly "off")}}selected{{/if}}>No</option><option value="m4a" {{#if (eq audioOnly "m4a")}}selected{{/if}}>M4A</option><option value="opus" {{#if (eq audioOnly "opus")}}selected{{/if}}>Opus</option><option value="wav" {{#if (eq audioOnly "wav")}}selected{{/if}}>WAV</option></select></label>
-    <label class="check"><input class="field-check" type="checkbox" data-input-id="mute" {{#if mute}}checked{{/if}} {{#unless (eq audioOnly "off")}}disabled{{/unless}}> Remove audio</label>
-    <button type="button" class="btn btn--ghost quiet" data-play-range>Play selected range</button>
+    {{/if}}
+    {{#if clipVideo}}
+    <label>Cut<select class="field-select field-select--sm" data-input-id="cut"><option value="exact" {{#if (eq cut "exact")}}selected{{/if}}>Exact · starts at your start point</option><option value="reencode" {{#if (eq cut "reencode")}}selected{{/if}}>Re-encode · keeps nothing before the start</option><option value="keyframe" {{#if (eq cut "keyframe")}}selected{{/if}}>Fast · starts at the key frame before</option></select></label>
+    <label>Sharing size<select class="field-select field-select--sm" data-input-id="shareSize"><option value="original" {{#if (eq shareSize "original")}}selected{{/if}}>Original size</option><option value="1080" {{#if (eq shareSize "1080")}}selected{{/if}}>1080p</option><option value="720" {{#if (eq shareSize "720")}}selected{{/if}}>720p</option><option value="480" {{#if (eq shareSize "480")}}selected{{/if}}>480p</option></select></label>
+    <label>Size limit (MB, 0 = none)<input class="field-input field-input--sm" type="number" min="0" step="1" data-input-id="maxMB" value="{{maxMB}}"></label>
+    {{/if}}
+    {{#if canTurn}}<label>Rotate<select class="field-select field-select--sm" data-input-id="rotate"><option value="0" {{#if (eq rotate "0")}}selected{{/if}}>No turn</option><option value="90" {{#if (eq rotate "90")}}selected{{/if}}>90° clockwise</option><option value="180" {{#if (eq rotate "180")}}selected{{/if}}>180°</option><option value="270" {{#if (eq rotate "270")}}selected{{/if}}>90° anticlockwise</option></select></label>{{/if}}
+    {{#if isSheet}}<label>Frames<select class="field-select field-select--sm" data-input-id="frames"><option value="6" {{#if (eq frames "6")}}selected{{/if}}>6</option><option value="9" {{#if (eq frames "9")}}selected{{/if}}>9</option><option value="12" {{#if (eq frames "12")}}selected{{/if}}>12</option><option value="16" {{#if (eq frames "16")}}selected{{/if}}>16</option><option value="25" {{#if (eq frames "25")}}selected{{/if}}>25</option></select></label>{{/if}}
+    {{#unless isClip}}<label>Image format<select class="field-select field-select--sm" data-input-id="imageFormat"><option value="jpeg" {{#if (eq imageFormat "jpeg")}}selected{{/if}}>JPEG</option><option value="png" {{#if (eq imageFormat "png")}}selected{{/if}}>PNG</option></select></label>{{/unless}}
+    {{#if isClip}}<label class="check"><input class="field-check" type="checkbox" data-input-id="mute" {{#if mute}}checked{{/if}} {{#unless (eq audioOnly "off")}}disabled{{/unless}}> Remove audio</label>{{/if}}
+    {{#unless isPoster}}<button type="button" class="btn btn--ghost quiet" data-play-range>Play selected range</button>{{/unless}}
    </section>
   {{/if}}
-  {{#if error}}<div class="notice bad" role="alert"><strong>Cannot trim</strong><span>{{error}}</span></div>{{/if}}
-  {{#if pending}}<div class="notice" role="status"><strong>Preparing your clip…</strong><span>You can adjust the range while local processing finishes.</span></div>{{/if}}
-  {{#if done}}<div class="result" role="status"><strong>{{durationText}}</strong><span>{{containerText}} · {{cutText}}</span><span>{{sizeAfter}}</span></div>{{/if}}
-  {{#if available}}<button type="button" class="btn btn--primary download" data-export-file data-busy-label="Trimming…" {{#unless done}}disabled{{/unless}}>Download trimmed clip</button><p class="muted">Exact boundaries may require re-encoding. No watermark, metadata credit or credential is added.</p>{{/if}}
+  {{#if error}}<div class="notice bad" role="alert"><strong>Cannot prepare this</strong><span>{{error}}</span></div>{{/if}}
+  {{#if pending}}<div class="notice" role="status"><strong>Preparing…</strong><span>You can adjust the settings while local processing finishes.</span></div>{{/if}}
+  {{#if done}}<div class="result" role="status"><strong>{{durationText}}</strong><span>{{containerText}}{{#if sizeText}} · {{sizeText}}{{/if}}{{#if cutText}} · {{cutText}}{{/if}}</span><span>{{sizeAfter}}</span>{{#if methodText}}<span class="method">{{methodText}}</span>{{/if}}</div>
+   {{#if notes.length}}<dl class="report" aria-label="What was done and checked">{{#each notes}}<div class="{{#if warn}}warn{{/if}}"><dt>{{label}}</dt><dd>{{text}}</dd></div>{{/each}}</dl>{{/if}}{{/if}}
+  {{#if available}}<button type="button" class="btn btn--primary download" data-export-file data-busy-label="Preparing…" {{#unless done}}disabled{{/unless}}>{{downloadLabel}}</button><p class="muted">Each copy is checked after writing. No watermark, metadata credit or credential is added.</p>{{/if}}
  </section>{{/if}}
 </div></main>
 <script>(function(){
@@ -30,6 +44,6 @@
  function sync(){duration=Number.isFinite(media.duration)?media.duration:duration;if(!(duration>0))return;handles.forEach(function(h){h.disabled=false;h.max=duration;h.value=h.dataset.range==='start'?Math.min(start,duration):(end||duration);});}
  media.addEventListener('loadedmetadata',sync);sync();
  handles.forEach(function(h){h.addEventListener('input',function(){var t=Number(h.value);if(h.dataset.range==='start')start=Math.max(0,Math.min(t,(end||duration)-.01));else end=Math.min(duration,Math.max(start+.01,t));h.value=h.dataset.range==='start'?start:end;var input=root.querySelector('[data-input-id="'+h.dataset.range+'"]');if(input)input.value=h.value;media.currentTime=Number(h.value);});h.addEventListener('change',function(){commit(h.dataset.range,Number(h.value));});});
- root.querySelector('[data-play-range]').addEventListener('click',function(){media.currentTime=start;previewing=true;var p=media.play();if(p&&p.catch)p.catch(function(){previewing=false;});});
+ var play=root.querySelector('[data-play-range]');if(play)play.addEventListener('click',function(){media.currentTime=start;previewing=true;var p=media.play();if(p&&p.catch)p.catch(function(){previewing=false;});});
  media.addEventListener('timeupdate',function(){if(previewing&&media.currentTime>=(end||duration)){media.pause();previewing=false;}});
 })();</script>

@@ -107,7 +107,7 @@ On-device file utilities: bytes in, bytes out. Most take the user's own file
 | `sign` | Sign | utility | pdf | - | - | Place your signature on a PDF, optionally add a Content Credential and lock the result. |
 | `strip-data` | Strip Hidden Data | utility | jpg, png, svg, penpot, pdf | - | - | Remove selected DOCX properties or image and PDF metadata, and inspect other Office hidden content, on your device. |
 | `text-helper` | Text | utility | html | textTools | - | Find, edit, understand and transform text. |
-| `trim` | Trim | utility | mp4, webm, gif, m4a, opus, wav | - | - | Cut an audio or video clip, change its container, mute it or extract its audio on your device. |
+| `trim` | Trim | utility | mp4, webm, gif, m4a, opus, wav, jpg, png | - | - | Cut, turn or shrink an audio or video clip, take a poster frame or contact sheet, mute it or extract its audio on you… |
 | `url-shot` | URL Screenshot | utility | png, jpg, webp, svg, penpot, pdf, webm, mp4, avif, tiff, gif | - | capture | Any web page, at any scroll depth, with custom CSS. |
 | `voice-recorder` | Voice Recorder | utility | png, svg, penpot, mp3, wav, m4a, opus | - | microphone | Record a voice note with a live level meter and gentle coaching, then save it as MP3. |
 <!-- /GEN:tools-utilities -->

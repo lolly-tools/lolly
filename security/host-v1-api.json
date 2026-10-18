@@ -655,12 +655,42 @@
     "MediaTrimOpts": {
       "module": "media.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "023c1419d9075e9c95dbc19fa304369101f80d645ffc48bf4023004edcce22f4"
+      "sha256": "145d1de76079caf0818116bd6b5e595a746c2fbecb25f2af0056610140fc5c6a"
     },
     "MediaTrimResult": {
       "module": "media.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "35d21e0be11a3ac2de83fa4250cdaba05a2707f7d7c73f72c561d135a2b58890"
+      "sha256": "c64d89730bc8a6aecc9371d81a5387771c549f5f4b1c24b8fd82b790e7c38180"
+    },
+    "MediaTrimReason": {
+      "module": "media.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "d1167f1d79c18f0cf8047a5df96975b4225dea8a3d166d37f5e0bb719bfee784"
+    },
+    "MediaTrimTrackReport": {
+      "module": "media.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "03a67087dcffb01a8be6c57af59ba30d764c273650f0190639ef5f0d0804c142"
+    },
+    "MediaSyncCheck": {
+      "module": "media.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "efc8b8c2e4655098e42426c643421c7f6eddd6ec36ff4c05b92e50cd9983f533"
+    },
+    "MediaOrientationCheck": {
+      "module": "media.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "db92542e377acdcdeaebbd1770d9e536db03e15b6a812553efa03448a3a0174b"
+    },
+    "MediaColorCheck": {
+      "module": "media.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "257e4d64e00a74a5ccc781032f2029ac02d2d561657e4997310744bdec03b9ab"
+    },
+    "MediaTrimReport": {
+      "module": "media.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "63fe595887958db1f3bc040fe51e79652fd56fd2b3c1f4852262cb73c3c3ba06"
     },
     "MediaFrame": {
       "module": "media.ts",

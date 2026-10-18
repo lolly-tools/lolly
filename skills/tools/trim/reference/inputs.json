@@ -17,7 +17,28 @@
       ".opus"
     ],
     "maxSize": 1073741824,
-    "help": "Read and converted locally. Large files can take a while when an exact cut needs re-encoding."
+    "help": "Read and converted locally. Large files can take a while when the picture needs re-encoding."
+  },
+  {
+    "id": "make",
+    "label": "Make",
+    "type": "select",
+    "default": "clip",
+    "options": [
+      {
+        "value": "clip",
+        "label": "Clip"
+      },
+      {
+        "value": "poster",
+        "label": "Poster frame"
+      },
+      {
+        "value": "sheet",
+        "label": "Contact sheet"
+      }
+    ],
+    "help": "A poster frame is the picture at the start point. A contact sheet spreads frames across the range."
   },
   {
     "id": "start",
@@ -35,6 +56,27 @@
     "min": 0,
     "step": 0.01,
     "help": "0 means the end of the file."
+  },
+  {
+    "id": "cut",
+    "label": "Cut",
+    "type": "select",
+    "default": "exact",
+    "options": [
+      {
+        "value": "exact",
+        "label": "Exact · starts at your start point"
+      },
+      {
+        "value": "reencode",
+        "label": "Re-encode · keeps nothing before the start"
+      },
+      {
+        "value": "keyframe",
+        "label": "Fast · starts at the key frame before"
+      }
+    ],
+    "help": "A copy can only begin on a key frame. Exact copies MP4 and MOV from the key frame before and marks the frames before your start for players to skip; some editors and upload sites show them. WebM and MKV re-encode the picture instead. Re-encode always re-encodes the picture, so nothing before the start is kept. Fast keeps the original packets and may start a little early."
   },
   {
     "id": "container",
@@ -87,6 +129,109 @@
       {
         "value": "wav",
         "label": "WAV"
+      }
+    ]
+  },
+  {
+    "id": "rotate",
+    "label": "Rotate",
+    "type": "select",
+    "default": "0",
+    "options": [
+      {
+        "value": "0",
+        "label": "No turn"
+      },
+      {
+        "value": "90",
+        "label": "90° clockwise"
+      },
+      {
+        "value": "180",
+        "label": "180°"
+      },
+      {
+        "value": "270",
+        "label": "90° anticlockwise"
+      }
+    ],
+    "help": "MP4 and MOV turn with an orientation setting and keep the picture as it is. Other formats redraw the picture."
+  },
+  {
+    "id": "shareSize",
+    "label": "Sharing size",
+    "type": "select",
+    "default": "original",
+    "options": [
+      {
+        "value": "original",
+        "label": "Original size"
+      },
+      {
+        "value": "1080",
+        "label": "1080p"
+      },
+      {
+        "value": "720",
+        "label": "720p"
+      },
+      {
+        "value": "480",
+        "label": "480p"
+      }
+    ],
+    "help": "Re-encodes to a smaller picture. Never enlarges."
+  },
+  {
+    "id": "maxMB",
+    "label": "Size limit (MB)",
+    "type": "number",
+    "default": 0,
+    "min": 0,
+    "step": 1,
+    "help": "0 means no limit. A copy that already fits is kept. Otherwise the clip is re-encoded at a bitrate meant to fit, never above the source's own, and the report says whether it did."
+  },
+  {
+    "id": "frames",
+    "label": "Frames",
+    "type": "select",
+    "default": "12",
+    "options": [
+      {
+        "value": "6",
+        "label": "6"
+      },
+      {
+        "value": "9",
+        "label": "9"
+      },
+      {
+        "value": "12",
+        "label": "12"
+      },
+      {
+        "value": "16",
+        "label": "16"
+      },
+      {
+        "value": "25",
+        "label": "25"
+      }
+    ]
+  },
+  {
+    "id": "imageFormat",
+    "label": "Image format",
+    "type": "select",
+    "default": "jpeg",
+    "options": [
+      {
+        "value": "jpeg",
+        "label": "JPEG"
+      },
+      {
+        "value": "png",
+        "label": "PNG"
       }
     ]
   }
