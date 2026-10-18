@@ -3,6 +3,7 @@
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { parseFileAssetId } from '../../../../engine/src/asset-modifiers.ts';
 import { instanceFetch } from './instance.ts';
+import { type1Container } from './font-type1.ts';
 
 export class AssetViewerReadError extends Error { readonly status: number; constructor(status: number, message: string) { super(message); this.status = status; } }
 export type AssetViewerKind = 'pdf' | 'font' | 'vector' | 'converted' | 'existing';
@@ -12,7 +13,7 @@ export interface AssetViewerSource {
 }
 export function assetViewerKind(format: string): AssetViewerKind {
   if (format === 'pdf' || format === 'ai') return 'pdf';
-  if (['ttf', 'otf', 'woff', 'woff2', 'ttc', 'otc'].includes(format)) return 'font';
+  if (['ttf', 'otf', 'woff', 'woff2', 'ttc', 'otc', 'pfa', 'pfb'].includes(format)) return 'font';
   if (['svg', 'svgz'].includes(format)) return 'vector';
   if (['eps', 'ps', 'emf', 'wmf'].includes(format)) return 'converted';
   return 'existing';
@@ -29,7 +30,8 @@ export function detectedViewerKind(bytes: Uint8Array): AssetViewerKind {
   const head = new TextDecoder('latin1').decode(bytes.subarray(0, 1024));
   if (head.includes('%PDF-')) return 'pdf';
   const tag = head.slice(0, 4);
-  if (['OTTO', 'wOFF', 'wOF2', 'true', 'ttcf'].includes(tag)
+  // A PFA header also opens with %!PS, so Type 1 is recognised before PostScript.
+  if (['OTTO', 'wOFF', 'wOF2', 'true', 'ttcf'].includes(tag) || type1Container(bytes)
     || bytes[0] === 0 && bytes[1] === 1 && bytes[2] === 0 && bytes[3] === 0) return 'font';
   if (/^\s*(?:<\?xml[^>]*>\s*)?<svg[\s>]/i.test(head)) return 'vector';
   if (head.startsWith('%!PS') || bytes[40] === 32 && head.slice(41, 44) === 'EMF') return 'converted';
