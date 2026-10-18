@@ -248,6 +248,7 @@ const pages: Page[] = [
   { slug: 'using',            title: 'Using Lolly',       src: 'using.md',        pathway: 'creators' },
   { slug: 'templates',        title: 'Templates',         src: 'templates.md',    pathway: 'creators', description: "Saved starting points for a tool: how to keep one, how to open a tool on it every time, and how yours sit beside the ones a tool ships with." },
   { slug: 'brand-studio',     title: 'The Brand Studio',  src: 'brand-studio.md', pathway: 'creators' },
+  { slug: 'brand-architectures', title: 'Brand architectures', src: 'brand-architectures.md', pathway: 'creators' },
   { slug: '3d-studio', title: '3D Studio', src: '3d-studio.md', pathway: 'creators', description: 'Stage SVG artwork and meshes with materials, lighting, depth of field and transparent shadows.' },
   { slug: 'profile',          title: 'Profiles',          src: 'profile.md',      pathway: 'creators', description: "The working identity Lolly creates as - your name, role and contact details, filled into tools automatically and stored on your own device." },
   { slug: 'find-your-work',   title: 'Find and recover your work', src: 'find-your-work.md', pathway: 'creators', description: "Where your saved work, downloads and earlier versions are, what a closed tab or cleared browser data takes with it, and how to move everything to another device." },
@@ -558,6 +559,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'templates',       label: 'Templates' },
         { slug: 'create-a-tool', label: 'Share a design with rules' },
         { slug: 'brand-studio',    label: 'The Brand Studio' },
+        { slug: 'brand-architectures', label: 'Brand architectures' },
         { slug: '3d-studio', label: '3D Studio' },
         { slug: 'text-composition', label: 'Text in Design' },
         { slug: 'design-import',   label: 'Import a design' },
@@ -5369,7 +5371,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
     'compare-canva', 'compare-adobe', 'compare-figma', 'compare-penpot',
     'compare-render-apis', 'compare-brand-portals', 'compare-converters'] },
   { hub: 'creators', label: 'Make', slugs: [
-    'using', 'training-creators', 'templates', 'create-a-tool', 'brand-studio', '3d-studio',
+    'using', 'training-creators', 'templates', 'create-a-tool', 'brand-studio', 'brand-architectures', '3d-studio',
     'text-composition', 'design-import', 'rebrand', 'utilities', 'extension'] },
   { hub: 'creators', label: 'Animate', slugs: ['sequence-editor', 'hdr-editing', 'animating'] },
   { hub: 'creators', label: 'Find your way', slugs: ['search', 'ask', 'dashboard', 'favourites', 'profile', 'find-your-work', 'sync'] },
@@ -5493,7 +5495,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   quickstart: 'star', creators: 'palette', builders: 'wrench', operators: 'checklist', trust: 'shieldcheck',
   'status-quo': 'convert', 'input-not-impersonation': 'usercheck',
   // Creators
-  'design-tool-contract': 'convert', 'create-a-tool': 'pentool', 'learning-integration': 'convert', 'training-creators': 'folder', using: 'pentool', templates: 'folder', 'brand-studio': 'palette', profile: 'usercheck', 'design-import': 'upload', rebrand: 'convert',
+  'design-tool-contract': 'convert', 'create-a-tool': 'pentool', 'learning-integration': 'convert', 'training-creators': 'folder', using: 'pentool', templates: 'folder', 'brand-studio': 'palette', 'brand-architectures': 'layers', profile: 'usercheck', 'design-import': 'upload', rebrand: 'convert',
   agenda: 'checklist', presenting: 'monitor', 'interactive-pages': 'globe', 'sequence-editor': 'clock', 'hdr-editing': 'sliders', animating: 'layers', exporting: 'download', formats: 'convert', positioning: 'sliders', compare: 'checklist',
   'compare-canva': 'checklist', 'compare-adobe': 'checklist', 'compare-figma': 'checklist', 'compare-render-apis': 'checklist', 'compare-converters': 'checklist',
   'compare-penpot': 'checklist', 'compare-brand-portals': 'checklist',

@@ -14,8 +14,35 @@ export interface TokenDiagnostic {
   message: string;
 }
 
+/**
+ * What a theme group means (v1.265, plans/319). A Tokens Studio `$themes` group is
+ * only a name; the kind says what choosing between its options changes. A group
+ * declares it on its entries as `$extensions['com.suse.lolly'].axis.kind`, or once
+ * for the group at the document root as `$extensions['com.suse.lolly'].themeAxes`.
+ *
+ * - `mode`: light, dark and similar looks that every artefact can be drawn in.
+ * - `colourway`: which lead colour fills the primary role.
+ * - `expression`, `medium`, `contrast`, `density`, `campaign`, `brand`: recognised
+ *   and kept, but resolved as plain theme choices until a later version gives them
+ *   behaviour.
+ *
+ * A group with no kind, or a kind this version does not know, behaves exactly as
+ * an ordinary theme group.
+ */
+export type TokenAxisKind = 'mode' | 'colourway' | 'expression' | 'medium' | 'contrast' | 'density' | 'campaign' | 'brand';
+
+/** Every `TokenAxisKind`, in documentation order. */
+export const TOKEN_AXIS_KINDS: readonly TokenAxisKind[] = Object.freeze(['mode', 'colourway', 'expression', 'medium', 'contrast', 'density', 'campaign', 'brand']);
+
 export interface TokenSelection {
-  groups: { id: string; options: { id: string; name: string }[] }[];
+  groups: {
+    id: string;
+    options: { id: string; name: string }[];
+    /** The group's declared kind (v1.265). Absent when the document declares none. */
+    kind?: TokenAxisKind;
+    /** The canonical option's id (v1.265): the option marked `canonical`, else the first one authored. */
+    canonical?: string;
+  }[];
   choices: Record<string, string>;
   defaults: string[];
   sets: string[];
@@ -69,8 +96,12 @@ export interface TokensAPI {
   resolve(ref: string, opts?: TokenResolveOptions): Promise<unknown>;
   /** Resolution evidence for all retained sets, including inactive definitions. */
   inspect?(opts?: TokenResolveOptions): Promise<TokenInspection>;
-  /** Theme names declared in the document. */
-  themes(): Promise<{ name: string; group: string | null }[]>;
+  /**
+   * Theme names declared in the document. Since v1.265 each entry may also carry
+   * the theme's `id` (when the source has one) and its group's `kind`; in a group
+   * that declares a kind, the canonical theme carries `canonical: true`.
+   */
+  themes(): Promise<{ name: string; group: string | null; id?: string; kind?: TokenAxisKind; canonical?: true }[]>;
   /**
    * Every design system this device holds, in the host's own listing order
    * (v1.173, plans/186). Optional/additive: a shell that holds exactly one system
@@ -171,7 +202,8 @@ export interface TokenSet {
   resolve(ref: string): unknown;
   query(filter?: { type?: string }): TokenEntry[];
   colors(): ColorSwatch[];
-  themes(): { name: string; group: string | null }[];
+  /** Since v1.265 an entry may carry the source `id`, its group's `kind` and, in a group with a kind, `canonical: true`. */
+  themes(): { name: string; group: string | null; id?: string; kind?: TokenAxisKind; canonical?: true }[];
 }
 
 export interface TokenEntry {
