@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.272.0
+
+- Add an LMS compatibility preset registry for course packages. Each preset is validated data that selects an existing course target and records its version, known limits, import instructions and compatibility evidence. Credentials, tenant links and vendor-specific code paths are not accepted.
+- A preset shows Tested only when its evidence records import, launch, media, completion and resume for that exact target and a named LMS version. Standard targets for websites and other LMS products never show Tested, and unknown limits stay unknown.
+
 ## 1.271.0
 
 - Web page boxes recognise Slides.com deck links and load the deck's embed form. The embed asks reveal.js to report its slide position to the page that frames it, and keeps only a private deck token, the embed style options and a reveal.js slide address from the original link.

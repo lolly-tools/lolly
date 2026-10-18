@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.271.0', () => {
+test('ENGINE_VERSION is 1.272.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -549,7 +549,8 @@ test('ENGINE_VERSION is 1.271.0', () => {
   // 1.269.0 adds an export report verified on the output bytes; capture is unchanged.
   // 1.270.0 adds bounded read and extract with OCR provenance; capture is unchanged.
   // 1.271.0 drives reveal.js and Slides.com decks from the presenter; capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.271.0');
+  // 1.272.0 adds validated LMS presets and a searchable course registry; capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.272.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
