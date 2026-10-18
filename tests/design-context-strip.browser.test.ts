@@ -79,7 +79,7 @@ test('the Canvas tab says what the document draws with, inspects it read-only an
     await strip.waitFor();
     assert.equal(await strip.getAttribute('aria-label'), 'Design system context');
     assert.match(await strip.locator('[data-token-context-kind]').innerText(), /^Render version: /i);
-    assert.equal(await strip.locator('[data-token-context-scope]').innerText(), 'Chosen for this document');
+    assert.equal(await strip.locator('[data-token-context-scope]').textContent(), 'Chosen for this document');
     assert.equal(await strip.locator('p').innerText(), 'Theme: Dark');
 
     // Inspect opens on the document's choice, read-only.
