@@ -393,6 +393,35 @@ test('a plain wheel over a floating surface scrolls it, and still pans anywhere 
   } finally { h.teardown(); }
 });
 
+// The tool rail is one of those surfaces. In a window under about 550px tall the parked
+// rail scrolls (editor.css), and the pan took the wheel from it, so Invite and the paint
+// swatch at its foot could not be reached. The docked timeline column scrolls its dock, so
+// a wheel over the dock's own edge belongs to the rail as well.
+test('a plain wheel over the tool rail scrolls the rail, not the canvas, and a pinch over it still zooms', () => {
+  const h = mount({ hud: false, editorLayout: true });
+  try {
+    const dock = document.createElement('div');
+    dock.className = 'fc-toolbar-dock';
+    const rail = document.createElement('div');
+    rail.className = 'fc-toolbar';
+    const swatch = document.createElement('button');
+    rail.appendChild(swatch);
+    dock.appendChild(rail);
+    h.stage.appendChild(dock);
+    const before = h.outer.style.transform;
+    for (const [target, what] of [[swatch, 'a rail button'], [rail, 'the rail between buttons'], [dock, 'the docked column edge']] as const) {
+      const e = new dom.window.WheelEvent('wheel', { deltaY: 120, bubbles: true, cancelable: true });
+      target.dispatchEvent(e);
+      assert.equal(e.defaultPrevented, false, `a wheel over ${what} is left to scroll the rail`);
+      assert.equal(h.outer.style.transform, before, `and the canvas under ${what} stays put`);
+    }
+    const pinch = new dom.window.WheelEvent('wheel', { deltaY: -40, ctrlKey: true, bubbles: true, cancelable: true });
+    swatch.dispatchEvent(pinch);
+    assert.equal(pinch.defaultPrevented, true, 'a pinch over the rail still zooms the canvas, never the page');
+    assert.notEqual(h.outer.style.transform, before, 'and the view moved');
+  } finally { h.teardown(); }
+});
+
 // ── Trackpad pinch: the fingers' own ratio, plus acceleration (2026-10-02) ─────────
 //
 // Chrome sends a pinch as ctrl+wheel with deltaY = -100·ln(scale). The handler answered
