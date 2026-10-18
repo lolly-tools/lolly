@@ -1,8 +1,25 @@
 /* SPDX-License-Identifier: MPL-2.0 */
 .catalog-workspace { display: flex; gap: var(--sp-5, 20px); align-items: flex-start; }
 .catalog-workspace > .catalog-body { flex: 1; min-width: 0; }
-.asset-sources { flex: 0 0 240px; position: sticky; top: 70px; max-height: calc(100dvh - 100px); overflow: auto; padding: 8px;  border-radius: var(--ui-radius-control, 8px); }
+/* The rail and its width grip share one sticky column, so the grip is always as tall as the
+   rail. views/assets/sources.ts drives the grip over lib/splitter.ts and writes the wanted
+   width as --asset-sources-width. The column leaves the listing at least 320px plus the
+   20px gap, the same 340px sources.ts uses for the grip's limit. */
+.asset-sources-column { position: sticky; top: 70px; display: flex; flex: none; max-width: max(180px, calc(100% - 340px)); max-height: calc(100dvh - 100px); }
+.asset-sources-column:has(> .asset-sources[hidden]) { display: none; }
+.asset-sources { flex: 0 1 auto; width: var(--asset-sources-width, 240px); min-width: 0; overflow: auto; padding: 8px;  border-radius: var(--ui-radius-control, 8px); }
 .asset-sources[hidden] { display: none; }
+/* The grip's 24px hit strip is centred on the workspace gap and its margins cancel its
+   width, so it takes no room from the rail or the listing. The look is the shared resize
+   grip (styles/parts/tool.css .resize-grip): an invisible strip with a centred pill that
+   shows on hover, on focus and while dragging. It is stated in full here because tool.css
+   only loads with the tool view. */
+.asset-sources-grip { --asset-sources-grip: 24px; position: relative; z-index: 1; flex: none; width: var(--asset-sources-grip); margin-inline: calc((var(--sp-5, 20px) - var(--asset-sources-grip)) / 2) calc((var(--sp-5, 20px) + var(--asset-sources-grip)) / -2); cursor: col-resize; touch-action: none; user-select: none; -webkit-user-select: none; }
+.asset-sources-grip::before { content: ""; position: absolute; inset-block: 0; inset-inline-start: 50%; width: 4px; height: 44px; margin-block: auto; margin-inline-start: -2px; border-radius: var(--ui-radius-pill); background: var(--ui-color-selection-border); opacity: 0; transition: opacity var(--ui-motion-feedback) var(--ui-motion-standard), box-shadow var(--ui-motion-feedback) var(--ui-motion-standard); }
+.asset-sources-grip:is(:hover, :focus-visible, [data-dragging])::before { opacity: 1; box-shadow: var(--ring-focus-strong); }
+.asset-sources-grip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) { .asset-sources-grip::before { transition: none; } }
+html[data-a11y-motion="reduce"] .asset-sources-grip::before { transition: none; }
 .asset-source-tree [role=treeitem] { outline: none; }
 .asset-source-row { display: flex; align-items: center; gap: 6px; min-height: 36px; border-radius: var(--ui-radius-control, 4px); cursor: pointer; font-size: var(--ui-type-caption, 13px); padding:0 4px; }
 .asset-source-row > span:first-of-type { flex: 1; overflow-wrap: anywhere; padding-inline-start: 5px; }
@@ -12,4 +29,4 @@
 .asset-source-count { color: var(--ui-color-text-muted); font-variant-numeric: tabular-nums; }
 .asset-source-health { color: var(--ui-color-text-muted); font-size: var(--ui-type-caption, 11px); }
 .asset-source-actions { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
-@media (max-width: 700px) { .catalog-workspace { display: block; } .asset-sources { position: relative; top: auto; max-height: 55dvh; margin-bottom: 12px; } }
+@media (max-width: 700px) { .catalog-workspace { display: block; } .asset-sources-column { position: relative; top: auto; max-width: none; max-height: 55dvh; margin-bottom: 12px; } .asset-sources { flex: 1; width: auto; } .asset-sources-grip { display: none; } }
