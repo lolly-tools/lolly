@@ -18,7 +18,7 @@ import { colorFieldHtml } from '../components/color-field.ts';
 import { escapeHtml } from '../lib/util/escape.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
-import { toUnit, UNITS } from '@lolly/engine';
+import { toUnit, UNITS, aliasPath, isTokenValue } from '@lolly/engine';
 import type { Unit } from '../../../../engine/src/units.ts';
 
 /** A derived grid column (shape produced by finalizeColumn in model.js). */
@@ -237,11 +237,14 @@ function dataCell(col: Column, row: GridRow, ctx: GridCtx): string {
       }</td>`;
     }
     const hooks = `data-cell data-row="${esc(row.uid)}" data-col="${esc(col.key)}"`;
+    // A token-linked value shows its resolved scalar; the cell carries the link (pro/token-links.ts).
+    const link = isTokenValue(value) ? aliasPath(value.ref) ?? value.ref : null;
+    const cellAttrs = link ? `class="pro-cell pro-cell--linked" title="${esc(tRaw('Linked to design token {path}', { path: link }))}"` : 'class="pro-cell"';
     // The column label is the control's accessible name - the <th> above it is
     // visual context only. `boxed: false` keeps the cell's bare-control look
     // (pro.css strips border/background so the cell's own lines are the grid).
-    return `<td class="pro-cell" data-col="${esc(col.key)}" data-row="${esc(row.uid)}">${
-      controlHtml(input, value as import('./controls.ts').ControlSpec['default'], hooks, { label: col.label, boxed: false })
+    return `<td ${cellAttrs} data-col="${esc(col.key)}" data-row="${esc(row.uid)}">${
+      controlHtml(input, value as import('./controls.ts').ControlSpec['default'], hooks, { label: link ? tRaw('{name}, linked to design token {path}', { name: col.label, path: link }) : col.label, boxed: false })
     }</td>`;
   }
 

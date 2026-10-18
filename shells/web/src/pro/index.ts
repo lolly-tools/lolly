@@ -17,7 +17,7 @@ import './pro.css';
 import { batchChrome } from './chrome.ts';
 import { batchFormats, mountBatchFormats } from './formats.ts';
 import { mountCellSelection } from './cell-selection.ts';
-import { readCell, writeCell } from './cell-data.ts';
+import { readCell, writeCell, writeControlValue, writeMappedRow } from './cell-data.ts';
 import { mountRowActions } from './row-actions.ts';
 import { reorderRows } from './row-selection.ts';
 import { mountKitPanel, type KitPanel } from './kit-panel.ts';
@@ -51,11 +51,12 @@ import { planBatch, notesFromFindings } from './batch.ts';
 import { createBatchRowCheck, skippedFindings } from './preflight-rows.ts';
 import type { Finding } from '@lolly/engine';
 import { saveBlob } from './zip.ts';
-import { batchToCsv, csvToBatch, coerceCell } from './io.ts';
+import { batchToCsv, csvToBatch } from './io.ts';
 import { createSessionStore, rowsFromSnapshot, snapshotFromState } from './sessions.ts';
 import { runBatchWithProgress } from './run-overlay.ts';
 import { startBatchExport, isBatchRunActive } from '../lib/batch-job.ts';
 import { rowsForFolder, rowsFromRefs } from './folder-rows.ts';
+import { mountBatchTokenSection } from './token-links.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { Unit } from '../../../../engine/src/units.ts';
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
@@ -181,6 +182,7 @@ interface BatchState {
 type PopoverEl = HTMLElement & {
   _onOutside?: (e: PointerEvent) => void;
   _row?: string;
+  _dispose?: () => void;
 };
 
 // Which formats the print controls apply to. Deliberately IDENTICAL to the
@@ -398,13 +400,14 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     _armTimer = setTimeout(clearRemoveArm, 3000); // auto-cancel if left untouched
   }
 
-  // Colour cells (id is "row~col") write straight back to the row's values.
+  // Colour cells (id is "row~col") write straight back to the row's values; a
+  // colour picked over a token swatch records that link (cell-data.ts).
   // Shared so the full render and the single-row swap (replaceRow) wire colour
   // fields identically.
   const colorOnChange = (id: string, value: ColorFieldValue) => {
     const sep = id.indexOf('~');
     const r = rowByUid(id.slice(0, sep));
-    if (r) r.values[id.slice(sep + 1)] = value;
+    if (r) writeControlValue(r, id.slice(sep + 1), value);
   };
 
   const rowActions = mountRowActions(viewEl, state, {
@@ -826,7 +829,10 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     if (!row || !col) return;
     const input = cellInput(col, row);
     if (!input) return;
-    row.values[key!] = readControlValue(el, input);
+    // A value typed over a token link is a custom value that records the link (grid.ts marks linked cells).
+    writeControlValue(row, key!, readControlValue(el, input));
+    const td = el.closest('td');
+    if (td?.classList.contains('pro-cell--linked')) { td.classList.remove('pro-cell--linked'); td.removeAttribute('title'); el.setAttribute('aria-label', col.label); }
   }
 
   async function pickAssetForCell(uid: string, key: string) {
@@ -952,16 +958,23 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
           ? colorFieldHtml(`bulk~${escape(key)}`, colorValue, { float: true, swatchesOnly: col.spec!.swatchesOnly === true })
           : controlHtml(col.spec!, col.spec!.default ?? '', 'data-bulk-input', { label: col.label })
       }</div>
+      <div data-bulk-token-slot></div>
       <div class="pro-popover-actions">
         <button type="button" class="btn" data-bulk-cancel>Cancel</button>
         <button type="button" class="btn btn--primary" data-bulk-apply>Apply to ${targets.length}</button>
       </div>`;
     document.body.appendChild(pop);
+    // Design token link for the same rows, reviewed row by row before it writes (pro/token-links.ts).
+    pop._dispose = mountBatchTokenSection(pop.querySelector<HTMLElement>('[data-bulk-token-slot]')!, {
+      host, key, label: col.label, type: col.type, rows: state.rows, targets,
+      applied: () => { closeBulkPopover(); columns = renderGrid(); },
+    });
     positionPopover(pop, anchorEl);
 
     const apply = () => {
       const value = isColor ? colorValue : readControlValue(pop.querySelector('[data-bulk-input]') as HTMLElement, col.spec!);
-      targets.forEach((r: any) => { r.values[key] = structuredClone(value); });
+      // A value filled over a token link records that link, as a cell edit does.
+      targets.forEach((r: any) => { writeControlValue(r, key, structuredClone(value)); });
       closeBulkPopover();
       columns = renderGrid();
     };
@@ -979,7 +992,10 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     pop.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); closeBulkPopover(); anchorEl.focus(); } });
     setTimeout(() => document.addEventListener('pointerdown', onOutside), 0);
 
-    function onOutside(e: PointerEvent) { if (!pop.contains(e.target as Node)) closeBulkPopover(); }
+    // The token review and source inspector are dialogs opened from this popover.
+    function onOutside(e: PointerEvent) {
+      if (!pop.contains(e.target as Node) && !(e.target instanceof Element && e.target.closest('.token-bulk-dialog, .token-inspector-dialog'))) closeBulkPopover();
+    }
     pop._onOutside = onOutside;
   }
 
@@ -992,6 +1008,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
   }
   function closeBulkPopover() {
     if (_popover) {
+      _popover._dispose?.();
       document.removeEventListener('pointerdown', _popover._onOutside!);
       _popover.remove();
       _popover = null;
@@ -1628,15 +1645,8 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     let filled = 0;
     for (let r = 0; r < dataRows.length; r++) {
       const row = state.rows[startRowIdx + r];
-      if (!row || !row.manifest) continue;
-      const byId = new Map((row.manifest.inputs ?? []).map((i: any) => [i.id, i]));
-      for (let c = 0; c < dataRows[r]!.length; c++) {
-        const id = colIds[c];
-        const input = id ? byId.get(id) : undefined;
-        if (!input) continue;
-        const v = coerceCell(input as Parameters<typeof coerceCell>[0], dataRows[r]![c]!);
-        if (v !== undefined) { row.values[id!] = v; filled++; }
-      }
+      // Coerced by the row's own declaration; a value over a token link records it (cell-data.ts).
+      if (row?.manifest) filled += writeMappedRow(row, dataRows[r]!, colIds);
     }
     columns = renderGrid();
     if (filled) showProgress(`<p class="pro-progress-msg">Pasted ${filled} value${filled === 1 ? '' : 's'} from the clipboard.</p>`);

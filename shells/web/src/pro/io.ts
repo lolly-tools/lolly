@@ -20,7 +20,8 @@
  */
 import { deriveColumns } from './model.ts';
 import { toCSV, parseDelimited, detectDelimiter } from './csv.ts';
-import { UNITS } from '@lolly/engine';
+import { UNITS, isTokenValue } from '@lolly/engine';
+import { flattenValue } from '../../../../engine/src/inputs.ts';
 import type { InputSpec, InputValue } from '../../../../engine/src/inputs.ts';
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
 
@@ -48,6 +49,8 @@ const RESERVED = new Set([TOOL_COL, FORMAT_COL, WIDTH_COL, HEIGHT_COL, UNIT_COL,
 
 function serializeValue(input: InputSpec | undefined, value: InputValue | undefined): string {
   if (value == null) return '';
+  // A token-linked cell exports the value it shows; CSV carries plain data, not links.
+  if (isTokenValue(value)) value = flattenValue(value);
   switch (input?.type) {
     case 'boolean': return value ? 'true' : 'false';
     case 'asset':   return (value as { id?: string })?.id ?? '';
