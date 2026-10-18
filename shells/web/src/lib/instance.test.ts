@@ -10,6 +10,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { normalizeInstanceBase, instancePath, getInstanceBase, _setBaseForTests, setInstallTag, clientHeaderValue, setInstanceSession, hasInstanceSession, instanceFetch } from './instance.ts';
 
 // ── normalizeInstanceBase ────────────────────────────────────────────────────
@@ -189,4 +190,93 @@ test('shell readers lower native byte and time bounds before IPC', async ctx => 
   } });
   assert.equal(browserFallback, 1);
   assert.equal(requests.length, 2);
+});
+
+// ── Redirects to delivery tokens ─────────────────────────────────────────────
+// A Work instance may answer a byte route with a 302 to a token address on its
+// own origin: `/e/i/<sha256>.<ext>?dt=` for instance-private catalog bytes, or
+// `/o/<key>.<ext>?X-Amz-...` for offloaded project files. The native command
+// follows the hop in Rust, so the adapter only ever sees the final answer.
+// token-url-guard.test.ts pins the other half: nothing the shell keeps is built
+// from that final address.
+
+const WORK = 'https://work.example';
+const E_TOKEN_URL = `${WORK}/e/i/${'a'.repeat(64)}.png?dt=1.k1.1760702400.${'d'.repeat(43)}`;
+const O_TOKEN_URL = `${WORK}/o/${'b'.repeat(64)}.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256`
+  + '&X-Amz-Credential=EXAMPLEKEY%2F20261017%2Feu-north-1%2Fs3%2Faws4_request'
+  + `&X-Amz-Date=20261017T120000Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host&X-Amz-Signature=${'c'.repeat(64)}`;
+const TOKEN_IN_URL = /[?&]dt=|X-Amz-/i;
+
+test('a same-origin 302 to /e/ or /o/ still answers through the Tauri transport', async ctx => {
+  const savedWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+  const savedLocation = Object.getOwnPropertyDescriptor(globalThis, 'location');
+  const redirects = new Map([
+    [`${WORK}/catalog/inst/asset-1/png?v=3`, E_TOKEN_URL],
+    [`${WORK}/api/v1/projects/p1/files/f1`, O_TOKEN_URL],
+  ]);
+  const bytes = [0x89, 0x50, 0x4e, 0x47, 1, 2, 3];
+  const requests: Array<{ method: string; url: string; headers: Array<[string, string]> }> = [];
+  Object.defineProperty(globalThis, 'location', { configurable: true, value: { origin: 'tauri://localhost' } });
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: {
+    __TAURI_INTERNALS__: { invoke: async (command: string, args: { request: typeof requests[number] }) => {
+      assert.equal(command, 'remote_fetch');
+      requests.push(args.request);
+      // What remote_fetch returns once it has followed the hop: the final
+      // answer, carrying the address it came from (response.url() in Rust).
+      const final = redirects.get(args.request.url);
+      assert.ok(final, `unexpected native request ${args.request.url}`);
+      return {
+        status: 200, statusText: 'OK', url: final, body: bytes,
+        headers: [['content-type', 'image/png'], ['cache-control', 'private, no-store'], ['referrer-policy', 'no-referrer']],
+      };
+    } },
+  } });
+  ctx.after(async () => {
+    await setInstanceSession(null);
+    _setBaseForTests('');
+    for (const [key, value] of [['window', savedWindow], ['location', savedLocation]] as const) {
+      if (value) Object.defineProperty(globalThis, key, value);
+      else Reflect.deleteProperty(globalThis, key);
+    }
+  });
+  _setBaseForTests(WORK);
+  await setInstanceSession('lw_session=member-session');
+
+  for (const [stable, final] of redirects) {
+    const response = await instanceFetch(stable);
+    assert.equal(response.ok, true, stable);
+    assert.equal(response.status, 200);
+    assert.deepEqual([...new Uint8Array(await response.arrayBuffer())], bytes);
+    assert.equal(response.headers.get('content-type'), 'image/png');
+    assert.equal(response.url, final, 'the response reports where its bytes came from, as window.fetch does');
+    const sent = requests.at(-1)!;
+    assert.equal(sent.method, 'GET');
+    assert.equal(sent.url, stable, 'the shell asks for the stable address; the hop happens in Rust');
+    assert.equal(new Headers(sent.headers).get('cookie'), 'lw_session=member-session');
+    assert.ok(new Headers(sent.headers).has('x-lolly-client'));
+  }
+
+  // A token lives for 60 to 300 seconds, so a later read asks for the stable
+  // address again instead of reusing the address of an earlier answer.
+  await instanceFetch(instancePath('/catalog/inst/asset-1/png?v=3'));
+  assert.equal(requests.at(-1)!.url, `${WORK}/catalog/inst/asset-1/png?v=3`);
+  assert.equal(requests.length, 3);
+  assert.ok(requests.every(request => !TOKEN_IN_URL.test(request.url)), 'no token address is ever sent back as a request');
+  assert.equal(getInstanceBase(), WORK, 'a redirect does not move the instance base');
+  assert.ok(hasInstanceSession(), 'nor unbind the session from the instance that issued it');
+});
+
+// The pure parts of that hop (a 302 is followed, both token addresses pass the
+// request boundary, a same-origin hop keeps the credentials and another origin
+// does not) are Rust unit tests in each remote_fetch.rs, run by the tauri CI
+// shard. The hop loop itself is inline network code, so only its two lines are
+// pinned here.
+test('the native hop loop reports the final address and drops credentials off origin', () => {
+  for (const shell of ['tauri-desktop', 'tauri-mobile']) {
+    const source = readFileSync(new URL(`../../../${shell}/src-tauri/src/remote_fetch.rs`, import.meta.url), 'utf8');
+    assert.match(source, /if origin\(&url\) != origin\(&next\) \{\s*headers\.remove\(AUTHORIZATION\);\s*headers\.remove\(COOKIE\);\s*\}/,
+      `${shell} keeps credentials on the instance origin and drops them on a hop to another one`);
+    assert.match(source, /let final_url = response\.url\(\)\.to_string\(\);[\s\S]*?url: final_url,/,
+      `${shell} reports the address the bytes came from`);
+  }
 });
