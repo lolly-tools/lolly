@@ -33,10 +33,13 @@
  * no resting pair's jitter scales it, however close the fingers), turning follows the
  * twist past 10 degrees, counted from where it engaged, and the midpoint carries the
  * selection once it has travelled a finger's drag threshold or either of the others has
- * engaged (pinchTransform). Whatever had engaged when the preview begins, and the scale
- * whenever it engages, eases in over the tap's next 14 px of finger travel
- * (pinchCatchUp), so nothing jumps and nothing stays behind the fingers; a lift before
- * that commits what the fingers did. A resting pair commits nothing.
+ * engaged (pinchTransform). Whatever had engaged when the preview begins eases in over
+ * the tap's next 14 px of finger travel (pinchCatchUp). A scale or a travel that engages
+ * later follows the fingers from the frame it engages on, and makes up what they did
+ * before that frame over the next 14 px (shownPinch), so a scale and the travel it starts
+ * keep the content under a finger that stays still. Nothing jumps, nothing stays behind
+ * the fingers and nothing moves against them. The lift commits exactly what the preview
+ * shows, even while it is still easing in. A resting pair commits nothing.
  * Scale mode scales the content too; otherwise the pinch is a uniform resize. A single
  * box turns about its own centre and a set about the centre of its bounds, with the
  * rotate handles' soft magnet (pinchMembers).
@@ -230,7 +233,8 @@ const heldBack = (fc: FcCtx): boolean => !!fc.twoTapStart && !fc.twoTapDone;
  * The pair's engage state at both fingers' latest points, kept on every finger move, so
  * the tap's hold-back delays what the preview shows and never where the twist engaged.
  * The first move past the hold-back notes where the preview begins and what had engaged
- * by then; the scale notes where it began to show.
+ * by then; a scale or a travel that engages later notes where it began to show and what
+ * it owes (shownPinch).
  */
 function follow(fc: FcCtx, g: PinchGesture): PinchResult {
   const nowA = fc.stage.clientToNative(g.curA.x, g.curA.y), nowB = fc.stage.clientToNative(g.curB.x, g.curB.y);
@@ -244,37 +248,100 @@ function follow(fc: FcCtx, g: PinchGesture): PinchResult {
   g.travelEngaged = res.travelEngaged;
   if (heldBack(fc)) return res;
   const now: [Point, Point] = [{ ...g.curA }, { ...g.curB }];
-  if (!g.shownFrom) {
+  if (!g.shownFrom || !g.early) {
     g.shownFrom = now;
-    g.early = { turn: res.rotateEngaged, travel: res.travelEngaged };
+    g.early = { scale: res.scaleEngaged, turn: res.rotateEngaged, travel: res.travelEngaged };
   }
-  if (res.scaleEngaged && !g.scaleFrom) g.scaleFrom = now;
+  const early = g.early;
+  const lateScale = res.scaleEngaged && !early.scale && !g.scaleFrom;
+  const lateTravel = res.travelEngaged && !early.travel && !g.travelFrom;
+  if (lateScale || lateTravel) {
+    // Everything the fingers had done by the last frame, as though it had all engaged.
+    const last = g.lastFrame?.map((p) => fc.stage.clientToNative(p.x, p.y));
+    const before = pinchTransform(g.startA, g.startB, last?.[0] ?? g.startA, last?.[1] ?? g.startB, {
+      scaleEngaged: true, travelEngaged: true,
+    });
+    if (lateScale) {
+      g.scaleFrom = now;
+      g.scaleOwed = before.k - 1;
+    }
+    if (lateTravel) {
+      g.travelFrom = now;
+      g.travelOwed = { x: before.dx, y: before.dy };
+    }
+  }
   return res;
+}
+
+/** The share of `owed`, 0 to 1, that may come off `change` without passing 0, so a part
+ *  never shows a change against the fingers' own. */
+const room = (change: number, owed: number): number => (owed ? Math.min(1, Math.max(0, change / owed)) : 1);
+
+/**
+ * What the preview shows of a frame. What had engaged when the preview began eases in
+ * by `from`. A scale or a travel that engaged later shows its change at the fingers less
+ * what it owes (its change at the last frame before it engaged) times what is left of
+ * its own ease: it moves with the fingers from the frame it engages on, and has made up
+ * the rest once they have travelled the tap's 14 px further, so it neither jumps by what
+ * the fingers did before nor stays behind them. What it still owes is capped at its
+ * change now, so fingers that come back toward where they began bring the preview back
+ * with them and never past: the factor stops at 1 and each axis of the travel at 0. A
+ * scale and the travel it starts owe from the same frame and ease alike, and the travel
+ * takes the scale's cap too, which keeps the content under a still finger. A turn counts
+ * from where it engaged, so one that engages later owes nothing.
+ */
+function shownPinch(
+  g: PinchGesture,
+  res: PinchResult,
+  ease: NonNullable<PinchGesture['ease']>,
+  early: NonNullable<PinchGesture['early']>,
+): PinchResult {
+  const eased = easePinch(res, {
+    scale: early.scale ? ease.from : 1,
+    turn: early.turn ? ease.from : 1,
+    travel: early.travel ? ease.from : 1,
+  });
+  const owedK = (g.scaleOwed ?? 0) * (1 - ease.scale);
+  const capK = room(eased.k - 1, owedK);
+  // A scale and the travel it starts share their frame: follow notes both with one array.
+  const withScale = g.scaleFrom && g.scaleFrom === g.travelFrom ? capK : 1;
+  const owedX = (g.travelOwed?.x ?? 0) * (1 - ease.travel) * withScale;
+  const owedY = (g.travelOwed?.y ?? 0) * (1 - ease.travel) * withScale;
+  return {
+    ...eased,
+    k: eased.k - owedK * capK,
+    dx: eased.dx - owedX * room(eased.dx, owedX),
+    dy: eased.dy - owedY * room(eased.dy, owedY),
+  };
 }
 
 /**
  * One frame, from both fingers' latest points (applyGestureMove calls it once the
  * collaboration lease allows a frame): the rows as the frame leaves them, previewed live,
- * the content at `k` in Scale mode. A pair that can still be a tap previews nothing; what
- * had engaged before the preview began, and the scale, ease in (see the file comment).
+ * the content at `k` in Scale mode. A pair that can still be a tap previews nothing; the
+ * rest eases in (see the file comment).
  */
 export function pinchFrame(fc: FcCtx): void {
   const g = fc.gesture;
   if (g?.type !== 'pinch') return;
   const res = follow(fc, g);
-  if (heldBack(fc) || !g.shownFrom || !g.early) return;
+  const now: [Point, Point] = [{ ...g.curA }, { ...g.curB }];
+  const early = g.early;
+  if (heldBack(fc) || !g.shownFrom || !early) {
+    g.lastFrame = now;
+    return;
+  }
   const { cfg, minSize, TWO_TAP_SLOP } = fc;
-  const now: [Point, Point] = [g.curA, g.curB];
-  const prev = g.ease ?? { from: 0, scale: 0 };
+  const prev = g.ease ?? { from: 0, scale: 0, travel: 0 };
+  const caught = (from: [Point, Point] | undefined, was: number): number =>
+    from ? Math.max(was, pinchCatchUp(from, now, TWO_TAP_SLOP)) : 0;
   g.ease = {
-    from: Math.max(prev.from, pinchCatchUp(g.shownFrom, now, TWO_TAP_SLOP)),
-    scale: g.scaleFrom ? Math.max(prev.scale, pinchCatchUp(g.scaleFrom, now, TWO_TAP_SLOP)) : 0,
+    from: caught(g.shownFrom, prev.from),
+    scale: caught(g.scaleFrom, prev.scale),
+    travel: caught(g.travelFrom, prev.travel),
   };
-  const shown = easePinch(res, {
-    scale: g.ease.scale,
-    turn: g.early.turn ? g.ease.from : 1,
-    travel: g.early.travel ? g.ease.from : 1,
-  });
+  g.lastFrame = now;
+  const shown = shownPinch(g, res, g.ease, early);
   const f = pinchMembers(g.sel.map((i) => boxRect(g.startBoxes[i], cfg)), shown, { minSize, turns: g.turns });
   const at = new Map(g.sel.map((i, j) => [i, f.rects[j]!]));
   const next = g.startBoxes.map((b, i) => {
@@ -306,12 +373,8 @@ export function endPinch(fc: FcCtx): void {
   for (const id of [g.pointerA, g.pointerId]) {
     try { fc.canvasEl.releasePointerCapture(id); } catch { /* released with the lift */ }
   }
-  // The lift commits what the fingers did: a preview still easing in (a quick pinch that
-  // lifts just past the tap's slop) catches up first, so the easing never shrinks a pinch.
-  if (g.ease) {
-    g.ease = { from: 1, scale: 1 };
-    pinchFrame(fc);
-  }
+  // The lift commits the frame on screen, the lift's own point included: a preview still
+  // easing in does not catch up first, so the commit never differs from what was shown.
   const next = pinchChanged(fc, g) ? g.liveBoxes : undefined;
   fc.gestures.endGesture(!!next);
   if (next) commitPinch(fc, g, next);
