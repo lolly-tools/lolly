@@ -112,7 +112,7 @@ onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/tooltips.ts'
 type WebHost = Awaited<ReturnType<typeof createBridge>>;
 
 /** Route names the shell can be in. */
-type RouteName = 'learning' | 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'rebrand' | 'compare' | 'start' | 'multi' | 'components' | 'document-model' | 'lab' | 'pdf' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply' | 'team' | 'open';
+type RouteName = 'learning' | 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'rebrand' | 'compare' | 'start' | 'multi' | 'components' | 'document-model' | 'lab' | 'pdf' | 'extract' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply' | 'team' | 'open';
 
 /** A parsed route: a discriminated union on `name`. */
 type Route =
@@ -137,6 +137,7 @@ type Route =
   | { name: 'utilities'; params?: string }
   | { name: 'lab'; params?: string }
   | { name: 'pdf'; params?: string }
+  | { name: 'extract'; params?: string }
   | { name: 'script'; params?: string }
   | { name: 'ask'; params?: string }
   | { name: 'docs'; slug: string; lang: string | null; params?: string }
@@ -264,6 +265,10 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   // and the tabs would compete with the report's own numbered sequence.
   lab: { label: 'Colour Lab', footer: 'none' },
   pdf: { label: 'Unpack', viewClasses: ['pdfx-view'], footer: 'none' },
+  // Read and extract (plan 203 rank 10): a utility view like Unpack, with the back pill
+  // and no tab. Hash-only (#/extract): no pretty path and no APP_PATH_WORDS entry, since
+  // a path word is permanent.
+  extract: { label: 'Read and extract', viewClasses: ['rx-view'], footer: 'none' },
   // Script audio is a utility view like the Lab: no tab, the back pill instead
   // (see the lab row's rationale above).
   script: { label: 'Script audio', viewClasses: ['scriptst-view'], footer: 'none' },
@@ -766,6 +771,13 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       // which nothing on the landing path needs.
       const { mountPdfExtract } = await navigationModule(import('./views/pdf-extract.ts'), navigation);
       await mountPdfExtract(view, host as unknown as Parameters<typeof mountPdfExtract>[1], route.params);
+      break;
+    }
+    case 'extract': {
+      // Read and extract (#/extract). Lazy: it pulls the PDF, PowerPoint and
+      // Photoshop readers, which nothing on the landing path needs.
+      const { mountReadExtract } = await navigationModule(import('./views/read-extract.ts'), navigation);
+      await mountReadExtract(view, host, route.params);
       break;
     }
     case 'script': {
@@ -2068,6 +2080,7 @@ function parseRoute(): Route {
     if (parts[0] === 'u' || parts[0] === 'utilities') return { name: 'utilities', params: query || '' }; // gallery filtered to the utility category
     if (parts[0] === 'lab') return { name: 'lab', params: query || '' }; // Colour Lab (?c=<any css colour>)
     if (parts[0] === 'pdf' || parts[0] === 'unpack') return { name: 'pdf', params: query || '' }; // Unpack - take a design file apart; #/unpack is canonical, #/pdf a kept alias for old shared links
+    if (parts[0] === 'extract') return { name: 'extract', params: query || '' }; // Read and extract - blocks in reading order, bounded by pages and a budget
     if (parts[0] === 'script') return { name: 'script', params: query || '' }; // Script audio - the TTS writing surface
     if (parts[0] === 'ask') return { name: 'ask', params: query || '' }; // Ask Lolly - in-app help (?q=<question>)
     // In-app docs reader. #/docs/<slug> renders in the app's current locale; the explicit

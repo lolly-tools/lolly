@@ -11,7 +11,8 @@
 export const READ_HELP = `lolly read: what a deck says, slide by slide, for an agent that rebuilds it.
 
 Usage:
-  lolly read <deck.pptx|deck.pdf|file.psd|-> [--media=<dir>] [--thumbnails] [--force] [--json]
+  lolly read <deck.pptx|deck.pdf|file.psd|-> [--media=<dir>] [--thumbnails] [--force] [--ocr] [--json]
+  lolly read <file|-> --extract [--pages=<range>] [--max-chars=N] [--from=<block>] [--markdown] [--ocr] [--json]
 
 Input:
   A PowerPoint deck (.pptx), a PDF or a Photoshop file (.psd) by path, or - to read the
@@ -24,16 +25,40 @@ Options:
   --thumbnails     with --media, also draw each slide there as a PNG, recorded as the
                    slide's thumbnail
   --force          replace files in --media that hold other bytes
+  --ocr            read the text of pages that are pictures of their text (a scan)
+                   with the text recognition model on this machine; each frame read
+                   that way records the model and its confidence. Nothing is
+                   downloaded: without the model the pages stay pictures and a note
+                   says how to fetch it
   --json           the envelope's result is a ContentInventoryV1
                    (schemas/content-inventory-v1.schema.json). Without it, an outline:
                    each slide's text in reading order with its role, its pictures and
                    the first line of its notes
 
+Extract:
+  --extract        write blocks in reading order instead of the inventory: each page's
+                   text frames, then its tables, charts, pictures and notes. A block
+                   says where its words came from: written in the file, a scan's text
+                   layer, or text recognition (with the model and its confidence)
+  --pages=<range>  only these pages, such as 3, 1-4, 2,5-7 or 9- (to the last page). A
+                   page outside the file is refused
+  --max-chars=N    stop before the block that would pass N characters of text, and
+                   say which block to continue from
+  --from=<block>   continue from that block (an earlier run's next, such as p3.2), with
+                   the same --pages
+  --markdown       write the extract as Markdown rather than plain text
+  --json           the envelope's result is a ReadExtractV1
+                   (schemas/read-extract-v1.schema.json)
+
+  A file's macros, scripts, controls and embedded files are never run or opened; a
+  note says when the file carries any.
+
 Exit codes:
   0  the deck was read
   1  the file could not be read: unreadable, encrypted or too large
-  2  usage: an unknown or bare flag, no input, a file type it does not read, or
-     --thumbnails without --media
+  2  usage: an unknown or bare flag, no input, a file type it does not read,
+     --thumbnails without --media, an extract flag without --extract, or a page
+     range, budget or block the file does not have
   4  refused: a picture in --media holds other bytes (pass --force to replace it)
 `;
 

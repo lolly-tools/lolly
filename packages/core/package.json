@@ -58,6 +58,8 @@
     "./schema/check-report-v1.schema.json": "./schema/check-report-v1.schema.json",
     "./content-inventory-v1": "./src/content-inventory-v1.ts",
     "./schema/content-inventory-v1.schema.json": "./schema/content-inventory-v1.schema.json",
+    "./read-extract-v1": "./src/read-extract-v1.ts",
+    "./schema/read-extract-v1.schema.json": "./schema/read-extract-v1.schema.json",
     "./design-package-v1": "./src/design-package-v1.ts",
     "./schema/design-package-v1.schema.json": "./schema/design-package-v1.schema.json",
     "./text-measure-v1": "./src/text-measure-v1.ts",

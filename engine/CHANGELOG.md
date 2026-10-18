@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.270.0
+
+- Add `readExtract`, which turns a content inventory into a `ReadExtractV1` (`@lolly-tools/core/read-extract-v1`): blocks in reading order per page, each naming its source object and box, bounded by a page expression and a character budget, with `next` and `from` to continue. Plain text and Markdown writers keep the source wording and mark recognised blocks.
+- Content inventory text frames read from pixels carry an optional `recognition` record with the model id, character-weighted confidence, lowest line confidence and line count; the host catalogue adds the model release and languages. A page kept as one picture lists its scan text layer as one hidden frame, and slides the source marks flattened carry `flattened`. Authored text is unchanged.
+- Add `scoreExtract` and the character and word error rates it uses, for measuring extraction against labelled fixtures.
+
 ## 1.269.0
 
 - Add the export report. `verifyExport(request, bytes)` compares each requested property with a value read from the finished file: container, pixel or page size, page count, resolution, duration and frames, alpha channel, colour model, HDR signalling, Content Credentials presence, encryption and fonts. The report is bound to the output by SHA-256, and a value the bytes cannot supply is a named gap rather than a pass.

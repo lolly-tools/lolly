@@ -1,0 +1,140 @@
+{
+  "fixture": "multilingual.pptx",
+  "version": 1,
+  "builder": "scripts/build-read-extract-fixtures.ts",
+  "licence": "MPL-2.0",
+  "about": "Five slides of authored text in eight languages and five scripts, with a picture, speaker notes and a table whose cells mix scripts.",
+  "pages": [
+    {
+      "page": 1,
+      "languages": [
+        "en"
+      ],
+      "blocks": [
+        {
+          "text": "Reading a file in many languages",
+          "origin": "authored",
+          "role": "title"
+        },
+        {
+          "text": "Every block keeps its page, its place and its source.",
+          "origin": "authored"
+        },
+        {
+          "text": "Recognised words are never mixed with written ones.",
+          "origin": "authored"
+        }
+      ],
+      "notes": "Open with the reading order.",
+      "pictures": 1
+    },
+    {
+      "page": 2,
+      "languages": [
+        "fr"
+      ],
+      "blocks": [
+        {
+          "text": "Lecture et extraction",
+          "origin": "authored",
+          "role": "title"
+        },
+        {
+          "text": "Évaluer la qualité de la reconnaissance, page après page.",
+          "origin": "authored"
+        },
+        {
+          "text": "Les accents comptent : é, è, à, ç, ô et ï.",
+          "origin": "authored"
+        }
+      ],
+      "pictures": 0
+    },
+    {
+      "page": 3,
+      "languages": [
+        "de",
+        "es"
+      ],
+      "blocks": [
+        {
+          "text": "Größe und Übersicht",
+          "origin": "authored",
+          "role": "title"
+        },
+        {
+          "text": "Straße, Fußgänger und Bäume.",
+          "origin": "authored"
+        },
+        {
+          "text": "Señales en español: año, niño y corazón.",
+          "origin": "authored"
+        }
+      ],
+      "pictures": 0
+    },
+    {
+      "page": 4,
+      "languages": [
+        "el",
+        "ru"
+      ],
+      "blocks": [
+        {
+          "text": "Ανάγνωση κειμένου",
+          "origin": "authored",
+          "role": "title"
+        },
+        {
+          "text": "Κάθε σελίδα διαβάζεται με τη σειρά.",
+          "origin": "authored"
+        },
+        {
+          "text": "Извлечение текста из файла.",
+          "origin": "authored"
+        }
+      ],
+      "notes": "Η σειρά ανάγνωσης μετράει.",
+      "pictures": 0
+    },
+    {
+      "page": 5,
+      "languages": [
+        "ja",
+        "ar"
+      ],
+      "blocks": [
+        {
+          "text": "文字を読み取る",
+          "origin": "authored",
+          "role": "title"
+        },
+        {
+          "text": "استخراج النص من الملف",
+          "origin": "authored"
+        }
+      ],
+      "tables": [
+        [
+          [
+            "Language",
+            "Word"
+          ],
+          [
+            "Deutsch",
+            "Wörterbuch"
+          ],
+          [
+            "Ελληνικά",
+            "λεξικό"
+          ],
+          [
+            "日本語",
+            "辞書"
+          ]
+        ]
+      ],
+      "pictures": 0
+    }
+  ]
+}

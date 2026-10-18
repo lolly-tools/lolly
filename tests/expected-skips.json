@@ -2096,6 +2096,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/read-extract-fixtures.test.ts",
+      "fullName": "scan.pdf read by the PP-OCRv5 model: error rates measured against the labels (needs lolly models fetch ocr)",
+      "reason": "the ocr model family is not on this machine",
+      "capability": "model",
+      "owner": "tests"
+    },
+    {
       "file": "tests/revision-snapshot-bench.test.ts",
       "fullName": "revisionSnapshot() stays within 10 ms per MiB of canonical JSON",
       "reason": "perf/timing guard - set BENCH=1 to run (wall-clock, flakes under load)",

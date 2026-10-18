@@ -4027,7 +4027,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.269.0";
+    ENGINE_VERSION = "1.270.0";
   }
 });
 
@@ -9109,12 +9109,23 @@ var init_slide_master_v1 = __esm({
 });
 
 // packages/core/src/content-inventory-v1.ts
-var CONTENT_INVENTORY_VERSION, INVENTORY_SOURCE_KINDS;
+var CONTENT_INVENTORY_VERSION, INVENTORY_SOURCE_KINDS, TEXT_LAYER_MODEL;
 var init_content_inventory_v1 = __esm({
   "packages/core/src/content-inventory-v1.ts"() {
     "use strict";
     CONTENT_INVENTORY_VERSION = "lolly/content-inventory-v1";
     INVENTORY_SOURCE_KINDS = ["pptx", "pdf", "psd"];
+    TEXT_LAYER_MODEL = "pdf-text-layer";
+  }
+});
+
+// packages/core/src/read-extract-v1.ts
+var READ_EXTRACT_VERSION, EXTRACT_BLOCK_KINDS;
+var init_read_extract_v1 = __esm({
+  "packages/core/src/read-extract-v1.ts"() {
+    "use strict";
+    READ_EXTRACT_VERSION = "lolly/read-extract-v1";
+    EXTRACT_BLOCK_KINDS = ["text", "table", "chart", "picture", "notes"];
   }
 });
 
@@ -9168,6 +9179,7 @@ var init_src = __esm({
     init_text_v1();
     init_slide_master_v1();
     init_content_inventory_v1();
+    init_read_extract_v1();
     init_design_package_v1();
     init_design_compose_v1();
   }
@@ -40930,9 +40942,9 @@ function percentageBasis(node, axis) {
   if (box4?.length === 4 && Number.isFinite(box4[axis === "x" ? 2 : 3])) return box4[axis === "x" ? 2 : 3];
   return parseFloat(svg?.getAttribute(axis === "x" ? "width" : "height") || "") || (axis === "x" ? 300 : 150);
 }
-function coordinate(value, em2, fallback = 0, percent2) {
+function coordinate(value, em2, fallback = 0, percent3) {
   if (!value) return fallback;
-  if (value.endsWith("%") && percent2 !== void 0) return coordinate(value.slice(0, -1), em2) * percent2 / 100;
+  if (value.endsWith("%") && percent3 !== void 0) return coordinate(value.slice(0, -1), em2) * percent3 / 100;
   if (!/^[+-]?(?:\d+\.?\d*|\.\d+)(?:px|em)?$/.test(value.trim())) throw new Error("SVG text needs scalar pixel or em coordinates.");
   return parseFloat(value) * (value.endsWith("em") ? em2 : 1);
 }
@@ -108952,7 +108964,7 @@ function planSlots(master, from, to, layers, opts) {
       left.push(index2);
     }
   });
-  const cellOf2 = /* @__PURE__ */ new Map();
+  const cellOf3 = /* @__PURE__ */ new Map();
   const shared = [];
   const unplaced = [];
   if (left.length > 0) {
@@ -108970,7 +108982,7 @@ function planSlots(master, from, to, layers, opts) {
         const start = Math.round(k * (span + gutter) / n7);
         const end = Math.round((k + 1) * (span + gutter) / n7) - gutter;
         const cell = across ? { x: box4.x + start, y: box4.y, w: Math.max(1, end - start), h: box4.h } : { x: box4.x, y: box4.y + start, w: box4.w, h: Math.max(1, end - start) };
-        cellOf2.set(index2, cell);
+        cellOf3.set(index2, cell);
         if (k > 0) {
           slotOf.set(index2, hostPh);
           shared.push(index2);
@@ -108992,7 +109004,7 @@ function planSlots(master, from, to, layers, opts) {
     const ph = slotOf.get(index2);
     return ph && !sharedSet.has(index2) ? keyOf3.get(ph) ?? null : null;
   });
-  return { origin, slotOf, cellOf: cellOf2, slots: { slotKeys, shared, unplaced } };
+  return { origin, slotOf, cellOf: cellOf3, slots: { slotKeys, shared, unplaced } };
 }
 function archetypeSlots(master, fromArchetypeId, toArchetypeId, layers, opts) {
   master = withSlideLayoutComponents(master, [fromArchetypeId, toArchetypeId]);
@@ -109008,7 +109020,7 @@ function applyArchetype(master, fromArchetypeId, toArchetypeId, layers, opts) {
   if (!from || !to) return layers.slice();
   const plan = planSlots(master, from, to, layers, opts);
   if (!plan) return layers.slice();
-  const { origin, slotOf, cellOf: cellOf2 } = plan;
+  const { origin, slotOf, cellOf: cellOf3 } = plan;
   const resolve8 = opts?.resolveToken;
   const targetBg = colourOf(to.background?.hex, to.background?.tokenPath, resolve8);
   const darkness = logoDarkness(master, to, resolve8);
@@ -109045,9 +109057,9 @@ function applyArchetype(master, fromArchetypeId, toArchetypeId, layers, opts) {
     if (!role) return row;
     const ph = slotOf.get(index2);
     if (!ph) return row;
-    const next2 = { ...row, ...cellOf2.get(index2) ?? place(ph.box, master, origin.x, origin.y) };
+    const next2 = { ...row, ...cellOf3.get(index2) ?? place(ph.box, master, origin.x, origin.y) };
     if (rowText(row, "kind") === "image") {
-      next2.fit = ph.kind === "image" && !cellOf2.has(index2) ? ph.fit ?? "contain" : "contain";
+      next2.fit = ph.kind === "image" && !cellOf3.has(index2) ? ph.fit ?? "contain" : "contain";
     } else if (ph.kind === "image" || ph.role !== role) {
       const style = ph.kind === "image" ? bodyStyle : ph.style ?? bodyStyle;
       clearTextStyle(next2);
@@ -111448,8 +111460,8 @@ function seedBuild(master, archetypeId, args) {
     throw new Error(`The master ${master.id} carries neither the ${archetypeId} archetype nor ${FALLBACK_ARCHETYPE}, so there is nothing to seed a frame from.`);
   }
   const used = rowStr(seeded.frame, "archetype");
-  const cellOf2 = /* @__PURE__ */ new Map();
-  for (const cell of seeded.cells ?? []) for (const id3 of cell.layerIds) cellOf2.set(id3, { group: cell.group, index: cell.index });
+  const cellOf3 = /* @__PURE__ */ new Map();
+  for (const cell of seeded.cells ?? []) for (const id3 of cell.layerIds) cellOf3.set(id3, { group: cell.group, index: cell.index });
   const kinds2 = new Map(master.furniture.map((f) => [f.id, f.kind]));
   const build2 = {
     frameId: args.frameId,
@@ -111477,7 +111489,7 @@ function seedBuild(master, archetypeId, args) {
     }
     const role = rowStr(row, "role");
     if (!role) return;
-    const cell = cellOf2.get(rowStr(row, "id"));
+    const cell = cellOf3.get(rowStr(row, "id"));
     build2.slots.push({
       role,
       index: index2,
@@ -140428,7 +140440,7 @@ function allCaps(object4) {
   let letters2 = false;
   for (const para of object4.text?.paras ?? []) {
     for (const run3 of para.runs) {
-      if (!new RegExp("\\p{L}", "u").test(run3.text)) continue;
+      if (!/[\p{Lu}\p{Ll}\p{Lt}]/u.test(run3.text)) continue;
       letters2 = true;
       if (run3.case === "upper") continue;
       if (run3.text !== run3.text.toUpperCase()) return false;
@@ -140507,7 +140519,8 @@ function pictureKind(object4, klass, iconUnit, slide, flattened) {
 }
 function flattenedWarning(slide, number10) {
   const ocr = slide.ocr?.state ?? "not-run";
-  const says = OCR_SAYS[ocr] ?? `OCR state ${ocr}`;
+  const layer = slide.ocr?.state === "text-found" && slide.ocr.model === TEXT_LAYER_MODEL;
+  const says = layer ? "its words come from the text layer the scan carries" : OCR_SAYS[ocr] ?? `OCR state ${ocr}`;
   const message = slide.recovery ? `Slide ${number10} was one picture of its text and was rebuilt from its regions; ${says}.` : `Slide ${number10} is one picture of its text, kept as that picture; ${says}.`;
   return { code: "slide-flattened", message };
 }
@@ -140515,6 +140528,53 @@ function unavailableWhy(reason2) {
   if (reason2 === "media-missing") return "its picture part is missing from the file";
   if (reason2 === "media-too-large") return "its picture is over the size the reader stores";
   return reason2 ? `its picture was not stored (${reason2})` : "its picture was not stored";
+}
+function recognitionOf(ocr, recognizers) {
+  if (ocr?.state !== "text-found" || !ocr.lines?.length) return null;
+  let weighted = 0;
+  let chars = 0;
+  let min = 1;
+  for (const line of ocr.lines) {
+    const confidence = Number.isFinite(line.confidence) ? Math.min(1, Math.max(0, line.confidence)) : 0;
+    const count4 = Math.max(1, line.text.replace(/\s/g, "").length);
+    weighted += confidence * count4;
+    chars += count4;
+    min = Math.min(min, confidence);
+  }
+  const model2 = ocr.model?.trim() ? ocr.model : "unknown";
+  const out = { model: model2, confidence: round42(weighted / chars), minConfidence: round42(min), lines: ocr.lines.length };
+  const known3 = model2 === TEXT_LAYER_MODEL ? void 0 : recognizers?.get(model2);
+  if (known3?.version) out.modelVersion = known3.version;
+  if (known3?.languages?.length) out.languages = [...known3.languages];
+  return out;
+}
+function pictureTextOf(object4, klass, size, recognizers) {
+  const recognition = recognitionOf(object4.ocr, recognizers);
+  const lines = object4.ocr?.lines ?? [];
+  if (!recognition) return null;
+  const kept2 = lines.map((line) => ({ line, text: normaliseLines(line.text).join(" ") })).filter((one) => one.text !== "");
+  if (kept2.length === 0) return null;
+  const paragraphs2 = kept2.map((one) => ({ runs: [{ text: one.text }] }));
+  let x0 = Number.POSITIVE_INFINITY;
+  let y0 = Number.POSITIVE_INFINITY;
+  let x1 = Number.NEGATIVE_INFINITY;
+  let y1 = Number.NEGATIVE_INFINITY;
+  for (const { line } of kept2) {
+    x0 = Math.min(x0, line.box.x);
+    y0 = Math.min(y0, line.box.y);
+    x1 = Math.max(x1, line.box.x + line.box.w);
+    y1 = Math.max(y1, line.box.y + line.box.h);
+  }
+  return {
+    objectId: object4.id,
+    role: "body",
+    class: klass ?? "unknown",
+    box: fractionBox2({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, size.width, size.height),
+    paragraphs: paragraphs2,
+    plain: kept2.map((one) => one.text).join("\n"),
+    hidden: true,
+    recognition
+  };
 }
 function projectNotes(slide, paras) {
   let paragraphs2;
@@ -140588,7 +140648,16 @@ function inventoryFromSource(source, census, opts) {
         entry2.hidden = true;
         hiddenTextKept++;
       }
+      const recognition = recognitionOf(object4.ocr, opts.recognizers);
+      if (recognition) entry2.recognition = recognition;
       text9.push(entry2);
+    }
+    if (flattened) {
+      for (const object4 of byReading2) {
+        if (object4.kind !== "pic" || object4.hidden || object4.origin === "raster-region") continue;
+        const words3 = pictureTextOf(object4, classOf.get(object4.id), size, opts.recognizers);
+        if (words3) text9.push(words3);
+      }
     }
     const pictures = [];
     const background = slide.background.media;
@@ -140697,6 +140766,7 @@ function inventoryFromSource(source, census, opts) {
     if (slide.origin.layoutName) out.layoutName = slide.origin.layoutName;
     const thumbnail = opts.thumbnails?.[position];
     if (thumbnail) out.thumbnail = { file: thumbnail.file, width: Math.round(thumbnail.width), height: Math.round(thumbnail.height) };
+    if (flattened) out.flattened = true;
     return out;
   });
   const media = [...opts.media].map(([ref2, facts2]) => withFacts({ ref: ref2, sha256: facts2.sha256, mime: facts2.mime, bytes: facts2.bytes }, facts2));
@@ -140726,7 +140796,7 @@ function withFacts(entry2, facts2) {
   if (facts2.file) entry2.file = facts2.file;
   return entry2;
 }
-var ICON_AREA_SHARE, PHOTO_AREA_SHARE, BACKGROUND_AREA_SHARE, LABEL_MAX_WORDS2, CAPTION_MAX_PT, CAPTION_MAX_WORDS, DEFAULT_SLIDE, CAPTION_LEAD, CAPTION_LEAD_MAX_PT, LIGATURES, URL_ONLY2, NUMBER_MARKER2, ICON_FONT, HEX4, round7, paraText2, OCR_SAYS;
+var ICON_AREA_SHARE, PHOTO_AREA_SHARE, BACKGROUND_AREA_SHARE, LABEL_MAX_WORDS2, CAPTION_MAX_PT, CAPTION_MAX_WORDS, DEFAULT_SLIDE, CAPTION_LEAD, CAPTION_LEAD_MAX_PT, LIGATURES, URL_ONLY2, NUMBER_MARKER2, ICON_FONT, HEX4, round7, paraText2, OCR_SAYS, round42;
 var init_content_inventory = __esm({
   "engine/src/content-inventory.ts"() {
     "use strict";
@@ -140753,6 +140823,465 @@ var init_content_inventory = __esm({
       "no-text-found": "OCR found no text in it",
       "text-found": "its text was read by OCR"
     };
+    round42 = (n7) => Math.round(Math.min(1, Math.max(0, n7)) * 1e4) / 1e4;
+  }
+});
+
+// engine/src/read-extract.ts
+function parsePageSelection(selection, pageCount) {
+  const count4 = Math.max(0, Math.floor(pageCount));
+  const all = () => Array.from({ length: count4 }, (_, i) => i + 1);
+  if (selection === void 0) return all();
+  const picked = /* @__PURE__ */ new Set();
+  const outside = (what) => new ReadExtractError(
+    "pages.outside",
+    count4 === 0 ? `${what} is not in this file, which has no pages.` : `${what} is not in this file, which has ${count4 === 1 ? "one page" : `${count4} pages`}.`
+  );
+  if (typeof selection !== "string") {
+    for (const n7 of selection) {
+      if (!Number.isInteger(n7) || n7 < 1) throw new ReadExtractError("pages.invalid", `${String(n7)} is not a page number; pages count from 1.`);
+      if (n7 > count4) throw outside(`Page ${n7}`);
+      picked.add(n7);
+    }
+    return [...picked].sort((a, b) => a - b);
+  }
+  const source = selection.trim();
+  if (source === "") return all();
+  for (const raw of source.split(",")) {
+    const token2 = raw.trim();
+    const single = /^(\d+)$/.exec(token2);
+    const range = /^(\d+)\s*-\s*(\d*)$/.exec(token2);
+    if (single) {
+      const n7 = Number(single[1]);
+      if (n7 < 1) throw new ReadExtractError("pages.invalid", "Pages count from 1.");
+      if (n7 > count4) throw outside(`Page ${n7}`);
+      picked.add(n7);
+    } else if (range) {
+      const a = Number(range[1]);
+      const b = range[2] ? Number(range[2]) : count4;
+      if (a < 1 || b < 1) throw new ReadExtractError("pages.invalid", "Pages count from 1.");
+      const lo = Math.min(a, b);
+      const hi = Math.max(a, b);
+      if (hi > count4) throw outside(`Pages ${token2}`);
+      for (let n7 = lo; n7 <= hi; n7++) picked.add(n7);
+    } else {
+      throw new ReadExtractError("pages.invalid", `"${token2}" is not a page or a range; write pages such as 1-3,7,10-.`);
+    }
+  }
+  return [...picked].sort((a, b) => a - b);
+}
+function originOfText(frame) {
+  if (frame.recognition) return frame.recognition.model === TEXT_LAYER_MODEL ? "text-layer" : "recognized";
+  return frame.hidden ? "text-layer" : "authored";
+}
+function chartText(chart) {
+  const lines = [];
+  if (chart.type) lines.push(`Chart: ${chart.type}`);
+  if (chart.categories?.length) lines.push(chart.categories.join("	"));
+  for (const series of chart.series ?? []) {
+    lines.push(`${series.name ? `${series.name}	` : ""}${series.values.join("	")}`);
+  }
+  return lines.join("\n");
+}
+function slideBlocks(slide, kinds2, files) {
+  const out = [];
+  const push = (block) => {
+    const order = out.length;
+    out.push({ id: `p${slide.number}.${order}`, page: slide.number, order, ...block });
+  };
+  if (kinds2.has("text")) {
+    for (const frame of slide.text) {
+      const block = {
+        kind: "text",
+        text: frame.plain,
+        origin: originOfText(frame),
+        role: frame.role,
+        objectId: frame.objectId,
+        box: { ...frame.box }
+      };
+      if (frame.recognition) block.recognition = { ...frame.recognition, ...frame.recognition.languages ? { languages: [...frame.recognition.languages] } : {} };
+      push(block);
+    }
+  }
+  if (kinds2.has("table")) {
+    for (const table of slide.tables) {
+      push({ kind: "table", text: table.rows.map((row) => row.join("	")).join("\n"), objectId: table.objectId, rows: table.rows.map((row) => [...row]) });
+    }
+  }
+  if (kinds2.has("chart")) {
+    for (const chart of slide.charts) {
+      const data = {};
+      if (chart.type) data.type = chart.type;
+      if (chart.categories) data.categories = [...chart.categories];
+      if (chart.series) data.series = chart.series.map((s) => s.name === void 0 ? { values: [...s.values] } : { name: s.name, values: [...s.values] });
+      push({ kind: "chart", text: chartText(chart), objectId: chart.objectId, chart: data });
+    }
+  }
+  if (kinds2.has("picture")) {
+    for (const picture of slide.pictures) {
+      const facts2 = { ref: picture.ref, sha256: picture.sha256, mime: picture.mime, kind: picture.kind };
+      if (picture.width) facts2.width = picture.width;
+      if (picture.height) facts2.height = picture.height;
+      const file = picture.file ?? files.get(picture.ref);
+      if (file) facts2.file = file;
+      push({ kind: "picture", text: picture.alt ?? "", objectId: picture.objectId, box: { ...picture.box }, picture: facts2 });
+    }
+  }
+  if (kinds2.has("notes") && slide.notes) push({ kind: "notes", text: slide.notes.text, origin: "authored" });
+  return out;
+}
+function pageRead(slide) {
+  const origins = new Set(slide.text.map(originOfText));
+  if (origins.has("recognized")) return "recognized";
+  if (origins.has("text-layer")) return "text-layer";
+  return "not-read";
+}
+function cutAtWord(text9, max) {
+  const chars = Array.from(text9);
+  if (chars.length <= max) return text9;
+  const head2 = chars.slice(0, max).join("");
+  const space = head2.search(/\s\S*$/);
+  return (space > 0 ? head2.slice(0, space) : head2).trimEnd();
+}
+function checkKinds(kinds2) {
+  if (kinds2 === void 0) return [...EXTRACT_BLOCK_KINDS];
+  const known3 = new Set(EXTRACT_BLOCK_KINDS);
+  for (const kind of kinds2) {
+    if (!known3.has(kind)) throw new ReadExtractError("kinds.invalid", `"${String(kind)}" is not a block kind; use ${EXTRACT_BLOCK_KINDS.join(", ")}.`);
+  }
+  const asked = EXTRACT_BLOCK_KINDS.filter((kind) => kinds2.includes(kind));
+  if (asked.length === 0) throw new ReadExtractError("kinds.invalid", "Ask for at least one block kind.");
+  return asked;
+}
+function readExtract(inventory2, opts = {}) {
+  const pageCount = inventory2.slides.length;
+  const pages = parsePageSelection(opts.pages, pageCount);
+  const kinds2 = checkKinds(opts.kinds);
+  const maxChars = opts.maxChars;
+  if (maxChars !== void 0 && (!Number.isInteger(maxChars) || maxChars < 1 || maxChars > MAX_BUDGET)) {
+    throw new ReadExtractError("budget.invalid", `The budget is a whole number of characters from 1 to ${MAX_BUDGET}.`);
+  }
+  const minConfidence = opts.minConfidence;
+  if (minConfidence !== void 0 && !(Number.isFinite(minConfidence) && minConfidence >= 0 && minConfidence <= 1)) {
+    throw new ReadExtractError("confidence.invalid", "The confidence floor is a number from 0 to 1.");
+  }
+  let start = null;
+  if (opts.from !== void 0) {
+    const m2 = BLOCK_ID.exec(opts.from);
+    if (!m2) throw new ReadExtractError("from.invalid", `"${opts.from}" is not a block id; pass an extract's next value, such as p3.2.`);
+    start = { page: Number(m2[1]), order: Number(m2[2]) };
+    if (!pages.includes(start.page)) throw new ReadExtractError("from.invalid", `Block ${opts.from} is on page ${start.page}, which this request does not read.`);
+  }
+  const kindSet = new Set(kinds2);
+  const bySlide = new Map(inventory2.slides.map((slide) => [slide.number, slide]));
+  const files = /* @__PURE__ */ new Map();
+  for (const m2 of inventory2.media) if (m2.file) files.set(m2.ref, m2.file);
+  const warnings2 = [];
+  const blocks = [];
+  const pageEntries = [];
+  let chars = 0;
+  let next2;
+  let lowConfidence = 0;
+  let cut;
+  for (const number10 of pages) {
+    const slide = bySlide.get(number10);
+    const entry2 = { number: number10, blocks: 0 };
+    if (slide?.flattened) {
+      entry2.scanned = true;
+      entry2.read = pageRead(slide);
+      if (entry2.read === "not-read") {
+        warnings2.push({ code: "page-not-read", message: `Page ${number10} is a picture of its text and its words were not read, so it holds no text here.` });
+      }
+    }
+    pageEntries.push(entry2);
+    if (!slide || next2 !== void 0) continue;
+    for (const block of slideBlocks(slide, kindSet, files)) {
+      if (start && (number10 < start.page || number10 === start.page && block.order < start.order)) continue;
+      if (minConfidence !== void 0 && block.origin === "recognized" && (block.recognition?.confidence ?? 0) < minConfidence) {
+        lowConfidence++;
+        continue;
+      }
+      if (cut !== void 0) {
+        next2 = block.id;
+        break;
+      }
+      const size = lengthOf2(block.text);
+      if (maxChars !== void 0 && chars + size > maxChars) {
+        if (blocks.length === 0) {
+          const head2 = cutAtWord(block.text, maxChars);
+          blocks.push({ ...block, text: head2, partial: true });
+          chars += lengthOf2(head2);
+          entry2.blocks++;
+          cut = block.id;
+          continue;
+        }
+        next2 = block.id;
+        break;
+      }
+      blocks.push(block);
+      chars += size;
+      entry2.blocks++;
+    }
+  }
+  if (lowConfidence > 0) {
+    warnings2.push({
+      code: "low-confidence-left-out",
+      message: `${lowConfidence === 1 ? "One recognised block was" : `${lowConfidence} recognised blocks were`} under the confidence floor and left out.`
+    });
+  }
+  if (cut !== void 0) {
+    warnings2.push({ code: "block-cut-short", message: `Block ${cut} is longer than the ${maxChars} character budget, so only its start is here; a larger budget returns it whole.` });
+  }
+  if (next2 !== void 0) {
+    warnings2.push({ code: "budget-reached", message: `The ${maxChars} character budget was reached; continue from block ${next2}.` });
+  }
+  for (const w of inventory2.warnings) warnings2.push({ code: w.code, message: w.message });
+  const request2 = { pages, kinds: kinds2 };
+  if (maxChars !== void 0) request2.maxChars = maxChars;
+  if (minConfidence !== void 0) request2.minConfidence = minConfidence;
+  if (opts.from !== void 0) request2.from = opts.from;
+  const source = {
+    name: inventory2.source.name,
+    sha256: inventory2.source.sha256,
+    bytes: inventory2.source.bytes,
+    kind: inventory2.source.kind,
+    pages: pageCount
+  };
+  if (inventory2.source.title) source.title = inventory2.source.title;
+  const out = {
+    version: READ_EXTRACT_VERSION,
+    inventory: CONTENT_INVENTORY_VERSION,
+    source,
+    request: request2,
+    pages: pageEntries,
+    blocks,
+    chars,
+    complete: next2 === void 0 && cut === void 0,
+    warnings: warnings2
+  };
+  if (next2 !== void 0) out.next = next2;
+  return out;
+}
+function ooxmlActiveContent(partNames) {
+  const macros = [];
+  let controls = 0;
+  let embedded = 0;
+  for (const name of partNames) {
+    if (/(?:^|\/)vbaProject\.bin$/i.test(name)) macros.push(name);
+    else if (/(?:^|\/)activeX\/activeX\d*\.(?:xml|bin)$/i.test(name)) controls++;
+    else if (/(?:^|\/)embeddings\/[^/]+$/i.test(name)) embedded++;
+  }
+  const out = {};
+  if (macros.length) out.macros = macros.sort();
+  if (controls) out.controls = controls;
+  if (embedded) out.embedded = embedded;
+  return out;
+}
+function activeContentWarnings(content2) {
+  const out = [];
+  if (content2.macros?.length) {
+    out.push({ code: "macros-not-run", message: `The file carries macros (${content2.macros.join(", ")}). They were not run; only the file's text and pictures were read.` });
+  }
+  const scripts = content2.scripts ?? 0;
+  const launches = content2.launches ?? 0;
+  if (scripts > 0 || launches > 0) {
+    const what = [scripts > 0 ? countOf(scripts, "script", "scripts") : "", launches > 0 ? countOf(launches, "launch action", "launch actions") : ""].filter(Boolean).join(" and ");
+    out.push({ code: "scripts-not-run", message: `The file carries ${what}. None of them ran.` });
+  }
+  if ((content2.controls ?? 0) > 0) {
+    out.push({ code: "controls-not-run", message: `The file carries ${countOf(content2.controls, "control", "controls")}. They were not run.` });
+  }
+  if ((content2.embedded ?? 0) > 0) {
+    out.push({ code: "embedded-not-opened", message: `The file carries ${countOf(content2.embedded, "embedded file", "embedded files")}. They were not opened or read.` });
+  }
+  return out;
+}
+function originNote(block) {
+  const notes = [];
+  if (block.origin === "recognized" && block.recognition) {
+    notes.push(`recognised by ${block.recognition.model}, confidence ${percent2(block.recognition.confidence)}`);
+  } else if (block.origin === "text-layer") {
+    notes.push("from the scan text layer");
+  }
+  if (block.partial) notes.push("cut short by the budget");
+  return notes.length ? notes.join("; ") : null;
+}
+function extractPlainText(extract) {
+  const parts = [];
+  for (const page3 of extract.pages) {
+    const own3 = extract.blocks.filter((b) => b.page === page3.number && b.text !== "");
+    if (own3.length === 0) continue;
+    const body = own3.map((block) => {
+      const prefix = block.kind === "notes" ? "Notes:\n" : block.kind === "picture" ? "Picture: " : "";
+      const note2 = originNote(block);
+      return `${prefix}${block.text}${note2 ? `
+[${note2}]` : ""}`;
+    });
+    parts.push(`Page ${page3.number}
+
+${body.join("\n\n")}`);
+  }
+  let text9 = parts.join("\n\n");
+  if (!extract.complete && extract.next) text9 += `${text9 ? "\n\n" : ""}[Stopped at the budget; continue from block ${extract.next}.]`;
+  return text9 ? `${text9}
+` : "";
+}
+function escapeMarkdown(text9) {
+  return text9.replace(/([\\`*_{}[\]<>#|!])/g, "\\$1").replace(/^(\s*)(\d+)\.(\s)/gm, "$1$2\\.$3").replace(/^(\s*)([-+])(\s)/gm, "$1\\$2$3");
+}
+function extractMarkdown(extract) {
+  const parts = [];
+  const title = extract.source.title || extract.source.name;
+  parts.push(`# ${escapeMarkdown(title)}`);
+  for (const page3 of extract.pages) {
+    const own3 = extract.blocks.filter((b) => b.page === page3.number);
+    if (own3.length === 0) continue;
+    parts.push(`## Page ${page3.number}`);
+    for (const block of own3) {
+      const note2 = originNote(block);
+      if (block.kind === "table" && block.rows && block.rows.length > 0) {
+        const width = Math.max(...block.rows.map((r5) => r5.length));
+        const pad = (row) => [...row, ...Array.from({ length: width - row.length }, () => "")];
+        const [head2, ...rest2] = block.rows.map(pad);
+        parts.push([`| ${head2.map(cellOf2).join(" | ")} |`, `|${" --- |".repeat(width)}`, ...rest2.map((row) => `| ${row.map(cellOf2).join(" | ")} |`)].join("\n"));
+      } else if (block.kind === "picture" && block.picture) {
+        parts.push(`![${escapeMarkdown(block.text)}](${block.picture.file ?? `sha256-${block.picture.sha256}`})`);
+      } else if (block.kind === "notes") {
+        parts.push(`> **Notes**
+${block.text.split("\n").map((line) => `> ${escapeMarkdown(line)}`).join("\n")}`);
+      } else if (block.text !== "") {
+        const words3 = escapeMarkdown(block.text);
+        parts.push(block.role === "title" ? `### ${words3.replace(/\n/g, " ")}` : words3.replace(/\n/g, "  \n"));
+      }
+      if (note2) parts.push(`*(${note2})*`);
+    }
+  }
+  if (!extract.complete && extract.next) parts.push(`*Stopped at the budget; continue from block ${extract.next}.*`);
+  return `${parts.join("\n\n")}
+`;
+}
+var ReadExtractError, MAX_BUDGET, BLOCK_ID, lengthOf2, countOf, percent2, cellOf2;
+var init_read_extract = __esm({
+  "engine/src/read-extract.ts"() {
+    "use strict";
+    init_src();
+    ReadExtractError = class extends Error {
+      code;
+      constructor(code, message) {
+        super(message);
+        this.name = "ReadExtractError";
+        this.code = code;
+      }
+    };
+    MAX_BUDGET = 1e9;
+    BLOCK_ID = /^p([1-9][0-9]*)\.(0|[1-9][0-9]*)$/;
+    lengthOf2 = (text9) => Array.from(text9).length;
+    countOf = (n7, one, many) => n7 === 1 ? `one ${one}` : `${n7} ${many}`;
+    percent2 = (n7) => `${Math.round(n7 * 100)}%`;
+    cellOf2 = (cell) => escapeMarkdown(cell).replace(/\r?\n/g, "<br>");
+  }
+});
+
+// engine/src/read-extract-quality.ts
+function normaliseForScore(text9) {
+  return text9.normalize("NFC").replace(/\s+/gu, " ").trim();
+}
+function editDistance(a, b) {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  let row = new Array(b.length + 1).fill(0);
+  for (let i = 1; i <= a.length; i++) {
+    row[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + cost);
+    }
+    [prev, row] = [row, prev];
+  }
+  return prev[b.length];
+}
+function characterErrorRate(truth, read) {
+  const t = charsOf(truth);
+  const r5 = charsOf(read);
+  if (t.length === 0) return r5.length === 0 ? 0 : 1;
+  return editDistance(t, r5) / t.length;
+}
+function wordErrorRate(truth, read) {
+  const t = wordsOf4(truth);
+  const r5 = wordsOf4(read);
+  if (t.length === 0) return r5.length === 0 ? 0 : 1;
+  return editDistance(t, r5) / t.length;
+}
+function scoreExtract(labels, extract) {
+  const pages = [...new Set(labels.map((l) => l.page))].sort((a, b) => a - b);
+  let charEdits = 0;
+  let charTotal = 0;
+  let wordEdits = 0;
+  let wordTotal = 0;
+  let matched = 0;
+  let pairs2 = 0;
+  let pairsInOrder = 0;
+  let originStated = 0;
+  let originAgreed = 0;
+  for (const page3 of pages) {
+    const truth = labels.filter((l) => l.page === page3);
+    const read = extract.blocks.filter((b) => b.page === page3 && b.kind === "text");
+    const truthText = truth.map((l) => l.text).join("\n");
+    const readText2 = read.map((b) => b.text).join("\n");
+    const tc = charsOf(truthText);
+    const tw = wordsOf4(truthText);
+    charEdits += editDistance(tc, charsOf(readText2));
+    charTotal += tc.length;
+    wordEdits += editDistance(tw, wordsOf4(readText2));
+    wordTotal += tw.length;
+    const used = /* @__PURE__ */ new Set();
+    const positions = [];
+    for (const label4 of truth) {
+      let best = -1;
+      let bestRate = Number.POSITIVE_INFINITY;
+      for (const [k, block] of read.entries()) {
+        if (used.has(k)) continue;
+        const rate3 = characterErrorRate(label4.text, block.text);
+        if (rate3 < bestRate) {
+          best = k;
+          bestRate = rate3;
+        }
+      }
+      if (best < 0 || bestRate > MATCH_CER) continue;
+      used.add(best);
+      matched++;
+      positions.push(read[best].order);
+      if (label4.origin) {
+        originStated++;
+        if (read[best].origin === label4.origin) originAgreed++;
+      }
+    }
+    for (let i = 0; i < positions.length; i++) {
+      for (let j = i + 1; j < positions.length; j++) {
+        pairs2++;
+        if (positions[i] < positions[j]) pairsInOrder++;
+      }
+    }
+  }
+  return {
+    cer: round43(charTotal === 0 ? 0 : charEdits / charTotal),
+    wer: round43(wordTotal === 0 ? 0 : wordEdits / wordTotal),
+    recall: round43(labels.length === 0 ? 1 : matched / labels.length),
+    order: round43(pairs2 === 0 ? 1 : pairsInOrder / pairs2),
+    origin: originStated === 0 ? null : round43(originAgreed / originStated),
+    labelled: labels.length,
+    matched
+  };
+}
+var MATCH_CER, charsOf, wordsOf4, round43;
+var init_read_extract_quality = __esm({
+  "engine/src/read-extract-quality.ts"() {
+    "use strict";
+    MATCH_CER = 0.34;
+    charsOf = (text9) => Array.from(normaliseForScore(text9));
+    wordsOf4 = (text9) => normaliseForScore(text9).split(" ").filter(Boolean);
+    round43 = (n7) => Math.round(n7 * 1e4) / 1e4;
   }
 });
 
@@ -141529,6 +142058,7 @@ __export(src_exports, {
   LSB_MIN_PIXELS: () => LSB_MIN_PIXELS,
   LSB_PREFIXES: () => LSB_PREFIXES,
   LSB_P_THRESHOLD: () => LSB_P_THRESHOLD,
+  MATCH_CER: () => MATCH_CER,
   MAX_BAKED_URL_CHARS: () => MAX_BAKED_URL_CHARS,
   MAX_COMPOSE_DEPTH: () => MAX_COMPOSE_DEPTH,
   MAX_CONTINUATION_FRAMES: () => MAX_CONTINUATION_FRAMES,
@@ -141649,6 +142179,7 @@ __export(src_exports, {
   RONDO_SOURCE_SCHEMA_VERSION: () => RONDO_SOURCE_SCHEMA_VERSION,
   ROTATION_POLICIES: () => ROTATION_POLICIES,
   RUN_LINKS_KEY: () => RUN_LINKS_KEY,
+  ReadExtractError: () => ReadExtractError,
   RondoSourceError: () => RondoSourceError,
   SCALES: () => SCALES,
   SCHEME_KINDS: () => SCHEME_KINDS,
@@ -141787,6 +142318,7 @@ __export(src_exports, {
   accentOfBlend: () => accentOfBlend,
   acceptProduction: () => acceptProduction,
   acceptSuggestions: () => acceptSuggestions,
+  activeContentWarnings: () => activeContentWarnings,
   activitySpans: () => activitySpans,
   addColourway: () => addColourway,
   addEntry: () => addEntry,
@@ -141917,6 +142449,7 @@ __export(src_exports, {
   carryImageMetadata: () => carryImageMetadata,
   censusDeck: () => censusDeck,
   censusHash: () => censusHash,
+  characterErrorRate: () => characterErrorRate,
   chartToolOffer: () => chartToolOffer,
   checkAttributionReadback: () => checkAttributionReadback,
   checkBrandDesign: () => checkBrandDesign,
@@ -142136,6 +142669,7 @@ __export(src_exports, {
   edgeHeadInset: () => edgeHeadInset,
   edgeNested: () => edgeNested,
   edgeWaypoints: () => edgeWaypoints,
+  editDistance: () => editDistance,
   effectiveAction: () => effectiveAction,
   effectiveReplacement: () => effectiveReplacement,
   effectiveSlideOrder: () => effectiveSlideOrder,
@@ -142187,8 +142721,10 @@ __export(src_exports, {
   extractC2paFromPdf: () => extractC2paFromPdf,
   extractC2paStore: () => extractC2paStore,
   extractFileMetadata: () => extractFileMetadata,
+  extractMarkdown: () => extractMarkdown,
   extractPageText: () => extractPageText,
   extractPenpotProject: () => extractPenpotProject,
+  extractPlainText: () => extractPlainText,
   extractSvgColors: () => extractSvgColors,
   extractXmpPacket: () => extractXmpPacket,
   extremaCubic: () => extremaCubic,
@@ -142508,6 +143044,7 @@ __export(src_exports, {
   nodeToBox: () => nodeToBox,
   normaliseDesignColourRefs: () => normaliseDesignColourRefs,
   normaliseFidelityText: () => normaliseFidelityText,
+  normaliseForScore: () => normaliseForScore,
   normaliseKfEase: () => normaliseKfEase,
   normaliseLicence: () => normaliseLicence,
   normalizeForSpeech: () => normalizeForSpeech,
@@ -142527,11 +143064,13 @@ __export(src_exports, {
   oklchGamut: () => oklchGamut,
   oklchSlice: () => oklchSlice,
   oklchToHex: () => oklchToHex,
+  ooxmlActiveContent: () => ooxmlActiveContent,
   openPendingCounts: () => openPendingCounts,
   openPendingIds: () => openPendingIds,
   optimize: () => optimizeDocument,
   optimizeDocument: () => optimizeDocument,
   orientContour: () => orientContour,
+  originOfText: () => originOfText,
   outputLicenceId: () => outputLicenceId,
   outputLicenceNotice: () => outputLicenceNotice,
   packApng: () => packApng,
@@ -142596,6 +143135,7 @@ __export(src_exports, {
   parseMotionParams: () => parseMotionParams,
   parseMotionTiming: () => parseMotionTiming,
   parseOklch: () => parseOklch,
+  parsePageSelection: () => parsePageSelection,
   parsePenpotColor: () => parsePenpotColor,
   parsePenpotContent: () => parsePenpotContent,
   parsePenpotImportStream: () => parsePenpotImportStream,
@@ -142741,6 +143281,7 @@ __export(src_exports, {
   readDesignText: () => readDesignText,
   readDocx: () => readDocx,
   readEpub: () => readEpub,
+  readExtract: () => readExtract,
   readFaces: () => readFaces,
   readIdmlSpreads: () => readIdmlSpreads,
   readLicenceExpression: () => readLicenceExpression,
@@ -142856,6 +143397,7 @@ __export(src_exports, {
   scanPenpotAppliedTokens: () => scanPenpotAppliedTokens,
   scanPenpotUsage: () => scanPenpotUsage,
   scoreArchetypes: () => scoreArchetypes,
+  scoreExtract: () => scoreExtract,
   scoreTokenWatermark: () => scoreTokenWatermark,
   scormAdapterJs: () => scormAdapterJs,
   scormLaunchHtml: () => scormLaunchHtml,
@@ -143128,6 +143670,7 @@ __export(src_exports, {
   withVersionIndex: () => withVersionIndex,
   withoutRunRefs: () => withoutRunRefs,
   woffToSfnt: () => woffToSfnt,
+  wordErrorRate: () => wordErrorRate,
   wordTimingsFromDurations: () => wordTimingsFromDurations,
   workerRpcMethods: () => workerRpcMethods,
   wrapByAverageWidth: () => wrapByAverageWidth,
@@ -143505,6 +144048,8 @@ var init_src2 = __esm({
     init_agent_view();
     init_edge_trace();
     init_content_inventory();
+    init_read_extract();
+    init_read_extract_quality();
     init_surface_variant();
     init_icon_theme();
     init_camera_raw_preset();
@@ -148210,7 +148755,7 @@ async function reconstructFlattenedSlide(input) {
       });
       return joined;
     };
-    const wordsOf5 = (block, typeset, para) => typeset.lines.filter((line) => para.lines.includes(line.index)).flatMap((line) => wordStems(styleIn(block, line)));
+    const wordsOf6 = (block, typeset, para) => typeset.lines.filter((line) => para.lines.includes(line.index)).flatMap((line) => wordStems(styleIn(block, line)));
     const weight = /* @__PURE__ */ new Map();
     for (const block of liveBlocks) {
       const own4 = apart(block.lines);
@@ -148225,7 +148770,7 @@ async function reconstructFlattenedSlide(input) {
     const usualWeight = byWeight.length >= 2 ? weightedMedian(byWeight) : 0;
     const sized = [];
     for (const [block, typeset] of typesetOf) {
-      for (const para of typeset.paragraphs) sized.push({ para, size: para.sizePx ?? 0, words: wordsOf5(block, typeset, para) });
+      for (const para of typeset.paragraphs) sized.push({ para, size: para.sizePx ?? 0, words: wordsOf6(block, typeset, para) });
     }
     const heavierThanPeers = (para) => {
       const own4 = sized.find((one) => one.para === para);
@@ -148278,7 +148823,7 @@ async function reconstructFlattenedSlide(input) {
         return n7 > 0 && sum / n7 >= BOLD_RATIO * usualWeight;
       };
       const heavyOf = (para) => {
-        const words3 = wordsOf5(block, typeset, para);
+        const words3 = wordsOf6(block, typeset, para);
         const usualHere = words3.length >= 2 ? weightedMedian(words3.map((w) => ({ r: w.stem, n: w.letters }))) : 0;
         return (stem2, capitals) => stem2 !== null && usualHere > 0 && stem2 >= (capitals ? CAPITALS_BOLD_RATIO : WORD_BOLD_RATIO) * usualHere;
       };
@@ -149505,9 +150050,17 @@ function median9(xs) {
   const m2 = s.length >> 1;
   return s.length % 2 ? s[m2] : (s[m2 - 1] + s[m2]) / 2;
 }
-function columnCuts(texts) {
+function columnCuts(all) {
+  if (all.length < MIN_COLUMN_LINES2 * 2) return [];
+  const sizeOf3 = (o) => (o.text?.paras[0]?.runs[0]?.sizePt ?? 12) * PX_PER_PT;
+  const body = median9(all.map(sizeOf3));
+  const found = cutsAmong(all, body);
+  if (found.length) return found;
+  const unheaded = all.filter((o) => sizeOf3(o) <= body * HEADING_SIZES);
+  return unheaded.length < all.length ? cutsAmong(unheaded, body) : [];
+}
+function cutsAmong(texts, body) {
   if (texts.length < MIN_COLUMN_LINES2 * 2) return [];
-  const body = median9(texts.map((o) => (o.text?.paras[0]?.runs[0]?.sizePt ?? 12) * PX_PER_PT));
   const spans = texts.map((o) => [o.box.x, o.box.x + Math.max(1, o.box.w)]).sort((a, b) => a[0] - b[0]);
   const cuts = [];
   let reach2 = spans[0][1];
@@ -150094,7 +150647,7 @@ async function vectorObject(id3, nodes, indices, extent2, width, height, artifac
   object4.fingerprint = await fingerprintOf3("vector", box4, vectorMaterial(members, extent2.x, extent2.y));
   return { object: object4, warnings: warnings2 };
 }
-var PX_PER_PT, SOURCE_PDF_DEFAULT_CAPS, MAX_VECTOR_CHARS, FLATTEN_MAX_OTHERS, FLATTEN_MAX_OTHER_AREA, FLATTEN_EDGE_BAND, MAX_OCR_LINES, round28, px, plural2, EDGE_EPS, GUTTER_SIZES2, MIN_COLUMN_LINES2, MIN_COLUMN_FILL2, MAX_COLUMNS2, MIN_TAGGED_SHARE, idCmp, FILL_NOT_PAINTED, FILL_EXACT, WORK_BUDGET, RESOURCES_REFUSED, YIELD_EVERY_MS;
+var PX_PER_PT, SOURCE_PDF_DEFAULT_CAPS, MAX_VECTOR_CHARS, FLATTEN_MAX_OTHERS, FLATTEN_MAX_OTHER_AREA, FLATTEN_EDGE_BAND, MAX_OCR_LINES, round28, px, plural2, EDGE_EPS, GUTTER_SIZES2, MIN_COLUMN_LINES2, MIN_COLUMN_FILL2, MAX_COLUMNS2, MIN_TAGGED_SHARE, HEADING_SIZES, idCmp, FILL_NOT_PAINTED, FILL_EXACT, WORK_BUDGET, RESOURCES_REFUSED, YIELD_EVERY_MS;
 var init_source_pdf = __esm({
   "packages/node-shell/src/rebrand/source-pdf.ts"() {
     "use strict";
@@ -150126,6 +150679,7 @@ var init_source_pdf = __esm({
     MIN_COLUMN_FILL2 = 0.25;
     MAX_COLUMNS2 = 4;
     MIN_TAGGED_SHARE = 0.6;
+    HEADING_SIZES = 1.25;
     idCmp = (a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
     FILL_NOT_PAINTED = /^(pattern\.unsupported|shading\.unsupported|shading\.sh\.unclipped|pattern\.tiling\.raster\.skipped|pattern\.smasked\.skipped)\b/;
     FILL_EXACT = /^(pattern\.tiling\.collapsed|shading\.type1\.(flat|axialised))\b/;
@@ -150544,7 +151098,7 @@ function glyphRunKey(items2, run3) {
 function fold2(text9) {
   return text9.normalize("NFKC").toLowerCase().replace(/\s+/g, " ").trim();
 }
-function editDistance(a, b) {
+function editDistance2(a, b) {
   if (a === b) return 0;
   if (!a.length) return b.length;
   if (!b.length) return a.length;
@@ -150565,9 +151119,9 @@ function distance3(a, b) {
   const fa = fold2(a);
   const fb = fold2(b);
   const longest = Math.max(fa.length, fb.length);
-  return longest ? editDistance(fa, fb) / longest : 0;
+  return longest ? editDistance2(fa, fb) / longest : 0;
 }
-function wordsOf4(text9) {
+function wordsOf5(text9) {
   return text9.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
 }
 function phrasesOf(hints, items2) {
@@ -150589,15 +151143,15 @@ function phrasesOf(hints, items2) {
   return out;
 }
 function overlapShare2(reading, phrase) {
-  const read = wordsOf4(fold2(reading));
+  const read = wordsOf5(fold2(reading));
   if (!read.length) return 0;
-  const have = new Set(wordsOf4(fold2(phrase)));
+  const have = new Set(wordsOf5(fold2(phrase)));
   let hit = 0;
   for (const w of read) if (have.has(w)) hit += 1;
   return hit / read.length;
 }
 function splitPhrase(phrase, lines) {
-  const words3 = wordsOf4(phrase);
+  const words3 = wordsOf5(phrase);
   const k = lines.length;
   if (k === 1) return { parts: [phrase.replace(/\s+/g, " ").trim()], cost: distance3(lines[0], phrase) };
   if (k > 8 || words3.length < k || words3.length > 60) return null;
@@ -154816,6 +155370,512 @@ var init_contrast_sample = __esm({
   }
 });
 
+// packages/node-shell/src/ml/ocr-models.ts
+function stagedOcrModels() {
+  return OCR_MODELS.filter((m2) => OCR_STAGED[m2.id]);
+}
+function ocrModelsFor(_hasNative) {
+  return stagedOcrModels();
+}
+var OCR_MODEL_FILES, OCR_DEFAULT_MODEL, OCR_MODEL_SPEC, OCR_MODELS, OCR_MODEL_BYTES, OCR_STAGED;
+var init_ocr_models = __esm({
+  "packages/node-shell/src/ml/ocr-models.ts"() {
+    "use strict";
+    OCR_MODEL_FILES = {
+      "ppocr-v5-mobile": {
+        det: "ppocrv5-mobile-det.onnx",
+        rec: "ppocrv5-mobile-rec.onnx",
+        dict: "ppocrv5-dict.txt"
+      }
+    };
+    OCR_DEFAULT_MODEL = "ppocr-v5-mobile";
+    OCR_MODEL_SPEC = {
+      "ppocr-v5-mobile": {
+        det: {
+          inputName: "x",
+          limitSide: 960,
+          mean: [0.485, 0.456, 0.406],
+          std: [0.229, 0.224, 0.225],
+          binThresh: 0.3,
+          boxThresh: 0.5,
+          minBoxArea: 24,
+          unclipRatio: 1.6
+        },
+        rec: {
+          inputName: "x",
+          height: 48,
+          maxWidth: 480,
+          mean: [0.5, 0.5, 0.5],
+          std: [0.5, 0.5, 0.5]
+        }
+      }
+    };
+    OCR_MODELS = [
+      {
+        id: "ppocr-v5-mobile",
+        name: "PP-OCRv5 (mobile)",
+        tier: "default",
+        // det 4,826,518 + rec 16,562,373 + dict 74,012 (verified 2026-08-18).
+        approxBytes: 21462903,
+        license: "Apache-2.0",
+        attribution: "PaddleOCR PP-OCRv5 mobile, \xA9 PaddlePaddle authors (Apache-2.0)",
+        version: "v5-mobile",
+        // The multilingual mobile recogniser: an 18,383-glyph dictionary spanning Latin,
+        // CJK and more. A representative subset is listed; the model reads well beyond it.
+        languages: ["en", "zh", "ja", "ko", "fr", "de", "es", "pt", "ru", "it"],
+        note: "Reads printed and on-screen text - Latin, CJK and many more scripts."
+      }
+    ];
+    OCR_MODEL_BYTES = Object.fromEntries(
+      OCR_MODELS.map((m2) => [m2.id, m2.approxBytes])
+    );
+    OCR_STAGED = {
+      // Staged 2026-08-18: files vendored via scripts/fetch-ocr-models.ts, licence
+      // Apache-2.0 (official PaddleOCR via paddle2onnx), both graphs loaded + run on
+      // CPU, and the CTC dict alignment confirmed (rec output 18,385 classes = dict
+      // 18,383 + blank + space, exactly the charset ocr.ts builds). The one check left
+      // is a real-image eyeball IN THE BROWSER (the WASM target), which decides accuracy.
+      "ppocr-v5-mobile": true
+    };
+  }
+});
+
+// packages/node-shell/src/pdf-structure.ts
+var pdf_structure_exports = {};
+__export(pdf_structure_exports, {
+  scanPdfStructure: () => scanPdfStructure
+});
+import {
+  PDFName as PDFName2,
+  PDFDict as PDFDict2,
+  PDFArray as PDFArray3,
+  PDFRef as PDFRef2,
+  PDFString as PDFString2,
+  PDFHexString as PDFHexString2,
+  PDFNumber as PDFNumber2,
+  PDFRawStream as PDFRawStream2,
+  decodePDFRawStream as decodePDFRawStream2
+} from "pdf-lib";
+function look(ctx, o) {
+  try {
+    return ctx.lookup(o);
+  } catch {
+    return void 0;
+  }
+}
+function dictOf2(ctx, o) {
+  const v = look(ctx, o);
+  return v instanceof PDFRawStream2 ? v.dict : v instanceof PDFDict2 ? v : null;
+}
+function get2(ctx, o, key2) {
+  const d = dictOf2(ctx, o);
+  return d ? d.get(PDFName2.of(key2)) : void 0;
+}
+function nameOf2(ctx, o) {
+  const v = look(ctx, o);
+  return v instanceof PDFName2 ? v.asString().replace(/^\//, "") : null;
+}
+function numOf2(ctx, o) {
+  const v = look(ctx, o);
+  return v instanceof PDFNumber2 ? v.asNumber() : null;
+}
+function arrOf(ctx, o) {
+  const v = look(ctx, o);
+  return v instanceof PDFArray3 ? v.asArray() : null;
+}
+function strOf(ctx, o) {
+  const v = look(ctx, o);
+  if (!(v instanceof PDFString2) && !(v instanceof PDFHexString2)) return null;
+  try {
+    return v.decodeText();
+  } catch {
+    try {
+      return v.asString();
+    } catch {
+      return null;
+    }
+  }
+}
+function scriptText(ctx, o) {
+  const s = strOf(ctx, o);
+  if (s != null) return s;
+  const v = look(ctx, o);
+  if (v instanceof PDFRawStream2) {
+    try {
+      return new TextDecoder("utf-8").decode(decodePDFRawStream2(v).decode());
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+function refTag(o) {
+  return o instanceof PDFRef2 ? o.tag : null;
+}
+function clip2(s, cap = DETAIL_CAP) {
+  const t = s.replace(/\s+/g, " ").trim();
+  return t.length > cap ? `${t.slice(0, cap - 1)}\u2026` : t;
+}
+function list3(items2, cap = LIST_CAP) {
+  const seen = items2.map((s) => s.trim()).filter(Boolean);
+  if (!seen.length) return "";
+  const head2 = seen.slice(0, cap).join(", ");
+  return seen.length > cap ? `${head2} +${seen.length - cap} more` : head2;
+}
+function uniq(items2) {
+  return [...new Set(items2.filter(Boolean))];
+}
+function bytesLabel(n7) {
+  if (!Number.isFinite(n7) || n7 < 0) return "";
+  if (n7 < 1024) return `${n7} B`;
+  if (n7 < 1024 * 1024) return `${(n7 / 1024).toFixed(n7 < 10 * 1024 ? 1 : 0)} KB`;
+  return `${(n7 / (1024 * 1024)).toFixed(1)} MB`;
+}
+function count3(n7, one, many = `${one}s`) {
+  return `${n7} ${n7 === 1 ? one : many}`;
+}
+function walkNameTree(ctx, node, out, seen = /* @__PURE__ */ new Set(), depth = 0) {
+  if (depth > MAX_DEPTH6 || out.length >= MAX_ITEMS2) return out;
+  const tag3 = refTag(node);
+  if (tag3) {
+    if (seen.has(tag3)) return out;
+    seen.add(tag3);
+  }
+  const d = dictOf2(ctx, node);
+  if (!d) return out;
+  const names = arrOf(ctx, d.get(PDFName2.of("Names")));
+  if (names) {
+    for (let i = 0; i + 1 < names.length && out.length < MAX_ITEMS2; i += 2) {
+      out.push([strOf(ctx, names[i]) ?? "", names[i + 1]]);
+    }
+  }
+  const kids2 = arrOf(ctx, d.get(PDFName2.of("Kids")));
+  if (kids2) for (const k of kids2) walkNameTree(ctx, k, out, seen, depth + 1);
+  return out;
+}
+function readFilespec(ctx, spec, via, fallbackName = "") {
+  const d = dictOf2(ctx, spec);
+  if (!d) return null;
+  const name = strOf(ctx, d.get(PDFName2.of("UF"))) || strOf(ctx, d.get(PDFName2.of("F"))) || strOf(ctx, d.get(PDFName2.of("Desc"))) || fallbackName;
+  const ef = dictOf2(ctx, d.get(PDFName2.of("EF")));
+  const stream = ef ? ef.get(PDFName2.of("UF")) ?? ef.get(PDFName2.of("F")) : void 0;
+  const size = stream ? numOf2(ctx, get2(ctx, get2(ctx, stream, "Params"), "Size")) ?? numOf2(ctx, get2(ctx, stream, "Length")) : null;
+  if (!name && !stream) return null;
+  return { name: name || "(unnamed)", bytes: size, via };
+}
+function collectAttachments(ctx, doc, pages) {
+  const out = [];
+  const tree = get2(ctx, doc.catalog.get(PDFName2.of("Names")), "EmbeddedFiles");
+  for (const [key2, val] of walkNameTree(ctx, tree, [])) {
+    const a = readFilespec(ctx, val, "names", key2);
+    if (a) out.push(a);
+  }
+  const afRoots = [doc.catalog.get(PDFName2.of("AF")), ...pages.map((p) => p.get(PDFName2.of("AF")))];
+  for (const root2 of afRoots) {
+    for (const spec of arrOf(ctx, root2) ?? []) {
+      const a = readFilespec(ctx, spec, "af");
+      if (a) out.push(a);
+    }
+  }
+  for (const annot of eachAnnot(ctx, pages)) {
+    if (nameOf2(ctx, annot.get(PDFName2.of("Subtype"))) !== "FileAttachment") continue;
+    const a = readFilespec(ctx, annot.get(PDFName2.of("FS")), "annot");
+    if (a) out.push(a);
+  }
+  const seen = /* @__PURE__ */ new Set();
+  return out.filter((a) => {
+    const k = `${a.name}\0${a.bytes ?? ""}`;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+function* eachAnnot(ctx, pages) {
+  let n7 = 0;
+  for (const page3 of pages) {
+    for (const ref2 of arrOf(ctx, page3.get(PDFName2.of("Annots"))) ?? []) {
+      if (n7++ >= MAX_ITEMS2) return;
+      const d = dictOf2(ctx, ref2);
+      if (d) yield d;
+    }
+  }
+}
+function emptySink() {
+  return { scripts: [], uris: [], launches: [], submits: [], remotes: [] };
+}
+function walkAction(ctx, action, sink, seen, depth = 0) {
+  if (depth > MAX_DEPTH6) return;
+  const tag3 = refTag(action);
+  if (tag3) {
+    if (seen.has(tag3)) return;
+    seen.add(tag3);
+  }
+  const d = dictOf2(ctx, action);
+  if (!d) return;
+  switch (nameOf2(ctx, d.get(PDFName2.of("S")))) {
+    case "JavaScript": {
+      const js = scriptText(ctx, d.get(PDFName2.of("JS")));
+      if (js?.trim()) sink.scripts.push(js);
+      break;
+    }
+    case "URI": {
+      const u = strOf(ctx, d.get(PDFName2.of("URI")));
+      if (u) sink.uris.push(u);
+      break;
+    }
+    case "Launch": {
+      const f = d.get(PDFName2.of("F"));
+      const target2 = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F")) || strOf(ctx, get2(ctx, d.get(PDFName2.of("Win")), "F"));
+      sink.launches.push(target2 || "(unnamed target)");
+      break;
+    }
+    case "SubmitForm": {
+      const f = d.get(PDFName2.of("F"));
+      const target2 = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F"));
+      sink.submits.push(target2 || "(unnamed endpoint)");
+      break;
+    }
+    case "GoToR":
+    case "GoToE": {
+      const f = d.get(PDFName2.of("F"));
+      const target2 = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F"));
+      sink.remotes.push(target2 || "(unnamed document)");
+      break;
+    }
+  }
+  const next2 = d.get(PDFName2.of("Next"));
+  const arr = arrOf(ctx, next2);
+  if (arr) for (const a of arr) walkAction(ctx, a, sink, seen, depth + 1);
+  else if (next2) walkAction(ctx, next2, sink, seen, depth + 1);
+}
+function walkAdditionalActions(ctx, aa, sink, seen) {
+  const d = dictOf2(ctx, aa);
+  if (!d) return;
+  for (const [, v] of d.entries()) walkAction(ctx, v, sink, seen);
+}
+function collectActions(ctx, doc, pages, fields2) {
+  const sink = emptySink();
+  const seen = /* @__PURE__ */ new Set();
+  walkAction(ctx, doc.catalog.get(PDFName2.of("OpenAction")), sink, seen);
+  walkAdditionalActions(ctx, doc.catalog.get(PDFName2.of("AA")), sink, seen);
+  const jsTree = get2(ctx, doc.catalog.get(PDFName2.of("Names")), "JavaScript");
+  for (const [, val] of walkNameTree(ctx, jsTree, [])) walkAction(ctx, val, sink, seen);
+  for (const page3 of pages) walkAdditionalActions(ctx, page3.get(PDFName2.of("AA")), sink, seen);
+  for (const annot of eachAnnot(ctx, pages)) {
+    walkAction(ctx, annot.get(PDFName2.of("A")), sink, seen);
+    walkAdditionalActions(ctx, annot.get(PDFName2.of("AA")), sink, seen);
+  }
+  for (const f of fields2) {
+    walkAction(ctx, f.dict.get(PDFName2.of("A")), sink, seen);
+    walkAdditionalActions(ctx, f.dict.get(PDFName2.of("AA")), sink, seen);
+  }
+  return sink;
+}
+function fieldValue(ctx, v) {
+  const s = strOf(ctx, v);
+  if (s != null) return s;
+  const n7 = nameOf2(ctx, v);
+  if (n7 != null) return n7 === "Off" ? null : n7;
+  const num18 = numOf2(ctx, v);
+  if (num18 != null) return String(num18);
+  const arr = arrOf(ctx, v);
+  if (arr) return list3(arr.map((x) => strOf(ctx, x) ?? "")) || null;
+  return null;
+}
+function walkFields(ctx, node, out, seen, prefix = "", inheritedType = null, depth = 0) {
+  if (depth > MAX_DEPTH6 || out.length >= MAX_ITEMS2) return;
+  const tag3 = refTag(node);
+  if (tag3) {
+    if (seen.has(tag3)) return;
+    seen.add(tag3);
+  }
+  const d = dictOf2(ctx, node);
+  if (!d) return;
+  const partial = strOf(ctx, d.get(PDFName2.of("T")));
+  const name = partial ? prefix ? `${prefix}.${partial}` : partial : prefix;
+  const type = nameOf2(ctx, d.get(PDFName2.of("FT"))) ?? inheritedType;
+  const kids2 = arrOf(ctx, d.get(PDFName2.of("Kids")));
+  const childFields = (kids2 ?? []).filter((k) => {
+    const kd = dictOf2(ctx, k);
+    return kd ? kd.get(PDFName2.of("T")) != null || kd.get(PDFName2.of("Kids")) != null : false;
+  });
+  if (childFields.length) {
+    for (const k of childFields) walkFields(ctx, k, out, seen, name, type, depth + 1);
+    return;
+  }
+  if (!type && !partial) return;
+  out.push({ dict: d, name, type, value: fieldValue(ctx, d.get(PDFName2.of("V"))) });
+}
+function collectFields(ctx, doc) {
+  const acro = doc.catalog.get(PDFName2.of("AcroForm"));
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const f of arrOf(ctx, get2(ctx, acro, "Fields")) ?? []) walkFields(ctx, f, out, seen);
+  return out;
+}
+function collectLayers(ctx, doc) {
+  const ocp = doc.catalog.get(PDFName2.of("OCProperties"));
+  const byTag = /* @__PURE__ */ new Map();
+  const names = [];
+  for (const g2 of arrOf(ctx, get2(ctx, ocp, "OCGs")) ?? []) {
+    const n7 = strOf(ctx, get2(ctx, g2, "Name")) ?? "(unnamed layer)";
+    names.push(n7);
+    const tag3 = refTag(g2);
+    if (tag3) byTag.set(tag3, n7);
+  }
+  const hidden4 = [];
+  for (const g2 of arrOf(ctx, get2(ctx, get2(ctx, ocp, "D"), "OFF")) ?? []) {
+    const tag3 = refTag(g2);
+    hidden4.push(tag3 && byTag.get(tag3) || strOf(ctx, get2(ctx, g2, "Name")) || "(unnamed layer)");
+  }
+  return { names, hidden: hidden4 };
+}
+function pageDicts(doc) {
+  try {
+    return doc.getPages().map((p) => p.node);
+  } catch {
+    return [];
+  }
+}
+function scanPdfStructure(doc) {
+  const out = [];
+  const add3 = (label4, detail, tone = "") => {
+    const d = clip2(detail);
+    if (d) out.push({ label: label4, detail: d, tone });
+  };
+  let ctx;
+  try {
+    ctx = doc.context;
+  } catch {
+    return out;
+  }
+  const pages = pageDicts(doc);
+  try {
+    const files = collectAttachments(ctx, doc, pages);
+    if (files.length) {
+      const shown = files.map((f) => f.bytes ? `${f.name} (${bytesLabel(f.bytes)})` : f.name);
+      add3("Attachments", `${count3(files.length, "embedded file")} - ${list3(shown)}`, "warn");
+    }
+  } catch {
+  }
+  let fields2 = [];
+  try {
+    fields2 = collectFields(ctx, doc);
+  } catch {
+  }
+  try {
+    const act = collectActions(ctx, doc, pages, fields2);
+    const scripts = uniq(act.scripts);
+    if (scripts.length) {
+      add3("JavaScript", `${count3(scripts.length, "script")} - runs when the document is opened or used \xB7 ${clip2(scripts[0], 160)}`, "warn");
+    }
+    if (act.launches.length) {
+      add3("Launch actions", `${count3(act.launches.length, "action")} that opens an external program or file - ${list3(uniq(act.launches))}`, "warn");
+    }
+    if (act.submits.length) {
+      add3("Form submission", `Sends filled values to ${list3(uniq(act.submits))}`, "warn");
+    }
+    if (act.remotes.length) {
+      add3("Remote documents", `Jumps into ${list3(uniq(act.remotes))}`, "warn");
+    }
+    if (act.uris.length) {
+      const urls = uniq(act.uris);
+      const hosts = uniq(urls.map((u) => {
+        try {
+          return new URL(u).host;
+        } catch {
+          return "";
+        }
+      }));
+      add3("Links", hosts.length ? `${count3(urls.length, "outbound link")} to ${list3(hosts)}` : `${count3(urls.length, "outbound link")} - ${list3(urls)}`);
+      for (const url of urls.filter((u) => u.length <= 2048).slice(0, 64)) {
+        out.push({ label: "Link", detail: url, tone: "" });
+      }
+    }
+  } catch {
+  }
+  try {
+    const filled2 = fields2.filter((f) => f.type !== "Sig" && f.value);
+    if (filled2.length) {
+      add3("Form values", `${count3(filled2.length, "filled field")} - ${list3(filled2.map((f) => `${f.name || "(unnamed)"}: ${f.value}`))}`, "warn");
+    }
+    const signatures = fields2.filter((f) => f.type === "Sig" && f.dict.get(PDFName2.of("V")) != null);
+    if (signatures.length) {
+      add3("Digital signature", `${count3(signatures.length, "signed field")} - re-saving this file invalidates it`);
+    }
+    if (get2(ctx, doc.catalog.get(PDFName2.of("AcroForm")), "XFA")) {
+      add3("XFA form", "Carries an XFA form definition - an XML form layer beyond the visible page");
+    }
+  } catch {
+  }
+  try {
+    const markup = [...eachAnnot(ctx, pages)].filter((a) => {
+      const sub = nameOf2(ctx, a.get(PDFName2.of("Subtype")));
+      return sub != null && !NON_MARKUP.has(sub);
+    });
+    const authors = uniq(markup.map((a) => strOf(ctx, a.get(PDFName2.of("T"))) ?? ""));
+    const comments = markup.map((a) => strOf(ctx, a.get(PDFName2.of("Contents"))) ?? "").filter(Boolean);
+    if (markup.length) {
+      const parts = [count3(markup.length, "annotation")];
+      if (authors.length) parts.push(`by ${list3(authors)}`);
+      if (comments.length) parts.push(`\xB7 ${clip2(comments[0], 120)}`);
+      add3("Annotations", parts.join(" "), authors.length || comments.length ? "warn" : "");
+    }
+  } catch {
+  }
+  try {
+    const { names, hidden: hidden4 } = collectLayers(ctx, doc);
+    if (hidden4.length) {
+      add3("Hidden layers", `${count3(hidden4.length, "layer")} present but switched off - ${list3(hidden4)}`, "warn");
+    } else if (names.length) {
+      add3("Layers", `${count3(names.length, "layer")} - ${list3(names)}`);
+    }
+  } catch {
+  }
+  if (pages.length) add3("Pages", count3(pages.length, "page"));
+  return out;
+}
+var MAX_DEPTH6, MAX_ITEMS2, LIST_CAP, DETAIL_CAP, NON_MARKUP;
+var init_pdf_structure = __esm({
+  "packages/node-shell/src/pdf-structure.ts"() {
+    "use strict";
+    MAX_DEPTH6 = 32;
+    MAX_ITEMS2 = 500;
+    LIST_CAP = 8;
+    DETAIL_CAP = 400;
+    NON_MARKUP = /* @__PURE__ */ new Set(["Link", "Widget", "Popup", "FileAttachment"]);
+  }
+});
+
+// packages/node-shell/src/pdf-active-content.ts
+async function pdfActiveContent(bytes2) {
+  try {
+    const [{ loadPdfDocument: loadPdfDocument2 }, { scanPdfStructure: scanPdfStructure2 }] = await Promise.all([Promise.resolve().then(() => (init_pdf_read(), pdf_read_exports)), Promise.resolve().then(() => (init_pdf_structure(), pdf_structure_exports))]);
+    const findings = scanPdfStructure2(await loadPdfDocument2(bytes2));
+    const leading = (label4) => {
+      const found = findings.find((f) => f.label === label4);
+      if (!found) return 0;
+      const n7 = /^(\d+)/.exec(found.detail);
+      return n7 ? Number(n7[1]) : 1;
+    };
+    const out = {};
+    const scripts = leading("JavaScript");
+    const launches = leading("Launch actions");
+    const embedded = leading("Attachments");
+    if (scripts) out.scripts = scripts;
+    if (launches) out.launches = launches;
+    if (embedded) out.embedded = embedded;
+    return out;
+  } catch {
+    return {};
+  }
+}
+var init_pdf_active_content = __esm({
+  "packages/node-shell/src/pdf-active-content.ts"() {
+    "use strict";
+  }
+});
+
 // packages/node-shell/src/rebrand-project-store.ts
 import { mkdir, readFile as readFile5, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
@@ -154994,6 +156054,9 @@ async function readContentInventory(input) {
     name: input.name,
     parseXml,
     ...input.maxMediaBytes !== void 0 ? { maxMediaBytes: input.maxMediaBytes } : {},
+    ...input.ocr ? { ocr: input.ocr } : {},
+    ...input.ocr && input.ocrModel ? { ocrModel: input.ocrModel } : {},
+    ...!input.ocr && input.ocrMissing ? { ocrMissing: input.ocrMissing } : {},
     ...input.signal ? { signal: input.signal } : {}
   });
   const { source, census } = read;
@@ -155001,16 +156064,22 @@ async function readContentInventory(input) {
   let crops;
   let svgParts;
   const warnings2 = [];
+  let active = {};
   if (source.source.kind === "pptx") {
     try {
-      const extras = pptxExtras(await inflatePptx(input.bytes), parseXml, source);
+      const parts = await inflatePptx(input.bytes);
+      active = ooxmlActiveContent(Object.keys(parts));
+      const extras = pptxExtras(parts, parseXml, source);
       notesParas = extras.notesParas;
       crops = extras.crops;
       svgParts = extras.svgs;
     } catch (err) {
       warnings2.push({ code: "notes-structure-unavailable", message: `The notes paragraphs and picture crops could not be read again: ${err.message}` });
     }
+  } else if (source.source.kind === "pdf") {
+    active = await pdfActiveContent(input.bytes);
   }
+  warnings2.push(...activeContentWarnings(active));
   const media = new Map(read.media);
   const vectors = /* @__PURE__ */ new Map();
   const maxSvg = input.maxMediaBytes ?? 64 * 1024 * 1024;
@@ -155093,15 +156162,18 @@ async function readContentInventory(input) {
     ...crops ? { crops } : {},
     ...vectors.size > 0 ? { vectors } : {},
     ...thumbnails ? { thumbnails } : {},
+    recognizers: RECOGNIZERS,
     warnings: warnings2
   });
   return { inventory: inventory2, media, written, reused, source, census };
 }
-var ContentInventoryError, parser, MIME_EXT2, errorCode, THUMBNAIL_LONG_EDGE_PX, DRAWABLE;
+var ContentInventoryError, parser, MIME_EXT2, errorCode, THUMBNAIL_LONG_EDGE_PX, DRAWABLE, RECOGNIZERS;
 var init_content_inventory2 = __esm({
   "packages/node-shell/src/content-inventory.ts"() {
     "use strict";
     init_src2();
+    init_ocr_models();
+    init_pdf_active_content();
     init_pptx3();
     init_pipeline();
     init_rebrand_project_store();
@@ -155137,6 +156209,7 @@ var init_content_inventory2 = __esm({
     errorCode = (err) => err?.code;
     THUMBNAIL_LONG_EDGE_PX = 640;
     DRAWABLE = /^image\/(?:png|jpeg|jpg|gif|webp|svg\+xml)$/i;
+    RECOGNIZERS = new Map(OCR_MODELS.map((m2) => [m2.id, { version: m2.version, languages: m2.languages }]));
   }
 });
 
@@ -155160,7 +156233,7 @@ function mediaHashPrefixOfKey(key2) {
   const m2 = HASH_KEY_RE.exec(key2);
   return m2 ? m2[1].toLowerCase() : null;
 }
-function editDistance2(a, b) {
+function editDistance3(a, b) {
   let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
   for (let i = 1; i <= a.length; i += 1) {
     const next2 = [i];
@@ -155173,7 +156246,7 @@ function closestRef(key2, refs) {
   let best;
   let bestDistance = Infinity;
   for (const ref2 of refs) {
-    const d = editDistance2(key2, ref2);
+    const d = editDistance3(key2, ref2);
     if (d < bestDistance) [best, bestDistance] = [ref2, d];
   }
   return best !== void 0 && bestDistance <= Math.max(2, Math.floor(key2.length / 4)) ? best : void 0;
@@ -156011,413 +157084,6 @@ var init_jxl2 = __esm({
     init_jxl();
     queue = Promise.resolve();
     pending2 = 0;
-  }
-});
-
-// packages/node-shell/src/pdf-structure.ts
-var pdf_structure_exports = {};
-__export(pdf_structure_exports, {
-  scanPdfStructure: () => scanPdfStructure
-});
-import {
-  PDFName as PDFName2,
-  PDFDict as PDFDict2,
-  PDFArray as PDFArray3,
-  PDFRef as PDFRef2,
-  PDFString as PDFString2,
-  PDFHexString as PDFHexString2,
-  PDFNumber as PDFNumber2,
-  PDFRawStream as PDFRawStream2,
-  decodePDFRawStream as decodePDFRawStream2
-} from "pdf-lib";
-function look(ctx, o) {
-  try {
-    return ctx.lookup(o);
-  } catch {
-    return void 0;
-  }
-}
-function dictOf2(ctx, o) {
-  const v = look(ctx, o);
-  return v instanceof PDFRawStream2 ? v.dict : v instanceof PDFDict2 ? v : null;
-}
-function get2(ctx, o, key2) {
-  const d = dictOf2(ctx, o);
-  return d ? d.get(PDFName2.of(key2)) : void 0;
-}
-function nameOf2(ctx, o) {
-  const v = look(ctx, o);
-  return v instanceof PDFName2 ? v.asString().replace(/^\//, "") : null;
-}
-function numOf2(ctx, o) {
-  const v = look(ctx, o);
-  return v instanceof PDFNumber2 ? v.asNumber() : null;
-}
-function arrOf(ctx, o) {
-  const v = look(ctx, o);
-  return v instanceof PDFArray3 ? v.asArray() : null;
-}
-function strOf(ctx, o) {
-  const v = look(ctx, o);
-  if (!(v instanceof PDFString2) && !(v instanceof PDFHexString2)) return null;
-  try {
-    return v.decodeText();
-  } catch {
-    try {
-      return v.asString();
-    } catch {
-      return null;
-    }
-  }
-}
-function scriptText(ctx, o) {
-  const s = strOf(ctx, o);
-  if (s != null) return s;
-  const v = look(ctx, o);
-  if (v instanceof PDFRawStream2) {
-    try {
-      return new TextDecoder("utf-8").decode(decodePDFRawStream2(v).decode());
-    } catch {
-      return null;
-    }
-  }
-  return null;
-}
-function refTag(o) {
-  return o instanceof PDFRef2 ? o.tag : null;
-}
-function clip2(s, cap = DETAIL_CAP) {
-  const t = s.replace(/\s+/g, " ").trim();
-  return t.length > cap ? `${t.slice(0, cap - 1)}\u2026` : t;
-}
-function list3(items2, cap = LIST_CAP) {
-  const seen = items2.map((s) => s.trim()).filter(Boolean);
-  if (!seen.length) return "";
-  const head2 = seen.slice(0, cap).join(", ");
-  return seen.length > cap ? `${head2} +${seen.length - cap} more` : head2;
-}
-function uniq(items2) {
-  return [...new Set(items2.filter(Boolean))];
-}
-function bytesLabel(n7) {
-  if (!Number.isFinite(n7) || n7 < 0) return "";
-  if (n7 < 1024) return `${n7} B`;
-  if (n7 < 1024 * 1024) return `${(n7 / 1024).toFixed(n7 < 10 * 1024 ? 1 : 0)} KB`;
-  return `${(n7 / (1024 * 1024)).toFixed(1)} MB`;
-}
-function count3(n7, one, many = `${one}s`) {
-  return `${n7} ${n7 === 1 ? one : many}`;
-}
-function walkNameTree(ctx, node, out, seen = /* @__PURE__ */ new Set(), depth = 0) {
-  if (depth > MAX_DEPTH6 || out.length >= MAX_ITEMS2) return out;
-  const tag3 = refTag(node);
-  if (tag3) {
-    if (seen.has(tag3)) return out;
-    seen.add(tag3);
-  }
-  const d = dictOf2(ctx, node);
-  if (!d) return out;
-  const names = arrOf(ctx, d.get(PDFName2.of("Names")));
-  if (names) {
-    for (let i = 0; i + 1 < names.length && out.length < MAX_ITEMS2; i += 2) {
-      out.push([strOf(ctx, names[i]) ?? "", names[i + 1]]);
-    }
-  }
-  const kids2 = arrOf(ctx, d.get(PDFName2.of("Kids")));
-  if (kids2) for (const k of kids2) walkNameTree(ctx, k, out, seen, depth + 1);
-  return out;
-}
-function readFilespec(ctx, spec, via, fallbackName = "") {
-  const d = dictOf2(ctx, spec);
-  if (!d) return null;
-  const name = strOf(ctx, d.get(PDFName2.of("UF"))) || strOf(ctx, d.get(PDFName2.of("F"))) || strOf(ctx, d.get(PDFName2.of("Desc"))) || fallbackName;
-  const ef = dictOf2(ctx, d.get(PDFName2.of("EF")));
-  const stream = ef ? ef.get(PDFName2.of("UF")) ?? ef.get(PDFName2.of("F")) : void 0;
-  const size = stream ? numOf2(ctx, get2(ctx, get2(ctx, stream, "Params"), "Size")) ?? numOf2(ctx, get2(ctx, stream, "Length")) : null;
-  if (!name && !stream) return null;
-  return { name: name || "(unnamed)", bytes: size, via };
-}
-function collectAttachments(ctx, doc, pages) {
-  const out = [];
-  const tree = get2(ctx, doc.catalog.get(PDFName2.of("Names")), "EmbeddedFiles");
-  for (const [key2, val] of walkNameTree(ctx, tree, [])) {
-    const a = readFilespec(ctx, val, "names", key2);
-    if (a) out.push(a);
-  }
-  const afRoots = [doc.catalog.get(PDFName2.of("AF")), ...pages.map((p) => p.get(PDFName2.of("AF")))];
-  for (const root2 of afRoots) {
-    for (const spec of arrOf(ctx, root2) ?? []) {
-      const a = readFilespec(ctx, spec, "af");
-      if (a) out.push(a);
-    }
-  }
-  for (const annot of eachAnnot(ctx, pages)) {
-    if (nameOf2(ctx, annot.get(PDFName2.of("Subtype"))) !== "FileAttachment") continue;
-    const a = readFilespec(ctx, annot.get(PDFName2.of("FS")), "annot");
-    if (a) out.push(a);
-  }
-  const seen = /* @__PURE__ */ new Set();
-  return out.filter((a) => {
-    const k = `${a.name}\0${a.bytes ?? ""}`;
-    if (seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  });
-}
-function* eachAnnot(ctx, pages) {
-  let n7 = 0;
-  for (const page3 of pages) {
-    for (const ref2 of arrOf(ctx, page3.get(PDFName2.of("Annots"))) ?? []) {
-      if (n7++ >= MAX_ITEMS2) return;
-      const d = dictOf2(ctx, ref2);
-      if (d) yield d;
-    }
-  }
-}
-function emptySink() {
-  return { scripts: [], uris: [], launches: [], submits: [], remotes: [] };
-}
-function walkAction(ctx, action, sink, seen, depth = 0) {
-  if (depth > MAX_DEPTH6) return;
-  const tag3 = refTag(action);
-  if (tag3) {
-    if (seen.has(tag3)) return;
-    seen.add(tag3);
-  }
-  const d = dictOf2(ctx, action);
-  if (!d) return;
-  switch (nameOf2(ctx, d.get(PDFName2.of("S")))) {
-    case "JavaScript": {
-      const js = scriptText(ctx, d.get(PDFName2.of("JS")));
-      if (js?.trim()) sink.scripts.push(js);
-      break;
-    }
-    case "URI": {
-      const u = strOf(ctx, d.get(PDFName2.of("URI")));
-      if (u) sink.uris.push(u);
-      break;
-    }
-    case "Launch": {
-      const f = d.get(PDFName2.of("F"));
-      const target2 = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F")) || strOf(ctx, get2(ctx, d.get(PDFName2.of("Win")), "F"));
-      sink.launches.push(target2 || "(unnamed target)");
-      break;
-    }
-    case "SubmitForm": {
-      const f = d.get(PDFName2.of("F"));
-      const target2 = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F"));
-      sink.submits.push(target2 || "(unnamed endpoint)");
-      break;
-    }
-    case "GoToR":
-    case "GoToE": {
-      const f = d.get(PDFName2.of("F"));
-      const target2 = strOf(ctx, f) || strOf(ctx, get2(ctx, f, "UF")) || strOf(ctx, get2(ctx, f, "F"));
-      sink.remotes.push(target2 || "(unnamed document)");
-      break;
-    }
-  }
-  const next2 = d.get(PDFName2.of("Next"));
-  const arr = arrOf(ctx, next2);
-  if (arr) for (const a of arr) walkAction(ctx, a, sink, seen, depth + 1);
-  else if (next2) walkAction(ctx, next2, sink, seen, depth + 1);
-}
-function walkAdditionalActions(ctx, aa, sink, seen) {
-  const d = dictOf2(ctx, aa);
-  if (!d) return;
-  for (const [, v] of d.entries()) walkAction(ctx, v, sink, seen);
-}
-function collectActions(ctx, doc, pages, fields2) {
-  const sink = emptySink();
-  const seen = /* @__PURE__ */ new Set();
-  walkAction(ctx, doc.catalog.get(PDFName2.of("OpenAction")), sink, seen);
-  walkAdditionalActions(ctx, doc.catalog.get(PDFName2.of("AA")), sink, seen);
-  const jsTree = get2(ctx, doc.catalog.get(PDFName2.of("Names")), "JavaScript");
-  for (const [, val] of walkNameTree(ctx, jsTree, [])) walkAction(ctx, val, sink, seen);
-  for (const page3 of pages) walkAdditionalActions(ctx, page3.get(PDFName2.of("AA")), sink, seen);
-  for (const annot of eachAnnot(ctx, pages)) {
-    walkAction(ctx, annot.get(PDFName2.of("A")), sink, seen);
-    walkAdditionalActions(ctx, annot.get(PDFName2.of("AA")), sink, seen);
-  }
-  for (const f of fields2) {
-    walkAction(ctx, f.dict.get(PDFName2.of("A")), sink, seen);
-    walkAdditionalActions(ctx, f.dict.get(PDFName2.of("AA")), sink, seen);
-  }
-  return sink;
-}
-function fieldValue(ctx, v) {
-  const s = strOf(ctx, v);
-  if (s != null) return s;
-  const n7 = nameOf2(ctx, v);
-  if (n7 != null) return n7 === "Off" ? null : n7;
-  const num18 = numOf2(ctx, v);
-  if (num18 != null) return String(num18);
-  const arr = arrOf(ctx, v);
-  if (arr) return list3(arr.map((x) => strOf(ctx, x) ?? "")) || null;
-  return null;
-}
-function walkFields(ctx, node, out, seen, prefix = "", inheritedType = null, depth = 0) {
-  if (depth > MAX_DEPTH6 || out.length >= MAX_ITEMS2) return;
-  const tag3 = refTag(node);
-  if (tag3) {
-    if (seen.has(tag3)) return;
-    seen.add(tag3);
-  }
-  const d = dictOf2(ctx, node);
-  if (!d) return;
-  const partial = strOf(ctx, d.get(PDFName2.of("T")));
-  const name = partial ? prefix ? `${prefix}.${partial}` : partial : prefix;
-  const type = nameOf2(ctx, d.get(PDFName2.of("FT"))) ?? inheritedType;
-  const kids2 = arrOf(ctx, d.get(PDFName2.of("Kids")));
-  const childFields = (kids2 ?? []).filter((k) => {
-    const kd = dictOf2(ctx, k);
-    return kd ? kd.get(PDFName2.of("T")) != null || kd.get(PDFName2.of("Kids")) != null : false;
-  });
-  if (childFields.length) {
-    for (const k of childFields) walkFields(ctx, k, out, seen, name, type, depth + 1);
-    return;
-  }
-  if (!type && !partial) return;
-  out.push({ dict: d, name, type, value: fieldValue(ctx, d.get(PDFName2.of("V"))) });
-}
-function collectFields(ctx, doc) {
-  const acro = doc.catalog.get(PDFName2.of("AcroForm"));
-  const out = [];
-  const seen = /* @__PURE__ */ new Set();
-  for (const f of arrOf(ctx, get2(ctx, acro, "Fields")) ?? []) walkFields(ctx, f, out, seen);
-  return out;
-}
-function collectLayers(ctx, doc) {
-  const ocp = doc.catalog.get(PDFName2.of("OCProperties"));
-  const byTag = /* @__PURE__ */ new Map();
-  const names = [];
-  for (const g2 of arrOf(ctx, get2(ctx, ocp, "OCGs")) ?? []) {
-    const n7 = strOf(ctx, get2(ctx, g2, "Name")) ?? "(unnamed layer)";
-    names.push(n7);
-    const tag3 = refTag(g2);
-    if (tag3) byTag.set(tag3, n7);
-  }
-  const hidden4 = [];
-  for (const g2 of arrOf(ctx, get2(ctx, get2(ctx, ocp, "D"), "OFF")) ?? []) {
-    const tag3 = refTag(g2);
-    hidden4.push(tag3 && byTag.get(tag3) || strOf(ctx, get2(ctx, g2, "Name")) || "(unnamed layer)");
-  }
-  return { names, hidden: hidden4 };
-}
-function pageDicts(doc) {
-  try {
-    return doc.getPages().map((p) => p.node);
-  } catch {
-    return [];
-  }
-}
-function scanPdfStructure(doc) {
-  const out = [];
-  const add3 = (label4, detail, tone = "") => {
-    const d = clip2(detail);
-    if (d) out.push({ label: label4, detail: d, tone });
-  };
-  let ctx;
-  try {
-    ctx = doc.context;
-  } catch {
-    return out;
-  }
-  const pages = pageDicts(doc);
-  try {
-    const files = collectAttachments(ctx, doc, pages);
-    if (files.length) {
-      const shown = files.map((f) => f.bytes ? `${f.name} (${bytesLabel(f.bytes)})` : f.name);
-      add3("Attachments", `${count3(files.length, "embedded file")} - ${list3(shown)}`, "warn");
-    }
-  } catch {
-  }
-  let fields2 = [];
-  try {
-    fields2 = collectFields(ctx, doc);
-  } catch {
-  }
-  try {
-    const act = collectActions(ctx, doc, pages, fields2);
-    const scripts = uniq(act.scripts);
-    if (scripts.length) {
-      add3("JavaScript", `${count3(scripts.length, "script")} - runs when the document is opened or used \xB7 ${clip2(scripts[0], 160)}`, "warn");
-    }
-    if (act.launches.length) {
-      add3("Launch actions", `${count3(act.launches.length, "action")} that opens an external program or file - ${list3(uniq(act.launches))}`, "warn");
-    }
-    if (act.submits.length) {
-      add3("Form submission", `Sends filled values to ${list3(uniq(act.submits))}`, "warn");
-    }
-    if (act.remotes.length) {
-      add3("Remote documents", `Jumps into ${list3(uniq(act.remotes))}`, "warn");
-    }
-    if (act.uris.length) {
-      const urls = uniq(act.uris);
-      const hosts = uniq(urls.map((u) => {
-        try {
-          return new URL(u).host;
-        } catch {
-          return "";
-        }
-      }));
-      add3("Links", hosts.length ? `${count3(urls.length, "outbound link")} to ${list3(hosts)}` : `${count3(urls.length, "outbound link")} - ${list3(urls)}`);
-      for (const url of urls.filter((u) => u.length <= 2048).slice(0, 64)) {
-        out.push({ label: "Link", detail: url, tone: "" });
-      }
-    }
-  } catch {
-  }
-  try {
-    const filled2 = fields2.filter((f) => f.type !== "Sig" && f.value);
-    if (filled2.length) {
-      add3("Form values", `${count3(filled2.length, "filled field")} - ${list3(filled2.map((f) => `${f.name || "(unnamed)"}: ${f.value}`))}`, "warn");
-    }
-    const signatures = fields2.filter((f) => f.type === "Sig" && f.dict.get(PDFName2.of("V")) != null);
-    if (signatures.length) {
-      add3("Digital signature", `${count3(signatures.length, "signed field")} - re-saving this file invalidates it`);
-    }
-    if (get2(ctx, doc.catalog.get(PDFName2.of("AcroForm")), "XFA")) {
-      add3("XFA form", "Carries an XFA form definition - an XML form layer beyond the visible page");
-    }
-  } catch {
-  }
-  try {
-    const markup = [...eachAnnot(ctx, pages)].filter((a) => {
-      const sub = nameOf2(ctx, a.get(PDFName2.of("Subtype")));
-      return sub != null && !NON_MARKUP.has(sub);
-    });
-    const authors = uniq(markup.map((a) => strOf(ctx, a.get(PDFName2.of("T"))) ?? ""));
-    const comments = markup.map((a) => strOf(ctx, a.get(PDFName2.of("Contents"))) ?? "").filter(Boolean);
-    if (markup.length) {
-      const parts = [count3(markup.length, "annotation")];
-      if (authors.length) parts.push(`by ${list3(authors)}`);
-      if (comments.length) parts.push(`\xB7 ${clip2(comments[0], 120)}`);
-      add3("Annotations", parts.join(" "), authors.length || comments.length ? "warn" : "");
-    }
-  } catch {
-  }
-  try {
-    const { names, hidden: hidden4 } = collectLayers(ctx, doc);
-    if (hidden4.length) {
-      add3("Hidden layers", `${count3(hidden4.length, "layer")} present but switched off - ${list3(hidden4)}`, "warn");
-    } else if (names.length) {
-      add3("Layers", `${count3(names.length, "layer")} - ${list3(names)}`);
-    }
-  } catch {
-  }
-  if (pages.length) add3("Pages", count3(pages.length, "page"));
-  return out;
-}
-var MAX_DEPTH6, MAX_ITEMS2, LIST_CAP, DETAIL_CAP, NON_MARKUP;
-var init_pdf_structure = __esm({
-  "packages/node-shell/src/pdf-structure.ts"() {
-    "use strict";
-    MAX_DEPTH6 = 32;
-    MAX_ITEMS2 = 500;
-    LIST_CAP = 8;
-    DETAIL_CAP = 400;
-    NON_MARKUP = /* @__PURE__ */ new Set(["Link", "Widget", "Popup", "FileAttachment"]);
   }
 });
 
@@ -157941,76 +158607,6 @@ var init_tensor = __esm({
     "use strict";
     ZERO = [0, 0, 0];
     ONE = [1, 1, 1];
-  }
-});
-
-// packages/node-shell/src/ml/ocr-models.ts
-function stagedOcrModels() {
-  return OCR_MODELS.filter((m2) => OCR_STAGED[m2.id]);
-}
-function ocrModelsFor(_hasNative) {
-  return stagedOcrModels();
-}
-var OCR_MODEL_FILES, OCR_DEFAULT_MODEL, OCR_MODEL_SPEC, OCR_MODELS, OCR_MODEL_BYTES, OCR_STAGED;
-var init_ocr_models = __esm({
-  "packages/node-shell/src/ml/ocr-models.ts"() {
-    "use strict";
-    OCR_MODEL_FILES = {
-      "ppocr-v5-mobile": {
-        det: "ppocrv5-mobile-det.onnx",
-        rec: "ppocrv5-mobile-rec.onnx",
-        dict: "ppocrv5-dict.txt"
-      }
-    };
-    OCR_DEFAULT_MODEL = "ppocr-v5-mobile";
-    OCR_MODEL_SPEC = {
-      "ppocr-v5-mobile": {
-        det: {
-          inputName: "x",
-          limitSide: 960,
-          mean: [0.485, 0.456, 0.406],
-          std: [0.229, 0.224, 0.225],
-          binThresh: 0.3,
-          boxThresh: 0.5,
-          minBoxArea: 24,
-          unclipRatio: 1.6
-        },
-        rec: {
-          inputName: "x",
-          height: 48,
-          maxWidth: 480,
-          mean: [0.5, 0.5, 0.5],
-          std: [0.5, 0.5, 0.5]
-        }
-      }
-    };
-    OCR_MODELS = [
-      {
-        id: "ppocr-v5-mobile",
-        name: "PP-OCRv5 (mobile)",
-        tier: "default",
-        // det 4,826,518 + rec 16,562,373 + dict 74,012 (verified 2026-08-18).
-        approxBytes: 21462903,
-        license: "Apache-2.0",
-        attribution: "PaddleOCR PP-OCRv5 mobile, \xA9 PaddlePaddle authors (Apache-2.0)",
-        version: "v5-mobile",
-        // The multilingual mobile recogniser: an 18,383-glyph dictionary spanning Latin,
-        // CJK and more. A representative subset is listed; the model reads well beyond it.
-        languages: ["en", "zh", "ja", "ko", "fr", "de", "es", "pt", "ru", "it"],
-        note: "Reads printed and on-screen text - Latin, CJK and many more scripts."
-      }
-    ];
-    OCR_MODEL_BYTES = Object.fromEntries(
-      OCR_MODELS.map((m2) => [m2.id, m2.approxBytes])
-    );
-    OCR_STAGED = {
-      // Staged 2026-08-18: files vendored via scripts/fetch-ocr-models.ts, licence
-      // Apache-2.0 (official PaddleOCR via paddle2onnx), both graphs loaded + run on
-      // CPU, and the CTC dict alignment confirmed (rec output 18,385 classes = dict
-      // 18,383 + blank + space, exactly the charset ocr.ts builds). The one check left
-      // is a real-image eyeball IN THE BROWSER (the WASM target), which decides accuracy.
-      "ppocr-v5-mobile": true
-    };
   }
 });
 
@@ -176642,6 +177238,54 @@ var content_inventory_v1_schema_default = {
         hidden: {
           type: "boolean",
           description: "The page does not show this text: a PDF's invisible text, as a scanned page's OCR layer is. Other hidden objects are left out of text and listed only under objects."
+        },
+        recognition: {
+          $ref: "#/$defs/recognition",
+          description: "Set when the words were read from pixels: text recognition over a page that is a picture of its text, or the text layer a scan carries. Absent for text the file states as text."
+        }
+      }
+    },
+    recognition: {
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "model",
+        "confidence",
+        "minConfidence",
+        "lines"
+      ],
+      description: "How the words of a text frame were read from pixels: which recogniser read them and how sure it was. The scores are the recogniser's own, never a claim that the words are right.",
+      properties: {
+        model: {
+          type: "string",
+          minLength: 1,
+          description: "The recogniser's model id, pdf-text-layer for a scan's own text layer, or unknown when the reading named none."
+        },
+        modelVersion: {
+          type: "string",
+          minLength: 1
+        },
+        languages: {
+          type: "array",
+          items: {
+            type: "string",
+            minLength: 1
+          }
+        },
+        confidence: {
+          type: "number",
+          minimum: 0,
+          maximum: 1,
+          description: "Mean of the line confidences, weighted by each line's characters."
+        },
+        minConfidence: {
+          type: "number",
+          minimum: 0,
+          maximum: 1
+        },
+        lines: {
+          type: "integer",
+          minimum: 1
         }
       }
     },
@@ -176943,6 +177587,10 @@ var content_inventory_v1_schema_default = {
         },
         thumbnail: {
           $ref: "#/$defs/thumbnail"
+        },
+        flattened: {
+          type: "boolean",
+          description: "The source marks the slide as one picture of its text: a scanned page, or a slide printed as an image. Its words are in text only when a scan's text layer or text recognition read them."
         }
       }
     },
