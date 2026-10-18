@@ -7971,5 +7971,7 @@
   "Draft quality": "Calidad borrador",
   "Draft rule": "Regla en borrador",
   "Choose the original file": "Elegir el archivo original",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Los originales no se guardan en el historial de archivos. Elige el original para compararlo con la copia guardada; su hash debe coincidir."
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Los originales no se guardan en el historial de archivos. Elige el original para compararlo con la copia guardada; su hash debe coincidir.",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 maquetación de Penpot se importó con posiciones fijas. Importa la exportación .penpot para que siga siendo editable.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} maquetaciones de Penpot se importaron con posiciones fijas. Importa la exportación .penpot para que sigan siendo editables."
 }

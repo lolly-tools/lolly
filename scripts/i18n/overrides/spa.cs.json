@@ -1621,5 +1621,7 @@
   "YAML structure comparison needs finite numbers and safe integers. Choose Text mode.": "Porovnání struktury YAML potřebuje konečná čísla a bezpečná celá čísla. Zvol režim Text.",
   "YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison.": "Porovnávají se datové hodnoty YAML. Komentáře, pořadí klíčů, uvozovky a formátování jsou mimo toto porovnání.",
   "Choose the original file": "Vybrat původní soubor",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Originály se neukládají do historie souborů. Vyber originál a porovnej ho s uloženou kopií; jeho hash se musí shodovat."
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Originály se neukládají do historie souborů. Vyber originál a porovnej ho s uloženou kopií; jeho hash se musí shodovat.",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Importován 1 layout z Penpotu s pevnými pozicemi. Aby zůstal upravitelný, importuj export .penpot.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Importováno {n} layoutů z Penpotu s pevnými pozicemi. Aby zůstaly upravitelné, importuj export .penpot."
 }

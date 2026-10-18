@@ -9,7 +9,7 @@ Roughly 782,000 lines of TypeScript, tests included, and 61,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 548 files, 209,187 lines | 276 files, 92,454 lines | 8 files, 1,446 lines |
+| `views/` | 549 files, 209,305 lines | 277 files, 92,585 lines | 8 files, 1,446 lines |
 | `lib/` | 808 files, 165,609 lines | 465 files, 90,179 lines | 13 files, 1,820 lines |
 | `bridge/` | 223 files, 54,689 lines | 133 files, 27,778 lines | none |
 | `components/` | 125 files, 28,368 lines | 55 files, 14,123 lines | 22 files, 1,345 lines |
@@ -70,10 +70,10 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,844 | `views/gallery.ts` | none |
 | 2,708 | `views/design-inspector.ts` | yes |
 | 2,656 | `views/deck-editor.ts` | yes |
-| 2,562 | `views/design-import.ts` | **none** |
+| 2,558 | `views/design-import.ts` | **none** |
 | 2,557 | `views/timeline-math.ts` | yes |
 | 2,448 | `views/free-canvas-math.ts` | yes |
-| 2,419 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
+| 2,429 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
 | 2,322 | `main.ts` | yes |
 | 2,286 | `lib/drop-router.ts` | yes |
 | 2,207 | `views/present-mode.ts` | yes |

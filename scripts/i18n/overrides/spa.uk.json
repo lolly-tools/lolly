@@ -1755,5 +1755,7 @@
   "YAML structure comparison needs finite numbers and safe integers. Choose Text mode.": "Для порівняння структури YAML потрібні скінченні числа й безпечні цілі числа. Виберіть режим Текст.",
   "YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison.": "Порівнюються значення даних YAML. Коментарі, порядок ключів, лапки й форматування не входять у це порівняння.",
   "Choose the original file": "Вибрати оригінальний файл",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Оригінали не зберігаються в історії файлів. Виберіть оригінал, щоб порівняти його зі збереженою копією; його хеш має збігатися."
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Оригінали не зберігаються в історії файлів. Виберіть оригінал, щоб порівняти його зі збереженою копією; його хеш має збігатися.",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Імпортовано 1 макет Penpot з фіксованими позиціями. Імпортуйте експорт .penpot, щоб він залишився редагованим.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Імпортовано {n} макетів Penpot з фіксованими позиціями. Імпортуйте експорт .penpot, щоб вони залишилися редагованими."
 }

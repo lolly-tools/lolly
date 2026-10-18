@@ -1626,5 +1626,7 @@
   "YAML structure comparison needs finite numbers and safe integers. Choose Text mode.": "Perbandingan struktur YAML memerlukan nombor terhingga dan integer selamat. Pilih mod Teks.",
   "YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison.": "Nilai data YAML dibandingkan. Ulasan, susunan kunci, tanda petikan dan format berada di luar perbandingan ini.",
   "Choose the original file": "Pilih fail asal",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Fail asal tidak disimpan dalam sejarah fail. Pilih fail asal untuk membandingkannya dengan salinan yang disimpan; hashnya mesti sepadan."
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Fail asal tidak disimpan dalam sejarah fail. Pilih fail asal untuk membandingkannya dengan salinan yang disimpan; hashnya mesti sepadan.",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 susun atur Penpot diimport dengan kedudukan tetap. Import eksport .penpot supaya ia kekal boleh diedit.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} susun atur Penpot diimport dengan kedudukan tetap. Import eksport .penpot supaya semuanya kekal boleh diedit."
 }

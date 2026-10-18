@@ -7971,5 +7971,7 @@
   "Draft quality": "Kualitas draf",
   "Draft rule": "Aturan draf",
   "Choose the original file": "Pilih file asli",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "File asli tidak disimpan dalam riwayat file. Pilih file asli untuk membandingkannya dengan salinan tersimpan; hash-nya harus cocok."
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "File asli tidak disimpan dalam riwayat file. Pilih file asli untuk membandingkannya dengan salinan tersimpan; hash-nya harus cocok.",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 tata letak Penpot diimpor dengan posisi tetap. Impor ekspor .penpot agar tata letak itu tetap bisa diedit.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} tata letak Penpot diimpor dengan posisi tetap. Impor ekspor .penpot agar semuanya tetap bisa diedit."
 }

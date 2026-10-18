@@ -7971,5 +7971,7 @@
   "Draft quality": "Taslak kalitesi",
   "Draft rule": "Taslak kural",
   "Choose the original file": "Orijinal dosyayı seç",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Orijinaller dosya geçmişine kaydedilmez. Kayıtlı kopyayla karşılaştırmak için orijinali seç; hash değeri eşleşmelidir."
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Orijinaller dosya geçmişine kaydedilmez. Kayıtlı kopyayla karşılaştırmak için orijinali seç; hash değeri eşleşmelidir.",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 Penpot yerleşimi sabit konumlarla içe aktarıldı. Düzenlenebilir kalması için .penpot dışa aktarımını içe aktar.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot yerleşimi sabit konumlarla içe aktarıldı. Düzenlenebilir kalmaları için .penpot dışa aktarımını içe aktar."
 }

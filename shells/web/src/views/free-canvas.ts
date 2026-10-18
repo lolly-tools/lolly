@@ -1950,6 +1950,13 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // gallery/dashboard was stashed one-shot and is consumed here on mount, through
   // the exact same lazy parseDesignFile → commit path as the Import panel above.
   const pendingImport = importCfg ? takePendingDesignImport() : null; fc.pendingImport = pendingImport;
+  // This door has no status line, so the result is only announced. A note the user
+  // should act on (Penpot layouts that came in as fixed positions) is shown with it
+  // in the stage's flash, which announces it too, as one message.
+  const reportImported = (result: string, note: string): void => {
+    if (note) fc.stage.flash(`${result} ${note}`);
+    else announce(result);
+  };
   if (pendingImport) {
     void (async () => {
       announce(t('Importing…'));
@@ -1984,13 +1991,16 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
           return;
         }
         if (mode === 'artboards') {
-          const n = await fc.menus.importAsArtboards(pendingImport.file, (m: string) => announce(m));
+          let layoutNote = '';
+          const n = await fc.menus.importAsArtboards(pendingImport.file, (m: string) => announce(m), {
+            onLayoutNote: (note: string) => { layoutNote = note; },
+          });
           if (fc.disposed) return;
-          announce(n === 1 ? t('Added 1 artboard.') : t('Added {n} artboards.', { n }));
+          reportImported(n === 1 ? t('Added 1 artboard.') : t('Added {n} artboards.', { n }), layoutNote);
           if (pendingImport.rules) { await fc.rules?.rememberSource(pendingImport.file); fc.rules?.open(); }
           return;
         }
-        const { parseDesignFile } = await import('./design-import.ts');
+        const { parseDesignFile, layoutFindingsNote } = await import('./design-import.ts');
         const { showImportedFontNotice } = await import('./design-import-text.ts');
         const res = await parseDesignFile(pendingImport.file, {
           host: host as any,
@@ -2005,7 +2015,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
         fc.select.commit(boxes, res.layoutTracks?.length ? { layoutTracks: res.layoutTracks } : {}, t('Import design'));
         if (setCanvasSize && res.width > 0 && res.height > 0)
           setCanvasSize(res.width, res.height, 'px');
-        announce(boxes.length === 1 ? t('Imported 1 object.') : t('Imported {n} objects.', { n: boxes.length }));
+        reportImported(boxes.length === 1 ? t('Imported 1 object.') : t('Imported {n} objects.', { n: boxes.length }), layoutFindingsNote(res.layoutFindings));
         await showImportedFontNotice(res.fontSubstitutions, canvasEl);
         if (pendingImport.rules) { await fc.rules?.rememberSource(pendingImport.file); fc.rules?.open(); }
       } catch (err) {

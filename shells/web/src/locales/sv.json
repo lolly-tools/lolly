@@ -7971,5 +7971,7 @@
   "Draft quality": "Utkastkvalitet",
   "Draft rule": "Utkastregel",
   "Choose the original file": "Välj originalfilen",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Original sparas inte i filhistoriken. Välj originalet för att jämföra det med den sparade kopian; dess hash måste stämma."
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Original sparas inte i filhistoriken. Välj originalet för att jämföra det med den sparade kopian; dess hash måste stämma.",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 Penpot-layout importerades med fasta positioner. Importera .penpot-exporten för att behålla den redigerbar.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot-layouter importerades med fasta positioner. Importera .penpot-exporten för att behålla dem redigerbara."
 }

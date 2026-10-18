@@ -1627,5 +1627,7 @@
   "YAML structure comparison needs finite numbers and safe integers. Choose Text mode.": "YAML संरचना की तुलना के लिए सीमित संख्याएँ और सुरक्षित पूर्णांक चाहिए। टेक्स्ट मोड चुनें।",
   "YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison.": "YAML डेटा मानों की तुलना की जाती है। टिप्पणियाँ, कुंजियों का क्रम, उद्धरण चिह्न और फ़ॉर्मैटिंग इस तुलना के दायरे से बाहर हैं।",
   "Choose the original file": "मूल फ़ाइल चुनें",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "मूल फ़ाइलें फ़ाइल इतिहास में सहेजी नहीं जातीं। सहेजी गई कॉपी से तुलना करने के लिए मूल फ़ाइल चुनें; उसका हैश मेल खाना चाहिए।"
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "मूल फ़ाइलें फ़ाइल इतिहास में सहेजी नहीं जातीं। सहेजी गई कॉपी से तुलना करने के लिए मूल फ़ाइल चुनें; उसका हैश मेल खाना चाहिए।",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Penpot का 1 लेआउट तय पोज़िशन के साथ इंपोर्ट हुआ। इसे एडिट करने योग्य रखने के लिए .penpot एक्सपोर्ट इंपोर्ट करें।",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Penpot के {n} लेआउट तय पोज़िशन के साथ इंपोर्ट हुए। इन्हें एडिट करने योग्य रखने के लिए .penpot एक्सपोर्ट इंपोर्ट करें।"
 }

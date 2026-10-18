@@ -7971,5 +7971,7 @@
   "Draft quality": "Chất lượng bản nháp",
   "Draft rule": "Quy tắc nháp",
   "Choose the original file": "Chọn tệp gốc",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Bản gốc không được lưu trong lịch sử tệp. Chọn bản gốc để so sánh với bản sao đã lưu; mã băm của bản gốc phải khớp."
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Bản gốc không được lưu trong lịch sử tệp. Chọn bản gốc để so sánh với bản sao đã lưu; mã băm của bản gốc phải khớp.",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Đã nhập 1 bố cục Penpot với vị trí cố định. Hãy nhập bản xuất .penpot để giữ bố cục có thể chỉnh sửa.",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Đã nhập {n} bố cục Penpot với vị trí cố định. Hãy nhập bản xuất .penpot để giữ các bố cục có thể chỉnh sửa."
 }

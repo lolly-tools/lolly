@@ -7971,5 +7971,7 @@
   "Draft quality": "ड्राफ़्ट गुणवत्ता",
   "Draft rule": "ड्राफ़्ट नियम",
   "Choose the original file": "मूल फ़ाइल चुनें",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "मूल फ़ाइलें फ़ाइल इतिहास में सहेजी नहीं जातीं। सहेजी गई कॉपी से तुलना करने के लिए मूल फ़ाइल चुनें; उसका हैश मेल खाना चाहिए।"
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "मूल फ़ाइलें फ़ाइल इतिहास में सहेजी नहीं जातीं। सहेजी गई कॉपी से तुलना करने के लिए मूल फ़ाइल चुनें; उसका हैश मेल खाना चाहिए।",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Penpot का 1 लेआउट तय पोज़िशन के साथ इंपोर्ट हुआ। इसे एडिट करने योग्य रखने के लिए .penpot एक्सपोर्ट इंपोर्ट करें।",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Penpot के {n} लेआउट तय पोज़िशन के साथ इंपोर्ट हुए। इन्हें एडिट करने योग्य रखने के लिए .penpot एक्सपोर्ट इंपोर्ट करें।"
 }

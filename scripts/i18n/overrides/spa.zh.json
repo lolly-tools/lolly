@@ -1628,5 +1628,7 @@
   "YAML structure comparison needs finite numbers and safe integers. Choose Text mode.": "YAML 结构比较需要有限数字和安全整数。请选择文本模式。",
   "YAML data values are compared. Comments, key order, quoting and formatting are outside this comparison.": "比较的是 YAML 数据值。注释、键顺序、引号和格式不在此次比较范围内。",
   "Choose the original file": "选择原始文件",
-  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "原件不会保存在文件历史记录中。请选择原件，与已保存的副本进行比较；其哈希值必须一致。"
+  "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "原件不会保存在文件历史记录中。请选择原件，与已保存的副本进行比较；其哈希值必须一致。",
+  "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "已将 1 个 Penpot 版式以固定位置导入。如需保持可编辑，请导入 .penpot 导出文件。",
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "已将 {n} 个 Penpot 版式以固定位置导入。如需保持可编辑，请导入 .penpot 导出文件。"
 }
