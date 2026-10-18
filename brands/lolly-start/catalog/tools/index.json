@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-18T22:51:04.815Z",
+  "generatedAt": "2026-10-18T23:32:19.748Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -13082,8 +13082,8 @@
     {
       "id": "trim",
       "name": "Trim",
-      "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device.",
-      "version": "1.0.1",
+      "description": "Cut, turn or shrink an audio or video clip, take a poster frame or contact sheet, mute it or extract its audio on your device.",
+      "version": "1.1.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -13097,7 +13097,13 @@
         "webm",
         "gif",
         "extract audio",
-        "mute"
+        "mute",
+        "rotate",
+        "poster frame",
+        "thumbnail",
+        "contact sheet",
+        "compress video",
+        "share"
       ],
       "added": "2026-09-05",
       "formats": [
@@ -13106,7 +13112,9 @@
         "gif",
         "m4a",
         "opus",
-        "wav"
+        "wav",
+        "jpg",
+        "png"
       ],
       "width": 860,
       "height": 620,
