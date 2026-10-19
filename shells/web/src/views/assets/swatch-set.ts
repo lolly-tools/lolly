@@ -120,9 +120,11 @@ const allFavourite = (cat: CatCtx, entries: PaletteEntry[]): boolean =>
 /** The asset selection bar's component and skin, with the swatch actions. */
 export function barConfig(cat: CatCtx): BulkBarConfig {
   return {
-    prefix: 'cat-bulkbar',
-    // The bar sits in its own wrapper (barHtml), where this matches nothing;
-    // syncBar sets `.has-selection` on the view for either selection instead.
+    // Its own prefix, with the asset bar's skin (styles/parts/asset-shared.css), so
+    // `.cat-bulkbar` still finds exactly one bar.
+    prefix: 'cat-swatchbar',
+    // The shared sync sets `.has-selection` from this bar's count alone; syncBar
+    // then sets it for either selection.
     rootSelector: '.catalog',
     count: () => cat.swatchSelected.size,
     actions: [
@@ -134,12 +136,11 @@ export function barConfig(cat: CatCtx): BulkBarConfig {
   };
 }
 
-export const barHtml = (cat: CatCtx): string => `<div class="cat-swatchbar">${bulkBarHtml(cat.swatchBarCfg)}</div>`;
+export const barHtml = (cat: CatCtx): string => bulkBarHtml(cat.swatchBarCfg);
 
 /** Reflect the selection into the bar, and reserve room for whichever bar shows. */
 export function syncBar(cat: CatCtx): void {
-  const wrap = cat.viewEl.querySelector<HTMLElement>('.cat-swatchbar');
-  if (wrap) syncBulkBar(wrap, cat.swatchBarCfg);
+  syncBulkBar(cat.viewEl, cat.swatchBarCfg);
   cat.viewEl.querySelector('.catalog')?.classList.toggle('has-selection', cat.selected.size > 0 || cat.swatchSelected.size > 0);
 }
 
@@ -337,7 +338,7 @@ export function wire(cat: CatCtx): () => void {
     setRefs: (refs) => setSelection(cat, refs),
     clear: () => clear(cat),
     owns: (el) => !!el.closest(SWATCH_SECTION),
-    noStart: 'button, a, input, label, textarea, select, dialog, .cat-tile, .cat-bulkbar, .cat-swatch-downloads',
+    noStart: 'button, a, input, label, textarea, select, dialog, .cat-tile, .cat-bulkbar, .cat-swatchbar, .cat-swatch-downloads',
     keyboard: {},
   });
   const unwireEscape = wireEscapeClearsSelection({

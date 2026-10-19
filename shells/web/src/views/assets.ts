@@ -222,7 +222,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     // its own drag-to-scroll) - only in a genuine gap. `.cat-toolbar` earns its place: it's a
     // STICKY pill floating over the grid, so its padding and flex gaps read as empty canvas
     // while actually sitting on top of the cards - a press there is aiming at the toolbar.
-    noStart: '.cat-tile, button, a, input, label, textarea, select, dialog, .cat-bulkbar, '
+    noStart: '.cat-tile, button, a, input, label, textarea, select, dialog, .cat-bulkbar, .cat-swatchbar, '
       + '.cat-toolbar, .cat-fav-strip, .featured, .gallery-topbar, .gallery-footer, .updz, '
       + '[data-dropzone-mount], .cat-dl-section, .cat-uploads-bar',
     // The Swatches section runs its own gestures over its own selection (swatch-set.ts).
