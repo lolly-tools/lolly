@@ -170,7 +170,7 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ```
 
-### prettier 3.9.9
+### prettier 3.9.10
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright © James Long and contributors
@@ -216,7 +216,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### smol-toml 1.9.0
+### smol-toml 1.9.1
 
 - SPDX-License-Identifier: `BSD-3-Clause`
 - Copyright: Copyright (c) Squirrel Chat et al., All rights reserved.
@@ -345,7 +345,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### dompurify 3.4.16
+### dompurify 3.4.17
 
 - SPDX-License-Identifier: `MPL-2.0 (elected from "(MPL-2.0 OR Apache-2.0)")`
 - Copyright: (c) Cure53 and other contributors
@@ -733,7 +733,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 ```
 
-### idb 8.0.3
+### idb 8.0.4
 
 - SPDX-License-Identifier: `ISC`
 - Copyright: Copyright (c) 2016, Jake Archibald <jaffathecake@gmail.com>
@@ -747,7 +747,7 @@ Permission to use, copy, modify, and/or distribute this software for any purpose
 THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ```
 
-### harfbuzzjs 1.6.2
+### harfbuzzjs 1.6.3
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2019-2026 The harfbuzzjs project authors
@@ -823,7 +823,7 @@ ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
 PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 ```
 
-### mediabunny 1.61.0
+### mediabunny 1.61.5
 
 - SPDX-License-Identifier: `MPL-2.0 (elected from "MPL-2.0")`
 - Copyright: (c) under Patent Claims infringed by Covered Software in the absence of
@@ -1204,7 +1204,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 ```
 
-### @mediabunny/flac-encoder 1.61.0
+### @mediabunny/flac-encoder 1.61.5
 
 - SPDX-License-Identifier: `MPL-2.0 (elected from "MPL-2.0")`
 - Copyright: (c) under Patent Claims infringed by Covered Software in the absence of
@@ -1585,7 +1585,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 ```
 
-### @tiptap/core 3.31.4
+### @tiptap/core 3.32.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1614,7 +1614,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/pm 3.31.4
+### @tiptap/pm 3.32.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1643,7 +1643,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/starter-kit 3.31.4
+### @tiptap/starter-kit 3.32.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1672,7 +1672,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-image 3.31.4
+### @tiptap/extension-image 3.32.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1701,7 +1701,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-placeholder 3.31.4
+### @tiptap/extension-placeholder 3.32.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1730,7 +1730,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table 3.31.4
+### @tiptap/extension-table 3.32.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1759,7 +1759,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table-cell 3.31.4
+### @tiptap/extension-table-cell 3.32.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1788,7 +1788,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table-header 3.31.4
+### @tiptap/extension-table-header 3.32.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1817,7 +1817,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table-row 3.31.4
+### @tiptap/extension-table-row 3.32.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1846,7 +1846,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-text-align 3.31.4
+### @tiptap/extension-text-align 3.32.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1875,7 +1875,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-text-style 3.31.4
+### @tiptap/extension-text-style 3.32.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -2022,7 +2022,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### quickjs-emscripten-core 0.31.0
+### quickjs-emscripten-core 0.32.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Jake Teton-Landis
@@ -2051,7 +2051,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @jitl/quickjs-wasmfile-release-sync 0.31.0
+### @jitl/quickjs-wasmfile-release-sync 0.32.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2017-2021 Fabrice Bellard; Copyright (c) 2017-2021 Charlie Gordon
@@ -2107,7 +2107,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
 
-### acorn 8.17.0
+### acorn 8.19.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (C) 2012-2022 by various contributors (see AUTHORS)
@@ -2196,7 +2196,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @codemirror/view 6.43.13
+### @codemirror/view 6.43.14
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
@@ -2256,7 +2256,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
 
-### @codemirror/language 6.12.4
+### @codemirror/language 6.13.1
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
@@ -2851,7 +2851,7 @@ SOFTWARE.
 license of the upstream project, https://github.com/evanw/kiwi.)
 ```
 
-### zxing-wasm 3.1.4
+### zxing-wasm 3.1.5
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2023 Ze-Zheng Wu
@@ -2931,7 +2931,7 @@ SOFTWARE.
 
 ```
 
-### @huggingface/transformers 4.3.0
+### @huggingface/transformers 4.3.1
 
 - SPDX-License-Identifier: `Apache-2.0`
 - Copyright: copyright notice that is included in or attached to the work; copyright license to reproduce, prepare Derivative Works of,; (c) You must retain, in the Source form of any Derivative Works; Copyright [yyyy] [name of copyright owner]
@@ -3349,7 +3349,7 @@ Apache License
    limitations under the License.
 ```
 
-### heic-to 1.6.5
+### heic-to 1.6.6
 
 - SPDX-License-Identifier: `LGPL-3.0`
 - Copyright: Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
