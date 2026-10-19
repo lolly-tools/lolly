@@ -11,10 +11,11 @@
  * content, descendants and composed text scale exactly as a Scale drag does.
  */
 import { t } from '../i18n.ts';
-import { escape } from '../utils.ts';
+import { escape as escapeHtml } from '../utils.ts';
 import { icon } from '../lib/icons.ts';
 import type { Box, BoxFieldConfig } from './free-canvas-math.ts';
 import type { ModelPort } from './design-ports.ts';
+import { iconNode } from '../lib/icon-node.ts';
 
 /** The shell's size bound for a box side, shared with the W and H cells. */
 const SIDE_MIN = 1;
@@ -97,19 +98,19 @@ function commitSide(c: AspectScaleCtx, locks: AspectLocks, axis: 'w' | 'h', valu
 export function sizeAndScaleRows(c: AspectScaleCtx, locks: AspectLocks): string {
   const on = locks.has(c.id);
   const label = t('Keep proportions');
-  const lock = `<button type="button" class="fc-aspect-lock" data-aspect-lock="${escape(c.id)}" aria-pressed="${on}"`
-    + ` aria-label="${escape(label)}" data-tip="${escape(label)}">${icon(on ? 'link' : 'unlink')}</button>`;
+  const lock = `<button type="button" class="fc-aspect-lock" data-aspect-lock="${escapeHtml(c.id)}" aria-pressed="${on}"`
+    + ` aria-label="${escapeHtml(label)}" data-tip="${escapeHtml(label)}">${icon(on ? 'link' : 'unlink')}</button>`;
   const side = (axis: 'w' | 'h'): CellOpts => ({
     min: SIDE_MIN, max: SIDE_MAX, name: axis === 'w' ? t('Width') : t('Height'),
     onCommit: (v) => commitSide(c, locks, axis, v * c.scale),
   });
-  const size = `<div class="fc-dims-row fc-dims-row--size"><span class="fc-dims-ic" data-tip="${escape(t('Size'))}">${icon('resize')}</span>`
+  const size = `<div class="fc-dims-row fc-dims-row--size"><span class="fc-dims-ic" data-tip="${escapeHtml(t('Size'))}">${icon('resize')}</span>`
     + c.dimCell(t('W'), c.cfg.wField, clampSide(c.w), side('w')) + lock
     + c.dimCell(t('H'), c.cfg.hField, clampSide(c.h), side('h')) + '</div>';
   if (!c.scaleSelection) return size;
   const scale = c.scaleSelection;
   // A fresh 100 each time: the number is the factor to apply next, not a stored value.
-  return size + `<div class="fc-dims-row"><span class="fc-dims-ic" data-tip="${escape(t('Scale the selection'))}">${icon('resize')}</span>`
+  return size + `<div class="fc-dims-row"><span class="fc-dims-ic" data-tip="${escapeHtml(t('Scale the selection'))}">${icon('resize')}</span>`
     + c.numCell('', undefined, 100, {
       name: t('Scale (%)'), unit: '%', min: 1, max: 10000, step: 1, precision: 1,
       onCommit: (pct) => { if (!scale(pct / 100)) c.resync(); },
@@ -123,7 +124,8 @@ export function wireAspectLocks(root: HTMLElement, locks: AspectLocks): () => vo
     if (!btn || !root.contains(btn)) return;
     const pressed = locks.toggle(btn.dataset.aspectLock ?? '');
     btn.setAttribute('aria-pressed', String(pressed));
-    btn.innerHTML = icon(pressed ? 'link' : 'unlink');
+    const glyph = iconNode(pressed ? 'link' : 'unlink');
+    if (glyph) btn.replaceChildren(glyph);
   };
   root.addEventListener('click', onClick);
   return () => root.removeEventListener('click', onClick);
