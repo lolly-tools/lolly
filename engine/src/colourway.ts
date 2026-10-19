@@ -398,7 +398,11 @@ const tooMany = (verb: string): string[] => [`The design system has more than ${
 export interface LiftOptions {
   /** The canonical colourway's id. Default `main`. */
   id?: string;
-  /** The canonical colourway's display name. Default `Main`. */
+  /**
+   * The canonical colourway's display name. Default `Main`. The name rules of
+   * `addColourway` apply: no other theme's id or name, in any case, and at most
+   * `MAX_COLOURWAY_NAME` characters.
+   */
   name?: string;
   /**
    * Re-point the surface too, so each colourway can carry a tinted background.
@@ -420,10 +424,11 @@ export interface LiftOptions {
  * With `surface: true` the surface moves into the colourway as well, under the
  * same check.
  *
- * Refused, with reasons, when the document has no light/dark group, when a look
- * has no token set of its own, when another theme group sets a slot, when a slot
- * carries its own CMYK, spot or colour-face data, or when the document has more
- * than `MAX_CHECKED_SELECTIONS` selections to check.
+ * Refused, with reasons, when the id or the name is one a colourway may not take,
+ * when the document has no light/dark group, when a look has no token set of its
+ * own, when another theme group sets a slot, when a slot carries its own CMYK,
+ * spot or colour-face data, or when the document has more than
+ * `MAX_CHECKED_SELECTIONS` selections to check.
  */
 export function liftToColourways(doc: unknown, opts: LiftOptions = {}): ColourwayEdit {
   if (!record(doc) || !Array.isArray(doc.$themes) || !doc.$themes.length) return { ok: false, reasons: ['Colourways need a design system with light and dark themes.'] };
@@ -433,8 +438,11 @@ export function liftToColourways(doc: unknown, opts: LiftOptions = {}): Colourwa
   if (!mode) return { ok: false, reasons: ['Mark which theme group holds light and dark before adding colourways.'] };
   const id = opts.id ?? 'main';
   const name = opts.name?.trim() || 'Main';
-  if (!COLOURWAY_ID.test(id)) return { ok: false, reasons: [`${id} is not a usable colourway id: use lowercase letters, digits and hyphens.`] };
-  if (themeIds(doc).has(id)) return { ok: false, reasons: [`The design system already has a theme called ${id}.`] };
+  // The canonical colourway's name follows the rules every other colourway's
+  // does: named "light", it would answer every light request, for every
+  // colourway, because a theme request matches by name (see `nameReasons`).
+  const named = [...idReasons(doc, id), ...nameReasons(doc, COLOURWAY_GROUP, name)];
+  if (named.length) return { ok: false, reasons: named };
   const selections = checkedSelections(axes, mode);
   if (!selections) return { ok: false, reasons: tooMany('lifting') };
 
@@ -496,7 +504,7 @@ export function addColourway(doc: unknown, opts: AddColourwayOptions): Colourway
   if (foreign.length || unset.length) {
     return { ok: false, reasons: ['This design system encodes its colourways its own way, so Lolly can choose between them but cannot add one.'] };
   }
-  reasons.push(...idReasons(next, opts.id), ...nameReasons(next, colourways, opts.name));
+  reasons.push(...idReasons(next, opts.id), ...nameReasons(next, colourways.group, opts.name));
   for (const option of mode.options) {
     const values = opts.values[option.id];
     if (!values) { reasons.push(`Give the ${option.name} colours for ${opts.name}.`); continue; }
@@ -581,13 +589,13 @@ function idReasons(doc: Rec, id: string): string[] {
  * two colourways never differ only in capitals either. `except` is the
  * colourway being renamed.
  */
-function nameReasons(doc: Rec, colourways: TokenAxis, name: string, except?: string): string[] {
+function nameReasons(doc: Rec, group: string, name: string, except?: string): string[] {
   const wanted = name.trim();
   if (!wanted) return ['A colourway needs a name.'];
   if (wanted.length > MAX_COLOURWAY_NAME) return [`A colourway name can have at most ${MAX_COLOURWAY_NAME} characters.`];
   const lower = wanted.toLowerCase();
   for (const entry of themeEntries(doc)) {
-    const own = groupOf(entry) === colourways.group;
+    const own = groupOf(entry) === group;
     if (own && optionIdOf(entry) === except) continue;
     const taken = [entry.id, entry.name].some(v => typeof v === 'string' && v.trim().toLowerCase() === lower);
     if (!taken) continue;
@@ -685,7 +693,7 @@ export function renameColourway(doc: unknown, id: string, name: string): Colourw
   if ('reasons' in found) return { ok: false, reasons: found.reasons };
   const { next, axes, colourways } = found;
   if (!colourways.options.some(o => o.id === id)) return { ok: false, reasons: [`${id} is not a colourway in this design system.`] };
-  const reasons = nameReasons(next, colourways, name, id);
+  const reasons = nameReasons(next, colourways.group, name, id);
   if (reasons.length) return { ok: false, reasons };
   const entry = entryOf(next, colourways.group, id)!;
   const oldName = typeof entry.name === 'string' ? entry.name : id;
@@ -802,7 +810,7 @@ export function duplicateColourway(doc: unknown, id: string, opts: DuplicateColo
   const { next, axes, colourways } = found;
   const mode = modeAxis(axes)!;
   if (!colourways.options.some(o => o.id === id)) return { ok: false, reasons: [`${id} is not a colourway in this design system.`] };
-  const reasons = [...idReasons(next, opts.id), ...nameReasons(next, colourways, opts.name)];
+  const reasons = [...idReasons(next, opts.id), ...nameReasons(next, colourways.group, opts.name)];
   if (reasons.length) return { ok: false, reasons };
   const set = colourwaySetName(opts.id);
   if (record(next[set])) return { ok: false, reasons: [`The design system already has a token set called ${set}.`] };

@@ -155,6 +155,19 @@ test('names: a colourway may not reuse another theme\'s id or name, in any case'
   refused(addColourway(doc, { id: 'second', name: 'persimmon', values: PERSIMMON }), /Another colourway is already called persimmon/);
 });
 
+test('names: the lift shares the rules, so the canonical colourway cannot be named after a look', () => {
+  const doc = deriveBrandTokens({ primary: '#2453ff', name: 'Fixture' });
+  // Named "light", the canonical colourway would answer every light request, the
+  // other colourways' included: a theme request beats an explicit colourway choice.
+  refused(liftToColourways(doc, { name: 'light' }), /already has a theme called light/);
+  refused(liftToColourways(doc, { name: 'Dark' }), /already has a theme called Dark/);
+  refused(liftToColourways(doc, { name: 'x'.repeat(MAX_COLOURWAY_NAME + 1) }), /at most/);
+  refused(addColourway(doc, { id: 'persimmon', name: 'Persimmon', values: PERSIMMON, lift: { name: 'light' } }), /already has a theme called light/);
+  // A blank name still means the default, and a usable one is kept as typed.
+  assert.equal(colourwayAxis(ok(liftToColourways(doc, { name: '  ' })))!.options[0]!.name, 'Main');
+  assert.equal(colourwayAxis(ok(liftToColourways(doc, { id: 'pine', name: ' Pine ' })))!.options[0]!.name, 'Pine');
+});
+
 test('renaming a lead whose entry has no id of its own pins the old name as the id', () => {
   const doc = threeLeads(deriveBrandTokens({ primary: '#2453ff', name: 'Fixture' }));
   const entry = (doc.$themes as Rec[]).find(t => t.id === 'persimmon')!;
