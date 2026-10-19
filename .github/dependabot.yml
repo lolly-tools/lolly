@@ -53,6 +53,17 @@ updates:
       # the diagnostic described in that test's header.
       - dependency-name: "jsdom"
         versions: [">=27.0.0"]
+      # Playwright 1.64 brings Chromium 156, which ships text-decoration-skip-spaces
+      # with the initial value `start end`: it no longer underlines the space that
+      # hangs at a soft wrap. The Design export still draws the underline under that
+      # space, so tests/design-draw-fidelity.browser.test.ts fails on the wrapped
+      # underline (PR #407, measured 2026-10-19). 1.63.0 is pinned exactly in the
+      # root package.json; pnpm-workspace.yaml carries it to playwright-core. Lift
+      # this once the decoration model follows the new initial value.
+      - dependency-name: "playwright"
+        versions: [">=1.64.0"]
+      - dependency-name: "playwright-core"
+        versions: [">=1.64.0"]
 
   # ── The two Tauri shells: their own npm manifests ─────────────────────────
   # Neither shell is a pnpm workspace member (their Rust/CLI toolchain has no
