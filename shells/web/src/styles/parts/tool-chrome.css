@@ -663,7 +663,6 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   gap: var(--sp-3);
   min-width: 0;
   padding-top: var(--sp-5);
-  border-top: 1px solid hsl(var(--border));
   opacity:1 !important;
 }
 
