@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MPL-2.0
-import { shareUrlState } from '../lib/share-privacy.ts';
 /**
  * Pro / Batch mode - view entry point and orchestrator.
  *
@@ -23,7 +22,7 @@ import { reorderRows } from './row-selection.ts';
 import { mountKitPanel, type KitPanel } from './kit-panel.ts';
 import { captureKitEdits, restoreKit, type KitState } from './kit-model.ts';
 import { isHiddenSlot, BATCH_SLOT_PREFIX } from '../lib/batch-slots.ts';
-import { buildEmbedUrl, toCssPx, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION } from '@lolly/engine';
+import { CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION } from '@lolly/engine';
 import { marksToCsv, csvToMarks } from '../lib/print-marks-csv.ts';
 
 // Output-dimension units the batch can target. px is the design canvas; the
@@ -57,8 +56,10 @@ import { runBatchWithProgress } from './run-overlay.ts';
 import { startBatchExport, isBatchRunActive } from '../lib/batch-job.ts';
 import { rowsForFolder, rowsFromRefs } from './folder-rows.ts';
 import { mountBatchTokenSection } from './token-links.ts';
+import { rowPreviewRoute } from './row-preview.ts';
+import { printSheetCellUrl } from '../lib/print-sheet-cell.ts';
+import { savedTokenSelection } from '../lib/theme-choices.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import type { Unit } from '../../../../engine/src/units.ts';
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
 import { mountBackPill } from '../components/back-pill.ts';
 import { setPendingToolSeed } from '../lib/drop-router.ts';
@@ -1503,11 +1504,10 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     for (const row of rowActions.scope()) {
       if (!row.toolId || !row.manifest) continue;
       const model = (row.manifest.inputs ?? []).map((i: any) => ({ ...i, value: row.values[i.id] ?? i.default }));
-      const fmts = row.manifest.render?.formats ?? [];
-      // Vector where the tool offers it (scales cleanly for print), else a raster still.
-      const format = fmts.includes('svg') ? 'svg' : (fmts.find((f: string) => ['png', 'jpg', 'jpeg', 'webp'].includes(f)) ?? 'png');
-      // keepUserIds: a same-device embed identity (see picker.ts embedSession).
-      const url = buildEmbedUrl({ toolId: row.toolId, format, query: shareUrlState(model, { keepUserIds: true }) });
+      // keepUserIds: a same-device embed identity (see picker.ts embedSession). The row's
+      // theme choices (`__tokenSelection` among its values) ride in the link, so its cell
+      // draws in the look the row renders in.
+      const url = printSheetCellUrl(row.manifest, model, { keepUserIds: true, tokenSelection: savedTokenSelection(row.values.__tokenSelection) });
       // The cell's artwork must be a REF OBJECT ({id}), not a bare string - the runtime's
       // assetRefId reads .id off an object and ignores bare strings, so a bare URL renders
       // an empty grid. The id is the canonical embed URL; resolveAssetRefs re-renders it.
@@ -1547,20 +1547,9 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
     if (!row?.toolId) return;
     let tool: any;
     try { tool = await getTool(row.toolId, row.artifactDigest); } catch { return; }
-    // Build a model from the row's values and hand it to the engine's canonical
-    // URL serializer, so the deep link matches what the single-tool view expects.
-    const model = (tool.manifest.inputs ?? []).map((i: any) => ({ ...i, value: row.values[i.id] ?? i.default }));
-    // keepUserIds: a same-device preview link - a user/ upload resolves here.
-    const qs = shareUrlState(model, { format: row.format || state.format, keepUserIds: true });
-    // Carry per-row export dimensions (reserved w/h params), and `full` so the
-    // single-tool view hides its sidebar - a clean preview. The preview canvas
-    // is on-screen px, so physical units are shown at their CSS-px (96dpi) size.
-    const u = row.unit ?? state.unit;
-    const toPreviewPx = (v: number) => Math.round(u === 'px' ? v : toCssPx({ value: v, unit: u as Unit }));
-    let dims = '';
-    if (row.outWidth) dims += `&w=${toPreviewPx(row.outWidth)}`;
-    if (row.outHeight) dims += `&h=${toPreviewPx(row.outHeight)}`;
-    const url = `${location.origin}${location.pathname}#/tool/${encodeURIComponent(row.toolId)}?${qs ? `${qs}&` : ''}full${dims}`;
+    // The row's values, format, theme choices and export size as a tool view route
+    // (row-preview.ts), so the preview matches what the row renders.
+    const url = `${location.origin}${location.pathname}${rowPreviewRoute(row, tool.manifest, { format: state.format, unit: state.unit })}`;
 
     // Open a real popup window (sized) rather than a tab, reused per row by name.
     const w = Math.min(1280, screen.availWidth - 40);
