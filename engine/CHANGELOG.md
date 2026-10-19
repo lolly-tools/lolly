@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.278.0
+
+- A tool manifest may declare `tokenAxes`, a map from axis kind (`mode`, `colourway`, `expression`, `medium`, `contrast`, `density`, `campaign`, `brand`) to `"ignore"`. The runtime pins every theme group of an ignored kind to its canonical option at mount and on every `setTokenSelection`, before the first token read, so hooks, linked colours, canvas variables and the saved session agree. `runtime.ignoredTokenChoices` lists the requested choices the pin overrode. The decision is pure, in `tool-token-axes.ts` (`ignoresTokenAxes`, `effectiveAxisKinds`, `ignoredTokenAxes`, `pinIgnoredTokenAxes`, `describeIgnoredTokenChoice`), and the web shell, the CLI and MCP share it. No shipped tool declares `tokenAxes` yet.
+- `runtime.setTokenSelection` runs `onInput` once more with the id `__tokens` after linked inputs re-resolve, whether or not the tool links anything. Its patch updates computed values only and never writes a declared input.
+- `Hooks` gains optional `tokensChanged()`, called before any hook runs under a new theme choice. The web and Node Worker executors use it to send the Worker a new token snapshot (a `tokens` message in `hook-worker-core`), so isolated hooks read the new theme.
+- Agenda, Chart, Diagram Builder, Gradient, Filter and Darkroom re-read design-system colours after a live switch; Record and Wayfinding Signage keep their accent linked to the design system.
+
 ## 1.277.0
 
 - Add functions that edit an existing set of colourways: `renameColourway`, `reorderColourways`, `setCanonicalColourway`, `removeColourway` and `duplicateColourway`, plus `colourwaysEditable` (whether Lolly can add, copy and remove colourways in a document, and why not) and `colourwayRolesOf` (the roles every look links to the colourways). Each returns the edited document or the reasons it refused. A colourway's id never changes, so an artefact that stored one keeps pointing at it; a rename of an entry with no id of its own writes the old name as the id first.
