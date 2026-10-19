@@ -24,6 +24,7 @@ import type { filtersOps } from './filters.ts';
 import type { sectionsOps } from './sections.ts';
 import type { detailsOps } from './details.ts';
 import type { swatchDetailsOps } from './swatch-details.ts';
+import type { swatchSetOps } from './swatch-set.ts';
 import type { userAssetsOps } from './user-assets.ts';
 import type { bulkOps } from './bulk.ts';
 import type { downloadsOps } from './downloads.ts';
@@ -91,6 +92,10 @@ export interface CatCtx {
   coverPool: string[];
   selected: Set<string>;
   tileSelect: TileSelect;
+  /** The selected swatch cards (their panel index), a store apart from `selected`. */
+  swatchSelected: Set<string>;
+  swatchSelect: TileSelect;
+  swatchBarCfg: BulkBarConfig;
   tileMenu: TileContextMenuHandle;
   FAV_VIEW_KEY: "lolly-catalog-fav-view";
   FAV_STRIP_KEY: "lolly-catalog-fav-strip";
@@ -145,6 +150,7 @@ export interface CatCtx {
   sections: ReturnType<typeof sectionsOps>;
   details: ReturnType<typeof detailsOps>;
   swatches: ReturnType<typeof swatchDetailsOps>;
+  swatchSet: ReturnType<typeof swatchSetOps>;
   userAssets: ReturnType<typeof userAssetsOps>;
   bulk: ReturnType<typeof bulkOps>;
   downloads: ReturnType<typeof downloadsOps>;

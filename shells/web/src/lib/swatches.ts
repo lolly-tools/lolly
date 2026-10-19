@@ -20,6 +20,8 @@ import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from './icons.ts';
 import { swatchInk, SWATCH_INK } from '../brand-vars.ts';
+import { describeColor } from '@lolly/engine';
+import type { ColorDescription } from '@lolly/engine';
 import type { PaletteEntry } from '../palette.ts';
 
 export const isTransparent = (hex: string): boolean => !hex || hex.toLowerCase() === 'transparent';
@@ -86,14 +88,47 @@ export function paletteInDisplayOrder(palette: readonly PaletteEntry[]): Palette
   return [...brand, ...spectrum, ...ramps.flatMap(([, cols]) => cols)];
 }
 
+/** One swatch's colour, read once: the value it was authored as, the value a
+ *  sheet leads with, and the description the colour surfaces report from. The
+ *  Assets swatch card and its details sheet both paint from this. */
+export interface SwatchFacts {
+  entry: PaletteEntry;
+  /** The colour as authored, or the hex when the token carries no other value. */
+  subject: string;
+  /** The value to lead with and copy first: the hex while the colour is inside
+   *  sRGB (where a hex holds it exactly), the authored value once it is wider. */
+  lead: string;
+  /** The sRGB hex: what a display without the authored value shows. */
+  hex: string;
+  /** Null for Transparent, which has no colour to describe. */
+  desc: ColorDescription | null;
+}
+
+/** True when the browser will paint `value` as a colour. A token value goes into
+ *  a style attribute, so anything that is not plainly a colour stays out. */
+const paintable = (value: string): boolean =>
+  typeof CSS === 'undefined' || typeof CSS.supports !== 'function' || CSS.supports('color', value);
+
+export function swatchFacts(entry: PaletteEntry): SwatchFacts {
+  if (isTransparent(entry.hex)) return { entry, subject: 'transparent', lead: 'transparent', hex: 'transparent', desc: null };
+  const css = entry.token?.css;
+  const authored = css && css.toLowerCase() !== entry.hex.toLowerCase() && paintable(css) ? describeColor(css) : null;
+  const desc = authored ?? describeColor(entry.hex);
+  const subject = authored ? css! : entry.hex;
+  return { entry, subject, lead: !desc || desc.inSrgb ? entry.hex.toUpperCase() : subject, hex: entry.hex, desc };
+}
+
+/** Inline `background` twice: the hex for every display, then the authored value
+ *  for a display that can show the authored colour. A display that cannot keeps
+ *  the hex. Empty for Transparent, so the checkerboard under the swatch shows. */
+export const swatchFill = (f: SwatchFacts): string =>
+  f.desc ? `background:${escape(f.hex)};background:${escape(f.subject)}` : '';
+
 /** `opts.fav` (host views that wire a favourites overlay, e.g. the Catalog) renders a
  *  star toggle on the card; omit it (or call via `.map(swatch)`, whose index lands here
- *  and is ignored) for the plain read-only card. `opts.open` makes the chip open the
- *  swatch's details (the host wires `[data-swatch-open]`) instead of copying its hex,
- *  the way a click on any other asset opens its details. */
-export function swatch(c: PaletteEntry, opts?: { fav?: boolean; open?: number } | number): string {
+ *  and is ignored) for the plain read-only card. */
+export function swatch(c: PaletteEntry, opts?: { fav?: boolean } | number): string {
   const fav = typeof opts === 'object' && opts ? opts.fav : undefined;
-  const open = typeof opts === 'object' && opts ? opts.open : undefined;
   const measured = isLockedInk(c);
   const trans = isTransparent(c.hex);
   const chipStyle = trans ? '' : `style="background:${escape(c.hex)}"`;
@@ -106,11 +141,8 @@ export function swatch(c: PaletteEntry, opts?: { fav?: boolean; open?: number } 
   return `
     <div class="plat-swatch${measured ? ' is-measured' : ''}">
       <button type="button" class="plat-swatch-chip${trans ? ' is-transparent' : ''}" ${chipStyle}
-              ${open === undefined
-                ? `data-copy="${trans ? 'transparent' : escape(c.hex)}"
-              aria-label="${escape(c.label)} - ${trans ? 'transparent' : escape(c.hex)} (click to copy)"`
-                : `data-swatch-open="${open}" aria-haspopup="dialog"
-              aria-label="${escape(tRaw('{name} - {hex}. Open details', { name: c.label, hex: trans ? 'transparent' : c.hex }))}"`}>
+              data-copy="${trans ? 'transparent' : escape(c.hex)}"
+              aria-label="${escape(c.label)} - ${trans ? 'transparent' : escape(c.hex)} (click to copy)">
         ${measured ? flag : ''}
       </button>
       ${fav === undefined ? '' : `<button type="button" class="plat-swatch-fav${fav ? ' is-on' : ''}" data-fav-swatch="${escape(c.label)}" aria-pressed="${fav}" aria-label="${escape(fav ? t('Remove from favourites') : t('Add to favourites'))}" title="${escape(fav ? t('Remove from favourites') : t('Add to favourites'))}">${icon('star', { size: 13 })}</button>`}

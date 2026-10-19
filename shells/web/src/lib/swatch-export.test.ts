@@ -15,8 +15,10 @@ import type { BrandSwatch } from './brand-doc.ts';
 import {
   swatchesToTokensJson, swatchesToCssVariables, swatchesToCssClasses,
   swatchesToScssVariables, swatchesToGpl, swatchesToAse, exportSwatches,
+  paletteEntriesToSwatches, swatchFit,
   type SwatchExportFormat,
 } from './swatch-export.ts';
+import type { PaletteEntry } from '../palette.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -207,4 +209,41 @@ test('both enumerating UIs offer every format - none is reachable in only one', 
     [...catalogOpts].sort(), [...FORMATS].sort(),
     'catalog SWATCH_DOWNLOADS (its own order puts .ase/.gpl last)',
   );
+});
+
+// ── swatchFit: which colours a format can hold ──────────────────────────────
+
+const fitEntry = (label: string, hex: string, css?: string): PaletteEntry =>
+  ({ label, hex, cmyk: null, ...(css ? { token: { ref: `{color.brand.${label}}`, path: `color.brand.${label}`, css } } : {}) });
+
+test('swatchFit leaves out what a format cannot hold, and says why', () => {
+  const fit = swatchFit([
+    fitEntry('pine', '#0c322c'),
+    fitEntry('clear', 'transparent'),
+    fitEntry('veil', '#0c322c80'),
+    fitEntry('odd', 'oklch(50% 0.1 200)'),
+  ], 'gpl');
+  assert.deepEqual(fit.kept.map(e => e.label), ['pine']);
+  assert.deepEqual(fit.skipped.map(s => [s.entry.label, s.reason]), [['clear', 'no-colour'], ['veil', 'translucent'], ['odd', 'unreadable']]);
+});
+
+test('swatchFit writes an opaque short or eight-digit hex as the six digits the exporters read', () => {
+  const fit = swatchFit([fitEntry('short', '#abc'), fitEntry('solid', '#0C322CFF')], 'css-vars');
+  assert.deepEqual(fit.kept.map(e => e.hex), ['#aabbcc', '#0C322C']);
+  assert.match(swatchesToCssVariables(paletteEntriesToSwatches(fit.kept)), /#aabbcc;[\s\S]*#0c322c;/);
+});
+
+test('swatchFit marks a colour wider than sRGB as written by its sRGB fallback', () => {
+  const fit = swatchFit([fitEntry('vivid', '#00ff00', 'color(display-p3 0 1 0)'), fitEntry('pine', '#0c322c', 'color(srgb 0.047059 0.196078 0.172549)')], 'ase');
+  assert.deepEqual(fit.kept.map(e => e.label), ['vivid', 'pine']);
+  assert.deepEqual(fit.approximated.map(e => e.label), ['vivid']);
+});
+
+test('swatchFit agrees with what each exporter actually writes', () => {
+  const entries = [fitEntry('pine', '#0c322c'), fitEntry('clear', 'transparent'), fitEntry('veil', '#0c322c80')];
+  for (const fmt of FORMATS) {
+    const kept = swatchFit(entries, fmt).kept.length;
+    const written = paletteEntriesToSwatches(entries).filter(s => /^#[0-9a-f]{6}$/i.test(s.hex)).length;
+    assert.equal(kept, written, fmt);
+  }
 });

@@ -8,8 +8,8 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { linkedHtml, notationsHtml, plotHtml, readabilityHtml, swatchFacts, tonesHtml } from './swatch-details.ts';
-import { groupPalette, paletteInDisplayOrder } from '../../lib/swatches.ts';
+import { linkedHtml, notationsHtml, plotHtml, readabilityHtml, tonesHtml } from './swatch-details.ts';
+import { groupPalette, paletteInDisplayOrder, swatchFacts } from '../../lib/swatches.ts';
 import { toPaletteEntry } from '../../lib/live-palette.ts';
 import type { PaletteEntry } from '../../palette.ts';
 
@@ -72,7 +72,7 @@ test('a spot lock, its finish and the authored faces are all linked values, each
 
 test('every notation starts with the hex and each row carries its own copy value', () => {
   const html = notationsHtml(swatchFacts(pine));
-  const copies = [...html.matchAll(/data-swatch-copy="([^"]+)"/g)].map(m => m[1]);
+  const copies = [...html.matchAll(/data-swatch-copy="([^"]+)"/g)].map(m => m[1]!);
   assert.equal(copies[0], '#0C322C');
   assert.ok(copies.some(v => v.startsWith('oklch(')), 'oklch is listed');
   assert.ok(copies.length >= 10, 'hex plus the Colour Lab\'s nine spaces');

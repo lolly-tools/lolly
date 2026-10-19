@@ -20,7 +20,7 @@ import {
   apcaVerdict, contrastRatio, describeColor, formatOklch, oklchToHex, rampOklab, wcagLevel,
   APCA_SRGB_ONLY,
 } from '@lolly/engine';
-import type { ColorDescription, GamutName, SlicePlane } from '@lolly/engine';
+import type { GamutName, SlicePlane } from '@lolly/engine';
 import { t, tRaw } from '../../i18n.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
@@ -32,11 +32,11 @@ import { segHtml } from '../../lib/seg.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { replaceRouteUrl } from '../../lib/url-state.ts';
 import { appPathname } from '../../lib/any-site.ts';
-import { cmykText, isTransparent, paletteInDisplayOrder } from '../../lib/swatches.ts';
+import { cmykText, paletteInDisplayOrder, swatchFacts, swatchFill as fill } from '../../lib/swatches.ts';
+import type { SwatchFacts } from '../../lib/swatches.ts';
 import { GAMUT_BLURB, GAMUT_TITLE, PLANE_TITLE, PLANE_WHY } from '../../lib/colour-words.ts';
 import { swatchInk } from '../../brand-vars.ts';
-import type { PaletteEntry } from '../../palette.ts';
-import { CHEVRON_LEFT, CHEVRON_RIGHT, SHARE_ICON, STAR_ICON } from './shared.ts';
+import { CHEVRON_LEFT, CHEVRON_RIGHT, DOWNLOAD_ICON, SHARE_ICON, STAR_ICON } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 import '../../lib/oklch-slice.css';
 import './swatch-details.css';
@@ -55,38 +55,6 @@ const TONE_STEPS = 9;
  *  the Colour Lab's default. */
 const chart: { plane: SlicePlane; limit: Limit } = { plane: 'lc', limit: 'rec2020' };
 
-/** One swatch, read once per open. */
-export interface SwatchFacts {
-  entry: PaletteEntry;
-  /** The colour as authored, or the hex when the token carries no other value. */
-  subject: string;
-  /** The value the sheet leads with and its main button copies: the hex while the
-   *  colour fits sRGB (where the hex holds it), the authored value once it is wider. */
-  lead: string;
-  /** The sRGB hex: what a display without the authored value shows. */
-  hex: string;
-  /** Null for Transparent, which has no colour to describe. */
-  desc: ColorDescription | null;
-}
-
-/** True when the browser will paint `value` as a colour. A token value goes into
- *  a style attribute, so anything that is not plainly a colour stays out. */
-const paintable = (value: string): boolean =>
-  typeof CSS === 'undefined' || typeof CSS.supports !== 'function' || CSS.supports('color', value);
-
-export function swatchFacts(entry: PaletteEntry): SwatchFacts {
-  if (isTransparent(entry.hex)) return { entry, subject: 'transparent', lead: 'transparent', hex: 'transparent', desc: null };
-  const css = entry.token?.css;
-  const authored = css && css.toLowerCase() !== entry.hex.toLowerCase() && paintable(css) ? describeColor(css) : null;
-  const desc = authored ?? describeColor(entry.hex);
-  const subject = authored ? css! : entry.hex;
-  return { entry, subject, lead: !desc || desc.inSrgb ? entry.hex.toUpperCase() : subject, hex: entry.hex, desc };
-}
-
-/** `background` twice: the hex for every display, then the authored value for a
- *  display that can show the authored colour. A display that cannot keeps the hex. */
-const fill = (f: SwatchFacts): string =>
-  f.desc ? `background:${escapeText(f.hex)};background:${escapeText(f.subject)}` : '';
 
 const copyButton = (value: string, label = value): string =>
   `<button type="button" class="cat-swatch-copy" data-swatch-copy="${escapeText(value)}"
@@ -252,6 +220,7 @@ export function sheetHtml(cat: CatCtx, f: SwatchFacts, nav: { prev: boolean; nex
       <h2 class="cat-details-name">${escapeText(entry.label)}</h2>
       <div class="cat-details-actions">
         <button type="button" class="btn btn--primary" data-inspector-primary data-swatch-copy="${escapeText(f.lead)}">${icon('clipboard', { size: 16 })}<span>${escapeText(tRaw('Copy {v}', { v: f.lead }))}</span></button>
+        <button type="button" class="btn" data-inspector-primary data-act="download" aria-haspopup="menu">${DOWNLOAD_ICON}<span>${escapeText(t('Download as…'))}</span></button>
         <button type="button" class="btn" data-inspector-primary data-act="share">${SHARE_ICON}<span>${escapeText(t('Copy link'))}</span></button>
         ${lab ? `<a class="btn" data-inspector-primary href="${escapeText(lab)}">${icon('flask', { size: 16 })}<span>${escapeText(t('Open in Colour Lab'))}</span></a>` : ''}
         <div class="cat-act-row">
@@ -335,7 +304,10 @@ export function openSwatch(cat: CatCtx, index: number): void {
     backStack: !cat.preview,
     ariaLabel: entry.label,
     initialFocus: (el) => el.querySelector<HTMLElement>('.cat-details-close'),
+    // Escape closes an open format menu first, then the sheet.
+    onEscape: () => { if (cat.actionsPopover?.isOpen()) cat.actionsPopover.close(true); else modal.close(); },
     onClose: () => {
+      cat.actionsPopover?.close();
       disposeDock?.();
       resize?.disconnect();
       if (!cat.detailsOpening) syncSwatchUrl(cat, null);
@@ -392,6 +364,8 @@ export function openSwatch(cat: CatCtx, index: number): void {
     if (act === 'share') {
       const btn = target.closest<HTMLElement>('[data-act]')!;
       void copyFrom(btn, swatchLink(cat, entry.label));
+    } else if (act === 'download') {
+      cat.swatchSet.openDownloadMenu([entry], target.closest<HTMLElement>('[data-act]'));
     } else if (act === 'fav') {
       void cat.userAssets.toggleFavourite(cat.filters.swatchFavKey(entry.label)).then(() => {
         const on = cat.favSet.has(cat.filters.swatchFavKey(entry.label));

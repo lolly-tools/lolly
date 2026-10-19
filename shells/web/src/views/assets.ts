@@ -64,6 +64,7 @@ import { filtersOps } from './assets/filters.ts';
 import { sectionsOps } from './assets/sections.ts';
 import { detailsOps } from './assets/details.ts';
 import { swatchDetailsOps } from './assets/swatch-details.ts';
+import { SWATCH_SECTION, swatchSetOps } from './assets/swatch-set.ts';
 import { userAssetsOps } from './assets/user-assets.ts';
 import { bulkOps } from './assets/bulk.ts';
 import { downloadsOps } from './assets/downloads.ts';
@@ -106,6 +107,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   cat.sections = sectionsOps(cat);
   cat.details = detailsOps(cat);
   cat.swatches = swatchDetailsOps(cat);
+  cat.swatchSet = swatchSetOps(cat);
   cat.userAssets = userAssetsOps(cat);
   cat.bulk = bulkOps(cat);
   cat.downloads = downloadsOps(cat);
@@ -194,6 +196,8 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // Catalog assets and uploads share selection; changes to files are upload-only.
   // Uses the Projects checkbox and floating bulk-bar pattern.
   const selected = new Set<string>(); cat.selected = selected;
+  // Swatch cards keep their own selection (views/assets/swatch-set.ts).
+  cat.swatchSelected = new Set<string>();
 
   const tileSelect = wireTileSelect({
     host: viewEl,
@@ -205,7 +209,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     setRefs: (refs) => {
       selected.clear();
       for (const id of refs) selected.add(id);
-      for (const tile of viewEl.querySelectorAll<HTMLElement>('.cat-tile')) {
+      for (const tile of viewEl.querySelectorAll<HTMLElement>('.cat-tile[data-id]')) {
         const on = selected.has(tile.dataset.id ?? '');
         tile.classList.toggle('is-selected', on);
         tile.querySelector('.cat-check')?.setAttribute('aria-pressed', String(on));
@@ -221,6 +225,8 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     noStart: '.cat-tile, button, a, input, label, textarea, select, dialog, .cat-bulkbar, '
       + '.cat-toolbar, .cat-fav-strip, .featured, .gallery-topbar, .gallery-footer, .updz, '
       + '[data-dropzone-mount], .cat-dl-section, .cat-uploads-bar',
+    // The Swatches section runs its own gestures over its own selection (swatch-set.ts).
+    owns: (el) => !el.closest(SWATCH_SECTION),
     // Keyboard grid (plans/132 WP-L): arrows/Space/Cmd-A from the shared model;
     // Delete soft-deletes uploads (catalog assets are a permanent contract -
     // they are silently skipped); F2 renames a single upload.
@@ -235,17 +241,32 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
       },
     },
   }); cat.tileSelect = tileSelect;
+  const unwireSwatchSet = cat.swatchSet.wire();
+  // A swatch card's ref is `sw:<panel index>`, so the one menu can tell the two
+  // kinds of card apart; the two selections never coexist, so the bulk menu
+  // belongs to whichever is non-empty.
+  const swatchRef = (ref: string): string | null => (ref.startsWith('sw:') ? ref.slice(3) : null);
   const tileMenu = wireTileContextMenu({
     host: viewEl,
-    tileSelector: '.cat-tile[data-id], .cat-fav-strip .ftile[data-tool]',
-    refOf: (tile) => tile.dataset.id ?? tile.dataset.tool ?? null,
+    tileSelector: '.cat-tile[data-id], .cat-swatch-tile[data-swatch-ref], .cat-fav-strip .ftile[data-tool]',
+    refOf: (tile) => tile.dataset.id ?? (tile.dataset.swatchRef ? `sw:${tile.dataset.swatchRef}` : null) ?? tile.dataset.tool ?? null,
     tileAt: (x, y) => cat.featuredHandle?.tileAt(x, y) ?? null,
-    isBulkTarget: (id, tile) => !tile.closest('.cat-fav-strip') && selected.size > 1 && selected.has(id),
-    singleHtml: (tgt) => tgt.tile?.closest('.cat-fav-strip')
-      ? menuItemHtml('fav', STAR_ICON, t('Unfavourite')) + menuItemHtml('share-favourite', icon('share'), t('Share'))
-      : cat.tiles.catTileMenuHtml(tgt.ref),
-    bulkHtml: () => cat.tiles.catBulkMenuHtml(),
-    onAction: (act, tgt) => {
+    isBulkTarget: (id, tile) => {
+      const sw = swatchRef(id);
+      if (sw !== null) return cat.swatchSet.isBulkTarget(sw);
+      return !tile.closest('.cat-fav-strip') && selected.size > 1 && selected.has(id);
+    },
+    singleHtml: (tgt) => {
+      const sw = swatchRef(tgt.ref);
+      if (sw !== null) return cat.swatchSet.menuHtml(sw);
+      return tgt.tile?.closest('.cat-fav-strip')
+        ? menuItemHtml('fav', STAR_ICON, t('Unfavourite')) + menuItemHtml('share-favourite', icon('share'), t('Share'))
+        : cat.tiles.catTileMenuHtml(tgt.ref);
+    },
+    bulkHtml: () => (cat.swatchSet.count() ? cat.swatchSet.bulkMenuHtml() : cat.tiles.catBulkMenuHtml()),
+    onAction: (act, tgt, kind) => {
+      const sw = tgt ? swatchRef(tgt.ref) : null;
+      if (sw !== null || (kind === 'bulk' && cat.swatchSet.count())) { cat.swatchSet.onMenuAction(act, sw); return; }
       if (act === 'fav' && tgt?.tile?.closest('.cat-fav-strip')) {
         void cat.userAssets.toggleFavourite(tgt.ref);
         return;
@@ -412,6 +433,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
       cat.mounted = false;
       cat.actionsPopover?.close();
       tileSelect.destroy();
+      unwireSwatchSet();
       tileMenu.destroy();
       unwireEscape();
       cat.sections.closeDetails();
@@ -463,6 +485,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     // Not optional: the marquee's mousedown is bound to viewEl (#view), which the router
     // REUSES for every route - leave it bound and the next mount stacks another copy.
     tileSelect.destroy();
+    unwireSwatchSet();
     tileMenu.destroy();
     unwireEscape();
     cat.featuredHandle?.destroy();
