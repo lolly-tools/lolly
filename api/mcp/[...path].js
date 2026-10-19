@@ -50953,6 +50953,14 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       tokenSelection = applied;
       scopedTokens = tokenSelection ? withTokenSelection(unscopedHost, tokenSelection).tokens : unscopedHost.tokens;
       surfaceContexts.delete(host);
+      if (hooks?.tokensChanged) {
+        try {
+          await hooks.tokensChanged();
+        } catch (e) {
+          host.log("warn", `tokensChanged ${e.message}`, { toolId: tool.manifest.id });
+        }
+        if (generation !== themeGeneration) return;
+      }
       let before;
       let resolved2;
       do {
@@ -50971,6 +50979,31 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
           } catch (e) {
             host.log("warn", `onInput ${e.message}`, { toolId: tool.manifest.id });
           }
+        }
+        const applyTokensPatch = (patch) => {
+          if (!patch || typeof patch !== "object" || Array.isArray(patch)) return;
+          const computed = Object.fromEntries(Object.entries(patch).filter(([id3]) => !inputIds.has(id3)));
+          ({ model: model2, extras } = mergePatch(model2, extras, computed, inputIds));
+        };
+        try {
+          const patch = await runHook("onInput", (report4) => onInput({
+            id: TOKENS_CHANGED_INPUT_ID,
+            value: null,
+            model: modelForHooks(model2),
+            view: viewState,
+            lang: hookLang,
+            host,
+            report: report4
+          }), (late) => {
+            if (generation === themeGeneration) {
+              applyTokensPatch(late);
+              emit();
+            }
+          });
+          if (generation !== themeGeneration) return;
+          if (patch) applyTokensPatch(patch);
+        } catch (e) {
+          host.log("warn", `onInput ${e.message}`, { toolId: tool.manifest.id });
         }
       }
       emit();
@@ -51805,7 +51838,7 @@ function mergePatch(model2, extras, patch, inputIds) {
   const newModel = hasModelPatch ? model2.map((input) => input.id in modelPatch ? { ...input, value: modelPatch[input.id] } : input) : model2;
   return { model: newModel, extras: newExtras };
 }
-var ExportHookError, HOOK_BUDGET_MS, ALPHA_EXPORT_FORMATS, DATA_FORMATS, surfaceContexts, hookFactoryCache, inRealmHookExecutor, COMPOSE_TIMEOUT_MS2;
+var ExportHookError, HOOK_BUDGET_MS, TOKENS_CHANGED_INPUT_ID, ALPHA_EXPORT_FORMATS, DATA_FORMATS, surfaceContexts, hookFactoryCache, inRealmHookExecutor, COMPOSE_TIMEOUT_MS2;
 var init_runtime = __esm({
   "engine/src/runtime.ts"() {
     "use strict";
@@ -51845,6 +51878,7 @@ var init_runtime = __esm({
       exportFile: 1e4,
       exportStill: 1e4
     };
+    TOKENS_CHANGED_INPUT_ID = "__tokens";
     ALPHA_EXPORT_FORMATS = /* @__PURE__ */ new Set(["jxl", "jxl-lossless", "png", "webp", "avif", "apng", "webp-anim", "gif"]);
     DATA_FORMATS = {
       json: "application/json",
@@ -64130,9 +64164,15 @@ function createHookWorkerCore(port, opts = {}) {
       }
     }, 250);
   }
-  function makeTokens(doc, excluded) {
+  function makeTokens(initialDoc, excluded) {
+    let doc = initialDoc;
     const byTheme = /* @__PURE__ */ new Map();
-    const excl = new Set(excluded);
+    let excl = new Set(excluded);
+    const swap = (next2, nextExcluded) => {
+      doc = next2;
+      excl = new Set(nextExcluded);
+      byTheme.clear();
+    };
     const ensure = (opts2 = {}) => {
       const key2 = tokenSelectionKey(opts2);
       let set = byTheme.get(key2);
@@ -64143,7 +64183,7 @@ function createHookWorkerCore(port, opts = {}) {
       }
       return set;
     };
-    return {
+    const tokens3 = {
       get: async (o = {}) => ensure(o),
       inspect: async (o = {}) => inspectTokenDocument(doc, o),
       resolve: async (ref2, o = {}) => ensure(o).resolve(ref2),
@@ -64157,8 +64197,9 @@ function createHookWorkerCore(port, opts = {}) {
         });
       }
     };
+    return { tokens: tokens3, swap };
   }
-  function buildHost(runId, msg3) {
+  function buildHost(runId, msg3, owner3) {
     const run3 = () => runs2.get(runId);
     const host = {
       version: "1",
@@ -64172,7 +64213,11 @@ function createHookWorkerCore(port, opts = {}) {
       color: apis.color,
       geom: apis.geom
     };
-    if (msg3.tokenDoc != null) host.tokens = makeTokens(msg3.tokenDoc, msg3.tokenExcluded);
+    if (msg3.tokenDoc != null) {
+      const made = makeTokens(msg3.tokenDoc, msg3.tokenExcluded);
+      host.tokens = made.tokens;
+      owner3.setTokens = made.swap;
+    }
     for (const [ns2, methods] of Object.entries(msg3.hostShape)) {
       if (COLOCATED_NS.has(ns2) && ns2 !== "raster") continue;
       const nsObj = host[ns2] ?? {};
@@ -64231,7 +64276,7 @@ function createHookWorkerCore(port, opts = {}) {
       let inRealmOnlyDeclared = [];
       let compileError;
       try {
-        run3.host = buildHost(msg3.runId, msg3);
+        run3.host = buildHost(msg3.runId, msg3, run3);
         const compiled3 = compile2(run3.host, msg3.hooksSource);
         run3.mod = compiled3.mod;
         inRealmOnlyDeclared = compiled3.inRealmOnlyDeclared;
@@ -64271,6 +64316,10 @@ function createHookWorkerCore(port, opts = {}) {
         if (msg3.ok) waiter.resolve(msg3.value);
         else waiter.reject(new Error(msg3.error ?? "host call failed"));
       }
+      return;
+    }
+    if (msg3.t === "tokens") {
+      if (msg3.tokenDoc != null) runs2.get(msg3.runId)?.setTokens?.(msg3.tokenDoc, msg3.tokenExcluded);
       return;
     }
     if (msg3.t === "dispose") {

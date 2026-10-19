@@ -346,7 +346,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `gzip.ts` | 283 | gzip (RFC 1952): the member wrapper around raw DEFLATE, plus a synchronous inflater so a `.gz`/`.svgz` can be read back without a platform decoder. | yes | indirect | – |
 | `hdr.ts` | 555 | HDR raster export: brand-colour highlight boost + PQ (SMPTE ST 2084) encoding. | yes | `tests/hdr.test.ts` | – |
 | `heal.ts` | 337 | Spot healing (plans/289 M4): Compositor's `spot_heal` (HealPixels.c, MIT, Wonder Assembly LLC), ported line for line and held to the original by tests/heal.test.ts, whose goldens come from the C itself… | yes | `tests/heal.test.ts` | – |
-| `hook-worker-core.ts` | 457 | Hook worker core - the transport-agnostic half of running a tool's hooks.js OFF the thread that owns the host bridge (plans/86 M2, moved here from the web shell's hook-worker.worker.ts so a Node `worker_threads`… | yes | `tests/hook-worker-core.test.ts` | – |
+| `hook-worker-core.ts` | 485 | Hook worker core - the transport-agnostic half of running a tool's hooks.js OFF the thread that owns the host bridge (plans/86 M2, moved here from the web shell's hook-worker.worker.ts so a Node `worker_threads`… | yes | `tests/hook-worker-core.test.ts` | – |
 | `humanize.ts` | 102 | "Humanize" a text asset - a DETERMINISTIC, on-device clean-up of the AI artifacts a text-signal analysis flags, plus a tidy of the typography to house style. | yes | `tests/humanize.test.ts` | – |
 | `icc-pixels.ts` | 482 | ICC profiles applied to deep pixel buffers: the digiKam act (deeprichpixels section 3, section 5.1): input profile → PCS → working/output space, per pixel, over a {@link DeepFrame}. | yes | `tests/icc-pixels.test.ts` | – |
 | `icc.ts` | 1390 | ICC profile reader: the authority for "what can this device actually print?". | yes | `tests/icc.test.ts` | yes |
@@ -473,7 +473,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `rondo-source.test.ts` | 100 | rondo-source.ts: song files, share links rondocode itself writes (made with pako, as upstream does), canonical bytes, and the ceilings on every untrusted path. | no | none | – |
 | `rondo-source.ts` | 206 | rondo-source.ts: a rondocode song as an asset's bytes. | yes | indirect | yes |
 | `rpm.ts` | 443 | RPM v4 package writer - the container half of a `.rpm`. | yes | `tests/rpm.test.ts` | – |
-| `runtime.ts` | 2906 |  | yes | indirect | – |
+| `runtime.ts` | 2950 |  | yes | indirect | – |
 | `scorm.ts` | 627 | SCORM packaging - the pure half (plans/180 section 6). | yes | `tests/scorm.test.ts` | – |
 | `seal.ts` | 756 | SEAL (hackerfactor.com) signature verifier - pure, DOM-free (globalThis.crypto only, like c2pa-verify.ts / x509.ts). | yes | `tests/seal.test.ts` | yes |
 | `semver-range.ts` | 112 | Minimal SemVer range satisfaction - enough to enforce a tool manifest's `engineVersion` against the running ENGINE_VERSION (loader.ts, P0-3). | yes | `tests/semver-range.test.ts` | – |
