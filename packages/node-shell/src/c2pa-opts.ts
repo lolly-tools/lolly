@@ -13,9 +13,9 @@
  * reads the file as trusted.
  */
 import { createHash } from 'node:crypto';
-import { summarizeInputs, matchesShowIf, ENGINE_VERSION, collectAiIngredientDeclarations, exportActionSteps, designRecordEnvironment } from '@lolly/engine';
+import { summarizeInputs, matchesShowIf, ENGINE_VERSION, collectAiIngredientDeclarations, exportActionSteps, designRecordEnvironment, designRecordFrom, extractC2paStore, readDesignRecord, readFileDesignRecord, verifyC2pa } from '@lolly/engine';
 import { modelToValues, flattenValue } from '../../../engine/src/inputs.ts';
-import type { embedC2pa, C2paSigner } from '@lolly/engine';
+import type { embedC2pa, C2paSigner, DesignRecord } from '@lolly/engine';
 import type { ExportMeta, Profile } from '@lolly-tools/core/host-v1';
 
 /** The (unexported-by-name) options bag `embedC2pa` accepts. */
@@ -134,4 +134,33 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
       : aiIngredients.length ? { aiDisclosure: {} } : {}),
     ...(o.specVersion ? { specVersion: o.specVersion } : {}),
   };
+}
+
+/**
+ * The design-system record a finished file carries (plans/319), read back from the
+ * delivered bytes, so a shell that tells the person what an export recorded never
+ * claims a record the file does not hold. In order: the file's own XMP or SVG
+ * metadata, then its credential's export assertion, then, for a PDF, the record of
+ * the metadata its keywords were written from (`meta`, the export's own; a PDF
+ * keyword gives the label only, never the id). Null when the file kept none, such
+ * as a browser-free PNG with its credential off. Never throws.
+ */
+export async function recordedDesignInFile(
+  bytes: Uint8Array,
+  format: string,
+  meta?: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes'> | null,
+): Promise<DesignRecord | null> {
+  const own = readFileDesignRecord(bytes);
+  if (own) return own;
+  if (extractC2paStore(bytes)) {
+    try {
+      const fromCredential = readDesignRecord((await verifyC2pa(bytes)).environment ?? null);
+      if (fromCredential) return fromCredential;
+    } catch { /* an unreadable credential holds no record a shell can name */ }
+  }
+  if (format === 'pdf' || format === 'pdf-cmyk') {
+    const fromMeta = designRecordFrom(meta);
+    if (fromMeta.designSystem || fromMeta.designVersion || fromMeta.themes) return fromMeta;
+  }
+  return null;
 }

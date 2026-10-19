@@ -44,13 +44,13 @@ test('lolly_render declares the export controls agents could not reach before', 
   const tools = (res.result as { tools: { name: string; inputSchema: { properties: Record<string, unknown> } }[] }).tools;
   const render = tools.find(t => t.name === 'lolly_render');
   assert.ok(render, 'lolly_render is registered');
-  for (const k of ['depth', 'hdr', 'bleed', 'marks', 'cuts', 'imprint', 'durable']) {
+  for (const k of ['depth', 'hdr', 'bleed', 'marks', 'cuts', 'imprint', 'durable', 'madeWith']) {
     assert.ok(k in render!.inputSchema.properties, `lolly_render must accept ${k}`);
   }
   // The same controls belong on the link builder: a link that drops the press
   // setup opens a different document than the one the agent rendered.
   const url = tools.find(t => t.name === 'lolly_build_url');
-  for (const k of ['depth', 'bleed', 'marks', 'imprint', 'durable']) {
+  for (const k of ['depth', 'bleed', 'marks', 'imprint', 'durable', 'madeWith']) {
     assert.ok(k in url!.inputSchema.properties, `lolly_build_url must accept ${k}`);
   }
 });
@@ -138,4 +138,39 @@ test('a rendered file and the link returned beside it carry the same setup', asy
 test('HDR Design refuses browser-free export instead of clipping the scene through resvg',async()=>{
   const {render}=await import('../src/render.ts');
   await assert.rejects(render('design','editingRange=hdr',{format:'png',noBrowser:true,c2pa:{on:false,days:null}}),/HDR Design composition requires the browser/);
+});
+
+// The design-system record (plans/319) is approved on the condition that it is
+// visible at the moment of export: an MCP render prints the words the delivered
+// file carries, read back from its bytes, and `madeWith: false` leaves the record
+// out of both the file and the link.
+
+test('the design-system record is default-on, so a link only ever carries its opt-out', async () => {
+  const plain = linkQuery(await callTool('lolly_build_url', { toolId: 'qr-code', inputs: { url: 'https://lolly.tools' } }));
+  assert.equal(plain.get('_madewith'), null, 'the default writes nothing');
+  const off = linkQuery(await callTool('lolly_build_url', { toolId: 'qr-code', inputs: { url: 'https://lolly.tools' }, madeWith: false }));
+  assert.equal(off.get('_madewith'), '0');
+});
+
+test('a render says what the delivered file records about its design system, and madeWith: false leaves it out', async () => {
+  const { render, designRecordText } = await import('../src/render.ts');
+  const { readDesignRecordXml } = await import('../../../engine/src/metadata.ts');
+  const svg = (bytes: Uint8Array): string => new TextDecoder().decode(bytes);
+
+  const on = await render('qr-code', 'url=https%3A%2F%2Flolly.tools', { format: 'svg', noBrowser: true, c2pa: { on: false, days: null } });
+  const inFile = readDesignRecordXml(svg(on.bytes));
+  assert.ok(inFile?.designSystem, 'the catalog design system is recorded in the SVG metadata');
+  assert.deepEqual(on.designRecord, inFile, 'the result names what the file holds, read back from it');
+  assert.match(designRecordText(on.designRecord), /^Recorded the design system: .+\. Pass madeWith: false to leave the record out\.$/);
+
+  const off = await render('qr-code', 'url=https%3A%2F%2Flolly.tools', { format: 'svg', noBrowser: true, c2pa: { on: false, days: null }, madeWith: false });
+  assert.equal(svg(off.bytes).includes('lolly:'), false, 'no lolly: properties in the file');
+  assert.equal(off.designRecord, undefined);
+  assert.equal(designRecordText(off.designRecord), '');
+
+  const text = await callTool('lolly_render', { toolId: 'qr-code', inputs: { url: 'https://lolly.tools' }, format: 'svg', c2pa: 'off' });
+  assert.match(text, /Recorded the design system: /, 'lolly_render prints the line beside the provenance');
+  const quiet = await callTool('lolly_render', { toolId: 'qr-code', inputs: { url: 'https://lolly.tools' }, format: 'svg', c2pa: 'off', madeWith: false });
+  assert.doesNotMatch(quiet, /Recorded the design system/);
+  assert.equal(linkQuery(quiet).get('_madewith'), '0', 'and the link beside the file says the same');
 });

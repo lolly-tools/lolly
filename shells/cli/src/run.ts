@@ -13,9 +13,9 @@ import { resolve, basename, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
-import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordFrom, designRecordWords, readFileDesignRecord, loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
+import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
-import type { DesignRecord, Lang } from '@lolly/engine';
+import type { Lang } from '@lolly/engine';
 import { RONDO_ASSET_FORMAT, RondoSourceError, isRondoFileName, rondoFromFile, rondoSourceBytes } from '@lolly/engine';
 import { prerenderSongInputs } from '@lolly-tools/node-shell/audio';
 import type { InputValue } from '../../../engine/src/inputs.ts';
@@ -25,7 +25,7 @@ import type { Runtime } from '../../../engine/src/runtime.ts';
 // scoped Chromium).
 import { NODE_FORMATS, DEEP_FORMATS, needsFloatScene, nodePathFormat, pxDims, matchedExportFormat, canCarryPrintPrep, printPrepRefusal } from '@lolly-tools/node-shell/raster';
 import { wantsNativeHdrStill } from './raster.ts';
-import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
+import { buildExportC2paOpts, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
 // The enrolled signing identity (key + x5chain) - type only here; the module itself is
 // imported lazily in the render path so a run without --sign-key never loads it.
 import type { SigningIdentity } from '@lolly-tools/node-shell/signing-identity';
@@ -44,7 +44,7 @@ import { createCliBridge, applyBrandVars, CLI_CAPABILITIES } from './bridge.ts';
 // address, this reads the rendered pages. Same meaning as the web shell's fan-out.
 import { pickFramePage } from './frame-page.ts';
 import { isOn, rightsMode } from './args.ts';
-import type { HostV1, Profile, ExportOpts, ExportMeta } from '@lolly-tools/core/host-v1';
+import type { HostV1, Profile, ExportOpts } from '@lolly-tools/core/host-v1';
 import { note, warn, writeOut, isStrict } from './output.ts';
 import { settleThemeChoices } from './token-axes-report.ts';
 import { EXIT, usageError, unavailableHere, refused, authError } from './exit-codes.ts';
@@ -1572,7 +1572,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // visible at the moment of export, so the CLI says what the file records, in the
   // words it wrote. Read back from the finished bytes, so a file that kept no record
   // (a browser-free PNG with its credential off) is never said to carry one.
-  const recordLine = designRecordWords(await recordedInFile(new Uint8Array(buf), finalFormat, runtime.lastExportMeta));
+  const recordLine = designRecordWords(await recordedDesignInFile(new Uint8Array(buf), finalFormat, runtime.lastExportMeta));
   if (recordLine) note(`Recorded the design system: ${recordLine}. Pass --no-madewith to leave the record out.`);
 
   // `--filename=<name>` names the file when no --output was given (contract B6). It is
@@ -1613,28 +1613,6 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
  * means "retry on another runner", and a licence decision will be waiting on
  * every runner there is.
  */
-/**
- * The design-system record a finished file actually carries (plans/319): its own XMP
- * or SVG metadata, else its credential's export assertion, else, for a PDF, the
- * keywords the export's metadata wrote. Null when the file kept none.
- */
-async function recordedInFile(bytes: Uint8Array, format: string, meta: ExportMeta | null): Promise<DesignRecord | null> {
-  const own = readFileDesignRecord(bytes);
-  if (own) return own;
-  if (extractC2paStore(bytes)) {
-    try {
-      const { verifyC2pa, readDesignRecord } = await import('@lolly/engine');
-      const fromCredential = readDesignRecord((await verifyC2pa(bytes)).environment ?? null);
-      if (fromCredential) return fromCredential;
-    } catch { /* an unreadable credential holds no record we can name */ }
-  }
-  if (format === 'pdf' || format === 'pdf-cmyk') {
-    const fromMeta = designRecordFrom(meta);
-    if (fromMeta.designSystem || fromMeta.designVersion || fromMeta.themes) return fromMeta;
-  }
-  return null;
-}
-
 async function reportRights(
   runtime: Runtime,
   bytes: Uint8Array,

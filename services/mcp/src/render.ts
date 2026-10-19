@@ -18,9 +18,9 @@ import {
   C2PA_FORMATS, embedC2pa, buildInputModel, serializeUrlState, parseProductionSpec,
   parseDimension, toPixels, PENPOT_MIME,
   attributionCredits, checkAttributionReadback, verifyC2pa, describeIgnoredTokenChoice,
-  ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection, readFileDesignRecord,
+  ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection, readFileDesignRecord, designRecordWords,
 } from '@lolly/engine';
-import type { C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes } from '@lolly/engine';
+import type { C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes, DesignRecord } from '@lolly/engine';
 import type { RightsEvaluationV1 } from '@lolly-tools/core/rights-v1';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
 import type { ExportFormat, ExportMeta, ExportOpts, Profile, InputFile, HostV1 } from '@lolly-tools/core/host-v1';
@@ -29,7 +29,7 @@ import type { ToolManifest } from '../../../engine/src/loader.ts';
 // Vercel MCP bundle, where a bare workspace specifier would dangle (see bridge.ts).
 import { assertRenderOk, RenderIntegrityError } from '@lolly-tools/node-shell/render-integrity';
 import { isDeepFormat, DeepSourceError, needsFloatScene } from '@lolly-tools/node-shell/raster';
-import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
+import { buildExportC2paOpts, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
 import { webGpuLaunchArgs } from '@lolly-tools/node-shell/webgpu-launch';
 import { observeProductionInputs } from '@lolly-tools/node-shell/production-browser';
@@ -149,6 +149,23 @@ export interface RenderResult {
    * read back from the final bytes. Absent when the file holds no song.
    */
   songs?: { expected: string[]; recorded: string[] };
+  /**
+   * The design-system record the delivered file carries (plans/319): the design
+   * system, published version and colourway, read back from the final bytes.
+   * Absent when the file carries none (`madeWith: false`, or no design system).
+   */
+  designRecord?: DesignRecord;
+}
+
+/**
+ * The design-system record a delivered file carries, as the line a tool result
+ * prints (plans/319). The record is approved on the condition that it is visible
+ * at the moment of export, so an agent sees the same words the CLI prints. Empty
+ * when the file carries none.
+ */
+export function designRecordText(record: DesignRecord | null | undefined): string {
+  const words = designRecordWords(record);
+  return words ? `Recorded the design system: ${words}. Pass madeWith: false to leave the record out.` : '';
 }
 
 /** Formats whose bytes carry sound, and so can hold a song. */
@@ -913,7 +930,7 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
   const last = run.attempts.at(-1)!;
   try { await requireProduction(last.report, last.bytes, contract); }
   catch (error) { if (error instanceof Error) Object.assign(error, { attempts: run.attempts.map(a => a.report) }); throw error; }
-  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), ...(last.audio ? { audio: last.audio } : {}), ...(last.audioFailures ? { audioFailures: last.audioFailures } : {}), ...(last.songs ? { songs: last.songs } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
+  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), ...(last.audio ? { audio: last.audio } : {}), ...(last.audioFailures ? { audioFailures: last.audioFailures } : {}), ...(last.songs ? { songs: last.songs } : {}), ...(last.designRecord ? { designRecord: last.designRecord } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
 }
 
 /** One candidate render as one request scope: its songs share the caps and one time budget. */
@@ -1089,6 +1106,9 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     warnings.push(`Format "${fmt}" cannot carry Content Credentials - skipped.`);
   }
   const songs = songsIn.length ? { expected: songsIn.map((i) => i.title), recorded: await recordedSongs(bytes) } : null;
+  // What the delivered file records about its design system, read back from the
+  // final bytes; a PDF's keywords were written from the browser-free render's meta.
+  const designRecord = await recordedDesignInFile(bytes, deliveredFormat, out.tier.startsWith('B') ? null : recorded);
 
   let production: import('@lolly/engine').ProductionReport | undefined;
   if (o.production !== undefined) {
@@ -1100,6 +1120,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     bytes, mime: out.mime, format: deliveredFormat, tier: out.tier, warnings,
     ...(evaluation ? { rights: await rightsResult(evaluation, bytes) } : {}),
     ...(songs ? { songs } : {}),
+    ...(designRecord ? { designRecord } : {}),
   };
 }
 
