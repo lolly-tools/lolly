@@ -83,18 +83,40 @@ test('url: the default payload is unchanged by the new inputs existing', { skip:
     lng: -3.25,
   });
 
-  // Opening the tool with nothing set still encodes the manifest's default URL:
-  // the new `payload` select defaults to the kind the tool always had.
+  // Opening the tool with nothing set encodes nothing (plan 320 H2): the link
+  // starts empty, and the canvas asks for one instead of drawing a code that
+  // scans to an address nobody chose.
   const bare = await mount({});
   assert.equal(bare.kind, 'url');
-  assert.equal(bare.payload, 'https://lolly.tools');
-  assert.equal(bare.error, '');
+  assert.equal(bare.payload, '');
+  assert.match(bare.error, /link/i);
+  assert.ok(bare.svg.includes('data-qr-empty'), 'the empty state, not the error panel');
+  assert.ok(!bare.svg.includes('QR code unavailable'));
 
   assert.equal(plain.kind, 'url');
   assert.equal(plain.payload, 'https://lolly.tools/gallery');
   assert.equal(loaded.payload, plain.payload);
   assert.equal(loaded.svg, plain.svg, 'a url QR must render byte-identically regardless of the other payload fields');
   assert.equal(plain.error, '');
+});
+
+test('export refuses a code that carries nothing, and names the field', { skip: SKIP }, async () => {
+  // beforeExport throws, which fails the export on every shell: the web shell
+  // writes the message on its export button and the CLI prints the message and exits.
+  const host = baseHost({ export: { render: async () => new Blob(['<svg/>'], { type: 'image/svg+xml' }) } });
+  const cases: Array<[Record<string, unknown>, string]> = [
+    [{}, 'Add a link first'],
+    [{ url: '   ' }, 'Add a link first'],
+    [{ payload: 'vcard' }, 'Add a name first'],
+    [{ payload: 'wifi' }, 'Add the network name first'],
+    [{ payload: 'ean13', value: '' }, 'Add the number or text first'],
+  ];
+  for (const [values, message] of cases) {
+    const rt = await createRuntime(tool, host, values);
+    await assert.rejects(rt.export({}, 'svg'), { message }, JSON.stringify(values));
+  }
+  const filled = await createRuntime(tool, host, { url: 'https://example.org' });
+  await filled.export({}, 'svg');
 });
 
 test('text: the payload is the text, trimmed', { skip: SKIP }, async () => {
@@ -159,7 +181,7 @@ test('vcard: no name means nothing to save, so the code shows the hint', { skip:
   const { payload, error, svg } = await mount({ payload: 'vcard', company: 'Northwind', url: '' });
   assert.equal(payload, '');
   assert.match(error, /name/i);
-  assert.ok(svg.includes('QR code unavailable'));
+  assert.ok(svg.includes('data-qr-empty'));
 });
 
 test('vcard: a full card renders even at the highest error correction', { skip: SKIP }, async () => {
@@ -221,7 +243,7 @@ test('wifi: an empty network name renders the hint, not a blank code', { skip: S
   assert.equal(payload, '');
   assert.notEqual(error, '');
   assert.match(error, /network name/i);
-  assert.ok(svg.includes('QR code unavailable'));
+  assert.ok(svg.includes('data-qr-empty'));
 });
 
 test('event: a VEVENT with local iCal stamps and escaped text', { skip: SKIP }, async () => {
@@ -260,7 +282,7 @@ test('event: an unset end time emits no DTEND, an unset name shows the hint', { 
   const nameless = await mount({ payload: 'event', eventStart: '2026-09-15T07:00' });
   assert.equal(nameless.payload, '');
   assert.match(nameless.error, /event name/i);
-  assert.ok(nameless.svg.includes('QR code unavailable'));
+  assert.ok(nameless.svg.includes('data-qr-empty'));
 });
 
 test('event: with no start time there is nothing to put in a calendar', { skip: SKIP }, async () => {
@@ -269,7 +291,7 @@ test('event: with no start time there is nothing to put in a calendar', { skip: 
   const { payload, error, svg } = await mount({ payload: 'event', eventName: 'Open Studio' });
   assert.equal(payload, '');
   assert.match(error, /start time/i);
-  assert.ok(svg.includes('QR code unavailable'));
+  assert.ok(svg.includes('data-qr-empty'));
 });
 
 test('geo: a bare geo URI, negative coordinates included', { skip: SKIP }, async () => {
@@ -297,7 +319,7 @@ test('geo: a coordinate that is not a real place refuses to encode', { skip: SKI
     const got = await mount({ payload: 'geo', lat: 0, lng: 0, ...values });
     assert.equal(got.payload, '', `expected no payload for ${JSON.stringify(values)}`);
     assert.match(got.error, /latitude/i);
-    assert.ok(got.svg.includes('QR code unavailable'));
+    assert.ok(got.svg.includes('data-qr-empty'));
     assert.ok(!got.svg.includes('NaN'), 'NaN must never reach the rendered code');
   }
 });

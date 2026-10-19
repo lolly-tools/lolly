@@ -159,7 +159,7 @@ process.env.LOLLY_WEB_DIST = join(root, 'no-such-dist');
 delete process.env.LOLLY_WEB_BASE;
 const { runBatchCli } = await import('../shells/cli/src/batch.ts');
 const {
-  smokeCli, pickSmokeFormat, skipReason, pickTransformFixture, checkTransformOutput, transformPlan,
+  smokeCli, pickSmokeFormat, skipReason, requiredSeed, pickTransformFixture, checkTransformOutput, transformPlan,
 } = await import('../shells/cli/src/smoke.ts');
 
 function run(opts: { only?: string; format?: string } = {}): Promise<{ code: number; out: string }> {
@@ -189,6 +189,23 @@ test('skipReason: live-capture tools skip; everything else is strict', () => {
   // A forced format the tool doesn't declare skips it rather than failing it.
   assert.match(skipReason(base, 'ics')!, /does not declare "ics"/);
   assert.equal(skipReason(base, 'SVG'), null);
+});
+
+test('requiredSeed: a required input shipped empty takes its value from the examples', () => {
+  const base = { id: 't', render: { formats: ['svg'] } };
+  const seed = requiredSeed({
+    ...base,
+    inputs: [
+      { id: 'url', type: 'url', required: true, default: '' },
+      { id: 'label', type: 'text', required: true, default: 'hi' },
+      { id: 'note', type: 'text', default: '' },
+    ],
+    examples: [{ values: { label: 'Dark' } }, { values: { url: 'https://example.org', note: 'not required' } }],
+  });
+  // Only the empty required input, from the first example that has a value for that input.
+  assert.deepEqual(seed, { url: 'https://example.org' });
+  // A required input no example fills stays empty, so its refusal still fails the gate.
+  assert.deepEqual(requiredSeed({ ...base, inputs: [{ id: 'url', type: 'url', required: true, default: '' }] }), {});
 });
 
 test('smoke over a catalog with broken tools: ✓/✗/skip rows and exit 1', async () => {

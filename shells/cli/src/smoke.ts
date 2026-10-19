@@ -67,7 +67,26 @@ export interface SmokeManifest {
   capabilities?: string[];
   hooks?: Record<string, unknown> | null;
   render: { formats: string[]; export?: unknown };
-  inputs?: Array<{ id: string; type: string; accept?: string | string[]; showIf?: unknown }>;
+  inputs?: Array<{ id: string; type: string; accept?: string | string[]; showIf?: unknown; required?: boolean; default?: unknown }>;
+  examples?: Array<{ values?: Record<string, unknown> }>;
+}
+
+/**
+ * Values for the required inputs a tool ships empty, each taken from the first of the
+ * tool's own examples that fills that input. A tool can start empty on purpose and refuse to export
+ * until the field is filled (qr-code's link, plan 320 H2), so a render at bare
+ * defaults is a refusal by design rather than a regression. The value comes from the
+ * manifest, so the render is still a state the tool really makes, and every other
+ * input stays at its default.
+ */
+export function requiredSeed(manifest: SmokeManifest): Record<string, string> {
+  const seed: Record<string, string> = {};
+  for (const input of manifest.inputs ?? []) {
+    if (input.required !== true || (typeof input.default === 'string' ? input.default.trim() : input.default != null)) continue;
+    const value = manifest.examples?.map(e => e.values?.[input.id]).find(v => typeof v === 'string' && v.trim());
+    if (typeof value === 'string') seed[input.id] = value;
+  }
+  return seed;
 }
 
 export { checkTransformOutput, transformOutputKind } from './transform-output.ts';
@@ -334,6 +353,8 @@ export async function smokeCli({ only, format, out, json = false, fixtures = TRA
       ? manifest.render.formats.find(f => f.toLowerCase() === format.toLowerCase())!
       : pickSmokeFormat(manifest.render.formats);
     const outputPath = join(outDir, `${id}.${fmt ?? 'html'}`);
+    const seed = requiredSeed(manifest);
+    const seeded = Object.keys(seed).length ? `  (${Object.keys(seed).join(', ')} from its examples)` : '';
 
     // Buffer the render's own logging (runToolCli progress lines, hook console noise) so
     // the table stays a table; replay it indented only when the render fails.
@@ -350,9 +371,9 @@ export async function smokeCli({ only, format, out, json = false, fixtures = TRA
         // "did bytes arrive", so signing every one of them would buy nothing, cost a
         // key operation per tool, and make the run's output undiffable. The decision is
         // recorded, not implicit: machine paths default to a bare render.
-        await runToolCli({ toolId: id, params: { 'no-provenance': '1' }, outputPath, format: fmt });
+        await runToolCli({ toolId: id, params: { 'no-provenance': '1', ...seed }, outputPath, format: fmt });
       } else {
-        await renderHtmlHeadless(id, outputPath);
+        await renderHtmlHeadless(id, outputPath, seed);
       }
       capture.restore();
 
@@ -363,7 +384,7 @@ export async function smokeCli({ only, format, out, json = false, fixtures = TRA
       const bytes = (await stat(outputPath)).size;
       ok++;
       records.push({ id, outcome: 'ok', format: fmt ?? 'html', bytes, ms: Date.now() - t0 });
-      print(`✓ ${id.padEnd(idWidth)} ${(fmt ?? 'html').padEnd(9)} ${bytes.toLocaleString()} B  ${Date.now() - t0}ms\n`);
+      print(`✓ ${id.padEnd(idWidth)} ${(fmt ?? 'html').padEnd(9)} ${bytes.toLocaleString()} B  ${Date.now() - t0}ms${seeded}\n`);
     } catch (e) {
       capture.restore();
       // FORMAT_UNAVAILABLE: an HTML-layout tool whose first Node-native format is svg. It
@@ -381,7 +402,7 @@ export async function smokeCli({ only, format, out, json = false, fixtures = TRA
         const htmlPath = outputPath.replace(/\.[^./\\]+$/, '') + '.html';
         const retry = captureStdio();
         try {
-          await renderHtmlHeadless(id, htmlPath);
+          await renderHtmlHeadless(id, htmlPath, seed);
           retry.restore();
           layout++;
           const bytes = (await stat(htmlPath)).size;
@@ -500,7 +521,7 @@ async function runTransformLane(
  * refuses it). Same primitives as run.ts - jsdom + the CLI bridge + brand vars +
  * hydrate + export - ending in the same assertRenderOk, so a hook failure is still ✗.
  */
-async function renderHtmlHeadless(toolId: string, outputPath: string): Promise<void> {
+async function renderHtmlHeadless(toolId: string, outputPath: string, seed: Record<string, string> = {}): Promise<void> {
   const jsdom = await import('jsdom');
   const { quietVirtualConsole } = await import('./run.ts');
   const dom = new jsdom.JSDOM('<!DOCTYPE html><html><body><div id="canvas"></div></body></html>', {
@@ -516,7 +537,7 @@ async function renderHtmlHeadless(toolId: string, outputPath: string): Promise<v
   // Same per-tool host.net gate as run.ts - a network-capable tool's onInit fetch
   // must pass/fail here exactly as it would on a real CLI render.
   const host = await createCliBridge({ dom, profile: {}, networkAllowlist: tool.manifest.network?.allowlist });
-  const { values } = parseUrlState('', tool.manifest);
+  const { values } = parseUrlState(new URLSearchParams(seed), tool.manifest);
   const runtime = await createRuntime(tool, host, values);
 
   const canvas = dom.window.document.getElementById('canvas')!;
