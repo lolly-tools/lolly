@@ -154,10 +154,10 @@ export function wireAddedChip(bedit: BrandEditorCtx): void {
       return;
     }
     if (!target.closest('[data-be-added-primary]') || !bedit.addedSwatch) return;
-    // Deliberately UNSCOPED (no context), for the reason takePrimaryFromLogo
-    // states: a colour someone names as their primary is the brand's primary in
-    // both themes, unlike surface and text, which each theme inverts. With
-    // colourways, that is the canonical lead in both modes.
+    // Deliberately UNSCOPED (no context), as for a logo's main colour (see
+    // setLogoRoles in logos.ts): a colour someone names as their primary is the
+    // brand's primary in both themes, unlike surface and text, which each theme
+    // inverts. With colourways, that is the canonical lead in both modes.
     const path = bedit.addedSwatch.path;
     const name = bedit.addedSwatch.name;
     const key = bedit.swatches.find(s => s.path.length === path.length && s.path.every((seg, i) => seg === path[i]))?.key;

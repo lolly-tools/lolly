@@ -28,6 +28,7 @@ import { segHtml } from '../seg.ts';
 import { FONT_ROLES, colorIdentity } from '../design-system/ownership.ts';
 import type { FaceState } from '../design-system/ownership.ts';
 import type { RoleId } from '../design-system/roles.ts';
+import type { LogoRoleOffer } from '../design-system/logo-roles.ts';
 
 // ── Host shape ──────────────────────────────────────────────────────────────
 // The editor reads/writes tokens, fonts and brand packs. Every real web host
@@ -854,6 +855,20 @@ export interface ReplacePlan {
 }
 
 export type RasterLogoStats = Parameters<typeof classifyLogoRasterStats>[0];
+
+/** The colours a placed logo offered (plan 320 S1), while its card is up. */
+export interface LogoOfferState {
+  /** The name of the file the colours came from. */
+  label: string;
+  offer: LogoRoleOffer;
+  /** The main colour the card has selected. */
+  main: string;
+  /** True once the colours are in the palette and the roles point at them. */
+  applied: boolean;
+  /** The undo step the apply pushed. The card can only rewind the apply while
+   *  this step is still the latest one, so it never undoes a later edit. */
+  undoEntry: { doc: Record<string, unknown>; label: string } | null;
+}
 
 // ── The confirm-chip queue ──────────────────────────────────────────────────
 export interface LogoCandidateChip {

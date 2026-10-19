@@ -20,6 +20,8 @@ import { rasterAlphaBounds } from '../design-system/trim-bounds.ts';
 import { candidatesFromCensus, createTray } from '../design-system/tray.ts';
 import type { Tray } from '../design-system/tray.ts';
 import { censusFromSvgColors, censusHex } from '../design-system/census.ts';
+import { logoOfferFromRaster, logoOfferFromSvg, logoTextFor } from '../design-system/logo-roles.ts';
+import type { LogoRoleOffer } from '../design-system/logo-roles.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
@@ -27,7 +29,7 @@ import { prefersReducedMotion } from '../a11y-prefs.ts';
 import { playSfx } from '../sfx.ts';
 import { assignRole } from '../design-system/roles.ts';
 import { logoGroupHtml } from './shared.ts';
-import type { RasterLogoStats } from './shared.ts';
+import type { LogoOfferState, RasterLogoStats } from './shared.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
 
 export const showLogoErr = (bedit: BrandEditorCtx, m: string): void => {
@@ -121,25 +123,6 @@ export const paintLogos = async (bedit: BrandEditorCtx): Promise<void> => {
 /** A slug brand-logos accepts, from whatever the user typed. */
 export const slugify = (_bedit: BrandEditorCtx, name: string): string =>
   name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
-/** Add the colour, give it the primary role, and point the Generate wing's
- *  picker at it - one motion, persisted immediately (plan 97 section 6). */
-export const takePrimaryFromLogo = (bedit: BrandEditorCtx, hex: string): void => {
-  const name = nameColor(hex);
-  const path = addSwatch(bedit.doc, 'custom', name, serializeColor(hex, 'lch'));
-  // walkSwatches owns the path→key mapping (it strips the set prefix), so read
-  // the key back off the swatch rather than re-deriving it here.
-  const swatchKey = path
-    ? walkSwatches(bedit.doc, bedit.state.editContext()).find(s => s.path.length === path.length && s.path.every((seg, i) => seg === path[i]))?.key
-    : undefined;
-  // Deliberately UNSCOPED (no context): a mark's colour is the brand's primary
-  // in both themes, unlike surface and text, which each theme inverts. With
-  // colourways, that is the canonical lead in both modes: the logo belongs to
-  // the canonical lead (plans/319), and the other leads keep their primaries.
-  if (swatchKey) assignRole(bedit.doc, 'primary', swatchKey);
-  bedit.state.setPrimaryTo(hex); // the Generate wing's picker follows the new primary
-  bedit.ramps.repaintPalette();
-  bedit.state.persist(true);
-};
 export const trayHandle = async (bedit: BrandEditorCtx): Promise<Tray | null> => {
   const { host, opts } = bedit;
   if (opts.tray) return opts.tray;
@@ -173,36 +156,159 @@ export const trayColorsFromLogo = async (bedit: BrandEditorCtx, colors: string[]
     if (added > 0) announce(t('Other colours from this file are waiting in the tray.'));
   } catch { /* the tray is a convenience; a failed add never fails an install */ }
 };
+/**
+ * Read a placed mark's colours and put its card up (plan 320 S1). The card asks
+ * which colour is the main one, with the likeliest answer selected; on a
+ * first-ever install, with nothing of the person's to overwrite, the answer is
+ * applied at once and the card says what changed. Either way the person sees
+ * the question where they placed the logo and again at the top of Colours.
+ */
 export const suggestFromLogo = async (bedit: BrandEditorCtx, file: File): Promise<void> => {
-  const { suggestEl } = bedit;
-  if (!/svg/i.test(file.type) || file.size > 10 * 1024 * 1024) return;
-  let colors: string[] = [];
-  try { colors = extractSvgColors(await file.text()).map(c => colorToHex(c) ?? '').filter(c => /^#/.test(c)); } catch { return; }
-  const first = colors[0];
-  // The leading colour keeps its privileged path below; every other one is a
-  // candidate, not a decision.
-  void trayColorsFromLogo(bedit, colors.slice(1), file.name);
-  if (!first || !suggestEl) return;
+  if (file.size > 10 * 1024 * 1024) return;
+  let offer: LogoRoleOffer | null = null;
+  try {
+    if (isSvgLogoFile(bedit, file)) {
+      const colors = extractSvgColors(await file.text()).map(c => colorToHex(c) ?? '').filter(c => /^#/.test(c));
+      offer = logoOfferFromSvg(colors, file.name);
+    } else {
+      const stats = await rasterLogoStats(bedit, file);
+      offer = stats ? logoOfferFromRaster(stats.colors, file.name) : null;
+    }
+  } catch { return; }
+  if (!offer || !bedit.root.isConnected) return;
+  bedit.logoOffer = { label: file.name, offer, main: offer.main, applied: false, undoEntry: null };
   if (!bedit.isUserBrand) {
-    // Nothing of the user's to clobber yet - take it, and say what happened.
-    takePrimaryFromLogo(bedit, first);
-    // ONCE, though. That call just wrote a custom swatch, gave it the primary
-    // role and persisted, so from here on there IS something of the user's:
-    // the second file of a multi-file drop must OFFER rather than take (plan
-    // 97 section 7.3 keeps exactly one auto-set, primary on a first-ever install).
-    // Without this line every extra logo adds another swatch and reassigns the
-    // role, and the last file dropped silently wins.
+    applyLogoOffer(bedit);
+    // ONCE, though. The apply just wrote swatches, pointed the roles at them and
+    // persisted, so from here on there IS something of the person's: the second
+    // file of a multi-file drop must ask rather than apply (plan 97 section 7.3
+    // keeps exactly one automatic choice, on a first-ever install). Without this
+    // line the last file dropped would silently win.
     bedit.isUserBrand = true;
-    suggestEl.innerHTML = `<span class="be-suggest-note"><span class="be-suggest-sw" style="--sw:${escapeText(first)}" aria-hidden="true"></span>${t('Primary set from the logo.')}</span>`;
-    suggestEl.hidden = false;
-    announce(t('Primary set from the logo.'));
-    return;
   }
-  suggestEl.innerHTML = `
-      <span class="be-suggest-note"><span class="be-suggest-sw" style="--sw:${escapeText(first)}" aria-hidden="true"></span>${t('Found in the logo:')} <code>${escapeText(first)}</code></span>
-      <button type="button" class="be-btn be-btn--sm" data-be-suggest-use="${escapeText(first)}">${t('Use as primary')}</button>
-      <button type="button" class="be-suggest-dismiss" data-be-suggest-dismiss aria-label="${escapeText(t('Dismiss suggestion'))}">&#x2715;</button>`;
-  suggestEl.hidden = false;
+  paintLogoOffer(bedit);
+};
+/** The swatch for a logo colour: one already in the palette with that exact
+ *  colour, else a new custom swatch named for the colour. */
+const swatchKeyFor = (bedit: BrandEditorCtx, hex: string): string | undefined => {
+  const ctx = bedit.state.editContext();
+  const same = walkSwatches(bedit.doc, ctx).find(s => s.kind !== 'semantic' && !s.isAlias && s.hex.toUpperCase() === hex);
+  if (same) return same.key;
+  const path = addSwatch(bedit.doc, 'custom', nameColor(hex), serializeColor(hex, 'lch'));
+  // walkSwatches owns the path to key mapping (it strips the set prefix), so the
+  // key is read back off the swatch rather than derived here.
+  return path ? walkSwatches(bedit.doc, ctx).find(s => s.path.length === path.length && s.path.every((seg, i) => seg === path[i]))?.key : undefined;
+};
+/**
+ * Put the logo's colours in the palette and point the roles at them. The main
+ * colour becomes the primary UNSCOPED (no context): a mark's colour is the
+ * brand's primary in both themes, and with colourways that is the canonical
+ * lead, which the logo belongs to (plans/319). The text colour, when the file
+ * has one, is the light theme's text only, because a logo on paper says
+ * nothing about the dark theme.
+ */
+const setLogoRoles = (bedit: BrandEditorCtx, state: LogoOfferState): void => {
+  const keys = new Map(state.offer.colours.map(hex => [hex, swatchKeyFor(bedit, hex)]));
+  const mainKey = keys.get(state.main);
+  if (mainKey) assignRole(bedit.doc, 'primary', mainKey);
+  const text = logoTextFor(state.offer, state.main);
+  const textKey = text ? keys.get(text) : undefined;
+  if (textKey) assignRole(bedit.doc, 'text', textKey, 'light');
+  bedit.state.setPrimaryTo(state.main); // the Generate wing's picker follows the new primary
+  bedit.ramps.repaintPalette();
+  bedit.state.persist(true);
+};
+export const applyLogoOffer = (bedit: BrandEditorCtx): void => {
+  const state = bedit.logoOffer;
+  if (!state || state.applied) return;
+  bedit.state.pushUndo(t('Colours from the logo'));
+  state.undoEntry = bedit.undoStack.at(-1) ?? null;
+  setLogoRoles(bedit, state);
+  state.applied = true;
+  bedit.state.notify('color');
+  announce(tRaw('Tools now use {name}.', { name: nameColor(state.main) }));
+};
+/** True while the apply is still the latest edit, so rewinding it touches nothing else. */
+const applyIsLatest = (bedit: BrandEditorCtx, state: LogoOfferState): boolean =>
+  !!state.undoEntry && bedit.undoStack.at(-1) === state.undoEntry;
+/**
+ * A different main colour. Before the apply this only moves the selection. After
+ * it, the apply is redone from the same starting point when nothing else has
+ * changed since, so the text colour follows too; otherwise only the primary
+ * moves, as its own undo step.
+ */
+export const chooseLogoMain = (bedit: BrandEditorCtx, hex: string): void => {
+  const state = bedit.logoOffer;
+  if (!state?.offer.colours.includes(hex) || hex === state.main) return;
+  state.main = hex;
+  if (state.applied) {
+    if (applyIsLatest(bedit, state)) {
+      bedit.doc = structuredClone(state.undoEntry!.doc);
+      bedit.derive.reseedFromDoc();
+    } else {
+      bedit.state.pushUndo(t('Main colour'));
+    }
+    setLogoRoles(bedit, state);
+    announce(tRaw('Tools now use {name}.', { name: nameColor(hex) }));
+  }
+  paintLogoOffer(bedit);
+};
+export const undoLogoOffer = (bedit: BrandEditorCtx): void => {
+  const state = bedit.logoOffer;
+  if (!state?.applied || !applyIsLatest(bedit, state)) return;
+  bedit.replace.undoLast();
+  state.applied = false;
+  state.undoEntry = null;
+  paintLogoOffer(bedit);
+};
+/** Not now: the colours wait in the tray instead, as they always could. */
+export const deferLogoOffer = (bedit: BrandEditorCtx): void => {
+  const state = bedit.logoOffer;
+  if (!state) return;
+  bedit.logoOffer = null;
+  if (!state.applied) void trayColorsFromLogo(bedit, state.offer.colours, state.label);
+  paintLogoOffer(bedit);
+};
+const logoOfferHtml = (bedit: BrandEditorCtx, state: LogoOfferState, where: string): string => {
+  const text = logoTextFor(state.offer, state.main);
+  const choices = state.offer.colours.map(hex => `
+      <label class="be-logo-colours-choice">
+        <input type="radio" name="be-logo-main-${escapeText(where)}" value="${hex}" data-logo-colours-main${hex === state.main ? ' checked' : ''}>
+        <span class="be-logo-colours-sw" style="--sw:${hex}" aria-hidden="true"></span>
+        <span class="be-logo-colours-name">${escapeText(nameColor(hex))}</span>
+      </label>`).join('');
+  const actions = state.applied
+    ? `${applyIsLatest(bedit, state) ? `<button type="button" class="be-btn" data-logo-colours-act="undo">${t('Undo')}</button>` : ''}
+       <button type="button" class="be-btn" data-logo-colours-act="close">${t('Done')}</button>`
+    : `<button type="button" class="be-cta is-active" data-logo-colours-act="use">${t('Use these colours')}</button>
+       <button type="button" class="be-btn" data-logo-colours-act="later">${t('Not now')}</button>`;
+  return `
+    <h3 class="be-logo-colours-title">${escapeText(tRaw('Colours from {file}', { file: state.label }))}</h3>
+    <fieldset class="be-logo-colours-pick">
+      <legend>${t('Which is the main colour?')}</legend>
+      <div class="be-logo-colours-choices">${choices}</div>
+    </fieldset>
+    ${state.applied
+      ? `<p class="be-logo-colours-note" role="status">${escapeText(tRaw('Tools now use {name}.', { name: nameColor(state.main) }))}${text ? ` ${escapeText(tRaw('Text uses {name}.', { name: nameColor(text) }))}` : ''}</p>`
+      : `<p class="be-logo-colours-note">${escapeText(text ? tRaw('Tools will use the main colour, and {name} for text.', { name: nameColor(text) }) : t('Tools will use the main colour.'))}</p>`}
+    <div class="be-logo-colours-actions">${actions}</div>`;
+};
+/** Paint the card in every room that has a place for it, keeping the keyboard
+ *  on the same control in the room it was in. */
+export const paintLogoOffer = (bedit: BrandEditorCtx): void => {
+  const state = bedit.logoOffer;
+  const active = document.activeElement as HTMLElement | null;
+  const from = active?.closest<HTMLElement>('[data-be-logo-colours]');
+  const refocus = from ? (active!.dataset.logoColoursAct ? `[data-logo-colours-act="${active!.dataset.logoColoursAct}"]` : active!.matches('[data-logo-colours-main]') ? '[data-logo-colours-main]:checked' : '') : '';
+  for (const mount of bedit.root.querySelectorAll<HTMLElement>('[data-be-logo-colours]')) {
+    mount.hidden = !state;
+    mount.innerHTML = state ? logoOfferHtml(bedit, state, mount.dataset.beLogoColours || 'room') : '';
+  }
+  if (!from) return;
+  const target = (refocus ? from.querySelector<HTMLElement>(refocus) : null)
+    ?? from.querySelector<HTMLElement>('[data-logo-colours-main]:checked')
+    ?? from.closest<HTMLElement>('[data-be-tab-panel]')?.querySelector<HTMLElement>('[data-be-logo-multi], [data-be-pal] button');
+  target?.focus();
 };
 export const isSvgLogoFile = (_bedit: BrandEditorCtx, f: File): boolean => /^image\/svg(\+xml)?$/i.test(f.type);
 /**
@@ -229,7 +335,10 @@ export const rasterLogoStats = async (bedit: BrandEditorCtx, file: File): Promis
   const stride = Math.max(1, Math.ceil(Math.sqrt((width * height) / CLASSIFY_MAX_SAMPLES)));
   const q = (v: number): string =>
     { const { CLASSIFY_QUANT } = bedit; return Math.min(255, Math.round(v / CLASSIFY_QUANT) * CLASSIFY_QUANT).toString(16).padStart(2, '0'); };
-  const counts = new Map<string, number>();
+  // Each bucket keeps the sum of the real channels that fell in it, so a colour
+  // reported back is the mean of its pixels rather than the bucket's corner: the
+  // logo colours card puts these colours in the palette (plan 320 S1).
+  const counts = new Map<string, { n: number; r: number; g: number; b: number }>();
   let sampled = 0;
   let clear = 0;
   for (let y = 0; y < height; y += stride) {
@@ -238,7 +347,9 @@ export const rasterLogoStats = async (bedit: BrandEditorCtx, file: File): Promis
       sampled++;
       if (data[i + 3]! <= CLASSIFY_ALPHA_MIN) { clear++; continue; }
       const key = `#${q(data[i]!)}${q(data[i + 1]!)}${q(data[i + 2]!)}`;
-      counts.set(key, (counts.get(key) ?? 0) + 1);
+      const bucket = counts.get(key) ?? { n: 0, r: 0, g: 0, b: 0 };
+      bucket.n++; bucket.r += data[i]!; bucket.g += data[i + 1]!; bucket.b += data[i + 2]!;
+      counts.set(key, bucket);
     }
   }
   // Orientation reads CONTENT bounds, never the canvas: a mark centred in a
@@ -247,7 +358,10 @@ export const rasterLogoStats = async (bedit: BrandEditorCtx, file: File): Promis
   return {
     width: box?.width || width,
     height: box?.height || height,
-    colors: [...counts].sort((a, b) => b[1] - a[1]).slice(0, 16).map(([hex, weight]) => ({ hex, weight })),
+    colors: [...counts.values()].sort((a, b) => b.n - a.n).slice(0, 16).map(c => ({
+      hex: `#${[c.r, c.g, c.b].map(v => Math.round(v / c.n).toString(16).padStart(2, '0')).join('')}`,
+      weight: c.n,
+    })),
     transparentShare: sampled > 0 ? clear / sampled : 0,
     // Deliberately not a number: classifyLogoRasterStats recomputes the light
     // share from `colors` against its own OKLCH threshold, and passing one here
@@ -327,16 +441,18 @@ export const installLogoFile = (bedit: BrandEditorCtx, variant: string, identity
     ...(label ? { label } : {}),
   }); };
 export function wireLogoSuggest(bedit: BrandEditorCtx): void {
-  const { suggestEl } = bedit;
-  suggestEl?.addEventListener('click', (e) => {
-    const use = (e.target as HTMLElement).closest<HTMLElement>('[data-be-suggest-use]');
-    if (use) {
-      bedit.logos.takePrimaryFromLogo(use.dataset.beSuggestUse!);
-      suggestEl.hidden = true; playSfx('click');
-      announce(t('Primary set from the logo.'));
-      return;
-    }
-    if ((e.target as HTMLElement).closest('[data-be-suggest-dismiss]')) suggestEl.hidden = true;
+  // The logo colours card, in both rooms (plan 320 S1).
+  bedit.root.addEventListener('click', (e) => {
+    const act = (e.target as HTMLElement).closest<HTMLElement>('[data-be-logo-colours] [data-logo-colours-act]')?.dataset.logoColoursAct;
+    if (!act) return;
+    playSfx('click');
+    if (act === 'use') { bedit.logos.applyLogoOffer(); bedit.logos.paintLogoOffer(); }
+    else if (act === 'undo') bedit.logos.undoLogoOffer();
+    else bedit.logos.deferLogoOffer();
+  });
+  bedit.root.addEventListener('change', (e) => {
+    const radio = (e.target as HTMLElement).closest<HTMLInputElement>('[data-be-logo-colours] [data-logo-colours-main]');
+    if (radio?.checked) bedit.logos.chooseLogoMain(radio.value);
   });
 
   // ── Level 0: multi-file intake → classify → confirm chip (plan 97 section 7.3) ─────
@@ -364,10 +480,14 @@ export function logosOps(bedit: BrandEditorCtx) {
     logoTile: bindOp(bedit, logoTile),
     paintLogos: bindOp(bedit, paintLogos),
     slugify: bindOp(bedit, slugify),
-    takePrimaryFromLogo: bindOp(bedit, takePrimaryFromLogo),
     trayHandle: bindOp(bedit, trayHandle),
     trayColorsFromLogo: bindOp(bedit, trayColorsFromLogo),
     suggestFromLogo: bindOp(bedit, suggestFromLogo),
+    applyLogoOffer: bindOp(bedit, applyLogoOffer),
+    chooseLogoMain: bindOp(bedit, chooseLogoMain),
+    undoLogoOffer: bindOp(bedit, undoLogoOffer),
+    deferLogoOffer: bindOp(bedit, deferLogoOffer),
+    paintLogoOffer: bindOp(bedit, paintLogoOffer),
     isSvgLogoFile: bindOp(bedit, isSvgLogoFile),
     rasterLogoStats: bindOp(bedit, rasterLogoStats),
     classifyLogoFile: bindOp(bedit, classifyLogoFile),

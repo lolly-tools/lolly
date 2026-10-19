@@ -65,7 +65,7 @@ That's eight optional slots. Click a slot to add a PNG, SVG, JPEG or WebP; click
 
 - **Custom marks** - add marks your brand calls by its own name (an icon, a crest, a favicon) under **Custom marks**; name it and choose a file.
 - **More identities** - a sub-brand, product or event can have its own full set of logos. Use **+ Add another logo** and name it; your main set is simply "Your logo".
-- **Upload an SVG and Lolly reads its colours.** On a brand-new install it quietly sets your primary colour from the logo and says so. On an existing brand it offers the colour as a suggestion instead - *"Found in the logo: #…"* with a **Use as primary** button beside it - over in the Colours room, where you can take it or dismiss it.
+- **Place a logo and Lolly reads its colours.** A card under the drop zone, and again at the top of the Colours room, lists the colours the logo is drawn in and asks **Which is the main colour?** The likeliest answer is already selected: the logo's strongest colour, never the white it was exported on. **Use these colours** adds them to your palette, makes the main colour your primary and, when the logo has a dark neutral that reads on paper (a wordmark's colour, say), makes that the text colour, so every tool picks them up. **Not now** leaves them waiting in the tray. On a brand-new install the likeliest answer is applied at once, and the card says what changed and offers **Undo** or another main colour. SVG logos give their exact colours; a PNG, JPEG or WebP logo gives the colours that cover a real share of the mark.
 
 ## Colours
 
