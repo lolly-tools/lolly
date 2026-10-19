@@ -108,7 +108,7 @@ One exception is held today, approved by Andy on 2026-10-17:
 
 | Lockfile | Advisories | Crate | Removed when |
 |---|---|---|---|
-| `shells/tauri-desktop/src-tauri/Cargo.lock` | RUSTSEC-2026-0367, RUSTSEC-2026-0368, RUSTSEC-2026-0369 | `zip` 4.6.1, through `tauri-plugin-updater` 2.13.2 | `tauri-plugin-updater` 2.14.1 or later, or `zip` 9.0.0 or later, resolves |
+| `shells/tauri-desktop/src-tauri/Cargo.lock` | RUSTSEC-2026-0367, RUSTSEC-2026-0368, RUSTSEC-2026-0369 | `zip` 4.6.1, through `tauri-plugin-updater` 2.14.0 | `tauri-plugin-updater` 2.14.1 or later, or `zip` 9.0.0 or later, resolves |
 
 The justification:
 
