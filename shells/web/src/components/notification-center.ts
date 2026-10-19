@@ -4,7 +4,7 @@ import { mountModal, type ModalHandle } from './modal.ts';
 import { iconNode } from '../lib/icon-node.ts';
 import { t, tRaw } from '../i18n.ts';
 import { safeHref } from '../utils.ts';
-import { notificationEntries, onNotificationsChange, dismissNotification, delayNotification, restoreNotification, publishNotification, type NotificationEntry } from '../lib/notifications.ts';
+import { notificationEntries, notificationLinks, onNotificationsChange, dismissNotification, delayNotification, restoreNotification, publishNotification, type NotificationEntry } from '../lib/notifications.ts';
 
 let open: ModalHandle<void> | undefined;
 function button(label: string, run: () => void): HTMLButtonElement {
@@ -26,6 +26,7 @@ export function openNotifications(returnFocus?: HTMLElement): void {
   const tabs = document.createElement('div'); tabs.className = 'notification-center-tabs'; tabs.setAttribute('role', 'group'); tabs.setAttribute('aria-label', t('Notification filter'));
   const list = document.createElement('div'); list.className = 'notification-center-list';
   const empty = document.createElement('p'); empty.textContent = t('No notifications');
+  const more = document.createElement('footer'); more.className = 'notification-center-more';
   let filter: 'active' | 'later' | 'dismissed' = 'active';
   const filters = new Map<string, HTMLButtonElement>();
   const draw = () => {
@@ -34,12 +35,14 @@ export function openNotifications(returnFocus?: HTMLElement): void {
     filters.forEach((node, key) => { node.setAttribute('aria-pressed', String(filter === key)); });
     list.replaceChildren(...messages.map(entry => row(entry, modal)));
     if (!messages.length) list.append(empty);
+    more.replaceChildren(...notificationLinks().map(link => button(link.label, () => { modal.close(); link.run(); })));
+    more.hidden = !more.childElementCount;
     if (hadFocus) (list.querySelector<HTMLElement>('button, a') ?? heading).focus();
   };
   for (const [key, label] of [['active', t('Active')], ['later', t('Later')], ['dismissed', t('Dismissed')]] as const) {
     const node = button(label, () => { filter = key; draw(); }); filters.set(key, node); tabs.append(node);
   }
-  modal.el.append(header, tabs, list); off = onNotificationsChange(draw); draw(); heading.focus();
+  modal.el.append(header, tabs, list, more); off = onNotificationsChange(draw); draw(); heading.focus();
 }
 function row(entry: NotificationEntry, modal: ModalHandle<void>): HTMLElement {
   const card = document.createElement('article'); card.className = 'notification-card'; card.dataset.notificationId = entry.id;

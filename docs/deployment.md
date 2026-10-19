@@ -42,9 +42,10 @@ shell and Work on the same HTTPS origin and keep the authentication routes ahead
 of any SPA fallback. Register Work's `/api/auth/callback` at the IdP; do not point
 organisation sign-in at the Content Credentials CA.
 
-Ordinary **Sign out** ends the local browser session. The updated shell Profile
-and Work console offer a separate **Sign out of identity provider** action with a
-confirmation. Session-specific back-channel logout needs `sid` in both ID and
+Ordinary **Sign out** ends the local browser session. **Sign out everywhere**, in
+Settings under the workspace card, ends every session the account holds on every
+device. The updated shell Profile and Work console offer a separate **Sign out of
+identity provider** action with a confirmation. Session-specific back-channel logout needs `sid` in both ID and
 logout tokens; it also revokes devices and renewals derived from that session.
 SCIM/admin suspension remains the control for all of a person's access. Linked
 identity standing remains thirty days, so reliable offboarding is part of the

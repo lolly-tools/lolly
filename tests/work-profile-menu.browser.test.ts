@@ -29,7 +29,7 @@ test('Work uses one avatar and Settings link with readable account actions and b
           count: () => 2, onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); }, open() { calls.inbox++; },
         } }),
         consoleUrl: () => 'https://work.test/admin', signInUrl: () => '/login',
-        signOut: async () => true, signOutEverywhere: async () => 'ok', afterSignOut: () => {},
+        signOut: async () => true, afterSignOut: () => {},
         workspaceOrigin: 'https://work.test', principal: 'fixture', host: () => null,
         go: route => calls.routes.push(route),
       });
@@ -76,8 +76,11 @@ test('Work uses one avatar and Settings link with readable account actions and b
       assert.equal(await menu.locator('[data-account-act="console"]').innerText(), 'Admin');
       assert.equal(await menu.locator('[data-account-act="console"]').getAttribute('href'), 'https://work.test/admin');
       assert.equal(await menu.locator('[data-account-act="console"]').getAttribute('rel'), 'noopener');
-      await page.evaluate(() => window.workProfileFixture.unread(7));
-      assert.equal(await menu.locator('[data-inbox-count]').innerText(), '7');
+      // Plan 320 J11: one list. The workspace's messages are in Notifications, and
+      // Sign out everywhere lives in Settings rather than beside Sign out.
+      assert.equal(await menu.locator('[data-act="notifications"]').count(), 1);
+      assert.equal(await menu.locator('[data-account-act="inbox"]').count(), 0);
+      assert.equal(await menu.locator('[data-account-act="everywhere"]').count(), 0);
       const geometry = await menu.evaluate(el => {
         const box = el.getBoundingClientRect();
         const icon = el.querySelector('[data-account-act="console"] svg')!.getBoundingClientRect();
@@ -89,16 +92,13 @@ test('Work uses one avatar and Settings link with readable account actions and b
       assert.ok(geometry.left >= 0 && geometry.right <= viewport.width, JSON.stringify(geometry));
       assert.ok(geometry.top >= 0 && geometry.bottom <= viewport.height, JSON.stringify(geometry));
       assert.ok(geometry.scrollWidth <= geometry.width, JSON.stringify(geometry));
-      await menu.locator('[data-account-act="everywhere"]').scrollIntoViewIfNeeded();
-      assert.ok(await menu.locator('[data-account-act="everywhere"]').isVisible());
+      await menu.locator('[data-account-act="signout"]').scrollIntoViewIfNeeded();
+      assert.ok(await menu.locator('[data-account-act="signout"]').isVisible());
       if (screenshots) await page.screenshot({ path: join(screenshots, `menu-${viewport.width}-${scale}.png`) });
-      await menu.locator('[data-account-act="inbox"]').click();
-      assert.equal(await menu.count(), 0);
-      await page.locator('.profile-link').click();
       await menu.locator('[data-account-act="projects"]').click();
       assert.equal(await menu.count(), 0);
     }
-    assert.deepEqual(await page.evaluate(() => window.workProfileFixture.calls), { inbox: 3, routes: ['#/p', '#/p', '#/p'] });
+    assert.deepEqual(await page.evaluate(() => window.workProfileFixture.calls), { inbox: 0, routes: ['#/p', '#/p', '#/p'] });
     assert.deepEqual(errors, []);
     await page.close();
   }

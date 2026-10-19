@@ -34,7 +34,7 @@
 import { announce } from '../a11y.ts';
 import { t, tRaw } from '../i18n.ts';
 import { instanceFetch, instancePath, usesBrowserCors, getInstanceBase } from '../lib/instance.ts';
-import { registerNotificationSource, notificationsChanged } from '../lib/notifications.ts';
+import { registerNotificationLink, registerNotificationSource, notificationsChanged } from '../lib/notifications.ts';
 import { safeHref } from '../utils.ts';
 import { messageWords } from './comment-notice.ts';
 import { openedProjects } from './opened-projects.ts';
@@ -151,6 +151,7 @@ let inflight: Promise<boolean> | null = null;
 let timer: ReturnType<typeof setTimeout> | null = null;
 let detach: (() => void) | null = null;
 let detachNotifications: (() => void) | null = null;
+let detachLink: (() => void) | null = null;
 /** Every message this tab has listed, so a message is announced once. */
 const seen = new Set<string>();
 /** Messages dismissed here. A fetch that was already on its way may still carry one,
@@ -293,6 +294,10 @@ export function startInbox(opts: { initialUnread: number; principal?: string; re
   if (started || typeof window === 'undefined' || typeof document === 'undefined') return;
   started = true;
   const scope = `${getInstanceBase()}:${opts.principal ?? ''}`;
+  // The avatar menu has one list, Notifications, and it holds these messages. The
+  // sheet keeps what the queue cannot show (approvals, threads, times), one press
+  // from the bottom of the queue (plan 320 J11).
+  if (opts.review) detachLink = registerNotificationLink('workspace', { label: t('All workspace messages'), run: opts.review });
   detachNotifications = registerNotificationSource('workspace', () => messages.map(m => ({
     id: `workspace:${scope}:${m.id}`, ...messageWords(m),
     tone: m.severity === 'blocking' ? 'warning' as const : m.severity === 'action' ? 'action' as const : 'info' as const,
@@ -328,6 +333,7 @@ export function startInbox(opts: { initialUnread: number; principal?: string; re
 /** TEST-ONLY: forget everything and stop listening. */
 export function _resetInboxForTests(): void {
   detachNotifications?.(); detachNotifications = null;
+  detachLink?.(); detachLink = null;
   detach?.();
   detach = null;
   clearTimer();
