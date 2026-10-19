@@ -110,7 +110,7 @@
 <div class="way-stage" data-lolly-anno="{{size}}">
   <div class="way way-{{orient}}"
        style="aspect-ratio: {{aspW}} / {{aspH}};
-              --accent: {{accent}}; --ink: {{ink}}; --muted: {{muted}}; --hairline: {{hairline}};
+              --accent: {{#if accent}}{{accent}}{{else}}#30ba78{{/if}}; --ink: {{ink}}; --muted: {{muted}}; --hairline: {{hairline}};
               --text-weight: {{default textWeight 800}};
               background: {{bgStyle}};">
 

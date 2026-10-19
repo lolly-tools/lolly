@@ -67,8 +67,16 @@ var PRESETS = {
 // rgb, …) - see engine/src/tokens.ts toSwatch() - so this needs no colour-math
 // of its own; tools never import the engine. Runs once per mount; a brand with
 // no resolvable semantic slots (or a shell with no tokens support) leaves the
-// static defaults above untouched.
+// static defaults above untouched. A theme or colourway switch (onInput with id
+// '__tokens') puts the static defaults back and reads the brand themes again in
+// the new choice, as a mount in that choice would.
 var _brandThemesReady = null;
+var STATIC_BRAND_THEMES = { light: THEMES['brand-light'], dark: THEMES['brand-dark'] };
+function forgetBrandThemes() {
+  THEMES['brand-light'] = STATIC_BRAND_THEMES.light;
+  THEMES['brand-dark'] = STATIC_BRAND_THEMES.dark;
+  _brandThemesReady = null;
+}
 function mixHex(a, b, t) {
   var ar = parseInt(a.slice(1), 16), br = parseInt(b.slice(1), 16);
   var ch = function (shift) {
@@ -2874,7 +2882,10 @@ async function compute(model, changedId) {
 }
 
 function onInit(ctx) { return compute(ctx.model, null); }
-function onInput(ctx) { return compute(ctx.model, ctx.id); }
+function onInput(ctx) {
+  if (ctx.id === '__tokens') forgetBrandThemes();
+  return compute(ctx.model, ctx.id);
+}
 
 // Carry concrete font families in the template too: headless SVG has no CSS cascade.
 async function resolvedFonts() {

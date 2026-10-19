@@ -1896,7 +1896,11 @@ async function onInit({ model }) {
   return Object.assign(compute(model, inputPatch), inputPatch);
 }
 async function onInput({ model, id }) {
-  if (brandDegraded(BRAND)) { try { const b = await resolveBrandColors(); if (!brandDegraded(b)) BRAND = b; } catch (e) { /* keep prior */ } }
+  // A theme or colourway switch (id '__tokens') changes every colour BRAND was read
+  // from, so it is read again in the new choice, as a fresh mount in that choice
+  // would read it. onInit is not run again, because it would reset the inputs.
+  if (id === '__tokens') { try { BRAND = await resolveBrandColors(); } catch (e) { /* keep prior */ } }
+  else if (brandDegraded(BRAND)) { try { const b = await resolveBrandColors(); if (!brandDegraded(b)) BRAND = b; } catch (e) { /* keep prior */ } }
   const modePatch = legacyModePatch(model);
   const guidedPatch = recommendationInputPatch(model, modePatch, id);
   const inputPatch = Object.assign({}, modePatch, guidedPatch);

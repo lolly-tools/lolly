@@ -61,8 +61,11 @@ async function compute(model) {
 
   // Colour scheme.
   var bg = (typeof inputs.background === 'string' && inputs.background) ? inputs.background : '#ffffff';
+  // The accent is NOT returned as `accent`: that is the input's own id, and writing
+  // it would replace the input's design-system link with a fixed colour, so a theme
+  // or colourway switch would leave the accent behind. The template reads the input
+  // itself, with the same fallback; `accent` here is only each row's default.
   var accent = (typeof inputs.accent === 'string' && inputs.accent.trim()) ? inputs.accent.trim() : '#30ba78';
-  out.accent = accent;
   out.ink = idealInk(bg);
   out.muted = isDark(bg) ? 'rgba(255,255,255,0.66)' : 'rgba(12,50,44,0.60)';
   out.hairline = isDark(bg) ? 'rgba(255,255,255,0.16)' : 'rgba(12,50,44,0.12)';

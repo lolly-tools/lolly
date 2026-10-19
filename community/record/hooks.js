@@ -581,7 +581,11 @@ function compute(model) {
 
   // NOTE: the output key is `frames`, NOT `pages` - matching a declared input id
   // (`frames` is our COUNT input) would clobber it via patch semantics. `framesOut`
-  // sidesteps that; the template loops `framesOut`.
+  // sidesteps that; the template loops `framesOut`. For the same reason the
+  // accent colour is not returned under `accent`: that is the input's own id, and
+  // writing it would replace the input's design-system link with a fixed colour,
+  // so a theme or colourway switch would leave the accent behind. The colour
+  // reaches the template through `stripStyle`.
   // The .srt / .vtt sidecars (template.srt / template.vtt), timed against the
   // composited video rather than the raw take - see subtitles().
   var cues = subtitles(inp.transcript, introMs);
@@ -594,7 +598,6 @@ function compute(model) {
     outroMs: outroMs,
     enterMs: enterMs,
     brand: brand,
-    accent: accent,
     stripStyle: '--pw:' + pw + 'px;--ph:' + ph + 'px;--gap:' + GAP + 'px;--brand:' + brand + ';--accent:' + accent + ';',
   };
 }
