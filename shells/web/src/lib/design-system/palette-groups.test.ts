@@ -91,3 +91,26 @@ test('palette groups on a system with three leads move swatches and leave every 
   assert.deepEqual(walkSwatches(to, 'dark').filter(s => s.group === 'Winter').map(s => s.key), ['color.custom.coral']);
   assert.equal(JSON.stringify(listLeads(to)), leads);
 });
+
+test('renaming a group renames a role tile\'s heading for every lead, so switching leads never moves it', async () => {
+  const { deriveBrandTokens } = await import('@lolly/engine');
+  const { addLead } = await import('./leads.ts');
+  const one = addLead(deriveBrandTokens({ primary: '#0c322c', name: 'Test' }), { colour: '#e05a2b', name: 'Persimmon', canonical: { name: 'Pine' } });
+  assert.ok(one.ok);
+  const doc = one.doc;
+  const heading = (d: unknown, lead: string, mode: string): string | undefined =>
+    walkSwatches(d, { lead, mode }).find(s => s.key === 'color.semantic.primary')?.group;
+  addPaletteGroup(doc, 'Campaign');
+  // The tile the canonical lead shows, moved from the light room.
+  setSwatchGroup(doc, walkSwatches(doc, { lead: 'pine', mode: 'light' }).find(s => s.key === 'color.semantic.primary')!.path, 'Campaign');
+  assert.deepEqual(['pine', 'persimmon'].map(lead => heading(doc, lead, 'light')), ['Campaign', 'Campaign']);
+  assert.ok(changePaletteGroup(doc, 'Campaign', 'Launch'));
+  assert.deepEqual(['pine', 'persimmon'].map(lead => heading(doc, lead, 'light')), ['Launch', 'Launch']);
+  // A rebuild carries the heading for every lead too.
+  const to = structuredClone(doc);
+  setSwatchGroup(to, ['light', 'color', 'semantic', 'primary'], null);
+  carryPaletteGroups(doc, to);
+  assert.deepEqual(['pine', 'persimmon'].map(lead => heading(to, lead, 'light')), ['Launch', 'Launch']);
+  assert.ok(changePaletteGroup(doc, 'Launch', null));
+  assert.equal(heading(doc, 'pine', 'light'), heading(doc, 'persimmon', 'light'), 'ungrouped, both leads file the role in the same place');
+});

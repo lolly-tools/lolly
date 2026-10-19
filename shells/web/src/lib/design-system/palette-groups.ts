@@ -33,9 +33,10 @@ export function addPaletteGroup(doc: unknown, raw: string): string | null {
 
 /**
  * Rename/ungroup leaves in both themes, retaining their token keys and aliases.
- * The walk sees the canonical lead: a colourway's own colours are never tiles
- * (brand-doc.ts skips their sets), so no lead holds a grouped swatch the other
- * leads do not.
+ * The walk sees the canonical lead, and that covers every lead: a colourway's
+ * own colours are never tiles (brand-doc.ts skips their sets), and a role tile's
+ * heading is stored on the slot every lead shares (`setSwatchGroup` writes it
+ * there), so each lead files a role under the same heading.
  */
 export function changePaletteGroup(doc: unknown, from: string, to: string | null): boolean {
   const name = to == null ? null : groupName(to);

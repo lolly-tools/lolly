@@ -920,16 +920,24 @@ test('a role tile on three leads describes the lead being edited', () => {
   assert.deepEqual(tile('persimmon', 'dark', 'color.semantic.secondary').lock, { cmyk: [0, 60, 90, 0] });
   assert.equal(tile('waterhole', 'dark', 'color.semantic.secondary').lock, null);
 });
-test('a role tile moved into a group on three leads files there, and the shared link is untouched', () => {
+test('a role tile moved into a group on three leads files there for every lead, as it does with one lead', () => {
   const doc = threeLeads();
-  const tile = () => walkSwatches(doc, 'light', leadResolve(doc, null, 'light')).find(s => s.key === 'color.semantic.primary')!;
-  const before = tile();
-  const link = JSON.stringify(leafAt(doc, ['light', 'color', 'semantic', 'primary']));
+  const single = derivedOne();
+  const tile = (d: unknown, lead: string | null) => walkSwatches(d, { lead, mode: 'light' }, leadResolve(d, lead, 'light')).find(s => s.key === 'color.semantic.primary')!;
+  const before = tile(doc, null);
+  const leadSets = JSON.stringify(Object.fromEntries(Object.entries(doc).filter(([k]) => k.startsWith('colourway/'))));
+  // The tile carries the lead's path; the move goes to the slot every lead links from.
+  assert.deepEqual(before.path, ['colourway/pine', 'color', 'colourway', 'light', 'primary']);
   assert.equal(setSwatchGroup(doc, before.path, 'Campaign'), true);
-  assert.equal(tile().group, 'Campaign', 'the move shows, though it was written to the lead');
-  assert.equal(JSON.stringify(leafAt(doc, ['light', 'color', 'semantic', 'primary'])), link);
+  assert.equal(setSwatchGroup(single, tile(single, null).path, 'Campaign'), true);
+  for (const lead of ['pine', 'persimmon', 'waterhole']) assert.equal(tile(doc, lead).group, 'Campaign', `${lead} files the role under the moved heading`);
+  assert.equal(tile(doc, null).group, tile(single, null).group);
+  assert.equal(leafAt(doc, ['light', 'color', 'semantic', 'primary'])!.$value, '{color.colourway.light.primary}', 'the link is untouched');
+  assert.equal(JSON.stringify(Object.fromEntries(Object.entries(doc).filter(([k]) => k.startsWith('colourway/')))), leadSets, 'no lead carries a heading of its own');
+  // Null sends the tile back to Roles, for every lead, exactly as with one lead.
   assert.equal(setSwatchGroup(doc, before.path, null), true);
-  assert.equal(tile().group, before.group, 'null sends the tile back to Roles');
+  assert.equal(setSwatchGroup(single, tile(single, null).path, null), true);
+  for (const lead of ['pine', 'persimmon']) assert.equal(tile(doc, lead).group, tile(single, null).group);
 });
 
 const colorToHexOf = (v: unknown): string => {

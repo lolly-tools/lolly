@@ -129,7 +129,8 @@ export interface BrandSwatch {
  * value and path: `raw`, `hex`, the print lock and `path` describe the colour in
  * `colourway/<lead>`, so a recolour, a rename or a lock written through the
  * swatch goes to that lead and never to the link the other leads share. The
- * colourway sets themselves are skipped.
+ * heading is the slot's, for every lead (see `setSwatchGroup`). The colourway
+ * sets themselves are skipped.
  *
  * `resolve` (the caller's TokenSet, typically) supplies the displayable colour
  * for leaves whose `$value` is an `{alias}` - every semantic role is one, so
@@ -188,10 +189,12 @@ export function walkSwatches(
 /**
  * A role slot that links to the colourways, described by the lead's own colour.
  * Key, kind, heading and set come from the SLOT, so the tile files exactly where
- * it did before the system had leads; the value, the print lock and the path
- * come from the lead's primitive, so every write through the swatch goes to the
- * lead. A primitive that is missing keeps the lead's path, where a write finds
- * no leaf and changes nothing.
+ * it did before the system had leads, and under the same heading whichever lead
+ * is being edited; the value, the name, the print lock and the path come from
+ * the lead's primitive, so a recolour, a rename or a lock written through the
+ * swatch goes to the lead. A heading move is the one write that does not:
+ * `setSwatchGroup` files it on the slot every lead shares. A primitive that is
+ * missing keeps the lead's path, where a write finds no leaf and changes nothing.
  */
 function leadSwatch(
   doc: unknown, slotPath: string[], leadPath: string[], slot: Rec,
@@ -199,11 +202,7 @@ function leadSwatch(
 ): BrandSwatch {
   const prim = leafAt(doc, leadPath);
   const raw = prim && isColorString(prim.$value) ? prim.$value : String(slot.$value);
-  // A group move writes through `path`, so once the lead's colour carries a
-  // group tag of its own, that tag is the one the tile files under.
-  const primExt = prim && isRec(prim.$extensions) ? (prim.$extensions as Rec)[TOKEN_EXT] : null;
-  const grouped = isRec(primExt) && typeof primExt.group === 'string';
-  const swatch = toSwatch(slotPath, raw, prim?.$description ?? slot.$description, grouped ? prim!.$extensions : slot.$extensions, undefined, rolesGroup);
+  const swatch = toSwatch(slotPath, raw, prim?.$description ?? slot.$description, slot.$extensions, undefined, rolesGroup);
   swatch.path = leadPath;
   swatch.lock = readPrintLock(prim);
   if (!swatch.hex && swatch.isAlias && resolve) {
@@ -489,7 +488,7 @@ export function addSwatch(
  * caller passing a live heading strips the "· Light" suffix first.
  */
 export function setSwatchGroup(doc: unknown, path: string[], group: string | null): boolean {
-  const leaf = leafAt(doc, path);
+  const leaf = leafAt(doc, groupPathOf(doc, path));
   if (!leaf) return false;
   const name = group?.trim() ?? '';
   if (!name) {
@@ -501,6 +500,27 @@ export function setSwatchGroup(doc: unknown, path: string[], group: string | nul
   const ns = (isRec(ext[TOKEN_EXT]) ? ext[TOKEN_EXT] : (ext[TOKEN_EXT] = {} as Rec)) as Rec;
   ns.group = name;
   return true;
+}
+
+/**
+ * Where a swatch's heading is stored. A role tile on a design system with
+ * colourways carries the lead's own path (`[colourway/<id>, color, colourway,
+ * <mode>, <role>]`), so a recolour reaches that lead, but its heading belongs to
+ * the mode's slot every lead links from: written there, a move files the tile
+ * under one heading whichever lead is being edited, exactly as a system with one
+ * lead does. Every other path is its own.
+ */
+function groupPathOf(doc: unknown, path: string[]): string[] {
+  if (path.length !== 5 || path[1] !== 'color' || path[2] !== 'colourway' || !colourwaySetsOf(doc).has(path[0]!)) return path;
+  const [mode, role] = [path[3]!, path[4]!];
+  const link = `{color.colourway.${mode}.${role}}`;
+  const prefixes = isRec(doc) ? [...Object.keys(doc).filter(k => !k.startsWith('$')).map(k => [k]), []] : [];
+  for (const prefix of prefixes) {
+    const slot = [...prefix, 'color', 'semantic', role];
+    const value = leafAt(doc, slot)?.$value;
+    if (typeof value === 'string' && value.replace(/\s+/g, '') === link) return slot;
+  }
+  return path;
 }
 
 // ── Swatch exclusions - "delete" for derived leaves ──────────────────────────
