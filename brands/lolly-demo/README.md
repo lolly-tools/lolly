@@ -42,7 +42,16 @@ handoff with one named owner.
   in the index and has no `brand` tag, because the CLI, the MCP server and the
   share-card builder pick the first tokens asset by index order or by that tag;
   `validate:catalog` fails when those readers would disagree with `brandTokens`.
-- **Shared rows, byte for byte.** The Lolly marks (`lolly/logo/*`), the demo
+- **The horizontal logo.** Lolly Demo's horizontal logo slots hold the Lolly
+  wordmark, one drawing in three colours: `lolly/logo/horizontal` in Liquorice
+  for light backgrounds, `lolly/logo/horizontal-reverse` in Daylight for dark
+  ones and `lolly/logo/horizontal-on-brand` in Green Apple for the brand ground.
+  The last one fills a custom `horizontal-on-brand` slot, which the app's Brand
+  theme shows before the reverse form. The vertical slots keep the square swirl
+  mark. The three wordmark files are this pack's own and carry no credentials
+  yet.
+- **Shared rows, byte for byte.** The Lolly marks (`lolly/logo/primary`,
+  `reverse`, `mono` and `mono-reverse`), the demo
   assets (`lolly/demo/*`, including `lolly/demo/lolly-spin`, which community
   tools need to validate), the loops, songs, modules, LUTs, 3D models, slide
   masters and presets, and the riso ink palette are the files and index rows

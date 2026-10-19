@@ -495,22 +495,26 @@
     },
     "asset": {
       "logo": {
-        "$description": "Lolly's own marks, shipped in this pack's catalog (lolly/logo/*). The mark is square, so horizontal and vertical share one file per treatment.",
+        "$description": "Lolly's own logos, shipped in this pack's catalog (lolly/logo/*). Horizontal is the Lolly wordmark in one colour: Liquorice on light, Daylight reversed and Green Apple on the brand ground (horizontal-on-brand, which the app's Brand theme shows). Vertical is the square swirl mark.",
         "horizontal-primary": {
           "$type": "asset",
-          "$value": "lolly/logo/primary"
+          "$value": "lolly/logo/horizontal"
         },
         "horizontal-primary-reverse": {
           "$type": "asset",
-          "$value": "lolly/logo/reverse"
+          "$value": "lolly/logo/horizontal-reverse"
         },
         "horizontal-mono": {
           "$type": "asset",
-          "$value": "lolly/logo/mono"
+          "$value": "lolly/logo/horizontal"
         },
         "horizontal-mono-reverse": {
           "$type": "asset",
-          "$value": "lolly/logo/mono-reverse"
+          "$value": "lolly/logo/horizontal-reverse"
+        },
+        "horizontal-on-brand": {
+          "$type": "asset",
+          "$value": "lolly/logo/horizontal-on-brand"
         },
         "vertical-primary": {
           "$type": "asset",

@@ -32,6 +32,20 @@ export const THEME_ICONS: Record<Theme, string> = {
   brand: icon('palette', { size: 16 }),
 };
 
+/**
+ * The design system's logo tokens to try, in order, under one app theme. Light
+ * shows the primary form. Dark shows the reverse, then the primary. Brand shows the
+ * on-brand form (`<orientation>-on-brand`, a custom logo slot such as Lolly Demo's
+ * Green Apple wordmark), then the reverse, then the primary, so a design system with
+ * no on-brand logo keeps its reverse form there.
+ */
+export function logoRefsForTheme(theme: string, orientation: 'horizontal' | 'vertical' = 'horizontal'): string[] {
+  const ref = (treatment: string): string => `{asset.logo.${orientation}-${treatment}}`;
+  if (theme === 'light') return [ref('primary')];
+  if (theme === 'brand') return [ref('on-brand'), ref('primary-reverse'), ref('primary')];
+  return [ref('primary-reverse'), ref('primary')];
+}
+
 /** The next theme in the cycle (wraps light → dark → brand → light). */
 export function nextTheme(theme: string): Theme {
   const i = THEMES.indexOf(theme as Theme);

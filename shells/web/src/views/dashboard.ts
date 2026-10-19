@@ -48,7 +48,7 @@ import type { CatalogTool } from '../lib/catalog-summary.ts';
 import type { PaletteEntry } from '../palette.ts';
 import { livePalette } from '../lib/live-palette.ts';
 import { groupPalette, swatch, isTransparent, inkText, isLockedInk } from '../lib/swatches.ts';
-import { currentTheme } from '../theme.ts';
+import { currentTheme, logoRefsForTheme } from '../theme.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, hexToOklch, formatOklch, createTokenSet } from '@lolly/engine';
 import { getMetrics } from '../metrics.ts';
@@ -955,14 +955,12 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
 
     // The horizontal-primary logo, when the brand carries one, resolved from
     // its asset token to the stored asset's url and rendered via <img>, so an
-    // uploaded SVG's markup is drawn, never executed. On a dark-leaning
-    // theme (dark/brand) the reverse form is preferred when present. The
-    // bridge owns the object URL (its cache), so nothing here revokes it.
+    // uploaded SVG's markup is drawn, never executed. Dark prefers the reverse
+    // form and Brand the on-brand form, each falling back in the order
+    // logoRefsForTheme gives. The bridge owns the object URL (its cache), so
+    // nothing here revokes it.
     try {
-      const wantReverse = currentTheme() !== 'light';
-      const refs = wantReverse
-        ? ['{asset.logo.horizontal-primary-reverse}', '{asset.logo.horizontal-primary}']
-        : ['{asset.logo.horizontal-primary}'];
+      const refs = logoRefsForTheme(currentTheme());
       for (const ref of refs) {
         const id = await tokensApi?.resolve?.(ref);
         if (typeof id !== 'string' || !id || id.startsWith('{')) continue;

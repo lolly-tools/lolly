@@ -25,8 +25,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/demo.json",
-          "checksum": "sha256-XwBpyEVsqPV+5wc9MKZqeKVUGTR46xPAGPrPuEg+2FM=",
-          "size": 39685
+          "checksum": "sha256-Y1KyFuROD+A+AaPyL4VoAc+dDz8Sxc8vU2MqbLmNXoc=",
+          "size": 39974
         }
       ]
     },
@@ -45,8 +45,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/demo.json",
-          "checksum": "sha256-XwBpyEVsqPV+5wc9MKZqeKVUGTR46xPAGPrPuEg+2FM=",
-          "size": 39685
+          "checksum": "sha256-Y1KyFuROD+A+AaPyL4VoAc+dDz8Sxc8vU2MqbLmNXoc=",
+          "size": 39974
         }
       ],
       "deprecated": true,
@@ -145,6 +145,80 @@
         }
       ],
       "added": "2026-08-23"
+    },
+    {
+      "id": "lolly/logo/horizontal",
+      "name": "Lolly Wordmark - Horizontal",
+      "description": "The Lolly wordmark in Liquorice: Lolly Demo's horizontal logo for light backgrounds.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "lolly",
+        "wordmark",
+        "horizontal",
+        "primary",
+        "on-light"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/logo/horizontal.svg",
+          "checksum": "sha256-vw924joc4foUFWk0JdM4CJ/Jhj0Ki2X6MeWSEWbbprc=",
+          "size": 526
+        }
+      ],
+      "added": "2026-10-19"
+    },
+    {
+      "id": "lolly/logo/horizontal-reverse",
+      "name": "Lolly Wordmark - Horizontal reverse",
+      "description": "The Lolly wordmark in Daylight, for dark backgrounds.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "lolly",
+        "wordmark",
+        "horizontal",
+        "reverse",
+        "on-dark"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/logo/horizontal-reverse.svg",
+          "checksum": "sha256-4t3EMz8ZcxVCXBypCtHhax3ZVfojB2Tm6TWNPWDKb74=",
+          "size": 526
+        }
+      ],
+      "added": "2026-10-19"
+    },
+    {
+      "id": "lolly/logo/horizontal-on-brand",
+      "name": "Lolly Wordmark - Horizontal on brand",
+      "description": "The Lolly wordmark in Green Apple, for Lolly Demo's brand ground. The app's Brand theme shows this one.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "lolly",
+        "wordmark",
+        "horizontal",
+        "on-brand"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/lolly/logo/horizontal-on-brand.svg",
+          "checksum": "sha256-cbHgZjZ4fF6FsZMX1U3Z4aSi5qOnbWUwnQkmuav8qPg=",
+          "size": 526
+        }
+      ],
+      "added": "2026-10-19"
     },
     {
       "id": "lolly/palette/riso-inks",
