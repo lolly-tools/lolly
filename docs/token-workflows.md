@@ -122,7 +122,7 @@ The same seed, key, date and position pick the same colourway on every computer,
 
 The canvas carries the family as `--brand-lead-1` to `--brand-lead-<n>` and `--brand-lead-count` (see [Authoring tools](/info/authoring-tools.html)), and a colour input declared with `"palette": "colourway-leads"` offers the leads as its swatches (see [Tool inputs](/info/tool-inputs.html)). A design system with one colourway, or none, has no family, and each of these tools draws exactly as before.
 
-When the artefact's colourway or look changes, Chart, Mesh Gradient and Filter read the colours they keep from the design system again on their next update, and every input keeps its value. Covers belong to the app, not to an artefact: they list the same leads whatever colourway an artefact uses, in the app's own light or dark appearance.
+When the artefact's colourway or look changes, Chart, Mesh Gradient and Filter read the colours they keep from the design system again as the open tool redraws, and every input keeps its value. Covers belong to the app, not to an artefact: they list the same leads whatever colourway an artefact uses, in the app's own light or dark appearance.
 
 **Penpot.** A `.penpot` export keeps the colourway group and its sets, and opens with the canonical colourway turned on so the links resolve. Penpot's theme record has no field for the `kind`, so the group arrives in Penpot, and comes back from Penpot, as a plain theme group.
 
