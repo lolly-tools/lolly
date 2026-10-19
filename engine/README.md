@@ -379,7 +379,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `lottie-properties.ts` | 159 | Numeric Lottie tracks retain their own frame times, dimensions and easing. | no | indirect | – |
 | `lottie-sequence.ts` | 143 | Compile a frozen, resolved linear sequence without a player or a DOM. | no | indirect | – |
 | `media-sniff.ts` | 255 | Pure, DOM-free media classification from header bytes. | yes | `tests/media-sniff.test.ts` | yes |
-| `metadata.ts` | 395 | Export provenance: the generic authorship record embedded into every exported media file (platform-agnostic; no format/DOM knowledge here). | yes | `tests/metadata.test.ts` | – |
+| `metadata.ts` | 419 | Export provenance: the generic authorship record embedded into every exported media file (platform-agnostic; no format/DOM knowledge here). | yes | `tests/metadata.test.ts` | – |
 | `midi.ts` | 169 | Standard MIDI File to ZzFXM. | yes | `tests/midi.test.ts` | yes |
 | `motion-cues.ts` | 105 | Versioned cue authoring compiled into ordinary Design layer timing. | yes | `tests/motion-cues.test.ts` | yes |
 | `motion-report.ts` | 24 | Measured delivery facts remain separate from candidates for human review. | yes | none | – |

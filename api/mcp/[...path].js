@@ -38101,6 +38101,10 @@ function designRecordKeywords(meta) {
   for (const t of meta.themes ?? []) out.push(`${themeChoiceLabel(t)}: ${t.name}`);
   return out;
 }
+function designRecordCarrier(format, credential) {
+  if (!METADATA_FREE_FORMATS.has(format.toLowerCase())) return "file";
+  return credential ? "credential" : null;
+}
 function pdfKeywords(meta) {
   if (!meta) return [];
   return [meta.software, meta.source, meta.contact, ...designRecordKeywords(meta)].filter(Boolean);
@@ -38159,7 +38163,7 @@ function themesSelection(themes) {
   for (const t of themes) out[t.group] = t.id;
   return out;
 }
-var LOLLY_XMP_NS, MAX_LABEL, MAX_NAME, MAX_VERSION, MAX_GROUP, MAX_THEMES, MAX_THEMES_JSON, clip, text4, designSystemIdOf, xmlEsc, xmlUnesc, XML_PROPS;
+var LOLLY_XMP_NS, MAX_LABEL, MAX_NAME, MAX_VERSION, MAX_GROUP, MAX_THEMES, MAX_THEMES_JSON, clip, text4, designSystemIdOf, METADATA_FREE_FORMATS, xmlEsc, xmlUnesc, XML_PROPS;
 var init_metadata = __esm({
   "engine/src/metadata.ts"() {
     "use strict";
@@ -38182,6 +38186,29 @@ var init_metadata = __esm({
       const id3 = typeof v === "string" ? v.trim() : "";
       return isDesignSystemId(id3) ? id3 : "";
     };
+    METADATA_FREE_FORMATS = /* @__PURE__ */ new Set([
+      "html",
+      "html-fragment",
+      "md",
+      "txt",
+      "js",
+      "json",
+      "csv",
+      "ics",
+      "vcf",
+      "srt",
+      "vtt",
+      "css",
+      "scss",
+      "gpl",
+      "eps",
+      "eps-cmyk",
+      "emf",
+      "wmf",
+      "dxf",
+      "bmp",
+      "ico"
+    ]);
     xmlEsc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     xmlUnesc = (s) => s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&");
     XML_PROPS = [
@@ -143376,6 +143403,7 @@ __export(src_exports, {
   designLayoutSourceEdit: () => designLayoutSourceEdit,
   designMaterialOf: () => designMaterialOf,
   designPathPlacement: () => designPathPlacement,
+  designRecordCarrier: () => designRecordCarrier,
   designRecordEnvironment: () => designRecordEnvironment,
   designRecordFrom: () => designRecordFrom,
   designRecordWords: () => designRecordWords,
@@ -175434,6 +175462,21 @@ async function stampC2pa(bytes2, fmt4, manifest, values, o, ingredients = [], me
   });
   return embedC2pa(bytes2, fmt4, opts);
 }
+async function credentialAndRecord(out, o) {
+  let bytes2 = out.bytes;
+  const record44 = out.tier.startsWith("B") ? await recordedDesignInFile(out.bytes, o.exportFmt) : o.recorded;
+  if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt) && !(o.exportFmt === "pdf" && o.merged.password)) {
+    try {
+      bytes2 = await stampC2pa(bytes2, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record44);
+    } catch (e) {
+      o.warnings.push(`Content Credentials not attached - ${e.message}`);
+    }
+  } else if (!o.sampled && o.merged.c2pa?.on) {
+    o.warnings.push(`Format "${o.fmt}" cannot carry Content Credentials - skipped.`);
+  }
+  const designRecord = await recordedDesignInFile(bytes2, o.deliveredFormat, record44);
+  return { bytes: bytes2, designRecord };
+}
 async function render(toolId, query2, o = {}) {
   if (o.productionReference !== void 0 && o.production === void 0) throw new Error("A production reference requires a production contract.");
   const { requireProduction: requireProduction2, parseProductionSpec: parseProductionSpec2, parseProductionRepair: parseProductionRepair2, runProductionRepairs: runProductionRepairs2, proposeProductionPatch: proposeProductionPatch2 } = await Promise.resolve().then(() => (init_src2(), src_exports));
@@ -175580,18 +175623,21 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
   }
   const songsIn = out.tier.startsWith("B") && AUDIO_BEARING.has(exportFmt) ? await songIngredientsIn(out.bytes) : [];
   if (songsIn.length) placed2 = [...placed2, ...songsIn];
-  if (!sampled && merged.c2pa?.on && C2PA_FORMATS.includes(exportFmt) && !(exportFmt === "pdf" && merged.password)) {
-    const record44 = out.tier.startsWith("B") ? readFileDesignRecord(bytes2) : recorded2;
-    try {
-      bytes2 = await stampC2pa(bytes2, exportFmt, tool.manifest, values, merged, placed2, record44);
-    } catch (e) {
-      warnings2.push(`Content Credentials not attached - ${e.message}`);
-    }
-  } else if (!sampled && merged.c2pa?.on) {
-    warnings2.push(`Format "${fmt4}" cannot carry Content Credentials - skipped.`);
-  }
+  const finished = await credentialAndRecord(out, {
+    fmt: fmt4,
+    exportFmt,
+    deliveredFormat,
+    manifest: tool.manifest,
+    values,
+    merged,
+    placed: placed2,
+    recorded: recorded2,
+    sampled,
+    warnings: warnings2
+  });
+  bytes2 = finished.bytes;
   const songs = songsIn.length ? { expected: songsIn.map((i) => i.title), recorded: await recordedSongs(bytes2) } : null;
-  const designRecord = await recordedDesignInFile(bytes2, deliveredFormat, out.tier.startsWith("B") ? null : recorded2);
+  const designRecord = finished.designRecord;
   let production;
   if (o.production !== void 0) {
     const { inspectProductionBytes: inspectProductionBytes2 } = await Promise.resolve().then(() => (init_production2(), production_exports));
