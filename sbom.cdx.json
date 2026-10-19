@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:5fba3e57-dfb2-49b0-8bce-2080e7503704",
+  "serialNumber": "urn:uuid:839169bc-040d-4a33-8599-38a6c54f35ac",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-19T11:34:35.231Z",
+    "timestamp": "2026-10-19T15:20:38.324Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -25247,7 +25247,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "cc94c3c9b68e080f68d53f8437313e76e9858c8f2c1d22d68eddb162f1483b192d9bd2b2d5c605cad1c2a5a4d390a5ec08269cb7c93806d79dad75d2536cd0c4"
+          "content": "fc34c3263ceb6a76faefbedf5843d931d8fc8ffd432cbd501057f0b8ed8dcd68a597402912c9cd081943238498f543c17e5272b00f992e3dace01433684066e4"
         }
       ],
       "properties": [
@@ -30263,7 +30263,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "cc94c3c9b68e080f68d53f8437313e76e9858c8f2c1d22d68eddb162f1483b192d9bd2b2d5c605cad1c2a5a4d390a5ec08269cb7c93806d79dad75d2536cd0c4"
+          "content": "fc34c3263ceb6a76faefbedf5843d931d8fc8ffd432cbd501057f0b8ed8dcd68a597402912c9cd081943238498f543c17e5272b00f992e3dace01433684066e4"
         }
       ],
       "properties": [
