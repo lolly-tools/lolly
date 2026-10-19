@@ -155,6 +155,8 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
     'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence',
     // The theme choice per token group (plan 291 M4, E24), JSON such as `{"":"dark"}`.
     '_themes',
+    // The design-system record toggle (plans/319): `_madewith=0` leaves it out.
+    '_madewith',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
 
@@ -186,6 +188,21 @@ test('url-mode: the `_` prefix is a reserved namespace, skipped before input mat
   assert.equal(s.values._future, undefined);
   assert.equal(s.values.heading, 'Hi');
   assert.equal(s.version, '2.0.0');
+});
+
+test('url-mode: _madewith is the design-system record toggle, on by default (plans/319)', () => {
+  // Minted under the `_` prefix rule, so it can never collide with a tool input.
+  assert.equal(parseUrlState('heading=Hi', SAMPLE_MANIFEST).madeWith, null);
+  for (const off of ['0', 'off', 'false', 'no']) {
+    const s = parseUrlState(`heading=Hi&_madewith=${off}`, SAMPLE_MANIFEST);
+    assert.equal(s.madeWith, false, off);
+    assert.equal(s.values._madewith, undefined, 'reserved - never a tool input');
+  }
+  assert.equal(parseUrlState('_madewith=1', SAMPLE_MANIFEST).madeWith, true);
+  // Only the opt-out travels: the default state writes nothing.
+  assert.equal(new URLSearchParams(serializeUrlState([], { madeWith: false })).get('_madewith'), '0');
+  assert.equal(new URLSearchParams(serializeUrlState([], { madeWith: true })).has('_madewith'), false);
+  assert.equal(new URLSearchParams(serializeUrlState([], {})).has('_madewith'), false);
 });
 
 test('url-mode: designv is the design-system version override, read-only', () => {

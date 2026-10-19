@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "gradient",
-  "toolVersion": "1.2.4",
-  "toolVersionRange": "1.2.4",
+  "toolVersion": "1.3.0",
+  "toolVersionRange": "1.3.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "bb2deb5a5d7206b2173a8b64019e8d03edd930a81d2020370d7888f6ce9bbc5e",
+      "sha256": "706a02fcf8521bf8ee3e8988ac56ce424bdd221d6f61c00b9c5ef20c6ec3a1a6",
       "bytes": 2528
     },
     "reference/inputs.json": {

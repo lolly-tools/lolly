@@ -326,6 +326,10 @@ Export options:
                            no durable mark. THE deterministic-bytes switch - both
                            marks embed a fresh timestamp, so a default render is
                            not byte-identical run to run
+  --no-madewith            leave out the design-system record: the design system,
+                           version and colourway the metadata and credential name,
+                           and the colourway in the description. ON BY DEFAULT,
+                           like the app (--_madewith=0 is the same switch)
   --sign-key=<key.pem>     sign the credential with an enrolled identity instead of an
   --sign-cert=<chain.pem>  anonymous on-device key: a P-256 PKCS#8 key file plus its
                            certificate chain, LEAF FIRST. Both are PATHS - no flag ever

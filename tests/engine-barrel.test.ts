@@ -262,6 +262,10 @@ const EXPECTED: readonly string[] = [
   'withBlockTokenBinding',
   'withTokenSelection',
   'withTokenSourceValue',
+  // Additive (plans/319 A7): the design-system record an export carries and reads back.
+  'DesignRecord', 'MadeWithPreview', 'designRecordCarrier', 'designRecordEnvironment', 'designRecordFrom',
+  'designRecordWords', 'pdfKeywords', 'readDesignRecord', 'readDesignRecordXml', 'readFileDesignRecord',
+  'themesSelection', 'toolCredit',
   // 1.265 (plans/319): theme-group meaning and colourways.
   'readTokenAxes',
   'axisOfKind',

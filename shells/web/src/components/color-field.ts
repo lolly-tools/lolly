@@ -123,6 +123,78 @@ export function setSwatches(list: ColorSwatchOption[]): void {
 }
 
 /**
+ * Named swatch sources (plans/319). A field rendered with `swatchSource` offers that
+ * source's list in place of SWATCHES: `colourway-leads`, the design system's
+ * colourway leads, is the first (a colour input with `palette: "colourway-leads"`).
+ * A source with no list, or an empty one, falls back to SWATCHES, so a field always
+ * has something to offer: a design system with one lead has no family and its
+ * leads-only field offers the ordinary palette.
+ */
+const SWATCH_SOURCES = new Map<string, ColorSwatchOption[]>();
+
+/** The swatch source a colour input with `palette: "colourway-leads"` offers. */
+export const LEADS_SWATCH_SOURCE = 'colourway-leads';
+
+/** Set (or, with an empty list, clear) one named swatch source. */
+export function setSwatchSource(name: string, list: readonly ColorSwatchOption[] | null | undefined): void {
+  if (Array.isArray(list) && list.length) SWATCH_SOURCES.set(name, [...list]);
+  else SWATCH_SOURCES.delete(name);
+}
+
+/**
+ * Where a named source's list comes from, read again each time a field's grid is
+ * built. A source can change under an open document (a colourway or look switch
+ * gives every lead a new value) without the sidebar being rebuilt, so the grid
+ * shows the last list at once and rebuilds when the fresh one differs.
+ */
+const SWATCH_PROVIDERS = new Map<string, () => Promise<readonly ColorSwatchOption[] | null>>();
+
+/**
+ * Register (or, with null, remove) the reader for one named source, and read it
+ * once now so the first open already has the list. Resolves once that read finishes.
+ */
+export async function provideSwatchSource(name: string, provider: (() => Promise<readonly ColorSwatchOption[] | null>) | null): Promise<void> {
+  if (!provider) { SWATCH_PROVIDERS.delete(name); return; }
+  SWATCH_PROVIDERS.set(name, provider);
+  await reloadSwatchSource(name);
+}
+
+/**
+ * The list a `palette: "colourway-leads"` field offers (plans/319): every
+ * colourway's lead from a tokens surface's `family('primary')`, canonical first,
+ * each named after its colourway. Null for fewer than two leads, or a surface
+ * without the read, which leaves the field on the ordinary palette, exactly as a
+ * design system with one lead has always offered. A lead is a plain colour, never
+ * a token link: a colourway that is not the document's own has no token path in
+ * the document's look. The caller passes a surface scoped to the document.
+ */
+export async function colourwayLeadSwatches(tokens: { family?(role?: string): Promise<ReadonlyArray<{ value: string; name: string }>> } | null | undefined): Promise<ColorSwatchOption[] | null> {
+  if (typeof tokens?.family !== 'function') return null;
+  const family = await tokens.family('primary');
+  if (!Array.isArray(family) || family.length < 2) return null;
+  return family.map((m) => ({ value: m.value, label: m.name, group: t('Colourway'), ref: null }));
+}
+
+/** Read one source again from its provider. True when the list changed. */
+async function reloadSwatchSource(name: string): Promise<boolean> {
+  const provider = SWATCH_PROVIDERS.get(name);
+  if (!provider) return false;
+  let list: readonly ColorSwatchOption[] | null = null;
+  try { list = await provider(); } catch { return false; }
+  // A newer registration replaced this reader while it read: its answer is not ours.
+  if (SWATCH_PROVIDERS.get(name) !== provider) return false;
+  const before = JSON.stringify(SWATCH_SOURCES.get(name) ?? null);
+  setSwatchSource(name, list);
+  return JSON.stringify(SWATCH_SOURCES.get(name) ?? null) !== before;
+}
+
+/** The swatches a field offers: its named source's, else the shared list. */
+function swatchesFor(source?: string | null): ColorSwatchOption[] {
+  const own = source ? SWATCH_SOURCES.get(source) : undefined;
+  return own?.length ? own : SWATCHES;
+}
+
+/**
  * Repopulate the already-visible swatch grids under `scope` from the current
  * SWATCHES - call after setSwatches() when the brand palette changed so open
  * pickers (the dashboard/start inline primary) reflect added/deleted swatches
@@ -135,7 +207,7 @@ export function refreshSwatches(scope: HTMLElement): void {
     // No box = an inline field (they carry no palette) or one whose popover has
     // never been opened; either way there's nothing built to refresh.
     const box = field.querySelector<HTMLElement>('.color-swatches');
-    if (box && box.childElementCount) box.innerHTML = swatchButtonsHtml(field.dataset.colorField!);
+    if (box && box.childElementCount) box.innerHTML = swatchButtonsHtml(field.dataset.colorField!, field.dataset.swatchSource);
   });
 }
 
@@ -178,9 +250,13 @@ export function swatchName(value: unknown): string {
   const raw = toHex(value);
   if (typeof raw !== 'string' || !raw) return '';
   const v = nameKey(raw);
-  for (const s of SWATCHES) {
-    const sv = typeof s.value === 'string' ? nameKey(s.value) : '';
-    if (sv && sv === v) return s.label || '';
+  // The shared list first, then the named sources: a colourway's lead that the
+  // current look does not use is still called by its colourway's name.
+  for (const list of [SWATCHES, ...SWATCH_SOURCES.values()]) {
+    for (const s of list) {
+      const sv = typeof s.value === 'string' ? nameKey(s.value) : '';
+      if (sv && sv === v) return s.label || '';
+    }
   }
   if (!/^#[0-9a-f]{6}$/.test(v)) return '';
   return nameColor(v);
@@ -193,13 +269,13 @@ export function swatchName(value: unknown): string {
  * close enough to be worth showing. Transparent and non-hex swatch values
  * (token aliases mid-resolve) are skipped.
  */
-function nearestSwatch(value: string): { value: string; ref: string | null; label: string; d: number } | null {
+function nearestSwatch(value: string, list: readonly ColorSwatchOption[] = SWATCHES): { value: string; ref: string | null; label: string; d: number } | null {
   const raw = typeof value === 'string' ? value.trim().toLowerCase() : '';
   if (!/^#[0-9a-f]{6}([0-9a-f]{2})?$/.test(raw)) return null;
   const rgb = raw.slice(0, 7);
   let best: ColorSwatchOption | null = null;
   let bestD = Infinity;
-  for (const s of SWATCHES) {
+  for (const s of list) {
     const sv = typeof s.value === 'string' ? s.value : '';
     if (!/^#[0-9a-f]{6}$/i.test(sv)) continue;
     const d = deltaEOk(rgb, sv);
@@ -886,7 +962,7 @@ function triggerAria(label: string, name: string, hex: string): string {
   return label ? `${label}: ${value}` : `Colour: ${value}`;
 }
 
-export function colorFieldHtml(id: string, value: unknown, { float = false, swatchesOnly = false, block = false, inline = false, modes = false, palette = false, dials, progressive = false, name: nameOverride, label = '', initialMode }: { float?: boolean; swatchesOnly?: boolean; block?: boolean; inline?: boolean; modes?: boolean; palette?: boolean; dials?: boolean; progressive?: boolean; name?: string; label?: string; initialMode?: ColorMode } = {}): string {
+export function colorFieldHtml(id: string, value: unknown, { float = false, swatchesOnly = false, block = false, inline = false, modes = false, palette = false, dials, progressive = false, name: nameOverride, label = '', initialMode, swatchSource }: { float?: boolean; swatchesOnly?: boolean; block?: boolean; inline?: boolean; modes?: boolean; palette?: boolean; dials?: boolean; progressive?: boolean; name?: string; label?: string; initialMode?: ColorMode; swatchSource?: string } = {}): string {
   const rawVal = toHex(value) ?? '';
   const isTransparent = String(rawVal).trim().toLowerCase() === 'transparent';
   // Seeding is strictly WIDENED: anything the engine's parseColor accepts (hex,
@@ -983,7 +1059,9 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
       </div>`;
   const fineToggle = `<button type="button" class="color-fine-toggle" data-color-fine-toggle="${eid}" aria-expanded="false">${icon('sliders', { size: 13 })}<span>${escape(t('Fine-tune'))}</span>${icon('chevronDown', { className: 'color-fine-chev', size: 14 })}</button>`;
   const cls = `color-picker-field${float ? ' color-field--float' : ''}${block ? ' block-color-field' : ''}${inline ? ' color-field--inline' : ''}${progressiveInline ? ' color-field--progressive' : ''}${palette ? ' color-field--palette' : ''}`;
-  return `<div class="${cls}" data-color-field="${eid}" data-color-canon="${escape(canon)}" data-color-notation="${modes ? 'space' : 'hex'}"${label ? ` data-color-label="${escape(label)}"` : ''}>
+  // `swatchSource` says which list the swatch grid offers (setSwatchSource), carried on
+  // the field so the lazy grid build and refreshSwatches read the same list.
+  return `<div class="${cls}" data-color-field="${eid}" data-color-canon="${escape(canon)}" data-color-notation="${modes ? 'space' : 'hex'}"${label ? ` data-color-label="${escape(label)}"` : ''}${swatchSource ? ` data-swatch-source="${escape(swatchSource)}"` : ''}>
     ${inline ? '' : `<button type="button" class="color-trigger" data-color-trigger="${eid}" aria-haspopup="true" aria-expanded="false" aria-label="${escape(triggerAria(label, name, hex))}">
       <span class="color-trigger-name">${escape(name)}</span>
       <span class="${previewClass}" ${previewBg} aria-hidden="true"></span>
@@ -1024,9 +1102,9 @@ export function colorFieldHtml(id: string, value: unknown, { float = false, swat
 const NEUTRAL_CHIP = '#c9ccd1';
 
 /** The palette swatch buttons for a field - built lazily on first popover open. */
-function swatchButtonsHtml(id: string): string {
+function swatchButtonsHtml(id: string, source?: string | null): string {
   const eid = escape(id);
-  return SWATCHES.map(s => {
+  return swatchesFor(source).map(s => {
     const isTrans = s.value === 'transparent';
     const refAttr = s.ref ? ` data-swatch-ref="${escape(s.ref)}"` : '';
     const name = s.label || s.value;
@@ -1467,7 +1545,7 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
   function updateNearest(field: HTMLElement, value: string): void {
     const btn = field.querySelector<HTMLElement>('.color-nearest');
     if (!btn) return;
-    const near = value && value !== 'transparent' ? nearestSwatch(value) : null;
+    const near = value && value !== 'transparent' ? nearestSwatch(value, swatchesFor(field.dataset.swatchSource)) : null;
     if (!near || near.d < 0.005 || near.d > 0.12) { btn.hidden = true; return; }
     btn.hidden = false;
     btn.dataset.nearValue = near.value;
@@ -1568,8 +1646,16 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
   // later (refreshSwatches, when the brand palette changes) without re-wiring.
   function buildSwatches(field: HTMLElement, force = false): void {
     const box = field.querySelector<HTMLElement>('.color-swatches');
-    if (!box || (!force && box.childElementCount)) return; // already built
-    box.innerHTML = swatchButtonsHtml(field.dataset.colorField!);
+    if (!box) return;
+    const source = field.dataset.swatchSource;
+    const paint = (): void => { box.innerHTML = swatchButtonsHtml(field.dataset.colorField!, source); };
+    // A field with a named source re-reads it on every open (see SWATCH_PROVIDERS):
+    // the grid shows the last list now and is rebuilt if the fresh one differs.
+    if (source && SWATCH_PROVIDERS.has(source)) {
+      void reloadSwatchSource(source).then((changed) => { if (changed && box.isConnected) paint(); });
+    }
+    if (!force && box.childElementCount) return; // already built
+    paint();
     if (!box.dataset.wired) {
       box.dataset.wired = '1';
       box.addEventListener('click', (e) => {
@@ -1677,8 +1763,9 @@ export function wireColorField(scope: HTMLElement, { onChange = () => {}, onInte
     if (!fine || !fine.hidden) return;                 // absent (swatchesOnly) or already open
     const st = STATE.get(field);
     const v = st ? (st.kind === 'transparent' ? 'transparent' : bakedHex(st)) : (field.dataset.colorCanon ?? '');
-    const isSwatch = v === 'transparent' || (!!v && (nearestSwatch(v)?.d ?? 1) < 0.005);
-    if (!SWATCHES.length || !isSwatch) setFine(field, true);
+    const offered = swatchesFor(field.dataset.swatchSource);
+    const isSwatch = v === 'transparent' || (!!v && (nearestSwatch(v, offered)?.d ?? 1) < 0.005);
+    if (!offered.length || !isSwatch) setFine(field, true);
   };
 
   // ── Trigger: open/close the popover ──────────────────────────────────────────

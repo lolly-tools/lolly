@@ -1635,5 +1635,10 @@
   "That is not a web address. Check it and try again.": "Itu bukan alamat web. Periksa lalu coba lagi.",
   "Private project": "Proyek pribadi",
   "The server could not send the latest tools - showing saved content": "Server tidak bisa mengirim alat terbaru - menampilkan konten tersimpan",
-  "{n} colour": "{n} warna"
+  "{n} colour": "{n} warna",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Tidak disimpan untuk penggunaan offline: server ini tidak memiliki {n} dari {total} berkas.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Tidak disimpan untuk penggunaan offline: {n} dari {total} berkas gagal diunduh. Periksa koneksi Anda, lalu coba lagi.",
+  "Not saved for offline use. Try again in a moment.": "Tidak disimpan untuk penggunaan offline. Coba lagi sebentar lagi.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} unduhan belum selesai. Setiap baris menjelaskan alasannya."
 }

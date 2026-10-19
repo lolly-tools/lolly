@@ -30,7 +30,10 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
+import { readFile } from 'node:fs/promises';
 import { TOKEN_EXT } from '../engine/src/tokens.ts';
+import { verifyC2pa } from '../engine/src/c2pa-verify.ts';
+import { readDesignRecord, readDesignRecordXml } from '../engine/src/metadata.ts';
 import type { VersionEntry } from '../engine/src/index.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -101,7 +104,7 @@ await writeFile(join(root, 'catalog', 'assets', 'index.json'), JSON.stringify({
     // The HEAD design system, and one published version as its child id. Ordered
     // head-first here; the descendant-exclusion rule (pickHeadAssetId) is what
     // stops the version being picked as "the design system" either way.
-    { id: HEAD_ID, type: 'tokens', version: '1.0.0', tier: 'core', formats: [{ format: 'json', url: `/catalog/assets/${HEAD_ID}.json` }] },
+    { id: HEAD_ID, name: 'Acme Brand Tokens', type: 'tokens', version: '1.0.0', tier: 'core', formats: [{ format: 'json', url: `/catalog/assets/${HEAD_ID}.json` }] },
     { id: `${HEAD_ID}/v2`, type: 'tokens', version: '1.0.0', tier: 'core', formats: [{ format: 'json', url: `/catalog/assets/${HEAD_ID}/v2.json` }] },
   ],
 }));
@@ -151,7 +154,7 @@ test('no flag, nothing active: the edit head, and the live asset id', async () =
   const { swatch, logo, stderr } = await rendered(RUN);
   assert.equal(swatch, '#111111');
   assert.equal(logo, LOGO_ID, 'an unresolved version pins nothing');
-  assert.doesNotMatch(stderr, /design/i, 'a published version nobody asked for is not news');
+  assert.doesNotMatch(stderr, /design-system version|--designv/, 'a published version nobody asked for is not news');
 });
 
 test('--designv=<slug> renders that version, through its pinned asset', async () => {
@@ -227,4 +230,40 @@ test('byte identity: a catalog with no ledger renders exactly what an inactive l
   } finally {
     await writeHead('#111111', { list: [V2_ENTRY], active: null });
   }
+});
+
+// ── The design-system record (plans/319 A7) ─────────────────────────────────
+//
+// The CLI identifies its design system the way the web shell does (the shipped catalog
+// system, labelled from its tokens asset with the suffix trimmed), so CLI, TUI and
+// MCP exports record the same thing a browser export would.
+
+test('an export records the design system and the version it drew with, and says so', async () => {
+  const r = await cli([...RUN, '--designv=v2']);
+  assert.equal(r.code, 0, r.stderr);
+  assert.deepEqual(readDesignRecordXml(r.stdout), { designSystem: { id: 'shipped', label: 'Acme' }, designVersion: 'v2' });
+  assert.match(r.stderr, /Recorded the design system: Acme · Version v2\. Pass --no-madewith to leave the record out\./);
+});
+
+test('the edit head records the design system and no version', async () => {
+  const r = await cli(RUN);
+  assert.deepEqual(readDesignRecordXml(r.stdout), { designSystem: { id: 'shipped', label: 'Acme' } });
+});
+
+test('--no-madewith and --_madewith=0 leave the record out and say nothing about it', async () => {
+  for (const flag of ['--no-madewith', '--_madewith=0']) {
+    const r = await cli([...RUN, '--designv=v2', flag]);
+    assert.equal(r.code, 0, r.stderr);
+    assert.equal(r.stdout.includes('lolly:'), false, flag);
+    assert.doesNotMatch(r.stderr, /Recorded the design system/, flag);
+  }
+});
+
+test('the CLI credential gives the same design system the file records', async () => {
+  const out = join(root, 'recorded.svg');
+  const r = await cli(['run', 'tok-tool', '--export=svg', '--designv=v2', `--output=${out}`]);
+  assert.equal(r.code, 0, r.stderr);
+  const report = await verifyC2pa(new Uint8Array(await readFile(out)));
+  assert.equal(report.found, true);
+  assert.deepEqual(readDesignRecord(report.environment as Record<string, unknown>), { designSystem: { id: 'shipped', label: 'Acme' }, designVersion: 'v2' });
 });

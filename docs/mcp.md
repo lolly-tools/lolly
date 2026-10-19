@@ -95,7 +95,7 @@ Browsers without site tools keep the normal interface. The existing MCP server a
 
 ## The parameter contract is the URL
 
-Every tool input and every export control an agent can set is a URL query parameter, and the one table that defines them is [URL mode](/info/url-mode.html): inputs by id (or `urlKey`), and the reserved export names - `format`, `width`/`height`/`unit`/`dpi`, `profile`, `password`, `bleed`/`marks`, `c2pa`/`imprint`/`durable`/`meta`, `hdr`/`depth`, `cuts`, `s`, `lang`, `emoji`/`emojifx`, and for the motion formats `fps`, `seconds`, `wait`, `codec` and `vq`. The MCP `query` argument, a share link, the CLI's `--flag=value` pairs and the hot-linkable render URL are that one contract under four transports, so an agent that has learnt the table has learnt all four; `lolly_list_tools` and `lolly_describe_tool` return each tool's inputs in the same vocabulary. Nothing here is a second API to memorise.
+Every tool input and every export control an agent can set is a URL query parameter, and the one table that defines them is [URL mode](/info/url-mode.html): inputs by id (or `urlKey`), and the reserved export names - `format`, `width`/`height`/`unit`/`dpi`, `profile`, `password`, `bleed`/`marks`, `c2pa`/`imprint`/`durable`/`meta`, `_madewith` (the [design-system record](/info/exporting.html#the-design-system-record), on unless `_madewith=0`), `hdr`/`depth`, `cuts`, `s`, `lang`, `emoji`/`emojifx`, and for the motion formats `fps`, `seconds`, `wait`, `codec` and `vq`. The MCP `query` argument, a share link, the CLI's `--flag=value` pairs and the hot-linkable render URL are that one contract under four transports, so an agent that has learnt the table has learnt all four; `lolly_list_tools` and `lolly_describe_tool` return each tool's inputs in the same vocabulary. Nothing here is a second API to memorise.
 
 ## The twenty-two tools
 
@@ -263,6 +263,8 @@ Agent presence is delegated by the inviter's authenticated collaboration connect
 Formats are **per-tool** - you can only request one a tool declares (`lolly_describe_tool` lists them). Ask a QR tool for `svg` and you get vector; ask an animated-ad tool for `mp4` and you get video - the call shape is identical either way. Animation, print PDF and HTML-layout raster require the **full** endpoint.
 
 A video or audio file that plays a rondocode song records each song in its Content Credentials: its name, a hash of its source and how Lolly's sandbox rendered the song. The result reads the delivered bytes back and states, on a `Songs:` line, which songs the credential records and any it does not. `lolly_transform` adds no credential, so its result says the file records none of its songs.
+
+A render also records the [design system and colourway](/info/exporting.html#the-design-system-record) that drew the file, in its metadata and its Content Credential, as an export from the app does. The result reads the delivered bytes back and prints the words the file carries, such as `Recorded the design system: Acme · Colourway: Persimmon.` Pass `madeWith: false` to `lolly_render` or `lolly_build_url` to leave the record out; the link then carries `_madewith=0`, so the file and the link agree.
 
 ## Emoji: name the set you want drawn
 

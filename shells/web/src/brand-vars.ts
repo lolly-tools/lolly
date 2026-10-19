@@ -53,6 +53,8 @@ interface BrandTokens {
   colors?(opts?: { theme?: string; selection?: Record<string, string> }): Promise<Array<{ value: string; ref?: string; path?: string; faces?: Record<string,string|number[]>; css?: string }>>;
   /** The document's `$themes`, so pack chrome reads a brand set only when one is declared. */
   themes?(): Promise<Array<{ name: string; group?: string | null; id?: string; kind?: string; canonical?: true }>>;
+  /** Every colourway's colour for a role (plans/319), painted on the canvas as `--brand-lead-*`. */
+  family?(role?: string, opts?: { theme?: string; selection?: Record<string, string> }): Promise<Array<{ value: string }>>;
 }
 
 /**
@@ -1696,4 +1698,39 @@ export async function applyBrandVars(el: HTMLElement, host: BrandVarsHost): Prom
       applyBrandFaces(el, colors.filter(color => color.ref && color.path) as import('@lolly-tools/core/host-v1').ColorSwatch[]);
     }
   } catch { /* The resolved semantic defaults remain available. */ }
+  await applyBrandLeadVars(el, host);
+}
+
+/** The prefix every family variable on a canvas shares (`--brand-lead-1`, `--brand-lead-count`). */
+const LEAD_VAR_PREFIX = '--brand-lead-';
+
+/**
+ * The family of leads on the canvas (plans/319): `--brand-lead-1..n`, canonical
+ * first, and `--brand-lead-count`, the pairs the CLI's applyBrandVars paints from
+ * the same engine helper. A design system with fewer than two colourways gets no
+ * lead variables at all, so its canvas carries exactly the properties it carried
+ * before colourways existed, and a template's `var(--brand-lead-2, ...)` fallback
+ * stays in charge.
+ *
+ * A repaint removes every lead variable the new family does not paint, read off
+ * the element's own style, so a family that shrinks (or a switch to a design
+ * system with one lead) leaves no stale lead behind. The engine helper is loaded
+ * only for a family of two or more: this module is on the boot path, and by then
+ * the token bridge has already loaded it to answer the family read.
+ */
+async function applyBrandLeadVars(el: HTMLElement, host: BrandVarsHost): Promise<void> {
+  try {
+    let family: unknown = [];
+    if (typeof host.tokens?.family === 'function') {
+      try { family = await host.tokens.family('primary'); } catch { family = []; }
+    }
+    const members = Array.isArray(family) ? family as Array<{ value?: unknown }> : [];
+    const vars = members.length >= 2 ? (await import('../../../engine/src/token-context.ts')).brandLeadVars(members) : [];
+    const keep = new Set(vars.map(([name]) => name));
+    for (let i = el.style.length - 1; i >= 0; i -= 1) {
+      const name = el.style.item(i);
+      if (name.startsWith(LEAD_VAR_PREFIX) && !keep.has(name)) el.style.removeProperty(name);
+    }
+    for (const [name, value] of vars) el.style.setProperty(name, value);
+  } catch { /* cosmetic only - never break mounting */ }
 }

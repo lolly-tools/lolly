@@ -97,12 +97,44 @@ function legible(host: ColourHost | undefined, hex: string, theme: ThumbTheme | 
   }
 }
 
+/** The host slice the family read takes (plans/319), feature-detected. */
+interface FamilyHost {
+  tokens?: { family?(role?: string, opts?: { theme?: string }): Promise<Array<{ value?: unknown }>> };
+}
+
+/**
+ * The design system's leads (plans/319) as pool entries, canonical first, in the
+ * look the tiles are painted in: every colourway's primary, for the head of the
+ * pool. Empty for a design system with fewer than two colourways, for a host
+ * without `tokens.family`, and on any failure, so a one-lead design system's pool
+ * is exactly what it was.
+ *
+ * The family is the same whatever colourway an open artefact uses, so the asset
+ * tiles, which belong to the app and not to an artefact, never follow one.
+ */
+export async function audioThumbLeads(host: unknown, theme?: ThumbTheme): Promise<Array<{ hex: string }>> {
+  const tokens = (host as FamilyHost | null | undefined)?.tokens;
+  if (typeof tokens?.family !== 'function') return [];
+  try {
+    const family = await tokens.family('primary', theme ? { theme } : undefined);
+    if (!Array.isArray(family) || family.length < 2) return [];
+    return family.flatMap((m) => (isHex(m?.value) ? [{ hex: m.value.trim() }] : []));
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Build the colour pool from a brand's palette.
  *
  * Order matters and is not alphabetical: entries keep their palette order, which is
  * the brand's own declared order (primary first), so the commonest tiles land on the
  * brand's most characteristic colours rather than on whatever sorted first.
+ *
+ * FAMILY FIRST (plans/319): `leads` (from `audioThumbLeads`) go ahead of the palette,
+ * so a design system with several colourways colours its tiles from its leads before
+ * anything else. A cover that pinned a colour INDEX re-skins once when the leads
+ * arrive, which the cover contract allows (lib/audio-covers.ts: colour re-resolves).
  *
  * Near-duplicates are dropped - two swatches a JND apart are two tiles a viewer reads
  * as the same tile, which defeats the point.
@@ -111,10 +143,11 @@ export function audioThumbPool(
   palette: ReadonlyArray<{ hex?: unknown }> | undefined,
   host?: ColourHost,
   theme?: ThumbTheme,
+  leads?: ReadonlyArray<{ hex?: unknown }>,
 ): string[] {
   const pool: string[] = [];
   const deltaE = host?.color?.deltaE;
-  for (const entry of palette ?? []) {
+  for (const entry of [...(leads ?? []), ...(palette ?? [])]) {
     const hex = entry?.hex;
     if (!isHex(hex)) continue;
     const c = hex.trim().toLowerCase().slice(0, 7);

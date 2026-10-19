@@ -50,7 +50,7 @@ import { buildExportPack, renderLinuxPackage } from './export-linux-package.ts';
 import { createDownload, fileDeliveryBlob } from './download.ts';
 import { packIco } from './ico-pack.ts';
 import type { ExportMeta, IngredientCredential, SourceIngredient, HostV1, C2paSignOpts } from '@lolly-tools/core/host-v1';
-import { checkAttributionReadback, sha256Hex, verifyC2pa } from '@lolly/engine';
+import { checkAttributionReadback, sha256Hex, verifyC2pa, designRecordEnvironment, pdfKeywords } from '@lolly/engine';
 import type { C2paReport } from '../../../../engine/src/c2pa-verify.ts';
 import type { C2paActionInput } from '../../../../engine/src/c2pa.ts';
 import type { PrintGeometry } from '../../../../engine/src/print-marks.ts';
@@ -1897,7 +1897,9 @@ function applyPdfMeta(pdf: any, m: ExportMeta | null | undefined): void {
     author: m?.author || creator,          // the user if known, else the app
     title: m?.tool || undefined,
     subject: m?.description || undefined,
-    keywords: m ? [m.software, m.source, m.contact].filter(Boolean).join(', ') : undefined,
+    // The design-system record (plans/319) joins the keywords as readable entries
+    // ("Design system: Acme", "Colourway: Persimmon") when the export carries one.
+    keywords: m ? pdfKeywords(m).join(', ') : undefined,
   });
 }
 
@@ -1966,6 +1968,10 @@ function c2paEnvironment(format: string, opts: ExportOpts, dimensions?: string):
     // and locales) and the version is what a rebuild has to fetch.
     ...(opts.meta?.toolId ? { toolId: opts.meta.toolId } : {}),
     ...(opts.meta?.toolVersion ? { toolVersion: opts.meta.toolVersion } : {}),
+    // The design system, published version and theme choices that drew the export
+    // (plans/319), as flat scalar keys because Verify reads only scalars from this
+    // assertion. Absent when the export panel's "Design system" card is off.
+    ...designRecordEnvironment(opts.meta),
     format: String(format),
     surface: 'web',
     date: new Date().toISOString(),
@@ -1990,8 +1996,7 @@ function c2paAuthor(meta: ExportMeta | null | undefined): { name: string; email?
 // export panel populate meta.copyright/meta.license, so a normal render never
 // asserts rights nobody chose.
 function c2paRights(meta: ExportMeta | null | undefined): string | undefined {
-  const r = [meta?.copyright, meta?.license].filter(Boolean).join(' · ');
-  return r || undefined;
+  return [meta?.copyright, meta?.license].filter(Boolean).join(' · ') || undefined;
 }
 
 // Content Credentials (opts.c2pa) - a signed C2PA manifest embedded into the
@@ -3647,7 +3652,7 @@ async function renderCmykPdf(node: Element, opts: ExportOpts): Promise<Blob> {
   pdfDoc.setAuthor(m?.author || creator); // the user if known, else the app
   // Hoisted out of the `if (m)` block: the finish note below appends to this
   // same keyword list, and it must be in scope whether or not there is meta.
-  const kw = [m?.software, m?.source, m?.contact].filter(Boolean) as string[];
+  const kw = pdfKeywords(m);
   if (m) {
     if (m.tool) pdfDoc.setTitle(m.tool);
     if (m.description) pdfDoc.setSubject(m.description);

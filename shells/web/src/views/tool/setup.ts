@@ -46,6 +46,7 @@ import { refreshSwatches, setSwatches } from '../../components/color-field.ts';
 import { refreshThemeSwatches } from './theme-section.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { createNetAPI } from '../../bridge/net.ts';
+import { savedTokenSelection, withComposeSelection } from '../../lib/theme-choices.ts';
 import { defaultHiddenTemplateRefs } from '../../catalog/sync.ts';
 import { loadTemplateStart, START_BLANK } from '../../lib/template-start.ts';
 import { BROWSER_TARGET, costUrlState } from '../../lib/url-budget.ts';
@@ -108,6 +109,14 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   // persistence boundary; automatic saves still go through the temporary host.
   const libraryHost = tview.host; tview.libraryHost = libraryHost;
   if (ephemeralState) tview.host = { ...tview.host, state: ephemeralState };
+  // A tool link composed inside this document draws in the document's theme choices,
+  // read at each render (plans/319 A6). Before the runtime exists they are the ones it
+  // is built with (the link's, else the saved session's). A framed tool never writes
+  // `_themes` into its address, which the unscoped token bridge follows, so without
+  // this its children drew the default theme.
+  tview.host = withComposeSelection(tview.host, () => (tview.runtime
+    ? tview.runtime.tokenSelection
+    : tview.openedSession?.url.tokenSelection ?? savedTokenSelection(tview.initialValues?.__tokenSelection)));
 
   // Source the colour picker's swatches from design tokens (the canonical brand
   // colours), so choosing one keeps the value linked to the token. Falls back to

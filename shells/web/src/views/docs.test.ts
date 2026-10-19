@@ -82,6 +82,7 @@ const PAGE_HTML = `<!doctype html><html><head><title>Quickstart - Lolly</title><
     <h1 id="top">Quickstart</h1>
     <p>Intro paragraph with an <a href="/info/quickstart.html">internal link</a> and a
       deeper <a href="/info/reference.html#config">anchored link</a>.</p>
+    <a href="/info/de/manage/permissions.html#roles">Organisation roles</a>
     <style>.cmp-fig{--cmp-a:1}</style>
     <div class="docs-edition-bar"><a class="docs-edition" href="/info/editions/quickstart.pdf">PDF</a></div>
     <script>window.__docsShouldNeverRun = true;</script>
@@ -249,6 +250,9 @@ test('rewrites internal /info doc links toward the in-app #/docs reader', async 
     article.querySelector('a[href="#/docs/reference?h=config"]'),
     'an anchored internal doc link carries its anchor as ?h=',
   );
+
+  assert.ok(article.querySelector('a[href="#/docs/manage/permissions?h=roles"]'),
+    'organisation guides keep their manage directory when opened in the app');
 
   view.remove();
 });

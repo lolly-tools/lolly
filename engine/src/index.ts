@@ -90,8 +90,9 @@ export { assetVersionPin, encodeAssetVersion, decodeAssetVersion, assetDependenc
 export type { AssetVersionPin } from './asset-version.ts';
 export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplateWithNotes } from './batch.ts';
 export type { BatchRow } from './batch.ts';
-export { buildExportMeta } from './metadata.ts';
-export { extractFileMetadata, extractXmpPacket, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
+export { buildExportMeta, designRecordCarrier, designRecordEnvironment, designRecordFrom, designRecordWords, readDesignRecord, readDesignRecordXml, themesSelection, toolCredit, pdfKeywords } from './metadata.ts';
+export type { DesignRecord, MadeWithPreview } from './metadata.ts';
+export { extractFileMetadata, extractXmpPacket, readFileDesignRecord, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
 export type { FileMetadata, MetaField, MetaGroup } from './file-metadata.ts';
 export { softwareName, softwareOrigins, xmlProvenanceFields } from './software-origin.ts';
 export type { SoftwareOrigin, SoftwareEvidence, SoftwareRole } from './software-origin.ts';

@@ -95,6 +95,7 @@ try {
     'check',
     'measure_text',
     'compose',
+    'inspect_tokens',
     'redact',
     'verify',
     'look',

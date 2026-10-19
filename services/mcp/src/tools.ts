@@ -23,7 +23,7 @@ import type { ToolManifest } from '../../../engine/src/loader.ts';
 import type { ContentBlock, ToolCallResult } from './protocol.ts';
 import { listTools, loadToolCached, loadIndex, listToolTemplates, loadTemplateSeed } from './catalog.ts';
 import { toolInputSchema, fileInputId } from './schema.ts';
-import { render, transform, isTextFormat, normFormat, emojiSets, emojiSetName, resolveEmojiSetName, maxRasterPixelsFor, previewPng } from './render.ts';
+import { render, transform, isTextFormat, normFormat, emojiSets, emojiSetName, resolveEmojiSetName, maxRasterPixelsFor, previewPng, designRecordText } from './render.ts';
 import { withHost } from './host.ts';
 import { audioRunText, rondoCapsFor, songCredentialText } from './audio-runs.ts';
 import type { RenderOpts } from './render.ts';
@@ -205,6 +205,11 @@ const EXPORT_ARGS = {
   cuts: { type: 'number', description: 'Emit N frames of a timed tool as a contact sheet instead of the single playhead frame.' },
   imprint: { type: 'boolean', description: "Lolly's own pixel watermark on raster exports. ON by default - pass false to opt out." },
   durable: { type: 'boolean', description: 'Embed the durable Content Credential that survives re-encoding (opt-in, off by default).' },
+  madeWith: {
+    type: 'boolean',
+    description: "The design-system record: the design system, its published version and its colourway, written into the file's metadata and Content Credential, "
+      + 'with the colourway beside the tool in the description. ON by default - pass false to leave it out (the `_madewith=0` link param).',
+  },
 };
 
 /**
@@ -259,6 +264,8 @@ function exportSettings(args: Record<string, unknown>): MotionExportSettings & {
   cuts?: number | null;
   imprint?: boolean;
   durable?: boolean;
+  /** RenderOpts' own shape, so a render's options build its link unchanged. */
+  madeWith?: boolean | null;
 } {
   const rawDepth = args.depth == null ? null : String(args.depth);
   const depth = rawDepth === '8' ? 8 : rawDepth === '16' ? 16
@@ -289,6 +296,8 @@ function exportSettings(args: Record<string, unknown>): MotionExportSettings & {
     // Only an explicit false is an opt-out; absent means the default (on).
     ...(args.imprint === false ? { imprint: false } : {}),
     ...(args.durable === true ? { durable: true } : {}),
+    // The design-system record is default-on too, so only the opt-out travels.
+    ...(args.madeWith === false ? { madeWith: false } : {}),
   };
 }
 
@@ -707,6 +716,7 @@ function buildLinks(manifest: ToolManifest, inputs: Record<string, unknown>, o: 
     hdr: o.hdr ? '1' : null,
     imprint: o.imprint,
     durable: o.durable,
+    ...(o.madeWith === false ? { madeWith: false } : {}),
     // The set and its treatment travel too: a link whose emoji did not would
     // draw placeholders for whoever opens it, and the browser tier reads its
     // artwork from this same query.
@@ -1050,6 +1060,9 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
           // What the file's Content Credentials record about the songs it holds,
           // read back from the delivered bytes.
           songCredentialText(result.songs),
+          // The design-system record (plans/319), shown at the moment of export as the
+          // approval asks, in the words the delivered file carries.
+          designRecordText(result.designRecord),
         ].filter(Boolean).join('\n');
 
         const content: ContentBlock[] = [{ type: 'text', text: header }];

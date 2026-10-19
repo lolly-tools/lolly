@@ -258,15 +258,25 @@ export function openInfoPanel(fc: FcCtx, anchor: HTMLElement): void {
       : '') +
     '</div>' +
     // Provenance: what travels in the exported file's metadata. Read-only display +
-    // an opt in/out toggle; the name/contact are edited in the profile.
-    (info?.provenance
+    // an opt in/out toggle; the name/contact are edited in the profile. The
+    // design-system record (plans/319) is listed here too, with the words the export
+    // panel's Design system card shows; that card is its switch.
+    (info?.provenance || info?.madeWith
       ? `<div class="fc-panel-head fc-info-sub">${t('Embedded in exports')}</div>` +
-        `<label class="fc-row fc-row-toggle field-toggle"><span>${t('Credit me')}</span><input type="checkbox" class="field-check" data-info="optin" disabled></label>` +
+        (info?.provenance
+          ? `<label class="fc-row fc-row-toggle field-toggle"><span>${t('Credit me')}</span><input type="checkbox" class="field-check" data-info="optin" disabled></label>`
+          : '') +
         '<div class="fc-info-meta">' +
         `<div class="fc-info-line"><span>${t('Made with')}</span><b>Lolly · lolly.tools</b></div>` +
-        `<div class="fc-info-line" data-prov="author" hidden><span>${t('Name')}</span><b></b></div>` +
-        `<div class="fc-info-line" data-prov="contact" hidden><span>${t('Contact')}</span><b></b></div>` +
-        '<div class="fc-info-note" data-prov="note"></div>' +
+        (info?.madeWith
+          ? `<div class="fc-info-line" data-prov="madewith" hidden><span>${t('Design system')}</span><b></b></div>` +
+            `<div class="fc-info-line" data-prov="madewith-description" hidden><span>${t('Description')}</span><b></b></div>`
+          : '') +
+        (info?.provenance
+          ? `<div class="fc-info-line" data-prov="author" hidden><span>${t('Name')}</span><b></b></div>` +
+            `<div class="fc-info-line" data-prov="contact" hidden><span>${t('Contact')}</span><b></b></div>` +
+            '<div class="fc-info-note" data-prov="note"></div>'
+          : '') +
         '</div>'
       : '');
   p.addEventListener('pointerdown', (e) => e.stopPropagation());
@@ -282,6 +292,25 @@ export function openInfoPanel(fc: FcCtx, anchor: HTMLElement): void {
       if (el) el.textContent = iso ? fc.keys.fmtDate(iso) : t('Not saved yet');
     })
     .catch(() => {});
+  // The design-system record fills async (reads the token snapshot). Text sinks only:
+  // the label is text the design system's owners typed, shown exactly as written.
+  if (info?.madeWith) {
+    const recordRow = p.querySelector<HTMLElement>('[data-prov="madewith"]');
+    const descriptionRow = p.querySelector<HTMLElement>('[data-prov="madewith-description"]');
+    Promise.resolve(info.madeWith())
+      .then((line) => {
+        if (!line) return;
+        if (recordRow) {
+          recordRow.querySelector('b')!.textContent = line.on ? line.words : t('Not recorded');
+          recordRow.hidden = false;
+        }
+        if (descriptionRow) {
+          descriptionRow.querySelector('b')!.textContent = line.description;
+          descriptionRow.hidden = false;
+        }
+      })
+      .catch(() => {});
+  }
   // Provenance section fills async (reads the profile) then wires the opt-in toggle.
   const prov = info?.provenance;
   if (prov) {

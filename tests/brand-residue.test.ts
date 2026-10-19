@@ -202,8 +202,11 @@ test('brands/lolly-start carries no SUSE brand hexes or SUSE references', () => 
 
 // Exact semantic slot names only: after the name the next non-space char must be
 // ',' (fallback present) or ')' (bare - the failure). Extended names such as
-// --brand-text-something don't match because '-' follows the name.
-const BRAND_VAR = /var\(\s*--brand-(on-primary|primary|secondary|surface|text|muted|edge)\s*([,)])/g;
+// --brand-text-something don't match because '-' follows the name. The family of
+// leads (plans/319: --brand-lead-1..n, --brand-lead-count) follows the same rule,
+// and is painted only for a design system with two or more colourways, so a bare
+// reference is empty on almost every canvas.
+const BRAND_VAR = /var\(\s*--brand-(on-primary|primary|secondary|surface|text|muted|edge|lead-[0-9]+|lead-count)\s*([,)])/g;
 
 test('semantic brand var() references always carry a fallback', () => {
   const roots = [PACK, COMMUNITY].filter(dir => existsSync(dir));
@@ -221,6 +224,13 @@ test('semantic brand var() references always carry a fallback', () => {
       );
     }
   }
+});
+
+test('the fallback rule covers the lead variables and leaves longer names alone', () => {
+  const bare = (css: string) => [...css.matchAll(BRAND_VAR)].filter(m => m[2] === ')').map(m => m[1]);
+  assert.deepEqual(bare('a{color:var(--brand-lead-2)} b{color:var(--brand-lead-count )}'), ['lead-2', 'lead-count']);
+  assert.deepEqual(bare('a{color:var(--brand-lead-2, var(--brand-secondary, #444))}'), []);
+  assert.deepEqual(bare('a{color:var(--brand-lead-2x)} b{color:var(--brand-primary-soft)}'), [], 'extended names are not the slots');
 });
 
 // The pre-rename bare names, retired by contract section 3 (REVISED 2026-07-09).

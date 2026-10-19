@@ -60,9 +60,14 @@ function assertSameBytes(paths: string[]): void {
   }
 }
 
+/** The ids that travel as twins: the four marks and the spinning mark. A pack may also
+ *  carry logos of its own, such as Lolly Demo's wordmark (lolly/logo/horizontal and its
+ *  reverse and on-brand forms), and those have no twin in the other pack. */
+const TWIN_IDS = new Set([...MARKS.map((mark) => `lolly/logo/${mark.name}`), SPIN]);
+
 function sharedRows(pack: string): Map<string, AssetRow> {
   const index = JSON.parse(readFileSync(join(ROOT, packFile(pack, 'index.json')), 'utf8')) as { assets: AssetRow[] };
-  const rows = index.assets.filter((row) => row.id.startsWith('lolly/logo/') || row.id === SPIN);
+  const rows = index.assets.filter((row) => TWIN_IDS.has(row.id));
   return new Map(rows.map((row) => [row.id, row]));
 }
 

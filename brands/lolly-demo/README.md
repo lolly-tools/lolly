@@ -29,7 +29,8 @@ handoff with one named owner.
   shape: a shared
   `base` set with Opal's named colours, the chart spectrum, the faces and the
   logo slots, plus `light` and `dark` sets with the seven semantic slots and the
-  slide roles. The index declares it with `"brandTokens": "lolly/tokens/demo"`, so
+  slide roles, and one `colourway/<id>` set for each of its six
+  [colourways](#colourways). The index declares it with `"brandTokens": "lolly/tokens/demo"`, so
   the shell's token bridge discovers it, and because its id is not the
   starter's `lolly/tokens/brand` the shell treats this install as branded.
 - **The former id, kept as an alias.** The design system shipped as
@@ -41,7 +42,16 @@ handoff with one named owner.
   in the index and has no `brand` tag, because the CLI, the MCP server and the
   share-card builder pick the first tokens asset by index order or by that tag;
   `validate:catalog` fails when those readers would disagree with `brandTokens`.
-- **Shared rows, byte for byte.** The Lolly marks (`lolly/logo/*`), the demo
+- **The horizontal logo.** Lolly Demo's horizontal logo slots hold the Lolly
+  wordmark, one drawing in three colours: `lolly/logo/horizontal` in Liquorice
+  for light backgrounds, `lolly/logo/horizontal-reverse` in Daylight for dark
+  ones and `lolly/logo/horizontal-on-brand` in Green Apple for the brand ground.
+  The last one fills a custom `horizontal-on-brand` slot, which the app's Brand
+  theme shows before the reverse form. The vertical slots keep the square swirl
+  mark. The three wordmark files are this pack's own and carry no credentials
+  yet.
+- **Shared rows, byte for byte.** The Lolly marks (`lolly/logo/primary`,
+  `reverse`, `mono` and `mono-reverse`), the demo
   assets (`lolly/demo/*`, including `lolly/demo/lolly-spin`, which community
   tools need to validate), the loops, songs, modules, LUTs, 3D models, slide
   masters and presets, and the riso ink palette are the files and index rows
@@ -119,6 +129,33 @@ the shell reads once PR #310 (a pack sets the chrome) is on main:
   the hover the shell would work out (`#2d3a41`) gives 4.42:1.
 - Under High contrast the pack's chrome steps aside and Lolly's own High
   contrast room takes over.
+
+## Colourways
+
+Lolly Demo carries six colourways, written with the engine's own editors
+(`liftToColourways` and `addColourway` in `engine/src/colourway.ts`). Each one
+links three roles to Opal colours in each look: the lead (`primary`), the colour
+on the lead (`on-primary`) and the partner (`secondary`). Spearmint is canonical
+and keeps exactly the colours Lolly Demo shipped with, and the app's own chrome
+always follows the canonical lead.
+
+| Colourway | Mood | Light: lead, on lead, partner | Dark: lead, on lead, partner |
+|---|---|---|---|
+| Spearmint (canonical) | Lolly's own green | Spearmint, Sugar, Bunyapine | Green Apple, Liquorice, Bunyapine |
+| Morning | Sunrise with a clear sky | Outback, Sugar, Lagoon | Honey, Liquorice, Sky |
+| Spring | Blossom on new leaves | Fuchsia, Sugar, Olive | Donut, Liquorice, Green Apple |
+| Beach | Surf and sand | Lagoon, Liquorice, Bark | Reef, Liquorice, Pancake |
+| Afternoon | Red earth in the arvo sun | Ochre, Sugar, Khaki | Arvo, Liquorice, Banksia |
+| Midnight | Liquorice night, one Jacaranda star | Liquorice, Sugar, Jacaranda | Jacaranda, Liquorice, Swell |
+
+In every look the label on the lead reads at 4.5:1 or more, and the lead and the
+partner reach 3:1 or more on the surface. `tests/lolly-demo-colourways.test.ts`
+resolves each pairing through the engine and fails when a palette change breaks
+one, and it checks that the canonical colourway still resolves every token as
+the single-lead pack did (`tests/fixtures/colourway/lolly-demo-single-lead.json`).
+A tool's Design system section offers the colourways wherever the lead colour
+changes what the tool draws, and a link chooses one with `_themes`, for example
+`?_themes={"colourway":"beach"}` (URL-encoded in practice).
 
 ## Print
 

@@ -68,7 +68,7 @@
 @media (min-width: 860px) {
   .cat-details.has-inspector-dock { grid-template-columns: minmax(0, 1fr) 8px var(--cat-inspector-width, 380px); }
   .cat-inspector .cat-details-body { flex: 1; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
-  .cat-inspector-grip { display: block; position: relative; min-height: 100%; cursor: col-resize; touch-action: none; }
+  .cat-inspector-grip { background-color: var(--ui-color-surface-canvas);display: block; position: relative; min-height: 100%; cursor: col-resize; touch-action: none; }
   .cat-inspector-grip::before { opacity: .35; }
   .cat-inspector-grip:is(:hover, :focus-visible, [data-dragging])::before { opacity: 1; }
   .cat-inspector-grip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }

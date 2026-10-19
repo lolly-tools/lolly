@@ -36,6 +36,7 @@ import type { ToolManifest } from '../engine/src/loader.ts';
  *     set; a broken reference can only be caught here)
  *   - Default `bindToProfile` values reference real profile fields
  *   - `palette` references on color inputs point to real palette assets
+ *     (or are `colourway-leads`, the design system's colourway leads)
  *   - `replacedBy` on deprecated assets points to a real, non-deprecated asset
  *   - `brandTokens`, index order and the `brand` tag agree on the design system
  *     (scripts/lib/tokens-head.ts)
@@ -1967,8 +1968,9 @@ for (const [toolId, manifest] of toolManifests) {
         errors.push(`[${toolId}] input "${input.id}" default asset theme "${theme}" not in any icon-themes palette`);
       }
     }
-    // Color palette refs must resolve
-    if (input.type === 'color' && input.palette) {
+    // Color palette refs must resolve. `colourway-leads` is not an asset: it asks
+    // for the design system's colourway leads (plans/319, components/color-field.ts).
+    if (input.type === 'color' && input.palette && input.palette !== 'colourway-leads') {
       const ref = assetById.get(input.palette);
       if (!ref) {
         errors.push(`[${toolId}] input "${input.id}" palette "${input.palette}" not in catalog`);

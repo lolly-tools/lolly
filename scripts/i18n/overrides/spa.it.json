@@ -1766,5 +1766,10 @@
   "That is not a web address. Check it and try again.": "Questo non è un indirizzo web. Controllalo e riprova.",
   "Private project": "Progetto privato",
   "The server could not send the latest tools - showing saved content": "Il server non ha potuto inviare gli strumenti più recenti - contenuto salvato visualizzato",
-  "{n} colour": "{n} colore"
+  "{n} colour": "{n} colore",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Non salvato per l'uso offline: questo server non ha {n} dei {total} file.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Non salvato per l'uso offline: {n} file su {total} non sono stati scaricati. Controlla la tua connessione, poi riprova.",
+  "Not saved for offline use. Try again in a moment.": "Non salvato per l'uso offline. Riprova tra un attimo.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} download non sono terminati. Ogni riga ne spiega il motivo."
 }

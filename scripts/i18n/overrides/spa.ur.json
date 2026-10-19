@@ -1635,5 +1635,10 @@
   "That is not a web address. Check it and try again.": "یہ ویب ایڈریس نہیں ہے۔ اسے چیک کریں اور دوبارہ کوشش کریں۔",
   "Private project": "نجی پراجیکٹ",
   "The server could not send the latest tools - showing saved content": "سرور تازہ ترین ٹولز نہیں بھیج سکا، محفوظ شدہ مواد دکھایا جا رہا ہے",
-  "{n} colour": "{n} رنگ"
+  "{n} colour": "{n} رنگ",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "آف لائن استعمال کے لیے محفوظ نہیں ہوا: اس سرور پر {total} میں سے {n} فائلیں موجود نہیں ہیں۔",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "آف لائن استعمال کے لیے محفوظ نہیں ہوا: {total} میں سے {n} فائلیں ڈاؤن لوڈ نہیں ہوئیں۔ اپنا کنکشن چیک کریں، پھر دوبارہ کوشش کریں۔",
+  "Not saved for offline use. Try again in a moment.": "آف لائن استعمال کے لیے محفوظ نہیں ہوا۔ کچھ دیر بعد دوبارہ کوشش کریں۔",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} ڈاؤن لوڈز مکمل نہیں ہوئے۔ ہر قطار میں وجہ بتائی گئی ہے۔"
 }

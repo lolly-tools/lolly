@@ -41,7 +41,7 @@ import { evaluateCreativeUses } from './rights-evaluate.ts';
 import { outputLicenceId, outputLicenceNotice } from './rights-profiles.ts';
 import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputDigests, matchesShowIf, normalizeTableValue, tokenBindingsOf, type InputWriteOptions } from './inputs.ts';
 import { hydrate, resolvePaintBindings } from './template.ts';
-import { buildExportMeta } from './metadata.ts';
+import { buildExportMeta, designRecordFrom, isEmptyDesignRecord, type MadeWithPreview } from './metadata.ts';
 import { isTokenValue, isAlias, aliasPath, colorToHex } from './tokens.ts';
 import { resolveBlockTokenBindings } from './token-block-bindings.ts';
 import { resolveTextDocumentTokenBindings } from './text-token-bindings.ts';
@@ -57,7 +57,7 @@ import type { EmojiLineSource } from './emoji-line.ts';
 import type { VerifiedEmojiPack } from './emoji-pack.ts';
 import type { C2paSourceIngredient } from './c2pa.ts';
 import type {
-  HostV1, AssetRef, ExportFormat, ExportOpts, MediaFrame, TokenSet, TokenSelection,
+  HostV1, AssetRef, ExportFormat, ExportOpts, ExportMeta, MediaFrame, TokenSet, TokenSelection, TokensSnapshot,
   AudioLevel, RecordOpts, RecordSession, IngredientCredential, SourceIngredient,
 } from './bridge/host-v1.ts';
 import type {
@@ -422,6 +422,31 @@ export interface Runtime {
    */
   setOutputLicence(id: string | null): void;
   outputLicence(): string | null;
+  /**
+   * Whether exports record the design system and colourway that made them
+   * (plans/319). On by default. The export panel's "Design system" card, the
+   * `_madewith=0` param and the CLI's `--no-madewith` turn it off; an export's own
+   * `opts.madeWith` wins over this setting for that one export. Off, the export's
+   * metadata carries no design system, version or theme choice, and its
+   * description keeps its plain form.
+   */
+  setMadeWith(on: boolean): void;
+  madeWith(): boolean;
+  /**
+   * What an export would write about its design system right now: the record and
+   * the description with the record on and off, so the export panel can show the
+   * exact words before anything is written. Null for an on-device utility, a host
+   * with no token snapshot, and a render with nothing to record.
+   */
+  madeWithPreview(): Promise<MadeWithPreview | null>;
+  /**
+   * The metadata the last `export()` assembled (or was handed), or null before any
+   * export and for an export that carries none. For a shell that stamps the
+   * credential itself after the export returns (the CLI, the TUI and the MCP
+   * server), so the credential records the same design system as the file's own
+   * metadata.
+   */
+  readonly lastExportMeta: ExportMeta | null;
   /**
    * What the last export actually delivered, as the host measured it by reading
    * the written bytes back. Null until a host reports one: an unread export is
@@ -1294,6 +1319,16 @@ export async function createRuntime(
   let rightsChoices: RightsDecisionV1[] = [];
   let declaredLicence: string | null = null;
   let lastRightsReceipt: AttributionReceiptV1 | null = null;
+  // The design-system record (plans/319): on unless the person turned it off.
+  let madeWithOn = true;
+  let lastExportMeta: ExportMeta | null = null;
+  /** The render's token snapshot, read through this runtime's scoped host so it
+   *  carries the artefact's own theme choice. Null when the host has none. */
+  async function recordSnapshot(): Promise<TokensSnapshot | null> {
+    const t = host.tokens;
+    if (!t?.snapshot) return null;
+    try { return await t.snapshot(); } catch { return null; }
+  }
 
   /** The delivery a context describes, with this tool's own defaults underneath. */
   function rightsContext(context: RuntimeRightsContext | undefined, fallbackFormat?: string): UseContextV1 {
@@ -1430,6 +1465,19 @@ export async function createRuntime(
     rightsDecisions: () => rightsChoices.map((decision) => ({ ...decision })),
     setOutputLicence(id) { declaredLicence = outputLicenceId(id); },
     outputLicence: () => declaredLicence,
+    setMadeWith(on) { madeWithOn = on !== false; },
+    madeWith: () => madeWithOn,
+    async madeWithPreview() {
+      if (tool.manifest.privacy === 'on-device') return null;
+      const snapshot = await recordSnapshot();
+      if (!snapshot) return null;
+      const on = await buildExportMeta(host, tool.manifest, profile, model, { snapshot });
+      const record = designRecordFrom(on);
+      if (isEmptyDesignRecord(record)) return null;
+      const off = await buildExportMeta(host, tool.manifest, profile, model);
+      return { record, description: on.description, plainDescription: off.description };
+    },
+    get lastExportMeta() { return lastExportMeta ? structuredClone(lastExportMeta) : null; },
     setRightsDecisions(decisions) {
       // Deduped by work and kind, keeping the last, exactly as setRightsDecision
       // does. A restored list that named one work twice would otherwise let the
@@ -1991,6 +2039,9 @@ export async function createRuntime(
     },
 
     async export(renderedNode, format, opts = {}) {
+      // An export that returns before its metadata is assembled embeds none, so
+      // it must not leave the previous export's record behind for a shell to stamp.
+      lastExportMeta = null;
       const composedSource = model.some(item => item.id === 'textDocument' && item.value) || !!extras.__lollyTextPreflight;
       const layoutSource = !!extras.layoutReceipt || !!extras.__lollyLayoutPreflight;
       const exportRevision = composedSource || layoutSource ? JSON.stringify([modelToValues(model), emojiStyle]) : null;
@@ -2128,14 +2179,19 @@ export async function createRuntime(
       // supplied its own `meta` or opted out (e.g. thumbnails) with embedMeta:false.
       let meta = opts.meta;
       if (meta === undefined && opts.embedMeta !== false && !isOnDevice) {
+        // The design-system record (plans/319) rides only while it is on: the
+        // export panel's card, `_madewith`, `--no-madewith`, or this export's own
+        // opts.madeWith. Off, the snapshot is not read and nothing is recorded.
+        const snapshot = (opts.madeWith ?? madeWithOn) ? await recordSnapshot() : null;
         // Pass the input model so bindToMeta inputs (the artist's author/copyright/
         // licence declaration) merge over the profile-derived provenance.
-        meta = await buildExportMeta(host, tool.manifest, profile, model);
+        meta = await buildExportMeta(host, tool.manifest, profile, model, snapshot ? { snapshot } : undefined);
         // The licence the person picked in the export panel. A tool input bound to
         // the licence field is the more specific declaration, so it wins.
         const notice = outputLicenceNotice(declaredLicence);
         if (meta && notice && !meta.license) meta = { ...meta, license: notice };
       }
+      lastExportMeta = meta ? structuredClone(meta) : null;
       // Data/text formats are produced from the input model (and optional sibling
       // text templates), not the rendered DOM. The engine hydrates the text here
       // and hands it to the host, which only has to wrap it in a Blob (one MIME

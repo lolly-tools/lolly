@@ -355,6 +355,60 @@ test('buildExportXmp: authorship namespaces present, empty meta yields null', as
   assert.ok(extractXmpPacket(jpeg)?.includes('plus:Licensor'));
 });
 
+// ─── The design-system record (plans/319 A7) ─────────────────────────────────
+
+test('buildExportXmp: no design-system record means the exact packet written before the record existed', async () => {
+  const { buildExportXmp } = await import('../engine/src/image-meta.ts');
+  // Pinned from the pre-A7 writer: absent fields stay absent and every byte matches.
+  assert.equal(buildExportXmp({
+    software: 'Lolly', source: 'https://lolly.tools/t/chart', tool: 'Chart', author: 'Ana Kovac', contact: 'ana@example.com',
+    description: 'Made with https://lolly.tools : Chart by Ana Kovac', copyright: '© Ana', license: 'CC BY 4.0',
+  }), '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" ' +
+    'xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xmpRights="http://ns.adobe.com/xap/1.0/rights/" ' +
+    'xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" xmlns:plus="http://ns.useplus.org/ldf/xmp/1.0/"><xmp:CreatorTool>Lolly</xmp:CreatorTool>' +
+    '<dc:creator><rdf:Seq><rdf:li>Ana Kovac</rdf:li></rdf:Seq></dc:creator><dc:rights><rdf:Alt><rdf:li xml:lang="x-default">© Ana</rdf:li></rdf:Alt></dc:rights>' +
+    '<xmpRights:UsageTerms><rdf:Alt><rdf:li xml:lang="x-default">CC BY 4.0</rdf:li></rdf:Alt></xmpRights:UsageTerms><photoshop:Credit>Ana Kovac</photoshop:Credit>' +
+    '<plus:Licensor><rdf:Seq><rdf:li rdf:parseType="Resource"><plus:LicensorName>Ana Kovac</plus:LicensorName></rdf:li></rdf:Seq></plus:Licensor>' +
+    '</rdf:Description></rdf:RDF></x:xmpmeta>');
+});
+
+test('the design-system record rides the XMP packet of PNG and JPEG and reads back from the bytes', async () => {
+  const { buildExportXmp, insertPngXmp, insertJpegXmp } = await import('../engine/src/image-meta.ts');
+  const { readFileDesignRecord } = await import('../engine/src/file-metadata.ts');
+  const record = {
+    designSystem: { id: 'acme', label: 'Acme <Client>' }, designVersion: '2026-10',
+    themes: [{ group: 'colourway', kind: 'colourway' as const, id: 'persimmon', name: 'Persimmon' }],
+  };
+  const meta = { software: 'Lolly', source: 'https://lolly.tools', tool: 'Chart', author: '', contact: '', description: 'Made with https://lolly.tools : Chart (Persimmon colourway)', ...record };
+  const xmp = buildExportXmp(meta)!;
+  assert.ok(xmp.includes(' xmlns:lolly="https://lolly.tools/ns/export/1.0/">'));
+  assert.ok(xmp.includes('<lolly:DesignSystemLabel>Acme &lt;Client&gt;</lolly:DesignSystemLabel>'));
+  // A meta whose only field is the record still gets a packet.
+  assert.ok(buildExportXmp({ software: '', source: '', tool: '', author: '', contact: '', description: '', ...record }));
+  for (const bytes of [insertPngXmp(tinyPng(), meta), insertJpegXmp(tinyJpeg(), meta)]) {
+    assert.deepEqual(readFileDesignRecord(bytes), record);
+    const fields = extractFileMetadata(bytes).fields;
+    assert.equal(fields.find((f) => f.label === 'Design system')?.value, 'Acme <Client>');
+    assert.equal(fields.find((f) => f.label === 'Design version')?.value, '2026-10');
+    assert.equal(fields.find((f) => f.label === 'Colourway')?.value, 'Persimmon');
+  }
+  assert.equal(readFileDesignRecord(tinyPng()), null, 'a file with no record reads as none');
+  assert.equal(readFileDesignRecord(new Uint8Array([1, 2, 3])), null, 'never throws on noise');
+});
+
+test('the design-system record reads back from an SVG export', async () => {
+  const { injectSvgMeta } = await import('../engine/src/image-meta.ts');
+  const { readFileDesignRecord } = await import('../engine/src/file-metadata.ts');
+  const record = { designSystem: { id: 'acme', label: 'Acme' }, themes: [{ group: 'density', id: 'roomy', name: 'Roomy' }] };
+  const svg = injectSvgMeta('<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>', {
+    software: 'Lolly', source: 'https://lolly.tools', tool: 'Chart', author: '', contact: '', description: 'Made with https://lolly.tools : Chart', ...record,
+  });
+  const bytes = new TextEncoder().encode(svg);
+  assert.deepEqual(readFileDesignRecord(bytes), record);
+  const fields = extractFileMetadata(bytes).fields;
+  assert.equal(fields.find((f) => f.label === 'density')?.value, 'Roomy', 'a group with no kind is labelled by its own id');
+});
+
 // ─── AVIF EXIF item write (closes the recorded Wave 2 follow-up) ─────────────
 
 test('insertAvifExif: non-AVIF input and metadata-free meta pass through untouched', async () => {

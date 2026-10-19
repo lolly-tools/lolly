@@ -11,11 +11,15 @@
  *
  * Both branches are one line, but getting the branch wrong silently drops a user's
  * edit on save - hence the extraction and the unit test.
+ *
+ * The same holds for the session's theme choices (plans/319 A6): a frozen cell has no
+ * runtime to ask, so its saved `__tokenSelection` stands in until one exists.
  */
 import type { InputValue } from '../../../../engine/src/inputs.js';
 import type { Runtime } from '../../../../engine/src/runtime.js';
 import { tokenRestoreRefsOf } from '../../../../engine/src/inputs.ts';
 import { TOKEN_CONTEXT_KEYS, writeStoredInput } from './token-bulk-link.ts';
+import { savedTokenSelection, type ThemeChoices } from './theme-choices.ts';
 
 export interface LazyMember {
   /** null until the cell nears the viewport (or its card opens, or it leads a shared input). */
@@ -76,4 +80,12 @@ export async function applySharedEdit(m: LazyMember, id: string, value: InputVal
   if (m.runtime) await m.runtime.setInput(id, value);
   else writeStoredInput(m.values, id, value);
   m.dirty = true;
+}
+
+/** The theme choices a member shows now: its runtime's once built, else the ones its
+ *  seed carries (`__tokenSelection`, kept by {@link sessionSeedValues}), which the
+ *  runtime is built with. A malformed stored map reads as none, the same way the
+ *  runtime reads a stored map. */
+export function memberSelection(m: { runtime: { readonly tokenSelection?: ThemeChoices } | null; values: Record<string, unknown> }): ThemeChoices | undefined {
+  return m.runtime ? m.runtime.tokenSelection : savedTokenSelection(m.values.__tokenSelection);
 }

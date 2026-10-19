@@ -48,7 +48,7 @@ const BUILT = join(REPO, 'shells/web/public/info');
 // English pages live behind their door (plans/177 P1: /info/create/exporting.html);
 // the top level holds the landing and redirect stubs, and every sidecar stays flat
 // (/info/exporting.c2pa). EXPORTING is the probe page used throughout.
-const DOORS = ['start', 'create', 'build', 'operate', 'trust'];
+const DOORS = ['start', 'create', 'build', 'manage', 'operate', 'trust'];
 const EXPORTING = join(BUILT, 'create', 'exporting.html');
 /** Top-level and door-directory HTML, relative to BUILT: the English site. */
 const englishPages = (): string[] => ['', ...DOORS].flatMap((door) => {
@@ -92,7 +92,7 @@ test('every English page carries exactly one seal link, in <head>, pointing at i
     // HTML document" - and the inlined banked art must never smuggle in a second.
     assert.equal(hits.length, 1, `${file} declares ${hits.length} C2PA manifest associations`);
     assert.ok(!/<script[^>]+type="application\/c2pa"/.test(html), `${file} carries an inline manifest as well as a link`);
-    const slug = file.slice(file.lastIndexOf('/') + 1, -'.html'.length);
+    const slug = /<main\b[^>]*class="[^"]*\bpage-([a-z0-9-]+)\b/.exec(html)?.[1] ?? file.slice(file.lastIndexOf('/') + 1, -'.html'.length);
     assert.ok(hits[0]![0].includes(`href="${pageSealHref(slug)}"`), `${file} links a sidecar that is not its own`);
     const headEnd = html.indexOf('</head>');
     assert.ok(html.indexOf(hits[0]![0]) < headEnd, `${file}: the seal link is outside <head> (section A.7.1.1)`);
@@ -363,4 +363,7 @@ test('discoverSealTargets finds the pages that claim a seal, and no others', asy
   // points at.
   writeFileSync(join(dir, 'wrong.html'), `<!doctype html><html><head>${pageSealLink('demo')}</head><body></body></html>`, 'utf-8');
   assert.deepEqual(discoverSealTargets(dir).map((t2) => t2.slug), ['demo']);
+  mkdirSync(join(dir, 'manage'));
+  writeFileSync(join(dir, 'manage', 'friendly-title.html'), `<!doctype html><html><head>${pageSealLink('work-guide')}</head><body><main class="docs-content page-work-guide">Guide</main></body></html>`);
+  assert.deepEqual(discoverSealTargets(dir).map((entry) => entry.slug), ['demo', 'work-guide']);
 });

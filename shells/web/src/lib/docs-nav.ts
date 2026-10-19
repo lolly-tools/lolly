@@ -40,7 +40,7 @@ export function toReaderHref(href: string): string | null {
   // Prefix segments are a locale (dropped - the reader runs in the app's own),
   // a door directory (kept - since plans/177 it is part of the page's slug:
   // /info/create/using.html ↔ #/docs/create/using), or both, in that order.
-  const DOORS = new Set(['start', 'create', 'build', 'operate', 'trust']);
+  const DOORS = new Set(['start', 'create', 'build', 'manage', 'operate', 'trust']);
   const segs = m[1] ? m[1].split('/').filter(Boolean) : [];
   const door = segs.length && DOORS.has(segs[segs.length - 1]!) ? segs[segs.length - 1]! : null;
   if ((door ? segs.length - 1 : segs.length) > 1) return null; // deeper than lang+door - not a doc page

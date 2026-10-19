@@ -355,3 +355,78 @@ test('tokensChanged hands the Worker the host\'s current tokens, so an isolated 
     else Reflect.deleteProperty(globalThis, 'Worker');
   }
 });
+
+// ── An isolated tool follows a colourway switch (plans/319, milestone A5) ────
+
+test('an isolated tool reads the new choices after a colourway switch, and nothing is re-sent while they hold', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { loadTool } = await import('../../../../engine/src/loader.ts');
+  const { createRuntime } = await import('../../../../engine/src/runtime.ts');
+  const { createTokenSet } = await import('../../../../engine/src/tokens.ts');
+  const { tokenSelectionKey, resolveTokenSelection } = await import('../../../../engine/src/token-selection.ts');
+  const { tokenFamily, tokenAxesOf } = await import('../../../../engine/src/token-context.ts');
+  const { addColourway } = await import('../../../../engine/src/colourway.ts');
+  type Rec = Record<string, unknown>;
+  type Opts = import('@lolly-tools/core/host-v1').TokenResolveOptions;
+
+  // Lolly Demo as it shipped with one lead, so the canonical colourway is Main.
+  let doc = JSON.parse(await readFile(new URL('../../../../tests/fixtures/colourway/lolly-demo-single-lead.json', import.meta.url), 'utf8')) as Rec;
+  for (const [id, name, light, dark] of [['persimmon', 'Persimmon', '#c2410c', '#fb923c'], ['lagoon', 'Lagoon', '#0e7490', '#22d3ee']] as const) {
+    const r = addColourway(doc, { id, name, values: { light: { primary: light, 'on-primary': '#ffffff', secondary: '#222222' }, dark: { primary: dark, 'on-primary': '#111111', secondary: '#eeeeee' } } });
+    assert.ok(r.ok);
+    doc = r.doc;
+  }
+  // A document-backed tokens API, memoised per selection as every shell's is.
+  const sets = new Map<string, ReturnType<typeof createTokenSet>>();
+  const setFor = (o: Opts = {}) => {
+    const key = tokenSelectionKey(o);
+    let s = sets.get(key);
+    if (!s) { s = createTokenSet(doc, o); sets.set(key, s); }
+    return s;
+  };
+  const tokens = {
+    get: async (o: Opts = {}) => setFor(o),
+    colors: async (o: Opts = {}) => setFor(o).colors(),
+    resolve: async (ref: string, o: Opts = {}) => setFor(o).resolve(ref),
+    themes: async () => setFor().themes(),
+    axes: async () => tokenAxesOf(doc),
+    family: async (role?: string, o: Opts = {}) => tokenFamily(doc, role, o, setFor),
+    snapshot: async () => ({ document: doc, selection: { choices: resolveTokenSelection(doc, {}).choices } }),
+  };
+
+  const posted: string[] = [];
+  class TestWorker {
+    onmessage: ((event: { data: HookWorkerOut }) => void) | null = null;
+    onerror = null;
+    core = createHookWorkerCore({ post: data => queueMicrotask(() => this.onmessage?.({ data })) });
+    postMessage(data: Parameters<typeof this.core.handle>[0]): void { posted.push(data.t); this.core.handle(data); }
+    terminate(): void {}
+  }
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  Object.defineProperty(globalThis, 'Worker', { value: TestWorker, configurable: true });
+  const host = {
+    version: '1', shell: 'web', capabilities: [], log() {},
+    profile: { get: async () => ({}), subscribe: () => () => {} },
+    assets: { get: async (id: string) => ({ id, url: `asset:${id}` }) },
+    tokens,
+  } as unknown as Parameters<typeof createRuntime>[1];
+  const tool = await loadTool('gradient', (path: string) => readFile(new URL(`../../../../community/${path}`, import.meta.url), 'utf8'));
+  const rt = await createRuntime(tool, host, {} as never, { hookExecutor: getWorkerHookExecutor(), tokenSelection: { '': 'light', colourway: 'main' } });
+  const palette = (): string[] => JSON.parse(rt.getHydratedText('{{{paletteJson}}}'));
+  try {
+    assert.ok(posted.includes('init') && posted.includes('invoke'), 'the hooks ran in the worker, not in this realm');
+    const before = palette();
+    assert.deepEqual(before.slice(1, 3), ['#c2410c', '#0e7490'], 'the light family, read inside the worker');
+    const sent = posted.filter(t => t === 'tokens').length;
+    await rt.setInput('speed', 3);
+    assert.equal(posted.filter(t => t === 'tokens').length, sent, 'an edit with the same choices re-sends no document');
+
+    await rt.setTokenSelection({ '': 'dark', colourway: 'lagoon' });
+    assert.deepEqual(palette().slice(1, 3), ['#fb923c', '#22d3ee'], 'the worker read the dark family after the switch');
+    assert.equal(posted.filter(t => t === 'tokens').length, sent + 1, 'one fresh document for one switch');
+  } finally {
+    rt.destroy?.();
+    if (previous) Object.defineProperty(globalThis, 'Worker', previous);
+    else Reflect.deleteProperty(globalThis, 'Worker');
+  }
+});

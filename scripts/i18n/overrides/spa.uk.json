@@ -1764,5 +1764,10 @@
   "That is not a web address. Check it and try again.": "Це не вебадреса. Перевірте її та спробуйте ще раз.",
   "Private project": "Приватний проєкт",
   "The server could not send the latest tools - showing saved content": "Сервер не зміг надіслати найновіші інструменти - показано збережений вміст",
-  "{n} colour": "{n} колір"
+  "{n} colour": "{n} колір",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Не збережено для офлайн-використання: на цьому сервері немає {n} із {total} файлів.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Не збережено для офлайн-використання: {n} із {total} файлів не завантажилися. Перевірте з'єднання й спробуйте ще раз.",
+  "Not saved for offline use. Try again in a moment.": "Не збережено для офлайн-використання. Спробуйте ще раз за хвилину.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} завантажень не завершилося. Кожен рядок пояснює причину."
 }
