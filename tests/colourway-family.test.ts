@@ -354,6 +354,47 @@ test('chart, gradient, audiogram and filter render a one-lead design system exac
   }
 });
 
+/** Every value a select input of a tool declares. */
+async function optionsOf(id: string, input: string): Promise<string[]> {
+  const declared = (await tool(id)).manifest.inputs.find((i: { id: string }) => i.id === input) as { options?: { value: string }[] } | undefined;
+  return (declared?.options ?? []).map(o => o.value);
+}
+
+test('on a one-lead design system every chart palette and gradient mode, in both looks, renders as a shell without the family', async () => {
+  const cases: [string, Rec][] = [
+    ...(await optionsOf('chart', 'palette')).map((palette): [string, Rec] => ['chart', { palette }]),
+    ...(await optionsOf('gradient', 'mode')).map((mode): [string, Rec] => ['gradient', { mode }]),
+  ];
+  assert.ok(cases.length >= 12, 'the chart palettes and gradient modes were read from the manifests');
+  for (const [name, make] of Object.entries(ONE_LEAD)) {
+    for (const look of ['light', 'dark']) {
+      const selection = { '': look };
+      const host = await cli(make(), selection);
+      for (const [id, initial] of cases) {
+        const withIt = await mount(id, host, initial, selection);
+        const without = await mount(id, withoutFamily(host), initial, selection);
+        assert.equal(withIt.getHydrated(), without.getHydrated(), `${id} ${JSON.stringify(initial)} on ${name} in ${look}`);
+        withIt.destroy?.(); without.destroy?.();
+      }
+    }
+  }
+});
+
+test('on a one-lead design system a look switch leaves chart and gradient where a fresh render in that look is', async () => {
+  // Before the family, both tools kept the colours they read at mount, so a switch
+  // from light to dark left the chart's palette and the gradient's shuffle light.
+  for (const [name, make] of Object.entries(ONE_LEAD)) {
+    const host = await cli(make());
+    for (const [id, initial] of [['chart', { palette: 'ordered' }], ['chart', { palette: 'diverging' }], ['gradient', {}]] as const) {
+      const switched = await mount(id, host, initial, { '': 'light' });
+      await switched.setTokenSelection({ '': 'dark' });
+      const fresh = await mount(id, host, initial, { '': 'dark' });
+      assert.equal(switched.getHydrated(), fresh.getHydrated(), `${id} ${JSON.stringify(initial)} on ${name}`);
+      switched.destroy?.(); fresh.destroy?.();
+    }
+  }
+});
+
 test('chart leads with the family: the leads follow Primary and Secondary in the ordered palette', async () => {
   const host = await cli(threeLeads());
   const rt = await mount('chart', host, {}, { '': 'light', colourway: 'persimmon' });
