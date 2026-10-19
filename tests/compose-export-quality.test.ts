@@ -37,7 +37,8 @@ test('a caller that states the quality wins either way', () => {
 test('the quality reaches the renderer and the cache key', () => {
   const compose = source('shells/web/src/bridge/compose.ts');
   assert.match(compose, /watermark: false, embedMeta: false, thumbnail, settleMs/, 'render() forwards it to renderRowToBlob');
-  assert.match(compose, /cacheKey\(toolId, inputs, format, width, height, unit, dpi, thumbnail\)/, 'and it is part of the cache key');
+  // The theme choices follow the quality in the key (plans/319 A6; compose-theme.test.ts).
+  assert.match(compose, /cacheKey\(toolId, inputs, format, width, height, unit, dpi, thumbnail, tokenSelection\)/, 'and it is part of the cache key');
   assert.match(compose, /thumbnail \? 'preview' : 'export'/, 'the key says which one');
   assert.match(compose, /_stack: opts\._stack \?\? \[\], thumbnail,/, 'renderUrl passes its answer down');
 });

@@ -174628,6 +174628,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
       if (!ref2) return null;
       const q = new URLSearchParams(query2);
       for (const k of RESERVED) q.delete(k);
+      if (st.tokenSelection && Object.keys(st.tokenSelection).length) q.set("_themes", JSON.stringify(st.tokenSelection));
       if (width) q.set("w", String(width));
       if (height) q.set("h", String(height));
       if (unit2 && unit2 !== "px") {

@@ -1661,6 +1661,10 @@ function rootSvgOf(node: Element | null): Element | null {
       if (!ref) return null;
       const q = new URLSearchParams(query);
       for (const k of RESERVED) q.delete(k);
+      // A link's own theme choices stay in its id, as in the web bridge's composeEmbedId
+      // (plans/319 A6), so a session the CLI re-renders keeps them in the links it
+      // writes. The CLI does not yet draw the child in them.
+      if (st.tokenSelection && Object.keys(st.tokenSelection).length) q.set('_themes', JSON.stringify(st.tokenSelection));
       if (width) q.set('w', String(width));
       if (height) q.set('h', String(height));
       if (unit && unit !== 'px') { q.set('unit', String(unit)); if (dpi) q.set('dpi', String(dpi)); }

@@ -21,6 +21,7 @@
 import { parseEmbedUrl, parseUrlState } from '@lolly/engine';
 import type { HostV1, ExportFormat } from '@lolly-tools/core/host-v1';
 import type { WebComposeSpec } from './compose.ts';
+import type { ToolManifest } from '../../../../engine/src/loader.ts';
 import { getTool } from './tool-loader.ts';
 
 // 1×1 transparent GIF - the placeholder a neutralised embed shows until (and if)
@@ -79,29 +80,45 @@ export async function resolveLollyToolUrl(
   try { tool = await getTool(parsed.toolId); } // unknown id → 404 → throw → null
   catch { return null; }
 
-  const st = parseUrlState(parsed.query, tool.manifest); // query → safe input model
   try {
-    const spec: WebComposeSpec = {
-      toolId: parsed.toolId,
-      inputs: st.values,
-      format: parsed.format as ExportFormat, // the path extension is the explicit choice
-      width: st.width ?? undefined,
-      height: st.height ?? undefined,
-      unit: st.unit ?? undefined,       // honour ?width=210&unit=mm
-      dpi: st.dpi ?? undefined,
-      _stack: embed?.stack ?? [],
-      // An embed is placed INSIDE the host tool's output, so it is part of the
-      // deliverable and takes export quality rather than a preview's sample count and
-      // 800 px ceiling (plan 265 milestone 2, E6). The same bytes then appear in the
-      // editor and in the export. Web-only and additive; see compose.ts.
-      thumbnail: false,
-    };
-    const ref = await host.compose.render(spec);
+    const ref = await host.compose.render(embedComposeSpec(parsed, tool.manifest, embed?.stack));
     return ref?.url ?? null;
   } catch (e) {
     host.log?.('warn', `embed "${parsed.toolId}": ${(e as Error).message}`);
     return null;
   }
+}
+
+/**
+ * The compose spec one parsed embed URL renders as. The query goes through the
+ * engine's URL parser against the child's manifest, so only declared inputs and the
+ * reserved size params reach the render. Exported for embed-theme.test.ts.
+ */
+export function embedComposeSpec(
+  parsed: { toolId: string; format: string; query: string },
+  manifest: ToolManifest,
+  stack: readonly string[] = [],
+): WebComposeSpec {
+  const st = parseUrlState(parsed.query, manifest); // query → safe input model
+  return {
+    toolId: parsed.toolId,
+    inputs: st.values,
+    format: parsed.format as ExportFormat, // the path extension is the explicit choice
+    width: st.width ?? undefined,
+    height: st.height ?? undefined,
+    unit: st.unit ?? undefined,       // honour ?width=210&unit=mm
+    dpi: st.dpi ?? undefined,
+    _stack: [...stack],
+    // An embed is placed INSIDE the host tool's output, so it is part of the
+    // deliverable and takes export quality rather than a preview's sample count and
+    // 800 px ceiling (plan 265 milestone 2, E6). The same bytes then appear in the
+    // editor and in the export. Web-only and additive; see compose.ts.
+    thumbnail: false,
+    // An embed that names theme choices (`_themes`) draws in them. A host from
+    // withComposeSelection (lib/theme-choices.ts) fills the groups it leaves out: the
+    // document's choices, or the design system's own when the document made none.
+    ...(st.tokenSelection ? { tokenSelection: st.tokenSelection } : {}),
+  };
 }
 
 /**
