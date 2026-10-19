@@ -16,7 +16,11 @@ import { bindOp, type StartCtx } from './context.ts';
 //    reach this) ──────────────────────────────────────────────────────────────
 export const onKey = (start: StartCtx, e: KeyboardEvent): void => {
   const { backHref, editorMount, versionsPanel } = start;
-  if (e.key !== 'Escape' || start.installing) return; // no Esc-teardown mid-install
+  if (e.key !== 'Escape' || start.installing || e.defaultPrevented) return; // no Esc-teardown mid-install
+  // Escape in a field belongs to the field (clearing a search, cancelling a
+  // rename). Leaving the studio from the name or paste box loses the place.
+  const target = e.target as HTMLElement | null;
+  if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
   // The import dialog owns the key while it's open: the native <dialog> handles
   // Escape itself (its `cancel` event), but the keydown still bubbles up here -
   // without this guard one press would close the dialog AND leave the studio.

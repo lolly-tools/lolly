@@ -101,6 +101,8 @@ test('deletes outside the web UI stay immediate: nothing but a web view imports 
     'shells/web/src/views/assets/user-assets.ts',
     'shells/web/src/views/assets/wiring.ts',
     'shells/web/src/views/profile/storage.ts',
+    // History moves saved creations to the Trash, one or a selection, with the same Undo toast.
+    'shells/web/src/views/history.ts',
     'shells/web/src/components/trash-dialog.ts',
     'shells/web/src/folder-overlay.ts',
     'shells/web/src/pro/index.ts',

@@ -89,13 +89,13 @@ export function showStage(start: StartCtx, src: StartSource | null): void {
  *  the Type room already owns installing a face, so sending someone there beats
  *  a second uploader that would have to agree with it forever. */
 export function chooseSource(start: StartCtx, src: StartSource): void {
-  const { editorRoot } = start;
   if (src === 'font') {
     closeImport(start);
     start.rooms.selectRoom('type', { focus: true });
-    // Focus the room's own upload control. Never .click() it from here - a file
-    // dialog belongs to the press the user made, not to a route.
-    editorRoot?.querySelector<HTMLElement>('.fonts-upload-file')?.focus();
+    // The Type room's compare stage is where a face installs, and its drop zone
+    // takes a font file. Never .click() a file input from here - a file dialog
+    // belongs to the press the user made, not to a route.
+    start.editor?.openTypeStage?.('brand');
     return;
   }
   showStage(start, src);
