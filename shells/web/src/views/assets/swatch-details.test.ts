@@ -43,6 +43,14 @@ test('a colour wider than sRGB is described and led by its authored value, with 
   assert.match(notationsHtml(f), /is-inexact[\s\S]*clamped/);
 });
 
+test('a colour on the sRGB edge is not reported as past the sRGB ceiling', () => {
+  // #2453ff (SUSE Waterhole) measures a rounding-level negative headroom.
+  const html = plotHtml(swatchFacts({ hex: '#2453ff', label: 'Waterhole', cmyk: null }));
+  assert.match(html, /Displayable in[\s\S]*sRGB/);
+  assert.doesNotMatch(html, /past the sRGB ceiling/);
+  assert.match(html, /\+0\.0\d\d/);
+});
+
 test('a spot lock, its finish and the authored faces are all linked values, each copyable', () => {
   const f = swatchFacts({
     hex: '#c8102e', label: 'Signal', cmyk: null,

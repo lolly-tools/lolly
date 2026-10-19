@@ -160,7 +160,10 @@ const planeCaption = (): string =>
 export function plotHtml(f: SwatchFacts): string {
   if (!f.desc) return `<p class="cat-swatch-muted">${escapeText(t('Transparent has no position in colour space.'))}</p>`;
   const { desc } = f;
-  const over = desc.headroom < 0;
+  // A colour on the sRGB edge can measure a hair past its own ceiling. The verdict
+  // says sRGB, so the headroom must not contradict it: inside sRGB it is never negative.
+  const over = desc.headroom < 0 && !desc.inSrgb;
+  const headroom = over ? desc.headroom : Math.max(0, desc.headroom);
   const ceilings = LIMITS.map(g => {
     const reached = desc.oklch.c <= desc.ceiling[g] + 1e-6;
     return `<li class="${reached ? '' : 'is-past'}"><span>${escapeText(GAMUT_TITLE[g])}</span><code>${desc.ceiling[g].toFixed(3)}</code></li>`;
@@ -172,7 +175,7 @@ export function plotHtml(f: SwatchFacts): string {
     <p class="cat-swatch-why" data-swatch-why>${planeCaption()}</p>
     <dl class="cat-details-meta cat-swatch-meta">
       ${row(t('Displayable in'), `<strong>${escapeText(t(GAMUT_TITLE[desc.gamut]))}</strong> <span class="cat-swatch-muted">${escapeText(t(GAMUT_BLURB[desc.gamut]))}</span>`)}
-      ${row(t('Chroma headroom'), `<code>${over ? '' : '+'}${desc.headroom.toFixed(3)}</code> <span class="cat-swatch-muted">${escapeText(over
+      ${row(t('Chroma headroom'), `<code>${over ? '' : '+'}${headroom.toFixed(3)}</code> <span class="cat-swatch-muted">${escapeText(over
         ? tRaw('past the sRGB ceiling of {max} at this lightness and hue', { max: desc.ceiling.srgb.toFixed(3) })
         : t('of chroma still available within sRGB at this lightness and hue'))}</span>`)}
     </dl>
