@@ -2002,7 +2002,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 259 to 257: export controls share the canonical inset surface.
     // 257 to 256: the brand studio Set row marks itself with a full wash, not an inset rail.
     // 256 to 255: the swatch name chip is lifted by the floating elevation.
-    pin: 255,
+    // 255 to 254: the design system studio's Overview doors use the edge and control elevation.
+    pin: 254,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,

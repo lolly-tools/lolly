@@ -5,22 +5,22 @@ This file exists so you can find the code for a feature without reading all of i
 The counts below are GENERATED - `pnpm run build:web-src-readme`, checked in CI by `pnpm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
-Roughly 802,000 lines of TypeScript, tests included, and 61,000 lines of CSS.
+Roughly 803,000 lines of TypeScript, tests included, and 61,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 560 files, 211,860 lines | 289 files, 94,235 lines | 10 files, 1,577 lines |
-| `lib/` | 830 files, 172,125 lines | 490 files, 95,954 lines | 13 files, 1,820 lines |
+| `views/` | 560 files, 212,114 lines | 289 files, 94,235 lines | 10 files, 1,599 lines |
+| `lib/` | 830 files, 172,139 lines | 490 files, 95,960 lines | 13 files, 1,820 lines |
 | `bridge/` | 224 files, 55,268 lines | 136 files, 28,559 lines | none |
-| `components/` | 127 files, 28,974 lines | 58 files, 14,899 lines | 24 files, 1,514 lines |
+| `components/` | 127 files, 28,982 lines | 58 files, 14,899 lines | 24 files, 1,514 lines |
 | `org/` | 80 files, 20,256 lines | 56 files, 16,738 lines | none |
 | `collab/` | 20 files, 13,548 lines | 22 files, 14,143 lines | none |
 | `pro/` | 32 files, 9,421 lines | 16 files, 2,288 lines | 3 files, 1,256 lines |
 | `catalog/` | 11 files, 1,820 lines | 9 files, 1,009 lines | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 10 files, 1,977 lines | 132 files, 54,881 lines |
+| `styles/` | none | 10 files, 1,977 lines | 132 files, 54,880 lines |
 
-Plus 53 `.ts`/`.js` files at the top level of `src/`, 19,098 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,327 of that.
+Plus 53 `.ts`/`.js` files at the top level of `src/`, 19,099 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,327 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature

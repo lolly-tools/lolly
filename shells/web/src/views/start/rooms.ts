@@ -73,6 +73,8 @@ export const refreshFurnished = (start: StartCtx): void => {
       if (!shell.isConnected) return;
       // The hero only duplicates a door while the doors are up (plans/163 F2).
       if (model.furnished && importBtn) importBtn.hidden = false;
+      const recovery = shell.querySelector<HTMLElement>('[data-start-recovery]');
+      if (model.furnished && recovery) recovery.hidden = false;
       if (!model.worthExporting) return;
       start.worthExporting = true;
       for (const el of furnishedOnly) if (!el.matches('[data-start-get-on-device]')) el.hidden = false;

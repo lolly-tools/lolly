@@ -689,12 +689,20 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
       return true;
     },
     openPickCard: () => {
-      // Anchored on the add row's own chip, which is the control the card
-      // belongs to at every beat - on a phone the card ignores the anchor and
-      // docks to the bottom edge (see openPickCard).
-      const chip = bedit.ramps.$('[data-be-tab-panel="color"] [data-ds-addc-pick]') as HTMLElement | null;
-      if (!chip) return false;
-      bedit.swatchEditor.openPickCard(chip, null);
+      // Anchored on the palette's own "+ Add swatch", which is on screen at every
+      // beat. The add row's chip sits inside the folded "Paste colours or use an
+      // image", where it measures 0x0 and the card would land at the panel's
+      // corner. On a phone the card ignores the anchor and docks to the bottom
+      // edge (see openPickCard).
+      const panel = '[data-be-tab-panel="color"]';
+      const anchor = (bedit.ramps.$(`${panel} .be-pal [data-be-add="custom"]:not([data-be-add-group])`)
+        ?? bedit.ramps.$(`${panel} [data-ds-addc-pick]`)) as HTMLElement | null;
+      if (!anchor) return false;
+      const fold = anchor.closest('details');
+      if (fold && !fold.open) fold.open = true;
+      anchor.scrollIntoView({ block: 'nearest' });
+      bedit.pickGroup = undefined;
+      bedit.swatchEditor.openPickCard(anchor, null);
       return true;
     },
     openTypeStage: (role) => {

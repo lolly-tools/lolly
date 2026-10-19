@@ -48,12 +48,15 @@ export function paletteHtml(swatches: BrandSwatch[], starter: Set<string>, opts:
     </summary>
     ${items.length ? `<div class="be-pal-grid">${cards(items)}</div>` : `<button type="button" class="be-pal-empty" data-be-add="custom" data-be-add-group="${esc(name)}">${t('+ Add a swatch')}</button>`}
   </details>`).join('');
-  const count = chosen.length ? tRaw('{n} colours', { n: chosen.length }) : inherited.length ? tRaw('{n} starter colours', { n: inherited.length }) : t('No colours yet');
+  const count = chosen.length ? tRaw(chosen.length === 1 ? '{n} colour' : '{n} colours', { n: chosen.length }) : inherited.length ? tRaw('{n} starter colours', { n: inherited.length }) : t('No colours yet');
   return `<div class="be-pal-top"><span class="be-pal-count">${count}</span><div class="be-pal-topbtns">
       <button type="button" class="be-add" data-be-add="custom">${t('+ Add swatch')}</button>
       <button type="button" class="be-add" data-be-addgroup>${t('+ Add group')}</button>
     </div></div><div data-be-group-form></div>${body}
-    ${inherited.length ? `<details class="be-pal-group be-pal-group--starter" data-be-group="Starter colours"${!chosen.length || opts.starterGroup ? ' open' : ''}>
+    ${/* The starter neutrals stay folded until asked for (a tile, a checkbox and a
+          handle each, 27 controls before anything is chosen). The preview beside
+          the palette already shows them in use. */''}
+    ${inherited.length ? `<details class="be-pal-group be-pal-group--starter" data-be-group="Starter colours"${opts.starterGroup ? ' open' : ''}>
       <summary class="be-pal-group-head"><span class="be-pal-group-label">${t('Starter colours')}<span class="be-pal-group-n">${inherited.length}</span></span>
         ${action('data-be-pal-all', 'Starter colours', t('Select'))}<button type="button" class="be-pal-group-all" data-be-hide-starter>${t('Hide all')}</button>
       </summary><div class="be-pal-grid">${cards(inherited)}</div></details>` : ''}

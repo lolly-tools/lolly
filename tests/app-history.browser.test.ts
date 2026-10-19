@@ -158,11 +158,21 @@ test('History route supports project filters, milestones, right-panel versions, 
     await page.locator('.app-history > header').getByRole('button', { name: 'Refresh', exact: true }).click();
     await page.locator('.app-history-list[aria-busy="false"]').waitFor();
     assert.equal(await page.locator('.app-history-day[open]').count(), 0, 'refresh preserves folded dates');
-    await page.getByRole('button', { name: 'Expand dates', exact: true }).click();
+    // One day needs no Collapse/Expand all: its own divider folds and unfolds the day.
+    assert.equal(await page.getByRole('button', { name: /^(Expand|Collapse) dates$/ }).isVisible(), false);
+    await day.locator(':scope > summary').click();
     await page.waitForFunction(() => !!document.querySelector('.app-history-day[open]'));
     assert.ok(await page.locator('.app-history-row').first().getByRole('button', { name: 'Versions', exact: true }).locator('svg').count());
     await page.getByRole('button', { name: 'Older', exact: true }).click(); await page.waitForFunction(() => document.querySelectorAll('.app-history-row').length === 4);
     await page.getByRole('button', { name: 'Newer', exact: true }).click(); await page.waitForFunction(() => document.querySelectorAll('.app-history-row').length === 30);
+    // Saved creations select into the shared bulk bar; Escape clears the selection.
+    await page.locator('.app-history-row').first().getByRole('button', { name: /^Select / }).click();
+    await page.locator('.app-history-bulkbar:not([hidden])').waitFor();
+    assert.equal(await page.locator('.app-history-bulkbar-count').textContent(), '1 selected');
+    await page.keyboard.press('Escape'); await page.locator('.app-history-bulkbar[hidden]').waitFor({ state: 'attached' });
+    // Filters fold behind one button until one is set.
+    assert.equal(await page.getByRole('button', { name: 'Filter by project', exact: true }).isVisible(), false);
+    await page.getByRole('button', { name: /^Filters/ }).click();
     await page.getByRole('button', { name: 'Filter by project', exact: true }).click();
     const projectOption = page.getByRole('option', { name: 'Autumn campaign', exact: true });
     await projectOption.locator('img:not([hidden])').waitFor(); await projectOption.click(); await page.waitForFunction(() => document.querySelectorAll('.app-history-row').length === 1);
@@ -182,7 +192,8 @@ test('History route supports project filters, milestones, right-panel versions, 
     await page.waitForURL(url => !url.hash.includes('tool='));
 
     await page.getByRole('button', { name: 'Milestones', exact: true }).click(); await page.locator('.app-history-row h3', { hasText: 'Ready for review' }).waitFor();
-    await page.getByRole('button', { name: 'Versions', exact: true }).click(); await page.locator('.app-history-detail .revision-history-entry').waitFor();
+    // A milestone tile's name opens its versions.
+    await page.getByRole('button', { name: 'Ready for review', exact: true }).click(); await page.locator('.app-history-detail .revision-history-entry').waitFor();
     await page.getByRole('button', { name: 'Rename milestone', exact: true }).click();
     await page.getByRole('textbox', { name: 'Milestone name' }).fill('Ready for launch');
     await page.getByRole('button', { name: 'Keep milestone', exact: true }).click();
@@ -190,7 +201,7 @@ test('History route supports project filters, milestones, right-panel versions, 
     const shots = new URL('../plans/221-history-mockups/', import.meta.url); await mkdir(shots, { recursive: true });
     await page.screenshot({ path: fileURLToPath(new URL('build-app-history-desktop.png', shots)) });
     await page.getByRole('button', { name: 'Close', exact: true }).click();
-    await page.getByRole('button', { name: 'Recent', exact: true }).click(); await page.getByRole('link', { name: 'Resume', exact: true }).click();
+    await page.getByRole('button', { name: 'Recent', exact: true }).click(); await page.getByRole('link', { name: 'Autumn launch', exact: true }).click();
     await page.locator('[data-topbar="history"]').waitFor(); await page.goBack(); await page.locator('.app-history-row').first().waitFor();
     assert.equal(await page.getByRole('button', { name: 'Filter by project', exact: true }).getAttribute('data-value'), 'launch');
     assert.equal(await page.locator('.app-history-row').count(), 1);
@@ -215,7 +226,14 @@ test('History touch pickers keep their filter when Back dismisses the dropdown',
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   try {
-    await page.goto(`${origin}/#/history`);
+    await page.goto(origin!, { waitUntil: 'networkidle' }); await shellSettled(page);
+    // Search and filters wait until History holds a creation.
+    await page.evaluate(async () => {
+      const path = '/src/lib/host-ref.ts', host = (await import(path)).getHostRef();
+      await host.state.save('design:touch', { __toolId: 'design', __label: 'Touch check' }, null);
+      location.hash = '#/history';
+    });
+    await page.locator('.app-history-row').waitFor();
     await page.getByRole('button', { name: 'Filters', exact: true }).click();
     const picker = page.getByRole('button', { name: 'Filter by tool', exact: true });
     await picker.click();
@@ -251,7 +269,7 @@ test('file History hands off to the exact batch and its retained report and down
     });
     const row = page.locator(`[data-history-id="batch:${id}"]`); await row.waitFor();
     assert.match(await row.innerText(), /1 ready · 1 failed/); assert.equal(await page.locator('.app-history-row').count(), 1);
-    await row.getByRole('link', { name: 'View results' }).click();
+    await row.locator('[data-history-action="results"]').click();
     const batch = page.locator(`[data-batch-id="${id}"]`); await batch.locator('[data-batch-result]').waitFor();
     assert.equal(await batch.evaluate(el => (el as HTMLDetailsElement).open), true);
     const receipt = page.waitForEvent('download'); await batch.locator('[data-batch-saved-report]').click(); assert.equal(await (await receipt).failure(), null);

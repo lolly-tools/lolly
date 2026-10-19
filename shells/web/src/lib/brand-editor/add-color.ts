@@ -85,7 +85,7 @@ export const showAddedChip = (bedit: BrandEditorCtx, one: { path: string[]; name
  * hero for a colour that was added somewhere else.
  */
 export const addColorEntries = (bedit: BrandEditorCtx, entries: ColorEntry[], reveal = false, group?: string): number => {
-  if (entries.length) bedit.state.pushUndo(t('Add colours'));
+  if (entries.length) bedit.state.pushUndo(entries.length === 1 ? t('Add colour') : t('Add colours'));
   // Was this room empty of the person's own colour before the add? That is
   // what makes the next line the FIRST colour, and the first colour becomes
   // the primary (plan 182 section 5.2) - it is what nine people in ten mean

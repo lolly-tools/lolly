@@ -1254,7 +1254,8 @@ background-image:
       Everything here is a display switch on markup that is always present, so a
       beat change is one attribute and never a re-render. */
 [data-be-tab-panel="type"][data-be-beat="0"] > .be-fonts,
-[data-be-tab-panel="type"][data-be-beat="0"] > .be-typeroles { display: none; }
+[data-be-tab-panel="type"][data-be-beat="0"] > .be-typeroles,
+[data-be-tab-panel="type"][data-be-beat="0"] > .be-emoji-panel { display: none; }
 [data-be-tab-panel="type"][data-be-beat="0"] > .be-typecards {
   border: 0; padding: 0; max-width: 42rem; margin-inline: auto; display: grid; gap: 1rem;
 }
