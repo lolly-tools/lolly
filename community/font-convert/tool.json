@@ -2,12 +2,12 @@
   "id": "font-convert",
   "name": "Convert Font",
   "description": "Convert a font between TrueType, OpenType and WOFF - on your device.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "utility",
   "privacy": "on-device",
-  "tags": ["font", "ttf", "otf", "woff", "webfont", "convert", "truetype", "opentype", "typography", "sfnt"],
+  "tags": ["font", "ttf", "otf", "woff", "webfont", "convert", "truetype", "opentype", "typography", "sfnt", "subset", "glyphs", "coverage"],
   "a11yLabel": "Font conversion for {{fileName}}",
   "render": {
     "width": 760,
@@ -41,7 +41,30 @@
         { "value": "otf", "label": "OpenType (.otf)" },
         { "value": "woff", "label": "Web font (.woff)" }
       ],
-      "help": "The container to convert into. The glyph outlines are unchanged; only the wrapper differs. WOFF2 is read but not written yet."
+      "help": "The container to convert into. The glyph outlines are unchanged; only the wrapper differs. WOFF2 is recognised but not converted yet."
+    },
+    {
+      "id": "subset",
+      "label": "Glyphs",
+      "type": "select",
+      "default": "all",
+      "options": [
+        { "value": "all", "label": "Keep every glyph" },
+        { "value": "latin", "label": "Basic Latin (A to Z, digits, punctuation)" },
+        { "value": "western", "label": "Western European" },
+        { "value": "text", "label": "Only the characters I type" }
+      ],
+      "help": "A subset keeps only the glyphs those characters need, which makes a much smaller file. TrueType outlines only. A font whose own embedding flags forbid subsetting is never subset."
+    },
+    {
+      "id": "characters",
+      "label": "Characters to keep",
+      "type": "longtext",
+      "default": "",
+      "maxLength": 5000,
+      "rows": 3,
+      "showIf": { "subset": "text" },
+      "help": "Type or paste every character the font must still draw. Order and repeats do not matter."
     }
   ]
 }

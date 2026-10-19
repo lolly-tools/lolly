@@ -37,6 +37,8 @@ test('MCP includes compressed emoji packs without also forcing raw bundles into 
     'packages/node-shell/wasm/geometry-kernel/geometry-fit-portable.wasm',
     'packages/node-shell/wasm/layout-kernel/layout-kernel.wasm',
     'packages/node-shell/wasm/layout-kernel/LICENSE',
+    'packages/node-shell/wasm/skera/skera.wasm',
+    'packages/node-shell/wasm/skera/LICENSES.txt',
     'shells/web/public/fonts/SUSE[wght].ttf',
     'shells/web/public/fonts/SUSEMono[wght].ttf',
   ]) assert.equal(matchesGlob(required, includeFiles), true, required);

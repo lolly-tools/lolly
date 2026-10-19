@@ -5,7 +5,7 @@
     "HOST_V1_OPTIONAL_APIS": {
       "module": "apis.ts",
       "kind": "FirstStatement",
-      "sha256": "c0a825ebe1ba058347bf463860dd10789cf7880d215313013a6ad27f28af7066"
+      "sha256": "fc369c16245419b4614c3655a71ff6c7dd021cdef8f03e4eba32e1b27e0d52f6"
     },
     "HostApiName": {
       "module": "apis.ts",
@@ -447,6 +447,56 @@
       "kind": "InterfaceDeclaration",
       "sha256": "0a5d937b3cb6703fa9bd2c6ad99f96da8a38e07c0b7a48b3db472073c863c0e5"
     },
+    "FontEmbeddingV1": {
+      "module": "fonts.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "34019a3bf6079d987b92fc0fa0e6d5ce9d2cca824ef09b88549a0ead6427d248"
+    },
+    "FontSubsetRefusalV1": {
+      "module": "fonts.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "a7231b008e918691260df5605550ff8704299179269f366229798f93856318e7"
+    },
+    "FontAxisV1": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "6bf0fb261137aa295a55ee82c609bf28a1d11b6d72bda7bbef2bbe09e05b3250"
+    },
+    "FontInstanceV1": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "50610b882f7aac07412827d052e1c2370d25b0633c963df13930ef4a6b162d6e"
+    },
+    "FontBlockCoverageV1": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "c4747c4e5d447b2c895e808e43cab05410e0eed57c7447008dc0481356775dba"
+    },
+    "FontInspectionV1": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "b5c3a5baef427aa7770f2c3252030b387e60a2e10e6647930f92438070849426"
+    },
+    "FontSubsetRequestV1": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "6dbb5ac94a91bbc9fbc9e2db0cfc79daad180ea1cc3c89c3d9cf3b4f4c35ab6c"
+    },
+    "FontSubsetReportV1": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "409198443f1d8059b3d2d5cd3dfef0ffca20528007b132a50e8f30e81c30199b"
+    },
+    "FontSubsetResultV1": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d11aa373a647e4fa61e382cb9cf1a88996426110f732e15dc362e9e4e4f11faa"
+    },
+    "FontsAPI": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "04cd0f9ac0b364e0882443628c260dbf870150135db22fddf406e432620e5cba"
+    },
     "GeomAPI": {
       "module": "geom.ts",
       "kind": "InterfaceDeclaration",
@@ -540,7 +590,7 @@
     "HostV1": {
       "module": "host.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "3ed6f7704aa666ba28f5958adef24440da12aebaf2e586252df5b5ca8d874170"
+      "sha256": "3e8bd81d388db8e16cd6902443d80bfee91c181dd0c7de163756a9c9f5020fac"
     },
     "Capability": {
       "module": "host.ts",

@@ -309,6 +309,12 @@ export async function createBridge(): Promise<WebHost> {
     inspect: async (sources, rules) => (await import('../lib/prepare-client.ts')).runPreparation({ action: 'inspect', sources, rules }),
     apply: async (sources, inspection, choices, remove) => (await import('../lib/prepare-client.ts')).runPreparation({ action: 'apply', sources, inspection, choices, remove }),
   };
+  // Font files (v1.262): inspection and the Skera worker load on first use.
+  const loadFonts = memo(async () => (await import('./fonts.ts')).createWebFontsAPI());
+  host.fonts = {
+    inspect: async (bytes) => (await loadFonts()).inspect(bytes),
+    subset: async (bytes, request) => (await loadFonts()).subset(bytes, request),
+  };
   const loadPdf = memo(async () => (await import('./pdf.ts')).createPdfAPI());
   host.pdf = {
     analyze: async (bytes) => (await loadPdf()).analyze(bytes),

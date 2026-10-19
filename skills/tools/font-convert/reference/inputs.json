@@ -34,6 +34,43 @@
         "label": "Web font (.woff)"
       }
     ],
-    "help": "The container to convert into. The glyph outlines are unchanged; only the wrapper differs. WOFF2 is read but not written yet."
+    "help": "The container to convert into. The glyph outlines are unchanged; only the wrapper differs. WOFF2 is recognised but not converted yet."
+  },
+  {
+    "id": "subset",
+    "label": "Glyphs",
+    "type": "select",
+    "default": "all",
+    "options": [
+      {
+        "value": "all",
+        "label": "Keep every glyph"
+      },
+      {
+        "value": "latin",
+        "label": "Basic Latin (A to Z, digits, punctuation)"
+      },
+      {
+        "value": "western",
+        "label": "Western European"
+      },
+      {
+        "value": "text",
+        "label": "Only the characters I type"
+      }
+    ],
+    "help": "A subset keeps only the glyphs those characters need, which makes a much smaller file. TrueType outlines only. A font whose own embedding flags forbid subsetting is never subset."
+  },
+  {
+    "id": "characters",
+    "label": "Characters to keep",
+    "type": "longtext",
+    "default": "",
+    "maxLength": 5000,
+    "rows": 3,
+    "showIf": {
+      "subset": "text"
+    },
+    "help": "Type or paste every character the font must still draw. Order and repeats do not matter."
   }
 ]

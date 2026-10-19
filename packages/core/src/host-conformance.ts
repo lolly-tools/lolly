@@ -48,6 +48,7 @@ export const HOST_V1_METHODS: Record<HostApi, ApiMethods> = {
   pdf: { required: ['analyze', 'strip', 'compress'], optional: ['redact', 'pages', 'organize', 'fromImages', 'stamp', 'lock'] },
   compare: { required: ['run'], optional: ['visual'] },
   prepare: { required: ['inspect', 'apply'], optional: [] },
+  fonts: { required: ['inspect', 'subset'], optional: [] },
   pptx: { required: ['inspect', 'rebrand'], optional: [] },
   capture: { required: ['page'], optional: ['vector'] },
   compose: { required: ['render'], optional: ['renderUrl'] },
