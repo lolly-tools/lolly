@@ -324,6 +324,18 @@ async function mountInWorker(
   // plans/86 section 18); this split is only sound once that holds.
   const inRealm = allowInRealmExportHooks ? await inRealmHookExecutor(tool, host) : null;
 
+  // The worker's tokens are the snapshot taken at init. When the runtime's theme
+  // scope moves (setTokenSelection), `host.tokens` already answers in the new one,
+  // so the worker gets a new snapshot of it before any hook runs under the new
+  // choice. A newer switch's snapshot is the one kept.
+  let tokenSeq = 0;
+  const tokensChanged = async (): Promise<void> => {
+    const seq = ++tokenSeq;
+    const next = await snapshotTokens(host);
+    if (seq !== tokenSeq || next.doc == null || !mounts.has(runId)) return;
+    workers.get(runId)?.postMessage({ t: 'tokens', runId, tokenDoc: next.doc, tokenExcluded: next.excluded });
+  };
+
   return {
     onInit: slot('onInit'),
     onInput: slot('onInput'),
@@ -333,6 +345,7 @@ async function mountInWorker(
     beforeExport: inRealm?.beforeExport ?? null,
     afterExport: inRealm?.afterExport ?? null,
     exportStill: inRealm?.exportStill ?? null,
+    ...(doc != null ? { tokensChanged } : {}),
     // Teardown (runtime.destroy → hooks.dispose): tell the worker to drop this
     // run and release the main-side host reference. Idempotent.
     dispose: () => {

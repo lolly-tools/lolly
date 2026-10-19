@@ -303,7 +303,23 @@ export interface Hooks {
    * shared singleton worker doesn't accumulate one run per mount for the session.
    */
   dispose?: () => void;
+  /**
+   * Optional, for an executor whose hooks answer `host.tokens` from a copy of the
+   * design system taken at mount (the Worker executors keep the tokens beside the
+   * hooks). `setTokenSelection` calls it once the runtime's scope has moved and
+   * before any hook runs under the new choice, so the copy can follow. The in-realm
+   * executor reads the runtime's live scope directly and leaves it out.
+   */
+  tokensChanged?: () => Promise<void> | void;
 }
+
+/**
+ * The `id` an `onInput` hook sees when the document's theme choices change
+ * (`setTokenSelection`), as `'__view'` marks a view change. It runs once per switch,
+ * after the linked inputs have re-resolved, so a hook that keeps colours it read
+ * from `host.tokens` knows to read them again. Its patch updates computed values only.
+ */
+const TOKENS_CHANGED_INPUT_ID = '__tokens';
 
 /** The mounted-tool API createRuntime resolves to. Shells drive this. */
 export interface Runtime {
@@ -1699,6 +1715,13 @@ export async function createRuntime(
       // below rebuilds it only when a row is auto, so drop it here: a mark added after
       // the switch must not be picked against the previous theme.
       surfaceContexts.delete(host);
+      // A Worker executor answers host.tokens from its own copy of the design system,
+      // taken at mount. It takes the new scope here, before any hook runs in it, or an
+      // isolated tool would go on reading the theme it was mounted in.
+      if (hooks?.tokensChanged) {
+        try { await hooks.tokensChanged(); } catch (e) { host.log('warn', `tokensChanged ${(e as Error).message}`, { toolId: tool.manifest.id }); }
+        if (generation !== themeGeneration) return;
+      }
       let before: InputModelItem[];
       let resolved: InputModelItem[];
       // The W4 resolve order: colours, then the surface pass and the asset refs. An edit
@@ -1720,6 +1743,27 @@ export async function createRuntime(
           } catch (e) {
             host.log('warn', `onInput ${(e as Error).message}`, { toolId: tool.manifest.id });
           }
+        }
+        // Then the hooks hear the switch itself, once, as onInput with id '__tokens',
+        // whether or not a linked input moved: a hook that read colours from
+        // host.tokens (a palette it keeps, a paper colour, a look) reads them again
+        // here. A tool with no linked colour has no other way to learn of the switch.
+        // As with '__view', the patch updates computed values and never writes a
+        // declared input, so a switch cannot replace a user's value or a link.
+        const applyTokensPatch = (patch: unknown): void => {
+          if (!patch || typeof patch !== 'object' || Array.isArray(patch)) return;
+          const computed = Object.fromEntries(Object.entries(patch).filter(([id]) => !inputIds.has(id)));
+          ({ model, extras } = mergePatch(model, extras, computed, inputIds));
+        };
+        try {
+          const patch = await runHook('onInput', report => onInput({
+            id: TOKENS_CHANGED_INPUT_ID, value: null, model: modelForHooks(model), view: viewState,
+            lang: hookLang, host, report,
+          }), late => { if (generation === themeGeneration) { applyTokensPatch(late); emit(); } });
+          if (generation !== themeGeneration) return;
+          if (patch) applyTokensPatch(patch);
+        } catch (e) {
+          host.log('warn', `onInput ${(e as Error).message}`, { toolId: tool.manifest.id });
         }
       }
       emit();

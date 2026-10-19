@@ -316,3 +316,42 @@ test('the strict main-thread RPC forces isolated capture and keeps private suppo
     else Reflect.deleteProperty(globalThis, 'Worker');
   }
 });
+
+test('tokensChanged hands the Worker the host\'s current tokens, so an isolated hook reads the new theme', async () => {
+  class TestWorker {
+    onmessage: ((event: { data: HookWorkerOut }) => void) | null = null;
+    onerror = null;
+    core = createHookWorkerCore({ post: data => queueMicrotask(() => this.onmessage?.({ data })) });
+    postMessage(data: Parameters<typeof this.core.handle>[0]): void { this.core.handle(data); }
+    terminate(): void {}
+  }
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  Object.defineProperty(globalThis, 'Worker', { value: TestWorker, configurable: true });
+  // The runtime's host: its tokens answer in whatever choice the runtime holds now.
+  let ink = '#111111';
+  const doc = (): Record<string, unknown> => ({ color: { ink: { $type: 'color', $value: ink } } });
+  const host = {
+    shell: 'web', capabilities: [], log() {},
+    tokens: { snapshot: async () => ({ document: doc(), renderDocument: doc(), system: null, version: 'test', selection: {} }) },
+  } as unknown as Parameters<ReturnType<typeof getWorkerHookExecutor>>[1];
+  const executor = getWorkerHookExecutor({ allowInRealmFallback: false });
+  const tool = {
+    hooksSource: 'async function onInput({ host }) { return { ink: await host.tokens.resolve("{color.ink}") }; }',
+    manifest: { id: 'tokens-fixture' },
+  } as Parameters<typeof executor>[0];
+  let hooks: Awaited<ReturnType<typeof executor>> | undefined;
+  try {
+    hooks = await executor(tool, host);
+    const read = () => hooks!.onInput!({} as Parameters<NonNullable<NonNullable<typeof hooks>['onInput']>>[0]);
+    assert.deepEqual(await read(), { ink: '#111111' });
+    ink = '#eeeeee';
+    assert.deepEqual(await read(), { ink: '#111111' }, 'until told, the Worker answers from its mount-time snapshot');
+    assert.equal(typeof hooks.tokensChanged, 'function');
+    await hooks.tokensChanged!();
+    assert.deepEqual(await read(), { ink: '#eeeeee' });
+  } finally {
+    hooks?.dispose?.();
+    if (previous) Object.defineProperty(globalThis, 'Worker', previous);
+    else Reflect.deleteProperty(globalThis, 'Worker');
+  }
+});
