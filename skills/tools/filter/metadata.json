@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "filter",
-  "toolVersion": "1.5.0",
-  "toolVersionRange": "1.5.0",
+  "toolVersion": "1.5.1",
+  "toolVersionRange": "1.5.1",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "34347c0566193b209f5fce10ff94010b37c3eb840938ef6e00d9315ae6dc545a",
+      "sha256": "077c2721c730e9403c47c9f0e6bd798a94563c919af4e1c00c92b9a50a25e730",
       "bytes": 5289
     },
     "reference/inputs.json": {
