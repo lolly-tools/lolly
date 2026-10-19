@@ -377,7 +377,11 @@ export function openSwatch(cat: CatCtx, index: number): void {
       const group = (plane ?? limit)!.parentElement;
       for (const b of group?.querySelectorAll<HTMLElement>('button') ?? []) b.setAttribute('aria-pressed', String(b === (plane ?? limit)));
       const why = dlg.querySelector('[data-swatch-why]');
-      if (why) why.innerHTML = planeCaption();
+      if (why) {
+        const name = document.createElement('strong');
+        name.textContent = t(PLANE_TITLE[chart.plane]);
+        why.replaceChildren(name, ` ${t(PLANE_WHY[chart.plane])}`);
+      }
       repaint();
       return;
     }
