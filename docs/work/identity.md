@@ -1042,9 +1042,11 @@ to ride out. SCIM `active=false` (above) composes exactly this. Two further note
 
 ## Guest sessions
 
-A guest-edit link admits someone with no account: `GET /l/:id?s=…` mints an `lw_guest`
-cookie scoped to that link's tool (and session, if the link identifies one), for whatever
-remains of the link's lifetime. Guests carry the `guest` role, which grants **nothing** by
+A guest-edit link admits someone with no account. In a browser the link shows a landing
+page, and joining is its form's `POST /l/:id?s=…`; an API client's `GET /l/:id?s=…` still
+joins directly. Either way the server mints an `lw_guest` cookie scoped to that link's tool
+(and session, if the link identifies one), for whatever remains of the link's lifetime.
+Guests carry the `guest` role, which grants **nothing** by
 default - their access is entirely link-scoped. Links can carry a password (scrypt-hashed),
 and `policy.guestLinks.maxTtlHours` caps the lifetime regardless of what the minting UI
 asks for. `guestLinks.enabled: false` refuses minting outright.
