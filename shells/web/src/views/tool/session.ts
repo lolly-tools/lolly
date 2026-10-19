@@ -40,6 +40,7 @@ import { fmtBytes, openEmbedEditor } from '../tool-inputs.ts';
 import { collectExportParams, isTextEditing, shareDialogOptions, showShareDialog, shrinkUrl, wireUpCopyUrl } from './shared.ts';
 import { emojiDocumentCredits, emojiDocumentStyle, onEmojiDocumentChange, setEmojiDocumentStyle } from './emoji-doc.ts';
 import type { EmojiControlMount, InspectorEmojiPort } from '../design-inspector.ts';
+import { madeWithLine } from '../../lib/made-with.ts';
 import { mountToolSiteEditor } from '../tool-site-tools.ts';
 
 async function createPageController(tview: ToolViewCtx) {
@@ -1335,11 +1336,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
                     editHref: '#/profile?focus=use-details',
                     get: async () => {
                       const pr = await tview.host.profile.get();
-                      const join = (a?: string, b?: string, sep = ' '): string =>
-                        [a, b]
-                          .map((s) => (s ?? '').trim())
-                          .filter(Boolean)
-                          .join(sep);
+                      const join = (a?: string, b?: string, sep = ' '): string => [a, b].map((s) => (s ?? '').trim()).filter(Boolean).join(sep);
                       return {
                         optedIn: pr.useDetails === true,
                         author: join(pr.firstname, pr.lastname),
@@ -1352,6 +1349,8 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
                     },
                   }
                 : undefined,
+            // The design-system record (plans/319), in the export panel card's words.
+            madeWith: () => madeWithLine(tview.runtime),
           },
           // Picking a Lolly link / saved session for a box image opens its inputs
           // first (configure → insert), same as the sidebar asset slots. The picker

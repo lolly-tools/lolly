@@ -1220,7 +1220,7 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
   scroll-snap-stop: always;
   position: relative;
   margin: 0;
-  background: repeating-conic-gradient(#00000005 0% 25%, #ffffff05 0% 50%) 50% / 10px 10px;
+  background: repeating-conic-gradient(var(--ui-color-surface-muted) 0% 25%, var(--ui-color-surface-canvas) 0% 50%) 50% / 16px 16px;
 
 }
 .gcar-open {

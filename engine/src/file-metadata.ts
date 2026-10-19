@@ -24,6 +24,7 @@ import { unzlibSync } from 'fflate';
 import { xmlProvenanceFields } from './software-origin.ts';
 import { auxiliaryMetadata, type AuxiliaryMetadata } from './auxiliary-metadata.ts';
 import { pngGeneratorHint } from './png-generator.ts';
+import { readDesignRecordXml, themeChoiceLabel, type DesignRecord } from './metadata.ts';
 
 export type MetaGroup =
   | 'location'
@@ -379,6 +380,16 @@ function readXmp(text: string, out: FileMetadata): void {
   const rights = grab(/<dc:rights>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/i)
     || grab(/<dc:rights>([\s\S]*?)<\/dc:rights>/i);
   if (rights && !out.fields.some((f) => f.label === 'Rights')) out.fields.push({ label: 'Rights', value: rights, group: 'authorship' });
+
+  // The design-system record a Lolly export writes (plans/319): which design
+  // system, published version and colourway drew the file. The label is text the
+  // design system's owners typed, read back verbatim and bounded like every value.
+  const record = readDesignRecordXml(text);
+  if (record && !out.fields.some((f) => f.source?.startsWith('XMP lolly:'))) {
+    if (record.designSystem) out.fields.push({ label: 'Design system', value: clip(record.designSystem.label), group: 'software', source: 'XMP lolly:DesignSystemLabel' });
+    if (record.designVersion) out.fields.push({ label: 'Design version', value: clip(record.designVersion), group: 'software', source: 'XMP lolly:DesignVersion' });
+    for (const t of record.themes ?? []) out.fields.push({ label: themeChoiceLabel(t), value: clip(t.name), group: 'software', source: 'XMP lolly:Themes' });
+  }
 
   // dc:subject keywords - the DAM payoff (plans/144 Wave 5): a photo's own
   // embedded keywords, later folded into catalog search.
@@ -1592,6 +1603,22 @@ export function extractFileMetadata(bytes: Uint8Array): FileMetadata {
 // carry (engine/src/image-meta.ts) needs the packet ITSELF so a re-encode can
 // keep it verbatim. Same contract as everything here: bounded, never throws,
 // null when the file has none or the structure does not walk cleanly.
+
+/**
+ * The design-system record a Lolly export carries in its own metadata (plans/319):
+ * the `lolly:` properties of its XMP packet (PNG, JPEG, WebP, TIFF, JXL, AVIF) or of
+ * an SVG's `<metadata>` block. Null when the file carries none. For a shell that
+ * stamps the credential over bytes another tier wrote, so the credential gives the
+ * same design system the file does. Never throws.
+ */
+export function readFileDesignRecord(bytes: Uint8Array): DesignRecord | null {
+  try {
+    if (sniff(bytes) === 'SVG') return readDesignRecordXml(new TextDecoder('utf-8').decode(bytes.subarray(0, Math.min(bytes.length, MAX_TEXT_SCAN))));
+    return readDesignRecordXml(extractXmpPacket(bytes));
+  } catch {
+    return null;
+  }
+}
 
 /**
  * The source file's XMP packet as text, or null. Covers the raster containers

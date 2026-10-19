@@ -8009,5 +8009,10 @@
   "Try again.": "Prøv igjen.",
   "Review": "Gå gjennom",
   "Profile and settings, {count} notifications": "Profil og innstillinger, {count} varsler",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "Mottakeren kan åpne dette verktøyet til lenken utløper. Endringene vedkommende gjør, blir hos vedkommende."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Mottakeren kan åpne dette verktøyet til lenken utløper. Endringene vedkommende gjør, blir hos vedkommende.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Ikke lagret for bruk uten nett: denne serveren mangler {n} av {total} filer.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Ikke lagret for bruk uten nett: {n} av {total} filer ble ikke lastet ned. Sjekk nettforbindelsen din, og prøv igjen.",
+  "Not saved for offline use. Try again in a moment.": "Ikke lagret for bruk uten nett. Prøv igjen om litt.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} nedlastinger ble ikke fullført. Hver rad forklarer hvorfor."
 }

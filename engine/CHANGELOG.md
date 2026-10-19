@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.280.0
+
+- Exports record the design system, its published version and the colourway that drew them: in the Content Credential (`designSystem`, `designSystemLabel`, `designVersion` and `themes` keys of the `tools.lolly.export` assertion, `designRecordEnvironment`), as `lolly:` XMP and SVG properties (`designRecordXml`) and as PDF keywords. Every theme choice is recorded except the light/dark one, and a kind the manifest ignores through `tokenAxes` is never recorded. The description gives the colourway beside the tool (`"Made with https://lolly.tools : Chart (Persimmon colourway)"`). On by default; `_madewith=0`, `--no-madewith`, MCP `madeWith: false` or unticking the export panel's **Design system** card leave the record out.
+- `runtime.madeWith()`, `setMadeWith()`, `madeWithPreview()` and `lastExportMeta`; `ExportOpts.madeWith`; `ExportMeta.designSystem`, `designVersion` and `themes`. `readFileDesignRecord` and `designRecordWords` read a record back from a file.
+- `designRecordCarrier(format, credential)` says whether a format writes the record in its own metadata, only in a Content Credential, or not at all.
+- Bulk runs that show no **Design system** card or row (web Pro, Projects and 3D collection exports; the terminal app's CSV, folder, selection and render-everything exports) leave the record out. `lolly validate --rebuild` rebuilds a record-off SVG with the record off, and reports a `design-system` reason when the systems differ.
+
 ## 1.279.0
 
 - Add optional `host.tokens.family(role?, opts?)`, which returns every colourway's colour for one role, canonical first, in the look the read resolves to. Each member carries `id`, `name`, `canonical`, `active` (the artefact's own colourway) and `value`. The list is empty when the design system has no colourway group. `withTokenSelection` scopes it to the document's choices.

@@ -1794,5 +1794,10 @@
   "Try again.": "다시 시도하세요.",
   "Review": "검토",
   "Profile and settings, {count} notifications": "프로필 및 설정, 알림 {count}개",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "받는 사람은 링크가 만료될 때까지 이 도구를 열 수 있습니다. 변경한 내용은 그 사람에게만 남습니다."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "받는 사람은 링크가 만료될 때까지 이 도구를 열 수 있습니다. 변경한 내용은 그 사람에게만 남습니다.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "오프라인 사용을 위해 저장되지 않음: 이 서버에 파일 {total}개 중 {n}개가 없습니다.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "오프라인 사용을 위해 저장되지 않음: 파일 {total}개 중 {n}개를 다운로드하지 못했습니다. 연결을 확인한 다음 다시 시도하세요.",
+  "Not saved for offline use. Try again in a moment.": "오프라인 사용을 위해 저장되지 않음. 잠시 후 다시 시도하세요.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n}개 다운로드가 끝나지 않았습니다. 각 행에 이유가 표시됩니다."
 }

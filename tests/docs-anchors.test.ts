@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const BUILT = join(ROOT, 'shells/web/public/info');
-const DOORS = ['start', 'create', 'build', 'operate', 'trust'];
+const DOORS = ['start', 'create', 'build', 'manage', 'operate', 'trust'];
 const MOVES: Record<string, Record<string, { slug: string; anchor: string }>> =
   JSON.parse(readFileSync(join(ROOT, 'docs/section-moves.json'), 'utf-8'));
 

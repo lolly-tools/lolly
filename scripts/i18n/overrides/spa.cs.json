@@ -1658,5 +1658,10 @@
   "Try again.": "Zkus to znovu.",
   "Review": "Zkontrolovat",
   "Profile and settings, {count} notifications": "Profil a nastavení, oznámení: {count}",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "Příjemce může tento nástroj otevírat, dokud odkaz nevyprší. Jeho změny zůstávají u něj."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Příjemce může tento nástroj otevírat, dokud odkaz nevyprší. Jeho změny zůstávají u něj.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Neuloženo pro použití offline: tento server nemá {n} z {total} souborů.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Neuloženo pro použití offline: {n} z {total} souborů se nestáhlo. Zkontroluj připojení a zkus to znovu.",
+  "Not saved for offline use. Try again in a moment.": "Neuloženo pro použití offline. Zkus to za chvíli znovu.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} stažení se nedokončilo. Každý řádek říká proč."
 }

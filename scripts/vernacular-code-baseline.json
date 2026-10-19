@@ -1,7 +1,7 @@
 {
   "community/timezone/src/renderer.ts": 1,
   "docs/agents-pages.ts": 2,
-  "docs/build.ts": 44,
+  "docs/build.ts": 42,
   "docs/page-seal.ts": 4,
   "docs/shot-anatomy.ts": 3,
   "docs/shot-provenance.ts": 1,
@@ -387,7 +387,7 @@
   "shells/cli/src/preflight.ts": 7,
   "shells/cli/src/raster.ts": 3,
   "shells/cli/src/rebrand.ts": 14,
-  "shells/cli/src/rebuild.ts": 4,
+  "shells/cli/src/rebuild.ts": 3,
   "shells/cli/src/run.ts": 29,
   "shells/cli/src/smoke.ts": 7,
   "shells/cli/src/speak.ts": 3,

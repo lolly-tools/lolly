@@ -61,7 +61,7 @@ await writeFile(join(root, 'tools', TOOL_ID, 'template.html'), TEMPLATE);
 // Pin the whole run → bridge → rebuild module chain to the fixture BEFORE first import.
 process.env.LOLLY_ROOT = root;
 const { runToolCli } = await import('../shells/cli/src/run.ts');
-const { rebuildSession, sessionToParams, REBUILDABLE_FORMATS } = await import('../shells/cli/src/rebuild.ts');
+const { rebuildSession, sessionToParams, designParams, REBUILDABLE_FORMATS } = await import('../shells/cli/src/rebuild.ts');
 
 /** Render through the REAL CLI path, bare (a credential embeds a fresh timestamp). */
 let seq = 0;
@@ -192,6 +192,26 @@ test('a px session writes no unit param, so a default render stays a default ren
   const { params } = sessionToParams(manifest, { __export_unit: 'px', __export_dpi: '' });
   assert.equal(params.unit, undefined);
   assert.equal(params.dpi, undefined);
+});
+
+test('a session\'s saved theme choice rebuilds in that theme, the same `_themes` a link carries', () => {
+  const manifest = { id: TOOL_ID, inputs: [] } as Parameters<typeof sessionToParams>[0];
+  const { params } = sessionToParams(manifest, { __tokenSelection: { colourway: 'persimmon', bad: 3 } });
+  assert.equal(params._themes, '{"colourway":"persimmon"}');
+  assert.equal(sessionToParams(manifest, { __tokenSelection: [] }).params._themes, undefined);
+});
+
+test('the artifact\'s design-system record fills only what the session does not say (plans/319)', () => {
+  const record = {
+    designSystem: { id: 'acme', label: 'Acme' }, designVersion: 'v2',
+    themes: [{ group: 'colourway', kind: 'colourway' as const, id: 'persimmon', name: 'Persimmon' }, { group: 'density', id: 'roomy', name: 'Roomy' }],
+  };
+  assert.deepEqual(designParams(record, {}), { designv: 'v2', _themes: '{"colourway":"persimmon","density":"roomy"}' });
+  // The session's own choice wins for its group; the record fills the rest.
+  assert.deepEqual(designParams(record, { designv: 'v1', _themes: '{"colourway":"main"}' }), { _themes: '{"colourway":"main","density":"roomy"}' });
+  assert.deepEqual(designParams(record, { designv: 'v2', _themes: '{"colourway":"persimmon","density":"roomy"}' }), {}, 'nothing to add');
+  assert.deepEqual(designParams(null, {}), {});
+  assert.deepEqual(designParams({ designSystem: { id: 'acme', label: 'Acme' } }, {}), {}, 'the CLI never switches design systems');
 });
 
 // ── the file itself ─────────────────────────────────────────────────────────

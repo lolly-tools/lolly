@@ -1664,5 +1664,10 @@
   "Try again.": "Réessaie.",
   "Review": "Examiner",
   "Profile and settings, {count} notifications": "Profil et paramètres, {count} notifications",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "Le destinataire peut ouvrir cet outil jusqu'à l'expiration du lien. Ses modifications restent chez lui."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Le destinataire peut ouvrir cet outil jusqu'à l'expiration du lien. Ses modifications restent chez lui.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Non enregistré pour une utilisation hors ligne : ce serveur n'a pas {n} des {total} fichiers.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Non enregistré pour une utilisation hors ligne : {n} fichiers sur {total} n'ont pas été téléchargés. Vérifie ta connexion, puis réessaie.",
+  "Not saved for offline use. Try again in a moment.": "Non enregistré pour une utilisation hors ligne. Réessaie dans un instant.",
+  "{name}: {reason}": "{name} : {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} téléchargements ne se sont pas terminés. Chaque ligne indique pourquoi."
 }

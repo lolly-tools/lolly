@@ -8009,5 +8009,10 @@
   "Try again.": "Tente novamente.",
   "Review": "Revisar",
   "Profile and settings, {count} notifications": "Perfil e configurações, {count} notificações",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "O destinatário pode abrir esta ferramenta até o link expirar. As alterações dele ficam com ele."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "O destinatário pode abrir esta ferramenta até o link expirar. As alterações dele ficam com ele.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Não salvo para uso offline: este servidor não tem {n} dos {total} arquivos.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Não salvo para uso offline: {n} de {total} arquivos não foram baixados. Verifique sua conexão e tente de novo.",
+  "Not saved for offline use. Try again in a moment.": "Não salvo para uso offline. Tente de novo em instantes.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} downloads não foram concluídos. Cada linha diz o motivo."
 }

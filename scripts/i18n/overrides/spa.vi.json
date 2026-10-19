@@ -1663,5 +1663,10 @@
   "Try again.": "Hãy thử lại.",
   "Review": "Xem lại",
   "Profile and settings, {count} notifications": "Hồ sơ và cài đặt, {count} thông báo",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "Người nhận có thể mở công cụ này cho đến khi liên kết hết hạn. Các thay đổi của họ chỉ nằm ở phía họ."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Người nhận có thể mở công cụ này cho đến khi liên kết hết hạn. Các thay đổi của họ chỉ nằm ở phía họ.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Chưa lưu để dùng ngoại tuyến: máy chủ này không có {n} trong số {total} tệp.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Chưa lưu để dùng ngoại tuyến: {n} trong số {total} tệp chưa tải xuống được. Kiểm tra kết nối của bạn, rồi thử lại.",
+  "Not saved for offline use. Try again in a moment.": "Chưa lưu để dùng ngoại tuyến. Hãy thử lại sau giây lát.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} lượt tải xuống chưa hoàn tất. Mỗi hàng cho biết lý do."
 }

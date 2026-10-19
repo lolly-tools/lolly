@@ -20,11 +20,11 @@ import { fetchPublicBytes, MAX_PUBLIC_ASSET_BYTES, PUBLIC_IMAGE_TYPES } from '@l
 // (the pptx read path uses it); the engine hands back entries and the caller zips them,
 // exactly the split the web shell's lib/zip.ts sits on.
 import { zipSync } from 'fflate';
-import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, markToolComponents, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, inspectTokenDocument, tokenSelectionKey, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId } from '@lolly/engine';
+import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, markToolComponents, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, inspectTokenDocument, tokenSelectionKey, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId, readDesignSystemIdentity, SHIPPED_DESIGN_SYSTEM_ID, injectSvgMeta } from '@lolly/engine';
 import { isRasterPhotoLook, parseLutText, photoLookCacheKey, photoLookThemeKey, resolvePhotoLook, type GradeLut, type PhotoTreatment } from '@lolly/engine';
 import type {
-  HostV1, Profile, AssetsAPI, AssetRef, AssetQuery, ExportOpts, ExportMeta,
-  StateEntry, ComposeSpec, ExportFormat, TokenSet, TokenResolveOptions, C2paSignOpts,
+  HostV1, Profile, AssetsAPI, AssetRef, AssetQuery, ExportOpts,
+  StateEntry, ComposeSpec, ExportFormat, TokenSet, TokenResolveOptions, C2paSignOpts, DesignSystemSummary,
 } from '@lolly-tools/core/host-v1';
 // Deep image encoders (v1.100 host.codec) - off the @lolly/engine barrel by
 // design, imported deep-relative like node-shell/raster.ts does for packExr.
@@ -548,6 +548,8 @@ export async function createCliBridge(
 
   let tokensDocCache: Promise<unknown> | null = null;
   let tokensDocRevision = '';
+  /** Which design system the head document came from, set when tokensDoc resolves. */
+  let tokensDocSystem: DesignSystemSummary | null = null;
   /** The HEAD document - the edit head, `-latest`. Never a published version. */
   async function tokensDoc(): Promise<unknown> {
     const localRecord = await activeNodeDesignSystem().catch(() => null);
@@ -557,17 +559,45 @@ export async function createCliBridge(
       tokensDocCache = null;
     }
     tokensDocCache ??= (async () => {
-      // A document given for this run (`--file`) is the whole design system.
-      if (tokensDocument) return tokensDocument;
+      tokensDocSystem = null;
+      // A document given for this run (`--file`) is the whole design system. It
+      // names itself only through the identity it carries.
+      if (tokensDocument) {
+        const identity = readDesignSystemIdentity(tokensDocument);
+        if (identity) tokensDocSystem = { id: identity.id, label: identity.label, source: 'file', active: true, locked: false, headId: null };
+        return tokensDocument;
+      }
       // CLI and TUI share one editable Node-side head. A terminal system is an
       // override only when one is active; otherwise the mounted catalog remains
       // the exact source it was before the start experience existed.
       const local = localRecord ? await readActiveDesignSystemTokens() : null;
-      if (local) return local;
+      if (local) {
+        tokensDocSystem = { id: localRecord!.id, label: localRecord!.label, source: localRecord!.source.kind === 'file' ? 'file' : 'local', active: true, locked: false, headId: null };
+        return local;
+      }
       if (!headTokensAsset) return null;
-      return readAssetDoc(headTokensAsset);
-    })().catch(() => null); // unavailable ≠ broken: everything token-y just degrades
+      const doc = await readAssetDoc(headTokensAsset);
+      tokensDocSystem = {
+        id: SHIPPED_DESIGN_SYSTEM_ID,
+        label: shippedSystemLabel(headTokensAsset.name),
+        source: 'shipped',
+        active: true,
+        locked: (headTokensAsset as { brandLock?: boolean }).brandLock === true,
+        headId: headTokensAsset.id,
+      };
+      return doc;
+    })().catch(() => { tokensDocSystem = null; return null; }); // unavailable ≠ broken: everything token-y just degrades
     return tokensDocCache;
+  }
+  /**
+   * The design system this run draws with, identified the way the web shell identifies a system
+   * (plans/319), so a CLI, TUI or MCP export records the same system a browser one
+   * would: the identity a `--file` document carries, the active terminal design
+   * system, or the catalog's shipped tokens asset. Null when the run has no tokens.
+   */
+  async function activeSystem(): Promise<DesignSystemSummary | null> {
+    await tokensDoc();
+    return tokensDocSystem ? { ...tokensDocSystem } : null;
   }
 
   /**
@@ -640,7 +670,7 @@ export async function createCliBridge(
       const { resolveTokenSelection } = await import('../../../engine/src/token-selection.ts');
       const choices = resolveTokenSelection(document, { selection: tokenSelection }).choices;
       const projected = document && typeof document === 'object' ? { ...document, $metadata: { ...((document as Record<string, unknown>).$metadata as object ?? {}), activeThemeSelection: choices } } : document;
-      return { document: projected, ...(releasePins.some(p => p.font) ? { renderDocument: renderDocument && typeof renderDocument === 'object' ? { ...renderDocument, $metadata: (projected as Record<string, unknown>).$metadata } : renderDocument } : {}), system: null, version: resolveDesignVersion({ override: designVersion?.override, pin: designVersion?.pin, index: readVersionIndex(await tokensDoc()) }), selection: { choices } };
+      return { document: projected, ...(releasePins.some(p => p.font) ? { renderDocument: renderDocument && typeof renderDocument === 'object' ? { ...renderDocument, $metadata: (projected as Record<string, unknown>).$metadata } : renderDocument } : {}), system: await activeSystem(), version: resolveDesignVersion({ override: designVersion?.override, pin: designVersion?.pin, index: readVersionIndex(await tokensDoc()) }), selection: { choices } };
     },
     colors: async (opts = {}) => (await tokenSet(opts)).colors(),
     resolve: async (ref, opts = {}) => (await tokenSet(opts)).resolve(ref),
@@ -1735,27 +1765,15 @@ export async function applyBrandVars(el: HTMLElement, host: HostV1): Promise<voi
   for (const [name, value] of brandLeadVars(family)) el.style.setProperty(name, value);
 }
 
-// Embed authorship provenance as <title>/<desc> + a Dublin-Core <metadata> block
-// right after the opening <svg> tag (mirrors the web bridge's injectSvgMeta).
-function injectSvgMeta(xml: string, meta: ExportMeta | undefined): string {
-  if (!meta) return xml;
-  const e = (s: unknown) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const lines: string[] = [];
-  if (meta.tool) lines.push(`<title>${e(meta.tool)}</title>`);
-  const desc = [meta.description, meta.contact].filter(Boolean).join(' · ');
-  if (desc) lines.push(`<desc>${e(desc)}</desc>`);
-  lines.push(
-    '<metadata>',
-    '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">',
-    '<rdf:Description rdf:about="">',
-  );
-  if (meta.author) lines.push(`<dc:creator>${e(meta.author)}</dc:creator>`);
-  lines.push(`<dc:publisher>${e(meta.software)}</dc:publisher>`);
-  lines.push(`<dc:source>${e(meta.source)}</dc:source>`, '</rdf:Description>', '</rdf:RDF>', '</metadata>');
-  const m = xml.match(/<svg\b[^>]*?>/);
-  if (!m) return xml;
-  const at = m.index! + m[0]!.length;
-  return xml.slice(0, at) + '\n' + lines.join('\n') + xml.slice(at);
+/**
+ * The shipped catalog system's label, trimmed the way the web shell trims it
+ * (`stripTokensSuffix` in shells/web/src/lib/design-system/registry.ts): "Lolly
+ * Starter Tokens" reads as "Lolly Starter". Kept in step with that function so the
+ * two shells record the same label for the same catalog.
+ */
+export function shippedSystemLabel(name: string | undefined): string {
+  if (!name) return 'Lolly';
+  return name.replace(/\s+(brand\s+)?(design\s+)?tokens$/i, '').trim() || name;
 }
 
 function matchesFilter(meta: CatalogAsset, filter: AssetQuery): boolean {

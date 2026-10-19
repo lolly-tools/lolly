@@ -56,6 +56,9 @@
  * entries on activate (a one-time clear of anything already gone stale).
  */
 
+// v18: /brand (the static brand standards page) joins BYPASS_PATTERNS. A worker from
+// before this one stores a /brand visit under the shell key, so the bump drops that
+// generation on activate and the offline app boots into the app again.
 // v17: the web build's hashed output moved from /assets/ to /_app/ (build.assetsDir
 // in shells/web/vite.config.js), so /assets could become the Assets view's clean
 // URL. Every /assets/* entry the previous generation cached is now unreachable
@@ -78,7 +81,7 @@
 // gains a cache-first rule, and three page-owned unversioned buckets join
 // lolly-pins: lolly-app (pre-downloaded build assets), lolly-ort (the ONNX
 // runtime for /verify's deep scan), lolly-info (the /info docs site).
-const CACHE = 'lolly-v17';
+const CACHE = 'lolly-v18';
 
 // Tools pinned "available offline": the page writes /tools/<id>/* copies into
 // this SEPARATE, unversioned bucket (shells/web/src/lib/offline-pins.ts - keep
@@ -246,6 +249,10 @@ const BYPASS_PATTERNS = [
   // route on any deployment. lolly-work keeps the same list as
   // SHELL_SW_BYPASS_PREFIXES (scripts/vercel-routes.ts) and tests it against this one.
   /^\/(?:activate|admin|connect|healthz|l|metrics|readyz|render|scim)(?:\/|$)/,
+  // /brand is the static brand standards page (public/brand/index.html), real HTML
+  // with its own files beside it. Its last segment has no dot either, so without
+  // this entry the navigate branch would store the page as the offline app shell.
+  /^\/brand(?:\/|$)/,
   // NOTE /info is no longer in this list. It used to be bypassed outright - a
   // navigation there is REAL static HTML, and storing one under SHELL_URL once
   // poisoned the offline boot (reading the privacy policy replaced the cached

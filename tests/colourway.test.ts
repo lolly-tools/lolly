@@ -23,7 +23,10 @@ type Rec = Record<string, unknown>;
 const load = (path: string): Rec => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const FIXTURES: Record<string, () => Rec> = {
   'Lolly Start': () => load('../brands/lolly-start/catalog/assets/lolly/tokens/brand.json'),
-  'Lolly Demo': () => load('../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json'),
+  // Lolly Demo as it shipped with one lead: the lift and the add need a real
+  // single-lead pack, and the shipped pack now has colourways of its own
+  // (tests/lolly-demo-colourways.test.ts checks those).
+  'Lolly Demo': () => load('./fixtures/colourway/lolly-demo-single-lead.json'),
   'a derived system': () => deriveBrandTokens({ primary: '#2453ff', name: 'Fixture' }),
 };
 

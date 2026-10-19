@@ -8009,5 +8009,10 @@
   "Try again.": "Cuba lagi.",
   "Review": "Semak",
   "Profile and settings, {count} notifications": "Profil dan tetapan, {count} pemberitahuan",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "Penerima boleh membuka alat ini sehingga pautan tamat tempoh. Perubahan mereka kekal pada mereka."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Penerima boleh membuka alat ini sehingga pautan tamat tempoh. Perubahan mereka kekal pada mereka.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Tidak disimpan untuk kegunaan luar talian: pelayan ini tidak mempunyai {n} daripada {total} fail.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Tidak disimpan untuk kegunaan luar talian: {n} daripada {total} fail tidak dimuat turun. Semak sambungan anda, kemudian cuba lagi.",
+  "Not saved for offline use. Try again in a moment.": "Tidak disimpan untuk kegunaan luar talian. Cuba lagi sebentar lagi.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} muat turun tidak selesai. Setiap baris menyatakan sebabnya."
 }

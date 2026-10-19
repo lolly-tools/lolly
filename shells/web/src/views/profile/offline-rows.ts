@@ -25,12 +25,17 @@ export interface PartRowInput {
   planned: number;
   /** The catalogue row words a stale record as a changed selection. */
   catalog?: boolean;
+  /** Why the last download of this part did not finish, said on the row until
+   *  the next try (offline.ts words it from the error). */
+  failure?: string;
 }
 
 export interface PartRowState {
   sub: string;
   dl: { hidden: boolean; text: string; disabled: boolean };
   rm: { hidden: boolean };
+  /** The row line is a failure, painted as one. */
+  error?: boolean;
 }
 
 export function partRowState(i: PartRowInput): PartRowState {
@@ -40,6 +45,7 @@ export function partRowState(i: PartRowInput): PartRowState {
   if (i.rec) {
     // An update needs the server too; without it the row keeps what is on disk.
     const stale = i.stale && i.available;
+    if (stale && i.failure) return { sub: i.failure, dl: { hidden: false, text: t('Try again'), disabled: false }, rm: { hidden: false }, error: true };
     return {
       sub: stale
         ? (i.catalog ? t('Selection changed · download to update') : t('Downloaded · update available'))
@@ -55,6 +61,9 @@ export function partRowState(i: PartRowInput): PartRowState {
   if (!i.available) {
     return { sub: t('Not available to download here'), dl: { hidden: true, text: t('Download'), disabled: false }, rm: { hidden: true } };
   }
+  // A download that did not finish says why on the row, not only in a passing
+  // toast or the console (a user report, 2026-10-19).
+  if (i.failure) return { sub: i.failure, dl: { hidden: false, text: t('Try again'), disabled: false }, rm: { hidden: true }, error: true };
   return {
     sub: i.planned > 0 ? fmtBytes(i.planned) : '',
     dl: { hidden: false, text: t('Download'), disabled: false },

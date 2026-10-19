@@ -32,6 +32,7 @@ import { extractFileMetadata, extractXmpPacket } from './file-metadata.ts';
 import type { FileMetadata } from './file-metadata.ts';
 import { extractC2paStore } from './c2pa-verify.ts';
 import { insertJpegSegments } from './jpeg-segments.ts';
+import { LOLLY_XMP_NS, designRecordXml } from './metadata.ts';
 
 // ── PNG physical-resolution metadata ────────────────────────────────────────
 //
@@ -361,7 +362,17 @@ export function svgMetaBlock(meta: ExportMeta): string {
   const rights = [meta.copyright, meta.license].filter(Boolean).join(' · ');
   if (rights) lines.push(`<dc:rights>${xmlEsc(rights)}</dc:rights>`);
   lines.push(`<dc:publisher>${xmlEsc(meta.software)}</dc:publisher>`);
-  lines.push(`<dc:source>${xmlEsc(meta.source)}</dc:source>`, '</rdf:Description>', '</rdf:RDF>', '</metadata>');
+  lines.push(`<dc:source>${xmlEsc(meta.source)}</dc:source>`);
+  // The design-system record (plans/319), in the same `lolly:` properties the XMP
+  // packet carries. Its namespace is declared only when there is a record, so
+  // every other SVG keeps the exact block it had before.
+  const record = designRecordXml(meta);
+  if (record.length) {
+    const rdf = lines.findIndex(l => l.startsWith('<rdf:RDF '));
+    lines[rdf] = lines[rdf]!.replace(/>$/, ` xmlns:lolly="${LOLLY_XMP_NS}">`);
+    lines.push(...record);
+  }
+  lines.push('</rdf:Description>', '</rdf:RDF>', '</metadata>');
   return lines.join('\n');
 }
 
@@ -730,12 +741,14 @@ function carryIntoWebp(bytes: Uint8Array, tiff: Uint8Array | null, xmp: string |
  * ExportMeta → an XMP packet with the photo industry's own namespaces
  * (plans/144 Wave 5 O2): xmp:CreatorTool, dc:creator/dc:rights,
  * xmpRights:UsageTerms for the licence, photoshop:Credit and a plus:Licensor
- * for the author. Null when no field would be written.
+ * for the author, plus the design-system record (plans/319) as `lolly:`
+ * properties in LOLLY_XMP_NS. Null when no field would be written.
  */
 export function buildExportXmp(meta: ExportMeta | null | undefined): string | null {
   if (!meta) return null;
   const rights = [meta.copyright].filter(Boolean).join(' · ');
-  if (!meta.author && !rights && !meta.license && !meta.software) return null;
+  const record = designRecordXml(meta);
+  if (!meta.author && !rights && !meta.license && !meta.software && !record.length) return null;
   const li = (s: string): string => `<rdf:li>${xmlEsc(s)}</rdf:li>`;
   const parts: string[] = [];
   if (meta.software) parts.push(`<xmp:CreatorTool>${xmlEsc(meta.software)}</xmp:CreatorTool>`);
@@ -746,11 +759,16 @@ export function buildExportXmp(meta: ExportMeta | null | undefined): string | nu
     parts.push(`<photoshop:Credit>${xmlEsc(meta.author)}</photoshop:Credit>`);
     parts.push(`<plus:Licensor><rdf:Seq><rdf:li rdf:parseType="Resource"><plus:LicensorName>${xmlEsc(meta.author)}</plus:LicensorName></rdf:li></rdf:Seq></plus:Licensor>`);
   }
+  // The design-system record (plans/319): the design system, published version and
+  // theme choices that drew the export, in Lolly's own namespace. Declared only
+  // when there is a record, so every other packet is byte-identical to before.
+  parts.push(...record);
   return (
     '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">' +
     '<rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:dc="http://purl.org/dc/elements/1.1/"' +
     ' xmlns:xmpRights="http://ns.adobe.com/xap/1.0/rights/" xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/"' +
-    ' xmlns:plus="http://ns.useplus.org/ldf/xmp/1.0/">' +
+    ' xmlns:plus="http://ns.useplus.org/ldf/xmp/1.0/"' +
+    (record.length ? ` xmlns:lolly="${LOLLY_XMP_NS}"` : '') + '>' +
     parts.join('') +
     '</rdf:Description></rdf:RDF></x:xmpmeta>'
   );

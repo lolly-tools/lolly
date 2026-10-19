@@ -8009,5 +8009,10 @@
   "Try again.": "Опитай отново.",
   "Review": "Прегледай",
   "Profile and settings, {count} notifications": "Профил и настройки, {count} известия",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "Получателят може да отваря този инструмент, докато линкът изтече. Промените му остават при него."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Получателят може да отваря този инструмент, докато линкът изтече. Промените му остават при него.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Не е запазено за офлайн употреба: този сървър няма {n} от {total} файла.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Не е запазено за офлайн употреба: {n} от {total} файла не се изтеглиха. Провери връзката си и опитай отново.",
+  "Not saved for offline use. Try again in a moment.": "Не е запазено за офлайн употреба. Опитай отново след малко.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} изтегляния не приключиха. Всеки ред показва причината."
 }

@@ -8009,5 +8009,10 @@
   "Try again.": "Încearcă din nou.",
   "Review": "Revizuiește",
   "Profile and settings, {count} notifications": "Profil și setări, {count} notificări",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "Destinatarul poate deschide acest instrument până când linkul expiră. Modificările lui rămân la el."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Destinatarul poate deschide acest instrument până când linkul expiră. Modificările lui rămân la el.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Nu s-a salvat pentru utilizare offline: acest server nu are {n} din cele {total} fișiere.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Nu s-a salvat pentru utilizare offline: {n} din {total} fișiere nu s-au descărcat. Verifică-ți conexiunea, apoi încearcă din nou.",
+  "Not saved for offline use. Try again in a moment.": "Nu s-a salvat pentru utilizare offline. Încearcă din nou peste puțin timp.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} descărcări nu s-au terminat. Fiecare rând spune motivul."
 }

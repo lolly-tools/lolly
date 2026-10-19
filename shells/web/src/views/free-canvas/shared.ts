@@ -360,6 +360,13 @@ export interface DocInfo {
     get(): Promise<{ optedIn: boolean; author: string; contact: string }>;
     setOptIn(on: boolean): Promise<void>;
   };
+  /**
+   * The design-system record an export writes (plans/319), as the export panel's
+   * Design system card shows it: whether it is on, the words it writes and the
+   * description as it will read. Null when there is nothing to record. Read-only
+   * here; the card in the export panel is the switch.
+   */
+  madeWith?(): Promise<{ on: boolean; words: string; description: string } | null>;
 }
 export interface HistoryApi {
   undo(): void;

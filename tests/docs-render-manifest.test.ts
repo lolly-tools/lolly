@@ -30,7 +30,7 @@ test('the render manifest covers every shot with a size and credential facts', {
   assert.ok(Array.isArray(m.shots) && m.shots.length > 100, `the shot list is missing or short (${m.shots?.length})`);
   // The manifest shot list is exactly what is committed - a runtime localizedShot()/darkShot()
   // resolves from it, so a drift means the in-app view can't find a shot the static site ships.
-  const onDisk = readdirSync(SHOTS_DIR).filter((f) => /\.(svg|png|jpe?g)$/.test(f));
+  const onDisk = [...readdirSync(SHOTS_DIR), ...readdirSync(join(SHOTS_DIR, 'work')).map(file => `work/${file}`)].filter((f) => /\.(svg|png|jpe?g)$/.test(f));
   assert.deepEqual([...m.shots].sort(), onDisk.sort(), 'the manifest shot list drifted from docs/shots');
   for (const file of m.shots) {
     const src = `/info/shots/${file}`;

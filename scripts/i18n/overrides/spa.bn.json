@@ -1664,5 +1664,10 @@
   "Try again.": "আবার চেষ্টা করুন।",
   "Review": "পর্যালোচনা",
   "Profile and settings, {count} notifications": "প্রোফাইল ও সেটিংস, {count}টি বিজ্ঞপ্তি",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "প্রাপক লিংকের মেয়াদ শেষ না হওয়া পর্যন্ত এই টুলটি খুলতে পারবেন। তাঁর করা পরিবর্তনগুলো তাঁর কাছেই থাকবে।"
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "প্রাপক লিংকের মেয়াদ শেষ না হওয়া পর্যন্ত এই টুলটি খুলতে পারবেন। তাঁর করা পরিবর্তনগুলো তাঁর কাছেই থাকবে।",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "অফলাইনে ব্যবহারের জন্য সংরক্ষিত হয়নি: এই সার্ভারে {total}টির মধ্যে {n}টি ফাইল নেই।",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "অফলাইনে ব্যবহারের জন্য সংরক্ষিত হয়নি: {total}টির মধ্যে {n}টি ফাইল ডাউনলোড হয়নি। আপনার সংযোগ পরীক্ষা করুন, তারপর আবার চেষ্টা করুন।",
+  "Not saved for offline use. Try again in a moment.": "অফলাইনে ব্যবহারের জন্য সংরক্ষিত হয়নি। একটু পরে আবার চেষ্টা করুন।",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n}টি ডাউনলোড শেষ হয়নি। প্রতিটি সারিতে কারণ লেখা আছে।"
 }

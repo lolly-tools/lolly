@@ -1792,5 +1792,10 @@
   "Try again.": "Tekrar dene.",
   "Review": "İncele",
   "Profile and settings, {count} notifications": "Profil ve ayarlar, {count} bildirim",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "Alıcı, bağlantının süresi dolana kadar bu aracı açabilir. Yaptığı değişiklikler onda kalır."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Alıcı, bağlantının süresi dolana kadar bu aracı açabilir. Yaptığı değişiklikler onda kalır.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Çevrimdışı kullanım için kaydedilmedi: bu sunucuda {total} dosyadan {n} tanesi yok.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Çevrimdışı kullanım için kaydedilmedi: {total} dosyadan {n} tanesi indirilemedi. Bağlantını kontrol et, sonra tekrar dene.",
+  "Not saved for offline use. Try again in a moment.": "Çevrimdışı kullanım için kaydedilmedi. Biraz sonra tekrar dene.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} indirme tamamlanmadı. Her satır nedenini söyler."
 }

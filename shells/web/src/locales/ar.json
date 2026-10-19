@@ -8009,5 +8009,10 @@
   "Try again.": "حاول مرة أخرى.",
   "Review": "مراجعة",
   "Profile and settings, {count} notifications": "الملف الشخصي والإعدادات، {count} إشعارات",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "يمكن للمستلم فتح هذه الأداة حتى ينتهي الرابط. وتبقى تغييراته لديه."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "يمكن للمستلم فتح هذه الأداة حتى ينتهي الرابط. وتبقى تغييراته لديه.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "لم يُحفظ للاستخدام دون اتصال: لا يملك هذا الخادم {n} من {total} ملفات.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "لم يُحفظ للاستخدام دون اتصال: تعذّر تنزيل {n} من {total} ملفات. تحقق من اتصالك ثم أعد المحاولة.",
+  "Not saved for offline use. Try again in a moment.": "لم يُحفظ للاستخدام دون اتصال. أعد المحاولة بعد قليل.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "لم يكتمل {n} من التنزيلات. يوضح كل صف السبب."
 }

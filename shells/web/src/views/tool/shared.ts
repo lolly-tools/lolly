@@ -730,6 +730,10 @@ export function collectExportParams(exportScope: HTMLElement | null): string[] {
   const imprintEl = exportScope?.querySelector<HTMLInputElement>('[data-action="imprint"]');
   if (imprintEl && !imprintEl.checked) parts.push('imprint=0');
 
+  // The design-system record (plans/319) is ON by default too: only leaving it out travels.
+  const madeWithEl = exportScope?.querySelector<HTMLInputElement>('[data-action="madewith"]');
+  if (madeWithEl && !madeWithEl.checked) parts.push('_madewith=0');
+
   // Durable credential and HDR are both OFF by default, so only the opt-in travels.
   const durableEl = exportScope?.querySelector<HTMLInputElement>('[data-action="durable"]');
   if (durableEl?.checked) parts.push('durable=1');

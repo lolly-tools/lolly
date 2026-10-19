@@ -8009,5 +8009,10 @@
   "Try again.": "Coba lagi.",
   "Review": "Tinjau",
   "Profile and settings, {count} notifications": "Profil dan pengaturan, {count} notifikasi",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "Penerima dapat membuka alat ini sampai tautan berakhir. Perubahan yang dibuatnya tetap ada padanya."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Penerima dapat membuka alat ini sampai tautan berakhir. Perubahan yang dibuatnya tetap ada padanya.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Tidak disimpan untuk penggunaan offline: server ini tidak memiliki {n} dari {total} berkas.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Tidak disimpan untuk penggunaan offline: {n} dari {total} berkas gagal diunduh. Periksa koneksi Anda, lalu coba lagi.",
+  "Not saved for offline use. Try again in a moment.": "Tidak disimpan untuk penggunaan offline. Coba lagi sebentar lagi.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} unduhan belum selesai. Setiap baris menjelaskan alasannya."
 }

@@ -1656,5 +1656,10 @@
   "Try again.": "Probeer het opnieuw.",
   "Review": "Bekijken",
   "Profile and settings, {count} notifications": "Profiel en instellingen, {count} meldingen",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "De ontvanger kan deze tool openen totdat de link verloopt. Zijn of haar wijzigingen blijven bij de ontvanger."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "De ontvanger kan deze tool openen totdat de link verloopt. Zijn of haar wijzigingen blijven bij de ontvanger.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Niet opgeslagen voor offline gebruik: deze server heeft {n} van de {total} bestanden niet.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Niet opgeslagen voor offline gebruik: {n} van de {total} bestanden zijn niet gedownload. Controleer je verbinding en probeer het opnieuw.",
+  "Not saved for offline use. Try again in a moment.": "Niet opgeslagen voor offline gebruik. Probeer het zo meteen opnieuw.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} downloads zijn niet voltooid. Elke rij geeft de reden."
 }

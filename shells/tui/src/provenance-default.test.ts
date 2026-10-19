@@ -55,3 +55,25 @@ test('the resolved imprint boolean is forwarded explicitly, never left undefined
   assert.match(SRC, /imprint: isImprintFormat\(fmt\) \? imprintOn : undefined/,
     'send an explicit boolean so every tier agrees, gated to formats that carry pixels');
 });
+
+test('the design-system record is an export row that shows its words and forwards its switch (plans/319)', () => {
+  assert.match(SRC, /\{ key: 'madewith', label: 'Design system', kind: 'cycle' \}/,
+    'the record must be visible at the moment of export, on its own row');
+  assert.match(SRC, /runtime\.madeWithPreview\(\)/, 'the row shows the words the export will write');
+  assert.match(SRC, /setMadeWithOn\(rv\.madeWith !== false\)/, 'a link\'s _madewith=0 starts it off; absent records');
+  assert.match(SRC, /madeWith: madeWithOn,/, 'the export carries the switch as an explicit boolean');
+});
+
+test('the Design system row follows the format, so it never names words a file will not hold (plans/319)', async () => {
+  const { madeWithRowText } = await import('./made-with-row.ts');
+  const words = 'Acme · Colourway: Persimmon';
+  assert.equal(madeWithRowText({ words, on: true, format: 'svg', c2paDays: 0 }), `on · records ${words}`);
+  assert.equal(madeWithRowText({ words, on: false, format: 'png', c2paDays: 30 }), 'off · records nothing');
+  assert.equal(madeWithRowText({ words: '', on: true, format: 'svg', c2paDays: 30 }), 'nothing to record');
+  // A data format holds no metadata at all; HTML holds only a credential.
+  assert.equal(madeWithRowText({ words, on: true, format: 'csv', c2paDays: 30 }), 'this format carries no metadata');
+  assert.equal(madeWithRowText({ words, on: true, format: 'html', c2paDays: 0 }), 'this format carries no metadata');
+  assert.equal(madeWithRowText({ words, on: true, format: 'html', c2paDays: 30 }), `on · records ${words} in the credential only`);
+  assert.match(SRC, /case 'madewith': return madeWithRowText\(\{ words: madeWithLine, on: madeWithOn, format: fmt, c2paDays: C2PA_DAYS\[c2paIdx\] \?\? 0 \}\);/,
+    'the row reads the chosen format and the credential row');
+});

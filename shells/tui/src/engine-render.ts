@@ -4,7 +4,7 @@
  * mountTool → createRuntime; renderSvg turns the current state into an SVG string
  * (for the terminal preview); exportToFile writes a real file via the Node bridge.
  */
-import { loadTool, createRuntime, parseUrlState, serializeUrlState, expandQuery, normalizeLang, embedC2pa, C2PA_FORMATS } from '@lolly/engine';
+import { loadTool, createRuntime, parseUrlState, serializeUrlState, expandQuery, normalizeLang, embedC2pa, C2PA_FORMATS, readFileDesignRecord } from '@lolly/engine';
 import type { UrlState } from '../../../engine/src/url-mode.ts';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
@@ -152,6 +152,9 @@ export async function exportToFile(
     throw new Error(printPrepRefusal(fmt));
   }
   const transform = isTransform(manifest);
+  // The design-system record (plans/319): the export panel's Design system row sets it
+  // per export, so the runtime's own exports and the Tier-B URL read one switch.
+  if (typeof dims.madeWith === 'boolean') runtime.setMadeWith(dims.madeWith);
   const write = async (bytes: Uint8Array, viaWebShell = false): Promise<number> => {
     // Optionally stamp Content Credentials (C2PA) as the LAST byte operation - same rule
     // as the CLI/web. NEVER on transform utilities (strip-data's whole job is to REMOVE
@@ -171,6 +174,10 @@ export async function exportToFile(
           manifest: manifest as { id: string; name?: string },
           model: runtime.getModel(),
           format: fmt, dims, days: dims.c2paDays, profile,
+          // The design system and colourway the file's own metadata records
+          // (plans/319), so the credential gives the same ones. Bytes the runtime
+          // did not export itself (a capture) are read back for one.
+          meta: runtime.lastExportMeta ?? readFileDesignRecord(bytes),
           // Same reason as the CLI: this shell stamps here rather than in
           // host.export.render, so the emoji artwork the render placed has to be
           // handed over explicitly or its licence would go unrecorded.

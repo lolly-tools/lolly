@@ -8009,5 +8009,10 @@
   "Try again.": "请重试。",
   "Review": "查看",
   "Profile and settings, {count} notifications": "个人资料和设置，{count} 条通知",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "收件人可以在链接失效前打开此工具。他们所做的更改只保留在他们自己那里。"
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "收件人可以在链接失效前打开此工具。他们所做的更改只保留在他们自己那里。",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "未保存供离线使用：此服务器缺少 {total} 个文件中的 {n} 个。",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "未保存供离线使用：{total} 个文件中有 {n} 个未能下载。请检查网络连接，然后重试。",
+  "Not saved for offline use. Try again in a moment.": "未保存供离线使用。请稍后重试。",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "有 {n} 项下载未完成。每一行都会说明原因。"
 }

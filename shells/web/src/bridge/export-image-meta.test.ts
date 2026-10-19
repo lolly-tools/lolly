@@ -407,6 +407,36 @@ test('injectSvgMeta inserts title/desc/Dublin-Core after the opening svg tag, es
   assert.ok(!svgMetaBlock({ software: 'x', source: 'y' } as any).includes('<title>'));
 });
 
+// The design-system record (plans/319 A7): absent fields stay absent, so a meta
+// with no record writes the exact block it wrote before the record existed (pinned
+// from the pre-A7 writer), and the namespace is declared only beside a record.
+const PLAIN_SVG_META = {
+  software: 'Lolly', source: 'https://lolly.tools/t/chart', tool: 'Chart', author: 'Ana Kovac', contact: 'ana@example.com',
+  description: 'Made with https://lolly.tools : Chart by Ana Kovac', copyright: '© Ana', license: 'CC BY 4.0',
+} as any;
+test('svgMetaBlock without a design-system record is byte-identical to the pre-record block', () => {
+  assert.equal(svgMetaBlock(PLAIN_SVG_META),
+    '<title>Chart</title>\n<desc>Made with https://lolly.tools : Chart by Ana Kovac · ana@example.com</desc>\n<metadata>\n' +
+    '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">\n' +
+    '<rdf:Description rdf:about="">\n<dc:creator>Ana Kovac</dc:creator>\n<dc:rights>© Ana · CC BY 4.0</dc:rights>\n' +
+    '<dc:publisher>Lolly</dc:publisher>\n<dc:source>https://lolly.tools/t/chart</dc:source>\n</rdf:Description>\n</rdf:RDF>\n</metadata>');
+  assert.ok(!svgMetaBlock(PLAIN_SVG_META).includes('lolly:'));
+});
+
+test('svgMetaBlock writes the design-system record as lolly: properties beside the Dublin Core', () => {
+  const block = svgMetaBlock({
+    ...PLAIN_SVG_META, description: 'Made with https://lolly.tools : Chart (Persimmon colourway) by Ana Kovac',
+    designSystem: { id: 'acme', label: 'Acme & Co' }, designVersion: '2026-10',
+    themes: [{ group: 'colourway', kind: 'colourway', id: 'persimmon', name: 'Persimmon' }],
+  });
+  assert.ok(block.includes('xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:lolly="https://lolly.tools/ns/export/1.0/">'));
+  assert.ok(block.includes('<lolly:DesignSystem>acme</lolly:DesignSystem>'));
+  assert.ok(block.includes('<lolly:DesignSystemLabel>Acme &amp; Co</lolly:DesignSystemLabel>'));
+  assert.ok(block.includes('<lolly:DesignVersion>2026-10</lolly:DesignVersion>'));
+  assert.ok(block.includes('<desc>Made with https://lolly.tools : Chart (Persimmon colourway) by Ana Kovac · ana@example.com</desc>'));
+  assert.ok(block.indexOf('<lolly:Themes>') < block.indexOf('</rdf:Description>'), 'inside the description element');
+});
+
 test('injectSvgMeta is identity without meta or without an <svg> tag', () => {
   const xml = '<svg viewBox="0 0 1 1"/>';
   assert.equal(injectSvgMeta(xml, null), xml);

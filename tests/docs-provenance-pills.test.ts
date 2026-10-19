@@ -66,7 +66,7 @@ test('every provenance marker in docs/*.md closes its brace', () => {
 
 // English pages live behind door directories (plans/177 P1); the flat root now
 // holds the landing, the redirect stubs and the generated side-door folders.
-const DOORS = ['start', 'create', 'build', 'operate', 'trust'];
+const DOORS = ['start', 'create', 'build', 'manage', 'operate', 'trust'];
 const builtPages = existsSync(BUILT)
   ? [
       ...readdirSync(BUILT).filter((f) => f.endsWith('.html')),

@@ -1792,5 +1792,10 @@
   "Try again.": "Спробуйте ще раз.",
   "Review": "Переглянути",
   "Profile and settings, {count} notifications": "Профіль і налаштування, сповіщень: {count}",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "Отримувач може відкривати цей інструмент, доки посилання не завершиться. Його зміни залишаються в нього."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Отримувач може відкривати цей інструмент, доки посилання не завершиться. Його зміни залишаються в нього.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Не збережено для офлайн-використання: на цьому сервері немає {n} із {total} файлів.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Не збережено для офлайн-використання: {n} із {total} файлів не завантажилися. Перевірте з'єднання й спробуйте ще раз.",
+  "Not saved for offline use. Try again in a moment.": "Не збережено для офлайн-використання. Спробуйте ще раз за хвилину.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} завантажень не завершилося. Кожен рядок пояснює причину."
 }

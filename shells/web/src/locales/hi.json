@@ -8009,5 +8009,10 @@
   "Try again.": "फिर कोशिश करें।",
   "Review": "समीक्षा करें",
   "Profile and settings, {count} notifications": "प्रोफ़ाइल और सेटिंग्स, {count} सूचनाएँ",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "प्राप्तकर्ता लिंक की अवधि समाप्त होने तक यह टूल खोल सकता है। उसके किए बदलाव उसी के पास रहते हैं।"
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "प्राप्तकर्ता लिंक की अवधि समाप्त होने तक यह टूल खोल सकता है। उसके किए बदलाव उसी के पास रहते हैं।",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "ऑफ़लाइन उपयोग के लिए सहेजा नहीं गया: इस सर्वर पर {total} में से {n} फ़ाइलें नहीं हैं।",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "ऑफ़लाइन उपयोग के लिए सहेजा नहीं गया: {total} में से {n} फ़ाइलें डाउनलोड नहीं हुईं। अपना कनेक्शन जांचें, फिर फिर से कोशिश करें।",
+  "Not saved for offline use. Try again in a moment.": "ऑफ़लाइन उपयोग के लिए सहेजा नहीं गया। कुछ देर बाद फिर से कोशिश करें।",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} डाउनलोड पूरे नहीं हुए। हर पंक्ति में कारण बताया गया है।"
 }

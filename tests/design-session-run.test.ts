@@ -8,7 +8,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -67,6 +67,12 @@ test('a saved Design session takes the session path; its flags are settled befor
   assert.deepEqual(designSessionRunPlan({ export: 'png', 'no-provenance': '1' }), { format: 'png', provenance: { c2pa: false, imprint: false } });
   assert.deepEqual(designSessionRunPlan({ c2pa: 'off', imprint: '1' }), { format: 'png', provenance: { c2pa: false, imprint: true } });
   assert.throws(() => designSessionRunPlan({ 'no-provenance': '1', imprint: '1' }), /--no-provenance turns every provenance mark off/);
+  // The design-system record (plans/319) is its own switch: --no-provenance leaves it
+  // alone, and --no-madewith or --_madewith=0 sends `_madewith=0` to the export URL.
+  assert.deepEqual(designSessionRunPlan({ 'no-madewith': '1' }), { format: 'png', provenance: { madeWith: false } });
+  assert.deepEqual(designSessionRunPlan({ _madewith: '0' }), { format: 'png', provenance: { madeWith: false } });
+  assert.deepEqual(designSessionRunPlan({ _madewith: '1' }), { format: 'png' });
+  assert.deepEqual(designSessionRunPlan({ 'no-provenance': '1', 'no-madewith': '1' }), { format: 'png', provenance: { c2pa: false, imprint: false, madeWith: false } });
   // --force is the flag compose and package take to replace an output; run always
   // replaces its output, so it is accepted and changes nothing.
   assert.deepEqual(designSessionRunPlan({ export: 'pptx', output: 'x.pptx', force: '1' }), { format: 'pptx', output: 'x.pptx' });
@@ -176,6 +182,61 @@ test('lolly run refuses a bad session flag with exit 2 before any page opens', a
       assert.equal(run.stdout, '');
     }
   } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// The design-system record (plans/319) is approved on the condition that it is
+// visible at the moment of export, so `lolly run <session.lolly>` prints the words
+// each finished file carries, as every other render does. The web shell exporter is
+// replaced here, so no browser starts; the printed words are read back from the bytes it hands over.
+test('lolly run <session.lolly> prints the design-system record each file carries', async () => {
+  const { runDesignSession, sessionRecordLine } = await import('../shells/cli/src/design-session.ts');
+  const { injectSvgMeta } = await import('../engine/src/image-meta.ts');
+  const svg = (colourway: string | null): Uint8Array => strToU8(injectSvgMeta(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10"/></svg>',
+    {
+      software: 'Lolly', source: 'https://lolly.tools/t/design', tool: 'Design', author: '', contact: '', description: 'Made with https://lolly.tools : Design',
+      ...(colourway ? { designSystem: { id: 'acme', label: 'Acme' }, themes: [{ group: 'colourway', kind: 'colourway' as const, id: colourway.toLowerCase(), name: colourway }] } : {}),
+    },
+  ));
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-session-record-'));
+  const stateDir = process.env.LOLLY_STATE_DIR;
+  process.env.LOLLY_STATE_DIR = join(dir, 'state');
+  const write = process.stderr.write.bind(process.stderr);
+  let stderr = '';
+  const run = async (flags: Record<string, string>, files: (Uint8Array | null)[]): Promise<{ text: string; madeWith: unknown }> => {
+    stderr = '';
+    let madeWith: unknown;
+    process.stderr.write = ((chunk: string | Uint8Array) => { stderr += String(chunk); return true; }) as typeof process.stderr.write;
+    try {
+      await runDesignSession(join(dir, 'session.lolly'), await sessionFile(), flags, undefined, (async (_bytes: Uint8Array, opts: { madeWith?: boolean }) => {
+        madeWith = opts.madeWith;
+        return files.map((bytes, i) => ({ bytes: bytes ?? strToU8('PK not an image'), filename: `f${i}` }));
+      }) as never);
+    } finally {
+      process.stderr.write = write;
+    }
+    return { text: stderr, madeWith };
+  };
+  try {
+    const one = await run({ export: 'svg', output: join(dir, 'one.svg') }, [svg('Persimmon')]);
+    assert.match(one.text, /Recorded the design system: Acme · Colourway: Persimmon\. Pass --no-madewith to leave the record out\.\n✓ Wrote \d+ bytes to .*one\.svg/);
+
+    // Each --themes file is drawn in its own colourway, and its line gives that colourway.
+    const tokens = join(dir, 'tokens.json');
+    writeFileSync(tokens, readFileSync(join(root, 'brands', 'lolly-start', 'catalog', 'assets', 'lolly', 'tokens', 'brand.json')));
+    const many = await run({ export: 'svg', themes: 'light,dark', file: tokens, output: join(dir, 'deck.svg') }, [svg('Persimmon'), svg('Jungle')]);
+    assert.match(many.text, /Colourway: Persimmon\. Pass --no-madewith to leave the record out\.\n✓ Wrote \d+ bytes to .*deck-light\.svg \(theme light\)/);
+    assert.match(many.text, /Colourway: Jungle\. Pass --no-madewith to leave the record out\.\n✓ Wrote \d+ bytes to .*deck-dark\.svg \(theme dark\)/);
+
+    // --no-madewith reaches the exporter, and a file that kept no record gets no line.
+    const off = await run({ export: 'svg', output: join(dir, 'off.svg'), 'no-madewith': '1' }, [svg(null)]);
+    assert.equal(off.madeWith, false);
+    assert.doesNotMatch(off.text, /Recorded the design system/);
+    assert.equal(await sessionRecordLine(strToU8('PK not a deck'), 'pptx'), '', 'a deck holds no record, so none is claimed');
+  } finally {
+    if (stateDir === undefined) delete process.env.LOLLY_STATE_DIR; else process.env.LOLLY_STATE_DIR = stateDir;
     rmSync(dir, { recursive: true, force: true });
   }
 });

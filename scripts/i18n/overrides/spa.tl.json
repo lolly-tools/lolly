@@ -1666,5 +1666,10 @@
   "Try again.": "Subukan muli.",
   "Review": "Suriin",
   "Profile and settings, {count} notifications": "Profile at mga setting, {count} notification",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "Mabubuksan ng tatanggap ang tool na ito hanggang mag-expire ang link. Mananatili sa kanya ang mga pagbabago niya."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Mabubuksan ng tatanggap ang tool na ito hanggang mag-expire ang link. Mananatili sa kanya ang mga pagbabago niya.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Hindi na-save para sa offline na paggamit: wala sa server na ito ang {n} sa {total} file.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Hindi na-save para sa offline na paggamit: {n} sa {total} file ang hindi na-download. Suriin ang iyong koneksyon, tapos subukan ulit.",
+  "Not saved for offline use. Try again in a moment.": "Hindi na-save para sa offline na paggamit. Subukan ulit sa ilang sandali.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} na download ang hindi natapos. Sinasabi ng bawat hilera kung bakit."
 }

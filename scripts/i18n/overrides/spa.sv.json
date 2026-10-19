@@ -1656,5 +1656,10 @@
   "Try again.": "Försök igen.",
   "Review": "Granska",
   "Profile and settings, {count} notifications": "Profil och inställningar, {count} aviseringar",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "Mottagaren kan öppna det här verktyget tills länken upphör. Hens ändringar stannar hos hen."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Mottagaren kan öppna det här verktyget tills länken upphör. Hens ändringar stannar hos hen.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Inte sparat för offlineanvändning: den här servern saknar {n} av {total} filer.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Inte sparat för offlineanvändning: {n} av {total} filer laddades inte ner. Kontrollera din anslutning och försök igen.",
+  "Not saved for offline use. Try again in a moment.": "Inte sparat för offlineanvändning. Försök igen om en stund.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} nedladdningar blev inte klara. Varje rad anger varför."
 }

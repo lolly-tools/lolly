@@ -1792,5 +1792,10 @@
   "Try again.": "Spróbuj ponownie.",
   "Review": "Sprawdź",
   "Profile and settings, {count} notifications": "Profil i ustawienia, powiadomienia: {count}",
-  "The recipient can open this tool until the link ends. Their changes stay with them.": "Odbiorca może otwierać to narzędzie, dopóki link nie wygaśnie. Jego zmiany zostają u niego."
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Odbiorca może otwierać to narzędzie, dopóki link nie wygaśnie. Jego zmiany zostają u niego.",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Nie zapisano do użytku offline: ten serwer nie ma {n} z {total} plików.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Nie zapisano do użytku offline: {n} z {total} plików nie zostało pobranych. Sprawdź połączenie i spróbuj ponownie.",
+  "Not saved for offline use. Try again in a moment.": "Nie zapisano do użytku offline. Spróbuj ponownie za chwilę.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} pobrań nie zakończyło się. Każdy wiersz podaje powód."
 }
