@@ -384,7 +384,8 @@ export async function loadOffline(pv: ProfileViewCtx) {
    *  usually is the connection, and is worth another go. */
   const failureLine = (err: unknown): string => {
     if (err instanceof OfflineDownloadError) {
-      const counts = { n: String(err.failed), total: String(err.total) };
+      const count = (n: number): string => { try { return new Intl.NumberFormat(currentLang()).format(n); } catch { return String(n); } };
+      const counts = { n: count(err.failed), total: count(err.total) };
       return err.missing === err.failed
         ? t('Not saved for offline use: this server does not have {n} of the {total} files.', counts)
         : t('Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.', counts);
