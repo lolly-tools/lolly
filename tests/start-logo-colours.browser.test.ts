@@ -9,6 +9,10 @@
  * becomes the text colour, and the card says so in both rooms. Undo rewinds the
  * apply and the card asks again.
  *
+ * The first edit is also what creates the person's own design system, so the
+ * studio asks once what it is called (plan 320 S5), with the logo's own words
+ * filled in, and the name sticks after a reload.
+ *
  *   LOLLY_IMPORT_TEST_URL=http://127.0.0.1:5193 node --import ./tests/browser-gpu.ts --test tests/start-logo-colours.browser.test.ts
  */
 import assert from 'node:assert/strict';
@@ -56,6 +60,38 @@ test('a placed logo leads with its ink and sets the main and text colours', {
     await colours.locator('[data-logo-colours-act="use"]').waitFor();
     assert.match(await colours.innerText(), /Which is the main colour\?/);
     assert.equal(await page.locator('[data-be-logo-colours="logos"] [data-logo-colours-act="use"]').count(), 1, 'both rooms show the same card');
+  } finally {
+    await browser.close();
+  }
+});
+
+test('the first edit asks once what the design system is called, from the logo', {
+  skip: origin ? false : 'set LOLLY_IMPORT_TEST_URL to a local Vite shell', timeout: 120_000,
+}, async () => {
+  const browser = await chromium.launch({ headless: true, channel: process.env.LOLLY_BROWSER_CHANNEL });
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
+  try {
+    await context.addInitScript(() => {
+      for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1');
+    });
+    const page = await context.newPage();
+    await page.goto(`${origin}/#/start`, { waitUntil: 'networkidle' }); await shellSettled(page);
+    assert.equal(await page.locator('[data-start-ds-ask]').count(), 0, 'nothing to name before the first edit');
+    await page.locator('[data-ds-room="logos"]').first().click();
+    await page.locator('[data-be-logo-multi]').setInputFiles({ name: 'crumb-logo.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(CRUMB) });
+    await page.locator('[data-logo-place]').first().click();
+    const keep = page.getByRole('button', { name: /^Keep/ });
+    const ask = page.locator('[data-start-ds-ask]');
+    await Promise.race([ask.waitFor({ state: 'visible' }), keep.first().waitFor().then(() => keep.first().click())]);
+    await page.waitForFunction(() => (document.querySelector<HTMLInputElement>('[data-start-ds-ask-name]')?.value ?? '') === 'Crumb & Co');
+    await ask.getByRole('button', { name: 'Save name' }).click();
+    await ask.waitFor({ state: 'detached' });
+    assert.equal(await page.locator('[data-start-ds-name]').inputValue(), 'Crumb & Co');
+
+    await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
+    await page.locator('[data-start-ds-name]').waitFor();
+    assert.equal(await page.locator('[data-start-ds-name]').inputValue(), 'Crumb & Co');
+    assert.equal(await page.locator('[data-start-ds-ask]').count(), 0, 'asked once');
   } finally {
     await browser.close();
   }

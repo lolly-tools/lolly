@@ -33,12 +33,14 @@ Pinned to the **foot of the rail** are the actions that belong to the whole desi
 
 - **Add from…** - the source picker, for bringing a brand in from a file, a PDF, an image, a font or a website. See [Bring a brand in](#bring-a-brand-in) below.
 - **Tray** - the candidates a scan turned up but hasn't committed. It stays hidden until a scan actually keeps something, and carries a count when it does; nothing in it changes your brand until you press Add on that row.
-- **Export** - writes the whole design system as one `LollyBrand-….lolly`.
+- **Export** - writes the whole design system as one `LollyBrand-….lolly`, named after the design system.
 - **Tokens (.json)** - the plain design-tokens document on its own, for a repo, a build step or another tokens tool.
 - **Restore brand settings** - return to a checkpoint saved before an import or a replacement of brand settings.
 - **Versions** - publish, activate and restore named copies of the design system. Hidden until there's something of your own to publish (or a `?area=versions` link asks for it by name).
 
 ![The studio room rail - Overview, Colours, Type, Logos, Tokens and Files](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+
+The header says which design system you are **Editing**, and its name is a field you can change at any time. Your first edit makes a design system of your own, and the studio then asks once **What is this design system called?**, with the words from your logo filled in when the logo spells them out. **Save name** keeps it; **Not now** leaves the placeholder name until you type one in the header. The name labels the design system in Settings and when you switch systems, and it names the file **Export** writes.
 
 ## Overview
 

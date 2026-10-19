@@ -1174,15 +1174,18 @@ background-image:
 .be-logo-colours-choice {
   position: relative; display: inline-flex; align-items: center; gap: .45rem;
   min-height: 40px; padding: .3rem .8rem .3rem .35rem;
-  border: 1px solid hsl(var(--border)); border-radius: 999px;
+  border: 1px solid hsl(var(--border)); border-radius: var(--ui-radius-pill);
   background: hsl(var(--background)); font-size: var(--fs-sm); cursor: pointer;
 }
 .be-logo-colours-choice input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
-.be-logo-colours-choice:has(input:checked) { border-color: hsl(var(--primary)); box-shadow: 0 0 0 1px hsl(var(--primary)); font-weight: 600; }
+.be-logo-colours-choice:has(input:checked) {
+  border: 2px solid hsl(var(--primary)); font-weight: 600;
+  padding: calc(.3rem - 1px) calc(.8rem - 1px) calc(.3rem - 1px) calc(.35rem - 1px);
+}
 .be-logo-colours-choice:has(input:focus-visible) { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 .be-logo-colours-sw {
-  width: 28px; height: 28px; border-radius: 50%; background: var(--sw, transparent);
-  box-shadow: inset 0 0 0 1px hsl(var(--foreground) / .15);
+  width: 28px; height: 28px; border-radius: var(--radius-round); background: var(--sw, transparent);
+  box-shadow: var(--ui-edge-strong);
 }
 .be-logo-colours-note { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: hsl(var(--muted-foreground)); }
 .be-logo-colours-actions { display: flex; flex-wrap: wrap; gap: .5rem; }

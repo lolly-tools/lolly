@@ -938,7 +938,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'lib/brand-editor/shared.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/brand-editor/replace.ts': 4,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/brand-editor/ramps.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'lib/brand-editor/logos.ts': 3,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'lib/brand-editor/logos.ts': 2,   // 2026-10-19: the logo colours card (plan 320 S1) replaced the two suggestion-row sinks with one
   'lib/brand-editor/logo-intake.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/brand-editor/grid.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/brand-editor/derive.ts': 6,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
@@ -1426,7 +1426,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // Start feature extraction: the same escaped templates; the editor error now uses textContent.
   'views/start/navigation.ts': 1,
   'views/start/feedback.ts': 1,
-  'views/start/brand.ts': 1,
+  'views/start/brand.ts': 2,   // 2026-10-19: + the one-time name ask (plan 320 S5); t() strings and escape()d values only
   'views/start/pdf.ts': 1,
   'views/start/site.ts': 1,
   // Moved from start.ts: static sheet shell and escaped swatchTile()/group labels.
