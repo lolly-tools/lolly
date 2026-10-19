@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.277.0
+
+- Add functions that edit an existing set of colourways: `renameColourway`, `reorderColourways`, `setCanonicalColourway`, `removeColourway` and `duplicateColourway`, plus `colourwaysEditable` (whether Lolly can add, copy and remove colourways in a document, and why not) and `colourwayRolesOf` (the roles every look links to the colourways). Each returns the edited document or the reasons it refused. A colourway's id never changes, so an artefact that stored one keeps pointing at it; a rename of an entry with no id of its own writes the old name as the id first.
+- The canonical colourway stays first, so the mark and the first-option rule agree. Removing the canonical colourway is refused; removing another clears any stored choice of it, so the document falls back to the canonical colourway. Every edit checks that the remaining pairings of colourway and look resolve exactly as before.
+- A colourway name has at most `MAX_COLOURWAY_NAME` (80) characters and may not repeat any theme's id or name, in any case. `liftToColourways` now applies the same rules to the canonical colourway: one named after a look (light, Dark) would have answered every theme request for that look.
+
 ## 1.276.0
 
 - Add optional `host.fonts`. `inspect` reads a TTF, OTF or WOFF file's own tables: names, outline format, weight class and `wght` range, variation axes, named instances, mapped characters per Unicode block and the `OS/2.fsType` statement. `subset` keeps only the glyphs chosen text needs through the shell's Skera runtime, keeps glyph ids and checks the output bytes before returning them.

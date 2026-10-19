@@ -63,6 +63,10 @@ export interface BrandEditorCtx {
   analogCount: number;
   analogAngle: number;
   currentTheme: string;
+  /** The lead (colourway option id, plans/319) the room reads and writes, or
+   *  null for the canonical lead. Null until the Colours room offers a lead
+   *  switcher; read it through `bedit.state.editContext()`. */
+  currentLead: string | null;
   curves: RampCurves;
   curveAnchorPrimary: string;
   editingCurveRamp: RampId | null;

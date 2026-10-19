@@ -846,6 +846,9 @@ background-image:
 .be-review-title { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: hsl(var(--foreground)); }
 .be-review-list { margin: 0; padding: 0; list-style: none; display: grid; gap: .25rem; font-size: calc(.74rem * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
 .be-review-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+/* Why a rebuild was refused (replace.ts renderRefusal): plain text in the card,
+   readable rather than muted, because it is the whole message. */
+.be-review-reason { margin: 0; font-size: var(--fs-sm); line-height: 1.45; color: hsl(var(--foreground)); }
 
 /* ── Add a colour (lib/design-system/add-color.ts) - the room's level-0 control.
       One row: value field, the optional eyedropper (feature-detected into
@@ -986,6 +989,12 @@ background-image:
   background: hsl(var(--primary) / .14);
   color: hsl(var(--foreground));
 }
+/* A lead's own role (plans/319) stays pressed but is not a toggle: pressing it
+   again explains instead of clearing, so it keeps the pressed look and drops
+   the pointer that promises an action. */
+.be-useas-row .be-btn[aria-pressed="true"][aria-disabled="true"] { cursor: default; }
+.be-useas-hint { flex: 1 0 100%; margin: 0; font-size: var(--fs-sm); line-height: 1.45; color: hsl(var(--muted-foreground)); }
+.be-useas-hint[hidden] { display: none; }
 
 /* ── Tab panels - the host view (start.ts) sets data-active-tab on .be; every
       panel stays mounted (wiring intact) and CSS shows just the active one.

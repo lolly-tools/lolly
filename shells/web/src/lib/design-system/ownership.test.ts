@@ -283,3 +283,29 @@ test('nothing here throws on a document that is not one', () => {
     assert.equal(report.radius, 'inherited');
   }
 });
+
+// ── Colourways (plans/319 A2) ────────────────────────────────────────────────
+
+test('a lead\'s own colours are roles: a system with three leads counts the colours its single-lead self did', async () => {
+  const { deriveBrandTokens, createTokenSet } = await import('@lolly/engine');
+  const { addLead } = await import('./leads.ts');
+  assert.equal(isRoleKey('color.colourway.light.primary'), true);
+  assert.equal(isRoleKey('color.colourway.dark.on-primary'), true);
+  assert.equal(isRoleKey('color.custom.colourway'), false, 'only the colourway primitives, not a swatch that happens to be called that');
+  const single = deriveBrandTokens({ primary: '#0c322c', name: 'Test' }) as Record<string, unknown>;
+  const one = addLead(structuredClone(single), { colour: '#e05a2b', name: 'Persimmon', canonical: { name: 'Pine' } });
+  assert.ok(one.ok);
+  const two = addLead(one.doc, { colour: '#0e7490', name: 'Waterhole' });
+  assert.ok(two.ok);
+  const doc = two.doc;
+  // The walked space (the Colours room)...
+  const walked = (d: unknown) => reportOwnership({ doc: d, starterDoc: null }).counts;
+  assert.deepEqual(walked(doc), walked(single));
+  assert.deepEqual(docColorRefs(doc, 'light'), docColorRefs(single, 'light'));
+  // ...and the resolved space (the Overview reads host.tokens.colors(), which lists
+  // the canonical lead's colourway primitives beside the roles).
+  const resolved = (d: unknown) => createTokenSet(d, { theme: 'light' }).colors().map(c => ({ key: c.path, value: c.value }));
+  assert.ok(resolved(doc).some(c => c.key.startsWith('color.colourway.')), 'the fixture really does list them');
+  const counted = (d: unknown) => reportOwnership({ doc: d, starterDoc: null, palette: { colors: resolved(d), starter: [] } }).counts;
+  assert.deepEqual(counted(doc), counted(single));
+});

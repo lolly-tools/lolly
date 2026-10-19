@@ -512,7 +512,7 @@ test('mountRolesStrip: picking a swatch assigns once; picking Not set clears', (
   const mount = document.getElementById('mount')!;
   const strip = mountRolesStrip(mount, {
     doc: () => doc,
-    theme: () => 'light',
+    context: () => 'light',
     resolve: resolverFor(doc),
     swatches: () => OPTIONS,
     assign: (role, key) => { assigned.push([role, key]); assignRole(doc, role, key); },
@@ -551,7 +551,7 @@ test('mountRolesStrip: a repaint keeps the focused picker alive and focused', ()
   const mount = document.getElementById('mount')!;
   const strip = mountRolesStrip(mount, {
     doc: () => doc,
-    theme: () => 'light',
+    context: () => 'light',
     resolve: resolverFor(doc),
     swatches: () => OPTIONS,
     // Exactly what the room does: write, then re-render through the palette
@@ -588,7 +588,7 @@ test('mountRolesStrip: a changed swatch list rebuilds, and puts focus back', () 
   let options = OPTIONS.slice();
   const strip = mountRolesStrip(mount, {
     doc: () => doc,
-    theme: () => 'light',
+    context: () => 'light',
     resolve: resolverFor(doc),
     swatches: () => options,
     assign: () => {}, clear: () => {},
@@ -700,7 +700,7 @@ test('mountRolesStrip widens on demand and keeps its pickers working', () => {
   const assigned: string[] = [];
   const strip = mountRolesStrip(mount, {
     doc: () => doc,
-    theme: () => 'light',
+    context: () => 'light',
     resolve: resolverFor(doc),
     swatches: () => [{ key: 'color.ramp.neutral.5', name: 'Neutral 5', hex: '#888888' }],
     ids: () => ids,
@@ -725,4 +725,137 @@ test('sanity: the derived fixture really is the multi-set engine shape', () => {
   const doc = derived();
   assert.ok(doc.base && doc.light && doc.dark, 'deriveBrandTokens changed shape');
   assert.match(String(colorToHex('#0c322c')), /^#0c322c$/i);
+});
+
+// ── Leads (plans/319 A2) ─────────────────────────────────────────────────────
+// A design system with three colourways. The mode sets' primary, on-primary and
+// secondary are links every lead shares; each lead's colour lives in its own
+// set. Every read must follow the link to the lead being edited, and every write
+// must land on the lead and never on the link.
+
+const { addLead, leadTokenSet } = await import('./leads.ts');
+const { setRoleValue } = await import('./roles.ts');
+
+/** The derived fixture, lifted as Pine, with Persimmon and Waterhole added. */
+function threeLeads(): Rec {
+  const one = addLead(derived(), { colour: '#e05a2b', name: 'Persimmon', canonical: { name: 'Pine' } });
+  assert.ok(one.ok);
+  const two = addLead(one.doc, { colour: '#0e7490', name: 'Waterhole' });
+  assert.ok(two.ok);
+  return two.doc;
+}
+const leadResolver = (doc: unknown, lead: string | null, mode: string) =>
+  (key: string): unknown => { try { return leadTokenSet(doc, { lead, mode }).resolve(key); } catch { return null; } };
+const leadLeaf = (doc: Rec, lead: string, mode: string, role: string): Rec =>
+  ((((doc[`colourway/${lead}`] as Rec).color as Rec).colourway as Rec)[mode] as Rec)[role] as Rec;
+
+test('a single-lead system reads the same through a bare mode and a context, with no lead mark', () => {
+  const doc = derived();
+  for (const mode of ['light', 'dark']) {
+    const bare = readRoles(doc, mode, resolverFor(doc, mode));
+    assert.deepEqual(readRoles(doc, { mode }, resolverFor(doc, mode)), bare);
+    assert.deepEqual(readRoles(doc, { lead: 'anything', mode }, resolverFor(doc, mode)), bare, 'a lead id means nothing without colourways');
+    for (const id of ROLE_IDS_ALL) assert.equal('lead' in bare[id], false, `${mode} ${id} carries no lead mark`);
+  }
+  const model = buildRolesModel(doc, 'light', [], resolverFor(doc), ROLE_IDS_ALL);
+  assert.ok(model.rows.every(r => r.required === false), 'nothing is required on a single-lead system');
+  assert.equal(rolesStripHtml(model).includes(' disabled'), false, 'the empty option stays choosable');
+});
+
+test('readRoles follows the link to each lead, in each mode', () => {
+  const doc = threeLeads();
+  const canonical = readRoles(doc, 'light', leadResolver(doc, null, 'light'));
+  const before = readRoles(derived(), 'light', resolverFor(derived()));
+  assert.deepEqual({ ...canonical.primary, lead: undefined }, { ...before.primary, lead: undefined },
+    'the canonical lead reads exactly what the system read before it had leads');
+  assert.equal(canonical.primary.lead, true);
+  assert.equal(canonical.surface.lead, undefined, 'the surface is still the look\'s own');
+  for (const mode of ['light', 'dark']) {
+    const persimmon = readRoles(doc, { lead: 'persimmon', mode }, leadResolver(doc, 'persimmon', mode));
+    assert.equal(persimmon.primary.hex, colorToHex(leadResolver(doc, 'persimmon', mode)('color.semantic.primary')));
+    assert.equal(persimmon.primary.literal, true, 'a lead added from a colour holds the colour itself');
+    assert.notEqual(persimmon.primary.hex, readRoles(doc, { lead: 'waterhole', mode }, leadResolver(doc, 'waterhole', mode)).primary.hex);
+  }
+  const readouts = roleReadouts(doc, { lead: 'waterhole', mode: 'dark' }, leadResolver(doc, 'waterhole', 'dark'));
+  assert.ok(readouts.primary.contrast, 'the readout measures the lead against its own on-primary');
+});
+
+test('assignRole writes the lead\'s own colour and leaves the link and the other leads alone', () => {
+  const doc = threeLeads();
+  const link = JSON.stringify(semanticAt(doc, 'dark').secondary);
+  const others = JSON.stringify([leadLeaf(doc, 'pine', 'dark', 'secondary'), leadLeaf(doc, 'waterhole', 'dark', 'secondary'), leadLeaf(doc, 'persimmon', 'light', 'secondary')]);
+  assert.equal(assignRole(doc, 'secondary', 'color.ramp.neutral.3', { lead: 'persimmon', mode: 'dark' }), true);
+  assert.equal(leadLeaf(doc, 'persimmon', 'dark', 'secondary').$value, '{color.ramp.neutral.3}');
+  assert.equal(JSON.stringify(semanticAt(doc, 'dark').secondary), link, 'the mode\'s link is untouched');
+  assert.equal(JSON.stringify([leadLeaf(doc, 'pine', 'dark', 'secondary'), leadLeaf(doc, 'waterhole', 'dark', 'secondary'), leadLeaf(doc, 'persimmon', 'light', 'secondary')]), others);
+  assert.equal(readRoles(doc, { lead: 'persimmon', mode: 'dark' }).secondary.ref, 'color.ramp.neutral.3');
+  // A role the colourways do not re-point is the look's own, for every lead.
+  assert.equal(assignRole(doc, 'text', 'color.ramp.neutral.2', { lead: 'waterhole', mode: 'light' }), true);
+  assert.equal((semanticAt(doc, 'light').text as Rec).$value, '{color.ramp.neutral.2}');
+  // A lead's colour is not a swatch to point a role at.
+  assert.equal(assignRole(doc, 'secondary', 'color.colourway.light.primary', 'light'), false);
+});
+
+test('an unscoped write goes to the canonical lead in both modes', () => {
+  const doc = threeLeads();
+  const kept = JSON.stringify([leadLeaf(doc, 'persimmon', 'light', 'primary'), leadLeaf(doc, 'waterhole', 'dark', 'primary')]);
+  assert.equal(assignRole(doc, 'primary', 'color.ramp.secondary.2'), true);
+  for (const mode of ['light', 'dark']) {
+    assert.equal(leadLeaf(doc, 'pine', mode, 'primary').$value, '{color.ramp.secondary.2}', `pine ${mode}`);
+    assert.equal((semanticAt(doc, mode).primary as Rec).$value, `{color.colourway.${mode}.primary}`, `${mode} keeps its link`);
+  }
+  assert.equal(JSON.stringify([leadLeaf(doc, 'persimmon', 'light', 'primary'), leadLeaf(doc, 'waterhole', 'dark', 'primary')]), kept, 'the other leads keep their primaries');
+  assert.equal(setRoleValue(doc, 'secondary', '#123456'), true);
+  assert.deepEqual(['light', 'dark'].map(mode => leadLeaf(doc, 'pine', mode, 'secondary').$value), ['#123456', '#123456']);
+  assert.equal(setRoleValue(doc, 'surface', '#fafafa', 'light'), true);
+  assert.equal((semanticAt(doc, 'light').surface as Rec).$value, '#fafafa');
+});
+
+test('a lead\'s own role cannot be cleared; the look\'s own roles still can', () => {
+  const doc = threeLeads();
+  const before = JSON.stringify(doc);
+  assert.equal(clearRole(doc, 'primary', { lead: 'persimmon', mode: 'light' }), false);
+  assert.equal(clearRole(doc, 'secondary'), false);
+  assert.equal(JSON.stringify(doc), before, 'a refused clear changes nothing');
+  assert.equal(clearRole(doc, 'muted', 'light'), true);
+  assert.equal('muted' in semanticAt(doc, 'light'), false);
+});
+
+test('the strip marks a lead\'s roles required, so the empty option cannot be chosen', () => {
+  const doc = threeLeads();
+  const ctx = { lead: 'persimmon', mode: 'light' };
+  const model = buildRolesModel(doc, ctx, OPTIONS, leadResolver(doc, 'persimmon', 'light'), ROLE_IDS_ALL);
+  const req = Object.fromEntries(model.rows.map(r => [r.id, r.required]));
+  assert.deepEqual(req, { primary: true, secondary: true, surface: false, text: false, muted: false, edge: false, 'on-primary': true });
+  const html = rolesStripHtml(model);
+  const primaryRow = html.slice(html.indexOf('data-be-role="primary"'), html.indexOf('data-be-role="secondary"'));
+  assert.match(primaryRow, /<option value=""[^>]* disabled>/);
+  const surfaceRow = html.slice(html.indexOf('data-be-role="surface"'), html.indexOf('data-be-role="text"'));
+  assert.doesNotMatch(surfaceRow, /<option value=""[^>]* disabled>/);
+});
+
+test('mountRolesStrip on three leads edits the lead its context names', () => {
+  const doc = threeLeads();
+  // A mount of its own: the strips mounted above keep their listeners on #mount.
+  const mount = document.createElement('div');
+  document.body.append(mount);
+  let ctx: { lead: string | null; mode: string } = { lead: 'waterhole', mode: 'light' };
+  const strip = mountRolesStrip(mount, {
+    doc: () => doc,
+    context: () => ctx,
+    resolve: (key) => leadResolver(doc, ctx.lead, ctx.mode)(key),
+    swatches: () => [{ key: 'color.ramp.neutral.5', name: 'Neutral 5', hex: '#888888' }],
+    assign: (role, key) => { assignRole(doc, role, key, ctx); strip.render(); },
+    clear: (role) => { clearRole(doc, role, ctx); strip.render(); },
+  });
+  const pick = mount.querySelector<HTMLSelectElement>('[data-be-role-pick="secondary"]')!;
+  assert.equal(pick.querySelector<HTMLOptionElement>('option[value=""]')!.disabled, true);
+  pick.value = 'color.ramp.neutral.5';
+  pick.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  assert.equal(leadLeaf(doc, 'waterhole', 'light', 'secondary').$value, '{color.ramp.neutral.5}');
+  assert.notEqual(leadLeaf(doc, 'pine', 'light', 'secondary').$value, '{color.ramp.neutral.5}');
+  // The same strip, switched to another lead, reads that lead.
+  ctx = { lead: 'pine', mode: 'light' };
+  strip.render();
+  assert.notEqual(mount.querySelector<HTMLSelectElement>('[data-be-role-pick="secondary"]')!.value, 'color.ramp.neutral.5');
 });

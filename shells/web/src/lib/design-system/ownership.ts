@@ -40,6 +40,7 @@
  */
 
 import { walkSwatches, getExcludedSwatches } from '../brand-doc.ts';
+import type { EditContextInput } from './leads.ts';
 import { familyFromTokenValue } from '../../user-fonts.ts';
 import type { FontRole } from '../../user-fonts.ts';
 
@@ -120,9 +121,10 @@ export interface OwnershipInput {
   /** The shipped starter document, or null on a brand that ships none - which
    *  attributes nothing, exactly as every caller behaved before this module. */
   starterDoc: unknown | null;
-  /** Which theme's roles the colour walk sees. Only matters when `palette` is
-   *  absent (the walk is theme-scoped); defaults to light. */
-  theme?: string;
+  /** Which theme's roles the colour walk sees (a mode, or a lead in a mode).
+   *  Only matters when `palette` is absent (the walk is theme-scoped); defaults
+   *  to light. */
+  theme?: EditContextInput;
   /** Colours already read, plus the starter's in the same spelling. Absent means
    *  "walk both documents for me" - see the module note. */
   palette?: PaletteSpace;
@@ -155,8 +157,11 @@ export const colorIdentity = (key: string, value: string): string => `${key}␟$
  *  whose colours came from `createTokenSet` rather than the walker. A themed role
  *  token (`color.role.*`, plan 291 W4) is a role in the same sense, and so is the app
  *  chrome a pack states (`color.chrome.*`): it describes a use in the app, so it is
- *  never the design system's own colour. */
-export const isRoleKey = (key: string): boolean => /(^|\.)semantic(\.|$)/.test(key) || /^color\.(?:role|chrome)\./.test(key);
+ *  never the design system's own colour. A colourway's own colours
+ *  (`color.colourway.<mode>.<role>`, plans/319) are one lead's roles: a
+ *  resolved token list carries them beside the semantic slots, and counting them
+ *  would read every lead's primary as a colour somebody added. */
+export const isRoleKey = (key: string): boolean => /(^|\.)semantic(\.|$)/.test(key) || /^color\.(?:role|chrome|colourway)\./.test(key);
 
 /**
  * A step of the NEUTRAL ramp - ink and paper (plan 182 section 12).
@@ -173,13 +178,15 @@ export const isRoleKey = (key: string): boolean => /(^|\.)semantic(\.|$)/.test(k
 export const isNeutralRampKey = (key: string): boolean => /(^|\.)ramp\.neutral(\.|$)/.test(key);
 
 /** Both theme spellings of a doc's roles, because either is equally a starter
- *  one and a document is only ever walked in one theme at a time. */
+ *  one and a document is only ever walked in one theme at a time. The walk is
+ *  of the canonical lead: the starter has one lead, and the other leads' own
+ *  colours are roles, which attribution skips (see `isRoleKey`). */
 const BOTH_THEMES: readonly string[] = ['light', 'dark'];
 
 /** Every colour leaf in `doc`, keyed and valued AS STORED (`walkSwatches`), with
  *  the "deleted" derived steps the palette hides filtered out so a report never
  *  counts a tile that is not on screen. */
-export function docColorRefs(doc: unknown, theme = 'light'): ColorRef[] {
+export function docColorRefs(doc: unknown, theme: EditContextInput = 'light'): ColorRef[] {
   const excluded = new Set(getExcludedSwatches(doc));
   return walkSwatches(doc, theme)
     .filter(s => !excluded.has(s.key))
@@ -193,7 +200,7 @@ export function docColorRefs(doc: unknown, theme = 'light'): ColorRef[] {
  * Walks both themes by default (see {@link BOTH_THEMES}). Empty for a brand that
  * ships no starter, which is what makes "attribute nothing" the honest default.
  */
-export function starterColorIds(starterDoc: unknown, themes: readonly string[] = BOTH_THEMES): Set<string> {
+export function starterColorIds(starterDoc: unknown, themes: readonly EditContextInput[] = BOTH_THEMES): Set<string> {
   const out = new Set<string>();
   if (!starterDoc) return out;
   for (const theme of themes) {

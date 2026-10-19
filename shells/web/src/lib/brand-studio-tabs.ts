@@ -168,6 +168,7 @@ const NEUTRALS_LINK = '#/start?area=color&group=neutral';
 function neutralSwatches(ctx: StudioTabCtx): Array<{ hex: string; own: boolean }> {
   const starter = ctx.starterIds?.() ?? new Set<string>();
   try {
+    // Light, canonical lead: the neutral ramp lives in `base`, which every lead shares.
     return walkSwatches(ctx.doc(), 'light')
       .filter(s => s.hex && isNeutralRampKey(s.key))
       .map(s => ({ hex: s.hex, own: !starter.has(colorIdentity(s.key, s.raw)) }));

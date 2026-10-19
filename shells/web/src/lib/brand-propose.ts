@@ -33,6 +33,7 @@
 import { hexToOklch, contrastRatio, deriveBrandTokens, createTokenSet, typographyFamilies, tokenSetNames, resolveTokenSelection } from '@lolly/engine';
 import type { PenpotUsage, PenpotAppliedToken } from '@lolly/engine';
 import { addSwatch } from './brand-doc.ts';
+import { setRoleValue } from './design-system/roles.ts';
 import { addStudioToken } from './token-studio.ts';
 import { withFontRoleToken } from '../user-fonts.ts';
 
@@ -550,20 +551,10 @@ export function buildBrandDocFromUsage(
 
   // Detach color.semantic.secondary from its derived ramp step in BOTH theme
   // sets, pinning the colour the designer actually used (writing a literal
-  // over the alias is the supported detach - see brand-doc.ts).
-  if (roles.secondary) {
-    for (const set of ['light', 'dark']) {
-      const setRec = doc[set];
-      if (typeof setRec !== 'object' || setRec === null) continue;
-      const color = (setRec as Record<string, unknown>).color;
-      if (typeof color !== 'object' || color === null) continue;
-      const semantic = (color as Record<string, unknown>).semantic;
-      if (typeof semantic !== 'object' || semantic === null) continue;
-      const leaf = (semantic as Record<string, unknown>).secondary;
-      if (typeof leaf === 'object' && leaf !== null) (leaf as Record<string, unknown>).$value = roles.secondary;
-      else (semantic as Record<string, unknown>).secondary = { $value: roles.secondary };
-    }
-  }
+  // over the alias is the supported detach - see brand-doc.ts). Through the
+  // roles layer, unscoped: every mode of the canonical lead, so the write would
+  // land on that lead's own colour, not the link, if the doc had colourways.
+  if (roles.secondary) setRoleValue(doc, 'secondary', roles.secondary);
 
   // Kept extra accents land as custom swatches, labelled by their hex - honest
   // provenance for colours the file used without naming.

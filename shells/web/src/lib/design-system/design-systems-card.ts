@@ -18,6 +18,7 @@ import { escape } from '../../utils.ts';
 import { icon } from '../icons.ts';
 import { confirmDialog, promptDialog } from '../../components/confirm-dialog.ts';
 import { createTokenSet } from '@lolly/engine';
+import { withoutLeadColours } from './leads.ts';
 import { brandFontStack, tokenValueToHex, SWATCH_INK } from '../../brand-vars.ts';
 import type { DesignSystemRecord } from './registry.ts';
 import { createDesignSystem, type ManageHost } from './manage.ts';
@@ -103,7 +104,9 @@ export async function previewOf(host: CardHost, record: DesignSystemRecord): Pro
     const current = !blob && (await host.designSystems.activeId()) === record.id;
     const doc = blob && blob.size <= 2 * 1024 * 1024 ? JSON.parse(await blob.text()) : current ? await host.tokens?.raw?.() : null;
     const tokens = createTokenSet(doc);
-    const colors = tokens.colors()
+    // A colourway's own colours (plans/319) repeat the roles they fill, and the
+    // canonical lead's dark ones would count again in a light specimen.
+    const colors = withoutLeadColours(tokens.colors())
       .map(token => tokenValueToHex(token.value))
       .filter((value): value is string => !!value)
       .filter((value, i, all) => all.indexOf(value) === i);

@@ -94,6 +94,7 @@ test('colour workspace creates empty groups, moves directly, saves on Enter, pre
     assert.deepEqual(installed, beforeDraft, 'theme examples leave the installed roles intact');
     click('[data-be-replace-palette]');
     assert.equal($('[data-be-review-go]').textContent, 'Apply rebuilt palette');
+    assert.doesNotMatch($('[data-be-review]').textContent ?? '', /colourway/i, 'a design system with one lead gets the review it always had');
     assert.deepEqual(installed, beforeDraft, 'reviewing does not apply');
     input('[data-be-steps]', '6');
     assert.equal($<HTMLElement>('[data-be-review]').hidden, true, 'changing settings retires a stale proposal');

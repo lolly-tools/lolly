@@ -166,7 +166,7 @@ export const giveSelectionRoles = (bedit: BrandEditorCtx, from: RoleId): void =>
   if (!items.length || start < 0) return;
   const pairs = items.slice(0, ROLE_IDS.length - start).map((s, i) => ({ s, role: ROLE_IDS[start + i]! }));
   bulkWrite(bedit, tRaw('Give {n} swatches a role', { n: pairs.length }), t('Before assigning roles'), () => {
-    for (const p of pairs) assignRole(bedit.doc, p.role, p.s.key, bedit.addColor.roleTheme());
+    for (const p of pairs) assignRole(bedit.doc, p.role, p.s.key, bedit.state.editContext());
   });
   const said = pairs.map(p => tRaw('{role} is now {name}', { role: roleLabel(p.role), name: p.s.name })).join(' ');
   const spare = items.length - pairs.length;

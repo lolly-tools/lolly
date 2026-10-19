@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Adding a draft is append-only: existing swatches, roles and other tokens survive. */
-import { colorToHex, createTokenSet } from '@lolly/engine';
+import { colorToHex } from '@lolly/engine';
 import { addSwatch, walkSwatches } from '../brand-doc.ts';
 import { addPaletteGroup } from './palette-groups.ts';
+import { leadTokenSet } from './leads.ts';
 
 export interface DraftShade { key: string; hex: string; step: number }
 
 export function draftShades(draft: unknown, ramp: string): DraftShade[] {
   if (!['primary', 'secondary', 'neutral'].includes(ramp)) return [];
-  const set = createTokenSet(draft, { theme: 'light' });
+  // The canonical lead in light, pinned: a draft is a fresh derive with one
+  // lead, and a stored colourway choice must never decide which shades it shows.
+  const set = leadTokenSet(draft, 'light');
   return set.query({ type: 'color' }).flatMap(token => {
     const match = new RegExp(`^color\\.ramp\\.${ramp}\\.(\\d+)$`).exec(token.path);
     const hex = match ? colorToHex(set.resolve(token.path)) : null;

@@ -4028,7 +4028,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.276.0";
+    ENGINE_VERSION = "1.277.0";
   }
 });
 
@@ -41915,8 +41915,8 @@ function documentFor(node) {
 }
 function skipElement(element, options2) {
   if (SKIP_TAGS.has(element.nodeName.toUpperCase())) return true;
-  const editable = element.getAttribute("contenteditable");
-  if (editable !== null && editable !== "false") return true;
+  const editable2 = element.getAttribute("contenteditable");
+  if (editable2 !== null && editable2 !== "false") return true;
   return options2.skip?.(element) === true;
 }
 function collect(root2, options2, everything = false) {
@@ -47155,15 +47155,15 @@ async function validateManagedCredential(chain2, trust, crls, now2 = Date.now())
   for (const p of Object.values(trust.providers)) {
     const issuer = trust.issuers.get(p.issuer);
     if (!equalDer(chain2[1], issuer) || !p.domains.includes(email.slice(email.lastIndexOf("@") + 1).toLowerCase())) continue;
-    let checked;
+    let checked2;
     try {
-      checked = await validateEnrollmentChain(chain2, { roots: trust.roots, issuer, email, policyOid: p.policyOid, maxLifetimeSeconds: trust.maxLifetimeSeconds, now: now2 });
+      checked2 = await validateEnrollmentChain(chain2, { roots: trust.roots, issuer, email, policyOid: p.policyOid, maxLifetimeSeconds: trust.maxLifetimeSeconds, now: now2 });
     } catch {
       continue;
     }
     const status = await validateEnrollmentCrl(crls[p.issuer], issuer, trust.crlMaxAgeSeconds, now2);
-    if (status.revokedSerials.includes(checked.serial)) throw new Error("Managed identity certificate is revoked");
-    return { issuer: p.issuer, serial: checked.serial };
+    if (status.revokedSerials.includes(checked2.serial)) throw new Error("Managed identity certificate is revoked");
+    return { issuer: p.issuer, serial: checked2.serial };
   }
   throw new Error("Managed identity does not match an approved issuer policy");
 }
@@ -79997,8 +79997,8 @@ function pathsFromD(g2, ox, oy, notes) {
   if (typeof d !== "string") refuse("invalid-argument", "d must be a string of SVG path data");
   if (d.length > SVG_PATH_MAX_CHARS) refuse("too-large", `path data is ${d.length} chars (limit ${SVG_PATH_MAX_CHARS})`);
   geomApi ??= makeGeomApi();
-  const checked = geomApi.parse(d);
-  if (!checked.ok) refuse(checked.code === "too-large" ? "too-large" : "invalid-path", checked.message);
+  const checked2 = geomApi.parse(d);
+  if (!checked2.ok) refuse(checked2.code === "too-large" ? "too-large" : "invalid-path", checked2.message);
   if (g2.curve !== void 0) notes.push("curve applies to points only; the commands in d decide each segment");
   if (g2.closed !== void 0) notes.push("closed applies to points only; Z closes a subpath of d");
   if (g2.tension !== void 0) notes.push("tension applies to catmull-rom points only, so it was ignored for d");
@@ -98794,8 +98794,8 @@ function liftToColourways(doc, opts = {}) {
   if (!mode3) return { ok: false, reasons: ["Mark which theme group holds light and dark before adding colourways."] };
   const id3 = opts.id ?? "main";
   const name = opts.name?.trim() || "Main";
-  if (!COLOURWAY_ID.test(id3)) return { ok: false, reasons: [`${id3} is not a usable colourway id: use lowercase letters, digits and hyphens.`] };
-  if (themeIds(doc).has(id3)) return { ok: false, reasons: [`The design system already has a theme called ${id3}.`] };
+  const named = [...idReasons(doc, id3), ...nameReasons(doc, COLOURWAY_GROUP, name)];
+  if (named.length) return { ok: false, reasons: named };
   const selections2 = checkedSelections(axes, mode3);
   if (!selections2) return { ok: false, reasons: tooMany("lifting") };
   const next2 = structuredClone(doc);
@@ -98807,7 +98807,8 @@ function liftToColourways(doc, opts = {}) {
   next2.$themes.push(canonical3);
   if (record14(next2.$metadata) && Array.isArray(next2.$metadata.tokenSetOrder)) next2.$metadata.tokenSetOrder = [...next2.$metadata.tokenSetOrder, set];
   const colourways = { group: COLOURWAY_GROUP, kind: "colourway", canonical: id3, rotation: null, options: [{ id: id3, name, canonical: true }] };
-  const reasons = COLOURWAY_ROLES.flatMap((role) => liftRole(next2, role, mode3, colourways));
+  const lifting = opts.surface ? [...COLOURWAY_ROLES, "surface"] : [...COLOURWAY_ROLES];
+  const reasons = lifting.flatMap((role) => liftRole(next2, role, mode3, colourways));
   if (reasons.length) return { ok: false, reasons };
   const changed = unchanged(doc, next2, selections2, "Lifting");
   return changed.length ? { ok: false, reasons: changed } : { ok: true, doc: next2 };
@@ -98826,9 +98827,7 @@ function addColourway(doc, opts) {
   if (foreign.length || unset.length) {
     return { ok: false, reasons: ["This design system encodes its colourways its own way, so Lolly can choose between them but cannot add one."] };
   }
-  if (!COLOURWAY_ID.test(opts.id)) reasons.push(`${opts.id} is not a usable colourway id: use lowercase letters, digits and hyphens.`);
-  if (themeIds(next2).has(opts.id)) reasons.push(`The design system already has a theme called ${opts.id}.`);
-  if (!opts.name.trim()) reasons.push("A colourway needs a name.");
+  reasons.push(...idReasons(next2, opts.id), ...nameReasons(next2, colourways.group, opts.name));
   for (const option of mode3.options) {
     const values = opts.values[option.id];
     if (!values) {
@@ -98867,18 +98866,191 @@ function addColourway(doc, opts) {
   if (record14(next2.$metadata) && Array.isArray(next2.$metadata.tokenSetOrder)) next2.$metadata.tokenSetOrder = [...next2.$metadata.tokenSetOrder, set];
   const changed = unchanged(before, next2, selections2, "Adding this colourway");
   if (changed.length) return { ok: false, reasons: changed };
+  const broken = unresolvedRoles(next2, mode3, colourways.group, [...colourways.options, { id: opts.id, name: opts.name.trim() }], roles);
+  return broken.length ? { ok: false, reasons: broken } : { ok: true, doc: next2 };
+}
+function unresolvedRoles(doc, mode3, group, options2, roles) {
   for (const look3 of mode3.options) {
-    for (const option of [...colourways.options, { id: opts.id, name: opts.name.trim() }]) {
-      const set2 = createTokenSet(next2, { selection: { [mode3.group]: look3.id, [colourways.group]: option.id } });
+    for (const option of options2) {
+      const set = createTokenSet(doc, { selection: { [mode3.group]: look3.id, [group]: option.id } });
       for (const role of roles) {
-        const value = set2.resolve(`color.semantic.${role}`);
-        if (typeof value !== "string" || isAlias(value)) return { ok: false, reasons: [`The ${option.name} ${role} in the ${look3.name} theme would not resolve to a colour.`] };
+        const value = set.resolve(`color.semantic.${role}`);
+        if (typeof value !== "string" || isAlias(value)) return [`The ${option.name} ${role} in the ${look3.name} theme would not resolve to a colour.`];
       }
     }
   }
-  return { ok: true, doc: next2 };
+  return [];
 }
-var record14, COLOURWAY_GROUP, COLOURWAY_ROLES, colourwaySetName, colourwayPath, COLOURWAY_ID, nonNegativeIndex, COLOUR_DATA, MAX_CHECKED_SELECTIONS, enabledSets, groupOf, optionIdOf, themeEntries, tooMany, usableColour;
+function idReasons(doc, id3) {
+  if (!COLOURWAY_ID.test(id3)) return [`${id3} is not a usable colourway id: use lowercase letters, digits and hyphens.`];
+  return themeIds(doc).has(id3) ? [`The design system already has a theme called ${id3}.`] : [];
+}
+function nameReasons(doc, group, name, except) {
+  const wanted = name.trim();
+  if (!wanted) return ["A colourway needs a name."];
+  if (wanted.length > MAX_COLOURWAY_NAME) return [`A colourway name can have at most ${MAX_COLOURWAY_NAME} characters.`];
+  const lower3 = wanted.toLowerCase();
+  for (const entry2 of themeEntries(doc)) {
+    const own3 = groupOf(entry2) === group;
+    if (own3 && optionIdOf(entry2) === except) continue;
+    const taken = [entry2.id, entry2.name].some((v) => typeof v === "string" && v.trim().toLowerCase() === lower3);
+    if (!taken) continue;
+    return [own3 ? `Another colourway is already called ${wanted}.` : `The design system already has a theme called ${wanted}, so a colourway cannot use that name.`];
+  }
+  return [];
+}
+function everySelection(axes) {
+  let combos = [{}];
+  for (const axis of axes) {
+    combos = combos.flatMap((c) => axis.options.map((o) => ({ ...c, [axis.group]: o.id })));
+    if (combos.length > MAX_CHECKED_SELECTIONS) return null;
+  }
+  return combos;
+}
+function editable(doc, encoded2) {
+  if (!record14(doc)) return { reasons: ["This design system has no colourways yet."] };
+  const { axes } = readTokenAxes(doc);
+  const colourways = axisOfKind(axes, "colourway");
+  if (!colourways) return { reasons: ["This design system has no colourways yet."] };
+  if (encoded2) {
+    const mode3 = modeAxis(axes);
+    if (!mode3) return { reasons: ["Colourways need a design system with light and dark themes."] };
+    const foreign = COLOURWAY_ROLES.some((role) => !isLifted(doc, role, mode3)) || colourways.options.some((o) => colourwaySetOf(doc, colourways, o.id) === null);
+    if (foreign) return { reasons: [FOREIGN_ENCODING] };
+  }
+  return { next: structuredClone(doc), axes, colourways };
+}
+function checked(before, next2, axes, verb) {
+  const selections2 = everySelection(axes);
+  if (!selections2) return { ok: false, reasons: tooMany(verb.toLowerCase()) };
+  const changed = unchanged(before, next2, selections2, verb);
+  return changed.length ? { ok: false, reasons: changed } : { ok: true, doc: next2 };
+}
+function placeEntries(doc, group, order) {
+  const list4 = doc.$themes;
+  const firsts = /* @__PURE__ */ new Map();
+  list4.forEach((t, i) => {
+    if (!record14(t) || groupOf(t) !== group) return;
+    const id3 = optionIdOf(t);
+    if (id3 && !firsts.has(id3)) firsts.set(id3, i);
+  });
+  const slots = [...firsts.values()].sort((a, b) => a - b);
+  const entries = order.map((id3) => list4[firsts.get(id3)]);
+  slots.forEach((slot, i) => {
+    list4[slot] = entries[i];
+  });
+}
+function axisAnnotation(entry2) {
+  annotate(entry2, {});
+  return entry2.$extensions[TOKEN_EXT].axis;
+}
+function renameColourway(doc, id3, name) {
+  const found = editable(doc, false);
+  if ("reasons" in found) return { ok: false, reasons: found.reasons };
+  const { next: next2, axes, colourways } = found;
+  if (!colourways.options.some((o) => o.id === id3)) return { ok: false, reasons: [`${id3} is not a colourway in this design system.`] };
+  const reasons = nameReasons(next2, colourways.group, name, id3);
+  if (reasons.length) return { ok: false, reasons };
+  const entry2 = entryOf(next2, colourways.group, id3);
+  const oldName = typeof entry2.name === "string" ? entry2.name : id3;
+  if (typeof entry2.id !== "string") entry2.id = id3;
+  entry2.name = name.trim();
+  const meta = record14(next2.$metadata) ? next2.$metadata : null;
+  if (meta && Array.isArray(meta.activeThemes) && oldName !== id3) {
+    const group = colourways.group;
+    meta.activeThemes = meta.activeThemes.map((t) => t === oldName ? id3 : t === `${group}/${oldName}` ? `${group}/${id3}` : t);
+  }
+  return checked(doc, next2, axes, "Renaming this colourway");
+}
+function reorderColourways(doc, order) {
+  const found = editable(doc, false);
+  if ("reasons" in found) return { ok: false, reasons: found.reasons };
+  const { next: next2, axes, colourways } = found;
+  const ids2 = colourways.options.map((o) => o.id);
+  if (order.length !== ids2.length || new Set(order).size !== order.length || order.some((id3) => !ids2.includes(id3))) {
+    return { ok: false, reasons: ["Name every colourway exactly once."] };
+  }
+  if (order[0] !== colourways.canonical) return { ok: false, reasons: ["The canonical colourway stays first. Make another colourway canonical to put that one first."] };
+  placeEntries(next2, colourways.group, order);
+  return checked(doc, next2, axes, "Reordering the colourways");
+}
+function setCanonicalColourway(doc, id3) {
+  const found = editable(doc, false);
+  if ("reasons" in found) return { ok: false, reasons: found.reasons };
+  const { next: next2, axes, colourways } = found;
+  if (!colourways.options.some((o) => o.id === id3)) return { ok: false, reasons: [`${id3} is not a colourway in this design system.`] };
+  for (const entry2 of themeEntries(next2)) {
+    if (groupOf(entry2) !== colourways.group) continue;
+    const mine = optionIdOf(entry2) === id3;
+    const axis = record14(entry2.$extensions) && record14(entry2.$extensions[TOKEN_EXT]) ? entry2.$extensions[TOKEN_EXT].axis : void 0;
+    if (mine) axisAnnotation(entry2).canonical = true;
+    else if (record14(axis)) delete axis.canonical;
+  }
+  const root2 = record14(next2.$extensions) && record14(next2.$extensions[TOKEN_EXT]) ? next2.$extensions[TOKEN_EXT].themeAxes : void 0;
+  if (record14(root2) && record14(root2[colourways.group]) && typeof root2[colourways.group].canonical === "string") root2[colourways.group].canonical = id3;
+  placeEntries(next2, colourways.group, [id3, ...colourways.options.map((o) => o.id).filter((o) => o !== id3)]);
+  return checked(doc, next2, axes, "Choosing the canonical colourway");
+}
+function removeColourway(doc, id3) {
+  const found = editable(doc, true);
+  if ("reasons" in found) return { ok: false, reasons: found.reasons };
+  const { next: next2, colourways } = found;
+  const option = colourways.options.find((o) => o.id === id3);
+  if (!option) return { ok: false, reasons: [`${id3} is not a colourway in this design system.`] };
+  if (id3 === colourways.canonical) return { ok: false, reasons: [`Make another colourway canonical before removing ${option.name}.`] };
+  const set = colourwaySetOf(next2, colourways, id3);
+  const entry2 = entryOf(next2, colourways.group, id3);
+  next2.$themes = next2.$themes.filter((t) => t !== entry2);
+  const shared = themeEntries(next2).some((t) => enabledSets(t).includes(set));
+  const meta = record14(next2.$metadata) ? next2.$metadata : null;
+  if (!shared) {
+    delete next2[set];
+    if (meta && Array.isArray(meta.tokenSetOrder)) meta.tokenSetOrder = meta.tokenSetOrder.filter((s) => s !== set);
+    if (meta && Array.isArray(meta.activeSets)) meta.activeSets = meta.activeSets.filter((s) => s !== set);
+  }
+  if (meta && record14(meta.activeThemeSelection) && meta.activeThemeSelection[colourways.group] === id3) delete meta.activeThemeSelection[colourways.group];
+  if (meta && Array.isArray(meta.activeThemes)) {
+    const names = /* @__PURE__ */ new Set([id3, option.name, `${colourways.group}/${id3}`, `${colourways.group}/${option.name}`]);
+    meta.activeThemes = meta.activeThemes.filter((t) => !(typeof t === "string" && names.has(t)));
+  }
+  return checked(doc, next2, readTokenAxes(next2).axes, "Removing this colourway");
+}
+function duplicateColourway(doc, id3, opts) {
+  const found = editable(doc, true);
+  if ("reasons" in found) return { ok: false, reasons: found.reasons };
+  const { next: next2, axes, colourways } = found;
+  const mode3 = modeAxis(axes);
+  if (!colourways.options.some((o) => o.id === id3)) return { ok: false, reasons: [`${id3} is not a colourway in this design system.`] };
+  const reasons = [...idReasons(next2, opts.id), ...nameReasons(next2, colourways.group, opts.name)];
+  if (reasons.length) return { ok: false, reasons };
+  const set = colourwaySetName(opts.id);
+  if (record14(next2[set])) return { ok: false, reasons: [`The design system already has a token set called ${set}.`] };
+  next2[set] = structuredClone(next2[colourwaySetOf(next2, colourways, id3)]);
+  const entry2 = { id: opts.id, name: opts.name.trim(), group: colourways.group, selectedTokenSets: { [set]: "enabled" } };
+  annotate(entry2, { kind: "colourway" });
+  next2.$themes.push(entry2);
+  if (record14(next2.$metadata) && Array.isArray(next2.$metadata.tokenSetOrder)) next2.$metadata.tokenSetOrder = [...next2.$metadata.tokenSetOrder, set];
+  const result = checked(doc, next2, axes, "Copying this colourway");
+  if (!result.ok) return result;
+  const roles = isLifted(next2, "surface", mode3) ? [...COLOURWAY_ROLES, "surface"] : [...COLOURWAY_ROLES];
+  const broken = unresolvedRoles(next2, mode3, colourways.group, [{ id: opts.id, name: opts.name.trim() }], roles);
+  return broken.length ? { ok: false, reasons: broken } : result;
+}
+function colourwaysEditable(doc) {
+  if (!colourwayAxis(doc)) {
+    const lifted = liftToColourways(doc);
+    return lifted.ok ? { ok: true } : { ok: false, reasons: lifted.reasons };
+  }
+  const found = editable(doc, true);
+  return "reasons" in found ? { ok: false, reasons: found.reasons } : { ok: true };
+}
+function colourwayRolesOf(doc) {
+  if (!record14(doc) || !colourwayAxis(doc)) return [];
+  const mode3 = modeAxis(readTokenAxes(doc).axes);
+  if (!mode3) return [];
+  return [...COLOURWAY_ROLES, "surface"].filter((role) => isLifted(doc, role, mode3));
+}
+var record14, COLOURWAY_GROUP, COLOURWAY_ROLES, colourwaySetName, colourwayPath, COLOURWAY_ID, nonNegativeIndex, COLOUR_DATA, MAX_CHECKED_SELECTIONS, enabledSets, groupOf, optionIdOf, themeEntries, tooMany, usableColour, MAX_COLOURWAY_NAME, FOREIGN_ENCODING, entryOf;
 var init_colourway = __esm({
   "engine/src/colourway.ts"() {
     "use strict";
@@ -98902,6 +99074,9 @@ var init_colourway = __esm({
     themeEntries = (doc) => Array.isArray(doc.$themes) ? doc.$themes.filter(record14) : [];
     tooMany = (verb) => [`The design system has more than ${MAX_CHECKED_SELECTIONS} combinations of themes, so ${verb} cannot check that nothing changes.`];
     usableColour = (v) => typeof v === "string" && (isAlias(v) || parseColor(v) !== null);
+    MAX_COLOURWAY_NAME = 80;
+    FOREIGN_ENCODING = "This design system encodes its colourways its own way, so Lolly can choose between them but cannot change them.";
+    entryOf = (doc, group, id3) => themeEntries(doc).find((t) => groupOf(t) === group && optionIdOf(t) === id3);
   }
 });
 
@@ -114161,11 +114336,11 @@ function compileRenovated(input) {
     const texts = rows2.filter((row) => rowStr(row, "kind") === "text" && plainOfDesignText(rowStr(row, "text")).trim() !== "" && !asItWas.has(rowStr(row, "id"))).sort((a, b) => rowNum(a, "y") - rowNum(b, "y") || rowNum(a, "x") - rowNum(b, "x"));
     for (const row of texts) fitRow(rows2, row);
   }
-  const editable = /* @__PURE__ */ new Set();
+  const editable2 = /* @__PURE__ */ new Set();
   for (const slide of source.slides) {
-    for (const object4 of slide.objects) if (object4.fidelity.state === "editable") editable.add(object4.id);
+    for (const object4 of slide.objects) if (object4.fidelity.state === "editable") editable2.add(object4.id);
   }
-  for (const objectId of vectorMade.keys()) editable.add(objectId);
+  for (const objectId of vectorMade.keys()) editable2.add(objectId);
   const claimedColour = /* @__PURE__ */ new Map();
   const frameOf = /* @__PURE__ */ new Map();
   for (const build2 of builds) {
@@ -114198,7 +114373,7 @@ function compileRenovated(input) {
     let named = target2;
     const conflicts = [];
     for (const objectId of [...mapping.affects].sort()) {
-      if (!editable.has(objectId)) continue;
+      if (!editable2.has(objectId)) continue;
       for (const layerId of producedBy.get(objectId) ?? []) {
         const row = rowsById.get(layerId);
         if (!row) continue;
@@ -126516,7 +126691,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
   const context = brandContext(doc, opts);
   const tokens3 = createTokenSet(doc, opts);
   const findings = [];
-  const checked = { colors: 0, fonts: 0, assets: 0 };
+  const checked2 = { colors: 0, fonts: 0, assets: 0 };
   const palette = context.colors.filter((c) => {
     const parsed = parseColor(c.value);
     return !!parsed && parsed.alpha > 0;
@@ -126554,7 +126729,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
       const path = aliasPath(raw) ?? (record25(row[field2]) ? valueText(row[field2]).replace(/^\{|\}$/g, "") : null);
       if (path) {
         if (!tokens3.has(path) || tokens3.get(path)?.type !== "color" || !parseColor(String(tokens3.resolve(path)))) add3(field2, "reference", "unknown", raw);
-        else checked.colors++;
+        else checked2.colors++;
         continue;
       }
       const parsed = parseColor(raw);
@@ -126562,7 +126737,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
       if (parsed && parsed.alpha < 1 && palette.length) {
         const base = colorToHexString({ ...parsed, alpha: 1 });
         if (palette.some((color6) => deltaEOk(base, color6.value) < 1e-6)) {
-          checked.colors++;
+          checked2.colors++;
           continue;
         }
       }
@@ -126574,7 +126749,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
         add3(field2, "color", "unknown", raw);
         continue;
       }
-      checked.colors++;
+      checked2.colors++;
       let closest2 = nearest3.get(raw);
       if (!closest2) {
         for (const color6 of palette) {
@@ -126595,7 +126770,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
       const resolved2 = path ? tokens3.resolve(path) : font;
       if (!allowedFonts.size || typeof resolved2 !== "string" || path && !tokens3.has(path)) add3("font", "font", "unknown", font);
       else {
-        checked.fonts++;
+        checked2.fonts++;
         if (!allowedFonts.has(family(resolved2))) add3("font", "font", "review", font, context.fonts[0]?.value, tokens3.has("font.brand") ? "sans" : void 0);
       }
     }
@@ -126609,7 +126784,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
       const assetId2 = aliasPath(image) ? tokens3.resolve(image) : image;
       if (!allowedAssets.size && !catalogAssets.size || typeof assetId2 !== "string") add3("image", "asset", "unknown", image);
       else {
-        checked.assets++;
+        checked2.assets++;
         const base = stripAssetModifiers(assetId2);
         const theme = parseThemedAssetId(assetId2).theme;
         const treatment = parseTreatedAssetId(assetId2).treatment;
@@ -126622,7 +126797,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
   }
   return {
     findings,
-    checked,
+    checked: checked2,
     coverage: { truncated: rows2.length > 5e3, colors: palette.length > 0, fonts: allowedFonts.size > 0, assets: allowedAssets.size > 0 || catalogAssets.size > 0 },
     uploads,
     requiresMount: ["computed contrast", "font availability", "text layout"],
@@ -126788,7 +126963,7 @@ function combinationPolicy(doc, theme) {
 function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
   const findings = [];
   const unknown2 = [];
-  let checked = 0;
+  let checked2 = 0;
   const rows2 = Array.isArray(boxes2) ? boxes2.filter(record26) : [];
   const layout2 = {
     rows: rows2,
@@ -126849,7 +127024,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         unknown2.push(rule.id);
         continue;
       }
-      checked++;
+      checked2++;
       for (const { row } of texts) {
         if (!inTarget(row)) continue;
         const weights = weightsOf(row);
@@ -126867,7 +127042,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         unknown2.push(rule.id);
         continue;
       }
-      checked++;
+      checked2++;
       const exemptWords = new Set(strings2(p.exemptWords));
       for (const { row } of texts) {
         if (!inTarget(row)) continue;
@@ -126879,7 +127054,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         unknown2.push(rule.id);
         continue;
       }
-      checked++;
+      checked2++;
       const exemptArchetypes = strings2(p.exemptArchetypes);
       const exemptFurniture = strings2(p.exemptFurniture);
       for (const { row } of texts) {
@@ -126903,7 +127078,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         unknown2.push(rule.id);
         continue;
       }
-      checked++;
+      checked2++;
       for (const { row, index: index2 } of texts) {
         const surface = surfaceUnder(layout2, index2, true);
         if (surface?.kind !== "color") continue;
@@ -126926,7 +127101,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         }
       }
     } else if (rule.kind === "stroke-on-rounded") {
-      checked++;
+      checked2++;
       const shapes2 = strings2(p.shapes).length ? strings2(p.shapes) : ROUNDED_SHAPES;
       const neutral = new Set(strings2(p.neutral).map((v) => colourOf2(layout2, v)).filter((v) => !!v));
       const stripMax = num12(p.stripMax, 12);
@@ -126976,7 +127151,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         }
       }
     } else if (rule.kind === "dash-reserved") {
-      checked++;
+      checked2++;
       const styles = strings2(p.styles).length ? strings2(p.styles) : ["dashed"];
       const meaning = typeof p.meaning === "string" && p.meaning ? p.meaning.replace(/-/g, " ") : "one purpose";
       for (const { row } of layers) {
@@ -126995,7 +127170,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         unknown2.push(rule.id);
         continue;
       }
-      checked++;
+      checked2++;
       const readColour = surfaceColourResolver(layout2.tokens);
       let table = null;
       for (const { row, index: index2 } of layers) {
@@ -127023,7 +127198,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
       }
     }
   }
-  return { findings, checked, unknown: unknown2 };
+  return { findings, checked: checked2, unknown: unknown2 };
 }
 function designHouseRules(rules) {
   return (rules ?? []).filter((r5) => DESIGN_HOUSE_RULE_KINDS.includes(r5.kind));
@@ -142560,6 +142735,7 @@ __export(src_exports, {
   LSB_P_THRESHOLD: () => LSB_P_THRESHOLD,
   MATCH_CER: () => MATCH_CER,
   MAX_BAKED_URL_CHARS: () => MAX_BAKED_URL_CHARS,
+  MAX_COLOURWAY_NAME: () => MAX_COLOURWAY_NAME,
   MAX_COMPOSE_DEPTH: () => MAX_COMPOSE_DEPTH,
   MAX_CONTINUATION_FRAMES: () => MAX_CONTINUATION_FRAMES,
   MAX_GRADIENT_STOPS: () => MAX_GRADIENT_STOPS,
@@ -143000,7 +143176,9 @@ __export(src_exports, {
   colourwayAxis: () => colourwayAxis,
   colourwayFamily: () => colourwayFamily,
   colourwayPath: () => colourwayPath,
+  colourwayRolesOf: () => colourwayRolesOf,
   colourwaySetName: () => colourwaySetName,
+  colourwaysEditable: () => colourwaysEditable,
   combinationPolicy: () => combinationPolicy,
   compactPath: () => compactPath,
   compareExport: () => compareExport,
@@ -143162,6 +143340,7 @@ __export(src_exports, {
   documentSchema: () => documentSchema,
   dofBlur: () => dofBlur,
   drawDesignText: () => drawDesignText,
+  duplicateColourway: () => duplicateColourway,
   duplicateTextFrames: () => duplicateTextFrames,
   edgeAnchor: () => edgeAnchor,
   edgeArrowHead: () => edgeArrowHead,
@@ -143815,12 +143994,15 @@ __export(src_exports, {
   relativeLuminance: () => relativeLuminance,
   remapDesignHierarchy: () => remapDesignHierarchy,
   remapDesignLayout: () => remapDesignLayout,
+  removeColourway: () => removeColourway,
   removeTextFrames: () => removeTextFrames,
+  renameColourway: () => renameColourway,
   render: () => renderDocument,
   renderComparisonPage: () => renderComparisonPage,
   renderDocument: () => renderDocument,
   renderVectorPaint: () => renderVectorPaint,
   renderZzfxm: () => renderZzfxm,
+  reorderColourways: () => reorderColourways,
   reparentDesignHierarchy: () => reparentDesignHierarchy,
   replaceStoryRange: () => replaceStoryRange,
   reportMessage: () => reportMessage,
@@ -143928,6 +144110,7 @@ __export(src_exports, {
   serializeUrlState: () => serializeUrlState,
   sessionVersionStamp: () => sessionVersionStamp,
   setAvifCicp: () => setAvifCicp,
+  setCanonicalColourway: () => setCanonicalColourway,
   setColorTarget: () => setColorTarget,
   setDeckTheme: () => setDeckTheme,
   setFontTarget: () => setFontTarget,
@@ -144366,6 +144549,7 @@ var init_src2 = __esm({
     init_token_block_bindings();
     init_token_selection();
     init_token_axes();
+    init_colourway();
     init_colourway();
     init_colourway();
     init_brand_derive();
@@ -155765,12 +155949,12 @@ function applySampledContrast(value, sampled) {
     };
   });
   if (!moved && !measured) return value;
-  const checked = mounted.checked && typeof mounted.checked === "object" ? { ...mounted.checked } : void 0;
-  if (checked && moved) checked.contrast = (Number(checked.contrast) || 0) + moved;
+  const checked2 = mounted.checked && typeof mounted.checked === "object" ? { ...mounted.checked } : void 0;
+  if (checked2 && moved) checked2.contrast = (Number(checked2.contrast) || 0) + moved;
   const review = typeof mounted.manualContrastReview === "number" ? Math.max(0, mounted.manualContrastReview - moved) : mounted.manualContrastReview;
   return {
     ...answer,
-    mounted: { ...mounted, findings, ...checked ? { checked } : {}, ...review !== void 0 ? { manualContrastReview: review } : {} },
+    mounted: { ...mounted, findings, ...checked2 ? { checked: checked2 } : {}, ...review !== void 0 ? { manualContrastReview: review } : {} },
     sampledContrast: { measured, low: moved }
   };
 }
@@ -167309,9 +167493,9 @@ async function renderFamily(input, opts, lookup4, layers, name, ds) {
   const mounted = value.mounted;
   const missing = uncarriedPictures(input.boxes, lookup4, new Set(input.media.keys()));
   const findings = mounted.findings.filter(record37).map((f) => checkFindingFromMounted(overMissingPicture(f, missing, lookup4), lookup4));
-  const checked = record37(mounted.checked) ? mounted.checked : {};
+  const checked2 = record37(mounted.checked) ? mounted.checked : {};
   const notes = [
-    `Checked ${plural6(Number(checked.overflow) || 0, "text layer")} for clipping, ${Number(checked.contrast) || 0} for contrast and ${Number(checked.fonts) || 0} for font coverage.`
+    `Checked ${plural6(Number(checked2.overflow) || 0, "text layer")} for clipping, ${Number(checked2.contrast) || 0} for contrast and ${Number(checked2.fonts) || 0} for font coverage.`
   ];
   if (session.tokenSelection && opts.theme) notes.push(`The editor was opened in the ${opts.theme} theme.`);
   if (session.designSystem !== void 0) notes.push(`The page resolved linked colours in the ${ds?.origin === "file" ? "--file" : "terminal"} design system this check uses.`);

@@ -145,6 +145,8 @@ In **Find matching colours**, the harmony generator suggests matching accent col
 
 Adding a suggested colour or shade group keeps the rest of your palette. For a complete replacement, open **Rebuild the whole palette…** and press **Preview full rebuild**. The review explains the changes: how many roles stay as you assigned them, how many colours you added yourself are kept, how many shade curves get re-anchored, how many print locks re-pinned, how many hidden shades stay hidden, how many gradient stops keep their colour.
 
+A design system with [colourways](token-workflows.md#colourways) keeps every colourway through a rebuild. The canonical colourway follows the new starting colour, as the primary of a design system with one lead does. Every other colourway keeps its own colours, its name, its place in the order and its settings. A colour in another colourway that followed a shade the rebuild changes keeps the colour it had. The review says which colourway follows the new colour and lists the colourways that keep their own colours. Lolly does not rebuild a design system that encodes its colourways in a way Lolly cannot edit, because a rebuild would lose them. In that case the card says why in place of the review, and nothing changes.
+
 **Apply rebuilt palette** on that card commits it; **Cancel** walks away and changes nothing. Once it has run, the card offers **Undo** with focus already on it - and a checkpoint of the whole design system is taken *before* the swap, so "put it back the way it was" is a restore rather than a lost afternoon.
 
 ### The palette, the chart and each swatch
@@ -160,7 +162,7 @@ Click any swatch to open its editor:
 - **Rename** it.
 - **Set the colour** - the picker opens on perceptual **OKLCH** sliders, with modes for **Hex**, **HSL**, **RGB** and **CMYK**; the value field reads *and* writes in whichever space is active, so you can paste a hex or type ink percentages. Note that entering CMYK sets the *screen* colour by conversion - to pin exact inks, use the print lock below.
 - **Stored as** - choose how the swatch is persisted: **LCH** (the default - perceptual, wide-gamut, the best choice for editing), Hex, RGB or HSL. Override it when you need to pin an exact legacy hex or match an sRGB value.
-- **Use as** - hand this swatch one of the brand roles directly, without going back to the Roles panel. (A role's own tile doesn't offer it - a role can't take a role.)
+- **Use as** - hand this swatch one of the brand roles directly, without going back to the Roles panel. (A role's own tile doesn't offer it - a role can't take a role.) Press a highlighted role again to clear the role. On a design system with [colourways](token-workflows.md#colourways), every colourway needs its own primary and secondary, and its own surface when the colourways tint the background, so those roles stay set here: the row says so, and using another colour as the role replaces the colour.
 - **Print substitutes** (folded) - lock the colour's print behaviour:
   - **CMYK** - switch it from **Auto** to **Locked** to override the automatic sRGB→CMYK conversion with exact ink values (C/M/Y/K, 0–100).
   - **Spot colour** - switch it from **None** to **Set** to lock the swatch to a spot colour; give it a **Name** (e.g. `PANTONE 186 C`), an optional **Book** and an optional **Finish** (Ordinary ink by default) for when the ink is not an ink at all - a foil, an emboss or deboss, a spot varnish, a soft touch or a die cut, crease or perforation.

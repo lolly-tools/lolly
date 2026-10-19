@@ -437,3 +437,20 @@ test('formatStudioValue: short display strings per kind', () => {
   assert.equal(formatStudioValue(tok('gradient', stops)), '180° · 2 stops', 'CSS default angle');
   assert.equal(formatStudioValue(tok('gradient', [stops[0]!])), '180° · 1 stop');
 });
+
+test('a colourway set is a set: its leaves are never studio tokens, and a delete stops at it', async () => {
+  const { deriveBrandTokens } = await import('@lolly/engine');
+  const { addLead } = await import('./design-system/leads.ts');
+  const added = addLead(deriveBrandTokens({ primary: '#0c322c', name: 'Test' }), { colour: '#e05a2b', name: 'Persimmon' });
+  assert.ok(added.ok);
+  const doc = added.doc;
+  // A studio-shaped token squatting in one lead's set would be listed once per lead.
+  const lead = doc['colourway/persimmon'] as Record<string, unknown>;
+  lead.space = { $type: 'dimension', gutter: { $value: '8px' } };
+  const path = addStudioToken(doc, 'spacing', 'Gutter', '12px')!;
+  assert.deepEqual(listStudioTokens(doc).map(t => t.key), ['space.gutter'], 'only the system-wide token is listed');
+  assert.deepEqual(path, ['base', 'space', 'gutter'], 'new studio tokens still land in base');
+  assert.equal(deleteStudioToken(doc, ['colourway/persimmon', 'space', 'gutter']), true);
+  assert.ok(doc['colourway/persimmon'], 'pruning stops at the colourway set');
+  assert.equal((doc['colourway/persimmon'] as Record<string, unknown>).space, undefined, 'the emptied group inside it is pruned');
+});
