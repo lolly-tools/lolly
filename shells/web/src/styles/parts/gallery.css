@@ -1129,7 +1129,7 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
    colours. stroke-dasharray breaks each outline into short dashes, and the
    animated dashoffset moves the dashes slowly along the outline; the gaps between
    them show the muted base underneath. */
-.gtile-iconfill-trace {   color: hsl(var(--secondary) / 1); }
+.gtile-iconfill-trace {   color: hsl(var(--primary) / .35); stroke-linecap: round; stroke-linejoin: round; }
 .gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) {
   fill:transparent;
   stroke-width: 3px;             /* the same 3px as the base outline it walks over */
@@ -1192,6 +1192,7 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
    object-fit:contain, so differently-shaped example looks fit within the one frame
    without cropping and without resizing the box as the strip advances. */
 .gcar {
+  background: repeating-conic-gradient(var(--ui-color-surface-muted) 0% 25%, var(--ui-color-surface-canvas) 0% 50%) 50% / 16px 16px;
   position: relative;                /* anchor for nav, dots, badge, Continue chip */
   isolation: isolate;                /* contain the .gtile-iconfill backdrop's z-index:-1 */
   width: 100%;
@@ -1220,7 +1221,6 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
   scroll-snap-stop: always;
   position: relative;
   margin: 0;
-  background: repeating-conic-gradient(var(--ui-color-surface-muted) 0% 25%, var(--ui-color-surface-canvas) 0% 50%) 50% / 16px 16px;
 
 }
 .gcar-open {
