@@ -1692,6 +1692,23 @@
       }
     },
     {
+      "slug": "work-release-1-1-2",
+      "title": "Release 1.1.2",
+      "src": "work/release-1-1-2.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/release-1-1-2",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Work 1.1.2 paired with Lolly 1.1.2: matched components, what Lolly 1.1.2 needs from Work, changes since 1.1.1, migrations and qualification.",
+      "work": {
+        "slug": "release-1-1-2",
+        "path": "release-1-1-2.md",
+        "icon": "overview"
+      }
+    },
+    {
       "slug": "work-release-1-1-1",
       "title": "Release 1.1.1",
       "src": "work/release-1-1-1.md",
