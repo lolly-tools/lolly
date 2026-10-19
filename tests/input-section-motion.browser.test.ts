@@ -143,3 +143,47 @@ test('input disclosures expand once and fade directly to their default opacity',
     await sample(page, 'close');
   }
 });
+
+// The asset inspector, the export panel's cost card and the token workspace fold
+// <details class="section-card">, which is a flex column. Without a zero minimum the
+// content box kept its full height while block-size moved, so the card snapped.
+test('a details section card folds with the same motion although it is a flex column', {
+  skip: existsSync(executablePath) ? false : 'Install Playwright Chromium or set LOLLY_BROWSER_PATH.', timeout: 60_000,
+}, async t => {
+  const browser = await chromium.launch({ executablePath });
+  t.after(() => browser.close());
+  const page = await browser.newPage({ viewport: { width: 600, height: 650 } });
+  await page.setContent(`<style>${css}
+    body { margin: 40px; font-family: system-ui; }
+    .card-body { height: 150px; }
+  </style><details class="section-card"><summary class="section-card-summary"><span class="section-card-title">File details</span></summary>
+    <div class="card-body">Source, licence and format</div></details>`);
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  });
+  if (!await page.evaluate(() => CSS.supports('interpolate-size', 'allow-keywords') && CSS.supports('selector(::details-content)'))) {
+    t.skip('This Chromium cannot interpolate a height to auto.');
+    return;
+  }
+  const card = page.locator('details.section-card');
+  assert.equal(await card.evaluate(el => getComputedStyle(el).display), 'flex', 'the card is a flex column');
+  const collapsed = await card.evaluate(el => el.getBoundingClientRect().height);
+  const toggle = (): Promise<number[]> => card.evaluate(async el => {
+    const heights: number[] = [], started = performance.now();
+    el.querySelector('summary')!.click();
+    do {
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      heights.push(el.getBoundingClientRect().height);
+    } while (performance.now() - started < 350 || heights.length < 10);
+    return heights;
+  });
+  const opening = await toggle(), expanded = opening.at(-1)!;
+  assert.ok(expanded > collapsed + 100, JSON.stringify({ collapsed, opening }));
+  assert.ok(opening.some(height => height > collapsed + 1 && height < expanded - 1), `opening interpolates: ${JSON.stringify(opening)}`);
+  assert.ok(opening.every((height, i) => !i || height >= opening[i - 1]! - 0.1), 'opening never reverses');
+  const closing = await toggle();
+  assert.ok(closing.some(height => height > collapsed + 1 && height < expanded - 1), `closing interpolates: ${JSON.stringify(closing)}`);
+  assert.ok(closing.every((height, i) => !i || height <= closing[i - 1]! + 0.1), 'closing never reverses');
+  assert.equal(closing.at(-1), collapsed);
+});

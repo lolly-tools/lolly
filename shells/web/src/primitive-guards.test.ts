@@ -879,7 +879,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // and then re-admits `**bold**` alone.
   'components/tool-guide.ts': 1,
   'components/view-toggle.ts': 2,  // +1 2026-08-20: injectJellyIcons' ic.innerHTML - ICONS registry glyphs only (trusted, never user text), prepended into the jelly pill's open shadow buttons
-  'components/welcome-dialog.ts': 3,  // +1 2026-08-23: mountBrandedIntro's strip.innerHTML (plans/140 S4) - literal copy; the one interpolation is docsAppHref('start/quickstart'), a constant route string
+  'components/welcome-dialog.ts': 1,  // -2 2026-10-19: the two gallery tips strips and their innerHTML were removed
   'components/zoom-hud.ts': 1,
   'folder-overlay.ts': 3,
   'lib/audio-coaching.ts': 1,
@@ -2036,7 +2036,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 426 to 425: project titles use the shared object title scale.
     // 425 to 424: Share headings use the shared section type role.
     // 424 to 423: the simple upload dropzone replaces the separate touch CTA.
-    pin: 423,
+    // 423 to 422: the gallery tips strip and its type rule are removed.
+    pin: 422,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },

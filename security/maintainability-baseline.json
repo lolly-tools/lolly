@@ -70,17 +70,17 @@
       "typeEscapes": 68
     },
     "shells/web/src/views/design-inspector.ts": {
-      "lines": 1575,
+      "lines": 1576,
       "largestFunctionLines": 2028,
       "importFanIn": 1,
-      "importFanOut": 26,
+      "importFanOut": 27,
       "typeEscapes": 0
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1795,
-      "largestFunctionLines": 1747,
+      "lines": 1787,
+      "largestFunctionLines": 1730,
       "importFanIn": 1,
-      "importFanOut": 67,
+      "importFanOut": 66,
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
