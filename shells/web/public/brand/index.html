@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lolly Brand</title>
+<meta name="description" content="How Lolly looks, sounds and moves: the mark, the Opal palette and its colourways, Crossland type, the Clinic interface, Etiquette icons and the Fauna cast.">
+<link rel="canonical" href="https://lolly.tools/brand">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#edf6e0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#09141a" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Lolly">
+<meta property="og:title" content="Lolly Brand">
+<meta property="og:description" content="Your brand is the show. Lolly is the Studio. The mark, Opal and its colourways, Crossland, Clinic, Etiquette and Fauna.">
+<meta property="og:url" content="https://lolly.tools/brand">
+<meta property="og:image" content="https://lolly.tools/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<!--
+  Lolly's brand standards, served at /brand. One self-contained page: the faces come
+  from /fonts, the marks from /icon-*.svg and the mono pair beside this file, Fauna
+  from /info/mascots, the tenet figures from /info/figures and the tool covers from
+  /info/shots/covers. The swirl is the catalog's lolly-spin.svg and the kangaroo is
+  the drawing from shells/web/src/components/kangaroo-art.ts, both inlined.
+  tests/brand-page.test.ts keeps the Opal swatches and colourways in step with
+  brands/lolly-demo/catalog/assets/lolly/tokens/demo.json.
+-->
+<style>
+@font-face{font-family:"SUSE";src:url('/fonts/SUSE[wght].woff2') format('woff2-variations');font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:"SUSE";src:url('/fonts/SUSE-Italic[wght].woff2') format('woff2-variations');font-weight:100 900;font-style:italic;font-display:swap}
+@font-face{font-family:"SUSE Mono";src:url('/fonts/SUSEMono[wght].woff2') format('woff2-variations');font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:"Outfit";src:url('/fonts/Outfit-latin[wght].woff2') format('woff2-variations');font-weight:100 900;font-style:normal;font-display:swap}
+
+/* A standards book in bands: each part opens with its name, one line of story and a big
+   picture, then the rules as plain labels. Lolly's own surface, so the page washes in green.
+   Colourways work the way the engine does: each one sets a lead, the colour on the lead
+   and a partner for light and for dark (--cw-*), and the looks below read those slots. */
+:root{
+  --cw-lead-l:#033633;--cw-on-l:#ffffff;--cw-partner-l:#008657;--cw-bg-l:#edf6e0;--cw-wash-l:#d7eecb;--cw-tint-l:#dcecd6;
+  --cw-lead-d:#50c369;--cw-on-d:#09141a;--cw-partner-d:#008657;--cw-wash-d:#17352b;--cw-tint-d:#1d2e28;
+  --bg:var(--cw-bg-l);     /* Avocado wash */
+  --paper:#ffffff;         /* Sugar */
+  --paper-2:#f5faee;
+  --ink:#09141a;           /* Liquorice */
+  --head:#033633;          /* Spearmint */
+  --muted:#3f5a4c;
+  --line:rgb(3 54 51 / .14);
+  --link:#033633;
+  --wordmark:#09141a;      /* Liquorice on light */
+  --accent:var(--cw-lead-l);
+  --on-accent:var(--cw-on-l);
+  --partner:var(--cw-partner-l);
+  --mark:#008657;          /* Bunyapine */
+  --pop:#50c369;           /* Green Apple */
+  --wash:var(--cw-wash-l);
+  --focus:var(--cw-lead-l);
+  --yes:#0b6b45;
+  --no:#a43427;            /* Bauxite */
+  --ok-bg:#e3f5ea;--ok-fg:#0b5a3a;
+  --bad-bg:#fbe9e7;--bad-fg:#8f2a1f;
+  --drop:0 18px 40px -26px rgb(9 20 26 / .45);
+  --sweep:radial-gradient(130% 95% at 50% 6%,#ffffff 0%,color-mix(in oklab,var(--cw-tint-l) 45%,#ffffff) 48%,var(--cw-tint-l) 100%);
+  --display:"Outfit","SUSE",ui-sans-serif,system-ui,sans-serif;
+  --text:"SUSE",ui-sans-serif,system-ui,sans-serif;
+  --mono:"SUSE Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#09141a;--paper:#121d24;--paper-2:#1c282f;--ink:#e9eff3;--head:#ffffff;--muted:#a9b1b5;
+  --line:rgb(255 255 255 / .13);--link:#50c369;--wordmark:#ffffff;--accent:var(--cw-lead-d);--on-accent:var(--cw-on-d);--partner:var(--cw-partner-d);
+  --mark:#50c369;--pop:#50c369;--wash:var(--cw-wash-d);--focus:var(--cw-lead-d);--yes:#7ddc97;--no:#ef9275;
+  --ok-bg:#123d2c;--ok-fg:#b5f0d4;--bad-bg:#3d1416;--bad-fg:#ffc7c7;
+  --drop:0 18px 40px -24px rgb(0 0 0 / .8);
+  --sweep:radial-gradient(130% 95% at 50% 6%,var(--cw-tint-d) 0%,#111e1d 52%,#0b161b 100%);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#09141a;--paper:#121d24;--paper-2:#1c282f;--ink:#e9eff3;--head:#ffffff;--muted:#a9b1b5;
+  --line:rgb(255 255 255 / .13);--link:#50c369;--wordmark:#ffffff;--accent:var(--cw-lead-d);--on-accent:var(--cw-on-d);--partner:var(--cw-partner-d);
+  --mark:#50c369;--pop:#50c369;--wash:var(--cw-wash-d);--focus:var(--cw-lead-d);--yes:#7ddc97;--no:#ef9275;
+  --ok-bg:#123d2c;--ok-fg:#b5f0d4;--bad-bg:#3d1416;--bad-fg:#ffc7c7;
+  --drop:0 18px 40px -24px rgb(0 0 0 / .8);
+  --sweep:radial-gradient(130% 95% at 50% 6%,var(--cw-tint-d) 0%,#111e1d 52%,#0b161b 100%);color-scheme:dark}
+
+/* The page in each colourway: Opal colours only, softened with Sugar for the washes. */
+html[data-colourway="morning"]{
+  --cw-lead-l:#c55123;--cw-on-l:#ffffff;--cw-partner-l:#1a85c4;
+  --cw-bg-l:color-mix(in oklab,#fdec9e 30%,#ffffff);--cw-wash-l:color-mix(in oklab,#fdec9e 75%,#ffffff);--cw-tint-l:color-mix(in oklab,#5fcaff 32%,#ffffff);
+  --cw-lead-d:#fac044;--cw-on-d:#09141a;--cw-partner-d:#5fcaff;--cw-wash-d:color-mix(in oklab,#fac044 18%,#121d24);--cw-tint-d:color-mix(in oklab,#fac044 14%,#121d24)}
+html[data-colourway="spring"]{
+  --cw-lead-l:#da1889;--cw-on-l:#ffffff;--cw-partner-l:#818e44;
+  --cw-bg-l:color-mix(in oklab,#f39dbd 14%,#ffffff);--cw-wash-l:color-mix(in oklab,#f39dbd 32%,#ffffff);--cw-tint-l:color-mix(in oklab,#ace1ad 45%,#ffffff);
+  --cw-lead-d:#f39dbd;--cw-on-d:#09141a;--cw-partner-d:#50c369;--cw-wash-d:color-mix(in oklab,#f39dbd 18%,#121d24);--cw-tint-d:color-mix(in oklab,#f39dbd 12%,#121d24)}
+html[data-colourway="beach"]{
+  --cw-lead-l:#1a85c4;--cw-on-l:#09141a;--cw-partner-l:#734f31;
+  --cw-bg-l:color-mix(in oklab,#f2e1bf 58%,#ffffff);--cw-wash-l:color-mix(in oklab,#b6f1f1 70%,#ffffff);--cw-tint-l:color-mix(in oklab,#b6f1f1 55%,#ffffff);
+  --cw-lead-d:#25c2c2;--cw-on-d:#09141a;--cw-partner-d:#d8b890;--cw-wash-d:color-mix(in oklab,#25c2c2 18%,#121d24);--cw-tint-d:color-mix(in oklab,#25c2c2 14%,#121d24)}
+html[data-colourway="afternoon"]{
+  --cw-lead-l:#72251c;--cw-on-l:#ffffff;--cw-partner-l:#444f05;
+  --cw-bg-l:color-mix(in oklab,#fac044 14%,#f9f7ef);--cw-wash-l:color-mix(in oklab,#ef9275 30%,#ffffff);--cw-tint-l:color-mix(in oklab,#fac044 34%,#ffffff);
+  --cw-lead-d:#ef9275;--cw-on-d:#09141a;--cw-partner-d:#ee9138;--cw-wash-d:color-mix(in oklab,#ef9275 18%,#121d24);--cw-tint-d:color-mix(in oklab,#ee9138 14%,#121d24)}
+html[data-colourway="midnight"]{
+  --cw-lead-l:#09141a;--cw-on-l:#ffffff;--cw-partner-l:#7476e0;
+  --cw-bg-l:color-mix(in oklab,#7476e0 9%,#ffffff);--cw-wash-l:color-mix(in oklab,#7476e0 22%,#ffffff);--cw-tint-l:color-mix(in oklab,#7476e0 22%,#ffffff);
+  --cw-lead-d:#7476e0;--cw-on-d:#09141a;--cw-partner-d:#b6f1f1;--cw-wash-d:color-mix(in oklab,#7476e0 20%,#121d24);--cw-tint-d:color-mix(in oklab,#7476e0 16%,#121d24)}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--text);-webkit-font-smoothing:antialiased;transition:background-color .35s}
+h1,h2,h3,h4{font-family:var(--display);color:var(--head);text-wrap:balance;margin:0;font-weight:500;letter-spacing:-.01em}
+p{margin:0}
+img{max-width:100%}
+code,.mono{font-family:var(--mono)}
+a{color:var(--link)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:6px}
+[hidden]{display:none!important}
+.wrap{max-width:1120px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band{padding-block:clamp(48px,7vw,88px)}
+.band + .band{border-top:1px solid var(--line)}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.head{display:grid;gap:12px;margin-bottom:28px;max-width:66ch}
+.head h2{font-size:clamp(34px,4.4vw,54px);line-height:1.02}
+.head .story{font-size:clamp(17px,1.6vw,19px);color:var(--ink);opacity:.92}
+.card{background:var(--paper);border-radius:22px;box-shadow:0 0 0 1px var(--line),var(--drop)}
+.grid{display:grid;gap:16px}
+.cap{font:500 11.5px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
+/* The bar: home, the parts, the colourway dots and the theme. */
+.topbar{position:sticky;top:0;z-index:20;padding-top:env(safe-area-inset-top,0px);background:color-mix(in oklab,var(--bg) 84%,transparent);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);box-shadow:0 1px 0 var(--line)}
+.topbar-in{display:flex;align-items:center;gap:14px;min-height:60px}
+.homelink{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--head)}
+.homelink img{width:30px;height:30px;display:block}
+.homelink .wordmark{display:block;height:21px;width:auto;fill:var(--wordmark)}
+.homelink span{font:500 11px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.toplinks{display:flex;gap:2px;margin-left:10px}
+.toplinks a{padding:8px 11px;border-radius:999px;text-decoration:none;color:var(--ink);font-size:14.5px}
+.toplinks a:hover{background:var(--wash)}
+.cw-dots{margin-left:auto;display:flex;align-items:center;gap:7px}
+.cw-dot{width:26px;height:26px;border-radius:50%;border:0;padding:0;cursor:pointer;background:conic-gradient(from 225deg,var(--d1) 0 50%,var(--d2) 0);box-shadow:0 0 0 1px var(--line);transition:box-shadow .2s,transform .2s}
+.cw-dot:hover{transform:scale(1.08)}
+.cw-dot[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--head)}
+.theme-btn{flex:none;width:38px;height:38px;border-radius:50%;border:0;background:var(--paper);box-shadow:0 0 0 1px var(--line);color:var(--head);display:grid;place-items:center;cursor:pointer}
+.theme-btn svg{width:18px;height:18px}
+
+/* Rules: a signal is an icon and a word, and each rule shows both. */
+.rules{list-style:none;margin:22px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px}
+.rule{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 10px;border-radius:999px;background:var(--paper);box-shadow:0 0 0 1px var(--line);font-size:15px;line-height:1.3;color:var(--ink)}
+.rule svg{flex:none;width:18px;height:18px;stroke-width:2.6}
+.rule.yes svg{stroke:var(--yes)}
+.rule.no svg{stroke:var(--no)}
+.ico{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tag{display:inline-flex;align-items:center;gap:6px;font:600 12px/1 var(--mono);letter-spacing:.04em}
+.tag svg{width:14px;height:14px;stroke-width:3}
+.tag.yes{color:var(--yes)} .tag.no{color:var(--no)}
+
+/* Soft box: a sweep with no horizon, one subject, nothing to stand on. */
+.softbox{position:relative;display:grid;place-items:center;background:var(--sweep);border-radius:24px;box-shadow:0 0 0 1px var(--line);overflow:hidden}
+.softbox .mark{width:46%;max-width:300px;height:auto;filter:drop-shadow(0 22px 26px rgb(10 30 20 / .22))}
+
+/* Hero */
+.hero{padding-block:clamp(36px,5vw,64px) clamp(40px,6vw,64px)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(24px,4vw,56px);align-items:center}
+.hero h1{font-size:clamp(42px,6.4vw,82px);line-height:.98;letter-spacing:-.02em;margin:14px 0 18px}
+.hero .lede{font-size:clamp(17px,1.7vw,20px);max-width:44ch}
+.hero-box{aspect-ratio:1;max-width:100%}
+.parts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:clamp(32px,5vw,56px)}
+.part{display:grid;gap:4px;padding:14px;text-decoration:none;color:var(--ink);background:var(--paper);border-radius:18px;box-shadow:0 0 0 1px var(--line);transition:box-shadow .2s,transform .2s}
+.part:hover{box-shadow:0 0 0 1px var(--line),var(--drop);transform:translateY(-2px)}
+.part b{font:500 22px/1.1 var(--display);color:var(--head)}
+.part small{font:500 11.5px/1.2 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.part-vis{height:64px;border-radius:12px;display:grid;place-items:center;margin-bottom:8px;overflow:hidden;background:var(--paper-2)}
+.pv-opal{display:flex;gap:0;padding:0}
+.pv-opal i{flex:1;height:100%;background:var(--c)}
+.pv-cross{font:500 34px/1 var(--display);color:var(--head)}
+.pv-cross em{font:italic 400 30px/1 var(--text)}
+.pv-clinic{display:flex;gap:6px;padding:0 10px}
+.pv-clinic span{height:26px;border-radius:999px;flex:1;box-shadow:inset 0 0 0 1px var(--line);background:var(--paper)}
+.pv-clinic span:first-child{background:var(--accent)}
+.pv-eti{display:flex;gap:10px;color:var(--head)}
+.pv-fauna img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+
+/* Story */
+.story-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.story-card{padding:24px;display:grid;gap:10px;align-content:start}
+.story-card h3{font-size:24px;line-height:1.1}
+.story-card p{color:var(--muted)}
+.story-card .big{font:500 46px/1 var(--display);color:var(--mark)}
+.provenance{margin-top:20px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;font-size:17px}
+.provenance img{height:22px;width:auto}
+
+/* The mark */
+.mark-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:stretch}
+.rings{padding:24px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px;align-items:center}
+.rings svg{width:min(220px,40vw);height:auto}
+.rings ol{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.rings li{display:grid;gap:2px}
+.rings li b{font:500 19px/1.2 var(--display);color:var(--head)}
+.rings li span{color:var(--muted);font-size:15px}
+.versions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
+.ver{display:grid;gap:8px;margin:0}
+.ver .plate{aspect-ratio:1;border-radius:18px;display:grid;place-items:center;box-shadow:0 0 0 1px var(--line);background:var(--pb)}
+.ver .plate img{width:56%;height:auto}
+.wordmarks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.wm{display:grid;gap:8px;margin:0}
+.wm .plate{aspect-ratio:2/1;border-radius:18px;display:grid;place-items:center;box-shadow:0 0 0 1px var(--line);background:var(--pb)}
+.wm .plate img{width:50%;height:auto}
+.donts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
+.dont{display:grid;gap:8px;margin:0}
+.dont .plate{position:relative;aspect-ratio:1;border-radius:18px;display:grid;place-items:center;background:var(--sweep);box-shadow:0 0 0 1px var(--line);overflow:hidden}
+.dont .plate img{width:44%;height:auto;position:relative;z-index:3}
+.bad-stick{position:absolute;left:24%;bottom:22%;width:38%;height:5%;border-radius:99px;background:linear-gradient(180deg,#fff,#cfd8d2);transform-origin:0 50%;transform:rotate(-45deg);box-shadow:0 4px 8px -3px rgb(0 0 0 / .3);z-index:2}
+.bad-dish{position:absolute;left:50%;bottom:14%;width:74%;aspect-ratio:4.6/1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(70% 120% at 50% 20%,rgb(255 255 255 / .95),rgb(255 255 255 / .35));box-shadow:inset 0 -5px 10px rgb(0 134 87 / .3),0 14px 22px -12px rgb(0 0 0 / .35);z-index:1}
+.dont .plate img.tilted{transform:rotate(-18deg) scaleX(1.25)}
+.clear-plate{display:grid;place-items:center;border-radius:18px;padding:12px;background:var(--wash);box-shadow:0 0 0 1px var(--line)}
+.clear-plate .inner{background:var(--paper);border-radius:12px;padding:28px;display:grid;place-items:center}
+.clear-plate img{width:112px;max-width:100%;height:auto}
+
+/* Opal */
+.opal-groups{display:grid;gap:22px}
+.og{display:grid;gap:10px}
+/* Seven columns for every group, so a short group keeps the same swatch size. */
+.og-sw{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px}
+.sw{display:grid;gap:8px;min-width:0}
+.sw i{display:block;aspect-ratio:5/3;border-radius:16px;background:var(--c);box-shadow:inset 0 0 0 1px rgb(9 20 26 / .08)}
+.sw b{font:500 17px/1.1 var(--display);color:var(--head)}
+.sw code{font-size:12.5px;color:var(--muted)}
+/* Daylight: plain white everywhere, lifted to about 1,000 nits where the browser draws HDR colour. */
+.hdr{dynamic-range-limit:no-limit}
+@supports (color:color(rec2100-pq 0.75 0.75 0.75)){.hdr{background:color(rec2100-pq 0.75 0.75 0.75)!important}}
+.og-row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px}
+.og-row .card{padding:20px;display:grid;gap:12px;align-content:start}
+.chart-row{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;align-items:end;height:120px}
+.chart-row span{display:block;border-radius:8px 8px 4px 4px;background:var(--c)}
+.chart-names{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;font:500 10.5px/1.2 var(--mono);color:var(--muted);text-align:center}
+.err-row{display:grid;gap:8px}
+.err{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;font-size:14.5px;font-weight:500}
+.err svg{width:16px;height:16px;stroke-width:2.4;flex:none}
+.err small{margin-left:auto;font:500 10.5px/1 var(--mono);letter-spacing:.05em;opacity:.8}
+
+/* Colourways */
+.cw-legend{margin:0 0 18px;display:flex;flex-wrap:wrap;gap:8px 18px;font:500 12px/1.4 var(--mono);color:var(--muted)}
+.cw-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.cw{display:grid;gap:12px;padding:0 0 18px;overflow:hidden;align-content:start;transition:box-shadow .25s}
+.cw[aria-current="true"]{box-shadow:0 0 0 2px var(--head),var(--drop)}
+.cw-band{height:96px;background:var(--g)}
+.cw-head,.cw-mood,.cw-looks,.cw-actions{margin-inline:18px}
+.cw-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.cw-head h3{font-size:27px;line-height:1.05}
+.cw-mood{color:var(--muted);font-size:15px;margin-top:-6px}
+.cw-looks{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.cw-look{border-radius:14px;padding:12px;display:grid;gap:10px;align-content:start;min-width:0}
+.cw-light{background:#ffffff;color:#09141a;box-shadow:inset 0 0 0 1px rgb(9 20 26 / .1)}
+.cw-dark{background:#09141a;color:#e9eff3;box-shadow:inset 0 0 0 1px rgb(255 255 255 / .1)}
+.cw-look .cap{color:inherit;opacity:.72}
+.cw-btn{justify-self:start;padding:9px 14px;border-radius:999px;background:var(--l);color:var(--o);font:600 13.5px/1 var(--text);white-space:nowrap}
+.cw-spec{margin:0;display:grid;gap:4px;font-size:12.5px}
+.cw-spec div{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.cw-spec dt{opacity:.72}
+.cw-spec dd{margin:0;font-weight:600;display:inline-flex;align-items:center;gap:6px;min-width:0}
+.cw-spec dd i{flex:none;width:11px;height:11px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1px rgb(127 127 127 / .35)}
+.cw-ratio{display:flex;flex-wrap:wrap;gap:2px 10px;font:500 11px/1.45 var(--mono);opacity:.8}
+.cw-ratio span{white-space:nowrap}
+.cw-actions{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.cw-actions .btn{padding:10px 16px;font-size:14px}
+.cw-try{font-size:14px}
+
+/* Crossland */
+.spec{padding:clamp(20px,3vw,32px);display:grid;gap:22px}
+.spec-row{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;align-items:baseline;padding-bottom:20px;box-shadow:inset 0 -1px 0 var(--line)}
+.spec-row:last-child{padding-bottom:0;box-shadow:none}
+.spec-outfit{font:500 clamp(40px,6vw,78px)/1 var(--display);letter-spacing:-.02em;color:var(--head)}
+.spec-suse{font-size:19px;line-height:1.55;max-width:58ch}
+.spec-italic{font:italic 400 clamp(28px,3.4vw,40px)/1.1 var(--text);color:var(--head)}
+.spec-mono{font:400 15px/1.5 var(--mono);color:var(--ink);overflow-wrap:anywhere}
+.spec-mono .p{color:var(--mark)}
+
+/* Clinic */
+.demos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.demo{padding:18px;display:grid;gap:14px;align-content:space-between}
+.demo .stage{min-height:120px;display:grid;place-items:center;gap:10px;border-radius:14px;background:var(--paper-2);padding:16px}
+.demo h3{font-size:19px}
+.demo p{font-size:14.5px;color:var(--muted)}
+.btn{font:600 14.5px/1 var(--text);border:0;border-radius:999px;padding:12px 18px;background:var(--accent);color:var(--on-accent);cursor:pointer;transition:background-color .35s,color .35s}
+.btn--ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.btn.show-focus{outline:3px solid var(--focus);outline-offset:3px}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;width:100%}
+.mini{border-radius:14px;padding:12px;display:grid;gap:6px;font-size:13px;background:var(--paper);box-shadow:0 0 0 1px var(--line)}
+.mini b{font:500 15px/1.2 var(--display);color:var(--head)}
+.mini.wash{background:var(--wash)}
+.mini.rail{border-left:4px solid var(--mark)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chip{padding:8px 14px;border-radius:999px;font-size:14px;background:var(--paper);box-shadow:inset 0 0 0 1px var(--line)}
+.chip.hover{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.chip.sel{background:var(--wash);box-shadow:inset 0 0 0 1.5px var(--accent);font-weight:600}
+.drop{width:100%;border-radius:14px;border:2px dashed var(--mark);padding:14px;text-align:center;font-size:14px;color:var(--head)}
+.empty-bad{width:100%;border-radius:14px;border:2px dashed var(--line);padding:14px;text-align:center;font-size:14px;color:var(--muted)}
+.signals{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.sig{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;font:600 13px/1 var(--text)}
+.sig svg{width:15px;height:15px;stroke-width:2.6}
+.sig-ok{background:var(--ok-bg);color:var(--ok-fg)}
+.sig-bad{background:var(--bad-bg);color:var(--bad-fg)}
+.sig-ai{background:linear-gradient(135deg,hsl(276 86% 67%),hsl(262 74% 48%));color:#fff}
+.volts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%}
+.volt{border-radius:12px;padding:10px;display:grid;gap:8px;background:var(--vb);color:var(--vf);box-shadow:inset 0 0 0 1px rgb(127 127 127 / .2)}
+.volt small{font:500 10px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+.volt span{justify-self:start;padding:6px 10px;border-radius:999px;font:600 12px/1 var(--text);background:var(--va);color:var(--vo);box-shadow:var(--vg,none)}
+.app{width:100%;border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 1px rgb(127 127 127 / .25)}
+.app-bar{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--ab);color:var(--af);font:600 12px/1 var(--text)}
+.app-bar .dot{width:10px;height:10px;border-radius:50%;background:var(--mk)}
+.app-bar .save{margin-left:auto;padding:5px 10px;border-radius:999px;background:#fac044;color:#09141a;font-weight:700}
+.app-body{height:44px;background:var(--abody)}
+.switch{display:inline-flex;align-items:center;gap:10px;font-size:14px}
+.switch i{width:44px;height:26px;border-radius:99px;background:var(--line);position:relative;box-shadow:inset 0 0 0 1px var(--line)}
+.switch i::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:var(--paper);box-shadow:0 1px 3px rgb(0 0 0 / .3)}
+
+/* Etiquette */
+.eti-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:16px}
+.glyph-big{padding:24px;display:grid;gap:14px;justify-items:center}
+.glyph-big svg{width:min(280px,70vw);height:auto}
+.icon-wall{padding:20px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;align-content:start}
+.icon-wall figure{margin:0;display:grid;justify-items:center;gap:6px;padding:12px 4px;border-radius:12px;background:var(--paper-2);color:var(--head)}
+.icon-wall figcaption{font:500 10.5px/1.2 var(--mono);color:var(--muted)}
+
+/* Devices */
+.dev-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.dev{padding:18px;display:grid;gap:12px;align-content:start}
+.dev h3{font-size:21px}
+.dev p{font-size:14.5px;color:var(--muted)}
+.dev .softbox{aspect-ratio:4/3}
+.swirl-box{aspect-ratio:4/3;display:grid;place-items:center;gap:12px;border-radius:18px;background:var(--sweep);box-shadow:0 0 0 1px var(--line)}
+.swirl{display:block;width:120px;height:120px;border-radius:50%;overflow:hidden}
+.swirl svg{width:100%;height:100%;display:block}
+.swirl .lolly-outer,.swirl .lolly-mid,.swirl .lolly-inner{animation-play-state:paused!important}
+.swirl.busy .lolly-outer,.swirl.busy .lolly-mid,.swirl.busy .lolly-inner{animation-play-state:running!important}
+.swirl.busy .lolly-outer{animation-duration:3s!important}
+.swirl.busy .lolly-mid{animation-duration:6s!important}
+.swirl.busy .lolly-inner{animation-duration:9s!important}
+.swirl-status{font:500 12px/1 var(--mono);color:var(--muted);min-height:12px}
+.prizes{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap}
+.prize{width:76px;height:76px;border-radius:18px;background:#ffffff;display:grid;place-items:center;color:#033633;box-shadow:0 0 0 1px rgb(3 54 51 / .12),0 16px 22px -12px rgb(3 54 51 / .45)}
+.prize svg{width:44px;height:44px;stroke-width:2.2}
+.stripe-demo{display:grid;gap:10px;width:100%}
+.stripe{height:14px;border-radius:99px;background:var(--paper);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
+.stripe i{display:block;height:100%;width:62%;border-radius:99px;background:repeating-linear-gradient(-45deg,#008657 0 8px,#ffffff 8px 16px)}
+.wrapper-demo{width:100%;display:grid;gap:8px}
+.file{aspect-ratio:16/9;border-radius:12px;background:radial-gradient(60% 80% at 30% 30%,#50c369,transparent 70%),radial-gradient(70% 90% at 80% 70%,#25c2c2,transparent 70%),linear-gradient(135deg,#033633,#008657);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .2)}
+.credit{display:flex;align-items:center;gap:8px;font:500 12px/1.3 var(--mono);color:var(--muted)}
+.credit svg{width:16px;height:16px;stroke:var(--yes);stroke-width:2.4;flex:none}
+.tones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%}
+.tone{display:grid;gap:6px;justify-items:center;text-align:center;font-size:12.5px;color:var(--muted)}
+.tone i{width:46px;height:46px;border-radius:50%;background:conic-gradient(from 20deg,var(--t) 0 25%,#ffffff 0 50%,var(--t) 0 75%,#ffffff 0);box-shadow:0 0 0 1px var(--line),0 8px 14px -8px rgb(0 0 0 / .4)}
+.covers{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:8px;margin-top:16px}
+.covers img{width:100%;aspect-ratio:4/3;object-fit:cover;height:auto;border-radius:10px;display:block;box-shadow:0 0 0 1px var(--line)}
+
+/* Fauna */
+.cast{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.cast figure{margin:0;display:grid;gap:8px}
+.cast .frame{aspect-ratio:3/4;border-radius:18px;overflow:hidden;background:var(--sweep);box-shadow:0 0 0 1px var(--line)}
+.cast img{width:100%;height:100%;object-fit:cover;object-position:50% 35%;display:block}
+.cast figcaption{display:grid;gap:2px}
+.cast b{font:500 17px/1.1 var(--display);color:var(--head)}
+.cast small{font:500 11px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.kg-row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:16px;margin-top:28px;align-items:start}
+.kg-dialog{padding:22px;display:grid;gap:18px;--kg-ground:var(--paper)}
+.kg-lead{display:grid;grid-template-columns:132px minmax(0,1fr);gap:20px;align-items:center}
+.kg-art{color:var(--ink)}
+.kg-art svg{width:132px;height:auto;display:block;overflow:visible}
+.kg-art .kg-joey{fill:var(--kg-ground)}
+.kg-lead h3{font:600 20px/1.2 var(--text);letter-spacing:-.005em;color:var(--ink)}
+.kg-lead p{font-size:14.5px;color:var(--muted);margin-top:6px}
+.kg-actions{display:flex;flex-wrap:wrap;gap:6px}
+.kg-actions .btn{flex:1 1 auto;padding:11px 14px;font-size:14px}
+.kg-side{padding:20px;display:grid;gap:12px;align-content:start}
+.kg-side .btn{justify-self:start}
+.kg-note{font-size:13.5px;color:var(--muted)}
+
+/* Motion and Calm */
+.calm-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:stretch}
+.calm-card{padding:22px;display:grid;gap:14px;align-content:start}
+.toggle{display:inline-flex;align-items:center;gap:12px;font:600 15px/1 var(--text);color:var(--ink);background:none;border:0;padding:0;cursor:pointer}
+.toggle i{width:52px;height:30px;border-radius:99px;background:var(--line);position:relative;transition:background .2s}
+.toggle i::after{content:"";position:absolute;left:4px;top:4px;width:22px;height:22px;border-radius:50%;background:var(--paper);box-shadow:0 1px 3px rgb(0 0 0 / .3);transition:transform .2s}
+.toggle[aria-pressed="true"] i{background:var(--accent)}
+.toggle[aria-pressed="true"] i::after{transform:translateX(22px)}
+html[data-calm] .colourful{filter:saturate(.5) contrast(.5)}
+html[data-calm] .swirl .lolly-outer,html[data-calm] .swirl .lolly-mid,html[data-calm] .swirl .lolly-inner{animation-play-state:paused!important}
+.colourful{transition:filter .3s}
+
+/* Registers */
+.reg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.reg-room,.reg-stage{border-radius:24px;padding:clamp(22px,3vw,34px);min-height:300px;display:grid;align-content:space-between;gap:20px;box-shadow:0 0 0 1px var(--line)}
+.reg-room{background:var(--sweep)}
+.reg-room h3,.reg-stage h3{font-size:clamp(28px,3vw,38px);line-height:1.02}
+.reg-room ul,.reg-stage ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:15px}
+.reg-stage{background:radial-gradient(42% 60% at 70% 0%,rgb(80 195 105 / .42),transparent 70%),radial-gradient(120% 100% at 50% 100%,#0b2a24,#05110f);color:#e9f5ee}
+.reg-stage h3{color:#ffffff;font-weight:300}
+.reg-stage .eyebrow{color:#ace1ad}
+.reg-stage svg{width:100%;height:auto;max-width:360px;stroke:#ace1ad;fill:none;stroke-width:1.2;opacity:.85}
+
+/* Voice */
+.voice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.say{padding:20px;display:grid;gap:12px}
+.say p{font-size:18px;line-height:1.35}
+.say .was{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--no);text-decoration-thickness:2px}
+
+/* Do and don't */
+.dd{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.dd-item{padding:14px;display:grid;gap:10px;align-content:start}
+.dd-item .plate{aspect-ratio:4/3;border-radius:14px;display:grid;place-items:center;position:relative;overflow:hidden;background:var(--sweep);box-shadow:0 0 0 1px var(--line)}
+.dd-item .plate img{width:40%;height:auto;position:relative;z-index:3}
+.dd-item p{font-size:14px}
+
+/* Tenets */
+.tenet-media{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:4px 0 18px}
+.tenet-media figure{margin:0;display:grid;gap:8px;min-width:0}
+.tm-box{display:block;aspect-ratio:1;padding:18px;border-radius:18px;background:var(--paper);box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
+.tm-box img{display:block;width:100%;height:100%;object-fit:contain}
+.tenet-media figcaption{font:500 12px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tenet-mantra{padding:28px}
+.tenet-mantra p{margin:8px 0 0;font:500 clamp(28px,4.4vw,52px)/1.05 var(--display);letter-spacing:-.015em;color:var(--head);text-wrap:balance}
+.tenet-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:16px 0}
+.tenet-values .card{padding:22px;min-width:0}
+.tenet-values h3{margin:8px 0 6px;font:500 28px/1.1 var(--display);color:var(--head)}
+.tenet-values p{margin:0;color:var(--muted);font-size:16px}
+.tenet-mission{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:24px;align-items:center;padding:22px}
+.tenet-mission img{width:100%;height:auto}
+.tenet-mission .m1{margin:8px 0 6px;font:500 clamp(22px,3vw,34px)/1.1 var(--display);color:var(--head)}
+.tenet-mission .m2{margin:0;color:var(--muted);font-size:16px}
+.tenet-why{margin:18px 0 0;font-size:17px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+
+footer{padding-block:40px 56px;font-size:14px;color:var(--muted);border-top:1px solid var(--line)}
+footer .wrap{display:grid;gap:10px}
+footer img{height:20px;width:auto}
+
+@media (max-width:980px){
+  .parts{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .demos,.dev-grid,.cw-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cast{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .covers{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .dd{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .og-row,.eti-grid,.kg-row,.mark-grid{grid-template-columns:minmax(0,1fr)}
+  .toplinks{display:none}
+  .og-sw{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media (max-width:720px){.tenet-media,.tenet-values,.tenet-mission{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){
+  .hero-grid,.story-grid,.calm-row,.reg,.voice,.demos,.dev-grid,.cw-grid{grid-template-columns:minmax(0,1fr)}
+  .parts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .part:last-child{grid-column:1 / -1}
+  .versions,.donts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .wordmarks{grid-template-columns:minmax(0,1fr)}
+  .og-sw{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .cast{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .covers{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .icon-wall{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .rings{grid-template-columns:minmax(0,1fr);justify-items:center}
+  .spec-row{grid-template-columns:minmax(0,1fr)}
+  .kg-lead{grid-template-columns:96px minmax(0,1fr)}
+  .kg-art svg{width:96px}
+  .chart-names{font-size:8.5px}
+  .homelink span{display:none}
+  .cw-dots{gap:5px}
+  .cw-dot{width:24px;height:24px}
+}
+@media (max-width:420px){.cw-looks{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.001ms!important;animation-duration:.001ms!important;animation-iteration-count:1!important}
+  html{scroll-behavior:auto}
+}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+<script>
+  // Before the first paint: the theme and colourway this visitor chose last time, or
+  // one named in the address (?colourway=beach), so the page never flashes another.
+  (function () {
+    var ids = ['spearmint', 'morning', 'spring', 'beach', 'afternoon', 'midnight'];
+    var root = document.documentElement;
+    var theme = null, cw = null;
+    try { theme = localStorage.getItem('lolly-brand-theme'); cw = localStorage.getItem('lolly-brand-colourway'); } catch (e) { /* storage refused */ }
+    try { var asked = new URLSearchParams(location.search).get('colourway'); if (asked) cw = asked; } catch (e) { /* no query */ }
+    if (theme === 'light' || theme === 'dark') root.setAttribute('data-theme', theme);
+    if (cw && cw !== 'spearmint' && ids.indexOf(cw) > 0) root.setAttribute('data-colourway', cw);
+  })();
+</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-lolly" viewBox="0 0 24 24"><circle cx="15" cy="9" r="7"/><path d="M15 5a4 4 0 0 0 0 8 2 2 0 0 0 0-4"/><path d="m10 14-7 7"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM21 14v.01M14 21h.01M17 17h4v4h-4"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17V11M13 17V7M18 17v-4"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/></symbol>
+  <symbol id="i-type" viewBox="0 0 24 24"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="m7 4 13 8-13 8z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7M7 3v4a1 1 0 0 0 1 1h7"/></symbol>
+  <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></symbol>
+  <symbol id="i-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></symbol>
+</svg>
+
+<div class="topbar">
+  <div class="wrap topbar-in">
+    <a class="homelink" href="/" aria-label="Lolly home"><img src="/icon-primary.svg" alt="" width="30" height="30"><svg class="wordmark" viewBox="0 0 44.725 19.706" aria-hidden="true" focusable="false"><path d="M0 15.367h9.948v-2.921H3.323V.423H0Zm16.362.233c3.217 0 5.63-2.328 5.63-5.398 0-3.048-2.434-5.355-5.63-5.355-3.217 0-5.63 2.307-5.63 5.355s2.434 5.398 5.63 5.398m0-2.942c-1.376 0-2.328-.995-2.328-2.434s.952-2.435 2.328-2.435 2.328.974 2.328 2.413c0 1.46-.931 2.456-2.328 2.456m7.239 2.709h3.238V0h-3.238zm5.524 0h3.239V0h-3.239zm6.054 4.34h3.323l1.82-4.298L44.726 5.08h-3.492l-2.096 6.265-2.053-6.265h-3.492l3.915 9.589z"/></svg><span>Brand</span></a>
+    <nav class="toplinks" aria-label="Parts of the brand">
+      <a href="#mark">Mark</a><a href="#opal">Opal</a><a href="#colourways">Colourways</a><a href="#crossland">Crossland</a><a href="#clinic">Clinic</a><a href="#fauna">Fauna</a>
+    </nav>
+    <div class="cw-dots" role="group" aria-label="Colourway for this page">
+      <button class="cw-dot" type="button" data-cw="spearmint" aria-pressed="true" title="Spearmint" aria-label="Spearmint colourway" style="--d1:#033633;--d2:#50c369"></button>
+      <button class="cw-dot" type="button" data-cw="morning" aria-pressed="false" title="Morning" aria-label="Morning colourway" style="--d1:#c55123;--d2:#fac044"></button>
+      <button class="cw-dot" type="button" data-cw="spring" aria-pressed="false" title="Spring" aria-label="Spring colourway" style="--d1:#da1889;--d2:#f39dbd"></button>
+      <button class="cw-dot" type="button" data-cw="beach" aria-pressed="false" title="Beach" aria-label="Beach colourway" style="--d1:#1a85c4;--d2:#25c2c2"></button>
+      <button class="cw-dot" type="button" data-cw="afternoon" aria-pressed="false" title="Afternoon" aria-label="Afternoon colourway" style="--d1:#72251c;--d2:#ef9275"></button>
+      <button class="cw-dot" type="button" data-cw="midnight" aria-pressed="false" title="Midnight" aria-label="Midnight colourway" style="--d1:#09141a;--d2:#7476e0"></button>
+    </div>
+    <button class="theme-btn" type="button" id="theme" aria-label="Theme: follow the system"><svg class="ico" aria-hidden="true"><use href="#i-auto"/></svg></button>
+  </div>
+</div>
+
+<!-- ═══ Hero ═══ -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Lolly brand standards</p>
+      <h1>Lolly brings the sweetness. You bring the flavour.</h1>
+      <p class="lede">Lolly turns a few simple inputs into finished, on-brand files. This page shows how Lolly looks, sounds and moves: pictures first, each with its rule in plain words.</p>
+    </div>
+    <figure class="softbox hero-box" style="margin:0"><img class="mark" src="/icon-primary.svg" alt="The Lolly mark, upright in a soft box: three nested spirals of green and white" width="286" height="286"></figure>
+  </div>
+  <nav class="wrap parts" aria-label="The five parts of Lolly's design system">
+    <a class="part" href="#opal"><span class="part-vis pv-opal" aria-hidden="true"><i style="--c:#033633"></i><i style="--c:#008657"></i><i style="--c:#50c369"></i><i style="--c:#ace1ad"></i><i style="--c:#fac044"></i><i style="--c:#da1889"></i></span><b>Opal</b><small>Colour</small></a>
+    <a class="part" href="#crossland"><span class="part-vis pv-cross" aria-hidden="true">Aa<em>a</em></span><b>Crossland</b><small>Type</small></a>
+    <a class="part" href="#clinic"><span class="part-vis pv-clinic" aria-hidden="true"><span></span><span></span></span><b>Clinic</b><small>Interface</small></a>
+    <a class="part" href="#etiquette"><span class="part-vis pv-eti" aria-hidden="true"><svg class="ico"><use href="#i-lolly"/></svg><svg class="ico"><use href="#i-qr"/></svg><svg class="ico"><use href="#i-chart"/></svg></span><b>Etiquette</b><small>Icons</small></a>
+    <a class="part" href="#fauna"><span class="part-vis pv-fauna" aria-hidden="true"><img class="colourful" src="/info/mascots/koala.webp" alt="" width="900" height="1032"></span><b>Fauna</b><small>The cast</small></a>
+  </nav>
+</header>
+
+<main>
+<!-- ═══ Story ═══ -->
+<section class="band" id="story">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Who Lolly is</p>
+      <h2>Your brand is the show. Lolly is the Studio.</h2>
+      <p class="story">Load a design system and Lolly steps back so your colours, type and files take the room. Lolly keeps the part people rarely notice: an interface that knows its craft, a cast with charm and work finished to a world-class standard.</p>
+    </div>
+    <div class="story-grid">
+      <article class="card story-card"><span class="big">You</span><h3>The guest is the show</h3><p>Your brand loads and the tools, colours and type become yours. The more you shape, the more you own.</p></article>
+      <article class="card story-card"><span class="big">Lolly</span><h3>The expert in the room</h3><p>A calm, exact interface that does the careful work and stays out of the way.</p></article>
+      <article class="card story-card"><span class="big">Fauna</span><h3>The charm</h3><p>Australian wildlife at work in the studio, with a lolly in hand when that helps.</p></article>
+    </div>
+    <div class="provenance"><span>Unapologetically digital, with a proud provenance.</span><img src="/brand/founded-by.svg" alt="Founded by SUSE" width="143" height="20"><span style="color:var(--muted)">A brand of its own.</span></div>
+  </div>
+</section>
+
+<!-- ═══ Tenets ═══ -->
+<section class="band" id="tenets">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Tenets</p>
+      <h2>all potential to all mediums</h2>
+      <p class="story"><b>Respecting all work.</b> Anyone, with what they own, creating for any medium at the highest quality.</p>
+    </div>
+    <div class="tenet-media" role="img" aria-label="One ampersand made in Lolly, for print, for screen and as vector">
+      <figure><span class="tm-box"><img src="/info/figures/tenets-print.svg" alt="" width="480" height="640" loading="lazy"></span><figcaption>Print</figcaption></figure>
+      <figure><span class="tm-box"><img src="/info/figures/tenets-screen.svg" alt="" width="800" height="450" loading="lazy"></span><figcaption>Screen</figcaption></figure>
+      <figure><span class="tm-box"><img src="/info/figures/tenets-vector.svg" alt="" width="480" height="480" loading="lazy"></span><figcaption>Vector</figcaption></figure>
+    </div>
+    <div class="card tenet-mantra"><span class="cap">Mantra</span><p><b>What stays</b> so everything else can change.</p></div>
+    <div class="tenet-values">
+      <article class="card"><span class="cap">Value</span><h3>Anyone</h3><p>Inclusion of all people and technology</p></article>
+      <article class="card"><span class="cap">Value</span><h3>Easy</h3><p>Quality made simple, choices scale.</p></article>
+      <article class="card"><span class="cap">Value</span><h3>Honest</h3><p>Attribution, provenance, privacy, &amp; consent</p></article>
+    </div>
+    <div class="card tenet-mission"><img src="/info/figures/tenets-infinity.svg" alt="A green infinity loop" width="660" height="400" loading="lazy"><div><span class="cap">Mission</span><p class="m1">creativity &amp; trust amongst the infinite</p><p class="m2">anyone can create, at any scale, anywhere</p></div></div>
+    <p class="tenet-why"><span class="cap">Why</span> <a href="/info/trust/shoulders-of-giants.html">Because we stand on the shoulders of giants</a></p>
+  </div>
+</section>
+
+<!-- ═══ The mark ═══ -->
+<section class="band" id="mark">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">The mark</p>
+      <h2>Three rings, three parties</h2>
+      <p class="story">A candy no one could pull by hand: three nested rings, where most lollies have one rope. You sit at the centre, Lolly holds the middle and the outer ring is Lolly at massive scale.</p>
+    </div>
+    <div class="mark-grid">
+      <figure class="softbox" style="margin:0;aspect-ratio:4/3"><img class="mark" src="/icon-primary.svg" alt="The Lolly mark, primary version" width="286" height="286"></figure>
+      <div class="card rings">
+        <svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="92" fill="none" stroke="var(--pop)" stroke-width="14" opacity=".55"/><circle cx="100" cy="100" r="60" fill="none" stroke="var(--mark)" stroke-width="14"/><circle cx="100" cy="100" r="26" fill="var(--head)"/></svg>
+        <ol>
+          <li><b>Inner ring · You</b><span>The person at the centre, with choice, power and creative freedom.</span></li>
+          <li><b>Middle ring · Lolly</b><span>The engine and the studio around you: the same inputs always make the same file.</span></li>
+          <li><b>Outer ring · At Scale</b><span>Lolly at massive scale: every person, team and file at once.</span></li>
+        </ol>
+      </div>
+    </div>
+    <div class="versions">
+      <figure class="ver"><div class="plate" style="--pb:#ffffff"><img src="/icon-primary.svg" alt="Primary mark on Sugar" width="286" height="286" loading="lazy"></div><span class="cap">Primary · on light</span></figure>
+      <figure class="ver"><div class="plate" style="--pb:#09141a"><img src="/icon-reverse.svg" alt="Reverse mark on Liquorice" width="286" height="286" loading="lazy"></div><span class="cap">Reverse · on dark</span></figure>
+      <figure class="ver"><div class="plate" style="--pb:#ffffff"><img src="/brand/mono.svg" alt="Mono mark in one ink on Sugar" width="286" height="286" loading="lazy"></div><span class="cap">Mono · one ink</span></figure>
+      <figure class="ver"><div class="plate" style="--pb:#033633"><img src="/brand/mono-reverse.svg" alt="Mono reverse mark in Sugar on Spearmint" width="286" height="286" loading="lazy"></div><span class="cap">Mono reverse</span></figure>
+    </div>
+    <div class="wordmarks" aria-label="The horizontal logo: the Lolly wordmark on each ground">
+      <figure class="wm"><div class="plate" style="--pb:#ffffff"><img src="/brand/horizontal.svg" alt="The Lolly wordmark in Liquorice on Sugar" width="447" height="197" loading="lazy"></div><span class="cap">Wordmark · Liquorice on light</span></figure>
+      <figure class="wm"><div class="plate" style="--pb:#09141a"><img src="/brand/horizontal-reverse.svg" alt="The Lolly wordmark in Daylight on Liquorice" width="447" height="197" loading="lazy"></div><span class="cap">Reverse · Daylight</span></figure>
+      <figure class="wm"><div class="plate" style="--pb:#033633"><img src="/brand/horizontal-on-brand.svg" alt="The Lolly wordmark in Green Apple on Spearmint, the brand ground" width="447" height="197" loading="lazy"></div><span class="cap">On brand · Green Apple</span></figure>
+    </div>
+    <div class="donts">
+      <figure class="dont"><div class="clear-plate"><div class="inner"><img src="/icon-primary.svg" alt="The mark with clear space around it" width="286" height="286" loading="lazy"></div></div><span class="tag yes"><svg class="ico"><use href="#i-check"/></svg>Clear space: a quarter all round</span></figure>
+      <figure class="dont"><div class="plate"><span class="bad-stick"></span><img src="/icon-primary.svg" alt="Wrong: the mark on a stick" width="286" height="286" loading="lazy"></div><span class="tag no"><svg class="ico"><use href="#i-x"/></svg>No stick</span></figure>
+      <figure class="dont"><div class="plate"><span class="bad-dish"></span><img src="/icon-primary.svg" alt="Wrong: the mark on a glass dish" width="286" height="286" loading="lazy"></div><span class="tag no"><svg class="ico"><use href="#i-x"/></svg>No dish</span></figure>
+      <figure class="dont"><div class="plate"><img class="tilted" src="/icon-primary.svg" alt="Wrong: the mark tilted and stretched" width="286" height="286" loading="lazy"></div><span class="tag no"><svg class="ico"><use href="#i-x"/></svg>No tilt, no stretch</span></figure>
+    </div>
+    <ul class="rules">
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Bunyapine is the mark's green</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Spearmint carries the reverse and mono marks</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>The wordmark is Liquorice on light, Daylight reversed and Green Apple on brand</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Lolly's tone takes the guest's hue</li>
+      <li class="rule no"><svg class="ico"><use href="#i-x"/></svg>Never a stick, a dish or a tilt under the mark</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>The stick appears only in small line icons and when Fauna holds the lolly</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══ Opal ═══ -->
+<section class="band" id="opal">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Opal · colour</p>
+      <h2>Opal: treats and nature</h2>
+      <p class="story">Opal is named for its theme: natural treats. Every colour has a name you can remember instead of a number. Green leads everywhere Lolly owns; the rainbow comes from what people make.</p>
+    </div>
+    <div class="opal-groups">
+      <div class="og"><span class="cap">Greens</span><div class="og-sw">
+        <div class="sw" data-token="spearmint"><i style="--c:#033633"></i><b>Spearmint</b><code>#033633</code></div>
+        <div class="sw" data-token="bunyapine"><i style="--c:#008657"></i><b>Bunyapine</b><code>#008657</code></div>
+        <div class="sw" data-token="green-apple"><i style="--c:#50c369"></i><b>Green Apple</b><code>#50c369</code></div>
+        <div class="sw" data-token="pandanus"><i style="--c:#ace1ad"></i><b>Pandanus</b><code>#ace1ad</code></div>
+        <div class="sw" data-token="avocado"><i style="--c:#edf6e0"></i><b>Avocado</b><code>#edf6e0</code></div>
+        <div class="sw" data-token="khaki"><i style="--c:#444f05"></i><b>Khaki</b><code>#444f05</code></div>
+        <div class="sw" data-token="olive"><i style="--c:#818e44"></i><b>Olive</b><code>#818e44</code></div>
+      </div></div>
+      <div class="og"><span class="cap">Warm: reds, relief and sun</span><div class="og-sw">
+        <div class="sw" data-token="ochre"><i style="--c:#72251c"></i><b>Ochre</b><code>#72251c</code></div>
+        <div class="sw" data-token="bauxite"><i style="--c:#a43427"></i><b>Bauxite</b><code>#a43427</code></div>
+        <div class="sw" data-token="outback"><i style="--c:#c55123"></i><b>Outback</b><code>#c55123</code></div>
+        <div class="sw" data-token="arvo"><i style="--c:#ef9275"></i><b>Arvo</b><code>#ef9275</code></div>
+        <div class="sw" data-token="banksia"><i style="--c:#ee9138"></i><b>Banksia</b><code>#ee9138</code></div>
+        <div class="sw" data-token="honey"><i style="--c:#fac044"></i><b>Honey</b><code>#fac044</code></div>
+        <div class="sw" data-token="wattle"><i style="--c:#fdec9e"></i><b>Wattle</b><code>#fdec9e</code></div>
+      </div></div>
+      <div class="og"><span class="cap">Earth and sand</span><div class="og-sw">
+        <div class="sw" data-token="bark"><i style="--c:#734f31"></i><b>Bark</b><code>#734f31</code></div>
+        <div class="sw" data-token="pancake"><i style="--c:#d8b890"></i><b>Pancake</b><code>#d8b890</code></div>
+        <div class="sw" data-token="beach"><i style="--c:#f2e1bf"></i><b>Beach</b><code>#f2e1bf</code></div>
+        <div class="sw" data-token="meringue"><i style="--c:#f9f7ef"></i><b>Meringue</b><code>#f9f7ef</code></div>
+      </div></div>
+      <div class="og"><span class="cap">Flowers and waters</span><div class="og-sw">
+        <div class="sw" data-token="fuchsia"><i style="--c:#da1889"></i><b>Fuchsia</b><code>#da1889</code></div>
+        <div class="sw" data-token="donut"><i style="--c:#f39dbd"></i><b>Donut</b><code>#f39dbd</code></div>
+        <div class="sw" data-token="jacaranda"><i style="--c:#7476e0"></i><b>Jacaranda</b><code>#7476e0</code></div>
+        <div class="sw" data-token="lagoon"><i style="--c:#1a85c4"></i><b>Lagoon</b><code>#1a85c4</code></div>
+        <div class="sw" data-token="sky"><i style="--c:#5fcaff"></i><b>Sky</b><code>#5fcaff</code></div>
+        <div class="sw" data-token="reef"><i style="--c:#25c2c2"></i><b>Reef</b><code>#25c2c2</code></div>
+        <div class="sw" data-token="swell"><i style="--c:#b6f1f1"></i><b>Swell</b><code>#b6f1f1</code></div>
+      </div></div>
+      <div class="og"><span class="cap">Ink and light</span><div class="og-sw">
+        <div class="sw" data-token="void"><i style="--c:#000000"></i><b>Void</b><code>#000000</code></div>
+        <div class="sw" data-token="liquorice"><i style="--c:#09141a"></i><b>Liquorice</b><code>#09141a</code></div>
+        <div class="sw" data-token="basalt"><i style="--c:#373e44"></i><b>Basalt</b><code>#373e44</code></div>
+        <div class="sw" data-token="pebble"><i style="--c:#99a0a4"></i><b>Pebble</b><code>#99a0a4</code></div>
+        <div class="sw" data-token="sugar"><i style="--c:#ffffff"></i><b>Sugar</b><code>#ffffff</code></div>
+        <div class="sw" data-token="daylight"><i class="hdr" style="--c:#ffffff"></i><b>Daylight</b><code>HDR white</code></div>
+      </div></div>
+    </div>
+    <div class="og-row" style="margin-top:22px">
+      <div class="card"><span class="cap">Charts take the mixed bag, in this order</span>
+        <div class="chart-row" role="img" aria-label="Eight bars in chart order: Green Apple, Reef, Honey, Donut, Banksia, Olive, Outback and Bark">
+          <span style="--c:#50c369;height:92%"></span><span style="--c:#25c2c2;height:74%"></span><span style="--c:#fac044;height:82%"></span><span style="--c:#f39dbd;height:58%"></span><span style="--c:#ee9138;height:66%"></span><span style="--c:#818e44;height:44%"></span><span style="--c:#c55123;height:52%"></span><span style="--c:#734f31;height:36%"></span>
+        </div>
+        <div class="chart-names" aria-hidden="true"><span>Green Apple</span><span>Reef</span><span>Honey</span><span>Donut</span><span>Banksia</span><span>Olive</span><span>Outback</span><span>Bark</span></div>
+      </div>
+      <div class="card"><span class="cap">Error words get a red of their own</span>
+        <div class="err-row">
+          <div class="err" style="background:#ffffff;color:#a43427;box-shadow:inset 0 0 0 1px rgb(9 20 26 / .1)"><svg class="ico"><use href="#i-x"/></svg>Check the web address<small>Bauxite · light</small></div>
+          <div class="err" style="background:#09141a;color:#ef9275"><svg class="ico"><use href="#i-x"/></svg>Check the web address<small>Arvo · dark</small></div>
+          <div class="err" style="background:#ffffff;color:#72251c;box-shadow:inset 0 0 0 2px #09141a"><svg class="ico"><use href="#i-x"/></svg>Check the web address<small>Ochre · High contrast</small></div>
+        </div>
+      </div>
+    </div>
+    <ul class="rules">
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Green is the main hue, everywhere Lolly owns</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Liquorice is the ink</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Names, never numbers: Honey, not yellow-300</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Violet and Jacaranda fit anywhere, AI association and all</li>
+      <li class="rule no"><svg class="ico"><use href="#i-x"/></svg>No guest colour on a verdict</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══ Colourways ═══ -->
+<section class="band" id="colourways">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Opal · colourways</p>
+      <h2>Colourways: one system, six moods</h2>
+      <p class="story">A colourway is a bundle: a lead, the colour that sits on the lead and a partner, with a look for light and a look for dark. Lolly Demo carries six. Choose one in any tool's Design system section and the choice stays with that piece. Wear one here and this page changes with you.</p>
+    </div>
+    <p class="cw-legend"><span>Contrast against WCAG 2.2</span><span>text: words on the lead, 4.5:1 or more</span><span>lead and partner: shapes on the page, 3:1 or more</span></p>
+    <div class="cw-grid">
+      <article class="card cw" data-colourway-card="spearmint" style="--g:linear-gradient(120deg,#033633,#008657 55%,#50c369)">
+        <div class="cw-band" aria-hidden="true"></div>
+        <div class="cw-head"><h3>Spearmint</h3><span class="cap">Canonical</span></div>
+        <p class="cw-mood">Lolly's own green.</p>
+        <div class="cw-looks">
+          <div class="cw-look cw-light" style="--l:#033633;--o:#ffffff"><span class="cap">Light</span><span class="cw-btn">Export PNG</span>
+            <dl class="cw-spec"><div><dt>Lead</dt><dd data-role="primary" data-token="spearmint"><i style="--c:#033633"></i>Spearmint</dd></div><div><dt>On lead</dt><dd data-role="on-primary" data-token="sugar"><i style="--c:#ffffff"></i>Sugar</dd></div><div><dt>Partner</dt><dd data-role="secondary" data-token="bunyapine"><i style="--c:#008657"></i>Bunyapine</dd></div></dl>
+            <p class="cw-ratio"><span>text 13.3</span><span>lead 13.3</span><span>partner 4.6</span></p></div>
+          <div class="cw-look cw-dark" style="--l:#50c369;--o:#09141a"><span class="cap">Dark</span><span class="cw-btn">Export PNG</span>
+            <dl class="cw-spec"><div><dt>Lead</dt><dd data-role="primary" data-token="green-apple"><i style="--c:#50c369"></i>Green Apple</dd></div><div><dt>On lead</dt><dd data-role="on-primary" data-token="liquorice"><i style="--c:#09141a"></i>Liquorice</dd></div><div><dt>Partner</dt><dd data-role="secondary" data-token="bunyapine"><i style="--c:#008657"></i>Bunyapine</dd></div></dl>
+            <p class="cw-ratio"><span>text 8.3</span><span>lead 8.3</span><span>partner 4.0</span></p></div>
+        </div>
+        <div class="cw-actions"><button class="btn" type="button" data-cw-wear="spearmint">Wear Spearmint</button><a class="cw-try" href="/t/link-card">Try in a link card</a></div>
+      </article>
+
+      <article class="card cw" data-colourway-card="morning" style="--g:linear-gradient(170deg,#5fcaff,#b6f1f1 48%,#fdec9e 72%,#fac044)">
+        <div class="cw-band" aria-hidden="true"></div>
+        <div class="cw-head"><h3>Morning</h3><span class="cap">Sunrise</span></div>
+        <p class="cw-mood">Sunrise with a clear sky.</p>
+        <div class="cw-looks">
+          <div class="cw-look cw-light" style="--l:#c55123;--o:#ffffff"><span class="cap">Light</span><span class="cw-btn">Export PNG</span>
+            <dl class="cw-spec"><div><dt>Lead</dt><dd data-role="primary" data-token="outback"><i style="--c:#c55123"></i>Outback</dd></div><div><dt>On lead</dt><dd data-role="on-primary" data-token="sugar"><i style="--c:#ffffff"></i>Sugar</dd></div><div><dt>Partner</dt><dd data-role="secondary" data-token="lagoon"><i style="--c:#1a85c4"></i>Lagoon</dd></div></dl>
+            <p class="cw-ratio"><span>text 4.6</span><span>lead 4.6</span><span>partner 4.0</span></p></div>
+          <div class="cw-look cw-dark" style="--l:#fac044;--o:#09141a"><span class="cap">Dark</span><span class="cw-btn">Export PNG</span>
+            <dl class="cw-spec"><div><dt>Lead</dt><dd data-role="primary" data-token="honey"><i style="--c:#fac044"></i>Honey</dd></div><div><dt>On lead</dt><dd data-role="on-primary" data-token="liquorice"><i style="--c:#09141a"></i>Liquorice</dd></div><div><dt>Partner</dt><dd data-role="secondary" data-token="sky"><i style="--c:#5fcaff"></i>Sky</dd></div></dl>
+            <p class="cw-ratio"><span>text 11.3</span><span>lead 11.3</span><span>partner 10.1</span></p></div>
+        </div>
+        <div class="cw-actions"><button class="btn" type="button" data-cw-wear="morning">Wear Morning</button><a class="cw-try" href="/t/link-card?_themes=%7B%22colourway%22%3A%22morning%22%7D">Try in a link card</a></div>
+      </article>
+
+      <article class="card cw" data-colourway-card="spring" style="--g:linear-gradient(120deg,#f39dbd,#ffffff 50%,#ace1ad)">
+        <div class="cw-band" aria-hidden="true"></div>
+        <div class="cw-head"><h3>Spring</h3><span class="cap">Blossom</span></div>
+        <p class="cw-mood">Blossom on new leaves.</p>
+        <div class="cw-looks">
+          <div class="cw-look cw-light" style="--l:#da1889;--o:#ffffff"><span class="cap">Light</span><span class="cw-btn">Export PNG</span>
+            <dl class="cw-spec"><div><dt>Lead</dt><dd data-role="primary" data-token="fuchsia"><i style="--c:#da1889"></i>Fuchsia</dd></div><div><dt>On lead</dt><dd data-role="on-primary" data-token="sugar"><i style="--c:#ffffff"></i>Sugar</dd></div><div><dt>Partner</dt><dd data-role="secondary" data-token="olive"><i style="--c:#818e44"></i>Olive</dd></div></dl>
+            <p class="cw-ratio"><span>text 4.7</span><span>lead 4.7</span><span>partner 3.6</span></p></div>
+          <div class="cw-look cw-dark" style="--l:#f39dbd;--o:#09141a"><span class="cap">Dark</span><span class="cw-btn">Export PNG</span>
+            <dl class="cw-spec"><div><dt>Lead</dt><dd data-role="primary" data-token="donut"><i style="--c:#f39dbd"></i>Donut</dd></div><div><dt>On lead</dt><dd data-role="on-primary" data-token="liquorice"><i style="--c:#09141a"></i>Liquorice</dd></div><div><dt>Partner</dt><dd data-role="secondary" data-token="green-apple"><i style="--c:#50c369"></i>Green Apple</dd></div></dl>
+            <p class="cw-ratio"><span>text 9.2</span><span>lead 9.2</span><span>partner 8.3</span></p></div>
+        </div>
+        <div class="cw-actions"><button class="btn" type="button" data-cw-wear="spring">Wear Spring</button><a class="cw-try" href="/t/link-card?_themes=%7B%22colourway%22%3A%22spring%22%7D">Try in a link card</a></div>
+      </article>
+
+      <article class="card cw" data-colourway-card="beach" style="--g:linear-gradient(180deg,#1a85c4,#25c2c2 32%,#b6f1f1 52%,#f2e1bf 62%,#d8b890)">
+        <div class="cw-band" aria-hidden="true"></div>
+        <div class="cw-head"><h3>Beach</h3><span class="cap">Surf and sand</span></div>
+        <p class="cw-mood">Surf over sand, driftwood in the shade.</p>
+        <div class="cw-looks">
+          <div class="cw-look cw-light" style="--l:#1a85c4;--o:#09141a"><span class="cap">Light</span><span class="cw-btn">Export PNG</span>
+            <dl class="cw-spec"><div><dt>Lead</dt><dd data-role="primary" data-token="lagoon"><i style="--c:#1a85c4"></i>Lagoon</dd></div><div><dt>On lead</dt><dd data-role="on-primary" data-token="liquorice"><i style="--c:#09141a"></i>Liquorice</dd></div><div><dt>Partner</dt><dd data-role="secondary" data-token="bark"><i style="--c:#734f31"></i>Bark</dd></div></dl>
+            <p class="cw-ratio"><span>text 4.6</span><span>lead 4.0</span><span>partner 7.3</span></p></div>
+          <div class="cw-look cw-dark" style="--l:#25c2c2;--o:#09141a"><span class="cap">Dark</span><span class="cw-btn">Export PNG</span>
+            <dl class="cw-spec"><div><dt>Lead</dt><dd data-role="primary" data-token="reef"><i style="--c:#25c2c2"></i>Reef</dd></div><div><dt>On lead</dt><dd data-role="on-primary" data-token="liquorice"><i style="--c:#09141a"></i>Liquorice</dd></div><div><dt>Partner</dt><dd data-role="secondary" data-token="pancake"><i style="--c:#d8b890"></i>Pancake</dd></div></dl>
+            <p class="cw-ratio"><span>text 8.5</span><span>lead 8.5</span><span>partner 9.9</span></p></div>
+        </div>
+        <div class="cw-actions"><button class="btn" type="button" data-cw-wear="beach">Wear Beach</button><a class="cw-try" href="/t/link-card?_themes=%7B%22colourway%22%3A%22beach%22%7D">Try in a link card</a></div>
+      </article>
+
+      <article class="card cw" data-colourway-card="afternoon" style="--g:linear-gradient(165deg,#fac044,#ee9138 34%,#ef9275 56%,#72251c)">
+        <div class="cw-band" aria-hidden="true"></div>
+        <div class="cw-head"><h3>Afternoon</h3><span class="cap">Arvo</span></div>
+        <p class="cw-mood">Red earth in the arvo sun.</p>
+        <div class="cw-looks">
+          <div class="cw-look cw-light" style="--l:#72251c;--o:#ffffff"><span class="cap">Light</span><span class="cw-btn">Export PNG</span>
+            <dl class="cw-spec"><div><dt>Lead</dt><dd data-role="primary" data-token="ochre"><i style="--c:#72251c"></i>Ochre</dd></div><div><dt>On lead</dt><dd data-role="on-primary" data-token="sugar"><i style="--c:#ffffff"></i>Sugar</dd></div><div><dt>Partner</dt><dd data-role="secondary" data-token="khaki"><i style="--c:#444f05"></i>Khaki</dd></div></dl>
+            <p class="cw-ratio"><span>text 10.5</span><span>lead 10.5</span><span>partner 8.9</span></p></div>
+          <div class="cw-look cw-dark" style="--l:#ef9275;--o:#09141a"><span class="cap">Dark</span><span class="cw-btn">Export PNG</span>
+            <dl class="cw-spec"><div><dt>Lead</dt><dd data-role="primary" data-token="arvo"><i style="--c:#ef9275"></i>Arvo</dd></div><div><dt>On lead</dt><dd data-role="on-primary" data-token="liquorice"><i style="--c:#09141a"></i>Liquorice</dd></div><div><dt>Partner</dt><dd data-role="secondary" data-token="banksia"><i style="--c:#ee9138"></i>Banksia</dd></div></dl>
+            <p class="cw-ratio"><span>text 8.0</span><span>lead 8.0</span><span>partner 7.8</span></p></div>
+        </div>
+        <div class="cw-actions"><button class="btn" type="button" data-cw-wear="afternoon">Wear Afternoon</button><a class="cw-try" href="/t/link-card?_themes=%7B%22colourway%22%3A%22afternoon%22%7D">Try in a link card</a></div>
+      </article>
+
+      <article class="card cw" data-colourway-card="midnight" style="--g:radial-gradient(circle at 78% 30%,#7476e0 0 4px,rgb(116 118 224 / .45) 5px,transparent 18px),linear-gradient(165deg,#09141a,#121d24 50%,#373e44)">
+        <div class="cw-band" aria-hidden="true"></div>
+        <div class="cw-head"><h3>Midnight</h3><span class="cap">Night sky</span></div>
+        <p class="cw-mood">A Liquorice night with one Jacaranda star.</p>
+        <div class="cw-looks">
+          <div class="cw-look cw-light" style="--l:#09141a;--o:#ffffff"><span class="cap">Light</span><span class="cw-btn">Export PNG</span>
+            <dl class="cw-spec"><div><dt>Lead</dt><dd data-role="primary" data-token="liquorice"><i style="--c:#09141a"></i>Liquorice</dd></div><div><dt>On lead</dt><dd data-role="on-primary" data-token="sugar"><i style="--c:#ffffff"></i>Sugar</dd></div><div><dt>Partner</dt><dd data-role="secondary" data-token="jacaranda"><i style="--c:#7476e0"></i>Jacaranda</dd></div></dl>
+            <p class="cw-ratio"><span>text 18.6</span><span>lead 18.6</span><span>partner 3.9</span></p></div>
+          <div class="cw-look cw-dark" style="--l:#7476e0;--o:#09141a"><span class="cap">Dark</span><span class="cw-btn">Export PNG</span>
+            <dl class="cw-spec"><div><dt>Lead</dt><dd data-role="primary" data-token="jacaranda"><i style="--c:#7476e0"></i>Jacaranda</dd></div><div><dt>On lead</dt><dd data-role="on-primary" data-token="liquorice"><i style="--c:#09141a"></i>Liquorice</dd></div><div><dt>Partner</dt><dd data-role="secondary" data-token="swell"><i style="--c:#b6f1f1"></i>Swell</dd></div></dl>
+            <p class="cw-ratio"><span>text 4.8</span><span>lead 4.8</span><span>partner 14.9</span></p></div>
+        </div>
+        <div class="cw-actions"><button class="btn" type="button" data-cw-wear="midnight">Wear Midnight</button><a class="cw-try" href="/t/link-card?_themes=%7B%22colourway%22%3A%22midnight%22%7D">Try in a link card</a></div>
+      </article>
+    </div>
+    <ul class="rules">
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>A lead, the colour on the lead and a partner, never one hex</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Every look clears 4.5:1 for words and 3:1 for shapes</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Chosen for each piece and kept with the piece</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>The app's own chrome keeps Spearmint</li>
+      <li class="rule no"><svg class="ico"><use href="#i-x"/></svg>No colourway on a verdict</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══ Crossland ═══ -->
+<section class="band" id="crossland">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Crossland · type</p>
+      <h2>Crossland: three faces, one voice</h2>
+      <p class="story">Crossland is a tribute to Dave Crossland, who has spent years making the case for free fonts (see Shoulders of Giants), and to collaboration and cooperation across the countries we each call home. Outfit gives Lolly a headline voice of its own. SUSE carries the words and the italics, and SUSE Mono reads the code: enough of a nod to where Lolly comes from.</p>
+    </div>
+    <div class="card spec">
+      <div class="spec-row"><span class="cap">Outfit · headings</span><p class="spec-outfit">The sweetness stays.</p></div>
+      <div class="spec-row"><span class="cap">SUSE · italics</span><p class="spec-italic">The flavour is yours.</p></div>
+      <div class="spec-row"><span class="cap">SUSE · text</span><p class="spec-suse">Pick a tool and fill in a few fields, or lay out the page yourself on an open canvas. The finished file comes out right either way.</p></div>
+      <div class="spec-row"><span class="cap">SUSE Mono · code</span><p class="spec-mono"><span class="p">$</span> lolly qr-code --url=https://lolly.tools --export=png</p></div>
+    </div>
+    <ul class="rules">
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Outfit for headings</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>SUSE for reading, and for every italic</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>SUSE Mono for code, numbers in columns and labels</li>
+      <li class="rule no"><svg class="ico"><use href="#i-x"/></svg>No faux italics: Outfit has none</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══ Clinic ═══ -->
+<section class="band" id="clinic">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Clinic · interface</p>
+      <h2>Clinic: a luxury experience, made with care to enjoy</h2>
+      <p class="story">Clinic is how Lolly's interface behaves: the forms, the components and the framework under them. Clinic leaves the colour to the guest and keeps the craft.</p>
+    </div>
+    <div class="demos">
+      <article class="card demo"><div class="stage"><div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button class="btn show-focus" type="button">Export PNG</button><button class="btn btn--ghost" type="button">Cancel</button></div></div><div><h3>Focus rings stay loud</h3><p>Every control shows a clear ring when keyboard focus arrives.</p></div></article>
+      <article class="card demo"><div class="stage"><div class="pair"><div class="mini wash"><span class="tag yes"><svg class="ico"><use href="#i-check"/></svg>A full wash</span><b>Chosen card</b></div><div class="mini rail"><span class="tag no"><svg class="ico"><use href="#i-x"/></svg>A rail</span><b>Chosen card</b></div></div></div><div><h3>No border on one edge of a rounded shape</h3><p>Highlight with a wash, a full ring or space. Edges come from light: a hairline ring and a soft drop.</p></div></article>
+      <article class="card demo"><div class="stage"><div class="chips"><span class="chip">At rest</span><span class="chip hover">Hover</span><span class="chip sel">Selected</span></div></div><div><h3>No accent outline at rest</h3><p>A neutral hairline at rest; the accent arrives with hover, selection and state.</p></div></article>
+      <article class="card demo"><div class="stage" style="gap:8px"><div class="drop"><svg class="ico" style="width:18px;height:18px;vertical-align:-3px"><use href="#i-download"/></svg> Drop a file here</div><div class="empty-bad"><span class="tag no"><svg class="ico"><use href="#i-x"/></svg>Not for empty states</span></div></div><div><h3>Dashed means drop here</h3><p>Also allowed: editing guides, the High contrast drag source and the forensic overlay.</p></div></article>
+      <article class="card demo"><div class="stage"><div class="signals"><span class="sig sig-ok"><svg class="ico"><use href="#i-check"/></svg>Intact</span><span class="sig sig-bad"><svg class="ico"><use href="#i-x"/></svg>Broken</span><span class="sig sig-ai">GEN AI</span></div></div><div><h3>A signal is an icon and a word</h3><p>Never colour alone. Verdict colours never take the guest's flavour.</p></div></article>
+      <article class="card demo"><div class="stage"><div class="volts"><div class="volt" style="--vb:#ffffff;--vf:#09141a;--va:#033633;--vo:#ffffff"><small>Light</small><span>Save</span></div><div class="volt" style="--vb:#09141a;--vf:#e9eff3;--va:#50c369;--vo:#09141a;--vg:0 0 14px rgb(80 195 105 / .55)"><small>Dark</small><span>Save</span></div><div class="volt" style="--vb:#003330;--vf:#e2f3f1;--va:#50c369;--vo:#09141a"><small>Brand</small><span>Save</span></div></div></div><div><h3>Three voltages</h3><p>Light is the chalice, reserved. Dark is the ship, emissive. Brand is home, a ground built from the guest's hue.</p></div></article>
+      <article class="card demo"><div class="stage" style="gap:8px"><div class="app" style="--ab:#edf6e0;--af:#033633;--mk:#008657;--abody:#ffffff"><div class="app-bar"><span class="dot"></span>Poster<span class="save">Unsaved</span></div><div class="app-body"></div></div><div class="app" style="--ab:#09141a;--af:#e9eff3;--mk:#50c369;--abody:#121d24"><div class="app-bar"><span class="dot"></span>Poster<span class="save">Unsaved</span></div><div class="app-body"></div></div></div><div><h3>A pack may set the chrome</h3><p>Lolly Demo brings Avocado light, Liquorice dark and Honey for unsaved work. The blank pack keeps newsprint and noir.</p></div></article>
+      <article class="card demo"><div class="stage"><span class="switch"><i aria-hidden="true"></i>Jelly effects</span></div><div><h3>Jelly is opt-in</h3><p>Playful effects stay off until someone turns them on, and they still obey Reduce motion.</p></div></article>
+      <article class="card demo"><div class="stage"><div style="display:grid;gap:8px;width:100%"><label for="demo-field" style="font-size:13px;font-weight:600">Web address</label><input id="demo-field" type="text" value="https://lolly.tools" style="font:inherit;font-size:15px;padding:10px 12px;border-radius:12px;border:0;box-shadow:inset 0 0 0 1px var(--line);background:var(--paper);color:var(--ink)"></div></div><div><h3>Forms say what they want</h3><p>A visible label on every field, plain words and errors that say how to fix the problem.</p></div></article>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Etiquette ═══ -->
+<section class="band" id="etiquette">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Etiquette · icons</p>
+      <h2>Etiquette: good manners in a 24 pixel square</h2>
+      <p class="story">Etiquette is Lolly's icon set, drawn in the open line style of Lucide, at the same weight as the words beside each icon.</p>
+    </div>
+    <div class="eti-grid">
+      <div class="card glyph-big">
+        <svg viewBox="-1 -1 26 26" aria-label="The lolly glyph on its 24 pixel grid, with its stick at 45 degrees" role="img">
+          <g stroke="var(--line)" stroke-width=".06">
+            <path d="M0 0h24M0 1h24M0 2h24M0 3h24M0 4h24M0 5h24M0 6h24M0 7h24M0 8h24M0 9h24M0 10h24M0 11h24M0 12h24M0 13h24M0 14h24M0 15h24M0 16h24M0 17h24M0 18h24M0 19h24M0 20h24M0 21h24M0 22h24M0 23h24M0 24h24"/>
+            <path d="M0 0v24M1 0v24M2 0v24M3 0v24M4 0v24M5 0v24M6 0v24M7 0v24M8 0v24M9 0v24M10 0v24M11 0v24M12 0v24M13 0v24M14 0v24M15 0v24M16 0v24M17 0v24M18 0v24M19 0v24M20 0v24M21 0v24M22 0v24M23 0v24M24 0v24"/>
+          </g>
+          <rect x="0" y="0" width="24" height="24" fill="none" stroke="var(--muted)" stroke-width=".08"/>
+          <g fill="none" stroke="var(--head)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="9" r="7"/><path d="M15 5a4 4 0 0 0 0 8 2 2 0 0 0 0-4"/><path d="m10 14-7 7"/></g>
+          <path d="M3 21h4.2M5.4 21a2.4 2.4 0 0 0-.7-1.7" fill="none" stroke="var(--no)" stroke-width=".22" stroke-linecap="round"/>
+          <text x="7.6" y="20.4" font-size="1.5" font-family="SUSE Mono, monospace" fill="var(--no)">45°</text>
+        </svg>
+        <span class="cap">The lolly glyph · the one icon with a stick</span>
+      </div>
+      <div class="card icon-wall">
+        <figure><svg class="ico"><use href="#i-lolly"/></svg><figcaption>Tools</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-qr"/></svg><figcaption>QR</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-chart"/></svg><figcaption>Chart</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-image"/></svg><figcaption>Image</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-layout"/></svg><figcaption>Layout</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-type"/></svg><figcaption>Text</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-layers"/></svg><figcaption>Layers</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-sliders"/></svg><figcaption>Adjust</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-download"/></svg><figcaption>Export</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-share"/></svg><figcaption>Share</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-search"/></svg><figcaption>Search</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-shield"/></svg><figcaption>Verify</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-pin"/></svg><figcaption>Place</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-music"/></svg><figcaption>Sound</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-play"/></svg><figcaption>Play</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-arrow"/></svg><figcaption>Next</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-check"/></svg><figcaption>Done</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-x"/></svg><figcaption>Close</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-save"/></svg><figcaption>Save</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-folder"/></svg><figcaption>Projects</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-drop"/></svg><figcaption>Colour</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-calendar"/></svg><figcaption>Date</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-clock"/></svg><figcaption>Time</figcaption></figure>
+        <figure><svg class="ico"><use href="#i-mail"/></svg><figcaption>Send</figcaption></figure>
+      </div>
+    </div>
+    <ul class="rules">
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>24 px grid, 2 px stroke, round caps and joins</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>One line weight, drawn open, in the colour of the words beside each icon</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>The lolly glyph leans candy top-right, stick bottom-left, at 45°</li>
+      <li class="rule no"><svg class="ico"><use href="#i-x"/></svg>No other icon carries a stick</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══ Devices ═══ -->
+<section class="band" id="devices">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Devices</p>
+      <h2>Built from a lolly's own shapes</h2>
+      <p class="story">A lolly is a disc, a spiral, a stripe, a stick and a wrapper. Every device comes from those shapes, so a new piece reads as Lolly before anyone sees the mark.</p>
+    </div>
+    <div class="dev-grid">
+      <article class="card dev">
+        <div class="swirl-box"><span class="swirl"><svg aria-hidden="true" focusable="false" viewBox="0 0 285.75 285.75" xmlns="http://www.w3.org/2000/svg"><style>.lolly-bg-top{stop-color:color-mix(in oklab, var(--brand-primary,#1f6f43), #000 30%)}.lolly-bg-bot{stop-color:color-mix(in oklab, var(--brand-primary,#1f6f43), #000 60%)}.lolly-outer,.lolly-mid,.lolly-inner{transform-origin:50% 50%;transform-box:fill-box}.lolly-outer{animation:lolly-spin 9s linear infinite}.lolly-mid{animation:lolly-spin 18s linear infinite}.lolly-inner{animation:lolly-spin 27s linear infinite}@keyframes lolly-spin{100%{transform:rotate(360deg)}50%{filter:hue-rotate(-25deg)}0%,100%{filter:hue-rotate(25deg)}}@media (prefers-reduced-motion:reduce){.lolly-outer,.lolly-mid,.lolly-inner{animation:none}}</style><defs><linearGradient id="lss-lolly-bg" x1="0" y1="0" x2="0" y2="1"><stop class="lolly-bg-top" offset="0"/><stop class="lolly-bg-bot" offset="1"/></linearGradient><radialGradient id="lss-k" cx="880.759" cy="708.563" r="30.665" fx="880.759" fy="708.563" gradientTransform="matrix(4.6 0 0 4.6 -3908.588 -3116.499)" gradientUnits="userSpaceOnUse" href="#lss-a"/><radialGradient id="lss-l" cx="880.759" cy="708.563" r="104.651" fx="880.759" fy="708.563" gradientTransform="translate(-992.344 -770.4)scale(1.289)" gradientUnits="userSpaceOnUse" href="#lss-b"/><radialGradient id="lss-m" cx="880.759" cy="708.563" r="30.665" fx="880.759" fy="708.563" gradientTransform="translate(-2464.807 -1954.987)scale(2.9607)" gradientUnits="userSpaceOnUse" href="#lss-a"/><radialGradient id="lss-n" cx="880.759" cy="708.563" r="62.321" fx="880.759" fy="708.563" gradientTransform="translate(-992.344 -770.4)scale(1.289)" gradientUnits="userSpaceOnUse" href="#lss-c"/><radialGradient id="lss-o" cx="880.759" cy="708.563" r="30.665" fx="880.759" fy="708.563" gradientTransform="translate(-1162.495 -907.287)scale(1.4821)" gradientUnits="userSpaceOnUse" href="#lss-a"/><radialGradient id="lss-p" cx="880.759" cy="708.563" r="30.665" fx="880.759" fy="708.563" gradientTransform="translate(-992.344 -770.401)scale(1.289)" gradientUnits="userSpaceOnUse" href="#lss-d"/><radialGradient id="lss-q" cx="185.5" cy="140.06" r="21.959" gradientTransform="matrix(1.0274 -.2742 .4957 1.857 -99.417 -67.432)" gradientUnits="userSpaceOnUse" href="#lss-e"/><radialGradient id="lss-r" cx="134.04" cy="55.687" r="44.621" gradientTransform="matrix(.4818 0 0 .201 78.404 99.883)" gradientUnits="userSpaceOnUse" href="#lss-f"/><radialGradient id="lss-D" cx="133.578" cy="55.41" r="44.621" fx="107821.34" fy="29802.447" gradientTransform="matrix(2.0599 -.891 .3412 .7887 -25.845 190.825)" gradientUnits="userSpaceOnUse" href="#lss-g"/><radialGradient id="lss-x" cx="134.04" cy="55.687" r="44.621" gradientTransform="rotate(105.09 157.873 118.132)scale(1.3426 .5601)" gradientUnits="userSpaceOnUse" href="#lss-f"/><radialGradient id="lss-A" cx="134.04" cy="55.687" r="44.621" gradientTransform="matrix(1.6527 0 0 .6895 -82.307 -22.216)" gradientUnits="userSpaceOnUse" href="#lss-h"/><radialGradient id="lss-h" cx="134.04" cy="55.687" r="44.621" gradientTransform="matrix(3.3089 0 0 1.3804 -177.03 -56.743)" gradientUnits="userSpaceOnUse"><stop offset=".122" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><radialGradient id="lss-B" cx="134.04" cy="55.687" r="44.621" gradientTransform="matrix(-.7845 -.2551 .0877 -.3972 226.55 242.407)" gradientUnits="userSpaceOnUse" href="#lss-f"/><radialGradient id="lss-C" cx="142.79" cy="98.641" r="44.621" gradientTransform="matrix(-2.6758 -.8841 .2991 -1.3766 432.77 441.768)" gradientUnits="userSpaceOnUse" href="#lss-f"/><radialGradient id="lss-v" cx="133.578" cy="55.41" r="44.621" fx="107821.34" fy="29802.447" gradientTransform="matrix(2.0599 -.891 .3412 .7887 -25.845 190.825)" gradientUnits="userSpaceOnUse" href="#lss-g"/><linearGradient id="lss-a"><stop offset="0" stop-opacity=".69"/><stop offset=".837" stop-opacity=".673"/><stop offset="1" stop-opacity="0"/></linearGradient><linearGradient id="lss-b"><stop offset="0" stop-color="#e3e3e3"/><stop offset=".875" stop-color="#f6f6f6"/><stop offset="1" stop-color="#6f6f6f"/></linearGradient><linearGradient id="lss-c"><stop offset="0" stop-color="#cacaca"/><stop offset=".768" stop-color="#f6f6f6"/><stop offset="1" stop-color="#858585"/></linearGradient><linearGradient id="lss-d"><stop offset="0" stop-color="#cacaca"/><stop offset=".687" stop-color="#eaeaea"/><stop offset="1" stop-color="#a6a6a6"/></linearGradient><linearGradient id="lss-e"><stop offset=".476" stop-color="#fff" stop-opacity="0"/><stop offset=".654" stop-color="#fff"/></linearGradient><linearGradient id="lss-f"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><linearGradient id="lss-u" x1="297.634" x2="450.179" y1="324.622" y2="154.152" gradientTransform="translate(12.44 11.846)scale(.4785)" gradientUnits="userSpaceOnUse" href="#lss-j"/><linearGradient id="lss-j"><stop offset=".087" stop-color="#fff" stop-opacity="0"/><stop offset=".554" stop-color="#fff"/></linearGradient><linearGradient id="lss-g"><stop offset=".308" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><g><path fill="url(#lss-k)" d="M142.88 1.817A141.06 141.06 0 0 1 283.933 142.87 141.06 141.06 0 0 1 142.88 283.933 141.06 141.06 0 0 1 1.817 142.871 141.06 141.06 0 0 1 142.88 1.817" opacity=".3"/><g class="lolly-outer"><path fill="url(#lss-l)" d="M142.876 7.989A134.887 134.887 0 0 0 7.99 142.874 134.887 134.887 0 0 0 142.876 277.76a134.887 134.887 0 0 0 134.885-134.887A134.887 134.887 0 0 0 142.876 7.989"/><path fill="var(--brand-primary, #008657)" d="M142.876 7.989a135 135 0 0 0-33.605 4.252A119.3 119.3 0 0 0 87.57 29.407a119.34 119.34 0 0 0-18.971 144.048 80.3 80.3 0 0 1-6.05-30.581 80.3 80.3 0 0 1 6.186-30.901A119.34 119.34 0 0 1 184 23.533a119.3 119.3 0 0 1 27.485 3.21A134.9 134.9 0 0 0 142.876 7.99m29.079 44.623a119.34 119.34 0 0 0-59.597 15.958 80.3 80.3 0 0 1 30.518-6.022 80.3 80.3 0 0 1 30.871 6.176 119.34 119.34 0 0 1 88.47 115.274 119.3 119.3 0 0 1-3.442 27.74 134.9 134.9 0 0 0 18.986-68.864 135 135 0 0 0-4.252-33.603 119.3 119.3 0 0 0-17.166-21.702 119.34 119.34 0 0 0-84.388-34.957M26.975 74.015a134.9 134.9 0 0 0-18.986 68.859 135 135 0 0 0 4.251 33.597 119.3 119.3 0 0 0 17.17 21.71 119.34 119.34 0 0 0 143.982 18.996 80.3 80.3 0 0 1-30.516 6.024 80.3 80.3 0 0 1-30.899-6.18 119.34 119.34 0 0 1-88.443-115.27 119.3 119.3 0 0 1 3.44-27.736m190.177 38.277a80.3 80.3 0 0 1 6.05 30.582 80.3 80.3 0 0 1-6.18 30.896 119.34 119.34 0 0 1-115.27 88.446 119.3 119.3 0 0 1-27.495-3.215 134.9 134.9 0 0 0 68.62 18.76 135 135 0 0 0 33.596-4.252 119.3 119.3 0 0 0 21.71-17.168 119.34 119.34 0 0 0 18.97-144.049" style="mix-blend-mode:multiply"/></g><path fill="url(#lss-m)" d="M142.878 52.084a90.793 90.793 0 0 1 90.788 90.788 90.793 90.793 0 0 1-90.788 90.794 90.793 90.793 0 0 1-90.794-90.794 90.793 90.793 0 0 1 90.794-90.788" opacity=".6"/><g class="lolly-mid"><path fill="url(#lss-n)" d="M220.464 163.666a80.326 80.326 0 0 1-98.378 56.799 80.326 80.326 0 0 1-56.801-98.379 80.326 80.326 0 0 1 98.381-56.8 80.326 80.326 0 0 1 56.798 98.38"/><path fill="var(--brand-primary, #008657)" d="M214.185 179.852a57.95 57.95 0 0 0-6.56-40.723 57.95 57.95 0 0 0-41.68-28.346 39.53 39.53 0 0 1 15.935 25.722 57.95 57.95 0 0 1 9.428 49.505 57.95 57.95 0 0 1-24.153 33.435 80.33 80.33 0 0 0 47.03-39.593m5.271-60.873a80.33 80.33 0 0 0-39.607-47.415 57.95 57.95 0 0 0-40.72 6.56 57.95 57.95 0 0 0-28.218 41.504 39.53 39.53 0 0 1 25.618-15.716 57.95 57.95 0 0 1 49.481-9.47 57.95 57.95 0 0 1 33.446 24.537m-45.835 53.457a58 58 0 0 0 1.313-6.445 39.53 39.53 0 0 1-25.717 15.848 57.95 57.95 0 0 1-49.477 9.469 57.95 57.95 0 0 1-33.447-24.537 80.33 80.33 0 0 0 39.605 47.414 57.95 57.95 0 0 0 40.723-6.56 57.95 57.95 0 0 0 27-35.187zm-53.995 2.402a39.53 39.53 0 0 1-15.759-25.586v-.003a57.95 57.95 0 0 1-9.424-49.512 57.95 57.95 0 0 1 24.51-33.542 80.33 80.33 0 0 0-47.386 39.7 57.95 57.95 0 0 0 6.56 40.724 57.95 57.95 0 0 0 41.499 28.218z" style="mix-blend-mode:multiply"/></g><path fill="url(#lss-o)" fill-opacity=".8" d="M142.876 97.426a45.45 45.45 0 0 1 45.447 45.448 45.45 45.45 0 0 1-45.447 45.45 45.45 45.45 0 0 1-45.45-45.45 45.45 45.45 0 0 1 45.45-45.448"/><g class="lolly-inner"><path fill="url(#lss-p)" d="M142.876 103.35a39.525 39.525 0 0 1 39.523 39.524 39.525 39.525 0 0 1-39.523 39.525 39.525 39.525 0 0 1-39.526-39.525 39.525 39.525 0 0 1 39.526-39.524"/><path fill="var(--brand-primary, #008657)" d="M143.838 104.576c-14.54 0-31.592 16.58-31.931 35.539-.224 12.526 9.73 20.413 19.465 20.413 20.155 0 21.919-14.145 21.919-18.848 0-9.613-12.162-11.825-12.162-3.21 0 4.667-12.846 10.84-12.846-2.182 0-9.75 11.538-19.213 19.751-19.213 11.798 0 25.836 8.958 25.836 26.755 0 23.815-31.731 33.97-44.53 36.18a39.5 39.5 0 0 0 13.536 2.39 39.525 39.525 0 0 0 39.523-39.526 39.53 39.53 0 0 0-18.314-33.348c-6.044-3.278-13.037-4.95-20.247-4.95" style="mix-blend-mode:multiply"/></g><g><path fill="#fff" fill-opacity=".444" d="M131.581 119.013c-17.621 8.806-18.467 29.11-12.983 44.163 0 0-6.741-2.235-6.741-20.462 0-15.502 15.412-23.7 19.724-23.7z" opacity=".684"/><path fill="url(#lss-q)" d="M158.294 119.812c13.905 0 24.005 26.715 12.15 37.498 8.823-21.547-7.673-34.605-12.15-37.498" opacity=".494"/><path fill="url(#lss-r)" fill-opacity=".444" d="M163.05 115.707s-8.268-5.927-19.91-5.927-19.909 6.762-19.909 6.762 10.485-4.758 19.91-4.758c9.424 0 19.909 3.923 19.909 3.923"/><path fill="url(#lss-u)" d="M211.987 115.969c23.414 34.157-6.325 95.686-57.128 102.418 65.736-30.996 62.2-80.718 57.128-102.418" opacity=".494"/><path fill="url(#lss-v)" fill-opacity=".444" d="M355.01 135.555c-45.941-31.356-119.43-36.009-170.26 3.57 50.94-25.56 101.02-34.337 170.26-3.57" transform="translate(12.44 11.846)scale(.4785)"/><path fill="url(#lss-x)" fill-opacity=".444" d="M209.038 212.75c32.284-25.97 43.187-68.525 21.882-109.076 9.557 43.266 9.755 70.988-21.882 109.077"/><path fill="url(#lss-A)" fill-opacity=".6" d="M208.089 32.072C171.23 6.915 112.267 3.182 71.486 34.936c40.87-20.506 81.053-27.548 136.603-2.864"/><path fill="url(#lss-B)" fill-opacity=".444" d="M95.604 166.306c14.297 20.182 41.813 31.435 65.21 19.436-22.009 5.505-41.98 3.36-65.21-19.436"/><path fill="url(#lss-C)" fill-opacity=".444" d="M48.515 167.45c20.164 66.683 72.786 86.511 134.404 63.66-66.198 1.174-101.815 7.328-134.404-63.66"/><path fill="url(#lss-D)" fill-opacity=".444" d="M355.01 135.555c-45.941-31.356-119.43-36.009-170.26 3.57 50.94-25.56 101.02-34.337 170.26-3.57" transform="translate(12.44 11.846)scale(.4785)"/></g></g></svg></span><button class="btn" type="button" id="swirl-go">Export a file</button><span class="swirl-status" id="swirl-status" aria-live="polite"></span></div>
+        <h3>The swirl</h3><p>One moving swirl per view, and only while something is happening: the render, the export, the send.</p>
+      </article>
+      <article class="card dev">
+        <div class="softbox"><img class="mark" src="/icon-primary.svg" alt="The lolly, upright in a soft box with a soft shadow beneath" width="286" height="286" style="width:40%" loading="lazy"></div>
+        <h3>The soft box</h3><p>One subject on a sweep with no horizon, lit from above and in front, with nothing to stand on.</p>
+      </article>
+      <article class="card dev">
+        <div class="softbox"><div class="prizes"><span class="prize"><svg class="ico"><use href="#i-qr"/></svg></span><span class="prize"><svg class="ico"><use href="#i-chart"/></svg></span><span class="prize"><svg class="ico"><use href="#i-image"/></svg></span></div></div>
+        <h3>Tool prizes</h3><p>Each tool as the object it makes, standing upright. No dish, no tilt.</p>
+      </article>
+      <article class="card dev">
+        <div class="softbox" style="padding:24px"><div class="stripe-demo"><span class="cap">Exporting · 62%</span><div class="stripe" role="progressbar" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100" aria-label="Example progress"><i></i></div></div></div>
+        <h3>The stripe</h3><p>The twist seen from the side: progress, the storage meter's hatch and the export shutter's stripes.</p>
+      </article>
+      <article class="card dev">
+        <div class="softbox" style="padding:22px;place-items:stretch"><div class="wrapper-demo"><div class="file" role="img" aria-label="An example finished file"></div><span class="credit"><svg class="ico"><use href="#i-shield"/></svg>Made in Lolly · Content Credentials</span></div></div>
+        <h3>The wrapper</h3><p>Cellophane printed with the ingredients. Every picture keeps its caption, and Content Credentials say how the picture was made.</p>
+      </article>
+      <article class="card dev">
+        <div class="softbox" style="padding:22px"><div class="tones"><div class="tone"><i style="--t:#008657"></i>Lolly's tone</div><div class="tone"><i style="--t:#2f6fb8"></i>Lolly's tone, your hue</div><div class="tone"><i style="--t:#d9480f"></i>Your colours</div></div></div>
+        <h3>Tone and hue</h3><p>Lolly's tone with your hue at first. Once the system is yours, so are the colours.</p>
+      </article>
+    </div>
+    <div class="covers" aria-label="Real outputs from Lolly's tools, as the /info cover flow shows them">
+      <img class="colourful" src="/info/shots/covers/qr-code.webp" alt="A QR code made in Lolly" width="420" height="315" loading="lazy">
+      <img class="colourful" src="/info/shots/covers/chart.webp" alt="A chart made in Lolly" width="420" height="315" loading="lazy">
+      <img class="colourful" src="/info/shots/covers/design.webp" alt="A layout made in Lolly's Design tool" width="420" height="315" loading="lazy">
+      <img class="colourful" src="/info/shots/covers/darkroom.webp" alt="A graded photograph from Darkroom" width="420" height="315" loading="lazy">
+      <img class="colourful" src="/info/shots/covers/street-map.webp" alt="A street map made in Lolly" width="420" height="315" loading="lazy">
+      <img class="colourful" src="/info/shots/covers/colours.webp" alt="A colour palette made in Lolly" width="420" height="315" loading="lazy">
+      <img class="colourful" src="/info/shots/covers/sequence.webp" alt="A video sequence made in Lolly" width="420" height="315" loading="lazy">
+      <img class="colourful" src="/info/shots/covers/lab.webp" alt="An experiment from Lolly's lab" width="420" height="315" loading="lazy">
+      <img class="colourful" src="/info/shots/covers/assets.webp" alt="Brand assets in Lolly" width="420" height="315" loading="lazy">
+    </div>
+    <ul class="rules">
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>The rainbow comes from what people make</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Lolly shows itself at the register, when you ask for a service</li>
+      <li class="rule no"><svg class="ico"><use href="#i-x"/></svg>No dish, plinth or tilt under any subject</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══ Fauna ═══ -->
+<section class="band" id="fauna">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Fauna · the cast</p>
+      <h2>Fauna: wildlife finds the studio</h2>
+      <p class="story">Fauna wandered into a production studio full of sweets and found Lolly. They are curious, capable and on your side, and each looks after a part of the work.</p>
+    </div>
+    <div class="cast">
+      <figure><div class="frame"><img class="colourful" src="/info/mascots/koala.webp" alt="A koala holding a spearmint lolly" width="900" height="1032" loading="lazy"></div><figcaption><b>Koala</b><small>Builders</small></figcaption></figure>
+      <figure><div class="frame"><img class="colourful" src="/info/mascots/quokka.webp" alt="A smiling quokka sitting up with a spearmint lolly" width="850" height="1367" loading="lazy"></div><figcaption><b>Quokka</b><small>Creators</small></figcaption></figure>
+      <figure><div class="frame"><img class="colourful" src="/info/mascots/platypus.webp" alt="A platypus holding a lolly stick in its bill" width="600" height="372" loading="lazy"></div><figcaption><b>Platypus</b><small>Operators</small></figcaption></figure>
+      <figure><div class="frame"><img class="colourful" src="/info/mascots/kookaburra-lolly.webp" alt="A kookaburra holding a lolly in its beak" width="600" height="967" loading="lazy"></div><figcaption><b>Kookaburra</b><small>Developers</small></figcaption></figure>
+      <figure><div class="frame"><img class="colourful" src="/info/mascots/echidna.webp" alt="An echidna standing over a large spearmint lolly" width="600" height="512" loading="lazy"></div><figcaption><b>Echidna</b><small>Legal</small></figcaption></figure>
+      <figure><div class="frame"><img class="colourful" src="/info/mascots/bin-chicken.webp" alt="An Australian white ibis holding a lolly in its beak" width="600" height="868" loading="lazy"></div><figcaption><b>Ibis</b><small>AI</small></figcaption></figure>
+    </div>
+    <ul class="rules">
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Studio light, full body, at eye level</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>One animal, one lolly, one light</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>The stick appears when Fauna holds the lolly</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Every picture keeps the Content Credentials that say how the picture was made</li>
+      <li class="rule no"><svg class="ico"><use href="#i-x"/></svg>Never fleeing, never bared teeth or raised claws</li>
+    </ul>
+    <div class="kg-row">
+      <div class="card kg-dialog" role="group" aria-label="The Unsaved edits dialog with the kangaroo">
+        <div class="kg-lead"><div class="kg-art"><svg class="kg" xmlns="http://www.w3.org/2000/svg" viewBox="11 11 96 96" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><clipPath id="kg1_pouch"><path d="M60 0H120V80.47H98.61V79.87C94.28 79.1 84.67 74.66 80.4 73.6L60 73.6Z"><animate attributeName="d" values="M60 0H120V80.8H96.6V80.2C92.27 79.44 84.67 74.66 80.4 73.6L60 73.6Z;M60 0H120V80.8H96.6V80.2C92.27 79.44 84.67 74.66 80.4 73.6L60 73.6Z;M60 0H120V79.72H96.93V79.12C92.6 78.36 84.67 74.66 80.4 73.6L60 73.6Z;M60 0H120V79.72H96.93V79.12C92.6 78.36 84.67 74.66 80.4 73.6L60 73.6Z;M60 0H120V80.43H98.76V79.83C94.43 79.07 84.67 74.66 80.4 73.6L60 73.6Z;M60 0H120V80.47H98.61V79.87C94.28 79.1 84.67 74.66 80.4 73.6L60 73.6Z" keyTimes="0;0.06;0.4;0.52;0.86;1" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1;.3 0 .2 1;.4 0 .6 1" dur="1300ms" begin="kg1_go.begin" fill="freeze"/></path></clipPath><path d="M92.8 69.4C93.26 65.02 93.34 58.97 92.8 54.6C94.26 55.25 95.19 55.7 96.4 56.4C97.44 57 98.46 58.53 99.2 59.2C99.79 59.74 100.52 59.11 100.9 58.4C101.37 57.52 100.69 56.3 100.2 55.2C99.55 53.74 98.26 52.99 97 52C95.74 51.01 94.7 49.92 93.4 49.4C93.34 47.8 93.4 44.8 93.4 43.4C94.49 42.89 95.62 41.82 97.2 41.6C99.18 41.32 100.73 40.67 102.4 40C103.51 39.55 105.03 38.2 105 37.2C104.97 36.2 104.08 35.07 103.2 34.6C101.26 33.57 99.84 32.15 98.2 31C96.73 29.97 95.26 28.7 94.4 27.6C93.91 26.97 93.94 26.19 93.8 25.4C94.29 22.64 95.87 20.99 95.6 18.4C95.37 16.21 94.96 12.91 93.8 12.6C92.64 12.29 91.22 14.76 90.4 16.8C89.5 19.03 88.59 21.01 88.8 23C88.68 22.51 87.72 23.49 87.6 23C86.97 20.48 87.05 18.76 86 16.6C85.04 14.62 82.8 12.84 81.6 12.8C80.4 12.76 78.91 15.62 78.6 17.8C78.27 20.18 79.98 23.34 80.8 25.6C80.32 27.54 80.63 31.48 80 34C79.27 36.91 78.28 42.07 76 44.6C73.32 47.57 70.03 49.9 64.09 50.74C60.36 51.26 56.8 52.64 53.68 54.77C50.57 56.89 47.99 59.71 46.14 63C44.29 66.28 43.23 69.95 43.03 73.72C42.82 77.71 42.72 81.25 42.2 84.2C41.75 86.76 40.6 88.75 39 90.8C36.54 93.95 33.76 94.23 30 95.6C26.24 96.97 22.96 97.44 19 98C17.42 98.22 14 99.56 13.4 100.6C12.95 101.38 14.6 103.4 16 103.4C25 103.4 34 103.4 40 103.4C43 103.4 47.11 101.93 48.6 99.8C49.98 97.83 51.35 94.39 51.6 92C51.77 90.41 52.4 88.2 52.4 86.6C53.32 87.91 54.85 88.99 55.6 90.4C56.35 91.81 57.86 94.4 57.8 96C57.74 97.6 57.57 100.22 57.4 101.2C57.19 102.38 58.2 103.4 59.6 103.4C68.6 103.4 77 103.4 86 103.4C87.2 103.4 88.4 102.3 88.4 101.1C88.4 99.9 87.4 98.88 86.2 98.8C82.21 98.52 80.79 98.18 76.8 97.9C78.88 96.7 81.32 95.6 83.4 94.4C86 92.9 89.67 91.14 91.6 89.4C93.09 88.06 96.93 86.01 97.21 84.43C97.45 83.05 98.81 81.25 98.61 79.87C97.38 76.06 93.22 73.38 92.8 69.4Z"><animate attributeName="d" values="M92.8 69.4C93.26 65.02 93.34 58.97 92.8 54.6C94.26 55.25 95.19 55.7 96.4 56.4C97.44 57 98.46 58.53 99.2 59.2C99.79 59.74 100.52 59.11 100.9 58.4C101.37 57.52 100.69 56.3 100.2 55.2C99.55 53.74 98.26 52.99 97 52C95.74 51.01 94.7 49.92 93.4 49.4C93.34 47.8 93.4 44.8 93.4 43.4C94.49 42.89 95.62 41.82 97.2 41.6C99.18 41.32 100.73 40.67 102.4 40C103.51 39.55 105.03 38.2 105 37.2C104.97 36.2 104.08 35.07 103.2 34.6C101.26 33.57 99.84 32.15 98.2 31C96.73 29.97 95.26 28.7 94.4 27.6C93.91 26.97 93.94 26.19 93.8 25.4C94.29 22.64 95.87 20.99 95.6 18.4C95.37 16.21 94.96 12.91 93.8 12.6C92.64 12.29 91.22 14.76 90.4 16.8C89.5 19.03 88.59 21.01 88.8 23C88.68 22.51 87.72 23.49 87.6 23C86.97 20.48 87.05 18.76 86 16.6C85.04 14.62 82.8 12.84 81.6 12.8C80.4 12.76 78.91 15.62 78.6 17.8C78.27 20.18 79.98 23.34 80.8 25.6C80.32 27.54 80.63 31.48 80 34C79.27 36.91 78.28 42.07 76 44.6C73.32 47.57 70.03 49.9 64.09 50.74C60.36 51.26 56.8 52.64 53.68 54.77C50.57 56.89 47.99 59.71 46.14 63C44.29 66.28 43.23 69.95 43.03 73.72C42.82 77.71 42.72 81.25 42.2 84.2C41.75 86.76 40.6 88.75 39 90.8C36.54 93.95 33.76 94.23 30 95.6C26.24 96.97 22.96 97.44 19 98C17.42 98.22 14 99.56 13.4 100.6C12.95 101.38 14.6 103.4 16 103.4C25 103.4 34 103.4 40 103.4C43 103.4 47.11 101.93 48.6 99.8C49.98 97.83 51.35 94.39 51.6 92C51.77 90.41 52.4 88.2 52.4 86.6C53.32 87.91 54.85 88.99 55.6 90.4C56.35 91.81 57.86 94.4 57.8 96C57.74 97.6 57.57 100.22 57.4 101.2C57.19 102.38 58.2 103.4 59.6 103.4C68.6 103.4 77 103.4 86 103.4C87.2 103.4 88.4 102.3 88.4 101.1C88.4 99.9 87.4 98.88 86.2 98.8C82.21 98.52 80.79 98.18 76.8 97.9C78.88 96.7 81.32 95.6 83.4 94.4C86 92.9 89.67 91.14 91.6 89.4C93.09 88.06 95.92 86.18 96.2 84.6C96.44 83.22 96.79 81.59 96.6 80.2C95.36 76.4 93.22 73.38 92.8 69.4Z;M92.8 69.4C93.26 65.02 93.34 58.97 92.8 54.6C94.26 55.25 95.19 55.7 96.4 56.4C97.44 57 98.46 58.53 99.2 59.2C99.79 59.74 100.52 59.11 100.9 58.4C101.37 57.52 100.69 56.3 100.2 55.2C99.55 53.74 98.26 52.99 97 52C95.74 51.01 94.7 49.92 93.4 49.4C93.34 47.8 93.4 44.8 93.4 43.4C94.49 42.89 95.62 41.82 97.2 41.6C99.18 41.32 100.73 40.67 102.4 40C103.51 39.55 105.03 38.2 105 37.2C104.97 36.2 104.08 35.07 103.2 34.6C101.26 33.57 99.84 32.15 98.2 31C96.73 29.97 95.26 28.7 94.4 27.6C93.91 26.97 93.94 26.19 93.8 25.4C94.29 22.64 95.87 20.99 95.6 18.4C95.37 16.21 94.96 12.91 93.8 12.6C92.64 12.29 91.22 14.76 90.4 16.8C89.5 19.03 88.59 21.01 88.8 23C88.68 22.51 87.72 23.49 87.6 23C86.97 20.48 87.05 18.76 86 16.6C85.04 14.62 82.8 12.84 81.6 12.8C80.4 12.76 78.91 15.62 78.6 17.8C78.27 20.18 79.98 23.34 80.8 25.6C80.32 27.54 80.63 31.48 80 34C79.27 36.91 78.28 42.07 76 44.6C73.32 47.57 70.03 49.9 64.09 50.74C60.36 51.26 56.8 52.64 53.68 54.77C50.57 56.89 47.99 59.71 46.14 63C44.29 66.28 43.23 69.95 43.03 73.72C42.82 77.71 42.72 81.25 42.2 84.2C41.75 86.76 40.6 88.75 39 90.8C36.54 93.95 33.76 94.23 30 95.6C26.24 96.97 22.96 97.44 19 98C17.42 98.22 14 99.56 13.4 100.6C12.95 101.38 14.6 103.4 16 103.4C25 103.4 34 103.4 40 103.4C43 103.4 47.11 101.93 48.6 99.8C49.98 97.83 51.35 94.39 51.6 92C51.77 90.41 52.4 88.2 52.4 86.6C53.32 87.91 54.85 88.99 55.6 90.4C56.35 91.81 57.86 94.4 57.8 96C57.74 97.6 57.57 100.22 57.4 101.2C57.19 102.38 58.2 103.4 59.6 103.4C68.6 103.4 77 103.4 86 103.4C87.2 103.4 88.4 102.3 88.4 101.1C88.4 99.9 87.4 98.88 86.2 98.8C82.21 98.52 80.79 98.18 76.8 97.9C78.88 96.7 81.32 95.6 83.4 94.4C86 92.9 89.67 91.14 91.6 89.4C93.09 88.06 95.92 86.18 96.2 84.6C96.44 83.22 96.79 81.59 96.6 80.2C95.36 76.4 93.22 73.38 92.8 69.4Z;M92.8 69.4C93.26 65.02 93.34 58.97 92.8 54.6C94.26 55.25 95.19 55.7 96.4 56.4C97.44 57 98.46 58.53 99.2 59.2C99.79 59.74 100.52 59.11 100.9 58.4C101.37 57.52 100.69 56.3 100.2 55.2C99.55 53.74 98.26 52.99 97 52C95.74 51.01 94.7 49.92 93.4 49.4C93.34 47.8 93.4 44.8 93.4 43.4C94.49 42.89 95.62 41.82 97.2 41.6C99.18 41.32 100.73 40.67 102.4 40C103.51 39.55 105.03 38.2 105 37.2C104.97 36.2 104.08 35.07 103.2 34.6C101.26 33.57 99.84 32.15 98.2 31C96.73 29.97 95.26 28.7 94.4 27.6C93.91 26.97 93.94 26.19 93.8 25.4C94.29 22.64 95.87 20.99 95.6 18.4C95.37 16.21 94.96 12.91 93.8 12.6C92.64 12.29 91.22 14.76 90.4 16.8C89.5 19.03 88.59 21.01 88.8 23C88.68 22.51 87.72 23.49 87.6 23C86.97 20.48 87.05 18.76 86 16.6C85.04 14.62 82.8 12.84 81.6 12.8C80.4 12.76 78.91 15.62 78.6 17.8C78.27 20.18 79.98 23.34 80.8 25.6C80.32 27.54 80.63 31.48 80 34C79.27 36.91 78.28 42.07 76 44.6C73.32 47.57 70.03 49.9 64.09 50.74C60.36 51.26 56.8 52.64 53.68 54.77C50.57 56.89 47.99 59.71 46.14 63C44.29 66.28 43.23 69.95 43.03 73.72C42.82 77.71 42.72 81.25 42.2 84.2C41.75 86.76 40.6 88.75 39 90.8C36.54 93.95 33.76 94.23 30 95.6C26.24 96.97 22.96 97.44 19 98C17.42 98.22 14 99.56 13.4 100.6C12.95 101.38 14.6 103.4 16 103.4C25 103.4 34 103.4 40 103.4C43 103.4 47.11 101.93 48.6 99.8C49.98 97.83 51.35 94.39 51.6 92C51.77 90.41 52.4 88.2 52.4 86.6C53.32 87.91 54.85 88.99 55.6 90.4C56.35 91.81 57.86 94.4 57.8 96C57.74 97.6 57.57 100.22 57.4 101.2C57.19 102.38 58.2 103.4 59.6 103.4C68.6 103.4 77 103.4 86 103.4C87.2 103.4 88.4 102.3 88.4 101.1C88.4 99.9 87.4 98.88 86.2 98.8C82.21 98.52 80.79 98.18 76.8 97.9C78.88 96.7 81.32 95.6 83.4 94.4C86 92.9 89.67 91.14 91.6 89.4C93.09 88.06 96.09 85.64 96.36 84.06C96.61 82.68 97.12 80.51 96.93 79.12C95.69 75.32 93.22 73.38 92.8 69.4Z;M92.8 69.4C93.26 65.02 93.34 58.97 92.8 54.6C94.26 55.25 95.19 55.7 96.4 56.4C97.44 57 98.46 58.53 99.2 59.2C99.79 59.74 100.52 59.11 100.9 58.4C101.37 57.52 100.69 56.3 100.2 55.2C99.55 53.74 98.26 52.99 97 52C95.74 51.01 94.7 49.92 93.4 49.4C93.34 47.8 93.4 44.8 93.4 43.4C94.49 42.89 95.62 41.82 97.2 41.6C99.18 41.32 100.73 40.67 102.4 40C103.51 39.55 105.03 38.2 105 37.2C104.97 36.2 104.08 35.07 103.2 34.6C101.26 33.57 99.84 32.15 98.2 31C96.73 29.97 95.26 28.7 94.4 27.6C93.91 26.97 93.94 26.19 93.8 25.4C94.29 22.64 95.87 20.99 95.6 18.4C95.37 16.21 94.96 12.91 93.8 12.6C92.64 12.29 91.22 14.76 90.4 16.8C89.5 19.03 88.59 21.01 88.8 23C88.68 22.51 87.72 23.49 87.6 23C86.97 20.48 87.05 18.76 86 16.6C85.04 14.62 82.8 12.84 81.6 12.8C80.4 12.76 78.91 15.62 78.6 17.8C78.27 20.18 79.98 23.34 80.8 25.6C80.32 27.54 80.63 31.48 80 34C79.27 36.91 78.28 42.07 76 44.6C73.32 47.57 70.03 49.9 64.09 50.74C60.36 51.26 56.8 52.64 53.68 54.77C50.57 56.89 47.99 59.71 46.14 63C44.29 66.28 43.23 69.95 43.03 73.72C42.82 77.71 42.72 81.25 42.2 84.2C41.75 86.76 40.6 88.75 39 90.8C36.54 93.95 33.76 94.23 30 95.6C26.24 96.97 22.96 97.44 19 98C17.42 98.22 14 99.56 13.4 100.6C12.95 101.38 14.6 103.4 16 103.4C25 103.4 34 103.4 40 103.4C43 103.4 47.11 101.93 48.6 99.8C49.98 97.83 51.35 94.39 51.6 92C51.77 90.41 52.4 88.2 52.4 86.6C53.32 87.91 54.85 88.99 55.6 90.4C56.35 91.81 57.86 94.4 57.8 96C57.74 97.6 57.57 100.22 57.4 101.2C57.19 102.38 58.2 103.4 59.6 103.4C68.6 103.4 77 103.4 86 103.4C87.2 103.4 88.4 102.3 88.4 101.1C88.4 99.9 87.4 98.88 86.2 98.8C82.21 98.52 80.79 98.18 76.8 97.9C78.88 96.7 81.32 95.6 83.4 94.4C86 92.9 89.67 91.14 91.6 89.4C93.09 88.06 96.09 85.64 96.36 84.06C96.61 82.68 97.12 80.51 96.93 79.12C95.69 75.32 93.22 73.38 92.8 69.4Z;M92.8 69.4C93.26 65.02 93.34 58.97 92.8 54.6C94.26 55.25 95.19 55.7 96.4 56.4C97.44 57 98.46 58.53 99.2 59.2C99.79 59.74 100.52 59.11 100.9 58.4C101.37 57.52 100.69 56.3 100.2 55.2C99.55 53.74 98.26 52.99 97 52C95.74 51.01 94.7 49.92 93.4 49.4C93.34 47.8 93.4 44.8 93.4 43.4C94.49 42.89 95.62 41.82 97.2 41.6C99.18 41.32 100.73 40.67 102.4 40C103.51 39.55 105.03 38.2 105 37.2C104.97 36.2 104.08 35.07 103.2 34.6C101.26 33.57 99.84 32.15 98.2 31C96.73 29.97 95.26 28.7 94.4 27.6C93.91 26.97 93.94 26.19 93.8 25.4C94.29 22.64 95.87 20.99 95.6 18.4C95.37 16.21 94.96 12.91 93.8 12.6C92.64 12.29 91.22 14.76 90.4 16.8C89.5 19.03 88.59 21.01 88.8 23C88.68 22.51 87.72 23.49 87.6 23C86.97 20.48 87.05 18.76 86 16.6C85.04 14.62 82.8 12.84 81.6 12.8C80.4 12.76 78.91 15.62 78.6 17.8C78.27 20.18 79.98 23.34 80.8 25.6C80.32 27.54 80.63 31.48 80 34C79.27 36.91 78.28 42.07 76 44.6C73.32 47.57 70.03 49.9 64.09 50.74C60.36 51.26 56.8 52.64 53.68 54.77C50.57 56.89 47.99 59.71 46.14 63C44.29 66.28 43.23 69.95 43.03 73.72C42.82 77.71 42.72 81.25 42.2 84.2C41.75 86.76 40.6 88.75 39 90.8C36.54 93.95 33.76 94.23 30 95.6C26.24 96.97 22.96 97.44 19 98C17.42 98.22 14 99.56 13.4 100.6C12.95 101.38 14.6 103.4 16 103.4C25 103.4 34 103.4 40 103.4C43 103.4 47.11 101.93 48.6 99.8C49.98 97.83 51.35 94.39 51.6 92C51.77 90.41 52.4 88.2 52.4 86.6C53.32 87.91 54.85 88.99 55.6 90.4C56.35 91.81 57.86 94.4 57.8 96C57.74 97.6 57.57 100.22 57.4 101.2C57.19 102.38 58.2 103.4 59.6 103.4C68.6 103.4 77 103.4 86 103.4C87.2 103.4 88.4 102.3 88.4 101.1C88.4 99.9 87.4 98.88 86.2 98.8C82.21 98.52 80.79 98.18 76.8 97.9C78.88 96.7 81.32 95.6 83.4 94.4C86 92.9 89.67 91.14 91.6 89.4C93.09 88.06 97 85.99 97.28 84.41C97.52 83.04 98.96 81.22 98.76 79.83C97.53 76.02 93.22 73.38 92.8 69.4Z;M92.8 69.4C93.26 65.02 93.34 58.97 92.8 54.6C94.26 55.25 95.19 55.7 96.4 56.4C97.44 57 98.46 58.53 99.2 59.2C99.79 59.74 100.52 59.11 100.9 58.4C101.37 57.52 100.69 56.3 100.2 55.2C99.55 53.74 98.26 52.99 97 52C95.74 51.01 94.7 49.92 93.4 49.4C93.34 47.8 93.4 44.8 93.4 43.4C94.49 42.89 95.62 41.82 97.2 41.6C99.18 41.32 100.73 40.67 102.4 40C103.51 39.55 105.03 38.2 105 37.2C104.97 36.2 104.08 35.07 103.2 34.6C101.26 33.57 99.84 32.15 98.2 31C96.73 29.97 95.26 28.7 94.4 27.6C93.91 26.97 93.94 26.19 93.8 25.4C94.29 22.64 95.87 20.99 95.6 18.4C95.37 16.21 94.96 12.91 93.8 12.6C92.64 12.29 91.22 14.76 90.4 16.8C89.5 19.03 88.59 21.01 88.8 23C88.68 22.51 87.72 23.49 87.6 23C86.97 20.48 87.05 18.76 86 16.6C85.04 14.62 82.8 12.84 81.6 12.8C80.4 12.76 78.91 15.62 78.6 17.8C78.27 20.18 79.98 23.34 80.8 25.6C80.32 27.54 80.63 31.48 80 34C79.27 36.91 78.28 42.07 76 44.6C73.32 47.57 70.03 49.9 64.09 50.74C60.36 51.26 56.8 52.64 53.68 54.77C50.57 56.89 47.99 59.71 46.14 63C44.29 66.28 43.23 69.95 43.03 73.72C42.82 77.71 42.72 81.25 42.2 84.2C41.75 86.76 40.6 88.75 39 90.8C36.54 93.95 33.76 94.23 30 95.6C26.24 96.97 22.96 97.44 19 98C17.42 98.22 14 99.56 13.4 100.6C12.95 101.38 14.6 103.4 16 103.4C25 103.4 34 103.4 40 103.4C43 103.4 47.11 101.93 48.6 99.8C49.98 97.83 51.35 94.39 51.6 92C51.77 90.41 52.4 88.2 52.4 86.6C53.32 87.91 54.85 88.99 55.6 90.4C56.35 91.81 57.86 94.4 57.8 96C57.74 97.6 57.57 100.22 57.4 101.2C57.19 102.38 58.2 103.4 59.6 103.4C68.6 103.4 77 103.4 86 103.4C87.2 103.4 88.4 102.3 88.4 101.1C88.4 99.9 87.4 98.88 86.2 98.8C82.21 98.52 80.79 98.18 76.8 97.9C78.88 96.7 81.32 95.6 83.4 94.4C86 92.9 89.67 91.14 91.6 89.4C93.09 88.06 96.93 86.01 97.21 84.43C97.45 83.05 98.81 81.25 98.61 79.87C97.38 76.06 93.22 73.38 92.8 69.4Z" keyTimes="0;0.06;0.4;0.52;0.86;1" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1;.3 0 .2 1;.4 0 .6 1" dur="1300ms" begin="kg1_go.begin" fill="freeze"/></path><path d="M92.8 31.6h.01"/><g clip-path="url(#kg1_pouch)"><g transform="translate(2.2 -0.6)"><animateTransform attributeName="transform" type="translate" values="0 0;0 0;0 0;0 0;2.4 -0.7;2.2 -0.6" keyTimes="0;0.06;0.4;0.52;0.86;1" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1;.3 0 .2 1;.4 0 .6 1" dur="1300ms" begin="kg1_go.begin" fill="freeze"/><g transform="rotate(8 94.6 79)"><animateTransform id="kg1_go" data-kg-go attributeName="transform" type="rotate" values="0 94.6 79;0 94.6 79;-28 94.6 79;-28 94.6 79;10 94.6 79;8 94.6 79" keyTimes="0;0.06;0.4;0.52;0.86;1" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1;.3 0 .2 1;.4 0 .6 1" dur="1300ms" begin="indefinite" fill="freeze"/><path class="kg-joey" d="M96.6 80.2C97.35 78.79 98.3 78.26 99.4 77.4C100.66 76.41 101.94 75.56 103 75C103.79 74.58 104.43 73.7 104.4 72.8C104.37 71.9 103.26 71.08 102.4 70.8C100.69 70.24 100.3 69.92 99 69.4C98.72 67.82 98.39 65.99 98.2 64.6C98.07 63.71 97.8 62.48 96.9 62.4C96 62.32 95.61 64.22 95.4 65.4C95.23 66.38 95.54 67.46 95.2 68.4C94.79 69.53 93.24 71.02 93 72.4C92.58 74.76 92.8 76.6 92.8 79C92.8 81 92.9 82.8 92.9 84.2C92.9 85.2 93.42 85.37 94.4 85.2C94.75 83.23 94.52 81.4 96.6 80.2Z"/><path d="M99.8 73.4h.01"/></g></g></g><path d="M53.2 72.4C55.39 67.91 61.2 63.8 66.6 63.8C71.6 63.8 78.99 70.95 80.4 73.6C84.67 74.66 94.28 79.1 98.61 79.87"><animate attributeName="d" values="M53.2 72.4C55.39 67.91 61.2 63.8 66.6 63.8C71.6 63.8 78.99 70.95 80.4 73.6C84.67 74.66 92.27 79.44 96.6 80.2;M53.2 72.4C55.39 67.91 61.2 63.8 66.6 63.8C71.6 63.8 78.99 70.95 80.4 73.6C84.67 74.66 92.27 79.44 96.6 80.2;M53.2 72.4C55.39 67.91 61.2 63.8 66.6 63.8C71.6 63.8 78.99 70.95 80.4 73.6C84.67 74.66 92.6 78.36 96.93 79.12;M53.2 72.4C55.39 67.91 61.2 63.8 66.6 63.8C71.6 63.8 78.99 70.95 80.4 73.6C84.67 74.66 92.6 78.36 96.93 79.12;M53.2 72.4C55.39 67.91 61.2 63.8 66.6 63.8C71.6 63.8 78.99 70.95 80.4 73.6C84.67 74.66 94.43 79.07 98.76 79.83;M53.2 72.4C55.39 67.91 61.2 63.8 66.6 63.8C71.6 63.8 78.99 70.95 80.4 73.6C84.67 74.66 94.28 79.1 98.61 79.87" keyTimes="0;0.06;0.4;0.52;0.86;1" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1;.3 0 .2 1;.4 0 .6 1" dur="1300ms" begin="kg1_go.begin" fill="freeze"/></path></svg></div><div><h3>Unsaved edits</h3><p>Save now or abandon your changes.</p></div></div>
+        <div class="kg-actions"><button class="btn" type="button">Save &amp; leave</button><button class="btn btn--ghost" type="button">Leave anyway</button><button class="btn btn--ghost" type="button">Cancel</button></div>
+      </div>
+      <div class="card kg-side">
+        <span class="cap">Fauna in the interface</span>
+        <h3 style="font-size:22px">A kangaroo for unsaved edits</h3>
+        <p class="kg-note">The joey is the work you have not saved. When the dialog opens he leans back, looks up, then looks out, and the pouch line stretches with him. One single-weight line, coloured by the theme.</p>
+        <button class="btn" type="button" id="kg-replay"><svg class="ico" style="width:16px;height:16px;vertical-align:-3px;stroke-width:2.4"><use href="#i-play"/></svg> Play the motion</button>
+        <p class="kg-note" id="kg-reduce" hidden>Reduce motion is on, so nothing on this page moves by itself. The button still plays the motion when you press the button.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Motion and Calm ═══ -->
+<section class="band" id="motion">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Motion and Calm</p>
+      <h2>Still, until something happens</h2>
+      <p class="story">Lolly moves when you ask for something, and stands still when you ask for calm. Calm and Reduce motion show the still of every moving piece.</p>
+    </div>
+    <div class="calm-row">
+      <div class="card calm-card">
+        <button class="toggle" type="button" id="calm" aria-pressed="false"><i aria-hidden="true"></i>Calm</button>
+        <p style="color:var(--muted)">Try Calm: this page's colourful pictures quieten to half saturation and half contrast, and the swirl and the kangaroo hold still.</p>
+      </div>
+      <div class="card calm-card">
+        <ul class="rules" style="margin:0">
+          <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>At most one thing moving</li>
+          <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Only while something is happening</li>
+          <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Calm and Reduce motion show stills</li>
+          <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Jelly is opt-in</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Registers ═══ -->
+<section class="band" id="registers">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Two registers</p>
+      <h2>The room for doing, the stage for why</h2>
+      <p class="story">Most of Lolly is the room: bright, practical and friendly. When the topic carries weight, Lolly takes the stage and Fauna steps back.</p>
+    </div>
+    <div class="reg">
+      <article class="reg-room"><div><p class="eyebrow">The room</p><h3>Make your first file</h3></div><ul><li>Shop light and the soft box</li><li>The guest's flavour, or Opal on Lolly's own pages</li><li>Fauna, how-to pages, tools and help</li></ul></article>
+      <article class="reg-stage"><div><p class="eyebrow">The stage</p><h3>Why sovereign production matters</h3></div>
+        <svg viewBox="0 0 360 60" aria-hidden="true"><path d="M0 40h360"/><circle cx="40" cy="40" r="4" fill="#ace1ad"/><circle cx="150" cy="40" r="4" fill="#ace1ad"/><circle cx="260" cy="40" r="4" fill="#ace1ad"/><path d="M40 40V14M150 40V22M260 40V8"/></svg>
+        <ul><li>A deep green house and one spotlight</li><li>Light display type, geometry and linework</li><li>Why pages, policy, keynotes and Lolly Work</li></ul></article>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Voice ═══ -->
+<section class="band" id="voice">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Voice</p>
+      <h2>Plain words, said kindly</h2>
+      <p class="story">Lolly talks like a skilled person at the counter: specific, warm and brief, in British spelling.</p>
+    </div>
+    <div class="voice">
+      <article class="card say"><span class="tag yes"><svg class="ico"><use href="#i-check"/></svg>Say</span><p>Saved to Projects.</p><span class="tag no"><svg class="ico"><use href="#i-x"/></svg>Not</span><p class="was">Your masterpiece is safe and sound!</p></article>
+      <article class="card say"><span class="tag yes"><svg class="ico"><use href="#i-check"/></svg>Say</span><p>This file has no credential, so its history is unknown.</p><span class="tag no"><svg class="ico"><use href="#i-x"/></svg>Not</span><p class="was">Uh oh, something looks fishy!</p></article>
+      <article class="card say"><span class="tag yes"><svg class="ico"><use href="#i-check"/></svg>Say</span><p>Export PNG</p><span class="tag no"><svg class="ico"><use href="#i-x"/></svg>Not</span><p class="was">Let's go!</p></article>
+      <article class="card say"><span class="tag yes"><svg class="ico"><use href="#i-check"/></svg>Say</span><p>Colour, licence, organise.</p><span class="tag no"><svg class="ico"><use href="#i-x"/></svg>Not</span><p class="was">Color, license, organize.</p></article>
+    </div>
+    <ul class="rules">
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>A button says what happens</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>An error says what went wrong and how to fix the problem</li>
+      <li class="rule no"><svg class="ico"><use href="#i-x"/></svg>No hype, no exclamation marks</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══ Do and don't ═══ -->
+<section class="band" id="do">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">At a glance</p>
+      <h2>Do and don't</h2>
+    </div>
+    <div class="dd">
+      <article class="card dd-item"><div class="plate"><img src="/icon-primary.svg" alt="The lolly upright in a soft box" width="286" height="286" loading="lazy"></div><span class="tag yes"><svg class="ico"><use href="#i-check"/></svg>Do</span><p>The lolly upright, on its own.</p></article>
+      <article class="card dd-item"><div class="plate"><span class="bad-stick"></span><span class="bad-dish"></span><img src="/icon-primary.svg" alt="Wrong: the lolly on a stick and a dish" width="286" height="286" loading="lazy"></div><span class="tag no"><svg class="ico"><use href="#i-x"/></svg>Don't</span><p>A stick or a dish under the lolly.</p></article>
+      <article class="card dd-item"><div class="plate" style="padding:16px"><div class="mini wash" style="width:100%"><b>Chosen card</b></div></div><span class="tag yes"><svg class="ico"><use href="#i-check"/></svg>Do</span><p>A full wash for the chosen card.</p></article>
+      <article class="card dd-item"><div class="plate" style="padding:16px"><div class="mini rail" style="width:100%"><b>Chosen card</b></div></div><span class="tag no"><svg class="ico"><use href="#i-x"/></svg>Don't</span><p>A rail on one edge of a rounded card.</p></article>
+      <article class="card dd-item"><div class="plate" style="padding:16px"><div class="drop" style="font-size:13px">Drop a file here</div></div><span class="tag yes"><svg class="ico"><use href="#i-check"/></svg>Do</span><p>Dashes where something can be dropped.</p></article>
+      <article class="card dd-item"><div class="plate" style="padding:16px"><div class="empty-bad" style="font-size:13px">No projects yet</div></div><span class="tag no"><svg class="ico"><use href="#i-x"/></svg>Don't</span><p>Dashes around an empty state.</p></article>
+      <article class="card dd-item"><div class="plate"><span class="sig sig-ok"><svg class="ico"><use href="#i-check"/></svg>Intact</span></div><span class="tag yes"><svg class="ico"><use href="#i-check"/></svg>Do</span><p>An icon and a word on every signal.</p></article>
+      <article class="card dd-item"><div class="plate"><span style="width:18px;height:18px;border-radius:50%;background:#0b6b45"></span></div><span class="tag no"><svg class="ico"><use href="#i-x"/></svg>Don't</span><p>A coloured dot on its own.</p></article>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <img src="/brand/founded-by.svg" alt="Founded by SUSE" width="143" height="20">
+    <p>Lolly brand standards, updated 19 October 2026. The marks, the Fauna pictures and the tool covers are the original files from the Lolly repository; the swirl and the kangaroo are drawn inline from the app's own sources. Type is Outfit, SUSE and SUSE Mono under the SIL Open Font License.</p>
+    <p><a href="/">Open Lolly</a> · <a href="/info/">Read the docs</a> · <a href="https://github.com/lolly-tools/lolly">Lolly on GitHub</a></p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var reduce = function () { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; };
+  var calm = function () { return root.hasAttribute('data-calm'); };
+  var store = function (key, value) { try { if (value === null) localStorage.removeItem(key); else localStorage.setItem(key, value); } catch (e) { /* storage refused */ } };
+
+  // Colourways: the dots in the bar and the Wear buttons set the same attribute.
+  var NAMES = { spearmint: 'Spearmint', morning: 'Morning', spring: 'Spring', beach: 'Beach', afternoon: 'Afternoon', midnight: 'Midnight' };
+  function current() { return root.getAttribute('data-colourway') || 'spearmint'; }
+  function paintColourway() {
+    var id = current();
+    document.querySelectorAll('[data-cw]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-cw') === id)); });
+    document.querySelectorAll('[data-colourway-card]').forEach(function (c) {
+      if (c.getAttribute('data-colourway-card') === id) c.setAttribute('aria-current', 'true'); else c.removeAttribute('aria-current');
+    });
+    document.querySelectorAll('[data-cw-wear]').forEach(function (b) {
+      var own = b.getAttribute('data-cw-wear');
+      b.textContent = own === id ? 'Wearing ' + NAMES[own] : 'Wear ' + NAMES[own];
+    });
+  }
+  function wear(id) {
+    if (!NAMES[id]) return;
+    if (id === 'spearmint') root.removeAttribute('data-colourway'); else root.setAttribute('data-colourway', id);
+    store('lolly-brand-colourway', id === 'spearmint' ? null : id);
+    paintColourway();
+  }
+  document.querySelectorAll('[data-cw]').forEach(function (b) { b.addEventListener('click', function () { wear(b.getAttribute('data-cw')); }); });
+  document.querySelectorAll('[data-cw-wear]').forEach(function (b) { b.addEventListener('click', function () { wear(b.getAttribute('data-cw-wear')); }); });
+  paintColourway();
+
+  // Theme: follow the system, then light, then dark.
+  var themeBtn = document.getElementById('theme');
+  var ICON = { auto: '#i-auto', light: '#i-sun', dark: '#i-moon' };
+  var LABEL = { auto: 'Theme: follow the system', light: 'Theme: light', dark: 'Theme: dark' };
+  function paintTheme() {
+    var t = root.getAttribute('data-theme') || 'auto';
+    themeBtn.setAttribute('aria-label', LABEL[t]);
+    themeBtn.querySelector('use').setAttribute('href', ICON[t]);
+  }
+  if (themeBtn) {
+    themeBtn.addEventListener('click', function () {
+      var t = root.getAttribute('data-theme') || 'auto';
+      var next = t === 'auto' ? 'light' : t === 'light' ? 'dark' : 'auto';
+      if (next === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', next);
+      store('lolly-brand-theme', next === 'auto' ? null : next);
+      paintTheme();
+    });
+    paintTheme();
+  }
+
+  // The swirl moves only while the example export runs.
+  var swirl = document.querySelector('.swirl');
+  var go = document.getElementById('swirl-go');
+  var status = document.getElementById('swirl-status');
+  if (go && swirl) go.addEventListener('click', function () {
+    go.disabled = true;
+    status.textContent = 'Exporting';
+    if (!reduce() && !calm()) swirl.classList.add('busy');
+    setTimeout(function () { swirl.classList.remove('busy'); status.textContent = 'Exported'; go.disabled = false; }, 2400);
+  });
+
+  // The kangaroo is the still until the motion is started.
+  var replay = document.getElementById('kg-replay');
+  var note = document.getElementById('kg-reduce');
+  var syncReduce = function () { if (note) note.hidden = !reduce(); };
+  syncReduce();
+  var mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (mq.addEventListener) mq.addEventListener('change', syncReduce);
+  // A press is a request to watch the motion, so it plays even under Reduce motion or Calm.
+  if (replay) replay.addEventListener('click', function () {
+    var trigger = document.querySelector('svg.kg [data-kg-go]');
+    var svg = trigger && trigger.ownerSVGElement;
+    try { if (svg) svg.unpauseAnimations(); trigger.beginElement(); } catch (e) { /* the still stays */ }
+  });
+
+  // Calm quietens the colourful pictures and holds every moving piece still.
+  var toggle = document.getElementById('calm');
+  if (toggle) toggle.addEventListener('click', function () {
+    var on = toggle.getAttribute('aria-pressed') !== 'true';
+    toggle.setAttribute('aria-pressed', String(on));
+    root.toggleAttribute('data-calm', on);
+    if (on && swirl) swirl.classList.remove('busy');
+    var trigger = document.querySelector('svg.kg [data-kg-go]');
+    var svg = trigger && trigger.ownerSVGElement;
+    try { if (svg) { if (on) svg.pauseAnimations(); else svg.unpauseAnimations(); } } catch (e) { /* nothing to pause */ }
+  });
+})();
+</script>
+</body>
+</html>
