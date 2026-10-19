@@ -224,7 +224,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `design-authoring.ts` | 1153 | Design authoring keys lowered to stored rows (plan 291 W5, contract `@lolly-tools/core` design-authoring-v1). | yes | `tests/design-authoring.test.ts` | – |
 | `design-brief.ts` | 449 | The design brief (plan 291 W3): everything an agent needs to compose on brand, as one JSON document per design system. | yes | `tests/design-brief.test.ts` | – |
 | `design-check.ts` | 404 | One finding shape for every Design checker (plan 291, W1). | yes | `tests/design-check.test.ts` | – |
-| `design-colour-refs.test.ts` | 348 | Plan 291 W4: one document, every theme. | no | none | – |
+| `design-colour-refs.test.ts` | 349 | Plan 291 W4: one document, every theme. | no | none | – |
 | `design-components.ts` | 326 | Penpot component definitions → template descriptors (pure collectors). | yes | `tests/design-components.test.ts` | – |
 | `design-compose-suggest.ts` | 1354 | A first compose spec for a source deck (plan 291 W6, `lolly compose --suggest`, `lolly_compose` in suggest mode): one slide per source slide, each with a master archetype, its slots filled by reference to the inventory… | yes | `tests/design-compose-suggest.test.ts` | – |
 | `design-compose.ts` | 2033 | Compose Design slides from slide-master archetypes (plan 291 W6, contract `@lolly-tools/core` design-compose-v1). | yes | `tests/design-compose.test.ts` | – |
