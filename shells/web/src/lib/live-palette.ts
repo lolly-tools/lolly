@@ -13,7 +13,7 @@
  * which brand's catalog is actually active - see plans/… the SUSE profile
  * regression this fixes.
  */
-import { PALETTE, type PaletteEntry } from '../palette.ts';
+import { PALETTE, type PaletteEntry, type PaletteToken } from '../palette.ts';
 import type { SpotColor } from '@lolly-tools/core/host-v1';
 
 /** The host slice this module reads. */
@@ -29,6 +29,10 @@ interface LiveSwatch {
   value: string;
   cmyk: number[] | null;
   spot: SpotColor | null;
+  ref?: string;
+  css?: string;
+  description?: string | null;
+  faces?: Record<string, string | number[]>;
 }
 
 // A resolved token's `group` is already prettified for display (e.g. a ramp
@@ -47,6 +51,18 @@ export function toPaletteEntry(s: LiveSwatch): PaletteEntry {
     cmyk: Array.isArray(s.cmyk) && s.cmyk.length === 4 ? (s.cmyk as [number, number, number, number]) : null,
     spot: s.spot,
     group: bucket === 'spectrum' ? 'spectrum' : bucket === 'ramp' ? (s.group ?? undefined) : undefined,
+    ...(s.ref ? { token: tokenOf(s, s.ref) } : {}),
+  };
+}
+
+/** The token facts the palette would otherwise drop, each only when present. */
+function tokenOf(s: LiveSwatch, ref: string): PaletteToken {
+  return {
+    ref,
+    path: s.path,
+    ...(s.css ? { css: s.css } : {}),
+    ...(s.description ? { description: s.description } : {}),
+    ...(s.faces && Object.keys(s.faces).length ? { faces: s.faces } : {}),
   };
 }
 

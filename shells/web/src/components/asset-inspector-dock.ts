@@ -26,6 +26,8 @@ export function mountAssetInspectorDock(dialog: HTMLDialogElement): () => void {
   const verify = body.querySelector('.cat-act-verify'); if (verify) primary.append(verify);
   const actions = body.querySelector('.cat-details-actions');
   const download = actions?.querySelector('.cat-act-download'); if (download) primary.prepend(download);
+  // A sheet that is not a file (a swatch) marks its own primary buttons.
+  for (const node of actions?.querySelectorAll<HTMLElement>(':scope > [data-inspector-primary]') ?? []) primary.append(node);
   const favourites = actions?.querySelector(':scope > .cat-act-row');
   const favourite = favourites?.querySelector<HTMLElement>('.cat-act-fav'); if (favourite) { favourite.setAttribute('aria-label', t('Favourite')); favourite.title = t('Favourite'); titleRow.insertBefore(favourite, toggle); }
   if (favourites?.childElementCount) primary.append(favourites); else favourites?.remove();
@@ -76,8 +78,11 @@ export function mountAssetInspectorDock(dialog: HTMLDialogElement): () => void {
   for (const node of appearance.slice(1)) appearanceSection?.querySelector('.cat-inspector-section-body')?.append(node);
   for (const [index, section] of [...(actions?.querySelectorAll<HTMLDetailsElement>(':scope > details') ?? [])].entries()) enhance(section, index ? 'file-actions' : 'export');
   const checks = wrap(passport, 'Checks', 'checks', true);
+  // Sections a sheet writes itself: `<details data-inspector-id>`, kept where they are.
+  for (const section of body.querySelectorAll<HTMLDetailsElement>(':scope > details[data-inspector-id]')) enhance(section, section.dataset.inspectorId ?? 'section', section.open);
+  const keptActions = actions?.childElementCount ? actions : null; if (!keptActions) actions?.remove();
   const shared = body.querySelector<HTMLElement>('[data-shared-metadata]');
-  for (const node of [fileSection, shared, fileDetails, appearanceSection, actions, credentials, techSection, usageSection, rondo, textSection, checks]) if (node) body.append(node);
+  for (const node of [fileSection, shared, fileDetails, appearanceSection, keptActions, credentials, techSection, usageSection, rondo, textSection, checks]) if (node) body.append(node);
   const watched = [[fileSection, files], [techSection, tech], [usageSection, usage], [textSection, text], [checks, passport]] as const;
   const refresh = () => {
     if (disposed) return;

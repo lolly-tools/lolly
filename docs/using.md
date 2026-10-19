@@ -430,13 +430,15 @@ When a tool lets you add an image from your device, it's kept exactly as it arri
 
 ### Take your palette and fonts anywhere
 
-The **Swatches** panel in Assets does more than display - click a colour to copy it, or **download the whole brand palette** in the format your other tool speaks:
+The **Swatches** panel in Assets does more than display - click a colour to open its details, or **download the whole brand palette** in the format your other tool speaks:
 
 - <!--i:code--> **Design tokens (JSON)**, **CSS variables** or **CSS classes** - drop the brand straight into a stylesheet or a build;
 - <!--i:palette--> **Adobe Swatch Exchange (.ase)** - load it into Illustrator or Photoshop;
 - <!--i:pentool--> **GIMP palette (.gpl)** - for GIMP or Inkscape.
 
-![The Swatches panel - the five palette download buttons across the top, then every brand colour as a copyable chip](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+![The Swatches panel - the five palette download buttons across the top, then every brand colour as a chip that opens its details](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+
+A colour's details open like any other asset's, with the colour filling the preview and folding sections beside it: **Linked values** (the CMYK build or spot ink locked to it, any value the brand authored for a particular space or press, and its design token), **Every notation** (hex, OKLCH, Display-P3 and the rest, each with a copy button), **Plotted on a colour space** (the Colour Lab's chart, against sRGB, Display-P3 or Rec.2020), **Tones** and **Readability**. The arrow keys step through the palette, the star adds the colour to your favourites, **Copy link** shares the colour itself and **Open in Colour Lab** takes it further.
 
 The **Fonts** panel lists your brand faces with a **download** beside each, to install locally or hand to a print shop. (The [Brand Studio](/info/brand-studio.html)'s Colours room offers the same palette download.)
 

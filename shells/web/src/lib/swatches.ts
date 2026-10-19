@@ -78,11 +78,22 @@ export function groupPalette(palette: readonly PaletteEntry[]): GroupedPalette {
   return { brand, spectrum, ramps: [...ramps] };
 }
 
+/** The palette in the order a Swatches panel shows it: brand, spectrum, then each
+ *  ramp. A swatch's index here is its place in that panel, which is what paging
+ *  through swatch details walks. */
+export function paletteInDisplayOrder(palette: readonly PaletteEntry[]): PaletteEntry[] {
+  const { brand, spectrum, ramps } = groupPalette(palette);
+  return [...brand, ...spectrum, ...ramps.flatMap(([, cols]) => cols)];
+}
+
 /** `opts.fav` (host views that wire a favourites overlay, e.g. the Catalog) renders a
  *  star toggle on the card; omit it (or call via `.map(swatch)`, whose index lands here
- *  and is ignored) for the plain read-only card. */
-export function swatch(c: PaletteEntry, opts?: { fav?: boolean } | number): string {
+ *  and is ignored) for the plain read-only card. `opts.open` makes the chip open the
+ *  swatch's details (the host wires `[data-swatch-open]`) instead of copying its hex,
+ *  the way a click on any other asset opens its details. */
+export function swatch(c: PaletteEntry, opts?: { fav?: boolean; open?: number } | number): string {
   const fav = typeof opts === 'object' && opts ? opts.fav : undefined;
+  const open = typeof opts === 'object' && opts ? opts.open : undefined;
   const measured = isLockedInk(c);
   const trans = isTransparent(c.hex);
   const chipStyle = trans ? '' : `style="background:${escape(c.hex)}"`;
@@ -95,8 +106,11 @@ export function swatch(c: PaletteEntry, opts?: { fav?: boolean } | number): stri
   return `
     <div class="plat-swatch${measured ? ' is-measured' : ''}">
       <button type="button" class="plat-swatch-chip${trans ? ' is-transparent' : ''}" ${chipStyle}
-              data-copy="${trans ? 'transparent' : escape(c.hex)}"
-              aria-label="${escape(c.label)} - ${trans ? 'transparent' : escape(c.hex)} (click to copy)">
+              ${open === undefined
+                ? `data-copy="${trans ? 'transparent' : escape(c.hex)}"
+              aria-label="${escape(c.label)} - ${trans ? 'transparent' : escape(c.hex)} (click to copy)"`
+                : `data-swatch-open="${open}" aria-haspopup="dialog"
+              aria-label="${escape(tRaw('{name} - {hex}. Open details', { name: c.label, hex: trans ? 'transparent' : c.hex }))}"`}>
         ${measured ? flag : ''}
       </button>
       ${fav === undefined ? '' : `<button type="button" class="plat-swatch-fav${fav ? ' is-on' : ''}" data-fav-swatch="${escape(c.label)}" aria-pressed="${fav}" aria-label="${escape(fav ? t('Remove from favourites') : t('Add to favourites'))}" title="${escape(fav ? t('Remove from favourites') : t('Add to favourites'))}">${icon('star', { size: 13 })}</button>`}

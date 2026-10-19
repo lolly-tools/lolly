@@ -23,6 +23,7 @@ import type { thumbsOps } from './thumbs.ts';
 import type { filtersOps } from './filters.ts';
 import type { sectionsOps } from './sections.ts';
 import type { detailsOps } from './details.ts';
+import type { swatchDetailsOps } from './swatch-details.ts';
 import type { userAssetsOps } from './user-assets.ts';
 import type { bulkOps } from './bulk.ts';
 import type { downloadsOps } from './downloads.ts';
@@ -45,6 +46,8 @@ export interface CatCtx {
   params: string;
   host: CatalogHost;
   linkedAsset: string;
+  /** `#/a?swatch=<label>`: the swatch whose details open once the view paints. */
+  linkedSwatch: string | null;
   linkedSections: string[];
   profile: Profile | null;
   allAssets: AssetRef[];
@@ -141,6 +144,7 @@ export interface CatCtx {
   filters: ReturnType<typeof filtersOps>;
   sections: ReturnType<typeof sectionsOps>;
   details: ReturnType<typeof detailsOps>;
+  swatches: ReturnType<typeof swatchDetailsOps>;
   userAssets: ReturnType<typeof userAssetsOps>;
   bulk: ReturnType<typeof bulkOps>;
   downloads: ReturnType<typeof downloadsOps>;

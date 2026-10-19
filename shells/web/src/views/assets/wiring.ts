@@ -295,6 +295,10 @@ export function wire(cat: CatCtx): void {
       return;
     }
 
+    // A swatch chip opens that swatch's details, like any other asset.
+    const openChip = target.closest<HTMLElement>('.plat-swatch-chip[data-swatch-open]');
+    if (openChip) { cat.swatches.openSwatch(Number(openChip.dataset.swatchOpen)); return; }
+
     // Read-only convenience: click a swatch chip to copy its hex.
     const chip = target.closest<HTMLElement>('.plat-swatch-chip[data-copy]');
     if (chip) {

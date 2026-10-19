@@ -91,9 +91,9 @@ export function mountFavStrip(cat: CatCtx): void {
     // (#/a?asset=…), so a route navigation would be swallowed by the router's same-route
     // dedupe (→ "Open does nothing"); opening the modal directly also preserves the grid's
     // scroll/expansion state and lets the same favourite be reopened repeatedly.
-    // A swatch tile has no details modal - it reveals the Swatches panel instead.
+    // A swatch tile opens that swatch's details, the way an asset tile opens its own.
     onActivate: (id) => {
-      if (id.startsWith('swatch:')) { revealSwatches(cat); return; }
+      if (id.startsWith('swatch:')) { if (!cat.swatches.openSwatchByLabel(id.slice('swatch:'.length))) revealSwatches(cat); return; }
       const ref = cat.assetById.get(id); if (ref) cat.details.openDetails(ref, cat.catIconTheme, cat.catPhotoTreatment);
     },
   });
@@ -147,14 +147,17 @@ export function swatchesSectionHtml(cat: CatCtx): string {
   const { SWATCH_DOWNLOADS } = cat;
   const { brand, spectrum, ramps } = groupPalette(cat.palette);
   const total = brand.length + spectrum.length + ramps.reduce((n, [, cols]) => n + cols.length, 0);
-  const grid = (list: typeof brand) => `<div class="plat-swatch-grid">${list.map(c => swatch(c, { fav: cat.favSet.has(cat.filters.swatchFavKey(c.label)) })).join('')}</div>`;
+  // Each chip opens its swatch's details. The index is the swatch's place in this
+  // panel (brand, spectrum, then the ramps), the order paging walks.
+  let open = 0;
+  const grid = (list: typeof brand) => `<div class="plat-swatch-grid">${list.map(c => swatch(c, { fav: cat.favSet.has(cat.filters.swatchFavKey(c.label)), open: open++ })).join('')}</div>`;
   const rampBlocks = ramps.map(([fam, cols]) =>
     `<h3 class="cat-panel-subhead">${escapeText(fam)}</h3>${grid(cols)}`).join('');
   const downloads = `<div class="cat-font-downloads cat-swatch-downloads">${SWATCH_DOWNLOADS.map(d =>
       `<button type="button" class="cat-download" data-swatch-dl="${d.fmt}" data-sfx="whoosh">${DOWNLOAD_ICON}<span>${escapeText(t(d.label))}</span></button>`).join('')}</div>`;
   const body = `
       ${downloads}
-      <p class="cat-panel-desc">${t('The brand palette. Click any chip to copy its hex. A <span class="plat-chip-flag is-static">CMYK</span> or <span class="plat-chip-flag is-static">SPOT</span> flag marks a locked ink value used directly in CMYK PDF exports.')}</p>
+      <p class="cat-panel-desc">${t('The brand palette. Click any swatch for every notation, its print values and its place in colour space. A <span class="plat-chip-flag is-static">CMYK</span> or <span class="plat-chip-flag is-static">SPOT</span> flag marks a locked ink value used directly in CMYK PDF exports.')}</p>
       <h3 class="cat-panel-subhead">${t('Brand')}</h3>${grid(brand)}
       ${spectrum.length ? `<h3 class="cat-panel-subhead">${t('Spectrum')}</h3>${grid(spectrum)}` : ''}
       ${rampBlocks}`;
@@ -422,6 +425,7 @@ export function syncAssetUrl(cat: CatCtx, id: string | null): void {
   const [path = '', query = ''] = location.hash.split('?');
   if (path !== '#/a' && path !== '#/assets') return; // only rewrite this view's own URL
   const params = new URLSearchParams(query);
+  params.delete('swatch');
   if (id) params.set('asset', id);
   else params.delete('asset');
   const q = params.toString();

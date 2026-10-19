@@ -63,6 +63,7 @@ import { thumbsOps } from './assets/thumbs.ts';
 import { filtersOps } from './assets/filters.ts';
 import { sectionsOps } from './assets/sections.ts';
 import { detailsOps } from './assets/details.ts';
+import { swatchDetailsOps } from './assets/swatch-details.ts';
 import { userAssetsOps } from './assets/user-assets.ts';
 import { bulkOps } from './assets/bulk.ts';
 import { downloadsOps } from './assets/downloads.ts';
@@ -104,6 +105,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   cat.filters = filtersOps(cat);
   cat.sections = sectionsOps(cat);
   cat.details = detailsOps(cat);
+  cat.swatches = swatchDetailsOps(cat);
   cat.userAssets = userAssetsOps(cat);
   cat.bulk = bulkOps(cat);
   cat.downloads = downloadsOps(cat);
@@ -117,6 +119,9 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   if (!preview) document.title = tRaw('{name} - Lolly', { name: t('Assets') });
   // Deep link: /#/a?asset=<id> focuses (scrolls to + highlights) that asset on load.
   const linkedAsset = new URLSearchParams(params).get('asset'); cat.linkedAsset = linkedAsset as CatCtx['linkedAsset'];
+  // Deep link: /#/a?swatch=<label> opens that brand swatch's details, the swatch
+  // sibling of ?asset=.
+  cat.linkedSwatch = linkedAsset ? null : new URLSearchParams(params).get('swatch');
   // Deep link: /#/a?section=<key>[,<key>…] lands with those sections EXPANDED (over the
   // collapsed-by-default state) and scrolls the first into view - the section-level sibling
   // of ?asset=. Validated against ALL_SECTION_KEYS at apply time (below).
@@ -531,6 +536,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // Deep link: open the shared asset's details modal over the catalog once it's painted.
   // A styled id opens the base asset with its colour pre-selected + applied - an icon theme
   // (…?theme=<id>) or a photo treatment (…?treatment=<id>). An id carries at most one.
+  if (cat.linkedSwatch && !cat.swatches.openSwatchByLabel(cat.linkedSwatch)) announce(t('That swatch isn’t in this palette'));
   if (linkedAsset) {
     const { theme } = parseThemedAssetId(linkedAsset);
     const { treatment } = parseTreatedAssetId(linkedAsset);
