@@ -16,3 +16,10 @@
 .notification-center-more { display: flex; flex-wrap: wrap; gap: .5rem; padding: .75rem 1rem 1rem; flex-shrink: 0; border-top: 1px solid hsl(var(--border)); }
 .notification-center-more[hidden] { display: none; }
 .notification-center-more .btn { min-height: max(44px, var(--ui-size-target)); }
+/* A short viewport (a phone on its side, text enlarged) has no room to give the
+   list and that foot fixed shares: the foot would leave the list a sliver. There
+   the whole panel scrolls instead, and the list keeps its full height. */
+@media (max-height: 479px) {
+  .notification-center:has(> .notification-center-more:not([hidden])) { overflow: auto; overscroll-behavior: contain; }
+  .notification-center:has(> .notification-center-more:not([hidden])) > .notification-center-list { flex: 0 0 auto; overflow: visible; }
+}
