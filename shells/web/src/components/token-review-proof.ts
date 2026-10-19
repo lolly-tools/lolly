@@ -6,6 +6,7 @@ import { usageSystem } from '../lib/design-system/usage-model.ts';
 import { renderBrandExample } from '../lib/design-system/example-proof.ts';
 import { comparisonVisualSource } from '../lib/compare-visual-sources.ts';
 import { mountVisualComparison } from './compare-visual-panel.ts';
+import { documentSnapshot, tokenContextModel, tokenContextStripHtml } from './token-context-strip.ts';
 import { escape as esc } from '../utils.ts';
 import { t } from '../i18n.ts';
 
@@ -15,7 +16,9 @@ export function mountTokenReviewProof(root: HTMLElement, host: HostV1, before: u
   const selections = [structuredClone(opts), structuredClone(afterOpts)];
   let generation = 0, disposed = false, abort: AbortController | undefined;
   let comparison: (() => void) | undefined;
-  root.innerHTML = `<label>${t('Production example')}<select class="field-select">${Object.entries(EXAMPLE_LABELS).map(([id, name]) => `<option value="${esc(id)}">${esc(name)}</option>`).join('')}</select></label><button type="button" class="btn btn--ghost" data-proof-run>${t('Render before and after')}</button> <button type="button" class="btn btn--ghost" data-proof-cancel disabled>${t('Cancel')}</button><p role="status" aria-live="polite"></p><div data-proof-result></div>`;
+  // Which context each side renders: the head as it stands and the candidate, each with its theme choices.
+  const contexts = captured.map((source, i) => tokenContextStripHtml(tokenContextModel(documentSnapshot(source, { selection: selections[i]!.selection }), { context: i ? 'candidate' : 'head' }))).join('');
+  root.innerHTML = `<div class="token-proof-contexts">${contexts}</div><label>${t('Production example')}<select class="field-select">${Object.entries(EXAMPLE_LABELS).map(([id, name]) => `<option value="${esc(id)}">${esc(name)}</option>`).join('')}</select></label><button type="button" class="btn btn--ghost" data-proof-run>${t('Render before and after')}</button> <button type="button" class="btn btn--ghost" data-proof-cancel disabled>${t('Cancel')}</button><p role="status" aria-live="polite"></p><div data-proof-result></div>`;
   const run = root.querySelector<HTMLButtonElement>('[data-proof-run]')!, cancel = root.querySelector<HTMLButtonElement>('[data-proof-cancel]')!;
   const status = root.querySelector<HTMLElement>('[role="status"]')!, result = root.querySelector<HTMLElement>('[data-proof-result]')!;
   async function render(): Promise<void> {

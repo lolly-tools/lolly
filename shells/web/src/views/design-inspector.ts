@@ -101,6 +101,7 @@ import type { HostV1, SpeechVoiceInfo } from '@lolly-tools/core/host-v1';
 import type { EmojiStyleV1 } from '@lolly-tools/core/emoji-v1';
 import type { EmojiStyleControl, EmojiStyleControlOpts } from '../components/emoji-style-control.ts';
 import type { DocumentThemePort } from '../lib/document-theme.ts';
+import { THEME_SEG, chooseDocumentTheme, documentThemeRows, documentThemeSignature, wireDocumentContext } from './design-document-context.ts';
 import { icon } from '../lib/icons.ts';
 import type { IconName } from '../lib/icons.ts';
 import { colorFieldHtml, wireColorField, resolveColorVar, colorVarLabel } from '../components/color-field.ts';
@@ -287,7 +288,8 @@ export interface DesignInspectorOpts {
    *  and the Document section then shows no Emoji row. */
   emoji?: InspectorEmojiPort;
   /** The theme the document is shown in (plan 291 W4, lib/document-theme.ts). Absent,
-   *  or a design system with one theme, and the Document section shows no Theme row. */
+   *  or a design system with one theme, and the Document section shows no Theme row.
+   *  A port with `context` also draws the design-system context strip (plan 286). */
   theme?: DocumentThemePort;
   fonts?: InspectorFonts;
   /** Resolve a rendered run through the vector-export font registry. This is
@@ -354,13 +356,6 @@ interface InspFrameCfg extends FramePort {
  * `wire` routes, and `write()` can never be handed it by accident.
  */
 const APPEAR_SEG = 'lolly-appear';
-
-/**
- * The Document section's theme control (plan 291 W4): one segmented row per theme
- * group, named by the group's index so a design system's own ids never reach markup.
- * Routed by `wire` like the Appears segments, since a theme is not a box field.
- */
-const THEME_SEG = 'lolly-doc-theme-';
 
 /**
  * `rows` is EVERY selected box, not just `box`. A cell that reads one row and writes
@@ -610,6 +605,12 @@ function inspectorFocusKey(scroll: HTMLElement, node: Element | null, q: (value:
     const d = (node as HTMLElement).dataset;
     const tokenSection = node.closest<HTMLElement>('[data-token-section]');
     if (tokenSection) return `[data-token-section="${q(tokenSection.dataset.tokenSection)}"] ${node.hasAttribute('data-design-token-property') ? '[data-design-token-property]' : 'summary'}`;
+    // The context strip's controls. Follow goes away once pressed, so its focus moves
+    // to Inspect, or to the disclosure where the port has no Inspect.
+    if (node.closest('[data-token-context]')) {
+      if (node.closest('summary')) return '[data-token-context] summary';
+      if (d?.tokenContextInspect != null || d?.tokenContextFollow != null) return '[data-token-context-inspect], [data-token-context] summary';
+    }
     const seg = node.closest<HTMLElement>('.fc-seg');
     if (seg && d?.v != null) return `.fc-seg[data-seg="${q(seg.dataset.seg)}"] .fc-seg-btn[data-v="${q(d.v)}"]`;
     for (const attr of ['fld', 'doc', 'nf', 'dm', 'mp', 'arr', 'act', 'head', 'webInteract', 'webStop'] as const) {
@@ -1316,12 +1317,12 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       });
   }
 
-  /** The colours the document is drawn in: its fill, theme, colour range and emoji set. */
+  /** The colours the document is drawn in: its fill, design system and theme, colour range and emoji set. */
   function lookBody(): string {
     // With artboards on the canvas each one paints its own fill, so the document colour only
     // seeds the next artboard; saying so is what stops a pick that shows nothing reading as a bug.
     return colorRow(hasFrames() ? t('Default fill') : t('Background'), 'fc-insp-bg', model.getInput('background'))
-      + themeDocRows()
+      + documentThemeRows(opts.theme, scroll)
       + (model.getInput('editingRange') == null ? '' : docSelectRow(t('Colour'), 'editingRange', [['sdr', t('SDR')], ['hdr', t('HDR / wide gamut')]], t('Preview depends on your display. Export HDR is chosen separately.')))
       + emojiDocRows();
   }
@@ -1341,35 +1342,6 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * the artwork belongs to the document: every text box, every artboard and every export
    * draws from the one set.
    */
-  /**
-   * The theme the document is shown in: a segment per declared theme, in the group's
-   * own order, beside the Background it changes. The value is the option's index, so
-   * the markup carries nothing the design system wrote except escaped labels.
-   */
-  function themeDocRows(): string {
-    const groups = opts.theme?.groups() ?? [];
-    if (!groups.length) return '';
-    return groups.map((g, gi) => {
-      const tip = helpTip(t('Colours linked to the design system follow this choice.'));
-      return `<div class="fc-row help-tip-host"><span class="fc-row-help-label"><span>${escape(g.label)}</span>${tip.button}</span>`
-        + segHtml(`${THEME_SEG}${gi}`, String(g.options.findIndex((o) => o.id === g.active)), g.options.map((o, oi) => [String(oi), o.label]), g.label)
-        + `${tip.pop}</div>`;
-    }).join('');
-  }
-
-  /** Apply a theme segment press: index back to ids, then the port does the rest. */
-  function chooseTheme(field: string, v: string | undefined): void {
-    const port = opts.theme;
-    const group = port?.groups()[Number(field.slice(THEME_SEG.length))];
-    const option = group?.options[Number(v)];
-    if (!port || !group || !option || option.id === group.active) return;
-    void port.choose(group.id, option.id).catch((error: unknown) => {
-      console.warn('[design] the theme could not be changed:', error);
-      // The press already moved the segment; put it back on the theme still in force.
-      sync(true);
-    });
-  }
-
   function emojiDocRows(): string {
     if (!opts.emoji) return '';
     return `<div data-emoji-slot role="group" aria-label="${escape(t('Emoji'))}"></div>`;
@@ -2181,9 +2153,11 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       // The Appears segments are the one control here that is not a field: they write
       // four at once (see `applyAppear`), so they are routed rather than written.
       if (field === APPEAR_SEG) { applyAppearMode(v); return; }
-      if (field?.startsWith(THEME_SEG)) { chooseTheme(field, v); return; }
+      // A refused theme change repaints, putting the pressed segment back on the theme in force.
+      if (field?.startsWith(THEME_SEG)) { chooseDocumentTheme(opts.theme, field, v, () => sync(true)); return; }
       write(field, v);
     });
+    wireDocumentContext(scroll, opts.theme, () => sync(true));
 
     const interactionIds = [...renderedIds];
     const interactionColour = scroll.querySelector('[data-color-field="fc-insp-interact-highlight"]');
@@ -2387,7 +2361,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // Document's readout is the one value that is NOT in the model - it measures the
     // canvas - so it is hashed here and woken by the canvas's own `canvas-resize`.
     const size = g.kind === 'empty' ? canvasSize() : null;
-    const doc = size ? [model.getInput('background'), model.getInput('projectFps'), size.w, size.h, model.getBoxes(), opts.theme?.groups() ?? null] : [];
+    const doc = size ? [model.getInput('background'), model.getInput('projectFps'), size.w, size.h, model.getBoxes(), documentThemeSignature(opts.theme)] : [];
     // Narration status is the OTHER value no watched field carries: it is derived from
     // the `narration:<frameId>` clip's resolved asset meta, on a different row entirely.
     // Without it the Present section kept saying "Not narrated yet." after a successful

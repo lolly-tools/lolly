@@ -20,12 +20,13 @@
  * A theme is document state, not a chrome preference: the app's own light and dark
  * (components/theme-toggle.ts) is a separate setting, never read here.
  */
-import type { HostV1 } from '@lolly-tools/core/host-v1';
+import type { HostV1, TokensSnapshot } from '@lolly-tools/core/host-v1';
 import { parseTokenSelection, resolveTokenSelection } from '../../../../engine/src/token-selection.ts';
 import { withTokenSelection } from '../../../../engine/src/token-context.ts';
 import { t } from '../i18n.ts';
 import { isIframeMode } from './iframe-mode.ts';
 import { routeParams, updateRouteParams } from './url-state.ts';
+import { themeOptionLabel } from './theme-option-label.ts';
 
 export type ThemeSelection = Record<string, string>;
 
@@ -51,14 +52,7 @@ export interface ThemeRuntime {
   setTokenSelection?(selection: ThemeSelection): Promise<void>;
 }
 
-/** Light and dark, the themes every shipped pack declares, read in the person's
- *  language; any other theme keeps the design system's own label. */
-export function themeOptionLabel(name: string): string {
-  const key = name.trim().toLowerCase();
-  if (key === 'light') return t('Light');
-  if (key === 'dark') return t('Dark');
-  return name;
-}
+export { themeOptionLabel };
 
 /**
  * The groups a document can switch between, with the option in force in each.
@@ -176,7 +170,8 @@ export async function switchDocumentTheme(deps: ThemeSwitchDeps, selection: Them
   if (typeof runtime.setTokenSelection !== 'function') return false;
   const before = runtime.tokenSelection;
   if (sameThemeSelection(before, selection)) return false;
-  deps.writeRoute(selection);
+  // An empty selection is the document going back to the design system's choices.
+  deps.writeRoute(Object.keys(selection).length ? selection : null);
   try {
     await runtime.setTokenSelection(selection);
   } catch (error) {
@@ -189,12 +184,28 @@ export async function switchDocumentTheme(deps: ThemeSwitchDeps, selection: Them
   return true;
 }
 
+/**
+ * What the document draws with (plan 286 section 5.1): the design system's render
+ * snapshot and the choices the document made itself. `selection` is absent while
+ * the document follows the design system.
+ */
+export interface DocumentTokenContext {
+  snapshot: TokensSnapshot;
+  selection?: ThemeSelection;
+}
+
 /** What the Design inspector's Document section is handed (views/design-inspector.ts). */
 export interface DocumentThemePort {
   /** The groups to draw, each with more than one option; empty draws nothing. */
   groups(): DocumentThemeGroup[];
   /** Choose `option` in `group`. Resolves once the canvas shows the new theme. */
   choose(group: string, option: string): Promise<void>;
+  /** The design-system context strip's data, or null before it is read or on a host with no snapshot. */
+  context?(): DocumentTokenContext | null;
+  /** Open the read-only token inspector on what the document draws with. */
+  inspect?(): Promise<void>;
+  /** Drop the document's own choices so it follows the design system again. */
+  follow?(): Promise<void>;
 }
 
 export interface DocumentThemeController extends DocumentThemePort {
@@ -202,6 +213,9 @@ export interface DocumentThemeController extends DocumentThemePort {
   ready: Promise<void>;
   /** Read the themes again (after a design-system switch). */
   refresh(): Promise<void>;
+  context(): DocumentTokenContext | null;
+  inspect(): Promise<void>;
+  follow(): Promise<void>;
   dispose(): void;
 }
 
@@ -212,20 +226,34 @@ export interface DocumentThemeControllerDeps extends Omit<ThemeSwitchDeps, 'pain
   writeRoute?: ThemeSwitchDeps['writeRoute'];
   /** The design system's token document. Defaults to the host's render snapshot. */
   readDocument?(): Promise<unknown>;
+  /** The render snapshot the context strip reads. Defaults to the host's own. */
+  readSnapshot?(): Promise<TokensSnapshot | null>;
+  /** Open the read-only token inspector over `host`. Defaults to the shared inspector modal. */
+  openInspector?(host: HostV1, current: () => boolean): Promise<void>;
 }
+
+/** The selection the document chose itself, or undefined while it follows the design system. */
+const ownSelection = (runtime: ThemeRuntime): ThemeSelection | undefined =>
+  runtime.tokenSelection && Object.keys(runtime.tokenSelection).length ? structuredClone(runtime.tokenSelection) : undefined;
 
 /**
  * The state behind the theme control: the declared themes, read once and again on
  * a design-system switch, and the choices, applied one at a time in the order they
  * were made so two quick presses cannot land out of order.
+ *
+ * It also holds the design-system context the Document section's strip shows. Every
+ * write here goes to the document (runtime, address, canvas, session) and never to
+ * the design system: the inspector it opens is read-only.
  */
 export function createDocumentThemeController(deps: DocumentThemeControllerDeps): DocumentThemeController {
   let doc: unknown = null;
+  let snapshot: TokensSnapshot | null = null;
   let disposed = false;
   let queue: Promise<unknown> = Promise.resolve();
-  const readDocument = deps.readDocument ?? (async () => {
-    const snapshot = await deps.host.tokens?.snapshot?.();
-    return snapshot?.document ?? null;
+  const readSnapshot = deps.readSnapshot ?? (async () => (await deps.host.tokens?.snapshot?.()) ?? null);
+  const openInspector = deps.openInspector ?? (async (host: HostV1, current: () => boolean) => {
+    const { openTokenInspector } = await import('../components/token-workspace.ts');
+    await openTokenInspector(host, undefined, current);
   });
   const paint = deps.paint ?? (async (el: HTMLElement, host: HostV1) => {
     const { applyBrandVars } = await import('../brand-vars.ts');
@@ -235,9 +263,12 @@ export function createDocumentThemeController(deps: DocumentThemeControllerDeps)
   const supported = (): boolean => typeof deps.runtime.setTokenSelection === 'function';
 
   async function refresh(): Promise<void> {
+    let nextSnapshot: TokensSnapshot | null = null;
     let next: unknown = null;
-    try { next = await readDocument(); } catch { next = null; }
+    try { nextSnapshot = await readSnapshot(); } catch { nextSnapshot = null; }
+    try { next = deps.readDocument ? await deps.readDocument() : nextSnapshot?.document ?? null; } catch { next = null; }
     if (disposed) return;
+    snapshot = nextSnapshot;
     doc = next;
     deps.onChange();
   }
@@ -246,21 +277,43 @@ export function createDocumentThemeController(deps: DocumentThemeControllerDeps)
   if (typeof window !== 'undefined') window.addEventListener('lolly:design-system-changed', onSystemChange);
 
   const groups = (): DocumentThemeGroup[] => (doc && supported() ? documentThemeGroups(doc, deps.runtime.tokenSelection) : []);
+  /** Run one switch after the ones before it, then repaint. Going back to the design
+   *  system's choices reads the design system again: the snapshot read while the
+   *  document had choices of its own carries those choices, not the system's. */
+  const enqueue = (next: () => ThemeSelection | null): Promise<void> => {
+    const run = queue.then(async () => {
+      if (disposed) return;
+      const selection = next();
+      if (!selection) return;
+      await switchDocumentTheme(switchDeps, selection);
+      if (disposed) return;
+      if (Object.keys(selection).length) deps.onChange(); else await refresh();
+    });
+    queue = run.catch(() => { /* the caller hears about it; the queue keeps going */ });
+    return run;
+  };
 
   return {
     ready,
     refresh,
     groups,
     choose(group, option) {
-      const run = queue.then(async () => {
-        if (disposed) return;
+      return enqueue(() => {
         const current = groups();
-        if (!current.some((g) => g.id === group && g.options.some((o) => o.id === option))) return;
-        await switchDocumentTheme(switchDeps, withThemeChoice(current, group, option));
-        if (!disposed) deps.onChange();
+        return current.some((g) => g.id === group && g.options.some((o) => o.id === option)) ? withThemeChoice(current, group, option) : null;
       });
-      queue = run.catch(() => { /* the caller hears about it; the queue keeps going */ });
-      return run;
+    },
+    context() {
+      if (!snapshot) return null;
+      const selection = ownSelection(deps.runtime);
+      return selection ? { snapshot, selection } : { snapshot };
+    },
+    async inspect() {
+      // Scoped to the document's choices, so the inspector opens on what the canvas shows.
+      await openInspector(themedHost(deps.host, ownSelection(deps.runtime)), () => !disposed);
+    },
+    follow() {
+      return enqueue(() => (supported() && ownSelection(deps.runtime) ? {} : null));
     },
     dispose() {
       disposed = true;

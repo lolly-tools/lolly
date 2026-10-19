@@ -640,3 +640,41 @@ test('teardown stops the panel answering presses', async () => {
   await settle();
   assert.deepEqual(writes, [], 'a torn-down panel writes nothing');
 });
+
+// ── The release context (plan 286 section 5.1) ───────────────────────────────
+
+const THEMED = {
+  base: { color: { brand: { $type: 'color', $value: '#ff6600' } } },
+  night: { color: { brand: { $type: 'color', $value: '#ffaa66' } } },
+  $themes: [
+    { id: 'day', name: 'Day', group: 'appearance', selectedTokenSets: { base: 'enabled' } },
+    { id: 'night', name: 'Night', group: 'appearance', selectedTokenSets: { base: 'enabled', night: 'enabled' } },
+  ],
+  $metadata: { tokenSetOrder: ['base', 'night'], activeThemeSelection: { appearance: 'night' } },
+};
+
+test('Publish a version says what publishing records: the editable head and its theme choices', async () => {
+  const { tokenContextModel, documentSnapshot } = await import('../../../components/token-context-strip.ts');
+  const system = { id: 'acme', label: '<b>Acme</b>', active: true, locked: false, source: 'local' as const, headId: null };
+  const html = versionsHtml(model({ context: tokenContextModel(documentSnapshot(THEMED, { system }), { context: 'head' }) }));
+  const publish = html.slice(html.indexOf('ds-v-publish'), html.indexOf('ds-v-compat'));
+  assert.match(publish, /data-token-context-kind="head">Editable head</, 'the strip sits in the publish form, before the comparison');
+  assert.match(publish, /<p>appearance: Night<\/p>/);
+  assert.match(publish, /&lt;b&gt;Acme&lt;\/b&gt;/, 'the system label is escaped');
+  assert.doesNotMatch(versionsHtml(model()), /data-token-context/, 'no context, no strip');
+});
+
+test('the mounted panel reads the head and the active system for the strip, and writes nothing', async () => {
+  const { host, writes } = fakeHost(THEMED);
+  Object.assign(host.tokens, { async active() { return { id: 'acme', label: 'Acme', active: true, locked: true, source: 'local', headId: null }; } });
+  const el = panel();
+  const room = mountVersionsRoom(el, { host: host as never });
+  await settle();
+  const strip = el.querySelector<HTMLElement>('.ds-v-publish [data-token-context]')!;
+  assert.ok(strip, 'the publish form carries the strip');
+  assert.match(strip.textContent!, /Acme/);
+  assert.match(strip.textContent!, /Editable head/);
+  assert.match(strip.textContent!, /Read-only\. Start can make an editable copy\./);
+  assert.deepEqual(writes, [], 'reading the context publishes nothing');
+  room.teardown();
+});
