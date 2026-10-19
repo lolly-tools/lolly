@@ -62,19 +62,19 @@ test('source edits invalidate reviewed candidates and prevent an outdated commit
   s.workspace.teardown(); s.dom.window.close();
 });
 
-test('resource replacement invalidates a captured review even when token JSON stays unchanged', async () => {
+test('resource replacement invalidates a captured review even when token JSON stays unchanged', async t => {
   let version = '1';
   const host = { tokens: { activeRecord: async () => ({ id: 'local', headId: 'user/tokens', importedFonts: ['user/font/beacon'] }) }, assets: { get: async (id: string) => ({ id, version }), _getUserRecord: async () => ({ version }) } } as unknown as HostV1;
   const s = setup(host);
   s.find<HTMLButtonElement>('[data-tw-apply-choices]').click();
-  await new Promise(resolve => setTimeout(resolve, 10));
-  assert.equal(s.find<HTMLButtonElement>('[data-tw-apply]').disabled, false);
+  await t.waitFor(() => assert.equal(s.find<HTMLButtonElement>('[data-tw-apply]').disabled, false), { timeout: 5000 });
+
   version = '2';
   s.find<HTMLButtonElement>('[data-tw-apply]').click();
-  await new Promise(resolve => setTimeout(resolve, 10));
+  await t.waitFor(() => assert.match(s.find('[data-tw-status]').textContent!, /resources changed/), { timeout: 5000 });
   assert.equal(s.commits(), 0);
   assert.equal(s.find<HTMLButtonElement>('[data-tw-apply]').disabled, true);
-  assert.match(s.find('[data-tw-status]').textContent!, /resources changed/);
+
   s.workspace.teardown(); s.dom.window.close();
 });
 
