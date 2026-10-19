@@ -59,7 +59,7 @@ export const syncVersionsEntry = (start: StartCtx): void => {
 const syncFontPackage = (start: StartCtx): void => {
   const btn = start.shell.querySelector<HTMLElement>('[data-start-get-on-device]');
   if (!btn || !start.worthExporting) return;
-  const assets = start.host.assets as unknown as { _listUserAssets?: () => Promise<Array<{ id?: string; type?: string }>> };
+  const assets: { _listUserAssets?: () => Promise<Array<{ id?: string; type?: string }>> } = start.host.assets as typeof start.host.assets & { _listUserAssets?: () => Promise<Array<{ id?: string; type?: string }>> };
   void assets._listUserAssets?.().then((list) => {
     btn.hidden = !list.some(a => a.type === 'font' && typeof a.id === 'string' && a.id.startsWith('user/fonts/'));
   }, () => { /* the row stays as it is */ });
