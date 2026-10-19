@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { mountBodyPopover } from '../components/body-popover.ts';
-import { createHistoryPreviews } from '../components/history-previews.ts';
+import { createHistoryPreviews, isPreviewDataUrl } from '../components/history-previews.ts';
 import { fold, tokenize, scoreHaystack } from '../lib/search/match.ts';
 import { t } from '../i18n.ts';
 import { historyElement as element, historyIcon } from './history-timeline.ts';
@@ -41,7 +41,7 @@ export function historyFilterPicker(select: HTMLSelectElement, options: PickerOp
     trigger.replaceChildren(cover, caption, historyIcon('chevronDown'));
     trigger.setAttribute('aria-describedby', caption.id); trigger.dataset.value = select.value; trigger.title = name;
     if (options.preview && select.value) void options.preview(select.value).then(preview => {
-      if (disposed || token !== selectedGeneration || !preview || !/^data:image\/(png|jpeg|webp);base64,/.test(preview)) return;
+      if (disposed || token !== selectedGeneration || !isPreviewDataUrl(preview)) return;
       const image = element('img'); image.alt = ''; image.src = preview; cover.append(image);
     }).catch(() => {});
   };
