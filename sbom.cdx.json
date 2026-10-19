@@ -4,7 +4,7 @@
   "serialNumber": "urn:uuid:a9d672b6-8fef-451a-81f4-79504b48af1f",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-19T09:08:18.253Z",
+    "timestamp": "2026-10-19T09:13:34.844Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -23466,6 +23466,11 @@
       "version": "2.12.4",
       "purl": "pkg:npm/%40tauri-apps/api@2.12.4",
       "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -23505,6 +23510,11 @@
       "version": "2.12.3",
       "purl": "pkg:npm/%40tauri-apps/cli@2.12.3",
       "scope": "excluded",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
