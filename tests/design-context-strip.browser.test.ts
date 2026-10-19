@@ -86,7 +86,7 @@ test('the Canvas tab says what the document draws with, inspects it read-only an
     await strip.getByRole('button', { name: 'Inspect tokens', exact: true }).click();
     const dialog = page.locator('dialog.token-inspector-dialog[open]');
     await dialog.waitFor();
-    assert.equal(await dialog.locator('[data-tw-context]').innerText(), 'Render version');
+    assert.equal(await dialog.locator('[data-tw-context]').textContent(), 'Render version');
     assert.equal(await dialog.locator('[data-tw-group]').first().inputValue(), 'dark');
     assert.equal(await dialog.locator('[data-tw-apply-choices]').isVisible(), false, 'no action applies choices to the design system');
     await dialog.locator('[data-token-close]').click();
