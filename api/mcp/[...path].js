@@ -101373,6 +101373,34 @@ function stableStringify2(v) {
   }
   return JSON.stringify(v) ?? "undefined";
 }
+function fromOlderTokenFormat(node, count4, depth = 0) {
+  if (!isRecord2(node) || depth > 64) return node;
+  const put = (obj3, key2, value) => {
+    Object.defineProperty(obj3, key2, { value, enumerable: true, writable: true, configurable: true });
+  };
+  if (!Object.hasOwn(node, "$value") && Object.hasOwn(node, "value") && typeof node.type === "string") {
+    const out = {};
+    for (const [key2, value] of Object.entries(node)) {
+      const renamed = key2 === "value" || key2 === "type" || key2 === "description" ? `$${key2}` : key2;
+      if (!Object.hasOwn(out, renamed)) put(out, renamed, value);
+    }
+    count4.n++;
+    return out;
+  }
+  let copy = null;
+  for (const [key2, child2] of Object.entries(node)) {
+    if (key2.startsWith("$")) continue;
+    const next2 = fromOlderTokenFormat(child2, count4, depth + 1);
+    if (next2 !== child2) {
+      copy ??= { ...node };
+      put(copy, key2, next2);
+    }
+  }
+  return copy ?? node;
+}
+function olderFormatWarning(n7) {
+  return n7 ? [`${n7} token${n7 === 1 ? "" : "s"} in the older Tokens Studio format (value and type) read as $value and $type`] : [];
+}
 function coerceTokensDoc(json) {
   if (!isRecord2(json)) {
     return {
@@ -101384,7 +101412,9 @@ function coerceTokensDoc(json) {
   const studio = "$themes" in json || "$metadata" in json;
   const issue2 = topLevelSetIssue(json) ?? structureIssue(json, { nodes: 0 });
   if (issue2) return { doc: null, warnings: [issue2], source: studio ? "tokens-studio" : "dtcg" };
-  return { doc: json, warnings: [], source: studio ? "tokens-studio" : "dtcg" };
+  const older = { n: 0 };
+  const doc = fromOlderTokenFormat(json, older);
+  return { doc, warnings: olderFormatWarning(older.n), source: studio ? "tokens-studio" : "dtcg" };
 }
 function assembleTokenSetFiles(files) {
   const warnings2 = [];
@@ -101403,6 +101433,7 @@ function assembleTokenSetFiles(files) {
   }
   const doc = /* @__PURE__ */ Object.create(null);
   const structure = { nodes: 0 };
+  const older = { n: 0 };
   let setCount = 0;
   for (const path of paths) {
     let body;
@@ -101445,9 +101476,10 @@ function assembleTokenSetFiles(files) {
         source: "token-set-files"
       };
     }
-    doc[path.slice(0, -".json".length)] = body;
+    doc[path.slice(0, -".json".length)] = fromOlderTokenFormat(body, older);
     setCount++;
   }
+  warnings2.push(...olderFormatWarning(older.n));
   if (!setCount) {
     warnings2.push("no token set files found");
     return { doc: null, warnings: warnings2, source: "token-set-files" };
