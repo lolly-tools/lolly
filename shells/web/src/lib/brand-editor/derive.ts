@@ -735,6 +735,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
             <div class="be-useas-row" data-be-useas hidden>
               <span class="be-useas-label">${t('Use as')}</span>
               ${ROLE_IDS.map(r => `<button type="button" class="be-btn be-btn--sm" data-be-useas="${escapeText(r)}" aria-pressed="false">${escapeText(roleLabel(r))}</button>`).join('')}
+              <p class="be-useas-hint" data-be-useas-hint hidden></p>
             </div>
             <details class="be-subst-details" data-be-subst-details>
               <summary><span class="be-subst-details-label">${t('Print substitutes')}</span><span class="be-subst-chips" data-be-subst-chips></span></summary>

@@ -5,13 +5,16 @@
  * Run directly:
  *   node --import ./tests/css-stub.mjs --test "shells/web/src/lib/brand-editor-leads.test.ts"
  *
- * A2 adds no UI, so the bar is that every surface the room already has keeps
- * working once a system has leads: the palette shows exactly the tiles its
+ * A2 adds no new control, so the bar is that every surface the room already has
+ * keeps working once a system has leads: the palette shows exactly the tiles its
  * single-lead self did, the roles strip shows and edits the canonical lead, the
  * unscoped primary writes (first colour, "Use as primary") reach the canonical
  * lead in both modes and no other lead, and Rebuild palette keeps every lead and
- * says so in its review. The harness is brand-editor.test.ts's: a jsdom page,
- * a fake host that stores what the editor saves, and the editor's own DOM.
+ * says so in its review. Where the room cannot do something on a system with
+ * leads (rebuild a file that encodes its colourways its own way, clear a lead's
+ * own role from "Use as"), it says why on screen. The harness is
+ * brand-editor.test.ts's: a jsdom page, a fake host that stores what the editor
+ * saves, and the editor's own DOM.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -19,6 +22,7 @@ import { JSDOM } from 'jsdom';
 import { colorToHex, createTokenSet, deriveBrandTokens } from '@lolly/engine';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { addSwatch, walkSwatches } from './brand-doc.ts';
+import { readRoles } from './design-system/roles.ts';
 import { addLead, listLeads, leadTokenSet } from './design-system/leads.ts';
 
 type Rec = Record<string, unknown>;
@@ -40,7 +44,8 @@ const links = (doc: Rec): unknown => ['light', 'dark'].map(mode => {
 const resolveIn = (doc: unknown, lead: string, mode: string, role: string): unknown =>
   leadTokenSet(doc, { lead, mode }).resolve(`color.semantic.${role}`);
 
-test('the Colours room works on three leads: same tiles, canonical edits, and Rebuild keeps every lead', async () => {
+/** The room's DOM and a fake host around it: brand-editor.test.ts's harness, shared by the tests below. */
+function harness(starter: Rec, first: Rec) {
   const dom = new JSDOM('<!doctype html><body><div id="studio"></div></body>', { url: 'http://localhost:5173/#/start?area=color', pretendToBeVisual: true });
   const original = new Map<string, PropertyDescriptor | undefined>();
   const set = (key: string, value: unknown): void => {
@@ -57,30 +62,45 @@ test('the Colours room works on three leads: same tiles, canonical edits, and Re
   Object.defineProperty(dom.window.document, 'fonts', { value: { ready: Promise.resolve(), check: () => true } });
   dom.window.HTMLElement.prototype.scrollIntoView = () => {};
 
-  const { single, three } = fixture();
-  // The starter is the single-lead system, so its shades are starter colours and
-  // the first colour typed in is the person's first own colour.
-  const starter = structuredClone(single);
-  let installed: Rec = structuredClone(single);
+  const state = { installed: structuredClone(first) };
   const assets = {
     _getBlob: async (id: string) => id === 'lolly/tokens/brand' ? new Blob([JSON.stringify(starter)]) : null,
-    _uploadUserAsset: async ({ blob }: { blob: Blob }) => { installed = JSON.parse(await blob.text()); },
+    _uploadUserAsset: async ({ blob }: { blob: Blob }) => { state.installed = JSON.parse(await blob.text()); },
     _getMeta: async () => null, list: async () => [],
   };
   const host = {
     assets, profile: { get: async () => ({}) }, state: { get: async () => null, set: async () => {} }, log() {},
-    tokens: { raw: async () => structuredClone(installed), isLocked: async () => false, bust() {}, get: async () => createTokenSet(installed), resolve: async (key: string) => createTokenSet(installed).resolve(key), colors: async () => createTokenSet(installed).colors() },
+    tokens: { raw: async () => structuredClone(state.installed), isLocked: async () => false, bust() {}, get: async () => createTokenSet(state.installed), resolve: async (key: string) => createTokenSet(state.installed).resolve(key), colors: async () => createTokenSet(state.installed).colors() },
   } as unknown as HostV1;
   const root = document.querySelector<HTMLElement>('#studio')!;
   const $ = <T extends Element = HTMLElement>(selector: string): T => {
     const result = root.querySelector<T>(selector); assert.ok(result, selector); return result;
   };
-  const click = (selector: string): void => $<HTMLElement>(selector).click();
   const settle = async (until?: () => boolean): Promise<void> => {
     const deadline = Date.now() + 5000;
     do { await new Promise(resolve => setTimeout(resolve, 20)); } while (until && !until() && Date.now() < deadline);
   };
-  const tiles = (): number => root.querySelectorAll('[data-be-tile]').length;
+  const restore = (): void => {
+    root.replaceChildren();
+    for (const [key, descriptor] of original) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else delete (globalThis as any)[key];
+    }
+    dom.window.close();
+  };
+  return {
+    dom, host, root, state, $, settle, restore,
+    click: (selector: string): void => $<HTMLElement>(selector).click(),
+    tiles: (): number => root.querySelectorAll('[data-be-tile]').length,
+  };
+}
+
+test('the Colours room works on three leads: same tiles, canonical edits, and Rebuild keeps every lead', async () => {
+  const { single, three } = fixture();
+  // The starter is the single-lead system, so its shades are starter colours and
+  // the first colour typed in is the person's first own colour.
+  const h = harness(structuredClone(single), single);
+  const { dom, host, root, $, click, settle, tiles } = h;
   const stripColour = (role: string): string => $(`[data-be-role="${role}"] .be-role-sw`).style.getPropertyValue('--sw');
   const addTyped = (value: string): void => {
     const field = $<HTMLInputElement>('[data-ds-addc-input]');
@@ -97,7 +117,6 @@ test('the Colours room works on three leads: same tiles, canonical edits, and Re
   let editor: Awaited<ReturnType<typeof import('./brand-editor.ts')['mountBrandEditor']>> | undefined;
   try {
     const { mountBrandEditor } = await import('./brand-editor.ts');
-
     // The single-lead system, shown the way the room has always shown one.
     editor = await mountBrandEditor(root, host); await settle(() => tiles() > 0);
     const singleTiles = tiles();
@@ -106,7 +125,7 @@ test('the Colours room works on three leads: same tiles, canonical edits, and Re
     editor.teardown(); root.replaceChildren();
 
     // The same system with three leads shows the same room.
-    installed = structuredClone(three);
+    h.state.installed = structuredClone(three);
     editor = await mountBrandEditor(root, host); await settle(() => tiles() > 0);
     assert.equal(tiles(), singleTiles, 'no colourway colour surfaces as a tile');
     assert.deepEqual(['primary', 'secondary', 'surface', 'text'].map(stripColour), singleStrip, 'the strip shows the canonical lead, which is the system it was lifted from');
@@ -115,31 +134,31 @@ test('the Colours room works on three leads: same tiles, canonical edits, and Re
 
     // The first colour typed in becomes the primary of the canonical lead, in both modes.
     addTyped('#ef775d');
-    await settle(() => walkSwatches(installed, 'light').some(s => s.kind === 'custom'));
-    const coral = walkSwatches(installed, 'light').find(s => s.kind === 'custom')!;
-    for (const mode of ['light', 'dark']) assert.equal(resolveIn(installed, 'pine', mode, 'primary'), '#ef775d', `pine ${mode}`);
-    assert.deepEqual(links(installed), links(three), 'the looks still link every role to the colourways');
+    await settle(() => walkSwatches(h.state.installed, 'light').some(s => s.kind === 'custom'));
+    const coral = walkSwatches(h.state.installed, 'light').find(s => s.kind === 'custom')!;
+    for (const mode of ['light', 'dark']) assert.equal(resolveIn(h.state.installed, 'pine', mode, 'primary'), '#ef775d', `pine ${mode}`);
+    assert.deepEqual(links(h.state.installed), links(three), 'the looks still link every role to the colourways');
     const others = (doc: Rec): unknown => ({ persimmon: doc['colourway/persimmon'], waterhole: doc['colourway/waterhole'] });
-    assert.deepEqual(others(installed), others(three), 'the other leads keep their primaries');
+    assert.deepEqual(others(h.state.installed), others(three), 'the other leads keep their primaries');
 
     // "Use as primary" on the next colour: the canonical lead again, both modes.
     addTyped('#2a9d8f');
     await settle(() => !root.querySelector<HTMLElement>('[data-be-added-primary]')?.hidden);
     click('[data-be-added-primary]');
-    await settle(() => resolveIn(installed, 'pine', 'dark', 'primary') === '#2a9d8f');
-    for (const mode of ['light', 'dark']) assert.equal(resolveIn(installed, 'pine', mode, 'primary'), '#2a9d8f', `pine ${mode}`);
-    assert.deepEqual(others(installed), others(three));
+    await settle(() => resolveIn(h.state.installed, 'pine', 'dark', 'primary') === '#2a9d8f');
+    for (const mode of ['light', 'dark']) assert.equal(resolveIn(h.state.installed, 'pine', mode, 'primary'), '#2a9d8f', `pine ${mode}`);
+    assert.deepEqual(others(h.state.installed), others(three));
 
     // A role picked in the strip is written to the canonical lead's light colours only.
     pick('secondary', coral.key);
-    await settle(() => resolveIn(installed, 'pine', 'light', 'secondary') === '#ef775d');
-    assert.equal(resolveIn(installed, 'pine', 'light', 'secondary'), '#ef775d');
-    assert.equal(resolveIn(installed, 'pine', 'dark', 'secondary'), resolveIn(three, 'pine', 'dark', 'secondary'), 'the dark secondary is untouched');
-    assert.deepEqual(links(installed), links(three));
-    assert.deepEqual(others(installed), others(three));
+    await settle(() => resolveIn(h.state.installed, 'pine', 'light', 'secondary') === '#ef775d');
+    assert.equal(resolveIn(h.state.installed, 'pine', 'light', 'secondary'), '#ef775d');
+    assert.equal(resolveIn(h.state.installed, 'pine', 'dark', 'secondary'), resolveIn(three, 'pine', 'dark', 'secondary'), 'the dark secondary is untouched');
+    assert.deepEqual(links(h.state.installed), links(three));
+    assert.deepEqual(others(h.state.installed), others(three));
 
     // Rebuild palette: the review counts per lead, and applying keeps every lead.
-    const beforeRebuild = structuredClone(installed);
+    const beforeRebuild = structuredClone(h.state.installed);
     click('[data-be-replace-palette]');
     const review = $('[data-be-review]').textContent ?? '';
     assert.match(review, /The Pine colourway follows the new starting colour/);
@@ -147,32 +166,85 @@ test('the Colours room works on three leads: same tiles, canonical edits, and Re
     assert.match(review, /1 kept as assigned/, 'the hand-picked secondary of the canonical lead is kept');
     assert.doesNotMatch(review, /stays as it was|stay as they were/, 'leads added from a colour hold literals, so nothing needs pinning');
     click('[data-be-review-go]');
-    await settle(() => JSON.stringify(installed) !== JSON.stringify(beforeRebuild));
-    assert.deepEqual(listLeads(installed).map(l => [l.id, l.name, l.canonical]), listLeads(three).map(l => [l.id, l.name, l.canonical]));
-    assert.deepEqual(listLeads(installed).slice(1).map(l => l.colours), listLeads(three).slice(1).map(l => l.colours), 'Persimmon and Waterhole look exactly as they did');
-    assert.deepEqual(((installed.$themes as Rec[]).filter(t => t.group === 'colourway')), ((beforeRebuild.$themes as Rec[]).filter(t => t.group === 'colourway')), 'every colourway entry is kept as it was');
-    assert.deepEqual(((installed.$metadata as Rec).tokenSetOrder as string[]).filter(s => s.startsWith('colourway/')), ['colourway/pine', 'colourway/persimmon', 'colourway/waterhole']);
-    assert.equal(resolveIn(installed, 'pine', 'light', 'secondary'), '#ef775d', "the canonical lead's hand-picked secondary survives");
-    assert.ok(!walkSwatches(installed, 'light').some(s => s.key.startsWith('color.colourway.')), 'still no colourway tiles after the rebuild');
+    await settle(() => JSON.stringify(h.state.installed) !== JSON.stringify(beforeRebuild));
+    assert.deepEqual(listLeads(h.state.installed).map(l => [l.id, l.name, l.canonical]), listLeads(three).map(l => [l.id, l.name, l.canonical]));
+    assert.deepEqual(listLeads(h.state.installed).slice(1).map(l => l.colours), listLeads(three).slice(1).map(l => l.colours), 'Persimmon and Waterhole look exactly as they did');
+    assert.deepEqual(((h.state.installed.$themes as Rec[]).filter(t => t.group === 'colourway')), ((beforeRebuild.$themes as Rec[]).filter(t => t.group === 'colourway')), 'every colourway entry is kept as it was');
+    assert.deepEqual(((h.state.installed.$metadata as Rec).tokenSetOrder as string[]).filter(s => s.startsWith('colourway/')), ['colourway/pine', 'colourway/persimmon', 'colourway/waterhole']);
+    assert.equal(resolveIn(h.state.installed, 'pine', 'light', 'secondary'), '#ef775d', "the canonical lead's hand-picked secondary survives");
+    assert.ok(!walkSwatches(h.state.installed, 'light').some(s => s.key.startsWith('color.colourway.')), 'still no colourway tiles after the rebuild');
 
     // Undo puts the whole document back, leads and all.
     click('[data-be-review-undo]');
-    await settle(() => JSON.stringify(installed) === JSON.stringify(beforeRebuild));
-    assert.deepEqual(installed, beforeRebuild);
+    await settle(() => JSON.stringify(h.state.installed) === JSON.stringify(beforeRebuild));
+    assert.deepEqual(h.state.installed, beforeRebuild);
 
     // Dark mode shows the canonical lead's dark colours.
     document.documentElement.dataset.theme = 'dark'; await settle();
     assert.equal(stripColour('primary'), '#2a9d8f');
-    assert.equal(stripColour('surface'), colorToHex(resolveIn(installed, 'pine', 'dark', 'surface')));
+    assert.equal(stripColour('surface'), colorToHex(resolveIn(h.state.installed, 'pine', 'dark', 'surface')));
     document.documentElement.dataset.theme = 'light'; await settle();
   } finally {
     editor?.teardown();
-    root.replaceChildren();
-    for (const [key, descriptor] of original) {
-      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
-      else delete (globalThis as any)[key];
+    h.restore();
+  }
+});
+
+test('the room says why it cannot: a refused rebuild shows its reason, and a lead\'s own role in Use as explains instead of clearing', async () => {
+  const { single, three } = fixture();
+  // A second set turned on for one lead: Lolly can choose between these
+  // colourways but no longer knows where that lead's colours live, so a rebuild
+  // would lose them.
+  const foreign = structuredClone(three);
+  ((foreign.$themes as Rec[]).find(t => t.id === 'persimmon')!.selectedTokenSets as Rec).base = 'enabled';
+  const h = harness(structuredClone(single), foreign);
+  const { root, $, click, settle, tiles } = h;
+  let editor: Awaited<ReturnType<typeof import('./brand-editor.ts')['mountBrandEditor']>> | undefined;
+  try {
+    const { mountBrandEditor } = await import('./brand-editor.ts');
+    editor = await mountBrandEditor(root, h.host); await settle(() => tiles() > 0);
+    const before = JSON.stringify(h.state.installed);
+    click('[data-be-replace-palette]');
+    const review = $('[data-be-review]');
+    assert.equal(review.hidden, false, 'the card is on screen, not only in the screen-reader region');
+    assert.match(review.textContent ?? '', /Couldn't rebuild the palette/);
+    assert.match($('[data-be-review-reason]').textContent ?? '', /encodes its colourways its own way/);
+    assert.equal(root.querySelector('[data-be-review-go]'), null, 'nothing to apply');
+    const assertive = (): string => [...document.querySelectorAll('[aria-live="assertive"]')].map(el => el.textContent).join(' ');
+    await settle(() => /Couldn't rebuild the palette/.test(assertive()));
+    assert.match(assertive(), /Couldn't rebuild the palette/, 'and a screen reader hears it');
+    click('[data-be-review-cancel]');
+    assert.equal(review.hidden, true);
+    assert.equal(JSON.stringify(h.state.installed), before, 'nothing was written');
+    editor.teardown(); root.replaceChildren();
+
+    // The studio's own three leads: open the tile that is the canonical lead's
+    // secondary, whose "Use as Secondary" button is pressed.
+    h.state.installed = structuredClone(three);
+    editor = await mountBrandEditor(root, h.host); await settle(() => tiles() > 0);
+    const secondary = (): HTMLElement => $('[data-be-useas="secondary"]');
+    for (const tile of root.querySelectorAll<HTMLElement>('[data-be-tile]')) {
+      tile.click();
+      if (secondary().getAttribute('aria-pressed') === 'true') break;
     }
-    dom.window.close();
+    assert.equal(secondary().getAttribute('aria-pressed'), 'true', 'found the tile that is the secondary');
+    assert.equal(secondary().getAttribute('aria-disabled'), 'true', "a lead's own role is not a toggle");
+    assert.match(secondary().title, /Every colourway needs its own Secondary/);
+    const hint = $('[data-be-useas-hint]');
+    assert.equal(hint.hidden, true);
+    const ref = readRoles(h.state.installed, { lead: null, mode: 'light' }).secondary.ref;
+    secondary().click();
+    await settle();
+    assert.equal(hint.hidden, false, 'pressing it says why on screen');
+    assert.match(hint.textContent ?? '', /Every colourway needs its own Secondary\. To change this one, use another colour as Secondary\./);
+    assert.equal(secondary().getAttribute('aria-pressed'), 'true', 'the role is still this colour');
+    assert.equal(readRoles(h.state.installed, { lead: null, mode: 'light' }).secondary.ref, ref, 'and the design system still says so');
+    assert.equal(root.querySelector<HTMLElement>('[data-be-undo]')?.hidden ?? true, true, 'no undo step for a change that did not happen');
+    // A role every lead shares stays an ordinary toggle.
+    for (const role of ['surface', 'text']) assert.equal(root.querySelector(`[data-be-useas="${role}"]`)?.getAttribute('aria-disabled'), null, role);
+  } finally {
+    editor?.teardown();
+    h.restore();
   }
 });
 

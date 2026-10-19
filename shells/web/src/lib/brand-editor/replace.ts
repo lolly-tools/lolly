@@ -49,7 +49,7 @@ export const buildReplacement = (bedit: BrandEditorCtx): { next: Record<string, 
   const { curves } = bedit;
   let next: Record<string, unknown>;
   try { next = deriveBrandTokens({ primary: bedit.primary, scheme: bedit.scheme, surface: bedit.surface, contrast: bedit.contrast, steps: bedit.steps, foreground: bedit.foreground, name: 'My brand' }) as Record<string, unknown>; }
-  catch (err) { announce(tRaw("Couldn't derive from {primary}: {error}", { primary: bedit.primary, error: String((err as { message?: unknown })?.message ?? err) }), { assertive: true }); return null; }
+  catch (err) { renderRefusal(bedit, tRaw("Couldn't derive from {primary}: {error}", { primary: bedit.primary, error: String((err as { message?: unknown })?.message ?? err) })); return null; }
   setSemanticRampAlias(next, 'secondary', bedit.secondaryStep);
   setSemanticRampAlias(next, 'neutral', bedit.neutralStep);
   // Re-apply any tonal curves onto the fresh derive - this is what makes an
@@ -113,10 +113,7 @@ export const buildReplacement = (bedit: BrandEditorCtx): { next: Record<string, 
   // all: a fresh derive would drop them.
   let leads: ReplacePlan['leads'];
   const carried = carryLeads(bedit.doc, next);
-  if (!carried.ok) {
-    announce(tRaw("Couldn't rebuild the palette: {reason}", { reason: carried.reasons.join(' ') }), { assertive: true });
-    return null;
-  }
+  if (!carried.ok) { renderRefusal(bedit, carried.reasons.join(' ')); return null; }
   next = carried.doc;
   if (carried.canonical) leads = { canonical: carried.canonical.name, kept: carried.kept.map(k => k.name), pinned: carried.pinned };
   const canonical = carried.canonical?.id ?? null;
@@ -179,6 +176,27 @@ export const buildReplacement = (bedit: BrandEditorCtx): { next: Record<string, 
       ...(leads ? { leads } : {}),
     },
   };
+};
+/**
+ * A rebuild that cannot run says why in the room, where the review card would
+ * have been, as well as to a screen reader: a sighted person who pressed Preview
+ * full rebuild would otherwise see nothing happen. The card has no Apply, only
+ * Close, and a review that was open before is gone with its proposal. Focus
+ * stays on the button that was pressed, so the assertive announcement is not
+ * cut off by a focus move.
+ */
+export const renderRefusal = (bedit: BrandEditorCtx, reason: string): void => {
+  const { reviewEl } = bedit;
+  bedit.pendingReplacement = null;
+  announce(tRaw("Couldn't rebuild the palette: {reason}", { reason }), { assertive: true });
+  if (!reviewEl) return;
+  reviewEl.innerHTML = `
+      <p class="be-review-title">${t("Couldn't rebuild the palette")}</p>
+      <p class="be-review-reason" data-be-review-reason>${escapeText(reason)}</p>
+      <div class="be-review-actions">
+        <button type="button" class="be-btn" data-be-review-cancel>${t('Close')}</button>
+      </div>`;
+  reviewEl.hidden = false;
 };
 /** Where focus goes when a card that HELD it is taken away: back to the button
  *  that opens one. Only when the focus really was inside - a card retired
@@ -400,6 +418,7 @@ export function replaceOps(bedit: BrandEditorCtx) {
     undoLast: bindOp(bedit, undoLast),
     countLeaves: bindOp(bedit, countLeaves),
     buildReplacement: bindOp(bedit, buildReplacement),
+    renderRefusal: bindOp(bedit, renderRefusal),
     hideReview: bindOp(bedit, hideReview),
     li: bindOp(bedit, li),
     renderReview: bindOp(bedit, renderReview),

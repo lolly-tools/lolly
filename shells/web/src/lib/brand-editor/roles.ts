@@ -37,9 +37,27 @@ export const renderUseAs = (bedit: BrandEditorCtx): void => {
   const held = readRoles(bedit.doc, bedit.state.editContext());
   useasRow.querySelectorAll<HTMLElement>('[data-be-useas]').forEach(b => {
     const role = b.dataset.beUseas as RoleId | undefined;
-    b.setAttribute('aria-pressed', String(!!role && held[role]?.ref === cur.key));
+    const pressed = !!role && held[role]?.ref === cur.key;
+    b.setAttribute('aria-pressed', String(pressed));
+    // A lead's own role (plans/319: primary and secondary on a design system with
+    // colourways, and the surface when the colourways tint it) can be re-pointed
+    // but never cleared, so its pressed button is not a toggle. It stays pressed,
+    // because that is still true, and says why pressing it again changes
+    // nothing; the strip makes the same promise by offering no empty choice.
+    if (role && pressed && held[role]?.lead) {
+      b.setAttribute('aria-disabled', 'true');
+      b.title = leadRoleNote(role);
+    } else {
+      b.removeAttribute('aria-disabled');
+      b.removeAttribute('title');
+    }
   });
+  const hint = useasRow.querySelector<HTMLElement>('[data-be-useas-hint]');
+  if (hint) { hint.hidden = true; hint.textContent = ''; }
 };
+/** Why a lead's own role cannot be cleared from the "Use as" row. */
+export const leadRoleNote = (role: RoleId): string =>
+  tRaw('Every colourway needs its own {role}. To change this one, use another colour as {role}.', { role: roleLabel(role) });
 export const showFontErr = (bedit: BrandEditorCtx, m: string): void => {
   const { fontErr } = bedit; if (fontErr) { fontErr.textContent = m; fontErr.hidden = !m; } if (m) announce(m, { assertive: true }); };
 // One optional face-role chip: an active badge, or a button to assign the role.
@@ -96,6 +114,15 @@ export async function wireUseAs(bedit: BrandEditorCtx): Promise<void> {
     const cur = bedit.swatches[bedit.selected]; if (!cur || cur.kind === 'semantic') return;
     const key = cur.key;
     const wasSet = btn!.getAttribute('aria-pressed') === 'true';
+    // Un-pressing a lead's own role would remove nothing (clearRole refuses), so
+    // say why in the row and to a screen reader instead of doing nothing silently.
+    if (wasSet && readRoles(bedit.doc, bedit.state.editContext())[role]?.lead) {
+      const note = leadRoleNote(role);
+      const hint = useasRow?.querySelector<HTMLElement>('[data-be-useas-hint]');
+      if (hint) { hint.textContent = note; hint.hidden = false; }
+      announce(note);
+      return;
+    }
     // Un-pressing REMOVES the role (the strip's Clear by another door), so it
     // takes the same snapshot; assigning is not destructive and does not. The
     // snapshot is dropped again if the write turned out to change nothing.
