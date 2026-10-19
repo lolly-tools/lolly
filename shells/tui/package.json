@@ -19,7 +19,7 @@
     "ink-text-input": "^6.0.0",
     "jsdom": "26.1.0",
     "pdf-lib": "^1.17.1",
-    "playwright-core": "^1.64.1",
+    "playwright-core": "^1.49.0",
     "react": "^19.3.1",
     "@lolly-tools/core": "workspace:*"
   },
