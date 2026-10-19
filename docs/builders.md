@@ -1,4 +1,4 @@
-# Build & automate
+# Automate
 
 Build a tool once and the request stops coming back to you: the job becomes a template other people fill in themselves, correctly, without you in the loop. Your work is plain HTML, CSS and JavaScript - version-controlled, diffable, reviewable and running on an open engine, so it stays yours with nothing to unwind later.
 

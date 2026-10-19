@@ -1,4 +1,4 @@
-# Deploy & operate
+# Deploy
 
 Choose the components your deployment needs. Distributing the app, hosting the public web shell and running Lolly Work are separate installation tasks.
 

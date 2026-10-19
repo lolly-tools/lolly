@@ -8,12 +8,12 @@ Lolly Work packages a generated, version-pinned subset for its existing console 
 
 Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain their original MPL-2.0 terms and third-party notices. See [LICENSE](LICENSE) and [work/LICENSE](work/LICENSE). The generator and code examples remain MPL-2.0.
 
-## Start here
+## Start
 
 | Guide | Source |
 | --- | --- |
 | Lolly: information and documentation | [site.md](site.md) |
-| Quickstart | [quickstart.md](quickstart.md) |
+| Start | [quickstart.md](quickstart.md) |
 | Make your first file | [make-something.md](make-something.md) |
 | Questions & answers | [faq.md](faq.md) |
 | Use Lolly at your organisation | [organisation.md](organisation.md) |
@@ -24,12 +24,12 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | What is Lolly? | [what-is-lolly.md](what-is-lolly.md) |
 | Work status and roadmap | [work/status.md](work/status.md) |
 
-## Create & use
+## Create
 
 | Guide | Source |
 | --- | --- |
 | Shared project assets | [project-asset-transfers.md](project-asset-transfers.md) |
-| Create & use | [creators.md](creators.md) |
+| Create | [creators.md](creators.md) |
 | Share a design with rules | [create-a-tool.md](create-a-tool.md) |
 | Training courses | [training-creators.md](training-creators.md) |
 | Using Lolly | [using.md](using.md) |
@@ -71,11 +71,11 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Lolly for marketing teams | [marketing.md](marketing.md) |
 | Lolly for legal teams | [legal.md](legal.md) |
 
-## Build & automate
+## Automate
 
 | Guide | Source |
 | --- | --- |
-| Build & automate | [builders.md](builders.md) |
+| Automate | [builders.md](builders.md) |
 | Design tool contract | [design-tool-contract.md](design-tool-contract.md) |
 | Learning integration | [learning-integration.md](learning-integration.md) |
 | Authored text composition | [../engine/text-composition.md](../engine/text-composition.md) |
@@ -128,11 +128,11 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Lolly Work API | [work/api.md](work/api.md) |
 | lw CLI: administer an instance | [work/cli.md](work/cli.md) |
 
-## Manage an organisation
+## Manage
 
 | Guide | Source |
 | --- | --- |
-| Manage an organisation | [operators.md](operators.md) |
+| Manage | [operators.md](operators.md) |
 | Profiles, brands and tool configuration | [configuration.md](configuration.md) |
 | Adoption & Governance | [adoption-governance.md](adoption-governance.md) |
 | Identity and sessions | [work/identity.md](work/identity.md) |
@@ -166,7 +166,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Microsoft 365 / SharePoint | [work/providers/o365.md](work/providers/o365.md) |
 | Preview a project transfer | [work/project-portability.md](work/project-portability.md) |
 
-## Deploy & operate
+## Deploy
 
 | Guide | Source |
 | --- | --- |
@@ -175,7 +175,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | CI qualification | [ci-qualification.md](ci-qualification.md) |
 | Delivery deployment | [deploy-delivery.md](deploy-delivery.md) |
 | Sovereign creative production | [sovereign-production.md](sovereign-production.md) |
-| Deploy & operate | [operate.md](operate.md) |
+| Deploy | [operate.md](operate.md) |
 | Run your own server | [work/self-host.md](work/self-host.md) |
 | Release 1.1.1 | [work/release-1-1-1.md](work/release-1-1-1.md) |
 | Release 1.1.0 (historical record) | [work/release-1-1-0.md](work/release-1-1-0.md) |
@@ -207,11 +207,11 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Telemetry and dashboards | [work/telemetry.md](work/telemetry.md) |
 | Audit log | [work/audit.md](work/audit.md) |
 
-## Trust & security
+## Trust
 
 | Guide | Source |
 | --- | --- |
-| Trust & security | [trust.md](trust.md) |
+| Trust | [trust.md](trust.md) |
 | The trade we never agreed to | [status-quo.md](status-quo.md) |
 | Tenets | [tenets.md](tenets.md) |
 | Input, not impersonation | [input-not-impersonation.md](input-not-impersonation.md) |

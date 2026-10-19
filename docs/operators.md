@@ -1,4 +1,4 @@
-# Manage an organisation
+# Manage
 
 Lolly runs on a person's device. The optional Lolly Work service adds organisation sign-in, shared projects, governed assets, reviews and server jobs. Start with [Using Lolly at your organisation](/info/organisation.html) for the member experience, or [Work overview](/info/work-overview.html) for the service's responsibilities.
 

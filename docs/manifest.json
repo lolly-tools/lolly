@@ -6,42 +6,42 @@
     {
       "id": "start",
       "key": "quickstart",
-      "title": "Start here",
+      "title": "Start",
       "prefix": "start",
       "hub": "quickstart"
     },
     {
       "id": "create",
       "key": "creators",
-      "title": "Create & use",
+      "title": "Create",
       "prefix": "create",
       "hub": "creators"
     },
     {
       "id": "build",
       "key": "builders",
-      "title": "Build & automate",
+      "title": "Automate",
       "prefix": "build",
       "hub": "builders"
     },
     {
       "id": "manage",
       "key": "managers",
-      "title": "Manage an organisation",
+      "title": "Manage",
       "prefix": "manage",
       "hub": "operators"
     },
     {
       "id": "operate",
       "key": "operators",
-      "title": "Deploy & operate",
+      "title": "Deploy",
       "prefix": "operate",
       "hub": "operate"
     },
     {
       "id": "trust",
       "key": "trust",
-      "title": "Trust & security",
+      "title": "Trust",
       "prefix": "trust",
       "hub": "trust"
     }
@@ -61,7 +61,7 @@
     },
     {
       "slug": "quickstart",
-      "title": "Quickstart",
+      "title": "Start",
       "src": "quickstart.md",
       "isHub": true,
       "section": "start",
@@ -69,7 +69,8 @@
       "icon": "star",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "First file and installation"
+      "group": "First file and installation",
+      "headingId": "quickstart"
     },
     {
       "slug": "make-something",
@@ -152,7 +153,7 @@
     },
     {
       "slug": "creators",
-      "title": "Create & use",
+      "title": "Create",
       "src": "creators.md",
       "isHub": true,
       "section": "create",
@@ -165,7 +166,7 @@
     },
     {
       "slug": "builders",
-      "title": "Build & automate",
+      "title": "Automate",
       "src": "builders.md",
       "isHub": true,
       "section": "build",
@@ -178,7 +179,7 @@
     },
     {
       "slug": "operators",
-      "title": "Manage an organisation",
+      "title": "Manage",
       "src": "operators.md",
       "isHub": true,
       "description": "Roll Lolly out across an organisation: governance, deployment, configuration and the trust properties your security review will ask about.",
@@ -194,7 +195,7 @@
     },
     {
       "slug": "trust",
-      "title": "Trust & security",
+      "title": "Trust",
       "src": "trust.md",
       "isHub": true,
       "description": "Where your content comes from, how to check it yourself, and what happens to your data. The claims on this site with the mechanism that enforces each one.",
@@ -1651,7 +1652,7 @@
     },
     {
       "slug": "operate",
-      "title": "Deploy & operate",
+      "title": "Deploy",
       "src": "operate.md",
       "section": "operate",
       "group": "Hosting and installation",
@@ -1659,7 +1660,8 @@
       "icon": "server",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "isHub": true
+      "isHub": true,
+      "headingId": "deploy-operate"
     },
     {
       "slug": "work-self-host",

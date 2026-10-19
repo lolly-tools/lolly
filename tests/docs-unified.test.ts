@@ -13,7 +13,7 @@ const registry = readRegistry();
 const page = (slug: string) => registry.pages.find(p => p.slug === slug)!;
 
 test('the approved sections share one generated registry and canonical entrance', () => {
-  assert.deepEqual(registry.sections.map(s => s.title), ['Start here', 'Create & use', 'Build & automate', 'Manage an organisation', 'Deploy & operate', 'Trust & security']);
+  assert.deepEqual(registry.sections.map(s => s.title), ['Start', 'Create', 'Automate', 'Manage', 'Deploy', 'Trust']);
   assert.equal(registry.sectionSubtitles, false);
   assert.equal(registry.canonical, 'https://lolly.tools/info');
   syncDocsNavigation(DOCS_ROOT, true);

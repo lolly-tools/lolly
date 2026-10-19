@@ -222,17 +222,17 @@ const stubs: Stub[] = [
 // BEGIN GENERATED DOCS pages
 const pages: Page[] = [
   { slug: 'index', title: 'Lolly: information and documentation', src: 'site.md', canonicalPath: 'index', contentLicense: 'CC-BY-SA-4.0', isLanding: true },
-  { slug: 'quickstart', title: 'Quickstart', src: 'quickstart.md', pathway: 'quickstart', canonicalPath: 'start/quickstart', contentLicense: 'CC-BY-SA-4.0', isHub: true },
+  { slug: 'quickstart', title: 'Start', src: 'quickstart.md', pathway: 'quickstart', canonicalPath: 'start/quickstart', contentLicense: 'CC-BY-SA-4.0', headingId: 'quickstart', isHub: true },
   { slug: 'make-something', title: 'Make your first file', src: 'make-something.md', pathway: 'quickstart', canonicalPath: 'start/make-something', contentLicense: 'CC-BY-SA-4.0', description: 'Make a QR code for a web address, download it, check that it scans, and save an editable copy you can reopen from Projects. No account needed.', render: renderMakeSomethingPage },
   { slug: 'faq', title: 'Questions & answers', src: 'faq.md', pathway: 'quickstart', canonicalPath: 'start/faq', contentLicense: 'CC-BY-SA-4.0', description: 'The things people ask most: why it is free, what the catch is not, what happens to your files and where Lolly is going.', render: renderFaqPage },
   { slug: 'project-asset-transfers', title: 'Shared project assets', src: 'project-asset-transfers.md', pathway: 'creators', canonicalPath: 'create/project-asset-transfers', contentLicense: 'CC-BY-SA-4.0', description: 'Browse shared project folders, copy assets, submit originals to a workspace library and send files to connected destinations.' },
   { slug: 'organisation', title: 'Use Lolly at your organisation', src: 'organisation.md', pathway: 'quickstart', canonicalPath: 'start/organisation', contentLicense: 'CC-BY-SA-4.0', description: 'Use your organisation\'s Lolly, with optional lolly.work sign-in, shared projects, live collabs and managed settings. Learn what stays local and how to leave.' },
   { slug: 'install', title: 'Install Lolly', src: 'install.md', pathway: 'quickstart', canonicalPath: 'start/install', contentLicense: 'CC-BY-SA-4.0', description: 'Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap RPMs, the Flatpak, the Android APK, and how to check the file you downloaded is the one we made.' },
   { slug: 'supported-environments', title: 'Supported environments', src: 'supported-environments.md', pathway: 'quickstart', canonicalPath: 'start/supported-environments', contentLicense: 'CC-BY-SA-4.0', description: 'Tested browser and app environments, the WebGPU startup requirement, and the separate web and native release scopes.' },
-  { slug: 'creators', title: 'Create & use', src: 'creators.md', pathway: 'creators', canonicalPath: 'create/creators', contentLicense: 'CC-BY-SA-4.0', headingId: 'lolly-for-creators', isHub: true },
-  { slug: 'builders', title: 'Build & automate', src: 'builders.md', pathway: 'builders', canonicalPath: 'build/builders', contentLicense: 'CC-BY-SA-4.0', headingId: 'lolly-for-builders', isHub: true },
-  { slug: 'operators', title: 'Manage an organisation', src: 'operators.md', pathway: 'managers', canonicalPath: 'manage/organisation-management', contentLicense: 'CC-BY-SA-4.0', description: 'Roll Lolly out across an organisation: governance, deployment, configuration and the trust properties your security review will ask about.', headingId: 'lolly-for-operators', isHub: true },
-  { slug: 'trust', title: 'Trust & security', src: 'trust.md', pathway: 'trust', canonicalPath: 'trust/trust', contentLicense: 'CC-BY-SA-4.0', description: 'Where your content comes from, how to check it yourself, and what happens to your data. The claims on this site with the mechanism that enforces each one.', headingId: 'trust', isHub: true },
+  { slug: 'creators', title: 'Create', src: 'creators.md', pathway: 'creators', canonicalPath: 'create/creators', contentLicense: 'CC-BY-SA-4.0', headingId: 'lolly-for-creators', isHub: true },
+  { slug: 'builders', title: 'Automate', src: 'builders.md', pathway: 'builders', canonicalPath: 'build/builders', contentLicense: 'CC-BY-SA-4.0', headingId: 'lolly-for-builders', isHub: true },
+  { slug: 'operators', title: 'Manage', src: 'operators.md', pathway: 'managers', canonicalPath: 'manage/organisation-management', contentLicense: 'CC-BY-SA-4.0', description: 'Roll Lolly out across an organisation: governance, deployment, configuration and the trust properties your security review will ask about.', headingId: 'lolly-for-operators', isHub: true },
+  { slug: 'trust', title: 'Trust', src: 'trust.md', pathway: 'trust', canonicalPath: 'trust/trust', contentLicense: 'CC-BY-SA-4.0', description: 'Where your content comes from, how to check it yourself, and what happens to your data. The claims on this site with the mechanism that enforces each one.', headingId: 'trust', isHub: true },
   { slug: 'status-quo', title: 'The trade we never agreed to', src: 'status-quo.md', pathway: 'trust', canonicalPath: 'trust/status-quo', contentLicense: 'CC-BY-SA-4.0', description: 'Uploading a logo to a stranger for a resize. Artwork locked behind a lapsed plan. The frictions we all learned to accept, and what replaces them.', register: 'stage' },
   { slug: 'tenets', title: 'Tenets', src: 'tenets.md', pathway: 'trust', canonicalPath: 'trust/tenets', contentLicense: 'CC-BY-SA-4.0', author: 'Andy Fitzsimon', description: 'Our vision, values and mission: all potential to all mediums.', register: 'stage', immersive: true, render: renderTenetsPage },
   { slug: 'input-not-impersonation', title: 'Input, not impersonation', src: 'input-not-impersonation.md', pathway: 'trust', canonicalPath: 'trust/input-not-impersonation', contentLicense: 'CC-BY-SA-4.0', description: 'An AI agent may fill in the inputs and may not claim to be you. Where the line sits, how it is enforced, and what a rogue agent still cannot do.', register: 'stage' },
@@ -350,7 +350,7 @@ const pages: Page[] = [
   { slug: 'beatrice-warde', title: 'Beatrice Warde', src: 'beatrice-warde.md', pathway: 'trust', canonicalPath: 'trust/beatrice-warde', contentLicense: 'CC-BY-SA-4.0', description: 'The typographer whose 1932 lines this project adapted, who proved that the types the whole trade called Garamond had been cut by somebody else entirely.', register: 'stage' },
   { slug: 'shoulders-of-giants', title: 'Shoulders of giants', src: 'shoulders-of-giants.md', pathway: 'trust', canonicalPath: 'trust/shoulders-of-giants', contentLicense: 'CC-BY-SA-4.0', description: 'The open source projects and people Lolly is built from, and the story of how shared work made it possible: SUSE and three decades of the free desktop, Penpot and Inkscape, WebAssembly, WebGPU and the open models beside them.', pdf: 'shoulders-of-giants.pdf', register: 'stage' },
   { slug: 'what-is-lolly', title: 'What is Lolly?', src: 'what-is-lolly.md', pathway: 'quickstart', canonicalPath: 'start/what-is-lolly', contentLicense: 'CC-BY-SA-4.0' },
-  { slug: 'operate', title: 'Deploy & operate', src: 'operate.md', pathway: 'operators', canonicalPath: 'operate/index', contentLicense: 'CC-BY-SA-4.0', isHub: true },
+  { slug: 'operate', title: 'Deploy', src: 'operate.md', pathway: 'operators', canonicalPath: 'operate/index', contentLicense: 'CC-BY-SA-4.0', headingId: 'deploy-operate', isHub: true },
   { slug: 'work-self-host', title: 'Run your own server', src: 'work/self-host.md', pathway: 'operators', canonicalPath: 'operate/run-your-own-server', contentLicense: 'MPL-2.0', description: 'Release downloads and installation paths for YunoHost, Linux, macOS, Windows and Kubernetes.' },
   { slug: 'work-release-1-1-1', title: 'Release 1.1.1', src: 'work/release-1-1-1.md', pathway: 'operators', canonicalPath: 'operate/release-1-1-1', contentLicense: 'MPL-2.0', description: 'Work 1.1.1 paired with Lolly 1.1.1: matched components, changes since 1.1.0, migrations and qualification.' },
   { slug: 'work-release-1-1-0', title: 'Release 1.1.0 (historical record)', src: 'work/release-1-1-0.md', pathway: 'operators', canonicalPath: 'operate/release-1-1-0', contentLicense: 'MPL-2.0', description: 'Shared Lolly and Work release candidate, matched component versions, qualification, migration and rollback.' },
@@ -543,12 +543,12 @@ interface NavLink {
 // hub itself.
 // BEGIN GENERATED DOCS NAV
 const NAV: NavLink[][] = [
-  [ { label: 'Start here', href: '/info/quickstart.html' },
-    { label: 'Create & use', href: '/info/creators.html' },
-    { label: 'Build & automate', href: '/info/builders.html' },
-    { label: 'Manage an organisation', href: '/info/operators.html' },
-    { label: 'Deploy & operate', href: '/info/operate.html' },
-    { label: 'Trust & security', href: '/info/trust.html' } ],
+  [ { label: 'Start', href: '/info/quickstart.html' },
+    { label: 'Create', href: '/info/creators.html' },
+    { label: 'Automate', href: '/info/builders.html' },
+    { label: 'Manage', href: '/info/operators.html' },
+    { label: 'Deploy', href: '/info/operate.html' },
+    { label: 'Trust', href: '/info/trust.html' } ],
 ];
 // END GENERATED DOCS NAV
 // href → pathway, so a child page (e.g. host-api) lights up its hub's nav link.
@@ -572,9 +572,9 @@ interface SideItem { slug: string; label: string; }
 interface SideGroup { label: string; items: SideItem[]; }
 // BEGIN GENERATED DOCS SIDEBARS
 const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
-  quickstart: { title: 'Start here', groups: [
+  quickstart: { title: 'Start', groups: [
     { label: 'First file and installation', items: [
-      { slug: 'quickstart', label: 'Quickstart' },
+      { slug: 'quickstart', label: 'Start' },
       { slug: 'make-something', label: 'Make your first file' },
       { slug: 'install', label: 'Install Lolly' },
       { slug: 'supported-environments', label: 'Supported environments' },
@@ -588,10 +588,10 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'work-status', label: 'Work status and roadmap' },
     ] },
   ] },
-  creators: { title: 'Create & use', groups: [
+  creators: { title: 'Create', groups: [
     { label: 'Design and templates', items: [
       { slug: 'project-asset-transfers', label: 'Shared project assets' },
-      { slug: 'creators', label: 'Create & use' },
+      { slug: 'creators', label: 'Create' },
       { slug: 'create-a-tool', label: 'Share a design with rules' },
       { slug: 'training-creators', label: 'Training courses' },
       { slug: 'using', label: 'Using Lolly' },
@@ -642,9 +642,9 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'legal', label: 'Lolly for legal teams' },
     ] },
   ] },
-  builders: { title: 'Build & automate', groups: [
+  builders: { title: 'Automate', groups: [
     { label: 'Architecture and contracts', items: [
-      { slug: 'builders', label: 'Build & automate' },
+      { slug: 'builders', label: 'Automate' },
       { slug: 'design-tool-contract', label: 'Design tool contract' },
       { slug: 'text-composition-engine', label: 'Authored text composition' },
       { slug: 'overview', label: 'Lolly architecture' },
@@ -709,12 +709,12 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'work-renders', label: 'Recover and inspect render jobs' },
     ] },
   ] },
-  managers: { title: 'Manage an organisation', groups: [
+  managers: { title: 'Manage', groups: [
     { label: 'Product, organisation and vocabulary', items: [
       { slug: 'organisation', label: 'Use Lolly at your organisation' },
     ] },
     { label: 'Administration, policy and approvals', items: [
-      { slug: 'operators', label: 'Manage an organisation' },
+      { slug: 'operators', label: 'Manage' },
       { slug: 'configuration', label: 'Profiles, brands and tool configuration' },
       { slug: 'adoption-governance', label: 'Adoption & Governance' },
       { slug: 'work-governance', label: 'Policy and governance' },
@@ -764,7 +764,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'work-audit', label: 'Audit log' },
     ] },
   ] },
-  operators: { title: 'Deploy & operate', groups: [
+  operators: { title: 'Deploy', groups: [
     { label: 'URL and CLI automation', items: [
       { slug: 'cli-signing', label: 'Signing from the terminal' },
     ] },
@@ -786,7 +786,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
     { label: 'Hosting and installation', items: [
       { slug: 'deployment', label: 'Choose a deployment' },
       { slug: 'sovereign-production', label: 'Sovereign creative production' },
-      { slug: 'operate', label: 'Deploy & operate' },
+      { slug: 'operate', label: 'Deploy' },
       { slug: 'work-overview', label: 'Lolly Work architecture' },
       { slug: 'work-install', label: 'Install Lolly Work' },
       { slug: 'work-deployment', label: 'Lolly Work deployment options' },
@@ -829,9 +829,9 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'work-audit', label: 'Audit log' },
     ] },
   ] },
-  trust: { title: 'Trust & security', groups: [
+  trust: { title: 'Trust', groups: [
     { label: 'Principles, rights and AI', items: [
-      { slug: 'trust', label: 'Trust & security' },
+      { slug: 'trust', label: 'Trust' },
       { slug: 'status-quo', label: 'The trade we never agreed to' },
       { slug: 'tenets', label: 'Tenets' },
       { slug: 'input-not-impersonation', label: 'Input, not impersonation' },
@@ -6280,12 +6280,12 @@ ${DOCS_JS_TAG}
 // Section order + labels for llms.txt - mirrors the top nav (NAV/NAV_PATHWAY).
 // BEGIN GENERATED DOCS LLMS_SECTIONS
 const LLMS_SECTIONS: Array<{ pathway: Pathway; label: string }> = [
-  { pathway: 'quickstart', label: 'Start here' },
-  { pathway: 'creators', label: 'Create & use' },
-  { pathway: 'builders', label: 'Build & automate' },
-  { pathway: 'managers', label: 'Manage an organisation' },
-  { pathway: 'operators', label: 'Deploy & operate' },
-  { pathway: 'trust', label: 'Trust & security' },
+  { pathway: 'quickstart', label: 'Start' },
+  { pathway: 'creators', label: 'Create' },
+  { pathway: 'builders', label: 'Automate' },
+  { pathway: 'managers', label: 'Manage' },
+  { pathway: 'operators', label: 'Deploy' },
+  { pathway: 'trust', label: 'Trust' },
 ];
 // END GENERATED DOCS LLMS_SECTIONS
 // slug → English markdown source, collected on the en pass. Membership doubles as
