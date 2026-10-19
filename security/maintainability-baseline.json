@@ -49,10 +49,10 @@
       "typeEscapes": 0
     },
     "shells/web/src/views/color-lab.ts": {
-      "lines": 2166,
+      "lines": 2145,
       "largestFunctionLines": 2575,
       "importFanIn": 1,
-      "importFanOut": 23,
+      "importFanOut": 24,
       "typeEscapes": 0
     },
     "shells/web/src/views/deck-editor.ts": {

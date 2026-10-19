@@ -110,7 +110,15 @@ export function syncSelectAll(cat: CatCtx): void {
   const btn = viewEl.querySelector<HTMLElement>('.cat-uploads-selectall');
   if (btn) { btn.textContent = allSel ? t('Deselect all') : t('Select all'); btn.setAttribute('aria-pressed', String(allSel)); }
 }
-export const syncBulkBar = (cat: CatCtx): void => { const { bulkBarCfg, viewEl } = cat; syncSharedBulkBar(viewEl, bulkBarCfg); };
+export const syncBulkBar = (cat: CatCtx): void => {
+  const { bulkBarCfg, viewEl } = cat;
+  // One selection at a time: picking an asset drops a swatch selection.
+  if (cat.selected.size && cat.swatchSet.count()) cat.swatchSet.clear();
+  syncSharedBulkBar(viewEl, bulkBarCfg);
+  // The shared sync sets `.has-selection` from the asset count alone; the swatch
+  // bar's sync puts it back while swatches are selected.
+  cat.swatchSet.syncBar();
+};
 export async function ensureSessionTexts(cat: CatCtx): Promise<void> {
   const { host } = cat;
   if (cat.sessionTexts) return;
@@ -183,7 +191,7 @@ export function handleBulk(cat: CatCtx, action: string): void {
   if (action === 'convert') { void cat.actions.convert(cat.actions.selection()); return; }
   if (action === 'clear') {
     // Deselect in place - drop the highlight from every selected tile, no full re-render.
-    for (const tile of viewEl.querySelectorAll<HTMLElement>('.cat-tile.is-selected')) {
+    for (const tile of viewEl.querySelectorAll<HTMLElement>('.cat-tile.is-selected[data-id]')) {
       tile.classList.remove('is-selected');
       tile.querySelector('.cat-check')?.setAttribute('aria-pressed', 'false');
     }

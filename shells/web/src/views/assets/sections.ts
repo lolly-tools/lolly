@@ -27,7 +27,7 @@ import type { PickerHost } from '../picker.ts';
 import { mountTextThumbs } from '../../lib/text-thumbs.ts';
 import { mountPdfThumbs } from '../../lib/pdf-thumbs.ts';
 import { mountEmojiSpecimens } from '../../lib/emoji-specimen.ts';
-import { groupPalette, swatch } from '../../lib/swatches.ts';
+import { groupPalette, paletteInDisplayOrder } from '../../lib/swatches.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { FONT_LICENSE, WEIGHT_RAMP } from '../../lib/typefaces.ts';
 import { prepareAssetForVerify, setPendingVerify } from '../../lib/verify-handoff.ts';
@@ -91,9 +91,9 @@ export function mountFavStrip(cat: CatCtx): void {
     // (#/a?asset=…), so a route navigation would be swallowed by the router's same-route
     // dedupe (→ "Open does nothing"); opening the modal directly also preserves the grid's
     // scroll/expansion state and lets the same favourite be reopened repeatedly.
-    // A swatch tile has no details modal - it reveals the Swatches panel instead.
+    // A swatch tile opens that swatch's details, the way an asset tile opens its own.
     onActivate: (id) => {
-      if (id.startsWith('swatch:')) { revealSwatches(cat); return; }
+      if (id.startsWith('swatch:')) { if (!cat.swatches.openSwatchByLabel(id.slice('swatch:'.length))) revealSwatches(cat); return; }
       const ref = cat.assetById.get(id); if (ref) cat.details.openDetails(ref, cat.catIconTheme, cat.catPhotoTreatment);
     },
   });
@@ -127,13 +127,8 @@ export function refreshFavStrip(cat: CatCtx): void {
 export function reflectFavInGrid(cat: CatCtx, base: string, on: boolean): void {
   const { viewEl } = cat;
   if (base.startsWith('swatch:')) {
-    for (const button of viewEl.querySelectorAll<HTMLElement>('.plat-swatch-fav')) {
-      if (cat.filters.swatchFavKey(button.dataset.favSwatch ?? '') !== base) continue;
-      button.classList.toggle('is-on', on);
-      button.setAttribute('aria-pressed', String(on));
-      const label = on ? t('Remove from favourites') : t('Add to favourites');
-      button.setAttribute('aria-label', label);
-      button.title = label;
+    for (const tile of viewEl.querySelectorAll<HTMLElement>('.cat-swatch-tile')) {
+      if (tile.dataset.favKey === base) tile.classList.toggle('is-fav', on);
     }
     return;
   }
@@ -147,14 +142,19 @@ export function swatchesSectionHtml(cat: CatCtx): string {
   const { SWATCH_DOWNLOADS } = cat;
   const { brand, spectrum, ramps } = groupPalette(cat.palette);
   const total = brand.length + spectrum.length + ramps.reduce((n, [, cols]) => n + cols.length, 0);
-  const grid = (list: typeof brand) => `<div class="plat-swatch-grid">${list.map(c => swatch(c, { fav: cat.favSet.has(cat.filters.swatchFavKey(c.label)) })).join('')}</div>`;
+  // One card per colour (swatch-set.ts). A card's ref is its index in the palette's
+  // display order, the list selection, downloads and paging all read. Looked up by
+  // entry rather than counted as the grids are built, because the ramps below are
+  // built before the brand grid that leads the panel.
+  const order = new Map(paletteInDisplayOrder(cat.palette).map((c, i) => [c, i]));
+  const grid = (list: typeof brand) => `<div class="cat-grid cat-swatch-grid">${list.map(c => cat.swatchSet.cardHtml(c, order.get(c) ?? -1)).join('')}</div>`;
   const rampBlocks = ramps.map(([fam, cols]) =>
     `<h3 class="cat-panel-subhead">${escapeText(fam)}</h3>${grid(cols)}`).join('');
   const downloads = `<div class="cat-font-downloads cat-swatch-downloads">${SWATCH_DOWNLOADS.map(d =>
       `<button type="button" class="cat-download" data-swatch-dl="${d.fmt}" data-sfx="whoosh">${DOWNLOAD_ICON}<span>${escapeText(t(d.label))}</span></button>`).join('')}</div>`;
   const body = `
       ${downloads}
-      <p class="cat-panel-desc">${t('The brand palette. Click any chip to copy its hex. A <span class="plat-chip-flag is-static">CMYK</span> or <span class="plat-chip-flag is-static">SPOT</span> flag marks a locked ink value used directly in CMYK PDF exports.')}</p>
+      <p class="cat-panel-desc">${t('The brand palette. Click any swatch for every notation, its print values and its place in colour space, or select swatches to copy or download just those. A <span class="plat-chip-flag is-static">CMYK</span> or <span class="plat-chip-flag is-static">SPOT</span> flag marks a locked ink value used directly in CMYK PDF exports.')}</p>
       <h3 class="cat-panel-subhead">${t('Brand')}</h3>${grid(brand)}
       ${spectrum.length ? `<h3 class="cat-panel-subhead">${t('Spectrum')}</h3>${grid(spectrum)}` : ''}
       ${rampBlocks}`;
@@ -211,6 +211,7 @@ export function render(cat: CatCtx): void {
         <button type="button" class="btn btn--labelled btn--ghost" data-browse-sources>${actionButtonContent(t('Browse sources'), 'folder')}</button>
         <div class="catalog-workspace"><div class="asset-sources-column"><aside class="asset-sources" aria-label="${t('Sources')}"></aside></div><div class="catalog-body">${bodyHtml(cat)}</div></div>
         ${bulkBarHtml(cat)}
+        ${cat.swatchSet.barHtml()}
       </div>`;
   cat.wiring.wire();
   cat.sources.wire();
@@ -422,6 +423,7 @@ export function syncAssetUrl(cat: CatCtx, id: string | null): void {
   const [path = '', query = ''] = location.hash.split('?');
   if (path !== '#/a' && path !== '#/assets') return; // only rewrite this view's own URL
   const params = new URLSearchParams(query);
+  params.delete('swatch');
   if (id) params.set('asset', id);
   else params.delete('asset');
   const q = params.toString();

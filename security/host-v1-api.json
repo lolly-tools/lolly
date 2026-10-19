@@ -200,7 +200,7 @@
     "ColorPaletteSwatch": {
       "module": "color.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "e5bf0d77093ab5094f0a4f30ad63931279ac49c7d9697f4dd969d9c799aa230a"
+      "sha256": "78491be653668b21e96d48c63a67b5ed44235d1ef1dd47b9ba802298d9413f19"
     },
     "ColorPaletteTextFormat": {
       "module": "color.ts",

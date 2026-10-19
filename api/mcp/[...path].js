@@ -4083,7 +4083,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.280.0";
+    ENGINE_VERSION = "1.281.0";
   }
 });
 
@@ -7240,13 +7240,150 @@ var init_icc = __esm({
   }
 });
 
+// engine/src/color-describe.ts
+function fitsSpace(c, space) {
+  if (!BOUNDED.has(space)) return true;
+  const conv = convertColor(c, space);
+  const parts = space === "hsl" || space === "hwb" ? [conv.components[1] / 100, conv.components[2] / 100] : conv.components;
+  const SLACK = 1e-4;
+  return parts.every((v) => v >= -SLACK && v <= 1 + SLACK);
+}
+function describeColor(input) {
+  const trimmed = String(input ?? "").trim();
+  const parsed = parseColor(trimmed);
+  if (!parsed) return null;
+  const [L, a, b] = convertColor(parsed, "oklab").components;
+  const c = Math.hypot(a, b);
+  const h = c < 1e-7 ? 0 : (Math.atan2(b, a) * 180 / Math.PI % 360 + 360) % 360;
+  const oklch = { l: L, c, h };
+  const gamut = oklchGamut(L, c, h);
+  const ceiling = {
+    srgb: maxChroma(L, h, "srgb"),
+    p3: maxChroma(L, h, "p3"),
+    rec2020: maxChroma(L, h, "rec2020")
+  };
+  const srgb = colorToSrgb(parsed);
+  const byte = (v) => Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, "0");
+  const srgbHex = `#${byte(srgb[0])}${byte(srgb[1])}${byte(srgb[2])}`;
+  const notations = NOTATION_SPACES.map((space) => ({
+    space,
+    css: formatColor(convertColor(parsed, space)),
+    exact: fitsSpace(parsed, space)
+  }));
+  return {
+    input: trimmed,
+    parsed,
+    oklch,
+    gamut,
+    inSrgb: gamut === "srgb",
+    srgbHex,
+    headroom: ceiling.srgb - c,
+    ceiling,
+    notations,
+    alpha: parsed.alpha
+  };
+}
+function contrastVsExtremes(color6) {
+  const d = describeColor(color6);
+  if (!d) return null;
+  const hex3 = d.srgbHex;
+  const onBlack = contrastRatio(hex3, "#000000");
+  const onWhite = contrastRatio(hex3, "#ffffff");
+  const ratio = Math.max(onBlack, onWhite);
+  return {
+    against: onBlack >= onWhite ? "#000000" : "#ffffff",
+    ratio,
+    level: levelFor(ratio, false),
+    largeLevel: levelFor(ratio, true),
+    onBlack,
+    onWhite
+  };
+}
+function wcagLevel(ratio, opts = {}) {
+  return levelFor(ratio, !!opts.large);
+}
+var NOTATION_SPACES, BOUNDED, EXTREMES_CONTRAST_FLOOR, levelFor;
+var init_color_describe = __esm({
+  "engine/src/color-describe.ts"() {
+    "use strict";
+    init_css_color();
+    init_brand_derive();
+    init_gamut();
+    NOTATION_SPACES = [
+      "oklch",
+      "oklab",
+      "srgb",
+      "display-p3",
+      "rec2020",
+      "lab",
+      "lch",
+      "hsl",
+      "xyz-d65"
+    ];
+    BOUNDED = /* @__PURE__ */ new Set([
+      "srgb",
+      "srgb-linear",
+      "display-p3",
+      "a98-rgb",
+      "prophoto-rgb",
+      "rec2020",
+      "hsl",
+      "hwb"
+    ]);
+    EXTREMES_CONTRAST_FLOOR = Math.sqrt(21);
+    levelFor = (ratio, large) => {
+      const [aa, aaa] = large ? [3, 4.5] : [4.5, 7];
+      return ratio >= aaa ? "AAA" : ratio >= aa ? "AA" : "fail";
+    };
+  }
+});
+
+// engine/src/token-ext.ts
+var TOKEN_EXT;
+var init_token_ext = __esm({
+  "engine/src/token-ext.ts"() {
+    "use strict";
+    TOKEN_EXT = "com.suse.lolly";
+  }
+});
+
 // engine/src/palette-export.ts
 function hexToRgb(hex3) {
   const n7 = parseInt(hex3.slice(1), 16);
   return [n7 >> 16 & 255, n7 >> 8 & 255, n7 & 255];
 }
+function wideColour(css2) {
+  if (!css2) return null;
+  const parsed = parseColor(css2);
+  if (!parsed) return null;
+  const gamut = describeColor(css2)?.gamut;
+  if (!gamut || gamut === "srgb") return null;
+  const [l, a, b] = convertColor(parsed, "lab").components;
+  return { css: formatColor(parsed), face: gamut === "p3" ? "display-p3" : "rec2020", lab: [l, a, b] };
+}
+function cmykOf(v) {
+  if (!Array.isArray(v) || v.length !== 4 || !v.every((n7) => typeof n7 === "number" && Number.isFinite(n7))) return null;
+  return v.map((n7) => Math.min(100, Math.max(0, n7)));
+}
+function spotOf(v) {
+  if (!v || typeof v.name !== "string" || !v.name.trim()) return null;
+  return {
+    name: v.name.trim(),
+    ...typeof v.book === "string" && v.book ? { book: v.book } : {},
+    ...typeof v.finish === "string" && v.finish ? { finish: v.finish } : {}
+  };
+}
 function resolved(swatches) {
-  return swatches.filter((s) => HEX6.test(s.hex)).map((s) => ({ key: s.key, name: s.name, group: s.group, hex: s.hex.toLowerCase(), rgb: hexToRgb(s.hex) }));
+  return swatches.filter((s) => HEX6.test(s.hex)).map((s) => ({
+    key: s.key,
+    name: s.name,
+    group: s.group,
+    hex: s.hex.toLowerCase(),
+    rgb: hexToRgb(s.hex),
+    wide: wideColour(s.css),
+    cmyk: cmykOf(s.cmyk),
+    spot: spotOf(s.spot)
+  }));
 }
 function slug(key2) {
   return key2.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "swatch";
@@ -7266,24 +7403,48 @@ function paletteTokensJson(swatches, opts) {
       if (!isPlainObj(node[seg4])) node[seg4] = {};
       node = node[seg4];
     }
-    node[segs[segs.length - 1]] = { $value: s.hex, $type: "color", $description: s.name };
+    const ext = {
+      ...s.cmyk ? { cmyk: s.cmyk } : {},
+      ...s.spot ? { spot: s.spot } : {},
+      ...s.wide ? { faces: { [s.wide.face]: { value: s.wide.css } } } : {}
+    };
+    node[segs[segs.length - 1]] = {
+      $value: s.hex,
+      $type: "color",
+      $description: s.name,
+      ...Object.keys(ext).length ? { $extensions: { [TOKEN_EXT]: ext } } : {}
+    };
   }
   return JSON.stringify(root2, null, 2) + "\n";
 }
 function paletteCssVariables(swatches) {
-  const lines = resolved(swatches).map((s) => `  --${slug(s.key)}: ${s.hex};`);
+  const rows2 = resolved(swatches);
+  const lines = rows2.map((s) => `  --${slug(s.key)}: ${s.hex};`);
+  const byNotation = /* @__PURE__ */ new Map();
+  for (const s of rows2) {
+    if (!s.wide) continue;
+    const key2 = notationOf(s.wide.css);
+    byNotation.set(key2, [...byNotation.get(key2) ?? [], s]);
+  }
+  const blocks = [...byNotation.values()].map((group) => `@supports (color: ${group[0].wide.css}) {
+  :root {
+${group.map((s) => `    --${slug(s.key)}: ${s.wide.css};`).join("\n")}
+  }
+}
+`);
   return `:root {
 ${lines.join("\n")}
 }
-`;
+${blocks.join("")}`;
 }
 function paletteCssClasses(swatches) {
   const blocks = resolved(swatches).flatMap((s) => {
     const c = slug(s.key);
+    const v = (prop4) => s.wide ? `${prop4}: ${s.hex}; ${prop4}: ${s.wide.css};` : `${prop4}: ${s.hex};`;
     return [
-      `.bg-${c} { background-color: ${s.hex}; }`,
-      `.text-${c} { color: ${s.hex}; }`,
-      `.border-${c} { border-color: ${s.hex}; }`
+      `.bg-${c} { ${v("background-color")} }`,
+      `.text-${c} { ${v("color")} }`,
+      `.border-${c} { ${v("border-color")} }`
     ];
   });
   return blocks.join("\n") + "\n";
@@ -7312,10 +7473,10 @@ function utf16beNameBytes(name) {
   }
   return out;
 }
-function colorEntryBlock(name, rgb3) {
+function colorEntryBlock(name, model2, values, type) {
   const nameBytes = utf16beNameBytes(name.slice(0, 255));
   const nameUnits = nameBytes.length / 2;
-  const dataLen = 2 + nameBytes.length + 4 + 12 + 2;
+  const dataLen = 2 + nameBytes.length + 4 + 4 * values.length + 2;
   const block = new Uint8Array(2 + 4 + dataLen);
   const dv = new DataView(block.buffer);
   let o = 0;
@@ -7327,20 +7488,30 @@ function colorEntryBlock(name, rgb3) {
   o += 2;
   block.set(nameBytes, o);
   o += nameBytes.length;
-  block.set([82, 71, 66, 32], o);
+  for (let i = 0; i < 4; i++) block[o + i] = model2.charCodeAt(i);
   o += 4;
-  dv.setFloat32(o, rgb3[0] / 255, false);
-  o += 4;
-  dv.setFloat32(o, rgb3[1] / 255, false);
-  o += 4;
-  dv.setFloat32(o, rgb3[2] / 255, false);
-  o += 4;
-  dv.setUint16(o, 2, false);
+  for (const v of values) {
+    dv.setFloat32(o, v, false);
+    o += 4;
+  }
+  dv.setUint16(o, type, false);
   o += 2;
   return block;
 }
+function aseEntry(s) {
+  const cmyk = s.cmyk?.map((n7) => n7 / 100);
+  const lab = () => {
+    const [l, a, b] = s.wide?.lab ?? convertColor(parseColor(s.hex), "lab").components;
+    return [l / 100, a, b];
+  };
+  if (s.spot) return cmyk ? colorEntryBlock(s.spot.name, "CMYK", cmyk, ASE_SPOT) : colorEntryBlock(s.spot.name, "LAB ", lab(), ASE_SPOT);
+  const name = `${s.group} ${s.name}`;
+  if (cmyk) return colorEntryBlock(name, "CMYK", cmyk, ASE_NORMAL);
+  if (s.wide) return colorEntryBlock(name, "LAB ", lab(), ASE_NORMAL);
+  return colorEntryBlock(name, "RGB ", s.rgb.map((v) => v / 255), ASE_NORMAL);
+}
 function paletteAse(swatches) {
-  const blocks = resolved(swatches).map((s) => colorEntryBlock(`${s.group} ${s.name}`, s.rgb));
+  const blocks = resolved(swatches).map(aseEntry);
   const headerLen = 4 + 2 + 2 + 4;
   const total = headerLen + blocks.reduce((n7, b) => n7 + b.length, 0);
   const out = new Uint8Array(total);
@@ -7356,12 +7527,18 @@ function paletteAse(swatches) {
   }
   return out;
 }
-var HEX6, isPlainObj;
+var HEX6, isPlainObj, notationOf, ASE_SPOT, ASE_NORMAL;
 var init_palette_export = __esm({
   "engine/src/palette-export.ts"() {
     "use strict";
+    init_css_color();
+    init_color_describe();
+    init_token_ext();
     HEX6 = /^#[0-9a-f]{6}$/i;
     isPlainObj = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
+    notationOf = (css2) => /^[a-z-]+\((?:[a-z0-9-]+)?/i.exec(css2)?.[0] ?? css2;
+    ASE_SPOT = 1;
+    ASE_NORMAL = 2;
   }
 });
 
@@ -9404,15 +9581,6 @@ var init_color_faces = __esm({
     "use strict";
     init_css_color();
     isRec = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
-  }
-});
-
-// engine/src/token-ext.ts
-var TOKEN_EXT;
-var init_token_ext = __esm({
-  "engine/src/token-ext.ts"() {
-    "use strict";
-    TOKEN_EXT = "com.suse.lolly";
   }
 });
 
@@ -99942,104 +100110,6 @@ var init_image_cloud = __esm({
     DEFAULT_SAMPLE_TARGET = 2e5;
     HUE_CHROMA_FLOOR = 0.02;
     LIN_SLOP = 1 - srgbToLinear(254 / 255);
-  }
-});
-
-// engine/src/color-describe.ts
-function fitsSpace(c, space) {
-  if (!BOUNDED.has(space)) return true;
-  const conv = convertColor(c, space);
-  const parts = space === "hsl" || space === "hwb" ? [conv.components[1] / 100, conv.components[2] / 100] : conv.components;
-  const SLACK = 1e-4;
-  return parts.every((v) => v >= -SLACK && v <= 1 + SLACK);
-}
-function describeColor(input) {
-  const trimmed = String(input ?? "").trim();
-  const parsed = parseColor(trimmed);
-  if (!parsed) return null;
-  const [L, a, b] = convertColor(parsed, "oklab").components;
-  const c = Math.hypot(a, b);
-  const h = c < 1e-7 ? 0 : (Math.atan2(b, a) * 180 / Math.PI % 360 + 360) % 360;
-  const oklch = { l: L, c, h };
-  const gamut = oklchGamut(L, c, h);
-  const ceiling = {
-    srgb: maxChroma(L, h, "srgb"),
-    p3: maxChroma(L, h, "p3"),
-    rec2020: maxChroma(L, h, "rec2020")
-  };
-  const srgb = colorToSrgb(parsed);
-  const byte = (v) => Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, "0");
-  const srgbHex = `#${byte(srgb[0])}${byte(srgb[1])}${byte(srgb[2])}`;
-  const notations = NOTATION_SPACES.map((space) => ({
-    space,
-    css: formatColor(convertColor(parsed, space)),
-    exact: fitsSpace(parsed, space)
-  }));
-  return {
-    input: trimmed,
-    parsed,
-    oklch,
-    gamut,
-    inSrgb: gamut === "srgb",
-    srgbHex,
-    headroom: ceiling.srgb - c,
-    ceiling,
-    notations,
-    alpha: parsed.alpha
-  };
-}
-function contrastVsExtremes(color6) {
-  const d = describeColor(color6);
-  if (!d) return null;
-  const hex3 = d.srgbHex;
-  const onBlack = contrastRatio(hex3, "#000000");
-  const onWhite = contrastRatio(hex3, "#ffffff");
-  const ratio = Math.max(onBlack, onWhite);
-  return {
-    against: onBlack >= onWhite ? "#000000" : "#ffffff",
-    ratio,
-    level: levelFor(ratio, false),
-    largeLevel: levelFor(ratio, true),
-    onBlack,
-    onWhite
-  };
-}
-function wcagLevel(ratio, opts = {}) {
-  return levelFor(ratio, !!opts.large);
-}
-var NOTATION_SPACES, BOUNDED, EXTREMES_CONTRAST_FLOOR, levelFor;
-var init_color_describe = __esm({
-  "engine/src/color-describe.ts"() {
-    "use strict";
-    init_css_color();
-    init_brand_derive();
-    init_gamut();
-    NOTATION_SPACES = [
-      "oklch",
-      "oklab",
-      "srgb",
-      "display-p3",
-      "rec2020",
-      "lab",
-      "lch",
-      "hsl",
-      "xyz-d65"
-    ];
-    BOUNDED = /* @__PURE__ */ new Set([
-      "srgb",
-      "srgb-linear",
-      "display-p3",
-      "a98-rgb",
-      "prophoto-rgb",
-      "rec2020",
-      "hsl",
-      "hwb"
-    ]);
-    EXTREMES_CONTRAST_FLOOR = Math.sqrt(21);
-    levelFor = (ratio, large) => {
-      const [aa, aaa] = large ? [3, 4.5] : [4.5, 7];
-      return ratio >= aaa ? "AAA" : ratio >= aa ? "AA" : "fail";
-    };
   }
 });
 

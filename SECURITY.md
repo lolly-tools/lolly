@@ -115,7 +115,7 @@ The justification:
 - `zip` 4.6.1 comes only through `tauri-plugin-updater` 2.x, which declares
   `zip ^4` for `cfg(target_os = "windows")`. It is compiled for Windows targets
   only.
-- The current release, v1.1.1, publishes no Windows build. Windows installers are
+- The current release, v1.1.2, publishes no Windows build. Windows installers are
   built only by the manual `desktop-extra.yml` dispatch.
 - Self-update is not live. `bundle.createUpdaterArtifacts` is `false`, and
   `plugins.updater.pubkey` is still the `PLACEHOLDER-RUN-TAURI-SIGNER-GENERATE`

@@ -127,7 +127,7 @@ Palettes are a special asset type whose payload is JSON, not an image:
 }
 ```
 
-A palette asset is what the Swatches section in Assets renders: every ramp step as a chip, click to copy its hex.
+A palette asset is what the Swatches section in Assets renders: every ramp step as a chip. Each chip is a card you can select, so a few colours download as their own palette file, and clicking a chip opens that colour's details, the same sheet any other asset opens, with its linked print values and design token, every notation with a copy button, a gamut chart, its tones and its readability.
 
 ![The Swatches section in Assets - the brand ramps laid out as labelled chips with download buttons above](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=2000&walker=1&format=svg&cropSelector=.cat-group%5Bdata-group%3D%22swatches%22%5D&dark=1&filename=auth-assets-swatches)
 

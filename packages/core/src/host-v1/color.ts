@@ -225,12 +225,27 @@ export interface ColorAPI {
  * empty or a non-hex value (an unresolved alias, `transparent`) is dropped by the
  * serializers. Mirrored locally - packages/core carries no engine dependency -
  * from the engine's `PaletteSwatch`.
+ *
+ * The three optional fields (v1.281) say what the colour is beyond its hex. Each
+ * format keeps what it has room for: CSS variables and classes write a colour
+ * wider than sRGB beside the hex; tokens JSON puts the wider colour, the CMYK
+ * build and the spot ink under the `com.suse.lolly` extension; `.ase` writes a
+ * CMYK lock as CMYK, a spot as a Spot swatch under the ink's name and a wider
+ * colour as Lab; SCSS and `.gpl` stay sRGB. Without them every format writes
+ * what it wrote before.
  */
 export interface ColorPaletteSwatch {
   key: string;
   name: string;
   group: string;
   hex: string;
+  /** (v1.281) The colour as authored, any CSS colour notation. Written only when
+   *  it reaches past sRGB; a value that does not parse is ignored. */
+  css?: string | null;
+  /** (v1.281) A locked CMYK build, four percentages 0-100. */
+  cmyk?: readonly number[] | null;
+  /** (v1.281) A locked spot ink: its name, book and tactile finish. */
+  spot?: { name: string; book?: string; finish?: string } | null;
 }
 
 /** The TEXT palette formats {@link ColorAPI.paletteExport} produces (the binary

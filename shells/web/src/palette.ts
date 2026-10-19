@@ -27,15 +27,34 @@
  *   a family name (e.g. 'Neutral') pins the swatch into that tint ramp.
  *   Omit for brand colours; numbered labels ("Primary 5") auto-group by family.
  */
+import type { SpotColor } from '@lolly-tools/core/host-v1';
+
 export interface PaletteEntry {
   hex: string;
   label: string;
   /** [C, M, Y, K] integer percentages 0-100; null → generic RGB→CMYK fallback. */
   cmyk: readonly [number, number, number, number] | null;
-  /** Named spot/Pantone lock, when present - independent of `cmyk` (see above). */
-  spot?: { name: string; book?: string } | null;
+  /** Named spot/Pantone lock, when present - independent of `cmyk` (see above). A
+   *  tactile finish (foil, emboss, varnish) rides the same lock as `finish`. */
+  spot?: SpotColor | null;
   /** Platform-view grouping override ('spectrum' or a tint-ramp family name). */
   group?: string;
+  /** The design token this swatch came from, when it came from one. Absent on the
+   *  starter fallback below; the Assets swatch details sheet reads this field. */
+  token?: PaletteToken;
+}
+
+/** What a resolved colour token knows beyond the hex the palette paints with. */
+export interface PaletteToken {
+  /** Canonical reference, e.g. '{color.brand.jungle}'. */
+  ref: string;
+  /** The DTCG path, e.g. 'color.brand.jungle'. */
+  path: string;
+  /** The colour as authored, before the sRGB fallback - may be wider than `hex`. */
+  css?: string;
+  description?: string;
+  /** Per-target values the brand authored (a CSS space, or `icc:<digest>:<intent>`). */
+  faces?: Record<string, string | number[]>;
 }
 
 export const PALETTE: readonly PaletteEntry[] = [
