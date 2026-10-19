@@ -18,7 +18,7 @@ import {
   C2PA_FORMATS, embedC2pa, buildInputModel, serializeUrlState, parseProductionSpec,
   parseDimension, toPixels, PENPOT_MIME,
   attributionCredits, checkAttributionReadback, verifyC2pa, describeIgnoredTokenChoice,
-  ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection, readFileDesignRecord, designRecordWords,
+  ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection, designRecordWords,
 } from '@lolly/engine';
 import type { C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes, DesignRecord } from '@lolly/engine';
 import type { RightsEvaluationV1 } from '@lolly-tools/core/rights-v1';
