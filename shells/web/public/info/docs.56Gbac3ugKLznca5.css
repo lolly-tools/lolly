@@ -880,7 +880,10 @@ html[data-a11y-motion="reduce"] .docs-top-btn:active { transform: none; }
   .footer-sitemap .sitemap-expanded { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @container (min-width: 64rem) {
-  .footer-sitemap .sitemap-expanded { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .footer-sitemap .sitemap-expanded { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .footer-sitemap .sitemap-col { grid-column: span 2; }
+  .footer-sitemap .sitemap-col:nth-child(5) { grid-column: 3 / span 2; }
+  .footer-sitemap .sitemap-col:nth-child(6) { grid-column: 5 / span 2; }
 }
 .footer-sitemap .sitemap-col { min-width: 0; }
 .footer-sitemap a { display: flex; align-items: flex-start; gap: 0.5em; min-width: 0; padding: 0.4rem 0.5rem; color: var(--ui-color-text-muted); text-decoration: none; line-height: 1.4; overflow-wrap: anywhere; hyphens: auto; }

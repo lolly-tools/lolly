@@ -278,6 +278,11 @@ export const RATCHETED_PHRASES: { what: string; re: RegExp }[] = [
  * line it sanctioned goes away (see the test's stale-allow assertion).
  */
 const ALLOW: Record<string, string[]> = {
+  // Work's policy key and diagnostic text are literal names emitted by the server.
+  'docs/work/ai-policy.md': ['`speech`, `transcription`'],
+  'docs/work/cli.md': ['read with care: 3 comparison(s) used a stamp that names no timezone'],
+  'docs/work/providers/acquia-dam-live-verify.md': ['`read with care: … names no timezone`'],
+  'docs/work/providers/intelligencebank-live-verify.md': ['`read with care: … names no timezone`'],
   'docs/animating.md': ['follow the shape of the artwork'],
   'docs/ai-features.md': ['actual shape of the audio'],
   'docs/url-inputs.md': ['actual shape of the catalogue track'],
@@ -346,14 +351,16 @@ export function targets(): string[] {
   // The specifications published as their own web documents (docs/spec/<name>/*.md,
   // built by docs/spec-pages.ts). Same prose, same reader, same rules; nested, so
   // this walks rather than listing one directory.
-  if (existsSync(join(ROOT, 'docs/spec'))) {
+  for (const subtree of ['spec', 'work']) {
+  if (existsSync(join(ROOT, 'docs', subtree))) {
     const walk = (dir: string, rel: string): void => {
       for (const e of readdirSync(dir, { withFileTypes: true })) {
         if (e.isDirectory()) walk(join(dir, e.name), `${rel}/${e.name}`);
         else if (e.name.endsWith('.md')) out.push(`${rel}/${e.name}`);
       }
     };
-    walk(join(ROOT, 'docs/spec'), 'docs/spec');
+    walk(join(ROOT, 'docs', subtree), `docs/${subtree}`);
+  }
   }
   if (existsSync(join(ROOT, 'docs/site'))) {
     for (const f of readdirSync(join(ROOT, 'docs/site'))) {
@@ -461,7 +468,7 @@ export function ratchetDrift(current = ratchetCounts(), baseline = loadDocsBasel
  *  real pages to /info/<door>/<slug>.html, so reading the root alone meant reading
  *  the landing and 100-odd stubs). Exported so a test can assert the scan reaches
  *  the door pages rather than trusting a directory listing. */
-export const BUILT_DOORS = ['start', 'create', 'build', 'operate', 'trust'] as const;
+export const BUILT_DOORS = ['start', 'create', 'build', 'manage', 'operate', 'trust'] as const;
 export function builtTargets(): string[] {
   const dir = join(ROOT, 'shells/web/public/info');
   if (!existsSync(dir)) return [];
