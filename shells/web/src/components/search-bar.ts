@@ -21,6 +21,15 @@
  * a claim-time re-render is the safe path; mid-session writes go through the
  * documented live `.value` getter/setter only.
  *
+ * The same holds across a REMOUNT of the view already showing (main.ts navigate():
+ * a forced re-navigation to the same route signature, such as the gallery's redraw
+ * when the full catalog replaces its slim first paint). That is one view redrawn,
+ * not a leave, so prepareSearchBarNavigation(true) keeps the field exactly as the user
+ * left it: the release skips its reset, the route change skips the overlay
+ * dismissal, and the incoming claim adopts the live text instead of its own initial
+ * value, then hears that text the way a fresh keystroke would hand it over. Text
+ * typed during the first paint, its focus and its caret all survive the redraw.
+ *
  * Keyboard policy lives HERE, in one place (previously three private copies):
  * Escape with text clears the field (and notifies) keeping focus; Escape when
  * empty blurs and falls through. Only a HANDLED Escape stops propagation - 
@@ -93,6 +102,18 @@ let spotlightListboxId = '';
 let renderedJelly = false;
 let renderedPlaceholder = '';
 let debounce: ReturnType<typeof setTimeout> | undefined;
+// Set by prepareSearchBarNavigation(true) for one release → route → claim cycle of the
+// route named here. `undelivered` records a keystroke whose debounce had not fired
+// yet, so the incoming claim can hand that text on in its place.
+let remountHold: { route: string; undelivered: boolean } | null = null;
+
+/** Cancel the armed keystroke debounce, if any. True when one was armed. */
+function cancelDebounce(): boolean {
+  const armed = debounce !== undefined;
+  clearTimeout(debounce);
+  debounce = undefined;
+  return armed;
+}
 
 const viewEl = (): HTMLElement | null => document.getElementById('view');
 const inputEl = (): HTMLInputElement | null => footerEl?.querySelector<HTMLInputElement>('.gallery-search') ?? null;
@@ -126,8 +147,46 @@ function applyCombobox(): void {
   input.setAttribute('aria-controls', spotlightListboxId);
 }
 
-/** (Re)build the footer markup and wire its handlers. Between views only. */
-function render(): void {
+/** What a re-render must carry across when the user is mid-entry. */
+interface FieldState {
+  value: string;
+  focused: boolean;
+  start: number | null;
+  end: number | null;
+  direction: 'forward' | 'backward' | 'none' | null;
+}
+
+function fieldState(): FieldState | null {
+  const input = inputEl();
+  if (!input) return null;
+  // A focused <jelly-input> reports its host as the active element, so one test
+  // covers both fields; only the plain input exposes its selection.
+  const textual = typeof input.selectionStart === 'number';
+  return {
+    value: input.value ?? '',
+    focused: document.activeElement === input,
+    start: textual ? input.selectionStart : null,
+    end: textual ? input.selectionEnd : null,
+    direction: textual ? input.selectionDirection : null,
+  };
+}
+
+function restoreField(state: FieldState): void {
+  const input = inputEl();
+  if (!input) return;
+  input.value = state.value;
+  syncClear();
+  if (!state.focused) return;
+  input.focus({ preventScroll: true });
+  if (state.start === null || state.end === null || typeof input.setSelectionRange !== 'function') return;
+  try { input.setSelectionRange(state.start, state.end, state.direction ?? undefined); } catch { /* not a text field */ }
+}
+
+/** (Re)build the footer markup and wire its handlers. Between views only, or during
+ *  a held remount with `keepField`, which carries the live text, focus and caret
+ *  into the new markup. */
+function render(opts: { keepField?: boolean } = {}): void {
+  const kept = opts.keepField ? fieldState() : null;
   const { placeholder, ariaLabel } = labels();
   renderedJelly = jellyActive();
   renderedPlaceholder = placeholder;
@@ -146,6 +205,7 @@ function render(): void {
   footerEl = next;
   wire(next);
   applyCombobox();
+  if (kept) restoreField(kept);
 }
 
 function wire(footer: HTMLElement): void {
@@ -154,8 +214,9 @@ function wire(footer: HTMLElement): void {
   footer.addEventListener('input', (e) => {
     if (!(e.target as HTMLElement).closest('.gallery-search')) return;
     syncClear();
-    clearTimeout(debounce);
+    cancelDebounce();
     debounce = setTimeout(() => {
+      debounce = undefined;
       const raw = inputEl()?.value ?? '';
       currentClaim?.onQuery?.(raw);
       // The overlay rides the SAME debounce, after the local tap - one query,
@@ -221,13 +282,30 @@ export function initSearchBar(): void {
  * flag flips since the last render.
  */
 export function applySearchBarRoute(nextMode: FooterMode, nextRouteName: string): void {
+  // A hold covers a remount of the same browse route only. Any other transition
+  // (another route, or the bar hiding behind the WebGPU card) resets the bar as
+  // the release that the hold skipped would have.
+  if (remountHold && (remountHold.route !== nextRouteName || nextMode !== 'search')) {
+    remountHold = null;
+    cancelDebounce();
+    if (footerEl && !currentClaim) render();
+  }
   mode = nextMode;
   routeName = nextRouteName;
+  if (remountHold) {
+    // The same view claims the bar again in a moment: leave the field, any armed
+    // keystroke and the overlay exactly as they are.
+    if (!footerEl) return;
+    if (jellyActive() !== renderedJelly) render({ keepField: true });
+    footerEl.hidden = mode !== 'search';
+    viewEl()?.classList.toggle('has-search-footer', mode === 'search');
+    return;
+  }
   // A route transition invalidates any in-flight keystroke: without this, a
   // debounce armed on the OUTGOING view fires after navigation and re-opens
   // the overlay over the new route - including over a footer:'none' editing
   // view, where the hidden bar can't even receive the Escape to dismiss it.
-  clearTimeout(debounce);
+  cancelDebounce();
   // Unclaimed routes (dashboard/profile) have no release to reset the field,
   // so a query typed there would ride into the next view's bar. Claimed views
   // are reset by their release before this runs; mirror that here.
@@ -274,14 +352,62 @@ export function setSearchBarExpanded(expanded: boolean, activeDescId?: string | 
 }
 
 /**
+ * Called by main.ts navigate() before the outgoing view's teardown. `remount` is true
+ * for a forced re-navigation to the route signature already showing: the bar is then
+ * held for one release → applySearchBarRoute → claim cycle. The release leaves the
+ * field alone, the route change leaves the overlay open, and the incoming claim keeps
+ * the user's text, focus and caret in place of its own initial value. A different
+ * route before that claim cancels the hold and resets the bar as the skipped release
+ * would have. Any other navigation drops a hold left by a remount whose view never
+ * claimed the bar, so an explicit new query (a #/?q= hand-off) always wins.
+ */
+export function prepareSearchBarNavigation(remount: boolean): void {
+  if (remount) {
+    const armed = cancelDebounce();
+    remountHold = { route: routeName, undelivered: armed || remountHold?.undelivered === true };
+    return;
+  }
+  if (!remountHold) return;
+  remountHold = null;
+  if (currentClaim) return;
+  cancelDebounce();
+  if (footerEl) render();
+}
+
+/** A held claim: the field already holds what the user typed, so keep it and hand
+ *  that text to the remounted view. */
+function adoptHeldField(claim: SearchBarClaim, armed: boolean): void {
+  if (footerEl && labels().placeholder !== renderedPlaceholder) render({ keepField: true });
+  syncClear();
+  // No autoFocus: a redraw must not move the user's focus.
+  const live = inputEl()?.value ?? '';
+  if (!armed && live === (claim.value ?? '')) return;
+  // Through a timer rather than a direct call: the claim runs part-way through the
+  // view's mount, and the live tap may read state the mount has not set up yet. The
+  // ordinary debounce never calls it that early either.
+  debounce = setTimeout(() => {
+    debounce = undefined;
+    if (currentClaim !== claim) return;
+    const raw = inputEl()?.value ?? '';
+    claim.onQuery?.(raw);
+    // The overlay heard every keystroke whose debounce fired before the remount;
+    // only a keystroke the remount interrupted is news to the overlay.
+    if (armed) spotlightHook?.onQueryChanged(raw);
+  }, 0);
+}
+
+/**
  * Claim the bar for the mounting view. Returns the release fn - chain it into
  * the view's _cleanup. A stale release (called after another view claimed) is a
  * no-op, so teardown ordering can't clobber the next view's claim.
  */
 export function claimSearchBar(claim: SearchBarClaim): () => void {
   currentClaim = claim;
-  clearTimeout(debounce);
-  if (footerEl) {
+  const held = remountHold?.route === routeName ? remountHold : null;
+  remountHold = null;
+  const armed = cancelDebounce();
+  if (held) adoptHeldField(claim, armed || held.undelivered);
+  else if (footerEl) {
     if (labels().placeholder !== renderedPlaceholder) render();
     else {
       const input = inputEl();
@@ -295,7 +421,9 @@ export function claimSearchBar(claim: SearchBarClaim): () => void {
   return () => {
     if (currentClaim !== claim) return;
     currentClaim = null;
-    clearTimeout(debounce);
+    // A remount of this route adopts the field as it stands (prepareSearchBarNavigation).
+    if (remountHold) return;
+    cancelDebounce();
     // Back to the unclaimed default (and an empty field) so a leftover query
     // can't ride into the next view's bar.
     if (footerEl) render();
@@ -306,7 +434,7 @@ export function claimSearchBar(claim: SearchBarClaim): () => void {
  *  debounce) - the write path behind in-view "search for this" affordances
  *  (e.g. a catalogue tag chip setting `tag:x`). Mirrors clearSearchBar. */
 export function setSearchBarQuery(value: string, opts: { focus?: boolean } = {}): void {
-  clearTimeout(debounce);
+  cancelDebounce();
   const input = inputEl();
   if (input) input.value = value;
   syncClear();
@@ -322,7 +450,7 @@ export function setSearchBarQuery(value: string, opts: { focus?: boolean } = {})
  *  claim (no onQuery) hears onClear instead - never both. The overlay always
  *  hears the empty query, so a clear closes it. */
 export function clearSearchBar(opts: { focus?: boolean } = {}): void {
-  clearTimeout(debounce);
+  cancelDebounce();
   const input = inputEl();
   if (input) input.value = '';
   syncClear();
@@ -336,7 +464,7 @@ export function clearSearchBar(opts: { focus?: boolean } = {}): void {
  *  query themselves and just need the bar to match (e.g. the gallery's
  *  category pills clearing an active search). */
 export function setSearchBarValue(v: string): void {
-  clearTimeout(debounce);
+  cancelDebounce();
   const input = inputEl();
   if (input) input.value = v;
   syncClear();

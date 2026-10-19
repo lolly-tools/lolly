@@ -42,7 +42,7 @@ import { hydrateFeatureFlags, flagEnabledSync, isFlagOnSync, applyPerfUi, perfUi
 // opener, the live-mount stitch, the mount seam, the LAN provider, the accept side -
 // was 94.7 KB of source (~7 KB gz) on the render-blocking preload set of every visit
 // (plans/155 WP-3).
-import { initSearchBar, applySearchBarRoute } from './components/search-bar.ts';
+import { initSearchBar, applySearchBarRoute, prepareSearchBarNavigation } from './components/search-bar.ts';
 import { initSpotlightBoot } from './components/spotlight-boot.ts';
 import { ensureJelly, jellyEnabled } from './lib/jelly.ts';
 import { applyCaptureNeutral } from './lib/capture-neutral.ts';
@@ -475,6 +475,11 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   if (prevSig && viewIdent(routeSig) !== viewIdent(prevSig) && !leftHandoff) recordLeave(leftHref);
 
   const view = document.getElementById('view') as ViewElement;
+  // Tell the search bar whether this navigation redraws the route already showing: a
+  // forced remount, such as the full catalog replacing a slim first paint, a locale
+  // arrival or lolly:remount. A redraw keeps what the user typed, with its focus and
+  // caret, across the teardown below and the incoming claim (components/search-bar.ts).
+  prepareSearchBarNavigation(opts.force === true && routeSig === prevSig && ROUTES[route.name].footer === 'search');
   // NEVER let an outgoing view's teardown block the navigation: if _cleanup throws, the
   // whole render below is skipped and the view "doesn't change" - a user gets trapped.
   // This bit the scanner on iOS, where a live-camera teardown step threw, so tapping
