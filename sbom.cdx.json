@@ -7301,10 +7301,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/lolly-desktop@1.1.1",
+      "bom-ref": "pkg:cargo/lolly-desktop@1.1.2",
       "name": "lolly-desktop",
-      "version": "1.1.1",
-      "purl": "pkg:cargo/lolly-desktop@1.1.1",
+      "version": "1.1.2",
+      "purl": "pkg:cargo/lolly-desktop@1.1.2",
       "scope": "required",
       "licenses": [
         {
@@ -7343,10 +7343,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/lolly-mobile@1.1.1",
+      "bom-ref": "pkg:cargo/lolly-mobile@1.1.2",
       "name": "lolly-mobile",
-      "version": "1.1.1",
-      "purl": "pkg:cargo/lolly-mobile@1.1.1",
+      "version": "1.1.2",
+      "purl": "pkg:cargo/lolly-mobile@1.1.2",
       "scope": "required",
       "licenses": [
         {

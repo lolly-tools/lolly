@@ -34,6 +34,10 @@ Lolly is completely free and open source. It is licensed under the **Mozilla Pub
   catalog and render path to AI agents (list, describe, build a link, render, transform,
   redact, verify) under the same rules as the app.
 
+### New in 1.1.2
+
+**The Colourway one** brings colourways: a design system can hold several lead colours, and each piece of work chooses one from a new Design system section in the tool sidebar. Exports record the design system and colourway that made them. Design gains Scale mode and two-finger transforms, the on-device utilities gain clip preparation, images to PDF, Read and extract and font subsetting, and the export card checks the delivered file. Read the [1.1.2 release notes](releases/1.1.2.md) for the full list, the behaviour changes and the known limits.
+
 ### New in 1.1.0 (unreleased)
 
 The proposed release is **the fancy one**, coordinated with Lolly Work 1.1.0. See the [draft 1.1.0 release notes](releases/1.1.0-draft.md) for Rebrand, slide masters and PowerPoint layouts in Design, interactive presentations, animated Snippet scenes, Design cue timing and motion blur, standalone HTML playback, and rendered-file checks. It also covers automatic recovery and History in more tools, saving guidance, font coverage checks, the Trash, the shared settings panel, Assets, Diagram Builder looks, export licences and MCP server 0.2.0. Design-system intake, custom brand vocabulary and Usage & rules add scoped example checks and reusable posters; optional lolly-work mappings enforce supported rules on actual runtime inputs. Verify also checks files against supplied production requirements. The engine reaches 1.257; core remains 1.2 and the document model remains a draft. Installation archives, service images and native packages are qualified separately. This remains a draft until the release is published.
