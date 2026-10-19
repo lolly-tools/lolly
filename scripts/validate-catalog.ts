@@ -37,6 +37,8 @@ import type { ToolManifest } from '../engine/src/loader.ts';
  *   - Default `bindToProfile` values reference real profile fields
  *   - `palette` references on color inputs point to real palette assets
  *   - `replacedBy` on deprecated assets points to a real, non-deprecated asset
+ *   - `brandTokens`, index order and the `brand` tag agree on the design system
+ *     (scripts/lib/tokens-head.ts)
  *   - Brand-overlay declarations (`extends`) are sound: base exists in
  *     community/, community tools never declare one, overlay keeps the base id
  *
@@ -78,6 +80,7 @@ import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../en
 // rather than re-stated: if the validator's idea of "this is a version asset" drifts
 // from the shells', it either passes a pack that cannot resolve or fails one that can.
 import { isVersionAssetId, readVersionIndex, DESIGN_VERSION_LATEST } from '../engine/src/design-version.ts';
+import { tokensHeadProblems } from './lib/tokens-head.ts';
 import { parseRateCard, isRateCardError } from '../engine/src/rate-card.ts';
 // The filename shape the catalog signer enumerates for starter templates. Imported
 // rather than restated so a template that ships can never be one the envelope skips:
@@ -1801,6 +1804,11 @@ for (const asset of assetsIndex.assets) {
     }
   }
 }
+
+// The design system the index offers: brandTokens, index order and the `brand` tag
+// must all point at the same tokens asset, because different readers use each one
+// (scripts/lib/tokens-head.ts lists which).
+for (const problem of tokensHeadProblems(assetsIndex)) errors.push(`assets/index.json: ${problem}`);
 
 // Default favourites (seeded on first run) must each reference a real asset - a typo'd
 // id would silently seed a favourite that never resolves to a tile.

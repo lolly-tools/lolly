@@ -6,9 +6,10 @@
     "rebrand-deck"
   ],
   "defaultHiddenTemplates": [],
+  "brandTokens": "lolly/tokens/demo",
   "assets": [
     {
-      "id": "lolly/tokens/opal",
+      "id": "lolly/tokens/demo",
       "name": "Lolly Demo",
       "description": "Lolly Demo, Lolly's own design system, coloured with the Opal palette of treats and nature. Named colours (Spearmint, Green Apple, Liquorice, Honey, Reef and the rest), the chart spectrum, light and dark semantic slots with the slide roles, Outfit headings with SUSE and SUSE Mono, and Lolly's marks in the logo slots.",
       "type": "tokens",
@@ -23,11 +24,33 @@
       "formats": [
         {
           "format": "json",
-          "url": "/catalog/assets/lolly/tokens/opal.json",
+          "url": "/catalog/assets/lolly/tokens/demo.json",
           "checksum": "sha256-uPLT+souhunZBuCE4Q6ueTK6tRpf3iKkaYvnw7kbj5M=",
           "size": 33734
         }
       ]
+    },
+    {
+      "id": "lolly/tokens/opal",
+      "name": "Lolly Demo (former id)",
+      "description": "The id Lolly Demo shipped under from 16 October 2026, after its palette. Kept so saved references still resolve, reading the same document as its replacement, lolly/tokens/demo.",
+      "type": "tokens",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "tokens",
+        "dtcg"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/lolly/tokens/demo.json",
+          "checksum": "sha256-uPLT+souhunZBuCE4Q6ueTK6tRpf3iKkaYvnw7kbj5M=",
+          "size": 33734
+        }
+      ],
+      "deprecated": true,
+      "replacedBy": "lolly/tokens/demo"
     },
     {
       "id": "lolly/logo/primary",
