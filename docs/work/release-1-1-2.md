@@ -2,7 +2,7 @@
 
 Work 1.1.2 pairs the Work server and render worker with
 [Lolly 1.1.2](https://github.com/lolly-tools/lolly/releases/tag/v1.1.2), built from
-Lolly source `e8dc4609f60e40e6e94ca9cd9624675abc9796c6`. It is published as
+Lolly source `fe27a843813b0a653c648e6db078ae8f982b2654`. It is published as
 [Work v1.1.2](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2).
 Installation and production acceptance are tracked separately.
 
@@ -17,8 +17,8 @@ and [documentation index](https://github.com/lolly-tools/lolly-work/blob/v1.1.2/
 | Lolly product version | 1.1.2 |
 | Work application | 1.1.2 |
 | Work Helm chart | 0.3.3; appVersion 1.1.2 |
-| Lolly source | e8dc4609f60e40e6e94ca9cd9624675abc9796c6 (Lolly main; the 1.1.2 release commit replaces this before the tag) |
-| Engine | 1.280.0 |
+| Lolly source | fe27a843813b0a653c648e6db078ae8f982b2654 |
+| Engine | 1.281.0 |
 | Tool-author core | 1.5.0 |
 | Lolly web archive for YunoHost | No new archive. `lolly-web-1.1.1-ynh1.tar.gz` stays current, SHA-256 `bc78012aa407983ecc818e63be98ae1b45ed7db1dcad3f4c8d4ffe0c371116c1` |
 
@@ -28,7 +28,9 @@ Lolly source above. The maintained producers generated both.
 
 Work 1.1.1 carried engine 1.261.0 and core 1.4.0. Design 1.51.0 needs engine 1.263.0
 or later and Strip Hidden Data 1.4.0 needs engine 1.264.0 or later wherever they
-render, so a Work 1.1.1 server refuses to load either tool.
+render, so a Work 1.1.1 server refuses to load either tool. Engine 1.281.0 is the
+release commit's engine: its last change, from Lolly #431, carries wide colours, CMYK
+builds and spot inks into the app's palette downloads, which no Work route calls.
 
 ## What Lolly 1.1.2 needs from this release
 
