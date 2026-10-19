@@ -73,8 +73,10 @@ test('every colourway role links to a named Opal colour, never a bare value', ()
 });
 
 test('the canonical colourway resolves every token exactly as the single-lead pack did', () => {
+  // The logo slots are the one deliberate change since the single-lead copy: the
+  // horizontal slots hold the wordmark now (tests/lolly-demo-wordmark.test.ts).
   for (const look of LOOKS) {
-    const before = createTokenSet(SINGLE_LEAD, { selection: { '': look } }).query();
+    const before = createTokenSet(SINGLE_LEAD, { selection: { '': look } }).query().filter(e => !e.path.startsWith('asset.logo.'));
     const selections: Record<string, string>[] = [{ '': look }, { '': look, colourway: 'spearmint' }];
     for (const selection of selections) {
       const after = new Map(createTokenSet(SHIPPED, { selection }).query().map(e => [e.path, e]));
