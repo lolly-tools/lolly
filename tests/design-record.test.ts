@@ -187,3 +187,20 @@ test('the CLI labels the shipped design system the way the web shell does', asyn
   }
   assert.equal(shippedSystemLabel(undefined), 'Lolly', 'the web shell\'s own fallback for a catalog with no name');
 });
+
+test('where a format writes the record: its own metadata, a credential only, or nowhere', async () => {
+  const { designRecordCarrier } = await import('../engine/src/index.ts');
+  // Formats whose metadata carries the record and the description, credential or not.
+  for (const fmt of ['png', 'jpg', 'webp', 'jxl', 'svg', 'pdf', 'pdf-cmyk', 'tiff', 'gif', 'mp4', 'pptx', 'zip']) {
+    assert.equal(designRecordCarrier(fmt, false), 'file', fmt);
+    assert.equal(designRecordCarrier(fmt.toUpperCase(), true), 'file', fmt);
+  }
+  // Text, data and HTML hold no metadata: the record reaches only a credential.
+  for (const fmt of ['html', 'md', 'css', 'js']) {
+    assert.equal(designRecordCarrier(fmt, true), 'credential', fmt);
+    assert.equal(designRecordCarrier(fmt, false), null, fmt);
+  }
+  for (const fmt of ['txt', 'json', 'csv', 'ics', 'vcf', 'srt', 'vtt', 'scss', 'gpl', 'eps', 'eps-cmyk', 'emf', 'wmf', 'dxf', 'bmp', 'ico']) {
+    assert.equal(designRecordCarrier(fmt, false), null, fmt);
+  }
+});

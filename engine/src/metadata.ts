@@ -305,6 +305,30 @@ export function designRecordKeywords(meta: Pick<ExportMeta, 'designSystem' | 'de
   return out;
 }
 
+/**
+ * Export formats whose bytes hold none of an export's own metadata (plans/319): the
+ * text and data formats, HTML, and the vector and bitmap formats with no description
+ * field. A file in one of them carries no description, and carries the design-system
+ * record only in a Content Credential, on the formats that can hold one.
+ */
+const METADATA_FREE_FORMATS: ReadonlySet<string> = new Set([
+  'html', 'html-fragment', 'md', 'txt', 'js', 'json', 'csv', 'ics', 'vcf', 'srt', 'vtt', 'css', 'scss', 'gpl',
+  'eps', 'eps-cmyk', 'emf', 'wmf', 'dxf', 'bmp', 'ico',
+]);
+
+/**
+ * Where an export in `format` writes the design-system record (plans/319), for a
+ * shell that shows the record before the export. `'file'`: the format's own
+ * metadata carries the record and the description. `'credential'`: only the Content
+ * Credential the export will stamp carries the record, and no description is
+ * written. `null`: the file will carry no part of the record. `credential` says whether this
+ * export stamps a credential that the format can hold.
+ */
+export function designRecordCarrier(format: string, credential: boolean): 'file' | 'credential' | null {
+  if (!METADATA_FREE_FORMATS.has(format.toLowerCase())) return 'file';
+  return credential ? 'credential' : null;
+}
+
 /** Every PDF keyword an export writes: the producing app, the tool's page, the contact, then the record. */
 export function pdfKeywords(meta: ExportMeta | null | undefined): string[] {
   if (!meta) return [];

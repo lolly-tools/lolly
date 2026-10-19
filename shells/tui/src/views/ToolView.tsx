@@ -39,6 +39,7 @@ import type { AssetRow } from '../catalog.ts';
 import { filterAssets, assetEmoji, assetDetail } from '../lib/asset-list.ts';
 import { loadFavourites, loadHidden, sortFavouritesFirst } from '../lib/asset-favourites.ts';
 import { mountTool, renderSvg, exportToFile, exportableFormats, currentQuery, modelValues, isTransform, isCaptureTool } from '../engine-render.ts';
+import { madeWithRowText } from '../made-with-row.ts';
 import { matchedExportFormat } from '@lolly-tools/node-shell/raster';
 import type { Runtime, Manifest } from '../engine-render.ts';
 import { svgToCells } from '../terminal-image.ts';
@@ -701,9 +702,7 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
       case 'dpi': return unit === 'px' ? `${dpi || '300'} (physical units only)` : (dpi || '300');
       case 'filename': return outName;
       case 'folder': return outDir;
-      case 'madewith': return madeWithLine
-        ? (madeWithOn ? `on · records ${madeWithLine}` : 'off · records nothing')
-        : 'nothing to record';
+      case 'madewith': return madeWithRowText({ words: madeWithLine, on: madeWithOn, format: fmt, c2paDays: C2PA_DAYS[c2paIdx] ?? 0 });
       case 'c2pa': { const d = C2PA_DAYS[c2paIdx] ?? 0; return d === 0 ? 'off' : `on · ${d}-day cert`; }
       case 'imprint': return isImprintFormat(fmt)
         // A container (pdf/pdf-cmyk/pptx) marks only the raster images it embeds, so a

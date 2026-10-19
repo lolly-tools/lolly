@@ -2554,3 +2554,35 @@ test('an edit repaints the card from a fresh read, and a disposed panel reads no
   await new Promise((r) => setTimeout(r, 350));
   assert.equal(h.madeWithReads(), settled, 'no timer or subscription outlives the panel');
 });
+
+test('the Design system card follows the format: hidden for one that carries no metadata', async () => {
+  const h = mount({ seqMs: null, formats: ['png', 'csv'], madeWith: { preview: PERSIMMON_PREVIEW } });
+  await settle();
+  const card = h.panel.querySelector('[data-madewith-section]') as HTMLElement;
+  const select = h.panel.querySelector('[data-action="format"]') as HTMLSelectElement;
+  assert.equal(select.value, 'png');
+  assert.equal(card.hidden, false);
+  select.value = 'csv';
+  select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  assert.equal(card.hidden, true, 'a CSV carries no metadata, so the card names nothing it would write');
+  select.value = 'png';
+  select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  assert.equal(card.hidden, false, 'back on a format whose metadata carries the record');
+  h.dispose();
+});
+
+test('on HTML the record reaches only the credential: no description line, and no card with the credential off', async () => {
+  const h = mount({ seqMs: null, formats: ['html'], madeWith: { preview: PERSIMMON_PREVIEW } });
+  await settle();
+  const card = h.panel.querySelector('[data-madewith-section]') as HTMLElement;
+  const c2pa = h.panel.querySelector('[data-action="pdf-c2pa"]') as HTMLInputElement;
+  assert.ok(c2pa, 'HTML can carry a Content Credential');
+  assert.equal(c2pa.checked, true, 'on by default');
+  assert.equal(card.hidden, false);
+  assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records: Acme <Client> · Colourway: Persimmon');
+  assert.equal((card.querySelector('[data-madewith-description]') as HTMLElement).hidden, true, 'an HTML file has no description to write');
+  c2pa.checked = false;
+  c2pa.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  assert.equal(card.hidden, true, 'with the credential off, an HTML file carries none of the record');
+  h.dispose();
+});

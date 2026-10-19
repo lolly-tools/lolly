@@ -7,12 +7,12 @@
  * a value (an event listener), goes through `ta.<module>.<fn>`. Extracted verbatim
  * from renderActions() by scripts/split-closure.ts.
  */
-import { LEXICON_VERSION } from '@lolly/engine';
+import { LEXICON_VERSION, designRecordCarrier } from '@lolly/engine';
 import { t, tRaw } from '../../i18n.ts';
 import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import { madeWithWords } from '../../lib/made-with.ts';
-import type { ProfileStore } from './shared.ts';
+import { isC2paFmt, type ProfileStore } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
 // Ingredient provenance note (plans/126 WP-B item 2): when this design's
@@ -107,12 +107,26 @@ export async function fillMadeWith(ta: ActionsCtx): Promise<void> {
   paintMadeWith(ta);
 }
 
-/** Write the card's two lines for the switch's current state. */
+/**
+ * Where the chosen format writes the record: its own metadata, only the credential
+ * this export stamps, or nowhere (a text or data format with the credential off).
+ */
+function madeWithCarrier(ta: ActionsCtx): 'file' | 'credential' | null {
+  const fmt = ta.formatEl?.value ?? ta.initialFmt ?? '';
+  return designRecordCarrier(fmt, isC2paFmt(fmt) && ta.c2paEl?.checked === true);
+}
+
+/**
+ * Write the card's two lines for the switch's current state and the chosen format.
+ * Hidden when there is nothing to record, or when the format will carry none of it,
+ * so the card never names words a file will not hold.
+ */
 export function paintMadeWith(ta: ActionsCtx): void {
   const section = ta.el?.querySelector<HTMLElement>('[data-madewith-section]');
   if (!section) return;
   const preview = ta.madeWithPreview;
-  if (!preview) {
+  const carrier = madeWithCarrier(ta);
+  if (!preview || !carrier) {
     section.hidden = true;
     return;
   }
@@ -128,9 +142,16 @@ export function paintMadeWith(ta: ActionsCtx): void {
       : t('Records nothing about the design system.');
   }
   if (description) {
+    // A format whose record lives only in the credential has no description to write.
+    description.hidden = carrier !== 'file';
     description.textContent = tRaw('Description: {text}', { text: on ? preview.description : preview.plainDescription });
   }
   section.hidden = false;
+}
+
+/** Repaint when the format or the credential changes what the file will carry. */
+export function madeWithControlChange(ta: ActionsCtx, event: Event): void {
+  if (event.target === ta.formatEl || event.target === ta.c2paEl) paintMadeWith(ta);
 }
 
 /** Repaint after the canvas settles: a colourway switch or a bound description changes the words. */
@@ -161,6 +182,7 @@ export function wireMadeWith(ta: ActionsCtx): void {
   });
   // A colourway switch (setTokenSelection) and every input edit notify subscribers.
   ta.el?.addEventListener('lolly:export-open', ta.notes.scheduleMadeWith);
+  ta.el?.addEventListener('change', ta.notes.madeWithControlChange);
   ta.madeWithUnsub = ta.runtime.subscribe(ta.notes.scheduleMadeWith);
   void fillMadeWith(ta);
 }
@@ -172,6 +194,7 @@ export function disposeMadeWith(ta: ActionsCtx): void {
   ta.madeWithUnsub?.();
   ta.madeWithUnsub = null;
   ta.el?.removeEventListener('lolly:export-open', ta.notes.scheduleMadeWith);
+  ta.el?.removeEventListener('change', ta.notes.madeWithControlChange);
   // A read still in flight paints nothing once the panel is gone.
   ta.madeWithSeq = (ta.madeWithSeq ?? 0) + 1;
 }
@@ -360,6 +383,7 @@ export function notesOps(ta: ActionsCtx) {
     fillSongNote: bindOp(ta, fillSongNote),
     fillMadeWith: bindOp(ta, fillMadeWith),
     paintMadeWith: bindOp(ta, paintMadeWith),
+    madeWithControlChange: bindOp(ta, madeWithControlChange),
     scheduleMadeWith: bindOp(ta, scheduleMadeWith),
     wireMadeWith: bindOp(ta, wireMadeWith),
     disposeMadeWith: bindOp(ta, disposeMadeWith),
