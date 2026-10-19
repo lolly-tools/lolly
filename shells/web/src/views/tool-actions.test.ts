@@ -144,6 +144,8 @@ interface Harness {
   licence: () => string | null;
   /** The runtime's design-system record switch (plans/319), when the mount gave it one. */
   madeWith: () => boolean | null;
+  /** How many times the panel asked the runtime for the record's preview. */
+  madeWithReads: () => number;
   panel: HTMLElement;
   canvas: HTMLElement;
   stage: HTMLElement | null;
@@ -263,6 +265,7 @@ function mount({
   const inputWrites: Array<{ id: string; value: unknown }> = [];
   let held: string | null = licence ?? null;
   let madeWithOn = madeWith?.on ?? true;
+  let madeWithReads = 0;
   const runtime = {
     ...(licence !== undefined ? {
       setOutputLicence: (id: string | null) => { held = id; },
@@ -271,7 +274,7 @@ function mount({
     ...(madeWith ? {
       madeWith: () => madeWithOn,
       setMadeWith: (on: boolean) => { madeWithOn = on; },
-      madeWithPreview: async () => madeWith.preview,
+      madeWithPreview: async () => { madeWithReads++; return madeWith.preview; },
     } : {}),
     getModel: () => live,
     setInput: async (id: string, value: unknown) => {
@@ -369,6 +372,7 @@ function mount({
     ask: () => panel.querySelector('.export-details-ask') as HTMLElement | null,
     licence: () => held,
     madeWith: () => (madeWith ? madeWithOn : null),
+    madeWithReads: () => madeWithReads,
     saved: () => saved,
     profileWrites: () => profileWrites,
     inputWrites: () => inputWrites,
@@ -2534,4 +2538,19 @@ test('nothing to record keeps the card hidden; an on-device utility never gets o
   await settle();
   assert.equal(utility.panel.querySelector('[data-madewith-section]'), null);
   utility.dispose();
+});
+
+test('an edit repaints the card from a fresh read, and a disposed panel reads nothing more', async () => {
+  const h = mount({ seqMs: null, formats: ['png'], madeWith: { preview: PERSIMMON_PREVIEW } });
+  await settle();
+  const first = h.madeWithReads();
+  assert.ok(first >= 1, 'the card read the record when it was drawn');
+  h.setModel('none', 1);
+  await new Promise((r) => setTimeout(r, 350));
+  assert.ok(h.madeWithReads() > first, 'a change the runtime announces reads the record again');
+  const settled = h.madeWithReads();
+  h.dispose();
+  h.setModel('none', 2);
+  await new Promise((r) => setTimeout(r, 350));
+  assert.equal(h.madeWithReads(), settled, 'no timer or subscription outlives the panel');
 });

@@ -144,7 +144,11 @@ export function scheduleMadeWith(ta: ActionsCtx): void {
 
 /** Paint the card once and keep it current: on toggle, on sheet open and after edits. */
 export function wireMadeWith(ta: ActionsCtx): void {
-  ta.madeWithSeq = 0;
+  // Wiring twice must not leave a second subscription behind, and a read still in
+  // flight from the first wiring must not paint over the second: dispose bumps the
+  // sequence instead of resetting the count.
+  if (ta.madeWithUnsub || ta.madeWithTimer) disposeMadeWith(ta);
+  ta.madeWithSeq = ta.madeWithSeq ?? 0;
   ta.madeWithTimer = null;
   ta.madeWithPreview = null;
   ta.madeWithUnsub = null;
