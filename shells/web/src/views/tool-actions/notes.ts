@@ -7,11 +7,12 @@
  * a value (an event listener), goes through `ta.<module>.<fn>`. Extracted verbatim
  * from renderActions() by scripts/split-closure.ts.
  */
-import { LEXICON_VERSION } from '@lolly/engine';
+import { LEXICON_VERSION, designRecordCarrier } from '@lolly/engine';
 import { t, tRaw } from '../../i18n.ts';
 import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
 import { isTauriShell } from '../../lib/instance-choice.ts';
-import type { ProfileStore } from './shared.ts';
+import { madeWithWords } from '../../lib/made-with.ts';
+import { isC2paFmt, type ProfileStore } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
 // Ingredient provenance note (plans/126 WP-B item 2): when this design's
@@ -79,6 +80,125 @@ export async function fillIngredientNote(ta: ActionsCtx): Promise<void> {
   }
   slot.hidden = false;
 }
+// ── The design-system record (plans/319) ───────────────────────────────────
+//
+// Andy approved on 2026-10-17 that an export records which design system and
+// colourway made it, on the condition that the record is visible at the moment of
+// export and named in the public docs. This card is the visible half: before the
+// export it shows the exact words the file will carry ("Records: Acme · Colourway:
+// Persimmon") and the description as it will read. Unticking the card sets the
+// runtime's own switch, so every export from this sheet (download, copy, a ZIP's
+// members) leaves the record out and keeps the plain description.
+
+/** Paint the card from the runtime's preview. Hidden when there is nothing to record. */
+export async function fillMadeWith(ta: ActionsCtx): Promise<void> {
+  const section = ta.el?.querySelector<HTMLElement>('[data-madewith-section]');
+  if (!section || !ta.hasMadeWith) return;
+  const seq = (ta.madeWithSeq ?? 0) + 1;
+  ta.madeWithSeq = seq;
+  let preview: ActionsCtx['madeWithPreview'] = null;
+  try {
+    preview = await ta.runtime.madeWithPreview();
+  } catch {
+    preview = null;
+  }
+  if (seq !== ta.madeWithSeq) return;
+  ta.madeWithPreview = preview;
+  paintMadeWith(ta);
+}
+
+/**
+ * Where the chosen format writes the record: its own metadata, only the credential
+ * this export stamps, or nowhere (a text or data format with the credential off).
+ */
+function madeWithCarrier(ta: ActionsCtx): 'file' | 'credential' | null {
+  const fmt = ta.formatEl?.value ?? ta.initialFmt ?? '';
+  return designRecordCarrier(fmt, isC2paFmt(fmt) && ta.c2paEl?.checked === true);
+}
+
+/**
+ * Write the card's two lines for the switch's current state and the chosen format.
+ * Hidden when there is nothing to record, or when the format will carry none of it,
+ * so the card never names words a file will not hold.
+ */
+export function paintMadeWith(ta: ActionsCtx): void {
+  const section = ta.el?.querySelector<HTMLElement>('[data-madewith-section]');
+  if (!section) return;
+  const preview = ta.madeWithPreview;
+  const carrier = madeWithCarrier(ta);
+  if (!preview || !carrier) {
+    section.hidden = true;
+    return;
+  }
+  const on = ta.runtime.madeWith();
+  const toggle = section.querySelector<HTMLInputElement>('[data-action="madewith"]');
+  if (toggle) toggle.checked = on;
+  const record = section.querySelector<HTMLElement>('[data-madewith-record]');
+  const description = section.querySelector<HTMLElement>('[data-madewith-description]');
+  // Text sinks, so tRaw: the label is typed text and is shown exactly as written.
+  if (record) {
+    record.textContent = on
+      ? tRaw('Records: {words}', { words: madeWithWords(preview.record) })
+      : t('Records nothing about the design system.');
+  }
+  if (description) {
+    // A format whose record lives only in the credential has no description to write.
+    description.hidden = carrier !== 'file';
+    description.textContent = tRaw('Description: {text}', { text: on ? preview.description : preview.plainDescription });
+  }
+  section.hidden = false;
+}
+
+/** Repaint when the format or the credential changes what the file will carry. */
+export function madeWithControlChange(ta: ActionsCtx, event: Event): void {
+  if (event.target === ta.formatEl || event.target === ta.c2paEl) paintMadeWith(ta);
+}
+
+/** Repaint after the canvas settles: a colourway switch or a bound description changes the words. */
+export function scheduleMadeWith(ta: ActionsCtx): void {
+  if (ta.madeWithTimer) clearTimeout(ta.madeWithTimer);
+  ta.madeWithTimer = setTimeout(() => {
+    ta.madeWithTimer = null;
+    if (ta.el?.isConnected) void fillMadeWith(ta);
+  }, 300);
+}
+
+/** Paint the card once and keep it current: on toggle, on sheet open and after edits. */
+export function wireMadeWith(ta: ActionsCtx): void {
+  // Wiring twice must not leave a second subscription behind, and a read still in
+  // flight from the first wiring must not paint over the second: dispose bumps the
+  // sequence instead of resetting the count.
+  if (ta.madeWithUnsub || ta.madeWithTimer) disposeMadeWith(ta);
+  ta.madeWithSeq = ta.madeWithSeq ?? 0;
+  ta.madeWithTimer = null;
+  ta.madeWithPreview = null;
+  ta.madeWithUnsub = null;
+  const section = ta.el?.querySelector<HTMLElement>('[data-madewith-section]');
+  if (!section || !ta.hasMadeWith) return;
+  section.querySelector<HTMLInputElement>('[data-action="madewith"]')?.addEventListener('change', (event) => {
+    ta.runtime.setMadeWith((event.currentTarget as HTMLInputElement).checked);
+    paintMadeWith(ta);
+    ta.onUrlSync?.('madewith');
+  });
+  // A colourway switch (setTokenSelection) and every input edit notify subscribers.
+  ta.el?.addEventListener('lolly:export-open', ta.notes.scheduleMadeWith);
+  ta.el?.addEventListener('change', ta.notes.madeWithControlChange);
+  ta.madeWithUnsub = ta.runtime.subscribe(ta.notes.scheduleMadeWith);
+  void fillMadeWith(ta);
+}
+
+/** Stop keeping the card current when the panel goes: the timer, the subscription, the listener. */
+export function disposeMadeWith(ta: ActionsCtx): void {
+  if (ta.madeWithTimer) clearTimeout(ta.madeWithTimer);
+  ta.madeWithTimer = null;
+  ta.madeWithUnsub?.();
+  ta.madeWithUnsub = null;
+  ta.el?.removeEventListener('lolly:export-open', ta.notes.scheduleMadeWith);
+  ta.el?.removeEventListener('change', ta.notes.madeWithControlChange);
+  // A read still in flight paints nothing once the panel is gone.
+  ta.madeWithSeq = (ta.madeWithSeq ?? 0) + 1;
+}
+
 // ── Songs in Content Credentials (plan 301) ─────────────────────────────────
 //
 // Andy approved on 2026-10-08 that an export holding a rondocode song records it
@@ -261,6 +381,12 @@ export function notesOps(ta: ActionsCtx) {
     fillIngredientNote: bindOp(ta, fillIngredientNote),
     exportSongNames: bindOp(ta, exportSongNames),
     fillSongNote: bindOp(ta, fillSongNote),
+    fillMadeWith: bindOp(ta, fillMadeWith),
+    paintMadeWith: bindOp(ta, paintMadeWith),
+    madeWithControlChange: bindOp(ta, madeWithControlChange),
+    scheduleMadeWith: bindOp(ta, scheduleMadeWith),
+    wireMadeWith: bindOp(ta, wireMadeWith),
+    disposeMadeWith: bindOp(ta, disposeMadeWith),
     scheduleSongNote: bindOp(ta, scheduleSongNote),
     reportSongRecord: bindOp(ta, reportSongRecord),
     offerDetailsAsk: bindOp(ta, offerDetailsAsk),

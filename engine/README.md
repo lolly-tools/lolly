@@ -294,7 +294,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `epub.ts` | 164 | EPUB 3 writer - pure, DOM-free, platform-agnostic. | yes | `tests/epub.test.ts` | – |
 | `exr.ts` | 504 | OpenEXR encoder - scanline, HALF (float16) or FLOAT (32-bit), NONE/ZIPS/ZIP. | no | `tests/exr.test.ts` | – |
 | `file-data.ts` | 472 | Table conversion shared by browser and Node file operations. | yes | `tests/file-data.test.ts` | – |
-| `file-metadata.ts` | 1687 | Embedded-metadata reader | yes | `tests/file-metadata.test.ts` | yes |
+| `file-metadata.ts` | 1714 | Embedded-metadata reader | yes | `tests/file-metadata.test.ts` | yes |
 | `font-convert.ts` | 348 | Font container interconversion - TTF/OTF ⇄ WOFF1, DOM-free and synchronous. | yes | `tests/font-convert.test.ts` | – |
 | `font-inspect.ts` | 452 | Font file inspection and verified subsetting to chosen text, DOM-free. | yes | `tests/font-inspect.test.ts` | yes |
 | `font-subset-policy.ts` | 122 | Whether a font's own tables permit glyph subsetting, read straight off the sfnt directory with no imports, so the Skera worker runtime can enforce it too. | no | indirect | – |
@@ -355,7 +355,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `icon-theme.ts` | 212 |  | yes | `tests/icon-theme.test.ts` | – |
 | `idml-read.ts` | 342 | Bounded IDML parts into editable Design frames, using injected XML and asset IO. | yes | indirect | yes |
 | `image-cloud.ts` | 274 | An image's colours as a point cloud in OKLCH, plus what the distribution says. | yes | `tests/image-cloud.test.ts` | – |
-| `image-meta.ts` | 1111 | Image-metadata byte stampers and the metadata-carry core - DOM-free, shared by the web export bridge and the Node shells. | yes | indirect | – |
+| `image-meta.ts` | 1129 | Image-metadata byte stampers and the metadata-carry core - DOM-free, shared by the web export bridge and the Node shells. | yes | indirect | – |
 | `inpaint.ts` | 422 | Telea inpainting: fill a brushed-out region of an RGBA frame from the pixels around it, by fast marching inward from the region boundary. | yes | `tests/inpaint.test.ts` | – |
 | `inputs.ts` | 954 | Builds a runtime input model from a tool manifest. | yes | indirect | – |
 | `jpeg-segments.ts` | 372 | JPEG marker-segment walker and writer - one shared primitive, DOM-free. | yes | `tests/jpeg-segments.test.ts` | – |
@@ -379,7 +379,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `lottie-properties.ts` | 159 | Numeric Lottie tracks retain their own frame times, dimensions and easing. | no | indirect | – |
 | `lottie-sequence.ts` | 143 | Compile a frozen, resolved linear sequence without a player or a DOM. | no | indirect | – |
 | `media-sniff.ts` | 255 | Pure, DOM-free media classification from header bytes. | yes | `tests/media-sniff.test.ts` | yes |
-| `metadata.ts` | 92 | Export provenance: the generic authorship record embedded into every exported media file (platform-agnostic; no format/DOM knowledge here). | yes | `tests/metadata.test.ts` | – |
+| `metadata.ts` | 419 | Export provenance: the generic authorship record embedded into every exported media file (platform-agnostic; no format/DOM knowledge here). | yes | `tests/metadata.test.ts` | – |
 | `midi.ts` | 169 | Standard MIDI File to ZzFXM. | yes | `tests/midi.test.ts` | yes |
 | `motion-cues.ts` | 105 | Versioned cue authoring compiled into ordinary Design layer timing. | yes | `tests/motion-cues.test.ts` | yes |
 | `motion-report.ts` | 24 | Measured delivery facts remain separate from candidates for human review. | yes | none | – |
@@ -473,7 +473,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `rondo-source.test.ts` | 100 | rondo-source.ts: song files, share links rondocode itself writes (made with pako, as upstream does), canonical bytes, and the ceilings on every untrusted path. | no | none | – |
 | `rondo-source.ts` | 206 | rondo-source.ts: a rondocode song as an asset's bytes. | yes | indirect | yes |
 | `rpm.ts` | 443 | RPM v4 package writer - the container half of a `.rpm`. | yes | `tests/rpm.test.ts` | – |
-| `runtime.ts` | 2950 |  | yes | indirect | – |
+| `runtime.ts` | 3006 |  | yes | indirect | – |
 | `scorm.ts` | 627 | SCORM packaging - the pure half (plans/180 section 6). | yes | `tests/scorm.test.ts` | – |
 | `seal.ts` | 756 | SEAL (hackerfactor.com) signature verifier - pure, DOM-free (globalThis.crypto only, like c2pa-verify.ts / x509.ts). | yes | `tests/seal.test.ts` | yes |
 | `semver-range.ts` | 112 | Minimal SemVer range satisfaction - enough to enforce a tool manifest's `engineVersion` against the running ENGINE_VERSION (loader.ts, P0-3). | yes | `tests/semver-range.test.ts` | – |
@@ -592,7 +592,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `trusted-sites.ts` | 141 | Trusted sites (plan 288 section 5.3): the entries a person, a brand or an organisation lists as "may be contacted without asking", and the one matcher every consumer shares (the Sandbox's fetch-and-inline, a Design web… | no | `tests/trusted-sites.test.ts` | – |
 | `trustmark.ts` | 971 | Adobe TrustMark: BCH data-layer decode (pure GF(2^7) math, DOM-free). | yes | `tests/trustmark.test.ts` | – |
 | `units.ts` | 98 | Physical unit conversions for output dimensions - platform-agnostic, no DOM. | yes | `tests/units.test.ts` | – |
-| `url-mode.ts` | 1127 | URL mode. | yes | indirect | – |
+| `url-mode.ts` | 1144 | URL mode. | yes | indirect | – |
 | `url-pack.ts` | 360 | Packed URL state - the compact transport for large tool state. | yes | `tests/url-pack.test.ts` | yes |
 | `validate.ts` | 96 | Validates a tool manifest against the JSON Schema. | yes | indirect | – |
 | `vector-paint-import.ts` | 61 | Lower admitted static artwork into editable contours and a separate paint tree. | yes | indirect | – |

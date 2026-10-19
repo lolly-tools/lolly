@@ -8,7 +8,7 @@ import { preparePassword, hashR6 } from '../engine/src/pdf-crypto-r6.ts';
 import { extractC2paStore } from '@lolly/engine';
 import { applyPdfX } from '../packages/node-shell/src/pdfx.ts';
 import { applyPdfX as webApplyPdfX } from '../shells/web/src/bridge/export-pdfx.ts';
-import { finishPdfX, encryptPdfStrong } from '../packages/node-shell/src/pdf-finishing.ts';
+import { finishPdfX, encryptPdfStrong, provenanceLabels } from '../packages/node-shell/src/pdf-finishing.ts';
 
 test('the web PDF-X facade uses the same implementation as Node', () => {
   assert.equal(webApplyPdfX, applyPdfX);
@@ -56,4 +56,23 @@ test('AES encrypts already-finished strings and metadata; decrypting them recove
   assert.match(xml, /<pdf:Producer>Lolly<\/pdf:Producer>/);
   assert.doesNotMatch(xml, /GTS_PDFXVersion/);
   assert.equal(doc.catalog.lookup(PDFName.of('OutputIntents'), PDFArray).size(), 1);
+});
+
+// The proof credit follows the description's rule (plans/319, decision 6): the tool's
+// name gains the colourway's when the export records one, and never the design
+// system's label; with no record the credit is the line it always was.
+test('provenanceLabels: the proof credit gives the colourway beside the tool, never the design system', () => {
+  const base = { software: 'Lolly', source: 'https://lolly.tools', tool: 'Chart', author: 'Andy Fitzsimon', contact: '', description: '' };
+  const plain = provenanceLabels(base)!;
+  assert.equal(plain.bottomLeftUp, 'Chart by Andy Fitzsimon');
+  assert.equal(plain.topRight, 'Made with https://lolly.tools');
+  const recorded = provenanceLabels({
+    ...base, designSystem: { id: 'acme', label: 'Acme' },
+    themes: [{ group: 'colourway', kind: 'colourway', id: 'persimmon', name: 'Persimmon' }],
+  })!;
+  assert.equal(recorded.bottomLeftUp, 'Chart (Persimmon colourway) by Andy Fitzsimon');
+  assert.equal(JSON.stringify(recorded).includes('Acme'), false);
+  // A non-colourway choice is in the record only; the credit keeps its plain form.
+  assert.equal(provenanceLabels({ ...base, themes: [{ group: 'density', id: 'roomy', name: 'Roomy' }] })!.bottomLeftUp, 'Chart by Andy Fitzsimon');
+  assert.equal(provenanceLabels({ ...base, tool: '' })!.bottomLeftUp, '', 'no tool name, no credit');
 });

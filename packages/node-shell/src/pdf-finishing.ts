@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** PDF finishing shared by the web and Node shells. No DOM, files or browser imports. */
-import { parseDimension, toPoints, computePrintGeometry, roundedRectPath, rgbToCmyk, FINISH_MASK_CMYK, buildEncryptDictValues, preparePassword, encryptObjectBytes } from '@lolly/engine';
+import { parseDimension, toPoints, computePrintGeometry, roundedRectPath, rgbToCmyk, FINISH_MASK_CMYK, buildEncryptDictValues, preparePassword, encryptObjectBytes, toolCredit } from '@lolly/engine';
 import type { BrandPaletteEntry } from '@lolly/engine';
 import type { ExportOpts, ExportMeta } from '@lolly-tools/core/host-v1';
 import type { LabelSlot, PrintGeometry } from '../../../engine/src/print-marks.ts';
@@ -216,11 +216,14 @@ export async function finishPdfX(
   return new Blob([out], { type: 'application/pdf' });
 }
 
+// The proof credit follows the description's rule (plans/319, decision 6): the
+// tool's name gains the colourway's when the export records one, "Chart (Persimmon
+// colourway) by Andy Fitzsimon", and never the design system's label.
 export function provenanceLabels(meta: ExportMeta | null | undefined): LabelsRecord | null {
   if (!meta) return null;
   const topLeft  = formatStamp(new Date());
   const topRight = meta.source ? `Made with ${meta.source}` : '';
-  const credit = [meta.tool, meta.author && `by ${meta.author}`].filter(Boolean).join(' ');
+  const credit = [toolCredit(meta), meta.author && `by ${meta.author}`].filter(Boolean).join(' ');
   return { topLeft, topRight, bottomLeftUp: meta.tool ? credit : '' };
 }
 

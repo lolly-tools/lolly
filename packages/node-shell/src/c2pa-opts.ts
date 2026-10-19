@@ -13,10 +13,10 @@
  * reads the file as trusted.
  */
 import { createHash } from 'node:crypto';
-import { summarizeInputs, matchesShowIf, ENGINE_VERSION, collectAiIngredientDeclarations, exportActionSteps } from '@lolly/engine';
+import { summarizeInputs, matchesShowIf, ENGINE_VERSION, collectAiIngredientDeclarations, exportActionSteps, designRecordEnvironment, designRecordFrom, extractC2paStore, readDesignRecord, readFileDesignRecord, verifyC2pa } from '@lolly/engine';
 import { modelToValues, flattenValue } from '../../../engine/src/inputs.ts';
-import type { embedC2pa, C2paSigner } from '@lolly/engine';
-import type { Profile } from '@lolly-tools/core/host-v1';
+import type { embedC2pa, C2paSigner, DesignRecord } from '@lolly/engine';
+import type { ExportMeta, Profile } from '@lolly-tools/core/host-v1';
 
 /** The (unexported-by-name) options bag `embedC2pa` accepts. */
 export type ExportC2paOpts = NonNullable<Parameters<typeof embedC2pa>[2]>;
@@ -34,6 +34,14 @@ export interface BuildExportC2paOpts {
   /** Credential validity window in days (URL mode's `c2pa=N`; default 30). */
   days?: number | null;
   profile?: Profile;
+  /**
+   * The metadata the export embedded (`runtime.lastExportMeta`). Its design-system
+   * record (plans/319) becomes the same flat `designSystem`, `designSystemLabel`,
+   * `designVersion` and `themes` keys the web shell writes, so a CLI-, TUI- or
+   * MCP-made credential gives the design system and colourway a browser-made one
+   * would. Absent, or with the record off, the credential carries none of them.
+   */
+  meta?: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes'> | null;
   /**
    * An enrolled signing identity (key + x5chain). Absent = the ephemeral
    * self-signed on-device signer, byte-for-byte the behaviour that shipped before
@@ -102,6 +110,7 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
     environment: {
       surface,
       format, tool: name,
+      ...designRecordEnvironment(o.meta),
       date: new Date().toISOString(),
       ...(sizeLine ? { dimensions: sizeLine } : {}),
       ...(Object.keys(inputs).length ? { inputs } : {}),
@@ -125,4 +134,33 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
       : aiIngredients.length ? { aiDisclosure: {} } : {}),
     ...(o.specVersion ? { specVersion: o.specVersion } : {}),
   };
+}
+
+/**
+ * The design-system record a finished file carries (plans/319), read back from the
+ * delivered bytes, so a shell that tells the person what an export recorded never
+ * claims a record the file does not hold. In order: the file's own XMP or SVG
+ * metadata, then its credential's export assertion, then, for a PDF, the record of
+ * the metadata its keywords were written from (`meta`, the export's own; a PDF
+ * keyword gives the label only, never the id). Null when the file kept none, such
+ * as a browser-free PNG with its credential off. Never throws.
+ */
+export async function recordedDesignInFile(
+  bytes: Uint8Array,
+  format: string,
+  meta?: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes'> | null,
+): Promise<DesignRecord | null> {
+  const own = readFileDesignRecord(bytes);
+  if (own) return own;
+  if (extractC2paStore(bytes)) {
+    try {
+      const fromCredential = readDesignRecord((await verifyC2pa(bytes)).environment ?? null);
+      if (fromCredential) return fromCredential;
+    } catch { /* an unreadable credential holds no record a shell can name */ }
+  }
+  if (format === 'pdf' || format === 'pdf-cmyk') {
+    const fromMeta = designRecordFrom(meta);
+    if (fromMeta.designSystem || fromMeta.designVersion || fromMeta.themes) return fromMeta;
+  }
+  return null;
 }

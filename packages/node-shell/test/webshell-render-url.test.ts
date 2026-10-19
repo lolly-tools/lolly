@@ -53,3 +53,11 @@ test('timeline still controls survive browser routing and override stale query s
   assert.equal(cuts.get('cuts'), '3');
   assert.equal(cuts.has('sampletimes'), false);
 });
+
+test('the design-system record travels to the browser tier only as the opt-out (plans/319)', () => {
+  assert.equal(params(exportUrl(BASE, 'chart', 'title=Hi', 'png', { madeWith: false })).get('_madewith'), '0');
+  assert.equal(params(exportUrl(BASE, 'chart', 'title=Hi', 'png', { madeWith: true })).has('_madewith'), false);
+  assert.equal(params(exportUrl(BASE, 'chart', 'title=Hi', 'png', {})).has('_madewith'), false);
+  // A query that already says `_madewith=0` (the CLI's raster path writes the param) keeps the param.
+  assert.equal(params(exportUrl(BASE, 'chart', 'title=Hi&_madewith=0', 'png', {})).get('_madewith'), '0');
+});

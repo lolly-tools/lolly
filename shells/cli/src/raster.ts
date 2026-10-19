@@ -25,6 +25,8 @@ import { note, warn } from './output.ts';
 interface Runtime {
   /** The theme choice per token group this runtime renders in (url-mode `_themes`). */
   readonly tokenSelection?: Record<string, string>;
+  /** Whether exports record the design system (plans/319); forwarded as `_madewith=0` when off. */
+  madeWith?(): boolean;
   getHydrated(): string;
   getModel(): unknown;
   /** Draw every emoji in a freshly hydrated tree from the chosen set. */
@@ -155,7 +157,7 @@ export async function renderRaster(opts: {
   }
   // inlineBakedAssets: this query is handed to a browser on this machine, not shared, so
   // a local file given to an asset input travels as its bytes instead of being dropped.
-  const query = serializeUrlState(model as never, { emoji: opts.emoji?.emoji, emojiFx: opts.emoji?.emojiFx, emojiStyle: opts.emoji?.emojiStyle, inlineBakedAssets: true, ...(runtime.tokenSelection ? { tokenSelection: runtime.tokenSelection } : {}) });
+  const query = serializeUrlState(model as never, { emoji: opts.emoji?.emoji, emojiFx: opts.emoji?.emojiFx, emojiStyle: opts.emoji?.emojiStyle, inlineBakedAssets: true, ...(runtime.tokenSelection ? { tokenSelection: runtime.tokenSelection } : {}), ...(runtime.madeWith?.() === false ? { madeWith: false } : {}) });
   const MOTION = ['gif', 'apng', 'webm', 'mp4'];
   // PROTOTYPE opt-in: real Playwright screenshots instead of dom-to-image for the
   // frame-by-frame capture (see renderVideoViaScreenshot's doc comment). Motion
@@ -199,7 +201,7 @@ async function renderDesignSession(
   const values = Object.fromEntries(model.map((item) => [item.id, item.value]));
   const urlQuery = rendererPreference() === 'chromium'
     ? undefined
-    : serializeUrlState(model as never, { emoji: opts.emoji?.emoji, emojiFx: opts.emoji?.emojiFx, emojiStyle: opts.emoji?.emojiStyle, inlineBakedAssets: true, ...(runtime.tokenSelection ? { tokenSelection: runtime.tokenSelection } : {}) });
+    : serializeUrlState(model as never, { emoji: opts.emoji?.emoji, emojiFx: opts.emoji?.emojiFx, emojiStyle: opts.emoji?.emojiStyle, inlineBakedAssets: true, ...(runtime.tokenSelection ? { tokenSelection: runtime.tokenSelection } : {}), ...(runtime.madeWith?.() === false ? { madeWith: false } : {}) });
   const result = await renderDesignViaSession(values, fmt, dims, {
     ...(runtime.tokenSelection ? { tokenSelection: runtime.tokenSelection } : {}),
     emoji: emojiQueryParams(opts.emoji),
@@ -328,7 +330,7 @@ async function renderHdrStill(opts: {
       // The same session transport as the plain Tier B above (plan 291 W9).
       bytes = await renderDesignSession(runtime, runtime.getModel() as ModelItem[], 'png', sourceDims, opts);
     } else {
-      const query = serializeUrlState(runtime.getModel() as never, { emoji:opts.emoji?.emoji, emojiFx:opts.emoji?.emojiFx, emojiStyle:opts.emoji?.emojiStyle, inlineBakedAssets: true, ...(runtime.tokenSelection ? { tokenSelection: runtime.tokenSelection } : {}) });
+      const query = serializeUrlState(runtime.getModel() as never, { emoji:opts.emoji?.emoji, emojiFx:opts.emoji?.emojiFx, emojiStyle:opts.emoji?.emojiStyle, inlineBakedAssets: true, ...(runtime.tokenSelection ? { tokenSelection: runtime.tokenSelection } : {}), ...(runtime.madeWith?.() === false ? { madeWith: false } : {}) });
       const { renderViaWebShell } = await import('@lolly-tools/node-shell/webshell-render');
       ({ bytes } = await renderViaWebShell(manifest.id, query, 'png', sourceDims));
     }

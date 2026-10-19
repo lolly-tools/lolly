@@ -426,6 +426,36 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
         </label>
       </div>`
     : ''; ta.licenceRow = licenceRow;
+  // The design-system record (plans/319): which design system and colourway made
+  // this export. Approved under the provenance rule on the condition that it is
+  // visible at the moment of export, so it is a pre-checked card of its own,
+  // OUTSIDE the collapsed protection group, and it shows the exact words it will
+  // write and the description as it will read (notes.ts fillMadeWith paints both).
+  // Hidden until the runtime says there is something to record; never offered on
+  // an on-device utility, which adds nothing to the file.
+  const hasMadeWith =
+    manifest.privacy !== 'on-device' && typeof runtime.madeWithPreview === 'function'; ta.hasMadeWith = hasMadeWith;
+  const madeWithTip = hasMadeWith
+    ? helpTip(
+        t(
+          'Writes the name of the design system, its published version and the colourway that made this export into the file’s metadata and its Content Credential, and adds the colourway to the description. Untick the box to leave all of them out of this export.'
+        ),
+        { href: '#/verify', text: t('Check a file →') }
+      )
+    : null;
+  const madeWithRow = hasMadeWith
+    ? `
+      <div class="section-card export-madewith" data-madewith-section hidden>
+        <label class="c2pa-enable field-toggle help-tip-host">
+          <input type="checkbox" class="field-check" data-action="madewith" ${runtime.madeWith() ? 'checked' : ''}>
+          <span class="c2pa-head">${icon('palette', { className: 'c2pa-icon' })}<span>${escapeText(t('Design system'))}</span></span>
+          ${madeWithTip!.button}
+          ${madeWithTip!.pop}
+        </label>
+        <p class="madewith-line" data-madewith-record></p>
+        <p class="madewith-line madewith-description" data-madewith-description></p>
+      </div>`
+    : ''; ta.madeWithRow = madeWithRow;
   const hasProtection = hasPdf || hasZip || c2paFormats.length > 0 || imprintFmts.length > 0 || hasLicence; ta.hasProtection = hasProtection;
   // Collapsed by default. Pre-opened only when an inner card carries an EXPLICIT
   // deep-linked setting - a URL-sourced password, a URL-sourced C2PA choice, or a
@@ -928,7 +958,7 @@ export function paintBar(ta: ActionsCtx): void {
   // Settings lead the export flow; the report and delivery actions follow them.
   const initialExperience = formatExperience(ta.initialExperience, ta.initialFmt ?? ta.formats[0] ?? '');
   el.innerHTML = `
-    ${actions.includes('download') ? `${recordingRow}<div class="export-file-group">${filenameRow}${dimsRow}${timingRow}${aspectWarnRow}${fidelityWarnRow}</div><div class="export-options-group">${notesHandoutRow}${cmykRow}${printRow}${pkgRow}${settingsRow}${videoQualityRow}<details class="section-card export-video-options" data-video-options open><summary hidden>${escapeText(t('Audio and colour settings'))}</summary>${audioRow}${loudnessRow}${hdrRow}</details></div>${protectionRow}<div class="export-ingredient-note" data-ingredient-note hidden></div>${protectionRow ? '' : ta.rights.rowHtml()}${preflightRow}${costRow}${sendRow}` : ''}
+    ${actions.includes('download') ? `${recordingRow}<div class="export-file-group">${filenameRow}${dimsRow}${timingRow}${aspectWarnRow}${fidelityWarnRow}</div><div class="export-options-group">${notesHandoutRow}${cmykRow}${printRow}${pkgRow}${settingsRow}${videoQualityRow}<details class="section-card export-video-options" data-video-options open><summary hidden>${escapeText(t('Audio and colour settings'))}</summary>${audioRow}${loudnessRow}${hdrRow}</details></div>${ta.madeWithRow}${protectionRow}<div class="export-ingredient-note" data-ingredient-note hidden></div>${protectionRow ? '' : ta.rights.rowHtml()}${preflightRow}${costRow}${sendRow}` : ''}
     <div class="export-actions-dock">
       <p class="export-outcome-summary" data-export-outcome${initialExperience.summary ? '' : ' hidden'}>${escapeText(initialExperience.summary ?? '')}</p>
       ${manifest.status === 'experimental' ? `<p class="export-experimental-note" role="note">${escapeText(t('This tool is experimental, so every export carries a watermark.'))}</p>` : ''}
@@ -941,6 +971,7 @@ export function paintBar(ta: ActionsCtx): void {
   `;
   void ta.notes.fillIngredientNote();
   void ta.notes.fillSongNote();
+  ta.notes.wireMadeWith();
 
   // "Your recording" card (audio-capture tools): paints from the shared take
   // registry and repaints when a take arrives or is cleared. Save actions are

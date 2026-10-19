@@ -89,7 +89,8 @@ The host owns the renderer - tools don't bundle their own.
 | `quality` | JPG quality 0–1 |
 | `background` | Override transparency |
 | `watermark` | Forced `true` for experimental tools by the host (never for on-device utilities) |
-| `meta` / `embedMeta` | Provenance metadata (auto-assembled; set `embedMeta:false` to skip - on-device utilities skip it automatically) |
+| `meta` / `embedMeta` | Provenance metadata (auto-assembled; set `embedMeta:false` to skip - on-device utilities skip it automatically). Since the design-system record, an auto-assembled `ExportMeta` can also carry `designSystem` (`{ id, label }`), `designVersion` and `themes` (`{ group, kind?, id, name }[]`), each present only when known - see below |
+| `madeWith` | Whether the auto-assembled `meta` records the design system and colourway that drew the export. Unset follows the runtime's switch (`runtime.setMadeWith()`, on by default; the export panel's **Design system** card, `_madewith=0` and `--no-madewith` set it); `false` leaves the record out of this one export. Ignored when the caller supplies its own `meta` |
 | `colorProfile` | ICC handling: `'srgb'` (default raster), `'none'` to skip embedding or a CMYK press condition for `pdf-cmyk` |
 | `filename` | Suggested output filename |
 | `thumbnail` | Hint that this is a low-fidelity preview, not the deliverable (skips provenance) |
@@ -100,6 +101,8 @@ The host owns the renderer - tools don't bundle their own.
 | `c2paCapture` | `{ camera?, microphone? }` - set by the runtime when the essence came from a device sensor (a live camera frame, a recorder take), so the created step declares a real-world origin |
 | `c2paTextAdded` | `{ sample? }` - set only when rendered text sits over an *opened* credentialed asset, which is a genuine "Added text" edit step. From-scratch text is content, not an edit, and rides in `c2paInputs` instead |
 | `c2paAiUpscale` | `{ model, version }` - set when the essence is an on-device AI-upscaled asset, so the credential records which model enlarged it |
+
+**The design-system record.** When the runtime assembles `meta` with the record on, it reads `host.tokens.snapshot()` through the document's own theme choice and records the snapshot's `system`, its `version` unless that is the working head, and every theme choice except the light/dark one. A manifest that ignores an axis kind through `tokenAxes` records no choice of that kind. When a colourway is recorded, `description` gives the colourway beside the tool (`"Made with https://lolly.tools : Chart (Persimmon colourway)"`); a description bound with `bindToMeta` is left as written. A shell writes the record as flat `designSystem`, `designSystemLabel`, `designVersion` and `themes` keys of the `tools.lolly.export` credential assertion (`designRecordEnvironment`), as `lolly:` XMP or SVG properties (`designRecordXml`) and as PDF keywords (`pdfKeywords`). `runtime.madeWithPreview()` returns the record and both descriptions without exporting, for a shell to show before anything is written, and `runtime.lastExportMeta` is the metadata the last export embedded, for a shell that stamps the credential afterwards. See [Exporting](/info/exporting.html#the-design-system-record).
 
 See [Exporting & Formats](/info/exporting.html) for the user-facing view, and `engine/src/units.ts` for the unit math.
 

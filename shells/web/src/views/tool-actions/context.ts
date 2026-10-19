@@ -214,6 +214,15 @@ export interface ActionsCtx {
   songNoteSeq: number;
   /** Debounce for the song note after an input change. */
   songNoteTimer: ReturnType<typeof setTimeout> | null;
+  /** The design-system record card (plans/319, notes.ts fillMadeWith). */
+  hasMadeWith: boolean;
+  madeWithRow: string;
+  madeWithSeq: number;
+  madeWithTimer: ReturnType<typeof setTimeout> | null;
+  /** What the card last showed, so a toggle repaints without another read. */
+  madeWithPreview: import('../../../../../engine/src/metadata.ts').MadeWithPreview | null;
+  /** Drops the card's runtime subscription (notes.ts disposeMadeWith). */
+  madeWithUnsub: (() => void) | null;
   audioPreviewBtn: HTMLButtonElement;
   previewAudio: HTMLAudioElement | null;
   previewSrcId: string | null;
