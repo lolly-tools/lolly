@@ -49,6 +49,9 @@ export function fakeThemeController(initial: DocumentThemeGroup[], opts: { fail?
     refresh: async () => {},
     groups: () => groups,
     setUsage: () => {},
+    context: () => null,
+    inspect: async () => {},
+    follow: async () => {},
     subscribe(listener) { listeners.add(listener); return () => { listeners.delete(listener); }; },
     async choose(group, option) {
       chosen.push([group, option]);

@@ -6,7 +6,7 @@ Read-only systems offer the same inspection. Start reads the editable head. A do
 
 ## Design system context
 
-In Design, open the inspector's **Canvas** tab. Its **Style & look** section shows a context strip above the **Theme** row. The strip says which design system and render version the document draws with, and where the system came from. It reads **Chosen for this document** when the document made its own theme choices, and **Follows the design system** when it has none. **Source and fallbacks** lists every theme choice, marks a read-only system and lists any choice this design system does not offer, with the default used in its place.
+In Design, open the inspector's **Canvas** tab. Its **Style & look** section shows a context strip above the theme rows: **Mode** for light and dark, **Colourway** when the design system has colourways, and a row for any other theme group. The strip says which design system and render version the document draws with, and where the system came from. It reads **Chosen for this document** when the document made its own theme choices, and **Follows the design system** when it has none. **Source and fallbacks** lists every theme choice, marks a read-only system and lists any choice this design system does not offer, with the default used in its place.
 
 **Inspect tokens** opens the render version with the document's choices. Trying another choice in this inspector is labelled **Preview**; **Return to render choices** restores the captured choices. The inspector edits neither the document nor the design system. **Follow the design system** removes the document's own choices, so its linked values follow the design system's stored choices again.
 
@@ -20,7 +20,7 @@ Documents store choices in `$metadata.activeThemeSelection`. Render links use `_
 
 A tool can still ask for one theme by name, as in `host.tokens.colors({ theme: 'light' })`. That request picks the theme in the group that declares it, and every other group keeps its choice. For each of those groups the order is: its entry in an explicit `selection` when one is given (a given selection replaces the document's stored choices whole), otherwise the document's stored choice; then `activeThemes`; then the group's canonical option. A hook that asks for light therefore still draws the artefact's colourway. Engine versions before 1.265 reset every other group to its first option on such a request. A theme name that no group declares is reported and changes nothing else.
 
-A Design document's **Theme** row changes only that document. The choice is saved with the document as `__tokenSelection`, travels in its link as `_themes` and comes back when the document reopens. The design system's stored choices stay as they were, and other documents keep their own.
+A Design document's theme rows change only that document. The choice is saved with the document as `__tokenSelection`, travels in its link as `_themes` and comes back when the document reopens. The design system's stored choices stay as they were, and other documents keep their own.
 
 ```sh
 lolly system inspect --file=beacon.tokens.json --_themes='{"appearance":"night","density":"roomy"}' --json
