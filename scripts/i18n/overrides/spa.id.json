@@ -1662,5 +1662,6 @@
   "Could not complete this action": "Tindakan ini tidak dapat diselesaikan",
   "Try again.": "Coba lagi.",
   "Review": "Tinjau",
-  "Profile and settings, {count} notifications": "Profil dan pengaturan, {count} notifikasi"
+  "Profile and settings, {count} notifications": "Profil dan pengaturan, {count} notifikasi",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Penerima dapat membuka alat ini sampai tautan berakhir. Perubahan yang dibuatnya tetap ada padanya."
 }

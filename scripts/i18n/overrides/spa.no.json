@@ -1793,5 +1793,6 @@
   "Could not complete this action": "Kunne ikke fullføre denne handlingen",
   "Try again.": "Prøv igjen.",
   "Review": "Gå gjennom",
-  "Profile and settings, {count} notifications": "Profil og innstillinger, {count} varsler"
+  "Profile and settings, {count} notifications": "Profil og innstillinger, {count} varsler",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Mottakeren kan åpne dette verktøyet til lenken utløper. Endringene vedkommende gjør, blir hos vedkommende."
 }

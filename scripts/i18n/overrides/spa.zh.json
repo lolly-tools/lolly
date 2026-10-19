@@ -1664,5 +1664,6 @@
   "Could not complete this action": "无法完成此操作",
   "Try again.": "请重试。",
   "Review": "查看",
-  "Profile and settings, {count} notifications": "个人资料和设置，{count} 条通知"
+  "Profile and settings, {count} notifications": "个人资料和设置，{count} 条通知",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "收件人可以在链接失效前打开此工具。他们所做的更改只保留在他们自己那里。"
 }

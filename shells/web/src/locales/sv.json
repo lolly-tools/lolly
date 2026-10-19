@@ -8008,5 +8008,6 @@
   "Could not complete this action": "Det gick inte att slutföra åtgärden",
   "Try again.": "Försök igen.",
   "Review": "Granska",
-  "Profile and settings, {count} notifications": "Profil och inställningar, {count} aviseringar"
+  "Profile and settings, {count} notifications": "Profil och inställningar, {count} aviseringar",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Mottagaren kan öppna det här verktyget tills länken upphör. Hens ändringar stannar hos hen."
 }

@@ -8008,5 +8008,6 @@
   "Could not complete this action": "この操作を完了できませんでした",
   "Try again.": "もう一度お試しください。",
   "Review": "確認",
-  "Profile and settings, {count} notifications": "プロフィールと設定、通知{count}件"
+  "Profile and settings, {count} notifications": "プロフィールと設定、通知{count}件",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "受信者はリンクの有効期限が切れるまで、このツールを開けます。変更内容は受信者の手元にだけ残ります。"
 }

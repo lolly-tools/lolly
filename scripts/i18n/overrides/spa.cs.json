@@ -1657,5 +1657,6 @@
   "Could not complete this action": "Tuto akci se nepodařilo dokončit",
   "Try again.": "Zkus to znovu.",
   "Review": "Zkontrolovat",
-  "Profile and settings, {count} notifications": "Profil a nastavení, oznámení: {count}"
+  "Profile and settings, {count} notifications": "Profil a nastavení, oznámení: {count}",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Příjemce může tento nástroj otevírat, dokud odkaz nevyprší. Jeho změny zůstávají u něj."
 }

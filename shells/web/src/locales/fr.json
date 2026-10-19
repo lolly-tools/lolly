@@ -8008,5 +8008,6 @@
   "Could not complete this action": "Impossible de terminer cette action",
   "Try again.": "Réessaie.",
   "Review": "Examiner",
-  "Profile and settings, {count} notifications": "Profil et paramètres, {count} notifications"
+  "Profile and settings, {count} notifications": "Profil et paramètres, {count} notifications",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Le destinataire peut ouvrir cet outil jusqu'à l'expiration du lien. Ses modifications restent chez lui."
 }

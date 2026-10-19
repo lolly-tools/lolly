@@ -1793,5 +1793,6 @@
   "Could not complete this action": "이 작업을 완료할 수 없습니다",
   "Try again.": "다시 시도하세요.",
   "Review": "검토",
-  "Profile and settings, {count} notifications": "프로필 및 설정, 알림 {count}개"
+  "Profile and settings, {count} notifications": "프로필 및 설정, 알림 {count}개",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "받는 사람은 링크가 만료될 때까지 이 도구를 열 수 있습니다. 변경한 내용은 그 사람에게만 남습니다."
 }

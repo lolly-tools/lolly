@@ -1662,5 +1662,6 @@
   "Could not complete this action": "Không thể hoàn tất thao tác này",
   "Try again.": "Hãy thử lại.",
   "Review": "Xem lại",
-  "Profile and settings, {count} notifications": "Hồ sơ và cài đặt, {count} thông báo"
+  "Profile and settings, {count} notifications": "Hồ sơ và cài đặt, {count} thông báo",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Người nhận có thể mở công cụ này cho đến khi liên kết hết hạn. Các thay đổi của họ chỉ nằm ở phía họ."
 }

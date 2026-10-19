@@ -8008,5 +8008,6 @@
   "Could not complete this action": "Действието не можа да се изпълни",
   "Try again.": "Опитай отново.",
   "Review": "Прегледай",
-  "Profile and settings, {count} notifications": "Профил и настройки, {count} известия"
+  "Profile and settings, {count} notifications": "Профил и настройки, {count} известия",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Получателят може да отваря този инструмент, докато линкът изтече. Промените му остават при него."
 }

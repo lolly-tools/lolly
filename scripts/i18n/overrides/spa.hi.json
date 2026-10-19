@@ -1663,5 +1663,6 @@
   "Could not complete this action": "यह कार्रवाई पूरी नहीं हो सकी",
   "Try again.": "फिर कोशिश करें।",
   "Review": "समीक्षा करें",
-  "Profile and settings, {count} notifications": "प्रोफ़ाइल और सेटिंग्स, {count} सूचनाएँ"
+  "Profile and settings, {count} notifications": "प्रोफ़ाइल और सेटिंग्स, {count} सूचनाएँ",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "प्राप्तकर्ता लिंक की अवधि समाप्त होने तक यह टूल खोल सकता है। उसके किए बदलाव उसी के पास रहते हैं।"
 }

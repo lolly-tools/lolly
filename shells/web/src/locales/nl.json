@@ -8008,5 +8008,6 @@
   "Could not complete this action": "Deze actie kon niet worden voltooid",
   "Try again.": "Probeer het opnieuw.",
   "Review": "Bekijken",
-  "Profile and settings, {count} notifications": "Profiel en instellingen, {count} meldingen"
+  "Profile and settings, {count} notifications": "Profiel en instellingen, {count} meldingen",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "De ontvanger kan deze tool openen totdat de link verloopt. Zijn of haar wijzigingen blijven bij de ontvanger."
 }

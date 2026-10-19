@@ -8008,5 +8008,6 @@
   "Could not complete this action": "Nu s-a putut finaliza această acțiune",
   "Try again.": "Încearcă din nou.",
   "Review": "Revizuiește",
-  "Profile and settings, {count} notifications": "Profil și setări, {count} notificări"
+  "Profile and settings, {count} notifications": "Profil și setări, {count} notificări",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Destinatarul poate deschide acest instrument până când linkul expiră. Modificările lui rămân la el."
 }

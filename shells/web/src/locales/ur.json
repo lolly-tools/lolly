@@ -8008,5 +8008,6 @@
   "Could not complete this action": "یہ کارروائی مکمل نہیں ہو سکی",
   "Try again.": "دوبارہ کوشش کریں۔",
   "Review": "جائزہ لیں",
-  "Profile and settings, {count} notifications": "پروفائل اور سیٹنگز، {count} اطلاعات"
+  "Profile and settings, {count} notifications": "پروفائل اور سیٹنگز، {count} اطلاعات",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "وصول کنندہ لنک ختم ہونے تک یہ ٹول کھول سکتا ہے۔ اس کی کی ہوئی تبدیلیاں اسی کے پاس رہتی ہیں۔"
 }

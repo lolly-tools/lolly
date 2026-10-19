@@ -8008,5 +8008,6 @@
   "Could not complete this action": "Hindi makumpleto ang aksyong ito",
   "Try again.": "Subukan muli.",
   "Review": "Suriin",
-  "Profile and settings, {count} notifications": "Profile at mga setting, {count} notification"
+  "Profile and settings, {count} notifications": "Profile at mga setting, {count} notification",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Mabubuksan ng tatanggap ang tool na ito hanggang mag-expire ang link. Mananatili sa kanya ang mga pagbabago niya."
 }

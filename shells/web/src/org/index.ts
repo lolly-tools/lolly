@@ -1051,8 +1051,11 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       setInstallTag(null);
     }
 
-    // Gated instance, not a member → sign-in gate instead of the app.
-    if (auth.mode === 'gated' && !isMember) {
+    // Gated instance, not a member → sign-in gate instead of the app. A guest
+    // who joined through a guest link's landing is let through (plan 320 J1):
+    // the server scopes every read a guest can make to that link's tool, so the
+    // app shows that tool and nothing else of the workspace.
+    if (auth.mode === 'gated' && !isMember && session?.kind !== 'guest') {
       renderGate(auth, workspaceName() || undefined);
       // Signed out of a gated instance: no catalog or tool reads until sign-in
       // (which reloads). A missing view or sign-in link must not let boot proceed.

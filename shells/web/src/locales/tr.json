@@ -8008,5 +8008,6 @@
   "Could not complete this action": "Bu işlem tamamlanamadı",
   "Try again.": "Tekrar dene.",
   "Review": "İncele",
-  "Profile and settings, {count} notifications": "Profil ve ayarlar, {count} bildirim"
+  "Profile and settings, {count} notifications": "Profil ve ayarlar, {count} bildirim",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Alıcı, bağlantının süresi dolana kadar bu aracı açabilir. Yaptığı değişiklikler onda kalır."
 }

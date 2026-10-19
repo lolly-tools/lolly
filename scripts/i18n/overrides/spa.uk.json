@@ -1791,5 +1791,6 @@
   "Could not complete this action": "Не вдалося виконати цю дію",
   "Try again.": "Спробуйте ще раз.",
   "Review": "Переглянути",
-  "Profile and settings, {count} notifications": "Профіль і налаштування, сповіщень: {count}"
+  "Profile and settings, {count} notifications": "Профіль і налаштування, сповіщень: {count}",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Отримувач може відкривати цей інструмент, доки посилання не завершиться. Його зміни залишаються в нього."
 }

@@ -8008,5 +8008,6 @@
   "Could not complete this action": "এই কাজটি সম্পন্ন করা যায়নি",
   "Try again.": "আবার চেষ্টা করুন।",
   "Review": "পর্যালোচনা",
-  "Profile and settings, {count} notifications": "প্রোফাইল ও সেটিংস, {count}টি বিজ্ঞপ্তি"
+  "Profile and settings, {count} notifications": "প্রোফাইল ও সেটিংস, {count}টি বিজ্ঞপ্তি",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "প্রাপক লিংকের মেয়াদ শেষ না হওয়া পর্যন্ত এই টুলটি খুলতে পারবেন। তাঁর করা পরিবর্তনগুলো তাঁর কাছেই থাকবে।"
 }

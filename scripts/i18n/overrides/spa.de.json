@@ -1662,5 +1662,6 @@
   "Could not complete this action": "Diese Aktion konnte nicht abgeschlossen werden",
   "Try again.": "Versuchen Sie es erneut.",
   "Review": "Prüfen",
-  "Profile and settings, {count} notifications": "Profil und Einstellungen, {count} Benachrichtigungen"
+  "Profile and settings, {count} notifications": "Profil und Einstellungen, {count} Benachrichtigungen",
+  "The recipient can open this tool until the link ends. Their changes stay with them.": "Die empfangende Person kann dieses Tool öffnen, bis der Link abläuft. Ihre Änderungen bleiben bei ihr."
 }
