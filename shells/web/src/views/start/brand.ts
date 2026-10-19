@@ -155,7 +155,7 @@ function nameAsk(start: StartCtx, rec: ActiveRecord, suggestion: string): HTMLFo
       <button type="submit" class="be-cta is-active">${t('Save name')}</button>
       <button type="button" class="be-btn" data-start-ds-ask-later>${t('Not now')}</button>
     </div>
-    <p class="start-ds-ask-hint">${t('It names this design system here and the file you share with colleagues.')}</p>`;
+    <p class="start-ds-ask-hint">${t('You see this name here, and it goes on the file you share with colleagues.')}</p>`;
   const field = form.querySelector<HTMLInputElement>('[data-start-ds-ask-name]')!;
   const done = (): void => {
     markAsked(rec.id);
