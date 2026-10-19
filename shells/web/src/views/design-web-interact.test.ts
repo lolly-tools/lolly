@@ -174,3 +174,33 @@ test('focus guidance reads only this slide’s other steps and refreshes without
     assert.equal(retained.textContent, before, 'disposed guidance ignores even a queued model notification');
   } finally { dispose(); dom.window.close(); }
 });
+
+test('the inspector names a reveal.js deck only after the deck reports from its own frame', () => {
+  const dom = new JSDOM('<!doctype html><body><main id="canvas"><div data-box-id="demo"><div class="lolly-box-web"><iframe data-web-live></iframe></div></div></main><aside id="inspector"></aside></body>', { url: 'https://deck.test/' });
+  const win = dom.window;
+  for (const key of ['window', 'document', 'location', 'HTMLElement', 'HTMLInputElement', 'getComputedStyle']) {
+    (globalThis as Record<string, unknown>)[key] = (win as unknown as Record<string, unknown>)[key];
+  }
+  const canvas = win.document.querySelector<HTMLElement>('#canvas')!, root = win.document.querySelector<HTMLElement>('#inspector')!;
+  const marker = canvas.querySelector<HTMLElement>('.lolly-box-web')!, frame = marker.querySelector('iframe')!;
+  frame.src = 'https://slides.com/news/deck/embed?postMessageEvents=true';
+  const rows: Box[] = [{ id: 'demo', kind: 'web', web: 'https://slides.com/news/deck', interact: 1, interactOpts: '' }];
+  const model: ModelPort = {
+    blockId: 'boxes', cfg: { idField: 'id' } as ModelPort['cfg'], frame: null, getBoxes: () => rows,
+    commit: () => assert.fail('reports never author'), setField: () => assert.fail('reports never author'),
+    subscribe: () => () => {}, getInput: () => undefined, setInput: () => assert.fail('reports never author'),
+  };
+  const driver = createWebPageDriver(frame, marker);
+  root.innerHTML = webInteractRows(rows[0]!);
+  const dispose = wireWebInteract(root, model, ['demo'], canvas);
+  const status = () => root.querySelector('[data-web-capability]')!.textContent;
+  const report = JSON.stringify({ namespace: 'reveal', eventName: 'ready', state: { indexh: 0, indexv: 0 } });
+  try {
+    assert.equal(status(), 'Checking the page…');
+    win.dispatchEvent(new win.MessageEvent('message', { data: report, origin: 'https://evil.test', source: frame.contentWindow }));
+    assert.equal(status(), 'Checking the page…', 'another origin cannot claim to be the deck');
+    win.dispatchEvent(new win.MessageEvent('message', { data: report, origin: 'https://slides.com', source: frame.contentWindow }));
+    assert.equal(status(), 'This slide deck follows the clicker.');
+    for (const button of root.querySelectorAll<HTMLButtonElement>('[data-web-depth]')) assert.equal(button.disabled, true, 'a deck reports no scroll depth');
+  } finally { dispose(); driver.destroy(); dom.window.close(); }
+});

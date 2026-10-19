@@ -9,6 +9,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { createAssetsAPI } from '../../bridge/assets.ts';
 import { createTokensAPI, USER_TOKENS_ID } from '../../bridge/tokens.ts';
 import { createDesignSystemRegistry, type RegistryDb } from './registry.ts';
@@ -18,7 +19,7 @@ import bundledStarter from '../../../../../brands/lolly-start/catalog/assets/lol
 
 const CATALOG_DOC = { color: { brand: { ink: { $type: 'color', $value: '#1d1d1d' } } } };
 /** A build that ships a full brand of its own (lolly-demo, SUSE). */
-const BRAND_CATALOG = { id: 'lolly/tokens/opal', name: 'Lolly Demo', doc: { color: { brand: { ink: { $type: 'color', $value: '#ff00aa' } } } } };
+const BRAND_CATALOG = { id: 'lolly/tokens/demo', name: 'Lolly Demo', doc: { color: { brand: { ink: { $type: 'color', $value: '#ff00aa' } } } } };
 const blobOf = (doc: unknown) => new Blob([JSON.stringify(doc)], { type: 'application/json' });
 const logoSlots = (doc: { base?: { asset?: { logo?: Record<string, unknown> } } }) =>
   Object.entries(doc.base?.asset?.logo ?? {}).filter(([slot]) => !slot.startsWith('$'))
@@ -195,6 +196,38 @@ test('explicit catalogue token selection overrides order and neutral selection s
   assert.equal((await r.assets._findMetaByType('tokens', { catalogOnly: true }))?.id, other.id);
   await r.assets._syncFromIndex([], { origin: 'https://brand.example', tokensHead: null });
   assert.equal(await r.assets._findMetaByType('tokens', { catalogOnly: true }), null);
+});
+
+test('a device that synced Lolly Demo as lolly/tokens/opal moves to lolly/tokens/demo and keeps the old id resolvable', async () => {
+  // What lolly.tools left on a device from 16 Oct 2026: one tokens row under the old
+  // id, no explicit head, and the shipped record migrated with that id.
+  const r = await rig({ catalog: { ...BRAND_CATALOG, id: 'lolly/tokens/opal' } });
+  assert.equal((await r.assets._findMetaByType('tokens', { catalogOnly: true }))?.id, 'lolly/tokens/opal');
+  assert.equal((await r.db.get('design-systems', 'shipped') as { headId: string }).headId, 'lolly/tokens/opal');
+
+  // The next sync, exactly as catalog/sync.ts runs it: the index's rows plus its brandTokens.
+  const index = JSON.parse(readFileSync(new URL('../../../../../brands/lolly-demo/catalog/assets/index.json', import.meta.url), 'utf8')) as {
+    brandTokens: string; assets: Array<{ id: string; type: string; version: string; formats: Array<{ format: string; url: string }> }>;
+  };
+  await r.assets._syncFromIndex(index.assets.filter(a => a.type === 'tokens') as never, { origin: 'https://lolly.tools', tokensHead: index.brandTokens });
+  assert.equal((await r.assets._findMetaByType('tokens', { catalogOnly: true }))?.id, 'lolly/tokens/demo');
+  // Listings offer only the design system; the alias is still there to resolve.
+  assert.deepEqual((await r.assets.query({ type: 'tokens' })).map(a => a.id), ['lolly/tokens/demo']);
+  const alias = await r.db.get('asset-meta', 'lolly/tokens/opal') as { deprecated?: boolean; replacedBy?: string };
+  assert.deepEqual([alias.deprecated, alias.replacedBy], [true, 'lolly/tokens/demo']);
+  assert.deepEqual((await r.assets.query({ type: 'tokens', includeDeprecated: true })).map(a => a.id).sort(), ['lolly/tokens/demo', 'lolly/tokens/opal']);
+
+  // The shipped record is read through the live catalogue head, wired as bridge/index.ts
+  // wires it, so the id stored at migration needs no rewrite.
+  const live = createDesignSystemRegistry(r.db as unknown as RegistryDb, {
+    catalogTokens: async () => {
+      const meta = await r.assets._findMetaByType('tokens', { catalogOnly: true });
+      return meta ? { id: meta.id, name: meta.name } : null;
+    },
+    legacyHead: async () => null,
+  });
+  assert.equal((await live.get('shipped'))?.headId, 'lolly/tokens/demo');
+  assert.equal((await live.get('shipped'))?.label, 'Lolly Demo');
 });
 
 

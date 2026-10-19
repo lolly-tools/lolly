@@ -95,8 +95,10 @@ the console says so on the page.
 ## Prometheus
 
 `GET /metrics` exposes gauges for the audit-chain integrity flag, process uptime and RSS,
-live rate-limit buckets, and per-provider enabled/asset-count/last-error. It is
-**loopback-only** unless `LW_METRICS_TOKEN` is set, and it is registered before auth so it
+live rate-limit buckets, per-provider enabled/asset-count/last-error and blob bytes stored
+by driver, and counters for HTTP requests, blob bytes read by driver and response bytes by
+delivery class. Every series is an aggregate: none identifies a person, a blob or a request. The
+endpoint is **loopback-only** unless `LW_METRICS_TOKEN` is set, and it is registered before auth so it
 cannot be shadowed. See [operations](operations.md).
 
 ## Related

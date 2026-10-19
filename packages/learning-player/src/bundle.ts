@@ -10,7 +10,7 @@ import { learningQuizCorrect } from '../../../engine/src/learning/authoring.ts';
 import { bootLearningPlayer } from './player.ts';
 import { createLearningTracking } from './tracking.ts';
 
-export const LEARNING_PLAYER_VERSION = '1.3.0';
+export const LEARNING_PLAYER_VERSION = '1.4.0';
 import { learningPresentationCss } from './presentation.ts';
 export const learningPlayerCss = `
 :root {

@@ -7,7 +7,9 @@
  * copies that used to live in pro/zip.ts, brand-transfer.ts, data-transfer.ts,
  * views/design-import.ts and bridge/export-pptx.ts. (bridge/pptx.ts's
  * `inflatePptx` remains its own export - it additionally caps the COMPRESSED
- * input and lazy-loads fflate for the read path.)
+ * input and lazy-loads fflate for the read path.) An archive too large to hold
+ * whole is written with lib/zip-stream.ts instead, which writes the same
+ * container as zipAsync a part at a time; the portable backup uses that.
  *
  * Async offloads to fflate's Worker so packaging/restoring tens of MB doesn't
  * freeze the tab; the sync fallback covers no-Worker contexts (headless tests,

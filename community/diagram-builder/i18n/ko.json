@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "블루프린트",
   "inputs.diagramPreset.options.mono": "미니멀 모노",
   "inputs.diagramType.label": "다이어그램 종류",
-  "inputs.diagramType.help": "조직도/마인드맵은 각 카드의 상위 항목을 기준으로 트리를 구성해요. 레이어케이크/칸반은 카드의 '그룹' ID로 그룹화해요(쌓인 밴드 vs 나란한 열). 프로세스/타임라인/사이클은 흐름/순서에 따라 카드를 배치해요. 피라미드, 매트릭스, 간트는 아래에 별도의 설정이 있어요.",
+  "inputs.diagramType.help": "보여 줄 관계를 고르세요. 조직도와 마인드맵: 각 카드의 상위 항목으로 만든 계층 구조예요. 레이어케이크: 추상화 수준이며 '그룹'마다 밴드 하나예요. 칸반: 상태별 작업이며 '그룹'마다 열 하나예요. 열은 상태이지 담당자가 아니에요. 프로세스: 화살표로 만든 방향 있는 단계와 되돌아가는 연결이에요. 타임라인: 순서대로 같은 간격에 놓인 사건이며 기간은 나타내지 않아요. 사이클: 카드 순서대로 도는 루프예요. 피라미드: 순위가 있는 단계예요. 매트릭스: 네 가지 범주이며 측정값이 아니에요. 간트: 작업 기간이에요. 날짜가 있는 카드가 하나라도 있으면 시간 축과 '그룹'별 레인이 추가돼요.",
   "inputs.diagramType.options.org": "조직도(계층 구조)",
   "inputs.diagramType.options.mindmap": "마인드맵",
   "inputs.diagramType.options.layercake": "레이어케이크(계층형 아키텍처)",

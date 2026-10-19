@@ -27,7 +27,7 @@
  */
 
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { registerHooks } from 'node:module';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -177,6 +177,8 @@ interface Harness {
   stateWrites: () => Array<{ slot: string; data: Record<string, unknown> }>;
   /** Change a model value the way the sidebar would, then notify the panel. */
   setModel: (id: string, value: unknown) => void;
+  /** What renderActions returned to the tool view. */
+  api: ReturnType<typeof renderActions>;
   dispose: () => void;
 }
 
@@ -194,6 +196,9 @@ function mount({
   exportDefaults = {},
   portable = false,
   licence,
+  inputs = [],
+  state,
+  experience = {},
 }: {
   seqMs: number | null /** A bed's own length stamped as data-clip-ms (the audiogram). */;
   clipMs?: number | null;
@@ -210,6 +215,12 @@ function mount({
   portable?: boolean;
   /** Give the runtime the declared-licence pair, holding this initial value. */
   licence?: string | null;
+  /** The manifest's inputs (none by default). */
+  inputs?: Array<Record<string, unknown>>;
+  /** A real state bridge in place of the recording stub (the history tests). */
+  state?: unknown;
+  /** More of the experience tool.ts passes (history participation). */
+  experience?: Record<string, unknown>;
 }): Harness {
   const doc = dom.window.document;
   doc.body.innerHTML = '';
@@ -234,7 +245,7 @@ function mount({
     id: toolId,
     name: 'Sequence Studio',
     version: '1.0.0',
-    inputs: [],
+    inputs,
     render: { width: 1920, height: 1080, formats, video: { wait: 0, duration: videoDuration } },
   };
   const live = model.map((i) => ({ ...i }));
@@ -260,6 +271,8 @@ function mount({
     refresh: () => {},
     hasFrameHook: false,
     isLive: () => false,
+    // The emoji feed automatic history listens to; only the history test mounts history.
+    onEmojiChange: () => () => {},
     export: async (_node: unknown, format: string, opts: Record<string, unknown>) => {
       seen.push({ format, opts: { ...opts } });
       return new dom.window.Blob(['x'], { type: 'video/webm' });
@@ -272,7 +285,7 @@ function mount({
   const saved: Array<{ name: string; blob: Blob }> = [];
   const host = {
     assets: { query: async () => [] },
-    state: {
+    state: state ?? {
       save: async (slot: string, data: Record<string, unknown>) => {
         stateWrites.push({ slot, data });
       },
@@ -311,7 +324,7 @@ function mount({
         unscaledCalls.push({ ...o, formats: seen.slice(before).map((e) => e.format) });
       }
     }) as never,
-    exportDefaults as never, null, () => {}, null, '/', null, false, { portable }
+    exportDefaults as never, null, () => {}, null, '/', null, false, { portable, ...experience }
   );
 
   return {
@@ -347,6 +360,7 @@ function mount({
       if (item) item.value = value;
       subscribers.forEach((fn) => fn());
     },
+    api: actions,
     dispose: () => actions?.dispose?.(),
   };
 }
@@ -2398,4 +2412,43 @@ test('course export controls and SCORM choices appear only after training opt-in
   } finally {
     setFlagMirror(LEARNING_FLAG.id, false);
   }
+});
+
+test('History compares a checkpoint with the kept snapshot, so a loaded file is no change and its bytes stay out of the compare', async () => {
+  const { memoryDb } = await import('../bridge/idb-memory.test-utils.ts');
+  const { createStateAPI } = await import('../bridge/state.ts');
+  const { createRevisionStore } = await import('../bridge/revision-history.ts');
+  const { historyComparisonSource } = await import('../components/history-comparison.ts');
+  const { compareSources } = await import('../../../../engine/src/compare.ts');
+  const { db: memory } = memoryDb();
+  const state = createStateAPI(memory as never, createRevisionStore(memory as never));
+  const lut = { __file: true, name: 'warm.cube', mime: 'text/plain', size: 4, bytes: Uint8Array.from([1, 2, 3, 4]), url: null };
+  const h = mount({
+    seqMs: null, formats: ['png'], toolId: 'darkroom', state,
+    inputs: [{ id: 'lutFile', type: 'file', label: 'LUT' }, { id: 'exposure', type: 'number', label: 'Exposure' }],
+    model: [{ id: 'lutFile', type: 'file', value: lut }, { id: 'exposure', type: 'number', value: 1 }],
+    experience: { localHistory: true, notKept: ['lutFile'] },
+  });
+  try {
+    const api = h.api!;
+    assert.ok(api.history && api.keptSnapshot && api.sessionState, 'history mounts and both snapshots are offered');
+    api.history.changed();
+    await api.history.flush();
+    const slot = api.getSlot?.();
+    assert.ok(slot);
+    const [entry] = (await state.history!.list({ slot })).entries;
+    assert.ok(entry, 'a checkpoint was written');
+    // What the History panel's Compare with current does with the snapshot it is given.
+    const before = await historyComparisonSource(state.history!, entry);
+    const fileChanges = (current: () => Record<string, unknown>) => compareSources({ version: 1, before,
+      after: { identity: { id: `current:${slot}`, kind: 'state', label: 'Current creation' }, content: { kind: 'structure', value: structuredClone(current()) } },
+      options: { ignoreRootMetadata: true } }).changes.filter(change => (change.before?.path ?? change.after?.path)?.[0] === 'lutFile');
+    assert.deepEqual(fileChanges(api.keptSnapshot), [], 'straight after a checkpoint the file slot is unchanged');
+    assert.notDeepEqual(fileChanges(api.sessionState), [], 'the full snapshot still holds the bytes, so History must not compare with it');
+    // The tool view hands History the kept snapshot whenever history is mounted.
+    const dir = fileURLToPath(new URL('./tool/', import.meta.url));
+    const view = [fileURLToPath(new URL('./tool.ts', import.meta.url)), ...readdirSync(dir).filter(f => f.endsWith('.ts')).map(f => `${dir}${f}`)]
+      .map(f => readFileSync(f, 'utf8')).join('\n');
+    assert.match(view, /currentSnapshot: actionsApi\?\.history \? actionsApi\.keptSnapshot : actionsApi\?\.sessionState/);
+  } finally { h.dispose(); }
 });

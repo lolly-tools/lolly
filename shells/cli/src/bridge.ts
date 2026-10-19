@@ -10,7 +10,7 @@
  * changes were needed.
  */
 
-import { scopedTokenOptions } from '../../../engine/src/token-context.ts';
+import { scopedTokenOptions, tokenAxesOf, tokenFamily, brandLeadVars } from '../../../engine/src/token-context.ts';
 import { isJxl } from '../../../engine/src/jxl.ts';
 import { prepareJxlAsset } from '@lolly-tools/node-shell/jxl-asset';
 import { readFile } from 'node:fs/promises';
@@ -325,6 +325,40 @@ function rondoRecordOf(bytes: Uint8Array): RondoSourceV1 | null {
   }
 }
 
+/** Each CLI bridge's way to move its own reads to another theme selection, keyed by the bridge. */
+const selectionFollowers = new WeakMap<HostV1, (selection: Record<string, string>) => void>();
+
+/** Two selections name the same choices, whatever their key order. */
+function sameSelection(a: Record<string, string> | undefined, b: Record<string, string> | undefined): boolean {
+  const ka = Object.keys(a ?? {}), kb = Object.keys(b ?? {});
+  return ka.length === kb.length && ka.every((key) => Object.hasOwn(b ?? {}, key) && b![key] === a![key]);
+}
+
+/**
+ * Move a CLI bridge to the theme selection its runtime applied (plans/319 A4).
+ *
+ * A bridge is built before any runtime exists, scoped to the link's `_themes`. The
+ * runtime may apply another selection: a tool's manifest `tokenAxes` pins every
+ * group of an ignored kind to its canonical option. What the bridge reads for
+ * itself after the mount (the eps-cmyk palette, an export's asset reads) and what
+ * a shell reads from it (the canvas variables, the emoji palette, the brand font)
+ * must then follow the runtime, the way the web shell's token bridge follows the
+ * address it rewrites. Nothing moves when the runtime kept the link's choices, so
+ * every tool without a pin reads exactly as before. A host that is not a CLI
+ * bridge is left alone. Returns whether the bridge moved.
+ */
+export function followRuntimeSelection(
+  host: HostV1,
+  runtimeSelection: Record<string, string> | undefined,
+  linkSelection: Record<string, string> | undefined,
+): boolean {
+  if (!runtimeSelection || sameSelection(runtimeSelection, linkSelection)) return false;
+  const follow = selectionFollowers.get(host);
+  if (!follow) return false;
+  follow(runtimeSelection);
+  return true;
+}
+
 export async function createCliBridge(
   { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
@@ -611,6 +645,11 @@ export async function createCliBridge(
     colors: async (opts = {}) => (await tokenSet(opts)).colors(),
     resolve: async (ref, opts = {}) => (await tokenSet(opts)).resolve(ref),
     themes: async () => (await tokenSet()).themes(),
+    // The plans/319 reads, over the same document and per-selection memo as the
+    // reads above. The family follows this run's choices (`--_themes`), exactly as
+    // the web bridge's follows the route's.
+    axes: async () => tokenAxesOf(await resolvedDoc()),
+    family: async (role, opts = {}) => tokenFamily(await resolvedDoc(), role, scopedTokenOptions(tokenSelection, opts), o => tokenSet(o)),
     // Owner-side seam for the worker_threads hook executor: the raw DTCG doc it
     // snapshots into the worker so hooks resolve tokens without an RPC. Never a
     // hook-facing call (the worker core omits it from the proxy).
@@ -705,6 +744,8 @@ export async function createCliBridge(
   // round-trip suite. Optional/additive, like host.images: a reader tool feature-
   // detects it. Zero network - the wasm is loaded from disk (see node-shell/scan).
   host.scan = createNodeScanAPI();
+  // host.fonts (v1.262) - font inspection and verified Skera subsetting, WASM read off disk.
+  host.fonts = (await import('@lolly-tools/node-shell/fonts')).createNodeFontsAPI();
   host.prepare = (await import('@lolly/engine')).createPrepareAPI();
   host.compare = (await import('@lolly/engine')).createCompareAPI();
   let layout: Promise<import('@lolly-tools/core/host-v1').LayoutAPI> | undefined;
@@ -1620,6 +1661,10 @@ function rootSvgOf(node: Element | null): Element | null {
       if (!ref) return null;
       const q = new URLSearchParams(query);
       for (const k of RESERVED) q.delete(k);
+      // A link's own theme choices stay in its id, as in the web bridge's composeEmbedId
+      // (plans/319 A6), so a session the CLI re-renders keeps them in the links it
+      // writes. The CLI does not yet draw the child in them.
+      if (st.tokenSelection && Object.keys(st.tokenSelection).length) q.set('_themes', JSON.stringify(st.tokenSelection));
       if (width) q.set('w', String(width));
       if (height) q.set('h', String(height));
       if (unit && unit !== 'px') { q.set('unit', String(unit)); if (dpi) q.set('dpi', String(dpi)); }
@@ -1637,6 +1682,10 @@ function rootSvgOf(node: Element | null): Element | null {
     },
   };
 
+  // followRuntimeSelection moves this bridge. Every token and asset read above reads
+  // `tokenSelection` when it is called, and the token-set cache is keyed by it, so
+  // nothing resolved under the link's choice is served after the move.
+  selectionFollowers.set(host, (next) => { tokenSelection = structuredClone(next); });
   return host;
 }
 
@@ -1678,7 +1727,12 @@ export async function applyBrandVars(el: HTMLElement, host: HostV1): Promise<voi
     const semantic = /^color\.semantic\.([a-z-]+)$/.exec(swatch.path);
     if (semantic) el.style.setProperty('--brand-'+semantic[1],value);
   }
-
+  // The family of leads (plans/319): `--brand-lead-1..n` and `--brand-lead-count`,
+  // the same pairs the web shell's applyBrandVars paints. Nothing for a design
+  // system with fewer than two colourways, so its canvas is exactly as before.
+  let family: readonly { value?: unknown }[] = [];
+  try { family = (await host.tokens.family?.('primary')) ?? []; } catch { family = []; }
+  for (const [name, value] of brandLeadVars(family)) el.style.setProperty(name, value);
 }
 
 // Embed authorship provenance as <title>/<desc> + a Dublin-Core <metadata> block

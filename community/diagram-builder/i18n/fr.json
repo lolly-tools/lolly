@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "Plan",
   "inputs.diagramPreset.options.mono": "Mono minimal",
   "inputs.diagramType.label": "Type de diagramme",
-  "inputs.diagramType.help": "Org/Carte mentale construisent un arbre à partir du parent de chaque carte. Layercake/Kanban regroupent les cartes par leur ID de « Groupe » (bandes empilées ou colonnes côte à côte). Processus/Frise chronologique/Cycle disposent les cartes selon le flux/l'ordre. Pyramide, Matrice et Gantt ont leurs propres réglages ci-dessous.",
+  "inputs.diagramType.help": "Choisis la relation à montrer. Organigramme et Carte mentale : une hiérarchie à partir du parent de chaque carte. Layercake : des niveaux d'abstraction, une bande par « Groupe ». Kanban : le travail par état, une colonne par « Groupe » ; une colonne est un état, pas un responsable. Processus : des étapes orientées et des liens de retour, tirés des flèches. Frise chronologique : des événements dans l'ordre, espacés régulièrement, sans durée. Cycle : une boucle dans l'ordre des cartes. Pyramide : des niveaux classés. Matrice : quatre catégories, pas des valeurs mesurées. Gantt : la durée des tâches ; une seule carte datée ajoute un axe du temps et un couloir par « Groupe ».",
   "inputs.diagramType.options.org": "Organigramme (hiérarchie)",
   "inputs.diagramType.options.mindmap": "Carte mentale",
   "inputs.diagramType.options.layercake": "Layercake (architecture en couches)",

@@ -30,5 +30,6 @@
   "synth::name": "合成器",
   "synth::description": "一件你可以实时演奏的视觉乐器。四个场景在 GPU 上实时运行：流动墨迹、朝你的标题或标志飞去的粒子群、反馈场，以及你自己的摄像头画面。每一种颜色都来自你的品牌调色板，画面会随你的指针、一段音乐或一台 MIDI 控制器而变化。可导出静态图像或无缝循环视频。",
   "icon::description": "Favicon 与应用图标生成工具 - 可生成多尺寸 .ico、PNG 和 SVG 文件，或将整套应用图标打包成一个 zip。",
-  "diagram-builder::description": "组织架构图、流程图、时间线等多种图表 - 可通过卡片、文字、Mermaid、DOT 或 CSV 生成。"
+  "diagram-builder::description": "组织架构图、流程图、时间线等多种图表 - 可通过卡片、文字、Mermaid、DOT 或 CSV 生成。",
+  "pages::description": "在设备上重新排序、旋转、提取、删除、合并或拆分 PDF 页面，或将图片转为 PDF。"
 }

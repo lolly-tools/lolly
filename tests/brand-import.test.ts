@@ -85,6 +85,53 @@ test('coerceTokensDoc: excessive nesting and cyclic direct-JS inputs fail closed
 
 // ── assembleTokenSetFiles ────────────────────────────────────────────────────
 
+// Plan 320 S3: the older Tokens Studio format read as zero tokens with Install enabled.
+test('coerceTokensDoc: the older Tokens Studio format (value/type) reads as tokens, with a warning', () => {
+  const json = {
+    core: {
+      color: {
+        navy: { value: '#1F3A93', type: 'color', description: 'Main blue' },
+        sky: { value: '#4A6FE3', type: 'color', $extensions: { 'studio.tokens': { id: 'x' } } },
+      },
+      radius: { card: { value: '12', type: 'borderRadius' } },
+    },
+    $themes: [{ id: 't', name: 'Default', selectedTokenSets: { core: 'enabled' } }],
+    $metadata: { tokenSetOrder: ['core'] },
+  };
+  const before = JSON.stringify(json);
+  const r = coerceTokensDoc(json);
+  assert.equal(JSON.stringify(json), before, 'the parsed input is never mutated');
+  const navy = (r.doc!.core as any).color.navy;
+  assert.deepEqual(navy, { $value: '#1F3A93', $type: 'color', $description: 'Main blue' });
+  assert.deepEqual((r.doc!.core as any).color.sky.$extensions, { 'studio.tokens': { id: 'x' } }, 'other keys travel as they were');
+  assert.deepEqual(r.warnings, ['3 tokens in the older Tokens Studio format (value and type) read as $value and $type']);
+  const summary = summarizeTokensDoc(r.doc!);
+  assert.equal(summary.tokenCount, 3);
+  assert.equal(summary.colorCount, 2);
+});
+
+test('coerceTokensDoc: a DTCG doc is returned as is, and a group called value is not a token', () => {
+  const json = { color: { value: { $value: '#000000', $type: 'color' }, type: { body: { $value: '#111111', $type: 'color' } } } };
+  const r = coerceTokensDoc(json);
+  assert.equal(r.doc, json, 'nothing matched, so the same object comes back');
+  assert.deepEqual(r.warnings, []);
+});
+
+test('assembleTokenSetFiles: set files in the older format read as tokens too', () => {
+  const r = assembleTokenSetFiles({ 'core.json': { color: { navy: { value: '#1F3A93', type: 'color' } } } });
+  assert.deepEqual((r.doc!.core as any).color.navy, { $value: '#1F3A93', $type: 'color' });
+  assert.deepEqual(r.warnings, ['1 token in the older Tokens Studio format (value and type) read as $value and $type']);
+});
+
+test('coerceTokensDoc: a token key spelled __proto__ stays an own key in the converted copy', () => {
+  const json = JSON.parse('{"color":{"__proto__":{"value":"#abcdef","type":"color"},"b":{"value":"#000000","type":"color"}}}');
+  const r = coerceTokensDoc(json);
+  const color = (r.doc as any).color;
+  assert.ok(Object.hasOwn(color, '__proto__'));
+  assert.equal(Object.getPrototypeOf(color), Object.prototype, 'no prototype swap');
+  assert.deepEqual(Object.getOwnPropertyDescriptor(color, '__proto__')!.value, { $value: '#abcdef', $type: 'color' });
+});
+
 test('assembleTokenSetFiles: reassembles set names (incl. "/" subdir names), lifts $themes/$metadata, warns on a stray non-json key', () => {
   const files: Record<string, unknown> = {
     'Foundations.json': { color: { brand: { $value: '#ff0000', $type: 'color' } } },

@@ -55,6 +55,10 @@ export function mountHistoryFidelity(api: RevisionFidelityAPI, openCopy: (entry:
       const name = document.createElement('strong'); name.textContent = asset.label.length > 160 ? `${asset.label.slice(0, 160)}…` : asset.label;
       item.append(name, paragraph(statusText(asset)));
       if (asset.version) item.append(paragraph(t('Saved version: {version}', { version: asset.version })));
+      if (asset.observation) {
+        item.append(paragraph(t('Source observed: {time}', { time: asset.observation.observedAt })),
+          paragraph(t('Attributes describe this read. Current access, processing and delivery permission have not been checked.')));
+      }
       if (asset.replacement && !report.truncated) {
         const label = document.createElement('label'); label.className = 'revision-history-fidelity-choice';
         const input = document.createElement('input'); input.type = 'checkbox';

@@ -30,5 +30,6 @@
   "synth::name": "Synth",
   "synth::description": "Một nhạc cụ hình ảnh do bạn điều khiển. Bốn cảnh chạy trực tiếp trên GPU: mực lỏng, đàn hạt bay về phía tiêu đề hoặc logo của bạn, trường phản hồi (feedback field) và camera của chính bạn. Mọi màu sắc đều lấy từ bảng màu thương hiệu, hình ảnh chuyển động theo con trỏ, theo bản nhạc và theo bộ điều khiển MIDI. Xuất ra ảnh tĩnh hoặc vòng lặp liền mạch.",
   "icon::description": "Công cụ tạo favicon và biểu tượng ứng dụng - xuất file .ico đa kích thước, PNG và SVG, hoặc trọn bộ app kit dưới dạng một file ZIP.",
-  "diagram-builder::description": "Sơ đồ tổ chức, sơ đồ luồng, dòng thời gian và nhiều hơn nữa - tạo từ thẻ, văn bản, Mermaid, DOT hoặc CSV."
+  "diagram-builder::description": "Sơ đồ tổ chức, sơ đồ luồng, dòng thời gian và nhiều hơn nữa - tạo từ thẻ, văn bản, Mermaid, DOT hoặc CSV.",
+  "pages::description": "Sắp xếp lại, xoay, trích xuất, xóa, gộp hoặc tách các trang PDF, hoặc chuyển ảnh thành PDF, ngay trên thiết bị của bạn."
 }

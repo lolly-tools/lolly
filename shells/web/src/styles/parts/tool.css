@@ -287,6 +287,23 @@
   opacity: 0;
   transition: opacity var(--dur-1), box-shadow var(--dur-1);
 }
+.resize-grip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  inset-block: 0;
+  margin-block: auto;
+  width: .5px;
+  top:0;
+  height: 100vh;
+  border-radius: var(--radius-pill);
+  background: hsl(var(--primary) / 0.55);
+  opacity: 0;
+  transition: opacity var(--dur-1), box-shadow var(--dur-1);  
+}
+
+.sidebar.is-dragging .resize-grip::after,
 .resize-grip:hover::before,
 .resize-grip:active::before,
 .sidebar.is-dragging .sidebar-drag-handle::before {
@@ -931,6 +948,9 @@
    pointer-events, for controls that do not honour it). Cooperative only - the
    server is the hard gate. */
 .input-locked { display: block; opacity: .6; pointer-events: none; }
+/* A locked asset slot shows what is set, not ways to change it: Change, the clear
+   cross and the slot actions read as available even when dimmed (plan 320 G3). */
+.input-locked :is(.asset-slot-source, .asset-clear, .slot-actions, .asset-edit) { display: none; }
 
 /* Long labels ellipsise on the TEXT SPAN rather than on the label box, so a help
    button sitting in the same label keeps its focus ring uncropped. The label box

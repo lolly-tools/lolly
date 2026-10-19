@@ -6,8 +6,8 @@
  *
  * The legacy kinds (greyscale, duotone) keep their SVG filter, which is exact for them.
  * A look only pixels reproduce (`gradient-map`, `lut`, plan 291 W7) is baked into the
- * photo by the engine's applyPhotoLook, the same bake the assets bridge serves to the
- * canvas and every exporter, and the SVG embeds those pixels with no filter. Before this
+ * photo by the bridge's WebGPU bake (plan 295), the same bake the assets bridge serves
+ * to the canvas and every exporter, and the SVG embeds those pixels with no filter. Before this
  * the download went through the filter preview (Rec.709 luma, no contrast or lightness
  * grade, a LUT shown as the plain photo) while its credential said the look was applied.
  * A bake that cannot run throws, so no download claims a look it does not carry.

@@ -6,6 +6,8 @@ import { base64ToBytes } from '../../../../engine/src/bytes.ts';
 import { sha256Hex } from '@lolly/engine';
 import { resolveVectorFont, faceSourceBytes, type VectorFontFace } from '../bridge/font-registry.ts';
 import type { FontStyleSlice } from '../bridge/text-svg.ts';
+import { textTypographyFaceKey, type TextTypography, type TextTypographyFaces, type TextTypographySlant } from '../../../../engine/src/text-token-bindings.ts';
+import { pinnedFaceMismatch } from '../../../../engine/src/token-font-pins.ts';
 async function pinFace(face: VectorFontFace | undefined): Promise<TextFontResourceV1> {
   if (!face) throw new Error('Install this font before using composed text.');
   const bytes = await faceSourceBytes(face);
@@ -26,6 +28,21 @@ export async function pinEditorFont(style: FontStyleSlice, text: string): Promis
   const fonts = await Promise.all([pinFace(resolved.face), ...(resolved.fallbacks ?? []).map(item => pinFace(item.face))]);
   const axes = Object.fromEntries((resolved.variations ?? []).map(value => value.split('=')).map(([tag, value]) => [tag!, Number(value)]));
   return { fonts, character: { font: fonts[0]!.id, fallbackFonts: fonts.slice(1).map(font => font.id), weight: Number(style.fontWeight) || 400, italic: style.fontStyle === 'italic', axes } };
+}
+/** Token typography pins the named family at the exact weight for each slant the text draws. */
+export async function pinTypographyFaces(typography: Pick<TextTypography, 'fontFamily' | 'fontWeight'>, slants: readonly TextTypographySlant[], text: string, deps = { resolve: resolveVectorFont, pin: pinFace }): Promise<{ fonts: TextFontResourceV1[]; faces: TextTypographyFaces }> {
+  const family = typography.fontFamily.includes('"') ? `'${typography.fontFamily}'` : `"${typography.fontFamily}"`;
+  const entry: TextTypographyFaces[string] = {}, fonts: TextFontResourceV1[] = [];
+  for (const slant of slants) {
+    // Only the token family is tried, so a generic fallback cannot stand in for that family.
+    const resolved = await deps.resolve({ fontFamily: family, fontWeight: String(typography.fontWeight), fontStyle: slant }, text.trim() ? text : 'M').catch(() => null);
+    const missing = pinnedFaceMismatch({ family: typography.fontFamily, weight: typography.fontWeight, italic: slant === 'italic' }, resolved?.face);
+    if (missing || !resolved) throw new Error(missing ?? 'The font could not be read.');
+    const pinned = await Promise.all([deps.pin(resolved.face), ...(resolved.fallbacks ?? []).map(item => deps.pin(item.face))]);
+    fonts.push(...pinned);
+    entry[slant] = { font: pinned[0]!.id, ...(pinned.length > 1 ? { fallbackFonts: pinned.slice(1).map(font => font.id) } : {}) };
+  }
+  return { fonts, faces: { [textTypographyFaceKey(typography.fontFamily, typography.fontWeight)]: entry } };
 }
 const nativeFaces = new Map<string, { face: FontFace; bytes: number }>();
 let cacheBytes = 0;

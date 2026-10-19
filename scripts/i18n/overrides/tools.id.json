@@ -30,5 +30,6 @@
   "synth::name": "Synth",
   "synth::description": "Instrumen visual yang Anda mainkan. Empat adegan berjalan langsung di GPU: tinta cair, kawanan partikel yang terbang ke arah judul atau logo Anda, medan umpan balik, dan kamera Anda sendiri. Setiap warna berasal dari palet brand Anda, dan gambarnya bergerak mengikuti pointer Anda, sebuah trek musik, dan kontroler MIDI. Ekspor gambar diam atau loop yang mulus.",
   "icon::description": "Pembuat favicon dan ikon aplikasi - file .ico multi-ukuran, PNG, dan SVG, atau seluruh kit aplikasi sebagai satu zip.",
-  "diagram-builder::description": "Bagan organisasi, flowchart, linimasa, dan lainnya - dari kartu, teks, Mermaid, DOT, atau CSV."
+  "diagram-builder::description": "Bagan organisasi, flowchart, linimasa, dan lainnya - dari kartu, teks, Mermaid, DOT, atau CSV.",
+  "pages::description": "Susun ulang, putar, ekstrak, hapus, gabungkan atau pisahkan halaman PDF, atau ubah gambar menjadi PDF, di perangkat Anda."
 }

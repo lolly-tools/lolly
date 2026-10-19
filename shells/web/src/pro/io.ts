@@ -11,6 +11,12 @@
  *
  * • `tool` - the tool id (permanent contract; stable across renames).
  * • `format` - optional per-row export format; blank falls back to the global one.
+ * • `_themes` - optional theme choices for the row, the same JSON the `_themes`
+ *   link parameter takes (`{"":"dark","colourway":"persimmon"}`). A row keeps them
+ *   among its values as `__tokenSelection`, the key a saved session stores them
+ *   under. Blank or `{}` means the design system's defaults. Written only when some
+ *   row has choices, so a batch without any exports the same file it always did
+ *   (plans/319 A6).
  * • the remaining columns are input ids (union across all selected tools). A blank
  *   cell means "leave this tool's default". Cells for inputs a tool doesn't have
  *   are simply ignored on import.
@@ -20,7 +26,10 @@
  */
 import { deriveColumns } from './model.ts';
 import { toCSV, parseDelimited, detectDelimiter } from './csv.ts';
-import { UNITS } from '@lolly/engine';
+import { savedTokenSelection } from '../lib/theme-choices.ts';
+import { tRaw } from '../i18n.ts';
+import { UNITS, isTokenValue } from '@lolly/engine';
+import { flattenValue } from '../../../../engine/src/inputs.ts';
 import type { InputSpec, InputValue } from '../../../../engine/src/inputs.ts';
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
 
@@ -43,11 +52,39 @@ const WIDTH_COL = 'width';
 const HEIGHT_COL = 'height';
 const UNIT_COL = 'unit';
 const DPI_COL = 'dpi';
+// Named like the link parameter it mirrors. The leading underscore keeps it clear of
+// every input id, which starts with a letter.
+const THEMES_COL = '_themes';
 // 'template' is accepted as a tool alias; reserved columns aren't tool inputs.
-const RESERVED = new Set([TOOL_COL, FORMAT_COL, WIDTH_COL, HEIGHT_COL, UNIT_COL, DPI_COL, 'template']);
+const RESERVED = new Set([TOOL_COL, FORMAT_COL, WIDTH_COL, HEIGHT_COL, UNIT_COL, DPI_COL, THEMES_COL, 'template']);
+
+/** A `_themes` cell: the row's choices (`__tokenSelection` among its values) as JSON,
+ *  or blank for none. */
+function serializeThemes(values: Readonly<Record<string, unknown>>): string {
+  const choices = savedTokenSelection(values.__tokenSelection);
+  return choices ? JSON.stringify(choices) : '';
+}
+
+/**
+ * Read a `_themes` cell. Blank, or `{}` (which the `_themes` link parameter also takes
+ * as no choice), is "no choices"; anything else that is not a JSON object of group ids
+ * to theme ids is reported and dropped, so the row still imports and renders in the
+ * design system's defaults.
+ */
+function parseThemes(raw: string | undefined): { selection?: Record<string, string>; invalid: boolean } {
+  const str = (raw ?? '').trim();
+  if (!str) return { invalid: false };
+  let parsed: unknown;
+  try { parsed = JSON.parse(str); } catch { return { invalid: true }; }
+  if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && !Object.keys(parsed).length) return { invalid: false };
+  const selection = savedTokenSelection(parsed);
+  return selection ? { selection, invalid: false } : { invalid: true };
+}
 
 function serializeValue(input: InputSpec | undefined, value: InputValue | undefined): string {
   if (value == null) return '';
+  // A token-linked cell exports the value it shows; CSV carries plain data, not links.
+  if (isTokenValue(value)) value = flattenValue(value);
   switch (input?.type) {
     case 'boolean': return value ? 'true' : 'false';
     case 'asset':   return (value as { id?: string })?.id ?? '';
@@ -106,7 +143,10 @@ export function batchToCsv(rows: IoRow[], defaults: { unit?: string; dpi?: numbe
       csvCols.push({ header: c.key, key: c.key, fieldId: null });
     }
   }
-  const columns = [TOOL_COL, FORMAT_COL, WIDTH_COL, HEIGHT_COL, UNIT_COL, DPI_COL, ...csvCols.map(c => c.header)];
+  // The theme column appears only when a row carries choices: a file with no theme
+  // choices stays byte-identical to the ones written before the column existed.
+  const withThemes = usable.some(r => serializeThemes(r.values) !== '');
+  const columns = [TOOL_COL, FORMAT_COL, WIDTH_COL, HEIGHT_COL, UNIT_COL, DPI_COL, ...(withThemes ? [THEMES_COL] : []), ...csvCols.map(c => c.header)];
 
   const records = usable.map(r => {
     const byId = new Map((r.manifest!.inputs ?? []).map(i => [i.id, i]));
@@ -119,6 +159,7 @@ export function batchToCsv(rows: IoRow[], defaults: { unit?: string; dpi?: numbe
       [UNIT_COL]: unit,
       // DPI only applies to physical units; leave blank for px.
       [DPI_COL]: unit === 'px' ? '' : (r.dpi ?? defaults.dpi ?? 300),
+      ...(withThemes ? { [THEMES_COL]: serializeThemes(r.values) } : {}),
     };
     for (const c of csvCols) {
       if (c.fieldId) {
@@ -164,6 +205,7 @@ export async function csvToBatch<R extends IoRow>(
   const heightIdx = header.findIndex(h => h === HEIGHT_COL);
   const unitIdx = header.findIndex(h => h === UNIT_COL);
   const dpiIdx = header.findIndex(h => h === DPI_COL);
+  const themesIdx = header.indexOf(THEMES_COL);
 
   const rows: R[] = [];
   const errors: string[] = [];
@@ -203,6 +245,14 @@ export async function csvToBatch<R extends IoRow>(
     if (heightIdx >= 0) { const n = parseFloat(cells[heightIdx]!); if (n > 0) row.outHeight = n; }
     if (unitIdx >= 0) { const u = (cells[unitIdx] ?? '').trim().toLowerCase(); if ((UNITS as readonly string[]).includes(u)) row.unit = u; }
     if (dpiIdx >= 0) { const n = parseInt(cells[dpiIdx]!, 10); if (n > 0) row.dpi = n; }
+    if (themesIdx >= 0) {
+      const themes = parseThemes(cells[themesIdx]);
+      // Kept where a saved session keeps them, so the render, the preview and a saved
+      // batch read them the same way (pro/folder-rows.ts).
+      if (themes.selection) row.values.__tokenSelection = themes.selection;
+      // Escaped where it is shown (pro/index.ts importCsvFile), so tRaw here.
+      else if (themes.invalid) errors.push(tRaw("Row {n}: the _themes cell is not valid theme choices, so the row uses the design system's defaults.", { n: r + 1 }));
+    }
 
     const byId = new Map((tool.manifest.inputs ?? []).map(i => [i.id, i]));
     for (let c = 0; c < header.length; c++) {

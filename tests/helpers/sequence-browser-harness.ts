@@ -26,6 +26,8 @@ import { createVideoProvider } from '../../shells/web/src/bridge/sequence-provid
 import { parseSequenceStage, frameTimestamps, activeSpanTimestamps, toCodedError } from '../../shells/web/src/bridge/sequence-plan.ts';
 import { HIGH_WATER } from '../../shells/web/src/bridge/video-encode-core.ts';
 import { buildMediabunnyMux } from '../../shells/web/src/bridge/mediabunny-mux.ts';
+import { trimMedia } from '../../shells/web/src/bridge/media-trim.ts';
+import type { MediaTrimOpts } from '../../packages/core/src/host-v1.ts';
 import { MAX_LIVE_PROVIDERS } from '../../shells/web/src/bridge/sequence-render.ts';
 // `createExportAPI` is also the plans/104 section 7 P3 funnel's front door: `walkToSvg` renders
 // SVG through it, which is how `main.ts`'s `__lollyWalkerShot` reaches the walker too - 
@@ -46,6 +48,7 @@ import { createSequenceTime } from '../../shells/web/src/bridge/sequence-dom.ts'
 // module of its own, handed what it needs, so this file does not grow again.
 import { goldenApi, perfApi, type GoldenDeps } from './sequence-golden-harness.ts';
 import { newSourceCaptureDiagnostics, observeSourceCaptures, type SourceCaptureDiagnostics } from './sequence-capture-diagnostics.ts';
+import { newPlateShare, plateShareSummary, recordPlates, replayPlates, type PlateShare, type PlateShareSummary } from './sequence-plate-share.ts';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Any = any;
@@ -510,6 +513,21 @@ function beginRawComparison(): void {
   rawDiagnosticPair = { control: null, cached: null, bytes: 0 };
 }
 
+// One render's plate captures, replayed into the next (`plates: 'record'` then
+// `plates: 'replay'`), so a pair compares the compositor and not two captures. Take the
+// share only after both renders: its summary reads the recorded plates back.
+let plateShare: PlateShare | null = null;
+
+function beginPlateShare(): void {
+  plateShare = newPlateShare();
+}
+
+function takePlateShare(): PlateShareSummary {
+  const summary = plateShareSummary(plateShare);
+  plateShare = null;
+  return summary;
+}
+
 function diagnosticWord(value: string | null): string | null {
   return value != null && /^[a-zA-Z0-9-]{1,24}$/.test(value) ? value : null;
 }
@@ -724,7 +742,7 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
   instrument();
   resetCounters();
   const target = buildStage(spec);
-  const { applyClockAtMs, freezeVideos, deviceMemory, worker, gl, breakWorker, heartbeat, fxCacheBytes, rawFrames, rawDiagnosticSide, captureSourceDiagnostic, ...renderOpts } = opts as Any;
+  const { applyClockAtMs, freezeVideos, deviceMemory, worker, gl, breakWorker, heartbeat, fxCacheBytes, rawFrames, rawDiagnosticSide, captureSourceDiagnostic, plates, ...renderOpts } = opts as Any;
   const undo: (() => void)[] = [];
   const rawHashes: Promise<string>[] = [];
   const pair = rawDiagnosticPair;
@@ -844,7 +862,14 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
   }
   const t0 = performance.now();
   let restoreCaptures: (() => void) | undefined;
+  let restorePlates: (() => void) | undefined;
   try {
+    if (plates === 'record' || plates === 'replay') {
+      if (!plateShare) throw new Error('plate sharing needs beginPlateShare() first');
+      const module = await import('dom-to-image-more');
+      const library = module.default ?? module;
+      restorePlates = plates === 'record' ? recordPlates(library, plateShare) : replayPlates(library, plateShare);
+    }
     if (diagnostic && captureSourceDiagnostic === true) {
       const module = await import('dom-to-image-more');
       restoreCaptures = observeSourceCaptures(module.default ?? module, diagnostic.source);
@@ -869,7 +894,7 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
       error: toCodedError(err), stack: (err as Error)?.stack ?? '', beat: { ...beat }, counters: { ...counters },
       frames: stage ? frameTimestamps(stage.totalMs, fps).length : 0, fps,
     };
-  } finally { restoreCaptures?.(); }
+  } finally { restoreCaptures?.(); restorePlates?.(); }
 }
 
 /**
@@ -1055,6 +1080,28 @@ async function audioRms(key: string, windows: [number, number][]): Promise<numbe
   } finally {
     await actx.close();
   }
+}
+
+/**
+ * host.media.trim over a stored clip (tests/trim-prepare.browser.test.ts). The written
+ * bytes are stored under a new key so decodeCodes can read them; an image result also
+ * reports its size and the frame code painted at its top.
+ */
+async function trim(key: string, opts: MediaTrimOpts): Promise<Any> {
+  const source = new Uint8Array(await (blobs.get(key) as Blob).arrayBuffer());
+  const { bytes, ...result } = await trimMedia(source, opts);
+  const out = put(new Blob([bytes as BlobPart], { type: result.mime }));
+  let image: Any = null;
+  if (result.mime.startsWith('image/')) {
+    const bitmap = await createImageBitmap(blobs.get(out) as Blob);
+    const cvs = new OffscreenCanvas(bitmap.width, bitmap.height);
+    const ctx = cvs.getContext('2d', { willReadFrequently: true }) as Any;
+    ctx.drawImage(bitmap, 0, 0);
+    const px = ctx.getImageData(0, 0, bitmap.width, bitmap.height).data;
+    image = { width: bitmap.width, height: bitmap.height, code: readCode(px, bitmap.width, { x: 0, y: 0, w: bitmap.width, h: bitmap.height }) };
+    bitmap.close();
+  }
+  return { ...result, key: out, size: bytes.length, image };
 }
 
 async function hasAudioTrack(key: string): Promise<boolean> {
@@ -1833,8 +1880,9 @@ const goldenDeps: GoldenDeps = { exportSeq, buildStage, blob: (key) => blobs.get
   golden: goldenApi(goldenDeps), perf: perfApi(goldenDeps),
   probe, makeClip, truncate, makeBed, makeRampBed, waveformPeaks, exportSeq, buildStage, filmstripCodes,
   decodeCodes, frameHashes, blobSha, frameDelta, frameSelfDelta, audioRms, hasAudioTrack, beginRawComparison, takeRawComparison,
+  beginPlateShare, takePlateShare,
   driveProvider, stalledProvider, elementRotationProbe, alphaWebmProbe, stillAt, cutsAt, fidelity, resetCounters, firstFramePixels,
-  blobBytes, blobDiff, trackColors, rowRun, vectorStillAt, exportViaApi, walkToSvg, posedVsHatch,
+  blobBytes, blobDiff, trackColors, rowRun, vectorStillAt, exportViaApi, walkToSvg, posedVsHatch, trim,
   constants: { HIGH_WATER, MAX_LIVE_PROVIDERS, CODE_BITS },
 };
 (globalThis as Any).__SEQ_READY = true;

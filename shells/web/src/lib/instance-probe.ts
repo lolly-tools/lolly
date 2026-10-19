@@ -10,7 +10,9 @@
  */
 import { instanceFetch, normalizeInstanceBase } from './instance.ts';
 
-export type UrlValidation = { ok: true; base: string } | { ok: false; message: string };
+/** Why an address was refused, for the sheet to say in the reader's language. */
+export type UrlProblem = 'invalid' | 'not-https' | 'credentials';
+export type UrlValidation = { ok: true; base: string } | { ok: false; message: string; reason: UrlProblem };
 
 /** Validate + normalize a typed instance URL for display - turns
  *  normalizeInstanceBase's throw into a result the render loop can branch on
@@ -19,10 +21,19 @@ export type UrlValidation = { ok: true; base: string } | { ok: false; message: s
  *  strings stay untranslated - the same treatment profile.ts already gives a
  *  thrown backup-import error (err.message passed straight through). */
 export function validateInstanceUrl(input: string): UrlValidation {
+  const candidate = /^[^/:\s]+\.[^/:\s]+(?::\d+)?(?:\/[^\s]*)?$/.test(input.trim()) ? `https://${input.trim()}` : input;
   try {
-    return { ok: true, base: normalizeInstanceBase(/^[^/:\s]+\.[^/:\s]+(?::\d+)?(?:\/[^\s]*)?$/.test(input.trim()) ? `https://${input.trim()}` : input) };
+    return { ok: true, base: normalizeInstanceBase(candidate) };
   } catch (e) {
-    return { ok: false, message: e instanceof Error ? e.message : String(e) };
+    // The reason is read from the address, not from the thrown English text, so the
+    // sheet can say it in the reader's language (plan 320 J2).
+    let reason: UrlProblem = 'invalid';
+    try {
+      const u = new URL(candidate.trim());
+      if (u.protocol !== 'https:') reason = 'not-https';
+      else if (u.username || u.password) reason = 'credentials';
+    } catch { /* not an address at all */ }
+    return { ok: false, message: e instanceof Error ? e.message : String(e), reason };
   }
 }
 

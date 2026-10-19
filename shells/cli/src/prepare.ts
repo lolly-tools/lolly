@@ -38,7 +38,7 @@ export async function savePreparationCopies(result: PreparationResult, directory
 const HELP = `lolly prepare <file…> [--replace-all] [--recipe=recipe.json] [--output=copy|--out-dir=directory]
   With no transformation flag: inspect and print a value-free JSON report. Findings do not fail the command.
   --replace-all       Apply suggested replacements and DOCX property removals (or recipe-selected categories).
-  --strip-hidden-data Remove supported DOCX core/custom properties or PDF/JPEG/PNG/SVG metadata; failed DOCX guards retain files and are reported.
+  --strip-hidden-data Remove supported DOCX properties (core/custom, Company, Manager, Template, hyperlink base, application name and version, statistics) or PDF/JPEG/PNG/SVG metadata; failed DOCX guards retain files and are reported.
   --rules=file        Local JSON array of {id,label,kind:"literal"|"field",value} rules.
   --review-file=file  Explicitly save a PRIVATE review envelope with values, choices and source hashes.
   --choices=file      Apply an edited review envelope; stale source bytes are rejected.

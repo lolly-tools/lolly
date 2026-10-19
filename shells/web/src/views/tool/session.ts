@@ -40,7 +40,6 @@ import { fmtBytes, openEmbedEditor } from '../tool-inputs.ts';
 import { collectExportParams, isTextEditing, shareDialogOptions, showShareDialog, shrinkUrl, wireUpCopyUrl } from './shared.ts';
 import { emojiDocumentCredits, emojiDocumentStyle, onEmojiDocumentChange, setEmojiDocumentStyle } from './emoji-doc.ts';
 import type { EmojiControlMount, InspectorEmojiPort } from '../design-inspector.ts';
-import { createDocumentThemeController } from '../../lib/document-theme.ts';
 import { mountToolSiteEditor } from '../tool-site-tools.ts';
 
 async function createPageController(tview: ToolViewCtx) {
@@ -1747,13 +1746,12 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
               onChange: setEmojiDocumentStyle,
             } : undefined;
             // The theme the document is shown in (plan 291 W4): runtime, address, canvas
-            // variables and saved session move together (lib/document-theme.ts).
-            const documentTheme = createDocumentThemeController({
-              runtime, host: tview.host, canvas: () => tview.contentEl ?? null,
-              markDirty: () => { markUserDirty(tview); syncUrl(tview); },
-              onChange: () => designInspector?.sync(),
-            });
-            tview.mountLifecycle.add('document theme', () => documentTheme.dispose());
+            // variables and saved session move together (lib/document-theme.ts). The
+            // controller is the view's one (stage-layout.ts, plans/319 A4), shared with
+            // the sidebar's Design system section, so a choice made in either surface is
+            // the one both show; the inspector only subscribes to that controller.
+            const documentTheme = tview.documentTheme;
+            tview.mountLifecycle.add('document theme in the inspector', documentTheme.subscribe(() => designInspector?.sync()));
             designInspector = initDesignInspector({
               stageEl,
               ...(emojiPort ? { emoji: emojiPort } : {}),

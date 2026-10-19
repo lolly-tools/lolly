@@ -91,6 +91,49 @@ history with redacted output; install the pinned Gitleaks 8.29.1 binary and set
 `GITLEAKS_BIN` if it is not on `PATH`. For a pre-commit check, run
 `pnpm run secrets:scan:staged`.
 
+### Dependency audit exceptions
+
+A high or critical advisory blocks CI. An advisory that cannot be fixed yet may be
+held back only with the maintainer's approval, as an `advisoryExceptions` entry on
+its Cargo root in `security/dependency-roots.json`. Each entry lists its RustSec
+ids, the vulnerable crate, the crate that pulls it in, the versions that carry the
+fix, who approved it, a written justification and the upstream links.
+`pnpm run audit:all` passes those ids to `cargo audit --ignore` for that one
+lockfile and no other. Before any audit, and in `audit:all --check`, the script
+fails when the lockfile shows the hold has outlived its fix: no vulnerable copy is
+left, another crate starts pulling one in, or the parent crate's fixed release
+resolves. The exception then has to be removed in the same change.
+
+One exception is held today, approved by Andy on 2026-10-17:
+
+| Lockfile | Advisories | Crate | Removed when |
+|---|---|---|---|
+| `shells/tauri-desktop/src-tauri/Cargo.lock` | RUSTSEC-2026-0367, RUSTSEC-2026-0368, RUSTSEC-2026-0369 | `zip` 4.6.1, through `tauri-plugin-updater` 2.13.2 | `tauri-plugin-updater` 2.14.1 or later, or `zip` 9.0.0 or later, resolves |
+
+The justification:
+
+- `zip` 4.6.1 comes only through `tauri-plugin-updater` 2.x, which declares
+  `zip ^4` for `cfg(target_os = "windows")`. It is compiled for Windows targets
+  only.
+- The current release, v1.1.1, publishes no Windows build. Windows installers are
+  built only by the manual `desktop-extra.yml` dispatch.
+- Self-update is not live. `bundle.createUpdaterArtifacts` is `false`, and
+  `plugins.updater.pubkey` is still the `PLACEHOLDER-RUN-TAURI-SIGNER-GENERATE`
+  placeholder.
+- The updater verifies a payload's minisign signature before it extracts
+  anything. The placeholder is not a valid key, so that check fails for every
+  payload, including in the v1.0.9 Windows installers, and `ZipArchive::extract`
+  is never reached.
+- The fix is merged upstream in
+  [tauri-apps/plugins-workspace#3698](https://github.com/tauri-apps/plugins-workspace/pull/3698)
+  (`ba98bfad`, `zip ^9`). It is pending release as `tauri-plugin-updater` 2.14.1 in
+  [#3712](https://github.com/tauri-apps/plugins-workspace/pull/3712). No published
+  2.x or 3.0 alpha accepts `zip` 9 yet.
+
+When 2.14.1 is published, run `cargo update -p tauri-plugin-updater` in
+`shells/tauri-desktop/src-tauri`, delete the exception and confirm that
+`pnpm run audit:all` passes without it.
+
 The ignored/untracked checkout is deliberately not read by either command.
 Auditing it is an explicit opt-in because it may contain personal credentials:
 `pnpm run secrets:scan:checkout --confirm-untracked`. Findings are redacted,

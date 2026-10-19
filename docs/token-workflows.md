@@ -2,13 +2,25 @@
 
 Open Start's Tokens room to inspect all retained definitions, including custom paths and inactive source sets. The browser shows authored and resolved values, the winning set, override order, direct references and token dependents. Declared brand roles and consumer slots appear separately from token dependents; declarations do not establish observed usage or a rule check. Counts cover the token document being inspected. Other documents and dynamic hooks are outside that scope.
 
-Read-only systems offer the same inspection. The **Inspect tokens** action in a tool sidebar reads the effective render version and its captured theme choices. Trying another choice in this inspector is labelled **Preview**; **Return to render choices** restores the captured context without editing the document. Start reads the editable head. These can differ when a published version is active.
+Read-only systems offer the same inspection. Start reads the editable head. A document reads the render version, which can differ from the head when a published version is active.
+
+## Design system context
+
+In Design, open the inspector's **Canvas** tab. Its **Style & look** section shows a context strip above the theme rows: **Mode** for light and dark, **Colourway** when the design system has colourways, and a row for any other theme group. The strip says which design system and render version the document draws with, and where the system came from. It reads **Chosen for this document** when the document made its own theme choices, and **Follows the design system** when it has none. **Source and fallbacks** lists every theme choice, marks a read-only system and lists any choice this design system does not offer, with the default used in its place.
+
+**Inspect tokens** opens the render version with the document's choices. Trying another choice in this inspector is labelled **Preview**; **Return to render choices** restores the captured choices. The inspector edits neither the document nor the design system. **Follow the design system** removes the document's own choices, so its linked values follow the design system's stored choices again.
+
+The same strip labels each side of a comparison and the version a release records. A token review's before and after renders are labelled **Editable head** and **Candidate**, each with its theme choices. **Publish a version** in Start's Versions room shows the editable head that publishing records. Tool sidebars do not show the strip; token details stay in each field's **Input actions** menu.
 
 ## Theme choices
 
 Each imported theme group has its own control. Choices use source group names and source theme ids, falling back to the theme name when the source has no id. Previewing writes nothing. **Use these choices for this system** creates a review; **Apply reviewed change** commits the choices through Start's existing persistence and undo path.
 
-Documents store choices in `$metadata.activeThemeSelection`. Render links use `_themes`, a JSON object in the reserved underscore namespace. Sessions carry `__tokenSelection`. Existing `{theme}` bridge calls retain their single-theme behavior.
+Documents store choices in `$metadata.activeThemeSelection`. Render links use `_themes`, a JSON object in the reserved underscore namespace. Sessions carry `__tokenSelection`. A session's choices go wherever the session is drawn: a [multi-edit](/info/using.html#editing-side-by-side-multi-edit) card, a [batch](/info/using.html#batch-pro-mode) row and the batch CSV's `_themes` column, a Design document export, and every tool link [composed](/info/url-mode.html#tool-composition-portable-embed-url) inside the document.
+
+A tool can still ask for one theme by name, as in `host.tokens.colors({ theme: 'light' })`. That request picks the theme in the group that declares it, and every other group keeps its choice. For each of those groups the order is: its entry in an explicit `selection` when one is given (a given selection replaces the document's stored choices whole), otherwise the document's stored choice; then `activeThemes`; then the group's canonical option. A hook that asks for light therefore still draws the artefact's colourway. Engine versions before 1.265 reset every other group to its first option on such a request. A theme name that no group declares is reported and changes nothing else.
+
+A Design document's theme rows change only that document. The choice is saved with the document as `__tokenSelection`, travels in its link as `_themes` and comes back when the document reopens. The design system's stored choices stay as they were, and other documents keep their own.
 
 ```sh
 lolly system inspect --file=beacon.tokens.json --_themes='{"appearance":"night","density":"roomy"}' --json
@@ -16,6 +28,107 @@ lolly qr-code --url=https://example.com --_themes='{"appearance":"night","densit
 ```
 
 The app's light/dark appearance and accessibility preferences remain separate from these authored design choices.
+
+## In the terminal and over MCP
+
+In the TUI, press `t` in the **System** view to inspect tokens. The inspector reads the design system a terminal render uses: the active terminal system, or the content profile's tokens when no terminal system is active. Its header shows the source, a short revision digest, one choice per theme group, the effective set order and any issues. `g` picks a theme group and `o` steps its choice. The header then reads **Preview**, and nothing is written. `/` searches token paths, `x` lists only tokens with issues, and `Enter` opens a token's trace: its authored and resolved values, the winning set and override order, its issues and declared roles, then the tokens it reads and the tokens that read this one. `Enter` on a step opens that token; `Esc` goes back.
+
+`s` reviews the previewed choices and states how many resolved values change. `y` stores them in `$metadata.activeThemeSelection` on the active terminal system, so later CLI and TUI renders use them. A content profile is read-only here. If another shell changes the system after the review starts, the review stores nothing and shows the current choices again.
+
+Agents call `lolly_inspect_tokens` on the MCP server for the same report as JSON. It reads the server's design system, the one `lolly://design-context` describes, or a `tokens` document given with the call. `selection` takes the `_themes` object and `theme` takes one theme name. The answer holds the effective and stored choices, a `preview` flag, the diagnostics, a page of tokens and, with `token`, a trace in both directions. A trace follows up to `depth` steps (8 by default, at most 16) and lists at most 200 tokens in each direction. With the Beacon example as `tokens`, `selection: {"appearance": "night"}` and `token: "border.exampleOutline"` return the night border, which reads `color.semantic.primary` and `stroke.exampleWidth`.
+
+Counts in the TUI and over MCP cover token references and declared roles in the inspected document. Tool hooks and other documents are outside that scope.
+
+## What a theme group means
+
+A Tokens Studio `$themes` group is only a name. A design system can also say what choosing between the group's options changes, so Lolly can treat light and dark differently from a choice of lead colour. The statement goes on each entry of the group, under the `com.suse.lolly` extension key:
+
+```json
+{ "name": "Persimmon", "group": "colourway", "selectedTokenSets": { "colourway/persimmon": "enabled" },
+  "$extensions": { "com.suse.lolly": { "axis": { "kind": "colourway" } } } }
+```
+
+| Field | Describes | Meaning |
+| --- | --- | --- |
+| `kind` | the group | `mode` (light, dark and similar looks), `colourway` (which lead colour fills the primary role), or one of `expression`, `medium`, `contrast`, `density`, `campaign`, `brand` |
+| `rotation` | the group | The rule `pickColourway` applies when given none: `canonical`, `cycle`, `by-key`, `shuffle` or `by-date` (see [Colourways](#colourways)) |
+| `canonical` | one option | `true` on the option an artefact uses when it chooses none. Without it, the first option is canonical |
+| `window` | one option | `{ "from": "2026-12-01", "to": "2026-12-31" }`, inclusive ISO dates, read by `by-date` |
+
+Every entry that states `kind` or `rotation` must agree; a disagreement is reported and the first statement is used. A file whose theme entries cannot carry extensions can state the group facts once at the document root instead, as `"$extensions": { "com.suse.lolly": { "themeAxes": { "colourway": { "kind": "colourway", "canonical": "pine" } } } }`. An entry's own statement wins over the root. Lolly gives behaviour to `mode` and `colourway` today. The other kinds are kept, shown and resolved as plain theme choices. A group with no kind, or a kind this version does not know, resolves exactly as it did before kinds existed, and the inspector reports an unknown kind.
+
+`lolly system inspect --json` and `host.tokens.inspect()` list each group with its `kind` and `canonical` option. `host.tokens.themes()` gives each theme its `id`, when the file has one, and its group's `kind`.
+
+## Colourways
+
+Some organisations rotate several lead colours: one poster leads with Pine, the next with Persimmon. [Brand architectures](/info/brand-architectures.html) shows where colourways fit among the other ways an organisation arranges its brands. A colourway is one of those leads, together with the colour that sits on it and a partner colour. It is a theme group of kind `colourway`, and it combines with light and dark: any colourway can be drawn in any look.
+
+A colourway cannot simply override `color.semantic.primary`. Token sets apply in set order, not group by group, so a Persimmon set placed after the light and dark sets would give the same primary to both looks. Instead each colourway holds its colours per look, and the light and dark sets link the role slots to them:
+
+```json
+{
+  "light": { "color": { "$type": "color", "semantic": {
+    "primary":    { "$value": "{color.colourway.light.primary}" },
+    "on-primary": { "$value": "{color.colourway.light.on-primary}" },
+    "secondary":  { "$value": "{color.colourway.light.secondary}" },
+    "text":       { "$value": "{color.brand.ink}" } } } },
+  "dark": { "...": "the same links, through color.colourway.dark" },
+  "colourway/pine": { "color": { "$type": "color", "colourway": {
+    "light": { "primary": { "$value": "{color.brand.pine}" }, "on-primary": { "$value": "#ffffff" }, "secondary": { "$value": "{color.brand.jungle}" } },
+    "dark":  { "primary": { "$value": "{color.brand.jungle}" }, "on-primary": { "$value": "#000000" }, "secondary": { "$value": "{color.brand.mint}" } } } } },
+  "colourway/persimmon": { "color": { "$type": "color", "colourway": {
+    "light": { "primary": { "$value": "#c2410c" }, "on-primary": { "$value": "#ffffff" }, "secondary": { "$value": "#7c2d12" } },
+    "dark":  { "primary": { "$value": "#fb923c" }, "on-primary": { "$value": "#111111" }, "secondary": { "$value": "#fed7aa" } } } } },
+  "$themes": [
+    { "name": "light", "selectedTokenSets": { "base": "enabled", "light": "enabled" }, "$extensions": { "com.suse.lolly": { "axis": { "kind": "mode" } } } },
+    { "name": "dark", "selectedTokenSets": { "base": "enabled", "dark": "enabled" }, "$extensions": { "com.suse.lolly": { "axis": { "kind": "mode" } } } },
+    { "id": "pine", "name": "Pine", "group": "colourway", "selectedTokenSets": { "colourway/pine": "enabled" }, "$extensions": { "com.suse.lolly": { "axis": { "kind": "colourway", "canonical": true } } } },
+    { "id": "persimmon", "name": "Persimmon", "group": "colourway", "selectedTokenSets": { "colourway/persimmon": "enabled" }, "$extensions": { "com.suse.lolly": { "axis": { "kind": "colourway" } } } }
+  ]
+}
+```
+
+The path segment after `color.colourway` is the look's theme id (`light`, `dark`). Every colourway re-points `primary`, `on-primary` and `secondary`. A colourway can also re-point `surface` for a tinted background, in which case every look links its surface the same way and the other colourways keep their own. Slots no colourway re-points, such as `text`, `muted` and `edge`, stay ordinary values in the light and dark sets. A colourway id may not repeat any other theme id in the file, so `light` and `dark` are never colourway ids. A colourway name may not repeat any other theme's id or name, in any case, and has at most 80 characters (`MAX_COLOURWAY_NAME`), because a theme request matches by name: a colourway called Light would answer every request for the light look. The same rules apply to the canonical colourway that `liftToColourways` creates.
+
+Imported files often encode colourways their own way, for example by overriding the semantic slots in each colourway set. Selection still works on such files. The colourway helpers described below read the slots through the resolver, so they work on these files too, but only the shape above can be converted and edited by the engine's colourway functions.
+
+**Choosing a colourway.** In the app, a tool whose design system offers a choice shows it in the sidebar's **Design system** section: one dot per colourway, drawn in its lead and partner colours for the current look, then **Light** and **Dark**, then a list for any other theme group. A group appears only when switching it changes what the tool draws, that is, when one of the colours the tool reads resolves differently between the group's options. A tool that draws only the text colour shows **Light** and **Dark** and no dots, since a colourway leaves the text colour alone, and a tool that reads no design-system colour shows no section. Linking a colour to the design system can bring a group in, and the hidden groups keep their choice in the link and the session. Design shows the same choices in the Inspector's **Canvas** tab, and the two always agree. The choice belongs to the artefact: it redraws the open tool with no reload, re-colouring every linked colour on the canvas, every colour the tool's own logic read from the design system, and the colour picker's swatches; it is saved with the session, and the app's own colours stay as they are. A link carries the choice with the other theme choices: `_themes={"":"dark","colourway":"persimmon"}`. The CLI takes the same JSON in `--_themes`, and a [batch](/info/using.html#batch-pro-mode) CSV takes it per row in its `_themes` column. On `lolly run`, `--themes=all` exports each look once: in the colourway a saved session was saved in, otherwise in the canonical colourway. Naming a colourway, as in `--themes=Persimmon`, exports in that colourway. A design system whose only themes are colourways exports each colourway under `all`.
+
+**Tools that keep their own colours.** A tool whose colours are its content, such as a tonal ramp, can declare `"tokenAxes": { "colourway": "ignore" }` in its manifest ([Authoring Tools](/info/authoring-tools.html#colours-that-are-the-content) has the format). That tool renders in the canonical colourway whatever a link, a saved session or the design system's stored choice asks for, and its sidebar offers no colourway. Any other kind works the same way, such as `mode` for a print piece that is always drawn in the canonical look. When a link or `--_themes` asks such a tool for another option, `lolly run` prints a `THEME_CHOICE_IGNORED` warning, which `--strict` turns into a failure, and an MCP render adds the same sentence to its warnings.
+
+**The app's own colours.** The app's accent, favicon and logo tint follow the canonical colourway whatever the open artefact uses: the app belongs to the device, the canvas to the artefact. The same holds for every other theme group, whether or not it declares a kind, except light and dark, which follow the app's appearance setting. A Persimmon poster shows Persimmon on the canvas and the canonical colour in the app around the poster.
+
+**Rules for a series.** The engine can pick colourways for a series of artefacts by a rule. No series or batch flow in the app applies these rules yet; for now only the engine's `pickColourway` function reads them. The design is that the rule is applied when each artefact is made, and the artefact stores the colourway it got, never the rule, so adding a colourway later changes what a rule picks for new work and leaves every existing artefact as it was.
+
+| Rule | Picks |
+| --- | --- |
+| `canonical` | The canonical colourway, every time |
+| `cycle` | The next colourway in order for each artefact, canonical first |
+| `by-key` | A fixed colourway for each value of a field, such as a speaker or a product, from a hash of the value |
+| `shuffle` | A seeded random order that uses every colourway once before any repeats |
+| `by-date` | The colourway whose `window` contains the date, else the canonical one |
+
+The same seed, key, date and position pick the same colourway on every computer, because the engine supplies no clock and no random source of its own.
+
+**Tools that use every lead.** Some tools draw several colours at once, and they draw on the whole family: every colourway's lead in the artefact's look, canonical first, read through `host.tokens.family()` (see [Host API](/info/host-api.html)).
+
+| Where | What the family changes |
+| --- | --- |
+| Chart | The leads come first in the categorical palette: ahead of the design system's own spectrum, or ahead of the shipped colours when it has none, so the palette never has fewer colours than with one colourway. They follow Primary and Secondary in the ordered palette and the recolour swatches. Another colourway's lead becomes the second hue of the two-hue sequential and diverging ramps |
+| Audiogram | The other colourways' leads follow the background in the visualiser's colours |
+| Mesh Gradient | Shuffle colours draws on the leads before the rest of the design system |
+| The visualiser's colour schemes | One scheme per colourway, in the design system's order and labelled with the colourway's name, with that colourway's partner as the counterpoint. A lead too dark or too grey to carry the picture hands the field to its partner |
+| Audio and text covers in Assets and the picker | The leads come first in the colours the covers are drawn from |
+
+The canvas carries the family as `--brand-lead-1` to `--brand-lead-<n>` and `--brand-lead-count` (see [Authoring tools](/info/authoring-tools.html)), and a colour input declared with `"palette": "colourway-leads"` offers the leads as its swatches (see [Tool inputs](/info/tool-inputs.html)). A design system with one colourway, or none, has no family, and each of these tools draws exactly as before.
+
+When the artefact's colourway or look changes, Chart, Mesh Gradient and Filter read the colours they keep from the design system again as the open tool redraws, and every input keeps its value. Covers belong to the app, not to an artefact: they list the same leads whatever colourway an artefact uses, in the app's own light or dark appearance.
+
+**Penpot.** A `.penpot` export keeps the colourway group and its sets, and opens with the canonical colourway turned on so the links resolve. Penpot's theme record has no field for the `kind`, so the group arrives in Penpot, and comes back from Penpot, as a plain theme group.
+
+**Engine functions.** `engine/src/colourway.ts` holds the pure helpers: `liftToColourways` converts a single-lead system into one with a canonical colourway and refuses the edit unless every token in every look resolves exactly as before; `addColourway` adds one; `colourwayFamily` lists every colourway's colour for a role, canonical first; `pickColourway` applies a rule; `withColourway` merges a pick into a theme selection. `deriveColourwaySlots` in `engine/src/brand-derive.ts` gives a new lead's primary, on-primary and secondary for one look, the same values a whole design system derived from that colour would use. Brand Studio does not author colourways yet; for now a colourway file is written by hand, by a script, or with these functions.
+
+**Editing colourways.** Five more functions in `engine/src/colourway.ts` edit the colourways a file already has. `renameColourway` changes a colourway's display name and never its id, because artefacts store the id. `reorderColourways` puts the colourways in a new order with the canonical one first. `setCanonicalColourway` makes another colourway canonical and moves it first. `duplicateColourway` copies a colourway under a new id and name. `removeColourway` removes any colourway except the canonical one, and clears any stored choice of that colourway. Each function works on a copy, resolves every token under every choice of look and colourway before and after, and refuses the edit with reasons when a remaining choice would draw something different. Two changes are intended: after `setCanonicalColourway`, an artefact that chose no colourway draws the new canonical one, and after `removeColourway`, an artefact that stored the removed colourway draws the canonical one. `colourwaysEditable` says whether a file's colourways can be edited this way, and why not. Brand Studio's Rebuild palette keeps every colourway (see [Brand Studio](brand-studio.md#committing-a-generated-palette)).
 
 ## Linked values
 
@@ -36,10 +149,12 @@ For a selection of several layers, common paint and compatible text groups offer
 | Design composites | A single shadow with zero spread and no inset; a gradient with 2 to 12 resolved sRGB stops, written as a rightward linear gradient. Layered shadows and unsupported gradient values are refused. |
 | Design borders | Whole borders project colour, absolute width and solid, dashed or dotted style in one undo step. Custom stroke styles and relative widths are refused. |
 | Design motion | Duration tokens convert to the field's seconds or milliseconds; easing tokens become validated CSS cubic Bezier controls. A zero-delay transition links Enter duration and geometry easing for one non-frame layer. |
-| Composed paragraphs | Line height, spacing before/after and start/end/first-line indents, following the existing caret, range or story scope. |
-| Remaining consumers | Whole typography on composed text needs pinned font-resource integration. Transition delay, Exit and frame/deck consumers remain follow-ups. |
+| Composed paragraphs | Line height, spacing before/after and start/end/first-line indents, following the existing caret, range or story scope. **Whole typography** sets font, size, weight, tracking and line height together on the same paragraphs. |
+| Remaining consumers | Transition delay, Exit and frame/deck consumers remain follow-ups. |
 
 Whole composite actions retain a separate reference and adapter on each property. Editing one property preserves the other links. Missing or incompatible source values retain their last literal. Composed paragraphs store their links with paragraph settings; applying a link across paragraphs preserves their other links.
+
+Whole typography on composed text records the exact font face it uses, not only a family name. Linking finds an installed face for the token's family at its exact weight, and an italic face as well when the selected text has italic runs, then stores those faces with the text by their content digest. When a design version with published fonts is active, the faces come from that version's pinned files. A nearer weight or another family is never substituted, and that includes a brand font that ships one file per weight: the link is refused and the field says which face is missing. Linking clears size, weight, tracking and font overrides inside the linked paragraphs so they cannot hide the link; other formatting stays, and undo restores the overrides in the same step. Italic runs take the italic face. A theme change refreshes the text only when every face the new values need was pinned for this link earlier. Otherwise the text keeps its last values and the field reports the missing face; link the token again in that theme to pin that face. Changing the size, weight, tracking or font of a whole linked paragraph, or its line height, makes the link custom; formatting a word inside it does not. A named character style that sets its own size, weight, tracking or font, such as a code style, keeps that value and does not make the link custom.
 
 Border and stroke-style links clear an authored dash array and custom dash/gap lengths in the same transaction, so the linked style reaches the renderer. Editing any of these dash settings makes the style consumer custom while colour and width can still follow their tokens. **Make custom** retains the rendered values. **Restore link** rechecks the source and clears the local dash overrides; undo restores those overrides together. An incompatible border refresh retains all active properties from its last usable source.
 
@@ -62,6 +177,16 @@ Design keeps links in an appended metadata field alongside ordinary scalar prope
 
 Typography, shadow, border, transition and gradient token composites support bounded nested aliases in the [supported composite fields](https://www.designtokens.org/tr/2025.10/format/#composite-types). Incompatible reference types stay visible in the inspector. Unknown token types, `$ref` and `$extends` remain retained source data and are reported where unsupported.
 
+## Linking many documents at once
+
+Batch and Multi-edit can link one token across many rows or sessions. In Batch, open a column's **Fill** popover; numeric, text and choice columns have a **Design token** section beside the fill value. In Multi-edit, each session card has the same **Input actions** menu as a tool sidebar and acts on that session only. The **Shared** card's menu reaches every session that declares the input.
+
+Choosing a token opens a review before anything changes. Each row or session shows its current value and the value it would get, resolved in that document's own theme choices and checked against its own input. Plain values are selected. A custom value that replaced a link, or a link to another token, is kept unless you select that document. A document that cannot take the token, or whose input is read-only, stays in the list with the reason. **Apply** writes only the selected documents; **Cancel** writes nothing.
+
+**Make custom** keeps each linked document at its own value and records the link for later. **Restore link** appears when every document records the same previous link, and its review selects those documents.
+
+In the Batch grid, a linked cell is shaded and its accessible name includes the token path. A value typed, picked, pasted or filled over a linked cell becomes a custom value that records the link, as in a tool sidebar. Cell copy and CSV export carry the value shown, not the link. Rows opened from saved sessions keep the session's theme choices and recorded links, and render with those choices.
+
 ## Reviewing changes
 
 Source edits, generated scales and upstream comparisons capture the current document. The review includes authored changes and indirect resolved changes. An intervening token edit, system switch or referenced resource change invalidates Apply.
@@ -77,6 +202,14 @@ lolly system sync incoming.tokens.json --base=earlier.tokens.json --revision=rel
 ```
 
 `sync` performs a base/local/incoming comparison and records source revision and digests. Its default is review only. `--apply` updates the active terminal system after a revision check; conflicts require `--keep-local`. External files use `--output`. The web review accepts exact earlier and incoming JSON files. Each conflict shows earlier, local and incoming definitions and needs a Keep local or Use incoming decision before Apply.
+
+## Saved work and tools that use a token
+
+The inspector's **Used by** list covers references inside the token document. Below that list, **Check saved work and tools** looks for the selected token in two more places on this device: saved sessions in this browser's storage, and the tool manifests of the mounted catalog. One check covers every token in the workspace, so choosing another token shows its results without a second check. The check runs only on request, can be cancelled and writes nothing.
+
+A saved session follows a token when one of its inputs, Design layer properties, rich-text run colours or composed paragraph settings links that token. A session that keeps a custom value but remembers the link for **Restore link** is counted separately. Sessions in the Trash, project templates and discarded drafts are left out. A tool counts when the token is the default of a colour or number input or block field, or a value in one of its examples. Counts cover direct links only: a session or tool that links another token which refers to the selected one is counted under that token, which the **Used by** list names. Each count states how many sessions or tools were read. Sessions and manifests that could not be read, or that fall past the size limits, are reported as not counted rather than as zero.
+
+Shared projects, other devices, earlier versions in History, the defaults of tools added from files and values that tool hooks compute are outside both scopes. A result describes this device at the time shown. When saved sessions change afterwards, the section notes the change and offers **Check again**. Sessions also record which design system was active when they were saved, so the result separates sessions saved with this system from sessions saved with another one.
 
 ## Published fonts
 

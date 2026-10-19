@@ -23,3 +23,13 @@ test('zero focus is included and invalid options are explicit; malformed focus s
   const rows = interactiveCheckRows(source); assert.equal(rows.length, 2); assert.equal(rows[0]!.step, 0);
   assert.match(rows[0]!.summary, /3 stops/); assert.equal(rows[1]!.warnings.length, 1); assert.match(rows[1]!.warnings[0]!, /could not be read/);
 });
+test('a reveal.js deck needs neither a receiver nor an outside scrolling method', () => {
+  const source = document.createElement('div');
+  source.innerHTML = `<div class="lolly-frame-page"><div class="lolly-box-web" data-lolly-web="https://slides.com/news/make-better-presentations" data-interact="1" data-interact-opts=""></div>`
+    + `<div class="lolly-box-web" data-lolly-web="https://talks.example.com/?postMessageEvents=true" data-interact="2" data-interact-opts="keys=key"></div>`
+    + `<div class="lolly-box-web" data-lolly-web="https://talks.example.com/" data-interact="3" data-interact-opts=""></div></div>`;
+  const [slides, selfHosted, plain] = interactiveCheckRows(source);
+  assert.equal(slides!.summary, 'Up and Down step through the embedded deck.'); assert.deepEqual(slides!.warnings, []);
+  assert.equal(selfHosted!.summary, 'Up and Down go to the demo.'); assert.deepEqual(selfHosted!.warnings, []);
+  assert.ok(plain!.warnings.some((warning) => warning.includes('does not listen to the clicker')), 'an ordinary page still asks for a method');
+});

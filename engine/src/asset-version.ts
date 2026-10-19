@@ -3,7 +3,7 @@
  * The suffix leaves legacy ids (including user/ privacy filtering and theme
  * modifiers) intact. Only an explicit pin changes latest-resolution semantics. */
 import type { AssetRef } from './bridge/host-v1.ts';
-import { stripAssetModifiers } from './asset-modifiers.ts';
+import { stripAssetModifiers, parseFileAssetId, parseThemedAssetId, parseTreatedAssetId } from './asset-modifiers.ts';
 
 export type AssetVersionPin = NonNullable<AssetRef['pin']>;
 const MARKER = '#lolly-version=';
@@ -41,7 +41,10 @@ export function decodeAssetVersion(id: string): { id: string; pin?: AssetVersion
 export function assetDependency(value: { id: string; pin?: AssetVersionPin }): { id: string; key: string; modifier: string; pin?: AssetVersionPin } {
   const decoded = decodeAssetVersion(value.id);
   const pin = assetVersionPin(value) ?? decoded.pin;
-  const id = stripAssetModifiers(decoded.id);
+  const themed = parseThemedAssetId(decoded.id), treated = parseTreatedAssetId(decoded.id);
+  const unstyled = themed.theme ? themed.baseId : treated.baseId;
+  // File selection is source identity. Only presentation belongs in modifier.
+  const id = parseFileAssetId(unstyled).file ? unstyled : stripAssetModifiers(decoded.id);
   return { id, key: encodeAssetVersion(id, pin), modifier: decoded.id.slice(id.length), pin };
 }
 

@@ -10,7 +10,7 @@
   "inputs.diagramPreset.options.blueprint": "Blaupause",
   "inputs.diagramPreset.options.mono": "Minimal Mono",
   "inputs.diagramType.label": "Diagrammtyp",
-  "inputs.diagramType.help": "Org/Mindmap erstellen aus dem übergeordneten Element jeder Karte einen Baum. Layercake/Kanban gruppieren Karten nach ihrer „Gruppe“-ID (gestapelte Bänder statt nebeneinander angeordneter Spalten). Prozess/Zeitleiste/Zyklus ordnen Karten entlang von Ablauf/Reihenfolge an. Pyramide, Matrix und Gantt haben eigene Steuerelemente weiter unten.",
+  "inputs.diagramType.help": "Wählen Sie die Beziehung, die Sie zeigen möchten. Organigramm und Mindmap: eine Hierarchie aus dem übergeordneten Element jeder Karte. Layercake: Abstraktionsebenen, ein Band pro „Gruppe“. Kanban: Arbeit nach Status, eine Spalte pro „Gruppe“; eine Spalte ist ein Status, keine Zuständigkeit. Prozess: gerichtete Schritte und Rückverbindungen aus den Pfeilen. Zeitleiste: Ereignisse in Reihenfolge, gleichmäßig verteilt, ohne Dauer. Zyklus: eine Schleife in Kartenreihenfolge. Pyramide: gestufte Ebenen. Matrix: vier Kategorien, keine Messwerte. Gantt: Aufgabendauer; eine Karte mit Datum ergänzt eine Zeitachse und eine Bahn pro „Gruppe“.",
   "inputs.diagramType.options.org": "Organigramm (Hierarchie)",
   "inputs.diagramType.options.mindmap": "Mindmap",
   "inputs.diagramType.options.layercake": "Layercake (Schichtarchitektur)",

@@ -18,6 +18,8 @@ support is pending its API contract; this pass cannot establish original-preserv
 5. Test an image, document, audio, video and metadata-only record. Compare downloaded Work bytes
    with the exact permitted rendition, including format, dimensions and any watermark. Check
    that missing proxies do not trigger generation and substitutes are not silently accepted.
+   Request one byte range of a large document through Work and compare it with the same range
+   of the rendition. Record whether the storage origin answers `206` or ignores ranges.
 6. If storage uses another origin, review and add only that exact HTTPS origin to `storageOrigins`.
    Keep API credentials on the tenant API. Redirects, including same-origin redirects, are refused;
    use a canonical documented origin rather than weakening the guard.

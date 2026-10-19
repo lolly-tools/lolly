@@ -10,7 +10,9 @@
  *   - Bucket A (color, geom, tokens, log) is CO-LOCATED - built right here from
  *     the pure engine modules + a snapshot of the brand token doc, so a hook's
  *     `host.color.distinct(...)` / `host.tokens.resolve(...)` never leaves the
- *     worker (the whole point - sync APIs cost ~0 across the boundary).
+ *     worker (the whole point - sync APIs cost ~0 across the boundary). A theme
+ *     switch sends a `tokens` message with a new snapshot (the executor's
+ *     `tokensChanged`), so the co-located tokens follow the runtime's choice.
  *   - Bucket B (assets, profile, state, export, net, …) is PROXIED: each call
  *     posts a `host-call` to the owning thread and awaits the reply, so the
  *     hook's `await host.assets.get(id)` is unchanged.
@@ -28,6 +30,7 @@ import { makeColorApi } from './color-tools.ts';
 import { makeGeomApi } from './geom-api.ts';
 import { inspectTokenDocument } from './token-inspect.ts';
 import { tokenSelectionKey } from './token-selection.ts';
+import { tokenAxesOf, tokenFamily } from './token-context.ts';
 import { createTokenSet, aliasPath } from './tokens.ts';
 import type { HostV1, TokenSet, TokenResolveOptions } from './bridge/host-v1.ts';
 
@@ -61,7 +64,16 @@ export interface HookInitMsg {
 export interface HookInvokeMsg { t: 'invoke'; runId: number; callId: number; name: string; ctx: Record<string, unknown> }
 export interface HookHostReplyMsg { t: 'host-reply'; runId: number; hostCallId: number; ok: boolean; value?: unknown; error?: string }
 export interface HookDisposeMsg { t: 'dispose'; runId: number }
-export type HookWorkerIn = HookInitMsg | HookInvokeMsg | HookHostReplyMsg | HookDisposeMsg;
+/**
+ * The owning thread's token document changed under a mounted run (plans/319): the
+ * document's theme choices moved (`Runtime.setTokenSelection`, the executor's
+ * `tokensChanged`), or the design system was edited. The run's co-located tokens
+ * answer from this snapshot from now on, so an isolated hook reads the new choices
+ * exactly as an in-realm hook does. The owner posts it BEFORE the invoke that
+ * needs it, and messages arrive in order.
+ */
+export interface HookTokensMsg { t: 'tokens'; runId: number; tokenDoc: unknown | null; tokenExcluded: string[] }
+export type HookWorkerIn = HookInitMsg | HookInvokeMsg | HookHostReplyMsg | HookDisposeMsg | HookTokensMsg;
 
 export const WORKER_HOOK_NAMES = ['onInit', 'onInput', 'onFrame', 'onLevel', 'exportFile'] as const;
 export type WorkerHookName = (typeof WORKER_HOOK_NAMES)[number];
@@ -243,6 +255,9 @@ interface Run {
   waiters: Map<number, { resolve: (v: unknown) => void; reject: (e: unknown) => void }>;
   logBuf: { level: string; msg: string; ctx?: unknown }[];
   flushTimer: ReturnType<typeof setTimeout> | null;
+  /** Swap the co-located tokens' document (a `tokens` message); absent when the
+   *  run was mounted with no token document. */
+  setTokens?: (doc: unknown, excluded: string[]) => void;
 }
 
 /** Build the singleton color/geom once (shared across all runs in this worker). */
@@ -280,21 +295,33 @@ export function createHookWorkerCore(port: HookWorkerPort, opts: HookWorkerCoreO
   }
 
   /** Build the co-located tokens surface from the snapshotted doc - a local
-   *  per-theme TokenSet cache; the async signatures just wrap the sync result. */
-  function makeTokens(doc: unknown, excluded: string[]): NonNullable<HostV1['tokens']> {
+   *  per-theme TokenSet cache; the async signatures just wrap the sync result.
+   *  `swap` replaces the document under the same object, so a hook that kept a
+   *  reference to `host.tokens` reads the new theme too. `axes` and `family`
+   *  (plans/319) are built only when the owning host has them, so an isolated
+   *  hook feature-detects exactly what an in-realm one would. */
+  function makeTokens(initialDoc: unknown, excluded: string[], members: readonly string[] = []): { tokens: NonNullable<HostV1['tokens']>; swap: (doc: unknown, excluded: string[]) => void } {
+    let doc = initialDoc;
     const byTheme = new Map<string, TokenSet>();
-    const excl = new Set(excluded);
+    let excl = new Set(excluded);
+    const swap = (next: unknown, nextExcluded: string[]): void => {
+      doc = next;
+      excl = new Set(nextExcluded);
+      byTheme.clear();
+    };
     const ensure = (opts: TokenResolveOptions = {}): TokenSet => {
       const key = tokenSelectionKey(opts);
       let set = byTheme.get(key);
       if (!set) { set = createTokenSet(doc, opts); if (byTheme.size >= 64) byTheme.delete(byTheme.keys().next().value!); byTheme.set(key, set); }
       return set;
     };
-    return {
+    const tokens: NonNullable<HostV1['tokens']> = {
       get: async (o = {}) => ensure(o),
       inspect: async (o = {}) => inspectTokenDocument(doc, o),
       resolve: async (ref, o = {}) => ensure(o).resolve(ref),
       themes: async () => ensure().themes(),
+      ...(members.includes('axes') ? { axes: async () => tokenAxesOf(doc) } : {}),
+      ...(members.includes('family') ? { family: async (role?: string, o: TokenResolveOptions = {}) => tokenFamily(doc, role, o, ensure) } : {}),
       colors: async (o = {}) => {
         const list = ensure(o).colors();
         if (!excl.size) return list;
@@ -304,10 +331,11 @@ export function createHookWorkerCore(port: HookWorkerPort, opts: HookWorkerCoreO
         });
       },
     };
+    return { tokens, swap };
   }
 
   /** Assemble the proxy `host` a hook sees inside the worker. */
-  function buildHost(runId: number, msg: HookInitMsg): HostV1 {
+  function buildHost(runId: number, msg: HookInitMsg, owner: Run): HostV1 {
     const run = () => runs.get(runId)!;
     const host: Record<string, unknown> = {
       version: '1',
@@ -321,7 +349,11 @@ export function createHookWorkerCore(port: HookWorkerPort, opts: HookWorkerCoreO
       color: apis.color,
       geom: apis.geom,
     };
-    if (msg.tokenDoc != null) host.tokens = makeTokens(msg.tokenDoc, msg.tokenExcluded);
+    if (msg.tokenDoc != null) {
+      const made = makeTokens(msg.tokenDoc, msg.tokenExcluded, msg.hostShape.tokens ?? []);
+      host.tokens = made.tokens;
+      owner.setTokens = made.swap;
+    }
 
     // Bucket B/C: build stubs from the introspected shape.
     for (const [ns, methods] of Object.entries(msg.hostShape)) {
@@ -395,7 +427,7 @@ export function createHookWorkerCore(port: HookWorkerPort, opts: HookWorkerCoreO
       let inRealmOnlyDeclared: InRealmOnlyHookName[] = [];
       let compileError: string | undefined;
       try {
-        run.host = buildHost(msg.runId, msg);
+        run.host = buildHost(msg.runId, msg, run);
         const compiled = compile(run.host, msg.hooksSource);
         run.mod = compiled.mod;
         inRealmOnlyDeclared = compiled.inRealmOnlyDeclared;
@@ -440,6 +472,12 @@ export function createHookWorkerCore(port: HookWorkerPort, opts: HookWorkerCoreO
         if (msg.ok) waiter.resolve(msg.value);
         else waiter.reject(new Error(msg.error ?? 'host call failed'));
       }
+      return;
+    }
+    if (msg.t === 'tokens') {
+      // A run mounted with no tokens has none to follow, and a failed snapshot
+      // (null) keeps the theme the hooks already read rather than blanking the tokens.
+      if (msg.tokenDoc != null) runs.get(msg.runId)?.setTokens?.(msg.tokenDoc, Array.isArray(msg.tokenExcluded) ? msg.tokenExcluded : []);
       return;
     }
     if (msg.t === 'dispose') {

@@ -16,6 +16,12 @@
  * and bounds object-URL memory (oldest URL revoked on eviction). A spec marked
  * `transient` bypasses that LRU in both directions and hands URL ownership to the
  * caller - a bulk one-shot bake must not flush the cache it will never read.
+ *
+ * A child renders in the theme choices of the document it is placed in, which the
+ * mount hands over per call (lib/theme-choices.ts `withComposeSelection`); a pasted
+ * link's own `_themes` wins for the groups it names and stays in the link's id. When
+ * the document made no choice, the groups the link leaves out take the design
+ * system's own choices, the ones the document itself draws in.
  */
 
 import { parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack } from '@lolly/engine';
@@ -25,6 +31,7 @@ import type { InputValue } from '../../../../engine/src/inputs.ts';
 import type { Unit } from '../../../../engine/src/units.ts';
 import { getTool } from './tool-loader.ts';
 import { svgLoopMs, svgMarkupAnimated } from '../lib/anim-detect.ts';
+import { childSelection, savedTokenSelection } from '../lib/theme-choices.ts';
 
 // Child render formats that make sense as an image dropped into a picker slot.
 // (Compose itself can also produce pdf, but a picker is choosing an *image*.)
@@ -64,8 +71,14 @@ const CACHE_CAP = 64;
 // ceiling (plan 265 milestone 2, E6, closing Q5(a)). A card in the asset picker is a
 // preview and stays cheap. Neither name is on the v1 ComposeAPI contract, so a caller
 // that says nothing keeps the behaviour it had.
-export type WebComposeSpec = ComposeSpec & { thumbnail?: boolean };
-export type WebComposeUrlOpts = ComposeUrlOpts & { thumbnail?: boolean };
+//
+// `tokenSelection` (plans/319 A6) is the theme choices of the document the child is
+// placed in, one theme id per group. A mount hands them over through
+// withComposeSelection (lib/theme-choices.ts); the child renders in them, and for
+// renderUrl a link's own `_themes` wins for the groups it names. Absent, the child
+// reads the unscoped token bridge as it always did.
+export type WebComposeSpec = ComposeSpec & { thumbnail?: boolean; tokenSelection?: Record<string, string> };
+export type WebComposeUrlOpts = ComposeUrlOpts & { thumbnail?: boolean; tokenSelection?: Record<string, string> };
 
 /**
  * Preview quality, or the finished thing? A caller may say. When it does not, the
@@ -100,6 +113,8 @@ export function createComposeAPI(host: HostV1) {
     if (typeof toolId !== 'string' || !toolId) throw new Error('compose: missing toolId');
     // Preview quality unless the caller asked for the finished thing (see the types above).
     const thumbnail = spec?.thumbnail ?? true;
+    // A copy, and only when it is a real choice map: an empty or malformed one is none.
+    const tokenSelection = savedTokenSelection(spec?.tokenSelection);
 
     assertComposeStack(_stack, toolId);
 
@@ -107,8 +122,10 @@ export function createComposeAPI(host: HostV1) {
     // re-requested, so caching it would evict live preview entries for nothing and
     // pin a multi-MB blob. The URL is then unowned here - the caller revokes it.
     // The quality is part of the key: the same child at preview and at export quality
-    // is two different pictures, and the second must not be served the first.
-    const key = transient ? '' : cacheKey(toolId, inputs, format, width, height, unit, dpi, thumbnail);
+    // is two different pictures, and the second must not be served the first. The
+    // theme choices are part of the key for the same reason: the child in dark is not
+    // the child in light, and a theme switch must not be answered from the cache.
+    const key = transient ? '' : cacheKey(toolId, inputs, format, width, height, unit, dpi, thumbnail, tokenSelection);
     if (!transient) {
       const hit = cache.get(key);
       if (hit) { cache.delete(key); cache.set(key, hit); return hit.assetRef; } // LRU bump
@@ -119,7 +136,7 @@ export function createComposeAPI(host: HostV1) {
     // ends with toolId) would double-count and trip the depth guard a level early.
     const isSingle = await getTool(toolId).then(t => !!t.manifest.singleInstance).catch(() => false);
     const doRender = () => renderRowToBlob(
-      { toolId, values: inputs as Record<string, InputValue> },
+      { toolId, values: inputs as Record<string, InputValue>, ...(tokenSelection ? { tokenSelection } : {}) },
       host,
       { format, width, height, unit: unit as Unit | undefined, dpi, composeStack: _stack, watermark: false, embedMeta: false, thumbnail, settleMs },
     );
@@ -224,12 +241,19 @@ export function createComposeAPI(host: HostV1) {
     const height = opts.height ?? state.height ?? svgNative?.height ?? undefined;
     const unit = opts.unit ?? state.unit ?? undefined;
     const dpi = opts.dpi ?? state.dpi ?? undefined;
+    // The link's own theme choices win for the groups they name; the document it is
+    // placed in (opts.tokenSelection, from withComposeSelection) decides the rest. A
+    // document that made no choice draws in the design system's own, so those fill the
+    // groups the link leaves out (lib/theme-choices.ts childSelection).
+    const ownSelection = state.tokenSelection;
+    const tokenSelection = await childSelection(host, opts.tokenSelection, ownSelection);
 
     let ref;
     try {
       ref = await render({
         toolId: parsed.toolId, inputs: state.values,
         format: format as ExportFormat, width, height, unit, dpi, _stack: opts._stack ?? [], thumbnail,
+        ...(tokenSelection ? { tokenSelection } : {}),
       });
     } catch (e) {
       host.log?.('warn', `renderUrl "${parsed.toolId}": ${(e as Error).message}`);
@@ -243,12 +267,7 @@ export function createComposeAPI(host: HostV1) {
     // state survives - otherwise the only param is the reserved `z`, which the delete
     // loop strips, leaving a stateless id that re-renders as defaults on reload. The
     // strict embed form re-parses everywhere (parseEmbedUrl is host-locked).
-    const q = new URLSearchParams(query);
-    for (const k of RESERVED) q.delete(k);
-    if (width) q.set('w', String(width));
-    if (height) q.set('h', String(height));
-    if (unit && unit !== 'px') { q.set('unit', String(unit)); if (dpi) q.set('dpi', String(dpi)); }
-    const id = buildEmbedUrl({ toolId: parsed.toolId, format, query: q.toString() });
+    const id = composeEmbedId({ toolId: parsed.toolId, format, query, tokenSelection: ownSelection, width, height, unit, dpi });
     // No re-parseable identity (too long) → don't persist a dead slot; the picker
     // reports it couldn't render rather than committing an asset that breaks on load.
     if (!id) return null;
@@ -269,6 +288,27 @@ export function createComposeAPI(host: HostV1) {
   // _describeUrl is web-only host-UI chrome (the picker's detected-tool card), not
   // part of the v1 ComposeAPI contract - underscore-prefixed like assets._* helpers.
   return { render, renderUrl, _describeUrl: describeUrl };
+}
+
+/**
+ * The canonical embed id a pasted link is stored under: the link's own input params
+ * verbatim, no export-control params, then the effective size. A link that names
+ * theme choices shows the child in them, so `_themes` stays in the id and a reload
+ * reproduces them (plans/319 A6). Choices inherited from the document do not belong
+ * here: the document hands them over again on every render. Null when the id would be
+ * too long to parse back.
+ */
+export function composeEmbedId({ toolId, format, query, tokenSelection, width, height, unit, dpi }: {
+  toolId: string; format: string; query: string; tokenSelection?: Record<string, string>;
+  width?: number; height?: number; unit?: string; dpi?: number;
+}): string | null {
+  const q = new URLSearchParams(query);
+  for (const k of RESERVED) q.delete(k);
+  if (tokenSelection && Object.keys(tokenSelection).length) q.set('_themes', JSON.stringify(tokenSelection));
+  if (width) q.set('w', String(width));
+  if (height) q.set('h', String(height));
+  if (unit && unit !== 'px') { q.set('unit', String(unit)); if (dpi) q.set('dpi', String(dpi)); }
+  return buildEmbedUrl({ toolId, format, query: q.toString() });
 }
 
 /**
@@ -302,7 +342,8 @@ async function blobUrlToDataUrl(blobUrl: string): Promise<string> {
   });
 }
 
-function cacheKey(
+/** The LRU key of one child render. Exported for compose-theme.test.ts. */
+export function cacheKey(
   toolId: string,
   inputs: Record<string, unknown>,
   format: string | undefined,
@@ -311,8 +352,10 @@ function cacheKey(
   unit: string | undefined,
   dpi: number | undefined,
   thumbnail: boolean,
+  tokenSelection?: Record<string, string>,
 ): string {
-  return `${toolId}|${stableStringify(inputs)}|${format ?? ''}|${width ?? ''}${unit ?? ''}x${height ?? ''}@${dpi ?? ''}|${thumbnail ? 'preview' : 'export'}`;
+  const themes = tokenSelection ? `|${stableStringify(tokenSelection)}` : '';
+  return `${toolId}|${stableStringify(inputs)}|${format ?? ''}|${width ?? ''}${unit ?? ''}x${height ?? ''}@${dpi ?? ''}|${thumbnail ? 'preview' : 'export'}${themes}`;
 }
 
 function stableStringify(value: unknown): string {

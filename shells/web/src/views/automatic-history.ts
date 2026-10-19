@@ -41,8 +41,10 @@ export interface AutomaticHistory {
   /** Give the last recorded explicit save its picture: the revision's preview and
    * the Projects tile. Works after close() and dispose(), because Save & leave
    * takes the picture while the tool is already going. Skipped when the creation
-   * changed since that save, unless the tool has closed. */
-  attachSaveThumbnail(thumb: string): Promise<void>;
+   * changed since that save, unless the tool has closed. The Save action calls it
+   * once for each recorded save, with null when no picture came, so whatever waits
+   * on that picture (mountActionHistory) is released. */
+  attachSaveThumbnail(thumb: string | null): Promise<void>;
   /** Whether edits made now reach History as checkpoints a person can open as a
    * copy, so a discard can promise that History keeps them: not while history is
    * paused for this creation, checkpoints are paused, or recovery cannot write. */

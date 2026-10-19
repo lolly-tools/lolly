@@ -10,7 +10,7 @@
   "inputs.diagramPreset.options.blueprint": "Blueprint",
   "inputs.diagramPreset.options.mono": "Mono minimalis",
   "inputs.diagramType.label": "Jenis rajah",
-  "inputs.diagramType.help": "Organisasi/Peta minda membina pepohon daripada induk setiap kad. Layercake/Kanban mengumpulkan kad mengikut ID “Kumpulan” masing-masing (jalur bertindan berbanding lajur bersebelahan). Proses/Garis masa/Kitaran menyusun kad mengikut aliran/susunan. Piramid, Matriks dan Gantt mempunyai kawalan sendiri di bawah.",
+  "inputs.diagramType.help": "Pilih hubungan yang ingin anda tunjukkan. Carta organisasi dan Peta minda: hierarki daripada induk setiap kad. Layercake: aras abstraksi, satu jalur bagi setiap “Kumpulan”. Kanban: kerja mengikut status, satu lajur bagi setiap “Kumpulan”; lajur ialah status, bukan pemilik. Proses: langkah berarah dan pautan balik daripada anak panah. Garis masa: peristiwa mengikut urutan, berjarak sama, tanpa tempoh. Kitaran: gelung mengikut urutan kad. Piramid: peringkat yang disusun mengikut kedudukan. Matriks: empat kategori, bukan nilai yang diukur. Gantt: tempoh tugas; satu kad bertarikh menambah paksi masa dan satu lorong bagi setiap “Kumpulan”.",
   "inputs.diagramType.options.org": "Carta organisasi (hierarki)",
   "inputs.diagramType.options.mindmap": "Peta minda",
   "inputs.diagramType.options.layercake": "Layercake (seni bina berlapis)",

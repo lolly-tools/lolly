@@ -35,6 +35,7 @@ import { roleFontSize } from '@lolly-tools/core';
 import { brandContext } from './brand-context.ts';
 import { brandSystemOf } from './brand-system.ts';
 import { createTokenSet, TOKEN_EXT } from './tokens.ts';
+import { readTokenAxes, axisOfKind, modeAxis } from './token-axes.ts';
 import { contrastRatio } from './logo-variant.ts';
 import { iconThemeSurfaces } from './surface-variant.ts';
 import type { LogoSetV1 } from './logo-variant.ts';
@@ -100,7 +101,9 @@ function tally<T extends string | number>(values: T[]): Array<{ value: T; count:
 
 function themeSection(doc: unknown) {
   const base = createTokenSet(doc);
-  const names = base.themes().map((t) => t.name).filter(Boolean);
+  // Colourways are listed on their own (colourwaySection): a colourway is not a look
+  // an artefact is drawn in, it is which lead fills the primary role in every look.
+  const names = base.themes().filter((t) => t.kind !== 'colourway').map((t) => t.name).filter(Boolean);
   const slotsOf = (theme?: string): Record<string, string> => {
     const out: Record<string, string> = {};
     for (const c of createTokenSet(doc, { theme }).colors()) {
@@ -121,6 +124,36 @@ function themeSection(doc: unknown) {
     const roles = rolesOf(name);
     return { name, semantic: slotsOf(name), ...(Object.keys(roles).length ? { roles } : {}) };
   });
+}
+
+/**
+ * The leads a design system offers (plans/319), or null when it has one. Each
+ * colourway lists the slots it fills in every look, so an agent can say which
+ * colourway a piece should use and pass it as `_themes={"<group>":"<id>"}`.
+ */
+function colourwaySection(doc: unknown) {
+  const axes = readTokenAxes(doc).axes;
+  const axis = axisOfKind(axes, 'colourway');
+  if (!axis) return null;
+  const mode = modeAxis(axes);
+  const looks = mode ? mode.options.map((o) => ({ id: o.id, selection: { [mode.group]: o.id } })) : [{ id: 'default', selection: {} }];
+  return {
+    group: axis.group,
+    canonical: axis.canonical,
+    ...(axis.rotation ? { rotation: axis.rotation } : {}),
+    options: axis.options.map((option) => ({
+      id: option.id,
+      name: option.name,
+      slots: Object.fromEntries(looks.map((look) => {
+        const out: Record<string, string> = {};
+        for (const c of createTokenSet(doc, { selection: { ...look.selection, [axis.group]: option.id } }).colors()) {
+          const slot = c.path.startsWith('color.semantic.') ? c.path.slice('color.semantic.'.length) : '';
+          if (['primary', 'on-primary', 'secondary', 'surface'].includes(slot) && c.value) out[slot] = c.value;
+        }
+        return [look.id, out];
+      })),
+    })),
+  };
 }
 
 function combinationSection(doc: unknown, theme: string | undefined, themes: Array<{ name: string; semantic: Record<string, string> }>) {
@@ -367,9 +400,11 @@ export function designBrief(doc: unknown, catalog?: DesignBriefCatalogV1 | null,
   // The text styles a Design `$style` resolves to, at the master size, so an agent sizes
   // authored text from the same numbers the expansion writes.
   const styles = textStylesFromBrief({ type, themes, houseRules, theme: opts.theme ?? null }, { width: master.size.width, height: master.size.height });
+  const colourways = colourwaySection(doc);
   return {
     ...context,
     themes,
+    ...(colourways ? { colourways } : {}),
     combinations,
     type: { ...type, styles },
     logos,

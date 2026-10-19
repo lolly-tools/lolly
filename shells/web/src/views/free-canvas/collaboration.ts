@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { CANVAS_CLAIM_FIELD_LIMIT, type CanvasPreview } from '@lolly-tools/core/canvas-interaction-v1';
 import { retainCanvasRecovery } from '../../lib/canvas-recovery.ts';
 import { charsFromDom, markdownFromChars } from '../rich-text.ts';
 import { canvasInteractions, type CanvasInteractionLease } from '../../lib/canvas-interaction.ts';
@@ -25,6 +26,13 @@ function indices(g: Gesture): number[] {
   return g.type === 'move' ? [...g.sel] : g.type === 'resize' || g.type === 'rotate' ? [g.index]
     : g.type === 'gscale' || g.type === 'grotate' || g.type === 'pinch' ? g.sel : [];
 }
+/** The content fields a gesture's commit writes with its geometry, which its claim lists:
+ *  the tool's keyframe track, and in Scale mode every length the Scale grows. */
+function claimFields(fc: FcCtx, g: Gesture): string[] {
+  const scale = (g.type === 'resize' || g.type === 'gscale' || g.type === 'pinch') && !!g.content;
+  const named = [fc.timeCfg?.kfField, ...(scale ? fc.selectionTransform.scaleFields() : [])];
+  return [...new Set(named.filter((f): f is string => !!f))].slice(0, CANVAS_CLAIM_FIELD_LIMIT);
+}
 export function beginCanvasGesture(fc: FcCtx): void {
   const port = canvasInteractions(fc.runtime), g = fc.gesture;
   if (!port || !g || !indices(g).length) return;
@@ -39,7 +47,8 @@ export function beginCanvasGesture(fc: FcCtx): void {
   const state: GestureLease = { gesture: g, ids: [...claimed], claimed, selected: selected.map(i => fc.select.idOf(boxes[i], i)),
     baseline: new Map(), rects: new Map(), dirty: false };
   gestures.set(fc, state);
-  void port.acquire({ kind: 'transform', collection: fc.blockId, ids: state.ids }, () => {
+  const fields = claimFields(fc, g);
+  void port.acquire({ kind: 'transform', collection: fc.blockId, ids: state.ids, ...(fields.length ? { fields } : {}) }, () => {
     if (gestures.get(fc) === state) {
       let message = 'Editing stopped: the work connection or claim changed.';
       try { if (state.rects.size) {
@@ -131,10 +140,16 @@ export function previewCanvasRect(fc: FcCtx, index: number, rect: Rect): void {
   state.dirty = true;
 }
 /** What peers are shown a gesture doing. A pinch turns once its twist has turned the
- *  selection, resizes once its spread has scaled the selection, and otherwise moves. */
-function previewKind(g: Gesture): 'move' | 'resize' | 'rotate' {
-  if (g.type === 'pinch') return g.deg ? 'rotate' : g.k != null && g.k !== 1 ? 'resize' : 'move';
-  return g.type === 'move' ? 'move' : g.type === 'resize' || g.type === 'gscale' ? 'resize' : 'rotate';
+ *  selection, resizes once its spread has scaled the selection, and otherwise moves.
+ *  In Scale mode a resize scales the content too, and a pinch whose spread has scaled
+ *  the selection shows that before any turn: the turn is in the rows either way. */
+function previewKind(g: Gesture): CanvasPreview['kind'] {
+  if (g.type === 'pinch') {
+    const spread = g.k != null && g.k !== 1;
+    return spread && g.content ? 'scale' : g.deg ? 'rotate' : spread ? 'resize' : 'move';
+  }
+  if (g.type === 'resize' || g.type === 'gscale') return g.content ? 'scale' : 'resize';
+  return g.type === 'move' ? 'move' : 'rotate';
 }
 /** Publish a complete gesture frame after every selected object's live DOM write. */
 export function flushCanvasPreview(fc: FcCtx): void {

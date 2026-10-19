@@ -16,6 +16,8 @@
  *   - a codec that is illegal in the target (AAC audio into WebM, which only takes
  *     Opus or Vorbis) is dropped while the legal video is kept, and a source whose
  *     only track is illegal returns null (the dropped-or-null contract),
+ *   - every source track is listed as copied or dropped, with the reason for a drop,
+ *     so the refusal can say which track a copy would lose,
  *   - a rewrite into the source's own container, and a source mediabunny cannot read,
  *     both return null (the fall-back trigger), not a throw,
  *   - a genuine cancel throws an AbortError rather than falling back.
@@ -175,6 +177,7 @@ test('transmuxContainer: a WebM (VP9 HDR + Opus) rewrites to a valid MKV, byte-l
   assert.equal(result.videoCodec, 'vp9');
   assert.equal(result.audioCodec, 'opus');
   assert.equal(result.droppedTracks, 0);
+  assert.deepEqual(result.tracks.map((t) => [t.kind, t.codec, t.action]), [['video', 'vp9', 'copy'], ['audio', 'opus', 'copy']]);
 
   const after = await readContainer(await result.blob.arrayBuffer());
   // (b) the output re-opens as the target container (Matroska, distinct from the WebM
@@ -214,6 +217,14 @@ test('transmuxContainer: an AAC track illegal in WebM is dropped while the legal
   assert.equal(result.videoCodec, 'vp9');
   assert.equal(result.audioCodec, null, 'the AAC audio was dropped, not kept');
   assert.ok(result.droppedTracks >= 1, 'the dropped AAC track is counted');
+
+  // The disclosure says which track went and why, not only how many.
+  assert.deepEqual(result.tracks, [
+    { kind: 'video', codec: 'vp9', action: 'copy' },
+    { kind: 'audio', codec: 'aac', action: 'drop', reason: 'codec-not-in-container' },
+  ]);
+  const { droppedTrackList } = await import('./file-operation-adapter.ts');
+  assert.equal(droppedTrackList(result.tracks, 'WebM'), 'the AAC sound track (WebM cannot carry it)');
 
   const after = await readContainer(await result.blob.arrayBuffer());
   assert.equal(after.format, mb.WEBM, 'the output is a valid WebM');

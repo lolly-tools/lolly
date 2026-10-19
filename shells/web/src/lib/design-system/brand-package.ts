@@ -3,7 +3,8 @@
  * integrity, asset closure, sanitisation and collision-safe asset ingest. */
 import { strToU8, type Unzipped } from 'fflate';
 import { exportBrandPack, type BrandTransferHost } from '../../brand-transfer.ts';
-import { buildLollyFile, readLollyFile, ingestLollyFile, type LollyFileContents, type LollyToolBundle } from '../lolly-pack.ts';
+import { buildLollyFile, readLollyFile, ingestLollyFile, type LollyFileContents, type LollyLibraryAsset, type LollyToolBundle } from '../lolly-pack.ts';
+import { packRights } from '../redistribution.ts';
 import { buildIntegrity, readJson, README_NAME, type BundleEntry } from '../bundle.ts';
 import { zipAsync } from '../zip.ts';
 import type { BeamPackHost, BeamAssetRecord } from '../beam-pack.ts';
@@ -69,14 +70,18 @@ export async function buildBrandPackage(
     sessions.push({ toolId: row.toolId, label: nameOf(row.label, row.toolId), thumb: row.thumb ?? null, data });
   }
   const selected = new Set(selection.assets);
-  // Selecting a catalogue item explicitly authorises carrying that file. Merely
-  // referencing licensed material from a session retains the existing share gate.
-  const resolveLibrary = async (id: string) => {
+  // A catalogue item referenced from a session travels only when its licence lets
+  // it (lib/redistribution.ts); otherwise it stays an external reference and the
+  // payload's CREDITS.txt gives the reason. Selecting an item in the checklist is
+  // the sender's choice to carry that one file, which CREDITS.txt records as such.
+  const resolveLibrary = async (id: string): Promise<LollyLibraryAsset | null> => {
     const [blob, ref] = await Promise.all([host.assets._getBlob(id), host.assets.get(id).catch(() => null)]);
     if (!blob || !ref) return null;
     const meta = ref.meta ?? {};
-    const licensed = !selected.has(id) && (meta.brandLock === true || /proprietary|all-rights-reserved|licenseref|premiumbeat/i.test(String(meta.license ?? '')));
-    return { bytes: blob, mime: blob.type, type: ref.type, format: ref.format, label: nameOf(meta.name, id), licensed, meta };
+    return {
+      bytes: blob, mime: blob.type, type: ref.type, format: ref.format, label: nameOf(meta.name, id), meta,
+      ...packRights(meta), ...(selected.has(id) ? { chosen: true } : {}),
+    };
   };
   const userAssets = await host.assets._exportUserAssets() as BeamAssetRecord[];
   for (const id of selected) {
@@ -114,7 +119,7 @@ export async function buildBrandPackage(
   entries['content.json'] = strToU8(JSON.stringify(receipt));
   const manifest = readJson(original, 'manifest.json');
   const counts = { sessions: sessions.length, assets: selected.size, tools: toolPaths.length, references: payload.summary.byReferenceCount };
-  entries[README_NAME] = strToU8(new TextDecoder().decode(original[README_NAME]) + `\nSelected local content: ${counts.sessions} sessions, ${counts.assets} files, ${counts.tools} tools.\nRequired session assets travel inside content/collection.lolly. ${counts.references} assets remain external references.\nImport this .lolly in Lolly to add the brand and selected content. Existing sessions are never replaced; tools retain their normal trust prompt.\n`);
+  entries[README_NAME] = strToU8(new TextDecoder().decode(original[README_NAME]) + `\nSelected local content: ${counts.sessions} sessions, ${counts.assets} files, ${counts.tools} tools.\nRequired session assets travel inside content/collection.lolly. ${counts.references} assets remain external references.\n${payload.summary.credits ? 'CREDITS.txt inside content/collection.lolly lists the catalogue works it uses, what was held back and why.\n' : ''}Import this .lolly in Lolly to add the brand and selected content. Existing sessions are never replaced; tools retain their normal trust prompt.\n`);
   const integrity = await buildIntegrity(entries);
   const zip = await zipAsync({ 'manifest.json': strToU8(JSON.stringify({ ...manifest, formatVersion: 4, minReader: Math.max(2, Number(manifest.minReader) || 1), contents: counts, integrity })), ...entries });
   return { blob: new Blob([zip as BlobPart], { type: brand.blob.type }), filename: brand.filename, references: counts.references };

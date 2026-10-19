@@ -80,6 +80,19 @@ test('listProjects maps the server shape', async () => {
   assert.deepEqual(projects, [{ id: 'p1', name: 'Summit', sessionCount: 3, updatedAt: '2026-07-21' }]);
 });
 
+// Plan 320 J10: the tile needs the project's visibility to say who it is for.
+test('listProjects keeps who a project is for, and drops a visibility it cannot read', async () => {
+  router = (url) => url.includes('/api/v1/projects')
+    ? json({ projects: [
+      { id: 'p1', name: 'Drafts', visibility: 'private' },
+      { id: 'p2', name: 'Summit', visibility: { groups: ['Marketing', '', 7] } },
+      { id: 'p3', name: 'Odd', visibility: { groups: [] } },
+    ] })
+    : new Response('', { status: 404 });
+  const projects = await src.listProjects();
+  assert.deepEqual(projects.map(p => p.visibility), ['private', { groups: ['Marketing'] }, undefined]);
+});
+
 test('listSessions maps the server shape', async () => {
   router = (url) => url.includes('/api/v1/projects/p1/sessions')
     ? json({ sessions: [{ id: 's1', toolId: 'event-badge', label: 'Cover', rev: 2, updatedBy: 'u1', updatedAt: 'x', inputs: { secret: 1 } }] })

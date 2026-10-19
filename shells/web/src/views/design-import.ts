@@ -29,6 +29,7 @@
 import { storeUserUpload } from './picker.ts';
 import {
   importPenpotLayouts,
+  penpotSvgLayoutFindings,
   validateDesignHierarchy,
   penpotHasLayout,
   penpotChildrenPaintOrder,
@@ -51,12 +52,15 @@ import {
   isPptx,
   readingOrder,
   type DesignFrameScene,
+  type LayoutFinding,
   type DesignMapOptions,
   type PageText,
   type TextBlock,
 } from '@lolly/engine';
 import { rasterSize } from './svg-unpack.ts';
 import { prepareSvgText, readTextContent, anchorToAlign, styleProp, attrNum } from './design-import-text.ts';
+import { isPenpotMetadata, penpotAttr, readPenpotSvgLayouts, NON_DRAWN_CONTAINERS } from './design-import-penpot-svg.ts';
+export { layoutFindingsNote } from './design-import-penpot-svg.ts';
 import type { UnpackHandle } from './unpack-open.ts';
 import type { PdfPageSvg, EmbeddedFont, EmbeddedImage, EmbeddedImageScan, ExtractedVector } from './pdf-import.ts';
 import { strFromU8 } from 'fflate';
@@ -83,6 +87,8 @@ interface DesignImportResult {
   layoutTracks?: Array<Record<string, unknown>>;
   pages?: Array<{ id: string; name: string; order: number }>;
   fontSubstitutions?: string[];
+  /** Layouts a Penpot SVG declared but the import kept as positioned artwork. */
+  layoutFindings?: LayoutFinding[];
   /** The map the boxes were finalized with, font vocabulary and all (Penpot
    *  binfile only). Additive: a caller that wants a SECOND pass over the same
    *  file (the components-as-templates pass) hands this back so the deck's
@@ -128,18 +134,9 @@ const MAX_FIG_DATA_BYTES = 256 * 1024 * 1024;
 // Elements that are never drawn on their own (definitions / metadata / containers).
 // <g> is intentionally NOT here: it's a container we recurse into, not a leaf.
 const SKIP_TAGS = new Set([
-  'defs', 'clippath', 'mask', 'symbol', 'style', 'script',
-  'title', 'desc', 'metadata', 'filter', 'lineargradient',
-  'radialgradient', 'pattern', 'marker',
+  ...NON_DRAWN_CONTAINERS, 'style', 'script',
+  'title', 'desc', 'metadata', 'filter', 'lineargradient', 'radialgradient',
 ]);
-
-// Penpot writes its extra data as `penpot:*` attributes. DOMParser keeps the literal
-// qualified name, but namespace handling varies, so we look it up defensively.
-const PENPOT_NS_CANDIDATES = [
-  'http://penpot.app/svg',
-  'https://penpot.app/svg',
-  'http://penpot.app/xmlns',
-];
 
 /**
  * Parse a design file into a Design boxes array.
@@ -226,7 +223,8 @@ export async function parseDesignFile(
   if (!svgEl) throw new Error('This file isn’t a readable SVG. Export your design as SVG and try again.');
 
   const { nodes, width, height, fontSubstitutions } = await svgToNodes(svgEl, { host, warn, map });
-  return { boxes: finalizeBoxes(nodes, map), width, height, background: '#ffffff', fontSubstitutions };
+  const layoutFindings = reportSvgLayouts(svgEl, warn);
+  return { boxes: finalizeBoxes(nodes, map), width, height, background: '#ffffff', fontSubstitutions, ...(layoutFindings.length ? { layoutFindings } : {}) };
 }
 
 // ---------------------------------------------------------------------------
@@ -247,6 +245,8 @@ export interface DesignImportFrame {
   /** A prototype-flow entrance (Penpot), on `parseDesignScenes`' terms. */
   enter?: string;
   enterMs?: number;
+  /** Layouts this page's Penpot SVG declared but the import kept as positioned artwork. */
+  layoutFindings?: LayoutFinding[];
 }
 export interface DesignArtboardsResult {
   frames: DesignImportFrame[];
@@ -330,7 +330,8 @@ export async function parseDesignArtboards(
   const svgEl = sanitizeSvg(svgText);
   if (!svgEl) throw new Error('This file isn’t a readable SVG. Export your design as SVG and try again.');
   const { nodes, width, height } = await svgToNodes(svgEl, { host, warn, map });
-  return { frames: [{ name: baseName((file as File).name, 'design'), width, height, boxes: finalizeBoxes(nodes, map) }], background: '#ffffff' };
+  const layoutFindings = reportSvgLayouts(svgEl, warn);
+  return { frames: [{ name: baseName((file as File).name, 'design'), width, height, boxes: finalizeBoxes(nodes, map), ...(layoutFindings.length ? { layoutFindings } : {}) }], background: '#ffffff' };
 }
 
 /**
@@ -492,7 +493,7 @@ async function svgToNodes(
       // empty <g>/<svg> containers emits no leaves but would still recurse unbounded.
       if (count >= MAX_ELEMENTS || ++visited > MAX_ELEMENTS * 8) { truncated = true; return; }
       const tag = (el.tagName || '').toLowerCase();
-      if (SKIP_TAGS.has(tag)) return;
+      if (SKIP_TAGS.has(tag) || isPenpotMetadata(el)) return;
 
       // Accumulate inherited fill + opacity from ancestor <g>s.
       const fillAttr = el.getAttribute('fill');
@@ -531,6 +532,16 @@ async function svgToNodes(
 
   const fontSubstitutions = await prepareSvgText(nodes, map);
   return { nodes, width: Math.round(canvasW), height: Math.round(canvasH), fontSubstitutions };
+}
+
+// A page SVG from Penpot's legacy zip export can declare flex or grid layouts beside
+// artwork Penpot already positioned. The engine reports each declared container and
+// the page imports at its exported positions. An SVG without the metadata reports
+// nothing, and no layout is ever inferred from where things sit.
+function reportSvgLayouts(svgEl: Element, warn: (msg: string) => void): LayoutFinding[] {
+  const findings = penpotSvgLayoutFindings(readPenpotSvgLayouts(svgEl));
+  for (const finding of findings) warn(finding.message);
+  return findings;
 }
 
 /**
@@ -762,7 +773,7 @@ async function parsePenpotZip(files: Record<string, Uint8Array>, { host, warn, i
   // or a plain SVG zipped up. Overlay every page onto one canvas.
   const svgPaths = Object.keys(files).filter((p) => /\.svg$/i.test(p) && !/[/\\]$/.test(p));
   if (svgPaths.length) {
-    const allNodes: any[] = [];
+    const allNodes: any[] = [], layoutFindings: LayoutFinding[] = [];
     let width = 0, height = 0;
     for (const path of svgPaths.sort()) {
       let svgText: string;
@@ -771,11 +782,12 @@ async function parsePenpotZip(files: Record<string, Uint8Array>, { host, warn, i
       const svgEl = sanitizeSvg(svgText);
       if (!svgEl) { warn(`Skipped an unreadable Penpot page (${path}).`); continue; }
       const { nodes, width: w, height: h } = await svgToNodes(svgEl, { host, warn, penpot: true, zipFiles: files, map });
-      allNodes.push(...nodes);
+      // A page that draws nothing (the zip's components.svg) reports no layouts.
+      allNodes.push(...nodes); if (nodes.length) layoutFindings.push(...reportSvgLayouts(svgEl, warn));
       width = Math.max(width, w); height = Math.max(height, h);
     }
     if (!allNodes.length) throw new Error('This Penpot file didn’t contain any importable pages.');
-    return { boxes: finalizeBoxes(allNodes, map), width: width || 1080, height: height || 1080, background: '#ffffff' };
+    return { boxes: finalizeBoxes(allNodes, map), width: width || 1080, height: height || 1080, background: '#ffffff', ...(layoutFindings.length ? { layoutFindings } : {}) };
   }
 
   throw new Error('Could not read this Penpot file. In Penpot use “Export as .penpot” (or export the board as SVG) and import that.');
@@ -1564,23 +1576,6 @@ function rootDefsHtml(mount: SVGSVGElement): string {
   }
 }
 
-// Read a Penpot `penpot:<name>` attribute robustly across namespace handling.
-function penpotAttr(el: Element, name: string): string | null {
-  const direct = el.getAttribute('penpot:' + name);
-  if (direct != null) return direct;
-  for (const ns of PENPOT_NS_CANDIDATES) {
-    const v = el.getAttributeNS(ns, name);
-    if (v != null && v !== '') return v;
-  }
-  // Last resort: scan attributes for a matching prefixed/local name.
-  for (const attr of Array.from(el.attributes)) {
-    if (attr.name === 'penpot:' + name || (attr.localName === name && (attr.prefix === 'penpot'))) {
-      return attr.value;
-    }
-  }
-  return null;
-}
-
 // A fill that's paintable as a solid colour, else '' (none/currentColor/url(#…)).
 function colorOrEmpty(v: unknown): string {
   const s = String(v == null ? '' : v).trim();
@@ -1987,7 +1982,8 @@ async function collectPenpotZipFrames(files: Record<string, Uint8Array>, { host,
     const name = baseName(path.split('/').pop(), `Page ${frames.length + 1}`);
     const { nodes, width, height } = await svgToNodes(svgEl, { host, warn, penpot: true, zipFiles: files, map });
     const boxes = finalizeBoxes(nodes, map);
-    if (boxes.length) frames.push({ name, width, height, boxes });
+    const layoutFindings = boxes.length ? reportSvgLayouts(svgEl, warn) : [];
+    if (boxes.length) frames.push({ name, width, height, boxes, ...(layoutFindings.length ? { layoutFindings } : {}) });
   }
   if (svgPaths.length > MAX_SCENES) warn(`This file has ${svgPaths.length} pages - only the first ${MAX_SCENES} were imported.`);
   if (!frames.length) throw new Error('This Penpot file didn’t contain any importable pages.');

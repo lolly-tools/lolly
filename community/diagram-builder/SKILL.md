@@ -6,7 +6,9 @@ description: Build and revise Lolly Diagrams from the supported visual, text, AS
 # Diagrams
 
 Use the overall Lolly skill for design-system setup and transport selection.
-Read [the diagram workflow](skill/workflow.md) before importing or restyling.
+Read [the diagram workflow](skill/workflow.md) before choosing a type, importing
+or restyling. It holds the decision table, the sources, the look defaults, the
+fidelity record, the review loop and the export checks.
 Read [the actual input definitions](reference/inputs.json) for choices and defaults.
 
 Choose a type that answers the reader's question. Hierarchies use `org` or

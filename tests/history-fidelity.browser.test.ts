@@ -5,6 +5,7 @@ import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { shellSettled } from './helpers/shell-settled.ts';
+import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 
 const origin = process.env.LOLLY_HISTORY_TEST_URL;
 const skip = origin ? false : 'LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)';
@@ -97,7 +98,7 @@ test('asset checks stay local and repair copies revalidate exact compatible uplo
 });
 
 test('the History panel checks only on request and opens selected repairs as a new creation', { skip, timeout: 60_000 }, async () => {
-  const browser = await chromium.launch({ headless: true }); const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const browser = await getBrowser(); const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   try {
     await page.goto(`${origin}/#/history`, { waitUntil: 'networkidle' }); await shellSettled(page); await page.keyboard.press('Escape');
     const original = await page.evaluate(async () => {
@@ -141,7 +142,7 @@ test('the History panel checks only on request and opens selected repairs as a n
     assert.deepEqual(result.original, original.data); assert.deepEqual(result.current, original.current);
     const copy = result.rows.find((row: { label: string }) => row.label === 'Autumn campaign (copy)');
     assert.ok(copy); assert.notEqual(copy.slot, 'design:fidelity-ui'); assert.equal(copy.data.image.pin.version, '2');
-  } finally { await browser.close(); }
+  } finally { await closeBrowser(); }
 });
 
 test('asset labels stay text and closing an inspector cancels late results and copy handoffs', { skip, timeout: 30_000 }, async () => {

@@ -32,6 +32,7 @@ import { callLookTool, lookToolDefs, type LookRender } from './look.ts';
 import { READ_TOOL_DEF, callRead } from './read.ts';
 import { callCheck, checkToolDef, type CheckDesignResolver } from './check.ts';
 import { MEASURE_TEXT_TOOL_DEF, callMeasureText } from './measure-text.ts';
+import { TOKEN_INSPECT_TOOL_DEF, callInspectTokens } from './token-inspect.ts';
 import { COMPOSE_TOOL_DEF, callCompose } from './compose.ts';
 import { callPackage, packageToolDef } from './package.ts';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
@@ -399,6 +400,7 @@ export const TOOL_DEFS: McpToolDef[] = [
   }),
   MEASURE_TEXT_TOOL_DEF,
   COMPOSE_TOOL_DEF,
+  TOKEN_INSPECT_TOOL_DEF,
   {
     name: 'lolly_redact',
     description:
@@ -1104,6 +1106,9 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
       case 'lolly_check':
         return await callCheck(args, resolveDesignForCheck);
 
+      case 'lolly_inspect_tokens':
+        return await callInspectTokens(args);
+
       case 'lolly_measure_text':
         return await callMeasureText(args);
 
@@ -1205,6 +1210,7 @@ export async function serverInstructions(): Promise<string> {
     `Use lolly_build_url for a shareable/editable link without rendering, lolly_transform for on-device file utilities, ` +
     `lolly_rebrand to renovate a .pptx deck into this design system in stages (capabilities, plan, compile, inspect), ` +
     `lolly_read to read what a deck says (text in reading order with roles, speaker notes, pictures, tables), lolly_check to check a Design document, .lolly or export in one findings list (read lolly://design-context first to brief yourself on the brand), ` +
+    `lolly_inspect_tokens to explain a design token's value, theme choices, issues and references, ` +
     `lolly_redact to destroy regions of an image/SVG/PDF from one reusable instruction string, ` +
     `and lolly_verify to check a file's Content Credentials (C2PA). ` +
     `For Design, rows may carry authoring keys ($in for artboard coordinates, $style for the brand's text styles, $points or $d for paths, $stack, $grid and $table for layouts); lolly_measure_text says where a text box's lines break before you place it, lolly_compose lays slides out from the slide master's archetypes as a Design document, and lolly_package writes a .lolly the app reopens. ` +

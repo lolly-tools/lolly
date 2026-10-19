@@ -26,11 +26,11 @@ If you are setting up the service, start with [Deployment](/info/deployment.html
 
 Open the address your organisation gave you. If the page asks you to sign in, press **Sign in** and follow the sign-in page it opens. After that it works like any Lolly, with your organisation's tools and design system.
 
-A browser has no setting to switch to another Lolly, so open your organisation's own address rather than lolly.tools.
+You can also start from lolly.tools: open **Settings**, and on the **Lolly instance** card press **Open a workspace**, enter the address and press **Open this instance**. The browser goes to your organisation's own address, because a browser cannot load another Lolly's tools from lolly.tools.
 
 ## In the desktop or mobile app
 
-The first time the app starts, it asks **Where should Lolly get its tools?**
+The app starts with its bundled tools. To connect, open **Settings** and press **Change** on the **Lolly instance** card. The sheet asks **Where should Lolly get its tools?**
 
 1. Choose **Connect to a Lolly instance**.
 2. Enter your organisation's web address and press **Check & connect**.
@@ -39,7 +39,7 @@ The first time the app starts, it asks **Where should Lolly get its tools?**
 
 Tools from a connected instance run with the same trust as the app's own, so connect only to one you trust. Your organisation may instead send you a `.lolly` setup file that connects the app for you.
 
-To switch later, open **Settings**: the **Lolly instance** card has **Change** and **Leave**.
+To switch later, use **Change** again, or **Leave** on the same card.
 
 ## Signing in with a code
 

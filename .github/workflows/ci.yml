@@ -968,6 +968,12 @@ jobs:
   #     usage: it calls metadata/rotate/raw/toBuffer/affine/resize/extract, none of
   #     the APIs 0.35.0 removed (failOnError, paletteBitDepth, jp2k, sharpen opts).
   #     Revisit when transformers widens its range - then this can just go.
+  #
+  # Cargo has no override for that case. A RustSec advisory with no published fix
+  # is held back only by an approved `advisoryExceptions` entry on its root in
+  # security/dependency-roots.json (see SECURITY.md, "Dependency audit
+  # exceptions"). audit:all ignores those ids for that lockfile alone and fails,
+  # in both steps below, once the lockfile shows the fix has resolved.
   audit:
     name: npm audit (high+critical)
     runs-on: ubuntu-latest

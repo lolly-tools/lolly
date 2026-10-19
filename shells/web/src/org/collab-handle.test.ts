@@ -537,6 +537,17 @@ test('self.account is the member\'s workspace id, apart from the gateway seat\'s
   assert.equal(createWorkCollabHandle(fakeProvider().provider).self.account, undefined, 'no member, no account');
 });
 
+test('recoveryKept tells the provider the device library holds an archived copy', async () => {
+  const fake = fakeProvider(), forgotten: string[] = [];
+  Object.assign(fake.provider, { forgetRecovery: async (id: string) => { forgotten.push(id); if (id === 'unwritable') throw new Error('quota'); } });
+  const handle = createWorkCollabHandle(fake.provider);
+  handle.recoveryKept!('copy-1');
+  handle.recoveryKept!('unwritable');
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(forgotten, ['copy-1', 'unwritable'], 'a failed archive write is left to the next connect, never thrown');
+  assert.doesNotThrow(() => createWorkCollabHandle(fakeProvider().provider).recoveryKept!('x'), 'an older provider simply keeps replaying');
+});
+
 test('peerRole is honest ignorance when the gateway did not say', () => {
   const fake = fakeProvider({
     status: 'live',

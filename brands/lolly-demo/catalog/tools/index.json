@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-15T17:33:34.428Z",
+  "generatedAt": "2026-10-19T06:34:10.574Z",
   "tools": [
     {
       "id": "3d",
@@ -326,7 +326,7 @@
       "id": "agenda",
       "name": "Agenda",
       "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "status": "community",
       "category": "event",
       "tags": [
@@ -1041,7 +1041,7 @@
       "id": "audiogram",
       "name": "Audiogram",
       "description": "Turn a voice clip or song into a video in your design system's colours that actually moves with the sound - bars, spectrum, ring, ridgeline or scope, ready for social.",
-      "version": "2.7.5",
+      "version": "2.8.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -2390,7 +2390,7 @@
       "id": "chart",
       "name": "Chart",
       "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
-      "version": "1.26.1",
+      "version": "1.27.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -4273,7 +4273,7 @@
       "id": "darkroom",
       "name": "Darkroom",
       "description": "Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Reuse a look through LUT export or Grade a video. Opens Photoshop and GIMP layers for positioning, blending and image export.",
-      "version": "2.5.0",
+      "version": "2.5.1",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -4753,7 +4753,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-      "version": "1.50.1",
+      "version": "1.51.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -5524,7 +5524,7 @@
       "id": "diagram-builder",
       "name": "Diagrams",
       "description": "Org charts, flowcharts, timelines and more - from cards, text, Mermaid, DOT or CSV.",
-      "version": "1.8.1",
+      "version": "1.8.2",
       "status": "experimental",
       "category": "everyone",
       "tags": [
@@ -5950,7 +5950,7 @@
       "id": "filter",
       "name": "Filter",
       "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.",
-      "version": "1.5.0",
+      "version": "1.5.2",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -6604,7 +6604,7 @@
       "id": "font-convert",
       "name": "Convert Font",
       "description": "Convert a font between TrueType, OpenType and WOFF - on your device.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -6618,7 +6618,10 @@
         "truetype",
         "opentype",
         "typography",
-        "sfnt"
+        "sfnt",
+        "subset",
+        "glyphs",
+        "coverage"
       ],
       "added": "2026-07-08",
       "formats": [
@@ -7014,7 +7017,7 @@
       "id": "gradient",
       "name": "Gradient",
       "description": "Five ways to build a gradient from the design system swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points and the animated Flow waves. Drag everything right on the canvas; export stills or join-free video loops.",
-      "version": "1.2.3",
+      "version": "1.3.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -9073,8 +9076,8 @@
     {
       "id": "pages",
       "name": "Pages",
-      "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device.",
-      "version": "1.0.1",
+      "description": "Reorder, rotate, extract, delete, merge or split PDF pages, or turn images into a PDF, on your device.",
+      "version": "1.1.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -9086,7 +9089,11 @@
         "extract",
         "delete",
         "merge",
-        "split"
+        "split",
+        "images",
+        "photos",
+        "jpg",
+        "png"
       ],
       "added": "2026-09-05",
       "formats": [
@@ -9102,107 +9109,107 @@
       "i18n": {
         "ar": {
           "name": "الصفحات",
-          "description": "أعد ترتيب صفحات PDF، أو دوّرها، أو استخرجها، أو احذفها، أو ادمجها، أو قسّمها - على جهازك."
+          "description": "أعد ترتيب صفحات PDF، أو دوّرها، أو استخرجها، أو احذفها، أو ادمجها، أو قسّمها، أو حوّل الصور إلى PDF - على جهازك."
         },
         "bg": {
           "name": "Страници",
-          "description": "Пренареди, завърти, извлечи, изтрий, обедини или раздели PDF страници на устройството си."
+          "description": "Пренареди, завърти, извлечи, изтрий, обедини или раздели PDF страници или превърни изображения в PDF на устройството си."
         },
         "bn": {
           "name": "পৃষ্ঠা",
-          "description": "আপনার ডিভাইসে PDF পৃষ্ঠা পুনর্বিন্যাস করুন, ঘোরান, বের করুন, মুছুন, একত্র করুন বা বিভক্ত করুন।"
+          "description": "আপনার ডিভাইসে PDF পৃষ্ঠা পুনর্বিন্যাস করুন, ঘোরান, বের করুন, মুছুন, একত্র করুন বা বিভক্ত করুন, অথবা ছবি থেকে PDF তৈরি করুন।"
         },
         "cs": {
           "name": "Stránky",
-          "description": "Přeřaď, otoč, vyjmi, smaž, sluč nebo rozděl stránky PDF přímo v zařízení."
+          "description": "Přeřaď, otoč, vyjmi, smaž, sluč nebo rozděl stránky PDF, nebo převeď obrázky do PDF, přímo v zařízení."
         },
         "de": {
           "name": "Seiten",
-          "description": "PDF-Seiten neu anordnen, drehen, extrahieren, löschen, zusammenführen oder aufteilen - auf Ihrem Gerät."
+          "description": "PDF-Seiten neu anordnen, drehen, extrahieren, löschen, zusammenführen oder aufteilen oder Bilder in ein PDF umwandeln - auf Ihrem Gerät."
         },
         "es": {
           "name": "Páginas",
-          "description": "Reordena, gira, extrae, elimina, combina o divide páginas de PDF en tu dispositivo."
+          "description": "Reordena, gira, extrae, elimina, combina o divide páginas de PDF, o convierte imágenes en un PDF, en tu dispositivo."
         },
         "fr": {
           "name": "Pages",
-          "description": "Réordonne, pivote, extrait, supprime, fusionne ou divise des pages PDF sur ton appareil."
+          "description": "Réordonne, pivote, extrait, supprime, fusionne ou divise des pages PDF, ou transforme des images en PDF, sur ton appareil."
         },
         "hi": {
           "name": "पेज",
-          "description": "अपने डिवाइस पर PDF पेज को फिर से क्रमबद्ध करें, घुमाएँ, निकालें, हटाएँ, मर्ज करें या स्प्लिट करें।"
+          "description": "अपने डिवाइस पर PDF पेज को फिर से क्रमबद्ध करें, घुमाएँ, निकालें, हटाएँ, मर्ज करें या स्प्लिट करें, या इमेज से PDF बनाएँ।"
         },
         "id": {
           "name": "Halaman",
-          "description": "Susun ulang, putar, ekstrak, hapus, gabungkan atau pisahkan halaman PDF di perangkat Anda."
+          "description": "Susun ulang, putar, ekstrak, hapus, gabungkan atau pisahkan halaman PDF, atau ubah gambar menjadi PDF, di perangkat Anda."
         },
         "it": {
           "name": "Pagine",
-          "description": "Riordina, ruota, estrai, elimina, unisci o dividi le pagine di un PDF sul tuo dispositivo."
+          "description": "Riordina, ruota, estrai, elimina, unisci o dividi le pagine di un PDF, oppure trasforma delle immagini in un PDF, sul tuo dispositivo."
         },
         "ja": {
           "name": "ページ数",
-          "description": "PDFのページを、デバイス上で並べ替え、回転、抽出、削除、結合、分割できます。"
+          "description": "PDFのページを、デバイス上で並べ替え、回転、抽出、削除、結合、分割できます。画像からPDFを作ることもできます。"
         },
         "ko": {
           "name": "페이지 수",
-          "description": "PDF 페이지를 기기에서 바로 순서 바꾸기, 회전, 추출, 삭제, 병합, 분할할 수 있어요."
+          "description": "PDF 페이지를 기기에서 바로 순서 바꾸기, 회전, 추출, 삭제, 병합, 분할하거나 이미지를 PDF로 만들 수 있어요."
         },
         "ms": {
           "name": "Halaman",
-          "description": "Susun semula, putar, ekstrak, padam, gabung atau pisahkan halaman PDF pada peranti anda."
+          "description": "Susun semula, putar, ekstrak, padam, gabung atau pisahkan halaman PDF, atau tukar imej kepada PDF, pada peranti anda."
         },
         "nl": {
           "name": "Pagina's",
-          "description": "Herschik, roteer, haal eruit, verwijder, voeg samen of splits PDF-pagina's op je apparaat."
+          "description": "Herschik, roteer, haal eruit, verwijder, voeg samen of splits PDF-pagina's, of zet afbeeldingen om in een PDF, op je apparaat."
         },
         "no": {
           "name": "Sider",
-          "description": "Endre rekkefølge, roter, hent ut, slett, slå sammen eller del PDF-sider på enheten din."
+          "description": "Endre rekkefølge, roter, hent ut, slett, slå sammen eller del PDF-sider, eller gjør bilder om til en PDF, på enheten din."
         },
         "pl": {
           "name": "Strony",
-          "description": "Zmień kolejność, obróć, wyodrębnij, usuń, połącz lub podziel strony PDF na swoim urządzeniu."
+          "description": "Zmień kolejność, obróć, wyodrębnij, usuń, połącz lub podziel strony PDF albo zamień obrazy w PDF na swoim urządzeniu."
         },
         "pt": {
           "name": "Páginas",
-          "description": "Reordene, gire, extraia, exclua, mescle ou divida páginas de PDF no seu dispositivo."
+          "description": "Reordene, gire, extraia, exclua, mescle ou divida páginas de PDF, ou transforme imagens em PDF, no seu dispositivo."
         },
         "ro": {
           "name": "Pagini",
-          "description": "Reordonează, rotește, extrage, șterge, îmbină sau împarte pagini PDF pe dispozitivul tău."
+          "description": "Reordonează, rotește, extrage, șterge, îmbină sau împarte pagini PDF ori transformă imagini în PDF pe dispozitivul tău."
         },
         "sv": {
           "name": "Sidor",
-          "description": "Ändra ordning, rotera, extrahera, ta bort, slå ihop eller dela PDF-sidor på din enhet."
+          "description": "Ändra ordning, rotera, extrahera, ta bort, slå ihop eller dela PDF-sidor, eller gör om bilder till en PDF, på din enhet."
         },
         "tl": {
           "name": "Mga Page",
-          "description": "Ayusin ulit, i-rotate, i-extract, burahin, i-merge o hatiin ang mga PDF page sa iyong device."
+          "description": "Ayusin ulit, i-rotate, i-extract, burahin, i-merge o hatiin ang mga PDF page, o gawing PDF ang mga larawan, sa iyong device."
         },
         "tr": {
           "name": "Sayfalar",
-          "description": "PDF sayfalarını cihazında yeniden sırala, döndür, çıkar, sil, birleştir ya da ayır."
+          "description": "PDF sayfalarını cihazında yeniden sırala, döndür, çıkar, sil, birleştir ya da ayır veya görsellerden PDF oluştur."
         },
         "uk": {
           "name": "Сторінки",
-          "description": "Змінюйте порядок, обертайте, витягуйте, видаляйте, об'єднуйте або розділяйте сторінки PDF на своєму пристрої."
+          "description": "Змінюйте порядок, обертайте, витягуйте, видаляйте, об'єднуйте або розділяйте сторінки PDF чи перетворюйте зображення на PDF на своєму пристрої."
         },
         "ur": {
           "name": "صفحات",
-          "description": "اپنے آلے پر PDF صفحات کو دوبارہ ترتیب دیں، گھمائیں، نکالیں، حذف کریں، ضم کریں یا تقسیم کریں۔"
+          "description": "اپنے آلے پر PDF صفحات کو دوبارہ ترتیب دیں، گھمائیں، نکالیں، حذف کریں، ضم کریں یا تقسیم کریں، یا تصاویر سے PDF بنائیں۔"
         },
         "vi": {
           "name": "Số trang",
-          "description": "Sắp xếp lại, xoay, trích xuất, xóa, gộp hoặc tách các trang PDF ngay trên thiết bị của bạn."
+          "description": "Sắp xếp lại, xoay, trích xuất, xóa, gộp hoặc tách các trang PDF, hoặc chuyển ảnh thành PDF, ngay trên thiết bị của bạn."
         },
         "zh-hant": {
           "name": "頁數",
-          "description": "在裝置上重新排序、旋轉、擷取、刪除、合併或分割 PDF 頁面。"
+          "description": "在裝置上重新排序、旋轉、擷取、刪除、合併或分割 PDF 頁面，或將圖片轉成 PDF。"
         },
         "zh": {
           "name": "页数",
-          "description": "在设备上重新排序、旋转、提取、删除、合并或拆分 PDF 页面。"
+          "description": "在设备上重新排序、旋转、提取、删除、合并或拆分 PDF 页面，或将图片转为 PDF。"
         }
       }
     },
@@ -10719,7 +10726,7 @@
       "id": "record",
       "name": "Record",
       "description": "Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically.",
-      "version": "1.4.3",
+      "version": "1.4.4",
       "status": "official",
       "category": "everyone",
       "capabilities": [
@@ -12818,7 +12825,7 @@
       "id": "strip-data",
       "name": "Strip Hidden Data",
       "description": "Remove selected DOCX properties or image and PDF metadata, and inspect other Office hidden content, on your device.",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -13769,8 +13776,8 @@
     {
       "id": "trim",
       "name": "Trim",
-      "description": "Cut an audio or video clip, change its container, mute it or extract its audio on your device.",
-      "version": "1.0.1",
+      "description": "Cut, turn or shrink an audio or video clip, take a poster frame or contact sheet, mute it or extract its audio on your device.",
+      "version": "1.1.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -13784,7 +13791,13 @@
         "webm",
         "gif",
         "extract audio",
-        "mute"
+        "mute",
+        "rotate",
+        "poster frame",
+        "thumbnail",
+        "contact sheet",
+        "compress video",
+        "share"
       ],
       "added": "2026-09-05",
       "formats": [
@@ -13793,7 +13806,9 @@
         "gif",
         "m4a",
         "opus",
-        "wav"
+        "wav",
+        "jpg",
+        "png"
       ],
       "width": 860,
       "height": 620,
@@ -14232,7 +14247,7 @@
       "id": "wayfinding-signage",
       "name": "Wayfinding",
       "description": "Directional event signs - destinations, each with an arrow. Print-ready.",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "status": "official",
       "category": "event",
       "tags": [

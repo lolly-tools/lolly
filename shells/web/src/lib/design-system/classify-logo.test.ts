@@ -224,3 +224,13 @@ test('raster stats: junk entries in the census are skipped', () => {
   assert.equal(c.treatment, 'mono');
   assert.ok(c.reasons.includes('1 ink hue'), c.reasons.join(' | '));
 });
+
+// Plan 320 S7: the study's 520x140 lockup with a live-text wordmark read "Vertical",
+// from the mark alone. With no measurable text the artboard decides.
+test('a horizontal lockup with a live-text wordmark reads horizontal, from its artboard', () => {
+  const c = classifyLogoSvg(svg('0 0 520 140',
+    '<circle cx="70" cy="70" r="40" fill="#1f3a93"/><text x="140" y="90" font-size="48" fill="#1f3a93">Northwind</text>'));
+  assertShape(c);
+  assert.equal(c.orientation, 'horizontal');
+  assert.ok(c.reasons.some(r => /artboard/.test(r)), 'the reason says the artboard decided');
+});

@@ -53,6 +53,8 @@ const TEXT_REGION_SHARE = 0.015;
  */
 const OUTLINE_INK_SHARE = 0.25;
 const OUTLINE_INK_SHIFT = 1;
+/** Pages whose decoration lines are judged by their own ink against an undecorated render. */
+const DECORATED = new Set(['strikes', 'underlines']);
 
 /**
  * A PDF is drawn by Poppler, whose edge coverage differs from Chromium's: at the
@@ -147,7 +149,7 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
   const textApi = createNodeTextAPI({ repoRoot: repoRoot() });
   const report: Array<{ page: string; stats: FidelityStats; ops: number }> = [];
   const withText = new Set<string>();
-  const decorationReport: Array<{ renderer: string; regions: DecorationRegion[]; ink: DecorationInk[]; controls: string[] }> = [];
+  const decorationReport: Array<{ page: string; renderer: string; regions: DecorationRegion[]; ink: DecorationInk[]; controls: string[] }> = [];
   const png = (bytes: Buffer) => JSON.stringify(`data:image/png;base64,${bytes.toString('base64')}`);
   // The same pictures on both sides: the Design host resolves the fixture ids to them, and
   // the compiled side links them and reads their own size.
@@ -175,7 +177,7 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
     await design.evaluate(async () => { await document.fonts.ready; await Promise.all([...document.images].map((img) => img.decode().catch(() => undefined))); });
     const designPng = await design.screenshot({ clip: { x: 0, y: 0, width: page.width, height: page.height } });
     let undecorated: Buffer | undefined;
-    if (page.name === 'strikes') {
+    if (DECORATED.has(page.name)) {
       const reset = await design.addStyleTag({ content: '* { text-decoration: none !important; }' });
       undecorated = await design.screenshot({ clip: { x: 0, y: 0, width: page.width, height: page.height } });
       await reset.evaluate((node) => node.parentNode?.removeChild(node));
@@ -240,7 +242,7 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
 
     // These added decoration fixtures qualify only the new outlined path. Live SVG
     // retains its existing native SVG-decoration paint policy, distinct from HTML.
-    for (const outlined of page.name === 'strikes' ? [true] : [false, true]) {
+    for (const outlined of DECORATED.has(page.name) ? [true] : [false, true]) {
       const name = outlined ? `${page.name}-outlined` : page.name;
       // Live text from the compile itself; outlined text from the export pipeline, the bytes a page export delivers.
       let draw = compileDesignDraw(page.rows as never, { width: page.width, height: page.height }, { effects: true, colors: 'resolved' });
@@ -267,51 +269,67 @@ test('compiled drawings match the Design renderer region by region', { timeout: 
       // Outlined words are judged by their ink against the same page with the words removed.
       const groundPng = outlined ? await shoot({ ...draw, ops: draw.ops.map(({ words: _words, ...op }) => op as DrawOp) }) : undefined;
       if (outlined && undecorated) {
+        // A strike and an underline on one run are judged in separate bands.
         const regions: DecorationRegion[] = [];
         for (const op of draw.ops.filter((op) => !op.pose)) {
           const words = op.words;
           for (const [li, line] of (words?.layout?.lines ?? []).entries()) for (const [ri, run] of line.runs.entries()) {
-            const strike = words?.strikes?.[li]?.[ri];
-            if (!strike || strike.width <= 0) continue;
-            let x = op.box.x + line.x + run.x - 1, w = strike.width + 2;
-            // A declared whitespace segment isolates the line from glyph rasteriser
-            // stem thickening. Runs without spaces retain their full line region.
-            const space = run.text.indexOf(' ');
-            if (space > 0) {
-              const variations = run.face.variations ? Object.entries(run.face.variations).map(([tag, value]) => `${tag}=${value}`) : undefined;
-              const shape = (text: string) => textApi.toPath({ text, fontUrl: run.face.file, fontSize: words!.layout!.measure.size, variations, letterSpacing: words!.layout!.measure.tracking, preserveWhitespaceAdvance: true });
-              const prefix = await shape(run.text.slice(0, space)), gap = await shape(' ');
-              if (gap.advanceWidth > 6) { x += 1 + prefix.advanceWidth + 2; w = gap.advanceWidth - 4; }
+            const strike = words?.strikes?.[li]?.[ri], underline = words?.underlines?.[li]?.[ri];
+            // An underline's last piece can reach past its run, under the spaces hanging there.
+            const marks = [
+              ...(strike && strike.width > 0 ? [{ kind: 's', y: strike.y, height: strike.height, reach: run.width }] : []),
+              ...(underline?.spans.length ? [{ kind: 'u', y: underline.y, height: underline.height, reach: Math.max(run.width, ...underline.spans.map((s) => s.x + s.width)) }] : []),
+            ];
+            for (const mark of marks) {
+              let x = op.box.x + line.x + run.x - 1, w = mark.reach + 2;
+              // A declared whitespace segment isolates a strike from glyph rasteriser stem
+              // thickening. Runs without spaces, and every underline, keep the full run.
+              const space = mark.kind === 's' ? run.text.indexOf(' ') : -1;
+              if (space > 0) {
+                const variations = run.face.variations ? Object.entries(run.face.variations).map(([tag, value]) => `${tag}=${value}`) : undefined;
+                const shape = (text: string) => textApi.toPath({ text, fontUrl: run.face.file, fontSize: words!.layout!.measure.size, variations, letterSpacing: words!.layout!.measure.tracking, preserveWhitespaceAdvance: true });
+                const prefix = await shape(run.text.slice(0, space)), gap = await shape(' ');
+                if (gap.advanceWidth > 6) { x += 1 + prefix.advanceWidth + 2; w = gap.advanceWidth - 4; }
+              }
+              const y = Math.max(op.box.y, op.box.y + line.baseline + mark.y - 4), bottom = Math.min(op.box.y + op.box.h, op.box.y + line.baseline + mark.y + mark.height + 4);
+              if (bottom > y) regions.push({ id: `${op.id}:${li}.${ri}:${mark.kind}`, x, y, w, h: bottom - y });
             }
-            const y = Math.max(op.box.y, op.box.y + line.baseline + strike.y - 4), bottom = Math.min(op.box.y + op.box.h, op.box.y + line.baseline + strike.y + strike.height + 4);
-            if (bottom > y) regions.push({ id: `${op.id}:${li}.${ri}`, x, y, w, h: bottom - y });
           }
         }
         const bare = structuredClone(draw);
-        for (const op of bare.ops) if (op.words) delete op.words.strikes;
+        for (const op of bare.ops) if (op.words) { delete op.words.strikes; delete op.words.underlines; }
         const barePng = await shoot(bare);
         const ink = (candidate: Buffer, ground: Buffer) => compiled.evaluate<DecorationInk[]>(`(${decorationInk.toString()})(${png(designPng)}, ${png(undecorated)}, ${png(candidate)}, ${png(ground)}, ${page.width}, ${page.height}, ${JSON.stringify(regions)})`);
         const lineFault = (r: DecorationInk) => r.a <= 0 || r.share > OUTLINE_INK_SHARE || r.shift > OUTLINE_INK_SHIFT;
         const positive = await ink(compiledPng, barePng);
-        assert.equal(new Set(positive.map((r) => r.id.split(':')[0])).size, 7, 'every unposed decoration fixture has visible declared line ink');
-        assert.deepEqual(positive.filter(lineFault), [], 'each outlined SVG strike matches its declared decoration region');
+        const fixtures = draw.ops.filter((op) => !op.pose && op.words).length;
+        assert.equal(new Set(positive.map((r) => r.id.split(':')[0])).size, fixtures, 'every unposed decoration fixture has visible declared line ink');
+        assert.deepEqual(positive.filter(lineFault), [], 'each outlined SVG line matches its declared decoration region');
         let barePdf: Buffer | undefined;
         if (pdfPages?.pdf) barePdf = await rasterise(designDrawPdf([{ page: bare, pictures: new Map(), size: { w: page.width * .75, h: page.height * .75 } }]));
+        // The strike page breaks its strike; the underline page breaks its underline and also
+        // draws it through the descenders, which the skip-ink check must reject.
+        const kind = page.name === 'strikes' ? 's' : 'u';
+        const faults = kind === 's' ? ['missing', 'shifted'] as const : ['missing', 'shifted', 'unskipped'] as const;
         for (const renderer of barePdf ? ['SVG', 'PDF'] : ['SVG']) {
           const raster = (drawing: typeof draw) => renderer === 'SVG' ? shoot(drawing) : rasterise(designDrawPdf([{ page: drawing, pictures: new Map(), size: { w: page.width * .75, h: page.height * .75 } }]));
           const measured = renderer === 'SVG' ? positive : await ink(await raster(draw), barePdf!);
-          assert.deepEqual(measured.filter(lineFault), [], `each ${renderer} strike matches its declared decoration region`);
+          assert.deepEqual(measured.filter(lineFault), [], `each ${renderer} line matches its declared decoration region`);
           const controls: string[] = [];
-          for (const fault of ['missing', 'shifted'] as const) {
+          for (const fault of faults) {
             const broken = structuredClone(draw), words = broken.ops.find((op) => op.id === 'light')!.words!;
-            if (fault === 'missing') words.strikes![0]![0] = null;
-            else words.strikes![0]![0]!.y += 2;
-            const target = (await ink(await raster(broken), renderer === 'SVG' ? barePng : barePdf!)).find((r) => r.id === 'light:0.0')!;
-            assert.ok(lineFault(target), `${renderer}: the line check rejects a ${fault} strike`);
+            if (kind === 's') {
+              if (fault === 'missing') words.strikes![0]![0] = null;
+              else words.strikes![0]![0]!.y += 2;
+            } else if (fault === 'missing') words.underlines![0]![0] = null;
+            else if (fault === 'shifted') words.underlines![0]![0]!.y += 2;
+            else words.underlines![0]![0]!.spans = [{ x: 0, width: words.layout!.lines[0]!.runs[0]!.width }];
+            const target = (await ink(await raster(broken), renderer === 'SVG' ? barePng : barePdf!)).find((r) => r.id === `light:0.0:${kind}`)!;
+            assert.ok(lineFault(target), `${renderer}: the line check rejects a ${fault} ${kind === 's' ? 'strike' : 'underline'}`);
             controls.push(fault);
           }
-          decorationReport.push({ renderer, regions, ink: measured, controls });
-          t.diagnostic(`strike ${renderer} ink ${JSON.stringify(measured)}`);
+          decorationReport.push({ page: page.name, renderer, regions, ink: measured, controls });
+          t.diagnostic(`${page.name} ${renderer} ink ${JSON.stringify(measured)}`);
         }
       }
 

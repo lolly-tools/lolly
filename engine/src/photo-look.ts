@@ -311,6 +311,61 @@ function gradeTables(contrast: number, lightness: number): { unit: Float64Array;
 
 const LCACHE_SIZE = 1 << 16;
 
+/** A look's `amount` as 0..1: absent or not finite is the full look. */
+function lookAmount(look: Pick<PhotoTreatment, 'amount'>): number {
+  return typeof look.amount === 'number' && Number.isFinite(look.amount) ? (look.amount < 0 ? 0 : look.amount > 100 ? 100 : look.amount) / 100 : 1;
+}
+
+/** A look's contrast and lightness grade as tables, or null for the identity. */
+function lookGrade(look: Pick<PhotoTreatment, 'contrast' | 'lightness'>): { unit: Float64Array; linear: Float64Array } | null {
+  const finite = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+  return gradeTables(finite(look.contrast), finite(look.lightness));
+}
+
+/** A duotone's shadow, optional mid and highlight as 0..1 sRGB colours, as its SVG filter table reads them. */
+function duotoneRamp(look: Pick<PhotoTreatment, 'shadow' | 'mid' | 'highlight'>): Array<readonly [number, number, number]> {
+  return [look.shadow ?? '#000000', ...(look.mid ? [look.mid] : []), look.highlight ?? '#ffffff'].map((c) => {
+    const v = photoLookHex8(c) ?? [0, 0, 0];
+    return [v[0] / 255, v[1] / 255, v[2] / 255] as const;
+  });
+}
+
+/**
+ * Everything a pixel executor other than {@link applyPhotoLook} needs to apply a
+ * gradient-map, greyscale or duotone look, built by the same code the bake uses so
+ * both read one set of constants (the WebGPU recipes in shells/web/src/lib/webgpu).
+ * `unit` is the graded 0..1 value of each 8-bit channel value (v / 255 when the look
+ * has no grade) and `linear` its sRGB decode. `tone` is the gradient map's
+ * {@link photoLookToneTable}; `ramp` is the duotone's two or three colours.
+ */
+export interface PhotoLookPixelPlan {
+  kind: 'gradient-map' | 'greyscale' | 'duotone';
+  /** The blend toward the look, 0..1. */
+  amount: number;
+  unit: Float64Array;
+  linear: Float64Array;
+  tone: Float32Array | null;
+  ramp: Array<readonly [number, number, number]> | null;
+}
+
+/** The {@link PhotoLookPixelPlan} of a look in a theme. Throws as applyPhotoLook does; a `lut` look has no plan. */
+export function photoLookPixelPlan(look: PhotoTreatment, opts: { theme?: string } = {}): PhotoLookPixelPlan {
+  const def = resolvePhotoLook(look, opts.theme);
+  if (def.kind !== 'gradient-map' && def.kind !== 'greyscale' && def.kind !== 'duotone') {
+    throw new Error(`photo look ${String((def as { id?: unknown }).id)}: no pixel plan for kind ${String((def as { kind?: unknown }).kind)}`);
+  }
+  const grade = lookGrade(def);
+  const unit = grade ? grade.unit.slice() : Float64Array.from({ length: 256 }, (_, v) => v / 255);
+  const linear = grade ? grade.linear.slice() : linear8().slice();
+  let tone: Float32Array | null = null;
+  if (def.kind === 'gradient-map') {
+    const stops = photoLookStops(def);
+    if (stops.length < 2) throw new Error(`photo look ${def.id}: a gradient map needs two stops`);
+    tone = photoLookToneTable(stops);
+  }
+  return { kind: def.kind, amount: lookAmount(def), unit, linear, tone, ramp: def.kind === 'duotone' ? duotoneRamp(def) : null };
+}
+
 /**
  * Bake a look into straight-alpha RGBA pixels, in place. Alpha is left as it is.
  * Throws for a malformed frame, an unknown kind or a `lut` look without `opts.lut`.
@@ -320,9 +375,8 @@ export function applyPhotoLook(rgba: Uint8ClampedArray, width: number, height: n
   if (!Number.isInteger(width) || !Number.isInteger(height) || width < 0 || height < 0 || rgba.length !== width * height * 4)
     throw new Error(`photo look: ${width}x${height} does not match ${rgba.length} bytes of RGBA`);
   const def = resolvePhotoLook(look, opts.theme);
-  const amount = typeof def.amount === 'number' && Number.isFinite(def.amount) ? (def.amount < 0 ? 0 : def.amount > 100 ? 100 : def.amount) / 100 : 1;
-  const finite = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
-  const grade = gradeTables(finite(def.contrast), finite(def.lightness));
+  const amount = lookAmount(def);
+  const grade = lookGrade(def);
   if (def.kind === 'lut') {
     if (!opts.lut) throw new Error(`photo look ${def.id}: the LUT ${def.lut ?? ''} was not supplied`);
     if (grade) for (let i = 0; i < rgba.length; i += 4) for (let k = 0; k < 3; k += 1) rgba[i + k] = grade.unit[rgba[i + k]!]! * 255;
@@ -380,10 +434,7 @@ function gradientMap(d: Uint8ClampedArray, def: PhotoTreatment, ta: number, grad
  */
 function lumaMap(d: Uint8ClampedArray, def: PhotoTreatment, ta: number, grade: { unit: Float64Array } | null): void {
   const grey = def.kind === 'greyscale';
-  const table = grey ? null : [def.shadow ?? '#000000', ...(def.mid ? [def.mid] : []), def.highlight ?? '#ffffff'].map((c) => {
-    const v = photoLookHex8(c) ?? [0, 0, 0];
-    return [v[0] / 255, v[1] / 255, v[2] / 255] as const;
-  });
+  const table = grey ? null : duotoneRamp(def);
   const n = table ? table.length - 1 : 0;
   for (let i = 0; i < d.length; i += 4) {
     const r01 = grade ? grade.unit[d[i]!]! : d[i]! / 255;
@@ -426,7 +477,7 @@ export function photoLookPreviewTable(look: PhotoTreatment, count = 17): Array<[
   const stops = photoLookStops(look);
   if (stops.length < 2) return [];
   const tlut = photoLookToneTable(stops);
-  const amount = typeof look.amount === 'number' && Number.isFinite(look.amount) ? (look.amount < 0 ? 0 : look.amount > 100 ? 100 : look.amount) / 100 : 1;
+  const amount = lookAmount(look);
   const finite = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
   const contrast = Math.max(-100, Math.min(100, finite(look.contrast)));
   const light = Math.max(-100, Math.min(100, finite(look.lightness))) / 100;

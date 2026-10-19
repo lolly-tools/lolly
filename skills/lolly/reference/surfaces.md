@@ -69,7 +69,7 @@ render.
   endpoints under `/.well-known/`. For HTML-layout tools
   (`design`, `chart`), large files or heavy automation, use the CLI.
 
-### The 21 tools
+### The 22 tools
 
 These tools are available on every connection. An authenticated file scope adds
 the tools described under **Scoped file tools** below.
@@ -92,6 +92,7 @@ the tools described under **Scoped file tools** below.
 | `lolly_check` | `file`, `toolId` or `document` | Every check in one findings list: `structure`, `render`, `brand` (with house rules), `verify`, and `fidelity` with `source` or `inventory`. Each finding: stable `code`, `severity`, `layerId`, the app's message, a safe `fix`. `theme` checks one token theme; `themes` (a list, or `"all"`) runs the render, brand and Verify families in each theme (structure and fidelity once), and each of those findings names its `theme`. `exitCode` as `lolly check`. |
 | `lolly_measure_text` | `text` and `width`, or `document` | Where a plain Design text layer's lines break and how tall it is, before it is drawn: lines with widths and a `nearEdge` flag, `height`, the `scrollHeight` the canvas reports, and with `height` whether the box clips it. `style` sets the box up as an authored row, sized for `artboardWidth` (default 1920). The same measure as `lolly measure --text --json`. |
 | `lolly_compose` | `spec`, or `mode` | Slides laid out from the slide master's archetypes as a Design document with the master's furniture and bindings: `spec.slides[]` gives an `archetype` per slide and its `slots` (a role or `role#n`: text, `null` to drop, or `{from: "<inventory object id>"}`, with `join: ": "` to run its lines into one; `from` may list several text objects and `para` several paragraphs, and a table slot takes `{$table: {...}}`), with `inventory` or `source` for the deck's text and notes; `furniture`, `emphasis` and `case` on the spec are deck defaults a slide's own merge over, and `themes: ["light", "dark"]` writes logo furniture as `<id>?theme=auto`. Returns the document, a report (archetype, filled, dropped, which text slots clip; `fit: "shrink"` steps them down), the source wording changed as `edits` for `lolly_check`, and the pictures named. `mode: "list"` gives the archetypes; `mode: "suggest"` a first spec for a deck. The same composer as `lolly compose --json`. |
+| `lolly_inspect_tokens` | - | Why a design token has its value: effective theme choices, issues and a page of tokens; with `token`, its winning set, override order, declared roles and a bounded trace of what it reads and what reads that token. Reads the server's design system or a `tokens` document; `selection` takes a link's `_themes` object. Nothing is written. |
 | `lolly_redact` | `file` | Destroy regions of an image/SVG/PDF. Rebuilds and re-checks; a failed check returns no file. |
 | `lolly_verify` | `file` | Verify a file's Content Credentials: made with Lolly, who signed, changed since export. |
 | `lolly_look` | `toolId` or `file` | The render with a labelled grid in document units, or one `region` enlarged. For looking; not an export. |

@@ -1,0 +1,51 @@
+{
+  "id": "repeated-messages",
+  "title": "Repeated sequence messages",
+  "purpose": "Three participants and eight ordered messages, four of them from the client to the API, three of those repeated status requests. Until the sequence layout ships, a Mermaid sequenceDiagram imports as a left-to-right process: messages between the same two participants in the same direction merge into one numbered connection, so every message text and its order stay readable in that one label. This fixture pins that behaviour; a caller has to opt into the sequence layout before it changes.",
+  "inputs": {
+    "look": "minimal",
+    "source": "mermaid",
+    "mermaid": "sequenceDiagram\n  participant client as Client app\n  participant api as API\n  participant store as Data store\n  client->>api: Request order\n  api->>store: Read stock\n  store-->>api: Stock level\n  api-->>client: Order accepted\n  client->>api: Request status\n  client->>api: Request status again\n  Note over client,api: Polling continues until the order ships\n  loop Every minute\n    client->>api: Poll status\n  end\n  api-xclient: Connection dropped"
+  },
+  "source": {
+    "participants": ["client", "api", "store"],
+    "messages": [
+      { "id": "m1", "from": "client", "to": "api", "label": "Request order", "arrow": "->>" },
+      { "id": "m2", "from": "api", "to": "store", "label": "Read stock", "arrow": "->>" },
+      { "id": "m3", "from": "store", "to": "api", "label": "Stock level", "arrow": "-->>" },
+      { "id": "m4", "from": "api", "to": "client", "label": "Order accepted", "arrow": "-->>" },
+      { "id": "m5", "from": "client", "to": "api", "label": "Request status", "arrow": "->>" },
+      { "id": "m6", "from": "client", "to": "api", "label": "Request status again", "arrow": "->>" },
+      { "id": "m7", "from": "client", "to": "api", "label": "Poll status", "arrow": "->>" },
+      { "id": "m8", "from": "api", "to": "client", "label": "Connection dropped", "arrow": "-x" }
+    ]
+  },
+  "census": {
+    "diagramType": "process",
+    "direction": "right",
+    "nodes": [
+      { "id": "client", "label": "Client app", "shape": "rounded" },
+      { "id": "api", "label": "API", "shape": "rounded" },
+      { "id": "store", "label": "Data store", "shape": "rounded" }
+    ],
+    "edges": [
+      { "from": "client", "to": "api", "label": "1. Request order · 5. Request status · 6. Request status again · 7. Poll status", "messages": ["m1", "m5", "m6", "m7"], "kind": "forward" },
+      { "from": "api", "to": "store", "label": "2. Read stock", "messages": ["m2"], "kind": "forward" },
+      { "from": "store", "to": "api", "label": "3. Stock level", "messages": ["m3"], "style": "dashed", "kind": "return" },
+      { "from": "api", "to": "client", "label": "4. Order accepted · 8. Connection dropped", "messages": ["m4", "m8"], "style": "dashed", "kind": "return" }
+    ],
+    "groups": []
+  },
+  "features": {
+    "supported": [
+      "participant aliases with \"as\"",
+      "solid and dashed messages",
+      "declared participant order, left to right"
+    ],
+    "simplified": [
+      "messages between the same two participants in the same direction merge into one connection, numbered in source order",
+      "a merged connection keeps the line and head of its first message, so the lost message m8, which has no head of its own, is drawn with the dashed line and head of m4"
+    ],
+    "unsupported": ["Note over client,api: Polling continues until th", "loop Every minute", "end"]
+  }
+}

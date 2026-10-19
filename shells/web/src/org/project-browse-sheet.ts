@@ -11,15 +11,15 @@ import { mountModal } from '../components/modal.ts';
 import { announce } from '../a11y.ts';
 import { tRaw } from '../i18n.ts';
 import type { TeamProjectRef } from '../lib/session-source.ts';
+import { projectAudienceLabel } from './team-access.ts';
 
 const ROW_LIMIT = 200;
 
 /** Why a project is in this list, in a few words. Plain text. */
-export function browseReason(p: Pick<TeamProjectRef, 'via' | 'listed'>): string {
+export function browseReason(p: Pick<TeamProjectRef, 'via' | 'listed' | 'visibility'>): string {
   if (p.listed === 'hidden') return tRaw('Hidden from your projects');
-  if (p.via === 'everyone') return tRaw('Shared with everyone');
   if (p.via === 'admin') return tRaw('You can open this as an admin');
-  return tRaw('Shared project');
+  return projectAudienceLabel(p);
 }
 
 export function openProjectBrowse(opts: {

@@ -51,6 +51,8 @@ import { escape } from '../../../utils.ts';
 import { announce } from '../../../a11y.ts';
 import { t, tRaw } from '../../../i18n.ts';
 import { isTauriShell } from '../../instance-choice.ts';
+import { documentSnapshot, tokenContextModel, tokenContextStripHtml } from '../../../components/token-context-strip.ts';
+import type { TokenContextModel } from '../../../components/token-context-strip.ts';
 
 export interface VersionsCtx extends VersionsIoCtx {
   /**
@@ -94,6 +96,8 @@ export interface VersionsModel {
   storage: { versions: number; frozen: number; bytes: number };
   /** Set for one paint after a restore, so the Undo has somewhere to live. */
   restored: string | null;
+  /** What publishing records: the design system's editable head and its theme choices (plan 286). */
+  context?: TokenContextModel | null;
 }
 
 /** A long diff is a scroll, not a wall: the rest is named as a count. */
@@ -217,6 +221,7 @@ function publishHtml(model: VersionsModel): string {
         </div>
       </div>
       <p class="ds-v-slugline" id="ds-v-slugline" data-ds-v-slugline></p>
+      ${model.context ? tokenContextStripHtml(model.context) : ''}
       ${compatHtml(model)}
       <div class="ds-v-actions">
         <!-- aria-describedby, because the permanence line is not a caption: this
@@ -476,6 +481,7 @@ export function mountVersionsRoom(el: HTMLElement, ctx: VersionsCtx): VersionsRo
       ? await publishPreview(ctx, '').catch(() => null)
       : null;
     const storage = await versionStorage(ctx).catch(() => ({ versions: 0, frozen: 0, bytes: 0 }));
+    const system = publishable ? await Promise.resolve(ctx.host.tokens?.active?.()).catch(() => null) ?? null : null;
     const baseline = index.versions.find(v => v.slug === index.active) ?? index.versions[index.versions.length - 1];
     const restored = restoredOnce;
     restoredOnce = null;
@@ -495,6 +501,7 @@ export function mountVersionsRoom(el: HTMLElement, ctx: VersionsCtx): VersionsRo
       },
       storage,
       restored,
+      context: publishable ? tokenContextModel(documentSnapshot(head, { system }), { context: 'head' }) : null,
     };
   };
 

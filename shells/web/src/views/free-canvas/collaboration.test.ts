@@ -146,6 +146,57 @@ test('resize, rotate, group scale and group rotation each publish one final prev
   }
 });
 
+test('a claim lists the keyframe track, and in Scale mode every content field the Scale writes', async () => {
+  const content = (f: ReturnType<typeof fixture>) => Object.assign(f.fc, {
+    timeCfg: { kfField: 'track' }, cv: { textFrameField: 'textFrame' }, boxFieldBounds: new Map(),
+    declaredBoxFields: new Set(['blur', 'strokeDashArray', 'layoutX', 'fill']),
+    cfg: { ...f.fc.cfg, fontSizeField: 'fontSize', strokeWField: 'strokeW' },
+  });
+  const resize = (boxes: Box[], scale: boolean): Gesture => ({
+    pointerId: 1, startClient: { x: 0, y: 0 }, type: 'resize', index: 0, handle: 'se',
+    startRect: boxRect(boxes[0], { xField: 'x', yField: 'y', wField: 'w', hField: 'h', rotationField: 'rot' } as FcCtx['cfg']),
+    others: [], ...(scale && { content: true, startBox: boxes[0] }),
+  } as Gesture);
+  const boxes = [shape('one'), shape('two', 100, 50)];
+  for (const [gesture, fields, kind] of [
+    [() => resize(boxes, true), ['track', 'fontSize', 'strokeW', 'blur', 'strokeDashArray', 'textFrame', 'layoutX'], 'scale'],
+    [() => resize(boxes, false), ['track'], 'resize'],
+    [() => ({ ...groupGesture('gscale', boxes), content: true }), ['track', 'fontSize', 'strokeW', 'blur', 'strokeDashArray', 'textFrame', 'layoutX'], 'scale'],
+  ] as const) {
+    const f = fixture(boxes, [0]);
+    content(f);
+    f.fc.gesture = gesture() as Gesture;
+    await f.ready();
+    try {
+      assert.deepEqual([...(f.targets[0]!.fields ?? [])].sort(), [...fields].sort());
+      canvasGestureReady(f.fc);
+      previewCanvasRect(f.fc, 0, { x: 0, y: 0, w: 80, h: 60, rot: 0 });
+      flushCanvasPreview(f.fc);
+      assert.equal(f.previews[0]!.kind, kind, 'a Scale shows peers its own preview kind');
+    } finally { f.destroy(); }
+  }
+  // A tool with no keyframe track lists no fields outside a Scale, as before.
+  const plain = fixture(boxes, [0]);
+  await plain.ready();
+  try { assert.equal('fields' in plain.targets[0]!, false); } finally { plain.destroy(); }
+});
+
+test('a Scale pinch shows its spread as a Scale before any turn; without Scale mode the turn wins', async () => {
+  const boxes = [shape('one'), shape('two', 100, 50)];
+  for (const [content, k, deg, kind] of [[true, 2, 30, 'scale'], [true, 1, 30, 'rotate'], [false, 2, 30, 'rotate'], [false, 2, 0, 'resize']] as const) {
+    const f = fixture(boxes, [0, 1]);
+    Object.assign(f.fc, { cv: {}, boxFieldBounds: new Map() });
+    f.fc.gesture = { ...pinchGesture(boxes), ...(content && { content: true }), k, deg } as Gesture;
+    await f.ready();
+    try {
+      canvasGestureReady(f.fc);
+      previewCanvasRect(f.fc, 0, { x: 0, y: 0, w: 80, h: 60, rot: deg });
+      flushCanvasPreview(f.fc);
+      assert.equal(f.previews[0]!.kind, kind, `content ${content}, k ${k}, ${deg} degrees`);
+    } finally { f.destroy(); }
+  }
+});
+
 test('a group rebase rebuilds the anchor and the pivot from the claim-grant rows, keeping the press', async () => {
   for (const [type, handle, press] of [['gscale', 'se', { x: 140, y: 80 }], ['gscale', 'e', { x: 140, y: 40 }], ['grotate', 'se', { x: 140, y: 80 }]] as const) {
     // The press was measured against the pair at (0,0); before the grant a peer moved

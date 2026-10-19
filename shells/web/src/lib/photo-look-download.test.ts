@@ -8,7 +8,11 @@
  *
  * Node has no image decoder, so createImageBitmap and OffscreenCanvas are stood in for
  * by a raw-RGBA "image" (an 8-byte size header and the pixels), as in
- * shells/web/src/bridge/photo-look-bridge.test.ts.
+ * shells/web/src/bridge/photo-look-bridge.test.ts. Every look kind bakes on WebGPU
+ * (plan 295) and Node has no graphics device, so the download's own behaviour is
+ * checked through a stand-in bake that runs the TypeScript reference; the default
+ * bake refuses visibly here, and tests/webgpu-photo-look.browser.test.ts compares
+ * the GPU bake with the reference.
  *
  * Run: node --test shells/web/src/lib/photo-look-download.test.ts
  */
@@ -20,6 +24,7 @@ import { fileURLToPath } from 'node:url';
 import { treatedPhotoSvg, type TreatedPhotoDeps } from './photo-look-download.ts';
 import { applyPhotoLook } from '../../../../engine/src/photo-look.ts';
 import type { PhotoTreatment } from '../../../../engine/src/photo-treatment.ts';
+import type { PhotoLookBakeRequest } from '../bridge/photo-look-raster.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const W = 8, H = 4;
@@ -63,6 +68,15 @@ before(() => {
 });
 after(() => { const g = globalThis as Record<string, unknown>; for (const [k, v] of Object.entries(saved)) g[k] = v; });
 
+/** The TypeScript reference in place of the WebGPU bake, which Node cannot run. */
+const requests: PhotoLookBakeRequest[] = [];
+async function referenceBake(req: PhotoLookBakeRequest): Promise<Blob> {
+  requests.push(req);
+  const { w, h, data } = await readRaw(req.blob);
+  applyPhotoLook(data, w, h, req.look, { ...(req.theme ? { theme: req.theme } : {}), ...(req.lut ? { lut: req.lut } : {}) });
+  return rawImage(req.output ?? req.blob.type, data, w, h);
+}
+
 const blobs = new Map<string, Blob>();
 const deps = (extra: Partial<TreatedPhotoDeps> = {}): TreatedPhotoDeps => ({
   toDataUrl: async (blob) => { const url = `data:${blob.type};raw,${blobs.size}`; blobs.set(url, blob); return url; },
@@ -76,7 +90,9 @@ const embedded = async (svg: string): Promise<{ type: string; data: Uint8Clamped
 };
 
 test('a gradient-map look is baked into the pixels, with no filter preview in the source', async () => {
-  const out = await treatedPhotoSvg(rawImage('image/jpeg', SOURCE, W, H), LOOK, deps());
+  requests.length = 0;
+  const out = await treatedPhotoSvg(rawImage('image/jpeg', SOURCE, W, H), LOOK, deps({ bake: referenceBake }));
+  assert.deepEqual(requests.map(req => [req.look.id, req.output, req.theme]), [['grade', 'image/png', undefined]]);
   assert.equal(out.baked, true);
   assert.deepEqual([out.w, out.h], [W, H]);
   assert.doesNotMatch(out.svg, /<filter/, 'the preview filter is gone');
@@ -85,10 +101,12 @@ test('a gradient-map look is baked into the pixels, with no filter preview in th
   const expected = SOURCE.slice();
   applyPhotoLook(expected, W, H, LOOK);
   assert.deepEqual(data, expected, 'the pixels are the bake, exactly');
+  await assert.rejects(treatedPhotoSvg(rawImage('image/jpeg', SOURCE, W, H), LOOK, deps()), { code: 'WEBGPU_REQUIRED' },
+    'the default bake needs WebGPU and never falls back to the filter preview');
 });
 
 test('a theme variant bakes when asked, and a lut look bakes with its LUT or refuses', async () => {
-  const dark = await treatedPhotoSvg(rawImage('image/png', SOURCE, W, H), LOOK, deps({ theme: 'dark' }));
+  const dark = await treatedPhotoSvg(rawImage('image/png', SOURCE, W, H), LOOK, deps({ theme: 'dark', bake: referenceBake }));
   const expected = SOURCE.slice();
   applyPhotoLook(expected, W, H, LOOK, { theme: 'dark' });
   assert.deepEqual((await embedded(dark.svg)).data, expected);

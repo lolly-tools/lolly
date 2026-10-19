@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Reports resolver coverage without rewriting imported token data. */
 import { createTokenSet } from './tokens.ts';
+import { readTokenAxes } from './token-axes.ts';
+import type { TokenAxisKind } from './bridge/host-v1.ts';
 
 export type TokenDiagnosticCode = 'json-pointer' | 'group-inheritance' | 'unresolved-value' | 'resolution-failed' | 'limit';
 export interface TokenDiagnostic {
@@ -13,7 +15,8 @@ export interface TokenCompatibility {
   format: 'lolly-token-compatibility';
   version: 1;
   diagnostics: TokenDiagnostic[];
-  modes: { name: string; group: string | null }[];
+  /** Every declared theme. `kind` is present when the theme's group declares one (plans/319), so a colourway is not mistaken for a light/dark mode. */
+  modes: { name: string; group: string | null; kind?: TokenAxisKind }[];
   selections: { mode: string | null; tokens: number; unresolved: number }[];
   extensionNamespaces: string[];
   truncated: boolean;
@@ -53,7 +56,12 @@ export function tokenCompatibility(doc: unknown): TokenCompatibility {
   walk(doc, '', 0);
   report.extensionNamespaces = [...extensions].sort();
   const themes = record(doc) && Array.isArray(doc.$themes) ? doc.$themes : [];
-  report.modes = themes.slice(0, 32).filter(record).map(v => ({ name: String(v.name ?? v.id ?? ''), group: typeof v.group === 'string' ? v.group : null }));
+  const kinds = new Map(readTokenAxes(doc).axes.filter(a => a.kind).map(a => [a.group, a.kind!]));
+  report.modes = themes.slice(0, 32).filter(record).map(v => {
+    const group = typeof v.group === 'string' ? v.group : null;
+    const kind = kinds.get(group ?? '');
+    return { name: String(v.name ?? v.id ?? ''), group, ...(kind ? { kind } : {}) };
+  });
   if (themes.length > 32 || tokens > 2048) report.truncated = true;
   if (!report.truncated) {
     // Read the active selection as well as each named selection. Independent axes

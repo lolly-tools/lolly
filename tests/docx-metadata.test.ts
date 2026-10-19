@@ -61,7 +61,7 @@ test('authentic Writer DOCX removes selected properties and preserves unrelated 
 test('removing every supported property retains valid empty property parts and declarations', () => {
   const document = openDocxMetadata(fixture, 'file.docx'), output = document.remove(document.properties.map(p => p.id));
   assert.deepEqual(openDocxMetadata(output, 'copy.docx').properties, []);
-  for (const path of ['docProps/core.xml', 'docProps/custom.xml']) independentXml(part(path, output));
+  for (const path of ['docProps/core.xml', 'docProps/custom.xml', 'docProps/app.xml']) independentXml(part(path, output));
   for (const path of ['[Content_Types].xml', '_rels/.rels', 'word/document.xml']) assert.deepEqual(part(path, output), part(path));
 });
 
@@ -226,7 +226,7 @@ test('Company and Manager can be removed individually or together while other ap
     for (const id of ['app:Company', 'app:Manager']) if (!selected.includes(id)) assert.deepEqual(after.properties.find(p => p.id === id)?.value, doc.properties.find(p => p.id === id)?.value);
   }
   assert.equal(doc.remove([]), input); assert.deepEqual(input, original);
-  assert.throws(() => doc.remove(['app:Application']), /Invalid DOCX/);
+  assert.throws(() => doc.remove(['app:DocSecurity']), /Invalid DOCX/);
   for (const path of ['[Content_Types].xml', '_rels/.rels']) assert.deepEqual(part(path, doc.remove(['app:Company', 'app:Manager'])), part(path, input));
 });
 
@@ -353,4 +353,163 @@ test('extended Prepare choices stay granular and source-bound with private repor
   assert.doesNotMatch(JSON.stringify(result.report), /Private fixture|private-extended|docProps/);
   await assert.rejects(applyPreparation([{ ...source, bytes: result.outputs[0]!.bytes }], inspection, choices), /changed/);
   assert.deepEqual(source.bytes, extendedFixture);
+});
+
+const APPLICATION = ['app:Template', 'app:HyperlinkBase', 'app:Application', 'app:AppVersion'];
+const STATISTICS = ['app:TotalTime', 'app:Pages', 'app:Words', 'app:Characters', 'app:CharactersWithSpaces', 'app:Lines', 'app:Paragraphs'];
+const privateApplication = /Private fixture template|private-fixture\.example\.invalid|Private fixture producer|Private heading/;
+function applicationFixture(): { input: Uint8Array; app: string } {
+  const app = text(part('docProps/app.xml', extendedFixture))
+    .replace('<Template></Template>', '<Template>Private fixture template.dotx</Template>')
+    .replace('<TotalTime>0</TotalTime>', '<TotalTime>4242</TotalTime>')
+    .replace(/<Application>[^<]*<\/Application>/, '<Application>Private fixture producer</Application>')
+    .replace(/<AppVersion>[^<]*<\/AppVersion>/, '<AppVersion>16.0000</AppVersion>')
+    .replace('</Properties>', '<Pages>7</Pages><Words>1234</Words><Characters>5678</Characters><CharactersWithSpaces>6789</CharactersWithSpaces><Lines>89</Lines><Paragraphs>21</Paragraphs><HyperlinkBase>https://private-fixture.example.invalid/base/</HyperlinkBase><DocSecurity>0</DocSecurity><HeadingPairs><vt:vector size="2" baseType="variant"><vt:variant><vt:lpstr>Private heading</vt:lpstr></vt:variant><vt:variant><vt:i4>1</vt:i4></vt:variant></vt:vector></HeadingPairs></Properties>');
+  return { input: replace('docProps/app.xml', utf8(app), extendedFixture), app };
+}
+function withoutElements(app: string, ids: string[]): string {
+  let expected = app;
+  for (const id of ids) { const name = id.slice(4); expected = expected.replace(new RegExp(`<${name}>[^<]*</${name}>`), ''); }
+  return expected;
+}
+
+test('Template, hyperlink base, application and statistics fields are removed with raw members preserved and the copy inspected again', () => {
+  const { input, app } = applicationFixture(), original = input.slice();
+  independentXml(part('docProps/app.xml', input));
+  const doc = openDocxMetadata(input, 'file.docx'); assert.equal(doc.supported, true);
+  for (const id of [...APPLICATION, ...STATISTICS]) assert(doc.properties.some(p => p.id === id && p.part === 'docProps/app.xml'), id);
+  assert.equal(doc.properties.find(p => p.id === 'app:HyperlinkBase')?.label, 'Hyperlink base');
+  assert(!doc.limitations.some(l => l.includes('so they are retained')));
+  for (const selected of [['app:Template'], ['app:HyperlinkBase'], ['app:Application', 'app:AppVersion'], STATISTICS, [...APPLICATION, ...STATISTICS, 'app:Company', 'app:Manager']]) {
+    const output = doc.remove(selected), after = openDocxMetadata(output, 'copy.docx'); assert.equal(after.supported, true);
+    assert(after.properties.every(p => !selected.includes(p.id)));
+    for (const property of doc.properties.filter(p => !selected.includes(p.id))) assert.equal(after.properties.find(p => p.id === property.id)?.value, property.value, property.id);
+    const result = text(part('docProps/app.xml', output));
+    assert.equal(result, withoutElements(app, selected)); independentXml(part('docProps/app.xml', output));
+    assert(result.includes('<DocSecurity>0</DocSecurity>')); assert(result.includes('<vt:lpstr>Private heading</vt:lpstr>'));
+    for (const member of members(input)) if (member.name !== 'docProps/app.xml') {
+      const current = members(output).find(m => m.name === member.name)!;
+      assert.deepEqual(current.local, member.local, member.name); assert.deepEqual(current.compressed, member.compressed, member.name);
+    }
+  }
+  assert.equal(doc.remove([]), input); assert.deepEqual(input, original);
+  for (const unsupported of ['app:DocSecurity', 'app:HeadingPairs', 'app:TitlesOfParts', 'app:LinksUpToDate']) assert.throws(() => doc.remove([unsupported]), /Invalid DOCX/);
+});
+
+test('the preservation guard refuses structured or duplicated application and statistics values', () => {
+  const { app } = applicationFixture(), uri = 'http://schemas.openxmlformats.org/officeDocument/2006/extended-properties';
+  for (const name of ['Template', 'HyperlinkBase', 'Application', 'AppVersion', 'TotalTime', 'Pages', 'Words', 'Characters', 'CharactersWithSpaces', 'Lines', 'Paragraphs']) {
+    const structured = app.replace(new RegExp(`<${name}>([^<]*)</${name}>`), `<${name}><vt:lpwstr>$1</vt:lpwstr></${name}>`);
+    assert.notEqual(structured, app, name);
+    assert.equal(openDocxMetadata(replace('docProps/app.xml', utf8(structured), extendedFixture), 'file.docx').supported, false, name);
+    const duplicate = app.replace('</Properties>', `<alias:${name} xmlns:alias="${uri}">1</alias:${name}></Properties>`);
+    assert.equal(openDocxMetadata(replace('docProps/app.xml', utf8(duplicate), extendedFixture), 'file.docx').supported, false, name);
+  }
+});
+
+test('fields and relative links that use application properties keep those properties and still allow other removals', () => {
+  const { input } = applicationFixture(), body = text(part('word/document.xml', input));
+  const cases: [string, string[]][] = [
+    ['<w:fldSimple w:instr=" TEMPLATE \\p "><w:r><w:t>Cached template</w:t></w:r></w:fldSimple>', ['app:Template']],
+    ['<w:r><w:instrText> EDIT</w:instrText></w:r><w:r><w:instrText>TIME </w:instrText></w:r><w:r><w:t>4242</w:t></w:r>', ['app:TotalTime']],
+    ['<w:fldSimple w:instr=" NUMPAGES "><w:r><w:t>7</w:t></w:r></w:fldSimple>', ['app:Pages']],
+    ['<w:fldSimple w:instr=" NUMWORDS "><w:r><w:t>1234</w:t></w:r></w:fldSimple>', ['app:Words']],
+    ['<w:fldSimple w:instr=" NUMCHARS "><w:r><w:t>5678</w:t></w:r></w:fldSimple>', ['app:Characters', 'app:CharactersWithSpaces']],
+    ['<w:fldSimple w:instr=" HYPERLINK &quot;shared/spec.docx&quot; "><w:r><w:t>Spec</w:t></w:r></w:fldSimple>', ['app:HyperlinkBase']],
+    ['<w:r><w:instrText> INCLUDEPICTURE &quot;images/logo.png&quot; </w:instrText></w:r>', ['app:HyperlinkBase']],
+  ];
+  for (const [markup, retained] of cases) {
+    const fielded = replace('word/document.xml', utf8(body.replace('<w:body>', `<w:body><w:p>${markup}</w:p>`)), input);
+    independentXml(part('word/document.xml', fielded));
+    const doc = openDocxMetadata(fielded, 'private-input.docx'); assert.equal(doc.supported, true, markup);
+    for (const id of retained) { assert(!doc.properties.some(p => p.id === id), id); assert.throws(() => doc.remove([id]), /Invalid DOCX/); }
+    const labels = retained.map(id => ({ 'app:Template': 'Template', 'app:TotalTime': 'Total editing time', 'app:Pages': 'Page count', 'app:Words': 'Word count', 'app:Characters': 'Character count', 'app:CharactersWithSpaces': 'Character count with spaces', 'app:HyperlinkBase': 'Hyperlink base' } as Record<string, string>)[id]!);
+    assert(doc.limitations.some(l => l.includes('so they are retained') && labels.every(label => l.includes(label))), markup);
+    assert.doesNotMatch(JSON.stringify(doc.limitations), privateApplication);
+    const others = [...APPLICATION, ...STATISTICS].filter(id => !retained.includes(id));
+    const output = doc.remove(others), result = text(part('docProps/app.xml', output));
+    for (const id of retained) assert.match(result, new RegExp(`<${id.slice(4)}>[^<]+</${id.slice(4)}>`), id);
+    const after = openDocxMetadata(output, 'copy.docx'); assert.equal(after.supported, true);
+    assert(others.every(id => !after.properties.some(p => p.id === id))); assert(retained.every(id => !after.properties.some(p => p.id === id)));
+  }
+});
+
+test('relative external relationships keep the hyperlink base while absolute links do not', () => {
+  const { input } = applicationFixture(), rels = text(part('word/_rels/document.xml.rels', input));
+  const link = (target: string): Uint8Array => replace('word/_rels/document.xml.rels', utf8(rels.replace('</Relationships>', `<Relationship Id="rIdLink" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="${target}" TargetMode="External"/></Relationships>`)), input);
+  for (const target of ['../shared/spec.docx', 'spec.docx', '\\\\server\\share\\spec.docx']) {
+    const doc = openDocxMetadata(link(target), 'file.docx'); assert.equal(doc.supported, true, target);
+    assert(!doc.properties.some(p => p.id === 'app:HyperlinkBase'), target); assert(doc.properties.some(p => p.id === 'app:Template'), target);
+    assert(doc.limitations.some(l => l.includes('so they are retained: Hyperlink base.')), target);
+  }
+  for (const target of ['https://example.invalid/spec', 'mailto:someone@example.invalid', 'file:///C:/shared/spec.docx']) {
+    const doc = openDocxMetadata(link(target), 'file.docx'); assert.equal(doc.supported, true, target);
+    const output = doc.remove(['app:HyperlinkBase']); assert(!text(part('docProps/app.xml', output)).includes('HyperlinkBase'), target);
+  }
+});
+
+test('charts and drawings keep the application name and version in every selection while other properties are still removed', async () => {
+  const { input, app } = applicationFixture(), body = text(part('word/document.xml', input));
+  const drawing = (markup: string, before = ''): Uint8Array => replace('word/document.xml', utf8(body.replace('<w:body>', `${before}<w:body>${markup}`)), input);
+  let chart = storeZipMembers([...members(input), ...members(storeZip([{ name: 'word/charts/chart1.xml', bytes: utf8('<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart/></c:chartSpace>') }]))]);
+  chart = replace('[Content_Types].xml', utf8(text(part('[Content_Types].xml', chart)).replace('</Types>', '<Override PartName="/word/charts/chart1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/></Types>')), chart);
+  chart = replace('word/_rels/document.xml.rels', utf8(text(part('word/_rels/document.xml.rels', chart)).replace('</Relationships>', '<Relationship Id="rIdChart" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="charts/chart1.xml"/></Relationships>')), chart);
+  const kept = ['app:Application', 'app:AppVersion'], others = [...APPLICATION, ...STATISTICS, 'app:Company', 'app:Manager'].filter(id => !kept.includes(id));
+  const variants: [string, Uint8Array][] = [
+    ['DrawingML', drawing('<w:p><w:r><w:drawing><wp:inline><wp:extent cx="914400" cy="914400"/><wp:docPr id="1" name="Chart 1"/></wp:inline></w:drawing></w:r></w:p>')],
+    ['VML picture', drawing('<w:p><w:r><w:pict><v:rect style="width:10pt;height:10pt"/></w:pict></w:r></w:p>')],
+    ['embedded object', drawing('<w:p><w:r><w:object/></w:r></w:p>')],
+    ['VML background', drawing('', '<w:background w:color="FFFFFF"><v:background id="page"/></w:background>')],
+    ['chart part', chart],
+  ];
+  for (const [name, variant] of variants) {
+    independentXml(part('word/document.xml', variant));
+    const doc = openDocxMetadata(variant, 'private-input.docx'); assert.equal(doc.supported, true, name);
+    for (const id of kept) { assert(!doc.properties.some(p => p.id === id), `${name} ${id}`); assert.throws(() => doc.remove([id]), /Invalid DOCX/); }
+    assert(doc.limitations.some(l => l.includes('so they are retained: Application, Application version.')), name);
+    assert.doesNotMatch(JSON.stringify(doc.limitations), privateApplication);
+    const output = doc.remove(others);
+    assert.equal(text(part('docProps/app.xml', output)), withoutElements(app, others), name); independentXml(part('docProps/app.xml', output));
+    for (const member of members(variant)) if (member.name !== 'docProps/app.xml') assert.deepEqual(members(output).find(m => m.name === member.name)!.compressed, member.compressed, `${name} ${member.name}`);
+    const after = openDocxMetadata(output, 'copy.docx'); assert.equal(after.supported, true, name);
+    assert.deepEqual(after.properties.filter(p => p.part === 'docProps/app.xml'), [], name);
+  }
+  // Bulk paths (Prepare's default selection, --strip-hidden-data and --replace-all) take every remove-property group, so none may name these fields.
+  const source = { id: 'doc', name: 'private-chart.docx', bytes: chart }, inspection = await inspectPreparation([source]);
+  assert(!inspection.findings.some(f => f.action === 'remove-property' && kept.includes(f.propertyId!)));
+  const choices = inspection.groups.filter(g => g.action === 'remove-property').map(g => ({ groupId: g.id, replacement: '' }));
+  const result = await applyPreparation([source], inspection, choices), copy = text(part('docProps/app.xml', result.outputs[0]!.bytes));
+  assert.match(copy, /<Application>Private fixture producer<\/Application><AppVersion>16\.0000<\/AppVersion>/); assert.doesNotMatch(copy, /<Company>|<Template>|<Words>/);
+  assert.doesNotMatch(JSON.stringify(result.report), privateApplication);
+  // The base fixture declares the DrawingML and VML namespaces without using them, and both fields stay removable there.
+  assert.match(body, /xmlns:v="urn:schemas-microsoft-com:vml"/); assert.match(body, /xmlns:wp="/);
+  assert(kept.every(id => openDocxMetadata(input, 'file.docx').properties.some(p => p.id === id)));
+});
+
+test('DOCPROPERTY fields and bound controls for the new application fields remain inspect-only', () => {
+  const { input } = applicationFixture(), body = text(part('word/document.xml', input));
+  for (const name of ['Template', 'HyperlinkBase', 'Application', 'AppVersion', 'TotalTime', 'Pages', 'Words', 'Characters', 'CharactersWithSpaces', 'Lines', 'Paragraphs']) for (const markup of [
+    `<w:fldSimple w:instr=" DOCPROPERTY ${name} "><w:r><w:t>Cached ${name}</w:t></w:r></w:fldSimple>`,
+    `<w:sdt><w:sdtPr><w:dataBinding w:prefixMappings="xmlns:ap='http://schemas.openxmlformats.org/officeDocument/2006/extended-properties'" w:xpath="/ap:Properties/ap:${name}" w:storeItemID="{66666666-1111-2222-3333-444444444444}"/></w:sdtPr><w:sdtContent><w:p><w:r><w:t>Cached ${name}</w:t></w:r></w:p></w:sdtContent></w:sdt>`,
+  ]) {
+    const guarded = replace('word/document.xml', utf8(body.replace('<w:body>', `<w:body>${markup}`)), input), doc = openDocxMetadata(guarded, 'file.docx');
+    independentXml(part('word/document.xml', guarded)); assert.equal(doc.supported, false, name); assert.throws(() => doc.remove([`app:${name}`]), /unavailable/);
+  }
+});
+
+test('Prepare removes application and statistics fields with granular choices and a value-free report', async () => {
+  const { input } = applicationFixture(), source = { id: 'doc', name: 'private-app.docx', bytes: input }, inspection = await inspectPreparation([source]);
+  const findings = [...APPLICATION, ...STATISTICS].map(id => inspection.findings.find(f => f.propertyId === id && f.action === 'remove-property')!);
+  assert(findings.every(f => f?.groupId)); assert.equal(new Set(findings.map(f => f.groupId)).size, findings.length);
+  assert(inspection.scopes[0]!.limitations.some(l => l.includes('compatibility behaviour')));
+  const choices = findings.map(f => ({ groupId: f.groupId, replacement: '' })), result = await applyPreparation([source], inspection, choices);
+  assert.equal(result.report.replaced, findings.length); assert.equal(result.report.stages?.[0]?.operation, 'remove-properties');
+  assert(![...APPLICATION, ...STATISTICS].some(id => result.inspection.findings.some(f => f.propertyId === id)));
+  assert(result.inspection.findings.some(f => f.propertyId === 'app:Company' && f.value === 'Private fixture company'));
+  const after = openDocxMetadata(result.outputs[0]!.bytes, 'copy.docx'); assert.equal(after.supported, true);
+  assert(![...APPLICATION, ...STATISTICS].some(id => after.properties.some(p => p.id === id)));
+  assert.match(text(part('docProps/app.xml', result.outputs[0]!.bytes)), /<DocSecurity>0<\/DocSecurity>/);
+  assert.doesNotMatch(JSON.stringify(result.report), privateApplication); assert.doesNotMatch(JSON.stringify(result.report), /private-app|docProps/);
+  await assert.rejects(applyPreparation([{ ...source, bytes: result.outputs[0]!.bytes }], inspection, choices), /changed/);
+  assert.deepEqual(source.bytes, input);
 });

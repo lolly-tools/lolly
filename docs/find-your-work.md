@@ -83,7 +83,7 @@ What comes back depends on how you left and which tool you used:
 
 Lolly asks only when you press **Home** or the back button in a tool. Closing the tab, reloading and your browser's own Back button never ask. To be sure, press **Save as**, or **Save** in the export panel, before you leave a tool.
 
-When automatic recovery is unavailable, a note beside the editing controls explains what to keep. In an imported-file tool, save your settings and keep the original files too. In a recording tool or a utility with no Save action, save or download the result before leaving. The native apps identify when you need to save manually. A private collaboration's history is temporary; save a separate copy before the session ends.
+When automatic recovery is unavailable, a note beside the editing controls explains what to keep. In an imported-file tool, save your settings and keep the original files too. In a recording tool or a utility with no Save action, save or download the result before leaving. The native apps identify when you need to save manually. In a private collaboration, the person who invited keeps the document and its history on their device, including the other person's changes. The person who joined works on a temporary copy, so they should save a separate copy before the session ends.
 
 ::: note Left without saving by mistake?
 In tools that save as you work, History keeps a copy of the discarded edits. Open the **History** page, find them under **Changes** and press **Open as a copy**. In other tools the changes are gone.
@@ -94,10 +94,11 @@ In the web app, every tool that makes a document saves as you work: Design, Char
 
 - tools that work on a file you bring, such as Redact, Sign or Convert Image, because Lolly never keeps a copy of that file;
 - tools that record from your camera, microphone or screen, such as Record, Screen Capture and Voice Recorder;
-- 3D and Darkroom, which take a file of their own;
 - a tool with nothing to change, such as Countdown.
 
 In the other tools, your first change files the work in **Projects** as if you had saved, and later changes are kept as you work, once the tool has finished drawing. So an unsaved creation is still in Projects after you close the tab and reopens with its changes marked unsaved. **Leave anyway** still discards them, and History keeps a copy of the discarded edits for 30 days. Opening the tool again from the home screen starts a new creation; open the earlier one from Projects.
+
+3D and Darkroom save as you work, but they do not keep a file you load into them, such as a 3D model or a LUT. History and **Save** keep the file's name, type and size, not the file. When you open the work again, a note says which file it was, and the tool works without it until you load it again. Keep your original files.
 
 With [Sync](/info/sync.html) on, a creation filed this way goes to your other devices like anything else in Projects. Its versions stay on the device where they were made.
 

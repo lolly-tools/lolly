@@ -4,8 +4,10 @@ import { designRasterIdentity, readDesignRasterEvaluation, DESIGN_RASTER_RECIPE,
 import { WebGpuError, webGpuLossSignal } from './device.ts';
 import { runWebGpuOperation } from './operation.ts';
 import {
-  DESIGN_FILL_CLIPPED_SHADER, DESIGN_FILL_SHADER, DESIGN_GRADIENT_CLIPPED_SHADER, DESIGN_GRADIENT_SHADER, DESIGN_PAGE_CLIPPED_SHADER,
-  DESIGN_PAGE_SHADER, DESIGN_PAGE_READBACK_SHADER,
+  DESIGN_FILL_BOTH_CLIPPED_SHADER, DESIGN_FILL_CLIPPED_SHADER, DESIGN_FILL_ROW_CLIPPED_SHADER, DESIGN_FILL_SHADER,
+  DESIGN_GRADIENT_BOTH_CLIPPED_SHADER, DESIGN_GRADIENT_CLIPPED_SHADER, DESIGN_GRADIENT_ROW_CLIPPED_SHADER, DESIGN_GRADIENT_SHADER,
+  DESIGN_PAGE_BOTH_CLIPPED_SHADER, DESIGN_PAGE_CLIPPED_SHADER, DESIGN_PAGE_ROW_CLIPPED_SHADER, DESIGN_PAGE_SHADER, DESIGN_PAGE_READBACK_SHADER,
+  DESIGN_ROW_CLIP_BYTES,
 } from './design-page-shader.ts';
 
 const MAX_JOB_BYTES = 128 * 1024 * 1024;
@@ -57,15 +59,41 @@ function clipParameters(e: DesignRasterEvaluation): Float32Array<ArrayBuffer> {
   return data;
 }
 
-/** The passes beyond the primitive one, and their versions inside the frame's clip. */
-type Variant = 'fill' | 'gradient' | 'primitive-clip' | 'fill-clip' | 'gradient-clip';
+/** The passes beyond the primitive one, and their versions inside the frame's clip, a row's clip or both. */
+type Variant = Exclude<`${DesignRasterEvaluation['paint'][number][0]}${'' | '-clip'}${'' | '-row'}`, 'primitive'>;
 const VARIANT_SHADERS: Record<Variant, string> = {
   fill: DESIGN_FILL_SHADER, gradient: DESIGN_GRADIENT_SHADER, 'primitive-clip': DESIGN_PAGE_CLIPPED_SHADER,
   'fill-clip': DESIGN_FILL_CLIPPED_SHADER, 'gradient-clip': DESIGN_GRADIENT_CLIPPED_SHADER,
+  'primitive-row': DESIGN_PAGE_ROW_CLIPPED_SHADER, 'fill-row': DESIGN_FILL_ROW_CLIPPED_SHADER, 'gradient-row': DESIGN_GRADIENT_ROW_CLIPPED_SHADER,
+  'primitive-clip-row': DESIGN_PAGE_BOTH_CLIPPED_SHADER, 'fill-clip-row': DESIGN_FILL_BOTH_CLIPPED_SHADER, 'gradient-clip-row': DESIGN_GRADIENT_BOTH_CLIPPED_SHADER,
 };
-/** Which pass draws each paint step: steps from the clip's `from` on are drawn inside the clip. */
-function stepVariants(e: DesignRasterEvaluation): Array<Variant | 'primitive'> {
-  return e.paint.map(([kind], i) => (e.clip && i >= e.clip.from ? `${kind}-clip` as Variant : kind));
+/**
+ * Which pass draws each paint step, and the row clip it is drawn inside (-1 for none): steps
+ * from the frame clip's `from` on are drawn inside the frame's clip, and a row clip's steps inside its polygon.
+ */
+function stepVariants(e: DesignRasterEvaluation): Array<{ variant: Variant | 'primitive'; row: number }> {
+  let r = 0;
+  return e.paint.map(([kind], i) => {
+    while (r < e.rowClips.length && e.rowClips[r]!.to <= i) r++;
+    const row = r < e.rowClips.length && e.rowClips[r]!.from <= i ? r : -1;
+    return { variant: `${kind}${e.clip && i >= e.clip.from ? '-clip' : ''}${row >= 0 ? '-row' : ''}` as Variant | 'primitive', row };
+  });
+}
+
+/** Bytes between row clips in their uniform buffer, each starting where the device lets a binding start. */
+const rowClipStride = (device: GPUDevice) => { const align = device.limits.minUniformBufferOffsetAlignment || 256; return Math.ceil(DESIGN_ROW_CLIP_BYTES / align) * align; };
+
+/** Row clip uniforms, `stride` bytes apart: bounds, point count and points, in output pixels. */
+function rowClipParameters(e: DesignRasterEvaluation, stride: number): ArrayBuffer {
+  const sx = e.pixelWidth / e.width, sy = e.pixelHeight / e.height;
+  const data = new ArrayBuffer(e.rowClips.length * stride), floats = new Float32Array(data), words = new Uint32Array(data);
+  e.rowClips.forEach((c, index) => {
+    const at = index * stride / 4;
+    floats.set([c.bounds[0] * sx, c.bounds[1] * sy, c.bounds[2] * sx, c.bounds[3] * sy], at);
+    words[at + 4] = c.points.length / 2;
+    for (let i = 0; i < c.points.length; i += 2) { floats[at + 8 + i] = c.points[i]! * sx; floats[at + 9 + i] = c.points[i + 1]! * sy; }
+  });
+  return data;
 }
 
 /** Fill descriptors (bounds, colour, edge range and rule, 48 bytes each) and edges in output pixels. */
@@ -96,19 +124,21 @@ function gradientParameters(e: DesignRasterEvaluation): { gradients: ArrayBuffer
   return { gradients, stops };
 }
 
-function limits(e: DesignRasterEvaluation, device: GPUDevice): { bytes: number; x: number; y: number; peakBytes: number; fillBytes: number; edgeBytes: number; gradientBytes: number; stopBytes: number } {
+function limits(e: DesignRasterEvaluation, device: GPUDevice): { bytes: number; x: number; y: number; peakBytes: number; fillBytes: number; edgeBytes: number; gradientBytes: number; stopBytes: number; rowClipBytes: number } {
   const bytes = e.pixelWidth * e.pixelHeight * 4, groups = Math.ceil(bytes / 4 / 64);
   const x = Math.min(groups, device.limits.maxComputeWorkgroupsPerDimension), y = Math.ceil(groups / x);
   const fillBytes = e.fills.length * 48, edgeBytes = e.fills.reduce((n, f) => n + f.edges.length, 0) * 4;
   const gradientBytes = e.gradients.length * 48, stopBytes = e.gradients.reduce((n, g) => n + g.stops.length / 5, 0) * 32;
-  const peakBytes = bytes * 3 + e.ops.length * 64 + 32 + (e.fills.length ? fillBytes + edgeBytes + 16 : 0) + gradientBytes + stopBytes + (e.clip ? 64 : 0);
+  const rowClipBytes = e.rowClips.length * rowClipStride(device);
+  const peakBytes = bytes * 3 + e.ops.length * 64 + 32 + (e.fills.length ? fillBytes + edgeBytes + 16 : 0) + gradientBytes + stopBytes + (e.clip ? 64 : 0) + rowClipBytes;
   if (peakBytes > MAX_JOB_BYTES || bytes > Math.min(device.limits.maxBufferSize, device.limits.maxStorageBufferBindingSize)
     || e.ops.length * 64 > device.limits.maxStorageBufferBindingSize || edgeBytes > device.limits.maxStorageBufferBindingSize
     || fillBytes > device.limits.maxStorageBufferBindingSize || stopBytes > device.limits.maxStorageBufferBindingSize || y > device.limits.maxComputeWorkgroupsPerDimension
+    || rowClipBytes > device.limits.maxBufferSize
     || e.pixelWidth > device.limits.maxTextureDimension2D || e.pixelHeight > device.limits.maxTextureDimension2D) {
     throw new WebGpuError('WEBGPU_LIMIT', 'The Design page exceeds the raster resource budget or graphics device limits.');
   }
-  return { bytes, x, y, peakBytes, fillBytes, edgeBytes, gradientBytes, stopBytes };
+  return { bytes, x, y, peakBytes, fillBytes, edgeBytes, gradientBytes, stopBytes, rowClipBytes };
 }
 
 /** A fill, gradient or clipped pipeline, compiled only for a page whose paint steps need that pipeline. */
@@ -155,13 +185,14 @@ async function draw(device: GPUDevice, p: Pipelines, e: DesignRasterEvaluation, 
     const renderGroup = device.createBindGroup({ layout: p.render.getBindGroupLayout(0), entries: [
       { binding: 0, resource: { buffer: ops } }, { binding: 1, resource: { buffer: geometry } },
     ] });
-    const bound = new Map<Variant | 'primitive', GPUBindGroup>([['primitive', renderGroup]]);
+    // Bind groups by pass and row clip: `primitive#-1` is the plain primitive pass.
+    const bound = new Map<string, GPUBindGroup>([['primitive#-1', renderGroup]]);
     const pass = (variant: Variant) => {
       const pipeline = passes.get(variant);
       if (!pipeline) throw new WebGpuError('WEBGPU_OPERATION_FAILED', `The Design raster ${variant} pipeline is missing.`);
       return pipeline;
     };
-    let fillBuffers: GPUBuffer[] = [], gradientBuffers: GPUBuffer[] = [], clipBuffer: GPUBuffer | undefined;
+    let fillBuffers: GPUBuffer[] = [], gradientBuffers: GPUBuffer[] = [], clipBuffer: GPUBuffer | undefined, rowClipBuffer: GPUBuffer | undefined;
     if (e.fills.length) {
       const packed = fillParameters(e);
       fillBuffers = [buffer(budget.fillBytes, GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, 'Design raster fills'),
@@ -178,13 +209,21 @@ async function draw(device: GPUDevice, p: Pipelines, e: DesignRasterEvaluation, 
       clipBuffer = buffer(64, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, 'Design raster frame clip');
       device.queue.writeBuffer(clipBuffer, 0, clipParameters(e));
     }
+    const stride = rowClipStride(device);
+    if (e.rowClips.length) {
+      rowClipBuffer = buffer(budget.rowClipBytes, GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST, 'Design raster row clips');
+      device.queue.writeBuffer(rowClipBuffer, 0, rowClipParameters(e, stride));
+    }
     const steps = stepVariants(e);
-    for (const variant of new Set(steps)) {
-      if (variant === 'primitive') continue;
-      const kind = variant.replace('-clip', '');
-      const resources = kind === 'fill' ? [...fillBuffers, geometry] : kind === 'gradient' ? [ops, geometry, ...gradientBuffers] : [ops, geometry];
-      if (variant.endsWith('-clip')) resources.push(clipBuffer!);
-      bound.set(variant, device.createBindGroup({ layout: pass(variant).getBindGroupLayout(0), entries: resources.map((resource, binding) => ({ binding, resource: { buffer: resource } })) }));
+    const keyOf = (step: (typeof steps)[number]) => `${step.variant}#${step.row}`;
+    for (const step of steps) {
+      const { variant, row } = step, key = keyOf(step);
+      if (variant === 'primitive' || bound.has(key)) continue;
+      const kind = variant.split('-')[0];
+      const resources: GPUBufferBinding[] = (kind === 'fill' ? [...fillBuffers, geometry] : kind === 'gradient' ? [ops, geometry, ...gradientBuffers] : [ops, geometry]).map(b => ({ buffer: b }));
+      if (variant.includes('-clip')) resources.push({ buffer: clipBuffer! });
+      if (row >= 0) resources.push({ buffer: rowClipBuffer!, offset: row * stride, size: DESIGN_ROW_CLIP_BYTES });
+      bound.set(key, device.createBindGroup({ layout: pass(variant).getBindGroupLayout(0), entries: resources.map((resource, binding) => ({ binding, resource })) }));
     }
     const convertGroup = device.createBindGroup({ layout: p.readback.getBindGroupLayout(0), entries: [
       { binding: 0, resource: texture.createView() }, { binding: 1, resource: { buffer: pixels } }, { binding: 2, resource: { buffer: convert } },
@@ -193,12 +232,12 @@ async function draw(device: GPUDevice, p: Pipelines, e: DesignRasterEvaluation, 
     const render = encoder.beginRenderPass({ colorAttachments: [{ view: texture.createView(), clearValue: [0, 0, 0, 0], loadOp: 'clear', storeOp: 'store' }] });
     // Each draw completes before the next paint, in the evaluation's paint order; opacity is
     // not applied to an overlapping instanced batch.
-    let current: Variant | 'primitive' | undefined;
+    let current: string | undefined;
     e.paint.forEach(([, index], i) => {
-      const variant = steps[i]!;
-      if (variant !== current) {
-        current = variant;
-        render.setPipeline(variant === 'primitive' ? p.render : pass(variant)); render.setBindGroup(0, bound.get(variant)!);
+      const step = steps[i]!, key = keyOf(step);
+      if (key !== current) {
+        current = key;
+        render.setPipeline(step.variant === 'primitive' ? p.render : pass(step.variant)); render.setBindGroup(0, bound.get(key)!);
       }
       render.draw(6, 1, 0, index);
     });
@@ -241,7 +280,7 @@ export function createDesignRasterRenderer(services: DesignRasterServices = { ru
           let cache = variants.get(device);
           if (!cache) { cache = new Map(); variants.set(device, cache); }
           const passes = new Map<Variant, GPURenderPipeline>();
-          for (const variant of new Set(stepVariants(e))) {
+          for (const variant of new Set(stepVariants(e).map(step => step.variant))) {
             if (variant === 'primitive') continue;
             let compiled = cache.get(variant);
             if (!compiled) { const owner = cache; compiled = compileVariant(device, variant).catch(error => { owner.delete(variant); throw error; }); cache.set(variant, compiled); }

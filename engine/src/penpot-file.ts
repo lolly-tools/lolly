@@ -41,6 +41,7 @@ import { makeGeomApi } from './geom-api.ts';
 import { pathBounds, pathFromSubPaths } from './geom/path.ts';
 import { sanitizeAppliedTokens, buildTokenTypeIndex, isSafeTokenPath } from './penpot-bindings.ts';
 import { clamp } from './clamp.ts';
+import { readTokenAxes } from './token-axes.ts';
 import { compileDesignRow, type DrawPaint } from './design-draw.ts';
 import { designDrawPenpot, isPenpotPrimitiveRow } from './design-draw-penpot.ts';
 
@@ -934,9 +935,14 @@ export function penpotTokensJson(doc: unknown, selection?: PenpotThemeSelection)
   // Effective active selection (plans/222 gap #3). The file must open on the theme
   // the canvas was rendered with, not whichever theme is listed first - so the
   // render context's selection wins, then the source doc's own $metadata.activeThemes,
-  // then the first theme (made explicit). activeSets is the UNION of the chosen
-  // themes' enabled sets, ordered by tokenSetOrder, matching the reader in
-  // tokens.ts (activeSets/chosenThemes) so writer and reader agree on open.
+  // then each group's first theme (made explicit). activeSets is the UNION of the
+  // chosen themes' enabled sets, ordered by tokenSetOrder, matching the reader in
+  // token-selection.ts (resolveTokenSelection) so writer and reader agree on open.
+  //
+  // Theme `$extensions` (the plans/319 axis kind) are NOT written: this writer
+  // mirrors Penpot's theme record, which has no place for them, the same reason
+  // token leaves above keep only $value/$type/$description. A colourway group
+  // therefore reaches Penpot, and returns from it, as a plain theme group.
   const byName = new Map<string, Rec>();
   for (const t of themes) {
     const nm = typeof t.name === 'string' ? t.name : '';
@@ -954,9 +960,27 @@ export function penpotTokensJson(doc: unknown, selection?: PenpotThemeSelection)
     chosenNames = selection.activeThemes.filter((n) => byName.has(n));
   }
   if (!chosenNames.length && !setsGivenDirectly) chosenNames = srcActive.filter((n) => byName.has(n));
-  if (!chosenNames.length && !setsGivenDirectly && themes.length) {
-    const fn = typeof themes[0]!.name === 'string' ? (themes[0]!.name as string) : '';
-    if (fn) chosenNames = [fn];
+  // A group nothing chose opens on its canonical theme (plans/319: the one marked
+  // canonical, else the first), as the resolver draws the group. With one unmarked group
+  // this is the old "first theme" rule; with a colourway group as well it keeps
+  // that group's set on, so the links the light and dark sets make into it still
+  // resolve when the file opens.
+  if (!setsGivenDirectly && themes.length) {
+    const groupOf = (t: Rec | undefined): string => (t && typeof t.group === 'string' ? t.group : '');
+    const canonical = new Map(readTokenAxes(doc).axes.map((a) => [a.group, a.canonical]));
+    const covered = new Set(chosenNames.map((n) => groupOf(byName.get(n))));
+    const pick = (t: Rec): void => {
+      const g = groupOf(t);
+      const nm = typeof t.name === 'string' ? t.name : '';
+      if (covered.has(g) || !nm) return;
+      covered.add(g);
+      // byName holds bare names, `group/name` and ids. An ungrouped theme whose bare
+      // name another group's theme shadows is reached by its id instead.
+      const id = typeof t.id === 'string' && t.id ? t.id : '';
+      chosenNames.push(byName.get(nm) === t ? nm : g ? `${g}/${nm}` : id || nm);
+    };
+    for (const t of themes) if (canonical.get(groupOf(t)) === (typeof t.id === 'string' && t.id ? t.id : t.name)) pick(t);
+    for (const t of themes) pick(t);
   }
   chosenNames = dedupe(chosenNames);
 

@@ -1,0 +1,25 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* The design-system context strip's disclosure, actions and the denser panel layout
+   Design's Document controls use. The strip's own box is in token-workspace.css. */
+@layer views {
+.token-context-strip > strong { min-width: 0; overflow-wrap: anywhere; }
+.token-context-strip .btn { max-width: 100%; white-space: normal; }
+.token-context-details { flex-basis: 100%; min-width: 0; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.token-context-details > summary { display: flex; align-items: center; gap: var(--sp-2); min-height: var(--ui-size-control); cursor: pointer; list-style: none; }
+.token-context-details > summary::-webkit-details-marker { display: none; }
+.token-context-details > summary > .section-card-chev { flex: none; width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+.token-context-details > summary > .section-card-chev:dir(rtl) { transform: scaleX(-1); }
+.token-context-details[open] > summary > .section-card-chev { transform: rotate(90deg); }
+.token-context-details > summary:hover { color: var(--ui-color-text-default); }
+.token-context-details > summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; border-radius: var(--ui-radius-control); }
+.token-context-details dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--sp-1) var(--sp-3); margin: var(--sp-2) 0 0; }
+.token-context-details dt { font-weight: var(--ui-type-weight-label); color: var(--ui-color-text-default); }
+.token-context-details dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.token-context-details ul { margin: 0; padding-inline-start: var(--sp-4); }
+.token-proof-contexts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--sp-2); margin-block-end: var(--sp-3); }
+.token-context-strip--compact { gap: var(--sp-1) var(--sp-2); padding: var(--sp-2); margin-block: var(--sp-2); }
+.token-context-strip--compact .token-context-details dl { grid-template-columns: minmax(0, 1fr); }
+@media (pointer: coarse) {
+  .token-context-strip .btn, .token-context-details > summary { min-height: 44px; }
+}
+}

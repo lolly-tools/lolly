@@ -14,9 +14,10 @@
  *      selection over 60% of the stage or past the visible stage, a second finger after
  *      300 ms, an artboard in the selection, a row parked on a keyframe, a live text
  *      edit and a panel floating over the selection;
- *   5. a two-finger tap still opens the context menu, a resting pair commits nothing,
- *      and Escape or a pointercancel mid pinch puts the selection back and commits
- *      nothing;
+ *   5. a two-finger tap still opens the context menu, a resting pair commits nothing, a
+ *      lift commits exactly the frame the preview showed, a scale or a travel that
+ *      engages after the preview began eases in without a jump, and Escape or a
+ *      pointercancel mid pinch puts the selection back and commits nothing;
  *   6. after a pinch, the finger left down (and a third one the pinch held back) zoom
  *      the view with the next finger, whichever finger lifted first, and so do the
  *      fingers left after a pointercancel on one pinch finger;
@@ -171,6 +172,8 @@ function mount(seed: Box[], o: { frame?: boolean; canvas?: Record<string, unknow
 const settle = async (): Promise<void> => { for (let i = 0; i < 8; i++) await new Promise((r) => setTimeout(r, 0)); await new Promise((r) => setTimeout(r, 25)); for (let i = 0; i < 4; i++) await new Promise((r) => setTimeout(r, 0)); };
 const geom = (el: HTMLElement): string => [el.style.left, el.style.top, el.style.width, el.style.height].join(' ');
 const rectOf = (b: Record<string, unknown>): number[] => [b.x, b.y, b.w, b.h].map(Number);
+/** The box as the preview shows it, in the order rectOf reads a row. */
+const shownRect = (el: HTMLElement): number[] => [el.style.left, el.style.top, el.style.width, el.style.height].map((v) => parseFloat(v));
 const near = (a: number, b: number, eps: number, msg: string): void => assert.ok(Math.abs(a - b) <= eps, `${msg}: ${a} is not ${b}`);
 
 /** Both fingers on the canvas. `gap` is the time between them. */
@@ -753,7 +756,7 @@ test('two close fingers spreading past the tap\'s slop: the preview starts witho
   } finally { f.destroy(); }
 });
 
-test('a quick pinch lifted just past the tap\'s slop commits what the fingers did, though its preview was still easing in', async () => {
+test('a quick pinch lifted just past the tap\'s slop commits what its preview showed, though the preview was still easing in', async () => {
   const f = mount(ONE());
   try {
     f.select(['a']);
@@ -761,12 +764,135 @@ test('a quick pinch lifted just past the tap\'s slop commits what the fingers di
     // 60 px apart, each finger 15 px out in 1.5 px steps: the step past the tap's 14 px is the last.
     down(f, [170, 200], [230, 200]);
     for (let i = 1; i <= 10; i++) await to(f, [170 - 1.5 * i, 200], [230 + 1.5 * i, 200], 1040 + i * 10);
-    const shown = parseFloat(f.el('a').style.width || '200');
-    assert.ok(shown < 220, `the preview has only begun to catch up (${shown})`);
+    const shown = shownRect(f.el('a'));
+    assert.ok(shown[2]! > 200 && shown[2]! < 220, `the preview has only begun to catch up (${shown[2]})`);
     await up(f, [155, 200], [245, 200], 1150);
-    assert.deepEqual(rectOf(f.byId('a')), [50, 50, 300, 300], 'the spread went 60 to 90: 1.5 times, about the midpoint');
+    // The spread went 60 to 90, but the lift does not make up the rest after the fingers have gone.
+    assert.deepEqual(rectOf(f.byId('a')), shown, 'the commit is the frame on screen');
     assert.equal(f.writes(), 1);
   } finally { f.destroy(); }
+});
+
+test('fingers that stop soon after the scale engages: the lift commits exactly the size and place the preview showed', async () => {
+  // Held past the tap's window, so the preview has begun with nothing engaged; then the
+  // fingers spread, the scale engages at the tap's 14 px, and they stop a little later.
+  const cases: Array<[string, (i: number) => [Pt, Pt], number]> = [
+    ['one finger out 15 px', (i) => [[150, 200], [250 + i, 200]], 15],
+    ['one finger out 20 px', (i) => [[150, 200], [250 + i, 200]], 20],
+    ['both fingers out 10 px', (i) => [[150 - i, 200], [250 + i, 200]], 10],
+    ['both fingers out 15 px', (i) => [[150 - i, 200], [250 + i, 200]], 15],
+  ];
+  for (const [label, at, n] of cases) {
+    const f = mount(ONE());
+    try {
+      f.select(['a']);
+      await settle();
+      down(f, [150, 200], [250, 200]);
+      await to(f, [150, 200], [250, 200], 1600);
+      for (let i = 1; i <= n; i++) {
+        const [a, b] = at(i);
+        await to(f, a, b, 1600 + i * 16);
+      }
+      // The fingers rest: more frames at the same points.
+      const [a, b] = at(n);
+      for (let k = 1; k <= 5; k++) await to(f, a, b, 1600 + n * 16 + 100 * k);
+      const shown = shownRect(f.el('a'));
+      assert.ok(shown[2]! > 200, `${label}: the preview has grown (${shown[2]})`);
+      await up(f, a, b, 3000);
+      assert.deepEqual(rectOf(f.byId('a')), shown, `${label}: the commit is the frame on screen`);
+      assert.equal(f.writes(), 1, `${label}: one commit`);
+    } finally { f.destroy(); }
+  }
+});
+
+test('a scale that engages after the preview began brings its travel in with it: a still finger keeps the content under it, and nothing jumps', async () => {
+  // Rows are whole px, so the preview's edges round by up to a px.
+  for (const [ax, bx, dir] of [[150, 250, 1], [150, 250, -1], [180, 220, -1]] as const) {
+    const label = `${bx - ax} px apart, the moving finger ${dir > 0 ? 'out' : 'in'}`;
+    const f = mount(ONE());
+    try {
+      f.select(['a']);
+      await settle();
+      down(f, [ax, 200], [bx, 200]);
+      await to(f, [ax, 200], [bx, 200], 1600);
+      // How far the left edge moves for each px of spread when the box follows the
+      // fingers exactly: the still finger's distance from it, over the spread.
+      const follow = (ax - 100) / (bx - ax);
+      let [left, , width] = shownRect(f.el('a'));
+      let drift = 0, step = 0;
+      for (let i = 1; i <= 30; i++) {
+        f.canvasEl.dispatchEvent(finger('pointermove', [bx + dir * i, 200], 2, 1600 + i * 10));
+        await settle();
+        const [l, , w] = shownRect(f.el('a'));
+        // The still finger sits (ax - 100) / 200 of the way across the box.
+        drift = Math.max(drift, Math.abs(l! + ((ax - 100) / 200) * w! - ax));
+        step = Math.max(step, Math.abs(l! - left!));
+        [left, width] = [l, w];
+      }
+      assert.ok(drift <= 1, `${label}: the content under the still finger stays under it (${drift} px off)`);
+      assert.ok(step <= 2 * follow + 1, `${label}: the box catches up at most twice as fast as the fingers go, it never jumps (${step} px in one frame)`);
+      assert.equal(width, Math.round((200 * (bx - ax + dir * 30)) / (bx - ax)), `${label}: 30 px on, the box follows the fingers exactly`);
+      await up(f, [ax, 200], [bx + dir * 30, 200], 2400);
+      assert.equal(Number(f.byId('a').w), width, `${label}: and the lift commits it`);
+    } finally { f.destroy(); }
+  }
+});
+
+test('a travel that engages after the preview began eases in rather than jumping by a finger\'s drag threshold', async () => {
+  const f = mount(ONE());
+  try {
+    f.select(['a']);
+    await settle();
+    down(f, [160, 200], [240, 200]);
+    await to(f, [160, 200], [240, 200], 1600);
+    // Both fingers walk right 1 px a frame; the travel engages past 10 px.
+    let x = 100, step = 0;
+    for (let i = 1; i <= 30; i++) {
+      await to(f, [160 + i, 200], [240 + i, 200], 1600 + i * 10);
+      const [l] = shownRect(f.el('a'));
+      step = Math.max(step, l! - x);
+      x = l!;
+    }
+    assert.ok(step <= 2, `no frame moves the box more than 2 px for the fingers' 1 px (${step})`);
+    assert.equal(x, 130, '30 px on, the box is with the fingers');
+    await up(f, [190, 200], [270, 200], 2400);
+    assert.deepEqual(rectOf(f.byId('a')), [130, 100, 200, 200]);
+    assert.equal(f.writes(), 1);
+  } finally { f.destroy(); }
+});
+
+test('fingers that go just past where the scale or the travel engages and come back to where they began commit nothing', async () => {
+  // Held past the tap's window, so the preview has begun with nothing engaged. Each case
+  // goes out 1 px a frame until its part engages, then walks back to the start.
+  const cases: Array<[string, Pt, Pt, (i: number) => [Pt, Pt], number]> = [
+    ['100 px apart, both fingers out 7 px', [150, 200], [250, 200], (i) => [[150 - i, 200], [250 + i, 200]], 7],
+    ['40 px apart, both fingers out 7 px', [180, 200], [220, 200], (i) => [[180 - i, 200], [220 + i, 200]], 7],
+    ['both fingers right 11 px', [160, 200], [240, 200], (i) => [[160 + i, 200], [240 + i, 200]], 11],
+  ];
+  for (const [label, a0, b0, at, n] of cases) {
+    const f = mount(ONE());
+    try {
+      f.select(['a']);
+      await settle();
+      const before = rectOf(f.byId('a'));
+      down(f, a0, b0);
+      await to(f, a0, b0, 1600);
+      for (let i = 1; i <= n; i++) await to(f, ...at(i), 1600 + i * 16);
+      assert.notDeepEqual(shownRect(f.el('a')), before, `${label}: the part engaged and the preview moved`);
+      let against = 0;
+      for (let i = n - 1; i >= 0; i--) {
+        await to(f, ...at(i), 1600 + (2 * n - i) * 16);
+        // The box never shrinks below, or passes, where it began: that would be against the fingers.
+        const [l, , w] = shownRect(f.el('a'));
+        against = Math.max(against, 200 - w!, n === 11 ? 100 - l! : 0);
+      }
+      assert.equal(against, 0, `${label}: no frame moves the box against the fingers`);
+      assert.deepEqual(shownRect(f.el('a')), before, `${label}: the preview is back where it began`);
+      await up(f, a0, b0, 2400);
+      assert.equal(f.writes(), 0, `${label}: nothing to commit`);
+      assert.deepEqual(rectOf(f.byId('a')), before, `${label}: the row is unchanged`);
+    } finally { f.destroy(); }
+  }
 });
 
 test('a quick twist with close fingers keeps the turn the tap\'s hold-back saw: 90 degrees turns the box 75', async () => {

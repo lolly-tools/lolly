@@ -1,0 +1,63 @@
+{
+  "id": "dated-roadmap",
+  "title": "Dated roadmap",
+  "purpose": "Six dated tasks in three lanes, with a milestone and three dependency links. One dated card switches Gantt to real time: bars start on their start date, end after their inclusive end date, and sit in the lane for their Group. The today marker is set to a fixed date inside the plan.",
+  "inputs": {
+    "look": "editorial",
+    "source": "visual",
+    "diagramType": "gantt",
+    "title": "Product roadmap 2027",
+    "ganttToday": "2027-02-15",
+    "layers": [
+      { "kind": "layer", "layerId": "research", "label": "Research", "bandFill": "" },
+      { "kind": "layer", "layerId": "product", "label": "Product", "bandFill": "" },
+      { "kind": "layer", "layerId": "engineering", "label": "Engineering", "bandFill": "" }
+    ],
+    "nodes": [
+      { "shape": "rounded", "nodeId": "interviews", "label": "Customer interviews", "layer": "research", "startDate": "2027-01-04", "endDate": "2027-01-29" },
+      { "shape": "rounded", "nodeId": "brief", "label": "Product brief", "layer": "product", "startDate": "2027-01-25", "endDate": "2027-02-12" },
+      { "shape": "rounded", "nodeId": "design", "label": "Interaction design", "layer": "product", "startDate": "2027-02-08", "endDate": "2027-03-19" },
+      { "shape": "rounded", "nodeId": "build", "label": "Build and test", "layer": "engineering", "startDate": "2027-03-01", "endDate": "2027-05-14" },
+      { "shape": "rounded", "nodeId": "beta", "label": "Public beta", "layer": "engineering", "startDate": "2027-05-17", "endDate": "2027-06-11" },
+      { "shape": "rounded", "nodeId": "launch", "label": "Launch", "layer": "product", "startDate": "2027-06-15", "milestone": true }
+    ],
+    "arrows": [
+      { "from": "brief", "to": "design" },
+      { "from": "design", "to": "build" },
+      { "from": "beta", "to": "launch" }
+    ]
+  },
+  "census": {
+    "diagramType": "gantt",
+    "direction": "chronological",
+    "nodes": [
+      { "id": "interviews", "label": "Customer interviews", "group": "research", "start": "2027-01-04", "end": "2027-01-29" },
+      { "id": "brief", "label": "Product brief", "group": "product", "start": "2027-01-25", "end": "2027-02-12" },
+      { "id": "design", "label": "Interaction design", "group": "product", "start": "2027-02-08", "end": "2027-03-19" },
+      { "id": "build", "label": "Build and test", "group": "engineering", "start": "2027-03-01", "end": "2027-05-14" },
+      { "id": "beta", "label": "Public beta", "group": "engineering", "start": "2027-05-17", "end": "2027-06-11" },
+      { "id": "launch", "label": "Launch", "group": "product", "start": "2027-06-15", "milestone": true }
+    ],
+    "edges": [
+      { "from": "brief", "to": "design", "label": "" },
+      { "from": "design", "to": "build", "label": "" },
+      { "from": "beta", "to": "launch", "label": "" }
+    ],
+    "groups": [
+      { "id": "research", "label": "Research", "members": ["interviews"] },
+      { "id": "product", "label": "Product", "members": ["brief", "design", "launch"] },
+      { "id": "engineering", "label": "Engineering", "members": ["build", "beta"] }
+    ]
+  },
+  "features": {
+    "supported": [
+      "ISO start and inclusive end dates",
+      "a milestone drawn on its start date",
+      "lanes from each card's Group, in group order",
+      "dependency connections between dated tasks",
+      "a fixed today date"
+    ],
+    "simplified": [],
+    "unsupported": []
+  }
+}

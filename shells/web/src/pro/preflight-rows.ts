@@ -61,6 +61,7 @@ import { csvToMarks } from '../lib/print-marks-csv.ts';
 import { RASTER_DEFAULT_SCALE, SUPERSAMPLED_EXPORT_FORMATS } from '../bridge/export-scale.ts';
 import { printSettingsFor, type BatchPlan, type BatchRow, type PrintSettings } from './batch.ts';
 import { chooseFormat, getTool } from './render-export.ts';
+import { batchCanRender } from './batch-render-format.ts';
 
 /**
  * The RUN-LEVEL settings a row inherits - the /pro toolbar's defaults, or the
@@ -381,7 +382,7 @@ function skipCaveat(ctx: RowCheckCtx, uid?: string): Finding {
  * A `warn`, not an error: the row will produce a file, just not the one asked for.
  */
 function formatCaveat(requested: string, chosen: string, manifest: PreflightManifest, ctx: RowCheckCtx): Finding {
-  const offered = (manifest.render?.formats ?? []).join(', ');
+  const offered = (manifest.render?.formats ?? []).filter(batchCanRender).join(', ');
   const tool = manifest.id || 'this tool';
   return {
     id: 'collect.format-substituted',

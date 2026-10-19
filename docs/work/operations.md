@@ -211,6 +211,7 @@ reach people where they actually are:
 | Submission enters review | the review step's approvers | `submission.queued` |
 | Submission decided | the submitter | `submission.decided` |
 | Broadcast message sent | *(nobody - mail would double the inbox it is)* | `message.sent` |
+| Blob offload threshold reached | administrators (admin and owner roles), once a month per threshold | `blob.offload.threshold` |
 
 Mail is plain text through the org's own relay (`notify.smtp` - see
 [configuration](configuration.md#notify)); a user without an email address is skipped.
@@ -248,9 +249,49 @@ Two ways to bound it, and they compose:
 - **Deleting a version by hand.** `lw catalog version-rm <assetId> <n>`, refused for the served
   version and for a held asset.
 
-Neither is a substitute for watching the store. `GET /metrics` carries the database and blob
-counters; a size alert on the blob table (or the bucket) is the cheap version of this
-paragraph.
+Neither is a substitute for watching the store. `GET /metrics` carries the stored and read
+blob totals, and with `blobs.driver: "pg"` the server raises its own alert at the thresholds
+in the next section.
+
+## Blob offload trigger
+
+With `blobs.driver: "pg"`, project files and instance assets are `bytea` rows in PostgreSQL.
+That keeps an instance to one database to run and back up. Moving the bytes to object storage
+pays off only once the database carries enough of them, so the server measures two figures
+and raises an alert when either reaches its threshold:
+
+| Figure | Threshold | Metric |
+|---|---|---|
+| Bytes stored in PostgreSQL | 10 GiB | `lw_blob_stored_bytes{driver="pg"}` |
+| Bytes read from PostgreSQL in one calendar month (UTC) | 100 GiB | `lw_blob_read_bytes_total{driver="pg"}` |
+
+Both thresholds are provisional and will be reviewed before object storage offload is built.
+
+The alert needs no monitoring stack:
+
+- Administrators (the admin and owner roles) see a banner above every console page while a
+  threshold is exceeded. The console reads the banner from `GET /api/v1/alerts`.
+- The daily check that also watches provider credentials sends them one email per threshold
+  per month, and a `blob.offload.threshold` webhook event, through the
+  [notification](#notifications) channels. Without a `notify` block nothing is sent, and the
+  banner still shows.
+- Each email is recorded in the `instance_blob_months` table, so a restart or a second
+  replica does not send the same email again.
+
+The monthly read figure is kept in the same table. Each server writes the bytes it has read
+there about once a minute while reads continue, whenever the figures are read, and when it
+shuts down, so the month's total survives restarts and adds up across replicas. A crash loses
+only the reads not yet written. `lw_blob_read_bytes_total` counts from the process start,
+like any Prometheus counter; compare `increase(lw_blob_read_bytes_total[30d])` with the
+threshold.
+
+The `s3` driver reports reads but no stored total, because totalling a bucket means listing
+every object, and the store's own metrics already show its size. Neither the `s3` driver nor
+the memory store raises the alert.
+
+An alert changes nothing by itself: it says the move to object storage is due for planning.
+Do not switch `blobs.driver` on a live instance to clear the banner. Changing the driver does
+not copy the existing blobs, and the step that copies and verifies them is not available yet.
 
 ## Monitoring
 
@@ -271,6 +312,14 @@ Gauges worth alerting on:
 | `lw_siem_lag` | grows while forwarding is configured - the receiver stopped confirming |
 | `lw_rate_limit_buckets` | approaching `rateLimit.maxBuckets` |
 | `lw_process_resident_memory_bytes` | trending up across a render-heavy day |
+| `lw_blob_stored_bytes` | approaching 10 GiB with `driver="pg"`: see [blob offload trigger](#blob-offload-trigger) |
+| `lw_blob_read_bytes_total` | `increase()` over 30 days approaching 100 GiB with `driver="pg"` |
+
+`lw_origin_bytes_total{class}` counts the response body bytes the server wrote, after
+compression, by the route's delivery class (`public-immutable`, `public-revalidate`,
+`public-bounded`, `link`, `instance-private`, `person-private`). It does not alert; it shows
+how much traffic a CDN in front could take, since a CDN may serve only the public classes.
+HEAD, 204 and 304 answers count nothing.
 
 The Helm chart's ServiceMonitor needs `metricsToken`, because `/metrics` is loopback-only
 without one.
@@ -290,6 +339,9 @@ telemetry, or leaves both unchanged if a retained reference or database error bl
 erasure. Archiving a project retains its foreign key; ownership transfer or an approved
 lifecycle action is needed. Sessions, approvals, links and message acknowledgements
 can also block removal. The memory store now matches PostgreSQL on these conditions.
+The account's unfinished project-file uploads and its scoped uploads are removed
+first; if a scoped upload remains, for example because the person is still uploading,
+the erasure answers `409 ERASE_UPLOADS_REMAIN` with nothing else changed. Run it again.
 
 Audit actor IDs and other retained references can remain linkable. Neither the account
 operation nor turning analytics off deletes all personal content, historical copies,
@@ -332,6 +384,25 @@ liveness, not database or deployment readiness. Check `lw audit head` and the
 chain gauge. A failed or ambiguous update needs current-resource inspection and
 a fresh reviewed forward fix or application rollback; do not replay a stale
 plan or restore an older database over new writes.
+
+### Migration 0075 and scoped uploads
+
+Migration 0075 adds the `uploads` table for scoped uploads and lifts the project file
+size check to 4 GiB. It changes no budget: the configured project file caps stay as
+they are, and scoped uploads stay off until `policy.uploads.enabled` is set. Turning
+them on adds a second instance budget on the same blob store; see
+[configuration](configuration.md#policy) before you do.
+
+### Migration 0076 and file references
+
+Migration 0076 adds the `file` scope, three nullable columns (`role`, `derived_from`,
+`report`) and `metadata_bytes` to the `uploads` table, and checks that only a file reference
+uses them. `metadata_bytes` is the size of a reference's `derived_from` and report as JSON,
+which the budgets charge on top of its bytes; it is 0 on every existing row, so existing rows
+keep their values and no budget changes. [File references](api.md#file-references) share
+the scoped uploads' switch and budgets, so they stay off until `policy.uploads.enabled` is
+set; once it is, every member or service token with `tool.use` can keep and read back its own
+references for `policy.uploads.fileTtlHours` (a week by default).
 
 ### The engine pin
 

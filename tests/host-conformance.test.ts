@@ -23,7 +23,7 @@ const API_FILE: Record<string, string> = {
   media: 'media', scan: 'scan', lift: 'lift', keyframes: 'keyframes', recorder: 'recorder', audio: 'audio',
   codec: 'codec', layers: 'layers', upscale: 'upscale', matte: 'matte', ocr: 'ocr', speech: 'speech', viz: 'viz',
   color: 'color', images: 'images', raster: 'raster', geom: 'geom', connectors: 'connectors', c2pa: 'c2pa',
-  emoji: 'emoji', models: 'models', layout: 'layout',
+  emoji: 'emoji', models: 'models', layout: 'layout', fonts: 'fonts',
 };
 const API_INTERFACE: Record<string, string> = {
   profile: 'ProfileAPI', assets: 'AssetsAPI', state: 'StateAPI', clipboard: 'ClipboardAPI', export: 'ExportAPI',
@@ -32,7 +32,7 @@ const API_INTERFACE: Record<string, string> = {
   recorder: 'RecorderAPI', audio: 'AudioAPI', codec: 'CodecAPI', layers: 'LayersAPI', upscale: 'UpscaleAPI',
   matte: 'MatteAPI', ocr: 'OcrAPI', speech: 'SpeechAPI', viz: 'VizAPI', color: 'ColorAPI', images: 'ImagesAPI',
   raster: 'RasterAPI', geom: 'GeomAPI', connectors: 'ConnectorsAPI', c2pa: 'C2paAPI', emoji: 'EmojiAPI',
-  models: 'ModelsAPI', layout: 'LayoutAPI',
+  models: 'ModelsAPI', layout: 'LayoutAPI', fonts: 'FontsAPI',
 };
 
 /** Method names of one interface body, split by optionality, read off the source. */
@@ -103,4 +103,29 @@ test('behavioural smokes: a state store that forgets, or a net that allows every
   promiscuous.net = { fetch: async () => new Response('ok') };
   const r2 = await runHostConformance(promiscuous);
   assert.ok(r2.issues.some((i) => i.api === 'net' && /must reject/.test(i.message)), formatConformance(r2));
+});
+
+test('the family and axes smokes run only when a host offers them, and catch an answer that is not a list (plans/319)', async () => {
+  const tokens = (extra: Record<string, unknown>) => ({
+    get: async () => ({ size: 0, resolve: () => undefined }),
+    colors: async () => [],
+    resolve: async () => undefined,
+    themes: async () => [],
+    ...extra,
+  });
+  const without = createMockHost() as unknown as Record<string, unknown>;
+  without.tokens = tokens({});
+  assert.ok((await runHostConformance(without)).ok, 'a tokens API without the optional reads conforms');
+
+  const good = createMockHost() as unknown as Record<string, unknown>;
+  good.tokens = tokens({ axes: async () => [], family: async () => [{ id: 'main', name: 'Main', canonical: true, active: true, value: '#033633' }] });
+  const ok = await runHostConformance(good);
+  assert.ok(ok.ok, formatConformance(ok));
+
+  const broken = createMockHost() as unknown as Record<string, unknown>;
+  broken.tokens = tokens({ axes: async () => ({}), family: async () => [{ name: 'No id' }] });
+  const report = await runHostConformance(broken);
+  assert.equal(report.ok, false);
+  assert.ok(report.issues.some((i) => i.api === 'tokens' && /axes\(\) must resolve to an array/.test(i.message)), formatConformance(report));
+  assert.ok(report.issues.some((i) => i.api === 'tokens' && /carry an id and a value/.test(i.message)), formatConformance(report));
 });

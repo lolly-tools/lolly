@@ -296,6 +296,20 @@ test('a local op goes out as an ops frame; a remote one lands in the doc and is 
   h.handle.close();
 });
 
+test('own writes under a transform claim carry its id: the keyframe track and every field the claim lists', async () => {
+  const h = await harness();
+  const target = { kind: 'transform', collection: 'boxes', ids: ['a'], fields: ['fontSize'] };
+  joinNow(h, { interactionVersion: 1, claims: [{ id: 'c1', owner: 'conn-me', name: 'Me', target, expiresAt: Date.now() + 10_000 }] });
+  h.socket().sent.length = 0;
+  const field = (name: string, clock: number): CanvasOp =>
+    ({ k: 'field', col: 'boxes', id: 'a', field: name, value: 1, origin: origin('dev-a', clock) });
+  for (const [i, name] of ['kf', 'fontSize', 'fill'].entries()) h.handle.adapter.apply(field(name, i + 1));
+  await h.handle.persisted();
+  const frames = h.socket().framesOfType('ops') as Array<{ claimId?: string; ops: Array<{ field: string }> }>;
+  assert.deepEqual(frames.map(f => [f.claimId, f.ops.map(op => op.field)]), [['c1', ['kf', 'fontSize']], [undefined, ['fill']]]);
+  h.handle.close();
+});
+
 test('peer echo does not acknowledge durable storage or apply twice', async () => {
   const h = await harness();
   joinNow(h);
@@ -1091,6 +1105,71 @@ test('rejected edits are archived before their journal IDs retire, and survive r
   reopened.handle.close(); await reopened.handle.persisted();
   const another = await harness({ store, principal: 'bob' });
   assert.equal(another.handle.recovery?.(), undefined); another.handle.close();
+});
+
+/** Edit, then have the room reject that edit, so the provider archives a recovery copy. */
+async function archiveRejected(h: Harness, value: string, clock: number): Promise<string> {
+  h.handle.adapter.apply(param('title', value, 'dev-a', clock));
+  await h.handle.persisted();
+  const sent = h.socket().framesOfType('ops').at(-1)!;
+  h.socket().deliver({ t: 'receipt', batchId: sent.batchId, acceptedIds: [], rejectedIds: sent.ids, durableRevision: 1 });
+  await h.handle.persisted();
+  return h.handle.recovery!()!.id;
+}
+
+test('a copy the device library holds is forgotten, so reopening the room replays nothing', async () => {
+  const store = memoryStore(), h = await harness({ store, principal: 'alice' }); joinNow(h);
+  const id = await archiveRejected(h, 'Interrupted', 1);
+  h.handle.close(); await h.handle.persisted();
+  const reopened = await harness({ store, principal: 'alice' });
+  assert.deepEqual(reopened.handle.recoveries!().map(copy => copy.id), [id], 'replayed until the library holds it');
+  await reopened.handle.forgetRecovery!(id);
+  assert.deepEqual(reopened.handle.recoveries!(), []);
+  assert.equal(reopened.handle.recovery!(), undefined);
+  assert.deepEqual(store.data.get(`${KEY('alice')}:recovery`), [], 'the archive no longer holds the copy');
+  reopened.handle.close(); await reopened.handle.persisted();
+  const again = await harness({ store, principal: 'alice' });
+  assert.equal(again.events.some(event => event.kind === 'recovery'), false, 'a later connect raises nothing');
+  assert.deepEqual(again.handle.recoveries!(), []);
+  await again.handle.forgetRecovery!('not-archived');
+  again.handle.close();
+});
+
+test('forgetting one archived copy never writes away a newer one', async () => {
+  const store = memoryStore(), h = await harness({ store, principal: 'alice' }); joinNow(h);
+  const first = await archiveRejected(h, 'First', 1);
+  let finish!: () => void;
+  const save = store.save;
+  store.save = async (key, ops) => { if (key.endsWith(':recovery') && !finish) await new Promise<void>(resolve => { finish = resolve; }); await save(key, ops); };
+  // `persisted()` would wait for the held write, so these turns wait for the outbox alone.
+  const turns = async (): Promise<void> => { for (let i = 0; i < 8; i++) await new Promise(resolve => setImmediate(resolve)); };
+  const forgotten = h.handle.forgetRecovery!(first);
+  await turns();
+  h.handle.adapter.apply(param('title', 'Second', 'dev-a', 2));
+  await turns();
+  const sent = h.socket().framesOfType('ops').at(-1)!;
+  h.socket().deliver({ t: 'receipt', batchId: sent.batchId, acceptedIds: [], rejectedIds: sent.ids, durableRevision: 2 });
+  await turns();
+  finish(); await forgotten; await h.handle.persisted();
+  const archived = (store.data.get(`${KEY('alice')}:recovery`) ?? []).map(op => (op as { key: string }).key);
+  const second = h.handle.recovery!()!.id;
+  assert.notEqual(second, first);
+  assert.deepEqual(archived, [`recovery:${second}`], 'the newer copy stays archived and the forgotten one is gone');
+  h.handle.close();
+});
+
+test('reconnecting with nothing pending archives no recovery copy', async () => {
+  const store = memoryStore(), h = await harness({ store, principal: 'alice' }); joinNow(h);
+  const room = new ReferenceCanvasDoc('server'); room.apply(param('title', 'Accepted earlier', 'dev-b', 1));
+  h.socket().dropped(1006);
+  h.timers.at(-1)!.fire(); await Promise.resolve();
+  joinNow(h, { checkpoint: room.checkpoint(), serverClock: 1 });
+  await h.handle.persisted();
+  assert.equal(h.handle.state().status, 'live');
+  assert.equal(h.events.some(event => event.kind === 'recovery'), false);
+  assert.equal(store.data.has(`${KEY('alice')}:recovery`), false);
+  assert.deepEqual(h.socket().framesOfType('ops'), [], 'no edit was sent, so none can be rejected');
+  h.handle.close();
 });
 
 test('a failed recovery write keeps rejected edits in the journal and pauses editing', async () => {

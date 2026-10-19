@@ -8,6 +8,7 @@ import { chromium, type Page } from 'playwright';
 
 interface DatabaseFixture {
   hold(): Promise<boolean>;
+  version(): number;
   seed(): Promise<void>;
   refused(): Promise<string[]>;
   showError(): void;
@@ -24,6 +25,7 @@ const bundle = build({
     let cached;
     window.databaseFixture = {
       async hold() { cached = await openDB(); return cached === await openDB(); },
+      version() { return cached.version; },
       async seed() {
         await cached.put('state', { slot: 'draft', toolId: 'design', updatedAt: 1, data: { text: 'Saved work' } });
         await cached.put('profile', { firstname: 'Ada' }, 'me');
@@ -77,8 +79,9 @@ test('A newer IndexedDB version closes every old tab without clearing its work o
   }
   await page.evaluate(() => window.databaseFixture.seed());
   const originalUrl = page.url();
-  const records = await upgrader.evaluate(() => new Promise<{ version: number; work: unknown; profile: unknown; asset: number[] }>((resolve, reject) => {
-    const request = indexedDB.open('lolly', 26);
+  const nextVersion = await page.evaluate(() => window.databaseFixture.version() + 1);
+  const records = await upgrader.evaluate(version => new Promise<{ version: number; work: unknown; profile: unknown; asset: number[] }>((resolve, reject) => {
+    const request = indexedDB.open('lolly', version);
     const deadline = setTimeout(() => reject(new Error('The old tabs did not release the upgrade.')), 3000);
     request.onerror = () => { clearTimeout(deadline); reject(request.error); };
     request.onupgradeneeded = () => request.result.createObjectStore('future-cache');
@@ -95,9 +98,9 @@ test('A newer IndexedDB version closes every old tab without clearing its work o
       };
       tx.onerror = () => { db.close(); reject(tx.error); };
     };
-  }));
+  }), nextVersion);
   assert.deepEqual(records, {
-    version: 26, work: { slot: 'draft', toolId: 'design', updatedAt: 1, data: { text: 'Saved work' } },
+    version: nextVersion, work: { slot: 'draft', toolId: 'design', updatedAt: 1, data: { text: 'Saved work' } },
     profile: { firstname: 'Ada' }, asset: [1, 2, 3],
   });
   for (const holder of [page, sibling]) {

@@ -112,7 +112,8 @@ The [render resource guide](renders.md) explains the request JSON, persisted
 status, restart recovery and retained output. Retrying creates a new resource
 linked to the original. Output and evidence downloads require an explicit file
 path. [Execution evidence](renders.md#execution-evidence) records observed source,
-context and asset digests with explicit coverage limits.
+context and asset digests with explicit coverage limits. For new outputs the
+evidence file also holds the [render identity](renders.md#render-identity).
 
 For multiple rows with individual recovery and output receipts:
 
@@ -185,7 +186,8 @@ lw users erase <id>         # erasure: delete the person's row + de-attribute th
 
 `retention run` also runs daily on a long-lived server; on serverless, cron it with a service
 token (`LW_TOKEN=… lw retention run`). It also removes unfinished project-file uploads more
-than an hour past their expiry and reports how many as `swept`; the long-lived server does
+than an hour past their expiry, and expired [scoped uploads](#resumable-uploads), and reports
+how many as `swept`; the long-lived server does
 that at boot and daily even with no retention policy. `users erase` is owner-only and answers a data-subject
 request - the person's projects must be archived first, and the audit chain keeps its opaque
 user id (the mapping to a person is what is removed). See [operations](operations.md).
@@ -322,6 +324,28 @@ returned. `edit` corrects a pending submission's declared metadata before it goe
 type, tags, description and the org's own fields, never the bytes or the exposure - and is
 audited with its before and after. `approve` and `return` go through the approvals engine, so
 you cannot decide your own submission.
+
+## Resumable uploads
+
+Send a large file in 1 MiB parts that survive a dropped connection or a restart
+([resumable uploads](resumable-uploads.md)):
+
+```bash
+lw upload ./keynote.mp4 --project prj_ab12        # a shared file in a project (signed in as a person)
+lw upload ./master.tif --scope catalog-submission  # an original to submit to the catalog
+lw upload ./brochure.pdf --scope automation-input  # bytes for /api/v1/inspect or /api/v1/optimize
+lw upload ./photo.jpg --scope file                 # a file reference you can also read back
+```
+
+`--name` sets the file name (the file's own by default) and `--content-type` its media type,
+which is otherwise guessed from the extension. The command reads the file one part at a time
+and keeps the upload id under `~/.config/lolly-work/uploads/` until the upload finishes. If it
+stops, run the same command again: it asks which parts arrived and sends only the rest. An
+upload left for more than 15 minutes expires, and the next run starts it again. A scoped
+upload prints the id and checksum to name it by, for example
+`POST /api/v1/catalog/submit?name=…&uploadId=…&checksum=…`. A service token (`LW_TOKEN`) may
+use `--scope`; a project file needs a signed-in person. `--scope` needs an instance that turns
+on `policy.uploads.enabled`; until then it answers `uploads are off`.
 
 ## Org-defined metadata
 

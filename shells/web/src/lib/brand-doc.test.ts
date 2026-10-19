@@ -856,3 +856,123 @@ test('nudgeSwatch: L clamps to [0,1] and C clamps at 0', () => {
 test('nudgeSwatch: an unparseable colour is returned unchanged', () => {
   assert.equal(nudgeSwatch('not-a-colour', 'L', 1, false), 'not-a-colour');
 });
+
+// ── Colourways (plans/319 A2) ────────────────────────────────────────────────
+// A system with three leads lists the same tiles, under the same keys and
+// headings, as the system it was lifted from; its colourway sets never surface
+// as tiles; and a role tile carries the LEAD'S value and path, so a write
+// through the tile goes to the lead and never to the link the leads share.
+
+const { addLead, leadTokenSet } = await import('./design-system/leads.ts');
+const { setSemanticRampAlias } = await import('./brand-doc.ts');
+
+const derivedOne = (): Record<string, unknown> => deriveBrandTokens({ primary: '#0c322c', name: 'Test' }) as Record<string, unknown>;
+function threeLeads(from = derivedOne()): Record<string, unknown> {
+  const one = addLead(from, { colour: '#e05a2b', name: 'Persimmon', canonical: { name: 'Pine' } });
+  assert.ok(one.ok, one.ok ? '' : one.reasons.join(' '));
+  const two = addLead(one.doc, { colour: '#0e7490', name: 'Waterhole' });
+  assert.ok(two.ok, two.ok ? '' : two.reasons.join(' '));
+  return two.doc;
+}
+const leadResolve = (doc: unknown, lead: string | null, mode: string) => {
+  const set = leadTokenSet(doc, { lead, mode });
+  return (key: string) => set.resolve(key);
+};
+
+test('walkSwatches on three leads lists the same tiles as the single-lead system, and none from a colourway set', () => {
+  const single = derivedOne();
+  const doc = threeLeads(derivedOne());
+  for (const mode of ['light', 'dark']) {
+    const was = walkSwatches(single, mode, resolverFor(single, mode));
+    const now = walkSwatches(doc, mode, leadResolve(doc, null, mode));
+    assert.deepEqual(now.map(s => [s.key, s.kind, s.group, s.name, s.deletable]), was.map(s => [s.key, s.kind, s.group, s.name, s.deletable]), `${mode}: same keys, kinds, headings, names`);
+    assert.deepEqual(now.filter(s => s.kind !== 'semantic'), was.filter(s => s.kind !== 'semantic'), `${mode}: every palette tile is identical`);
+    assert.deepEqual(now.map(s => s.hex), was.map(s => s.hex), `${mode}: the canonical lead shows what the system showed`);
+    assert.equal(now.some(s => s.path[0]?.startsWith('colourway/') && s.kind !== 'semantic'), false, 'no tile comes from a colourway set');
+    assert.equal(now.some(s => s.kind === 'other'), false, 'no lead colour is a deletable other tile');
+  }
+});
+
+test('a role tile on three leads describes the lead being edited', () => {
+  const doc = threeLeads();
+  const tile = (lead: string | null, mode: string, key: string) =>
+    walkSwatches(doc, { lead, mode }, leadResolve(doc, lead, mode)).find(s => s.key === key)!;
+  const pine = tile(null, 'light', 'color.semantic.primary');
+  assert.deepEqual(pine.path, ['colourway/pine', 'color', 'colourway', 'light', 'primary']);
+  assert.equal(pine.raw, '{color.ramp.primary.5}', 'the lifted canonical keeps the ramp link it had');
+  assert.equal(pine.deletable, false);
+  const persimmon = tile('persimmon', 'dark', 'color.semantic.secondary');
+  assert.deepEqual(persimmon.path, ['colourway/persimmon', 'color', 'colourway', 'dark', 'secondary']);
+  assert.equal(persimmon.isAlias, false, 'a lead added from a colour holds the colour itself');
+  assert.equal(persimmon.hex, colorToHexOf(leadResolve(doc, 'persimmon', 'dark')('color.semantic.secondary')));
+  const surface = tile('persimmon', 'light', 'color.semantic.surface');
+  assert.deepEqual(surface.path, ['light', 'color', 'semantic', 'surface'], 'the surface is the look\'s own');
+
+  // Recolouring through the tile changes that lead only.
+  const link = JSON.stringify(leafAt(doc, ['dark', 'color', 'semantic', 'secondary']));
+  const waterhole = JSON.stringify(leafAt(doc, ['colourway/waterhole', 'color', 'colourway', 'dark', 'secondary']));
+  assert.equal(setSwatchValue(doc, persimmon.path, '#abcdef'), true);
+  assert.equal(leadResolve(doc, 'persimmon', 'dark')('color.semantic.secondary'), '#abcdef');
+  assert.equal(JSON.stringify(leafAt(doc, ['dark', 'color', 'semantic', 'secondary'])), link);
+  assert.equal(JSON.stringify(leafAt(doc, ['colourway/waterhole', 'color', 'colourway', 'dark', 'secondary'])), waterhole);
+  // And a print lock set through it is that lead's.
+  assert.equal(setSwatchCmykLock(doc, persimmon.path, [0, 60, 90, 0]), true);
+  assert.deepEqual(tile('persimmon', 'dark', 'color.semantic.secondary').lock, { cmyk: [0, 60, 90, 0] });
+  assert.equal(tile('waterhole', 'dark', 'color.semantic.secondary').lock, null);
+});
+test('a role tile moved into a group on three leads files there for every lead, as it does with one lead', () => {
+  const doc = threeLeads();
+  const single = derivedOne();
+  const tile = (d: unknown, lead: string | null) => walkSwatches(d, { lead, mode: 'light' }, leadResolve(d, lead, 'light')).find(s => s.key === 'color.semantic.primary')!;
+  const before = tile(doc, null);
+  const leadSets = JSON.stringify(Object.fromEntries(Object.entries(doc).filter(([k]) => k.startsWith('colourway/'))));
+  // The tile carries the lead's path; the move goes to the slot every lead links from.
+  assert.deepEqual(before.path, ['colourway/pine', 'color', 'colourway', 'light', 'primary']);
+  assert.equal(setSwatchGroup(doc, before.path, 'Campaign'), true);
+  assert.equal(setSwatchGroup(single, tile(single, null).path, 'Campaign'), true);
+  for (const lead of ['pine', 'persimmon', 'waterhole']) assert.equal(tile(doc, lead).group, 'Campaign', `${lead} files the role under the moved heading`);
+  assert.equal(tile(doc, null).group, tile(single, null).group);
+  assert.equal(leafAt(doc, ['light', 'color', 'semantic', 'primary'])!.$value, '{color.colourway.light.primary}', 'the link is untouched');
+  assert.equal(JSON.stringify(Object.fromEntries(Object.entries(doc).filter(([k]) => k.startsWith('colourway/')))), leadSets, 'no lead carries a heading of its own');
+  // Null sends the tile back to Roles, for every lead, exactly as with one lead.
+  assert.equal(setSwatchGroup(doc, before.path, null), true);
+  assert.equal(setSwatchGroup(single, tile(single, null).path, null), true);
+  for (const lead of ['pine', 'persimmon']) assert.equal(tile(doc, lead).group, tile(single, null).group);
+});
+
+const colorToHexOf = (v: unknown): string => {
+  const set = createTokenSet({ x: { $type: 'color', $value: v } });
+  return String(set.colors()[0]?.value ?? '');
+};
+
+test('setSemanticRampAlias writes the canonical lead and keeps the links', () => {
+  const doc = threeLeads();
+  setSemanticRampAlias(doc, 'secondary', 3);
+  for (const mode of ['light', 'dark']) {
+    assert.equal(leafAt(doc, [mode, 'color', 'semantic', 'secondary'])!.$value, `{color.colourway.${mode}.secondary}`);
+    assert.equal(leafAt(doc, ['colourway/pine', 'color', 'colourway', mode, 'secondary'])!.$value, '{color.ramp.secondary.3}');
+    assert.notEqual(leafAt(doc, ['colourway/persimmon', 'color', 'colourway', mode, 'secondary'])!.$value, '{color.ramp.secondary.3}');
+  }
+  // A single-lead system is written exactly as before.
+  const single = derivedOne();
+  setSemanticRampAlias(single, 'neutral', 4);
+  assert.deepEqual(leafAt(single, ['light', 'color', 'semantic', 'neutral']), { $value: '{color.ramp.neutral.4}' });
+});
+
+test('a file that encodes colourways its own way keeps its colourway sets out of the palette', () => {
+  const doc = {
+    base: { color: { $type: 'color', ink: { $value: '#111111' } } },
+    light: { color: { $type: 'color', semantic: { primary: { $value: '{color.brand.lead}' } } } },
+    pine: { color: { $type: 'color', brand: { lead: { $value: '#0c322c' } } } },
+    jungle: { color: { $type: 'color', brand: { lead: { $value: '#30ba78' } } } },
+    $themes: [
+      { name: 'light', selectedTokenSets: { base: 'enabled', light: 'enabled' } },
+      { id: 'pine', name: 'Pine', group: 'brand', selectedTokenSets: { pine: 'enabled' }, $extensions: { 'com.suse.lolly': { axis: { kind: 'colourway', canonical: true } } } },
+      { id: 'jungle', name: 'Jungle', group: 'brand', selectedTokenSets: { jungle: 'enabled' }, $extensions: { 'com.suse.lolly': { axis: { kind: 'colourway' } } } },
+    ],
+    $metadata: { tokenSetOrder: ['base', 'light', 'pine', 'jungle'] },
+  };
+  const tiles = walkSwatches(doc, 'light', resolverFor(doc, 'light'));
+  assert.deepEqual(tiles.map(s => s.key), ['color.ink', 'color.semantic.primary']);
+  assert.equal(tiles[1]!.hex.toLowerCase(), '#0c322c', 'the role still shows the canonical lead');
+});

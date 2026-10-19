@@ -16,6 +16,19 @@ Generated hooks run with the existing strict sideload worker. They rebuild a var
 
 Dynamic variants retain authored boxes and an optional `layoutTracks` collection. The compiler validates ownership and track records and uses the same modern Rust solver through `host.layout`. Content controls can change intrinsic text and image sizes without replacing authored geometry. Computed positions are disposable, and export receipts bind the painted layout to the current input values.
 
+## Hidden and timed layout members
+
+Flex and grid layouts follow one participation rule. The engine states the rule on `inFlow` in `engine/src/design-layout.ts`, and the solver receives the same two flags for each member. A member leaves the flow in only two cases:
+
+- **Hidden.** The member, or one of its owners, has `hidden` set. It gives up its slot and its grid cell, including a cell it names explicitly, and the other members close the gap. The solver does not place or size it, and Hug sizing leaves it out, so a hidden container keeps its stored size as a hidden group does. A hidden member still follows its owner when the owner moves or a group is resized, and it is laid out again when shown.
+- **Absolute.** The member has `layoutAbsolute` set. It keeps its own position inside the container and takes no slot.
+
+Timeline and presentation state never changes participation. Start time, duration, the sequence lane, a reversible cut (`ignored`), Enter and Exit transitions, presentation build steps and keyframes are applied when the page is painted, not when it is laid out. A timed member keeps its slot for the whole document: before it starts, while it enters, after it exits and before its build step is revealed. Its siblings stay where they are during playback and in presenter mode, and a still export taken at any moment uses the same layout. To let siblings close the gap, hide the member or move it out of the container rather than animating it away.
+
+The solver never receives timing fields, and they are left out of the layout cache key, including for content-sized text. Changing them does no layout work: an evaluator that has already laid out the document returns the same geometry without measuring text or calling the solver again.
+
+`tests/design-layout-participation.test.ts` checks start, duration, lane, cut, Enter, Exit, build and keyframe states against an untimed control. It also checks hidden members in flex, grid, nested containers and Hug sizing, and the timeline, presenter and build attributes the shared renderer writes on a member whose slot stays reserved.
+
 ## Tools derived from saved sessions
 
 Engine 1.201 adds optional `sourceTool` provenance to the existing rules policy: source id, source version and a mapping from public input ids to original input ids. `engine/src/design-tool/session-compiler.ts` compiles a captured original manifest, template, styles and hooks. The shell prepares the source bundle, resolves assets, embeds fonts and pins token values. Fixed values are private renderer data; only public aliases are declared as inputs.

@@ -17,6 +17,7 @@ The machine-readable contracts a tool, an asset, a design-tokens document, a dec
 | `rebrand-report-v1.schema.json` | `https://lolly.tools/schemas/rebrand-report-v1.schema.json` | Every source object accounted for, with stable machine codes beside localisable messages |
 | `rebrand-project-v1.schema.json` | `https://lolly.tools/schemas/rebrand-project-v1.schema.json` | The durable local unit of work: source, checkpoint, design-system snapshot, stored-record ids |
 | `content-inventory-v1.schema.json` | `https://lolly.tools/schemas/content-inventory-v1.schema.json` | What a deck says, slide by slide: text in reading order with roles and runs, speaker notes as paragraphs of lines, pictures by content hash, tables, charts and object classes (`lolly read`, `lolly_read`; plan 291 W2) |
+| `read-extract-v1.schema.json` | `https://lolly.tools/schemas/read-extract-v1.schema.json` | A file's words, tables and pictures as blocks in reading order, bounded by a page range and a character budget; text the file states kept apart from text read from pixels, with the recogniser's model and confidence per block (`lolly read --extract`, the Read and extract view; plan 203 rank 10) |
 | `check-report-v1.schema.json` | `https://lolly.tools/schemas/check-report-v1.schema.json` | One findings list for a Design document, `.lolly` or export, in five families, with the outcome and its exit code (`lolly check`, `lolly_check`; plan 291 W1) |
 | `design-package-v1.schema.json` | `https://lolly.tools/schemas/design-package-v1.schema.json` | What writing a Design document as a reopenable `.lolly` carried and read back: pictures by upload ref, catalog references, the session name and size (`lolly package`, `lolly_package`; plan 291 W8) |
 | `text-measure-v1.schema.json` | `https://lolly.tools/schemas/text-measure-v1.schema.json` | Where a plain Design text layer's lines break and how tall it is, before it is drawn: lines with their widths and a near-edge flag, the line box, `scrollHeight` and whether the box clips it (`lolly measure --text`, `lolly_measure_text`, the `text-measure` checker; plan 291 W5) |
@@ -93,7 +94,7 @@ Both use `{ allErrors: true, strict: false }`, and both instantiate Ajv from `aj
 
 **This is a known drift hazard. Edit both copies or the test suite fails.**
 
-`tool.schema.json`, `asset.schema.json`, `asset-ref.schema.json`, `canvas-op.schema.json`, `chart-v1.schema.json`, `check-report-v1.schema.json`, `content-inventory-v1.schema.json`, `design-package-v1.schema.json`, `text-measure-v1.schema.json`, `design-authoring-v1.schema.json` and `design-compose-v1.schema.json` each exist twice, guarded by a test:
+`tool.schema.json`, `asset.schema.json`, `asset-ref.schema.json`, `canvas-op.schema.json`, `chart-v1.schema.json`, `check-report-v1.schema.json`, `content-inventory-v1.schema.json`, `read-extract-v1.schema.json`, `design-package-v1.schema.json`, `text-measure-v1.schema.json`, `design-authoring-v1.schema.json` and `design-compose-v1.schema.json` each exist twice, guarded by a test:
 
 - `schemas/<name>` - the canonical source everything in this repo validates against.
 - `packages/core/schema/<name>` - bundled into the published tool-author SDK `@lolly-tools/core`, so a third party can validate a manifest without cloning this repo.

@@ -18,7 +18,7 @@
 
 export {
   PDF_LOAD_OPTS,
-  analyzePdf, stripPdf, compressPdf, organizePdf, stampPdf, lockPdf, parsePdfPageExpression,
+  analyzePdf, stripPdf, compressPdf, organizePdf, imagesToPdf, stampPdf, lockPdf, parsePdfPageExpression,
   hasImageCodec, makeCanvas, canvasToJpeg,
   createPdfAPI,
 } from '@lolly-tools/node-shell/pdf';

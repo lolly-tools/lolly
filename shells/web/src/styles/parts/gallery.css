@@ -279,8 +279,9 @@
   font-size: var(--fs-md);
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  border: 1px solid hsl(var(--border));
+  border: 0;
   border-radius: var(--radius);
+      box-shadow: var(--ui-effect-inset);
   outline: none;
   transition: border-color var(--dur-1);
 }
@@ -1245,9 +1246,8 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
    background-position gradient can't composite and repaints every unloaded slide every
    frame, which tanks scroll perf when many previews are pending. (The lead session
    frame carries a real src from the start, so it never wears the skeleton.) */
-.gcar-slide--ex:not(.is-loaded) {
-  background: hsl(var(--foreground) / .06);
-}
+
+
 .gcar-slide--ex:not(.is-loaded) .gcar-img { opacity: 0; }
 
 
@@ -1656,7 +1656,7 @@ a.gtile-name:focus-visible::after {
   margin: 5px 0 0;
   font-size: var(--fs-sm);
   line-height: 1.45;
-  color: hsl(var(--muted-foreground));
+  color: hsl(var(--muted-foreground) / .7);
   /* Clamp to two lines so the caption block is a predictable height across every
      tile - the last thing that would make the grid ragged. */
   display: -webkit-box;

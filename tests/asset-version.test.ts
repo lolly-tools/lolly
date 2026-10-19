@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { JSDOM } from 'jsdom';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { bakeAssetRef, assetIdForUrl } from '../engine/src/bake.ts';
 import { assetVersionPin, encodeAssetVersion, decodeAssetVersion, assetDependency } from '../engine/src/asset-version.ts';
@@ -15,6 +16,10 @@ const inputs = [{ id: 'hero', type: 'asset', assetType: 'any' }, { id: 'rows', t
 const tool: any = { manifest: { id: 'doc', name: 'Doc', version: '1.0.0', engineVersion: '^1.0.0', render: { width: 10, height: 10, formats: ['png'] }, inputs }, template: '{{#if hero}}<img src="{{asset hero}}">{{/if}}' };
 
 test('pins round-trip unusual versions and keep modifier identities distinct', () => {
+  const file = `photo?file=${'a'.repeat(24)}`;
+  assert.equal(assetDependency({ id: file, pin }).id, file);
+  assert.equal(assetDependency({ id: `${file}&theme=dark`, pin }).id, file);
+  assert.equal(assetDependency({ id: `${file}&theme=dark`, pin }).modifier, '&theme=dark');
   assert.deepEqual(decodeAssetVersion(encodeAssetVersion('photo?theme=dark', pin)), { id: 'photo?theme=dark', pin });
   assert.equal(assetDependency({ ...asset, id: 'photo?theme=dark' }).key, encodeAssetVersion('photo', pin));
   assert.deepEqual(decodeAssetVersion('legacy/id'), { id: 'legacy/id' });
@@ -72,5 +77,18 @@ test('baked self-contained bytes take precedence over an old source pin', async 
   const runtime = await createRuntime(tool, { version: '1', profile: { get: async () => ({}) }, log() {},
     assets: { get: async () => { throw new Error('A baked image must not resolve its old pin'); } } } as any, { hero: { ...baked, pin } });
   assert.equal(runtime.droppedAssets.length, 0); assert.equal((runtime.getModel()[0]!.value as typeof asset).url, baked.url);
+  runtime.destroy();
+});
+
+test('export credential collection distinguishes the exact source versions it rendered', async () => {
+  const calls: string[] = [];
+  const host: any = { version: '1', profile: { get: async () => ({}) }, log() {},
+    assets: { get: async (id: string, requested: typeof pin) => ({ ...asset, id, version: requested.version, pin: requested, url: 'data:image/png;base64,AA==' }),
+      credential: async (id: string) => { calls.push(id); return null; } },
+    export: { render: async () => new Blob(['output']) } };
+  const runtime = await createRuntime(tool, host, { hero: asset, rows: [{ image: { ...asset, pin: { version: 'another', format: 'png' } } }] });
+  const canvas = new JSDOM('<div id="canvas"></div>').window.document.getElementById('canvas')!;
+  await runtime.export(canvas, 'png', { c2pa: true });
+  assert.deepEqual(calls.sort(), [encodeAssetVersion(asset.id, pin), encodeAssetVersion(asset.id, { version: 'another', format: 'png' })].sort());
   runtime.destroy();
 });

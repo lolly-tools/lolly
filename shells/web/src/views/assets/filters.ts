@@ -43,6 +43,8 @@ export function assetGridHtml(cat: CatCtx, group: string, items: AssetRef[]): st
 // site in mountCatalog reads exactly as it did before the extraction.
 export const visibleAssets = (cat: CatCtx): AssetRef[] => cat.projects?.active() ? cat.projects.visible() : visibleAssetsRule(cat.allAssets, cat.hiddenSet, assetBaseId).filter(a => matchesAssetSource(a, cat.sourceSelection));
 export const matchesType = (cat: CatCtx, a: AssetRef): boolean => matchesTypeRule(a, cat.typeFilter);
+// The active type filter matches no device asset, as when a delete empties its bucket.
+export const typeBucketEmpty = (cat: CatCtx): boolean => cat.typeFilter !== 'all' && !cat.allAssets.some(a => matchesTypeRule(a, cat.typeFilter));
 export const playableHere = (cat: CatCtx, a: AssetRef): boolean =>
   (cat.modulesPlayable !== false || !isModuleFormat(a.format))
   // A rondocode song renders in QuickJS inside a Worker; without both there is nothing to play.
@@ -133,7 +135,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
   // A delete can empty the active filter's bucket - its toolbar button would vanish
   // (shownFilters below only offers non-empty buckets) while the filter kept hiding
   // every asset with no visible control explaining why. Fall back to All instead.
-  if ((!cat.remote || cat.remote.browser.supported === false) && cat.typeFilter !== 'all' && !cat.allAssets.some(a => matchesTypeRule(a, cat.typeFilter))) cat.typeFilter = 'all';
+  if ((!cat.remote || cat.remote.browser.supported === false) && typeBucketEmpty(cat)) cat.typeFilter = 'all';
   // Filter by search first; the count + category buckets both read the matched set.
   const visible = visibleAssets(cat).filter(cat.filters.matchesQuery).filter(cat.filters.matchesType).filter(cat.filters.playableHere);
 
@@ -316,6 +318,7 @@ export function filtersOps(cat: CatCtx) {
   return {
     visibleAssets: bindOp(cat, visibleAssets),
     matchesType: bindOp(cat, matchesType),
+    typeBucketEmpty: bindOp(cat, typeBucketEmpty),
     playableHere: bindOp(cat, playableHere),
     haystack: bindOp(cat, haystack),
     matchesQuery: bindOp(cat, matchesQuery),

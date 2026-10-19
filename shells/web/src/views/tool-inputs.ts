@@ -19,7 +19,6 @@ import {
   buildEmbedUrl,
   parseToolUrl,
   parseDataRows,
-  DEFAULT_FILE_MAX_BYTES,
   bakeAssetRef,
   parseColor,
   colorToHexString,
@@ -39,7 +38,8 @@ import { escape } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { mountModal } from '../components/modal.ts';
 import { announce } from '../a11y.ts';
-import { colorFieldHtml, wireColorField } from '../components/color-field.ts';
+import { colorFieldHtml } from '../components/color-field.ts';
+import { paletteFieldHtml, wireToolColourFields } from './tool-input-colours.ts';
 import { helpTip, wireHelpTips, linkHelpDescriptions } from '../components/help-tip.ts';
 import {
   customSliderHtml,
@@ -92,6 +92,7 @@ import { assetInputThumbnail } from './inputs-asset-thumb.ts';
 // honest glyph and upgrades in place once its peaks are measured.
 import { mountAudioThumbs } from './picker.ts';
 import { asRow, type BlockRow } from './tool-types.ts';
+import { cappedFileRef, fileInputCap, fileToRef } from '../lib/file-input-ref.ts';
 import type { WebToolHost, PanelEl, EmbedDescribe, FlatpickrHost } from './tool.ts';
 
 // The id scope for one emoji table's artwork, so no two roots walked into this
@@ -221,23 +222,6 @@ export let _sliderDragging = false;
 // being dragged to a new position. Module-scoped so it survives the closure of a
 // single renderInputs pass (the panel only rebuilds on drop).
 let _blockDrag: BlockDrag | null = null;
-
-/**
- * Read a picked / dropped File into the in-memory FileRef the input model carries
- * (bytes + metadata). The bytes live only in memory and are never uploaded - the
- * url is a local object URL for previews. Shared by the sidebar file-picker and
- * the canvas drop zone so both produce an identical model value.
- */
-async function fileToRef(file: File): Promise<InputFile> {
-  return {
-    __file: true,
-    name: file.name,
-    mime: file.type || 'application/octet-stream',
-    size: file.size,
-    bytes: new Uint8Array(await file.arrayBuffer()),
-    url: URL.createObjectURL(file),
-  };
-}
 
 /**
  * Drop the caret in a block's first editable field - used right after "+ Add" so a
@@ -622,7 +606,7 @@ export function renderInputs(
         input.display === 'segmented');
     const isComposite =
       isBadgedSelect ||
-      ['blocks', 'vector', 'asset-picker', 'file-picker', 'color-picker', 'table'].includes(
+      ['blocks', 'vector', 'asset-picker', 'file-picker', 'color-picker', 'palette-picker', 'table'].includes(
         input.control
       );
     const cls = `input-row${isCheckbox ? ' input-row--checkbox' : ''}${isPill ? ' input-row--pill' : ''}${isStaticLabel ? ' input-row--static-label' : ''}${input.control === 'textarea' ? ' input-row--multiline' : ''}${isSubControl(input, prev) ? ' input-row--sub' : ''}`;
@@ -1024,14 +1008,12 @@ export function renderInputs(
       const native = control.querySelector<HTMLInputElement>('.file-native');
       const trigger = control.querySelector<HTMLButtonElement>('.file-trigger');
       const multiple = control.dataset.multiple === '1';
-      const cap = input.maxSize ?? DEFAULT_FILE_MAX_BYTES;
+      const cap = fileInputCap(input);
       // Read a File into a FileRef, enforcing the size cap; null when rejected.
       const toRef = async (file: File): Promise<InputFile | null> => {
-        if (file.size > cap) {
-          announce(`“${file.name}” is too large (max ${fmtBytes(cap)}).`, { assertive: true });
-          return null;
-        }
-        return await fileToRef(file);
+        const ref = await cappedFileRef(file, input);
+        if (!ref) announce(`“${file.name}” is too large (max ${fmtBytes(cap)}).`, { assertive: true });
+        return ref;
       };
       const currentRefs = (): InputFile[] => {
         const v = runtime.getModel().find((i) => i.id === id)?.value;
@@ -1148,7 +1130,7 @@ export function renderInputs(
     }
 
     if (input?.control === 'datetime-local-input') return; // handled by flatpickr onClose
-    if (input?.control === 'color-picker') return; // native picker handled by color-popover-native listener
+    if (input?.control === 'color-picker' || input?.control === 'palette-picker') return; // native picker handled by color-popover-native listener
 
     if (input?.control === 'vector') {
       setupVectorControl(control, runtime, id, onDirty, input);
@@ -1344,43 +1326,8 @@ export function renderInputs(
     });
   });
 
-  // ONE shared colour picker for every colour surface (OKLCH sliders, hex, alpha,
-  // swatches, popover toggle). Top-level inputs commit via setInput(id); a block
-  // field's composite id ("blockId:idx:fieldId" - ':' never appears in a real
-  // input id) routes into its block row instead. Block rows store plain strings,
-  // so a token-linked swatch pick is flattened to its hex there - the {ref,value}
-  // shape is a top-level-input contract (resolveTokenRefs), not a row value.
-  wireColorField(el, {
-    onChange: (inputId: string, value: InputValue) => {
-      if (!inputId.includes(':')) {
-        runtime.setInput(inputId, value);
-        onDirty?.(inputId);
-        return;
-      }
-      const parts = inputId.split(':');
-      const blockId = parts[0]!,
-        idx = parseInt(parts[1]!, 10),
-        fieldId = parts[2]!;
-      const inp = liveInput(blockId);
-      if (!inp) return;
-      const arr = (Array.isArray(inp.value) ? inp.value : []).map((x) => ({ ...asRow(x) }));
-      const row = arr[idx] ?? (arr[idx] = {});
-      const o = value as { ref?: unknown; value?: unknown };
-      row[fieldId] = (
-        value && typeof value === 'object' && typeof o.ref === 'string'
-          ? String(o.value ?? '')
-          : value
-      ) as InputValue;
-      runtime.setInput(blockId, arr);
-      onDirty?.(blockId);
-    },
-    onInteractStart: () => {
-      _sliderDragging = true;
-    },
-    onInteractEnd: () => {
-      _sliderDragging = false;
-    },
-  });
+  // ONE shared colour picker for every colour surface (tool-input-colours.ts).
+  wireToolColourFields(el, { runtime, host, panelModel, liveInput, onDirty, onInteract: (on) => { _sliderDragging = on; } });
 
   // On-demand help: delegated tap/Escape/outside-click wiring is attached once and
   // survives rebuilds; the aria-describedby links are (re)applied every render.
@@ -2837,7 +2784,7 @@ function controlHtml(
       // `swatchesOnly` makes it a palette-restricted picker (no hex/native/alpha).
       return colorFieldHtml(id, input.value, { swatchesOnly: input.swatchesOnly === true });
     case 'palette-picker':
-      return `<input type="text" class="field-input" data-input-id="${id}" value="${val}" placeholder="(palette picker: stub)">`;
+      return paletteFieldHtml(id, input);
     case 'asset-picker': {
       const v = input.value as AssetRef | null;
       const currentLabel =

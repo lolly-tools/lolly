@@ -24,13 +24,16 @@
  * `pdf-redact.ts` (the canvas half) keeps taking PDF_LOAD_OPTS, hasImageCodec,
  * makeCanvas and canvasToJpeg through it unchanged.
  */
-import type { PDFDocument as PDFDocumentType, PDFName as PDFNameType } from 'pdf-lib';
+import type { PDFDocument as PDFDocumentType, PDFName as PDFNameType, PDFPage } from 'pdf-lib';
 import { buildEncryptDictValues, encryptObjectBytes, preparePassword, xmlProvenanceFields } from '@lolly/engine';
 import { unzlibSync } from 'fflate';
 import type {
   PdfAPI, PdfCompressOpts, PdfCompressResult, PdfFinding,
-  PdfOrganizeOpts, PdfOrganizeResult, PdfStampOpts, PdfStampResult,
+  PdfOrganizeOpts, PdfOrganizeResult, PdfPageEffect, PdfStampOpts, PdfStampResult,
 } from '@lolly-tools/core/host-v1';
+import { imagesToPdf, isJpeg, isPng } from './pdf-images.ts';
+
+export { imagesToPdf };
 
 // Shared with pdf-redact.ts (the web-only rasterise-and-rebuild half of host.pdf).
 export const PDF_LOAD_OPTS = { ignoreEncryption: true, updateMetadata: false };
@@ -436,24 +439,41 @@ export async function organizePdf(bytes: Uint8Array, opts: PdfOrganizeOpts): Pro
     throw pdfRefusal(`unknown page operation "${String(operation)}"`);
   }
   const { PDFDocument, degrees } = await import('pdf-lib');
-  let source = await loadEditablePdf(input);
+  const primary = await loadEditablePdf(input);
+  let source = primary;
   const extras = [
     ...(opts.extra?.length ? [opts.extra] : []),
     ...(opts.extras ?? []).filter((part) => part?.length),
   ];
   const beforeBytes = input.length + extras.reduce((sum, part) => sum + part.length, 0);
+  const extraDocs = await Promise.all(extras.map(loadEditablePdf));
+
+  // Read what the inputs carry before anything is copied, so the result can
+  // report what the operation keeps, breaks or drops.
+  const { scanPageFeatures, pageEffects, cutCopyReferences, pointAnnotationsAt } = await import('./pdf-page-effects.ts');
+  const features = [primary, ...extraDocs].map(scanPageFeatures);
+  const effects = (pages: Iterable<number>, inPlace = false): PdfPageEffect[] => pageEffects(features, pages, inPlace);
+  // Every copy goes through here. The cut keeps pages that are not copied, and
+  // signature values, out of the new file. It is undone after each copy, so the
+  // next split part starts from the whole source again.
+  const copyInto = async (target: PDFDocumentType, from: PDFDocumentType, indices: number[]): Promise<void> => {
+    const restore = cutCopyReferences(from, indices);
+    let copies: PDFPage[];
+    try { copies = await target.copyPages(from, indices); } finally { restore(); }
+    for (const page of copies) {
+      target.addPage(page);
+      pointAnnotationsAt(page);
+    }
+  };
 
   // Multiple picked PDFs form one virtual document. Every operation then uses
   // the same global, 1-based page numbers that the Pages UI shows. copyPages
   // retains each page's own MediaBox, so portrait, landscape and custom sizes
   // can be freely interleaved without normalising or rasterising them.
-  if (extras.length) {
-    const combined = await PDFDocument.create();
+  if (extraDocs.length) {
+    const combined = await PDFDocument.create({ updateMetadata: false });
     await copyPdfInfo(source, combined);
-    for (const doc of [source, ...(await Promise.all(extras.map(loadEditablePdf)))]) {
-      const copied = await combined.copyPages(doc, doc.getPageIndices());
-      copied.forEach((page) => { combined.addPage(page); });
-    }
+    for (const doc of [primary, ...extraDocs]) await copyInto(combined, doc, doc.getPageIndices());
     source = combined;
   }
 
@@ -466,10 +486,9 @@ export async function organizePdf(bytes: Uint8Array, opts: PdfOrganizeOpts): Pro
     const files = [];
     let afterBytes = 0;
     for (const group of groups) {
-      const doc = await PDFDocument.create();
+      const doc = await PDFDocument.create({ updateMetadata: false });
       await copyPdfInfo(source, doc);
-      const pages = await doc.copyPages(source, group.map(n => n - 1));
-      pages.forEach((page) => { doc.addPage(page); });
+      await copyInto(doc, source, group.map(n => n - 1));
       const part = await save(doc);
       files.push({ bytes: part, pages: group });
       afterBytes += part.length;
@@ -478,6 +497,7 @@ export async function organizePdf(bytes: Uint8Array, opts: PdfOrganizeOpts): Pro
       files, beforePages, afterPages: groups.reduce((n, g) => n + g.length, 0),
       beforeBytes, afterBytes,
       pageOrder: groups.flat(), operations: [`Split into ${files.length} PDF${files.length === 1 ? '' : 's'}`],
+      effects: effects(groups.flat()),
     };
   }
 
@@ -489,20 +509,25 @@ export async function organizePdf(bytes: Uint8Array, opts: PdfOrganizeOpts): Pro
       page.setRotation(degrees((current + rotation) % 360));
     }
     const out = await save(source);
+    const all = Array.from({ length: beforePages }, (_, i) => i + 1);
     return {
       bytes: out, beforePages, afterPages: beforePages, beforeBytes, afterBytes: out.length,
-      pageOrder: Array.from({ length: beforePages }, (_, i) => i + 1),
+      pageOrder: all,
       operations: [`Rotated ${new Set(selected).size} page${new Set(selected).size === 1 ? '' : 's'} by ${rotation}°`],
+      // A single PDF is rotated in place; several are copied into one first.
+      effects: effects(all, !extraDocs.length),
     };
   }
 
   if (operation === 'merge') {
     if (!extras.length) throw pdfRefusal('choose at least two PDFs to merge');
     const out = await save(source);
+    const all = Array.from({ length: beforePages }, (_, i) => i + 1);
     return {
       bytes: out, beforePages, afterPages: source.getPageCount(), beforeBytes, afterBytes: out.length,
-      pageOrder: Array.from({ length: beforePages }, (_, i) => i + 1),
+      pageOrder: all,
       operations: [`Merged ${extras.length + 1} PDFs · ${beforePages} pages`],
+      effects: effects(all),
     };
   }
 
@@ -519,26 +544,17 @@ export async function organizePdf(bytes: Uint8Array, opts: PdfOrganizeOpts): Pro
     }
   }
 
-  const output = await PDFDocument.create();
+  const output = await PDFDocument.create({ updateMetadata: false });
   await copyPdfInfo(source, output);
-  const copied = await output.copyPages(source, order.map(n => n - 1));
-  copied.forEach((page) => { output.addPage(page); });
+  await copyInto(output, source, order.map(n => n - 1));
   const out = await save(output);
   const verb = operation === 'delete' ? `Deleted ${beforePages - order.length} page${beforePages - order.length === 1 ? '' : 's'}`
     : operation === 'extract' ? `Extracted ${order.length} page${order.length === 1 ? '' : 's'}`
       : `Reordered ${order.length} pages`;
   return {
     bytes: out, beforePages, afterPages: order.length, beforeBytes, afterBytes: out.length,
-    pageOrder: order, operations: [verb],
+    pageOrder: order, operations: [verb], effects: effects(order),
   };
-}
-
-function isPng(bytes: Uint8Array): boolean {
-  return bytes.length > 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
-}
-
-function isJpeg(bytes: Uint8Array): boolean {
-  return bytes.length > 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
 }
 
 export async function stampPdf(bytes: Uint8Array, opts: PdfStampOpts): Promise<PdfStampResult> {
@@ -646,6 +662,7 @@ export function createPdfAPI(): PdfAPI {
     strip: (bytes) => stripPdf(bytes),
     compress: (bytes, opts) => compressPdf(bytes, opts),
     organize: (bytes, opts) => organizePdf(bytes, opts),
+    fromImages: (images, opts) => imagesToPdf(images, opts),
     stamp: (bytes, opts) => stampPdf(bytes, opts),
     lock: (bytes, password) => lockPdf(bytes, password),
     // redact (v1.85) is NOT provided here, deliberately: its implementation

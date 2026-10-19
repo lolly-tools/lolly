@@ -21,6 +21,7 @@ for (const name of [
   'chart-v1.schema.json',
   'check-report-v1.schema.json',
   'content-inventory-v1.schema.json',
+  'read-extract-v1.schema.json',
   'design-package-v1.schema.json',
   'text-measure-v1.schema.json',
   'design-authoring-v1.schema.json',

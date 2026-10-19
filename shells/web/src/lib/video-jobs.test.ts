@@ -585,6 +585,121 @@ test('runVideoJob grade: grain with no LUT still changes the pixels, and the noi
   assert.notDeepEqual(rgb(a), rgb(b), 'the grain seed advances per frame - a fixed lattice would read as dirt on the lens');
 });
 
+// ── plan 253: unsigned sources, the LUT record and the required-credit failure ──
+
+const { PRESET_LUTS } = await import('./preset-luts.ts');
+const { DerivedCreditError } = await import('./derived-asset.ts');
+const SUSE7_LUT = PRESET_LUTS.find((preset) => preset.id === 'suse7-slog3-heavy')!.source;
+/** A catalog clip whose entry records a CC BY licence and the credit it asks for, and no credential. */
+const CC_BY_CLIP = {
+  source: 'library', id: 'lolly/clips/surf', type: 'video', url: 'blob:surf', format: 'mp4',
+  meta: { name: 'Surf', license: 'cc-by-4.0', attribution: 'Clip by Jo Example' },
+};
+/** A stamp that attached a credential: it hands back new bytes. */
+const signingStamp = (cap: { calls: Array<{ format: string; o: Record<string, unknown> }> }) =>
+  async (_h: unknown, _blob: Blob, format: string, o: Record<string, unknown>) => { cap.calls.push({ format, o }); return new Blob(['signed']); };
+
+test('runVideoJob grade: an unsigned CC BY clip rides as an opened source ingredient, and the LUT credit joins it', async () => {
+  const { host, uploaded } = fakeHost();
+  const cap = { calls: [] as Array<{ format: string; o: Record<string, unknown> }> };
+  const writer = fakeWriter('mp4');
+  const deps = { ...baseDeps(cap, null, writer), stamp: signingStamp(cap) };
+  const ref = await runVideoJob(host as never, {
+    op: 'grade', source: CC_BY_CLIP as never, sourceName: 'surf.mp4',
+    grade: gradeParams({ cubeText: FLAT_BLUE_CUBE, lutLabel: 'SUSE7 S-Log3 (Heavy)', lut: SUSE7_LUT }),
+  } as never, {}, deps as never);
+  assert.ok(ref);
+  assert.equal(uploaded.length, 1);
+  const o = cap.calls[0]!.o;
+  const ingredients = o.ingredients as Array<Record<string, unknown>>;
+  assert.equal(ingredients.length, 1, 'the LUT is not an ingredient of the clip');
+  assert.equal(ingredients[0]!.credential, 'none');
+  assert.equal(ingredients[0]!.relationship, 'parentOf');
+  assert.equal(ingredients[0]!.title, 'Surf');
+  assert.doesNotMatch(String(ingredients[0]!.description), /Chamalian/, "the LUT's licence is not written onto the clip");
+  const credits = String((o.inputs as Record<string, string>).credits);
+  assert.match(credits, /Clip by Jo Example/);
+  assert.match(credits, /SUSE · Peter Chamalian/);
+  const action = (o.actions as Array<{ action: string; parameters?: Record<string, Record<string, string>> }>)[0]!;
+  assert.equal(action.parameters?.['com.lolly.lut']?.creator, 'Peter Chamalian', 'the colour step still names the look');
+});
+
+test('runVideoJob grade: a stamp that attached nothing fails the job when a licence asks for a credit, and saves nothing', async () => {
+  const { host, uploaded } = fakeHost();
+  const cap = { calls: [] as Array<{ format: string; o: Record<string, unknown> }> };
+  const writer = fakeWriter('mp4');
+  await assert.rejects(() => runVideoJob(host as never, {
+    op: 'grade', source: CC_BY_CLIP as never, sourceName: 'surf.mp4',
+    grade: gradeParams({ cubeText: FLAT_BLUE_CUBE, lutLabel: 'SUSE7 S-Log3 (Heavy)', lut: SUSE7_LUT }),
+  } as never, {}, baseDeps(cap, null, writer) as never), (err: unknown) => {
+    assert.ok(err instanceof DerivedCreditError);
+    assert.deepEqual([...err.outcome.missing].sort(), ['darkroom/luts/suse7-slog3-heavy', 'lolly/clips/surf']);
+    return true;
+  });
+  assert.equal(uploaded.length, 0, 'no file without its credit lands in the library');
+});
+
+test('runVideoJob: a clip with its own credential keeps it; the unsigned record never replaces it', async () => {
+  const { host } = fakeHost();
+  const cap = { calls: [] as Array<{ format: string; o: Record<string, unknown> }> };
+  const writer = fakeWriter('mp4');
+  const credentialed = { title: 'Surf', manifestBoxes: [new Uint8Array([1])], activeLabel: 'urn:c2pa:x' };
+  const deps = { ...baseDeps(cap, credentialed, writer), stamp: signingStamp(cap) };
+  await runVideoJob(host as never, { op: 'crop', source: CC_BY_CLIP as never, sourceName: 'surf.mp4' } as never, {}, deps as never);
+  const o = cap.calls[0]!.o;
+  assert.deepEqual(o.ingredients, [credentialed]);
+  assert.match(String((o.inputs as Record<string, string>).credits), /Clip by Jo Example/, 'the readable credit still travels');
+});
+
+/** A lossless packet copy in a container the stamp cannot write. */
+const unstampableCopy = (ext: 'mov' | 'mkv') => async (_b: Blob, inSec: number, outSec: number) => ({
+  blob: new Blob(['copied']), container: ext, ext, mime: `video/${ext}`, videoCodec: 'avc', audioCodec: 'aac',
+  droppedTracks: 0, requestedInSec: inSec, requestedOutSec: outSec, snappedInSec: inSec, snappedOutSec: outSec,
+  snapped: false, durationSec: outSec - inSec,
+});
+/** The real stamp's contract: new bytes for a stampable format, the same blob otherwise. */
+const formatAwareStamp = (cap: { calls: Array<{ format: string; o: Record<string, unknown> }> }) =>
+  async (_h: unknown, blob: Blob, format: string, o: Record<string, unknown>) => {
+    cap.calls.push({ format, o });
+    return format === 'mp4' || format === 'webm' ? new Blob(['signed']) : blob;
+  };
+
+for (const ext of ['mov', 'mkv'] as const) {
+  test(`runVideoJob trim: a CC BY clip whose lossless copy is ${ext} saves through the transcode trim as a stamped MP4`, async () => {
+    const { host, uploaded } = fakeHost();
+    const cap = { calls: [] as Array<{ format: string; o: Record<string, unknown> }> };
+    const writer = fakeWriter('mp4');
+    const deps = { ...baseDeps(cap, null, writer), stamp: formatAwareStamp(cap), losslessTrim: unstampableCopy(ext) };
+    const ref = await runVideoJob(host as never, {
+      op: 'trim', source: { ...CC_BY_CLIP, format: ext } as never, sourceName: `surf.${ext}`,
+      trim: { fps: 0, bitrate: 8_000_000 }, range: { startSec: 1, endSec: 2 },
+    } as never, {}, deps as never);
+    assert.ok(ref);
+    assert.equal(writer.frames.length, 3, 'the transcode trim encoded every frame');
+    assert.equal(cap.calls.length, 1);
+    assert.equal(cap.calls[0]!.format, 'mp4');
+    const ingredients = cap.calls[0]!.o.ingredients as Array<Record<string, unknown>>;
+    assert.equal(ingredients[0]!.credential, 'none', 'the unsigned source ingredient rides into the MP4');
+    assert.match(String((cap.calls[0]!.o.inputs as Record<string, string>).credits), /Clip by Jo Example/);
+    assert.equal(uploaded.length, 1);
+    assert.equal(uploaded[0]!.format, 'mp4');
+  });
+}
+
+test('runVideoJob trim: a clip with no licence keeps its lossless mov copy', async () => {
+  const { host, uploaded } = fakeHost();
+  const cap = { calls: [] as Array<{ format: string; o: Record<string, unknown> }> };
+  const writer = fakeWriter('mp4');
+  const deps = { ...baseDeps(cap, null, writer), stamp: formatAwareStamp(cap), losslessTrim: unstampableCopy('mov') };
+  const ref = await runVideoJob(host as never, {
+    op: 'trim', source: { id: 'tr', type: 'video', url: 'blob:tr', format: 'mov' } as never, sourceName: 'talk.mov',
+    trim: { fps: 0, bitrate: 8_000_000 }, range: { startSec: 1, endSec: 2 },
+  } as never, {}, deps as never);
+  assert.ok(ref);
+  assert.equal(writer.frames.length, 0, 'nothing asks for a credit, so the byte-lossless copy stands');
+  assert.equal(uploaded[0]!.format, 'mov');
+});
+
 test('runVideoJob trim: pixels pass through untouched, the range reaches the reader AND the audio slice', async () => {
   const { host, uploaded } = fakeHost();
   const cap = { calls: [] as Array<{ format: string; o: Record<string, unknown> }> };

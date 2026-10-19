@@ -23,7 +23,7 @@
     "shells/web/src/bridge/export-svg-walker.ts": {
       "lines": 1727,
       "largestFunctionLines": 1704,
-      "importFanIn": 2,
+      "importFanIn": 3,
       "importFanOut": 17,
       "typeEscapes": 19
     },
@@ -56,28 +56,28 @@
       "typeEscapes": 0
     },
     "shells/web/src/views/deck-editor.ts": {
-      "lines": 1953,
-      "largestFunctionLines": 1731,
+      "lines": 1969,
+      "largestFunctionLines": 1743,
       "importFanIn": 2,
-      "importFanOut": 9,
+      "importFanOut": 10,
       "typeEscapes": 0
     },
     "shells/web/src/views/design-import.ts": {
-      "lines": 1743,
+      "lines": 1831,
       "largestFunctionLines": 145,
       "importFanIn": 5,
-      "importFanOut": 11,
+      "importFanOut": 13,
       "typeEscapes": 68
     },
     "shells/web/src/views/design-inspector.ts": {
-      "lines": 1567,
-      "largestFunctionLines": 2061,
+      "lines": 1575,
+      "largestFunctionLines": 2028,
       "importFanIn": 1,
-      "importFanOut": 20,
+      "importFanOut": 26,
       "typeEscapes": 0
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1789,
+      "lines": 1795,
       "largestFunctionLines": 1747,
       "importFanIn": 1,
       "importFanOut": 67,
@@ -87,26 +87,26 @@
       "lines": 2396,
       "largestFunctionLines": 2046,
       "importFanIn": 33,
-      "importFanOut": 68,
+      "importFanOut": 69,
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
       "lines": 2041,
       "largestFunctionLines": 2702,
       "importFanIn": 1,
-      "importFanOut": 59,
+      "importFanOut": 60,
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {
-      "lines": 2835,
-      "largestFunctionLines": 2085,
+      "lines": 2794,
+      "largestFunctionLines": 2048,
       "importFanIn": 8,
-      "importFanOut": 37,
+      "importFanOut": 41,
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
-      "lines": 1551,
-      "largestFunctionLines": 1580,
+      "lines": 1547,
+      "largestFunctionLines": 1579,
       "importFanIn": 1,
       "importFanOut": 65,
       "typeEscapes": 10
@@ -157,10 +157,6 @@
     [
       "shells/web/src/bridge/sequence-providers.ts",
       "shells/web/src/lib/clip-thumbs.ts"
-    ],
-    [
-      "shells/web/src/components/instance-sheet.ts",
-      "shells/web/src/lib/instance-choice.ts"
     ],
     [
       "shells/web/src/components/neuro-dock.ts",
@@ -233,7 +229,6 @@
     "shells/web/src/bridge/identity.ts": 1,
     "shells/web/src/bridge/index.ts": 8,
     "shells/web/src/bridge/live-capture.ts": 1,
-    "shells/web/src/bridge/media-trim.ts": 4,
     "shells/web/src/bridge/media.ts": 1,
     "shells/web/src/bridge/mediabunny-mux.ts": 2,
     "shells/web/src/bridge/recorder.ts": 1,
@@ -339,7 +334,7 @@
     "shells/web/src/pro/batch.ts": 1,
     "shells/web/src/pro/folder-export.ts": 3,
     "shells/web/src/pro/grid.ts": 3,
-    "shells/web/src/pro/index.ts": 47,
+    "shells/web/src/pro/index.ts": 38,
     "shells/web/src/pro/io.ts": 1,
     "shells/web/src/pro/preflight-rows.ts": 1,
     "shells/web/src/pro/run-overlay.ts": 1,

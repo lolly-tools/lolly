@@ -53,6 +53,7 @@ use a stale lease when it resumes. Logout/session loss prevents renewal.
 | `reword`, `ai-detect` | Local rewriting, its tokenizer-based watermark check, and text detection |
 | `embedding` | Ask search embeddings; ordinary lexical search remains available |
 | `watermark` | Neural TrustMark/ContentSeal detection and durable watermark encoding |
+| `sing` | Rondocode singing voices: their download and the model files handed to a song |
 
 Checks apply before bridge execution, worker creation/dispatch and model
 acquisition, including cached weights and offline pre-downloads. Revocation
@@ -60,6 +61,14 @@ terminates model workers, aborts guarded downloads and suppresses late results.
 The offline profile reports that AI downloads are disabled and still allows
 removing cached model files. Pure image operations and cryptographic Content
 Credentials are separate from neural watermarking.
+
+Rondocode runs the singing models inside its own editor frame. The shell checks
+`sing` when a song asks for the model files and again before it downloads any
+that are missing. Withdrawing the capability refuses later requests. A request
+that already passed those checks can still finish, and files the frame already
+holds are not recalled. Approve `sing` only for a Lolly 1.1.1 or later shell. An
+older shell refuses a lease that requests a capability it does not know, so every
+AI capability stays off there until the shell is updated.
 
 Server browser exports do not have a member AI lease: the render worker always
 disables the supported shell AI paths and blocks model asset requests. Keep

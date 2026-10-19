@@ -17,6 +17,13 @@
  * imported Tokens-Studio/W3C export may be single-set with colour leaves at any
  * depth, so the walker addresses leaves by JSON key path rather than assuming
  * a fixed layout.
+ *
+ * Colourways (plans/319) add one set per lead, `colourway/<id>`, holding that
+ * lead's primary, on-primary and secondary per mode, and turn the mode sets'
+ * slots into links to them. Those sets are recognised as sets and never walked
+ * as tiles: their leaves are a lead's roles, not palette colours, and listing
+ * them would offer every lead's primary as a deletable swatch. A role tile
+ * instead follows its link to the lead being edited (see `walkSwatches`).
  */
 
 import {
@@ -30,6 +37,8 @@ import type { SpotColor } from '@lolly-tools/core/host-v1';
 // filter excluded swatches without importing this (engine-barrel-heavy) file;
 // re-exported here so studio callers keep their single brand-doc import.
 import { getExcludedSwatches } from './brand-exclusions.ts';
+import { colourwaySetsOf, editContextOf, isColourwayLink, leadSlotPath } from './design-system/leads.ts';
+import type { EditContextInput } from './design-system/leads.ts';
 export { getExcludedSwatches };
 
 type Rec = Record<string, unknown>;
@@ -110,8 +119,18 @@ export interface BrandSwatch {
  * Every colour leaf in `doc`, in document order.
  *
  * A semantic ROLE exists once per theme set, so a multi-set doc would otherwise
- * surface `primary`/`surface`/… twice. `theme` picks which set's roles to show
- * (defaulting to light); ramps + spectrum live in `base` and are always shown.
+ * surface `primary`/`surface`/… twice. `ctx` picks which set's roles to show: a
+ * lead in a mode (`{ lead, mode }`), or a bare mode, which is that mode of the
+ * canonical lead (defaulting to light). Ramps + spectrum live in `base` and are
+ * always shown.
+ *
+ * With colourways, a role the colourways re-point is listed once, under its own
+ * key (`color.semantic.primary`) and heading as before, but with the LEAD'S
+ * value and path: `raw`, `hex`, the print lock and `path` describe the colour in
+ * `colourway/<lead>`, so a recolour, a rename or a lock written through the
+ * swatch goes to that lead and never to the link the other leads share. The
+ * heading is the slot's, for every lead (see `setSwatchGroup`). The colourway
+ * sets themselves are skipped.
  *
  * `resolve` (the caller's TokenSet, typically) supplies the displayable colour
  * for leaves whose `$value` is an `{alias}` - every semantic role is one, so
@@ -119,11 +138,13 @@ export interface BrandSwatch {
  * pure and unit-testable.
  */
 export function walkSwatches(
-  doc: unknown, theme = 'light', resolve?: (key: string) => unknown,
+  doc: unknown, ctx: EditContextInput = 'light', resolve?: (key: string) => unknown,
 ): BrandSwatch[] {
   const out: BrandSwatch[] = [];
+  const { mode: theme, lead } = editContextOf(ctx);
   const multiSet = isRec(doc) && [...SET_KEYS].some(k => k in doc);
   const wantSet = theme === 'dark' ? 'dark' : 'light';
+  const leadSets = colourwaySetsOf(doc);
   // Where a custom swatch tagged "Roles" files: the CURRENT theme's Roles
   // section. The tag is stored theme-less by contract - a persisted
   // "Roles · Light" would strand the swatch under a phantom stale-theme
@@ -142,10 +163,16 @@ export function walkSwatches(
   // so this only ever removes leaves a brand explicitly declared non-colour.
   const walk = (node: unknown, path: string[], inherited?: string): void => {
     if (!isRec(node)) return;
+    // A colourway's own set: its leaves are reached through the role links below.
+    if (path.length === 1 && leadSets.has(path[0]!)) return;
     const type = typeof node.$type === 'string' ? node.$type : inherited;
     if (isColorString(node.$value)) {
       if (type === undefined || type === 'color') {
-        out.push(toSwatch(path, node.$value, node.$description, node.$extensions, resolve, rolesGroup));
+        const role = path.length >= 3 && path[path.length - 2] === 'semantic' ? path[path.length - 1]! : '';
+        const leadPath = role && isColourwayLink(node.$value, role) ? leadSlotPath(doc, node.$value, role, lead) : null;
+        out.push(leadPath
+          ? leadSwatch(doc, path, leadPath, node, resolve, rolesGroup)
+          : toSwatch(path, node.$value, node.$description, node.$extensions, resolve, rolesGroup));
       }
       return;
     }
@@ -157,6 +184,37 @@ export function walkSwatches(
   walk(doc, []);
   if (!multiSet) return out;
   return out.filter(s => s.kind !== 'semantic' || s.set === wantSet);
+}
+
+/**
+ * A role slot that links to the colourways, described by the lead's own colour.
+ * Key, kind, heading and set come from the SLOT, so the tile files exactly where
+ * it did before the system had leads, and under the same heading whichever lead
+ * is being edited; the value, the name, the print lock and the path come from
+ * the lead's primitive, so a recolour, a rename or a lock written through the
+ * swatch goes to the lead. A heading move is the one write that does not:
+ * `setSwatchGroup` files it on the slot every lead shares. A primitive that is
+ * missing keeps the lead's path, where a write finds no leaf and changes nothing.
+ */
+function leadSwatch(
+  doc: unknown, slotPath: string[], leadPath: string[], slot: Rec,
+  resolve?: (key: string) => unknown, rolesGroup?: string,
+): BrandSwatch {
+  const prim = leafAt(doc, leadPath);
+  const raw = prim && isColorString(prim.$value) ? prim.$value : String(slot.$value);
+  const swatch = toSwatch(slotPath, raw, prim?.$description ?? slot.$description, slot.$extensions, undefined, rolesGroup);
+  swatch.path = leadPath;
+  swatch.lock = readPrintLock(prim);
+  if (!swatch.hex && swatch.isAlias && resolve) {
+    // The alias target first: the role's own key answers for whichever lead the
+    // resolver was built for.
+    const target = raw.trim().slice(1, -1).trim();
+    for (const key of [target, swatch.key]) {
+      try { swatch.hex = colorToHex(resolve(key)) ?? ''; } catch { swatch.hex = ''; }
+      if (swatch.hex) break;
+    }
+  }
+  return swatch;
 }
 
 function toSwatch(
@@ -250,12 +308,21 @@ export function deleteSwatch(doc: unknown, path: string[]): boolean {
  * picker overrides a fresh `deriveBrandTokens` doc before install. `secondary`
  * already carries such an alias (the engine hardcodes step 5); `neutral` has no
  * slot of its own today, so this simply adds one, in the same shape.
+ *
+ * On a design system with colourways, a slot that links to them keeps its link
+ * and the step is written into the canonical lead's own colour instead (the
+ * lead the Generate wing derives), so the other leads keep theirs.
  */
 export function setSemanticRampAlias(doc: unknown, role: 'neutral' | 'secondary', step: number): void {
   if (!isRec(doc)) return;
   for (const set of ['light', 'dark']) {
     const semantic = leafAt(doc, [set, 'color', 'semantic']);
-    if (semantic) semantic[role] = { $value: `{color.ramp.${role}.${step}}` };
+    if (!semantic) continue;
+    const slot = isRec(semantic[role]) ? semantic[role] as Rec : null;
+    const lead = slot ? leadSlotPath(doc, slot.$value, role) : null;
+    const leadLeaf = lead ? leafAt(doc, lead) : null;
+    if (leadLeaf) leadLeaf.$value = `{color.ramp.${role}.${step}}`;
+    else if (!lead) semantic[role] = { $value: `{color.ramp.${role}.${step}}` };
   }
 }
 
@@ -421,7 +488,7 @@ export function addSwatch(
  * caller passing a live heading strips the "· Light" suffix first.
  */
 export function setSwatchGroup(doc: unknown, path: string[], group: string | null): boolean {
-  const leaf = leafAt(doc, path);
+  const leaf = leafAt(doc, groupPathOf(doc, path));
   if (!leaf) return false;
   const name = group?.trim() ?? '';
   if (!name) {
@@ -433,6 +500,27 @@ export function setSwatchGroup(doc: unknown, path: string[], group: string | nul
   const ns = (isRec(ext[TOKEN_EXT]) ? ext[TOKEN_EXT] : (ext[TOKEN_EXT] = {} as Rec)) as Rec;
   ns.group = name;
   return true;
+}
+
+/**
+ * Where a swatch's heading is stored. A role tile on a design system with
+ * colourways carries the lead's own path (`[colourway/<id>, color, colourway,
+ * <mode>, <role>]`), so a recolour reaches that lead, but its heading belongs to
+ * the mode's slot every lead links from: written there, a move files the tile
+ * under one heading whichever lead is being edited, exactly as a system with one
+ * lead does. Every other path is its own.
+ */
+function groupPathOf(doc: unknown, path: string[]): string[] {
+  if (path.length !== 5 || path[1] !== 'color' || path[2] !== 'colourway' || !colourwaySetsOf(doc).has(path[0]!)) return path;
+  const [mode, role] = [path[3]!, path[4]!];
+  const link = `{color.colourway.${mode}.${role}}`;
+  const prefixes = isRec(doc) ? [...Object.keys(doc).filter(k => !k.startsWith('$')).map(k => [k]), []] : [];
+  for (const prefix of prefixes) {
+    const slot = [...prefix, 'color', 'semantic', role];
+    const value = leafAt(doc, slot)?.$value;
+    if (typeof value === 'string' && value.replace(/\s+/g, '') === link) return slot;
+  }
+  return path;
 }
 
 // ── Swatch exclusions - "delete" for derived leaves ──────────────────────────

@@ -142,10 +142,10 @@ Component upgrade must be an explicit migration (R1). An override whose target d
 
 ## Open points
 
-- **Q2, granularity and persistence of local rejection.** Default: per rule, instance-scoped, recorded on the session record with a fingerprint of the facts it was made about. This chapter does not settle whether a recorded waiver is part of the authoritative instance content a revision covers. [Constraints, authority and local choice](policy.html) owns that decision, and this chapter follows it.
-- **Q6, whether the specification is public from the first draft.** Default: yes, published to `/info/build/` beside the constraints and determinism pages, with the draft notice at the head of every chapter. Those pages already make public promises this model has to keep.
+- **Q2, granularity and persistence of local rejection.** Decided on 2026-10-16 by accepting the default: per rule, instance-scoped, recorded on the session record with a fingerprint of the facts it was made about. Neither the decision nor this chapter settles whether a recorded waiver is part of the authoritative instance content a revision covers. [Constraints, authority and local choice](policy.html) owns that point, and this chapter follows it.
+- **Q6, whether the specification is public from the first draft.** Decided on 2026-10-16: yes, published to `/info/build/` beside the constraints and determinism pages, with the draft notice at the head of every chapter. Those pages already make public promises this model has to keep.
 
-No other open question touches this chapter.
+No other question touches this chapter.
 
 ## Precedents
 

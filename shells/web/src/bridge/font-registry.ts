@@ -44,7 +44,7 @@ import { openDB } from './db.ts';
 // import, so there is no evaluation cycle, and the boot graph stays as it was.
 import { isFontOf } from '../lib/register-user-fonts.ts';
 import { selectAdoptionFonts } from '../lib/design-system/adoption-fonts.ts';
-import { resolveSuseFontUrl } from './text-svg.ts';
+import { resolveSuseFontUrl, suseStaticWeight } from './text-svg.ts';
 import type { FontStyleSlice } from './text-svg.ts';
 import { discoverFontFaces } from './fontface-discovery.ts';
 import type { PinnedAsset } from '../../../../engine/src/design-version.ts';
@@ -517,7 +517,9 @@ export async function resolveVectorFont(style: FontStyleSlice, text: string): Pr
       // discovered from fonts.css outlines fine once decompressed).
       const url = resolveSuseFontUrl({ ...style, fontFamily: family });
       if (url && await fontUrlUsable(url)) {
-        return { url, face: { family, weight: style.fontWeight ?? '400', style: style.fontStyle ?? 'normal', source: 'catalog', file: url } };
+        // The face states the weight of the static file picked, which may be a nearer cut than the request.
+        const weight = String(suseStaticWeight(parseInt(style.fontWeight ?? '', 10) || 400, key === 'suse mono'));
+        return { url, face: { family, weight, style: style.fontStyle ?? 'normal', source: 'catalog', file: url } };
       }
     }
     const list = releaseFaces.get(key) ?? faces.get(key);

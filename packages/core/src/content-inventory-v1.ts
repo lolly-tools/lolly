@@ -42,6 +42,34 @@ export type InventoryAlignV1 = (typeof INVENTORY_ALIGNMENTS)[number];
 /** A rectangle in fractions of the slide. */
 export interface InventoryBoxV1 { x: number; y: number; width: number; height: number }
 
+/**
+ * The `model` a scan's own text layer is reported under. The layer is the words
+ * another program recognised and wrote into the PDF; its recogniser is not known,
+ * so each of its lines reads at confidence 1.
+ */
+export const TEXT_LAYER_MODEL = 'pdf-text-layer' as const;
+
+/**
+ * How the words of a text frame were read from pixels rather than written in the
+ * file: which recogniser read them, and how sure it was. `confidence` and
+ * `minConfidence` are the recogniser's own 0 to 1 scores for its lines, never a
+ * claim that the words are right.
+ */
+export interface InventoryRecognitionV1 {
+  /** The recogniser's model id, `TEXT_LAYER_MODEL` for a scan's own text layer, or `unknown` when the reading named none. */
+  model: string;
+  /** The model's release, when the host knows its catalogue. */
+  modelVersion?: string;
+  /** BCP 47 tags of the languages the model reads, when the host knows its catalogue. */
+  languages?: string[];
+  /** Mean of the line confidences, weighted by each line's characters, 0 to 1. */
+  confidence: number;
+  /** The lowest line confidence, 0 to 1. */
+  minConfidence: number;
+  /** Lines the frame was read from. */
+  lines: number;
+}
+
 export interface InventoryRunV1 {
   text: string;
   bold?: boolean;
@@ -83,6 +111,12 @@ export interface InventoryTextV1 {
    * `objects`.
    */
   hidden?: boolean;
+  /**
+   * Set when the words were read from pixels: by text recognition over a page that
+   * is a picture of its text, or from the text layer a scan carries. Absent for
+   * text the file states as text, so authored and recognised words never mix.
+   */
+  recognition?: InventoryRecognitionV1;
 }
 
 /** Speaker notes: paragraphs and the line breaks inside each kept apart. */
@@ -167,6 +201,12 @@ export interface InventorySlideV1 {
   objects: InventoryObjectV1[];
   /** The slide drawn as a PNG, when the host rendered thumbnails. */
   thumbnail?: InventoryThumbnailV1;
+  /**
+   * The source marks the slide as one picture of its text: a scanned page, or a
+   * slide printed as an image. Its words are in `text` only when a scan's text
+   * layer or text recognition read them, and then they carry `recognition`.
+   */
+  flattened?: boolean;
 }
 
 /** One distinct media file, keyed by content hash. */

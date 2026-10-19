@@ -16,7 +16,7 @@ import { mountModal } from '../components/modal.ts';
 import { escape as esc, safeHref } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
-import { parseWebEmbed, type WebEmbed } from '../../../../engine/src/web-embed.ts';
+import { parseWebEmbed, revealDeckFrame, type WebEmbed } from '../../../../engine/src/web-embed.ts';
 import { trustedSiteHost } from '../../../../engine/src/trusted-sites.ts';
 import { canTrustMore, trustSite } from '../lib/trusted-sites.ts';
 import { consentToLink, frameHost, policyNote, trustEntryFor, webPageHref, webFrameState, type WebFrameState } from '../lib/design-web-mount.ts';
@@ -60,13 +60,16 @@ export function interactiveCheckRows(source: Element): InteractiveCheckRow[] {
     let summary = t('Interactive page');
     if (!opts) warnings.push(t('These interaction settings could not be read. Edit them before presenting.'));
     else {
+      // A reveal.js deck that reports its position takes Up and Down without a receiver.
+      const deck = !embed.sameOrigin && revealDeckFrame(embed.src);
       summary = opts.keys === 'none' ? t('Up and Down keep moving through the slide stack.')
         : opts.keys === 'key' ? t('Up and Down go to the demo.')
+        : deck ? t('Up and Down step through the embedded deck.')
         : opts.stops.length ? t('Up and Down move between {n} stops.', { n: opts.stops.length }) : t('Up and Down scroll the page.');
-      if (opts.keys === 'key' && !embed.sameOrigin) warnings.push(t('Keyboard control needs a page that listens to the clicker. Otherwise Up and Down scroll instead.'));
+      if (opts.keys === 'key' && !embed.sameOrigin && !deck) warnings.push(t('Keyboard control needs a page that listens to the clicker. Otherwise Up and Down scroll instead.'));
       if (opts.mode === 'pan' && opts.pageLength <= 0) warnings.push(t('Pan needs a page length. Set it in the inspector before presenting.'));
       if (page?.hasAttribute('data-frame-stack') && opts.keys !== 'none') warnings.push(t('While this page is focused, Up and Down go to the page instead of the slide stack.'));
-      if (!embed.sameOrigin && opts.mode === 'none' && opts.keys !== 'none') warnings.push(t('If this page does not listen to the clicker, choose places or Pan in the inspector to scroll the page.'));
+      if (!embed.sameOrigin && !deck && opts.mode === 'none' && opts.keys !== 'none') warnings.push(t('If this page does not listen to the clicker, choose places or Pan in the inspector to scroll the page.'));
       if (opts.hand && !embed.sameOrigin) warnings.push(t('While the page has the keyboard, the clicker goes to the page. Click Back to slides to take it back.'));
     }
     rows.push({ slide: page ? pages.indexOf(page) + 1 : 0, step, title: marker.dataset.webTitle || embed.host,

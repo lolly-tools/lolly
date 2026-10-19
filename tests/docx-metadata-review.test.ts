@@ -152,3 +152,28 @@ test('property comparison discloses capped previews without claiming equality fo
   assert.equal(result.summary.total, 0);
   assert.ok(result.limitations.some(message => message.includes('2048 characters') && message.includes('unavailable')));
 });
+
+test('Strip Data offers Template and statistics choices and compares them without private values', async () => {
+  const members = readZipMembers(extendedBytes), app = members.find(member => member.name === 'docProps/app.xml')!;
+  const xml = new TextDecoder().decode(decodeZipMember(app)).replace('<Template></Template>', '<Template>Private fixture template.dotx</Template>').replace('</Properties>', '<Words>1234</Words></Properties>');
+  const replacement = readZipMembers(storeZip([{ name: app.name, bytes: new TextEncoder().encode(xml) }]))[0]!;
+  const input = storeZipMembers(members.map(member => member.name === app.name ? replacement : member));
+  const host = createMockHost(); host.prepare = createPrepareAPI();
+  const runtime = await createRuntime(tool, host, { source: fileRef('private-app.docx', input) });
+  const inspection = await host.prepare.inspect([{ id: 'office', name: 'private-app.docx', bytes: input }]);
+  const template = inspection.findings.find(f => f.propertyId === 'app:Template')!, words = inspection.findings.find(f => f.propertyId === 'app:Words')!;
+  assert.equal(template.label, 'Template'); assert.equal(words.label, 'Word count');
+  const rows = runtime.getModel().find(item => item.id === 'properties')!.value as { id: string; remove: boolean }[];
+  await runtime.setInput('properties', rows.map(row => ({ ...row, remove: row.id.endsWith(`:${template.groupId}`) || row.id.endsWith(`:${words.groupId}`) })));
+  const copy = await runtime.exportFile() as { bytes: Uint8Array; filename: string };
+  const after = openDocxMetadata(copy.bytes, 'copy.docx'); assert.equal(after.supported, true);
+  assert(!after.properties.some(p => p.id === 'app:Template' || p.id === 'app:Words'));
+  assert.equal(after.properties.find(p => p.id === 'app:Company')?.value, 'Private fixture company');
+  const pair = await operationComparisonPair(new File([Uint8Array.from(input).buffer], 'private-app.docx'), new File([Uint8Array.from(copy.bytes).buffer], 'copy.docx'), host);
+  assert.equal(pair.mode, 'json'); if (pair.mode !== 'json') throw new Error('Expected property review');
+  assert(pair.request.before.fidelity!.limitations.some(l => l.includes('Template, hyperlink base, application and statistics fields')));
+  const result = compareSources(pair.request);
+  assert.deepEqual(result.changes.map(change => change.before?.path[0]).sort(), ['app:Template', 'app:Words']);
+  assert.doesNotMatch(JSON.stringify(result.before), /private-app|Private fixture template/);
+  assert.deepEqual(host.inspect.logs, []); assert.equal(host.inspect.state.size, 0);
+});

@@ -4,6 +4,10 @@
 # production mapping is lolly.tools and lolli.li, not private /models aliases.
 # Daily immutable hashes cost ~247 GB/month on those two current model hosts.
 # Legacy aliases get HEAD monitoring; full reads require archived references.
+# Catalog samples come from each public host's live signed index, checked against
+# the pinned catalog key: a daily rotation of hashed tool, preview and asset files
+# with their 304s, the legacy names they replace, and a 404 per hashed family.
+# Anonymous only; private-reader samples stay in tracked sample files.
 name: Delivery monitor
 
 on:
@@ -24,6 +28,11 @@ on:
         description: Tracked archived {origin,path,size,sha256} JSON (required for full legacy)
         type: string
         default: ''
+      catalog:
+        description: Samples derived from each live signed catalog
+        type: choice
+        options: ['on', 'off']
+        default: 'on'
 
 permissions:
   contents: read
@@ -70,6 +79,10 @@ jobs:
           FULL_LEGACY: ${{ inputs.full_legacy || 'false' }}
           LEGACY_REFERENCE: ${{ inputs.legacy_reference || vars.DELIVERY_LEGACY_REFERENCE_PATH || '' }}
           BASELINE_SAMPLES: ${{ vars.DELIVERY_BASELINE_SAMPLES_PATH || '' }}
+          CATALOG_POLICY: ${{ inputs.catalog || 'on' }}
+          CATALOG_ORIGINS: ${{ vars.DELIVERY_CATALOG_ORIGINS || 'https://lolly.tools' }}
+          # Public key material: derived expectations must come from a verified envelope.
+          DELIVERY_CATALOG_PUBLIC_KEY_JWK: ${{ vars.DELIVERY_CATALOG_PUBLIC_KEY_JWK || vars.VITE_CATALOG_PUBLIC_KEY_JWK }}
           # Optional tracked samples refer to these names; values are never arguments.
           DELIVERY_PRIVATE_COOKIE_A: ${{ secrets.DELIVERY_PRIVATE_COOKIE_A }}
           DELIVERY_PRIVATE_COOKIE_B: ${{ secrets.DELIVERY_PRIVATE_COOKIE_B }}
@@ -79,6 +92,7 @@ jobs:
           import { resolve, relative, isAbsolute, join } from 'node:path';
           import { spawnSync } from 'node:child_process';
           const fullLegacy = process.env.FULL_LEGACY === 'true';
+          const catalog = process.env.CATALOG_POLICY !== 'off';
           const models = fullLegacy || process.env.MODEL_POLICY === 'on' ||
             (process.env.MODEL_POLICY === 'configured' && process.env.MODEL_ENABLED === 'true');
           const scope = fullLegacy ? 'public, models and archived aliases' : models ? 'public and model hosts' : 'public hosts';
@@ -94,6 +108,7 @@ jobs:
           let status = 2;
           try {
             if (process.env.BASELINE_SAMPLES) args.push('--samples', tracked(process.env.BASELINE_SAMPLES));
+            if (catalog) args.push('--catalog', '--catalog-origins', process.env.CATALOG_ORIGINS);
             if (models) args.push('--models', '--model-origins', process.env.MODEL_ORIGINS);
             if (fullLegacy) {
               if (!process.env.LEGACY_REFERENCE) throw new Error('Full legacy qualification requires archived references.');
@@ -102,7 +117,7 @@ jobs:
             status = spawnSync(process.execPath, args, { stdio: 'inherit' }).status ?? 2;
           } catch { console.error('Delivery probe configuration failed; no credentials recorded.'); }
           appendFileSync(process.env.GITHUB_OUTPUT, `status=${status}\nscope=${scope}\nmodels=${models}\n`);
-          writeFileSync(join(process.env.RUNNER_TEMP, 'delivery-run.json'), JSON.stringify({ status, scope, models, fullLegacy }) + '\n');
+          writeFileSync(join(process.env.RUNNER_TEMP, 'delivery-run.json'), JSON.stringify({ status, scope, models, fullLegacy, catalog }) + '\n');
           process.exitCode = status;
           JS
 
@@ -134,7 +149,8 @@ jobs:
           let report;
           try { report = JSON.parse(readFileSync(join(process.env.RUNNER_TEMP, 'delivery-receipt.json'), 'utf8')); } catch {}
           const lines = [`${passed ? 'Passed' : 'Failed'} read-only checks for ${process.env.PROBE_SCOPE}.`, '', `[Run and downloadable receipts](${runUrl})`, '',
-            'Model hashes are enabled only after host activation. Daily legacy HEAD checks monitor status/size; full legacy qualification requires archived hashes.', ''];
+            'Model hashes are enabled only after host activation. Daily legacy HEAD checks monitor status/size; full legacy qualification requires archived hashes.',
+            'Catalog samples rotate daily through files named by the verified signed index on each public host.', ''];
           // Issues contain counts and fixed failure names, never credential probes' URLs/headers.
           if (report) {
             const origins = new Map();

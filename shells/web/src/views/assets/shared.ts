@@ -313,6 +313,7 @@ export interface CatalogHost extends HostV1 {
     _updateUserAssetMeta(id: string, meta: Record<string, unknown>, patch?: { aiGenerated?: 'full' | 'partial' | null }): Promise<void>;
     _iconThemes?(): Promise<IconTheme[]>;
     _photoTreatments?(): Promise<PhotoTreatment[]>;
+    _sourceHistory?: ReturnType<typeof import('../../bridge/assets.ts').createAssetsAPI>['_sourceHistory'];
   };
   profile: HostV1['profile'] & { set(profile: Profile): Promise<unknown> };
 }

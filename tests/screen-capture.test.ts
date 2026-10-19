@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.261.0', () => {
+test('ENGINE_VERSION is 1.279.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -539,7 +539,24 @@ test('ENGINE_VERSION is 1.261.0', () => {
   // 1.260.0 adds the optional isolated-public capture mode.
   // 1.261.0 aligns runtime and delivery policies and preserves structured paint
   // references; the screen capture contract remains unchanged.
-  assert.equal(ENGINE_VERSION, '1.261.0');
+  // 1.262.0 states the Design layout participation rule; capture is unchanged.
+  // 1.263.0 adds whole typography links on composed text; capture is unchanged.
+  // 1.264.0 adds selected DOCX template, hyperlink base, application and statistics cleanup; capture is unchanged.
+  // 1.265.0 adds theme-group kinds and colourways; capture is unchanged.
+  // 1.266.0 outlines Design underline with CSS skip-ink; capture is unchanged.
+  // 1.267.0 reports layouts declared in legacy Penpot SVG imports; capture is unchanged.
+  // 1.268.0 adds data conversion choices and an all-worksheets manifest; capture is unchanged.
+  // 1.269.0 adds an export report verified on the output bytes; capture is unchanged.
+  // 1.270.0 adds bounded read and extract with OCR provenance; capture is unchanged.
+  // 1.271.0 drives reveal.js and Slides.com decks from the presenter; capture is unchanged.
+  // 1.272.0 adds validated LMS presets and a searchable course registry; capture is unchanged.
+  // 1.274.0 adds images to PDF and an effects report for pages; capture is unchanged.
+  // 1.275.0 prepares a clip with rotate, poster and cover; capture is unchanged.
+  // 1.276.0 inspects and subsets fonts on-device and fits an SVG viewBox; capture is unchanged.
+  // 1.277.0 adds the colourway editing functions (plans/319 A2); capture is unchanged.
+  // 1.278.0 adds the manifest tokenAxes opt-out and the live theme switch for every tool (plans/319 A4); capture is unchanged.
+  // 1.279.0 adds host.tokens family() and axes() and the canvas lead variables (plans/319 A5); capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.279.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

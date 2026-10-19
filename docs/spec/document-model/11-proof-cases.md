@@ -1,5 +1,6 @@
 # Proof cases
 
+
 > This chapter is a draft for review, dated 2026-09-24.  
 
 This chapter lists the cases the document model must be proved against. Each case is a paper example now and an executable fixture later (plan section 17). None of them is built.
@@ -156,14 +157,31 @@ The plan's section 18 names five of these cases as the ones that run before any 
 
 The patch envelope and the source-aware diff land when their semantics are fixed in [Source rows, payloads and patches](source-and-patches.html) and [Packaging, identity and migration](packaging.html), not before (plan section 18). Cases 13, 15 and 16 are the evidence those semantics are settled.
 
+## Source and history implementation evidence
+
+The source-history suites exercise maintained resource and review boundaries.
+`tests/source-history.browser.test.ts` covers exact selected-file reads, source
+overwrite with an unchanged token, saved revisions, restart and explicit missing
+bytes. `tests/source-history-package.test.ts` exercises the existing editable
+package vehicle and distinguishes imported operation reports from execution
+observed on this device. `tests/asset-version.test.ts` also binds credential
+collection to each exact source version used by an export.
+
+The Work [source-review suite](https://github.com/lolly-tools/lolly-work/blob/24955a47957d820d4e1d6a9d0a835b0e02aeb77b/tests/catalog-source-review.test.ts) covers a frozen purpose, activation
+target and file membership, replacement after request, and hidden proof members.
+These are focused implementation cases. They do not establish vendor-native
+history, historical source attributes, complete shared usage, replayable imported
+recipes or approval of later output bytes. No new portable evidence part or
+shared document record is emitted by these cases.
+
 ## Open points
 
-- **Q1. The first editable interchange routes per pilot.** Default from plan section 16: the four routes and three edits named in [Conformance and fidelity](conformance.html). No case in this chapter yet covers a route end to end: cases 2 and 9 test only the chart half of an editable round trip, so a route fixture is owed when Q1 is answered. Evidence that would change it: a customer route that outranks them.
-- **Q2. The granularity and persistence of a local rejection.** Default from plan section 16: per rule, instance-scoped, recorded on the session record with a fingerprint, which is what case 18 asserts. A derived tool revision is a Design tool export and is not part of 0.1. Evidence that would change it: a need to share a rejected state as a reusable tool.
-- **Q3. What freshness a governed-claim export needs, and who states it.** Default from plan section 16: freshness is a policy rule the instance issues with a validity interval and a stated behaviour when it cannot be established, which is what case 19 asserts. With no such rule the held policy is enforced, and the receipt records the policy version it evaluated and when it was last attested. Evidence that would change it: an organisation that needs a hard deadline, or a fully offline site.
-- **Q4. What non-recordable means for a local utility and a live-input tool.** Default from plan section 16: for a utility, capture off, retention none and replay semantic from pinned inputs. For live input, capture unsupported unless the person turns it on, retention session and replay none. Case 25 tests the first and case 7 the second. Evidence that would change it: a regulated workflow that needs durable receipts for utilities.
+- **Q1. The first editable interchange routes per pilot.** Decided on 2026-10-16 by accepting the default from plan section 16: the four routes and three edits named in [Conformance and fidelity](conformance.html). No case in this chapter yet covers a route end to end: cases 2 and 9 test only the chart half of an editable round trip. With Q1 decided, a route fixture is now owed. Evidence that would reopen it: a customer route that outranks them.
+- **Q2. The granularity and persistence of a local rejection.** Decided on 2026-10-16 by accepting the default from plan section 16: per rule, instance-scoped, recorded on the session record with a fingerprint, which is what case 18 asserts. A derived tool revision is a Design tool export and is not part of 0.1. Evidence that would reopen it: a need to share a rejected state as a reusable tool.
+- **Q3. What freshness a governed-claim export needs, and who states it.** Decided on 2026-10-16 by accepting the default from plan section 16: freshness is a policy rule the instance issues with a validity interval and a stated behaviour when it cannot be established, which is what case 19 asserts. With no such rule the held policy is enforced, and the receipt records the policy version it evaluated and when it was last attested. Evidence that would reopen it: an organisation that needs a hard deadline, or a fully offline site.
+- **Q4. What non-recordable means for a local utility and a live-input tool.** Decided on 2026-10-16 by accepting the default from plan section 16: for a utility, capture off, retention none and replay semantic from pinned inputs. For live input, capture unsupported unless the person turns it on, retention session and replay none. Case 25 tests the first and case 7 the second. Evidence that would reopen it: a regulated workflow that needs durable receipts for utilities.
 
-The other open questions are settled in other chapters. Q5 is answered in [Conformance and fidelity](conformance.html). Q6 is answered in [Status and open points](status.html).
+The other questions are stated in other chapters. Q5 is answered in [Conformance and fidelity](conformance.html). Q6 is answered in [Status and open points](status.html).
 
 ## Precedents
 

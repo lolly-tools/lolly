@@ -18,11 +18,13 @@ import { escape } from '../../utils.ts';
 import { icon } from '../icons.ts';
 import { confirmDialog, promptDialog } from '../../components/confirm-dialog.ts';
 import { createTokenSet } from '@lolly/engine';
+import { withoutLeadColours } from './leads.ts';
 import { brandFontStack, tokenValueToHex, SWATCH_INK } from '../../brand-vars.ts';
 import type { DesignSystemRecord } from './registry.ts';
 import { createDesignSystem, type ManageHost } from './manage.ts';
 import { prepareDesignSystemRemoval, removeAndSwitchDesignSystem } from './remove-coordinator.ts';
 import { switchDesignSystem, type SwitchHost } from './switch.ts';
+import { showUndoToast } from '../undo-toast.ts';
 import { catalogSourceHtml, catalogSourceLabel } from './catalog-source.ts';
 
 export type CardHost = ManageHost & SwitchHost;
@@ -61,7 +63,7 @@ function pickDesignSystemFile(): Promise<File | null> {
 export function sourceLine(record: DesignSystemRecord, now = Date.now()): string {
   const s = record.source;
   switch (s.kind) {
-    case 'shipped': return catalogSourceLabel();
+    case 'shipped': return catalogSourceLabel(record);
     case 'local': return s.forkedFrom ? t('Made here, copied from {name}', { name: s.forkedFrom.id }) : t('Made here');
     case 'file': return s.publisher ? t('From a file by {publisher}', { publisher: s.publisher }) : t('From a file');
     case 'hosted': {
@@ -102,7 +104,9 @@ export async function previewOf(host: CardHost, record: DesignSystemRecord): Pro
     const current = !blob && (await host.designSystems.activeId()) === record.id;
     const doc = blob && blob.size <= 2 * 1024 * 1024 ? JSON.parse(await blob.text()) : current ? await host.tokens?.raw?.() : null;
     const tokens = createTokenSet(doc);
-    const colors = tokens.colors()
+    // A colourway's own colours (plans/319) repeat the roles they fill, and the
+    // canonical lead's dark ones would count again in a light specimen.
+    const colors = withoutLeadColours(tokens.colors())
       .map(token => tokenValueToHex(token.value))
       .filter((value): value is string => !!value)
       .filter((value, i, all) => all.indexOf(value) === i);
@@ -122,6 +126,11 @@ export async function previewOf(host: CardHost, record: DesignSystemRecord): Pro
   } catch { return { font: fallback, colors: [] }; }
 }
 
+/** "1 colour", "16 colours": the card read "1 colours" (plan 320 S10). */
+function colourCount(n: number): string {
+  return t(n === 1 ? '{n} colour' : '{n} colours', { n });
+}
+
 export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, bytes: number | undefined, preview: BrandPreview, adminHref?: string | null): string {
   const active = r.id === activeId;
   const removable = r.source.kind !== 'shipped';
@@ -133,7 +142,7 @@ export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, by
       <div class="ds-row-main">
         <h3 class="ds-row-label">${escape(r.label)}${r.locked ? `<span class="ds-row-lock" title="${escape(t('Read-only'))}">${icon('lock', { size: 14 })}</span>` : ''}</h3>
         <span class="ds-row-source">${escape(sourceLine(r))}</span>
-        <span class="ds-row-facts">${t('{n} colours', { n: preview.colorCount ?? preview.colors.length })}${size ? ` <span>·</span> ${escape(size)}` : ''}</span>
+        <span class="ds-row-facts">${colourCount(preview.colorCount ?? preview.colors.length)}${size ? ` <span>·</span> ${escape(size)}` : ''}</span>
         ${catalogSourceHtml(r, adminHref)}
       </div>
       <div class="ds-row-actions">
@@ -204,7 +213,14 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
         return;
       }
       if (act === 'switch' && id) {
-        await switchDesignSystem(host, id, { route: 'profile' });
+        // Say what changed and offer the way back (plan 320 M5): the switch
+        // repaints every tool, so a silent one reads as nothing happening.
+        const previous = await host.designSystems.active();
+        const { record } = await switchDesignSystem(host, id, { route: 'profile', previous });
+        showUndoToast({
+          message: tRaw('Using {name}.', { name: record.label }),
+          undo: async () => { await switchDesignSystem(host, previous.id, { route: 'profile' }); },
+        });
         return; // the remount re-renders this card
       }
       if (act === 'studio' && id) {

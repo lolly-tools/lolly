@@ -6,6 +6,13 @@ import { sceneRowAssetIds } from './asset-dependencies.ts';
 
 /** Metadata-only roots for cache retention and explicit version deletion. */
 export function collectAssetRefs(value: unknown, refs: Set<string>): void {
+  if (typeof value === 'string' && value.includes('#lolly-version=')) {
+    try {
+      const dep = assetDependency({ id: value });
+      if (dep.pin?.format) refs.add(`${dep.id}:${dep.pin.format}:${dep.pin.version}`);
+    } catch { /* An invalid link is not an available dependency. */ }
+    return;
+  }
   if (!value || typeof value !== 'object') return;
   if (Array.isArray(value)) { for (const item of value) collectAssetRefs(item, refs); return; }
   const record = value as Record<string, unknown>;

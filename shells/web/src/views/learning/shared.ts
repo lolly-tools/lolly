@@ -2,7 +2,7 @@
 import type { SourceDisplay } from './context.ts';
 import type { LearningBlock } from '@lolly-tools/core/learning-v1';
 import type { LearningRendition } from '../../../../../engine/src/learning/delivery.ts';
-import { escape as esc } from '../../utils.ts';
+import { escape as esc, safeHref } from '../../utils.ts';
 import {
   contentIcon,
   contentLabels,
@@ -103,8 +103,48 @@ import type { LearningModule, LearningTarget } from '@lolly-tools/core/learning-
 import { LEARNING_TARGETS, learningSummary } from '../../../../../engine/src/learning/delivery.ts';
 import { checkLearningModule } from '../../../../../engine/src/learning/module.ts';
 import { learningHandoff } from '../../../../../engine/src/learning/preflight.ts';
+import {
+  learningPresetChoices,
+  learningPresetFor,
+  learningPresetStatus,
+  learningPresetTarget,
+} from '../../../../../engine/src/learning/presets.ts';
 import { icon } from '../../lib/icons.ts';
 import { targetLabel } from '../../lib/learning-ui.ts';
+
+/** What the destination step shows for a name and target; delivery.ts updates it in place while typing. */
+export function presetNotice(destination: string, target: LearningTarget) {
+  const preset = learningPresetFor(destination, target);
+  const status = learningPresetStatus(preset);
+  return {
+    preset,
+    status,
+    tone: status.tested ? 'success' : 'info',
+    label: status.label,
+    detail: status.detail,
+    format: LEARNING_TARGETS.find((t) => t.id === target)!.description,
+    limit: preset.limits.packageMB
+      ? `${preset.limits.packageMB} MB from the ${preset.name} preset`
+      : 'No limit supplied',
+  };
+}
+
+/**
+ * Resolves each LMS name edit in `root` from the format in place when the name field
+ * took focus, so a name that matches a preset only on the way to an unlisted name
+ * ("Moodle" in "Moodle Workplace") gives that format back.
+ */
+export function destinationTarget(root: HTMLElement, current: () => LearningTarget) {
+  let base: LearningTarget | undefined;
+  const isName = (event: Event) => (event.target as Element).matches('[data-delivery-name]');
+  root.addEventListener('focusin', (event) => {
+    if (isName(event)) base = current();
+  });
+  root.addEventListener('focusout', (event) => {
+    if (isName(event)) base = undefined;
+  });
+  return (name: string): LearningTarget => learningPresetTarget(name, base ?? current());
+}
 
 interface ExportView {
   module: LearningModule;
@@ -140,20 +180,26 @@ export function exportMarkup(v: ExportView): string {
         return `<li><span><strong>${esc(location)}</strong><span>${esc(f.message)}</span></span>${f.lessonId && !v.original ? `<button type="button" class="btn btn--ghost" data-delivery-lesson="${esc(f.lessonId)}" data-delivery-block="${esc(f.blockId || '')}" aria-label="Fix ${esc(location)}">Fix item</button>` : ''}</li>`;
       })
       .join('')}</ul>`;
+  const notice = presetNotice(v.destination, v.target),
+    { preset, status } = notice;
   const destination = `<h3>Where will learners take this course?</h3>
-    <label>Delivery format<select class="field-select" data-delivery-target ${v.active ? 'disabled' : ''}>${LEARNING_TARGETS.map((t) => `<option value="${t.id}" ${v.target === t.id ? 'selected' : ''}>${esc(t.label)}</option>`).join('')}</select></label>
-    <p class="learning-notice">${esc(LEARNING_TARGETS.find((t) => t.id === v.target)!.description)}</p>
-    <div class="learning-export-grid"><label>Website or LMS name (optional)<input class="field-input" data-delivery-name maxlength="200" placeholder="For your handoff report" value="${esc(v.destination)}" ${v.active ? 'disabled' : ''}></label><label>Upload limit (MB, optional)<input class="field-input" data-delivery-limit type="number" min="0" step="any" placeholder="No limit supplied" value="${v.maxMB || ''}" ${v.active ? 'disabled' : ''}></label></div>
-    <p class="learning-hint">Use the format and upload limit supplied by the receiving platform.</p>`;
+    <label>LMS or website<input class="field-input" data-delivery-name list="learning-lms-choices" maxlength="200" autocomplete="off" placeholder="Search LMS names, or choose Other LMS" value="${esc(v.destination)}" ${v.active ? 'disabled' : ''}></label>
+    <datalist id="learning-lms-choices">${learningPresetChoices()
+      .map((name) => `<option value="${esc(name)}"></option>`)
+      .join('')}</datalist>
+    <div class="learning-notice" data-delivery-preset data-tone="${notice.tone}" aria-live="polite"><p><strong data-delivery-preset-label>${esc(notice.label)}</strong> <span data-delivery-preset-detail>${esc(notice.detail)}</span></p><p data-delivery-format>${esc(notice.format)}</p></div>
+    <div class="learning-export-grid"><label>Delivery format<select class="field-select" data-delivery-target ${v.active ? 'disabled' : ''}>${LEARNING_TARGETS.map((t) => `<option value="${t.id}" ${v.target === t.id ? 'selected' : ''}>${esc(t.label)}</option>`).join('')}</select></label><label>Upload limit (MB, optional)<input class="field-input" data-delivery-limit type="number" min="0" step="any" placeholder="${esc(notice.limit)}" value="${v.maxMB || ''}" ${v.active ? 'disabled' : ''}></label></div>
+    <p class="learning-hint">Choosing an LMS selects its delivery format. Use the format and upload limit supplied by the receiving platform.</p>`;
   const review = `<h3>Review the course</h3><div class="learning-export-overview"><div><strong>${summary.lessons}</strong><span>Lessons</span></div><div><strong>${summary.required}</strong><span>Required</span></div><div><strong>${summary.optional}</strong><span>Optional</span></div></div>
-    <dl><dt>Delivery</dt><dd>${esc(targetLabel(v.target))}${v.destination ? ` / ${esc(v.destination)}` : ''}</dd><dt>Completion</dt><dd>${esc(summary.completion)}</dd><dt>Media</dt><dd>${summary.videos} video, ${summary.audio} audio, ${summary.resources} resources</dd><dt>Practice</dt><dd>${summary.quizzes} quizzes with feedback; no LMS score</dd><dt>Language</dt><dd>${esc(summary.language)} <span class="learning-hint">(player controls in English)</span></dd></dl>
+    <dl><dt>Delivery</dt><dd>${esc(targetLabel(v.target))}${v.destination ? ` / ${esc(v.destination)}` : ''}</dd><dt>Compatibility</dt><dd>${esc(`${status.label}. ${status.detail}`)}</dd><dt>Completion</dt><dd>${esc(summary.completion)}</dd><dt>Media</dt><dd>${summary.videos} video, ${summary.audio} audio, ${summary.resources} resources</dd><dt>Practice</dt><dd>${summary.quizzes} quizzes with feedback; no LMS score</dd><dt>Language</dt><dd>${esc(summary.language)} <span class="learning-hint">(player controls in English)</span></dd></dl>
     ${errors.length ? `<section class="learning-notice" data-tone="error"><h3>${errors.length} ${errors.length === 1 ? 'item to fix' : 'items to fix'}</h3>${findingList(errors)}</section>` : '<p class="learning-notice">The course structure is ready. The next check prepares the media and measures the final ZIP.</p>'}
     ${reviews.length ? `<details class="learning-handoff" data-delivery-reviews><summary>${reviews.length} ${reviews.length === 1 ? 'accessibility item' : 'accessibility items'} to review</summary>${findingList(reviews)}</details>` : '<p class="learning-hint">Use learner preview to check explanations, captions and reading order.</p>'}
     ${v.checking ? '<div><progress aria-label="Preparing course"></progress><p class="learning-hint">Preparing the package. You can continue editing; a content change cancels this check.</p></div>' : ''}`;
+  const docHref = preset.documentation && safeHref(preset.documentation) ? esc(preset.documentation) : '';
   const download = `<div class="learning-package-ready"><span class="learning-content-icon">${icon('check', { size: 24 })}</span><div><strong>${v.saved ? 'Version saved' : 'Your package is ready'}</strong><p class="learning-hint">${esc(targetLabel(v.target))} / ${(v.bytes / 1_000_000).toFixed(2)} MB (${v.bytes.toLocaleString()} bytes)</p></div></div>
     <p class="learning-notice" data-tone="success">${v.saved ? 'The finished files are kept on this device. Check your downloads folder for the ZIP.' : `The ZIP includes every selected lesson and its finished content.${v.maxMB ? ' It is within your destination upload limit.' : ''}`}</p>
     ${!v.original && !v.saved ? `<label>Version notes<textarea class="field-input" data-delivery-note placeholder="What changed in this version?" ${v.active ? 'disabled' : ''}>${esc(v.note)}</textarea></label>` : ''}
-    <section class="learning-handoff"><h3>${v.target === 'static' ? 'Publish on your website' : 'Import into your LMS'}</h3><p>${v.target === 'static' ? 'Extract the ZIP and upload all files together to your website. Link to index.html. Progress stays in the learner’s browser.' : 'Upload the unopened ZIP to a test course. Verify launch, resume and completion before assigning learners.'}</p><details data-delivery-handoff><summary>Full handoff instructions</summary><p class="learning-hint">${esc(learningHandoff(v.target))}</p></details></section>
+    <section class="learning-handoff"><h3>${v.target === 'static' ? 'Publish on your website' : preset.generic ? 'Import into your LMS' : `Import into ${esc(preset.name)}`}</h3><p>${v.target === 'static' ? 'Extract the ZIP and upload all files together to your website. Link to index.html. Progress stays in the learner’s browser.' : 'Upload the unopened ZIP to a test course. Verify launch, resume and completion before assigning learners.'}</p><details data-delivery-handoff><summary>Full handoff instructions</summary><p class="learning-hint">${esc(preset.instructions)}</p><p class="learning-hint">${esc(learningHandoff(v.target))}</p>${docHref ? `<p><a href="${docHref}" target="_blank" rel="noopener noreferrer">${esc(preset.name)} documentation</a></p>` : ''}</details></section>
     ${v.saved ? '<button type="button" class="btn btn--ghost" data-delivery-report>Download handoff report</button>' : ''}`;
   const next =
     v.step === 0

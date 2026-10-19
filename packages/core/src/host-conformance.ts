@@ -41,13 +41,14 @@ export const HOST_V1_METHODS: Record<HostApi, ApiMethods> = {
   clipboard: { required: ['writeText', 'writeImage'], optional: [] },
   export: { required: ['render', 'download', 'file', 'imprint'], optional: ['pack', 'share', 'canShare', 'checkLayout'] },
   net: { required: ['fetch'], optional: [] },
-  tokens: { required: ['get', 'colors', 'resolve', 'themes'], optional: ['list', 'active', 'snapshot', 'inspect'] },
+  tokens: { required: ['get', 'colors', 'resolve', 'themes'], optional: ['list', 'active', 'snapshot', 'inspect', 'axes', 'family'] },
   text: { required: ['toPath', 'preload'], optional: ['axisDefaults', 'fontUrl', 'characters', 'fontInfo', 'shapeRun', 'layoutRuns'] },
   textTools: { required: ['operations', 'run', 'highlight'], optional: [] },
   emoji: { required: ['sets', 'manifest', 'artwork', 'parseXml'], optional: ['install','dependencies','renderText','renderSvg'] },
-  pdf: { required: ['analyze', 'strip', 'compress'], optional: ['redact', 'pages', 'organize', 'stamp', 'lock'] },
+  pdf: { required: ['analyze', 'strip', 'compress'], optional: ['redact', 'pages', 'organize', 'fromImages', 'stamp', 'lock'] },
   compare: { required: ['run'], optional: ['visual'] },
   prepare: { required: ['inspect', 'apply'], optional: [] },
+  fonts: { required: ['inspect', 'subset'], optional: [] },
   pptx: { required: ['inspect', 'rebrand'], optional: [] },
   capture: { required: ['page'], optional: ['vector'] },
   compose: { required: ['render'], optional: ['renderUrl'] },
@@ -188,6 +189,21 @@ export async function runHostConformance(host: unknown, opts: ConformanceOpts = 
         const themes = await (h.tokens as { themes: () => Promise<unknown> }).themes();
         if (!Array.isArray(themes)) throw new Error('themes() must resolve to an array');
       });
+      // The plans/319 reads are optional; when present they answer lists, empty for
+      // a design system with no theme groups or no colourway.
+      const tokens = h.tokens as { axes?: () => Promise<unknown>; family?: (role?: string) => Promise<unknown> };
+      if (typeof tokens.axes === 'function') {
+        await smoke('tokens', 'axes', async () => {
+          if (!Array.isArray(await tokens.axes!())) throw new Error('axes() must resolve to an array');
+        });
+      }
+      if (typeof tokens.family === 'function') {
+        await smoke('tokens', 'family', async () => {
+          const family = await tokens.family!('primary');
+          if (!Array.isArray(family)) throw new Error('family() must resolve to an array');
+          if (family.some((m) => !m || typeof (m as { id?: unknown }).id !== 'string' || typeof (m as { value?: unknown }).value !== 'string')) throw new Error('every family member must carry an id and a value');
+        });
+      }
     }
     if (present.includes('color')) {
       await smoke('color', 'contrast', async () => {

@@ -122,7 +122,7 @@ A governed client that loses its connection must keep enforcing the policy it ho
 
 Today the shell does not meet this rule. `shells/web/src/org/index.ts` serves a cached organisation policy only inside `ORG_CONFIG_TTL_MS`. Past 24 hours it drops the copy, sets no policy at all and clamps the export and input seams closed. Enforcing the held policy instead, and reporting the four facts, is a change this model requires. Plan section 17's 25-hour offline case is where it is measured.
 
-A freshness deadline for a governed-claim export must be an explicit policy rule, with an issuer, a validity interval and a stated behaviour when freshness cannot be established (R7). With no such rule, the held policy must be enforced, and the receipt must say which policy version was evaluated and when it was last attested (R15 for the policy version, Q3's default for the attestation).
+A freshness deadline for a governed-claim export must be an explicit policy rule, with an issuer, a validity interval and a stated behaviour when freshness cannot be established (R7). With no such rule, the held policy must be enforced, and the receipt must say which policy version was evaluated and when it was last attested (R15 for the policy version, the decision on Q3 for the attestation).
 
 Cached material must stay usable (R7). A hosted record keeps its core material on the device and records `lastSyncedAt` (`shells/web/src/lib/design-system/hosted.ts`). The device keeps working when the host has gone away, and the row reports how long ago it last synced. A receipt must never describe a held policy as current online approval (C5).
 
@@ -157,10 +157,10 @@ Lolly Work's planned effective-schema projection (Work plan 42, not built) and t
 
 ## Open points
 
-- **Q2. The granularity and persistence of local rejection.** Default from plan section 16: per rule, instance-scoped, recorded on the session record with a fingerprint, following the `rightsDecisions` pattern (R6). A derived tool revision is a Design tool export and is not part of 0.1. Evidence that would change it: a need to share a rejected state as a reusable tool.
-- **Q3. What freshness a governed-claim export needs, and who states it.** Default from plan section 16: freshness is a policy rule the instance issues, with a validity interval and a stated behaviour when it cannot be established. With no such rule the held policy is enforced, and the receipt says which policy version was evaluated and when it was last attested. Leave and "Make an editable copy" keep their current meanings (R7). Evidence that would change it: an organisation that needs a hard deadline, or a fully offline site.
+- **Q2. The granularity and persistence of local rejection.** Decided on 2026-10-16 by accepting the default from plan section 16: per rule, instance-scoped, recorded on the session record with a fingerprint, following the `rightsDecisions` pattern (R6). A derived tool revision is a Design tool export and is not part of 0.1. Evidence that would reopen it: a need to share a rejected state as a reusable tool.
+- **Q3. What freshness a governed-claim export needs, and who states it.** Decided on 2026-10-16 by accepting the default from plan section 16: freshness is a policy rule the instance issues, with a validity interval and a stated behaviour when it cannot be established. With no such rule the held policy is enforced, and the receipt says which policy version was evaluated and when it was last attested. Leave and "Make an editable copy" keep their current meanings (R7). Evidence that would reopen it: an organisation that needs a hard deadline, or a fully offline site.
 
-The other open questions are carried, with their plan section 16 defaults, in other chapters: Q1 and Q5 in [Conformance and fidelity](conformance.html), Q4 in [Operations and outcomes](operations.html) and Q6 in [Status and open points](status.html). All six remain Andy's to answer. A default is what drafting proceeds on, not an answer.
+The other questions are carried in other chapters: Q1 and Q5 in [Conformance and fidelity](conformance.html), Q4 in [Operations and outcomes](operations.html) and Q6 in [Status and open points](status.html). Andy answered all six on 2026-10-16, accepting the defaults for Q1 to Q5 and recording Q6 as public, decided.
 
 ## Precedents
 

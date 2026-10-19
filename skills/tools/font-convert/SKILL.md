@@ -5,7 +5,7 @@ description: "Operate the Lolly Convert Font tool (font-convert) using its decla
 
 # Convert Font
 
-Tool ID: `font-convert`. Tool version: `1.0.0`. Engine range: `^1.0.0`.
+Tool ID: `font-convert`. Tool version: `1.1.0`. Engine range: `^1.0.0`.
 
 Convert a font between TrueType, OpenType and WOFF - on your device.
 
@@ -23,6 +23,8 @@ This is an on-device utility. File bytes require a separately permitted file rou
 | --- | --- | --- |
 | source | file |  |
 | target | select |  |
+| subset | select |  |
+| characters | longtext |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

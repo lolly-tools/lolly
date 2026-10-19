@@ -276,7 +276,12 @@ export function renderShell(pv: ProfileViewCtx): void {
             ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - orgAdminHref() returns the '/admin' literal or null; no control-plane value reaches it */ ''}
             <button type="button" class="btn" id="instance-design-systems">${t('Design-system source')}</button>
             ${adminHref ? `<a class="btn" id="instance-console-link" href="${escapeText(adminHref)}">${t('Instance console')}</a>` : ''}
-            ${canChangeInstance ? `<button type="button" class="btn" id="instance-change-btn">${t('Change')}</button>` : ''}
+            ${/* A browser cannot repoint this address at another deployment, but it can
+                  open the workspace's own address. That is the door now that the welcome
+                  no longer offers one (plan 320 D1). Not shown on a workspace: there the
+                  person came to use that workspace. */ ''}
+            ${canChangeInstance ? `<button type="button" class="btn" id="instance-change-btn">${t('Change')}</button>`
+              : workspace ? '' : `<button type="button" class="btn" id="instance-open-btn">${t('Open a workspace')}</button>`}
             ${/* Leave is never desktop-only: a .lolly share file carrying an instance pack
                   connects ANY shell to that pack's instance (brand-transfer.ts), and a browser
                   that got there this way needs the same way back. */ ''}
@@ -285,9 +290,6 @@ export function renderShell(pv: ProfileViewCtx): void {
         </div>
         ${accountRowHtml(account, signOut)}
         ${signOut ? `<p class="profile-inline-error" id="instance-signout-error" role="alert" style="color:hsl(var(--destructive-text));font-size:13px;margin:.4rem 0 0" hidden></p>` : ''}
-        ${/* Why a browser has no Change. Not on a workspace: there the person came to use
-              that workspace, and the line read as if something were missing. */ ''}
-        ${canChangeInstance || workspace ? '' : `<p class="profile-appearance-sub">${t('Pointing at another Lolly instance needs the desktop app - a browser blocks a page from loading tools and assets across origins.')}</p>`}
         ${/* App updates (plans/202 WP4.1) - the row and its wiring live in
               views/profile-updates.ts. */ ''}
         ${updatesRowHtml(hasShellUpdater)}

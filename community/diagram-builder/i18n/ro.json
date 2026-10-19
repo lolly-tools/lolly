@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "Schiță",
   "inputs.diagramPreset.options.mono": "Mono minimal",
   "inputs.diagramType.label": "Tip de diagramă",
-  "inputs.diagramType.help": "Organigramă/Hartă mentală construiesc un arbore pe baza părintelui fiecărui card. Layercake/Kanban grupează cardurile după ID-ul lor de „Grup” (benzi stivuite vs. coloane alăturate). Proces/Cronologie/Ciclu așază cardurile de-a lungul fluxului/ordinii. Piramidă, Matrice și Gantt au propriile controale mai jos.",
+  "inputs.diagramType.help": "Alege relația pe care vrei să o arăți. Organigramă și Hartă mentală: o ierarhie pornind de la părintele fiecărui card. Layercake: niveluri de abstractizare, câte o bandă pentru fiecare „Grup”. Kanban: munca pe stări, câte o coloană pentru fiecare „Grup”; o coloană este o stare, nu un responsabil. Proces: pași orientați și legături de întoarcere din săgeți. Cronologie: evenimente în ordine, la distanțe egale, fără durate. Ciclu: o buclă în ordinea cardurilor. Piramidă: etape ierarhizate. Matrice: patru categorii, nu valori măsurate. Gantt: durata sarcinilor; un singur card cu dată adaugă o axă a timpului și câte un culoar pentru fiecare „Grup”.",
   "inputs.diagramType.options.org": "Organigramă (ierarhie)",
   "inputs.diagramType.options.mindmap": "Hartă mentală",
   "inputs.diagramType.options.layercake": "Layercake (arhitectură stratificată)",

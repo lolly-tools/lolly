@@ -44,7 +44,7 @@
  *   node --test shells/web/src/lib/s3-sync.test.ts
  */
 
-import { test } from 'node:test';
+import { test, type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { SyncConflictError, type SnapshotMeta, type SyncRemote } from './sync-remote.ts';
@@ -152,7 +152,7 @@ async function assertConflict(write: Promise<unknown>, what: string): Promise<vo
 interface ConformanceCase {
   name: string;
   skip?: string | false;
-  run: () => Promise<void>;
+  run: (t: TestContext) => Promise<void>;
 }
 
 /**
@@ -302,6 +302,22 @@ export function runSyncRemoteConformance(name: string, factory: RemoteFactory, o
       },
     },
     {
+      name: 'remove clears only that path, and removing again or an empty path is fine',
+      run: async (t) => {
+        const r = await remote();
+        const other = await remote(OTHER_PATH);
+        if (!r.remove || !other.remove) { t.skip('the store adapter has no remove call (optional; per-record sync then keeps the objects)'); return; }
+        await other.remove();
+        const keepBytes = patternBytes(200, 19);
+        const keep = await other.put(keepBytes);
+        await r.put(patternBytes(200, 20));
+        await r.remove();
+        await assertEmpty(r, 'default path after remove');
+        await r.remove();
+        await assertStored(other, keepBytes, keep.rev, 'other path after a remove of the default path');
+      },
+    },
+    {
       name: `canSyncSilently answers ${silent}`,
       run: async () => {
         const r = await remote();
@@ -319,7 +335,7 @@ export function runSyncRemoteConformance(name: string, factory: RemoteFactory, o
       await ctx.test(c.name, c.skip ? { skip: c.skip } : {}, async (sub) => {
         await opts.setup?.();
         try {
-          await c.run();
+          await c.run(sub);
         } finally {
           try {
             await opts.teardown?.();

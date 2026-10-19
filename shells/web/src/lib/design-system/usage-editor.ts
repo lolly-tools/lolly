@@ -14,7 +14,12 @@ import type { UsageHost } from './usage-model.ts';
 export const RULE_LABELS: Record<string, string> = { 'color-choices': 'Colour choices', 'font-choices': 'Font choices', 'fixed-artwork': 'Fixed artwork', 'text-length': 'Text length' };
 const option = (value: string, label: string, selected?: string): string => `<option value="${e(value)}"${value === selected ? ' selected' : ''}>${e(t(label))}</option>`;
 
-/** One decision at a time; advanced source and identity remain visible in the guide. */
+/**
+ * One decision at a time; advanced source and identity remain visible in the guide.
+ * A rule's mode is a look (light, dark): a colourway (plans/319) is another axis,
+ * so the Mode list leaves colourways out, and the colour choices leave out each
+ * colourway's own colours (`color.colourway.*`), which are a lead's roles.
+ */
 export function editUsageRule(opts: { host: UsageHost; doc: unknown; system: BrandSystemV1; mode: string; rule?: BrandRuleV1; save(system: BrandSystemV1): Promise<void>; closed(): void }) {
   const original = opts.rule;
   const modal = mountModal(`<header><p class="start-eyebrow">${t('Usage & rules')}</p><h2>${t(original ? 'Edit rule' : 'Add a rule')}</h2><p>${t('Choose what this example allows. Your brand’s names stay separate from Lolly’s fields.')}</p></header>
@@ -23,7 +28,7 @@ export function editUsageRule(opts: { host: UsageHost; doc: unknown; system: Bra
       <div class="usage-form-pair"><label>${t('Check')}<select class="field-select" name="kind">${BRAND_RULE_KINDS.map(kind => option(kind, RULE_LABELS[kind]!, original?.kind ?? 'color-choices')).join('')}</select></label>
       <label>${t('Example')}<select class="field-select" name="example">${BRAND_EXAMPLES.map(id => option(id, EXAMPLE_LABELS[id], original?.scope?.tools?.[0] ?? 'brand-poster')).join('')}</select></label></div>
       <div data-rule-material></div>
-      <div class="usage-form-pair"><label>${t('Mode')}<select class="field-select" name="mode">${option('', 'Every mode', original?.scope?.modes?.[0] ?? '')}${createTokenSet(opts.doc).themes().map(theme => option(theme.name, theme.name, original?.scope?.modes?.[0])).join('')}</select></label>
+      <div class="usage-form-pair"><label>${t('Mode')}<select class="field-select" name="mode">${option('', 'Every mode', original?.scope?.modes?.[0] ?? '')}${createTokenSet(opts.doc).themes().filter(theme => theme.kind !== 'colourway').map(theme => option(theme.name, theme.name, original?.scope?.modes?.[0])).join('')}</select></label>
       <label>${t('Requirement')}<select class="field-select" name="requirement">${option('required', 'Required', original?.requirement ?? 'required')}${option('advisory', 'Advisory', original?.requirement)}</select></label></div>
       <label>${t('Reviewed by')}<input class="field-input" name="author" maxlength="160" required value="${e(original?.review.state === 'approved' ? original.review.authority : original?.origin.kind === 'manual' ? original.origin.author : t('Local author'))}"></label>
       <p class="usage-hint">${t('Approval records your local decision. Required approved rules constrain the reusable poster. Example checks cover PNG output; they do not change other tools.')}</p>
@@ -55,7 +60,7 @@ export function editUsageRule(opts: { host: UsageHost; doc: unknown; system: Bra
     try {
       const rows = kind === 'fixed-artwork'
         ? (await opts.host.assets.query({})).filter(asset => ['image', 'raster', 'vector'].includes(asset.type)).map(asset => ({ value: asset.id, label: String(asset.meta?.name ?? asset.id), detail: asset.id, colour: '' }))
-        : createTokenSet(opts.doc, { theme: opts.mode }).query({ type: kind === 'color-choices' ? 'color' : 'fontFamily' }).filter(token => typeof token.value === 'string' && !String(token.value).startsWith('{')).map(token => ({ value: token.path, label: String(token.value), detail: token.path, colour: kind === 'color-choices' ? String(token.value) : '' }));
+        : createTokenSet(opts.doc, { theme: opts.mode }).query({ type: kind === 'color-choices' ? 'color' : 'fontFamily' }).filter(token => typeof token.value === 'string' && !String(token.value).startsWith('{') && !token.path.startsWith('color.colourway.')).map(token => ({ value: token.path, label: String(token.value), detail: token.path, colour: kind === 'color-choices' ? String(token.value) : '' }));
       if (current !== revision || !modal.el.isConnected) return;
       material.querySelector('[data-resources]')!.innerHTML = rows.length ? rows.map(row => `<label class="usage-resource"><input class="${kind === 'fixed-artwork' ? 'field-radio' : 'field-check'}" type="${kind === 'fixed-artwork' ? 'radio' : 'checkbox'}" name="resource" value="${e(row.value)}">${row.colour ? '<span class="usage-colour-chip" aria-hidden="true"></span>' : ''}<span>${e(row.label)}<small>${e(row.detail)}</small></span></label>`).join('') : `<p>${t(kind === 'fixed-artwork' ? 'Add artwork in Logos or Files first.' : kind === 'color-choices' ? 'Add a colour in Colours first.' : 'Choose a font in Type first.')}</p>`;
       const labels = [...material.querySelectorAll<HTMLElement>('.usage-resource')];

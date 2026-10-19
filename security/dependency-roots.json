@@ -31,7 +31,22 @@
       "directory": "shells/tauri-desktop/src-tauri",
       "lockfile": "shells/tauri-desktop/src-tauri/Cargo.lock",
       "exposure": "shipped-runtime",
-      "owner": "shells/tauri-desktop"
+      "owner": "shells/tauri-desktop",
+      "advisoryExceptions": [
+        {
+          "advisories": ["RUSTSEC-2026-0367", "RUSTSEC-2026-0368", "RUSTSEC-2026-0369"],
+          "crate": "zip",
+          "fixedIn": "9.0.0",
+          "via": "tauri-plugin-updater",
+          "viaFixedIn": "2.14.1",
+          "approvedBy": "Andy, 2026-10-17",
+          "justification": "zip 4.6.1 reaches this lockfile only through tauri-plugin-updater 2.x, which declares zip ^4 under cfg(target_os = \"windows\"), so it is compiled for Windows targets only. The current release (v1.1.1) publishes no Windows build; Windows installers come only from the manual desktop-extra.yml dispatch. Self-update is not live: bundle.createUpdaterArtifacts is false and plugins.updater.pubkey is still PLACEHOLDER-RUN-TAURI-SIGNER-GENERATE, which is not valid base64. The updater verifies a payload's minisign signature in Update::download before install() reaches ZipArchive::extract, and with the placeholder key that verification fails for every payload, including in the v1.0.9 Windows installers. The fix (zip ^9) is merged upstream in tauri-apps/plugins-workspace #3698 (ba98bfad) and is pending release as tauri-plugin-updater 2.14.1 (#3712); no published 2.x or 3.0 alpha accepts zip 9 yet.",
+          "tracking": [
+            "https://github.com/tauri-apps/plugins-workspace/pull/3698",
+            "https://github.com/tauri-apps/plugins-workspace/pull/3712"
+          ]
+        }
+      ]
     },
     {
       "id": "tauri-mobile-cargo",

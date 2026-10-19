@@ -40,6 +40,7 @@ The pre-flight **Test your clicker** panel shows the keys your hardware sends. S
 | A same-origin Lolly page | Scroll its document or main scrollable panel, read depth and send synthetic arrow keys. |
 | A Sandbox demo | Send keys and scrolling through its isolated preview channel. |
 | A page with the receiver below | Send messages for keys, scrolling and slide lifecycle; read its reported depth. |
+| A reveal.js or Slides.com deck | Step through its fragments and slides with reveal.js messages; show its slide number in the speaker view. |
 | Another site | Jump to named places or pan a taller page, after the author chooses a method. |
 
 For a page Lolly can reach, an uncancelled synthetic arrow key also performs the usual scroll. A synthetic event is never a trusted hardware event; a page that requires trusted keys may not respond.
@@ -49,6 +50,22 @@ For a page Lolly can reach, an uncancelled synthetic arrow key also performs the
 **Pan a taller page** lays the frame out at the authored **Page length** and moves it inside the box. Use **Preview depth** to inspect the result in the editor. Full-height sections stretch, sticky headers stay at the top, and the page's own scroll effects do not run. Panning changes the viewport rather than the site's scroll position.
 
 Neither outside-site method is selected automatically. A site that refuses framing still cannot be embedded after approval.
+
+## Embedded reveal.js and Slides.com decks
+
+A deck inside a slide can follow the clicker. Paste a Slides.com deck link, such as `https://slides.com/name/talk`, into a **Web page** box. Lolly loads the deck's embed form and asks reveal.js to report its position. A private deck's `token` stays in the link.
+
+A self-hosted reveal.js deck opts in through its own link. Add `postMessageEvents=true` to the address, for example `https://talks.example.com/keynote/?postMessageEvents=true`. reveal.js reads this option from the address, so the deck needs no other change. Its `postMessage` option must stay on, which is the reveal.js default.
+
+| Up and Down setting | What the deck does |
+|---|---|
+| Scroll the page | Down shows the next fragment or slide and Up goes back, as Space and Shift+Space do in reveal.js. |
+| Act like the keyboard | Down and Up move through a vertical stack, as the arrow keys do in reveal.js. |
+| Nothing | Up and Down keep their meaning in the Lolly presentation. |
+
+The inspector shows "This slide deck follows the clicker" once the deck reports, and the speaker view shows the deck's slide number. Next and Previous always move the Lolly presentation. Scroll stops, start positions and automatic scrolling do not apply to a deck.
+
+Lolly sends the deck only reveal.js navigation commands and a request for its position, addressed to the deck's own origin. It accepts reports only from that frame and origin, and reads only the slide numbers. A report cannot change the document or a site approval. The web version of Lolly can show a Slides.com deck after **Allow pages from any site**; the desktop app can show the deck directly.
 
 ## Start positions and stops
 
@@ -78,13 +95,13 @@ The maintained receiver is exported by the Lolly tool-author SDK as `@lolly-tool
 pnpm run pack:core
 ```
 
-For SDK 1.1.0, this produces `dist/core-pack/lolly-tools-core-1.1.0.tgz` with compiled JavaScript and TypeScript declarations. Check that `dist/core-pack/manifest.json` records the selected revision in `generatedFrom`. Install the tarball in your page's project, replacing the path with your checkout's absolute path:
+For SDK 1.4.0, this produces `dist/core-pack/lolly-tools-core-1.4.0.tgz` with compiled JavaScript and TypeScript declarations. The number in the file name is the `version` in `packages/core/package.json`, so another revision can produce a different name. Check that `dist/core-pack/manifest.json` records the selected revision in `generatedFrom` and the file name in `core.tarball`. Install the tarball in your page's project, replacing the path with your checkout's absolute path:
 
 ```sh
-npm install /path/to/lolly/dist/core-pack/lolly-tools-core-1.1.0.tgz
+npm install /path/to/lolly/dist/core-pack/lolly-tools-core-1.4.0.tgz
 ```
 
-This route does not depend on SDK 1.1.0 being published to npm. Your page's normal bundler can import the compiled receiver. Set an exact list of origins allowed to frame your page, and call the returned cleanup function when your page unmounts:
+This route does not depend on SDK 1.4.0 being published to npm. Your page's normal bundler can import the compiled receiver. Set an exact list of origins allowed to frame your page, and call the returned cleanup function when your page unmounts:
 
 ```js
 import { attachPresentReceiver } from '@lolly-tools/core/present-receiver';

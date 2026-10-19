@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "蓝图",
   "inputs.diagramPreset.options.mono": "极简单色",
   "inputs.diagramType.label": "图表类型",
-  "inputs.diagramType.help": "组织结构图／思维导图会根据每张卡片的父级构建树状结构。分层图／看板按卡片的「分组」ID 对卡片分组（堆叠层带 vs 并排列）。流程图／时间轴／循环图会按流程或顺序排列卡片。金字塔图、矩阵图和甘特图有各自的专属设置，见下方。",
+  "inputs.diagramType.help": "选择要展示的关系。组织结构图与思维导图：根据每张卡片的父级形成的层级。分层图：抽象层级，每个「分组」一条层带。看板：按状态排列的工作，每个「分组」一列；列代表状态，而不是负责人。流程图：由箭头构成的有向步骤和返回连线。时间轴：按顺序等距排列的事件，不表示时长。循环图：按卡片顺序形成的循环。金字塔图：有排序的阶段。矩阵图：四个类别，而不是测量值。甘特图：任务时长；只要有一张卡片带日期，就会加入时间轴，并为每个「分组」加入一条轨道。",
   "inputs.diagramType.options.org": "组织结构图（层级）",
   "inputs.diagramType.options.mindmap": "思维导图",
   "inputs.diagramType.options.layercake": "分层图（分层架构）",

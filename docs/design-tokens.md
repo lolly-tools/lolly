@@ -39,7 +39,7 @@ Two deliberate choices keep us interoperable with Penpot while serving Lolly's p
 - **Colours: read every form, store perceptually, resolve to hex.** DTCG's newer colour *object* (`{colorSpace, components, alpha, hex}`) is parsed, and so is every CSS Color 4 string - `#hex`, `rgb()/rgba()`, `hsl()/hsla()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()` and `color(<space> …)` across 14 colour spaces (`engine/src/css-color.ts`), which covers everything Penpot emits and a good deal more. A value *resolves* to a hex string (`#rrggbb` / `#rrggbbaa` / `transparent`) for rendering, except a bare colour keyword, which is handed back as-is. What Lolly **stores** is a different question: a derived brand writes `oklch()` into `$value`, and a swatch's *Stored as* control can pin `lch` (the default), hex, `rgb()` or `hsl()` instead. All of those are forms Penpot ingests cleanly.
 - **CMYK rides in `$extensions`.** Print anchors live under the vendor key `com.suse.lolly`. DTCG reserves `$extensions` for exactly this, and Penpot round-trips it untouched - so a colour stays print-correct without breaking compatibility.
 
-**Sets and themes.** Top-level keys can be token *sets*; a `$themes` array selects and orders sets per theme (later sets override earlier - Tokens-Studio layering), with `$metadata.tokenSetOrder` fixing the order. A document with no `$themes` is one implicit set, and token paths keep their `color.brand.x` shape.
+**Sets and themes.** Top-level keys can be token *sets*; a `$themes` array selects and orders sets per theme (later sets override earlier - Tokens-Studio layering), with `$metadata.tokenSetOrder` fixing the order. A document with no `$themes` is one implicit set, and token paths keep their `color.brand.x` shape. Themes with the same `group` are one choice, and an artefact picks one option per group. A group can state what kind of choice it is, such as light and dark (`mode`) or a choice of lead colour (`colourway`); the [token workflow guide](/info/token-workflows.html#what-a-theme-group-means) covers the format, and [Colourways](/info/token-workflows.html#colourways) covers several lead colours in one design system.
 
 ## The four layers
 
@@ -100,6 +100,11 @@ panels, the top bar, the menus and the text on them, one room per theme. Put a
 `color.chrome` group inside a theme set, beside the semantic slots. Every slot
 is an optional colour, and an alias into your own palette is the normal way to
 write one.
+
+The app reads its colours in the canonical option of every theme group that
+declares a kind, apart from light and dark. A design system with
+[colourways](/info/token-workflows.html#colourways) therefore keeps the app on
+its canonical lead while an artefact on the canvas uses another.
 
 | Slot | Sets | For | Left out |
 |---|---|---|---|

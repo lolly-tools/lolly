@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "Blueprint",
   "inputs.diagramPreset.options.mono": "Mono minimale",
   "inputs.diagramType.label": "Tipo di diagramma",
-  "inputs.diagramType.help": "Organigramma/Mappa mentale costruiscono un albero in base al genitore di ogni scheda. A strati/Kanban raggruppano le schede in base al loro ID “Gruppo” (bande impilate anziché colonne affiancate). Processo/Timeline/Ciclo dispongono le schede lungo il flusso o l'ordine. Piramide, Matrice e Gantt hanno i propri controlli più sotto.",
+  "inputs.diagramType.help": "Scegli la relazione da mostrare. Organigramma e Mappa mentale: una gerarchia in base al genitore di ogni scheda. A strati: livelli di astrazione, una banda per “Gruppo”. Kanban: lavoro per stato, una colonna per “Gruppo”; una colonna è uno stato, non un responsabile. Processo: passaggi orientati e collegamenti di ritorno ricavati dalle frecce. Timeline: eventi in ordine, a distanza regolare, senza durata. Ciclo: un anello che si ripete nell'ordine delle schede. Piramide: fasi in ordine di rango. Matrice: quattro categorie, non valori misurati. Gantt: durata delle attività; una sola scheda con data aggiunge un asse temporale e una corsia per “Gruppo”.",
   "inputs.diagramType.options.org": "Organigramma (gerarchia)",
   "inputs.diagramType.options.mindmap": "Mappa mentale",
   "inputs.diagramType.options.layercake": "A strati (architettura a livelli)",

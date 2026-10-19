@@ -20,7 +20,7 @@ import { icon } from '../../lib/icons.ts';
 import { startJob } from '../../lib/jobs.ts';
 import { restyleIconTheme } from '@lolly/engine';
 import type { C2paActionInput } from '../../../../../engine/src/c2pa.ts';
-import { signDerived as sharedSignDerived, sourceIngredients as sharedSourceIngredients } from '../../lib/derived-asset.ts';
+import { derivedFailureMessage, signDerived as sharedSignDerived, sourceIngredients as sharedSourceIngredients } from '../../lib/derived-asset.ts';
 import type { DerivedSignInputs } from '../../lib/derived-asset.ts';
 import type { AssetRef, IngredientCredential } from '@lolly-tools/core/host-v1';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
@@ -592,12 +592,12 @@ export async function openDownloadDialog(cat: CatCtx, ref: AssetRef, initialThem
   const fmt = (): string => (dlg.querySelector<HTMLInputElement>('input[name="cat-dl-fmt"]:checked')?.value ?? 'svg');
 
   dlg.addEventListener('click', async (e) => {
-    const t = e.target as HTMLElement;
+    const target = e.target as HTMLElement;
     // Scope to THIS dialog's colour buttons (.cat-dl-theme). A bare [data-theme]
     // selector also matches the <html data-theme> root, so it hijacked EVERY click in
     // the dialog (Download included) → the theme branch returned early and no download
     // ever ran (all vector/icon downloads were dead).
-    const themeBtn = t.closest<HTMLElement>('.cat-dl-theme');
+    const themeBtn = target.closest<HTMLElement>('.cat-dl-theme');
     if (themeBtn) {
       themeId = themeBtn.dataset.theme!;
       dlg.querySelectorAll<HTMLElement>('[data-theme]').forEach(b => {
@@ -606,8 +606,8 @@ export async function openDownloadDialog(cat: CatCtx, ref: AssetRef, initialThem
       paintPreview();
       return;
     }
-    if (t.closest('.cat-dl-cancel')) { closeDownloadDialog(cat); return; }
-    if (t.closest('.cat-dl-go')) {
+    if (target.closest('.cat-dl-cancel')) { closeDownloadDialog(cat); return; }
+    if (target.closest('.cat-dl-go')) {
       const svg = currentSvg();
       const theme = themable && themeId && themeId !== ORIGINAL_THEME ? cat.iconThemes.find(x => x.id === themeId) : null;
       const recoloured = Boolean(theme) && svg !== baseSvg;
@@ -649,7 +649,10 @@ export async function openDownloadDialog(cat: CatCtx, ref: AssetRef, initialThem
             await host.export.download(blob, downloadName(ref, 'svg'));
           }
         }
-      } catch (err) { host.log?.('error', 'Catalog download failed', { id: ref.id, error: String(err) }); }
+      } catch (err) {
+        host.log?.('error', 'Catalog download failed', { id: ref.id, error: String(err) });
+        announce(derivedFailureMessage(err, t('Could not prepare this download.')), { assertive: true });
+      }
       closeDownloadDialog(cat);
     }
   });

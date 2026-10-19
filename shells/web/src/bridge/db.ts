@@ -36,7 +36,7 @@ import { indexSavedWork, indexExport } from './history-index.ts';
 import { clearSignal } from '../lib/clear-signal.ts';
 
 const DB_NAME = 'lolly';
-const DB_VERSION = 25;
+const DB_VERSION = 26;
 let databaseUpdateRequired = false;
 
 function databaseUpdateError(): Error & { code: string } {
@@ -316,6 +316,11 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS): Promise<IDBPDatabase> {
         // (createModelFetcher store:'sing-models'). Pure and re-downloadable like
         // 'matte-models', so NOT in REQUIRED_STORES and out of the portable backup.
         db.createObjectStore('sing-models');
+      }
+      if (oldVersion < 26) {
+        // Private observations of held catalog reads, outside portable packages.
+        // Missing optional history must never invoke destructive database repair.
+        db.createObjectStore('asset-observations', { keyPath: 'key' }).createIndex('id', 'id');
       }
     },
     blocking(_currentVersion, _blockedVersion, event) {

@@ -250,3 +250,30 @@ test('the CLI delivers outlined variable-weight strike-through without a browser
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test('the CLI delivers outlined underline, cleared around descenders, without a browser', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'lolly-design-pdf-underline-'));
+  try {
+    const deck = [
+      { id: 'f', kind: 'frame', x: 0, y: 0, w: 640, h: 400, bg: '#ffffff' },
+      ...[300, 700].map((weight, index) => ({ id: `underline-${weight}`, kind: 'text', frame: 'f',
+        x: 24, y: 24 + index * 88, w: 590, h: 76, font: 'sans', weight, fontSize: 34,
+        text: `{u|Underline jumping glyphs} {u s|and strike}`, fg: index ? '#0b7285' : '#862e9c', align: 'left' })),
+    ];
+    const output = join(dir, 'underline.pdf');
+    const run = spawnSync(process.execPath, ['shells/cli/bin/lolly.ts', 'design', `--boxes=${JSON.stringify(deck)}`,
+      '--text=outline', '--export=pdf', `--output=${output}`], {
+      cwd: ROOT, encoding: 'utf8', timeout: 30_000,
+      env: { ...process.env, LOLLY_PROFILE: 'lolly-start', LOLLY_STATE_DIR: dir, LOLLY_WEB_DIST: join(dir, 'no-web-build'),
+        LOLLY_WEB_BASE: 'http://127.0.0.1:9', LOLLY_RENDERER: 'chromium', NO_COLOR: '1' },
+    });
+    assert.equal(run.status, 0, run.stderr);
+    assert.doesNotMatch(run.stderr, /Escalating|text-decoration|Content Credentials not attached/);
+    const bytes = new Uint8Array(await readFile(output));
+    const pdf = await PDFDocument.load(bytes, { updateMetadata: false });
+    assert.deepEqual(pdf.getPages().map((page) => page.getSize()), [{ width: 480, height: 300 }]);
+    assert.ok(!pdf.context.enumerateIndirectObjects().some(([, value]) => String(value).includes('/Type /Font')));
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});

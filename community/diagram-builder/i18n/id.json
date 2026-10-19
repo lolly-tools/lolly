@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "Blueprint",
   "inputs.diagramPreset.options.mono": "Mono minimalis",
   "inputs.diagramType.label": "Jenis diagram",
-  "inputs.diagramType.help": "Org/Peta pikiran membangun pohon dari induk tiap kartu. Layercake/Kanban mengelompokkan kartu berdasarkan ID “Grup”-nya (pita bertumpuk vs kolom berdampingan). Proses/Linimasa/Siklus menata kartu mengikuti alur/urutan. Piramida, Matriks, dan Gantt memiliki kontrol tersendiri di bawah.",
+  "inputs.diagramType.help": "Pilih hubungan yang ingin Anda tampilkan. Bagan organisasi dan Peta pikiran: hierarki dari induk tiap kartu. Layercake: tingkat abstraksi, satu pita per “Grup”. Kanban: pekerjaan menurut status, satu kolom per “Grup”; kolom adalah status, bukan pemilik. Proses: langkah berarah dan tautan balik dari panah. Linimasa: peristiwa berurutan, berjarak sama, tanpa durasi. Siklus: putaran sesuai urutan kartu. Piramida: tahapan berperingkat. Matriks: empat kategori, bukan nilai terukur. Gantt: durasi tugas; satu kartu bertanggal menambahkan sumbu waktu dan satu jalur per “Grup”.",
   "inputs.diagramType.options.org": "Bagan organisasi (hierarki)",
   "inputs.diagramType.options.mindmap": "Peta pikiran",
   "inputs.diagramType.options.layercake": "Layercake (arsitektur berlapis)",

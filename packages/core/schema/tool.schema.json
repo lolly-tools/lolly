@@ -61,6 +61,61 @@
       "pattern": "^[a-z0-9][a-z0-9-]*$",
       "description": "Optional design-system version this tool renders against (plans/97 section 6a): a published version's slug, or 'latest' for the edit head. Author-controlled stability - a pinned tool keeps rendering against its version whatever gets republished. Unlike engineVersion this is NOT enforced at load: a pin naming a version this device does not have falls through to the active version, then to the head, so a tool always draws. Overridden per render by ?designv=. On a device that never published a version it has no effect at all."
     },
+    "tokenAxes": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "How this tool treats each kind of theme group a design system declares (plans/319). Keys are axis kinds; the one behaviour is \"ignore\". An ignored kind renders in that group's canonical option for this tool whatever a link, a saved session or the design system's stored choice asks for, and the web shell hides that group's control in this tool. Use it for a tool whose colours are its content: {\"colourway\": \"ignore\"} keeps a tonal ramp on the canonical lead, {\"mode\": \"ignore\"} keeps a print-only tool in its canonical look. The CLI and MCP report a theme choice the tool ignored instead of dropping it silently. A later behaviour is an additive value in each enum.",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "ignore"
+          ]
+        },
+        "colourway": {
+          "type": "string",
+          "enum": [
+            "ignore"
+          ]
+        },
+        "expression": {
+          "type": "string",
+          "enum": [
+            "ignore"
+          ]
+        },
+        "medium": {
+          "type": "string",
+          "enum": [
+            "ignore"
+          ]
+        },
+        "contrast": {
+          "type": "string",
+          "enum": [
+            "ignore"
+          ]
+        },
+        "density": {
+          "type": "string",
+          "enum": [
+            "ignore"
+          ]
+        },
+        "campaign": {
+          "type": "string",
+          "enum": [
+            "ignore"
+          ]
+        },
+        "brand": {
+          "type": "string",
+          "enum": [
+            "ignore"
+          ]
+        }
+      }
+    },
     "status": {
       "type": "string",
       "enum": [
@@ -618,7 +673,8 @@
           "c2pa",
           "emoji",
           "models",
-          "layout"
+          "layout",
+          "fonts"
         ]
       },
       "description": "Optional HostV1 APIs (`host.text`, `host.pdf`, …) this tool calls WITHOUT feature-detecting them. The runtime refuses to mount the tool on a shell that lacks one, before any hook runs, and the gallery greys it out there. An API the hooks guard (`if (host.text)`, `host.text?.`) is NOT required and must not be listed. `scripts/tool-requires.ts` computes this from hooks.js and can rewrite it (`--write`); `validate:catalog` warns when the two disagree. Distinct from `capabilities`, which names device abilities (camera, microphone, screen, …) rather than bridge APIs."
@@ -1693,7 +1749,7 @@
             "properties": {
               "palette": {
                 "type": "string",
-                "description": "Asset ID of a palette asset to constrain choices. If omitted, free color picker."
+                "description": "Asset ID of a palette asset to constrain choices, or `colourway-leads` to offer the design system's colourway leads: every colourway's primary in the document's look, canonical first. With fewer than two colourways the field offers the ordinary palette. If omitted, free color picker."
               },
               "swatchesOnly": {
                 "type": "boolean",

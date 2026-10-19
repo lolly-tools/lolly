@@ -107,6 +107,9 @@ export {
 } from './image-meta.ts';
 export { stripMetadata, isStrippableFormat, hasResidualMetadata } from './strip-metadata.ts';
 export type { StripFormat } from './strip-metadata.ts';
+// The bounded JPEG marker walker, shared with the shells' PDF image placement.
+export { scanJpegSegments, jpegSegmentBody } from './jpeg-segments.ts';
+export type { JpegScan, JpegSegment } from './jpeg-segments.ts';
 export {
   embedWatermark, detectWatermark, canCarryWatermark, WATERMARK_VERSION, DEFAULT_STRENGTH,
   LOSSLESS_STRENGTH, DETECT_THRESHOLD, MIN_IMPRINT_BLOCKS, detectionThreshold, V2_BAND_SIZE,
@@ -186,6 +189,13 @@ export type {
   Finding, FindingId, Severity, Count, Bound, QuantityKind, QuantityUnit,
   Fact, UnknownReason, Evidence,
 } from './preflight.ts';
+// The export report - the other half of preflight. After an export, each requested
+// property is compared with a value read from the output bytes, and the report is
+// bound to those bytes by SHA-256 (plan 203 rank 12).
+export { verifyExport, compareExport, exportRequestFromJob } from './preflight-output.ts';
+export type { ExportRequest, ExportCheck, ExportReport, ExportValue } from './preflight-output.ts';
+export { inspectOutput } from './output-facts.ts';
+export type { OutputFacts } from './output-facts.ts';
 // Rate card - the printer's own card, stored and validated (never a source of
 // prices). parseRateCard is the pure reader; computeCost is the Phase 4 arithmetic
 // (integer minor units, no currency formatting) that multiplies the card's rates by
@@ -600,7 +610,10 @@ export { buildLinuxPack, buildHomeTarball, packageRender } from './linux-pack.ts
 export type { FontFile } from './linux-pack.ts';
 export { fontMetainfo, desktopEntry, metainfoPath } from './appstream.ts';
 export { sfntKind, sfntToWoff, woffToSfnt, fontConversionTargets, convertFontContainer } from './font-convert.ts';
-export { sourceToGrid, gridToTarget } from './file-data.ts';
+export { inspectFont, createFontsAPI } from './font-inspect.ts';
+export type { FontSubsetRunner } from './font-inspect.ts';
+export { sourceToGrid, gridToTarget, readDataGrid, readDataOptions, convertDataFile, DATA_DELIMITERS, DATA_TEXT_ENCODINGS, DATA_HEADER_MODES, DATA_CELL_MODES } from './file-data.ts';
+export type { DataConversionOptions, DataConversionResult, DataReadFacts, DataSheetsManifestV1, DataSheetFileV1, DataDelimiter, DataTextEncoding, DataHeaderMode, DataCellMode } from './file-data.ts';
 export { videoProvenanceTags, embedMp4Meta, embedWebmMeta } from './video-meta.ts';
 export { embedWavInfo } from './riff-meta.ts';
 export { parseDataRows, rowsToCsv, DEFAULT_ROW_LIMIT } from './data-import.ts';
@@ -682,11 +695,26 @@ export { RUN_LINKS_KEY, blockColourFields, hasDesignColourRefs, normaliseDesignC
 export type { DesignColourRefIssue, DesignColourRefOptions } from './token-block-bindings.ts';
 export type { TokenImpact } from './token-inspect.ts';
 export { resolveTokenSelection, tokenSelectionKey, parseTokenSelection } from './token-selection.ts';
+// 1.265 (plans/319): what a theme group means, and colourways - several leads in one
+// design system, chosen per artefact and composed with light and dark.
+export { readTokenAxes, axisOfKind, modeAxis, ROTATION_POLICIES } from './token-axes.ts';
+export type { TokenAxis, TokenAxisOption, AxisWindow, RotationPolicy } from './token-axes.ts';
+export { COLOURWAY_GROUP, COLOURWAY_ROLES, COLOURWAY_ID, colourwaySetName, colourwayPath, colourwayAxis, canonicalFirst } from './colourway.ts';
+export { colourwayFamily, pickColourway, withColourway, liftToColourways, addColourway } from './colourway.ts';
+export type { ColourwayRole, ColourwayLead, RotationContext, ColourwayPick, ColourwayEdit, LiftOptions, ColourwayValues, AddColourwayOptions } from './colourway.ts';
+// Editing an existing set of colourways (plans/319 A2, the Brand Studio's data layer).
+export { renameColourway, reorderColourways, setCanonicalColourway, removeColourway, duplicateColourway, colourwaysEditable, colourwayRolesOf, MAX_COLOURWAY_NAME } from './colourway.ts';
+export type { DuplicateColourwayOptions } from './colourway.ts';
+// plans/319 A4: a tool's manifest `tokenAxes` opt-out, which pins an ignored kind of
+// theme group to its canonical option, and the sentence a shell reports it with.
+export { ignoresTokenAxes, effectiveAxisKinds, ignoredTokenAxes, pinIgnoredTokenAxes, describeIgnoredTokenChoice } from './tool-token-axes.ts';
+export type { IgnoredTokenAxis, IgnoredTokenChoice, PinnedTokenSelection, ToolTokenAxes } from './tool-token-axes.ts';
 export {
   parseOklch, formatOklch, hexToOklch, oklchToHex, mixOklch, contrastRatio, deriveBrandTokens,
   RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,
 } from './brand-derive.ts';
-export type { Oklch, BrandDeriveOptions } from './brand-derive.ts';
+export { deriveColourwaySlots } from './brand-derive.ts';
+export type { Oklch, BrandDeriveOptions, ColourwaySlotOptions, ColourwaySlots } from './brand-derive.ts';
 export { gamutSolid, projectGamutSolid, projectSolidPoint, projectSolidPoints, solidPointOklch, labSolidUnit, gamutSolidToSvg, shadedSolidFill } from './gamut-solid.ts';
 // A brand colour's faces: one canonical value plus per-space/per-profile
 // overrides. The generalisation of PrintLock - the export walkers consult it, so
@@ -1194,7 +1222,16 @@ export type { DesignPathLayer, EdgeTraceOptions, TracedEdge } from './edge-trace
 // The content inventory (plan 291 W2): what a read deck says, slide by slide, projected
 // from the rebrand source and census. `lolly read`, `lolly_read` and `lolly check` share the one projection.
 export { inventoryFromSource } from './content-inventory.ts';
-export type { InventoryFromSourceOptsV1, InventoryMediaInputV1, InventoryNotesParaInputV1 } from './content-inventory.ts';
+export type { InventoryFromSourceOptsV1, InventoryMediaInputV1, InventoryNotesParaInputV1, InventoryRecognizerV1 } from './content-inventory.ts';
+// Read and extract (plan 203 rank 10): an inventory as blocks in reading order, bounded by pages and
+// a character budget, with recognised text kept apart from authored text; and its quality measures.
+export {
+  readExtract, parsePageSelection, originOfText, extractPlainText, extractMarkdown, ReadExtractError, ooxmlActiveContent,
+  activeContentWarnings,
+} from './read-extract.ts';
+export type { ReadExtractOptsV1, ReadExtractErrorCode, ActiveContentV1 } from './read-extract.ts';
+export { scoreExtract, characterErrorRate, wordErrorRate, editDistance, normaliseForScore, MATCH_CER } from './read-extract-quality.ts';
+export type { LabelledBlockV1, ExtractScoreV1 } from './read-extract-quality.ts';
 
 // Surface-aware logos and icons (plan 291 W4): `<id>?theme=auto` takes the variant the
 // surface under the layer asks for, through one resolver the runtime, check, compose and
@@ -1209,8 +1246,9 @@ export type { InterchangeRate, InterchangeClip, InterchangeSequence } from './pr
 export { readIdmlSpreads } from './idml-read.ts';
 
 export { createDesignLayoutEvaluator, hasDesignLayout, validateDesignLayout, designLayoutSourceEdit, parseLayoutTrack } from './design-layout.ts';
-export type { LayoutRequest, LayoutSolver, LayoutSolverOutput, LayoutEvaluation, LayoutMeasure, LayoutGrid } from './design-layout.ts';
-export { penpotChildrenPaintOrder, importPenpotLayouts, exportPenpotLayout, penpotHasLayout } from './penpot-layout.ts';
+export type { LayoutRequest, LayoutSolver, LayoutSolverOutput, LayoutEvaluation, LayoutMeasure, LayoutGrid, LayoutFinding } from './design-layout.ts';
+export { penpotChildrenPaintOrder, importPenpotLayouts, exportPenpotLayout, penpotHasLayout, penpotSvgLayoutFindings } from './penpot-layout.ts';
+export type { PenpotSvgLayout } from './penpot-layout.ts';
 export { designLayoutDescendants, remapDesignLayout } from './design-layout.ts';
 
 export { createDesignLayoutMeasurer, resolveDesignLayoutFonts } from './design-layout-resources.ts';

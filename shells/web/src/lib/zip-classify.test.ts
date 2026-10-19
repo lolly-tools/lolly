@@ -96,6 +96,34 @@ test('non-zip and malformed inputs classify as null', () => {
   assert.equal(classifyZipBytes(Uint8Array.from([0x50, 0x4b, 0x03, 0x04, 0, 0, 0])), null, 'truncated PK header is unreadable');
 });
 
+test('classification reads names and declared sizes, never the members themselves', () => {
+  // Raise the last member's declared size to 300 MiB in the central directory: an
+  // extracting reader refuses or inflates that much, while the classification only
+  // needs the names. A verdict at all proves no member was decoded.
+  const zip = storeZip([
+    { name: 'manifest.json', bytes: enc.encode('{"animations":[{"id":"a"}]}') },
+    { name: 'animations/a.json', bytes: enc.encode('{"v":"5"}') },
+  ]);
+  const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+  const huge = 300 * 1024 * 1024;
+  for (let at = zip.length - 22; at >= 0; at--) {
+    if (view.getUint32(at, true) !== 0x02014b50) continue;
+    view.setUint32(at + 24, huge, true);
+    break;
+  }
+  assert.equal(classifyZipBytes(zip), 'lottie');
+});
+
+test('an encrypted member makes the archive unreadable, as extraction would find it', () => {
+  const zip = storeZip([{ name: 'a.txt', bytes: enc.encode('a') }]);
+  const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+  view.setUint16(6, view.getUint16(6, true) | 1, true);
+  for (let at = zip.length - 22; at >= 0; at--) {
+    if (view.getUint32(at, true) === 0x02014b50) { view.setUint16(at + 8, view.getUint16(at + 8, true) | 1, true); break; }
+  }
+  assert.equal(classifyZipBytes(zip), null);
+});
+
 // ── combined entry point: name rung short-circuits the byte-peek ──────────────
 test('classifyZipContainer uses the name rung first, byte-peek as fallback', async () => {
   const xlsx = writeXlsx({ rows: [['a']] });

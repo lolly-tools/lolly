@@ -41,6 +41,7 @@ import {
   mountLiveCollab,
   pendingLiveCollab,
   carryMountState,
+  hostDurableHistory,
   saveCollabCopy,
   seedFromBaseParts,
   seedFromQuery,
@@ -64,6 +65,7 @@ import {
 import { createMemoryStateAPI } from './ephemeral-state.ts';
 import type { CollabSessionHandle } from './collab-session.ts';
 import type { WebStateAPI } from '../bridge/state.ts';
+import { createP2PCollabHistory } from '../collab/rtc-history.ts';
 
 // ── Fakes ─────────────────────────────────────────────────────────────────────
 
@@ -412,6 +414,93 @@ test('the inviter keeps the real state - it owns the saved session (section 6.2a
   environment();
   await mountLiveCollab(conn({ role: 'inviter', ephemeral: false, toolId: 'qr-code' }));
   assert.equal(takeEphemeralState('qr-code'), null, 'no swap, so its saves land where they always did');
+});
+
+// ── The host's history (plan 221 section 9) ──────────────────────────────────
+
+/** A handle carrying a transport history and Track A's inbound-op lane, as rtc-handle.ts
+ *  publishes them. `send` stands in for the handle emitting ops it accepted. */
+function historyHandle(history: CollabSessionHandle['history'], clientId = 'device-1') {
+  const subs = new Set<(ops: readonly unknown[]) => void>();
+  const base = handle(clientId);
+  const h = Object.assign(base, {
+    history,
+    opsIn: { subscribe(fn: (ops: readonly unknown[]) => void) { subs.add(fn); return () => { subs.delete(fn); }; } },
+  });
+  return { h, send: (ops: readonly unknown[]) => { for (const fn of [...subs]) fn(ops); }, listeners: () => subs.size };
+}
+
+/** Frames run by hand, so "once per frame" is something a test can count. */
+function frames() {
+  const queue: (() => void)[] = [];
+  return { frame: (fn: () => void) => { queue.push(fn); }, run() { for (const fn of queue.splice(0)) fn(); }, size: () => queue.length };
+}
+
+test("the host's own adopted mount keeps durable history, and peer edits reach it once per frame", async () => {
+  environment();
+  const { h, send, listeners } = historyHandle(createP2PCollabHistory({ role: 'writer', host: true }));
+  await mountLiveCollab(conn({ role: 'inviter', ephemeral: false, toolId: 'qr-code', session: h }));
+  assert.equal(hostDurableHistory('qr-code', h), null, 'nothing answers before a mount adopts the session');
+
+  assert.equal(acquireCollabSession('qr-code', null), h);
+  const clock = frames();
+  const host = hostDurableHistory('qr-code', h, { frame: clock.frame });
+  assert.ok(host, 'the inviter owns the document, so its history keeps it');
+  assert.equal(hostDurableHistory('street-map', h), null, 'only for the tool the plan named');
+  assert.equal(hostDurableHistory('qr-code', handle('device-2')), null, 'only for the session the mount adopted');
+  assert.equal(hostDurableHistory('qr-code', null), null);
+
+  let edits = 0;
+  const off = host.onPeerEdit(() => { edits++; });
+  send([{ k: 'param', key: 'url' }]);
+  send([{ k: 'param', key: 'size' }]);
+  send([]);
+  assert.equal(edits, 0, 'read after the plumbing has had its frame to land the values');
+  assert.equal(clock.size(), 1, 'two batches in one frame are one capture signal');
+  clock.run();
+  assert.equal(edits, 1);
+
+  send([{ k: 'param', key: 'url' }]);
+  off();
+  clock.run();
+  assert.equal(edits, 1, 'a signal queued before the unsubscribe does not fire after it');
+  assert.equal(listeners(), 0, 'the unsubscribe releases the lane');
+});
+
+test("an acceptor's mount never keeps durable history, whatever its transport claims", async () => {
+  environment();
+  // A transport that wrongly calls itself the host still cannot make an ephemeral mount
+  // durable: the plan's memory bridge decides, not the peer-facing handle.
+  const lying = historyHandle(createP2PCollabHistory({ role: 'writer', host: true }));
+  await mountLiveCollab(conn({ toolId: 'qr-code', ephemeral: true, session: lying.h }));
+  assert.equal(acquireCollabSession('qr-code', null), lying.h);
+  assert.equal(hostDurableHistory('qr-code', lying.h), null);
+
+  _clearLiveCollabForTests();
+  _clearCollabSessionSourceForTests();
+  environment();
+  const invitee = historyHandle(createP2PCollabHistory({ role: 'writer', host: false }));
+  await mountLiveCollab(conn({ toolId: 'qr-code', ephemeral: true, session: invitee.h }));
+  assert.equal(acquireCollabSession('qr-code', null), invitee.h);
+  assert.equal(hostDurableHistory('qr-code', invitee.h), null);
+});
+
+test('a work room keeps its history on the server, and a host with no P2P history keeps none here', async () => {
+  environment();
+  // Work's adapter is server-driven: it takes no client capture (lib/collab-history.ts).
+  const work = historyHandle({ scope: 'shared', durability: 'durable', canRestore: true, canSaveCopy: true,
+    list: async () => ({ entries: [] }), read: async () => null });
+  await mountLiveCollab(conn({ role: 'member', ephemeral: false, toolId: 'street-map', session: work.h }));
+  assert.equal(acquireCollabSession('street-map', null), work.h);
+  assert.equal(hostDurableHistory('street-map', work.h), null);
+
+  _clearLiveCollabForTests();
+  _clearCollabSessionSourceForTests();
+  environment();
+  const bare = historyHandle(undefined);
+  await mountLiveCollab(conn({ role: 'inviter', ephemeral: false, toolId: 'qr-code', session: bare.h }));
+  assert.equal(acquireCollabSession('qr-code', null), bare.h);
+  assert.equal(hostDurableHistory('qr-code', bare.h), null);
 });
 
 test('"Save a copy" lifts the ephemeral session into a real store as a fresh slot', async () => {

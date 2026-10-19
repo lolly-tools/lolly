@@ -32,6 +32,7 @@
     "./session-store": "./src/session-store.ts",
     "./design-systems": "./src/design-systems.ts",
     "./design-brief": "./src/design-brief.ts",
+    "./token-report": "./src/token-report.ts",
     "./browsers": "./src/browsers.ts",
     "./transform-tool": "./src/transform-tool.ts",
     "./raster-child": "./src/raster-child.ts",
@@ -71,6 +72,7 @@
     "./text": "./src/text.ts",
     "./text-glyphs": "./src/text-glyphs.ts",
     "./font-subset-wasm": "./src/font-subset-wasm.ts",
+    "./fonts": "./src/fonts.ts",
     "./skera.wasm": "./wasm/skera/skera.wasm",
     "./text-svg": "./src/text-svg.ts",
     "./svg-ir": "./src/svg-ir.ts",
@@ -94,6 +96,7 @@
     "./inspect-render": "./src/inspect-render.ts",
     "./pdf": "./src/pdf.ts",
     "./pdf-structure": "./src/pdf-structure.ts",
+    "./pdf-active-content": "./src/pdf-active-content.ts",
     "./pdf-file-operation": "./src/pdf-file-operation.ts",
     "./canvas": "./src/canvas.ts",
     "./pdf-redact": "./src/pdf-redact.ts",
@@ -137,6 +140,8 @@
     "src",
     "wasm/adobe-psd",
     "wasm/layout-kernel",
+    "wasm/skera/skera.wasm",
+    "wasm/skera/LICENSES.txt",
     "README.md"
   ],
   "scripts": {

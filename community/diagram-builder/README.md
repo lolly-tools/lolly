@@ -16,6 +16,32 @@ Blank global colours inherit from the design system. Explicit card, line and imp
 
 Fonts, semantic colours, spacing, radius, gradient stops and a recognised card shadow are resolved at render time. Incomplete systems use neutral fallbacks. A sole gradient token is automatic; multiple gradients require a token path. For shadows, `shadow.card`, `shadow.medium`, or a sole shadow token supplies bounded offset, blur and colour. Functional labels are measured through the text bridge. Missing glyphs, fixed source boxes that cannot fit their text, and routes that cannot clear nearby cards produce visible notices.
 
+## Diagram types
+
+Choose the type that shows the relationship the reader needs. Each type reads particular card fields and ignores the others, so switching type keeps the content. The table is the contract for each type: what it means, what it reads and what it does not claim.
+
+| Type | Shows | Reads | Direction | Not for |
+| --- | --- | --- | --- | --- |
+| `org` | A hierarchy of reporting lines | Each card's Reports to; extra connections | Down or right; siblings share one trunk | Ownership across a process |
+| `mindmap` | Ideas branching from a centre | Each card's Reports to | Balanced on both sides, or to the right | Ordered or ranked steps |
+| `layercake` | Levels of abstraction, one band per level | Each card's Group, bands in group order; connections | Bands stack top to bottom | Owner lanes or time |
+| `kanban` | Work items by state | Each card's Group as its column, cards in order | Columns left to right | Owner lanes: a column is a state, not a team |
+| `process` | Directed steps, branches and return links | Connections, which set the ranks | Down or right; a return link keeps its direction | Messages between participants over time |
+| `timeline` | Events in order | Card order; a detail line can hold a date as text | Right or down, evenly spaced | Durations or a date scale |
+| `cycle` | A loop that repeats | Card order; the last card leads back to the first | Clockwise from the top | A process with an exit |
+| `pyramid` | Ranked stages or a narrowing funnel | Card order from top to base | Pyramid, funnel or inverted | Quantities: tier widths are fixed steps |
+| `matrix` | Items sorted into four categories | Each card's Quadrant; text mode can also place a card at a relative position | The axis labels you supply | Measured values on a scale |
+| `gantt` | Task durations and, with dates, a roadmap | Start and length, or start and end dates; Milestone; Group as a lane once dated | Time runs left to right | Owner swimlanes |
+
+The pairs that are easy to confuse:
+
+- **Timeline and Gantt.** A timeline spaces events evenly in the order given. Distance on a timeline does not measure time. Gantt bars have a length. One dated card turns Gantt into a dated roadmap with real ticks, a lane per Group and an optional today marker; end dates are inclusive and a milestone is a point on its start date.
+- **State columns and owner lanes.** Kanban columns are states. Layercake bands are levels of abstraction. Neither type assigns an owner, and a dated Gantt lane groups tasks without making the lane their owner. No swimlane type exists yet.
+- **Matrix and Chart.** Matrix quadrants are categories. A relative position from text mode places a card inside the square but draws no scale and no values. Quantities belong in the Chart tool.
+- **Ribbons and flows.** A ribbon connection has a constant width. Ribbon width never encodes an amount.
+
+Imported sources choose their own type. A Mermaid flowchart and a DOT graph become `process`, or `layercake` when they declare subgraphs or clusters. A Mermaid `sequenceDiagram` becomes a left-to-right `process`: participants become cards in their declared order, and messages between the same two participants in the same direction merge into one connection whose label numbers each message in source order. Notes and blocks such as `loop` are skipped and logged. ASCII and Pikchr keep their drawn positions and use no type.
+
 ## Sources and layout
 
 All existing source modes and diagram types remain supported. Imported direction and explicit arrowheads retain their meaning. ASCII and Pikchr retain authored positions. Process ranks handle strongly connected components and return links. Org charts draw shared trunks once; mind maps balance subtree footprints. Dated Gantt keeps its existing time geometry.
@@ -45,10 +71,10 @@ After editing a helper:
 ```sh
 pnpm run build:diagram-hooks
 node scripts/build-diagram-hooks.ts --check
-node --test tests/diagram-builder-visual.test.ts tests/diagram-builder-import.test.ts tests/diagram-builder-gantt.test.ts
+node --test tests/diagram-builder-visual.test.ts tests/diagram-builder-import.test.ts tests/diagram-builder-gantt.test.ts tests/diagram-builder-fixtures.test.ts
 ```
 
-The assembly test rejects stale generated code. Changes to block field order must remain append-only and update `schemas/blocks-wire-order.json`. After manifest/template changes, rebuild and validate all mounted catalogs.
+The assembly test rejects stale generated code. `tests/fixtures/diagram-builder` holds six recorded diagrams: a branch with a return link, a dense architecture overview, a dated roadmap, repeated sequence messages, long multilingual labels and a sparse historical link. The fixture test checks that each keeps its ids, labels, directed connections, groups and layout direction through parsing, rendering, a written link and a saved session. Add a fixture when a change alters what a source means. Changes to block field order must remain append-only and update `schemas/blocks-wire-order.json`. After manifest/template changes, rebuild and validate all mounted catalogs.
 
 A fresh mount is distinguished by the input model's supplied-value flags. Fresh mounts seed Minimal; supplied historical inputs without `look` retain Legacy. New templates and saved modern documents carry `look`. Recipes seed unspecified controls on initial load; subsequent custom changes persist. Changing Look reapplies its geometric recipe while keeping authored colours; Reset look also clears global colour overrides.
 

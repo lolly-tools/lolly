@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { subscribeCanvasRecovery } from '../lib/canvas-recovery.ts';
-import { RECOVERY_OWNER_KEY, RECOVERY_SLOT_PREFIX, recoveryOrigin, recoveryOwner, withoutRecoveryOwner } from '../lib/collab-recovery-owner.ts';
+import {
+  RECOVERY_OWNER_KEY, RECOVERY_SLOT_PREFIX, rebindRecoveryCopy, recoveryHolder, recoveryOrigin, recoveryOwner, withoutRecoveryOwner,
+} from '../lib/collab-recovery-owner.ts';
 import type { RecoveryOwner } from '../lib/collab-recovery-owner.ts';
 import { getInstanceBase } from '../lib/instance.ts';
 import { navigateHistoryHref } from '../lib/history-navigation.ts';
@@ -17,6 +19,13 @@ export const RECOVERY_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
  * made the edit (the member's workspace id, '' in a private pairing) and when it was
  * written. A save from the tool rewrites the slot without this key, so work the person
  * has since saved as their own is never listed here or removed by the age limit.
+ *
+ * A live room keeps an archive of its interrupted edits on this device, for one account
+ * and workspace, and replays it each time it connects. A replayed draft whose slot
+ * already holds it raises nothing: it stays in the queue, and the room is told the
+ * library holds it so it stops replaying. The same draft written with no account or
+ * under an earlier workspace address is bound to this account; a slot another account
+ * holds still warns and is never written over.
  */
 type CopyData = Record<string, unknown>;
 const TOOL_ID = /^[a-z0-9](?:[a-z0-9-]{0,126}[a-z0-9])?$/;
@@ -77,7 +86,8 @@ export function _resetRecoveryCopiesForTests(): void {
  * notification queue, after the document closes too, with Open and Download. `account`
  * reads the member's workspace id in the live room (`self.account`, the same id Sign out
  * looks copies up by); another account's or workspace's copies
- * are never listed or opened, and copies older than 30 days are removed.
+ * are never listed or opened, and copies older than 30 days are removed. A draft the
+ * room replays from its archive raises the notice only when this mount writes the copy.
  */
 export function mountCollabRecovery(runtime: object, host: HostV1 | null | undefined, parent: HTMLElement,
   capture: () => { state: Record<string, unknown>; label?: string }, account: () => string | undefined = () => undefined) {
@@ -129,29 +139,49 @@ export function mountCollabRecovery(runtime: object, host: HostV1 | null | undef
   });
   void configureNotifications();
   const off = subscribeCanvasRecovery(runtime, draft => {
-    const ticket = ++generation, current = capture(), slot = `${RECOVERY_SLOT_PREFIX}${draft.id}`, unsaved = `${slot}:unsaved`;
-    clearTimeout(retry);
+    const current = capture(), slot = `${RECOVERY_SLOT_PREFIX}${draft.id}`, unsaved = `${slot}:unsaved`;
     const copy: CopyData = { ...current.state, ...draft.values, __label: `${current.label ?? 'Canvas'} · ${draft.label}`,
       [RECOVERY_OWNER_KEY]: { ...scope(), at: new Date().toISOString() } satisfies RecoveryOwner };
-    latest = { slot, copy }; root.hidden = false; open.hidden = true; status.textContent = tRaw('Saving an interrupted edit on this device…');
-    let attempts = 0;
+    let ticket = 0, attempts = 0;
+    /** This draft takes the stage notice, which speaks for the newest draft raised. */
+    const raise = (): void => {
+      ticket = ++generation; clearTimeout(retry);
+      latest = { slot, copy }; root.hidden = false; open.hidden = true; status.textContent = tRaw('Saving an interrupted edit on this device…');
+    };
+    // A failed report only means the room replays the draft again, and finds it kept.
+    const reportKept = (): void => { try { draft.archive?.kept(); } catch { /* replayed again next time */ } };
+    if (!draft.archive) raise();
     async function save(): Promise<void> {
-      if (disposed || ticket !== generation) return;
+      if (disposed || (ticket && ticket !== generation)) return;
       let retryable = true;
       try {
         if (!host?.state) throw new Error('Device storage unavailable');
-        const stored = await host.state.load(slot);
+        const stored = await host.state.load(slot) as CopyData | null, here = scope();
+        const holder = stored ? recoveryHolder(stored, here.origin, here.account) : null;
+        // The room keeps its archive for this account on this workspace, so a replayed draft is
+        // theirs. The same draft stored with no account or under an earlier address is bound to
+        // them, and a copy they saved as their own work is left as it is.
+        const claim = !!draft.archive && (holder === 'unbound' || holder === 'earlier-address');
+        const ownWork = !!draft.archive && holder === 'saved-work';
         // The first copy of a draft wins, and a slot another account holds is never written over.
-        if (stored && !owns(stored)) { retryable = false; throw new Error('Recovery slot is held by another account'); }
-        if (!stored) await host.state.save(slot, copy);
-        if (disposed || ticket !== generation) return;
-        const kept = owns(stored) ? stored : copy;
+        if (holder && holder !== 'this-account' && !claim && !ownWork) { retryable = false; throw new Error('Recovery slot is held by another account'); }
+        const kept = !stored ? copy : claim ? rebindRecoveryCopy(stored, here.origin, here.account) : stored;
+        if (kept !== stored) await host.state.save(slot, kept);
+        reportKept();
+        if (disposed) return;
+        if (!ownWork) listCopy(slot, kept);
+        // A replayed copy already on this device stays in the queue and raises nothing.
+        if (stored && !ticket) return;
+        if (!ticket) raise();
+        if (ticket !== generation) return;
         latest = { slot, copy: kept }; status.textContent = tRaw('Interrupted edit saved on this device.');
-        open.hidden = !openableTool(kept); withdraw(unsaved); listCopy(slot, kept);
+        open.hidden = !openableTool(kept); withdraw(unsaved);
         // A copy the person already dismissed (a replay after a remount) keeps its notice closed.
         if (notificationEntries().some(entry => entry.id === slot && entry.dismissed)) root.hidden = true;
       } catch {
-        if (disposed || ticket !== generation) return;
+        if (disposed) return;
+        if (!ticket) raise();
+        if (ticket !== generation) return;
         status.textContent = tRaw('Recovery copy could not be saved here. Download the recovery copy.');
         if (!notices.has(unsaved)) notify(unsaved, { title: tRaw('Recovery copy could not be saved here. Download the recovery copy.'),
           tone: 'warning', action: { label: tRaw('Download recovery copy'), run: () => deliverCopy(host, copy) } });

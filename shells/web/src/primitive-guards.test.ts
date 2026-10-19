@@ -231,7 +231,6 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   'lib/recording-tips.ts': 1,
   'lib/upload-dropzone.ts': 1,
   'pro/blocks-editor.ts': 3,
-  'pro/grid.ts': 5,
   'pro/run-overlay.ts': 1,
   'views/assets.ts': 1,   // +2 2026-08-18: INTERP_ICON + FIT_ICON zoom-pill glyphs (inline, like ZOOM_IN/OUT_ICON)
   'views/assets/shared.ts': 21,   // 2026-09-25: the view-options sliders glyph went to the shared button. 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts (the zoom-pill and treatment glyph constants)
@@ -651,6 +650,8 @@ test('R9: lib/icons.ts glyph bodies are well-formed (balanced quotes and tags)',
 const RAW_HTML_SINK = /\.(?:inner|outer)HTML\s*\+?=(?!=)(?!\s*['"]\s*['"]\s*[;,)])|\binsertAdjacentHTML\s*\(/;
 
 const RAW_HTML_ALLOWED: Record<string, number> = {
+  'views/read-extract.ts': 5, // Read and extract: static shell markup plus escapeHtml()-wrapped counts and messages, and renderExtractHtml output
+
   // Fixed registry icons only; sidebar labels and metadata use textContent.
   'components/asset-inspector-dock.ts': 3,
   // One fixed registry link icon; response URLs and labels are assigned as text/value.
@@ -1091,7 +1092,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // 10 as of 2026-07-31: +1 for the run-level print-settings popover (openPrintPopover).
   // Reviewed - its only interpolations are escape(t(…)) labels, escape()d CMYK
   // condition ids/labels, and a parsed bleed number; the checkbox states are booleans.
-  'pro/index.ts': 10,
+  'pro/index.ts': 9,
   'pro/render-export.ts': 1,
   // 9 as of 2026-07-31: +2 for the retry's failure line, which writes into whichever
   // .pro-log is LIVE (the retry rebuilds the mount, so the element this run captured may
@@ -1120,7 +1121,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/assets/details-inline-modes.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/assets/wiring.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/assets/shared.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'views/assets/sections.ts': 5,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts; +3 2026-10-07 (Track A scale): expandDeferred inserts the folded group's body built by the same groupSection callers the full paint uses, and appendPage inserts assetTile() output plus showMoreHtml() (a scope string the view minted and two numbers), all already escape()d where interpolated
+  'views/assets/sections.ts': 6,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts; +3 2026-10-07 (Track A scale): expandDeferred inserts the folded group's body built by the same groupSection callers the full paint uses, and appendPage inserts assetTile() output plus showMoreHtml() (a scope string the view minted and two numbers), all already escape()d where interpolated; +1 2026-10-16: renderShared inserts the shared-library section from remote.ts html(), the same markup the full paint writes, with server labels, the query and tag names escape()d and tiles from assetTile()
   'lib/lazy-grid.ts': 2,   // 2026-10-07 (Track A scale): a deferred body and a further page of cards, both from the caller's own render functions (the picker's card(), every value escapeHtml()d); the module adds no interpolation of its own
   'views/assets/downloads.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/job-toast.ts': 2,   // +2 2026-08-17 (plan 124 WP-F): the pill + panel innerHTML - title/note/id/count all ESC()d
@@ -1192,7 +1193,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // category accordion after a setFormats narrowing. Reviewed - format ids and
   // labels are escape()d, category labels are escape(t(…)) literals, and the
   // chevron comes from the shared icon() generator.
-  'views/export-format-picker.ts': 1,
+  'components/export-format-picker.ts': 1,
   'views/export-preflight.ts': 1,
   // 41 as of 2026-08-07: +1 for the Line tool's drawLineRubber (connectLayer.innerHTML,
   // plan 90) - coordinates via cf2 (numbers), colour via cAttr (strips <>"), and the
@@ -1644,6 +1645,13 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // is the only thing that may reach it. The pack's own bytes were checksummed
   // before they were parsed, so nothing here comes from a document.
   'components/emoji-style-control.ts': 2,
+  // 2026-10-17, plans/319 A4: the Design system section's choices. One innerHTML
+  // pass per draw; every label (a group or option name the design system wrote)
+  // goes through the shared escape helper, rows and options are addressed by
+  // numeric index so no design-system id reaches the markup, the help tip is the
+  // shared component's own markup, and the swatch colours are set through the
+  // CSSOM after a plain-hex check, never interpolated.
+  'components/theme-choices.ts': 1,
   // 2026-09-14, the learning module's four author-facing panels. Each is one
   // innerHTML pass over a record the author is editing, and every value that came
   // from a person goes through the shared escape helper: the course title, each
@@ -1747,6 +1755,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'components/token-context-strip.ts': 1,
   'components/token-review-proof.ts': 1,
   'components/token-workspace.ts': 7,
+  // The saved-work check repaints only its own section: session labels, tool ids,
+  // paths and failure text go through escape(); counts, times and copy are t() output.
+  'lib/token-consumer-index.ts': 1,
   'views/components-token-examples.ts': 1,
   'views/design-token-bindings.ts': 1,
   // 2026-10-07 (plan 75 G19): a viewer's locked control is the sidebar's own control
@@ -2023,7 +2034,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 442 → 426: the component library uses the semantic type hierarchy.
     // 426 to 425: project titles use the shared object title scale.
     // 425 to 424: Share headings use the shared section type role.
-    pin: 424,
+    // 424 to 423: the simple upload dropzone replaces the separate touch CTA.
+    pin: 423,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },

@@ -129,10 +129,12 @@ export const takePrimaryFromLogo = (bedit: BrandEditorCtx, hex: string): void =>
   // walkSwatches owns the path→key mapping (it strips the set prefix), so read
   // the key back off the swatch rather than re-deriving it here.
   const swatchKey = path
-    ? walkSwatches(bedit.doc, bedit.currentTheme).find(s => s.path.length === path.length && s.path.every((seg, i) => seg === path[i]))?.key
+    ? walkSwatches(bedit.doc, bedit.state.editContext()).find(s => s.path.length === path.length && s.path.every((seg, i) => seg === path[i]))?.key
     : undefined;
-  // Deliberately UNSCOPED (no theme): a mark's colour is the brand's primary
-  // in both themes, unlike surface and text, which each theme inverts.
+  // Deliberately UNSCOPED (no context): a mark's colour is the brand's primary
+  // in both themes, unlike surface and text, which each theme inverts. With
+  // colourways, that is the canonical lead in both modes: the logo belongs to
+  // the canonical lead (plans/319), and the other leads keep their primaries.
   if (swatchKey) assignRole(bedit.doc, 'primary', swatchKey);
   bedit.state.setPrimaryTo(hex); // the Generate wing's picker follows the new primary
   bedit.ramps.repaintPalette();

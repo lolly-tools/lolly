@@ -62,18 +62,24 @@ export interface FontStyleSlice {
   fontStyle?: string;
 }
 
-// Maps a CSS numeric font-weight to the nearest SUSE static TTF filename stem.
+const SUSE_WEIGHTS: [number, string][] = [
+  [100, 'Thin'], [200, 'ExtraLight'], [300, 'Light'], [400, 'Regular'],
+  [500, 'Medium'], [600, 'SemiBold'], [700, 'Bold'], [800, 'ExtraBold'], [900, 'Black'],
+];
+
+// Maps a CSS numeric font-weight to the weight of the nearest SUSE static TTF.
 // SUSE Mono has no Black cut (its weight axis tops out at ExtraBold/800), so
 // mono resolution caps there - matching how the browser clamps the variable font.
-export function suseWeightName(weight: number, mono = false): string {
-  const map = ([
-    [100, 'Thin'], [200, 'ExtraLight'], [300, 'Light'], [400, 'Regular'],
-    [500, 'Medium'], [600, 'SemiBold'], [700, 'Bold'], [800, 'ExtraBold'], [900, 'Black'],
-  ] as [number, string][]).filter(([n]) => !mono || n <= 800);
+export function suseStaticWeight(weight: number, mono = false): number {
+  const cuts = SUSE_WEIGHTS.map(([n]) => n).filter(n => !mono || n <= 800);
   const w = Math.round(weight / 100) * 100;
-  const entry = map.find(([n]) => n === w) ?? map.reduce((a, b) =>
-    Math.abs(b[0] - weight) < Math.abs(a[0] - weight) ? b : a);
-  return entry[1];
+  return cuts.find(n => n === w) ?? cuts.reduce((a, b) => Math.abs(b - weight) < Math.abs(a - weight) ? b : a);
+}
+
+// The filename stem of that static TTF.
+export function suseWeightName(weight: number, mono = false): string {
+  const cut = suseStaticWeight(weight, mono);
+  return SUSE_WEIGHTS.find(([n]) => n === cut)![1];
 }
 
 // Where the SUSE static TTFs live (served by the web shell from the lockup tool).

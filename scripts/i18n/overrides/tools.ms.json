@@ -30,5 +30,6 @@
   "synth::name": "Synth",
   "synth::description": "Satu instrumen visual yang anda mainkan. Empat adegan berjalan secara langsung pada GPU: dakwat cecair, kerumunan zarah yang terbang ke arah tajuk utama atau logo anda, medan maklum balas dan kamera anda sendiri. Setiap warna datang daripada palet jenama anda, dan gambar bergerak mengikut kursor anda, mengikut trek muzik dan mengikut pengawal MIDI. Eksport imej pegun atau gelung lancar.",
   "icon::description": "Pembuat favicon dan ikon aplikasi - fail .ico pelbagai saiz, PNG dan SVG, atau keseluruhan kit aplikasi sebagai satu zip.",
-  "diagram-builder::description": "Carta organisasi, carta alir, garis masa dan banyak lagi - daripada kad, teks, Mermaid, DOT atau CSV."
+  "diagram-builder::description": "Carta organisasi, carta alir, garis masa dan banyak lagi - daripada kad, teks, Mermaid, DOT atau CSV.",
+  "pages::description": "Susun semula, putar, ekstrak, padam, gabung atau pisahkan halaman PDF, atau tukar imej kepada PDF, pada peranti anda."
 }

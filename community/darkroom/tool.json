@@ -3,7 +3,7 @@
   "name": "Darkroom",
   "description": "Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Reuse a look through LUT export or Grade a video. Opens Photoshop and GIMP layers for positioning, blending and image export.",
   "a11yLabel": "Graded photo preview - {{default preset \"custom\"}} look",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "engineVersion": "^1.242.0",
   "status": "community",
   "category": "designer",

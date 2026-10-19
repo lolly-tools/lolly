@@ -15,7 +15,7 @@ function onInit({ model, host }) {
 
 - **Additive only.** Methods may be added in a minor version; never removed or signature-changed without a major bump. When v2 ships, v1 keeps working.
 - **No platform-specific methods.** If only one shell can do something, it sits behind a `capabilities` flag in `tool.json` and shells that can't fulfil it expose a stub/error.
-- **Capabilities gate access.** `net` (`network`), `capture` (`capture`), `compose` (`compose`) and `recorder` (`microphone` / `camera` / `screen`) require a matching flag in the manifest's `capabilities`. `tokens`, `text`, `pdf`, `pptx`, `media`, `audio`, `codec`, `layers`, `speech`, `upscale`, `matte`, `viz`, `color`, `images`, `raster`, `geom`, `connectors` and `c2pa` are optional and present only when the shell provides them (feature-detect, don't flag). Declare what you need.
+- **Capabilities gate access.** `net` (`network`), `capture` (`capture`), `compose` (`compose`) and `recorder` (`microphone` / `camera` / `screen`) require a matching flag in the manifest's `capabilities`. `tokens`, `text`, `pdf`, `pptx`, `media`, `audio`, `codec`, `layers`, `speech`, `upscale`, `matte`, `viz`, `color`, `images`, `raster`, `geom`, `connectors`, `c2pa` and `fonts` are optional and present only when the shell provides them (feature-detect, don't flag). Declare what you need.
 - `host.version` is `'1'`; `host.shell` is one of `web` · `tauri-desktop` · `tauri-mobile` · `cli`.
 
 ## `host.profile`
@@ -139,12 +139,25 @@ Design tokens (DTCG) for the active theme. The host UI sources colour-picker swa
 
 | Method | Returns | Notes |
 |---|---|---|
-| `get(opts?)` | `Promise<TokenSet>` | Resolved token set for the active (or `opts.theme`) theme |
+| `get(opts?)` | `Promise<TokenSet>` | Resolved token set for the active choices. `opts.selection` replaces them; `opts.theme` picks that theme in the group that declares it and keeps the other groups' choices (engine 1.265) |
 | `colors(opts?)` | `Promise<ColorSwatch[]>` | Colour tokens as picker-ready swatches |
 | `resolve(ref, opts?)` | `Promise<unknown>` | Resolve a `{dotted.path}` alias (or bare path) to a concrete value |
-| `themes()` | `Promise<{ name, group }[]>` | Theme names declared in the document |
+| `themes()` | `Promise<{ name, group, id?, kind?, canonical? }[]>` | Themes declared in the document. `id` is present when the file gives one, and `kind` when the theme's group states one, such as `mode` or `colourway`; in such a group the canonical theme carries `canonical: true` (engine 1.265) |
+| `axes()` *(optional)* | `Promise<TokenAxisInfo[]>` | Every theme group with its `group` id, `kind` (or `null`), `canonical` option id, default `rotation` (or `null`) and `options` in authored order, each with `id`, `name`, `canonical` and an optional date `window`. Structure only, so it takes no read options |
+| `family(role?, opts?)` *(optional)* | `Promise<TokenFamilyMember[]>` | Every colourway's colour for one role, canonical first, in the look the read resolves to. `role` is a slot name (`primary`, the default, `secondary`, `on-primary`) or a full token path. `opts` works as for `get()`. Each member carries the colourway's `id`, `name`, `canonical`, `active` (the colourway this read resolves to) and `value` (a hex colour). Empty when the design system has no colourway group |
 
 Optional and additive - a shell without it just doesn't offer token-driven UI.
+
+**The family of leads.** A tool that uses several colours at once, such as chart series or a gradient's shuffle, can draw on every colourway's lead rather than one primary. `family()` lists them whatever colourway the artefact uses, and the artefact's own one has `active: true`. Treat fewer than two members as no family, and draw exactly as you would on a shell without the member:
+
+```js
+const family = typeof host.tokens?.family === 'function' ? await host.tokens.family('primary') : [];
+const leads = family.length >= 2 ? family.map((m) => m.value) : [];
+```
+
+Put the leads ahead of the colours you would otherwise draw, never in their place. A design system with two colourways and no spectrum of its own still needs a full categorical palette, and two leads alone would repeat from the third series on.
+
+The web shell, the CLI and the hook Worker answer `family()` and `axes()` from the same engine functions, scoped to the artefact's choices like every other read. The canvas carries the same family as CSS variables, `--brand-lead-1` onwards, described in [Authoring tools](/info/authoring-tools.html). A colourway or look switch re-points the slots without running `onInit`, so a hook that keeps colours it read there reads them again when `onInput` runs with `id: '__tokens'`, as [When the theme or colourway changes](/info/tool-hooks.html#when-the-theme-or-colourway-changes) describes. A hook can also compare `{color.semantic.primary}` (and any other slot it depends on) on each `onInput` and read again when the value changed, which catches an edit to the design system too. Chart, Mesh Gradient and Filter do both.
 
 ## `host.pdf` *(optional)*
 
@@ -157,6 +170,17 @@ On-device PDF inspection, metadata removal and compression (pure pdf-lib for the
 | `compress(bytes, opts?)` | `Promise<{ bytes, before, after, images }>` | Re-save smaller: recompress oversized embedded JPEGs (canvas downsample + re-encode) and re-serialise with object streams. `opts.level` is `'light' \| 'balanced' \| 'strong'`; `opts.grayscale` drops colour. Text/vectors are untouched, and the result is never larger than the input. The lean CLI (no canvas) does the structural pass only |
 
 Feature-detect each method (e.g. `host.pdf?.compress`) - an older shell may provide `analyze`/`strip` but not `compress`, or no `host.pdf` at all.
+
+## `host.fonts` *(font files - optional, v1.262)*
+
+Read a font file's own tables and subset it to chosen text, on-device. Not a gated capability; feature-detect `host.fonts`. The web, desktop, CLI, TUI and MCP shells provide it; the same engine code answers on each, so the facts and the bytes match.
+
+| Method | Returns | Notes |
+|---|---|---|
+| `inspect(bytes)` | `Promise<FontInspectionV1>` | TTF, OTF or WOFF. `container`, `outlines` (`truetype`, `cff`, `cff2`, `bitmap`, `none`), `family`, `style`, `fullName`, `version`, `postScriptName`, `glyphs`, `unitsPerEm`, `weight` (`value`, with `min`/`max` from a `wght` axis), `width`, `italic`, `axes`, named `instances`, `coverage` (`characters`, inclusive code point `ranges`, per-Unicode-block counts), `embedding` (the decoded `OS/2.fsType` and its raw value) and `subsetRefusal`. Rejects WOFF2, collections and anything unreadable |
+| `subset(bytes, { text })` | `Promise<{ bytes, report }>` | Keeps the glyphs `text` needs plus what they depend on, with glyph ids kept. Returns a TrueType sfnt (a WOFF source is unwrapped; deliver it as `.woff` to rewrap). `report` gives `characters`, `kept`, `missing`, `inputBytes`, `outputBytes`, `policy` and `fsType` |
+
+`subset` refuses before any work when the outlines are not TrueType (the pinned Skera build would drop a CFF table) or when the font's own fsType says restricted licence embedding, no subsetting or bitmap embedding only, or when there is no OS/2 table to say anything. The rejection's `code` is the `subsetRefusal` value. Those flags are honoured, never bypassed, and the Skera runtime enforces the same rule for every caller. After subsetting, the output bytes are checked: TrueType outlines, every kept character still mapped to its original glyph with its outline present, and an unchanged fsType. Output that fails is refused. fsType is the only licence signal a font file carries and is not the licence, so a subset is not a rights grant. Convert Font is the reference tool.
 
 ## `host.pptx` *(optional)*
 
@@ -239,6 +263,23 @@ A live camera frame source for **motion-reactive** tools - a tool can react to a
 A **`MediaFrame`** is `{ width, height, data: Uint8ClampedArray (RGBA), t }` - plain pixels, no DOM types, so the engine stays platform-agnostic (the shell owns the `MediaStream` / `<video>` / grab loop, mirroring `capture`). `data` is valid only for the synchronous duration of the callback, so read it synchronously; frames are downscaled + throttled and pause while the document is hidden.
 
 You rarely call `subscribe` yourself. A tool declares an **`onFrame`** hook and the runtime drives it once per camera frame - it owns the start → subscribe → `onFrame` → re-render loop and **drops overlapping frames** so a slow per-frame render self-throttles. The shell shows a "Go live" toggle that calls `runtime.startLive()` / `runtime.stopLive()` (released on unmount, so no camera outlives the tool). See [Authoring Tools](/info/authoring-tools.html) for the `onFrame` pattern; the four `filter-*` tools are the reference. Web + Tauri (its webview) provide it via `getUserMedia`; the headless CLI does not.
+
+### `host.media.trim` *(prepare a clip - optional)*
+
+`trim(bytes, opts)` cuts, converts or turns an uploaded audio or video file with the shell's own codecs and resolves to `{ bytes, mime, container, durationBefore, durationAfter, lossless, report? }`. The web shell provides the method; the CLI does not, so feature-detect `host.media?.trim`. The Trim tool (`community/trim`) is the reference.
+
+| Option | Meaning |
+|---|---|
+| `start`, `end` | The range in seconds; an `end` of 0 means the end of the file |
+| `container` | `keep`, `mp4`, `webm` or `gif` |
+| `mute`, `audioOnly` | Remove the sound, or keep only the sound as `m4a`, `opus` or `wav` |
+| `output` *(v1.262)* | `clip` (the default), `poster` (the frame at `start`) or `contact-sheet` (frames spread across the range) |
+| `image`, `sheetFrames` *(v1.262)* | `jpeg` or `png` for a poster or contact sheet; 4 to 36 frames on a sheet |
+| `rotate` *(v1.262)* | 0, 90, 180 or 270 degrees clockwise, on top of the source's own orientation |
+| `cut` *(v1.262)* | How a clip starts when `start` falls between key frames. `exact` (the default) starts at `start`: MP4 and MOV copy from the key frame before and write an edit list that tells players to skip the frames before `start`, and other containers re-encode the picture. `reencode` re-encodes the picture in every container, so nothing before `start` is kept. `keyframe` copies from the key frame before, so the clip may begin early. A picture re-encoded for another reason always starts at `start` |
+| `maxShortEdge`, `targetBytes` *(v1.262)* | A sharing copy: the largest shorter edge in pixels (never enlarged) and a file size to aim for. A copy that already fits the size is kept; otherwise the picture is re-encoded at a bitrate meant to fit, never above the source's own |
+
+From engine **1.262** the result carries a `report`, measured on the written bytes rather than predicted. `tracks` lists every source track as `copy` (the written packets are byte-identical to the source's), `re-encode` or `drop`, with stable reason codes such as `cut-between-key-frames`, `codec-not-in-container` or `rotation-needs-pixels` for the tool to put into words. `actualStart` and `keyFrameGap` show where the clip really begins, and `hiddenLeadIn` gives the seconds of picture an MP4 or MOV copy keeps before `actualStart` for players to skip, which editors and upload sites that ignore edit lists show. `sync` compares when sound and picture start and end against the same range of the source, within one frame or audio packet, and matches the two tracks packet for packet when both were copied. `orientation` checks the displayed size against the requested turn, `color` compares the declared colour information, and `target` says whether a size limit was met and how many files it took; the smallest is the one returned. A track the user kept is never left out silently: when a browser cannot copy or re-encode a track, `trim` rejects with the reason.
 
 ## `host.recorder` *(device capture - optional, v1.17; capability: `microphone` / `camera` / `screen`)*
 

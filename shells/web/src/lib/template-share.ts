@@ -13,16 +13,19 @@
  *     opens something real instead of an empty editor. `minReader` therefore stays 1.
  *
  * The asset closure is collected the way views/tool-lolly-vehicle.ts collects it for a
- * live document: device-local uploads the values reference always travel, catalog art
- * travels as bytes, and brand-locked / licensed catalog content never does. There is no
- * canvas here, so the vehicle's two canvas-derived extras (the font receipt and the
- * thumbnail) are simply absent - a template has no render to report on.
+ * live document: device-local uploads the values reference always travel, and catalog
+ * art travels as bytes only when `redistribution()` (lib/redistribution.ts) finds a
+ * licence that lets those bytes travel. Everything else stays home, and the file's
+ * CREDITS.txt lists each held-back work with the reason. There is no canvas here, so
+ * the vehicle's two canvas-derived extras (the font receipt and the thumbnail) are
+ * simply absent - a template has no render to report on.
  */
 
 import { ENGINE_VERSION, decodeAssetVersion } from '@lolly/engine';
 import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
 import type { BeamAssetRecord } from './beam-pack.ts';
 import { buildLollyFile, creatorFromProfile, type LollyLibraryAsset } from './lolly-pack.ts';
+import { packRights } from './redistribution.ts';
 import { templateFileSlug } from './template-file.ts';
 import type { UserTemplate } from './user-templates.ts';
 
@@ -34,14 +37,6 @@ interface TemplateShareAssets {
   _getUserRecord?(id: string, version?: string): Promise<BeamAssetRecord | null>;
   _getBlob?(id: string, opts?: { format?: string; version?: string }): Promise<Blob | null>;
   _exportUserAssets?(): Promise<readonly BeamAssetRecord[]>;
-}
-
-/** A catalog license that must NOT travel: proprietary / brand content. The same read
- *  views/tool-lolly-vehicle.ts and lib/design-system/brand-package.ts make - a template
- *  share has no licensed-content confirmation of its own, so here it is always a no. */
-function isProprietaryLicense(license: unknown): boolean {
-  const l = String(license ?? '').toLowerCase();
-  return !!l && /proprietary|all-rights-reserved|licenseref|premiumbeat/.test(l);
 }
 
 /**
@@ -79,7 +74,7 @@ export async function shareTemplateAsLolly(host: HostV1, tpl: UserTemplate): Pro
         type: ref?.type ?? 'raster',
         format: ref?.format ?? '',
         label: typeof meta.name === 'string' ? meta.name : id,
-        licensed: meta.brandLock === true || isProprietaryLicense(meta.license),
+        ...packRights(meta),
       };
     } catch {
       return null;
@@ -96,8 +91,8 @@ export async function shareTemplateAsLolly(host: HostV1, tpl: UserTemplate): Pro
     userAssets,
     ...(assets._getUserRecord ? { resolveUser: assets._getUserRecord.bind(assets) } : {}),
     resolveLibrary,
-    // No licensed-content confirmation exists on this path, so brand-locked bytes stay
-    // home and travel as resolve-locally refs, exactly as an unconfirmed session share does.
+    // No licensed-content confirmation exists on this path, so held-back bytes stay home
+    // and travel as resolve-locally refs, exactly as an unconfirmed session share does.
     creator: creatorFromProfile(profile, { appVersion }),
     appVersion,
     engineVersion: ENGINE_VERSION,

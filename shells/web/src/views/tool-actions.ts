@@ -33,6 +33,7 @@ import { markupOps } from './tool-actions/markup.ts';
 import { learningOps } from './tool-actions/learning.ts';
 import { rightsOps } from './tool-actions/rights-row.ts';
 import { wiringOps } from './tool-actions/wiring.ts';
+import { startingFormat } from '../lib/touch-export-format.ts';
 
 
 export { captureThumbnail, exportTargetNode, flatExportNode } from './tool-action-helpers.ts';
@@ -51,7 +52,7 @@ function mountHistory(ta: ActionsCtx): ActionsApi['history'] {
     enabled: experience.localHistory, host, toolId: manifest.id, el, canvas: canvasEl,
     getSlot: () => ta.activeSlot, setSlot: slot => { ta.activeSlot = slot; },
     takeFolder: () => { const folder = ta.fileIntoFolder; ta.fileIntoFolder = null; return folder; },
-    snapshot: ta.saving.sessionSnapshot, initial: experience.historyBase,
+    snapshot: ta.saving.keptSnapshot, notKept: experience.notKept, initial: experience.historyBase,
     onEmojiChange: listener => runtime.onEmojiChange(listener),
     previewWords: () => documentWords(manifest.inputs ?? [], new Map(runtime.getModel().map(item => [item.id, item.value]))),
   });
@@ -139,7 +140,7 @@ function renderActions(
     // history without one.
     ta.automaticHistory = mountHistory(ta);
     const kept = {
-      getSlot: () => ta.activeSlot, history: ta.automaticHistory, sessionState: ta.saving.sessionSnapshot,
+      getSlot: () => ta.activeSlot, history: ta.automaticHistory, sessionState: ta.saving.sessionSnapshot, keptSnapshot: ta.saving.keptSnapshot,
       // Leaving the view protects the last edits and stops the controller, as the full bar's dispose does.
       dispose: (): void => { void ta.automaticHistory?.flush(); ta.automaticHistory?.dispose(); },
     };
@@ -163,11 +164,12 @@ function renderActions(
 
   ta.formatRules.readDeepExport();
   // A ?format= link or a saved session (exportDefaults.format) is an explicit choice
-  // and wins; otherwise follow the upload's format, falling back to the first format.
+  // and wins; otherwise follow the upload's format, falling back to the first format
+  // (PNG before SVG on a touch-only device, lib/touch-export-format.ts).
   const initialFmt =
     exportDefaults.format && ta.formats.includes(exportDefaults.format)
       ? exportDefaults.format
-      : ta.formatRules.assetExportFormat() || ta.formats[0]; ta.initialFmt = initialFmt;
+      : ta.formatRules.assetExportFormat() || startingFormat(ta.formats); ta.initialFmt = initialFmt;
   const videoDefaults = (manifest.render.video ?? {}) as { wait?: number; duration?: number }; ta.videoDefaults = videoDefaults;
   // A link's ?wait= / ?seconds= (exportDefaults.video) seed the fields the way ?format= seeds the picker.
   const defaultWait = exportDefaults.video?.wait ?? videoDefaults.wait ?? 1; ta.defaultWait = defaultWait;
@@ -421,6 +423,7 @@ function renderActions(
     setExperience: ta.video.setExperience,
     stopAudioPreview: ta.audio.stopAudioPreview,
     sessionState: ta.saving.sessionSnapshot,
+    keptSnapshot: ta.saving.keptSnapshot,
     getSlot: () => ta.activeSlot,
     history: ta.automaticHistory,
     dispose: ta.preflight.disposeActions,

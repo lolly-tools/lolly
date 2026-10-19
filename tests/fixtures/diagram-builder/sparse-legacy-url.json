@@ -1,0 +1,35 @@
+{
+  "id": "sparse-legacy-url",
+  "title": "Sparse historical link",
+  "purpose": "A shared link from before looks existed: no look, no styling, and card and connection rows that stop after the fields they use. The compact rows are positional, so this exact string pins the wire order of the nodes and arrows fields. With no look supplied the link opens in Legacy, and a link written back from that state reopens the same drawing.",
+  "url": "diagramType=process&flowDir=right&nodes=rounded,Plan,,,plan~rounded,Build,,,build~rounded,Write%20docs,,,docs~diamond,Review,,,review~pill,Ship,,,ship&arrows=plan,build~plan,docs~build,review~docs,review,,dashed~review,ship,Approved",
+  "census": {
+    "look": "legacy",
+    "diagramType": "process",
+    "direction": "right",
+    "nodes": [
+      { "id": "plan", "label": "Plan", "shape": "rounded" },
+      { "id": "build", "label": "Build", "shape": "rounded" },
+      { "id": "docs", "label": "Write docs", "shape": "rounded" },
+      { "id": "review", "label": "Review", "shape": "diamond" },
+      { "id": "ship", "label": "Ship", "shape": "pill" }
+    ],
+    "edges": [
+      { "from": "plan", "to": "build", "label": "", "kind": "forward" },
+      { "from": "plan", "to": "docs", "label": "", "kind": "forward" },
+      { "from": "build", "to": "review", "label": "", "kind": "forward" },
+      { "from": "docs", "to": "review", "label": "", "style": "dashed", "kind": "forward" },
+      { "from": "review", "to": "ship", "label": "Approved", "kind": "forward" }
+    ],
+    "groups": []
+  },
+  "features": {
+    "supported": [
+      "compact tilde rows with trailing fields omitted",
+      "a percent-encoded space inside a row",
+      "the Legacy renderer when no look is supplied"
+    ],
+    "simplified": [],
+    "unsupported": []
+  }
+}

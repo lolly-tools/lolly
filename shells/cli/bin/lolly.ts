@@ -161,6 +161,15 @@ Usage:
                                            other bytes under that name refuse (exit 4)
                         [--thumbnails]     also draw each slide there as a PNG
                         [--force]          replace those files instead
+                        [--ocr]            read the text of pages that are pictures,
+                                           with the text recognition model on this machine
+                        [--extract]        blocks in reading order instead: text with
+                                           where its words came from, tables, pictures
+                        [--pages=<range>]  only these pages, such as 1-3,7 (with --extract)
+                        [--max-chars=N]    stop at N characters and name the block to
+                                           continue from (with --extract)
+                        [--from=<block>]   continue from that block (with --extract)
+                        [--markdown]       write the extract as Markdown
   lolly check <file|-> [--json]            every check for a Design document (.json), a
                                            .lolly or an export (.pdf, .pptx, .png, .jpg,
                                            .webp, .svg), in one findings list: structure,
@@ -346,6 +355,12 @@ Export options:
                            delivery claim is recorded. There is no flag for ignoring a
                            licence condition: a render whose sources still need a
                            decision prints them and exits 4
+  --export-report=<path>   after writing, compare what this run asked for with what the
+                           file holds (format, size, pages, length, alpha, colour, HDR,
+                           credential presence, encryption, fonts) and write the report
+                           as JSON; \`-\` writes it to stderr. Each difference warns, so
+                           --strict exits 4 when the file is not what was asked for.
+                           Refused for on-device transforms, which request nothing
 
 Link options:
   --z=<token>              a packed share link's state
@@ -506,7 +521,7 @@ async function main(): Promise<void> {
     return;
   }
   if (cmd === 'files') {
-    if (args.some(arg => /^--(?:to|max-edge|quality|target-bytes|background)$/.test(arg))) throw usageError('File operation options need explicit values: --to=jpeg --quality=0.92 --max-edge=1920.');
+    if (args.some(arg => /^--(?:to|max-edge|quality|target-bytes|background|sheet|cells|delimiter|encoding|header)$/.test(arg))) throw usageError('File operation options need explicit values: --to=jpeg --quality=0.92 --max-edge=1920 --sheet=Budget.');
     const { filesCli } = await import('../src/files.ts');
     await filesCli(positionals.slice(1), flags, g.json);
     return;
@@ -538,6 +553,10 @@ async function main(): Promise<void> {
     const { readCli } = await import('../src/read.ts');
     process.exitCode = await readCli(positionals.slice(1), {
       json: g.json, ...(flags.media !== undefined ? { media: flags.media } : {}), force: isOn(flags.force), thumbnails: isOn(flags.thumbnails),
+      extract: isOn(flags.extract), markdown: isOn(flags.markdown), ocr: isOn(flags.ocr),
+      ...(flags.pages !== undefined ? { pages: flags.pages } : {}),
+      ...(flags['max-chars'] !== undefined ? { maxChars: flags['max-chars'] } : {}),
+      ...(flags.from !== undefined ? { from: flags.from } : {}),
     });
     return;
   }

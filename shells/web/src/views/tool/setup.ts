@@ -1,4 +1,3 @@
-import { swatchFace } from '../../../../../engine/src/color-face.ts';
 import { canvasBlockBooleanValue } from '../../lib/canvas-block-input.ts';
 import { RESULT_CONTEXT_PARAMS } from '../../lib/tool-url-state.ts';
 import { getDesignPublication, restoreDesignPublication } from '../../lib/design-tool-publication.ts';
@@ -24,7 +23,7 @@ import { createInteractiveToolRuntime as createRuntime } from '../../lib/mount-r
 import { attachCollabPlumbing } from '../../lib/collab-plumbing.ts';
 import { getCollabSessionSource } from '../../lib/collab-session-source.ts';
 import { takeAssetOpeningSeed } from '../../lib/asset-open-handoff.ts';
-import { takeCarriedMountState, takeEphemeralState, pendingLiveCollab } from '../../lib/collab-live-mount.ts';
+import { mountHistoryRole, takeCarriedMountState, takeEphemeralState, pendingLiveCollab } from '../../lib/collab-live-mount.ts';
 import { createMemoryStateAPI } from '../../lib/ephemeral-state.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { captureNeutralPinned } from '../../lib/capture-neutral.ts';
@@ -38,14 +37,16 @@ import { inferDesignIntent } from '../design-workspace.ts';
 import { createHistory, historyTokenLinks } from '../tool-history.ts';
 import { mountBackPill } from '../../components/back-pill.ts';
 import { autoOpenToolGuide, showToolGuide } from '../../components/tool-guide.ts';
-import { collectBulkFiles } from '../../lib/bulk-files.ts';
+import { zipBulkFiles } from '../../lib/bulk-files.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { readScene } from '../present-production/scene.ts';
 import { announce } from '../../a11y.ts';
 import { setupRecordControl } from '../record-control.ts';
-import { setSwatches } from '../../components/color-field.ts';
+import { refreshSwatches, setSwatches } from '../../components/color-field.ts';
+import { refreshThemeSwatches } from './theme-section.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { createNetAPI } from '../../bridge/net.ts';
+import { savedTokenSelection, withComposeSelection } from '../../lib/theme-choices.ts';
 import { defaultHiddenTemplateRefs } from '../../catalog/sync.ts';
 import { loadTemplateStart, START_BLANK } from '../../lib/template-start.ts';
 import { BROWSER_TARGET, costUrlState } from '../../lib/url-budget.ts';
@@ -57,6 +58,7 @@ import { asRow } from '../tool-types.ts';
 import { openToolSession } from '../tool-session-open.ts';
 import { carriedEmojiPins } from '../tool-session-snapshot.ts';
 import { _sliderDragging, fileToRef, fmtBytes, makeBlocksDropper, syncInputs } from '../tool-inputs.ts';
+import { cappedFileRef, fileInputCap } from '../../lib/file-input-ref.ts';
 import { notifyToolInputMount, guardDocumentEdits, policyValuesFor } from '../../lib/input-policy.ts';
 import { createLiveControls, mountSidebarLiveControls, registerLiveControls } from '../live-controls.ts';
 import { mountCaptureSignin } from '../capture-signin.ts';
@@ -107,18 +109,23 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   // persistence boundary; automatic saves still go through the temporary host.
   const libraryHost = tview.host; tview.libraryHost = libraryHost;
   if (ephemeralState) tview.host = { ...tview.host, state: ephemeralState };
+  // A tool link composed inside this document draws in the document's theme choices,
+  // read at each render (plans/319 A6). Before the runtime exists they are the ones it
+  // is built with (the link's, else the saved session's). A framed tool never writes
+  // `_themes` into its address, which the unscoped token bridge follows, so without
+  // this its children drew the default theme.
+  tview.host = withComposeSelection(tview.host, () => (tview.runtime
+    ? tview.runtime.tokenSelection
+    : tview.openedSession?.url.tokenSelection ?? savedTokenSelection(tview.initialValues?.__tokenSelection)));
 
   // Source the colour picker's swatches from design tokens (the canonical brand
   // colours), so choosing one keeps the value linked to the token. Falls back to
   // the built-in palette if tokens aren't available (offline first load, or a
   // shell without host.tokens). Best-effort - never blocks mounting the tool.
+  // A theme switch re-seeds them through the same function (./theme-section.ts),
+  // so the mount and the switch build the list one way.
   try {
-    const swatches = await tview.host.tokens?.colors?.();
-    if (swatches?.length) {
-      setSwatches(
-        swatches.map((s) => ({ value: s.value, wide: swatchFace(s, 'display-p3'), label: s.name, group: s.group, ref: s.ref }))
-      );
-    }
+    await refreshThemeSwatches(tview.host, null, { setSwatches, refreshSwatches });
   } catch {
     /* keep the built-in palette */
   }
@@ -290,10 +297,14 @@ export async function seedDirect(tview: ToolViewCtx): Promise<void> {
     // Seed its declared file input before the runtime is born, exactly like the
     // layered-file seed above, so onInit sees the right source and no empty-state
     // frame flashes first. Explicit URL/session values retain precedence.
+    // The handed-over file meets the cap the sidebar picker applies, before any read.
     const directFile = takePendingToolFile(toolId);
     const directInput = tview.tool.manifest.inputs?.find((i) => i.type === 'file');
-    if (directFile && directInput) {
-      const ref = await fileToRef(directFile);
+    const ref = directFile && directInput ? await cappedFileRef(directFile, directInput) : null;
+    if (directFile && directInput && !ref) {
+      announce(t('That file is too large (max {size}).', { size: fmtBytes(fileInputCap(directInput)) }), { assertive: true });
+    }
+    if (ref && directInput) {
       tview.initialValues = {
         [directInput.id]: directInput.multiple ? [ref] : ref,
         ...tview.initialValues,
@@ -888,6 +899,9 @@ export function mountActions(tview: ToolViewCtx): void {
   restoreDesignPublication(runtime, tview.initialValues.__designPublication);
   restoreRebrandHandoff(runtime, tview.initialValues[REBRAND_HANDOFF_MARKER]);
   if (tview.initialValues.__presentation) tview.presentationScene = readScene(tview.initialValues.__presentation);
+  // A P2P host owns the shared document (plan 221 section 9), so its own history keeps
+  // the converged document; every other shared mount keeps none on this device.
+  const historyRole = mountHistoryRole({ toolId, collabHandle, ephemeralState, sessionSource: !!getCollabSessionSource() });
   const actionsApi = renderActions(
     actionsEl,
     tview.tool.manifest,
@@ -913,13 +927,13 @@ export function mountActions(tview: ToolViewCtx): void {
         ...(tview.presentationScene ? { __presentation: tview.presentationScene } : {}),
         ...carriedEmojiPins(runtime.emoji, tview.initialValues),
         ...tview.documentMeta?.() }),
-      ...historyParticipation(tview.tool.manifest, !!collabHandle || !!ephemeralState || !!getCollabSessionSource()),
+      ...historyParticipation(tview.tool.manifest, historyRole.shared),
     }
   ); tview.actionsApi = actionsApi;
   if (!tview.isFull && !tview.autoExport && !tview.autoCopy) mountLifecycle.add('recovery notice', mountRecoveryNotice(viewEl, {
     manifest: tview.tool.manifest, automatic: !!actionsApi?.history, canSave: !!actionsApi?.save,
     shared: !!collabHandle || !!ephemeralState || !!getCollabSessionSource(), collab: collabHandle?.history,
-    scope: slot ?? toolId, onSave: () => tview.openSaveAs?.(),
+    scope: slot ?? toolId, opened: openedSession.values, onSave: () => tview.openSaveAs?.(),
   }));
   // The retained export file (plans/236) lives only as long as this mount.
   mountLifecycle.add('export delivery result', () => actionsApi?.releaseDelivery?.());
@@ -935,6 +949,9 @@ export function mountActions(tview: ToolViewCtx): void {
     tview.revisionChanged = (): void => { priorChanged(); capture.changed(); };
     mountLifecycle.add('collab history capture', () => { capture.flush(); capture.dispose(); });
   }
+  // Peer edits reach the host's own history only, never the session log above.
+  const followPeerEdits = historyRole.followPeerEdits(actionsApi?.history);
+  if (followPeerEdits) mountLifecycle.add('host history peer edits', followPeerEdits);
   // "Load from peer" appears only when the transport negotiated the shared-history
   // capability (plan 221 section 9); the handle carries the request/fetch the mount wired.
   const peerHistory = collabHandle?.requestPeerHistory && collabHandle.requestPeerRevision
@@ -942,7 +959,8 @@ export function mountActions(tview: ToolViewCtx): void {
     : undefined; tview.peerHistory = peerHistory as ToolViewCtx['peerHistory'];
   const revisionPanel = wireToolRevisionHistory({ state: tview.host.state as import('../../bridge/state.ts').WebStateAPI,
     copyState: libraryHost.state as import('../../bridge/state.ts').WebStateAPI,
-    slot: () => actionsApi?.getSlot?.() ?? null, controller: actionsApi?.history, currentSnapshot: actionsApi?.sessionState,
+    // Compare with current reads what history checkpoints, so a file history does not keep is never a difference.
+    slot: () => actionsApi?.getSlot?.() ?? null, controller: actionsApi?.history, currentSnapshot: actionsApi?.history ? actionsApi.keptSnapshot : actionsApi?.sessionState,
     collab: collabHandle?.history, collaborating: !!collabHandle || !!ephemeralState, root: viewEl, editorBar: tview.designChrome || tview.documentLayout, connected: () => viewEl.isConnected,
     ...(peerHistory ? { peer: peerHistory } : {}) }); tview.revisionPanel = revisionPanel;
   const _openRevisions = () => revisionPanel.open();
@@ -987,7 +1005,7 @@ export function wireBulkRows(tview: ToolViewCtx): void {
   // button - a background/navigate-away job would need a fresh runtime per file.
   if (bulkFilesId) {
     const fileSpec = tview.tool.manifest.inputs.find((i) => i.id === bulkFilesId) as
-      | { accept?: string[] }
+      | { accept?: string[]; maxSize?: number }
       | undefined;
     const picker = document.createElement('input');
     picker.type = 'file';
@@ -1013,22 +1031,24 @@ export function wireBulkRows(tview: ToolViewCtx): void {
       // returns to it rather than sitting on the last file of the batch.
       const prevFile = runtime.getModel().find((i) => i.id === bulkFilesId)?.value ?? null;
       try {
-        const { entries, failed } = await collectBulkFiles(
+        // Each result is framed into the archive as it is made (plan 203 R4), so
+        // the batch never holds every converted file at once.
+        const { storeZip } = await import('@lolly/engine');
+        const { blob, failed } = await zipBulkFiles(
           picked.map((f) => ({ name: f.name })),
           async (i) => {
-            await runtime.setInput(bulkFilesId, await fileToRef(picked[i]!));
+            // Each file meets the input's cap before it is read; an oversized one is skipped.
+            const ref = await cappedFileRef(picked[i]!, fileSpec);
+            if (!ref) throw new Error(t('That file is too large (max {size}).', { size: fmtBytes(fileInputCap(fileSpec)) }));
+            await runtime.setInput(bulkFilesId, ref);
             const res = await runtime.exportFile();
             return Array.isArray(res) ? res : [res];
           },
+          storeZip,
           (done, total) => tip(`${t('Converting')} ${done}/${total}…`)
         );
-        if (!entries.length)
-          throw new Error(t('Every file failed to convert - try different files.'));
-        const { storeZip } = await import('@lolly/engine');
-        const zip = storeZip(entries);
-        await tview.host.export.file(new Blob([zip as BlobPart], { type: 'application/zip' }), {
-          filename: `${toolId}-bulk.zip`,
-        });
+        if (!blob) throw new Error(t('Every file failed to convert - try different files.'));
+        await tview.host.export.file(blob, { filename: `${toolId}-bulk.zip` });
         tip(failed.length ? `${failed.length} ${t('skipped')}` : idleTip);
       } catch (err) {
         console.error('bulk-from-files failed:', err);

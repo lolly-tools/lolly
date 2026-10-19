@@ -13,10 +13,12 @@ The `.js` specifier for a `.ts` file is deliberate, and it is the reason the Tau
 Creative startup requires a usable WebGPU adapter and device in a secure context
 (HTTPS or local development). `src/lib/webgpu/device.ts` owns acquisition,
 deadlines and device loss; `main.ts` awaits acquisition before mounting the app.
-An unavailable adapter produces the required-environment error card. LUT photo
-grading requires WebGPU in both worker and main-realm execution, and failures
-propagate to asset/download callers. The embedded Tauri frontend has the same
-startup requirement; actual webview graphics support needs separate qualification.
+An unavailable adapter produces the required-environment error card. Every photo
+look requires WebGPU in both worker and main-realm execution: LUT grading and the
+gradient-map, greyscale and duotone recipes, each with its own recipe id in the
+asset cache key. Failures propagate to asset/download callers. The embedded Tauri
+frontend has the same startup requirement; actual webview graphics support needs
+separate qualification.
 
 LUT bakes reuse a bounded worker and device-owned frame buffers, with cancellation
 acknowledgement and idle disposal. Up to eight LUT passes can share one upload and

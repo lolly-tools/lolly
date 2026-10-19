@@ -524,6 +524,12 @@ html[dir="rtl"] .start-back-row {
 }
 .start-import-btn { cursor: pointer; }
 .start-import-drophint { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); margin-top: -8px; overflow-wrap: anywhere; }
+/* "or drag & drop it here" is desk copy: with touch as the only pointer the button
+   above is the way in (plan 320 H8). The web-page hint stays, because it also
+   reports which files were chosen. */
+@media (hover: none) and (pointer: coarse) {
+  .start-import-drophint:not([data-page-selection]) { display: none; }
+}
 .start-import-result {
   display: flex;
   flex-direction: column;

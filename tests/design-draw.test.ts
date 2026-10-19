@@ -4,10 +4,12 @@ import assert from 'node:assert/strict';
 import type { CompiledFrameV1, DesignBoxRowV1 } from '@lolly-tools/core';
 import { DESIGN_DRAW_VERSION, compileDesignDraw, compileDesignRow, describeDesignDrawPictures, designDrawFindings, layoutDesignDrawText, outlineDesignDrawText, pictureRect, type DrawPicture, type DrawShapeOp, type DrawTextToPath } from '../engine/src/design-draw.ts';
 import { designDrawSvg } from '../engine/src/design-draw-svg.ts';
+import { designDrawPdf } from '../engine/src/design-draw-pdf.ts';
 import { drawDesignText, measureDesignText, type TextShaperV1 } from '../engine/src/design-text-measure.ts';
 import { framePreviewSvg } from '../engine/src/frame-preview-svg.ts';
 import { encodeAuthoredPaths } from '../engine/src/geom/authored-url.ts';
 import { readFile } from 'node:fs/promises';
+import { inflateSync } from 'node:zlib';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
@@ -187,7 +189,7 @@ test('outlines replace runs with the host\'s glyph paths, and what cannot be out
   assert.ok(svg.includes('> boom</tspan>') && !svg.includes('>ab </tspan>'), 'only the run that failed is drawn as text');
 });
 
-test('outlined strikes keep their exact face instance, run paint and placement; underline and missing metrics stay findings', async () => {
+test('outlined strikes keep their exact face instance, run paint and placement; missing metrics or clusters stay findings', async () => {
   const draw = compileDesignDraw([{ id: 'words', kind: 'text', x: 10, y: 10, w: 300, h: 120, text: '{s #ff0000 w900|ab} {s w100|cd}\n{s w900|ef}', fontSize: 20, align: 'left', valign: 'top' }] as never, { width: 400, height: 200 });
   await layoutDesignDrawText(draw, shaper);
   const called: string[] = [];
@@ -203,9 +205,71 @@ test('outlined strikes keep their exact face instance, run paint and placement; 
   for (const text of ['{u|under}', '{s|strike}', '{u s|both}']) {
     const refused = compileDesignDraw([{ id: 'refused', kind: 'text', x: 0, y: 0, w: 200, h: 80, text }] as never, { width: 200, height: 80 });
     await layoutDesignDrawText(refused, shaper);
+    // No ascent for the strike, and no clusters for skip-ink to read under the underline.
     await outlineDesignDrawText(refused, async () => ({ d: 'M0 0H5' }), async () => ({ upem: 1000, ascent: NaN }));
     assert.deepEqual(refused.findings.map((finding) => finding.feature), ['text-decoration']);
   }
+});
+
+test('outlined underlines sit under the baseline in the run paint, cleared around each cluster that reaches the band', async () => {
+  const draw = compileDesignDraw([{ id: 'words', kind: 'text', x: 10, y: 10, w: 300, h: 120, text: '{u #ff0000|gap_x} ab', fontSize: 20, align: 'left', valign: 'top' }] as never, { width: 400, height: 200 });
+  await layoutDesignDrawText(draw, shaper);
+  // Each glyph a box in its 10 px advance: g, p and _ reach 6 px below the baseline.
+  const box = (x: number, bottom: number) => `M${x + 1} -8H${x + 9}V${bottom}H${x + 1}Z`;
+  const calls: Array<Parameters<DrawTextToPath>[0]> = [];
+  await outlineDesignDrawText(draw, async (opts) => {
+    calls.push(opts);
+    const clusters = [...opts.text].map((ch, i) => ({ start: i, d: /[gp_]/.test(ch) ? box(i * 10, 6) : box(i * 10, 0) }));
+    return { d: clusters.map((c) => c.d).join(''), ...(opts.clusters ? { clusters } : {}) };
+  });
+  assert.deepEqual(draw.findings, []);
+  assert.deepEqual(calls.map((c) => [c.text, c.clusters ?? false]), [['gap_x', true], [' ab', false]], 'only an underlined run asks for its clusters');
+  // Size 20: a 2 px line 1 px under the baseline at 36, cleared 2 px either side of g and p.
+  assert.deepEqual(draw.ops[0]!.words!.underlines, [[{ y: 1, height: 2, spans: [{ x: 11, width: 8 }, { x: 31, width: 19 }] }, null]]);
+  const svg = designDrawSvg(draw, emit);
+  assert.match(svg, /<rect x="29" y="37" width="8" height="2" fill="#ff0000"\/><rect x="49" y="37" width="19" height="2" fill="#ff0000"\/><path transform="translate\(18 36\)"/, 'the underline goes under its glyphs');
+  const file = Buffer.from(designDrawPdf([{ page: draw, pictures: new Map(), size: { w: 300, h: 150 } }])).toString('latin1');
+  const content = [...file.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)].map((m) => { try { return inflateSync(Buffer.from(m[1]!, 'latin1')).toString('latin1'); } catch { return m[1]!; } }).join('\n');
+  assert.ok(content.includes('11 1 8 2 re 31 1 19 2 re f\n'), 'PDF fills the same pieces in the run\'s own space');
+
+  // A space that hangs at a wrap is a fragment of its own: its line runs on from the last run.
+  const wrapped = compileDesignDraw([{ id: 'w', kind: 'text', x: 0, y: 0, w: 50, h: 100, text: '{u|ab cd}', fontSize: 20, align: 'left', valign: 'top' }] as never, { width: 100, height: 100 });
+  await layoutDesignDrawText(wrapped, shaper);
+  assert.deepEqual(wrapped.ops[0]!.words!.layout!.lines.map((l) => [l.runs.map((r) => r.text), l.hanging?.map((r) => [r.text, r.x, r.width]) ?? []]), [[['ab'], [[' ', 20, 5]]], [['cd'], []]]);
+  await outlineDesignDrawText(wrapped, async (opts) => ({ d: '', ...(opts.clusters ? { clusters: [] } : {}) }));
+  assert.deepEqual(wrapped.ops[0]!.words!.underlines!.map((line) => line[0]!.spans), [[{ x: 0, width: 20 }, { x: 20, width: 5 }], [{ x: 0, width: 20 }]]);
+  const plain = compileDesignDraw([{ id: 'p', kind: 'text', x: 0, y: 0, w: 50, h: 100, text: '{u|ab} cd', fontSize: 20, align: 'left', valign: 'top' }] as never, { width: 100, height: 100 });
+  await layoutDesignDrawText(plain, shaper);
+  assert.equal(plain.ops[0]!.words!.layout!.lines[0]!.hanging, undefined, 'a hanging space outside the underline is not carried');
+});
+
+test('the line under a hanging space takes that space\'s own ink, as its own fragment in CSS does', async () => {
+  const hang = async (text: string) => {
+    const draw = compileDesignDraw([{ id: 'w', kind: 'text', x: 0, y: 0, w: 50, h: 100, text, fontSize: 20, align: 'left', valign: 'top' }] as never, { width: 100, height: 100 });
+    await layoutDesignDrawText(draw, shaper);
+    await outlineDesignDrawText(draw, async (opts) => ({ d: '', ...(opts.clusters ? { clusters: [] } : {}) }));
+    const words = draw.ops[0]!.words!, line = words.layout!.lines[0]!;
+    const svg = designDrawSvg(draw, emit);
+    const file = Buffer.from(designDrawPdf([{ page: draw, pictures: new Map(), size: { w: 100, h: 100 } }])).toString('latin1');
+    const pdf = [...file.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)].map((m) => { try { return inflateSync(Buffer.from(m[1]!, 'latin1')).toString('latin1'); } catch { return m[1]!; } }).join('\n');
+    const rect = (x: number, width: number, fill: string) => `<rect x="${line.x + x}" y="${line.baseline + 1}" width="${width}" height="2" fill="${fill}"/>`;
+    return { draw, words, rect, svg, pdf, origin: `1 0 0 1 ${line.x} ${line.baseline} cm\n` };
+  };
+  const red = await hang('{u|ab}{u #ff0000| cd}');
+  assert.deepEqual(red.draw.findings, []);
+  assert.deepEqual(red.words.underlines![0], [{ y: 1, height: 2, spans: [{ x: 0, width: 20 }, { x: 20, width: 5, ink: '#ff0000' }] }]);
+  assert.ok(red.svg.includes(red.rect(0, 20, red.words.ink) + red.rect(20, 5, '#ff0000')), 'the run keeps its ink and the space\'s line is red');
+  assert.ok(red.pdf.includes(`q 1 0 0 rg ${red.origin}20 1 5 2 re f\nQ\n`), 'PDF paints the space\'s piece in red after the run');
+
+  const plain = await hang('{u #ff0000|ab}{u| cd}');
+  assert.deepEqual(plain.words.underlines![0]![0]!.spans, [{ x: 0, width: 20 }, { x: 20, width: 5, ink: plain.words.ink }], 'a default space after a red run takes the row ink');
+  assert.ok(plain.svg.includes(plain.rect(0, 20, '#ff0000') + plain.rect(20, 5, plain.words.ink)));
+
+  const green = await hang('ab{u #00ff00| cd}');
+  assert.deepEqual(green.words.underlines![0], [{ y: 1, height: 2, spans: [{ x: 20, width: 5, ink: '#00ff00' }] }], 'only the space is underlined');
+  assert.ok(green.svg.includes(green.rect(20, 5, '#00ff00')));
+  assert.equal(green.svg.match(/height="2"/g)?.length, 2, 'the line is the space\'s piece and the second line\'s');
+  assert.ok(green.pdf.includes(`q 0 1 0 rg ${green.origin}20 1 5 2 re f\nQ\n`));
 });
 
 test('a picture reads its fit, keyword or framing, and is clipped inside the border at the inner radius', () => {

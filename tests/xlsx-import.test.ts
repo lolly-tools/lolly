@@ -13,7 +13,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { zipSync, strToU8 } from 'fflate';
 
-import { readXlsx, listXlsxSheets, DEFAULT_XLSX_ROW_LIMIT } from '../engine/src/xlsx-import.ts';
+import { readXlsx, listXlsxSheets, openXlsx, shiftFormula, DEFAULT_XLSX_ROW_LIMIT } from '../engine/src/xlsx-import.ts';
 
 const WORKBOOK = `<?xml version="1.0"?>
 <workbook xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
@@ -206,4 +206,117 @@ test('a macro-enabled workbook is refused', () => {
 
 test('a sheet with no cells throws', () => {
   assert.throws(() => readXlsx(buildXlsx(SHEET(''))), /no cells|no readable/i);
+});
+
+// ─── formula text versus saved results ───────────────────────────────────────
+
+const FORMULA_SHEET = SHEET(
+  '<row r="1"><c r="A1"><v>2</v></c><c r="B1"><f>A1*2</f><v>4</v></c><c r="C1" t="str"><f>IF(A1&gt;1,"big","small")</f><v>big</v></c></row>' +
+    '<row r="2"><c r="A2"><v>3</v></c><c r="B2"><f t="shared" ref="B2:B4" si="0">A2*$A$1</f><v>6</v></c></row>' +
+    '<row r="3"><c r="A3"><v>4</v></c><c r="B3"><f t="shared" si="0"/><v>8</v></c></row>' +
+    '<row r="4"><c r="A4"><v>5</v></c><c r="B4"><f t="shared" si="0"/><v>10</v></c></row>',
+);
+
+test('formula cells give their saved results by default and are counted', () => {
+  const result = readXlsx(buildXlsx(FORMULA_SHEET));
+  assert.deepEqual(result.rows, [['2', '4', 'big'], ['3', '6', ''], ['4', '8', ''], ['5', '10', '']]);
+  assert.equal(result.formulaCells, 5);
+  assert.equal(result.formulaResultsKept, undefined);
+});
+
+test('formula mode returns formula text and rewrites shared formulas for each cell', () => {
+  const result = readXlsx(buildXlsx(FORMULA_SHEET), { cells: 'formulas' });
+  assert.deepEqual(result.rows, [
+    ['2', '=A1*2', '=IF(A1>1,"big","small")'],
+    ['3', '=A2*$A$1', ''],
+    ['4', '=A3*$A$1', ''],
+    ['5', '=A4*$A$1', ''],
+  ]);
+  assert.equal(result.formulaCells, 5);
+  assert.equal(result.formulaResultsKept, 0);
+});
+
+test('a shared formula cell without its first cell keeps the saved result and is counted', () => {
+  const sheet = SHEET('<row r="1"><c r="A1"><v>1</v></c><c r="B1"><f t="shared" si="7"/><v>99</v></c></row>');
+  const result = readXlsx(buildXlsx(sheet), { cells: 'formulas' });
+  assert.deepEqual(result.rows, [['1', '99']]);
+  assert.equal(result.formulaResultsKept, 1);
+});
+
+test('shiftFormula moves relative references and leaves absolute parts, strings and names alone', () => {
+  assert.equal(shiftFormula('A1+$B$2+C$3+$D4', 2, 1), 'B3+$B$2+D$3+$D6');
+  assert.equal(shiftFormula('SUM(A1:A3)*LOG10(B1)', 1, 0), 'SUM(A2:A4)*LOG10(B2)');
+  assert.equal(shiftFormula('Sheet2!A1+\'My Sheet\'!B2', 1, 1), 'Sheet2!B2+\'My Sheet\'!C3');
+  assert.equal(shiftFormula('"A1"&A1', 1, 0), '"A1"&A2');
+  assert.equal(shiftFormula('Table1[Amount]*A1', 1, 0), 'Table1[Amount]*A2');
+  assert.equal(shiftFormula('_xlfn.XLOOKUP(A1,B1:B9,C1:C9)', 1, 0), '_xlfn.XLOOKUP(A2,B2:B10,C2:C10)');
+  assert.equal(shiftFormula('A1*1.5E3', 1, 0), 'A2*1.5E3');
+  assert.equal(shiftFormula('Z1', 0, 1), 'AA1');
+});
+
+test('shiftFormula leaves unquoted sheet ranges alone, even when a name looks like a cell', () => {
+  assert.equal(shiftFormula('SUM(Q1:Q4!B2)', 1, 0), 'SUM(Q1:Q4!B3)');
+  assert.equal(shiftFormula('FY2023:FY2024!A1', 1, 0), 'FY2023:FY2024!A2');
+  assert.equal(shiftFormula('Jan2:Dec2!C5', 1, 1), 'Jan2:Dec2!D6');
+  assert.equal(shiftFormula('SUM(Jan:Dec!A1:B2)', 1, 0), 'SUM(Jan:Dec!A2:B3)');
+  assert.equal(shiftFormula('SUM(A1:B2)+Q1!C3', 1, 0), 'SUM(A2:B3)+Q1!C4');
+});
+
+test('a shared formula over a sheet range keeps every sheet in the range', () => {
+  const sheet = SHEET(
+    '<row r="2"><c r="B2"><f t="shared" ref="B2:B3" si="0">SUM(Q1:Q4!B2)</f><v>10</v></c></row>' +
+      '<row r="3"><c r="B3"><f t="shared" si="0"/><v>20</v></c></row>',
+  );
+  const result = readXlsx(buildXlsx(sheet), { cells: 'formulas' });
+  assert.deepEqual(result.rows.slice(1), [['', '=SUM(Q1:Q4!B2)'], ['', '=SUM(Q1:Q4!B3)']]);
+  assert.equal(result.formulaResultsKept, 0);
+});
+
+test('shiftFormula refuses moves it cannot make exactly', () => {
+  assert.equal(shiftFormula('A1', -1, 0), null, 'off the top of the sheet');
+  assert.equal(shiftFormula('SUM(A:A)', 1, 0), null, 'whole-column range');
+  assert.equal(shiftFormula('SUM(2:5)', 0, 1), null, 'whole-row range');
+  assert.equal(shiftFormula('"open', 1, 0), null, 'unterminated string');
+  assert.equal(shiftFormula('A1', 0, 0), 'A1', 'no move needed');
+});
+
+test('shiftFormula always terminates with a string or null on arbitrary input', () => {
+  let seed = 7;
+  const next = (): number => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed; };
+  const alphabet = ['A', 'Z', 'x', '$', '1', '9', '0', ':', '!', '"', "'", '[', ']', '(', ')', ',', '.', 'E', '+', '#', 'é', '\u{1F600}', ' ', '_'];
+  for (let i = 0; i < 2000; i++) {
+    let formula = '';
+    for (let n = next() % 24; n > 0; n--) formula += alphabet[next() % alphabet.length];
+    const out = shiftFormula(formula, (next() % 5) - 2, (next() % 5) - 2);
+    assert.ok(out === null || typeof out === 'string', formula);
+  }
+});
+
+// ─── grid budget and the opened workbook ─────────────────────────────────────
+
+test('a sparse sheet cannot pad past the grid budget when the row limit is raised', () => {
+  // Two cells, but padding to XFD1048576 would allocate 17 billion slots.
+  const sheet = SHEET('<row r="1"><c r="A1"><v>1</v></c></row><row r="1048576"><c r="XFD1048576"><v>2</v></c></row>');
+  const result = readXlsx(buildXlsx(sheet), { limit: 1_048_576 });
+  assert.equal(result.truncated, true);
+  assert.deepEqual(result.rows, [['1']]);
+  // Nothing fits when every cell lies past the budget.
+  const far = SHEET('<row r="5000"><c r="A5000"><v>1</v></c><c r="XFD5000"><v>2</v></c></row>');
+  assert.throws(() => readXlsx(buildXlsx(far), { limit: 1_048_576 }), /too large to read/);
+});
+
+test('an opened workbook reads every sheet from its one unzip', () => {
+  const bytes = zipSync({
+    'xl/workbook.xml': strToU8('<workbook xmlns:r="r"><sheets><sheet name="One" r:id="rId1"/><sheet name="Two" r:id="rId2"/></sheets></workbook>'),
+    'xl/_rels/workbook.xml.rels': strToU8('<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Target="worksheets/sheet2.xml"/></Relationships>'),
+    'xl/worksheets/sheet1.xml': strToU8(SHEET('<row r="1"><c r="A1" t="s"><v>0</v></c></row>')),
+    'xl/worksheets/sheet2.xml': strToU8(SHEET('<row r="1"><c r="A1" t="s"><v>1</v></c></row>')),
+    'xl/sharedStrings.xml': strToU8('<sst><si><t>first</t></si><si><t>second</t></si></sst>'),
+  });
+  const book = openXlsx(bytes);
+  // Zeroing the file proves the reads below never unzip it again.
+  bytes.fill(0);
+  assert.deepEqual(book.sheets(), [{ name: 'One', index: 0 }, { name: 'Two', index: 1 }]);
+  assert.deepEqual(book.read({ sheet: 'Two' }).rows, [['second']]);
+  assert.deepEqual(book.read({ sheet: 0 }).rows, [['first']]);
 });

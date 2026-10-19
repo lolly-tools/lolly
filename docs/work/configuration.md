@@ -212,10 +212,17 @@ See [email and password](identity.md#email-and-password) for the flow.
 | `retention.telemetryDays` | `0` | delete telemetry events older than this; `0` keeps everything |
 | `retention.auditDays` | `0` | trim audit rows older than this. The chain stays verifiable (the boundary's seq + hash are anchored before anything is deleted, and the head row is never trimmed), and a trim never passes the SIEM delivery cursor - an unreachable receiver pauses audit retention rather than losing events. See [operations](operations.md#retention-and-erasure) |
 | `projectFiles.enabled` | `true` | shared files inside team projects. They also need a durable store: on the memory store they are off whatever this says. See [sharing](sharing.md#shared-files) |
-| `projectFiles.maxFileBytes` | `26214400` | largest single file (25 MiB); at most `268435456` (256 MiB). Over it: `413 PROJECT_FILE_TOO_LARGE` |
+| `projectFiles.maxFileBytes` | `26214400` | largest single file (25 MiB); at most `4294967296` (4 GiB, migration 0075). Over it: `413 PROJECT_FILE_TOO_LARGE` |
 | `projectFiles.projectBudgetBytes` | `134217728` | bytes of files one project may hold (128 MiB). Over it: `413 PROJECT_FILE_BUDGET` |
 | `projectFiles.instanceBudgetBytes` | `268435456` | bytes of files all projects together may hold (256 MiB). Over it: `413 INSTANCE_FILE_BUDGET` |
 | `projectFiles.uploadTtlHours` | `24` | the longest an unfinished upload stays open; at most 720. It expires sooner, 15 minutes after its begin or its last accepted part. An expired upload counts toward no budget; once it is an hour past expiry it is removed at the next upload or retention run |
+| `uploads.enabled` | `false` | scoped uploads: private, resumable uploads a person or a service token names by reference as a catalog submission original, an automation input or a [file reference](api.md#file-references). Off by default, and upgrading leaves them off; turning them on adds `uploads.instanceBudgetBytes` to what the blob store may hold (see below). See [resumable uploads](resumable-uploads.md) |
+| `uploads.maxFileBytes` | `67108864` | largest single upload (64 MiB); at most `4294967296` (4 GiB). A catalog original is also capped at `submit.maxBytes`. Over it: `413 UPLOAD_TOO_LARGE` |
+| `uploads.ownerBudgetBytes` | `134217728` | bytes one person or service token may hold in uploads that have not expired (128 MiB). Over it: `413 UPLOAD_BUDGET` |
+| `uploads.instanceBudgetBytes` | `268435456` | bytes all owners together may hold (256 MiB). Over it: `413 INSTANCE_UPLOAD_BUDGET` |
+| `uploads.uploadTtlHours` | `24` | the longest an unfinished upload stays open; at most 720. It expires sooner, 15 minutes after its begin or its last accepted part |
+| `uploads.readyTtlHours` | `24` | how long a finished upload can be named after it finished; at most 720. A catalog submission removes its upload sooner |
+| `uploads.fileTtlHours` | `168` | how long a finished file reference can be read and named after it finished (a week); at most 720. Its owner can delete it sooner |
 
 `policy.invites` is optional; leaving it out keeps the defaults above. Unknown keys and
 values outside the lists are refused at startup. The tier and the domain list govern
@@ -259,6 +266,35 @@ past that storage limit. Raise them only with the storage to match.
 ```json
 "policy": {
   "projectFiles": { "maxFileBytes": 10485760, "projectBudgetBytes": 67108864, "instanceBudgetBytes": 268435456 }
+}
+```
+
+`policy.uploads` follows the same rules: whole numbers above zero, with `maxFileBytes` no
+larger than `ownerBudgetBytes` and `ownerBudgetBytes` no larger than `instanceBudgetBytes`.
+Budgets count every upload that has not expired, finished or not, at its size plus 4096
+bytes, and a file reference also at the size of its `derivedFrom` and report as JSON. One owner
+may hold 16 unfinished uploads at once.
+
+Scoped uploads are off until `policy.uploads.enabled` is `true`, and an upgrade does not turn
+them on. Their bytes live in the same blob store as project files, under a separate instance
+budget, so the two instance budgets add up: with both defaults the blob store may hold 512 MiB
+of uploads instead of 256 MiB. A begin needs `tool.use` or `catalog.submit`, and members hold
+`tool.use` by default, so most members and service tokens can use that room. Size both
+budgets against the storage before turning uploads on. To keep the total at 256 MiB, split it:
+
+```json
+"policy": {
+  "projectFiles": { "instanceBudgetBytes": 134217728 },
+  "uploads": { "enabled": true, "ownerBudgetBytes": 67108864, "instanceBudgetBytes": 134217728 }
+}
+```
+
+To take a 500 MiB recording into a project, for example, lift the project file cap and its
+budgets together:
+
+```json
+"policy": {
+  "projectFiles": { "maxFileBytes": 629145600, "projectBudgetBytes": 1073741824, "instanceBudgetBytes": 2147483648 }
 }
 ```
 
@@ -403,6 +439,38 @@ With no database at all, `pg` falls back to a memory blob store (evaluation only
 credential is a secret, `LW_BLOBS_S3_CREDENTIAL`, formatted `<accessKeyId>:<secretAccessKey>`.
 This is the exit route for media-sized estates and the air-gap story: see
 [off-boarding](offboarding.md).
+
+With `pg`, the server compares the bytes stored and read each month against the offload
+thresholds and alerts administrators when one is reached: see
+[blob offload trigger](operations.md#blob-offload-trigger).
+
+### Blob limits and integrity
+
+| Driver | How a blob is written and read | Limits |
+|---|---|---|
+| `pg` | One `bytea` value per blob. Every write and read holds the whole blob in Work's memory, and a read briefly needs several times the blob's size because PostgreSQL returns `bytea` as hex text. | At most 500 MiB per blob, because PostgreSQL could store a larger value but not return a blob of that size. Blobs share the database's storage, backups and a pool of four connections, so large files slow the database for everyone. |
+| `s3` | Streams in 8 MiB parts. A blob that fits in one part is a single `PUT`; a larger one is a multipart upload. A failed or refused upload is aborted, and the object already under that key stays until an upload completes. Reads stream from the store. | 10,000 parts per upload. When the caller gives the length in advance, parts grow past 8 MiB so the blob still fits. A part that fails with a server error or a dropped connection is retried twice. |
+
+Each S3 request signs the SHA-256 of its own body, so the store refuses a part that changed in
+transit. Work also computes the SHA-256 of the whole blob as the parts go out, and records it on
+the object as `x-amz-meta-sha256` when it is known before the object is created: always for a
+single `PUT` or a blob already in memory, and for a streamed multipart upload whose caller
+declared the digest, which Work checks before completing the upload. Objects written by earlier
+versions have no recorded digest. For those, Work reports the S3 ETag, which is not a content
+digest, and reads the bytes back wherever it needs the SHA-256.
+
+Every caller in this release hands the driver a file it already holds in memory, within that
+path's own byte cap: catalog submission, materialization, render and automation outputs,
+design-system pack downloads, staged deliveries and project file parts. The S3 driver sends such
+a file in parts without copying it again, but an upload streams from the client to the bucket
+only once those paths stream too.
+
+For `s3`, give the blob credential `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject` and
+`s3:AbortMultipartUpload` on the prefix, and `s3:ListBucket` on the bucket so that a missing blob
+reads as missing rather than refused. Where the store supports it, add a lifecycle rule
+(`AbortIncompleteMultipartUpload`) that removes incomplete multipart uploads after a day: a
+server that stops during an upload leaves its parts behind, and the store keeps them, and bills
+for them, until they are removed.
 
 ## `delivery`
 
@@ -657,6 +725,7 @@ sessions die on restart. In production (`NODE_ENV=production`) their absence thr
 | `PORT` | `8787` | listen port |
 | `NODE_ENV` | - | `production` makes secret checks fail-closed |
 | `LW_TEST_DATABASE_URL` | - | enables the Postgres conformance leg in `pnpm test` |
+| `LW_TEST_S3_ENDPOINT`, `LW_TEST_S3_CREDENTIAL` | - | with `LW_TEST_DATABASE_URL`, run the process-level automation lease acceptance (`tests/automation-leases-process.test.ts`) against a disposable S3-compatible store. The credential is `<accessKeyId>:<secretAccessKey>`; the bucket is `LW_TEST_S3_BUCKET` (default `lolly-work-test`) and is created when missing |
 | `LOLLY_OSS_DIR` | `../lolly` | where `pnpm run demo` finds the built OSS web shell |
 | `LW_DEMO_MOCK_ASSETS` | - | `pnpm run demo` only: also seeds a mock provider, `demo-dam-large`, with this many synthetic assets (half SVG, half PNG, up to 200000) for checking the shell against a large catalog |
 

@@ -100,3 +100,21 @@ test('capability descriptions follow the same opt-in without changing the regist
   setFlagMirror(LEARNING_FLAG.id, false);
   assert.equal(names().includes('Training courses'), false);
 });
+
+test('Batch never offers SCORM, with training on or off: Export course builds the package', async () => {
+  const { batchFormats } = await import('../pro/formats.ts');
+  const { bodyRow } = await import('../pro/grid.ts');
+  const formats = ['png', 'scorm', 'pdf'];
+  const manifest = { id: 'design', name: 'Design', render: { formats } };
+  const tool = { id: 'design', name: 'Design', status: 'stable' };
+  const row = { uid: 'r1', toolId: 'design', manifest, values: {} };
+  for (const on of [false, true]) {
+    setFlagMirror(LEARNING_FLAG.id, on);
+    const runMenu = batchFormats([{ id: 'design', formats }], { format: 'png', rows: [{ manifest }] } as unknown as Parameters<typeof batchFormats>[1], false);
+    assert.deepEqual(runMenu, ['png', 'pdf']);
+    const rowHtml = bodyRow(row as unknown as Parameters<typeof bodyRow>[0], [], { tools: [tool], toolById: new Map([['design', tool]]), assetPicker: false } as unknown as Parameters<typeof bodyRow>[2]);
+    assert.match(rowHtml, /<option value="pdf"/);
+    assert.doesNotMatch(rowHtml, /value="scorm"/);
+  }
+  setFlagMirror(LEARNING_FLAG.id, false);
+});

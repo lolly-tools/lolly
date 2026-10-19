@@ -10,8 +10,11 @@ import { icon } from '../lib/icons.ts';
 import type { TokenEntry } from '../../../../engine/src/bridge/host-v1.ts';
 import type { TokenAdapter } from '../../../../engine/src/token-consumer-adapters.ts';
 
+/** Which field action produced a commit, so a caller writing many targets can review a link or keep each target's own custom value. */
+export type TokenFieldAction = 'link' | 'custom' | 'restore';
+
 /** Adds link actions around the caller's existing typed editor; never edits source tokens. */
-export function mountTokenBindingField(root: HTMLElement, input: InputModelItem, host: Pick<HostV1, 'tokens'>, commit: (value: InputValue) => void | Promise<void>, options: { consumer?: TokenConsumer; fallbackAdapter?: TokenAdapter; candidatePreflight?: (entry: TokenEntry | undefined) => TokenBindingResult | undefined; readOnly?: boolean; mixed?: boolean; restoreRef?: string; compact?: boolean; colorTarget?: 'srgb' | 'rec2020'; candidateType?: 'transition'; onPendingChange?: (pending: boolean) => void } = {}): () => void {
+export function mountTokenBindingField(root: HTMLElement, input: InputModelItem, host: Pick<HostV1, 'tokens'>, commit: (value: InputValue, action: TokenFieldAction) => void | Promise<void>, options: { consumer?: TokenConsumer; fallbackAdapter?: TokenAdapter; candidatePreflight?: (entry: TokenEntry | undefined) => TokenBindingResult | undefined; readOnly?: boolean; mixed?: boolean; restoreRef?: string; compact?: boolean; colorTarget?: 'srgb' | 'rec2020'; candidateType?: 'transition'; onPendingChange?: (pending: boolean) => void } = {}): () => void {
   const resolve = (entry: TokenEntry | undefined) => {
     const consumer = { ...input, ...options.consumer, colorTarget: options.colorTarget };
     const primary = resolveTokenBinding(entry, consumer);
@@ -52,11 +55,11 @@ export function mountTokenBindingField(root: HTMLElement, input: InputModelItem,
     linkButton.disabled = options.readOnly === true || result?.status !== 'linked';
     message.textContent = result && result.status !== 'linked' ? t(result.reason ?? 'This token cannot be linked here.') : '';
   }
-  async function apply(value: InputValue): Promise<void> {
-    try { await commit(value); }
+  async function apply(value: InputValue, action: TokenFieldAction): Promise<void> {
+    try { await commit(value, action); }
     catch (error) { if (!disposed) message.textContent = error instanceof Error ? error.message : t('The value could not be changed.'); }
   }
-  async function link(ref: string): Promise<void> {
+  async function link(ref: string, action: TokenFieldAction = 'link'): Promise<void> {
     try {
       const set = await host.tokens?.get();
       if (disposed || !root.isConnected || options.readOnly) return;
@@ -68,7 +71,7 @@ export function mountTokenBindingField(root: HTMLElement, input: InputModelItem,
         linkButton.disabled = value.status !== 'linked';
         chooser.selectedOptions[0]!.textContent = `${chooser.value}${value.status !== 'linked' ? ` · ${t('Incompatible')}` : ''}`;
       }
-      if (value.status === 'linked') await apply({ ref: `{${aliasPath(ref) ?? ref}}`, value: value.value, ...(value.adapter ? { adapter: value.adapter } : {}) });
+      if (value.status === 'linked') await apply({ ref: `{${aliasPath(ref) ?? ref}}`, value: value.value, ...(value.adapter ? { adapter: value.adapter } : {}) }, action);
       else message.textContent = value.reason ?? t('This token cannot be linked here.');
     } catch { if (!disposed) message.textContent = t('Tokens could not be read.'); }
   }
@@ -76,8 +79,8 @@ export function mountTokenBindingField(root: HTMLElement, input: InputModelItem,
     const target = (event.target as HTMLElement).closest('button');
     if (!target || !['data-token-custom', 'data-token-restore', 'data-token-inspect', 'data-token-choose', 'data-token-link'].some(attr => target.hasAttribute(attr))) return;
     await duringAction(async () => {
-      if (target?.hasAttribute('data-token-custom') && !options.readOnly) await apply(flattenValue(input.value));
-      if (target?.hasAttribute('data-token-restore') && options.restoreRef) await link(options.restoreRef);
+      if (target?.hasAttribute('data-token-custom') && !options.readOnly) await apply(flattenValue(input.value), 'custom');
+      if (target?.hasAttribute('data-token-restore') && options.restoreRef) await link(options.restoreRef, 'restore');
       if (target?.hasAttribute('data-token-link') && !target.disabled && chooser.value) await link(chooser.value);
       if (target?.hasAttribute('data-token-inspect')) {
         try {

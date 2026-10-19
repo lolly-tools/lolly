@@ -1,5 +1,40 @@
 # Approvals
 
+## Frozen source review
+
+`POST /api/v1/approvals` accepts `subjectType: "source-review"` with a
+`sourceReview` containing a non-empty `purpose`, explicit activation `target`
+and up to 32 exact files. Each file names `assetId`, integer `version`,
+`format`, lowercase hex `sha256` and `representation: "original"`. The initial
+implementation supports directly owned `inst/*` originals. Materialized provider
+files and previews require their own qualification and are refused here.
+
+Work verifies the actual bytes and freezes the purpose, target and complete
+membership under one fingerprint. Request and decision origin distinguish a
+member session from an agent acting through delegated authority; neither is an
+automated-rule approval. A member cannot approve their own request;
+the selected chain still controls eligible reviewers. Source access is checked
+for every member of the frozen set at request and action. A hidden member hides
+the whole review, including its count. Review history additionally follows its
+requester/reviewer audience. No source grant is widened by a decision.
+
+An action must echo `sourceFingerprint` from the displayed review. Older clients
+that cannot display and confirm the frozen subject are refused before a decision
+is recorded. The updated console supplies that fingerprint for approve/reject.
+The version-history response advertises `sourceReviewCapability` only for this
+supported path: at most 64 MiB per file and 128 MiB for the complete subject.
+Clients without that capability keep ordinary history available and do not offer
+a source-review request.
+
+Replacing a file does not transfer review to its replacement. Changing the
+purpose, target or membership creates a different subject. Approval is historical
+evidence about the exact reviewed source set; catalog admission, conformance,
+processing authority and approval of final delivery bytes stay separate. Source
+attribute history remains `not-recorded`, even when old original bytes exist.
+The existing version-history response includes visible `sourceReviews` without
+claiming that the current version was reviewed. The Assets source-history form
+requests a review of one selected instance file; the API supports bounded sets.
+
 Chains, not graphs. An approval chain is an ordered list of steps; each step identifies an
 eligible team by group and a completion rule. There is no BPM engine, no DAG, no parallel
 branch - the shape that matches how a Marketing → Legal review actually runs.

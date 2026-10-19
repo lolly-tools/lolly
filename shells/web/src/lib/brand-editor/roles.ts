@@ -7,7 +7,7 @@
  * a value (an event listener), goes through `bedit.<module>.<fn>`. Extracted verbatim
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
-import { createTokenSet } from '@lolly/engine';
+import { leadTokenSet } from '../design-system/leads.ts';
 import { tRaw } from '../../i18n.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
@@ -34,12 +34,30 @@ export const renderUseAs = (bedit: BrandEditorCtx): void => {
   const cur = bedit.selected >= 0 ? bedit.swatches[bedit.selected] : null;
   useasRow.hidden = !cur || cur.kind === 'semantic';
   if (useasRow.hidden || !cur) return;
-  const held = readRoles(bedit.doc, bedit.addColor.roleTheme());
+  const held = readRoles(bedit.doc, bedit.state.editContext());
   useasRow.querySelectorAll<HTMLElement>('[data-be-useas]').forEach(b => {
     const role = b.dataset.beUseas as RoleId | undefined;
-    b.setAttribute('aria-pressed', String(!!role && held[role]?.ref === cur.key));
+    const pressed = !!role && held[role]?.ref === cur.key;
+    b.setAttribute('aria-pressed', String(pressed));
+    // A lead's own role (plans/319: primary and secondary on a design system with
+    // colourways, and the surface when the colourways tint it) can be re-pointed
+    // but never cleared, so its pressed button is not a toggle. It stays pressed,
+    // because that is still true, and says why pressing it again changes
+    // nothing; the strip makes the same promise by offering no empty choice.
+    if (role && pressed && held[role]?.lead) {
+      b.setAttribute('aria-disabled', 'true');
+      b.title = leadRoleNote(role);
+    } else {
+      b.removeAttribute('aria-disabled');
+      b.removeAttribute('title');
+    }
   });
+  const hint = useasRow.querySelector<HTMLElement>('[data-be-useas-hint]');
+  if (hint) { hint.hidden = true; hint.textContent = ''; }
 };
+/** Why a lead's own role cannot be cleared from the "Use as" row. */
+export const leadRoleNote = (role: RoleId): string =>
+  tRaw('Every colourway needs its own {role}. To change this one, use another colour as {role}.', { role: roleLabel(role) });
 export const showFontErr = (bedit: BrandEditorCtx, m: string): void => {
   const { fontErr } = bedit; if (fontErr) { fontErr.textContent = m; fontErr.hidden = !m; } if (m) announce(m, { assertive: true }); };
 // One optional face-role chip: an active badge, or a button to assign the role.
@@ -51,13 +69,13 @@ export function wireRolesStrip(bedit: BrandEditorCtx): void {
   const { editorEl, paletteHooks, rolesMount, undoStack } = bedit;
   const rolesStrip = rolesMount ? mountRolesStrip(rolesMount, {
     doc: () => bedit.doc as Record<string, unknown>,
-    theme: bedit.addColor.roleTheme,
+    context: bedit.state.editContext,
     // Four slots until there is a palette, then every slot a tool can read
     // (plan 182 section 5.7 step 1). Seven rows in front of somebody who has
     // just added their first colour is a form; four is a strip.
     ids: () => (bedit.beat >= 2 ? ROLE_IDS_ALL : ROLE_IDS),
     resolve: (key) => {
-      try { return createTokenSet(bedit.doc, { theme: bedit.addColor.roleTheme() }).resolve(key); }
+      try { return leadTokenSet(bedit.doc, bedit.state.editContext()).resolve(key); }
       catch { return null; }
     },
     swatches: bedit.roles.roleSwatchOptions,
@@ -65,7 +83,7 @@ export function wireRolesStrip(bedit: BrandEditorCtx): void {
     // the role can't land in) re-renders the strip so the picker snaps back to
     // the truth, rather than persisting nothing and announcing success.
     assign: (role, key) => {
-      if (!assignRole(bedit.doc, role, key, bedit.addColor.roleTheme())) { rolesStrip?.render(); return; }
+      if (!assignRole(bedit.doc, role, key, bedit.state.editContext())) { rolesStrip?.render(); return; }
       bedit.ramps.repaintPalette(); bedit.state.persist(true);
       announce(tRaw('{role} is now {name}', { role: roleLabel(role), name: bedit.roles.nameOfKey(key) }));
     },
@@ -74,7 +92,7 @@ export function wireRolesStrip(bedit: BrandEditorCtx): void {
       // reads, and nothing on screen holds the swatch it pointed at. Snapshot
       // first, and drop it again if there turned out to be nothing to remove.
       bedit.state.pushUndo(tRaw('Clear {role}', { role: roleLabel(role) }));
-      if (!clearRole(bedit.doc, role, bedit.addColor.roleTheme())) { undoStack.pop(); rolesStrip?.render(); return; }
+      if (!clearRole(bedit.doc, role, bedit.state.editContext())) { undoStack.pop(); rolesStrip?.render(); return; }
       bedit.ramps.repaintPalette(); bedit.state.persist(true);
       announce(tRaw('{role} is not set', { role: roleLabel(role) }));
     },
@@ -96,11 +114,20 @@ export async function wireUseAs(bedit: BrandEditorCtx): Promise<void> {
     const cur = bedit.swatches[bedit.selected]; if (!cur || cur.kind === 'semantic') return;
     const key = cur.key;
     const wasSet = btn!.getAttribute('aria-pressed') === 'true';
+    // Un-pressing a lead's own role would remove nothing (clearRole refuses), so
+    // say why in the row and to a screen reader instead of doing nothing silently.
+    if (wasSet && readRoles(bedit.doc, bedit.state.editContext())[role]?.lead) {
+      const note = leadRoleNote(role);
+      const hint = useasRow?.querySelector<HTMLElement>('[data-be-useas-hint]');
+      if (hint) { hint.textContent = note; hint.hidden = false; }
+      announce(note);
+      return;
+    }
     // Un-pressing REMOVES the role (the strip's Clear by another door), so it
     // takes the same snapshot; assigning is not destructive and does not. The
     // snapshot is dropped again if the write turned out to change nothing.
     if (wasSet) bedit.state.pushUndo(tRaw('Clear {role}', { role: roleLabel(role) }));
-    const wrote = wasSet ? clearRole(bedit.doc, role, bedit.addColor.roleTheme()) : assignRole(bedit.doc, role, key, bedit.addColor.roleTheme());
+    const wrote = wasSet ? clearRole(bedit.doc, role, bedit.state.editContext()) : assignRole(bedit.doc, role, key, bedit.state.editContext());
     if (!wrote) {
       if (wasSet) undoStack.pop();
       bedit.roles.renderUseAs(); // the button's pressed state describes the doc, not the tap

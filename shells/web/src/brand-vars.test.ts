@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { hexToHslTriple, chromeBrandCss, brandThemeCss, brandFontStack, brandRadiusValue, brandSpaceValue, brandMarkHue, brandMarkPrimary, lollyMarkCss, lollyMarkHex, LOLLY_TONE_HEX, highContrastAccent, apcaLcAbs, HC_TARGET_LC, uiTokenCssValue, contrastText,
   hslTripleToHex, THEME_SURFACES, THEME_DESTRUCTIVE, brandSurfaceHexes, FOCUS_RING_RATIO, CONTROL_RATIO, dangerText, dangerTextSurfaces, dangerTextCss, DANGER_TEXT_RATIO, DANGER_TEXT_HC_LC,
-  SWATCH_INK, SWATCH_INK_NEAR_TIE_LC, swatchInk, swatchGround } from './brand-vars.ts';
+  SWATCH_INK, SWATCH_INK_NEAR_TIE_LC, swatchInk, swatchGround, chromeTokens } from './brand-vars.ts';
 import { apcaContrast } from '../../../engine/src/color-tools.ts';
 import { hexToOklch, oklchToHex, contrastRatio, parseHex } from '../../../engine/src/brand-derive.ts';
 
@@ -1049,4 +1049,76 @@ test("pack chrome walks the design system's own danger red when it declares one"
 
 test('applyChromeAccent is a no-op without a document', () => {
   assert.equal(applyChromeAccent(SUSE_PAIR[0], SUSE_PAIR[1], newsprint()), '');
+});
+
+// ─── Chrome follows the canonical colourway (plans/319 A1) ──────────────────
+
+test('chrome reads pin every colourway to its canonical option, whatever the artefact chose', async () => {
+  const { createTokenSet } = await import('../../../engine/src/tokens.ts');
+  const { addColourway } = await import('../../../engine/src/colourway.ts');
+  const start = JSON.parse(readFileSync(new URL('../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json', import.meta.url), 'utf8'));
+  const added = addColourway(start, { id: 'persimmon', name: 'Persimmon', values: {
+    light: { primary: '#c2410c', 'on-primary': '#ffffff', secondary: '#7c2d12' },
+    dark: { primary: '#fb923c', 'on-primary': '#111111', secondary: '#fed7aa' },
+  } });
+  assert.ok(added.ok);
+  // The render surface as the web bridge builds it on a route carrying
+  // _themes={"colourway":"persimmon"}: the route's choice is the stored selection.
+  const doc = { ...added.doc, $metadata: { ...(added.doc.$metadata as object), activeThemeSelection: { colourway: 'persimmon' } } };
+  const surface = {
+    resolve: async (ref: string, opts?: { theme?: string; selection?: Record<string, string> }) => createTokenSet(doc, opts).resolve(ref),
+    colors: async (opts?: { theme?: string; selection?: Record<string, string> }) => createTokenSet(doc, opts).colors(),
+    themes: async () => createTokenSet(doc).themes(),
+  };
+  const hexOf = (v: unknown) => tokenValueToHex(v);
+  // The canvas surface follows the artefact...
+  assert.equal(hexOf(await surface.resolve('{color.semantic.primary}', { theme: 'light' })), '#c2410c');
+  // ...and the chrome surface stays on the canonical lead in both looks.
+  const chrome = chromeTokens(surface)!;
+  const canonicalLight = hexOf(createTokenSet(start, { theme: 'light' }).resolve('color.semantic.primary'));
+  const canonicalDark = hexOf(createTokenSet(start, { theme: 'dark' }).resolve('color.semantic.primary'));
+  assert.equal(hexOf(await chrome.resolve('{color.semantic.primary}', { theme: 'light' })), canonicalLight);
+  assert.equal(hexOf(await chrome.resolve('{color.semantic.primary}', { theme: 'dark' })), canonicalDark);
+  assert.ok(!(await chrome.colors!()).some(s => s.value === '#c2410c'), 'the warm-accent scan sees no Persimmon');
+  // A read with its own selection is the caller's.
+  assert.equal(hexOf(await chrome.resolve('{color.semantic.primary}', { theme: 'light', selection: { colourway: 'persimmon' } })), '#c2410c');
+});
+
+test('chromeTokens also pins a plain second theme group, so a route choice never reaches the chrome', async () => {
+  const { createTokenSet } = await import('../../../engine/src/tokens.ts');
+  // An imported Tokens Studio file: two groups, no Lolly kinds, the route chose globex.
+  const doc = {
+    base: { color: { $type: 'color', semantic: { primary: { $value: '#000000' } } } },
+    light: {}, dark: {},
+    acme: { color: { $type: 'color', semantic: { primary: { $value: '#0055ff' } } } },
+    globex: { color: { $type: 'color', semantic: { primary: { $value: '#ff0000' } } } },
+    $themes: [
+      { name: 'light', group: 'mode', selectedTokenSets: { base: 'enabled', light: 'enabled' } },
+      { name: 'dark', group: 'mode', selectedTokenSets: { base: 'enabled', dark: 'enabled' } },
+      { name: 'acme', group: 'brand', selectedTokenSets: { acme: 'enabled' } },
+      { name: 'globex', group: 'brand', selectedTokenSets: { globex: 'enabled' } },
+    ],
+    $metadata: { tokenSetOrder: ['base', 'light', 'dark', 'acme', 'globex'], activeThemeSelection: { mode: 'dark', brand: 'globex' } },
+  };
+  const surface = {
+    resolve: async (ref: string, opts?: { theme?: string; selection?: Record<string, string> }) => createTokenSet(doc, opts).resolve(ref),
+    themes: async () => createTokenSet(doc).themes(),
+  };
+  assert.equal(await surface.resolve('{color.semantic.primary}', { theme: 'light' }), '#ff0000', 'the canvas follows the route');
+  const chrome = chromeTokens(surface)!;
+  assert.equal(await chrome.resolve('{color.semantic.primary}', { theme: 'light' }), '#0055ff');
+  assert.equal(await chrome.resolve('{color.semantic.primary}', { theme: 'dark' }), '#0055ff');
+});
+
+test('chromeTokens leaves a design system without colourways exactly as it was', async () => {
+  const { createTokenSet } = await import('../../../engine/src/tokens.ts');
+  const start = JSON.parse(readFileSync(new URL('../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json', import.meta.url), 'utf8'));
+  const calls: unknown[] = [];
+  const surface = {
+    resolve: async (ref: string, opts?: unknown) => { calls.push(opts); return createTokenSet(start, opts as never).resolve(ref); },
+    themes: async () => createTokenSet(start).themes(),
+  };
+  await chromeTokens(surface)!.resolve('{color.semantic.primary}', { theme: 'dark' });
+  assert.deepEqual(calls, [{ theme: 'dark' }], 'no selection is added when nothing declares a kind');
+  assert.equal(chromeTokens(undefined), undefined);
 });

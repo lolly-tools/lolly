@@ -101,6 +101,10 @@ availability field assumption. Use the vendor's List Fields/Criteria tools to es
   changed, substituted or disallowed file fails clearly.
 - Public rendition paths are refreshed on access and never persisted in the feed. This does
   not make their bearer-link access model private or retract already downloaded bytes.
+- A viewer's byte range is forwarded to the rendition read after the record and policy are
+  checked again. A partial reply is served only when its `Content-Range` matches the request
+  exactly and the body has that length; a storage origin that ignores ranges returns the whole
+  file. See [byte ranges](../catalog.md) in the catalog guide.
 - Pagination can continue without privileged totals. The connector constructs the next page
   itself, never follows a returned next-page URL. Work's sync/page caps still report truncation.
   Existing Work caches/pinned copies require an agreed source-change freshness bound.

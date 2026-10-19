@@ -35,6 +35,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Using Lolly | [using.md](using.md) |
 | Templates | [templates.md](templates.md) |
 | The Brand Studio | [brand-studio.md](brand-studio.md) |
+| Brand architectures | [brand-architectures.md](brand-architectures.md) |
 | 3D Studio | [3d-studio.md](3d-studio.md) |
 | Profiles | [profile.md](profile.md) |
 | Find and recover your work | [find-your-work.md](find-your-work.md) |
@@ -127,6 +128,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Invite an agent to a document | [work/document-agents.md](work/document-agents.md) |
 | Lolly Work API | [work/api.md](work/api.md) |
 | lw CLI: administer an instance | [work/cli.md](work/cli.md) |
+| Resumable uploads | [work/resumable-uploads.md](work/resumable-uploads.md) |
 
 ## Manage
 

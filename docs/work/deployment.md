@@ -328,7 +328,10 @@ including historical migration details, is `deploy/vm/README.md`.
 Two settings matter on a database that scales to zero. `LW_BACKGROUND_POLL_MS=0` stops the
 render and automation runners from polling every second (work still runs at boot, on
 submission and after each finished item), and the container health check is a TCP connect,
-because every HTTP request reads from the database. Migrations run over
+because every HTTP request reads from the database. With `0`, a pending job callback still
+sets a single timer for its next attempt, so the database may be woken for up to about 45
+minutes after a job with a callback settles. Nothing runs on a clock while no callback is
+pending and the database answers. Migrations run over
 `DATABASE_URL_UNPOOLED` when it is set and take a transaction-level lock, so a connection
 pooler cannot keep the lock after the runner leaves.
 

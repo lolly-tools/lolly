@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MPL-2.0
-import { shareUrlState } from '../lib/share-privacy.ts';
 /**
  * Multi-edit - 2–8 saved sessions edited side by side (#/multi?s=slot,slot…).
  *
@@ -25,11 +24,18 @@ import { shareUrlState } from '../lib/share-privacy.ts';
  * Reuse, not reinvention: controls come from tool-inputs.ts, canvas lifecycle
  * from render-lifecycle/scope-css/embed, session storage from bridge/state, and
  * the shared-input rule from pro/model.constraintSignature.
+ *
+ * Each session keeps its own theme choices (`__tokenSelection`: light or dark, a
+ * colourway). The seed hands them to that cell's runtime and Save writes them back
+ * (lib/multi-edit-lazy.ts). The cell's brand variables are painted from a host scoped
+ * to them, as the tool view paints its canvas, composed children inherit them, and
+ * Send to Print Sheet carries them (plans/319 A6). Before, every cell's canvas drew
+ * in the app's own colours whatever its session was saved in.
  */
 import { updateRouteParams } from '../lib/url-state.ts';
 import '../styles/parts/tool.css';        // .tool-inputs control styles (shared chunk with the tool view)
 import '../styles/parts/multi-edit.css';
-import { UNITS, buildEmbedUrl, buildInputModel } from '@lolly/engine';
+import { UNITS, buildInputModel } from '@lolly/engine';
 import { setPendingToolSeed } from '../lib/drop-router.ts';
 import { navigateTo } from '../nav.ts';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
@@ -50,9 +56,11 @@ import { mountProfileFab } from '../components/profile-menu.ts';
 import { mountZoomHud } from '../components/zoom-hud.ts';
 import { startBatchExport } from '../lib/batch-job.ts';
 import { MULTI_EDIT_MIN, MULTI_EDIT_MAX } from '../lib/multi-edit-limits.ts';
-import { memberSaveValues, applySharedEdit } from '../lib/multi-edit-lazy.ts';
+import { memberSaveValues, applySharedEdit, memberSelection, runtimeSaveValues, sessionSaveData, sessionSeedValues } from '../lib/multi-edit-lazy.ts';
 import { createSinglePreviewer } from '../lib/multi-edit-single.ts';
+import { printSheetCellUrl } from '../lib/print-sheet-cell.ts';
 import { setupMobileSheet } from '../lib/mobile-sheet.ts';
+import { mountMemberTokenActions, mountSharedTokenActions } from '../lib/multi-edit-token-links.ts';
 
 import type { WebToolHost, PanelEl } from './tool.ts';
 import type { InputModelItem, InputValue, InputSpec } from '../../../../engine/src/inputs.js';
@@ -63,6 +71,9 @@ import type { SavedStateData, WebStateAPI } from '../bridge/state.ts';
 import { backPillHtml, mountBackPill } from '../components/back-pill.ts';
 import { mountEmoji } from './emoji-mount.ts';
 import { notifyToolInputMount } from '../lib/input-policy.ts';
+import { applyBrandVars } from '../brand-vars.ts';
+import { themedHost } from '../lib/document-theme.ts';
+import { withComposeSelection } from '../lib/theme-choices.ts';
 
 interface ViewElement extends HTMLElement { _cleanup?: () => void; }
 
@@ -120,11 +131,6 @@ const ZOOM_OUT_ICON = svg('<line x1="5" y1="12" x2="19" y2="12"/>');
 const ZOOM_IN_ICON = svg('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>');
 const FIT_ICON = svg('<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>');
 
-/** Current values of a runtime's model as a plain map (what a session persists). */
-function modelValues(runtime: Runtime): Record<string, InputValue> {
-  return Object.fromEntries(runtime.getModel().map(i => [i.id, i.value]));
-}
-
 const num = (v: unknown): number | undefined => {
   const n = Number(v);
   return Number.isFinite(n) && n > 0 ? n : undefined;
@@ -179,8 +185,8 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
     let tool: LoadedTool;
     try { tool = await getTool(toolId); }
     catch { fail(`The tool "${toolId}" for one session isn't in this catalog.`); return; }
-    const values: Record<string, InputValue> = {};
-    for (const [k, v] of Object.entries(data)) if (!k.startsWith('__')) values[k] = v as InputValue;
+    // Inputs plus the token context, so each session renders in its own theme choices.
+    const values = sessionSeedValues(data);
     members.push({
       slot,
       label: String(entry.label || data.__label || tool.manifest.name || toolId),
@@ -445,7 +451,8 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
       // its siblings are id-free stills), so there is no collision to fix, and renaming
       // its ids would break a script that re-queries by id in a pointer handler.
       if (dupToolIds.has(m.tool.manifest.id) && !m.tool.manifest.singleInstance) namespaceInlinedSvgIds(m.canvasEl, `mc${i}`);
-      void hydrateEmbeds(m.canvasEl, { host, isCurrent: () => gen === m.renderGen });
+      // A tool link in the cell draws in the session's theme choices, as the cell does.
+      void hydrateEmbeds(m.canvasEl, { host: withComposeSelection(host, () => memberSelection(m)), isCurrent: () => gen === m.renderGen });
       // Emoji from the chosen set, exactly as the single-tool canvas draws them, so
       // a cell of this grid is not the one place a system glyph could appear.
       void mountEmoji(m.canvasEl, { isCurrent: () => gen === m.renderGen, runtime: rt })
@@ -474,7 +481,7 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
         else m.needsPaint = true;
         return;
       }
-      if (activeSingle === null) { previewer.schedule(m.slot, m.tool.manifest.id, memberSaveValues(m, modelValues), m.canvasEl, retireThumb(m)); return; }
+      if (activeSingle === null) { previewer.schedule(m.slot, m.tool.manifest.id, memberSaveValues(m, runtimeSaveValues), m.canvasEl, retireThumb(m)); return; }
       m.needsPaint = true;
       return;
     }
@@ -548,11 +555,19 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
     if (m.runtime) return Promise.resolve(m.runtime);
     if (m.creating) return m.creating;
     m.creating = (async () => {
-      const mountHost = m.tool.manifest.network?.allowlist?.length
+      const netHost = m.tool.manifest.network?.allowlist?.length
         ? { ...host, net: createNetAPI({ allowlist: m.tool.manifest.network.allowlist }) }
         : host;
+      // A tool link inside this session draws in the session's theme choices too.
+      const mountHost = withComposeSelection(netHost, () => memberSelection(m));
       const rt = await createRuntime(m.tool, mountHost, m.values);
       m.runtime = rt;
+      // The cell's brand variables, from a host scoped to the session's choices, the
+      // way the tool view paints its canvas (views/tool/stage-layout.ts). Without them
+      // a cell inherited the app's own `--brand-*` from :root. Painted on the cell
+      // element, which every repaint keeps, and before the first paint so the cell
+      // never flashes in the app's colours. Cosmetic: a failure leaves the inherited ones.
+      await applyBrandVars(m.canvasEl, themedHost(host, rt.tokenSelection)).catch(() => { /* cosmetic */ });
       // Bind this canvas to ITS OWN runtime: an interactive tool (gradient dots,
       // street-map pan) commits 1:1 to this session, never through the shared/fan
       // sidebar control that a global data-input-id query would hit.
@@ -708,6 +723,13 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
     sharedPanel?._inputsDispose?.();
     members.forEach(m => m.panelEl._inputsDispose?.());
   });
+
+  // Token links: each session card acts on its own runtime; the Shared card plans a
+  // link across every session that declares the input and reviews it first
+  // (lib/multi-edit-token-links.ts). A built runtime repaints through its own
+  // subscription; an unbuilt one only needs the sidebar to read its seed again.
+  if (sharedPanel) cleanups.push(mountSharedTokenActions(sharedPanel, host, sharedMembersOf, scheduleSidebar));
+  for (const m of members) cleanups.push(mountMemberTokenActions(m.panelEl, m, host, scheduleSidebar));
 
   // Opening a collapsed card renders its (lazily-skipped) panel.
   viewEl.querySelectorAll<HTMLDetailsElement>('details[data-me-card]').forEach(card => {
@@ -880,10 +902,9 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
     const opts = exportOpts(i);
     // A live cell's runtime is authoritative; a never-created cell saves the values it
     // was seeded with plus any shared edits buffered into m.values (lib/multi-edit-lazy).
-    const values = memberSaveValues(m, modelValues);
+    // The token context comes from those values alone (lib/multi-edit-lazy sessionSaveData).
     const data: SavedStateData = {
-      ...m.data,
-      ...values,
+      ...sessionSaveData(m.data, memberSaveValues(m, runtimeSaveValues)),
       __toolId: m.tool.manifest.id,
       __toolVersion: m.tool.manifest.version,
       __export_format: opts.format ?? '',
@@ -914,10 +935,10 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
       // Prefer the live runtime model (captures unsaved edits); fall back to the
       // seed values for a cell whose runtime was never built.
       const model = m.runtime ? m.runtime.getModel() : buildInputModel(m.tool.manifest, { initial: m.values });
-      const fmts = m.tool.manifest.render?.formats ?? [];
-      // Vector where the tool offers it (scales cleanly for print), else a raster still.
-      const format = fmts.includes('svg') ? 'svg' : (fmts.find(f => ['png', 'jpg', 'jpeg', 'webp'].includes(f)) ?? 'png');
-      const url = buildEmbedUrl({ toolId: m.tool.manifest.id, format, query: shareUrlState(model) });
+      // Vector where the tool offers it, and `_themes` rides in the link, so each cell of
+      // the sheet draws its design in the light or dark and the colourway that design
+      // was made in (lib/print-sheet-cell.ts).
+      const url = printSheetCellUrl(m.tool.manifest, model, { tokenSelection: memberSelection(m) });
       // The cell's artwork must be a REF OBJECT ({id}), not a bare string - the runtime's
       // assetRefId reads .id off an object and ignores bare strings, so a bare URL renders
       // an empty grid. The id is the canonical embed URL; resolveAssetRefs re-renders it.

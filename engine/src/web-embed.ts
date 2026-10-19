@@ -187,6 +187,7 @@ function codeSite(provider: string, label: string, src: string, extra: Partial<P
 }
 
 const YT_ID = /^[A-Za-z0-9_-]{6,20}$/;
+const SLIDES_NAME = /^[A-Za-z0-9_-]{1,100}$/;
 
 /** YouTube's `t` parameter: `90`, `90s`, `1m30s`, `1h2m3s`. */
 function ytSeconds(t: string | null): number {
@@ -277,9 +278,36 @@ function providerEmbed(url: URL, host: string): ProviderPart | null {
       if (segs[0] !== 'a' || !segs[1]) return null;
       return { ...player('asciinema', 'Terminal recording', `https://asciinema.org/a/${segs[1]}/iframe`, 16 / 10), allow: 'fullscreen' };
     }
+    case 'slides.com': {
+      // A Slides.com deck runs reveal.js, which reads its options from the query string.
+      // postMessageEvents asks the deck to report its position to the presenting deck.
+      const [user, deck, view] = segs;
+      if (segs.length > 3 || !user || !deck || !SLIDES_NAME.test(user) || !SLIDES_NAME.test(deck)) return null;
+      if (view !== undefined && view !== 'embed' && view !== 'fullscreen') return null;
+      const q = new URLSearchParams();
+      const token = url.searchParams.get('token');
+      if (token && /^[A-Za-z0-9_-]{1,128}$/.test(token)) q.set('token', token);
+      const style = url.searchParams.get('style');
+      if (style === 'light' || style === 'dark' || style === 'hidden') q.set('style', style);
+      for (const key of ['byline', 'share']) if (url.searchParams.get(key) === 'hidden') q.set(key, 'hidden');
+      q.set('postMessageEvents', 'true');
+      const hash = /^#\/[\w./-]{1,128}$/.test(url.hash) ? url.hash : '';
+      return { ...player('slides', 'Slides.com deck', `https://slides.com/${user}/${deck}/embed?${q}${hash}`, 4 / 3), allow: 'fullscreen' };
+    }
     default:
       return null;
   }
+}
+
+/** True when a frame's link asks a reveal.js deck to report its state to its parent page.
+ *  Slides.com links gain this option above; a self-hosted deck opts in by carrying
+ *  `postMessageEvents=true` in its own link. */
+export function revealDeckFrame(src: string): boolean {
+  try {
+    const url = new URL(src);
+    return (url.protocol === 'https:' || url.protocol === 'http:')
+      && /^(?:true|1)$/.test(url.searchParams.get('postMessageEvents') ?? '');
+  } catch { return false; }
 }
 
 /** True when the hosted web CSP lets this frame load (plan 288 D2): the app's own origin,

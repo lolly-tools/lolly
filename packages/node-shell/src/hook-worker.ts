@@ -196,6 +196,16 @@ export function createNodeHookExecutor(opts: NodeHookExecutorOpts = {}): HookExe
     const slot = (name: WorkerHookName) => (has.has(name) ? (ctx: unknown) => invoke(name, ctx) : null);
     // Export hooks that carry a live DOM node run in this realm, as on the web.
     const inRealm = strict ? null : await inRealmHookExecutor(tool, host);
+    // The thread's tokens are a snapshot taken above. When the runtime's theme scope
+    // moves (setTokenSelection), `host.tokens` already answers in the new one, so the
+    // thread gets a new snapshot of the new scope. A newer switch's snapshot is the one kept.
+    let tokenSeq = 0;
+    const tokensChanged = async (): Promise<void> => {
+      const seq = ++tokenSeq;
+      const doc = await snapshotTokens(host);
+      if (seq !== tokenSeq || doc == null) return;
+      try { worker.postMessage({ t: 'tokens', runId, tokenDoc: doc, tokenExcluded: [] }); } catch { /* the thread is gone */ }
+    };
     return {
       onInit: slot('onInit'),
       onInput: slot('onInput'),
@@ -205,6 +215,7 @@ export function createNodeHookExecutor(opts: NodeHookExecutorOpts = {}): HookExe
       beforeExport: inRealm?.beforeExport ?? null,
       afterExport: inRealm?.afterExport ?? null,
       exportStill: inRealm?.exportStill ?? null,
+      ...(tokenDoc != null ? { tokensChanged } : {}),
       dispose: () => {
         try { worker.postMessage({ t: 'dispose', runId }); } catch { /* already gone */ }
         teardown(mount, new NodeHookIsolationError('hook thread mount disposed'));

@@ -9,21 +9,13 @@
  * (choice cards, field rows, probe/summary lines) gets its own small sheet
  * (styles/parts/instance-sheet.css, imported below like welcome.css).
  *
- * Two callers:
- *  - main.ts's boot(), first run only, via maybeShowFirstRunInstanceSheet:
- *    Tauri shells, gated on no persisted choice yet (hasMadeInstanceChoice)
- * - awaited before the first catalog sync so a chosen instance is
- *    honoured immediately, and a no-op (one IndexedDB read) everywhere else.
- *  - views/profile.ts's "Change" button, calling openInstanceSheet directly,
- *    any time, to switch instances later (the "asked" flag is already set by
- *    then, so it's not re-marked - see `firstRun` below).
+ * One caller: the Settings row (views/profile/chrome.ts), any time. The Tauri
+ * shells used to open it on first launch too; plan 320 D2 retired that, so the
+ * app boots local and this sheet is where someone connects when they need to.
  *
  * The instance base itself (getInstanceBase/setInstanceBase/instanceFetch/
  * normalizeInstanceBase) lives in lib/instance.ts, a fixed contract from the
- * parallel core package - this module only adds the UI, plus the "has the
- * user been asked yet" flag, persisted the exact same way that module
- * persists the base itself: the IndexedDB 'profile' KV store, never
- * localStorage (house rule - no localStorage for state).
+ * parallel core package - this module only adds the UI.
  *
  * Connecting to another instance is a trust decision, not just a URL field:
  * a connected instance's tool code runs exactly like a bundled tool's (same
@@ -38,9 +30,9 @@ import { icon } from '../lib/icons.ts';
 import { announce } from '../a11y.ts';
 import { historySettled } from '../lib/overlay-back.ts';
 import { mountModal } from './modal.ts';
-import { isTauriShell, markInstanceChoiceMade } from '../lib/instance-choice.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 import { getInstanceBase, initInstanceBase, setInstanceBase, instanceFetch } from '../lib/instance.ts';
-import { validateInstanceUrl, probeConnection, isAccountInstance, workspaceAppUrl, type ProbeOutcome, type ProbedInstance } from '../lib/instance-probe.ts';
+import { validateInstanceUrl, probeConnection, isAccountInstance, workspaceAppUrl, type ProbeOutcome, type ProbedInstance, type UrlProblem } from '../lib/instance-probe.ts';
 import { wireDeviceCodeSignIn } from '../org/device-sign-in.ts';
 import { jsonBody, safeFetch } from '../lib/instance-json.ts';
 import { importBackup, MAX_RESTORE_TOTAL_BYTES } from '../data-transfer.ts';
@@ -108,16 +100,13 @@ type Step =
  * (profile.ts) should just re-render afterwards, reading getInstanceBase()
  * fresh; nothing here reports which path the user took beyond that.
  *
- * `firstRun` marks the "asked" flag on close (any close counts as settled - 
- * same convention as showWelcomeDialog: a dismissal is still an answer) and
- * swaps in slightly different framing copy for the very first sheet a user
- * ever sees. Omit it (the profile "Change"/first re-open case) to leave the
- * flag alone - it's already set.
+ * `start: 'connect'` opens straight at the address step, for a browser, where the
+ * bundled choice means nothing; Back then closes the sheet.
  */
-export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {}): Promise<void> {
-  const firstRun = !!opts.firstRun;
+export function openInstanceSheet(host: HostV1, opts: { start?: 'connect' } = {}): Promise<void> {
+  const startAtConnect = opts.start === 'connect';
   return new Promise((resolve) => {
-    let step: Step = { kind: 'choose' };
+    let step: Step = startAtConnect ? { kind: 'connect', url: '', probing: false } : { kind: 'choose' };
     let reloadOnClose = false;
     let stopSignIn: (() => void) | undefined;
     const useServerBrand = async (): Promise<void> => {
@@ -128,11 +117,10 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
     const modal = mountModal<void>(renderStep(), {
       className: 'instance-sheet',
       ariaLabel: t('Lolly instance'),
-      initialFocus: (el) => el.querySelector<HTMLElement>('[data-act="choose-bundled"]') ?? el.querySelector<HTMLElement>('button, input'),
+      initialFocus: (el) => el.querySelector<HTMLElement>('[data-act="choose-bundled"], #instance-url') ?? el.querySelector<HTMLElement>('button, input'),
       onClose: async () => {
         stopSignIn?.();
         NAV_EVENTS.forEach(ev => window.removeEventListener(ev, onNav));
-        if (firstRun) await markInstanceChoiceMade();
         if (reloadOnClose) { await historySettled(); location.reload(); }
         resolve();
       },
@@ -158,9 +146,7 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
       const current = getInstanceBase();
       return `
         <h2 class="modal-title">${t('Where should Lolly get its tools?')}</h2>
-        <p class="modal-msg">${firstRun
-          ? t('Choose once - you can change this later from your profile.')
-          : t('Choose what this install reads its catalogue and tools from.')}</p>
+        <p class="modal-msg">${t('Choose what this install reads its catalogue and tools from.')}</p>
         <div class="instance-choices">
           <button type="button" class="instance-choice" data-act="choose-bundled">
             <span class="instance-choice-icon">${icon('package', { size: 20 })}</span>
@@ -212,7 +198,7 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
         ${err}${probe}
         <p class="note note--warning">${t('Tools from a connected instance run with the same trust as bundled ones - connect only to instances you trust.')}</p>
         <div class="modal-actions">
-          <button type="button" class="btn" data-act="connect-back">${t('Back')}</button>
+          <button type="button" class="btn" data-act="connect-back">${startAtConnect ? t('Cancel') : t('Back')}</button>
           ${s.probed
             ? `<button type="button" class="btn btn--primary" data-act="connect-confirm"${s.probing ? ' disabled' : ''}>${t('Use this instance')}</button>`
             : `<button type="button" class="btn btn--primary" data-act="connect-probe"${s.probing ? ' disabled' : ''}>${s.probing ? t('Checking…') : isTauriShell() ? t('Check & connect') : t('Open this instance')}</button>`}
@@ -279,20 +265,20 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
         void (async () => {
           await initInstanceBase();
           if (!modal.el.isConnected) return;
-          if (getInstanceBase()) { await setInstanceBase(null); reloadOnClose = !firstRun; }
+          if (getInstanceBase()) { await setInstanceBase(null); reloadOnClose = true; }
           await useServerBrand();
           goImportStep();
         })();
         return;
       }
       if (act === 'choose-connect') { step = { kind: 'connect', url: '', probing: false }; repaint('#instance-url'); return; }
-      if (act === 'connect-back') { step = { kind: 'choose' }; repaint(); return; }
+      if (act === 'connect-back') { if (startAtConnect) { modal.close(); return; } step = { kind: 'choose' }; repaint(); return; }
 
       if (act === 'connect-probe') {
         if (step.kind !== 'connect') return;
         const raw = modal.el.querySelector<HTMLInputElement>('#instance-url')?.value ?? '';
         const valid = validateInstanceUrl(raw);
-        if (!valid.ok) { step = { ...step, url: raw, error: valid.message, probed: undefined }; repaint('#instance-url'); return; }
+        if (!valid.ok) { step = { ...step, url: raw, error: urlProblemText(valid.reason), probed: undefined }; repaint('#instance-url'); return; }
         if (!isTauriShell()) {
           // Navigation works even when CSP or CORS prevents discovery from this origin.
           location.assign(workspaceAppUrl(valid.base, location.hash));
@@ -325,7 +311,6 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
           try {
             if (isAccountInstance(manifest) && !isTauriShell()) {
               // Login cookies, private catalog reads and sockets belong to this origin.
-              if (firstRun) await markInstanceChoiceMade();
               location.assign(workspaceAppUrl(base, location.hash));
               return;
             }
@@ -333,7 +318,7 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
             await initInstanceBase();
             if (!modal.el.isConnected) return;
             await setInstanceBase(base);
-            reloadOnClose = !firstRun;
+            reloadOnClose = true;
             if (!modal.el.isConnected) { if (reloadOnClose) location.reload(); return; }
             if (isAccountInstance(manifest) && manifest.found) {
               const session = await jsonBody<{ kind?: string }>(await safeFetch('/api/auth/session', undefined, 6000));
@@ -391,9 +376,15 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
   });
 }
 
-/* maybeShowFirstRunInstanceSheet + the isTauriShell/hasMadeInstanceChoice
- * probes it gates on now live in lib/instance-choice.ts, a leaf module main.ts
- * can import for ~0 bytes; it dynamic-imports this file only when the sheet is
- * actually shown. See that file's header. Re-exported here so the historical
- * import path keeps working. */
-export { isTauriShell, hasMadeInstanceChoice, maybeShowFirstRunInstanceSheet } from '../lib/instance-choice.ts';
+/** A refused address, in the reader's language. lib/instance.ts throws English
+ *  on purpose (it has no i18n), so the sheet words the reason itself. */
+function urlProblemText(reason: UrlProblem): string {
+  if (reason === 'not-https') return tRaw('Use an address that starts with https://');
+  if (reason === 'credentials') return tRaw('Leave the user name and password out of the address.');
+  return tRaw('That is not a web address. Check it and try again.');
+}
+
+/* isTauriShell lives in lib/instance-choice.ts, a leaf module the boot path can
+ * import for ~0 bytes. Re-exported here so the historical import path keeps
+ * working. */
+export { isTauriShell } from '../lib/instance-choice.ts';

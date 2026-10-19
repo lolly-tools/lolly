@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "Plano",
   "inputs.diagramPreset.options.mono": "Mono minimalista",
   "inputs.diagramType.label": "Tipo de diagrama",
-  "inputs.diagramType.help": "Organigrama y Mapa mental construyen un árbol según a quién «reporta» cada tarjeta. Capas y Kanban agrupan las tarjetas por su ID de «Grupo» (bandas apiladas frente a columnas en paralelo). Proceso, Cronología y Ciclo distribuyen las tarjetas siguiendo el flujo o el orden. Pirámide, Matriz y Gantt tienen sus propios controles más abajo.",
+  "inputs.diagramType.help": "Elige la relación que quieres mostrar. Organigrama y Mapa mental: una jerarquía según a quién «reporta» cada tarjeta. Capas: niveles de abstracción, una banda por «Grupo». Kanban: trabajo por estado, una columna por «Grupo»; una columna es un estado, no un responsable. Proceso: pasos con dirección y enlaces de retorno a partir de las flechas. Cronología: eventos en orden, espaciados por igual, sin duraciones. Ciclo: un bucle en el orden de las tarjetas. Pirámide: etapas jerarquizadas. Matriz: cuatro categorías, no valores medidos. Gantt: duración de las tareas; una tarjeta con fecha añade un eje temporal y un carril por «Grupo».",
   "inputs.diagramType.options.org": "Organigrama (jerarquía)",
   "inputs.diagramType.options.mindmap": "Mapa mental",
   "inputs.diagramType.options.layercake": "Capas (arquitectura por capas)",

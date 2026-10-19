@@ -254,6 +254,15 @@ function _stillNote(message, W, H) {
 }
 
 function _run(ctx, fn) {
+  // A theme or colourway switch reaches the hooks as onInput with id '__tokens'.
+  // The effect modules never see the id, so each one that keeps a design-system
+  // read (treatment seeds, the brand palette, the mono font) drops it here.
+  if (fn === 'onInput' && ctx.id === '__tokens') {
+    for (var fx in EFFECT_MOD) if (EFFECT_MOD[fx] && EFFECT_MOD[fx].forgetTokens) EFFECT_MOD[fx].forgetTokens();
+  }
+  // Keep _filterBrandKey current for the live path (onFrame cannot wait on a read):
+  // the next frame after a colourway or look switch then re-reads the brand caches.
+  if (fn === 'onInit' || fn === 'onInput') filterBrandKey(ctx.host || host).catch(function () { /* keep the last key */ });
   var e = _effectOf(ctx.model);
   _activeEffect = e;
   var mod = EFFECT_MOD[e];
@@ -460,6 +469,24 @@ function afterExport(ctx)  {
 function exportStill(ctx) {
   var m = EFFECT_MOD[_activeEffect];
   return m && m.exportStill ? m.exportStill(ctx) : null;
+}
+
+// The brand colours the effects' brand caches were read under (plans/319). The
+// colour-treatment seeds (_brandStops) and the dither palette (_brandPalette) are
+// each read once and kept; a colourway or look switch re-points color.semantic.*
+// under them. Each cache stores the key it was read under and reads the brand
+// again when filterBrandKey() answers differently, so a switch reaches the effect
+// on the next render without re-running onInit (which would reset the inputs).
+// _filterBrandKey is the latest answer, for the live path that cannot wait.
+var _filterBrandKey = '';
+function filterBrandKey(h) {
+  var t = h && h.tokens;
+  if (!t || typeof t.resolve !== 'function') return Promise.resolve(_filterBrandKey);
+  return Promise.all(['primary', 'secondary', 'surface'].map(function (slot) {
+    return Promise.resolve().then(function () { return t.resolve('{color.semantic.' + slot + '}'); }).then(
+      function (v) { return typeof v === 'string' ? v : JSON.stringify(v == null ? null : v); },
+      function () { return ''; });
+  })).then(function (v) { _filterBrandKey = JSON.stringify(v); return _filterBrandKey; });
 }
 
 
@@ -4237,7 +4264,8 @@ var _defaultUrl = null;
 var _memoKey = null;
 var _memoResult = null;
 var _lastOutSrc = null; // previous composed bitmap, sent as prevSrc for seamless swaps
-var _brandStops = null; // resolved brand treatment seeds (once per mount)
+var _brandStops = null; // resolved brand treatment seeds (once per set of brand colours, and again after a switch)
+var _brandStopsKey = null; // the filterBrandKey() _brandStops was read under
 var _lastOv = null, _lastW = null, _lastH = null; // most recent overlay params - read by beforeExport
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -4285,13 +4313,32 @@ function smoothstep(a, b, x) {
   return t * t * (3 - 2 * t);
 }
 
-// Resolve the brand's three treatment seeds ONCE per mount from host.tokens:
+// Resolve the brand's three treatment seeds ONCE per set of brand colours from
+// host.tokens (and again after a theme or colourway switch, see forgetTokens):
 //   shadow = darkest swatch, highlight = lightest, mid = most chromatic (OKLab).
 // Neutral fallback when tokens are unavailable (or a shell without a palette).
 function resolveBrandStops() {
-  if (_brandStops) return Promise.resolve(_brandStops);
+  return filterBrandKey(host).then(function (key) {
+    // One read per set of colours: a render that arrives while one is loading
+    // shares it, and a read for older colours is dropped when it lands.
+    if (_brandStopsLoad && _brandStopsLoad.key === key) return _brandStopsLoad.promise;
+    if (_brandStops && _brandStopsKey === key) return _brandStops;
+    var load = { key: key, promise: null };
+    load.promise = readBrandStops().then(function (stops) {
+      if (_brandStopsLoad !== load) return _brandStops || stops;
+      _brandStopsLoad = null;
+      _brandStops = stops;
+      _brandStopsKey = key;
+      return stops;
+    });
+    _brandStopsLoad = load;
+    return load.promise;
+  });
+}
+var _brandStopsLoad = null; // { key, promise } of the read in flight
+function readBrandStops() {
   var fallback = { shadow: '#1c2230', mid: '#5c7cfa', highlight: '#f4f2ec' };
-  if (!host.tokens || !host.tokens.colors) return Promise.resolve((_brandStops = fallback));
+  if (!host.tokens || !host.tokens.colors) return Promise.resolve(fallback);
   return host.tokens.colors().then(function (swatches) {
     var best = { shadow: null, mid: null, highlight: null };
     var minL = 2, maxL = -1, maxC = -1;
@@ -4304,13 +4351,12 @@ function resolveBrandStops() {
       if (lab[0] > maxL) { maxL = lab[0]; best.highlight = sw.value; }
       if (C > maxC) { maxC = C; best.mid = sw.value; }
     });
-    _brandStops = {
+    return {
       shadow: best.shadow || fallback.shadow,
       mid: best.mid || fallback.mid,
       highlight: best.highlight || fallback.highlight,
     };
-    return _brandStops;
-  }).catch(function () { return (_brandStops = fallback); });
+  }).catch(function () { return fallback; });
 }
 
 // Override-or-brand stop colours -> OKLab triples (null when unusable).
@@ -4893,6 +4939,10 @@ async function compute(model) {
   return _memoResult;
 }
 
+// A theme or colourway switch (onInput with id '__tokens', dispatched by _run): the
+// treatment seeds are read again in the new choice. The memo key holds the seeds'
+// colours, so the next render after the read is a fresh one.
+function forgetTokens() { _brandStops = null; _brandStopsKey = null; _brandStopsLoad = null; }
 function onInit(ctx) { return compute(ctx.model); }
 function onInput(ctx) { return compute(ctx.model); }
 
@@ -4910,7 +4960,7 @@ function onFrame(ctx) {
   var p = paramsFrom(inputs);
   var dims = workDims(p.W, p.H, LIVE_MAX);
   var brand = _brandStops || { shadow: '#1c2230', mid: '#5c7cfa', highlight: '#f4f2ec' };
-  if (!_brandStops) resolveBrandStops(); // warm for later frames
+  if (!_brandStops || _brandStopsKey !== _filterBrandKey) resolveBrandStops(); // warm for later frames
   var ovi = overlayInputs(inputs);
   var lab = ovi.noFilter ? null : treatLabStops(p, brand);
 
@@ -4946,7 +4996,8 @@ return {
   onInput:      typeof onInput       !== 'undefined' ? onInput       : null,
   onFrame:      typeof onFrame       !== 'undefined' ? onFrame       : null,
   beforeExport: typeof beforeExport  !== 'undefined' ? beforeExport  : null,
-  afterExport:  typeof afterExport   !== 'undefined' ? afterExport   : null
+  afterExport:  typeof afterExport   !== 'undefined' ? afterExport   : null,
+  forgetTokens: forgetTokens
 };
 })();
 
@@ -6655,7 +6706,7 @@ var _imgCache = { url: null, promise: null };
 var _defaultUrl = null;
 var _memoKey = null;
 var _memoResult = null;
-var _brandPalette = null; // { count, hexes } - resolved once per colour count
+var _brandPalette = null; // { count, hexes, key } - resolved once per colour count and set of brand colours, and again after a switch
 var _lastOv = null, _lastW = VIEW, _lastH = VIEW; // overlay params + box (read by beforeExport)
 
 function inputsFrom(model) { var o = {}; model.forEach(function (i) { o[i.id] = i.value; }); return o; }
@@ -7200,9 +7251,27 @@ function rgbCubePalette(levels) {
 // async path (reads the active brand's colour tokens); everything else resolves
 // synchronously, wrapped in a Promise for one uniform call site.
 function resolveBrandPalette(count) {
-  if (_brandPalette && _brandPalette.count === count) return Promise.resolve(_brandPalette.hexes);
+  return filterBrandKey(host).then(function (key) {
+    // One read per colour count and set of colours; a read for older ones is
+    // dropped when it lands (see resolveBrandStops in the colour treatment).
+    var want = count + '\u0000' + key;
+    if (_brandPaletteLoad && _brandPaletteLoad.want === want) return _brandPaletteLoad.promise;
+    if (_brandPalette && _brandPalette.count === count && _brandPalette.key === key) return _brandPalette.hexes;
+    var load = { want: want, promise: null };
+    load.promise = readBrandPalette(count).then(function (hexes) {
+      if (_brandPaletteLoad !== load) return hexes;
+      _brandPaletteLoad = null;
+      _brandPalette = { count: count, hexes: hexes, key: key };
+      return hexes;
+    });
+    _brandPaletteLoad = load;
+    return load.promise;
+  });
+}
+var _brandPaletteLoad = null; // { want, promise } of the read in flight
+function readBrandPalette(count) {
   var fallback = grayPalette(count);
-  if (!host.tokens || !host.tokens.colors) { _brandPalette = { count: count, hexes: fallback }; return Promise.resolve(fallback); }
+  if (!host.tokens || !host.tokens.colors) return Promise.resolve(fallback);
   return host.tokens.colors().then(function (swatches) {
     var seen = {}, hexes = [];
     (swatches || []).forEach(function (sw) {
@@ -7222,9 +7291,8 @@ function resolveBrandPalette(count) {
         hexes = picked;
       }
     }
-    _brandPalette = { count: count, hexes: hexes };
     return hexes;
-  }).catch(function () { _brandPalette = { count: count, hexes: fallback }; return fallback; });
+  }).catch(function () { return fallback; });
 }
 function resolvePalette(id, count) {
   if (id === 'retro54') return Promise.resolve(PALETTES.retro54 || (PALETTES.retro54 = buildRetro54()));
@@ -7484,10 +7552,14 @@ async function compute(model) {
   _lastOv = ov; _lastW = W; _lastH = H;
 
   var rootExtra = ' data-img-key="' + esc(isUserPick ? url : '') + '"';
+  // The brand palette is read from the design system, not from an input, so its
+  // colours join the memo key: a colourway or look switch must not answer from the memo.
+  var brandKey = paletteId === 'brand' ? await filterBrandKey(host) : null;
   var memoKey = JSON.stringify({
     url: url, W: W, H: H, paletteId: paletteId, opts: opts, scale: scale, fit: fit, colorCount: colorCount,
     hue: inputs.hue, sat: inputs.saturation, light: inputs.lightness, con: inputs.contrast,
     tc: inputs.treatmentColor, bm: inputs.blendMode, ti: inputs.treatmentIntensity, ov: ov, nf: !!ovi.noFilter,
+    brand: brandKey,
   });
   if (memoKey === _memoKey) return _memoResult;
 
@@ -7576,6 +7648,10 @@ function resolvePaletteSync(id, count) {
   return PALETTES[id] || PALETTES.mono;
 }
 
+// A theme or colourway switch (onInput with id '__tokens', dispatched by _run): the
+// brand palette is read again in the new choice. The memo key does not hold the
+// palette, so the memoised render is dropped too.
+function forgetTokens() { _brandPalette = null; _brandPaletteLoad = null; _memoKey = null; }
 function onInit(ctx) { return compute(ctx.model); }
 function onInput(ctx) { return compute(ctx.model); }
 
@@ -7593,7 +7669,7 @@ function onFrame(ctx) {
   var fit = inputs.fit === 'contain' ? 'contain' : 'cover';
   var colorCount = clamp(Math.round(n(inputs.colorCount, 8)), 2, 16);
   var grade = parseGrade(inputs);
-  if (paletteId === 'brand' && !_brandPalette) resolveBrandPalette(colorCount); // warm for later frames
+  if (paletteId === 'brand' && (!_brandPalette || _brandPalette.key !== _filterBrandKey)) resolveBrandPalette(colorCount); // warm for later frames
 
   var ovi = overlayInputs(inputs);
   if (overlayActive(ovi)) { if (_liveOvStart == null) _liveOvStart = frame.t; } else _liveOvStart = null;
@@ -7643,7 +7719,8 @@ return {
   onInput:      typeof onInput       !== 'undefined' ? onInput       : null,
   onFrame:      typeof onFrame       !== 'undefined' ? onFrame       : null,
   beforeExport: typeof beforeExport  !== 'undefined' ? beforeExport  : null,
-  afterExport:  typeof afterExport   !== 'undefined' ? afterExport   : null
+  afterExport:  typeof afterExport   !== 'undefined' ? afterExport   : null,
+  forgetTokens: forgetTokens
 };
 })();
 
@@ -8152,9 +8229,13 @@ function sampleGrid(img, cols, rows, fit) {
 function hex2(v) { var h = Math.round(clamp(v, 0, 255)).toString(16); return h.length < 2 ? '0' + h : h; }
 function rgbHex(r, g, b) { return '#' + hex2(r) + hex2(g) + hex2(b); }
 
+// A theme or colourway switch (onInput with id '__tokens', dispatched by _run):
+// the font stack may differ in the new choice, and the memo holds a render in the old one.
+function forgetTokens() { _monoFont = null; _memoKey = null; }
+
 // Read a monospace stack off the brand's font tokens (any fontFamily token
-// whose value/path mentions "mono"); a generic system stack otherwise. Cached
-// once per mount since brand tokens don't change mid-session.
+// whose value/path mentions "mono"); a generic system stack otherwise. Cached,
+// and read again after a theme or colourway switch (forgetTokens, above).
 function resolveMonoFontStack() {
   if (_monoFont) return Promise.resolve(_monoFont);
   var fallback = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
@@ -8406,7 +8487,8 @@ return {
   onFrame:      typeof onFrame       !== 'undefined' ? onFrame       : null,
   beforeExport: typeof beforeExport  !== 'undefined' ? beforeExport  : null,
   afterExport:  typeof afterExport   !== 'undefined' ? afterExport   : null,
-  exportStill:  typeof exportStill   !== 'undefined' ? exportStill   : null
+  exportStill:  typeof exportStill   !== 'undefined' ? exportStill   : null,
+  forgetTokens: forgetTokens
 };
 })();
 

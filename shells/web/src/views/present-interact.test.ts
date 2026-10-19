@@ -344,3 +344,33 @@ test('child focus observation rejects scripted pointer handover and releases old
     f.controller.destroy(); fresh.dispatchEvent(new win.FocusEvent('focusin')); await tick(); assert.equal(attempts, before + 1);
   } finally { f.close(); }
 });
+
+test('a reveal.js deck steps with Up and Down, follows the authored key choice and shows its slide', () => {
+  for (const [settings, expected] of [['', [['step', 1], ['step', -1]]], ['keys=key', [['key', 'ArrowDown'], ['key', 'ArrowUp']]]] as const) {
+    const f = fixture(`${settings}${settings ? ';' : ''}stops=0,400;walk=1;ms=0`);
+    let position = { h: 3, v: 1, f: null };
+    Object.assign(f.driver, {
+      capabilities: { backend: 'reveal', key: true, scroll: false, depth: false, checking: false }, depth: () => null,
+      step: (direction: 1 | -1) => { f.calls.push(['step', direction]); return true; }, deck: () => position,
+    });
+    const speaker = document.createElement('div'); speaker.innerHTML = '<div class="pr-sp-aside"></div>'; f.stage.append(speaker);
+    try {
+      f.sync(1); assert.equal(f.controller.key(new win.KeyboardEvent('keydown', { key: 'ArrowDown' })), false, 'no deck input before its focus step');
+      f.sync(); f.controller.speaker(speaker); f.calls.length = 0;
+      assert.equal(f.controller.key(new win.KeyboardEvent('keydown', { key: 'ArrowDown' })), true);
+      assert.equal(f.controller.key(new win.KeyboardEvent('keydown', { key: 'ArrowUp' })), true);
+      assert.deepEqual(f.calls.filter(([type]) => type === 'step' || type === 'key' || type === 'scroll'), expected);
+      assert.equal(f.controller.walk(1), false, 'Next still moves the presentation; stops cannot scroll a deck');
+      assert.equal(speaker.querySelector('.pr-sp-interact-depth')?.textContent, 'Embedded slide 4.2');
+      assert.equal(speaker.querySelector('.pr-sp-interact-info')?.textContent, settings ? 'Up and Down go to the demo.' : 'Up and Down step through the embedded deck.');
+      position = { ...position, h: 5, v: 0 }; for (const callback of f.subscribers) callback();
+      assert.equal(speaker.querySelector('.pr-sp-interact-depth')?.textContent, 'Embedded slide 6');
+    } finally { f.close(); }
+  }
+  const none = fixture('keys=none');
+  Object.assign(none.driver, { capabilities: { backend: 'reveal', key: true, scroll: false, depth: false, checking: false }, step: () => { none.calls.push(['step', 1]); return true; } });
+  try {
+    none.sync(); assert.equal(none.controller.key(new win.KeyboardEvent('keydown', { key: 'ArrowDown' })), false);
+    assert.equal(none.calls.some(([type]) => type === 'step'), false, 'Nothing keeps Up and Down for the slide stack');
+  } finally { none.close(); }
+});

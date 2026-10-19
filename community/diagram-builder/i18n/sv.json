@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "Ritning",
   "inputs.diagramPreset.options.mono": "Minimal mono",
   "inputs.diagramType.label": "Diagramtyp",
-  "inputs.diagramType.help": "Org/tankekarta bygger ett träd utifrån varje korts överordnade kort. Layercake/Kanban grupperar kort efter deras “Grupp”-ID (staplade band jämfört med kolumner sida vid sida). Process/Tidslinje/Cykel placerar korten längs ett flöde/en ordning. Pyramid, Matris och Gantt har egna inställningar nedan.",
+  "inputs.diagramType.help": "Välj relationen du vill visa. Org-schema och Tankekarta: en hierarki utifrån varje korts överordnade kort. Layercake: abstraktionsnivåer, ett band per “Grupp”. Kanban: arbete efter status, en kolumn per “Grupp”; en kolumn är en status, inte en ägare. Process: riktade steg och returlänkar från pilarna. Tidslinje: händelser i ordning, jämnt fördelade, utan varaktighet. Cykel: en loop i kortens ordning. Pyramid: rangordnade steg. Matris: fyra kategorier, inte uppmätta värden. Gantt: uppgifternas varaktighet; ett daterat kort lägger till en tidsaxel och ett spår per “Grupp”.",
   "inputs.diagramType.options.org": "Org-schema (hierarki)",
   "inputs.diagramType.options.mindmap": "Tankekarta",
   "inputs.diagramType.options.layercake": "Layercake (lagrad arkitektur)",

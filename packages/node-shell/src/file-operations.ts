@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { executeFileOperationV1, type FileOperationRequestV1 } from '@lolly-tools/core/file-operation-v1';
 import { safeFileName, type FileFactsV1 } from '@lolly-tools/core/file-v1';
 import { DEFAULT_IMAGE_OPTIONS, MAX_CONVERT_FILE_BYTES, MAX_CONVERT_PIXELS, conversionFindings, encodeToTargetBytes, resizedDimensions, validateConvertFiles, validateImageOptions } from '@lolly-tools/core/image-operation-v1';
-import { imageDimensions, sfntKind, fontConversionTargets, convertFontContainer, sniffAnimatedRaster, sourceToGrid, gridToTarget } from '@lolly/engine';
+import { imageDimensions, sfntKind, fontConversionTargets, convertFontContainer, sniffAnimatedRaster, convertDataFile, readDataOptions } from '@lolly/engine';
 import { isJxl } from '../../../engine/src/jxl.ts';
 import { runJxl } from './jxl.ts';
 import { sniffFormat } from './format-sniff.ts';
@@ -51,7 +51,9 @@ export async function runNodeFileOperation(file: File, request: FileOperationReq
     effects(input) {
       if (['jxl-recompress', 'jpeg-original'].includes(request.target)) return { metadata: 'preserved', findings: conversionFindings('raster', request.target) };
       const raster = ['jxl', 'png', 'jpeg', 'jpg', 'webp', 'avif', 'tiff', 'bmp', 'gif', 'apng'].includes(input.format);
-      return { metadata: request.target === 'pdf-clean' ? 'changed' : raster ? 'removed' : 'not-checked', findings: conversionFindings(input.format === 'jxl' ? 'jxl' : raster ? 'raster' : input.format, request.target) };
+      // A workbook sniffs as a zip; its name says it is the spreadsheet kind.
+      const kind = input.format === 'zip' && /\.xlsx$/i.test(input.name) ? 'xlsx' : input.format;
+      return { metadata: request.target === 'pdf-clean' ? 'changed' : raster ? 'removed' : 'not-checked', findings: conversionFindings(input.format === 'jxl' ? 'jxl' : raster ? 'raster' : kind, request.target, request.options) };
     },
     async execute(source, operation) {
       if (operation.operation !== 'convert') throw new Error('Supported operation: convert.');
@@ -59,6 +61,7 @@ export async function runNodeFileOperation(file: File, request: FileOperationReq
       const bytes = new Uint8Array(await source.arrayBuffer()); signal?.throwIfAborted();
       const facts = await describeOperationFile(source, signal);
       let result: Uint8Array | string;
+      let zip = false;
       const font = sfntKind(bytes);
       if (['jxl-recompress', 'jpeg-original'].includes(operation.target)) {
         if (options.maxEdge || options.targetBytes) throw new Error('Original JPEG preservation does not support resizing or a target file size.');
@@ -70,7 +73,8 @@ export async function runNodeFileOperation(file: File, request: FileOperationReq
         if (!fontConversionTargets(bytes).includes(operation.target as 'ttf' | 'otf' | 'woff')) throw new Error('That font container conversion is not supported; outline types are never relabelled.');
         result = convertFontContainer(bytes, operation.target as 'ttf' | 'otf' | 'woff');
       } else if (['csv', 'tsv', 'json', 'xlsx'].includes(facts.format) || facts.format === 'zip' && /\.xlsx$/i.test(source.name)) {
-        result = gridToTarget(sourceToGrid(/\.xlsx$/i.test(source.name) ? 'xlsx' : facts.format, bytes), operation.target);
+        const data = await convertDataFile(/\.xlsx$/i.test(source.name) ? 'xlsx' : facts.format, bytes, operation.target, readDataOptions(operation.options), source.name);
+        result = data.bytes; zip = data.zip;
       } else {
         if (!(NODE_FILE_TARGETS.image as readonly string[]).includes(operation.target)) throw new Error('Unsupported image output format.');
         // SVG is deliberately not handed to a native decoder: external-resource and
@@ -102,8 +106,8 @@ export async function runNodeFileOperation(file: File, request: FileOperationReq
         if (options.targetBytes && output.size > options.targetBytes) throw new Error('Lossless output exceeds the target size. Increase the target or reduce the dimensions.');
         result = output.bytes;
       }
-      const extension = operation.target.startsWith('jxl') ? 'jxl' : operation.target === 'jpeg-original' ? 'jpg' : operation.target.startsWith('pdf-') ? 'pdf' : operation.target === 'jpeg' ? 'jpg' : operation.target;
-      const output = new File([result as BlobPart], safeFileName(`${source.name.replace(/\.[^.]+$/, '')}.${extension}`), { type: extension === 'pdf' ? 'application/pdf' : mime[operation.target] ?? 'application/octet-stream' });
+      const extension = zip ? 'zip' : operation.target.startsWith('jxl') ? 'jxl' : operation.target === 'jpeg-original' ? 'jpg' : operation.target.startsWith('pdf-') ? 'pdf' : operation.target === 'jpeg' ? 'jpg' : operation.target;
+      const output = new File([result as BlobPart], safeFileName(`${source.name.replace(/\.[^.]+$/, '')}.${extension}`), { type: zip ? 'application/zip' : extension === 'pdf' ? 'application/pdf' : mime[operation.target] ?? 'application/octet-stream' });
       validateConvertFiles([output]); return output;
     },
   }, { signal, execution });

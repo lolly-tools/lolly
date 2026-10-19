@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "Blueprint",
   "inputs.diagramPreset.options.mono": "Minimal mono",
   "inputs.diagramType.label": "Uri ng diagram",
-  "inputs.diagramType.help": "Bumubuo ang Org/Mind map ng tree mula sa parent ng bawat card. Ginagrupo ng Layercake/Kanban ang mga card ayon sa kanilang “Group” ID (nakapatong na bands laban sa magkatabing columns). Inaayos ng Process/Timeline/Cycle ang mga card ayon sa flow/order. May sarili silang mga control ang Pyramid, Matrix, at Gantt sa ibaba.",
+  "inputs.diagramType.help": "Piliin ang relasyong gusto mong ipakita. Org chart at Mind map: hierarkiya mula sa parent ng bawat card. Layercake: mga antas ng abstraction, isang band bawat “Group”. Kanban: trabaho ayon sa status, isang column bawat “Group”; ang column ay status, hindi may-ari. Proseso: mga hakbang na may direksyon at mga pabalik na link mula sa mga arrow. Timeline: mga pangyayari ayon sa pagkakasunod, pantay ang pagitan, walang tagal. Ikot: isang loop ayon sa pagkakasunod ng mga card. Pyramid: mga yugtong may ranggo. Matrix: apat na kategorya, hindi mga sinukat na halaga. Gantt: tagal ng mga gawain; ang isang card na may petsa ay nagdaragdag ng time axis at isang lane bawat “Group”.",
   "inputs.diagramType.options.org": "Org chart (hierarkiya)",
   "inputs.diagramType.options.mindmap": "Mapa ng isip",
   "inputs.diagramType.options.layercake": "Layercake (arkitekturang naka-layer)",

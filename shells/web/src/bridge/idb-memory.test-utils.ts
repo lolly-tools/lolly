@@ -33,7 +33,7 @@ class KeyRange {
 }
 (globalThis as Record<string, unknown>).IDBKeyRange = KeyRange;
 
-const SCHEMA: Record<string, { keyPath?: string; indexes?: Record<string, string | string[]> }> = {
+const SCHEMA: Record<string, { keyPath?: string | string[]; indexes?: Record<string, string | string[]> }> = {
   state: { keyPath: 'slot', indexes: { toolId: 'toolId', updatedAt: 'updatedAt', history: 'historyKey' } },
   'revision-documents': { keyPath: 'slot' },
   revisions: { keyPath: 'id', indexes: { documentId: 'documentId', documentTime: ['documentId', 'at', 'id'], documentReason: ['documentId', 'reason', 'at', 'id'], time: ['at', 'id'], toolTime: ['toolId', 'at', 'id'] } },
@@ -41,8 +41,10 @@ const SCHEMA: Record<string, { keyPath?: string; indexes?: Record<string, string
   'revision-recovery': { keyPath: 'id', indexes: { slot: 'slot', slotTime: ['slot', 'at', 'id'], time: ['at', 'id'] } },
   'revision-recovery-payloads': {},
   exports: { keyPath: 'id', indexes: { history: 'historyKey' } },
-  'file-operations': { keyPath: 'id' }, 'file-batches': { keyPath: 'id' },
+  'file-operations': { keyPath: 'id' }, 'file-batches': { keyPath: 'id' }, 'file-operation-blobs': {},
   profile: {}, 'design-systems': { keyPath: 'id' },
+  'asset-meta': { keyPath: 'id' }, 'asset-blob': {}, 'user-assets': { keyPath: 'id' },
+  'asset-observations': { keyPath: 'key', indexes: { id: 'id' } }, 'user-asset-versions': { keyPath: ['assetId', 'version'] },
 };
 type Row = { key: Key; value: unknown };
 export type Stores = Map<string, Map<string, Row>>;

@@ -28,6 +28,14 @@
  * read as an empty slide. A drawing reports its SVG (`opts.vectors`), with the
  * raster stand-in as `fallbackRef`. Text is folded out of the Latin ligature block.
  *
+ * Words read from pixels carry a `recognition` record (plan 203, rank 10): a frame
+ * a rebuild read with text recognition records the recogniser's model and its line
+ * confidences, weighted by characters, with the lowest line beside them; the host's
+ * catalogue (`opts.recognizers`) adds the model's release and languages. A page
+ * kept as one picture whose picture carries a reading that found text, as a
+ * searchable scan's own text layer does, lists those words as one hidden frame.
+ * Authored text never carries the record, so the two never mix.
+ *
  * Pure and deterministic: no DOM, no filesystem, no clock, no hashing. The host
  * supplies what needs I/O through `opts`: the media facts (hash, size, pixel
  * size, written file), the structured notes the pptx reader keeps
@@ -37,6 +45,7 @@
 import {
   CONTENT_INVENTORY_VERSION,
   INVENTORY_SOURCE_KINDS,
+  TEXT_LAYER_MODEL,
   type ContentInventoryV1,
   type DeckCensusV1,
   type InventoryBoxV1,
@@ -48,6 +57,7 @@ import {
   type InventoryParagraphV1,
   type InventoryPictureKindV1,
   type InventoryPictureV1,
+  type InventoryRecognitionV1,
   type InventoryRunV1,
   type InventorySlideV1,
   type InventorySourceKindV1,
@@ -55,6 +65,7 @@ import {
   type InventoryTextRoleV1,
   type InventoryTextV1,
   type ObjectClassV1,
+  type OcrEvidenceV1,
   type SlideSourceV1,
   type SourceDeckV1,
   type SourceObjectV1,
@@ -106,6 +117,18 @@ export interface InventoryFromSourceOptsV1 {
   vectors?: ReadonlyMap<string, string>;
   /** A rendered thumbnail per slide, by slide position, when the host drew them. */
   thumbnails?: ReadonlyArray<{ file: string; width: number; height: number } | undefined>;
+  /**
+   * The host's text recognition catalogue by model id (`OcrModelInfo` in host-v1), so
+   * a recognised frame records the model's release and languages beside its id.
+   */
+  recognizers?: ReadonlyMap<string, InventoryRecognizerV1>;
+}
+
+/** What the host's catalogue says about one recognition model. */
+export interface InventoryRecognizerV1 {
+  version?: string;
+  /** BCP 47 tags. */
+  languages?: readonly string[];
 }
 
 /** A picture under this share of the slide is an icon, the census's own threshold for an `icon` layout unit. */
@@ -251,12 +274,16 @@ function largestPt(object: SourceObjectV1): number {
   return max;
 }
 
-/** Every run that carries letters is drawn in capitals, by its text or by its `case`. */
+/**
+ * Every run that carries letters is drawn in capitals, by its text or by its `case`.
+ * Only letters that have a capital form count: Arabic, Hebrew, Japanese and the other
+ * scripts without case are never "in capitals", so a short line in them stays body.
+ */
 function allCaps(object: SourceObjectV1): boolean {
   let letters = false;
   for (const para of object.text?.paras ?? []) {
     for (const run of para.runs) {
-      if (!/\p{L}/u.test(run.text)) continue;
+      if (!/[\p{Lu}\p{Ll}\p{Lt}]/u.test(run.text)) continue;
       letters = true;
       if (run.case === 'upper') continue;
       if (run.text !== run.text.toUpperCase()) return false;
@@ -359,7 +386,8 @@ const OCR_SAYS: Record<string, string> = {
  */
 function flattenedWarning(slide: SlideSourceV1, number: number): { code: string; message: string } {
   const ocr = slide.ocr?.state ?? 'not-run';
-  const says = OCR_SAYS[ocr] ?? `OCR state ${ocr}`;
+  const layer = slide.ocr?.state === 'text-found' && slide.ocr.model === TEXT_LAYER_MODEL;
+  const says = layer ? 'its words come from the text layer the scan carries' : (OCR_SAYS[ocr] ?? `OCR state ${ocr}`);
   const message = slide.recovery
     ? `Slide ${number} was one picture of its text and was rebuilt from its regions; ${says}.`
     : `Slide ${number} is one picture of its text, kept as that picture; ${says}.`;
@@ -371,6 +399,69 @@ function unavailableWhy(reason: string | undefined): string {
   if (reason === 'media-missing') return 'its picture part is missing from the file';
   if (reason === 'media-too-large') return 'its picture is over the size the reader stores';
   return reason ? `its picture was not stored (${reason})` : 'its picture was not stored';
+}
+
+/** Confidence and its floor kept to four places, so the bytes do not carry float noise. */
+const round4 = (n: number): number => Math.round(Math.min(1, Math.max(0, n)) * 1e4) / 1e4;
+
+/**
+ * The recognition record for a text frame whose words were read from pixels: the
+ * model, the line confidences weighted by characters, and the lowest of them.
+ * Null when the evidence is not a reading that found text.
+ */
+function recognitionOf(ocr: OcrEvidenceV1 | undefined, recognizers: InventoryFromSourceOptsV1['recognizers']): InventoryRecognitionV1 | null {
+  if (ocr?.state !== 'text-found' || !ocr.lines?.length) return null;
+  let weighted = 0;
+  let chars = 0;
+  let min = 1;
+  for (const line of ocr.lines) {
+    const confidence = Number.isFinite(line.confidence) ? Math.min(1, Math.max(0, line.confidence)) : 0;
+    const count = Math.max(1, line.text.replace(/\s/g, '').length);
+    weighted += confidence * count;
+    chars += count;
+    min = Math.min(min, confidence);
+  }
+  const model = ocr.model?.trim() ? ocr.model : 'unknown';
+  const out: InventoryRecognitionV1 = { model, confidence: round4(weighted / chars), minConfidence: round4(min), lines: ocr.lines.length };
+  const known = model === TEXT_LAYER_MODEL ? undefined : recognizers?.get(model);
+  if (known?.version) out.modelVersion = known.version;
+  if (known?.languages?.length) out.languages = [...known.languages];
+  return out;
+}
+
+/**
+ * The words of a page kept as one picture whose picture carries a reading that
+ * found text: a searchable scan's own text layer, or a recogniser's reading made
+ * before the inventory. One frame per picture, a paragraph per line, marked
+ * hidden because the page shows them only as pixels.
+ */
+function pictureTextOf(object: SourceObjectV1, klass: ObjectClassV1 | undefined, size: { width: number; height: number }, recognizers: InventoryFromSourceOptsV1['recognizers']): InventoryTextV1 | null {
+  const recognition = recognitionOf(object.ocr, recognizers);
+  const lines = object.ocr?.lines ?? [];
+  if (!recognition) return null;
+  const kept = lines.map((line) => ({ line, text: normaliseLines(line.text).join(' ') })).filter((one) => one.text !== '');
+  if (kept.length === 0) return null;
+  const paragraphs: InventoryParagraphV1[] = kept.map((one) => ({ runs: [{ text: one.text }] }));
+  let x0 = Number.POSITIVE_INFINITY;
+  let y0 = Number.POSITIVE_INFINITY;
+  let x1 = Number.NEGATIVE_INFINITY;
+  let y1 = Number.NEGATIVE_INFINITY;
+  for (const { line } of kept) {
+    x0 = Math.min(x0, line.box.x);
+    y0 = Math.min(y0, line.box.y);
+    x1 = Math.max(x1, line.box.x + line.box.w);
+    y1 = Math.max(y1, line.box.y + line.box.h);
+  }
+  return {
+    objectId: object.id,
+    role: 'body',
+    class: klass ?? 'unknown',
+    box: fractionBox({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, size.width, size.height),
+    paragraphs,
+    plain: kept.map((one) => one.text).join('\n'),
+    hidden: true,
+    recognition,
+  };
 }
 
 function projectNotes(slide: SlideSourceV1, paras: ReadonlyArray<InventoryNotesParaInputV1> | undefined): InventoryNotesV1 | null {
@@ -464,7 +555,19 @@ export function inventoryFromSource(source: SourceDeckV1, census: DeckCensusV1, 
         entry.hidden = true;
         hiddenTextKept++;
       }
+      const recognition = recognitionOf(object.ocr, opts.recognizers);
+      if (recognition) entry.recognition = recognition;
       text.push(entry);
+    }
+    // A page kept as one picture of its text: what its picture's reading found (a
+    // searchable scan's text layer) is the page's words, so they are listed as text.
+    // The pieces a rebuild cut keep their own readings: their words stay pictures.
+    if (flattened) {
+      for (const object of byReading) {
+        if (object.kind !== 'pic' || object.hidden || object.origin === 'raster-region') continue;
+        const words = pictureTextOf(object, classOf.get(object.id), size, opts.recognizers);
+        if (words) text.push(words);
+      }
     }
 
     const pictures: InventoryPictureV1[] = [];
@@ -567,6 +670,7 @@ export function inventoryFromSource(source: SourceDeckV1, census: DeckCensusV1, 
     if (slide.origin.layoutName) out.layoutName = slide.origin.layoutName;
     const thumbnail = opts.thumbnails?.[position];
     if (thumbnail) out.thumbnail = { file: thumbnail.file, width: Math.round(thumbnail.width), height: Math.round(thumbnail.height) };
+    if (flattened) out.flattened = true;
     return out;
   });
 

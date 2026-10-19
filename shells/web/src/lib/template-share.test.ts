@@ -80,7 +80,7 @@ test('brand-locked catalog art a template points at never rides along', async ()
   const locked = new Blob([new Uint8Array([66, 82, 65, 78, 68])], { type: 'image/svg+xml' });
   const { host, out } = shareHost({
     blobs: {
-      'lolly-start/pattern/waves': { blob: open, meta: { name: 'Waves' } },
+      'lolly-start/pattern/waves': { blob: open, meta: { name: 'Waves', license: 'CC0-1.0' } },
       'suse/logo/primary': { blob: locked, meta: { name: 'SUSE Logo', brandLock: true } },
     },
   });
@@ -93,9 +93,67 @@ test('brand-locked catalog art a template points at never rides along', async ()
   });
   const parsed = await readLollyFile(new Uint8Array(await out.delivered!.blob.arrayBuffer()));
   const byId = Object.fromEntries(parsed.manifest.assets.map(a => [a.id, a]));
-  assert.equal(byId['lolly-start/pattern/waves']!.kind, 'asset', 'ordinary catalog art carries its bytes');
+  assert.equal(byId['lolly-start/pattern/waves']!.kind, 'asset', 'catalog art whose licence lets it travel carries its bytes');
   assert.equal(byId['suse/logo/primary']!.kind, 'asset-ref', 'the brand-locked mark stays home');
   assert.equal(byId['suse/logo/primary']!.licensed, true);
+});
+
+test('catalog art with no licence recorded stays home, and CREDITS.txt gives the reason', async () => {
+  // BEHAVIOUR CHANGE (plan 253): this path used to match the licence label against
+  // `proprietary|all-rights-reserved|licenseref|premiumbeat` and let everything else
+  // travel, so art with no licence at all was passed on. It now takes the same
+  // redistribution() answer as a session share.
+  const svg = (n: number) => new Blob([new Uint8Array([60, 115, 118, 103, n])], { type: 'image/svg+xml' });
+  const { host, out } = shareHost({
+    blobs: {
+      'lolly-start/pattern/unmarked': { blob: svg(1), meta: { name: 'Unmarked pattern' } },
+      'lolly-start/pattern/ref': { blob: svg(2), meta: { name: 'House pattern', license: 'LicenseRef-acme-house' } },
+      'lolly-start/photo/lorikeet': { blob: svg(3), meta: { name: 'Lorikeet', license: 'CC-BY-4.0', attribution: 'Lorikeet by A. Person, CC BY 4.0.' } },
+    },
+  });
+  await shareTemplateAsLolly(host, {
+    ...TEMPLATE,
+    values: {
+      a: { source: 'library', id: 'lolly-start/pattern/unmarked', url: '' },
+      b: { source: 'library', id: 'lolly-start/pattern/ref', url: '' },
+      c: { source: 'library', id: 'lolly-start/photo/lorikeet', url: '' },
+    },
+  });
+  const parsed = await readLollyFile(new Uint8Array(await out.delivered!.blob.arrayBuffer()));
+  const byId = Object.fromEntries(parsed.manifest.assets.map(a => [a.id, a]));
+
+  const unmarked = byId['lolly-start/pattern/unmarked']!;
+  assert.equal(unmarked.kind, 'asset-ref', 'it used to travel by default; it no longer does');
+  assert.equal(unmarked.licensed, true);
+  assert.equal(unmarked.holdReason, 'licence not recorded');
+
+  const ref = byId['lolly-start/pattern/ref']!;
+  assert.equal(ref.kind, 'asset-ref');
+  assert.ok(ref.holdReason?.includes('not yet interpreted'), 'a LicenseRef is held back as uninterpreted, not as proprietary by spelling');
+
+  const lorikeet = byId['lolly-start/photo/lorikeet']!;
+  assert.equal(lorikeet.kind, 'asset', 'a reviewed licence that permits passing on the file still travels');
+  assert.equal(lorikeet.licence, 'CC BY 4.0');
+
+  const credits = new TextDecoder().decode(parsed.files['CREDITS.txt']!);
+  assert.ok(credits.includes('Held back (2)'));
+  assert.ok(credits.includes('Unmarked pattern (lolly-start/pattern/unmarked)'));
+  assert.ok(credits.includes('reason:  licence not recorded'));
+  assert.ok(credits.includes('reason:  LicenseRef-acme-house is recorded and not yet interpreted'));
+  assert.ok(credits.includes('credit:  Lorikeet by A. Person, CC BY 4.0.'), 'the carried work keeps its credit');
+  assert.ok(parsed.manifest.integrity?.['CREDITS.txt'], 'the credits ride the integrity map');
+});
+
+test('a brand-locked asset is held back as deployment policy, not as a licence condition', async () => {
+  const { host, out } = shareHost({
+    blobs: { 'suse/logo/primary': { blob: new Blob([new Uint8Array([1])], { type: 'image/svg+xml' }), meta: { name: 'Mark', brandLock: true, license: 'CC-BY-4.0' } } },
+  });
+  await shareTemplateAsLolly(host, { ...TEMPLATE, values: { mark: { source: 'library', id: 'suse/logo/primary', url: '' } } });
+  const parsed = await readLollyFile(new Uint8Array(await out.delivered!.blob.arrayBuffer()));
+  assert.equal(parsed.manifest.assets[0]!.kind, 'asset-ref');
+  const credits = new TextDecoder().decode(parsed.files['CREDITS.txt']!);
+  assert.ok(credits.includes('held by: deployment policy'));
+  assert.ok(credits.includes('reason:  this brand pack is authoritative on this device'));
 });
 
 test('templateSessionOf copies the seed rather than aliasing the stored record', () => {

@@ -45,7 +45,8 @@
 import { escapeHtml } from '../lib/html.ts';
 import { t, tRaw } from '../i18n.ts';
 import { applyGrainVignette, applyLutFrame, GRAIN_REF_LONG_EDGE, parseLutText, type GradeLut } from '@lolly/engine';
-import { roundCropRect, VIDEO_JOB_MAX_DURATION_SEC, videoJobRefusal, type CropRect, type LutCredit, type SourceProbe, type VideoJobHost, type VideoJobRequest, type VideoRange } from '../lib/video-jobs.ts';
+import { roundCropRect, VIDEO_JOB_MAX_DURATION_SEC, videoJobRefusal, type CropRect, type LutSource, type SourceProbe, type VideoJobHost, type VideoJobRequest, type VideoRange } from '../lib/video-jobs.ts';
+import { PRESET_LUT_BASE, PRESET_LUTS } from '../lib/preset-luts.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { clamp } from '@lolly/engine';
 
@@ -88,31 +89,6 @@ const OUT_BITRATE = 8_000_000;
  *  Exported for the still-image grade mode (views/grade-inline.ts), so a still
  *  and a video graded with the same sliders draw the same texture. */
 export const GRAIN_SEED = 7;
-
-/**
- * The open (CC0) preset LUTs darkroom ships, offered here by the same ids and
- * fetched from the same served path - `community/darkroom/hooks.js` owns the
- * files, this is a second reader of them, never a copy. Keys double as the
- * whitelist: an id that is not in here is never interpolated into a URL.
- * Exported for the still-image grade mode (views/grade-inline.ts) - one list,
- * so the two Grade buttons can never offer different looks.
- */
-export const PRESET_LUT_BASE = '/tools/darkroom/assets/luts/';
-export const PRESET_LUTS: Array<{ id: string; label: string; credit?: LutCredit }> = [
-  { id: 'slide-standard', label: 'Standard slide' },
-  { id: 'slide-vivid', label: 'Vivid slide' },
-  { id: 'chrome-muted', label: 'Muted chrome' },
-  { id: 'mono-fine', label: 'Fine mono (B&W)' },
-  // A credited look (the CC0 films above carry none): the attribution rides into
-  // the graded clip's C2PA, so it travels forward into anything the clip is used in.
-  { id: 'suse7-slog3-heavy', label: 'SUSE7 S-Log3 (Heavy)', credit: {
-    name: 'SUSE7 S-Log3 (Heavy)', author: 'Peter Chamalian',
-    role: 'Director of Photography & Editor', org: 'SUSE',
-    copyright: '© 2025 SUSE', license: 'CC BY 4.0',
-    licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
-    created: '2025-09',
-  } },
-];
 
 /** m:ss.s - short enough to sit in a readout, precise enough to trim on. */
 function fmtTime(sec: number): string {
@@ -323,7 +299,7 @@ export async function mountInlineVideoEdit(host: VideoJobHost, env: VideoEditInl
   let outSec = 0;
   let lut: GradeLut | null = null;
   let lutLabel = '';
-  let lutCredit: LutCredit | undefined;   // set only for a credited preset (attribution → C2PA)
+  let lutSource: LutSource | undefined;   // set only for a shipped preset (its record → C2PA and the rules)
   let cubeText = '';
   let lutState: 'none' | 'loading' | 'ready' | 'error' = 'none';
   let previewBlocked = false;   // the frame can't be read back (a tainted canvas)
@@ -1056,21 +1032,21 @@ export async function mountInlineVideoEdit(host: VideoJobHost, env: VideoEditInl
   }
 
   /** Adopt a parsed LUT (or report why it could not be parsed) - never throws.
-   *  `credit` is set only for a credited preset; an upload passes none, so the
-   *  attribution never sticks to the wrong look. */
-  const adoptLut = (text: string, label: string, name?: string, credit?: LutCredit): void => {
+   *  `source` is set only for a shipped preset; an upload passes none, so a
+   *  record never sticks to the wrong look. */
+  const adoptLut = (text: string, label: string, name?: string, source?: LutSource): void => {
     try {
       lut = parseLutText(text, name);
       cubeText = text;
       lutLabel = label;
-      lutCredit = credit;
+      lutSource = source;
       lutState = 'ready';
       clearError();
     } catch (e) {
       lut = null;
       cubeText = '';
       lutLabel = '';
-      lutCredit = undefined;
+      lutSource = undefined;
       lutState = 'error';
       showError(tRaw("Couldn't read that LUT: {why}", { why: String((e as Error)?.message ?? e) }));
     }
@@ -1082,7 +1058,7 @@ export async function mountInlineVideoEdit(host: VideoJobHost, env: VideoEditInl
     const id = lookSel.value;
     lutFileEl.value = '';
     if (!id) {
-      lut = null; cubeText = ''; lutLabel = ''; lutCredit = undefined; lutState = 'none';
+      lut = null; cubeText = ''; lutLabel = ''; lutSource = undefined; lutState = 'none';
       clearError();
       syncButtons();
       schedulePaint();
@@ -1094,10 +1070,10 @@ export async function mountInlineVideoEdit(host: VideoJobHost, env: VideoEditInl
     syncButtons();
     void fetch(`${PRESET_LUT_BASE}${preset.id}.cube`, { signal })
       .then(res => (res.ok ? res.text() : Promise.reject(new Error(String(res.status)))))
-      .then(text => { if (!exited && lookSel.value === preset.id) adoptLut(text, t(preset.label), `${preset.id}.cube`, preset.credit); })
+      .then(text => { if (!exited && lookSel.value === preset.id) adoptLut(text, t(preset.label), `${preset.id}.cube`, preset.source); })
       .catch((e) => {
         if (exited || (e as Error)?.name === 'AbortError') return;
-        lut = null; cubeText = ''; lutCredit = undefined; lutState = 'error';
+        lut = null; cubeText = ''; lutSource = undefined; lutState = 'error';
         showError(t("Couldn't load that look."));
         syncButtons();
       });
@@ -1167,9 +1143,9 @@ export async function mountInlineVideoEdit(host: VideoJobHost, env: VideoEditInl
       req.grade = {
         cubeText,
         ...(lutLabel ? { lutLabel } : {}),
-        // Attribution only when a credited LUT is actually applied (cubeText set),
-        // never onto a grain/vignette-only grade.
-        ...(cubeText && lutCredit ? { lutCredit } : {}),
+        // The LUT's record only when a preset LUT actually shapes the colours
+        // (cubeText set, intensity above 0), never onto a grain/vignette-only grade.
+        ...(cubeText && lutSource && num('intensity') > 0 ? { lut: lutSource } : {}),
         lutIntensity: clamp(num('intensity') / 100, 0, 1),
         grain: clamp(num('grain') / 100, 0, 1),
         grainSize: clamp(num('grainsize'), 1, 4),

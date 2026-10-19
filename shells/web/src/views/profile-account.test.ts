@@ -105,11 +105,13 @@ const settle = (): Promise<void> => new Promise((res) => setTimeout(res, 20));
 // the file ends when its last case does.
 after(() => { _resetOrgForTests(); });
 
-test('a plain deployment keeps its card: bundled, the desktop line, no account row', async () => {
+// Plan 320 D1: with no workspace door on the welcome, Settings is the door in a browser too.
+test('a plain deployment keeps its card: bundled, Open a workspace, no account row', async () => {
   await boot('no-instance');
   const { view } = mountCard();
   assert.equal(text(view, '#instance-name'), BUNDLED);
-  assert.match(view.querySelector('#instance-section')!.textContent!, DESKTOP_LINE);
+  assert.equal(text(view, '#instance-open-btn'), 'Open a workspace');
+  assert.doesNotMatch(view.querySelector('#instance-section')!.textContent!, DESKTOP_LINE, 'the browser can open a workspace now');
   assert.equal(view.querySelector('#instance-account-row'), null);
   assert.equal(view.querySelector('#instance-inbox-btn'), null);
 });
@@ -120,6 +122,7 @@ test('a member on a workspace: connected to it, signed in as them, Inbox beside 
   assert.equal(text(view, '#instance-name'), 'Connected to Acme.');
   assert.doesNotMatch(view.querySelector('#instance-section')!.textContent!, /Bundled/);
   assert.doesNotMatch(view.querySelector('#instance-section')!.textContent!, DESKTOP_LINE, 'nothing reads as missing on a workspace');
+  assert.equal(view.querySelector('#instance-open-btn'), null, 'on a workspace the person came to use that workspace');
   assert.match(text(view, '#instance-section summary')!, /Acme/, 'the folded card names the workspace too');
   assert.equal(text(view, '#instance-signed-in'), 'Signed in as Ana Lee (ana@acme.test)');
   const row = view.querySelector('#instance-account-row')!;

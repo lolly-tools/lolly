@@ -87,7 +87,7 @@ var _framedCache = { key: null, canvas: null };// cover-framed source
 var _beforeCache = { key: null, src: null };   // framed source as a data URL (split "before" layer)
 var _pipeLutCache = { key: null, lut: null };  // baked colour-pipeline LUT
 var _userLutCache = { id: null, lut: null };   // parsed .cube/.3dl (keyed by file identity)
-var _brandStops = null;                        // resolved brand palette stops (once per mount)
+var _brandStops = null;                        // resolved brand palette stops (once, and again after a switch)
 var _bakeBusy = false;                         // re-entrancy guard for the .cube download
 var _presetLutCache = { id: null, lut: null, error: null }; // parsed preset .cube (keyed 'preset:<id>')
 var _presetInflight = { id: null, promise: null };          // in-flight preset fetch (shared)
@@ -954,7 +954,8 @@ function sampleLut(lut, r, g, b) {
 
 // ── brand palette stops ──────────────────────────────────────────────────────
 
-// Resolve the brand's treatment seeds from host.tokens once per mount:
+// Resolve the brand's treatment seeds from host.tokens once (and again after a
+// theme or colourway switch, see onInput):
 //   shadow    = darkest swatch, highlight = lightest, mid = most chromatic.
 // Falls back to neutral ink/paper + a slate blue when tokens are unavailable.
 function resolveBrandStops() {
@@ -2342,7 +2343,12 @@ async function computeLook(model) {
 }
 
 function onInit(ctx) { return compute(ctx.model); }
-function onInput(ctx) { return compute(ctx.model); }
+function onInput(ctx) {
+  // A theme or colourway switch (id '__tokens'): the treatment seeds are read again
+  // in the new choice. The colour key holds the seeds, so the render follows.
+  if (ctx && ctx.id === '__tokens') _brandStops = null;
+  return compute(ctx.model);
+}
 
 // Deep still export (engine 1.100 exportStill + host.codec): OWN the float
 // MASTER formats - OpenEXR and Radiance .hdr - by rendering the whole pipeline in

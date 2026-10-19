@@ -13,7 +13,7 @@
  * transcoding (svg→eps/dxf), archives, catalog "Download as", provenance on the output.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import { fontConversionTargets, sniffContainer } from '@lolly/engine';
+import { fontConversionTargets } from '@lolly/engine';
 import { validateConvertFiles } from '../lib/file-conversion.ts';
 import { mountConvertWorkbench } from './convert-workbench.ts';
 import { confirmDialog } from '../components/confirm-dialog.ts';
@@ -35,7 +35,7 @@ import { mountProfileFab } from '../components/profile-menu.ts';
 import '../styles/parts/platform.css';   // .platform-layout / .plat-header / .plat-title / .plat-sub
 import '../styles/parts/convert.css';    // async CSS chunk (lazy view - not on the landing)
 
-import { targetsForSource, detectKind, sniffOfficeZip } from '../lib/convert-codecs.ts';
+import { targetsForSource, convertSourceKind } from '../lib/convert-codecs.ts';
 export { sourceToGrid, gridToTarget } from '../lib/convert-codecs.ts';
 export type { Target } from '../lib/convert-codecs.ts';
 
@@ -264,10 +264,7 @@ export async function mountConvert(viewEl: HTMLElement, host: HostV1, params = '
       validateConvertFiles(files);
       const sources = [];
       for (const file of files) {
-        const bytes = new Uint8Array(await file.slice(0, 256 * 1024).arrayBuffer());
-        if (current !== generation) return;
-        let kind = detectKind(bytes, file);
-        if (kind === 'unknown' && sniffContainer(bytes) === 'zip') kind = await sniffOfficeZip(new Uint8Array(await file.arrayBuffer()));
+        const { bytes, kind } = await convertSourceKind(file);
         if (current !== generation) return;
         if (kind === 'video' && files.length === 1) {
           const videoResult = document.createElement('div');

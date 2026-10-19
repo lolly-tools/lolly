@@ -1,0 +1,39 @@
+{
+  "id": "branch-return",
+  "title": "Branch with a return link",
+  "purpose": "One decision with two labelled branches and a resubmit link back to the decision. The return link keeps its direction: the cycle is not hidden by reversing an arrow.",
+  "inputs": {
+    "look": "minimal",
+    "source": "mermaid",
+    "mermaid": "flowchart LR\n  draft[Write draft] --> review{Review}\n  review -->|approved| publish([Publish])\n  review -->|changes requested| revise[Revise draft]\n  revise -->|resubmit| review\n  publish --> archive[(Archive)]"
+  },
+  "census": {
+    "diagramType": "process",
+    "direction": "right",
+    "nodes": [
+      { "id": "draft", "label": "Write draft", "shape": "box" },
+      { "id": "review", "label": "Review", "shape": "diamond" },
+      { "id": "publish", "label": "Publish", "shape": "pill" },
+      { "id": "revise", "label": "Revise draft", "shape": "box" },
+      { "id": "archive", "label": "Archive", "shape": "cylinder" }
+    ],
+    "edges": [
+      { "from": "draft", "to": "review", "label": "", "kind": "forward" },
+      { "from": "review", "to": "publish", "label": "approved", "kind": "forward" },
+      { "from": "review", "to": "revise", "label": "changes requested", "kind": "forward" },
+      { "from": "revise", "to": "review", "label": "resubmit", "kind": "return" },
+      { "from": "publish", "to": "archive", "label": "", "kind": "forward" }
+    ],
+    "groups": []
+  },
+  "features": {
+    "supported": [
+      "Mermaid flowchart header with LR direction",
+      "decision, stadium and cylinder node shapes",
+      "labelled branch edges",
+      "a return edge into an earlier step"
+    ],
+    "simplified": [],
+    "unsupported": []
+  }
+}

@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "Blueprint",
   "inputs.diagramPreset.options.mono": "Minimalne mono",
   "inputs.diagramType.label": "Typ diagramu",
-  "inputs.diagramType.help": "Org/Mapa myśli budują drzewo na podstawie elementu nadrzędnego każdej karty. Layercake/Kanban grupują karty według ich identyfikatora „Group” (warstwy w paskach vs kolumny obok siebie). Proces/Harmonogram/Cykl układają karty według przepływu/kolejności. Piramida, Matryca i Gantt mają własne ustawienia poniżej.",
+  "inputs.diagramType.help": "Wybierz relację, którą chcesz pokazać. Schemat organizacyjny i Mapa myśli: hierarchia według elementu nadrzędnego każdej karty. Layercake: poziomy abstrakcji, jeden pas na każdą „Grupę”. Kanban: praca według stanu, jedna kolumna na każdą „Grupę”; kolumna to stan, a nie właściciel. Proces: kroki z kierunkiem i połączenia powrotne ze strzałek. Linia czasu: zdarzenia po kolei, w równych odstępach, bez czasu trwania. Cykl: pętla w kolejności kart. Piramida: uszeregowane etapy. Matryca: cztery kategorie, a nie zmierzone wartości. Gantt: czas trwania zadań; jedna karta z datą dodaje oś czasu i tor dla każdej „Grupy”.",
   "inputs.diagramType.options.org": "Schemat organizacyjny (hierarchia)",
   "inputs.diagramType.options.mindmap": "Mapa myśli",
   "inputs.diagramType.options.layercake": "Layercake (architektura warstwowa)",

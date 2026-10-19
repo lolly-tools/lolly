@@ -30,5 +30,6 @@
   "synth::name": "Synth",
   "synth::description": "Um instrumento visual que você toca. Quatro cenas rodam ao vivo na GPU: tinta fluida, um enxame de partículas que voa em direção ao seu título ou ao seu logotipo, um campo de feedback e a sua própria câmera. Todas as cores vêm da paleta da sua marca, e a imagem reage ao seu ponteiro, a uma faixa de música e a um controlador MIDI. Exporte uma imagem estática ou um loop contínuo.",
   "icon::description": "Criador de favicon e ícone de aplicativo - um .ico multitamanho, PNG e SVG, ou o kit completo do aplicativo em um único zip.",
-  "diagram-builder::description": "Organogramas, fluxogramas, linhas do tempo e mais - a partir de cartões, texto, Mermaid, DOT ou CSV."
+  "diagram-builder::description": "Organogramas, fluxogramas, linhas do tempo e mais - a partir de cartões, texto, Mermaid, DOT ou CSV.",
+  "pages::description": "Reordene, gire, extraia, exclua, mescle ou divida páginas de PDF, ou transforme imagens em PDF, no seu dispositivo."
 }

@@ -236,3 +236,114 @@ test('a private pairing binds its copies to no account and lists only those', as
     assert.deepEqual(notificationEntries().map(entry => entry.id), ['collab-recovery:paired']);
   } finally { ui.teardown(); dom.window.close(); }
 });
+
+// The room replays its archive of interrupted edits each time it connects (plans 300 and
+// 303 saw "Recovery copy could not be saved here" after a plain reconnect).
+const replayed = (kept: string[], id: string) => ({ kept: () => { kept.push(id); } });
+const unsavedWarnings = () => notificationEntries().filter(entry => entry.id.endsWith(':unsaved'));
+/** A library that counts writes, so a test can prove a replay wrote nothing. */
+function countingLibrary(entries: Array<[string, object]> = []) {
+  const lib = library(entries), writes: string[] = [], save = lib.host.state.save.bind(lib.host.state);
+  Object.assign(lib.host.state, { save: async (slot: string, value: object) => { writes.push(slot); await save(slot, value); } });
+  return { ...lib, writes };
+}
+
+test('a replayed copy that records no account or an earlier workspace address is bound to this account, with no warning', async () => {
+  const dom = workspaceDom(), stage = dom.window.document.querySelector('div')!, runtime = {}, kept: string[] = [];
+  const day = 24 * 60 * 60 * 1000, unbound = owned('', 2 * day), moved = owned('u1', day, 'https://old.example');
+  const { saved, host } = library([['collab-recovery:unbound', unbound], ['collab-recovery:moved', moved]]);
+  const ui = mountCollabRecovery(runtime, host, stage, () => ({ state: { __toolId: 'design' } }), () => 'u1');
+  try {
+    await scanned();
+    assert.deepEqual(notificationEntries().map(entry => entry.id), [], 'neither copy is listed before the room vouches for it');
+    retainCanvasRecovery(runtime, { title: 'Replayed' }, 'Recovered edit', 'unbound', replayed(kept, 'unbound'));
+    retainCanvasRecovery(runtime, { title: 'Replayed' }, 'Recovered edit', 'moved', replayed(kept, 'moved'));
+    await flush();
+    assert.deepEqual(unsavedWarnings(), [], 'no "could not be saved here" warning');
+    assert.equal(stage.querySelector<HTMLElement>('.collab-recovery')!.hidden, true, 'a copy already on this device raises nothing');
+    for (const [slot, before] of [['collab-recovery:unbound', unbound], ['collab-recovery:moved', moved]] as const) {
+      const after = saved.get(slot) as Record<string, unknown>;
+      assert.equal(after.title, 'Copy', 'the first copy of a draft wins');
+      assert.deepEqual(recoveryOwner(after), { origin: WORKSPACE, account: 'u1', at: before[RECOVERY_OWNER_KEY].at }, 'bound here, still dated from its first write');
+    }
+    assert.deepEqual(notificationEntries().map(entry => entry.id).sort(), ['collab-recovery:moved', 'collab-recovery:unbound']);
+    assert.deepEqual(kept.sort(), ['moved', 'unbound'], 'the room is told the library holds both');
+  } finally { ui.teardown(); dom.window.close(); }
+});
+
+test('a replayed copy the person saved as their own work is left as it is, with no warning', async () => {
+  const dom = workspaceDom(), stage = dom.window.document.querySelector('div')!, runtime = {}, kept: string[] = [];
+  const own = { __toolId: 'design', title: 'Edited after opening the copy' };
+  const { saved, host, writes } = countingLibrary([['collab-recovery:mine-now', own]]);
+  const ui = mountCollabRecovery(runtime, host, stage, () => ({ state: { __toolId: 'design' } }), () => 'u1');
+  try {
+    retainCanvasRecovery(runtime, { title: 'Replayed' }, 'Recovered edit', 'mine-now', replayed(kept, 'mine-now'));
+    await flush();
+    assert.deepEqual(unsavedWarnings(), []);
+    assert.deepEqual(writes, []); assert.deepEqual(saved.get('collab-recovery:mine-now'), own);
+    assert.equal(notificationEntries().some(entry => entry.id === 'collab-recovery:mine-now'), false, 'saved work is not listed as a recovery copy');
+    assert.equal(stage.querySelector<HTMLElement>('.collab-recovery')!.hidden, true);
+    assert.deepEqual(kept, ['mine-now']);
+  } finally { ui.teardown(); dom.window.close(); }
+});
+
+test('a replayed draft never takes a copy another account holds, and still warns', async () => {
+  const dom = workspaceDom(), stage = dom.window.document.querySelector('div')!, runtime = {}, kept: string[] = [];
+  const theirs = owned('u2', 60_000), elsewhere = owned('u2', 60_000, 'https://old.example'), loose = owned('', 60_000);
+  const { saved, host, writes } = countingLibrary([['collab-recovery:theirs', theirs], ['collab-recovery:elsewhere', elsewhere], ['collab-recovery:loose', loose]]);
+  const ui = mountCollabRecovery(runtime, host, stage, () => ({ state: { __toolId: 'design' } }), () => 'u1');
+  try {
+    retainCanvasRecovery(runtime, { title: 'Mine now' }, 'Recovered edit', 'theirs', replayed(kept, 'theirs'));
+    await flush();
+    assert.match(stage.querySelector('[role="status"]')!.textContent!, /could not be saved here/);
+    assert.equal(stage.querySelector<HTMLElement>('.collab-recovery')!.hidden, false);
+    assert.deepEqual(unsavedWarnings().map(entry => entry.id), ['collab-recovery:theirs:unsaved']);
+    assert.equal(unsavedWarnings()[0]!.action?.label, 'Download recovery copy', 'the interrupted edit can still be downloaded');
+    retainCanvasRecovery(runtime, { title: 'Mine now' }, 'Recovered edit', 'elsewhere', replayed(kept, 'elsewhere'));
+    await flush();
+    assert.match(stage.querySelector('[role="status"]')!.textContent!, /could not be saved here/, 'another account under an earlier address too');
+    // A draft from this mount (not the room's archive) proves nothing, so it never claims an unbound copy.
+    retainCanvasRecovery(runtime, { title: 'Mine now' }, 'Interrupted text', 'loose');
+    await flush();
+    assert.match(stage.querySelector('[role="status"]')!.textContent!, /could not be saved here/);
+    assert.deepEqual(writes, []);
+    assert.deepEqual(saved.get('collab-recovery:theirs'), theirs); assert.deepEqual(saved.get('collab-recovery:elsewhere'), elsewhere);
+    assert.deepEqual(saved.get('collab-recovery:loose'), loose);
+    assert.equal(notificationEntries().some(entry => !entry.id.endsWith(':unsaved')), false, 'no foreign copy is listed');
+    assert.deepEqual(kept, [], 'the room keeps its archive, so the draft is not lost');
+  } finally { ui.teardown(); dom.window.close(); }
+});
+
+test('reconnecting with no edits raises no draft: a replayed copy already on this device stays in the queue only', async () => {
+  const dom = workspaceDom(), stage = dom.window.document.querySelector('div')!, kept: string[] = [];
+  const { host, writes } = countingLibrary([['collab-recovery:earlier', owned('u1', 60_000)]]);
+  let runtime = {}, ui = mountCollabRecovery(runtime, host, stage, () => ({ state: { __toolId: 'design' } }), () => 'u1');
+  try {
+    for (let connect = 0; connect < 2; connect++) {
+      retainCanvasRecovery(runtime, { title: 'Replayed' }, 'Recovered edit', 'earlier', replayed(kept, 'earlier'));
+      await scanned();
+      assert.equal(stage.querySelector<HTMLElement>('.collab-recovery')!.hidden, true, `connect ${connect}: no stage notice`);
+      assert.equal(stage.querySelector('[role="status"]')!.textContent, '', 'not even "Saving an interrupted edit"');
+      assert.deepEqual(writes, []); assert.deepEqual(unsavedWarnings(), []);
+      assert.deepEqual(notificationEntries().map(entry => entry.id), ['collab-recovery:earlier'], 'the earlier copy stays listed');
+      ui.teardown(); runtime = {};
+      ui = mountCollabRecovery(runtime, host, stage, () => ({ state: { __toolId: 'design' } }), () => 'u1');
+    }
+    assert.deepEqual(kept, ['earlier', 'earlier']);
+  } finally { ui.teardown(); dom.window.close(); }
+});
+
+test('a replayed draft that never reached this device is saved and raised once', async () => {
+  const dom = workspaceDom(), stage = dom.window.document.querySelector('div')!, runtime = {}, kept: string[] = [];
+  const { saved, host } = library();
+  const ui = mountCollabRecovery(runtime, host, stage, () => ({ state: { __toolId: 'design' } }), () => 'u1');
+  try {
+    retainCanvasRecovery(runtime, { title: 'Lost when the tab closed' }, 'Recovered edit', 'unsent', replayed(kept, 'unsent'));
+    await flush();
+    assert.equal((saved.get('collab-recovery:unsent') as { title: string }).title, 'Lost when the tab closed');
+    assert.equal(recoveryOwner(saved.get('collab-recovery:unsent'))?.account, 'u1');
+    assert.equal(stage.querySelector<HTMLElement>('.collab-recovery')!.hidden, false);
+    assert.match(stage.querySelector('[role="status"]')!.textContent!, /saved on this device/);
+    assert.deepEqual(kept, ['unsent']);
+  } finally { ui.teardown(); dom.window.close(); }
+});

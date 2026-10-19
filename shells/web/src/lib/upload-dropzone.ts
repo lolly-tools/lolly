@@ -4,9 +4,8 @@
  * into a mountable component so the #/start Catalogue tab can offer the same ingest
  * surface. Drag files in or click to browse: a <label> over a visually-hidden file
  * input, so click-to-open is native and the input stays keyboard-focusable
- * (Enter/Space opens the OS picker; .updz:focus-within draws the ring). The zone carries
- * BOTH leads and dropzone.css shows one per pointer type: drag copy for a mouse, a
- * full-width CTA on touch, where dragging a file in is not a gesture that exists.
+ * (Enter/Space opens the OS picker; .updz:focus-within draws the ring). A short title
+ * and instruction pill keep the same simple presentation for mouse and touch.
  *
  * Files ingest through the SAME storeUserUpload path as the asset picker (downscale/
  * sanitise/credential-preserve/animated-sniff); a PDF/.ai converts page(s) to SVG
@@ -30,13 +29,11 @@ import { playSfx } from './sfx.ts';
 import { escape } from '../utils.ts';
 import { icon } from './icons.ts';
 import { fetchImageUrlAsFile, AddViaUrlError } from './add-via-url.ts';
-// Only the trim card's strings and the touch CTA go through t() - the zone's own copy
-// predates it and its translation is a separate i18n pass, not something to half-do here.
 import { t } from '../i18n.ts';
 import '../styles/parts/dropzone.css';
 
 export interface DropzoneOpts {
-  /** Filetype hint line under the prompt; defaults to the full ingest-path list. */
+  /** Optional instruction text in the pill under the prompt. */
   hint?: string;
   /** Tighter row for dense surfaces (hides the hint line). */
   compact?: boolean;
@@ -45,23 +42,6 @@ export interface DropzoneOpts {
   /** Show a reveal-on-click "Add from URL" field under the zone (needs `host`). */
   allowUrl?: boolean;
 }
-
-// What the ingest path ACTUALLY accepts - keep in step with UPLOAD_ACCEPT.
-// Rendered as glanceable category chips (label to scan, exact formats on hover) so the
-// support list is subordinate to the drop prompt instead of a run-on sentence beside it.
-const FORMAT_GROUPS: ReadonlyArray<{ label: string; formats: string }> = [
-  { label: 'Images', formats: 'PNG, JPG, JPEG XL, WEBP, GIF' },
-  { label: 'SVG', formats: 'SVG vector' },
-  { label: '3D', formats: 'GLB, STL' },
-  { label: 'PDF & AI', formats: 'PDF, Illustrator' },
-  { label: 'Slides', formats: 'PowerPoint' },
-  { label: 'Audio', formats: 'MP3, WAV, OGG, M4A, FLAC' },
-  { label: 'Video', formats: 'Video & Lottie' },
-  { label: 'Text & code', formats: 'Text, Markdown & code files' },
-];
-const DEFAULT_HINT_HTML = FORMAT_GROUPS
-  .map((g) => `<span class="updz-chip" title="${escape(g.formats)}">${escape(g.label)}</span>`)
-  .join('');
 
 // Lucide-style upload glyph (themes via currentColor; sized in dropzone.css).
 const UPLOAD_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>';
@@ -80,8 +60,8 @@ export function mountUploadDropzone(container: HTMLElement, host: PickerHost, op
       <input type="file" class="updz-input visually-hidden" multiple accept="${escape(`${UPLOAD_ACCEPT},.zip,.tar,.tgz,.gz`)}" aria-label="Upload files to your library">
       <span class="updz-icon" aria-hidden="true">${UPLOAD_ICON}</span>
       <span class="updz-copy">
-        <span class="updz-text"><span class="updz-lead">Drag &amp; drop files here, or <span class="updz-browse">browse</span></span><span class="updz-cta btn btn--primary">${t('Choose files')}</span></span>
-        <span class="updz-hint">${opts.hint ? escape(opts.hint) : DEFAULT_HINT_HTML}</span>
+        <span class="updz-text">${t('Add files')}</span>
+        <span class="updz-hint">${opts.hint ? escape(opts.hint) : t('drag & drop, tap or click')}</span>
       </span>
     </label>${opts.allowUrl ? `
     <div class="updz-url">

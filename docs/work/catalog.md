@@ -472,6 +472,11 @@ The console's Catalog view lists every asset the deploy serves with a thumbnail,
 revocation state; a revoked or hidden-on-expiry asset stays listed there - without its
 catalog metadata - so it can still be managed.
 
+The console sets these dates as whole days in the admin's own time zone. Each row has an end
+date, and an asset's Inspect panel has a start date and an end date. A start date opens at
+the first moment of that day and an end date closes at the last, so an asset set to end on
+31 December is still live all of 31 December where the admin is. The API takes any instant.
+
 ### Holds
 
 A **hold** is the one governance verb that only ever *preserves* availability - a
@@ -768,6 +773,19 @@ and then revalidates them against the ETag, which costs no bytes while the entry
 They are never cached as immutable: they sit behind access checks, so a person who loses
 access must not keep a copy that stays valid.
 
+A viewer can read a large federated file in parts with an HTTP `Range` header, and Work answers
+`206 Partial Content` with one range. Each part is a separate request that passes every
+visibility, source and lifecycle check again, so revoking access, disabling the source or expiring
+the asset stops the next part. A whole response says `Accept-Ranges: bytes` when parts are
+available: from a small file in the memory cache, or from a source whose driver forwards ranges
+and checks the partial reply (currently Orange Logic renditions). Such a driver resolves the asset
+again for every part it forwards, so the source's own scope is checked as well. A part served from
+the memory cache relies on Work's own visibility, source and lifecycle checks, as a whole cached
+read does. A part never enters the memory cache. A stale `If-Range` validator returns the whole
+current file, and a range outside the file returns `416`. Pinned local copies, previews and other
+sources return the whole file. A pinned copy is read from the store from its first byte, so serving
+it in parts would read the whole file again for every part.
+
 <a id="the-exit---materialize-a-source-into-your-own-store"></a>
 
 ### The exit - materialize a source into your own store
@@ -827,8 +845,8 @@ Instance-owned catalog bytes (materialized assets, and later collab staging) liv
 
 | Driver | When |
 |---|---|
-| `pg` (default) | zero moving parts - PG works everywhere the plane runs, including a single node |
-| `s3` | any S3-compatible store (AWS, MinIO, Ceph RGW) for media-sized estates and the air-gap story - a config flip, not an architecture change |
+| `pg` (default) | zero moving parts - PG works everywhere the plane runs, including a single node. Each blob is held whole in memory and is at most 500 MiB |
+| `s3` | any S3-compatible store (AWS, MinIO, Ceph RGW) for media-sized estates and the air-gap story - a config flip, not an architecture change. Blobs go up in 8 MiB parts |
 
 ```jsonc
 // instance.json
@@ -836,8 +854,10 @@ Instance-owned catalog bytes (materialized assets, and later collab staging) liv
 ```
 
 The S3 credential is env-only: `LW_BLOBS_S3_CREDENTIAL="<accessKeyId>:<secretAccessKey>"`.
-S3 access is hand-rolled SigV4 (signed GET/PUT/DELETE) - no AWS SDK. `inst/*` bytes stream
-from `/catalog/inst/<id>/<format>` with an ETag, gated by lifecycle like any asset.
+S3 access is hand-rolled SigV4 (signed GET/PUT/DELETE and multipart uploads) - no AWS SDK.
+`inst/*` bytes stream from `/catalog/inst/<id>/<format>` with an ETag, gated by lifecycle like
+any asset. [Blob limits and integrity](configuration.md#blob-limits-and-integrity) covers each
+driver's size limits, memory use, checksums and the S3 permissions and lifecycle rule.
 
 ### Third-party terms
 

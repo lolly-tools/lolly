@@ -593,6 +593,36 @@ test('two columns read column by column, and a tagged page reads in its structur
   assert.deepEqual(t.readingOrder.map((id) => tById.get(id)), ['Drawn second, read first', 'Drawn first, read second']);
 });
 
+test('a full-width title over two columns, and a small-print sidebar beside a larger body, both read column by column', async () => {
+  const readOrder = (slide: SourceDeckV1['slides'][number]): string[] => {
+    const byId = new Map(slide.objects.map((o) => [o.id, textOf(o)]));
+    return slide.readingOrder.map((id) => byId.get(id)!.split(' ')[0]!);
+  };
+
+  // The title covers the gutter, so the columns are found only once the title is left out.
+  const col = (x: number, label: string): string[] => Array.from({ length: 5 }, (_, i) =>
+    `BT /F1 10 Tf ${x} ${300 - i * 14} Td (${label} line ${i + 1} of the column text here) Tj ET`);
+  const left = col(36, 'Left');
+  const right = col(380, 'Right');
+  const titled = await probe([{
+    content: ['BT /F1 24 Tf 36 350 Td (Title set across the whole width of the page) Tj ET', ...left.flatMap((l, i) => [l, right[i]!])].join('\n'),
+  }]);
+  assert.deepEqual(readOrder(titled.slides[0]!), ['Title', 'Left', 'Left', 'Left', 'Left', 'Left', 'Right', 'Right', 'Right', 'Right', 'Right']);
+
+  // Fourteen sidebar lines at 9 pt beside eight body lines at 12 pt, the body a gutter
+  // to the right: the median size is the sidebar's, so the body would pass for
+  // headings if they were left out first, and the page would be read across.
+  const sidebar = Array.from({ length: 14 }, (_, i) =>
+    `BT /F1 9 Tf 36 ${370 - i * 11} Td (S${String(i + 1).padStart(2, '0')} a short sidebar note in small print) Tj ET`);
+  const body = Array.from({ length: 8 }, (_, i) =>
+    `BT /F1 12 Tf 300 ${370 - i * 16} Td (B${i + 1} body paragraph text runs across the wide main column) Tj ET`);
+  const sided = await probe([{ content: [...sidebar, ...body].join('\n') }]);
+  assert.deepEqual(readOrder(sided.slides[0]!), [
+    ...Array.from({ length: 14 }, (_, i) => `S${String(i + 1).padStart(2, '0')}`),
+    ...Array.from({ length: 8 }, (_, i) => `B${i + 1}`),
+  ]);
+});
+
 test('a vector fingerprint counts the mark\'s placement: the same place matches, another place does not', async () => {
   const mark = (dx: number): string => `1 0 0 rg ${100 + dx} 100 m ${120 + dx} 100 l ${110 + dx} 120 l h f`;
   const deck = await probe([{ content: mark(0) }, { content: mark(0) }, { content: mark(200) }]);

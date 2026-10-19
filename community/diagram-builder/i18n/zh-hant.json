@@ -11,7 +11,7 @@
   "inputs.diagramPreset.options.blueprint": "藍圖",
   "inputs.diagramPreset.options.mono": "極簡單色",
   "inputs.diagramType.label": "圖表類型",
-  "inputs.diagramType.help": "組織圖／心智圖會依每張卡片的上層卡片建立樹狀結構。分層架構／看板則依卡片的「群組」ID 分組（堆疊區塊 vs 並排欄位）。流程／時間軸／循環圖依流向或順序排列卡片。金字塔圖、矩陣圖與甘特圖則有各自的專屬設定，詳見下方。",
+  "inputs.diagramType.help": "選擇要呈現的關係。組織圖與心智圖：依每張卡片的上層卡片形成的階層。分層架構圖：抽象層級，每個「群組」一條區塊。看板：依狀態排列的工作，每個「群組」一欄；欄位代表狀態，不代表負責人。流程圖：由箭頭構成的有向步驟與返回連結。時間軸：依序等距排列的事件，不表示期間。循環圖：依卡片順序形成的迴圈。金字塔圖：有排序的階段。矩陣圖：四個類別，不是量測數值。甘特圖：任務期間；只要有一張卡片加上日期，就會加入時間軸，並為每個「群組」加入一條軌道。",
   "inputs.diagramType.options.org": "組織圖（階層）",
   "inputs.diagramType.options.mindmap": "心智圖",
   "inputs.diagramType.options.layercake": "分層架構圖（依層級呈現）",

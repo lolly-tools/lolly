@@ -1,0 +1,4 @@
+.cat-source-history { overflow-wrap: anywhere; }
+.cat-source-history p { margin-block: .5rem; }
+.cat-source-history label { display: block; margin-block: .5rem; }
+.cat-source-history .field-input { width: 100%; max-width: 100%; box-sizing: border-box; }

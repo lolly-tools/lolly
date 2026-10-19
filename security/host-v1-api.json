@@ -5,7 +5,7 @@
     "HOST_V1_OPTIONAL_APIS": {
       "module": "apis.ts",
       "kind": "FirstStatement",
-      "sha256": "c0a825ebe1ba058347bf463860dd10789cf7880d215313013a6ad27f28af7066"
+      "sha256": "fc369c16245419b4614c3655a71ff6c7dd021cdef8f03e4eba32e1b27e0d52f6"
     },
     "HostApiName": {
       "module": "apis.ts",
@@ -447,6 +447,56 @@
       "kind": "InterfaceDeclaration",
       "sha256": "0a5d937b3cb6703fa9bd2c6ad99f96da8a38e07c0b7a48b3db472073c863c0e5"
     },
+    "FontEmbeddingV1": {
+      "module": "fonts.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "34019a3bf6079d987b92fc0fa0e6d5ce9d2cca824ef09b88549a0ead6427d248"
+    },
+    "FontSubsetRefusalV1": {
+      "module": "fonts.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "a7231b008e918691260df5605550ff8704299179269f366229798f93856318e7"
+    },
+    "FontAxisV1": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "6bf0fb261137aa295a55ee82c609bf28a1d11b6d72bda7bbef2bbe09e05b3250"
+    },
+    "FontInstanceV1": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "50610b882f7aac07412827d052e1c2370d25b0633c963df13930ef4a6b162d6e"
+    },
+    "FontBlockCoverageV1": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "c4747c4e5d447b2c895e808e43cab05410e0eed57c7447008dc0481356775dba"
+    },
+    "FontInspectionV1": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "b5c3a5baef427aa7770f2c3252030b387e60a2e10e6647930f92438070849426"
+    },
+    "FontSubsetRequestV1": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "6dbb5ac94a91bbc9fbc9e2db0cfc79daad180ea1cc3c89c3d9cf3b4f4c35ab6c"
+    },
+    "FontSubsetReportV1": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "409198443f1d8059b3d2d5cd3dfef0ffca20528007b132a50e8f30e81c30199b"
+    },
+    "FontSubsetResultV1": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d11aa373a647e4fa61e382cb9cf1a88996426110f732e15dc362e9e4e4f11faa"
+    },
+    "FontsAPI": {
+      "module": "fonts.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "04cd0f9ac0b364e0882443628c260dbf870150135db22fddf406e432620e5cba"
+    },
     "GeomAPI": {
       "module": "geom.ts",
       "kind": "InterfaceDeclaration",
@@ -540,7 +590,7 @@
     "HostV1": {
       "module": "host.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "3ed6f7704aa666ba28f5958adef24440da12aebaf2e586252df5b5ca8d874170"
+      "sha256": "3e8bd81d388db8e16cd6902443d80bfee91c181dd0c7de163756a9c9f5020fac"
     },
     "Capability": {
       "module": "host.ts",
@@ -655,12 +705,42 @@
     "MediaTrimOpts": {
       "module": "media.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "023c1419d9075e9c95dbc19fa304369101f80d645ffc48bf4023004edcce22f4"
+      "sha256": "145d1de76079caf0818116bd6b5e595a746c2fbecb25f2af0056610140fc5c6a"
     },
     "MediaTrimResult": {
       "module": "media.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "35d21e0be11a3ac2de83fa4250cdaba05a2707f7d7c73f72c561d135a2b58890"
+      "sha256": "c64d89730bc8a6aecc9371d81a5387771c549f5f4b1c24b8fd82b790e7c38180"
+    },
+    "MediaTrimReason": {
+      "module": "media.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "d1167f1d79c18f0cf8047a5df96975b4225dea8a3d166d37f5e0bb719bfee784"
+    },
+    "MediaTrimTrackReport": {
+      "module": "media.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "03a67087dcffb01a8be6c57af59ba30d764c273650f0190639ef5f0d0804c142"
+    },
+    "MediaSyncCheck": {
+      "module": "media.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "efc8b8c2e4655098e42426c643421c7f6eddd6ec36ff4c05b92e50cd9983f533"
+    },
+    "MediaOrientationCheck": {
+      "module": "media.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "db92542e377acdcdeaebbd1770d9e536db03e15b6a812553efa03448a3a0174b"
+    },
+    "MediaColorCheck": {
+      "module": "media.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "257e4d64e00a74a5ccc781032f2029ac02d2d561657e4997310744bdec03b9ab"
+    },
+    "MediaTrimReport": {
+      "module": "media.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "63fe595887958db1f3bc040fe51e79652fd56fd2b3c1f4852262cb73c3c3ba06"
     },
     "MediaFrame": {
       "module": "media.ts",
@@ -740,7 +820,7 @@
     "PdfAPI": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "dfc0e92a1e7015980d63f7302779e7038c64c295f4396a3fe2f3bac76036e102"
+      "sha256": "d7f3bbd797bd38b7fe1cebeb734ce84f2be58cf1cb5b7a31aa1fadd0e5a7e091"
     },
     "PdfPageOperation": {
       "module": "pdf.ts",
@@ -760,7 +840,37 @@
     "PdfOrganizeResult": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "7e08471b9e55dd3f8e077aecf1b2366f4bb7ea2de502ea783d06957164fcecb4"
+      "sha256": "6b76afb5f56ad046abde9cfe65cbac0d54c1f0b9ec5797cd5149cb9ea8a67322"
+    },
+    "PdfPageFeature": {
+      "module": "pdf.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "532e05519605ef10a6878c832af1dc9e68a96ad2c37b9ea6bb18b88ced4d9586"
+    },
+    "PdfPageEffect": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "951a86670ec1955e38fa16c3bf638acdfcf91dd9f57681b7155fef7320df3487"
+    },
+    "PdfImageInput": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "7f5c08e4eabf9b08db121f18607a473c1bad6c1bac6efb2a55333c9a680933f7"
+    },
+    "PdfImagePageSize": {
+      "module": "pdf.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "f309a6182bb936c08775f53ea45e1d39403b55023cb4a8eac45a59d41f433970"
+    },
+    "PdfImagesOpts": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "87418c8f7b650b6986a9222dff24ad9bf86256d8cda65155b6cc5cc58c6b7ca4"
+    },
+    "PdfImagesResult": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "d578bbbfac0ad0e5645693d416619e309e6b0ac563a6a0d8a62b45a6337af6c6"
     },
     "PdfStampImage": {
       "module": "pdf.ts",
@@ -1107,10 +1217,35 @@
       "kind": "InterfaceDeclaration",
       "sha256": "12c5e8bf35b265f82181eb772e02efceb3f799695eb4227a57a37f09a359e135"
     },
+    "TokenAxisKind": {
+      "module": "tokens.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "09cac2656817d3136ea80bde63cef074471a6b4eeaad0ad511d08b0b53e8b16d"
+    },
+    "TOKEN_AXIS_KINDS": {
+      "module": "tokens.ts",
+      "kind": "FirstStatement",
+      "sha256": "de730f525fa7ec21273ddda3d64680347a804529d25849af031bcbe4eebaaf96"
+    },
+    "TokenRotationPolicy": {
+      "module": "tokens.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "8cd06cbe18eb2c44c05875386bfac58575957ef19453db5119dd3a1419d92545"
+    },
+    "TokenAxisInfo": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a004d50a06a23570bf135144b649edd68c78272e8779cc80658eac3a16133168"
+    },
+    "TokenFamilyMember": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "3945312470d588a1198d92d12ba4a4eb7b914217b6993a3dcd25edd6f343850e"
+    },
     "TokenSelection": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "e471fc81beb14157e6134809051207ba95d3e1033dd0f9e4ab9349359accaf3d"
+      "sha256": "c9e71fd4c7910f005195fec71b3ddbbcf61bdd9ae22d7132c95e4babaa6df37c"
     },
     "TokenSource": {
       "module": "tokens.ts",
@@ -1130,7 +1265,7 @@
     "TokensAPI": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "56e0e0558e88d55406fe31baa57a682c000acdbf91f08498749ea7c549bb9b6f"
+      "sha256": "48254127859985ec719122ba6ad108dfe1a20b8f6f45100b0280a0ca6f02723e"
     },
     "TokensSnapshot": {
       "module": "tokens.ts",
@@ -1145,7 +1280,7 @@
     "TokenSet": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "7c72046759fbde6f56e54fb6c52f7bf62a158492c7127ddf308e4b16ca6d41c4"
+      "sha256": "852fd55a53bab12bb043a9c07514294808e0b95e36861598d7365bd6b08d103a"
     },
     "TokenEntry": {
       "module": "tokens.ts",

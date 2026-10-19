@@ -43,6 +43,8 @@ export interface TeamProjectRef {
   via?: TeamProjectVia;
   /** Who the project reaches without being named. */
   audience?: 'restricted' | 'instance';
+  /** Who the project was made for: only the people added to it, or whole groups. */
+  visibility?: TeamProjectVisibility;
   /** The person's own choice: kept in their list (`pinned`) or kept out (`hidden`). */
   listed?: 'pinned' | 'hidden';
   /** When the person last opened it, as the source recorded. */

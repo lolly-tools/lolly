@@ -177,3 +177,20 @@ test('rasterContentBounds returns null for an entirely flat white frame', () => 
   const data = makeFlat(5, 5, [255, 255, 255], []);
   assert.equal(rasterContentBounds(data, 5, 5), null);
 });
+
+// Plan 320 S7: a wordmark in live <text> has no geometry in markup. Measuring the
+// shapes around it offered a trim that removed 91.8% of the area, words included.
+test('svgContentBounds will not measure artwork that has visible live text', () => {
+  const lockup = '<svg viewBox="0 0 520 140"><circle cx="70" cy="70" r="40"/><text x="140" y="90" font-size="48">Northwind</text></svg>';
+  assert.equal(svgContentBounds(lockup), null);
+  assert.equal(trimSvgToContent(lockup), null, 'no trim offer for a file that would lose its words');
+  const nested = '<svg viewBox="0 0 520 140"><rect width="40" height="40"/><text x="140" y="90"><tspan>Ledger</tspan></text></svg>';
+  assert.equal(svgContentBounds(nested), null);
+});
+
+test('svgContentBounds still measures when the live text is a definition or hidden', () => {
+  const defs = '<svg viewBox="0 0 400 400"><defs><text id="t">Label</text></defs><rect x="100" y="100" width="50" height="50"/></svg>';
+  assert.deepEqual(svgContentBounds(defs), { x: 100, y: 100, width: 50, height: 50 });
+  const hidden = '<svg viewBox="0 0 400 400"><g display="none"><text>Draft</text></g><rect x="10" y="10" width="20" height="20"/></svg>';
+  assert.deepEqual(svgContentBounds(hidden), { x: 10, y: 10, width: 20, height: 20 });
+});

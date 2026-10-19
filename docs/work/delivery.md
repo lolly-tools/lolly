@@ -212,6 +212,32 @@ curl -X POST \
 
 Discovery and history routes are listed in the [API reference](api.md#outbound-delivery).
 
+## Interoperability canaries
+
+Three gated tests check each adapter against a real endpoint. Each one is skipped unless its
+switch is set to `1`, writes inert text under a random `canary-<uuid>` delivery id, and removes
+that exact object afterwards, or fails and lists each id whose removal it could not confirm.
+None of them lists or browses the remote side or prints a credential.
+
+| Test | Switch | Settings (each prefixed with the switch name) |
+|---|---|---|
+| `tests/s3-upcloud-canary.test.ts` | `LW_S3_CANARY` | `_ENDPOINT`, `_REGION`, `_BUCKET`, `_ACCESS_KEY`, `_SECRET_KEY` |
+| `tests/webdav-delivery-canary.test.ts` | `LW_WEBDAV_CANARY` | `_URL`, `_CREDENTIAL`, optional `_PREFIX` |
+| `tests/https-delivery-canary.test.ts` | `LW_HTTPS_CANARY` | `_URL`, `_SECRET`, `_CLEANUP_URL`, optional `_CLEANUP_CREDENTIAL` |
+
+Point the WebDAV canary at an existing collection set aside for the test. It delivers twice to
+confirm that a retry overwrites the same resource, then reads the bytes back with its own
+request. The signed-HTTPS protocol has no delete contract, so that canary deletes through the
+receiver's own management API: `LW_HTTPS_CANARY_CLEANUP_URL` is an HTTPS URL with one `{id}`
+placeholder, filled with the `id` from each receipt, and a `GET` of the same URL must then answer
+404 or 410. When a receipt is missing, unusable or has no `id`, the canary uses the delivery id
+instead and counts the item as removed only when the `DELETE` succeeds. The management API
+should resolve delivery ids; if it cannot, the canary reports the cleanup as unconfirmed and the
+operator must check the receiver by hand. When the receipt carries a digest, it must match the
+bytes sent. A second HTTPS test sends three requests the receiver must refuse with a 4xx status:
+a signature from another secret, a timestamp a day old, and a body that does not match its
+signed digest.
+
 ## Current edge of the first slice
 
 Built now: shell presentation separated from personal connections; optional approval-chain
@@ -219,8 +245,9 @@ binding over immutable staged bytes; completed automation-render output consumed
 reference with principal isolation and delete protection; fixed config-managed S3,
 WebDAV and signed-HTTPS targets; group/RBAC projection; C2PA and byte caps; durable records in
 both stores; idempotency; exact-byte retry; provider receipts; and audit events. The S3 wire is
-live-validated against the project's UpCloud host; WebDAV and HTTPS currently have injected-wire
-tests and still need tenant/receiver canaries before either is called live-verified.
+live-validated against the project's UpCloud host. WebDAV and HTTPS have injected-wire tests and
+the gated canaries above, which have not yet run against a real tenant or receiver, so neither
+adapter is called live-verified.
 
 Future asset-system destinations must also declare create/new-version/replace and conflict
 policy before writing. Transfer acceptance, processing, original readiness, review and public
@@ -236,7 +263,8 @@ Still deliberately pending:
 - a replica-safe background claimant for queued/stalled deliveries;
 - retention for staged retry bytes;
 - administrator UI/CLI for destination configuration;
-- live WebDAV and signed-HTTPS interoperability canaries against operator-supplied endpoints.
+- a passing run of the WebDAV and signed-HTTPS canaries against an operator-supplied tenant and
+  receiver.
 
 Those additions extend this record and adapter seam; they do not widen catalog providers or
 the personal connected-services contract.

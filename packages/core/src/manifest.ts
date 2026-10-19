@@ -13,8 +13,31 @@
  * carries an index signature so those extra members type-check while the schema
  * validates them.
  */
-import type { Capability, ExportFormat } from './host-v1.ts';
+import type { Capability, ExportFormat, TokenAxisKind } from './host-v1.ts';
 import type { HostApiName } from './host-v1/apis.ts';
+
+/**
+ * What a tool does with one kind of theme group. `ignore` is the only behaviour
+ * today; a later one is an additive member here and in the schema's enum.
+ */
+export type ToolTokenAxisBehaviour = 'ignore';
+
+/**
+ * A manifest's `tokenAxes` map (plans/319): axis kind to behaviour, for a tool
+ * whose colours are its content.
+ *
+ * ```json
+ * "tokenAxes": { "colourway": "ignore" }
+ * ```
+ *
+ * An ignored kind renders in that group's canonical option for this tool
+ * (the option marked `canonical`, else the first one authored), whatever a link,
+ * a saved session or the design system's own stored choice asks for, and the
+ * web shell hides that group's control in this tool. For `mode`, the ungrouped
+ * light and dark group counts when no group declares the kind. The CLI and MCP
+ * report a choice the tool ignored instead of dropping it silently.
+ */
+export type ToolTokenAxes = Partial<Record<TokenAxisKind, ToolTokenAxisBehaviour>>;
 
 /** The kinds of input a tool can declare. Mirrors the schema's `inputs[].type` enum. */
 export type InputType =
@@ -348,6 +371,11 @@ export interface ToolManifest {
    * `?designv=`. On a device that never published a version it has no effect.
    */
   designVersion?: string;
+  /**
+   * How this tool treats each kind of theme group a design system declares
+   * (plans/319). See {@link ToolTokenAxes}.
+   */
+  tokenAxes?: ToolTokenAxes;
   status: 'official' | 'community' | 'experimental';
   render: RenderSpec;
   inputs: InputSpec[];

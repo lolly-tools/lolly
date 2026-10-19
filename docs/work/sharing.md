@@ -41,6 +41,7 @@ optionally watermark → optionally embed provenance / sign → cache.
 ```
 POST /api/v1/links      { kind, target, ttlHours?, password?, projectId? }
 GET  /l/:id?s=<sig>
+POST /l/:id?s=<sig>     { password }
 POST /api/v1/links/:id/revoke
 GET  /api/v1/links[?all=1]
 ```
@@ -55,10 +56,37 @@ GET  /api/v1/links[?all=1]
 `target` needs a `toolId`, a `sessionId`, or an `assetId`. The signature covers the link id, kind, expiry
 and a digest of the resolved target - so neither the target nor the expiry can be edited in
 the URL bar, and the minted parameters are what gets rendered (the caller's query on `/l/:id`
-is ignored, apart from the password gate). Optional passwords are scrypt-hashed.
+is ignored). Optional passwords are scrypt-hashed; see [Password links](#password-links).
 
 Failure modes are distinct and honest: `403 BAD_SIGNATURE`, `410 LINK_EXPIRED`,
-`410 LINK_REVOKED`, `401 PASSWORD_REQUIRED`.
+`410 LINK_REVOKED`, `401 PASSWORD_REQUIRED`, `401 PASSWORD_INCORRECT` and
+`429 PASSWORD_LOCKED`.
+
+### Password links
+
+A link minted with a `password` asks for it, and the password never has to sit in the
+link's URL:
+
+- A browser that opens the link gets a short page with a password field. The form posts to
+  the link's own address.
+- `POST /l/:id?s=<sig>` takes the password as the form field `password` or as JSON
+  `{"password": "…"}`. The right password sets an HttpOnly cookie, `lw_link_<id>`, scoped to
+  that link's path (`Path=/l/<id>`), for 12 hours at most and never past the link's expiry.
+  A form gets a `303` back to the link; JSON gets `200 {"ok": true}`.
+- The cookie stands in for the password and nothing else. The signature, the expiry and
+  revocation are still checked on every request, and one link's cookie never opens another.
+- A collection link's item and **Download all** addresses carry no password: the cookie opens
+  them.
+- A password link answers `private, no-store`, because the cookie, not the URL, decides who
+  reads it, so no shared cache may answer that URL for someone else.
+- Ten wrong passwords from one address within 15 minutes lock the link for that address
+  (`429 PASSWORD_LOCKED`, with `Retry-After`).
+
+Adding `&pw=<password>` to the link is deprecated. A password in a URL stays in browser
+history and in server, proxy and CDN logs. It still opens the link for one more release: the
+answer carries a `Deprecation` header and sets the same cookie, so the page's own links work
+without the password in them, and the server logs one warning per link. Move anything that
+builds `&pw=` links to the form or the `POST`.
 
 ### Linking a catalog asset
 
@@ -519,7 +547,7 @@ its parts, when someone next starts an upload or when retention runs.
 
 The limits come from `policy.projectFiles` (see [configuration](configuration.md#policy)):
 
-- one file: 25 MiB by default (`maxFileBytes`), never more than 256 MiB;
+- one file: 25 MiB by default (`maxFileBytes`), never more than 4 GiB;
 - one project: 128 MiB of files (`projectBudgetBytes`);
 - the whole instance: 256 MiB of files (`instanceBudgetBytes`);
 - one person: 16 unfinished uploads at a time, declaring twice the largest file in all;

@@ -42,7 +42,10 @@ export async function validateUserAssetVersion(snapshot: UserAssetVersion): Prom
     || typeof r.format !== 'string' || !r.format || r.format.length > 100 || !['vector', 'raster', 'video', 'audio', 'lottie', 'model', 'lut', 'palette', 'tokens', 'font', 'profile', 'ratecard', 'text', 'data'].includes(r.type)
     || r.credential != null && (!(r.credential instanceof Uint8Array) || r.credential.byteLength > 16 * 1024 * 1024)
     || !(r.blob instanceof Blob) || r.blob.size !== snapshot.bytes) throw new Error('Invalid saved asset version in backup.');
-  if (await sha256Bytes(new Uint8Array(await r.blob.arrayBuffer())) !== snapshot.sha256) throw new Error('Saved asset version integrity check failed.');
+  // In slices past 4 MiB: a backup checks each version before writing it and must
+  // not hold a 256 MiB one whole to do so (plan 203 R4). Loaded here, off boot.
+  const { sha256HexOfBlob } = await import('../lib/stream-hash.ts');
+  if (await sha256HexOfBlob(r.blob) !== snapshot.sha256) throw new Error('Saved asset version integrity check failed.');
 }
 
 /** Immutable identity: an import may add a snapshot, never replace its bytes. */

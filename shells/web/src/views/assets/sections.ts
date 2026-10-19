@@ -209,7 +209,7 @@ export function render(cat: CatCtx): void {
         ${cat.tiles.catalogTopbarHtml()}
         <h1 class="visually-hidden">${t('Assets')}</h1>
         <button type="button" class="btn btn--labelled btn--ghost" data-browse-sources>${actionButtonContent(t('Browse sources'), 'folder')}</button>
-        <div class="catalog-workspace"><aside class="asset-sources" aria-label="${t('Sources')}"></aside><div class="catalog-body">${bodyHtml(cat)}</div></div>
+        <div class="catalog-workspace"><div class="asset-sources-column"><aside class="asset-sources" aria-label="${t('Sources')}"></aside></div><div class="catalog-body">${bodyHtml(cat)}</div></div>
         ${bulkBarHtml(cat)}
       </div>`;
   cat.wiring.wire();
@@ -358,6 +358,21 @@ export function renderBody(cat: CatCtx): void {
   cat.uploadToolbarDispose?.();
   const uploadActions = viewEl.querySelector<HTMLElement>('.cat-uploads-tts');
   cat.uploadToolbarDispose = uploadActions ? mountActionToolbar(uploadActions) : undefined;
+}
+// Repaint the shared-library section alone when a shared load changed nothing else, so
+// device tiles keep their elements and with them focus, hover and playing previews. The
+// section always leads the body. False when this body has no place for the section; the
+// caller then repaints the whole body.
+export function renderShared(cat: CatCtx): boolean {
+  const body = cat.viewEl.querySelector<HTMLElement>('.catalog-body');
+  if (!body || cat.projects?.active()) return false;
+  const html = cat.remote?.html() ?? '';
+  body.querySelector(':scope > [data-shared-library]')?.remove();
+  if (html) body.insertAdjacentHTML('afterbegin', html);
+  cat.bulk.pruneSelection();
+  cat.bulk.syncBulkBar();
+  afterTilesAdded(cat);
+  return true;
 }
 // The sticky toolbar drops labels only when they do not fit (lib/fit-labels.ts):
 // first the Collapse all / Show hidden labels, then the type-filter labels. Every
@@ -552,6 +567,7 @@ export function sectionsOps(cat: CatCtx) {
     mountDropzone: bindOp(cat, mountDropzone),
     disposeDropzone: bindOp(cat, disposeDropzone),
     renderBody: bindOp(cat, renderBody),
+    renderShared: bindOp(cat, renderShared),
     fillStorageChip: bindOp(cat, fillStorageChip),
     rerender: bindOp(cat, rerender),
     closeDetails: bindOp(cat, closeDetails),

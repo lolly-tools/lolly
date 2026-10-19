@@ -6,6 +6,16 @@ import { DEFAULT_IMAGE_OPTIONS, conversionFindings, sha256Bytes, validateImageOp
 import { isJxl } from '../../../../engine/src/jxl.ts';
 import { convert, detectKind, targetsForSource, type Target } from './convert-codecs.ts';
 
+/** The tracks a container copy would lose, in words: `the AAC sound track (WebM cannot carry it)`. */
+export function droppedTrackList(tracks: ReadonlyArray<{ kind: string; codec: string | null; action: string; reason?: string }>, container: string): string {
+  const parts = tracks.filter((t) => t.action === 'drop').map((t) => {
+    const what = t.kind === 'video' ? 'picture' : t.kind === 'audio' ? 'sound' : 'subtitle or data';
+    const why = t.reason === 'codec-not-in-container' ? `${container} cannot carry it` : 'it cannot be copied without re-encoding';
+    return `the ${t.codec ? `${t.codec.toUpperCase()} ` : ''}${what} track (${why})`;
+  });
+  return parts.length ? parts.join(' and ') : 'a track';
+}
+
 export async function describeFile(file: File, signal?: AbortSignal): Promise<FileFactsV1> {
   validateConvertFiles([file]);
   signal?.throwIfAborted();
@@ -23,8 +33,8 @@ export async function runWebFileOperation(file: File, request: FileOperationRequ
       if (request.operation === 'media.transmux') return { metadata: 'changed', findings: [{ code: 'container-rewritten', severity: 'warning', message: 'Media packets are copied without re-encoding. Container metadata may change; source content credentials are not carried. Copies that would drop tracks are refused.' }] };
       if (['jxl-recompress', 'jpeg-original'].includes(request.target)) return { metadata: 'preserved', findings: conversionFindings('raster', request.target) };
       const kind = ['jxl', 'png', 'jpeg', 'jpg', 'webp', 'gif', 'avif', 'bmp', 'tiff'].includes(input.format) ? 'raster' : input.format;
-      const raster = kind === 'raster' || ['svg', 'svgz'].includes(kind) && !['svg', 'svgz'].includes(request.target);
-      return { metadata: request.target === 'pdf-clean' ? 'changed' : ['pdf-split', 'pdf-pages-png'].includes(request.target) ? 'removed' : raster ? 'removed' : ['svg', 'svgz'].includes(kind) ? 'preserved' : 'not-checked', findings: conversionFindings(input.format === 'jxl' ? 'jxl' : kind, request.target) };
+      const raster = kind === 'raster' || ['svg', 'svgz'].includes(kind) && !['svg', 'svgz', 'svg-fit'].includes(request.target);
+      return { metadata: request.target === 'pdf-clean' ? 'changed' : ['pdf-split', 'pdf-pages-png'].includes(request.target) ? 'removed' : raster ? 'removed' : ['svg', 'svgz'].includes(kind) ? 'preserved' : 'not-checked', findings: conversionFindings(input.format === 'jxl' ? 'jxl' : kind, request.target, request.options) };
     },
     async execute(source, operation) {
       if (operation.operation === 'media.transmux') {
@@ -33,7 +43,7 @@ export async function runWebFileOperation(file: File, request: FileOperationRequ
         const { BlobSource } = await import('mediabunny');
         const result = await transmuxContainer(new BlobSource(source), operation.target as 'mp4' | 'mov' | 'mkv' | 'webm', { signal });
         if (!result) throw new Error('That container cannot carry this media.');
-        if (result.droppedTracks) throw new Error('That copy would drop media or subtitle tracks. Choose a compatible container; the original is unchanged.');
+        if (result.droppedTracks) throw new Error(`That copy would drop ${droppedTrackList(result.tracks, operation.target === 'webm' ? 'WebM' : operation.target.toUpperCase())}. Choose a compatible container; the original is unchanged.`);
         return new File([result.blob], safeFileName(`${source.name.replace(/\.[^.]+$/, '')}.${result.ext}`), { type: result.mime });
       }
       if (operation.operation !== 'convert') throw new Error('This adapter supports the convert operation.');

@@ -27,7 +27,7 @@ test('all imported Work guides keep their console identities and original screen
   const tracked = new Set(execFileSync('git', ['ls-files'], { cwd: DOCS_ROOT, encoding: 'utf8' }).trim().split('\n'));
   for (const source of Object.values(bundle.sourcePaths)) assert.ok(tracked.has(source), source + ' must ship in a plain clone');
   const guides = registry.pages.filter(p => p.work);
-  assert.equal(guides.length, 66);
+  assert.equal(guides.length, 67);
   const index = JSON.parse(bundle.files['docs.json']!.toString());
   const entries = index.sections.flatMap((s: { docs: Array<{ slug: string; path: string }> }) => s.docs);
   assert.deepEqual(entries.map((p: { slug: string }) => p.slug).sort(), guides.map(p => p.work!.slug).sort());

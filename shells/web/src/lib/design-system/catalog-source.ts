@@ -6,6 +6,7 @@ import { networkStatus } from '../../catalog/sync.ts';
 import { isTauriShell } from '../instance-choice.ts';
 import { stripTokensSuffix, type DesignSystemRecord, type DesignSystemRegistry } from './registry.ts';
 import { pickHeadAssetId } from '../../../../../engine/src/design-version.ts';
+import { STARTER_TOKENS_ID } from './starter.ts';
 
 /** Preview the incoming source without changing the current connection. Loaded
  *  pack assets remain part of the catalogue; removing a record is not Leave. */
@@ -33,8 +34,13 @@ export async function removalFallback(registry: DesignSystemRegistry, id: string
   }
 }
 
-export function catalogSourceLabel(): string {
-  return isTauriShell() && !getInstanceBase() ? t('Bundled with this app') : t('Managed by this instance');
+/** Where the catalogue's design system comes from. The starter that every build
+ *  carries is bundled with the app; it read "Managed by this instance" on
+ *  lolly.tools, where there is no instance (plan 320 S10). A deployment that serves
+ *  a design system of its own manages that one. */
+export function catalogSourceLabel(record?: Pick<DesignSystemRecord, 'headId'>): string {
+  if (getInstanceBase()) return t('Managed by this instance');
+  return isTauriShell() || record?.headId === STARTER_TOKENS_ID ? t('Bundled with this app') : t('Managed by this instance');
 }
 
 export function catalogSourceHtml(record: DesignSystemRecord, adminHref?: string | null): string {
@@ -47,7 +53,7 @@ export function catalogSourceHtml(record: DesignSystemRecord, adminHref?: string
   return `<details class="ds-row-origin">
     <summary>${t('Catalogue source')}</summary>
     <dl>
-      <dt>${t('Supplied by')}</dt><dd>${escapeHtml(instance || (networkStatus.offline ? t('Last-known origin unavailable') : catalogSourceLabel()))}</dd>
+      <dt>${t('Supplied by')}</dt><dd>${escapeHtml(instance || (networkStatus.offline ? t('Last-known origin unavailable') : catalogSourceLabel(record)))}</dd>
       <dt>${t('Tokens asset')}</dt><dd>${escapeHtml(record.headId || t('Not available yet'))}</dd>
       ${namespace ? `<dt>${t('Asset namespace')}</dt><dd>${escapeHtml(namespace)}</dd>` : ''}
       ${record.catalog?.version ? `<dt>${t('Version')}</dt><dd>${escapeHtml(record.catalog.version)}</dd>` : ''}

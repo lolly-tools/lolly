@@ -255,6 +255,9 @@ export interface WorkCollabHandle {
   readonly reviewEvents?: { subscribe(fn: (event: WorkCollabReviewEvent) => void): () => void };
   recovery?(): { id: string; ops: readonly CanvasOp[] } | undefined;
   recoveries?(): readonly { id: string; ops: readonly CanvasOp[] }[];
+  /** The device library now holds archived copy `id`: drop that copy from this device's
+   *  archive so the next connect does not replay the copy. Resolves once the archive is written. */
+  forgetRecovery?(id: string): Promise<void>;
   readonly clientId?: string;
   readonly sessionId: string;
   readonly history?: CollabHistoryCapability;
@@ -802,7 +805,7 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
             .map(op => ({ ...op, deliveryId: globalThis.crypto.randomUUID() }));
           const copy = { id: ops[0]?.deliveryId ?? globalThis.crypto.randomUUID(), ops };
           savingRecovery = true;
-          recoveryChain = persistChain.then(async () => {
+          recoveryChain = recoveryChain.then(() => persistChain).then(async () => {
             const archive: CanvasOp = { k: 'param', key: `recovery:${copy.id}`, value: JSON.stringify(ops), origin: { client: SEED_CLIENT, clock: 0 } };
             const next = [...recoveryArchives, { ...archive, deliveryId: copy.id }].slice(-8);
             while (next.length > 1 && JSON.stringify(next).length > 16_000_000) next.shift();
@@ -1113,6 +1116,21 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
     },
     recovery: () => recovery,
     recoveries: () => recoveries,
+    forgetRecovery(id: string): Promise<void> {
+      const index = recoveries.findIndex(copy => copy.id === id);
+      if (index >= 0) recoveries.splice(index, 1);
+      if (recovery?.id === id) recovery = recoveries.at(-1);
+      // Behind every earlier archive write, so a newer archived copy is never written away.
+      recoveryChain = recoveryChain.then(async () => {
+        const next = recoveryArchives.filter(archive => !(archive.k === 'param' && archive.key === `recovery:${id}`));
+        if (next.length === recoveryArchives.length) return;
+        await store.save(`${await keyFor()}:recovery`, next);
+        recoveryArchives = next;
+      });
+      const written = recoveryChain;
+      recoveryChain = written.catch(() => {});
+      return written;
+    },
     history: opts.history,
     adapter,
     snapshot: () => ({ ops: docStateToOps(docStateToWire(doc.state()), { client: SEED_CLIENT, clock: 0 }), clock: clockCeiling }),

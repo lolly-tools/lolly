@@ -48,8 +48,8 @@
     {
       "version": 1,
       "toolId": "agenda",
-      "toolVersion": "1.3.0",
-      "toolVersionRange": "1.3.0",
+      "toolVersion": "1.3.1",
+      "toolVersionRange": "1.3.1",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -58,7 +58,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "a585850bd7c3ce42b39fbe5473f226d1ef1e7470cdf8f364912b0567a00e281d",
+          "sha256": "466ad481540e8578a226ac524f2328f76b7730b0e64b2e6eac4d25bb5c6ed0e3",
           "bytes": 2440
         },
         "reference/inputs.json": {
@@ -129,8 +129,8 @@
     {
       "version": 1,
       "toolId": "audiogram",
-      "toolVersion": "2.7.5",
-      "toolVersionRange": "2.7.5",
+      "toolVersion": "2.8.0",
+      "toolVersionRange": "2.8.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -139,7 +139,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "da1bea1f51a668186eaf3e44e875d045c85f267b661c5448b58a258ea1f40f95",
+          "sha256": "ac2906efb90586a53ca809e212c397be20859bccba1b33d22e84e5f60c3f64f8",
           "bytes": 2091
         },
         "reference/inputs.json": {
@@ -303,8 +303,8 @@
     {
       "version": 1,
       "toolId": "chart",
-      "toolVersion": "1.26.1",
-      "toolVersionRange": "1.26.1",
+      "toolVersion": "1.27.0",
+      "toolVersionRange": "1.27.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -313,7 +313,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "240b77b58b45e1d0149928d1985ca4e8eee47ca8417942f64c0a9610d0be6885",
+          "sha256": "0d6047200fe54663afc2c4edadf49668ae9e817dd92ec25d566fc5db4966c2ab",
           "bytes": 5869
         },
         "reference/inputs.json": {
@@ -494,8 +494,8 @@
     {
       "version": 1,
       "toolId": "darkroom",
-      "toolVersion": "2.5.0",
-      "toolVersionRange": "2.5.0",
+      "toolVersion": "2.5.1",
+      "toolVersionRange": "2.5.1",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -504,7 +504,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "d03a2bf82de77db35eb3401db5399610431118c62c3cc39aa544124e7cd84c0d",
+          "sha256": "df456c616bd8d5f58789c5b80661526cc42deb7173a8d639b1c258860f3bf7b6",
           "bytes": 5127
         },
         "reference/inputs.json": {
@@ -548,7 +548,7 @@
     {
       "version": 1,
       "toolId": "design",
-      "toolVersion": "1.50.1",
+      "toolVersion": "1.51.0",
       "toolVersionRange": "^1.50.0",
       "skillRevision": "1.0.0",
       "origin": "authored",
@@ -580,9 +580,9 @@
     {
       "version": 1,
       "toolId": "diagram-builder",
-      "toolVersion": "1.8.1",
+      "toolVersion": "1.8.2",
       "toolVersionRange": "^1.8.1",
-      "skillRevision": "1.0.0",
+      "skillRevision": "1.1.0",
       "origin": "authored",
       "references": [
         "reference/inputs.json",
@@ -591,20 +591,20 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "d6d2694c7b41a9ae48f3e4e86d428c21db58c57842bd65f1fd4b1297f67bb480",
-          "bytes": 1597
+          "sha256": "e36b5b1175eaab2da3bd06e0f224e0668c118d95b9c6f78da1d5716a76d3712b",
+          "bytes": 1735
         },
         "reference/inputs.json": {
-          "sha256": "88c23bef4c0cb9bd7c024d317566f9889627a8dbf9e22ebfbd359207fbca9a8d",
-          "bytes": 46731
+          "sha256": "7cb980af7165910076e84098f0416e5167136dc426a968d8b7bb03fcaf67b059",
+          "bytes": 47018
         },
         "reference/examples.json": {
           "sha256": "eb09bff921a1ed67cc88c99aec8a8ad1c501e5078d9ab1b614d20128c7b880ac",
           "bytes": 1069
         },
         "skill/workflow.md": {
-          "sha256": "69d128781b1d6040ad87728d8a75b0f726a2244089afc2645c0fdecb03896114",
-          "bytes": 1801
+          "sha256": "ef50eaeeae0d63692a89a2357b3e0474d2847b3b0d4a139b0cafa1c8418101b9",
+          "bytes": 15925
         }
       },
       "path": "diagram-builder/SKILL.md"
@@ -634,8 +634,8 @@
     {
       "version": 1,
       "toolId": "filter",
-      "toolVersion": "1.5.0",
-      "toolVersionRange": "1.5.0",
+      "toolVersion": "1.5.2",
+      "toolVersionRange": "1.5.2",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -644,7 +644,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "34347c0566193b209f5fce10ff94010b37c3eb840938ef6e00d9315ae6dc545a",
+          "sha256": "29632538643c643e4fb647870135ea7682d3c08838dc32a47f9728974f758309",
           "bytes": 5289
         },
         "reference/inputs.json": {
@@ -710,8 +710,8 @@
     {
       "version": 1,
       "toolId": "font-convert",
-      "toolVersion": "1.0.0",
-      "toolVersionRange": "1.0.0",
+      "toolVersion": "1.1.0",
+      "toolVersionRange": "1.1.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -719,12 +719,12 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "9c4a8b6d30aeed7a55b4f6eb7eba2c2481535b9cc38889ed0ac9fb43ecefa801",
-          "bytes": 1586
+          "sha256": "9a34e9770d9d21cc14f03cf409494c7fc7e438b1e506147e4146ea8fd049a5af",
+          "bytes": 1638
         },
         "reference/inputs.json": {
-          "sha256": "df57ce08a157f371e776716d6a209bb5d013e87b78cfd17b978807039db24f99",
-          "bytes": 850
+          "sha256": "9075d4e9aef5bffde81d9b264e61055c5dec582bdb5bb1734d94cb2d1efec2cf",
+          "bytes": 1818
         }
       },
       "path": "font-convert/SKILL.md"
@@ -759,8 +759,8 @@
     {
       "version": 1,
       "toolId": "gradient",
-      "toolVersion": "1.2.3",
-      "toolVersionRange": "1.2.3",
+      "toolVersion": "1.3.0",
+      "toolVersionRange": "1.3.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -769,7 +769,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "666ab9be51d62909dda107dabbbbf62ab35583e84d0b2a9fd2756268f87ac31b",
+          "sha256": "706a02fcf8521bf8ee3e8988ac56ce424bdd221d6f61c00b9c5ef20c6ec3a1a6",
           "bytes": 2528
         },
         "reference/inputs.json": {
@@ -999,8 +999,8 @@
     {
       "version": 1,
       "toolId": "pages",
-      "toolVersion": "1.0.1",
-      "toolVersionRange": "1.0.1",
+      "toolVersion": "1.1.0",
+      "toolVersionRange": "1.1.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1008,12 +1008,12 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "4a71250609ea2e0005a498342e57c42891aa4ba90e4fd52c641f65a347c8a924",
-          "bytes": 1627
+          "sha256": "5c9d383bdbdf9fc314e7906b5faef26e4f9459c8070102b22bf75b419791731e",
+          "bytes": 1713
         },
         "reference/inputs.json": {
-          "sha256": "612c03e446e2163e90eea3c35842012cc0ea742d46f30de471ed583d44d73d9e",
-          "bytes": 1723
+          "sha256": "f372d88cc3c7a6028f0c87791ab6b7c85a1ff2abfad3a1be3f63cc525c8bd28b",
+          "bytes": 2870
         }
       },
       "path": "pages/SKILL.md"
@@ -1151,8 +1151,8 @@
     {
       "version": 1,
       "toolId": "record",
-      "toolVersion": "1.4.3",
-      "toolVersionRange": "1.4.3",
+      "toolVersion": "1.4.4",
+      "toolVersionRange": "1.4.4",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1160,7 +1160,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "16e86d08653943276eac0bed8999c2446febf3df2784c6358bf4b614e8bcd8b5",
+          "sha256": "1a9632fa54ffd383a2ef893c7859b1dadc63d319103a9a32f834c8878c4d92a0",
           "bytes": 1772
         },
         "reference/inputs.json": {
@@ -1435,8 +1435,8 @@
     {
       "version": 1,
       "toolId": "strip-data",
-      "toolVersion": "1.3.0",
-      "toolVersionRange": "1.3.0",
+      "toolVersion": "1.4.0",
+      "toolVersionRange": "1.4.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1444,7 +1444,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "af342e4df99fc79bd60258c2d46db7b63c5f4107734a076da223ee079eab14ec",
+          "sha256": "8a552a1f394a577bbf3020499c965ea9076a3e0bdb87f5d9bac401033266b870",
           "bytes": 1685
         },
         "reference/inputs.json": {
@@ -1533,8 +1533,8 @@
     {
       "version": 1,
       "toolId": "trim",
-      "toolVersion": "1.0.1",
-      "toolVersionRange": "1.0.1",
+      "toolVersion": "1.1.0",
+      "toolVersionRange": "1.1.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1542,12 +1542,12 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "1a6ca99c68d077f71f9cea58c274dd545139f5e6d66c475089f0ad8cbf10bc4e",
-          "bytes": 1681
+          "sha256": "11c906403dcf7822fed6520b1ae2b660f025ff73ea0948b5e1433fa85fff2600",
+          "bytes": 1910
         },
         "reference/inputs.json": {
-          "sha256": "6d81c3c20877c7c6ee22864b247625179f064048564d153603434d5e2ad3c772",
-          "bytes": 1611
+          "sha256": "012978aeb9f7b6d313f76913fcd193f6d22ae17029553b53a26fc4556bea53a0",
+          "bytes": 4873
         }
       },
       "path": "trim/SKILL.md"
@@ -1599,8 +1599,8 @@
     {
       "version": 1,
       "toolId": "wayfinding-signage",
-      "toolVersion": "1.2.2",
-      "toolVersionRange": "1.2.2",
+      "toolVersion": "1.2.3",
+      "toolVersionRange": "1.2.3",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1608,7 +1608,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "d3947c2281a84326af04f2aafaec655843d4a88bf180bf982ee392a50e040fcc",
+          "sha256": "c958ee115e24ef5cc7bd44803b1d4b7ad1dc2c73d7475befa4af72a7de321d23",
           "bytes": 1720
         },
         "reference/inputs.json": {

@@ -121,7 +121,6 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
   // cross-origin traffic through tauri-plugin-http and serves no CSP, so it works
   // there. Offering a control that cannot work is worse than not offering it, so
   // the browser shows the current source read-only and says where to go instead.
-  // Matches lib/instance-choice.ts's own gate on the first-run sheet.
   const canChangeInstance = isTauriShell(); pv.canChangeInstance = canChangeInstance;
   // Does this shell carry a self-updater? Probed, never assumed from isTauriShell
   // (plans/202 principle 5): the desktop shell installs window.__lollyUpdater from

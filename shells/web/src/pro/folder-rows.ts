@@ -8,6 +8,7 @@
  */
 
 import { BATCH_SLOT_PREFIX, isBatchSlot } from '../lib/batch-slots.ts';
+import { TOKEN_CONTEXT_KEYS } from '../lib/token-bulk-link.ts';
 
 /** An assembled batch row with an optional nested export path. */
 export interface ExportRow {
@@ -114,7 +115,11 @@ interface FolderHost {
   state: { load(slot: string): Promise<StoredSession | null> };
 }
 
-const META = (k: string) => k.startsWith('__');
+// `__` keys are session meta, except the token context the runtime seeds from: theme
+// choices and the link each custom value replaced. A row keeps those, so it renders in
+// its own choices and a bulk token link in the grid can keep its overrides.
+const TOKEN_CONTEXT = new Set<string>(TOKEN_CONTEXT_KEYS);
+const META = (k: string) => k.startsWith('__') && !TOKEN_CONTEXT.has(k);
 
 /** Drop the extension from a filename stem; fall back to the tool id. */
 export function stemOf(filename: string | undefined, toolId: string | undefined): string {
@@ -138,8 +143,9 @@ const posNum = (v: string | undefined): number | undefined => { const n = parseF
  * Convert a saved single-tool session's `data` into one batch row.
  *
  * A tool session stores its input values alongside `__`-prefixed export meta; the
- * row's `values` is exactly the inputs (every non-`__` key - render-export seeds
- * those straight into the runtime), and `__export_*` maps 1:1 onto the row's
+ * row's `values` is the inputs plus the token context (every non-`__` key and
+ * `__tokenSelection`/`__tokenLinks` - render-export seeds those straight into the
+ * runtime), and `__export_*` maps 1:1 onto the row's
  * format/filename/size fields. With `pathParts`, the filename becomes the nested
  * export path (`group/.../stem`).
  */

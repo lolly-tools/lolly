@@ -624,6 +624,19 @@ const aliasTok = (path: string, group: string): Tok =>
 const slotTok = (s: Slot, ramp: string, group: string): Tok =>
   s.step ? aliasTok(`color.ramp.${ramp}.${s.step}`, group) : literalTok(s.value, group);
 
+// The primary + on-primary PAIR for a look whose surface is not the primary
+// itself: the anchor step first, then its neighbours (ties toward `tie`), until an
+// on-primary candidate reads on that step. Null only when no step carries one, which a
+// ramp end always does at these floors.
+function anchorPair(pRamp: Oklch[], anchor: number, tie: 1 | -1, floor: number): { primary: Slot; onPrimary: Slot } | null {
+  for (const s of stepsByDistance(anchor, tie, pRamp.length)) {
+    const v = pRamp[s - 1]!;
+    const on = pickOnPrimary(emitHex(v), pRamp, floor);
+    if (on) return { primary: { step: s, value: v }, onPrimary: on };
+  }
+  return null;
+}
+
 // One theme's seven semantic slots, every floor enforced on the emitted values.
 function buildSemantic(
   spec: { dark: boolean; primarySurface: boolean },
@@ -676,15 +689,8 @@ function buildSemantic(
       }
     }
   } else {
-    for (const s of stepsByDistance(anchor, tie, N)) {
-      const v = pRamp[s - 1]!;
-      const on = pickOnPrimary(emitHex(v), pRamp, F.onPrimary);
-      if (on) {
-        primary = { step: s, value: v };
-        onPrimary = on;
-        break;
-      }
-    }
+    const pair = anchorPair(pRamp, anchor, tie, F.onPrimary);
+    if (pair) ({ primary, onPrimary } = pair);
   }
   if (!primary || !onPrimary) {
     // Unreachable in practice (a ramp end always carries a passing white or
@@ -711,6 +717,24 @@ function buildSemantic(
   };
 }
 
+// The three ramps one brand colour derives. Hue held constant per ramp; chroma
+// bells over L, peaking at the primary's own lightness (clamped mid-range) so the
+// anchor keeps the input chroma.
+function deriveRamps(p: Oklch, scheme: keyof typeof SCHEME_ROTATION, steps: number): { primary: Oklch[]; secondary: Oklch[]; neutral: Oklch[] } {
+  const peak = Math.min(0.75, Math.max(0.45, p.l));
+  const Ls = rampLightnesses(p.l, steps);
+  const mkRamp = (hue: number, chromaScale: number): Oklch[] =>
+    Ls.map(L => ({ l: L, c: p.c * chromaScale * chromaBell(L, peak), h: normHue(hue) }));
+  // Neutrals carry the primary hue at C ≤ 0.02.
+  const neutralC = Math.min(0.02, Math.max(0.004, p.c * 0.25));
+  return {
+    primary: mkRamp(p.h, 1),
+    // Mono derives a LOW-CHROMA SIBLING (quiet, but a distinct ramp - never a re-alias).
+    secondary: mkRamp(p.h + SCHEME_ROTATION[scheme], scheme === 'mono' ? 0.35 : 1),
+    neutral: Ls.map(L => ({ l: L, c: neutralC * chromaBell(L, peak), h: p.h })),
+  };
+}
+
 /**
  * Derive a complete brand-token document from one colour.
  *
@@ -734,19 +758,7 @@ export function deriveBrandTokens(opts: BrandDeriveOptions): Record<string, unkn
   const foreground = opts.foreground === 'light' || opts.foreground === 'dark' ? opts.foreground : 'auto';
   const steps = Math.round(Math.min(RAMP_STEPS_MAX, Math.max(RAMP_STEPS_MIN, opts.steps ?? RAMP_STEPS_DEFAULT)));
 
-  // Ramps: hue held constant per ramp; chroma bells over L, peaking where the
-  // primary sits (clamped mid-range) so the anchor keeps the input chroma.
-  const peak = Math.min(0.75, Math.max(0.45, p.l));
-  const Ls = rampLightnesses(p.l, steps);
-  const mkRamp = (hue: number, chromaScale: number): Oklch[] =>
-    Ls.map(L => ({ l: L, c: p.c * chromaScale * chromaBell(L, peak), h: normHue(hue) }));
-
-  const primaryRamp = mkRamp(p.h, 1);
-  // Mono derives a LOW-CHROMA SIBLING (quiet, but a distinct ramp - never a re-alias).
-  const secondaryRamp = mkRamp(p.h + SCHEME_ROTATION[scheme], scheme === 'mono' ? 0.35 : 1);
-  // Neutrals carry the primary hue at C ≤ 0.02.
-  const neutralC = Math.min(0.02, Math.max(0.004, p.c * 0.25));
-  const neutralRamp = Ls.map(L => ({ l: L, c: neutralC * chromaBell(L, peak), h: p.h }));
+  const { primary: primaryRamp, secondary: secondaryRamp, neutral: neutralRamp } = deriveRamps(p, scheme, steps);
 
   const rampGroup = (r: Oklch[], group: string): Record<string, Tok> =>
     Object.fromEntries(r.map((v, i) => [String(i + 1), literalTok(v, group)]));
@@ -785,5 +797,60 @@ export function deriveBrandTokens(opts: BrandDeriveOptions): Record<string, unkn
     },
     light: { color: { $type: 'color', semantic: lightSem } },
     dark: { color: { $type: 'color', semantic: darkSem } },
+  };
+}
+
+// ─── deriveColourwaySlots ────────────────────────────────────────────────────
+
+export interface ColourwaySlotOptions {
+  /** The look the slots are for. Light breaks ramp ties toward darker steps, dark toward lighter ones. */
+  mode: 'light' | 'dark';
+  /** The partner's hue relationship to the lead. Default 'mono'. */
+  scheme?: BrandDeriveOptions['scheme'];
+  /** Contrast floors: 'comfort' (default) or 'high'. */
+  contrast?: BrandDeriveOptions['contrast'];
+  /** Ramp division count the search walks. Default 9. */
+  steps?: number;
+  /** Force white ('light') or black ('dark') on the lead. Default 'auto'. */
+  foreground?: BrandDeriveOptions['foreground'];
+}
+
+/** The three slots a colourway re-points, as stored `oklch()` strings. */
+export interface ColourwaySlots {
+  primary: string;
+  'on-primary': string;
+  secondary: string;
+}
+
+/**
+ * The primary, on-primary and secondary a new lead colour fills in one look
+ * (plans/319). The result is exactly what `deriveBrandTokens({ primary: lead })`
+ * resolves those three slots to, so a colourway derived from a colour matches a
+ * whole design system derived from it: the same anchor step, the same contrast
+ * floor on the on-primary, the same partner ramp. Nothing else is touched; the
+ * surface, text and ramps stay the system's own.
+ *
+ * Values are literals because a colourway does not carry ramps of its own. Throws
+ * on an unparseable lead, like `deriveBrandTokens`.
+ */
+export function deriveColourwaySlots(lead: string, opts: ColourwaySlotOptions): ColourwaySlots {
+  const p = parseCssColor(lead);
+  if (!p) throw new Error(`deriveColourwaySlots: unparseable lead colour ${JSON.stringify(lead)}`);
+  const scheme = opts.scheme && Object.hasOwn(SCHEME_ROTATION, opts.scheme) ? opts.scheme : 'mono';
+  const F = FLOORS[opts.contrast === 'high' ? 'high' : 'comfort'];
+  const steps = Math.round(Math.min(RAMP_STEPS_MAX, Math.max(RAMP_STEPS_MIN, opts.steps ?? RAMP_STEPS_DEFAULT)));
+  const ramps = deriveRamps(p, scheme, steps);
+  const N = ramps.primary.length;
+  const anchor = Math.min(N, Math.max(1, Math.round(0.5 * (N - 1)) + 1));
+  const tie: 1 | -1 = opts.mode === 'dark' ? 1 : -1;
+  const pair = anchorPair(ramps.primary, anchor, tie, F.onPrimary);
+  const primary = pair?.primary.value ?? ramps.primary[0]!;
+  let onPrimary = pair?.onPrimary.value ?? nudged(WHITE, emitHex(primary), F.onPrimary);
+  if (opts.foreground === 'light') onPrimary = WHITE;
+  else if (opts.foreground === 'dark') onPrimary = BLACK;
+  return {
+    primary: formatOklch(primary),
+    'on-primary': formatOklch(onPrimary),
+    secondary: formatOklch(ramps.secondary[anchor - 1]!),
   };
 }

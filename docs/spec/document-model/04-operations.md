@@ -146,13 +146,13 @@ A suite tests the features the suite declares. An operation declares what it sup
 
 `recording` states what this run captured, what it retained and whether it can be replayed. The three are independent axes, and an operation may succeed with none of them (plan section 9.1). `receipt` would carry an `EvaluationReceiptV1` when the recording policy retains one. No such type exists in the tree. R4 lists it as new, and nothing is added to `packages/core` or `schemas/` in this wave. R15 lists what it would record, and [Evaluation and receipts](evaluation.html) specifies it.
 
-An operation that is not recordable is still a valid operation (D11). A live-input tool and a local utility are the two cases the plan works through, and Q4 below carries their defaults.
+An operation that is not recordable is still a valid operation (D11). A live-input tool and a local utility are the two cases the plan works through, and Q4 below states what was decided for them.
 
 ## Open points
 
-- **Q4. What "non-recordable" means for the first two cases, a local utility and a live-input tool.** Default from plan section 16: for a utility, capture off, retention none and replay semantic from pinned inputs. For live input, capture unsupported unless the person turns it on, retention session, replay none. Evidence that would change it: a regulated workflow that needs durable receipts for utilities.
+- **Q4. What "non-recordable" means for the first two cases, a local utility and a live-input tool.** Decided on 2026-10-16 by accepting the default from plan section 16: for a utility, capture off, retention none and replay semantic from pinned inputs. For live input, capture unsupported unless the person turns it on, retention session, replay none. Evidence that would reopen it: a regulated workflow that needs durable receipts for utilities.
 
-The other open questions are carried in other chapters, each with its default. Q1 and Q5 are carried in [Conformance and fidelity](conformance.html). Q2 and Q3 are carried in [Constraints, authority and local choice](policy.html). Q6 is carried in [Status and open points](status.html).
+The other questions, decided the same day, are carried in other chapters. Q1 and Q5 are carried in [Conformance and fidelity](conformance.html). Q2 and Q3 are carried in [Constraints, authority and local choice](policy.html). Q6 is carried in [Status and open points](status.html).
 
 ## Precedents
 

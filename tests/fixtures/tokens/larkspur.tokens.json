@@ -1,0 +1,156 @@
+{
+  "foundation/colour": {
+    "palette": {
+      "$type": "color",
+      "$description": "Larkspur primitives",
+      "larkspur": {
+        "$value": "#5b4bdb",
+        "$description": "Brand violet",
+        "$extensions": {
+          "org.example.larkspur": { "swatchId": "LK-001", "reviewed": false }
+        }
+      },
+      "ink": { "$value": "#1c1a2e" },
+      "paper": { "$value": "#fbfaf7" },
+      "dawn": { "$value": "#ffb38a" },
+      "dusk": { "$value": "#3a2f7a" },
+      "veil": { "$value": "#1c1a2e33" },
+      "accent": { "$ref": "#/foundation~1colour/palette/larkspur/$value" }
+    }
+  },
+  "foundation/space": {
+    "space": {
+      "$type": "dimension",
+      "unit": { "$value": { "value": 4, "unit": "px" } },
+      "gutter": { "$value": "{space.unit}" },
+      "inset": { "$value": { "value": { "$ref": "#/foundation~1space/space/unit/$value/value" }, "unit": "px" } }
+    }
+  },
+  "effects": {
+    "gradient": {
+      "$type": "gradient",
+      "horizon": {
+        "$value": [
+          { "color": "{palette.dawn}", "position": 0 },
+          { "color": "{palette.dusk}", "position": 1 }
+        ]
+      }
+    },
+    "elevation": {
+      "$type": "shadow",
+      "card": {
+        "$value": {
+          "color": "{palette.veil}",
+          "offsetX": { "value": 0, "unit": "px" },
+          "offsetY": "{space.unit}",
+          "blur": "{space.gutter}",
+          "spread": { "value": 0, "unit": "px" }
+        }
+      }
+    },
+    "focus": {
+      "$type": "color",
+      "ring": { "$value": "{focus.halo}" },
+      "halo": { "$value": "{focus.ring}" }
+    }
+  },
+  "components": {
+    "button": {
+      "$type": "color",
+      "primary": {
+        "fill": { "$value": "{action.fill}" },
+        "label": { "$value": "{surface.base}" }
+      },
+      "quiet": {
+        "$extends": "{button.primary}",
+        "fill": { "$value": "{surface.raised}" }
+      }
+    }
+  },
+  "mode/day": {
+    "surface": {
+      "$type": "color",
+      "base": { "$value": "{palette.paper}" },
+      "raised": { "$value": "{surface.base}" }
+    },
+    "text": {
+      "$type": "color",
+      "body": { "$value": "{palette.ink}" },
+      "muted": { "$value": "{palette.mist}" }
+    },
+    "action": {
+      "$type": "color",
+      "fill": { "$value": "{palette.larkspur}" }
+    }
+  },
+  "mode/night": {
+    "surface": {
+      "$type": "color",
+      "base": { "$value": "{palette.ink}" },
+      "raised": { "$value": "#2a2742" }
+    },
+    "text": {
+      "$type": "color",
+      "body": { "$value": "{palette.paper}" },
+      "muted": { "$value": "#b9b4d6" }
+    },
+    "action": {
+      "$type": "color",
+      "fill": { "$value": "#8f83ff" }
+    }
+  },
+  "density/compact": {
+    "space": {
+      "$type": "dimension",
+      "unit": { "$value": { "value": 2, "unit": "px" } }
+    }
+  },
+  "campaign/launch": {
+    "action": {
+      "$type": "color",
+      "fill": { "$value": "{palette.dawn}" }
+    }
+  },
+  "$themes": [
+    {
+      "id": "lark-day",
+      "name": "Day",
+      "group": "appearance",
+      "selectedTokenSets": { "foundation/colour": "source", "foundation/space": "source", "effects": "source", "components": "source", "mode/day": "enabled" }
+    },
+    {
+      "id": "lark-night",
+      "name": "Night",
+      "group": "appearance",
+      "selectedTokenSets": { "foundation/colour": "source", "foundation/space": "source", "effects": "source", "components": "source", "mode/night": "enabled" }
+    },
+    {
+      "id": "lark-density-standard",
+      "name": "Standard",
+      "group": "density",
+      "selectedTokenSets": {}
+    },
+    {
+      "id": "lark-compact",
+      "name": "Compact",
+      "group": "density",
+      "selectedTokenSets": { "density/compact": "enabled" }
+    },
+    {
+      "id": "lark-campaign-standard",
+      "name": "Standard",
+      "group": "campaign",
+      "selectedTokenSets": {}
+    },
+    {
+      "id": "lark-launch",
+      "name": "Launch",
+      "group": "campaign",
+      "selectedTokenSets": { "campaign/launch": "enabled" }
+    }
+  ],
+  "$metadata": {
+    "tokenSetOrder": ["foundation/colour", "foundation/space", "effects", "components", "mode/day", "mode/night", "density/compact", "campaign/launch"],
+    "activeThemes": ["lark-night", "lark-compact"]
+  }
+}

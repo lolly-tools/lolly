@@ -307,6 +307,8 @@ Tools expose only the inputs that are meant to vary - everything else (colours, 
 
 **Reset:** *Clear changes* returns every input to its defaults.
 
+**Design system choices:** when the design system offers more than one colourway, a light and a dark look or another theme choice, a **Design system** section under the controls holds them. A choice appears only when it changes this tool: light and dark show when a colour the tool draws differs between the two looks, and the colourway dots show when the tool draws a colour a colourway changes. A tool that draws no colour from the design system, such as a file utility, shows no section at all. Each colourway is a dot in its own colours, light and dark are two buttons, and any other choice is a list. The choice belongs to this piece: every colour linked to the design system follows it, it travels in the link and the saved session, and the app's own colours stay as they are. Design shows the same choices in the Inspector's **Canvas** tab. A tool whose colours are its content can stay on the canonical colourway, and then offers no colourway here ([Colourways](/info/token-workflows.html#colourways)).
+
 ### Undo and redo
 
 **Cmd/Ctrl-Z** steps back and **Cmd/Ctrl-Shift-Z** (or **Cmd/Ctrl-Y**) steps forward again. The same pair sits as **Undo** and **Redo** buttons in the row above the controls - on the free canvas they're on the tool rail instead - and each greys out while there's nothing left to take back. Every step says what it was: undo a colour and a small message tells you which input it just restored, with a **Redo** button in it for the way back.
@@ -472,7 +474,19 @@ See **[Exporting & Formats](/info/exporting.html)** for the full story - choosin
 
 For power users, **Batch** (linked from the gallery, gated behind the Pro feature flag, which defaults on) renders many variations at once - a grid where each row is a set of inputs, exported together. Ideal for localising a card into a dozen languages or generating every size variant in one pass. Fill rows by typing, pasting straight from a spreadsheet or importing a CSV (you can export one back too), and set per-row format, size and output filename. Save a whole grid as a named **batch session** that reopens from the gallery, and download every row as a single `.zip`.
 
-![The batch toolbar - zip name, units, DPI and the format every row inherits, with Sessions and Render on the right](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
+![Batch export settings: file name, default format, units, DPI and the number of rows to render](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
+
+Select rows with the checkboxes, or Shift-click a checkbox to select a range. The header checkbox selects the current page; **Select all** includes rows on other pages. **Edit input**, **Duplicate** and **Remove** act on the selection. **Undo remove** restores the most recently removed rows. From a focused cell, Shift+Space selects that row and Escape clears the selection.
+
+**Render selected**, **Export selected CSV** and **Print selected rows** use the same selection. Clear the selection to work on the whole batch. The grid shows 50 rows per page, and selections stay selected as you move between pages. **Sessions** always saves the whole batch.
+
+Drag across cells, Shift-click a cell, or use Shift+Arrow keys to select a rectangle. **Copy cells** or Ctrl+C / Command+C copies the values for Excel, Google Sheets and other spreadsheets. Ctrl+A / Command+A from a focused cell selects all visible columns across every page; from a row checkbox, the same shortcut selects all rows for batch actions. Cell selection keeps checked rows selected for batch actions. Double-click a cell or press Enter to edit its text. Paste a rectangle from the clipboard, or paste one value to fill the selected cells. Blank cells and multiline text keep their positions.
+
+**Default format** uses the same grouped menu as the export panel, with the formats available from the catalog and supported by your browser. Individual rows can still override the default.
+
+**Import CSV** lets you add rows or replace the current batch. Open **Columns** below the grid to reveal more inputs or per-row width, height, unit and DPI. Default export settings apply to rows without their own overrides. **Batch activity** can be collapsed after an import or render to make more room for the table.
+
+Each row keeps its own **theme choices**: light or dark, and a [colourway](/info/token-workflows.html#colourways) when the design system has them. A row opened from Projects, a folder or a saved batch renders in the choices its session was saved in, its preview opens in them, **Send to Print Sheet** carries them, and a duplicated or filled row takes the same ones. A CSV carries them in a `_themes` column, after the size columns, holding the same JSON as the `_themes` link parameter, for example `{"":"dark","colourway":"persimmon"}`. A blank cell, or `{}`, means the design system's defaults. The column is written only when some row has choices, so a batch without any exports the same CSV as before. On import, a cell that is not valid theme choices is listed as an issue and its row renders in the defaults. The grid has no control for changing a row's choices yet.
 
 Batch is for generating **many variants of one template** at once. To re-render sessions you've **already saved**, use **Projects → Render folder / Render selection** (see [Find and recover your work](/info/find-your-work.html#find-something-you-saved)) - no Pro needed.
 
@@ -487,6 +501,8 @@ One sidebar drives the lot:
 - <!--i:search--> **Filter inputs…** at the top narrows the controls across *every* card at once - which is how you get to "the headline" in eight sessions without scrolling for it.
 
 Click any canvas (or press Enter on it) and that session's sidebar card opens and scrolls into view. **Save all** writes every session back to its own slot. **Download all** saves first, then renders the whole set through the same pipeline as Projects' **Render selection** - one zip, with the optional password lock offered on the way.
+
+Each card draws in its own session's theme choices: a session saved in dark, or in a [colourway](/info/token-workflows.html#colourways), shows that look on its card, and a tool link placed inside it draws in the same look. Cards in different looks sit side by side, while the app around them keeps its own colours. **Save all**, the Downloads, **Batch grid** and **Send to Print Sheet** keep each session's choices.
 
 Two honest limits. The two-to-eight cap is real: every card mounts its own live runtime, and that's the number that stays responsive - a link asking for more (or for a session that no longer exists) says so rather than half-loading. And the link names *your* saved slots, so it reopens that set on this device; it is not a share link.
 

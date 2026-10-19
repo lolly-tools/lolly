@@ -244,6 +244,7 @@ const pages: Page[] = [
   { slug: 'using', title: 'Using Lolly', src: 'using.md', pathway: 'creators', canonicalPath: 'create/using', contentLicense: 'CC-BY-SA-4.0' },
   { slug: 'templates', title: 'Templates', src: 'templates.md', pathway: 'creators', canonicalPath: 'create/templates', contentLicense: 'CC-BY-SA-4.0', description: 'Saved starting points for a tool: how to keep one, how to open a tool on it every time, and how yours sit beside the ones a tool ships with.' },
   { slug: 'brand-studio', title: 'The Brand Studio', src: 'brand-studio.md', pathway: 'creators', canonicalPath: 'create/brand-studio', contentLicense: 'CC-BY-SA-4.0' },
+  { slug: 'brand-architectures', title: 'Brand architectures', src: 'brand-architectures.md', pathway: 'creators', canonicalPath: 'create/brand-architectures', contentLicense: 'CC-BY-SA-4.0' },
   { slug: '3d-studio', title: '3D Studio', src: '3d-studio.md', pathway: 'creators', canonicalPath: 'create/3d-studio', contentLicense: 'CC-BY-SA-4.0', description: 'Stage SVG artwork and meshes with materials, lighting, depth of field and transparent shadows.' },
   { slug: 'profile', title: 'Profiles', src: 'profile.md', pathway: 'creators', canonicalPath: 'create/profile', contentLicense: 'CC-BY-SA-4.0', description: 'The working identity Lolly creates as - your name, role and contact details, filled into tools automatically and stored on your own device.' },
   { slug: 'find-your-work', title: 'Find and recover your work', src: 'find-your-work.md', pathway: 'creators', canonicalPath: 'create/find-your-work', contentLicense: 'CC-BY-SA-4.0', description: 'Where your saved work, downloads and earlier versions are, what a closed tab or cleared browser data takes with it, and how to move everything to another device.' },
@@ -417,6 +418,7 @@ const pages: Page[] = [
   { slug: 'work-api', title: 'Lolly Work API', src: 'work/api.md', pathway: 'builders', canonicalPath: 'build/work-api', contentLicense: 'MPL-2.0', description: 'Every route the console and CLI use, with the action each one requires.' },
   { slug: 'work-cli', title: 'lw CLI: administer an instance', src: 'work/cli.md', pathway: 'builders', canonicalPath: 'build/lw-cli', contentLicense: 'MPL-2.0', description: 'Command reference for the admin CLI.' },
   { slug: 'work-status', title: 'Work status and roadmap', src: 'work/status.md', pathway: 'quickstart', canonicalPath: 'start/status', contentLicense: 'MPL-2.0', description: 'What is built, what is pending, and the honest gaps before go-live.' },
+  { slug: 'work-resumable-uploads', title: 'Resumable uploads', src: 'work/resumable-uploads.md', pathway: 'builders', canonicalPath: 'build/resumable-uploads', contentLicense: 'MPL-2.0', description: 'Decision record: the parts protocol over tus, its resume report, and the scopes that share it.' },
 ];
 // END GENERATED DOCS pages
 
@@ -597,6 +599,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'using', label: 'Using Lolly' },
       { slug: 'templates', label: 'Templates' },
       { slug: 'brand-studio', label: 'The Brand Studio' },
+      { slug: 'brand-architectures', label: 'Brand architectures' },
       { slug: '3d-studio', label: '3D Studio' },
       { slug: 'design-import', label: 'Import a design (Figma, Penpot, Illustrator, InDesign)' },
       { slug: 'rebrand', label: 'Rebrand a deck' },
@@ -661,6 +664,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'ai-agents', label: 'AI Agents' },
       { slug: 'work-document-agents', label: 'Invite an agent to a document' },
       { slug: 'work-api', label: 'Lolly Work API' },
+      { slug: 'work-resumable-uploads', label: 'Resumable uploads' },
     ] },
     { label: 'Author tools and design systems', items: [
       { slug: 'design-tokens', label: 'Design Tokens' },
@@ -5487,13 +5491,13 @@ interface SitemapSection { hub: Pathway; label: string; slugs: string[] }
 const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'quickstart', label: 'Product, organisation and vocabulary', slugs: ['index', 'faq', 'organisation', 'glossary', 'about', 'what-is-lolly', 'work-status'] },
   { hub: 'quickstart', label: 'First file and installation', slugs: ['make-something', 'install', 'supported-environments'] },
-  { hub: 'creators', label: 'Design and templates', slugs: ['project-asset-transfers', 'create-a-tool', 'training-creators', 'using', 'templates', 'brand-studio', '3d-studio', 'design-import', 'rebrand', 'text-composition', 'utilities', 'extension'] },
+  { hub: 'creators', label: 'Design and templates', slugs: ['project-asset-transfers', 'create-a-tool', 'training-creators', 'using', 'templates', 'brand-studio', 'brand-architectures', '3d-studio', 'design-import', 'rebrand', 'text-composition', 'utilities', 'extension'] },
   { hub: 'creators', label: 'Find and keep your work', slugs: ['profile', 'find-your-work', 'sync', 'search', 'ask', 'dashboard', 'favourites'] },
   { hub: 'creators', label: 'Collaborate and export', slugs: ['formats', 'collaborate', 'exporting'] },
   { hub: 'creators', label: 'Motion and presenting', slugs: ['hdr-editing', 'sequence-editor', 'presenting', 'interactive-pages', 'agenda', 'animating'] },
   { hub: 'creators', label: 'Team playbooks and comparisons', slugs: ['positioning', 'compare', 'compare-canva', 'compare-adobe', 'compare-figma', 'compare-render-apis', 'compare-converters', 'compare-penpot', 'compare-brand-portals', 'sales', 'press', 'marketing', 'legal'] },
   { hub: 'builders', label: 'Architecture and contracts', slugs: ['design-tool-contract', 'text-composition-engine', 'overview', 'document-model', 'constraints', 'determinism', 'reproducibility', 'host-api', 'data-transfer'] },
-  { hub: 'builders', label: 'Agents, APIs and integrations', slugs: ['learning-integration', 'mcp', 'ai-agents', 'work-document-agents', 'work-api'] },
+  { hub: 'builders', label: 'Agents, APIs and integrations', slugs: ['learning-integration', 'mcp', 'ai-agents', 'work-document-agents', 'work-api', 'work-resumable-uploads'] },
   { hub: 'builders', label: 'Author tools and design systems', slugs: ['design-tokens', 'token-workflows', 'authoring-tools', 'tool-skills', 'tool-manifest', 'tool-inputs', 'tool-structured-inputs', 'tool-files', 'tool-rendering', 'tool-starters', 'tool-hooks', 'tool-composition', 'tool-publishing', 'authoring-assets', 'catalog-resource-reading'] },
   { hub: 'builders', label: 'URL and CLI automation', slugs: ['url-mode', 'url-inputs', 'url-parameters', 'url-export', 'url-app-links', 'cli', 'cli-rendering', 'cli-files', 'production-checks', 'cli-automation', 'cli-reference', 'cli-signing', 'tui', 'work-cli'] },
   { hub: 'builders', label: 'Build and contribute to the apps', slugs: ['contributing-setup', 'build-guide', 'build-terminal', 'build-desktop', 'build-mobile', 'build-obs', 'build-kubernetes', 'ios-build'] },
@@ -5627,6 +5631,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   'using': 'pentool',
   'templates': 'folder',
   'brand-studio': 'palette',
+  'brand-architectures': 'layers',
   '3d-studio': 'layers',
   'profile': 'usercheck',
   'find-your-work': 'folder',
@@ -5800,6 +5805,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   'work-api': 'document',
   'work-cli': 'document',
   'work-status': 'document',
+  'work-resumable-uploads': 'upload',
 };
 // END GENERATED DOCS SIDEBAR_ICON
 // The footer sitemap reuses the mapping above, so its completeness is enforced the

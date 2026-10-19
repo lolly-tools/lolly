@@ -561,34 +561,112 @@ function compute(model) {
 
 // Brand palette for the canvas "shuffle colours" button and the mesh node
 // colour picker - the same swatch set the colour picker offers
-// (host.tokens.colors()), fetched once. The shuffle itself writes concrete
-// values into the inputs, so a shuffled state stays deterministic /
-// URL-expressible.
+// (host.tokens.colors()), fetched once per set of brand colours, and again
+// after a theme or colourway switch (onInput with id '__tokens'). The shuffle
+// itself writes concrete values into the inputs, so a shuffled state stays
+// deterministic / URL-expressible.
+//
+// FAMILY FIRST (plans/319): a design system with several colourways puts every
+// colourway's lead, in this look, at the head of the palette, so a shuffle draws
+// on the leads before the rest of the brand. Fewer than two leads adds nothing.
+//
+// The palette is also keyed on the brand colours it was read under (_paletteKey),
+// so when those colours move without a switch the next input reads it again,
+// without re-running onInit, which would reset the user's colours.
 var _paletteJson = JSON.stringify(FALLBACK);
 var _paletteLoaded = false;
+var _paletteKey = null;
+
+async function _brandKey(h) {
+  if (!h || !h.tokens || !h.tokens.resolve) return '';
+  var out = [];
+  var slots = ['primary', 'secondary', 'surface'];
+  for (var i = 0; i < slots.length; i++) {
+    var v;
+    try { v = await h.tokens.resolve('{color.semantic.' + slots[i] + '}'); } catch (e) { v = ''; }
+    out.push(typeof v === 'string' ? v : JSON.stringify(v == null ? null : v));
+  }
+  return JSON.stringify(out);
+}
+
+async function _familyHex(h) {
+  if (!h || !h.tokens || typeof h.tokens.family !== 'function') return [];
+  try {
+    var family = (await h.tokens.family('primary')) || [];
+    if (family.length < 2) return [];
+    var hex = [];
+    family.forEach(function (m) {
+      var v = String((m && m.value) || '').trim().toLowerCase();
+      if (/^#[0-9a-f]{6}$/.test(v) && hex.indexOf(v) < 0) hex.push(v);
+    });
+    return hex.length >= 2 ? hex : [];
+  } catch (e) { return []; }
+}
+
+// One read at a time per set of brand colours: an input that arrives while a
+// palette is loading waits for that load instead of starting a second one.
+var _paletteLoad = null;
 
 async function _loadPalette(h) {
-  if (_paletteLoaded) return;
-  _paletteLoaded = true;
-  try {
-    if (h && h.tokens && h.tokens.colors) {
-      var sw = await h.tokens.colors();
-      var hex = [];
-      (sw || []).forEach(function (s) {
-        var v = String((s && s.value) || '').trim().toLowerCase();
-        if (/^#[0-9a-f]{6}$/.test(v) && hex.indexOf(v) < 0) hex.push(v);
-      });
-      if (hex.length >= 2) _paletteJson = JSON.stringify(hex.slice(0, 32));
-    }
-  } catch (e) { /* keep the literal fallback palette */ }
+  var key = await _brandKey(h);
+  // A load in flight for other colours is superseded: the newest colours win.
+  if (_paletteLoad) { if (_paletteLoad.key === key) return _paletteLoad.promise; }
+  else if (_paletteLoaded && key === _paletteKey) return;
+  var load = { key: key, promise: null };
+  load.promise = (async function () {
+    var next = null;
+    try {
+      if (h && h.tokens && h.tokens.colors) {
+        var sw = await h.tokens.colors();
+        var hex = await _familyHex(h);
+        (sw || []).forEach(function (s) {
+          var v = String((s && s.value) || '').trim().toLowerCase();
+          if (/^#[0-9a-f]{6}$/.test(v) && hex.indexOf(v) < 0) hex.push(v);
+        });
+        next = hex.length >= 2 ? JSON.stringify(hex.slice(0, 32)) : JSON.stringify(FALLBACK);
+      }
+    } catch (e) { next = null; /* keep the palette already shown */ }
+    if (_paletteLoad !== load) return;
+    _paletteLoad = null;
+    _paletteLoaded = true;
+    _paletteKey = key;
+    if (next !== null) _paletteJson = next;
+  })();
+  _paletteLoad = load;
+  return load.promise;
+}
+
+function _hostOf(ctx) {
+  return (ctx && ctx.host) || (typeof host !== 'undefined' ? host : null);
 }
 
 async function onInit(ctx) {
-  await _loadPalette((ctx && ctx.host) || (typeof host !== 'undefined' ? host : null));
+  await _loadPalette(_hostOf(ctx));
   return Object.assign({}, compute(ctx.model), { paletteJson: _paletteJson });
 }
+
+// compute() runs first and synchronously, as it always has, so its state (the
+// export's loop length, the memo) is set when onInput returns. Only a host with
+// token reads has a palette to re-check; it gets the result once the check is done.
 function onInput(ctx) {
-  return Object.assign({}, compute(ctx.model), { paletteJson: _paletteJson });
+  var h = _hostOf(ctx);
+  if (ctx && ctx.id === '__tokens') {
+    // Read in the new choice from the start, exactly as a mount in it would. A
+    // load still in flight for the old choice is superseded and never lands.
+    _paletteLoaded = false;
+    _paletteKey = null;
+    _paletteLoad = null;
+    _paletteJson = JSON.stringify(FALLBACK);
+    return _loadPalette(h).then(function () {
+      return Object.assign({}, compute(ctx.model), { paletteJson: _paletteJson });
+    });
+  }
+  var result = Object.assign({}, compute(ctx.model), { paletteJson: _paletteJson });
+  if (!h || !h.tokens || !h.tokens.resolve) return result;
+  return _loadPalette(h).then(function () {
+    result.paletteJson = _paletteJson;
+    return result;
+  }, function () { return result; });
 }
 
 // Motion formats play the drift/flow; every other format freezes the base pose

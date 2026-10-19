@@ -315,6 +315,18 @@ test('a milestone is a zero-length diamond centred on its start date', async () 
   assert.ok(rightX - topX > 4 && Math.abs((rightX - topX) - (midY - topY)) < 0.01, 'a square-on-its-point diamond');
 });
 
+test('a milestone read back from a shared link is still a milestone', async () => {
+  // The compact link form decodes every card field as text, so the flag comes back as 'true'.
+  const ga = { shape: 'rounded', nodeId: 'ga', label: 'GA', startDate: '2026-01-08' };
+  const authored = await render({ nodes: [...DATED, { ...ga, milestone: true }] });
+  for (const flag of ['true', '1']) {
+    assert.equal(await render({ nodes: [...DATED, { ...ga, milestone: flag }] }), authored, `'${flag}' draws the milestone`);
+  }
+  const bar = await render({ nodes: [...DATED, { ...ga, milestone: false }] });
+  assert.notEqual(bar, authored);
+  assert.equal(await render({ nodes: [...DATED, { ...ga, milestone: 'false' }] }), bar, `'false' draws a bar`);
+});
+
 test('swimlanes group the rows by Group, and undated rows sit at the bottom', async () => {
   const svg = await render({
     nodes: [

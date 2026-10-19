@@ -175,16 +175,15 @@ test('a dialog that fails to open releases the gate, and the next call tries aga
   assert.equal(await maintenanceMayStart(), true);
 });
 
-test('the workspace door opens the connection sheet after welcome history has settled', async () => {
+// Plan 320 D1: connecting to a workspace lives in Settings only. On the welcome
+// screen the link read as a required or competing path for first users.
+test('the welcome offers no workspace door', async () => {
   localStorage.clear();
   const host = {} as NonNullable<Parameters<typeof showWelcomeDialog>[1]>;
   const settled = showWelcomeDialog(undefined, host);
-  dialog().querySelector<HTMLButtonElement>('[data-choice="workspace"]')!.click();
-  assert.equal(await settled, 'workspace');
-  for (let i = 0; i < 100 && !document.querySelector('.instance-sheet'); i++) await new Promise(resolve => setTimeout(resolve, 10));
-  const sheet = document.querySelector<HTMLDialogElement>('.instance-sheet');
-  assert.ok(sheet, 'the next sheet survives the welcome dialog history traversal');
-  assert.ok(sheet.querySelector('[data-act="choose-connect"]'));
-  assert.equal(localStorage.getItem('lolly-welcome-dismissed'), '1');
-  sheet.dispatchEvent(new dom.window.Event('cancel'));
+  assert.ok(dialog().querySelector('[data-choice="import"]'), 'the upload-capable welcome still shows its import door');
+  assert.equal(dialog().querySelector('[data-choice="workspace"]'), null);
+  assert.doesNotMatch(dialog().textContent ?? '', /workspace/i);
+  dialog().querySelector<HTMLButtonElement>('.welcome-skip')?.click();
+  assert.equal(await settled, 'dismiss');
 });

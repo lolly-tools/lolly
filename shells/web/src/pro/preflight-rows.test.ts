@@ -24,6 +24,9 @@ import {
   RUN_LEVEL_IDS, createBatchRowCheck, preflightJobForRow, preflightRow, rowSize,
   skippedFindings, toPreflightManifest, type BatchPreflightEnv,
 } from './preflight-rows.ts';
+import { chooseFormat } from './render-export.ts';
+import { rowFromToolSession } from './folder-rows.ts';
+import { chooseFormat as chooseToolFormat } from '../bridge/tool-loader.ts';
 import { RASTER_DEFAULT_SCALE } from '../bridge/export-scale.ts';
 import type { Finding } from '@lolly/engine';
 
@@ -295,6 +298,33 @@ test('a format the tool DOES offer is not a substitution, and neither is jpg/jpe
       .some(f => f.id === 'collect.format-substituted');
   assert.equal(has({ format: 'png' }), false);
   assert.equal(has({ format: 'jpg' }), false, 'chooseFormat holds the jpg/jpeg equivalence');
+});
+
+test('a saved session or snapshot that names scorm renders as a format Batch can produce', () => {
+  // Design's Download saves `__export_format: 'scorm'` with the session, and Projects >
+  // Download and folder export turn that session into a batch row. The export bridge
+  // has no `scorm` renderer, so the batch choice falls back instead of throwing there.
+  const m = manifestOf({ render: { width: 1200, height: 900, formats: ['png', 'scorm'] } });
+  const session = { __toolId: 'demo', __export_format: 'scorm', title: 'x' };
+  const row = rowFromToolSession(session) as BatchRow;
+  assert.equal(row.format, 'scorm');
+  assert.equal(chooseToolFormat(m, 'scorm'), 'scorm', 'the tool itself still declares scorm');
+  assert.equal(chooseFormat(m, row.format), 'png');
+  assert.equal(chooseFormat(m, 'png'), 'png');
+  // Nor does the no-preference fallback pick scorm when a tool lists it first.
+  assert.equal(chooseFormat(manifestOf({ render: { formats: ['scorm', 'pdf'] } }), null), 'pdf');
+
+  const pm = toPreflightManifest(m);
+  assert.equal(preflightJobForRow(row, pm, 0, CTX, ENV).settings.format, 'png');
+  const sub = preflightRow(row, pm, 0, CTX, ENV, () => {}).find(f => f.id === 'collect.format-substituted');
+  assert.ok(sub, 'the row is told it will not render as scorm');
+  assert.deepEqual(
+    [sub!.evidence!.requested, sub!.evidence!.chosen, sub!.evidence!.offered],
+    ['scorm', 'png', 'png'],
+  );
+  // A restored batch snapshot carries scorm as the RUN format instead.
+  const runLevel = { toolId: 'demo', values: { title: 'x' } } as BatchRow;
+  assert.equal(preflightJobForRow(runLevel, pm, 0, CTX, { ...ENV, run: { format: 'scorm' } }).settings.format, 'png');
 });
 
 test('a px fallback is not a declared unit', () => {

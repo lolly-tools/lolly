@@ -7,14 +7,17 @@ description: >-
   API. Use when the task is to make an image, chart, poster, deck, QR code, print
   file, motion piece or on-device file transform, or to drive a Lolly tool by URL,
   MCP or CLI. Also use for setting up, importing, selecting or matching a design
-  system, and for diagram workflows.
+  system, and for choosing, building, importing or recreating a diagram (org
+  chart, flowchart, layered architecture, timeline, roadmap, cycle or matrix)
+  from cards, text, Mermaid, DOT or a table.
   Covers the three document tools whose input is structured (chart, design,
   deck-studio) and how to edit a Design document by stable layer id.
 ---
 
 # Driving Lolly
 
-For setup or brand matching, read `reference/design-system.md`. Each tool also
+For setup or brand matching, read `reference/design-system.md`. For a diagram,
+read `reference/diagrams.md`. Each tool also
 has compatible guidance: `/info/skills/tools/<id>/SKILL.md` on the current
 instance, or MCP `lolly://tool/{id}/skill`. The public index is
 `/info/skills/tools/index.json`. An invitation embeds guidance from the actual
@@ -36,6 +39,10 @@ Read the references needed for the chosen tool and surface:
 - `reference/chart.md`, `reference/design.md`, `reference/deck.md`: the three tools
   whose input is a structured document, each with a worked example. `design.md`
   also holds the authoring keys and the spec `lolly compose` lays slides out from.
+- `reference/diagrams.md`: choosing a diagram by meaning (Diagrams, Chart, Design
+  or a table), the supported sources, types, looks and exports, the fidelity
+  record for an import or recreation, and the review loop. Diagrams is
+  experimental, so the public render route does not serve Diagrams.
 - `reference/motion.md`: timed Design work, with editable recipes for kinetic
   type, a product demonstration and a quiet explainer. Read before authoring motion.
 - `reference/rebrand.md`: renovating someone else's PowerPoint deck into the
@@ -58,6 +65,7 @@ Read the references needed for the chosen tool and surface:
 | An editable link a human will keep tweaking | `lolly_build_url` (MCP) or `--share` (CLI) |
 | Renders inside a GitHub workflow | The render action (`args-json`, `rows`) |
 | Durable async jobs, batching, idempotent retries | The lolly-work API |
+| A diagram: org chart, flowchart, layers, timeline, roadmap, cycle or matrix | `lolly run diagram-builder` (CLI) or `lolly_render` (MCP), never the public render route - see `reference/diagrams.md` |
 | A file transform (strip metadata, compress, redact) | `lolly_transform` / `lolly_redact` (MCP) or the utility on the CLI |
 | Renovating an old deck into the design system | `lolly_rebrand` (MCP) or `lolly rebrand plan\|compile\|inspect` (CLI) - see `reference/rebrand.md` |
 | Rebuilding a deck in Design from its content | `lolly://design-context` / `lolly system context` for the brief, `lolly_read` / `lolly read` for the source, `lolly_compose` / `lolly compose` for the slides, `lolly_check` / `lolly check` for the result - see `reference/recreate.md` |
@@ -86,7 +94,9 @@ Read the references needed for the chosen tool and surface:
 6. **Check before you hand over.** `lolly_check` (MCP) or `lolly check` (CLI)
    runs every check in one findings list: structure, the painted page, brand and
    house rules, Verify layout clues and, given the source, fidelity to it. Fix each
-   finding at its `layerId`, then check again; `exitCode` `0` is clean.
+   finding at its `layerId`, then check again; `exitCode` `0` is clean. It does
+   not judge a diagram: for a Diagrams export, follow the review loop in
+   `reference/diagrams.md`.
 7. **Share the editable link.** When the human will iterate, hand them the
    `lolly.tools` link, not just the bytes.
 

@@ -1,0 +1,125 @@
+{
+  "fixture": "multilingual.pdf",
+  "version": 1,
+  "builder": "scripts/build-read-extract-fixtures.ts",
+  "licence": "MPL-2.0",
+  "about": "A two-column English page, a page of French, German and Spanish with their accents in WinAnsi Helvetica, and a searchable scan whose words are an invisible text layer over the page picture.",
+  "pages": [
+    {
+      "page": 1,
+      "languages": [
+        "en"
+      ],
+      "blocks": [
+        {
+          "text": "Reading order in two columns",
+          "origin": "authored"
+        },
+        {
+          "text": "The left column comes first.",
+          "origin": "authored"
+        },
+        {
+          "text": "It holds five short lines,",
+          "origin": "authored"
+        },
+        {
+          "text": "each one its own block,",
+          "origin": "authored"
+        },
+        {
+          "text": "and a reader takes all five",
+          "origin": "authored"
+        },
+        {
+          "text": "before it moves to the right.",
+          "origin": "authored"
+        },
+        {
+          "text": "The right column comes second.",
+          "origin": "authored"
+        },
+        {
+          "text": "A reader that runs across",
+          "origin": "authored"
+        },
+        {
+          "text": "the gutter mixes the two",
+          "origin": "authored"
+        },
+        {
+          "text": "columns line by line, which",
+          "origin": "authored"
+        },
+        {
+          "text": "this page is here to catch.",
+          "origin": "authored"
+        }
+      ]
+    },
+    {
+      "page": 2,
+      "languages": [
+        "fr",
+        "de",
+        "es"
+      ],
+      "blocks": [
+        {
+          "text": "Accents et Umlaute",
+          "origin": "authored"
+        },
+        {
+          "text": "Évaluer la qualité, page après page.",
+          "origin": "authored"
+        },
+        {
+          "text": "Größe, Straße und Übersicht.",
+          "origin": "authored"
+        },
+        {
+          "text": "Año, niño y corazón.",
+          "origin": "authored"
+        },
+        {
+          "text": "Ça coûte très peu, dit-il.",
+          "origin": "authored"
+        }
+      ]
+    },
+    {
+      "page": 3,
+      "languages": [
+        "en"
+      ],
+      "scanned": true,
+      "read": "text-layer",
+      "blocks": [
+        {
+          "text": "A SEARCHABLE SCAN\nITS WORDS ARE AN INVISIBLE LAYER",
+          "origin": "text-layer"
+        }
+      ],
+      "picture": {
+        "width": 816,
+        "height": 1056
+      },
+      "drawn": [
+        {
+          "text": "A SEARCHABLE SCAN",
+          "x": 80,
+          "y": 120,
+          "scale": 6,
+          "ink": "#1a1a1a"
+        },
+        {
+          "text": "ITS WORDS ARE AN INVISIBLE LAYER",
+          "x": 80,
+          "y": 260,
+          "scale": 3,
+          "ink": "#1a1a1a"
+        }
+      ]
+    }
+  ]
+}

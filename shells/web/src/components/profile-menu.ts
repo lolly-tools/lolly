@@ -198,6 +198,12 @@ export function attachProfileMenu(
       .then(a => { const slot = el.querySelector<HTMLElement>('[data-ds-label]'); if (slot && a) slot.textContent = a.label; })
       .catch(() => { /* The picker reports registry availability separately. */ });
     el.querySelector('[data-act="brand"]')?.addEventListener('click', () => pop.close());
+    // A workspace that locks its design system has nothing to set up here; the row
+    // read as an invitation to change what the organisation owns (plan 320 J11).
+    const lockable = (host as { tokens?: { isLocked?(): Promise<boolean> } }).tokens;
+    void lockable?.isLocked?.().then(locked => {
+      if (locked) el.querySelector('[data-act="brand"]')?.remove();
+    }, () => { /* the row stays */ });
     el.querySelector('[data-act="settings"]')?.addEventListener('click', () => pop.close());
 
     // Language opens the full lang-menu popover as a CHILD anchored off this

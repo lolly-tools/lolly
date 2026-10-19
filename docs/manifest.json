@@ -345,6 +345,17 @@
       "group": "Design and templates"
     },
     {
+      "slug": "brand-architectures",
+      "title": "Brand architectures",
+      "src": "brand-architectures.md",
+      "section": "create",
+      "path": "create/brand-architectures",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
       "slug": "3d-studio",
       "title": "3D Studio",
       "src": "3d-studio.md",
@@ -2813,16 +2824,33 @@
         "path": "status.md",
         "icon": "docs"
       }
+    },
+    {
+      "slug": "work-resumable-uploads",
+      "title": "Resumable uploads",
+      "src": "work/resumable-uploads.md",
+      "section": "build",
+      "path": "build/resumable-uploads",
+      "icon": "upload",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "group": "Agents, APIs and integrations",
+      "description": "Decision record: the parts protocol over tus, its resume report, and the scopes that share it.",
+      "work": {
+        "slug": "resumable-uploads",
+        "path": "resumable-uploads.md",
+        "icon": "docs"
+      }
     }
   ],
   "workImport": {
     "repository": "https://github.com/lolly-tools/lolly-work",
-    "commit": "702f718cf2fc33fa544f46d6eaa4848e8368d746",
+    "commit": "7f2be8cb52df5b53b539009ec62e2f151ed72d18",
     "version": "1.1.1",
     "files": {
       "README.md": {
         "source": "work/README.md",
-        "sha256": "bbe0e168f584194c51ba4431180ed4ae7ba7a3c77ff0faaada380133d45e4c2a",
+        "sha256": "23edfcb7ec21dbc76c57a22f23357906e16777ad3b322f19c7bcd998445c3d4e",
         "originalPath": "docs/README.md"
       },
       "account-lifecycle.md": {
@@ -2832,12 +2860,12 @@
       },
       "ai-policy.md": {
         "source": "work/ai-policy.md",
-        "sha256": "f41e4e46209673591cdb42a1bbed82342123d1f9cccb7ddb59752d9c0b9b754d",
+        "sha256": "251d82b3b2ffeabb7d1aaf0eba6e13bd50959b7ff3ca52be3120ef658511de97",
         "originalPath": "docs/ai-policy.md"
       },
       "api.md": {
         "source": "work/api.md",
-        "sha256": "5303c36a5011534632d78232527a5b8640c87e07c8f863415f5c1d074b6ffb3b",
+        "sha256": "4c75d441d0c52fe7956c7013dd12123f38064a36f1e259561b4303759b03bd53",
         "originalPath": "docs/api.md"
       },
       "application-release-classification.md": {
@@ -2847,7 +2875,7 @@
       },
       "approvals.md": {
         "source": "work/approvals.md",
-        "sha256": "7b7d0e11470d1d20da28c08b9cdd670f116c3d0874d022c11894f1c40fac6dfb",
+        "sha256": "3ddffad3e43478fda9bf66fb77d3d654c26696f75c4831c28f94b3f6ae24c40f",
         "originalPath": "docs/approvals.md"
       },
       "audit.md": {
@@ -2862,12 +2890,12 @@
       },
       "catalog.md": {
         "source": "work/catalog.md",
-        "sha256": "0a25492b2adfabf085e14797dde3db815af4a7e4679157ffa9119466d3712278",
+        "sha256": "d6cf94bf78edf207d6fdd390d04597f517d15f89018f8e4b4ed7437e3302f76f",
         "originalPath": "docs/catalog.md"
       },
       "cli.md": {
         "source": "work/cli.md",
-        "sha256": "f3d66031179ba009427dd306ad1952c2ddf22304a318b2561e9d66f01226a8cc",
+        "sha256": "3a887b414f4f2c5db7c9fcaa1e7c2f9dcd9e573672f2e16ea5d45083c8e5f1e7",
         "originalPath": "docs/cli.md"
       },
       "cloud-deployment.md": {
@@ -2877,7 +2905,7 @@
       },
       "configuration.md": {
         "source": "work/configuration.md",
-        "sha256": "a13bdd0ab8dd42a8fafc154ec8ce2983bd92fe5d3edd30b0bf26690d3d3b7bc2",
+        "sha256": "743b8e0d669f346b79c6712067b4e2fa08ea65fd11180fe0f203bac497092c41",
         "originalPath": "docs/configuration.md"
       },
       "customer-setup.md": {
@@ -2887,17 +2915,17 @@
       },
       "data-lifecycle.md": {
         "source": "work/data-lifecycle.md",
-        "sha256": "ceab5558f25b6147ab5951f34a743acf77d9ed81644e033256645c2cd6fb754a",
+        "sha256": "14ef46848b35d253a170bdf38e95b132b2694b75aeb262dbb95d5e56dfc82437",
         "originalPath": "docs/data-lifecycle.md"
       },
       "delivery.md": {
         "source": "work/delivery.md",
-        "sha256": "b2115d25805f9ca3e0785e9108055cb88d7b75095622e02810492c2713eb6605",
+        "sha256": "9fe1170d904d4bc55d918aae31daa0bc55172a2998ca69da6d14061206b97057",
         "originalPath": "docs/delivery.md"
       },
       "deployment.md": {
         "source": "work/deployment.md",
-        "sha256": "ee7a19136947c432197e709911bed7390d59226b30f5b2cd261eacfea480497a",
+        "sha256": "aee974622cd065404090b4462f6d039553650f7a94ee78c0099d70ffd436a805",
         "originalPath": "docs/deployment.md"
       },
       "design-system-administration.md": {
@@ -2962,7 +2990,7 @@
       },
       "instance-pack-production.md": {
         "source": "work/instance-pack-production.md",
-        "sha256": "674014c4afcabefaf6fa1519ed1c7e00b2866fceba187eb33193b1252d3279cd",
+        "sha256": "a59a08a530369775ecc70a89cdc96c8153f1d34f228a05220cb07cc48c396c18",
         "originalPath": "docs/instance-pack-production.md"
       },
       "offboarding.md": {
@@ -2972,12 +3000,12 @@
       },
       "official-installations.md": {
         "source": "work/official-installations.md",
-        "sha256": "e7dbff8ede03ea981b2706bcae7a170c37ba845557623851e6fdc65fb6f9da10",
+        "sha256": "8b4d4790098922e53c497530886bc83e64426c78527f7f450822f4921cf3c479",
         "originalPath": "docs/official-installations.md"
       },
       "operations.md": {
         "source": "work/operations.md",
-        "sha256": "7742cd881d393d6ae8220b985a73879a869811b682f20ded61f1fc7963baf0e7",
+        "sha256": "251c7779de9c95a9744500c94ab9abf110333c36c163065851b97d3480573be7",
         "originalPath": "docs/operations.md"
       },
       "overview.md": {
@@ -3092,12 +3120,12 @@
       },
       "providers/orange-logic-live-verify.md": {
         "source": "work/providers/orange-logic-live-verify.md",
-        "sha256": "0328d327ef8d5540fc38f791c88a8bda305c982f7256bf6ea51bae7807987767",
+        "sha256": "4bf86957169acccbeffbda717a8c9152c72a56eb544bdb5924721e638df5ead9",
         "originalPath": "docs/providers/orange-logic-live-verify.md"
       },
       "providers/orange-logic.md": {
         "source": "work/providers/orange-logic.md",
-        "sha256": "ed7c90c8b0aa2d3529d48c3ee3f7d68953ae2718b2fef3562fd6bfcbd560d57a",
+        "sha256": "01dedad80d599dd08cb6babec5f96dbf69904377f9fa5a6cc9de0fd43767c22c",
         "originalPath": "docs/providers/orange-logic.md"
       },
       "providers/penpot.md": {
@@ -3137,7 +3165,7 @@
       },
       "renders.md": {
         "source": "work/renders.md",
-        "sha256": "abb945051840c88851113c98302a7082cae6dfb68b185a2cfae709f018f99d10",
+        "sha256": "916ad334a9a24662cbc4b03dc1ba7d1a948540d5bf7e976302c4a55cf3bc860f",
         "originalPath": "docs/renders.md"
       },
       "security-platform.md": {
@@ -3152,7 +3180,7 @@
       },
       "sharing.md": {
         "source": "work/sharing.md",
-        "sha256": "6afb77e73a68951a1e463ffab9296e71629e9614e368f3f43947186c0c54b05d",
+        "sha256": "9bfe8a13c3858457c2b6d86a0fc437afa1bc83fe5306d78220105fd7c4fd2886",
         "originalPath": "docs/sharing.md"
       },
       "shell-deployment-workflow.md": {
@@ -3412,7 +3440,7 @@
       },
       "telemetry.md": {
         "source": "work/telemetry.md",
-        "sha256": "93dfc8adfbf42c8c6ef55414cca24879a26e0927fd41429e55fd22b259f0f38b",
+        "sha256": "7a1c96ea844bbf401c1fb478b4150e2fc58428a9c4cd120d1b55ab115114f8d1",
         "originalPath": "docs/telemetry.md"
       },
       "wasm-deployment.md": {
@@ -3424,6 +3452,10 @@
         "source": "work/LICENSE",
         "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
         "originalPath": "LICENSE"
+      },
+      "resumable-uploads.md": {
+        "source": "work/resumable-uploads.md",
+        "sha256": "0efbed02e63d03fdacc9df9c79ab23341e57c2924a6bf310af2dcf760022375d"
       }
     }
   }

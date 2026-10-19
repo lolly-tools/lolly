@@ -2278,6 +2278,12 @@ const utilityViews = (speechOk: boolean): UtilityView[] => [{
   name: t('Unpack'),
   description: t('Take a design file apart: the words, images, fonts, colours and marks inside a PDF, SVG, InDesign, Penpot, Figma, PowerPoint or Photoshop file, each one viewable and keepable. Nothing is uploaded.'),
 }, {
+  id: 'extract',
+  href: '#/extract',
+  icon: 'transcript',
+  name: t('Read and extract'),
+  description: t('Get the words, tables and pictures of a PowerPoint deck, PDF or Photoshop file page by page, as text, Markdown or JSON. Words read from a scan say which model read them and how sure it was. Nothing is uploaded.'),
+}, {
   id: 'rebrand',
   href: '#/rebrand',
   icon: 'paintbrush',

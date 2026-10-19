@@ -617,3 +617,69 @@ test('the Sleepwalking deck reads as 16 slides with five notes and its pictures 
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+// ─── words read from pixels (plan 203, rank 10) ──────────────────────────────
+
+test('a frame a rebuild read with text recognition records the model, its catalogue facts and its confidence', () => {
+  const lines = [
+    { text: 'Quarterly', confidence: 0.9, box: { x: 0, y: 0, w: 90, h: 20, rot: 0 } },
+    { text: 'results up', confidence: 0.6, box: { x: 0, y: 24, w: 90, h: 20, rot: 0 } },
+  ];
+  const deck = deckOf([
+    obj('rebuilt', { origin: 'raster-region', text: { paras: [{ runs: [{ text: 'Quarterly results up' }] }] }, ocr: { state: 'text-found', lines, model: 'ocr-x' } }),
+    obj('written', { text: { paras: [{ runs: [{ text: 'Written by hand' }] }] } }),
+  ]);
+  const inventory = inventoryFromSource(deck, censusOf({}), { media: new Map(), recognizers: new Map([['ocr-x', { version: '2.1', languages: ['en', 'fr'] }]]) });
+  assertValid(inventory);
+  const byId = Object.fromEntries(inventory.slides[0]!.text.map((t) => [t.objectId, t]));
+  // Weighted by characters without spaces: 9 at 0.9 and 9 at 0.6.
+  assert.deepEqual(byId.rebuilt!.recognition, { model: 'ocr-x', confidence: 0.75, minConfidence: 0.6, lines: 2, modelVersion: '2.1', languages: ['en', 'fr'] });
+  assert.equal(byId.written!.recognition, undefined, 'authored text never carries a recognition record');
+});
+
+test('a page kept as one picture lists its scan text layer as one hidden frame, and is marked flattened', () => {
+  const media = new Map<string, InventoryMediaInputV1>([['m/page', { sha256: SHA('d'), mime: 'image/png', bytes: 99 }]]);
+  const layer = {
+    state: 'text-found' as const, model: 'pdf-text-layer',
+    lines: [
+      { text: 'A  scanned  title', confidence: 1, box: { x: 100, y: 50, w: 400, h: 40, rot: 0 } },
+      { text: 'and a second line', confidence: 1, box: { x: 100, y: 120, w: 300, h: 20, rot: 0 } },
+    ],
+  };
+  const deck = deckOf([obj('page', { kind: 'pic', origin: 'pdf-artifact', media: 'm/page', mediaMime: 'image/png', box: { x: 0, y: 0, w: 1000, h: 500, rot: 0 }, ocr: layer })], {
+    origin: { kind: 'pdf', flattened: true }, ocr: { state: 'text-found', model: 'pdf-text-layer' },
+  });
+  const inventory = inventoryFromSource(deck, censusOf({}), { media, recognizers: new Map([['pdf-text-layer', { version: 'never used' }]]) });
+  assertValid(inventory);
+  const slide = inventory.slides[0]!;
+  assert.equal(slide.flattened, true);
+  assert.equal(slide.text.length, 1);
+  const frame = slide.text[0]!;
+  assert.equal(frame.objectId, 'page');
+  assert.equal(frame.plain, 'A scanned title\nand a second line');
+  assert.equal(frame.hidden, true);
+  assert.deepEqual(frame.box, { x: 0.1, y: 0.1, width: 0.4, height: 0.18 });
+  assert.deepEqual(frame.recognition, { model: 'pdf-text-layer', confidence: 1, minConfidence: 1, lines: 2 }, 'the text layer takes no catalogue facts');
+  assert.match(inventory.warnings[0]!.message, /its words come from the text layer the scan carries/);
+});
+
+test('the pieces a rebuild cut keep their own readings as pictures, not as text', () => {
+  const media = new Map<string, InventoryMediaInputV1>([['m/crop', { sha256: SHA('e'), mime: 'image/png', bytes: 9 }]]);
+  const deck = deckOf([obj('crop', { kind: 'pic', origin: 'raster-region', media: 'm/crop', mediaMime: 'image/png', ocr: { state: 'text-found', lines: [{ text: 'LOGO', confidence: 0.8, box: { x: 0, y: 0, w: 10, h: 10, rot: 0 } }] } })], {
+    origin: { kind: 'pdf', flattened: true }, ocr: { state: 'text-found', model: 'ocr-x' },
+  });
+  const inventory = inventoryFromSource(deck, censusOf({}), { media });
+  assert.deepEqual(inventory.slides[0]!.text, []);
+  assert.equal(inventory.slides[0]!.pictures.length, 1);
+});
+
+test('a short line in a script without capitals is body, not a label', () => {
+  const deck = deckOf([
+    obj('ar', { text: { paras: [{ runs: [{ text: 'استخراج النص من الملف', sizePt: 20 }] }] } }),
+    obj('ja', { text: { paras: [{ runs: [{ text: '文字を読み取る', sizePt: 20 }] }] } }),
+    obj('caps', { text: { paras: [{ runs: [{ text: 'ΑΝΑΓΝΩΣΗ', sizePt: 20 }] }] } }),
+  ]);
+  const inventory = inventoryFromSource(deck, censusOf({}), { media: new Map() });
+  const roles = Object.fromEntries(inventory.slides[0]!.text.map((t) => [t.objectId, t.role]));
+  assert.deepEqual(roles, { ar: 'body', ja: 'body', caps: 'label' }, 'Greek capitals still read as a label');
+});

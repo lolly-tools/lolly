@@ -176,6 +176,19 @@
 .fc-insp .fc-dims-row { padding-inline-start: calc(var(--lp-label) + var(--sp-2)); }
 .fc-insp .fc-dims-row > .fc-dims-ic { margin-inline-start: calc((var(--lp-label) + var(--sp-2)) * -1); width: var(--ui-size-icon-sm); justify-content: center; }
 
+/* The proportion lock sits between W and H: a quiet toggle that reads as pressed
+   with a full wash, never an edge rail. */
+.fc-insp .fc-aspect-lock {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  inline-size: var(--ui-size-target); block-size: var(--ui-size-target);
+  padding: 0; border: 0; border-radius: var(--ui-radius-control);
+  background: transparent; color: var(--ui-color-text-muted); cursor: pointer;
+}
+.fc-insp .fc-aspect-lock:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.fc-insp .fc-aspect-lock[aria-pressed="true"] { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
+.fc-insp .fc-aspect-lock:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.fc-insp .fc-aspect-lock svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+
 .fc-insp-area { display: flex; flex-direction: column; gap: var(--sp-1); }
 .fc-insp-area > span { color: var(--ui-color-text-muted); }
 .fc-insp-area textarea { width: 100%; box-sizing: border-box; resize: vertical; }

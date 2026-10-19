@@ -59,6 +59,10 @@ and rechecks the tree while copying. Review binds this release to its clean
 source and profile; the manifest alone does not prove how the build was made.
 Keep the original build, CI and qualification evidence with the pack.
 
+The complete manifest may list up to 120,000 files, the same bound Work applies
+to a shell release manifest. The catalogue delivery inventory inside the tree
+keeps its own bound of 100,000 rows.
+
 Release mode requires a modern signed catalogue with a sequence and tool
 directory hashes. It runs the source-pinned Lolly verifier, checks the complete
 signed logical tool closure and immutable delivery inventory, and validates

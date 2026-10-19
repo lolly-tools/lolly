@@ -6,8 +6,116 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.279.0
+
+- Add optional `host.tokens.family(role?, opts?)`, which returns every colourway's colour for one role, canonical first, in the look the read resolves to. Each member carries `id`, `name`, `canonical`, `active` (the artefact's own colourway) and `value`. The list is empty when the design system has no colourway group. `withTokenSelection` scopes it to the document's choices.
+- Add optional `host.tokens.axes()`, which returns every theme group with its kind, canonical option, rotation and options.
+- The engine helpers `tokenFamily`, `tokenAxesOf` and `brandLeadVars` live in `token-context.ts`. Both canvas `applyBrandVars` paint `--brand-lead-1..n` and `--brand-lead-count` from `brandLeadVars`, only for a family of two or more, so a design system with one lead renders exactly as before.
+- The web, CLI and hook-worker hosts answer both reads. The web Worker executor sends the token document again before the next hook runs when the runtime's token set changes; `tokensChanged` (1.278.0) and this follower share one queue, so a switch sends one document.
+- Chart 1.27.0 puts the leads ahead of its categorical palette, never in its place; Audiogram 2.8.0, the visualiser schemes and Mesh Gradient 1.3.0 draw on every lead.
+
+## 1.278.0
+
+- A tool manifest may declare `tokenAxes`, a map from axis kind (`mode`, `colourway`, `expression`, `medium`, `contrast`, `density`, `campaign`, `brand`) to `"ignore"`. The runtime pins every theme group of an ignored kind to its canonical option at mount and on every `setTokenSelection`, before the first token read, so hooks, linked colours, canvas variables and the saved session agree. `runtime.ignoredTokenChoices` lists the requested choices the pin overrode. The decision is pure, in `tool-token-axes.ts` (`ignoresTokenAxes`, `effectiveAxisKinds`, `ignoredTokenAxes`, `pinIgnoredTokenAxes`, `describeIgnoredTokenChoice`), and the web shell, the CLI and MCP share it. No shipped tool declares `tokenAxes` yet.
+- `runtime.setTokenSelection` runs `onInput` once more with the id `__tokens` after linked inputs re-resolve, whether or not the tool links anything. Its patch updates computed values only and never writes a declared input.
+- `Hooks` gains optional `tokensChanged()`, called before any hook runs under a new theme choice. The web and Node Worker executors use it to send the Worker a new token snapshot (a `tokens` message in `hook-worker-core`), so isolated hooks read the new theme.
+- Agenda, Chart, Diagram Builder, Gradient, Filter and Darkroom re-read design-system colours after a live switch; Record and Wayfinding Signage keep their accent linked to the design system.
+
+## 1.277.0
+
+- Add functions that edit an existing set of colourways: `renameColourway`, `reorderColourways`, `setCanonicalColourway`, `removeColourway` and `duplicateColourway`, plus `colourwaysEditable` (whether Lolly can add, copy and remove colourways in a document, and why not) and `colourwayRolesOf` (the roles every look links to the colourways). Each returns the edited document or the reasons it refused. A colourway's id never changes, so an artefact that stored one keeps pointing at it; a rename of an entry with no id of its own writes the old name as the id first.
+- The canonical colourway stays first, so the mark and the first-option rule agree. Removing the canonical colourway is refused; removing another clears any stored choice of it, so the document falls back to the canonical colourway. Every edit checks that the remaining pairings of colourway and look resolve exactly as before.
+- A colourway name has at most `MAX_COLOURWAY_NAME` (80) characters and may not repeat any theme's id or name, in any case. `liftToColourways` now applies the same rules to the canonical colourway: one named after a look (light, Dark) would have answered every theme request for that look.
+
+## 1.276.0
+
+- Add optional `host.fonts`. `inspect` reads a TTF, OTF or WOFF file's own tables: names, outline format, weight class and `wght` range, variation axes, named instances, mapped characters per Unicode block and the `OS/2.fsType` statement. `subset` keeps only the glyphs chosen text needs through the shell's Skera runtime, keeps glyph ids and checks the output bytes before returning them.
+- Subsetting honours the font's own flags. Restricted licence embedding, no subsetting, bitmap-only embedding and a missing OS/2 table each refuse, as do outlines other than TrueType, which the pinned Skera build would drop. The Skera runtime enforces the same refusals for every caller, the PDF writer included. A subset is never a rights grant.
+- The web, desktop, CLI, TUI and MCP shells attach `host.fonts`. Convert Font 1.1 reports coverage and weights and offers a subset to chosen characters.
+
+## 1.275.0
+
+- `host.media.trim` takes optional `output` (`clip`, `poster` or `contact-sheet`), `image`, `sheetFrames`, `rotate`, `cut` (`exact`, `reencode` or `keyframe`), `maxShortEdge` and `targetBytes`. Shells that predate them ignore the fields; the Trim tool refuses a poster or contact sheet from such a shell instead of returning a clip. An `exact` MP4 or MOV cut between key frames stays a copy with an edit list, as before; `reencode` re-encodes the picture so nothing before the start is kept. A size limit keeps a copy that already fits and never encodes above the source's own bitrate.
+- `MediaTrimResult.report` says what happened to each source track (copied byte for byte, re-encoded with stable reason codes, or left out) and what was checked on the written bytes: sound against picture, which way up the picture is, declared colour information, displayed size and a size limit's outcome. `hiddenLeadIn` gives the picture a copy keeps before its start for players to skip. A track the user kept is never left out silently; the web shell refuses with the reason instead.
+
+## 1.274.0
+
+- Add optional `host.pdf.fromImages`, which builds a PDF with one PNG or JPEG per page. JPEG data is embedded without re-encoding, camera orientation is applied, and Exif, XMP, IPTC, comments and appended pictures are left out. 8-bit PNG pixels are copied without loss; 16-bit PNGs are reduced to 8 bits per channel, PNG colour profiles are not kept, and an animated PNG is refused by name. Pages are sized from the image resolution or fitted to A4 or US Letter.
+- `host.pdf.organize` results may carry an `effects` list reporting what the operation keeps, breaks or drops among bookmarks, annotations, links, form fields and signatures. When the source has no producer name or dates, the new PDF from a page operation has none either, instead of pdf-lib's own.
+- An operation that copies pages no longer carries other pages into the new PDF through what the copied pages refer to. A link with an explicit destination loses it, and references to other pages, to annotations on pages that are not copied and to signature values are cut before the copy. Before, deleting a page that another page linked to left the deleted page's content in the file, and every signature value (signer, date, certificate) was kept.
+- Pages 1.1 accepts images alongside PDFs, converts formats other than PNG and JPEG (and an animated PNG, to its still picture) with `host.images`, and shows the effects report before download.
+
+## 1.272.0
+
+- Add an LMS compatibility preset registry for course packages. Each preset is validated data that selects an existing course target and records its version, known limits, import instructions and compatibility evidence. Credentials, tenant links and vendor-specific code paths are not accepted.
+- A preset shows Tested only when its evidence records import, launch, media, completion and resume for that exact target and a named LMS version. Standard targets for websites and other LMS products never show Tested, and unknown limits stay unknown.
+
+## 1.271.0
+
+- Web page boxes recognise Slides.com deck links and load the deck's embed form. The embed asks reveal.js to report its slide position to the page that frames it, and keeps only a private deck token, the embed style options and a reveal.js slide address from the original link.
+- Add `revealDeckFrame`, which reports whether a frame's link asks a reveal.js deck for those reports. A self-hosted deck opts in with `postMessageEvents=true` in its own link.
+
+## 1.270.0
+
+- Add `readExtract`, which turns a content inventory into a `ReadExtractV1` (`@lolly-tools/core/read-extract-v1`): blocks in reading order per page, each naming its source object and box, bounded by a page expression and a character budget, with `next` and `from` to continue. Plain text and Markdown writers keep the source wording and mark recognised blocks.
+- Content inventory text frames read from pixels carry an optional `recognition` record with the model id, character-weighted confidence, lowest line confidence and line count; the host catalogue adds the model release and languages. A page kept as one picture lists its scan text layer as one hidden frame, and slides the source marks flattened carry `flattened`. Authored text is unchanged.
+- Add `scoreExtract` and the character and word error rates it uses, for measuring extraction against labelled fixtures.
+
+## 1.269.0
+
+- Add the export report. `verifyExport(request, bytes)` compares each requested property with a value read from the finished file: container, pixel or page size, page count, resolution, duration and frames, alpha channel, colour model, HDR signalling, Content Credentials presence, encryption and fonts. The report is bound to the output by SHA-256, and a value the bytes cannot supply is a named gap rather than a pass.
+- `inspectOutput(bytes)` reads those facts with bounded readers for PNG, APNG, JPEG, WebP, GIF, TIFF, AVIF, HEIC, MP4, WebM, SVG, EPS, PDF (including compressed object streams), ZIP and BMP, in time linear in the bytes read. `exportRequestFromJob(job)` derives the request from a preflight job and never treats a manifest default as a request.
+- With a bleed or print marks, a print file is compared with the sheet `computePrintGeometry` lays out: a CMYK TIFF's pixel count is the whole sheet, and a PDF or SVG that records its trim box is compared with the trim.
+- Container detection and the requested-format table move into the engine (`format-sniff.ts`) so the Node output guard, the web shell and the report share one table. The Node shells keep their refusal unchanged.
+- `@lolly-tools/core` 1.5 adds the `ExportReport` vocabulary beside `PreflightReport`.
+
+## 1.268.0
+
+- Data conversion takes explicit reading choices: one Excel worksheet by position or name (a name made only of digits that no worksheet carries is a 0-based position), or every worksheet; formula text or the results saved in the workbook; the CSV or TSV delimiter; the text encoding; and whether the first row holds headings, is data, or sits under added `Column 1`, `Column 2` headings. With no choices a file converts as before, apart from the reading fixes in the last item. `readDataOptions`, `readDataGrid` and `convertDataFile` are exported with the option lists shells offer.
+- Converting every worksheet writes one file per sheet into a ZIP with `manifest.json`, which records each sheet's file, row and column counts, SHA-256 and formula counts, and lists empty or chart sheets as skipped. The workbook is unzipped once for all of its sheets; `openXlsx` in `xlsx-import.ts` returns the unzipped workbook that `readXlsx` now reads through.
+- `readXlsx` accepts `cells: 'formulas'` and reports `formulaCells` and `formulaResultsKept`. A shared formula is rewritten for each cell it covers, leaving sheet names alone, including an unquoted sheet range such as `Q1:Q4!`; a formula that cannot be rewritten safely keeps its saved result and is counted.
+- `readXlsx` bounds the padded grid (rows times the widest row) at 16,777,216 slots and flags a sheet cut at that bound as truncated, so a small file holding only `A1` and `XFD1048576` cannot exhaust memory once a caller raises the row limit. The default 1,000-row limit at Excel's full width fits under the bound, so default reads are unchanged.
+- Conversion no longer stops an Excel sheet at 1,000 rows. It reads the whole sheet up to Excel's row limit and refuses a sheet beyond the reader's cell or padded-grid budget rather than cutting it short. CSV, TSV, Markdown and JSON tables whose padded grid would pass the same budget are refused before any padding is allocated. Text that is not valid UTF-8 is read as Windows-1252 instead of gaining replacement characters, a UTF-16 byte order mark is honoured, automatic splitting recognises semicolon-separated files, and a quoted CSV value keeps its line breaks.
+
+## 1.267.0
+
+- Add `penpotSvgLayoutFindings`. Flex and grid layouts declared in the page SVGs of a legacy Penpot zip export produce one `penpot.layout.svg-static` finding per container, with its Penpot layer name. Those pages import at their exported positions without layout rules. An SVG without layout metadata, such as a board exported from Penpot as SVG, produces no finding and no layout is inferred from how its artwork is arranged.
+- Export the `LayoutFinding` and `PenpotSvgLayout` types from the engine barrel.
+
+## 1.266.0
+
+- Outline Design underline in shared SVG, SVGZ and PDF drawing. The line follows the Design HTML reference's CSS auto placement, thickness and pixel rounding, and skip-ink clears it around each cluster outline returned by `text.toPath`, cut on whole pixels. CJK, Hangul, slashes and low lines keep the line, and decorated spaces that hang at a wrap are underlined in their own colour. A host without clusters, an unreadable outline or an unjudged pictograph retains the `text-decoration` finding.
+- The internal Design raster path refuses underlined or struck words with `raster-decoration`, since it fills only their glyphs.
+- Drawn Design text lines carry the decorated spaces that hang past the line end as an optional `hanging` list.
+
+## 1.265.0
+
+- Theme groups can say what they mean. A `$themes` entry may carry `$extensions['com.suse.lolly'].axis` with a `kind` (`mode`, `colourway`, `expression`, `medium`, `contrast`, `density`, `campaign` or `brand`), `canonical`, `rotation` and a date `window`; a document whose themes cannot carry extensions may state the group facts once in a root `themeAxes` map. `TokenSelection.groups[]` gains optional `kind` and `canonical`, and `themes()` entries gain optional `id` and `kind`, plus `canonical: true` on the canonical theme of a group that declares a kind. A group with no kind, or one this version does not know, resolves exactly as before. New module `token-axes.ts`: `readTokenAxes`, `axisOfKind`, `modeAxis`, `ROTATION_POLICIES`. `TOKEN_AXIS_KINDS` is the shared list in `@lolly-tools/core`.
+- Colourways: several lead colours in one design system, chosen per artefact. New module `colourway.ts`. A colourway set holds `color.colourway.<look>.<role>` and the light and dark sets link `color.semantic.primary`, `on-primary` and `secondary` (and optionally `surface`) to it, so every pairing of look and colourway resolves through ordinary aliases. `liftToColourways` moves a single-lead system's current colours into a canonical colourway and refuses the edit unless every token resolves exactly as before in every look, under every combination of the other theme groups (up to 256 selections); `addColourway` adds one, refuses files that encode colourways another way, keeps every existing pairing unchanged and checks that every role of every pairing resolves; `colourwayFamily` lists every lead for a role, canonical first; `pickColourway` resolves the `canonical`, `cycle`, `by-key`, `shuffle` and `by-date` policies from a caller-supplied index, seed, key or date, with no clock or random source; `withColourway` merges the pick into a selection. A colourway id may not repeat any theme id in the document. `deriveColourwaySlots` in `brand-derive.ts` gives the primary, on-primary and secondary a lead fills in one look, identical to what `deriveBrandTokens` gives the same colour.
+- **Behaviour change:** a `theme` request now decides only the groups that declare that theme. For every other group the order is its entry in an explicit `selection` when one is given (a given selection replaces the stored choices whole), otherwise the document's stored choice; then `activeThemes`; then the group's canonical option, which is its first unless one is marked canonical. Before, `colors({ theme: 'light' })` reset every other group to its first option, so deck-studio, diagram-builder, rebrand-deck and multi-page-pdf drew the first option of any second group whatever the artefact chose. `withTokenSelection` keeps the document's choices under a theme call for the same reason. A theme that no group declares is reported and changes nothing else (it used to reset every group). A theme and an explicit selection that disagree about the same group now resolve to the theme. A document with one theme group resolves exactly as before whenever the theme it is asked for is one of that group's options and no conflicting selection is passed; every pack Lolly ships qualifies.
+- The web shell's app chrome reads tokens through `chromeTokens()` (`shells/web/src/brand-vars.ts`), which pins every theme group except the light/dark one to its canonical theme, whether or not the group declares a kind, so an artefact's colourway (or any other theme choice on its route) never reaches the app accent, favicon or logo tint. Without it the theme-request change above would have let a route's `_themes` choice reach the chrome. A design system with a single theme group gets no pin and is read exactly as before.
+- The Penpot token writer opens each theme group on its canonical theme (the one marked canonical, else the first) when nothing chose one, so a colourway group's set is on when the file opens and the light and dark links into it resolve. One-group documents are unchanged. Theme `$extensions` are not written, because Penpot's theme record has no place for them; a colourway group reaches Penpot as a plain theme group.
+- The design brief lists colourways under `colourways` (group, canonical, rotation and each option's primary, on-primary, secondary and surface per look) and keeps them out of `themes`; the token compatibility report gives each theme its group's `kind`; `lolly check` checks in looks only, not colourways. The CLI's `--themes` gives every run an explicit selection: each group's canonical option, then a saved session's own choices, then the named theme for its group. So `--themes=all` exports each look once in the session's colourway or the canonical one, and a design system with only colourways exports each colourway.
+
+## 1.264.0
+
+- Supported DOCX metadata cleanup can also remove selected Template, HyperlinkBase, Application, AppVersion and document statistics (TotalTime, Pages, Words, Characters, CharactersWithSpaces, Lines and Paragraphs) from the canonical extended-properties part. Source-range deletion keeps other application properties, package declarations and unrelated ZIP members, and each copy is inspected again. Strip Hidden Data 1.4 shows the new choices in the existing review and copy flow.
+- Word fields that show one of these values (TEMPLATE, EDITTIME, NUMPAGES, NUMWORDS, NUMCHARS) keep that property, and link fields or relative external links keep HyperlinkBase. Files with chart parts, DrawingML or VML drawings or embedded objects keep Application and AppVersion, because some readers choose chart and drawing compatibility behaviour from them. Kept properties are not offered for removal, so the Prepare default selection and the CLI bulk flags never include them; the inspection lists what was kept. DOCPROPERTY fields, bound controls and structured or duplicated values remain inspect-only. Limitations explain that an attached template link stays in the document settings.
+
+## 1.263.0
+
+- Composed paragraphs can link a whole typography token. Font, size, weight, tracking and line height apply together, and link, Make custom and Restore are each one undo step. Linking clears size, weight, tracking and font overrides inside the linked paragraphs in the same step; italic runs take the pinned italic face. A named character style that sets its own size, weight, tracking or font keeps that value and does not make the link custom.
+- The link records the exact font faces it uses as document font resources pinned by content digest, keyed by family and weight for each slant. Theme refresh applies new values only when every face they need was pinned for the link; otherwise the text keeps its last values and the link reports the missing face. Shells pin faces at the token's exact weight and slant and refuse a nearer weight or another family.
+- Token dimensions may now be zero or negative where the consumer range allows, so typography tokens with zero or negative letter spacing link instead of being refused.
+
+## 1.262.0
+
+- Design layouts state one participation rule for hidden and timed members. Only a hidden member, its hidden owners and absolute placement leave flex or grid flow. Start, duration, lane, cuts, Enter, Exit, build steps and keyframes are paint-time state, so a timed member keeps its slot at every playhead position and build step, and timing edits do no layout work.
+- A hidden layout container keeps its stored size instead of collapsing Hug sizing around the members hidden with it, matching hidden groups. Visible layouts are unchanged.
+
 ## 1.261.0
 
+- Preserve selected-file identity in versioned resource dependencies and collect source credentials by the exact version used in an export.
 - Add managed certificate enrollment, CSR and key proof validation, independently configured issuer trust, and signed certificate status checks. Existing certificate APIs keep their supported signatures.
 - Add optional personal-data sharing metadata. Generated share links review declared personal and profile-bound fields while raw URL parsing and CLI input contracts keep their existing behavior.
 - Extend signed catalog resource verification to published previews and dependent tool files.

@@ -23,12 +23,32 @@ SCORM uses parent/opener API discovery, checked reads/writes/commits, compact
 suspend data, bookmarks, session time and idempotent termination. Tin Can uses its
 launch parameters; cmi5 fetches a launch token and reads `LMS.LaunchData`. xAPI state
 uses the launch actor, activity and registration with conditional ETag writes.
-Statement retries retain their original ID and timestamp within the open player.
-Credentials are read at launch, held in memory, and excluded from package content.
+Statement retries retain their original ID and timestamp. Credentials are read at
+launch, held in memory, and excluded from package content.
 
-The xAPI targets are experimental. There is no durable offline statement queue,
-automatic credential renewal or standalone hosted xAPI delivery. Browser unload
-cannot guarantee a network write; Save and exit is the supported reliable exit.
+Unsent xAPI statements and progress are kept in IndexedDB under the attempt: LRS
+endpoint, activity, learner and registration. The record never holds the
+authorization, the launch URL or the cmi5 fetch URL. A later launch of the same
+attempt replays the record only after its own authorization succeeds: older
+statements go before the new launch's own, in their original order, after any
+recovered progress. Each cmi5 statement records the session that made it and is
+sent only by a page of that session, under that session's token. When two pages of
+one registration are open, each sends only its own statements. A new session drops
+earlier sessions' statements rather than relabelling them, and a session that had
+already queued `terminated` delivers it and refuses to continue. Recovered progress
+replaces the LRS document only when that document is unchanged since the copy was
+made, so newer progress from another device wins. Review and browse launches keep
+that progress for a later normal launch. A statement the LRS refuses outright is
+dropped rather than retried at every launch. A 401 on any statement keeps the whole
+record and fails the launch. A 403 on an older statement sets it aside, and it is
+dropped only once the LRS accepts one of the new launch's own statements. A
+completion reached after a failed exit is still sent before `terminated`. Without
+storage, retries last only while the page stays open.
+
+The xAPI targets are experimental. There is no automatic credential renewal or
+standalone hosted xAPI delivery. The browser record is a recovery aid for one
+browser profile, not a learner record store. Browser unload cannot guarantee a
+network write; Save and exit is the supported reliable exit.
 Actual Litmos, Moodle and partner acceptance, and full cmi5 conformance testing,
 remain release gates. Local adapter and browser tests are not LMS certification.
 
@@ -38,7 +58,7 @@ Specification references: [cmi5 Quartz](https://github.com/AICC/CMI-5_Spec_Curre
 Run the deterministic module, package and adapter tests with:
 
 ```sh
-node --import ./tests/css-stub.mjs --test tests/learning.test.ts tests/learning-authoring.test.ts
+node --import ./tests/css-stub.mjs --test tests/learning.test.ts tests/learning-authoring.test.ts tests/learning-xapi-recovery.test.ts
 ```
 
 Creator instructions: [training-creators.md](../../docs/training-creators.md).

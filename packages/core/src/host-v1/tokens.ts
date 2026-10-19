@@ -14,8 +14,73 @@ export interface TokenDiagnostic {
   message: string;
 }
 
+/**
+ * What a theme group means (v1.265, plans/319). A Tokens Studio `$themes` group is
+ * only a name; the kind says what choosing between its options changes. A group
+ * declares it on its entries as `$extensions['com.suse.lolly'].axis.kind`, or once
+ * for the group at the document root as `$extensions['com.suse.lolly'].themeAxes`.
+ *
+ * - `mode`: light, dark and similar looks that every artefact can be drawn in.
+ * - `colourway`: which lead colour fills the primary role.
+ * - `expression`, `medium`, `contrast`, `density`, `campaign`, `brand`: recognised
+ *   and kept, but resolved as plain theme choices until a later version gives them
+ *   behaviour.
+ *
+ * A group with no kind, or a kind this version does not know, behaves exactly as
+ * an ordinary theme group.
+ */
+export type TokenAxisKind = 'mode' | 'colourway' | 'expression' | 'medium' | 'contrast' | 'density' | 'campaign' | 'brand';
+
+/** Every `TokenAxisKind`, in documentation order. */
+export const TOKEN_AXIS_KINDS: readonly TokenAxisKind[] = Object.freeze(['mode', 'colourway', 'expression', 'medium', 'contrast', 'density', 'campaign', 'brand']);
+
+/** How a series picks a colourway for each new artefact (plans/319). See `pickColourway` in the engine. */
+export type TokenRotationPolicy = 'canonical' | 'cycle' | 'by-key' | 'shuffle' | 'by-date';
+
+/**
+ * One theme group of the document with what it means (plans/319), as
+ * `host.tokens.axes()` lists the group. Structure only: which option is in force for a
+ * read is a selection, reported by `inspect()` and applied by every read.
+ */
+export interface TokenAxisInfo {
+  /** The source group id; `''` for themes with no group. */
+  group: string;
+  /** The declared kind, or null when the group declares none. */
+  kind: TokenAxisKind | null;
+  /** The canonical option's id: the one marked canonical, else the first authored. */
+  canonical: string;
+  /** The group's default rotation policy, or null when none is declared. */
+  rotation: TokenRotationPolicy | null;
+  /** Options in authored order. `window` is an inclusive pair of ISO dates. */
+  options: { id: string; name: string; canonical: boolean; window?: { from?: string; to?: string } }[];
+}
+
+/**
+ * One lead of the family (plans/319): a colourway and the colour it gives one
+ * role in the current look. `host.tokens.family()` lists them canonical first.
+ */
+export interface TokenFamilyMember {
+  /** The colourway's theme id. Permanent: a series stores this id. */
+  id: string;
+  /** The colourway's display name. */
+  name: string;
+  /** True for the design system's canonical colourway. */
+  canonical: boolean;
+  /** True for the colourway this read resolves to, which is the one the artefact uses. */
+  active: boolean;
+  /** The role's resolved colour as a hex string. */
+  value: string;
+}
+
 export interface TokenSelection {
-  groups: { id: string; options: { id: string; name: string }[] }[];
+  groups: {
+    id: string;
+    options: { id: string; name: string }[];
+    /** The group's declared kind (v1.265). Absent when the document declares none. */
+    kind?: TokenAxisKind;
+    /** The canonical option's id (v1.265): the option marked `canonical`, else the first one authored. */
+    canonical?: string;
+  }[];
   choices: Record<string, string>;
   defaults: string[];
   sets: string[];
@@ -69,8 +134,34 @@ export interface TokensAPI {
   resolve(ref: string, opts?: TokenResolveOptions): Promise<unknown>;
   /** Resolution evidence for all retained sets, including inactive definitions. */
   inspect?(opts?: TokenResolveOptions): Promise<TokenInspection>;
-  /** Theme names declared in the document. */
-  themes(): Promise<{ name: string; group: string | null }[]>;
+  /**
+   * Theme names declared in the document. Since v1.265 each entry may also carry
+   * the theme's `id` (when the source has one) and its group's `kind`; in a group
+   * that declares a kind, the canonical theme carries `canonical: true`.
+   */
+  themes(): Promise<{ name: string; group: string | null; id?: string; kind?: TokenAxisKind; canonical?: true }[]>;
+  /**
+   * Every theme group of the document with its kind, canonical option, rotation
+   * and options (plans/319). Optional/additive: an older shell omits it, and a
+   * tool feature-detects the member. Structure only, so it ignores the read options the
+   * other members take.
+   */
+  axes?(): Promise<TokenAxisInfo[]>;
+  /**
+   * The family (plans/319): every colourway's colour for one role, canonical
+   * first, in the look this read resolves to. `role` is a semantic slot name
+   * (`primary`, the default, or `secondary`, `on-primary`, ...) or a full token
+   * path. `opts` works as it does for `get()`: the document's choices apply, a
+   * `theme` picks a look and keeps the rest, a `selection` replaces them. The
+   * colourway group is set per member, so the answer lists every lead whatever
+   * colourway the artefact uses; the member the read resolves to has `active`.
+   *
+   * An empty list when the design system has no colourway group, and a colourway
+   * whose role does not resolve to a colour is left out. A tool treats fewer than
+   * two members as no family and draws exactly as it would without this member.
+   * Optional/additive: feature-detect the member.
+   */
+  family?(role?: string, opts?: TokenResolveOptions): Promise<TokenFamilyMember[]>;
   /**
    * Every design system this device holds, in the host's own listing order
    * (v1.173, plans/186). Optional/additive: a shell that holds exactly one system
@@ -171,7 +262,8 @@ export interface TokenSet {
   resolve(ref: string): unknown;
   query(filter?: { type?: string }): TokenEntry[];
   colors(): ColorSwatch[];
-  themes(): { name: string; group: string | null }[];
+  /** Since v1.265 an entry may carry the source `id`, its group's `kind` and, in a group with a kind, `canonical: true`. */
+  themes(): { name: string; group: string | null; id?: string; kind?: TokenAxisKind; canonical?: true }[];
 }
 
 export interface TokenEntry {

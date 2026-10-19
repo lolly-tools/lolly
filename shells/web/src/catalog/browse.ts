@@ -36,39 +36,51 @@ export class AssetBrowser {
   private request: typeof instanceFetch;
   constructor(request: typeof instanceFetch = instanceFetch) { this.request = request; }
   dispose(): void { this.generation++; this.controller?.abort(); this.loading = false; }
-  async load(filters: BrowseFilters, direction: 'reset' | 'next' | 'previous' | 'retry' = 'reset', live = false): Promise<void> {
+  /** Resolves true when the server confirms shared browsing: a valid page, or a 401 or 403 sent
+   *  as JSON, which is Work refusing this visitor rather than lacking the feature. False when the
+   *  server has none: a 404, or a reply that is not JSON. An outage, a 422, a network error, a
+   *  refusal with no JSON body and a request that was replaced, cancelled or never sent resolve
+   *  null, because they answer neither way. */
+  async load(filters: BrowseFilters, direction: 'reset' | 'next' | 'previous' | 'retry' = 'reset', live = false): Promise<boolean | null> {
     const generation = ++this.generation, origin = getInstanceBase();
     this.controller?.abort(); this.controller = new AbortController();
     this.loading = true; this.error = null;
     let index = this.index;
     if (direction === 'reset') { index = 0; this.cursors = [null]; this.page = null; this.refs = []; }
-    if (direction === 'next') { if (!this.page?.nextCursor) { this.loading = false; return; } index++; this.cursors[index] = this.page.nextCursor; }
+    if (direction === 'next') { if (!this.page?.nextCursor) { this.loading = false; return null; } index++; this.cursors[index] = this.page.nextCursor; }
     if (direction === 'previous') index = Math.max(0, index - 1);
     this.filters = { ...filters };
     const params = new URLSearchParams({ limit: String(ASSET_BROWSE_LIMIT) });
     for (const [key, value] of Object.entries(filters)) if (value) params.set(key, value);
     if (live) {
-      if (filters.types || filters.tag || filters.taxonomyKind || !filters.q) { this.loading = false; this.error = new CatalogBrowseError('Live search requires text and supports only a source filter. Use indexed browse for exact filters.'); return; }
+      if (filters.types || filters.tag || filters.taxonomyKind || !filters.q) { this.loading = false; this.error = new CatalogBrowseError('Live search requires text and supports only a source filter. Use indexed browse for exact filters.'); return null; }
     } else if (this.cursors[index]) params.set('cursor', this.cursors[index]!);
+    let refusedAsJson = false;
     try {
       const response = await this.request(instancePath(`/api/v1/catalog/${live ? 'search' : 'assets'}?${params}`), { cache: 'no-store', signal: AbortSignal.any([this.controller.signal, AbortSignal.timeout(15_000)]) });
+      // Work refuses a visitor with a JSON error body. The same status as HTML or with no body
+      // could come from any host or proxy, so that refusal says nothing about shared browsing.
+      refusedAsJson = (response.status === 401 || response.status === 403) && !!response.headers.get('content-type')?.includes('json');
       const value = await readCatalogJson(response) as AssetBrowsePage & { results?: AssetMetaRecord[]; providersUnavailable?: string[] };
       const allowed = live ? value.capabilities?.liveFilters : value.capabilities?.indexedFilters;
       if (Object.entries(filters).some(([key, value]) => value && !allowed?.includes(key))) throw new CatalogBrowseError('This Work server does not support the requested shared filters. Update Work before using this browse mode.', 422);
       const entries = live ? value.results : value.assets;
       if (!Array.isArray(entries) || entries.length > ASSET_BROWSE_LIMIT || entries.some(entry => !isCatalogAsset(entry))
         || (!live && (!Number.isInteger(value.total) || value.total < entries.length || !(value.nextCursor === null || typeof value.nextCursor === 'string') || !value.facets))) throw new CatalogBrowseError('The server returned an invalid asset page.');
-      if (generation !== this.generation || origin !== getInstanceBase()) return;
+      if (generation !== this.generation || origin !== getInstanceBase()) return null;
       this.supported = true; this.index = index; this.mode = live ? 'live' : 'indexed';
       const assets = entries.map(absolutizeCatalogAsset);
       this.page = live ? { assets, total: assets.length, nextCursor: null, facets: { sources: [], sections: [], collections: [], tags: [], types: [] }, version: '', complete: false,
         sources: value.providersUnavailable?.map(id => ({ id, label: id, status: 'unavailable' })) } : { ...value, assets };
       this.refs = assets.map(value => { const ref = catalogMetadataRef(value); return { ...ref, url: versionedTileUrl(ref.url, ref) }; });
+      return true;
     } catch (error) {
-      if (generation !== this.generation || origin !== getInstanceBase()) return;
+      if (generation !== this.generation || origin !== getInstanceBase()) return null;
       this.error = error instanceof CatalogBrowseError ? error : new CatalogBrowseError('Shared assets are unavailable. Device assets are still available.');
       if (this.error.status === 404) this.supported = false;
       this.page = null; this.refs = [];
+      if (this.error.status === 404) return false;
+      return refusedAsJson ? true : null;
     } finally { if (generation === this.generation) this.loading = false; }
   }
 }

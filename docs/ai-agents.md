@@ -124,6 +124,7 @@ Core workflow verbs:
 | `lolly_measure_text` | Where a Design text box's lines break and how tall it is, before it is drawn, with the faces the canvas loads. The same measure as `lolly measure --text`. |
 | `lolly_package` | A Design document as a `.lolly` the app reopens as the same document, with the pictures you supply and its name. The same writer as `lolly package`. |
 | `lolly_compose` | Slides laid out from the design system's slide master: name an archetype per slide and fill its slots, and get a Design document with the master's margins, type, furniture and bindings, so its PowerPoint export has real slide layouts and placeholders. `mode: "list"` gives the archetypes, `mode: "suggest"` drafts a spec from a deck. The same composer as `lolly compose`. A hosted server receives a deck passed as `source`. |
+| `lolly_inspect_tokens` | Why a design token has its value: the effective theme choices, issues, and for one token its winning set, override order and a trace of the tokens it reads and the tokens that read this one. Reads the server's design system or a token document you pass, and writes nothing. |
 | `lolly_build_url` | Build a shareable, editable link + raw render URL - without rendering. |
 | `lolly_render` | Render a tool to a file (returns the bytes plus the editable link). |
 | `lolly_transform` | Run an on-device file utility (`strip-data`, `compress-pdf`) on a file you supply. |

@@ -25,6 +25,7 @@ export interface TextPropertyState {
   paragraphTokenMixed?: string[];
   paragraphTokenActive?: Record<string, import('../../../../engine/src/token-block-bindings.ts').BlockTokenBinding>;
   paragraphTokenRestores?: Record<string, string>;
+  paragraphTypography?: { active?: import('../../../../engine/src/token-block-bindings.ts').BlockTokenBinding; mixed: boolean; restoreRef?: string };
   frame: TextFrameV1;
   family: string;
   styles: TextStyleControlState;
@@ -37,6 +38,8 @@ export interface TextPropertyPort {
   typography?(ids:string[]):import('../lib/text-typography-controls.ts').TextTypographyPort;
   read(ids: string[]): TextPropertyState | null;
   apply(ids: string[], command: TextPropertyCommand, label: string): void;
+  /** Whole typography on composed paragraphs; rejects with a reason, such as a missing face. */
+  typographyToken?(ids: string[], link?: import('../../../../engine/src/text-token-bindings.ts').TextTypographyLink): Promise<void>;
   subscribe(listener: () => void): () => void;
 }
 
@@ -170,6 +173,8 @@ export interface InspectorActions {
   openGradient(ids: string[]): void;
   /** Align / distribute / z-order verbs, by the overlay's existing op names. */
   arrange(op: string): void;
+  /** Scale the selection by `k` about its centre, content included, as one undo step (the Scale popover's commit). False when nothing was written. */
+  scaleSelection?(k: number): boolean;
   /** Open the timeline panel on the given box's inspector group ('time' | 'animate' | 'keyframes'). */
   openTimeline(group: string, id: string): void;
   /**

@@ -30,5 +30,6 @@
   "synth::name": "Synth",
   "synth::description": "一件你可以即興演奏的視覺樂器。四種場景即時在 GPU 上運算：流動墨水、朝你的標題或標誌飛去的粒子群、回饋場，以及你自己的攝影機畫面。所有顏色都取自品牌調色盤，畫面會隨指標、音樂與 MIDI 控制器變化。可匯出靜態圖片或無縫循環影片。",
   "icon::description": "Favicon 與應用程式圖示產生工具 - 提供多尺寸的 .ico、PNG 與 SVG，或整組應用程式圖示打包成一個 zip 檔。",
-  "diagram-builder::description": "組織圖、流程圖、時間軸等多種圖表 - 可從卡片、文字、Mermaid、DOT 或 CSV 建立。"
+  "diagram-builder::description": "組織圖、流程圖、時間軸等多種圖表 - 可從卡片、文字、Mermaid、DOT 或 CSV 建立。",
+  "pages::description": "在裝置上重新排序、旋轉、擷取、刪除、合併或分割 PDF 頁面，或將圖片轉成 PDF。"
 }

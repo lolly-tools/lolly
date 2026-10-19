@@ -441,8 +441,17 @@ export function designDrawPdf(pages: readonly DesignPdfPage[], info: DesignPdfIn
           if (d === undefined || d === null) continue;
           const ink = run.color && /^#[0-9a-fA-F]{3,8}$/.test(run.color) ? run.color : words.ink;
           const strike = words.strikes?.[li]?.[ri];
-          if (!d && !strike) continue;
-          out += `q ${opacityGs(ink === words.ink ? words.inkOpacity : undefined)}${color(ink, 'rg')} 1 0 0 1 ${n(box.x + line.x + run.x)} ${n(box.y + line.baseline)} cm\n${d ? `${svgPath(d)}f\n` : ''}${strike && strike.width > 0 ? `0 ${n(strike.y)} ${n(strike.width)} ${n(strike.height)} re f\n` : ''}Q\n`;
+          const underline = words.underlines?.[li]?.[ri];
+          const pieces = underline?.spans.filter((s) => s.width > 0) ?? [];
+          const rect = (s: { x: number; width: number }) => `${n(s.x)} ${n(underline?.y ?? 0)} ${n(s.width)} ${n(underline?.height ?? 0)} re`;
+          const under = pieces.filter((s) => s.ink === undefined).map(rect).join(' ');
+          const origin = `1 0 0 1 ${n(box.x + line.x + run.x)} ${n(box.y + line.baseline)} cm\n`;
+          // As in CSS: the underline under the glyphs, the strike over them.
+          if (d || strike || under) out += `q ${opacityGs(ink === words.ink ? words.inkOpacity : undefined)}${color(ink, 'rg')} ${origin}${under ? `${under} f\n` : ''}${d ? `${svgPath(d)}f\n` : ''}${strike && strike.width > 0 ? `0 ${n(strike.y)} ${n(strike.width)} ${n(strike.height)} re f\n` : ''}Q\n`;
+          // A hanging space in another ink is a later fragment with its own paint.
+          for (const s of pieces) {
+            if (s.ink !== undefined) out += `q ${opacityGs(s.ink === words.ink ? words.inkOpacity : undefined)}${color(s.ink, 'rg')} ${origin}${rect(s)} f\nQ\n`;
+          }
         }
       }
       return `${out}Q\n`;

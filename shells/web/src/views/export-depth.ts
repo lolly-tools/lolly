@@ -16,10 +16,8 @@
 import { t } from '../i18n.ts';
 import { escape } from '../utils.ts';
 
-/** The float interchange formats. Mirrors DEEP_FORMATS in packages/node-shell/src/raster.ts. */
-export const PRO_FORMATS: readonly string[] = ['exr', 'hdr'];
-
-export const isProFormat = (f: string | undefined): boolean => !!f && PRO_FORMATS.includes(f);
+import { isProFormat } from '../lib/export-format-info.ts';
+export { PRO_FORMATS, isProFormat } from '../lib/export-format-info.ts';
 
 /**
  * The <option> markup for the format picker, with the pro float formats collected

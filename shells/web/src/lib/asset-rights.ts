@@ -10,6 +10,8 @@ export interface AssetRightsMeta {
   rights?: unknown;
 }
 
+const SOURCE_HASH = /^sha256:[0-9a-f]{64}$/;
+
 /**
  * The narrowest honest read of an asset's `rights` record: shapes only, nothing
  * coerced, everything bounded. A record arrives from a catalog index, a pack
@@ -38,6 +40,10 @@ export function readAssetRightsRecord(value: unknown): CreativeWorkRecordV1 | nu
     ...(typeof record.title === 'string' ? { title: record.title } : {}),
     creators,
     ...(typeof record.sourceUrl === 'string' ? { sourceUrl: record.sourceUrl } : {}),
+    // The two fields a derived file needs to bind the source's exact bytes,
+    // kept only in the shape the credential writer accepts.
+    ...(typeof record.revision === 'string' && record.revision.length <= 256 ? { revision: record.revision } : {}),
+    ...(typeof record.sourceHash === 'string' && SOURCE_HASH.test(record.sourceHash) ? { sourceHash: record.sourceHash } : {}),
     rights,
   };
 }

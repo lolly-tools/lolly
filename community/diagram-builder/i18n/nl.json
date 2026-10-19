@@ -10,7 +10,7 @@
   "inputs.diagramPreset.options.blueprint": "Blauwdruk",
   "inputs.diagramPreset.options.mono": "Minimaal mono",
   "inputs.diagramType.label": "Diagramtype",
-  "inputs.diagramType.help": "Org/mindmap bouwen een boomstructuur op basis van de bovenliggende kaart van elke kaart. Layercake/kanban groeperen kaarten op hun 'Groep'-ID (gestapelde banden versus kolommen naast elkaar). Proces/tijdlijn/cyclus ordenen kaarten volgens stroom/volgorde. Piramide, matrix en Gantt hebben hun eigen besturingselementen hieronder.",
+  "inputs.diagramType.help": "Kies de relatie die je wilt tonen. Organigram en Mindmap: een hiërarchie op basis van de bovenliggende kaart van elke kaart. Layercake: abstractieniveaus, één band per 'Groep'. Kanban: werk per status, één kolom per 'Groep'; een kolom is een status, geen eigenaar. Proces: gerichte stappen en teruglopende verbindingen uit de pijlen. Tijdlijn: gebeurtenissen op volgorde, gelijkmatig verdeeld, zonder duur. Cyclus: een lus in kaartvolgorde. Piramide: gerangschikte niveaus. Matrix: vier categorieën, geen gemeten waarden. Gantt: taakduur; één kaart met een datum voegt een tijdas en een baan per 'Groep' toe.",
   "inputs.diagramType.options.org": "Organigram (hiërarchie)",
   "inputs.diagramType.options.mindmap": "Mindmap",
   "inputs.diagramType.options.layercake": "Layercake (gelaagde architectuur)",

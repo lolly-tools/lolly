@@ -154,6 +154,34 @@ test('remote previews retain scoped typography at native size and scale separate
     assert.equal(clone.querySelector('p')!.style.fontSize,'28px'); assert.equal(f.art.outerHTML,artwork);
   } finally { f.destroy(); }
 });
+test('a remote Scale lays its copy out at the committed size, so the content grows with the box', () => {
+  const f = fixture();
+  try {
+    const original = f.doc.getElementById('original')!; original.innerHTML = '<p>Scale this text</p>';
+    f.peer({ claimId: 'peer-claim', collection: 'boxes', kind: 'scale', phase: 'active', objects: [{ id: 'one', x: 40, y: 50, w: 200, h: 160, rot: 0 }] });
+    f.frames();
+    const ghost = f.layer.querySelector<HTMLElement>('.collab-preview-ghost')!, clone = ghost.querySelector<HTMLElement>('.collab-preview-content')!;
+    assert.equal(ghost.style.width, '400px', 'the ghost covers the scaled box on screen');
+    assert.equal(clone.style.width, '100px', 'its copy keeps the committed layout');
+    assert.equal(clone.style.transform, 'scale(4, 4)', 'and scales twice for the box, twice for the camera');
+    f.peer({ claimId: 'peer-claim', collection: 'boxes', kind: 'resize', phase: 'active', objects: [{ id: 'one', x: 40, y: 50, w: 200, h: 160, rot: 0 }] });
+    assert.equal(clone.style.width, '200px', 'a resize reflows at the new size'); assert.equal(clone.style.transform, 'scale(2, 2)');
+  } finally { f.destroy(); }
+});
+test('a Scale preview goes out as a resize to a room that granted its claim without the listed fields', async () => {
+  const f = fixture();
+  try {
+    const port = canvasInteractions(f.runtime)!;
+    const objects = [{ id: 'one', x: 40, y: 50, w: 200, h: 160, rot: 0 }];
+    const older = await port.acquire(f.target, () => {});
+    older.preview({ kind: 'scale', phase: 'active', objects });
+    assert.equal((f.presence.at(-1) as { preview: CanvasPreview }).preview.kind, 'resize');
+    older.finish(false);
+    const current = await port.acquire({ ...f.target, fields: ['fontSize'] }, () => {});
+    current.preview({ kind: 'scale', phase: 'active', objects });
+    assert.equal((f.presence.at(-1) as { preview: CanvasPreview }).preview.kind, 'scale');
+  } finally { f.destroy(); }
+});
 test('a local claim stays through durable saving, then releases; disconnect cancels an active edit', async () => {
   const f = fixture(); let lost = 0;
   try {

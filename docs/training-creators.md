@@ -133,11 +133,11 @@ In an LMS launch, **Save and exit** saves the current place and ends the session
 Review findings name the lesson and content item. Choose **Fix item** to open the relevant field. After a repair, **Export course** returns to **Review**; the updated content must pass a fresh package check.
 
 1. Choose **Export course** at the top of the course editor. The dialog guides you through **Destination**, **Review** and **Download**.
-2. Under **Destination**, select **Website**, a SCORM format, or an experimental xAPI format. You can record the receiving website or LMS name. Enter its upload limit in MB when known, or leave it blank. Choose **Review course** to continue.
+2. Under **Destination**, search the **LMS or website** list and choose a named LMS, **Website** or **Other LMS**. A named LMS selects its delivery format; any other name keeps the format you chose. **Delivery format** still lists every standard, so an administrator can pick the exact edition the receiving platform accepts. Enter the upload limit in MB when known, or leave it blank. Choose **Review course** to continue.
 3. Review the lesson counts, required and optional content, language and completion rule. Resolve the items marked **to fix**. **Fix item** takes you to the affected lesson or content. Review accessibility findings in learner preview.
 4. Choose **Check and prepare package**. Lolly resolves sources, renders their content and checks the exact ZIP size. A missing source, unsupported rendition or size limit stops the check. No content is silently dropped.
 5. A successful check opens **Download** with the exact package size. Review the handoff instructions and enter version notes, then choose **Save version and download ZIP**. Lolly stores that exact checked package on this device before requesting the download.
-6. Keep the ZIP and **Download handoff report** with the delivery record. The report includes the version, checksum, destination, size and remaining review items.
+6. Keep the ZIP and **Download handoff report** with the delivery record. The report includes the version, checksum, destination, LMS preset, size and remaining review items.
 
 The progress job offers cancellation. **Continue editing** closes the dialog while checking continues; changing the draft invalidates and cancels that check. Leaving the module cancels unfinished checking. Reopen **Export course** to see a completed check. Changing content, format or destination settings requires another check. Cancellation never creates a partial course package.
 
@@ -176,7 +176,13 @@ Litmos publicly lists SCORM 1.2, SCORM 2004 and xAPI/Tin Can support. That does 
 
 Ask a partner which format and edition they accept, their package size limit and which learner browsers they support. For example, Moodle documents SCORM 1.2 support and does not provide native SCORM 2004 support. [Moodle SCORM FAQ](https://docs.moodle.org/502/en/SCORM_FAQ).
 
-You do not enter LRS credentials in the authoring screen. An xAPI package expects the customer's LMS to provide launch authorization. A standalone xAPI ZIP opened outside that launch will not create a learning record.
+You do not enter LRS credentials in the authoring screen. An xAPI package expects the customer's LMS to provide launch authorization. A standalone xAPI ZIP opened outside that launch will not create a learning record. If the connection drops, the learner's browser keeps unsent progress where storage allows. The next launch of the same attempt from the LMS delivers the saved copy, unless the LMS already has newer progress.
+
+### LMS presets and the Tested label
+
+Each named LMS in the list is a preset: a versioned record that selects one delivery format and holds its import steps, any confirmed limits and its test evidence. A saved package records the preset and version it was built for. Choosing a preset does not change the course content or the files inside the package.
+
+The destination shows **Standard target** with "This LMS has not been tested" until a preset carries recorded evidence for that exact format and a named LMS version. **Tested** needs a recorded import, learner launch, media check, completion and resume. A successful ZIP import alone does not earn the label. **Website** and **Other LMS** are standard targets and never show **Tested**. No preset is marked **Tested** yet. When a preset records a confirmed upload limit, the package check uses it unless you enter your own. Presets never hold credentials, tenant addresses or learner details.
 
 ## Test in Litmos or a partner LMS
 
@@ -228,7 +234,27 @@ pnpm run cli learning build module.json --format=scorm12 --output=course.zip
 pnpm run cli learning build module.json --format=static --output=website.zip
 ```
 
-The input follows the SDK's `learning-module-v1.schema.json` for original courses or `learning-module-v2.schema.json` for formatted text and practice quizzes. The editor upgrades a draft to schema 2 when either feature is added. Existing schema 1 drafts and saved packages remain readable. For this CLI path, export saved tool sources to media first. Set each asset source's `url` to a relative file path beside the module JSON, with its `format` matching the file. The command reads only files within that directory, including when resolving symbolic links. It refuses to overwrite an existing output file. Use `--json` for a machine-readable build result and checksum.
+The input follows the SDK's `learning-module-v1.schema.json` for original courses or `learning-module-v2.schema.json` for formatted text and practice quizzes. The editor upgrades a draft to schema 2 when either feature is added. Existing schema 1 drafts and saved packages remain readable. It refuses to overwrite an existing output file. Use `--json` for a machine-readable build result and checksum.
+
+Content can come from two kinds of source:
+
+- **A saved tool session.** The CLI renders the session with the installed tool, in the block's chosen rendition. These renders carry no Content Credentials or Imprint. Still pages render each page of a paged or framed document on its own, at that page's size. A `pageIds` list renders only the listed frames, in that order. A session saved with a different tool version renders with the installed version, and the build prints a note.
+- **A local file.** Set the asset source's `url` to a relative file path beside the module JSON, with its `format` matching the file. The command reads only files within that directory, including when resolving symbolic links.
+
+Some sessions cannot be reproduced in a terminal, and the build stops with the reason instead of packaging something different:
+
+| Stop | What to do |
+| --- | --- |
+| The tool has no export for the block's content type | Choose another rendition in the editor, or export a finished file and use it as a local file source. |
+| The tool's export is a format the CLI cannot package | Choose another rendition in the editor, or export a finished file and use it as a local file source. |
+| The session uses a file uploaded on the device that saved it | On that device, export the content and use the exported file as a local file source. |
+| The session points an image at a path on this computer | Use a local file source for that content instead. A saved session never reads a file by its path. |
+| A video block, and no browser renderer is installed | Run `lolly install-browser`, or set `LOLLY_BROWSER_CHANNEL=chrome` to use an installed Chrome. You can also export the video in the editor and use the file. |
+| A video from frames of different sizes | Make the frames the same size, or export the video and use the file. |
+
+A stop exits with the CLI's usual codes: 2 when only a change to the module can fix the source, and 3 when this installation cannot render the source. The message starts with the lesson title.
+
+A saved session can draw on work that asks for a credit, such as an emoji set under CC BY. These renders carry no Content Credentials, so the credit is not in the file. The build still writes the package, prints a Rights block for each such session with the credit text, and exits with 4. With `--json`, `ok` is `false` and `result.rightsDecisionsRequired` lists the content blocks. Add each credit where the course shows that content before you share the course.
 
 ## Give teams reusable material tools
 
