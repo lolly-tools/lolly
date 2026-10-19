@@ -282,7 +282,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
            bottom edge however far the palette scrolls. -->
       <div class="be-split-scroll" data-be-split-scroll>
       <div class="be-panel be-palette">
-        <div class="be-palette-heading"><h2>${t('Your colours')}</h2><span class="be-save-state" data-be-save-state role="status" hidden></span></div>
+        <div class="be-palette-heading"><h2>${t('Colours')}</h2><span class="be-save-state" data-be-save-state role="status" hidden></span></div>
         <div class="be-pal" data-be-pal></div>
         <button type="button" class="be-pal-restore" data-be-undo hidden>${t('Undo')}</button>
       <details class="be-addcolor"><summary>${t("Paste colours or use an image")}</summary>

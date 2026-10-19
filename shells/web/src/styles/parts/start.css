@@ -311,6 +311,10 @@ html[dir="rtl"] .start-back-row {
   gap: 10px;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
 }
+/* Four doors read as a two-by-two, never three and an orphan. */
+.ds-ov--empty .ds-ov-doors { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 52rem; }
+@media (max-width: 560px) { .ds-ov--empty .ds-ov-doors { grid-template-columns: minmax(0, 1fr); } }
+.ds-ov--empty .ds-ov-bring { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-3); }
 .ds-ov-door,
 .ds-ov-card {
   display: grid;
@@ -319,8 +323,8 @@ html[dir="rtl"] .start-back-row {
   text-align: start;
   padding: 16px;
   border: 0;
-  box-shadow: inset 0 0 0 1px #fff1, 0 1px 4px #0002;
-  border-radius: calc(var(--radius) * 1.2);
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-control);
+  border-radius: var(--ui-radius-card);
   background: hsl(var(--card));
   color: hsl(var(--foreground));
   font: inherit;
@@ -335,14 +339,8 @@ html[dir="rtl"] .start-back-row {
 }
 .ds-ov-door:focus-visible,
 .ds-ov-card:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
-/* The two fastest starts carry a quiet tint. Neither is the "recommended"
-   route: one colour and a complete file are equally valid first material. */
-.ds-ov-door[data-ds-door="color-pick"],
-.ds-ov-door[data-ds-door="file"] {
-  background:
-    linear-gradient(145deg, hsl(var(--primary) / .11), transparent 64%),
-    hsl(var(--card));
-}
+/* No door is tinted: each is an equally valid first step, and a tint read as
+   "recommended" on two of the four. */
 .ds-ov-door-ic {
   display: grid;
   place-items: center;
