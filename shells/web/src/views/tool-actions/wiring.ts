@@ -29,6 +29,7 @@ import { wireMotionControls } from '../../lib/motion-export-controls.ts';
 import { loopRank } from '../../lib/neurospicy.ts';
 import { pcmToWavBlob } from '../../lib/pcm-wav.ts';
 import { embedRowLabel, isOwnProfile, listEligible, ownDigest } from '../../lib/press-profile-embed.ts';
+import { foldBody } from '../../lib/disclosure-motion.ts';
 import { stepFor } from '../../lib/unit-steps.ts';
 import { renderSong, songUrlToWavBlobUrl } from '../../lib/zzfxm-render.ts';
 import { bumpMetric, recordFormat } from '../../metrics.js';
@@ -423,7 +424,7 @@ export function wirePrint(ta: ActionsCtx): void {
       const card = el!.querySelector('.export-pdfpass');
       const open = card?.classList.toggle('is-open') ?? false;
       const body = el!.querySelector<HTMLElement>('[data-pdfpass-body]');
-      if (body) body.style.display = open ? 'flex' : 'none';
+      if (body) foldBody(body, open, shown => { body.style.display = shown ? 'flex' : 'none'; });
       el!
         .querySelector('[data-action="pdfpass-toggle"]')
         ?.setAttribute('aria-expanded', String(open));
@@ -439,7 +440,7 @@ export function wirePrint(ta: ActionsCtx): void {
       const card = el!.querySelector('.export-pro-settings');
       const open = card?.classList.toggle('is-open') ?? false;
       const body = el!.querySelector<HTMLElement>('[data-prosettings-body]');
-      if (body) body.style.display = open ? 'flex' : 'none';
+      if (body) foldBody(body, open, shown => { body.style.display = shown ? 'flex' : 'none'; });
       el!
         .querySelector('[data-action="prosettings-toggle"]')
         ?.setAttribute('aria-expanded', String(open));
@@ -457,7 +458,7 @@ export function wirePrint(ta: ActionsCtx): void {
       const card = el!.querySelector('.export-protection');
       const open = card?.classList.toggle('is-open') ?? false;
       const body = el!.querySelector<HTMLElement>('[data-protection-body]');
-      if (body) body.style.display = open ? 'flex' : 'none';
+      if (body) foldBody(body, open, shown => { body.style.display = shown ? 'flex' : 'none'; });
       el!
         .querySelector('[data-action="protection-toggle"]')
         ?.setAttribute('aria-expanded', String(open));

@@ -611,7 +611,7 @@
   "shells/web/src/components/tool-guide.ts": 2,
   "shells/web/src/components/view-toggle.ts": 2,
   "shells/web/src/components/welcome-dialog.test.ts": 1,
-  "shells/web/src/components/welcome-dialog.ts": 3,
+  "shells/web/src/components/welcome-dialog.ts": 2,
   "shells/web/src/components/zoom-hud.ts": 1,
   "shells/web/src/data-transfer.ts": 6,
   "shells/web/src/ext/cost-authoring.ts": 1,
