@@ -269,6 +269,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
             <div class="be-logo-queue" data-be-logo-queue hidden></div>
             <div class="be-logo-trim" data-be-logo-trim hidden></div>
           </div>
+          <div class="be-logo-colours" data-be-logo-colours="logos" hidden></div>
           <div class="be-logo-grid" data-be-logos></div>
           <p class="be-err" data-be-logo-err hidden></p>
         </div>
@@ -282,7 +283,8 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
            bottom edge however far the palette scrolls. -->
       <div class="be-split-scroll" data-be-split-scroll>
       <div class="be-panel be-palette">
-        <div class="be-palette-heading"><h2>${t('Your colours')}</h2><span class="be-save-state" data-be-save-state role="status" hidden></span></div>
+        <div class="be-palette-heading"><h2>${t('Colours')}</h2><span class="be-save-state" data-be-save-state role="status" hidden></span></div>
+        <div class="be-logo-colours" data-be-logo-colours="color" hidden></div>
         <div class="be-pal" data-be-pal></div>
         <button type="button" class="be-pal-restore" data-be-undo hidden>${t('Undo')}</button>
       <details class="be-addcolor"><summary>${t("Paste colours or use an image")}</summary>
@@ -295,8 +297,8 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
         ${/* The answer to one add (plan 137 C1): the colour, its name, and the two
               things worth doing next. Static markup filled in place (textContent
               and one custom property) so a swatch name never reaches a markup
-              sink. Borrows the logo suggestion's box - it is the same kind of
-              row in the same panel. */''}
+              sink. Styled as a suggestion row (be-suggest), the same kind of
+              row the panel has always used. */''}
         <div class="be-suggest be-added" data-be-added hidden>
           <span class="be-suggest-note">
             <span class="be-suggest-sw" data-be-added-sw aria-hidden="true"></span>
@@ -306,7 +308,6 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
           <button type="button" class="be-btn" data-be-added-tune>${t('Fine-tune')}</button>
           <button type="button" class="be-suggest-dismiss" data-be-added-dismiss aria-label="${escapeText(t('Dismiss'))}">&#x2715;</button>
         </div>
-        <div class="be-suggest" data-be-suggest hidden></div>
       </details>
 
         <!-- The colour charts, demoted to a folded card - repainted on open,

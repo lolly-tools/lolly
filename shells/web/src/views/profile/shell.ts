@@ -289,7 +289,13 @@ export function renderShell(pv: ProfileViewCtx): void {
           </span>
         </div>
         ${accountRowHtml(account, signOut)}
-        ${signOut ? `<p class="profile-inline-error" id="instance-signout-error" role="alert" style="color:hsl(var(--destructive-text));font-size:13px;margin:.4rem 0 0" hidden></p>` : ''}
+        ${/* Sign out on every device, a row of its own below Sign out (plan 320 J11):
+              it ends this account's sessions everywhere, this one included. */ ''}
+        ${pv.signOutEverywhere ? `<div class="store-manage--row" id="instance-everywhere-row" style="flex-wrap:wrap">
+          <span class="store-manage-name" style="min-width:0;overflow-wrap:anywhere;color:hsl(var(--muted-foreground))">${t('Signed in somewhere you no longer use? This ends every session on every device, this one included.')}</span>
+          <button type="button" class="btn" id="instance-signout-everywhere-btn" style="min-height:var(--ui-size-target)">${t('Sign out everywhere')}</button>
+        </div>` : ''}
+        ${signOut || pv.signOutEverywhere ? `<p class="profile-inline-error" id="instance-signout-error" role="alert" style="color:hsl(var(--destructive-text));font-size:13px;margin:.4rem 0 0" hidden></p>` : ''}
         ${/* App updates (plans/202 WP4.1) - the row and its wiring live in
               views/profile-updates.ts. */ ''}
         ${updatesRowHtml(hasShellUpdater)}

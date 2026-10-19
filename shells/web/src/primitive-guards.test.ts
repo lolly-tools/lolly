@@ -879,7 +879,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // and then re-admits `**bold**` alone.
   'components/tool-guide.ts': 1,
   'components/view-toggle.ts': 2,  // +1 2026-08-20: injectJellyIcons' ic.innerHTML - ICONS registry glyphs only (trusted, never user text), prepended into the jelly pill's open shadow buttons
-  'components/welcome-dialog.ts': 3,  // +1 2026-08-23: mountBrandedIntro's strip.innerHTML (plans/140 S4) - literal copy; the one interpolation is docsAppHref('start/quickstart'), a constant route string
+  'components/welcome-dialog.ts': 1,  // -2 2026-10-19: the two gallery tips strips and their innerHTML were removed
   'components/zoom-hud.ts': 1,
   'folder-overlay.ts': 3,
   'lib/audio-coaching.ts': 1,
@@ -938,7 +938,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'lib/brand-editor/shared.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/brand-editor/replace.ts': 4,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/brand-editor/ramps.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'lib/brand-editor/logos.ts': 3,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'lib/brand-editor/logos.ts': 2,   // 2026-10-19: the logo colours card (plan 320 S1) replaced the two suggestion-row sinks with one
   'lib/brand-editor/logo-intake.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/brand-editor/grid.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/brand-editor/derive.ts': 6,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
@@ -1426,7 +1426,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // Start feature extraction: the same escaped templates; the editor error now uses textContent.
   'views/start/navigation.ts': 1,
   'views/start/feedback.ts': 1,
-  'views/start/brand.ts': 1,
+  'views/start/brand.ts': 2,   // 2026-10-19: + the one-time name ask (plan 320 S5); t() strings and escape()d values only
   'views/start/pdf.ts': 1,
   'views/start/site.ts': 1,
   // Moved from start.ts: static sheet shell and escaped swatchTile()/group labels.
@@ -2000,7 +2000,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 259 to 257: export controls share the canonical inset surface.
     // 257 to 256: the brand studio Set row marks itself with a full wash, not an inset rail.
     // 256 to 255: the swatch name chip is lifted by the floating elevation.
-    pin: 255,
+    // 255 to 254: the design system studio's Overview doors use the edge and control elevation.
+    pin: 254,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,
@@ -2035,7 +2036,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 426 to 425: project titles use the shared object title scale.
     // 425 to 424: Share headings use the shared section type role.
     // 424 to 423: the simple upload dropzone replaces the separate touch CTA.
-    pin: 423,
+    // 423 to 422: the gallery tips strip and its type rule are removed.
+    pin: 422,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },

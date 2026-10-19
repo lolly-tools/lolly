@@ -4,7 +4,7 @@
     "label": "URL",
     "type": "url",
     "required": true,
-    "default": "https://lolly.tools",
+    "default": "",
     "help": "The link a scanner opens. On a contact card it becomes the card's website line.",
     "showIf": {
       "payload": [

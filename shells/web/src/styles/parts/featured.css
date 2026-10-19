@@ -736,20 +736,17 @@
 .utilities-view .featured--coverflow .ftile { width: var(--cf-cover-w); }
 
 /* ── Mobile drag handle ──────────────────────────────────────────────────────
-   Matches the tool editor's sheet grip. A belt-and-braces explicit "grab here to
-   slide the page up/down" handle. (Historically the strip captured vertical
-   gestures, which made this pill essential; vertical now scrolls the page from
-   anywhere on the strip, so it's just a clear extra affordance.) Desktop doesn't
-   need it. */
+   Matches the tool editor's sheet grip, as a visual cue that the page slides up
+   and down. It takes no part in the gesture: touch-action stays at its default,
+   so a swipe that starts on the pill is the browser's own scroll, momentum and
+   Safari's collapsing toolbar included. Desktop doesn't need it. */
 .featured-grip { display: none; }
 @media (max-width: 640px) {
   .featured-grip {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 30px;                 /* generous hit area */
-    touch-action: none;           /* JS owns the drag (reliable on touch AND mouse) */
-    cursor: grab;
+    height: 30px;
   }
   .featured-grip-bar {
     width: 44px;
@@ -758,11 +755,8 @@
     background: hsl(var(--primary));
     border: 1px solid #fff5;
     box-shadow: 0 1px 4px rgba(0, 0, 0, .22);
-    transition: transform var(--dur-1) ease;
   }
 }
-.featured-grip.is-dragging { cursor: grabbing; }
-.featured-grip.is-dragging .featured-grip-bar { transform: scaleX(1.12); }
 
 /* Use the same touch treatment on iPad as on iPhone. Translucency and crisp
    highlights remain on every glass tile; only the resting selected tile samples

@@ -115,7 +115,9 @@ export function renderShell(start: StartCtx): void {
                  that attribute would both take aria-current, and the versionsBtn
                  lookup reads the first one in the document. -->
             <button type="button" class="ds-versions-link" data-ds-versions-link hidden>${t('Versions & publishing')}</button>
-            <button type="button" class="ds-versions-link" data-start-recovery aria-haspopup="dialog">${t('Restore brand settings')}</button>
+            <!-- Hidden until the studio holds something of its own: before that
+                 there is nothing to restore, and the dialog only said so. -->
+            <button type="button" class="ds-versions-link" data-start-recovery aria-haspopup="dialog" hidden>${t('Restore brand settings')}</button>
             <span class="ds-rail-note" data-start-note aria-live="polite"></span>
           </div>
         </aside>

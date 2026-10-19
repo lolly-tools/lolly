@@ -844,7 +844,7 @@ export interface CataloguePanelCtx { host: HostV1; notify: () => void }
 
 export function mountCataloguePanel(mount: HTMLElement, ctx: CataloguePanelCtx): StudioPanelHandle {
   mount.innerHTML = `
-    ${panelHead(t('Catalogue'), tRaw("Files the design system keeps - drop them here and they land in {link}, sorted into its sections, ready for every tool's asset picker.", { link: `<a href="#/a">${t('Assets')}</a>` }))}
+    ${panelHead(t('Files'), tRaw("Files the design system keeps - drop them here and they land in {link}, sorted into its sections, ready for every tool's asset picker.", { link: `<a href="#/a">${t('Assets')}</a>` }))}
     <div data-be-cat-dropzone></div>
     <div class="be-cat-groups" data-be-cat-groups aria-live="polite"></div>`;
 

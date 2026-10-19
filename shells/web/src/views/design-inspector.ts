@@ -137,6 +137,7 @@ import { approveWebLink } from './design-web-policy.ts';
 import { announce } from '../a11y.ts';
 import { fieldFocusToken } from '../lib/collab-field-focus.ts';
 import { onTrustedSitesChange } from '../lib/trusted-sites.ts';
+import { foldBody } from '../lib/disclosure-motion.ts';
 
 /** The dock slot this column lives in - the app's one right sidebar. */
 const DOCK_ID = 'inspector';
@@ -2317,7 +2318,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       return;
     }
     head?.setAttribute('aria-expanded', String(openSec));
-    if (rows) rows.hidden = !openSec;
+    if (rows) foldBody(rows, openSec, shown => { rows.hidden = !shown; });
   }
 
   // ── repaint memo ────────────────────────────────────────────────────────────

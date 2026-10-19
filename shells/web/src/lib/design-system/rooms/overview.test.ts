@@ -358,6 +358,8 @@ test('the empty state gives four material doors, local discovery and a way out',
   assert.match(html, /Choose a face/);
   assert.match(html, /Add a logo/);
   assert.match(html, /href="#\/"/);
+  // A logo is what most people have first, so its door leads.
+  assert.deepEqual([...html.matchAll(/data-ds-door="([^"]+)"/g)].map(m => m[1]).slice(0, 4), ['logos', 'color-pick', 'type-stage', 'file']);
   // The website door arrives with M6, gated on a transport that works - a
   // disabled third door would advertise something nobody here can use.
   assert.equal(/disabled/.test(html), false, 'no disabled door may be rendered');
@@ -487,7 +489,9 @@ test('a furnished system with nothing chosen still gets the doors', () => {
     },
   } as unknown as NonNullable<Parameters<typeof overviewHtml>[0]>);
   assert.match(html, /ds-ov--empty/);
-  assert.match(html, /Make it yours/);
+  // The page heading says "Make it yours"; the room's own heading says what to do.
+  assert.match(html, /Start with what you have/);
+  assert.equal(/Make it yours/.test(html), false, 'the room does not repeat the page title');
 });
 
 test('one own thing of any kind brings the cards back', () => {

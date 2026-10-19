@@ -1156,6 +1156,43 @@ background-image:
   .be-added .be-suggest-dismiss { min-width: 44px; min-height: 44px; }
 }
 
+/* ── The logo colours card (plan 320 S1): which of a placed logo's colours is
+      the main one. The same card shows under the Logos room's intake and at the
+      top of Colours. A full tint rather than an edge rail, per the house rule
+      on radiused boxes. Each choice is a real radio inside its label, so the
+      label is the target and the ring follows the radio's own focus. */
+.be-logo-colours {
+  display: grid; gap: .75rem; margin: 0 0 1.2rem; padding: .9rem 1rem;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--primary) / .06);
+}
+.be-logo-colours[hidden] { display: none; }
+.be-logo-colours-title { margin: 0; font-size: var(--fs-md); font-weight: 650; overflow-wrap: anywhere; }
+.be-logo-colours-pick { margin: 0; padding: 0; border: 0; min-width: 0; }
+.be-logo-colours-pick legend { padding: 0; margin-bottom: .5rem; font-size: var(--fs-sm); font-weight: 600; }
+.be-logo-colours-choices { display: flex; flex-wrap: wrap; gap: .5rem; }
+.be-logo-colours-choice {
+  position: relative; display: inline-flex; align-items: center; gap: .45rem;
+  min-height: 40px; padding: .3rem .8rem .3rem .35rem;
+  border: 1px solid hsl(var(--border)); border-radius: var(--ui-radius-pill);
+  background: hsl(var(--background)); font-size: var(--fs-sm); cursor: pointer;
+}
+.be-logo-colours-choice input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.be-logo-colours-choice:has(input:checked) {
+  border: 2px solid hsl(var(--primary)); font-weight: 600;
+  padding: calc(.3rem - 1px) calc(.8rem - 1px) calc(.3rem - 1px) calc(.35rem - 1px);
+}
+.be-logo-colours-choice:has(input:focus-visible) { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.be-logo-colours-sw {
+  width: 28px; height: 28px; border-radius: var(--radius-round); background: var(--sw, transparent);
+  box-shadow: var(--ui-edge-strong);
+}
+.be-logo-colours-note { margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.be-logo-colours-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+@media (pointer: coarse) {
+  .be-logo-colours-choice, .be-logo-colours-actions .be-btn, .be-logo-colours-actions .be-cta { min-height: 44px; }
+}
+
 /* ── Type room level 0 (plan 97 section 7.2): the four role cards.
       brand-editor.ts updates these IN PLACE (textContent + one class), never by
       re-rendering, so nothing here may assume a fresh element on every paint.
@@ -1217,7 +1254,8 @@ background-image:
       Everything here is a display switch on markup that is always present, so a
       beat change is one attribute and never a re-render. */
 [data-be-tab-panel="type"][data-be-beat="0"] > .be-fonts,
-[data-be-tab-panel="type"][data-be-beat="0"] > .be-typeroles { display: none; }
+[data-be-tab-panel="type"][data-be-beat="0"] > .be-typeroles,
+[data-be-tab-panel="type"][data-be-beat="0"] > .be-emoji-panel { display: none; }
 [data-be-tab-panel="type"][data-be-beat="0"] > .be-typecards {
   border: 0; padding: 0; max-width: 42rem; margin-inline: auto; display: grid; gap: 1rem;
 }
