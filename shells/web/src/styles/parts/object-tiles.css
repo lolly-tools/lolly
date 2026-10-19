@@ -15,7 +15,7 @@
   position: relative;
   border: 0;
   border-radius: var(--object-radius);
-  background: var(--ui-color-surface-raised);
+  background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-default);
   overflow: hidden;
   box-shadow: var(--object-shadow);
@@ -35,7 +35,7 @@
 .cat-tile-fig,
 .tile-figure,
 .tpl-cover {
-  background: repeating-conic-gradient(hsl(var(--muted) / .35) 0% 25%, transparent 0% 50%) 50% / 16px 16px;
+  background: repeating-conic-gradient(var(--ui-color-surface-muted) 0% 25%, var(--ui-color-surface-canvas) 0% 50%) 50% / 16px 16px;
 }
 
 /* Tool covers sit quietly on the card; transparency needs no checkerboard. */

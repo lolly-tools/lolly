@@ -171,12 +171,15 @@
    search bar shows on this route instead; see components/search-bar.ts.) */
 
 .profile-view .profile-card {
-  border: 1px solid hsl(var(--border));
   border-radius: calc(var(--radius) * 1.25);
   padding: 1.25rem 1.4rem;
   box-shadow: var(--ui-elevation-control);
+  background-color: color-mix(in srgb, var(--ui-color-surface-raised), var(--ui-color-surface-canvas));
 }
-.profile-view .profile-card[open]{ box-shadow: var(--ui-elevation-panel);}
+.profile-view .profile-card[open] {
+  box-shadow: var(--ui-elevation-panel);
+  background-color: color-mix(in srgb, var(--ui-color-surface-raised) 80%, var(--ui-color-surface-canvas));
+}
 
 .profile-view .profile-card h2 {
   margin: 0 0 1rem;
