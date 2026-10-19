@@ -9,7 +9,7 @@
  * page shows (a finding), or the export is not one frame: the caller then draws the page
  * with the DOM walker, as before. The choice is never silent.
  */
-import { createHostTextShaper, extractC2paStore, parseDimension, prepareC2paIngredientFromStore, sfntVerticalMetrics, toCssLength, toCssPx, toPoints } from '@lolly/engine';
+import { createHostTextShaper, extractC2paStore, parseDimension, pdfKeywords, prepareC2paIngredientFromStore, sfntVerticalMetrics, toCssLength, toCssPx, toPoints } from '@lolly/engine';
 import type { TextFontMetricsV1 } from '@lolly/engine';
 import type { TextMeasureFontsV1 } from '@lolly-tools/core/text-measure-v1';
 import { _host, exportDims, type ExportOpts } from './export-shared.ts';
@@ -180,7 +180,7 @@ export async function designOpsPdf(pageEls: readonly Element[], opts: ExportOpts
         creator, author: m?.author || creator,
         ...(m?.tool ? { title: m.tool } : {}),
         ...(m?.description ? { subject: m.description } : {}),
-        ...(m ? { keywords: [m.software, m.source, m.contact].filter(Boolean).join(', ') } : {}),
+        ...(m ? { keywords: pdfKeywords(m).join(', ') } : {}),
       },
       place,
     });

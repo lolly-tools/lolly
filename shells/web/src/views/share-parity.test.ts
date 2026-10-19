@@ -57,6 +57,10 @@ test('each toggle the Share link reads is guarded on the control existing', () =
   // `imprint=0` onto every link from a format that has no imprint at all.
   assert.match(body, /const imprintEl = [^;]+;\s*\n\s*if \(imprintEl && !imprintEl\.checked\)/,
     'the imprint opt-out must check the control EXISTS before treating it as unchecked');
+  // The design-system record (plans/319) is default-on the same way: no card (an
+  // on-device utility, nothing to record) must never read as `_madewith=0`.
+  assert.match(body, /const madeWithEl = [^;]+;\s*\n\s*if \(madeWithEl && !madeWithEl\.checked\) parts\.push\('_madewith=0'\)/,
+    'the record opt-out must check the card EXISTS before treating it as unticked');
 });
 
 // Device-local dependencies must be reported when a content link excludes them.

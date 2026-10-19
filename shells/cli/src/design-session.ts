@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * `lolly run <design-session.lolly> --export=<fmt> [--output=<file>] [--s=<frame>]
- * [--c2pa=on|off] [--imprint=0|1] [--no-provenance] [--theme=<name> | --_themes=<json> |
+ * [--c2pa=on|off] [--imprint=0|1] [--no-provenance] [--no-madewith] [--theme=<name> | --_themes=<json> |
  * --themes=<a,b|all>] [--file=<tokens.json>]` (plan 291 W8): export a saved Design session with the web shell's
  * own exporter. `--themes` (M4) exports the one session once per theme, to
  * <stem>-<theme>.<ext> beside --output; `--theme` exports it once in one theme, to
@@ -15,8 +15,9 @@
  */
 import { basename, dirname } from 'node:path';
 import { stat, writeFile } from 'node:fs/promises';
-import { frameFilterApplies, selectFramePage } from '@lolly/engine';
+import { designRecordWords, frameFilterApplies, selectFramePage } from '@lolly/engine';
 import { readLollyFile, type LollyFileContents } from '@lolly-tools/node-shell/lolly-file';
+import { recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
 import { exportDesignSessionThemesViaWebShell, closeWebShell, type DesignSessionExportFormat } from '@lolly-tools/node-shell/webshell-render';
 import { themeRuns, themedOutputPath, themesPlan, type ThemeRun } from './themes.ts';
 import { closeBrowser } from '@lolly-tools/node-shell/browsers';
@@ -28,10 +29,11 @@ import { usageError } from './exit-codes.ts';
 export const DESIGN_SESSION_EXPORT_FORMATS: readonly DesignSessionExportFormat[] = ['pptx', 'pdf', 'png', 'svg', 'jpg', 'jpeg', 'webp'];
 
 /** The flags this path reads, plus the process-wide ones every verb accepts. */
-export const SESSION_RUN_FLAGS = new Set(['export', 'output', 's', 'c2pa', 'imprint', 'no-provenance', 'themes', 'theme', '_themes', 'file', 'force', 'quiet', 'verbose', 'strict']);
+export const SESSION_RUN_FLAGS = new Set(['export', 'output', 's', 'c2pa', 'imprint', 'no-provenance', 'no-madewith', '_madewith', 'themes', 'theme', '_themes', 'file', 'force', 'quiet', 'verbose', 'strict']);
 
-/** The provenance settings the export URL carries. Absent means the app's own default. */
-export interface SessionProvenance { c2pa?: boolean; imprint?: boolean }
+/** The provenance settings the export URL carries. Absent means the app's own default.
+ *  `madeWith: false` leaves the design-system record out (plans/319). */
+export interface SessionProvenance { c2pa?: boolean; imprint?: boolean; madeWith?: boolean }
 
 /** A number as Design's renderer reads one (community/design/hooks.js `num`). */
 function rendererNumber(value: unknown): number {
@@ -109,7 +111,7 @@ export function isDesignSessionFile(contents: LollyFileContents): boolean {
 export function designSessionRunPlan(flags: Record<string, string>): { format: DesignSessionExportFormat; output?: string; frame?: string; provenance?: SessionProvenance; themes?: string; theme?: string; selection?: Record<string, string> } {
   for (const key of Object.keys(flags)) {
     if (key === 'trust-tool') throw usageError('--trust-tool is for a reusable tool file. This is a saved Design session, which carries no code to trust; run it without the flag.', 'CONFLICTING_FLAGS');
-    if (!SESSION_RUN_FLAGS.has(key)) throw usageError(`--${key} is not an option of a saved Design session. It takes --export, --output, --s, --c2pa, --imprint, --no-provenance, --theme, --_themes, --themes, --file and --force.`, 'UNKNOWN_FLAG');
+    if (!SESSION_RUN_FLAGS.has(key)) throw usageError(`--${key} is not an option of a saved Design session. It takes --export, --output, --s, --c2pa, --imprint, --no-provenance, --no-madewith, --theme, --_themes, --themes, --file and --force.`, 'UNKNOWN_FLAG');
   }
   const format = (flags.export || 'png').toLowerCase();
   if (!(DESIGN_SESSION_EXPORT_FORMATS as readonly string[]).includes(format)) {
@@ -128,6 +130,9 @@ export function designSessionRunPlan(flags: Record<string, string>): { format: D
   const provenance: SessionProvenance = bare
     ? { c2pa: false, imprint: false }
     : { ...(c2pa !== undefined ? { c2pa } : {}), ...(imprint !== undefined ? { imprint } : {}) };
+  // The design-system record is its own switch, not one of the marks --no-provenance
+  // turns off: it carries no timestamp, so it never costs a byte-identical render.
+  if (isOn(flags['no-madewith']) || (flags._madewith !== undefined && !isOn(flags._madewith))) provenance.madeWith = false;
   const themes = themesPlan(flags, flags.output);
   const one = sessionThemeChoice(flags, themes !== null);
   return {
@@ -188,11 +193,29 @@ function savedSessionSelection(session: Record<string, unknown> | undefined): Re
 }
 
 /**
+ * The line the CLI prints about the design-system record an exported file carries
+ * (plans/319), the same words every other render prints. Read back from the bytes,
+ * so a file that kept no record (a PowerPoint deck, or `--no-madewith`) gets no
+ * line. Empty when there is nothing to say.
+ */
+export async function sessionRecordLine(bytes: Uint8Array, format: DesignSessionExportFormat): Promise<string> {
+  const words = designRecordWords(await recordedDesignInFile(bytes, format === 'jpeg' ? 'jpg' : format));
+  return words ? `Recorded the design system: ${words}. Pass --no-madewith to leave the record out.` : '';
+}
+
+/** The web shell exporter `runDesignSession` drives; a test passes its own. */
+export type SessionExporter = typeof exportDesignSessionThemesViaWebShell;
+
+/**
  * Export the session and write the bytes to --output, or to stdout. With --themes, the
  * one opened session is exported once per theme, each to <stem>-<theme>.<ext>. With
  * --theme or --_themes, it is exported once in that theme, to --output as given.
+ * Each file's design-system record is printed on standard error before it is written.
  */
-export async function runDesignSession(path: string, bytes: Uint8Array, flags: Record<string, string>, contents?: LollyFileContents): Promise<void> {
+export async function runDesignSession(
+  path: string, bytes: Uint8Array, flags: Record<string, string>, contents?: LollyFileContents,
+  exportThemes: SessionExporter = exportDesignSessionThemesViaWebShell,
+): Promise<void> {
   const plan = designSessionRunPlan(flags);
   await sessionOutputFolderCheck(plan);
   const name = basename(path);
@@ -216,7 +239,7 @@ export async function runDesignSession(path: string, bytes: Uint8Array, flags: R
     else selection = themeRuns(doc, plan.theme!, saved)[0]!.selection;
   }
   try {
-    const results = await exportDesignSessionThemesViaWebShell(bytes, {
+    const results = await exportThemes(bytes, {
       name, format: plan.format, ...(choice.frame ? { frame: choice.frame } : {}), ...(plan.provenance ?? {}),
       ...(designSystem !== undefined ? { designSystem } : {}),
       ...(runs ? { tokenSelections: runs.map((run) => run.selection) } : selection ? { tokenSelections: [selection] } : {}),
@@ -224,16 +247,28 @@ export async function runDesignSession(path: string, bytes: Uint8Array, flags: R
     if (choice.note) note(choice.note);
     // The exporter's own notes (what a PowerPoint export could not keep), once each.
     for (const line of new Set(results.flatMap((r) => r.notes ?? []))) note(line);
+    // The design-system record is approved on the condition that it is visible at the
+    // moment of export, so each file's record is printed, read back from its bytes:
+    // each --themes file is drawn in its own colourway and says so.
+    const recordNote = async (out: Uint8Array): Promise<void> => {
+      const line = await sessionRecordLine(out, plan.format);
+      if (line) note(line);
+    };
     if (runs) {
       for (const [i, run] of runs.entries()) {
         const out = themedOutputPath(plan.output!, run.theme);
+        await recordNote(results[i]!.bytes);
         await writeFile(out, results[i]!.bytes);
         note(`✓ Wrote ${results[i]!.bytes.length} bytes to ${out} (theme ${run.theme})`);
       }
     } else if (plan.output) {
+      await recordNote(results[0]!.bytes);
       await writeFile(plan.output, results[0]!.bytes);
       note(`✓ Wrote ${results[0]!.bytes.length} bytes to ${plan.output}`);
-    } else await writeOut(Buffer.from(results[0]!.bytes));
+    } else {
+      await recordNote(results[0]!.bytes);
+      await writeOut(Buffer.from(results[0]!.bytes));
+    }
   } finally {
     await closeBrowser();
     await closeWebShell();

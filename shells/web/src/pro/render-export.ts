@@ -170,6 +170,14 @@ interface RenderRowOpts {
    */
   imprint?: boolean;
   /**
+   * The design-system record (plans/319, ExportOpts.madeWith) for THIS render. Off
+   * unless the caller passes true. The record is approved on the condition that it
+   * is visible at the moment of export, and a batch, folder or collection run shows
+   * no Design system card, so those files carry no design system, version or
+   * colourway, and their descriptions keep the plain form.
+   */
+  madeWith?: boolean;
+  /**
    * Override the post-mount settle (default SETTLE_MS). Only for a caller that
    * KNOWS the child mounts no image/lottie/video - the default exists to give
    * that media time to decode, and a short settle would capture it blank.
@@ -403,7 +411,7 @@ type ExportStage = HTMLDivElement & { _lottieCleanup?: () => void };
  *        in `unit` (px/mm/cm/in/pt); blank falls back to the tool's native size.
  *        `dpi` sets raster resolution for physical units.
  */
-export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', dpi, composeStack, watermark, embedMeta, thumbnail, previewPage, previewTimeMs, thumbAssets, strongPassword, c2pa, imprint, settleMs, signal, observeInputs }: RenderRowOpts = {}): Promise<RenderRowResult> {
+export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', dpi, composeStack, watermark, embedMeta, thumbnail, previewPage, previewTimeMs, thumbAssets, strongPassword, c2pa, imprint, madeWith, settleMs, signal, observeInputs }: RenderRowOpts = {}): Promise<RenderRowResult> {
   const tool = await getTool(row.toolId, row.artifactDigest);
   if (!isExportable(tool.manifest)) {
     throw new Error(`"${tool.manifest.name}" is render-only and cannot be exported.`);
@@ -473,8 +481,9 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
     })));
     // watermark/embedMeta/thumbnail are forwarded only when set (compose passes
     // watermark:false + embedMeta:false so an embedded child isn't stamped); batch
-    // rows leave them undefined so runtime.export keeps its normal defaults.
-    const exportOpts: { signal?: AbortSignal; width?: string | number; height?: string | number; dpi?: number; watermark?: boolean; embedMeta?: boolean; thumbnail?: boolean; convertPaths?: boolean; strongPassword?: string; wait?: number; duration?: number; fps?: number; c2pa?: boolean; imprint?: boolean; colorProfile?: string; bleed?: string; cropMarks?: boolean; registrationMarks?: boolean; bleedMarks?: boolean; colorBars?: boolean; provenance?: boolean } = { width: outW, height: outH, dpi, signal };
+    // rows leave them undefined so runtime.export keeps its normal defaults. The
+    // design-system record is the exception: off unless asked (RenderRowOpts.madeWith).
+    const exportOpts: { signal?: AbortSignal; width?: string | number; height?: string | number; dpi?: number; watermark?: boolean; embedMeta?: boolean; thumbnail?: boolean; convertPaths?: boolean; strongPassword?: string; wait?: number; duration?: number; fps?: number; c2pa?: boolean; imprint?: boolean; madeWith?: boolean; colorProfile?: string; bleed?: string; cropMarks?: boolean; registrationMarks?: boolean; bleedMarks?: boolean; colorBars?: boolean; provenance?: boolean } = { width: outW, height: outH, dpi, signal, madeWith: madeWith === true };
     if (watermark !== undefined) exportOpts.watermark = watermark;
     if (embedMeta !== undefined) exportOpts.embedMeta = embedMeta;
     if (thumbnail !== undefined) exportOpts.thumbnail = thumbnail;
@@ -570,6 +579,9 @@ export async function mountDocumentExport(tool: LoadedTool, host: HostV1, source
   });
   runtime.setRightsDecisions(source.rightsDecisions());
   runtime.setOutputLicence(source.outputLicence());
+  // The export panel's Design system card (plans/319) is the source runtime's switch:
+  // an unticked card must leave the record out of the document export too.
+  runtime.setMadeWith(source.madeWith());
   let ownedStage: ExportStage | undefined;
   try {
     const { stage, canvas } = await mountToolCanvas(tool.styles, runtime.getHydrated(), {

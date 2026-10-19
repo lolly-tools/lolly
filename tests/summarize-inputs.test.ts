@@ -13,7 +13,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { summarizeInputs, summarizeInputDigests } from '../engine/src/inputs.ts';
-import { buildExportC2paOpts } from '../packages/node-shell/src/c2pa-opts.ts';
+import { buildExportC2paOpts, recordedDesignInFile } from '../packages/node-shell/src/c2pa-opts.ts';
+import { embedC2pa } from '../engine/src/c2pa.ts';
+import { injectSvgMeta } from '../engine/src/image-meta.ts';
 
 // summarizeInputs reads (type, value, id, unit, bindToProfile) off each item; the
 // full InputModelItem carries more, but a partial is enough to exercise the logic.
@@ -147,4 +149,49 @@ test('Node exports use the same fingerprints and omit device details', async () 
 
 test('empty model → empty digest (never throws)', () => {
   assert.deepEqual(summarizeInputs([]), {});
+});
+
+// The design-system record (plans/319 A7) in the Node credential builder the CLI, TUI
+// and MCP share: the same flat keys the web builder writes, only when the export's own
+// metadata carries a record, so the record off means none of them in the credential.
+test('Node credentials carry the design-system record only when the export recorded one', () => {
+  const base = { surface: 'cli' as const, manifest: { id: 'chart', name: 'Chart' }, model: [], format: 'svg' };
+  const without = buildExportC2paOpts(base).environment as Record<string, unknown>;
+  for (const key of ['designSystem', 'designSystemLabel', 'designVersion', 'themes']) assert.equal(key in without, false, key);
+  const off = buildExportC2paOpts({ ...base, meta: { } }).environment as Record<string, unknown>;
+  assert.equal('designSystem' in off, false, 'a meta with the record off adds nothing');
+  const on = buildExportC2paOpts({ ...base, meta: {
+    designSystem: { id: 'acme', label: 'Acme' }, designVersion: '2026-10',
+    themes: [{ group: 'colourway', kind: 'colourway', id: 'persimmon', name: 'Persimmon' }],
+  } }).environment as Record<string, unknown>;
+  assert.equal(on.designSystem, 'acme');
+  assert.equal(on.designSystemLabel, 'Acme');
+  assert.equal(on.designVersion, '2026-10');
+  assert.equal(on.themes, '[{"group":"colourway","id":"persimmon","kind":"colourway","name":"Persimmon"}]');
+});
+
+// What a Node shell tells the person an export recorded (the CLI's stderr line, the
+// MCP result line) is read back from the delivered bytes, so it can never name a
+// record the file does not hold.
+test('a Node shell names only the design-system record the delivered bytes hold', async () => {
+  const record = {
+    designSystem: { id: 'acme', label: 'Acme' }, designVersion: '2026-10',
+    themes: [{ group: 'colourway', kind: 'colourway' as const, id: 'persimmon', name: 'Persimmon' }],
+  };
+  const svgText = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 4"><rect width="4" height="4"/></svg>';
+  const plain = new TextEncoder().encode(svgText);
+  assert.equal(await recordedDesignInFile(plain, 'svg'), null, 'no metadata, no credential: nothing to name');
+  const meta = { software: 'Lolly', source: 'https://lolly.tools/t/chart', tool: 'Chart', author: '', contact: '', description: 'Made with https://lolly.tools : Chart (Persimmon colourway)' };
+  const described = new TextEncoder().encode(injectSvgMeta(svgText, { ...meta, ...record }));
+  assert.deepEqual(await recordedDesignInFile(described, 'svg'), record, 'the file\'s own lolly: properties');
+  const base = { surface: 'cli' as const, manifest: { id: 'chart', name: 'Chart' }, model: [], format: 'svg' };
+  const signed = await embedC2pa(plain, 'svg', buildExportC2paOpts({ ...base, meta: record }));
+  assert.deepEqual(await recordedDesignInFile(signed, 'svg'), record, 'the credential, when the file has no metadata of its own');
+  const unsigned = await embedC2pa(plain, 'svg', buildExportC2paOpts(base));
+  assert.equal(await recordedDesignInFile(unsigned, 'svg'), null, 'a credential without the record gives none');
+  // A PDF's keywords were written from the export's own metadata, so that metadata is the PDF's record.
+  const pdf = new TextEncoder().encode('%PDF-1.7\n');
+  assert.deepEqual(await recordedDesignInFile(pdf, 'pdf', record), record);
+  assert.equal(await recordedDesignInFile(pdf, 'pdf', {}), null, 'the record off: nothing to name');
+  assert.equal(await recordedDesignInFile(pdf, 'png', record), null, 'only a PDF falls back to the export metadata');
 });

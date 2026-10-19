@@ -15,6 +15,7 @@ import assert from 'node:assert/strict';
 
 import { embedC2paInPdf, embedC2pa, encodeCbor } from '../engine/src/c2pa.ts';
 import { verifyC2pa, extractC2paFromPdf, decodeCbor, parseC2paStore, sniffFormat, prepareC2paIngredient } from '../engine/src/c2pa-verify.ts';
+import { designRecordEnvironment, readDesignRecord } from '../engine/src/metadata.ts';
 
 const bytesOf = (s: string): Uint8Array => Uint8Array.from(s, (c) => c.charCodeAt(0) & 0xff);
 const binOf = (bytes: Uint8Array): string => Array.from(bytes, (b) => String.fromCharCode(b)).join('');
@@ -91,6 +92,24 @@ test('surfaces the enriched tools.lolly.export environment (date, dimensions, ne
   assert.equal(report.environment.date, '2026-07-08T11:14:40.000Z');
   assert.equal(report.environment.dimensions, '1080 × 1080 px');
   assert.deepEqual(report.environment.inputs, { color: '#ffffff', headline: 'short text here' });
+});
+
+test('the design-system record survives the credential round trip as flat scalar keys (plans/319)', async () => {
+  const record = {
+    designSystem: { id: 'acme', label: 'Acme & Co' }, designVersion: '2026-10',
+    themes: [{ group: 'colourway', kind: 'colourway' as const, id: 'persimmon', name: 'Persimmon' }],
+  };
+  const signed = await embedC2paInPdf(buildTestPdf(), {
+    title: 'Recorded', claimGenerator: 'LollyTest/1.0',
+    environment: { tool: 'Chart', format: 'pdf', surface: 'web', ...designRecordEnvironment(record) },
+  });
+  const report: any = await verifyC2pa(signed);
+  assert.equal(report.state, 'valid');
+  assert.equal(report.environment.designSystemLabel, 'Acme & Co');
+  assert.deepEqual(readDesignRecord(report.environment), record);
+  // A credential written before the record existed reads as no record.
+  const before: any = await verifyC2pa(await embedC2paInPdf(buildTestPdf(), { title: 'Plain', claimGenerator: 'LollyTest/1.0', environment: { tool: 'Chart' } }));
+  assert.equal(readDesignRecord(before.environment), null);
 });
 
 test('a PDF without credentials → found:false, state none', async () => {

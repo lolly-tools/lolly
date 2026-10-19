@@ -49,6 +49,11 @@
  *   - `_themes` - the theme chosen in each token group, as JSON
  *                  (`_themes={"":"dark"}`), read into `tokenSelection`. One document
  *                  renders in every theme its design system declares (plan 291 W4).
+ *   - `_madewith` - the design-system record (plans/319). On by default: an export
+ *                  records the design system, published version and colourway that
+ *                  drew the export. `_madewith=0`/`off` leaves them out of the file's
+ *                  metadata and credential, and the description keeps its plain
+ *                  form. Read into `madeWith`.
  *   - `width`/`w`, `height`/`h` - output dimensions (value in `unit`, default px)
  *   - `unit` - physical unit for width/height: px (default), mm, cm, in, pt
  *   - `dpi` - raster resolution for physical units (default 300; px → 96)
@@ -428,6 +433,10 @@ export interface UrlState {
   /** The declared export licence (the `licence` param), verbatim; the runtime
    *  keeps it only when it names a known choice. null ⇒ absent. */
   licence?: string | null;
+  /** The design-system record toggle (the `_madewith` param, plans/319). Default-on:
+   *  null ⇒ absent (record), false ⇒ an explicit `_madewith=0`/`off`, true ⇒ an
+   *  explicit on. */
+  madeWith?: boolean | null;
 }
 
 /** The slice of an input model item serializeUrlState reads. */
@@ -498,6 +507,9 @@ export interface SerializeUrlOpts {
   emojiStyle?: string | null;
   /** The declared export licence (the `licence` param), written when set. */
   licence?: string | null;
+  /** The design-system record (the `_madewith` param). Default-on like `imprint`:
+   *  false ⇒ `_madewith=0`; true/undefined ⇒ omitted. */
+  madeWith?: boolean;
   /** Keep device-local `user/…` asset ids in the serialised state (plan 171).
    *  Default FALSE - the engine-enforced product contract is that a device-local
    *  id never leaves the device (docs/url-mode.md), so a top-level `user/` asset
@@ -515,7 +527,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'designv', 'ds', 'full', 'iframe', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence', '_themes']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'designv', 'ds', 'full', 'iframe', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence', '_themes', '_madewith']);
 // NOTE on the presentation-mode kiosk flag: it was the unreserved `loop` until
 // 2026-08-28 (plan 171 executed the rename inside the id-break window). `loop` is a
 // live *input* id in several tools (deck-builder, 3d, flythrough, digi-ad,
@@ -799,6 +811,9 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     emojiFx: params.get('emojifx') || null,
     emojiStyle: params.get('emojistyle') || null,
     licence: params.get('licence') || null,
+    // The design-system record (see header). Default-on, so only an explicit
+    // opt-out reads as false; absent stays null.
+    madeWith: parseMeta(params.get('_madewith')),
   };
 }
 
@@ -864,6 +879,8 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   if (opts.imprint === false) params.set('imprint', '0');
   // Default-on like imprint: only an explicit strip writes the param.
   if (opts.metadata === false) params.set('meta', 'off');
+  // Default-on as well: only leaving the design-system record out travels.
+  if (opts.madeWith === false) params.set('_madewith', '0');
   // Opt-in, off by default: only an explicit request writes the param.
   if (opts.durable) params.set('durable', '1');
   if (opts.hdr) params.set('hdr', '1');

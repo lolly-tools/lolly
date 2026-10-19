@@ -28,6 +28,7 @@ import { forensicPanelHtml, mountForensicVerify } from './valid-forensics.ts';
 import '../styles/parts/valid.css';   // async CSS chunk (lazy view - not on the landing)
 import '../styles/parts/valid-report.css';
 import { verifyC2pa, verifySeal, extractFileMetadata, appendedIsExpected, stripMetadata, detectWatermark, detectWatermarkSearch, analyzeLsb, isPptx, pptxMediaImages, evaluateReuse, licenceDisplayName, normaliseLicence, rightsReportFromC2pa } from '@lolly/engine';
+import { madeWithFact, recreateHrefFor } from '../lib/made-with.ts';
 import type { FileMetadata, StripFormat, SealVerifyResult } from '@lolly/engine';
 import type { CreativeOperationV1, CreativeUseRoleV1, DeliveryRouteV1 } from '@lolly-tools/core/rights-v1';
 import { looksLikePptxFile, inflatePptx, PPTX_MIME } from '../bridge/pptx.ts';
@@ -1666,6 +1667,7 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
         <dl class="valid-facts">
           ${fact(t('Title'), claim.title, 'tag')}
           ${fact(t('Tool'), env.tool && env.toolVersion ? `${env.tool} ${env.toolVersion}` : env.tool, 'tool')}
+          ${fact(t('Design system'), madeWithFact(env), 'palette')}
           ${fact(t('Produced by'), report.author ? `${report.author.name}${report.author.email ? ` <${report.author.email}>` : ''}` : null, 'user')}
           ${fact(t('Contact'), report.author?.url ?? null, 'link')}
           ${fact(t('Rights / licence'), report.rights ?? null, 'badgeCheck')}
@@ -3235,10 +3237,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
     const inputs = activeDigests[Number(a.dataset.recreate)];
     if (!toolId) return;
     try {
-      const [{ getTool }, { toolSeedHref }] = await Promise.all([
-        import('../bridge/tool-loader.ts'),
-        import('../lib/seed-url.ts'),
-      ]);
+      const [{ getTool }, { toolSeedHref }] = await Promise.all([import('../bridge/tool-loader.ts'), import('../lib/seed-url.ts')]);
       const { manifest } = await getTool(toolId);
       const typeById = new Map(manifest.inputs.map((inp) => [inp.id, inp.type]));
       const values: Record<string, unknown> = {};
@@ -3253,7 +3252,9 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
           values[k] = v;
         }
       }
-      window.location.hash = await toolSeedHref(toolId, values);
+      // The design version and theme choices the credential records (plans/319) reopen
+      // with the settings; the design system joins only when this device holds the same one.
+      window.location.hash = await recreateHrefFor(await toolSeedHref(toolId, values), activeReports[Number(a.dataset.recreate)], host);
     } catch {
       window.location.hash = `#/tool/${toolId}`;   // seeding failed - open a blank session
     }

@@ -142,6 +142,10 @@ const { renderActions, extFor } = await import('./tool-actions.ts');
 
 interface Harness {
   licence: () => string | null;
+  /** The runtime's design-system record switch (plans/319), when the mount gave it one. */
+  madeWith: () => boolean | null;
+  /** How many times the panel asked the runtime for the record's preview. */
+  madeWithReads: () => number;
   panel: HTMLElement;
   canvas: HTMLElement;
   stage: HTMLElement | null;
@@ -199,6 +203,8 @@ function mount({
   inputs = [],
   state,
   experience = {},
+  madeWith,
+  privacy,
 }: {
   seqMs: number | null /** A bed's own length stamped as data-clip-ms (the audiogram). */;
   clipMs?: number | null;
@@ -221,6 +227,11 @@ function mount({
   state?: unknown;
   /** More of the experience tool.ts passes (history participation). */
   experience?: Record<string, unknown>;
+  /** Give the runtime the design-system record pair (plans/319): what its preview
+   *  returns, and the switch's starting state. */
+  madeWith?: { preview: Record<string, unknown> | null; on?: boolean };
+  /** The manifest's privacy class (`on-device` for a utility). */
+  privacy?: string;
 }): Harness {
   const doc = dom.window.document;
   doc.body.innerHTML = '';
@@ -247,15 +258,23 @@ function mount({
     version: '1.0.0',
     inputs,
     render: { width: 1920, height: 1080, formats, video: { wait: 0, duration: videoDuration } },
+    ...(privacy ? { privacy } : {}),
   };
   const live = model.map((i) => ({ ...i }));
   const subscribers: Array<() => void> = [];
   const inputWrites: Array<{ id: string; value: unknown }> = [];
   let held: string | null = licence ?? null;
+  let madeWithOn = madeWith?.on ?? true;
+  let madeWithReads = 0;
   const runtime = {
     ...(licence !== undefined ? {
       setOutputLicence: (id: string | null) => { held = id; },
       outputLicence: () => held,
+    } : {}),
+    ...(madeWith ? {
+      madeWith: () => madeWithOn,
+      setMadeWith: (on: boolean) => { madeWithOn = on; },
+      madeWithPreview: async () => { madeWithReads++; return madeWith.preview; },
     } : {}),
     getModel: () => live,
     setInput: async (id: string, value: unknown) => {
@@ -267,6 +286,7 @@ function mount({
     setInputNoHistory: async () => {},
     subscribe: (fn: () => void) => {
       subscribers.push(fn);
+      return () => { const i = subscribers.indexOf(fn); if (i >= 0) subscribers.splice(i, 1); };
     },
     refresh: () => {},
     hasFrameHook: false,
@@ -351,6 +371,8 @@ function mount({
       ),
     ask: () => panel.querySelector('.export-details-ask') as HTMLElement | null,
     licence: () => held,
+    madeWith: () => (madeWith ? madeWithOn : null),
+    madeWithReads: () => madeWithReads,
     saved: () => saved,
     profileWrites: () => profileWrites,
     inputWrites: () => inputWrites,
@@ -2451,4 +2473,116 @@ test('History compares a checkpoint with the kept snapshot, so a loaded file is 
       .map(f => readFileSync(f, 'utf8')).join('\n');
     assert.match(view, /currentSnapshot: actionsApi\?\.history \? actionsApi\.keptSnapshot : actionsApi\?\.sessionState/);
   } finally { h.dispose(); }
+});
+
+// ── The design-system record card (plans/319 A7) ─────────────────────────────
+//
+// Approved on the condition that the record is visible at the moment of export: a
+// pre-checked card OUTSIDE the collapsed Protection group, showing the exact words
+// it writes and the description as it will read.
+
+const PERSIMMON_PREVIEW = {
+  record: {
+    designSystem: { id: 'acme', label: 'Acme <Client>' },
+    themes: [{ group: 'colourway', kind: 'colourway', id: 'persimmon', name: 'Persimmon' }],
+  },
+  description: 'Made with https://lolly.tools : Chart (Persimmon colourway)',
+  plainDescription: 'Made with https://lolly.tools : Chart',
+};
+
+test('the Design system card is pre-checked, outside Protection, and shows the exact words it writes', async () => {
+  const h = mount({ seqMs: null, formats: ['png'], madeWith: { preview: PERSIMMON_PREVIEW } });
+  await settle();
+  const card = h.panel.querySelector('[data-madewith-section]') as HTMLElement;
+  assert.ok(card, 'the card is rendered');
+  assert.equal(card.hidden, false);
+  assert.equal(card.closest('[data-protection-section]'), null, 'never folded into the collapsed Protection group');
+  const toggle = card.querySelector('[data-action="madewith"]') as HTMLInputElement;
+  assert.equal(toggle.checked, true, 'pre-checked');
+  assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records: Acme <Client> · Colourway: Persimmon',
+    'the label is typed text, shown exactly as it will be written');
+  assert.equal(card.querySelector('[data-madewith-description]')!.textContent,
+    'Description: Made with https://lolly.tools : Chart (Persimmon colourway)');
+  h.dispose();
+});
+
+test('unticking the card turns the runtime switch off and shows the plain description', async () => {
+  const h = mount({ seqMs: null, formats: ['png'], madeWith: { preview: PERSIMMON_PREVIEW } });
+  await settle();
+  const card = h.panel.querySelector('[data-madewith-section]') as HTMLElement;
+  const toggle = card.querySelector('[data-action="madewith"]') as HTMLInputElement;
+  toggle.checked = false;
+  toggle.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  assert.equal(h.madeWith(), false);
+  assert.equal(card.hidden, false, 'still visible, so it can be ticked again');
+  assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records nothing about the design system.');
+  assert.equal(card.querySelector('[data-madewith-description]')!.textContent, 'Description: Made with https://lolly.tools : Chart');
+  h.dispose();
+});
+
+test('a link that turned the record off opens the card unticked', async () => {
+  const h = mount({ seqMs: null, formats: ['png'], madeWith: { preview: PERSIMMON_PREVIEW, on: false } });
+  await settle();
+  const card = h.panel.querySelector('[data-madewith-section]') as HTMLElement;
+  assert.equal((card.querySelector('[data-action="madewith"]') as HTMLInputElement).checked, false);
+  assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records nothing about the design system.');
+  h.dispose();
+});
+
+test('nothing to record keeps the card hidden; an on-device utility never gets one', async () => {
+  const none = mount({ seqMs: null, formats: ['png'], madeWith: { preview: null } });
+  await settle();
+  assert.equal((none.panel.querySelector('[data-madewith-section]') as HTMLElement).hidden, true);
+  none.dispose();
+  const utility = mount({ seqMs: null, formats: ['png'], madeWith: { preview: PERSIMMON_PREVIEW }, privacy: 'on-device' });
+  await settle();
+  assert.equal(utility.panel.querySelector('[data-madewith-section]'), null);
+  utility.dispose();
+});
+
+test('an edit repaints the card from a fresh read, and a disposed panel reads nothing more', async () => {
+  const h = mount({ seqMs: null, formats: ['png'], madeWith: { preview: PERSIMMON_PREVIEW } });
+  await settle();
+  const first = h.madeWithReads();
+  assert.ok(first >= 1, 'the card read the record when it was drawn');
+  h.setModel('none', 1);
+  await new Promise((r) => setTimeout(r, 350));
+  assert.ok(h.madeWithReads() > first, 'a change the runtime announces reads the record again');
+  const settled = h.madeWithReads();
+  h.dispose();
+  h.setModel('none', 2);
+  await new Promise((r) => setTimeout(r, 350));
+  assert.equal(h.madeWithReads(), settled, 'no timer or subscription outlives the panel');
+});
+
+test('the Design system card follows the format: hidden for one that carries no metadata', async () => {
+  const h = mount({ seqMs: null, formats: ['png', 'csv'], madeWith: { preview: PERSIMMON_PREVIEW } });
+  await settle();
+  const card = h.panel.querySelector('[data-madewith-section]') as HTMLElement;
+  const select = h.panel.querySelector('[data-action="format"]') as HTMLSelectElement;
+  assert.equal(select.value, 'png');
+  assert.equal(card.hidden, false);
+  select.value = 'csv';
+  select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  assert.equal(card.hidden, true, 'a CSV carries no metadata, so the card names nothing it would write');
+  select.value = 'png';
+  select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  assert.equal(card.hidden, false, 'back on a format whose metadata carries the record');
+  h.dispose();
+});
+
+test('on HTML the record reaches only the credential: no description line, and no card with the credential off', async () => {
+  const h = mount({ seqMs: null, formats: ['html'], madeWith: { preview: PERSIMMON_PREVIEW } });
+  await settle();
+  const card = h.panel.querySelector('[data-madewith-section]') as HTMLElement;
+  const c2pa = h.panel.querySelector('[data-action="pdf-c2pa"]') as HTMLInputElement;
+  assert.ok(c2pa, 'HTML can carry a Content Credential');
+  assert.equal(c2pa.checked, true, 'on by default');
+  assert.equal(card.hidden, false);
+  assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records: Acme <Client> · Colourway: Persimmon');
+  assert.equal((card.querySelector('[data-madewith-description]') as HTMLElement).hidden, true, 'an HTML file has no description to write');
+  c2pa.checked = false;
+  c2pa.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  assert.equal(card.hidden, true, 'with the credential off, an HTML file carries none of the record');
+  h.dispose();
 });

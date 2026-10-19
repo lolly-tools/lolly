@@ -175,7 +175,7 @@ export async function exportFolder(
   const members: BatchMember[] = [];
   const usedByDir = new Map<string, Set<string>>(); // relDir → base names taken (dedup)
   const want = opts.format ?? 'svg';
-  const dims = { unit: opts.unit ?? 'px', dpi: opts.dpi ?? 300 };
+  const dims = bulkDims(opts);
   let done = 0;
 
   try {
@@ -276,6 +276,19 @@ function htmlFallbackNote(msg: string): string | null {
   return null;
 }
 
+/** The render dims every member of a bulk export shares. */
+interface BulkDims { unit: string; dpi: number; madeWith: false }
+
+/**
+ * The dims for a folder or selection export. `madeWith: false` because a bulk run
+ * shows no Design system row: the design-system record (plans/319) is approved on
+ * the condition that it is visible at the moment of export, so a file whose export
+ * showed nothing carries none, as the web shell's Pro batches and folder exports do.
+ */
+function bulkDims(opts: { unit?: string; dpi?: number }): BulkDims {
+  return { unit: opts.unit ?? 'px', dpi: opts.dpi ?? 300, madeWith: false };
+}
+
 /**
  * Render ONE session into `stage/<relNoExt>.<fmt>`, with the same html fallback as
  * ToolView.doExport. Never throws - a failure returns a skipped BatchMember so the batch
@@ -288,7 +301,7 @@ async function renderSessionTo(
   relNoExt: string,
   stage: string,
   want: string,
-  dims: { unit: string; dpi: number },
+  dims: BulkDims,
 ): Promise<BatchMember> {
   const label = session.label || session.toolId;
   try {
@@ -371,7 +384,8 @@ async function renderRowTo(
 ): Promise<BatchMember> {
   const query = new URLSearchParams(row.params).toString();
   const want = row.format ?? fallbackFormat ?? 'svg';
-  const dims = { width: row.width, height: row.height, unit: row.unit ?? 'px', dpi: row.dpi ?? 300 };
+  // No design-system record, for the reason bulkDims gives: a CSV batch shows none.
+  const dims = { width: row.width, height: row.height, unit: row.unit ?? 'px', dpi: row.dpi ?? 300, madeWith: false };
   try {
     const { runtime, manifest } = await mountTool(row.toolId, host, query);
     const avail = exportableFormats(manifest);
@@ -407,7 +421,7 @@ export async function exportSessions(
   const stage = await mkdtemp(join(tmpdir(), 'lolly-batch-'));
   const members: BatchMember[] = [];
   const used = new Set<string>();
-  const dims = { unit: opts.unit ?? 'px', dpi: opts.dpi ?? 300 };
+  const dims = bulkDims(opts);
   try {
     let done = 0;
     for (const session of sessions) {

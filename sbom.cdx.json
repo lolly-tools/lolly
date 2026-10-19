@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:84d6b87a-8d7c-4669-8fcc-64ac8793fa48",
+  "serialNumber": "urn:uuid:f18089d9-4866-4975-8e50-441c4d22b1eb",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-15T06:42:03.853Z",
+    "timestamp": "2026-10-19T09:13:25.309Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -23461,10 +23461,29 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/cli@2.12.1",
+      "bom-ref": "pkg:npm/%40tauri-apps/api@2.12.4",
+      "name": "@tauri-apps/api",
+      "version": "2.12.4",
+      "purl": "pkg:npm/%40tauri-apps/api@2.12.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "a5599f8acfb8cd3f07d10869df13d9c7d26eee4a73bc0eabaff3d224fcaec1fbee71343cb15b7ad4d614f4a3242bbd3750595869d1668ca0381e1c9b3ad37482"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40tauri-apps/cli@2.12.3",
       "name": "@tauri-apps/cli",
-      "version": "2.12.1",
-      "purl": "pkg:npm/%40tauri-apps/cli@2.12.1",
+      "version": "2.12.3",
+      "purl": "pkg:npm/%40tauri-apps/cli@2.12.3",
       "scope": "excluded",
       "licenses": [
         {
@@ -23474,7 +23493,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "9040c4886cc6fb201ce4578bc6d5e9112fd537e1760bc1f4af880356d7d12cac53f67a7dd74d5df51106fca828da5af484a8b42290ec3838879d4dfe9da3a62e"
+          "content": "7fbfcbb18ef84956f50a198e3f0d5a8cea718a2d064b30c082658745c8bc25462eb9a8b4e2b5ec49b1686e9981d2c3f60dd96f303fc1e59a2d127f0638631152"
         }
       ],
       "properties": [
