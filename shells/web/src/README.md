@@ -5,14 +5,14 @@ This file exists so you can find the code for a feature without reading all of i
 The counts below are GENERATED - `pnpm run build:web-src-readme`, checked in CI by `pnpm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
-Roughly 796,000 lines of TypeScript, tests included, and 61,000 lines of CSS.
+Roughly 797,000 lines of TypeScript, tests included, and 61,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 555 files, 210,335 lines | 284 files, 93,501 lines | 8 files, 1,446 lines |
-| `lib/` | 822 files, 170,636 lines | 483 files, 94,782 lines | 13 files, 1,820 lines |
-| `bridge/` | 224 files, 55,126 lines | 134 files, 28,172 lines | none |
-| `components/` | 126 files, 28,770 lines | 57 files, 14,534 lines | 23 files, 1,398 lines |
+| `views/` | 557 files, 210,599 lines | 285 files, 93,675 lines | 8 files, 1,446 lines |
+| `lib/` | 823 files, 171,048 lines | 484 files, 95,114 lines | 13 files, 1,820 lines |
+| `bridge/` | 224 files, 55,139 lines | 134 files, 28,211 lines | none |
+| `components/` | 127 files, 28,989 lines | 58 files, 14,776 lines | 24 files, 1,496 lines |
 | `org/` | 80 files, 20,219 lines | 56 files, 16,720 lines | none |
 | `collab/` | 20 files, 13,548 lines | 22 files, 14,143 lines | none |
 | `pro/` | 31 files, 9,262 lines | 14 files, 2,012 lines | 3 files, 1,256 lines |
@@ -20,7 +20,7 @@ Roughly 796,000 lines of TypeScript, tests included, and 61,000 lines of CSS.
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
 | `styles/` | none | 10 files, 1,977 lines | 132 files, 54,826 lines |
 
-Plus 53 `.ts`/`.js` files at the top level of `src/`, 18,955 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,327 of that.
+Plus 53 `.ts`/`.js` files at the top level of `src/`, 18,962 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,327 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature

@@ -561,7 +561,8 @@ function compute(model) {
 
 // Brand palette for the canvas "shuffle colours" button and the mesh node
 // colour picker - the same swatch set the colour picker offers
-// (host.tokens.colors()), fetched once. The shuffle itself writes concrete
+// (host.tokens.colors()), fetched once, and again after a theme or colourway
+// switch (onInput with id '__tokens'). The shuffle itself writes concrete
 // values into the inputs, so a shuffled state stays deterministic /
 // URL-expressible.
 var _paletteJson = JSON.stringify(FALLBACK);
@@ -588,6 +589,14 @@ async function onInit(ctx) {
   return Object.assign({}, compute(ctx.model), { paletteJson: _paletteJson });
 }
 function onInput(ctx) {
+  if (ctx && ctx.id === '__tokens') {
+    // Read in the new choice from the start, exactly as a mount in it would.
+    _paletteLoaded = false;
+    _paletteJson = JSON.stringify(FALLBACK);
+    return _loadPalette((ctx && ctx.host) || (typeof host !== 'undefined' ? host : null)).then(function () {
+      return Object.assign({}, compute(ctx.model), { paletteJson: _paletteJson });
+    });
+  }
   return Object.assign({}, compute(ctx.model), { paletteJson: _paletteJson });
 }
 

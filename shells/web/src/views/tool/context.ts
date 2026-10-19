@@ -38,6 +38,7 @@ import type { HistoryWireEntry } from '../../collab/history-exchange.ts';
 import type { ExportSizeDims, ExportSizeResult } from '../export-size.ts';
 import type { ExportFormatResult } from '../export-format.ts';
 import type { ExportPrefs } from '../../lib/export-prefs.ts';
+import type { DocumentThemeController } from '../../lib/document-theme.ts';
 import type { CollabHistoryCapture } from '../../lib/collab-history-capture.ts';
 import type { LiveControls } from '../live-controls.ts';
 import type { historyOps } from './history.ts';
@@ -232,6 +233,8 @@ export interface ToolViewCtx {
   placeRenderPill: (() => void) | null;
   filmstrip: Filmstrip | null;
   brandVarsReady: Promise<unknown>;
+  /** The document's theme choices (plans/319 A4): one controller per mount, shared by the sidebar's Design system section and the Design inspector. */
+  documentTheme: DocumentThemeController;
   stageEl: HTMLElement;
   backRow: HTMLElement;
   themeToggle: HTMLButtonElement;

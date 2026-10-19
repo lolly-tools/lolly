@@ -5,7 +5,7 @@ description: "Operate the Lolly Wayfinding tool (wayfinding-signage) using its d
 
 # Wayfinding
 
-Tool ID: `wayfinding-signage`. Tool version: `1.2.2`. Engine range: `^1.0.0`.
+Tool ID: `wayfinding-signage`. Tool version: `1.2.3`. Engine range: `^1.0.0`.
 
 Directional event signs - destinations, each with an arrow. Print-ready.
 

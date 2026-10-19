@@ -2,7 +2,8 @@
 /**
  * The design-system rows of Design's Document controls: the context strip that says
  * which design system, version and theme choices the document draws with (plan 286
- * section 5.1), and one segmented Theme row per group (plan 291 W4).
+ * section 5.1), and one segmented row per theme group (plan 291 W4), labelled by
+ * the group (Mode, Colourway) since plans/319 A4.
  *
  * Both read the inspector's theme port (lib/document-theme.ts). The theme choice is
  * the DOCUMENT's: it is saved with the session and never written to the design

@@ -17,9 +17,10 @@ import {
   createRuntime, parseUrlState, expandQuery, serializeHdr, assertSampleRequest, assertMotionRequest, sampleOutputFormat,
   C2PA_FORMATS, embedC2pa, buildInputModel, serializeUrlState, parseProductionSpec,
   parseDimension, toPixels, PENPOT_MIME,
-  attributionCredits, checkAttributionReadback, verifyC2pa,
+  attributionCredits, checkAttributionReadback, verifyC2pa, describeIgnoredTokenChoice,
+  ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection,
 } from '@lolly/engine';
-import type { C2paSourceIngredient } from '@lolly/engine';
+import type { C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes } from '@lolly/engine';
 import type { RightsEvaluationV1 } from '@lolly-tools/core/rights-v1';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
 import type { ExportFormat, ExportOpts, Profile, InputFile, HostV1 } from '@lolly-tools/core/host-v1';
@@ -36,7 +37,7 @@ import { waitForExport, type ExportWait } from '@lolly-tools/node-shell/export-w
 import { checksInOpenedPage, openSessionInPage, OpenSessionError, packageDesignSession, sessionQuery, shortenUrls } from '@lolly-tools/node-shell/open-session';
 import { readFile, stat } from 'node:fs/promises';
 import { loadToolCached } from './catalog.ts';
-import { withHost } from './host.ts';
+import { followRuntimeSelection, withHost } from './host.ts';
 import { withAudioScope } from './audio-runs.ts';
 import { prerenderSongInputs, recordedSongs, songIngredientsIn, type ComputedAudioFailure, type ComputedAudioRun, type RondoCaps } from '@lolly-tools/node-shell/audio';
 import type { Jsdom } from './host.ts';
@@ -325,15 +326,68 @@ async function mountAndDraw(
   const runtime = await createRuntime(tool, host, values as never, tokenSelection ? { tokenSelection } : undefined);
   const canvas = dom.window.document.getElementById('canvas');
   if (!canvas) throw new RenderError('render canvas missing');
+  // A `_themes` choice the tool's manifest `tokenAxes` ignores (plans/319 A4) renders
+  // in the canonical option; the caller is told so rather than left to wonder. The
+  // bridge follows the runtime from here, so the emoji palette below and the export's
+  // own reads (the eps-cmyk palette) draw that option too, not the one the request named.
+  followRuntimeSelection(host, runtime.tokenSelection, tokenSelection);
+  const ignoredThemes = ignoredThemeNotes(runtime.ignoredTokenChoices, tool.manifest.name);
   // The set is chosen BEFORE the first pass: setEmojiStyle redraws a tree it has
   // already drawn, and there is nothing drawn yet, so this costs one pass.
-  const warnings = await applyEmojiRequest(runtime, host, emoji);
+  const warnings = [...ignoredThemes, ...await applyEmojiRequest(runtime, host, emoji)];
   canvas.innerHTML = runtime.getHydrated();
   // Draw every emoji from the chosen set. An export walks this same node and
   // would run the pass anyway; saying it here keeps the hydrate-then-draw order
   // the same on every shell.
   await runtime.applyEmojiToDom(canvas);
   return { runtime, canvas: canvas as unknown as Element, warnings };
+}
+
+/**
+ * One render note per theme choice a tool ignored (plans/319 A4): the same
+ * sentence the CLI warns with, from the engine, so both surfaces say one thing.
+ */
+export function ignoredThemeNotes(choices: readonly IgnoredTokenChoice[] | undefined, toolName: string): string[] {
+  return (choices ?? []).map((choice) => describeIgnoredTokenChoice(choice, toolName));
+}
+
+/**
+ * The same decision the runtime makes at mount, from the facts alone: the tool's
+ * manifest `tokenAxes`, the request's `_themes` and the design system's token
+ * document. For a render whose runtime this process never holds. Empty when the
+ * tool ignores no kind or the request asks for no theme choice.
+ */
+export function themeChoiceNotes(
+  tool: { name: string; tokenAxes?: ToolTokenAxes },
+  document: unknown,
+  tokenSelection: Record<string, string> | undefined,
+): string[] {
+  if (!tokenSelection || !Object.keys(tokenSelection).length || !ignoresTokenAxes(tool.tokenAxes) || !document) return [];
+  const resolved = resolveTokenSelection(document, { selection: tokenSelection });
+  return ignoredThemeNotes(pinIgnoredTokenAxes(tokenSelection, resolved, tool.tokenAxes).ignored, tool.name);
+}
+
+/**
+ * The ignored-theme notes for a browser-tier render (plans/319 A4). The web shell
+ * mounts that runtime and hands back only bytes, so the decision is read again
+ * here from the same design system. Only a tool that declares `tokenAxes`, asked
+ * for theme choices, pays for the read.
+ *
+ * Exported for the test that pins this seam (tests/token-axes-run.test.ts);
+ * `render` is its only caller.
+ */
+export async function browserTierThemeNotes(
+  toolId: string,
+  profile: Profile,
+  tokenSelection: Record<string, string> | undefined,
+): Promise<string[]> {
+  if (!tokenSelection || !Object.keys(tokenSelection).length) return [];
+  const tool = await loadToolCached(toolId);
+  if (!ignoresTokenAxes(tool.manifest.tokenAxes)) return [];
+  return withHost(profile, async (_dom, host) => {
+    const document = (await host.tokens?.snapshot?.())?.document;
+    return themeChoiceNotes(tool.manifest, document, tokenSelection);
+  }, { tokenSelection });
 }
 
 /**
@@ -975,6 +1029,12 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     out = { ...(await renderTierB(toolId, q, exportFmt, merged)), tier: 'B' };
   }
 
+  // A theme choice the tool ignores is reported by mountAndDraw on the browser-free
+  // tiers; the browser tier's runtime lives in the web shell, so it is read here.
+  if (out.tier.startsWith('B')) {
+    try { warnings.push(...await browserTierThemeNotes(toolId, profile, st.tokenSelection)); }
+    catch { /* a note, never a reason to fail a finished render */ }
+  }
   let bytes = out.bytes;
   // The browser tier draws its emoji inside the web shell and hands back only
   // the bytes, so the census is established here instead: the same tool, the

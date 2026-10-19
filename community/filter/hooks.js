@@ -254,6 +254,12 @@ function _stillNote(message, W, H) {
 }
 
 function _run(ctx, fn) {
+  // A theme or colourway switch reaches the hooks as onInput with id '__tokens'.
+  // The effect modules never see the id, so each one that keeps a design-system
+  // read (treatment seeds, the brand palette, the mono font) drops it here.
+  if (fn === 'onInput' && ctx.id === '__tokens') {
+    for (var fx in EFFECT_MOD) if (EFFECT_MOD[fx] && EFFECT_MOD[fx].forgetTokens) EFFECT_MOD[fx].forgetTokens();
+  }
   var e = _effectOf(ctx.model);
   _activeEffect = e;
   var mod = EFFECT_MOD[e];
@@ -4237,7 +4243,7 @@ var _defaultUrl = null;
 var _memoKey = null;
 var _memoResult = null;
 var _lastOutSrc = null; // previous composed bitmap, sent as prevSrc for seamless swaps
-var _brandStops = null; // resolved brand treatment seeds (once per mount)
+var _brandStops = null; // resolved brand treatment seeds (once, and again after a switch)
 var _lastOv = null, _lastW = null, _lastH = null; // most recent overlay params - read by beforeExport
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -4285,7 +4291,8 @@ function smoothstep(a, b, x) {
   return t * t * (3 - 2 * t);
 }
 
-// Resolve the brand's three treatment seeds ONCE per mount from host.tokens:
+// Resolve the brand's three treatment seeds once from host.tokens (and again after a
+// theme or colourway switch, see forgetTokens):
 //   shadow = darkest swatch, highlight = lightest, mid = most chromatic (OKLab).
 // Neutral fallback when tokens are unavailable (or a shell without a palette).
 function resolveBrandStops() {
@@ -4893,6 +4900,10 @@ async function compute(model) {
   return _memoResult;
 }
 
+// A theme or colourway switch (onInput with id '__tokens', dispatched by _run): the
+// treatment seeds are read again in the new choice. The memo key holds the seeds'
+// colours, so the next render after the read is a fresh one.
+function forgetTokens() { _brandStops = null; }
 function onInit(ctx) { return compute(ctx.model); }
 function onInput(ctx) { return compute(ctx.model); }
 
@@ -4946,7 +4957,8 @@ return {
   onInput:      typeof onInput       !== 'undefined' ? onInput       : null,
   onFrame:      typeof onFrame       !== 'undefined' ? onFrame       : null,
   beforeExport: typeof beforeExport  !== 'undefined' ? beforeExport  : null,
-  afterExport:  typeof afterExport   !== 'undefined' ? afterExport   : null
+  afterExport:  typeof afterExport   !== 'undefined' ? afterExport   : null,
+  forgetTokens: forgetTokens
 };
 })();
 
@@ -6655,7 +6667,7 @@ var _imgCache = { url: null, promise: null };
 var _defaultUrl = null;
 var _memoKey = null;
 var _memoResult = null;
-var _brandPalette = null; // { count, hexes } - resolved once per colour count
+var _brandPalette = null; // { count, hexes } - resolved once per colour count, and again after a switch
 var _lastOv = null, _lastW = VIEW, _lastH = VIEW; // overlay params + box (read by beforeExport)
 
 function inputsFrom(model) { var o = {}; model.forEach(function (i) { o[i.id] = i.value; }); return o; }
@@ -7576,6 +7588,10 @@ function resolvePaletteSync(id, count) {
   return PALETTES[id] || PALETTES.mono;
 }
 
+// A theme or colourway switch (onInput with id '__tokens', dispatched by _run): the
+// brand palette is read again in the new choice. The memo key does not hold the
+// palette, so the memoised render is dropped too.
+function forgetTokens() { _brandPalette = null; _memoKey = null; }
 function onInit(ctx) { return compute(ctx.model); }
 function onInput(ctx) { return compute(ctx.model); }
 
@@ -7643,7 +7659,8 @@ return {
   onInput:      typeof onInput       !== 'undefined' ? onInput       : null,
   onFrame:      typeof onFrame       !== 'undefined' ? onFrame       : null,
   beforeExport: typeof beforeExport  !== 'undefined' ? beforeExport  : null,
-  afterExport:  typeof afterExport   !== 'undefined' ? afterExport   : null
+  afterExport:  typeof afterExport   !== 'undefined' ? afterExport   : null,
+  forgetTokens: forgetTokens
 };
 })();
 
@@ -8152,9 +8169,13 @@ function sampleGrid(img, cols, rows, fit) {
 function hex2(v) { var h = Math.round(clamp(v, 0, 255)).toString(16); return h.length < 2 ? '0' + h : h; }
 function rgbHex(r, g, b) { return '#' + hex2(r) + hex2(g) + hex2(b); }
 
+// A theme or colourway switch (onInput with id '__tokens', dispatched by _run):
+// the font stack may differ in the new choice, and the memo holds a render in the old one.
+function forgetTokens() { _monoFont = null; _memoKey = null; }
+
 // Read a monospace stack off the brand's font tokens (any fontFamily token
-// whose value/path mentions "mono"); a generic system stack otherwise. Cached
-// once per mount since brand tokens don't change mid-session.
+// whose value/path mentions "mono"); a generic system stack otherwise. Cached,
+// and read again after a theme or colourway switch (forgetTokens, above).
 function resolveMonoFontStack() {
   if (_monoFont) return Promise.resolve(_monoFont);
   var fallback = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
@@ -8406,7 +8427,8 @@ return {
   onFrame:      typeof onFrame       !== 'undefined' ? onFrame       : null,
   beforeExport: typeof beforeExport  !== 'undefined' ? beforeExport  : null,
   afterExport:  typeof afterExport   !== 'undefined' ? afterExport   : null,
-  exportStill:  typeof exportStill   !== 'undefined' ? exportStill   : null
+  exportStill:  typeof exportStill   !== 'undefined' ? exportStill   : null,
+  forgetTokens: forgetTokens
 };
 })();
 

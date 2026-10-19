@@ -192,3 +192,36 @@ test('a seeded feature-detect and an omitted owner-resident method never become 
   assert.equal(done.patch.hasStart, 'undefined', 'an owner-resident OMIT_METHODS entry is never built onto the proxy');
   assert.equal(sent.some((m) => m.t === 'host-call'), false);
 });
+
+test('a tokens message moves the run\'s co-located tokens, and a host.tokens a hook kept follows', async () => {
+  const { port, sent } = stubPort();
+  const core = createHookWorkerCore(port);
+  const doc = (ink: string) => ({ color: { ink: { $type: 'color', $value: ink } } });
+  core.handle(initMsg({
+    // The hook keeps a reference at the top of the module, as a tool may.
+    hooksSource: 'var kept = host.tokens; async function onInput(ctx) { return { ink: await kept.resolve("{color.ink}"), now: await ctx.host.tokens.resolve("{color.ink}") }; }',
+    tokenDoc: doc('#111111'),
+  }));
+  const read = async (callId: number) => {
+    core.handle({ t: 'invoke', runId: 1, callId, name: 'onInput', ctx: {} });
+    await new Promise((r) => setTimeout(r, 0));
+    return (sent.find((m) => m.t === 'invoke-done' && (m as { callId: number }).callId === callId) as { patch: unknown }).patch;
+  };
+  assert.deepEqual(await read(1), { ink: '#111111', now: '#111111' });
+  core.handle({ t: 'tokens', runId: 1, tokenDoc: doc('#eeeeee'), tokenExcluded: [] });
+  assert.deepEqual(await read(2), { ink: '#eeeeee', now: '#eeeeee' }, 'the reference kept at mount reads the new document');
+  core.handle({ t: 'tokens', runId: 1, tokenDoc: null, tokenExcluded: [] });
+  assert.deepEqual(await read(3), { ink: '#eeeeee', now: '#eeeeee' }, 'a failed snapshot keeps the theme already read');
+  core.handle({ t: 'tokens', runId: 9, tokenDoc: doc('#000000'), tokenExcluded: [] });
+  assert.deepEqual(await read(4), { ink: '#eeeeee', now: '#eeeeee' }, 'another run\'s message changes nothing here');
+});
+
+test('a run mounted with no token document ignores a tokens message', async () => {
+  const { port, sent } = stubPort();
+  const core = createHookWorkerCore(port);
+  core.handle(initMsg({ hooksSource: 'function onInput(ctx) { return { has: typeof ctx.host.tokens }; }' }));
+  core.handle({ t: 'tokens', runId: 1, tokenDoc: { color: { ink: { $type: 'color', $value: '#123456' } } }, tokenExcluded: [] });
+  core.handle({ t: 'invoke', runId: 1, callId: 1, name: 'onInput', ctx: {} });
+  await new Promise((r) => setTimeout(r, 0));
+  assert.deepEqual((sent.find((m) => m.t === 'invoke-done') as { patch: unknown }).patch, { has: 'undefined' });
+});

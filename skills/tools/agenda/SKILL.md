@@ -5,7 +5,7 @@ description: "Operate the Lolly Agenda tool (agenda) using its declared inputs a
 
 # Agenda
 
-Tool ID: `agenda`. Tool version: `1.3.0`. Engine range: `^1.216.0`.
+Tool ID: `agenda`. Tool version: `1.3.1`. Engine range: `^1.216.0`.
 
 Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.
 

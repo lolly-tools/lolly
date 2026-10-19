@@ -3,7 +3,7 @@
   "name": "Wayfinding",
   "description": "Directional event signs - destinations, each with an arrow. Print-ready.",
   "a11yLabel": "Wayfinding sign for {{default eventName \"the event\"}}{{#if heading}} - {{heading}}{{/if}}",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "event",

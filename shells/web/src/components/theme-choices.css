@@ -1,0 +1,97 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
+/* The design system's choices for one document (components/theme-choices.ts).
+   Ships with the control's own chunk: the tool view imports it lazily, so a tool
+   whose design system offers no choice never loads this sheet.
+
+   The rows borrow the sidebar's own primitives on purpose - .field-row,
+   .field-label and .field-select (parts/fields.css) and .badge-select--segmented
+   (parts/tool.css) - so the section reads like every other control beside it.
+   What is left is the colourway's swatch dots. Tokens only: every size, ring and
+   edge below is a role from styles/tokens.css. */
+
+.theme-choices {
+  display: flex;
+  flex-direction: column;
+  /* The section body this sits in spaces its rows by --sp-4, as the emoji control does. */
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+.theme-choice-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+.theme-choice-label > .help-tip-btn { margin: 0; }
+
+/* ── Colourway dots ────────────────────────────────────────────────────────
+   One target per colourway, at the panel's control height, holding a disc of
+   the lead with the partner as its lower corner: a colourway is a pairing, not
+   one hex. The chosen dot takes the selection ring with a gap of page between
+   ring and disc, so a dark lead on a dark sidebar still reads as chosen. */
+.theme-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.theme-swatch {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--ui-size-control);
+  block-size: var(--ui-size-control);
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-choice-round);
+  background: none;
+  cursor: pointer;
+  transition: box-shadow var(--ui-motion-feedback) var(--ui-motion-standard);
+}
+.theme-swatch-dot {
+  inline-size: var(--ui-size-icon-lg);
+  block-size: var(--ui-size-icon-lg);
+  border-radius: var(--ui-radius-choice-round);
+  background: linear-gradient(135deg,
+    var(--theme-swatch-lead, var(--ui-color-surface-muted)) 0 64%,
+    var(--theme-swatch-partner, var(--ui-color-surface-muted)) 64% 100%);
+  /* A hairline, so a white or near-page lead still has an edge. */
+  box-shadow: var(--ui-edge-default);
+}
+.theme-swatch:hover { box-shadow: var(--ui-effect-selection-ring-hover); }
+.theme-swatch.is-on { box-shadow: var(--ui-effect-selection-ring); }
+.theme-swatch:focus-visible {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 2px;
+}
+.theme-swatch:active .theme-swatch-dot { filter: brightness(.94); }
+
+/* The chosen colourway's name, after the dots: the dots say which colour, the
+   name says which lead. Read by sight only; each dot already carries its name
+   for a screen reader. */
+.theme-swatch-name {
+  min-width: 0;
+  margin-inline-start: var(--sp-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--ui-type-label);
+  color: var(--ui-color-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-swatch { transition: none; }
+}
+html[data-a11y-motion="reduce"] .theme-swatch { transition: none; }
+
+/* Under a coarse pointer each dot grows to the touch target, like every other
+   control in the panel. */
+@media (any-pointer: coarse) {
+  .theme-swatch {
+    inline-size: var(--ui-size-target);
+    block-size: var(--ui-size-target);
+  }
+}

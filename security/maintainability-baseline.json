@@ -105,10 +105,10 @@
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
-      "lines": 1552,
-      "largestFunctionLines": 1580,
+      "lines": 1547,
+      "largestFunctionLines": 1579,
       "importFanIn": 1,
-      "importFanOut": 66,
+      "importFanOut": 65,
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {

@@ -17,6 +17,8 @@
  */
 
 import { createCliBridge } from '../../../shells/cli/src/bridge.ts';
+/** Move a `withHost` bridge to the selection its runtime applied (a tool's `tokenAxes` pin). */
+export { followRuntimeSelection } from '../../../shells/cli/src/bridge.ts';
 import type { HostV1, Profile } from '@lolly-tools/core/host-v1';
 import { DEFAULT_SCOPE_CAPS, currentAudioScope } from './audio-runs.ts';
 

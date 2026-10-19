@@ -22,7 +22,10 @@ import { docsAppHref, t, tRaw } from '../../i18n.ts';
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import { announce } from '../../a11y.ts';
 import { applyBrandVars } from '../../brand-vars.ts';
-import { syncThemesRoute, themedHost } from '../../lib/document-theme.ts';
+import { createDocumentThemeController, syncThemesRoute, themedHost } from '../../lib/document-theme.ts';
+import { refreshSwatches, setSwatches } from '../../components/color-field.ts';
+import { mountThemeSection, refreshThemeSwatches, trackToolTokenUsage } from './theme-section.ts';
+import { toolTokenUsage } from '../../lib/theme-relevance.ts';
 import { createThemeToggle } from '../../components/theme-toggle.ts';
 import { createSoundToggle } from '../../components/sound-toggle.ts';
 import { createProfileControl } from '../../components/profile-menu.ts';
@@ -390,6 +393,17 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
             ${madeWithNotice}
             <div id="tool-inputs" class="tool-inputs"></div>
             ${
+              /* The design system's choices for this document (plans/319 A4):
+                  colourway, mode and any other theme group. Chrome for the same
+                  reason as Emoji below, and outside #tool-inputs for the same
+                  reason. Hidden until the controller reports a group whose
+                  options change what this tool draws (views/tool/theme-section.ts). */ ''
+            }
+            <details class="input-section" id="theme-section" hidden>
+              <summary class="input-section-summary"><span class="input-section-title"><span class="input-section-icon" aria-hidden="true">${icon('palette', { size: 14 })}</span>${escapeText(t('Design system'))}</span></summary>
+              <div class="input-section-body" id="theme-section-body"></div>
+            </details>
+            ${
               /* Emoji (plans/252). OUTSIDE #tool-inputs on purpose: renderInputs wipes
                   that container with innerHTML on every model change and only emits
                   section heads for declared inputs, and this is not an input - it is
@@ -569,13 +583,36 @@ export function wireFilmstrip(tview: ToolViewCtx): void {
   // runtime's token reads: a reopened session's `__tokenSelection` is in the runtime
   // but not yet in the address, and the address form `/design?…` carries no hash for
   // the token bridge to read. Its selection goes into the address here as well.
-  syncThemesRoute(runtime.tokenSelection);
+  // The colour field's swatches were read before the runtime existed, under the
+  // address as it was; when the address moves to the document's choice here (a
+  // reopened session, or a tool whose `tokenAxes` pinned a group) they are read again.
+  if (syncThemesRoute(runtime.tokenSelection)) {
+    void refreshThemeSwatches(themedHost(tview.host, runtime.tokenSelection), viewEl, { setSwatches, refreshSwatches }).catch(() => { /* keep the swatches read at mount */ });
+  }
   const brandVarsReady: Promise<unknown> = Promise.race([
     applyBrandVars(contentEl, themedHost(tview.host, runtime.tokenSelection)),
     new Promise<void>((resolve) => setTimeout(resolve, 3000)),
   ]).catch(() => {
     /* cosmetic - never block a mount or fail an export on brand vars */
   }); tview.brandVarsReady = brandVarsReady;
+  // The document's theme choices (plans/319 A4): ONE controller per mount. The
+  // sidebar's Design system section mounts on it here, and the Design inspector's
+  // Document section (session.ts) subscribes to the same object, so the two can
+  // never show different choices. A switch moves the runtime, the address, the
+  // canvas variables, the colour field's swatches and the saved session together.
+  // A group is offered only when switching it changes what this tool draws
+  // (plans/319 decision 9), so the controller is told what the tool reads, and told
+  // again when an edit links or unlinks a colour.
+  const documentTheme = createDocumentThemeController({
+    runtime, host: tview.host, canvas: () => tview.contentEl ?? null,
+    tokenAxes: tview.tool.manifest.tokenAxes ?? null,
+    usage: toolTokenUsage(tview.tool, runtime.getModel()),
+    markDirty: () => { tview.session.markUserDirty(); tview.session.syncUrl(); },
+    refresh: (themed) => refreshThemeSwatches(themed, viewEl, { setSwatches, refreshSwatches }),
+  }); tview.documentTheme = documentTheme;
+  const stopUsage = trackToolTokenUsage(documentTheme, tview.tool, runtime);
+  const themeSection = mountThemeSection({ root: viewEl, controller: documentTheme });
+  tview.mountLifecycle.add('document theme', () => { stopUsage(); themeSection.destroy(); documentTheme.dispose(); });
   // Always present in the template (both layouts render #tool-stage), so treat it
   // as non-null - mirrors mountTool's unguarded uses (ro.observe, fitCanvas, …).
   const stageEl = viewEl.querySelector<HTMLElement>('#tool-stage')!; tview.stageEl = stageEl;

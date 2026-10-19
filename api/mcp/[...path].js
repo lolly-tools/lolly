@@ -117,6 +117,61 @@ var init_tool_schema = __esm({
           pattern: "^[a-z0-9][a-z0-9-]*$",
           description: "Optional design-system version this tool renders against (plans/97 section 6a): a published version's slug, or 'latest' for the edit head. Author-controlled stability - a pinned tool keeps rendering against its version whatever gets republished. Unlike engineVersion this is NOT enforced at load: a pin naming a version this device does not have falls through to the active version, then to the head, so a tool always draws. Overridden per render by ?designv=. On a device that never published a version it has no effect at all."
         },
+        tokenAxes: {
+          type: "object",
+          additionalProperties: false,
+          description: `How this tool treats each kind of theme group a design system declares (plans/319). Keys are axis kinds; the one behaviour is "ignore". An ignored kind renders in that group's canonical option for this tool whatever a link, a saved session or the design system's stored choice asks for, and the web shell hides that group's control in this tool. Use it for a tool whose colours are its content: {"colourway": "ignore"} keeps a tonal ramp on the canonical lead, {"mode": "ignore"} keeps a print-only tool in its canonical look. The CLI and MCP report a theme choice the tool ignored instead of dropping it silently. A later behaviour is an additive value in each enum.`,
+          properties: {
+            mode: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            colourway: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            expression: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            medium: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            contrast: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            density: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            campaign: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            brand: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            }
+          }
+        },
         status: {
           type: "string",
           enum: [
@@ -4028,7 +4083,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.277.0";
+    ENGINE_VERSION = "1.278.0";
   }
 });
 
@@ -10978,6 +11033,58 @@ var init_token_context = __esm({
   "engine/src/token-context.ts"() {
     "use strict";
     init_token_selection();
+  }
+});
+
+// engine/src/tool-token-axes.ts
+function ignoresTokenAxes(tokenAxes) {
+  return !!tokenAxes && Object.values(tokenAxes).some((behaviour) => behaviour === "ignore");
+}
+function effectiveAxisKinds(groups) {
+  const declaredMode = groups.some((group) => group.kind === "mode");
+  const kinds2 = /* @__PURE__ */ new Map();
+  for (const group of groups) {
+    kinds2.set(group.id, group.kind ?? (!declaredMode && group.id === "" ? "mode" : null));
+  }
+  return kinds2;
+}
+function ignoredTokenAxes(groups, tokenAxes) {
+  if (!ignoresTokenAxes(tokenAxes)) return [];
+  const kinds2 = effectiveAxisKinds(groups);
+  const out = [];
+  for (const group of groups) {
+    const kind = kinds2.get(group.id);
+    if (!kind || tokenAxes[kind] !== "ignore" || !group.options.length) continue;
+    const canonical3 = group.canonical && group.options.some((o) => o.id === group.canonical) ? group.canonical : group.options[0].id;
+    out.push({ group: group.id, kind, canonical: canonical3 });
+  }
+  return out;
+}
+function pinIgnoredTokenAxes(requested, resolved2, tokenAxes) {
+  const axes = ignoredTokenAxes(resolved2.groups, tokenAxes);
+  const keep2 = requested && Object.keys(requested).length ? { ...requested } : void 0;
+  if (!axes.length) return { selection: keep2, ignored: [] };
+  const ignored = [];
+  let needsPin = false;
+  for (const axis of axes) {
+    const asked = requested && Object.hasOwn(requested, axis.group) ? requested[axis.group] : void 0;
+    const declared = resolved2.groups.find((g2) => g2.id === axis.group)?.options.some((o) => o.id === asked) ?? false;
+    if (asked !== void 0 && asked !== axis.canonical && declared) ignored.push({ ...axis, requested: asked });
+    if (resolved2.choices[axis.group] !== axis.canonical) needsPin = true;
+  }
+  if (!needsPin) return { selection: keep2, ignored };
+  const selection = { ...resolved2.choices };
+  for (const axis of axes) selection[axis.group] = axis.canonical;
+  return { selection, ignored };
+}
+function describeIgnoredTokenChoice(choice3, toolName) {
+  return `${toolName} ignores the ${choice3.kind}${groupWords(choice3)}, so ${choice3.requested} was not applied. It renders in ${choice3.canonical}, the canonical option.`;
+}
+var groupWords;
+var init_tool_token_axes = __esm({
+  "engine/src/tool-token-axes.ts"() {
+    "use strict";
+    groupWords = (choice3) => choice3.group === "" ? "" : choice3.group === choice3.kind ? "" : ` (theme group ${choice3.group})`;
   }
 });
 
@@ -49960,6 +50067,14 @@ var init_brand_treatments = __esm({
 async function createRuntime(tool, host, initialState = {}, opts = {}) {
   let tokenSelection = opts.tokenSelection ?? parseTokenSelection(initialState.__tokenSelection ? JSON.stringify(initialState.__tokenSelection) : null);
   const unscopedHost = host;
+  const tokenAxes = ignoresTokenAxes(tool.manifest.tokenAxes) ? tool.manifest.tokenAxes : null;
+  let ignoredTokenChoices = [];
+  async function pinForTool(requested) {
+    if (!tokenAxes || !unscopedHost.tokens) return { selection: requested, ignored: [] };
+    const resolved2 = await choicesInForce(unscopedHost.tokens, requested);
+    return resolved2 ? pinIgnoredTokenAxes(requested, resolved2, tokenAxes) : { selection: requested, ignored: [] };
+  }
+  if (tokenAxes) ({ selection: tokenSelection, ignored: ignoredTokenChoices } = await pinForTool(tokenSelection));
   let scopedTokens = tokenSelection ? withTokenSelection(unscopedHost, tokenSelection).tokens : unscopedHost.tokens;
   let themeGeneration = 0;
   let writeTokenSet;
@@ -50492,6 +50607,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     get tokenSelection() {
       return tokenSelection ? structuredClone(tokenSelection) : void 0;
     },
+    get ignoredTokenChoices() {
+      return ignoredTokenChoices.map((choice3) => ({ ...choice3 }));
+    },
     getModel: () => model2,
     getHydrated,
     getHydratedString,
@@ -50824,10 +50942,25 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     },
     async setTokenSelection(selection) {
       const next2 = parseTokenSelection(JSON.stringify(selection ?? {}));
-      tokenSelection = next2 && Object.keys(next2).length ? structuredClone(next2) : void 0;
-      scopedTokens = tokenSelection ? withTokenSelection(unscopedHost, tokenSelection).tokens : unscopedHost.tokens;
       const generation = ++themeGeneration;
+      let applied = next2 && Object.keys(next2).length ? structuredClone(next2) : void 0;
+      if (tokenAxes) {
+        const pinned = await pinForTool(applied);
+        if (generation !== themeGeneration) return;
+        applied = pinned.selection;
+        ignoredTokenChoices = pinned.ignored;
+      }
+      tokenSelection = applied;
+      scopedTokens = tokenSelection ? withTokenSelection(unscopedHost, tokenSelection).tokens : unscopedHost.tokens;
       surfaceContexts.delete(host);
+      if (hooks?.tokensChanged) {
+        try {
+          await hooks.tokensChanged();
+        } catch (e) {
+          host.log("warn", `tokensChanged ${e.message}`, { toolId: tool.manifest.id });
+        }
+        if (generation !== themeGeneration) return;
+      }
       let before;
       let resolved2;
       do {
@@ -50846,6 +50979,31 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
           } catch (e) {
             host.log("warn", `onInput ${e.message}`, { toolId: tool.manifest.id });
           }
+        }
+        const applyTokensPatch = (patch) => {
+          if (!patch || typeof patch !== "object" || Array.isArray(patch)) return;
+          const computed = Object.fromEntries(Object.entries(patch).filter(([id3]) => !inputIds.has(id3)));
+          ({ model: model2, extras } = mergePatch(model2, extras, computed, inputIds));
+        };
+        try {
+          const patch = await runHook("onInput", (report4) => onInput({
+            id: TOKENS_CHANGED_INPUT_ID,
+            value: null,
+            model: modelForHooks(model2),
+            view: viewState,
+            lang: hookLang,
+            host,
+            report: report4
+          }), (late) => {
+            if (generation === themeGeneration) {
+              applyTokensPatch(late);
+              emit();
+            }
+          });
+          if (generation !== themeGeneration) return;
+          if (patch) applyTokensPatch(patch);
+        } catch (e) {
+          host.log("warn", `onInput ${e.message}`, { toolId: tool.manifest.id });
         }
       }
       emit();
@@ -51339,6 +51497,32 @@ function inputNeedsAssetResolve(input) {
   }
   return false;
 }
+async function choicesInForce(tokens3, requested) {
+  const opts = requested ? { selection: requested } : {};
+  try {
+    if (tokens3.snapshot) {
+      const snapshot = await tokens3.snapshot();
+      if (snapshot.document) return resolveTokenSelection(snapshot.document, opts);
+    }
+    if (tokens3.inspect) return (await tokens3.inspect(opts)).selection;
+    const themes = await tokens3.themes();
+    const groups = /* @__PURE__ */ new Map();
+    for (const theme of themes) {
+      const id3 = theme.group ?? "";
+      const group = groups.get(id3) ?? { id: id3, options: [], ...theme.kind ? { kind: theme.kind } : {} };
+      const option = theme.id ?? theme.name;
+      group.options.push({ id: option, name: theme.name });
+      if (theme.canonical) group.canonical = option;
+      groups.set(id3, group);
+    }
+    const list4 = [...groups.values()];
+    const choices2 = {};
+    for (const group of list4) choices2[group.id] = requested?.[group.id] ?? group.canonical ?? group.options[0].id;
+    return { groups: list4, choices: choices2 };
+  } catch {
+    return null;
+  }
+}
 function liveTokenScope(base, current) {
   const live2 = {};
   for (const key2 of Object.keys(base)) {
@@ -51654,12 +51838,13 @@ function mergePatch(model2, extras, patch, inputIds) {
   const newModel = hasModelPatch ? model2.map((input) => input.id in modelPatch ? { ...input, value: modelPatch[input.id] } : input) : model2;
   return { model: newModel, extras: newExtras };
 }
-var ExportHookError, HOOK_BUDGET_MS, ALPHA_EXPORT_FORMATS, DATA_FORMATS, surfaceContexts, hookFactoryCache, inRealmHookExecutor, COMPOSE_TIMEOUT_MS2;
+var ExportHookError, HOOK_BUDGET_MS, TOKENS_CHANGED_INPUT_ID, ALPHA_EXPORT_FORMATS, DATA_FORMATS, surfaceContexts, hookFactoryCache, inRealmHookExecutor, COMPOSE_TIMEOUT_MS2;
 var init_runtime = __esm({
   "engine/src/runtime.ts"() {
     "use strict";
     init_token_context();
     init_token_selection();
+    init_tool_token_axes();
     init_token_binding();
     init_policy();
     init_src();
@@ -51693,6 +51878,7 @@ var init_runtime = __esm({
       exportFile: 1e4,
       exportStill: 1e4
     };
+    TOKENS_CHANGED_INPUT_ID = "__tokens";
     ALPHA_EXPORT_FORMATS = /* @__PURE__ */ new Set(["jxl", "jxl-lossless", "png", "webp", "avif", "apng", "webp-anim", "gif"]);
     DATA_FORMATS = {
       json: "application/json",
@@ -63978,9 +64164,15 @@ function createHookWorkerCore(port, opts = {}) {
       }
     }, 250);
   }
-  function makeTokens(doc, excluded) {
+  function makeTokens(initialDoc, excluded) {
+    let doc = initialDoc;
     const byTheme = /* @__PURE__ */ new Map();
-    const excl = new Set(excluded);
+    let excl = new Set(excluded);
+    const swap = (next2, nextExcluded) => {
+      doc = next2;
+      excl = new Set(nextExcluded);
+      byTheme.clear();
+    };
     const ensure = (opts2 = {}) => {
       const key2 = tokenSelectionKey(opts2);
       let set = byTheme.get(key2);
@@ -63991,7 +64183,7 @@ function createHookWorkerCore(port, opts = {}) {
       }
       return set;
     };
-    return {
+    const tokens3 = {
       get: async (o = {}) => ensure(o),
       inspect: async (o = {}) => inspectTokenDocument(doc, o),
       resolve: async (ref2, o = {}) => ensure(o).resolve(ref2),
@@ -64005,8 +64197,9 @@ function createHookWorkerCore(port, opts = {}) {
         });
       }
     };
+    return { tokens: tokens3, swap };
   }
-  function buildHost(runId, msg3) {
+  function buildHost(runId, msg3, owner3) {
     const run3 = () => runs2.get(runId);
     const host = {
       version: "1",
@@ -64020,7 +64213,11 @@ function createHookWorkerCore(port, opts = {}) {
       color: apis.color,
       geom: apis.geom
     };
-    if (msg3.tokenDoc != null) host.tokens = makeTokens(msg3.tokenDoc, msg3.tokenExcluded);
+    if (msg3.tokenDoc != null) {
+      const made = makeTokens(msg3.tokenDoc, msg3.tokenExcluded);
+      host.tokens = made.tokens;
+      owner3.setTokens = made.swap;
+    }
     for (const [ns2, methods] of Object.entries(msg3.hostShape)) {
       if (COLOCATED_NS.has(ns2) && ns2 !== "raster") continue;
       const nsObj = host[ns2] ?? {};
@@ -64079,7 +64276,7 @@ function createHookWorkerCore(port, opts = {}) {
       let inRealmOnlyDeclared = [];
       let compileError;
       try {
-        run3.host = buildHost(msg3.runId, msg3);
+        run3.host = buildHost(msg3.runId, msg3, run3);
         const compiled3 = compile2(run3.host, msg3.hooksSource);
         run3.mod = compiled3.mod;
         inRealmOnlyDeclared = compiled3.inRealmOnlyDeclared;
@@ -64119,6 +64316,10 @@ function createHookWorkerCore(port, opts = {}) {
         if (msg3.ok) waiter.resolve(msg3.value);
         else waiter.reject(new Error(msg3.error ?? "host call failed"));
       }
+      return;
+    }
+    if (msg3.t === "tokens") {
+      if (msg3.tokenDoc != null) runs2.get(msg3.runId)?.setTokens?.(msg3.tokenDoc, msg3.tokenExcluded);
       return;
     }
     if (msg3.t === "dispose") {
@@ -143292,6 +143493,7 @@ __export(src_exports, {
   deriveSegmentsFromWords: () => deriveSegmentsFromWords,
   describeColor: () => describeColor,
   describeHiddenText: () => describeHiddenText,
+  describeIgnoredTokenChoice: () => describeIgnoredTokenChoice,
   deserializeCurve: () => deserializeCurve,
   designBrief: () => designBrief,
   designCornerRadius: () => designCornerRadius,
@@ -143351,6 +143553,7 @@ __export(src_exports, {
   edgeWaypoints: () => edgeWaypoints,
   editDistance: () => editDistance,
   effectiveAction: () => effectiveAction,
+  effectiveAxisKinds: () => effectiveAxisKinds,
   effectiveReplacement: () => effectiveReplacement,
   effectiveSlideOrder: () => effectiveSlideOrder,
   embedC2pa: () => embedC2pa,
@@ -143532,6 +143735,8 @@ __export(src_exports, {
   iccRoundTripDecides: () => iccRoundTripDecides,
   iccRoundTripDeltaE: () => iccRoundTripDeltaE,
   iconThemeSurfaces: () => iconThemeSurfaces,
+  ignoredTokenAxes: () => ignoredTokenAxes,
+  ignoresTokenAxes: () => ignoresTokenAxes,
   imageColorCloud: () => imageColorCloud,
   imageDimensions: () => imageDimensions,
   imageToPenpotDoc: () => imageToPenpotDoc,
@@ -143903,6 +144108,7 @@ __export(src_exports, {
   pickPresentInteractStop: () => pickPresentInteractStop,
   pickSurfaceVariant: () => pickSurfaceVariant,
   pictureGrid: () => pictureGrid,
+  pinIgnoredTokenAxes: () => pinIgnoredTokenAxes,
   pinnedFontAliases: () => pinnedFontAliases,
   placeTextStory: () => placeTextStory,
   plainOfDesignText: () => plainOfDesignText,
@@ -144552,6 +144758,7 @@ var init_src2 = __esm({
     init_colourway();
     init_colourway();
     init_colourway();
+    init_tool_token_axes();
     init_brand_derive();
     init_brand_derive();
     init_gamut_solid();
@@ -173393,6 +173600,18 @@ function rondoRecordOf(bytes2) {
     return null;
   }
 }
+var selectionFollowers = /* @__PURE__ */ new WeakMap();
+function sameSelection(a, b) {
+  const ka = Object.keys(a ?? {}), kb = Object.keys(b ?? {});
+  return ka.length === kb.length && ka.every((key2) => Object.hasOwn(b ?? {}, key2) && b[key2] === a[key2]);
+}
+function followRuntimeSelection(host, runtimeSelection, linkSelection) {
+  if (!runtimeSelection || sameSelection(runtimeSelection, linkSelection)) return false;
+  const follow2 = selectionFollowers.get(host);
+  if (!follow2) return false;
+  follow2(runtimeSelection);
+  return true;
+}
 async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend } = {}) {
   const w = dom.window;
   const assetIndex2 = readAssetIndex();
@@ -174377,6 +174596,9 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
       };
     }
   };
+  selectionFollowers.set(host, (next2) => {
+    tokenSelection = structuredClone(next2);
+  });
   return host;
 }
 var BRAND_VAR_SLOTS = ["primary", "on-primary", "secondary", "surface", "text", "muted", "edge"];
@@ -175021,10 +175243,29 @@ async function mountAndDraw(dom, host, toolId, values, emoji, tokenSelection) {
   const runtime = await createRuntime(tool, host, values, tokenSelection ? { tokenSelection } : void 0);
   const canvas = dom.window.document.getElementById("canvas");
   if (!canvas) throw new RenderError("render canvas missing");
-  const warnings2 = await applyEmojiRequest(runtime, host, emoji);
+  followRuntimeSelection(host, runtime.tokenSelection, tokenSelection);
+  const ignoredThemes = ignoredThemeNotes(runtime.ignoredTokenChoices, tool.manifest.name);
+  const warnings2 = [...ignoredThemes, ...await applyEmojiRequest(runtime, host, emoji)];
   canvas.innerHTML = runtime.getHydrated();
   await runtime.applyEmojiToDom(canvas);
   return { runtime, canvas, warnings: warnings2 };
+}
+function ignoredThemeNotes(choices2, toolName) {
+  return (choices2 ?? []).map((choice3) => describeIgnoredTokenChoice(choice3, toolName));
+}
+function themeChoiceNotes(tool, document2, tokenSelection) {
+  if (!tokenSelection || !Object.keys(tokenSelection).length || !ignoresTokenAxes(tool.tokenAxes) || !document2) return [];
+  const resolved2 = resolveTokenSelection(document2, { selection: tokenSelection });
+  return ignoredThemeNotes(pinIgnoredTokenAxes(tokenSelection, resolved2, tool.tokenAxes).ignored, tool.name);
+}
+async function browserTierThemeNotes(toolId, profile2, tokenSelection) {
+  if (!tokenSelection || !Object.keys(tokenSelection).length) return [];
+  const tool = await loadToolCached(toolId);
+  if (!ignoresTokenAxes(tool.manifest.tokenAxes)) return [];
+  return withHost(profile2, async (_dom, host) => {
+    const document2 = (await host.tokens?.snapshot?.())?.document;
+    return themeChoiceNotes(tool.manifest, document2, tokenSelection);
+  }, { tokenSelection });
 }
 async function emojiCensus(toolId, values, fmt4, profile2, emoji, tokenSelection) {
   return withHost(profile2, async (dom, host) => {
@@ -175456,6 +175697,12 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
       throw new RenderError(`Format "${fmt4}" needs the browser render tier, which is not available for this request.`);
     }
     out = { ...await renderTierB(toolId, q, exportFmt, merged), tier: "B" };
+  }
+  if (out.tier.startsWith("B")) {
+    try {
+      warnings2.push(...await browserTierThemeNotes(toolId, profile2, st.tokenSelection));
+    } catch {
+    }
   }
   let bytes2 = out.bytes;
   if (out.tier.startsWith("B") && !evaluation && carriesEmojiParams(q)) {

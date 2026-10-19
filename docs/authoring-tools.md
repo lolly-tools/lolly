@@ -80,3 +80,17 @@ values still load, and local saved sessions retain the values.
 
 A tool relying on this declaration must require engine 1.261.0 or later. The
 property does not encrypt an input, alter an export or sanitize its content.
+
+## Colours that are the content
+
+A design system can offer several colourways, and a person picks one per piece in the tool sidebar's **Design system** section. Every colour a tool links to the design system follows that choice, which is what most tools want. A tool whose colours are its content, such as a tonal ramp or a palette pinned to a dataset, can opt out in its manifest:
+
+```json
+{ "tokenAxes": { "colourway": "ignore" } }
+```
+
+A switch redraws the mounted tool in place, with no reload. Linked colours and `var(--brand-*)` variables follow by themselves; a hook that keeps colours it read from `host.tokens` reads them again when `onInput` runs with `id: '__tokens'`, as [When the theme or colourway changes](/info/tool-hooks.html#when-the-theme-or-colourway-changes) describes.
+
+The sidebar offers a group only when switching it changes what the tool draws, so a tool that never reads a colour a group changes needs no field: the group simply does not appear. Lolly works this out from the tool's own files and its current values. The colours a tool reads are the canvas variables its template, styles, hooks and portable presentation name (`var(--brand-primary)` and the rest), the token references its inputs link, and the references its hooks pass to `host.tokens.resolve`. A reference a hook finishes at run time, such as `'{asset.logo.' + variant + '}'`, counts every token under its fixed start. A hook that reads the colour list or the token set, a reference built from no fixed start, module hooks and a tool that composes another tool all count as reading every token, so every group that changes a token stays. A treated picture counts as changing with every choice, because a photo look can keep a variant per theme. Declare `tokenAxes` when the tool does read the colours a group changes and must still keep its own.
+
+The keys are the kinds of theme group described in [What a theme group means](/info/token-workflows.html#what-a-theme-group-means): `mode`, `colourway`, `expression`, `medium`, `contrast`, `density`, `campaign` and `brand`. The only value is `"ignore"`. For each kind it ignores, the tool renders in that group's canonical option whatever a link, a saved session or the design system's stored choice asks for, and the sidebar does not offer that group in this tool. The pin covers every colour the render reads, so a print export uses the CMYK or spot build the design system authored for the canonical option. `"mode": "ignore"` keeps a print piece in the canonical look; in a design system that declares no `mode` group, the light and dark themes with no group count as the mode. When a link or the CLI asks for an option the tool ignores, `lolly run` prints a `THEME_CHOICE_IGNORED` warning and an MCP render adds the same sentence to its warnings, so the request is never dropped without a word. Engines older than the field refuse a manifest that declares `tokenAxes`, so a tool that uses the field raises its `engineVersion` floor to the release that added the field, as listed in `engine/CHANGELOG.md`.

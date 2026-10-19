@@ -705,6 +705,10 @@ export type { ColourwayRole, ColourwayLead, RotationContext, ColourwayPick, Colo
 // Editing an existing set of colourways (plans/319 A2, the Brand Studio's data layer).
 export { renameColourway, reorderColourways, setCanonicalColourway, removeColourway, duplicateColourway, colourwaysEditable, colourwayRolesOf, MAX_COLOURWAY_NAME } from './colourway.ts';
 export type { DuplicateColourwayOptions } from './colourway.ts';
+// plans/319 A4: a tool's manifest `tokenAxes` opt-out, which pins an ignored kind of
+// theme group to its canonical option, and the sentence a shell reports it with.
+export { ignoresTokenAxes, effectiveAxisKinds, ignoredTokenAxes, pinIgnoredTokenAxes, describeIgnoredTokenChoice } from './tool-token-axes.ts';
+export type { IgnoredTokenAxis, IgnoredTokenChoice, PinnedTokenSelection, ToolTokenAxes } from './tool-token-axes.ts';
 export {
   parseOklch, formatOklch, hexToOklch, oklchToHex, mixOklch, contrastRatio, deriveBrandTokens,
   RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,
