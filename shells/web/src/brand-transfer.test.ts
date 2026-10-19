@@ -327,6 +327,14 @@ const docAt = async (assets: { _getBlob(id: string): Promise<Blob | null> }, id:
   return JSON.parse(await blob!.text());
 };
 
+test('the active system names its own pack, not the profile or a placeholder (plan 320 S5)', async () => {
+  const { host, registry } = await registryRig();
+  const rec = await createDesignSystem(host as unknown as Parameters<typeof createDesignSystem>[0], { label: 'Crumb & Co' });
+  await registry.setActive(rec.id);
+  const { filename } = await exportBrandPack({ host, storage: memoryStorage({}) });
+  assert.match(filename, /^LollyBrand-CrumbCo-\d{4}-\d{2}-\d{2}\.lolly$/);
+});
+
 test('a targeted import re-keys the pack into the named system, references and all', async () => {
   const bytes = await sourcePack();
   const r = await registryRig();

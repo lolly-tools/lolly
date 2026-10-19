@@ -161,7 +161,9 @@ test('gate decision truth table', async () => {
     { mode: 'open', session: 'guest', gate: false },
     { mode: 'open', session: 'none', gate: false },
     { mode: 'gated', session: 'member', gate: false },
-    { mode: 'gated', session: 'guest', gate: true },
+    // Plan 320 J1: a guest who joined through a guest link's landing gets the app,
+    // which the server scopes to that link's tool.
+    { mode: 'gated', session: 'guest', gate: false },
     { mode: 'gated', session: 'none', gate: true },
     { mode: 'per-tool', session: 'member', gate: false },
     { mode: 'per-tool', session: 'none', gate: false },
@@ -181,7 +183,7 @@ test('a sign-in gate stops catalog reads and is remembered; no gate leaves the c
   const { catalogRefused, resetCatalogAccessForTests } = await import('../lib/catalog-access.ts');
   const cases: Array<{ mode: 'open' | 'gated' | 'per-tool'; session: SessionKind; gate: boolean }> = [
     { mode: 'gated', session: 'none', gate: true },
-    { mode: 'gated', session: 'guest', gate: true },
+    { mode: 'gated', session: 'guest', gate: false },
     { mode: 'gated', session: 'member', gate: false },
     { mode: 'open', session: 'none', gate: false },
     { mode: 'per-tool', session: 'none', gate: false },

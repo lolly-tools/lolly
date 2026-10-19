@@ -247,6 +247,7 @@ test('the profile badge and menu count reflect queue changes and standalone cont
   assert.equal(trigger().querySelector('.notification-badge')?.textContent, '1');
   trigger().click(); assert.equal(menu()?.querySelector('[data-notification-count]')?.textContent, '1');
   dismissNotification('recovery'); assert.equal(menu()?.querySelector('[data-notification-count]')?.textContent, '0');
+  assert.equal(menu()?.querySelector<HTMLElement>('[data-notification-count]')?.hidden, true, 'no count at nothing to show');
   assert.equal(trigger().querySelector<HTMLElement>('.notification-badge')?.hidden, true);
   const standalone = createProfileControl(host); assert.ok(standalone.querySelector('.notification-badge'));
   detach(); clear(); _resetNotificationsForTests();
@@ -254,7 +255,7 @@ test('the profile badge and menu count reflect queue changes and standalone cont
 
 function workspaceAccount({ signedIn = true, signOutWorks = true }: { signedIn?: boolean; signOutWorks?: boolean } = {}) {
   const listeners = new Set<(count: number) => void>();
-  const calls = { inbox: 0, signout: 0, everywhere: 0, after: 0, routes: [] as string[] };
+  const calls = { inbox: 0, signout: 0, after: 0, routes: [] as string[] };
   const deps: AccountChipDeps = {
     account: () => ({ workspace: 'Acme', member: signedIn ? { name: 'Ana Ruiz', email: 'ana@acme.test' } : null, inbox: {
       count: () => 2, onChange(fn) { listeners.add(fn); return () => { listeners.delete(fn); }; }, open() { calls.inbox++; },
@@ -262,14 +263,13 @@ function workspaceAccount({ signedIn = true, signOutWorks = true }: { signedIn?:
     consoleUrl: () => signedIn ? 'https://work.test/admin' : null,
     signInUrl: () => '/login?returnTo=%2F%23%2Fp',
     signOut: async () => { calls.signout++; return signOutWorks; },
-    signOutEverywhere: async () => { calls.everywhere++; return 'ok'; },
     afterSignOut: () => { calls.after++; }, go: route => { calls.routes.push(route); },
     host: () => null, workspaceOrigin: 'https://work.test', principal: signedIn ? 'u_ana' : undefined,
   };
   return { deps, calls, listeners, unread(n: number) { for (const listener of listeners) listener(n); } };
 }
 
-test('one existing avatar menu carries Work actions, one Settings link and live inbox counts', async () => {
+test('one existing avatar menu carries Work actions, one Settings link and one list of notifications', async () => {
   _clearAccountSlotForTests();
   const account = workspaceAccount();
   const offAccount = registerAccountChip(account.deps);
@@ -284,11 +284,13 @@ test('one existing avatar menu carries Work actions, one Settings link and live 
     assert.equal(link.target, '_blank');
     assert.equal(link.rel, 'noopener');
     assert.equal(menu()!.querySelector('.org-account-menu-head')!.textContent, 'Acme');
-    assert.equal(menu()!.querySelector('[data-inbox-count]')!.textContent, '2');
-    account.unread(3);
-    assert.equal(menu()!.querySelector('[data-inbox-count]')!.textContent, '3');
-    menu()!.querySelector<HTMLElement>('[data-account-act="inbox"]')!.click();
-    assert.equal(account.calls.inbox, 1);
+    // Plan 320 J11: the workspace's messages are part of Notifications, the one list,
+    // so the menu has no Inbox row of its own; Sign out everywhere lives in Settings.
+    assert.ok(menu()!.querySelector('[data-act="notifications"]'));
+    assert.equal(menu()!.querySelector('[data-account-act="inbox"]'), null, 'one list, not two');
+    assert.equal(menu()!.querySelector('[data-account-act="everywhere"]'), null, 'not beside Sign out');
+    assert.ok(menu()!.querySelector('[data-account-act="signout"]'));
+    trigger().click();
     assert.equal(menu(), null);
     assert.equal(account.listeners.size, 0, 'closing releases the inbox listener');
     trigger().click();

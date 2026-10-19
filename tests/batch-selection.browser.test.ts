@@ -27,7 +27,8 @@ test('batch selection scopes edits and exports, survives paging, and recovers re
     await page.locator('[data-edit-selected]').selectOption('url');
     await page.locator('[data-bulk-input]').fill('https://example.org/selected');
     await page.locator('[data-bulk-apply]').click();
-    assert.equal(await page.locator('[data-cell][data-col="url"]').nth(0).inputValue(), 'https://lolly.tools');
+    // QR Code starts with an empty link (2.7.0), so the unselected row keeps that.
+    assert.equal(await page.locator('[data-cell][data-col="url"]').nth(0).inputValue(), '');
     assert.equal(await page.locator('[data-cell][data-col="url"]').nth(1).inputValue(), 'https://example.org/selected');
     await page.locator('[data-remove-rows]').click();
     assert.equal(await page.locator('tbody tr').count(), 1);
@@ -145,6 +146,9 @@ test('batch reuses the full format menu and copies and pastes rectangular cell r
     await page.screenshot({ path: '/tmp/lolly-batch-formats.png' });
     await page.locator('[data-fmt="bmp"]').click();
     assert.equal(await page.locator('#pro-format').inputValue(), 'bmp');
+    // QR Code starts with an empty link and refuses to export a code that leads
+    // nowhere (2.7.0), so the default row gets a link before it renders.
+    await page.locator('[data-cell][data-col="url"]').first().fill('https://example.org/bmp');
     await page.locator('#pro-render').click();
     const [download] = await Promise.all([page.waitForEvent('download', { timeout: 60_000 }), page.locator('.modal [data-act="ok"]').click()]);
     const zip = unzipSync(new Uint8Array(await readFile((await download.path())!)));

@@ -41,7 +41,7 @@ optionally watermark → optionally embed provenance / sign → cache.
 ```
 POST /api/v1/links      { kind, target, ttlHours?, password?, projectId? }
 GET  /l/:id?s=<sig>
-POST /l/:id?s=<sig>     { password }
+POST /l/:id?s=<sig>     { password } or, on a guest link's landing, { name, password? }
 POST /api/v1/links/:id/revoke
 GET  /api/v1/links[?all=1]
 ```
@@ -60,7 +60,28 @@ is ignored). Optional passwords are scrypt-hashed; see [Password links](#passwor
 
 Failure modes are distinct and honest: `403 BAD_SIGNATURE`, `410 LINK_EXPIRED`,
 `410 LINK_REVOKED`, `401 PASSWORD_REQUIRED`, `401 PASSWORD_INCORRECT` and
-`429 PASSWORD_LOCKED`.
+`429 PASSWORD_LOCKED`. An API client gets them as JSON. A browser (a request that accepts
+`text/html`) gets a short page instead that says what happened in words: the link does not
+work, has ended, was turned off by the person who shared it, or has had too many wrong
+passwords.
+
+### Guest links in a browser
+
+A browser that opens a `guest-edit` link gets a landing page, not JSON. It says who invited
+them and to which tool, when the link ends (in UTC, since the page runs no script), and asks
+for their name, and for the password when the link has one. Opening the page admits nobody,
+so a chat preview or a mail scanner that fetches the link is not counted as a guest.
+
+**Join as a guest** posts the form to the link's own address. The server then checks the
+password, sets the `lw_guest` cookie, records one `guest.admit` audit entry and answers `303`
+into the app at the link's tool, with the inputs the link was made with
+(`/#/tool/<toolId>?…`, under `instance.appUrl` on a split deployment). The app lets a guest
+past its sign-in screen. A wrong password shows the landing again with the reason and keeps
+the name typed. When guest links are switched off (`policy.guestLinks.enabled: false`), or
+the person who made the link can no longer share it, the page says so and admits nobody.
+
+An API client that sends no `Accept: text/html` keeps the older answer: `GET /l/:id` with an
+optional `&name=` sets the cookie and returns `{ kind, toolId, sessionRef, guest }` as JSON.
 
 ### Password links
 

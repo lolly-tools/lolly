@@ -13,9 +13,14 @@ export interface ShellNotification {
   onDismiss?(): void;
 }
 export interface NotificationEntry extends ShellNotification { dismissed: boolean; until: number; }
+/** A way from the queue to a fuller list behind the queue, such as the workspace inbox with
+ *  its approvals and threads. The queue stays the one list a person opens (plan 320
+ *  J11); a link only says where more detail lives. */
+export interface NotificationLink { label: string; run(): void }
 type Preference = { dismissed: boolean; until: number };
 const entries = new Map<string, ShellNotification>();
 const sources = new Map<string, () => readonly ShellNotification[]>();
+const links = new Map<string, NotificationLink>();
 const preferences = new Map<string, Preference>();
 const listeners = new Set<() => void>();
 const touched = new Set<string>();
@@ -62,6 +67,11 @@ export function registerNotificationSource(id: string, read: () => readonly Shel
   sources.set(id, read); changed();
   return () => { if (sources.get(id) === read) { sources.delete(id); changed(); } };
 }
+export function registerNotificationLink(id: string, link: NotificationLink): () => void {
+  links.set(id, link); changed();
+  return () => { if (links.get(id) === link) { links.delete(id); changed(); } };
+}
+export const notificationLinks = (): NotificationLink[] => [...links.values()];
 export function publishNotification(entry: ShellNotification): () => void {
   entries.set(entry.id, entry);
   while (entries.size > 200) entries.delete(entries.keys().next().value!);
@@ -101,6 +111,6 @@ function changed(): void {
 }
 export function _resetNotificationsForTests(): void {
   if (timer) clearTimeout(timer);
-  timer = undefined; entries.clear(); sources.clear(); preferences.clear(); touched.clear(); listeners.clear();
+  timer = undefined; entries.clear(); sources.clear(); links.clear(); preferences.clear(); touched.clear(); listeners.clear();
   storage = undefined; loading = undefined; writes = Promise.resolve();
 }

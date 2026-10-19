@@ -582,10 +582,10 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   void bedit.logos.paintLogos();
   bedit.cleanups.push(() => bedit.logoUrls.forEach(u => { URL.revokeObjectURL(u); }));
 
-  // The logo-colour pathway: an SVG mark carries the design system's real
-  // colours, so offer (or on a still-unbranded install, simply apply) its first
-  // colour. The note lives in the Add hero, where the colour lands.
-  const suggestEl = bedit.ramps.$('[data-be-suggest]') as HTMLElement | null; bedit.suggestEl = suggestEl;
+  // The logo-colour pathway (plan 320 S1): a placed mark carries the design
+  // system's real colours, so its card asks which one is the main colour (or,
+  // on a still-unbranded install, applies the likeliest answer and says so).
+  bedit.logoOffer = null;
   // The candidate tray (plan 97 section 8) - the HOST's, whenever it has one, because
   // two live trays over one storage key erase each other (see BrandEditorOptions
   // .tray). Only a host that mounts no tray of its own falls through to the

@@ -524,8 +524,8 @@ are never emailed today; see `policy.comments` under [Canvas comments](#canvas-c
 | `POST /api/v1/links` | `link.create` (`link.create-guest` for `guest-edit`) |
 | `GET /api/v1/links[?all=1]` | member (own links; `all=1` needs the admin view) |
 | `POST /api/v1/links/:id/revoke` | own link, or `link.revoke` |
-| `GET /l/:id?s=…[&name=…]` | public (the signature *is* the authorization); a password link also needs its cookie |
-| `POST /l/:id?s=…[&name=…]` | public: checks a password link's password and sets its cookie |
+| `GET /l/:id?s=…[&name=…]` | public (the signature *is* the authorization); a password link also needs its cookie. A browser opening a guest link gets its landing page, which admits nobody |
+| `POST /l/:id?s=…[&name=…]` | public: checks a password link's password and sets its cookie; the guest landing's form joins here (`name`, `password`) and is answered with `303` into the app |
 | `GET /l/:id?s=…&zip=1`, `…&asset=<id>[&dl=1]` | public - a collection link's zip-all, and one member of that set (an id it does not name is `404 NOT_IN_COLLECTION`) |
 | `GET /render/<toolId>.<format>` | `export.server`, or a guest scoped to that tool |
 
