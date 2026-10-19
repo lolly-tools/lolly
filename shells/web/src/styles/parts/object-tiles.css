@@ -35,7 +35,7 @@
 .cat-tile-fig,
 .tile-figure,
 .tpl-cover {
-  background: repeating-conic-gradient(hsl(var(--muted) / .5) 0% 25%, transparent 0% 50%) 50% / 16px 16px;
+  background: repeating-conic-gradient(hsl(var(--muted) / .35) 0% 25%, transparent 0% 50%) 50% / 16px 16px;
 }
 
 /* Tool covers sit quietly on the card; transparency needs no checkerboard. */

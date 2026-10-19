@@ -629,8 +629,11 @@
 .cat-edit-tool {
   display: flex; align-items: center; flex: none; gap: 0;
   width: var(--cat-tool-size); min-height: var(--cat-tool-size); padding: 0;
-  border: 0; border-radius: calc(var(--radius) * .7); background: hsl(var(--card)); box-shadow: var(--shadow-2);
+  border: 0; border-radius: calc(var(--radius) * .7);
   color: inherit; font: inherit; font-size: var(--fs-sm); text-align: start; cursor: pointer;
+  box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control);
+      backdrop-filter: blur(3px);
+          background: hsl(var(--card) / .25);
 }
 .cat-edit-tool:is(:hover, :focus-visible, .is-expanded) { width: 100%; background: hsl(var(--muted)); }
 .cat-edit-tool:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: -2px; }
