@@ -40,6 +40,8 @@
  * The rebuild draws in the design version and the theme choice that made the artifact:
  * the session's own saved choice first, then what the artifact's design-system record
  * names. The design system itself is this machine's; the CLI does not switch systems.
+ * An SVG that carries no record was exported with the record off, so its rebuild
+ * leaves the record out as well.
  */
 
 import { readFile, mkdtemp, rm } from 'node:fs/promises';
@@ -164,6 +166,11 @@ export async function rebuildSession(artifactPath: string, lollyPath: string): P
   // session does not say, so a file drawn in a colourway is rebuilt in that colourway.
   const recorded = await artifactDesignRecord(artifact);
   Object.assign(params, designParams(recorded, params));
+  // An SVG keeps the record in its own metadata whenever the export wrote one, so an
+  // SVG without one was exported with the record off (or with no design system). The
+  // rebuild leaves the record out too, or the same inputs would differ by the record
+  // alone. The other rebuildable formats hold no record, so they keep the default.
+  if (!recorded && format === 'svg') params['no-madewith'] = '1';
 
   const dir = await mkdtemp(join(tmpdir(), 'lolly-rebuild-'));
   let rebuilt: Uint8Array;
