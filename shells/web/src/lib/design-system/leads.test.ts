@@ -93,6 +93,21 @@ test('liftLeads names the canonical lead after its colour, and nothing resolves 
   assert.deepEqual(ok(liftLeads(named)), named, 'a lifted system comes back unchanged');
 });
 
+test('the canonical lead cannot be named after a look, through the lift or through a first add', () => {
+  // A theme request matches by name, so a canonical lead called "light" would
+  // answer every light request: every other lead would draw its light colours.
+  for (const name of ['light', 'Dark', 'LIGHT']) {
+    const lifted = liftLeads(single(), { name });
+    assert.equal(lifted.ok, false, `lift as ${name}`);
+    assert.match(lifted.ok ? '' : lifted.reasons.join(' '), new RegExp(`already has a theme called ${name}`));
+    const added = addLead(single(), { colour: '#e05a2b', name: 'Persimmon', canonical: { name } });
+    assert.equal(added.ok, false, `first add with the canonical lead as ${name}`);
+  }
+  assert.equal(liftLeads(single(), { name: 'x'.repeat(81) }).ok, false, 'the length limit applies too');
+  // Without a name, the lift picks one no theme uses, so a design system still lifts.
+  assert.ok(liftLeads(single()).ok);
+});
+
 test('addLead derives each mode through deriveColourwaySlots at the system\'s own ramp size', () => {
   const doc = threeLeads();
   const leads = listLeads(doc);
@@ -308,6 +323,43 @@ test('carryLeads: the colourway sets keep their order, and a stored colourway ch
     assert.equal(createTokenSet(carried.doc, { theme: mode }).resolve('color.semantic.primary'), createTokenSet(doc, { theme: mode }).resolve('color.semantic.primary'),
       `an artefact that chose no colourway still draws Persimmon in ${mode}`);
   }
+});
+
+test('carryLeads keeps a canonical lead whose entry has a name and no id', () => {
+  // The resolver uses such an entry's name ("Pine") as its id, which is not an id
+  // a lift accepts. The studio can edit the system, so Rebuild must agree.
+  const doc = threeLeads();
+  const entry = (doc.$themes as Rec[]).find(t => t.id === 'pine')!;
+  delete entry.id;
+  assert.equal(colourwayAxis(doc)!.canonical, 'Pine');
+  assert.deepEqual(leadsEditable(doc), { ok: true });
+  const fresh = deriveBrandTokens({ primary: '#7a1fa2', name: 'Rebuilt' }) as Rec;
+  const carried = carryLeads(doc, fresh);
+  assert.ok(carried.ok, carried.ok ? '' : carried.reasons.join(' '));
+  if (!carried.ok) return;
+  assert.deepEqual(carried.canonical, { id: 'Pine', name: 'Pine' });
+  const kept = (carried.doc.$themes as Rec[]).find(t => t.group === 'colourway' && t.name === 'Pine')!;
+  assert.equal(kept.id, undefined, 'the entry is the old one, still without an id, so stored choices of "Pine" resolve');
+  assert.deepEqual(kept.selectedTokenSets, { 'colourway/pine': 'enabled' }, 'the set keeps its name');
+  assert.deepEqual(listLeads(carried.doc).map(l => [l.id, l.canonical]), [['Pine', true], ['persimmon', false], ['waterhole', false]]);
+  for (const mode of ['light', 'dark']) {
+    assert.equal(resolveIn(carried.doc, 'Pine', mode, 'color.semantic.primary'), createTokenSet(fresh, { theme: mode }).resolve('color.semantic.primary'), `the canonical lead follows the rebuild in ${mode}`);
+    assert.equal(resolveIn(carried.doc, 'persimmon', mode, 'color.semantic.primary'), resolveIn(doc, 'persimmon', mode, 'color.semantic.primary'), `persimmon keeps its colour in ${mode}`);
+  }
+
+  // A canonical set with a name of its own gets a set named after the lead.
+  const renamed = threeLeads();
+  const pine = (renamed.$themes as Rec[]).find(t => t.id === 'pine')!;
+  delete pine.id;
+  renamed['brand pine'] = renamed['colourway/pine'];
+  delete renamed['colourway/pine'];
+  pine.selectedTokenSets = { 'brand pine': 'enabled' };
+  ((renamed.$metadata as Rec).tokenSetOrder as string[]).splice(((renamed.$metadata as Rec).tokenSetOrder as string[]).indexOf('colourway/pine'), 1, 'brand pine');
+  assert.deepEqual(leadsEditable(renamed), { ok: true });
+  const again = carryLeads(renamed, deriveBrandTokens({ primary: '#7a1fa2', name: 'Rebuilt' }));
+  assert.ok(again.ok, again.ok ? '' : again.reasons.join(' '));
+  if (!again.ok) return;
+  assert.deepEqual((again.doc.$themes as Rec[]).find(t => t.name === 'Pine')!.selectedTokenSets, { 'colourway/pine': 'enabled' });
 });
 
 test('carryLeads refuses a design system whose colourways Lolly cannot edit', () => {

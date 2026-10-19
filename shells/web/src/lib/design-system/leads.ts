@@ -28,8 +28,8 @@
  * and checks, before and after, that nothing an existing choice draws has moved.
  */
 import {
-  COLOURWAY_GROUP, COLOURWAY_ROLES, addColourway, canonicalFirst, colorToHex, colourwayAxis, colourwayPath,
-  colourwayRolesOf, colourwaysEditable, createTokenSet, deriveColourwaySlots, duplicateColourway,
+  COLOURWAY_GROUP, COLOURWAY_ID, COLOURWAY_ROLES, addColourway, canonicalFirst, colorToHex, colourwayAxis, colourwayPath,
+  colourwayRolesOf, colourwaySetName, colourwaysEditable, createTokenSet, deriveColourwaySlots, duplicateColourway,
   isAlias, liftToColourways, modeAxis, readTokenAxes, removeColourway, renameColourway,
   reorderColourways, setCanonicalColourway, TOKEN_EXT,
 } from '@lolly/engine';
@@ -260,10 +260,13 @@ export function uniqueLeadName(doc: unknown, name: string): string {
   for (let i = 2; ; i++) if (!taken.has(`${base} ${i}`.toLowerCase())) return `${base} ${i}`;
 }
 
+/** A display name as an id: lowercase letters, digits and hyphens. */
+const leadSlug = (name: string): string => name.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'lead';
+
 /** A permanent id from a display name: lowercase letters, digits and hyphens, unused by any theme. */
 export function uniqueLeadId(doc: unknown, name: string): string {
-  const slug = name.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || 'lead';
+  const slug = leadSlug(name);
   const taken = takenNames(doc);
   if (!taken.has(slug)) return slug;
   for (let i = 2; ; i++) if (!taken.has(`${slug}-${i}`)) return `${slug}-${i}`;
@@ -415,10 +418,16 @@ export function carryLeads(from: unknown, to: unknown): LeadCarry {
   }
   const canonical = axis.options.find(o => o.id === axis.canonical)!;
   const roles = colourwayRolesOf(from);
-  const lifted = liftToColourways(to, { id: canonical.id, name: canonical.name, surface: roles.includes('surface') });
+  // The lift only decides which set holds the canonical lead's new colours: its
+  // `$themes` entry is replaced below by the old one, which keeps the id, the
+  // name and every annotation. So the lift takes no name, and an id it can use
+  // even when the old entry's own is not one (a name-only entry "Pine" has the
+  // id "Pine", which no lift accepts).
+  const liftId = canonicalLiftId(from, to, axis, canonical);
+  const lifted = liftToColourways(to, { id: liftId, surface: roles.includes('surface') });
   if (!lifted.ok) return lifted;
   const next = lifted.doc;
-  const liftedEntry = themeEntries(next).find(t => groupOf(t) === COLOURWAY_GROUP && optionIdOf(t) === canonical.id);
+  const liftedEntry = themeEntries(next).find(t => groupOf(t) === COLOURWAY_GROUP && optionIdOf(t) === liftId);
   const canonicalSet = liftedEntry ? enabledSets(liftedEntry)[0]! : '';
 
   // The leads' entries, in their authored order, with every annotation they carried.
@@ -501,6 +510,25 @@ export function carryLeads(from: unknown, to: unknown): LeadCarry {
     }
   }
   return { ok: true, doc: next, canonical: { id: canonical.id, name: canonical.name }, kept: kept.map(({ id, name }) => ({ id, name })), pinned };
+}
+
+/**
+ * The id Rebuild palette lifts the fresh derive under. The canonical lead's new
+ * set is called `colourway/<id>`. In order: the canonical lead's own id, the
+ * name of the set it already turns on, then an id made from its name. Each must
+ * be a usable colourway id that no theme of the fresh derive uses and whose set
+ * no kept lead already holds.
+ */
+function canonicalLiftId(from: Rec, to: Rec, axis: TokenAxis, canonical: { id: string; name: string }): string {
+  const keptSets = new Set(axis.options.filter(o => o.id !== canonical.id).map(o => leadSetOf(from, axis, o.id)));
+  const taken = takenNames(to);
+  const usable = (id: string): boolean => COLOURWAY_ID.test(id) && !taken.has(id) && !keptSets.has(colourwaySetName(id));
+  const ownSet = leadSetOf(from, axis, canonical.id) ?? '';
+  const fromSet = ownSet.startsWith(colourwaySetName('')) ? ownSet.slice(colourwaySetName('').length) : '';
+  for (const id of [canonical.id, fromSet]) if (usable(id)) return id;
+  const slug = leadSlug(canonical.name);
+  if (usable(slug)) return slug;
+  for (let i = 2; ; i++) if (usable(`${slug}-${i}`)) return `${slug}-${i}`;
 }
 
 /** The object under `key`, created when the parent has none. */
