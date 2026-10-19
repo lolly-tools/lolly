@@ -189,6 +189,9 @@ test('the marks beside the page are byte-for-byte copies of the originals', () =
   same('shells/web/public/brand/mono.svg', 'brands/lolly-demo/catalog/assets/lolly/logo/mono.svg');
   same('shells/web/public/brand/mono-reverse.svg', 'brands/lolly-demo/catalog/assets/lolly/logo/mono-reverse.svg');
   same('shells/web/public/brand/founded-by.svg', 'founded-by.svg');
+  for (const form of ['horizontal', 'horizontal-reverse', 'horizontal-on-brand']) {
+    same(`shells/web/public/brand/${form}.svg`, `brands/lolly-demo/catalog/assets/lolly/logo/${form}.svg`);
+  }
   same('shells/web/public/icon-primary.svg', 'brands/lolly-demo/catalog/assets/lolly/logo/primary.svg');
   same('shells/web/public/icon-reverse.svg', 'brands/lolly-demo/catalog/assets/lolly/logo/reverse.svg');
 });

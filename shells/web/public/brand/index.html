@@ -47,6 +47,7 @@
   --muted:#3f5a4c;
   --line:rgb(3 54 51 / .14);
   --link:#033633;
+  --wordmark:#09141a;      /* Liquorice on light */
   --accent:var(--cw-lead-l);
   --on-accent:var(--cw-on-l);
   --partner:var(--cw-partner-l);
@@ -67,14 +68,14 @@
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#09141a;--paper:#121d24;--paper-2:#1c282f;--ink:#e9eff3;--head:#ffffff;--muted:#a9b1b5;
-  --line:rgb(255 255 255 / .13);--link:#50c369;--accent:var(--cw-lead-d);--on-accent:var(--cw-on-d);--partner:var(--cw-partner-d);
+  --line:rgb(255 255 255 / .13);--link:#50c369;--wordmark:#ffffff;--accent:var(--cw-lead-d);--on-accent:var(--cw-on-d);--partner:var(--cw-partner-d);
   --mark:#50c369;--pop:#50c369;--wash:var(--cw-wash-d);--focus:var(--cw-lead-d);--yes:#7ddc97;--no:#ef9275;
   --ok-bg:#123d2c;--ok-fg:#b5f0d4;--bad-bg:#3d1416;--bad-fg:#ffc7c7;
   --drop:0 18px 40px -24px rgb(0 0 0 / .8);
   --sweep:radial-gradient(130% 95% at 50% 6%,var(--cw-tint-d) 0%,#111e1d 52%,#0b161b 100%);color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#09141a;--paper:#121d24;--paper-2:#1c282f;--ink:#e9eff3;--head:#ffffff;--muted:#a9b1b5;
-  --line:rgb(255 255 255 / .13);--link:#50c369;--accent:var(--cw-lead-d);--on-accent:var(--cw-on-d);--partner:var(--cw-partner-d);
+  --line:rgb(255 255 255 / .13);--link:#50c369;--wordmark:#ffffff;--accent:var(--cw-lead-d);--on-accent:var(--cw-on-d);--partner:var(--cw-partner-d);
   --mark:#50c369;--pop:#50c369;--wash:var(--cw-wash-d);--focus:var(--cw-lead-d);--yes:#7ddc97;--no:#ef9275;
   --ok-bg:#123d2c;--ok-fg:#b5f0d4;--bad-bg:#3d1416;--bad-fg:#ffc7c7;
   --drop:0 18px 40px -24px rgb(0 0 0 / .8);
@@ -128,7 +129,7 @@ a{color:var(--link)}
 .topbar-in{display:flex;align-items:center;gap:14px;min-height:60px}
 .homelink{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--head)}
 .homelink img{width:30px;height:30px;display:block}
-.homelink b{font:500 19px/1 var(--display)}
+.homelink .wordmark{display:block;height:21px;width:auto;fill:var(--wordmark)}
 .homelink span{font:500 11px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
 .toplinks{display:flex;gap:2px;margin-left:10px}
 .toplinks a{padding:8px 11px;border-radius:999px;text-decoration:none;color:var(--ink);font-size:14.5px}
@@ -198,6 +199,10 @@ a{color:var(--link)}
 .ver{display:grid;gap:8px;margin:0}
 .ver .plate{aspect-ratio:1;border-radius:18px;display:grid;place-items:center;box-shadow:0 0 0 1px var(--line);background:var(--pb)}
 .ver .plate img{width:56%;height:auto}
+.wordmarks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.wm{display:grid;gap:8px;margin:0}
+.wm .plate{aspect-ratio:2/1;border-radius:18px;display:grid;place-items:center;box-shadow:0 0 0 1px var(--line);background:var(--pb)}
+.wm .plate img{width:50%;height:auto}
 .donts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
 .dont{display:grid;gap:8px;margin:0}
 .dont .plate{position:relative;aspect-ratio:1;border-radius:18px;display:grid;place-items:center;background:var(--sweep);box-shadow:0 0 0 1px var(--line);overflow:hidden}
@@ -442,6 +447,7 @@ footer img{height:20px;width:auto}
   .parts{grid-template-columns:repeat(2,minmax(0,1fr))}
   .part:last-child{grid-column:1 / -1}
   .versions,.donts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .wordmarks{grid-template-columns:minmax(0,1fr)}
   .og-sw{grid-template-columns:repeat(3,minmax(0,1fr))}
   .cast{grid-template-columns:repeat(2,minmax(0,1fr))}
   .covers{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -509,7 +515,7 @@ footer img{height:20px;width:auto}
 
 <div class="topbar">
   <div class="wrap topbar-in">
-    <a class="homelink" href="/"><img src="/icon-primary.svg" alt="" width="30" height="30"><b>Lolly</b><span>Brand</span></a>
+    <a class="homelink" href="/" aria-label="Lolly home"><img src="/icon-primary.svg" alt="" width="30" height="30"><svg class="wordmark" viewBox="0 0 44.725 19.706" aria-hidden="true" focusable="false"><path d="M0 15.367h9.948v-2.921H3.323V.423H0Zm16.362.233c3.217 0 5.63-2.328 5.63-5.398 0-3.048-2.434-5.355-5.63-5.355-3.217 0-5.63 2.307-5.63 5.355s2.434 5.398 5.63 5.398m0-2.942c-1.376 0-2.328-.995-2.328-2.434s.952-2.435 2.328-2.435 2.328.974 2.328 2.413c0 1.46-.931 2.456-2.328 2.456m7.239 2.709h3.238V0h-3.238zm5.524 0h3.239V0h-3.239zm6.054 4.34h3.323l1.82-4.298L44.726 5.08h-3.492l-2.096 6.265-2.053-6.265h-3.492l3.915 9.589z"/></svg><span>Brand</span></a>
     <nav class="toplinks" aria-label="Parts of the brand">
       <a href="#mark">Mark</a><a href="#opal">Opal</a><a href="#colourways">Colourways</a><a href="#crossland">Crossland</a><a href="#clinic">Clinic</a><a href="#fauna">Fauna</a>
     </nav>
@@ -611,6 +617,11 @@ footer img{height:20px;width:auto}
       <figure class="ver"><div class="plate" style="--pb:#ffffff"><img src="/brand/mono.svg" alt="Mono mark in one ink on Sugar" width="286" height="286" loading="lazy"></div><span class="cap">Mono · one ink</span></figure>
       <figure class="ver"><div class="plate" style="--pb:#033633"><img src="/brand/mono-reverse.svg" alt="Mono reverse mark in Sugar on Spearmint" width="286" height="286" loading="lazy"></div><span class="cap">Mono reverse</span></figure>
     </div>
+    <div class="wordmarks" aria-label="The horizontal logo: the Lolly wordmark on each ground">
+      <figure class="wm"><div class="plate" style="--pb:#ffffff"><img src="/brand/horizontal.svg" alt="The Lolly wordmark in Liquorice on Sugar" width="447" height="197" loading="lazy"></div><span class="cap">Wordmark · Liquorice on light</span></figure>
+      <figure class="wm"><div class="plate" style="--pb:#09141a"><img src="/brand/horizontal-reverse.svg" alt="The Lolly wordmark in Daylight on Liquorice" width="447" height="197" loading="lazy"></div><span class="cap">Reverse · Daylight</span></figure>
+      <figure class="wm"><div class="plate" style="--pb:#033633"><img src="/brand/horizontal-on-brand.svg" alt="The Lolly wordmark in Green Apple on Spearmint, the brand ground" width="447" height="197" loading="lazy"></div><span class="cap">On brand · Green Apple</span></figure>
+    </div>
     <div class="donts">
       <figure class="dont"><div class="clear-plate"><div class="inner"><img src="/icon-primary.svg" alt="The mark with clear space around it" width="286" height="286" loading="lazy"></div></div><span class="tag yes"><svg class="ico"><use href="#i-check"/></svg>Clear space: a quarter all round</span></figure>
       <figure class="dont"><div class="plate"><span class="bad-stick"></span><img src="/icon-primary.svg" alt="Wrong: the mark on a stick" width="286" height="286" loading="lazy"></div><span class="tag no"><svg class="ico"><use href="#i-x"/></svg>No stick</span></figure>
@@ -620,6 +631,7 @@ footer img{height:20px;width:auto}
     <ul class="rules">
       <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Bunyapine is the mark's green</li>
       <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Spearmint carries the reverse and mono marks</li>
+      <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>The wordmark is Liquorice on light, Daylight reversed and Green Apple on brand</li>
       <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>Lolly's tone takes the guest's hue</li>
       <li class="rule no"><svg class="ico"><use href="#i-x"/></svg>Never a stick, a dish or a tilt under the mark</li>
       <li class="rule yes"><svg class="ico"><use href="#i-check"/></svg>The stick appears only in small line icons and when Fauna holds the lolly</li>
