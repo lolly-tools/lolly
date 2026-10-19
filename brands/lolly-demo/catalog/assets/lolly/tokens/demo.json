@@ -4,7 +4,13 @@
     "tokenSetOrder": [
       "base",
       "light",
-      "dark"
+      "dark",
+      "colourway/spearmint",
+      "colourway/morning",
+      "colourway/spring",
+      "colourway/beach",
+      "colourway/afternoon",
+      "colourway/midnight"
     ]
   },
   "$themes": [
@@ -13,6 +19,9 @@
       "selectedTokenSets": {
         "base": "enabled",
         "light": "enabled"
+      },
+      "$extensions": {
+        "com.suse.lolly": { "axis": { "kind": "mode" } }
       }
     },
     {
@@ -20,6 +29,75 @@
       "selectedTokenSets": {
         "base": "enabled",
         "dark": "enabled"
+      },
+      "$extensions": {
+        "com.suse.lolly": { "axis": { "kind": "mode" } }
+      }
+    },
+    {
+      "id": "spearmint",
+      "name": "Spearmint",
+      "group": "colourway",
+      "selectedTokenSets": {
+        "colourway/spearmint": "enabled"
+      },
+      "$extensions": {
+        "com.suse.lolly": { "axis": { "kind": "colourway", "canonical": true } }
+      }
+    },
+    {
+      "id": "morning",
+      "name": "Morning",
+      "group": "colourway",
+      "selectedTokenSets": {
+        "colourway/morning": "enabled"
+      },
+      "$extensions": {
+        "com.suse.lolly": { "axis": { "kind": "colourway" } }
+      }
+    },
+    {
+      "id": "spring",
+      "name": "Spring",
+      "group": "colourway",
+      "selectedTokenSets": {
+        "colourway/spring": "enabled"
+      },
+      "$extensions": {
+        "com.suse.lolly": { "axis": { "kind": "colourway" } }
+      }
+    },
+    {
+      "id": "beach",
+      "name": "Beach",
+      "group": "colourway",
+      "selectedTokenSets": {
+        "colourway/beach": "enabled"
+      },
+      "$extensions": {
+        "com.suse.lolly": { "axis": { "kind": "colourway" } }
+      }
+    },
+    {
+      "id": "afternoon",
+      "name": "Afternoon",
+      "group": "colourway",
+      "selectedTokenSets": {
+        "colourway/afternoon": "enabled"
+      },
+      "$extensions": {
+        "com.suse.lolly": { "axis": { "kind": "colourway" } }
+      }
+    },
+    {
+      "id": "midnight",
+      "name": "Midnight",
+      "group": "colourway",
+      "selectedTokenSets": {
+        "colourway/midnight": "enabled"
+      },
+      "$extensions": {
+        "com.suse.lolly": { "axis": { "kind": "colourway" } }
       }
     }
   ],
@@ -459,15 +537,15 @@
       "semantic": {
         "$description": "The seven semantic slots for the light look, the crystal chalice: Liquorice on Sugar with a Spearmint accent.",
         "primary": {
-          "$value": "{color.brand.spearmint}",
+          "$value": "{color.colourway.light.primary}",
           "$description": "The accent: Spearmint, 13.3:1 with a Sugar label"
         },
         "on-primary": {
-          "$value": "{color.brand.sugar}",
+          "$value": "{color.colourway.light.on-primary}",
           "$description": "Text and icons on the accent"
         },
         "secondary": {
-          "$value": "{color.brand.bunyapine}",
+          "$value": "{color.colourway.light.secondary}",
           "$description": "Supporting accent: the mark green"
         },
         "surface": {
@@ -596,15 +674,15 @@
       "semantic": {
         "$description": "The seven semantic slots for the dark look, the stealth ship: Sugar on a Liquorice hull with a Green Apple accent.",
         "primary": {
-          "$value": "{color.brand.green-apple}",
+          "$value": "{color.colourway.dark.primary}",
           "$description": "The accent: Green Apple, with a Liquorice label"
         },
         "on-primary": {
-          "$value": "{color.brand.liquorice}",
+          "$value": "{color.colourway.dark.on-primary}",
           "$description": "Text and icons on the accent"
         },
         "secondary": {
-          "$value": "{color.brand.bunyapine}",
+          "$value": "{color.colourway.dark.secondary}",
           "$description": "Supporting accent: the mark green"
         },
         "surface": {
@@ -731,6 +809,180 @@
         "unsaved": {
           "$value": "{color.brand.honey}",
           "$description": "Unsaved work: Honey."
+        }
+      }
+    }
+  },
+  "colourway/spearmint": {
+    "color": {
+      "colourway": {
+        "light": {
+          "primary": {
+            "$value": "{color.brand.spearmint}"
+          },
+          "on-primary": {
+            "$value": "{color.brand.sugar}"
+          },
+          "secondary": {
+            "$value": "{color.brand.bunyapine}"
+          }
+        },
+        "$type": "color",
+        "dark": {
+          "primary": {
+            "$value": "{color.brand.green-apple}"
+          },
+          "on-primary": {
+            "$value": "{color.brand.liquorice}"
+          },
+          "secondary": {
+            "$value": "{color.brand.bunyapine}"
+          }
+        }
+      }
+    }
+  },
+  "colourway/morning": {
+    "color": {
+      "$type": "color",
+      "colourway": {
+        "light": {
+          "primary": {
+            "$value": "{color.brand.outback}"
+          },
+          "on-primary": {
+            "$value": "{color.brand.sugar}"
+          },
+          "secondary": {
+            "$value": "{color.brand.lagoon}"
+          }
+        },
+        "dark": {
+          "primary": {
+            "$value": "{color.brand.honey}"
+          },
+          "on-primary": {
+            "$value": "{color.brand.liquorice}"
+          },
+          "secondary": {
+            "$value": "{color.brand.sky}"
+          }
+        }
+      }
+    }
+  },
+  "colourway/spring": {
+    "color": {
+      "$type": "color",
+      "colourway": {
+        "light": {
+          "primary": {
+            "$value": "{color.brand.fuchsia}"
+          },
+          "on-primary": {
+            "$value": "{color.brand.sugar}"
+          },
+          "secondary": {
+            "$value": "{color.brand.olive}"
+          }
+        },
+        "dark": {
+          "primary": {
+            "$value": "{color.brand.donut}"
+          },
+          "on-primary": {
+            "$value": "{color.brand.liquorice}"
+          },
+          "secondary": {
+            "$value": "{color.brand.green-apple}"
+          }
+        }
+      }
+    }
+  },
+  "colourway/beach": {
+    "color": {
+      "$type": "color",
+      "colourway": {
+        "light": {
+          "primary": {
+            "$value": "{color.brand.lagoon}"
+          },
+          "on-primary": {
+            "$value": "{color.brand.liquorice}"
+          },
+          "secondary": {
+            "$value": "{color.brand.bark}"
+          }
+        },
+        "dark": {
+          "primary": {
+            "$value": "{color.brand.reef}"
+          },
+          "on-primary": {
+            "$value": "{color.brand.liquorice}"
+          },
+          "secondary": {
+            "$value": "{color.brand.pancake}"
+          }
+        }
+      }
+    }
+  },
+  "colourway/afternoon": {
+    "color": {
+      "$type": "color",
+      "colourway": {
+        "light": {
+          "primary": {
+            "$value": "{color.brand.ochre}"
+          },
+          "on-primary": {
+            "$value": "{color.brand.sugar}"
+          },
+          "secondary": {
+            "$value": "{color.brand.khaki}"
+          }
+        },
+        "dark": {
+          "primary": {
+            "$value": "{color.brand.arvo}"
+          },
+          "on-primary": {
+            "$value": "{color.brand.liquorice}"
+          },
+          "secondary": {
+            "$value": "{color.brand.banksia}"
+          }
+        }
+      }
+    }
+  },
+  "colourway/midnight": {
+    "color": {
+      "$type": "color",
+      "colourway": {
+        "light": {
+          "primary": {
+            "$value": "{color.brand.liquorice}"
+          },
+          "on-primary": {
+            "$value": "{color.brand.sugar}"
+          },
+          "secondary": {
+            "$value": "{color.brand.jacaranda}"
+          }
+        },
+        "dark": {
+          "primary": {
+            "$value": "{color.brand.jacaranda}"
+          },
+          "on-primary": {
+            "$value": "{color.brand.liquorice}"
+          },
+          "secondary": {
+            "$value": "{color.brand.swell}"
+          }
         }
       }
     }

@@ -12,8 +12,9 @@
  * design system with several leads gives them to the tools, in the design
  * system's order, in the look the artefact is in.
  *
- * The fixtures are the public Lolly Start and Lolly Demo systems, plus Lolly
- * Demo given two more colourways through the engine's own `addColourway`.
+ * The fixtures are the public Lolly Start system and Lolly Demo as it shipped
+ * with one lead, plus that Lolly Demo given two more colourways through the
+ * engine's own `addColourway`.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -40,7 +41,9 @@ import type { HostV1, TokenResolveOptions, TokenSet } from '../engine/src/bridge
 type Rec = Record<string, unknown>;
 const load = (path: string): Rec => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const START = (): Rec => load('../brands/lolly-start/catalog/assets/lolly/tokens/brand.json');
-const DEMO = (): Rec => load('../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json');
+// Lolly Demo as it shipped with one lead: the shipped pack now has six
+// colourways of its own (tests/lolly-demo-colourways.test.ts checks those).
+const DEMO = (): Rec => load('./fixtures/colourway/lolly-demo-single-lead.json');
 const ONE_LEAD: Record<string, () => Rec> = {
   'Lolly Start': START,
   'Lolly Demo': DEMO,

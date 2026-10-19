@@ -1374,7 +1374,8 @@ test('read through the runtime\'s live choices, the leads follow a look switch',
   const { createTokenSet } = await import('../../../../engine/src/tokens.ts');
   const { tokenFamily } = await import('../../../../engine/src/token-context.ts');
   const { addColourway } = await import('../../../../engine/src/colourway.ts');
-  let doc = JSON.parse(readFileSync(new URL('../../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json', import.meta.url), 'utf8')) as Record<string, unknown>;
+  // Lolly Demo as it shipped with one lead, so the canonical colourway is Main.
+  let doc = JSON.parse(readFileSync(new URL('../../../../tests/fixtures/colourway/lolly-demo-single-lead.json', import.meta.url), 'utf8')) as Record<string, unknown>;
   const r = addColourway(doc, { id: 'persimmon', name: 'Persimmon', values: {
     light: { primary: '#c2410c', 'on-primary': '#ffffff', secondary: '#7c2d12' },
     dark: { primary: '#fb923c', 'on-primary': '#111111', secondary: '#fed7aa' },
