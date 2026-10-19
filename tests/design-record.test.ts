@@ -163,17 +163,20 @@ test('nothing to record: a host with no token snapshot, and every on-device util
 test('lastExportMeta follows the export that just ran, and is null when it embedded none', async () => {
   const renders: Rec[] = [];
   const runtime = await createRuntime(tool(), host(renders));
-  assert.equal(runtime.lastExportMeta, null, 'nothing before the first export');
+  // Read through a function: each read is a fresh getter call, which a narrowed
+  // property access would hide from the type checker.
+  const last = (): ExportMeta | null => runtime.lastExportMeta;
+  assert.equal(last(), null, 'nothing before the first export');
   await runtime.export(canvas(), 'png', {});
-  assert.ok(runtime.lastExportMeta?.designSystem);
+  assert.ok(last()?.designSystem);
   await runtime.export(canvas(), 'png', { embedMeta: false });
-  assert.equal(runtime.lastExportMeta, null, 'a thumbnail export leaves no record behind for a shell to stamp');
+  assert.equal(last(), null, 'a thumbnail export leaves no record behind for a shell to stamp');
   const own = { software: 'Lolly', source: 'x', tool: 'T', author: '', contact: '', description: 'd' };
   await runtime.export(canvas(), 'png', { meta: own });
-  assert.deepEqual(runtime.lastExportMeta, own, 'a caller\'s own meta is taken as given, with no record added');
+  assert.deepEqual(last(), own, 'a caller\'s own meta is taken as given, with no record added');
   // A copy, so a shell cannot edit the runtime's record by mutating what it read.
-  (runtime.lastExportMeta as { tool: string }).tool = 'changed';
-  assert.equal(runtime.lastExportMeta!.tool, 'T');
+  (last() as { tool: string }).tool = 'changed';
+  assert.equal(last()!.tool, 'T');
 });
 
 test('the CLI labels the shipped design system the way the web shell does', async () => {
