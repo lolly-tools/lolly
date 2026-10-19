@@ -59,6 +59,24 @@ Declared hooks must be flagged in the manifest's `hooks` object (`{ "onInit": tr
 
 Engine v1.254 adds optional `ctx.view` for local presentation choices. Design uses `ctx.view.pageId` to render the viewer's chosen page while `ctx.model` retains the full document. A shell can call `runtime.setViewState()` to refresh that view through `onInput` with `id: '__view'`; patches from this refresh can update computed extras, but cannot write declared inputs. View state stays outside saved sessions, URLs, undo and collaboration. One-shot document renders leave `pageId` absent to render every page.
 
+### When the theme or colourway changes
+
+A person can switch a mounted tool to another theme or colourway from the tool sidebar's **Design system** section or Design's inspector, and the tool redraws in place. The shell calls `runtime.setTokenSelection()`. The runtime re-resolves every input linked to the design system, runs `onInput` for each one whose colour moved, then runs `onInput` once more with `id: '__tokens'`, whether or not the tool links anything. `onInit` does not run again, because that would reset the person's inputs. As with `'__view'`, the patch from the `'__tokens'` run can update computed extras but cannot write declared inputs.
+
+Colours that reach the template through a linked input or a `var(--brand-*)` variable follow the switch with no work from the hook. A hook that read colours from `host.tokens` and kept them, such as a palette, a paper colour or a set of treatment seeds, drops what it kept when `id` is `'__tokens'` and reads again:
+
+```js
+var palette = null;   // read once, because onInput runs on every keystroke
+
+async function onInput({ id, model, host }) {
+  if (id === '__tokens') palette = null;   // a theme or colourway switch: read again
+  palette = palette || await readPalette(host);
+  return draw(model, palette);
+}
+```
+
+An isolated hook reads the new choice too: before any hook runs under it, the runtime hands the Worker a fresh copy of the design system through the executor's `tokensChanged`. Return a computed colour under a name of its own, never under the id of a declared colour input. Writing that id replaces the input's design-system link with a fixed colour, and the next switch leaves the colour behind. `tests/tool-theme-switch.test.ts` mounts every community tool, switches it live and checks that the render matches a fresh mount in the new choice.
+
 ### Shared helper regions (`community/_shared/`)
 
 hooks.js must stay **self-contained** (no `import`/`require` - tools are data), so helpers that several tools need (the filter overlay block, `canRaster`, `loadImage`, `esc`, `clamp`, `safeColor`) are maintained once in `community/_shared/*.js` and copied byte-for-byte into each consumer between marker comments:
