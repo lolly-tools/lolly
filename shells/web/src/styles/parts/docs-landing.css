@@ -1360,7 +1360,7 @@ html[data-a11y-motion="reduce"] .covers--fan .cover-card{transition:none}
 .persona-title{margin-bottom:1.25rem;text-align:center; color:color-mix(in oklab,var(--green) 65%,var(--page)) }
 .persona-radio,.lane-radio{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
 .persona-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.persona-tab{display:flex;flex-direction:column;gap:4px;padding:1rem 1.15rem;border:1px solid var(--border);border-radius:12px;background:var(--page);cursor:pointer;position:relative;transition:border-color .2s ease,transform .2s ease;padding-right:4.4rem}
+.persona-tab{display:flex;flex-direction:column;gap:4px;padding:1rem 1.15rem;border-radius:12px;background:var(--page);cursor:pointer;position:relative;transition:border-color .2s ease,transform .2s ease;padding-right:4.4rem}
 .persona-mascot{position:absolute;right:.7rem;top:50%;transform:translateY(-50%);width:8.5em;height:8.5em;object-fit:contain;pointer-events:none}
 /* The platypus is a wide animal: in the 8.5em square it read as a smudge (Andy, 2026-09-03: 12em). */
 .persona-mascot[src$="platypus.webp"]{width:12em;height:12em; margin-top:-1.5em}
