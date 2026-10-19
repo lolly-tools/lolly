@@ -2145,6 +2145,12 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       fc.gradient.toggleGradEdit(ctxbar); // the anchor is unused - the panel re-anchors on the rebuilt button
     },
     arrange: fc.editorState.runArrange,
+    // The Inspector's Scale % always scales content (plan 311 amendment 9), whatever the pointer mode is, and the mode is only read synchronously inside the commit.
+    scaleSelection: (k) => {
+      const mode = fc.scaleContent;
+      fc.scaleContent = true;
+      try { return fc.selectionTransform.applyScale(k, 'c'); } finally { fc.scaleContent = mode; }
+    },
     openTimeline: fc.editorState.openTimelineOn,
     // The 3D scene door (plan 265 milestone 3). Unlike pickImage it does NOT move the
     // selection first: the round trip is a modal over the editor, and it writes to the
