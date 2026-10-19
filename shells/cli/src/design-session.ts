@@ -15,8 +15,9 @@
  */
 import { basename, dirname } from 'node:path';
 import { stat, writeFile } from 'node:fs/promises';
-import { frameFilterApplies, selectFramePage } from '@lolly/engine';
+import { designRecordWords, frameFilterApplies, selectFramePage } from '@lolly/engine';
 import { readLollyFile, type LollyFileContents } from '@lolly-tools/node-shell/lolly-file';
+import { recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
 import { exportDesignSessionThemesViaWebShell, closeWebShell, type DesignSessionExportFormat } from '@lolly-tools/node-shell/webshell-render';
 import { themeRuns, themedOutputPath, themesPlan, type ThemeRun } from './themes.ts';
 import { closeBrowser } from '@lolly-tools/node-shell/browsers';
@@ -192,11 +193,29 @@ function savedSessionSelection(session: Record<string, unknown> | undefined): Re
 }
 
 /**
+ * The line the CLI prints about the design-system record an exported file carries
+ * (plans/319), the same words every other render prints. Read back from the bytes,
+ * so a file that kept no record (a PowerPoint deck, or `--no-madewith`) gets no
+ * line. Empty when there is nothing to say.
+ */
+export async function sessionRecordLine(bytes: Uint8Array, format: DesignSessionExportFormat): Promise<string> {
+  const words = designRecordWords(await recordedDesignInFile(bytes, format === 'jpeg' ? 'jpg' : format));
+  return words ? `Recorded the design system: ${words}. Pass --no-madewith to leave the record out.` : '';
+}
+
+/** The web shell exporter `runDesignSession` drives; a test passes its own. */
+export type SessionExporter = typeof exportDesignSessionThemesViaWebShell;
+
+/**
  * Export the session and write the bytes to --output, or to stdout. With --themes, the
  * one opened session is exported once per theme, each to <stem>-<theme>.<ext>. With
  * --theme or --_themes, it is exported once in that theme, to --output as given.
+ * Each file's design-system record is printed on standard error before it is written.
  */
-export async function runDesignSession(path: string, bytes: Uint8Array, flags: Record<string, string>, contents?: LollyFileContents): Promise<void> {
+export async function runDesignSession(
+  path: string, bytes: Uint8Array, flags: Record<string, string>, contents?: LollyFileContents,
+  exportThemes: SessionExporter = exportDesignSessionThemesViaWebShell,
+): Promise<void> {
   const plan = designSessionRunPlan(flags);
   await sessionOutputFolderCheck(plan);
   const name = basename(path);
@@ -220,7 +239,7 @@ export async function runDesignSession(path: string, bytes: Uint8Array, flags: R
     else selection = themeRuns(doc, plan.theme!, saved)[0]!.selection;
   }
   try {
-    const results = await exportDesignSessionThemesViaWebShell(bytes, {
+    const results = await exportThemes(bytes, {
       name, format: plan.format, ...(choice.frame ? { frame: choice.frame } : {}), ...(plan.provenance ?? {}),
       ...(designSystem !== undefined ? { designSystem } : {}),
       ...(runs ? { tokenSelections: runs.map((run) => run.selection) } : selection ? { tokenSelections: [selection] } : {}),
@@ -228,16 +247,28 @@ export async function runDesignSession(path: string, bytes: Uint8Array, flags: R
     if (choice.note) note(choice.note);
     // The exporter's own notes (what a PowerPoint export could not keep), once each.
     for (const line of new Set(results.flatMap((r) => r.notes ?? []))) note(line);
+    // The design-system record is approved on the condition that it is visible at the
+    // moment of export, so each file's record is printed, read back from its bytes:
+    // each --themes file is drawn in its own colourway and says so.
+    const recordNote = async (out: Uint8Array): Promise<void> => {
+      const line = await sessionRecordLine(out, plan.format);
+      if (line) note(line);
+    };
     if (runs) {
       for (const [i, run] of runs.entries()) {
         const out = themedOutputPath(plan.output!, run.theme);
+        await recordNote(results[i]!.bytes);
         await writeFile(out, results[i]!.bytes);
         note(`✓ Wrote ${results[i]!.bytes.length} bytes to ${out} (theme ${run.theme})`);
       }
     } else if (plan.output) {
+      await recordNote(results[0]!.bytes);
       await writeFile(plan.output, results[0]!.bytes);
       note(`✓ Wrote ${results[0]!.bytes.length} bytes to ${plan.output}`);
-    } else await writeOut(Buffer.from(results[0]!.bytes));
+    } else {
+      await recordNote(results[0]!.bytes);
+      await writeOut(Buffer.from(results[0]!.bytes));
+    }
   } finally {
     await closeBrowser();
     await closeWebShell();
