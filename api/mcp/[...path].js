@@ -117,6 +117,61 @@ var init_tool_schema = __esm({
           pattern: "^[a-z0-9][a-z0-9-]*$",
           description: "Optional design-system version this tool renders against (plans/97 section 6a): a published version's slug, or 'latest' for the edit head. Author-controlled stability - a pinned tool keeps rendering against its version whatever gets republished. Unlike engineVersion this is NOT enforced at load: a pin naming a version this device does not have falls through to the active version, then to the head, so a tool always draws. Overridden per render by ?designv=. On a device that never published a version it has no effect at all."
         },
+        tokenAxes: {
+          type: "object",
+          additionalProperties: false,
+          description: `How this tool treats each kind of theme group a design system declares (plans/319). Keys are axis kinds; the one behaviour is "ignore". An ignored kind renders in that group's canonical option for this tool whatever a link, a saved session or the design system's stored choice asks for, and the web shell hides that group's control in this tool. Use it for a tool whose colours are its content: {"colourway": "ignore"} keeps a tonal ramp on the canonical lead, {"mode": "ignore"} keeps a print-only tool in its canonical look. The CLI and MCP report a theme choice the tool ignored instead of dropping it silently. A later behaviour is an additive value in each enum.`,
+          properties: {
+            mode: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            colourway: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            expression: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            medium: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            contrast: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            density: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            campaign: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            },
+            brand: {
+              type: "string",
+              enum: [
+                "ignore"
+              ]
+            }
+          }
+        },
         status: {
           type: "string",
           enum: [
@@ -1750,7 +1805,7 @@ var init_tool_schema = __esm({
                 properties: {
                   palette: {
                     type: "string",
-                    description: "Asset ID of a palette asset to constrain choices. If omitted, free color picker."
+                    description: "Asset ID of a palette asset to constrain choices, or `colourway-leads` to offer the design system's colourway leads: every colourway's primary in the document's look, canonical first. With fewer than two colourways the field offers the ordinary palette. If omitted, free color picker."
                   },
                   swatchesOnly: {
                     type: "boolean",
@@ -4028,7 +4083,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.276.0";
+    ENGINE_VERSION = "1.280.0";
   }
 });
 
@@ -10941,6 +10996,522 @@ var init_inputs = __esm({
   }
 });
 
+// engine/src/colourway.ts
+function colourwayAxis(doc) {
+  return axisOfKind(readTokenAxes(doc).axes, "colourway");
+}
+function canonicalFirst(axis) {
+  const canonical3 = axis.options.find((o) => o.id === axis.canonical);
+  return canonical3 ? [canonical3, ...axis.options.filter((o) => o !== canonical3)] : [...axis.options];
+}
+function colourwayFamily(doc, role = "primary", selection = {}) {
+  const axis = colourwayAxis(doc);
+  if (!axis) return [];
+  const path = role.includes(".") ? role : `color.semantic.${role}`;
+  const out = [];
+  for (const option of canonicalFirst(axis)) {
+    const swatch = createTokenSet(doc, { selection: { ...selection, [axis.group]: option.id } }).colors().find((s) => s.path === path);
+    if (swatch?.value) out.push({ id: option.id, name: option.name, canonical: option.canonical, value: swatch.value });
+  }
+  return out;
+}
+function fnv1a(text10) {
+  let h = 2166136261;
+  for (let i = 0; i < text10.length; i += 1) {
+    h ^= text10.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h >>> 0;
+}
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = a + 1831565813 >>> 0;
+    let t = a;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function pickColourway(axis, policy, ctx = {}) {
+  const options2 = canonicalFirst(axis);
+  if (!options2.length) throw new Error("pickColourway: the colourway group has no options.");
+  const pick = (i) => ({ group: axis.group, option: options2[i].id });
+  const n7 = options2.length;
+  const index2 = nonNegativeIndex(ctx.index);
+  switch (policy) {
+    case "cycle":
+      return pick(index2 % n7);
+    case "by-key":
+      return ctx.key ? pick(fnv1a(ctx.key) % n7) : pick(0);
+    case "shuffle": {
+      if (ctx.seed === void 0 || ctx.seed === "") return pick(0);
+      const base = typeof ctx.seed === "number" ? ctx.seed >>> 0 : fnv1a(ctx.seed);
+      const round11 = Math.floor(index2 / n7);
+      const rand = mulberry32((base ^ Math.imul(round11 + 1, 2654435761)) >>> 0);
+      const order = options2.map((_, i) => i);
+      for (let i = n7 - 1; i > 0; i -= 1) {
+        const j = Math.floor(rand() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+      return pick(order[index2 % n7]);
+    }
+    case "by-date": {
+      const date = typeof ctx.date === "string" ? ctx.date.slice(0, 10) : "";
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return pick(0);
+      const hit = axis.options.find((o) => o.window && (!o.window.from || o.window.from <= date) && (!o.window.to || date <= o.window.to));
+      return hit ? { group: axis.group, option: hit.id } : pick(0);
+    }
+    default:
+      return pick(0);
+  }
+}
+function withColourway(selection, pick) {
+  return { ...selection ?? {}, [pick.group]: pick.option };
+}
+function nodeAt(root2, path) {
+  let node = root2;
+  for (const seg4 of path.split(".")) {
+    if (!record5(node)) return void 0;
+    node = node[seg4];
+  }
+  return record5(node) && "$value" in node ? node : void 0;
+}
+function ensureGroupAt(root2, segs) {
+  let node = root2;
+  for (const seg4 of segs) {
+    if (!record5(node[seg4])) node[seg4] = {};
+    node = node[seg4];
+  }
+  return node;
+}
+function setNodeAt(root2, path, value) {
+  const segs = path.split(".");
+  ensureGroupAt(root2, segs.slice(0, -1))[segs[segs.length - 1]] = value;
+}
+function setOrder(doc) {
+  const keys2 = Object.keys(doc).filter((k) => !k.startsWith("$") && record5(doc[k]));
+  const meta = record5(doc.$metadata) ? doc.$metadata : {};
+  const order = Array.isArray(meta.tokenSetOrder) ? meta.tokenSetOrder.filter((s) => typeof s === "string" && keys2.includes(s)) : [];
+  return [.../* @__PURE__ */ new Set([...order, ...keys2])];
+}
+function colourwaySetOf(doc, axis, option) {
+  const entry2 = themeEntries(doc).find((t) => groupOf(t) === axis.group && optionIdOf(t) === option);
+  const sets = entry2 ? enabledSets(entry2) : [];
+  return sets.length === 1 ? sets[0] : null;
+}
+function checkedSelections(axes, mode3) {
+  let combos = [{}];
+  for (const axis of axes) {
+    if (axis.group === mode3.group) continue;
+    combos = combos.flatMap((c) => axis.options.map((o) => ({ ...c, [axis.group]: o.id })));
+    if (combos.length * mode3.options.length > MAX_CHECKED_SELECTIONS) return null;
+  }
+  return mode3.options.flatMap((o) => combos.map((c) => ({ ...c, [mode3.group]: o.id })));
+}
+function snapshotSelections(doc, selections2) {
+  const out = /* @__PURE__ */ new Map();
+  for (const selection of selections2) {
+    const key2 = JSON.stringify(Object.entries(selection).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
+    for (const e of createTokenSet(doc, { selection }).query()) {
+      out.set(`${key2}\0${e.path}`, JSON.stringify([e.type, e.value, e.description ?? null, e.extensions ?? null]));
+    }
+  }
+  return out;
+}
+function unchanged(before, after, selections2, verb) {
+  const was = snapshotSelections(before, selections2), now2 = snapshotSelections(after, selections2);
+  const changed = [...new Set([...was].filter(([key2, value]) => now2.get(key2) !== value).map(([key2]) => key2.split("\0")[1]))];
+  return changed.length ? [`${verb} would change ${changed.slice(0, 3).join(", ")}${changed.length > 3 ? ` and ${changed.length - 3} more` : ""}.`] : [];
+}
+function locateSlot(doc, role, mode3) {
+  const path = `color.semantic.${role}`;
+  const order = setOrder(doc);
+  const entries = themeEntries(doc);
+  const modeEntries = entries.filter((t) => groupOf(t) === mode3.group);
+  const enabledBy = new Map(modeEntries.map((t) => [optionIdOf(t), enabledSets(t)]));
+  const shared = order.filter((set) => [...enabledBy.values()].every((sets) => sets.includes(set)));
+  const reasons = [];
+  const foreign = [...new Set(entries.filter((t) => groupOf(t) !== mode3.group).flatMap(enabledSets))].filter((set) => nodeAt(doc[set], path));
+  if (foreign.length) return { reasons: [`${path} is also set by ${foreign.join(", ")}, which another theme group turns on, so a colourway cannot re-point it.`] };
+  const slots = [];
+  const base = resolveTokenSelection(doc).choices;
+  for (const option of mode3.options) {
+    const mine = enabledBy.get(option.id) ?? [];
+    const others = [...enabledBy].filter(([id3]) => id3 !== option.id).flatMap(([, sets]) => sets);
+    const owned = order.filter((set) => mine.includes(set) && !others.includes(set));
+    const active = resolveTokenSelection(doc, { selection: { ...base, [mode3.group]: option.id } }).sets;
+    const winner = active.filter((set) => nodeAt(doc[set], path)).at(-1);
+    if (!winner) {
+      reasons.push(`The ${option.name} theme does not define ${path}.`);
+      continue;
+    }
+    let own3;
+    if (owned.includes(winner)) own3 = winner;
+    else if (shared.includes(winner)) {
+      own3 = owned.at(-1);
+      if (!own3) {
+        reasons.push(`The ${option.name} theme has no token set of its own to hold the ${role} link.`);
+        continue;
+      }
+      if (order.indexOf(own3) < order.indexOf(winner)) {
+        reasons.push(`The ${own3} set comes before ${winner}, so a link written there would not take effect.`);
+        continue;
+      }
+    } else {
+      reasons.push(`${path} in the ${option.name} theme comes from the ${winner} set, which this theme does not own and not every theme shares.`);
+      continue;
+    }
+    const node = nodeAt(doc[winner], path);
+    const ext = record5(node.$extensions) ? node.$extensions[TOKEN_EXT] : void 0;
+    const carried = record5(ext) ? COLOUR_DATA.filter((k) => ext[k] !== void 0) : [];
+    if (carried.length) {
+      reasons.push(`${path} in the ${option.name} theme carries its own ${carried.join(" and ")}. Move the colour to a named colour first, so each colourway keeps its own print data.`);
+      continue;
+    }
+    slots.push({ mode: option.id, own: own3, winner, node });
+  }
+  return reasons.length ? { reasons } : { slots };
+}
+function isLifted(doc, role, mode3) {
+  const base = resolveTokenSelection(doc).choices;
+  return mode3.options.every((option) => {
+    const active = resolveTokenSelection(doc, { selection: { ...base, [mode3.group]: option.id } }).sets;
+    const winner = active.filter((set) => nodeAt(doc[set], `color.semantic.${role}`)).at(-1);
+    return winner !== void 0 && nodeAt(doc[winner], `color.semantic.${role}`).$value === `{${colourwayPath(option.id, role)}}`;
+  });
+}
+function liftRole(next2, role, mode3, colourways) {
+  if (isLifted(next2, role, mode3)) return [];
+  const located = locateSlot(next2, role, mode3);
+  if ("reasons" in located) return located.reasons;
+  const sets = /* @__PURE__ */ new Map();
+  for (const option of colourways.options) {
+    const set = colourwaySetOf(next2, colourways, option.id);
+    if (!set) return [`The ${option.name} colourway turns on no token set or several, so Lolly cannot add its ${role}.`];
+    sets.set(option.id, set);
+  }
+  for (const slot of located.slots) {
+    const target2 = colourwayPath(slot.mode, role);
+    for (const option of colourways.options) {
+      const set = sets.get(option.id);
+      if (!record5(next2[set])) next2[set] = {};
+      if (!nodeAt(next2[set], target2)) {
+        const primitive = { $value: structuredClone(slot.node.$value) };
+        if (typeof slot.node.$type === "string") primitive.$type = slot.node.$type;
+        setNodeAt(next2[set], target2, primitive);
+        ensureGroupAt(next2[set], ["color", "colourway"]).$type ??= "color";
+      }
+    }
+    const link = { ...structuredClone(slot.node), $value: `{${target2}}` };
+    setNodeAt(next2[slot.own], `color.semantic.${role}`, link);
+  }
+  return [];
+}
+function annotate(entry2, axis) {
+  if (!record5(entry2.$extensions)) entry2.$extensions = {};
+  const ext = entry2.$extensions;
+  if (!record5(ext[TOKEN_EXT])) ext[TOKEN_EXT] = {};
+  const mine = ext[TOKEN_EXT];
+  mine.axis = { ...record5(mine.axis) ? mine.axis : {}, ...axis };
+}
+function themeIds(doc) {
+  return new Set(themeEntries(doc).flatMap((t) => [t.id, t.name].filter((v) => typeof v === "string")));
+}
+function liftToColourways(doc, opts = {}) {
+  if (!record5(doc) || !Array.isArray(doc.$themes) || !doc.$themes.length) return { ok: false, reasons: ["Colourways need a design system with light and dark themes."] };
+  const { axes } = readTokenAxes(doc);
+  if (axisOfKind(axes, "colourway")) return { ok: true, doc: structuredClone(doc) };
+  const mode3 = modeAxis(axes);
+  if (!mode3) return { ok: false, reasons: ["Mark which theme group holds light and dark before adding colourways."] };
+  const id3 = opts.id ?? "main";
+  const name = opts.name?.trim() || "Main";
+  const named = [...idReasons(doc, id3), ...nameReasons(doc, COLOURWAY_GROUP, name)];
+  if (named.length) return { ok: false, reasons: named };
+  const selections2 = checkedSelections(axes, mode3);
+  if (!selections2) return { ok: false, reasons: tooMany("lifting") };
+  const next2 = structuredClone(doc);
+  for (const entry2 of themeEntries(next2)) if (groupOf(entry2) === mode3.group && !mode3.kind) annotate(entry2, { kind: "mode" });
+  const set = colourwaySetName(id3);
+  next2[set] = {};
+  const canonical3 = { id: id3, name, group: COLOURWAY_GROUP, selectedTokenSets: { [set]: "enabled" } };
+  annotate(canonical3, { kind: "colourway", canonical: true });
+  next2.$themes.push(canonical3);
+  if (record5(next2.$metadata) && Array.isArray(next2.$metadata.tokenSetOrder)) next2.$metadata.tokenSetOrder = [...next2.$metadata.tokenSetOrder, set];
+  const colourways = { group: COLOURWAY_GROUP, kind: "colourway", canonical: id3, rotation: null, options: [{ id: id3, name, canonical: true }] };
+  const lifting = opts.surface ? [...COLOURWAY_ROLES, "surface"] : [...COLOURWAY_ROLES];
+  const reasons = lifting.flatMap((role) => liftRole(next2, role, mode3, colourways));
+  if (reasons.length) return { ok: false, reasons };
+  const changed = unchanged(doc, next2, selections2, "Lifting");
+  return changed.length ? { ok: false, reasons: changed } : { ok: true, doc: next2 };
+}
+function addColourway(doc, opts) {
+  const lifted = liftToColourways(doc, opts.lift);
+  if (!lifted.ok) return lifted;
+  const next2 = lifted.doc;
+  const { axes } = readTokenAxes(next2);
+  const mode3 = modeAxis(axes);
+  const colourways = axisOfKind(axes, "colourway");
+  if (!mode3 || !colourways) return { ok: false, reasons: ["Colourways need a design system with light and dark themes."] };
+  const reasons = [];
+  const foreign = COLOURWAY_ROLES.filter((role) => !isLifted(next2, role, mode3));
+  const unset = colourways.options.filter((o) => colourwaySetOf(next2, colourways, o.id) === null);
+  if (foreign.length || unset.length) {
+    return { ok: false, reasons: ["This design system encodes its colourways its own way, so Lolly can choose between them but cannot add one."] };
+  }
+  reasons.push(...idReasons(next2, opts.id), ...nameReasons(next2, colourways.group, opts.name));
+  for (const option of mode3.options) {
+    const values = opts.values[option.id];
+    if (!values) {
+      reasons.push(`Give the ${option.name} colours for ${opts.name}.`);
+      continue;
+    }
+    for (const role of COLOURWAY_ROLES) if (!usableColour(values[role])) reasons.push(`The ${option.name} ${role} for ${opts.name} is not a colour.`);
+    if (values.surface !== void 0 && !usableColour(values.surface)) reasons.push(`The ${option.name} surface for ${opts.name} is not a colour.`);
+  }
+  if (reasons.length) return { ok: false, reasons };
+  const selections2 = checkedSelections(axes, mode3);
+  if (!selections2) return { ok: false, reasons: tooMany("adding a colourway") };
+  const before = structuredClone(next2);
+  const roles = [...COLOURWAY_ROLES];
+  const tinted = mode3.options.some((option) => opts.values[option.id].surface !== void 0);
+  if (tinted || isLifted(next2, "surface", mode3)) {
+    const surfaceReasons = liftRole(next2, "surface", mode3, colourways);
+    if (surfaceReasons.length) return { ok: false, reasons: surfaceReasons };
+    roles.push("surface");
+  }
+  const canonicalSet = colourwaySetOf(next2, colourways, colourways.canonical);
+  const set = colourwaySetName(opts.id);
+  if (record5(next2[set])) return { ok: false, reasons: [`The design system already has a token set called ${set}.`] };
+  const body = { color: { $type: "color", colourway: {} } };
+  for (const option of mode3.options) {
+    const values = opts.values[option.id];
+    for (const role of roles) {
+      const value = values[role] ?? nodeAt(next2[canonicalSet], colourwayPath(option.id, role))?.$value;
+      setNodeAt(body, colourwayPath(option.id, role), { $value: structuredClone(value) });
+    }
+  }
+  next2[set] = body;
+  const entry2 = { id: opts.id, name: opts.name.trim(), group: colourways.group, selectedTokenSets: { [set]: "enabled" } };
+  annotate(entry2, { kind: "colourway" });
+  next2.$themes.push(entry2);
+  if (record5(next2.$metadata) && Array.isArray(next2.$metadata.tokenSetOrder)) next2.$metadata.tokenSetOrder = [...next2.$metadata.tokenSetOrder, set];
+  const changed = unchanged(before, next2, selections2, "Adding this colourway");
+  if (changed.length) return { ok: false, reasons: changed };
+  const broken = unresolvedRoles(next2, mode3, colourways.group, [...colourways.options, { id: opts.id, name: opts.name.trim() }], roles);
+  return broken.length ? { ok: false, reasons: broken } : { ok: true, doc: next2 };
+}
+function unresolvedRoles(doc, mode3, group, options2, roles) {
+  for (const look3 of mode3.options) {
+    for (const option of options2) {
+      const set = createTokenSet(doc, { selection: { [mode3.group]: look3.id, [group]: option.id } });
+      for (const role of roles) {
+        const value = set.resolve(`color.semantic.${role}`);
+        if (typeof value !== "string" || isAlias(value)) return [`The ${option.name} ${role} in the ${look3.name} theme would not resolve to a colour.`];
+      }
+    }
+  }
+  return [];
+}
+function idReasons(doc, id3) {
+  if (!COLOURWAY_ID.test(id3)) return [`${id3} is not a usable colourway id: use lowercase letters, digits and hyphens.`];
+  return themeIds(doc).has(id3) ? [`The design system already has a theme called ${id3}.`] : [];
+}
+function nameReasons(doc, group, name, except) {
+  const wanted = name.trim();
+  if (!wanted) return ["A colourway needs a name."];
+  if (wanted.length > MAX_COLOURWAY_NAME) return [`A colourway name can have at most ${MAX_COLOURWAY_NAME} characters.`];
+  const lower3 = wanted.toLowerCase();
+  for (const entry2 of themeEntries(doc)) {
+    const own3 = groupOf(entry2) === group;
+    if (own3 && optionIdOf(entry2) === except) continue;
+    const taken = [entry2.id, entry2.name].some((v) => typeof v === "string" && v.trim().toLowerCase() === lower3);
+    if (!taken) continue;
+    return [own3 ? `Another colourway is already called ${wanted}.` : `The design system already has a theme called ${wanted}, so a colourway cannot use that name.`];
+  }
+  return [];
+}
+function everySelection(axes) {
+  let combos = [{}];
+  for (const axis of axes) {
+    combos = combos.flatMap((c) => axis.options.map((o) => ({ ...c, [axis.group]: o.id })));
+    if (combos.length > MAX_CHECKED_SELECTIONS) return null;
+  }
+  return combos;
+}
+function editable(doc, encoded2) {
+  if (!record5(doc)) return { reasons: ["This design system has no colourways yet."] };
+  const { axes } = readTokenAxes(doc);
+  const colourways = axisOfKind(axes, "colourway");
+  if (!colourways) return { reasons: ["This design system has no colourways yet."] };
+  if (encoded2) {
+    const mode3 = modeAxis(axes);
+    if (!mode3) return { reasons: ["Colourways need a design system with light and dark themes."] };
+    const foreign = COLOURWAY_ROLES.some((role) => !isLifted(doc, role, mode3)) || colourways.options.some((o) => colourwaySetOf(doc, colourways, o.id) === null);
+    if (foreign) return { reasons: [FOREIGN_ENCODING] };
+  }
+  return { next: structuredClone(doc), axes, colourways };
+}
+function checked(before, next2, axes, verb) {
+  const selections2 = everySelection(axes);
+  if (!selections2) return { ok: false, reasons: tooMany(verb.toLowerCase()) };
+  const changed = unchanged(before, next2, selections2, verb);
+  return changed.length ? { ok: false, reasons: changed } : { ok: true, doc: next2 };
+}
+function placeEntries(doc, group, order) {
+  const list4 = doc.$themes;
+  const firsts = /* @__PURE__ */ new Map();
+  list4.forEach((t, i) => {
+    if (!record5(t) || groupOf(t) !== group) return;
+    const id3 = optionIdOf(t);
+    if (id3 && !firsts.has(id3)) firsts.set(id3, i);
+  });
+  const slots = [...firsts.values()].sort((a, b) => a - b);
+  const entries = order.map((id3) => list4[firsts.get(id3)]);
+  slots.forEach((slot, i) => {
+    list4[slot] = entries[i];
+  });
+}
+function axisAnnotation(entry2) {
+  annotate(entry2, {});
+  return entry2.$extensions[TOKEN_EXT].axis;
+}
+function renameColourway(doc, id3, name) {
+  const found = editable(doc, false);
+  if ("reasons" in found) return { ok: false, reasons: found.reasons };
+  const { next: next2, axes, colourways } = found;
+  if (!colourways.options.some((o) => o.id === id3)) return { ok: false, reasons: [`${id3} is not a colourway in this design system.`] };
+  const reasons = nameReasons(next2, colourways.group, name, id3);
+  if (reasons.length) return { ok: false, reasons };
+  const entry2 = entryOf(next2, colourways.group, id3);
+  const oldName = typeof entry2.name === "string" ? entry2.name : id3;
+  if (typeof entry2.id !== "string") entry2.id = id3;
+  entry2.name = name.trim();
+  const meta = record5(next2.$metadata) ? next2.$metadata : null;
+  if (meta && Array.isArray(meta.activeThemes) && oldName !== id3) {
+    const group = colourways.group;
+    meta.activeThemes = meta.activeThemes.map((t) => t === oldName ? id3 : t === `${group}/${oldName}` ? `${group}/${id3}` : t);
+  }
+  return checked(doc, next2, axes, "Renaming this colourway");
+}
+function reorderColourways(doc, order) {
+  const found = editable(doc, false);
+  if ("reasons" in found) return { ok: false, reasons: found.reasons };
+  const { next: next2, axes, colourways } = found;
+  const ids2 = colourways.options.map((o) => o.id);
+  if (order.length !== ids2.length || new Set(order).size !== order.length || order.some((id3) => !ids2.includes(id3))) {
+    return { ok: false, reasons: ["Name every colourway exactly once."] };
+  }
+  if (order[0] !== colourways.canonical) return { ok: false, reasons: ["The canonical colourway stays first. Make another colourway canonical to put that one first."] };
+  placeEntries(next2, colourways.group, order);
+  return checked(doc, next2, axes, "Reordering the colourways");
+}
+function setCanonicalColourway(doc, id3) {
+  const found = editable(doc, false);
+  if ("reasons" in found) return { ok: false, reasons: found.reasons };
+  const { next: next2, axes, colourways } = found;
+  if (!colourways.options.some((o) => o.id === id3)) return { ok: false, reasons: [`${id3} is not a colourway in this design system.`] };
+  for (const entry2 of themeEntries(next2)) {
+    if (groupOf(entry2) !== colourways.group) continue;
+    const mine = optionIdOf(entry2) === id3;
+    const axis = record5(entry2.$extensions) && record5(entry2.$extensions[TOKEN_EXT]) ? entry2.$extensions[TOKEN_EXT].axis : void 0;
+    if (mine) axisAnnotation(entry2).canonical = true;
+    else if (record5(axis)) delete axis.canonical;
+  }
+  const root2 = record5(next2.$extensions) && record5(next2.$extensions[TOKEN_EXT]) ? next2.$extensions[TOKEN_EXT].themeAxes : void 0;
+  if (record5(root2) && record5(root2[colourways.group]) && typeof root2[colourways.group].canonical === "string") root2[colourways.group].canonical = id3;
+  placeEntries(next2, colourways.group, [id3, ...colourways.options.map((o) => o.id).filter((o) => o !== id3)]);
+  return checked(doc, next2, axes, "Choosing the canonical colourway");
+}
+function removeColourway(doc, id3) {
+  const found = editable(doc, true);
+  if ("reasons" in found) return { ok: false, reasons: found.reasons };
+  const { next: next2, colourways } = found;
+  const option = colourways.options.find((o) => o.id === id3);
+  if (!option) return { ok: false, reasons: [`${id3} is not a colourway in this design system.`] };
+  if (id3 === colourways.canonical) return { ok: false, reasons: [`Make another colourway canonical before removing ${option.name}.`] };
+  const set = colourwaySetOf(next2, colourways, id3);
+  const entry2 = entryOf(next2, colourways.group, id3);
+  next2.$themes = next2.$themes.filter((t) => t !== entry2);
+  const shared = themeEntries(next2).some((t) => enabledSets(t).includes(set));
+  const meta = record5(next2.$metadata) ? next2.$metadata : null;
+  if (!shared) {
+    delete next2[set];
+    if (meta && Array.isArray(meta.tokenSetOrder)) meta.tokenSetOrder = meta.tokenSetOrder.filter((s) => s !== set);
+    if (meta && Array.isArray(meta.activeSets)) meta.activeSets = meta.activeSets.filter((s) => s !== set);
+  }
+  if (meta && record5(meta.activeThemeSelection) && meta.activeThemeSelection[colourways.group] === id3) delete meta.activeThemeSelection[colourways.group];
+  if (meta && Array.isArray(meta.activeThemes)) {
+    const names = /* @__PURE__ */ new Set([id3, option.name, `${colourways.group}/${id3}`, `${colourways.group}/${option.name}`]);
+    meta.activeThemes = meta.activeThemes.filter((t) => !(typeof t === "string" && names.has(t)));
+  }
+  return checked(doc, next2, readTokenAxes(next2).axes, "Removing this colourway");
+}
+function duplicateColourway(doc, id3, opts) {
+  const found = editable(doc, true);
+  if ("reasons" in found) return { ok: false, reasons: found.reasons };
+  const { next: next2, axes, colourways } = found;
+  const mode3 = modeAxis(axes);
+  if (!colourways.options.some((o) => o.id === id3)) return { ok: false, reasons: [`${id3} is not a colourway in this design system.`] };
+  const reasons = [...idReasons(next2, opts.id), ...nameReasons(next2, colourways.group, opts.name)];
+  if (reasons.length) return { ok: false, reasons };
+  const set = colourwaySetName(opts.id);
+  if (record5(next2[set])) return { ok: false, reasons: [`The design system already has a token set called ${set}.`] };
+  next2[set] = structuredClone(next2[colourwaySetOf(next2, colourways, id3)]);
+  const entry2 = { id: opts.id, name: opts.name.trim(), group: colourways.group, selectedTokenSets: { [set]: "enabled" } };
+  annotate(entry2, { kind: "colourway" });
+  next2.$themes.push(entry2);
+  if (record5(next2.$metadata) && Array.isArray(next2.$metadata.tokenSetOrder)) next2.$metadata.tokenSetOrder = [...next2.$metadata.tokenSetOrder, set];
+  const result = checked(doc, next2, axes, "Copying this colourway");
+  if (!result.ok) return result;
+  const roles = isLifted(next2, "surface", mode3) ? [...COLOURWAY_ROLES, "surface"] : [...COLOURWAY_ROLES];
+  const broken = unresolvedRoles(next2, mode3, colourways.group, [{ id: opts.id, name: opts.name.trim() }], roles);
+  return broken.length ? { ok: false, reasons: broken } : result;
+}
+function colourwaysEditable(doc) {
+  if (!colourwayAxis(doc)) {
+    const lifted = liftToColourways(doc);
+    return lifted.ok ? { ok: true } : { ok: false, reasons: lifted.reasons };
+  }
+  const found = editable(doc, true);
+  return "reasons" in found ? { ok: false, reasons: found.reasons } : { ok: true };
+}
+function colourwayRolesOf(doc) {
+  if (!record5(doc) || !colourwayAxis(doc)) return [];
+  const mode3 = modeAxis(readTokenAxes(doc).axes);
+  if (!mode3) return [];
+  return [...COLOURWAY_ROLES, "surface"].filter((role) => isLifted(doc, role, mode3));
+}
+var record5, COLOURWAY_GROUP, COLOURWAY_ROLES, colourwaySetName, colourwayPath, COLOURWAY_ID, nonNegativeIndex, COLOUR_DATA, MAX_CHECKED_SELECTIONS, enabledSets, groupOf, optionIdOf, themeEntries, tooMany, usableColour, MAX_COLOURWAY_NAME, FOREIGN_ENCODING, entryOf;
+var init_colourway = __esm({
+  "engine/src/colourway.ts"() {
+    "use strict";
+    init_tokens2();
+    init_css_color();
+    init_token_ext();
+    init_token_axes();
+    init_token_selection();
+    record5 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    COLOURWAY_GROUP = "colourway";
+    COLOURWAY_ROLES = Object.freeze(["primary", "on-primary", "secondary"]);
+    colourwaySetName = (id3) => `colourway/${id3}`;
+    colourwayPath = (mode3, role) => `color.colourway.${mode3}.${role}`;
+    COLOURWAY_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
+    nonNegativeIndex = (index2) => Number.isFinite(index2) && index2 > 0 ? Math.floor(index2) : 0;
+    COLOUR_DATA = ["cmyk", "spot", "faces"];
+    MAX_CHECKED_SELECTIONS = 256;
+    enabledSets = (raw) => record5(raw.selectedTokenSets) ? Object.entries(raw.selectedTokenSets).filter(([, status]) => status && status !== "disabled").map(([set]) => set) : [];
+    groupOf = (t) => typeof t.group === "string" ? t.group : "";
+    optionIdOf = (t) => typeof t.id === "string" ? t.id : typeof t.name === "string" ? t.name : "";
+    themeEntries = (doc) => Array.isArray(doc.$themes) ? doc.$themes.filter(record5) : [];
+    tooMany = (verb) => [`The design system has more than ${MAX_CHECKED_SELECTIONS} combinations of themes, so ${verb} cannot check that nothing changes.`];
+    usableColour = (v) => typeof v === "string" && (isAlias(v) || parseColor(v) !== null);
+    MAX_COLOURWAY_NAME = 80;
+    FOREIGN_ENCODING = "This design system encodes its colourways its own way, so Lolly can choose between them but cannot change them.";
+    entryOf = (doc, group, id3) => themeEntries(doc).find((t) => groupOf(t) === group && optionIdOf(t) === id3);
+  }
+});
+
 // engine/src/token-context.ts
 function scopedTokenOptions(selection, opts = {}) {
   if (opts.selection !== void 0 || selection === void 0) return opts;
@@ -10955,6 +11526,10 @@ function withTokenSelection(host, selection) {
     colors: (opts = {}) => base.colors(scopedTokenOptions(choices2, opts)),
     resolve: (ref2, opts = {}) => base.resolve(ref2, scopedTokenOptions(choices2, opts)),
     ...base.inspect ? { inspect: (opts = {}) => base.inspect(scopedTokenOptions(choices2, opts)) } : {},
+    // The family follows the document's look, and its `active` member is the
+    // document's colourway, so it is scoped like every other read. `axes()` is
+    // structure and has no options to scope.
+    ...base.family ? { family: (role, opts = {}) => base.family(role, scopedTokenOptions(choices2, opts)) } : {},
     ...base.snapshot ? { snapshot: async () => {
       const snapshot = await base.snapshot();
       const scoped = (source) => {
@@ -10974,10 +11549,97 @@ function withAssetSelection(assets, selection) {
   const choices2 = structuredClone(selection);
   return { ...assets, get: (id3, opts) => assets.get(id3, { ...opts, tokenSelection: choices2 }) };
 }
+function tokenAxesOf(doc) {
+  return readTokenAxes(doc).axes.map((axis) => ({
+    group: axis.group,
+    kind: axis.kind,
+    canonical: axis.canonical,
+    rotation: axis.rotation,
+    options: axis.options.map((o) => ({ id: o.id, name: o.name, canonical: o.canonical, ...o.window ? { window: { ...o.window } } : {} }))
+  }));
+}
+async function tokenFamily(doc, role = "primary", opts = {}, setFor = (o) => createTokenSet(doc, o)) {
+  if (typeof role !== "string" || !role || role.length > MAX_ROLE_LENGTH) return [];
+  const axis = colourwayAxis(doc);
+  if (!axis) return [];
+  const choices2 = resolveTokenSelection(doc, opts).choices;
+  const active = choices2[axis.group];
+  const path = role.includes(".") ? role : `color.semantic.${role}`;
+  const out = [];
+  for (const option of canonicalFirst(axis)) {
+    const set = await setFor({ selection: { ...choices2, [axis.group]: option.id } });
+    const swatch = set.colors().find((s) => s.path === path);
+    if (swatch?.value) out.push({ id: option.id, name: option.name, canonical: option.canonical, active: option.id === active, value: swatch.value });
+  }
+  return out;
+}
+function brandLeadVars(family2) {
+  const values = (Array.isArray(family2) ? family2 : []).map((m2) => m2 && typeof m2.value === "string" ? m2.value.trim() : "").filter((v) => /^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(v)).slice(0, MAX_LEAD_VARS);
+  if (values.length < 2) return [];
+  return [...values.map((v, i) => [`--brand-lead-${i + 1}`, v]), ["--brand-lead-count", String(values.length)]];
+}
+var MAX_ROLE_LENGTH, MAX_LEAD_VARS;
 var init_token_context = __esm({
   "engine/src/token-context.ts"() {
     "use strict";
     init_token_selection();
+    init_token_axes();
+    init_colourway();
+    init_tokens2();
+    MAX_ROLE_LENGTH = 256;
+    MAX_LEAD_VARS = 16;
+  }
+});
+
+// engine/src/tool-token-axes.ts
+function ignoresTokenAxes(tokenAxes) {
+  return !!tokenAxes && Object.values(tokenAxes).some((behaviour) => behaviour === "ignore");
+}
+function effectiveAxisKinds(groups) {
+  const declaredMode = groups.some((group) => group.kind === "mode");
+  const kinds2 = /* @__PURE__ */ new Map();
+  for (const group of groups) {
+    kinds2.set(group.id, group.kind ?? (!declaredMode && group.id === "" ? "mode" : null));
+  }
+  return kinds2;
+}
+function ignoredTokenAxes(groups, tokenAxes) {
+  if (!ignoresTokenAxes(tokenAxes)) return [];
+  const kinds2 = effectiveAxisKinds(groups);
+  const out = [];
+  for (const group of groups) {
+    const kind = kinds2.get(group.id);
+    if (!kind || tokenAxes[kind] !== "ignore" || !group.options.length) continue;
+    const canonical3 = group.canonical && group.options.some((o) => o.id === group.canonical) ? group.canonical : group.options[0].id;
+    out.push({ group: group.id, kind, canonical: canonical3 });
+  }
+  return out;
+}
+function pinIgnoredTokenAxes(requested, resolved2, tokenAxes) {
+  const axes = ignoredTokenAxes(resolved2.groups, tokenAxes);
+  const keep2 = requested && Object.keys(requested).length ? { ...requested } : void 0;
+  if (!axes.length) return { selection: keep2, ignored: [] };
+  const ignored = [];
+  let needsPin = false;
+  for (const axis of axes) {
+    const asked = requested && Object.hasOwn(requested, axis.group) ? requested[axis.group] : void 0;
+    const declared = resolved2.groups.find((g2) => g2.id === axis.group)?.options.some((o) => o.id === asked) ?? false;
+    if (asked !== void 0 && asked !== axis.canonical && declared) ignored.push({ ...axis, requested: asked });
+    if (resolved2.choices[axis.group] !== axis.canonical) needsPin = true;
+  }
+  if (!needsPin) return { selection: keep2, ignored };
+  const selection = { ...resolved2.choices };
+  for (const axis of axes) selection[axis.group] = axis.canonical;
+  return { selection, ignored };
+}
+function describeIgnoredTokenChoice(choice3, toolName) {
+  return `${toolName} ignores the ${choice3.kind}${groupWords(choice3)}, so ${choice3.requested} was not applied. It renders in ${choice3.canonical}, the canonical option.`;
+}
+var groupWords;
+var init_tool_token_axes = __esm({
+  "engine/src/tool-token-axes.ts"() {
+    "use strict";
+    groupWords = (choice3) => choice3.group === "" ? "" : choice3.group === choice3.kind ? "" : ` (theme group ${choice3.group})`;
   }
 });
 
@@ -35609,26 +36271,26 @@ __export(emoji_style_exports, {
   withEmojiStyle: () => withEmojiStyle
 });
 function readEmojiStyle(doc) {
-  if (!record5(doc)) return { status: "invalid", issue: { code: "invalid-style", message: "A design token document must be an object." } };
+  if (!record6(doc)) return { status: "invalid", issue: { code: "invalid-style", message: "A design token document must be an object." } };
   if (!Object.hasOwn(doc, "$extensions")) return { status: "unselected" };
-  if (!record5(doc.$extensions)) return { status: "invalid", issue: { code: "invalid-style", message: "Invalid design token extensions." } };
+  if (!record6(doc.$extensions)) return { status: "invalid", issue: { code: "invalid-style", message: "Invalid design token extensions." } };
   if (!Object.hasOwn(doc.$extensions, TOKEN_EXT)) return { status: "unselected" };
-  if (!record5(doc.$extensions[TOKEN_EXT])) return { status: "invalid", issue: { code: "invalid-style", message: "Invalid design token vendor extension." } };
+  if (!record6(doc.$extensions[TOKEN_EXT])) return { status: "invalid", issue: { code: "invalid-style", message: "Invalid design token vendor extension." } };
   const vendor = doc.$extensions[TOKEN_EXT];
   if (!Object.hasOwn(vendor, "emoji")) return { status: "unselected" };
   const issue2 = validateEmojiStyle(vendor.emoji);
   return issue2 ? { status: "invalid", issue: issue2 } : { status: "selected", style: structuredClone(vendor.emoji) };
 }
 function withEmojiStyle(doc, style) {
-  if (!record5(doc)) throw new Error("A design token document must be an object.");
+  if (!record6(doc)) throw new Error("A design token document must be an object.");
   if (style !== null) {
     const issue2 = validateEmojiStyle(style);
     if (issue2) throw new Error(issue2.message);
   }
   const next2 = structuredClone(doc);
-  if (next2.$extensions !== void 0 && !record5(next2.$extensions)) throw new Error("Invalid design token extensions.");
+  if (next2.$extensions !== void 0 && !record6(next2.$extensions)) throw new Error("Invalid design token extensions.");
   const extensions3 = next2.$extensions ?? {};
-  if (extensions3[TOKEN_EXT] !== void 0 && !record5(extensions3[TOKEN_EXT])) throw new Error("Invalid design token vendor extension.");
+  if (extensions3[TOKEN_EXT] !== void 0 && !record6(extensions3[TOKEN_EXT])) throw new Error("Invalid design token vendor extension.");
   const vendor = extensions3[TOKEN_EXT] ?? {};
   if (style === null) delete vendor.emoji;
   else vendor.emoji = structuredClone(style);
@@ -35745,14 +36407,14 @@ function emojiParams(style) {
   const unprotected = protect && !protect.skinTones && !protect.flags && !protect.custom;
   return { emoji: `${style.primary.id}@${style.primary.pin.version}`, emojifx: unprotected ? `${base},unprotected` : base, emojistyle: JSON.stringify(style) };
 }
-var record5, ID_PATTERN, VERSION_PATTERN, NEUTRAL_CHROMA2, PALETTE_MAX, issue, lastTwo, chromaOf2, lightnessOf;
+var record6, ID_PATTERN, VERSION_PATTERN, NEUTRAL_CHROMA2, PALETTE_MAX, issue, lastTwo, chromaOf2, lightnessOf;
 var init_emoji_style = __esm({
   "engine/src/emoji-style.ts"() {
     "use strict";
     init_token_ext();
     init_emoji_pack();
     init_emoji_treatment();
-    record5 = (value) => !!value && typeof value === "object" && !Array.isArray(value);
+    record6 = (value) => !!value && typeof value === "object" && !Array.isArray(value);
     ID_PATTERN = /^[a-z0-9][a-z0-9-]*(\/[a-z0-9][a-z0-9-]*)+$/;
     VERSION_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._+-]*$/;
     NEUTRAL_CHROMA2 = 0.03;
@@ -37604,14 +38266,14 @@ var init_template = __esm({
 
 // engine/src/brand-resources.ts
 function mapBrandResourceIds(doc, map) {
-  if (!record6(doc) || !record6(doc.$extensions)) return doc;
+  if (!record7(doc) || !record7(doc.$extensions)) return doc;
   const vendor = doc.$extensions[TOKEN_EXT];
-  if (!record6(vendor) || !record6(vendor.brandSystem)) return doc;
+  if (!record7(vendor) || !record7(vendor.brandSystem)) return doc;
   const system = vendor.brandSystem;
   if (system.schemaVersion !== 1 || !Array.isArray(system.roles)) return doc;
-  const roles = system.roles.map((role) => !record6(role) || !Array.isArray(role.resources) ? role : {
+  const roles = system.roles.map((role) => !record7(role) || !Array.isArray(role.resources) ? role : {
     ...role,
-    resources: role.resources.map((ref2) => record6(ref2) && ref2.type === "asset" && typeof ref2.id === "string" ? { ...ref2, id: map(ref2.id) } : ref2)
+    resources: role.resources.map((ref2) => record7(ref2) && ref2.type === "asset" && typeof ref2.id === "string" ? { ...ref2, id: map(ref2.id) } : ref2)
   });
   return { ...doc, $extensions: { ...doc.$extensions, [TOKEN_EXT]: { ...vendor, brandSystem: { ...system, roles } } } };
 }
@@ -37623,12 +38285,12 @@ function brandResourceAssetIds(doc) {
   });
   return [...ids2];
 }
-var record6;
+var record7;
 var init_brand_resources = __esm({
   "engine/src/brand-resources.ts"() {
     "use strict";
     init_token_ext();
-    record6 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record7 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
   }
 });
 
@@ -39853,16 +40515,16 @@ function textTypographyMissingFace(typography, slant) {
   return `No pinned face for ${typography.fontFamily} at weight ${typography.fontWeight}${slant === "italic" ? " italic" : ""} is in this text. Link the token again to pin that face.`;
 }
 function readFace(value) {
-  if (!record7(value) || typeof value.font !== "string" || !FONT_ID.test(value.font)) return void 0;
+  if (!record8(value) || typeof value.font !== "string" || !FONT_ID.test(value.font)) return void 0;
   const fallbacks = Array.isArray(value.fallbackFonts) ? value.fallbackFonts : [];
   if (fallbacks.length > 16 || fallbacks.some((id3) => typeof id3 !== "string" || !FONT_ID.test(id3))) return void 0;
   return { font: value.font, ...fallbacks.length ? { fallbackFonts: fallbacks } : {} };
 }
 function readFaces2(value) {
-  if (!record7(value) || Object.keys(value).length > MAX_FACE_KEYS) return null;
+  if (!record8(value) || Object.keys(value).length > MAX_FACE_KEYS) return null;
   const faces = {};
   for (const [key2, slants] of Object.entries(value)) {
-    if (!record7(slants) || key2.length > 300 || key2 === "__proto__") return null;
+    if (!record8(slants) || key2.length > 300 || key2 === "__proto__") return null;
     const entry2 = {};
     for (const slant of ["normal", "italic"]) if (slants[slant] !== void 0) {
       const face = readFace(slants[slant]);
@@ -39881,7 +40543,7 @@ function readCached(link) {
   } catch {
     return null;
   }
-  if (!record7(value) || !record7(value.typography)) return null;
+  if (!record8(value) || !record8(value.typography)) return null;
   const t = value.typography, faces = readFaces2(value.faces);
   if (!faces || typeof t.fontFamily !== "string" || !PROJECTIONS.slice(1).every(([key2]) => typeof t[key2] === "number" && Number.isFinite(t[key2]))) return null;
   return { faces, typography: { fontFamily: t.fontFamily, fontSize: t.fontSize, fontWeight: t.fontWeight, letterSpacing: t.letterSpacing, lineHeight: t.lineHeight } };
@@ -39977,7 +40639,7 @@ function refreshTextTypography(doc, set) {
   });
   return changed ? { ...doc, stories } : doc;
 }
-var PARAGRAPH_TOKEN_FIELDS, TEXT_TYPOGRAPHY_LINK, MAX_FACE_KEYS, FONT_ID, PROJECTIONS, record7, textTypographyFaceKey, ownLink, facesOf2, faceFields, slantOf;
+var PARAGRAPH_TOKEN_FIELDS, TEXT_TYPOGRAPHY_LINK, MAX_FACE_KEYS, FONT_ID, PROJECTIONS, record8, textTypographyFaceKey, ownLink, facesOf2, faceFields, slantOf;
 var init_text_token_bindings = __esm({
   "engine/src/text-token-bindings.ts"() {
     "use strict";
@@ -40002,7 +40664,7 @@ var init_text_token_bindings = __esm({
       ["letterSpacing", { type: "number", min: -1e3, max: 1e3 }],
       ["lineHeight", { type: "number", min: 0.1, max: 20 }]
     ];
-    record7 = (value) => !!value && typeof value === "object" && !Array.isArray(value);
+    record8 = (value) => !!value && typeof value === "object" && !Array.isArray(value);
     textTypographyFaceKey = (family2, weight) => `${family2.trim().toLowerCase()}|${weight}`;
     ownLink = (paragraph) => {
       const link = readBlockTokenBindings(paragraph.paragraph?.tokenLinks)[TEXT_TYPOGRAPHY_LINK];
@@ -42483,8 +43145,8 @@ function documentFor(node) {
 }
 function skipElement(element, options2) {
   if (SKIP_TAGS.has(element.nodeName.toUpperCase())) return true;
-  const editable = element.getAttribute("contenteditable");
-  if (editable !== null && editable !== "false") return true;
+  const editable2 = element.getAttribute("contenteditable");
+  if (editable2 !== null && editable2 !== "false") return true;
   return options2.skip?.(element) === true;
 }
 function collect(root2, options2, everything = false) {
@@ -47723,15 +48385,15 @@ async function validateManagedCredential(chain2, trust, crls, now2 = Date.now())
   for (const p of Object.values(trust.providers)) {
     const issuer = trust.issuers.get(p.issuer);
     if (!equalDer(chain2[1], issuer) || !p.domains.includes(email.slice(email.lastIndexOf("@") + 1).toLowerCase())) continue;
-    let checked;
+    let checked2;
     try {
-      checked = await validateEnrollmentChain(chain2, { roots: trust.roots, issuer, email, policyOid: p.policyOid, maxLifetimeSeconds: trust.maxLifetimeSeconds, now: now2 });
+      checked2 = await validateEnrollmentChain(chain2, { roots: trust.roots, issuer, email, policyOid: p.policyOid, maxLifetimeSeconds: trust.maxLifetimeSeconds, now: now2 });
     } catch {
       continue;
     }
     const status = await validateEnrollmentCrl(crls[p.issuer], issuer, trust.crlMaxAgeSeconds, now2);
-    if (status.revokedSerials.includes(checked.serial)) throw new Error("Managed identity certificate is revoked");
-    return { issuer: p.issuer, serial: checked.serial };
+    if (status.revokedSerials.includes(checked2.serial)) throw new Error("Managed identity certificate is revoked");
+    return { issuer: p.issuer, serial: checked2.serial };
   }
   throw new Error("Managed identity does not match an approved issuer policy");
 }
@@ -49926,7 +50588,7 @@ __export(surface_variant_exports, {
 });
 function designImageId(value) {
   if (typeof value === "string") return value || null;
-  if (record8(value) && typeof value.id === "string") return value.id || null;
+  if (record9(value) && typeof value.id === "string") return value.id || null;
   return null;
 }
 function isSurfaceAutoId(id3) {
@@ -49958,7 +50620,7 @@ function surfaceColourResolver(set) {
   };
   const read = (value, depth) => {
     if (depth > 4) return null;
-    const raw = typeof value === "string" ? value.trim() : record8(value) && typeof value.value === "string" ? value.value.trim() : record8(value) && typeof value.ref === "string" ? value.ref.trim() : "";
+    const raw = typeof value === "string" ? value.trim() : record9(value) && typeof value.value === "string" ? value.value.trim() : record9(value) && typeof value.ref === "string" ? value.ref.trim() : "";
     if (!raw) return null;
     const path = aliasPath(raw);
     if (path) return viaToken(path);
@@ -50049,7 +50711,7 @@ function paintsOf(row, f, resolveColour, own3 = false) {
     }
   }
   const fillRaw = row[f.fill];
-  const fillText2 = typeof fillRaw === "string" ? fillRaw.trim() : record8(fillRaw) && typeof fillRaw.value === "string" ? fillRaw.value.trim() : record8(fillRaw) && typeof fillRaw.ref === "string" ? fillRaw.ref.trim() : "";
+  const fillText2 = typeof fillRaw === "string" ? fillRaw.trim() : record9(fillRaw) && typeof fillRaw.value === "string" ? fillRaw.value.trim() : record9(fillRaw) && typeof fillRaw.ref === "string" ? fillRaw.ref.trim() : "";
   if (fillText2 && fillText2 !== "transparent" && fillText2 !== "none") {
     const c = rgba(resolveColour(fillRaw));
     if (!c) out.push({ kind: "unknown" });
@@ -50063,21 +50725,21 @@ function blend(top, alpha, under) {
 function surfaceUnderDesignLayer(rows2, index2, canvas, resolveColour) {
   const f = fieldsOf(canvas);
   const row = rows2[index2];
-  if (!record8(row)) return null;
+  if (!record9(row)) return null;
   const board = boardOf(row, f);
   let frameRow;
-  if (board && !isFrame(row, f)) frameRow = rows2.find((r5) => record8(r5) && isFrame(r5, f) && r5[f.id] === board);
+  if (board && !isFrame(row, f)) frameRow = rows2.find((r5) => record9(r5) && isFrame(r5, f) && r5[f.id] === board);
   const stack = [];
   for (let i = Math.min(index2, rows2.length) - 1; i >= 0; i--) {
     const under2 = rows2[i];
-    if (!record8(under2) || hidden(under2, f) || isFrame(under2, f) || under2.kind === "path" || boardOf(under2, f) !== board) continue;
+    if (!record9(under2) || hidden(under2, f) || isFrame(under2, f) || under2.kind === "path" || boardOf(under2, f) !== board) continue;
     if (coverShare(under2, row, f) < SURFACE_COVER_SHARE) continue;
     stack.push(under2);
   }
   if (frameRow && !hidden(frameRow, f)) stack.push(frameRow);
   const own3 = isFrame(row, f) || row.kind === "path" ? [] : paintsOf(row, f, resolveColour, true);
   const paints2 = [...own3, ...stack.flatMap((r5) => paintsOf(r5, f, resolveColour))];
-  if (canvas?.background !== void 0 && canvas.background !== null && canvas.background !== "" && !rows2.some((r5) => record8(r5) && isFrame(r5, f))) {
+  if (canvas?.background !== void 0 && canvas.background !== null && canvas.background !== "" && !rows2.some((r5) => record9(r5) && isFrame(r5, f))) {
     paints2.push(...paintsOf({ [f.fill]: canvas.background }, f, resolveColour));
   }
   const resolveFrom = (at) => {
@@ -50102,8 +50764,8 @@ function surfaceUnderDesignLayer(rows2, index2, canvas, resolveColour) {
 }
 function logoSurfaceRule(rules) {
   for (const rule of rules ?? []) {
-    if (!record8(rule) || rule.kind !== "logo-surface" || !record8(rule.parameters)) continue;
-    if (record8(rule.scope) && Array.isArray(rule.scope.tools) && !rule.scope.tools.includes("design")) continue;
+    if (!record9(rule) || rule.kind !== "logo-surface" || !record9(rule.parameters)) continue;
+    if (record9(rule.scope) && Array.isArray(rule.scope.tools) && !rule.scope.tools.includes("design")) continue;
     const light = strings(rule.parameters.light);
     const dark = strings(rule.parameters.dark);
     const photo = strings(rule.parameters.photo);
@@ -50113,14 +50775,14 @@ function logoSurfaceRule(rules) {
   return null;
 }
 function brandRulesOfTokenDocument(doc) {
-  if (!record8(doc) || !record8(doc.$extensions)) return [];
+  if (!record9(doc) || !record9(doc.$extensions)) return [];
   const vendor = doc.$extensions[TOKEN_EXT];
-  if (!record8(vendor) || !record8(vendor.brandSystem) || !Array.isArray(vendor.brandSystem.rules)) return [];
-  return vendor.brandSystem.rules.filter((r5) => record8(r5) && typeof r5.id === "string" && typeof r5.kind === "string");
+  if (!record9(vendor) || !record9(vendor.brandSystem) || !Array.isArray(vendor.brandSystem.rules)) return [];
+  return vendor.brandSystem.rules.filter((r5) => record9(r5) && typeof r5.id === "string" && typeof r5.kind === "string");
 }
 function themeSurfaceColours(doc) {
   const out = { light: null, dark: null };
-  if (!record8(doc)) return out;
+  if (!record9(doc)) return out;
   let names = [];
   try {
     names = createTokenSet(doc).themes().map((t) => t.name);
@@ -50174,7 +50836,7 @@ function buildSurfaceVariantTable(input) {
     if (!m2.orientations.includes(orientation)) m2.orientations.push(orientation);
     if (!m2.treatments.includes(treatment)) m2.treatments.push(treatment);
   }
-  const declared = parseIconThemesDoc(record8(input.iconThemes) ? input.iconThemes : null);
+  const declared = parseIconThemesDoc(record9(input.iconThemes) ? input.iconThemes : null);
   const icons = { light: null, dark: null, photo: null, from: "none" };
   if (declared.length) {
     const read = declared.map((t) => ({ id: t.id, ...iconThemeSurfaces(t, input.surfaceColours) }));
@@ -50289,7 +50951,7 @@ function applySurfaceRuleToLogoSet(logos, table) {
   return out;
 }
 function logoSetInBrandOrder(logos, doc) {
-  if (!record8(doc)) return { ...logos };
+  if (!record9(doc)) return { ...logos };
   let tokens3 = null;
   try {
     tokens3 = createTokenSet(doc);
@@ -50302,7 +50964,7 @@ function planSurfaceVariants(rows2, canvas, table, resolveColour) {
   const f = fieldsOf(canvas);
   const out = [];
   rows2.forEach((row, index2) => {
-    if (!record8(row)) return;
+    if (!record9(row)) return;
     const authored = designImageId(row[f.image]);
     if (!isSurfaceAutoId(authored)) return;
     const surface = surfaceUnderDesignLayer(rows2, index2, canvas, resolveColour);
@@ -50310,7 +50972,7 @@ function planSurfaceVariants(rows2, canvas, table, resolveColour) {
   });
   return out;
 }
-var SURFACE_COVER_SHARE, record8, strings, num3, LOGO_TOKEN_PREFIX, REVERSE, isMonoTreatment, isReverseTreatment, BRAND_TOKEN_VAR, BRAND_SLOT_VAR, isFrame, hidden;
+var SURFACE_COVER_SHARE, record9, strings, num3, LOGO_TOKEN_PREFIX, REVERSE, isMonoTreatment, isReverseTreatment, BRAND_TOKEN_VAR, BRAND_SLOT_VAR, isFrame, hidden;
 var init_surface_variant = __esm({
   "engine/src/surface-variant.ts"() {
     "use strict";
@@ -50321,7 +50983,7 @@ var init_surface_variant = __esm({
     init_tokens2();
     init_token_ext();
     SURFACE_COVER_SHARE = 0.9;
-    record8 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record9 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     strings = (v) => Array.isArray(v) ? v.filter((s) => typeof s === "string" && s.length > 0) : [];
     num3 = (v, fallback) => {
       const n7 = typeof v === "number" ? v : typeof v === "string" && v.trim() ? Number(v) : NaN;
@@ -50528,6 +51190,14 @@ var init_brand_treatments = __esm({
 async function createRuntime(tool, host, initialState = {}, opts = {}) {
   let tokenSelection = opts.tokenSelection ?? parseTokenSelection(initialState.__tokenSelection ? JSON.stringify(initialState.__tokenSelection) : null);
   const unscopedHost = host;
+  const tokenAxes = ignoresTokenAxes(tool.manifest.tokenAxes) ? tool.manifest.tokenAxes : null;
+  let ignoredTokenChoices = [];
+  async function pinForTool(requested) {
+    if (!tokenAxes || !unscopedHost.tokens) return { selection: requested, ignored: [] };
+    const resolved2 = await choicesInForce(unscopedHost.tokens, requested);
+    return resolved2 ? pinIgnoredTokenAxes(requested, resolved2, tokenAxes) : { selection: requested, ignored: [] };
+  }
+  if (tokenAxes) ({ selection: tokenSelection, ignored: ignoredTokenChoices } = await pinForTool(tokenSelection));
   let scopedTokens = tokenSelection ? withTokenSelection(unscopedHost, tokenSelection).tokens : unscopedHost.tokens;
   let themeGeneration = 0;
   let writeTokenSet;
@@ -51071,6 +51741,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     get tokenSelection() {
       return tokenSelection ? structuredClone(tokenSelection) : void 0;
     },
+    get ignoredTokenChoices() {
+      return ignoredTokenChoices.map((choice3) => ({ ...choice3 }));
+    },
     getModel: () => model2,
     getHydrated,
     getHydratedString,
@@ -51420,10 +52093,25 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     },
     async setTokenSelection(selection) {
       const next2 = parseTokenSelection(JSON.stringify(selection ?? {}));
-      tokenSelection = next2 && Object.keys(next2).length ? structuredClone(next2) : void 0;
-      scopedTokens = tokenSelection ? withTokenSelection(unscopedHost, tokenSelection).tokens : unscopedHost.tokens;
       const generation = ++themeGeneration;
+      let applied = next2 && Object.keys(next2).length ? structuredClone(next2) : void 0;
+      if (tokenAxes) {
+        const pinned = await pinForTool(applied);
+        if (generation !== themeGeneration) return;
+        applied = pinned.selection;
+        ignoredTokenChoices = pinned.ignored;
+      }
+      tokenSelection = applied;
+      scopedTokens = tokenSelection ? withTokenSelection(unscopedHost, tokenSelection).tokens : unscopedHost.tokens;
       surfaceContexts.delete(host);
+      if (hooks?.tokensChanged) {
+        try {
+          await hooks.tokensChanged();
+        } catch (e) {
+          host.log("warn", `tokensChanged ${e.message}`, { toolId: tool.manifest.id });
+        }
+        if (generation !== themeGeneration) return;
+      }
       let before;
       let resolved2;
       do {
@@ -51442,6 +52130,31 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
           } catch (e) {
             host.log("warn", `onInput ${e.message}`, { toolId: tool.manifest.id });
           }
+        }
+        const applyTokensPatch = (patch) => {
+          if (!patch || typeof patch !== "object" || Array.isArray(patch)) return;
+          const computed = Object.fromEntries(Object.entries(patch).filter(([id3]) => !inputIds.has(id3)));
+          ({ model: model2, extras } = mergePatch(model2, extras, computed, inputIds));
+        };
+        try {
+          const patch = await runHook("onInput", (report4) => onInput({
+            id: TOKENS_CHANGED_INPUT_ID,
+            value: null,
+            model: modelForHooks(model2),
+            view: viewState,
+            lang: hookLang,
+            host,
+            report: report4
+          }), (late) => {
+            if (generation === themeGeneration) {
+              applyTokensPatch(late);
+              emit();
+            }
+          });
+          if (generation !== themeGeneration) return;
+          if (patch) applyTokensPatch(patch);
+        } catch (e) {
+          host.log("warn", `onInput ${e.message}`, { toolId: tool.manifest.id });
         }
       }
       emit();
@@ -51938,6 +52651,32 @@ function inputNeedsAssetResolve(input) {
   }
   return false;
 }
+async function choicesInForce(tokens3, requested) {
+  const opts = requested ? { selection: requested } : {};
+  try {
+    if (tokens3.snapshot) {
+      const snapshot = await tokens3.snapshot();
+      if (snapshot.document) return resolveTokenSelection(snapshot.document, opts);
+    }
+    if (tokens3.inspect) return (await tokens3.inspect(opts)).selection;
+    const themes = await tokens3.themes();
+    const groups = /* @__PURE__ */ new Map();
+    for (const theme of themes) {
+      const id3 = theme.group ?? "";
+      const group = groups.get(id3) ?? { id: id3, options: [], ...theme.kind ? { kind: theme.kind } : {} };
+      const option = theme.id ?? theme.name;
+      group.options.push({ id: option, name: theme.name });
+      if (theme.canonical) group.canonical = option;
+      groups.set(id3, group);
+    }
+    const list4 = [...groups.values()];
+    const choices2 = {};
+    for (const group of list4) choices2[group.id] = requested?.[group.id] ?? group.canonical ?? group.options[0].id;
+    return { groups: list4, choices: choices2 };
+  } catch {
+    return null;
+  }
+}
 function liveTokenScope(base, current) {
   const live2 = {};
   for (const key2 of Object.keys(base)) {
@@ -52253,12 +52992,13 @@ function mergePatch(model2, extras, patch, inputIds) {
   const newModel = hasModelPatch ? model2.map((input) => input.id in modelPatch ? { ...input, value: modelPatch[input.id] } : input) : model2;
   return { model: newModel, extras: newExtras };
 }
-var ExportHookError, HOOK_BUDGET_MS, ALPHA_EXPORT_FORMATS, DATA_FORMATS, surfaceContexts, hookFactoryCache, inRealmHookExecutor, COMPOSE_TIMEOUT_MS2;
+var ExportHookError, HOOK_BUDGET_MS, TOKENS_CHANGED_INPUT_ID, ALPHA_EXPORT_FORMATS, DATA_FORMATS, surfaceContexts, hookFactoryCache, inRealmHookExecutor, COMPOSE_TIMEOUT_MS2;
 var init_runtime = __esm({
   "engine/src/runtime.ts"() {
     "use strict";
     init_token_context();
     init_token_selection();
+    init_tool_token_axes();
     init_token_binding();
     init_policy();
     init_src();
@@ -52292,6 +53032,7 @@ var init_runtime = __esm({
       exportFile: 1e4,
       exportStill: 1e4
     };
+    TOKENS_CHANGED_INPUT_ID = "__tokens";
     ALPHA_EXPORT_FORMATS = /* @__PURE__ */ new Set(["jxl", "jxl-lossless", "png", "webp", "avif", "apng", "webp-anim", "gif"]);
     DATA_FORMATS = {
       json: "application/json",
@@ -64272,13 +65013,13 @@ var init_brand_system = __esm({
 // engine/src/token-inspect.ts
 function inspectTokenDocument(doc, opts = {}) {
   const selection = resolveTokenSelection(doc, opts);
-  const d = record9(doc) ? doc : {};
+  const d = record10(doc) ? doc : {};
   const definitions = /* @__PURE__ */ new Map();
   const diagnostics = [...selection.diagnostics];
   let nodes = 0;
   let truncated = selection.diagnostics.some((i) => i.code === "limit");
   function walk2(node, type, path, location4, set, depth) {
-    if (!record9(node)) return;
+    if (!record10(node)) return;
     if (depth > 48) {
       truncated = true;
       return;
@@ -64290,12 +65031,12 @@ function inspectTokenDocument(doc, opts = {}) {
         truncated = true;
         return;
       }
-      if (key2.startsWith("$") || !record9(child2)) continue;
+      if (key2.startsWith("$") || !record10(child2)) continue;
       const p = path ? `${path}.${key2}` : key2;
       const loc = `${location4}/${pointer(key2)}`;
       if ("$value" in child2) {
         const sources = definitions.get(p) ?? [];
-        sources.push({ set, location: loc, type: typeof child2.$type === "string" ? child2.$type : inherited3, value: structuredClone(child2.$value), active: set === null || selection.sets.includes(set), ...typeof child2.$description === "string" ? { description: child2.$description } : {}, ...record9(child2.$extensions) ? { extensions: structuredClone(child2.$extensions) } : {} });
+        sources.push({ set, location: loc, type: typeof child2.$type === "string" ? child2.$type : inherited3, value: structuredClone(child2.$value), active: set === null || selection.sets.includes(set), ...typeof child2.$description === "string" ? { description: child2.$description } : {}, ...record10(child2.$extensions) ? { extensions: structuredClone(child2.$extensions) } : {} });
         definitions.set(p, sources);
         if ("$ref" in child2) diagnostics.push({ code: "unsupported", path: p, message: "JSON Pointer references are retained but not resolved." });
       } else walk2(child2, inherited3, p, loc, set, depth + 1);
@@ -64317,7 +65058,7 @@ function inspectTokenDocument(doc, opts = {}) {
       else if (Array.isArray(v)) v.forEach((x) => {
         visit(x, depth + 1);
       });
-      else if (record9(v)) {
+      else if (record10(v)) {
         for (const [k, x] of Object.entries(v)) if (!k.startsWith("$")) visit(x, depth + 1);
       }
     }
@@ -64403,7 +65144,7 @@ function diffTokenDocuments(before, after, opts = {}, afterOpts = opts) {
   }
   return changes;
 }
-var record9, pointer, TOKEN_INSPECTION_LIMIT;
+var record10, pointer, TOKEN_INSPECTION_LIMIT;
 var init_token_inspect = __esm({
   "engine/src/token-inspect.ts"() {
     "use strict";
@@ -64412,7 +65153,7 @@ var init_token_inspect = __esm({
     init_canonical_json();
     init_token_composite();
     init_brand_system();
-    record9 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record10 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     pointer = (s) => s.replaceAll("~", "~0").replaceAll("/", "~1");
     TOKEN_INSPECTION_LIMIT = 2e4;
   }
@@ -64504,9 +65245,15 @@ function createHookWorkerCore(port, opts = {}) {
       }
     }, 250);
   }
-  function makeTokens(doc, excluded) {
+  function makeTokens(initialDoc, excluded, members = []) {
+    let doc = initialDoc;
     const byTheme = /* @__PURE__ */ new Map();
-    const excl = new Set(excluded);
+    let excl = new Set(excluded);
+    const swap = (next2, nextExcluded) => {
+      doc = next2;
+      excl = new Set(nextExcluded);
+      byTheme.clear();
+    };
     const ensure = (opts2 = {}) => {
       const key2 = tokenSelectionKey(opts2);
       let set = byTheme.get(key2);
@@ -64517,11 +65264,13 @@ function createHookWorkerCore(port, opts = {}) {
       }
       return set;
     };
-    return {
+    const tokens3 = {
       get: async (o = {}) => ensure(o),
       inspect: async (o = {}) => inspectTokenDocument(doc, o),
       resolve: async (ref2, o = {}) => ensure(o).resolve(ref2),
       themes: async () => ensure().themes(),
+      ...members.includes("axes") ? { axes: async () => tokenAxesOf(doc) } : {},
+      ...members.includes("family") ? { family: async (role, o = {}) => tokenFamily(doc, role, o, ensure) } : {},
       colors: async (o = {}) => {
         const list4 = ensure(o).colors();
         if (!excl.size) return list4;
@@ -64531,8 +65280,9 @@ function createHookWorkerCore(port, opts = {}) {
         });
       }
     };
+    return { tokens: tokens3, swap };
   }
-  function buildHost(runId, msg3) {
+  function buildHost(runId, msg3, owner3) {
     const run3 = () => runs2.get(runId);
     const host = {
       version: "1",
@@ -64546,7 +65296,11 @@ function createHookWorkerCore(port, opts = {}) {
       color: apis.color,
       geom: apis.geom
     };
-    if (msg3.tokenDoc != null) host.tokens = makeTokens(msg3.tokenDoc, msg3.tokenExcluded);
+    if (msg3.tokenDoc != null) {
+      const made = makeTokens(msg3.tokenDoc, msg3.tokenExcluded, msg3.hostShape.tokens ?? []);
+      host.tokens = made.tokens;
+      owner3.setTokens = made.swap;
+    }
     for (const [ns2, methods] of Object.entries(msg3.hostShape)) {
       if (COLOCATED_NS.has(ns2) && ns2 !== "raster") continue;
       const nsObj = host[ns2] ?? {};
@@ -64605,7 +65359,7 @@ function createHookWorkerCore(port, opts = {}) {
       let inRealmOnlyDeclared = [];
       let compileError;
       try {
-        run3.host = buildHost(msg3.runId, msg3);
+        run3.host = buildHost(msg3.runId, msg3, run3);
         const compiled3 = compile2(run3.host, msg3.hooksSource);
         run3.mod = compiled3.mod;
         inRealmOnlyDeclared = compiled3.inRealmOnlyDeclared;
@@ -64647,6 +65401,10 @@ function createHookWorkerCore(port, opts = {}) {
       }
       return;
     }
+    if (msg3.t === "tokens") {
+      if (msg3.tokenDoc != null) runs2.get(msg3.runId)?.setTokens?.(msg3.tokenDoc, Array.isArray(msg3.tokenExcluded) ? msg3.tokenExcluded : []);
+      return;
+    }
     if (msg3.t === "dispose") {
       const run3 = runs2.get(msg3.runId);
       if (run3) {
@@ -64667,6 +65425,7 @@ var init_hook_worker_core = __esm({
     init_geom_api();
     init_token_inspect();
     init_token_selection();
+    init_token_context();
     init_tokens2();
     WORKER_HOOK_NAMES = ["onInit", "onInput", "onFrame", "onLevel", "exportFile"];
     IN_REALM_ONLY_HOOK_NAMES = ["beforeExport", "afterExport", "exportStill"];
@@ -70222,7 +70981,7 @@ function canCarryWatermark(width, height) {
   const bh = Math.floor(height / N);
   return bw >= 1 && bh >= 1 && bw * bh >= MIN_IMPRINT_BLOCKS;
 }
-function mulberry32(seed) {
+function mulberry322(seed) {
   let a = seed >>> 0;
   return () => {
     a = a + 1831565813 >>> 0;
@@ -70397,7 +71156,7 @@ var init_pixel_watermark = __esm({
     CHIP_KEY_V1 = 269557340;
     CHIP_KEY_V2 = 539110766;
     deriveChip = (key2, band) => {
-      const rnd = mulberry32(key2);
+      const rnd = mulberry322(key2);
       return band.map(() => rnd() < 0.5 ? -1 : 1);
     };
     V1_CHIP = deriveChip(CHIP_KEY_V1, V1_MIDBAND);
@@ -78285,7 +79044,7 @@ var init_midi = __esm({
 });
 
 // engine/src/zzfx-compose.ts
-function mulberry322(seed) {
+function mulberry323(seed) {
   let a = seed >>> 0;
   return () => {
     a += 1831565813;
@@ -78354,7 +79113,7 @@ function arpeggio(root2, intervals, stepEvery = 2) {
   return a;
 }
 function composeSong(spec) {
-  const rng = mulberry322(spec.seed);
+  const rng = mulberry323(spec.seed);
   const scale = SCALES[spec.scale];
   const pan = spec.pan ?? 0;
   let instruments;
@@ -78561,7 +79320,7 @@ function withoutRandomness(inst) {
   return out;
 }
 function generatedSongSpec(seed, targetSec, style) {
-  const rng = mulberry322(seed >>> 0);
+  const rng = mulberry323(seed >>> 0);
   const pick = (a) => a[Math.floor(rng() * a.length)];
   const drawn = pick(ZZFXM_SEEDED_ARCHETYPES);
   const archetype = style ?? drawn;
@@ -80269,8 +81028,8 @@ function pathsFromD(g2, ox, oy, notes) {
   if (typeof d !== "string") refuse("invalid-argument", "d must be a string of SVG path data");
   if (d.length > SVG_PATH_MAX_CHARS) refuse("too-large", `path data is ${d.length} chars (limit ${SVG_PATH_MAX_CHARS})`);
   geomApi ??= makeGeomApi();
-  const checked = geomApi.parse(d);
-  if (!checked.ok) refuse(checked.code === "too-large" ? "too-large" : "invalid-path", checked.message);
+  const checked2 = geomApi.parse(d);
+  if (!checked2.ok) refuse(checked2.code === "too-large" ? "too-large" : "invalid-path", checked2.message);
   if (g2.curve !== void 0) notes.push("curve applies to points only; the commands in d decide each segment");
   if (g2.closed !== void 0) notes.push("closed applies to points only; Z closes a subpath of d");
   if (g2.tension !== void 0) notes.push("tension applies to catmull-rom points only, so it was ignored for d");
@@ -80384,7 +81143,7 @@ var init_design_path_author = __esm({
 // engine/src/design-hierarchy.ts
 function resolveDesignPages(pages = emptyPages) {
   if (!Array.isArray(pages) || !pages.length) return [{ id: DEFAULT_DESIGN_PAGE, name: "Page 1" }];
-  const resolved2 = pages.slice(0, DESIGN_HIERARCHY_LIMITS.pages).filter(record10).map((page3, n7) => ({
+  const resolved2 = pages.slice(0, DESIGN_HIERARCHY_LIMITS.pages).filter(record11).map((page3, n7) => ({
     id: key(page3.id),
     name: typeof page3.name === "string" ? page3.name : `Page ${n7 + 1}`,
     ...Number.isFinite(Number(page3.order)) && page3.order !== "" && page3.order != null ? { order: Number(page3.order) } : {}
@@ -80410,9 +81169,9 @@ function designHierarchyIndex(boxes2, pages = emptyPages) {
     result.rootsByPage.set(page3.id, []);
     result.rowsByPage.set(page3.id, []);
   }
-  if (pages.some((page3) => !record10(page3))) add3("", "page-record", "Pages must be records.");
+  if (pages.some((page3) => !record11(page3))) add3("", "page-record", "Pages must be records.");
   for (const row of boxes2) {
-    if (!record10(row)) {
+    if (!record11(row)) {
       add3("", "record", "Layers must be records.");
       continue;
     }
@@ -80657,7 +81416,7 @@ function refreshDesignGroupBounds(boxes2, pages = emptyPages, groupIds) {
   }
   return changed.size ? boxes2.map((row) => changed.get(key(row.id)) || row) : boxes2;
 }
-var DesignHierarchyError, DEFAULT_DESIGN_PAGE, DESIGN_HIERARCHY_LIMITS, emptyPages, cache2, migrationCache, key, on, record10, validId, number;
+var DesignHierarchyError, DEFAULT_DESIGN_PAGE, DESIGN_HIERARCHY_LIMITS, emptyPages, cache2, migrationCache, key, on, record11, validId, number;
 var init_design_hierarchy = __esm({
   "engine/src/design-hierarchy.ts"() {
     "use strict";
@@ -80671,7 +81430,7 @@ var init_design_hierarchy = __esm({
     migrationCache = /* @__PURE__ */ new WeakMap();
     key = (value) => value == null ? "" : String(value);
     on = (value) => value === true || value === "true" || value === 1 || value === "1";
-    record10 = (value) => !!value && typeof value === "object" && !Array.isArray(value);
+    record11 = (value) => !!value && typeof value === "object" && !Array.isArray(value);
     validId = (value) => typeof value === "string" && value.length > 0 && value.length <= DESIGN_HIERARCHY_LIMITS.id;
     number = (value) => {
       const n7 = Number(value);
@@ -80972,7 +81731,7 @@ var init_design_layer_ops = __esm({
 function topOf(tally2) {
   if (!Array.isArray(tally2)) return void 0;
   for (const entry2 of tally2) {
-    if (!record11(entry2)) continue;
+    if (!record12(entry2)) continue;
     const v = entry2.value;
     if (typeof v === "string" && v && v !== "unset" || typeof v === "number" && Number.isFinite(v)) return v;
   }
@@ -80984,11 +81743,11 @@ function clampWeight(weight, allowed) {
   return [...allowed].sort((a, b) => Math.abs(Number(a) - w) - Math.abs(Number(b) - w) || Number(a) - Number(b))[0];
 }
 function textRulesOf(brief) {
-  const type = record11(brief.type) ? brief.type : {};
+  const type = record12(brief.type) ? brief.type : {};
   const listed = Array.isArray(type.rules) && type.rules.length ? type.rules : Array.isArray(brief.houseRules) ? brief.houseRules : [];
   const out = {};
   for (const rule of listed) {
-    if (!record11(rule) || !record11(rule.parameters)) continue;
+    if (!record12(rule) || !record12(rule.parameters)) continue;
     const p = rule.parameters;
     const strings4 = (v) => Array.isArray(v) ? v.filter((s) => typeof s === "string") : [];
     if (rule.kind === "text-weight") {
@@ -81003,30 +81762,30 @@ function textRulesOf(brief) {
   return out;
 }
 function themeSlots(brief, theme) {
-  const themes = Array.isArray(brief.themes) ? brief.themes.filter(record11) : [];
+  const themes = Array.isArray(brief.themes) ? brief.themes.filter(record12) : [];
   if (!themes.length) return null;
   const wanted = theme ?? (typeof brief.theme === "string" && brief.theme ? brief.theme : void 0);
   const hit = wanted === void 0 ? themes[0] : themes.find((t) => t.name === wanted);
   if (!hit) {
-    if (theme === void 0) return record11(themes[0].semantic) ? themes[0].semantic : null;
+    if (theme === void 0) return record12(themes[0].semantic) ? themes[0].semantic : null;
     throw new Error(`theme "${theme}" is not one of the brief's themes (${themes.map((t) => String(t.name)).join(", ")}).`);
   }
-  return record11(hit.semantic) ? hit.semantic : null;
+  return record12(hit.semantic) ? hit.semantic : null;
 }
 function textStylesFromBrief(brief, opts) {
   const width = Number(opts.width) > 0 ? Number(opts.width) : 1920;
   const height = Number(opts.height) > 0 ? Number(opts.height) : width * 9 / 16;
-  const b = record11(brief) ? brief : null;
-  const type = b && record11(b.type) ? b.type : {};
-  const roles = record11(type.roles) ? type.roles : {};
-  const scaleSteps = record11(type.scale) ? type.scale : {};
-  const master = record11(type.size) && Number(type.size.width) > 0 ? Number(type.size.width) : 1280;
+  const b = record12(brief) ? brief : null;
+  const type = b && record12(b.type) ? b.type : {};
+  const roles = record12(type.roles) ? type.roles : {};
+  const scaleSteps = record12(type.scale) ? type.scale : {};
+  const master = record12(type.size) && Number(type.size.width) > 0 ? Number(type.size.width) : 1280;
   const factor = width / master;
   const rules = b ? textRulesOf(b) : {};
   const slots = b ? themeSlots(b, opts.theme) : null;
   const out = {};
   for (const id3 of STYLE_IDS) {
-    const role = record11(roles[id3]) ? roles[id3] : {};
+    const role = record12(roles[id3]) ? roles[id3] : {};
     const step = ["title", "subtitle", "body", "caption"].includes(id3) ? Number(scaleSteps[id3]) : NaN;
     const sizeAtMaster = Number(topOf(role.sizes)) || (step > 0 ? step : FALLBACK_SIZE[id3]);
     const fontSize = Math.max(1, Math.round(sizeAtMaster * factor));
@@ -81043,7 +81802,7 @@ function textStylesFromBrief(brief, opts) {
   return out;
 }
 function assertTextStyle(value, pointer2) {
-  if (!record11(value)) throw new Error(`${pointer2}: a text style is an object of style fields.`);
+  if (!record12(value)) throw new Error(`${pointer2}: a text style is an object of style fields.`);
   for (const [key2, v] of Object.entries(value)) {
     const want = STYLE_FIELDS[key2];
     if (!want) throw new Error(`${pointer2}/${key2}: unknown text style field (expected ${Object.keys(STYLE_FIELDS).join(", ")}).`);
@@ -81076,17 +81835,17 @@ function resolveTextStyle(ref2, table, pointer2) {
     if (!ref2) throw new Error(`${pointer2}: a text style id is required.`);
     return chain2(ref2, []);
   }
-  if (!record11(ref2)) throw new Error(`${pointer2}: expected a text style id or a style object.`);
+  if (!record12(ref2)) throw new Error(`${pointer2}: expected a text style id or a style object.`);
   const inline = assertTextStyle(ref2, pointer2);
   if (inline.basedOn === void 0) return withoutBase(inline);
   return { ...chain2(inline.basedOn, []), ...withoutBase(inline) };
 }
-var record11, STYLE_IDS, DESIGN_TEXT_LINE_HEIGHTS, FALLBACK_SIZE, FALLBACK_WEIGHT, MUTED, HEADLINE_SCALE, STYLE_FIELDS, ALIGNS2, VALIGNS, hexOf, withoutBase;
+var record12, STYLE_IDS, DESIGN_TEXT_LINE_HEIGHTS, FALLBACK_SIZE, FALLBACK_WEIGHT, MUTED, HEADLINE_SCALE, STYLE_FIELDS, ALIGNS2, VALIGNS, hexOf, withoutBase;
 var init_design_text_style = __esm({
   "engine/src/design-text-style.ts"() {
     "use strict";
     init_css_color();
-    record11 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record12 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     STYLE_IDS = ["title", "subtitle", "body", "caption", "label", "quote", "number", "attribution"];
     DESIGN_TEXT_LINE_HEIGHTS = Object.freeze({
       title: 1.1,
@@ -81150,7 +81909,7 @@ function hexOf2(colour) {
   return rgba2 && rgba2[3] >= 1 ? "#" + rgba2.slice(0, 3).map((n7) => n7.toString(16).padStart(2, "0")).join("") : void 0;
 }
 function frameIdOf(row) {
-  if (!record12(row) || row.kind !== "frame" && !row.$artboard) return null;
+  if (!record13(row) || row.kind !== "frame" && !row.$artboard) return null;
   return typeof row.id === "string" && row.id ? row.id : null;
 }
 function collectFrames(rows2, existing2) {
@@ -81181,23 +81940,23 @@ function makeCtx(rows2, opts, themePointer) {
     linkSlots: null,
     deferred: []
   };
-  if (record12(brief)) {
+  if (record13(brief)) {
     try {
       textStylesFromBrief(brief, { width: 1920, theme: opts.theme });
     } catch (err) {
       throw new Error(`${themePointer}: ${err instanceof Error ? err.message : String(err)}`);
     }
-    const themes = Array.isArray(brief.themes) ? brief.themes.filter(record12) : [];
+    const themes = Array.isArray(brief.themes) ? brief.themes.filter(record13) : [];
     const wanted = opts.theme ?? (typeof brief.theme === "string" && brief.theme ? brief.theme : void 0);
     const hit = (wanted ? themes.find((t) => t.name === wanted) : void 0) ?? themes[0];
-    const text10 = hit && record12(hit.semantic) ? hit.semantic.text : void 0;
+    const text10 = hit && record13(hit.semantic) ? hit.semantic.text : void 0;
     ctx.themeText = hexOf2(text10);
     const themesPointer = themePointer.replace(/\$theme$/, "$themes");
     const wantedThemes = opts.themes === "all" ? themes.map((t) => String(t.name)) : opts.themes ?? [];
     for (const name of wantedThemes) {
       if (!themes.some((t) => t.name === name)) throw new Error(`${themesPointer}: the design system has no theme "${name}"; its themes are ${themes.map((t) => String(t.name)).join(", ") || "none"}.`);
     }
-    if (wantedThemes.length > 1 && hit && record12(hit.semantic)) {
+    if (wantedThemes.length > 1 && hit && record13(hit.semantic)) {
       ctx.linkSlots = {};
       for (const [slot, value] of Object.entries(hit.semantic)) {
         const hex3 = hexOf2(value);
@@ -81207,7 +81966,7 @@ function makeCtx(rows2, opts, themePointer) {
   } else if (opts.theme !== void 0) {
     ctx.notes.push({ path: themePointer, code: "authoring.theme.unused", message: `Theme "${opts.theme}" was not applied: no design brief was supplied, so colours come from contrast with each artboard.` });
   }
-  if (!ctx.linkSlots && opts.themes !== void 0 && (opts.themes === "all" || opts.themes.length > 1) && !record12(brief)) {
+  if (!ctx.linkSlots && opts.themes !== void 0 && (opts.themes === "all" || opts.themes.length > 1) && !record13(brief)) {
     ctx.notes.push({ path: themePointer.replace(/\$theme$/, "$themes"), code: "authoring.themes.unused", message: "The themes were not applied: no design brief was supplied, so a style colour is written as a literal. Write each colour as a token reference to make it follow the theme." });
   }
   return ctx;
@@ -81218,7 +81977,7 @@ function tableFor(ctx, frame) {
   const key2 = `${width}x${height}`;
   const hit = ctx.tables.get(key2);
   if (hit) return hit;
-  const base = textStylesFromBrief(record12(ctx.brief) ? ctx.brief : null, { width, height, theme: ctx.theme });
+  const base = textStylesFromBrief(record13(ctx.brief) ? ctx.brief : null, { width, height, theme: ctx.theme });
   const table = { ...base };
   for (const [id3, style] of Object.entries(ctx.styles)) {
     table[id3] = base[id3] && style.basedOn === void 0 ? { ...base[id3], ...style } : style;
@@ -81256,7 +82015,7 @@ function resolvedTextFields(ctx, ref2, frame, ownBg, pointer2, stylePointer) {
   const table = tableFor(ctx, frame);
   let chain2;
   if (ref2 === void 0) chain2 = table.body ? { ...table.body } : {};
-  else if (typeof ref2 === "string" || record12(ref2)) chain2 = resolveTextStyle(ref2, table, stylePointer);
+  else if (typeof ref2 === "string" || record13(ref2)) chain2 = resolveTextStyle(ref2, table, stylePointer);
   else throw new Error(`${stylePointer}: expected a text style id or a style object.`);
   const style = { ...AGENT_TEXT_BASE, ...chain2 };
   if (style.fg === void 0) {
@@ -81369,7 +82128,7 @@ function lowerRow(ctx, row, pointer2, placed2, keyAt) {
 }
 function styleSetsColour(ctx, ref2, table) {
   let id3;
-  if (record12(ref2)) {
+  if (record13(ref2)) {
     if (ref2.fg !== void 0) return true;
     id3 = typeof ref2.basedOn === "string" ? ref2.basedOn : void 0;
   } else id3 = typeof ref2 === "string" ? ref2 : "body";
@@ -81434,7 +82193,7 @@ function checkMacroRow(row, key2, pointer2) {
       throw new Error(`${pointer2}/${seg2(k)}: a macro row holds only id, $in and ${key2}; put row fields in the templates.`);
   }
   if (row.id !== void 0 && (typeof row.id !== "string" || !row.id)) throw new Error(`${pointer2}/id: expected a non-empty string.`);
-  if (!record12(row[key2])) throw new Error(`${pointer2}/${key2}: expected an object.`);
+  if (!record13(row[key2])) throw new Error(`${pointer2}/${key2}: expected an object.`);
 }
 function checkRowPart(part, pointer2, what) {
   for (const k of ["$in", "$artboard", ...MACRO_KEYS]) {
@@ -81447,7 +82206,7 @@ function checkRowPart(part, pointer2, what) {
     throw new Error(`${pointer2}/group: "narration:" groups belong to the narration tool.`);
 }
 function checkTemplate(t, p) {
-  if (!record12(t)) throw new Error(`${p}: a template is an object of row fields.`);
+  if (!record13(t)) throw new Error(`${p}: a template is an object of row fields.`);
   checkRowPart(t, p, "a template");
   if (t.slot !== void 0 && (typeof t.slot !== "string" || !t.slot)) throw new Error(`${p}/slot: expected a non-empty string.`);
   if (t.at !== void 0 && t.at !== "item" && t.at !== "artboard") throw new Error(`${p}/at: expected item or artboard.`);
@@ -81479,7 +82238,7 @@ function slotRows(templates, templatePointer, slotValueOf, vars, macroId, inId, 
       filled2 = kind === "text" ? "text" : kind === "path" ? "$d" : kind === "image" ? "image" : void 0;
       if (!filled2) throw new Error(`${pointer2}: a ${kind} slot cannot take a string; give it an object of fields.`);
       row[filled2] = said.value;
-    } else if (said && record12(said.value)) {
+    } else if (said && record13(said.value)) {
       checkRowPart(said.value, pointer2, "an item");
       for (const meta of TEMPLATE_META) if (meta !== "at" && said.value[meta] !== void 0) throw new Error(`${pointer2}/${meta}: an item cannot rename a slot.`);
       Object.assign(row, said.value);
@@ -81487,7 +82246,7 @@ function slotRows(templates, templatePointer, slotValueOf, vars, macroId, inId, 
     } else if (said && said.value !== void 0) {
       throw new Error(`${pointer2}: a slot value is a string, null or an object of fields.`);
     }
-    const stated = said && record12(said.value) ? said.value : void 0;
+    const stated = said && record13(said.value) ? said.value : void 0;
     const keyAt = (key2) => key2 === filled2 ? said.pointer : stated && Object.hasOwn(stated, key2) ? `${said.pointer}/${seg2(key2)}` : `${templatePointer(k)}/${seg2(key2)}`;
     const at = (stated && stated.at !== void 0 ? stated.at : template.at) ?? "item";
     if (at !== "item" && at !== "artboard") throw new Error(`${keyAt("at")}: expected item or artboard.`);
@@ -81510,7 +82269,7 @@ function itemValues(templates, item2, pointer2) {
     if (k < 0) throw new Error(`${pointer2}: a string item needs a text template to fill.`);
     return (i) => i === k ? { value: item2, pointer: pointer2 } : void 0;
   }
-  if (!record12(item2)) throw new Error(`${pointer2}: an item is a string or an object of slot values.`);
+  if (!record13(item2)) throw new Error(`${pointer2}: an item is a string or an object of slot values.`);
   const bySlot = new Map(templates.map((t, k) => [t.slot, k]));
   for (const key2 of Object.keys(item2)) {
     if (!bySlot.has(key2)) throw new Error(`${pointer2}/${seg2(key2)}: no template has slot "${key2}".`);
@@ -81530,7 +82289,7 @@ function dividerRow(divider, pointer2, macroId, inId, vars, from, to) {
 }
 function checkDivider(value, pointer2, across) {
   if (value === void 0) return void 0;
-  if (!record12(value)) throw new Error(`${pointer2}: a divider is an object.`);
+  if (!record13(value)) throw new Error(`${pointer2}: a divider is an object.`);
   checkRowPart(value, pointer2, "a divider");
   for (const k of Object.keys(value)) {
     if (k.startsWith("$") || k === "kind" || k === "path" || k === "slot" || k === "at")
@@ -81619,7 +82378,7 @@ function expandTable(row, pointer2, guard) {
   if (!Array.isArray(t.columns) || !t.columns.length) throw new Error(`${p}/columns: expected a non-empty array of columns.`);
   const columns = t.columns.map((col, c) => {
     const cp = `${p}/columns/${c}`;
-    if (!record12(col)) throw new Error(`${cp}: a column is a template or an object with cell templates.`);
+    if (!record13(col)) throw new Error(`${cp}: a column is a template or an object with cell templates.`);
     if (col.cell !== void 0) {
       for (const k of Object.keys(col)) if (!["x", "y", "cell"].includes(k)) throw new Error(`${cp}/${seg2(k)}: a column with cell templates holds only x, y and cell.`);
       return {
@@ -81647,7 +82406,7 @@ function expandTable(row, pointer2, guard) {
     let labelValue;
     let cellsPointer = rp;
     if (Array.isArray(value)) cells = value;
-    else if (record12(value) && Array.isArray(value.cells)) {
+    else if (record13(value) && Array.isArray(value.cells)) {
       for (const k of Object.keys(value)) if (k !== "label" && k !== "cells") throw new Error(`${rp}/${seg2(k)}: a row holds label and cells.`);
       cells = value.cells;
       labelValue = value.label;
@@ -81694,7 +82453,7 @@ function expandMacro(row, key2, pointer2, guard) {
 }
 function hasDesignAuthoring(value) {
   if (Array.isArray(value)) return value.some((v) => hasDesignAuthoring(v));
-  if (!record12(value)) return false;
+  if (!record13(value)) return false;
   if (Object.keys(value).some((k) => k.startsWith("$"))) return true;
   for (const key2 of ["boxes", "values", "inputs", "layer", "set", "layerOperations", "layerPatches"]) {
     if (value[key2] !== void 0 && hasDesignAuthoring(value[key2])) return true;
@@ -81741,7 +82500,7 @@ function finishNotes(ctx) {
 function expandRows(rows2, opts, base, pointerOf, before = 0, shared) {
   const max = opts.maxRows ?? MAX_ROWS;
   const over = (pointer2) => new Error(before ? `${pointer2}: the expansion takes the call past the cap of ${max} rows (the document already holds ${before}).` : `${pointer2}: the expansion gives more than the cap of ${max} rows.`);
-  const refsIn = (row) => !!opts.tokens && record12(row) && hasDesignColourRefs([row], COLOUR_FIELDS, "tokenLinks", false);
+  const refsIn = (row) => !!opts.tokens && record13(row) && hasDesignColourRefs([row], COLOUR_FIELDS, "tokenLinks", false);
   if (!rows2.some((row) => hasDollar(row) || refsIn(row))) {
     if (before + rows2.length > max) throw new Error(`${base || "/"}: ${before + rows2.length} rows is more than the cap of ${max}.`);
     return { rows: rows2.slice(), notes: [], expanded: false };
@@ -81775,7 +82534,7 @@ function expandRows(rows2, opts, base, pointerOf, before = 0, shared) {
     for (const g2 of generated) push(lowerRow(ctx, g2.row, g2.pointer, g2.placed, g2.keyAt), g2.pointer, g2.keyAt?.("id"));
   });
   const stored = /* @__PURE__ */ new Set();
-  for (const row of [...out.filter((r5) => !authored.has(r5)), ...opts.existing ?? []]) if (record12(row) && row.id !== void 0) stored.add(row.id);
+  for (const row of [...out.filter((r5) => !authored.has(r5)), ...opts.existing ?? []]) if (record13(row) && row.id !== void 0) stored.add(row.id);
   const seen = /* @__PURE__ */ new Map();
   for (const [row, at] of authored) {
     if (row.id === void 0) continue;
@@ -81799,8 +82558,8 @@ function expandDesignAuthoringDocument(doc, opts = {}) {
     const r6 = expandDesignAuthoring(doc, { ...opts, pointer: opts.pointer ?? "" });
     return { values: { boxes: r6.rows }, ...r6 };
   }
-  if (!record12(doc)) throw new Error("/: a Design document is a rows array, an object with boxes, or Design input values.");
-  const holder = record12(doc.values) ? doc.values : doc;
+  if (!record13(doc)) throw new Error("/: a Design document is a rows array, an object with boxes, or Design input values.");
+  const holder = record13(doc.values) ? doc.values : doc;
   const at = holder === doc ? "" : "/values";
   let boxes2 = holder.boxes;
   if (typeof boxes2 === "string") {
@@ -81819,7 +82578,7 @@ function expandDesignAuthoringDocument(doc, opts = {}) {
     throw new Error(`${themes.pointer}: expected "all" or a list of theme names.`);
   const docStyles = {};
   if (styles.value !== void 0) {
-    if (!record12(styles.value)) throw new Error(`${styles.pointer}: expected an object of named text styles.`);
+    if (!record13(styles.value)) throw new Error(`${styles.pointer}: expected an object of named text styles.`);
     for (const [id3, style] of Object.entries(styles.value)) docStyles[id3] = assertTextStyle(style, `${styles.pointer}/${seg2(id3)}`);
   }
   if (theme.value !== void 0 && (typeof theme.value !== "string" || !theme.value)) throw new Error(`${theme.pointer}: expected a theme name.`);
@@ -81856,7 +82615,7 @@ function applyAuthoredLayerOperations(rows2, ops, fieldDefault = (_field, fallba
   ops.forEach((op, index2) => {
     const at = `${base}/${index2}`;
     let batch = [op];
-    if (record12(op) && op.op === "add" && (hasDollar(op.layer) || colourRefsFor(opts, op.layer))) {
+    if (record13(op) && op.op === "add" && (hasDollar(op.layer) || colourRefsFor(opts, op.layer))) {
       ctx ??= makeCtx([op.layer], { ...opts, existing: current }, themePointerFor(`${at}/layer`));
       const expanded = expandRows([op.layer], { ...opts, existing: current }, `${at}/layer`, () => `${at}/layer`, current.length, ctx);
       notes.push(...expanded.notes);
@@ -81921,7 +82680,7 @@ function lowerPatchSet(ctx, set, target2, pointer2) {
   return out;
 }
 function colourRefsFor(holder, row) {
-  return !!holder.tokens && record12(row) && hasDesignColourRefs([row], COLOUR_FIELDS, "tokenLinks", false);
+  return !!holder.tokens && record13(row) && hasDesignColourRefs([row], COLOUR_FIELDS, "tokenLinks", false);
 }
 function applyAuthoredLayerPatches(rows2, patches, opts = {}) {
   const base = opts.pointer ?? "/layerPatches";
@@ -81935,15 +82694,15 @@ function applyAuthoredLayerPatches(rows2, patches, opts = {}) {
   patches.forEach((patch, index2) => {
     const at = `${base}/${index2}`;
     let next2 = patch;
-    const matches3 = record12(patch) ? current.filter((row) => record12(row) && row.id === patch.id) : [];
+    const matches3 = record13(patch) ? current.filter((row) => record13(row) && row.id === patch.id) : [];
     const target2 = matches3.length === 1 ? matches3[0] : void 0;
-    if (record12(patch) && (hasDollar(patch.set) || colourRefsFor(opts, patch.set)) && target2) {
+    if (record13(patch) && (hasDollar(patch.set) || colourRefsFor(opts, patch.set)) && target2) {
       if (ctx) ctx.frames = collectFrames(current, opts.existing);
       else ctx = makeCtx(current, opts, "/$theme");
       next2 = { ...patch, set: lowerPatchSet(ctx, patch.set, target2, `${at}/set`) };
     }
-    if (target2 && target2.kind === "frame" && record12(patch) && record12(patch.set) && (patch.set.x !== void 0 || patch.set.y !== void 0)) {
-      const children2 = current.filter((row) => record12(row) && row.kind !== "frame" && row.frame === target2.id).length;
+    if (target2 && target2.kind === "frame" && record13(patch) && record13(patch.set) && (patch.set.x !== void 0 || patch.set.y !== void 0)) {
+      const children2 = current.filter((row) => record13(row) && row.kind !== "frame" && row.frame === target2.id).length;
       if (children2) {
         notes.push({ path: `${at}/set`, code: "authoring.frame.children", message: `Artboard "${String(target2.id)}" moved; its ${children2} layer${children2 === 1 ? "" : "s"} keep their canvas position. Move them too, or author them with $in after the move.` });
       }
@@ -81957,7 +82716,7 @@ function applyAuthoredLayerPatches(rows2, patches, opts = {}) {
   if (ctx) notes.push(...finishNotes(ctx));
   return { rows: current, notes };
 }
-var MAX_ROWS, ROW_KEYS, PATH_KEYS, PATCH_KEYS, MACRO_KEYS, DOC_KEYS, COLOUR_FIELDS, TEXT_SLOT_ORDER, ADD_OP_KEYS, STYLE_ROW_FIELDS, AGENT_TEXT_BASE, KIND_DEFAULTS, PAINT_KEYS, TEMPLATE_META, record12, dollarKeys, hasDollar, seg2, tidy2, optionalNumber, contrast, inkOn, PATH_ERROR_FIELDS, fillId;
+var MAX_ROWS, ROW_KEYS, PATH_KEYS, PATCH_KEYS, MACRO_KEYS, DOC_KEYS, COLOUR_FIELDS, TEXT_SLOT_ORDER, ADD_OP_KEYS, STYLE_ROW_FIELDS, AGENT_TEXT_BASE, KIND_DEFAULTS, PAINT_KEYS, TEMPLATE_META, record13, dollarKeys, hasDollar, seg2, tidy2, optionalNumber, contrast, inkOn, PATH_ERROR_FIELDS, fillId;
 var init_design_authoring = __esm({
   "engine/src/design-authoring.ts"() {
     "use strict";
@@ -81988,9 +82747,9 @@ var init_design_authoring = __esm({
     };
     PAINT_KEYS = ["stroke", "strokeW", "headStart", "headEnd", "strokeCap", "strokeJoin"];
     TEMPLATE_META = ["slot", "at"];
-    record12 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    record13 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     dollarKeys = (v) => Object.keys(v).filter((k) => k.startsWith("$"));
-    hasDollar = (v) => record12(v) && Object.keys(v).some((k) => k.startsWith("$"));
+    hasDollar = (v) => record13(v) && Object.keys(v).some((k) => k.startsWith("$"));
     seg2 = (key2) => String(key2).replace(/~/g, "~0").replace(/\//g, "~1");
     tidy2 = (n7) => Math.round(n7 * 1e6) / 1e6 + 0;
     optionalNumber = (value, pointer2, fallback) => value === void 0 ? fallback : numberAt(value, pointer2);
@@ -82011,7 +82770,7 @@ var init_design_authoring = __esm({
 });
 
 // engine/src/emf.ts
-function record13(iType, bodyLen, writeBody) {
+function record14(iType, bodyLen, writeBody) {
   const size = 8 + bodyLen;
   const buf = new ArrayBuffer(size);
   const dv = new DataView(buf);
@@ -82032,7 +82791,7 @@ function bboxOf(points) {
   return { left, top, right, bottom };
 }
 function recMoveTo(x, y) {
-  return record13(EMR_MOVETOEX, 8, (dv, o) => {
+  return record14(EMR_MOVETOEX, 8, (dv, o) => {
     dv.setInt32(o, clampInt2(x), true);
     dv.setInt32(o + 4, clampInt2(y), true);
   });
@@ -82040,7 +82799,7 @@ function recMoveTo(x, y) {
 function recPoly(iType, pts, anchor) {
   const n7 = pts.length;
   const bodyLen = 16 + 4 + 8 * n7;
-  return record13(iType, bodyLen, (dv, o) => {
+  return record14(iType, bodyLen, (dv, o) => {
     setRect(dv, o, bboxOf(anchor ? [anchor, ...pts] : pts));
     dv.setUint32(o + 16, n7, true);
     let p = o + 20;
@@ -82163,7 +82922,7 @@ function recStretchDibits(prim) {
 }
 function recCreateFontW(handle, prim) {
   const tenths = clampInt2(-(prim.rotation || 0) * 10);
-  return record13(EMR_EXTCREATEFONTINDIRECTW, 96, (dv, o) => {
+  return record14(EMR_EXTCREATEFONTINDIRECTW, 96, (dv, o) => {
     dv.setUint32(o, handle, true);
     dv.setInt32(o + 4, -Math.max(1, clampInt2(prim.fontSize)), true);
     dv.setInt32(o + 8, 0, true);
@@ -82184,7 +82943,7 @@ function recExtTextOutW(prim, canvasW, canvasH, exScale, eyScale) {
   const strBytes = 2 * n7;
   const pad = (4 - strBytes % 4) % 4;
   const bodyLen = 68 + strBytes + pad;
-  return record13(EMR_EXTTEXTOUTW, bodyLen, (dv, o) => {
+  return record14(EMR_EXTTEXTOUTW, bodyLen, (dv, o) => {
     setRect(dv, o, { left: 0, top: 0, right: Math.max(0, canvasW - 1), bottom: Math.max(0, canvasH - 1) });
     dv.setUint32(o + 16, GM_COMPATIBLE, true);
     dv.setFloat32(o + 20, exScale, true);
@@ -82333,19 +83092,19 @@ var init_emf = __esm({
       dv.setInt32(off + 8, clampInt2(b.right), true);
       dv.setInt32(off + 12, clampInt2(b.bottom), true);
     };
-    recBeginPath = () => record13(EMR_BEGINPATH, 0);
-    recEndPath = () => record13(EMR_ENDPATH, 0);
-    recCloseFigure = () => record13(EMR_CLOSEFIGURE, 0);
-    recSetPolyFillMode = (mode3) => record13(EMR_SETPOLYFILLMODE, 4, (dv, o) => dv.setUint32(o, mode3, true));
-    recSelectObject = (handle) => record13(EMR_SELECTOBJECT, 4, (dv, o) => dv.setUint32(o, handle >>> 0, true));
-    recDeleteObject = (handle) => record13(EMR_DELETEOBJECT, 4, (dv, o) => dv.setUint32(o, handle >>> 0, true));
-    recCreateBrush = (handle, color6) => record13(EMR_CREATEBRUSHINDIRECT, 16, (dv, o) => {
+    recBeginPath = () => record14(EMR_BEGINPATH, 0);
+    recEndPath = () => record14(EMR_ENDPATH, 0);
+    recCloseFigure = () => record14(EMR_CLOSEFIGURE, 0);
+    recSetPolyFillMode = (mode3) => record14(EMR_SETPOLYFILLMODE, 4, (dv, o) => dv.setUint32(o, mode3, true));
+    recSelectObject = (handle) => record14(EMR_SELECTOBJECT, 4, (dv, o) => dv.setUint32(o, handle >>> 0, true));
+    recDeleteObject = (handle) => record14(EMR_DELETEOBJECT, 4, (dv, o) => dv.setUint32(o, handle >>> 0, true));
+    recCreateBrush = (handle, color6) => record14(EMR_CREATEBRUSHINDIRECT, 16, (dv, o) => {
       dv.setUint32(o, handle, true);
       dv.setUint32(o + 4, BS_SOLID, true);
       dv.setUint32(o + 8, colorRef(color6), true);
       dv.setUint32(o + 12, 0, true);
     });
-    recExtCreatePen = (handle, color6, width) => record13(EMR_EXTCREATEPEN, 44, (dv, o) => {
+    recExtCreatePen = (handle, color6, width) => record14(EMR_EXTCREATEPEN, 44, (dv, o) => {
       dv.setUint32(o, handle, true);
       dv.setUint32(o + 4, 0, true);
       dv.setUint32(o + 8, 0, true);
@@ -82358,15 +83117,15 @@ var init_emf = __esm({
       dv.setUint32(o + 36, 0, true);
       dv.setUint32(o + 40, 0, true);
     });
-    recPaint = (iType, bbox) => record13(iType, 16, (dv, o) => setRect(dv, o, bbox));
-    recEof = () => record13(EMR_EOF, 12, (dv, o) => {
+    recPaint = (iType, bbox) => record14(iType, 16, (dv, o) => setRect(dv, o, bbox));
+    recEof = () => record14(EMR_EOF, 12, (dv, o) => {
       dv.setUint32(o, 0, true);
       dv.setUint32(o + 4, 16, true);
       dv.setUint32(o + 8, 20, true);
     });
-    recSetBkMode = (mode3) => record13(EMR_SETBKMODE, 4, (dv, o) => dv.setUint32(o, mode3, true));
-    recSetTextAlign = (mode3) => record13(EMR_SETTEXTALIGN, 4, (dv, o) => dv.setUint32(o, mode3, true));
-    recSetTextColor = (color6) => record13(EMR_SETTEXTCOLOR, 4, (dv, o) => dv.setUint32(o, colorRef(color6), true));
+    recSetBkMode = (mode3) => record14(EMR_SETBKMODE, 4, (dv, o) => dv.setUint32(o, mode3, true));
+    recSetTextAlign = (mode3) => record14(EMR_SETTEXTALIGN, 4, (dv, o) => dv.setUint32(o, mode3, true));
+    recSetTextColor = (color6) => record14(EMR_SETTEXTCOLOR, 4, (dv, o) => dv.setUint32(o, colorRef(color6), true));
   }
 });
 
@@ -98836,347 +99595,6 @@ var init_pdf_text = __esm({
   }
 });
 
-// engine/src/colourway.ts
-function colourwayAxis(doc) {
-  return axisOfKind(readTokenAxes(doc).axes, "colourway");
-}
-function canonicalFirst(axis) {
-  const canonical3 = axis.options.find((o) => o.id === axis.canonical);
-  return canonical3 ? [canonical3, ...axis.options.filter((o) => o !== canonical3)] : [...axis.options];
-}
-function colourwayFamily(doc, role = "primary", selection = {}) {
-  const axis = colourwayAxis(doc);
-  if (!axis) return [];
-  const path = role.includes(".") ? role : `color.semantic.${role}`;
-  const out = [];
-  for (const option of canonicalFirst(axis)) {
-    const swatch = createTokenSet(doc, { selection: { ...selection, [axis.group]: option.id } }).colors().find((s) => s.path === path);
-    if (swatch?.value) out.push({ id: option.id, name: option.name, canonical: option.canonical, value: swatch.value });
-  }
-  return out;
-}
-function fnv1a(text10) {
-  let h = 2166136261;
-  for (let i = 0; i < text10.length; i += 1) {
-    h ^= text10.charCodeAt(i);
-    h = Math.imul(h, 16777619) >>> 0;
-  }
-  return h >>> 0;
-}
-function mulberry323(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = a + 1831565813 >>> 0;
-    let t = a;
-    t = Math.imul(t ^ t >>> 15, t | 1);
-    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
-function pickColourway(axis, policy, ctx = {}) {
-  const options2 = canonicalFirst(axis);
-  if (!options2.length) throw new Error("pickColourway: the colourway group has no options.");
-  const pick = (i) => ({ group: axis.group, option: options2[i].id });
-  const n7 = options2.length;
-  const index2 = nonNegativeIndex(ctx.index);
-  switch (policy) {
-    case "cycle":
-      return pick(index2 % n7);
-    case "by-key":
-      return ctx.key ? pick(fnv1a(ctx.key) % n7) : pick(0);
-    case "shuffle": {
-      if (ctx.seed === void 0 || ctx.seed === "") return pick(0);
-      const base = typeof ctx.seed === "number" ? ctx.seed >>> 0 : fnv1a(ctx.seed);
-      const round11 = Math.floor(index2 / n7);
-      const rand = mulberry323((base ^ Math.imul(round11 + 1, 2654435761)) >>> 0);
-      const order = options2.map((_, i) => i);
-      for (let i = n7 - 1; i > 0; i -= 1) {
-        const j = Math.floor(rand() * (i + 1));
-        [order[i], order[j]] = [order[j], order[i]];
-      }
-      return pick(order[index2 % n7]);
-    }
-    case "by-date": {
-      const date = typeof ctx.date === "string" ? ctx.date.slice(0, 10) : "";
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return pick(0);
-      const hit = axis.options.find((o) => o.window && (!o.window.from || o.window.from <= date) && (!o.window.to || date <= o.window.to));
-      return hit ? { group: axis.group, option: hit.id } : pick(0);
-    }
-    default:
-      return pick(0);
-  }
-}
-function withColourway(selection, pick) {
-  return { ...selection ?? {}, [pick.group]: pick.option };
-}
-function nodeAt(root2, path) {
-  let node = root2;
-  for (const seg4 of path.split(".")) {
-    if (!record14(node)) return void 0;
-    node = node[seg4];
-  }
-  return record14(node) && "$value" in node ? node : void 0;
-}
-function ensureGroupAt(root2, segs) {
-  let node = root2;
-  for (const seg4 of segs) {
-    if (!record14(node[seg4])) node[seg4] = {};
-    node = node[seg4];
-  }
-  return node;
-}
-function setNodeAt(root2, path, value) {
-  const segs = path.split(".");
-  ensureGroupAt(root2, segs.slice(0, -1))[segs[segs.length - 1]] = value;
-}
-function setOrder(doc) {
-  const keys2 = Object.keys(doc).filter((k) => !k.startsWith("$") && record14(doc[k]));
-  const meta = record14(doc.$metadata) ? doc.$metadata : {};
-  const order = Array.isArray(meta.tokenSetOrder) ? meta.tokenSetOrder.filter((s) => typeof s === "string" && keys2.includes(s)) : [];
-  return [.../* @__PURE__ */ new Set([...order, ...keys2])];
-}
-function colourwaySetOf(doc, axis, option) {
-  const entry2 = themeEntries(doc).find((t) => groupOf(t) === axis.group && optionIdOf(t) === option);
-  const sets = entry2 ? enabledSets(entry2) : [];
-  return sets.length === 1 ? sets[0] : null;
-}
-function checkedSelections(axes, mode3) {
-  let combos = [{}];
-  for (const axis of axes) {
-    if (axis.group === mode3.group) continue;
-    combos = combos.flatMap((c) => axis.options.map((o) => ({ ...c, [axis.group]: o.id })));
-    if (combos.length * mode3.options.length > MAX_CHECKED_SELECTIONS) return null;
-  }
-  return mode3.options.flatMap((o) => combos.map((c) => ({ ...c, [mode3.group]: o.id })));
-}
-function snapshotSelections(doc, selections2) {
-  const out = /* @__PURE__ */ new Map();
-  for (const selection of selections2) {
-    const key2 = JSON.stringify(Object.entries(selection).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
-    for (const e of createTokenSet(doc, { selection }).query()) {
-      out.set(`${key2}\0${e.path}`, JSON.stringify([e.type, e.value, e.description ?? null, e.extensions ?? null]));
-    }
-  }
-  return out;
-}
-function unchanged(before, after, selections2, verb) {
-  const was = snapshotSelections(before, selections2), now2 = snapshotSelections(after, selections2);
-  const changed = [...new Set([...was].filter(([key2, value]) => now2.get(key2) !== value).map(([key2]) => key2.split("\0")[1]))];
-  return changed.length ? [`${verb} would change ${changed.slice(0, 3).join(", ")}${changed.length > 3 ? ` and ${changed.length - 3} more` : ""}.`] : [];
-}
-function locateSlot(doc, role, mode3) {
-  const path = `color.semantic.${role}`;
-  const order = setOrder(doc);
-  const entries = themeEntries(doc);
-  const modeEntries = entries.filter((t) => groupOf(t) === mode3.group);
-  const enabledBy = new Map(modeEntries.map((t) => [optionIdOf(t), enabledSets(t)]));
-  const shared = order.filter((set) => [...enabledBy.values()].every((sets) => sets.includes(set)));
-  const reasons = [];
-  const foreign = [...new Set(entries.filter((t) => groupOf(t) !== mode3.group).flatMap(enabledSets))].filter((set) => nodeAt(doc[set], path));
-  if (foreign.length) return { reasons: [`${path} is also set by ${foreign.join(", ")}, which another theme group turns on, so a colourway cannot re-point it.`] };
-  const slots = [];
-  const base = resolveTokenSelection(doc).choices;
-  for (const option of mode3.options) {
-    const mine = enabledBy.get(option.id) ?? [];
-    const others = [...enabledBy].filter(([id3]) => id3 !== option.id).flatMap(([, sets]) => sets);
-    const owned = order.filter((set) => mine.includes(set) && !others.includes(set));
-    const active = resolveTokenSelection(doc, { selection: { ...base, [mode3.group]: option.id } }).sets;
-    const winner = active.filter((set) => nodeAt(doc[set], path)).at(-1);
-    if (!winner) {
-      reasons.push(`The ${option.name} theme does not define ${path}.`);
-      continue;
-    }
-    let own3;
-    if (owned.includes(winner)) own3 = winner;
-    else if (shared.includes(winner)) {
-      own3 = owned.at(-1);
-      if (!own3) {
-        reasons.push(`The ${option.name} theme has no token set of its own to hold the ${role} link.`);
-        continue;
-      }
-      if (order.indexOf(own3) < order.indexOf(winner)) {
-        reasons.push(`The ${own3} set comes before ${winner}, so a link written there would not take effect.`);
-        continue;
-      }
-    } else {
-      reasons.push(`${path} in the ${option.name} theme comes from the ${winner} set, which this theme does not own and not every theme shares.`);
-      continue;
-    }
-    const node = nodeAt(doc[winner], path);
-    const ext = record14(node.$extensions) ? node.$extensions[TOKEN_EXT] : void 0;
-    const carried = record14(ext) ? COLOUR_DATA.filter((k) => ext[k] !== void 0) : [];
-    if (carried.length) {
-      reasons.push(`${path} in the ${option.name} theme carries its own ${carried.join(" and ")}. Move the colour to a named colour first, so each colourway keeps its own print data.`);
-      continue;
-    }
-    slots.push({ mode: option.id, own: own3, winner, node });
-  }
-  return reasons.length ? { reasons } : { slots };
-}
-function isLifted(doc, role, mode3) {
-  const base = resolveTokenSelection(doc).choices;
-  return mode3.options.every((option) => {
-    const active = resolveTokenSelection(doc, { selection: { ...base, [mode3.group]: option.id } }).sets;
-    const winner = active.filter((set) => nodeAt(doc[set], `color.semantic.${role}`)).at(-1);
-    return winner !== void 0 && nodeAt(doc[winner], `color.semantic.${role}`).$value === `{${colourwayPath(option.id, role)}}`;
-  });
-}
-function liftRole(next2, role, mode3, colourways) {
-  if (isLifted(next2, role, mode3)) return [];
-  const located = locateSlot(next2, role, mode3);
-  if ("reasons" in located) return located.reasons;
-  const sets = /* @__PURE__ */ new Map();
-  for (const option of colourways.options) {
-    const set = colourwaySetOf(next2, colourways, option.id);
-    if (!set) return [`The ${option.name} colourway turns on no token set or several, so Lolly cannot add its ${role}.`];
-    sets.set(option.id, set);
-  }
-  for (const slot of located.slots) {
-    const target2 = colourwayPath(slot.mode, role);
-    for (const option of colourways.options) {
-      const set = sets.get(option.id);
-      if (!record14(next2[set])) next2[set] = {};
-      if (!nodeAt(next2[set], target2)) {
-        const primitive = { $value: structuredClone(slot.node.$value) };
-        if (typeof slot.node.$type === "string") primitive.$type = slot.node.$type;
-        setNodeAt(next2[set], target2, primitive);
-        ensureGroupAt(next2[set], ["color", "colourway"]).$type ??= "color";
-      }
-    }
-    const link = { ...structuredClone(slot.node), $value: `{${target2}}` };
-    setNodeAt(next2[slot.own], `color.semantic.${role}`, link);
-  }
-  return [];
-}
-function annotate(entry2, axis) {
-  if (!record14(entry2.$extensions)) entry2.$extensions = {};
-  const ext = entry2.$extensions;
-  if (!record14(ext[TOKEN_EXT])) ext[TOKEN_EXT] = {};
-  const mine = ext[TOKEN_EXT];
-  mine.axis = { ...record14(mine.axis) ? mine.axis : {}, ...axis };
-}
-function themeIds(doc) {
-  return new Set(themeEntries(doc).flatMap((t) => [t.id, t.name].filter((v) => typeof v === "string")));
-}
-function liftToColourways(doc, opts = {}) {
-  if (!record14(doc) || !Array.isArray(doc.$themes) || !doc.$themes.length) return { ok: false, reasons: ["Colourways need a design system with light and dark themes."] };
-  const { axes } = readTokenAxes(doc);
-  if (axisOfKind(axes, "colourway")) return { ok: true, doc: structuredClone(doc) };
-  const mode3 = modeAxis(axes);
-  if (!mode3) return { ok: false, reasons: ["Mark which theme group holds light and dark before adding colourways."] };
-  const id3 = opts.id ?? "main";
-  const name = opts.name?.trim() || "Main";
-  if (!COLOURWAY_ID.test(id3)) return { ok: false, reasons: [`${id3} is not a usable colourway id: use lowercase letters, digits and hyphens.`] };
-  if (themeIds(doc).has(id3)) return { ok: false, reasons: [`The design system already has a theme called ${id3}.`] };
-  const selections2 = checkedSelections(axes, mode3);
-  if (!selections2) return { ok: false, reasons: tooMany("lifting") };
-  const next2 = structuredClone(doc);
-  for (const entry2 of themeEntries(next2)) if (groupOf(entry2) === mode3.group && !mode3.kind) annotate(entry2, { kind: "mode" });
-  const set = colourwaySetName(id3);
-  next2[set] = {};
-  const canonical3 = { id: id3, name, group: COLOURWAY_GROUP, selectedTokenSets: { [set]: "enabled" } };
-  annotate(canonical3, { kind: "colourway", canonical: true });
-  next2.$themes.push(canonical3);
-  if (record14(next2.$metadata) && Array.isArray(next2.$metadata.tokenSetOrder)) next2.$metadata.tokenSetOrder = [...next2.$metadata.tokenSetOrder, set];
-  const colourways = { group: COLOURWAY_GROUP, kind: "colourway", canonical: id3, rotation: null, options: [{ id: id3, name, canonical: true }] };
-  const reasons = COLOURWAY_ROLES.flatMap((role) => liftRole(next2, role, mode3, colourways));
-  if (reasons.length) return { ok: false, reasons };
-  const changed = unchanged(doc, next2, selections2, "Lifting");
-  return changed.length ? { ok: false, reasons: changed } : { ok: true, doc: next2 };
-}
-function addColourway(doc, opts) {
-  const lifted = liftToColourways(doc, opts.lift);
-  if (!lifted.ok) return lifted;
-  const next2 = lifted.doc;
-  const { axes } = readTokenAxes(next2);
-  const mode3 = modeAxis(axes);
-  const colourways = axisOfKind(axes, "colourway");
-  if (!mode3 || !colourways) return { ok: false, reasons: ["Colourways need a design system with light and dark themes."] };
-  const reasons = [];
-  const foreign = COLOURWAY_ROLES.filter((role) => !isLifted(next2, role, mode3));
-  const unset = colourways.options.filter((o) => colourwaySetOf(next2, colourways, o.id) === null);
-  if (foreign.length || unset.length) {
-    return { ok: false, reasons: ["This design system encodes its colourways its own way, so Lolly can choose between them but cannot add one."] };
-  }
-  if (!COLOURWAY_ID.test(opts.id)) reasons.push(`${opts.id} is not a usable colourway id: use lowercase letters, digits and hyphens.`);
-  if (themeIds(next2).has(opts.id)) reasons.push(`The design system already has a theme called ${opts.id}.`);
-  if (!opts.name.trim()) reasons.push("A colourway needs a name.");
-  for (const option of mode3.options) {
-    const values = opts.values[option.id];
-    if (!values) {
-      reasons.push(`Give the ${option.name} colours for ${opts.name}.`);
-      continue;
-    }
-    for (const role of COLOURWAY_ROLES) if (!usableColour(values[role])) reasons.push(`The ${option.name} ${role} for ${opts.name} is not a colour.`);
-    if (values.surface !== void 0 && !usableColour(values.surface)) reasons.push(`The ${option.name} surface for ${opts.name} is not a colour.`);
-  }
-  if (reasons.length) return { ok: false, reasons };
-  const selections2 = checkedSelections(axes, mode3);
-  if (!selections2) return { ok: false, reasons: tooMany("adding a colourway") };
-  const before = structuredClone(next2);
-  const roles = [...COLOURWAY_ROLES];
-  const tinted = mode3.options.some((option) => opts.values[option.id].surface !== void 0);
-  if (tinted || isLifted(next2, "surface", mode3)) {
-    const surfaceReasons = liftRole(next2, "surface", mode3, colourways);
-    if (surfaceReasons.length) return { ok: false, reasons: surfaceReasons };
-    roles.push("surface");
-  }
-  const canonicalSet = colourwaySetOf(next2, colourways, colourways.canonical);
-  const set = colourwaySetName(opts.id);
-  if (record14(next2[set])) return { ok: false, reasons: [`The design system already has a token set called ${set}.`] };
-  const body = { color: { $type: "color", colourway: {} } };
-  for (const option of mode3.options) {
-    const values = opts.values[option.id];
-    for (const role of roles) {
-      const value = values[role] ?? nodeAt(next2[canonicalSet], colourwayPath(option.id, role))?.$value;
-      setNodeAt(body, colourwayPath(option.id, role), { $value: structuredClone(value) });
-    }
-  }
-  next2[set] = body;
-  const entry2 = { id: opts.id, name: opts.name.trim(), group: colourways.group, selectedTokenSets: { [set]: "enabled" } };
-  annotate(entry2, { kind: "colourway" });
-  next2.$themes.push(entry2);
-  if (record14(next2.$metadata) && Array.isArray(next2.$metadata.tokenSetOrder)) next2.$metadata.tokenSetOrder = [...next2.$metadata.tokenSetOrder, set];
-  const changed = unchanged(before, next2, selections2, "Adding this colourway");
-  if (changed.length) return { ok: false, reasons: changed };
-  for (const look3 of mode3.options) {
-    for (const option of [...colourways.options, { id: opts.id, name: opts.name.trim() }]) {
-      const set2 = createTokenSet(next2, { selection: { [mode3.group]: look3.id, [colourways.group]: option.id } });
-      for (const role of roles) {
-        const value = set2.resolve(`color.semantic.${role}`);
-        if (typeof value !== "string" || isAlias(value)) return { ok: false, reasons: [`The ${option.name} ${role} in the ${look3.name} theme would not resolve to a colour.`] };
-      }
-    }
-  }
-  return { ok: true, doc: next2 };
-}
-var record14, COLOURWAY_GROUP, COLOURWAY_ROLES, colourwaySetName, colourwayPath, COLOURWAY_ID, nonNegativeIndex, COLOUR_DATA, MAX_CHECKED_SELECTIONS, enabledSets, groupOf, optionIdOf, themeEntries, tooMany, usableColour;
-var init_colourway = __esm({
-  "engine/src/colourway.ts"() {
-    "use strict";
-    init_tokens2();
-    init_css_color();
-    init_token_ext();
-    init_token_axes();
-    init_token_selection();
-    record14 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    COLOURWAY_GROUP = "colourway";
-    COLOURWAY_ROLES = Object.freeze(["primary", "on-primary", "secondary"]);
-    colourwaySetName = (id3) => `colourway/${id3}`;
-    colourwayPath = (mode3, role) => `color.colourway.${mode3}.${role}`;
-    COLOURWAY_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
-    nonNegativeIndex = (index2) => Number.isFinite(index2) && index2 > 0 ? Math.floor(index2) : 0;
-    COLOUR_DATA = ["cmyk", "spot", "faces"];
-    MAX_CHECKED_SELECTIONS = 256;
-    enabledSets = (raw) => record14(raw.selectedTokenSets) ? Object.entries(raw.selectedTokenSets).filter(([, status]) => status && status !== "disabled").map(([set]) => set) : [];
-    groupOf = (t) => typeof t.group === "string" ? t.group : "";
-    optionIdOf = (t) => typeof t.id === "string" ? t.id : typeof t.name === "string" ? t.name : "";
-    themeEntries = (doc) => Array.isArray(doc.$themes) ? doc.$themes.filter(record14) : [];
-    tooMany = (verb) => [`The design system has more than ${MAX_CHECKED_SELECTIONS} combinations of themes, so ${verb} cannot check that nothing changes.`];
-    usableColour = (v) => typeof v === "string" && (isAlias(v) || parseColor(v) !== null);
-  }
-});
-
 // engine/src/gamut-solid.ts
 function labSolidUnit(maxRadius) {
   return Math.max(0.5, maxRadius || 0);
@@ -114433,11 +114851,11 @@ function compileRenovated(input) {
     const texts = rows2.filter((row) => rowStr(row, "kind") === "text" && plainOfDesignText(rowStr(row, "text")).trim() !== "" && !asItWas.has(rowStr(row, "id"))).sort((a, b) => rowNum(a, "y") - rowNum(b, "y") || rowNum(a, "x") - rowNum(b, "x"));
     for (const row of texts) fitRow(rows2, row);
   }
-  const editable = /* @__PURE__ */ new Set();
+  const editable2 = /* @__PURE__ */ new Set();
   for (const slide of source.slides) {
-    for (const object4 of slide.objects) if (object4.fidelity.state === "editable") editable.add(object4.id);
+    for (const object4 of slide.objects) if (object4.fidelity.state === "editable") editable2.add(object4.id);
   }
-  for (const objectId of vectorMade.keys()) editable.add(objectId);
+  for (const objectId of vectorMade.keys()) editable2.add(objectId);
   const claimedColour = /* @__PURE__ */ new Map();
   const frameOf = /* @__PURE__ */ new Map();
   for (const build2 of builds) {
@@ -114470,7 +114888,7 @@ function compileRenovated(input) {
     let named = target2;
     const conflicts = [];
     for (const objectId of [...mapping.affects].sort()) {
-      if (!editable.has(objectId)) continue;
+      if (!editable2.has(objectId)) continue;
       for (const layerId of producedBy.get(objectId) ?? []) {
         const row = rowsById.get(layerId);
         if (!row) continue;
@@ -126788,7 +127206,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
   const context = brandContext(doc, opts);
   const tokens3 = createTokenSet(doc, opts);
   const findings = [];
-  const checked = { colors: 0, fonts: 0, assets: 0 };
+  const checked2 = { colors: 0, fonts: 0, assets: 0 };
   const palette = context.colors.filter((c) => {
     const parsed = parseColor(c.value);
     return !!parsed && parsed.alpha > 0;
@@ -126826,7 +127244,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
       const path = aliasPath(raw) ?? (record25(row[field2]) ? valueText(row[field2]).replace(/^\{|\}$/g, "") : null);
       if (path) {
         if (!tokens3.has(path) || tokens3.get(path)?.type !== "color" || !parseColor(String(tokens3.resolve(path)))) add3(field2, "reference", "unknown", raw);
-        else checked.colors++;
+        else checked2.colors++;
         continue;
       }
       const parsed = parseColor(raw);
@@ -126834,7 +127252,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
       if (parsed && parsed.alpha < 1 && palette.length) {
         const base = colorToHexString({ ...parsed, alpha: 1 });
         if (palette.some((color6) => deltaEOk(base, color6.value) < 1e-6)) {
-          checked.colors++;
+          checked2.colors++;
           continue;
         }
       }
@@ -126846,7 +127264,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
         add3(field2, "color", "unknown", raw);
         continue;
       }
-      checked.colors++;
+      checked2.colors++;
       let closest2 = nearest3.get(raw);
       if (!closest2) {
         for (const color6 of palette) {
@@ -126867,7 +127285,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
       const resolved2 = path ? tokens3.resolve(path) : font;
       if (!allowedFonts.size || typeof resolved2 !== "string" || path && !tokens3.has(path)) add3("font", "font", "unknown", font);
       else {
-        checked.fonts++;
+        checked2.fonts++;
         if (!allowedFonts.has(family(resolved2))) add3("font", "font", "review", font, context.fonts[0]?.value, tokens3.has("font.brand") ? "sans" : void 0);
       }
     }
@@ -126881,7 +127299,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
       const assetId2 = aliasPath(image) ? tokens3.resolve(image) : image;
       if (!allowedAssets.size && !catalogAssets.size || typeof assetId2 !== "string") add3("image", "asset", "unknown", image);
       else {
-        checked.assets++;
+        checked2.assets++;
         const base = stripAssetModifiers(assetId2);
         const theme = parseThemedAssetId(assetId2).theme;
         const treatment = parseTreatedAssetId(assetId2).treatment;
@@ -126894,7 +127312,7 @@ function checkBrandDesign(boxes2, doc, opts = {}) {
   }
   return {
     findings,
-    checked,
+    checked: checked2,
     coverage: { truncated: rows2.length > 5e3, colors: palette.length > 0, fonts: allowedFonts.size > 0, assets: allowedAssets.size > 0 || catalogAssets.size > 0 },
     uploads,
     requiresMount: ["computed contrast", "font availability", "text layout"],
@@ -127060,7 +127478,7 @@ function combinationPolicy(doc, theme) {
 function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
   const findings = [];
   const unknown2 = [];
-  let checked = 0;
+  let checked2 = 0;
   const rows2 = Array.isArray(boxes2) ? boxes2.filter(record26) : [];
   const layout2 = {
     rows: rows2,
@@ -127121,7 +127539,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         unknown2.push(rule.id);
         continue;
       }
-      checked++;
+      checked2++;
       for (const { row } of texts) {
         if (!inTarget(row)) continue;
         const weights = weightsOf(row);
@@ -127139,7 +127557,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         unknown2.push(rule.id);
         continue;
       }
-      checked++;
+      checked2++;
       const exemptWords = new Set(strings2(p.exemptWords));
       for (const { row } of texts) {
         if (!inTarget(row)) continue;
@@ -127151,7 +127569,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         unknown2.push(rule.id);
         continue;
       }
-      checked++;
+      checked2++;
       const exemptArchetypes = strings2(p.exemptArchetypes);
       const exemptFurniture = strings2(p.exemptFurniture);
       for (const { row } of texts) {
@@ -127175,7 +127593,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         unknown2.push(rule.id);
         continue;
       }
-      checked++;
+      checked2++;
       for (const { row, index: index2 } of texts) {
         const surface = surfaceUnder(layout2, index2, true);
         if (surface?.kind !== "color") continue;
@@ -127198,7 +127616,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         }
       }
     } else if (rule.kind === "stroke-on-rounded") {
-      checked++;
+      checked2++;
       const shapes2 = strings2(p.shapes).length ? strings2(p.shapes) : ROUNDED_SHAPES;
       const neutral = new Set(strings2(p.neutral).map((v) => colourOf2(layout2, v)).filter((v) => !!v));
       const stripMax = num12(p.stripMax, 12);
@@ -127248,7 +127666,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         }
       }
     } else if (rule.kind === "dash-reserved") {
-      checked++;
+      checked2++;
       const styles = strings2(p.styles).length ? strings2(p.styles) : ["dashed"];
       const meaning = typeof p.meaning === "string" && p.meaning ? p.meaning.replace(/-/g, " ") : "one purpose";
       for (const { row } of layers) {
@@ -127267,7 +127685,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
         unknown2.push(rule.id);
         continue;
       }
-      checked++;
+      checked2++;
       const readColour = surfaceColourResolver(layout2.tokens);
       let table = null;
       for (const { row, index: index2 } of layers) {
@@ -127295,7 +127713,7 @@ function checkDesignHouseRules(boxes2, rules, doc, opts = {}) {
       }
     }
   }
-  return { findings, checked, unknown: unknown2 };
+  return { findings, checked: checked2, unknown: unknown2 };
 }
 function designHouseRules(rules) {
   return (rules ?? []).filter((r5) => DESIGN_HOUSE_RULE_KINDS.includes(r5.kind));
@@ -142832,6 +143250,7 @@ __export(src_exports, {
   LSB_P_THRESHOLD: () => LSB_P_THRESHOLD,
   MATCH_CER: () => MATCH_CER,
   MAX_BAKED_URL_CHARS: () => MAX_BAKED_URL_CHARS,
+  MAX_COLOURWAY_NAME: () => MAX_COLOURWAY_NAME,
   MAX_COMPOSE_DEPTH: () => MAX_COMPOSE_DEPTH,
   MAX_CONTINUATION_FRAMES: () => MAX_CONTINUATION_FRAMES,
   MAX_GRADIENT_STOPS: () => MAX_GRADIENT_STOPS,
@@ -143272,7 +143691,9 @@ __export(src_exports, {
   colourwayAxis: () => colourwayAxis,
   colourwayFamily: () => colourwayFamily,
   colourwayPath: () => colourwayPath,
+  colourwayRolesOf: () => colourwayRolesOf,
   colourwaySetName: () => colourwaySetName,
+  colourwaysEditable: () => colourwaysEditable,
   combinationPolicy: () => combinationPolicy,
   compactPath: () => compactPath,
   compareExport: () => compareExport,
@@ -143386,6 +143807,7 @@ __export(src_exports, {
   deriveSegmentsFromWords: () => deriveSegmentsFromWords,
   describeColor: () => describeColor,
   describeHiddenText: () => describeHiddenText,
+  describeIgnoredTokenChoice: () => describeIgnoredTokenChoice,
   deserializeCurve: () => deserializeCurve,
   designBrief: () => designBrief,
   designCornerRadius: () => designCornerRadius,
@@ -143438,6 +143860,7 @@ __export(src_exports, {
   documentSchema: () => documentSchema,
   dofBlur: () => dofBlur,
   drawDesignText: () => drawDesignText,
+  duplicateColourway: () => duplicateColourway,
   duplicateTextFrames: () => duplicateTextFrames,
   edgeAnchor: () => edgeAnchor,
   edgeArrowHead: () => edgeArrowHead,
@@ -143448,6 +143871,7 @@ __export(src_exports, {
   edgeWaypoints: () => edgeWaypoints,
   editDistance: () => editDistance,
   effectiveAction: () => effectiveAction,
+  effectiveAxisKinds: () => effectiveAxisKinds,
   effectiveReplacement: () => effectiveReplacement,
   effectiveSlideOrder: () => effectiveSlideOrder,
   embedC2pa: () => embedC2pa,
@@ -143629,6 +144053,8 @@ __export(src_exports, {
   iccRoundTripDecides: () => iccRoundTripDecides,
   iccRoundTripDeltaE: () => iccRoundTripDeltaE,
   iconThemeSurfaces: () => iconThemeSurfaces,
+  ignoredTokenAxes: () => ignoredTokenAxes,
+  ignoresTokenAxes: () => ignoresTokenAxes,
   imageColorCloud: () => imageColorCloud,
   imageDimensions: () => imageDimensions,
   imageToPenpotDoc: () => imageToPenpotDoc,
@@ -143810,7 +144236,7 @@ __export(src_exports, {
   mountedFindingMessage: () => mountedFindingMessage,
   moveSlide: () => moveSlide,
   moveSlides: () => moveSlides,
-  mulberry32: () => mulberry322,
+  mulberry32: () => mulberry323,
   multiplyMat: () => multiplyMat,
   multiplyVectorMatrix: () => multiplyVectorMatrix,
   nearestBrandColor: () => nearestBrandColor,
@@ -144001,6 +144427,7 @@ __export(src_exports, {
   pickPresentInteractStop: () => pickPresentInteractStop,
   pickSurfaceVariant: () => pickSurfaceVariant,
   pictureGrid: () => pictureGrid,
+  pinIgnoredTokenAxes: () => pinIgnoredTokenAxes,
   pinnedFontAliases: () => pinnedFontAliases,
   placeTextStory: () => placeTextStory,
   plainOfDesignText: () => plainOfDesignText,
@@ -144095,12 +144522,15 @@ __export(src_exports, {
   relativeLuminance: () => relativeLuminance,
   remapDesignHierarchy: () => remapDesignHierarchy,
   remapDesignLayout: () => remapDesignLayout,
+  removeColourway: () => removeColourway,
   removeTextFrames: () => removeTextFrames,
+  renameColourway: () => renameColourway,
   render: () => renderDocument,
   renderComparisonPage: () => renderComparisonPage,
   renderDocument: () => renderDocument,
   renderVectorPaint: () => renderVectorPaint,
   renderZzfxm: () => renderZzfxm,
+  reorderColourways: () => reorderColourways,
   reparentDesignHierarchy: () => reparentDesignHierarchy,
   replaceStoryRange: () => replaceStoryRange,
   reportMessage: () => reportMessage,
@@ -144208,6 +144638,7 @@ __export(src_exports, {
   serializeUrlState: () => serializeUrlState,
   sessionVersionStamp: () => sessionVersionStamp,
   setAvifCicp: () => setAvifCicp,
+  setCanonicalColourway: () => setCanonicalColourway,
   setColorTarget: () => setColorTarget,
   setDeckTheme: () => setDeckTheme,
   setFontTarget: () => setFontTarget,
@@ -144650,6 +145081,8 @@ var init_src2 = __esm({
     init_token_axes();
     init_colourway();
     init_colourway();
+    init_colourway();
+    init_tool_token_axes();
     init_brand_derive();
     init_brand_derive();
     init_gamut_solid();
@@ -156047,12 +156480,12 @@ function applySampledContrast(value, sampled) {
     };
   });
   if (!moved && !measured) return value;
-  const checked = mounted.checked && typeof mounted.checked === "object" ? { ...mounted.checked } : void 0;
-  if (checked && moved) checked.contrast = (Number(checked.contrast) || 0) + moved;
+  const checked2 = mounted.checked && typeof mounted.checked === "object" ? { ...mounted.checked } : void 0;
+  if (checked2 && moved) checked2.contrast = (Number(checked2.contrast) || 0) + moved;
   const review = typeof mounted.manualContrastReview === "number" ? Math.max(0, mounted.manualContrastReview - moved) : mounted.manualContrastReview;
   return {
     ...answer,
-    mounted: { ...mounted, findings, ...checked ? { checked } : {}, ...review !== void 0 ? { manualContrastReview: review } : {} },
+    mounted: { ...mounted, findings, ...checked2 ? { checked: checked2 } : {}, ...review !== void 0 ? { manualContrastReview: review } : {} },
     sampledContrast: { measured, low: moved }
   };
 }
@@ -167593,9 +168026,9 @@ async function renderFamily(input, opts, lookup4, layers, name, ds) {
   const mounted = value.mounted;
   const missing = uncarriedPictures(input.boxes, lookup4, new Set(input.media.keys()));
   const findings = mounted.findings.filter(record37).map((f) => checkFindingFromMounted(overMissingPicture(f, missing, lookup4), lookup4));
-  const checked = record37(mounted.checked) ? mounted.checked : {};
+  const checked2 = record37(mounted.checked) ? mounted.checked : {};
   const notes = [
-    `Checked ${plural6(Number(checked.overflow) || 0, "text layer")} for clipping, ${Number(checked.contrast) || 0} for contrast and ${Number(checked.fonts) || 0} for font coverage.`
+    `Checked ${plural6(Number(checked2.overflow) || 0, "text layer")} for clipping, ${Number(checked2.contrast) || 0} for contrast and ${Number(checked2.fonts) || 0} for font coverage.`
   ];
   if (session.tokenSelection && opts.theme) notes.push(`The editor was opened in the ${opts.theme} theme.`);
   if (session.designSystem !== void 0) notes.push(`The page resolved linked colours in the ${ds?.origin === "file" ? "--file" : "terminal"} design system this check uses.`);
@@ -173510,6 +173943,18 @@ function rondoRecordOf(bytes2) {
     return null;
   }
 }
+var selectionFollowers = /* @__PURE__ */ new WeakMap();
+function sameSelection(a, b) {
+  const ka = Object.keys(a ?? {}), kb = Object.keys(b ?? {});
+  return ka.length === kb.length && ka.every((key2) => Object.hasOwn(b ?? {}, key2) && b[key2] === a[key2]);
+}
+function followRuntimeSelection(host, runtimeSelection, linkSelection) {
+  if (!runtimeSelection || sameSelection(runtimeSelection, linkSelection)) return false;
+  const follow2 = selectionFollowers.get(host);
+  if (!follow2) return false;
+  follow2(runtimeSelection);
+  return true;
+}
 async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend } = {}) {
   const w = dom.window;
   const assetIndex2 = readAssetIndex();
@@ -173757,6 +174202,11 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
     colors: async (opts = {}) => (await tokenSet(opts)).colors(),
     resolve: async (ref2, opts = {}) => (await tokenSet(opts)).resolve(ref2),
     themes: async () => (await tokenSet()).themes(),
+    // The plans/319 reads, over the same document and per-selection memo as the
+    // reads above. The family follows this run's choices (`--_themes`), exactly as
+    // the web bridge's follows the route's.
+    axes: async () => tokenAxesOf(await resolvedDoc()),
+    family: async (role, opts = {}) => tokenFamily(await resolvedDoc(), role, scopedTokenOptions(tokenSelection, opts), (o) => tokenSet(o)),
     // Owner-side seam for the worker_threads hook executor: the raw DTCG doc it
     // snapshots into the worker so hooks resolve tokens without an RPC. Never a
     // hook-facing call (the worker core omits it from the proxy).
@@ -174504,6 +174954,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
       if (!ref2) return null;
       const q = new URLSearchParams(query2);
       for (const k of RESERVED) q.delete(k);
+      if (st.tokenSelection && Object.keys(st.tokenSelection).length) q.set("_themes", JSON.stringify(st.tokenSelection));
       if (width) q.set("w", String(width));
       if (height) q.set("h", String(height));
       if (unit2 && unit2 !== "px") {
@@ -174519,6 +174970,9 @@ async function createCliBridge({ profile: profile2 = {}, dom, networkAllowlist, 
       };
     }
   };
+  selectionFollowers.set(host, (next2) => {
+    tokenSelection = structuredClone(next2);
+  });
   return host;
 }
 var BRAND_VAR_SLOTS = ["primary", "on-primary", "secondary", "surface", "text", "muted", "edge"];
@@ -174542,6 +174996,13 @@ async function applyBrandVars(el, host) {
     const semantic = /^color\.semantic\.([a-z-]+)$/.exec(swatch.path);
     if (semantic) el.style.setProperty("--brand-" + semantic[1], value);
   }
+  let family2 = [];
+  try {
+    family2 = await host.tokens.family?.("primary") ?? [];
+  } catch {
+    family2 = [];
+  }
+  for (const [name, value] of brandLeadVars(family2)) el.style.setProperty(name, value);
 }
 function shippedSystemLabel(name) {
   if (!name) return "Lolly";
@@ -175152,10 +175613,29 @@ async function mountAndDraw(dom, host, toolId, values, emoji, tokenSelection) {
   const runtime = await createRuntime(tool, host, values, tokenSelection ? { tokenSelection } : void 0);
   const canvas = dom.window.document.getElementById("canvas");
   if (!canvas) throw new RenderError("render canvas missing");
-  const warnings2 = await applyEmojiRequest(runtime, host, emoji);
+  followRuntimeSelection(host, runtime.tokenSelection, tokenSelection);
+  const ignoredThemes = ignoredThemeNotes(runtime.ignoredTokenChoices, tool.manifest.name);
+  const warnings2 = [...ignoredThemes, ...await applyEmojiRequest(runtime, host, emoji)];
   canvas.innerHTML = runtime.getHydrated();
   await runtime.applyEmojiToDom(canvas);
   return { runtime, canvas, warnings: warnings2 };
+}
+function ignoredThemeNotes(choices2, toolName) {
+  return (choices2 ?? []).map((choice3) => describeIgnoredTokenChoice(choice3, toolName));
+}
+function themeChoiceNotes(tool, document2, tokenSelection) {
+  if (!tokenSelection || !Object.keys(tokenSelection).length || !ignoresTokenAxes(tool.tokenAxes) || !document2) return [];
+  const resolved2 = resolveTokenSelection(document2, { selection: tokenSelection });
+  return ignoredThemeNotes(pinIgnoredTokenAxes(tokenSelection, resolved2, tool.tokenAxes).ignored, tool.name);
+}
+async function browserTierThemeNotes(toolId, profile2, tokenSelection) {
+  if (!tokenSelection || !Object.keys(tokenSelection).length) return [];
+  const tool = await loadToolCached(toolId);
+  if (!ignoresTokenAxes(tool.manifest.tokenAxes)) return [];
+  return withHost(profile2, async (_dom, host) => {
+    const document2 = (await host.tokens?.snapshot?.())?.document;
+    return themeChoiceNotes(tool.manifest, document2, tokenSelection);
+  }, { tokenSelection });
 }
 async function emojiCensus(toolId, values, fmt4, profile2, emoji, tokenSelection) {
   return withHost(profile2, async (dom, host) => {
@@ -175610,6 +176090,12 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
       throw new RenderError(`Format "${fmt4}" needs the browser render tier, which is not available for this request.`);
     }
     out = { ...await renderTierB(toolId, q, exportFmt, merged), tier: "B" };
+  }
+  if (out.tier.startsWith("B")) {
+    try {
+      warnings2.push(...await browserTierThemeNotes(toolId, profile2, st.tokenSelection));
+    } catch {
+    }
   }
   let bytes2 = out.bytes;
   if (out.tier.startsWith("B") && !evaluation && carriesEmojiParams(q)) {
