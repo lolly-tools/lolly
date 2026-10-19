@@ -7981,5 +7981,10 @@
   "That is not a web address. Check it and try again.": "To není webová adresa. Zkontroluj ji a zkus to znovu.",
   "Private project": "Soukromý projekt",
   "The server could not send the latest tools - showing saved content": "Server nemohl poslat nejnovější nástroje - zobrazuje se uložený obsah",
-  "{n} colour": "{n} barva"
+  "{n} colour": "{n} barva",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Neuloženo pro použití offline: tento server nemá {n} z {total} souborů.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Neuloženo pro použití offline: {n} z {total} souborů se nestáhlo. Zkontroluj připojení a zkus to znovu.",
+  "Not saved for offline use. Try again in a moment.": "Neuloženo pro použití offline. Zkus to za chvíli znovu.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} stažení se nedokončilo. Každý řádek říká proč."
 }

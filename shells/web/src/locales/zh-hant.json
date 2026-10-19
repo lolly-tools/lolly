@@ -7981,5 +7981,10 @@
   "That is not a web address. Check it and try again.": "這不是網址。請檢查後再試一次。",
   "Private project": "私人專案",
   "The server could not send the latest tools - showing saved content": "伺服器無法傳送最新的工具，正在顯示已儲存的內容",
-  "{n} colour": "{n} 個色彩"
+  "{n} colour": "{n} 個色彩",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "未儲存供離線使用：此伺服器缺少 {total} 個檔案中的 {n} 個。",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "未儲存供離線使用：{total} 個檔案中有 {n} 個未能下載。請檢查網路連線，然後再試一次。",
+  "Not saved for offline use. Try again in a moment.": "未儲存供離線使用。請稍後再試一次。",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "有 {n} 項下載未完成。每一列都會說明原因。"
 }

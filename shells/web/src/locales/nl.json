@@ -7981,5 +7981,10 @@
   "That is not a web address. Check it and try again.": "Dat is geen webadres. Controleer het en probeer het opnieuw.",
   "Private project": "Privéproject",
   "The server could not send the latest tools - showing saved content": "De server kon de nieuwste tools niet sturen - opgeslagen inhoud wordt getoond",
-  "{n} colour": "{n} kleur"
+  "{n} colour": "{n} kleur",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Niet opgeslagen voor offline gebruik: deze server heeft {n} van de {total} bestanden niet.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Niet opgeslagen voor offline gebruik: {n} van de {total} bestanden zijn niet gedownload. Controleer je verbinding en probeer het opnieuw.",
+  "Not saved for offline use. Try again in a moment.": "Niet opgeslagen voor offline gebruik. Probeer het zo meteen opnieuw.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} downloads zijn niet voltooid. Elke rij geeft de reden."
 }

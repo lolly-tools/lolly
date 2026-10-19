@@ -1636,5 +1636,10 @@
   "That is not a web address. Check it and try again.": "এটি কোনো ওয়েব ঠিকানা নয়। দেখে নিয়ে আবার চেষ্টা করুন।",
   "Private project": "ব্যক্তিগত প্রজেক্ট",
   "The server could not send the latest tools - showing saved content": "সার্ভার সর্বশেষ টুল পাঠাতে পারেনি: সংরক্ষিত কনটেন্ট দেখানো হচ্ছে",
-  "{n} colour": "{n}টি রং"
+  "{n} colour": "{n}টি রং",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "অফলাইনে ব্যবহারের জন্য সংরক্ষিত হয়নি: এই সার্ভারে {total}টির মধ্যে {n}টি ফাইল নেই।",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "অফলাইনে ব্যবহারের জন্য সংরক্ষিত হয়নি: {total}টির মধ্যে {n}টি ফাইল ডাউনলোড হয়নি। আপনার সংযোগ পরীক্ষা করুন, তারপর আবার চেষ্টা করুন।",
+  "Not saved for offline use. Try again in a moment.": "অফলাইনে ব্যবহারের জন্য সংরক্ষিত হয়নি। একটু পরে আবার চেষ্টা করুন।",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n}টি ডাউনলোড শেষ হয়নি। প্রতিটি সারিতে কারণ লেখা আছে।"
 }

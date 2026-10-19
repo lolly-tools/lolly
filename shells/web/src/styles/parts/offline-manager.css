@@ -31,6 +31,9 @@
   color: hsl(var(--muted-foreground));
   font-variant-numeric: tabular-nums;
 }
+/* A download that did not finish: the row's own line says why, in the
+   destructive text colour, until the next try. */
+.odl-part-sub.is-error { color: hsl(var(--destructive-text)); }
 
 /* ── Catalogue tag scoping ── */
 .odl-tagscope { margin: 2px 0; }

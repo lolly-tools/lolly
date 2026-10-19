@@ -7981,5 +7981,10 @@
   "That is not a web address. Check it and try again.": "Това не е уеб адрес. Провери го и опитай отново.",
   "Private project": "Личен проект",
   "The server could not send the latest tools - showing saved content": "Сървърът не можа да изпрати най-новите инструменти: показва се запазено съдържание",
-  "{n} colour": "{n} цвят"
+  "{n} colour": "{n} цвят",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Не е запазено за офлайн употреба: този сървър няма {n} от {total} файла.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Не е запазено за офлайн употреба: {n} от {total} файла не се изтеглиха. Провери връзката си и опитай отново.",
+  "Not saved for offline use. Try again in a moment.": "Не е запазено за офлайн употреба. Опитай отново след малко.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} изтегляния не приключиха. Всеки ред показва причината."
 }

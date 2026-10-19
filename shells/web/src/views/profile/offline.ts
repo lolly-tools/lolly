@@ -20,7 +20,7 @@ import { announce } from '../../a11y.ts';
 import { pinRecords, pinTool, unpinAll, unpinTool } from '../../lib/offline-pins.ts';
 import type { PinRecord } from '../../lib/offline-pins.ts';
 import { catalogDownloadSummary, catalogScopeSize, downloadCatalogScope, prefetchAssetsById } from '../../catalog/sync.ts';
-import { docsFileList, downloadApp, downloadDocs, fetchInfoManifest, fetchPrecacheManifest, partRecords, persistenceState, recordCatalogDownload, removePart, storageHeadroom } from '../../lib/offline-manager.ts';
+import { OfflineDownloadError, docsFileList, downloadApp, downloadDocs, fetchInfoManifest, fetchPrecacheManifest, partRecords, persistenceState, recordCatalogDownload, removePart, storageHeadroom } from '../../lib/offline-manager.ts';
 import type { DownloadProgress, OfflinePartId, PartState } from '../../lib/offline-manager.ts';
 import { downloadModelPart, isModelPart, MODEL_PART_IDS, modelPartNote, modelPartsInfo } from '../../lib/model-parts.ts';
 import type { ModelPartId, ModelPartInfo } from '../../lib/model-parts.ts';
@@ -377,6 +377,20 @@ export async function loadOffline(pv: ProfileViewCtx) {
 
   // ── The parts rows: app / catalogue / docs / verify ─────────────────────
   let partState: PartState = parts;
+  /** Why each part's last download did not finish, until it is tried again. */
+  const partFailure: Partial<Record<OfflinePartId, string>> = {};
+  /** The row's words for a failed download. A file the server does not have is
+   *  the server's to fix, so trying again will not help; a file lost on the way
+   *  usually is the connection, and is worth another go. */
+  const failureLine = (err: unknown): string => {
+    if (err instanceof OfflineDownloadError) {
+      const counts = { n: String(err.failed), total: String(err.total) };
+      return err.missing === err.failed
+        ? t('Not saved for offline use: this server does not have {n} of the {total} files.', counts)
+        : t('Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.', counts);
+    }
+    return t('Not saved for offline use. Try again in a moment.');
+  };
   // Re-entrancy WITHIN this view is decided on this flag, set SYNCHRONOUSLY at
   // runParts entry - the run is only registered after two awaits (headroom
   // estimate + confirm dialog), which is exactly the window a double-click
@@ -441,11 +455,13 @@ export async function loadOffline(pv: ProfileViewCtx) {
       ready: !!readyNow[id],
       planned: planned(id),
       catalog: id === 'catalog',
+      failure: partFailure[id],
     });
     sub.textContent = state.sub;
+    sub.classList.toggle('is-error', !!state.error);
     // The row already shows a plain size, so the line under the description only
     // speaks when it says more than that.
-    sub.hidden = !partState[id] && !readyNow[id] && state.sub === (planned(id) > 0 ? fmtBytes(planned(id)) : '');
+    sub.hidden = !state.error && !partState[id] && !readyNow[id] && state.sub === (planned(id) > 0 ? fmtBytes(planned(id)) : '');
     // The tag only where a download is on offer and it is big.
     const heavy = row.querySelector<HTMLElement>('[data-part-heavy]');
     if (heavy) heavy.hidden = state.dl.hidden || state.dl.disabled || !isModelPart(id) || !isHeavy(modelInfo[id].bytes);
@@ -565,6 +581,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
         await recordCatalogDownload(scope, res.bytes, res.files);
         catalogScopeDirty = false;
       } else return false;
+      delete partFailure[id];
       partState = await partRecords();
       syncPartRow(id);
       await pv.storage.refreshCounter();
@@ -572,6 +589,8 @@ export async function loadOffline(pv: ProfileViewCtx) {
     } catch (err) {
       if (signal.aborted) throw err;
       host.log('warn', 'Offline part download failed', { part: id, error: String(err) });
+      partFailure[id] = failureLine(err);
+      syncPartRow(id);
       return false;
     }
   };
@@ -611,9 +630,16 @@ export async function loadOffline(pv: ProfileViewCtx) {
       setBusy(true);
       let failed = 0;
       let cancelled = false;
+      const failedIds: OfflinePartId[] = [];
+      // The toast gives the reason the row gives: one part's own line, or a
+      // pointer to the rows for several. It used to say "check your
+      // connection" for any failure, including files the server does not have.
+      const failureSummary = (): string => failedIds.length === 1
+        ? tRaw('{name}: {reason}', { name: partLabel(failedIds[0]!), reason: partFailure[failedIds[0]!] ?? '' })
+        : t('{n} downloads did not finish. Each row says why.', { n: failed });
       try {
         for (const id of want) {
-          if (!await runPart(id, run, scope)) failed++;
+          if (!await runPart(id, run, scope)) { failed++; failedIds.push(id); }
         }
       } catch {
         cancelled = true;
@@ -621,7 +647,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
         // The run ends here, not at view teardown. end() settles the job the
         // toast is showing and releases the module-level slot; a cancelled
         // job is already terminal, so this is a no-op for it.
-        if (!outer) run.end(failed ? t('{n} downloads failed - check your connection', { n: failed }) : undefined);
+        if (!outer) run.end(failed ? failureSummary() : undefined);
         setBusy(false);
       }
       if (cancelled) {
@@ -633,7 +659,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
       if (failed === 0) playSfx('victory');
       if (!outer) {
         announce(failed
-          ? t('{n} downloads failed - check your connection', { n: failed })
+          ? failureSummary()
           : want.length === 1
             ? tRaw('{name} is available offline', { name: partLabel(want[0]!) })
             : t('Offline download complete'), { assertive: failed > 0 });
