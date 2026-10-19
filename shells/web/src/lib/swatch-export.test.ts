@@ -15,8 +15,10 @@ import type { BrandSwatch } from './brand-doc.ts';
 import {
   swatchesToTokensJson, swatchesToCssVariables, swatchesToCssClasses,
   swatchesToScssVariables, swatchesToGpl, swatchesToAse, exportSwatches,
+  paletteEntriesToSwatches, swatchFit,
   type SwatchExportFormat,
 } from './swatch-export.ts';
+import type { PaletteEntry } from '../palette.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -192,7 +194,8 @@ test('exportSwatches handles every format in the union', () => {
 test('both enumerating UIs offer every format - none is reachable in only one', () => {
   const editor = [readFileSync(join(HERE, 'brand-editor.ts'), 'utf8'), ...readdirSync(join(HERE, 'brand-editor')).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(HERE, 'brand-editor', n), 'utf8'))].join('\n');
   const catDir = join(HERE, '../views/assets');
-  const catalog = [readFileSync(join(HERE, '../views/assets.ts'), 'utf8'), ...readdirSync(catDir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(catDir, n), 'utf8'))].join('\n');
+  // Production sources only: a test file may list formats of its own as fixtures.
+  const catalog = [readFileSync(join(HERE, '../views/assets.ts'), 'utf8'), ...readdirSync(catDir).filter((n) => n.endsWith('.ts') && !n.endsWith('.test.ts')).sort().map((n) => readFileSync(join(catDir, n), 'utf8'))].join('\n');
 
   // The option body is t('label') optionally followed by an untranslated
   // annotation (tokens-json carries "· Penpot / Tokens Studio" - product names
@@ -207,4 +210,70 @@ test('both enumerating UIs offer every format - none is reachable in only one', 
     [...catalogOpts].sort(), [...FORMATS].sort(),
     'catalog SWATCH_DOWNLOADS (its own order puts .ase/.gpl last)',
   );
+});
+
+// ── swatchFit: which colours a format can hold ──────────────────────────────
+
+const fitEntry = (label: string, hex: string, css?: string): PaletteEntry =>
+  ({ label, hex, cmyk: null, ...(css ? { token: { ref: `{color.brand.${label}}`, path: `color.brand.${label}`, css } } : {}) });
+
+test('swatchFit leaves out what a format cannot hold, and says why', () => {
+  const fit = swatchFit([
+    fitEntry('pine', '#0c322c'),
+    fitEntry('clear', 'transparent'),
+    fitEntry('veil', '#0c322c80'),
+    fitEntry('odd', 'oklch(50% 0.1 200)'),
+  ], 'gpl');
+  assert.deepEqual(fit.kept.map(e => e.label), ['pine']);
+  assert.deepEqual(fit.skipped.map(s => [s.entry.label, s.reason]), [['clear', 'no-colour'], ['veil', 'translucent'], ['odd', 'unreadable']]);
+});
+
+test('swatchFit writes an opaque short or eight-digit hex as the six digits the exporters read', () => {
+  const fit = swatchFit([fitEntry('short', '#abc'), fitEntry('solid', '#0C322CFF')], 'css-vars');
+  assert.deepEqual(fit.kept.map(e => e.hex), ['#aabbcc', '#0C322C']);
+  assert.match(swatchesToCssVariables(paletteEntriesToSwatches(fit.kept)), /#aabbcc;[\s\S]*#0c322c;/);
+});
+
+test('swatchFit: a colour wider than sRGB keeps itself where the format has room, and falls back where it does not', () => {
+  const entries = [fitEntry('vivid', '#00ff00', 'color(display-p3 0 1 0)'), fitEntry('pine', '#0c322c', 'color(srgb 0.047059 0.196078 0.172549)')];
+  for (const fmt of ['tokens-json', 'css-vars', 'css-classes', 'ase'] as const) {
+    assert.deepEqual(swatchFit(entries, fmt).approximated, [], fmt);
+  }
+  for (const fmt of ['scss', 'gpl'] as const) {
+    const fit = swatchFit(entries, fmt);
+    assert.deepEqual(fit.kept.map(e => e.label), ['vivid', 'pine'], fmt);
+    assert.deepEqual(fit.approximated.map(e => e.label), ['vivid'], fmt);
+  }
+});
+
+test('swatchFit: a CMYK build or spot ink travels in tokens JSON and .ase, and is reported dropped elsewhere', () => {
+  const locked: PaletteEntry = { label: 'pine', hex: '#0c322c', cmyk: [65, 0, 35, 85], spot: { name: 'PANTONE 5535 C' } };
+  for (const fmt of ['tokens-json', 'ase'] as const) assert.deepEqual(swatchFit([locked], fmt).printDropped, [], fmt);
+  for (const fmt of ['css-vars', 'css-classes', 'scss', 'gpl'] as const) assert.deepEqual(swatchFit([locked], fmt).printDropped.map(e => e.label), ['pine'], fmt);
+});
+
+test('exportSwatches carries the authored colour and the print lock into the formats with room for them', async () => {
+  const entries: PaletteEntry[] = [
+    { label: 'Vivid', hex: '#00ff00', cmyk: null, token: { ref: '{color.brand.vivid}', path: 'color.brand.vivid', css: 'color(display-p3 0 1 0)' } },
+    { label: 'Pine', hex: '#0c322c', cmyk: [65, 0, 35, 85], spot: { name: 'PANTONE 5535 C', book: 'PANTONE+ Solid Coated' } },
+  ];
+  const text = async (fmt: SwatchExportFormat): Promise<string> => exportSwatches(paletteEntriesToSwatches(entries), fmt).blob.text();
+  const css = await text('css-vars');
+  assert.match(css, /--color-brand-vivid: #00ff00;/);
+  assert.match(css, /@supports \(color: color\(display-p3 0 1 0\)\) \{\n {2}:root \{\n {4}--color-brand-vivid: color\(display-p3 0 1 0\);/);
+  const json = JSON.parse(await text('tokens-json'));
+  assert.equal(json.color.brand.vivid.$value, '#00ff00');
+  assert.deepEqual(json.color.brand.vivid.$extensions['com.suse.lolly'].faces, { 'display-p3': { value: 'color(display-p3 0 1 0)' } });
+  assert.deepEqual(json.color.brand.pine.$extensions['com.suse.lolly'].cmyk, [65, 0, 35, 85]);
+  assert.equal(json.color.brand.pine.$extensions['com.suse.lolly'].spot.name, 'PANTONE 5535 C');
+  assert.doesNotMatch(await text('scss'), /display-p3|PANTONE/);
+});
+
+test('swatchFit agrees with what each exporter actually writes', () => {
+  const entries = [fitEntry('pine', '#0c322c'), fitEntry('clear', 'transparent'), fitEntry('veil', '#0c322c80')];
+  for (const fmt of FORMATS) {
+    const kept = swatchFit(entries, fmt).kept.length;
+    const written = paletteEntriesToSwatches(entries).filter(s => /^#[0-9a-f]{6}$/i.test(s.hex)).length;
+    assert.equal(kept, written, fmt);
+  }
 });

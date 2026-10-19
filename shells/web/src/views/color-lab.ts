@@ -113,6 +113,7 @@ import { mountColorField, swatchInk, surfaceUnder } from '../components/color-fi
 import { attachScrub } from '../lib/scrub.ts';
 import type { MountColorFieldOpts } from '../components/color-field.ts';
 import { backPillHtml, mountBackPill } from '../components/back-pill.ts';
+import { GAMUT_BLURB, GAMUT_TITLE, PLANE_TITLE, PLANE_WHY } from '../lib/colour-words.ts';
 import { collectDevice, renderDeviceCards, wireDeviceLive } from '../lib/device-info.ts';
 import type { ClientGroup, ClientGroupKey } from '../lib/device-info.ts';
 import { createThemeToggle } from '../components/theme-toggle.ts';
@@ -182,32 +183,6 @@ const PANEL_TITLE: Record<SlicePlane, string> = {
   ch: 'Chroma',
   lh: 'Hue',
 };
-/** The plane each panel draws, said plainly under the title. */
-const PLANE_TITLE: Record<SlicePlane, string> = {
-  lc: 'Lightness × Chroma',
-  ch: 'Chroma × Hue',
-  lh: 'Lightness × Hue',
-};
-const PLANE_WHY: Record<SlicePlane, string> = {
-  lc: 'How much punch this hue can take, at every lightness.',
-  ch: 'Which hues hold up at this lightness - and which collapse.',
-  lh: 'The lightness band that can carry this much chroma.',
-};
-
-const GAMUT_TITLE: Record<GamutName, string> = {
-  srgb: 'sRGB',
-  p3: 'Display-P3',
-  rec2020: 'Rec.2020',
-  none: 'Beyond every display',
-};
-/**
- * What each verdict MEANS, stated as capability rather than as a restriction.
- *
- * Leading with the limitation ("needs a wide-gamut screen") frames reaching past
- * sRGB as a problem, when it is usually the intent - a vivid colour that modern
- * displays genuinely reach. Only the last case is a warning, and it earns it by
- * being true regardless of what the user was targeting.
- */
 /**
  * A comparison target's name, whatever kind it is: the display gamut's title, or
  * a profile source's own label ('Coated FOGRA39 (relative)').
@@ -219,13 +194,6 @@ const GAMUT_TITLE: Record<GamutName, string> = {
  */
 const limitTitle = (limit: GamutLimit): string =>
   (typeof limit === 'string' ? GAMUT_TITLE[limit] : resolveGamutSource(limit).label);
-
-const GAMUT_BLURB: Record<GamutName, string> = {
-  srgb: 'Reproducible everywhere - every screen, every browser, every print pipeline.',
-  p3: 'More vivid than sRGB reaches. Shown in full on most phones and recent laptops; older monitors fall back.',
-  rec2020: 'More vivid still - beyond Display-P3. Very few screens show all of this today.',
-  none: 'Beyond every display and print process we can describe. This one will always be mapped down.',
-};
 
 /**
  * The blend's default style - Vivid, not the gradient spec's OKLab.

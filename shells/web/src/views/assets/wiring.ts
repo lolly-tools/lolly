@@ -154,6 +154,10 @@ export function wire(cat: CatCtx): void {
       return;
     }
 
+    // A swatch card's selection dot: its own selection (swatch-set.ts).
+    const swatchDot = target.closest<HTMLElement>('[data-swatch-select]');
+    if (swatchDot) { cat.swatchSet.onDot(swatchDot.dataset.swatchSelect!, e.shiftKey); return; }
+
     // Selection dot. Shift-click extends from the anchor instead of toggling - see
     // lib/tile-select.ts (the same gesture Projects uses).
     const check = target.closest<HTMLElement>('[data-select]');
@@ -287,23 +291,9 @@ export function wire(cat: CatCtx): void {
 
     if (target.closest('.cat-showhidden')) { cat.showHidden = !cat.showHidden; updateRouteParams({ hidden: cat.showHidden ? '' : null }); cat.sections.rerender(); return; }
 
-    // Star toggle on a swatch card → flip its membership in the favourites strip.
-    const sFav = target.closest<HTMLElement>('.plat-swatch-fav');
-    if (sFav) {
-      const key = cat.filters.swatchFavKey(sFav.dataset.favSwatch ?? '');
-      await cat.userAssets.toggleFavourite(key);
-      return;
-    }
-
-    // Read-only convenience: click a swatch chip to copy its hex.
-    const chip = target.closest<HTMLElement>('.plat-swatch-chip[data-copy]');
-    if (chip) {
-      const hex = chip.dataset.copy!;
-      navigator.clipboard?.writeText(hex).then(() => {
-        chip.classList.add('is-copied');
-        setTimeout(() => chip.classList.remove('is-copied'), 900);
-      }).catch(() => {});
-    }
+    // A swatch card opens that swatch's details, like any other asset card.
+    const swatchCard = target.closest<HTMLElement>('[data-swatch-open]');
+    if (swatchCard) { cat.swatches.openSwatch(Number(swatchCard.dataset.swatchOpen)); return; }
   });
 
   // ── Uploads drop area ────────────────────────────────────────────────────────
@@ -331,6 +321,8 @@ export function wire(cat: CatCtx): void {
     const b = (e.target as HTMLElement).closest<HTMLElement>('[data-bulk]');
     if (b) cat.bulk.handleBulk(b.dataset.bulk!);
   });
+  // The swatch selection's bar, the same component in its own wrapper.
+  cat.swatchSet.wireBar();
 
   // (The search field, its ✕, debounce and Escape ladder live in the shell's
   // persistent bar - see the claimSearchBar call in the mount section. Its input

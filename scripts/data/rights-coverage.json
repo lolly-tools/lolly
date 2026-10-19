@@ -304,7 +304,7 @@
       "kind": "delivery",
       "title": "Palette swatch downloads",
       "status": "raw-utility",
-      "code": ["shells/web/src/views/assets/wiring.ts", "shells/web/src/lib/brand-editor/pal-select.ts"],
+      "code": ["shells/web/src/views/assets/wiring.ts", "shells/web/src/lib/brand-editor/pal-select.ts", "shells/web/src/views/assets/swatch-set.ts"],
       "note": "Colour values and names in swatch formats. The tokens download that bundles fonts is part of the brand pack export."
     },
     {
