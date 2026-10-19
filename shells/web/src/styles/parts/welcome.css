@@ -4,10 +4,10 @@
    matter when Vite injects this chunk at runtime. Do not rely on load order. */
 @layer views {
 /*
- * First-run welcome dialog + gallery tips strip (components/welcome-dialog.ts).
+ * First-run welcome dialog (components/welcome-dialog.ts).
  *
  * Loaded with the welcome-dialog module, including first-use web boot. Selectors
- * stay within the dialog and tips strip. Colours flow through tokens.css HSL
+ * stay within the dialog. Colours flow through tokens.css HSL
  * variables (shell chrome, not brand values).
  */
 
@@ -249,54 +249,4 @@
 .welcome-card-kicker { font-size: calc(15px * var(--a11y-fs)); font-weight: 700; }
 .welcome-card-line { font-size: calc(12.5px * var(--a11y-fs)); line-height: 1.5; color: hsl(var(--muted-foreground)); }
 .welcome-card-cta { margin-top: auto; padding-top: 4px; font-size: calc(12.5px * var(--a11y-fs)); font-weight: 650; color: hsl(var(--primary)); }
-
-/* ── Tips strip - slim, above the masonry, until dismissed ─────────────────── */
-.brand-tips {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: fit-content;
-  max-width: 100%;
-  /* Centred over the grid - the app's floating pills (top nav, bulk bar, drop
-     hint) all centre, and a top-left pill fought the centred topbar. */
-  margin: 0 auto 14px;
-  padding: 7px 8px 7px 14px;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: hsl(var(--card));
-  color: hsl(var(--muted-foreground));
-  font-size: calc(12.5px * var(--a11y-fs));
-}
-/* On the fresh-install gallery the strip LEADS the page (no featured strip above
-   it), so it must clear the fixed topbar itself - it takes over .tool-masonry's
-   chrome clearance (6rem desktop / 4.2rem + safe-area on phones, gallery.css) and
-   the grid keeps only the strip's own 14px gap below. Scoped so a strip sitting
-   mid-page (a favourite promoted a featured row above it) keeps the plain margin. */
-.gallery:not(.has-featured) .brand-tips { margin-top: 6.4rem; }
-.gallery:not(.has-featured) .brand-tips + .tool-masonry { padding-top: 0; }
-@media (max-width: 640px) {
-  .gallery:not(.has-featured) .brand-tips { margin-top: calc(4.4rem + var(--safe-top)); }
-}
-.brand-tips-text { margin: 0; line-height: 1.4; }
-/* The unbranded strip's one call to action: the import path for a person's own
-   tokens, which used to sit one select deep in the brand editor. */
-.brand-tips-import { display: inline-block; margin: 0 .6em .2em 0; font-weight: 600;    color: hsl(var(--primary)); text-underline-offset: .15em; }
-.brand-tips-dot { opacity: 0.55; }
-.brand-tips-dismiss {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border: 0;
-  border-radius: var(--radius-round);
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-size: var(--fs-xs);
-  line-height: 1;
-  cursor: pointer;
-}
-.brand-tips-dismiss:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 }
