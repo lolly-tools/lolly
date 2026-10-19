@@ -657,6 +657,32 @@ describe('precache.json grouping (vite.config.js)', () => {
     '/models/sing/rondocode/phoneme.onnx',
   ];
 
+  test('the app list leaves out .well-known, which the app never reads and hosts do not all serve', async () => {
+    const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { tmpdir } = await import('node:os');
+    const { precacheManifest } = await import('../vite.config.js');
+    const out = mkdtempSync(join(tmpdir(), 'lolly-precache-'));
+    try {
+      mkdirSync(join(out, '.well-known'));
+      mkdirSync(join(out, '_app'));
+      writeFileSync(join(out, '.well-known', 'openai-apps-challenge'), 'challenge');
+      writeFileSync(join(out, '.well-known', 'security.txt'), 'Contact: x');
+      writeFileSync(join(out, '.DS_Store'), 'finder');
+      writeFileSync(join(out, 'index.html'), '<!doctype html>');
+      writeFileSync(join(out, '_app', 'index-abc123.js'), 'x');
+      const plugin = precacheManifest() as { configResolved(c: unknown): void; closeBundle(): void };
+      plugin.configResolved({ root: out, build: { outDir: out } });
+      plugin.closeBundle();
+      const manifest = JSON.parse(readFileSync(join(out, 'precache.json'), 'utf8')) as { groups: { app: { url: string }[] } };
+      // lolly.tools answers 404 for these and a lolly-work instance its app page, so
+      // listing them failed every "Download the app" (a user report, 2026-10-19).
+      assert.deepEqual(manifest.groups.app.map(f => f.url), ['/_app/index-abc123.js', '/index.html']);
+    } finally {
+      rmSync(out, { recursive: true, force: true });
+    }
+  });
+
   test('groups route each path to the bucket the SW actually serves it from', async () => {
     const { groupPrecacheFiles } = await import('../vite.config.js');
     const all = urls.map(url => ({ url, size: 1 }));
