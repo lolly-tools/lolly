@@ -848,7 +848,7 @@ background-image:
 .be-review-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 /* Why a rebuild was refused (replace.ts renderRefusal): plain text in the card,
    readable rather than muted, because it is the whole message. */
-.be-review-reason { margin: 0; font-size: calc(12px * var(--a11y-fs)); line-height: 1.45; color: hsl(var(--foreground)); }
+.be-review-reason { margin: 0; font-size: var(--fs-sm); line-height: 1.45; color: hsl(var(--foreground)); }
 
 /* ── Add a colour (lib/design-system/add-color.ts) - the room's level-0 control.
       One row: value field, the optional eyedropper (feature-detected into
@@ -993,7 +993,7 @@ background-image:
    again explains instead of clearing, so it keeps the pressed look and drops
    the pointer that promises an action. */
 .be-useas-row .be-btn[aria-pressed="true"][aria-disabled="true"] { cursor: default; }
-.be-useas-hint { flex: 1 0 100%; margin: 0; font-size: calc(12px * var(--a11y-fs)); line-height: 1.45; color: hsl(var(--muted-foreground)); }
+.be-useas-hint { flex: 1 0 100%; margin: 0; font-size: var(--fs-sm); line-height: 1.45; color: hsl(var(--muted-foreground)); }
 .be-useas-hint[hidden] { display: none; }
 
 /* ── Tab panels - the host view (start.ts) sets data-active-tab on .be; every

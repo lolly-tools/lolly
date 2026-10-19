@@ -190,12 +190,23 @@ export const renderRefusal = (bedit: BrandEditorCtx, reason: string): void => {
   bedit.pendingReplacement = null;
   announce(tRaw("Couldn't rebuild the palette: {reason}", { reason }), { assertive: true });
   if (!reviewEl) return;
-  reviewEl.innerHTML = `
-      <p class="be-review-title">${t("Couldn't rebuild the palette")}</p>
-      <p class="be-review-reason" data-be-review-reason>${escapeText(reason)}</p>
-      <div class="be-review-actions">
-        <button type="button" class="be-btn" data-be-review-cancel>${t('Close')}</button>
-      </div>`;
+  // Built as nodes, not markup: the reason is engine text, so it goes in as text.
+  const title = document.createElement('p');
+  title.className = 'be-review-title';
+  title.textContent = tRaw("Couldn't rebuild the palette");
+  const why = document.createElement('p');
+  why.className = 'be-review-reason';
+  why.dataset.beReviewReason = '';
+  why.textContent = reason;
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.className = 'be-btn';
+  close.dataset.beReviewCancel = '';
+  close.textContent = tRaw('Close');
+  const actions = document.createElement('div');
+  actions.className = 'be-review-actions';
+  actions.append(close);
+  reviewEl.replaceChildren(title, why, actions);
   reviewEl.hidden = false;
 };
 /** Where focus goes when a card that HELD it is taken away: back to the button
