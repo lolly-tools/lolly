@@ -37,7 +37,7 @@ import { bustLivePalette } from '../live-palette.ts';
 import { invalidateVizPalette } from '../viz-palette.ts';
 import { invalidateVizSchemes } from '../viz-schemes.ts';
 import { bustChipPairs } from '../particles.ts';
-import { setSwatches } from '../../components/color-field.ts';
+import { setSwatches, setSwatchSource, LEADS_SWATCH_SOURCE } from '../../components/color-field.ts';
 import { withoutLeadColours } from './leads.ts';
 
 /** Fired on `window` after a switch, before any remount. `detail` is the new record. */
@@ -134,6 +134,10 @@ export async function switchDesignSystem(host: SwitchHost, id: string, opts: Swi
   invalidateVizPalette();
   invalidateVizSchemes();
   bustChipPairs();
+  // The colourway leads a leads-only colour field last read (plans/319) are the
+  // outgoing system's. Dropped, so swatchName stops labelling a colour with one
+  // of its colourways; a mounted field reads the incoming system's leads on open.
+  setSwatchSource(LEADS_SWATCH_SOURCE, null);
   try {
     // A colourway's own colours (plans/319) are a lead's roles, never picker swatches.
     const swatches = withoutLeadColours((await host.tokens?.colors?.()) ?? []);
