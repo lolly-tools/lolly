@@ -24,9 +24,12 @@
  * section (components/theme-choices.ts) and the Design inspector's Document section
  * both draw from the same `DocumentThemeController`, created once by the tool view
  * (views/tool/stage-layout.ts), so a choice made in either is the choice both show.
- * A tool's manifest `tokenAxes` hides the groups it ignores from both.
+ * A tool's manifest `tokenAxes` hides the groups it ignores from both, and so does
+ * a group whose options all draw this tool the same (plans/319 decision 9): light
+ * and dark appear only when the tool reads a colour that differs between them
+ * (lib/theme-relevance.ts works out what the tool reads).
  */
-import type { HostV1, TokenAxisKind, TokensSnapshot } from '@lolly-tools/core/host-v1';
+import type { HostV1, TokenAxisKind, TokenSet, TokensSnapshot } from '@lolly-tools/core/host-v1';
 import type { ToolTokenAxes } from '@lolly-tools/core';
 import { parseTokenSelection, resolveTokenSelection } from '../../../../engine/src/token-selection.ts';
 import { withTokenSelection } from '../../../../engine/src/token-context.ts';
@@ -36,6 +39,7 @@ import { t } from '../i18n.ts';
 import { isIframeMode } from './iframe-mode.ts';
 import { routeParams, updateRouteParams } from './url-state.ts';
 import { themeOptionLabel } from './theme-option-label.ts';
+import { optionsChangeOutput, tokenUsageKey, type ToolTokenUsage } from './theme-relevance.ts';
 
 export type ThemeSelection = Record<string, string>;
 
@@ -71,6 +75,10 @@ export interface DocumentThemeGroup {
 export interface DocumentThemeGroupOpts {
   /** The tool's manifest `tokenAxes`: a group of an ignored kind is not offered. */
   tokenAxes?: ToolTokenAxes | null;
+  /** What the tool's output reads (lib/theme-relevance.ts). With it, a group whose
+   *  options all resolve those reads the same is not offered, because switching it
+   *  would change nothing the tool draws. Without it, every group is offered. */
+  usage?: ToolTokenUsage | null;
 }
 
 /** The runtime surface a theme switch needs. `setTokenSelection` is optional so a
@@ -105,9 +113,9 @@ export function humanGroupId(id: string): string {
 
 const HEX = /^#[0-9a-f]{6}$/i;
 
-/** The lead and partner one colourway gives under the other groups' choices. */
-function colourwaySwatch(doc: unknown, choices: ThemeSelection, group: string, option: string): ThemeOptionSwatch | undefined {
-  const colours = createTokenSet(doc, { selection: { ...choices, [group]: option } }).colors();
+/** The lead and partner one colourway gives, read from the token set it resolves to. */
+function colourwaySwatch(set: TokenSet): ThemeOptionSwatch | undefined {
+  const colours = set.colors();
   const read = (path: string): string | null => {
     const value = colours.find((s) => s.path === path)?.value;
     return typeof value === 'string' && HEX.test(value) ? value.toLowerCase() : null;
@@ -120,7 +128,9 @@ function colourwaySwatch(doc: unknown, choices: ThemeSelection, group: string, o
  * The groups a document can switch between, with the option in force in each.
  * Only a group with more than one option is a choice, so a design system that
  * declares one theme (or none) gives an empty list and no control is drawn. A
- * group of a kind the tool ignores (`tokenAxes`) is left out as well.
+ * group of a kind the tool ignores (`tokenAxes`) is left out as well, and so,
+ * given the tool's `usage`, is a group whose options resolve everything the tool
+ * reads to the same values, each with the other groups on their choice in force.
  *
  * Colourway groups come first, because choosing the lead is the choice people
  * make most; every other group keeps its authored order. Labels are for people:
@@ -133,8 +143,19 @@ export function documentThemeGroups(doc: unknown, selection?: ThemeSelection, op
   const kinds = effectiveAxisKinds(resolved.groups);
   const ignored = new Set(ignoredTokenAxes(resolved.groups, opts.tokenAxes).map((axis) => axis.group));
   const leadsFirst = (group: { id: string }): number => (kinds.get(group.id) === 'colourway' ? 0 : 1);
+  // One token set per selection, shared by the swatches and the output check.
+  const sets = new Map<string, TokenSet>();
+  const setFor = (group: string, option: string): TokenSet => {
+    const choices = { ...resolved.choices, [group]: option };
+    const key = JSON.stringify(Object.entries(choices).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+    let set = sets.get(key);
+    if (!set) { set = createTokenSet(doc, { selection: choices }); sets.set(key, set); }
+    return set;
+  };
+  const usage = opts.usage ?? null;
   const offered = resolved.groups
     .filter((group) => group.options.length > 1 && !ignored.has(group.id))
+    .filter((group) => !usage || optionsChangeOutput(group.options.map((o) => o.id), usage, (option) => setFor(group.id, option)))
     .sort((a, b) => leadsFirst(a) - leadsFirst(b));
   const perKind = new Map<TokenAxisKind, number>();
   for (const group of offered) {
@@ -152,7 +173,7 @@ export function documentThemeGroups(doc: unknown, selection?: ThemeSelection, op
       kind,
       canonical,
       options: group.options.map((option) => {
-        const swatch = kind === 'colourway' ? colourwaySwatch(doc, resolved.choices, group.id, option.id) : undefined;
+        const swatch = kind === 'colourway' ? colourwaySwatch(setFor(group.id, option.id)) : undefined;
         return { id: option.id, label: themeOptionLabel(option.name), canonical: option.id === canonical, ...(swatch ? { swatch } : {}) };
       }),
       active: resolved.choices[group.id] ?? canonical,
@@ -326,6 +347,9 @@ export interface DocumentThemeController extends DocumentThemePort {
   ready: Promise<void>;
   /** Read the themes again (after a design-system switch). */
   refresh(): Promise<void>;
+  /** What the tool reads now (lib/theme-relevance.ts), after an edit linked or
+   *  unlinked a colour. Surfaces are told only when the answer changes. */
+  setUsage(usage: ToolTokenUsage | null): void;
   subscribe(listener: () => void): () => void;
   context(): DocumentTokenContext | null;
   inspect(): Promise<void>;
@@ -346,6 +370,8 @@ export interface DocumentThemeControllerDeps extends Omit<ThemeSwitchDeps, 'pain
   openInspector?(host: HostV1, current: () => boolean): Promise<void>;
   /** The tool's manifest `tokenAxes`; a group of an ignored kind is never offered. */
   tokenAxes?: ToolTokenAxes | null;
+  /** What the tool reads when it mounts, until `setUsage` says otherwise. Absent offers every group. */
+  usage?: ToolTokenUsage | null;
 }
 
 /** The selection the document chose itself, or undefined while it follows the design system. */
@@ -387,17 +413,18 @@ export function createDocumentThemeController(deps: DocumentThemeControllerDeps)
   const switchDeps: ThemeSwitchDeps = { ...deps, paint, writeRoute: deps.writeRoute ?? writeThemesRoute };
   const supported = (): boolean => typeof deps.runtime.setTokenSelection === 'function';
 
-  // Resolving the groups reads the whole token document once per colourway, and the
-  // inspector asks on every sync, so the answer is kept until the document or the
-  // selection changes.
-  let memo: { doc: unknown; key: string; groups: DocumentThemeGroup[] } | null = null;
+  // Resolving the groups reads the whole token document once per option, and the
+  // inspector asks on every sync, so the answer is kept until the document, the
+  // selection or what the tool reads changes.
+  let usage: ToolTokenUsage | null = deps.usage ?? null;
+  let memo: { doc: unknown; key: string; usage: ToolTokenUsage | null; groups: DocumentThemeGroup[] } | null = null;
   const groups = (): DocumentThemeGroup[] => {
     if (!doc || !supported()) return [];
     const selection = deps.runtime.tokenSelection;
     const key = JSON.stringify(selection ? Object.entries(selection).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)) : null);
-    if (memo && memo.doc === doc && memo.key === key) return memo.groups;
-    const next = documentThemeGroups(doc, selection, { tokenAxes: deps.tokenAxes ?? null });
-    memo = { doc, key, groups: next };
+    if (memo && memo.doc === doc && memo.key === key && memo.usage === usage) return memo.groups;
+    const next = documentThemeGroups(doc, selection, { tokenAxes: deps.tokenAxes ?? null, usage });
+    memo = { doc, key, usage, groups: next };
     return next;
   };
 
@@ -436,21 +463,29 @@ export function createDocumentThemeController(deps: DocumentThemeControllerDeps)
     ready,
     refresh,
     groups,
+    setUsage(next) {
+      if (disposed || tokenUsageKey(next) === tokenUsageKey(usage)) return;
+      usage = next;
+      notify();
+    },
     subscribe(listener) {
       listeners.add(listener);
       return () => { listeners.delete(listener); };
     },
     choose(group, option) {
       return enqueue(() => {
+        if (!doc) return null;
         const current = groups();
         if (!current.some((g) => g.id === group && g.options.some((o) => o.id === option))) return null;
-        // A group the tool ignores is not offered, but it stays explicit on its
-        // canonical option, so the runtime has nothing to pin back.
-        const next = withThemeChoice(current, group, option);
-        if (doc) {
-          const all = resolveTokenSelection(doc, deps.runtime.tokenSelection ? { selection: deps.runtime.tokenSelection } : {});
-          for (const axis of ignoredTokenAxes(all.groups, deps.tokenAxes)) next[axis.group] = axis.canonical;
-        }
+        // Every group with a choice stays explicit, offered or not: a group hidden
+        // because it changes nothing in this tool keeps the option it is on, so a
+        // dark document stays dark in the link and the session. A group the tool
+        // ignores stays on its canonical option, so the runtime has nothing to pin back.
+        const all = resolveTokenSelection(doc, deps.runtime.tokenSelection ? { selection: deps.runtime.tokenSelection } : {});
+        const choosable = all.groups.filter((g) => g.options.length > 1)
+          .map((g) => ({ id: g.id, active: all.choices[g.id] ?? g.canonical ?? g.options[0]!.id }));
+        const next = withThemeChoice(choosable, group, option);
+        for (const axis of ignoredTokenAxes(all.groups, deps.tokenAxes)) next[axis.group] = axis.canonical;
         return next;
       });
     },

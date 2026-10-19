@@ -12,12 +12,15 @@
  *     address `_themes`, while the app's own `--brand-primary` on `:root` stays
  *     on the canonical lead (plans/319 A1);
  *   - the mode switch redraws the dots in the dark leads;
- *   - a link that asks for a colourway opens with that dot chosen.
+ *   - a link that asks for a colourway opens with that dot chosen;
+ *   - a tool that draws no design-system colour (Prompt Card) shows no section,
+ *     because neither the colourway nor light and dark would change its output
+ *     (plans/319 decision 9).
  *
  *   LOLLY_EXPORT_TEST_URL=http://127.0.0.1:5173 node --import ./tests/css-stub.mjs --test tests/tool-colourway.browser.test.ts
  */
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import test, { after } from 'node:test';
 import { readFileSync } from 'node:fs';
 import type { Page } from 'playwright-core';
 
@@ -57,6 +60,9 @@ const themesInAddress = (page: Page): Promise<Record<string, string> | null> => 
   const raw = new URLSearchParams(query).get('_themes');
   return raw ? JSON.parse(raw) : null;
 });
+// One browser for the file, closed after the last case whichever cases ran.
+after(() => closeBrowser());
+
 const waitCanvas = (page: Page, hex: string): Promise<unknown> => page.waitForFunction((want) =>
   getComputedStyle(document.querySelector('#tool-canvas')!).getPropertyValue('--brand-primary').trim().toLowerCase() === want, hex);
 
@@ -122,6 +128,24 @@ test('the Design system section offers the colourways as named dots and moves on
     throw error;
   } finally {
     await context.close();
-    await closeBrowser();
+  }
+});
+
+test('a tool that draws no design-system colour shows no Design system section', { skip, timeout: 300_000 }, async () => {
+  const browser = await getBrowser();
+  const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1440, height: 1000 } });
+  await context.addInitScript((d) => { (window as unknown as Record<string, unknown>).__lollyAutomationDesignSystem = d; }, threeLeads());
+  try {
+    const page = await context.newPage();
+    page.setDefaultTimeout(30_000);
+    await page.goto(`${new URL(origin!).origin}/#/tool/prompt-card?text=${encodeURIComponent('Write the release notes.')}`, { waitUntil: 'load' });
+    await page.locator('#tool-inputs .input-row').first().waitFor({ state: 'visible', timeout: 120_000 });
+    await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden', timeout: 60_000 }).catch(() => {});
+    // The controller has read the design system once the canvas carries its variables.
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('#tool-canvas')!).getPropertyValue('--brand-primary').trim() !== '');
+    await page.waitForTimeout(500);
+    assert.equal(await page.locator('#theme-section').isHidden(), true, 'neither a colourway nor light and dark changes this tool');
+  } finally {
+    await context.close();
   }
 });

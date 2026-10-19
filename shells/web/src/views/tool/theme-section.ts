@@ -9,16 +9,20 @@
  *
  * The section is chrome, not an input. It sits outside `#tool-inputs` (which
  * renderInputs rewrites on every model change) and it is offered by the design
- * system, not by the tool: every tool whose design system has a theme group with
- * more than one option shows it, minus the groups the tool's `tokenAxes` ignores.
- * The state is the view's one `DocumentThemeController`, so this section and the
- * Design inspector's Document section always show the same choice.
+ * system, not by the tool. A group shows only when switching it changes what this
+ * tool draws (plans/319 decision 9): its options resolve a colour the tool reads
+ * to different values (lib/theme-relevance.ts). A tool that draws no
+ * design-system colour therefore shows no section at all, and the groups the
+ * tool's `tokenAxes` ignores never show. The state is the view's one
+ * `DocumentThemeController`, so this section and the Design inspector's Document
+ * section always show the same choice.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { ColorSwatchOption } from '../../components/color-field.ts';
 import type { DocumentThemeController, DocumentThemeGroup } from '../../lib/document-theme.ts';
 import type { ThemeChoices } from '../../components/theme-choices.ts';
 import { swatchFace } from '../../../../../engine/src/color-face.ts';
+import { sourceTokenUsage, toolTokenUsage, type ToolSources } from '../../lib/theme-relevance.ts';
 
 export interface ThemeSectionOpts {
   /** The mounted view, holding `#theme-section` and `#theme-section-body`. */
@@ -88,6 +92,31 @@ export function mountThemeSection(opts: ThemeSectionOpts): ThemeSection {
       control = null;
     },
   };
+}
+
+/** The runtime surface the usage tracker reads. */
+export interface UsageRuntime {
+  getModel(): ReadonlyArray<{ value?: unknown }>;
+  subscribe(listener: () => void): () => void;
+}
+
+/**
+ * Keep the controller's idea of what the tool reads current (plans/319 decision 9).
+ * The tool's sources are read once, at mount. The inputs' values are read again
+ * once the person's edits settle, because linking a colour to the design system,
+ * or unlinking one, changes whether light and dark draw this tool differently.
+ * A tool whose sources already read everything has nothing an edit can change, so
+ * nothing is tracked. Returns the way to stop.
+ */
+export function trackToolTokenUsage(controller: Pick<DocumentThemeController, 'setUsage'>, tool: ToolSources, runtime: UsageRuntime, opts: { delayMs?: number } = {}): () => void {
+  const fromSources = sourceTokenUsage(tool);
+  if (fromSources.all || fromSources.any) return () => {};
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const off = runtime.subscribe(() => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => { timer = null; controller.setUsage(toolTokenUsage(tool, runtime.getModel())); }, opts.delayMs ?? 250);
+  });
+  return () => { if (timer) clearTimeout(timer); timer = null; off(); };
 }
 
 /**

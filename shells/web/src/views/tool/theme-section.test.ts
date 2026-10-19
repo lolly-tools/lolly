@@ -7,7 +7,9 @@
  * without a remount; it opens on its first show only for a colourway and never
  * reopens a fold the person closed; a switch re-seeds the colour field's
  * swatches from the scoped host; and a destroyed section stops listening. In the
- * sidebar markup the section sits above Emoji, each under its own comment.
+ * sidebar markup the section sits above Emoji, each under its own comment. What
+ * the tool reads is told to the controller again once edits settle (plans/319
+ * decision 9), so linking a colour can bring light and dark in.
  *
  * Run directly:  node --import ./tests/css-stub.mjs --test shells/web/src/views/tool/theme-section.test.ts
  */
@@ -22,7 +24,7 @@ for (const k of ['window', 'document', 'HTMLElement', 'HTMLButtonElement', 'HTML
 }
 
 const themeChoices = await import('../../components/theme-choices.ts');
-const { mountThemeSection, opensByDefault, refreshThemeSwatches } = await import('./theme-section.ts');
+const { mountThemeSection, opensByDefault, refreshThemeSwatches, trackToolTokenUsage } = await import('./theme-section.ts');
 const { COLOURWAY, MODE, fakeThemeController } = await import('../__fixtures__/theme-groups.ts');
 
 const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
@@ -134,4 +136,35 @@ test('in the sidebar markup the section sits above Emoji, each element under its
     at('id="emoji-section"'),
   ];
   assert.deepEqual(order, [...order].sort((a, b) => a - b), 'Design system comment, Design system section, Emoji comment, Emoji section');
+});
+
+test('what the tool reads is told again once edits settle, and only for a tool whose sources leave room', async () => {
+  const told: Array<string[] | null> = [];
+  const controller = { setUsage: (usage: { paths: string[] } | null) => { told.push(usage ? usage.paths : null); } };
+  let model: Array<{ value?: unknown }> = [{ value: '#123456' }];
+  const listeners = new Set<() => void>();
+  const runtime = { getModel: () => model, subscribe: (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; } };
+  const emit = (): void => { for (const fn of listeners) fn(); };
+  const sources = { template: '<b style="color:var(--brand-text)"></b>', styles: null, hooksSource: null, hooksUrl: null };
+  const stop = trackToolTokenUsage(controller, sources, runtime, { delayMs: 0 });
+  model = [{ value: { ref: '{color.semantic.primary}', value: '#1d1d1d' } }];
+  emit(); emit(); emit();
+  await flush();
+  assert.deepEqual(told, [['color.semantic.primary', 'color.semantic.text']], 'three quick edits are read once, after they settle');
+  stop();
+  emit();
+  await flush();
+  assert.equal(told.length, 1, 'a stopped tracker reads nothing more');
+  assert.equal(listeners.size, 0);
+
+  const readsAll = { template: '', styles: null, hooksSource: 'const all = await host.tokens.colors();', hooksUrl: null };
+  trackToolTokenUsage(controller, readsAll, runtime, { delayMs: 0 });
+  assert.equal(listeners.size, 0, 'a tool that already reads every token has nothing an edit can change');
+});
+
+test('the view tells the controller what the tool reads when it mounts and tracks it after', () => {
+  const source = readFileSync(new URL('./stage-layout.ts', import.meta.url), 'utf8');
+  assert.match(source, /usage: toolTokenUsage\(tview\.tool, runtime\.getModel\(\)\)/);
+  assert.match(source, /trackToolTokenUsage\(documentTheme, tview\.tool, runtime\)/);
+  assert.match(source, /stopUsage\(\); themeSection\.destroy\(\); documentTheme\.dispose\(\);/);
 });

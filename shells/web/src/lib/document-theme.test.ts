@@ -345,3 +345,39 @@ test('the controller never offers a group the tool ignores, and keeps that group
   assert.deepEqual(f.runtime.tokenSelection, { '': 'dark', colourway: 'main' });
   controller.dispose();
 });
+
+test('with what the tool reads, the controller offers only the groups that change it, and hears when that changes', async () => {
+  const doc = await colourwayDoc();
+  const f = fakes(undefined);
+  const changes: string[] = [];
+  const reads = (paths: string[]) => ({ paths, prefixes: [], all: false, any: false });
+  const controller = createDocumentThemeController({
+    ...f.deps, readDocument: async () => doc, usage: reads(['color.ramp.neutral.3']),
+    onChange: () => changes.push(controller.groups().map((g) => g.kind).join('+') || 'none'),
+  });
+  await controller.ready;
+  assert.deepEqual(changes, ['none'], 'a tool that reads only the neutral ramp is offered no choice');
+  controller.setUsage(reads(['color.ramp.neutral.3']));
+  assert.equal(changes.length, 1, 'the same reads tell nobody');
+  controller.setUsage(reads(['color.semantic.primary']));
+  assert.deepEqual(changes, ['none', 'colourway+mode'], 'linking a colour to the lead brings both groups in');
+  controller.setUsage(null);
+  assert.deepEqual(changes.at(-1), 'colourway+mode', 'without usage, every group is offered');
+  controller.dispose();
+});
+
+test('a choice keeps a hidden group on the option it is on, so a dark document stays dark', async () => {
+  const doc = await colourwayDoc();
+  const f = fakes({ '': 'dark', colourway: 'main' });
+  // The colourway's own primitive moves with the colourway and not with the look.
+  const controller = createDocumentThemeController({
+    ...f.deps, readDocument: async () => doc, usage: { paths: ['color.colourway.light.primary'], prefixes: [], all: false, any: false },
+  });
+  await controller.ready;
+  assert.deepEqual(controller.groups().map((g) => g.kind), ['colourway'], 'light and dark change nothing this tool reads');
+  await controller.choose('colourway', 'persimmon');
+  assert.deepEqual(f.runtime.tokenSelection, { '': 'dark', colourway: 'persimmon' });
+  await controller.choose('', 'light');
+  assert.deepEqual(f.runtime.tokenSelection, { '': 'dark', colourway: 'persimmon' }, 'a hidden group cannot be chosen');
+  controller.dispose();
+});
