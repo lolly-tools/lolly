@@ -43,10 +43,14 @@ const askedKey = (id: string): string => `lolly:ds-name-asked:${id}`;
 const wasAsked = (id: string): boolean => { try { return localStorage.getItem(askedKey(id)) === '1'; } catch { return false; } };
 const markAsked = (id: string): void => { try { localStorage.setItem(askedKey(id), '1'); } catch { /* asked again next visit */ } };
 
+/** Rename a design system from the studio: the header field and the ask both do. */
+const renameSystem = (start: StartCtx, id: string, label: string): Promise<void> =>
+  renameDesignSystem(start.host as unknown as Parameters<typeof renameDesignSystem>[0], id, label);
+
 /** The words the placed logo spells out, for the name the ask suggests. */
 async function suggestedName(start: StartCtx): Promise<string> {
   let slots: Awaited<ReturnType<typeof listLogos>> = [];
-  try { slots = await listLogos(start.host as unknown as Parameters<typeof listLogos>[0]); } catch { return ''; }
+  try { slots = await listLogos(start.host); } catch { return ''; }
   try {
     const svg = slots.find(s => s.format === 'svg' && s.identity === 'default' && /primary/.test(s.variant))
       ?? slots.find(s => s.format === 'svg');
@@ -103,7 +107,7 @@ export async function refreshName(start: StartCtx): Promise<void> {
 }
 
 function paintNameLine(start: StartCtx, rec: ActiveRecord): void {
-  const { focusDsName, host, viewEl } = start;
+  const { focusDsName, viewEl } = start;
   const line = viewEl.querySelector<HTMLElement>('[data-start-ds]');
   if (!line) return;
   const state = rec.locked ? ` <span class="start-ds-lock">${t('read-only')}</span>` : '';
@@ -119,11 +123,7 @@ function paintNameLine(start: StartCtx, rec: ActiveRecord): void {
       return;
     }
     try {
-      await renameDesignSystem(
-        host as unknown as Parameters<typeof renameDesignSystem>[0],
-        rec.id,
-        label
-      );
+      await renameSystem(start, rec.id, label);
       nameInput.value = label;
       document.title = `${label} · Lolly`;
       start.exporting.showNote(t('Design system name saved.'));
@@ -168,7 +168,7 @@ function nameAsk(start: StartCtx, rec: ActiveRecord, suggestion: string): HTMLFo
     const label = field.value.trim();
     if (!label) { field.focus(); return; }
     try {
-      await renameDesignSystem(start.host as unknown as Parameters<typeof renameDesignSystem>[0], rec.id, label);
+      await renameSystem(start, rec.id, label);
     } catch (err) {
       start.exporting.showNote(String((err as { message?: unknown })?.message ?? err), true);
       return;
