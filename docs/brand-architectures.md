@@ -10,7 +10,7 @@ Lolly does not ask you which arrangement you have. It gives you a few building b
 | --- | --- | --- |
 | **Design system** | Colours, type, logos, the rest of the tokens, and versions. Tools, pages and exports follow the active one. | [The Brand Studio](/info/brand-studio.html), and **Settings → Design systems** to switch or remove |
 | **Looks** | Light and dark. Every artefact can be drawn in either. | Built in; the studio derives both. A tool's **Design system** section switches the look when the look changes that tool, and the open tool redraws with no reload |
-| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour, chosen per artefact. One is canonical, and the app's own colours always use the canonical one. | Written in the token file; chosen per artefact in a tool's **Design system** section, which redraws the open tool with no reload. Rebuilding the palette in the studio keeps every colourway. See [Colourways](/info/token-workflows.html#colourways) |
+| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour, chosen per artefact. One is canonical, and the app's own colours always use the canonical one. Tools that draw several colours at once, such as Chart and Mesh Gradient, draw on every lead together. | Written in the token file; chosen per artefact in a tool's **Design system** section, which redraws the open tool with no reload. Rebuilding the palette in the studio keeps every colourway. See [Colourways](/info/token-workflows.html#colourways) |
 | **Logo identities** | Several named sets of logos in one design system. The main set is "Your logo". | **Logos** room, **+ Add another logo** |
 | **Custom marks** | Marks under your own names: a crest, a favicon, a finished lockup. | **Logos** room, **Custom marks** |
 | **House rules** | Approved colour pairings, type per role and other rules a composition is checked against. | The design system's rules; see [Check a composition](/info/brand-studio.html#check-a-composition-against-the-design-system) |
@@ -26,7 +26,7 @@ A common way to group arrangements is by how much of the parent brand the audien
 | --- | --- | --- | --- | --- |
 | Unify | Monolithic | One masterbrand, a descriptor and a division colour | One design system, a colourway per division, picked per artefact in the tool | Authoring colourways in the studio |
 | Unify | Expanded | The masterbrand above each product, each with its own colour and mark | One design system, a colourway and a logo identity per product | A colourway choosing its logo identity; tools drawing a product's logo |
-| Unify | Rotating lead colour | One brand whose lead colour changes from piece to piece | One design system with colourways | A series that picks colourways by a rule |
+| Unify | Rotating lead colour | One brand whose lead colour changes from piece to piece, or shows every lead at once | One design system with colourways; charts, gradients and covers draw on every lead | A series that picks colourways by a rule |
 | Subset | Driven | The parent's logo with each business's name, tailored by audience | One design system, or a copy per business | A business design system that stays linked to the parent |
 | Endorse | Appended | A brand's own mark with "by" the parent, for a limited time | A design system for the brand, the endorsed lockup as a custom mark | Generated endorsement lockups; an end date |
 | Endorse | Apparent | Distinct marks that share type, grid and motion | A design system per brand, copied from a shared start | A shared core the brands keep in step with |
@@ -66,6 +66,7 @@ Some brands keep their logo, type and layout fixed and change the lead colour fr
 
 - Make **one design system** with a **colourway** for each lead colour. Each colourway carries its own lead, the colour that sits on it, and a partner, in both light and dark.
 - Mark one colourway canonical. An artefact that chooses none uses it, and so does the app.
+- Pieces that show the whole family at once draw on every lead, canonical first: Chart's series and palettes, Mesh Gradient's shuffle, the Audiogram visualiser's colours and the audio and text covers in Assets. Template authors reach the same leads as `--brand-lead-1` onwards ([Authoring tools](/info/authoring-tools.html#design-system-colours-in-templates-and-styles)).
 
 Not yet: no series, batch or copy flow picks colourways by a rule. The engine's rules (cycle, by key, shuffle, by date) exist for scripts; see [Colourways](/info/token-workflows.html#colourways).
 

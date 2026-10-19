@@ -129,8 +129,8 @@
     {
       "version": 1,
       "toolId": "audiogram",
-      "toolVersion": "2.7.5",
-      "toolVersionRange": "2.7.5",
+      "toolVersion": "2.8.0",
+      "toolVersionRange": "2.8.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -139,7 +139,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "da1bea1f51a668186eaf3e44e875d045c85f267b661c5448b58a258ea1f40f95",
+          "sha256": "ac2906efb90586a53ca809e212c397be20859bccba1b33d22e84e5f60c3f64f8",
           "bytes": 2091
         },
         "reference/inputs.json": {
@@ -303,8 +303,8 @@
     {
       "version": 1,
       "toolId": "chart",
-      "toolVersion": "1.26.2",
-      "toolVersionRange": "1.26.2",
+      "toolVersion": "1.27.0",
+      "toolVersionRange": "1.27.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -313,7 +313,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "5522895ad8290b6417fa908c83191a8047be5fcb8194d7a8a72d403477154bcd",
+          "sha256": "0d6047200fe54663afc2c4edadf49668ae9e817dd92ec25d566fc5db4966c2ab",
           "bytes": 5869
         },
         "reference/inputs.json": {
@@ -634,8 +634,8 @@
     {
       "version": 1,
       "toolId": "filter",
-      "toolVersion": "1.5.1",
-      "toolVersionRange": "1.5.1",
+      "toolVersion": "1.5.2",
+      "toolVersionRange": "1.5.2",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -644,7 +644,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "077c2721c730e9403c47c9f0e6bd798a94563c919af4e1c00c92b9a50a25e730",
+          "sha256": "29632538643c643e4fb647870135ea7682d3c08838dc32a47f9728974f758309",
           "bytes": 5289
         },
         "reference/inputs.json": {
@@ -759,8 +759,8 @@
     {
       "version": 1,
       "toolId": "gradient",
-      "toolVersion": "1.2.4",
-      "toolVersionRange": "1.2.4",
+      "toolVersion": "1.3.0",
+      "toolVersionRange": "1.3.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -769,7 +769,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "bb2deb5a5d7206b2173a8b64019e8d03edd930a81d2020370d7888f6ce9bbc5e",
+          "sha256": "706a02fcf8521bf8ee3e8988ac56ce424bdd221d6f61c00b9c5ef20c6ec3a1a6",
           "bytes": 2528
         },
         "reference/inputs.json": {

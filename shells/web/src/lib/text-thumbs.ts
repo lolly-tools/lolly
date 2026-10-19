@@ -28,7 +28,7 @@
  */
 
 import { analyzeTextSignals, makeColorApi } from '@lolly/engine';
-import { audioThumbPool, audioThumbInk, THUMB_SURFACE, type ThumbTheme } from './audio-thumb-colour.ts';
+import { audioThumbPool, audioThumbInk, audioThumbLeads, THUMB_SURFACE, type ThumbTheme } from './audio-thumb-colour.ts';
 import { livePalette } from './live-palette.ts';
 
 /** One run of the excerpt: plain text, or a heat-marked span (bucket 1-5). */
@@ -344,7 +344,7 @@ export function mountTextThumbs(
 
   void (async () => {
     const h = host as Parameters<typeof livePalette>[0];
-    try { pool = audioThumbPool(await livePalette(h), colourHost, theme); } catch { pool = []; }
+    try { pool = audioThumbPool(await livePalette(h), colourHost, theme, await audioThumbLeads(h, theme)); } catch { pool = []; }
     // Tiles painted before the palette resolved carry no ink - colour them in
     // rather than leaving the grid half grey (the audio thumbs' own rule).
     repaintPainted();

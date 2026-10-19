@@ -61,7 +61,7 @@ import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { maybeNudgeAssetMilestone } from '../lib/asset-milestone.ts';
 import { invalidateNeurospicyTracks } from '../lib/neurospicy.ts';
 import { audioThumbSvg } from '../lib/audio-thumb.ts';
-import { audioThumbPool, type ThumbTheme } from '../lib/audio-thumb-colour.ts';
+import { audioThumbPool, audioThumbLeads, type ThumbTheme } from '../lib/audio-thumb-colour.ts';
 import { mountTextThumbs } from '../lib/text-thumbs.ts';
 import { loadAudioCovers, resolveAudioLook, type AudioCover } from '../lib/audio-covers.ts';
 import { livePalette } from '../lib/live-palette.ts';
@@ -2446,7 +2446,7 @@ export function mountAudioThumbs(
     // three different host shapes. Both callees take a narrow structural slice and
     // feature-detect what they read, so the assertion asserts nothing they do not check.
     const h = host as Parameters<typeof livePalette>[0] & Parameters<typeof audioThumbPool>[1];
-    try { pool = audioThumbPool(await livePalette(h), h, theme); } catch { pool = []; }
+    try { pool = audioThumbPool(await livePalette(h), h, theme, await audioThumbLeads(h, theme)); } catch { pool = []; }
     try { covers = loadAudioCovers(await (h as { profile?: { get(): Promise<unknown> } }).profile?.get() as never); } catch { covers = new Map(); }
     // The pool arrives AFTER the first tiles have painted, and a tile painted without it
     // silently inherits `--muted-foreground` - the grey tiles sitting among coloured ones.

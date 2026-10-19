@@ -110,6 +110,20 @@ Imported files often encode colourways their own way, for example by overriding 
 
 The same seed, key, date and position pick the same colourway on every computer, because the engine supplies no clock and no random source of its own.
 
+**Tools that use every lead.** Some tools draw several colours at once, and they draw on the whole family: every colourway's lead in the artefact's look, canonical first, read through `host.tokens.family()` (see [Host API](/info/host-api.html)).
+
+| Where | What the family changes |
+| --- | --- |
+| Chart | The leads come first in the categorical palette: ahead of the design system's own spectrum, or ahead of the shipped colours when it has none, so the palette never has fewer colours than with one colourway. They follow Primary and Secondary in the ordered palette and the recolour swatches. Another colourway's lead becomes the second hue of the two-hue sequential and diverging ramps |
+| Audiogram | The other colourways' leads follow the background in the visualiser's colours |
+| Mesh Gradient | Shuffle colours draws on the leads before the rest of the design system |
+| The visualiser's colour schemes | One scheme per colourway, in the design system's order and labelled with the colourway's name, with that colourway's partner as the counterpoint. A lead too dark or too grey to carry the picture hands the field to its partner |
+| Audio and text covers in Assets and the picker | The leads come first in the colours the covers are drawn from |
+
+The canvas carries the family as `--brand-lead-1` to `--brand-lead-<n>` and `--brand-lead-count` (see [Authoring tools](/info/authoring-tools.html)), and a colour input declared with `"palette": "colourway-leads"` offers the leads as its swatches (see [Tool inputs](/info/tool-inputs.html)). A design system with one colourway, or none, has no family, and each of these tools draws exactly as before.
+
+When the artefact's colourway or look changes, Chart, Mesh Gradient and Filter read the colours they keep from the design system again as the open tool redraws, and every input keeps its value. Covers belong to the app, not to an artefact: they list the same leads whatever colourway an artefact uses, in the app's own light or dark appearance.
+
 **Penpot.** A `.penpot` export keeps the colourway group and its sets, and opens with the canonical colourway turned on so the links resolve. Penpot's theme record has no field for the `kind`, so the group arrives in Penpot, and comes back from Penpot, as a plain theme group.
 
 **Engine functions.** `engine/src/colourway.ts` holds the pure helpers: `liftToColourways` converts a single-lead system into one with a canonical colourway and refuses the edit unless every token in every look resolves exactly as before; `addColourway` adds one; `colourwayFamily` lists every colourway's colour for a role, canonical first; `pickColourway` applies a rule; `withColourway` merges a pick into a theme selection. `deriveColourwaySlots` in `engine/src/brand-derive.ts` gives a new lead's primary, on-primary and secondary for one look, the same values a whole design system derived from that colour would use. Brand Studio does not author colourways yet; for now a colourway file is written by hand, by a script, or with these functions.

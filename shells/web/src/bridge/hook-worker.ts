@@ -219,6 +219,57 @@ async function snapshotTokens(host: HostV1): Promise<{ doc: unknown | null; excl
   } catch { return { doc: null, excluded: [] }; }
 }
 
+/** The token set the host's `get()` answers now, or undefined when it has none to give. */
+async function currentTokenSet(host: HostV1): Promise<unknown> {
+  const t = host.tokens;
+  if (typeof t?.get !== 'function') return undefined;
+  try { return await t.get(); } catch { return undefined; }
+}
+
+/**
+ * Keep an isolated run's tokens on the runtime's current choices (plans/319).
+ *
+ * The worker resolves tokens from a snapshot of the document, taken at mount. A
+ * colourway or look switch re-scopes the runtime's own token reads, and without a
+ * fresh snapshot an isolated hook would keep reading the choices the tool mounted
+ * with, so a chart or gradient that re-reads its brand on a switch would see the
+ * old colours. Two paths post a new snapshot, one at a time so invokes keep their
+ * order:
+ *
+ * - `refresh` is the runtime's `tokensChanged`: `setTokenSelection` calls it
+ *   before any hook runs under the new choice, and it always posts.
+ * - `follow` runs before each hook that reads tokens. The token set `get()`
+ *   answers is the cheap signal: the web bridge memoises one per selection, so it
+ *   is the same object until the choices or the document change. Only then is the
+ *   document read and posted again, which is how an edit to the design system
+ *   reaches a mounted run. After a `refresh` the set is already the one posted,
+ *   so a switch sends one document, not two.
+ */
+function tokenFollower(runId: number, host: HostV1, initial: unknown): { follow: () => Promise<void>; refresh: () => Promise<void> } {
+  let seen = initial;
+  let chain: Promise<void> = Promise.resolve();
+  const empty = (set: unknown): boolean => !!set && typeof set === 'object' && (set as { size?: unknown }).size === 0;
+  const post = async (set: unknown): Promise<void> => {
+    seen = set;
+    const { doc, excluded } = await snapshotTokens(host);
+    if (doc == null || !mounts.has(runId)) return;
+    try { workers.get(runId)?.postMessage({ t: 'tokens', runId, tokenDoc: doc, tokenExcluded: excluded }); } catch { /* the next change tries again */ }
+  };
+  const check = async (): Promise<void> => {
+    const set = await currentTokenSet(host);
+    if (set === undefined || set === seen || (empty(set) && empty(seen))) return;
+    await post(set);
+  };
+  const force = async (): Promise<void> => { await post(await currentTokenSet(host)); };
+  return {
+    follow: () => (chain = chain.then(check, check)),
+    refresh: () => (chain = chain.then(force, force)),
+  };
+}
+
+/** The hooks that read tokens as a document is edited. A per-frame hook keeps the last snapshot. */
+const FOLLOWS_TOKENS: ReadonlySet<WorkerHookName> = new Set(['onInit', 'onInput', 'exportFile']);
+
 /** Run one hook in the worker: strip the (non-serializable) host from ctx - the
  *  worker supplies its own proxy - and await the patch. */
 function invokeInWorker(runId: number, name: WorkerHookName, ctx: unknown): Promise<unknown> {
@@ -266,6 +317,7 @@ async function mountInWorker(
   const runId = ++runSeq;
   const w = createWorker(runId, geometryBackendOf(host.geom) + (geometrySelectionIsStrict(host.geom) ? '' : ':default'));
   const { doc, excluded } = await snapshotTokens(host);
+  const mountedSet = doc == null ? undefined : await currentTokenSet(host);
   const hostShape = allowInRealmExportHooks
     ? introspect(host)
     : strictHostShape(introspect(host), tool.manifest.capabilities ?? [], !!host.capture && '_isolatedPublic' in host.capture && host.capture._isolatedPublic === true);
@@ -308,8 +360,14 @@ async function mountInWorker(
   mounts.set(runId, { host, allowedRpc: workerRpcMethods(hostShape), strict: !allowInRealmExportHooks });
   host.log('info', `hooks running in a Worker (${initMsg.declared.join(', ') || 'none declared'})`, { toolId: tool.manifest.id });
   const has = new Set(initMsg.declared);
+  // A run given no tokens at mount has none to refresh, so it never follows.
+  const follower = doc == null ? null : tokenFollower(runId, host, mountedSet);
   const slot = (name: WorkerHookName): ((ctx: unknown) => Promise<unknown>) | null =>
-    has.has(name) ? (ctx: unknown) => invokeInWorker(runId, name, ctx) : null;
+    has.has(name)
+      ? (follower && FOLLOWS_TOKENS.has(name)
+        ? (ctx: unknown) => follower.follow().then(() => invokeInWorker(runId, name, ctx))
+        : (ctx: unknown) => invokeInWorker(runId, name, ctx))
+      : null;
 
   // The node-carrying export hooks (beforeExport/afterExport/exportStill) receive
   // a live DOM Element and MUST run in-realm - it can't cross the boundary. Always
@@ -327,14 +385,9 @@ async function mountInWorker(
   // The worker's tokens are the snapshot taken at init. When the runtime's theme
   // scope moves (setTokenSelection), `host.tokens` already answers in the new one,
   // so the worker gets a new snapshot of it before any hook runs under the new
-  // choice. A newer switch's snapshot is the one kept.
-  let tokenSeq = 0;
-  const tokensChanged = async (): Promise<void> => {
-    const seq = ++tokenSeq;
-    const next = await snapshotTokens(host);
-    if (seq !== tokenSeq || next.doc == null || !mounts.has(runId)) return;
-    workers.get(runId)?.postMessage({ t: 'tokens', runId, tokenDoc: next.doc, tokenExcluded: next.excluded });
-  };
+  // choice. Refreshes queue behind each other, so a newer switch's snapshot is the
+  // one kept.
+  const tokensChanged = (): Promise<void> => follower ? follower.refresh() : Promise.resolve();
 
   return {
     onInit: slot('onInit'),
@@ -345,7 +398,7 @@ async function mountInWorker(
     beforeExport: inRealm?.beforeExport ?? null,
     afterExport: inRealm?.afterExport ?? null,
     exportStill: inRealm?.exportStill ?? null,
-    ...(doc != null ? { tokensChanged } : {}),
+    ...(follower ? { tokensChanged } : {}),
     // Teardown (runtime.destroy → hooks.dispose): tell the worker to drop this
     // run and release the main-side host reference. Idempotent.
     dispose: () => {

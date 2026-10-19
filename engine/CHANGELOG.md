@@ -6,6 +6,14 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.279.0
+
+- Add optional `host.tokens.family(role?, opts?)`, which returns every colourway's colour for one role, canonical first, in the look the read resolves to. Each member carries `id`, `name`, `canonical`, `active` (the artefact's own colourway) and `value`. The list is empty when the design system has no colourway group. `withTokenSelection` scopes it to the document's choices.
+- Add optional `host.tokens.axes()`, which returns every theme group with its kind, canonical option, rotation and options.
+- The engine helpers `tokenFamily`, `tokenAxesOf` and `brandLeadVars` live in `token-context.ts`. Both canvas `applyBrandVars` paint `--brand-lead-1..n` and `--brand-lead-count` from `brandLeadVars`, only for a family of two or more, so a design system with one lead renders exactly as before.
+- The web, CLI and hook-worker hosts answer both reads. The web Worker executor sends the token document again before the next hook runs when the runtime's token set changes; `tokensChanged` (1.278.0) and this follower share one queue, so a switch sends one document.
+- Chart 1.27.0 puts the leads ahead of its categorical palette, never in its place; Audiogram 2.8.0, the visualiser schemes and Mesh Gradient 1.3.0 draw on every lead.
+
 ## 1.278.0
 
 - A tool manifest may declare `tokenAxes`, a map from axis kind (`mode`, `colourway`, `expression`, `medium`, `contrast`, `density`, `campaign`, `brand`) to `"ignore"`. The runtime pins every theme group of an ignored kind to its canonical option at mount and on every `setTokenSelection`, before the first token read, so hooks, linked colours, canvas variables and the saved session agree. `runtime.ignoredTokenChoices` lists the requested choices the pin overrode. The decision is pure, in `tool-token-axes.ts` (`ignoresTokenAxes`, `effectiveAxisKinds`, `ignoredTokenAxes`, `pinIgnoredTokenAxes`, `describeIgnoredTokenChoice`), and the web shell, the CLI and MCP share it. No shipped tool declares `tokenAxes` yet.
