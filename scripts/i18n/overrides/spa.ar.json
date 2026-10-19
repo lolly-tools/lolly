@@ -1764,5 +1764,12 @@
   "Choose the original file": "اختيار الملف الأصلي",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "لا تحفظ الملفات الأصلية في سجل الملفات. اختر الملف الأصلي لمقارنته بالنسخة المحفوظة، ويجب أن تتطابق قيمة الهاش الخاصة به.",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "تم استيراد تخطيط Penpot واحد بمواضع ثابتة. استورد ملف تصدير .penpot لإبقائه قابلاً للتحرير.",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "تم استيراد {n} من تخطيطات Penpot بمواضع ثابتة. استورد ملف تصدير .penpot لإبقائها قابلة للتحرير."
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "تم استيراد {n} من تخطيطات Penpot بمواضع ثابتة. استورد ملف تصدير .penpot لإبقائها قابلة للتحرير.",
+  "Open a workspace": "فتح مساحة عمل",
+  "Use an address that starts with https://": "استخدم عنوانًا يبدأ بـ https://",
+  "Leave the user name and password out of the address.": "احذف اسم المستخدم وكلمة المرور من العنوان.",
+  "That is not a web address. Check it and try again.": "هذا ليس عنوان ويب. تحقق منه وحاول مرة أخرى.",
+  "Private project": "مشروع خاص",
+  "The server could not send the latest tools - showing saved content": "تعذر على الخادم إرسال أحدث الأدوات: يُعرض المحتوى المحفوظ",
+  "{n} colour": "{n} لون"
 }

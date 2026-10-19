@@ -21,7 +21,7 @@ import { escape as escapeHtml } from '../utils.ts';
 import type { ProjectsViewMode } from './projects-view-options.ts';
 import type { Folder } from '../folders.ts';
 import { getInstanceBase } from '../lib/instance.ts';
-import { canWriteProject } from '../org/team-access.ts';
+import { canWriteProject, projectAudienceLabel } from '../org/team-access.ts';
 
 /** What the Projects view hands in: the things it owns. */
 export interface TeamProjectsDoor {
@@ -39,7 +39,7 @@ export interface TeamProjectsDoor {
 /** What a shared project tile says it is: a project shared with everyone on the
  *  workspace, one an admin can open, or a project the person belongs to. */
 function sharedSubtitle(p: TeamProjectRef): string {
-  return p.via === 'everyone' ? tRaw('Shared with everyone') : p.via === 'admin' ? tRaw('Workspace project') : tRaw('Shared project');
+  return projectAudienceLabel(p);
 }
 
 /** Shared folders use the local folder component, with a people glyph and source label. */

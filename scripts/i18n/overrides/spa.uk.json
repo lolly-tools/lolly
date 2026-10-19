@@ -1757,5 +1757,12 @@
   "Choose the original file": "Вибрати оригінальний файл",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Оригінали не зберігаються в історії файлів. Виберіть оригінал, щоб порівняти його зі збереженою копією; його хеш має збігатися.",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Імпортовано 1 макет Penpot з фіксованими позиціями. Імпортуйте експорт .penpot, щоб він залишився редагованим.",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Імпортовано {n} макетів Penpot з фіксованими позиціями. Імпортуйте експорт .penpot, щоб вони залишилися редагованими."
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Імпортовано {n} макетів Penpot з фіксованими позиціями. Імпортуйте експорт .penpot, щоб вони залишилися редагованими.",
+  "Open a workspace": "Відкрити робочий простір",
+  "Use an address that starts with https://": "Використайте адресу, що починається з https://",
+  "Leave the user name and password out of the address.": "Не вказуйте в адресі ім'я користувача й пароль.",
+  "That is not a web address. Check it and try again.": "Це не вебадреса. Перевірте її та спробуйте ще раз.",
+  "Private project": "Приватний проєкт",
+  "The server could not send the latest tools - showing saved content": "Сервер не зміг надіслати найновіші інструменти - показано збережений вміст",
+  "{n} colour": "{n} колір"
 }

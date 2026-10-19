@@ -7973,5 +7973,12 @@
   "Choose the original file": "選擇原始檔案",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "原始檔不會儲存在檔案歷程記錄中。請選擇原始檔，與已儲存的副本進行比較；其雜湊值必須一致。",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "已將 1 個 Penpot 版面以固定位置匯入。若要保持可編輯，請匯入 .penpot 匯出檔。",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "已將 {n} 個 Penpot 版面以固定位置匯入。若要保持可編輯，請匯入 .penpot 匯出檔。"
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "已將 {n} 個 Penpot 版面以固定位置匯入。若要保持可編輯，請匯入 .penpot 匯出檔。",
+  "Open a workspace": "開啟工作空間",
+  "Use an address that starts with https://": "請使用以 https:// 開頭的位址",
+  "Leave the user name and password out of the address.": "請不要在位址中包含使用者名稱和密碼。",
+  "That is not a web address. Check it and try again.": "這不是網址。請檢查後再試一次。",
+  "Private project": "私人專案",
+  "The server could not send the latest tools - showing saved content": "伺服器無法傳送最新的工具，正在顯示已儲存的內容",
+  "{n} colour": "{n} 個色彩"
 }

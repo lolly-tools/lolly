@@ -7973,5 +7973,12 @@
   "Choose the original file": "Pilih file asli",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "File asli tidak disimpan dalam riwayat file. Pilih file asli untuk membandingkannya dengan salinan tersimpan; hash-nya harus cocok.",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 tata letak Penpot diimpor dengan posisi tetap. Impor ekspor .penpot agar tata letak itu tetap bisa diedit.",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} tata letak Penpot diimpor dengan posisi tetap. Impor ekspor .penpot agar semuanya tetap bisa diedit."
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} tata letak Penpot diimpor dengan posisi tetap. Impor ekspor .penpot agar semuanya tetap bisa diedit.",
+  "Open a workspace": "Buka workspace",
+  "Use an address that starts with https://": "Gunakan alamat yang diawali https://",
+  "Leave the user name and password out of the address.": "Jangan sertakan nama pengguna dan kata sandi di alamat.",
+  "That is not a web address. Check it and try again.": "Itu bukan alamat web. Periksa lalu coba lagi.",
+  "Private project": "Proyek pribadi",
+  "The server could not send the latest tools - showing saved content": "Server tidak bisa mengirim alat terbaru - menampilkan konten tersimpan",
+  "{n} colour": "{n} warna"
 }

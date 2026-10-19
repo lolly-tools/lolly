@@ -7973,5 +7973,12 @@
   "Choose the original file": "Orijinal dosyayı seç",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Orijinaller dosya geçmişine kaydedilmez. Kayıtlı kopyayla karşılaştırmak için orijinali seç; hash değeri eşleşmelidir.",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 Penpot yerleşimi sabit konumlarla içe aktarıldı. Düzenlenebilir kalması için .penpot dışa aktarımını içe aktar.",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot yerleşimi sabit konumlarla içe aktarıldı. Düzenlenebilir kalmaları için .penpot dışa aktarımını içe aktar."
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} Penpot yerleşimi sabit konumlarla içe aktarıldı. Düzenlenebilir kalmaları için .penpot dışa aktarımını içe aktar.",
+  "Open a workspace": "Bir çalışma alanı aç",
+  "Use an address that starts with https://": "https:// ile başlayan bir adres kullan",
+  "Leave the user name and password out of the address.": "Kullanıcı adını ve parolayı adrese ekleme.",
+  "That is not a web address. Check it and try again.": "Bu bir web adresi değil. Kontrol edip yeniden dene.",
+  "Private project": "Özel proje",
+  "The server could not send the latest tools - showing saved content": "Sunucu en yeni araçları gönderemedi - kaydedilen içerik gösteriliyor",
+  "{n} colour": "{n} renk"
 }

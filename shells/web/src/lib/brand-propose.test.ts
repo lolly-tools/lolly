@@ -318,3 +318,64 @@ test('withRoleAliases: no refs → the doc passes through unchanged', () => {
   const doc: Record<string, unknown> = { ...DECLARED };
   assert.equal(withRoleAliases(doc, {}), doc);
 });
+
+// ── Themed files: the role follows the theme (plan 320 P1, S2) ──────────────
+// The Northwind shape from the first-user study: a core palette, a semantic set
+// that declares `color.primary`, and one set per product that overrides that
+// token. Choosing the most colourful core token (`color.sky`) as the primary
+// pinned every product to sky blue; the name is the designer saying which token
+// each product overrides.
+function northwind(semantic: Record<string, unknown> = {}): Record<string, unknown> {
+  const product = (primary: string, surface: string) => ({ color: { primary: { $value: primary, $type: 'color' }, surface: { $value: surface, $type: 'color' } } });
+  return {
+    core: { color: {
+      navy: { $value: '#1F3A93', $type: 'color' }, sky: { $value: '#4A6FE3', $type: 'color' },
+      ink: { $value: '#0B1533', $type: 'color' }, mist: { $value: '#F3F5FA', $type: 'color' },
+    } },
+    'semantic/northwind': { color: {
+      primary: { $value: '{color.navy}', $type: 'color' }, secondary: { $value: '{color.sky}', $type: 'color' },
+      text: { $value: '{color.ink}', $type: 'color' }, surface: { $value: '{color.mist}', $type: 'color' },
+      ...semantic,
+    } },
+    'product/pulse': product('#F0563A', '#FDECE8'),
+    'product/tide': product('#0E9F8E', '#E8F6F4'),
+    $themes: [
+      { id: 't-nw', name: 'Northwind', group: 'Product', selectedTokenSets: { core: 'source', 'semantic/northwind': 'enabled' } },
+      { id: 't-pulse', name: 'Pulse', group: 'Product', selectedTokenSets: { core: 'source', 'semantic/northwind': 'enabled', 'product/pulse': 'enabled' } },
+      { id: 't-tide', name: 'Tide', group: 'Product', selectedTokenSets: { core: 'source', 'semantic/northwind': 'enabled', 'product/tide': 'enabled' } },
+    ],
+    $metadata: { tokenSetOrder: ['core', 'semantic/northwind', 'product/pulse', 'product/tide'] },
+  };
+}
+const inProduct = (doc: unknown, id: string) => createTokenSet(doc, { selection: { Product: id } });
+
+test('proposeRolesFromTokens: a themed file says which token each role is, and every product keeps its own colour', () => {
+  const doc = northwind();
+  const roles = proposeRolesFromTokens(doc, [], null)!;
+  assert.deepEqual(roles.refs, { primary: 'color.primary', surface: 'color.surface', secondary: 'color.secondary', text: 'color.text' },
+    'the declared names win over chroma: sky is more colourful than navy but is not the primary');
+  const installed = withRoleAliases(doc, roles.refs);
+  assert.equal(inProduct(installed, 't-pulse').resolve('color.semantic.primary'), '#F0563A');
+  assert.equal(inProduct(installed, 't-tide').resolve('color.semantic.primary'), '#0E9F8E');
+  assert.equal(inProduct(installed, 't-nw').resolve('color.semantic.primary'), '#1F3A93');
+  assert.equal(inProduct(installed, 't-pulse').resolve('color.semantic.surface'), '#FDECE8');
+});
+
+test('proposeRolesFromTokens: a name that some theme leaves undefined does not win', () => {
+  const doc = northwind();
+  // `color.brand` exists only in Pulse, so Northwind and Tide would resolve the role to nothing.
+  (doc['product/pulse'] as { color: Record<string, unknown> }).color.brand = { $value: '#F0563A', $type: 'color' };
+  delete (doc['semantic/northwind'] as { color: Record<string, unknown> }).color.primary;
+  const roles = proposeRolesFromTokens(doc, [], null)!;
+  assert.notEqual(roles.refs.primary, 'color.brand');
+});
+
+test('withRoleAliases: a role the file already declares keeps its own definition', () => {
+  const doc = northwind({ semantic: { primary: { $value: '{color.primary}', $type: 'color' } } });
+  const roles = proposeRolesFromTokens(doc, [], null)!;
+  assert.equal(roles.refs.primary, 'color.semantic.primary', "Lolly's own role path outranks every other name");
+  const installed = withRoleAliases(doc, roles.refs);
+  const set = installed[ROLE_SET_NAME] as { color: { semantic: Record<string, unknown> } };
+  assert.equal(set.color.semantic.primary, undefined, 'no alias from the role to itself');
+  assert.equal(inProduct(installed, 't-pulse').resolve('color.semantic.primary'), '#F0563A');
+});

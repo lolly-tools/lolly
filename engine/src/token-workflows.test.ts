@@ -432,19 +432,20 @@ fixtureTest(['T3', 'T4'], 'Tokens Studio type names, maths and embedded referenc
   for (const path of ['fontSizes.h1', 'dimension.sm', 'boxShadow.default', 'typography.H1.Bold']) assert.ok(unresolved.has(path), path);
 });
 
-fixtureTest(['T5'], 'a legacy value/type sync folder assembles sets and themes but yields no tokens', () => {
+fixtureTest(['T5'], 'a legacy value/type sync folder assembles sets and themes and reads its tokens as $value and $type', () => {
   const root = new URL('tokens-studio/modifier-sync/', FIXTURES);
   const files: Record<string, unknown> = {};
   for (const path of ['$metadata.json', '$themes.json', 'core.json', 'theme/01-light.json', 'theme/02-dark.json']) files[path] = JSON.parse(readFileSync(new URL(path, root), 'utf8'));
   const assembled = assembleTokenSetFiles(files);
   assert.equal(assembled.source, 'token-set-files');
-  assert.deepEqual(assembled.warnings, []);
+  // The older Tokens Studio format (value/type) is read, and says so (plan 320 S3).
+  assert.deepEqual(assembled.warnings, ['4 tokens in the older Tokens Studio format (value and type) read as $value and $type']);
   const doc = assembled.doc!;
-  assert.deepEqual(summarizeTokensDoc(doc), { sets: ['core', 'theme/01-light', 'theme/02-dark'], themes: [{ name: 'light', group: null, id: 'd03a5c164300d1517865310f92308f337ca1d9e0' }, { name: 'dark', group: null, id: 'dc9481f8496701c998a183a804313792393dd169' }], tokenCount: 0, colorCount: 0 });
+  assert.deepEqual(summarizeTokensDoc(doc), { sets: ['core', 'theme/01-light', 'theme/02-dark'], themes: [{ name: 'light', group: null, id: 'd03a5c164300d1517865310f92308f337ca1d9e0' }, { name: 'dark', group: null, id: 'dc9481f8496701c998a183a804313792393dd169' }], tokenCount: 3, colorCount: 3 });
   assert.deepEqual(resolveTokenSelection(doc, { theme: 'dark' }).sets, ['core', 'theme/01-light', 'theme/02-dark']);
   assert.deepEqual((doc.$themes as { $figmaStyleReferences?: unknown }[])[0]?.$figmaStyleReferences, {});
   const report = inspectTokenDocument(doc), compat = tokenCompatibility(doc);
-  assert.equal(report.tokens.length, 0);
+  assert.equal(report.tokens.length, 3);
   assert.deepEqual(report.diagnostics, []);
   assert.deepEqual(compat.diagnostics, []);
   assert.deepEqual(compat.extensionNamespaces, ['studio.tokens']);

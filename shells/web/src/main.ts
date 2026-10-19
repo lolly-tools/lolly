@@ -50,7 +50,7 @@ import { wireViewPrewarmIntent } from './lib/view-prewarm-intent.ts';
 import { peekNeuroDemo } from './lib/neuro-demo-peek.ts';
 import { syncJellyNavToggle, UTILITIES_FLAG_ID, type ViewToggleKey } from './components/view-toggle.ts';
 import { installGlobalReveal } from './lib/reveal.ts';
-import { maybeShowFirstRunInstanceSheet, isTauriShell } from './lib/instance-choice.ts';
+import { isTauriShell } from './lib/instance-choice.ts';
 // The memoised instance-base load. Boot has no wiring of its own to do here (every
 // syncing entry point awaits the same promise itself) - it needs the handle only to
 // hold the control-plane probe back until the base it fetches through is known.
@@ -1176,16 +1176,12 @@ async function boot(): Promise<void> {
   // answers first. Skipped entirely for everyone who has a cache, so no repeat visitor
   // pays for a fetch they won't read.
   //
-  // WHEN it starts follows the same rule as the org probe above, and for the same
-  // reason: loadSlimToolIndex awaits initInstanceBase(), so starting it here on a
-  // Tauri shell would fire that memoised IndexedDB read against the first-run sheet's
-  // setInstanceBase() write - a race whose loser decides both which deployment's
-  // catalog this cold paint comes from and, if the read resolves late, what base every
-  // later caller sees. On web/PWA the sheet never shows, the base has exactly one
-  // source, and the overlap with the sheet + probe is the whole point of the slim
-  // index, so it starts here; on Tauri it starts below, once the sheet has settled
-  // the base for good. Correctness costs Tauri nothing measurable - the sheet is one
-  // fast IndexedDB read on every boot after the first.
+  // WHEN it starts follows the same rule as the org probe below: on web/PWA here,
+  // overlapping the probe, which is the whole point of the slim index; on Tauri at
+  // the later point in boot where the shell used to wait for its first-run instance
+  // sheet. That sheet raced initInstanceBase() with a setInstanceBase() write. It is
+  // retired (plan 320 D2), so the base now has one source on every shell and Tauri
+  // could start here too; the move waits for a measured Tauri boot.
   const coldGallery = !window.__toolIndex;
   const firstRoute = bootRoute.name;
   if ((firstRoute === 'gallery' || firstRoute === 'utilities') && !isWelcomeDismissed()) expectWelcomeDecision();
@@ -1211,12 +1207,9 @@ async function boot(): Promise<void> {
   // initInstanceBase(), which is memoised (catalog/sync.ts awaits the same promise, so
   // this costs one shared IndexedDB read, not two) and never throws.
   //
-  // On a Tauri shell the base has a SECOND source: the first-run instance sheet below,
-  // whose whole job is to set it, and which cannot be known until the user answers. So
-  // there the probe waits for that sheet - i.e. keeps the position it always had -
-  // and starting initInstanceBase early is itself skipped, since its read would race
-  // the sheet's setInstanceBase() write. Web/PWA never shows the sheet, and is where
-  // the overlap was worth having.
+  // A Tauri shell keeps the later position it had while a first-run instance sheet
+  // could still write the base during boot (retired by plan 320 D2; see the slim
+  // index note above). Web/PWA is where the overlap was worth having.
   let releaseOrgProbe!: () => void;
   const orgPromise = new Promise<void>(resolve => { releaseOrgProbe = resolve; }).then(async () => {
     await hostReady;
@@ -1229,7 +1222,7 @@ async function boot(): Promise<void> {
   const earlyAssets = !isTauriShell() && coldGallery && firstRoute === 'gallery'
     ? prepareAssetCatalogFetch(signInRequired) : undefined;
   const host = await hostReady;
-  // Web can sync while profile and chrome initialize. Tauri waits for its instance sheet.
+  // Web can sync while profile and chrome initialize. Tauri starts later (see above).
   const earlyCatalog = !isTauriShell() ? startBootCatalog(host, coldGallery, signInRequired, earlyAssets) : null;
   trackVisualViewport();
   initMobilePlatformFit();
@@ -1557,22 +1550,16 @@ async function boot(): Promise<void> {
     }
   });
 
-  // First-run instance choice (Tauri shells only, once): gate BEFORE the first
-  // catalog sync so a chosen instance is honoured immediately instead of a
-  // bundled sync followed by a second one. A no-op (one fast IndexedDB read,
-  // no dialog) on every later boot and on every non-Tauri shell - see
-  // components/instance-sheet.ts's own header for the two callers (this gate,
-  // and the profile "Change" button later).
-  await maybeShowFirstRunInstanceSheet(host);
-  // The instance base is now settled for good - the sheet above is its only other
-  // source - so release the control-plane probe on the shells that were waiting for
-  // it (see the orgPromise block at the top of boot). A no-op on web, where the base
-  // resolved long ago and the promise is already released; on Tauri this is the first
-  // initInstanceBase() call, made AFTER the sheet so it cannot race the sheet's write.
+  // Release the control-plane probe on the shells that were waiting for it (see the
+  // orgPromise block at the top of boot). A no-op on web, where the base resolved long
+  // ago and the promise is already released; on Tauri this is the first
+  // initInstanceBase() call. Tauri used to wait here for a first-run instance sheet.
+  // That sheet is retired (plan 320 D2: the app boots local and the sheet opens from
+  // Settings only), so nothing writes the base during boot any more and Tauri could
+  // start these early like web; the move waits for a measured Tauri boot.
   void initInstanceBase().then(releaseOrgProbe, releaseOrgProbe);
-  // ...and for the same reason, this is where a Tauri shell's cold-visit slim index
-  // starts: after the sheet, so it reads the base the user just chose rather than
-  // racing it. Web already started it above and this is a no-op there.
+  // ...and this is where a Tauri shell's cold-visit slim index starts. Web already
+  // started it above and this is a no-op there.
   if (coldGallery && isTauriShell()) slimIndexReady = loadSlimToolIndex();
 
   // First-run desktop models sheet (Tauri shells only, once): offer to pre-download

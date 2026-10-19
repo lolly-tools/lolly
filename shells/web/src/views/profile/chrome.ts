@@ -58,6 +58,10 @@ export function wireInstanceCard(pv: ProfileViewCtx): void {
     await openInstanceSheet(host);
     await pv.mountProfile(viewEl, host); // re-read getInstanceBase() into the row
   });
+  // Browser: the sheet opens at its address step and navigates to the workspace.
+  viewEl.querySelector('#instance-open-btn')?.addEventListener('click', () => {
+    void openInstanceSheet(host, { start: 'connect' });
+  });
   viewEl.querySelector('#instance-disconnect-btn')?.addEventListener('click', async () => {
     const { leaveInstance, countSessionsUsingInstanceTools } = await import('../../lib/instance-leave.ts');
     // Sessions saved here against a tool the instance installed stay (they are the

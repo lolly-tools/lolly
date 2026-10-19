@@ -7973,5 +7973,12 @@
   "Choose the original file": "मूल फ़ाइल चुनें",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "मूल फ़ाइलें फ़ाइल इतिहास में सहेजी नहीं जातीं। सहेजी गई कॉपी से तुलना करने के लिए मूल फ़ाइल चुनें; उसका हैश मेल खाना चाहिए।",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Penpot का 1 लेआउट तय पोज़िशन के साथ इंपोर्ट हुआ। इसे एडिट करने योग्य रखने के लिए .penpot एक्सपोर्ट इंपोर्ट करें।",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Penpot के {n} लेआउट तय पोज़िशन के साथ इंपोर्ट हुए। इन्हें एडिट करने योग्य रखने के लिए .penpot एक्सपोर्ट इंपोर्ट करें।"
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Penpot के {n} लेआउट तय पोज़िशन के साथ इंपोर्ट हुए। इन्हें एडिट करने योग्य रखने के लिए .penpot एक्सपोर्ट इंपोर्ट करें।",
+  "Open a workspace": "वर्कस्पेस खोलें",
+  "Use an address that starts with https://": "https:// से शुरू होने वाला पता इस्तेमाल करें",
+  "Leave the user name and password out of the address.": "पते में यूज़र नाम और पासवर्ड न डालें।",
+  "That is not a web address. Check it and try again.": "यह वेब पता नहीं है। जाँचकर फिर कोशिश करें।",
+  "Private project": "निजी प्रोजेक्ट",
+  "The server could not send the latest tools - showing saved content": "सर्वर नवीनतम टूल नहीं भेज सका: सहेजी गई सामग्री दिखाई जा रही है",
+  "{n} colour": "{n} रंग"
 }

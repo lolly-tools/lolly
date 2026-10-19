@@ -148,7 +148,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `brand-context.ts` | 56 | Portable facts and explicit rules derived from the selected token document. | yes | `tests/brand-context.test.ts` | – |
 | `brand-derive.ts` | 856 | Brand derivation. | yes | `tests/brand-derive.test.ts` | – |
 | `brand-evidence.ts` | 55 | Bounded style observations shared by saved-page and browser capture readers. | yes | indirect | – |
-| `brand-import.ts` | 800 | Brand token ingestion. | yes | `tests/brand-import.test.ts` | yes |
+| `brand-import.ts` | 845 | Brand token ingestion. | yes | `tests/brand-import.test.ts` | yes |
 | `brand-map.ts` | 424 | Brand mapper. | yes | `tests/brand-map.test.ts` | – |
 | `brand-policy.ts` | 52 | Shared managed-input projection and evidence checks. | no | `tests/brand-policy.test.ts` | – |
 | `brand-resources.ts` | 24 | Asset dependencies in brand vocabulary, independent of labels and rule prose. | no | indirect | – |
@@ -584,7 +584,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `token-recipes.ts` | 89 | Bounded colour, spacing and modular type recipes. | yes | none | – |
 | `token-selection.ts` | 119 | Theme group selection, deterministic set precedence and bounded transport parsing. | yes | indirect | – |
 | `token-transition-bindings.test.ts` | 298 | Enter transitions keep a usable duration and curve across source and local edits. | no | none | – |
-| `token-workflows.test.ts` | 487 | Token workflow contracts across resolution, binding, recipes, pinned fonts and the shared token fixtures. | no | none | – |
+| `token-workflows.test.ts` | 488 | Token workflow contracts across resolution, binding, recipes, pinned fonts and the shared token fixtures. | no | none | – |
 | `tokens.ts` | 464 | Design tokens: a platform-agnostic DTCG model. | yes | `tests/tokens.test.ts` | – |
 | `tone-curve.ts` | 140 | tone-curve.ts - a photo tone curve: control points on the 0..255 scale, the text form an input stores them in, and the curve drawn through them. | no | indirect | – |
 | `tool-url.ts` | 173 | Lolly tool-URL recognition. | yes | `tests/tool-url.test.ts` | – |

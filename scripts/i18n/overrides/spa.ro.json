@@ -1627,5 +1627,12 @@
   "Choose the original file": "Alege fișierul original",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Originalele nu sunt salvate în istoricul fișierelor. Alege originalul ca să-l compari cu copia salvată; hash-ul lui trebuie să se potrivească.",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 layout Penpot a fost importat cu poziții fixe. Importă exportul .penpot ca să rămână editabil.",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} layouturi Penpot au fost importate cu poziții fixe. Importă exportul .penpot ca să rămână editabile."
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} layouturi Penpot au fost importate cu poziții fixe. Importă exportul .penpot ca să rămână editabile.",
+  "Open a workspace": "Deschide un spațiu de lucru",
+  "Use an address that starts with https://": "Folosește o adresă care începe cu https://",
+  "Leave the user name and password out of the address.": "Lasă numele de utilizator și parola în afara adresei.",
+  "That is not a web address. Check it and try again.": "Aceasta nu este o adresă web. Verific-o și încearcă din nou.",
+  "Private project": "Proiect privat",
+  "The server could not send the latest tools - showing saved content": "Serverul nu a putut trimite cele mai noi instrumente - se afișează conținutul salvat",
+  "{n} colour": "{n} culoare"
 }

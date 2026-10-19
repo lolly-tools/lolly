@@ -7973,5 +7973,12 @@
   "Choose the original file": "اصل فائل منتخب کریں",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "اصل فائلیں فائل کی تاریخ میں محفوظ نہیں ہوتیں۔ محفوظ کاپی سے موازنہ کرنے کے لیے اصل فائل منتخب کریں؛ اس کا ہیش ملنا چاہیے۔",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Penpot کا 1 لے آؤٹ مقررہ پوزیشنز کے ساتھ امپورٹ ہوا۔ اسے قابل ترمیم رکھنے کے لیے .penpot ایکسپورٹ امپورٹ کریں۔",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Penpot کے {n} لے آؤٹس مقررہ پوزیشنز کے ساتھ امپورٹ ہوئے۔ انہیں قابل ترمیم رکھنے کے لیے .penpot ایکسپورٹ امپورٹ کریں۔"
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Penpot کے {n} لے آؤٹس مقررہ پوزیشنز کے ساتھ امپورٹ ہوئے۔ انہیں قابل ترمیم رکھنے کے لیے .penpot ایکسپورٹ امپورٹ کریں۔",
+  "Open a workspace": "ورک اسپیس کھولیں",
+  "Use an address that starts with https://": "ایسا ایڈریس استعمال کریں جو https:// سے شروع ہو",
+  "Leave the user name and password out of the address.": "ایڈریس میں صارف نام اور پاس ورڈ شامل نہ کریں۔",
+  "That is not a web address. Check it and try again.": "یہ ویب ایڈریس نہیں ہے۔ اسے چیک کریں اور دوبارہ کوشش کریں۔",
+  "Private project": "نجی پراجیکٹ",
+  "The server could not send the latest tools - showing saved content": "سرور تازہ ترین ٹولز نہیں بھیج سکا، محفوظ شدہ مواد دکھایا جا رہا ہے",
+  "{n} colour": "{n} رنگ"
 }

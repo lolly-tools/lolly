@@ -7973,5 +7973,12 @@
   "Choose the original file": "Chọn tệp gốc",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Bản gốc không được lưu trong lịch sử tệp. Chọn bản gốc để so sánh với bản sao đã lưu; mã băm của bản gốc phải khớp.",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Đã nhập 1 bố cục Penpot với vị trí cố định. Hãy nhập bản xuất .penpot để giữ bố cục có thể chỉnh sửa.",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Đã nhập {n} bố cục Penpot với vị trí cố định. Hãy nhập bản xuất .penpot để giữ các bố cục có thể chỉnh sửa."
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Đã nhập {n} bố cục Penpot với vị trí cố định. Hãy nhập bản xuất .penpot để giữ các bố cục có thể chỉnh sửa.",
+  "Open a workspace": "Mở một không gian làm việc",
+  "Use an address that starts with https://": "Hãy dùng địa chỉ bắt đầu bằng https://",
+  "Leave the user name and password out of the address.": "Đừng đưa tên người dùng và mật khẩu vào địa chỉ.",
+  "That is not a web address. Check it and try again.": "Đây không phải địa chỉ web. Hãy kiểm tra và thử lại.",
+  "Private project": "Dự án riêng tư",
+  "The server could not send the latest tools - showing saved content": "Máy chủ không gửi được các công cụ mới nhất - đang hiển thị nội dung đã lưu",
+  "{n} colour": "{n} màu"
 }

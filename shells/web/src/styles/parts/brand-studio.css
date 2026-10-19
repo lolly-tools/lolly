@@ -10,7 +10,12 @@
       the editor pulls these styles with the same lazy chunk. `.be` is the
       positioning context for the swatch-editor popover. */
 
-.be { position: relative; display: grid; gap: 1.1rem; }
+/* The editor, its tab panels and the face picker are single-column grids whose
+   column may shrink below its content (minmax(0, 1fr), here and on .be-tab and
+   .be-typestage). An auto column takes the min-content of what it holds: the
+   pinned-faces row scrolls sideways on a phone, but its unbroken row of chips
+   still sized three auto columns to 498px and panned a 390px phone (plan 320 S6). */
+.be { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.1rem; }
 .be-locked { margin: 0; font-size: calc(.86rem * var(--a11y-fs)); line-height: 1.6; color: hsl(var(--muted-foreground)); }
 /* Background/text colour compose .card (chips.css, same --card/--card-foreground
    pair); border/radius/padding are real deltas - .be-panel is bordered and at
@@ -985,7 +990,7 @@ background-image:
 /* ── Tab panels - the host view (start.ts) sets data-active-tab on .be; every
       panel stays mounted (wiring intact) and CSS shows just the active one.
       Without the attribute (no tab bar) every panel shows, stacked. */
-.be-tab { display: grid; gap: 1.1rem; }
+.be-tab { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.1rem; }
 .be[data-active-tab] > .be-tab { display: none; }
 .be[data-active-tab="logos"] > [data-be-tab-panel="logos"],
 .be[data-active-tab="color"] > [data-be-tab-panel="color"],
@@ -1292,7 +1297,7 @@ background-image:
       [data-be-typestage-mount] belongs to styles/parts/type-compare.css, which
       the stage module imports; this is only the panel the room wraps it in - the
       title, the close, and the Google search that seeds candidates. */
-.be-typestage { display: grid; gap: .8rem; }
+.be-typestage { display: grid; grid-template-columns: minmax(0, 1fr); gap: .8rem; }
 .be-typestage[hidden] { display: none; }
 .be-typestage-head { display: flex; align-items: baseline; gap: .6rem; }
 .be-typestage-title { margin: 0; font-size: var(--fs-lg); font-weight: 700; color: hsl(var(--foreground)); }

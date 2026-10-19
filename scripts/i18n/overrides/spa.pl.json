@@ -1757,5 +1757,12 @@
   "Choose the original file": "Wybierz plik oryginalny",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Oryginały nie są zapisywane w historii plików. Wybierz oryginał, aby porównać go z zapisaną kopią; jego hash musi się zgadzać.",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "Zaimportowano 1 układ z Penpota ze stałymi pozycjami. Zaimportuj eksport .penpot, aby pozostał edytowalny.",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Zaimportowano {n} układów z Penpota ze stałymi pozycjami. Zaimportuj eksport .penpot, aby pozostały edytowalne."
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "Zaimportowano {n} układów z Penpota ze stałymi pozycjami. Zaimportuj eksport .penpot, aby pozostały edytowalne.",
+  "Open a workspace": "Otwórz obszar roboczy",
+  "Use an address that starts with https://": "Użyj adresu zaczynającego się od https://",
+  "Leave the user name and password out of the address.": "Pomiń w adresie nazwę użytkownika i hasło.",
+  "That is not a web address. Check it and try again.": "To nie jest adres internetowy. Sprawdź go i spróbuj ponownie.",
+  "Private project": "Prywatny projekt",
+  "The server could not send the latest tools - showing saved content": "Serwer nie mógł wysłać najnowszych narzędzi - wyświetlana jest zapisana treść",
+  "{n} colour": "{n} kolor"
 }

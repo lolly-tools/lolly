@@ -98,6 +98,33 @@ test('switching blocks overlapping actions and reports failure with controls and
   body.remove();
 });
 
+// Plan 320 M5: a switch repaints every tool, so it says so and offers the way back.
+test('the switch reads Use, then says which system is in use, with Undo', async () => {
+  const { mountDesignSystemsCard } = await import('./design-systems-card.ts');
+  const body = document.createElement('div'); document.body.append(body);
+  let current = 'active';
+  const switched: string[] = [];
+  const h = { ...host(), designSystems: { ...host().designSystems,
+    activeId: async () => current,
+    active: async () => records.find(r => r.id === current)!,
+    setActive: async (id: string) => { current = id; switched.push(id); },
+    bust: () => {},
+  } };
+  const settle = async (): Promise<void> => { for (let i = 0; i < 20; i++) await new Promise(resolve => setTimeout(resolve, 0)); };
+  mountDesignSystemsCard(body, h as never);
+  await settle();
+  const hosted = body.querySelector<HTMLElement>('[data-ds-row="hosted"]')!;
+  assert.equal(hosted.querySelector('.ds-row-use')?.textContent?.trim(), 'Use', 'the card says what clicking it does');
+  hosted.querySelector<HTMLButtonElement>('[data-ds-act="switch"]')!.click();
+  await settle();
+  const toast = document.querySelector<HTMLElement>('.undo-toast');
+  assert.equal(toast?.querySelector('.undo-toast-msg')?.textContent, 'Using Hosted brand.');
+  toast!.querySelector<HTMLButtonElement>('.undo-toast-btn')!.click();
+  await settle();
+  assert.deepEqual(switched, ['hosted', 'active'], 'Undo goes back to the system in use before');
+  body.remove();
+});
+
 test('removing an imported catalogue copy explains the fallback and retains its source after reopening', async () => {
   const stores = new Map<string, Map<IDBValidKey, unknown>>();
   const of = (name: string) => {
@@ -191,4 +218,16 @@ test('source facts report cached origin, version and checksum without claiming t
     assert.match(html, /Manage instance design systems/);
     assert.match(catalogSourceHtml({ ...record, headId: '', catalog: { available: false } }), /No selected tokens asset/);
   } finally { networkStatus.offline = false; _setBaseForTests(''); }
+});
+
+// Plan 320 S10: the starter every build carries is bundled with the app, not
+// managed by an instance that lolly.tools does not have; and one colour is singular.
+test('the starter reads Bundled with this app; a deployment brand reads Managed by this instance', async () => {
+  const { sourceLine, designSystemCardHtml } = await import('./design-systems-card.ts');
+  const shipped = (headId: string) => ({ id: 'shipped', label: 'X', ns: '', headId, source: { kind: 'shipped' }, locked: false, createdAt: 0, lastUsedAt: 0 }) as never;
+  assert.equal(sourceLine(shipped('lolly/tokens/brand')), 'Bundled with this app');
+  assert.equal(sourceLine(shipped('acme/tokens/brand')), 'Managed by this instance');
+  const one = designSystemCardHtml(records[0] as never, 'active', undefined, { font: 'x', colors: ['#000000'], colorCount: 1 });
+  assert.match(one, />1 colour</);
+  assert.doesNotMatch(one, /1 colours/);
 });

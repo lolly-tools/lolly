@@ -1759,5 +1759,12 @@
   "Choose the original file": "Избери оригиналния файл",
   "Originals are not saved in file history. Choose the original to compare it with the saved copy; its hash must match.": "Оригиналите не се запазват в историята на файловете. Избери оригинала, за да го сравниш със запазеното копие; хешът му трябва да съвпада.",
   "1 Penpot layout came in as fixed positions. Import the .penpot export to keep it editable.": "1 оформление от Penpot е импортирано с фиксирани позиции. Импортирай .penpot експорта, за да остане редактируемо.",
-  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} оформления от Penpot са импортирани с фиксирани позиции. Импортирай .penpot експорта, за да останат редактируеми."
+  "{n} Penpot layouts came in as fixed positions. Import the .penpot export to keep them editable.": "{n} оформления от Penpot са импортирани с фиксирани позиции. Импортирай .penpot експорта, за да останат редактируеми.",
+  "Open a workspace": "Отвори работно пространство",
+  "Use an address that starts with https://": "Използвай адрес, който започва с https://",
+  "Leave the user name and password out of the address.": "Махни потребителското име и паролата от адреса.",
+  "That is not a web address. Check it and try again.": "Това не е уеб адрес. Провери го и опитай отново.",
+  "Private project": "Личен проект",
+  "The server could not send the latest tools - showing saved content": "Сървърът не можа да изпрати най-новите инструменти: показва се запазено съдържание",
+  "{n} colour": "{n} цвят"
 }
