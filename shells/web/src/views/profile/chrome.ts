@@ -113,6 +113,27 @@ export function wireInstanceCard(pv: ProfileViewCtx): void {
       if (signOutErr) { signOutErr.textContent = t('Could not sign out. Try again.'); signOutErr.hidden = false; }
     });
   }
+  // Sign out everywhere: the same recovery-copy question the account menu asks, then
+  // the instance's route (pv.signOutEverywhere, from org/ through views/profile.ts).
+  // On success the app root loads afresh exactly as for Sign out; keeping the copies
+  // changes nothing; a failure is said under the rows.
+  const everywhereBtn = viewEl.querySelector<HTMLButtonElement>('#instance-signout-everywhere-btn');
+  const signOutEverywhere = pv.signOutEverywhere;
+  if (signOutEverywhere && everywhereBtn) {
+    everywhereBtn.addEventListener('click', async () => {
+      if (everywhereBtn.disabled) return;
+      everywhereBtn.disabled = true;
+      if (signOutErr) { signOutErr.hidden = true; signOutErr.textContent = ''; }
+      const outcome = await signOutEverywhere().catch(() => t('Could not sign out. Try again.'));
+      if (outcome === 'ok') {
+        window.addEventListener('pageshow', (e) => { if (e.persisted) location.reload(); });
+        location.replace('/');
+        return;
+      }
+      everywhereBtn.disabled = false;
+      if (outcome !== 'stayed' && signOutErr) { signOutErr.textContent = outcome; signOutErr.hidden = false; }
+    });
+  }
 }
 
 /** Language FAB, back pill, home FAB, the sound switch and the help tips. */

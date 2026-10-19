@@ -55,6 +55,8 @@ export interface StartCtx {
   wantWheel: boolean;
   importOpen: boolean;
   focusDsName: boolean;
+  /** True once the design system's name needs no ask (plan 320 S5). */
+  nameSettled: boolean;
   urlPrefill: string;
   activeArea: StartArea;
   ROOM_LABELS: Record<StartArea, string>;

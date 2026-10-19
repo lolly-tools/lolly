@@ -19,7 +19,7 @@ import type { BrandTransferHost } from '../../brand-transfer.ts';
 import type { Beat } from '../design-system/beats.ts';
 import type { FaceState } from '../design-system/ownership.ts';
 import type { TypeBeat } from '../design-system/beats-type.ts';
-import type { BrandEditorOptions, Contrast, EditorHost, Fg, HarmonyKind, LogoCandidateChip, Scheme, Surface } from './shared.ts';
+import type { BrandEditorOptions, Contrast, EditorHost, Fg, HarmonyKind, LogoCandidateChip, LogoOfferState, Scheme, Surface } from './shared.ts';
 import type { PaletteSelection } from '../design-system/palette-select.ts';
 import type { StudioPanelHandle } from '../brand-studio-tabs.ts';
 import type { rampsOps } from './ramps.ts';
@@ -222,7 +222,8 @@ export interface BrandEditorCtx {
   filledDefaultSlots: Set<string>;
   renderIntake: () => void;
   drainPendingLogos: () => void;
-  suggestEl: HTMLElement | null;
+  /** The colours the last placed logo offered, while its card is up (plan 320 S1). */
+  logoOffer: LogoOfferState | null;
   tray: Tray | null;
   LOGO_ACCEPT_TYPES: RegExp;
   LOGO_MAX_BYTES: number;

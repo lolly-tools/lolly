@@ -235,6 +235,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   // in a detached setup prompt.
   const focusDsName =
     new URLSearchParams(params.startsWith('?') ? params.slice(1) : params).get('rename') === '1'; start.focusDsName = focusDsName;
+  start.nameSettled = false;
   // `?source=url&u=<address>` PREFILLS the website source's field and does
   // nothing else - the fetch button is the consent, so a link somebody sends
   // must never be able to start a read (plan 97 section 9). Read here rather than in

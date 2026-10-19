@@ -285,6 +285,21 @@ export function censusFromSvgColors(colors: string[], label: string): DesignCens
 }
 
 /**
+ * A raster logo's inks as a census. Unlike an SVG's colour list, a raster census
+ * does measure painted area, so each weight is that area, and ink and ground are
+ * split exactly as {@link censusFromSvgColors} splits them.
+ */
+export function censusFromRasterInks(inks: { hex: string; weight: number }[], label: string): DesignCensus {
+  const rows: CensusColor[] = [];
+  for (const ink of inks) {
+    const hex = censusHex(ink.hex);
+    if (!hex || rows.some(r => r.hex === hex)) continue;
+    rows.push({ hex, weight: weightOf(ink.weight), kind: artworkKind(hex) });
+  }
+  return { colors: withImpliedGround(rows), gradients: [], fonts: [], source: { kind: 'image', label } };
+}
+
+/**
  * An image's colour cloud (engine `imageColorCloud`) as a census.
  *
  * A bucket's `n` is its share of the sampled pixels, which is a real occurrence

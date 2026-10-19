@@ -663,7 +663,7 @@
   "shells/web/src/lib/bluesky-send.ts": 1,
   "shells/web/src/lib/brand-doc.test.ts": 2,
   "shells/web/src/lib/brand-doc.ts": 6,
-  "shells/web/src/lib/brand-editor.ts": 11,
+  "shells/web/src/lib/brand-editor.ts": 10,
   "shells/web/src/lib/brand-editor/add-color.ts": 2,
   "shells/web/src/lib/brand-editor/compare-stage.ts": 3,
   "shells/web/src/lib/brand-editor/curve-editor.ts": 2,
