@@ -10,7 +10,7 @@ Lolly does not ask you which arrangement you have. It gives you a few building b
 | --- | --- | --- |
 | **Design system** | Colours, type, logos, the rest of the tokens, and versions. Tools, pages and exports follow the active one. | [The Brand Studio](/info/brand-studio.html), and **Settings → Design systems** to switch or remove |
 | **Looks** | Light and dark. Every artefact can be drawn in either. | Built in; the studio derives both |
-| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour, chosen per artefact. One is canonical, and the app's own colours always use the canonical one. | The token file today; see [Colourways](/info/token-workflows.html#colourways) |
+| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour, chosen per artefact. One is canonical, and the app's own colours always use the canonical one. | The token file today; see [Colourways](/info/token-workflows.html#colourways). Rebuilding the palette in the studio keeps every colourway |
 | **Logo identities** | Several named sets of logos in one design system. The main set is "Your logo". | **Logos** room, **+ Add another logo** |
 | **Custom marks** | Marks under your own names: a crest, a favicon, a finished lockup. | **Logos** room, **Custom marks** |
 | **House rules** | Approved colour pairings, type per role and other rules a composition is checked against. | The design system's rules; see [Check a composition](/info/brand-studio.html#check-a-composition-against-the-design-system) |
