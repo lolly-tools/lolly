@@ -705,7 +705,7 @@ test('the route _themes scopes the render surface in the hash form and in a tool
 // ── The family of leads (plans/319, milestone A5) ────────────────────────────
 
 const DEMO_DOC = (): Record<string, unknown> =>
-  JSON.parse(readFileSync(new URL('../../../../brands/lolly-demo/catalog/assets/lolly/tokens/opal.json', import.meta.url), 'utf8'));
+  JSON.parse(readFileSync(new URL('../../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json', import.meta.url), 'utf8'));
 
 /** Lolly Demo with two more colourways: Main (canonical, its own lead), Persimmon and Lagoon. */
 function threeLeadDoc(): Record<string, unknown> {

@@ -40,7 +40,7 @@ import type { HostV1, TokenResolveOptions, TokenSet } from '../engine/src/bridge
 type Rec = Record<string, unknown>;
 const load = (path: string): Rec => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const START = (): Rec => load('../brands/lolly-start/catalog/assets/lolly/tokens/brand.json');
-const DEMO = (): Rec => load('../brands/lolly-demo/catalog/assets/lolly/tokens/opal.json');
+const DEMO = (): Rec => load('../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json');
 const ONE_LEAD: Record<string, () => Rec> = {
   'Lolly Start': START,
   'Lolly Demo': DEMO,

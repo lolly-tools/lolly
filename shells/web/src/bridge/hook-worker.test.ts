@@ -369,7 +369,7 @@ test('an isolated tool reads the new choices after a colourway switch, and nothi
   type Rec = Record<string, unknown>;
   type Opts = import('@lolly-tools/core/host-v1').TokenResolveOptions;
 
-  let doc = JSON.parse(await readFile(new URL('../../../../brands/lolly-demo/catalog/assets/lolly/tokens/opal.json', import.meta.url), 'utf8')) as Rec;
+  let doc = JSON.parse(await readFile(new URL('../../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json', import.meta.url), 'utf8')) as Rec;
   for (const [id, name, light, dark] of [['persimmon', 'Persimmon', '#c2410c', '#fb923c'], ['lagoon', 'Lagoon', '#0e7490', '#22d3ee']] as const) {
     const r = addColourway(doc, { id, name, values: { light: { primary: light, 'on-primary': '#ffffff', secondary: '#222222' }, dark: { primary: dark, 'on-primary': '#111111', secondary: '#eeeeee' } } });
     assert.ok(r.ok);
