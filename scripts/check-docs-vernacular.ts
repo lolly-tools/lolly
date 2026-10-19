@@ -372,6 +372,9 @@ export function targets(): string[] {
       if (f.endsWith('.html')) out.push(`docs/figures/${f}`);
     }
   }
+  // The brand standards page, served at /brand: hand-written English prose like the
+  // figure HTML, published as it stands with no build step in between.
+  if (existsSync(join(ROOT, 'shells/web/public/brand/index.html'))) out.push('shells/web/public/brand/index.html');
   return out.sort();
 }
 

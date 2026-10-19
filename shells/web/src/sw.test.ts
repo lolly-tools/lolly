@@ -258,6 +258,22 @@ describe('service worker: the app shell key', () => {
     assert.equal(await navigate(h, 'https://lolly.tools/lab'), 'LAB_PAGE', '/lab is handled by the worker, not bypassed as /l');
   });
 
+  test('the brand standards page never replaces the cached app shell', async () => {
+    // /brand is static HTML (public/brand/index.html) with an extensionless URL, the
+    // same shape that once let a docs page overwrite the offline app.
+    const h = loadServiceWorker();
+    h.server.set('/', 'APP_SHELL');
+    await navigate(h, 'https://lolly.tools/');
+    for (const path of ['/brand', '/brand/', '/brand/index.html']) {
+      h.server.set(path, 'BRAND_PAGE');
+      assert.equal(await navigate(h, `https://lolly.tools${path}`), null, `${path} goes straight to the network`);
+    }
+    assert.equal(shellEntry(h), 'APP_SHELL', 'the cached app shell is untouched');
+    // Anchored: a route that only starts with the same letters is still the app.
+    h.server.set('/brandkit', 'APP_ROUTE');
+    assert.equal(await navigate(h, 'https://lolly.tools/brandkit'), 'APP_ROUTE', '/brandkit is handled by the worker');
+  });
+
   test('/info serves network-first and never populates the shell key', async () => {
     const h = loadServiceWorker();
     h.server.set('/', 'APP_SHELL');
