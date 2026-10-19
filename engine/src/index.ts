@@ -804,7 +804,7 @@ export {
   paletteTokensJson, paletteCssVariables, paletteCssClasses,
   paletteScssVariables, paletteGpl, paletteAse,
 } from './palette-export.ts';
-export type { PaletteSwatch } from './palette-export.ts';
+export type { PaletteSpot, PaletteSwatch } from './palette-export.ts';
 // Tonal-curve model: a ramp as three editable L/C/H curves over tone position.
 // Defaults reproduce the derived primary ramp byte-for-byte; the serializable
 // form persists a hand-edited ramp under a token's $extensions.

@@ -191,19 +191,37 @@ function openInLab(entry: PaletteEntry): void {
 
 const plural = (n: number): string => (n === 1 ? t('1 colour') : tRaw('{n} colours', { n }));
 
-/** What the menu says it leaves out or approximates, across every format. */
-function fitNotes(fits: SwatchFit[]): string[] {
+/** A list of names as this page's language writes one ("A, B and C"). */
+const listOf = (items: string[]): string => {
+  try { return new Intl.ListFormat(document.documentElement.lang || undefined, { type: 'conjunction' }).format(items); }
+  catch { return items.join(', '); }
+};
+
+/** What the menu says it leaves out, writes approximately or writes without its
+ *  print values, and in which formats. */
+export function fitNotes(fits: { label: string; fit: SwatchFit }[]): string[] {
   const names = (pick: (fit: SwatchFit) => PaletteEntry[]): string =>
-    [...new Set(fits.flatMap(pick).map(entry => entry.label))].join(', ');
+    listOf([...new Set(fits.flatMap(f => pick(f.fit)).map(entry => entry.label))]);
+  const formats = (has: (fit: SwatchFit) => boolean): string[] => fits.filter(f => has(f.fit)).map(f => t(f.label));
   const notes: string[] = [];
   const none = names(fit => fit.skipped.filter(s => s.reason === 'no-colour').map(s => s.entry));
   const seeThrough = names(fit => fit.skipped.filter(s => s.reason === 'translucent').map(s => s.entry));
   const odd = names(fit => fit.skipped.filter(s => s.reason === 'unreadable').map(s => s.entry));
-  const wide = names(fit => fit.approximated);
   if (none) notes.push(tRaw('Left out: {names}, which has no colour to save.', { names: none }));
   if (seeThrough) notes.push(tRaw('Left out of formats without transparency: {names}.', { names: seeThrough }));
   if (odd) notes.push(tRaw('Left out: {names}, whose value is not a colour these formats read.', { names: odd }));
-  if (wide) notes.push(tRaw('Saved as the sRGB fallback: {names}, which reach past sRGB.', { names: wide }));
+  const fallback = formats(fit => fit.approximated.length > 0);
+  if (fallback.length) {
+    notes.push(tRaw('{formats} save {names} as the sRGB fallback. The other formats keep the wider colour.', {
+      formats: listOf(fallback), names: names(fit => fit.approximated),
+    }));
+  }
+  const withPrint = formats(fit => fit.printDropped.length === 0);
+  if (formats(fit => fit.printDropped.length > 0).length) {
+    notes.push(tRaw('The CMYK and spot values of {names} go into {formats} only.', {
+      names: names(fit => fit.printDropped), formats: listOf(withPrint),
+    }));
+  }
   return notes;
 }
 
@@ -219,7 +237,7 @@ export function openDownloadMenu(cat: CatCtx, entries: PaletteEntry[], anchor?: 
       const part = fit.kept.length && fit.kept.length < entries.length ? ` · ${tRaw('{n} of {m}', { n: fit.kept.length, m: entries.length })}` : '';
       return menuItemHtml(fmt, DOWNLOAD_ICON, `${t(label)}${part}`, { reason: fit.kept.length ? '' : t('None of these colours fit this format.') });
     }).join('');
-    const notes = fitNotes(fits.map(f => f.fit)).map(note => `<p class="cat-swatch-menu-note">${escapeText(note)}</p>`).join('');
+    const notes = fitNotes(fits).map(note => `<p class="cat-swatch-menu-note">${escapeText(note)}</p>`).join('');
     el.innerHTML = `<p class="folder-menu-head">${escapeText(plural(entries.length))}</p>${rows}${notes}`;
     const items = [...el.querySelectorAll<HTMLButtonElement>('button')];
     el.addEventListener('keydown', event => {

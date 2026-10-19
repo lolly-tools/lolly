@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.281.0
+
+- `PaletteSwatch` (and the SDK's `ColorPaletteSwatch`, for `host.color.paletteExport` and `paletteExportBytes`) gains three optional fields: `css`, the colour as authored; `cmyk`, a locked CMYK build in percentages; and `spot`, a locked spot ink (`name`, `book`, `finish`).
+- Each format keeps what it has room for. CSS variables set a colour wider than sRGB again inside an `@supports` block that tests its own notation, since a custom property the browser cannot parse breaks rather than falling back. CSS classes declare the wider colour after the hex. Tokens JSON keeps the hex as `$value` and adds the wider colour (as a `display-p3` or `rec2020` face), the CMYK build and the spot ink under `$extensions["com.suse.lolly"]`, the shape Lolly's token reader takes back.
+- `.ase` writes a CMYK lock as a CMYK swatch, a spot lock as a Spot swatch under the ink's own name (its CMYK build when it has one, else its Lab), and a colour wider than sRGB as Lab (L 0..1, a and b as they are, D50). SCSS and `.gpl` stay sRGB.
+- An authored value is written only when it reaches past sRGB, and only after the engine's own parser reads it and writes it out again, so a value that is not a colour never reaches a stylesheet. A swatch with none of the three fields exports exactly the bytes it did before.
+
 ## 1.280.0
 
 - Exports record the design system, its published version and the colourway that drew them: in the Content Credential (`designSystem`, `designSystemLabel`, `designVersion` and `themes` keys of the `tools.lolly.export` assertion, `designRecordEnvironment`), as `lolly:` XMP and SVG properties (`designRecordXml`) and as PDF keywords. Every theme choice is recorded except the light/dark one, and a kind the manifest ignores through `tokenAxes` is never recorded. The description gives the colourway beside the tool (`"Made with https://lolly.tools : Chart (Persimmon colourway)"`). On by default; `_madewith=0`, `--no-madewith`, MCP `madeWith: false` or unticking the export panel's **Design system** card leave the record out.

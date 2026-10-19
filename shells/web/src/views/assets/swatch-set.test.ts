@@ -11,7 +11,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { swatchesSectionHtml } from './sections.ts';
-import { cardHtml, selectedEntries, swatchList } from './swatch-set.ts';
+import { cardHtml, fitNotes, selectedEntries, swatchList } from './swatch-set.ts';
+import { swatchFit, type SwatchExportFormat } from '../../lib/swatch-export.ts';
 import type { CatCtx } from './context.ts';
 import type { PaletteEntry } from '../../palette.ts';
 
@@ -74,4 +75,21 @@ test('Transparent shows the checkerboard rather than a fill', () => {
   const html = cardHtml(fakeCat(), palette[0]!, 0);
   assert.match(html, /class="cat-tile-fig cat-swatch-fig" style=""/);
   assert.match(html, /No colour/);
+});
+
+test('the format menu says which formats fall back to sRGB and which carry the print values', () => {
+  const formats: { fmt: SwatchExportFormat; label: string }[] = [
+    { fmt: 'tokens-json', label: 'Design tokens (JSON)' }, { fmt: 'css-vars', label: 'CSS variables' },
+    { fmt: 'scss', label: 'SCSS variables' }, { fmt: 'ase', label: 'Adobe swatches (.ase)' }, { fmt: 'gpl', label: 'GIMP palette (.gpl)' },
+  ];
+  const entries: PaletteEntry[] = [
+    { hex: '#00ff00', label: 'Vivid', cmyk: null, token: { ref: '{color.brand.vivid}', path: 'color.brand.vivid', css: 'color(display-p3 0 1 0)' } },
+    palette[1]!,   // Pine, CMYK-locked
+    palette[0]!,   // Transparent
+  ];
+  const notes = fitNotes(formats.map(f => ({ ...f, fit: swatchFit(entries, f.fmt) })));
+  assert.equal(notes.length, 3, notes.join(' | '));
+  assert.match(notes[0]!, /Left out: Transparent/);
+  assert.match(notes[1]!, /^SCSS variables(,| and) GIMP palette \(\.gpl\) save Vivid as the sRGB fallback\./);
+  assert.match(notes[2]!, /^The CMYK and spot values of Pine go into Design tokens \(JSON\)(,| and) Adobe swatches \(\.ase\) only\./);
 });

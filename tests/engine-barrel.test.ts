@@ -593,6 +593,7 @@ const EXPECTED: readonly string[] = [
   'PackPngOptions',
   'PageText',
   'PaletteHit',
+  'PaletteSpot',
   'PaletteSpotHit',
   'PaletteSwatch',
   'ParsedCertificate',
