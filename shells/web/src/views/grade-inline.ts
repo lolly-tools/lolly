@@ -15,8 +15,9 @@
  * sign + save. The preview canvas grades a downscaled copy live.
  */
 import { applyGrainVignette, applyLutFrame, clamp, GRAIN_REF_LONG_EDGE, parseLutText, type GradeLut } from '@lolly/engine';
-import { GRAIN_SEED, PRESET_LUT_BASE, PRESET_LUTS } from './video-edit-inline.ts';
-import type { LutCredit } from '../lib/video-jobs.ts';
+import { GRAIN_SEED } from './video-edit-inline.ts';
+import { PRESET_LUT_BASE, PRESET_LUTS } from '../lib/preset-luts.ts';
+import type { LutSource } from '../lib/video-jobs.ts';
 import { startJob } from '../lib/jobs.ts';
 import { escapeHtml } from '../lib/html.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -28,7 +29,9 @@ const BAND_ROWS = 512;
 
 export interface GradeSettings {
   lutLabel: string;
-  lutCredit?: LutCredit;
+  /** The preset LUT's rights record, used as a transformation input; absent for
+   *  an uploaded look or no look. The picture's own record is not in here. */
+  lutSource?: LutSource;
   /** All 0..1 except grainSize (1..4). */
   intensity: number;
   grain: number;
@@ -66,7 +69,7 @@ export async function mountInlineGrade(env: GradeInlineEnv): Promise<GradeInline
   let exited = false;
   let lut: GradeLut | null = null;
   let lutLabel = '';
-  let lutCredit: LutCredit | undefined;
+  let lutSource: LutSource | undefined;
   let lutState: 'none' | 'loading' | 'ready' | 'error' = 'none';
   let previewBlocked = false;
 
@@ -126,14 +129,19 @@ export async function mountInlineGrade(env: GradeInlineEnv): Promise<GradeInline
   const showError = (msg: string): void => { errEl.textContent = msg; errEl.hidden = false; };
   const clearError = (): void => { errEl.hidden = true; errEl.textContent = ''; };
 
-  const settings = (): GradeSettings => ({
-    lutLabel,
-    lutCredit,
-    intensity: clamp(num('intensity') / 100, 0, 1),
-    grain: clamp(num('grain') / 100, 0, 1),
-    grainSize: clamp(num('grainsize'), 1, 4),
-    vignette: clamp(num('vignette') / 100, 0, 1),
-  });
+  const settings = (): GradeSettings => {
+    const intensity = clamp(num('intensity') / 100, 0, 1);
+    return {
+      lutLabel,
+      // A look at 0% leaves every pixel as it was (the render skips the LUT pass),
+      // so its record only rides along when it actually shaped the colours.
+      ...(lutSource && lut && intensity > 0 ? { lutSource } : {}),
+      intensity,
+      grain: clamp(num('grain') / 100, 0, 1),
+      grainSize: clamp(num('grainsize'), 1, 4),
+      vignette: clamp(num('vignette') / 100, 0, 1),
+    };
+  };
 
   // A grade with no ready look and no grain/vignette would re-save the image to
   // say nothing; a look mid-load or failed must not apply as silence either -
@@ -182,17 +190,17 @@ export async function mountInlineGrade(env: GradeInlineEnv): Promise<GradeInline
   };
 
   // ── Look selection (the video mode's pattern) ──────────────────────────────
-  const adoptLut = (text: string, label: string, name?: string, credit?: LutCredit): void => {
+  const adoptLut = (text: string, label: string, name?: string, source?: LutSource): void => {
     try {
       lut = parseLutText(text, name);
       lutLabel = label;
-      lutCredit = credit;
+      lutSource = source;
       lutState = 'ready';
       clearError();
     } catch {
       lut = null;
       lutLabel = '';
-      lutCredit = undefined;
+      lutSource = undefined;
       lutState = 'error';
       showError(t("Couldn't read that file."));
     }
@@ -204,7 +212,7 @@ export async function mountInlineGrade(env: GradeInlineEnv): Promise<GradeInline
     const id = lookSel.value;
     lutFileEl.value = '';
     if (!id) {
-      lut = null; lutLabel = ''; lutCredit = undefined; lutState = 'none';
+      lut = null; lutLabel = ''; lutSource = undefined; lutState = 'none';
       clearError(); syncButtons(); schedulePaint();
       return;
     }
@@ -214,10 +222,10 @@ export async function mountInlineGrade(env: GradeInlineEnv): Promise<GradeInline
     syncButtons();
     void fetch(`${PRESET_LUT_BASE}${preset.id}.cube`, { signal })
       .then(res => (res.ok ? res.text() : Promise.reject(new Error(String(res.status)))))
-      .then(text => { if (!exited && lookSel.value === preset.id) adoptLut(text, t(preset.label), `${preset.id}.cube`, preset.credit); })
+      .then(text => { if (!exited && lookSel.value === preset.id) adoptLut(text, t(preset.label), `${preset.id}.cube`, preset.source); })
       .catch((e) => {
         if (exited || (e as Error)?.name === 'AbortError') return;
-        lut = null; lutCredit = undefined; lutState = 'error';
+        lut = null; lutSource = undefined; lutState = 'error';
         showError(t("Couldn't load that look."));
         syncButtons();
       });

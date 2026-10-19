@@ -61,20 +61,24 @@
  * `c2pa.edited` ("Background removed…"); crop = plain `c2pa.cropped`; upscale =
  * the genAI-partial stamp (compositeWithTrainedAlgorithmicMedia). A catalog-
  * initiated job saves a PLAIN derived asset - the 'renders' tag is WP-B's
- * download-path contract only.
+ * download-path contract only. A source with no credential but a recorded
+ * licence rides as an unsigned source ingredient, and a grade's LUT is a
+ * transformation input with its own licence (plan 253, lib/derived-asset.ts).
  */
 
 import {
-  packApng, packWebpAnim, extractC2paStore, prepareC2paIngredientFromStore, COMPOSITE_SOURCE_TYPE,
+  packApng, packWebpAnim, extractC2paStore, prepareC2paIngredientFromStore, COMPOSITE_SOURCE_TYPE, GENERATED_SOURCE_TYPE,
   chromaKeyAlpha, parseLutText, applyLutFrame, applyGrainVignette, GRAIN_REF_LONG_EDGE,
 } from '@lolly/engine';
 import { packGifAlpha } from './gif-alpha.ts';
 import type { LosslessTrimCtx, LosslessTrimResult } from './lossless-trim.ts';
 import { startJob, type JobHandle } from './jobs.ts';
+import { DerivedCreditError, STAMPABLE_FORMATS, derivedRights, type DerivedSource } from './derived-asset.ts';
 import { t, tRaw } from '../i18n.ts';
 import type {
   AssetRef, HostV1, MatteModelId, UpscaleModelId,
 } from '@lolly-tools/core/host-v1';
+import type { C2paActionInput } from '../../../../engine/src/c2pa.ts';
 
 // ── The op set + per-op params ───────────────────────────────────────────────
 
@@ -144,11 +148,12 @@ export interface UpscaleVideoParams {
   bitrate: number;
 }
 
-/** The creator of a shipped/known LUT, recorded in the grade's C2PA when their
- *  look is applied. Set only for presets whose author asked to be credited (the
- *  CC0 film-emulation LUTs carry none); an uploaded LUT is anonymous by nature.
- *  Rides into the `c2pa.color_adjustments` action's `parameters` + description so
- *  the credit travels with every file the graded clip ends up in. */
+/** The readable credit of a LUT: the shape the grade's `c2pa.color_adjustments`
+ *  action is written from (its `parameters` + description), so the credit travels
+ *  with every file the graded clip ends up in. Since plan 253 a grade carries a
+ *  {@link LutSource} instead and this view is read off it with {@link lutCreditOf};
+ *  `videoProvenanceFor` still takes one directly. An uploaded LUT is anonymous
+ *  by nature and carries neither. */
 export interface LutCredit {
   /** The LUT's name as shown to the user ("S-Log3 (Heavy)"). */
   name: string;
@@ -172,6 +177,50 @@ export interface LutCredit {
   created?: string;
 }
 
+/**
+ * A LUT as a creative work and how a grade used it (plan 253): the common
+ * record a grade carries. The work holds who made the look, its licence and its
+ * copyright line. The use is always a `transformation` input, because a LUT
+ * shapes a picture's colours and is not part of the picture. That role keeps
+ * the LUT's licence on the LUT: the photograph or clip keeps its own record,
+ * the rules credit the LUT under its own terms, and no ingredient is written
+ * for the LUT.
+ *
+ * Two facts have no field in a work record and ride beside it: the credit the
+ * licensor asked for, word for word (`detail.attribution`), and when the look
+ * was authored (`created`). The organisation an author made the look for is a
+ * creator with the role `publisher`, which is how the rules credit an
+ * organisation. lib/preset-luts.ts builds the shipped records.
+ */
+export interface LutSource extends DerivedSource {
+  created?: string;
+}
+
+/**
+ * The {@link LutCredit} view of a LUT record, which the colour action's
+ * description and `com.lolly.lut` parameters are written from, so a credential
+ * reads exactly as it did before the credit moved into the record. Null when
+ * the record names nobody to credit or states no licence.
+ */
+export function lutCreditOf(source: LutSource): LutCredit | null {
+  const { work } = source;
+  const author = work.creators.find((party) => party.role !== 'publisher');
+  const org = work.creators.find((party) => party.role === 'publisher');
+  const name = author?.name ?? org?.name;
+  const evidence = work.rights.find((ev) => ev.status !== 'missing' && ev.status !== 'not-applicable');
+  if (!name || !evidence) return null;
+  return {
+    name: work.title ?? work.id,
+    author: name,
+    ...(author?.role ? { role: author.role } : {}),
+    ...(author && org ? { org: org.name } : {}),
+    ...(evidence.copyright ? { copyright: evidence.copyright } : {}),
+    license: evidence.declaration,
+    ...(evidence.url ? { licenseUrl: evidence.url } : {}),
+    ...(source.created ? { created: source.created } : {}),
+  };
+}
+
 /** A colour look for the grade op: an optional 3D LUT plus the two spatial effects
  *  darkroom applies after it. Every field is a plain number/string so the whole look
  *  round-trips through a URL or a saved preset. */
@@ -182,9 +231,10 @@ export interface GradeVideoParams {
   /** A human name for the look, used in the provenance description ("Chrome",
    *  "my-look.cube"). Absent → a generic "Colour graded (on-device)". */
   lutLabel?: string;
-  /** Attribution for a credited LUT (a preset whose author asked to be named).
-   *  When set, the grade's C2PA credits them; absent for CC0/uploaded looks. */
-  lutCredit?: LutCredit;
+  /** The LUT's record (a shipped preset). When set, the grade's C2PA records its
+   *  creator and licence and the rules credit it as a transformation input;
+   *  absent for an uploaded look. */
+  lut?: LutSource;
   /** 0..1 mix of the LUT result over the original pixel. */
   lutIntensity: number;
   /** Film grain amount, 0..1 (0 skips the whole spatial pass with vignette 0). */
@@ -518,7 +568,7 @@ export interface VideoProvenance {
  */
 export function videoProvenanceFor(
   op: VideoOp,
-  p: { model?: string; version?: string; scale?: number; method?: 'model' | 'chroma'; lutLabel?: string; lutCredit?: LutCredit } = {},
+  p: { model?: string; version?: string; scale?: number; method?: 'model' | 'chroma'; lutLabel?: string; lut?: LutSource; lutCredit?: LutCredit } = {},
 ): VideoProvenance {
   if (op === 'crop') {
     return { tool: 'Crop', actions: [{ action: 'c2pa.cropped', description: 'Cropped' }] };
@@ -526,16 +576,18 @@ export function videoProvenanceFor(
   if (op === 'grade') {
     // A LUT + grain/vignette is a colour adjustment and nothing else - c2pa has a
     // dedicated action for exactly that, and no model runs, so no aiGenerated flag.
-    // A credited look (a preset whose author asked to be named) additionally
-    // carries the creator in the description AND the action parameters, so the
-    // attribution travels forward into any file that uses the graded clip.
+    // A look with a record additionally carries its creator in the description
+    // AND the action parameters, so the attribution travels forward into any file
+    // that uses the graded clip. The credit sits on the colour step, which is
+    // what the LUT did; it is not a statement about the picture's own licence.
+    const credit = p.lut ? lutCreditOf(p.lut) : p.lutCredit;
     const label = p.lutLabel ? `Colour graded - ${p.lutLabel}` : 'Colour graded (on-device)';
     return {
       tool: 'Colour grade',
       actions: [{
         action: 'c2pa.color_adjustments',
-        description: p.lutCredit ? `${label} ${lutCreditText(p.lutCredit)}` : label,
-        ...(p.lutCredit ? { parameters: lutCreditParameters(p.lutCredit) } : {}),
+        description: credit ? `${label} ${lutCreditText(credit)}` : label,
+        ...(credit ? { parameters: lutCreditParameters(credit) } : {}),
       }],
     };
   }
@@ -1354,6 +1406,8 @@ export interface VideoStampOpts {
   tool: string;
   actions: VideoC2paAction[];
   ingredients?: unknown[];
+  /** Recorded under tools.lolly.export; carries the readable source credits. */
+  inputs?: Record<string, string>;
   dimensions?: string;
 }
 
@@ -1396,6 +1450,7 @@ async function defaultStamp(host: VideoJobHost, blob: Blob, format: string, o: V
     tool: o.tool,
     actions: o.actions as never,
     ...(o.ingredients ? { ingredients: o.ingredients as never } : {}),
+    ...(o.inputs ? { inputs: o.inputs } : {}),
     ...(o.dimensions ? { dimensions: o.dimensions } : {}),
   });
 }
@@ -1569,6 +1624,7 @@ export async function runVideoJob(
     : (req.upscale?.fps ?? 30);
 
   const reader = await openReader(sourceBlob, fps, req.range);
+  const sourceRef = typeof req.source === 'object' && !(req.source instanceof Blob) ? req.source : null;
 
   // Stamp the output bytes, save the derived user asset, resolve its ref. The single
   // finish path both the transcode pipeline and the lossless fast path below run
@@ -1580,19 +1636,42 @@ export async function runVideoJob(
   ): Promise<AssetRef | null> => {
     const outFormat = outFmt || result.format;
     // Container-level C2PA: stamp the OUTPUT bytes with the op's plain/genAI edit and
-    // carry the source video as an ingredient. Best-effort - a failed sign still ships.
+    // carry the source video as an ingredient: its own credential when it has one,
+    // else an unsigned source ingredient when its catalog entry records a licence
+    // (lib/derived-asset.ts). A graded clip's LUT joins the rules as a transformation
+    // input. Best-effort while no licence asks for a credit - a failed sign still
+    // ships; when one does, a file that could not carry the credit fails the job.
+    const rights = derivedRights(sourceRef, {
+      edits: prov.actions as C2paActionInput[],
+      sources: req.op === 'grade' && req.grade?.lut ? [req.grade.lut] : [],
+      format: outFormat,
+    });
     let blob = result.blob;
     try {
-      const ingredient = (deps.extractIngredient ?? defaultExtractIngredient)(sourceBytes);
+      let ingredient = (deps.extractIngredient ?? defaultExtractIngredient)(sourceBytes);
+      if (!ingredient && rights?.ingredient) {
+        // The same AI backfill derived-asset applies: the writer copies the source
+        // type onto the c2pa.opened step, so a genAI clip stays declared as one.
+        const ai = req.aiGeneratedSource === 'full' ? GENERATED_SOURCE_TYPE : req.aiGeneratedSource === 'partial' ? COMPOSITE_SOURCE_TYPE : '';
+        ingredient = { ...rights.ingredient, ...(ai && !rights.ingredient.digitalSourceType ? { digitalSourceType: ai } : {}) };
+      }
       blob = await (deps.stamp ?? defaultStamp)(host, result.blob, outFormat, {
         title: req.sourceName,
         tool: prov.tool,
         actions: prov.actions,
         ...(ingredient ? { ingredients: [ingredient] } : {}),
+        ...(rights?.credits ? { inputs: { credits: rights.credits } } : {}),
         dimensions: `${result.width}×${result.height}`,
       });
     } catch (e) {
       host.log?.('warn', 'Video job: provenance stamp failed', { error: String(e) });
+    }
+    // The stamp hands back the very blob it was given when nothing was attached.
+    if (blob === result.blob && rights?.required.length) {
+      throw new DerivedCreditError({
+        blob, state: 'delivery-failed', rights: rights.evaluation, credits: rights.credits,
+        missing: rights.required, reason: 'Content Credentials could not be attached.',
+      });
     }
 
     const now = Date.now();
@@ -1644,6 +1723,15 @@ export async function runVideoJob(
       // (runFramePipeline's cancelled branch), never a job failure.
       if ((e as Error | null)?.name === 'AbortError') { await reader.close(); return null; }
       throw e;
+    }
+    // A QuickTime or Matroska copy cannot carry Content Credentials. When the source's
+    // licence asks for a credit, drop the copy and let the transcoding trim below write
+    // a file that can carry it, rather than fail the job after the copy.
+    if (fast && !STAMPABLE_FORMATS.has(fast.ext) && derivedRights(sourceRef, {
+      edits: videoProvenanceFor('trim').actions as C2paActionInput[], format: fast.ext,
+    })?.required.length) {
+      host.log?.('info', 'Video job: lossless trim skipped, its container cannot carry the required credit', { format: fast.ext });
+      fast = null;
     }
     if (fast) {
       // The packet copy decoded nothing; drop the reader we opened only for its dims.
@@ -1731,7 +1819,7 @@ export async function runVideoJob(
     assetType = 'video';
     prov = videoProvenanceFor('grade', {
       ...(params.lutLabel ? { lutLabel: params.lutLabel } : {}),
-      ...(params.lutCredit ? { lutCredit: params.lutCredit } : {}),
+      ...(params.lut ? { lut: params.lut } : {}),
     });
   } else if (req.op === 'trim') {
     // The identity op: every pixel is passed through untouched, and the RANGE (already

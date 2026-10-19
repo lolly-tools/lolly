@@ -166,9 +166,12 @@
       "code": ["shells/web/src/lib/catalog-download.ts", "shells/web/src/views/assets/downloads.ts", "shells/web/src/lib/derived-asset.ts"],
       "evidence": [
         { "file": "shells/web/src/lib/catalog-download.test.ts", "test": "a provenance-promising conversion refuses an unstampable container" },
-        { "file": "tests/catalog-crop-preserves-genai-provenance.test.ts", "test": "catalog crop preserves the genAI flag AND the full Lolly journey" }
+        { "file": "tests/catalog-crop-preserves-genai-provenance.test.ts", "test": "catalog crop preserves the genAI flag AND the full Lolly journey" },
+        { "file": "shells/web/src/lib/derived-asset.test.ts", "test": "an unsigned CC BY source rides into the derived file as an opened source ingredient with its credit" },
+        { "file": "shells/web/src/lib/derived-asset.test.ts", "test": "a required credit the file cannot carry is a failure, not a quiet unsigned file" },
+        { "file": "shells/web/src/lib/derived-asset.test.ts", "test": "the catalog crop and icon download routes tell the user when the credit could not travel" }
       ],
-      "note": "Changed bytes are re-signed with the source's own credential as an ingredient when the source has one. An unsigned source with a recorded licence contributes no ingredient and no credit, and nothing is read back for credits."
+      "note": "Changed bytes are re-signed with the source's own credential as an ingredient when the source has one. An unsigned source with a recorded licence rides in as an unsigned parentOf ingredient (the writer records c2pa.opened), and its readable credits go into the tools.lolly.export inputs. When a licence asks for a credit and the file cannot carry it (an unstampable format or a stamp that attached nothing), signDerived throws DerivedCreditError and the route tells the person instead of handing over the file. Nothing is read back for credits yet, so the route never says the credits are included."
     },
     {
       "id": "delivery.catalog-bulk-zip",
@@ -217,9 +220,13 @@
       ],
       "evidence": [
         { "file": "shells/web/src/lib/video-jobs.test.ts", "test": "runVideoJob matte: raster+animated record, plain-edit stamp, source ingredient carried" },
-        { "file": "tests/catalog-crop-preserves-genai-provenance.test.ts", "test": "catalog crop preserves the genAI flag AND the full Lolly journey" }
+        { "file": "tests/catalog-crop-preserves-genai-provenance.test.ts", "test": "catalog crop preserves the genAI flag AND the full Lolly journey" },
+        { "file": "shells/web/src/lib/derived-asset.test.ts", "test": "an unsigned CC BY source rides into the derived file as an opened source ingredient with its credit" },
+        { "file": "shells/web/src/lib/derived-asset.test.ts", "test": "a required credit the file cannot carry is a failure, not a quiet unsigned file" },
+        { "file": "shells/web/src/lib/derived-asset.test.ts", "test": "a promised credential now fails on a signing failure, not only on an unstampable format" },
+        { "file": "shells/web/src/lib/video-jobs.test.ts", "test": "runVideoJob grade: a stamp that attached nothing fails the job when a licence asks for a credit, and saves nothing" }
       ],
-      "note": "The new bytes carry the source's own credential as an ingredient where it has one. requireCredential applies only where a caller passes it; otherwise an unstampable format or a signing failure returns the unsigned blob. An unsigned source's licence and credit do not travel (plan 253, section 2)."
+      "note": "The new bytes carry the source's own credential as an ingredient where it has one. An unsigned source with a recorded licence rides in as an unsigned parentOf ingredient with its readable credits in the tools.lolly.export inputs, on crop, grade, frame and the video jobs. When a licence asks for a credit and the new file cannot carry it, signDerived throws DerivedCreditError and a video job fails with nothing saved; a lossless trim whose container cannot carry the credit falls back to the transcoding trim. requireCredential also fails on a signing failure. Optional provenance stays best-effort, so with no credit required an unstampable format or a signing failure still returns the unsigned blob. Retouch, single-image matte and upscale, and audio extraction still carry only a source's own credential. Nothing is read back for credits yet (plan 253, section 2)."
     },
     {
       "id": "delivery.stored-file-downloads",
@@ -922,11 +929,13 @@
       "kind": "census",
       "title": "Credited LUTs applied in a grade",
       "status": "credential-only",
-      "code": ["shells/web/src/lib/video-jobs.ts", "shells/web/src/views/grade-inline.ts"],
+      "code": ["shells/web/src/lib/video-jobs.ts", "shells/web/src/views/grade-inline.ts", "shells/web/src/lib/preset-luts.ts", "shells/web/src/lib/derived-asset.ts"],
       "evidence": [
-        { "file": "shells/web/src/lib/video-jobs.test.ts", "test": "videoProvenanceFor: a credited LUT names its author + rights owner in description AND parameters" }
+        { "file": "shells/web/src/lib/video-jobs.test.ts", "test": "videoProvenanceFor: a credited LUT names its author + rights owner in description AND parameters" },
+        { "file": "shells/web/src/lib/derived-asset.test.ts", "test": "a LUT is a transformation input under its own licence, never the photograph's" },
+        { "file": "shells/web/src/lib/derived-asset.test.ts", "test": "a graded CC BY photo carries one ingredient, both credits, and the LUT record on the colour step" }
       ],
-      "note": "The LUT's credit rides in the colour adjustment action of the credential. It is not a source in the rights model yet, and a LUT's licence is not the photo's licence (plan 253, section 7.2)."
+      "note": "A grade carries its LUT as a work under its own licence with a transformation-role use (transformation-input-v1), so the LUT is credited and never written as an ingredient, and a LUT's licence is not read as the photo's licence (plan 253, section 7.2). The LUT's credit also rides in the colour adjustment action and joins the readable credits. The shipped preset records live in lib/preset-luts.ts. Nothing is read back for credits. The music visualiser's preset author credit, a separate path, is not in the rights model yet."
     },
     {
       "id": "census.ai-declared-assets",
