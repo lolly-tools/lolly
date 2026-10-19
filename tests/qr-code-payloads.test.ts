@@ -104,7 +104,7 @@ test('export refuses a code that carries nothing, and names the field', { skip: 
   // beforeExport throws, which fails the export on every shell: the web shell
   // writes the message on its export button and the CLI prints the message and exits.
   const host = baseHost({ export: { render: async () => new Blob(['<svg/>'], { type: 'image/svg+xml' }) } });
-  const cases: Array<[Record<string, unknown>, string]> = [
+  const cases: Array<[Record<string, string>, string]> = [
     [{}, 'Add a link first'],
     [{ url: '   ' }, 'Add a link first'],
     [{ payload: 'vcard' }, 'Add a name first'],
