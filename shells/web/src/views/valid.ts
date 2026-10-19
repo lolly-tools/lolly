@@ -3260,7 +3260,6 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
     }
   }
 
-
   // ─── Claim flow: prefill from profile, sign a new credential, re-verify in place ──
 
   // Prefill the author/contact fields of every visible claim form from the profile - 
