@@ -86,6 +86,9 @@ test('the first edit asks once what the design system is called, from the logo',
     await page.waitForFunction(() => (document.querySelector<HTMLInputElement>('[data-start-ds-ask-name]')?.value ?? '') === 'Crumb & Co');
     await ask.getByRole('button', { name: 'Save name' }).click();
     await ask.waitFor({ state: 'detached' });
+    // The ask closes as soon as the rename is saved; the header field repaints from
+    // the registry a moment after, so the test waits for that read.
+    await page.waitForFunction(() => document.querySelector<HTMLInputElement>('[data-start-ds-name]')?.value === 'Crumb & Co');
     assert.equal(await page.locator('[data-start-ds-name]').inputValue(), 'Crumb & Co');
 
     await page.reload({ waitUntil: 'networkidle' }); await shellSettled(page);
