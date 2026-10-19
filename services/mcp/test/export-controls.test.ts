@@ -174,3 +174,38 @@ test('a render says what the delivered file records about its design system, and
   assert.doesNotMatch(quiet, /Recorded the design system/);
   assert.equal(linkQuery(quiet).get('_madewith'), '0', 'and the link beside the file says the same');
 });
+
+test('a browser-tier GIF keeps its design-system record through the credential this server stamps over it', async () => {
+  // The browser tier records the design system in the credential the web shell
+  // stamps; a GIF (like a video or an AVIF) has no `lolly:` metadata to read. This
+  // server's stamp replaces that credential, so the record must be read off the
+  // browser's credential first, or the new credential and the printed line both
+  // lose the system the browser recorded.
+  const { credentialAndRecord, designRecordText } = await import('../src/render.ts');
+  const { embedC2pa, readDesignRecord, readFileDesignRecord, verifyC2pa } = await import('../../../engine/src/index.ts');
+  const { buildExportC2paOpts } = await import('../../../packages/node-shell/src/c2pa-opts.ts');
+  const manifest = { id: 'chart', name: 'Chart', version: '1.0.0', inputs: [], render: { width: 1, height: 1, formats: ['gif'] } };
+  const themes = [{ group: 'colourway', kind: 'colourway' as const, id: 'persimmon', name: 'Persimmon' }];
+  const meta = {
+    software: 'Lolly', source: 'https://lolly.tools/t/chart', tool: 'Chart', author: '', contact: '',
+    description: 'Made with https://lolly.tools : Chart (Persimmon colourway)', designSystem: { id: 'acme', label: 'Acme' }, themes,
+  };
+  const gif = Uint8Array.from(Buffer.from('R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 'base64'));
+  // The credential as the web shell stamps it: the same builder, the web surface.
+  const browserOpts = buildExportC2paOpts({ surface: 'cli', manifest, model: [], format: 'gif', days: 1, meta });
+  const browserGif = await embedC2pa(gif, 'gif', { ...browserOpts, environment: { ...(browserOpts.environment as Record<string, unknown>), surface: 'web' } });
+  assert.equal(readFileDesignRecord(browserGif), null, 'the file\'s own metadata holds no record, so the credential is the only place');
+
+  const warnings: string[] = [];
+  const out = await credentialAndRecord({ bytes: browserGif, tier: 'B' }, {
+    fmt: 'gif', exportFmt: 'gif', deliveredFormat: 'gif', manifest: manifest as never, values: {},
+    merged: { c2pa: { on: true, days: 1 } }, placed: [], recorded: null, sampled: false, warnings,
+  });
+  assert.deepEqual(warnings, []);
+  const env = (await verifyC2pa(out.bytes)).environment ?? null;
+  assert.equal((env as Record<string, unknown> | null)?.surface, 'mcp', 'the credential read back is the one stamped here');
+  const expected = { designSystem: { id: 'acme', label: 'Acme' }, themes };
+  assert.deepEqual(readDesignRecord(env), expected, 'the new credential names the system the browser recorded');
+  assert.deepEqual(out.designRecord, expected);
+  assert.equal(designRecordText(out.designRecord), 'Recorded the design system: Acme · Colourway: Persimmon. Pass madeWith: false to leave the record out.');
+});

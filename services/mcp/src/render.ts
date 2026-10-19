@@ -901,6 +901,41 @@ export async function stampC2pa(
 }
 
 /**
+ * Stamp this server's credential over a finished render (when asked for and the
+ * format can carry one), then read back the design-system record (plans/319) the
+ * delivered file carries, for the line the result prints.
+ *
+ * The record the stamp writes: for a browser-free render, the metadata the export
+ * embedded. The browser tier writes the file itself, so its record is read off the
+ * bytes it handed back: their own XMP or SVG metadata, else the credential the web
+ * shell stamped, which this stamp replaces. A GIF, an AVIF or a video keeps no
+ * `lolly:` metadata of its own, so reading the metadata alone lost the record from
+ * the new credential and from the printed line.
+ */
+export async function credentialAndRecord(
+  out: { bytes: Uint8Array; tier: string },
+  o: {
+    fmt: string; exportFmt: string; deliveredFormat: string; manifest: ToolManifest; values: Record<string, unknown>;
+    merged: RenderOpts; placed: C2paSourceIngredient[]; recorded: ExportMeta | null; sampled: boolean; warnings: string[];
+  },
+): Promise<{ bytes: Uint8Array; designRecord: DesignRecord | null }> {
+  let bytes = out.bytes;
+  const record: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes'> | null = out.tier.startsWith('B')
+    ? await recordedDesignInFile(out.bytes, o.exportFmt)
+    : o.recorded;
+  if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt as ExportFormat) && !(o.exportFmt === 'pdf' && o.merged.password)) {
+    try { bytes = await stampC2pa(bytes, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record); }
+    catch (e) { o.warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
+  } else if (!o.sampled && o.merged.c2pa?.on) {
+    o.warnings.push(`Format "${o.fmt}" cannot carry Content Credentials - skipped.`);
+  }
+  // Read back from the final bytes. A PDF's keywords were written from that same
+  // record, so it stands in for them when the file holds no credential to read.
+  const designRecord = await recordedDesignInFile(bytes, o.deliveredFormat, record);
+  return { bytes, designRecord };
+}
+
+/**
  * Render a tool to bytes. `query` is a plain (or packed `z=`) URL query - the
  * shared param contract. Explicit opts override anything parsed from the query.
  */
@@ -1095,20 +1130,12 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
   // bytes first and carried into the new one.
   const songsIn = out.tier.startsWith('B') && AUDIO_BEARING.has(exportFmt) ? await songIngredientsIn(out.bytes) : [];
   if (songsIn.length) placed = [...placed, ...songsIn];
-  if (!sampled && merged.c2pa?.on && C2PA_FORMATS.includes(exportFmt as ExportFormat) && !(exportFmt === 'pdf' && merged.password)) {
-    // The design-system record (plans/319): what the browser-free render embedded, or,
-    // for bytes the browser tier wrote, the record those bytes carry in their own
-    // metadata, so the credential that replaces the browser's gives the same system.
-    const record = out.tier.startsWith('B') ? readFileDesignRecord(bytes) : recorded;
-    try { bytes = await stampC2pa(bytes, exportFmt, tool.manifest, values, merged, placed, record); }
-    catch (e) { warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
-  } else if (!sampled && merged.c2pa?.on) {
-    warnings.push(`Format "${fmt}" cannot carry Content Credentials - skipped.`);
-  }
+  const finished = await credentialAndRecord(out, {
+    fmt, exportFmt, deliveredFormat, manifest: tool.manifest, values, merged, placed, recorded, sampled, warnings,
+  });
+  bytes = finished.bytes;
   const songs = songsIn.length ? { expected: songsIn.map((i) => i.title), recorded: await recordedSongs(bytes) } : null;
-  // What the delivered file records about its design system, read back from the
-  // final bytes; a PDF's keywords were written from the browser-free render's meta.
-  const designRecord = await recordedDesignInFile(bytes, deliveredFormat, out.tier.startsWith('B') ? null : recorded);
+  const designRecord = finished.designRecord;
 
   let production: import('@lolly/engine').ProductionReport | undefined;
   if (o.production !== undefined) {
