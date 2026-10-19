@@ -7981,5 +7981,10 @@
   "That is not a web address. Check it and try again.": "Das ist keine Webadresse. Prüfen Sie sie und versuchen Sie es erneut.",
   "Private project": "Privates Projekt",
   "The server could not send the latest tools - showing saved content": "Der Server konnte die neuesten Tools nicht senden - gespeicherte Inhalte werden angezeigt",
-  "{n} colour": "{n} Farbe"
+  "{n} colour": "{n} Farbe",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Nicht für die Offline-Nutzung gespeichert: Auf diesem Server fehlen {n} von {total} Dateien.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Nicht für die Offline-Nutzung gespeichert: {n} von {total} Dateien wurden nicht heruntergeladen. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+  "Not saved for offline use. Try again in a moment.": "Nicht für die Offline-Nutzung gespeichert. Versuchen Sie es gleich noch einmal.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} Downloads wurden nicht abgeschlossen. Jede Zeile nennt den Grund."
 }

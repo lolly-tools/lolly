@@ -7981,5 +7981,10 @@
   "That is not a web address. Check it and try again.": "웹 주소가 아닙니다. 확인한 뒤 다시 시도하세요.",
   "Private project": "비공개 프로젝트",
   "The server could not send the latest tools - showing saved content": "서버가 최신 도구를 보내지 못했습니다. 저장된 콘텐츠 표시 중",
-  "{n} colour": "색상 {n}개"
+  "{n} colour": "색상 {n}개",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "오프라인 사용을 위해 저장되지 않음: 이 서버에 파일 {total}개 중 {n}개가 없습니다.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "오프라인 사용을 위해 저장되지 않음: 파일 {total}개 중 {n}개를 다운로드하지 못했습니다. 연결을 확인한 다음 다시 시도하세요.",
+  "Not saved for offline use. Try again in a moment.": "오프라인 사용을 위해 저장되지 않음. 잠시 후 다시 시도하세요.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n}개 다운로드가 끝나지 않았습니다. 각 행에 이유가 표시됩니다."
 }

@@ -239,6 +239,13 @@ with its own model location (`VITE_MODELS_BASE`, see Lolly's
 [delivery guide](https://github.com/lolly-tools/lolly/blob/main/docs/deploy-delivery.md))
 and the model files on that host. An empty base serves them from the instance's
 own origin; a separate model host must also be allowed by the browser policy.
+
+A shell built with an empty base asks the instance for `/models/...`. Work answers
+from the shell dist when the files are there, and otherwise passes the request to
+`instance.modelOrigin` (default `https://lolli.li`, see
+[configuration](configuration.md)), so the browser contacts only the instance and
+the Work server contacts the model host. Set `modelOrigin` to `null` when the dist
+carries its models or the installation offers none.
 That is a different shell release, with its own checksum and catalogue key pins
 and its own acceptance. The project does not publish or qualify such a bundle yet.
 

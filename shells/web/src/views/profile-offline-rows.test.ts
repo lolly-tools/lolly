@@ -95,3 +95,28 @@ test('the singing models have their own row and stay out of every bulk download'
   assert.match(firstRun, /'matte'/, 'the first-run list is found');
   assert.doesNotMatch(firstRun, /'sing'/, 'not in the desktop first-run sheet');
 });
+
+test('a download that did not finish says why on the row, with Try again (a user report, 2026-10-19)', () => {
+  const reason = 'Not saved for offline use: this server does not have 11 of the 2308 files.';
+  const fresh = partRowState({ allowed: true, available: true, stale: false, ready: false, planned: 80_000_000, failure: reason });
+  assert.equal(fresh.sub, reason);
+  assert.equal(fresh.error, true);
+  assert.deepEqual(fresh.dl, { hidden: false, text: 'Try again', disabled: false });
+  // An update that failed keeps the copy on disk and says why too.
+  const update = partRowState({ allowed: true, available: true, stale: true, ready: false, planned: 1, failure: reason, rec: { version: 'v1', bytes: 10, files: 1, at: 0 } as never });
+  assert.equal(update.sub, reason);
+  assert.equal(update.rm.hidden, false, 'what is on disk can still be removed');
+  // A current download is not a failure, whatever an older try said.
+  const done = partRowState({ allowed: true, available: true, stale: false, ready: false, planned: 1, failure: reason, rec: { version: 'v1', bytes: 10, files: 1, at: 0 } as never });
+  assert.equal(done.error, undefined);
+  assert.notEqual(done.sub, reason);
+});
+
+test('Profile words the failure and clears it on the next success', () => {
+  assert.match(OFFLINE_SRC, /partFailure\[id\] = failureLine\(err\)/);
+  assert.match(OFFLINE_SRC, /delete partFailure\[id\]/);
+  assert.match(OFFLINE_SRC, /failure: partFailure\[id\]/);
+  assert.doesNotMatch(OFFLINE_SRC.slice(OFFLINE_SRC.indexOf('const runParts')), /run\.end\(failed \? t\('\{n\} downloads failed - check your connection'/,
+    'a part run no longer blames the connection for files the server does not have');
+});
+

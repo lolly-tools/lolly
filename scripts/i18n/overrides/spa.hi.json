@@ -1636,5 +1636,10 @@
   "That is not a web address. Check it and try again.": "यह वेब पता नहीं है। जाँचकर फिर कोशिश करें।",
   "Private project": "निजी प्रोजेक्ट",
   "The server could not send the latest tools - showing saved content": "सर्वर नवीनतम टूल नहीं भेज सका: सहेजी गई सामग्री दिखाई जा रही है",
-  "{n} colour": "{n} रंग"
+  "{n} colour": "{n} रंग",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "ऑफ़लाइन उपयोग के लिए सहेजा नहीं गया: इस सर्वर पर {total} में से {n} फ़ाइलें नहीं हैं।",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "ऑफ़लाइन उपयोग के लिए सहेजा नहीं गया: {total} में से {n} फ़ाइलें डाउनलोड नहीं हुईं। अपना कनेक्शन जांचें, फिर फिर से कोशिश करें।",
+  "Not saved for offline use. Try again in a moment.": "ऑफ़लाइन उपयोग के लिए सहेजा नहीं गया। कुछ देर बाद फिर से कोशिश करें।",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} डाउनलोड पूरे नहीं हुए। हर पंक्ति में कारण बताया गया है।"
 }

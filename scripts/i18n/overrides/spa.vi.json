@@ -1635,5 +1635,10 @@
   "That is not a web address. Check it and try again.": "Đây không phải địa chỉ web. Hãy kiểm tra và thử lại.",
   "Private project": "Dự án riêng tư",
   "The server could not send the latest tools - showing saved content": "Máy chủ không gửi được các công cụ mới nhất - đang hiển thị nội dung đã lưu",
-  "{n} colour": "{n} màu"
+  "{n} colour": "{n} màu",
+  "Not saved for offline use: this server does not have {n} of the {total} files.": "Chưa lưu để dùng ngoại tuyến: máy chủ này không có {n} trong số {total} tệp.",
+  "Not saved for offline use: {n} of {total} files did not download. Check your connection, then try again.": "Chưa lưu để dùng ngoại tuyến: {n} trong số {total} tệp chưa tải xuống được. Kiểm tra kết nối của bạn, rồi thử lại.",
+  "Not saved for offline use. Try again in a moment.": "Chưa lưu để dùng ngoại tuyến. Hãy thử lại sau giây lát.",
+  "{name}: {reason}": "{name}: {reason}",
+  "{n} downloads did not finish. Each row says why.": "{n} lượt tải xuống chưa hoàn tất. Mỗi hàng cho biết lý do."
 }
