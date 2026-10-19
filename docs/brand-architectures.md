@@ -47,7 +47,7 @@ Northwind is one brand. Northwind Freight is teal and Northwind Air is coral, an
 - Pick the division's colourway per piece in the tool's **Design system** section, which shows the colourway dots in every tool that draws the lead colour.
 - Write each descriptor as text in the template, or add the finished descriptor lockup as a **custom mark** per division.
 - Use **house rules** to approve the division colours.
-- Each export records the colourway that drew the file, and its description gives the colourway beside the tool, as in *Poster (Freight colourway)*. See [The design-system record](/info/exporting.html#the-design-system-record).
+- With the export panel's **Design system** card ticked, an export records the colourway that drew the file, and its description gives the colourway beside the tool, as in *Poster (Freight colourway)*. See [The design-system record](/info/exporting.html#the-design-system-record).
 
 Not yet: the studio cannot author colourways, so a colourway is written into the token file today ([the format](/info/token-workflows.html#colourways)).
 
@@ -69,7 +69,7 @@ Some brands keep their logo, type and layout fixed and change the lead colour fr
 - Mark one colourway canonical. An artefact that chooses none uses it, and so does the app.
 - Pieces that show the whole family at once draw on every lead, canonical first: Chart's series and palettes, Mesh Gradient's shuffle, the Audiogram visualiser's colours and the audio and text covers in Assets. Template authors reach the same leads as `--brand-lead-1` onwards ([Authoring tools](/info/authoring-tools.html#design-system-colours-in-templates-and-styles)).
 - For a series, give each [batch](/info/using.html#batch-pro-mode) row its colourway in the CSV's `_themes` column. Each row renders in its own colourway, and so does a tool placed inside it, such as a QR code. A saved session keeps its colourway in multi-edit, in a batch and in a Design document export.
-- [Verify](/verify) reads back which colourway drew each piece, from the record every export carries.
+- [Verify](/verify) reads back which colourway drew each piece, from the record an export carries while its **Design system** card is ticked.
 
 Not yet: no series, batch or copy flow picks colourways by a rule, and the batch grid has no control for a row's colourway. The engine's rules (cycle, by key, shuffle, by date) exist for scripts; see [Colourways](/info/token-workflows.html#colourways).
 
@@ -143,7 +143,7 @@ One set of assets re-skinned for each client, where no client may see another cl
 - Make a **design system per client** and switch per job.
 - Give each client their own brand pack, or the artefacts made in their design system.
 - Check what an export says about how it was made before you send the file. See [Exporting](/info/exporting.html).
-- Each export records the name of the client's design system. The export panel's **Design system** card shows that name before the file is written; untick the card when a file must not carry the name.
+- An export from a tool records the name of the client's design system. The export panel's **Design system** card shows that name before the file is written; untick the card when a file must not carry the name. Batch and folder exports show no card, so their files carry no name.
 
 Not yet: nothing keeps one client's material out of another client's work automatically. Switching is by hand.
 
