@@ -159,6 +159,7 @@
 .section-card .export-audio,
 .section-card .section-card{box-shadow:none; border-radius:0;}
 .section-card.is-open,
+details.section-card[open],
 .lp-sec:has(> .lp-sec-head[aria-expanded="true"]),
 .input-section[open] {
   transition: box-shadow var(--dur-2) ease;
@@ -216,8 +217,9 @@
    box-shadow on the focused <summary>, so promote the ring to the section
    wrapper - its own box-shadow paints outside its border box, unclipped - using
    the same border + halo idiom as a focused <select> / text field. */
-.input-section-summary:focus-visible { outline: none; }
-.section-card:has(> :is(.protection-head, .pdfpass-head, .section-card-head):focus-visible),
+.input-section-summary:focus-visible,
+details.section-card > .section-card-summary:focus-visible { outline: none; }
+.section-card:has(> :is(.protection-head, .pdfpass-head, .section-card-head, .section-card-summary):focus-visible),
 .lp-sec:has(> .lp-sec-head:focus-visible),
 .input-section:has(.input-section-summary:focus-visible) {
   overflow: visible;
@@ -264,6 +266,18 @@
   padding: var(--sp-7) var(--sp-6) var(--sp-6);
 }
 
+/* One fold motion for every section. A <details> section (the tool sidebar's
+   input sections and every details.section-card: the asset inspector, the export
+   panel's cost card, the token workspace) moves through ::details-content below.
+   The export panel's button cards and the Design inspector's sections open from a
+   button instead, and lib/disclosure-motion.ts runs the same motion from these
+   same three values. */
+:root {
+  --fold-size-duration: 180ms;
+  --fold-fade-duration: 160ms;
+  --fold-easing: ease-out;
+}
+
 /* Fallback for browsers without the native content wrapper. */
 @keyframes input-section-in {
   from { opacity: 0; }
@@ -271,8 +285,9 @@
 
 @media (prefers-reduced-motion: no-preference) {
   @supports not selector(::details-content) {
-    .input-section[open] > .input-section-body {
-      animation: input-section-in 160ms ease-out backwards;
+    .input-section[open] > .input-section-body,
+    details.section-card[open] > :not(summary) {
+      animation: input-section-in var(--fold-fade-duration) var(--fold-easing) backwards;
     }
   }
 
@@ -280,26 +295,31 @@
      layer on open also retains an authored wrapper opacity from the base layer.
      Native transitions reverse from the current frame on a quick second click. */
   @supports selector(::details-content) {
-    .input-section::details-content {
+    :is(.input-section, details.section-card)::details-content {
       opacity: 0;
-      transition: opacity 160ms ease-out, content-visibility 180ms allow-discrete;
+      transition: opacity var(--fold-fade-duration) var(--fold-easing), content-visibility var(--fold-size-duration) allow-discrete;
     }
-    .input-section[open]::details-content {
+    :is(.input-section, details.section-card)[open]::details-content {
       opacity: revert-layer;
     }
 
     @supports (interpolate-size: allow-keywords) {
-      .input-section::details-content {
+      :is(.input-section, details.section-card)::details-content {
         interpolate-size: allow-keywords;
         block-size: 0;
+        /* A .section-card is a flex column, which makes this box a flex item, and a
+           flex item's automatic minimum height is its whole content. That minimum
+           held the box at full height while block-size moved, so the card snapped
+           instead of folding. */
+        min-block-size: 0;
         /* The summary's focus ring can make the outer section overflow visible. */
         overflow: clip;
-        transition: block-size 180ms ease-out, opacity 160ms ease-out, content-visibility 180ms allow-discrete;
+        transition: block-size var(--fold-size-duration) var(--fold-easing), opacity var(--fold-fade-duration) var(--fold-easing), content-visibility var(--fold-size-duration) allow-discrete;
       }
-      .input-section[open]::details-content {
+      :is(.input-section, details.section-card)[open]::details-content {
         block-size: auto;
       }
-      .input-section[open]:has(.help-tip-btn:hover, .help-tip-btn:focus-visible, .help-tip-pop:not([hidden]), .color-picker-field.is-open)::details-content {
+      :is(.input-section, details.section-card)[open]:has(.help-tip-btn:hover, .help-tip-btn:focus-visible, .help-tip-pop:not([hidden]), .color-picker-field.is-open)::details-content {
         overflow: visible;
       }
     }
@@ -312,5 +332,5 @@
 }
 html[data-a11y-motion="reduce"] .input-section-summary::after { transition: none; }
 
-html[data-a11y-motion="reduce"] .input-section::details-content { transition: none; }
-html[data-a11y-motion="reduce"] .input-section-body { animation: none; }
+html[data-a11y-motion="reduce"] :is(.input-section, details.section-card)::details-content { transition: none; }
+html[data-a11y-motion="reduce"] :is(.input-section-body, details.section-card > :not(summary)) { animation: none; }

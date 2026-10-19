@@ -186,8 +186,8 @@
    flags, same CTA - position only. `relative` (not `static`) keeps the × in its
    corner. The card leads the page, so it carries the topbar clearance itself (the
    top row floats over the content rather than occupying a bar) and hands it back:
-   the masonry drops its own top padding while the card is above it, the way
-   .brand-tips does, so the two can't stack their gaps. With a featured strip up
+   the masonry drops its own top padding while the card is above it, so the two
+   can't stack their gaps. With a featured strip up
    the strip pads its own track, which leaves the card sitting a little loose above
    the covers - the fixed-position toast never met that case, and a rare loose gap
    beats reaching into another sheet's hero. */
@@ -1604,8 +1604,7 @@ a.gtile-name:focus-visible::after {
 .yours-chip-icon { display: inline-flex; color: hsl(var(--muted-foreground)); }
 .yours-chip-icon svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
 /* On the rare resident gallery with no featured strip, the shelf leads the page
-   and must clear the fixed topbar itself - same clearance the tips strip takes
-   (welcome.css .brand-tips). */
+   and must clear the fixed topbar itself, the same clearance the masonry takes. */
 .gallery:not(.has-featured) .yours-shelf { margin-top: 6.4rem; }
 @media (max-width: 640px) {
   .gallery:not(.has-featured) .yours-shelf { margin-top: calc(4.4rem + var(--safe-top)); }
