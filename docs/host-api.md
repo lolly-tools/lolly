@@ -155,6 +155,8 @@ const family = typeof host.tokens?.family === 'function' ? await host.tokens.fam
 const leads = family.length >= 2 ? family.map((m) => m.value) : [];
 ```
 
+Put the leads ahead of the colours you would otherwise draw, never in their place. A design system with two colourways and no spectrum of its own still needs a full categorical palette, and two leads alone would repeat from the third series on.
+
 The web shell, the CLI and the hook Worker answer `family()` and `axes()` from the same engine functions, scoped to the artefact's choices like every other read. The canvas carries the same family as CSS variables, `--brand-lead-1` onwards, described in [Authoring tools](/info/authoring-tools.html). A hook that keeps colours it read in `onInit` should compare `{color.semantic.primary}` (and any other slot it depends on) on each `onInput`, and read again when the value changed: a colourway or look switch re-points the slots without running `onInit`.
 
 ## `host.pdf` *(optional)*

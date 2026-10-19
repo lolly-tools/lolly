@@ -56,9 +56,9 @@ const LAGOON: Record<string, ColourwayValues> = {
   dark: { primary: '#22d3ee', 'on-primary': '#082f49', secondary: '#a5f3fc' },
 };
 
-/** Lolly Demo with three colourways: its own lead (`main`, canonical), Persimmon and Lagoon. */
-function threeLeads(): Rec {
-  let doc = DEMO();
+/** A design system (Lolly Demo unless named) with three colourways: its own lead (`main`, canonical), Persimmon and Lagoon. */
+function threeLeads(base: () => Rec = DEMO): Rec {
+  let doc = base();
   for (const [id, name, values] of [['persimmon', 'Persimmon', PERSIMMON], ['lagoon', 'Lagoon', LAGOON]] as const) {
     const result = addColourway(doc, { id, name, values });
     assert.ok(result.ok, result.ok ? '' : result.reasons.join(' '));
@@ -427,6 +427,63 @@ test('chart re-reads the design system after a colourway switch, without onInit 
   assert.equal(chartState(rt).spec.theme.colours.categorical[0], LAGOON.light!.primary);
   assert.equal(rt.getModel().find(i => i.id === 'heading')!.value, 'Still kept', 'the user\'s input is untouched');
   rt.destroy?.();
+});
+
+const d3Source = readFileSync(new URL('../community/chart/lib/d3.min.js', import.meta.url), 'utf8');
+
+/** The colours a mounted chart draws, in the order they first appear: its hydrated
+ *  markup run through the template's own script and d3 in jsdom. */
+async function drawnColours(rt: Awaited<ReturnType<typeof mount>>): Promise<string[]> {
+  const dom = new JSDOM(`<!doctype html><body>${rt.getHydrated()}</body>`, { runScripts: 'outside-only', pretendToBeVisual: true } as never);
+  try {
+    // Text measuring is the only canvas dependency of the vector renderer.
+    (dom.window.HTMLCanvasElement.prototype as unknown as { getContext: unknown }).getContext = () => ({ measureText: (s: string) => ({ width: String(s).length * 7 }) });
+    dom.window.eval(d3Source);
+    for (const script of dom.window.document.querySelectorAll('script:not([type="application/json"])')) dom.window.eval(script.textContent || '');
+    await new Promise<void>(resolve => setImmediate(resolve));
+    const fills = [...dom.window.document.querySelectorAll('#d3-plot rect')].map(r => (r.getAttribute('fill') ?? '').toLowerCase());
+    return [...new Set(fills.filter(f => /^#[0-9a-f]{6}$/.test(f)))];
+  } finally { dom.window.close(); }
+}
+
+test('chart\'s categorical palette keeps every colour it had and puts the leads first, with or without a spectrum of the design system\'s own', async () => {
+  // Thirteen bars, one colour each: room for the three leads and every shipped hue.
+  const initial = { palette: 'suse', chartType: 'bar', colorBy: 'category', data: `Item,Count\n${Array.from({ length: 13 }, (_, i) => `Item ${i + 1},${10 + i}`).join('\n')}` };
+  // Lolly Start authors no color.spectrum.*, so its categorical palette is the
+  // shipped set; Lolly Demo authors one.
+  for (const [name, base] of [['Lolly Start', START], ['Lolly Demo', DEMO]] as const) {
+    const one = await mount('chart', await cli(base(), { '': 'light' }), initial, { '': 'light' });
+    const three = await mount('chart', await cli(threeLeads(base), { '': 'light', colourway: 'main' }), initial, { '': 'light', colourway: 'main' });
+    const before = await drawnColours(one);
+    const after = await drawnColours(three);
+    const leads = [swatch(base(), 'color.semantic.primary', { theme: 'light' })!.toLowerCase(), PERSIMMON.light!.primary, LAGOON.light!.primary];
+    assert.ok(before.length >= 8, `${name} draws its usual palette with one lead (${before.length})`);
+    assert.deepEqual(after.slice(0, 3), leads, `${name}: the leads come first, the artefact's own colourway leading`);
+    assert.ok(after.length >= before.length, `${name}: ${after.length} colours with three leads, ${before.length} with one`);
+    one.destroy?.(); three.destroy?.();
+  }
+  // With no spectrum, every shipped hue follows the leads except the one red
+  // Persimmon nearly matches, so two series never share a colour by accident.
+  const oneRt = await mount('chart', await cli(START(), { '': 'light' }), initial, { '': 'light' });
+  const threeRt = await mount('chart', await cli(threeLeads(START), { '': 'light', colourway: 'main' }), initial, { '': 'light', colourway: 'main' });
+  const one = await drawnColours(oneRt);
+  const three = await drawnColours(threeRt);
+  assert.ok(one.includes('#bd3314'));
+  assert.deepEqual(three.slice(3), one.filter(c => c !== '#bd3314'));
+  oneRt.destroy?.(); threeRt.destroy?.();
+
+  // The template drops a shipped hue closer than 10 to a lead in CIELAB. That never
+  // shortens the list only while every two shipped hues sit more than 20 apart.
+  const template = await readFile(new URL('../community/chart/template.html', import.meta.url), 'utf8');
+  const shipped = JSON.parse(template.match(/var CATEGORICAL = (\[[^\]]+\])/)![1]!.replace(/'/g, '"')) as string[];
+  const realm = new JSDOM('<!doctype html><body></body>', { runScripts: 'outside-only' } as never).window;
+  realm.eval(d3Source);
+  const lab = (realm as unknown as { d3: { lab: (c: string) => { l: number; a: number; b: number } } }).d3.lab;
+  for (const [i, a] of shipped.entries()) for (const b of shipped.slice(i + 1)) {
+    const A = lab(a), B = lab(b);
+    assert.ok(Math.hypot(A.l - B.l, A.a - B.a, A.b - B.b) > 20, `${a} and ${b} are too close for the lead rule`);
+  }
+  realm.close();
 });
 
 const paletteOf = (rt: Awaited<ReturnType<typeof mount>>): string[] => JSON.parse(rt.getHydratedText('{{{paletteJson}}}'));

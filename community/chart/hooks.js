@@ -677,9 +677,11 @@ function safeJson(obj) {
 //
 // A design system with several colourways (plans/319) also gives a FAMILY: every
 // colourway's lead in the current look, from host.tokens.family. The leads head
-// the spectrum, follow Primary and Secondary in the ordered palette, and supply
-// the second hue of the alternate and diverging ramps. Fewer than two leads is no
-// family, so a one-lead design system charts exactly as it did before.
+// the spectrum the design system authored, or, when it authored none, the
+// template's shipped hues (cfg.brandLeads). They follow Primary and Secondary in
+// the ordered palette and supply the second hue of the alternate and diverging ramps.
+// Fewer than two leads is no family, so a one-lead design system charts exactly
+// as it did before.
 let BRAND = null;
 // The colours BRAND was resolved under. A colourway or look switch changes them,
 // and onInput re-resolves BRAND without re-running onInit (which would reset the
@@ -735,16 +737,24 @@ async function resolveBrandColors() {
     async function sem(name) { return token('color.semantic.' + name); }
 
     // ── categorical spectrum (as before; .value is already resolved hex) ────
-    // The family's leads come first when there is a family.
-    const leads = await brandLeads();
     const spectrum = [], seen = new Set();
-    for (const l of leads) { seen.add(l.value); spectrum.push(l.value); }
     for (const s of swatchesRaw) {
       const v = normHex(s.value);
       if (!v || seen.has(v)) continue;
       const path = String(s.path || ''), group = String(s.group || '');
       if (path.indexOf('color.spectrum.') !== 0 && group !== 'Spectrum') continue;
       seen.add(v); spectrum.push(v);
+    }
+    // The family's leads come first in a spectrum the design system authored. With
+    // no spectrum of its own the leads alone would be the whole categorical palette,
+    // two or three colours where the shipped set has ten, so the spectrum stays
+    // empty and the template puts the leads ahead of its shipped hues instead.
+    const leads = await brandLeads();
+    if (spectrum.length && leads.length) {
+      const own = spectrum.filter((v) => !leads.some((l) => l.value === v));
+      spectrum.length = 0;
+      for (const l of leads) spectrum.push(l.value);
+      for (const v of own) spectrum.push(v);
     }
     const primary = await sem('primary');
     const surface = (await sem('surface')) || '#ffffff';
@@ -849,6 +859,8 @@ async function resolveBrandColors() {
 
     return {
       spectrum: spectrum.length ? spectrum : null,
+      // The family's leads, active first; null without a family.
+      leads: leads.length ? leads.map(function (l) { return l.value; }) : null,
       // The brand's swatches in their AUTHORED order (primary → secondary → brand
       // hues → variations → neutrals) - what the 'ordered' palette (the default)
       // and the recolour picker both follow, so a chart matches the palette the way
@@ -1768,6 +1780,10 @@ function compute(model, inputPatch) {
   cfg.brandRamps    = BRAND && BRAND.ramps;        // sequential/diverging/mono ramps
   cfg.brandSwatches = (BRAND && BRAND.swatches) || null;  // click-to-recolour picker
   cfg.brandMono     = !!(BRAND && BRAND.monochrome);      // few hues → auto patterns
+  // The family's leads, which the template puts ahead of its shipped hues when the
+  // design system has no spectrum. Absent without a family, so a one-lead state
+  // is byte-identical to one from before colourways.
+  if (BRAND && BRAND.leads) cfg.brandLeads = BRAND.leads;
   // 'seed' palette: extrapolate a whole palette from the chosen base colour. A
   // colour input's token default arrives already resolved to hex; blank/unresolved
   // falls back to the brand's primary so the option still does something on any brand.

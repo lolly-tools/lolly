@@ -114,7 +114,7 @@ The same seed, key, date and position pick the same colourway on every computer,
 
 | Where | What the family changes |
 | --- | --- |
-| Chart | The leads come first in the categorical spectrum and follow Primary and Secondary in the ordered palette and the recolour swatches. Another colourway's lead becomes the second hue of the two-hue sequential and diverging ramps |
+| Chart | The leads come first in the categorical palette: ahead of the design system's own spectrum, or ahead of the shipped colours when it has none, so the palette never has fewer colours than with one colourway. They follow Primary and Secondary in the ordered palette and the recolour swatches. Another colourway's lead becomes the second hue of the two-hue sequential and diverging ramps |
 | Audiogram | The other colourways' leads follow the background in the visualiser's colours |
 | Mesh Gradient | Shuffle colours draws on the leads before the rest of the design system |
 | The visualiser's colour schemes | One scheme per colourway, in the design system's order and labelled with the colourway's name, with that colourway's partner as the counterpoint. A lead too dark or too grey to carry the picture hands the field to its partner |
