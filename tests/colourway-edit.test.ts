@@ -22,7 +22,7 @@ import type { TokenResolveOptions } from '../engine/src/bridge/host-v1.ts';
 type Rec = Record<string, unknown>;
 const load = (path: string): Rec => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const FIXTURES: Record<string, () => Rec> = {
-  'Lolly Demo': () => load('../brands/lolly-demo/catalog/assets/lolly/tokens/opal.json'),
+  'Lolly Demo': () => load('../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json'),
   'a derived system': () => deriveBrandTokens({ primary: '#2453ff', name: 'Fixture' }),
 };
 
