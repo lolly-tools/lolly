@@ -41,6 +41,30 @@ community/your-tool-id/
 └── assets/             # optional - tool-local images, fonts, etc.
 ```
 
+## Design system colours in templates and styles
+
+The canvas carries the design system's colour roles as CSS custom properties, so a template or `styles.css` can use them with no hook. They hold the colours of the artefact's own choices: its look (light or dark) and its colourway.
+
+| Variable | Holds |
+| --- | --- |
+| `--brand-primary` | The lead colour of the artefact's colourway |
+| `--brand-on-primary` | Text and icons on the lead colour |
+| `--brand-secondary` | The partner colour |
+| `--brand-surface` | The background |
+| `--brand-text` | Body text |
+| `--brand-muted` | Quieter text |
+| `--brand-edge` | Rules and borders |
+| `--brand-lead-1` to `--brand-lead-<n>` | Every colourway's lead in the artefact's look, canonical first |
+| `--brand-lead-count` | How many lead variables the canvas carries |
+
+Always give a fallback, as in `var(--brand-secondary, #444)`. A role the design system does not define is left unset, so the fallback is what draws. The lead variables are set only when the design system has two or more colourways, and a canvas carries at most 16 of them; with one colourway there are none, and the canvas carries exactly the variables it always did. A second stripe that follows the second lead, and the partner colour when there is no family:
+
+```css
+.stripe + .stripe { background: var(--brand-lead-2, var(--brand-secondary, #444)); }
+```
+
+The web shell and the CLI paint the same variables, and the lead variables come from one engine function in both, so a template renders the same in each. The brand residue test (`tests/brand-residue.test.ts`) fails a tool template that reads any of these variables with no fallback. For a colour input that offers only the colourway leads, see `palette` in [Tool inputs](/info/tool-inputs.html).
+
 ## Generate a tool from Design
 
 Designers can author portable tools through [Share with rules](/info/create-a-tool.html) without editing a manifest. Generated tools use the normal engine and strict sideload runtime. See [Design tool contract](/info/design-tool-contract.html) for compilation, dependencies and revision semantics.

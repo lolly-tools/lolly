@@ -10,7 +10,7 @@
  * changes were needed.
  */
 
-import { scopedTokenOptions } from '../../../engine/src/token-context.ts';
+import { scopedTokenOptions, tokenAxesOf, tokenFamily, brandLeadVars } from '../../../engine/src/token-context.ts';
 import { isJxl } from '../../../engine/src/jxl.ts';
 import { prepareJxlAsset } from '@lolly-tools/node-shell/jxl-asset';
 import { readFile } from 'node:fs/promises';
@@ -645,6 +645,11 @@ export async function createCliBridge(
     colors: async (opts = {}) => (await tokenSet(opts)).colors(),
     resolve: async (ref, opts = {}) => (await tokenSet(opts)).resolve(ref),
     themes: async () => (await tokenSet()).themes(),
+    // The plans/319 reads, over the same document and per-selection memo as the
+    // reads above. The family follows this run's choices (`--_themes`), exactly as
+    // the web bridge's follows the route's.
+    axes: async () => tokenAxesOf(await resolvedDoc()),
+    family: async (role, opts = {}) => tokenFamily(await resolvedDoc(), role, scopedTokenOptions(tokenSelection, opts), o => tokenSet(o)),
     // Owner-side seam for the worker_threads hook executor: the raw DTCG doc it
     // snapshots into the worker so hooks resolve tokens without an RPC. Never a
     // hook-facing call (the worker core omits it from the proxy).
@@ -1656,6 +1661,10 @@ function rootSvgOf(node: Element | null): Element | null {
       if (!ref) return null;
       const q = new URLSearchParams(query);
       for (const k of RESERVED) q.delete(k);
+      // A link's own theme choices stay in its id, as in the web bridge's composeEmbedId
+      // (plans/319 A6), so a session the CLI re-renders keeps them in the links it
+      // writes. The CLI does not yet draw the child in them.
+      if (st.tokenSelection && Object.keys(st.tokenSelection).length) q.set('_themes', JSON.stringify(st.tokenSelection));
       if (width) q.set('w', String(width));
       if (height) q.set('h', String(height));
       if (unit && unit !== 'px') { q.set('unit', String(unit)); if (dpi) q.set('dpi', String(dpi)); }
@@ -1718,7 +1727,12 @@ export async function applyBrandVars(el: HTMLElement, host: HostV1): Promise<voi
     const semantic = /^color\.semantic\.([a-z-]+)$/.exec(swatch.path);
     if (semantic) el.style.setProperty('--brand-'+semantic[1],value);
   }
-
+  // The family of leads (plans/319): `--brand-lead-1..n` and `--brand-lead-count`,
+  // the same pairs the web shell's applyBrandVars paints. Nothing for a design
+  // system with fewer than two colourways, so its canvas is exactly as before.
+  let family: readonly { value?: unknown }[] = [];
+  try { family = (await host.tokens.family?.('primary')) ?? []; } catch { family = []; }
+  for (const [name, value] of brandLeadVars(family)) el.style.setProperty(name, value);
 }
 
 // Embed authorship provenance as <title>/<desc> + a Dublin-Core <metadata> block

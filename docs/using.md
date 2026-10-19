@@ -486,6 +486,8 @@ Drag across cells, Shift-click a cell, or use Shift+Arrow keys to select a recta
 
 **Import CSV** lets you add rows or replace the current batch. Open **Columns** below the grid to reveal more inputs or per-row width, height, unit and DPI. Default export settings apply to rows without their own overrides. **Batch activity** can be collapsed after an import or render to make more room for the table.
 
+Each row keeps its own **theme choices**: light or dark, and a [colourway](/info/token-workflows.html#colourways) when the design system has them. A row opened from Projects, a folder or a saved batch renders in the choices its session was saved in, its preview opens in them, **Send to Print Sheet** carries them, and a duplicated or filled row takes the same ones. A CSV carries them in a `_themes` column, after the size columns, holding the same JSON as the `_themes` link parameter, for example `{"":"dark","colourway":"persimmon"}`. A blank cell, or `{}`, means the design system's defaults. The column is written only when some row has choices, so a batch without any exports the same CSV as before. On import, a cell that is not valid theme choices is listed as an issue and its row renders in the defaults. The grid has no control for changing a row's choices yet.
+
 Batch is for generating **many variants of one template** at once. To re-render sessions you've **already saved**, use **Projects → Render folder / Render selection** (see [Find and recover your work](/info/find-your-work.html#find-something-you-saved)) - no Pro needed.
 
 ## Editing side by side (Multi-edit)
@@ -499,6 +501,8 @@ One sidebar drives the lot:
 - <!--i:search--> **Filter inputs…** at the top narrows the controls across *every* card at once - which is how you get to "the headline" in eight sessions without scrolling for it.
 
 Click any canvas (or press Enter on it) and that session's sidebar card opens and scrolls into view. **Save all** writes every session back to its own slot. **Download all** saves first, then renders the whole set through the same pipeline as Projects' **Render selection** - one zip, with the optional password lock offered on the way.
+
+Each card draws in its own session's theme choices: a session saved in dark, or in a [colourway](/info/token-workflows.html#colourways), shows that look on its card, and a tool link placed inside it draws in the same look. Cards in different looks sit side by side, while the app around them keeps its own colours. **Save all**, the Downloads, **Batch grid** and **Send to Print Sheet** keep each session's choices.
 
 Two honest limits. The two-to-eight cap is real: every card mounts its own live runtime, and that's the number that stays responsive - a link asking for more (or for a session that no longer exists) says so rather than half-loading. And the link names *your* saved slots, so it reopens that set on this device; it is not a share link.
 

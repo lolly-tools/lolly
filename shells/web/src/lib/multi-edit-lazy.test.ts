@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { memberSaveValues, applySharedEdit, runtimeSaveValues, sessionSaveData, sessionSeedValues, type LazyMember } from './multi-edit-lazy.ts';
+import { memberSaveValues, applySharedEdit, memberSelection, runtimeSaveValues, sessionSaveData, sessionSeedValues, type LazyMember } from './multi-edit-lazy.ts';
 import type { Runtime } from '../../../../engine/src/runtime.js';
 import type { InputValue } from '../../../../engine/src/inputs.js';
 
@@ -98,4 +98,18 @@ test('a link restored before save drops the earlier Restore reference, built or 
   assert.equal('__tokenLinks' in fromRuntime, false);
   assert.equal('__tokenSelection' in fromRuntime, false, 'the runtime is authoritative for its theme choices too');
   assert.equal(fromRuntime.__export_format, 'png');
+});
+
+// ── Theme choices (plans/319 A6) ─────────────────────────────────────────────
+
+const DARK = { '': 'dark' };
+const PERSIMMON = { '': 'light', colourway: 'persimmon' };
+
+test('a frozen cell shows the theme its seed carries; a live one shows its runtime\'s', () => {
+  assert.deepEqual(memberSelection({ runtime: null, values: sessionSeedValues({ title: 'Hi', __tokenSelection: DARK }) }), DARK);
+  assert.deepEqual(memberSelection({ runtime: { tokenSelection: PERSIMMON }, values: { __tokenSelection: DARK } }), PERSIMMON, 'once built, the runtime decides');
+  assert.equal(memberSelection({ runtime: { tokenSelection: undefined }, values: { __tokenSelection: DARK } }), undefined, 'a runtime with no choices has none');
+  assert.equal(memberSelection({ runtime: null, values: { title: 'Hi' } }), undefined);
+  assert.equal(memberSelection({ runtime: null, values: { __tokenSelection: 'dark' } }), undefined, 'a damaged stored map is no choice, as the runtime reads it');
+  assert.equal(memberSelection({ runtime: null, values: { __tokenSelection: {} } }), undefined);
 });

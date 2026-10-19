@@ -121,6 +121,8 @@ A tool can embed **another tool's** render with no tool-to-tool imports. The URL
 
 The path extension is the author's fidelity choice. Compose any tool's render: an SVG child stays a **true vector** when the parent exports to SVG or PDF and rasterises crisply for PNG; raster children (`png`, `jpg`/`jpeg`, `webp`) embed as images. (`pdf` appears in the grammar but is not inlined as a child format.)
 
+A child draws in the **theme choices** of the document it is placed in, so a QR code inside a dark document, or one in a [colourway](/info/token-workflows.html#colourways), takes that document's colours. In the web app this holds in the tool view, a framed tool, a multi-edit card, a batch row and a document export alike. A link that carries `_themes` of its own keeps its choice for the groups it names, and the document's choices fill in the rest: `_themes={"":"light"}` inside a dark Persimmon document draws the child light, in Persimmon. A document that made no choice of its own draws in the choices its design system is set to, so those fill in the rest instead. A pasted tool link keeps its `_themes` in the canonical id it is stored under, so it reopens in the same choice; choices inherited from the document never enter the id. The CLI writes the same id, so a link it writes back keeps the child's `_themes`, but it does not yet draw the child in them.
+
 This is the URL-mode surface of composition. The declarative form - a manifest `composes: [{ id, tool, inputs, format? }]` block resolved by the engine and placed in the template as `{{asset <id>}}` - is not a URL param; see the authoring guide. Either form requires the tool to declare the `compose` capability. `event-name-badge` composes `qr-code` as SVG today.
 
 ### Automation / CI

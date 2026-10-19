@@ -14,7 +14,7 @@ import { shareUrlState } from '../lib/share-privacy.ts';
  * (scope-css.ts + render-lifecycle.ts) instead of being hand-copied here, so
  * the batch/compose path can no longer drift from the live view (finding #4).
  */
-import { toCssPx, packQuery, isPackAvailable, PACK_PARAM } from '@lolly/engine';
+import { toCssPx, packQuery, isPackAvailable, PACK_PARAM, withTokenSelection } from '@lolly/engine';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 import { csvToMarks } from '../lib/print-marks-csv.ts';
 import { type StudioExportHooks, withStudioExport } from '../lib/studio-export-guard.ts';
@@ -57,6 +57,7 @@ import { runTemplateScripts, waitForQuiescence } from '../lib/render-lifecycle.t
 import { c2paDefaultOn } from '../lib/c2pa-policy.ts';
 import { MOTION_EXPORT_FORMATS } from './folder-rows.ts';
 import { batchCanRender } from './batch-render-format.ts';
+import { savedTokenSelection, withComposeSelection } from '../lib/theme-choices.ts';
 import { exportTargetNode } from '../lib/export-target.ts';
 
 async function applySavedEmoji(runtime: Awaited<ReturnType<typeof createRuntime>>, host: HostV1, values: Record<string, InputValue> | undefined): Promise<void> {
@@ -117,6 +118,14 @@ interface BatchRow {
   bleed?: string;
   /** Print marks as the `marks` CSV - decoded by lib/print-marks-csv.ts. */
   marks?: string;
+  /**
+   * The theme choices a composed child renders in, one theme id per group (plans/319
+   * A6): its own `_themes` over the document's (bridge/compose.ts). A batch row keeps
+   * its session's choices among its values as `__tokenSelection` instead
+   * (pro/folder-rows.ts); {@link rowTokenSelection} reads this first, then that. With
+   * neither, the design system's defaults apply.
+   */
+  tokenSelection?: Record<string, string>;
 }
 
 /** Preferred format + optional output dimensions for a batch render. */
@@ -179,6 +188,42 @@ interface RenderRowOpts {
 function withToolNet(host: HostV1, manifest: ToolManifest): HostV1 {
   const allowlist = manifest.network?.allowlist;
   return allowlist?.length ? { ...host, net: createNetAPI({ allowlist }) } : host;
+}
+
+/**
+ * The theme choices a row renders in (plans/319 A6): a composed child's own, else the
+ * `__tokenSelection` a batch row or a saved session carries among its values. A
+ * malformed map reads as none, so a hand-edited record renders in the defaults
+ * instead of failing.
+ */
+export function rowTokenSelection(row: { tokenSelection?: unknown; values?: Record<string, unknown> }): Record<string, string> | undefined {
+  return savedTokenSelection(row.tokenSelection) ?? savedTokenSelection(row.values?.__tokenSelection);
+}
+
+/**
+ * The two hosts one offscreen mount needs for a document with theme choices, the
+ * same split the tool view makes (views/tool/stage-layout.ts).
+ *
+ * - `runtime`: the host the engine runtime gets. The runtime scopes its own token
+ *   reads from `tokenSelection`; this host adds only that composed children inherit
+ *   the choices (lib/theme-choices.ts), so a tool link inside the document draws in
+ *   the same light or dark and the same colourway.
+ * - `canvas`: the host the stage paints its `--brand-*` variables from and resolves
+ *   embeds with, scoped to the choices. Without it the stage painted the device's
+ *   default theme under a dark or colourway document. The unscoped bridge follows
+ *   the address bar's `_themes`, and an offscreen render has no address of its own.
+ *
+ * With no choices the token reads of both are the host's own, so a document without
+ * any paints exactly as before. Its compose calls still go through the wrapper: a
+ * tool link in the template that names some theme groups (`_themes`) takes the
+ * design system's own choices for the rest, the ones this document draws in
+ * (lib/theme-choices.ts `childSelection`). A compose call that names none reaches the
+ * bridge as it was written.
+ */
+export function documentHosts(host: HostV1, selection: Record<string, string> | undefined): { runtime: HostV1; canvas: HostV1 } {
+  const choices = selection && Object.keys(selection).length ? { ...selection } : undefined;
+  const runtime = withComposeSelection(host, () => choices);
+  return { runtime, canvas: choices ? withTokenSelection(runtime, choices) : runtime };
 }
 
 /**
@@ -387,7 +432,11 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
   }
   // composeStack threads tool-id recursion state down when this render is itself
   // a composed child (set by the compose bridge); undefined for normal batch rows.
-  const runtime = await createRuntime(tool, withToolNet(thumbAssets ? withThumbAssets(host) : host, tool.manifest), seeded, { composeStack });
+  // The row's theme choices go to the runtime, to its composed children and to the
+  // stage's brand variables alike (documentHosts).
+  const selection = rowTokenSelection(row);
+  const hosts = documentHosts(withToolNet(thumbAssets ? withThumbAssets(host) : host, tool.manifest), selection);
+  const runtime = await createRuntime(tool, hosts.runtime, seeded, { composeStack, ...(selection ? { tokenSelection: selection } : {}) });
 
   // Export dimension qualified with the unit (px / mm / cm / in / pt) so the
   // engine converts per format; blank falls back to the native canvas size.
@@ -399,7 +448,7 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
   let posterClock: ReturnType<typeof import('../bridge/sequence-dom.ts').createSequenceTime> | null = null;
   try {
     await applySavedEmoji(runtime, host, row.values);
-    const mounted = await mountToolCanvas(tool.styles, runtime.getHydrated(), { layoutW, fixedHeight: layoutH, composeStack, host, settleMs, getModel: () => runtime.getModel(), mountEmoji: (el) => runtime.applyEmojiToDom(el), thumbnail });
+    const mounted = await mountToolCanvas(tool.styles, runtime.getHydrated(), { layoutW, fixedHeight: layoutH, composeStack, host: hosts.canvas, settleMs, getModel: () => runtime.getModel(), mountEmoji: (el) => runtime.applyEmojiToDom(el), thumbnail });
     stage = mounted.stage;
     const canvas = mounted.canvas;
     posterClock = previewTimeMs !== undefined && Number.isFinite(previewTimeMs)
@@ -415,6 +464,9 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
     // native DEFLATE) entirely on that path - only real exports (batch, compose child) need it.
     const url = thumbnail ? '' : toolShareUrl(tool.manifest.id, await preferCompactQuery(shareUrlState(runtime.getModel(), {
       format: fmt, width, height, unit, dpi: unit !== 'px' ? dpi : undefined,
+      // The theme choices too, so the link reopens in the light or dark and the
+      // colourway this file was made in.
+      tokenSelection: runtime.tokenSelection,
       // Print settings belong in the recreate link too - a zip recipient opening
       // lolly.txt should land on the file they were sent, bleed and marks included.
       profile: row.profile, bleed: row.bleed, marks: row.marks,
@@ -506,8 +558,14 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
  * Only Design is admitted: arbitrary tools may own live resources or globals. */
 /** Mount every document page through the normal offscreen render lifecycle. */
 export async function mountDocumentExport(tool: LoadedTool, host: HostV1, source: Runtime, size?: { width: number; height: number }) {
-  const runtime = await createRuntime(tool, withToolNet(host, tool.manifest), modelToValues(source.getModel()), {
-    tokenSelection: source.tokenSelection, emojiStyle: source.emoji.style,
+  // The document's theme choices reach the copy's runtime, its composed children and
+  // its stage variables (documentHosts). The tool view paints its own canvas from a
+  // scoped host; this copy used the unscoped one, which follows the address bar's
+  // `_themes` and so drew the default theme in a framed tool, whose address is never written.
+  const selection = source.tokenSelection;
+  const hosts = documentHosts(withToolNet(host, tool.manifest), selection);
+  const runtime = await createRuntime(tool, hosts.runtime, modelToValues(source.getModel()), {
+    tokenSelection: selection, emojiStyle: source.emoji.style,
     viewState: size ? { width: size.width, height: size.height } : undefined,
   });
   runtime.setRightsDecisions(source.rightsDecisions());
@@ -517,7 +575,7 @@ export async function mountDocumentExport(tool: LoadedTool, host: HostV1, source
     const { stage, canvas } = await mountToolCanvas(tool.styles, runtime.getHydrated(), {
       layoutW: size?.width ?? tool.manifest.render.width,
       fixedHeight: size?.height ?? tool.manifest.render.height,
-      host, getModel: () => runtime.getModel(), mountEmoji: el => runtime.applyEmojiToDom(el),
+      host: hosts.canvas, getModel: () => runtime.getModel(), mountEmoji: el => runtime.applyEmojiToDom(el),
     });
     ownedStage = stage;
     let disposed = false;
@@ -534,14 +592,18 @@ export async function mountDocumentExport(tool: LoadedTool, host: HostV1, source
 export async function mountTemplateMotion(host: HostV1, toolId: string, values: Record<string, InputValue>, size?: { width: number; height: number }) {
   if (toolId !== 'design') throw new Error('Live template motion is available for Design.');
   const tool = await getTool(toolId);
-  const runtime = await createRuntime(tool, withToolNet(host, tool.manifest), values);
+  // A template saved in dark or in a colourway previews in it (rowTokenSelection reads
+  // the `__tokenSelection` among its values).
+  const selection = rowTokenSelection({ values });
+  const hosts = documentHosts(withToolNet(host, tool.manifest), selection);
+  const runtime = await createRuntime(tool, hosts.runtime, values, selection ? { tokenSelection: selection } : {});
   const width = size && Number.isFinite(size.width) && size.width > 0 ? size.width : tool.manifest.render.width;
   const height = size && Number.isFinite(size.height) && size.height > 0 ? size.height : tool.manifest.render.height;
   let ownedStage: ExportStage | undefined;
   try {
     const { stage, canvas } = await mountToolCanvas(tool.styles, runtime.getHydrated(), {
       layoutW: width, fixedHeight: height,
-      host, getModel: () => runtime.getModel(), mountEmoji: (el) => runtime.applyEmojiToDom(el),
+      host: hosts.canvas, getModel: () => runtime.getModel(), mountEmoji: (el) => runtime.applyEmojiToDom(el),
     });
     ownedStage = stage;
     const clock = (await import('../bridge/sequence-dom.ts')).createSequenceTime(canvas);
@@ -573,14 +635,16 @@ export async function renderToolPages(row: BatchRow, host: HostV1, { format, wid
   const layoutW = bothGiven ? Math.max(1, Math.round(toCssPx({ value: width, unit }))) : variant?.width ?? tool.manifest.render.width;
   const layoutH = bothGiven ? Math.max(1, Math.round(toCssPx({ value: height, unit }))) : variant?.height ?? tool.manifest.render.height;
 
-  const runtime = await createRuntime(tool, withToolNet(thumbAssets ? withThumbAssets(host) : host, tool.manifest), { ...(row.values ?? {}) });
+  const selection = rowTokenSelection(row);
+  const hosts = documentHosts(withToolNet(thumbAssets ? withThumbAssets(host) : host, tool.manifest), selection);
+  const runtime = await createRuntime(tool, hosts.runtime, { ...(row.values ?? {}) }, selection ? { tokenSelection: selection } : {});
 
   // Paged documents grow to their content. Fixed canvases need a real containing
   // height, including Design's single artboard with absolutely positioned objects.
   let stage: ExportStage | undefined;
   try {
     await applySavedEmoji(runtime, host, row.values);
-    const mounted = await mountToolCanvas(tool.styles, runtime.getHydrated(), { layoutW, fixedHeight: tool.manifest.render.paged ? undefined : layoutH, host, getModel: () => runtime.getModel(), mountEmoji: (el) => runtime.applyEmojiToDom(el) });
+    const mounted = await mountToolCanvas(tool.styles, runtime.getHydrated(), { layoutW, fixedHeight: tool.manifest.render.paged ? undefined : layoutH, host: hosts.canvas, getModel: () => runtime.getModel(), mountEmoji: (el) => runtime.applyEmojiToDom(el) });
     stage = mounted.stage;
     const canvas = mounted.canvas;
     const fmt = chooseFormat(tool.manifest, format);

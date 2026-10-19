@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { audioThumbPool, audioThumbInk, audioThumbInkStyle } from './audio-thumb-colour.ts';
+import { audioThumbPool, audioThumbInk, audioThumbInkStyle, audioThumbLeads } from './audio-thumb-colour.ts';
 import { audioThumbShape } from './audio-thumb.ts';
 import { makeColorApi } from '@lolly/engine';
 
@@ -145,4 +145,49 @@ test('the hash avalanches, so a power-of-two pool is not keyed to FNV\'s worst b
   for (let i = 0; i < 2000; i++) counts[audioThumbInk(`lolly/loops/track-${i}`, pool)!.index]++;
   // Even-ish: no bucket may take more than 40% of a uniform 25% share.
   for (const c of counts) assert.ok(c > 2000 * 0.15 && c < 2000 * 0.4, `skewed distribution: ${counts}`);
+});
+
+// ── The family of leads (plans/319) ──────────────────────────────────────────
+
+/** A tokens host whose family answers `values`, recording the options each read was given. */
+function familyHost(values: string[] | (() => never)) {
+  const reads: unknown[] = [];
+  return {
+    reads,
+    host: { ...host, tokens: { family: async (role?: string, opts?: unknown) => {
+      reads.push([role, opts]);
+      if (typeof values === 'function') return values();
+      return values.map((value, i) => ({ id: `lead-${i}`, name: `Lead ${i}`, canonical: i === 0, active: i === 0, value }));
+    } } },
+  };
+}
+
+test('the leads are every colourway\'s primary, canonical first, in the theme the tiles are painted in', async () => {
+  const f = familyHost(['#30ba78', '#fe7c3f', '#2453ff']);
+  assert.deepEqual(await audioThumbLeads(f.host, 'dark'), [{ hex: '#30ba78' }, { hex: '#fe7c3f' }, { hex: '#2453ff' }]);
+  assert.deepEqual(f.reads, [['primary', { theme: 'dark' }]]);
+  await audioThumbLeads(f.host);
+  assert.deepEqual(f.reads[1], ['primary', undefined], 'no theme, no theme option');
+});
+
+test('fewer than two leads, a host without the family, or a failed read give no leads', async () => {
+  assert.deepEqual(await audioThumbLeads(familyHost(['#30ba78']).host), []);
+  assert.deepEqual(await audioThumbLeads(host), []);
+  assert.deepEqual(await audioThumbLeads(undefined), []);
+  assert.deepEqual(await audioThumbLeads(familyHost(() => { throw new Error('offline'); }).host), []);
+  assert.deepEqual(await audioThumbLeads(familyHost(['#30ba78', '{color.alias}']).host), [{ hex: '#30ba78' }], 'a lead that is not hex is skipped');
+});
+
+test('the pool draws on the leads before the rest of the palette', () => {
+  const pool = audioThumbPool(SUSE, host, 'light', [{ hex: '#c2410c' }, { hex: '#0e7490' }]);
+  assert.deepEqual(pool.slice(0, 2), ['#c2410c', '#0e7490']);
+  assert.ok(pool.includes('#30ba78'), 'the palette follows');
+});
+
+test('with no leads the pool is exactly the palette\'s pool', () => {
+  for (const theme of ['light', 'dark', undefined] as const) {
+    const plain = audioThumbPool(SUSE, host, theme);
+    assert.deepEqual(audioThumbPool(SUSE, host, theme, []), plain);
+    assert.deepEqual(audioThumbPool(SUSE, host, theme, undefined), plain);
+  }
 });

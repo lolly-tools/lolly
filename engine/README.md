@@ -346,7 +346,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `gzip.ts` | 283 | gzip (RFC 1952): the member wrapper around raw DEFLATE, plus a synchronous inflater so a `.gz`/`.svgz` can be read back without a platform decoder. | yes | indirect | – |
 | `hdr.ts` | 555 | HDR raster export: brand-colour highlight boost + PQ (SMPTE ST 2084) encoding. | yes | `tests/hdr.test.ts` | – |
 | `heal.ts` | 337 | Spot healing (plans/289 M4): Compositor's `spot_heal` (HealPixels.c, MIT, Wonder Assembly LLC), ported line for line and held to the original by tests/heal.test.ts, whose goldens come from the C itself… | yes | `tests/heal.test.ts` | – |
-| `hook-worker-core.ts` | 485 | Hook worker core - the transport-agnostic half of running a tool's hooks.js OFF the thread that owns the host bridge (plans/86 M2, moved here from the web shell's hook-worker.worker.ts so a Node `worker_threads`… | yes | `tests/hook-worker-core.test.ts` | – |
+| `hook-worker-core.ts` | 495 | Hook worker core - the transport-agnostic half of running a tool's hooks.js OFF the thread that owns the host bridge (plans/86 M2, moved here from the web shell's hook-worker.worker.ts so a Node `worker_threads`… | yes | `tests/hook-worker-core.test.ts` | – |
 | `humanize.ts` | 102 | "Humanize" a text asset - a DETERMINISTIC, on-device clean-up of the AI artifacts a text-signal analysis flags, plus a tidy of the typography to house style. | yes | `tests/humanize.test.ts` | – |
 | `icc-pixels.ts` | 482 | ICC profiles applied to deep pixel buffers: the digiKam act (deeprichpixels section 3, section 5.1): input profile → PCS → working/output space, per pixel, over a {@link DeepFrame}. | yes | `tests/icc-pixels.test.ts` | – |
 | `icc.ts` | 1390 | ICC profile reader: the authority for "what can this device actually print?". | yes | `tests/icc.test.ts` | yes |
@@ -575,7 +575,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `token-composite.ts` | 28 | Supported DTCG composite fields. | no | none | – |
 | `token-consumer-adapters.test.ts` | 89 | Composite adapters preserve supported values and bound unsupported data. | no | none | – |
 | `token-consumer-adapters.ts` | 77 | Closed, explicit projections from composite tokens into existing scalar consumers. | no | none | – |
-| `token-context.ts` | 52 | Document-scoped token reads and captured snapshots. | yes | indirect | – |
+| `token-context.ts` | 136 | Document-scoped token reads, captured snapshots and the family of leads. | yes | indirect | – |
 | `token-edit.ts` | 56 | Source-preserving typed token value edits. | yes | none | – |
 | `token-ext.ts` | 27 | The DTCG vendor-extension namespace, alone in its own module. | no | indirect | – |
 | `token-font-pins.ts` | 80 | Release font identity, byte validation, face matching and render projections. | yes | indirect | – |
