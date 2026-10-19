@@ -23,7 +23,7 @@
     "shells/web/src/bridge/export-svg-walker.ts": {
       "lines": 1727,
       "largestFunctionLines": 1704,
-      "importFanIn": 2,
+      "importFanIn": 3,
       "importFanOut": 17,
       "typeEscapes": 19
     },
@@ -56,28 +56,28 @@
       "typeEscapes": 0
     },
     "shells/web/src/views/deck-editor.ts": {
-      "lines": 1953,
-      "largestFunctionLines": 1731,
+      "lines": 1969,
+      "largestFunctionLines": 1743,
       "importFanIn": 2,
-      "importFanOut": 9,
+      "importFanOut": 10,
       "typeEscapes": 0
     },
     "shells/web/src/views/design-import.ts": {
-      "lines": 1743,
+      "lines": 1831,
       "largestFunctionLines": 145,
       "importFanIn": 5,
-      "importFanOut": 11,
+      "importFanOut": 13,
       "typeEscapes": 68
     },
     "shells/web/src/views/design-inspector.ts": {
-      "lines": 1590,
-      "largestFunctionLines": 2055,
+      "lines": 1575,
+      "largestFunctionLines": 2028,
       "importFanIn": 1,
-      "importFanOut": 25,
+      "importFanOut": 26,
       "typeEscapes": 0
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1789,
+      "lines": 1795,
       "largestFunctionLines": 1747,
       "importFanIn": 1,
       "importFanOut": 67,
@@ -87,28 +87,28 @@
       "lines": 2396,
       "largestFunctionLines": 2046,
       "importFanIn": 33,
-      "importFanOut": 68,
+      "importFanOut": 69,
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
       "lines": 2041,
       "largestFunctionLines": 2702,
       "importFanIn": 1,
-      "importFanOut": 59,
+      "importFanOut": 60,
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {
       "lines": 2823,
       "largestFunctionLines": 2083,
       "importFanIn": 8,
-      "importFanOut": 37,
+      "importFanOut": 40,
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
-      "lines": 1551,
+      "lines": 1552,
       "largestFunctionLines": 1580,
       "importFanIn": 1,
-      "importFanOut": 65,
+      "importFanOut": 66,
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
