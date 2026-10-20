@@ -208,6 +208,36 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
   announce(body, t('Loading design systems…'));
   void renderDesignSystemsCard(body, host).catch(() => { body.innerHTML = `<p class="profile-appearance-sub">${isTauriShell() ? t('Design systems are unavailable on this device.') : t('Design systems are unavailable in this browser.')}</p>`; }).finally(() => { busy = false; body.removeAttribute('aria-busy'); });
 
+  // A row's "More actions" menu is a <details>. Escape and a press anywhere
+  // else close it, as they close the app's other menus, and opening one row's
+  // menu closes another's. The listeners go with the card.
+  const closeMenus = (except?: Element | null): void => {
+    body.querySelectorAll<HTMLDetailsElement>('details.ds-row-more[open]').forEach(menu => { if (menu !== except) menu.open = false; });
+  };
+  body.addEventListener('toggle', (e) => {
+    const menu = e.target as HTMLDetailsElement | null;
+    if (menu?.matches?.('details.ds-row-more') && menu.open) closeMenus(menu);
+  }, true);
+  const onKey = (e: KeyboardEvent): void => {
+    if (!body.isConnected) { detach(); return; }
+    const open = body.querySelector<HTMLDetailsElement>('details.ds-row-more[open]');
+    if (e.key !== 'Escape' || !open) return;
+    e.preventDefault();
+    e.stopPropagation();
+    open.open = false;
+    open.querySelector<HTMLElement>('summary')?.focus();
+  };
+  const onPress = (e: Event): void => {
+    if (!body.isConnected) { detach(); return; }
+    if (!(e.target as Element | null)?.closest?.('details.ds-row-more')) closeMenus();
+  };
+  const detach = (): void => {
+    document.removeEventListener('keydown', onKey, true);
+    document.removeEventListener('pointerdown', onPress, true);
+  };
+  document.addEventListener('keydown', onKey, true);
+  document.addEventListener('pointerdown', onPress, true);
+
   body.addEventListener('click', async (e) => {
     const btn = (e.target as Element).closest<HTMLElement>('[data-ds-act]');
     if (!btn || busy) return;

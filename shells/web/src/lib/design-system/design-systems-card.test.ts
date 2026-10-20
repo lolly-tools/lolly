@@ -290,3 +290,29 @@ test('the shipped row offers Remove while another system exists, and a removed o
   assert.equal(body.querySelector('[data-ds-row="default"] .ds-row-source')?.textContent, 'Edited here');
   assert.equal(body.querySelector('[data-ds-row="lolly-starter"] .ds-row-source')?.textContent, 'Came with this app');
 });
+
+test('a row menu closes on Escape and on a press elsewhere, and only one is open at a time', async () => {
+  const { mountDesignSystemsCard } = await import('./design-systems-card.ts');
+  const body = document.createElement('div'); document.body.append(body);
+  const shippedRow = { id: 'shipped', label: 'Lolly Demo', ns: '', headId: '', source: { kind: 'shipped' }, locked: false, createdAt: 0, lastUsedAt: 0 };
+  const starterRow = { id: 'lolly-starter', label: 'Lolly Starter', ns: 'user/ds/lolly-starter/', headId: '', source: { kind: 'local', from: 'app' }, locked: false, createdAt: 1, lastUsedAt: 1 };
+  const h = { designSystems: { list: async () => [shippedRow, starterRow], visible: async () => [shippedRow, starterRow], activeId: async () => 'shipped' }, assets: {} };
+  const settle = async (): Promise<void> => { for (let i = 0; i < 20; i++) await new Promise(resolve => setTimeout(resolve, 0)); };
+  mountDesignSystemsCard(body, h as never);
+  await settle();
+  const [demoMenu, starterMenu] = [...body.querySelectorAll<HTMLDetailsElement>('details.ds-row-more')];
+  assert.ok(demoMenu && starterMenu);
+  demoMenu.open = true;
+  document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  assert.equal(demoMenu.open, false, 'Escape closes the open menu');
+  starterMenu.open = true;
+  document.body.dispatchEvent(new window.Event('pointerdown', { bubbles: true }));
+  assert.equal(starterMenu.open, false, 'a press elsewhere closes the menu');
+  demoMenu.open = true;
+  starterMenu.open = true;
+  starterMenu.dispatchEvent(new window.Event('toggle'));
+  assert.equal(demoMenu.open, false, 'opening one menu closes the other');
+  assert.equal(starterMenu.open, true);
+  body.remove();
+  document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+});
