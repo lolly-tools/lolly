@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import {
-  IMAGES, JOBS, admitImage, admitReceipts, admitRun, declaredVersion, imagesManifest, keyThumbprint, parseRequest, provenance,
+  CANDIDATE_WORKFLOW, IMAGES, JOBS, PROFILE, admitImage, admitReceipts, admitRun, declaredVersion, imagesManifest, keyThumbprint, parseRequest, provenance,
   qualifiedArtifacts, type ImageName, type ReceiptReader, type ReleaseRequest,
 } from '../scripts/release-images.ts';
 
@@ -42,7 +42,7 @@ function registryImage(image: ImageName, labels: Record<string, string> = {}) {
   const config = Buffer.from(JSON.stringify({ os: 'linux', architecture: 'amd64', config: { Labels: {
     'org.opencontainers.image.revision': source, 'org.opencontainers.image.source': `https://github.com/${repository}`,
     'org.opencontainers.image.title': `lolly-${image}`, 'org.opencontainers.image.version': '1.1.1',
-    'org.opencontainers.image.created': '2026-10-15T09:00:00Z', 'org.lolly.profile': 'lolly-start', ...labels,
+    'org.opencontainers.image.created': '2026-10-15T09:00:00Z', 'org.lolly.profile': PROFILE, ...labels,
   } } }));
   const manifest = Buffer.from(JSON.stringify({ schemaVersion: 2, mediaType: 'application/vnd.docker.distribution.manifest.v2+json',
     config: { mediaType: 'application/vnd.docker.container.image.v1+json', size: config.length, digest: `sha256:${sha256(config)}` }, layers: [] }));
@@ -96,6 +96,14 @@ test('release requests name an exact version, run, source and known images', () 
     ['duplicate image', { RELEASE_IMAGES: 'web web' }], ['bad repository', { GITHUB_REPOSITORY: 'lolly' }],
   ];
   for (const [name, change] of refusals) assert.throws(() => parseRequest({ ...env, ...change }), Error, name);
+});
+
+test('the released profile is the one lolly.tools ships and the candidate images are labelled with', () => {
+  const targets = JSON.parse(read('scripts/data/ship-targets.json')).targets as { name: string; profile: string }[];
+  assert.equal(PROFILE, targets.find(target => target.name === 'lolly-public')?.profile);
+  const labels = [...read(CANDIDATE_WORKFLOW).matchAll(/--label org\.lolly\.profile=([a-z0-9-]+)/g)].map(match => match[1]);
+  assert.ok(labels.length >= 3, `expected the candidate image jobs to label their profile, found ${labels.length}`);
+  assert.deepEqual([...new Set(labels)], [PROFILE]);
 });
 
 test('the release version must be the product version the source declares in every place', () => {
@@ -225,7 +233,7 @@ test('provenance and images.json name the qualification run, the source and this
   const predicate = provenance(web, request, run) as { buildDefinition: Record<string, any>; runDetails: Record<string, any> };
   assert.deepEqual(predicate.buildDefinition.externalParameters.workflow, { repository: 'https://github.com/lolly-tools/lolly', path: '.github/workflows/deployment-suse.yml', ref: 'refs/heads/main' });
   assert.equal(predicate.buildDefinition.externalParameters.dockerfile, 'deploy/docker/web.Dockerfile');
-  assert.equal(predicate.buildDefinition.externalParameters.profile, 'lolly-start');
+  assert.equal(predicate.buildDefinition.externalParameters.profile, PROFILE);
   assert.deepEqual(predicate.buildDefinition.resolvedDependencies, [{ uri: 'git+https://github.com/lolly-tools/lolly@refs/heads/main', digest: { gitCommit: source } }]);
   assert.equal(predicate.runDetails.metadata.invocationId, 'https://github.com/lolly-tools/lolly/actions/runs/123/attempts/2');
   assert.deepEqual(predicate.runDetails.byproducts.map((item: { name: string }) => item.name), web.evidence.map(item => item.name));
@@ -356,7 +364,9 @@ function rehearse(options: { version?: string; offMain?: boolean; existingTag?: 
   };
   git('init', '-q');
   for (const path of ['scripts', 'shells/tauri-desktop/src-tauri', 'deploy/helm/profiles/sovereign']) mkdirSync(join(repo, path), { recursive: true });
+  mkdirSync(join(repo, 'scripts/data'));
   copyFileSync(new URL('../scripts/release-images.ts', import.meta.url), join(repo, 'scripts/release-images.ts'));
+  copyFileSync(new URL('../scripts/data/ship-targets.json', import.meta.url), join(repo, 'scripts/data/ship-targets.json'));
   writeFileSync(join(repo, 'shells/tauri-desktop/src-tauri/tauri.conf.json'), JSON.stringify({ version: '1.1.1' }));
   for (const chart of ['deploy/helm/Chart.yaml', 'deploy/helm/profiles/sovereign/Chart.yaml']) writeFileSync(join(repo, chart), 'apiVersion: v2\nappVersion: "1.1.1"\n');
   git('add', '.'); git('commit', '-qm', 'release'); const head = git('rev-parse', 'HEAD');
