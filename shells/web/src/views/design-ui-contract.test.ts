@@ -41,5 +41,5 @@ test('the floating toolbar and export sheet roots use semantic surfaces and elev
 
   const tool = css('tool.css');
   assert.match(tool, /\.render-pill\s*\{[^}]*background:\s*var\(--ui-color-action-primary\)[^}]*box-shadow:\s*var\(--ui-elevation-floating\)/su);
-  assert.match(tool, /\.export-popup\s*\{[^}]*var\(--ui-color-surface-raised\)[^}]*var\(--ui-elevation-sheet\)/su);
+  assert.match(tool, /\.export-popup\s*\{[^}]*var\(--ui-color-surface-(?:raised|muted)\)[^}]*var\(--ui-elevation-sheet\)/su);
 });

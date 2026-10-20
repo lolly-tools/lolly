@@ -241,8 +241,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  background: hsl(var(--card) / .8);
-      background: var(--ui-color-surface-muted);
+  background: var(--ui-color-surface-muted);
   backdrop-filter: blur(5px);
   transition: width var(--dur-2) ease;
   /* overflow-x hidden so the contents (frozen at the open width via --sb-open-w,
@@ -326,8 +325,7 @@
     position: sticky;
     top: 0;
     z-index: 5;
-    background: hsl(var(--card) / 0.82);
-        background: var(--ui-color-surface-muted);
+    background: var(--ui-color-surface-muted);
     -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
     width: 100%;

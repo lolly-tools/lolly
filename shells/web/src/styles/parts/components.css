@@ -109,7 +109,7 @@
 }
 /*when the error is the only thing on the page*/
 #view:has(>.error:last-child:first-child){place-content:center}
-#view > .error:first-child:last-child{margin: 3em; max-width: 32em; margin:0 auto; border-width:5px;}
+#view > .error:first-child:last-child{max-width: 32em; margin:3em auto; border-width:5px;}
 
 
 
