@@ -2329,6 +2329,10 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
      a fixed bottom anchor (plans/132, styles/mobile-chrome-contract.test.ts). */
   bottom: calc(var(--be-bulk-bottom) + var(--safe-bottom) + var(--vv-bottom, 0px));
   transform: none;
+  /* The pane can be narrower than the bar's actions, so they wrap onto a second
+     row inside the bar rather than run out past its edge. */
+  flex-wrap: wrap; row-gap: var(--sp-2);
+  border-radius: calc(var(--radius-lg) * 1.4);
 }
 .be-bulkbar[hidden] { display: none; }
 /* A selection belongs to the Colours room. The bar is a fixed surface outside
