@@ -229,6 +229,20 @@ export interface ExportOpts {
    *  it duplicates geometry, so the cost is worth it only when the goal is
    *  fidelity to a live page. */
   backdropBlur?: boolean;
+  /** Page snapshots: a CSS image the page cannot read back (cross-origin with no
+   *  CORS header) keeps its absolute URL as the `<image>` href, as an `<img>`
+   *  already does, for the capturing shell to fill from the tab's own cache.
+   *  Tool exports leave this off: their SVG has to stand alone. */
+  remoteCssImages?: boolean;
+  /** Page snapshots: draw a one-layer `mask-image: url(...)` (an icon drawn as a
+   *  coloured box through an SVG file, the common idiom) as an SVG `<mask>`
+   *  over the element, instead of sending the element to the raster hatch. */
+  maskImage?: boolean;
+  /** Page snapshots: paint the background colour and borders of a plain inline
+   *  element (`<code>`, `<kbd>`, `<mark>`, an inline badge) on each of its line
+   *  fragments. The walker otherwise paints boxes only for elements with a box
+   *  of their own, so these lost everything but their text. */
+  inlineDecorations?: boolean;
   /** Page snapshots: paint in CSS stacking-context order (CSS 2.1 Appendix E
    *  section E.2) instead of DOM order. Negative-z children paint behind their
    *  parent's in-flow content. Positioned descendants paint above

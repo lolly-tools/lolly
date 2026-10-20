@@ -4,8 +4,11 @@
  * (the page-walk script), fill in the bytes the page could not hand over, and
  * check the result against a screenshot of the same moment before trusting the SVG.
  *
- * The CLI, TUI and MCP server share this through `captureUrl`. The desktop shell
- * and the Chrome extension run the same script over their own CDP transports.
+ * The CLI and TUI share this through `captureUrl`. The desktop shell and the Chrome
+ * extension run the same script over their own CDP transports. The MCP server
+ * carries the code (its bridge is the CLI's) but does not render url-shot: its
+ * browser-free tier refuses an HTML template as SVG, and its browser tier drives
+ * the web app, which has no page capture of its own.
  */
 import type { Page } from 'playwright-core';
 import { pageWalkScript } from './page-walk-bundle.ts';
@@ -32,12 +35,14 @@ export interface VectorShot {
     regions: number; dropped: number;
     /** Text runs drawn as outlines, and runs kept as `<text>`. */
     outlined: number; textKept: number;
+    /** Generated content drawn through a stand-in, and pseudo-elements left as they were. */
+    standIns: number; standInsRefused: number;
   };
 }
 
 interface WalkOut {
   svg: string; width: number; height: number; ms: number; warnings: string[]; unresolved: string[];
-  stats: { drawables: number; images: number; culled: number; regions: number };
+  stats: { drawables: number; images: number; culled: number; regions: number; standIns: number; standInsRefused: number };
   text: { runs: PageTextRun[]; fonts: PageTextFonts };
 }
 

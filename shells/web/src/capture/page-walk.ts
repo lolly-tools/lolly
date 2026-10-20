@@ -19,10 +19,11 @@
  * with `page-walk-fonts.ts`), no catalog, no storage.
  *
  * What it does not do, and leaves to the shell:
- *   - Bytes it cannot read. A cross-origin image without CORS cannot be fetched
- *     from the page, so its `href` stays the absolute URL. The shell swaps those
- *     for data URLs from the tab's own resource cache (CDP
- *     `Page.getResourceContent`), which has no CORS restriction.
+ *   - Bytes it cannot read. A cross-origin image without CORS (an `<img>`, a CSS
+ *     background or a mask image) cannot be fetched from the page, so its `href`
+ *     stays the absolute URL. The shell swaps those for data URLs from the
+ *     tab's own resource cache (CDP `Page.getResourceContent`), which has no
+ *     CORS restriction.
  *   - Fonts. The walk lays text out as it always does, but a stand-in shaper
  *     records each run and returns a measured box: outlining needs the font
  *     files and HarfBuzz, and WebAssembly is exactly what a strict page CSP
@@ -35,6 +36,7 @@ import { setExportHost } from '../bridge/export-shared.ts';
 import type { WebHost } from '../bridge/export-shared.ts';
 import { FONT_KEY, type FontKey } from './page-walk-fonts.ts';
 import { finishPageVector, REGION } from './page-finish.ts';
+import { standInPseudos } from './page-pseudo.ts';
 
 export interface PageWalkOpts {
   /** The region to keep, in CSS px of the VIEWPORT (0,0 is the visible top-left).
@@ -56,7 +58,12 @@ export interface PageWalkResult {
   warnings: string[];
   /** Absolute URLs the walk could not inline (cross-origin, no CORS). */
   unresolved: string[];
-  stats: { drawables: number; images: number; culled: number; regions: number };
+  stats: {
+    drawables: number; images: number; culled: number; regions: number;
+    /** Generated content drawn through a stand-in element, and the pseudo-elements
+     *  left alone because a stand-in moved the layout (see page-pseudo.ts). */
+    standIns: number; standInsRefused: number;
+  };
   /** The text runs, each a path tagged `data-lolly-text="<id>"`, and the faces the
    *  page loaded, for the shell to outline the runs from. */
   text: { runs: TextRun[]; fonts: PageFonts };
@@ -161,24 +168,37 @@ export async function pageWalk(opts: PageWalkOpts = {}): Promise<PageWalkResult>
   // Viewport coords → the walker's space, whose origin is the root's border-box corner.
   const win = { x: w0.x - rootRect.left, y: w0.y - rootRect.top, width: w0.width, height: w0.height };
 
-  const blob = await renderSvgFromHtml(root, {
-    format: 'svg',
-    // Outlined, through the stand-in shaper: the walk places every line, the shell
-    // draws the glyphs.
-    convertPaths: true,
-    // A page snapshot degrades locally: one unsupported effect rasterises that
-    // element's own paint, never the page around that element.
-    elementScopedRaster: true,
-    // CSS paint order (Appendix E), not DOM order: pages lean on z-index.
-    stackingOrder: true,
-    backdropBlur: true,
-    // What the walker cannot express or cannot read becomes a box the host fills
-    // from its screenshot (see finishPageVector).
-    regionImage: (el: Element) => {
-      const r = el.getBoundingClientRect();
-      return r.width >= 1 && r.height >= 1 ? `${REGION}${n4(r.left)},${n4(r.top)},${n4(r.width)},${n4(r.height)}` : null;
-    },
-  } as Parameters<typeof renderSvgFromHtml>[1]);
+  // Generated content the walker cannot measure becomes real elements for the walk.
+  const pseudos = standInPseudos(w0);
+  let blob: Blob;
+  try {
+    blob = await renderSvgFromHtml(root, {
+      format: 'svg',
+      // Outlined, through the stand-in shaper: the walk places every line, the shell
+      // draws the glyphs.
+      convertPaths: true,
+      // A page snapshot degrades locally: one unsupported effect rasterises that
+      // element's own paint, never the page around that element.
+      elementScopedRaster: true,
+      // CSS paint order (Appendix E), not DOM order: pages lean on z-index.
+      stackingOrder: true,
+      backdropBlur: true,
+      // Icons drawn through a mask image stay shapes, a picture the page cannot read
+      // back keeps its URL for the shell (see the header), and an inline <code> or
+      // <mark> keeps its background.
+      maskImage: true,
+      remoteCssImages: true,
+      inlineDecorations: true,
+      // What the walker cannot express or cannot read becomes a box the host fills
+      // from its screenshot (see finishPageVector).
+      regionImage: (el: Element) => {
+        const r = el.getBoundingClientRect();
+        return r.width >= 1 && r.height >= 1 ? `${REGION}${n4(r.left)},${n4(r.top)},${n4(r.width)},${n4(r.height)}` : null;
+      },
+    } as Parameters<typeof renderSvgFromHtml>[1]);
+  } finally {
+    pseudos.restore();
+  }
   let svg = await blob.text();
 
   // Paint the canvas colour first: the walker paints element backgrounds only, so
@@ -214,6 +234,8 @@ export async function pageWalk(opts: PageWalkOpts = {}): Promise<PageWalkResult>
       images: out.getElementsByTagNameNS(NS, 'image').length,
       culled: framed.culled,
       regions,
+      standIns: pseudos.placed,
+      standInsRefused: pseudos.refused,
     },
     text: { runs, fonts: pageFonts() },
   };
