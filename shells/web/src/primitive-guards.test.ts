@@ -1618,7 +1618,10 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // 10 as of 2026-09-04: the Tokens room adds one complete Lolly UI starter-role
   // preview. Token paths, current values and controls all reach it through escape();
   // its actual brand write stays in the delegated submit handler below the sink.
-  'lib/brand-studio-tabs.ts': 10,
+  // 12 as of 2026-10-20: the room's tiles and Colours/Type/Logos sections (and their
+  // whole-room blank state) are two writes to one host. Paths, names, values and hex
+  // reach the sink through escape()/colorToHex, and tokenPreviewHtml escapes its own output.
+  'lib/brand-studio-tabs.ts': 12,
   'views/timeline-panel/helpers.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/timeline-panel/inspector-pane.ts': 4,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/timeline-panel/menus.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts

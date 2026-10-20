@@ -10,8 +10,7 @@
 import type { Unzipped } from 'fflate';
 import { exportSwatches } from '../swatch-export.ts';
 import type { SwatchExportFormat } from '../swatch-export.ts';
-import { applyChromeBrandVars, brandRadiusValue, brandSpaceValue } from '../../brand-vars.ts';
-import { setBrandRadius, setBrandSpace } from '../../user-fonts.ts';
+import { applyChromeBrandVars } from '../../brand-vars.ts';
 import { mountCataloguePanel, mountGradientsPanel, mountTokensPanel } from '../brand-studio-tabs.ts';
 import { exportBrandPack, importBrandPack } from '../../brand-transfer.ts';
 import { saveBlob } from '../../pro/zip.ts';
@@ -93,7 +92,7 @@ export const importPack = async (bedit: BrandEditorCtx, source: File | Unzipped)
   }
 };
 export function wirePaletteDownload(bedit: BrandEditorCtx): void {
-  const { cleanups, fontsHost, host, palErr, palFmtSel, tokens } = bedit;
+  const { host, palErr, palFmtSel } = bedit;
   bedit.ramps.$('[data-be-pal-download]')?.addEventListener('click', async () => {
     if (palErr) palErr.hidden = true;
     try {
@@ -107,96 +106,27 @@ export function wirePaletteDownload(bedit: BrandEditorCtx): void {
     }
   });
 
-  // ── Corner radius (the Tokens tab) ───────────────────────────────────────
-  // Live app-wide preview on every drag tick (set --radius directly - instant,
-  // no round trip), persisted debounced so a drag doesn't spam writes.
-  const radiusSlider = bedit.ramps.$('[data-be-radius-slider]') as HTMLInputElement | null; bedit.radiusSlider = radiusSlider;
-  const radiusPreview = bedit.ramps.$('[data-be-radius-preview]') as HTMLElement | null; bedit.radiusPreview = radiusPreview;
-  const radiusValueEl = bedit.ramps.$('[data-be-radius-value]') as HTMLElement | null; bedit.radiusValueEl = radiusValueEl;
-  const radiusErr = bedit.ramps.$('[data-be-radius-err]') as HTMLElement | null; bedit.radiusErr = radiusErr;
-  void (async () => {
-    // Seed from the installed brand's --radius, else the shell default (1rem).
-    // parseFloat tolerates a stored px/em value from a hand-authored import;
-    // the slider always writes back in rem.
-    const current = await (tokens as { resolve?(ref: string): Promise<unknown> } | undefined)
-      ?.resolve?.('{shape.radius}').then(v => brandRadiusValue(v)).catch(() => null) ?? null;
-    const rem = current ? parseFloat(current) : 1;
-    if (radiusSlider) radiusSlider.value = String(rem);
-    if (radiusPreview) radiusPreview.style.borderRadius = `${rem}rem`;
-    if (radiusValueEl) radiusValueEl.textContent = `${rem}rem`;
-  })();
-  // bedit.radiusDebounce: assigned later
-  bedit.radiusPending = null; // flushed on teardown - a drag right before leaving must still land
-  radiusSlider?.addEventListener('input', () => {
-    const css = `${radiusSlider.value}rem`;
-    if (radiusPreview) radiusPreview.style.borderRadius = css;
-    if (radiusValueEl) radiusValueEl.textContent = css;
-    document.documentElement.style.setProperty('--radius', css);
-    bedit.state.notify('tokens');
-    bedit.radiusPending = css;
-    clearTimeout(bedit.radiusDebounce);
-    bedit.radiusDebounce = setTimeout(() => {
-      bedit.radiusPending = null;
-      setBrandRadius(fontsHost, css).catch(err => {
-        if (radiusErr) { radiusErr.textContent = String((err as { message?: unknown })?.message ?? err); radiusErr.hidden = false; }
-      });
-    }, 400);
-  });
-  cleanups.push(() => {
-    clearTimeout(bedit.radiusDebounce);
-    if (bedit.radiusPending) void setBrandRadius(fontsHost, bedit.radiusPending).catch(() => {});
-  });
-
-  // ── Spacing rhythm (the Tokens tab) ─────────────────────────────────────
-  // The generated scale maps the default 0.5rem source to the existing
-  // 2/4/6/8/10/12/16/24px steps. This slider alters one source, not eight
-  // disconnected gap preferences, and persists only when the user touches it.
-  const spaceSlider = bedit.ramps.$('[data-be-space-slider]') as HTMLInputElement | null; bedit.spaceSlider = spaceSlider;
-  const spacePreview = bedit.ramps.$('[data-be-space-preview]') as HTMLElement | null; bedit.spacePreview = spacePreview;
-  const spaceValueEl = bedit.ramps.$('[data-be-space-value]') as HTMLElement | null; bedit.spaceValueEl = spaceValueEl;
-  const spaceErr = bedit.ramps.$('[data-be-space-err]') as HTMLElement | null; bedit.spaceErr = spaceErr;
-  void (async () => {
-    const current = await (tokens as { resolve?(ref: string): Promise<unknown> } | undefined)
-      ?.resolve?.('{space.base}').then(v => brandSpaceValue(v)).catch(() => null) ?? null;
-    const rem = current ? parseFloat(current) : .5;
-    if (spaceSlider) spaceSlider.value = String(rem);
-    if (spacePreview) spacePreview.style.setProperty('--brand-space-preview', `${rem}rem`);
-    if (spaceValueEl) spaceValueEl.textContent = `${rem}rem`;
-  })();
-  // bedit.spaceDebounce: assigned later
-  bedit.spacePending = null;
-  spaceSlider?.addEventListener('input', () => {
-    const css = `${spaceSlider.value}rem`;
-    if (spacePreview) spacePreview.style.setProperty('--brand-space-preview', css);
-    if (spaceValueEl) spaceValueEl.textContent = css;
-    document.documentElement.style.setProperty('--space', css);
-    bedit.state.notify('tokens');
-    bedit.spacePending = css;
-    clearTimeout(bedit.spaceDebounce);
-    bedit.spaceDebounce = setTimeout(() => {
-      bedit.spacePending = null;
-      setBrandSpace(fontsHost, css).catch(err => {
-        if (spaceErr) { spaceErr.textContent = String((err as { message?: unknown })?.message ?? err); spaceErr.hidden = false; }
-      });
-    }, 400);
-  });
-  cleanups.push(() => {
-    clearTimeout(bedit.spaceDebounce);
-    if (bedit.spacePending) void setBrandSpace(fontsHost, bedit.spacePending).catch(() => {});
-  });
-
   // ── The three studio panels that live outside this file ──────────────────
   // Token editors, gradients and catalogue uploads (brand-studio-tabs.ts) - 
   // each gets the same narrow context: the live doc (getter - the Colour tab
   // reassigns it on re-derive/import), the persist funnel, and its tab's notify.
-  const studioCtx = {
+  const studioCtx: BrandEditorCtx['studioCtx'] = {
     host,
     doc: () => bedit.doc as Record<string, unknown>,
+    // The Tokens room's sliders write a clone (withRadiusToken/withSpaceToken), so
+    // the room hands it back here: the editor's own document is the one every
+    // room's persist() installs, and a write that skipped it was reverted by the
+    // next save from anywhere else.
+    setDoc: (next: Record<string, unknown>) => { bedit.doc = next; },
     persist: (immediate?: boolean) => bedit.state.persist(immediate),
+    pushUndo: (label: string) => bedit.state.pushUndo(label),
+    swatches: () => bedit.swatches,
     // The shipped starter's colour identities, so a panel can tell scaffolding
-    // from a decision without a second comparison of its own (the Tokens room's
-    // neutrals row is the one caller - plan 182 section 12).
+    // from a decision without a second comparison of its own (plan 182 section 12).
     starterIds: (): ReadonlySet<string> => bedit.starterSwatches,
+    // The token workspace replaced the whole document in place: the Colours room
+    // reseeds its controls and palette from the new document.
+    onDocReplaced: () => { bedit.derive.reseedFromDoc(); bedit.ramps.repaintPalette(); },
   }; bedit.studioCtx = studioCtx;
   // (The fonts-manager panel that used to mount here is gone - plan 182 section
   // 6.4 leaves one file door, the compare stage's own drop zone.)

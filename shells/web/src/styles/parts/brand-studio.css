@@ -39,11 +39,14 @@
    under the glossy `.is-active` gradient below without fighting it). */
 .be-btn, .be-cta, .be-add {
   border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .6);
-  background: hsl(var(--background)); color: hsl(var(--foreground));
   font: inherit; font-size: var(--fs-sm); font-weight: 600; padding: .45rem .85rem; cursor: pointer;
 }
+/* .be-cta takes its resting fill and ink from parts/buttons.css; a reset here
+   painted it the page colour, and its hover then put foreground ink on the
+   primary, which hid the label wherever those two are close. */
+.be-btn, .be-add { background: hsl(var(--background)); color: hsl(var(--foreground)); }
 .be-cta { border-color: transparent; }
-.be-cta:hover { background: hsl(var(--primary) / .88); }
+.be-cta:hover:not(:disabled) { background: color-mix(in oklab, var(--ui-color-action-primary), transparent 12%); color: var(--ui-color-action-on-primary); }
 .be-btn:disabled, .be-cta:disabled { opacity: .55; cursor: default; }
 
 /* Shared active CTA treatment. Draft exploration does not apply this state;
@@ -98,10 +101,11 @@
 .brand-space-preview {
   --brand-space-preview: .5rem;
   display: inline-flex; align-items: center; justify-content: center; gap: calc(var(--brand-space-preview) * .5);
-  flex: 0 0 auto; width: 32px; height: 32px; padding: calc(var(--brand-space-preview) * .5);
+  /* Grows with the value, so the three gaps are drawn to scale at every step. */
+  flex: 0 0 auto; min-width: 32px; height: 32px; padding: calc(var(--brand-space-preview) * .5);
   border: 1px solid hsl(var(--border)); border-radius: var(--ui-radius-control); background: hsl(var(--muted) / .45);
 }
-.brand-space-preview i { display: block; flex: 1 1 0; height: 100%; background: hsl(var(--primary)); border-radius: calc(var(--radius) * .2); }
+.brand-space-preview i { display: block; flex: 0 0 4px; height: 100%; background: hsl(var(--primary)); border-radius: calc(var(--radius) * .2); }
 .brand-space-slider { flex: 1 1 auto; min-width: 0; }
 .brand-space-value { flex: 0 0 auto; min-width: 7.5ch; font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--fs-sm); }
 
@@ -1440,25 +1444,6 @@ background-image:
 }
 .be-logo-addidentity input:focus { border-color: hsl(var(--ring) / .6); }
 
-/* ── Tokens tab: the starter neutrals (plan 182 section 12).
-   Ink and paper, listed where they belong - one row, nine small tiles and the
-   one Open that ever draws a starter tile (it routes to the Colours pane with
-   that group revealed). Muted and small because it is scaffolding; never dashed,
-   which in this app means drop target. */
-.be-neutrals { display: grid; gap: .35rem; margin-bottom: 1.2rem; }
-.be-neutrals[hidden] { display: none; }
-.be-neutrals-row { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
-.be-neutrals-label { font-size: var(--fs-sm); font-weight: 600; color: hsl(var(--muted-foreground)); }
-.be-neutrals-tiles { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; }
-.be-neutrals-tile {
-  width: 14px; height: 14px; border-radius: var(--radius-xs);
-  background: var(--sw, transparent);
-  box-shadow: var(--edge-faint);
-}
-.be-neutrals-open { margin-inline-start: auto; }
-.be-neutrals-note { margin: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
-.be-neutrals-note[hidden] { display: none; }
-
 /* ── Tokens tab: Lolly's own UI starter roles.
    This is intentionally an *unowned* preview, not a one-click preset. The
    system's complete semantic scale remains visible and Penpot-exportable while
@@ -1483,18 +1468,23 @@ background-image:
 .be-ui-starter-note strong { color: hsl(var(--foreground)); }
 .be-ui-starter-groups { display: grid; gap: .4rem; }
 .be-ui-group { border: 1px solid hsl(var(--border) / .8); border-radius: calc(var(--radius) * .65); background: hsl(var(--background) / .55); overflow: clip; }
-.be-ui-group > summary { display: flex; align-items: center; gap: .55rem; min-height: 2.6rem; padding: .45rem .65rem; cursor: pointer; list-style: none; font-size: var(--fs-sm); font-weight: 700; text-transform: capitalize; }
+.be-ui-group > summary { display: flex; align-items: center; gap: .55rem; min-height: 2.6rem; padding: .45rem .65rem; cursor: pointer; list-style: none; font-size: var(--fs-sm); font-weight: 700; }
 .be-ui-group > summary::-webkit-details-marker { display: none; }
 .be-ui-group > summary::before { content: '›'; font-size: 1.15em; color: hsl(var(--muted-foreground)); transition: rotate var(--dur-1); }
 .be-ui-group[open] > summary::before { rotate: 90deg; }
 .be-ui-group-count { margin-inline-start: auto; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); text-transform: none; }
 .be-ui-role-list { display: grid; gap: .45rem; padding: 0 .55rem .55rem; }
-.be-ui-role { display: grid; grid-template-columns: minmax(10rem, 1fr) minmax(12rem, 1.2fr) auto; gap: .45rem .7rem; align-items: center; padding: .6rem; border-radius: calc(var(--radius) * .5); background: hsl(var(--muted) / .36); }
+.be-ui-role { display: grid; grid-template-columns: minmax(10rem, 1fr) minmax(0, 1.2fr) auto; gap: .45rem .7rem; align-items: center; padding: .6rem; border-radius: calc(var(--radius) * .5); background: hsl(var(--muted) / .36); }
 .be-ui-role.is-owned { background: hsl(var(--primary) / .10); box-shadow: var(--ui-effect-accent-ring); }
 .be-ui-role-meta, .be-ui-role-state { display: grid; gap: .16rem; min-width: 0; }
-.be-ui-role-name { font-size: var(--fs-sm); font-weight: 700; text-transform: capitalize; }
+.be-ui-role-name { font-size: var(--fs-sm); font-weight: 700; }
 .be-ui-role-path, .be-ui-role-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); font-size: var(--fs-2xs); color: hsl(var(--muted-foreground)); }
 .be-ui-role-state { justify-items: start; }
+.be-ui-role-state, .be-ui-role-value { min-width: 0; max-width: 100%; }
+/* The value cell draws the value (tokenPreviewHtml) beside its text. */
+.be-ui-role-value { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.be-ui-role-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.be-ui-cf { display: block; max-width: 18rem; }
 .be-ui-role-badge { background: hsl(var(--background) / .75); color: hsl(var(--muted-foreground)); }
 .be-ui-role.is-owned .be-ui-role-badge { background: hsl(var(--primary) / .17); color: hsl(var(--foreground)); }
 .be-ui-role-actions { display: inline-flex; gap: .35rem; justify-content: end; flex-wrap: wrap; }
@@ -1562,6 +1552,189 @@ background-image:
   background: hsl(var(--background)); color: hsl(var(--foreground)); outline: none;
 }
 .be-tok-add-name:focus { border-color: hsl(var(--ring) / .6); }
+
+/* ── Tokens room (2026-10) - lib/brand-studio-tabs.ts mountTokensPanel.
+   A head that says what tokens are and carries the file actions, one row of
+   tiles that jump to a section, the Colours, Type and Logos sections drawn from
+   the document, the two shape sliders, More tokens, then two closed folds for
+   the advanced views. Nesting stops at room, section, row: a section is the
+   .be-panel card and nothing inside it is a bordered card of its own. Every
+   colour, space, radius and size below is a token from styles/tokens.css, so
+   light, dark and brand follow the token sheet. */
+.be-tokens { display: grid; gap: var(--sp-6); min-width: 0; }
+.tk-head { display: grid; gap: var(--sp-3); min-width: 0; }
+.tk-intro { margin: 0; max-width: 68ch; font-size: var(--ui-type-body); line-height: 1.55; color: var(--ui-color-text-default); }
+.tk-intro-example { margin: 0; font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+.tk-intro-example[hidden] { display: none; }
+.tk-status { display: flex; align-items: center; gap: var(--sp-4); }
+.tk-status:not(:has(> :not([hidden]))) { display: none; }
+.tk-status .be-pal-restore { margin: 0; padding: 0; }
+.tk-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+.tk-head-note { margin: 0; max-width: 72ch; font-size: var(--ui-type-help); line-height: 1.5; color: var(--ui-color-text-muted); }
+.tk-head .be-err[hidden] { display: none; }
+
+.tk-main { display: grid; gap: var(--sp-6); min-width: 0; }
+.tk-overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--sp-3); min-width: 0; }
+.tk-tile {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: var(--sp-2); row-gap: var(--sp-1);
+  min-width: 0; padding: var(--sp-4); text-align: start; font: inherit; cursor: pointer;
+  color: var(--ui-color-text-default); background: var(--ui-color-surface-raised);
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel);
+  transition: border-color var(--dur-1);
+}
+.tk-tile:hover { border-color: color-mix(in oklab, var(--ui-color-action-primary) 55%, var(--ui-color-border-default)); }
+.tk-tile:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.tk-tile-ic { display: grid; width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); color: var(--ui-color-action-primary); }
+.tk-tile-ic svg, .tk-sec-ic svg { width: 100%; height: 100%; }
+.tk-tile-n { justify-self: end; font-size: var(--ui-type-title); font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.tk-tile-label { grid-column: 1 / -1; font-size: var(--ui-type-label); font-weight: 600; }
+.tk-tile-preview { grid-column: 1 / -1; display: flex; align-items: center; gap: 3px; min-height: 18px; }
+.tk-tile-preview .tk-chip { width: 14px; height: 14px; }
+.tk-tile-preview .tk-face-aa { width: auto; height: auto; font-size: var(--ui-type-label); color: var(--ui-color-text-muted); }
+
+.tk-sec { display: grid; gap: var(--sp-3); min-width: 0; }
+.tk-sec:focus { outline: none; }
+.tk-sec:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.tk-sec-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); font-size: var(--ui-type-section); }
+.tk-sec-head > .tk-sec-act { margin-inline-start: auto; }
+.tk-sec-ic { flex: 0 0 auto; display: grid; width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); color: var(--ui-color-action-primary); }
+.tk-sec-name { min-width: 0; margin: 0; font-size: var(--ui-type-section); font-weight: var(--ui-type-weight-section); color: var(--ui-color-text-default); }
+.tk-sec-n {
+  padding: 0 var(--sp-2); border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-muted);
+  font-size: var(--ui-type-help); color: var(--ui-color-text-muted); font-variant-numeric: tabular-nums;
+}
+a.tk-sec-act { text-decoration: none; }
+.tk-sec-sub { margin: 0; max-width: 72ch; font-size: var(--ui-type-help); line-height: 1.5; color: var(--ui-color-text-muted); }
+.tk-sec-body { display: grid; gap: var(--sp-4); min-width: 0; }
+
+/* A blank state: a plain sentence, then the doors. Never dashed, which in this
+   app means a drop area. */
+.tk-empty { display: grid; justify-items: start; gap: var(--sp-3); }
+.tk-empty p { margin: 0; max-width: 60ch; font-size: var(--ui-type-body); line-height: 1.5; color: var(--ui-color-text-muted); }
+.tk-empty-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.tk-empty-actions a.be-btn { text-decoration: none; }
+.tk-empty--room {
+  padding: var(--sp-6); background: var(--ui-color-surface-raised);
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel);
+}
+
+/* Contrast pairs: the ink on its ground, with the APCA readout beside it. */
+.tk-pairs { display: grid; gap: var(--sp-2); }
+.tk-pairs-mode { font-size: var(--ui-type-help); font-weight: 600; color: var(--ui-color-text-muted); }
+.tk-pair-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3); }
+.tk-pair-item { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; }
+.tk-pair {
+  flex: 0 0 auto; display: grid; place-items: center; width: 44px; height: 44px;
+  border-radius: var(--ui-radius-control); background: var(--bg); color: var(--fg); box-shadow: var(--edge-faint);
+}
+.tk-pair-aa { font-size: var(--ui-type-body); font-weight: 700; line-height: 1; }
+.tk-pair-text { display: grid; min-width: 0; }
+.tk-pair-label { font-size: var(--ui-type-label); font-weight: 600; color: var(--ui-color-text-default); }
+.tk-pair-lc { font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+.tk-pair-item[data-weak] .tk-pair-lc, .tk-pair-weak { color: var(--ui-color-status-danger); }
+.tk-pair-weak { display: inline-grid; }
+
+/* Colour groups. A ramp is one row of chips; every other colour is a row. A long
+   group shows its first twelve rows (GROUP_PEEK) until Show all. */
+.tk-group { display: grid; gap: var(--sp-2); min-width: 0; }
+.tk-group-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2); }
+.tk-group-name { font-size: var(--ui-type-help); font-weight: 700; letter-spacing: var(--ui-type-tracking-label); text-transform: uppercase; color: var(--ui-color-text-muted); }
+.tk-group-n { font-size: var(--ui-type-help); color: var(--ui-color-text-muted); font-variant-numeric: tabular-nums; }
+.tk-group-note { margin: 0; font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+.tk-group-more { justify-self: start; }
+.tk-ramp { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+.tk-ramp .stu-chip {
+  flex: 0 0 auto; width: 28px; height: 28px; padding: 0; border: 0; border-radius: var(--ui-radius-control); cursor: pointer;
+  background:
+    linear-gradient(var(--sw, transparent), var(--sw, transparent)),
+    repeating-conic-gradient(var(--ui-color-surface-muted) 0% 25%, var(--ui-color-surface-raised) 0% 50%) 50% / 8px 8px;
+  box-shadow: var(--edge-faint);
+}
+.tk-ramp .stu-chip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.tk-colors { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr)); gap: var(--sp-1) var(--sp-6); }
+.tk-group:not(.is-open) .tk-colors > li:nth-child(n + 13) { display: none; }
+.tk-color { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; min-height: 36px; }
+.tk-color-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--ui-type-label); font-weight: 600; color: var(--ui-color-text-default); }
+.tk-color-value { flex: 0 0 auto; font-family: var(--ui-type-mono-family); font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+.tk-color--gradient a.be-btn { text-decoration: none; }
+.tk-tag {
+  flex: 0 0 auto; padding: 0 var(--sp-2); border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-muted);
+  font-size: var(--ui-type-field); font-weight: 600; color: var(--ui-color-text-muted);
+}
+
+/* The drawn values (.tk-chip, .tk-bar, .tk-face-aa and the rest) live in
+   components/token-workspace.css, which every page loads: the workspace draws
+   them in the inspector and on #/components too. */
+.tk-prev { flex: 0 0 auto; display: inline-flex; align-items: center; }
+.tk-prev:empty { display: none; }
+
+/* Type and Logos rows. */
+.tk-rows { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr)); gap: var(--sp-1) var(--sp-6); }
+.tk-row { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; min-height: 40px; }
+.tk-row-text { flex: 1 1 auto; display: flex; align-items: baseline; gap: var(--sp-3); min-width: 0; }
+.tk-row-name { flex: 0 1 12rem; min-width: 6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--ui-type-label); font-weight: 600; color: var(--ui-color-text-default); }
+.tk-row-value { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+code.tk-row-value { font-family: var(--ui-type-mono-family); }
+
+/* Copy: the reference in braces. Text on a wide screen, the glyph on a phone. */
+.tk-copy { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-1); }
+/* Quiet until pointed at: a list of colours with a bordered button on every row
+   reads as a wall of buttons. The text and the hover edge keep the affordance. */
+.be-btn.tk-copy { border-color: transparent; background: transparent; color: var(--ui-color-text-muted); }
+.be-btn.tk-copy:hover:not(:disabled), .be-btn.tk-copy:focus-visible { border-color: var(--ui-color-border-default); background: var(--ui-color-surface-raised); color: var(--ui-color-text-default); }
+.tk-copy-ic { display: none; }
+.be-tok-row .tk-copy { margin-inline-start: auto; }
+.be-tok-row .tk-copy + .be-tok-del { margin-inline-start: 0; }
+.tk-row-err { flex: 1 0 100%; margin: 0; }
+
+/* Shape and spacing: the two sliders, each with its Lolly default / Yours badge. */
+.tk-dials { gap: var(--sp-6); }
+.tk-dial { display: grid; gap: var(--sp-2); min-width: 0; }
+.tk-dial-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
+.tk-dial-name { margin: 0; font-size: var(--ui-type-label); font-weight: 600; color: var(--ui-color-text-default); }
+.tk-dial-sub { margin: 0; max-width: 72ch; font-size: var(--ui-type-help); line-height: 1.5; color: var(--ui-color-text-muted); }
+.tk-own {
+  padding: 0 var(--sp-2); border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-muted);
+  font-size: var(--ui-type-field); font-weight: 600; color: var(--ui-color-text-muted);
+}
+.tk-own.is-own { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
+
+/* The two advanced folds: section-card disclosures (styles/parts/disclosure.css),
+   closed by default. The card carries the edge; what is inside it is not boxed again. */
+.tk-adv { padding: 0; gap: 0; }
+.tk-adv > :not(summary) { margin-inline: var(--sp-6); }
+.tk-adv[open] > :last-child { margin-bottom: var(--sp-6); }
+.tk-adv .section-card-chev { display: inline-grid; }
+.tk-adv[open] > .section-card-summary .section-card-chev { transform: rotate(90deg); }
+.tk-adv-sub { margin-top: 0; margin-bottom: var(--sp-4); max-width: 72ch; font-size: var(--ui-type-help); line-height: 1.5; color: var(--ui-color-text-muted); }
+.tk-adv .be-ui-starter { margin: 0 var(--sp-6) var(--sp-6); padding: 0; border: 0; background: none; box-shadow: none; }
+
+@media (max-width: 899px) {
+  /* One scrolling row of tiles that bleeds to the screen edge inside the gutter. */
+  .tk-overview {
+    display: flex; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: 16px; scrollbar-width: none;
+    padding: 2px 16px; margin-inline: -16px;
+  }
+  .tk-overview::-webkit-scrollbar { display: none; }
+  .tk-tile { flex: 0 0 7.5rem; scroll-snap-align: start; }
+  .tk-actions .tk-fmt { flex: 1 1 100%; }
+  .tk-pair-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tk-adv > :not(summary) { margin-inline: var(--sp-4); }
+  .tk-adv .be-ui-starter { margin-inline: var(--sp-4); }
+}
+@media (max-width: 479px) {
+  .tk-copy-label { display: none; }
+  .tk-copy-ic { display: inline-grid; }
+  .tk-copy { min-width: 40px; min-height: 40px; padding: 0; }
+  .tk-colors { grid-template-columns: minmax(0, 1fr); }
+  .tk-color-value { font-size: var(--ui-type-help); }
+  /* Name over value, so neither is cut to a few letters. */
+  .tk-row-text { display: grid; gap: 0; }
+  .tk-row-name { min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tk-tile { transition: none; }
+}
 
 /* ── Gradients (Colour tab). */
 .be-grad-list { display: grid; gap: .5rem; margin-bottom: .8rem; }

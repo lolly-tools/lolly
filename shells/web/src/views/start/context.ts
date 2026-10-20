@@ -92,6 +92,8 @@ export interface StartCtx {
   recovery: ReturnType<typeof mountCheckpointRecovery> | null;
   unsubTray: (() => void) | null;
   unsubBeat: (() => void) | null;
+  /** Removes the resize listener that keeps --ds-sticky-top in step with the room chips. */
+  unsubStickyTop: (() => void) | null;
   trayToggle: HTMLButtonElement | null;
   trayCountEl: HTMLElement | null;
   pdfPicks: PdfLogoPick[];

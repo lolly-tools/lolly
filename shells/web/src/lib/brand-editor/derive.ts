@@ -639,27 +639,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
       </div>
       </div>
 
-      <div class="be-tab" data-be-tab-panel="tokens">
-      <div class="be-panel be-radius-panel">
-        ${panelHead(t('Rounded corners'), t('One brand radius drives a full scale: fine controls use smaller steps, panels use the base, and the pill step becomes fully rounded. Set it to 0 for straight corners everywhere.'))}
-        <div class="brand-radius-row">
-          <span class="brand-radius-preview" data-be-radius-preview aria-hidden="true"></span>
-          <input type="range" class="field-range brand-radius-slider" data-be-radius-slider min="0" max="1.5" step="0.05" aria-label="${escapeText(t('Corner radius'))}">
-          <span class="brand-radius-value" data-be-radius-value></span>
-        </div>
-        <p class="be-err" data-be-radius-err role="alert" hidden></p>
-      </div>
-      <div class="be-panel be-space-panel">
-        ${panelHead(t('Spacing rhythm'), t('One base space token drives every Lolly gap: the compact steps, controls, panels and page margins all move together. This only writes <code>space.base</code> to your brand.'))}
-        <div class="brand-space-row">
-          <span class="brand-space-preview" data-be-space-preview aria-hidden="true"><i></i><i></i><i></i></span>
-          <input type="range" class="field-range brand-space-slider" data-be-space-slider min="0.25" max="1.5" step="0.05" aria-label="${escapeText(t('Base spacing'))}">
-          <span class="brand-space-value" data-be-space-value></span>
-        </div>
-        <p class="be-err" data-be-space-err role="alert" hidden></p>
-      </div>
-      <div class="be-panel be-tokens" data-be-tokens-mount></div>
-      </div>
+      <div class="be-tab" data-be-tab-panel="tokens"><div class="be-tokens" data-be-tokens-mount></div></div>
 
       <div class="be-tab" data-be-tab-panel="catalogue">
       <div class="be-panel be-cat" data-be-cat-mount></div>

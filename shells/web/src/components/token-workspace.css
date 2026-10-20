@@ -20,6 +20,36 @@
 .tw-detail dd { margin-inline-start: 0; }
 .tw-pages { margin-block: .75rem; }
 .token-workspace details { margin-block: .75rem; }
+/* ── Token previews (components/token-preview.ts): a value drawn small. Shared by
+   the Tokens room, its App appearance roles and this workspace, so they live in
+   this always-loaded sheet. */
+.tk-chip {
+  flex: 0 0 auto; display: inline-block; width: 20px; height: 20px; border-radius: var(--ui-radius-control);
+  background:
+    linear-gradient(var(--sw, transparent), var(--sw, transparent)),
+    repeating-conic-gradient(var(--ui-color-surface-muted) 0% 25%, var(--ui-color-surface-raised) 0% 50%) 50% / 8px 8px;
+  box-shadow: var(--edge-faint);
+}
+.tk-chip--wide { width: 44px; }
+.tk-chip--opacity { background: var(--ui-color-action-primary); opacity: var(--op, 1); }
+.tk-bar { display: inline-block; width: var(--len, 8px); max-width: 12rem; height: 8px; border-radius: var(--ui-radius-pill); background: var(--ui-color-action-primary); }
+.tk-bar--stroke { width: 24px; height: var(--len, 1px); max-height: 12px; border-radius: 0; }
+.tk-turn { display: inline-grid; color: var(--ui-color-text-muted); transform: rotate(var(--turn, 0deg)); }
+.tk-ease { flex: 0 0 auto; color: var(--ui-color-action-primary); }
+.tk-face-aa {
+  flex: 0 0 auto; display: inline-grid; place-items: center; width: 36px; height: 28px;
+  font-size: var(--ui-type-title); line-height: 1; color: var(--ui-color-text-default);
+}
+
+.tk-shadow {
+  flex: 0 0 auto; display: inline-block; width: 26px; height: 26px; border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-raised); border: 1px solid var(--ui-color-border-default);
+}
+.tw-value { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
+.tw-detail dd { display: flex; align-items: center; gap: var(--sp-2); }
+.tw-empty { display: grid; justify-items: start; gap: var(--sp-2); padding: var(--sp-3); }
+.tw-empty p { margin: 0; color: var(--ui-color-text-muted); }
+.tw-list .tw-empty button { display: inline-flex; width: auto; padding: var(--sp-2) var(--sp-4); }
 .token-inspector-dialog { width: min(75rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); padding: 0; overflow: hidden; }
 .token-inspector-dialog[open] { display: flex; flex-direction: column; }
 .token-inspector-head { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: var(--sp-3); padding: var(--sp-4); border-bottom: 1px solid var(--ui-color-border-default); }

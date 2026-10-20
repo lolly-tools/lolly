@@ -671,7 +671,6 @@
   "shells/web/src/lib/brand-editor/grid.ts": 2,
   "shells/web/src/lib/brand-editor/logo-intake.ts": 2,
   "shells/web/src/lib/brand-editor/logos.ts": 1,
-  "shells/web/src/lib/brand-editor/pack.ts": 1,
   "shells/web/src/lib/brand-editor/pal-select.ts": 3,
   "shells/web/src/lib/brand-editor/ramps.ts": 1,
   "shells/web/src/lib/brand-editor/replace.ts": 5,

@@ -20,8 +20,17 @@ import {
   defaultValueFor, gradientCss, resolveStopHex, formatStudioValue,
 } from './token-studio.ts';
 import type { StudioKind, StudioToken, GradientStop } from './token-studio.ts';
-import { walkSwatches } from './brand-doc.ts';
+import { walkSwatches, isRec, type BrandSwatch } from './brand-doc.ts';
 import { colorIdentity, isNeutralRampKey } from './design-system/ownership.ts';
+import { leadTokenSet } from './design-system/leads.ts';
+import { roleAssignments, roleReadouts, rampStepName, type RoleContrast } from './design-system/roles.ts';
+import { swatchTile } from './swatches.ts';
+import { icon, ICON_METAPHORS, type IconName } from './icons.ts';
+import { prefersReducedMotion } from './a11y-prefs.ts';
+import type { SwatchExportFormat } from './swatch-export.ts';
+import { inspectTokenDocument } from '../../../../engine/src/token-inspect.ts';
+import { tokenPreviewHtml, tokenValueText } from '../components/token-preview.ts';
+import { withRadiusToken, withSpaceToken } from '../user-fonts.ts';
 import { mountUploadDropzone } from './upload-dropzone.ts';
 import type { PickerHost } from '../views/picker.ts';
 import { confirmDialog } from '../components/confirm-dialog.ts';
@@ -31,7 +40,7 @@ import { isTauriShell } from './instance-choice.ts';
 import { escape } from '../utils.ts';
 import { announce } from '../a11y.ts';
 import { playSfx } from './sfx.ts';
-import { uiTokenCssValue } from '../brand-vars.ts';
+import { brandFontStack, brandRadiusValue, brandSpaceValue, uiTokenCssValue } from '../brand-vars.ts';
 import type { UiTokenKind } from '../brand-vars.ts';
 import { listLollyUiTokens, lollyUiOverride, lollyUiTokenDocument, removeLollyUiOverride, setLollyUiOverride } from './lolly-ui-tokens.ts';
 
@@ -41,8 +50,18 @@ import { webTokenConsumerSources } from './token-consumer-index.ts';
 export interface StudioTabCtx {
   host: HostV1;
   doc: () => Record<string, unknown>;
+  /** Replace the editor's document. A write that returns a clone (withRadiusToken,
+   *  withSpaceToken) comes through here, so the next save from any room carries the new value. */
+  setDoc: (next: Record<string, unknown>) => void;
   persist: (immediate?: boolean) => void;
   notify: () => void;
+  /** Snapshot the document onto the studio's undo stack under `label`. */
+  pushUndo: (label: string) => void;
+  /** The walked palette, for the palette download formats. */
+  swatches: () => BrandSwatch[];
+  /** Something replaced the whole document in place (the workspace's Apply); the
+   *  other rooms reseed from the new document. */
+  onDocReplaced?: () => void;
   /** The shipped starter's colour identities (lib/design-system/ownership.ts
    *  `colorIdentity`), for a panel that has to tell scaffolding from a decision.
    *  Absent on a host that ships no starter, which attributes nothing - the same
@@ -90,7 +109,6 @@ const UI_KIND: Record<string, UiTokenKind> = {
 };
 const UI_STARTER_TOKENS = listLollyUiTokens();
 const uiPath = (path: readonly string[]): string => path.join('␟');
-const uiLabel = (path: readonly string[]): string => path.map(segment => segment.replace(/-/g, ' ')).join(' · ');
 const uiValueText = (value: unknown): string => typeof value === 'string' ? value : JSON.stringify(value);
 function parseUiValue(raw: string, kind: UiTokenKind): unknown {
   if (kind === 'number') return Number(raw);
@@ -152,72 +170,509 @@ function shadowFromRow(row: HTMLElement, changedField: string | undefined, curre
 const isRecObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
 /**
- * The neutral ramp, where it belongs (plan 182 section 12).
- *
- * Ink and paper: the ramp the blank brand ships so surfaces and text can render
- * at all. It is not a palette and the Colours room does not draw it, so the one
- * place it is listed is here - as a row with its nine steps and an Open that
- * routes to the Colours pane with that group revealed, folded and tagged. Once
- * somebody regenerates it, the same nine keys are theirs and the tag goes.
- *
- * A plain anchor, not a button: it is a link to a place, `#/start` is the
- * destination, and the studio's own catalogue panel already links out this way.
+ * The starter neutrals' place in the Colours room (plan 182 section 12). The
+ * blank brand ships one neutral ramp so surfaces and text render at all; the
+ * Colours pane does not draw it, so this link opens that pane with the group
+ * revealed, folded and tagged Starter. A plain anchor: it is a place.
  */
 const NEUTRALS_LINK = '#/start?area=color&group=neutral';
 
-function neutralSwatches(ctx: StudioTabCtx): Array<{ hex: string; own: boolean }> {
-  const starter = ctx.starterIds?.() ?? new Set<string>();
-  try {
-    // Light, canonical lead: the neutral ramp lives in `base`, which every lead shares.
-    return walkSwatches(ctx.doc(), 'light')
-      .filter(s => s.hex && isNeutralRampKey(s.key))
-      .map(s => ({ hex: s.hex, own: !starter.has(colorIdentity(s.key, s.raw)) }));
-  } catch { return []; }   // an unreadable doc simply has no row
+/** The DTCG type each studio kind's leaves carry, for the row previews. */
+const KIND_TYPE: Record<StudioKind, string> = {
+  spacing: 'dimension', sizing: 'dimension', stroke: 'dimension', opacity: 'number', rotation: 'number', number: 'number', shadow: 'shadow', gradient: 'gradient',
+};
+
+/** The Tokens Studio types the Lolly UI document uses, as the DTCG type a preview draws. */
+const UI_PREVIEW_TYPE: Record<string, string> = { spacing: 'dimension', borderRadius: 'dimension', fontSize: 'dimension', fontFamilies: 'fontFamily' };
+
+/** The App appearance groups' names. Literal t() calls, because the string scan reads only those. */
+const UI_GROUP_LABEL: Record<string, string> = {
+  color: 'Colour', size: 'Size', space: 'Space', radius: 'Radius', elevation: 'Elevation', edge: 'Edge', effect: 'Effect', type: 'Type', motion: 'Motion', layer: 'Layer',
+};
+const uiGroupLabel = (group: string): string => {
+  const labels: Record<string, string> = {
+    color: t('Colour'), size: t('Size'), space: t('Space'), radius: t('Radius'), elevation: t('Elevation'),
+    edge: t('Edge'), effect: t('Effect'), type: t('Type'), motion: t('Motion'), layer: t('Layer'),
+  };
+  return Object.hasOwn(UI_GROUP_LABEL, group) ? labels[group]! : escape(group.replace(/-/g, ' '));
+};
+
+/** The Lolly app's own UI document, read once: every role's stock value. */
+const UI_DEFAULTS = createTokenSet(lollyUiTokenDocument());
+
+type RoomSection = 'color' | 'type' | 'logos' | 'shape' | 'more' | 'all';
+const SECTION_ICON: Record<RoomSection, IconName> = {
+  color: ICON_METAPHORS.colour, type: 'font', logos: 'shapes', shape: 'box', more: 'sliders', all: ICON_METAPHORS.tokens,
+};
+const sectionLabel = (id: RoomSection): string => ({
+  color: t('Colours'), type: t('Type'), logos: t('Logos'), shape: t('Shape and spacing'), more: t('More'), all: t('All tokens'),
+})[id];
+
+/** The Type section's roles, in the order tools reach for them. */
+const FONT_ROLES: ReadonlyArray<string> = ['font.brand', 'font.display', 'font.mono', 'font.italic'];
+const fontRoleLabel = (path: string): string => {
+  switch (path) {
+    case 'font.brand': return t('Text');
+    case 'font.display': return t('Headings');
+    case 'font.mono': return t('Code');
+    case 'font.italic': return t('Emphasis');
+    default: return sentence(path.split('.').at(-1) ?? path);
+  }
+};
+
+/** Rows a colour group shows before its Show all. */
+const GROUP_PEEK = 12;
+
+const sentence = (s: string): string => { const w = s.replace(/[-_]+/g, ' ').trim(); return w.charAt(0).toUpperCase() + w.slice(1); };
+/** A role's row name from its key, not its description (which is often a sentence):
+ *  `color.semantic.on-primary` is On primary, `color.chrome.edge` is Chrome edge. */
+const roleRowName = (s: BrandSwatch): string => {
+  const parts = s.key.split('.');
+  const leaf = parts.at(-1) ?? s.key, parent = parts.at(-2) ?? '';
+  return sentence(parent && parent !== 'semantic' && parent !== 'role' && parent !== 'color' ? `${parent} ${leaf}` : leaf);
+};
+const isUiKey = (key: string): boolean => key.startsWith('lolly.') || key.startsWith('color.lolly.');
+
+interface ColourRow { key: string; name: string; hex: string; value: string; starter: boolean; title: string }
+interface ColourGroup { id: string; label: string; ramp: boolean; neutral: boolean; note: boolean; rows: ColourRow[] }
+interface ContrastPair { label: 'text' | 'primary' | 'muted'; fg: string; bg: string; contrast: RoleContrast }
+interface NamedRow { key: string; name: string; value: string; raw: unknown }
+
+/** What the Tokens room draws, read from the document alone. Pure, so a test can read every state. */
+export interface TokensRoomModel {
+  groups: ColourGroup[];
+  gradients: Array<{ key: string; name: string; css: string }>;
+  pairs: { light: ContrastPair[]; dark: ContrastPair[] };
+  fonts: NamedRow[];
+  logos: NamedRow[];
+  more: StudioToken[];
+  /** The palette is only the starter's neutral ramp: Edit in Colours opens that group. */
+  starterOnly: boolean;
+  example: { name: string; hex: string } | null;
+  counts: Record<RoomSection, number>;
 }
 
-export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioPanelHandle {
-  mount.innerHTML = `
-    <div class="be-neutrals" data-be-neutrals hidden>
-      <div class="be-neutrals-row">
-        <span class="be-neutrals-label" data-be-neutrals-label></span>
-        <span class="be-neutrals-tiles" data-be-neutrals-tiles aria-hidden="true"></span>
-        <a class="be-btn be-neutrals-open" href="${NEUTRALS_LINK}">${t('Open')}</a>
-      </div>
-      <p class="be-neutrals-note">${t("Lolly's ink and paper. Tools use them until the design system has colours of its own.")}</p>
-    </div>
-    <section class="be-ui-starter" data-be-ui-starter aria-labelledby="be-ui-starter-title"></section>
-    ${panelHead(t('More tokens'), t('The rest of the system - spacing, sizing, stroke widths, opacity, rotation, plain numbers and shadows. Tools that read tokens follow these the way they follow the colours.'))}
-    <div class="be-tok-list" data-tok-list></div>
-    <form class="be-tok-add" data-tok-add>
-      <select class="field-select field-select--auto field-select--sm be-tok-add-kind" data-tok-add-kind aria-label="${escape(t('Token type'))}">
-        ${TOKEN_KINDS.map(k => `<option value="${k.id}">${escape(t(k.label))}</option>`).join('')}
-      </select>
-      <input type="text" class="be-tok-add-name" data-tok-add-name placeholder="${escape(t('Name it - Gutter, Card shadow…'))}" autocomplete="off" spellcheck="false" aria-label="${escape(t('Token name'))}">
-      <button type="submit" class="be-btn">${t('+ Add token')}</button>
-    </form>
-    <p class="be-err" data-tok-err hidden></p>`;
+function contrastPairs(doc: unknown, mode: 'light' | 'dark'): ContrastPair[] {
+  try {
+    const set = leadTokenSet(doc, mode);
+    const r = roleReadouts(doc, mode, key => set.resolve(key));
+    const out: ContrastPair[] = [];
+    // A side missing is a pair not drawn: roleReadouts measures ink on white when
+    // there is no surface, which is not a pair this system has.
+    if (r.surface.hex && r.text.hex && r.text.contrast) out.push({ label: 'text', fg: r.text.hex, bg: r.text.against, contrast: r.text.contrast });
+    if (r.primary.hex && r.primary.against && r.primary.contrast) out.push({ label: 'primary', fg: r.primary.against, bg: r.primary.hex, contrast: r.primary.contrast });
+    if (r.surface.hex && r.muted.hex && r.muted.contrast) out.push({ label: 'muted', fg: r.muted.hex, bg: r.muted.against, contrast: r.muted.contrast });
+    return out;
+  } catch { return []; }
+}
 
-  const workspaceRoot = document.createElement('section');
-  mount.prepend(workspaceRoot);
-  const workspace = mountTokenWorkspace(workspaceRoot, {
-    read: ctx.doc, host: ctx.host, consumers: webTokenConsumerSources(ctx.host),
-    commit: candidate => {
-      const current = ctx.doc();
-      for (const key of Object.keys(current)) delete current[key];
-      Object.assign(current, candidate);
-      ctx.persist(true); ctx.notify();
-    },
+export function tokensRoomModel(doc: Record<string, unknown>, starter: ReadonlySet<string> = new Set()): TokensRoomModel {
+  const set = leadTokenSet(doc, 'light');
+  const resolve = (key: string): unknown => set.resolve(key);
+  let swatches: BrandSwatch[] = [];
+  try { swatches = walkSwatches(doc, 'light', resolve).filter(s => !isUiKey(s.key)); } catch { /* an unreadable doc has no colours */ }
+  const isStarter = (s: BrandSwatch): boolean => starter.has(colorIdentity(s.key, s.raw));
+
+  const byGroup = new Map<string, BrandSwatch[]>();
+  for (const s of swatches) (byGroup.get(s.group) ?? byGroup.set(s.group, []).get(s.group)!).push(s);
+  const groups: ColourGroup[] = [...byGroup.entries()].map(([name, items]) => {
+    const ramp = items.every(s => s.kind === 'ramp');
+    const neutral = ramp && items.every(s => isNeutralRampKey(s.key));
+    const inherited = neutral && items.some(isStarter);
+    return {
+      id: name, ramp, neutral, note: inherited,
+      label: neutral ? (inherited ? tRaw('Neutrals · starter · {n}', { n: items.length }) : tRaw('Neutrals · {n}', { n: items.length })) : name,
+      rows: items.map(s => ({
+        key: s.key,
+        name: s.kind === 'semantic' ? roleRowName(s) : rampStepName(s.name, s.key),
+        hex: s.hex, value: s.hex || String(s.raw), starter: isStarter(s),
+        title: s.kind === 'semantic' && s.name !== roleRowName(s) ? `${s.key} · ${s.name}` : s.key,
+      })),
+    };
   });
-  const list = mount.querySelector<HTMLElement>('[data-tok-list]')!;
-  const err = mount.querySelector<HTMLElement>('[data-tok-err]');
-  const showErr = (m: string): void => { if (err) { err.textContent = m; err.hidden = !m; } if (m) announce(m, { assertive: true }); };
 
-  // A shadow token's colour uses our own picker (never the OS one) - mounted over a
-  // hidden holder input that carries the stored colour string so the delegated shadow
-  // commit (which reads [data-tok-field="color"] and fires on `change`) keeps working
-  // untouched. The holder is not an <input type=color>, so it seeds the picker with
-  // whatever was authored - alpha and space intact. Re-run after every render(), which
-  // replaces the list's markup.
+  const studio = listStudioTokens(doc);
+  const gradients = studio.filter(tok => tok.kind === 'gradient').map(tok => ({
+    key: tok.key, name: tok.name, css: gradientCss(tok.raw, tok.angle, { resolve, space: 'oklch' }),
+  }));
+  const more = studio.filter(tok => tok.kind !== 'gradient' && tok.key !== 'space.base');
+
+  const fonts = set.query({ type: 'fontFamily' })
+    .filter(e => !isUiKey(e.path))
+    .sort((a, b) => {
+      const ra = FONT_ROLES.indexOf(a.path), rb = FONT_ROLES.indexOf(b.path);
+      return (ra < 0 ? 99 : ra) - (rb < 0 ? 99 : rb);
+    })
+    .map(e => ({ key: e.path, name: fontRoleLabel(e.path), value: tokenValueText('fontFamily', e.value), raw: e.value }));
+  const logos = set.query({ type: 'asset' })
+    .filter(e => !isUiKey(e.path))
+    .map(e => ({ key: e.path, name: sentence(e.path.split('.').at(-1) ?? e.path), value: typeof e.value === 'string' ? e.value : isRec(e.value) && typeof e.value.id === 'string' ? e.value.id : tokenValueText('asset', e.value), raw: e.value }));
+
+  const palette = swatches.filter(s => s.kind !== 'semantic');
+  const starterOnly = palette.length > 0 && palette.every(s => isNeutralRampKey(s.key) && isStarter(s));
+  const light = contrastPairs(doc, 'light');
+  const hasDark = set.themes().some(theme => theme.name === 'dark' || theme.id === 'dark');
+  const dark = hasDark ? contrastPairs(doc, 'dark') : [];
+
+  let example: TokensRoomModel['example'] = null;
+  try {
+    const primary = roleAssignments(doc, 'light', resolve).primary;
+    const named = primary && swatches.find(s => s.key === primary.key);
+    if (primary?.hex && named) example = { name: rampStepName(named.name, named.key), hex: primary.hex };
+  } catch { /* no example line */ }
+
+  let all = 0;
+  try { all = inspectTokenDocument(doc).tokens.length; } catch { all = set.size; }
+  const colourCount = swatches.length + gradients.length;
+  return {
+    groups, gradients, pairs: { light, dark }, fonts, logos, more, starterOnly, example,
+    counts: { color: colourCount, type: fonts.length, logos: logos.length, shape: 2, more: more.length, all },
+  };
+}
+
+/** One shape token's slider: shape.radius or space.base. */
+interface Dial {
+  path: 'shape.radius' | 'space.base';
+  fallback: number;
+  read: (value: unknown) => string | null;
+  write: (doc: unknown, value: string | null) => Record<string, unknown>;
+  cssVar: '--radius' | '--space';
+  undo: () => string;
+  paint: (preview: HTMLElement, css: string) => void;
+  slider: HTMLInputElement | null;
+  preview: HTMLElement | null;
+  valueEl: HTMLElement | null;
+  err: HTMLElement | null;
+  own: HTMLElement | null;
+  pending: string | null;
+  timer: ReturnType<typeof setTimeout> | undefined;
+  dragging: boolean;
+}
+
+/** A stored length as a slider position in rem (px reads at 16 to the rem). */
+const remOf = (css: string): number => css.endsWith('px') ? parseFloat(css) / 16 : parseFloat(css);
+
+export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioPanelHandle {
+  const secHead = (id: RoomSection, n: number | null, action = '', name = sectionLabel(id)): string =>
+    `<div class="tk-sec-head"><span class="tk-sec-ic" aria-hidden="true">${icon(SECTION_ICON[id])}</span><h3 class="tk-sec-name" id="tk-sec-${id}">${name}</h3>${n === null ? '' : `<span class="tk-sec-n" data-tk-n="${id}">${n}</span>`}${action}</div>`;
+  mount.innerHTML = `
+    <header class="tk-head">
+      <p class="tk-intro" data-tk-intro>${t('Tokens are the named values behind your brand: colours, typefaces, logos, corners and spacing. Tools read them by name, so a change here reaches every tool at once.')}</p>
+      <p class="tk-intro-example" data-tk-example hidden></p>
+      <div class="tk-status"><span class="be-save-state" data-be-save-state role="status" hidden></span><button type="button" class="be-pal-restore" data-be-undo hidden>${t('Undo')}</button></div>
+      <div class="tk-actions" data-tk-actions>
+        <select class="field-select field-select--auto field-select--sm tk-fmt" data-tk-fmt aria-label="${escape(t('Download as'))}">
+          <option value="tokens-json">${t('Design tokens (JSON)')}</option>
+          <option value="css-vars">${t('CSS variables')}</option>
+          <option value="css-classes">${t('CSS classes')}</option>
+          <option value="scss">${t('SCSS variables')}</option>
+          <option value="gpl">${t('GIMP palette (.gpl)')}</option>
+          <option value="ase">${t('Adobe Swatch Exchange (.ase)')}</option>
+        </select>
+        <button type="button" class="be-btn be-btn--sm" data-tk-download data-sfx="whoosh">${t('Download')}</button>
+        <button type="button" class="be-btn be-btn--sm" data-tk-copy-css>${t('Copy CSS')}</button>
+        <button type="button" class="be-btn be-btn--sm" data-tk-import aria-haspopup="dialog">${t('Add from…')}</button>
+      </div>
+      <p class="tk-head-note">${t('JSON is your whole system, and Add from… reads it back. Penpot and Tokens Studio for Figma open JSON; CSS and SCSS suit code.')} <a href="/examples/beacon.tokens.json" download="beacon.tokens.json">${t('See an example file')}</a></p>
+      <p class="be-err" data-tk-err role="alert" hidden></p>
+    </header>
+    <div class="tk-main" data-tk-main></div>
+    <section class="be-panel tk-sec" data-tk-sec="shape" aria-labelledby="tk-sec-shape" tabindex="-1">
+      ${secHead('shape', null)}
+      <p class="tk-sec-sub">${t('Two tokens the app and every tool follow: shape.radius and space.base.')}</p>
+      <div class="tk-sec-body tk-dials" data-tk-body="shape">
+        <div class="tk-dial">
+          <div class="tk-dial-head"><h4 class="tk-dial-name">${t('Rounded corners')}</h4><span class="tk-own" data-tk-radius-own></span></div>
+          <p class="tk-dial-sub">${t('One brand radius drives a full scale: fine controls use smaller steps, panels use the base, and the pill step becomes fully rounded. Set it to 0 for straight corners everywhere.')}</p>
+          <div class="brand-radius-row">
+            <span class="brand-radius-preview" data-be-radius-preview aria-hidden="true"></span>
+            <input type="range" class="field-range brand-radius-slider" data-be-radius-slider min="0" max="1.5" step="0.05" aria-label="${escape(t('Corner radius'))}">
+            <span class="brand-radius-value" data-be-radius-value></span>
+          </div>
+          <p class="be-err" data-be-radius-err role="alert" hidden></p>
+        </div>
+        <div class="tk-dial">
+          <div class="tk-dial-head"><h4 class="tk-dial-name">${t('Spacing rhythm')}</h4><span class="tk-own" data-tk-space-own></span></div>
+          <p class="tk-dial-sub">${t('One base space token drives every Lolly gap: the compact steps, controls, panels and page margins all move together. This only writes <code>space.base</code> to your brand.')}</p>
+          <div class="brand-space-row">
+            <span class="brand-space-preview" data-be-space-preview aria-hidden="true"><i></i><i></i><i></i></span>
+            <input type="range" class="field-range brand-space-slider" data-be-space-slider min="0.25" max="1.5" step="0.05" aria-label="${escape(t('Base spacing'))}">
+            <span class="brand-space-value" data-be-space-value></span>
+          </div>
+          <p class="be-err" data-be-space-err role="alert" hidden></p>
+        </div>
+      </div>
+    </section>
+    <section class="be-panel tk-sec" data-tk-sec="more" aria-labelledby="tk-sec-more" tabindex="-1">
+      ${secHead('more', 0, '', t('More tokens'))}
+      <p class="tk-sec-sub">${t('The rest of the system - spacing, sizing, stroke widths, opacity, rotation, plain numbers and shadows. Tools that read tokens follow these the way they follow the colours.')}</p>
+      <div class="tk-sec-body" data-tk-body="more">
+        <div class="be-tok-list" data-tok-list></div>
+        <form class="be-tok-add" data-tok-add>
+          <select class="field-select field-select--auto field-select--sm be-tok-add-kind" data-tok-add-kind aria-label="${escape(t('Token type'))}">
+            ${TOKEN_KINDS.map(k => `<option value="${k.id}">${escape(t(k.label))}</option>`).join('')}
+          </select>
+          <input type="text" class="be-tok-add-name" data-tok-add-name placeholder="${escape(t('Name it - Gutter, Card shadow…'))}" autocomplete="off" spellcheck="false" aria-label="${escape(t('Token name'))}">
+          <button type="submit" class="be-btn">${t('+ Add token')}</button>
+        </form>
+        <p class="be-err" data-tok-err hidden></p>
+      </div>
+    </section>
+    <details class="section-card tk-adv" data-tk-adv="ui">
+      <summary class="section-card-summary"><span class="section-card-title">${t('App appearance (advanced)')}</span><span class="section-card-chev" aria-hidden="true">${icon('chevronRight', { size: 16 })}</span></summary>
+      <p class="tk-adv-sub">${t('The colours, sizes and shadows Lolly’s own screens use. Change one only if the app chrome should follow your brand.')}</p>
+      <section class="be-ui-starter" data-be-ui-starter aria-labelledby="be-ui-starter-title"></section>
+    </details>
+    <details class="section-card tk-adv" data-tk-adv="inspect">
+      <summary class="section-card-summary"><span class="section-card-title">${t('Inspect every token (advanced)')}</span><span class="section-card-chev" aria-hidden="true">${icon('chevronRight', { size: 16 })}</span></summary>
+      <p class="tk-adv-sub">${t('Search, filter and edit any token’s stored value. Changes are reviewed before they apply.')}</p>
+      <div data-tk-workspace></div>
+    </details>`;
+
+  const $ = <T extends HTMLElement>(sel: string): T | null => mount.querySelector<T>(sel);
+  const main = $('[data-tk-main]')!;
+  const list = $('[data-tok-list]')!;
+  const err = $('[data-tok-err]');
+  const headErr = $('[data-tk-err]');
+  const example = $('[data-tk-example]');
+  const uiFold = $<HTMLDetailsElement>('[data-tk-adv="ui"]')!;
+  const inspectFold = $<HTMLDetailsElement>('[data-tk-adv="inspect"]')!;
+  const uiStarter = $('[data-be-ui-starter]');
+  const showErr = (m: string): void => { if (err) { err.textContent = m; err.hidden = !m; } if (m) announce(m, { assertive: true }); };
+  const showHeadErr = (m: string): void => { if (headErr) { headErr.textContent = m; headErr.hidden = !m; } if (m) announce(m, { assertive: true }); };
+  const openGroups = new Set<string>();
+  let model = tokensRoomModel(ctx.doc(), ctx.starterIds?.());
+  let workspace: ReturnType<typeof mountTokenWorkspace> | undefined;
+  let uiRendered = false;
+  let openUiEditor = '';
+  /** App appearance groups a person opened, kept open across a repaint. */
+  const openUiGroups = new Set<string>();
+
+  // ── Copy and the head actions ──────────────────────────────────────────────
+  const copyBtn = (ref: string, name: string): string =>
+    `<button type="button" class="be-btn be-btn--sm tk-copy" data-tk-copy="${escape(ref)}" aria-label="${escape(tRaw('Copy the reference for {name}', { name }))}"><span class="tk-copy-ic" aria-hidden="true">${icon('duplicate', { size: 14 })}</span><span class="tk-copy-label">${t('Copy')}</span></button>`;
+  const copyText = async (text: string, said: string): Promise<void> => {
+    try {
+      await ctx.host.clipboard.writeText(text);
+      showHeadErr('');
+      announce(said);
+    } catch (error) { showHeadErr(String((error as { message?: unknown })?.message ?? error)); }
+  };
+  const activeSlug = async (): Promise<{ label: string; slug: string }> => {
+    const label = (await ctx.host.tokens?.active?.().catch(() => null))?.label ?? '';
+    const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    return { label: label || t('Design system'), slug: slug || 'design-system' };
+  };
+  $('[data-tk-download]')?.addEventListener('click', async () => {
+    showHeadErr('');
+    try {
+      const format = ($<HTMLSelectElement>('[data-tk-fmt]')?.value ?? 'tokens-json') as SwatchExportFormat;
+      const { label, slug } = await activeSlug();
+      const { saveBlob } = await import('../pro/zip.ts');
+      if (format === 'tokens-json') {
+        const filename = `${slug}.tokens.json`;
+        await saveBlob(new Blob([JSON.stringify(ctx.doc(), null, 2)], { type: 'application/json' }), filename);
+        announce(tRaw('Downloaded {filename}', { filename }));
+        return;
+      }
+      const { exportSwatches } = await import('./swatch-export.ts');
+      const { blob, filename } = exportSwatches(ctx.swatches(), format, label);
+      await saveBlob(blob, filename);
+      announce(tRaw('Palette downloaded as {filename}', { filename }));
+    } catch (error) { showHeadErr(String((error as { message?: unknown })?.message ?? error)); }
+  });
+  $('[data-tk-copy-css]')?.addEventListener('click', async () => {
+    try {
+      const { exportSwatches } = await import('./swatch-export.ts');
+      const text = await exportSwatches(ctx.swatches(), 'css-vars').blob.text();
+      await copyText(text, t('CSS variables copied'));
+    } catch (error) { showHeadErr(String((error as { message?: unknown })?.message ?? error)); }
+  });
+  // The importer belongs to the studio view, not this room. A hash link would land
+  // on the route already showing; the event is the lolly:* convention the rooms use.
+  mount.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-tk-import]')) { mount.dispatchEvent(new CustomEvent('lolly:start-import', { bubbles: true })); return; }
+    const copy = target.closest<HTMLElement>('[data-tk-copy]');
+    if (copy) { const ref = copy.dataset.tkCopy ?? ''; void copyText(ref, tRaw('Copied {ref}', { ref })); return; }
+    const chip = target.closest<HTMLElement>('[data-tk-sec="color"] [data-stu-tile]');
+    if (chip) { const ref = `{${chipKeys[Number(chip.dataset.stuTile)] ?? ''}}`; if (ref !== '{}') void copyText(ref, tRaw('Copied {ref}', { ref })); return; }
+    const more = target.closest<HTMLButtonElement>('[data-tk-more]');
+    if (more) {
+      const group = more.closest<HTMLElement>('[data-tk-group]');
+      const id = group?.dataset.tkGroup ?? '';
+      const open = !group?.classList.contains('is-open');
+      group?.classList.toggle('is-open', open);
+      if (open) openGroups.add(id); else openGroups.delete(id);
+      more.setAttribute('aria-expanded', String(open));
+      more.textContent = open ? t('Show fewer') : tRaw('Show all {n}', { n: Number(more.dataset.tkMore) });
+      return;
+    }
+    const jump = target.closest<HTMLElement>('[data-tk-jump]');
+    if (jump) jumpTo(jump.dataset.tkJump as RoomSection);
+  });
+
+  const jumpTo = (id: RoomSection): void => {
+    if (id === 'all') { inspectFold.open = true; ensureWorkspace(); }
+    const el = id === 'all' ? inspectFold : $(`[data-tk-sec="${id}"]`);
+    if (!el) return;
+    if (id === 'all') inspectFold.querySelector<HTMLElement>('summary')?.focus({ preventScroll: true });
+    else el.focus({ preventScroll: true });
+    el.scrollIntoView({ block: 'start', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+  };
+
+  // ── The room's drawn half: tiles and the Colours, Type and Logos sections ──
+  let chipKeys: string[] = [];
+  const emptyHtml = (sentenceText: string, actions: string, extra = ''): string =>
+    `<div class="tk-empty${extra}"><p>${sentenceText}</p>${actions ? `<div class="tk-empty-actions">${actions}</div>` : ''}</div>`;
+  const pickColour = `<a class="be-btn be-btn--sm" href="#/start?area=color">${t('Pick a colour')}</a>`;
+  const chooseFace = `<a class="be-btn be-btn--sm" href="#/start?area=type">${t('Choose a face')}</a>`;
+  const addFrom = `<button type="button" class="be-btn be-btn--sm" data-tk-import aria-haspopup="dialog">${t('Add from…')}</button>`;
+
+  const pairsHtml = (pairs: ContrastPair[], mode: 'light' | 'dark', labelled: boolean): string => pairs.length ? `
+    <div class="tk-pairs" data-tk-pairs="${mode}">${labelled ? `<span class="tk-pairs-mode">${mode === 'dark' ? t('Dark') : t('Light')}</span>` : ''}
+      <ul class="tk-pair-list" role="list">${pairs.map(p => `
+        <li class="tk-pair-item"${p.contrast.weak ? ' data-weak' : ''} title="${escape(tRaw('WCAG {ratio}:1', { ratio: p.contrast.wcag.toFixed(1) }))}">
+          <span class="tk-pair" style="--bg:${escape(p.bg)};--fg:${escape(p.fg)}" aria-hidden="true"><span class="tk-pair-aa">Aa</span></span>
+          <span class="tk-pair-text"><span class="tk-pair-label">${p.label === 'text' ? t('Text on surface') : p.label === 'primary' ? t('On primary') : t('Muted on surface')}</span><span class="tk-pair-lc">${escape(tRaw('Lc {lc} · {band}', { lc: Math.round(Math.abs(p.contrast.lc)), band: p.contrast.label }))}</span></span>
+          ${p.contrast.weak ? `<span class="tk-pair-weak" role="img" aria-label="${escape(t('Weak contrast'))}">${icon('alert', { size: 14 })}</span>` : ''}
+        </li>`).join('')}
+      </ul>
+    </div>` : '';
+
+  const colourGroupHtml = (g: ColourGroup): string => {
+    if (g.ramp) {
+      const chips = g.rows.map(r => { chipKeys.push(r.key); return swatchTile({ label: tRaw('Copy the reference for {name}', { name: `${r.name} ${r.hex}` }), hex: r.hex }, { size: 'sm', idx: chipKeys.length - 1 }); }).join('');
+      return `<div class="tk-group tk-group--ramp">
+        <div class="tk-group-head"><span class="tk-group-name">${escape(g.label)}</span>${g.neutral ? '' : `<span class="tk-group-n">${g.rows.length}</span>`}${g.rows.every(r => r.starter) && !g.note ? `<span class="tk-tag">${t('Starter')}</span>` : ''}</div>
+        <div class="tk-ramp">${chips}</div>
+        ${g.note ? `<p class="tk-group-note">${t("Lolly's ink and paper. Tools use them until the design system has colours of its own.")}</p>` : ''}
+      </div>`;
+    }
+    const open = openGroups.has(g.id);
+    return `<div class="tk-group${open ? ' is-open' : ''}" data-tk-group="${escape(g.id)}">
+      <div class="tk-group-head"><span class="tk-group-name">${escape(g.label)}</span><span class="tk-group-n">${g.rows.length}</span></div>
+      <ul class="tk-colors" role="list">${g.rows.map(r => `<li class="tk-color" title="${escape(r.title)}"><span class="tk-chip" style="--sw:${escape(r.hex || 'transparent')}" aria-hidden="true"></span><span class="tk-color-name">${escape(r.name)}</span>${r.starter ? `<span class="tk-tag">${t('Starter')}</span>` : ''}<code class="tk-color-value">${escape(r.value)}</code>${copyBtn(`{${r.key}}`, r.name)}</li>`).join('')}</ul>
+      ${g.rows.length > GROUP_PEEK ? `<button type="button" class="be-btn be-btn--sm tk-group-more" data-tk-more="${g.rows.length}" aria-expanded="${open}">${open ? t('Show fewer') : t('Show all {n}', { n: g.rows.length })}</button>` : ''}
+    </div>`;
+  };
+
+  const tileHtml = (id: RoomSection, preview = ''): string => {
+    const label = sectionLabel(id), n = model.counts[id];
+    return `<button type="button" class="tk-tile" data-tk-jump="${id}" aria-label="${escape(tRaw('{label}: {n}', { label, n }))}"><span class="tk-tile-ic" aria-hidden="true">${icon(SECTION_ICON[id])}</span><span class="tk-tile-n">${n}</span><span class="tk-tile-label">${label}</span><span class="tk-tile-preview" aria-hidden="true">${preview}</span></button>`;
+  };
+
+  const renderMain = (): void => {
+    chipKeys = [];
+    const m = model;
+    const roomEmpty = !m.counts.color && !m.counts.type && !m.counts.logos;
+    if (roomEmpty) {
+      main.innerHTML = emptyHtml(
+        t('Nothing here yet. Tokens appear as you pick colours, choose a face and add logos. You can also start from a file.'),
+        `${pickColour}${chooseFace}${addFrom}`, ' tk-empty--room');
+      return;
+    }
+    const firstHexes = m.groups.flatMap(g => g.rows).filter(r => r.hex).slice(0, 5).map(r => `<span class="tk-chip" style="--sw:${escape(r.hex)}"></span>`).join('');
+    const brandFace = m.fonts.find(f => f.key === 'font.brand') ?? m.fonts[0];
+    const faceStack = brandFace ? brandFontStack(brandFace.raw, 'sans-serif') : null;
+    const tiles = `<nav class="tk-overview" aria-label="${escape(t('Token sections'))}" data-tk-overview>
+      ${tileHtml('color', firstHexes)}${tileHtml('type', faceStack ? `<span class="tk-face-aa" style="font-family:${escape(faceStack)}">Aa</span>` : '')}${tileHtml('logos')}${tileHtml('shape')}${tileHtml('more')}${tileHtml('all')}
+    </nav>`;
+
+    const colourAction = !m.counts.color ? '' : `<a class="be-btn be-btn--sm tk-sec-act" href="${m.starterOnly ? NEUTRALS_LINK : '#/start?area=color'}">${t('Edit in Colours')}</a>`;
+    const colourBody = !m.counts.color
+      ? emptyHtml(t('No colours yet. Pick a colour, or add from a file.'), `${pickColour}${addFrom}`)
+      : `${pairsHtml(m.pairs.light, 'light', m.pairs.dark.length > 0)}${pairsHtml(m.pairs.dark, 'dark', true)}
+        ${m.groups.map(colourGroupHtml).join('')}
+        ${m.gradients.length ? `<div class="tk-group"><div class="tk-group-head"><span class="tk-group-name">${t('Gradients')}</span><span class="tk-group-n">${m.gradients.length}</span></div><ul class="tk-colors" role="list">${m.gradients.map(g => `<li class="tk-color tk-color--gradient">${tokenPreviewHtml('gradient', null, { css: g.css })}<span class="tk-color-name">${escape(g.name)}</span><a class="be-btn be-btn--sm" href="#/start?area=color">${t('Edit in Colours')}</a>${copyBtn(`{${g.key}}`, g.name)}</li>`).join('')}</ul></div>` : ''}`;
+
+    const typeBody = !m.fonts.length
+      ? emptyHtml(t('No typeface chosen yet. Lolly uses SUSE until you pick one.'), chooseFace)
+      : `<ul class="tk-rows" role="list">${m.fonts.map(f => `<li class="tk-row">${tokenPreviewHtml('fontFamily', f.raw)}<span class="tk-row-text"><span class="tk-row-name">${escape(f.name)}</span><span class="tk-row-value">${escape(f.value)}</span></span>${copyBtn(`{${f.key}}`, f.value)}</li>`).join('')}</ul>`;
+    const logosBody = !m.logos.length
+      ? emptyHtml(t('No logos yet. Drop a logo file and Lolly suggests its slot.'), `<a class="be-btn be-btn--sm" href="#/start?area=logos">${t('Add a logo')}</a>`)
+      : `<ul class="tk-rows" role="list">${m.logos.map(l => `<li class="tk-row"><span class="tk-row-text"><span class="tk-row-name">${escape(l.name)}</span><code class="tk-row-value">${escape(l.value)}</code></span>${copyBtn(`{${l.key}}`, l.name)}</li>`).join('')}</ul>`;
+
+    const section = (id: RoomSection, sub: string, body: string, action = ''): string =>
+      `<section class="be-panel tk-sec" data-tk-sec="${id}" aria-labelledby="tk-sec-${id}" tabindex="-1">${secHead(id, m.counts[id], action)}<p class="tk-sec-sub">${sub}</p><div class="tk-sec-body" data-tk-body="${id}">${body}</div></section>`;
+    main.innerHTML = tiles
+      + section('color', t('Swatches, shades and the pairs tools put together.'), colourBody, colourAction)
+      + section('type', t('The faces tools use for text, headings and code.'), typeBody, m.fonts.length ? `<a class="be-btn be-btn--sm tk-sec-act" href="#/start?area=type">${t('Edit in Type')}</a>` : '')
+      + section('logos', t('Marks tools can place. The Logos room shows them.'), logosBody, m.logos.length ? `<a class="be-btn be-btn--sm tk-sec-act" href="#/start?area=logos">${t('Edit in Logos')}</a>` : '');
+  };
+
+  const renderExample = (): void => {
+    if (!example) return;
+    example.hidden = !model.example;
+    example.textContent = model.example ? tRaw('For example, Primary is {name}, {hex}.', { name: model.example.name, hex: model.example.hex }) : '';
+  };
+
+  // ── Shape and spacing: the two sliders ──────────────────────────────────────
+  // Live app-wide preview on every drag tick (the CSS variable on <html>), a
+  // debounced write through the editor's own document, so the next save from any
+  // room carries it instead of putting the old value back.
+  const dial = (key: 'radius' | 'space'): Dial => ({
+    path: key === 'radius' ? 'shape.radius' : 'space.base',
+    fallback: key === 'radius' ? 1 : .5,
+    read: key === 'radius' ? brandRadiusValue : brandSpaceValue,
+    write: key === 'radius' ? withRadiusToken : withSpaceToken,
+    cssVar: key === 'radius' ? '--radius' : '--space',
+    undo: () => (key === 'radius' ? t('Rounded corners') : t('Spacing rhythm')),
+    paint: key === 'radius' ? (el, css) => { el.style.borderRadius = css; } : (el, css) => { el.style.setProperty('--brand-space-preview', css); },
+    slider: $<HTMLInputElement>(`[data-be-${key}-slider]`),
+    preview: $(`[data-be-${key}-preview]`),
+    valueEl: $(`[data-be-${key}-value]`),
+    err: $(`[data-be-${key}-err]`),
+    own: $(`[data-tk-${key}-own]`),
+    pending: null, timer: undefined, dragging: false,
+  });
+  const dials = [dial('radius'), dial('space')];
+  const seedDial = (d: Dial): void => {
+    let stored: string | null = null;
+    try { stored = d.read(leadTokenSet(ctx.doc(), 'light').resolve(d.path)); } catch { stored = null; }
+    if (d.own) { d.own.textContent = stored ? t('Yours') : t('Lolly default'); d.own.classList.toggle('is-own', !!stored); }
+    if (d.pending !== null || d.dragging) return; // never yank a slider out from under a drag
+    const rem = stored ? remOf(stored) : d.fallback;
+    const css = stored ?? `${d.fallback}rem`;
+    if (d.slider) d.slider.value = String(rem);
+    if (d.preview) d.paint(d.preview, `${rem}rem`);
+    if (d.valueEl) d.valueEl.textContent = css;
+  };
+  const flushDial = (d: Dial, immediate = false): void => {
+    clearTimeout(d.timer);
+    const css = d.pending;
+    if (css === null) return;
+    d.pending = null;
+    if (!d.read(css)) return;
+    try {
+      ctx.setDoc(d.write(ctx.doc(), css));
+      if (d.err) d.err.hidden = true;
+      ctx.persist(immediate); ctx.notify();
+      if (d.own) { d.own.textContent = t('Yours'); d.own.classList.add('is-own'); }
+    } catch (error) {
+      if (d.err) { d.err.textContent = String((error as { message?: unknown })?.message ?? error); d.err.hidden = false; }
+    }
+  };
+  for (const d of dials) {
+    const { slider } = d;
+    if (!slider) continue;
+    slider.addEventListener('input', () => {
+      if (!d.dragging) { ctx.pushUndo(d.undo()); d.dragging = true; }
+      const css = `${slider.value}rem`;
+      if (d.preview) d.paint(d.preview, css);
+      if (d.valueEl) d.valueEl.textContent = css;
+      document.documentElement.style.setProperty(d.cssVar, css);
+      d.pending = css;
+      clearTimeout(d.timer);
+      d.timer = setTimeout(() => flushDial(d), 400);
+    });
+    slider.addEventListener('change', () => { flushDial(d); d.dragging = false; });
+  }
+
+  // ── More tokens ─────────────────────────────────────────────────────────────
+  // A shadow token's colour uses our own picker (never the OS one), mounted over a
+  // hidden holder input that carries the stored colour string, so the delegated
+  // shadow commit (which reads [data-tok-field="color"] on `change`) keeps working.
   const wireShadowFields = (): void => {
     list.querySelectorAll<HTMLElement>('[data-shadow-cf]').forEach(span => {
       const row = span.closest<HTMLElement>('[data-tok-row]');
@@ -226,105 +681,104 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
         value: holder?.value || '#000000', float: true,
         onChange: (v) => {
           if (!holder) return;
-          holder.value = v; // canonical #rrggbb / #rrggbbaa - the shadow may carry alpha now
+          holder.value = v; // canonical #rrggbb / #rrggbbaa: the shadow may carry alpha
           holder.dispatchEvent(new Event('change', { bubbles: true }));
         },
       });
     });
   };
-
-  // The neutrals row, painted through the DOM rather than a second raw-HTML
-  // sink: it is nine boxes and a line of text, and the tiles carry a colour that
-  // came out of a document.
-  const neutralsEl = mount.querySelector<HTMLElement>('[data-be-neutrals]');
-  const neutralsLabel = mount.querySelector<HTMLElement>('[data-be-neutrals-label]');
-  const neutralsTiles = mount.querySelector<HTMLElement>('[data-be-neutrals-tiles]');
-  const neutralsNote = mount.querySelector<HTMLElement>('.be-neutrals-note');
-  const uiStarter = mount.querySelector<HTMLElement>('[data-be-ui-starter]');
-  let openUiEditor = '';
-  const renderNeutrals = (): void => {
-    if (!neutralsEl) return;
-    const steps = neutralSwatches(ctx);
-    neutralsEl.hidden = steps.length === 0;
-    if (!steps.length) return;
-    const inherited = steps.some(s => !s.own);
-    if (neutralsLabel) {
-      neutralsLabel.textContent = inherited
-        ? tRaw('Neutrals · starter · {n}', { n: steps.length })
-        : tRaw('Neutrals · {n}', { n: steps.length });
+  const renderMore = (): void => {
+    const all = model.more;
+    const n = $('[data-tk-n="more"]');
+    if (n) n.textContent = String(all.length);
+    if (!all.length) {
+      list.innerHTML = `<p class="be-tok-empty">${t('No extra tokens yet - most brands start with a spacing unit and a card shadow.')}</p>`;
+      return;
     }
-    // The sentence is only true while nobody has retoned them.
-    if (neutralsNote) neutralsNote.hidden = !inherited;
-    if (neutralsTiles) {
-      neutralsTiles.textContent = '';
-      for (const step of steps) {
-        const tile = mount.ownerDocument.createElement('span');
-        tile.className = 'be-neutrals-tile';
-        tile.style.setProperty('--sw', step.hex);
-        neutralsTiles.appendChild(tile);
-      }
-    }
+    const byKind = new Map<StudioKind, StudioToken[]>();
+    for (const tok of all) (byKind.get(tok.kind) ?? byKind.set(tok.kind, []).get(tok.kind)!).push(tok);
+    list.innerHTML = [...byKind.entries()].map(([kind, items]) => `
+      <div class="be-tok-group">
+        <div class="be-tok-group-head"><span class="be-tok-group-label">${escape(t(KIND_LABEL.get(kind) ?? kind))}</span><span class="be-tok-group-n">${items.length}</span></div>
+        ${items.map(tok => `
+          <div class="be-tok-row" data-tok-row data-tok-path="${pathAttr(tok)}">
+            <span class="tk-prev" data-tk-prev>${tok.kind === 'shadow' ? '' : tokenPreviewHtml(KIND_TYPE[tok.kind], tok.raw, { path: tok.key })}</span>
+            <span class="be-tok-name" title="${escape(tok.key)}">${escape(tok.name)}</span>
+            <span class="be-tok-editor">${tokenValueEditor(tok)}</span>
+            ${copyBtn(`{${tok.key}}`, tok.name)}
+            <button type="button" class="be-tok-del" data-tok-del="${pathAttr(tok)}" aria-label="${escape(tRaw('Delete {name}', { name: tok.name }))}">&#x2715;</button>
+          </div>`).join('')}
+      </div>`).join('');
+    wireShadowFields();
   };
-  renderNeutrals();
 
+  // ── App appearance: Lolly's own UI starter roles ────────────────────────────
   /**
-   * The app's semantic role set is intentionally a preview, not a preset that
-   * quietly bloats every new brand. A role becomes owned only when its edited
-   * value is saved below. The stock value is resolved against the canonical
-   * Lolly document so an authored override is always a literal the live CSS
-   * projection can validate (rather than an alias into a foundation set the
-   * brand does not carry).
+   * The app's semantic role set is a preview, not a preset that quietly bloats
+   * every new brand. A role becomes owned only when its edited value is saved
+   * below. The stock value is resolved against the canonical Lolly document, so
+   * an authored override is always a literal the live CSS projection can check.
    */
+  /** A role's name inside its group: the group is the summary above, so it is dropped here. */
+  const uiLabel = (path: readonly string[]): string => {
+    const s = (path.length > 1 ? path.slice(1) : path).map(segment => segment.replace(/-/g, ' ').replace(/\bui\b/g, 'UI')).join(' · ');
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  };
+  const uiCurrent = (tok: typeof UI_STARTER_TOKENS[number], own: Record<string, unknown> | null): unknown =>
+    own?.$value ?? own?.value ?? UI_DEFAULTS.resolve(`lolly.ui.${tok.path.join('.')}`) ?? tok.value;
   const renderUiStarter = (): void => {
     if (!uiStarter) return;
-    const defaults = createTokenSet(lollyUiTokenDocument());
+    uiRendered = true;
+    const doc = ctx.doc();
+    const owned = new Map(UI_STARTER_TOKENS.map(tok => [uiPath(tok.path), lollyUiOverride(doc, tok.path)]));
     const groups = new Map<string, typeof UI_STARTER_TOKENS>();
-    let owned = 0;
     for (const tok of UI_STARTER_TOKENS) {
       const group = tok.path[0] ?? 'other';
-      const groupItems = groups.get(group) ?? [];
-      groupItems.push(tok); groups.set(group, groupItems);
-      if (lollyUiOverride(ctx.doc(), tok.path)) owned++;
+      (groups.get(group) ?? groups.set(group, []).get(group)!).push(tok);
     }
+    const ownedCount = [...owned.values()].filter(Boolean).length;
     uiStarter.innerHTML = `
       <div class="be-ui-starter-head">
         <div>
           <p class="be-ui-starter-kicker">${t('Lolly UI starter roles')}</p>
           <h3 class="be-ui-starter-title" id="be-ui-starter-title">${t('The tokens Lolly itself uses')}</h3>
         </div>
-        <span class="be-ui-starter-count">${owned ? tRaw('{owned} of {total} owned', { owned, total: UI_STARTER_TOKENS.length }) : tRaw('{total} placeholders', { total: UI_STARTER_TOKENS.length })}</span>
+        <span class="be-ui-starter-count">${ownedCount ? tRaw('{owned} of {total} owned', { owned: ownedCount, total: UI_STARTER_TOKENS.length }) : tRaw('{total} placeholders', { total: UI_STARTER_TOKENS.length })}</span>
       </div>
-      <p class="be-ui-starter-note"><strong>${t('Preview only.')}</strong> ${t('These defaults power the Lolly app and travel in its Penpot UI library, but they are not added to your brand or token export. Change a value and save it to create just that owned `lolly.ui` token.')}</p>
+      <p class="be-ui-starter-note"><strong>${t('Preview only.')}</strong> ${t('These defaults power the Lolly app and travel in its Penpot UI library.')} ${t('They are not added to your brand or token export.')} ${tRaw('Change a value and save it to create just that owned {path} token.', { path: '<code>lolly.ui</code>' })}</p>
       <div class="be-ui-starter-groups">
         ${[...groups.entries()].map(([group, tokens]) => `
-          <details class="be-ui-group" ${group === 'color' || tokens.some(tok => uiPath(tok.path) === openUiEditor) ? 'open' : ''}>
-            <summary><span>${escape(t(group.replace(/-/g, ' ')))}</span><span class="be-ui-group-count">${tokens.filter(tok => lollyUiOverride(ctx.doc(), tok.path)).length || t('defaults')}</span></summary>
+          <details class="be-ui-group" data-ui-group="${escape(group)}" ${openUiGroups.has(group) || tokens.some(tok => uiPath(tok.path) === openUiEditor) ? 'open' : ''}>
+            <summary><span>${uiGroupLabel(group)}</span><span class="be-ui-group-count">${tokens.filter(tok => owned.get(uiPath(tok.path))).length || t('defaults')}</span></summary>
             <div class="be-ui-role-list">
               ${tokens.map(tok => {
                 const key = uiPath(tok.path);
-                const own = lollyUiOverride(ctx.doc(), tok.path);
+                const own = owned.get(key) ?? null;
                 const kind = UI_KIND[tok.type];
-                const fallback = defaults.resolve(`lolly.ui.${tok.path.join('.')}`) ?? tok.value;
-                const current = own?.$value ?? own?.value ?? fallback;
+                const current = uiCurrent(tok, own);
                 const textValue = uiValueText(current);
                 const editing = openUiEditor === key;
+                const previewType = UI_PREVIEW_TYPE[tok.type] ?? tok.type;
                 return `<article class="be-ui-role${own ? ' is-owned' : ''}" data-ui-role="${escape(key)}">
                   <div class="be-ui-role-meta">
                     <span class="be-ui-role-name">${escape(uiLabel(tok.path))}</span>
                     <code class="be-ui-role-path">lolly.ui.${escape(tok.path.join('.'))}</code>
                   </div>
-                  <div class="be-ui-role-state"><span class="be-ui-role-value">${escape(textValue)}</span><span class="be-ui-role-badge">${own ? t('Brand override') : t('Lolly default')}</span></div>
+                  <div class="be-ui-role-state"><span class="be-ui-role-value">${tokenPreviewHtml(previewType, current, { path: tok.path.join('.') })}<span class="be-ui-role-text">${escape(tokenValueText(previewType, current))}</span></span><span class="be-ui-role-badge">${own ? t('Brand override') : t('Lolly default')}</span></div>
                   <div class="be-ui-role-actions">
-                    <button type="button" class="be-btn be-btn--sm" data-ui-customize="${escape(key)}">${editing ? t('Close editor') : own ? t('Edit') : t('Customize')}</button>
+                    <button type="button" class="be-btn be-btn--sm" data-ui-customize="${escape(key)}" aria-expanded="${editing}">${editing ? t('Close editor') : own ? t('Edit') : t('Customise')}</button>
                     ${own ? `<button type="button" class="be-btn be-btn--sm" data-ui-reset="${escape(key)}">${t('Reset')}</button>` : ''}
                   </div>
                   ${editing ? `<form class="be-ui-edit" data-ui-edit="${escape(key)}">
                     <label>${escape(tRaw('New value for {name}', { name: uiLabel(tok.path) }))}
-                      ${kind === 'shadow' || kind === 'easing'
-                        ? `<textarea data-ui-value rows="3" spellcheck="false">${escape(textValue)}</textarea>`
-                        : `<input type="text" data-ui-value value="${escape(textValue)}" spellcheck="false" autocomplete="off">`}
+                      ${kind === 'color'
+                        ? `<span class="be-ui-cf" data-ui-cf></span><input type="hidden" data-ui-value value="${escape(textValue)}">`
+                        : kind === 'shadow' || kind === 'easing'
+                          ? `<textarea data-ui-value rows="3" spellcheck="false">${escape(textValue)}</textarea>`
+                          : `<input type="text" data-ui-value value="${escape(textValue)}" spellcheck="false" autocomplete="off"${kind === 'length' ? ' inputmode="decimal"' : ''}>`}
                     </label>
                     <p>${t('This remains a placeholder until the value changes and you save it.')}</p>
+                    <p class="be-err" data-ui-err role="alert" hidden></p>
                     <button type="submit" class="be-cta" data-ui-save="${escape(key)}" disabled>${t('Save brand override')}</button>
                   </form>` : ''}
                 </article>`;
@@ -332,30 +786,56 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
             </div>
           </details>`).join('')}
       </div>`;
+    // A colour role edits through the app's own picker, writing a hidden holder.
+    const cf = uiStarter.querySelector<HTMLElement>('[data-ui-cf]');
+    const holder = uiStarter.querySelector<HTMLInputElement>('input[type="hidden"][data-ui-value]');
+    if (cf && holder) {
+      mountColorField(cf, `ui-${openUiEditor}`, {
+        value: holder.value, float: true,
+        onChange: (v) => { holder.value = v; holder.dispatchEvent(new Event('input', { bubbles: true })); },
+      });
+    }
   };
+  const closeUiEditor = (key: string): void => {
+    openUiEditor = '';
+    renderUiStarter();
+    uiStarter?.querySelector<HTMLButtonElement>(`[data-ui-customize="${CSS.escape(key)}"]`)?.focus();
+  };
+  uiFold.addEventListener('toggle', () => { if (uiFold.open && !uiRendered) renderUiStarter(); });
+  // toggle does not bubble, so listen in the capture phase for the groups inside.
+  uiStarter?.addEventListener('toggle', (e) => {
+    const group = (e.target as HTMLElement).closest<HTMLDetailsElement>('[data-ui-group]');
+    if (!group || e.target !== group) return;
+    if (group.open) openUiGroups.add(group.dataset.uiGroup ?? ''); else openUiGroups.delete(group.dataset.uiGroup ?? '');
+  }, true);
+
+  // ── Inspect every token: the workspace, mounted on first open ──────────────
+  const ensureWorkspace = (): void => {
+    if (workspace) return;
+    const root = $('[data-tk-workspace]');
+    if (!root) return;
+    workspace = mountTokenWorkspace(root, {
+      label: t('All tokens'), read: ctx.doc, host: ctx.host, consumers: webTokenConsumerSources(ctx.host),
+      commit: candidate => {
+        const current = ctx.doc();
+        for (const key of Object.keys(current)) delete current[key];
+        Object.assign(current, candidate);
+        render();
+        ctx.persist(true); ctx.notify();
+        ctx.onDocReplaced?.();
+      },
+    });
+  };
+  inspectFold.addEventListener('toggle', () => { if (inspectFold.open) ensureWorkspace(); });
 
   const render = (): void => {
-    workspace.refresh();
-    renderNeutrals();
-    renderUiStarter();
-    const all = listStudioTokens(ctx.doc()).filter(t => t.kind !== 'gradient');
-    if (!all.length) {
-      list.innerHTML = `<p class="be-tok-empty">${t('No extra tokens yet - most brands start with a spacing unit and a card shadow.')}</p>`;
-      return;
-    }
-    const byKind = new Map<StudioKind, StudioToken[]>();
-    for (const t of all) (byKind.get(t.kind) ?? byKind.set(t.kind, []).get(t.kind)!).push(t);
-    list.innerHTML = [...byKind.entries()].map(([kind, items]) => `
-      <div class="be-tok-group">
-        <div class="be-tok-group-head"><span class="be-tok-group-label">${escape(t(KIND_LABEL.get(kind) ?? kind))}</span><span class="be-tok-group-n">${items.length}</span></div>
-        ${items.map(tok => `
-          <div class="be-tok-row" data-tok-row data-tok-path="${pathAttr(tok)}">
-            <span class="be-tok-name" title="${escape(tok.key)}">${escape(tok.name)}</span>
-            <span class="be-tok-editor">${tokenValueEditor(tok)}</span>
-            <button type="button" class="be-tok-del" data-tok-del="${pathAttr(tok)}" aria-label="${escape(tRaw('Delete {name}', { name: tok.name }))}">&#x2715;</button>
-          </div>`).join('')}
-      </div>`).join('');
-    wireShadowFields();
+    model = tokensRoomModel(ctx.doc(), ctx.starterIds?.());
+    renderExample();
+    renderMain();
+    for (const d of dials) seedDial(d);
+    renderMore();
+    if (uiRendered) renderUiStarter();
+    workspace?.refresh();
   };
   render();
 
@@ -365,7 +845,10 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     if (key) {
       openUiEditor = openUiEditor === key ? '' : key;
       renderUiStarter();
-      if (openUiEditor) uiStarter.querySelector<HTMLInputElement | HTMLTextAreaElement>('[data-ui-value]')?.focus();
+      if (openUiEditor) {
+        const form = uiStarter.querySelector<HTMLElement>('[data-ui-edit]');
+        form?.querySelector<HTMLElement>('textarea[data-ui-value], input[type="text"][data-ui-value], [data-ui-cf] button')?.focus();
+      } else uiStarter.querySelector<HTMLButtonElement>(`[data-ui-customize="${CSS.escape(key)}"]`)?.focus();
       return;
     }
     const reset = target.closest<HTMLButtonElement>('[data-ui-reset]')?.dataset.uiReset;
@@ -376,18 +859,25 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     renderUiStarter(); ctx.persist(true); ctx.notify();
     announce(tRaw('{name} reset to the Lolly default', { name: uiLabel(token.path) }));
   });
+  uiStarter?.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const form = (e.target as HTMLElement).closest<HTMLElement>('[data-ui-edit]');
+    if (!form) return;
+    // The studio reads a bare Escape as "leave"; inside an open editor it closes the editor.
+    e.preventDefault(); e.stopPropagation();
+    closeUiEditor(form.dataset.uiEdit ?? '');
+  });
   uiStarter?.addEventListener('input', (e) => {
     const input = e.target as HTMLInputElement | HTMLTextAreaElement;
     if (!input.matches('[data-ui-value]')) return;
     const form = input.closest<HTMLFormElement>('[data-ui-edit]');
-    const key = form?.dataset.uiEdit;
-    const token = UI_STARTER_TOKENS.find(item => uiPath(item.path) === key);
+    const token = UI_STARTER_TOKENS.find(item => uiPath(item.path) === form?.dataset.uiEdit);
     const save = form?.querySelector<HTMLButtonElement>('[data-ui-save]');
     if (!token || !save) return;
-    const own = lollyUiOverride(ctx.doc(), token.path);
-    const defaults = createTokenSet(lollyUiTokenDocument());
-    const initial = uiValueText(own?.$value ?? own?.value ?? defaults.resolve(`lolly.ui.${token.path.join('.')}`) ?? token.value);
-    save.disabled = input.value === initial;
+    const formErr = form?.querySelector<HTMLElement>('[data-ui-err]');
+    if (formErr) formErr.hidden = true;
+    input.removeAttribute('aria-invalid');
+    save.disabled = input.value === uiValueText(uiCurrent(token, lollyUiOverride(ctx.doc(), token.path)));
   });
   uiStarter?.addEventListener('submit', (e) => {
     const form = e.target as HTMLFormElement;
@@ -398,35 +888,59 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     const kind = token ? UI_KIND[token.type] : undefined;
     if (!token || !input || !kind) return;
     let value: unknown;
-    try { value = parseUiValue(input.value, kind); }
-    catch { showErr(t('Use valid JSON for this value.')); return; }
-    if (uiTokenCssValue(kind, value) == null) {
-      showErr(t('That value is not safe or usable by the Lolly UI.')); return;
+    let usable = true;
+    try { value = parseUiValue(input.value, kind); } catch { usable = false; }
+    if (!usable || uiTokenCssValue(kind, value) == null) {
+      const formErr = form.querySelector<HTMLElement>('[data-ui-err]');
+      const message = t('That isn’t a value Lolly can read. Try #ff0000 or 16px.');
+      if (formErr) { formErr.textContent = message; formErr.hidden = false; }
+      input.setAttribute('aria-invalid', 'true');
+      announce(message, { assertive: true });
+      return;
     }
     setLollyUiOverride(ctx.doc(), token.path, token.type, value);
-    showErr(''); openUiEditor = '';
+    openUiEditor = '';
     renderUiStarter(); ctx.persist(true); ctx.notify(); playSfx('click');
+    uiStarter.querySelector<HTMLButtonElement>(`[data-ui-customize="${CSS.escape(uiPath(token.path))}"]`)?.focus();
     announce(tRaw('{name} saved as a brand override', { name: uiLabel(token.path) }));
   });
 
-  // One delegated commit for every editor control. Range/number commit on
-  // input (they're cheap + atomic); text dimensions commit on change so a
-  // half-typed "1.5re" never lands.
+  // ── More tokens: one delegated commit for every editor control ─────────────
+  // Range/number commit on input (cheap and atomic); text dimensions commit on
+  // change so a half-typed "1.5re" never lands.
+  const rowError = (row: HTMLElement | null, el: HTMLInputElement, message: string): void => {
+    el.setAttribute('aria-invalid', 'true');
+    if (!row) return;
+    let slot = row.querySelector<HTMLElement>('.tk-row-err');
+    if (!slot) { slot = document.createElement('span'); slot.className = 'be-err tk-row-err'; slot.setAttribute('role', 'alert'); row.appendChild(slot); }
+    slot.textContent = message;
+  };
+  const clearRowError = (row: HTMLElement | null, el: HTMLInputElement): void => {
+    el.removeAttribute('aria-invalid');
+    row?.querySelector('.tk-row-err')?.remove();
+  };
+  const refreshRowPreview = (row: HTMLElement | null, tok: StudioToken | undefined): void => {
+    const prev = row?.querySelector<HTMLElement>('[data-tk-prev] > *');
+    if (!prev || !tok) return;
+    if (prev.classList.contains('tk-bar') && typeof tok.raw === 'string') prev.style.setProperty('--len', tok.raw);
+    if (prev.classList.contains('tk-chip--opacity') && typeof tok.raw === 'number') prev.style.setProperty('--op', String(tok.raw));
+    if (prev.classList.contains('tk-turn') && typeof tok.raw === 'number') prev.style.setProperty('--turn', `${tok.raw}deg`);
+  };
+  const findTok = (path: string[]): StudioToken | undefined => listStudioTokens(ctx.doc()).find(x => x.path.join('␟') === path.join('␟'));
   const commit = (el: HTMLInputElement): void => {
     const path = pathFrom(el.dataset.tokPath ?? '');
     const kind = el.dataset.tokInput;
-    // A cleared number field reports '' - Number('') is 0, which would persist
+    const row = el.closest<HTMLElement>('[data-tok-row]');
+    // A cleared number field reports '' and Number('') is 0, which would persist
     // a value the user never typed. Wait for real input (or a blur revert).
     if ((kind === 'rotation' || kind === 'number' || kind === 'opacity') && el.value.trim() === '') return;
     let ok = false;
     if (kind === 'shadow') {
-      const row = el.closest<HTMLElement>('[data-tok-row]');
-      const cur = listStudioTokens(ctx.doc()).find(x => x.path.join('␟') === path.join('␟'));
-      if (row) ok = setStudioTokenValue(ctx.doc(), path, shadowFromRow(row, el.dataset.tokField, cur?.raw));
+      if (row) ok = setStudioTokenValue(ctx.doc(), path, shadowFromRow(row, el.dataset.tokField, findTok(path)?.raw));
       if (ok) {
-        const chip = el.closest<HTMLElement>('[data-tok-row]')?.querySelector<HTMLElement>('.be-tok-shadow-chip');
-        const t = listStudioTokens(ctx.doc()).find(x => x.path.join('␟') === path.join('␟'));
-        if (chip && t) chip.style.boxShadow = formatStudioValue(t);
+        const chip = row?.querySelector<HTMLElement>('.be-tok-shadow-chip');
+        const tok = findTok(path);
+        if (chip && tok) chip.style.boxShadow = formatStudioValue(tok);
       }
     } else if (kind === 'opacity') {
       ok = setStudioTokenValue(ctx.doc(), path, Number(el.value));
@@ -437,8 +951,13 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     } else {
       ok = setStudioTokenValue(ctx.doc(), path, el.value);
     }
-    if (!ok) { showErr(t(kind === 'dimension' ? "Couldn't read that value - use a CSS length like 8px or 0.5rem." : "Couldn't read that value - check it and try again.")); return; }
+    if (!ok) {
+      rowError(row, el, t(kind === 'dimension' ? "Couldn't read that value - use a CSS length like 8px or 0.5rem." : "Couldn't read that value - check it and try again."));
+      return;
+    }
+    clearRowError(row, el);
     showErr('');
+    refreshRowPreview(row, findTok(path));
     ctx.persist();
     ctx.notify();
   };
@@ -450,21 +969,33 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     const el = e.target as HTMLInputElement;
     if (el.dataset.tokInput === 'dimension' || el.dataset.tokInput === 'shadow') commit(el);
   });
+  // A refused value is put back on blur, so the field never shows a value the document does not hold.
+  list.addEventListener('focusout', (e) => {
+    const el = e.target as HTMLInputElement;
+    if (el.getAttribute('aria-invalid') !== 'true' || !el.dataset.tokPath) return;
+    const tok = findTok(pathFrom(el.dataset.tokPath));
+    const field = el.dataset.tokField;
+    if (tok) el.value = field && isRecObj(tok.raw) ? String(tok.raw[field] ?? '') : String(tok.raw ?? '');
+    clearRowError(el.closest<HTMLElement>('[data-tok-row]'), el);
+  });
   list.addEventListener('click', async (e) => {
     const del = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-tok-del]'); if (!del) return;
     const path = pathFrom(del.dataset.tokDel ?? '');
-    const tok = listStudioTokens(ctx.doc()).find(x => x.path.join('␟') === path.join('␟'));
+    const tok = findTok(path);
     const ok = await confirmDialog({ title: tRaw('Delete {name}?', { name: tok?.name ?? t('this token') }), message: t('Anything reading it falls back to its own default.'), confirmLabel: t('Delete') });
     if (!ok) return;
     if (deleteStudioToken(ctx.doc(), path)) { render(); ctx.persist(true); ctx.notify(); }
   });
-  mount.querySelector<HTMLFormElement>('[data-tok-add]')?.addEventListener('submit', (e) => {
+  $<HTMLFormElement>('[data-tok-add]')?.addEventListener('submit', (e) => {
     e.preventDefault();
-    const kindSel = mount.querySelector<HTMLSelectElement>('[data-tok-add-kind]');
-    const nameInput = mount.querySelector<HTMLInputElement>('[data-tok-add-name]');
+    const kindSel = $<HTMLSelectElement>('[data-tok-add-kind]');
+    const nameInput = $<HTMLInputElement>('[data-tok-add-name]');
     const kind = (kindSel?.value ?? 'spacing') as StudioKind;
     const name = nameInput?.value.trim() ?? '';
     if (!name) { showErr(t('Name the token first.')); nameInput?.focus(); return; }
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const clash = listStudioTokens(ctx.doc()).some(x => x.kind === kind && (x.name.trim().toLowerCase() === name.toLowerCase() || x.path.at(-1) === slug));
+    if (clash) { showErr(tRaw('You already have a token called {name}.', { name })); nameInput?.focus(); return; }
     const path = addStudioToken(ctx.doc(), kind, name, defaultValueFor(kind));
     if (!path) { showErr(t("Couldn't add that token.")); return; }
     showErr('');
@@ -475,7 +1006,13 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     list.querySelector<HTMLElement>(`[data-tok-row][data-tok-path="${pathAttr({ path } as StudioToken)}"] input`)?.focus();
   });
 
-  return { render, teardown: () => workspace.teardown() };
+  return {
+    render,
+    teardown: () => {
+      for (const d of dials) flushDial(d, true);
+      workspace?.teardown();
+    },
+  };
 }
 
 // ── Gradients panel (Colour tab) ──────────────────────────────────────────────

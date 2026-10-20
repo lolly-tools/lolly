@@ -312,6 +312,9 @@ html[dir="rtl"] .start-back-row {
 .ds-rail-note.is-error { color: hsl(var(--destructive-text)); }
 
 .ds-main { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+/* A jump inside a room lands below the pinned room chips on a phone, not under
+   them. --ds-sticky-top is set by views/start/rooms.ts (0 at 900px and up). */
+.ds-main .tk-sec, .ds-main .tk-adv, .ds-main .tw-detail { scroll-margin-top: var(--ds-sticky-top, 0px); }
 .ds-panel[hidden] { display: none; }
 
 /* ── The Overview room - counts and doors, no progress ─────────────────────── */
