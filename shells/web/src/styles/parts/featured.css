@@ -145,6 +145,8 @@
   flex: 0 0 auto;
   width: clamp(320px, 40vw, 620px);
 }
+.featured--static .ftile-dots { display: none; }
+
 @media (max-width: 640px) { .ftile { width: 88vw; } }
 
 /* Tile HEIGHT is the hero dial (art is object-fit:contain, so any tile ratio is
@@ -256,7 +258,7 @@
 /* NOT on the icon scale: this is stand-in ARTWORK filling a picture frame, not a
    mark labelling a control - it is sized to the tile's stage, and growing it with
    the type would push it into the 18% padding that keeps it off the floor shadow. */
-.ftile-iconfill svg { max-width: 256px; max-height: 256px; color: color-mix(in srgb, var(--ui-color-border-default) 70%, var(--ui-color-text-muted));}
+.ftile-iconfill svg { max-width: 256px; max-height: 256px; color: var(--ui-color-action-primary); }
 /* The stroke treatment is for ICON GLYPHS. Audio waveform art ([data-audio-shape],
    lib/audio-thumb.ts) tunes its own per-shape stroke widths in its viewBox - the
    screen-space overrides turned its ring spokes into fat blobs - so it is exempt

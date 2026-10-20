@@ -319,7 +319,7 @@
   --shadow-sidebar: 1px 0 3px -3px #0001, 1rem 0 .5rem -.5rem #0001;
   /* glass top-light */
   --bevel: inset 0 1px hsl(0 0% 100% / .1);
-  --bevel-inset: inset 0 0px 2px hsl(var(--foreground) / .25), inset -1px 2px 5px #0001, 0 1px var(--ui-color-surface-raised);
+  --bevel-inset: inset 0 0px 2px hsl(var(--foreground) / .25), inset -.5px 2px 5px #0001, 0 .25px var(--ui-color-surface-raised);
   --bevel-input-well: inset 3px 3px 12px -4px var(--ui-color-surface-canvas);
   /* focus rings */
   --ring-focus: 0 0 0 3px hsl(var(--ring) / .15);
