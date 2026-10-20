@@ -8,7 +8,6 @@
  * from mountProfile() by scripts/split-closure.ts.
  */
 import { docsAppHref, t, tRaw } from '../../i18n.ts';
-import { staggerReveal } from '../../lib/reveal.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
 import { verifyLink } from './shared.ts';
@@ -103,7 +102,6 @@ export async function paintIdentity(pv: ProfileViewCtx) {
   pv.summaries.setSummary('identity-section', pv.identityStatus?.enrolled
     ? (pv.identityStatus.identity?.email ?? tRaw('Enrolled'))
     : tRaw('Not enrolled'));
-  staggerReveal([...body.children], { sound: false });  // cascade async content (shuffle already played on open)
 }
 // One OAuth/dev enrollment round-trip (popup) from a button, with a busy state.
 // enroll() resolves with the new status, and rejects on timeout/close/denial

@@ -45,12 +45,14 @@ export function mountAssetInspectorDock(dialog: HTMLDialogElement): () => void {
     if (summary) {
       const label = summary.textContent ?? '';
       summary.className = 'section-card-summary'; summary.replaceChildren();
+      // The collapsible section card's head (parts/disclosure.css) draws the caret.
       const name = document.createElement('span'); name.className = 'section-card-title'; name.textContent = label;
-      const chev = document.createElement('span'); chev.className = 'section-card-chev'; chev.setAttribute('aria-hidden', 'true'); chev.innerHTML = icon('chevronDown'); summary.append(name, chev);
+      summary.append(name);
     }
     const children = [...section.children].filter(node => node !== summary);
-    if (children.length && !(children.length === 1 && children[0]!.classList.contains('cat-inspector-section-body'))) {
-      const content = document.createElement('div'); content.className = 'cat-inspector-section-body'; content.append(...children); section.append(content);
+    if (children.length === 1 && children[0]!.classList.contains('cat-inspector-section-body')) children[0]!.classList.add('section-card-body');
+    else if (children.length) {
+      const content = document.createElement('div'); content.className = 'cat-inspector-section-body section-card-body'; content.append(...children); section.append(content);
     }
     section.open = prefs[`section:${id}`] ? prefs[`section:${id}`] === 1 : open;
     const remember = () => { prefs[`section:${id}`] = section.open ? 1 : 2; save(); };
@@ -60,7 +62,7 @@ export function mountAssetInspectorDock(dialog: HTMLDialogElement): () => void {
   const wrap = (node: HTMLElement | null, label: string, id: string, open = false) => {
     if (!node) return null;
     const section = document.createElement('details'), summary = document.createElement('summary'), content = document.createElement('div');
-    summary.textContent = t(label); content.className = 'cat-inspector-section-body';
+    summary.textContent = t(label); content.className = 'cat-inspector-section-body section-card-body';
     node.before(section); content.append(node); section.append(summary, content); enhance(section, id, open);
     return section;
   };

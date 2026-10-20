@@ -50,6 +50,7 @@ import { wireViewPrewarmIntent } from './lib/view-prewarm-intent.ts';
 import { peekNeuroDemo } from './lib/neuro-demo-peek.ts';
 import { syncJellyNavToggle, UTILITIES_FLAG_ID, type ViewToggleKey } from './components/view-toggle.ts';
 import { installGlobalReveal } from './lib/reveal.ts';
+import { installFoldSettle } from './lib/disclosure-motion.ts';
 import { isTauriShell } from './lib/instance-choice.ts';
 // The memoised instance-base load. Boot has no wiring of its own to do here (every
 // syncing entry point awaits the same promise itself) - it needs the handle only to
@@ -1445,6 +1446,7 @@ async function boot(): Promise<void> {
   hydrateSfxVolume((profile as { sfxVolume?: number }).sfxVolume);
   installGlobalSfx();
   installGlobalReveal();
+  installFoldSettle();
   // Jelly effects are opt-in (JELLY_FLAG.default is false, feature-flags.ts), so
   // the mirror below bakes the OFF default and a user's toggle is the only thing
   // that arms the bundle. There is no brand-lock reconcile any more.
