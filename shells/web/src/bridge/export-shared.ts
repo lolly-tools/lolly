@@ -215,6 +215,14 @@ export interface ExportOpts {
    *  whole page. There, one unsupported property on a container would
    *  otherwise reduce the entire capture to a screenshot. */
   elementScopedRaster?: boolean;
+  /** Page snapshots of a third-party page: where the walker would rasterise an
+   *  element itself (the raster escape hatch) or read pixels the page may not hand
+   *  over (a canvas, a video frame, an iframe), it asks this for the `<image>` href
+   *  instead. The page walk (capture/page-walk.ts) answers with a placeholder that
+   *  gives the element's box, which the capturing shell fills from a screenshot of
+   *  the same moment: exact pixels, with no CORS or Content-Security-Policy in the
+   *  way. Null means "do what you would have done". Absent for tool exports. */
+  regionImage?: (el: Element) => string | null;
   /** Reconstruct `backdrop-filter: blur()` by duplicating, clipping, and
    *  blurring the content behind the element, instead of sending it to the
    *  raster hatch (which cannot see a backdrop at all). Snapshot mode only:

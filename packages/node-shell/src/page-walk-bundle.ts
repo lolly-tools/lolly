@@ -4,10 +4,10 @@
  * walker it runs, bundled into one self-contained classic script that a capture
  * injects into a third-party page (it defines `globalThis.__lollyPageWalk`).
  *
- * Built, not committed. Every consumer has esbuild at hand when it needs the
- * script: the CLI and TUI run from source, the web build's Vite plugin calls this
- * at build time, and the MCP function bundle inlines the result when it is
- * bundled. One build per process, cached.
+ * Built, not committed. The CLI and TUI run from source and build the script on
+ * first use, once per process. The MCP function has no esbuild where it runs, so
+ * scripts/build-mcp-fn.ts builds the script at bundle time and defines it in as
+ * `__LOLLY_PAGE_WALK__`, the way it carries the rondocode stage.
  *
  * The font registry is swapped for `page-walk-fonts.ts` (see that file for why),
  * and `import.meta.env` carries the values a production Vite build gives the app.
@@ -20,10 +20,14 @@ const WEB_SRC = resolve(HERE, '../../../shells/web/src');
 export const PAGE_WALK_ENTRY = join(WEB_SRC, 'capture/page-walk.ts');
 const FONT_STUB = join(WEB_SRC, 'capture/page-walk-fonts.ts');
 
+/** The script, defined in by a bundler that built it ahead of time. Undefined from source. */
+declare const __LOLLY_PAGE_WALK__: string | undefined;
+
 let cached: Promise<string> | null = null;
 
 /** The injectable page-walk script source. Throws when esbuild is not installed. */
 export function pageWalkScript(): Promise<string> {
+  if (typeof __LOLLY_PAGE_WALK__ === 'string') return Promise.resolve(__LOLLY_PAGE_WALK__);
   cached ??= buildPageWalkScript().catch((e: unknown) => { cached = null; throw e; });
   return cached;
 }

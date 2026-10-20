@@ -75,6 +75,7 @@
     "./fonts": "./src/fonts.ts",
     "./skera.wasm": "./wasm/skera/skera.wasm",
     "./text-svg": "./src/text-svg.ts",
+    "./font-faces": "./src/font-faces.ts",
     "./svg-ir": "./src/svg-ir.ts",
     "./render-integrity": "./src/render-integrity.ts",
     "./url-capture": "./src/url-capture.ts",

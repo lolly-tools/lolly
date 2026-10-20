@@ -658,6 +658,15 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   /** Top-layer boxes met during the walk, painted after it (see visitSvgNode). */
   const topLayerQueue: Element[] = [];
   const inTopLayerPass = new Set<Element>();
+  /** The `<image>` for a page snapshot's region placeholder, on the element box. */
+  const regionImageEl = (href: string, x: number, y: number, w: number, h: number): Element => {
+    const im = document.createElementNS(NS, 'image');
+    im.setAttribute('href', href);
+    im.setAttribute('x', String(n2(x))); im.setAttribute('y', String(n2(y)));
+    im.setAttribute('width', String(n2(w))); im.setAttribute('height', String(n2(h)));
+    im.setAttribute('preserveAspectRatio', 'none');
+    return im;
+  };
   /** A top-layer box's ::backdrop: one viewport-sized rect of its colour. A
    *  backdrop-filter on it is not reconstructed, and the log says so. */
   const emitBackdrop = (el: Element): void => {
@@ -1492,8 +1501,13 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       // renderSvgFromHtml is the shipping SVG/PDF/EMF/EPS path for every tool in
       // every profile. Snapshot-specific behaviour stays behind the flag.
       const scoped = opts.elementScopedRaster === true;
-      try { dataUrl = await rasterizeNodeToDataUrl(el as HTMLElement, pxW, pxH, undefined, opts._imprintSink, scoped); }
-      finally { el.style.opacity = prevOpacity; }
+      // A page snapshot's host has the pixels already: ask it before re-rendering.
+      const region = opts.regionImage?.(el) ?? null;
+      if (region) { dataUrl = region; el.style.opacity = prevOpacity; }
+      else {
+        try { dataUrl = await rasterizeNodeToDataUrl(el as HTMLElement, pxW, pxH, undefined, opts._imprintSink, scoped); }
+        finally { el.style.opacity = prevOpacity; }
+      }
       if (dataUrl) {
         _host?.log?.('info', `svg: rasterised <${tag}> ${scoped ? 'own paint' : 'subtree'} (unsupported ${rasterReason})`);
         const img = document.createElementNS(NS, 'image');
@@ -2093,7 +2107,12 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       const twin = typeof (el as VectorTwinCanvas).__lollyVectorTwin === 'function'
         ? await vectorTwinEl(el as HTMLCanvasElement, () => `tw${++uid}-`)
         : null;
-      if (twin) {
+      const region = twin ? null : opts.regionImage?.(el) ?? null;
+      if (region) {
+        // A page snapshot reads the canvas off the screen: a WebGL canvas without a
+        // preserved buffer reads back blank, and a tainted one throws.
+        contentG.appendChild(regionImageEl(region, x, y, w, h));
+      } else if (twin) {
         // Placed on the element box with the raster branch's exact geometry and
         // stretch semantics, so swapping raster for vector cannot move a pixel.
         twin.setAttribute('x', String(n2(x))); twin.setAttribute('y', String(n2(y)));
@@ -2116,6 +2135,15 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       } catch (e) {
         _host?.log?.('warn', `svg: <canvas> could not be read (tainted?) - ${(e as Error).message}`);
       }
+    }
+
+    // ── Replaced content a page snapshot can only see on screen ──────────────
+    // A video frame, an iframe or an embedded object: the walker cannot read them
+    // (a cross-origin document, a frame the page never exposes), so a page
+    // snapshot's host fills the box from its screenshot. Tool exports skip them.
+    if (opts.regionImage && (tag === 'video' || tag === 'iframe' || tag === 'embed' || tag === 'object')) {
+      const region = opts.regionImage(el);
+      if (region) contentG.appendChild(regionImageEl(region, x, y, w, h));
     }
 
     // ── Form controls ────────────────────────────────────────────────────────
