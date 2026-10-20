@@ -10,10 +10,14 @@
  * What the mode means (each shell picks its own default):
  *   'profile' - embed the active profile's tools + catalog, as materializeInto
  *               writes them.
- *   'neutral' - the community/app-store build: the lolly-start TOOLSET
- *               (community ∪ brands/lolly-start/tools, resolved independently
- *               of whichever profile is active here) plus a ~1 MB neutral
- *               catalog seed - the
+ *   'neutral' - the community/app-store build: one public SEED profile's
+ *               toolset (community plus that brand's tools, resolved by name,
+ *               independently of whichever profile is active here) plus a
+ *               lean catalog seed. Each shell chooses its seed (`seedProfile`):
+ *               the desktop app ships lolly-demo, whose index lists the blank
+ *               starter as a companion design system so a new person can
+ *               switch to it; the mobile app ships lolly-start. The seed is
+ *               the
  *               generated tool index, the asset index filtered to the entries
  *               whose bytes ride along, and those bytes - plus the tool
  *               gallery previews/ so the gallery paints on first run offline.
@@ -94,14 +98,21 @@ function copyTreeDereferenced(src, dest) {
   }
 }
 
-/** The blank brand's content roots, asked for by NAME rather than taken from
+/** Public brands a neutral build may seed from. Both live in this repository and
+ *  are safe to ship in a public binary; a private brand (suse) never is. */
+export const SEED_PROFILES = ['lolly-start', 'lolly-demo'];
+
+/** The seed brand's content roots, asked for by NAME rather than taken from
  *  whichever profile is active on this machine: the neutral build is the
  *  community/app-store artifact and must be the same whoever builds it. The
  *  resolver applies the profile's pack order, its exclusions and the overlay
  *  (`extends`) union, so the neutral embed no longer has to refuse an overlay
  *  tool - it composes one the same way dist and the CLI do. */
-function neutralRoots() {
-  return contentRoots({ profile: 'lolly-start' });
+function neutralRoots(seedProfile = 'lolly-start') {
+  if (!SEED_PROFILES.includes(seedProfile)) {
+    throw new Error(`seedProfile must be one of ${SEED_PROFILES.join(', ')}, got '${seedProfile}'`);
+  }
+  return contentRoots({ profile: seedProfile });
 }
 
 /** Write one composed tool into dist/tools/<id>, manifest first so an overlay
@@ -153,7 +164,7 @@ function copyNeutralCatalog(roots, outDir) {
  * against the ACTIVE profile (the neutral mode is a build concern); in production
  * they are written into dist/ so the Tauri WebView can reach them offline.
  */
-export function bundleRepoDirs({ outDirDefault, mode }) {
+export function bundleRepoDirs({ outDirDefault, mode, seedProfile }) {
   return {
     name: 'bundle-repo-dirs',
     configureServer(server) {
@@ -187,9 +198,9 @@ export function bundleRepoDirs({ outDirDefault, mode }) {
         materializeInto(outDir);
         return;
       }
-      // neutral: the blank-brand tool set + the seed catalog, asked for by profile
+      // neutral: the seed brand's tool set + its seed catalog, asked for by profile
       // name, so whichever brand is active here does not change the artifact.
-      const roots = neutralRoots();
+      const roots = neutralRoots(seedProfile);
       for (const id of toolDirs(roots).keys()) copyToolTree(id, roots, outDir);
       copyNeutralCatalog(roots, outDir);
       // The docs narration was removed on 2026-10-08, but a public/info built
@@ -267,8 +278,21 @@ export function assertDistState({ outDirDefault, mode }) {
         mustNot('catalog/assets/lolly/modules', 'excluded asset family (NEUTRAL_EXCLUDED_ASSET_PREFIXES)');
         mustNot('info/audio', 'the removed docs narration must not embed');
         mustNot('info/audio-index.json', 'the removed docs narration playlist must not embed');
-        must('catalog/assets/lolly/tokens/brand.json', 'the neutral brand tokens are the point of the seed');
         const index = JSON.parse(readFileSync(join(outDir, 'catalog/assets/index.json'), 'utf8'));
+        // The seed brand's own design system is the point of the seed: the tokens
+        // asset its index names as `brandTokens`, or for an index that names none,
+        // the blank starter's lolly/tokens/brand.
+        const head = typeof index.brandTokens === 'string' ? index.brandTokens : 'lolly/tokens/brand';
+        const headAsset = index.assets.find((a) => a.id === head);
+        if (!headAsset) throw new Error(`neutral seed: the brand tokens asset ${head} is not in the embedded index`);
+        // A companion design system must be readable offline: either an embedded
+        // asset of this catalog or the starter every build bundles (starter.ts).
+        for (const companion of index.companionDesignSystems ?? []) {
+          if (companion.tokens === 'lolly/tokens/brand') continue;
+          if (!index.assets.some((a) => a.id === companion.tokens)) {
+            throw new Error(`neutral seed: companion design system ${companion.tokens} is not in the embedded index`);
+          }
+        }
         for (const asset of index.assets) {
           for (const fmt of asset.formats ?? []) {
             if (fmt.url?.startsWith('/catalog/') && !existsSync(join(outDir, 'catalog', fmt.url.slice('/catalog/'.length)))) {
