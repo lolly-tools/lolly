@@ -241,13 +241,19 @@ The **Type roles** panel at the foot shows a live specimen of each role - body a
 
 ## Tokens
 
-The rest of the design system, editable without touching code:
+Tokens are the named values behind the design system: colours, typefaces, logos, corners and spacing. Tools read them by name, so a change here reaches every tool at once.
 
-![The Tokens room - a corner-radius slider plus spacing, sizing, shadows and the rest of the system](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
+![The Tokens room - a tile for each kind of token, then the colour pairs and swatches](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
-- **Rounded corners** - a single radius slider (0–1.5rem) that cards, buttons and panels across the app follow.
-- **Neutrals** - the ink-through-paper ramp a fresh install ships with, listed as **Neutrals · starter · 9** with its nine steps and an **Open** into the Colours pane. It is the one place the starter neutrals are managed, and the *starter* tag goes the moment the ramp is generated rather than inherited.
+- **The head** says what tokens are, gives an example from your own system (*Primary is Spearmint, #033633*) and carries the file actions. **Download** saves the whole system as design tokens (JSON), or the palette as CSS variables, CSS classes, SCSS, a GIMP palette or an Adobe Swatch Exchange file. **Copy CSS** copies the palette as CSS variables, and **Add from…** reads a JSON file back in.
+- **Tiles** count each kind of token and jump to its section: Colours, Type, Logos, Shape and spacing, More and All tokens. On a phone they are one row you can scroll sideways.
+- **Colours** starts with the pairs tools put together (text on surface, on primary, muted on surface) and their APCA Lc readout, in light and in dark. Every colour group follows. A ramp is one row of chips; every other colour is a row with its value and a **Copy** for its reference, such as `{color.brand.spearmint}`. A fresh system's ink-through-paper ramp shows as **Neutrals · starter · 9**, and **Edit in Colours** opens that group in the Colours room.
+- **Type** and **Logos** list the face for each role and each logo slot, with a door into the room that edits them.
+- **Shape and spacing** holds the two sliders the app and every tool follow: **Rounded corners** (`shape.radius`) and **Spacing rhythm** (`space.base`). Each reads *Lolly default* until you move the slider and *Yours* after. A move is saved straight away and can be undone from the room's head.
 - **More tokens** - add and edit **spacing**, **sizing**, **stroke width**, **opacity**, **rotation**, plain **numbers** and **shadows**. Pick a type, name it (*Gutter, Card shadow…*) and set its value. These are stored as standard [design tokens](/info/design-tokens.html) (DTCG) and travel with the design system.
+- Two folds stay closed until you open them. **App appearance (advanced)** lists the colours, sizes and shadows Lolly's own screens use. **Inspect every token (advanced)** searches, filters and edits any token's stored value, and shows each change for review before it applies.
+
+A section with nothing in it says what is missing and offers the way to fill the gap: **Pick a colour**, **Choose a face** or **Add a logo**. A system with no colour, face or logo yet shows one card with all three doors.
 
 ## Files
 
