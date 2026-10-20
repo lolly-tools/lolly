@@ -758,7 +758,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     write: key === 'radius' ? withRadiusToken : withSpaceToken,
     cssVar: key === 'radius' ? '--radius' : '--space',
     undo: () => (key === 'radius' ? t('Rounded corners') : t('Spacing rhythm')),
-    paint: key === 'radius' ? (el, css) => { el.style.borderRadius = css; } : (el, css) => { el.style.setProperty('--brand-space-preview', css); },
+    paint: key === 'radius' ? (el, css) => { el.style.borderTopLeftRadius = css; } : (el, css) => { el.style.setProperty('--brand-space-preview', css); },
     slider: $<HTMLInputElement>(`[data-be-${key}-slider]`),
     preview: $(`[data-be-${key}-preview]`),
     valueEl: $(`[data-be-${key}-value]`),

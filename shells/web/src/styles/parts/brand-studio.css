@@ -77,23 +77,28 @@
 /* ── Corner style - the shape.radius slider, a .be-panel on the studio's
       Tokens tab (the Dashboard shows the value read-only, without this). */
 .brand-radius-row { display: flex; align-items: center; gap: var(--sp-6); margin-top: 0.2rem; }
+/* One rounded corner, not four: a 32px square with every corner at 1rem is a
+   circle, which reads as a dot rather than a corner. */
 .brand-radius-preview {
   flex: 0 0 auto;
   width: 32px;
   height: 32px;
   background: hsl(var(--primary) / 0.55);
   border: 0;
+  border-radius: 0;
   box-shadow: 0 2px 3px #0002;
 }
 /* accent-color dropped - parts/fields.css's `:where(input[type=range])` baseline
    supplies the identical `hsl(var(--primary))` and dresses the track/thumb too.
    Nothing here sets height/appearance, so that baseline lands unopposed. */
 .brand-radius-slider { flex: 1 1 auto; min-width: 0; }
-.brand-radius-value {
+/* Both dials share one value column, so the two tracks end at the same x. */
+.brand-radius-value,
+.brand-space-value {
   flex: 0 0 auto;
   min-width: 7.5ch;
   font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: var(--fs-md);
+  font-size: var(--fs-sm);
   color: hsl(var(--muted-foreground));
   text-align: right;
 }
@@ -107,7 +112,6 @@
 }
 .brand-space-preview i { display: block; flex: 0 0 4px; height: 100%; background: hsl(var(--primary)); border-radius: calc(var(--radius) * .2); }
 .brand-space-slider { flex: 1 1 auto; min-width: 0; }
-.brand-space-value { flex: 0 0 auto; min-width: 7.5ch; font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--fs-sm); }
 
 /* Derive: the Primary picker leads full-width, then controls + live preview. */
 .be-derive { display: grid; gap: 1.1rem; }
