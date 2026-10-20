@@ -132,15 +132,11 @@ export const CLEAR_CONFIRM_WORDS = ['lolly', 'open', 'free', 'privacy', 'choice'
 // so the two word pools never overlap. Kept short + lowercase for easy typing.
 export const HOARD_CONFIRM_WORDS = ['hoard', 'mine', 'stash', 'vault', 'archive', 'homeward', 'liberate', 'agency', 'to the drive', 'own it', 'my data', 'keep it all'];
 
-// Chevron for a collapsible section's summary (rotates 90° when open via CSS).
+// Chevron for a nested fold inside a card: a group, a row, the sync choices and the
+// feature-flag clusters (rotates 90° when open via CSS). The cards themselves are the
+// collapsible section card (parts/disclosure.css), whose head draws its own caret.
 // Path data lives in lib/icons.ts as 'chevronRight' - was a <polyline>, same shape as
 // the (deduped) <path> chevrons in gallery.ts/projects.ts (component-audit rec 5).
-// `section-card-chev`/`-summary`/`-title`/`-body` ride alongside every
-// `profile-collapse-*` class below - the shared fold primitive's sub-part
-// names (disclosure.css, component audit rec 7). profile.css's own, more
-// specific `.profile-view .profile-collapse …` rules still govern every
-// pixel (this is prep for a later pass that thins profile.css onto the
-// primitive, not a visual change today).
 export const COLLAPSE_CHEV = icon('chevronRight', { size: 16, strokeWidth: 2.5, className: 'profile-collapse-chev section-card-chev' });
 // Shield-with-check - the same glyph the gallery's green Verify button uses (deduped
 // against footer-nav.ts's identical NAV_ICONS.shield as 'shieldCheck').
@@ -205,13 +201,14 @@ export function visibleProfileSections(): ReadonlyArray<ProfileNavSection> {
   return NAV_SECTIONS.filter(s => s.id !== 'hotfolder-section' || isTauriShell());
 }
 
-// One collapsed card header: the section title, a short right-aligned value
-// preview, then the chevron (plans/163 section 4.1). The value is what turns a
-// page of folded cards into a dashboard - sections whose numbers need a lazy
-// load render it empty and fill it in through setSummary() when that load
-// returns, so nothing here waits on first paint.
+// One collapsed card header: the section title and a short right-aligned value
+// preview (plans/163 section 4.1), in the collapsible section card's head
+// (parts/disclosure.css), which draws the caret. The value is what turns a page
+// of folded cards into a dashboard - sections whose numbers need a lazy load
+// render it empty and fill it in through setSummary() when that load returns, so
+// nothing here waits on first paint.
 export const summaryRow = (id: string, title: string, value = ''): string =>
-  `<summary class="profile-collapse-summary section-card-summary"><h2 class="section-card-title">${title}</h2><span class="profile-summary-value" data-summary="${id}">${value}</span>${COLLAPSE_CHEV}</summary>`;
+  `<summary class="profile-collapse-summary section-card-summary"><h2 class="section-card-title">${title}</h2><span class="profile-summary-value section-card-value" data-summary="${id}">${value}</span></summary>`;
 
 // One group header inside the Connected services card (Cloud storage, Posting,
 // Design apps, Sync across devices): the same title, value and chevron as

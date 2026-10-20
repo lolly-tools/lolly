@@ -12,7 +12,6 @@ import { presentApis } from '@lolly-tools/core/host-v1';
 import { currentLang, t, tRaw } from '../../i18n.ts';
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import { playSfx } from '../../lib/sfx.ts';
-import { staggerReveal } from '../../lib/reveal.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { icon, type IconName } from '../../lib/icons.ts';
 import { groupSummaryRow, rowSummaryRow } from './shared.ts';
@@ -208,7 +207,6 @@ export async function loadOffline(pv: ProfileViewCtx) {
       </details>
       </div>
       <p class="odl-persist" id="odl-persist" hidden></p>`;
-  staggerReveal([...body.children], { sound: false });
 
   // A folded group's value: how many of its items are downloaded.
   const setGroupValue = (group: string, n: number, total: number): void => {
