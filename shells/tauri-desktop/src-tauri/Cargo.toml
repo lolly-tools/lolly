@@ -111,6 +111,11 @@ zbus = { version = "5", default-features = false, features = ["tokio"] }
 # WebKit's supplied window configuration and shared media/opener relationship.
 objc2 = "0.6"
 objc2-web-kit = { version = "0.3", default-features = false, features = ["std", "WKUserContentController", "WKWebViewConfiguration"] }
+# The native frame (plans/321): the title-bar double-click, recent documents
+# and the Dock menu. Same versions Wry and tao already build, so nothing new is
+# fetched; only the headers named here are compiled.
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSString", "NSURL", "NSUserDefaults"] }
+objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSApplication", "NSDocumentController", "NSMenu", "NSMenuItem", "NSResponder", "NSWindow"] }
 
 [patch.crates-io]
 glib = { path = "../../../vendor/glib" }

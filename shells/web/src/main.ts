@@ -1246,6 +1246,11 @@ async function boot(): Promise<void> {
   if ('__TAURI_INTERNALS__' in window) {
     void import('./lib/app-menu.ts').then(m =>
       m.initAppMenu(host as unknown as Parameters<typeof m.initAppMenu>[0]));
+    // macOS unified title bar: the top band moves the window (plans/321 M1).
+    // A no-op unless the shell stamped html[data-native-titlebar="mac"].
+    if (document.documentElement.dataset.nativeTitlebar === 'mac') {
+      void import('./lib/native-titlebar.ts').then(m => m.initNativeTitlebar());
+    }
     // The desktop integration poll loop (lolly:// links, double-clicked .lolly
     // files, tray/search activations) is installed further down, after the first
     // navigate has resolved - see the drop-router block there.

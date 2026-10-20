@@ -1,0 +1,54 @@
+/* ── macOS unified title bar (plans/321 M1) ────────────────────────────────────
+   The desktop app on a Mac draws its window buttons over the page instead of
+   in a title bar of their own (tauri.conf.json: titleBarStyle Overlay,
+   hiddenTitle), so the web top row and the buttons share one band. The shell stamps
+   html[data-native-titlebar="mac"] before the first paint (an initialization
+   script in presentation_windows.rs). Every rule below is gated on that
+   attribute, so the web build, iOS, Linux and Windows never match one and
+   compute byte-identically.
+
+   The buttons sit at x 18-70 and are centred on the top row (trafficLightPosition
+   in tauri.conf.json is tuned to --chrome-top + --chrome-h / 2). Views whose
+   top-left corner is empty (the galleries) need nothing. The rest move their
+   first control clear of the buttons: a floating back pill slides right, and a
+   sidebar starts its first row below them, the way Finder and Notes do. */
+html[data-native-titlebar="mac"] {
+  /* Where the first web control may start on the top row. */
+  --titlebar-inset: 84px;
+}
+
+/* The floating back pill (profile, docs, verify, colour lab, ask, dashboard). */
+html[data-native-titlebar="mac"] .chrome-topleft {
+  left: calc(var(--titlebar-inset) + var(--vv-left, 0px));
+}
+
+/* Inside the Design bar the pill is an inline control, so the bar itself makes
+   the room. The bar spans the stage from the window's left edge. */
+html[data-native-titlebar="mac"] .design-topbar {
+  padding-inline-start: var(--titlebar-inset);
+}
+/* That room comes out of the bar's width, and the back pill is the first flex
+   item to shrink: hold it at its natural width so its label stays on one line. */
+html[data-native-titlebar="mac"] .design-topbar .chrome-topleft {
+  flex: none;
+}
+
+/* The tool sidebar: its first row (back pill, Home, undo/redo) fills the
+   column's width, so it moves down under the buttons instead of across. */
+html[data-native-titlebar="mac"] .sidebar-back-row {
+  margin-top: calc(var(--chrome-h) - 4px);
+}
+
+/* Batch and Set up your brand keep their back control in the page flow. */
+html[data-native-titlebar="mac"] .pro-back,
+html[data-native-titlebar="mac"] .start-back-row {
+  margin-inline-start: calc(var(--titlebar-inset) - 16px);
+}
+
+/* Narrow windows: the gallery's centred toggle and right cluster become one
+   left-anchored row (parts/topbar.css), which would start under the buttons. */
+@media (max-width: 640px) {
+  html[data-native-titlebar="mac"] .gallery-topbar {
+    left: calc(var(--titlebar-inset) + var(--safe-left) + var(--vv-left, 0px));
+  }
+}
