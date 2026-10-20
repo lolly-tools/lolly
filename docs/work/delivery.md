@@ -1,7 +1,7 @@
 # Outbound delivery
 
 Outbound delivery sends one finished Lolly export to a fixed destination owned by the
-organization. Three open adapters cover object storage, sovereign file servers and a small
+organization. Brandfolder and Cloudinary adapters cover fixed DAM destinations. Three open adapters cover object storage, sovereign file servers and a small
 receiver protocol: generic S3-compatible storage (AWS S3, MinIO, Ceph RGW, Garage, UpCloud),
 WebDAV (including Nextcloud/ownCloud), and HMAC-signed HTTPS.
 
@@ -15,7 +15,7 @@ registries and secrets stay separate.
 - Personal send targets stay on the person's device. Work cannot inspect, disable, redirect,
   credential, or select them.
 - Organization destinations contain organization credentials on the server. A shell receives
-  only `{id, kind, label, formats, maxBytes, visibility}` after group and RBAC filtering.
+  only `{id, kind, label, formats, maxBytes, visibility, projectFiles?}` after group and RBAC filtering.
 - Organization destinations cannot become a person's automatic export home.
 - No destination is configured by default; absence means zero outbound delivery.
 - A manual send is explicit. Automation may publish only its own completed, immutable render
@@ -23,8 +23,9 @@ registries and secrets stay separate.
   arbitrary BlobStore key.
 - The connected shell presents organization targets beside personal ones. An organization S3
   target cannot replace a person's S3 connection, and a person's connector preference cannot
-  withdraw an organization target. Organization targets accept fresh exports only, never an
-  arbitrary catalog asset, and the shell requests a Content Credential on the exact sent bytes.
+  withdraw an organization target. Export sends require a Content Credential on the exact sent
+  bytes. DAM destinations may explicitly accept a verified shared-project original through
+  `projectFiles: true`; local and federated catalog assets do not gain this authority.
 - S3 is an open protocol adapter, not a privileged hosted service. A deploy brings its own
   endpoint, bucket and key and can leave without migrating a Lolly-specific representation.
 
@@ -134,6 +135,118 @@ digest yields `transformation: "none"`; a different digest is recorded as
 `"provider-managed"`; no digest stays honestly `"unknown"`. Work does not offer a revoke for
 this protocol because it has no safe universal delete contract.
 
+## Configure Brandfolder writes
+
+Use a separate write credential, even when Brandfolder is already a catalog source. The existing
+read-only source does not grant delivery permission. Configure one existing Brandfolder and file
+section per destination:
+
+```json
+{
+  "id": "brandfolder-campaigns",
+  "kind": "brandfolder",
+  "label": "Brandfolder campaigns",
+  "credentialRef": "LW_DESTINATION_BRANDFOLDER",
+  "enabled": true,
+  "groups": ["brand"],
+  "formats": ["png", "jpg", "pdf"],
+  "projectFiles": true,
+  "options": {
+    "brandfolderId": "your-brandfolder-id",
+    "sectionId": "your-section-id",
+    "visibility": "private",
+    "uploadOrigins": ["https://your-qualified-upload-origin.example"],
+    "downloadOrigins": ["https://your-qualified-original-origin.example"]
+  }
+}
+```
+
+The referenced environment variable holds the Brandfolder API token. Supply exact HTTPS storage
+origins observed and qualified for your tenant; the example origins are placeholders. API and
+upload redirects are refused. Original readback follows at most three redirects, checking the
+exact download origin at every hop without API credentials. Bearer credentials go only to `https://brandfolder.com/api/v4`, never to storage.
+`visibility` declares the existing Brandfolder's access policy; it does not change that policy.
+Requalify it when administrators change remote access.
+
+The adapter follows [Brandfolder Binary Upload](https://developer-bak.brandfolder.com/binary_upload/):
+request a temporary upload ticket, PUT the original, then create one asset in the pinned section.
+Brandfolder's temporary object URL is accessible to its importer and is vendor-managed; its docs
+state that upload URLs expire after 24 hours and temporary objects after seven days. Work never
+publishes its own source blob or returns those temporary URLs to the shell.
+
+A private progress record is saved before creation and again with the created asset ID. Processing
+or verification failures retry that known asset, without uploading or creating it again. If the
+create response is lost, Brandfolder documents no idempotency key: the delivery stops with an
+uncertain-outcome message. An operator must reconcile the asset before another create is attempted.
+Do not create a fresh delivery just to bypass that message. This adapter never updates, replaces,
+moves or deletes an existing Brandfolder asset and does not assign collection membership.
+
+## Configure Cloudinary writes
+
+This first adapter stores authenticated **raw** originals in an explicitly declared dynamic-folder
+product environment. It does not generate image/video renditions or publish a public CDN URL.
+
+```json
+{
+  "id": "cloudinary-originals",
+  "kind": "cloudinary",
+  "label": "Cloudinary originals",
+  "credentialRef": "LW_DESTINATION_CLOUDINARY",
+  "enabled": true,
+  "groups": ["brand"],
+  "formats": ["png", "jpg", "svg", "pdf", "mp4"],
+  "maxBytes": 67108864,
+  "projectFiles": true,
+  "options": {
+    "cloudName": "your-cloud",
+    "region": "eu",
+    "folderMode": "dynamic",
+    "assetFolder": "campaigns",
+    "publicIdPrefix": "lolly-deliveries"
+  }
+}
+```
+
+The secret is JSON `{ "apiKey": "...", "apiSecret": "..." }`, used only on the server.
+Regions are `us` (default), `eu` and `ap`. The folder and public-ID prefix are separately pinned:
+`asset_folder` does not imply a public-ID path in dynamic-folder mode. Fixed-folder tenants are
+not supported by this first writer. Keep the delivery ceiling at or below 64 MiB; chunked uploads
+are outside this adapter.
+
+Uploads use an operation-specific public ID, `type=authenticated` and `overwrite=false`. A retry
+first looks up that ID through the Admin API. Existing bytes are accepted only when destination,
+operation markers and the original download digest all match; an ID collision is never replaced.
+Only the delivery ID and SHA-256 are added as reconciliation context. No source tags, approval,
+private notes, prompts or other organization fields are copied. The adapter sends no upload preset,
+eager/incoming transformation, moderation, AI/add-on or URL-import parameters. Qualify tenant-wide
+processing settings separately. See the [Upload API](https://cloudinary.com/documentation/image_upload_api_reference)
+and [folder modes](https://cloudinary.com/documentation/folder_modes).
+
+Both DAM adapters read the stored original back, with a byte ceiling, and compare SHA-256 before
+issuing a delivered receipt. A successful fixture run is not live vendor qualification: before
+enabling a destination, use a dedicated test section/folder to qualify credentials, tenant settings,
+readback, access, processing latency and timeout recovery.
+
+### Send a shared original
+
+With `projectFiles: true` on a DAM destination, the Assets view offers that destination when the
+selected asset is a shared-project original. The shell POSTs an empty body to
+`/api/v1/destinations/:id/deliveries?projectId=...&fileId=...&checksum=...`.
+No `name` or `format` override is accepted. The server reads the ready file, verifies every stored
+part and its whole digest, and derives the format from bytes with the stored filename as fallback.
+The destination allowlist and byte ceiling apply. No browser download/upload round trip is needed.
+
+The original stays in its project. Work stages an immutable private copy for retry, retaining the
+source selector only on the server. The configured submit scan hook runs before provider egress,
+using the same reject/error policy as catalog admission. No hook means no scan was performed.
+The source person's current project access, account status, destination grants and configuration
+are checked again before egress, after scanning, on retry and after any human approval. Service
+tokens cannot select project originals. The destination's access rules apply separately from the
+source project; sending an original does not copy its project permissions or approval state.
+
+Raw-body and automation-output routes continue to require genuine signed Lolly exports. This
+capability does not make arbitrary catalog or device bytes eligible for governed publishing.
+
 ## Delivery lifecycle
 
 The raw body is accepted only when it carries Lolly's C2PA export assertion. Before provider
@@ -146,7 +259,10 @@ awaiting-approval --approve--> queued -> delivering -> delivered
 ```
 
 The record binds the destination version, name, format, MIME, size and SHA-256. Those facts are
-immutable in both memory and Postgres stores. A retry uses the staged bytes and the same S3 key:
+immutable in both memory and Postgres stores. Attempts are claimed atomically across replicas,
+so concurrent retries cannot both execute. A process interrupted while `delivering` remains held
+for operator reconciliation; it is not automatically taken over by another worker. For S3, a retry
+uses the staged bytes and the same key:
 
 ```text
 <prefix>/<delivery-id>/<sha256-prefix>-<safe-filename>.<format>
