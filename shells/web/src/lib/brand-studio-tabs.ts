@@ -727,8 +727,9 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
    *  a host without it leaves the rows text-only. The bridge caches each URL. */
   const logoUrls = new Map<string, Promise<string>>();
   const paintLogos = async (): Promise<void> => {
-    const read = (ctx.host.assets as unknown as { _getCurrent?: (id: string) => Promise<{ url?: string }> })?._getCurrent;
-    if (typeof read !== 'function') return;
+    const assets = ctx.host.assets;
+    if (!assets || !('_getCurrent' in assets) || typeof assets._getCurrent !== 'function') return;
+    const read = assets._getCurrent as (id: string) => Promise<{ url?: string }>;
     for (const slot of main.querySelectorAll<HTMLElement>('[data-tk-logo]')) {
       const id = slot.dataset.tkLogo ?? '';
       if (!id) continue;
