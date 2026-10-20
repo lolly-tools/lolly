@@ -71,7 +71,7 @@ export async function resetDesignSystem(host: ResetHost, id: string, opts: Switc
     lastUsedAt: Date.now(),
   };
   await registry.put(reset);
-  await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0],
+  await installUserTokens(host,
     withDesignSystemIdentity(stripVersionIndex(doc), { id: reset.id, label: reset.label }), { system: reset.id, label: reset.label });
   host.tokens?.bust?.({ lock: true });
   // The active system's colours, type and logos just changed under the page.
