@@ -50,7 +50,7 @@
   display: grid; grid-template-columns: minmax(0, 1fr) auto;
   align-items: center; column-gap: var(--sp-3); padding: var(--sp-2) 0;
 }
-.cat-swatch-notation + .cat-swatch-notation { border-block-start: 1px solid var(--ui-color-border-default); }
+.cat-swatch-notation + .cat-swatch-notation {    border-block-start: 1px solid color-mix(in srgb, var(--ui-color-border-default) 15%, transparent); }
 .cat-swatch-space { grid-column: 1; grid-row: 1; color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); font-weight: 600; }
 .cat-swatch-notation code { grid-column: 1; grid-row: 2; min-width: 0; overflow-wrap: anywhere; }
 .cat-swatch-notation .cat-swatch-copy { grid-column: 2; grid-row: 1 / span 2; }
