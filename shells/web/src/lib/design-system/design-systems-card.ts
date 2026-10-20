@@ -23,6 +23,7 @@ import { brandFontStack, tokenValueToHex, SWATCH_INK } from '../../brand-vars.ts
 import type { DesignSystemRecord } from './registry.ts';
 import { createDesignSystem, type ManageHost } from './manage.ts';
 import { hideShippedDesignSystem, prepareDesignSystemRemoval, removeAndSwitchDesignSystem } from './remove-coordinator.ts';
+import { resetDesignSystem, resetKind } from './reset.ts';
 import { switchDesignSystem, type SwitchHost } from './switch.ts';
 import { showUndoToast } from '../undo-toast.ts';
 import { catalogSourceHtml, catalogSourceLabel } from './catalog-source.ts';
@@ -156,6 +157,7 @@ export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, by
         ${removable || r.locked ? `<details class="ds-row-more"><summary aria-label="${escape(tRaw('More actions for {name}', { name: r.label }))}">${icon('menu', { size: 16 })}</summary><div class="ds-row-menu">
           ${r.source.kind === 'hosted' ? `<button type="button" data-ds-act="refresh">${icon('refresh', { size: 16 })}${t('Check for updates')}</button>` : ''}
           ${r.locked ? `<button type="button" data-ds-act="fork">${icon('duplicate', { size: 16 })}${t('Make an editable copy')}</button>` : ''}
+          ${resetKind(r) ? `<button type="button" data-ds-act="reset">${icon('undo', { size: 16 })}${t('Reset to original')}</button>` : ''}
           ${removable ? `<button type="button" class="ds-row-remove" data-ds-act="remove">${icon('trash', { size: 16 })}${t('Remove')}</button>` : ''}
         </div></details>` : '<span class="ds-row-more-placeholder" aria-hidden="true"></span>'}
       </div>
@@ -269,8 +271,20 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
         const res = await removeAndSwitchDesignSystem(host, id, reviewed, { route: 'profile' });
         const status = res.catalogStatus === 'cached'
           ? t('Removed from this device. The catalogue could not refresh; cached material remains until you reconnect.')
-          : t('Removed. “{name}” is active.', { name: res.fallback.label });
+          : res.wasActive ? t('Removed. “{name}” is active.', { name: res.fallback.label }) : t('Removed.');
         announce(body, status + (res.kept ? ' ' + t('{n} shared assets were kept.', { n: res.kept }) : ''));
+      }
+      if (act === 'reset' && id) {
+        const record = await host.designSystems.get(id);
+        const ok = await confirmDialog({
+          title: t('Reset “{name}”?', { name: record?.label ?? id }),
+          message: t('Changes made here are discarded and “{name}” goes back to how it came with this app. Saved sessions and personal uploads stay.', { name: record?.label ?? id }),
+          confirmLabel: t('Reset'),
+          danger: true,
+        });
+        if (!ok) return;
+        const original = await resetDesignSystem(host, id, { route: 'profile' });
+        announce(body, t('“{name}” is back to the original.', { name: original.label }));
       }
       if (act === 'refresh' && id) {
         const { refreshHostedDesignSystem } = await import('./hosted.ts');

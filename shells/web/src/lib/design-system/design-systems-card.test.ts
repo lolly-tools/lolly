@@ -174,7 +174,7 @@ test('removing an imported catalogue copy explains the fallback and retains its 
   await renderDesignSystemsCard(body, { designSystems: reopened, assets } as never);
   assert.equal(body.querySelector('[data-ds-row="copy"]'), null);
   const supplied = body.querySelector('[data-ds-row="shipped"].is-active')!;
-  assert.match(supplied.textContent ?? '', /Managed by this instance/);
+  assert.match(supplied.textContent ?? '', /Came with this app/, 'an unlocked deployment brand is not managed');
   assert.match(supplied.textContent ?? '', /https:\/\/lolly.tools/);
   assert.match(supplied.textContent ?? '', /acme\/tokens\/brand/);
   assert.match(supplied.textContent ?? '', /Asset namespace\s*acme\//);
@@ -221,16 +221,41 @@ test('source facts report cached origin, version and checksum without claiming t
   } finally { networkStatus.offline = false; _setBaseForTests(''); }
 });
 
-// Plan 320 S10: the starter every build carries is bundled with the app, not
-// managed by an instance that lolly.tools does not have; and one colour is singular.
-test('the starter reads Bundled with this app; a deployment brand reads Managed by this instance', async () => {
+// Andy, 2026-10-20: managed means people can see the system and cannot edit it,
+// which is what a locked catalogue is. Lolly Demo, the starter and any unlocked
+// deployment brand are the person's to hide, edit and reset, so none reads as
+// managed. (Plan 320 S10 first took the label off the starter.) One colour is singular.
+test('only a locked catalogue system reads as managed; an editable one says where it came from', async () => {
   const { sourceLine, designSystemCardHtml } = await import('./design-systems-card.ts');
-  const shipped = (headId: string) => ({ id: 'shipped', label: 'X', ns: '', headId, source: { kind: 'shipped' }, locked: false, createdAt: 0, lastUsedAt: 0 }) as never;
-  assert.equal(sourceLine(shipped('lolly/tokens/brand')), 'Bundled with this app');
-  assert.equal(sourceLine(shipped('acme/tokens/brand')), 'Managed by this instance');
+  const { _setBaseForTests } = await import('../instance.ts');
+  const shipped = (headId: string, locked = false) => ({ id: 'shipped', label: 'X', ns: '', headId, source: { kind: 'shipped' }, locked, createdAt: 0, lastUsedAt: 0 }) as never;
+  assert.equal(sourceLine(shipped('lolly/tokens/demo')), 'Came with this app');
+  assert.equal(sourceLine(shipped('lolly/tokens/brand')), 'Came with this app');
+  assert.equal(sourceLine(shipped('acme/tokens/brand')), 'Came with this app');
+  assert.equal(sourceLine(shipped('acme/tokens/brand', true)), 'Managed by this instance');
+  _setBaseForTests('https://brand.example');
+  try {
+    assert.equal(sourceLine(shipped('acme/tokens/brand')), 'From this instance');
+    assert.equal(sourceLine(shipped('acme/tokens/brand', true)), 'Managed by this instance');
+  } finally { _setBaseForTests(''); }
   const one = designSystemCardHtml(records[0] as never, 'active', undefined, { font: 'x', colors: ['#000000'], colorCount: 1 });
   assert.match(one, />1 colour</);
   assert.doesNotMatch(one, /1 colours/);
+});
+
+test('Reset to original is offered on an edited Lolly Demo and on Lolly Starter, and nowhere else', async () => {
+  const { designSystemCardHtml } = await import('./design-systems-card.ts');
+  const preview = { font: 'x', colors: ['#000000'], colorCount: 1 };
+  const row = (source: unknown, locked = false) => {
+    const el = document.createElement('div');
+    el.innerHTML = designSystemCardHtml({ id: 'x', label: 'X', ns: 'user/ds/x/', headId: '', source, locked, createdAt: 0, lastUsedAt: 0 } as never, 'other', undefined, preview);
+    return el.querySelector('[data-ds-act="reset"]')?.textContent?.trim() ?? null;
+  };
+  assert.equal(row({ kind: 'local', from: 'shipped' }), 'Reset to original');
+  assert.equal(row({ kind: 'local', from: 'app' }), 'Reset to original');
+  assert.equal(row({ kind: 'local' }), null, 'a system made here has no original');
+  assert.equal(row({ kind: 'file', signature: 'unsigned' }), null);
+  assert.equal(row({ kind: 'local', from: 'app' }, true), null, 'a managed system is never edited');
 });
 
 test('the shipped row offers Remove while another system exists, and a removed one offers Bring back', async () => {
