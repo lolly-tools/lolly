@@ -24,7 +24,7 @@
   position: absolute;
   box-sizing: border-box;
   border: 0;
-  background: color-mix(in srgb, var(--ui-color-surface-raised) 92%, transparent);
+  background:color-mix(in srgb, var(--ui-color-surface-muted) 60%, var(--ui-color-surface-raised));
 
   border-bottom: 0;
   pointer-events: auto;

@@ -1527,7 +1527,7 @@ html[data-a11y-previews="hidden"] .tool-masonry:is([data-browse-layout="card"],[
    hit area, so starting fresh is as obvious as the hero's Continue. */
 /* Body fills the space under the square visual so every tile in a row is the same
    height (the grid stretches them; the body takes up the slack). */
-.gtile-body { position: relative; flex: 1 1 auto; padding-bottom:1.5rem;}
+.gtile-body { position: relative; flex: 1 1 auto; padding-bottom:32px;}
 /* The visual (preview hero / example carousel / icon-or-resume tile) is a fixed
    square and never shrinks in the flex column - so the grid stays regular. */
 .gtile > .gtile-hero,
@@ -1546,6 +1546,7 @@ html[data-a11y-previews="hidden"] .tool-masonry:is([data-browse-layout="card"],[
   display: flex;
   align-items: flex-start;
   gap: var(--sp-5);
+
 }
 .gtile-cap .tool-card-icon svg { width: 36px; height: 36px; }
 .gtile-meta { min-width: 0; flex: 1; display: flex; flex-direction: column; }
@@ -1641,8 +1642,8 @@ a.gtile-name:focus-visible::after {
   text-decoration: none;
   transition: background var(--dur-1);
   position:absolute;
-  bottom: .25rem;
-  right:.35rem;
+  bottom: 8px;
+  right:8px;
   text-transform: uppercase;
 }
 .gtile-tpl.btn:hover {
@@ -1655,7 +1656,7 @@ a.gtile-name:focus-visible::after {
   margin: 5px 0 0;
   font-size: var(--fs-sm);
   line-height: 1.45;
-  color: hsl(var(--muted-foreground) / .7);
+  color:color-mix(in srgb, var(--ui-color-surface-muted) 50%, var(--ui-color-text-default));
   /* Clamp to two lines so the caption block is a predictable height across every
      tile - the last thing that would make the grid ragged. */
   display: -webkit-box;
