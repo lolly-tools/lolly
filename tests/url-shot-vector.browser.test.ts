@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * url-shot's SVG is vector: the CLI, TUI and MCP capture (`captureUrl`, svg) walks
+ * url-shot's SVG is vector: the CLI and TUI capture (`captureUrl`, svg) walks
  * the live page into geometry instead of wrapping a screenshot in an <svg><image>.
  *
  * One fixture page holds each thing the capture has to carry over from someone
@@ -55,6 +55,8 @@ describe('url-shot SVG capture is vector', { skip: gate ?? false, concurrency: 1
     });
     page = await serve((p) => {
       if (p === '/f.woff2') return { type: 'font/woff2', body: FONT };
+      // Loads, then never gives its main thread back: no evaluation or DevTools call answers.
+      if (p === '/busy') return { type: 'text/html', body: '<!doctype html><p>Busy</p><script>addEventListener("load", () => setTimeout(() => { for (;;) {} }, 50))</script>' };
       if (p !== '/') return null;
       return {
         type: 'text/html',
@@ -116,5 +118,14 @@ describe('url-shot SVG capture is vector', { skip: gate ?? false, concurrency: 1
     const { bytes } = await captureUrl(params({ zoom: 2 }), 'svg', { width: 640, height: 400, dpi: 96 });
     const svg = new TextDecoder().decode(bytes);
     assert.match(svg, /^<svg[^>]*\swidth="640"[^>]*\sheight="400"[^>]*\sviewBox="0 0 320 200"/);
+  });
+
+  test('a page that stops answering ends the capture at the deadline instead of hanging', async () => {
+    const t0 = Date.now();
+    await assert.rejects(
+      captureUrl(params({ url: `${page.origin}/busy` }), 'svg', { width: 640, height: 400, dpi: 96 }, { deadlineMs: 4000 }),
+      /stopped answering/,
+    );
+    assert.ok(Date.now() - t0 < 20_000, 'the context closes at the deadline');
   });
 });

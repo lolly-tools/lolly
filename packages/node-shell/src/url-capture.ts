@@ -78,7 +78,11 @@ function isPrivateHost(host: string): boolean {
 }
 
 /** Per-call capture policy. `publicOnly` runs assertPublicHttpUrl first. */
-export interface CaptureOpts { publicOnly?: boolean }
+export interface CaptureOpts {
+  publicOnly?: boolean;
+  /** How long the capture may hold its browser context (default CAPTURE_DEADLINE_MS). */
+  deadlineMs?: number;
+}
 
 export interface CaptureParams {
   url: string;
@@ -317,6 +321,15 @@ function recolorCss(p: CaptureParams): string {
  * Capture `params.url` to `format` at `dims`. Returns the encoded bytes + mime.
  * Throws BrowserError with an actionable message when Chromium isn't installed.
  */
+/**
+ * The longest one capture may hold its browser context: the load (45s), the settle
+ * wait (15s), a wait selector (60s), the page walk (60s) and the screenshot, with
+ * room to spare. DevTools calls and evaluations have no timeout of their own, and
+ * a page that keeps its main thread busy (vercel.com in headless Chrome, on
+ * 2026-10-20) answers none of them, so without this a capture waited forever.
+ */
+export const CAPTURE_DEADLINE_MS = 240_000;
+
 export async function captureUrl(
   params: CaptureParams, format: string, dims: CaptureDims, opts: CaptureOpts = {},
 ): Promise<{ bytes: Uint8Array; mime: string; notes?: string[] }> {
@@ -349,6 +362,10 @@ export async function captureUrl(
     serviceWorkers: 'block',
     ...(params.contextPrefs ?? {}),
   });
+  // Closing the context ends every call still waiting on the page.
+  let stalled = false;
+  const deadline = opts.deadlineMs ?? CAPTURE_DEADLINE_MS;
+  const watchdog = setTimeout(() => { stalled = true; void ctx.close().catch(() => {}); }, deadline);
   try {
     // Runs before the page's own scripts (docs pipeline uses it to pre-dismiss
     // the first-run welcome); no-op for the end-user tool, which never sets it.
@@ -490,8 +507,12 @@ export async function captureUrl(
     }
 
     return { bytes: new Uint8Array(png), mime: fmt === 'jpg' ? 'image/jpeg' : 'image/png' };
+  } catch (e) {
+    if (stalled) throw new BrowserError(`${params.url} stopped answering, so nothing was captured within ${Math.round(deadline / 1000)}s.`);
+    throw e;
   } finally {
-    await ctx.close();
+    clearTimeout(watchdog);
+    await ctx.close().catch(() => {});
   }
 }
 
