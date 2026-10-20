@@ -52,6 +52,10 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 - `host.media.trim` takes optional `output` (`clip`, `poster` or `contact-sheet`), `image`, `sheetFrames`, `rotate`, `cut` (`exact`, `reencode` or `keyframe`), `maxShortEdge` and `targetBytes`. Shells that predate them ignore the fields; the Trim tool refuses a poster or contact sheet from such a shell instead of returning a clip. An `exact` MP4 or MOV cut between key frames stays a copy with an edit list, as before; `reencode` re-encodes the picture so nothing before the start is kept. A size limit keeps a copy that already fits and never encodes above the source's own bitrate.
 - `MediaTrimResult.report` says what happened to each source track (copied byte for byte, re-encoded with stable reason codes, or left out) and what was checked on the written bytes: sound against picture, which way up the picture is, declared colour information, displayed size and a size limit's outcome. `hiddenLeadIn` gives the picture a copy keeps before its start for players to skip. A track the user kept is never left out silently; the web shell refuses with the reason instead.
 
+## 1.273.0
+
+- No separate entry. The `host.media.trim` changes first made under this number are listed under 1.275.0.
+
 ## 1.274.0
 
 - Add optional `host.pdf.fromImages`, which builds a PDF with one PNG or JPEG per page. JPEG data is embedded without re-encoding, camera orientation is applied, and Exif, XMP, IPTC, comments and appended pictures are left out. 8-bit PNG pixels are copied without loss; 16-bit PNGs are reduced to 8 bits per channel, PNG colour profiles are not kept, and an animated PNG is refused by name. Pages are sized from the image resolution or fitted to A4 or US Letter.
@@ -124,12 +128,12 @@ Moved verbatim from the comment block that used to live in `src/index.ts`.
 
 ## 1.262.0
 
+- Preserve selected-file identity in versioned resource dependencies and collect source credentials by the exact version used in an export.
 - Design layouts state one participation rule for hidden and timed members. Only a hidden member, its hidden owners and absolute placement leave flex or grid flow. Start, duration, lane, cuts, Enter, Exit, build steps and keyframes are paint-time state, so a timed member keeps its slot at every playhead position and build step, and timing edits do no layout work.
 - A hidden layout container keeps its stored size instead of collapsing Hug sizing around the members hidden with it, matching hidden groups. Visible layouts are unchanged.
 
 ## 1.261.0
 
-- Preserve selected-file identity in versioned resource dependencies and collect source credentials by the exact version used in an export.
 - Add managed certificate enrollment, CSR and key proof validation, independently configured issuer trust, and signed certificate status checks. Existing certificate APIs keep their supported signatures.
 - Add optional personal-data sharing metadata. Generated share links review declared personal and profile-bound fields while raw URL parsing and CLI input contracts keep their existing behavior.
 - Extend signed catalog resource verification to published previews and dependent tool files.
