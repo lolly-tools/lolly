@@ -328,7 +328,7 @@ test('design-app names appear only where a file is being brought IN', () => {
 
 // ── 3. the sceptic paragraph, one wording, three homes ───────────────────────
 
-const SCEPTIC_PARAGRAPH = '**We built Lolly for ourselves.** SUSE needed thousands of on-brand files, each with its name sealed inside, made without handing anything to outside services. So we built a tool that does all of it on the device, and released it as open source, like everything else we make. We keep maintaining it because we use it every day. **There is no obligation:** everything here works with or without us.';
+const SCEPTIC_PARAGRAPH = '**We built Lolly for ourselves.** SUSE needed thousands of on-brand files, made without handing anything to outside services. So we built a tool that does all of it on the device, and released it as open source, like everything else we make. We keep maintaining it because we use it every day. **There is no obligation:** everything here works with or without us.';
 
 test('the sceptic paragraph is byte-identical in all three homes', () => {
   const homes: Array<[string, string]> = [

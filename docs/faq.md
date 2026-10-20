@@ -144,7 +144,7 @@ They already live in a separate, private repository. A public clone doesn't fetc
 
 ## Why is it free? What's the catch?
 
-**We built Lolly for ourselves.** SUSE needed thousands of on-brand files, each with its name sealed inside, made without handing anything to outside services. So we built a tool that does all of it on the device, and released it as open source, like everything else we make. We keep maintaining it because we use it every day. **There is no obligation:** everything here works with or without us.
+**We built Lolly for ourselves.** SUSE needed thousands of on-brand files, made without handing anything to outside services. So we built a tool that does all of it on the device, and released it as open source, like everything else we make. We keep maintaining it because we use it every day. **There is no obligation:** everything here works with or without us.
 
 That line is drawn in the licence, not in a promise: anything that runs locally is free, forever. A version that has been released is licensed so it cannot be taken back, and there is no contributor agreement that could relicense anyone's work. See [positioning](/info/positioning.html) for the full statement.
 
