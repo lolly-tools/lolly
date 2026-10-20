@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:059a80a2-9dbd-45bd-8048-8b5f3c8314d7",
+  "serialNumber": "urn:uuid:156ebd3d-b6cd-4d91-8147-88e2d2400343",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-10-19T19:32:09.966Z",
+    "timestamp": "2026-10-20T20:09:19.028Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -11368,10 +11368,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/rustls-webpki@0.103.15",
+      "bom-ref": "pkg:cargo/rustls-webpki@0.103.16",
       "name": "rustls-webpki",
-      "version": "0.103.15",
-      "purl": "pkg:cargo/rustls-webpki@0.103.15",
+      "version": "0.103.16",
+      "purl": "pkg:cargo/rustls-webpki@0.103.16",
       "scope": "required",
       "licenses": [
         {
@@ -11383,7 +11383,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f3c3cf1d8b1e7d4927e2d154c3fcb02979afb9939629c62cd9048d4f07b60ac2"
+          "content": "4443b1b6d39d7c663139942cc4558262562d2c84123bb6282ef177009ca8b281"
         }
       ],
       "properties": [
@@ -16404,10 +16404,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/webpki-root-certs@1.0.9",
+      "bom-ref": "pkg:cargo/webpki-root-certs@1.0.10",
       "name": "webpki-root-certs",
-      "version": "1.0.9",
-      "purl": "pkg:cargo/webpki-root-certs@1.0.9",
+      "version": "1.0.10",
+      "purl": "pkg:cargo/webpki-root-certs@1.0.10",
       "scope": "required",
       "licenses": [
         {
@@ -16419,7 +16419,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b96554aa2acc8ccdb7e1c9a58a7a68dd5d13bccc69cd124cb09406db612a1c9b"
+          "content": "58ec80e73fd8baf57bf0d9615554c75348bda990d6d5bbeab964dd068319fecb"
         }
       ],
       "properties": [
@@ -16431,10 +16431,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/webpki-roots@1.0.7",
+      "bom-ref": "pkg:cargo/webpki-roots@1.0.10",
       "name": "webpki-roots",
-      "version": "1.0.7",
-      "purl": "pkg:cargo/webpki-roots@1.0.7",
+      "version": "1.0.10",
+      "purl": "pkg:cargo/webpki-roots@1.0.10",
       "scope": "required",
       "licenses": [
         {
@@ -16446,40 +16446,13 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "52f5ee44c96cf55f1b349600768e3ece3a8f26010c05265ab73f945bb1a2eb9d"
+          "content": "1c1c8e20c8a38fc7d65abfe74eb7280e4aa667e8eec8bc84996d2874810748d9"
         }
       ],
       "properties": [
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/webpki-roots@1.0.8",
-      "name": "webpki-roots",
-      "version": "1.0.8",
-      "purl": "pkg:cargo/webpki-roots@1.0.8",
-      "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "CDLA-Permissive-2.0"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "bf85cb06032201fa7c6f829d7db5a7e5aa45bcc0655327713065f6f0576731bf"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
