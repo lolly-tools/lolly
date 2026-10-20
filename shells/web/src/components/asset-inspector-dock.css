@@ -12,21 +12,13 @@
 .cat-inspector-head .cat-act-fav > span { display: none; }
 .cat-inspector-head .cat-act-fav svg { width: 1rem; height: 1rem; }
 .cat-inspector-primary .btn svg { width: 1rem; height: 1rem; flex: none; }
-/* The inspector's sections are the shared section card (parts/disclosure.css): the
-   same surface, open lift, caret and fold motion as the tool sidebar's input
-   sections, stacked with the sidebar's own spacing so each card's edge shows. */
+/* The inspector's sections are the collapsible section card (parts/disclosure.css):
+   the same surface, head, caret, spacing and fold motion as the tool sidebar's input
+   sections and the Settings cards, stacked so each card's edge shows. */
 .cat-inspector .cat-details-body { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: var(--sp-4); padding: var(--sp-4) var(--sp-4) var(--sp-6); container: asset-inspector / inline-size; }
-/* A block box like the input sections rather than the flex column .section-card sets:
-   a closed card shows only the summary, and the body opens under the same gutter. */
-.cat-inspector .cat-inspector-section { display: block; min-width: 0; margin: 0; padding: 0; }
-.cat-inspector .cat-inspector-section > .section-card-summary { gap: var(--sp-3); min-height: var(--ui-size-target); padding: var(--sp-5) var(--sp-6); border-radius: 0; }
-.cat-inspector .section-card-title { font-size: var(--ui-type-label); line-height: 1.4; text-transform: none; letter-spacing: normal; color: var(--ui-color-text-default); overflow-wrap: anywhere; }
-.cat-inspector .section-card-chev svg { display: block; width: 16px; height: 16px; }
-/* Closed points right and open points down, the input sections' caret turn. */
-.cat-inspector-section > summary .section-card-chev { transform: rotate(-90deg); }
-.cat-inspector-section[open] > summary .section-card-chev { transform: none; }
-.cat-inspector-section > summary:hover { background: var(--ui-color-surface-hover); }
-.cat-inspector .cat-inspector-section-body, .cat-inspector-section > :not(summary) { min-width: 0; padding: var(--sp-7) var(--sp-6) var(--sp-6); }
+.cat-inspector .cat-inspector-section { min-width: 0; margin: 0; }
+.cat-inspector .cat-inspector-section > .section-card-summary > .section-card-title { overflow-wrap: anywhere; }
+.cat-inspector .cat-inspector-section-body { min-width: 0; }
 .cat-inspector .cat-inspector-section-body > .cat-details-provenance { margin: 0; }
 .cat-inspector .cat-details-tech, .cat-inspector .cat-details-meta { margin: 0; }
 .cat-inspector .cat-details-actions { width: 100%; margin: 0; align-items: stretch; gap: var(--sp-4); }

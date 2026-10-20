@@ -342,7 +342,10 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-pal-name { grid-column: 1 / -1; grid-row: 2; font-size: var(--fs-xs); font-weight: 550; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-top: .25rem; }
 .be-pal-hex { align-self: center; grid-column: 1; grid-row: 3; font-family: var(--font-mono); font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
 .be-pal-check { position: absolute; inset-block-start: .15rem; inset-inline-end: .15rem; width: max(44px, var(--ui-size-target)); height: max(44px, var(--ui-size-target)); display: grid; place-items: center; cursor: pointer; }
-.be-pal-check input { width: 18px; height: 18px; margin: 0; accent-color: hsl(var(--foreground)); cursor: pointer; }
+/* The tick sits on the swatch it selects, so an empty box gets the page behind it:
+   a bare hairline vanishes on a swatch of its own colour. */
+.be-pal-check input { width: 18px; height: 18px; }
+.be-pal-check input:not(:checked) { background-color: var(--ui-color-surface-canvas); }
 .be-pal-card:has(.is-multi) .be-pal-name { font-weight: 750; }
 .be-pal-empty { display: block; width: 100%; min-height: 88px; border: 0; border-radius: var(--radius-sm); background: hsl(var(--muted) / .55); color: hsl(var(--muted-foreground)); font: inherit; font-size: var(--fs-sm); cursor: pointer; }
 .be-pal-empty:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
@@ -2329,6 +2332,10 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
      a fixed bottom anchor (plans/132, styles/mobile-chrome-contract.test.ts). */
   bottom: calc(var(--be-bulk-bottom) + var(--safe-bottom) + var(--vv-bottom, 0px));
   transform: none;
+  /* The pane can be narrower than the bar's actions, so they wrap onto a second
+     row inside the bar rather than run out past its edge. */
+  flex-wrap: wrap; row-gap: var(--sp-2);
+  border-radius: calc(var(--radius-lg) * 1.4);
 }
 .be-bulkbar[hidden] { display: none; }
 /* A selection belongs to the Colours room. The bar is a fixed surface outside

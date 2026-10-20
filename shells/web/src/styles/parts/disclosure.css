@@ -9,11 +9,10 @@
       so its disclosure rules (everything below except the box's own
       page-layout margin) move here verbatim and merge via a selector list,
       the same `.card, .plat-section` idiom chips.css already uses for the
-      surface itself. `.profile-collapse` (profile.css) and `.be-subst-details`
-      (brand-studio.css) are the same anatomy again, each with a local delta
-      (a compact border-top card for `.be-subst-details`; profile.css scopes
-      everything under `.profile-view`) - those deltas are why they keep
-      their own rules rather than folding in here too.
+      surface itself. The collapsible section card further down is the folding
+      card the tool sidebar, the Assets inspector and the Settings cards share.
+      `.be-subst-details` (brand-studio.css) is the same anatomy with a compact
+      border-top card, which is why it keeps its own rules.
 
    2. Plain always-mounted cards - the export panel's settings cards
       (tool-actions.ts: .export-cmyk/.export-pdfpass/.export-c2pa/.export-print,
@@ -169,10 +168,35 @@ details.section-card[open],
 
 }
 
+/* ── The collapsible section card ─────────────────────────────────────────────
+   One component for every section that folds: the tool sidebar's input sections
+   (.input-section, the sidebar's own spelling of the same parts), the Assets
+   inspector's sections and the Settings cards (details.section-card with a
+   .section-card-body). The head, caret, spacing and fold motion are declared once,
+   below, for both spellings. Two slots are optional: an icon before the title
+   (tool sections show their vocabulary glyph; the inspector and Settings show
+   none) and a value after it (Settings shows what each card is set to).
+
+     <details class="section-card">
+       <summary class="section-card-summary">
+         [<span class="section-card-icon" aria-hidden="true"><svg/></span>]
+         <h2 class="section-card-title">Name</h2>
+         [<span class="section-card-value">Set to</span>]
+       </summary>
+       <div class="section-card-body">...</div>
+     </details>
+
+   A details.section-card without a .section-card-body (the token workspace's
+   review folds) keeps the plain card box above and its older head. */
+details.section-card:has(> .section-card-body) { display: block; padding: 0; gap: 0; }
+
+details.section-card:has(> .section-card-body) > .section-card-summary,
 .input-section-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--sp-3);
+  border-radius: 0;
   padding: var(--sp-5) var(--sp-6);
   /* Match a sidebar <select>'s height (39.5px) so a collapsed section lines up
      with the dropdowns in the input list - minus the section's 2px border. */
@@ -196,7 +220,23 @@ details.section-card[open],
 /* An optional glyph before the head (manifest render.sectionIcons): on the chrome
    icon scale like every other mark, muted like the word beside it. */
 .input-section-title { display: inline-flex; align-items: center; gap: var(--sp-3); min-width: 0; }
-.input-section-icon { display: inline-flex; flex: none; opacity: .8; }
+.input-section-icon,
+details.section-card > .section-card-summary > .section-card-icon { display: inline-flex; flex: none; opacity: .8; }
+/* The title takes the head's type, whatever element carries it (Settings uses an h2). */
+details.section-card:has(> .section-card-body) > .section-card-summary > .section-card-title {
+  flex: 1 1 auto; min-width: 0; margin: 0; text-align: start;
+  font: inherit; letter-spacing: inherit; text-transform: none; color: inherit;
+}
+/* The optional value after the title: quiet, never heavier than the name, and it
+   truncates rather than pushing the caret off the row. */
+details.section-card > .section-card-summary > .section-card-value {
+  flex: 0 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-align: end;
+  font-size: var(--ui-type-label);
+  font-weight: 400;
+  color: var(--ui-color-text-muted);
+}
 .input-section-icon svg,
 .lp-sec-head > svg,
 .section-card-icon,
@@ -208,6 +248,7 @@ details.section-card[open],
   stroke-width: 1.5px;
 }
 
+details.section-card:has(> .section-card-body) > .section-card-summary:hover,
 .input-section-summary:hover {
   color: hsl(var(--primary));
   background-color: hsl(var(--background) / .1);
@@ -233,6 +274,7 @@ details.section-card > .section-card-summary:focus-visible { outline: none; }
 
 .input-section-summary::-webkit-details-marker { display: none; }
 
+details.section-card:has(> .section-card-body) > .section-card-summary::after,
 .input-section-summary::after {
   content: '';
   display: block;
@@ -253,17 +295,27 @@ details.section-card > .section-card-summary:focus-visible { outline: none; }
 
 
 
+details.section-card[open]:has(> .section-card-body) > .section-card-summary::after,
 .input-section[open] .input-section-summary::after {
   transform: rotate(45deg);
   color: var(--ui-color-border-default);
 }
+/* The caret is drawn, so it reads the same in every card; it points the other way
+   in a right-to-left page, where a closed section opens towards the left. */
+details.section-card:has(> .section-card-body) > .section-card-summary:dir(rtl)::after,
+.input-section-summary:dir(rtl)::after { transform: rotate(135deg); }
+details.section-card[open]:has(> .section-card-body) > .section-card-summary:dir(rtl)::after,
+.input-section[open] .input-section-summary:dir(rtl)::after { transform: rotate(45deg); }
 
+details.section-card > .section-card-body,
+.input-section-body {
+  /* On the scale, and on the summary's own 12px gutter above it. */
+  padding: var(--sp-7) var(--sp-6) var(--sp-6);
+}
 .input-section-body {
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
-  /* On the scale, and on the summary's own 12px gutter above it. */
-  padding: var(--sp-7) var(--sp-6) var(--sp-6);
 }
 
 /* One fold motion for every section. A <details> section (the tool sidebar's
@@ -328,8 +380,10 @@ details.section-card > .section-card-summary:focus-visible { outline: none; }
 
 
 @media (prefers-reduced-motion: reduce) {
-  .input-section-summary::after { transition: none; }
+  .input-section-summary::after,
+  details.section-card > .section-card-summary::after { transition: none; }
 }
+html[data-a11y-motion="reduce"] details.section-card > .section-card-summary::after,
 html[data-a11y-motion="reduce"] .input-section-summary::after { transition: none; }
 
 html[data-a11y-motion="reduce"] :is(.input-section, details.section-card)::details-content { transition: none; }

@@ -55,13 +55,13 @@ export function cueTimingOps(tp: TpCtx) {
     const bpm = number(timing.tempo?.bpm?.toString() ?? '', '1', '400', 'any'); field(t('Tempo (BPM, optional)'), bpm);
     const offset = number(String(timing.tempo?.offset ?? 0), '-3600', '3600', 'any'); field(t('Beat offset (s)'), offset);
     const meter = number(String(timing.tempo?.beatsPerBar ?? 4), '1', '32', '1'); field(t('Beats per bar'), meter);
-    const snap = document.createElement('input'); snap.type = 'checkbox'; snap.checked = !!timing.snap; field(t('Snap edits to beats'), snap);
+    const snap = document.createElement('input'); snap.type = 'checkbox'; snap.className = 'field-check'; snap.checked = !!timing.snap; field(t('Snap edits to beats'), snap);
     const cue = document.createElement('input'); cue.className = 'field-input'; cue.maxLength = 80; field(t('Cue name (optional)'), cue);
     const at = number(String(tp.clock.t() / 1000), '0', '3600', 'any'); field(t('Cue position'), at);
     const unit = document.createElement('select'); unit.className = 'field-input';
     for (const [value, label] of [['seconds', t('Seconds')], ['beats', t('Beats from offset')]]) { const option = document.createElement('option'); option.value = value!; option.textContent = label!; unit.append(option); }
     field(t('Position unit'), unit);
-    const bind = document.createElement('input'); bind.type = 'checkbox'; field(t('Bind selected layer starts to this cue'), bind);
+    const bind = document.createElement('input'); bind.type = 'checkbox'; bind.className = 'field-check'; field(t('Bind selected layer starts to this cue'), bind);
     const summary = document.createElement('p'); summary.setAttribute('role', 'status'); form.append(summary);
     const preview = document.createElement('button'); preview.type = 'submit'; preview.className = 'btn'; preview.textContent = t('Preview changes');
     const apply = document.createElement('button'); apply.type = 'button'; apply.className = 'btn btn--primary'; apply.textContent = t('Apply'); apply.disabled = true;

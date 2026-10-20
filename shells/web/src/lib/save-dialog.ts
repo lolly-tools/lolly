@@ -145,7 +145,7 @@ export function openSaveDialog(deps: SaveDialogDeps): void {
         <input type="text" class="save-input" data-tpl-desc maxlength="120" placeholder="${escape(t('Description (optional)'))}" aria-label="${escape(t('Description'))}">
       </div>
       <label class="save-card-check">
-        <input type="checkbox" data-tpl-start>
+        <input type="checkbox" class="field-check" data-tpl-start>
         <span>${escape(t('Start new {tool} documents with this', { tool: deps.toolName }))}</span>
       </label>
       <div class="save-card-row">
@@ -321,7 +321,7 @@ export function openSaveDialog(deps: SaveDialogDeps): void {
         const label = document.createElement('label');
         label.className = 'save-tool-format';
         const cb = document.createElement('input');
-        cb.type = 'checkbox'; cb.value = f; cb.checked = true; cb.setAttribute('data-tool-format', '');
+        cb.type = 'checkbox'; cb.className = 'field-check'; cb.value = f; cb.checked = true; cb.setAttribute('data-tool-format', '');
         label.append(cb, document.createTextNode(' ' + f.toUpperCase()));
         fmtBox.appendChild(label);
       }
