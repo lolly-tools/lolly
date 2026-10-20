@@ -15,7 +15,9 @@
  * back (another origin, no CORS header) as its URL for the shell to fill. And it
  * paints a plain inline element's background and borders (`<code>`, `<mark>`) on
  * each line it wraps onto, which the walker skipped for any element without a
- * box of its own.
+ * box of its own. Inside a web component the same holds for its open shadow root,
+ * and text slotted into it is drawn where the component shows it: not at all when
+ * the component hides it (a screen-reader-only label).
  *
  * Skips, naming the fix, when no headless browser is installed.
  */
@@ -153,6 +155,44 @@ describe('the page walk draws generated content', { skip: gate ?? false, concurr
       assert.equal((walk.svg.match(/rgb\(255,\s?204,\s?0\)/g) ?? []).length, lines, 'one background per line fragment');
       assert.equal((walk.svg.match(/rgb\(0,\s?255,\s?0\)/g) ?? []).length, 1, 'the starting border on the first fragment only');
       assert.equal((walk.svg.match(/rgb\(0,\s?0,\s?255\)/g) ?? []).length, 1, 'the ending border on the last fragment only');
+    } finally {
+      await ctx.close();
+    }
+  });
+
+  test('inside a web component: an icon in its shadow root, slotted text where it is shown', async () => {
+    const browser = await getBrowser();
+    const ctx = await browser.newContext({ viewport: { width: 400, height: 300 } });
+    try {
+      const page = await ctx.newPage();
+      await page.goto(`${site.origin}/`);
+      // The page's CSP refuses inline scripts and <style>; an evaluation and constructed sheets are not refused.
+      await page.evaluate(() => {
+        const define = (name: string, html: string, css: string): void => {
+          customElements.define(name, class extends HTMLElement {
+            constructor() {
+              super();
+              const root = this.attachShadow({ mode: 'open' });
+              const sheet = new CSSStyleSheet();
+              sheet.replaceSync(css);
+              root.adoptedStyleSheets = [sheet];
+              root.innerHTML = html;
+            }
+          });
+        };
+        define('x-theme', '<button class="b">Theme</button>', '.b::before { content: ""; display: inline-block; width: 10px; height: 10px; background: #ff00aa; }');
+        define('x-login', '<span class="i"></span><span class="h"><slot></slot></span>', '.i { display: inline-block; width: 20px; height: 20px; background: #000; } .h { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }');
+        define('x-card', '<div class="c"><slot></slot></div>', '.c { padding: 4px; }');
+        document.body.innerHTML = '<x-theme></x-theme><x-login>Log in</x-login><x-card>Card text</x-card>';
+      });
+      const sheetsBefore = await page.evaluate(() => document.querySelector('x-theme')!.shadowRoot!.adoptedStyleSheets.length);
+      await page.evaluate(await pageWalkScript());
+      const walk = await page.evaluate(() => (globalThis as unknown as { __lollyPageWalk: (o: unknown) => Promise<Walk> }).__lollyPageWalk({}));
+      assert.match(walk.svg, /rgb\(255,\s?0,\s?170\)/, 'the icon in the shadow root is drawn');
+      const texts = walk.text.runs.map(r => r.text);
+      assert.ok(texts.includes('Card text'), 'slotted text the component shows is drawn');
+      assert.ok(!texts.some(t => /Log|in/.test(t)), 'slotted text the component hides is not');
+      assert.equal(await page.evaluate(() => document.querySelector('x-theme')!.shadowRoot!.adoptedStyleSheets.length), sheetsBefore, 'the shadow root is put back');
     } finally {
       await ctx.close();
     }

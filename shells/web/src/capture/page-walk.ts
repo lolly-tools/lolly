@@ -184,11 +184,12 @@ export async function pageWalk(opts: PageWalkOpts = {}): Promise<PageWalkResult>
       stackingOrder: true,
       backdropBlur: true,
       // Icons drawn through a mask image stay shapes, a picture the page cannot read
-      // back keeps its URL for the shell (see the header), and an inline <code> or
-      // <mark> keeps its background.
+      // back keeps its URL for the shell (see the header), an inline <code> or <mark>
+      // keeps its background, and text slotted into a component keeps its clips.
       maskImage: true,
       remoteCssImages: true,
       inlineDecorations: true,
+      shadowSlots: true,
       // What the walker cannot express or cannot read becomes a box the host fills
       // from its screenshot (see finishPageVector).
       regionImage: (el: Element) => {
@@ -271,7 +272,7 @@ function deferredShaper(runs: TextRun[]): { toPath(o: { text: string; fontUrl: s
 
 function keyOf(fontUrl: string): FontKey {
   try { return JSON.parse(decodeURIComponent(fontUrl.slice(FONT_KEY.length))) as FontKey; }
-  catch { return { family: '', weight: '400', style: 'normal', stretch: 'normal' }; }
+  catch { return { family: '', weight: '400', style: 'normal', stretch: 'normal', variationSettings: 'normal', opticalSizing: 'auto' }; }
 }
 
 const unquote = (s: string): string => s.trim().replace(/^["']|["']$/g, '');

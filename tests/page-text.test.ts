@@ -9,7 +9,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { parseFontFaceCss, normaliseWeight, pickFaces } from '../packages/node-shell/src/font-faces.ts';
-import { outlinePageText, type PageTextDeps, type PageTextRun } from '../packages/node-shell/src/page-text.ts';
+import { outlinePageText, runVariations, type PageTextDeps, type PageTextRun } from '../packages/node-shell/src/page-text.ts';
 
 const OUTFIT = readFileSync(new URL('../shells/web/public/fonts/Outfit[wght].ttf', import.meta.url));
 
@@ -91,4 +91,13 @@ test('an unreadable font file is reported and its runs stay text', async () => {
   const out = await outlinePageText(`<svg>${box(0)}</svg>`, [run(0)], { loaded: [{ family: 'Brand Sans', weight: '100 900', style: 'normal', unicodeRange: '' }], rules: [], sheets: ['https://site.example/css/main.css'] }, deps);
   assert.deepEqual(out.unreadable, ['https://site.example/css/brand.ttf']);
   assert.equal(out.kept, 1);
+});
+
+test('a run is shaped with the axes the browser set: opsz at the font size, then font-variation-settings', () => {
+  // Chrome sets opsz to the size in CSS px while optical sizing is auto, so Inter at
+  // 40px draws its narrower display shapes; shaping at the default drew it wider.
+  assert.deepEqual(runVariations({ fontSize: 40 }, ['wght=700']), ['wght=700', 'opsz=40']);
+  assert.deepEqual(runVariations({ fontSize: 40, opticalSizing: 'none' }, ['wght=700']), ['wght=700']);
+  assert.deepEqual(runVariations({ fontSize: 13.5, variationSettings: '"wght" 650, "opsz" 32, "GRAD" -25' }, ['wght=400']),
+    ['wght=650', 'opsz=32', 'GRAD=-25'], 'named axes win over the face choice and over optical sizing');
 });

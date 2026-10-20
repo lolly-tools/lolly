@@ -26,6 +26,23 @@ import type { TextAPI } from '@lolly-tools/core/host-v1';
 export interface PageTextRun {
   id: number; text: string; family: string; weight: string; style: string; stretch: string;
   fontSize: number; letterSpacing: number; features: string[];
+  /** Computed `font-variation-settings` and `font-optical-sizing` (absent from older walks). */
+  variationSettings?: string; opticalSizing?: string;
+}
+
+/**
+ * The axis settings the browser applied to a run, on top of what the face choice
+ * set (`wght` for a weight inside a variable face's range): `opsz` at the font size
+ * in CSS px while `font-optical-sizing` is auto (CSS Fonts 4 section 5.1), then
+ * every axis `font-variation-settings` names, which win. A face without an axis
+ * ignores the setting, so adding `opsz` to every run is safe.
+ */
+export function runVariations(run: Pick<PageTextRun, 'fontSize' | 'variationSettings' | 'opticalSizing'>, fromFace: string[] = []): string[] {
+  const axes = new Map<string, string>();
+  for (const v of fromFace) { const [tag, value] = v.split('='); if (tag && value !== undefined) axes.set(tag, value); }
+  if ((run.opticalSizing ?? 'auto') !== 'none' && run.fontSize > 0) axes.set('opsz', String(Math.round(run.fontSize * 100) / 100));
+  for (const m of (run.variationSettings ?? '').matchAll(/["']([a-zA-Z0-9 ]{4})["']\s+(-?[\d.]+)/g)) axes.set(m[1]!, m[2]!);
+  return [...axes].map(([tag, value]) => `${tag}=${value}`);
 }
 
 /** The page's faces as the page walk recorded them (see page-walk.ts PageFonts). */
@@ -123,7 +140,8 @@ export async function outlinePageText(svg: string, runs: PageTextRun[], fonts: P
     const loaded: Array<{ fontUrl: string; variations?: string[] }> = [];
     for (const c of chain) {
       const fontUrl = await faceUrl(c.face);
-      if (fontUrl) loaded.push({ fontUrl, ...(c.variations ? { variations: c.variations } : {}) });
+      const variations = runVariations(run, c.variations);
+      if (fontUrl) loaded.push({ fontUrl, ...(variations.length ? { variations } : {}) });
     }
     if (!loaded.length) continue;
     try {

@@ -14,6 +14,9 @@ export interface InlineTextContext {
   readonly resolveFont: (style: FontStyleSlice, text: string) => Promise<VectorFont | null>;
   readonly fontMetrics: (style: CSSStyleDeclaration, size: number) => { ascent: number; descent: number };
   readonly nextShadowId: () => string;
+  /** Read text from the flattened tree (page snapshots, ExportOpts.shadowSlots):
+   *  see flatTextChildren. */
+  readonly flatTree?: boolean;
 }
 
 /** Filter IDs are local to the output SVG, including interleaved/repeated renders. */
@@ -223,16 +226,44 @@ export async function emitInlineTextSvg(
       if (element.classList.contains('lolly-emoji-text')) return;
       const s = window.getComputedStyle(element);
       if (s.display === 'none') return;
+      // A <slot> has no box (`display: contents`): in the flattened tree its assigned
+      // nodes sit in this line, so the walk reads through the slot to them. A slot
+      // styled with a box of its own is visited by visitSvgNode, which draws its text.
+      if (ctx.flatTree && element instanceof HTMLSlotElement && s.display === 'contents') {
+        for (const child of flatTextChildren(element)) await walk(child, s, mergeDeco(deco, decoFlags(s)));
+        return;
+      }
       // Non-replaced `display: inline` only. Anything with a box of its own - 
       // inline-block, inline-flex, an <input>, an inline <svg> - is visited by
       // visitSvgNode, which paints its background, border and text as a unit.
       // Descending into it here as well would draw its text a second time.
       if (s.display !== 'inline' || isReplaced(element)) return;
       const cd = mergeDeco(deco, decoFlags(s));
-      for (const child of node.childNodes) await walk(child, s, cd);
+      // An inline shadow host renders its shadow tree, not its light children.
+      const kids = ctx.flatTree && element.shadowRoot ? element.shadowRoot.childNodes : node.childNodes;
+      for (const child of kids) await walk(child, s, cd);
     }
   }
-  for (const child of blockEl.childNodes) await walk(child, blockStyle, decoFlags(blockStyle));
+  const top = ctx.flatTree ? flatTextChildren(blockEl) : Array.from(blockEl.childNodes);
+  for (const child of top) await walk(child, blockStyle, decoFlags(blockStyle));
+}
+
+/**
+ * A block's text in the flattened tree. A shadow host's light children render only
+ * where a `<slot>` places them, inside whatever its shadow tree clips them to, so
+ * the host draws none of them; the text walk reads through each slot (it has no
+ * box, `display: contents`) to what is assigned to it, or to its fallback content
+ * when nothing is. Reading the light tree from the host drew a screen-reader-only
+ * label that a component hides in its shadow tree ("Log in" on MDN, one letter
+ * per line) at the spot its unclipped layout gave the label.
+ */
+function flatTextChildren(n: ParentNode): Node[] {
+  if (n instanceof Element && n.shadowRoot) return [];
+  if (n instanceof HTMLSlotElement) {
+    const assigned = n.assignedNodes({ flatten: true });
+    return assigned.length ? assigned : Array.from(n.childNodes);
+  }
+  return Array.from(n.childNodes);
 }
 
 /** Elements whose box is drawn by the UA rather than by their children: replaced

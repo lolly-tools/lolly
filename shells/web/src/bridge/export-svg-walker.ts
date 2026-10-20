@@ -637,6 +637,7 @@ export async function renderSvgFromHtml(node: Element, opts: ExportOpts): Promis
   const textContext = createInlineTextContext({
     text: opts.convertPaths !== false ? host?.text ?? null : null,
     log: host?.log?.bind(host), resolveFont: resolveVectorFont, fontMetrics: fontMetricsPx,
+    flatTree: opts.shadowSlots === true,
   });
   return renderHtmlSvg(node, opts, textContext);
 }

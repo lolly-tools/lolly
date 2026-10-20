@@ -112,7 +112,19 @@ export function standInPseudos(win: { x: number; y: number; width: number; heigh
   // A constructed sheet, not a <style>: a strict style-src refuses the element, not
   // the CSSOM. The stand-in's own style goes in through the CSSOM for the same reason.
   sheet.replaceSync(`[${OFF}~="before"]::before,[${OFF}~="after"]::after{content:none!important}`);
-  document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+  // Open shadow roots too (web components draw their icons there), and a document's
+  // styles do not reach inside one, so each root adopts the sheet itself.
+  const scopes: Array<Document | ShadowRoot> = [document];
+  const elements: Element[] = [];
+  const collect = (root: Document | ShadowRoot): void => {
+    for (const el of Array.from(root.querySelectorAll(root === document ? 'body *' : '*'))) {
+      elements.push(el);
+      const sr = (el as Element & { shadowRoot: ShadowRoot | null }).shadowRoot;
+      if (sr) { scopes.push(sr); collect(sr); }
+    }
+  };
+  collect(document);
+  for (const scope of scopes) scope.adoptedStyleSheets = [...scope.adoptedStyleSheets, sheet];
 
   const near = (b: Box): boolean => (b.w === 0 && b.h === 0)
     || !(b.x + b.w < win.x - margin || b.y + b.h < win.y - margin || b.x > win.x + win.width + margin || b.y > win.y + win.height + margin);
@@ -121,7 +133,7 @@ export function standInPseudos(win: { x: number; y: number; width: number; heigh
   // every element that has generated content.
   const watched: Array<{ el: Element; box: Box; text: Box | null }> = [];
   const candidates: Candidate[] = [];
-  for (const el of Array.from(document.querySelectorAll('body *'))) {
+  for (const el of elements) {
     if (el.namespaceURI !== 'http://www.w3.org/1999/xhtml' || el.tagName === TAG.toUpperCase()) continue;
     const box = boxOf(el.getBoundingClientRect());
     if (!near(box)) continue;
@@ -187,7 +199,7 @@ export function standInPseudos(win: { x: number; y: number; width: number; heigh
     refused,
     restore() {
       for (const c of candidates) if (c.standIn) { lift(c); c.standIn = null; }
-      document.adoptedStyleSheets = document.adoptedStyleSheets.filter(s => s !== sheet);
+      for (const scope of scopes) scope.adoptedStyleSheets = scope.adoptedStyleSheets.filter(s => s !== sheet);
     },
   };
 }

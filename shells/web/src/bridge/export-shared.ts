@@ -243,6 +243,9 @@ export interface ExportOpts {
    *  fragments. The walker otherwise paints boxes only for elements with a box
    *  of their own, so these lost everything but their text. */
   inlineDecorations?: boolean;
+  /** Page snapshots: read text from the flattened tree, so text slotted into a
+   *  web component is drawn inside the component's own boxes and clips. */
+  shadowSlots?: boolean;
   /** Page snapshots: paint in CSS stacking-context order (CSS 2.1 Appendix E
    *  section E.2) instead of DOM order. Negative-z children paint behind their
    *  parent's in-flow content. Positioned descendants paint above
