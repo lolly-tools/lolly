@@ -147,6 +147,7 @@ export function showResult(ctx: TextContext): void {
       label.className = 'text-row';
       const enabled = document.createElement('input');
       enabled.type = 'checkbox';
+      enabled.className = 'field-check';
       enabled.checked = true;
       const value = document.createElement('span');
       value.textContent = choice.value;

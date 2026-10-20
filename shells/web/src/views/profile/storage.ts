@@ -226,7 +226,7 @@ export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string)
             <div class="profile-row-body">
               <div class="profile-row-wide">
                 <div class="store-sess-tools">
-                  <label class="store-selall"><input type="checkbox" id="sess-selall"> ${t('Select all')}</label>
+                  <label class="store-selall"><input type="checkbox" class="field-check" id="sess-selall"> ${t('Select all')}</label>
                   <button type="button" class="store-sort" data-sort="${sort}">${sort === 'recent' ? t('Recent ▾') : t('Largest first ▾')}</button>
                 </div>
                 <ul class="store-sess-list" id="store-sess-list">${sessionRowsHtml(m, sort, sessRowCtx)}</ul>

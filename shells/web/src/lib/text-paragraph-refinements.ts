@@ -5,7 +5,7 @@ import { styleTextControls, textControlNumber, textControlRow, destroyTextContro
 import { t } from '../i18n.ts';
 export function mountParagraphRefinements(root: HTMLElement, read: () => TextParagraphStyleV1, write: (value: TextParagraphStyleV1, label: string) => void) {
   const details = document.createElement('details'), summary = document.createElement('summary'); summary.textContent = t('Tabs and paragraph edges'); details.append(summary); root.append(details);
-  const optical = document.createElement('input'); optical.type = 'checkbox'; textControlRow(details, t('Optical margin alignment'), optical);
+  const optical = document.createElement('input'); optical.type = 'checkbox'; optical.className = 'field-check'; textControlRow(details, t('Optical margin alignment'), optical);
   optical.addEventListener('change', () => write({ opticalMargin: optical.checked }, t('Optical margin alignment')));
   const tabs = document.createElement('div'); details.append(tabs);
   const add = document.createElement('button'); add.type = 'button'; add.textContent = t('Add tab stop');
@@ -32,7 +32,7 @@ export function mountParagraphRefinements(root: HTMLElement, read: () => TextPar
   }
   const updates: Array<() => void> = [];
   const cap = document.createElement('fieldset'), capLegend = document.createElement('legend'); capLegend.textContent = t('Drop capital'); cap.append(capLegend); details.append(cap);
-  const capOn = document.createElement('input'); capOn.type = 'checkbox'; capOn.setAttribute('aria-label', t('Drop capital')); cap.append(capOn);
+  const capOn = document.createElement('input'); capOn.type = 'checkbox'; capOn.className = 'field-check'; capOn.setAttribute('aria-label', t('Drop capital')); cap.append(capOn);
   const capital = () => read().dropCap ?? { enabled: false, characters: 1, lines: 3, gap: 8 };
   capOn.addEventListener('change', () => write({ dropCap: { ...capital(), enabled: capOn.checked } }, t('Drop capital')));
   updates.push(() => { capOn.checked = !!read().dropCap && read().dropCap?.enabled !== false; });
@@ -43,7 +43,7 @@ export function mountParagraphRefinements(root: HTMLElement, read: () => TextPar
   for (const [key, label] of [['ruleBefore', t('Rule before paragraph')], ['ruleAfter', t('Rule after paragraph')]] as const) {
     const field = document.createElement('fieldset'), legend = document.createElement('legend'); legend.textContent = label; field.append(legend); details.append(field);
     const rule = () => read()[key] ?? { enabled: false, width: 1, offset: 4, color: '#000000' };
-    const enabled = document.createElement('input'); enabled.type = 'checkbox'; enabled.setAttribute('aria-label', label); field.append(enabled);
+    const enabled = document.createElement('input'); enabled.type = 'checkbox'; enabled.className = 'field-check'; enabled.setAttribute('aria-label', label); field.append(enabled);
     enabled.addEventListener('change', () => write({ [key]: { ...rule(), enabled: enabled.checked } }, label));
     const width = textControlNumber(field, t('Rule thickness'), { value: rule().width, min: .01, max: 1000, step: .1, precision: 2, onCommit: width => write({ [key]: { ...rule(), width } }, label) });
     const offset = textControlNumber(field, t('Rule offset'), { value: rule().offset, min: -1000, max: 1000, step: 1, precision: 2, onCommit: offset => write({ [key]: { ...rule(), offset } }, label) });

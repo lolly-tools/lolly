@@ -664,7 +664,6 @@
 .profile-view .store-sess-list { list-style: none; margin: 0; padding: 0; max-height: 50vh; overflow: auto; }
 .profile-view .store-sess { display: flex; align-items: center; gap: .6rem; padding: .45rem 0; scroll-margin-block: 8px; }
 .profile-view .store-sess + .store-sess { border-top: 1px solid color-mix(in srgb, var(--ui-color-border-default) 60%, transparent); }
-.profile-view .store-sess-check { flex: none; width: var(--fs-xl); height: var(--fs-xl); cursor: pointer; }
 .profile-view .store-sess-thumb { width: 40px; height: 40px; border-radius: var(--ui-radius-control); object-fit: cover; flex: none; background: var(--ui-color-surface-muted); }
 .profile-view .store-sess-thumb.is-placeholder { display: inline-flex; align-items: center; justify-content: center; color: var(--ui-color-action-primary); }
 .profile-view .store-sess-thumb.is-placeholder svg { width: calc(20px * var(--a11y-fs)); height: calc(20px * var(--a11y-fs)); }
@@ -1014,7 +1013,7 @@
 .bd-item { display: flex; align-items: center; gap: var(--sp-5); padding: var(--sp-4) var(--sp-5); border-top: 1px solid var(--ui-color-border-default); cursor: pointer; }
 .bd-item[hidden] { display: none; }
 .bd-item:has(:checked) { background: var(--ui-color-selection-surface); }
-.bd-item input { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--ui-color-action-primary); }
+.bd-item input { width: 18px; height: 18px; }
 .bd-item strong { font-size: var(--ui-type-body); font-weight: 500; overflow-wrap: anywhere; }
 .bd-item small { overflow-wrap: anywhere; }
 .bd-empty { padding: var(--sp-5); color: var(--ui-color-text-muted); font-size: var(--ui-type-body); }

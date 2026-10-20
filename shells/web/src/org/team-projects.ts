@@ -76,6 +76,7 @@ export function buildArchivedProjects(opts: ArchivedProjectsOptions = {}): HTMLE
   label.style.cssText = 'display:inline-flex;align-items:center;gap:.5rem;min-height:var(--ui-size-target);font-size:var(--fs-sm);font-weight:600;cursor:pointer;align-self:flex-start';
   const toggle = document.createElement('input');
   toggle.type = 'checkbox';
+  toggle.className = 'field-check';
   toggle.setAttribute('role', 'switch');
   toggle.dataset.act = 'show-archived';
   label.append(toggle, document.createTextNode(tRaw('Show archived')));
