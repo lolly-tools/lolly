@@ -37,12 +37,18 @@ function jsToTsFallback() {
 
 // Embedded content mode (plans/131 WP-A) - the machinery lives in
 // ../tauri-shared/vite-embed.mjs, SHARED with the mobile shell so the two
-// configs cannot drift. Default 'neutral' (start brand), matching mobile
-// (2026-08-23): every shipped app is the neutral build, and SUSE folks load
-// the SUSE brand from a .lolly pack until the internal hosted instance
-// exists. `pnpm run build:profile` flips it back to embedding the active
-// repo-root profile views for an internal build.
+// configs cannot drift. Default 'neutral': every shipped app is the neutral
+// build, and SUSE folks load the SUSE brand from a .lolly pack until the
+// internal hosted instance exists. `pnpm run build:profile` flips it back to
+// embedding the active repo-root profile views for an internal build.
 const EMBED_CATALOG = resolveEmbedMode(process.env.LOLLY_EMBED_CATALOG, 'neutral');
+// The brand the neutral desktop build seeds from (2026-10-20): Lolly Demo, the
+// brand lolly.tools ships, so a new person opens the app to a finished design
+// system rather than a blank one. Its index lists the blank starter as a
+// companion design system (companionDesignSystems), which every build bundles,
+// so Lolly Starter is on the device from the first launch to switch to. The
+// mobile app still seeds from lolly-start.
+const SEED_PROFILE = 'lolly-demo';
 
 
 // Swap specific web-shell bridge modules for Tauri-native implementations.
@@ -152,6 +158,7 @@ export default defineConfig({
     ...embedContentPlugins({
       outDirDefault: resolve(__dirname, 'dist'),
       mode: EMBED_CATALOG,
+      seedProfile: SEED_PROFILE,
     }),
     precacheManifest(),
     pageWalkAsset(),

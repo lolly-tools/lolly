@@ -105,8 +105,9 @@
 .me-search input:focus { outline: none; border-color: hsl(var(--ring) / .6); }
 
 .me-card {
-  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
-  background: hsl(var(--card));
+ border-radius: var(--radius);
+
+      background: var(--ui-color-surface-muted);
 }
 .me-card > summary {
   display: flex; align-items: baseline; gap: .55rem;

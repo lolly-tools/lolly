@@ -7,7 +7,7 @@
  * a value (an event listener), goes through `cat.<module>.<fn>`. Extracted verbatim
  * from mountCatalog() by scripts/split-closure.ts.
  */
-import { replaceRouteUrl } from '../../lib/url-state.ts';
+import { replaceRouteUrl, updateRouteParams } from '../../lib/url-state.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
@@ -27,7 +27,7 @@ import type { PickerHost } from '../picker.ts';
 import { mountTextThumbs } from '../../lib/text-thumbs.ts';
 import { mountPdfThumbs } from '../../lib/pdf-thumbs.ts';
 import { mountEmojiSpecimens } from '../../lib/emoji-specimen.ts';
-import { groupPalette, paletteInDisplayOrder } from '../../lib/swatches.ts';
+import { groupPalette, paletteInDisplayOrder, splitPalette, type PaletteRamp } from '../../lib/swatches.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { FONT_LICENSE, WEIGHT_RAMP } from '../../lib/typefaces.ts';
 import { prepareAssetForVerify, setPendingVerify } from '../../lib/verify-handoff.ts';
@@ -140,25 +140,61 @@ export function reflectFavInGrid(cat: CatCtx, base: string, on: boolean): void {
 }
 export function swatchesSectionHtml(cat: CatCtx): string {
   const { SWATCH_DOWNLOADS } = cat;
-  const { brand, spectrum, ramps } = groupPalette(cat.palette);
-  const total = brand.length + spectrum.length + ramps.reduce((n, [, cols]) => n + cols.length, 0);
+  // The brand's own colours always show. The role colours (semantic slots, document
+  // roles, app chrome, colourway leads and copies of brand colours) wait behind the
+  // card below, because most exist for the interface and read as clutter in a library.
+  const { core, roles } = splitPalette(cat.palette);
+  const { brand, spectrum, ramps } = groupPalette(core);
   // One card per colour (swatch-set.ts). A card's ref is its index in the palette's
   // display order, the list selection, downloads and paging all read. Looked up by
   // entry rather than counted as the grids are built, because the ramps below are
   // built before the brand grid that leads the panel.
   const order = new Map(paletteInDisplayOrder(cat.palette).map((c, i) => [c, i]));
   const grid = (list: typeof brand) => `<div class="cat-grid cat-swatch-grid">${list.map(c => cat.swatchSet.cardHtml(c, order.get(c) ?? -1)).join('')}</div>`;
-  const rampBlocks = ramps.map(([fam, cols]) =>
-    `<h3 class="cat-panel-subhead">${escapeText(fam)}</h3>${grid(cols)}`).join('');
+  const block = ([name, cols]: PaletteRamp) => `<h3 class="cat-panel-subhead">${escapeText(name)}</h3>${grid(cols)}`;
+  const roleBlocks = cat.showSwatches ? roles.map(([layer, cols]) => block([roleLayerName(layer), cols])).join('') : '';
   const downloads = `<div class="cat-font-downloads cat-swatch-downloads">${SWATCH_DOWNLOADS.map(d =>
       `<button type="button" class="cat-download" data-swatch-dl="${d.fmt}" data-sfx="whoosh">${DOWNLOAD_ICON}<span>${escapeText(t(d.label))}</span></button>`).join('')}</div>`;
   const body = `
       ${downloads}
       <p class="cat-panel-desc">${t('The brand palette. Click any swatch for every notation, its print values and its place in colour space, or select swatches to copy or download just those. A <span class="plat-chip-flag is-static">CMYK</span> or <span class="plat-chip-flag is-static">SPOT</span> flag marks a locked ink value used directly in CMYK PDF exports.')}</p>
-      <h3 class="cat-panel-subhead">${t('Brand')}</h3>${grid(brand)}
+      ${brand.length ? `<h3 class="cat-panel-subhead">${t('Brand')}</h3>${grid(brand)}` : ''}
       ${spectrum.length ? `<h3 class="cat-panel-subhead">${t('Spectrum')}</h3>${grid(spectrum)}` : ''}
-      ${rampBlocks}`;
-  return cat.tiles.groupSection('swatches', 'Swatches', total, body, 'cat-group--ref');
+      ${ramps.map(block).join('')}
+      ${roleBlocks}${swatchRevealHtml(cat)}`;
+  return cat.tiles.groupSection('swatches', 'Swatches', core.length, body, 'cat-group--ref');
+}
+// A role layer's heading. The copies keep the bucket they were found in.
+function roleLayerName(layer: string): string {
+  switch (layer) {
+    case 'semantic': return t('Semantic');
+    case 'role': return t('Roles');
+    case 'chrome': return t('App chrome');
+    case 'colourway': return t('Colourway');
+    case 'spectrum': return t('Spectrum');
+    case 'brand': return t('Brand');
+    default: return layer ? layer[0]!.toUpperCase() + layer.slice(1) : t('Colours');
+  }
+}
+// The role colours wait behind a grey card at the foot of the section, like the
+// gallery's "Show hidden tools" box. Shown, they sit above the card, so the same
+// card hides them again. No card when the brand has none.
+export function swatchRevealHtml(cat: CatCtx): string {
+  const n = splitPalette(cat.palette).roles.reduce((sum, [, cols]) => sum + cols.length, 0);
+  if (!n) return '';
+  const label = cat.showSwatches ? t('Hide colour roles') : t('Show colour roles ({n})', { n });
+  return `<button type="button" class="cat-swatch-reveal" data-swatch-reveal aria-pressed="${cat.showSwatches}"><span>${escapeText(label)}</span></button>`;
+}
+export function setShowSwatches(cat: CatCtx, on: boolean): void {
+  cat.showSwatches = on;
+  // A ticked role colour nobody can see would still drive the selection bar. The
+  // brand's own colours lead the list, so their refs stay below the core count.
+  if (!on && cat.swatchSelected.size) {
+    const own = splitPalette(cat.palette).core.length;
+    cat.swatchSet.setSelection([...cat.swatchSelected].filter(ref => Number(ref) < own));
+  }
+  updateRouteParams({ swatches: on ? '' : null });
+  renderBody(cat);
 }
 export function fontsSectionHtml(cat: CatCtx): string {
   if (!cat.catFonts.length) return ''; // a brand with no declared/added fonts shows no section
@@ -556,6 +592,8 @@ export function sectionsOps(cat: CatCtx) {
     refreshFavStrip: bindOp(cat, refreshFavStrip),
     reflectFavInGrid: bindOp(cat, reflectFavInGrid),
     swatchesSectionHtml: bindOp(cat, swatchesSectionHtml),
+    swatchRevealHtml: bindOp(cat, swatchRevealHtml),
+    setShowSwatches: bindOp(cat, setShowSwatches),
     fontsSectionHtml: bindOp(cat, fontsSectionHtml),
     bodyHtml: bindOp(cat, bodyHtml),
     bulkBarHtml: bindOp(cat, bulkBarHtml),

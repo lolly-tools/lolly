@@ -155,6 +155,79 @@ test('native builds refuse a missing or incomplete MilkDrop artist pack', async 
   assert.doesNotThrow(() => check.writeBundle({}));
 });
 
+/** A minimal neutral dist: the files assertDistState needs before it reads the
+ *  embedded asset index. */
+function neutralDist(dir: string, index: Record<string, unknown>): void {
+  for (const sub of ['catalog/tools', 'catalog/previews', 'catalog/assets/lolly/tokens', 'tools/qr-code', 'viz-presets']) {
+    mkdirSync(join(dir, sub), { recursive: true });
+  }
+  writeFileSync(join(dir, 'catalog/tools/index.json'), '{}');
+  writeFileSync(join(dir, 'catalog/previews/bundle.json'), '{}');
+  writeFileSync(join(dir, 'tools/qr-code/tool.json'), '{}');
+  writeFileSync(join(dir, 'viz-presets/index.json'), JSON.stringify([{ id: 'geiss-collide' }]));
+  writeFileSync(join(dir, 'viz-presets/geiss-collide.json'), '{}');
+  writeFileSync(join(dir, 'catalog/assets/index.json'), JSON.stringify(index));
+}
+
+const tokensAsset = (id: string) => ({ id, type: 'tokens', formats: [{ url: `/catalog/assets/${id}.json` }] });
+
+test('a neutral build embeds its seed brand tokens, and every companion is readable offline', async t => {
+  const { assertDistState } = await import(new URL('../shells/tauri-shared/vite-embed.mjs', import.meta.url).href);
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-neutral-seed-test-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const check = assertDistState({ outDirDefault: dir, mode: 'neutral' });
+
+  // The Lolly Demo seed: its own tokens are the head, the bundled starter is the companion.
+  neutralDist(dir, {
+    brandTokens: 'lolly/tokens/demo',
+    companionDesignSystems: [{ tokens: 'lolly/tokens/brand', label: 'Lolly Starter' }],
+    assets: [tokensAsset('lolly/tokens/demo')],
+  });
+  assert.throws(() => check.writeBundle({}), /lolly\/tokens\/demo references .* not embedded/);
+  writeFileSync(join(dir, 'catalog/assets/lolly/tokens/demo.json'), '{}');
+  assert.doesNotThrow(() => check.writeBundle({}), 'the starter companion needs no embedded file: every build bundles it');
+
+  // A head that is not in the index at all is refused by name.
+  neutralDist(dir, { brandTokens: 'lolly/tokens/opal', assets: [tokensAsset('lolly/tokens/demo')] });
+  assert.throws(() => check.writeBundle({}), /brand tokens asset lolly\/tokens\/opal is not in the embedded index/);
+
+  // A companion other than the starter must ride along in the seed.
+  neutralDist(dir, {
+    brandTokens: 'lolly/tokens/demo',
+    companionDesignSystems: [{ tokens: 'lolly/tokens/opal', label: 'Opal' }],
+    assets: [tokensAsset('lolly/tokens/demo')],
+  });
+  assert.throws(() => check.writeBundle({}), /companion design system lolly\/tokens\/opal is not in the embedded index/);
+
+  // The Lolly Start index has no brandTokens entry, so the starter's own tokens are the head.
+  neutralDist(dir, { assets: [] });
+  assert.throws(() => check.writeBundle({}), /brand tokens asset lolly\/tokens\/brand is not in the embedded index/);
+});
+
+test('a neutral build seeds only a public brand', async () => {
+  const { bundleRepoDirs, SEED_PROFILES } = await import(new URL('../shells/tauri-shared/vite-embed.mjs', import.meta.url).href);
+  assert.deepEqual(SEED_PROFILES, ['lolly-start', 'lolly-demo']);
+  const plugin = bundleRepoDirs({ outDirDefault: join(tmpdir(), 'lolly-never-written'), mode: 'neutral', seedProfile: 'suse' });
+  assert.throws(() => plugin.writeBundle({}), /seedProfile must be one of lolly-start, lolly-demo, got 'suse'/);
+});
+
+test('the Mac app ships Lolly Demo and Lolly Starter; mobile keeps Lolly Start', () => {
+  const desktop = readFileSync(new URL('../shells/tauri-desktop/vite.config.js', import.meta.url), 'utf8');
+  assert.match(desktop, /const SEED_PROFILE = 'lolly-demo';/);
+  assert.match(desktop, /seedProfile: SEED_PROFILE,/);
+  const mobile = readFileSync(new URL('../shells/tauri-mobile/vite.config.js', import.meta.url), 'utf8');
+  assert.match(mobile, /seedProfile: 'lolly-start',/);
+  const mac = readFileSync(new URL('../.github/workflows/macos-intel.yml', import.meta.url), 'utf8');
+  assert.match(mac, /^ {6}profile: lolly-demo$/m, 'the signed Mac frontend is built from lolly-demo');
+  assert.match(mac, /^ {6}LOLLY_PROFILE: lolly-demo$/m, 'the Mac bundle verifies the frontend receipt against lolly-demo');
+  assert.match(mac, /path: brands\/lolly-demo\/catalog\/tools/, 'the signed source catalog is downloaded into the brand it was signed for');
+  // The companion that makes switching possible is declared by the seed brand itself.
+  const demo = JSON.parse(readFileSync(new URL('../brands/lolly-demo/catalog/assets/index.json', import.meta.url), 'utf8')) as {
+    companionDesignSystems?: Array<{ tokens: string; label: string }>;
+  };
+  assert.deepEqual(demo.companionDesignSystems, [{ tokens: 'lolly/tokens/brand', label: 'Lolly Starter' }]);
+});
+
 test('hosted Tauri workflows consume an independently signed frontend', () => {
   for (const workflow of ['flatpak.yml', 'linux-arm64.yml', 'ios-release.yml']) {
     const source = readFileSync(new URL(`../.github/workflows/${workflow}`, import.meta.url), 'utf8');
