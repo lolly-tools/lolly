@@ -233,10 +233,11 @@ source. Google Drive is the only browser-consent kind in this version.
 |---|---|---|
 | `GET /api/v1/destinations` | authenticated; results filtered by `delivery.create` per target | safe fixed-target descriptors visible to this caller; never endpoints, bucket names, prefixes or credential refs |
 | `POST /api/v1/destinations/:id/deliveries?name=…&format=…` | `delivery.create` on `destination:<id>` | verified Lolly export as the raw body; `201` after immediate delivery, or `202 awaiting-approval` when the target binds a chain |
+| `POST /api/v1/destinations/:id/deliveries?projectId=…&fileId=…&checksum=…` | signed-in person + current project viewer access + `delivery.create` | empty body; verified shared original, only with explicit `projectFiles` on a DAM destination |
 | `POST /api/v1/jobs/:id/deliveries` | job owner + `delivery.create` on the body’s `destinationId` | deliver a completed render job’s retained output by reference; JSON `{destinationId,name,format?}` |
 | `GET /api/v1/deliveries` | authenticated | caller's own delivery history remains readable after permission loss |
 | `GET /api/v1/deliveries/:id` | authenticated | caller's own delivery receipt; another principal receives 404 |
-| `POST /api/v1/deliveries/:id/retry` | `delivery.create` on the destination | retry failed/stalled work from its immutable staged bytes; refuses a changed destination |
+| `POST /api/v1/deliveries/:id/retry` | `delivery.create` on the destination | retry failed work from its immutable staged bytes; refuses a changed destination |
 
 Both create routes accept `Idempotency-Key`; repeating the same delivery returns its existing
 record without another provider write, while reuse for different bytes/metadata returns
