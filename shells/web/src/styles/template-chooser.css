@@ -364,7 +364,7 @@
   }
   .tmpl-chooser-presets { gap: 8px; }
   .tmpl-chooser-preset {
-    min-height: 1em;
+    min-height: 44px;
     padding: 8px 12px;
     font-size: var(--fs-sm);
   }
