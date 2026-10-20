@@ -69,8 +69,11 @@ console.log(`Emoji function content: ${(rawBytes / 1024 ** 2).toFixed(1)} -> ${(
 await mkdir(path.dirname(outfile), { recursive: true });
 
 // url-shot's vector capture injects the page-walk script into the captured page.
-// The function has no esbuild to build it with, so it goes in as text here.
-const pageWalk = await buildPageWalkScript();
+// The function has no esbuild to build it with, so it goes in as text here. Its
+// names stay as written: this text is committed source, and a minifier's short
+// names can spell a tracker call (Google Analytics' two-letter one) that
+// tests/no-trackers.test.ts refuses.
+const pageWalk = await buildPageWalkScript({ mangle: false });
 
 await build({
   entryPoints: [path.join(root, 'services/mcp/src/vercel-entry.ts')],

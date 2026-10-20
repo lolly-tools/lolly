@@ -283,12 +283,11 @@ function paintInlineBox(NS: string, g: Element, el: Element, rootRect: { left: n
   const style = window.getComputedStyle(el);
   if (style.visibility === 'hidden' || !(parseFloat(style.opacity || '1') > 0)) return;
   const bg = parseCssColorFull(style.backgroundColor);
-  const side = (k: 'Top' | 'Right' | 'Bottom' | 'Left'): { w: number; rgb: Rgba | null } => {
-    const s = style as unknown as Record<string, string>;
-    const w = s[`border${k}Style`] === 'solid' ? parseFloat(s[`border${k}Width`] || '0') || 0 : 0;
-    return { w, rgb: w > 0 ? parseCssColorFull(s[`border${k}Color`]) : null };
+  const side = (k: 'top' | 'right' | 'bottom' | 'left'): { w: number; rgb: Rgba | null } => {
+    const w = style.getPropertyValue(`border-${k}-style`) === 'solid' ? parseFloat(style.getPropertyValue(`border-${k}-width`)) || 0 : 0;
+    return { w, rgb: w > 0 ? parseCssColorFull(style.getPropertyValue(`border-${k}-color`)) : null };
   };
-  const t = side('Top'), r = side('Right'), b = side('Bottom'), l = side('Left');
+  const t = side('top'), r = side('right'), b = side('bottom'), l = side('left');
   if (!(bg && bg[3] > 0) && !t.rgb && !r.rgb && !b.rgb && !l.rgb) return;
   const frags = Array.from(el.getClientRects()).filter((f) => f.width > 0 && f.height > 0);
   const rtl = style.direction === 'rtl';
@@ -319,6 +318,127 @@ function paintInlineBox(NS: string, g: Element, el: Element, rootRect: { left: n
   });
 }
 
+/**
+ * Checkbox, radio and range.
+ *
+ * Only for UA-drawn widgets (`appearance` still native). When a stylesheet has set
+ * `appearance: none` - which every control in this app does - the tick, dot and
+ * track are ordinary CSS the walker already paints, and drawing a second widget on
+ * top would be the wrong answer twice.
+ */
+function emitWidgetControl(NS: string, rootRect: { left: number; top: number }, _el: Element, d: ControlDesc, style: CSSStyleDeclaration, contentG: Element, r: DOMRect): void {
+  const appearance = style.getPropertyValue('appearance') || style.getPropertyValue('-webkit-appearance') || 'auto';
+  if (appearance === 'none') return;
+  const type = (d.type || '').toLowerCase();
+  const x = r.left - rootRect.left, y = r.top - rootRect.top, w = r.width, h = r.height;
+  const accent = parseCssColorFull(style.accentColor === 'auto' ? '' : style.accentColor) ?? [26, 115, 232, 1] as Rgba;
+  const acc = `rgb(${accent[0]},${accent[1]},${accent[2]})`;
+  const add = (e: Element) => contentG.appendChild(e);
+  const rect = (rx: number, ry: number, rw: number, rh: number, fill: string, rad: number, stroke?: string) => {
+    const q = document.createElementNS(NS, 'rect');
+    q.setAttribute('x', String(n2(rx))); q.setAttribute('y', String(n2(ry)));
+    q.setAttribute('width', String(n2(rw))); q.setAttribute('height', String(n2(rh)));
+    if (rad) { q.setAttribute('rx', String(n2(rad))); q.setAttribute('ry', String(n2(rad))); }
+    q.setAttribute('fill', fill);
+    if (stroke) { q.setAttribute('stroke', stroke); q.setAttribute('stroke-width', '1'); }
+    return q;
+  };
+
+  if (type === 'checkbox' || type === 'radio') {
+    // An approximation of the platform widget, not a copy of it: the real one is
+    // drawn by the compositor with no CSS to read. Blank was the alternative, and a
+    // recognisable checkbox is closer to what the reader saw than an empty square.
+    const round = type === 'radio' ? Math.min(w, h) / 2 : Math.min(2, Math.min(w, h) / 4);
+    add(rect(x, y, w, h, d.checked ? acc : '#fff', round, d.checked ? undefined : '#767676'));
+    if (d.checked && type === 'checkbox') {
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', `M${n2(x + w * 0.22)} ${n2(y + h * 0.52)}L${n2(x + w * 0.42)} ${n2(y + h * 0.72)}L${n2(x + w * 0.78)} ${n2(y + h * 0.3)}`);
+      p.setAttribute('fill', 'none'); p.setAttribute('stroke', '#fff');
+      p.setAttribute('stroke-width', String(n2(Math.max(1.5, Math.min(w, h) * 0.14))));
+      p.setAttribute('stroke-linecap', 'round'); p.setAttribute('stroke-linejoin', 'round');
+      add(p);
+    } else if (d.checked) {
+      const c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', String(n2(x + w / 2))); c.setAttribute('cy', String(n2(y + h / 2)));
+      c.setAttribute('r', String(n2(Math.min(w, h) * 0.22)));
+      c.setAttribute('fill', '#fff');
+      add(c);
+    }
+    return;
+  }
+
+  if (type === 'range') {
+    const frac = rangeFraction(d);
+    const th = Math.max(3, Math.min(4, h * 0.25));
+    const ty = y + (h - th) / 2;
+    add(rect(x, ty, w, th, '#c4c4c4', th / 2));
+    if (frac > 0) add(rect(x, ty, w * frac, th, acc, th / 2));
+    const rr = Math.min(h, 14) / 2;
+    const c = document.createElementNS(NS, 'circle');
+    // The thumb's centre travels between its own radii, not the full track.
+    c.setAttribute('cx', String(n2(x + rr + (w - 2 * rr) * frac)));
+    c.setAttribute('cy', String(n2(y + h / 2)));
+    c.setAttribute('r', String(n2(rr)));
+    c.setAttribute('fill', acc);
+    add(c);
+  }
+}
+
+/** Top layer (`<dialog open>` shown modally, an open popover). Guarded because
+ *  `:popover-open` throws in engines that don't know the selector.
+ *
+ *  A top-layer box is a stacking context for its own internals, and the walk
+ *  lifts it above the rest of the document with its ::backdrop colour under it
+ *  (topLayerQueue). Not modelled: a backdrop-filter on ::backdrop, and the
+ *  order boxes entered the top layer, which the DOM does not expose, so the
+ *  walk's own order stands in for the opening order. */
+function isTopLayer(el: Element): boolean {
+  try { return typeof el.matches === 'function' && el.matches(':modal, :popover-open'); }
+  catch { return false; }
+}
+
+/** The `<image>` for a page snapshot's region placeholder, on the element box. */
+function regionImageEl(NS: string, href: string, x: number, y: number, w: number, h: number): Element {
+  const im = document.createElementNS(NS, 'image');
+  im.setAttribute('href', href);
+  im.setAttribute('x', String(n2(x))); im.setAttribute('y', String(n2(y)));
+  im.setAttribute('width', String(n2(w))); im.setAttribute('height', String(n2(h)));
+  im.setAttribute('preserveAspectRatio', 'none');
+  return im;
+}
+
+/** A top-layer box's ::backdrop: one viewport-sized rect of its colour. A
+ *  backdrop-filter on it is not reconstructed, and the log says so. */
+function emitBackdrop(NS: string, rootG: Element, rootRect: { left: number; top: number }, el: Element): void {
+  let bs: CSSStyleDeclaration;
+  try { bs = window.getComputedStyle(el, '::backdrop'); } catch { return; }
+  if (bs.backdropFilter && bs.backdropFilter !== 'none') {
+    _host?.log?.('warn', `svg: ::backdrop filter (${bs.backdropFilter}) on <${el.tagName.toLowerCase()}> is not reconstructed; its colour is`);
+  }
+  const col = parseCssColorFull(bs.backgroundColor);
+  if (!col || col[3] <= 0) return;
+  const r = document.createElementNS(NS, 'rect');
+  r.setAttribute('x', String(n2(-rootRect.left))); r.setAttribute('y', String(n2(-rootRect.top)));
+  r.setAttribute('width', String(n2(document.documentElement.clientWidth || window.innerWidth)));
+  r.setAttribute('height', String(n2(document.documentElement.clientHeight || window.innerHeight)));
+  r.setAttribute('fill', rgbaCss(col));
+  rootG.appendChild(r);
+}
+
+/**
+ * The children a box with no area still shows. It paints nothing of its own, but
+ * `overflow: visible` lets its children spill out, and a fixed child is laid out
+ * against the viewport whatever its parent clips. Pages mount portals, consent
+ * banners and fixed headers this way (github.com's header and hero canvas sit in
+ * 0-height fixed wrappers, a OneTrust banner in a 0-height static one), and
+ * returning at the empty box dropped them along with the box.
+ */
+function spilledChildren(el: Element, style: CSSStyleDeclaration): Element[] {
+  const spills = style.overflowX === 'visible' && style.overflowY === 'visible';
+  return renderedChildren(el).filter((child) => hasOwnBox(child)
+    && (spills || window.getComputedStyle(child).position === 'fixed'));
+}
+
 /** cssUrlToHref, or for a page snapshot the URL itself when the page cannot read
  *  the bytes. A fetch that answers with something other than an image (a 404
  *  page, a login redirect) is no image at all. */
@@ -339,8 +459,9 @@ async function emitMaskImage(
   NS: string, g: Element, defs: Element, style: CSSStyleDeclaration,
   x: number, y: number, w: number, h: number, nextId: () => number, remote: boolean,
 ): Promise<boolean> {
-  const s = style as unknown as Record<string, string | undefined>;
-  const layers = splitCssArgs(style.maskImage || s.webkitMaskImage || '').map((l) => l.trim()).filter((l) => l && l !== 'none');
+  // Unprefixed first; Chrome before 120 knew these only as -webkit-mask-*.
+  const prop = (name: string): string => style.getPropertyValue(name) || style.getPropertyValue(`-webkit-${name}`);
+  const layers = splitCssArgs(prop('mask-image')).map((l) => l.trim()).filter((l) => l && l !== 'none');
   if (layers.length !== 1 || !/^url\(/i.test(layers[0]!)) return false;
   const url = firstCssUrl(layers[0]);
   const href = url ? await cssUrlToHrefOrRemote(url, remote) : null;
@@ -357,13 +478,13 @@ async function emitMaskImage(
     const b = num2(style, 'borderBottomWidth') + (box === 'content-box' ? num2(style, 'paddingBottom') : 0);
     return { x: x + l, y: y + t, w: Math.max(0, w - l - r), h: Math.max(0, h - t - b) };
   };
-  const origin = inset(first(s.maskOrigin || s.webkitMaskOrigin, 'border-box'));
-  const clipBox = first(s.maskClip || s.webkitMaskClip, 'border-box');
+  const origin = inset(first(prop('mask-origin'), 'border-box'));
+  const clipBox = first(prop('mask-clip'), 'border-box');
   const clip = clipBox === 'no-clip' ? { x: x - w, y: y - h, w: w * 3, h: h * 3 } : inset(clipBox);
   const pl = placeBackground(
-    first(style.maskSize || s.webkitMaskSize, 'auto'),
-    first(style.maskPosition || s.webkitMaskPosition, '0% 0%'),
-    first(style.maskRepeat || s.webkitMaskRepeat, 'repeat'),
+    first(prop('mask-size'), 'auto'),
+    first(prop('mask-position'), '0% 0%'),
+    first(prop('mask-repeat'), 'repeat'),
     { w: origin.w, h: origin.h }, await intrinsicSize(href),
   );
   if (!(pl.w > 0 && pl.h > 0)) return false;
@@ -374,7 +495,7 @@ async function emitMaskImage(
   mask.setAttribute('maskContentUnits', 'userSpaceOnUse');
   mask.setAttribute('x', String(n2(clip.x))); mask.setAttribute('y', String(n2(clip.y)));
   mask.setAttribute('width', String(n2(clip.w))); mask.setAttribute('height', String(n2(clip.h)));
-  if (first(s.maskMode, 'match-source') !== 'luminance') mask.setAttribute('style', 'mask-type:alpha');
+  if (first(style.getPropertyValue('mask-mode'), 'match-source') !== 'luminance') mask.setAttribute('style', 'mask-type:alpha');
   const image = (ix: number, iy: number): Element => {
     const im = document.createElementNS(NS, 'image');
     im.setAttribute('href', href);
@@ -799,47 +920,9 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   /** What every element classifies as when the flag is off: in-flow, no context.
    *  Shared constant so the OFF path allocates nothing per node. */
   const DOM_ORDER_ROLE: StackingRole = { createsContext: false, reason: '', layer: 3, z: 0, order: 0 };
-  /** Top layer (`<dialog open>` shown modally, an open popover). Guarded because
-   *  `:popover-open` throws in engines that don't know the selector.
-   *
-   *  A top-layer box is a stacking context for its own internals, and the walk
-   *  lifts it above the rest of the document with its ::backdrop colour under it
-   *  (topLayerQueue). Not modelled: a backdrop-filter on ::backdrop, and the
-   *  order boxes entered the top layer, which the DOM does not expose, so the
-   *  walk's own order stands in for the opening order. */
-  const topLayer = (el: Element): boolean => {
-    try { return typeof el.matches === 'function' && el.matches(':modal, :popover-open'); }
-    catch { return false; }
-  };
   /** Top-layer boxes met during the walk, painted after it (see visitSvgNode). */
   const topLayerQueue: Element[] = [];
   const inTopLayerPass = new Set<Element>();
-  /** The `<image>` for a page snapshot's region placeholder, on the element box. */
-  const regionImageEl = (href: string, x: number, y: number, w: number, h: number): Element => {
-    const im = document.createElementNS(NS, 'image');
-    im.setAttribute('href', href);
-    im.setAttribute('x', String(n2(x))); im.setAttribute('y', String(n2(y)));
-    im.setAttribute('width', String(n2(w))); im.setAttribute('height', String(n2(h)));
-    im.setAttribute('preserveAspectRatio', 'none');
-    return im;
-  };
-  /** A top-layer box's ::backdrop: one viewport-sized rect of its colour. A
-   *  backdrop-filter on it is not reconstructed, and the log says so. */
-  const emitBackdrop = (el: Element): void => {
-    let bs: CSSStyleDeclaration;
-    try { bs = window.getComputedStyle(el, '::backdrop'); } catch { return; }
-    if (bs.backdropFilter && bs.backdropFilter !== 'none') {
-      _host?.log?.('warn', `svg: ::backdrop filter (${bs.backdropFilter}) on <${el.tagName.toLowerCase()}> is not reconstructed; its colour is`);
-    }
-    const col = parseCssColorFull(bs.backgroundColor);
-    if (!col || col[3] <= 0) return;
-    const r = document.createElementNS(NS, 'rect');
-    r.setAttribute('x', String(n2(-rootRect.left))); r.setAttribute('y', String(n2(-rootRect.top)));
-    r.setAttribute('width', String(n2(document.documentElement.clientWidth || window.innerWidth)));
-    r.setAttribute('height', String(n2(document.documentElement.clientHeight || window.innerHeight)));
-    r.setAttribute('fill', rgbaCss(col));
-    rootG.appendChild(r);
-  };
 
   /** Append `unit` where CSS says it paints. Returns a handle so a caller that
    *  later abandons the element (the zero-area clip-path early return) can undo
@@ -901,7 +984,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     if (cw <= 0 || ch <= 0) return;
     const cx = r.left + insetL, cy = r.top + insetT;
 
-    if (isWidgetControl(d)) { emitWidgetControl(el, d, style, contentG, r); return; }
+    if (isWidgetControl(d)) { emitWidgetControl(NS, rootRect, el, d, style, contentG, r); return; }
 
     const ct = controlText(d);
     if (!ct) return;
@@ -966,73 +1049,6 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     if (!cg.childNodes.length) cg.remove();
   }
 
-  /**
-   * Checkbox, radio and range.
-   *
-   * Only for UA-drawn widgets (`appearance` still native). When a stylesheet has set
-   * `appearance: none` - which every control in this app does - the tick, dot and
-   * track are ordinary CSS the walker already paints, and drawing a second widget on
-   * top would be the wrong answer twice.
-   */
-  function emitWidgetControl(_el: Element, d: ControlDesc, style: CSSStyleDeclaration, contentG: Element, r: DOMRect): void {
-    const appearance = (style as unknown as Record<string, string>).appearance
-      || (style as unknown as Record<string, string>).webkitAppearance || 'auto';
-    if (appearance === 'none') return;
-    const type = (d.type || '').toLowerCase();
-    const x = r.left - rootRect.left, y = r.top - rootRect.top, w = r.width, h = r.height;
-    const accent = parseCssColorFull(style.accentColor === 'auto' ? '' : style.accentColor) ?? [26, 115, 232, 1] as Rgba;
-    const acc = `rgb(${accent[0]},${accent[1]},${accent[2]})`;
-    const add = (e: Element) => contentG.appendChild(e);
-    const rect = (rx: number, ry: number, rw: number, rh: number, fill: string, rad: number, stroke?: string) => {
-      const q = document.createElementNS(NS, 'rect');
-      q.setAttribute('x', String(n2(rx))); q.setAttribute('y', String(n2(ry)));
-      q.setAttribute('width', String(n2(rw))); q.setAttribute('height', String(n2(rh)));
-      if (rad) { q.setAttribute('rx', String(n2(rad))); q.setAttribute('ry', String(n2(rad))); }
-      q.setAttribute('fill', fill);
-      if (stroke) { q.setAttribute('stroke', stroke); q.setAttribute('stroke-width', '1'); }
-      return q;
-    };
-
-    if (type === 'checkbox' || type === 'radio') {
-      // An approximation of the platform widget, not a copy of it: the real one is
-      // drawn by the compositor with no CSS to read. Blank was the alternative, and a
-      // recognisable checkbox is closer to what the reader saw than an empty square.
-      const round = type === 'radio' ? Math.min(w, h) / 2 : Math.min(2, Math.min(w, h) / 4);
-      add(rect(x, y, w, h, d.checked ? acc : '#fff', round, d.checked ? undefined : '#767676'));
-      if (d.checked && type === 'checkbox') {
-        const p = document.createElementNS(NS, 'path');
-        p.setAttribute('d', `M${n2(x + w * 0.22)} ${n2(y + h * 0.52)}L${n2(x + w * 0.42)} ${n2(y + h * 0.72)}L${n2(x + w * 0.78)} ${n2(y + h * 0.3)}`);
-        p.setAttribute('fill', 'none'); p.setAttribute('stroke', '#fff');
-        p.setAttribute('stroke-width', String(n2(Math.max(1.5, Math.min(w, h) * 0.14))));
-        p.setAttribute('stroke-linecap', 'round'); p.setAttribute('stroke-linejoin', 'round');
-        add(p);
-      } else if (d.checked) {
-        const c = document.createElementNS(NS, 'circle');
-        c.setAttribute('cx', String(n2(x + w / 2))); c.setAttribute('cy', String(n2(y + h / 2)));
-        c.setAttribute('r', String(n2(Math.min(w, h) * 0.22)));
-        c.setAttribute('fill', '#fff');
-        add(c);
-      }
-      return;
-    }
-
-    if (type === 'range') {
-      const frac = rangeFraction(d);
-      const th = Math.max(3, Math.min(4, h * 0.25));
-      const ty = y + (h - th) / 2;
-      add(rect(x, ty, w, th, '#c4c4c4', th / 2));
-      if (frac > 0) add(rect(x, ty, w * frac, th, acc, th / 2));
-      const rr = Math.min(h, 14) / 2;
-      const c = document.createElementNS(NS, 'circle');
-      // The thumb's centre travels between its own radii, not the full track.
-      c.setAttribute('cx', String(n2(x + rr + (w - 2 * rr) * frac)));
-      c.setAttribute('cy', String(n2(y + h / 2)));
-      c.setAttribute('r', String(n2(rr)));
-      c.setAttribute('fill', acc);
-      add(c);
-    }
-  }
-
   async function visitSvgNode(
     el: any, parentG: Element, ctx: PaintCtx,
     o?: { forceContext?: boolean; placeDirect?: boolean },
@@ -1073,7 +1089,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     // ancestors clip, fade or stack. Painted here among its DOM siblings, a page's
     // fixed bottom bar came out over the welcome dialog. Queue it for the pass that
     // follows the root walk instead. Snapshot mode only, like the rest of paint order.
-    if (stackingOrder && el !== node && !inTopLayerPass.has(el) && topLayer(el)) { topLayerQueue.push(el); return; }
+    if (stackingOrder && el !== node && !inTopLayerPass.has(el) && isTopLayer(el)) { topLayerQueue.push(el); return; }
 
     // `display: contents` generates NO box of its own (CSS Display 3 section 3.1: the element
     // is replaced by its contents for layout). getBoundingClientRect() is therefore
@@ -1108,7 +1124,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
           style as unknown as Parameters<typeof stackingRole>[0],
           (style.zIndex && style.zIndex !== 'auto' && el.parentElement)
             ? window.getComputedStyle(el.parentElement).display : '',
-          topLayer(el),
+          isTopLayer(el),
         )
       : DOM_ORDER_ROLE;
     // The root of the walk is always a stacking context (Appendix E: the root
@@ -1238,17 +1254,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
 
     const rect = el.getBoundingClientRect();
     if (rect.width < 0.5 || rect.height < 0.5) {
-      // A box with no area paints nothing of its own, but it can still show its
-      // children: `overflow: visible` lets them spill out, and a fixed child is laid
-      // out against the viewport whatever its parent clips. Pages mount portals,
-      // consent banners and fixed headers this way (github.com's header and hero
-      // canvas sit in 0-height fixed wrappers, a OneTrust banner in a 0-height
-      // static one), and returning here dropped them with the empty box.
-      const spills = style.overflowX === 'visible' && style.overflowY === 'visible';
-      for (const child of renderedChildren(el)) {
-        if (!hasOwnBox(child)) continue;
-        if (spills || window.getComputedStyle(child).position === 'fixed') await visitSvgNode(child, parentG, ctx);
-      }
+      for (const child of spilledChildren(el, style)) await visitSvgNode(child, parentG, ctx);
       return;
     }
 
@@ -1534,10 +1540,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       }
     }
 
-    // ── mask-image: url() ───────────────────────────────────────────────────
-    // Snapshot mode only (opts.maskImage). An icon drawn as a coloured box seen
-    // through an SVG file is how most current sites draw their icons, and the
-    // raster hatch turned each one into a bitmap.
+    // ── mask-image: url() (snapshot mode, see emitMaskImage) ──
     const maskHandled = opts.maskImage === true
       && await emitMaskImage(NS, g, defs, style, x, y, w, h, () => ++uid, opts.remoteCssImages === true);
 
@@ -2275,7 +2278,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       if (region) {
         // A page snapshot reads the canvas off the screen: a WebGL canvas without a
         // preserved buffer reads back blank, and a tainted one throws.
-        contentG.appendChild(regionImageEl(region, x, y, w, h));
+        contentG.appendChild(regionImageEl(NS, region, x, y, w, h));
       } else if (twin) {
         // Placed on the element box with the raster branch's exact geometry and
         // stretch semantics, so swapping raster for vector cannot move a pixel.
@@ -2307,7 +2310,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     // snapshot's host fills the box from its screenshot. Tool exports skip them.
     if (opts.regionImage && (tag === 'video' || tag === 'iframe' || tag === 'embed' || tag === 'object')) {
       const region = opts.regionImage(el);
-      if (region) contentG.appendChild(regionImageEl(region, x, y, w, h));
+      if (region) contentG.appendChild(regionImageEl(NS, region, x, y, w, h));
     }
 
     // ── Form controls ────────────────────────────────────────────────────────
@@ -2384,7 +2387,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   for (let i = 0; i < topLayerQueue.length; i++) {
     const el = topLayerQueue[i]!;
     inTopLayerPass.add(el);
-    emitBackdrop(el);
+    emitBackdrop(NS, rootG, rootRect, el);
     await visitSvgNode(el, rootG, { frame: null, clips: [] }, { forceContext: true });
   }
   // ONE line for the whole walk (plans/104 section 12 Q2): what did not stay vector, and why.

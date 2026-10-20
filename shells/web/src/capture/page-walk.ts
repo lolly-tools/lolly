@@ -108,12 +108,12 @@ function canvasBackground(): string {
  */
 function windowSvg(svgText: string, win: { x: number; y: number; width: number; height: number }, margin: number): { svg: string; culled: number } {
   const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
-  const root = doc.documentElement as unknown as SVGSVGElement;
-  if (root.querySelector('parsererror')) throw new Error('The page walk produced SVG that does not parse.');
+  const root = doc.documentElement;
+  if (!(root instanceof SVGSVGElement) || root.querySelector('parsererror')) throw new Error('The page walk produced SVG that does not parse.');
   const host = document.createElement('div');
   host.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;overflow:hidden;visibility:hidden;pointer-events:none';
   const shadow = host.attachShadow({ mode: 'closed' });
-  const live = document.importNode(root, true) as unknown as SVGSVGElement;
+  const live = document.importNode(root, true);
   shadow.appendChild(live);
   document.documentElement.appendChild(host);
   let culled = 0;
@@ -156,10 +156,11 @@ export async function pageWalk(opts: PageWalkOpts = {}): Promise<PageWalkResult>
   const runs: TextRun[] = [];
   // The walker reports through the export host's log, and shapes text through its
   // `text` - here the stand-in that records the run (see deferredShaper).
-  setExportHost({
-    log: (level: string, msg: string) => { if (level !== 'info') warnings.push(String(msg)); },
+  const host: Pick<WebHost, 'log'> & { text: ReturnType<typeof deferredShaper> } = {
+    log: (level, msg) => { if (level !== 'info') warnings.push(String(msg)); },
     text: deferredShaper(runs),
-  } as unknown as WebHost);
+  };
+  setExportHost(host as WebHost);
 
   const root = document.documentElement;
   const rootRect = root.getBoundingClientRect();
@@ -282,9 +283,9 @@ const rangeOf = (r: string): string => (/^u\+0+-10ffff$/i.test(r.trim()) ? '' : 
 /** The faces the page loaded, and every `@font-face` the walk can read. */
 function pageFonts(): PageFonts {
   const loaded: PageFonts['loaded'] = [];
-  for (const f of document.fonts as unknown as Iterable<FontFace>) {
+  document.fonts.forEach((f) => {
     if (f.status === 'loaded') loaded.push({ family: unquote(f.family), weight: f.weight, style: f.style, unicodeRange: rangeOf(f.unicodeRange) });
-  }
+  });
   const rules: PageFonts['rules'] = [];
   const sheets: string[] = [];
   const readRules = (list: CSSRuleList, base: string): void => {
@@ -320,6 +321,4 @@ function pageFonts(): PageFonts {
   return { loaded, rules, sheets };
 }
 
-const g = globalThis as unknown as { __lollyPageWalk?: typeof pageWalk; __lollyFinishPageVector?: typeof finishPageVector };
-g.__lollyPageWalk = pageWalk;
-g.__lollyFinishPageVector = finishPageVector;
+Object.assign(globalThis, { __lollyPageWalk: pageWalk, __lollyFinishPageVector: finishPageVector });

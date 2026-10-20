@@ -32,7 +32,8 @@ export function pageWalkScript(): Promise<string> {
   return cached;
 }
 
-export async function buildPageWalkScript(opts: { minify?: boolean } = {}): Promise<string> {
+/** `mangle: false` keeps identifiers as written while still minifying (see build-mcp-fn.ts). */
+export async function buildPageWalkScript(opts: { minify?: boolean; mangle?: boolean } = {}): Promise<string> {
   const { build } = await import('esbuild');
   const out = await build({
     entryPoints: [PAGE_WALK_ENTRY],
@@ -41,7 +42,9 @@ export async function buildPageWalkScript(opts: { minify?: boolean } = {}): Prom
     format: 'iife',
     platform: 'browser',
     target: 'es2022',
-    minify: opts.minify ?? true,
+    minifyWhitespace: opts.minify ?? true,
+    minifySyntax: opts.minify ?? true,
+    minifyIdentifiers: (opts.minify ?? true) && opts.mangle !== false,
     legalComments: 'none',
     logLevel: 'silent',
     define: { 'import.meta.env': JSON.stringify({ DEV: false, PROD: true, MODE: 'production', BASE_URL: '/' }) },
