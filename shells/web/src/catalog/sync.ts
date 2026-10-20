@@ -671,7 +671,7 @@ async function syncAssets(host: SyncHost, onAssetsReady?: () => unknown, mainten
   // never hold up the sync.
   if (index.companionDesignSystems && !getInstanceBase() && 'designSystems' in host) {
     void import('../lib/design-system/companions.ts')
-      .then(m => m.seedCompanionDesignSystems(host as unknown as CompanionHost, m.readCompanionDesignSystems(index.companionDesignSystems)))
+      .then(m => m.seedCompanionDesignSystems(host as SyncHost & CompanionHost, m.readCompanionDesignSystems(index.companionDesignSystems)))
       .catch((e: unknown) => host.log('warn', 'Companion design systems were not added', { error: String(e) }));
   }
 
