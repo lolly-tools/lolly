@@ -19,7 +19,7 @@ export function mountParagraphControls(root: HTMLElement, read: () => Settings, 
     updates.push(s => field.set(value(s)));
   };
   const check = (parent: HTMLElement, label: string, value: (s: Settings) => boolean, change: (value: boolean) => Settings) => {
-    const input = document.createElement('input'); input.type = 'checkbox'; input.addEventListener('change', () => { write(change(input.checked), label); refresh(); }); row(parent, label, input); updates.push(s => { input.checked = value(s); });
+    const input = document.createElement('input'); input.type = 'checkbox'; input.className = 'field-check'; input.addEventListener('change', () => { write(change(input.checked), label); refresh(); }); row(parent, label, input); updates.push(s => { input.checked = value(s); });
   };
   const alignments: Array<[string, string]> = [['start', t('Start')], ['center', t('Centre')], ['end', t('End')], ['justify', t('Justify')]];
   const alignment = textControlChoices(root, t('Alignment'), [['start', t('Start'), 'textL'], ['center', t('Centre'), 'textC'], ['end', t('End'), 'textR'], ['justify', t('Justify'), 'textJustify']], () => read().align ?? 'start', align => write({ align: align as Settings['align'] }, t('Alignment')));

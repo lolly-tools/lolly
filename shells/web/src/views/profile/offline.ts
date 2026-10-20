@@ -157,7 +157,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
           <details class="odl-tagscope">
             <summary>${t('Choose by tag')}</summary>
             <div class="odl-tagchips">${catSummary.tags.map(tg => `
-              <label class="odl-tagchip"><input type="checkbox" value="${escapeText(tg.tag)}"><span>${escapeText(tg.tag)}</span><span class="odl-tagchip-size">${fmtBytes(tg.bytes)}</span></label>`).join('')}
+              <label class="odl-tagchip"><input type="checkbox" class="field-check" value="${escapeText(tg.tag)}"><span>${escapeText(tg.tag)}</span><span class="odl-tagchip-size">${fmtBytes(tg.bytes)}</span></label>`).join('')}
             </div>
           </details>` : ''}
           <span class="odl-part-sub" data-part-sub="${p.id}" aria-live="polite"></span>
@@ -184,7 +184,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
         <button type="button" id="odl-cancel" class="btn" hidden>${t('Cancel')}</button>
         <span class="odl-sweep-size" id="odl-sweep-size"></span>
       </div>
-      <label class="odl-sweep-models" id="odl-models-row" hidden><input type="checkbox" id="odl-incl-models"><span>${t('Include all the AI models')} <span class="odl-part-heavy">${t('large download')}</span></span><span class="odl-sweep-models-size" id="odl-models-size"></span></label>
+      <label class="odl-sweep-models" id="odl-models-row" hidden><input type="checkbox" class="field-check" id="odl-incl-models"><span>${t('Include all the AI models')} <span class="odl-part-heavy">${t('large download')}</span></span><span class="odl-sweep-models-size" id="odl-models-size"></span></label>
       <div class="odl-progress" id="odl-progress" hidden>
         <div class="odl-progress-track" role="progressbar" aria-label="${escapeText(t('Offline download progress'))}" aria-valuemin="0" aria-valuemax="100"><div class="odl-progress-fill"></div></div>
         <span class="odl-progress-text" aria-live="polite"></span>

@@ -60,7 +60,6 @@
   cursor: pointer;
   user-select: none;
 }
-.odl-tagchip input { margin: 0; accent-color: hsl(var(--primary)); }
 .odl-tagchip:has(input:checked) {
   border-color: hsl(var(--primary));
   background: hsl(var(--primary) / 0.08);
@@ -94,7 +93,6 @@
   cursor: pointer;
 }
 .odl-sweep-models[hidden] { display: none; }
-.odl-sweep-models input { flex: 0 0 auto; }
 .odl-sweep-models-size {
   font-size: var(--fs-sm);
   color: hsl(var(--muted-foreground));

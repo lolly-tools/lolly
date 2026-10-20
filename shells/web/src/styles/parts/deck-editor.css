@@ -522,7 +522,7 @@
 }
 .deck-free__num { width: 3.6em; text-align: right; cursor: text; }
 .deck-free__num::placeholder { opacity: 0.5; font-weight: 500; }
-.deck-free__check { width: var(--fs-lg); height: var(--fs-lg); accent-color: hsl(var(--primary, 231 60% 55%)); cursor: pointer; }
+.deck-free__check { width: var(--fs-lg); height: var(--fs-lg); }
 /* Colour picker (the app's OKLCH float field) + its clear button. An unset colour means
    "inherit the slide's ink / no fill" - a state the picker can't show - so the trigger is
    dimmed when unset, and the clear button sets it back to inherit. */

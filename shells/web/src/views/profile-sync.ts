@@ -182,7 +182,7 @@ export async function mountSyncBody(body: HTMLElement, host: SyncHost): Promise<
       </label>
       <p class="pconn-note">${t('Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.')}</p>
     </div>
-    <label class="pconn-home"><input type="checkbox" data-sync-enabled${cfg.enabled ? ' checked' : ''}> ${t('Sync across my devices')}</label>
+    <label class="pconn-home"><input type="checkbox" class="field-check" data-sync-enabled${cfg.enabled ? ' checked' : ''}> ${t('Sync across my devices')}</label>
     ${choicePanel}
     ${waiting}
     ${lastError}

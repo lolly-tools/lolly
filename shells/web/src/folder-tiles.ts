@@ -394,7 +394,7 @@ export function sessionRow(entry: SessionEntry, opts: SessionRowOpts): string {
     ? `<button type="button"${clsAttr(opts.openClass)} ${opts.openAttrs} aria-label="${escape(opts.openLabel ?? '')}"></button>`
     : '';
   const checkbox = opts.selectClass
-    ? `<input type="checkbox" class="${opts.selectClass}" data-slot="${escape(entry.slot)}" aria-label="${escape(opts.selectLabel ?? '')}">`
+    ? `<input type="checkbox" class="field-check ${opts.selectClass}" data-slot="${escape(entry.slot)}" aria-label="${escape(opts.selectLabel ?? '')}">`
     : '';
   const batchTagEl = opts.batchTag
     ? `<span${clsAttr(opts.batchTagClass)}>${escape(opts.batchTag)}</span>`

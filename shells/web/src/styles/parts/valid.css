@@ -1476,7 +1476,7 @@ box-shadow: var(--ui-elevation-control);
 }
 .valid-claim-input:focus, .valid-claim-select:focus { outline: none; border-color: color-mix(in srgb, var(--ui-color-action-primary) 60%, transparent); box-shadow: var(--ui-effect-focus-halo); }
 .valid-claim-check { display: flex; align-items: flex-start; gap: var(--ui-space-control-inline); font-size: var(--ui-type-title); cursor: pointer; }
-.valid-claim-check input { margin-top: var(--sp-1); accent-color: var(--ui-color-action-primary); }
+.valid-claim-check input { margin-top: var(--sp-1); }
 .valid-claim-actions { display: flex; align-items: center; gap: var(--sp-6); flex-wrap: wrap; margin-top: var(--sp-2); }
 .valid-claim-sign { flex: 0 0 auto; }
 .valid-claim-status { font-size: var(--ui-type-body); color: var(--ui-color-text-muted); }
