@@ -63,7 +63,7 @@ export interface CatCtx {
   searchHaystack: Map<string, string> | null;
   headshotUrl: string;
   showHidden: boolean;
-  /** The Swatches section is out of the page until its card shows it (`?swatches`). */
+  /** The role colours under Swatches stay behind their card until it shows them (`?swatches`). */
   showSwatches: boolean;
   loadFailed: boolean;
   urlType: string;

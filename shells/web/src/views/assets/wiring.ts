@@ -289,8 +289,8 @@ export function wire(cat: CatCtx): void {
       return;
     }
 
-    // Show puts the swatches where the card was. Hide takes them from above the card,
-    // so the page scrolls by what left and the card stays under the pointer.
+    // Show puts the role colours where the card was. Hide takes them from above the
+    // card, so the page scrolls by what left and the card stays under the pointer.
     const reveal = target.closest<HTMLElement>('[data-swatch-reveal]');
     if (reveal) {
       const top = reveal.getBoundingClientRect().top, hiding = cat.showSwatches;

@@ -27,7 +27,7 @@ import type { PickerHost } from '../picker.ts';
 import { mountTextThumbs } from '../../lib/text-thumbs.ts';
 import { mountPdfThumbs } from '../../lib/pdf-thumbs.ts';
 import { mountEmojiSpecimens } from '../../lib/emoji-specimen.ts';
-import { groupPalette, isTransparent, paletteInDisplayOrder } from '../../lib/swatches.ts';
+import { groupPalette, paletteInDisplayOrder, splitPalette, type PaletteRamp } from '../../lib/swatches.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { FONT_LICENSE, WEIGHT_RAMP } from '../../lib/typefaces.ts';
 import { prepareAssetForVerify, setPendingVerify } from '../../lib/verify-handoff.ts';
@@ -41,7 +41,6 @@ import { cardSizeAttr } from '../../components/view-options.ts';
 // Open on a favourite-swatch tile → reveal the Swatches reference panel below.
 export function revealSwatches(cat: CatCtx): void {
   const { viewEl } = cat;
-  if (!cat.showSwatches) setShowSwatches(cat, true);
   const sec = viewEl.querySelector<HTMLElement>('.cat-group[data-group="swatches"]');
   if (!sec) return;
   if (sec.classList.contains('is-collapsed')) sec.querySelector<HTMLElement>('[data-cat-toggle]')?.click();
@@ -141,44 +140,59 @@ export function reflectFavInGrid(cat: CatCtx, base: string, on: boolean): void {
 }
 export function swatchesSectionHtml(cat: CatCtx): string {
   const { SWATCH_DOWNLOADS } = cat;
-  const { brand, spectrum, ramps } = groupPalette(cat.palette);
-  const total = brand.length + spectrum.length + ramps.reduce((n, [, cols]) => n + cols.length, 0);
+  // The brand's own colours always show. The role colours (semantic slots, document
+  // roles, app chrome, colourway leads and copies of brand colours) wait behind the
+  // card below, because most exist for the interface and read as clutter in a library.
+  const { core, roles } = splitPalette(cat.palette);
+  const { brand, spectrum, ramps } = groupPalette(core);
   // One card per colour (swatch-set.ts). A card's ref is its index in the palette's
   // display order, the list selection, downloads and paging all read. Looked up by
   // entry rather than counted as the grids are built, because the ramps below are
   // built before the brand grid that leads the panel.
   const order = new Map(paletteInDisplayOrder(cat.palette).map((c, i) => [c, i]));
   const grid = (list: typeof brand) => `<div class="cat-grid cat-swatch-grid">${list.map(c => cat.swatchSet.cardHtml(c, order.get(c) ?? -1)).join('')}</div>`;
-  const rampBlocks = ramps.map(([fam, cols]) =>
-    `<h3 class="cat-panel-subhead">${escapeText(fam)}</h3>${grid(cols)}`).join('');
+  const block = ([name, cols]: PaletteRamp) => `<h3 class="cat-panel-subhead">${escapeText(name)}</h3>${grid(cols)}`;
+  const roleBlocks = cat.showSwatches ? roles.map(([layer, cols]) => block([roleLayerName(layer), cols])).join('') : '';
   const downloads = `<div class="cat-font-downloads cat-swatch-downloads">${SWATCH_DOWNLOADS.map(d =>
       `<button type="button" class="cat-download" data-swatch-dl="${d.fmt}" data-sfx="whoosh">${DOWNLOAD_ICON}<span>${escapeText(t(d.label))}</span></button>`).join('')}</div>`;
   const body = `
       ${downloads}
       <p class="cat-panel-desc">${t('The brand palette. Click any swatch for every notation, its print values and its place in colour space, or select swatches to copy or download just those. A <span class="plat-chip-flag is-static">CMYK</span> or <span class="plat-chip-flag is-static">SPOT</span> flag marks a locked ink value used directly in CMYK PDF exports.')}</p>
-      <h3 class="cat-panel-subhead">${t('Brand')}</h3>${grid(brand)}
+      ${brand.length ? `<h3 class="cat-panel-subhead">${t('Brand')}</h3>${grid(brand)}` : ''}
       ${spectrum.length ? `<h3 class="cat-panel-subhead">${t('Spectrum')}</h3>${grid(spectrum)}` : ''}
-      ${rampBlocks}`;
-  return cat.tiles.groupSection('swatches', 'Swatches', total, body, 'cat-group--ref');
+      ${ramps.map(block).join('')}
+      ${roleBlocks}${swatchRevealHtml(cat)}`;
+  return cat.tiles.groupSection('swatches', 'Swatches', core.length, body, 'cat-group--ref');
 }
-// The Swatches section stays hidden behind a grey card, like the gallery's
-// "Show hidden tools" box: the palette is every colour token, ramps included, and
-// it buried the assets. The card sits where the section goes and stays after it
-// once shown, so the same card hides it again. A few brand colours show what it holds.
+// A role layer's heading. The copies keep the bucket they were found in.
+function roleLayerName(layer: string): string {
+  switch (layer) {
+    case 'semantic': return t('Semantic');
+    case 'role': return t('Roles');
+    case 'chrome': return t('App chrome');
+    case 'colourway': return t('Colourway');
+    case 'spectrum': return t('Spectrum');
+    case 'brand': return t('Brand');
+    default: return layer ? layer[0]!.toUpperCase() + layer.slice(1) : t('Colours');
+  }
+}
+// The role colours wait behind a grey card at the foot of the section, like the
+// gallery's "Show hidden tools" box. Shown, they sit above the card, so the same
+// card hides them again. No card when the brand has none.
 export function swatchRevealHtml(cat: CatCtx): string {
-  const list = paletteInDisplayOrder(cat.palette);
-  if (!list.length) return '';
-  const label = cat.showSwatches ? t('Hide swatches') : t('Show swatches ({n})', { n: list.length });
-  const dots = cat.showSwatches ? '' : [...new Set(list.filter(c => !isTransparent(c.hex)).map(c => c.hex.toLowerCase()))].slice(0, 6)
-    .map(hex => `<i style="background:${escapeText(hex)}"></i>`).join('');
-  return `<button type="button" class="cat-swatch-reveal" data-swatch-reveal aria-pressed="${cat.showSwatches}">${dots ? `<span class="cat-swatch-reveal-dots" aria-hidden="true">${dots}</span>` : ''}<span>${escapeText(label)}</span></button>`;
+  const n = splitPalette(cat.palette).roles.reduce((sum, [, cols]) => sum + cols.length, 0);
+  if (!n) return '';
+  const label = cat.showSwatches ? t('Hide colour roles') : t('Show colour roles ({n})', { n });
+  return `<button type="button" class="cat-swatch-reveal" data-swatch-reveal aria-pressed="${cat.showSwatches}"><span>${escapeText(label)}</span></button>`;
 }
 export function setShowSwatches(cat: CatCtx, on: boolean): void {
   cat.showSwatches = on;
-  // Shown means open: a folded header would need a second click to see a colour.
-  if (on) { cat.collapsed.delete('swatches'); cat.tiles.persistCollapsed(); }
-  // A selection of cards nobody can see would still drive the selection bar.
-  else if (cat.swatchSelected.size) cat.swatchSet.clear();
+  // A ticked role colour nobody can see would still drive the selection bar. The
+  // brand's own colours lead the list, so their refs stay below the core count.
+  if (!on && cat.swatchSelected.size) {
+    const own = splitPalette(cat.palette).core.length;
+    cat.swatchSet.setSelection([...cat.swatchSelected].filter(ref => Number(ref) < own));
+  }
   updateRouteParams({ swatches: on ? '' : null });
   renderBody(cat);
 }
@@ -220,7 +234,7 @@ export const bodyHtml = (cat: CatCtx): string => {
   return bodyMarkup(cat);
 };
 const bodyMarkup = (cat: CatCtx): string =>
-  cat.projects?.active() ? cat.projects.html() : `${cat.remote?.html() ?? ''}${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all' || !['all', 'catalog'].includes(cat.sourceSelection ?? 'all')) ? '' : (cat.showSwatches ? swatchesSectionHtml(cat) : '') + swatchRevealHtml(cat) + fontsSectionHtml(cat)}`;
+  cat.projects?.active() ? cat.projects.html() : `${cat.remote?.html() ?? ''}${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all' || !['all', 'catalog'].includes(cat.sourceSelection ?? 'all')) ? '' : swatchesSectionHtml(cat) + fontsSectionHtml(cat)}`;
 export const bulkBarHtml = (cat: CatCtx): string => { const { bulkBarCfg } = cat; return buildBulkBar(bulkBarCfg); };
 export function render(cat: CatCtx): void {
   const { viewEl } = cat;

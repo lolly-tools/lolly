@@ -80,12 +80,53 @@ export function groupPalette(palette: readonly PaletteEntry[]): GroupedPalette {
   return { brand, spectrum, ramps: [...ramps] };
 }
 
-/** The palette in the order a Swatches panel shows it: brand, spectrum, then each
- *  ramp. A swatch's index here is its place in that panel, which is what paging
- *  through swatch details walks. */
+// The token layers a brand keeps for the interface rather than as colours of its
+// own: the semantic slots, the document roles, the app chrome and the colourway
+// leads. Lolly derives them from the brand's colours (brand-derive.ts) or the brand
+// points them back at those colours, so in a colour library they read as clutter.
+const ROLE_LAYERS = new Set(['semantic', 'role', 'chrome', 'colourway']);
+
+/** The colours a person put in the brand, and the role colours kept beside them. */
+export interface SplitPalette {
+  /** Brand, custom (what the brand editor adds), ramp and spectrum colours. */
+  core: PaletteEntry[];
+  /** The role colours by layer, in first-seen order: a layer's swatches, and the
+   *  copies, each under the bucket they were found in. */
+  roles: PaletteRamp[];
+}
+
+/**
+ * Split the palette into its own colours and its role colours. A role colour sits
+ * in one of the interface layers, or repeats a colour already listed under the same
+ * name: an alias such as lolly-demo's spectrum, which points at its brand greens. A
+ * starter swatch has no token and is always the brand's own. A ramp step that shares
+ * a brand colour's value keeps its own name ("Jungle 1" beside "Pine"), so it stays.
+ */
+export function splitPalette(palette: readonly PaletteEntry[]): SplitPalette {
+  const core: PaletteEntry[] = [];
+  const roles = new Map<string, PaletteEntry[]>();
+  const seen = new Set<string>();
+  for (const c of palette) {
+    const layer = c.token?.path.split('.')[1] ?? '';
+    const key = `${c.label.toLowerCase()}\n${c.hex.toLowerCase()}`;
+    if (ROLE_LAYERS.has(layer) || seen.has(key)) {
+      if (!roles.has(layer)) roles.set(layer, []);
+      roles.get(layer)!.push(c);
+    } else {
+      core.push(c);
+      seen.add(key);
+    }
+  }
+  return { core, roles: [...roles] };
+}
+
+/** The palette in the order a Swatches panel shows it: brand, spectrum, each ramp,
+ *  then the role colours layer by layer. A swatch's index here is its place in that
+ *  panel, which is what card selection, downloads and paging through details read. */
 export function paletteInDisplayOrder(palette: readonly PaletteEntry[]): PaletteEntry[] {
-  const { brand, spectrum, ramps } = groupPalette(palette);
-  return [...brand, ...spectrum, ...ramps.flatMap(([, cols]) => cols)];
+  const { core, roles } = splitPalette(palette);
+  const { brand, spectrum, ramps } = groupPalette(core);
+  return [...brand, ...spectrum, ...ramps.flatMap(([, cols]) => cols), ...roles.flatMap(([, cols]) => cols)];
 }
 
 /** One swatch's colour, read once: the value it was authored as, the value a

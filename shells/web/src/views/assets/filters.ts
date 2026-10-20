@@ -245,7 +245,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
     ...connectedGroups.map(group => group.key),
     ...(packItems.length ? ['emoji-sets'] : []),
     ...(cat.showHidden && hiddenItems.length ? ['hidden'] : []),
-    ...(cat.showSwatches ? ['swatches'] : []), 'fonts',
+    'swatches', 'fonts',
   ];
   const anyExpanded = renderedKeys.some(k => !collapsed.has(k));
   // The toolbar is a floating pill that sticks to the top as you scroll past the header,
