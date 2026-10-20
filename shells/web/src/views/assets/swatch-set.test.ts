@@ -10,7 +10,8 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { swatchesSectionHtml } from './sections.ts';
+import { swatchesSectionHtml, swatchRevealHtml } from './sections.ts';
+import { splitPalette } from '../../lib/swatches.ts';
 import { cardHtml, fitNotes, selectedEntries, swatchList } from './swatch-set.ts';
 import { swatchFit, type SwatchExportFormat } from '../../lib/swatch-export.ts';
 import type { CatCtx } from './context.ts';
@@ -92,4 +93,54 @@ test('the format menu says which formats fall back to sRGB and which carry the p
   assert.match(notes[0]!, /Left out: Transparent/);
   assert.match(notes[1]!, /^SCSS variables(,| and) GIMP palette \(\.gpl\) save Vivid as the sRGB fallback\./);
   assert.match(notes[2]!, /^The CMYK and spot values of Pine go into Design tokens \(JSON\)(,| and) Adobe swatches \(\.ase\) only\./);
+});
+
+// A palette shaped like lolly-demo's: brand colours, one the person added, a ramp
+// step that shares a brand value, an authored spectrum colour, a spectrum alias of a
+// brand colour, and the interface layers Lolly derives or points at the brand.
+const tok = (path: string) => ({ ref: `{${path}}`, path });
+const tokened: PaletteEntry[] = [
+  { hex: '#0c322c', label: 'Pine', cmyk: null, token: tok('color.brand.pine') },
+  { hex: '#50c369', label: 'Green Apple', cmyk: null, token: tok('color.brand.green-apple') },
+  { hex: '#fe7c3f', label: 'Persimmon', cmyk: null, token: tok('color.custom.persimmon') },
+  { hex: '#0c322c', label: 'Jungle 1', cmyk: null, group: 'Jungle', token: tok('color.ramp.jungle.1') },
+  { hex: '#00bda7', label: 'Teal', cmyk: null, group: 'spectrum', token: tok('color.spectrum.teal') },
+  { hex: '#50c369', label: 'Green Apple', cmyk: null, group: 'spectrum', token: tok('color.spectrum.green-apple') },
+  { hex: '#0c322c', label: 'The accent', cmyk: null, token: tok('color.semantic.primary') },
+  { hex: '#99a0a4', label: 'Hairlines and borders', cmyk: null, token: tok('color.role.hairline') },
+  { hex: '#edf6e0', label: 'The page', cmyk: null, token: tok('color.chrome.page') },
+  { hex: '#0c322c', label: 'Primary', cmyk: null, token: tok('color.colourway.light.primary') },
+];
+
+test('the colours a person put in the brand show, the role colours wait behind a card', () => {
+  const { core, roles } = splitPalette(tokened);
+  assert.deepEqual(core.map(c => c.label), ['Pine', 'Green Apple', 'Persimmon', 'Jungle 1', 'Teal'],
+    'brand, custom, ramp and authored spectrum colours are the brand\'s own');
+  assert.deepEqual(roles.map(([layer, cols]) => [layer, cols.map(c => c.label)]), [
+    ['spectrum', ['Green Apple']],
+    ['semantic', ['The accent']],
+    ['role', ['Hairlines and borders']],
+    ['chrome', ['The page']],
+    ['colourway', ['Primary']],
+  ], 'interface layers and copies of a listed colour, in first-seen order');
+
+  const cat = { ...fakeCat(), palette: tokened } as CatCtx;
+  cat.swatchSet = { cardHtml: (c: PaletteEntry, i: number) => cardHtml(cat, c, i) } as unknown as CatCtx['swatchSet'];
+  const list = swatchList(cat);
+  for (const showSwatches of [false, true]) {
+    cat.showSwatches = showSwatches;
+    const html = swatchesSectionHtml(cat);
+    const shown = cards(html);
+    assert.equal(shown.length, showSwatches ? tokened.length : core.length, `cards with the roles ${showSwatches ? 'shown' : 'hidden'}`);
+    // Refs are places in the one list selection and downloads read, either way.
+    assert.deepEqual(shown.map(c => c.ref), list.slice(0, shown.length).map((_, i) => i));
+    for (const { ref, name } of shown) assert.equal(list[ref]?.label, name, `card ${ref}`);
+    assert.match(html, showSwatches ? /aria-pressed="true"><span>Hide colour roles</ : /aria-pressed="false"><span>Show colour roles \(5\)</);
+  }
+});
+
+test('a palette with no role colours shows no card', () => {
+  const cat = fakeCat();
+  assert.equal(swatchRevealHtml(cat), '');
+  assert.doesNotMatch(swatchesSectionHtml(cat), /data-swatch-reveal/);
 });

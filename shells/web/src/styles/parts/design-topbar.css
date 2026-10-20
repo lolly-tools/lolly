@@ -33,11 +33,11 @@
   gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-5);
   padding-top: calc(var(--sp-3) + var(--safe-top));
-  background: color-mix(in srgb, var(--ui-color-surface-raised) 96%, transparent);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, var(--ui-color-surface-raised));
   -webkit-backdrop-filter: blur(16px) saturate(1.3);
   backdrop-filter: blur(16px) saturate(1.3);
   color: var(--ui-color-text-default);
-  border-bottom: 1px solid var(--ui-color-surface-raised);
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-color-surface-muted) 50%, var(--ui-color-surface-raised));
   font-size: var(--ui-type-body);
 }
 

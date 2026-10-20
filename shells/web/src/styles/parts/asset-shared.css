@@ -37,7 +37,7 @@
   /* Pin BELOW the fixed top chrome - the centred view toggle (Tools|Projects|Catalog) and
      the profile cluster both live in the top ~48px band; sitting there would overlap them. */
   top: calc(var(--sp-8) *2.06);
-  
+
   z-index: 50;
   display: flex; align-items: center; gap: var(--sp-5);
   width: fit-content;
@@ -94,7 +94,7 @@
 
 .catalog .cat-group-chevron { display: inline-flex; transition: transform var(--dur-2) ease; color: hsl(var(--muted-foreground)); }
 /* Per-category glyph (lib/category-icons.ts) - sits between the chevron and title. */
-.catalog .cat-group-icon { display: inline-flex; flex-shrink: 0; color: hsl(var(--muted-foreground)); }
+.catalog .cat-group-icon { display: inline-flex; flex-shrink: 0; color: var(--ui-color-action-primary); opacity:.5;}
 .catalog .cat-group:not(.is-collapsed) .cat-group-chevron { transform: rotate(90deg); }
 .catalog .cat-group-title {
   font-size: calc(1.05rem * var(--a11y-fs)); font-weight: 700;
