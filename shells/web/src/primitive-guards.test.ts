@@ -1759,7 +1759,10 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'components/token-binding-field.ts': 3,
   'components/token-context-strip.ts': 1,
   'components/token-review-proof.ts': 1,
-  'components/token-workspace.ts': 7,
+  // 9 as of 2026-10-20: the zero-match list and the "hidden by the current filters"
+  // detail are their own writes. Paths, queries and values go through escape(), and
+  // tokenPreviewHtml escapes its own output.
+  'components/token-workspace.ts': 9,
   // The saved-work check repaints only its own section: session labels, tool ids,
   // paths and failure text go through escape(); counts, times and copy are t() output.
   'lib/token-consumer-index.ts': 1,

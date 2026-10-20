@@ -172,7 +172,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     start.navigation.wireBackPill();
     start.navigation.wireHomeFab();
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
-    const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: 'Design system', context: 'Editable head', consumers: webTokenConsumerSources(host) });
+    const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
     (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); workspace.teardown(); };
     return;
@@ -202,7 +202,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     start.navigation.wireBackPill();
     start.navigation.wireHomeFab();
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
-    const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: active?.label, context: 'Editable head', consumers: webTokenConsumerSources(host) });
+    const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
     (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); workspace.teardown(); };
     viewEl.querySelector('[data-ds-fork]')?.addEventListener('click', async () => {

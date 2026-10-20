@@ -53,7 +53,9 @@ test('theme preview and filtering write nothing; Apply commits the captured choi
 
 test('source edits invalidate reviewed candidates and prevent an outdated commit', () => {
   const s = setup();
+  const theme = s.find<HTMLSelectElement>('[data-tw-group]'); theme.value = 'night'; theme.dispatchEvent(new Event('change', { bubbles: true }));
   s.find<HTMLButtonElement>('[data-tw-apply-choices]').click();
+  assert.equal(s.find<HTMLButtonElement>('[data-tw-apply]').disabled, false, 'a fresh review with a change can apply');
   const apply = s.find<HTMLButtonElement>('[data-tw-apply]');
   s.write({ ...s.read(), changed: { $value: 1 } });
   apply.click();
@@ -66,6 +68,8 @@ test('resource replacement invalidates a captured review even when token JSON st
   let version = '1';
   const host = { tokens: { activeRecord: async () => ({ id: 'local', headId: 'user/tokens', importedFonts: ['user/font/beacon'] }) }, assets: { get: async (id: string) => ({ id, version }), _getUserRecord: async () => ({ version }) } } as unknown as HostV1;
   const s = setup(host);
+  // A real change: choices that already match the system have nothing to apply.
+  const theme = s.find<HTMLSelectElement>('[data-tw-group]'); theme.value = 'night'; theme.dispatchEvent(new Event('change', { bubbles: true }));
   s.find<HTMLButtonElement>('[data-tw-apply-choices]').click();
   await t.waitFor(() => assert.equal(s.find<HTMLButtonElement>('[data-tw-apply]').disabled, false), { timeout: 5000 });
 
@@ -124,16 +128,136 @@ test('saved work and tools are checked only on request, inside the detail, with 
     for (let i = 0; i < 20 && !s.root.querySelector('[data-tw-consumers] li'); i++) await new Promise(resolve => setTimeout(resolve, 0));
     assert.equal(loads, 1);
     const section = s.find('[data-tw-consumers]').textContent!;
-    assert.match(section, /link this token directly: 1 of 1 read\./);
+    assert.match(section, /link this token directly: 1 of 1 checked\./);
     assert.match(section, /has not loaded on this device, so no tools are counted/);
     assert.match(section, /Night poster/);
     assert.equal(s.find('[data-tw-status]').textContent, 'Saved work check finished.');
     s.workspace.select('Surface');
-    assert.match(s.find('[data-tw-consumers]').textContent!, /link this token directly: 0 of 1 read\./);
+    assert.match(s.find('[data-tw-consumers]').textContent!, /link this token directly: 0 of 1 checked\./);
     assert.equal(loads, 1);
   } finally { s.workspace.teardown(); s.dom.window.close(); }
   const plain = setup();
   plain.workspace.select('Ink');
   assert.equal(plain.root.querySelector('[data-tw-consumers]'), null);
   plain.workspace.teardown(); plain.dom.window.close();
+});
+
+test('zero matches say why and Clear filters brings every token back', () => {
+  const s = setup();
+  try {
+    const search = s.find<HTMLInputElement>('[data-tw-search]'); search.value = 'zzzz'; search.dispatchEvent(new Event('input'));
+    assert.equal(s.root.querySelectorAll('[data-tw-token]').length, 0);
+    assert.match(s.find('.tw-empty').textContent!, /No tokens match “zzzz”\./);
+    assert.equal(s.find('[data-tw-count]').textContent, '0 tokens');
+    s.find<HTMLButtonElement>('.tw-empty [data-tw-clear]').click();
+    assert.equal(search.value, '');
+    assert.equal(s.root.querySelectorAll('[data-tw-token]').length, 2);
+    const issues = s.find<HTMLInputElement>('[data-tw-issues]'); issues.checked = true; issues.dispatchEvent(new Event('change', { bubbles: true }));
+    assert.match(s.find('.tw-empty').textContent!, /No reference issues found\./);
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+});
+
+test('a selected token the filters hide says so in the detail', () => {
+  const s = setup();
+  try {
+    s.workspace.select('Ink');
+    const search = s.find<HTMLInputElement>('[data-tw-search]'); search.value = 'Surface'; search.dispatchEvent(new Event('input'));
+    assert.match(s.find('[data-tw-detail]').textContent!, /Ink is hidden by the current filters\./);
+    s.find<HTMLButtonElement>('[data-tw-detail] [data-tw-clear]').click();
+    assert.match(s.find('[data-tw-detail] h4').textContent!, /Ink/);
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+});
+
+test('the pager shows only past one page, and the count says which page', () => {
+  const s = setup();
+  try {
+    assert.equal(s.find('.tw-pages').hidden, true, 'two tokens need no pager');
+    assert.equal(s.find('[data-tw-count]').textContent, '2 tokens');
+    const tokens: Record<string, unknown> = {};
+    for (let i = 0; i < 100; i++) tokens[`t${i}`] = { $type: 'number', $value: i };
+    s.write(tokens); s.workspace.refresh();
+    assert.equal(s.find('.tw-pages').hidden, true, '100 fit on one page');
+    tokens.t100 = { $type: 'number', $value: 100 };
+    s.write({ ...tokens }); s.workspace.refresh();
+    assert.equal(s.find('.tw-pages').hidden, false);
+    assert.equal(s.find('[data-tw-count]').textContent, '101 tokens · Page 1 of 2');
+    s.write({ one: { $type: 'number', $value: 1 } }); s.workspace.refresh();
+    assert.equal(s.find('[data-tw-count]').textContent, '1 token');
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+});
+
+test('Use these choices hides when the system has no theme choices', () => {
+  const s = setup();
+  try {
+    assert.equal(s.find('[data-tw-apply-choices]').hidden, false);
+    s.write({ a: { $type: 'color', $value: '#111111' } }); s.workspace.refresh();
+    assert.equal(s.find('[data-tw-apply-choices]').hidden, true);
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+  const readonly = setup(undefined, { commit: undefined });
+  try { assert.equal(readonly.find('[data-tw-apply-choices]').hidden, true); }
+  finally { readonly.workspace.teardown(); readonly.dom.window.close(); }
+});
+
+test('a review with nothing to change cannot apply and says so', () => {
+  const s = setup();
+  try {
+    s.find<HTMLButtonElement>('[data-tw-apply-choices]').click();
+    assert.equal(s.find<HTMLButtonElement>('[data-tw-apply]').disabled, true);
+    assert.match(s.find('[data-tw-review]').textContent!, /Nothing to change\. The choices already match this system\./);
+    assert.match(s.find('[data-tw-review]').textContent!, /0 values change/);
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+});
+
+test('a bare value edit becomes a candidate, and an unreadable one is refused inline', () => {
+  const s = setup();
+  try {
+    s.workspace.select('Surface');
+    s.find<HTMLTextAreaElement>('[data-tw-source-value]').value = '{"not":"a colour"}';
+    s.find<HTMLButtonElement>('[data-tw-edit-source]').click();
+    assert.equal(s.find('[data-tw-review]').hidden, true, 'nothing to review');
+    assert.equal(s.find('[data-tw-source-err]').hidden, false);
+    assert.match(s.find('[data-tw-source-err]').textContent!, /That isn’t a value Lolly can read\. Try #ff0000 or 16px\./);
+    assert.equal(s.find('[data-tw-source-value]').getAttribute('aria-invalid'), 'true');
+
+    s.find<HTMLTextAreaElement>('[data-tw-source-value]').value = '#ff0000';
+    s.find<HTMLButtonElement>('[data-tw-edit-source]').click();
+    const review = s.find('[data-tw-review]');
+    assert.equal(review.hidden, false);
+    assert.match(review.textContent!, /1 value changes/);
+    assert.match(review.textContent!, /#ff0000/);
+    assert.equal(s.find('[data-tw-source-err]').hidden, true);
+    assert.equal(s.find<HTMLButtonElement>('[data-tw-apply]').disabled, false);
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+});
+
+test('two changes read in the plural', () => {
+  const s = setup();
+  try {
+    const theme = s.find<HTMLSelectElement>('[data-tw-group]'); theme.value = 'night'; theme.dispatchEvent(new Event('change', { bubbles: true }));
+    s.find<HTMLButtonElement>('[data-tw-apply-choices]').click();
+    assert.match(s.find('[data-tw-review]').textContent!, /2 values change/);
+    assert.match(s.find('[data-tw-review]').textContent!, /0 decisions needed/);
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+});
+
+test('an editable head reads as the current draft; without a commit it is read-only', () => {
+  const s = setup();
+  try {
+    assert.equal(s.find('[data-tw-context]').textContent, 'Current draft');
+    assert.equal(s.root.querySelectorAll('.tw-context .chip').length, 1, 'one chip');
+    assert.equal(s.root.querySelector('a[href*="beacon.tokens.json"]'), null, 'the example link lives in the Tokens room');
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+  const readonly = setup(undefined, { commit: undefined, context: 'Editable head' });
+  try { assert.equal(readonly.find('[data-tw-context]').textContent, 'Read-only'); }
+  finally { readonly.workspace.teardown(); readonly.dom.window.close(); }
+});
+
+test('the type filter names types in words and keeps the raw type as the value', () => {
+  const s = setup();
+  try {
+    const opt = s.find<HTMLSelectElement>('[data-tw-type]').querySelector<HTMLOptionElement>('option[value="color"]')!;
+    assert.equal(opt.textContent, 'Colour');
+    assert.equal(s.find<HTMLSelectElement>('[data-tw-set]').options[0]!.textContent, 'Any set');
+    assert.match(s.find('[data-tw-themes]').textContent!, /Appearance/);
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
 });

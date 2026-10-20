@@ -107,10 +107,10 @@ test('the index counts distinct sessions and tools inside labelled scopes, and n
   assert.equal(summary.tools.matched, 1);
   assert.ok(!summary.uses.some(use => use.id.startsWith('__trash__')), 'hidden slots are not saved work');
   const sentences = tokenConsumerSentences(summary, true).join(' ');
-  assert.match(sentences, /link this token directly: 1 of 3 read\./);
+  assert.match(sentences, /link this token directly: 1 of 3 checked\./);
   assert.match(sentences, /custom value that remembers this token: 1\./);
   assert.match(sentences, /not read, so not counted: 1\./);
-  assert.match(sentences, /Tools in the mounted catalog that name this token directly as a default or example: 1 of 1 read\./);
+  assert.match(sentences, /Tools in the mounted catalog that name this token directly as a default or example: 1 of 1 checked\./);
   assert.match(sentences, /Tools not read, so not counted: 1\./);
   assert.doesNotMatch(sentences, /\ball\b|\bevery\b|\bnone use\b/i);
 });
@@ -134,8 +134,8 @@ test('counts are direct: a link to an alias counts under the alias, and the scop
   assert.equal(alias.sessions.following, 1);
   assert.equal(alias.tools.matched, 1);
   const lines = tokenConsumerSentences(primitive, false).join(' ');
-  assert.match(lines, /link this token directly: 0 of 1 read\./);
-  assert.match(lines, /name this token directly as a default or example: 0 of 1 read\./);
+  assert.match(lines, /link this token directly: 0 of 1 checked\./);
+  assert.match(lines, /name this token directly as a default or example: 0 of 1 checked\./);
   assert.match(tokenConsumerSectionHtml({ status: 'ready', index, stale: false }, 'color.brand.ink'), /Links to another token that refers to this one are counted under that token\./);
 });
 
@@ -244,11 +244,11 @@ test('the check paints only its section, keeps focus on its button and announces
     release();
     for (let i = 0; i < 20 && !said.length; i++) await new Promise(resolve => setTimeout(resolve, 0));
     assert.deepEqual(said, ['Saved work check finished.']);
-    assert.match(root.textContent!, /link this token directly: 1 of 1 read\./);
+    assert.match(root.textContent!, /link this token directly: 1 of 1 checked\./);
     assert.equal(dom.window.document.activeElement, root.querySelector('[data-tw-consumers-check]'));
     // Another token reads the same index without a second check.
     root.innerHTML = check.html('line.body');
-    assert.match(root.textContent!, /link this token directly: 1 of 1 read\./);
+    assert.match(root.textContent!, /link this token directly: 1 of 1 checked\./);
     assert.equal(check.click(dom.window.document.querySelector<HTMLElement>('#other')!), false);
     check.dispose();
   } finally { dom.window.close(); }
