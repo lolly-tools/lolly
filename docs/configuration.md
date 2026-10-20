@@ -121,4 +121,12 @@ Keep that service's configuration in its own deployment. See its [configuration]
 
 On a static host, change the source profile or catalogue, rebuild and validate every affected profile (`pnpm run build:catalog:all` and `pnpm run validate:catalog:all`), rebuild the web shell and redeploy. Refresh the catalogue afterwards. Removing a local copy cannot change the deployment's catalogue.
 
+A catalogue can also offer design systems beside its own. List them as `companionDesignSystems` in its `assets/index.json`, each with a `tokens` asset id and a `label`:
+
+```json
+"companionDesignSystems": [{ "tokens": "lolly/tokens/brand", "label": "Lolly Starter" }]
+```
+
+Each entry must be a tokens asset in the same index, or `lolly/tokens/brand`, the blank starter that every web build carries. `validate:catalog` checks the list. A browser gets each companion once, as an editable local system that the person can remove, and the active system does not change. lolly.tools offers Lolly Starter beside Lolly Demo this way. A locked catalogue (`brandLock`) offers no companions.
+
 On Lolly Work, an authenticated administrator can follow **Manage instance design systems** to inspect server sources and preview a default change or retirement. Stopping a connect download leaves the mounted catalogue available. A newer server advertises revisions: safe views refresh on focus or reconnect, while an open tool or editable local copy receives a notice and keeps its work. Older servers retain their existing refresh behaviour.

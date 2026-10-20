@@ -141,6 +141,29 @@ test('a first install while shipped is active creates and activates the default 
   assert.ok(await r.assets._getBlob(USER_TOKENS_ID));   // the legacy id, so nothing else on the device moves
 });
 
+test('a first edit of the shipped system reads as editing it in place: its name, and the catalogue row hidden', async () => {
+  const r = await rig();
+  // The studio writes with no label.
+  await installUserTokens(r.host as unknown as Parameters<typeof installUserTokens>[0], DOC2);
+  const active = await r.tokens.active();
+  assert.equal(active?.id, 'default');
+  assert.equal(active?.label, 'Lolly Starter', "the shipped system's name, not 'My design system'");
+  const fork = await r.registry.get('default');
+  assert.deepEqual(fork?.source, { kind: 'local', from: 'shipped' });
+  assert.equal(fork?.createdAt, (await r.registry.get('shipped'))?.createdAt, "the shipped row's place in the list");
+  assert.equal(await r.tokens.resolve('{color.brand.jungle}'), '#123456');
+  assert.deepEqual((await r.registry.visible()).map(x => x.id), ['default']);
+  assert.ok(await r.registry.get('shipped'), 'hidden, never deleted');
+  // Choosing the catalogue system again (a ds=shipped link) brings its row back.
+  await r.registry.setActive('shipped');
+  assert.deepEqual((await r.registry.visible()).map(x => x.id).sort(), ['default', 'shipped']);
+  // A second edit from shipped goes to the existing default, which keeps its name,
+  // and the catalogue row stays.
+  await installUserTokens(r.host as unknown as Parameters<typeof installUserTokens>[0], DOC);
+  assert.equal((await r.tokens.active())?.label, 'Lolly Starter');
+  assert.deepEqual((await r.registry.visible()).map(x => x.id).sort(), ['default', 'shipped']);
+});
+
 test('a head write with no label keeps the record label - the studio no longer renames the system', async () => {
   const r = await rig({ legacyHead: DOC });
   await installUserTokens(r.host as unknown as Parameters<typeof installUserTokens>[0], DOC2);

@@ -12,10 +12,10 @@ import { STARTER_TOKENS_ID } from './starter.ts';
  *  pack assets remain part of the catalogue; removing a record is not Leave. */
 export async function removalFallback(registry: DesignSystemRegistry, id: string): Promise<DesignSystemRecord> {
   const active = await registry.active();
-  const next = active.id === id ? await registry.get('shipped') : active;
+  const next = active.id === id ? await registry.get(await registry.fallbackId(id)) : active;
   if (!next) throw new Error(t('Could not read the design system that will remain active. Please try again.'));
   const owned = active.source.kind === 'hosted' || active.source.kind === 'file' ? active.source.instance : '';
-  if (active.id !== id || !owned || owned !== getInstanceBase()) return next;
+  if (active.id !== id || !owned || owned !== getInstanceBase() || next.source.kind !== 'shipped') return next;
   const origin = isTauriShell() ? '' : window.location.origin;
   try {
     const response = await instanceFetch('/catalog/assets/index.json?paged=1', { cache: 'no-store', signal: AbortSignal.timeout(5000) });
@@ -73,7 +73,9 @@ export async function designSystemRemovalMessage(registry: DesignSystemRegistry,
   return [
     isTauriShell() ? t('Removes this design system from this device. Saved sessions and personal uploads stay.')
       : t('Removes this design system from this browser. Saved sessions and personal uploads stay.'),
-    active.id === id ? next.catalog?.available === false
+    active.id === id ? next.source.kind !== 'shipped'
+      ? tRaw('“{name}” will become active.', { name: next.label })
+      : next.catalog?.available === false
       ? t('Lolly will return to the catalogue supplied by this app or host. Its selected design system could not be verified. Cached material stays available until a refresh succeeds.')
       : tRaw('The supplied design system “{name}” will become active. Its colours, type and logos will be used.', { name: next.label })
       : tRaw('“{name}” will stay active.', { name: next.label }),

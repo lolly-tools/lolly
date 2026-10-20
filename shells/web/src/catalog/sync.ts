@@ -35,6 +35,7 @@ const offlineManager = () => import('../lib/offline-manager.ts');
 import { adoptBootFetch, getInstanceBase, initInstanceBase, instanceFetch, instancePath, usesBrowserCors } from '../lib/instance.ts';
 import { CatalogRefusedError, catalogRefused, catalogRefusedBefore, isAccessRefused, noteCatalogAllowed, noteCatalogRefused } from '../lib/catalog-access.ts';
 import type { RenditionSpec } from '../../../../packages/core/src/delivery-v1.ts';
+import type { CompanionHost } from '../lib/design-system/companions.ts';
 
 /** One resolvable file for a catalog asset (an entry in an asset's `formats`).
  *  Structurally matches the bridge's AssetFormat so it flows into
@@ -97,6 +98,10 @@ interface AssetIndex {
    *  fonts and scripts, a Design web page box. Merged into the person's trusted sites
    *  until they first edit that list (lib/trusted-sites.ts). */
   defaultTrustedSites?: string[];
+  /** Design systems this catalog offers beside its own, `[{ tokens, label }]`
+   *  (lib/design-system/companions.ts): each is seeded once per device as an
+   *  editable, removable system. Checked by scripts/validate-catalog.ts. */
+  companionDesignSystems?: unknown;
 }
 
 /**
@@ -660,6 +665,15 @@ async function syncAssets(host: SyncHost, onAssetsReady?: () => unknown, mainten
   // Write metadata into IndexedDB so host.assets.get(id) can resolve whatever asset.
   await host.assets._syncFromIndex(index.assets, { origin, ...('brandTokens' in index ? { tokensHead: index.brandTokens } : {}) });
   await onAssetsReady?.();
+  // The companions come from this app's own catalog only: an instance a person
+  // connected to gives its own design systems through its pack. They are seeded
+  // after the index is in, so a companion held in the catalog can be read, and
+  // never hold up the sync.
+  if (index.companionDesignSystems && !getInstanceBase() && 'designSystems' in host) {
+    void import('../lib/design-system/companions.ts')
+      .then(m => m.seedCompanionDesignSystems(host as unknown as CompanionHost, m.readCompanionDesignSystems(index.companionDesignSystems)))
+      .catch((e: unknown) => host.log('warn', 'Companion design systems were not added', { error: String(e) }));
+  }
 
   if (maintenanceGate) {
     // Called before any await, so a hold that onAssetsReady just took is seen.

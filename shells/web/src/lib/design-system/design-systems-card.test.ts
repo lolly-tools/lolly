@@ -24,6 +24,7 @@ function host() {
   return {
     designSystems: {
       list: async () => [...records],
+      visible: async () => [...records],
       activeId: async () => 'active',
     },
     assets: {},
@@ -54,7 +55,7 @@ test('vertical reverse logo is read from each brand on dark surfaces, with prima
     'vertical-primary': { $type: 'asset', $value: 'brand/primary' },
   } } };
   const record = { ...records[0], headId: 'user/ds/active/tokens/brand' };
-  const h = { ...host(), designSystems: { list: async () => [record], activeId: async () => 'active' }, assets: {
+  const h = { ...host(), designSystems: { list: async () => [record], visible: async () => [record], activeId: async () => 'active' }, assets: {
     _getBlob: async () => new Blob([JSON.stringify(doc)]),
     get: async (id: string) => { requested.push(id); if (missing) throw new Error('Missing'); return { url: `/catalog/${id}.svg` }; },
   } };
@@ -230,4 +231,37 @@ test('the starter reads Bundled with this app; a deployment brand reads Managed 
   const one = designSystemCardHtml(records[0] as never, 'active', undefined, { font: 'x', colors: ['#000000'], colorCount: 1 });
   assert.match(one, />1 colour</);
   assert.doesNotMatch(one, /1 colours/);
+});
+
+test('the shipped row offers Remove while another system exists, and a removed one offers Bring back', async () => {
+  const shipped = { id: 'shipped', label: 'Lolly Demo', ns: '', headId: '', source: { kind: 'shipped' }, locked: false, createdAt: 0, lastUsedAt: 0 };
+  const starter = { id: 'lolly-starter', label: 'Lolly Starter', ns: 'user/ds/lolly-starter/', headId: '', source: { kind: 'local' }, locked: false, createdAt: 1, lastUsedAt: 1 };
+  const body = document.querySelector<HTMLElement>('#card')!;
+  const cardHost = (all: unknown[], visible: unknown[]) => ({
+    designSystems: { list: async () => all, visible: async () => visible, activeId: async () => 'shipped' }, assets: {},
+  });
+
+  await renderDesignSystemsCard(body, cardHost([shipped, starter], [shipped, starter]) as never);
+  const row = body.querySelector<HTMLElement>('[data-ds-row="shipped"]')!;
+  assert.equal(row.querySelector('[data-ds-act="remove"]')?.textContent?.trim(), 'Remove');
+  assert.equal(body.querySelector('[data-ds-act="restore"]'), null);
+
+  await renderDesignSystemsCard(body, cardHost([shipped], [shipped]) as never);
+  assert.equal(body.querySelector('[data-ds-row="shipped"] [data-ds-act="remove"]'), null, 'the only system cannot go');
+
+  await renderDesignSystemsCard(body, cardHost([{ ...shipped, locked: true }, starter], [{ ...shipped, locked: true }, starter]) as never);
+  assert.equal(body.querySelector('[data-ds-row="shipped"] [data-ds-act="remove"]'), null, 'a locked build keeps its system');
+
+  await renderDesignSystemsCard(body, cardHost([{ ...shipped, hidden: true }, starter], [starter]) as never);
+  assert.equal(body.querySelector('[data-ds-row="shipped"]'), null);
+  assert.match(body.querySelector('[data-ds-act="restore"]')?.textContent ?? '', /Bring back Lolly Demo/);
+  assert.equal(body.querySelector('[data-ds-row="lolly-starter"] .ds-row-source')?.textContent, 'Made here');
+
+  // After a first edit the person's copy carries the name, so the way back says "original".
+  const edited = { ...starter, id: 'default', label: 'Lolly Demo', source: { kind: 'local', from: 'shipped' } };
+  const companion = { ...starter, source: { kind: 'local', from: 'app' } };
+  await renderDesignSystemsCard(body, cardHost([{ ...shipped, hidden: true }, edited, companion], [edited, companion]) as never);
+  assert.match(body.querySelector('[data-ds-act="restore"]')?.textContent ?? '', /Bring back the original Lolly Demo/);
+  assert.equal(body.querySelector('[data-ds-row="default"] .ds-row-source')?.textContent, 'Edited here');
+  assert.equal(body.querySelector('[data-ds-row="lolly-starter"] .ds-row-source')?.textContent, 'Came with this app');
 });

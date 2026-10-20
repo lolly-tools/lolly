@@ -314,7 +314,9 @@ Some builds ship a **locked design system**, such as the SUSE Brand. Opening it 
 
 ## Remove a local design system
 
-Open **Profile > Design systems** and choose **Remove** from the copy's menu. The confirmation shows the system that will remain active. Personal sessions, uploads and material shared with another system are preserved. Removing an active hosted copy clears only the connection owned by that copy, then refreshes the supplied catalogue. A separately chosen instance connection remains selected.
+Open **Profile > Design systems** and choose **Remove** from the copy's menu. The confirmation shows the system that will remain active.
+
+The design system this app supplies can go too, as long as another one is in the list and the build is not locked. Removing it only hides it: its catalogue assets stay, **Bring back** on the same card shows it again, and it returns by itself if you remove everything else. Editing the supplied system works the same way. Your first change makes an editable copy with the same name, and that copy takes its place in the list. Personal sessions, uploads and material shared with another system are preserved. Removing an active hosted copy clears only the connection owned by that copy, then refreshes the supplied catalogue. A separately chosen instance connection remains selected.
 
 Expand **Catalogue source** to inspect the supplied tokens asset, origin, namespace and known version/checksum. If a refresh fails, cached material is labelled. Server branding remains until its operator changes the source catalogue and redeploys, or its Work administrator reviews and applies a server change. See [Configuration](/info/configuration.html#supplied-and-local-design-systems) for both paths. Editing in this studio creates local changes; publication to a server requires an operator install.
 

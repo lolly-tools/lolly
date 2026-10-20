@@ -380,6 +380,11 @@ async function headName(host: InstallTokensHost, headId: string, label?: string)
  * the `default` record is created and activated first, which is exactly what a
  * first install used to mean when it shadowed the catalog. A record whose
  * material is read-only (the material lock, section 3.5) refuses the write.
+ *
+ * That first `default` reads as the shipped system edited in place: it takes
+ * the shipped system's name, and the catalog's copy leaves the lists (hidden,
+ * not deleted; registry.ts). An existing `default` is the person's own and
+ * keeps its name, and the shipped row stays where it was.
  */
 async function writeTarget(
   host: InstallTokensHost, system: string | undefined, label: string | undefined,
@@ -396,18 +401,21 @@ async function writeTarget(
     if (record?.locked || await host.tokens?.isLocked?.()) throw new BrandLockedError();
     const existing = await reg.get(DEFAULT_DESIGN_SYSTEM_ID);
     const now = Date.now();
+    const shipped = record?.catalog?.available === false ? null : record;
     record = existing ?? {
       id: DEFAULT_DESIGN_SYSTEM_ID,
-      label: label || 'My design system',
+      label: label || shipped?.label || 'My design system',
       ns: designSystemNamespace(DEFAULT_DESIGN_SYSTEM_ID),
       headId: designSystemHeadId(DEFAULT_DESIGN_SYSTEM_ID),
-      source: { kind: 'local' },
+      source: shipped ? { kind: 'local', from: 'shipped' } : { kind: 'local' },
       locked: false,
-      createdAt: now,
+      // The shipped row's place in the list, which is sorted by creation.
+      createdAt: shipped?.createdAt ?? now,
       lastUsedAt: now,
     };
     if (!existing) await reg.put(record);
     await reg.setActive(record.id);
+    if (!existing) await reg.setShippedHidden?.(true).catch(() => { /* the lists still show both */ });
   }
   // The material lock guards the ACTIVE-system write path - the studio's, which
   // names no system. A write that names its target is the import, the sync or
@@ -873,7 +881,8 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
     async list() {
       const reg = host.designSystems;
       if (reg) {
-        const [records, activeId] = await Promise.all([reg.list(), reg.activeId()]);
+        // What the person sees in their own lists: a removed shipped system is not offered.
+        const [records, activeId] = await Promise.all([reg.visible ? reg.visible() : reg.list(), reg.activeId()]);
         return records.map(r => reg.summary(r, activeId));
       }
       const id = (await headAsset())?.id ?? null;

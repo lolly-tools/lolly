@@ -22,7 +22,7 @@ import { withoutLeadColours } from './leads.ts';
 import { brandFontStack, tokenValueToHex, SWATCH_INK } from '../../brand-vars.ts';
 import type { DesignSystemRecord } from './registry.ts';
 import { createDesignSystem, type ManageHost } from './manage.ts';
-import { prepareDesignSystemRemoval, removeAndSwitchDesignSystem } from './remove-coordinator.ts';
+import { hideShippedDesignSystem, prepareDesignSystemRemoval, removeAndSwitchDesignSystem } from './remove-coordinator.ts';
 import { switchDesignSystem, type SwitchHost } from './switch.ts';
 import { showUndoToast } from '../undo-toast.ts';
 import { catalogSourceHtml, catalogSourceLabel } from './catalog-source.ts';
@@ -64,7 +64,10 @@ export function sourceLine(record: DesignSystemRecord, now = Date.now()): string
   const s = record.source;
   switch (s.kind) {
     case 'shipped': return catalogSourceLabel(record);
-    case 'local': return s.forkedFrom ? t('Made here, copied from {name}', { name: s.forkedFrom.id }) : t('Made here');
+    case 'local':
+      if (s.from === 'app') return t('Came with this app');
+      if (s.from === 'shipped') return t('Edited here');
+      return s.forkedFrom ? t('Made here, copied from {name}', { name: s.forkedFrom.id }) : t('Made here');
     case 'file': return s.publisher ? t('From a file by {publisher}', { publisher: s.publisher }) : t('From a file');
     case 'hosted': {
       const host = s.instance.replace(/^https?:\/\//, '');
@@ -131,9 +134,11 @@ function colourCount(n: number): string {
   return t(n === 1 ? '{n} colour' : '{n} colours', { n });
 }
 
-export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, bytes: number | undefined, preview: BrandPreview, adminHref?: string | null): string {
+/** `canHide`: the shipped row may be removed (hidden) because the build is not
+ *  locked and another system is on the device to fall back to. */
+export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, bytes: number | undefined, preview: BrandPreview, adminHref?: string | null, opts: { canHide?: boolean } = {}): string {
   const active = r.id === activeId;
-  const removable = r.source.kind !== 'shipped';
+  const removable = r.source.kind !== 'shipped' || (!!opts.canHide && !r.locked);
   const size = bytesLabel(bytes);
   return `
     <article class="ds-row${active ? ' is-active' : ' is-switchable'}" data-ds-row="${escape(r.id)}" aria-label="${escape(r.label)}">
@@ -159,17 +164,23 @@ export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, by
 
 export async function renderDesignSystemsCard(body: HTMLElement, host: CardHost): Promise<void> {
   const sizesOf = (host.assets as { _designMaterialSizes?(): Promise<Record<string, number>> })._designMaterialSizes;
-  const [records, activeId, sizes] = await Promise.all([
+  const [all, records, activeId, sizes] = await Promise.all([
     host.designSystems.list(),
+    host.designSystems.visible(),
     host.designSystems.activeId(),
     sizesOf ? sizesOf.call(host.assets).catch(() => ({} as Record<string, number>)) : Promise.resolve({} as Record<string, number>),
   ]);
   const adminHref = (await import('../../org/index.ts')).orgAdminHref();
   const previews = await Promise.all(records.map(record => previewOf(host, record)));
+  // The shipped row can go while something else stays; a removed one can come back.
+  const canHide = records.some(r => r.source.kind !== 'shipped');
+  const hiddenShipped = records.some(r => r.source.kind === 'shipped') ? null : all.find(r => r.source.kind === 'shipped' && !r.locked) ?? null;
   body.innerHTML = `
     <p class="profile-appearance-sub">${isTauriShell() ? t('The design systems on this device. The active one is what every tool renders with.') : t('The design systems in this browser. The active one is what every tool renders with.')}</p>
-    <div class="ds-rows">${records.map((r, i) => designSystemCardHtml(r, activeId, sizes[r.id], previews[i]!, adminHref ? `${adminHref}#/instance?tab=design` : null)).join('')}</div>
+    <div class="ds-rows">${records.map((r, i) => designSystemCardHtml(r, activeId, sizes[r.id], previews[i]!, adminHref ? `${adminHref}#/instance?tab=design` : null, { canHide })).join('')}</div>
     <div class="ds-add">
+      ${hiddenShipped ? `<button type="button" class="btn" data-ds-act="restore">${icon('refresh', { size: 14 })} ${escape(records.some(r => r.label === hiddenShipped.label)
+        ? tRaw('Bring back the original {name}', { name: hiddenShipped.label }) : tRaw('Bring back {name}', { name: hiddenShipped.label }))}</button>` : ''}
       <button type="button" class="btn" data-ds-act="looks">${t('Find a look')}</button>
       <button type="button" class="btn" data-ds-act="new">${icon('plus', { size: 14 })} ${t('Make a new one')}</button>
       <button type="button" class="btn" data-ds-act="file">${icon('upload', { size: 14 })} ${t('Open or import a file')}</button>
@@ -229,7 +240,23 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
         location.hash = '#/start';
         return;
       }
-      if (act === 'remove' && id) {
+      if (act === 'restore') {
+        const shipped = await host.designSystems.get('shipped');
+        await host.designSystems.setShippedHidden(false);
+        announce(body, tRaw('“{name}” is back in the list.', { name: shipped?.label ?? '' }));
+      }
+      if (act === 'remove' && id === 'shipped') {
+        const record = await host.designSystems.get(id);
+        const ok = await confirmDialog({
+          title: t('Remove “{name}”?', { name: record?.label ?? id }),
+          message: t('This app supplies this design system, so its catalogue assets stay available. You can bring it back from this card.'),
+          confirmLabel: t('Remove'),
+          danger: true,
+        });
+        if (!ok) return;
+        const res = await hideShippedDesignSystem(host, { route: 'profile' });
+        announce(body, res.wasActive ? t('Removed. “{name}” is active.', { name: res.fallback.label }) : t('Removed.'));
+      } else if (act === 'remove' && id) {
         const reviewed = await prepareDesignSystemRemoval(host.designSystems, id);
         const record = await host.designSystems.get(id);
         const ok = await confirmDialog({
