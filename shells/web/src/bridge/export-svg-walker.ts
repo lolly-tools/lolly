@@ -646,16 +646,34 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   /** Top layer (`<dialog open>` shown modally, an open popover). Guarded because
    *  `:popover-open` throws in engines that don't know the selector.
    *
-   *  KNOWN LIMITATION: this only makes a top-layer box a stacking CONTEXT so its
-   *  internals order correctly. It does NOT lift it above the rest of the
-   *  document (HTML section top layer) and `::backdrop` is not modelled at all
-   *  (pseudoDescriptor sees only ::before/::after). On the measured fixtures
-   *  that is the single largest remaining paint-order defect - ~36 points of
-   *  local-gallery's loss, against ~2 points for everything this flag fixes - 
-   *  and it is a separate milestone. */
+   *  A top-layer box is a stacking context for its own internals, and the walk
+   *  lifts it above the rest of the document with its ::backdrop colour under it
+   *  (topLayerQueue). Not modelled: a backdrop-filter on ::backdrop, and the
+   *  order boxes entered the top layer, which the DOM does not expose, so the
+   *  walk's own order stands in for the opening order. */
   const topLayer = (el: Element): boolean => {
     try { return typeof el.matches === 'function' && el.matches(':modal, :popover-open'); }
     catch { return false; }
+  };
+  /** Top-layer boxes met during the walk, painted after it (see visitSvgNode). */
+  const topLayerQueue: Element[] = [];
+  const inTopLayerPass = new Set<Element>();
+  /** A top-layer box's ::backdrop: one viewport-sized rect of its colour. A
+   *  backdrop-filter on it is not reconstructed, and the log says so. */
+  const emitBackdrop = (el: Element): void => {
+    let bs: CSSStyleDeclaration;
+    try { bs = window.getComputedStyle(el, '::backdrop'); } catch { return; }
+    if (bs.backdropFilter && bs.backdropFilter !== 'none') {
+      _host?.log?.('warn', `svg: ::backdrop filter (${bs.backdropFilter}) on <${el.tagName.toLowerCase()}> is not reconstructed; its colour is`);
+    }
+    const col = parseCssColorFull(bs.backgroundColor);
+    if (!col || col[3] <= 0) return;
+    const r = document.createElementNS(NS, 'rect');
+    r.setAttribute('x', String(n2(-rootRect.left))); r.setAttribute('y', String(n2(-rootRect.top)));
+    r.setAttribute('width', String(n2(document.documentElement.clientWidth || window.innerWidth)));
+    r.setAttribute('height', String(n2(document.documentElement.clientHeight || window.innerHeight)));
+    r.setAttribute('fill', rgbaCss(col));
+    rootG.appendChild(r);
   };
 
   /** Append `unit` where CSS says it paints. Returns a handle so a caller that
@@ -885,6 +903,13 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     const opacity = parseFloat(style.opacity ?? '1');
     if (opacity === 0) return;
 
+    // The top layer (HTML section 6.11): a modal dialog or an open popover paints
+    // above the whole document, with its ::backdrop under it, whatever its
+    // ancestors clip, fade or stack. Painted here among its DOM siblings, a page's
+    // fixed bottom bar came out over the welcome dialog. Queue it for the pass that
+    // follows the root walk instead. Snapshot mode only, like the rest of paint order.
+    if (stackingOrder && el !== node && !inTopLayerPass.has(el) && topLayer(el)) { topLayerQueue.push(el); return; }
+
     // `display: contents` generates NO box of its own (CSS Display 3 section 3.1: the element
     // is replaced by its contents for layout). getBoundingClientRect() is therefore
     // 0x0, and the `rect.width < 0.5` guard below would drop the element AND its whole
@@ -1047,7 +1072,20 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     }
 
     const rect = el.getBoundingClientRect();
-    if (rect.width < 0.5 || rect.height < 0.5) return;
+    if (rect.width < 0.5 || rect.height < 0.5) {
+      // A box with no area paints nothing of its own, but it can still show its
+      // children: `overflow: visible` lets them spill out, and a fixed child is laid
+      // out against the viewport whatever its parent clips. Pages mount portals,
+      // consent banners and fixed headers this way (github.com's header and hero
+      // canvas sit in 0-height fixed wrappers, a OneTrust banner in a 0-height
+      // static one), and returning here dropped them with the empty box.
+      const spills = style.overflowX === 'visible' && style.overflowY === 'visible';
+      for (const child of renderedChildren(el)) {
+        if (!hasOwnBox(child)) continue;
+        if (spills || window.getComputedStyle(child).position === 'fixed') await visitSvgNode(child, parentG, ctx);
+      }
+      return;
+    }
 
     const x = rect.left - rootRect.left;
     const y = rect.top  - rootRect.top;
@@ -2148,6 +2186,15 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   // directly. Handing it a frame nobody finalises would silently drop the whole
   // page if the export root ever happened to be positioned.
   await visitSvgNode(node, rootG, { frame: null, clips: [] });
+  // The top layer, above everything the walk painted, in the order the walk met it
+  // (the order boxes entered the top layer is not exposed). A popover opened inside
+  // a dialog is queued while the dialog is walked, so the loop reads a growing list.
+  for (let i = 0; i < topLayerQueue.length; i++) {
+    const el = topLayerQueue[i]!;
+    inTopLayerPass.add(el);
+    emitBackdrop(el);
+    await visitSvgNode(el, rootG, { frame: null, clips: [] }, { forceContext: true });
+  }
   // ONE line for the whole walk (plans/104 section 12 Q2): what did not stay vector, and why.
   // The user was told in advance by the export panel's amber row; this is the record in
   // the log, and it is what a CLI or a headless caller has instead of that row.
