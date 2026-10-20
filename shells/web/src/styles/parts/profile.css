@@ -988,6 +988,8 @@
 .ds-row-menu button:hover { background: var(--ui-color-surface-muted); }
 .ds-row-menu .ds-row-remove { color: hsl(var(--destructive-text)); }
 .profile-view .ds-add { display: flex; flex-wrap: wrap; gap: var(--sp-4); padding-top: var(--sp-4); }
+/* The one-line status under the buttons ("Removed.") sits apart from them. */
+.profile-view .ds-note { margin-top: var(--sp-5); }
 
 /* Brand download uses the same tokens in the dialog's body-mounted top layer. */
 .brand-download { width: min(760px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 40px); padding: var(--ui-space-page); overflow: auto; color: var(--ui-color-text-default); background: var(--ui-color-surface-raised); }
