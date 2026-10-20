@@ -5,6 +5,8 @@ import type { InputValue } from '../../../../../engine/src/inputs.ts';
 import { resolveBrandRule, type BrandExample, type BrandFacts } from '../../../../../engine/src/brand-rules.ts';
 import { resolveTokenBinding } from '../../../../../engine/src/token-binding.ts';
 import { createTokenSet, colorToHex } from '../../../../../engine/src/tokens.ts';
+import { contrastRatio } from '../../../../../engine/src/brand-derive.ts';
+import { brandVarTokenPath } from '../../brand-vars.ts';
 import { fetchTemplateSeed } from '../template-source.ts';
 import { designVariants, newDesignToolDraft, makeDesignInput } from '../design-tool-draft.ts';
 
@@ -17,6 +19,40 @@ export const EXAMPLE_TEXT: ExampleText = {
   dense: 'A clear starting point\nBring your colours, type and artwork together.\n\nSpace to explore\nMake useful variations without losing the details that identify your brand.\n\nReady for the next step\nReview the output, resolve any issues and share a consistent result.',
 };
 
+/** A plain sRGB hex, or null. colorToHex passes a bare word ('SUSE', 'transparent') through, which is not a colour Lolly can measure. */
+const hexOf = (value: unknown): string | null => {
+  const hex = colorToHex(value);
+  return typeof hex === 'string' && /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(hex) ? hex : null;
+};
+
+/** The first ink that reads on `ground` at 4.5:1 or better, else whichever of black and white reads better. */
+export function readableInk(ground: string, candidates: ReadonlyArray<string | null | undefined>, floor = 4.5): string {
+  for (const ink of candidates) if (ink && contrastRatio(ink, ground) >= floor) return ink;
+  return contrastRatio('#000000', ground) >= contrastRatio('#ffffff', ground) ? '#000000' : '#ffffff';
+}
+
+/** One measured fact about a rendered example. */
+export interface ExampleCheck { label: string; state: 'pass' | 'fail' | 'unknown'; detail: string }
+
+/** A text box's contrast against its frame, for every text box in a rendered example. */
+export function textContrastCheck(boxes: ReadonlyArray<Record<string, unknown>>, floor = 4.5): ExampleCheck {
+  const frames = new Map(boxes.filter(b => b.kind === 'frame').map(b => [String(b.id), hexOf(b.bg)]));
+  let measured = 0, failed = 0, unreadable = 0;
+  const issues: string[] = [];
+  for (const box of boxes) {
+    if (box.kind !== 'text') continue;
+    const ground = frames.get(String(box.frame)), ink = hexOf(box.fg);
+    if (!ground || !ink) { unreadable++; continue; }
+    measured++;
+    const ratio = contrastRatio(ink, ground);
+    if (!(ratio >= floor)) { failed++; issues.push(`“${String(box.text ?? '').slice(0, 40)}” reads at ${ratio.toFixed(2)}:1 on ${ground}.`); }
+  }
+  return {
+    label: 'Text contrast', state: !measured ? 'unknown' : failed ? 'fail' : 'pass',
+    detail: !measured ? 'No text box has a plain colour to measure.' : `${measured} text boxes measured against their frame at ${floor}:1; ${failed} fall short. ${issues.join(' ')}${unreadable ? ` ${unreadable} boxes carry a colour Lolly cannot read.` : ''}`.replace(/\s+/g, ' ').trim(),
+  };
+}
+
 export async function brandExample(id: BrandExample, doc: unknown, system: BrandSystemV1, mode: string, text: ExampleText, tokenOptions?: TokenResolveOptions) {
   const tokens = createTokenSet(doc, tokenOptions ?? { theme: mode });
   const choices = system.rules.map(rule => resolveBrandRule(rule, system, doc, { tool: id, mode, output: 'png' })).filter(result => result.constraint);
@@ -27,7 +63,7 @@ export async function brandExample(id: BrandExample, doc: unknown, system: Brand
     return names?.length ? `${names.join(' / ')} · ${fallback}` : fallback;
   };
   const resolve = (path: string, fallback: string): string => { const value = tokens.resolve(`{${path}}`); return typeof value === 'string' && value && !value.startsWith('{') ? value : fallback; };
-  const color = (path: string, fallback: string): string => colorToHex(tokens.resolve(path)) ?? fallback;
+  const color = (path: string, fallback: string): string => hexOf(tokens.resolve(path)) ?? fallback;
   const accent = first('accent', color('color.semantic.primary', '#326b54'));
   const linkedFamily = resolveTokenBinding(tokens.get('font.brand'), { type: 'text' });
   const family = first('type', linkedFamily.status === 'linked' ? String(linkedFamily.value) : resolve('font.brand', 'SUSE'));
@@ -37,7 +73,7 @@ export async function brandExample(id: BrandExample, doc: unknown, system: Brand
   const font = (renderDoc.font || {}) as object;
   renderDoc.font = { ...font, brand: { $type: 'fontFamily', $value: family }, display: { $type: 'fontFamily', $value: family } };
   if (id === 'brand-chart') {
-    return { id, toolId: 'chart', values: { heading: text.heading, data: 'Quarter,Studio\nQ1,42\nQ2,58\nQ3,73\nQ4,89', chartType: 'bar', palette: 'ordered', paletteSeed: accent, palette1: accent, transparentBg: false, background: color('color.semantic.surface', '#ffffff'), width: 1280, height: 800 } as Record<string, InputValue>, facts, renderDoc, family, width: 1280, height: 800, draft: null };
+    return { id, toolId: 'chart', values: { heading: text.heading, data: 'Quarter,Studio\nQ1,42\nQ2,58\nQ3,73\nQ4,89', chartType: 'bar', palette: 'ordered', paletteSeed: accent, palette1: accent, transparentBg: false, background: color('color.semantic.surface', '#ffffff'), width: 1280, height: 720 } as Record<string, InputValue>, facts, renderDoc, family, width: 1280, height: 720, draft: null };
   }
   const seed = await fetchTemplateSeed('design', id === 'brand-poster' ? 'poster' : 'slide-deck');
   if (!seed || !Array.isArray(seed.boxes)) throw new Error('The example template is unavailable.');
@@ -48,13 +84,22 @@ export async function brandExample(id: BrandExample, doc: unknown, system: Brand
   const boxes = (seed.boxes as Array<Record<string, unknown>>).filter(box => box.id === frameId || box.frame === frameId).map(box => structuredClone(box));
   const gap = resolveTokenBinding(tokens.get('space.exampleGap'), { type: 'number', min: 0, max: 200 });
   const frame = boxes.find(box => box.id === frameId)!;
-  frame.bg = color('color.semantic.surface', String(frame.bg));
+  // A template box is painted var(--brand-x, fallback). Read the token the var names off the
+  // same table applyBrandVars paints from, so the check sees what the render sees.
+  const paint = (value: unknown): string | null => {
+    const css = String(value ?? '').trim(), v = /^var\(\s*(--[\w-]+)\s*(?:,\s*(.+))?\)$/.exec(css);
+    if (!v) return hexOf(css);
+    const path = brandVarTokenPath(v[1]!);
+    return (path ? hexOf(tokens.resolve(path)) : null) ?? (v[2] ? hexOf(v[2].trim()) : null);
+  };
+  const ground = color('color.semantic.surface', paint(frame.bg) ?? '#ffffff');
+  frame.bg = ground;
   const x = Number(frame.x), y = Number(frame.y);
   const body = id === 'brand-slide-content' ? text.dense : text.body;
   facts.body = { value: body };
   for (const box of boxes) {
     box.x = Number(box.x) - x; box.y = Number(box.y) - y;
-    if (box.kind === 'text') { box.font = family; box.fg = color('color.semantic.foreground', String(box.fg ?? '#20202b')); }
+    if (box.kind === 'text') { box.font = family; box.fg = readableInk(ground, [paint(box.fg), color('color.semantic.text', '')]); }
     if (box.id === titleId) { box.text = text.heading; if (id === 'brand-poster') box.fg = accent; }
     if (box.id === bodyId) box.text = body;
     if (box.id === accentId) box.bg = accent;
