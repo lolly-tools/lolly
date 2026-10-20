@@ -39,4 +39,4 @@ jobs:
       ci_run: ${{ inputs.ci_run }}
       ci_attempt: ${{ inputs.ci_attempt }}
       tier: ${{ inputs.tier }}
-      operator_source: 2b2c46151da0397fb13be65a02e41c3cecc85026
+      operator_source: c6b71f74423863b5db767aaa21e42433131d9a40
