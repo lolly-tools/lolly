@@ -71,7 +71,7 @@
   width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important;
   /* The dock owns visibility here: the export panel's reveal is scoped to its #tool-layout
      ancestor (tool.css), which stops matching once it is re-parented into this body-level
-     slot. transform is deliberately NOT reset, so the wobble impulse still reads. */
+     slot. transform is deliberately NOT reset, so the wobble impulse still reads. */ border-radius:0 !important;
   visibility: visible !important; opacity: 1 !important; pointer-events: auto !important;
 }
 .edge-dock-grip {
