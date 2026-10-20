@@ -71,6 +71,7 @@ import type { DesignSystemSummary, TokensAPI, TokensSnapshot, TokenSet, TokenRes
 // type-only import: the registry is handed in through the host slice, so a test's
 // narrow stub (no registry) keeps the legacy discovery below byte for byte.
 import type { DesignSystemRecord, DesignSystemRegistry } from '../lib/design-system/registry.ts';
+import { STARTER_TOKENS_ID } from '../lib/design-system/starter.ts';
 import { DEFAULT_DESIGN_SYSTEM_ID, SHIPPED_DESIGN_SYSTEM_ID, designSystemHeadId, designSystemNamespace } from '../../../../engine/src/design-system.ts';
 // The exclusion read lives in its own leaf module (not lib/brand-doc.ts, whose
 // engine-barrel import would drag studio code into this bridge's boot graph).
@@ -381,10 +382,13 @@ async function headName(host: InstallTokensHost, headId: string, label?: string)
  * first install used to mean when it shadowed the catalog. A record whose
  * material is read-only (the material lock, section 3.5) refuses the write.
  *
- * That first `default` reads as the shipped system edited in place: it takes
- * the shipped system's name, and the catalog's copy leaves the lists (hidden,
- * not deleted; registry.ts). An existing `default` is the person's own and
- * keeps its name, and the shipped row stays where it was.
+ * When the shipped system is a real brand (Lolly Demo, an ingested one), that
+ * first `default` reads as the shipped system edited in place: it takes the
+ * shipped system's name and place, and the catalog's copy leaves the lists
+ * (hidden, not deleted; registry.ts). The blank starter is different: a first
+ * edit there is someone starting their own brand, so it keeps a placeholder
+ * name for the studio to ask about (views/start/brand.ts) and the starter
+ * stays listed. An existing `default` is the person's own and keeps its name.
  */
 async function writeTarget(
   host: InstallTokensHost, system: string | undefined, label: string | undefined,
@@ -401,7 +405,8 @@ async function writeTarget(
     if (record?.locked || await host.tokens?.isLocked?.()) throw new BrandLockedError();
     const existing = await reg.get(DEFAULT_DESIGN_SYSTEM_ID);
     const now = Date.now();
-    const shipped = record?.catalog?.available === false ? null : record;
+    // The shipped system edited in place; never the blank starter (see above).
+    const shipped = record && record.catalog?.available !== false && record.headId !== STARTER_TOKENS_ID ? record : null;
     record = existing ?? {
       id: DEFAULT_DESIGN_SYSTEM_ID,
       label: label || shipped?.label || 'My design system',
@@ -415,7 +420,7 @@ async function writeTarget(
     };
     if (!existing) await reg.put(record);
     await reg.setActive(record.id);
-    if (!existing) await reg.setShippedHidden?.(true).catch(() => { /* the lists still show both */ });
+    if (!existing && shipped) await reg.setShippedHidden?.(true).catch(() => { /* the lists still show both */ });
   }
   // The material lock guards the ACTIVE-system write path - the studio's, which
   // names no system. A write that names its target is the import, the sync or
