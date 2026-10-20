@@ -64,23 +64,29 @@ const syncFontPackage = (start: StartCtx): void => {
     btn.hidden = !list.some(a => a.type === 'font' && typeof a.id === 'string' && a.id.startsWith('user/fonts/'));
   }, () => { /* the row stays as it is */ });
 };
+/** Restore needs something to restore to: a furnished system with no checkpoint
+ *  yet would open an empty dialog. Asked on every refresh until the door shows,
+ *  including after Export has latched, because the first checkpoint is usually
+ *  written later than that (an import's "Before import", a palette replace). */
+const syncRecovery = (start: StartCtx, furnished: boolean): void => {
+  const { shell } = start;
+  const recovery = shell.querySelector<HTMLElement>('[data-start-recovery]');
+  if (!furnished || !recovery?.hidden) return;
+  void start.studio.listCheckpoints().then((list) => {
+    if (shell.isConnected && list.length > 0) recovery.hidden = false;
+  }, () => { /* no checkpoints readable, no door */ });
+};
 export const refreshFurnished = (start: StartCtx): void => {
   const { host } = start;
-  if (start.worthExporting) { syncFontPackage(start); return; } // the harder latch is set, so both are
+  // The harder latch is set, so both are, and a system worth exporting is furnished.
+  if (start.worthExporting) { syncRecovery(start, true); syncFontPackage(start); return; }
   void readOverview(host as unknown as Parameters<typeof readOverview>[0])
     .then((model) => {
     const { furnishedOnly, importBtn, shell } = start;
       if (!shell.isConnected) return;
       // The hero only duplicates a door while the doors are up (plans/163 F2).
       if (model.furnished && importBtn) importBtn.hidden = false;
-      // Restore needs something to restore to: a furnished system with no
-      // checkpoint yet would open an empty dialog.
-      const recovery = shell.querySelector<HTMLElement>('[data-start-recovery]');
-      if (model.furnished && recovery?.hidden) {
-        void start.studio.listCheckpoints().then((list) => {
-          if (shell.isConnected && list.length > 0) recovery.hidden = false;
-        }, () => { /* no checkpoints readable, no door */ });
-      }
+      syncRecovery(start, model.furnished);
       if (!model.worthExporting) return;
       start.worthExporting = true;
       for (const el of furnishedOnly) if (!el.matches('[data-start-get-on-device]')) el.hidden = false;

@@ -25,7 +25,22 @@ const hexOf = (value: unknown): string | null => {
   return typeof hex === 'string' && /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(hex) ? hex : null;
 };
 
-/** The first ink that reads on `ground` at 4.5:1 or better, else whichever of black and white reads better. */
+/**
+ * The contrast a text box needs, from its own size and weight: WCAG counts 24px
+ * and up, or 18.66px and up when bold, as large text, which reads at 3:1. Every
+ * example template sets its text at 40px or more, so measuring them all against
+ * 4.5:1 failed a mid-tone primary that reads perfectly well as a poster heading.
+ * A box with no readable size is held to the body-text 4.5:1.
+ */
+export function textFloor(box: Readonly<Record<string, unknown>>): number {
+  const size = Number(box.fontSize);
+  if (!Number.isFinite(size) || size <= 0) return 4.5;
+  const weight = String(box.weight ?? box.fontWeight ?? '').trim().toLowerCase();
+  const bold = weight === 'bold' || weight === 'bolder' || Number(weight) >= 700;
+  return size >= 24 || (bold && size >= 18.66) ? 3 : 4.5;
+}
+
+/** The first ink that reads on `ground` at `floor` or better (4.5:1 unless told), else whichever of black and white reads better. */
 export function readableInk(ground: string, candidates: ReadonlyArray<string | null | undefined>, floor = 4.5): string {
   for (const ink of candidates) if (ink && contrastRatio(ink, ground) >= floor) return ink;
   return contrastRatio('#000000', ground) >= contrastRatio('#ffffff', ground) ? '#000000' : '#ffffff';
@@ -34,22 +49,27 @@ export function readableInk(ground: string, candidates: ReadonlyArray<string | n
 /** One measured fact about a rendered example. */
 export interface ExampleCheck { label: string; state: 'pass' | 'fail' | 'unknown'; detail: string }
 
-/** A text box's contrast against its frame, for every text box in a rendered example. */
-export function textContrastCheck(boxes: ReadonlyArray<Record<string, unknown>>, floor = 4.5): ExampleCheck {
+/** A text box's contrast against its frame, for every text box in a rendered example.
+ *  Each box is held to its own floor (`textFloor`: 3:1 for large text, 4.5:1 for the rest). */
+export function textContrastCheck(boxes: ReadonlyArray<Record<string, unknown>>, floorFor: (box: Readonly<Record<string, unknown>>) => number = textFloor): ExampleCheck {
   const frames = new Map(boxes.filter(b => b.kind === 'frame').map(b => [String(b.id), hexOf(b.bg)]));
   let measured = 0, failed = 0, unreadable = 0;
+  const floors = new Set<number>();
   const issues: string[] = [];
   for (const box of boxes) {
     if (box.kind !== 'text') continue;
     const ground = frames.get(String(box.frame)), ink = hexOf(box.fg);
     if (!ground || !ink) { unreadable++; continue; }
     measured++;
+    const floor = floorFor(box);
+    floors.add(floor);
     const ratio = contrastRatio(ink, ground);
-    if (!(ratio >= floor)) { failed++; issues.push(`“${String(box.text ?? '').slice(0, 40)}” reads at ${ratio.toFixed(2)}:1 on ${ground}.`); }
+    if (!(ratio >= floor)) { failed++; issues.push(`“${String(box.text ?? '').slice(0, 40)}” reads at ${ratio.toFixed(2)}:1 on ${ground}, under the ${floor}:1 its size needs.`); }
   }
+  const against = floors.size > 1 ? '3:1 for large text and 4.5:1 for the rest' : `${[...floors][0] ?? 4.5}:1${floors.has(3) ? ', the large-text floor' : ''}`;
   return {
     label: 'Text contrast', state: !measured ? 'unknown' : failed ? 'fail' : 'pass',
-    detail: !measured ? 'No text box has a plain colour to measure.' : `${measured} text boxes measured against their frame at ${floor}:1; ${failed} fall short. ${issues.join(' ')}${unreadable ? ` ${unreadable} boxes carry a colour Lolly cannot read.` : ''}`.replace(/\s+/g, ' ').trim(),
+    detail: !measured ? 'No text box has a plain colour to measure.' : `${measured} text boxes measured against their frame at ${against}; ${failed} fall short. ${issues.join(' ')}${unreadable ? ` ${unreadable} boxes carry a colour Lolly cannot read.` : ''}`.replace(/\s+/g, ' ').trim(),
   };
 }
 
@@ -99,7 +119,7 @@ export async function brandExample(id: BrandExample, doc: unknown, system: Brand
   facts.body = { value: body };
   for (const box of boxes) {
     box.x = Number(box.x) - x; box.y = Number(box.y) - y;
-    if (box.kind === 'text') { box.font = family; box.fg = readableInk(ground, [paint(box.fg), color('color.semantic.text', '')]); }
+    if (box.kind === 'text') { box.font = family; box.fg = readableInk(ground, [paint(box.fg), color('color.semantic.text', '')], textFloor(box)); }
     if (box.id === titleId) { box.text = text.heading; if (id === 'brand-poster') box.fg = accent; }
     if (box.id === bodyId) box.text = body;
     if (box.id === accentId) box.bg = accent;

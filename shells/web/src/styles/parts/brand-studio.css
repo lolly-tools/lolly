@@ -1493,6 +1493,7 @@ background-image:
 .be-ui-edit input, .be-ui-edit textarea { width: 100%; min-width: 0; padding: .42rem .55rem; border: 1px solid hsl(var(--input)); border-radius: calc(var(--radius) * .45); background: hsl(var(--background)); color: hsl(var(--foreground)); font: inherit; font-family: var(--font-mono); font-size: var(--fs-xs); line-height: 1.45; outline: none; resize: vertical; }
 .be-ui-edit input:focus, .be-ui-edit textarea:focus { border-color: hsl(var(--ring) / .65); box-shadow: var(--ui-effect-focus-halo); }
 .be-ui-edit p { margin: 0; font-size: var(--fs-2xs); color: hsl(var(--muted-foreground)); }
+.be-ui-edit p.be-err { font-size: var(--ui-type-help); color: var(--ui-color-status-danger); }
 .be-ui-edit .be-cta { justify-self: start; min-height: 2.2rem; }
 @media (max-width: 620px) {
   .be-ui-role { grid-template-columns: 1fr; }
@@ -1651,16 +1652,22 @@ a.tk-sec-act { text-decoration: none; }
   box-shadow: var(--edge-faint);
 }
 .tk-ramp .stu-chip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
-.tk-colors { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr)); gap: var(--sp-1) var(--sp-6); }
+.tk-colors { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr)); gap: var(--sp-2) var(--sp-6); }
 .tk-group:not(.is-open) .tk-colors > li:nth-child(n + 13) { display: none; }
-.tk-color { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; min-height: 36px; }
+/* A colour row: the chip, then the name and value over the reference it is called by. */
+.tk-color { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); min-width: 0; min-height: 40px; }
+.tk-color-main { flex: 1 1 0; display: grid; justify-items: start; gap: 1px; min-width: 0; }
+.tk-color-line { display: flex; align-items: center; gap: var(--sp-2); width: 100%; min-width: 0; }
 .tk-color-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--ui-type-label); font-weight: 600; color: var(--ui-color-text-default); }
 .tk-color-value { flex: 0 0 auto; font-family: var(--ui-type-mono-family); font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+.tk-color--gradient .tk-color-line a.be-btn { margin-inline-start: auto; }
 .tk-color--gradient a.be-btn { text-decoration: none; }
 .tk-tag {
   flex: 0 0 auto; padding: 0 var(--sp-2); border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-muted);
   font-size: var(--ui-type-field); font-weight: 600; color: var(--ui-color-text-muted);
 }
+.tk-tag.is-own { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
+.tk-tile-preview .tk-tag { margin-inline-start: auto; }
 
 /* The drawn values (.tk-chip, .tk-bar, .tk-face-aa and the rest) live in
    components/token-workspace.css, which every page loads: the workspace draws
@@ -1668,24 +1675,47 @@ a.tk-sec-act { text-decoration: none; }
 .tk-prev { flex: 0 0 auto; display: inline-flex; align-items: center; }
 .tk-prev:empty { display: none; }
 
-/* Type and Logos rows. */
-.tk-rows { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr)); gap: var(--sp-1) var(--sp-6); }
-.tk-row { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; min-height: 40px; }
-.tk-row-text { flex: 1 1 auto; display: flex; align-items: baseline; gap: var(--sp-3); min-width: 0; }
+/* Type and Logos rows: a preview, the name and value, and the reference under them. */
+.tk-rows { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr)); gap: var(--sp-2) var(--sp-6); }
+.tk-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); min-width: 0; min-height: 44px; }
+.tk-row-text { flex: 1 1 0; display: grid; justify-items: start; gap: 1px; min-width: 0; }
+.tk-row-line { display: flex; align-items: baseline; gap: var(--sp-3); width: 100%; min-width: 0; }
 .tk-row-name { flex: 0 1 12rem; min-width: 6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--ui-type-label); font-weight: 600; color: var(--ui-color-text-default); }
 .tk-row-value { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
 code.tk-row-value { font-family: var(--ui-type-mono-family); }
+/* A logo slot's mark, drawn small from its own file. */
+.tk-logo {
+  flex: 0 0 auto; display: block; box-sizing: border-box; overflow: hidden; width: 56px; height: 36px; padding: var(--sp-1);
+  border-radius: var(--ui-radius-control); box-shadow: var(--edge-faint);
+  /* A mark is drawn for the ground its slot names, whatever the app theme: a
+     light ground here, a dark one for a reverse slot (the Logos room does the same). */
+  background: color-mix(in oklab, white 88%, var(--ui-color-surface-muted));
+}
+.tk-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.tk-logo.is-reverse { background: color-mix(in oklab, black 82%, var(--ui-color-surface-muted)); }
 
-/* Copy: the reference in braces. Text on a wide screen, the glyph on a phone. */
-.tk-copy { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-1); }
-/* Quiet until pointed at: a list of colours with a bordered button on every row
-   reads as a wall of buttons. The text and the hover edge keep the affordance. */
-.be-btn.tk-copy { border-color: transparent; background: transparent; color: var(--ui-color-text-muted); }
-.be-btn.tk-copy:hover:not(:disabled), .be-btn.tk-copy:focus-visible { border-color: var(--ui-color-border-default); background: var(--ui-color-surface-raised); color: var(--ui-color-text-default); }
-.tk-copy-ic { display: none; }
-.be-tok-row .tk-copy { margin-inline-start: auto; }
-.be-tok-row .tk-copy + .be-tok-del { margin-inline-start: 0; }
+/* The reference a row is called by, which is also its copy control: what is shown
+   is what is copied. Quiet until pointed at, so a list does not read as a wall of
+   buttons; the copy glyph and the hover edge carry the affordance. */
+.tk-ref {
+  display: inline-flex; align-items: center; gap: var(--sp-1); max-width: 100%; min-width: 0;
+  margin-inline-start: calc(-1 * var(--sp-1)); padding: 1px var(--sp-1); font: inherit; cursor: pointer;
+  color: var(--ui-color-text-muted); background: transparent;
+  border: 1px solid transparent; border-radius: var(--ui-radius-control);
+}
+.tk-ref code { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--ui-type-mono-family); font-size: var(--ui-type-help); }
+.tk-ref-ic { flex: 0 0 auto; display: inline-grid; opacity: .7; }
+.tk-ref:hover, .tk-ref:focus-visible { color: var(--ui-color-text-default); background: var(--ui-color-surface-raised); border-color: var(--ui-color-border-default); }
+.tk-ref:hover .tk-ref-ic, .tk-ref:focus-visible .tk-ref-ic { opacity: 1; }
+.tk-ref:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 1px; }
+.tk-name-stack { display: grid; justify-items: start; gap: 1px; min-width: 7rem; max-width: 16rem; }
+.tk-name-stack .be-tok-name { min-width: 0; }
+/* The clipboard said no: the line sits under the row that was pressed, with the
+   text ready to select and copy by hand. */
+.tk-copy-err { flex: 1 0 100%; margin: 0; font-size: var(--ui-type-help); }
+.tk-copy-manual { user-select: all; font-family: var(--ui-type-mono-family); color: var(--ui-color-text-default); overflow-wrap: anywhere; }
 .tk-row-err { flex: 1 0 100%; margin: 0; }
+.tk-empty .tk-empty-note { font-size: var(--ui-type-help); }
 
 /* Shape and spacing: the two sliders, each with its Lolly default / Yours badge. */
 .tk-dials { gap: var(--sp-6); }
@@ -1708,6 +1738,9 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
 .tk-adv[open] > .section-card-summary .section-card-chev { transform: rotate(90deg); }
 .tk-adv-sub { margin-top: 0; margin-bottom: var(--sp-4); max-width: 72ch; font-size: var(--ui-type-help); line-height: 1.5; color: var(--ui-color-text-muted); }
 .tk-adv .be-ui-starter { margin: 0 var(--sp-6) var(--sp-6); padding: 0; border: 0; background: none; box-shadow: none; }
+/* The workspace sets width: 100% for its other homes; inside the fold its side
+   margins would push it past the fold's edge. */
+.tk-adv > .token-workspace { width: auto; }
 
 @media (max-width: 899px) {
   /* One scrolling row of tiles that bleeds to the screen edge inside the gutter. */
@@ -1723,14 +1756,13 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
   .tk-adv .be-ui-starter { margin-inline: var(--sp-4); }
 }
 @media (max-width: 479px) {
-  .tk-copy-label { display: none; }
-  .tk-copy-ic { display: inline-grid; }
-  .tk-copy { min-width: 40px; min-height: 40px; padding: 0; }
   .tk-colors { grid-template-columns: minmax(0, 1fr); }
+  .tk-ref { min-height: 32px; }
   .tk-color-value { font-size: var(--ui-type-help); }
   /* Name over value, so neither is cut to a few letters. */
-  .tk-row-text { display: grid; gap: 0; }
-  .tk-row-name { min-width: 0; }
+  .tk-row-line { flex-wrap: wrap; row-gap: 0; }
+  .tk-row-name { flex: 0 1 auto; min-width: 0; }
+  .tk-row-value { flex: 1 1 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .tk-tile { transition: none; }

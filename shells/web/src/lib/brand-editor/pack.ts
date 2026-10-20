@@ -11,6 +11,7 @@ import type { Unzipped } from 'fflate';
 import { exportSwatches } from '../swatch-export.ts';
 import type { SwatchExportFormat } from '../swatch-export.ts';
 import { applyChromeBrandVars } from '../../brand-vars.ts';
+import { brandFontFamilies } from '../register-user-fonts.ts';
 import { mountCataloguePanel, mountGradientsPanel, mountTokensPanel } from '../brand-studio-tabs.ts';
 import { exportBrandPack, importBrandPack } from '../../brand-transfer.ts';
 import { saveBlob } from '../../pro/zip.ts';
@@ -124,6 +125,9 @@ export function wirePaletteDownload(bedit: BrandEditorCtx): void {
     // The shipped starter's colour identities, so a panel can tell scaffolding
     // from a decision without a second comparison of its own (plan 182 section 12).
     starterIds: (): ReadonlySet<string> => bedit.starterSwatches,
+    // Faces installed on this device, so the Tokens room calls a face the person's
+    // own on the same test the Type room and Overview use (ownership.ts faceState).
+    userFontFamilies: (): readonly string[] => [...bedit.fontFamilies.map(f => f.family), ...brandFontFamilies()],
     // The token workspace replaced the whole document in place: the Colours room
     // reseeds its controls and palette from the new document.
     onDocReplaced: () => { bedit.derive.reseedFromDoc(); bedit.ramps.repaintPalette(); },

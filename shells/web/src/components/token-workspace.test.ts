@@ -261,3 +261,66 @@ test('the type filter names types in words and keeps the raw type as the value',
     assert.match(s.find('[data-tw-themes]').textContent!, /Appearance/);
   } finally { s.workspace.teardown(); s.dom.window.close(); }
 });
+
+test('an edit that changes nothing cannot apply, and says so for an edit', () => {
+  const s = setup();
+  try {
+    s.workspace.select('Ink');
+    s.find<HTMLTextAreaElement>('[data-tw-source-value]').value = '#111111';
+    s.find<HTMLButtonElement>('[data-tw-edit-source]').click();
+    assert.equal(s.find<HTMLButtonElement>('[data-tw-apply]').disabled, true);
+    assert.match(s.find('[data-tw-review]').textContent!, /Nothing to change\. This value is already in the system\./);
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+});
+
+test('an upstream update whose values already match still applies, so its revision is recorded', async () => {
+  const s = setup();
+  const RealFormData = globalThis.FormData;
+  try {
+    const same = JSON.stringify(s.read());
+    const files: Record<string, unknown> = {
+      revision: '', base: new File([same], 'release-1.json', { type: 'application/json' }), incoming: new File([same], 'release-2.json', { type: 'application/json' }),
+    };
+    globalThis.FormData = class { get(key: string) { return files[key] ?? null; } } as unknown as typeof FormData;
+    s.find<HTMLFormElement>('[data-tw-upstream]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    for (let i = 0; i < 20 && s.find('[data-tw-review]').hidden; i++) await new Promise(resolve => setTimeout(resolve, 5));
+    const review = s.find('[data-tw-review]');
+    assert.equal(review.hidden, false);
+    assert.match(review.textContent!, /0 values change/);
+    assert.match(review.textContent!, /No token values change\. Applying keeps the rest of this update, such as a recorded revision or recipe\./);
+    const apply = s.find<HTMLButtonElement>('[data-tw-apply]');
+    assert.equal(apply.disabled, false, 'the revision is a change worth applying');
+    apply.click();
+    for (let i = 0; i < 20 && !s.commits(); i++) await new Promise(resolve => setTimeout(resolve, 5));
+    assert.equal(s.commits(), 1);
+    assert.match(JSON.stringify(s.read()), /"revision":"release-2"/);
+  } finally { globalThis.FormData = RealFormData; s.workspace.teardown(); s.dom.window.close(); }
+});
+
+test('the authoring folds carry a chevron and a one-line hint, so a closed one reads as a control', () => {
+  const s = setup();
+  try {
+    const folds = [...s.root.querySelectorAll<HTMLDetailsElement>('[data-tw-authoring] > details')];
+    assert.equal(folds.length, 2);
+    for (const fold of folds) {
+      assert.ok(fold.querySelector(':scope > summary .section-card-chev svg'), 'a chevron');
+      assert.ok(fold.querySelector(':scope > summary .tw-fold-hint')!.textContent!.trim(), 'a hint');
+    }
+    s.workspace.select('Ink');
+    assert.ok(s.root.querySelector('[data-tw-detail] details.tw-fold > summary .section-card-chev'), 'Edit the value too');
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+});
+
+test('embedded in a fold that names it: no heading, chip or intro; one line per token', () => {
+  const s = setup(undefined, { embedded: true });
+  try {
+    assert.equal(s.root.querySelector('.section-header-title'), null);
+    assert.equal(s.root.querySelector('[data-tw-context]'), null);
+    assert.equal(s.root.querySelector('.section-header-sub'), null);
+    const row = s.root.querySelector('[data-tw-token]')!;
+    assert.ok(row.querySelector('.tw-row-path strong'));
+    assert.ok(row.querySelector('.tw-row-meta'));
+    assert.ok(row.querySelector('.tw-value code'));
+    assert.equal(s.find('[data-tw-detail]').classList.contains('is-empty'), true, 'nothing chosen reads as a prompt, not an empty card');
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+});

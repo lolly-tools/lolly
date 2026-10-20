@@ -9,17 +9,53 @@
 .tw-themes label, .tw-filters label, .tw-recipe label, .token-workspace form label { display: grid; gap: .3rem; min-width: 0; }
 .tw-context span { color: var(--ui-color-text-muted); }
 .tw-browser { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
-.tw-list { list-style: none; padding: 0; margin: 0; display: grid; gap: .4rem; max-height: 32rem; overflow: auto; }
+.tw-filters { align-items: end; }
+.tw-filters .field-input, .tw-filters .field-select { box-sizing: border-box; min-height: var(--ui-size-target); }
+.tw-filters .tw-issues { min-height: var(--ui-size-target); gap: var(--sp-2); }
+.tw-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; max-height: 32rem; overflow: auto; }
 .tw-list button { display: grid; gap: .25rem; width: 100%; text-align: start; padding: .75rem; white-space: normal; border-radius: var(--ui-radius-panel); }
+/* One line per token: the path (its type under it in small type) and the value at the end. */
+.tw-list .tw-row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto); align-items: center; column-gap: var(--sp-3); row-gap: 0;
+  padding: var(--sp-2) var(--sp-3);
+}
+.tw-row-path { display: grid; min-width: 0; }
+.tw-list .tw-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--ui-type-label); }
+.tw-row-meta { font-size: var(--ui-type-help); color: var(--ui-color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tw-row-issues { color: var(--ui-color-status-danger); }
+.tw-row .tw-value { justify-self: end; max-width: 16rem; }
+.tw-row .tw-value code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--ui-type-help); }
 .tw-list button[aria-pressed="true"] { background: var(--ui-color-selection-surface); border-color: var(--ui-color-selection-border); }
 .tw-list button:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -3px; }
 .token-workspace code, .token-workspace pre, .tw-list strong { overflow-wrap: anywhere; white-space: pre-wrap; }
 .token-workspace code, .token-workspace pre { direction: ltr; unicode-bidi: isolate; text-align: start; }
 .tw-detail { padding: 1rem; max-height: 40rem; overflow: auto; }
+/* Nothing chosen yet: a quiet prompt, not an empty card beside the list. */
+.tw-detail.is-empty { background: none; box-shadow: none; border-color: transparent; color: var(--ui-color-text-muted); padding-block: var(--sp-3); }
+/* References and Used by: a row of path buttons, never bulleted as well as boxed. */
+.tw-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .tw-detail li > code { display: block; }
 .tw-detail dd { margin-inline-start: 0; }
 .tw-pages { margin-block: .75rem; }
 .token-workspace details { margin-block: .75rem; }
+/* The workspace's own folds (Generate a scale, Review an upstream update, Edit the
+   value, a merge conflict): a filled row with the chevron the room's folds carry,
+   so a closed one reads as a control. Nested inside another section card they lose
+   that card's bevel (disclosure.css), so the fill is what marks the edge here. */
+.token-workspace details.tw-fold {
+  padding: 0; gap: 0; background: var(--ui-color-surface-muted); border-radius: var(--ui-radius-panel); box-shadow: none;
+}
+.token-workspace details.tw-fold > .section-card-summary { padding: var(--sp-3) var(--sp-4); gap: var(--sp-3); }
+.token-workspace details.tw-fold > :not(summary) { margin-inline: var(--sp-4); }
+.token-workspace details.tw-fold[open] > :last-child { margin-bottom: var(--sp-4); }
+.tw-fold-text { flex: 1 1 auto; display: grid; gap: 2px; min-width: 0; }
+.tw-fold-hint { font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+.tw-fold .section-card-chev { display: inline-grid; }
+.tw-fold[open] > .section-card-summary .section-card-chev { transform: rotate(90deg); }
+.tw-authoring { display: grid; gap: var(--sp-2); margin-block-start: var(--sp-4); }
+.tw-authoring > details { margin-block: 0; }
+/* Inside the Tokens room's Inspect fold the fold is the frame: no second gutter. */
+.token-workspace--embedded { padding: 0; }
 /* ── Token previews (components/token-preview.ts): a value drawn small. Shared by
    the Tokens room, its App appearance roles and this workspace, so they live in
    this always-loaded sheet. */
@@ -64,6 +100,8 @@
 }
 @container (max-width: 42rem) {
   .tw-browser { grid-template-columns: minmax(0, 1fr); }
+  .tw-row .tw-value { max-width: 10rem; }
+  .tw-detail { padding: var(--sp-3); }
   .tw-list { max-height: 18rem; }
   .tw-detail { max-height: none; }
   .tw-filters > label, .tw-recipe > label { flex: 1 1 10rem; }

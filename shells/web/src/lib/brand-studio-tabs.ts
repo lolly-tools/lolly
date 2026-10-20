@@ -21,7 +21,7 @@ import {
 } from './token-studio.ts';
 import type { StudioKind, StudioToken, GradientStop } from './token-studio.ts';
 import { walkSwatches, isRec, type BrandSwatch } from './brand-doc.ts';
-import { colorIdentity, isNeutralRampKey } from './design-system/ownership.ts';
+import { colorIdentity, isNeutralRampKey, isRoleKey } from './design-system/ownership.ts';
 import { leadTokenSet } from './design-system/leads.ts';
 import { roleAssignments, roleReadouts, rampStepName, type RoleContrast } from './design-system/roles.ts';
 import { swatchTile } from './swatches.ts';
@@ -29,8 +29,9 @@ import { icon, ICON_METAPHORS, type IconName } from './icons.ts';
 import { prefersReducedMotion } from './a11y-prefs.ts';
 import type { SwatchExportFormat } from './swatch-export.ts';
 import { inspectTokenDocument } from '../../../../engine/src/token-inspect.ts';
+import { designMaterialOf } from '../../../../engine/src/design-system.ts';
 import { tokenPreviewHtml, tokenValueText } from '../components/token-preview.ts';
-import { withRadiusToken, withSpaceToken } from '../user-fonts.ts';
+import { withRadiusToken, withSpaceToken, familyFromTokenValue } from '../user-fonts.ts';
 import { mountUploadDropzone } from './upload-dropzone.ts';
 import type { PickerHost } from '../views/picker.ts';
 import { confirmDialog } from '../components/confirm-dialog.ts';
@@ -67,6 +68,10 @@ export interface StudioTabCtx {
    *  Absent on a host that ships no starter, which attributes nothing - the same
    *  honest default every ownership read keeps. */
   starterIds?: () => ReadonlySet<string>;
+  /** Families installed on this device. A face token naming one is the person's
+   *  own; any other face came with the system (ownership.ts `faceState`, the test
+   *  the Type room and Overview make). Absent attributes every face to the system. */
+  userFontFamilies?: () => readonly string[];
 }
 
 export interface StudioPanelHandle { render: () => void; teardown: () => void }
@@ -103,10 +108,21 @@ const KIND_LABEL = new Map(TOKEN_KINDS.map(k => [k.id, k.label]));
 const pathAttr = (t: StudioToken): string => escape(t.path.join('␟')); // ␟ - never in a slug
 const pathFrom = (attr: string): string[] => attr.split('␟');
 
+/** Every Tokens Studio type the Lolly UI document uses, as the kind its editor and
+ *  validator take. A type missing here gets no Customise button: a Save that could
+ *  only return early, with nothing saved and nothing said, is worse than none. */
 const UI_KIND: Record<string, UiTokenKind> = {
-  color: 'color', spacing: 'length', borderRadius: 'length', fontSize: 'length', shadow: 'shadow',
-  fontFamilies: 'font', duration: 'duration', cubicBezier: 'easing', number: 'number',
+  color: 'color', spacing: 'length', sizing: 'length', borderRadius: 'length', fontSize: 'length', letterSpacing: 'length',
+  shadow: 'shadow', fontFamilies: 'font', fontWeights: 'number', duration: 'duration', cubicBezier: 'easing', number: 'number',
 };
+/** Letter spacing tightens as often as it opens, so it is the one length that may be negative. */
+const SIGNED_LENGTH_RE = /^-?\d+(?:\.\d+)?(?:px|rem|em)$/;
+/** Whether Lolly can read and store `value` for a role of this type. */
+function uiValueUsable(type: string, kind: UiTokenKind, value: unknown): boolean {
+  if (type === 'letterSpacing') return typeof value === 'string' && SIGNED_LENGTH_RE.test(value.trim());
+  if (type === 'fontWeights') return typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 1000;
+  return uiTokenCssValue(kind, value) != null;
+}
 const UI_STARTER_TOKENS = listLollyUiTokens();
 const uiPath = (path: readonly string[]): string => path.join('␟');
 const uiValueText = (value: unknown): string => typeof value === 'string' ? value : JSON.stringify(value);
@@ -236,7 +252,13 @@ const isUiKey = (key: string): boolean => key.startsWith('lolly.') || key.starts
 interface ColourRow { key: string; name: string; hex: string; value: string; starter: boolean; title: string }
 interface ColourGroup { id: string; label: string; ramp: boolean; neutral: boolean; note: boolean; rows: ColourRow[] }
 interface ContrastPair { label: 'text' | 'primary' | 'muted'; fg: string; bg: string; contrast: RoleContrast }
-interface NamedRow { key: string; name: string; value: string; raw: unknown }
+interface NamedRow { key: string; name: string; value: string; raw: unknown; starter: boolean }
+interface LogoRow extends NamedRow {
+  /** The catalog or upload id the slot draws. */
+  assetId: string;
+  /** The first slot above this one that draws the same file, or ''. */
+  sameAs: string;
+}
 
 /** What the Tokens room draws, read from the document alone. Pure, so a test can read every state. */
 export interface TokensRoomModel {
@@ -244,12 +266,21 @@ export interface TokensRoomModel {
   gradients: Array<{ key: string; name: string; css: string }>;
   pairs: { light: ContrastPair[]; dark: ContrastPair[] };
   fonts: NamedRow[];
-  logos: NamedRow[];
+  logos: LogoRow[];
   more: StudioToken[];
   /** The palette is only the starter's neutral ramp: Edit in Colours opens that group. */
   starterOnly: boolean;
   example: { name: string; hex: string } | null;
+  /**
+   * The person's own material per section, the way Overview and the Colours,
+   * Type and Logos rooms count it: palette colours (roles re-point, they are not
+   * colours) that differ from the shipped starter, faces installed on this device,
+   * marks uploaded here. What came with the system is counted in `starter`.
+   */
   counts: Record<RoomSection, number>;
+  starter: { color: number; type: number; logos: number };
+  /** No colour, face or logo of the person's own yet: the room shows its one blank card. */
+  empty: boolean;
 }
 
 function contrastPairs(doc: unknown, mode: 'light' | 'dark'): ContrastPair[] {
@@ -266,7 +297,13 @@ function contrastPairs(doc: unknown, mode: 'light' | 'dark'): ContrastPair[] {
   } catch { return []; }
 }
 
-export function tokensRoomModel(doc: Record<string, unknown>, starter: ReadonlySet<string> = new Set()): TokensRoomModel {
+/** A logo token's asset id, from a bare id or an `{ id }` value. */
+const assetIdOf = (value: unknown): string =>
+  typeof value === 'string' ? value : isRec(value) && typeof value.id === 'string' ? value.id : '';
+
+export function tokensRoomModel(
+  doc: Record<string, unknown>, starter: ReadonlySet<string> = new Set(), userFonts: readonly string[] = [],
+): TokensRoomModel {
   const set = leadTokenSet(doc, 'light');
   const resolve = (key: string): unknown => set.resolve(key);
   let swatches: BrandSwatch[] = [];
@@ -286,7 +323,7 @@ export function tokensRoomModel(doc: Record<string, unknown>, starter: ReadonlyS
         key: s.key,
         name: s.kind === 'semantic' ? roleRowName(s) : rampStepName(s.name, s.key),
         hex: s.hex, value: s.hex || String(s.raw), starter: isStarter(s),
-        title: s.kind === 'semantic' && s.name !== roleRowName(s) ? `${s.key} · ${s.name}` : s.key,
+        title: s.kind === 'semantic' && s.name !== roleRowName(s) ? s.name : '',
       })),
     };
   });
@@ -297,18 +334,34 @@ export function tokensRoomModel(doc: Record<string, unknown>, starter: ReadonlyS
   }));
   const more = studio.filter(tok => tok.kind !== 'gradient' && tok.key !== 'space.base');
 
+  const installed = new Set(userFonts.map(f => String(f).trim().toLowerCase()).filter(Boolean));
   const fonts = set.query({ type: 'fontFamily' })
     .filter(e => !isUiKey(e.path))
     .sort((a, b) => {
       const ra = FONT_ROLES.indexOf(a.path), rb = FONT_ROLES.indexOf(b.path);
       return (ra < 0 ? 99 : ra) - (rb < 0 ? 99 : rb);
     })
-    .map(e => ({ key: e.path, name: fontRoleLabel(e.path), value: tokenValueText('fontFamily', e.value), raw: e.value }));
+    .map(e => ({
+      key: e.path, name: fontRoleLabel(e.path), value: tokenValueText('fontFamily', e.value), raw: e.value,
+      starter: !installed.has(familyFromTokenValue(e.value).trim().toLowerCase()),
+    }));
+  const seen = new Map<string, string>();
   const logos = set.query({ type: 'asset' })
     .filter(e => !isUiKey(e.path))
-    .map(e => ({ key: e.path, name: sentence(e.path.split('.').at(-1) ?? e.path), value: typeof e.value === 'string' ? e.value : isRec(e.value) && typeof e.value.id === 'string' ? e.value.id : tokenValueText('asset', e.value), raw: e.value }));
+    .map(e => {
+      const assetId = assetIdOf(e.value);
+      const name = sentence(e.path.split('.').at(-1) ?? e.path);
+      const sameAs = assetId ? seen.get(assetId) ?? '' : '';
+      if (assetId && !seen.has(assetId)) seen.set(assetId, name);
+      // The Logos room draws only marks uploaded to this device (brand-logos.ts
+      // listLogos), so a slot pointing anywhere else is one that came with the system.
+      const own = !!assetId && designMaterialOf(assetId)?.kind === 'logo';
+      return { key: e.path, name, value: assetId || tokenValueText('asset', e.value), raw: e.value, starter: !own, assetId, sameAs };
+    });
 
-  const palette = swatches.filter(s => s.kind !== 'semantic');
+  // Roles re-point at a colour; they are not one (ownership.ts isRoleKey), so they
+  // never add to the count. Spectrum entries do: Overview and the Colours room count them.
+  const palette = swatches.filter(s => !isRoleKey(s.key));
   const starterOnly = palette.length > 0 && palette.every(s => isNeutralRampKey(s.key) && isStarter(s));
   const light = contrastPairs(doc, 'light');
   const hasDark = set.themes().some(theme => theme.name === 'dark' || theme.id === 'dark');
@@ -323,10 +376,14 @@ export function tokensRoomModel(doc: Record<string, unknown>, starter: ReadonlyS
 
   let all = 0;
   try { all = inspectTokenDocument(doc).tokens.length; } catch { all = set.size; }
-  const colourCount = swatches.length + gradients.length;
+  const ownColours = palette.filter(s => !isStarter(s)).length + gradients.length;
+  const ownFonts = fonts.filter(f => !f.starter).length;
+  const ownLogos = logos.filter(l => !l.starter).length;
   return {
     groups, gradients, pairs: { light, dark }, fonts, logos, more, starterOnly, example,
-    counts: { color: colourCount, type: fonts.length, logos: logos.length, shape: 2, more: more.length, all },
+    counts: { color: ownColours, type: ownFonts, logos: ownLogos, shape: 2, more: more.length, all },
+    starter: { color: palette.length + gradients.length - ownColours, type: fonts.length - ownFonts, logos: logos.length - ownLogos },
+    empty: !ownColours && !ownFonts && !ownLogos,
   };
 }
 
@@ -421,7 +478,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     <details class="section-card tk-adv" data-tk-adv="ui">
       <summary class="section-card-summary"><span class="section-card-title">${t('App appearance (advanced)')}</span><span class="section-card-chev" aria-hidden="true">${icon('chevronRight', { size: 16 })}</span></summary>
       <p class="tk-adv-sub">${t('The colours, sizes and shadows Lolly’s own screens use. Change one only if the app chrome should follow your brand.')}</p>
-      <section class="be-ui-starter" data-be-ui-starter aria-labelledby="be-ui-starter-title"></section>
+      <div class="be-ui-starter" data-be-ui-starter></div>
     </details>
     <details class="section-card tk-adv" data-tk-adv="inspect">
       <summary class="section-card-summary"><span class="section-card-title">${t('Inspect every token (advanced)')}</span><span class="section-card-chev" aria-hidden="true">${icon('chevronRight', { size: 16 })}</span></summary>
@@ -441,7 +498,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
   const showErr = (m: string): void => { if (err) { err.textContent = m; err.hidden = !m; } if (m) announce(m, { assertive: true }); };
   const showHeadErr = (m: string): void => { if (headErr) { headErr.textContent = m; headErr.hidden = !m; } if (m) announce(m, { assertive: true }); };
   const openGroups = new Set<string>();
-  let model = tokensRoomModel(ctx.doc(), ctx.starterIds?.());
+  let model = tokensRoomModel(ctx.doc(), ctx.starterIds?.(), ctx.userFontFamilies?.());
   let workspace: ReturnType<typeof mountTokenWorkspace> | undefined;
   let uiRendered = false;
   let openUiEditor = '';
@@ -449,19 +506,54 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
   const openUiGroups = new Set<string>();
 
   // ── Copy and the head actions ──────────────────────────────────────────────
-  const copyBtn = (ref: string, name: string): string =>
-    `<button type="button" class="be-btn be-btn--sm tk-copy" data-tk-copy="${escape(ref)}" aria-label="${escape(tRaw('Copy the reference for {name}', { name }))}"><span class="tk-copy-ic" aria-hidden="true">${icon('duplicate', { size: 14 })}</span><span class="tk-copy-label">${t('Copy')}</span></button>`;
-  const copyText = async (text: string, said: string): Promise<void> => {
+  // A row's copy control shows the reference it copies, so pressing it never puts
+  // something on the clipboard that the row did not show.
+  const refBtn = (ref: string): string => {
+    const label = escape(tRaw('Copy {ref}', { ref }));
+    return `<button type="button" class="tk-ref" data-tk-copy="${escape(ref)}" aria-label="${label}" title="${label}"><code>${escape(ref)}</code><span class="tk-ref-ic" aria-hidden="true">${icon('duplicate', { size: 12 })}</span></button>`;
+  };
+  const clearCopyErrors = (): void => { for (const el of mount.querySelectorAll('.tk-copy-err')) el.remove(); };
+  /** The clipboard said no (a locked-down or embedded browser). The message goes
+   *  beside the control that was pressed, with the text selected to copy by hand. */
+  const copyRefused = (from: HTMLElement | null, text: string): void => {
+    const message = t('Lolly couldn’t reach the clipboard. Select this and copy by hand:');
+    announce(message, { assertive: true });
+    const row = from?.closest<HTMLElement>('li, [data-tok-row]');
+    if (!row) { showHeadErr(t('Lolly couldn’t reach the clipboard. Choose CSS variables and Download instead.')); return; }
+    const note = document.createElement('p');
+    note.className = 'be-err tk-copy-err';
+    note.setAttribute('role', 'alert');
+    note.textContent = `${message} `;
+    const code = document.createElement('code');
+    code.className = 'tk-copy-manual';
+    code.textContent = text;
+    note.appendChild(code);
+    row.appendChild(note);
+    const range = document.createRange();
+    range.selectNodeContents(code);
+    const selection = window.getSelection();
+    selection?.removeAllRanges(); selection?.addRange(range);
+  };
+  const copyText = async (text: string, said: string, from: HTMLElement | null): Promise<void> => {
+    clearCopyErrors();
+    showHeadErr('');
     try {
       await ctx.host.clipboard.writeText(text);
-      showHeadErr('');
       announce(said);
-    } catch (error) { showHeadErr(String((error as { message?: unknown })?.message ?? error)); }
+    } catch {
+      if (from?.matches('[data-tk-copy-css]')) showHeadErr(t('Lolly couldn’t reach the clipboard. Choose CSS variables and Download instead.'));
+      else copyRefused(from, text);
+    }
   };
   const activeSlug = async (): Promise<{ label: string; slug: string }> => {
     const label = (await ctx.host.tokens?.active?.().catch(() => null))?.label ?? '';
     const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
     return { label: label || t('Design system'), slug: slug || 'design-system' };
+  };
+  /** A save that failed or was turned down. A cancelled save dialog is the person's choice, so it says nothing. */
+  const saveFailed = (error: unknown): void => {
+    if ((error as { name?: unknown })?.name === 'AbortError') return;
+    showHeadErr(t('Lolly couldn’t save the file. Try again, or choose another format.'));
   };
   $('[data-tk-download]')?.addEventListener('click', async () => {
     showHeadErr('');
@@ -479,14 +571,16 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
       const { blob, filename } = exportSwatches(ctx.swatches(), format, label);
       await saveBlob(blob, filename);
       announce(tRaw('Palette downloaded as {filename}', { filename }));
-    } catch (error) { showHeadErr(String((error as { message?: unknown })?.message ?? error)); }
+    } catch (error) { saveFailed(error); }
   });
-  $('[data-tk-copy-css]')?.addEventListener('click', async () => {
+  $('[data-tk-copy-css]')?.addEventListener('click', async (e) => {
+    const button = e.currentTarget as HTMLElement;
+    let text = '';
     try {
       const { exportSwatches } = await import('./swatch-export.ts');
-      const text = await exportSwatches(ctx.swatches(), 'css-vars').blob.text();
-      await copyText(text, t('CSS variables copied'));
-    } catch (error) { showHeadErr(String((error as { message?: unknown })?.message ?? error)); }
+      text = await exportSwatches(ctx.swatches(), 'css-vars').blob.text();
+    } catch { showHeadErr(t('Lolly couldn’t write the CSS for this palette.')); return; }
+    await copyText(text, t('CSS variables copied'), button);
   });
   // The importer belongs to the studio view, not this room. A hash link would land
   // on the route already showing; the event is the lolly:* convention the rooms use.
@@ -494,9 +588,9 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     const target = e.target as HTMLElement;
     if (target.closest('[data-tk-import]')) { mount.dispatchEvent(new CustomEvent('lolly:start-import', { bubbles: true })); return; }
     const copy = target.closest<HTMLElement>('[data-tk-copy]');
-    if (copy) { const ref = copy.dataset.tkCopy ?? ''; void copyText(ref, tRaw('Copied {ref}', { ref })); return; }
+    if (copy) { const ref = copy.dataset.tkCopy ?? ''; void copyText(ref, tRaw('Copied {ref}', { ref }), copy); return; }
     const chip = target.closest<HTMLElement>('[data-tk-sec="color"] [data-stu-tile]');
-    if (chip) { const ref = `{${chipKeys[Number(chip.dataset.stuTile)] ?? ''}}`; if (ref !== '{}') void copyText(ref, tRaw('Copied {ref}', { ref })); return; }
+    if (chip) { const ref = `{${chipKeys[Number(chip.dataset.stuTile)] ?? ''}}`; if (ref !== '{}') void copyText(ref, tRaw('Copied {ref}', { ref }), chip); return; }
     const more = target.closest<HTMLButtonElement>('[data-tk-more]');
     if (more) {
       const group = more.closest<HTMLElement>('[data-tk-group]');
@@ -523,11 +617,13 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
 
   // ── The room's drawn half: tiles and the Colours, Type and Logos sections ──
   let chipKeys: string[] = [];
-  const emptyHtml = (sentenceText: string, actions: string, extra = ''): string =>
-    `<div class="tk-empty${extra}"><p>${sentenceText}</p>${actions ? `<div class="tk-empty-actions">${actions}</div>` : ''}</div>`;
+  const emptyHtml = (sentenceText: string, actions: string, extra = '', note = ''): string =>
+    `<div class="tk-empty${extra}"><p>${sentenceText}</p>${note ? `<p class="tk-empty-note">${note}</p>` : ''}${actions ? `<div class="tk-empty-actions">${actions}</div>` : ''}</div>`;
   const pickColour = `<a class="be-btn be-btn--sm" href="#/start?area=color">${t('Pick a colour')}</a>`;
   const chooseFace = `<a class="be-btn be-btn--sm" href="#/start?area=type">${t('Choose a face')}</a>`;
+  const addLogo = `<a class="be-btn be-btn--sm" href="#/start?area=logos">${t('Add a logo')}</a>`;
   const addFrom = `<button type="button" class="be-btn be-btn--sm" data-tk-import aria-haspopup="dialog">${t('Add from…')}</button>`;
+  const starterTag = (): string => `<span class="tk-tag">${t('Starter')}</span>`;
 
   const pairsHtml = (pairs: ContrastPair[], mode: 'light' | 'dark', labelled: boolean): string => pairs.length ? `
     <div class="tk-pairs" data-tk-pairs="${mode}">${labelled ? `<span class="tk-pairs-mode">${mode === 'dark' ? t('Dark') : t('Light')}</span>` : ''}
@@ -541,64 +637,108 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     </div>` : '';
 
   const colourGroupHtml = (g: ColourGroup): string => {
+    // One Starter tag on the group when every colour in it is the starter's; a
+    // tag on each row only where a group mixes the two.
+    const allStarter = g.rows.length > 0 && g.rows.every(r => r.starter);
     if (g.ramp) {
       const chips = g.rows.map(r => { chipKeys.push(r.key); return swatchTile({ label: tRaw('Copy the reference for {name}', { name: `${r.name} ${r.hex}` }), hex: r.hex }, { size: 'sm', idx: chipKeys.length - 1 }); }).join('');
       return `<div class="tk-group tk-group--ramp">
-        <div class="tk-group-head"><span class="tk-group-name">${escape(g.label)}</span>${g.neutral ? '' : `<span class="tk-group-n">${g.rows.length}</span>`}${g.rows.every(r => r.starter) && !g.note ? `<span class="tk-tag">${t('Starter')}</span>` : ''}</div>
+        <div class="tk-group-head"><span class="tk-group-name">${escape(g.label)}</span>${g.neutral ? '' : `<span class="tk-group-n">${g.rows.length}</span>`}${allStarter && !g.note ? starterTag() : ''}</div>
         <div class="tk-ramp">${chips}</div>
         ${g.note ? `<p class="tk-group-note">${t("Lolly's ink and paper. Tools use them until the design system has colours of its own.")}</p>` : ''}
       </div>`;
     }
     const open = openGroups.has(g.id);
     return `<div class="tk-group${open ? ' is-open' : ''}" data-tk-group="${escape(g.id)}">
-      <div class="tk-group-head"><span class="tk-group-name">${escape(g.label)}</span><span class="tk-group-n">${g.rows.length}</span></div>
-      <ul class="tk-colors" role="list">${g.rows.map(r => `<li class="tk-color" title="${escape(r.title)}"><span class="tk-chip" style="--sw:${escape(r.hex || 'transparent')}" aria-hidden="true"></span><span class="tk-color-name">${escape(r.name)}</span>${r.starter ? `<span class="tk-tag">${t('Starter')}</span>` : ''}<code class="tk-color-value">${escape(r.value)}</code>${copyBtn(`{${r.key}}`, r.name)}</li>`).join('')}</ul>
+      <div class="tk-group-head"><span class="tk-group-name">${escape(g.label)}</span><span class="tk-group-n">${g.rows.length}</span>${allStarter ? starterTag() : ''}</div>
+      <ul class="tk-colors" role="list">${g.rows.map(r => `<li class="tk-color"${r.title ? ` title="${escape(r.title)}"` : ''}><span class="tk-chip" style="--sw:${escape(r.hex || 'transparent')}" aria-hidden="true"></span><span class="tk-color-main"><span class="tk-color-line"><span class="tk-color-name">${escape(r.name)}</span>${r.starter && !allStarter ? starterTag() : ''}<code class="tk-color-value">${escape(r.value)}</code></span>${refBtn(`{${r.key}}`)}</span></li>`).join('')}</ul>
       ${g.rows.length > GROUP_PEEK ? `<button type="button" class="be-btn be-btn--sm tk-group-more" data-tk-more="${g.rows.length}" aria-expanded="${open}">${open ? t('Show fewer') : t('Show all {n}', { n: g.rows.length })}</button>` : ''}
     </div>`;
   };
 
+  const fontRowHtml = (f: NamedRow): string =>
+    `<li class="tk-row">${tokenPreviewHtml('fontFamily', f.raw)}<span class="tk-row-text"><span class="tk-row-line"><span class="tk-row-name">${escape(f.name)}</span><span class="tk-row-value">${escape(f.value)}</span></span>${refBtn(`{${f.key}}`)}</span></li>`;
+  const logoRowHtml = (l: LogoRow): string =>
+    `<li class="tk-row"><span class="tk-logo${/reverse$/.test(l.key) ? ' is-reverse' : ''}" data-tk-logo="${escape(l.assetId)}" aria-hidden="true"></span><span class="tk-row-text"><span class="tk-row-line"><span class="tk-row-name">${escape(l.name)}</span>${l.sameAs
+      ? `<span class="tk-row-value" title="${escape(l.value)}">${escape(tRaw('Same file as {name}', { name: l.sameAs }))}</span>`
+      : `<code class="tk-row-value">${escape(l.value)}</code>`}</span>${refBtn(`{${l.key}}`)}</span></li>`;
+  /** A section's own rows, then what came with the system under one Starter head. */
+  const ownThenStarter = <R extends NamedRow>(rows: R[], row: (r: R) => string): string => {
+    const own = rows.filter(r => !r.starter), inherited = rows.filter(r => r.starter);
+    return `${own.length ? `<ul class="tk-rows" role="list">${own.map(row).join('')}</ul>` : ''}${inherited.length ? `<div class="tk-group">
+      <div class="tk-group-head"><span class="tk-group-name">${t('Starter')}</span><span class="tk-group-n">${inherited.length}</span></div>
+      <ul class="tk-rows" role="list">${inherited.map(row).join('')}</ul></div>` : ''}`;
+  };
+
   const tileHtml = (id: RoomSection, preview = ''): string => {
     const label = sectionLabel(id), n = model.counts[id];
-    return `<button type="button" class="tk-tile" data-tk-jump="${id}" aria-label="${escape(tRaw('{label}: {n}', { label, n }))}"><span class="tk-tile-ic" aria-hidden="true">${icon(SECTION_ICON[id])}</span><span class="tk-tile-n">${n}</span><span class="tk-tile-label">${label}</span><span class="tk-tile-preview" aria-hidden="true">${preview}</span></button>`;
+    const starterOnlyTile = !n && (id === 'color' || id === 'type' || id === 'logos') && model.starter[id] > 0;
+    const aria = starterOnlyTile ? `${tRaw('{label}: {n}', { label, n })}, ${t('Starter')}` : tRaw('{label}: {n}', { label, n });
+    return `<button type="button" class="tk-tile" data-tk-jump="${id}" aria-label="${escape(aria)}"><span class="tk-tile-ic" aria-hidden="true">${icon(SECTION_ICON[id])}</span><span class="tk-tile-n">${n}</span><span class="tk-tile-label">${label}</span><span class="tk-tile-preview" aria-hidden="true">${preview}${starterOnlyTile ? starterTag() : ''}</span></button>`;
   };
 
   const renderMain = (): void => {
     chipKeys = [];
     const m = model;
-    const roomEmpty = !m.counts.color && !m.counts.type && !m.counts.logos;
-    if (roomEmpty) {
+    if (m.empty) {
+      const inherited = m.starter.color + m.starter.type + m.starter.logos > 0;
       main.innerHTML = emptyHtml(
         t('Nothing here yet. Tokens appear as you pick colours, choose a face and add logos. You can also start from a file.'),
-        `${pickColour}${chooseFace}${addFrom}`, ' tk-empty--room');
+        `${pickColour}${chooseFace}${addFrom}`, ' tk-empty--room',
+        inherited ? t('Until then, tools use the starter colours, faces and logos that came with Lolly.') : '');
       return;
     }
-    const firstHexes = m.groups.flatMap(g => g.rows).filter(r => r.hex).slice(0, 5).map(r => `<span class="tk-chip" style="--sw:${escape(r.hex)}"></span>`).join('');
+    const ownHexes = m.groups.flatMap(g => g.rows).filter(r => r.hex && !r.starter && !isRoleKey(r.key)).slice(0, 5);
+    const firstHexes = ownHexes.map(r => `<span class="tk-chip" style="--sw:${escape(r.hex)}"></span>`).join('');
     const brandFace = m.fonts.find(f => f.key === 'font.brand') ?? m.fonts[0];
     const faceStack = brandFace ? brandFontStack(brandFace.raw, 'sans-serif') : null;
     const tiles = `<nav class="tk-overview" aria-label="${escape(t('Token sections'))}" data-tk-overview>
       ${tileHtml('color', firstHexes)}${tileHtml('type', faceStack ? `<span class="tk-face-aa" style="font-family:${escape(faceStack)}">Aa</span>` : '')}${tileHtml('logos')}${tileHtml('shape')}${tileHtml('more')}${tileHtml('all')}
     </nav>`;
 
-    const colourAction = !m.counts.color ? '' : `<a class="be-btn be-btn--sm tk-sec-act" href="${m.starterOnly ? NEUTRALS_LINK : '#/start?area=color'}">${t('Edit in Colours')}</a>`;
-    const colourBody = !m.counts.color
+    const anyColour = m.counts.color + m.starter.color > 0;
+    const colourAction = !anyColour ? '' : `<a class="be-btn be-btn--sm tk-sec-act" href="${m.starterOnly ? NEUTRALS_LINK : '#/start?area=color'}">${t('Edit in Colours')}</a>`;
+    const colourBody = !anyColour
       ? emptyHtml(t('No colours yet. Pick a colour, or add from a file.'), `${pickColour}${addFrom}`)
       : `${pairsHtml(m.pairs.light, 'light', m.pairs.dark.length > 0)}${pairsHtml(m.pairs.dark, 'dark', true)}
         ${m.groups.map(colourGroupHtml).join('')}
-        ${m.gradients.length ? `<div class="tk-group"><div class="tk-group-head"><span class="tk-group-name">${t('Gradients')}</span><span class="tk-group-n">${m.gradients.length}</span></div><ul class="tk-colors" role="list">${m.gradients.map(g => `<li class="tk-color tk-color--gradient">${tokenPreviewHtml('gradient', null, { css: g.css })}<span class="tk-color-name">${escape(g.name)}</span><a class="be-btn be-btn--sm" href="#/start?area=color">${t('Edit in Colours')}</a>${copyBtn(`{${g.key}}`, g.name)}</li>`).join('')}</ul></div>` : ''}`;
+        ${m.gradients.length ? `<div class="tk-group"><div class="tk-group-head"><span class="tk-group-name">${t('Gradients')}</span><span class="tk-group-n">${m.gradients.length}</span></div><ul class="tk-colors" role="list">${m.gradients.map(g => `<li class="tk-color tk-color--gradient">${tokenPreviewHtml('gradient', null, { css: g.css })}<span class="tk-color-main"><span class="tk-color-line"><span class="tk-color-name">${escape(g.name)}</span><a class="be-btn be-btn--sm" href="#/start?area=color">${t('Edit in Colours')}</a></span>${refBtn(`{${g.key}}`)}</span></li>`).join('')}</ul></div>` : ''}`;
 
+    // A section with nothing of the person's own leads with its blank state, and
+    // whatever came with the system follows under one Starter head.
     const typeBody = !m.fonts.length
       ? emptyHtml(t('No typeface chosen yet. Lolly uses SUSE until you pick one.'), chooseFace)
-      : `<ul class="tk-rows" role="list">${m.fonts.map(f => `<li class="tk-row">${tokenPreviewHtml('fontFamily', f.raw)}<span class="tk-row-text"><span class="tk-row-name">${escape(f.name)}</span><span class="tk-row-value">${escape(f.value)}</span></span>${copyBtn(`{${f.key}}`, f.value)}</li>`).join('')}</ul>`;
+      : `${m.counts.type ? '' : emptyHtml(t('No typeface of your own yet. Tools use the starter faces below until you choose one.'), chooseFace)}${ownThenStarter(m.fonts, fontRowHtml)}`;
     const logosBody = !m.logos.length
-      ? emptyHtml(t('No logos yet. Drop a logo file and Lolly suggests its slot.'), `<a class="be-btn be-btn--sm" href="#/start?area=logos">${t('Add a logo')}</a>`)
-      : `<ul class="tk-rows" role="list">${m.logos.map(l => `<li class="tk-row"><span class="tk-row-text"><span class="tk-row-name">${escape(l.name)}</span><code class="tk-row-value">${escape(l.value)}</code></span>${copyBtn(`{${l.key}}`, l.name)}</li>`).join('')}</ul>`;
+      ? emptyHtml(t('No logos yet. Drop a logo file and Lolly suggests its slot.'), addLogo)
+      : `${m.counts.logos ? '' : emptyHtml(t('No logos of your own yet. Tools use the starter marks below until you add one.'), addLogo)}${ownThenStarter(m.logos, logoRowHtml)}`;
 
     const section = (id: RoomSection, sub: string, body: string, action = ''): string =>
       `<section class="be-panel tk-sec" data-tk-sec="${id}" aria-labelledby="tk-sec-${id}" tabindex="-1">${secHead(id, m.counts[id], action)}<p class="tk-sec-sub">${sub}</p><div class="tk-sec-body" data-tk-body="${id}">${body}</div></section>`;
     main.innerHTML = tiles
       + section('color', t('Swatches, shades and the pairs tools put together.'), colourBody, colourAction)
-      + section('type', t('The faces tools use for text, headings and code.'), typeBody, m.fonts.length ? `<a class="be-btn be-btn--sm tk-sec-act" href="#/start?area=type">${t('Edit in Type')}</a>` : '')
-      + section('logos', t('Marks tools can place. The Logos room shows them.'), logosBody, m.logos.length ? `<a class="be-btn be-btn--sm tk-sec-act" href="#/start?area=logos">${t('Edit in Logos')}</a>` : '');
+      + section('type', t('The faces tools use for text, headings and code.'), typeBody, m.counts.type ? `<a class="be-btn be-btn--sm tk-sec-act" href="#/start?area=type">${t('Edit in Type')}</a>` : '')
+      + section('logos', t('Marks tools can place. Add or replace them in Logos.'), logosBody, m.counts.logos ? `<a class="be-btn be-btn--sm tk-sec-act" href="#/start?area=logos">${t('Edit in Logos')}</a>` : '');
+    void paintLogos();
+  };
+
+  /** Each logo row's mark, drawn from the asset itself. `_getCurrent` is the
+   *  bridge's read that records nothing (assets.get keeps a placement record);
+   *  a host without it leaves the rows text-only. The bridge caches each URL. */
+  const logoUrls = new Map<string, Promise<string>>();
+  const paintLogos = async (): Promise<void> => {
+    const read = (ctx.host.assets as unknown as { _getCurrent?: (id: string) => Promise<{ url?: string }> })?._getCurrent;
+    if (typeof read !== 'function') return;
+    for (const slot of main.querySelectorAll<HTMLElement>('[data-tk-logo]')) {
+      const id = slot.dataset.tkLogo ?? '';
+      if (!id) continue;
+      if (!logoUrls.has(id)) logoUrls.set(id, read.call(ctx.host.assets, id).then(ref => ref?.url ?? '', () => ''));
+      const url = await logoUrls.get(id)!;
+      if (!url || !slot.isConnected || slot.firstChild) continue;
+      const img = document.createElement('img');
+      img.alt = ''; img.decoding = 'async'; img.loading = 'lazy'; img.src = url;
+      slot.appendChild(img);
+    }
   };
 
   const renderExample = (): void => {
@@ -703,9 +843,8 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
         ${items.map(tok => `
           <div class="be-tok-row" data-tok-row data-tok-path="${pathAttr(tok)}">
             <span class="tk-prev" data-tk-prev>${tok.kind === 'shadow' ? '' : tokenPreviewHtml(KIND_TYPE[tok.kind], tok.raw, { path: tok.key })}</span>
-            <span class="be-tok-name" title="${escape(tok.key)}">${escape(tok.name)}</span>
+            <span class="tk-name-stack"><span class="be-tok-name">${escape(tok.name)}</span>${refBtn(`{${tok.key}}`)}</span>
             <span class="be-tok-editor">${tokenValueEditor(tok)}</span>
-            ${copyBtn(`{${tok.key}}`, tok.name)}
             <button type="button" class="be-tok-del" data-tok-del="${pathAttr(tok)}" aria-label="${escape(tRaw('Delete {name}', { name: tok.name }))}">&#x2715;</button>
           </div>`).join('')}
       </div>`).join('');
@@ -737,19 +876,17 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
       (groups.get(group) ?? groups.set(group, []).get(group)!).push(tok);
     }
     const ownedCount = [...owned.values()].filter(Boolean).length;
+    // Two words for one idea, used everywhere in this fold: a role is the Lolly
+    // default until a person saves a value of their own for that role.
     uiStarter.innerHTML = `
       <div class="be-ui-starter-head">
-        <div>
-          <p class="be-ui-starter-kicker">${t('Lolly UI starter roles')}</p>
-          <h3 class="be-ui-starter-title" id="be-ui-starter-title">${t('The tokens Lolly itself uses')}</h3>
-        </div>
-        <span class="be-ui-starter-count">${ownedCount ? tRaw('{owned} of {total} owned', { owned: ownedCount, total: UI_STARTER_TOKENS.length }) : tRaw('{total} placeholders', { total: UI_STARTER_TOKENS.length })}</span>
+        <p class="be-ui-starter-note">${tRaw('These stay out of your design system and its tokens file until you save a value of your own, kept as one {path} token.', { path: '<code>lolly.ui</code>' })}</p>
+        <span class="be-ui-starter-count">${ownedCount ? tRaw('{owned} of {total} yours', { owned: ownedCount, total: UI_STARTER_TOKENS.length }) : tRaw('{total} Lolly defaults', { total: UI_STARTER_TOKENS.length })}</span>
       </div>
-      <p class="be-ui-starter-note"><strong>${t('Preview only.')}</strong> ${t('These defaults power the Lolly app and travel in its Penpot UI library.')} ${t('They are not added to your brand or token export.')} ${tRaw('Change a value and save it to create just that owned {path} token.', { path: '<code>lolly.ui</code>' })}</p>
       <div class="be-ui-starter-groups">
         ${[...groups.entries()].map(([group, tokens]) => `
           <details class="be-ui-group" data-ui-group="${escape(group)}" ${openUiGroups.has(group) || tokens.some(tok => uiPath(tok.path) === openUiEditor) ? 'open' : ''}>
-            <summary><span>${uiGroupLabel(group)}</span><span class="be-ui-group-count">${tokens.filter(tok => owned.get(uiPath(tok.path))).length || t('defaults')}</span></summary>
+            <summary><span>${uiGroupLabel(group)}</span><span class="be-ui-group-count">${tokens.length}</span>${tokens.some(tok => owned.get(uiPath(tok.path))) ? `<span class="tk-tag is-own">${tRaw('{n} yours', { n: tokens.filter(tok => owned.get(uiPath(tok.path))).length })}</span>` : ''}</summary>
             <div class="be-ui-role-list">
               ${tokens.map(tok => {
                 const key = uiPath(tok.path);
@@ -764,12 +901,12 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
                     <span class="be-ui-role-name">${escape(uiLabel(tok.path))}</span>
                     <code class="be-ui-role-path">lolly.ui.${escape(tok.path.join('.'))}</code>
                   </div>
-                  <div class="be-ui-role-state"><span class="be-ui-role-value">${tokenPreviewHtml(previewType, current, { path: tok.path.join('.') })}<span class="be-ui-role-text">${escape(tokenValueText(previewType, current))}</span></span><span class="be-ui-role-badge">${own ? t('Brand override') : t('Lolly default')}</span></div>
+                  <div class="be-ui-role-state"><span class="be-ui-role-value">${tokenPreviewHtml(previewType, current, { path: tok.path.join('.') })}<span class="be-ui-role-text">${escape(tokenValueText(previewType, current))}</span></span><span class="be-ui-role-badge">${own ? t('Your value') : t('Lolly default')}</span></div>
                   <div class="be-ui-role-actions">
-                    <button type="button" class="be-btn be-btn--sm" data-ui-customize="${escape(key)}" aria-expanded="${editing}">${editing ? t('Close editor') : own ? t('Edit') : t('Customise')}</button>
+                    ${kind ? `<button type="button" class="be-btn be-btn--sm" data-ui-customize="${escape(key)}" aria-expanded="${editing}">${editing ? t('Close editor') : own ? t('Edit') : t('Customise')}</button>` : ''}
                     ${own ? `<button type="button" class="be-btn be-btn--sm" data-ui-reset="${escape(key)}">${t('Reset')}</button>` : ''}
                   </div>
-                  ${editing ? `<form class="be-ui-edit" data-ui-edit="${escape(key)}">
+                  ${editing && kind ? `<form class="be-ui-edit" data-ui-edit="${escape(key)}">
                     <label>${escape(tRaw('New value for {name}', { name: uiLabel(tok.path) }))}
                       ${kind === 'color'
                         ? `<span class="be-ui-cf" data-ui-cf></span><input type="hidden" data-ui-value value="${escape(textValue)}">`
@@ -777,9 +914,9 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
                           ? `<textarea data-ui-value rows="3" spellcheck="false">${escape(textValue)}</textarea>`
                           : `<input type="text" data-ui-value value="${escape(textValue)}" spellcheck="false" autocomplete="off"${kind === 'length' ? ' inputmode="decimal"' : ''}>`}
                     </label>
-                    <p>${t('This remains a placeholder until the value changes and you save it.')}</p>
+                    <p>${t('Lolly keeps its default until you save a new value.')}</p>
                     <p class="be-err" data-ui-err role="alert" hidden></p>
-                    <button type="submit" class="be-cta" data-ui-save="${escape(key)}" disabled>${t('Save brand override')}</button>
+                    <button type="submit" class="be-cta" data-ui-save="${escape(key)}" disabled>${t('Save')}</button>
                   </form>` : ''}
                 </article>`;
               }).join('')}
@@ -815,7 +952,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     const root = $('[data-tk-workspace]');
     if (!root) return;
     workspace = mountTokenWorkspace(root, {
-      label: t('All tokens'), read: ctx.doc, host: ctx.host, consumers: webTokenConsumerSources(ctx.host),
+      label: t('All tokens'), embedded: true, read: ctx.doc, host: ctx.host, consumers: webTokenConsumerSources(ctx.host),
       commit: candidate => {
         const current = ctx.doc();
         for (const key of Object.keys(current)) delete current[key];
@@ -829,7 +966,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
   inspectFold.addEventListener('toggle', () => { if (inspectFold.open) ensureWorkspace(); });
 
   const render = (): void => {
-    model = tokensRoomModel(ctx.doc(), ctx.starterIds?.());
+    model = tokensRoomModel(ctx.doc(), ctx.starterIds?.(), ctx.userFontFamilies?.());
     renderExample();
     renderMain();
     for (const d of dials) seedDial(d);
@@ -860,12 +997,16 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     announce(tRaw('{name} reset to the Lolly default', { name: uiLabel(token.path) }));
   });
   uiStarter?.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    const form = (e.target as HTMLElement).closest<HTMLElement>('[data-ui-edit]');
-    if (!form) return;
-    // The studio reads a bare Escape as "leave"; inside an open editor it closes the editor.
+    if (e.key !== 'Escape' || !openUiEditor) return;
+    // The studio reads a bare Escape as "leave". Anywhere in a role whose editor is
+    // open (the form, or its Close editor toggle after a Shift+Tab) it closes the
+    // editor instead, and focus moves to that toggle.
+    const target = e.target as HTMLElement;
+    const key = target.closest<HTMLElement>('[data-ui-edit]')?.dataset.uiEdit
+      ?? target.closest<HTMLElement>('[data-ui-role]')?.dataset.uiRole;
+    if (key !== openUiEditor) return;
     e.preventDefault(); e.stopPropagation();
-    closeUiEditor(form.dataset.uiEdit ?? '');
+    closeUiEditor(key);
   });
   uiStarter?.addEventListener('input', (e) => {
     const input = e.target as HTMLInputElement | HTMLTextAreaElement;
@@ -886,11 +1027,11 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     const token = UI_STARTER_TOKENS.find(item => uiPath(item.path) === form.dataset.uiEdit);
     const input = form.querySelector<HTMLInputElement | HTMLTextAreaElement>('[data-ui-value]');
     const kind = token ? UI_KIND[token.type] : undefined;
-    if (!token || !input || !kind) return;
+    if (!token || !input) return;
     let value: unknown;
-    let usable = true;
-    try { value = parseUiValue(input.value, kind); } catch { usable = false; }
-    if (!usable || uiTokenCssValue(kind, value) == null) {
+    let usable = !!kind;
+    try { if (kind) value = parseUiValue(input.value, kind); } catch { usable = false; }
+    if (!usable || !kind || !uiValueUsable(token.type, kind, value)) {
       const formErr = form.querySelector<HTMLElement>('[data-ui-err]');
       const message = t('That isn’t a value Lolly can read. Try #ff0000 or 16px.');
       if (formErr) { formErr.textContent = message; formErr.hidden = false; }
@@ -902,7 +1043,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     openUiEditor = '';
     renderUiStarter(); ctx.persist(true); ctx.notify(); playSfx('click');
     uiStarter.querySelector<HTMLButtonElement>(`[data-ui-customize="${CSS.escape(uiPath(token.path))}"]`)?.focus();
-    announce(tRaw('{name} saved as a brand override', { name: uiLabel(token.path) }));
+    announce(tRaw('{name} saved', { name: uiLabel(token.path) }));
   });
 
   // ── More tokens: one delegated commit for every editor control ─────────────
@@ -1006,9 +1147,14 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     list.querySelector<HTMLElement>(`[data-tok-row][data-tok-path="${pathAttr({ path } as StudioToken)}"] input`)?.focus();
   });
 
+  // A face installed or removed elsewhere changes which faces are the person's own.
+  const onFonts = (): void => { render(); };
+  document.addEventListener('lolly:brand-fonts', onFonts);
+
   return {
     render,
     teardown: () => {
+      document.removeEventListener('lolly:brand-fonts', onFonts);
       for (const d of dials) flushDial(d, true);
       workspace?.teardown();
     },

@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { brandExample, readableInk, textContrastCheck, EXAMPLE_TEXT } from './brand-examples.ts';
+import { brandExample, readableInk, textContrastCheck, textFloor, EXAMPLE_TEXT } from './brand-examples.ts';
 import { usageSystem } from './usage-model.ts';
 import { contrastRatio } from '../../../../../engine/src/brand-derive.ts';
 
@@ -43,7 +43,7 @@ for (const [name, doc] of Object.entries(DOCS)) {
         for (const box of texts) {
           assert.match(String(box.fg), HEX, `${String(box.id)} carries a plain colour`);
           const ratio = contrastRatio(String(box.fg), String(frame.bg));
-          assert.ok(ratio >= 4.5, `${String(box.id)} reads at ${ratio.toFixed(2)}:1 on ${String(frame.bg)}`);
+          assert.ok(ratio >= textFloor(box), `${String(box.id)} reads at ${ratio.toFixed(2)}:1 on ${String(frame.bg)}`);
         }
         assert.equal(textContrastCheck(boxes).state, 'pass');
       });
@@ -88,4 +88,55 @@ test('the chart example fills a 16:9 frame', async () => {
   assert.equal(example.height, 720);
   assert.equal(example.values.height, 720);
   assert.equal(example.width, 1280);
+});
+
+test('textFloor: large text reads at 3:1, smaller text at 4.5:1', () => {
+  assert.equal(textFloor({ fontSize: 160, weight: '700' }), 3);
+  assert.equal(textFloor({ fontSize: 24, weight: '400' }), 3);
+  assert.equal(textFloor({ fontSize: 19, weight: '700' }), 3);
+  assert.equal(textFloor({ fontSize: 19, weight: 'bold' }), 3);
+  assert.equal(textFloor({ fontSize: 19, weight: '400' }), 4.5);
+  assert.equal(textFloor({ fontSize: 16 }), 4.5);
+  assert.equal(textFloor({}), 4.5, 'no size is held to the body-text floor');
+});
+
+// A mid-tone primary (4.15:1 on white) is a perfectly readable 160px poster
+// heading. Measuring every box at 4.5:1 blocked the example, and with it
+// Download PNG, for any brand whose primary sits between 3:1 and 4.5:1.
+const withPrimary = (hex: string): Record<string, unknown> => ({
+  color: {
+    brand: { tone: { $type: 'color', $value: hex } },
+    semantic: {
+      primary: { $type: 'color', $value: '{color.brand.tone}' },
+      surface: { $type: 'color', $value: '#ffffff' },
+      text: { $type: 'color', $value: '#111111' },
+      muted: { $type: 'color', $value: '#555555' },
+    },
+  },
+});
+
+test('a mid-tone primary passes as the poster heading, at the large-text floor', async () => {
+  const doc = withPrimary('#e0452b');
+  const example = await brandExample('brand-poster', doc, usageSystem(doc, 'Test'), '', EXAMPLE_TEXT);
+  const boxes = (example.values.boxes ?? []) as Array<Record<string, unknown>>;
+  assert.equal(boxes.find(box => box.id === 'title')!.fg, '#e0452b', 'the heading keeps the brand primary');
+  const check = textContrastCheck(boxes);
+  assert.equal(check.state, 'pass', check.detail);
+  assert.match(check.detail, /3:1, the large-text floor/);
+});
+
+test('a pale heading colour still fails, and the detail names the floor it missed', async () => {
+  // Meringue-pale: what a Colour choices rule can put on the poster heading.
+  const doc = withPrimary('#f3ead8');
+  const example = await brandExample('brand-poster', doc, usageSystem(doc, 'Test'), '', EXAMPLE_TEXT);
+  const check = textContrastCheck((example.values.boxes ?? []) as Array<Record<string, unknown>>);
+  assert.equal(check.state, 'fail');
+  assert.match(check.detail, /under the 3:1 its size needs/);
+});
+
+test('a small text box is held to 4.5:1', () => {
+  const frame = { id: 'f', kind: 'frame', bg: '#ffffff' };
+  const small = textContrastCheck([frame, { id: 't', kind: 'text', frame: 'f', fg: '#e0452b', fontSize: 16, text: 'Caption' }]);
+  assert.equal(small.state, 'fail');
+  assert.match(small.detail, /under the 4\.5:1 its size needs/);
 });
