@@ -16,7 +16,7 @@ export function attachDesignSystemMenu(trigger: HTMLElement, host: SwitchHost): 
     const alive = () => current === generation && el.isConnected;
     void (async () => {
       try {
-        const [records, active] = await Promise.all([host.designSystems.list(), host.designSystems.activeId()]);
+        const [records, active] = await Promise.all([host.designSystems.visible(), host.designSystems.activeId()]);
         if (!alive()) return;
         el.innerHTML = records.map(record => `<button type="button" class="profile-menu-item" role="menuitemradio" aria-checked="${record.id === active}" data-system="${esc(record.id)}"><span>${esc(record.label)}</span>${record.id === active ? icon('check', { size: 18 }) : ''}</button>`).join('') + '<p role="status" data-system-status hidden></p>';
         const items = [...el.querySelectorAll<HTMLButtonElement>('[data-system]')];

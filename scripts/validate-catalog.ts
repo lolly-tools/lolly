@@ -1867,6 +1867,39 @@ for (const message of defaultHiddenTemplateErrors(assetsIndex.defaultHiddenTempl
   errors.push(`assets/index.json: ${message}`);
 }
 
+// Companion design systems (shells/web/src/lib/design-system/companions.ts): each
+// entry seeds one editable system on a fresh device, so it must name a tokens
+// document this build can read: a live tokens asset in this index, or the starter
+// every web build bundles (brands/lolly-start's lolly/tokens/brand, starter.ts).
+// Like defaultHiddenTools, the list lives in the per-brand assets index.
+const BUNDLED_STARTER_TOKENS = 'lolly/tokens/brand';
+if (assetsIndex.companionDesignSystems !== undefined) {
+  const companions: unknown = assetsIndex.companionDesignSystems;
+  if (!Array.isArray(companions)) {
+    errors.push('assets/index.json: "companionDesignSystems" must be an array of { "tokens", "label" } entries');
+  } else {
+    const tokenIds = new Set((assetsIndex.assets as Array<{ id: string; type?: string; deprecated?: boolean }>)
+      .filter(asset => asset.type === 'tokens' && asset.deprecated !== true).map(asset => asset.id));
+    const listed = new Set<string>();
+    for (const entry of companions as Array<Record<string, unknown> | null>) {
+      const tokens = entry?.tokens;
+      const label = entry?.label;
+      if (typeof tokens !== 'string' || typeof label !== 'string' || !label.trim()) {
+        errors.push('assets/index.json: each companionDesignSystems entry needs a "tokens" asset id and a "label"');
+        continue;
+      }
+      if (tokens !== BUNDLED_STARTER_TOKENS && !tokenIds.has(tokens)) {
+        errors.push(`assets/index.json: companionDesignSystems entry "${tokens}" is neither a tokens asset in this index nor the bundled starter ${BUNDLED_STARTER_TOKENS}`);
+      }
+      if (tokens === assetsIndex.brandTokens) {
+        errors.push(`assets/index.json: companionDesignSystems entry "${tokens}" is this catalog's own design system (brandTokens)`);
+      }
+      if (listed.has(tokens)) errors.push(`assets/index.json: companionDesignSystems lists "${tokens}" twice`);
+      listed.add(tokens);
+    }
+  }
+}
+
 // ─── Design-system version pins (plans/97 section 6a) ──────────────────────────────
 
 // The version assets this catalog ships, by slug. A tokens asset is a VERSION when

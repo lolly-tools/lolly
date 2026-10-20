@@ -213,6 +213,7 @@ test('design systems open as a child picker without navigating and close with th
     ...host,
     designSystems: {
       list: async () => [{ id: 'one', label: 'First system' }, { id: 'two', label: 'Second system' }],
+      visible: async () => [{ id: 'one', label: 'First system' }, { id: 'two', label: 'Second system' }],
       activeId: async () => 'two',
     },
   };

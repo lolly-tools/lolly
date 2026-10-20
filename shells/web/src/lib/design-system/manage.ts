@@ -73,16 +73,18 @@ export async function newDesignSystemRecord(registry: DesignSystemRegistry, opts
  */
 export async function createDesignSystem(
   host: ManageHost,
-  opts: { label: string; seedFrom?: string; source?: DesignSystemSource; locked?: boolean },
+  opts: { label: string; seedFrom?: string; seedDoc?: Record<string, unknown>; source?: DesignSystemSource; locked?: boolean },
 ): Promise<DesignSystemRecord> {
   const registry = host.designSystems;
   const label = opts.label.trim() || 'My design system';
   const id = await uniqueDesignSystemId(registry, label);
   const seed = opts.seedFrom ? await registry.get(opts.seedFrom) : null;
   if (opts.seedFrom && !seed) throw new Error(`design systems: nothing to seed from (“${opts.seedFrom}”)`);
-  const seedDoc = seed
+  // `seedDoc` is a document the caller already holds (a catalog's companion
+  // system, companions.ts); it is copied like any other seed.
+  const seedDoc = opts.seedDoc ?? (seed
     ? (seed.headId ? await readJson(await host.assets._getBlob(seed.headId).catch(() => null)) : null)
-    : await starterSeed(host);
+    : await starterSeed(host));
   const doc = withDesignSystemIdentity(stripVersionIndex(seedDoc ?? {}), { id, label });
   const now = Date.now();
   const record: DesignSystemRecord = {

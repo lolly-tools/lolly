@@ -7,6 +7,12 @@
   ],
   "defaultHiddenTemplates": [],
   "brandTokens": "lolly/tokens/demo",
+  "companionDesignSystems": [
+    {
+      "tokens": "lolly/tokens/brand",
+      "label": "Lolly Starter"
+    }
+  ],
   "assets": [
     {
       "id": "lolly/tokens/demo",
