@@ -10,7 +10,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { swatchesSectionHtml } from './sections.ts';
+import { swatchesSectionHtml, swatchRevealHtml } from './sections.ts';
 import { cardHtml, fitNotes, selectedEntries, swatchList } from './swatch-set.ts';
 import { swatchFit, type SwatchExportFormat } from '../../lib/swatch-export.ts';
 import type { CatCtx } from './context.ts';
@@ -92,4 +92,20 @@ test('the format menu says which formats fall back to sRGB and which carry the p
   assert.match(notes[0]!, /Left out: Transparent/);
   assert.match(notes[1]!, /^SCSS variables(,| and) GIMP palette \(\.gpl\) save Vivid as the sRGB fallback\./);
   assert.match(notes[2]!, /^The CMYK and spot values of Pine go into Design tokens \(JSON\)(,| and) Adobe swatches \(\.ase\) only\./);
+});
+
+test('Swatches hide behind a card that counts them and shows a few brand colours', () => {
+  const cat = fakeCat();
+  cat.showSwatches = false;
+  const hidden = swatchRevealHtml(cat);
+  assert.match(hidden, /data-swatch-reveal aria-pressed="false"/);
+  assert.match(hidden, new RegExp(`Show swatches \\(${palette.length}\\)`));
+  const dots = [...hidden.matchAll(/<i style="background:([^"]+)"><\/i>/g)].map(m => m[1]);
+  assert.deepEqual(dots, ['#0c322c', '#30ba78', '#00bda7', '#025937', '#008657', '#000000'], 'brand first, never Transparent');
+  cat.showSwatches = true;
+  const shown = swatchRevealHtml(cat);
+  assert.match(shown, /aria-pressed="true"/);
+  assert.match(shown, /Hide swatches/);
+  assert.doesNotMatch(shown, /<i /, 'the open section is the picture');
+  assert.equal(swatchRevealHtml({ ...cat, palette: [] } as CatCtx), '', 'no palette, no card');
 });

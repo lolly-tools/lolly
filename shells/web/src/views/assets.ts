@@ -158,7 +158,9 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // against the bucket table itself (a Set - an object lookup would answer yes to
   // 'constructor'); anything unrecognised leaves the default 'all' standing.
   cat.showHidden = new URLSearchParams(params).has('hidden');
-  cat.loadFailed = false;                    // the catalog query threw - a total sync failure, distinct from an empty catalogue
+  // Swatches start hidden (sections.ts swatchRevealHtml); a link to the section or a swatch shows them.
+  cat.showSwatches = new URLSearchParams(params).has('swatches') || linkedSections.includes('swatches') || !!cat.linkedSwatch;
+  cat.loadFailed = false;                   // the catalog query threw - a total sync failure, distinct from an empty catalogue
   const urlType = new URLSearchParams(params).get('type'); cat.urlType = urlType as CatCtx['urlType'];
   cat.typeFilter = urlType && new Set<string>(['all', ...Object.keys(TYPE_FILTER_TYPES)]).has(urlType)
     ? urlType as TypeFilter

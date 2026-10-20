@@ -163,7 +163,9 @@ export const persistCollapsed = (cat: CatCtx): void => {
 // deep link. A bare #/a when everything is folded. Runs on user fold/unfold only.
 export const syncSectionUrl = (cat: CatCtx): void => {
   const { ALL_SECTION_KEYS, collapsed } = cat;
-  const open = ALL_SECTION_KEYS.filter(k => !collapsed.has(k));
+  // A hidden Swatches section is not open, whatever its fold says: a link listing the
+  // section would show the swatches on reload.
+  const open = ALL_SECTION_KEYS.filter(k => !collapsed.has(k) && (k !== 'swatches' || cat.showSwatches));
   updateRouteParams({ section: open.join(',') });
 };
 // The active brand's fonts: its declared font tokens (matched to a bundled spec

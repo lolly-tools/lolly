@@ -159,6 +159,24 @@
 .cat-panel-subhead { font-size: calc(.95rem * var(--a11y-fs)); font-weight: 700; margin: 1.4rem 0 .6rem; }
 .cat-panel-foot { font-size: var(--fs-lg); color: hsl(var(--muted-foreground)); margin-top: 1.2rem; }
 .cat-swatch-downloads { margin-bottom: 14px; }
+/* The grey card that shows and hides Swatches (sections.ts swatchRevealHtml): the
+   gallery's .gtile--hiddenbox, as wide as the section it stands in for. It opens
+   the reference zone when the section is hidden, and follows the section once shown. */
+.cat-swatch-reveal {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  width: 100%; min-height: 84px; margin: 2.4rem 0 1.6rem; padding: 14px;
+  border: none; border-radius: calc(var(--radius) * 1.1);
+  background: hsl(var(--muted) / 0.5); color: hsl(var(--muted-foreground));
+  font: inherit; font-size: var(--fs-md); font-weight: 600; text-align: center;
+  cursor: pointer; transition: background var(--dur-1), color var(--dur-1);
+}
+.cat-swatch-reveal:hover { background: hsl(var(--muted) / 0.75); color: hsl(var(--foreground)); }
+.catalog .cat-group--ref + .cat-swatch-reveal { margin-top: 0; }
+.cat-swatch-reveal-dots { display: inline-flex; gap: 3px; }
+.cat-swatch-reveal-dots i {
+  width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs));
+  border-radius: var(--radius-round); box-shadow: var(--ui-edge-faint);
+}
 
 /* ── Favourites strip ── The shared featured-row component at the same commanding height
    as the Tools hero (--ftile-h lives in featured.css - one source for all three strips),

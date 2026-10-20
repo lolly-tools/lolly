@@ -7,7 +7,7 @@
  * a value (an event listener), goes through `cat.<module>.<fn>`. Extracted verbatim
  * from mountCatalog() by scripts/split-closure.ts.
  */
-import { replaceRouteUrl } from '../../lib/url-state.ts';
+import { replaceRouteUrl, updateRouteParams } from '../../lib/url-state.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
@@ -27,7 +27,7 @@ import type { PickerHost } from '../picker.ts';
 import { mountTextThumbs } from '../../lib/text-thumbs.ts';
 import { mountPdfThumbs } from '../../lib/pdf-thumbs.ts';
 import { mountEmojiSpecimens } from '../../lib/emoji-specimen.ts';
-import { groupPalette, paletteInDisplayOrder } from '../../lib/swatches.ts';
+import { groupPalette, isTransparent, paletteInDisplayOrder } from '../../lib/swatches.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { FONT_LICENSE, WEIGHT_RAMP } from '../../lib/typefaces.ts';
 import { prepareAssetForVerify, setPendingVerify } from '../../lib/verify-handoff.ts';
@@ -41,6 +41,7 @@ import { cardSizeAttr } from '../../components/view-options.ts';
 // Open on a favourite-swatch tile → reveal the Swatches reference panel below.
 export function revealSwatches(cat: CatCtx): void {
   const { viewEl } = cat;
+  if (!cat.showSwatches) setShowSwatches(cat, true);
   const sec = viewEl.querySelector<HTMLElement>('.cat-group[data-group="swatches"]');
   if (!sec) return;
   if (sec.classList.contains('is-collapsed')) sec.querySelector<HTMLElement>('[data-cat-toggle]')?.click();
@@ -160,6 +161,27 @@ export function swatchesSectionHtml(cat: CatCtx): string {
       ${rampBlocks}`;
   return cat.tiles.groupSection('swatches', 'Swatches', total, body, 'cat-group--ref');
 }
+// The Swatches section stays hidden behind a grey card, like the gallery's
+// "Show hidden tools" box: the palette is every colour token, ramps included, and
+// it buried the assets. The card sits where the section goes and stays after it
+// once shown, so the same card hides it again. A few brand colours show what it holds.
+export function swatchRevealHtml(cat: CatCtx): string {
+  const list = paletteInDisplayOrder(cat.palette);
+  if (!list.length) return '';
+  const label = cat.showSwatches ? t('Hide swatches') : t('Show swatches ({n})', { n: list.length });
+  const dots = cat.showSwatches ? '' : [...new Set(list.filter(c => !isTransparent(c.hex)).map(c => c.hex.toLowerCase()))].slice(0, 6)
+    .map(hex => `<i style="background:${escapeText(hex)}"></i>`).join('');
+  return `<button type="button" class="cat-swatch-reveal" data-swatch-reveal aria-pressed="${cat.showSwatches}">${dots ? `<span class="cat-swatch-reveal-dots" aria-hidden="true">${dots}</span>` : ''}<span>${escapeText(label)}</span></button>`;
+}
+export function setShowSwatches(cat: CatCtx, on: boolean): void {
+  cat.showSwatches = on;
+  // Shown means open: a folded header would need a second click to see a colour.
+  if (on) { cat.collapsed.delete('swatches'); cat.tiles.persistCollapsed(); }
+  // A selection of cards nobody can see would still drive the selection bar.
+  else if (cat.swatchSelected.size) cat.swatchSet.clear();
+  updateRouteParams({ swatches: on ? '' : null });
+  renderBody(cat);
+}
 export function fontsSectionHtml(cat: CatCtx): string {
   if (!cat.catFonts.length) return ''; // a brand with no declared/added fonts shows no section
   const cards = cat.catFonts.map(f => `
@@ -198,7 +220,7 @@ export const bodyHtml = (cat: CatCtx): string => {
   return bodyMarkup(cat);
 };
 const bodyMarkup = (cat: CatCtx): string =>
-  cat.projects?.active() ? cat.projects.html() : `${cat.remote?.html() ?? ''}${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all' || !['all', 'catalog'].includes(cat.sourceSelection ?? 'all')) ? '' : swatchesSectionHtml(cat) + fontsSectionHtml(cat)}`;
+  cat.projects?.active() ? cat.projects.html() : `${cat.remote?.html() ?? ''}${cat.filters.assetsSectionHtml()}${(cat.query || cat.typeFilter !== 'all' || !['all', 'catalog'].includes(cat.sourceSelection ?? 'all')) ? '' : (cat.showSwatches ? swatchesSectionHtml(cat) : '') + swatchRevealHtml(cat) + fontsSectionHtml(cat)}`;
 export const bulkBarHtml = (cat: CatCtx): string => { const { bulkBarCfg } = cat; return buildBulkBar(bulkBarCfg); };
 export function render(cat: CatCtx): void {
   const { viewEl } = cat;
@@ -556,6 +578,8 @@ export function sectionsOps(cat: CatCtx) {
     refreshFavStrip: bindOp(cat, refreshFavStrip),
     reflectFavInGrid: bindOp(cat, reflectFavInGrid),
     swatchesSectionHtml: bindOp(cat, swatchesSectionHtml),
+    swatchRevealHtml: bindOp(cat, swatchRevealHtml),
+    setShowSwatches: bindOp(cat, setShowSwatches),
     fontsSectionHtml: bindOp(cat, fontsSectionHtml),
     bodyHtml: bindOp(cat, bodyHtml),
     bulkBarHtml: bindOp(cat, bulkBarHtml),
