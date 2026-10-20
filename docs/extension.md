@@ -24,15 +24,20 @@ Every control is live while you wait: the target URL, the scroll depth, the sett
 
 The extension lives in the repo at `shells/chrome-extension/`.
 
-1. Open `chrome://extensions`.
-2. Turn on **Developer mode** (top-right).
-3. Click **Load unpacked** and choose the `shells/chrome-extension/` folder.
-4. Reload Lolly - **URL Screenshot** now works in the browser.
+1. Run `pnpm run pack:chrome-extension`. It builds the package into `dist/chrome-extension/`.
+2. Open `chrome://extensions`.
+3. Turn on **Developer mode** (top-right).
+4. Click **Load unpacked** and choose the `dist/chrome-extension/` folder.
+5. Reload Lolly - **URL Screenshot** now works in the browser.
+
+Loading the `shells/chrome-extension/` folder itself also works, for PNG screenshots. That folder has no page walk (the packaging step builds one in), so an SVG from it holds a screenshot rather than shapes.
 
 ## How it works
 
 - A small script tells Lolly the extension is present, so the **URL Screenshot** tool switches on automatically - no setup.
 - When you render, the extension opens the target page in a background tab, captures it via the DevTools Protocol (the same `Page.captureScreenshot` the desktop app uses), then closes the tab and hands the image back.
+- For an **SVG**, the extension walks the page instead of photographing it. A script packaged with the extension reads the page's layout in that background tab and turns the page into shapes and outlined text, so the file stays sharp at any size and every part stays editable. Pictures on the page come across as the pictures they are, and what the page draws with a canvas, a video or an effect SVG has no form for is copied from a screenshot of the same moment. Lolly checks the result against that screenshot, and when the two differ too much the SVG holds the screenshot instead. Vector screenshots need version 0.5.0 or later; an older copy still screenshots.
+- To outline the text in the page's own typeface, the extension hands Lolly the font files the page loaded. Chrome does not keep a font's bytes where an extension can read them, so the extension asks the page for each font again. Your browser usually answers from its cache, and the page's own security policy still applies to that request.
 - It runs entirely in your browser, on your network - so capturing `localhost` or an internal site works. The capture itself is never uploaded anywhere; the only network traffic is your own browser loading the page you asked to shoot.
 
 While a capture runs you may briefly see a *"…started debugging this browser"* banner on the temporary tab. That's the DevTools Protocol at work; it clears itself when the shot is done.

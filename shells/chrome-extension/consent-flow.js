@@ -119,7 +119,7 @@ async function approveReading(request) {
     if (Number.isInteger(windowId)) await chrome.windows.remove(windowId).catch(() => {});
     assertReading(request, 'running');
     const result = request.type === 'lolly-capture'
-      ? { dataUrl: await capture(request.spec, request) }
+      ? await capture(request.spec, request)
       : await readSite(request.target, request.options, request);
     await assertCallerPresent(request);
     assertReading(request, 'running');
@@ -146,7 +146,7 @@ chrome.runtime.onMessage.addListener((msg, sender, respond) => {
     const request = consentRequest(msg, sender);
     if (msg.type === 'lolly-capture/consent') {
       respond({ ok: true, requestId: request.id, origin: request.caller.origin, target: request.target,
-        reading: request.type === 'lolly-capture' ? 'screenshot' : 'page contents',
+        reading: request.type === 'lolly-capture' ? (request.spec.vector === true ? 'vector screenshot' : 'screenshot') : 'page contents',
         permissionPattern: request.permissionPattern, expiresAt: request.expiresAt });
     } else if (msg.type === 'lolly-capture/cancel') {
       refuseReading(request, new Error('The page request was canceled.'));

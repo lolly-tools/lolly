@@ -8,7 +8,7 @@ The production relay accepts the exact `https://lolly.tools` origin. Other origi
 
 ## Load and package
 
-The source directory is the production extension. Load `shells/chrome-extension` through Chrome's **Load unpacked** option to use it on `https://lolly.tools`.
+The source directory is the production extension, less its page walk. Load `shells/chrome-extension` through Chrome's **Load unpacked** option to use it on `https://lolly.tools` for PNG screenshots; for vector SVG screenshots, run `pnpm run pack:chrome-extension` and load `dist/chrome-extension` instead, which carries the built `page-walk.js`.
 
 For local development, run `pnpm run pack:chrome-extension:dev`, then load `dist/chrome-extension-dev`. This package adds the exact `http://localhost:5173` origin and has **Development** in its name.
 
@@ -25,5 +25,6 @@ For a store package, run `pnpm run pack:chrome-extension`. The script verifies t
 | `consent.html`, `consent.js`, `consent.css` | Protected approval window |
 | `content.js` | Isolated relay between Lolly and the extension |
 | `inpage.js` | Synchronous capability announcement |
+| `page-walk.js` | Built into the package by `pack:chrome-extension`, not kept here: the Lolly app's page walk (`shells/web/src/capture/page-walk.ts`), which turns the approved page into SVG geometry for a vector screenshot. A copy loaded unpacked from this folder has none, and its vector requests fall back to the PNG screenshot |
 
 Temporary reading tabs are closed after completion. Their IDs are kept in session storage so the next worker start can close a tab left behind by worker shutdown. No page contents are stored by the extension.

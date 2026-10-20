@@ -125,10 +125,21 @@ async function capture(spec = {}, request) {
       width, height, deviceScaleFactor: dpr, mobile: false,
     });
 
-    // Custom CSS — additive userstyles, appended so it layers over the page.
+    // Custom CSS — additive userstyles, layered over the page as a DevTools inspector
+    // stylesheet. A <style> element is subject to the page's Content-Security-Policy,
+    // and a strict style-src refused it silently; the element stays as the fallback.
     await assertTargetPresent(request, tab.id);
     if (typeof spec.css === 'string' && spec.css.trim()) {
-      await send(target, 'Runtime.evaluate', { expression: injectCssExpr(spec.css.trim()) });
+      const css = spec.css.trim().slice(0, 64 * 1024);
+      try {
+        await send(target, 'DOM.enable');
+        await send(target, 'CSS.enable');
+        const { frameTree } = await send(target, 'Page.getFrameTree');
+        const { styleSheetId } = await send(target, 'CSS.createStyleSheet', { frameId: frameTree.frame.id });
+        await send(target, 'CSS.setStyleSheetText', { styleSheetId, text: css });
+      } catch {
+        await send(target, 'Runtime.evaluate', { expression: injectCssExpr(css) });
+      }
     }
 
     // Scroll: 0..1 fraction of the scrollable height, or a px offset when > 1.
@@ -141,6 +152,7 @@ async function capture(spec = {}, request) {
     }
 
     await sleep(waitMs);
+    if (spec.vector === true) return await walkTab(target, tab.id, width, height, dpr, spec, request);
 
     // captureBeyondViewport lets a tall height grab below-the-fold content; the
     // device-metrics DPR already scales resolution, so clip.scale stays 1.
@@ -151,7 +163,7 @@ async function capture(spec = {}, request) {
       clip: { x: 0, y: 0, width, height, scale: 1 },
     });
     await assertTargetPresent(request, tab.id);
-    return `data:image/png;base64,${data}`;
+    return { dataUrl: `data:image/png;base64,${data}` };
   } finally {
     stopKeepAlive();
     try { await chrome.debugger.detach(target); } catch { /* already gone */ }
@@ -159,6 +171,111 @@ async function capture(spec = {}, request) {
     try { await chrome.tabs.remove(tab.id); } catch { /* already closed */ }
     await forgetTab(tab.id);
   }
+}
+
+/** The ceiling on the bytes one vector reading hands back from the tab. */
+const WALK_RESOURCE_BYTES = 48 * 1024 * 1024;
+
+/**
+ * The vector reading: the packaged page-walk script (built from the Lolly app's
+ * shells/web/src/capture/page-walk.ts) turns the live layout into SVG geometry in
+ * the tab. This returns the walk, a screenshot of the same moment and the bytes of
+ * the pictures, stylesheets and font files it named, which the app finishes on its
+ * side (outlined text, filled region boxes, a score against the screenshot).
+ *
+ * Only the extension's own copy of the script runs: the request carries options,
+ * never code. The bytes come from what the tab already loaded, and a font the cache
+ * does not keep is asked for through the page's own network stack, which the page's
+ * Content-Security-Policy still governs. Nothing is fetched from elsewhere.
+ */
+async function walkTab(target, tabId, width, height, dpr, spec, request) {
+  const script = await fetch(chrome.runtime.getURL('page-walk.js')).then((r) => (r.ok ? r.text() : null)).catch(() => null);
+  if (!script) throw new Error('This copy of the extension has no page-walk script. Install a packaged build.');
+  await assertTargetPresent(request, tabId);
+  await send(target, 'Animation.enable').catch(() => {});
+  await send(target, 'Animation.setPlaybackRate', { playbackRate: 0 }).catch(() => {});
+  const [sx, sy] = JSON.parse((await send(target, 'Runtime.evaluate', { expression: 'JSON.stringify([scrollX, scrollY])', returnByValue: true })).result.value);
+  const { data: shot } = await send(target, 'Page.captureScreenshot', {
+    format: 'png', captureBeyondViewport: true, clip: { x: sx, y: sy, width, height, scale: 1 },
+  });
+  await assertTargetPresent(request, tabId);
+  await send(target, 'Runtime.evaluate', { expression: script });
+  const inset = (v) => (Number.isFinite(v) ? Math.min(0.9, Math.max(0, v)) : 0);
+  const c = spec.crop ?? {};
+  const l = inset(c.left), r = inset(c.right), t = inset(c.top), b = inset(c.bottom);
+  const win = { x: width * l, y: height * t, width: width * (1 - l - r), height: height * (1 - t - b) };
+  const out = await send(target, 'Runtime.evaluate', {
+    expression: `globalThis.__lollyPageWalk ? globalThis.__lollyPageWalk({ window: ${JSON.stringify(win)} }).then((r) => JSON.stringify(r)) : Promise.reject(new Error('the page-walk script did not install'))`,
+    awaitPromise: true, returnByValue: true,
+  });
+  if (out.exceptionDetails) throw new Error(`The page walk failed: ${out.exceptionDetails.exception?.description ?? out.exceptionDetails.text}`);
+  const walk = JSON.parse(out.result.value);
+  await assertTargetPresent(request, tabId);
+  const resources = await walkResources(target, walk);
+  return { vector: { walk, shot, scale: dpr, resources } };
+}
+
+/** The tab's bytes for every URL the walk named, plus the url()s inside the
+ *  stylesheets it could not read (their font files). Bounded by WALK_RESOURCE_BYTES. */
+async function walkResources(target, walk) {
+  const sheets = walk.text?.fonts?.sheets ?? [];
+  const want = [...(walk.unresolved ?? []), ...sheets, ...(walk.text?.fonts?.rules ?? []).flatMap((rule) => rule.urls ?? [])];
+  await send(target, 'Page.enable').catch(() => {});
+  let tree = null;
+  try { ({ frameTree: tree } = await send(target, 'Page.getResourceTree')); } catch { return {}; }
+  const where = new Map();
+  const visit = (t) => { for (const res of t.resources ?? []) where.set(res.url, { frameId: t.frame.id, mime: res.mimeType }); for (const child of t.childFrames ?? []) visit(child); };
+  visit(tree);
+  const out = {};
+  let total = 0;
+  for (let i = 0; i < want.length; i++) {
+    const url = want[i];
+    if (out[url] || !/^https?:\/\//.test(url)) continue;
+    const hit = where.get(url) ?? { frameId: tree.frame.id, mime: '' };
+    let base64 = null;
+    try {
+      const res = await send(target, 'Page.getResourceContent', { frameId: hit.frameId, url });
+      base64 = res.base64Encoded ? res.content : btoa(unescape(encodeURIComponent(res.content)));
+    } catch {
+      base64 = await loadThroughPage(target, hit.frameId, url);
+    }
+    if (!base64) continue;
+    total += base64.length * 0.75;
+    if (total > WALK_RESOURCE_BYTES) break;
+    out[url] = { base64, mime: hit.mime };
+    if (sheets.includes(url)) {
+      let css = '';
+      try { css = new TextDecoder().decode(Uint8Array.from(atob(base64), (ch) => ch.charCodeAt(0))); } catch { css = ''; }
+      for (const m of css.matchAll(/url\(\s*(["']?)([^)"']+)\1\s*\)/g)) {
+        if (m[2].startsWith('data:')) continue;
+        try { want.push(new URL(m[2], url).href); } catch { /* skipped */ }
+      }
+    }
+  }
+  return out;
+}
+
+/** One resource through the page's own network stack, as base64, or null. */
+async function loadThroughPage(target, frameId, url) {
+  await send(target, 'Network.enable').catch(() => {});
+  for (const includeCredentials of [true, false]) {
+    let resource;
+    try { ({ resource } = await send(target, 'Network.loadNetworkResource', { frameId, url, options: { disableCache: false, includeCredentials } })); } catch { continue; }
+    if (!resource?.success || !resource.stream) continue;
+    let bin = '';
+    try {
+      for (;;) {
+        const chunk = await send(target, 'IO.read', { handle: resource.stream, size: 1 << 20 });
+        bin += chunk.base64Encoded ? atob(chunk.data) : unescape(encodeURIComponent(chunk.data));
+        if (bin.length > WALK_RESOURCE_BYTES) return null;
+        if (chunk.eof) break;
+      }
+    } finally {
+      await send(target, 'IO.close', { handle: resource.stream }).catch(() => {});
+    }
+    return btoa(bin);
+  }
+  return null;
 }
 
 function send(target, method, params) {

@@ -30,6 +30,9 @@ export interface LollyCaptureFlag {
    * separate announcement rather than one version number for both.
    */
   siteProtocol?: number;
+  /** Version of the vector screenshot (`spec.vector`) this extension answers.
+   *  Absent before 0.5.0, which answers screenshots only. */
+  vectorProtocol?: number;
 }
 
 declare global {
@@ -41,6 +44,16 @@ declare global {
 
 /** The site-read shape this build speaks. Bump in lockstep with inpage.js. */
 export const SITE_PROTOCOL = 1;
+
+/** The vector screenshot shape this build speaks. Bump in lockstep with inpage.js. */
+export const VECTOR_PROTOCOL = 1;
+
+/** Synchronous detection of the vector screenshot (an extension 0.5.0 or later). */
+export function hasVectorCapture(): boolean {
+  if (typeof window === 'undefined') return false;
+  const flag = window.__lollyCapture;
+  return !!flag && typeof flag === 'object' && flag.vectorProtocol === VECTOR_PROTOCOL;
+}
 
 /** Synchronous, zero-cost detection - the extension sets this at document_start. */
 export function hasCaptureExtension(): boolean {

@@ -428,12 +428,16 @@ transmit any personal data. No analytics, no tracking, no remote server.
 **What it does.** When you ask the Lolly web app to screenshot a URL, the
 extension opens that page in a temporary background tab, captures it in your
 browser using the DevTools Protocol, hands the image back to the app and closes
-the tab. Everything happens locally, on your own device and network.
+the tab. For an SVG it also reads the page's layout, its pictures and its font
+files in that tab, and the app turns them into shapes on your device. Everything
+happens locally, on your own device and network.
 
 **Data.**
 
-- <!--i:shieldcheck--> **We collect nothing.** The extension has no servers and makes no network
-  requests of its own.
+- <!--i:shieldcheck--> **We collect nothing.** The extension has no servers. Its only requests are
+  for the page you approve and the files that page itself uses: for an SVG it
+  asks the page again for the font files the page loaded, which your browser
+  usually answers from its cache.
 - <!--i:photos--> **Captured images** go straight to the Lolly app in the same browser - never
   uploaded by the extension.
 - <!--i:link--> **The URLs you capture** are used only to load that one page for that one
