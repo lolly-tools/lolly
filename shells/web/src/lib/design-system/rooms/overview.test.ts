@@ -322,6 +322,25 @@ test('two roles pointing at colours of your own are worth exporting', async () =
   assert.equal(model.worthExporting, true, 'two roles wired up, on two own colours');
 });
 
+test('roles pointing at keys the palette no longer shows are not worth exporting', async () => {
+  // Hiding every colour leaves the starter's roles aimed at keys that are not in
+  // the palette. Those are not decisions about a colour, so Export stays latched.
+  const model = await readOverview(stubHost({
+    installed: true, starter: STARTER,
+    doc: {
+      color: {
+        semantic: {
+          primary: { $value: '{color.ramp.primary.1}' },
+          text: { $value: '{color.ramp.primary.2}' },
+        },
+      },
+    },
+    // Both starter steps hidden: the palette the bridge answers with is empty.
+    swatches: [],
+  }));
+  assert.equal(model.worthExporting, false);
+});
+
 test('the own count leads, whatever the starter\'s size', () => {
   const html = overviewHtml({
     furnished: true, colors: [], colorCount: 5, starterCount: 2,
