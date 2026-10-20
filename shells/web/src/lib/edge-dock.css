@@ -10,7 +10,7 @@
   position: fixed; inset-block: 0 var(--design-timeline-h, 0px); inset-inline-end: 0; z-index: 2;
   width: var(--dock-w, 340px);
   display: flex; flex-direction: column;
-  background: var(--ui-color-surface-raised);
+  background-color: color-mix(in srgb, var(--ui-color-surface-muted) 60%, var(--ui-color-surface-raised));
   box-shadow: var(--ui-elevation-panel);
 
 }
@@ -39,7 +39,7 @@
 }
 .edge-dock-tab:hover { color: var(--ui-color-text-default); }
 .edge-dock-tab[aria-selected="true"] {
-  background: var(--ui-color-surface-muted); color: var(--ui-color-text-default);
+  background: var(--ui-color-surface-overlay); color: var(--ui-color-text-default);
   box-shadow: var(--ui-elevation-control);
 }
 .edge-dock-tab:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
@@ -71,7 +71,7 @@
   width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important;
   /* The dock owns visibility here: the export panel's reveal is scoped to its #tool-layout
      ancestor (tool.css), which stops matching once it is re-parented into this body-level
-     slot. transform is deliberately NOT reset, so the wobble impulse still reads. */
+     slot. transform is deliberately NOT reset, so the wobble impulse still reads. */ border-radius:0 !important;
   visibility: visible !important; opacity: 1 !important; pointer-events: auto !important;
 }
 .edge-dock-grip {

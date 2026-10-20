@@ -1,5 +1,5 @@
-.revision-history-panel { display:flex; flex-direction:column; gap:var(--ui-space-control-block); padding:var(--ui-space-panel); min-height:0; height:100%; overflow:auto; background:var(--ui-color-surface-canvas); color:var(--ui-color-text-default); box-sizing:border-box; }
-.revision-history-panel > header { display:flex; align-items:center; justify-content:space-between; gap:var(--ui-space-control-block); position:sticky; top:0; z-index:1; background:var(--ui-color-surface-canvas); padding-block:var(--sp-2); }
+.revision-history-panel { display:flex; flex-direction:column; gap:var(--ui-space-control-block);   min-height:0; height:100%; overflow:auto; background:var(--ui-color-surface-canvas); color:var(--ui-color-text-default); box-sizing:border-box; }
+.revision-history-panel > header { display:flex; align-items:center; justify-content:space-between; gap:var(--ui-space-control-block); position:sticky; top:0; z-index:1;   padding-block:var(--sp-2); }
 .revision-history-panel h2 { font-size:var(--ui-type-lead); margin:0; }
 .revision-history-status,.revision-history-note { font-size:var(--ui-type-caption); line-height:1.5; margin:0; }
 .revision-history-note { opacity:.7; }

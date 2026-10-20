@@ -109,7 +109,7 @@
 }
 /*when the error is the only thing on the page*/
 #view:has(>.error:last-child:first-child){place-content:center}
-#view > .error:first-child:last-child{max-width: 32em; margin:0 auto; border-width:5px;}
+#view > .error:first-child:last-child{margin: 3em; max-width: 32em; margin:0 auto; border-width:5px;}
 
 
 
@@ -264,7 +264,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .reveal-item {
     animation: card-in var(--enter-dur, 3.32s) var(--enter-ease, cubic-bezier(.8, .1, .2, 1.2)) backwards;
-    animation-delay: var(--reveal-delay, 10ms); 
+    animation-delay: var(--reveal-delay, 10ms);
   }
 }
 
@@ -366,7 +366,7 @@
 
 /* Pin the profile link to the viewport on the gallery so it stays put while the
    tool list scrolls (mobile already does this below; this covers desktop too). */
- 
+
 
 /* Default avatar - shown when the user has no headshot yet (every profile): the Lolly
    swirl mark, still at rest and spinning on hover/focus, the same treatment the design
