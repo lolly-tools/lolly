@@ -65,7 +65,7 @@ export function mountVisualResults(root: HTMLElement, result: VisualComparisonRe
   const entries = el('ul');
   for (const page of result.pages) { const item = el('li'), jump = button(`${t('Page {n}', { n: page.page })} · ${kinds[page.kind]}`); jump.addEventListener('click', () => { select.value = String(page.page); render(); info.focus(); }); item.append(jump); entries.append(item); }
   list.append(entries); root.append(list);
-  const report = el('div', undefined, 'compare-toolbar'), names = el('label'), include = el('input'); include.type = 'checkbox'; names.append(include, document.createTextNode(t('Include source names and page details in report')));
+  const report = el('div', undefined, 'compare-toolbar'), names = el('label'), include = el('input', undefined, 'field-check'); include.type = 'checkbox'; names.append(include, document.createTextNode(t('Include source names and page details in report')));
   const save = button('Download comparison report'); save.addEventListener('click', () => {
     // Through the host (the Tauri shells override it with a native save) - never a raw anchor.
     void deliverBlob(new Blob([visualComparisonReport(result, include.checked)], { type: 'application/json' }), 'comparison.json');

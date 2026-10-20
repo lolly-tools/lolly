@@ -127,7 +127,7 @@ The CSP is the one that matters most, and not for the reason you might expect. T
 
 ### Removing a catalogue design system
 
-**Settings → Design systems** labels the deployment's default system **Managed by this instance**. Expand **Catalogue source** to see the instance address, tokens asset and asset namespace. An app using its bundled catalogue labels the system **Bundled with this app**.
+**Settings → Design systems** labels the deployment's default system **Managed by this instance** when its tokens asset sets `brandLock` (see [Configuration](/info/configuration.html)). People can use a managed system but cannot change its colours, type or logos. Without the lock the system reads **Came with this app**, or **From this instance** in an app connected to the deployment, and each person can hide, edit and reset their own copy. Expand **Catalogue source** to see the instance address, tokens asset and asset namespace.
 
 A system imported into the browser is a separate local copy. Removing that copy cannot delete files on a static host. If the copy was active, the supplied system becomes active again; the removal dialog tells you which system before you confirm. Its colours, type and logos can therefore remain visible after the local copy has gone.
 

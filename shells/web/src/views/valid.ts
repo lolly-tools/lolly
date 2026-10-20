@@ -1976,7 +1976,7 @@ function claimPanelHtml(fileIndex: number, format: string | null | undefined, fi
     : t('This adds the first Content Credential to the file - your authorship, on the file itself.');
   const durableRow = fk.raster ? `
         <label class="valid-claim-check">
-          <input type="checkbox" data-claim-durable="${fileIndex}">
+          <input type="checkbox" class="field-check" data-claim-durable="${fileIndex}">
           <span>${t('Also add a durable invisible watermark')} <span class="valid-claim-hint">${t('survives screenshotting')}</span></span>
         </label>` : '';
   const licenceOpts = CLAIM_LICENCES.map(l =>

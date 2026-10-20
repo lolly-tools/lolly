@@ -653,7 +653,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/read-extract.ts': 5, // Read and extract: static shell markup plus escapeHtml()-wrapped counts and messages, and renderExtractHtml output
 
   // Fixed registry icons only; sidebar labels and metadata use textContent.
-  'components/asset-inspector-dock.ts': 3,
+  'components/asset-inspector-dock.ts': 2,
   // One fixed registry link icon; response URLs and labels are assigned as text/value.
   'components/invite-link-control.ts': 1,
   // Fixed registry icons only; button labels and comment content use textContent.

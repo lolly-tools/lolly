@@ -683,6 +683,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
             ${PALETTE_FORMATS.map(f => `<button type="button" class="be-bulkbar-item" data-be-bulk-dl="${escapeText(f.id)}">${escapeText(f.label)}</button>`).join('')}
           </div>
         </span>
+        <button type="button" class="be-bulkbar-btn" data-be-bulk-dup>${t('Duplicate')}</button>
         <button type="button" class="be-bulkbar-btn" data-be-bulk-copy>${t('Copy values')}</button>
         <button type="button" class="be-bulkbar-del" data-be-bulk-del>${t('Delete')}</button>
         <button type="button" class="be-bulkbar-x" data-be-bulk-cancel aria-label="${escapeText(t('Cancel selection'))}">✕</button>

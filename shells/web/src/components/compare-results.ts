@@ -30,7 +30,7 @@ export function mountComparisonResults(root: HTMLElement, result: ComparisonResu
   const prev = button('Previous change'), next = button('Next change');
   const layout = el('select', undefined, 'field-select'); layout.setAttribute('aria-label', t('Comparison layout'));
   layout.add(new Option(t('Side by side'), 'pair')); layout.add(new Option(t('Inline'), 'inline'));
-  const values = el('label'), reveal = el('input'); reveal.type = 'checkbox'; values.append(reveal, document.createTextNode(t('Show changed values')));
+  const values = el('label'), reveal = el('input', undefined, 'field-check'); reveal.type = 'checkbox'; values.append(reveal, document.createTextNode(t('Show changed values')));
   const list = el('div', undefined, 'compare-changes'); list.dataset.layout = 'pair';
   toolbar.append(prev, next, layout, values); root.append(toolbar, list);
   const items: HTMLDetailsElement[] = [];

@@ -842,7 +842,7 @@ export function buildPeoplePanel(opts: PeoplePanelOptions): HTMLElement {
     let tickSet = false;
     const tickBlock: HTMLElement[] = [];
     if (policy?.canInvite && policy.passwordSetup) {
-      const box = el('input');
+      const box = el('input', { className: 'field-check' });
       box.type = 'checkbox';
       box.id = `${uid}-password`;
       box.dataset.act = 'people-password';

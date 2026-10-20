@@ -291,7 +291,9 @@ def release_tool(command, capture=False):
     if command[:2] == ["/usr/bin/security", "find-identity"]:
         return (certificate + ' "Apple Distribution: Example (0123456789)"').encode()
     if command[:2] == ["/usr/bin/xcodebuild", "-exportArchive"]:
-        code = "import os,pathlib,time;pathlib.Path(" + repr(str(root / "child-ready")) + ").write_text(str(os.getpid()));time.sleep(60)"
+        code = ("import os,pathlib,time;ready=pathlib.Path(" + repr(str(root / "child-ready")) + ");"
+                "temporary=ready.with_name('child-ready.tmp');temporary.write_text(str(os.getpid()));"
+                "os.replace(temporary,ready);time.sleep(60)")
         return original_run([sys.executable, "-I", "-c", code], True)
     return b""
 def cleanup_tool(command, **kwargs):

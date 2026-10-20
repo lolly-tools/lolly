@@ -34,7 +34,7 @@ export function mountLottieLayerEditor(root: HTMLElement, opts: LottieLayerEdito
     const target = { asset: view.asset, index: view.index }, layer = view.layer;
     const name = document.createElement('input'); name.type = 'text'; name.className = 'field-input'; name.value = String(layer.nm ?? ''); name.maxLength = 200;
     name.addEventListener('change', () => opts.edit({ target, kind: 'layer', patch: { nm: name.value } }));
-    const visible = document.createElement('input'); visible.type = 'checkbox'; visible.checked = !layer.hd;
+    const visible = document.createElement('input'); visible.type = 'checkbox'; visible.className = 'field-check'; visible.checked = !layer.hd;
     visible.addEventListener('change', () => opts.edit({ target, kind: 'layer', patch: { hd: !visible.checked } }));
     const meta = document.createElement('div'); meta.className = 'tl-animation-meta';
     meta.append(animationField(t('Layer name'), name), animationField(t('Visible'), visible));
