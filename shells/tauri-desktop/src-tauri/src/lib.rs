@@ -143,6 +143,7 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
             menu::set_menu_data,
             capture::capture_page,
             capture::capture_page_pdf,
+            capture::capture_page_walk,
             // Authenticated capture: open a visible sign-in window on the shared
             // profile, report whether a session is live, and clear it. GUI only -
             // interactive, like site_fetch/nearby; a headless render never signs in.

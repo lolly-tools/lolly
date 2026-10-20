@@ -5,7 +5,9 @@
  *
  * One fixture page holds each thing the capture has to carry over from someone
  * else's page:
- *   - a heading in a webfont, which must come back as outlines from that font;
+ *   - a heading in a webfont, which must come back as outlines from that font, and a
+ *     line in a face declared by a cross-origin stylesheet the page cannot read,
+ *     whose font file Chrome does not keep in the tab's resource cache;
  *   - a picture from another origin that sends no CORS header, which the page walk
  *     cannot fetch and the shell fills from the tab's cache;
  *   - a canvas, which the walk cannot read and the shell fills from the screenshot;
@@ -45,20 +47,26 @@ describe('url-shot SVG capture is vector', { skip: gate ?? false, concurrency: 1
   let images: Awaited<ReturnType<typeof serve>>;
   before(async () => {
     // No Access-Control-Allow-Origin: the picture is cross-origin to the page, and the page cannot read the bytes.
-    images = await serve((p) => (p === '/p.png' ? { type: 'image/png', body: PNG } : null));
+    images = await serve((p) => {
+      if (p === '/p.png') return { type: 'image/png', body: PNG };
+      if (p === '/css/g.css') return { type: 'text/css', body: "@font-face { font-family: Second; src: url(../fonts/g.woff2) format('woff2'); font-weight: 100 900; }" };
+      if (p === '/fonts/g.woff2') return { type: 'font/woff2', body: FONT, headers: { 'access-control-allow-origin': '*' } };
+      return null;
+    });
     page = await serve((p) => {
       if (p === '/f.woff2') return { type: 'font/woff2', body: FONT };
       if (p !== '/') return null;
       return {
         type: 'text/html',
-        headers: { 'content-security-policy': `default-src 'self'; img-src 'self' ${images.origin}; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'` },
-        body: `<!doctype html><html><head><style>
+        headers: { 'content-security-policy': `default-src 'self'; img-src 'self' ${images.origin}; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline' ${images.origin}; font-src 'self' ${images.origin}` },
+        body: `<!doctype html><html><head><link rel="stylesheet" href="${images.origin}/css/g.css"><style>
           @font-face { font-family: Fixture; src: url(/f.woff2) format('woff2'); font-weight: 100 900; }
           html { background: #f4f1ea; } body { margin: 0; font-family: Fixture, sans-serif; }
           h1 { margin: 24px; font-size: 44px; font-weight: 700; color: #0c322c; }
           .card { margin: 24px; width: 220px; height: 60px; border-radius: 12px; background: #30ba78; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
         </style></head><body>
           <h1>Vector capture</h1>
+          <p style="margin:0 24px;font:500 18px Second, sans-serif">A second face</p>
           <img src="${images.origin}/p.png" width="96" height="96" style="margin:0 24px">
           <canvas id="c" width="120" height="60" style="margin:0 24px"></canvas>
           <div class="card"></div>

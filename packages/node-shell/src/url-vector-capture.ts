@@ -54,7 +54,17 @@ const xmlAttr = (s: string): string => s.replace(/&/g, '&amp;').replace(/"/g, '&
  * Throws when the walk fails or overruns PAGE_WALK_BUDGET_MS; the caller falls back.
  * The caller decides what `distance` is acceptable.
  */
-export async function captureVectorShot(page: Page, opts: { window?: WalkWindow; scale?: number; publicOnly?: boolean } = {}): Promise<VectorShot> {
+export async function captureVectorShot(page: Page, opts: {
+  window?: WalkWindow;
+  scale?: number;
+  /** A hosted capture: read the tab's cache, and ask the page's own network stack
+   *  again only for a URL this accepts (url-capture.ts passes its public-address
+   *  check). Never a request from this process. */
+  publicUrl?: (url: string) => boolean;
+  /** The body of a response the page received, kept by the caller from before the
+   *  navigation (Chrome keeps no font bytes in the tab's resource cache). */
+  received?: (url: string) => Promise<Uint8Array | null>;
+} = {}): Promise<VectorShot> {
   const t0 = Date.now();
   const script = await pageWalkScript();
   // Stop CSS animations and transitions where they are, so the screenshot and the
@@ -79,7 +89,7 @@ export async function captureVectorShot(page: Page, opts: { window?: WalkWindow;
     new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error(`page walk took longer than ${PAGE_WALK_BUDGET_MS / 1000}s`)), PAGE_WALK_BUDGET_MS); }),
   ]).finally(() => clearTimeout(timer));
 
-  const res = await tabResources(page, { cacheOnly: opts.publicOnly === true });
+  const res = await tabResources(page, { ...(opts.publicUrl ? { pageOnly: opts.publicUrl } : {}), ...(opts.received ? { received: opts.received } : {}) });
   let withImages: string, resolved: number, missing: string[], text: PageTextResult;
   try {
     ({ svg: withImages, resolved, missing } = await inlineImages(res, out.svg, out.unresolved));
@@ -129,16 +139,24 @@ async function finishInScratch(page: Page, script: string, svg: string, shot: Ui
 /**
  * Read resources the page already loaded from the tab's own cache (CDP
  * Page.getResourceContent). That cache has no CORS restriction, needs no second
- * request, and holds what the page actually showed. A URL the cache does not hold
- * is fetched through the context, which shares the page's cookies, unless
- * `cacheOnly`: a hosted capture (`publicOnly`) must not let a captured page name
- * an address for the server to request on its behalf. Close when done.
+ * request, and holds what the page actually showed, but Chrome keeps no font bytes
+ * there. A URL the cache refuses is read from the response the page received
+ * (`received`), then asked for again through the page's own network stack
+ * (Network.loadNetworkResource: the page's cookies, its HTTP cache, a URL the page
+ * declared, held to the page's connect-src), and only then fetched through the
+ * context.
+ *
+ * `pageOnly` is the hosted capture: the page's network stack and nothing more, and
+ * only for a URL the predicate accepts, so a captured page cannot name an address
+ * for the server to request on its behalf. Close when done.
  */
-async function tabResources(page: Page, { cacheOnly = false }: { cacheOnly?: boolean } = {}): Promise<{ read(url: string): Promise<{ bytes: Uint8Array; mime: string } | null>; close(): Promise<void> }> {
+async function tabResources(page: Page, { pageOnly, received }: { pageOnly?: (url: string) => boolean; received?: (url: string) => Promise<Uint8Array | null> } = {}): Promise<{ read(url: string): Promise<{ bytes: Uint8Array; mime: string } | null>; close(): Promise<void> }> {
   const cdp = await page.context().newCDPSession(page);
   const where = new Map<string, { frameId: string; mimeType: string }>();
   let mainFrame = '';
   try {
+    // getResourceContent answers "Agent is not enabled" until the Page domain is on.
+    await cdp.send('Page.enable');
     const { frameTree } = await cdp.send('Page.getResourceTree') as { frameTree: FrameTree };
     const walk = (t: FrameTree): void => {
       for (const r of t.resources ?? []) where.set(r.url, { frameId: t.frame.id, mimeType: r.mimeType });
@@ -166,9 +184,15 @@ async function tabResources(page: Page, { cacheOnly = false }: { cacheOnly?: boo
         const r = await cdp.send('Page.getResourceContent', { frameId: hit?.frameId ?? mainFrame, url }) as { content: string; base64Encoded: boolean };
         const bytes = r.base64Encoded ? Buffer.from(r.content, 'base64') : Buffer.from(r.content, 'utf8');
         return { bytes, mime: hit?.mimeType || sniffMime(bytes) };
-      } catch { /* not in the cache: fetch */ }
+      } catch { /* not in the cache */ }
+      const body = received ? await received(url).catch(() => null) : null;
+      if (body) return { bytes: body, mime: hit?.mimeType || sniffMime(body) };
+      if (!pageOnly || pageOnly(url)) {
+        const bytes = await loadThroughPage(cdp, hit?.frameId ?? mainFrame, url);
+        if (bytes) return { bytes, mime: hit?.mimeType || sniffMime(bytes) };
+      }
     }
-    if (cacheOnly) return null;
+    if (pageOnly) return null;
     try {
       const resp = await page.context().request.get(url, { timeout: 15_000 });
       if (!resp.ok()) return null;
@@ -180,6 +204,43 @@ async function tabResources(page: Page, { cacheOnly = false }: { cacheOnly?: boo
     read(url) { let p = cache.get(url); if (!p) { p = fetchOne(url); cache.set(url, p); } return p; },
     close: () => cdp.detach().catch(() => {}),
   };
+}
+
+/** The ceiling on one resource read back through the page. */
+const MAX_PAGE_RESOURCE_BYTES = 32 << 20;
+
+/** One resource through the page's own network stack, read off the stream CDP
+ *  hands back. Null on any failure, or past MAX_PAGE_RESOURCE_BYTES. */
+async function loadThroughPage(cdp: { send(m: string, p?: unknown): Promise<unknown> }, frameId: string, url: string): Promise<Uint8Array | null> {
+  try {
+    await cdp.send('Network.enable').catch(() => {});
+    // With credentials first, as a same-origin font loads. A cross-origin font loads
+    // without them, and a font CDN's `Access-Control-Allow-Origin: *` refuses a
+    // credentialed request, so the second try leaves them off.
+    const load = async (includeCredentials: boolean) => {
+      const { resource } = await cdp.send('Network.loadNetworkResource', {
+        frameId, url, options: { disableCache: false, includeCredentials },
+      }) as { resource: { success: boolean; stream?: string } };
+      return resource.success && resource.stream ? resource : null;
+    };
+    const resource = (await load(true).catch(() => null)) ?? (await load(false).catch(() => null));
+    if (!resource?.stream) return null;
+    const parts: Buffer[] = [];
+    let size = 0;
+    try {
+      for (;;) {
+        const chunk = await cdp.send('IO.read', { handle: resource.stream, size: 1 << 20 }) as { data: string; base64Encoded?: boolean; eof: boolean };
+        const b = Buffer.from(chunk.data, chunk.base64Encoded ? 'base64' : 'utf8');
+        parts.push(b);
+        size += b.length;
+        if (size > MAX_PAGE_RESOURCE_BYTES) return null;
+        if (chunk.eof) break;
+      }
+    } finally {
+      await cdp.send('IO.close', { handle: resource.stream }).catch(() => {});
+    }
+    return Buffer.concat(parts);
+  } catch { return null; }
 }
 
 /** Swap each absolute image URL for a data URL of the bytes the tab holds. One

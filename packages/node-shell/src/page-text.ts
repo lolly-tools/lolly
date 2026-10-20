@@ -54,6 +54,16 @@ export interface PageTextResult {
   unreadable: string[];
 }
 
+/**
+ * The share of coarse cells a vector capture may differ from its screenshot by and
+ * still be the answer, for every shell that captures with the page walk. Text that
+ * kept a system font, frozen script animation and antialiasing all score a little;
+ * a walk that lost a panel or painted a layer over the page scores far more.
+ * Measured on sixteen public pages after the walk's fixes (2026-10-20): the median
+ * was 9%, the worst 28%.
+ */
+export const VECTOR_SHOT_MAX_DISTANCE = 0.35;
+
 /** The ceiling on one font file, decoded. Webfonts are tens of kilobytes. */
 const MAX_FONT_BYTES = 32 << 20;
 

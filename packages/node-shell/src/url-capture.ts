@@ -24,15 +24,7 @@
  */
 import { getBrowser, BrowserError } from './browsers.ts';
 import { captureVectorShot } from './url-vector-capture.ts';
-
-/**
- * The share of coarse cells a vector capture may differ from the screenshot by and
- * still be the answer. Text that kept a system font, frozen script animation and
- * antialiasing all score a little; a walk that lost a panel or painted a layer over
- * the page scores far more. Measured on sixteen public pages after the walk's fixes
- * (2026-10-20): the median was 9%, the worst 28%.
- */
-export const VECTOR_MAX_DISTANCE = 0.35;
+import { VECTOR_SHOT_MAX_DISTANCE } from './page-text.ts';
 
 /**
  * Refuse a capture target that a HOSTED process must never navigate to: a
@@ -362,6 +354,15 @@ export async function captureUrl(
     // the first-run welcome); no-op for the end-user tool, which never sets it.
     if (params.initScript) await ctx.addInitScript({ content: params.initScript });
     const page = await ctx.newPage();
+    // A vector capture outlines text from the page's own font files, and Chrome keeps
+    // no font bytes in the tab's resource cache: keep the responses as they arrive.
+    const received = new Map<string, { body(): Promise<Buffer> }>();
+    if (fmt === 'svg') {
+      page.on('response', (r) => {
+        const kind = r.request().resourceType();
+        if (kind === 'font' || kind === 'stylesheet') received.set(r.url(), r);
+      });
+    }
     await page.goto(params.url, { waitUntil: 'load', timeout: 45_000 }).catch((e: Error) => {
       throw new BrowserError(`Couldn't load ${params.url}: ${e.message}`);
     });
@@ -449,8 +450,12 @@ export async function captureUrl(
     if (fmt === 'svg') {
       const win = { x: lw * l, y: lh * t, width: lw * (1 - l - r), height: lh * (1 - t - b) };
       try {
-        const shot = await captureVectorShot(page as unknown as Parameters<typeof captureVectorShot>[0], { window: win, scale: dpr * svgZoom, publicOnly: opts.publicOnly === true });
-        if (shot.distance <= VECTOR_MAX_DISTANCE) {
+        const shot = await captureVectorShot(page as unknown as Parameters<typeof captureVectorShot>[0], {
+          window: win, scale: dpr * svgZoom,
+          received: async (url: string) => { const r = received.get(url); return r ? new Uint8Array(await r.body()) : null; },
+          ...(opts.publicOnly ? { publicUrl: (u: string) => { try { assertPublicHttpUrl(u); return true; } catch { return false; } } } : {}),
+        });
+        if (shot.distance <= VECTOR_SHOT_MAX_DISTANCE) {
           return { bytes: new TextEncoder().encode(sizeSvg(shot.svg, clipW, clipH)), mime: 'image/svg+xml', notes: shot.warnings };
         }
         notes.push(`The vector capture differed from the page in ${Math.round(shot.distance * 100)}% of the frame, so the SVG holds a screenshot instead.`);
