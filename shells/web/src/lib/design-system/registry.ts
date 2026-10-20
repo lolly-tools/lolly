@@ -51,6 +51,10 @@ export type DesignSystemSource =
       /** `app`: a catalog's companion system, seeded on this device (companions.ts).
        *  `shipped`: the person's first edit of the shipped system (bridge/tokens.ts). */
       from?: 'app' | 'shipped';
+      /** `from: 'app'` only: the companion's tokens asset and name, which "Reset to
+       *  original" brings back (reset.ts). Records seeded before this was kept
+       *  have none and reset to the starter under their current name. */
+      companion?: { tokens: string; label: string };
     }
   | {
       kind: 'file'; fileName?: string; publisher?: string; version?: string;

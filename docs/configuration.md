@@ -127,6 +127,6 @@ A catalogue can also offer design systems beside its own. List them as `companio
 "companionDesignSystems": [{ "tokens": "lolly/tokens/brand", "label": "Lolly Starter" }]
 ```
 
-Each entry must be a tokens asset in the same index, or `lolly/tokens/brand`, the blank starter that every web build carries. `validate:catalog` checks the list. A browser gets each companion once, as an editable local system that the person can remove, and the active system does not change. lolly.tools offers Lolly Starter beside Lolly Demo this way. A locked catalogue (`brandLock`) offers no companions.
+Each entry must be a tokens asset in the same index, or `lolly/tokens/brand`, the blank starter that every web build carries. `validate:catalog` checks the list. A browser gets each companion once, as a local system that the person can edit, reset to the original or remove, and the active system does not change. lolly.tools offers Lolly Starter beside Lolly Demo this way. A locked catalogue (`brandLock`) offers no companions.
 
 On Lolly Work, an authenticated administrator can follow **Manage instance design systems** to inspect server sources and preview a default change or retirement. Stopping a connect download leaves the mounted catalogue available. A newer server advertises revisions: safe views refresh on focus or reconnect, while an open tool or editable local copy receives a notice and keeps its work. Older servers retain their existing refresh behaviour.

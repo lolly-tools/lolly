@@ -43,7 +43,9 @@ export function readCompanionDesignSystems(value: unknown): CompanionDesignSyste
 
 export type CompanionHost = ManageHost & StarterHost;
 
-async function companionDoc(host: CompanionHost, tokens: string): Promise<Record<string, unknown> | null> {
+/** The document a companion starts from: the catalog's own tokens asset, or the
+ *  starter. Null when it cannot be read yet. Reset (reset.ts) reads the same. */
+export async function companionDoc(host: CompanionHost, tokens: string): Promise<Record<string, unknown> | null> {
   // The starter reads the catalog's own copy first and the bundled one otherwise.
   if (tokens === STARTER_TOKENS_ID) return starterSeed(host);
   try {
@@ -76,7 +78,7 @@ export async function seedCompanionDesignSystems(host: CompanionHost, companions
       if (done.has(companion.tokens) || companion.tokens === shipped.headId) continue;
       const doc = await companionDoc(host, companion.tokens);
       if (!doc) continue; // not readable yet; the next sync tries again
-      const record = await createDesignSystem(host, { label: companion.label, seedDoc: doc, source: { kind: 'local', from: 'app' } });
+      const record = await createDesignSystem(host, { label: companion.label, seedDoc: doc, source: { kind: 'local', from: 'app', companion: { tokens: companion.tokens, label: companion.label } } });
       await registry.markSeeded(companion.tokens, true);
       made.push(record);
     }
