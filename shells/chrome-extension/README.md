@@ -2,7 +2,7 @@
 
 This Chrome extension supplies screenshots and website readings to the Lolly web shell. Each request opens an extension approval window showing the requesting site and the target URL. The extension reads the page only after the person clicks **Approve once** and grants access to the target site.
 
-Readings use the browser session, so signed-in pages can contain private information. The result goes back to the requesting Lolly page. Approval applies to one request, even when Chrome already remembers access to that site. Closing the approval window, changing the requesting page, or moving the target to another origin cancels the request. Approval expires after 30 seconds; a reading is bounded to 55 seconds. Only one request can wait or run at a time.
+Readings use the browser session, so signed-in pages can contain private information. The result goes back to the requesting Lolly page. Approval applies to one request, even when Chrome already remembers access to that site. Closing the approval window, leaving the requesting Lolly page (loading another page or moving to another site), or moving the target to another origin cancels the request. Lolly updating its own address as it runs stays the same page, so that does not. Approval expires after 30 seconds; a reading is bounded to 55 seconds. Only one request can wait or run at a time.
 
 The production relay accepts the exact `https://lolly.tools` origin. Other origins need a separate build. The approval page is extension-owned and is never a web-accessible resource.
 

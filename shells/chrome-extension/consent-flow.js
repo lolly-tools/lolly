@@ -16,11 +16,16 @@ function relayCaller(sender) {
     || typeof sender.documentId !== 'string' || !sender.documentId || sender.documentLifecycle !== 'active') {
     throw new Error('This request did not come from an active Lolly page.');
   }
+  // A request belongs to one Lolly document on an allowed origin, not to one
+  // address. Chrome reports `sender.url` as the address the document loaded at,
+  // and Lolly rewrites its own address as it runs (#/tool/url-shot becomes
+  // /t/url-shot?...), so comparing addresses refused every request from the app.
+  // The document id is what proves the caller is still the same page.
   const page = httpTarget(sender.url);
-  if (!LOLLY_RELAY_ORIGINS.includes(sender.origin) || page.origin !== sender.origin || sender.tab.url !== page.href) {
+  if (!LOLLY_RELAY_ORIGINS.includes(sender.origin) || page.origin !== sender.origin || httpTarget(sender.tab.url).origin !== sender.origin) {
     throw new Error('This requesting page is not allowed.');
   }
-  return { tabId: sender.tab.id, documentId: sender.documentId, origin: sender.origin, url: page.href };
+  return { tabId: sender.tab.id, documentId: sender.documentId, origin: sender.origin };
 }
 
 function assertReading(request, phase) {
@@ -32,12 +37,12 @@ function assertReading(request, phase) {
 async function assertCallerPresent(request) {
   assertReading(request);
   const tab = await chrome.tabs.get(request.caller.tabId);
-  if (tab.url !== request.caller.url) throw new Error('The requesting page changed. Start a new request in Lolly.');
+  if (httpTarget(tab.url).origin !== request.caller.origin) throw new Error('The requesting page changed. Start a new request in Lolly.');
   const reply = await chrome.tabs.sendMessage(request.caller.tabId, { type: 'lolly-capture/caller-check' }, {
     documentId: request.caller.documentId, frameId: 0,
   });
   assertReading(request);
-  if (reply?.url !== request.caller.url || reply.origin !== request.caller.origin) {
+  if (reply?.origin !== request.caller.origin || httpTarget(reply.url).origin !== request.caller.origin) {
     throw new Error('The requesting page changed. Start a new request in Lolly.');
   }
 }
@@ -172,7 +177,7 @@ chrome.tabs.onUpdated.addListener((tabId, info) => {
   const request = pendingReading;
   if (!request || !info.url) return;
   try {
-    if ((request.caller.tabId === tabId && info.url !== request.caller.url)
+    if ((request.caller.tabId === tabId && httpTarget(info.url).origin !== request.caller.origin)
       || (request.targetTabId === tabId && httpTarget(info.url).origin !== request.targetOrigin)) {
       refuseReading(request, new Error('A page changed while this request was open. Start a new request in Lolly.'));
     }
