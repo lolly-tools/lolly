@@ -161,6 +161,8 @@ const ALLOWED: Allowed[] = [
     reason: 'The GEN AI training signal details in Valid: the violet divider belongs to the AI marker it sits in.' },
   { file: 'docs/build.ts', selector: '.shot-cred--ai .shot-cred-btn',
     reason: 'A docs shot carrying an AI declaration says so at full contrast; the comment above the rule explains why.' },
+  { file: 'docs/build.ts', selector: '[data-theme="dark"] .shot-cred--ai .shot-cred-btn',
+    reason: 'The same AI declaration in the dark theme, restated because the dark glyph rule replaces every shadow; with the marks resting closed, the ring is the only sign at rest.' },
 
   // Needs Andy: listed in the C3 pull request and left unchanged.
   { file: `${PARTS}docs.css`, selector: '.docs-content th',

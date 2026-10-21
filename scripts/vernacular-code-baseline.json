@@ -1,7 +1,7 @@
 {
   "community/timezone/src/renderer.ts": 1,
   "docs/agents-pages.ts": 2,
-  "docs/build.ts": 42,
+  "docs/build.ts": 40,
   "docs/page-seal.ts": 4,
   "docs/shot-anatomy.ts": 3,
   "docs/shot-provenance.ts": 1,
@@ -213,7 +213,6 @@
   "packages/core/test/money.test.ts": 1,
   "packages/docs-render/src/art.ts": 1,
   "packages/docs-render/src/context.ts": 4,
-  "packages/docs-render/src/credential.ts": 2,
   "packages/docs-render/src/markdown.ts": 1,
   "packages/docs-render/src/render.ts": 2,
   "packages/docs-render/src/twin.ts": 1,
