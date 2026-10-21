@@ -251,7 +251,8 @@
 .cl-color-compact .color-trigger { height: var(--ui-size-target); }
 .cl-color-compact .color-picker-field + .color-picker-field { margin-top: 0; }
 
-.cl-ds-preview { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: var(--ui-space-panel); width: 100%; }
+/* The library shows the rows as Preferences does: one column, narrowing with its own width. */
+.cl-ds-preview { display: grid; grid-template-columns: 1fr; gap: var(--sp-4); width: 100%; container-type: inline-size; }
 /* The audio package owns unlayered CSS; only its viewport placement changes. */
 .cl-stage .audio-dock { position: relative; inset: auto; width: 320px; max-width: 100%; transform: none; }
 .cl-stage .gallery-topbar { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ui-space-panel); width: 100%; inset: auto; }

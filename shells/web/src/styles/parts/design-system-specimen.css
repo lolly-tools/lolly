@@ -17,4 +17,48 @@
 .ds-preview-caption { font-size: var(--ui-type-body); letter-spacing: .01em; opacity: .8; }
 .ds-row-preview-swatches { display: flex; height: 14px; margin: 0 calc(-1 * var(--ui-space-panel)) calc(-1 * var(--ui-space-panel)); }
 .ds-row-preview-swatches i { flex: 1; background: var(--ds-swatch); }
+/* The cover (lib/design-system/cover.ts): a design system shown small in its
+   own look. Both looks arrive as --cv-l-* and --cv-d-* on the element; the app
+   theme picks one, so a theme change repaints every cover with no script. The
+   brand theme grounds the cover on the system's primary. A system with no dark
+   look keeps its light one under the dark theme. */
+.ds-look {
+  --cv-surface: var(--cv-l-surface); --cv-ink: var(--cv-l-ink);
+  --cv-primary: var(--cv-l-primary); --cv-on-primary: var(--cv-l-on-primary); --cv-secondary: var(--cv-l-secondary);
+}
+:root[data-theme="dark"] .ds-look {
+  --cv-surface: var(--cv-d-surface, var(--cv-l-surface)); --cv-ink: var(--cv-d-ink, var(--cv-l-ink));
+  --cv-primary: var(--cv-d-primary, var(--cv-l-primary)); --cv-on-primary: var(--cv-d-on-primary, var(--cv-l-on-primary));
+  --cv-secondary: var(--cv-d-secondary, var(--cv-l-secondary));
+}
+:root[data-theme="brand"] .ds-look {
+  --cv-surface: var(--cv-l-primary); --cv-ink: var(--cv-l-on-primary);
+  --cv-primary: var(--cv-l-secondary); --cv-secondary: var(--cv-l-on-primary);
+}
+/* Each logo lists the app themes it serves; only the one for the theme in force shows. */
+:root:not([data-theme="dark"]):not([data-theme="brand"]) .ds-look [data-looks]:not([data-looks~="light"]),
+:root[data-theme="dark"] .ds-look [data-looks]:not([data-looks~="dark"]),
+:root[data-theme="brand"] .ds-look [data-looks]:not([data-looks~="brand"]) { display: none; }
+
+/* Sized in em on --fs-xl, so the box grows with Large text: 64x44 and 144x90 at
+   the default size. A neutral hairline always, never an accent; nothing moves. */
+.ds-cover {
+  position: relative; display: grid; grid-template-rows: minmax(0, 1fr) 30%; grid-template-columns: minmax(0, 1fr); place-items: center;
+  inline-size: var(--cv-w); block-size: var(--cv-h); overflow: hidden; flex: none;
+  font-size: var(--fs-xl);
+  background: var(--cv-surface); color: var(--cv-ink);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-control);
+}
+.ds-cover--thumb { --cv-w: 4em; --cv-h: 2.75em; }
+.ds-cover--row { --cv-w: 9em; --cv-h: 5.625em; }
+.ds-cover-logo, .ds-cover-mono { grid-area: 1 / 1; }
+.ds-cover-logo { max-inline-size: 72%; max-block-size: 70%; object-fit: contain; }
+.ds-cover-mono { font: 600 1.25em/1 var(--cv-font, var(--font-brand)); }
+.ds-cover--row .ds-cover-mono { font-size: 2.25em; }
+.ds-cover-band { grid-row: 2; align-self: stretch; justify-self: stretch; display: flex; }
+.ds-cover-band i { flex: 1; background: var(--sw); }
+.ds-cover-band i:first-child { flex: 3; background: var(--cv-primary); }
+.ds-cover-band i:nth-child(2) { background: var(--cv-secondary); }
+.ds-cover--row .ds-cover-band i:first-child { flex: 2; }
 }

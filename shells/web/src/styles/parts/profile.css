@@ -503,6 +503,8 @@
 .profile-view .profile-theme-dots span { width: 22px; aspect-ratio: 1; min-width: 0; border-radius: var(--radius); box-shadow: var(--edge); }
 .profile-view .profile-theme-sample { font-size: calc(1.6rem * var(--a11y-fs)); font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .profile-view .profile-theme { transition: none; } }
+html[data-a11y-motion="reduce"] .profile-view .profile-theme { transition: none; }
+html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: none; }
 
 /* ── Accessibility card - the three opt-in comfort prefs (lib/a11y-prefs.ts).
    Sits directly under Appearance and reuses the .feature-flag toggle-row
@@ -942,18 +944,41 @@
 
 }
 
-/* ── Design systems: each card wears its own palette and typography ────── */
-.profile-view .ds-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: var(--ui-space-panel); margin: var(--ui-space-panel) 0; }
-.ds-row { display: flex; flex-direction: column; position: relative; min-width: 0; border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel); background: var(--ui-color-surface-raised); transition: border-color var(--ui-motion-feedback), box-shadow var(--ui-motion-feedback); }
-.ds-row.is-active { border-color: var(--ui-color-action-primary); box-shadow: var(--ui-effect-focus-halo); }
+/* ── Design systems: compact index rows, each led by a cover in the system's
+   own look (lib/design-system/cover.ts). The active row is a tinted fill with a
+   soft lift, never an accent border at rest; an accent edge shows only while a
+   switchable row is hovered. The whole row is the switch target (.ds-row-hit);
+   the cover and text let presses through to that button, and the actions sit
+   above the button. */
+.profile-view .ds-rows { display: grid; gap: var(--sp-4); margin: var(--ui-space-panel) 0; container-type: inline-size; }
+.ds-row {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center; gap: var(--sp-4) var(--sp-6); padding: var(--sp-5); min-width: 0;
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel); background: var(--ui-color-surface-raised);
+  transition: border-color var(--ui-motion-feedback), background-color var(--ui-motion-feedback);
+}
+.ds-row.is-active { background: var(--ui-color-selection-surface); box-shadow: var(--ui-elevation-control); }
 .ds-row.is-switchable:hover { border-color: var(--ui-color-action-primary); }
-.ds-row:has(.ds-row-hit:focus-visible) { outline: 2px solid var(--ui-color-action-primary); outline-offset: 3px; }
+.ds-row:has(.ds-row-hit:focus-visible) { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
 .ds-row-hit { position: absolute; inset: 0; z-index: 0; border: 0; border-radius: inherit; background: transparent; cursor: pointer; }
-.ds-row-main { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; padding: var(--ui-space-panel); position: relative; z-index: 1; pointer-events: none; }
+.ds-row-hit[aria-disabled="true"] { cursor: progress; }
+.ds-row-cover { grid-area: 1 / 1; display: flex; position: relative; z-index: 1; pointer-events: none; }
+.ds-row-main { grid-area: 1 / 2; display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; padding: 0; position: relative; z-index: 1; pointer-events: none; }
+.ds-row-head { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-3) var(--sp-4); }
 .ds-row-label { margin: 0; display: flex; align-items: center; gap: var(--sp-3); font-size: var(--ui-type-lead); font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
 .ds-row-lock { display: inline-flex; color: var(--ui-color-text-muted); }
-.ds-row-source { min-height: 2.8em; font-size: var(--ui-type-caption); line-height: 1.4; color: var(--ui-color-text-muted); overflow-wrap: anywhere; }
-.ds-row-facts { display: flex; gap: var(--sp-3); font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); }
+.ds-row-head .ds-row-active { font-size: var(--ui-type-caption); font-weight: 600; color: var(--ui-color-text-default); }
+/* "Use" reads as the button the whole row is; it fills while the row is hovered or focused. */
+.ds-row-head .ds-row-use {
+  display: inline-flex; align-items: center; min-height: 28px; padding: 0 var(--sp-5);
+  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control);
+  font-size: var(--ui-type-caption); color: var(--ui-color-text-default); background: transparent;
+  transition: background-color var(--ui-motion-feedback), border-color var(--ui-motion-feedback);
+}
+.ds-row.is-switchable:is(:hover, :has(.ds-row-hit:focus-visible)) .ds-row-head .ds-row-use { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); border-color: transparent; }
+.ds-row-source { font-size: var(--ui-type-caption); line-height: 1.4; color: var(--ui-color-text-muted); overflow-wrap: anywhere; }
+.ds-row-facts { font-size: var(--ui-type-caption); line-height: 1.5; color: var(--ui-color-text-muted); font-variant-numeric: tabular-nums; }
+.ds-row-fact { white-space: nowrap; }
 .ds-row-origin { pointer-events: auto; font-size: var(--ui-type-caption); overflow-wrap: anywhere; }
 .ds-row-origin summary { cursor: pointer; padding-block: var(--sp-3); }
 .ds-row-origin dl { margin-block: var(--sp-3); }
@@ -962,19 +987,27 @@
 .ds-row-origin p { margin-block: var(--sp-3); }
 .ds-row-origin a { display: block; margin-block-start: var(--sp-3); }
 .ds-row-origin :is(summary, a):focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
-.ds-row-actions { display: grid; grid-template-columns: 1fr 1fr max(44px, var(--ui-size-target)); align-items: center; gap: var(--sp-3); padding: 0 var(--ui-space-panel) var(--ui-space-panel); margin-top: auto; position: relative; z-index: 2; pointer-events: none; }
-.ds-row-actions .ds-row-btn { display: inline-flex; justify-content: center; align-items: center; gap: var(--sp-3); min-height: var(--ui-size-target); padding: var(--sp-3); font-size: var(--ui-type-body); pointer-events: auto; }
+.ds-row-actions { grid-area: 1 / 3; display: grid; grid-template-columns: auto auto max(44px, var(--ui-size-target)); align-items: center; gap: var(--sp-3); padding: 0; margin: 0; position: relative; z-index: 2; pointer-events: none; }
+.ds-row-actions .ds-row-btn { display: inline-flex; justify-content: center; align-items: center; gap: var(--sp-3); min-height: var(--ui-size-target); padding: var(--sp-3) var(--sp-5); font-size: var(--ui-type-body); pointer-events: auto; }
+.ds-row-actions [aria-disabled="true"] { cursor: progress; }
 .ds-row-more { position: relative; pointer-events: auto; }
 .ds-row-more summary { display: grid; place-items: center; min-height: var(--ui-size-target); cursor: pointer; list-style: none; border-radius: var(--ui-radius-control); }
 .ds-row-more summary::-webkit-details-marker { display: none; }
-.ds-row-more summary:focus-visible { outline: 2px solid var(--ui-color-action-primary); }
-.ds-row-menu { position: absolute; z-index: 5; right: 0; bottom: calc(100% + var(--sp-3)); min-width: 210px; padding: var(--sp-3); background: var(--ui-color-surface-raised); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); box-shadow: var(--ui-effect-focus-halo); }
+.ds-row-more summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+/* Opens downward, so the first compact row cannot push it off the top of the card. */
+.ds-row-menu { position: absolute; z-index: 5; inset-inline-end: 0; top: calc(100% + var(--sp-3)); min-width: 210px; padding: var(--sp-3); background: var(--ui-color-surface-raised); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); box-shadow: var(--ui-effect-focus-halo); }
 .ds-row-menu button { min-height: max(44px, var(--ui-size-target)); display: flex; align-items: center; gap: var(--sp-4); width: 100%; padding: var(--sp-5); text-align: start; background: none; border: 0; font: inherit; }
 .ds-row-menu button:hover { background: var(--ui-color-surface-muted); }
 .ds-row-menu .ds-row-remove { color: hsl(var(--destructive-text)); }
 .profile-view .ds-add { display: flex; flex-wrap: wrap; gap: var(--sp-4); padding-top: var(--sp-4); }
 /* The one-line status under the buttons ("Removed.") sits apart from them. */
 .profile-view .ds-note { margin-top: var(--sp-5); }
+/* A narrow card: the cover and text share the first line, the actions take the second. */
+@container (max-width: 560px) {
+  .ds-row { grid-template-columns: auto minmax(0, 1fr); }
+  .ds-row .ds-cover--row { --cv-w: 7em; --cv-h: 4.375em; }
+  .ds-row-actions { grid-area: 2 / 1 / 3 / -1; grid-template-columns: 1fr 1fr max(44px, var(--ui-size-target)); }
+}
 
 /* Brand download uses the same tokens in the dialog's body-mounted top layer. */
 .brand-download { width: min(760px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 40px); padding: var(--ui-space-page); overflow: auto; color: var(--ui-color-text-default); background: var(--ui-color-surface-raised); }
