@@ -295,7 +295,7 @@ export function tokenConsumerSentences(summary: TokenConsumerSummary, systemKnow
   const s = summary.sessions;
   if (!s.available) out.push(t('Saved sessions on this device could not be listed, so none are counted.'));
   else {
-    out.push(t('Saved sessions on this device that link this token directly: {n} of {read} read.', { n: s.following, read: s.read }));
+    out.push(t('Saved sessions on this device that link this token directly: {n} of {read} checked.', { n: s.following, read: s.read }));
     if (s.customOnly) out.push(t('Saved sessions with a custom value that remembers this token: {n}.', { n: s.customOnly }));
     if (systemKnown && s.following + s.customOnly) out.push(t('Of those, saved with this design system active: {same}. With another design system: {other}. No design system recorded: {none}.', { same: s.thisSystem, other: s.otherSystem, none: s.unrecorded }));
     if (s.skipped) out.push(t('Saved sessions not read, so not counted: {n}.', { n: s.skipped }));
@@ -304,7 +304,7 @@ export function tokenConsumerSentences(summary: TokenConsumerSummary, systemKnow
   const c = summary.tools;
   if (!c.available) out.push(t('The tool catalog has not loaded on this device, so no tools are counted.'));
   else {
-    out.push(t('Tools in the mounted catalog that name this token directly as a default or example: {n} of {read} read.', { n: c.matched, read: c.read }));
+    out.push(t('Tools in the mounted catalog that name this token directly as a default or example: {n} of {read} checked.', { n: c.matched, read: c.read }));
     if (c.skipped) out.push(t('Tools not read, so not counted: {n}.', { n: c.skipped }));
   }
   return out;

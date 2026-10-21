@@ -389,6 +389,12 @@ export function wireSources(start: StartCtx): void {
     start.sources.openImport();
     playSfx('click');
   });
+  // A room's own "Add from…" (the Tokens room's head and blank states) asks the
+  // view for the importer, which belongs to the view and not to the editor.
+  shell.addEventListener('lolly:start-import', () => {
+    start.sources.openImport();
+    playSfx('click');
+  });
   // A file the FRONT DOOR handed over: the drop chooser's "Use as the design
   // system" (lib/drop-router.ts) stashes the dropped file and routes here, so the
   // studio opens on that file instead of asking for it a second time. One-shot

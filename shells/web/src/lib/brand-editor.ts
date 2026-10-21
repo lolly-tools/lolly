@@ -408,7 +408,10 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   bedit.derive.paintInitialScreen();
 
   bedit.derive.wirePrimaryLock();
-  bedit.ramps.$('[data-be-undo]')?.addEventListener('click', () => { bedit.replace.undoLast(); });
+  // Delegated: the Tokens room mounts its own Undo later in this function (pack.ts).
+  const onUndoClick = (e: Event): void => { if ((e.target as Element | null)?.closest?.('[data-be-undo]')) bedit.replace.undoLast(); };
+  bedit.root.addEventListener('click', onUndoClick);
+  bedit.cleanups.push(() => bedit.root.removeEventListener('click', onUndoClick));
   const reviewEl = bedit.ramps.$('[data-be-review]') as HTMLElement | null; bedit.reviewEl = reviewEl;
   /** The proposal the review card is describing, or null when it is closed. */
   bedit.pendingReplacement = null;
