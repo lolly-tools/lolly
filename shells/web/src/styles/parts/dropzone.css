@@ -24,6 +24,11 @@
   cursor: pointer;
   transition: border-color var(--dur-1), background var(--dur-1), color var(--dur-1);
 }
+/* Restore the contrast token at rest; interactive states below still win. */
+:where(html[data-a11y-contrast="high"]) .updz { border-color: hsl(var(--border)); }
+@media (prefers-contrast: more) {
+  .updz { border-color: hsl(var(--border)); }
+}
 .updz-icon { display: inline-flex; flex: none; color: hsl(var(--muted-foreground)); }
 .updz-icon svg { width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs)); }
 .updz-copy { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; max-width: 100%; }
