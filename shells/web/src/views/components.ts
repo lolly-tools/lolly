@@ -40,6 +40,7 @@ import '../styles/parts/components-lib.css';
 // are not on the landing bundle, so pull them in for the samples that need them.
 import '../styles/parts/platform.css';
 import '../styles/parts/dashboard.css';
+import '../styles/parts/design-issue.css'; // the Settings Design system tab's cover and pages
 import '../styles/parts/brand-studio.css';
 import '../styles/parts/tool.css';
 import '../styles/parts/tool-chrome.css';

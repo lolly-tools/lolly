@@ -51,13 +51,16 @@ export const DASH_SECTIONS: ReadonlyArray<DashSection> = [
   { id: 'dash-sound', flag: 'sound audio neurospicy focus volume', label: 'Sound', tab: 'device' },
   { id: 'dash-storage', flag: 'storage', label: 'Storage', tab: 'device' },
 
-  // ── Design system
-  { id: 'dash-brand', flag: 'brand logo colour colours palette fonts', label: 'Your brand', tab: 'brand' },
-  { id: 'dash-lock', flag: 'lock locked fixed brand', label: 'Brand locked', tab: 'brand' },
-  { id: 'dash-palette-wheel', flag: 'color colour colours palette wheel greys neutrals', label: 'Palette on the wheel', tab: 'brand' },
-  { id: 'dash-typedemo', flag: 'type typography font motion kinetic', label: 'Type in motion', tab: 'brand' },
-  { id: 'dash-palette', flag: 'color colour colours', label: 'Colour palette', tab: 'brand' },
-  { id: 'dash-tokens', flag: 'tokens radius spacing shadow gradient', label: 'Brand tokens', tab: 'brand' },
+  // ── Design system. The tab reads as a cover then pages, in this order. Two
+  // retired sections live on as flag aliases on the pages that replaced them,
+  // so an old `#/settings?dash-lock` or `?dash-palette-wheel` link still opens:
+  // the lock seal is now a line on the cover, the wheel is the Colour page.
+  { id: 'dash-brand', flag: 'brand design-system overview lock locked fixed read-only dash-lock', label: 'Overview', tab: 'brand' },
+  { id: 'dash-palette', flag: 'color colour colours palette swatches wheel greys neutrals spectrum ramps dash-palette-wheel', label: 'Colour', tab: 'brand' },
+  { id: 'dash-typedemo', flag: 'type typography font fonts typeface', label: 'Type', tab: 'brand' },
+  { id: 'dash-logos', flag: 'logo logos wordmark mark', label: 'Logos', tab: 'brand' },
+  { id: 'dash-colourways', flag: 'colourway colourways leads', label: 'Colourways', tab: 'brand' },
+  { id: 'dash-tokens', flag: 'tokens radius spacing shadow gradient', label: 'Tokens', tab: 'brand' },
   { id: 'dash-print', flag: 'print cmyk', label: 'Print & CMYK', tab: 'brand' },
 
   // ── Activity & stats

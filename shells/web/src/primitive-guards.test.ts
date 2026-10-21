@@ -1156,7 +1156,14 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // `cat-empty` paragraph containing only t('unavailable'). It adds no data
   // interpolation; the ordinary storage renderer remains responsible for
   // escaping measured/device values before it reaches its own sink.
-  'views/dashboard.ts': 12,
+  // 12 to 9 on 2026-10-21: the Design system tab moved to views/dashboard/brand.ts,
+  // taking the hero status line, the lock seal and the token grid fills along.
+  'views/dashboard.ts': 9,
+  // The Design system tab's in-place refresh: the issue re-rendered by issueHtml,
+  // the same markup first paint writes. Every value from the design system doc
+  // (names, notes, token values, logo variants) goes through escape(); colours
+  // reach a style attribute only as plain hex, and t() strings are shell copy.
+  'views/dashboard/brand.ts': 1,
   'views/deck-editor.ts': 9,
   // 2 as of 2026-09-02 (new file: the Design editor's top bar, plan 179 M1). One is
   // the VERBATIM re-insert of the shell's own `backHomeHtml()` island, which the bar
@@ -2009,7 +2016,9 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 257 to 256: the brand studio Set row marks itself with a full wash, not an inset rail.
     // 256 to 255: the swatch name chip is lifted by the floating elevation.
     // 255 to 254: the design system studio's Overview doors use the edge and control elevation.
-    pin: 253,
+    // 253 to 250: the Settings Design system tab's hero, primary chip and ink
+    // ribbon went with the illustrations; the new read uses hairlines only.
+    pin: 250,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,
@@ -2025,7 +2034,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 100 → 98: Design panel and thumbnail-cell radii use semantic tokens.
     // 96 → 94: the sidebar's history and language buttons took --radius-sm.
     // 92 → 91 on 2026-09-30: the Storage card's big archive button became a plain .btn.
-    pin: 91,
+    // 91 to 90 on 2026-10-21: the ink ribbon's 8px row left the Design system tab.
+    pin: 90,
     count: (t) => (t.match(/border-radius:\s*\d+(?:\.\d+)?px\s*[;}!]/g) ?? []).length,
     fix: 'use var(--radius-xs|sm|md|lg) (derived from --radius) or var(--radius) for the base panel size',
   },
@@ -2045,7 +2055,10 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 425 to 424: Share headings use the shared section type role.
     // 424 to 423: the simple upload dropzone replaces the separate touch CTA.
     // 423 to 422: the gallery tips strip and its type rule are removed.
-    pin: 422,
+    // 422 to 412 on 2026-10-21: the Settings Design system tab's hero, type
+    // facts and ink ribbon went; its read sizes type with the --fs-* and
+    // --ui-type-* tokens.
+    pin: 412,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },

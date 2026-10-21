@@ -62,7 +62,7 @@ export function coverVars(looks: CoverLooks): string {
 }
 
 /** A logo URL the cover may load: http(s), blob, an image data URL or a path. */
-function safeSrc(url: unknown): string | null {
+export function safeLogoSrc(url: unknown): string | null {
   if (typeof url !== 'string' || !url.trim() || [...url].some(ch => ch.charCodeAt(0) < 32)) return null;
   const scheme = /^([a-z][a-z\d+.-]*):/i.exec(url.trim())?.[1]?.toLowerCase();
   if (!scheme) return url;
@@ -78,9 +78,9 @@ function safeSrc(url: unknown): string | null {
 function logoPerLook(p: CoverPreview): Record<Look, string | null> {
   const logos = p.logos ?? (p.logoUrl ? { light: p.logoUrl, dark: p.logoUrl, brand: p.logoUrl } : {});
   return {
-    light: safeSrc(logos.light),
-    dark: safeSrc(p.looks.dark ? logos.dark : logos.light),
-    brand: safeSrc(logos.brand),
+    light: safeLogoSrc(logos.light),
+    dark: safeLogoSrc(p.looks.dark ? logos.dark : logos.light),
+    brand: safeLogoSrc(logos.brand),
   };
 }
 
