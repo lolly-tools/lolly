@@ -65,8 +65,9 @@ export const pushUndo = (bedit: BrandEditorCtx, label: string): void => {
   if (!isRec(bedit.doc)) return;
   undoStack.push({ doc: structuredClone(bedit.doc) as Record<string, unknown>, label });
   if (undoStack.length > UNDO_LIMIT) undoStack.shift();
-  const undo = bedit.ramps.$<HTMLButtonElement>('[data-be-undo]');
-  if (undo) { undo.hidden = false; undo.textContent = tRaw('Undo: {action}', { action: label }); }
+  // Every room that edits carries its own Undo (the Colours and Tokens rooms do),
+  // so the room where the edit was made shows the button.
+  for (const undo of bedit.root.querySelectorAll<HTMLButtonElement>('[data-be-undo]')) { undo.hidden = false; undo.textContent = tRaw('Undo: {action}', { action: label }); }
 };
 /** Take a durable checkpoint through the host, best-effort. A rejection is a
  *  missing safety net, never a failed edit - the local stack still has it. */
@@ -83,8 +84,9 @@ export const persist = (bedit: BrandEditorCtx, immediate = false): void => {
   const { fontsHost, host, root, tokens } = bedit;
   const revision = ++bedit.saveRevision;
   clearTimeout(bedit.saveTimer);
-  const status = bedit.ramps.$<HTMLElement>('[data-be-save-state]');
-  if (status) { status.hidden = false; status.textContent = t('Saving…'); status.classList.remove('is-error'); }
+  // A save state per editing room, so a save or a failure shows where the edit was made.
+  const statuses = [...root.querySelectorAll<HTMLElement>('[data-be-save-state]')];
+  for (const status of statuses) { status.hidden = false; status.textContent = t('Saving…'); status.classList.remove('is-error'); }
   notify(bedit, 'color');
   bedit.ramps.notifyPaletteObservers(); // the doc is already mutated - mirrors repaint now, not post-debounce
   const run = (): void => {
@@ -97,7 +99,7 @@ export const persist = (bedit: BrandEditorCtx, immediate = false): void => {
       // put back the logo tokens the studio opened with, and the new mark
       // stopped being drawn.
       await saveWithStoredLogos(fontsHost, snapshot, doc => installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], doc));
-      if (status && revision === bedit.saveRevision) { status.textContent = t('Saved'); }
+      if (revision === bedit.saveRevision) for (const status of statuses) status.textContent = t('Saved');
       void applyChromeBrandVars(host);
       // Reflect the new palette in every picker without a tool remount.
       try {
@@ -105,7 +107,7 @@ export const persist = (bedit: BrandEditorCtx, immediate = false): void => {
         setSwatches(cols.map(c => ({ value: c.value, label: c.name, group: c.group, ref: c.ref })));
       } catch { /* pickers refresh on next tool mount regardless */ }
     } catch (err) {
-      if (status && revision === bedit.saveRevision) { status.classList.add('is-error'); status.textContent = tRaw("Couldn't save: {error}", { error: String((err as { message?: unknown })?.message ?? err) }); }
+      if (revision === bedit.saveRevision) for (const status of statuses) { status.classList.add('is-error'); status.textContent = tRaw("Couldn't save: {error}", { error: String((err as { message?: unknown })?.message ?? err) }); }
       if (root.isConnected) announce(tRaw("Couldn't save the brand: {error}", { error: String((err as { message?: unknown })?.message ?? err) }), { assertive: true });
     }
     });

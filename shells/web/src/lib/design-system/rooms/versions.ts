@@ -416,6 +416,9 @@ export function mountVersionsRoom(el: HTMLElement, ctx: VersionsCtx): VersionsRo
   /** True while the name field's last verdict was a refusal - so the reason is
    *  announced once per transition, not once per keystroke. */
   let nameWasBad = false;
+  // An empty name is only a mistake once somebody has typed in the field, left it
+  // or pressed Publish. Until then the line says what the name is for.
+  let nameTouched = false;
 
   const syncSlugLine = (): void => {
     const line = $<HTMLElement>('[data-ds-v-slugline]');
@@ -423,12 +426,13 @@ export function mountVersionsRoom(el: HTMLElement, ctx: VersionsCtx): VersionsRo
     if (!line || !input) return;
     const slug = slugifyVersion(input.value);
     const taken = !!slug && !!model?.index.versions.some(v => v.slug === slug);
-    const bad = !slug || taken;
+    const untouched = !slug && !nameTouched;
+    const bad = (!slug && nameTouched) || taken;
     const why = !slug
       ? t('Give the version a name using letters or numbers.')
       : t('That name is already used. Version names are permanent, so pick another.');
     // textContent, so tRaw: an escaped entity would be shown literally here.
-    line.textContent = bad ? why : tRaw('Tools will address this version as {slug}.', { slug });
+    line.textContent = untouched ? t('Tools will address this version by its name.') : bad ? why : tRaw('Tools will address this version as {slug}.', { slug: slug ?? '' });
     line.classList.toggle('is-error', bad);
     // The refusal has to be PROGRAMMATIC, not a colour and a vanished button.
     // aria-invalid marks the field; the sentence is announced once on the way
@@ -437,7 +441,7 @@ export function mountVersionsRoom(el: HTMLElement, ctx: VersionsCtx): VersionsRo
     input.setAttribute('aria-invalid', bad ? 'true' : 'false');
     if (bad && !nameWasBad && el.ownerDocument.activeElement === input) announce(why);
     nameWasBad = bad;
-    const ok = !bad && !busy;
+    const ok = !!slug && !bad && !busy;
     for (const btn of el.querySelectorAll<HTMLButtonElement>('[data-ds-v-publish]')) btn.disabled = !ok;
   };
 
@@ -555,6 +559,7 @@ export function mountVersionsRoom(el: HTMLElement, ctx: VersionsCtx): VersionsRo
     const target = e.target as HTMLElement;
     if (target.matches?.('[data-ds-v-label]')) {
       draftLabel = (target as HTMLInputElement).value;
+      nameTouched = true;
       syncSlugLine();
     } else if (target.matches?.('[data-ds-v-note]')) {
       draftNote = (target as HTMLInputElement).value;
@@ -566,6 +571,7 @@ export function mountVersionsRoom(el: HTMLElement, ctx: VersionsCtx): VersionsRo
 
     const publish = target.closest<HTMLElement>('[data-ds-v-publish]')?.dataset.dsVPublish;
     if (publish) {
+      nameTouched = true;
       const name = ($<HTMLInputElement>('[data-ds-v-label]')?.value ?? '').trim();
       const note = ($<HTMLInputElement>('[data-ds-v-note]')?.value ?? '').trim();
       void act(async () => {
@@ -625,6 +631,12 @@ export function mountVersionsRoom(el: HTMLElement, ctx: VersionsCtx): VersionsRo
   paint(null);
   el.addEventListener('click', onClick);
   el.addEventListener('input', onInput);
+  const onLeave = (e: Event): void => {
+    if (!(e.target as HTMLElement).matches?.('[data-ds-v-label]') || nameTouched) return;
+    nameTouched = true;
+    syncSlugLine();
+  };
+  el.addEventListener('focusout', onLeave);
   refresh();
 
   return {
@@ -643,6 +655,7 @@ export function mountVersionsRoom(el: HTMLElement, ctx: VersionsCtx): VersionsRo
       alive = false;
       el.removeEventListener('click', onClick);
       el.removeEventListener('input', onInput);
+      el.removeEventListener('focusout', onLeave);
     },
   };
 }

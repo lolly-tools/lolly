@@ -69,6 +69,8 @@ export function wireCleanup(start: StartCtx): void {
     start.unsubTray = null;
     start.unsubBeat?.();
     start.unsubBeat = null;
+    start.unsubStickyTop?.();
+    start.unsubStickyTop = null;
     start.trayUi?.teardown();
     start.trayUi = null;
     start.overview?.teardown();

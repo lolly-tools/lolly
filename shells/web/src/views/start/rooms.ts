@@ -64,17 +64,29 @@ const syncFontPackage = (start: StartCtx): void => {
     btn.hidden = !list.some(a => a.type === 'font' && typeof a.id === 'string' && a.id.startsWith('user/fonts/'));
   }, () => { /* the row stays as it is */ });
 };
+/** Restore needs something to restore to: a furnished system with no checkpoint
+ *  yet would open an empty dialog. Asked on every refresh until the door shows,
+ *  including after Export has latched, because the first checkpoint is usually
+ *  written later than that (an import's "Before import", a palette replace). */
+const syncRecovery = (start: StartCtx, furnished: boolean): void => {
+  const { shell } = start;
+  const recovery = shell.querySelector<HTMLElement>('[data-start-recovery]');
+  if (!furnished || !recovery?.hidden) return;
+  void start.studio.listCheckpoints().then((list) => {
+    if (shell.isConnected && list.length > 0) recovery.hidden = false;
+  }, () => { /* no checkpoints readable, no door */ });
+};
 export const refreshFurnished = (start: StartCtx): void => {
   const { host } = start;
-  if (start.worthExporting) { syncFontPackage(start); return; } // the harder latch is set, so both are
+  // The harder latch is set, so both are, and a system worth exporting is furnished.
+  if (start.worthExporting) { syncRecovery(start, true); syncFontPackage(start); return; }
   void readOverview(host as unknown as Parameters<typeof readOverview>[0])
     .then((model) => {
     const { furnishedOnly, importBtn, shell } = start;
       if (!shell.isConnected) return;
       // The hero only duplicates a door while the doors are up (plans/163 F2).
       if (model.furnished && importBtn) importBtn.hidden = false;
-      const recovery = shell.querySelector<HTMLElement>('[data-start-recovery]');
-      if (model.furnished && recovery) recovery.hidden = false;
+      syncRecovery(start, model.furnished);
       if (!model.worthExporting) return;
       start.worthExporting = true;
       for (const el of furnishedOnly) if (!el.matches('[data-start-get-on-device]')) el.hidden = false;
@@ -142,7 +154,22 @@ export function openFocus(start: StartCtx, area: StartArea, focus: string): void
   }
 }
 export function wireEditorPanels(start: StartCtx): void {
-  const { editorRoot } = start;
+  const { editorRoot, shell } = start;
+  // Under 900px the room chips pin to the top of the page, so a jump inside a room
+  // (the Tokens room's tiles, a token's detail) has to land below them, not under.
+  // --ds-sticky-top is the chips' height plus a breath; the rooms read it as
+  // scroll-margin-top (styles/parts/start.css).
+  const dsShell = shell.querySelector<HTMLElement>('.ds-shell');
+  const nav = shell.querySelector<HTMLElement>('.ds-room-nav');
+  const narrow = window.matchMedia('(max-width: 899px)');
+  const syncStickyTop = (): void => {
+    if (!dsShell?.isConnected) { window.removeEventListener('resize', syncStickyTop); return; }
+    if (nav && narrow.matches) dsShell.style.setProperty('--ds-sticky-top', `${Math.ceil(nav.getBoundingClientRect().height) + 8}px`);
+    else dsShell.style.removeProperty('--ds-sticky-top');
+  };
+  syncStickyTop();
+  window.addEventListener('resize', syncStickyTop);
+  start.unsubStickyTop = () => window.removeEventListener('resize', syncStickyTop);
   // Name each editor panel after the rail item that opens it (the editor renders
   // the panels; only this view knows what navigates to them).
   editorRoot?.querySelectorAll<HTMLElement>('[data-be-tab-panel]').forEach((panel) => {
