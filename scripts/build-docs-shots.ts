@@ -40,9 +40,10 @@
  * only when a baseline is actually (re)written, so an unchanged shot keeps its
  * committed bytes verbatim and git never churns.
  *
- * Captures are PINNED to the neutral brand (lolly-start profile) regardless of the
- * sticky profile: deterministic pixels, and public-safe - the SUSE brand pack is
- * private, so its pixels must never be committed into the public docs repo. The
+ * Captures are PINNED to Lolly's own demo brand (lolly-demo profile, the one
+ * lolly.tools ships) regardless of the sticky profile: deterministic pixels, and
+ * public-safe - the SUSE brand pack is private, so its pixels must never be
+ * committed into the public docs repo. The
  * pre-run profile is restored afterwards (same fallback rules as loldev's do_build).
  *
  * Every run is a snapshot comparison (scripts/lib/shot-compare.ts):
@@ -102,7 +103,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'shells', 'web', 'dist');
 const DOCS_DIR = join(ROOT, 'docs');
 const SHOTS_DIR = join(ROOT, 'docs', 'shots');
-const CAPTURE_PROFILE = 'lolly-start';
+const CAPTURE_PROFILE = 'lolly-demo';
 const SITE_URL = 'https://lolly.tools';
 
 // Freeze the page for a deterministic shot: jump animations/transitions to their
