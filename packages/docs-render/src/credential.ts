@@ -51,10 +51,11 @@ export function renderCredential(
   const fact = (s: string) => `<span class="shot-cred-fact">${esc(s)}</span>`;
   const row = (cls: string, inner: string) => `<span class="shot-cred-row ${cls}"><span class="shot-cred-facts">${inner}</span></span>`;
 
-  // (a) Who and when.
+  // (a) Who and when. A real space, not a margin, parts the seal from "signed by": the fact
+  // takes its direction from its own text, and a space sits between them either way round.
   const who: string[] = [];
   if (facts.signer) {
-    who.push(`<span class="shot-cred-fact shot-cred-sig">${PROV_SEAL}${esc(t('signed by'))} `
+    who.push(`<span class="shot-cred-fact shot-cred-sig">${PROV_SEAL} ${esc(t('signed by'))} `
       + `<span class="shot-cred-name">${esc(facts.signer)}</span></span>`);
   }
   if (day) who.push(`<time class="shot-cred-fact" datetime="${esc(day)}">${esc(day)}</time>`);

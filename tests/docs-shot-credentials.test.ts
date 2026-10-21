@@ -30,10 +30,14 @@ import { tmpdir } from 'node:os';
 import { readShotProvenance } from '../docs/shot-provenance.ts';
 import { readShotAnatomy } from '../docs/shot-anatomy.ts';
 import { renderCredential } from '../packages/docs-render/src/index.ts';
+import { JSDOM } from 'jsdom';
 import type { CredentialFacts, DocsRenderContext, CredentialRenderOpts } from '../packages/docs-render/src/index.ts';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const BUILD_TS = readFileSync(join(ROOT, 'docs/build.ts'), 'utf8');
+// The landing page's own sheet, inlined into the site as LANDING_CSS: it once held the
+// mascot marks' own rules, so the resting-state guards read it as well as build.ts.
+const LANDING_CSS = readFileSync(join(ROOT, 'shells/web/src/styles/parts/docs-landing.css'), 'utf8');
 // inline() and buildShowcase() now live in the shared renderer package (M0b); the two
 // source-scanning tests below read it there instead of build.ts.
 const RENDER_TS = readFileSync(join(ROOT, 'packages/docs-render/src/render.ts'), 'utf8');
@@ -425,9 +429,9 @@ test('the glyph is anchored to its corner, and the closed card cannot move it or
 
 // ── Every mark rests closed ──────────────────────────────────────────────────
 
-/** Every innermost rule of the site stylesheet, comments blanked. */
+/** Every innermost rule of the site stylesheet and the landing sheet, comments blanked. */
 function cssRules(): Array<{ selector: string; body: string }> {
-  const css = BUILD_TS.replace(/\/\*[\s\S]*?\*\//g, ' ');
+  const css = `${BUILD_TS}\n${LANDING_CSS}`.replace(/\/\*[\s\S]*?\*\//g, ' ');
   return [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({ selector: m[1]!.replace(/\s+/g, ' ').trim(), body: m[2]! }));
 }
 
@@ -445,11 +449,13 @@ test('no imprint mark rests open: every kind renders closed with aria-expanded="
     }
   }
   // No rule may reveal the card without a state: hover, focus or the script's data-open.
-  const reveals = cssRules().filter((r) => /(?:^|,)[^,]*\.shot-cred-line(?:,|$)/.test(r.selector)
+  // Any selector part that mentions the card, wherever the class sits in it (a descendant,
+  // a pseudo-element), in build.ts or the landing sheet.
+  const reveals = cssRules().filter((r) => r.selector.includes('.shot-cred-line')
     && /opacity:1(?![\d.])|visibility:visible/.test(r.body));
   assert.ok(reveals.length >= 1, 'expected the rule that opens the card on hover, focus or tap');
   for (const r of reveals) {
-    for (const part of r.selector.split(',')) {
+    for (const part of r.selector.split(',').filter((x) => x.includes('.shot-cred-line'))) {
       assert.match(part, /:hover|:focus-within|\[data-open\]/,
         `"${part.trim()}" opens the credential card with no hover, focus or tap - it would rest open`);
     }
@@ -470,12 +476,153 @@ test('a figure caption mark trails the caption and takes no room while closed', 
   assert.ok(mark, 'expected the figure caption rule for the mark');
   assert.match(mark.body, /display:inline-flex/, 'the glyph must sit inline with the caption');
   assert.match(mark.body, /inset:auto/, 'in the caption the glyph is in the flow, not on a corner');
+  assert.match(mark.body, /margin-block:-/, 'the glyph is taller than the caption line; a negative block margin keeps the line its own height');
   assert.ok(rules.some((r) => r.selector === '.docs-figure figcaption>p:last-of-type' && /display:inline/.test(r.body)),
     'the last caption paragraph runs inline so the glyph can trail it');
   for (const r of rules.filter((x) => /figcaption|shot-cred--figure/.test(x.selector) && /\.shot-cred-(?:line|row)/.test(x.selector))) {
     assert.doesNotMatch(r.body, /position:(?:static|relative)|opacity:1(?![\d.])|visibility:visible/,
       `"${r.selector}" puts the figure's card back into the flow or shows it at rest`);
   }
+});
+
+test('the pointer can travel from the glyph to any link on the card', () => {
+  // A hover-opened card used to close as the pointer moved diagonally toward its links:
+  // the only bridge was a strip above the glyph, so a straight line to a link left the
+  // mark through the glyph's side. The bridge now spans the card's width down to the
+  // glyph's far edge (gap plus glyph), and the glyph sits above it so a click on the
+  // glyph is never taken by the bridge.
+  const rules = cssRules();
+  const rem = (v: string) => Number(/([\d.]+)rem/.exec(v)?.[1] ?? NaN);
+  const bridge = rules.find((r) => r.selector === '.shot-cred-line::after');
+  assert.ok(bridge, 'expected the hover bridge rule');
+  const reach = rem(/block-size:([^;]+)/.exec(bridge.body)?.[1] ?? '');
+  const gap = rem(/inset-block-end:calc\(100% \+ ([\d.]+rem)\)/.exec(rules.find((r) => r.selector === '.shot-cred-line')!.body)?.[1] ?? '');
+  const btn = rules.find((r) => r.selector === '.shot-cred-btn');
+  assert.ok(btn, 'expected the glyph rule');
+  const glyph = rem(/(?:^|;)\s*height:([^;]+)/.exec(btn.body)?.[1] ?? '');
+  assert.ok(reach >= gap + glyph - 1e-9, `the bridge reaches ${reach}rem but the gap and glyph need ${gap + glyph}rem`);
+  assert.match(bridge.body, /inset-inline:0/, 'the bridge spans the card, not only the glyph');
+  assert.match(btn.body, /position:relative/);
+  assert.match(btn.body, /z-index:1/, 'the glyph sits above the bridge, or the bridge takes its clicks');
+  // A closing card stays under the pointer while it fades: hidden visibility (delayed by
+  // the fade) is what turns the pointer away, not an instant pointer-events:none.
+  assert.doesNotMatch(rules.find((r) => r.selector === '.shot-cred-line')!.body, /pointer-events:none/);
+});
+
+test('a long signer wraps inside the card instead of being cut off', () => {
+  // The who row clips its start edge (that is how a wrapped line drops its leading dot)
+  // and every fact is nowrap, so a signer name longer than the card used to be cut off
+  // mid-word with no sign. The signer is the fact the card exists to show.
+  const rules = cssRules();
+  assert.ok(rules.some((r) => r.selector.split(',').some((p) => p.trim() === '.shot-cred-who') && /overflow:hidden/.test(r.body)),
+    'expected the who row to clip its start edge');
+  const name = rules.find((r) => r.selector === '.shot-cred-sig .shot-cred-name');
+  assert.ok(name, 'expected a rule that lets the signer wrap');
+  assert.match(name.body, /white-space:normal/);
+  assert.match(name.body, /overflow-wrap:anywhere/, 'a single long token (a domain, say) must break too');
+  const html = renderCred({ signer: 'Example Organisation Content Signing Authority Ltd' });
+  assert.match(html, /<span class="shot-cred-name">Example Organisation Content Signing Authority Ltd<\/span>/);
+});
+
+test('the seal is parted from "signed by" by a space, not a margin that follows the page direction', () => {
+  // The fact takes its direction from its own text, but a margin-inline follows the
+  // page: on an RTL page the gap ended up on the seal's outer side. A space sits between
+  // the seal and the words whichever way the fact runs.
+  assert.match(renderCred(), /class="prov-seal">[\s\S]*?<\/svg> signed by <span class="shot-cred-name">Lolly<\/span>/);
+  const seal = cssRules().find((r) => r.selector === '.shot-cred-line .shot-cred-sig .prov-seal');
+  assert.ok(seal, 'expected the seal rule');
+  // The site-wide .prov-seal rule gives every seal a margin-inline-end; the card takes it off.
+  assert.match(seal.body, /margin-inline:0(?![.\d])/, 'the card seal must cancel the site-wide directional margin');
+  assert.doesNotMatch(seal.body, /margin-inline-(?:start|end)/);
+});
+
+/** The reveal script, run in jsdom over a page of marks. */
+function revealPage(marks = 2) {
+  const script = /const SHOT_CRED_SCRIPT = `<script>([\s\S]*?)<\/script>`;/.exec(BUILD_TS)?.[1];
+  assert.ok(script, 'expected SHOT_CRED_SCRIPT in docs/build.ts');
+  const body = Array.from({ length: marks }, (_, i) => `<p><a href="#p${i}">before ${i}</a></p>${renderCred({ canCopySource: true })}`).join('')
+    + '<input id="search"><p><a href="#after">after</a></p>';
+  const dom = new JSDOM(`<!doctype html><body>${body}</body>`, { runScripts: 'outside-only' });
+  dom.window.eval(script);
+  const doc = dom.window.document;
+  const marksEl = [...doc.querySelectorAll('.shot-cred')] as HTMLElement[];
+  const btn = (m: Element) => m.querySelector('.shot-cred-btn') as HTMLButtonElement;
+  const expanded = () => marksEl.map((m) => btn(m).getAttribute('aria-expanded'));
+  const fire = (el: Element, type: string) => el.dispatchEvent(new dom.window.MouseEvent(type, { bubbles: type === 'click' }));
+  const esc = () => doc.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  return { dom, doc, marks: marksEl, btn, expanded, fire, esc };
+}
+
+test('aria-expanded tells the truth however the card opens', () => {
+  // Hover and keyboard focus open the card through CSS, and then its links are in the
+  // tab order and its text is read out, so the trigger must say expanded too.
+  const { doc, marks: [a, b], btn, expanded, fire } = revealPage();
+  assert.deepEqual(expanded(), ['false', 'false'], 'every mark rests collapsed');
+  btn(a!).focus();
+  assert.deepEqual(expanded(), ['true', 'false'], 'keyboard focus on the glyph opens the card');
+  (a!.querySelector('.shot-cred-do') as HTMLElement).focus();
+  assert.deepEqual(expanded(), ['true', 'false'], 'tabbing into the card keeps it open');
+  (doc.getElementById('search') as HTMLElement).focus();
+  assert.deepEqual(expanded(), ['false', 'false'], 'focus leaving the mark closes it');
+  fire(b!, 'mouseenter');
+  assert.deepEqual(expanded(), ['false', 'true'], 'hover opens the card');
+  fire(b!, 'mouseleave');
+  assert.deepEqual(expanded(), ['false', 'false'], 'the pointer leaving closes it');
+});
+
+test('a pinned card closes when focus moves on, and Escape elsewhere never moves focus', () => {
+  const { doc, marks: [a], btn, expanded, esc } = revealPage();
+  // Enter on the glyph pins the card; tabbing past it must not leave it over the page.
+  btn(a!).focus();
+  btn(a!).click();
+  assert.ok(a!.hasAttribute('data-open'), 'a tap or Enter pins the card');
+  (doc.querySelector('a[href="#after"]') as HTMLElement).focus();
+  assert.ok(!a!.hasAttribute('data-open'), 'focus moving on to another control unpins the card');
+  assert.deepEqual(expanded(), ['false', 'false']);
+  // A card pinned while the focus is elsewhere (a tap in a browser that does not focus
+  // buttons; jsdom's click() does not move focus either), then Escape in the search box:
+  // the card closes and the focus stays in the search box.
+  const search = doc.getElementById('search') as HTMLElement;
+  search.focus();
+  btn(a!).click();
+  assert.ok(a!.hasAttribute('data-open'));
+  esc();
+  assert.ok(!a!.hasAttribute('data-open'), 'Escape closes the pinned card');
+  assert.equal(doc.activeElement, search, 'Escape outside the mark must not pull focus back to the glyph');
+  // Escape with focus inside the card returns focus to its glyph and keeps it shut.
+  btn(a!).focus();
+  (a!.querySelector('.shot-cred-do') as HTMLElement).focus();
+  esc();
+  assert.equal(doc.activeElement, btn(a!), 'Escape inside the card returns focus to the glyph');
+  assert.deepEqual(expanded(), ['false', 'false'], 'and the card stays closed on its glyph');
+});
+
+test('only one card shows at a time, whichever way each was opened', () => {
+  const { marks: [a, b], btn, expanded, fire } = revealPage();
+  // Pinned and focused A, then the pointer reaches B: A must not stay open under its focus.
+  btn(a!).focus();
+  btn(a!).click();
+  fire(b!, 'mouseenter');
+  assert.deepEqual(expanded(), ['false', 'true'], 'reaching B closes A even though A holds focus');
+  assert.ok(a!.hasAttribute('data-shut') && !a!.hasAttribute('data-open'), 'A is shut, so its :focus-within no longer shows it');
+  // The pointer back on A opens A again and closes B.
+  fire(b!, 'mouseleave');
+  fire(a!, 'mouseenter');
+  assert.deepEqual(expanded(), ['true', 'false']);
+});
+
+test('a shut card opens again on the next visit', () => {
+  // Escape on a hovered card shuts the card. Once the pointer has gone, a keyboard visit to the
+  // same glyph must open the card again rather than hide its links from Tab.
+  const { doc, marks: [a], btn, expanded, fire, esc } = revealPage();
+  fire(a!, 'mouseenter');
+  esc();
+  assert.deepEqual(expanded(), ['false', 'false'], 'Escape closes the hovered card');
+  fire(a!, 'mouseleave');
+  assert.ok(!a!.hasAttribute('data-shut'), 'the pointer leaving ends a shut it alone was holding');
+  btn(a!).focus();
+  assert.deepEqual(expanded(), ['true', 'false'], 'a later keyboard visit opens the card');
+  (doc.getElementById('search') as HTMLElement).focus();
 });
 
 test('built pages ship every mark closed', { skip: existsSync(join(ROOT, 'shells/web/public/info/trust/ai-stance.html')) ? false : 'no built /info on disk' }, () => {

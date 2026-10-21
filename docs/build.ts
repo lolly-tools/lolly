@@ -3545,9 +3545,11 @@ ${LANDING_CSS}
    ends a caption: a figure's provenance is part of what the caption says. The last
    paragraph runs inline so the glyph can trail it. The glyph is in the flow (static
    insets, not the corner anchor a screenshot uses) and its card is the same popover as
-   everywhere else, so a closed mark takes no more room than the glyph itself. */
+   everywhere else, so a closed mark takes no more room than the glyph itself. The
+   glyph is a little taller than the caption's line, so a small negative block margin
+   keeps it from opening up the last line's leading; the glyph does not move. */
 .docs-figure figcaption>p:last-of-type{display:inline}
-.docs-figure figcaption .shot-cred{position:relative;inset:auto;display:inline-flex;vertical-align:-.4em;margin-inline-start:.45em}
+.docs-figure figcaption .shot-cred{position:relative;inset:auto;display:inline-flex;vertical-align:-.4em;margin-inline-start:.45em;margin-block:-.2rem}
 .docs-content img{height:auto;    max-width: min(100%, 40em);    height: auto;   margin: 0 auto; display: block;}
 /* App screenshots (docs/shots.json captures) read at full column width, framed like a window. */
 .docs-content img[src*="/info/shots/"]{max-width:100%;min-width:50%;border-radius:1.2em;
@@ -3624,8 +3626,9 @@ ${LANDING_CSS}
    The card is a popover, absolutely positioned against the glyph, so a closed mark
    takes exactly the glyph's room wherever it sits and nothing it holds can move the
    glyph off its corner. Closed, the card is hidden (visibility as well as opacity):
-   its links leave the tab order and its text leaves the accessibility tree, matching
-   the trigger's aria-expanded="false". The trigger's label carries every fact. */
+   its links leave the tab order and its text leaves the accessibility tree. The
+   script keeps the trigger's aria-expanded in step with whether the card shows,
+   however it opened. The trigger's label carries every fact. */
 .shot-cred{position:absolute;inset-block-end:.55rem;inset-inline-end:.7rem;z-index:2;display:flex}
 /* The mark that is open stacks above its neighbours, so its card is never under the
    next screenshot's glyph or a figure below. */
@@ -3640,7 +3643,9 @@ ${LANDING_CSS}
    behind it (screenshot corners are unpredictable - a white card, a dark timeline, a
    photo), and the glyph is muted against that puck instead of against the shot. Rest
    is legible; hover only sharpens it. */
-.shot-cred-btn{display:grid;place-items:center;width:1.4rem;height:1.4rem;flex:none;padding:0;
+/* Positioned and lifted above the card, so the card's hover bridge (below) never lies
+   over the glyph and takes the click meant for the glyph. */
+.shot-cred-btn{position:relative;z-index:1;display:grid;place-items:center;width:1.4rem;height:1.4rem;flex:none;padding:0;
   border:0;border-radius:50%;cursor:pointer;color:var(--muted);background:hsl(var(--popover) / 0.9);
   box-shadow:0 1px 3px #00000024;
   -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
@@ -3653,30 +3658,37 @@ ${LANDING_CSS}
    grows toward inline-start (left in LTR, right in RTL): the side a page never
    scrolls to, so even a closed card that reaches past the window edge adds no
    sideways scroll. width:max-content gives it its natural size rather than the
-   glyph's; the max-width keeps it compact and inside a phone's width.
+   glyph's; the max-width keeps it compact and inside a phone's width. 22rem holds a
+   vector shot's usual file row (kind, three counts and the size) on one line, so the
+   size is not left alone on a line of its own.
    SHOT_CRED_SCRIPT sets --cred-shift on open when the card would cross a window
    edge; the independent translate property composes with the open/close transform. */
 .shot-cred-line{position:absolute;inset-block-end:calc(100% + .4rem);inset-inline-end:0;
   display:flex;flex-direction:column;align-items:flex-start;gap:.3rem;
-  box-sizing:border-box;width:max-content;max-width:min(20rem,calc(100vw - 2rem));
+  box-sizing:border-box;width:max-content;max-width:min(22rem,calc(100vw - 2rem));
   padding:.55rem .75rem .6rem;border-radius:.8rem;
   font-size:.75rem;line-height:1.4;font-weight:400;letter-spacing:normal;text-align:start;white-space:normal;
   color:hsl(var(--popover-foreground));background:hsl(var(--popover) / 0.96);
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   box-shadow:0 6px 20px #00000024, inset 0 0 0 1px var(--border);
-  opacity:0;visibility:hidden;pointer-events:none;
+  opacity:0;visibility:hidden;
   transform:translateY(.25rem);translate:var(--cred-shift,0px) 0;
   transition:opacity .18s ease,transform .18s ease,visibility 0s linear .18s}
-/* A bridge over the gap between card and glyph, so the pointer can travel from the
-   glyph onto the card without the hover dropping on the way. */
-.shot-cred-line::after{content:'';position:absolute;inset-inline:0;inset-block-start:100%;block-size:.5rem}
+/* The way from the glyph to the card stays inside the mark. A bridge spans the card's
+   full width from its edge down to the glyph's far edge (the .4rem gap plus the
+   1.4rem glyph), so a pointer that leaves the glyph sideways on a straight line to a
+   link is still on the mark. Hidden visibility, not pointer-events, is what makes a
+   closed card ignore the pointer, so for the .18s a closing card takes to fade a
+   pointer that reaches it opens it again. */
+.shot-cred-line::after{content:'';position:absolute;inset-inline:0;inset-block-start:100%;block-size:1.8rem}
 /* No room above (the fixed site bar would cover the card): the script opens it below. */
 .shot-cred[data-below] .shot-cred-line{inset-block-end:auto;inset-block-start:calc(100% + .4rem);transform:translateY(-.25rem)}
 .shot-cred[data-below] .shot-cred-line::after{inset-block-start:auto;inset-block-end:100%}
 .shot-cred:hover .shot-cred-line,.shot-cred:focus-within .shot-cred-line,
 .shot-cred[data-open] .shot-cred-line{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition-delay:0s}
 /* Escape, or a second tap on the glyph, closes the card even while the pointer or the
-   focus is still on the glyph. The script clears this when the reader moves on. */
+   focus is still on the glyph, and reaching another mark closes this one the same way.
+   The script clears this when the reader moves on. */
 .shot-cred[data-shut]:not([data-open]) .shot-cred-line{opacity:0;visibility:hidden;pointer-events:none}
 /* Rows. Facts are plain text separated by a middot (CSS content with empty alt text,
    so a screen reader does not read the dots out). The dot hangs in the space before
@@ -3692,10 +3704,16 @@ ${LANDING_CSS}
    right way round inside an RTL row while the row itself still runs right to left. */
 .shot-cred-fact{position:relative;padding-inline-start:1em;white-space:nowrap;unicode-bidi:plaintext}
 .shot-cred-fact::before{content:'·';content:'·' / '';position:absolute;inset-inline-start:0;inline-size:1em;text-align:center;color:var(--muted)}
-/* (a) Who and when: the seal in the theme's green, the signer in full ink. */
+/* (a) Who and when: the seal in the theme's green, the signer in full ink. The seal is
+   parted from "signed by" by a real space in the markup, and the site-wide seal margin
+   is taken off: a margin follows the page's direction while the fact follows its own
+   text, so in an RTL page the gap ended up on the wrong side of the seal. The signer
+   comes from the file's manifest and can be any length, so it wraps (at any letter if
+   it has to) rather than being cut off by the row's clipped start edge. */
 .shot-cred-who,.shot-cred-model{color:var(--muted)}
 .shot-cred-name{color:hsl(var(--popover-foreground));font-weight:650}
-.shot-cred-line .shot-cred-sig .prov-seal{width:.95em;height:.95em;margin-inline-end:.3em;vertical-align:-.15em;color:hsl(var(--primary))}
+.shot-cred-sig .shot-cred-name{white-space:normal;overflow-wrap:anywhere}
+.shot-cred-line .shot-cred-sig .prov-seal{width:.95em;height:.95em;margin-inline:0;vertical-align:-.15em;color:hsl(var(--primary))}
 /* (b) What the file is. A filename wraps rather than truncating - it is evidence the
    card is naming, so hiding its tail hides the point. */
 .shot-cred-file{font-family:'SUSE Mono','SF Mono',monospace;font-size:.6875rem;overflow-wrap:anywhere}
@@ -3708,7 +3726,8 @@ ${LANDING_CSS}
 /* (d) The actions, as small links. The colour is the theme's primary, not --green:
    the landing's dark bands repoint --green at their bright accent, which would sink
    on this light card. */
-.shot-cred-acts{display:flex;flex-wrap:wrap;gap:.1rem .9rem;margin-block-start:.1rem}
+/* The row gap clears a focus ring (2px plus its 2px offset) when the actions wrap. */
+.shot-cred-acts{display:flex;flex-wrap:wrap;gap:.3rem .9rem;margin-block-start:.1rem}
 .shot-cred .shot-cred-do{font:inherit;font-weight:600;color:hsl(var(--primary));text-decoration:none;white-space:nowrap;border-radius:.3em}
 .shot-cred .shot-cred-do:hover{text-decoration:underline}
 .shot-cred .shot-cred-do:focus-visible{outline:2px solid hsl(var(--primary));outline-offset:2px}
@@ -3762,8 +3781,11 @@ button.shot-cred-copy{border:0;background:none;padding:0;cursor:pointer}
 .shot-cred-copy-label{pointer-events:none}
 /* An AI declaration is not a detail to be discovered - if a shot ever carries one,
    its mark arrives already at full contrast and wearing the brand ring, so it reads
-   as a statement rather than as the same quiet glyph every other shot has. */
-.shot-cred--ai .shot-cred-btn{color:hsl(var(--on-band-dark));background:hsl(var(--band-dark));box-shadow:0 0 0 2px var(--green)}
+   as a statement rather than as the same quiet glyph every other shot has. The ring
+   stands off the puck by a hairline of the card colour: in the light theme the puck
+   and --green are the same dark green, so a ring drawn straight onto the puck vanished
+   into it. With the words no longer showing at rest, the ring has to be seen. */
+.shot-cred--ai .shot-cred-btn{color:hsl(var(--on-band-dark));background:hsl(var(--band-dark));box-shadow:0 0 0 1.5px hsl(var(--popover)),0 0 0 3px var(--green)}
 /* Dark mode: same contract, inverted. The puck is near-opaque for the same reason -
    a dark screenshot's corner is not reliably darker than the puck - and the glyph is
    a muted grey against it, not a full-white one, so it stays quiet without becoming
@@ -4335,14 +4357,15 @@ const SHOWCASE_SCRIPT = `<script>(function(){
 })();</script>`;
 
 /**
- * Tap-to-open for the credential card, Escape and a click outside to close it, and
- * keeping an opened card on screen.
+ * Tap-to-open for the credential card, Escape and a click outside to close it, keeping
+ * an opened card on screen, and keeping aria-expanded true to what the reader sees.
  *
  * Everything else about the reveal is CSS (:hover / :focus-within), so this script
  * exists ONLY for what CSS cannot do: a touch device has no hover, a reader who
- * opened the card by tapping needs a way out, and a card near a window edge has to
- * be measured to be moved. Every mark rests closed with aria-expanded="false"; the
- * script sets it to true only while a tap holds the card open.
+ * opened the card by tapping needs a way out, a card near a window edge has to be
+ * measured to be moved, and only one card may show at a time. Every mark rests closed
+ * with aria-expanded="false"; the script turns it true whenever the card shows,
+ * whether a hover, the keyboard focus or a tap opened the card.
  */
 const SHOT_CRED_SCRIPT = `<script>(function(){
   // "Copy signed source" - the banked art's third action (plans/105 section 6). Fetches the
@@ -4378,8 +4401,13 @@ const SHOT_CRED_SCRIPT = `<script>(function(){
     });
   })(copies[ci]);
   var creds=document.querySelectorAll('.shot-cred');if(!creds.length)return;
-  function close(c){c.removeAttribute('data-open');var b=c.querySelector('.shot-cred-btn');if(b)b.setAttribute('aria-expanded','false');}
-  function closeAll(except){creds.forEach(function(c){if(c!==except)close(c);});}
+  // Each mark keeps two flags the CSS reads as :hover and :focus-within: h while the
+  // pointer is on it, f while the focus is inside it. A card shows while a tap pins it
+  // (data-open), or while it is hovered or focused and not shut (data-shut).
+  function shown(c){return c.hasAttribute('data-open')||(!c.hasAttribute('data-shut')&&!!(c._h||c._f));}
+  // aria-expanded follows what the reader sees, however the card opened.
+  function sync(){creds.forEach(function(c){var b=c.querySelector('.shot-cred-btn');if(b)b.setAttribute('aria-expanded',shown(c)?'true':'false');});}
+  function close(c){c.removeAttribute('data-open');}
   // Keep an opened card inside the viewport. It opens above the glyph and grows toward
   // inline-start, so measure it: open it below the glyph when the fixed site bar would
   // cover its top (and there is room below), and slide it back by any sideways
@@ -4396,35 +4424,68 @@ const SHOT_CRED_SCRIPT = `<script>(function(){
   }
   creds.forEach(function(c){
     var btn=c.querySelector('.shot-cred-btn');if(!btn)return;
-    // Reaching one mark closes any other a tap pinned open: one card at a time.
-    function arrive(){closeAll(c);clamp(c);}
-    c.addEventListener('mouseenter',function(){c.removeAttribute('data-shut');arrive();});
-    c.addEventListener('focusin',arrive);
-    c.addEventListener('focusout',function(e){if(!c.contains(e.relatedTarget))c.removeAttribute('data-shut');});
+    // Reaching one mark closes every other: a pinned card unpins, and a card still held
+    // open by the focus or a resting pointer is shut, so one card shows at a time.
+    function arrive(){
+      creds.forEach(function(o){if(o===c)return;close(o);if(o._h||o._f)o.setAttribute('data-shut','');});
+      clamp(c);sync();
+    }
+    c.addEventListener('mouseenter',function(){c._h=true;c.removeAttribute('data-shut');arrive();});
+    // A shut that only the pointer was holding (Escape on a hovered card) ends when the
+    // pointer leaves, so a later visit by keyboard opens the card again.
+    c.addEventListener('mouseleave',function(){c._h=false;if(!c._f)c.removeAttribute('data-shut');sync();});
+    // Focus arriving from outside the mark is a new visit and opens the card. A move
+    // inside the mark (Escape returning focus to the glyph) keeps a shut card shut.
+    c.addEventListener('focusin',function(e){
+      if(!c.contains(e.relatedTarget)){c._f=true;c.removeAttribute('data-shut');}
+      arrive();
+    });
+    // Focus moving on to another control closes a pinned card too, so a card opened
+    // from the keyboard does not stay over the page once the reader has tabbed past.
+    // A null relatedTarget (a click on the page, the window losing focus) leaves that
+    // to the click handler below.
+    c.addEventListener('focusout',function(e){
+      if(c.contains(e.relatedTarget))return;
+      c._f=false;
+      if(!c._h)c.removeAttribute('data-shut');
+      if(e.relatedTarget)close(c);
+      sync();
+    });
     btn.addEventListener('click',function(e){
       e.preventDefault();
       var open=!c.hasAttribute('data-open');
-      closeAll(c);
-      if(open){c.removeAttribute('data-shut');clamp(c);c.setAttribute('data-open','');btn.setAttribute('aria-expanded','true');}
+      creds.forEach(function(o){if(o!==c)close(o);});
+      if(open){c.removeAttribute('data-shut');clamp(c);c.setAttribute('data-open','');}
       // A second tap closes the card even though the pointer and focus are still on the glyph.
       else{close(c);c.setAttribute('data-shut','');}
+      sync();
     });
   });
-  window.addEventListener('resize',function(){var o=document.querySelector('.shot-cred[data-open]');if(o)clamp(o);});
-  // Escape closes the card the reader is on (pinned, focused or hovered). Focus returns
-  // to its trigger when the card held focus or was pinned open, matching how the app's
-  // own overlays behave; data-shut keeps it closed while focus sits on that trigger.
+  // Keep a shown card on screen while the page moves under it: a resize, or a scroll
+  // that would carry it under the fixed site bar. Once per frame at most.
+  var queued=false;
+  function reclamp(){
+    if(queued)return;queued=true;
+    requestAnimationFrame(function(){queued=false;creds.forEach(function(c){if(shown(c))clamp(c);});});
+  }
+  window.addEventListener('resize',reclamp);
+  window.addEventListener('scroll',reclamp,{passive:true});
+  // Escape closes the card the reader is on: the one holding focus, else the one that
+  // shows. Focus returns to the glyph only when it was inside that mark already, so an
+  // Escape pressed anywhere else (the search box, say) never pulls the reader back up
+  // the page. data-shut keeps the card closed while focus sits on its glyph.
   document.addEventListener('keydown',function(e){
     if(e.key!=='Escape')return;
-    var a=document.activeElement,mine=a&&a.closest?a.closest('.shot-cred'):null;
-    var open=mine||document.querySelector('.shot-cred[data-open]')||document.querySelector('.shot-cred:hover');
-    if(!open)return;
-    var pinned=open.hasAttribute('data-open');
+    var a=document.activeElement,mine=a&&a.closest?a.closest('.shot-cred'):null,open=mine;
+    if(!open)creds.forEach(function(c){if(!open&&shown(c))open=c;});
+    if(!open||!shown(open))return;
     close(open);open.setAttribute('data-shut','');
-    var b=open.querySelector('.shot-cred-btn');if(b&&(mine||pinned))b.focus();
+    if(mine){var b=open.querySelector('.shot-cred-btn');if(b)b.focus();}
+    sync();
   });
   document.addEventListener('click',function(e){
-    if(!e.target.closest||!e.target.closest('.shot-cred'))closeAll(null);
+    if(e.target.closest&&e.target.closest('.shot-cred'))return;
+    creds.forEach(close);sync();
   });
 })();</script>`;
 
