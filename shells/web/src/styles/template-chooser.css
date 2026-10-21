@@ -146,7 +146,6 @@
   gap: 8px;
   padding: 14px;
   text-align: left;
-  background: var(--ui-color-surface-canvas);
   background: color-mix(in srgb, var(--ui-color-surface-overlay) 50%, var(--ui-color-surface-canvas));
   border:0;
   box-shadow: var(--ui-elevation-control);
