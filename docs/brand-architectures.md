@@ -2,7 +2,11 @@
 
 Organisations arrange their brands in different ways. One company shows a single masterbrand everywhere and gives each division a colour. Another puts its name above every product. A third endorses a brand it bought for a year or two, and a fourth keeps each brand entirely apart. Brand architecture is the name for that arrangement.
 
-Lolly does not ask you which arrangement you have. It gives you a few building blocks, and each arrangement uses them in its own way. This page lists the blocks, then walks through each arrangement: what it looks like, how to set it up in Lolly today, and what Lolly cannot do for it yet. The examples use invented organisations.
+Lolly does not ask you which arrangement you have. It gives you a few building blocks, and each arrangement uses them in its own way. This page maps the arrangements, lists the blocks, then walks through each arrangement: what it looks like in the wild, how to set it up in Lolly today, and what Lolly cannot do for it yet. The logos show well-known organisations that use each arrangement. The step-by-step examples use invented organisations.
+
+::: figure brand-architectures-spectrum
+From a branded house, in which the parent is the brand, to a house of brands, in which each brand stands alone. Choose a column to go to its section.
+:::
 
 ## The building blocks
 
@@ -38,9 +42,17 @@ A common way to group arrangements is by how much of the parent brand the audien
 
 ## Unify: one brand, many parts
 
+Every part of the business feeds one brand. This suits an organisation that wants the most awareness from every piece it makes, and it gives new products the parent's reputation from the first day.
+
 ### Monolithic
 
-Northwind is one brand. Northwind Freight is teal and Northwind Air is coral, and both use the same logo, type and templates.
+One masterbrand goes on everything. A descriptor says which business you are dealing with, and sometimes a colour does too.
+
+::: figure brand-architectures-monolithic
+Monolithic brands in the wild: FedEx, GE, Intel and Apple.
+:::
+
+**In Lolly:** Northwind is one brand. Northwind Freight is teal and Northwind Air is coral, and both use the same logo, type and templates.
 
 - Make **one design system** for Northwind.
 - Give each division a **colourway**, so a Freight poster and an Air poster use the same templates with a different lead colour. The app around them stays on the canonical colourway.
@@ -53,7 +65,13 @@ Not yet: the studio cannot author colourways, so a colourway is written into the
 
 ### Expanded
 
-Northwind Atlas, Northwind Pulse and Northwind Vault each have a colour and a mark, with Northwind above every product name.
+The masterbrand stays above each product, and every product adds a mark and a colour of its own. Software companies often work this way, because a buyer who trusts one product can find the next one under the same name.
+
+::: figure brand-architectures-expanded
+Expanded brands in the wild: Atlassian, Adobe and Google.
+:::
+
+**In Lolly:** Northwind Atlas, Northwind Pulse and Northwind Vault each have a colour and a mark, with Northwind above every product name.
 
 - Keep **one design system** and give each product a **colourway**.
 - Add a **logo identity** per product with **+ Add another logo**.
@@ -65,6 +83,12 @@ Not yet: a colourway cannot choose its logo identity, and tools draw the main lo
 
 Some brands keep their logo, type and layout fixed and change the lead colour from piece to piece, or across a series.
 
+::: figure brand-architectures-rotating
+Lolly Demo, Lolly's own demonstration design system, has six colourways. Spearmint is the canonical one.
+:::
+
+**In Lolly:**
+
 - Make **one design system** with a **colourway** for each lead colour. Each colourway carries its own lead, the colour that sits on it, and a partner, in both light and dark.
 - Mark one colourway canonical. An artefact that chooses none uses it, and so does the app.
 - Pieces that show the whole family at once draw on every lead, canonical first: Chart's series and palettes, Mesh Gradient's shuffle, the Audiogram visualiser's colours and the audio and text covers in Assets. Template authors reach the same leads as `--brand-lead-1` onwards ([Authoring tools](/info/authoring-tools.html#design-system-colours-in-templates-and-styles)).
@@ -73,11 +97,32 @@ Some brands keep their logo, type and layout fixed and change the lead colour fr
 
 Not yet: no series, batch or copy flow picks colourways by a rule, and the batch grid has no control for a row's colourway. The engine's rules (cycle, by key, shuffle, by date) exist for scripts; see [Colourways](/info/token-workflows.html#colourways).
 
+### Naming in a masterbrand
+
+Under one masterbrand, a product's name is built from up to four parts, always in the same order. Each part narrows the one before.
+
+::: figure brand-architectures-naming
+Company, domain, descriptor and context, from a product line to a product variant.
+:::
+
+- **Company** is the masterbrand. In a monolithic brand, the logo carries the company name.
+- **Domain** is the area of business, such as Freight or Air. Company and domain together make a product line.
+- **Descriptor** says what the product is, such as Tracker. Add it to make a product.
+- **Context** makes a variant. It starts with a small word that says what kind of context follows: **for** a purpose, **with** a feature, or **on** a platform or architecture.
+
+**In Lolly:** keep the company logo in the design system and write the rest of the name as text in the template, so every piece sets the name in the same type. Add a finished lockup of logo and name as a **custom mark** when a piece needs the name as artwork.
+
 ## Subset: a parent with tailored businesses
+
+The parent's name leads, and each business tailors its material to its own audience. This suits a group that works in several industries at once.
 
 ### Driven
 
-Halcyon shows its own logo with each business's name, and each business tailors the material to its audience.
+::: figure brand-architectures-driven
+Driven brands in the wild: Tata, Virgin and Mitsubishi.
+:::
+
+**In Lolly:** Halcyon shows its own logo with each business's name, and each business tailors the material to its audience.
 
 - Use **one design system** and write the business name as text, when the businesses share everything else.
 - Or make a **design system per business**, when each business needs its own material: export the parent's brand pack and bring it in again for each business ([Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices)).
@@ -88,7 +133,13 @@ Not yet: a copy does not stay linked to the parent, so a change to the parent do
 
 ### Appended
 
-Ferro keeps its own mark and adds "by Halcyon" for its first two years after the acquisition.
+A brand keeps its own mark and adds the parent's endorsement. After an acquisition this is usually a stage of one to three years, before the brand moves fully into the parent or goes its own way.
+
+::: figure brand-architectures-appended
+Appended brands in the wild: Broadcom and Meta.
+:::
+
+**In Lolly:** Ferro keeps its own mark and adds "by Halcyon" for its first two years after the acquisition.
 
 - Make a **design system for Ferro**.
 - Add the finished endorsed lockup as a **custom mark**.
@@ -99,7 +150,13 @@ Not yet: Lolly does not generate an endorsement lockup from the two marks, and a
 
 ### Apparent
 
-Halcyon Tidal and Halcyon Bloom have distinct marks and colours but share type, grid and motion, and the parent is well known without being shown.
+Distinct brands whose parent is so widely known that it does not need to appear. This only works when almost everyone in the audience already knows the parent.
+
+::: figure brand-architectures-apparent
+Apparent brands in the wild: Microsoft and Sony.
+:::
+
+**In Lolly:** Halcyon Tidal and Halcyon Bloom have distinct marks and colours but share type, grid and motion, and the parent is well known without being shown.
 
 - Make the shared start once, export its **brand pack**, and bring the pack in again as each brand's own design system.
 
@@ -107,9 +164,17 @@ Not yet: copies drift apart. Nothing keeps the shared type, grid and motion in s
 
 ## Detach: brands that stand alone
 
+Each brand defines itself, and the parent stays out of sight. This suits consumer markets, where shoppers choose the brand on the shelf. It rarely suits selling to businesses, where buyers want to know which company stands behind a product.
+
 ### Shadow
 
 Brands that are related behind the scenes but each define themselves for their audience.
+
+::: figure brand-architectures-shadow
+Shadow brands in the wild: the Volkswagen Group, and the luxury lines of Honda and Nissan.
+:::
+
+**In Lolly:**
 
 - Make a **design system per brand**. Lolly keeps each one's tokens, fonts, logos and versions apart.
 
@@ -118,6 +183,12 @@ Not yet: Lolly does not record that the brands are related.
 ### Discrete
 
 Brands with no visible relationship at all, often worked on by the same people.
+
+::: figure brand-architectures-discrete
+Discrete brands in the wild: Unilever and Procter & Gamble.
+:::
+
+**In Lolly:**
 
 - Make a **design system per brand** on the same device and switch per job in **Settings → Design systems**.
 - One active design system applies to the whole device. A link that carries `ds=` switches the device to that design system.
@@ -167,6 +238,10 @@ Choose the smallest block that holds the difference.
 3. **The part has its own assets, its own tools or its own rules:** a **design system of its own**.
 
 A part can move down this list as it grows. Moving down means copying material into a new design system; Lolly does not move it for you.
+
+## About the logos
+
+The logos on this page are trademarks of their owners. They appear only to show how real organisations arrange their brands, and none of the owners is connected with Lolly. A product name beside a mark is set in this page's type rather than the owner's. The drawings come from [Simple Icons](https://simpleicons.org) and [gilbarbara/logos](https://github.com/gilbarbara/logos), both CC0, and from public-domain files on [Wikimedia Commons](https://commons.wikimedia.org). Each figure's source lists the file behind every logo.
 
 ## Where to go next
 
