@@ -12,6 +12,8 @@ This is the one page to read first. Two things get you productive: **make Lolly 
 
 ## 1. Make it yours - configure your Design System
 
+> lolly.tools opens with Lolly Demo, Lolly's own design system. [Meet Lolly Demo](/info/lolly-demo.html) shows what you are looking at.
+
 Your brand in Lolly is a small **design-tokens** document - colours, fonts and a few rules - that every tool renders against. Set it once and everything you make is on-brand by construction, not by review. There are three ways in; pick the one that matches where your brand already lives.
 
 ### Start from scratch (the design system builder)

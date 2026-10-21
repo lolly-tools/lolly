@@ -1,0 +1,90 @@
+<!--
+  Concept: what changes when you load your own design system. Your colours and colourways, type, logos
+  and, when your pack sets one, the chrome take the place of Lolly Demo. Clinic, Etiquette, Fauna and the
+  register stay with Lolly, and the register's rings take your hue. Two links open Settings at Design systems and
+  the Brand Studio.
+  Band Contract: static fragment scoped under .ldw, reads the docs theme tokens with fallbacks, no
+  script, no motion, no network. Links rest without an accent outline and show a 3 px focus ring.
+  Sources: the brand standards at /brand ("Load a design system and Lolly steps back", Clinic, Etiquette,
+  Devices) and docs/brand-studio.md; the wordmark path from brand/horizontal.svg; the kangaroo is
+  kangarooArt() in its end pose; the rings are the three-ring diagram of /brand, drawn here with
+  the middle ring in --brand-primary.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-21. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.ldw{--ldw-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--ldw-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --ldw-ground:hsl(var(--secondary,84.5 55% 92.2%));--ldw-paper:hsl(var(--card,0 0% 100%));
+ --ldw-accent:hsl(var(--primary,176.5 89.5% 11.2%));--ldw-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --ldw-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .13);--ldw-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --ldw-wash:color-mix(in oklab,var(--ldw-accent) 14%,var(--ldw-paper));
+ --ldw-head:#033633;--ldw-mark:#008657;--ldw-yes:#0b6b45;--ldw-no:#a43427;
+ --ldw-display:"Outfit","SUSE",ui-sans-serif,system-ui,sans-serif;--ldw-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--ldw-ink);background:var(--ldw-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+:is([data-theme="dark"],[data-theme="brand"]) .ldw{--ldw-head:#ffffff;--ldw-mark:#50c369;--ldw-yes:#7ddc97;--ldw-no:#ef9275}
+.ldw *{box-sizing:border-box}
+.ldw ul,.ldw ol{list-style:none;margin:0;padding:0}
+.ldw li{list-style:none;margin:0;font-size:inherit}
+.ldw p{margin:0}
+.ldw.ldw a{color:inherit;text-decoration:none}
+.ldw.ldw a:hover{text-decoration:none}
+.ldw b{font-weight:600}
+.ldw .ldw-sprite{position:absolute;width:0;height:0;overflow:hidden}
+.ldw .ldw-ico{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ldw .ldw-cap{font:500 11px/1.3 var(--ldw-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ldw-muted)}
+.ldw .ldw-card{background:var(--ldw-paper);border-radius:18px;box-shadow:0 0 0 1px var(--ldw-line)}
+.ldw .ldw-tag{display:inline-flex;align-items:center;gap:6px;font:600 12px/1.2 var(--ldw-mono);letter-spacing:.03em}
+.ldw .ldw-tag svg{width:15px;height:15px;stroke-width:3}
+.ldw .ldw-yes{color:var(--ldw-yes)}
+.ldw .ldw-no{color:var(--ldw-no)}
+.ldw{display:grid;gap:12px}
+.ldw .ldw-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.ldw .ldw-col{padding:14px;display:grid;gap:10px;align-content:start}
+.ldw .ldw-col>p{display:flex;align-items:center;gap:8px;font:500 19px/1.15 var(--ldw-display);color:var(--ldw-head)}
+.ldw .ldw-col>p .ldw-ico{width:20px;height:20px;color:var(--ldw-mark)}
+.ldw .ldw-col ul{display:grid;gap:8px}
+.ldw .ldw-col li{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:12px;padding:8px;border-radius:12px;background:var(--ldw-soft);font-size:14px;line-height:1.25}
+.ldw .ldw-vis{height:48px;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:5px;overflow:hidden;background:var(--ldw-paper);color:var(--ldw-head)}
+.ldw .ldw-opal{gap:0;align-items:stretch}
+.ldw .ldw-opal i{flex:1;background:var(--c)}
+.ldw .ldw-aa{font:500 28px/1 var(--ldw-display)}
+.ldw .ldw-word{width:54px;height:auto;fill:#09141a}
+.ldw .ldw-vis.ldw-wordbox{background:#ffffff}
+.ldw .ldw-chrome{gap:0;align-items:stretch}
+.ldw .ldw-chrome i{flex:1;background:var(--c)}
+.ldw .ldw-btn{padding:6px 10px;border-radius:999px;font:600 11px/1 "SUSE",ui-sans-serif,system-ui,sans-serif;background:var(--ldw-accent);color:var(--ldw-on-accent);outline:2.5px solid var(--ldw-accent);outline-offset:2.5px}
+.ldw .ldw-vis .ldw-ico{width:18px;height:18px}
+.ldw .ldw-kg{width:auto;height:44px;overflow:visible;color:var(--ldw-ink);align-self:flex-end}
+.ldw .ldw-joey{fill:var(--ldw-paper)}
+.ldw .ldw-rings{width:36px;height:36px}
+.ldw .ldw-go{display:flex;flex-wrap:wrap;gap:8px}
+.ldw.ldw .ldw-go a{text-decoration:none;display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;font:600 14px/1.1 "SUSE",ui-sans-serif,system-ui,sans-serif;background:var(--ldw-accent);color:var(--ldw-on-accent)}
+.ldw.ldw .ldw-go a.ldw-alt{background:var(--ldw-paper);color:var(--ldw-head);box-shadow:inset 0 0 0 1px var(--ldw-line)}
+.ldw.ldw .ldw-go a:hover{box-shadow:0 10px 20px -14px rgb(9 20 26 / .7)}
+.ldw.ldw .ldw-go a.ldw-alt:hover{box-shadow:inset 0 0 0 1.5px var(--ldw-accent)}
+.ldw.ldw .ldw-go a:focus-visible{outline:3px solid var(--ldw-accent);outline-offset:3px}
+.ldw .ldw-go .ldw-ico{width:17px;height:17px}
+@container (max-width:560px){
+ .ldw .ldw-cols{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+<div class="ldw">
+<div class="ldw-cols">
+<div class="ldw-card ldw-col"><p><svg class="ldw-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldw-i-drop"/></svg>Swaps for yours</p><ul>
+<li><span class="ldw-vis ldw-opal" aria-hidden="true"><i style="--c:#033633"></i><i style="--c:#008657"></i><i style="--c:#50c369"></i><i style="--c:#fac044"></i><i style="--c:#1a85c4"></i><i style="--c:#da1889"></i></span><span>Colours and colourways</span></li>
+<li><span class="ldw-vis ldw-aa" aria-hidden="true">Aa</span><span>Type</span></li>
+<li><span class="ldw-vis ldw-wordbox" aria-hidden="true"><svg class="ldw-word" viewBox="0 0 44.725 19.706"><use href="#ldw-word"/></svg></span><span>Logos</span></li>
+<li><span class="ldw-vis ldw-chrome" aria-hidden="true"><i style="--c:#edf6e0"></i><i style="--c:#ffffff"></i><i style="--c:#09141a"></i><i style="--c:#121d24"></i></span><span>Chrome, when your pack sets one</span></li>
+</ul></div>
+<div class="ldw-card ldw-col"><p><svg class="ldw-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldw-i-lolly"/></svg>Stays with Lolly</p><ul>
+<li><span class="ldw-vis" aria-hidden="true"><span class="ldw-btn">Export</span></span><span>Clinic: forms, focus and signals</span></li>
+<li><span class="ldw-vis" aria-hidden="true"><svg class="ldw-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldw-i-lolly"/></svg><svg class="ldw-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldw-i-qr"/></svg><svg class="ldw-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldw-i-chart"/></svg></span><span>Etiquette icons</span></li>
+<li><span class="ldw-vis" aria-hidden="true"><svg class="ldw-kg" aria-hidden="true" focusable="false" viewBox="11 11 96 96" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><clipPath id="ldw-pouch"><path d="M60 0H120V80.47H98.61V79.87C94.28 79.1 84.67 74.66 80.4 73.6L60 73.6Z"></path></clipPath><path d="M92.8 69.4C93.26 65.02 93.34 58.97 92.8 54.6C94.26 55.25 95.19 55.7 96.4 56.4C97.44 57 98.46 58.53 99.2 59.2C99.79 59.74 100.52 59.11 100.9 58.4C101.37 57.52 100.69 56.3 100.2 55.2C99.55 53.74 98.26 52.99 97 52C95.74 51.01 94.7 49.92 93.4 49.4C93.34 47.8 93.4 44.8 93.4 43.4C94.49 42.89 95.62 41.82 97.2 41.6C99.18 41.32 100.73 40.67 102.4 40C103.51 39.55 105.03 38.2 105 37.2C104.97 36.2 104.08 35.07 103.2 34.6C101.26 33.57 99.84 32.15 98.2 31C96.73 29.97 95.26 28.7 94.4 27.6C93.91 26.97 93.94 26.19 93.8 25.4C94.29 22.64 95.87 20.99 95.6 18.4C95.37 16.21 94.96 12.91 93.8 12.6C92.64 12.29 91.22 14.76 90.4 16.8C89.5 19.03 88.59 21.01 88.8 23C88.68 22.51 87.72 23.49 87.6 23C86.97 20.48 87.05 18.76 86 16.6C85.04 14.62 82.8 12.84 81.6 12.8C80.4 12.76 78.91 15.62 78.6 17.8C78.27 20.18 79.98 23.34 80.8 25.6C80.32 27.54 80.63 31.48 80 34C79.27 36.91 78.28 42.07 76 44.6C73.32 47.57 70.03 49.9 64.09 50.74C60.36 51.26 56.8 52.64 53.68 54.77C50.57 56.89 47.99 59.71 46.14 63C44.29 66.28 43.23 69.95 43.03 73.72C42.82 77.71 42.72 81.25 42.2 84.2C41.75 86.76 40.6 88.75 39 90.8C36.54 93.95 33.76 94.23 30 95.6C26.24 96.97 22.96 97.44 19 98C17.42 98.22 14 99.56 13.4 100.6C12.95 101.38 14.6 103.4 16 103.4C25 103.4 34 103.4 40 103.4C43 103.4 47.11 101.93 48.6 99.8C49.98 97.83 51.35 94.39 51.6 92C51.77 90.41 52.4 88.2 52.4 86.6C53.32 87.91 54.85 88.99 55.6 90.4C56.35 91.81 57.86 94.4 57.8 96C57.74 97.6 57.57 100.22 57.4 101.2C57.19 102.38 58.2 103.4 59.6 103.4C68.6 103.4 77 103.4 86 103.4C87.2 103.4 88.4 102.3 88.4 101.1C88.4 99.9 87.4 98.88 86.2 98.8C82.21 98.52 80.79 98.18 76.8 97.9C78.88 96.7 81.32 95.6 83.4 94.4C86 92.9 89.67 91.14 91.6 89.4C93.09 88.06 96.93 86.01 97.21 84.43C97.45 83.05 98.81 81.25 98.61 79.87C97.38 76.06 93.22 73.38 92.8 69.4Z"></path><path d="M92.8 31.6h.01"/><g clip-path="url(#ldw-pouch)"><g transform="translate(2.2 -0.6)"><g transform="rotate(8 94.6 79)"><path class="ldw-joey" d="M96.6 80.2C97.35 78.79 98.3 78.26 99.4 77.4C100.66 76.41 101.94 75.56 103 75C103.79 74.58 104.43 73.7 104.4 72.8C104.37 71.9 103.26 71.08 102.4 70.8C100.69 70.24 100.3 69.92 99 69.4C98.72 67.82 98.39 65.99 98.2 64.6C98.07 63.71 97.8 62.48 96.9 62.4C96 62.32 95.61 64.22 95.4 65.4C95.23 66.38 95.54 67.46 95.2 68.4C94.79 69.53 93.24 71.02 93 72.4C92.58 74.76 92.8 76.6 92.8 79C92.8 81 92.9 82.8 92.9 84.2C92.9 85.2 93.42 85.37 94.4 85.2C94.75 83.23 94.52 81.4 96.6 80.2Z"/><path d="M99.8 73.4h.01"/></g></g></g><path d="M53.2 72.4C55.39 67.91 61.2 63.8 66.6 63.8C71.6 63.8 78.99 70.95 80.4 73.6C84.67 74.66 94.28 79.1 98.61 79.87"></path></svg></span><span>Fauna</span></li>
+<li><span class="ldw-vis" aria-hidden="true"><svg class="ldw-rings" aria-hidden="true" focusable="false" viewBox="0 0 200 200"><circle cx="100" cy="100" r="88" fill="none" stroke="var(--brand-primary, #008657)" stroke-width="16" opacity=".45"/><circle cx="100" cy="100" r="56" fill="none" stroke="var(--brand-primary, #008657)" stroke-width="16"/><circle cx="100" cy="100" r="25" fill="var(--ldw-head)"/></svg></span><span>The register, in your hue</span></li>
+</ul></div>
+</div>
+<p class="ldw-go"><a class="ldw-main" href="/#/settings?focus=design-systems-section"><svg class="ldw-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldw-i-sliders"/></svg>Settings → Design systems</a><a class="ldw-alt" href="/#/start"><svg class="ldw-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldw-i-arrow"/></svg>Open the Brand Studio</a></p>
+<svg class="ldw-sprite" viewBox="0 0 1 1" aria-hidden="true" focusable="false"><symbol id="ldw-i-lolly" viewBox="0 0 24 24"><circle cx="15" cy="9" r="7"/><path d="M15 5a4 4 0 0 0 0 8 2 2 0 0 0 0-4"/><path d="m10 14-7 7"/></symbol><symbol id="ldw-i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM21 14v.01M14 21h.01M17 17h4v4h-4"/></symbol><symbol id="ldw-i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17V11M13 17V7M18 17v-4"/></symbol><symbol id="ldw-i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol><symbol id="ldw-i-drop" viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></symbol><symbol id="ldw-i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol><symbol id="ldw-word" viewBox="0 0 44.725 19.706"><path d="M0 15.367h9.948v-2.921H3.323V.423H0Zm16.362.233c3.217 0 5.63-2.328 5.63-5.398 0-3.048-2.434-5.355-5.63-5.355-3.217 0-5.63 2.307-5.63 5.355s2.434 5.398 5.63 5.398m0-2.942c-1.376 0-2.328-.995-2.328-2.434s.952-2.435 2.328-2.435 2.328.974 2.328 2.413c0 1.46-.931 2.456-2.328 2.456m7.239 2.709h3.238V0h-3.238zm5.524 0h3.239V0h-3.239zm6.054 4.34h3.323l1.82-4.298L44.726 5.08h-3.492l-2.096 6.265-2.053-6.265h-3.492l3.915 9.589z"/></symbol></svg>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKDWp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnnanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDpmNDNiNGQ3Yy0zYjI4LTRkZWItOGJkNy1iZGUzMTg1YjA0MjAAAAAEZGp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjFUMTM6MTk6MzlaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkwbGZsZW5ndGgZDcpkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIJtr0wzD6FsZlAVIPbe6SA7ydQwWn1NDt5k5FJcFobmdY3BhZEgAAAAAAAAAAAAAAO1qdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAAC5Y2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2x2bG9sbHktZGVtby1pbi11c2Utc3dhcGRkYXRleBgyMDI2LTEwLTIxVDEzOjE5OjM5LjcyMlpqZGltZW5zaW9uc2syNCDDlyAyNCBweGhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALUanVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAqVjYm9ypmhkYzp0aXRsZXZsb2xseS1kZW1vLWluLXVzZS1zd2Fwamluc3RhbmNlSUR4LXVybjp1dWlkOjMyZTZiMGViLWE3YWQtNDczNS1iMjI3LTM1NGQ1NDNmNDlmMXRjbGFpbV9nZW5lcmF0b3JfaW5mb6NkbmFtZWVMb2xseWd2ZXJzaW9uZzEuMjgxLjBrc3BlY1ZlcnNpb25lMi40LjByY3JlYXRlZF9hc3NlcnRpb25zhaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggmy00eySazNUKcEHdyOoD/jShzD12liHooEI1J/nesFWiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggDKId9YK+NpRpdkk3H6DHYDf/4UYAbhNy22p0Md1ZF1OiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvdG9vbHMubG9sbHkuZXhwb3J0ZGhhc2hYIM2Fv/t3LdseRprAVUXwVmpx0hXdGxTXWc4QrFghzEXpomN1cmx4KHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2Nhd2cubWV0YWRhdGFkaGFzaFgg7iYlKJf/Z3Tb+oGzES2uAj7yXJtuDKwUN6DDNEbaboSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYILULL+IgRwhuFb2Z97+uFQ7MwZxWugE0GKMzzeUhYpqraXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMGNib3LShFkB36IBJhghgVkB1jCCAdIwggF5oAMCAQICCUP0YfuahBhwCDAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYxMDIxMTMxODM5WhcNMzYxMDE4MTMxOTM5WjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAR+vbIFm9pjbSm9IDrjG8vnZPMzghPMRkow4etWlckrg8I+ifARWyU64KC1DN1pT0XdUf7lSjb66MpC/7N+h2gao3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQU7TWP9kyZnB6B2OjjmEt0NIzoqLUwHwYDVR0jBBgwFoAU7TWP9kyZnB6B2OjjmEt0NIzoqLUwCgYIKoZIzj0EAwIDRwAwRAIgCV75ftcAG1Bm3ruTB0DdVBL+dqOpoKKCjUB902XXzPQCIEwEz2U31NwJj0GRt2LTINXtdefiEiG6/7pPyQBELrAzoPZYQCbM2jekyZdeVtroNNkX6zgMzX9EUffF4Rk9ZGJXZgMTQudOqAyC9z+9oTrZ7of5gq6QWAMMA46cD38BuWqUxyw= -----END C2PA MANIFEST----- -->
