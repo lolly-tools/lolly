@@ -1,0 +1,79 @@
+<!--
+  Concept: Clinic, the interface of Lolly Demo, as picture pairs. A full wash for the chosen card, dashes
+  only where something can be dropped, an icon and a word on every signal, a neutral hairline at rest
+  with the accent on hover and selection, and a loud focus ring. The two Don't plates with a rail and
+  with dashes around an empty state are deliberate examples of what not to do.
+  Band Contract: static fragment scoped under .ldk, reads the docs theme tokens with fallbacks, no
+  script, no motion, no network. Every Do and Don't tag is an icon and a word.
+  Sources: the Clinic and Do and don't sections of the brand standards at /brand.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-21. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.ldk{--ldk-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--ldk-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --ldk-ground:hsl(var(--secondary,84.5 55% 92.2%));--ldk-paper:hsl(var(--card,0 0% 100%));
+ --ldk-accent:hsl(var(--primary,176.5 89.5% 11.2%));--ldk-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --ldk-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .13);--ldk-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --ldk-wash:color-mix(in oklab,var(--ldk-accent) 14%,var(--ldk-paper));
+ --ldk-head:#033633;--ldk-mark:#008657;--ldk-yes:#0b6b45;--ldk-no:#a43427;
+ --ldk-display:"Outfit","SUSE",ui-sans-serif,system-ui,sans-serif;--ldk-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--ldk-ink);background:var(--ldk-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+:is([data-theme="dark"],[data-theme="brand"]) .ldk{--ldk-head:#ffffff;--ldk-mark:#50c369;--ldk-yes:#7ddc97;--ldk-no:#ef9275}
+.ldk *{box-sizing:border-box}
+.ldk ul,.ldk ol{list-style:none;margin:0;padding:0}
+.ldk li{list-style:none;margin:0;font-size:inherit}
+.ldk p{margin:0}
+.ldk.ldk a{color:inherit;text-decoration:none}
+.ldk.ldk a:hover{text-decoration:none}
+.ldk b{font-weight:600}
+.ldk .ldk-sprite{position:absolute;width:0;height:0;overflow:hidden}
+.ldk .ldk-ico{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ldk .ldk-cap{font:500 11px/1.3 var(--ldk-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ldk-muted)}
+.ldk .ldk-card{background:var(--ldk-paper);border-radius:18px;box-shadow:0 0 0 1px var(--ldk-line)}
+.ldk .ldk-tag{display:inline-flex;align-items:center;gap:6px;font:600 12px/1.2 var(--ldk-mono);letter-spacing:.03em}
+.ldk .ldk-tag svg{width:15px;height:15px;stroke-width:3}
+.ldk .ldk-yes{color:var(--ldk-yes)}
+.ldk .ldk-no{color:var(--ldk-no)}
+.ldk .ldk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ldk .ldk-pair{padding:12px;display:grid;gap:9px;align-content:start}
+.ldk .ldk-pair>.ldk-cap{padding-inline:2px}
+.ldk .ldk-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.ldk .ldk-cell{display:grid;gap:7px;align-content:start;min-width:0}
+.ldk .ldk-plate{min-height:96px;display:grid;place-items:center;gap:8px;padding:12px;border-radius:12px;background:var(--ldk-soft)}
+.ldk .ldk-t{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.ldk .ldk-mini{width:100%;padding:12px;border-radius:12px;background:var(--ldk-paper);box-shadow:0 0 0 1px var(--ldk-line);font:500 14px/1.2 var(--ldk-display);color:var(--ldk-head)}
+.ldk .ldk-mini.ldk-wash{background:var(--ldk-wash)}
+.ldk .ldk-mini.ldk-rail{border-left:4px solid var(--ldk-mark)}
+.ldk .ldk-drop,.ldk .ldk-empty{width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 8px;border-radius:12px;font-size:13px;text-align:center}
+.ldk .ldk-drop{border:2px dashed var(--ldk-mark);color:var(--ldk-head)}
+.ldk .ldk-drop .ldk-ico{width:17px;height:17px}
+.ldk .ldk-empty{border:2px dashed var(--ldk-line);color:var(--ldk-muted)}
+.ldk .ldk-sig{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;font:600 13px/1 "SUSE",ui-sans-serif,system-ui,sans-serif;background:#e3f5ea;color:#0b5a3a}
+.ldk .ldk-sig .ldk-ico{width:15px;height:15px;stroke-width:2.6}
+.ldk .ldk-dot{width:16px;height:16px;border-radius:50%;background:var(--ldk-yes)}
+.ldk .ldk-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.ldk .ldk-chip{padding:6px 10px;border-radius:999px;font-size:12.5px;background:var(--ldk-paper);box-shadow:inset 0 0 0 1px var(--ldk-line)}
+.ldk .ldk-chip.ldk-hover{box-shadow:inset 0 0 0 1.5px var(--ldk-accent)}
+.ldk .ldk-chip.ldk-sel{background:var(--ldk-wash);box-shadow:inset 0 0 0 1.5px var(--ldk-accent);font-weight:600}
+.ldk .ldk-chip.ldk-loud{box-shadow:inset 0 0 0 2px var(--ldk-accent)}
+.ldk .ldk-focus{grid-column:1 / -1}
+.ldk .ldk-focus .ldk-plate{min-height:84px;grid-auto-flow:column;justify-content:center;gap:14px}
+.ldk .ldk-btn{padding:10px 16px;border-radius:999px;font:600 14px/1 "SUSE",ui-sans-serif,system-ui,sans-serif;background:var(--ldk-accent);color:var(--ldk-on-accent)}
+.ldk .ldk-btn.ldk-ring{outline:3px solid var(--ldk-accent);outline-offset:3px}
+.ldk .ldk-ghost{padding:10px 16px;border-radius:999px;font:600 14px/1 "SUSE",ui-sans-serif,system-ui,sans-serif;box-shadow:inset 0 0 0 1px var(--ldk-line)}
+@container (max-width:600px){
+ .ldk .ldk-grid{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+<div class="ldk">
+<ul class="ldk-grid">
+<li class="ldk-card ldk-pair"><p class="ldk-cap">The chosen card</p><div class="ldk-two"><div class="ldk-cell"><div class="ldk-plate"><span class="ldk-mini ldk-wash">Chosen card</span></div><span class="ldk-tag ldk-yes"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ldk-t"><path d="M20 6 9 17l-5-5"/></svg>Do</span></div><div class="ldk-cell"><div class="ldk-plate"><span class="ldk-mini ldk-rail">Chosen card</span></div><span class="ldk-tag ldk-no"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ldk-t"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>Don't</span></div></div></li>
+<li class="ldk-card ldk-pair"><p class="ldk-cap">Dashes</p><div class="ldk-two"><div class="ldk-cell"><div class="ldk-plate"><span class="ldk-drop"><svg class="ldk-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldk-i-download"/></svg>Drop a file here</span></div><span class="ldk-tag ldk-yes"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ldk-t"><path d="M20 6 9 17l-5-5"/></svg>Do</span></div><div class="ldk-cell"><div class="ldk-plate"><span class="ldk-empty">No projects yet</span></div><span class="ldk-tag ldk-no"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ldk-t"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>Don't</span></div></div></li>
+<li class="ldk-card ldk-pair"><p class="ldk-cap">Signals</p><div class="ldk-two"><div class="ldk-cell"><div class="ldk-plate"><span class="ldk-sig"><svg class="ldk-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldk-i-check"/></svg>Intact</span></div><span class="ldk-tag ldk-yes"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ldk-t"><path d="M20 6 9 17l-5-5"/></svg>Do</span></div><div class="ldk-cell"><div class="ldk-plate"><span class="ldk-dot" role="img" aria-label="A green dot with no word"></span></div><span class="ldk-tag ldk-no"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ldk-t"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>Don't</span></div></div></li>
+<li class="ldk-card ldk-pair"><p class="ldk-cap">At rest</p><div class="ldk-two"><div class="ldk-cell"><div class="ldk-plate"><span class="ldk-chips"><span class="ldk-chip">At rest</span><span class="ldk-chip ldk-hover">Hover</span><span class="ldk-chip ldk-sel">Selected</span></span></div><span class="ldk-tag ldk-yes"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ldk-t"><path d="M20 6 9 17l-5-5"/></svg>Do</span></div><div class="ldk-cell"><div class="ldk-plate"><span class="ldk-chips"><span class="ldk-chip ldk-loud">At rest</span></span></div><span class="ldk-tag ldk-no"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ldk-t"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>Don't</span></div></div></li>
+<li class="ldk-card ldk-pair ldk-focus"><p class="ldk-cap">Keyboard focus</p><div class="ldk-plate"><span class="ldk-btn ldk-ring">Export PNG</span><span class="ldk-ghost">Cancel</span></div><span class="ldk-tag ldk-yes"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ldk-t"><path d="M20 6 9 17l-5-5"/></svg>Do: a loud focus ring</span></li>
+</ul>
+<svg class="ldk-sprite" viewBox="0 0 1 1" aria-hidden="true" focusable="false"><symbol id="ldk-i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol><symbol id="ldk-i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol></svg>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKE2p1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAntanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDozNWU5ZTEwZC0xNWI0LTRlYTEtODM0MC1lMDRkZmE5Mzk5OWQAAAAEZ2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjFUMTI6NDU6MTNaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkjtmZsZW5ndGgZDdJkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIFxjcDk/I/YVgzw8lYOEEviwVqrqex7tv6E72cU15bbuY3BhZEgAAAAAAAAAAAAAAPBqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAAC8Y2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2x4GGxvbGx5LWRlbW8taW4tdXNlLWNsaW5pY2RkYXRleBgyMDI2LTEwLTIxVDEyOjQ1OjEzLjYxM1pqZGltZW5zaW9uc2syNCDDlyAyNCBweGhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALXanVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAqhjYm9ypmhkYzp0aXRsZXgYbG9sbHktZGVtby1pbi11c2UtY2xpbmljamluc3RhbmNlSUR4LXVybjp1dWlkOjJhNDliNTE1LTNiOWMtNDI2OS04MGE0LWIxMjVmMGFjYjNhMnRjbGFpbV9nZW5lcmF0b3JfaW5mb6NkbmFtZWVMb2xseWd2ZXJzaW9uZzEuMjgxLjBrc3BlY1ZlcnNpb25lMi40LjByY3JlYXRlZF9hc3NlcnRpb25zhaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggziKuLNSSHL0C4ZMmEKvv9C5hAUtfijK1Yfd8DaJElYWiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggVlmtEdONhgnQczrcl3q1f434j/4p2UIkVVx2/BZSPq2iY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvdG9vbHMubG9sbHkuZXhwb3J0ZGhhc2hYIB50sqf2uPLPIXb8AWW9cHp//ToBZujdc0Pz6fOzuIZ9omN1cmx4KHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2Nhd2cubWV0YWRhdGFkaGFzaFgg7iYlKJf/Z3Tb+oGzES2uAj7yXJtuDKwUN6DDNEbaboSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYILULL+IgRwhuFb2Z97+uFQ7MwZxWugE0GKMzzeUhYpqraXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMGNib3LShFkB36IBJhghgVkB1jCCAdIwggF5oAMCAQICCXHSJ0YzycQv2TAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYxMDIxMTI0NDEzWhcNMzYxMDE4MTI0NTEzWjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQtEtD913xnDCYp78vpp5Ydc9cKZCgIzidin3IN+NNT5O0Os9qN7KZ4CqlycvFgjZS8C6hJADeQAGlLYPexqjHUo3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQU6GByms8gYjijOuhLMcMFwFgF/NYwHwYDVR0jBBgwFoAU6GByms8gYjijOuhLMcMFwFgF/NYwCgYIKoZIzj0EAwIDRwAwRAIgOip3A2LKUtXonVdEXaSTnRlPttUqI18q3ef1IhnA+SQCIBz+ro+PsKplTHCHxNzqcIyaJo8mJ/v61CWdCzHq+n7yoPZYQO0eHicUEEhQAGqDkiV0jzzJR32e6xbCHkiLnBAB1dkUijuNh6EGqHHTNEGHPZm6v2LdIrCyr3EfwfVhL+MqsOM= -----END C2PA MANIFEST----- -->

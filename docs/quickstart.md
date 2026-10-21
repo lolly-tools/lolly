@@ -14,6 +14,8 @@ This is the one page to read first. Two things get you productive: **make Lolly 
 
 Your brand in Lolly is a small **design-tokens** document - colours, fonts and a few rules - that every tool renders against. Set it once and everything you make is on-brand by construction, not by review. There are three ways in; pick the one that matches where your brand already lives.
 
+> lolly.tools opens with Lolly Demo, Lolly's own design system. [Meet Lolly Demo](/info/lolly-demo.html) shows what you are looking at.
+
 ### Start from scratch (the design system builder)
 
 First run drops you on the **gallery**, with a short welcome dialog over it offering three ways in - **Make it yours** (the Brand Studio at `#/start`), **Bring your design** (drop a Figma, Penpot, InDesign or PDF file and it opens as an editable layout - the fastest route to [Bring in what you already have](#2-bring-in-what-you-already-have) below) and **Explore the community tools** - plus a row of languages if English isn't yours. Take the first card and you land in the [**Brand Studio**](/info/brand-studio.html). Give it a name and a primary colour and Lolly *derives* a complete, accessible palette from it - light/dark surfaces, text, accents - using the same colour maths the engine uses everywhere else.

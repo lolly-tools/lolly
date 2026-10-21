@@ -224,6 +224,8 @@ const pages: Page[] = [
   { slug: 'index', title: 'Lolly: information and documentation', src: 'site.md', canonicalPath: 'index', contentLicense: 'CC-BY-SA-4.0', isLanding: true },
   { slug: 'quickstart', title: 'Start', src: 'quickstart.md', pathway: 'quickstart', canonicalPath: 'start/quickstart', contentLicense: 'CC-BY-SA-4.0', headingId: 'quickstart', isHub: true },
   { slug: 'make-something', title: 'Make your first file', src: 'make-something.md', pathway: 'quickstart', canonicalPath: 'start/make-something', contentLicense: 'CC-BY-SA-4.0', description: 'Make a QR code for a web address, download it, check that it scans, and save an editable copy you can reopen from Projects. No account needed.', render: renderMakeSomethingPage },
+  { slug: 'lolly-demo', title: 'Meet Lolly Demo', src: 'lolly-demo.md', pathway: 'quickstart', canonicalPath: 'start/lolly-demo', contentLicense: 'CC-BY-SA-4.0', description: 'Lolly Demo is the look lolly.tools opens with. See the Lolly mark, the Opal colours and six colourways, Crossland type, Etiquette icons and the Fauna cast.' },
+  { slug: 'lolly-demo-in-use', title: 'Lolly Demo in use', src: 'lolly-demo-in-use.md', pathway: 'quickstart', canonicalPath: 'start/lolly-demo-in-use', contentLicense: 'CC-BY-SA-4.0', description: 'Where Lolly Demo shows up in the app and in the files you export, how to pick a colourway, Clinic\'s do and don\'t, and how to switch to your own design system.' },
   { slug: 'faq', title: 'Questions & answers', src: 'faq.md', pathway: 'quickstart', canonicalPath: 'start/faq', contentLicense: 'CC-BY-SA-4.0', description: 'The things people ask most: why it is free, what the catch is not, what happens to your files and where Lolly is going.', render: renderFaqPage },
   { slug: 'project-asset-transfers', title: 'Shared project assets', src: 'project-asset-transfers.md', pathway: 'creators', canonicalPath: 'create/project-asset-transfers', contentLicense: 'CC-BY-SA-4.0', description: 'Browse shared project folders, copy assets, submit originals to a workspace library and send files to connected destinations.' },
   { slug: 'organisation', title: 'Use Lolly at your organisation', src: 'organisation.md', pathway: 'quickstart', canonicalPath: 'start/organisation', contentLicense: 'CC-BY-SA-4.0', description: 'Use your organisation\'s Lolly, with optional lolly.work sign-in, shared projects, live collabs and managed settings. Learn what stays local and how to leave.' },
@@ -581,6 +583,10 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'make-something', label: 'Make your first file' },
       { slug: 'install', label: 'Install Lolly' },
       { slug: 'supported-environments', label: 'Supported environments' },
+    ] },
+    { label: 'The Lolly Demo brand', items: [
+      { slug: 'lolly-demo', label: 'Meet Lolly Demo' },
+      { slug: 'lolly-demo-in-use', label: 'Lolly Demo in use' },
     ] },
     { label: 'Product, organisation and vocabulary', items: [
       { slug: 'faq', label: 'Questions & answers' },
@@ -2898,6 +2904,10 @@ const CSS = `
 @font-face{font-family:'SUSE';src:url('/fonts/SUSE-Italic[wght].woff2') format('woff2-variations'),url('/catalog/fonts/webfonts/SUSE-Italic[wght].woff2') format('woff2-variations');font-weight:100 900;font-style:italic;font-display:swap}
 @font-face{font-family:'SUSE Mono';src:url('/fonts/SUSEMono[wght].woff2') format('woff2-variations'),url('/catalog/fonts/webfonts/SUSEMono[wght].woff2') format('woff2-variations');font-weight:100 900;font-style:normal;font-display:swap}
 @font-face{font-family:'SUSE Mono';src:url('/fonts/SUSEMono-Italic[wght].woff2') format('woff2-variations'),url('/catalog/fonts/webfonts/SUSEMono-Italic[wght].woff2') format('woff2-variations');font-weight:100 900;font-style:italic;font-display:swap}
+/* Outfit (SIL OFL 1.1), Crossland's heading face, served by the shell on every profile; the latin
+   subset, as shells/web/src/styles/fonts.css splits the family. Only the Lolly Demo figures set type
+   in Outfit, so the browser fetches the file on those pages alone. */
+@font-face{font-family:'Outfit';src:url('/fonts/Outfit-latin[wght].woff2') format('woff2-variations');font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 /* Cinzel (SIL OFL 1.1, see /info/fonts/Cinzel-OFL.txt) - Roman inscriptional capitals,
    the same source Gill drew Perpetua Titling from. Self-hosted, not fetched from
    fonts.gstatic.com: a third-party request on every docs page would contradict what
@@ -5493,6 +5503,7 @@ interface SitemapSection { hub: Pathway; label: string; slugs: string[] }
 const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'quickstart', label: 'Product, organisation and vocabulary', slugs: ['index', 'faq', 'organisation', 'glossary', 'about', 'what-is-lolly', 'work-status'] },
   { hub: 'quickstart', label: 'First file and installation', slugs: ['make-something', 'install', 'supported-environments'] },
+  { hub: 'quickstart', label: 'The Lolly Demo brand', slugs: ['lolly-demo', 'lolly-demo-in-use'] },
   { hub: 'creators', label: 'Design and templates', slugs: ['project-asset-transfers', 'create-a-tool', 'training-creators', 'using', 'templates', 'brand-studio', 'brand-architectures', '3d-studio', 'design-import', 'rebrand', 'text-composition', 'utilities', 'extension'] },
   { hub: 'creators', label: 'Find and keep your work', slugs: ['profile', 'find-your-work', 'sync', 'search', 'ask', 'dashboard', 'favourites'] },
   { hub: 'creators', label: 'Collaborate and export', slugs: ['formats', 'collaborate', 'exporting'] },
@@ -5613,6 +5624,8 @@ const SIDEBAR_ICON: Record<string, string> = {
   'index': 'home',
   'quickstart': 'star',
   'make-something': 'pentool',
+  'lolly-demo': 'palette',
+  'lolly-demo-in-use': 'photos',
   'faq': 'document',
   'project-asset-transfers': 'folder',
   'organisation': 'people',

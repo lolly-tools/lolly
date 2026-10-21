@@ -6,6 +6,8 @@ Changes preview **live across the whole app** as you make them, so you can see a
 
 > **This is the editor. The dashboard is the mirror.** The **Design system** tab on the Dashboard (`#/d`) *shows* your brand read-only; you *edit* it here at `#/start`. If you want to change a colour later, come back to the Brand Studio.
 
+> lolly.tools opens with Lolly Demo. [Lolly Demo in use](/info/lolly-demo-in-use.html#switch-to-your-own) shows what your own design system replaces and what stays with Lolly.
+
 ## Removing a design system
 
 Open **Settings → Design systems** and choose **Remove** from the system's menu. The confirmation tells you which system will be active afterwards. Saved sessions and personal uploads stay.

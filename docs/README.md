@@ -15,6 +15,8 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Lolly: information and documentation | [site.md](site.md) |
 | Start | [quickstart.md](quickstart.md) |
 | Make your first file | [make-something.md](make-something.md) |
+| Meet Lolly Demo | [lolly-demo.md](lolly-demo.md) |
+| Lolly Demo in use | [lolly-demo-in-use.md](lolly-demo-in-use.md) |
 | Questions & answers | [faq.md](faq.md) |
 | Use Lolly at your organisation | [organisation.md](organisation.md) |
 | Install Lolly | [install.md](install.md) |

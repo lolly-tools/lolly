@@ -1,0 +1,85 @@
+<!--
+  Concept: Crossland and Etiquette, the type and the icons of Lolly Demo. Crossland in its four uses
+  (Outfit for headings, SUSE for text and italics, SUSE Mono for code), then the lolly glyph on its
+  24 pixel grid and the Etiquette icon wall, as the brand standards at /brand show them.
+  Band Contract: static fragment scoped under .ldt, reads the docs theme tokens with fallbacks, no
+  script, no motion, no network. The faces come from the docs stylesheet; Outfit falls back to SUSE.
+  Sources: the specimen lines from /brand (the code line is a real command from docs/cli.md); the 24
+  icons and the lolly glyph are the /brand symbols, drawn in the Lucide line style of the app's icon set
+  (shells/web/src/lib/icons.ts).
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-21. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.ldt{--ldt-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--ldt-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --ldt-ground:hsl(var(--secondary,84.5 55% 92.2%));--ldt-paper:hsl(var(--card,0 0% 100%));
+ --ldt-accent:hsl(var(--primary,176.5 89.5% 11.2%));--ldt-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --ldt-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .13);--ldt-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --ldt-wash:color-mix(in oklab,var(--ldt-accent) 14%,var(--ldt-paper));
+ --ldt-head:#033633;--ldt-mark:#008657;--ldt-yes:#0b6b45;--ldt-no:#a43427;
+ --ldt-display:"Outfit","SUSE",ui-sans-serif,system-ui,sans-serif;--ldt-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--ldt-ink);background:var(--ldt-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+:is([data-theme="dark"],[data-theme="brand"]) .ldt{--ldt-head:#ffffff;--ldt-mark:#50c369;--ldt-yes:#7ddc97;--ldt-no:#ef9275}
+.ldt *{box-sizing:border-box}
+.ldt ul,.ldt ol{list-style:none;margin:0;padding:0}
+.ldt li{list-style:none;margin:0;font-size:inherit}
+.ldt p{margin:0}
+.ldt.ldt a{color:inherit;text-decoration:none}
+.ldt.ldt a:hover{text-decoration:none}
+.ldt b{font-weight:600}
+.ldt .ldt-sprite{position:absolute;width:0;height:0;overflow:hidden}
+.ldt .ldt-ico{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ldt .ldt-cap{font:500 11px/1.3 var(--ldt-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ldt-muted)}
+.ldt .ldt-card{background:var(--ldt-paper);border-radius:18px;box-shadow:0 0 0 1px var(--ldt-line)}
+.ldt .ldt-tag{display:inline-flex;align-items:center;gap:6px;font:600 12px/1.2 var(--ldt-mono);letter-spacing:.03em}
+.ldt .ldt-tag svg{width:15px;height:15px;stroke-width:3}
+.ldt .ldt-yes{color:var(--ldt-yes)}
+.ldt .ldt-no{color:var(--ldt-no)}
+.ldt{display:grid;gap:12px;--ldt-grid:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .16)}
+.ldt .ldt-spec{padding:6px 18px}
+.ldt .ldt-row{display:grid;grid-template-columns:132px minmax(0,1fr);gap:14px;align-items:baseline;padding:14px 0;box-shadow:inset 0 -1px 0 var(--ldt-line)}
+.ldt .ldt-row:last-child{box-shadow:none}
+.ldt .ldt-outfit{font:500 clamp(30px,8cqi,58px)/1.02 var(--ldt-display);color:var(--ldt-head)}
+.ldt .ldt-italic{font:italic 400 clamp(24px,5cqi,36px)/1.1 "SUSE",ui-sans-serif,system-ui,sans-serif;color:var(--ldt-head)}
+.ldt .ldt-suse{font:400 17px/1.5 "SUSE",ui-sans-serif,system-ui,sans-serif}
+.ldt .ldt-code{font:400 14px/1.5 var(--ldt-mono);overflow-wrap:anywhere}
+.ldt .ldt-code span{color:var(--ldt-mark)}
+.ldt .ldt-code i{font-style:normal;white-space:nowrap}
+.ldt .ldt-eti{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:12px}
+.ldt .ldt-glyph{padding:16px;display:grid;gap:10px;justify-items:center;align-content:center}
+.ldt .ldt-glyph svg{width:min(240px,100%);height:auto}
+.ldt .ldt-wall{padding:12px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;align-content:start}
+.ldt .ldt-wall li{display:grid;justify-items:center;gap:5px;padding:10px 2px 8px;border-radius:10px;background:var(--ldt-soft);color:var(--ldt-head)}
+.ldt .ldt-wall span{font:400 10px/1.1 var(--ldt-mono);color:var(--ldt-muted)}
+@container (max-width:600px){
+ .ldt .ldt-eti{grid-template-columns:minmax(0,1fr)}
+ .ldt .ldt-row{grid-template-columns:minmax(0,1fr);gap:6px}
+}
+@container (max-width:380px){
+ .ldt .ldt-wall{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+</style>
+<div class="ldt">
+<div class="ldt-card ldt-spec">
+<div class="ldt-row"><p class="ldt-cap">Outfit · headings</p><p class="ldt-outfit">The sweetness stays.</p></div>
+<div class="ldt-row"><p class="ldt-cap">SUSE · italics</p><p class="ldt-italic">The flavour is yours.</p></div>
+<div class="ldt-row"><p class="ldt-cap">SUSE · text</p><p class="ldt-suse">Pick a tool and fill in a few fields, or lay out the page yourself on an open canvas. The finished file comes out right either way.</p></div>
+<div class="ldt-row"><p class="ldt-cap">SUSE Mono · code</p><p class="ldt-code"><span>$</span> lolly run deck.lolly <i>--themes=light,dark</i> <i>--export=pptx</i></p></div>
+</div>
+<div class="ldt-eti">
+<div class="ldt-card ldt-glyph">
+<svg viewBox="-1 -1 26 26" role="img" aria-label="The lolly glyph on its 24 pixel grid, with its stick at 45 degrees">
+<g stroke="var(--ldt-grid)" stroke-width=".06"><path d="M0 0h24M0 1h24M0 2h24M0 3h24M0 4h24M0 5h24M0 6h24M0 7h24M0 8h24M0 9h24M0 10h24M0 11h24M0 12h24M0 13h24M0 14h24M0 15h24M0 16h24M0 17h24M0 18h24M0 19h24M0 20h24M0 21h24M0 22h24M0 23h24M0 24h24"/><path d="M0 0v24M1 0v24M2 0v24M3 0v24M4 0v24M5 0v24M6 0v24M7 0v24M8 0v24M9 0v24M10 0v24M11 0v24M12 0v24M13 0v24M14 0v24M15 0v24M16 0v24M17 0v24M18 0v24M19 0v24M20 0v24M21 0v24M22 0v24M23 0v24M24 0v24"/></g>
+<rect x="0" y="0" width="24" height="24" fill="none" stroke="var(--ldt-muted)" stroke-width=".08"/>
+<g fill="none" stroke="var(--ldt-head)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="9" r="7"/><path d="M15 5a4 4 0 0 0 0 8 2 2 0 0 0 0-4"/><path d="m10 14-7 7"/></g>
+<path d="M3 21h4.2M5.4 21a2.4 2.4 0 0 0-.7-1.7" fill="none" stroke="var(--ldt-no)" stroke-width=".22" stroke-linecap="round"/>
+<text x="7.6" y="20.4" font-size="1.5" font-family="SUSE Mono, monospace" fill="var(--ldt-no)">45°</text>
+</svg>
+<p class="ldt-cap">24 px grid · 2 px line · one stick</p>
+</div>
+<ul class="ldt-card ldt-wall"><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-lolly"/></svg><span>Tools</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-qr"/></svg><span>QR</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-chart"/></svg><span>Chart</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-image"/></svg><span>Image</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-layout"/></svg><span>Layout</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-type"/></svg><span>Text</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-layers"/></svg><span>Layers</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-sliders"/></svg><span>Adjust</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-download"/></svg><span>Export</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-share"/></svg><span>Share</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-search"/></svg><span>Search</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-shield"/></svg><span>Verify</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-pin"/></svg><span>Place</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-music"/></svg><span>Sound</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-play"/></svg><span>Play</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-arrow"/></svg><span>Next</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-check"/></svg><span>Done</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-x"/></svg><span>Close</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-save"/></svg><span>Save</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-folder"/></svg><span>Projects</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-drop"/></svg><span>Colour</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-calendar"/></svg><span>Date</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-clock"/></svg><span>Time</span></li><li><svg class="ldt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#ldt-i-mail"/></svg><span>Send</span></li></ul>
+</div>
+<svg class="ldt-sprite" viewBox="0 0 1 1" aria-hidden="true" focusable="false"><symbol id="ldt-i-lolly" viewBox="0 0 24 24"><circle cx="15" cy="9" r="7"/><path d="M15 5a4 4 0 0 0 0 8 2 2 0 0 0 0-4"/><path d="m10 14-7 7"/></symbol><symbol id="ldt-i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM21 14v.01M14 21h.01M17 17h4v4h-4"/></symbol><symbol id="ldt-i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17V11M13 17V7M18 17v-4"/></symbol><symbol id="ldt-i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21"/></symbol><symbol id="ldt-i-layout" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></symbol><symbol id="ldt-i-type" viewBox="0 0 24 24"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></symbol><symbol id="ldt-i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></symbol><symbol id="ldt-i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol><symbol id="ldt-i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol><symbol id="ldt-i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></symbol><symbol id="ldt-i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="ldt-i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol><symbol id="ldt-i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></symbol><symbol id="ldt-i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol><symbol id="ldt-i-play" viewBox="0 0 24 24"><path d="m7 4 13 8-13 8z"/></symbol><symbol id="ldt-i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol><symbol id="ldt-i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="ldt-i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol><symbol id="ldt-i-save" viewBox="0 0 24 24"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7M7 3v4a1 1 0 0 0 1 1h7"/></symbol><symbol id="ldt-i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z"/></symbol><symbol id="ldt-i-drop" viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></symbol><symbol id="ldt-i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol><symbol id="ldt-i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol><symbol id="ldt-i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></symbol></svg>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKAWp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnbanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo5ZGJjZjIzYi1mOWJkLTRkMmEtYTA2ZS0zYTFjM2M3MThlZWEAAAAEXWp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjFUMTI6NDU6MTNaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBk0UmZsZW5ndGgZDbpkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIHUortc5vv1OsWH+D4QkWJns+wAkk9zPAiwdICcHCCj2Y3BhZEgAAAAAAAAAAAAAAOZqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACyY2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2xvbG9sbHktZGVtby10eXBlZGRhdGV4GDIwMjYtMTAtMjFUMTI6NDU6MTMuNjI1WmpkaW1lbnNpb25zazI2IMOXIDI2IHB4aGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAs1qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACnmNib3KmaGRjOnRpdGxlb2xvbGx5LWRlbW8tdHlwZWppbnN0YW5jZUlEeC11cm46dXVpZDpkNGJiZDEyNi1kZDVkLTRhYTAtODlkOS1jYmYwY2U3N2VhZjB0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIM4irizUkhy9AuGTJhCr7/QuYQFLX4oytWH3fA2iRJWFomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIEPH3tqJBFtDh5TVw9UukSwJE9PkJQoFjlmh3CtAlfKmomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCCounh/ZhQ/Mkdbnvrrv8fbeh/qG2CETA8Sz67yDC7p5qJjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmJqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjJjYm9y0oRZAeGiASYYIYFZAdgwggHUMIIBeaADAgECAglYtIB0HaoZjbAwCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMTEyNDQxM1oXDTM2MTAxODEyNDUxM1owNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEQR7AdtU8kA944S3DZnD1EGt7bXGDoggHTPVlcdtEAvI0HiNcmWLwfGEwwqehre1/LnjxL5oqdrMeAHRNA+8F36NyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFL+luaimOQEDPo0O62b7ewWaZusXMB8GA1UdIwQYMBaAFL+luaimOQEDPo0O62b7ewWaZusXMAoGCCqGSM49BAMCA0kAMEYCIQCpQltdFZFfbiUlt4D/tTbAyyWIwChwRdSErpCOcQlKTwIhAPTiSWkwvpQ4Frdn36nXVB1MJjzay5jkLOGJDUUuyCbFoPZYQIrfY6dVoAVsrc8ds2TeRsOr4fMSUEb1W9SI2ngy8mf3cUzwjCCNusex9NNQbkcK5yZJffq+Z83Kc5GD1WjFNHk= -----END C2PA MANIFEST----- -->
