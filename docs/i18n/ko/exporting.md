@@ -85,7 +85,7 @@
 
 첫 번째 행이 가장 흔한 경우예요. 브랜드 서체로 설정된 워드마크는 SVG로 내보내지며, 여기서는 모든 글자가 픽셀이 아니라 윤곽선 패스로 되어 있어서, 같은 파일로 명함 크기에서도 건물 외벽 크기에서도 선명함을 유지해요.
 
-![Aurora라고 쓰인 가는 획의 넓은 자간 워드마크, 표의 SVG 행이 말하는 순수 벡터 아트워크의 예](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Aurora라고 쓰인 가는 획의 넓은 자간 워드마크, 표의 SVG 행이 말하는 순수 벡터 아트워크의 예](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## 크기 및 인쇄 단위
 

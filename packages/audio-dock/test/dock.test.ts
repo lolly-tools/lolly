@@ -14,7 +14,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { createAudioDock, DOCK_CSS } from '../src/index.ts';
-import type { DockHost, DockNowPlaying, DockSource } from '../src/index.ts';
+import type { DockHost, DockNowPlaying, DockSource, DockVolume } from '../src/index.ts';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', {
   url: 'https://lolly.tools/',
@@ -277,6 +277,24 @@ test('volume sliders render and drive set (live) + commit (release)', () => {
   effects.value = '0.8';
   effects.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
   assert.equal(seen.committed, 0.8, 'change delegates to commit');
+  dock.destroy();
+});
+
+test('setCapabilities rebuilds the volume sliders a host gained after the dock was built', () => {
+  // The web shell builds ONE dock over a composed host before any music source has
+  // registered (lib/audio-dock-singleton.ts), then calls setCapabilities when one does.
+  // The volumes block was built once, at creation, so the Effects slider never showed.
+  let volumes: DockVolume[] | undefined;
+  const host = makeHost();
+  Object.defineProperty(host, 'volumes', { get: () => volumes });
+  const dock = createAudioDock({ host, capabilities: {} });
+  assert.equal(dock.el.querySelectorAll('[data-vol-id]').length, 0, 'nothing to show yet');
+
+  volumes = [{ id: 'effects', label: 'Effects', get: () => 0.4, set: () => {} }];
+  dock.setCapabilities({ music: true });
+  const effects = dock.el.querySelector<HTMLInputElement>('[data-vol-id="effects"]');
+  assert.ok(effects, 'the slider appears once the host has it');
+  assert.equal(effects.value, '0.4');
   dock.destroy();
 });
 

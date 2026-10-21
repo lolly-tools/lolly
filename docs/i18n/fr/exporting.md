@@ -85,7 +85,7 @@ Le nom de fichier et le menu de format se trouvent ensemble comme une seule pair
 
 La première ligne est le cas courant. Un logotype composé dans la police de ta marque s'exporte en SVG, où chaque lettre est un tracé détouré plutôt qu'un pixel, donc il reste net aussi bien à la taille d'une carte de visite qu'à celle d'un habillage de bâtiment, à partir du même fichier.
 
-![Un logotype fin à interlettrage large affichant Aurora, le type même d'illustration purement vectorielle dont parle la ligne SVG du tableau](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Un logotype fin à interlettrage large affichant Aurora, le type même d'illustration purement vectorielle dont parle la ligne SVG du tableau](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## Taille et unités d'impression
 

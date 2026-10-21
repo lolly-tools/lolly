@@ -76,7 +76,7 @@ Nunca se sube, porque no hay ningún servidor en la ruta al que subirlo.
 Estas utilidades funcionan sin conexión, y su salida no lleva marca de agua ni metadatos
 nuestros - el propósito de la mayoría de ellas es eliminar y proteger datos, no añadir riesgo.
 
-![La insignia que llevan estas herramientas: Runs on your device - no se sube nada](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![La insignia que llevan estas herramientas: Runs on your device - no se sube nada](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing mantiene las entradas de trabajo, los hallazgos privados y los mapas de sustitución en
 memoria, sin añadirlos automáticamente al historial, a los enlaces, a las copias de seguridad ni a la

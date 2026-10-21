@@ -306,6 +306,11 @@
     var resumeAfterDrive = false;
     function loop() {
       if (disposed || !alive()) return;
+      // A detached canvas is a dead preview. The epoch above only moves when this
+      // tool paints AGAIN, so a one-shot render (a gallery look, a batch row) whose
+      // stage was removed kept this loop and the WebGPU renderer's own animation
+      // loop drawing for the rest of the session. Same guard synth uses.
+      if (!canvas.isConnected) { disposeAll(); return; }
       // While the exporter drives deterministic frames, stop advancing on wall-clock
       // (that would clobber the exact phase between the sync paint and async capture);
       // keep the loop alive so it resumes once the flag clears.
@@ -440,17 +445,18 @@
       canvas.addEventListener('pointercancel', end);
     })();
 
-    window.__lolly3d = {
-      dispose: function () {
-        disposed = true;
-        if (raf) cancelAnimationFrame(raf);
-        try { if (mixer) mixer.stopAllAction(); } catch (e) {}
-        try { pmrem.dispose(); } catch (e) {}
-        // dispose() destroys the GPUDevice it requested (WebGPU) or loses the WebGL
-        // context, so repeated paints never accumulate devices or contexts.
-        try { renderer.dispose(); } catch (e) {}
-      }
-    };
+    function disposeAll() {
+      if (disposed) return;
+      disposed = true;
+      if (raf) cancelAnimationFrame(raf);
+      try { if (mixer) mixer.stopAllAction(); } catch (e) {}
+      try { pmrem.dispose(); } catch (e) {}
+      // dispose() destroys the GPUDevice it requested (WebGPU) or loses the WebGL
+      // context, so repeated paints never accumulate devices or contexts. It also
+      // stops the renderer's internal animation loop.
+      try { renderer.dispose(); } catch (e) {}
+    }
+    window.__lolly3d = { dispose: disposeAll };
   }
 
   // ---- scene / lighting presets --------------------------------------------

@@ -76,7 +76,7 @@ Transfer](/info/data-transfer.html)।
 অফলাইনে কাজ করে, এবং এদের আউটপুটে আমাদের কোনো ওয়াটারমার্ক বা মেটাডেটা থাকে না -
 এদের বেশিরভাগেরই উদ্দেশ্য ডেটা সরানো ও সুরক্ষা করা, ঝুঁকি যোগ করা নয়।
 
-![এই টুলগুলো যে ব্যাজ বহন করে: Runs on your device - কিছুই আপলোড করা হয় না](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![এই টুলগুলো যে ব্যাজ বহন করে: Runs on your device - কিছুই আপলোড করা হয় না](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing কার্যকরী ইনপুট, ব্যক্তিগত ফলাফল এবং প্রতিস্থাপন ম্যাপ মেমরিতে রাখে,
 সেগুলো স্বয়ংক্রিয়ভাবে History, লিংক, ব্যাকআপ বা Sync-এ যোগ না করেই। পরিদর্শন ও

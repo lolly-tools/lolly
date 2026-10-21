@@ -65,7 +65,7 @@ Quindi la cosa da guardare è lo **strumento**, non ogni file che produce. Fai b
 
 Questo è il cambiamento che il motore deterministico offre davvero. Per il team creativo è un guard-rail, non un sostituto - sei sempre tu a lanciare la palla (i dati, il copy, l'immagine) e il codice è la corsia con le protezioni che impedisce a ogni lancio di finire nella canaletta.
 
-![L'intero lavoro del producer: digitare le parole. Il carattere, il colore e la spaziatura erano già stabiliti quando lo strumento è stato creato](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![L'intero lavoro del producer: digitare le parole. Il carattere, il colore e la spaziatura erano già stabiliti quando lo strumento è stato creato](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## Cosa offre in modo unico
 

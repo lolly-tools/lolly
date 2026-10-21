@@ -65,7 +65,7 @@ Lollyは印刷機であり、スケッチではありません。アイデーシ
 
 これが決定論的エンジンが実際にもたらす変化です。クリエイティブチームにとってこれは代替ではなくガードレールです - ボールを投げる(データ、コピー、画像)のは依然としてあなたであり、コードはすべての投球を溝に落とさないようにするバンパーレーンです。
 
-![プロデューサーの仕事はこれだけです: 文字を入力すること。書体、色、スペーシングはツールが作られた時点ですでに決まっています](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![プロデューサーの仕事はこれだけです: 文字を入力すること。書体、色、スペーシングはツールが作られた時点ですでに決まっています](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## これが独自に提供するもの
 

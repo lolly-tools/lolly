@@ -65,7 +65,7 @@ Så det som er verdt å se på, er **verktøyet**, ikke hver fil det lager. Få 
 
 Dette er endringen den deterministiske motoren faktisk gir. For det kreative teamet er det et vern, ikke en erstatning - du kaster fortsatt ballen (dataene, teksten, bildet), og koden er kanten i bowlingbanen som holder hvert kast unna rennen.
 
-![Produsentens hele jobb: skriv ordene. Skrift, farge og avstand var avgjort da verktøyet ble laget](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![Produsentens hele jobb: skriv ordene. Skrift, farge og avstand var avgjort da verktøyet ble laget](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## Hva dette gir på en unik måte
 

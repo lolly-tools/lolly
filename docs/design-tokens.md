@@ -281,7 +281,7 @@ The brand colours moved into tokens without changing what anyone sees: `scripts/
 
 The corner radius is the plainest of the shipped dimension tokens: one slider writing one `shape.radius` value that the app chrome, the panels and every opted-in tool then follow.
 
-![The Rounded corners control in the Tokens tab - a live preview square, a slider and the value it writes, all standing for a single dimension token](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.be-radius-panel&dark=1&filename=at2-token-radius-dimension)
+![The Rounded corners control in the Tokens tab - a live preview square, a slider and the value it writes, all standing for a single dimension token](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=900&dpi=192&waitMs=1800&css=.tk-dial%7Bpadding%3A14px%2016px%7D&walker=1&format=svg&cropSelector=.tk-dial%3Ahas%28%5Bdata-be-radius-slider%5D%29&dark=1&filename=at2-token-radius-dimension)
 
 ## Token workflows
 

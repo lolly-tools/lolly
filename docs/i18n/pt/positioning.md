@@ -65,7 +65,7 @@ Então a coisa que vale a pena olhar é a **ferramenta**, não cada arquivo que 
 
 Essa é a mudança que o motor determinístico realmente entrega. Para a equipe criativa é uma grade de proteção, não um substituto - você ainda arremessa a bola (os dados, o texto, a imagem) e o código é a canaleta que impede qualquer arremesso de cair fora.
 
-![Todo o trabalho do produtor: digitar as palavras. Tipo, cor e espaçamento já estavam definidos quando a ferramenta foi feita](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![Todo o trabalho do produtor: digitar as palavras. Tipo, cor e espaçamento já estavam definidos quando a ferramenta foi feita](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## O que isso oferece de único
 

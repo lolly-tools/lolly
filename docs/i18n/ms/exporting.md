@@ -85,7 +85,7 @@ Nama fail dan menu format terletak bersama sebagai satu pasangan `name.format`, 
 
 Baris pertama ialah kes yang paling biasa. Wordmark yang ditaip dalam fon jenama anda dieksport sebagai SVG, di mana setiap huruf ialah laluan bergaris luar dan bukannya piksel, jadi ia kekal tajam pada saiz kad perniagaan dan pada saiz pembalut bangunan daripada fail yang sama.
 
-![Wordmark bergaris nipis berjarak luas berbunyi Aurora, jenis artwork vektor tulen yang menjadi maksud baris SVG dalam jadual](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Wordmark bergaris nipis berjarak luas berbunyi Aurora, jenis artwork vektor tulen yang menjadi maksud baris SVG dalam jadual](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## Saiz & Unit Cetak
 

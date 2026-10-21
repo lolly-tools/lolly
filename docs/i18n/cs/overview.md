@@ -240,7 +240,7 @@ Hostováno na URL spravované SUSE. Funguje offline, jakmile service worker naca
 
 Webový shell je responzivní z jednoho layoutu. Na desktopu je nástroj měnitelný sidebar s ovládáním vedle náhledové plochy s trackpadovou navigací plátna (Cmd/Ctrl-kolečko nebo sevření pro přiblížení kolem kurzoru, mezerník nebo tažení prostředním tlačítkem pro posun, klávesy `0`/`1`/`+`/`−` a HUD Fit/%). Na mobilu (≤640px) se ovládání stává listem ukotveným nahoře s úchytem pro tažení, který zaklapne do peek/half/full (ťuknutí přepíná) nad statickým celoobrazovkovým náhledem, a plovoucí tlačítko **Render** otevírá ovládání **Export** ve vyskakovacím listu zdola. Dotyk získává sevření-přiblížení a tažení-posun na náhledu. Renderovací cesta a ovládání exportu jsou identické na obou - přeuspořádá se jen chrome.
 
-![Desktopové rozdělené zobrazení - ovládání generované z manifestu vlevo, živé plátno vpravo](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![Desktopové rozdělené zobrazení - ovládání generované z manifestu vlevo, živé plátno vpravo](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 Stejný nástroj na šířku telefonu, bez druhého layoutu k udržování: ovládání se stává listem nahoře, náhled zabírá celou obrazovku a pilulka renderu se nad ním vznáší.
 
@@ -294,7 +294,7 @@ Nástroje jsou také klasifikovány podle stavu: `official` (schváleno brandem,
 
 **Strip Hidden Data** je prvním **nástrojem na zařízení** (`privacy: "on-device"`): nástroj na transformaci obsahu, který vezme soubor dodaný *tebou*, zpracuje ho celý v prohlížeči a vrátí čistou kopii - nikdy se nikam nenahrává, nikdy se neopatřuje vodoznakem, neotiskuje se do něj žádný původ. **Text** je druhý - pracovní plocha na zařízení pro běžné úkoly typu vlož-do-webu (formátování JSON, dekódování JWT, Base64, kódování/dekódování URL, hashování SHA). **Compress PDF** je třetí - zmenšuje PDF rekompresí jeho obrázků, opět celé na zařízení. Značka a text jejího odznaku "Runs on your device - nothing is uploaded" nyní pokrývají celou sadu transformací: Strip Hidden Data, Text, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (zničí oblasti obrázku, SVG nebo PDF), **Prompt Card** a **Rebrand** (přeznačkuje `.pptx` na místě) tam, kde ho profil obsahuje. Jde o kategorii nástrojů na ochranu soukromí, která nahrazuje předávání důvěrných souborů jednoúčelovým webům.
 
-![Zásuvka Utilities, kde je každá karta nástroj transformující soubor, který už máš](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Zásuvka Utilities, kde je každá karta nástroj transformující soubor, který už máš](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 > Poznámka: `category` a `status` jsou denormalizovány do `catalog/tools/index.json` (registr, který čte galerie) z každého `tool.json`. Zdrojem pravdy je manifest - index je **generovaný** příkazem `pnpm run build:catalog` a `pnpm run validate:catalog` selže v CI, pokud se commitnutý index rozejde s manifesty.
 

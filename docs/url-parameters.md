@@ -110,7 +110,7 @@ The state is DEFLATE'd then **AES-256-GCM**-encrypted under a key derived from a
 
 `px` is the default and behaves exactly as before (the CSS 96-DPI convention). The canvas takes the physical shape straight away, so `?w=210&h=297&unit=mm&format=pdf` shows you a portrait A4 before you export anything.
 
-![The Wordmark canvas standing as a portrait A4 page, its shape set by the width, height and unit params before anything is exported](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DPrint%2520me%26size%3D120%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&cropSelector=%23tool-canvas-outer&dark=1&filename=um-units-a4)
+![The Wordmark canvas standing as a portrait A4 page, its shape set by the width, height and unit params before anything is exported](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DPrint%2520me%26size%3D120%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&cropSelector=%23tool-canvas-outer&filename=um-units-a4)
 
 ```
 lolly quotes --quote="Print me." --width=210 --height=297 --unit=mm --export=svg --output=a4.svg

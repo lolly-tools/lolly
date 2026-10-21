@@ -65,7 +65,7 @@ Lolly 是那台印刷机，不是那张草图。构思阶段你可以带来任�
 
 这才是确定性引擎真正带来的改变。对创意团队来说，这是一道护栏，不是替代 - 你依然要扔球（数据、文案、图片），代码是保龄球道两侧的护栏，让每一次投掷都不会滚进沟里。
 
-![制作人的全部工作：打字。字体、颜色和间距在工具做好时就已经定好了](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![制作人的全部工作：打字。字体、颜色和间距在工具做好时就已经定好了](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## 这一点带来的独特价值
 

@@ -95,6 +95,13 @@ export interface CaptureParams {
    */
   waitSelector?: string;
   /**
+   * Optional readiness expression, evaluated in the page until it is truthy (60s cap),
+   * right after load and fonts and before waitMs. Pipeline-only, like `waitSelector`:
+   * the docs-shots pipeline passes a probe that waits for the app's route to finish
+   * mounting, so waitMs stops standing in for mount time on a busy machine.
+   */
+  readyFunction?: string;
+  /**
    * Optional page-init script run BEFORE the target page's own scripts, on every
    * navigation (Playwright addInitScript). The end-user url-shot tool never sets
    * this. It exists only so the docs-shots pipeline can seed localStorage (e.g.
@@ -350,6 +357,7 @@ export async function captureUrl(
     await page
       .evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => undefined))
       .catch(() => {});
+    if (params.readyFunction) await page.waitForFunction(params.readyFunction, undefined, { timeout: 60_000, polling: 50 });
 
     // Browser zoom → a `zoom` on <html> (like Ctrl/Cmd +): magnifies the page so
     // even a bitmap shot is enlarged and crisp, not upscaled. scrollHeight reflows

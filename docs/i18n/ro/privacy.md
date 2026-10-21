@@ -75,7 +75,7 @@ insigna **"Rulează pe dispozitivul tău"** - operează pe un fișier pe care î
 Nu este niciodată încărcat, pentru că nu există niciun server pe traseu unde să fie încărcat. Aceste utilitare funcționează offline, iar rezultatul lor nu poartă niciun filigran sau metadate ale
 noastre - scopul majorității lor este să elimine și să protejeze date, nu să adauge riscuri.
 
-![Insigna pe care o poartă aceste tool-uri: Rulează pe dispozitivul tău - nimic nu este încărcat](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![Insigna pe care o poartă aceste tool-uri: Rulează pe dispozitivul tău - nimic nu este încărcat](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing păstrează în memorie intrările de lucru, constatările private și hărțile de
 înlocuire, fără să le adauge automat în istoric, linkuri, copii de rezervă sau sincronizare. Inspecția

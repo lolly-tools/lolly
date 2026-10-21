@@ -80,7 +80,7 @@ circuit vers lequel le téléverser. Ces utilitaires fonctionnent hors ligne, et
 résultat ne porte aucun filigrane ni métadonnée de notre part - le but de la plupart
 d'entre eux est de retirer & protéger des données, pas d'ajouter un risque.
 
-![Le badge que portent ces outils : Runs on your device - rien n'est téléversé](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![Le badge que portent ces outils : Runs on your device - rien n'est téléversé](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing conserve les entrées de travail, les découvertes privées et les tables de remplacement en
 mémoire, sans les ajouter automatiquement à l'historique, aux liens, aux sauvegardes ou à la synchronisation.

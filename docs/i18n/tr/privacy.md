@@ -80,7 +80,7 @@ sunucu yoktur. Bu araçlar çevrimdışı çalışır ve çıktıları bize ait 
 filigran veya meta veri taşımaz - çoğunun amacı veriyi kaldırıp korumaktır,
 risk eklemek değil.
 
-![Bu araçların taşıdığı rozet: Runs on your device - hiçbir şey yüklenmez](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![Bu araçların taşıdığı rozet: Runs on your device - hiçbir şey yüklenmez](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing, çalışma girdilerini, özel bulguları ve değiştirme haritalarını, geçmişe,
 bağlantılara, yedeklere veya senkronizasyona otomatik olarak eklemeden bellekte tutar. İnceleme

@@ -238,7 +238,7 @@ SUSE가 관리하는 URL에서 호스팅됩니다. 서비스 워커가 도구와
 
 웹 셸은 하나의 레이아웃에서 반응형으로 동작합니다. 데스크톱에서는 도구가 크기 조절 가능한 컨트롤 사이드바와 미리보기 스테이지로 구성되며, 트랙패드에 최적화된 캔버스 탐색(Cmd/Ctrl-휠 또는 핀치로 커서 기준 확대/축소, Space 또는 중간 버튼 드래그로 패닝, `0`/`1`/`+`/`−` 키, Fit/% HUD)을 지원합니다. 모바일(≤640px)에서는 컨트롤이 상단에 고정된 시트가 되어 드래그 손잡이로 peek/half/full 사이를 스냅 전환하고(탭으로도 전환), 고정된 전체 화면 미리보기 위에 표시됩니다. 떠 있는 **Render** 버튼을 누르면 하단 시트 팝업으로 **Export** 컨트롤이 열립니다. 터치에서는 미리보기에서 핀치 줌과 드래그 패닝을 사용할 수 있습니다. 렌더링 경로와 내보내기 컨트롤은 둘 다 동일하며 - 크롬(UI 프레임)만 다르게 배치됩니다.
 
-![데스크톱 분할 화면 - 왼쪽은 매니페스트에서 생성된 컨트롤, 오른쪽은 실시간 캔버스](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![데스크톱 분할 화면 - 왼쪽은 매니페스트에서 생성된 컨트롤, 오른쪽은 실시간 캔버스](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 같은 도구를 휴대폰 너비에서 보면, 유지해야 할 두 번째 레이아웃이 없습니다: 컨트롤은 상단의 시트가 되고, 프리뷰가 화면 전체를 차지하며, 렌더 필이 그 위에 떠 있습니다.
 
@@ -292,7 +292,7 @@ CLI의 대화형 짝입니다: 도구를 탐색하고, 입력을 채우고, 프�
 
 **Strip Hidden Data**는 최초의 **온디바이스(on-device) 유틸리티**(`privacy: "on-device"`)입니다. 이 콘텐츠 변환 도구는 *사용자*가 제공한 파일을 받아 전적으로 브라우저 안에서 처리한 뒤 깨끗한 사본을 돌려줍니다 - 업로드되지 않고, 워터마크가 찍히지 않으며, 출처(provenance) 정보도 찍히지 않습니다. **Text**는 두 번째로, JSON 포맷팅, JWT 디코딩, Base64, URL 인코딩/디코딩, SHA 해싱 등 웹사이트에 붙여넣어 하는 일상적인 작업을 위한 온디바이스 작업대입니다. **Compress PDF**는 세 번째로, 이미지를 다시 압축해 PDF를 축소하며 이 역시 전적으로 온디바이스에서 이루어집니다. 이 표시와 배지 문구 "당신의 기기에서 실행됩니다 - 아무것도 업로드되지 않습니다"는 이제 전체 변환 도구 집합을 아우릅니다: Strip Hidden Data, Text, Compress PDF, **Convert Image**(HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact**(이미지, SVG 또는 PDF의 영역을 파기), **Prompt Card**, 그리고 프로필이 마운트하는 경우의 **Rebrand**(`.pptx`를 그 자리에서 재테마 처리)까지입니다. 이는 기밀 파일을 단일 목적 웹사이트에 넘기는 방식을 대체하는 개인정보 보호 유틸리티 카테고리입니다.
 
-![이미 가지고 있는 파일을 변환하는 도구인 카드들이 모여 있는 유틸리티 서랍](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
+![이미 가지고 있는 파일을 변환하는 도구인 카드들이 모여 있는 유틸리티 서랍](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 > 참고: `category`와 `status`는 각 `tool.json`으로부터 `catalog/tools/index.json`(갤러리가 읽는 레지스트리)으로 비정규화(denormalise)되어 저장됩니다. 매니페스트가 신뢰할 수 있는 원본(source of truth)이며 - 인덱스는 `pnpm run build:catalog`로 **생성**되고, 커밋된 인덱스가 매니페스트와 어긋나면 `pnpm run validate:catalog`가 CI를 실패시킵니다.
 

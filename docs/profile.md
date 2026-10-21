@@ -134,7 +134,7 @@ A tool only ever *pre-fills* the profile fields it was explicitly built to bind:
 
 **The opt-in (provenance).** When you export an asset, your details optionally ride along as **provenance** - an author/credit line embedded in the file's metadata (PNG, PDF, SVG, …) - so a finished asset can say who made it. *This* is what **Use my details to create** governs: leave it off and the export still carries the "Made with Lolly" tool/platform attribution, but no personal author/contact line is embedded. (The same opt-in sets the author on **/pro** batch runs.) (Tool authors: see [Authoring Tools → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) and [Host API → `host.profile`](/info/host-api.html#host-profile).)
 
-![The single Use my details to create switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![The single Use my details to create switch, marked opt-in and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 ## Profile vs Platform vs Capabilities
 

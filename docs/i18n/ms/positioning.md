@@ -65,7 +65,7 @@ Jadi perkara yang patut dilihat ialah **alat** itu, bukan setiap fail yang dihas
 
 Inilah perubahan yang sebenarnya dibawa oleh enjin deterministik. Bagi pasukan kreatif, ia adalah pagar keselamatan, bukan penggantian - anda masih melontar bola (data, teks, imej) dan kod itu ialah lorong bumper yang memastikan setiap lontaran tidak jatuh ke dalam parit.
 
-![Seluruh kerja penerbit: taip perkataan. Jenis huruf, warna dan jarak telah ditetapkan apabila alat itu dibuat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![Seluruh kerja penerbit: taip perkataan. Jenis huruf, warna dan jarak telah ditetapkan apabila alat itu dibuat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## Apa yang disediakan secara unik oleh ini
 

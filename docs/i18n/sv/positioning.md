@@ -65,7 +65,7 @@ Så det som är värt att titta på är **verktyget**, inte varje fil det skapar
 
 Det här är den förändring som den deterministiska motorn faktiskt levererar. För det kreativa teamet är det ett skyddsräcke, inte en ersättning - du kastar fortfarande bollen (datan, texten, bilden) och koden är den bumperbana som håller varje kast borta från rännan.
 
-![Producentens hela jobb: skriva orden. Typsnitt, färg och avstånd var avgjorda när verktyget gjordes](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![Producentens hela jobb: skriva orden. Typsnitt, färg och avstånd var avgjorda när verktyget gjordes](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## Vad detta unikt bidrar med
 

@@ -65,7 +65,7 @@ Lolly는 스케치가 아니라 인쇄기예요. 아이디어 발상 단계에�
 
 이것이 결정론적 엔진이 실제로 가져오는 변화예요. 크리에이티브 팀에게 이는 대체가 아니라 가드레일이에요 - 여전히 공(데이터, 카피, 이미지)을 던지는 것은 당신이고, 코드는 모든 투구가 도랑에 빠지지 않게 막아주는 범퍼 레인이에요.
 
-![프로듀서가 하는 일의 전부: 단어를 입력하는 것. 글꼴, 색상, 간격은 도구가 만들어질 때 이미 정해졌어요](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![프로듀서가 하는 일의 전부: 단어를 입력하는 것. 글꼴, 색상, 간격은 도구가 만들어질 때 이미 정해졌어요](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## 이것이 독보적으로 제공하는 것
 

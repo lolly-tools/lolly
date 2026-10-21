@@ -5,7 +5,7 @@ description: "Operate the Lolly 3D tool (3d) using its declared inputs and suppo
 
 # 3D
 
-Tool ID: `3d`. Tool version: `1.3.0`. Engine range: `^1.0.0`.
+Tool ID: `3d`. Tool version: `1.3.1`. Engine range: `^1.0.0`.
 
 Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation.
 

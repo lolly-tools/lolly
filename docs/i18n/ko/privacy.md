@@ -77,7 +77,7 @@ device"** 배지가 붙은 도구들 - 은 사용자가 제공한 파일을 처�
 포함되지 않습니다 - 대부분의 목적은 위험을 추가하는 것이 아니라 데이터를
 제거하고 보호하는 것이기 때문입니다.
 
-![이 도구들에 붙는 배지: Runs on your device - 아무것도 업로드되지 않는다](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![이 도구들에 붙는 배지: Runs on your device - 아무것도 업로드되지 않는다](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 공유 준비는 작업 중인 입력값, 발견된 비공개 정보, 치환 맵을
 메모리에 보관할 뿐, 이를 자동으로 기록이나 링크, 백업, 동기화에 추가하지 않아요.

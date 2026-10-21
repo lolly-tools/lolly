@@ -1,7 +1,7 @@
 {
   "id": "timezone",
   "name": "Timezone",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "engineVersion": "^1.186.0",
   "status": "official",
   "category": "event",

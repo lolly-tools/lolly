@@ -65,7 +65,7 @@ Ce qui vaut donc la peine d'être regardé, c'est l'**outil**, pas chaque fichie
 
 C'est le changement que le moteur déterministe apporte réellement. Pour l'équipe créative, c'est un garde-fou, pas un remplacement - tu lances toujours la balle (les données, le texte, l'image) et le code est la rambarde qui empêche chaque lancer de finir dans la gouttière.
 
-![Tout le travail du producteur : taper les mots. La typo, la couleur et l'espacement ont été fixés au moment où l'outil a été créé](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![Tout le travail du producteur : taper les mots. La typo, la couleur et l'espacement ont été fixés au moment où l'outil a été créé](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## Ce que cela apporte, et rien d'autre
 

@@ -85,7 +85,7 @@ Numele fișierului și meniul de format stau împreună ca o singură pereche `n
 
 Primul rând e cazul comun. Un wordmark scris în fontul brandului tău se exportă ca SVG, unde fiecare literă e un traseu conturat, nu un pixel, așa că rămâne clar la dimensiunea unei cărți de vizită și la dimensiunea unui wrap de clădire, din același fișier.
 
-![A hairline wide-tracked wordmark reading Aurora, the kind of pure vector artwork the SVG row of the table is about](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![A hairline wide-tracked wordmark reading Aurora, the kind of pure vector artwork the SVG row of the table is about](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## Dimensiune și unități de tipar
 

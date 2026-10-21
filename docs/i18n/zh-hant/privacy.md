@@ -71,7 +71,7 @@ Lolly 的網頁、桌面與行動裝置殼層，會在用戶端執行整個算�
 加上的任何浮水印或中繼資料——其中大多數工具的目的是移除並保護資料，
 而非增加風險。
 
-![這些工具所帶有的標章：Runs on your device——不會上傳任何內容](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![這些工具所帶有的標章：Runs on your device——不會上傳任何內容](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing 會把工作中的輸入內容、隱私偵測結果與替換對照
 保留在記憶體中，不會自動把它們加入 History、連結、備份或同步。

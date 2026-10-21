@@ -73,7 +73,7 @@ Art. 5(3)，对于你所请求的服务严格必要的存储无需征得同意 -
 这些工具可离线使用，其输出不带有我们的任何水印或元数据——
 它们中大多数的目的就是移除并保护数据，而不是增加风险。
 
-![这些工具携带的徽章：Runs on your device——不会上传任何内容](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![这些工具携带的徽章：Runs on your device——不会上传任何内容](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing 会把工作中的输入内容、隐私检测结果和替换映射
 保留在内存中，不会自动把它们加入 History、链接、备份或同步。

@@ -77,7 +77,7 @@ Ia tidak pernah dimuat naik, kerana tiada pelayan dalam laluan untuk memuat naik
 Utiliti ini berfungsi luar talian, dan outputnya tidak membawa sebarang tera air atau metadata
 kami - tujuan kebanyakan alat ini adalah untuk membuang & melindungi data, bukan menambah risiko.
 
-![Lencana yang dibawa oleh alat-alat ini: Runs on your device - tiada apa-apa dimuat naik](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![Lencana yang dibawa oleh alat-alat ini: Runs on your device - tiada apa-apa dimuat naik](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing menyimpan input kerja, dapatan peribadi dan peta penggantian
 dalam memori, tanpa secara automatik menambahkannya ke sejarah, pautan, sandaran atau segerak.

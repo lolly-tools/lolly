@@ -51,7 +51,7 @@ Art. 5(3)により、要求されたサービスに厳密に必要なストレ�
 
 一部のツール - **Strip Hidden Data**、**Compress PDF**、その他**「Runs on your device」**バッジが付いたツール - は、お客様が指定したファイルに対して動作します。ファイルはブラウザ内のメモリに読み込まれ、ローカルで変換され、ダウンロードとして返されます。アップロード先となるサーバーがそもそも存在しないため、ファイルがアップロードされることは一切ありません。これらのユーティリティはオフラインで動作し、出力には当社の透かしやメタデータは一切含まれません - そのほとんどの目的はリスクを加えることではなく、データを除去・保護することです。
 
-![これらのツールに付くバッジ: Runs on your device - 何もアップロードされません](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![これらのツールに付くバッジ: Runs on your device - 何もアップロードされません](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 共有の準備は、作業中の入力内容、検出された非公開の情報、
 置換マップをメモリ上に保持するだけで、履歴やリンク、バックアップ、

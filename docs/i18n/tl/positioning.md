@@ -65,7 +65,7 @@ Kaya ang bagay na dapat tingnan ay ang **tool**, hindi ang bawat file na ginagaw
 
 Ito ang pagbabagong talagang idinudulot ng deterministic engine. Para sa creative team, ito ay guard-rail, hindi kapalit - itinatapon mo pa rin ang bola (ang data, ang copy, ang imahe) at ang code ang bumper lane na pumipigil sa bawat throw na mapunta sa gutter.
 
-![Ang buong trabaho ng producer: i-type ang mga salita. Ang type, kulay at spacing ay naayos na noong ginawa ang tool](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![Ang buong trabaho ng producer: i-type ang mga salita. Ang type, kulay at spacing ay naayos na noong ginawa ang tool](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## Ang natatanging ibinibigay nito
 

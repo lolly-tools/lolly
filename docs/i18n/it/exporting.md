@@ -85,7 +85,7 @@ Il nome del file e il menu del formato stanno insieme come un'unica coppia `name
 
 La prima riga è il caso comune. Un wordmark composto nel carattere del tuo brand viene esportato come SVG, dove ogni lettera è un percorso delineato anziché un pixel, così resta nitido sia alla dimensione di un biglietto da visita sia a quella di un rivestimento per edificio, dallo stesso file.
 
-![Un wordmark hairline dalla spaziatura ampia che recita Aurora, il tipo di puro artwork vettoriale a cui si riferisce la riga SVG della tabella](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Un wordmark hairline dalla spaziatura ampia che recita Aurora, il tipo di puro artwork vettoriale a cui si riferisce la riga SVG della tabella](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## Dimensione e unità di stampa
 

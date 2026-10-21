@@ -75,7 +75,7 @@
 هذه الأدوات تعمل دون اتصال، ولا تحمل مخرجاتها أي علامة مائية أو بيانات وصفية
 منا - فالغرض من معظمها هو إزالة البيانات وحمايتها، لا إضافة مخاطر.
 
-![الشارة التي تحملها هذه الأدوات: يعمل على جهازك - لا يُرفع شيء](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![الشارة التي تحملها هذه الأدوات: يعمل على جهازك - لا يُرفع شيء](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 يحتفظ **تحضير للمشاركة** بمدخلات العمل والنتائج الخاصة وخرائط الاستبدال في الذاكرة، دون إضافتها
 تلقائيا إلى السجل أو الروابط أو النسخ الاحتياطية أو المزامنة. ولا يرسل الفحص والاستبدال محتوى الملف

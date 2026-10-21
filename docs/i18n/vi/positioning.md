@@ -65,7 +65,7 @@ Vì vậy thứ đáng xem xét chính là **công cụ**, không phải từng 
 
 Đây là thay đổi mà bộ máy tất định thực sự mang lại. Đối với đội ngũ sáng tạo, đây là một rào chắn bảo vệ, không phải một sự thay thế - bạn vẫn ném quả bóng (dữ liệu, nội dung, hình ảnh) và mã nguồn là làn đường có thanh chắn giữ cho mọi cú ném không bao giờ rơi xuống rãnh.
 
-![Toàn bộ công việc của người sản xuất: gõ chữ. Kiểu chữ, màu sắc và khoảng cách đã được ấn định khi công cụ được tạo ra](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![Toàn bộ công việc của người sản xuất: gõ chữ. Kiểu chữ, màu sắc và khoảng cách đã được ấn định khi công cụ được tạo ra](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## Điều chỉ riêng Lolly mang lại
 
