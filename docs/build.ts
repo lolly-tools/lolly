@@ -3673,7 +3673,7 @@ ${LANDING_CSS}
   box-shadow:0 6px 20px #00000024, inset 0 0 0 1px var(--border);
   opacity:0;visibility:hidden;
   transform:translateY(.25rem);translate:var(--cred-shift,0px) 0;
-  transition:opacity .18s ease,transform .18s ease,visibility 0s linear .18s}
+  transition:opacity var(--dur-2) ease,transform var(--dur-2) ease,visibility 0s linear var(--dur-2)}
 /* The way from the glyph to the card stays inside the mark. A bridge spans the card's
    full width from its edge down to the glyph's far edge (the .4rem gap plus the
    1.4rem glyph), so a pointer that leaves the glyph sideways on a straight line to a
