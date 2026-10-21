@@ -76,7 +76,7 @@ Art. 5(3) के तहत, जिस स्टोरेज की आपके 
 या मेटाडेटा नहीं ले जाता - इनमें से अधिकांश का उद्देश्य डेटा हटाना और सुरक्षित करना है, न
 कि जोखिम जोड़ना।
 
-![वह बैज जो ये टूल ले जाते हैं: Runs on your device - कुछ भी अपलोड नहीं किया जाता](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![वह बैज जो ये टूल ले जाते हैं: Runs on your device - कुछ भी अपलोड नहीं किया जाता](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing कामकाजी इनपुट, निजी निष्कर्ष और रिप्लेसमेंट मैप को मेमोरी में रखता
 है, उन्हें अपने आप History, लिंक, बैकअप या Sync में जोड़े बिना। जाँच और रिप्लेसमेंट किसी

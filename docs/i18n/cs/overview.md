@@ -240,7 +240,7 @@ Hostováno na URL spravované SUSE. Funguje offline, jakmile service worker naca
 
 Webový shell je responzivní z jednoho layoutu. Na desktopu je nástroj měnitelný sidebar s ovládáním vedle náhledové plochy s trackpadovou navigací plátna (Cmd/Ctrl-kolečko nebo sevření pro přiblížení kolem kurzoru, mezerník nebo tažení prostředním tlačítkem pro posun, klávesy `0`/`1`/`+`/`−` a HUD Fit/%). Na mobilu (≤640px) se ovládání stává listem ukotveným nahoře s úchytem pro tažení, který zaklapne do peek/half/full (ťuknutí přepíná) nad statickým celoobrazovkovým náhledem, a plovoucí tlačítko **Render** otevírá ovládání **Export** ve vyskakovacím listu zdola. Dotyk získává sevření-přiblížení a tažení-posun na náhledu. Renderovací cesta a ovládání exportu jsou identické na obou - přeuspořádá se jen chrome.
 
-![Desktopové rozdělené zobrazení - ovládání generované z manifestu vlevo, živé plátno vpravo](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![Desktopové rozdělené zobrazení - ovládání generované z manifestu vlevo, živé plátno vpravo](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 Stejný nástroj na šířku telefonu, bez druhého layoutu k udržování: ovládání se stává listem nahoře, náhled zabírá celou obrazovku a pilulka renderu se nad ním vznáší.
 

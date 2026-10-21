@@ -240,7 +240,7 @@ Di-hosting di URL yang dikendalikan SUSE. Bekerja secara offline setelah service
 
 Shell web bersifat responsif dari satu tata letak. Di desktop, sebuah alat adalah sidebar kontrol yang dapat diubah ukurannya di samping panggung pratinjau dengan navigasi kanvas asli-trackpad (roda Cmd/Ctrl atau cubit untuk zoom di sekitar kursor, seret Space atau tombol tengah untuk pan, tombol `0`/`1`/`+`/`−` dan HUD Fit/%). Di mobile (≤640px) kontrol menjadi sheet berlabuh di atas dengan grip seret yang mengunci ke peek/half/full (ketuk untuk beralih) di atas pratinjau layar penuh statis, dan tombol **Render** mengambang membuka kontrol **Export** di popup bottom-sheet. Sentuhan mendapat pinch-zoom dan drag-pan pada pratinjau. Jalur render dan kontrol ekspor identik di keduanya - hanya chrome-nya yang menyesuaikan.
 
-![Tampilan split desktop - kontrol yang dihasilkan dari manifest di sebelah kiri, kanvas langsung di sebelah kanan](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![Tampilan split desktop - kontrol yang dihasilkan dari manifest di sebelah kiri, kanvas langsung di sebelah kanan](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 Tool yang sama pada lebar ponsel, tanpa layout kedua yang perlu dipelihara: kontrol menjadi sheet di bagian atas, preview memenuhi seluruh layar dan pill render mengambang di atasnya.
 

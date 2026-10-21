@@ -240,7 +240,7 @@ Hébergée sur une URL contrôlée par SUSE. Fonctionne hors ligne une fois que 
 
 La coquille web est responsive depuis une seule mise en page. Sur ordinateur, un outil se présente comme une barre latérale de contrôles redimensionnable à côté d'une scène d'aperçu avec une navigation du canevas native au trackpad (Cmd/Ctrl-molette ou pincement pour zoomer autour du curseur, glissement avec Espace ou clic central pour se déplacer, les touches `0`/`1`/`+`/`−` et un HUD Fit/%). Sur mobile (≤640px), les contrôles deviennent une feuille ancrée en haut avec une poignée de glissement qui s'aligne sur peek/moitié/plein (un tap bascule) au-dessus d'un aperçu plein écran statique, et un bouton flottant **Render** ouvre les contrôles **Export** dans une fenêtre contextuelle en feuille du bas. Le tactile obtient le pincement pour zoomer et le glissement pour se déplacer sur l'aperçu. Le chemin de restitution et les contrôles d'export sont identiques dans les deux cas - seule l'interface se réorganise.
 
-![La vue partagée du bureau - les contrôles générés depuis le manifeste à gauche, le canvas en direct à droite](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![La vue partagée du bureau - les contrôles générés depuis le manifeste à gauche, le canvas en direct à droite](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 Le même outil en largeur téléphone, sans second layout à maintenir : les contrôles deviennent une feuille en haut, l'aperçu occupe tout l'écran et la pastille de rendu flotte par-dessus.
 

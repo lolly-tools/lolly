@@ -76,7 +76,7 @@ Nó không bao giờ được tải lên, vì không có máy chủ nào trong l
 tiện ích này hoạt động ngoại tuyến, và kết quả của chúng không mang bất kỳ hình mờ hay siêu dữ liệu nào
 của chúng tôi - mục đích của phần lớn các công cụ này là loại bỏ & bảo vệ dữ liệu, chứ không phải thêm rủi ro.
 
-![Huy hiệu mà các công cụ này mang: Chạy trên thiết bị của bạn - không có gì được tải lên](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![Huy hiệu mà các công cụ này mang: Chạy trên thiết bị của bạn - không có gì được tải lên](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 **Prepare for sharing** giữ các đầu vào đang xử lý, các phát hiện riêng tư và bản đồ thay thế
 trong bộ nhớ, mà không tự động thêm chúng vào history, liên kết, bản sao lưu hay sync.

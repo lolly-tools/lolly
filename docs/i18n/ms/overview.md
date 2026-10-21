@@ -240,7 +240,7 @@ Dihoskan di URL yang dikawal SUSE. Berfungsi luar talian sebaik sahaja service w
 
 Web shell responsif daripada satu susun atur. Pada desktop, alat ialah sidebar kawalan yang boleh diubah saiz di sebelah pentas pratonton dengan navigasi kanvas asli-trackpad (Cmd/Ctrl-roda atau cubit untuk zum sekitar kursor, Space- atau seret-tengah untuk pan, kekunci `0`/`1`/`+`/`−` dan HUD Fit/%). Pada mudah alih (≤640px) kawalan menjadi helaian berlabuh-atas dengan pemegang seret yang klik ke peek/half/full (ketik untuk togol) di atas pratonton skrin-penuh statik, dan butang terapung **Render** membuka kawalan **Export** dalam popup helaian bawah. Sentuhan mendapat cubit-zum dan seret-pan pada pratonton. Laluan render dan kawalan eksport adalah serupa pada kedua-duanya - hanya chrome yang mengalir semula.
 
-![Paparan pisah desktop - kawalan dijana daripada manifes di sebelah kiri, kanvas langsung di sebelah kanan](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![Paparan pisah desktop - kawalan dijana daripada manifes di sebelah kiri, kanvas langsung di sebelah kanan](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 Alat yang sama pada lebar telefon, tanpa susun atur kedua untuk diselenggara: kawalan menjadi helaian di bahagian atas, pratonton mengambil keseluruhan skrin dan pil render terapung di atasnya.
 

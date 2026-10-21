@@ -240,7 +240,7 @@ Gehost op een door SUSE beheerde URL. Werkt offline zodra de service worker tool
 
 De webshell is responsive vanuit één layout. Op desktop is een tool een resizable bedieningszijbalk naast een previewvenster met trackpad-eigen canvasnavigatie (Cmd/Ctrl-scroll of pinch om rond de cursor te zoomen, Space- of middelklik-slepen om te pannen, `0`/`1`/`+`/`−`-toetsen en een Fit/%-HUD). Op mobiel (≤640px) worden de bedieningselementen een bovenaan verankerd sheet met een sleepgreep die peek/half/full vastklikt (tikken schakelt), boven een statische fullscreen preview, en een zwevende **Render**-knop opent de **Export**-bediening in een bottom-sheet popup. Touch krijgt pinch-zoom en sleep-pan op de preview. Het renderpad en de exportbediening zijn identiek in beide gevallen - alleen de chrome herschikt zich.
 
-![De desktop-splitview - bediening gegenereerd uit het manifest links, het live canvas rechts](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![De desktop-splitview - bediening gegenereerd uit het manifest links, het live canvas rechts](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 Dezelfde tool op telefoonbreedte, zonder tweede layout om te onderhouden: de bediening wordt een sheet bovenaan, de preview vult het hele scherm en de renderpil zweeft eroverheen.
 

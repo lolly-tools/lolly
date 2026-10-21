@@ -240,7 +240,7 @@ SUSE kontrolündeki bir URL'de barındırılır. Service worker araçları ve va
 
 Web kabuğu tek bir düzenden duyarlıdır. Masaüstünde bir araç, imleç etrafında yakınlaştırmak için trackpad-yerel tuval gezinmesine (Cmd/Ctrl-tekerlek veya sıkıştırma, kaydırmak için Boşluk veya orta tuşla sürükleme, `0`/`1`/`+`/`−` tuşları ve bir Fit/% HUD'u) sahip bir önizleme sahnesinin yanında yeniden boyutlandırılabilir bir kontroller kenar çubuğudur. Mobilde (≤640px) kontroller, statik tam ekran bir önizlemenin üzerinde peek/half/full arasında yerleşen (dokunma değiştirir) bir sürükleme tutamacına sahip üstten sabitlenmiş bir sayfaya dönüşür ve yüzen bir **Render** düğmesi, alt sayfa açılır penceresinde **Export** kontrollerini açar. Dokunma, önizlemede sıkıştırarak yakınlaştırma ve sürükleyerek kaydırma alır. Render yolu ve dışa aktarma kontrolleri her ikisinde de aynıdır - yalnızca arayüz kabuğu yeniden akar.
 
-![Masaüstü bölünmüş görünüm - solda manifestten oluşturulan kontroller, sağda canlı tuval](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![Masaüstü bölünmüş görünüm - solda manifestten oluşturulan kontroller, sağda canlı tuval](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 Aynı araç telefon genişliğinde, korunması gereken ikinci bir düzen olmadan: kontroller üstte bir sayfaya dönüşür, önizleme tüm ekranı kaplar ve render hapı üzerinde yüzer.
 

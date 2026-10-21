@@ -240,7 +240,7 @@ Gehostet unter einer von SUSE kontrollierten URL. Funktioniert offline, sobald d
 
 Die Web-Shell ist aus einem einzigen Layout heraus responsiv. Auf dem Desktop ist ein Tool eine größenveränderbare Steuerungs-Seitenleiste neben einer Vorschaufläche mit trackpad-nativer Canvas-Navigation (Cmd/Strg-Mausrad oder Zwei-Finger-Zoom um den Cursor, Leertaste- oder mittlerer Klick-Zug zum Verschieben, Tasten `0`/`1`/`+`/`−` und ein Fit/%-HUD). Auf Mobilgeräten (≤640px) werden die Steuerelemente zu einem oben verankerten Sheet mit einem Ziehgriff, der zwischen Peek/Halb/Voll einrastet (Tippen schaltet um), über einer statischen Vollbild-Vorschau, und eine schwebende Schaltfläche **Render** öffnet die **Export**-Steuerelemente in einem Bottom-Sheet-Popup. Touch erhält Pinch-Zoom und Zieh-Schwenk auf der Vorschau. Der Render-Pfad und die Export-Steuerelemente sind in beiden Fällen identisch - nur die Bedienoberfläche passt sich neu an.
 
-![Die Desktop-Splitansicht - links aus dem Manifest generierte Steuerelemente, rechts die Live-Canvas](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![Die Desktop-Splitansicht - links aus dem Manifest generierte Steuerelemente, rechts die Live-Canvas](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 Dasselbe Tool in Handybreite, ohne ein zweites Layout pflegen zu müssen: Die Steuerelemente werden oben zu einem Sheet, die Vorschau nimmt den gesamten Bildschirm ein, und die Render-Pille schwebt darüber.
 

@@ -240,7 +240,7 @@ Hospedado em uma URL controlada pela SUSE. Funciona offline assim que o service 
 
 O shell web é responsivo a partir de um único layout. No desktop, uma ferramenta é uma barra lateral de controles redimensionável ao lado de um palco de prévia com navegação de canvas nativa de trackpad (Cmd/Ctrl-roda ou pinça para dar zoom em torno do cursor, Espaço- ou arraste com o botão do meio para deslocar, teclas `0`/`1`/`+`/`−` e um HUD de Ajustar/%). No celular (≤640px), os controles viram uma folha ancorada no topo com uma alça de arraste que encaixa em espiada/metade/tela cheia (o toque alterna) sobre uma prévia estática em tela cheia, e um botão flutuante **Render** abre os controles de **Export** em um pop-up de folha inferior. O toque tem pinça-zoom e arraste-deslocamento na prévia. O caminho de renderização e os controles de exportação são idênticos nos dois - só o chrome se reorganiza.
 
-![A visão dividida do desktop - controles gerados a partir do manifesto à esquerda, o canvas ao vivo à direita](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![A visão dividida do desktop - controles gerados a partir do manifesto à esquerda, o canvas ao vivo à direita](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 A mesma ferramenta em largura de celular, sem um segundo layout para manter: os controles viram uma folha no topo, a prévia ocupa a tela inteira e o botão de renderizar flutua sobre ela.
 

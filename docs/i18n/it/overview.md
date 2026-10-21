@@ -240,7 +240,7 @@ Ospitata su un URL controllato da SUSE. Funziona offline una volta che il servic
 
 La shell web è responsive a partire da un unico layout. Su desktop uno strumento è una barra laterale di controlli ridimensionabile accanto a un piano di anteprima con navigazione della tela nativa per trackpad (Cmd/Ctrl-rotellina o pizzico per zoomare intorno al cursore, trascinamento con Spazio o con il tasto centrale per spostarsi, i tasti `0`/`1`/`+`/`−` e un HUD Adatta/%). Su mobile (≤640px) i controlli diventano un foglio ancorato in alto con una maniglia trascinabile che si aggancia a sguardo/metà/pieno (il tocco commuta) sopra un'anteprima statica a schermo intero, e un pulsante flottante **Render** apre i controlli di **Esportazione** in un popup a foglio inferiore. Il tocco offre pizzico per zoomare e trascinamento per spostarsi sull'anteprima. Il percorso di rendering e i controlli di esportazione sono identici in entrambi i casi - solo l'interfaccia si riorganizza.
 
-![La vista divisa desktop - i controlli generati dal manifest a sinistra, il canvas live a destra](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![La vista divisa desktop - i controlli generati dal manifest a sinistra, il canvas live a destra](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 Lo stesso strumento in larghezza telefono, senza un secondo layout da mantenere: i controlli diventano un foglio in alto, l'anteprima occupa tutto lo schermo e la pillola di rendering fluttua sopra.
 

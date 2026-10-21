@@ -77,7 +77,7 @@ Het wordt nooit geüpload, omdat er geen server in het pad is om het naar te upl
 Deze hulpprogramma's werken offline en hun uitvoer bevat geen watermerk of metadata van
 ons - het doel van de meeste ervan is juist om data te verwijderen & te beschermen, niet om risico toe te voegen.
 
-![Het label dat deze tools dragen: Draait op je apparaat - er wordt niets geüpload](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![Het label dat deze tools dragen: Draait op je apparaat - er wordt niets geüpload](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing bewaart werkinvoer, privévondsten en vervangingskaarten
 in het geheugen, zonder ze automatisch toe te voegen aan geschiedenis, links, back-ups of synchronisatie.

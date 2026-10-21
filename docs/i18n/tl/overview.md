@@ -239,7 +239,7 @@ Hosted sa isang SUSE-controlled na URL. Gumagana offline kapag na-cache na ng se
 
 Responsive ang web shell mula sa isang layout. Sa desktop, ang isang tool ay isang resizable na controls sidebar sa tabi ng isang preview stage na may trackpad-native canvas navigation (Cmd/Ctrl-wheel o pinch para mag-zoom sa paligid ng cursor, Space- o middle-drag para mag-pan, mga `0`/`1`/`+`/`−` key at isang Fit/% HUD). Sa mobile (≤640px), nagiging isang top-anchored na sheet ang mga control na may drag grip na sumasnap ng peek/half/full (tumo-toggle ang tap) sa ibabaw ng isang static na full-screen preview, at nagbubukas ang isang lumulutang na **Render** button ng mga **Export** control sa isang bottom-sheet popup. Nakukuha ng touch ang pinch-zoom at drag-pan sa preview. Magkatulad ang render path at ang mga export control sa dalawa - ang chrome lamang ang nag-reflow.
 
-![Ang desktop split view - mga kontrol na ginawa mula sa manifest sa kaliwa, ang live canvas sa kanan](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![Ang desktop split view - mga kontrol na ginawa mula sa manifest sa kaliwa, ang live canvas sa kanan](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 Ang parehong tool sa phone width, walang pangalawang layout na dapat pagtuunan: nagiging isang sheet ang mga kontrol sa itaas, kinukuha ng preview ang buong screen at lumulutang ang render pill sa ibabaw nito.
 

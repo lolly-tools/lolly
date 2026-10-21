@@ -239,7 +239,7 @@ lolly/
 
 web 殼層採用單一版面配置做響應式設計。在桌面版上，工具是一個可調整大小的控制項側邊欄，搭配一個預覽舞台，並具備原生觸控板式的畫布導覽（Cmd/Ctrl + 滾輪或雙指縮放以游標為中心縮放、按住 Space 或中鍵拖曳平移、`0`/`1`/`+`/`−` 按鍵，以及 Fit/% HUD）。在行動裝置上（≤640px）控制項會變成一個上方固定的面板，附有可拖曳的把手，可吸附至窺視/半展開/全展開三種狀態（點擊可切換），覆蓋在靜態的全螢幕預覽上，而浮動的 **Render** 按鈕會以底部彈出面板開啟 **Export** 控制項。觸控操作可在預覽上進行雙指縮放與拖曳平移。兩者的算繪路徑與匯出控制項完全相同 - 只有介面外框會重新排版。
 
-![桌面版分割檢視 - 左側是從 manifest 產生的控制項，右側是即時畫布](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![桌面版分割檢視 - 左側是從 manifest 產生的控制項，右側是即時畫布](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 同一個工具在手機寬度下，不需要維護第二種版面：控制項變成頂端的表單頁，預覽佔滿整個畫面，輸出按鈕則浮在其上。
 

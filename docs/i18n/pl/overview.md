@@ -240,7 +240,7 @@ Hostowane pod adresem URL kontrolowanym przez SUSE. Działa offline, gdy tylko s
 
 Powłoka web jest responsywna z jednego układu. Na desktopie narzędzie to zmieniany rozmiarowo pasek boczny z elementami sterującymi obok sceny podglądu z nawigacją po płótnie natywną dla gładzika (Cmd/Ctrl-kółko lub uszczypnięcie, by powiększyć wokół kursora, Space- lub przeciąganie środkowym przyciskiem, by przesuwać, klawisze `0`/`1`/`+`/`−` oraz HUD Fit/%). Na urządzeniach mobilnych (≤640px) elementy sterujące zmieniają się w zakotwiczony u góry arkusz z uchwytem do przeciągania, który zatrzaskuje się w pozycji peek/half/full (dotknięcie przełącza) nad statycznym podglądem pełnoekranowym, a pływający przycisk **Render** otwiera elementy sterujące **Export** w wyskakującym arkuszu od dołu. Dotyk umożliwia uszczypnięcie do powiększenia i przeciąganie na podglądzie. Ścieżka renderowania i elementy sterujące eksportu są identyczne w obu przypadkach - zmienia się tylko układ interfejsu.
 
-![Widok podzielony na desktopie - kontrolki generowane z manifestu po lewej, kanwa na żywo po prawej](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![Widok podzielony na desktopie - kontrolki generowane z manifestu po lewej, kanwa na żywo po prawej](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 To samo narzędzie na szerokości telefonu, bez drugiego układu do utrzymywania: kontrolki stają się arkuszem u góry, podgląd zajmuje cały ekran, a pigułka renderowania unosi się nad nim.
 

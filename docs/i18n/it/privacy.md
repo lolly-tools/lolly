@@ -76,7 +76,7 @@ Non viene mai caricato, perché non c'è alcun server nel percorso a cui caricar
 Questi strumenti funzionano offline, e il loro output non porta alcun watermark o metadato
 nostro - lo scopo della maggior parte di essi è rimuovere e proteggere i dati, non aggiungere rischi.
 
-![Il badge che questi strumenti portano: Runs on your device - niente viene caricato](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![Il badge che questi strumenti portano: Runs on your device - niente viene caricato](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing mantiene gli input di lavoro, i risultati privati e le mappe di sostituzione in memoria,
 senza aggiungerli automaticamente alla cronologia, ai link, ai backup o alla sincronizzazione. L'ispezione e

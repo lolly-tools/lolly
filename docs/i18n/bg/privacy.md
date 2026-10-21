@@ -77,7 +77,7 @@ Lolly е софтуер с отворен код - двигател, някол�
 Тези инструменти работят офлайн, а резултатът им не носи никакъв воден знак или метаданни на
 нас - целта на повечето от тях е да премахват и защитават данни, а не да добавят риск.
 
-![Значката, която носят тези инструменти: Runs on your device - нищо не се качва](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![Значката, която носят тези инструменти: Runs on your device - нищо не се качва](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing пази работните входни данни, частните находки и картите за замяна в паметта, без
 автоматично да ги добавя към историята, връзките, резервните копия или синхронизацията. Проверката и замяната

@@ -240,7 +240,7 @@ Hostet på en SUSE-kontrollert URL. Fungerer offline når service worker har mel
 
 Web-skallet er responsivt fra ett enkelt oppsett. På desktop er et verktøy et størrelsesjusterbart kontrollsidefelt ved siden av en forhåndsvisningsscene med trackpad-native lerretsnavigasjon (Cmd/Ctrl-hjul eller knip for å zoome rundt markøren, Mellomrom- eller midtre-dra for å panorere, `0`/`1`/`+`/`−`-taster og en Fit/%-HUD). På mobil (≤640px) blir kontrollene et toppforankret ark med et draghåndtak som smetter mellom peek/halv/full (tap veksler) over en statisk fullskjerms forhåndsvisning, og en flytende **Render**-knapp åpner **Export**-kontrollene i en bunnark-popup. Berøring gir knip-zoom og dra-panorering på forhåndsvisningen. Rendringsveien og eksportkontrollene er identiske på tvers av begge - bare rammen flyter om.
 
-![Delt visning på desktop - kontroller generert fra manifestet til venstre, det levende lerretet til høyre](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![Delt visning på desktop - kontroller generert fra manifestet til venstre, det levende lerretet til høyre](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 Samme verktøy i telefonbredde, uten et andre layout å vedlikeholde: kontrollene blir et ark øverst, forhåndsvisningen fyller hele skjermen og render-pillen flyter over den.
 

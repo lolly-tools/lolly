@@ -240,7 +240,7 @@ Găzduit la un URL controlat de SUSE. Funcționează offline odată ce service w
 
 Shell-ul web este responsive dintr-un singur layout. Pe desktop, o unealtă este o bară laterală de comenzi redimensionabilă, alături de o scenă de previzualizare cu navigare nativă pe canvas prin trackpad (Cmd/Ctrl+rotiță sau pinch pentru zoom în jurul cursorului, Space sau drag cu clic din mijloc pentru pan, tastele `0`/`1`/`+`/`−` și un HUD Fit/%). Pe mobil (≤640px) comenzile devin o foaie ancorată sus, cu un mâner de tragere care se fixează pe peek/half/full (atingerea comută) peste o previzualizare statică pe tot ecranul, iar un buton **Render** plutitor deschide comenzile **Export** într-un popup tip bottom-sheet. Atingerea primește pinch-zoom și drag-pan pe previzualizare. Calea de randare și comenzile de export sunt identice pe ambele - doar interfața se reorganizează.
 
-![Vizualizarea split pe desktop - controale generate din manifest în stânga, canvasul live în dreapta](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![Vizualizarea split pe desktop - controale generate din manifest în stânga, canvasul live în dreapta](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 Același instrument la lățime de telefon, fără un al doilea layout de întreținut: controalele devin o foaie (sheet) în partea de sus, previzualizarea ocupă tot ecranul, iar pastila de randare plutește deasupra.
 

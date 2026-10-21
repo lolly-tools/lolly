@@ -240,7 +240,7 @@ Alojada en una URL controlada por SUSE. Funciona sin conexión una vez que el se
 
 El shell web es responsivo a partir de un único diseño. En escritorio, una herramienta es una barra lateral de controles redimensionable junto a un escenario de vista previa con navegación de lienzo nativa de trackpad (Cmd/Ctrl-rueda o pellizco para hacer zoom sobre el cursor, arrastre con Espacio o botón central para desplazar, teclas `0`/`1`/`+`/`−` y un HUD de Ajustar/%). En móvil (≤640px) los controles se convierten en una hoja anclada arriba con una pestaña de arrastre que encaja en asomo/mitad/completo (tocar alterna) sobre una vista previa estática a pantalla completa, y un botón flotante **Render** abre los controles de **Export** en una ventana emergente inferior. El tacto permite pellizco para zoom y arrastre para desplazar en la vista previa. La ruta de render y los controles de exportación son idénticos en ambos - solo el chrome se reorganiza.
 
-![La vista dividida de escritorio - controles generados a partir del manifiesto a la izquierda, el lienzo en vivo a la derecha](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![La vista dividida de escritorio - controles generados a partir del manifiesto a la izquierda, el lienzo en vivo a la derecha](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 La misma herramienta con ancho de teléfono, sin un segundo diseño que mantener: los controles se convierten en una hoja arriba, la vista previa ocupa toda la pantalla y la píldora de render flota sobre ella.
 

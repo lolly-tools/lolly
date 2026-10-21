@@ -77,7 +77,7 @@ File itu tidak pernah diunggah, karena tidak ada server dalam jalurnya untuk diu
 Utilitas ini bekerja secara offline, dan keluarannya tidak membawa watermark atau metadata
 kami - tujuan sebagian besar tool ini adalah menghapus & melindungi data, bukan menambah risiko.
 
-![Badge yang dibawa tool-tool ini: Runs on your device - tidak ada yang diunggah](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![Badge yang dibawa tool-tool ini: Runs on your device - tidak ada yang diunggah](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing menyimpan input kerja, temuan privat dan peta penggantian
 di memori, tanpa secara otomatis menambahkannya ke riwayat, tautan, backup atau sync.

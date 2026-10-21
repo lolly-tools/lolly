@@ -73,7 +73,7 @@ Nikdy se nikam nenahrává, protože v cestě není žádný server, kam by se n
 Tyto nástroje fungují offline a jejich výstup nenese žádný náš watermark ani metadata -
 smyslem většiny z nich je data odstranit a chránit, ne přidávat riziko.
 
-![Odznak, který tyto nástroje nesou: Runs on your device - nic se nenahrává](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![Odznak, který tyto nástroje nesou: Runs on your device - nic se nenahrává](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing drží pracovní vstupy, soukromá zjištění a mapy náhrad v
 paměti, aniž by je automaticky přidávalo do historie, odkazů, záloh nebo synchronizace.

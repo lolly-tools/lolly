@@ -240,7 +240,7 @@ Nền tảng chạy trên nhiều bề mặt - PWA web, Tauri desktop/mobile, CL
 
 Shell web đáp ứng đa thiết bị từ một bố cục duy nhất. Trên desktop, một công cụ là một thanh bên điều khiển có thể đổi cỡ bên cạnh một sân khấu xem trước với điều hướng canvas gốc trackpad (Cmd/Ctrl-cuộn hoặc chụm để thu phóng quanh con trỏ, Space- hoặc kéo bằng nút giữa để lia, các phím `0`/`1`/`+`/`−` và một HUD Fit/%). Trên di động (≤640px), các điều khiển trở thành một tấm neo trên cùng với một tay cầm kéo tự khớp vào peek/half/full (chạm để chuyển đổi) phủ trên một bản xem trước toàn màn hình tĩnh, và một nút **Render** nổi mở các điều khiển **Export** trong một popup dạng tấm dưới. Chạm nhận chụm-thu phóng và kéo-lia trên bản xem trước. Đường kết xuất và các điều khiển xuất giống hệt nhau trên cả hai - chỉ phần khung giao diện là bố trí lại.
 
-![Chế độ chia đôi trên desktop - các control được tạo từ manifest ở bên trái, canvas trực tiếp ở bên phải](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![Chế độ chia đôi trên desktop - các control được tạo từ manifest ở bên trái, canvas trực tiếp ở bên phải](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 Cùng một công cụ ở độ rộng điện thoại, không cần duy trì layout thứ hai: các control trở thành một sheet ở phía trên, bản xem trước chiếm toàn màn hình và nút render nổi trên đó.
 

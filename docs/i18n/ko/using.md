@@ -21,7 +21,7 @@
 - <!--i:star--> **자주 쓰는 것에 별을 다세요.** 카드에 ★를 달면 격자 위쪽 띠에 큼직한 전용 타일이 생겨요 - [즐겨찾기](/info/favourites.html)를 참고하세요.
 - <!--i:eyeoff--> **한 번도 쓰지 않는 도구는 숨기세요.** 카드를 오른쪽 클릭하거나(여러 개를 골라 선택 바를 써도 돼요) → **Hide tool**을 고르세요. 격자에서 빠지고, 격자에서 타이핑해 찾는 결과에서도 빠져요. 맨 끝의 회색 **Show hidden tools (N)** 타일을 누르면 흐리게 다시 나타나고, 각 카드의 메뉴에 **Unhide tool**이 생겨요. 숨기기는 내 격자에만 해당돼요 - 저장한 링크나 즐겨찾기로는 그대로 열리고, 다른 사람에게는 있던 자리에 그대로 남아요.
 
-![숨긴 도구가 드러난 Tools 격자의 끝부분 - 흐리게 표시된 QR Code Generator 카드와, 그 옆에서 카드를 다시 보이게 만든 회색 타일(지금은 Hide hidden tools로 표시)](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-bulk%3D%22hide%22%5D%3Bwait%3A300%3Bclick%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
+![숨긴 도구가 드러난 Tools 격자의 끝부분 - 흐리게 표시된 QR Code Generator 카드와, 그 옆에서 카드를 다시 보이게 만든 회색 타일(지금은 Hide hidden tools로 표시)](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
 <!--
 SHOT NOTE (misc-hidden-tools): the trailing `press:End` is required. The
 hidden box and the revealed cards live at the very END of the grid, and
@@ -87,7 +87,7 @@ storage-seeding hook.
 - **키보드:** `0` = 창에 맞추기 · `1` = 100% · `+` / `−` = 확대/축소.
 - **줌 HUD:** 모서리에 있는 작은 `−  NN%  +  Fit` 컨트롤이에요. 퍼센트를 클릭하면 Fit ↔ 100%가 번갈아요.
 
-![캔버스 모서리의 줌 HUD - 빼기, 실시간 퍼센트, 더하기, Fit, 그리고 테마와 소리 토글](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
+![캔버스 모서리의 줌 HUD - 빼기, 실시간 퍼센트, 더하기, Fit, 그리고 테마와 소리 토글](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
 
 **터치**
 
@@ -229,7 +229,7 @@ storage-seeding hook.
 - **오버레이 레인**은 자유로워요. 하단 자막, 로고, 캡션처럼 뼈대 위에 각자의 시간으로 떠 있는 것은 저마다의 레인과 시작 시점을 가져요.
 - 그 아래 **Always on**은 타이밍이 아예 없는 상자를 모아 둬요. 처음부터 끝까지 그냥 있는 배경 요소죠. 칩의 `+`를 누르면 하나를 레인으로 올리고, **Make always on**은 다시 내려보내요.
 
-![편집 스테이지: 중앙의 아트보드, 왼쪽의 도구 레일, 모서리의 줌 HUD](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-stage)
+![편집 스테이지: 중앙의 아트보드, 왼쪽의 도구 레일, 모서리의 줌 HUD](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&chrome=1&dark=1&filename=seq-studio-stage)
 
 타임라인을 열면 키보드가 타임라인으로 넘어가서 Space와 화살표 키가 페이지 대신 재생 헤드를 움직여요 - 이미 타이밍이 있는 구성에서는 저절로 열리니, 시퀀스가 뜨는 순간부터 그래요.
 

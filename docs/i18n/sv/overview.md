@@ -240,7 +240,7 @@ Hostad på en SUSE-kontrollerad URL. Fungerar offline när service workern har c
 
 Webbskalet är responsivt från en enda layout. På desktop är ett verktyg ett storleksbart kontrollsidofält bredvid en förhandsvisningsyta med trackpad-inbyggd duknavigering (Cmd/Ctrl-hjul eller nypa för att zooma kring pekaren, mellanslag- eller mittendrag för att panorera, `0`/`1`/`+`/`−`-tangenter och en Fit/%-HUD). På mobil (≤640px) blir kontrollerna en toppförankrad panel med ett draghandtag som fäster vid peek/half/full (tryck växlar) över en statisk fullskärmsförhandsvisning, och en flytande **Render**-knapp öppnar **Export**-kontrollerna i en bottenpanel-popup. Touch får nyp-zoom och dragpanorering på förhandsvisningen. Renderväg och exportkontroller är identiska mellan de båda - bara chromet flödar om.
 
-![Delad skrivbordsvy - kontroller genererade från manifestet till vänster, den levande arbetsytan till höger](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![Delad skrivbordsvy - kontroller genererade från manifestet till vänster, den levande arbetsytan till höger](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 Samma verktyg i telefonbredd, utan en andra layout att underhålla: kontrollerna blir ett ark högst upp, förhandsvisningen tar hela skärmen och rendera-knappen flyter ovanpå.
 
