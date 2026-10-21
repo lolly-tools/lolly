@@ -7,7 +7,7 @@ import { t } from '../i18n.ts';
 export function mountComparisonOptions(root: HTMLElement, request: ComparisonRequest, compare: () => Promise<void>): void {
   const options = request.options!;
   const checkbox = (label: string, checked: boolean, changed: (checked: boolean) => void): void => {
-    const wrap = el('label'), check = el('input'); check.type = 'checkbox'; check.checked = checked; wrap.append(check, document.createTextNode(t(label)));
+    const wrap = el('label'), check = el('input', undefined, 'field-check'); check.type = 'checkbox'; check.checked = checked; wrap.append(check, document.createTextNode(t(label)));
     check.addEventListener('change', () => { changed(check.checked); void compare(); }); root.append(wrap);
   };
   const before = request.before.content, after = request.after.content;

@@ -196,7 +196,9 @@ function isWorthExporting(
   // Same test the starter split uses, applied to the swatch a role points at:
   // a key the starter never had, or one whose colour has been changed since.
   return Object.values(roleAssignments(doc))
-    .filter(r => starter.get(r.key) !== current.get(r.key)).length > 1;
+    // A role pointing at a key the palette no longer shows (every colour hidden) is
+    // not a decision about a colour, so it does not count.
+    .filter(r => current.has(r.key) && starter.get(r.key) !== current.get(r.key)).length > 1;
 }
 
 /**
@@ -429,22 +431,25 @@ export function overviewHtml(model: OverviewModel | null): string {
     // One door per thing somebody might already have. A complete .lolly pack is
     // as immediate as one colour; the in-between cases stay first-class and can
     // be mixed freely. Each opens with its deciding control already up.
+    // The page heading already says "Make it yours", so this one says what to
+    // do. A logo is what most people have first, so it leads; the file door is
+    // last because it is the one that needs the most explaining.
     return `
       <div class="ds-ov ds-ov--empty">
-        <h2 class="ds-ov-title">${t('Make it yours')}</h2>
-        <p class="ds-ov-sub">${t('Start with a reference. Preview a suggested look, adjust it, then start creating.')}</p>
+        <h2 class="ds-ov-title">${t('Start with what you have')}</h2>
+        <p class="ds-ov-sub">${t('Pick any one. Add the rest later.')}</p>
         <div class="ds-ov-doors">
-          ${doorHtml('file', icon('upload'), t('Start from a reference'),
-            t('A logo, screenshot, web page or design file. Preview before applying.'))}
+          ${doorHtml('logos', icon('shapes'), t('Add a logo'),
+            t('Drop a logo file and Lolly suggests its slot.'))}
           ${doorHtml('color-pick', icon('palette'), t('Pick a colour'),
             t('It becomes the primary. Shades and roles can follow from it.'))}
           ${doorHtml('type-stage', icon('font'), t('Choose a face'),
             isTauriShell() ? t('Google Fonts or a font file. Stays on this device.') : t('Google Fonts or a font file. Stays in this browser.'))}
-          ${doorHtml('logos', icon('shapes'), t('Add a logo'),
-            t('Drop a mark; Lolly reads its shape and offers the right slot.'))}
+          ${doorHtml('file', icon('upload'), t('Start from a reference'),
+            t('A logo, screenshot, web page or design file. Preview before applying.'))}
         </div>
-        <button type="button" class="be-btn" data-ds-door="looks">${t('Find a look')}</button>
-        <p class="ds-ov-bring">${t('Nothing installs until you choose one.')} <a class="ds-ov-inline" href="#/">${escape(t('Explore the tools'))}</a>.</p>
+        <p class="ds-ov-bring"><button type="button" class="be-btn" data-ds-door="looks">${t('Find a look')}</button> ${t('Ready-made colours and type to try. Nothing installs until you pick one.')}</p>
+        <p class="ds-ov-bring"><a class="ds-ov-inline" href="#/">${escape(t('Explore the tools'))}</a></p>
       </div>`;
   }
 

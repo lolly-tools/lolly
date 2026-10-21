@@ -108,14 +108,14 @@ One exception is held today, approved by Andy on 2026-10-17:
 
 | Lockfile | Advisories | Crate | Removed when |
 |---|---|---|---|
-| `shells/tauri-desktop/src-tauri/Cargo.lock` | RUSTSEC-2026-0367, RUSTSEC-2026-0368, RUSTSEC-2026-0369 | `zip` 4.6.1, through `tauri-plugin-updater` 2.13.2 | `tauri-plugin-updater` 2.14.1 or later, or `zip` 9.0.0 or later, resolves |
+| `shells/tauri-desktop/src-tauri/Cargo.lock` | RUSTSEC-2026-0367, RUSTSEC-2026-0368, RUSTSEC-2026-0369 | `zip` 4.6.1, through `tauri-plugin-updater` 2.14.0 | `tauri-plugin-updater` 2.14.1 or later, or `zip` 9.0.0 or later, resolves |
 
 The justification:
 
 - `zip` 4.6.1 comes only through `tauri-plugin-updater` 2.x, which declares
   `zip ^4` for `cfg(target_os = "windows")`. It is compiled for Windows targets
   only.
-- The current release, v1.1.1, publishes no Windows build. Windows installers are
+- The current release, v1.1.2, publishes no Windows build. Windows installers are
   built only by the manual `desktop-extra.yml` dispatch.
 - Self-update is not live. `bundle.createUpdaterArtifacts` is `false`, and
   `plugins.updater.pubkey` is still the `PLACEHOLDER-RUN-TAURI-SIGNER-GENERATE`

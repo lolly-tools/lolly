@@ -16,9 +16,11 @@
  *     keeps `user/` as its namespace and `user/tokens/brand` as its head, because
  *     saved sessions reference placed asset ids and rewriting them would break
  *     every session on the device. New systems mint under `user/ds/<id>/`.
- *   - `shipped` always exists and cannot be removed. It names the build's own
- *     catalog tokens asset, is what a fresh install runs on, and is what a person
- *     switches back to after removing everything else.
+ *   - `shipped` always exists and is never deleted. It points at the build's own
+ *     catalog tokens asset and is what a fresh install runs on. A person can
+ *     hide it while another system is on the device ("Remove" on its row); it
+ *     stays the fallback, and comes back when nothing else is left or when it is
+ *     chosen again (a `ds=shipped` link, "Bring back").
  *
  * DOM-free. The store is opened through the shared connection (bridge/db.ts);
  * the pack meta read for the migration comes from lib/pack-store.ts. Every read
@@ -35,13 +37,25 @@ import { getPackMeta } from '../pack-store.ts';
 /** The object store (bridge/db.ts, DB v17) and the profile-KV pointer key. */
 export const DESIGN_SYSTEMS_STORE = 'design-systems';
 export const ACTIVE_DESIGN_SYSTEM_KEY = 'active-design-system';
+/** Profile-KV list of the catalog's companion systems this device has already
+ *  been given (companions.ts), so one a person removed is not seeded again. */
+export const SEEDED_DESIGN_SYSTEMS_KEY = 'seeded-design-systems';
 
 /** The signature verdict a pack import recorded (lib/pack-store.ts). */
 export type PackSignature = 'verified' | 'unverified' | 'unsigned';
 
 export type DesignSystemSource =
   | { kind: 'shipped' }
-  | { kind: 'local'; forkedFrom?: { id: string; version?: string } }
+  | {
+      kind: 'local'; forkedFrom?: { id: string; version?: string };
+      /** `app`: a catalog's companion system, seeded on this device (companions.ts).
+       *  `shipped`: the person's first edit of the shipped system (bridge/tokens.ts). */
+      from?: 'app' | 'shipped';
+      /** `from: 'app'` only: the companion's tokens asset and name, which "Reset to
+       *  original" brings back (reset.ts). Records seeded before this was kept
+       *  have none and reset to the starter under their current name. */
+      companion?: { tokens: string; label: string };
+    }
   | {
       kind: 'file'; fileName?: string; publisher?: string; version?: string;
       /** An instance pack loaded from disk can still own the catalog base that
@@ -79,6 +93,9 @@ export interface DesignSystemRecord {
   source: DesignSystemSource;
   /** Read-only material. The shipped record reflects its catalog's brandLock. */
   locked: boolean;
+  /** Shipped record only: the person removed it while another system was on
+   *  this device. Lists leave it out; it is still the fallback. */
+  hidden?: boolean;
   /** A pack's `prefs.theme`, applied on switch when set. */
   appearance?: { theme?: 'light' | 'dark' | 'brand' };
   /** Exact imported face rows for this material revision; older bytes stay recoverable. */
@@ -111,15 +128,29 @@ export interface DesignSystemRegistry {
   /** Run the one-shot migration if the store is empty; memoised. Safe to await twice. */
   ensure(): Promise<void>;
   list(): Promise<DesignSystemRecord[]>;
+  /** What a person sees: `list()` without a hidden shipped record. Never empty. */
+  visible(): Promise<DesignSystemRecord[]>;
   get(id: string): Promise<DesignSystemRecord | null>;
   /** The active record. Never null after ensure(): falls back to `shipped`. */
   active(): Promise<DesignSystemRecord>;
   activeId(): Promise<string>;
   /** Write or replace a record. The id must pass the grammar. */
   put(record: DesignSystemRecord): Promise<void>;
-  /** Remove a record. `shipped` is refused; removing the active one activates `shipped`. */
+  /** Remove a record. `shipped` is refused (hide it instead); removing the
+   *  active one activates `fallbackId(id)`. */
   remove(id: string): Promise<void>;
-  /** Point the device at `id`. Does NOT repaint anything - that is switch.ts's job. */
+  /** The system to land on when `excluding` goes away: the most recently used
+   *  visible record other than it, else `shipped`. */
+  fallbackId(excluding?: string): Promise<string>;
+  /** Hide or show the shipped record. Hiding is refused for a locked build and
+   *  when no other system exists; it never changes the active pointer, so the
+   *  caller switches away first. */
+  setShippedHidden(hidden: boolean): Promise<void>;
+  /** The companion systems (companions.ts) this device was already given. */
+  seeded(): Promise<string[]>;
+  markSeeded(key: string, seeded: boolean): Promise<void>;
+  /** Point the device at `id`. Does NOT repaint anything - that is switch.ts's job.
+   *  Choosing the shipped system shows it again. */
   setActive(id: string): Promise<void>;
   /** The HostV1 view of one record. */
   summary(record: DesignSystemRecord, activeId: string): DesignSystemSummary;
@@ -131,6 +162,13 @@ export interface DesignSystemRegistry {
 // also demands a string `id`.
 function isRecord(v: unknown): v is DesignSystemRecord {
   return typeof v === 'object' && v !== null && typeof (v as DesignSystemRecord).id === 'string';
+}
+
+/** The rows a person sees. A hidden shipped record stays out only while another
+ *  system exists, so the list is never empty. */
+export function visibleDesignSystems(records: DesignSystemRecord[]): DesignSystemRecord[] {
+  const others = records.some(r => r.source.kind !== 'shipped');
+  return records.filter(r => !(others && r.source.kind === 'shipped' && r.hidden));
 }
 
 export function createDesignSystemRegistry(db: RegistryDb, probe: RegistryProbe): DesignSystemRegistry {
@@ -224,8 +262,8 @@ export function createDesignSystemRegistry(db: RegistryDb, probe: RegistryProbe)
       activeMemo ??= api.ensure().then(readActiveId);
       const id = await activeMemo;
       // A pointer at a record that no longer exists (a half-finished remove)
-      // reads as `shipped`, which always exists.
-      return (await api.get(id)) ? id : SHIPPED_DESIGN_SYSTEM_ID;
+      // reads as the fallback, which always exists.
+      return (await api.get(id)) ? id : api.fallbackId();
     },
     async active() {
       const id = await api.activeId();
@@ -244,19 +282,60 @@ export function createDesignSystemRegistry(db: RegistryDb, probe: RegistryProbe)
       await db.put(DESIGN_SYSTEMS_STORE, record);
       listMemo = null;
     },
+    async visible() {
+      return visibleDesignSystems(await api.list());
+    },
     async remove(id) {
       if (id === SHIPPED_DESIGN_SYSTEM_ID) throw new Error('design systems: the shipped system cannot be removed');
       await api.ensure();
-      if ((await api.activeId()) === id) await api.setActive(SHIPPED_DESIGN_SYSTEM_ID);
+      if ((await api.activeId()) === id) await api.setActive(await api.fallbackId(id));
       await db.delete(DESIGN_SYSTEMS_STORE, id);
       listMemo = null;
+      // With nothing else left, a hidden shipped record is all there is: show it.
+      const rows = await readAll();
+      if (!rows.some(r => r.source.kind !== 'shipped') && rows.some(r => r.hidden)) await api.setShippedHidden(false);
+    },
+    async fallbackId(excluding) {
+      // Removal has always switched to a visible shipped record; a hidden one
+      // gives way to the system the person used most recently.
+      const rows = visibleDesignSystems(await api.list()).filter(r => r.id !== excluding);
+      if (rows.some(r => r.source.kind === 'shipped')) return SHIPPED_DESIGN_SYSTEM_ID;
+      return rows.sort((a, b) => b.lastUsedAt - a.lastUsedAt)[0]?.id ?? SHIPPED_DESIGN_SYSTEM_ID;
+    },
+    async setShippedHidden(hidden) {
+      await api.ensure();
+      const raw = await db.get(DESIGN_SYSTEMS_STORE, SHIPPED_DESIGN_SYSTEM_ID);
+      if (!isRecord(raw) || !!raw.hidden === hidden) return;
+      if (hidden) {
+        const shipped = await api.get(SHIPPED_DESIGN_SYSTEM_ID);
+        if (shipped?.locked) throw new Error('design systems: a locked build keeps its design system');
+        if (!(await readAll()).some(r => r.source.kind !== 'shipped')) throw new Error('design systems: the only design system cannot be removed');
+      }
+      const next: DesignSystemRecord = { ...raw };
+      if (hidden) next.hidden = true; else delete next.hidden;
+      await db.put(DESIGN_SYSTEMS_STORE, next);
+      listMemo = null;
+    },
+    async seeded() {
+      const stored = await db.get('profile', SEEDED_DESIGN_SYSTEMS_KEY).catch(() => null);
+      return Array.isArray(stored) ? stored.filter((v): v is string => typeof v === 'string') : [];
+    },
+    async markSeeded(key, seeded) {
+      const now = new Set(await api.seeded());
+      if (seeded) now.add(key); else now.delete(key);
+      await db.put('profile', [...now], SEEDED_DESIGN_SYSTEMS_KEY);
     },
     async setActive(id) {
       await api.ensure();
       const record = await api.get(id);
       if (!record) throw new Error(`design systems: no system “${id}” on this device`);
       await db.put('profile', id, ACTIVE_DESIGN_SYSTEM_KEY);
-      await db.put(DESIGN_SYSTEMS_STORE, { ...record, lastUsedAt: Date.now() });
+      // Store the raw row: list() overlays the shipped record with live catalog
+      // facts that are not this device's to keep.
+      const raw = await db.get(DESIGN_SYSTEMS_STORE, id);
+      const row: DesignSystemRecord = { ...(isRecord(raw) ? raw : record), lastUsedAt: Date.now() };
+      delete row.hidden;
+      await db.put(DESIGN_SYSTEMS_STORE, row);
       listMemo = null;
       activeMemo = Promise.resolve(id);
     },

@@ -123,6 +123,20 @@ html[dir="rtl"] .start-back-row {
 }
 .start-ds-name:focus { border-color: hsl(var(--ring) / .65); box-shadow: var(--ui-effect-focus-halo); }
 .start-ds-lock { color: hsl(var(--muted-foreground)); font-size: var(--fs-xs); }
+/* The one-time name ask (plan 320 S5), directly under the name it fills in. A
+   full tint, never an edge rail, as the studio's other cards are. */
+.start-ds-ask {
+  display: grid; gap: .45rem; margin: .6rem 0 0; padding: .75rem .9rem; max-width: 40rem;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--primary) / .06);
+}
+.start-ds-ask-q { font-size: var(--fs-sm); font-weight: 650; color: hsl(var(--foreground)); }
+.start-ds-ask-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.start-ds-ask-row .field-input { flex: 1 1 14rem; min-width: 0; }
+.start-ds-ask-hint { margin: 0; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+@media (pointer: coarse) {
+  .start-ds-ask-row .be-btn, .start-ds-ask-row .be-cta, .start-ds-ask-row .field-input { min-height: 44px; }
+}
 /* Short screens: the sentence goes entirely - the tabs already say where we are. */
 @media (max-height: 720px) {
   .start-sub { display: none; }
@@ -298,6 +312,9 @@ html[dir="rtl"] .start-back-row {
 .ds-rail-note.is-error { color: hsl(var(--destructive-text)); }
 
 .ds-main { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+/* A jump inside a room lands below the pinned room chips on a phone, not under
+   them. --ds-sticky-top is set by views/start/rooms.ts (0 at 900px and up). */
+.ds-main .tk-sec, .ds-main .tk-adv, .ds-main .tw-detail { scroll-margin-top: var(--ds-sticky-top, 0px); }
 .ds-panel[hidden] { display: none; }
 
 /* ── The Overview room - counts and doors, no progress ─────────────────────── */
@@ -311,6 +328,10 @@ html[dir="rtl"] .start-back-row {
   gap: 10px;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
 }
+/* Four doors read as a two-by-two, never three and an orphan. */
+.ds-ov--empty .ds-ov-doors { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 52rem; }
+@media (max-width: 560px) { .ds-ov--empty .ds-ov-doors { grid-template-columns: minmax(0, 1fr); } }
+.ds-ov--empty .ds-ov-bring { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-3); }
 .ds-ov-door,
 .ds-ov-card {
   display: grid;
@@ -319,8 +340,8 @@ html[dir="rtl"] .start-back-row {
   text-align: start;
   padding: 16px;
   border: 0;
-  box-shadow: inset 0 0 0 1px #fff1, 0 1px 4px #0002;
-  border-radius: calc(var(--radius) * 1.2);
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-control);
+  border-radius: var(--ui-radius-card);
   background: hsl(var(--card));
   color: hsl(var(--foreground));
   font: inherit;
@@ -335,14 +356,8 @@ html[dir="rtl"] .start-back-row {
 }
 .ds-ov-door:focus-visible,
 .ds-ov-card:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
-/* The two fastest starts carry a quiet tint. Neither is the "recommended"
-   route: one colour and a complete file are equally valid first material. */
-.ds-ov-door[data-ds-door="color-pick"],
-.ds-ov-door[data-ds-door="file"] {
-  background:
-    linear-gradient(145deg, hsl(var(--primary) / .11), transparent 64%),
-    hsl(var(--card));
-}
+/* No door is tinted: each is an equally valid first step, and a tint read as
+   "recommended" on two of the four. */
 .ds-ov-door-ic {
   display: grid;
   place-items: center;

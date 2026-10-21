@@ -9,14 +9,14 @@ Lolly does not ask you which arrangement you have. It gives you a few building b
 | Block | What it holds | Where |
 | --- | --- | --- |
 | **Design system** | Colours, type, logos, the rest of the tokens, and versions. Tools, pages and exports follow the active one. | [The Brand Studio](/info/brand-studio.html), and **Settings → Design systems** to switch or remove |
-| **Looks** | Light and dark. Every artefact can be drawn in either. | Built in; the studio derives both |
-| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour, chosen per artefact. One is canonical, and the app's own colours always use the canonical one. | The token file today; see [Colourways](/info/token-workflows.html#colourways). Rebuilding the palette in the studio keeps every colourway |
+| **Looks** | Light and dark. Every artefact can be drawn in either. | Built in; the studio derives both. A tool's **Design system** section switches the look when the look changes that tool, and the open tool redraws with no reload |
+| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour, chosen per artefact. One is canonical, and the app's own colours always use the canonical one. Tools that draw several colours at once, such as Chart and Mesh Gradient, draw on every lead together. | Written in the token file; chosen per artefact in a tool's **Design system** section, which redraws the open tool with no reload. Rebuilding the palette in the studio keeps every colourway. See [Colourways](/info/token-workflows.html#colourways) |
 | **Logo identities** | Several named sets of logos in one design system. The main set is "Your logo". | **Logos** room, **+ Add another logo** |
 | **Custom marks** | Marks under your own names: a crest, a favicon, a finished lockup. | **Logos** room, **Custom marks** |
 | **House rules** | Approved colour pairings, type per role and other rules a composition is checked against. | The design system's rules; see [Check a composition](/info/brand-studio.html#check-a-composition-against-the-design-system) |
 | **Versions** | Permanent named copies of a design system. A link can pin one with `designv`. | **Versions** at the foot of the studio rail |
 | **Several design systems** | Any number on one device, one active at a time. A design system travels as a single brand pack file. | **Settings → Design systems**; [Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices) |
-| **Theme groups of other kinds** | A design system can declare groups such as `campaign`, `brand` or `expression`. Lolly keeps them and resolves them as plain theme choices today. | The token file; see [What a theme group means](/info/token-workflows.html#what-a-theme-group-means) |
+| **Theme groups of other kinds** | A design system can declare groups such as `campaign`, `brand` or `expression`. Lolly keeps them and resolves them as plain theme choices today. | The token file; chosen from a list in a tool's **Design system** section. See [What a theme group means](/info/token-workflows.html#what-a-theme-group-means) |
 
 ## Arrangements at a glance
 
@@ -24,9 +24,9 @@ A common way to group arrangements is by how much of the parent brand the audien
 
 | Group | Arrangement | What the audience sees | Use in Lolly today | Not yet |
 | --- | --- | --- | --- | --- |
-| Unify | Monolithic | One masterbrand, a descriptor and a division colour | One design system, a colourway per division | Picking a colourway from the studio or a tool |
+| Unify | Monolithic | One masterbrand, a descriptor and a division colour | One design system, a colourway per division, picked per artefact in the tool | Authoring colourways in the studio |
 | Unify | Expanded | The masterbrand above each product, each with its own colour and mark | One design system, a colourway and a logo identity per product | A colourway choosing its logo identity; tools drawing a product's logo |
-| Unify | Rotating lead colour | One brand whose lead colour changes from piece to piece | One design system with colourways | A series that picks colourways by a rule |
+| Unify | Rotating lead colour | One brand whose lead colour changes from piece to piece, or shows every lead at once | One design system with colourways, chosen per row in a batch CSV; charts, gradients and covers draw on every lead | A series that picks colourways by a rule |
 | Subset | Driven | The parent's logo with each business's name, tailored by audience | One design system, or a copy per business | A business design system that stays linked to the parent |
 | Endorse | Appended | A brand's own mark with "by" the parent, for a limited time | A design system for the brand, the endorsed lockup as a custom mark | Generated endorsement lockups; an end date |
 | Endorse | Apparent | Distinct marks that share type, grid and motion | A design system per brand, copied from a shared start | A shared core the brands keep in step with |
@@ -34,7 +34,7 @@ A common way to group arrangements is by how much of the parent brand the audien
 | Detach | Discrete | Brands with no visible relationship | A design system per brand, switched per job | One artefact per brand open side by side |
 | Across | Co-branding | A partner's mark on your artwork | The partner's logo placed as an image | The partner's own rules: clear space, minimum size |
 | Across | White label | One asset re-skinned for each client | A design system per client | Keeping clients apart automatically |
-| Across | Seasons and campaigns | A seasonal skin over the core, for a set time | A theme group of kind `campaign` with a date window | Choosing it from a picker; scheduling |
+| Across | Seasons and campaigns | A seasonal skin over the core, for a set time | A theme group of kind `campaign` with a date window, chosen in the tool | Applying the window to new work; scheduling |
 
 ## Unify: one brand, many parts
 
@@ -44,10 +44,12 @@ Northwind is one brand. Northwind Freight is teal and Northwind Air is coral, an
 
 - Make **one design system** for Northwind.
 - Give each division a **colourway**, so a Freight poster and an Air poster use the same templates with a different lead colour. The app around them stays on the canonical colourway.
+- Pick the division's colourway per piece in the tool's **Design system** section, which shows the colourway dots in every tool that draws the lead colour.
 - Write each descriptor as text in the template, or add the finished descriptor lockup as a **custom mark** per division.
 - Use **house rules** to approve the division colours.
+- With the export panel's **Design system** card ticked, an export records the colourway that drew the file, and its description gives the colourway beside the tool, as in *Poster (Freight colourway)*. See [The design-system record](/info/exporting.html#the-design-system-record).
 
-Not yet: the studio cannot author colourways, and tools have no colourway control, so a colourway is written into the token file today ([the format](/info/token-workflows.html#colourways)).
+Not yet: the studio cannot author colourways, so a colourway is written into the token file today ([the format](/info/token-workflows.html#colourways)).
 
 ### Expanded
 
@@ -65,8 +67,11 @@ Some brands keep their logo, type and layout fixed and change the lead colour fr
 
 - Make **one design system** with a **colourway** for each lead colour. Each colourway carries its own lead, the colour that sits on it, and a partner, in both light and dark.
 - Mark one colourway canonical. An artefact that chooses none uses it, and so does the app.
+- Pieces that show the whole family at once draw on every lead, canonical first: Chart's series and palettes, Mesh Gradient's shuffle, the Audiogram visualiser's colours and the audio and text covers in Assets. Template authors reach the same leads as `--brand-lead-1` onwards ([Authoring tools](/info/authoring-tools.html#design-system-colours-in-templates-and-styles)).
+- For a series, give each [batch](/info/using.html#batch-pro-mode) row its colourway in the CSV's `_themes` column. Each row renders in its own colourway, and so does a tool placed inside it, such as a QR code. A saved session keeps its colourway in multi-edit, in a batch and in a Design document export.
+- [Verify](/verify) reads back which colourway drew each piece, from the record an export carries while its **Design system** card is ticked.
 
-Not yet: no series, batch or copy flow picks colourways by a rule. The engine's rules (cycle, by key, shuffle, by date) exist for scripts; see [Colourways](/info/token-workflows.html#colourways).
+Not yet: no series, batch or copy flow picks colourways by a rule, and the batch grid has no control for a row's colourway. The engine's rules (cycle, by key, shuffle, by date) exist for scripts; see [Colourways](/info/token-workflows.html#colourways).
 
 ## Subset: a parent with tailored businesses
 
@@ -88,6 +93,7 @@ Ferro keeps its own mark and adds "by Halcyon" for its first two years after the
 - Make a **design system for Ferro**.
 - Add the finished endorsed lockup as a **custom mark**.
 - **Publish a version** while the endorsement runs. A link that pins the version with `designv` keeps drawing the endorsed lockup after the endorsement ends.
+- An export drawn from a published version records that version, and *Recreate with these settings* in [Verify](/verify) reopens the tool in the same version.
 
 Not yet: Lolly does not generate an endorsement lockup from the two marks, and a design system cannot carry the date an endorsement ends.
 
@@ -137,6 +143,7 @@ One set of assets re-skinned for each client, where no client may see another cl
 - Make a **design system per client** and switch per job.
 - Give each client their own brand pack, or the artefacts made in their design system.
 - Check what an export says about how it was made before you send the file. See [Exporting](/info/exporting.html).
+- An export from a tool records the name of the client's design system. The export panel's **Design system** card shows that name before the file is written; untick the card when a file must not carry the name. Batch and folder exports show no card, so their files carry no name.
 
 Not yet: nothing keeps one client's material out of another client's work automatically. Switching is by hand.
 
@@ -145,9 +152,11 @@ Not yet: nothing keeps one client's material out of another client's work automa
 A holiday skin, a launch, a yearly conference theme: an overlay on the core for a set time.
 
 - Declare a theme group of kind `campaign` in the token file, with a date window on each option ([the format](/info/token-workflows.html#what-a-theme-group-means)).
+- Choose the campaign per artefact from the list in the tool's **Design system** section, in every tool the campaign changes.
 - Publish a **version** to keep a record of the design system as it was.
+- An export records the campaign option that drew the file, as it records a colourway.
 
-Not yet: no picker offers the campaign, and nothing applies the window to new work or schedules a campaign.
+Not yet: nothing applies the window to new work or schedules a campaign.
 
 ## A colourway, a logo identity, or a design system of its own
 

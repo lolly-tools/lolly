@@ -58,6 +58,13 @@ export interface TileSelectAdapter {
   clear(): void;
   /** CSS selector a marquee must never START on: tiles, controls, bars, chrome, drop zones. */
   noStart: string;
+  /**
+   * For a view that runs two of these on one host, each over its own part of the
+   * page (the Assets view's asset grid and its Swatches section): whether this
+   * instance answers a press or a key at `el` (the press target, or the focused
+   * element for a key). Absent = it answers everywhere on the host.
+   */
+  owns?(el: Element): boolean;
   /** Opt-in KEYBOARD grid model (plans/132 WP-L + 133 WP-3). Absent = gestures only. */
   keyboard?: TileKeyboardAdapter;
 }
@@ -268,6 +275,7 @@ export function wireTileSelect(a: TileSelectAdapter): TileSelect {
       // the browser ALSO dragging a text selection across the cards on its way there.
       // Shift-extend-selection is a MOUSEDOWN behaviour, so suppressing it on the click
       // would already be too late.
+      if (a.owns && !a.owns(el)) return;
       if (e.shiftKey && (el.closest(DOT) || a.tiles().some(t => t.contains(el)))) { e.preventDefault(); return; }
       if (active) return;
       // Only ever start a box in a genuine gap - never on a card, control, bar, or drop zone.
@@ -359,6 +367,7 @@ export function wireTileSelect(a: TileSelectAdapter): TileSelect {
 
     const onKeydown = (e: KeyboardEvent): void => {
       if (inField(document.activeElement) || uiOpen()) return;
+      if (a.owns && !a.owns(document.activeElement ?? document.body)) return;
       // Select all: works from anywhere on the view (not just tile focus).
       if ((e.metaKey || e.ctrlKey) && (e.key === 'a' || e.key === 'A')) {
         const all = orderedRefs();

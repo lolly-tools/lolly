@@ -171,3 +171,72 @@ test('stripTokensSuffix trims the catalog naming convention and leaves other nam
   assert.equal(stripTokensSuffix('Tokens'), 'Tokens');
   assert.equal(stripTokensSuffix('Acme'), 'Acme');
 });
+
+// ─── Removing the shipped system (it hides) and the fallback rule ─────────────
+
+const local = (id: string, lastUsedAt: number): DesignSystemRecord => ({
+  id, label: id, ns: `user/ds/${id}/`, headId: `user/ds/${id}/tokens/brand`,
+  source: { kind: 'local' }, locked: false, createdAt: lastUsedAt, lastUsedAt,
+});
+
+test('the shipped system hides while another exists, stays readable, and returns when nothing else is left', async () => {
+  const reg = createDesignSystemRegistry(memDb(), probe({ catalog: { id: 'lolly/tokens/demo', name: 'Lolly Demo' } }));
+  await reg.ensure();
+  await reg.put(local('starter', 5));
+  await reg.setShippedHidden(true);
+  assert.deepEqual((await reg.visible()).map(r => r.id), ['starter']);
+  assert.deepEqual((await reg.list()).map(r => r.id).sort(), ['shipped', 'starter'], 'hidden, not deleted');
+  assert.equal((await reg.get('shipped'))?.label, 'Lolly Demo');
+  await reg.remove('starter');
+  assert.deepEqual((await reg.visible()).map(r => r.id), ['shipped'], 'never an empty list');
+  assert.equal((await reg.list())[0]!.hidden, undefined);
+});
+
+test('hiding the shipped system is refused when it is the only one and on a locked build', async () => {
+  const reg = createDesignSystemRegistry(memDb(), probe({ catalog: { id: 'lolly/tokens/demo', name: 'Lolly Demo' } }));
+  await reg.ensure();
+  await assert.rejects(reg.setShippedHidden(true), /only design system/);
+  const locked = createDesignSystemRegistry(memDb(), probe({ catalog: { id: 'suse/tokens/brand', name: 'SUSE', brandLock: true } }));
+  await locked.ensure();
+  await locked.put(local('acme', 5));
+  await assert.rejects(locked.setShippedHidden(true), /locked build/);
+  await assert.rejects(reg.remove('shipped'), /cannot be removed/, 'deleting the shipped record stays refused');
+});
+
+test('removing the active system lands on the shipped one while it shows, else on the most recently used', async () => {
+  const reg = createDesignSystemRegistry(memDb(), probe({ catalog: { id: 'lolly/tokens/demo', name: 'Lolly Demo' } }));
+  await reg.ensure();
+  await reg.put(local('older', 1));
+  await reg.put(local('newer', 9));
+  await reg.put(local('current', 5));
+  await reg.setActive('current');
+  assert.equal(await reg.fallbackId('current'), 'shipped');
+  await reg.setShippedHidden(true);
+  assert.equal(await reg.fallbackId('current'), 'newer');
+  await reg.remove('current');
+  assert.equal(await reg.activeId(), 'newer');
+  // A pointer at a record that is gone reads as the fallback too.
+  await reg.remove('newer');
+  await reg.remove('older');
+  assert.equal(await reg.activeId(), 'shipped');
+  assert.deepEqual((await reg.visible()).map(r => r.id), ['shipped']);
+});
+
+test('choosing the shipped system again shows it, and seeded companions are remembered', async () => {
+  const db = memDb();
+  const reg = createDesignSystemRegistry(db, probe({ catalog: { id: 'lolly/tokens/demo', name: 'Lolly Demo' } }));
+  await reg.ensure();
+  await reg.put(local('starter', 5));
+  await reg.setActive('starter');
+  await reg.setShippedHidden(true);
+  await reg.setActive('shipped');
+  assert.deepEqual((await reg.visible()).map(r => r.id).sort(), ['shipped', 'starter']);
+  const stored = db.stores.get(DESIGN_SYSTEMS_STORE)!.get('shipped') as DesignSystemRecord;
+  assert.equal(stored.hidden, undefined);
+  assert.equal(stored.catalog, undefined, 'the raw row; the live catalog overlay is not written back');
+  assert.deepEqual(await reg.seeded(), []);
+  await reg.markSeeded('lolly/tokens/brand', true);
+  assert.deepEqual(await reg.seeded(), ['lolly/tokens/brand']);
+  await reg.markSeeded('lolly/tokens/brand', false);
+  assert.deepEqual(await reg.seeded(), []);
+});

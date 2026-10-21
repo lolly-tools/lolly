@@ -159,6 +159,18 @@
 .cat-panel-subhead { font-size: calc(.95rem * var(--a11y-fs)); font-weight: 700; margin: 1.4rem 0 .6rem; }
 .cat-panel-foot { font-size: var(--fs-lg); color: hsl(var(--muted-foreground)); margin-top: 1.2rem; }
 .cat-swatch-downloads { margin-bottom: 14px; }
+/* The grey card at the foot of Swatches that shows and hides the role colours
+   (sections.ts swatchRevealHtml): the gallery's .gtile--hiddenbox, as wide as the
+   grids above it. Shown, the role colours sit above it and it hides them again. */
+.cat-swatch-reveal {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  width: 100%; min-height: 84px; margin: 1.4rem 0 .6rem; padding: 14px;
+  border: none; border-radius: calc(var(--radius) * 1.1);
+  background: hsl(var(--muted) / 0.5); color: hsl(var(--muted-foreground));
+  font: inherit; font-size: var(--fs-md); font-weight: 600; text-align: center;
+  cursor: pointer; transition: background var(--dur-1), color var(--dur-1);
+}
+.cat-swatch-reveal:hover { background: hsl(var(--muted) / 0.75); color: hsl(var(--foreground)); }
 
 /* ── Favourites strip ── The shared featured-row component at the same commanding height
    as the Tools hero (--ftile-h lives in featured.css - one source for all three strips),
@@ -629,8 +641,11 @@
 .cat-edit-tool {
   display: flex; align-items: center; flex: none; gap: 0;
   width: var(--cat-tool-size); min-height: var(--cat-tool-size); padding: 0;
-  border: 0; border-radius: calc(var(--radius) * .7); background: hsl(var(--card)); box-shadow: var(--shadow-2);
+  border: 0; border-radius: calc(var(--radius) * .7);
   color: inherit; font: inherit; font-size: var(--fs-sm); text-align: start; cursor: pointer;
+  box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control);
+      backdrop-filter: blur(3px);
+          background: hsl(var(--card) / .25);
 }
 .cat-edit-tool:is(:hover, :focus-visible, .is-expanded) { width: 100%; background: hsl(var(--muted)); }
 .cat-edit-tool:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: -2px; }

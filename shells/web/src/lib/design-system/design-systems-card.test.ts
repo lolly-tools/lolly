@@ -24,6 +24,7 @@ function host() {
   return {
     designSystems: {
       list: async () => [...records],
+      visible: async () => [...records],
       activeId: async () => 'active',
     },
     assets: {},
@@ -54,7 +55,7 @@ test('vertical reverse logo is read from each brand on dark surfaces, with prima
     'vertical-primary': { $type: 'asset', $value: 'brand/primary' },
   } } };
   const record = { ...records[0], headId: 'user/ds/active/tokens/brand' };
-  const h = { ...host(), designSystems: { list: async () => [record], activeId: async () => 'active' }, assets: {
+  const h = { ...host(), designSystems: { list: async () => [record], visible: async () => [record], activeId: async () => 'active' }, assets: {
     _getBlob: async () => new Blob([JSON.stringify(doc)]),
     get: async (id: string) => { requested.push(id); if (missing) throw new Error('Missing'); return { url: `/catalog/${id}.svg` }; },
   } };
@@ -173,7 +174,7 @@ test('removing an imported catalogue copy explains the fallback and retains its 
   await renderDesignSystemsCard(body, { designSystems: reopened, assets } as never);
   assert.equal(body.querySelector('[data-ds-row="copy"]'), null);
   const supplied = body.querySelector('[data-ds-row="shipped"].is-active')!;
-  assert.match(supplied.textContent ?? '', /Managed by this instance/);
+  assert.match(supplied.textContent ?? '', /Came with this app/, 'an unlocked deployment brand is not managed');
   assert.match(supplied.textContent ?? '', /https:\/\/lolly.tools/);
   assert.match(supplied.textContent ?? '', /acme\/tokens\/brand/);
   assert.match(supplied.textContent ?? '', /Asset namespace\s*acme\//);
@@ -220,14 +221,98 @@ test('source facts report cached origin, version and checksum without claiming t
   } finally { networkStatus.offline = false; _setBaseForTests(''); }
 });
 
-// Plan 320 S10: the starter every build carries is bundled with the app, not
-// managed by an instance that lolly.tools does not have; and one colour is singular.
-test('the starter reads Bundled with this app; a deployment brand reads Managed by this instance', async () => {
+// Andy, 2026-10-20: managed means people can see the system and cannot edit it,
+// which is what a locked catalogue is. Lolly Demo, the starter and any unlocked
+// deployment brand are the person's to hide, edit and reset, so none reads as
+// managed. (Plan 320 S10 first took the label off the starter.) One colour is singular.
+test('only a locked catalogue system reads as managed; an editable one says where it came from', async () => {
   const { sourceLine, designSystemCardHtml } = await import('./design-systems-card.ts');
-  const shipped = (headId: string) => ({ id: 'shipped', label: 'X', ns: '', headId, source: { kind: 'shipped' }, locked: false, createdAt: 0, lastUsedAt: 0 }) as never;
-  assert.equal(sourceLine(shipped('lolly/tokens/brand')), 'Bundled with this app');
-  assert.equal(sourceLine(shipped('acme/tokens/brand')), 'Managed by this instance');
+  const { _setBaseForTests } = await import('../instance.ts');
+  const shipped = (headId: string, locked = false) => ({ id: 'shipped', label: 'X', ns: '', headId, source: { kind: 'shipped' }, locked, createdAt: 0, lastUsedAt: 0 }) as never;
+  assert.equal(sourceLine(shipped('lolly/tokens/demo')), 'Came with this app');
+  assert.equal(sourceLine(shipped('lolly/tokens/brand')), 'Came with this app');
+  assert.equal(sourceLine(shipped('acme/tokens/brand')), 'Came with this app');
+  assert.equal(sourceLine(shipped('acme/tokens/brand', true)), 'Managed by this instance');
+  _setBaseForTests('https://brand.example');
+  try {
+    assert.equal(sourceLine(shipped('acme/tokens/brand')), 'From this instance');
+    assert.equal(sourceLine(shipped('acme/tokens/brand', true)), 'Managed by this instance');
+  } finally { _setBaseForTests(''); }
   const one = designSystemCardHtml(records[0] as never, 'active', undefined, { font: 'x', colors: ['#000000'], colorCount: 1 });
   assert.match(one, />1 colour</);
   assert.doesNotMatch(one, /1 colours/);
+});
+
+test('Reset to original is offered on an edited Lolly Demo and on Lolly Starter, and nowhere else', async () => {
+  const { designSystemCardHtml } = await import('./design-systems-card.ts');
+  const preview = { font: 'x', colors: ['#000000'], colorCount: 1 };
+  const row = (source: unknown, locked = false) => {
+    const el = document.createElement('div');
+    el.innerHTML = designSystemCardHtml({ id: 'x', label: 'X', ns: 'user/ds/x/', headId: '', source, locked, createdAt: 0, lastUsedAt: 0 } as never, 'other', undefined, preview);
+    return el.querySelector('[data-ds-act="reset"]')?.textContent?.trim() ?? null;
+  };
+  assert.equal(row({ kind: 'local', from: 'shipped' }), 'Reset to original');
+  assert.equal(row({ kind: 'local', from: 'app' }), 'Reset to original');
+  assert.equal(row({ kind: 'local' }), null, 'a system made here has no original');
+  assert.equal(row({ kind: 'file', signature: 'unsigned' }), null);
+  assert.equal(row({ kind: 'local', from: 'app' }, true), null, 'a managed system is never edited');
+});
+
+test('the shipped row offers Remove while another system exists, and a removed one offers Bring back', async () => {
+  const shipped = { id: 'shipped', label: 'Lolly Demo', ns: '', headId: '', source: { kind: 'shipped' }, locked: false, createdAt: 0, lastUsedAt: 0 };
+  const starter = { id: 'lolly-starter', label: 'Lolly Starter', ns: 'user/ds/lolly-starter/', headId: '', source: { kind: 'local' }, locked: false, createdAt: 1, lastUsedAt: 1 };
+  const body = document.querySelector<HTMLElement>('#card')!;
+  const cardHost = (all: unknown[], visible: unknown[]) => ({
+    designSystems: { list: async () => all, visible: async () => visible, activeId: async () => 'shipped' }, assets: {},
+  });
+
+  await renderDesignSystemsCard(body, cardHost([shipped, starter], [shipped, starter]) as never);
+  const row = body.querySelector<HTMLElement>('[data-ds-row="shipped"]')!;
+  assert.equal(row.querySelector('[data-ds-act="remove"]')?.textContent?.trim(), 'Remove');
+  assert.equal(body.querySelector('[data-ds-act="restore"]'), null);
+
+  await renderDesignSystemsCard(body, cardHost([shipped], [shipped]) as never);
+  assert.equal(body.querySelector('[data-ds-row="shipped"] [data-ds-act="remove"]'), null, 'the only system cannot go');
+
+  await renderDesignSystemsCard(body, cardHost([{ ...shipped, locked: true }, starter], [{ ...shipped, locked: true }, starter]) as never);
+  assert.equal(body.querySelector('[data-ds-row="shipped"] [data-ds-act="remove"]'), null, 'a locked build keeps its system');
+
+  await renderDesignSystemsCard(body, cardHost([{ ...shipped, hidden: true }, starter], [starter]) as never);
+  assert.equal(body.querySelector('[data-ds-row="shipped"]'), null);
+  assert.match(body.querySelector('[data-ds-act="restore"]')?.textContent ?? '', /Bring back Lolly Demo/);
+  assert.equal(body.querySelector('[data-ds-row="lolly-starter"] .ds-row-source')?.textContent, 'Made here');
+
+  // After a first edit the person's copy carries the name, so the way back says "original".
+  const edited = { ...starter, id: 'default', label: 'Lolly Demo', source: { kind: 'local', from: 'shipped' } };
+  const companion = { ...starter, source: { kind: 'local', from: 'app' } };
+  await renderDesignSystemsCard(body, cardHost([{ ...shipped, hidden: true }, edited, companion], [edited, companion]) as never);
+  assert.match(body.querySelector('[data-ds-act="restore"]')?.textContent ?? '', /Bring back the original Lolly Demo/);
+  assert.equal(body.querySelector('[data-ds-row="default"] .ds-row-source')?.textContent, 'Edited here');
+  assert.equal(body.querySelector('[data-ds-row="lolly-starter"] .ds-row-source')?.textContent, 'Came with this app');
+});
+
+test('a row menu closes on Escape and on a press elsewhere, and only one is open at a time', async () => {
+  const { mountDesignSystemsCard } = await import('./design-systems-card.ts');
+  const body = document.createElement('div'); document.body.append(body);
+  const shippedRow = { id: 'shipped', label: 'Lolly Demo', ns: '', headId: '', source: { kind: 'shipped' }, locked: false, createdAt: 0, lastUsedAt: 0 };
+  const starterRow = { id: 'lolly-starter', label: 'Lolly Starter', ns: 'user/ds/lolly-starter/', headId: '', source: { kind: 'local', from: 'app' }, locked: false, createdAt: 1, lastUsedAt: 1 };
+  const h = { designSystems: { list: async () => [shippedRow, starterRow], visible: async () => [shippedRow, starterRow], activeId: async () => 'shipped' }, assets: {} };
+  const settle = async (): Promise<void> => { for (let i = 0; i < 20; i++) await new Promise(resolve => setTimeout(resolve, 0)); };
+  mountDesignSystemsCard(body, h as never);
+  await settle();
+  const [demoMenu, starterMenu] = [...body.querySelectorAll<HTMLDetailsElement>('details.ds-row-more')];
+  assert.ok(demoMenu && starterMenu);
+  demoMenu.open = true;
+  document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  assert.equal(demoMenu.open, false, 'Escape closes the open menu');
+  starterMenu.open = true;
+  document.body.dispatchEvent(new window.Event('pointerdown', { bubbles: true }));
+  assert.equal(starterMenu.open, false, 'a press elsewhere closes the menu');
+  demoMenu.open = true;
+  starterMenu.open = true;
+  starterMenu.dispatchEvent(new window.Event('toggle'));
+  assert.equal(demoMenu.open, false, 'opening one menu closes the other');
+  assert.equal(starterMenu.open, true);
+  body.remove();
+  document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
 });

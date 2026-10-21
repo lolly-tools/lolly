@@ -70,7 +70,8 @@ function themePort(opts: { selection?: ThemeSelection; groups?: boolean; context
   const hooks = { changed: () => {} };
   const port: DocumentThemePort = {
     groups: () => (opts.groups === false ? [] : [{
-      id: '', label: 'Theme', options: [{ id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }], active: selection?.[''] ?? 'light',
+      id: '', label: 'Theme', kind: 'mode', canonical: 'light',
+      options: [{ id: 'light', label: 'Light', canonical: true }, { id: 'dark', label: 'Dark', canonical: false }], active: selection?.[''] ?? 'light',
     }]),
     choose: async (group, option) => { calls.push(`choose ${option}`); selection = { [group]: option }; hooks.changed(); },
     ...(opts.context === false ? {} : {

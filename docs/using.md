@@ -307,6 +307,8 @@ Tools expose only the inputs that are meant to vary - everything else (colours, 
 
 **Reset:** *Clear changes* returns every input to its defaults.
 
+**Design system choices:** when the design system offers more than one colourway, a light and a dark look or another theme choice, a **Design system** section under the controls holds them. A choice appears only when it changes this tool: light and dark show when a colour the tool draws differs between the two looks, and the colourway dots show when the tool draws a colour a colourway changes. A tool that draws no colour from the design system, such as a file utility, shows no section at all. Each colourway is a dot in its own colours, light and dark are two buttons, and any other choice is a list. The choice belongs to this piece: every colour linked to the design system follows it, it travels in the link and the saved session, and the app's own colours stay as they are. Design shows the same choices in the Inspector's **Canvas** tab. A tool whose colours are its content can stay on the canonical colourway, and then offers no colourway here ([Colourways](/info/token-workflows.html#colourways)).
+
 ### Undo and redo
 
 **Cmd/Ctrl-Z** steps back and **Cmd/Ctrl-Shift-Z** (or **Cmd/Ctrl-Y**) steps forward again. The same pair sits as **Undo** and **Redo** buttons in the row above the controls - on the free canvas they're on the tool rail instead - and each greys out while there's nothing left to take back. Every step says what it was: undo a colour and a small message tells you which input it just restored, with a **Redo** button in it for the way back.
@@ -428,13 +430,17 @@ When a tool lets you add an image from your device, it's kept exactly as it arri
 
 ### Take your palette and fonts anywhere
 
-The **Swatches** panel in Assets does more than display - click a colour to copy it, or **download the whole brand palette** in the format your other tool speaks:
+The **Swatches** panel in Assets shows the colours your brand is made of: its brand colours, any colour you add, its ramps and its spectrum. The role colours Lolly keeps for the interface (text, surfaces, edges, colourway leads, and copies of a brand colour under another name) wait behind a grey **Show colour roles** card at the foot of the panel. Click the card to show them, and click it again to hide them. The panel does more than display. Each colour is a card like any other asset: click a colour to open its details, select colours to download just those, or **download the whole brand palette** in the format your other tool speaks:
 
-- <!--i:code--> **Design tokens (JSON)**, **CSS variables** or **CSS classes** - drop the brand straight into a stylesheet or a build;
-- <!--i:palette--> **Adobe Swatch Exchange (.ase)** - load it into Illustrator or Photoshop;
-- <!--i:pentool--> **GIMP palette (.gpl)** - for GIMP or Inkscape.
+- <!--i:code--> **Design tokens (JSON)**, **CSS variables** or **CSS classes** - drop the brand straight into a stylesheet or a build. A colour wider than sRGB keeps its wide value: the CSS files set it after the hex, for browsers that can show it, and the JSON keeps the hex as the value with the wide colour, the CMYK build and the spot ink alongside, where Lolly reads them back and other tools skip them;
+- <!--i:palette--> **Adobe Swatch Exchange (.ase)** - load it into Illustrator or Photoshop. A colour locked to a CMYK build arrives as that CMYK swatch, a spot ink as a spot swatch under the ink's own name, and a colour wider than sRGB as Lab;
+- <!--i:pentool--> **GIMP palette (.gpl)** - for GIMP or Inkscape, in sRGB, as are the **SCSS variables**.
 
-![The Swatches panel - the five palette download buttons across the top, then every brand colour as a copyable chip](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+![The Swatches panel - the five palette download buttons across the top, then every brand colour as a chip that opens its details](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+
+Select colours with the dot on each card, Shift-click a second dot for everything in between, drag a box through the gaps, or press Cmd/Ctrl+A with a card focused. The bar that appears offers **Download as…** in the same six formats, **Copy hex** and **Favourite**. Before you pick a format, the menu checks the colours against every format. A colour no format can hold (Transparent has no colour at all) is left out and listed. The menu also says which formats save a wide colour as its sRGB fallback (SCSS and GIMP), and which carry the CMYK and spot values (JSON and .ase). Right-click a card for the same actions on one colour.
+
+A colour's details open like any other asset's, with the colour filling the preview and folding sections beside it: **Linked values** (the CMYK build or spot ink locked to it, any value the brand authored for a particular space or press, and its design token), **Every notation** (hex, OKLCH, Display-P3 and the rest, each with a copy button), **Plotted on a colour space** (the Colour Lab's chart, against sRGB, Display-P3 or Rec.2020), **Tones** and **Readability**. The arrow keys step through the palette, the star adds the colour to your favourites, **Download as…** saves that one colour in any of the six formats, **Copy link** shares the colour itself and **Open in Colour Lab** takes it further.
 
 The **Fonts** panel lists your brand faces with a **download** beside each, to install locally or hand to a print shop. (The [Brand Studio](/info/brand-studio.html)'s Colours room offers the same palette download.)
 
@@ -484,6 +490,8 @@ Drag across cells, Shift-click a cell, or use Shift+Arrow keys to select a recta
 
 **Import CSV** lets you add rows or replace the current batch. Open **Columns** below the grid to reveal more inputs or per-row width, height, unit and DPI. Default export settings apply to rows without their own overrides. **Batch activity** can be collapsed after an import or render to make more room for the table.
 
+Each row keeps its own **theme choices**: light or dark, and a [colourway](/info/token-workflows.html#colourways) when the design system has them. A row opened from Projects, a folder or a saved batch renders in the choices its session was saved in, its preview opens in them, **Send to Print Sheet** carries them, and a duplicated or filled row takes the same ones. A CSV carries them in a `_themes` column, after the size columns, holding the same JSON as the `_themes` link parameter, for example `{"":"dark","colourway":"persimmon"}`. A blank cell, or `{}`, means the design system's defaults. The column is written only when some row has choices, so a batch without any exports the same CSV as before. On import, a cell that is not valid theme choices is listed as an issue and its row renders in the defaults. The grid has no control for changing a row's choices yet.
+
 Batch is for generating **many variants of one template** at once. To re-render sessions you've **already saved**, use **Projects → Render folder / Render selection** (see [Find and recover your work](/info/find-your-work.html#find-something-you-saved)) - no Pro needed.
 
 ## Editing side by side (Multi-edit)
@@ -497,6 +505,8 @@ One sidebar drives the lot:
 - <!--i:search--> **Filter inputs…** at the top narrows the controls across *every* card at once - which is how you get to "the headline" in eight sessions without scrolling for it.
 
 Click any canvas (or press Enter on it) and that session's sidebar card opens and scrolls into view. **Save all** writes every session back to its own slot. **Download all** saves first, then renders the whole set through the same pipeline as Projects' **Render selection** - one zip, with the optional password lock offered on the way.
+
+Each card draws in its own session's theme choices: a session saved in dark, or in a [colourway](/info/token-workflows.html#colourways), shows that look on its card, and a tool link placed inside it draws in the same look. Cards in different looks sit side by side, while the app around them keeps its own colours. **Save all**, the Downloads, **Batch grid** and **Send to Print Sheet** keep each session's choices.
 
 Two honest limits. The two-to-eight cap is real: every card mounts its own live runtime, and that's the number that stays responsive - a link asking for more (or for a session that no longer exists) says so rather than half-loading. And the link names *your* saved slots, so it reopens that set on this device; it is not a share link.
 

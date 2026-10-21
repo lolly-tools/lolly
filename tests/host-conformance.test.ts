@@ -104,3 +104,28 @@ test('behavioural smokes: a state store that forgets, or a net that allows every
   const r2 = await runHostConformance(promiscuous);
   assert.ok(r2.issues.some((i) => i.api === 'net' && /must reject/.test(i.message)), formatConformance(r2));
 });
+
+test('the family and axes smokes run only when a host offers them, and catch an answer that is not a list (plans/319)', async () => {
+  const tokens = (extra: Record<string, unknown>) => ({
+    get: async () => ({ size: 0, resolve: () => undefined }),
+    colors: async () => [],
+    resolve: async () => undefined,
+    themes: async () => [],
+    ...extra,
+  });
+  const without = createMockHost() as unknown as Record<string, unknown>;
+  without.tokens = tokens({});
+  assert.ok((await runHostConformance(without)).ok, 'a tokens API without the optional reads conforms');
+
+  const good = createMockHost() as unknown as Record<string, unknown>;
+  good.tokens = tokens({ axes: async () => [], family: async () => [{ id: 'main', name: 'Main', canonical: true, active: true, value: '#033633' }] });
+  const ok = await runHostConformance(good);
+  assert.ok(ok.ok, formatConformance(ok));
+
+  const broken = createMockHost() as unknown as Record<string, unknown>;
+  broken.tokens = tokens({ axes: async () => ({}), family: async () => [{ name: 'No id' }] });
+  const report = await runHostConformance(broken);
+  assert.equal(report.ok, false);
+  assert.ok(report.issues.some((i) => i.api === 'tokens' && /axes\(\) must resolve to an array/.test(i.message)), formatConformance(report));
+  assert.ok(report.issues.some((i) => i.api === 'tokens' && /carry an id and a value/.test(i.message)), formatConformance(report));
+});

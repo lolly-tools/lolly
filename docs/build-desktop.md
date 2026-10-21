@@ -64,12 +64,15 @@ Provide `LOLLY_CATALOG_SIGNING_KEY` and `VITE_CATALOG_PUBLIC_KEY_JWK` through yo
 From the repository root:
 
 ```bash
-export LOLLY_PROFILE=lolly-start
+export LOLLY_PROFILE=lolly-demo     # macOS: Lolly Demo, plus Lolly Starter to switch to
+# export LOLLY_PROFILE=lolly-start  # Windows and Linux: the blank brand
 export LOLLY_EMBED_CATALOG=profile
 pnpm run build:desktop
 ```
 
 Inside `shells/tauri-desktop`, `pnpm run build` does the same, with the same two variables set.
+
+The Mac app ships the `lolly-demo` brand, the one lolly.tools serves, so a new person opens it to a finished design system. Its asset index lists the blank starter as a companion design system, so Lolly Starter is on the device from the first launch, ready to switch to or edit. Without `LOLLY_EMBED_CATALOG` the desktop build takes its default seed, which is also `lolly-demo`.
 
 Tauri first builds and signs its frontend, builds the native CLI sidecar, and builds the Quick Look extensions on macOS. It then compiles and packages the application. Output:
 
@@ -85,7 +88,7 @@ For Intel Macs, use `.github/workflows/macos-intel.yml`. It builds the pinned ON
 
 For a rebuild using the same runtime, supply `runtime_run_id` from a previous successful Intel build and `runtime_sha256` for its bundled `libonnxruntime.dylib`. The workflow checks that digest, the x86_64 architecture, runtime version and API before reuse. Leave both inputs empty to compile the runtime again.
 
-For an authorised private SUSE build, mount `brands/suse` and set `LOLLY_PROFILE=suse` with `LOLLY_EMBED_CATALOG=profile`. Use a separate app identifier, such as `tools.lolly.SUSE.Desktop`, so its state and cached CLI catalog do not share the public edition's directory. Match the Quick Look extension identifiers to that app identifier on macOS. RPM source preparation additionally requires `rpm/make-sources.sh --private --out <private-build-directory>` and CLI resources built for the target Linux architecture. Source archives omit macOS extended-attribute files. Keep the sources and packages in private storage. Public workflows, S3 download buckets and OBS must continue using `lolly-start`.
+For an authorised private SUSE build, mount `brands/suse` and set `LOLLY_PROFILE=suse` with `LOLLY_EMBED_CATALOG=profile`. Use a separate app identifier, such as `tools.lolly.SUSE.Desktop`, so its state and cached CLI catalog do not share the public edition's directory. Match the Quick Look extension identifiers to that app identifier on macOS. RPM source preparation additionally requires `rpm/make-sources.sh --private --out <private-build-directory>` and CLI resources built for the target Linux architecture. Source archives omit macOS extended-attribute files. Keep the sources and packages in private storage. Public workflows, S3 download buckets and OBS must use a public brand: `lolly-demo` for the Mac app and `lolly-start` for Windows and Linux, never `suse`.
 
 ### Cross-compilation
 

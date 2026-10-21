@@ -20,7 +20,7 @@ globalThis.window = dom.window as unknown as typeof globalThis.window;
 globalThis.document = dom.window.document;
 globalThis.localStorage = dom.window.localStorage;
 
-const { applyTheme, urlThemeOverride } = await import('./theme.ts');
+const { applyTheme, logoRefsForTheme, urlThemeOverride } = await import('./theme.ts');
 
 /** Point the jsdom window at one address. */
 function at(url: string): void {
@@ -72,4 +72,14 @@ test('workspace appearance is independent of artwork theme and does not persist 
   applyTheme(urlThemeOverride()!, false, false);
   assert.equal(document.documentElement.dataset.theme, 'light');
   assert.equal(localStorage.getItem('theme'), 'brand');
+});
+
+test('each theme asks for its own logo form first, then falls back', () => {
+  assert.deepEqual(logoRefsForTheme('light'), ['{asset.logo.horizontal-primary}']);
+  assert.deepEqual(logoRefsForTheme('dark'), ['{asset.logo.horizontal-primary-reverse}', '{asset.logo.horizontal-primary}']);
+  // Brand shows the on-brand slot (Lolly Demo's Green Apple wordmark) and keeps the
+  // reverse form for a design system that has no on-brand logo.
+  assert.deepEqual(logoRefsForTheme('brand'),
+    ['{asset.logo.horizontal-on-brand}', '{asset.logo.horizontal-primary-reverse}', '{asset.logo.horizontal-primary}']);
+  assert.deepEqual(logoRefsForTheme('brand', 'vertical')[0], '{asset.logo.vertical-on-brand}');
 });

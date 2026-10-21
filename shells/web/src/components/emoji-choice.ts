@@ -80,7 +80,7 @@ export async function mountEmojiChoice(
       const title = document.createElement('h3'); title.textContent = tRaw('Choose an emoji set');
       const controlBody = document.createElement('div');
       let draft = selection.value();
-      const remember = document.createElement('input'); remember.type = 'checkbox';
+      const remember = document.createElement('input'); remember.type = 'checkbox'; remember.className = 'field-check';
       remember.checked = !draft;
       const label = document.createElement('label'); label.className = 'emoji-remember';
       label.append(remember, document.createTextNode(tRaw('Use this set for new work')));

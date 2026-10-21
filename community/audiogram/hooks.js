@@ -620,6 +620,25 @@ async function build(ctx) {
   // naming an artist whose work is not on screen would be worse than none.
   let vizPreset = '';
   let credit = '';
+  // The family of leads (plans/319), read only when the visualizer will run: every
+  // colourway's lead in this look except the accent's own, so the MilkDrop field can
+  // draw on the design system's other leads after its own colours. [] for fewer
+  // than two leads, which leaves agVizColors exactly as it was.
+  let leads = [];
+  if (wantViz && vizMeta && h.tokens && typeof h.tokens.family === 'function') {
+    try {
+      const family = (await h.tokens.family('primary')) || [];
+      if (family.length >= 2) {
+        const own = String(accent).trim().toLowerCase();
+        for (const m of family) {
+          const hex = m && typeof m.value === 'string' ? m.value.trim().toLowerCase() : '';
+          if (/^#[0-9a-f]{6}$/.test(hex) && hex !== own && leads.indexOf(hex) < 0) leads.push(hex);
+        }
+      }
+    } catch {
+      leads = [];
+    }
+  }
   if (wantViz && vizMeta) {
     try {
       const presets = await h.viz.presets();
@@ -670,8 +689,9 @@ async function build(ctx) {
     agWave: vizPreset ? vizWave : '',
     // Seeds the visualizer's palette. The background goes in alongside the ramp so the
     // field falls off to the card's own dark end rather than to a neutral the brand
-    // never chose; the accent leads, so it stays the colour the image is about.
-    agVizColors: vizPreset ? [accent, v.bg || '#101828'].concat(colors).join(' ') : '',
+    // never chose; the accent leads, so it stays the colour the image is about. The
+    // other colourways' leads follow the background (plans/319), before the ramp.
+    agVizColors: vizPreset ? [accent, v.bg || '#101828'].concat(leads, colors).join(' ') : '',
     // The bed's analysed length in ms, stamped on the stage as data-clip-ms so the
     // export bar's Duration field shows the length beforeExport will run to (empty
     // while the placeholder wave stands in for real audio).

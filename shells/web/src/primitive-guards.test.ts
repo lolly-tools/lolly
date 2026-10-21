@@ -653,7 +653,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/read-extract.ts': 5, // Read and extract: static shell markup plus escapeHtml()-wrapped counts and messages, and renderExtractHtml output
 
   // Fixed registry icons only; sidebar labels and metadata use textContent.
-  'components/asset-inspector-dock.ts': 3,
+  'components/asset-inspector-dock.ts': 2,
   // One fixed registry link icon; response URLs and labels are assigned as text/value.
   'components/invite-link-control.ts': 1,
   // Fixed registry icons only; button labels and comment content use textContent.
@@ -879,7 +879,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // and then re-admits `**bold**` alone.
   'components/tool-guide.ts': 1,
   'components/view-toggle.ts': 2,  // +1 2026-08-20: injectJellyIcons' ic.innerHTML - ICONS registry glyphs only (trusted, never user text), prepended into the jelly pill's open shadow buttons
-  'components/welcome-dialog.ts': 3,  // +1 2026-08-23: mountBrandedIntro's strip.innerHTML (plans/140 S4) - literal copy; the one interpolation is docsAppHref('start/quickstart'), a constant route string
+  'components/welcome-dialog.ts': 1,  // -2 2026-10-19: the two gallery tips strips and their innerHTML were removed
   'components/zoom-hud.ts': 1,
   'folder-overlay.ts': 3,
   'lib/audio-coaching.ts': 1,
@@ -938,7 +938,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'lib/brand-editor/shared.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/brand-editor/replace.ts': 4,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/brand-editor/ramps.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'lib/brand-editor/logos.ts': 3,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'lib/brand-editor/logos.ts': 2,   // 2026-10-19: the logo colours card (plan 320 S1) replaced the two suggestion-row sinks with one
   'lib/brand-editor/logo-intake.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/brand-editor/grid.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/brand-editor/derive.ts': 6,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
@@ -1124,6 +1124,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/assets/sections.ts': 6,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts; +3 2026-10-07 (Track A scale): expandDeferred inserts the folded group's body built by the same groupSection callers the full paint uses, and appendPage inserts assetTile() output plus showMoreHtml() (a scope string the view minted and two numbers), all already escape()d where interpolated; +1 2026-10-16: renderShared inserts the shared-library section from remote.ts html(), the same markup the full paint writes, with server labels, the query and tag names escape()d and tiles from assetTile()
   'lib/lazy-grid.ts': 2,   // 2026-10-07 (Track A scale): a deferred body and a further page of cards, both from the caller's own render functions (the picker's card(), every value escapeHtml()d); the module adds no interpolation of its own
   'views/assets/downloads.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/assets/swatch-set.ts': 1,   // 2026-10-19: the swatch format menu - menuItemHtml rows (label and reason escape()d there), the count and the fit notes through escape(), icons from the fixed registry; the same body-popover pattern as actions.ts Open with
+  'views/assets/swatch-details.ts': 1,   // 2026-10-19: the swatch sheet's chart - renderSliceChart (lib/oklch-slice.ts) markup, numeric geometry plus the swatch label through its escapeHtml, the same injection the brand editor and the Colour Lab make
   'lib/job-toast.ts': 2,   // +2 2026-08-17 (plan 124 WP-F): the pill + panel innerHTML - title/note/id/count all ESC()d
   'lib/perf-hud.ts': 1,    // +1 2026-08-18 (perf-hud flag): root.innerHTML = scaffold() - only icon() glyphs + tRaw() strings, no interpolated values; the live FPS number is written via textContent, not markup
   'views/video-job-dialog.ts': 1, // +1 2026-08-18 (plan 124 WP-G): the Resolution <select> rebuild (resSel.innerHTML) - resOptionHtml() emits a numeric px value + an escapeHtml()d "{px}p" label, no user text
@@ -1426,7 +1428,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // Start feature extraction: the same escaped templates; the editor error now uses textContent.
   'views/start/navigation.ts': 1,
   'views/start/feedback.ts': 1,
-  'views/start/brand.ts': 1,
+  'views/start/brand.ts': 2,   // 2026-10-19: + the one-time name ask (plan 320 S5); t() strings and escape()d values only
   'views/start/pdf.ts': 1,
   'views/start/site.ts': 1,
   // Moved from start.ts: static sheet shell and escaped swatchTile()/group labels.
@@ -1616,7 +1618,10 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // 10 as of 2026-09-04: the Tokens room adds one complete Lolly UI starter-role
   // preview. Token paths, current values and controls all reach it through escape();
   // its actual brand write stays in the delegated submit handler below the sink.
-  'lib/brand-studio-tabs.ts': 10,
+  // 12 as of 2026-10-20: the room's tiles and Colours/Type/Logos sections (and their
+  // whole-room blank state) are two writes to one host. Paths, names, values and hex
+  // reach the sink through escape()/colorToHex, and tokenPreviewHtml escapes its own output.
+  'lib/brand-studio-tabs.ts': 12,
   'views/timeline-panel/helpers.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/timeline-panel/inspector-pane.ts': 4,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/timeline-panel/menus.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
@@ -1645,6 +1650,13 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // is the only thing that may reach it. The pack's own bytes were checksummed
   // before they were parsed, so nothing here comes from a document.
   'components/emoji-style-control.ts': 2,
+  // 2026-10-17, plans/319 A4: the Design system section's choices. One innerHTML
+  // pass per draw; every label (a group or option name the design system wrote)
+  // goes through the shared escape helper, rows and options are addressed by
+  // numeric index so no design-system id reaches the markup, the help tip is the
+  // shared component's own markup, and the swatch colours are set through the
+  // CSSOM after a plain-hex check, never interpolated.
+  'components/theme-choices.ts': 1,
   // 2026-09-14, the learning module's four author-facing panels. Each is one
   // innerHTML pass over a record the author is editing, and every value that came
   // from a person goes through the shared escape helper: the course title, each
@@ -1747,7 +1759,10 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'components/token-binding-field.ts': 3,
   'components/token-context-strip.ts': 1,
   'components/token-review-proof.ts': 1,
-  'components/token-workspace.ts': 7,
+  // 9 as of 2026-10-20: the zero-match list and the "hidden by the current filters"
+  // detail are their own writes. Paths, queries and values go through escape(), and
+  // tokenPreviewHtml escapes its own output.
+  'components/token-workspace.ts': 9,
   // The saved-work check repaints only its own section: session labels, tool ids,
   // paths and failure text go through escape(); counts, times and copy are t() output.
   'lib/token-consumer-index.ts': 1,
@@ -1993,7 +2008,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 259 to 257: export controls share the canonical inset surface.
     // 257 to 256: the brand studio Set row marks itself with a full wash, not an inset rail.
     // 256 to 255: the swatch name chip is lifted by the floating elevation.
-    pin: 255,
+    // 255 to 254: the design system studio's Overview doors use the edge and control elevation.
+    pin: 253,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,
@@ -2028,7 +2044,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 426 to 425: project titles use the shared object title scale.
     // 425 to 424: Share headings use the shared section type role.
     // 424 to 423: the simple upload dropzone replaces the separate touch CTA.
-    pin: 423,
+    // 423 to 422: the gallery tips strip and its type rule are removed.
+    pin: 422,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },

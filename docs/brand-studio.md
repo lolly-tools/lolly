@@ -10,7 +10,9 @@ Changes preview **live across the whole app** as you make them, so you can see a
 
 Open **Settings → Design systems** and choose **Remove** from the system's menu. The confirmation tells you which system will be active afterwards. Saved sessions and personal uploads stay.
 
-The system labelled **Managed by this instance** comes from the deployment's catalogue. Expand **Catalogue source** to see who supplies it and which tokens asset it uses. In an app using its bundled catalogue, the label is **Bundled with this app**. Removing an imported or edited local copy does not remove the supplied system, its logos or its fonts. If the copy was active, the supplied system becomes active again.
+The system that comes from the deployment's catalogue reads **Came with this app**, or **From this instance** in an app connected to one. Expand **Catalogue source** to see who supplies it and which tokens asset it uses. A system reads **Managed by this instance** only when its catalogue locks it: you can use a managed system and download it, but its colours, type and logos stay as supplied, and **Make an editable copy** gives you a version you can change.
+
+Every other supplied system is yours to hide, edit and reset, including Lolly Demo and Lolly Starter on lolly.tools. **Remove** hides a supplied system and **Bring back** shows it again. Editing one keeps its name and marks the row **Edited here**. **Reset to original** in the system's menu discards the changes made on this device. Removing an imported or edited local copy does not remove the supplied system, its logos or its fonts. If the copy was active, the supplied system becomes active again.
 
 Changing those supplied files is an administrator's task. See [Removing a catalogue design system](/info/operate/deployment.html#removing-a-catalogue-design-system) for the self-hosted steps.
 
@@ -33,12 +35,14 @@ Pinned to the **foot of the rail** are the actions that belong to the whole desi
 
 - **Add from…** - the source picker, for bringing a brand in from a file, a PDF, an image, a font or a website. See [Bring a brand in](#bring-a-brand-in) below.
 - **Tray** - the candidates a scan turned up but hasn't committed. It stays hidden until a scan actually keeps something, and carries a count when it does; nothing in it changes your brand until you press Add on that row.
-- **Export** - writes the whole design system as one `LollyBrand-….lolly`.
+- **Export** - writes the whole design system as one `LollyBrand-….lolly`, named after the design system.
 - **Tokens (.json)** - the plain design-tokens document on its own, for a repo, a build step or another tokens tool.
 - **Restore brand settings** - return to a checkpoint saved before an import or a replacement of brand settings.
 - **Versions** - publish, activate and restore named copies of the design system. Hidden until there's something of your own to publish (or a `?area=versions` link asks for it by name).
 
 ![The studio room rail - Overview, Colours, Type, Logos, Tokens and Files](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+
+The header says which design system you are **Editing**, and its name is a field you can change at any time. Your first edit makes a design system of your own, and the studio then asks once **What is this design system called?**, with the words from your logo filled in when the logo spells them out. **Save name** keeps it; **Not now** leaves the placeholder name until you type one in the header. The name labels the design system in Settings and when you switch systems, and it is the name of the file **Export** writes.
 
 ## Overview
 
@@ -65,7 +69,7 @@ That's eight optional slots. Click a slot to add a PNG, SVG, JPEG or WebP; click
 
 - **Custom marks** - add marks your brand calls by its own name (an icon, a crest, a favicon) under **Custom marks**; name it and choose a file.
 - **More identities** - a sub-brand, product or event can have its own full set of logos. Use **+ Add another logo** and name it; your main set is simply "Your logo".
-- **Upload an SVG and Lolly reads its colours.** On a brand-new install it quietly sets your primary colour from the logo and says so. On an existing brand it offers the colour as a suggestion instead - *"Found in the logo: #…"* with a **Use as primary** button beside it - over in the Colours room, where you can take it or dismiss it.
+- **Place a logo and Lolly reads its colours.** A card under the drop zone, and again at the top of the Colours room, lists the colours the logo is drawn in and asks **Which is the main colour?** The likeliest answer is already selected: the logo's strongest colour, never the white it was exported on. **Use these colours** adds them to your palette, makes the main colour your primary and, when the logo has a dark neutral that reads on paper (a wordmark's colour, say), makes that the text colour, so every tool picks them up. **Not now** leaves them waiting in the tray. On a brand-new install the likeliest answer is applied at once, and the card says what changed and offers **Undo** or another main colour. SVG logos give their exact colours; a PNG, JPEG or WebP logo gives the colours that cover a real share of the mark.
 
 ## Colours
 
@@ -184,7 +188,7 @@ Selection in the palette pane is a gesture, not a mode. There is no button to pr
 - The grid has one tab stop. Arrows walk it, Shift-arrows extend the selection, Space toggles a tile, Delete removes the selection and Escape clears it. (Arrows only move the focus: to nudge a channel, press `l`, `c` or `h` first, as the readout says.)
 - On a touch screen there is no rectangle. Press and hold a tile to start a selection, then tap to add; per-group **Select all** carries the rest.
 
-The bar itself reads **{n} selected**, then **Move to** (an existing group, or a new one you name inside the menu), **Give a role** (each selected colour takes the next role in turn, so four tiles fill all four roles in one press), **Download** (the selection in any of the six palette formats), **Copy values** (one line per colour in its stored notation) and **Delete**. Move to and Give a role appear once the palette has shades to move around. One Ctrl/Cmd-Z undoes a whole bulk action - a move of forty, a role walk, a delete - and a delete says what it kept, because a selection reaches tiles this room does not remove.
+The bar itself reads **{n} selected**, then **Move to** (an existing group, or a new one you name inside the menu), **Give a role** (each selected colour takes the next role in turn, so four tiles fill all four roles in one press), **Download** (the selection in any of the six palette formats), **Duplicate** (a copy of each selected colour, named after it, placed right after it under the same heading), **Copy values** (one line per colour in its stored notation) and **Delete**. A copy is a colour of its own, so moving a copy a shade lighter, to another tone or to more chroma leaves the original as it was. One copy opens straight in the swatch editor for that adjustment; several copies stay selected for the next action. Move to and Give a role appear once the palette has shades to move around. One Ctrl/Cmd-Z undoes a whole bulk action - a move of forty, a role walk, a delete - and a delete says what it kept, because a selection reaches tiles this room does not remove.
 
 ### Gradients
 
@@ -239,13 +243,19 @@ The **Type roles** panel at the foot shows a live specimen of each role - body a
 
 ## Tokens
 
-The rest of the design system, editable without touching code:
+Tokens are the named values behind the design system: colours, typefaces, logos, corners and spacing. Tools read them by name, so a change here reaches every tool at once.
 
-![The Tokens room - a corner-radius slider plus spacing, sizing, shadows and the rest of the system](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
+![The Tokens room on a fresh system - one card with the ways to start, then the shape and spacing sliders](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
-- **Rounded corners** - a single radius slider (0–1.5rem) that cards, buttons and panels across the app follow.
-- **Neutrals** - the ink-through-paper ramp a fresh install ships with, listed as **Neutrals · starter · 9** with its nine steps and an **Open** into the Colours pane. It is the one place the starter neutrals are managed, and the *starter* tag goes the moment the ramp is generated rather than inherited.
+- **The head** says what tokens are, gives an example from your own system (*Primary is Spearmint, #033633*) and carries the file actions. **Download** saves the whole system as design tokens (JSON), or the palette as CSS variables, CSS classes, SCSS, a GIMP palette or an Adobe Swatch Exchange file. **Copy CSS** copies the palette as CSS variables, and **Add from…** reads a JSON file back in.
+- **Tiles** count each kind of token and jump to its section: Colours, Type, Logos, Shape and spacing, More and All tokens. Colours, Type and Logos count what is your own, the way Overview does: palette colours (roles point at a colour and are not counted again), faces installed on this device and logos you added. A tile marked *Starter* has only what came with the system. On a phone the tiles are one row you can scroll sideways.
+- **Colours** starts with the pairs tools put together (text on surface, on primary, muted on surface) and their APCA Lc readout, in light and in dark. Every colour group follows. A ramp is one row of chips; every other colour is a row with its value and the reference tools call it by, such as `{color.brand.spearmint}`. Press the reference to put it on the clipboard. A group that is all starter colours carries one *Starter* tag. A fresh system's ink-through-paper ramp shows as **Neutrals · starter · 9**, and **Edit in Colours** opens that group in the Colours room.
+- **Type** and **Logos** list the face for each role and each logo slot, each logo with a small picture of its mark. Faces and marks that came with the system sit under a *Starter* heading, below a line that says you have none of your own yet and a door into the room that changes them.
+- **Shape and spacing** holds the two sliders the app and every tool follow: **Rounded corners** (`shape.radius`) and **Spacing rhythm** (`space.base`). Each reads *Lolly default* until you move the slider and *Yours* after. A move is saved straight away and can be undone from the room's head.
 - **More tokens** - add and edit **spacing**, **sizing**, **stroke width**, **opacity**, **rotation**, plain **numbers** and **shadows**. Pick a type, name it (*Gutter, Card shadow…*) and set its value. These are stored as standard [design tokens](/info/design-tokens.html) (DTCG) and travel with the design system.
+- Two folds stay closed until you open them. **App appearance (advanced)** lists the colours, sizes and shadows Lolly's own screens use. **Inspect every token (advanced)** searches, filters and edits any token's stored value, and shows each change for review before it applies.
+
+A section with nothing in it says what is missing and offers the way to fill the gap: **Pick a colour**, **Choose a face** or **Add a logo**. A system with no colour, face or logo of its own yet shows one card with the doors, and says that tools use the starter's colours, faces and logos until then.
 
 ## Files
 
@@ -312,7 +322,9 @@ Some builds ship a **locked design system**, such as the SUSE Brand. Opening it 
 
 ## Remove a local design system
 
-Open **Profile > Design systems** and choose **Remove** from the copy's menu. The confirmation shows the system that will remain active. Personal sessions, uploads and material shared with another system are preserved. Removing an active hosted copy clears only the connection owned by that copy, then refreshes the supplied catalogue. A separately chosen instance connection remains selected.
+Open **Profile > Design systems** and choose **Remove** from the copy's menu. The confirmation shows the system that will remain active.
+
+The design system this app supplies can go too, as long as another one is in the list and the build is not locked. Removing it only hides it: its catalogue assets stay, **Bring back** on the same card shows it again, and it returns by itself if you remove everything else. Editing a supplied brand such as Lolly Demo works the same way. Your first change makes an editable copy with the same name, and that copy takes its place in the list. The blank starter is the exception: a first change there starts a design system of your own, so the studio asks once what to call the new system. Personal sessions, uploads and material shared with another system are preserved. Removing an active hosted copy clears only the connection owned by that copy, then refreshes the supplied catalogue. A separately chosen instance connection remains selected.
 
 Expand **Catalogue source** to inspect the supplied tokens asset, origin, namespace and known version/checksum. If a refresh fails, cached material is labelled. Server branding remains until its operator changes the source catalogue and redeploys, or its Work administrator reviews and applies a server change. See [Configuration](/info/configuration.html#supplied-and-local-design-systems) for both paths. Editing in this studio creates local changes; publication to a server requires an operator install.
 

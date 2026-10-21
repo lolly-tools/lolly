@@ -721,6 +721,35 @@ function _errorSvg(note) {
     + '</svg>';
 }
 
+// Before there is anything to encode. This is not an error: with an empty link
+// it is the first thing someone sees on opening the tool. A faint outline of a
+// code in the chosen colours, with the field still missing written across the
+// middle. It cannot scan: three corner squares and no data. data-qr-empty marks
+// it for the tests and for anyone reading the canvas.
+function _emptySvg(note, fg, bg) {
+  var m = 600 / 33;   // a 25-module code inside a 4-module quiet zone
+  function eye(col, row) {
+    var x = (4 + col) * m, y = (4 + row) * m;
+    return '<rect x="' + (x + m / 2) + '" y="' + (y + m / 2) + '" width="' + (6 * m) + '" height="' + (6 * m) + '" fill="none" stroke="' + fg + '" stroke-width="' + m + '"/>'
+      + '<rect x="' + (x + 2 * m) + '" y="' + (y + 2 * m) + '" width="' + (3 * m) + '" height="' + (3 * m) + '" fill="' + fg + '"/>';
+  }
+  var words = String(note).split(/\s+/), lines = [], line = '';
+  for (var i = 0; i < words.length; i++) {
+    var next = line ? line + ' ' + words[i] : words[i];
+    if (next.length > 30 && line) { lines.push(line); line = words[i]; } else line = next;
+  }
+  if (line) lines.push(line);
+  var lead = 34, top = 300 - ((lines.length - 1) * lead) / 2 + 9;
+  var text = lines.map(function(l, k) {
+    return '<tspan x="300" y="' + (top + k * lead) + '">' + _esc(l) + '</tspan>';
+  }).join('');
+  return '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" viewBox="0 0 600 600" data-qr-empty="">'
+    + '<rect x="0" y="0" width="600" height="600" fill="' + bg + '"/>'
+    + '<g opacity="0.16">' + eye(0, 0) + eye(18, 0) + eye(0, 18) + '</g>'
+    + '<text text-anchor="middle" font-size="26" font-weight="600" fill="' + fg + '" style="font-family: var(--font-brand, sans-serif)">' + text + '</text>'
+    + '</svg>';
+}
+
 // ─── Payload builders ────────────────────────────────────────────────────────
 // One string per payload kind, in the wire format scanning apps expect. The
 // escaping mirrors the engine's own template helpers (rfcText / icsStamp in
@@ -840,12 +869,13 @@ function _payloadFor(args, kind) {
   if (kind === 'wifi') return _wifi(args);
   if (kind === 'event') return _event(args);
   if (kind === 'geo') return _geo(args);
-  // 'url' - a neutral placeholder on blank input so a first render always shows a
-  // valid QR (brand-agnostic community tool: no brand-specific default here).
-  return (typeof args.url === 'string' && args.url.trim()) ? args.url.trim() : 'https://example.com';
+  // 'url'. A blank link encodes nothing. It used to fall back to a placeholder
+  // address, which made a code that scanned to a site nobody chose.
+  return _str(args.url);
 }
 
 var _KIND_HINT = {
+  url: 'Add the link this QR code should open.',
   text: 'Add the text this QR code should carry.',
   vcard: 'Add a name to build a contact card.',
   wifi: 'Add the network name to build a Wi-Fi code.',
@@ -868,6 +898,23 @@ function _fail(note, kind, content) {
     qrSummary: _NO_SUMMARY,
   };
 }
+
+// Nothing to encode yet: the calm empty state, with the same extras as a failure
+// so the accessible label and qrError still say what is missing.
+function _empty(note, kind, fg, bg) {
+  return Object.assign(_fail(note, kind, ''), { svgContent: _emptySvg(note, fg, bg) });
+}
+
+// What an export says when the code would carry nothing. Short, because the web
+// shell writes a refusal on the export button itself (48 characters at most).
+var _EXPORT_NEEDS = {
+  url: 'Add a link first',
+  text: 'Add the text first',
+  vcard: 'Add a name first',
+  wifi: 'Add the network name first',
+  event: 'Add the event name and start time first',
+  geo: 'Add a valid location first',
+};
 
 // A short human line for the accessible label. The payload itself can be a
 // whole multi-line vCard, which no one wants read out.
@@ -943,10 +990,10 @@ function compute(args, host) {
 
   var result;
   if (!content) {
-    // Nothing to encode for this kind yet. Same visible placeholder as an
-    // encoder failure, with a hint about the field that is still empty.
+    // Nothing to encode for this kind yet: the empty state, with a hint about
+    // the field that is still empty. An encoder failure below keeps the error panel.
     var hint = _KIND_HINT[kind] || 'Add some content for the QR code.';
-    result = _fail(hint, kind, '');
+    result = _empty(hint, kind, fg, bg);
   } else {
     try {
       var qr = new QRCode({
@@ -2007,7 +2054,22 @@ function onInput({ model, host }) {
   return _run(model, host);
 }
 
-function beforeExport({ format, opts }) {
+// The export refuses a code that carries nothing, on every shell: the web
+// shell shows the message on its export button, and the CLI prints the
+// message and exits.
+// The canvas already shows which field is empty.
+function _exportRefusal(model) {
+  var args = Object.fromEntries((model || []).map(function(i) { return [i.id, i.value]; }));
+  if (_KINDS.indexOf(args.payload || 'url') >= 0) {
+    var kind = args.payload || 'url';
+    return _payloadFor(args, kind) ? '' : _EXPORT_NEEDS[kind];
+  }
+  return _str(args.value) ? '' : 'Add the number or text first';
+}
+
+function beforeExport({ model, format, opts }) {
+  var refusal = _exportRefusal(model);
+  if (refusal) throw new Error(refusal);
   // Clear the container background for alpha-capable formats so the SVG's
   // fill:none background rect isn't composited onto an opaque canvas.
   var alphaFormats = ['png', 'webp', 'avif'];

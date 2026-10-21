@@ -229,7 +229,7 @@ download it produces is written.
 Usage:
   lolly run <session.lolly> [--export=pptx|pdf|png|svg|jpg|jpeg|webp] [--output=<file>]
             [--s=<frame id or position>] [--c2pa=on|off] [--imprint=0|1] [--no-provenance]
-            [--theme=<name> | --_themes=<json> | --themes=<a,b|all>]
+            [--no-madewith] [--theme=<name> | --_themes=<json> | --themes=<a,b|all>]
             [--file=<tokens.json>] [--force]
 
 Input:
@@ -245,6 +245,9 @@ Options:
   --c2pa=on|off      Content Credentials on or off (default: the app's own)
   --imprint=0|1      the pixel Imprint on or off (default: the app's own)
   --no-provenance    both of those off
+  --no-madewith      leave out the design-system record: the design system, version
+                     and colourway the file and its credential would carry (default:
+                     recorded, as in the app). --_madewith=0 is the same switch
   --theme=<name>     export once, in this theme the design system declares, to
                      --output as given
   --_themes=<json>   the same as a choice per token group, such as {"":"dark"}

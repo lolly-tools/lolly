@@ -1,0 +1,94 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* The swatch details sheet (views/assets/swatch-details.ts). The modal frame,
+   the paging buttons and the inspector dock are the asset sheet's own; this file
+   draws only what a colour adds: the colour as the stage, and the rows the
+   Colour Lab reports. */
+
+/* ── The stage: the colour, edge to edge ── */
+.cat-swatch-details .cat-details-preview.cat-swatch-preview { padding: 0; place-items: stretch; min-height: 240px; }
+.cat-swatch-stage {
+  position: relative; display: flex; align-items: flex-end; min-height: 240px; height: 100%;
+  padding: clamp(20px, 4vw, 48px);
+}
+/* Transparent shows the preview's checkerboard through it, in the theme's ink. */
+.cat-swatch-stage.is-transparent { color: var(--ui-color-text-default); }
+.cat-swatch-stage-text { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-2); min-width: 0; }
+.cat-swatch-stage-name { font-size: calc(32px * var(--a11y-fs)); font-weight: 700; line-height: 1.1; overflow-wrap: anywhere; }
+.cat-swatch-stage-value { font-family: var(--ui-type-mono-family); font-size: var(--ui-type-title); overflow-wrap: anywhere; }
+.cat-swatch-stage-alt { font-family: var(--ui-type-mono-family); font-size: var(--ui-type-label); opacity: .78; overflow-wrap: anywhere; }
+.cat-swatch-stage .plat-chip-flag { margin-block-end: var(--sp-2); }
+/* Tall enough on a phone that the name block sits below the paging buttons, which
+   are centred on the stage. */
+@media (max-width: 859px) {
+  .cat-swatch-details .cat-details-preview.cat-swatch-preview { height: max(300px, 40vh); }
+  .cat-swatch-stage { padding: 20px; }
+}
+
+/* ── Rows in the inspector ── */
+.cat-inspector .cat-swatch-meta dd { display: flex; align-items: flex-start; gap: var(--sp-3); }
+.cat-swatch-val { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.cat-swatch-meta code, .cat-swatch-notation code, .cat-swatch-ceilings code { font-family: var(--ui-type-mono-family); font-size: var(--ui-type-label); }
+.cat-swatch-muted { color: var(--ui-color-text-muted); font-size: var(--ui-type-label); }
+.cat-swatch-sub { margin: var(--sp-5) 0 var(--sp-3); color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); }
+.cat-swatch-sub:first-child { margin-block-start: 0; }
+
+/* One quiet icon button per value. */
+.cat-swatch-copy {
+  flex: none; display: inline-grid; place-items: center;
+  width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs)); padding: 0;
+  border: 1px solid transparent; border-radius: var(--ui-radius-control);
+  background: transparent; color: var(--ui-color-text-muted); cursor: pointer;
+}
+.cat-swatch-copy svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+.cat-swatch-copy:hover { color: var(--ui-color-text-default); background: var(--ui-color-surface-muted); }
+.cat-swatch-copy:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 1px; }
+.cat-swatch-copy.is-copied { color: var(--ui-color-action-primary); border-color: var(--ui-color-action-primary); }
+
+/* ── Every notation ── */
+.cat-swatch-notations { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-1); }
+.cat-swatch-notation {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center; column-gap: var(--sp-3); padding: var(--sp-2) 0;
+}
+.cat-swatch-notation + .cat-swatch-notation {    border-block-start: 1px solid color-mix(in srgb, var(--ui-color-border-default) 15%, transparent); }
+.cat-swatch-space { grid-column: 1; grid-row: 1; color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); font-weight: 600; }
+.cat-swatch-notation code { grid-column: 1; grid-row: 2; min-width: 0; overflow-wrap: anywhere; }
+.cat-swatch-notation .cat-swatch-copy { grid-column: 2; grid-row: 1 / span 2; }
+.cat-swatch-notation.is-inexact code { opacity: .62; }
+.cat-swatch-clamped { margin-inline-start: var(--sp-2); font-weight: 400; text-decoration: underline dotted; cursor: help; }
+@container asset-inspector (min-width: 420px) {
+  .cat-swatch-notation { grid-template-columns: 76px minmax(0, 1fr) auto; }
+  .cat-swatch-notation code { grid-column: 2; grid-row: 1; }
+  .cat-swatch-notation .cat-swatch-copy { grid-column: 3; grid-row: 1; }
+}
+
+/* ── Plotted on a colour space ── */
+.cat-swatch-seg { display: flex; width: 100%; margin-block-end: var(--sp-3); }
+.cat-swatch-seg > .view-seg-btn { flex: 1; min-width: 0; }
+.cat-swatch-chart { margin-block: var(--sp-4) var(--sp-3); min-height: 180px; }
+.cat-swatch-why { margin: 0 0 var(--sp-5); color: var(--ui-color-text-muted); font-size: var(--ui-type-label); }
+.cat-swatch-ceilings { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-2); }
+.cat-swatch-ceilings li { display: flex; justify-content: space-between; gap: var(--sp-3); font-size: var(--ui-type-label); }
+.cat-swatch-ceilings li.is-past { color: var(--ui-color-text-muted); }
+
+/* ── Tones ── */
+.cat-swatch-tones { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); border-radius: var(--ui-radius-control); overflow: hidden; }
+.cat-swatch-tone {
+  display: grid; place-items: end center; min-height: calc(56px * var(--a11y-fs)); padding: 0 0 var(--sp-2);
+  border: 0; cursor: pointer; font-family: var(--ui-type-mono-family); font-size: calc(9px * var(--a11y-fs));
+}
+.cat-swatch-tone > span { opacity: 0; transition: opacity var(--dur-1); }
+.cat-swatch-tone:is(:hover, :focus-visible, .is-copied) > span { opacity: 1; }
+.cat-swatch-tone:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+
+/* ── Readability ── */
+.cat-swatch-reads { display: grid; gap: var(--sp-4); }
+.cat-swatch-read { display: flex; align-items: center; gap: var(--sp-4); }
+.cat-swatch-read-sample {
+  flex: none; display: grid; place-items: center;
+  width: calc(56px * var(--a11y-fs)); height: calc(56px * var(--a11y-fs));
+  border-radius: var(--ui-radius-control); box-shadow: inset 0 0 0 1px var(--ui-color-border-default);
+  font-size: calc(22px * var(--a11y-fs)); font-weight: 700;
+}
+.cat-swatch-read-text { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; font-size: var(--ui-type-label); }
+.cat-swatch-read-label { color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); font-weight: 600; }

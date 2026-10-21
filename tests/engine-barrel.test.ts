@@ -262,6 +262,10 @@ const EXPECTED: readonly string[] = [
   'withBlockTokenBinding',
   'withTokenSelection',
   'withTokenSourceValue',
+  // Additive (plans/319 A7): the design-system record an export carries and reads back.
+  'DesignRecord', 'MadeWithPreview', 'designRecordCarrier', 'designRecordEnvironment', 'designRecordFrom',
+  'designRecordWords', 'pdfKeywords', 'readDesignRecord', 'readDesignRecordXml', 'readFileDesignRecord',
+  'themesSelection', 'toolCredit',
   // 1.265 (plans/319): theme-group meaning and colourways.
   'readTokenAxes',
   'axisOfKind',
@@ -304,6 +308,16 @@ const EXPECTED: readonly string[] = [
   'deriveColourwaySlots',
   'ColourwaySlotOptions',
   'ColourwaySlots',
+  // plans/319 A4: the manifest `tokenAxes` opt-out.
+  'ignoresTokenAxes',
+  'effectiveAxisKinds',
+  'ignoredTokenAxes',
+  'pinIgnoredTokenAxes',
+  'describeIgnoredTokenChoice',
+  'IgnoredTokenAxis',
+  'IgnoredTokenChoice',
+  'PinnedTokenSelection',
+  'ToolTokenAxes',
 
   'DesignTextBox',
   'ShapedTextLine',
@@ -579,6 +593,7 @@ const EXPECTED: readonly string[] = [
   'PackPngOptions',
   'PageText',
   'PaletteHit',
+  'PaletteSpot',
   'PaletteSpotHit',
   'PaletteSwatch',
   'ParsedCertificate',

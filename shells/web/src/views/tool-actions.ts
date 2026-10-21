@@ -192,7 +192,7 @@ function renderActions(
   // mentioned. One quiet line in the same slot as the details ask, on the first
   // download where that ask didn't run (the ask keeps priority - never two
   // teaching lines on one download). Device-local show-once flag: this is
-  // chrome education like the tips strip, not tool or profile state.
+  // chrome education, not tool or profile state.
   const REOPEN_NOTE_KEY = 'lolly-reopen-note-seen'; ta.REOPEN_NOTE_KEY = REOPEN_NOTE_KEY;
 
   ta.markup.paintBar();

@@ -12,7 +12,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { hexToOklch } from '@lolly/engine';
-import { deriveVizSchemes, nextVizSchemeId, randomVizSchemeId, vizSchemeById } from './viz-schemes.ts';
+import { deriveVizSchemes, nextVizSchemeId, randomVizSchemeId, vizSchemeById, vizLeads, vizSchemes, invalidateVizSchemes, type VizLead } from './viz-schemes.ts';
 
 /** SUSE: three supporting greens, plus persimmon / waterhole / midnight to contrast. */
 const SUSE = [
@@ -164,4 +164,88 @@ test('schemes carry readable names, using the brand\'s own labels when it has th
   for (const s of deriveVizSchemes(SUSE, undefined, '#30ba78')) {
     assert.ok(!/#|[0-9a-f]{6}/i.test(s.name), `unlabelled brand produced a raw name: ${s.name}`);
   }
+});
+
+// ── Authored leads replace the guess (plans/319) ─────────────────────────────
+
+/** Three colourways, in the design system's order, canonical first. */
+const LEADS: VizLead[] = [
+  { id: 'jungle', name: 'Jungle', hex: '#30ba78', partner: '#fe7c3f' },
+  { id: 'persimmon', name: 'Persimmon', hex: '#fe7c3f', partner: '#2453ff' },
+  { id: 'waterhole', name: 'Waterhole', hex: '#2453ff', partner: '#30ba78' },
+];
+
+test('two or more authored leads become one scheme each, in the design system\'s order, named after the colourway', () => {
+  const s = deriveVizSchemes(SUSE, SUSE_NAMES, '#30ba78', LEADS);
+  assert.deepEqual(s.map((x) => [x.id, x.name]), [
+    ['colourway-jungle', 'Jungle'], ['colourway-persimmon', 'Persimmon'], ['colourway-waterhole', 'Waterhole'],
+  ]);
+  // Each field is the lead itself, and the counterpoint is that colourway's own partner.
+  for (const [i, lead] of LEADS.entries()) {
+    const hero = s[i]!.palette.hero;
+    assert.ok(hueGap(hueOf(hero), hexToOklch(lead.hex)!.h) < 30, `${lead.name}'s field is its own lead`);
+    assert.ok(hueGap(hueOf(s[i]!.palette.contrast), hexToOklch(lead.partner!)!.h) < 10, `${lead.name}'s counterpoint is its partner`);
+  }
+  // The ids follow the colourway, not its colour, so a re-tuned lead keeps its stored scheme.
+  const retuned = deriveVizSchemes(SUSE, SUSE_NAMES, '#30ba78', [{ ...LEADS[0]!, hex: '#2fb070' }, ...LEADS.slice(1)]);
+  assert.deepEqual(retuned.map((x) => x.id), s.map((x) => x.id));
+});
+
+test('a partner too close to its lead hands the counterpoint to the best of the other leads', () => {
+  const s = deriveVizSchemes(SUSE, SUSE_NAMES, null, [{ ...LEADS[0]!, partner: '#2fb57a' }, LEADS[1]!]);
+  assert.ok(hueGap(hueOf(s[0]!.palette.contrast), hexToOklch('#fe7c3f')!.h) < 10, 'Persimmon stands in for the near-twin partner');
+});
+
+test('an ink-dark lead hands the field to its own partner and keeps its colourway\'s name', () => {
+  const s = deriveVizSchemes(SUSE, SUSE_NAMES, null, [{ id: 'pine', name: 'Pine', hex: '#0c322c', partner: '#30ba78' }, LEADS[1]!]);
+  assert.equal(s[0]!.id, 'colourway-pine');
+  assert.equal(s[0]!.name, 'Pine');
+  assert.ok(hueGap(hueOf(s[0]!.palette.hero), hexToOklch('#30ba78')!.h) < 30, 'the field is the partner, a colour that can carry one');
+});
+
+test('fewer than two leads changes nothing: the schemes are the palette guess, exactly', () => {
+  const guess = deriveVizSchemes(SUSE, SUSE_NAMES, '#30ba78');
+  for (const leads of [null, undefined, [], [LEADS[0]!]]) {
+    assert.deepEqual(deriveVizSchemes(SUSE, SUSE_NAMES, '#30ba78', leads), guess);
+  }
+});
+
+/** A host whose tokens answer one family per role, the way host.tokens.family does. */
+function familyHost(primary: string[], secondary: string[] | null, colours = SUSE) {
+  const ids = ['jungle', 'persimmon', 'waterhole'];
+  const member = (value: string, i: number) => ({ id: ids[i]!, name: ids[i]!.replace(/^./, (c) => c.toUpperCase()), canonical: i === 0, active: i === 0, value });
+  return {
+    tokens: {
+      colors: async () => colours.map((value) => ({ value })),
+      family: async (role?: string) => {
+        if (role === 'secondary') { if (!secondary) throw new Error('no partner'); return secondary.map(member); }
+        return primary.map(member);
+      },
+    },
+  };
+}
+
+test('vizLeads pairs each lead with its own partner by colourway id, and gives null below two leads', async () => {
+  assert.deepEqual(await vizLeads(familyHost(['#30ba78', '#fe7c3f'], ['#fe7c3f', '#2453ff'])), [
+    { id: 'jungle', name: 'Jungle', hex: '#30ba78', partner: '#fe7c3f' },
+    { id: 'persimmon', name: 'Persimmon', hex: '#fe7c3f', partner: '#2453ff' },
+  ]);
+  assert.deepEqual((await vizLeads(familyHost(['#30ba78', '#fe7c3f'], null)))?.map((l) => l.partner), [null, null], 'a failed partner read keeps the leads');
+  assert.equal(await vizLeads(familyHost(['#30ba78'], ['#fe7c3f'])), null);
+  assert.equal(await vizLeads({ tokens: { colors: async () => [] } }), null, 'a host without the family');
+  assert.equal(await vizLeads({ tokens: { colors: async () => [], family: async () => { throw new Error('offline'); } } }), null);
+  assert.equal(await vizLeads(undefined), null);
+});
+
+test('vizSchemes reads the family once per session, and invalidateVizSchemes reads again', async () => {
+  invalidateVizSchemes();
+  try {
+    const first = await vizSchemes(familyHost(['#30ba78', '#fe7c3f', '#2453ff'], ['#fe7c3f', '#2453ff', '#30ba78']));
+    assert.deepEqual(first.map((x) => x.id), ['colourway-jungle', 'colourway-persimmon', 'colourway-waterhole']);
+    const cached = await vizSchemes(familyHost(['#30ba78'], null));
+    assert.deepEqual(cached.map((x) => x.id), first.map((x) => x.id), 'the session cache holds');
+    invalidateVizSchemes();
+    const guess = await vizSchemes(familyHost(['#30ba78'], null));
+    assert.ok(guess.every((x) => !x.id.startsWith('colourway-')), 'a design system with one lead gets the palette guess');
+  } finally { invalidateVizSchemes(); }
 });

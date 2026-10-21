@@ -454,6 +454,12 @@ jobs:
         timeout-minutes: 5
         uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable branch, pinned 2026-08-04
 
+      - name: Compile the pinned font subset adapter
+        if: matrix.shard == 'tauri'
+        timeout-minutes: 10
+        working-directory: packages/node-shell/wasm/skera
+        run: cargo check --locked --target wasm32-unknown-unknown
+
       - name: Install Tauri system libraries
         if: matrix.shard == 'tauri'
         timeout-minutes: 20

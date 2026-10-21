@@ -22,7 +22,7 @@ import { assetBaseId, loadFavouriteAssets, loadHiddenAssets } from '../../lib/as
 import { icon } from '../../lib/icons.ts';
 import { menuItemHtml } from '../../lib/context-menu.ts';
 import { shareFile } from '../../lib/share-file.ts';
-import { audioThumbPool } from '../../lib/audio-thumb-colour.ts';
+import { audioThumbPool, audioThumbLeads } from '../../lib/audio-thumb-colour.ts';
 import type { ThumbTheme } from '../../lib/audio-thumb-colour.ts';
 import { loadAudioCovers } from '../../lib/audio-covers.ts';
 import { categoryGlyph } from '../../lib/category-icons.ts';
@@ -214,7 +214,8 @@ export async function reload(cat: CatCtx): Promise<void> {
   cat.trashCount = trashEntries.length;
   cat.palette = livePal;
   cat.coverMap = loadAudioCovers(prof);
-  cat.coverPool = audioThumbPool(livePal, host, (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light') as ThumbTheme);
+  const coverTheme = (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light') as ThumbTheme;
+  cat.coverPool = audioThumbPool(livePal, host, coverTheme, await audioThumbLeads(host, coverTheme));
   cat.catFonts = await computeBrandFonts(cat).catch(() => [] as CatFont[]);
   cat.loadFailed = failed;
   cat.profile = prof;

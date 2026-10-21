@@ -9,11 +9,10 @@
       so its disclosure rules (everything below except the box's own
       page-layout margin) move here verbatim and merge via a selector list,
       the same `.card, .plat-section` idiom chips.css already uses for the
-      surface itself. `.profile-collapse` (profile.css) and `.be-subst-details`
-      (brand-studio.css) are the same anatomy again, each with a local delta
-      (a compact border-top card for `.be-subst-details`; profile.css scopes
-      everything under `.profile-view`) - those deltas are why they keep
-      their own rules rather than folding in here too.
+      surface itself. The collapsible section card further down is the folding
+      card the tool sidebar, the Assets inspector and the Settings cards share.
+      `.be-subst-details` (brand-studio.css) is the same anatomy with a compact
+      border-top card, which is why it keeps its own rules.
 
    2. Plain always-mounted cards - the export panel's settings cards
       (tool-actions.ts: .export-cmyk/.export-pdfpass/.export-c2pa/.export-print,
@@ -127,7 +126,8 @@
   margin: 0;
   font-size: var(--fs-xs);
   line-height: 1.45;
-  color: var(--ui-color-border-default);
+  color: color-mix(in srgb, var(--ui-color-border-default) 70%, var(--ui-color-text-muted));
+
 }
 
 /* One section surface for tool inputs, Export, Share and the inspector. */
@@ -159,19 +159,44 @@
 .section-card .export-audio,
 .section-card .section-card{box-shadow:none; border-radius:0;}
 .section-card.is-open,
+details.section-card[open],
 .lp-sec:has(> .lp-sec-head[aria-expanded="true"]),
 .input-section[open] {
   transition: box-shadow var(--dur-2) ease;
-  box-shadow: var(--ui-effect-bevel), var(--ui-elevation-panel), inset 0 -.5em .5em -.3em var(--ui-color-surface-raised), inset 0 -.5em .5em .25em hsl(var(--primary) / 0.06);
-
+      box-shadow: var(--ui-effect-bevel), var(--ui-elevation-panel), inset 0 -.5em .5em -.3em color-mix(in srgb, var(--ui-color-surface-muted) 50%, transparent), inset 0 -.5em .5em .25em hsl(var(--primary) / 0.06);
 
 
 }
 
+/* ── The collapsible section card ─────────────────────────────────────────────
+   One component for every section that folds: the tool sidebar's input sections
+   (.input-section, the sidebar's own spelling of the same parts), the Assets
+   inspector's sections and the Settings cards (details.section-card with a
+   .section-card-body). The head, caret, spacing and fold motion are declared once,
+   below, for both spellings. Two slots are optional: an icon before the title
+   (tool sections show their vocabulary glyph; the inspector and Settings show
+   none) and a value after it (Settings shows what each card is set to).
+
+     <details class="section-card">
+       <summary class="section-card-summary">
+         [<span class="section-card-icon" aria-hidden="true"><svg/></span>]
+         <h2 class="section-card-title">Name</h2>
+         [<span class="section-card-value">Set to</span>]
+       </summary>
+       <div class="section-card-body">...</div>
+     </details>
+
+   A details.section-card without a .section-card-body (the token workspace's
+   review folds) keeps the plain card box above and its older head. */
+details.section-card:has(> .section-card-body) { display: block; padding: 0; gap: 0; }
+
+details.section-card:has(> .section-card-body) > .section-card-summary,
 .input-section-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--sp-3);
+  border-radius: 0;
   padding: var(--sp-5) var(--sp-6);
   /* Match a sidebar <select>'s height (39.5px) so a collapsed section lines up
      with the dropdowns in the input list - minus the section's 2px border. */
@@ -195,7 +220,23 @@
 /* An optional glyph before the head (manifest render.sectionIcons): on the chrome
    icon scale like every other mark, muted like the word beside it. */
 .input-section-title { display: inline-flex; align-items: center; gap: var(--sp-3); min-width: 0; }
-.input-section-icon { display: inline-flex; flex: none; opacity: .8; }
+.input-section-icon,
+details.section-card > .section-card-summary > .section-card-icon { display: inline-flex; flex: none; opacity: .8; }
+/* The title takes the head's type, whatever element carries it (Settings uses an h2). */
+details.section-card:has(> .section-card-body) > .section-card-summary > .section-card-title {
+  flex: 1 1 auto; min-width: 0; margin: 0; text-align: start;
+  font: inherit; letter-spacing: inherit; text-transform: none; color: inherit;
+}
+/* The optional value after the title: quiet, never heavier than the name, and it
+   truncates rather than pushing the caret off the row. */
+details.section-card > .section-card-summary > .section-card-value {
+  flex: 0 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-align: end;
+  font-size: var(--ui-type-label);
+  font-weight: 400;
+  color: var(--ui-color-text-muted);
+}
 .input-section-icon svg,
 .lp-sec-head > svg,
 .section-card-icon,
@@ -207,6 +248,7 @@
   stroke-width: 1.5px;
 }
 
+details.section-card:has(> .section-card-body) > .section-card-summary:hover,
 .input-section-summary:hover {
   color: hsl(var(--primary));
   background-color: hsl(var(--background) / .1);
@@ -216,8 +258,9 @@
    box-shadow on the focused <summary>, so promote the ring to the section
    wrapper - its own box-shadow paints outside its border box, unclipped - using
    the same border + halo idiom as a focused <select> / text field. */
-.input-section-summary:focus-visible { outline: none; }
-.section-card:has(> :is(.protection-head, .pdfpass-head, .section-card-head):focus-visible),
+.input-section-summary:focus-visible,
+details.section-card > .section-card-summary:focus-visible { outline: none; }
+.section-card:has(> :is(.protection-head, .pdfpass-head, .section-card-head, .section-card-summary):focus-visible),
 .lp-sec:has(> .lp-sec-head:focus-visible),
 .input-section:has(.input-section-summary:focus-visible) {
   overflow: visible;
@@ -231,6 +274,7 @@
 
 .input-section-summary::-webkit-details-marker { display: none; }
 
+details.section-card:has(> .section-card-body) > .section-card-summary::after,
 .input-section-summary::after {
   content: '';
   display: block;
@@ -251,17 +295,39 @@
 
 
 
+details.section-card[open]:has(> .section-card-body) > .section-card-summary::after,
 .input-section[open] .input-section-summary::after {
   transform: rotate(45deg);
   color: var(--ui-color-border-default);
 }
+/* The caret is drawn, so it reads the same in every card; it points the other way
+   in a right-to-left page, where a closed section opens towards the left. */
+details.section-card:has(> .section-card-body) > .section-card-summary:dir(rtl)::after,
+.input-section-summary:dir(rtl)::after { transform: rotate(135deg); }
+details.section-card[open]:has(> .section-card-body) > .section-card-summary:dir(rtl)::after,
+.input-section[open] .input-section-summary:dir(rtl)::after { transform: rotate(45deg); }
 
+details.section-card > .section-card-body,
+.input-section-body {
+  /* On the scale, and on the summary's own 12px gutter above it. */
+  padding: var(--sp-7) var(--sp-6) var(--sp-6);
+}
 .input-section-body {
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
-  /* On the scale, and on the summary's own 12px gutter above it. */
-  padding: var(--sp-7) var(--sp-6) var(--sp-6);
+}
+
+/* One fold motion for every section. A <details> section (the tool sidebar's
+   input sections and every details.section-card: the asset inspector, the export
+   panel's cost card, the token workspace) moves through ::details-content below.
+   The export panel's button cards and the Design inspector's sections open from a
+   button instead, and lib/disclosure-motion.ts runs the same motion from these
+   same three values. */
+:root {
+  --fold-size-duration: 180ms;
+  --fold-fade-duration: 160ms;
+  --fold-easing: ease-out;
 }
 
 /* Fallback for browsers without the native content wrapper. */
@@ -271,8 +337,9 @@
 
 @media (prefers-reduced-motion: no-preference) {
   @supports not selector(::details-content) {
-    .input-section[open] > .input-section-body {
-      animation: input-section-in 160ms ease-out backwards;
+    .input-section[open] > .input-section-body,
+    details.section-card[open] > :not(summary) {
+      animation: input-section-in var(--fold-fade-duration) var(--fold-easing) backwards;
     }
   }
 
@@ -280,26 +347,31 @@
      layer on open also retains an authored wrapper opacity from the base layer.
      Native transitions reverse from the current frame on a quick second click. */
   @supports selector(::details-content) {
-    .input-section::details-content {
+    :is(.input-section, details.section-card)::details-content {
       opacity: 0;
-      transition: opacity 160ms ease-out, content-visibility 180ms allow-discrete;
+      transition: opacity var(--fold-fade-duration) var(--fold-easing), content-visibility var(--fold-size-duration) allow-discrete;
     }
-    .input-section[open]::details-content {
+    :is(.input-section, details.section-card)[open]::details-content {
       opacity: revert-layer;
     }
 
     @supports (interpolate-size: allow-keywords) {
-      .input-section::details-content {
+      :is(.input-section, details.section-card)::details-content {
         interpolate-size: allow-keywords;
         block-size: 0;
+        /* A .section-card is a flex column, which makes this box a flex item, and a
+           flex item's automatic minimum height is its whole content. That minimum
+           held the box at full height while block-size moved, so the card snapped
+           instead of folding. */
+        min-block-size: 0;
         /* The summary's focus ring can make the outer section overflow visible. */
         overflow: clip;
-        transition: block-size 180ms ease-out, opacity 160ms ease-out, content-visibility 180ms allow-discrete;
+        transition: block-size var(--fold-size-duration) var(--fold-easing), opacity var(--fold-fade-duration) var(--fold-easing), content-visibility var(--fold-size-duration) allow-discrete;
       }
-      .input-section[open]::details-content {
+      :is(.input-section, details.section-card)[open]::details-content {
         block-size: auto;
       }
-      .input-section[open]:has(.help-tip-btn:hover, .help-tip-btn:focus-visible, .help-tip-pop:not([hidden]), .color-picker-field.is-open)::details-content {
+      :is(.input-section, details.section-card)[open]:has(.help-tip-btn:hover, .help-tip-btn:focus-visible, .help-tip-pop:not([hidden]), .color-picker-field.is-open)::details-content {
         overflow: visible;
       }
     }
@@ -308,9 +380,11 @@
 
 
 @media (prefers-reduced-motion: reduce) {
-  .input-section-summary::after { transition: none; }
+  .input-section-summary::after,
+  details.section-card > .section-card-summary::after { transition: none; }
 }
+html[data-a11y-motion="reduce"] details.section-card > .section-card-summary::after,
 html[data-a11y-motion="reduce"] .input-section-summary::after { transition: none; }
 
-html[data-a11y-motion="reduce"] .input-section::details-content { transition: none; }
-html[data-a11y-motion="reduce"] .input-section-body { animation: none; }
+html[data-a11y-motion="reduce"] :is(.input-section, details.section-card)::details-content { transition: none; }
+html[data-a11y-motion="reduce"] :is(.input-section-body, details.section-card > :not(summary)) { animation: none; }

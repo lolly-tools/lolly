@@ -47,7 +47,7 @@ for (const file of ['mcp.Dockerfile', 'mcp-browser.Dockerfile']) {
     assert.ok(check > runtime.indexOf('COPY --from=build /runtime-content/catalog ./catalog'));
     assert.ok(check < runtime.indexOf('USER node'));
     assert.match(runtime.slice(check), /await import\('\.\/packages\/rondo\/src\/index\.ts'\); await quickjs\(\);/);
-    assert.match(read('packages/rondo/package.json'), /"@jitl\/quickjs-wasmfile-release-sync": "0\.31\.0"/);
-    assert.match(read('packages/rondo/package.json'), /"quickjs-emscripten-core": "0\.31\.0"/);
+    assert.match(read('packages/rondo/package.json'), /"@jitl\/quickjs-wasmfile-release-sync": "0\.32\.0"/);
+    assert.match(read('packages/rondo/package.json'), /"quickjs-emscripten-core": "0\.32\.0"/);
   });
 }

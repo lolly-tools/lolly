@@ -2,6 +2,7 @@
 
 import type { AttributionPlanV1, AttributionReceiptV1 } from '../rights-v1.ts';
 import type { IngredientCredential, SourceIngredient } from './assets.ts';
+import type { TokenAxisKind } from './tokens.ts';
 
 // ─── Export ─────────────────────────────────────────────────────────────────
 
@@ -229,6 +230,16 @@ export interface ExportOpts {
   // embedMeta:false to skip (e.g. thumbnails). Text/HTML/MD carry none.
   meta?: ExportMeta;
   embedMeta?: boolean;
+  /**
+   * Whether the auto-assembled `meta` records the design system and colourway
+   * that made this export (`designSystem`, `designVersion`, `themes`, and the
+   * colourway's name in the description). Optional/additive (plans/319): unset
+   * means the runtime's own setting (`runtime.setMadeWith`, on by default), and
+   * `false` leaves every one of those fields out of this export. The `_madewith=0`
+   * URL param and the CLI's `--no-madewith` set it to false. Ignored when the
+   * caller supplies its own `meta`.
+   */
+  madeWith?: boolean;
 
   /**
    * Colour-management tag for the output. For raster formats (PNG/JPEG) this is
@@ -402,4 +413,32 @@ export interface ExportMeta {
   /** Licence label and/or URL, e.g. "CC BY 4.0 · https://creativecommons.org/licenses/by/4.0/".
    *  User-asserted (bindToMeta 'license'); omitted/'' when none. */
   license?: string;
+  /**
+   * The design system the export was drawn with (plans/319): its device id and the
+   * label its owners gave the system, exactly as typed. Present only when the host gives a
+   * system and the export panel's "Design system" card (or `madeWith`) is on.
+   * Absent on records written before plans/319 and on hand-built metas.
+   */
+  designSystem?: { id: string; label: string };
+  /** The published design version the render resolved against. Absent for the edit head (`latest`). */
+  designVersion?: string;
+  /**
+   * The theme choices the pixels do not already show: every colourway and other
+   * non-mode axis with more than one option, in the document's own order. The
+   * light/dark choice is left out, because the picture shows that choice. Absent when there
+   * is nothing to record.
+   */
+  themes?: ExportThemeChoice[];
+}
+
+/** One theme choice an export records (plans/319). */
+export interface ExportThemeChoice {
+  /** The theme group id; `''` for themes with no group. */
+  group: string;
+  /** The group's declared kind, when it declares one. */
+  kind?: TokenAxisKind;
+  /** The chosen option's id. */
+  id: string;
+  /** The chosen option's display name. */
+  name: string;
 }

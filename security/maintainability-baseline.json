@@ -49,10 +49,10 @@
       "typeEscapes": 0
     },
     "shells/web/src/views/color-lab.ts": {
-      "lines": 2166,
+      "lines": 2145,
       "largestFunctionLines": 2575,
       "importFanIn": 1,
-      "importFanOut": 23,
+      "importFanOut": 24,
       "typeEscapes": 0
     },
     "shells/web/src/views/deck-editor.ts": {
@@ -70,17 +70,17 @@
       "typeEscapes": 68
     },
     "shells/web/src/views/design-inspector.ts": {
-      "lines": 1575,
+      "lines": 1576,
       "largestFunctionLines": 2028,
       "importFanIn": 1,
-      "importFanOut": 26,
+      "importFanOut": 27,
       "typeEscapes": 0
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1795,
-      "largestFunctionLines": 1747,
+      "lines": 1787,
+      "largestFunctionLines": 1730,
       "importFanIn": 1,
-      "importFanOut": 67,
+      "importFanOut": 66,
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
@@ -98,24 +98,24 @@
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {
-      "lines": 2823,
-      "largestFunctionLines": 2083,
+      "lines": 2794,
+      "largestFunctionLines": 2048,
       "importFanIn": 8,
-      "importFanOut": 40,
+      "importFanOut": 41,
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
-      "lines": 1552,
-      "largestFunctionLines": 1580,
+      "lines": 1545,
+      "largestFunctionLines": 1577,
       "importFanIn": 1,
       "importFanOut": 66,
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
-      "lines": 2690,
-      "largestFunctionLines": 1930,
+      "lines": 2689,
+      "largestFunctionLines": 1929,
       "importFanIn": 3,
-      "importFanOut": 54,
+      "importFanOut": 55,
       "typeEscapes": 1
     }
   },
@@ -334,7 +334,7 @@
     "shells/web/src/pro/batch.ts": 1,
     "shells/web/src/pro/folder-export.ts": 3,
     "shells/web/src/pro/grid.ts": 3,
-    "shells/web/src/pro/index.ts": 39,
+    "shells/web/src/pro/index.ts": 38,
     "shells/web/src/pro/io.ts": 1,
     "shells/web/src/pro/preflight-rows.ts": 1,
     "shells/web/src/pro/run-overlay.ts": 1,

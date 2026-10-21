@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-10-18T23:32:19.748Z",
+  "generatedAt": "2026-10-19T09:50:23.158Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -272,7 +272,7 @@
       "id": "qr-code",
       "name": "QR Code",
       "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locations and text - plus retail and logistics barcodes from EAN-13 and Code 128 to ITF-14, GS1-128, GS1 DataBar and MaxiCode.",
-      "version": "2.6.3",
+      "version": "2.7.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -2715,7 +2715,7 @@
       "id": "audiogram",
       "name": "Audiogram",
       "description": "Turn a voice clip or song into a video in your design system's colours that actually moves with the sound - bars, spectrum, ring, ridgeline or scope, ready for social.",
-      "version": "2.7.5",
+      "version": "2.8.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -3454,7 +3454,7 @@
       "id": "filter",
       "name": "Filter",
       "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.",
-      "version": "1.5.0",
+      "version": "1.5.2",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -5458,7 +5458,7 @@
       "id": "record",
       "name": "Record",
       "description": "Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically.",
-      "version": "1.4.3",
+      "version": "1.4.4",
       "status": "official",
       "category": "everyone",
       "capabilities": [
@@ -5612,7 +5612,7 @@
       "id": "darkroom",
       "name": "Darkroom",
       "description": "Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Reuse a look through LUT export or Grade a video. Opens Photoshop and GIMP layers for positioning, blending and image export.",
-      "version": "2.5.0",
+      "version": "2.5.1",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -8748,7 +8748,7 @@
       "id": "chart",
       "name": "Chart",
       "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
-      "version": "1.26.1",
+      "version": "1.27.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -9900,7 +9900,7 @@
       "id": "gradient",
       "name": "Gradient",
       "description": "Five ways to build a gradient from the design system swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points and the animated Flow waves. Drag everything right on the canvas; export stills or join-free video loops.",
-      "version": "1.2.3",
+      "version": "1.3.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -11443,7 +11443,7 @@
       "id": "diagram-builder",
       "name": "Diagrams",
       "description": "Org charts, flowcharts, timelines and more - from cards, text, Mermaid, DOT or CSV.",
-      "version": "1.8.1",
+      "version": "1.8.2",
       "status": "experimental",
       "category": "everyone",
       "tags": [
@@ -11893,7 +11893,7 @@
       "id": "wayfinding-signage",
       "name": "Wayfinding",
       "description": "Directional event signs - destinations, each with an arrow. Print-ready.",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "status": "official",
       "category": "event",
       "tags": [
@@ -12398,7 +12398,7 @@
       "id": "agenda",
       "name": "Agenda",
       "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "status": "community",
       "category": "event",
       "tags": [

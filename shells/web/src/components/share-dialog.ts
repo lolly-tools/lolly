@@ -313,7 +313,7 @@ function renderShareSurface(
       </div>
       ${personal.length ? `<fieldset class="share-personal-review"><legend>Review personal fields</legend>
         <p>These values stay out of the link unless you select them. Anyone with the link can read included values. Shortening a link does not hide its contents.</p>
-        ${personal.map((field, index) => `<label><input type="checkbox" data-personal-field="${index}"> Include ${escape(field.label)}</label><textarea readonly aria-label="${escape(field.label)} value" rows="3">${escape(field.value)}</textarea>`).join('')}
+        ${personal.map((field, index) => `<label><input type="checkbox" class="field-check" data-personal-field="${index}"> Include ${escape(field.label)}</label><textarea readonly aria-label="${escape(field.label)} value" rows="3">${escape(field.value)}</textarea>`).join('')}
       </fieldset>` : ''}
       <p class="share-warning" data-share-warning role="status" hidden></p>
       ${showImageNote ? `<p class="share-note">

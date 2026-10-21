@@ -305,9 +305,11 @@ function wordOf(model, id, fallback) {
 }
 
 // ── the design system's colours ─────────────────────────────────────────────
-// Resolved ONCE per mount: onInput runs on every keystroke and the design system
-// does not change under the tool. A host with no tokens, or a system with no
-// usable colours, leaves the fallback ramp in place.
+// Resolved once and kept, because onInput runs on every keystroke. A theme or
+// colourway switch is the one time the answers change: the runtime then calls
+// onInput with id '__tokens', which drops the kept palette so the next compute
+// reads it again. A host with no tokens, or a system with no usable colours,
+// leaves the fallback ramp in place.
 
 var _palette = null;
 var _lang = 'en';
@@ -1111,6 +1113,7 @@ function onInit({ model, lang }) {
 }
 
 async function onInput({ model, id, lang }) {
+  if (id === '__tokens') _palette = null;
   if (id !== 'sessions') return compute(model, lang);
   var input = model.find(function (v) { return v.id === 'sessions'; });
   var table = input && input.value;

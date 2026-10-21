@@ -1763,12 +1763,13 @@ button.fc-readout:empty { display: none; }
   box-sizing: border-box;
   padding: 3px;
   border-radius: var(--radius-pill);
-  background: hsl(var(--card) / 0.85);
+  background: var(--ui-color-surface-raised);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
-  border: 1px solid hsl(var(--border));
+  border: 0;
   opacity: 0.45;
   transition: opacity var(--dur-1);
+  box-shadow: var(--ui-elevation-panel);
 }
 .tool-stage:hover .stage-nav,
 .stage-nav[data-zoomed="1"],

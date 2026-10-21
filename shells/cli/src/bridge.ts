@@ -10,7 +10,7 @@
  * changes were needed.
  */
 
-import { scopedTokenOptions } from '../../../engine/src/token-context.ts';
+import { scopedTokenOptions, tokenAxesOf, tokenFamily, brandLeadVars } from '../../../engine/src/token-context.ts';
 import { isJxl } from '../../../engine/src/jxl.ts';
 import { prepareJxlAsset } from '@lolly-tools/node-shell/jxl-asset';
 import { readFile } from 'node:fs/promises';
@@ -20,11 +20,11 @@ import { fetchPublicBytes, MAX_PUBLIC_ASSET_BYTES, PUBLIC_IMAGE_TYPES } from '@l
 // (the pptx read path uses it); the engine hands back entries and the caller zips them,
 // exactly the split the web shell's lib/zip.ts sits on.
 import { zipSync } from 'fflate';
-import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, markToolComponents, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, inspectTokenDocument, tokenSelectionKey, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId } from '@lolly/engine';
+import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, markToolComponents, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, inspectTokenDocument, tokenSelectionKey, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId, readDesignSystemIdentity, SHIPPED_DESIGN_SYSTEM_ID, injectSvgMeta } from '@lolly/engine';
 import { isRasterPhotoLook, parseLutText, photoLookCacheKey, photoLookThemeKey, resolvePhotoLook, type GradeLut, type PhotoTreatment } from '@lolly/engine';
 import type {
-  HostV1, Profile, AssetsAPI, AssetRef, AssetQuery, ExportOpts, ExportMeta,
-  StateEntry, ComposeSpec, ExportFormat, TokenSet, TokenResolveOptions, C2paSignOpts,
+  HostV1, Profile, AssetsAPI, AssetRef, AssetQuery, ExportOpts,
+  StateEntry, ComposeSpec, ExportFormat, TokenSet, TokenResolveOptions, C2paSignOpts, DesignSystemSummary,
 } from '@lolly-tools/core/host-v1';
 // Deep image encoders (v1.100 host.codec) - off the @lolly/engine barrel by
 // design, imported deep-relative like node-shell/raster.ts does for packExr.
@@ -325,6 +325,40 @@ function rondoRecordOf(bytes: Uint8Array): RondoSourceV1 | null {
   }
 }
 
+/** Each CLI bridge's way to move its own reads to another theme selection, keyed by the bridge. */
+const selectionFollowers = new WeakMap<HostV1, (selection: Record<string, string>) => void>();
+
+/** Two selections name the same choices, whatever their key order. */
+function sameSelection(a: Record<string, string> | undefined, b: Record<string, string> | undefined): boolean {
+  const ka = Object.keys(a ?? {}), kb = Object.keys(b ?? {});
+  return ka.length === kb.length && ka.every((key) => Object.hasOwn(b ?? {}, key) && b![key] === a![key]);
+}
+
+/**
+ * Move a CLI bridge to the theme selection its runtime applied (plans/319 A4).
+ *
+ * A bridge is built before any runtime exists, scoped to the link's `_themes`. The
+ * runtime may apply another selection: a tool's manifest `tokenAxes` pins every
+ * group of an ignored kind to its canonical option. What the bridge reads for
+ * itself after the mount (the eps-cmyk palette, an export's asset reads) and what
+ * a shell reads from it (the canvas variables, the emoji palette, the brand font)
+ * must then follow the runtime, the way the web shell's token bridge follows the
+ * address it rewrites. Nothing moves when the runtime kept the link's choices, so
+ * every tool without a pin reads exactly as before. A host that is not a CLI
+ * bridge is left alone. Returns whether the bridge moved.
+ */
+export function followRuntimeSelection(
+  host: HostV1,
+  runtimeSelection: Record<string, string> | undefined,
+  linkSelection: Record<string, string> | undefined,
+): boolean {
+  if (!runtimeSelection || sameSelection(runtimeSelection, linkSelection)) return false;
+  const follow = selectionFollowers.get(host);
+  if (!follow) return false;
+  follow(runtimeSelection);
+  return true;
+}
+
 export async function createCliBridge(
   { profile = {}, dom, networkAllowlist, designVersion, tokenSelection, capturePublicOnly = false, publicOnlyAssets = false, aiEnabled = true, tokensDocument = null, rondo, onAudioRun, onAudioRunFailed, rondoBudget, geometryBackend }: CliBridgeOpts = {} as CliBridgeOpts,
 ): Promise<HostV1> {
@@ -514,6 +548,8 @@ export async function createCliBridge(
 
   let tokensDocCache: Promise<unknown> | null = null;
   let tokensDocRevision = '';
+  /** Which design system the head document came from, set when tokensDoc resolves. */
+  let tokensDocSystem: DesignSystemSummary | null = null;
   /** The HEAD document - the edit head, `-latest`. Never a published version. */
   async function tokensDoc(): Promise<unknown> {
     const localRecord = await activeNodeDesignSystem().catch(() => null);
@@ -523,17 +559,45 @@ export async function createCliBridge(
       tokensDocCache = null;
     }
     tokensDocCache ??= (async () => {
-      // A document given for this run (`--file`) is the whole design system.
-      if (tokensDocument) return tokensDocument;
+      tokensDocSystem = null;
+      // A document given for this run (`--file`) is the whole design system. It
+      // names itself only through the identity it carries.
+      if (tokensDocument) {
+        const identity = readDesignSystemIdentity(tokensDocument);
+        if (identity) tokensDocSystem = { id: identity.id, label: identity.label, source: 'file', active: true, locked: false, headId: null };
+        return tokensDocument;
+      }
       // CLI and TUI share one editable Node-side head. A terminal system is an
       // override only when one is active; otherwise the mounted catalog remains
       // the exact source it was before the start experience existed.
       const local = localRecord ? await readActiveDesignSystemTokens() : null;
-      if (local) return local;
+      if (local) {
+        tokensDocSystem = { id: localRecord!.id, label: localRecord!.label, source: localRecord!.source.kind === 'file' ? 'file' : 'local', active: true, locked: false, headId: null };
+        return local;
+      }
       if (!headTokensAsset) return null;
-      return readAssetDoc(headTokensAsset);
-    })().catch(() => null); // unavailable ≠ broken: everything token-y just degrades
+      const doc = await readAssetDoc(headTokensAsset);
+      tokensDocSystem = {
+        id: SHIPPED_DESIGN_SYSTEM_ID,
+        label: shippedSystemLabel(headTokensAsset.name),
+        source: 'shipped',
+        active: true,
+        locked: (headTokensAsset as { brandLock?: boolean }).brandLock === true,
+        headId: headTokensAsset.id,
+      };
+      return doc;
+    })().catch(() => { tokensDocSystem = null; return null; }); // unavailable ≠ broken: everything token-y just degrades
     return tokensDocCache;
+  }
+  /**
+   * The design system this run draws with, identified the way the web shell identifies a system
+   * (plans/319), so a CLI, TUI or MCP export records the same system a browser one
+   * would: the identity a `--file` document carries, the active terminal design
+   * system, or the catalog's shipped tokens asset. Null when the run has no tokens.
+   */
+  async function activeSystem(): Promise<DesignSystemSummary | null> {
+    await tokensDoc();
+    return tokensDocSystem ? { ...tokensDocSystem } : null;
   }
 
   /**
@@ -606,11 +670,16 @@ export async function createCliBridge(
       const { resolveTokenSelection } = await import('../../../engine/src/token-selection.ts');
       const choices = resolveTokenSelection(document, { selection: tokenSelection }).choices;
       const projected = document && typeof document === 'object' ? { ...document, $metadata: { ...((document as Record<string, unknown>).$metadata as object ?? {}), activeThemeSelection: choices } } : document;
-      return { document: projected, ...(releasePins.some(p => p.font) ? { renderDocument: renderDocument && typeof renderDocument === 'object' ? { ...renderDocument, $metadata: (projected as Record<string, unknown>).$metadata } : renderDocument } : {}), system: null, version: resolveDesignVersion({ override: designVersion?.override, pin: designVersion?.pin, index: readVersionIndex(await tokensDoc()) }), selection: { choices } };
+      return { document: projected, ...(releasePins.some(p => p.font) ? { renderDocument: renderDocument && typeof renderDocument === 'object' ? { ...renderDocument, $metadata: (projected as Record<string, unknown>).$metadata } : renderDocument } : {}), system: await activeSystem(), version: resolveDesignVersion({ override: designVersion?.override, pin: designVersion?.pin, index: readVersionIndex(await tokensDoc()) }), selection: { choices } };
     },
     colors: async (opts = {}) => (await tokenSet(opts)).colors(),
     resolve: async (ref, opts = {}) => (await tokenSet(opts)).resolve(ref),
     themes: async () => (await tokenSet()).themes(),
+    // The plans/319 reads, over the same document and per-selection memo as the
+    // reads above. The family follows this run's choices (`--_themes`), exactly as
+    // the web bridge's follows the route's.
+    axes: async () => tokenAxesOf(await resolvedDoc()),
+    family: async (role, opts = {}) => tokenFamily(await resolvedDoc(), role, scopedTokenOptions(tokenSelection, opts), o => tokenSet(o)),
     // Owner-side seam for the worker_threads hook executor: the raw DTCG doc it
     // snapshots into the worker so hooks resolve tokens without an RPC. Never a
     // hook-facing call (the worker core omits it from the proxy).
@@ -1622,6 +1691,10 @@ function rootSvgOf(node: Element | null): Element | null {
       if (!ref) return null;
       const q = new URLSearchParams(query);
       for (const k of RESERVED) q.delete(k);
+      // A link's own theme choices stay in its id, as in the web bridge's composeEmbedId
+      // (plans/319 A6), so a session the CLI re-renders keeps them in the links it
+      // writes. The CLI does not yet draw the child in them.
+      if (st.tokenSelection && Object.keys(st.tokenSelection).length) q.set('_themes', JSON.stringify(st.tokenSelection));
       if (width) q.set('w', String(width));
       if (height) q.set('h', String(height));
       if (unit && unit !== 'px') { q.set('unit', String(unit)); if (dpi) q.set('dpi', String(dpi)); }
@@ -1639,6 +1712,10 @@ function rootSvgOf(node: Element | null): Element | null {
     },
   };
 
+  // followRuntimeSelection moves this bridge. Every token and asset read above reads
+  // `tokenSelection` when it is called, and the token-set cache is keyed by it, so
+  // nothing resolved under the link's choice is served after the move.
+  selectionFollowers.set(host, (next) => { tokenSelection = structuredClone(next); });
   return host;
 }
 
@@ -1680,30 +1757,23 @@ export async function applyBrandVars(el: HTMLElement, host: HostV1): Promise<voi
     const semantic = /^color\.semantic\.([a-z-]+)$/.exec(swatch.path);
     if (semantic) el.style.setProperty('--brand-'+semantic[1],value);
   }
-
+  // The family of leads (plans/319): `--brand-lead-1..n` and `--brand-lead-count`,
+  // the same pairs the web shell's applyBrandVars paints. Nothing for a design
+  // system with fewer than two colourways, so its canvas is exactly as before.
+  let family: readonly { value?: unknown }[] = [];
+  try { family = (await host.tokens.family?.('primary')) ?? []; } catch { family = []; }
+  for (const [name, value] of brandLeadVars(family)) el.style.setProperty(name, value);
 }
 
-// Embed authorship provenance as <title>/<desc> + a Dublin-Core <metadata> block
-// right after the opening <svg> tag (mirrors the web bridge's injectSvgMeta).
-function injectSvgMeta(xml: string, meta: ExportMeta | undefined): string {
-  if (!meta) return xml;
-  const e = (s: unknown) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const lines: string[] = [];
-  if (meta.tool) lines.push(`<title>${e(meta.tool)}</title>`);
-  const desc = [meta.description, meta.contact].filter(Boolean).join(' · ');
-  if (desc) lines.push(`<desc>${e(desc)}</desc>`);
-  lines.push(
-    '<metadata>',
-    '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">',
-    '<rdf:Description rdf:about="">',
-  );
-  if (meta.author) lines.push(`<dc:creator>${e(meta.author)}</dc:creator>`);
-  lines.push(`<dc:publisher>${e(meta.software)}</dc:publisher>`);
-  lines.push(`<dc:source>${e(meta.source)}</dc:source>`, '</rdf:Description>', '</rdf:RDF>', '</metadata>');
-  const m = xml.match(/<svg\b[^>]*?>/);
-  if (!m) return xml;
-  const at = m.index! + m[0]!.length;
-  return xml.slice(0, at) + '\n' + lines.join('\n') + xml.slice(at);
+/**
+ * The shipped catalog system's label, trimmed the way the web shell trims it
+ * (`stripTokensSuffix` in shells/web/src/lib/design-system/registry.ts): "Lolly
+ * Starter Tokens" reads as "Lolly Starter". Kept in step with that function so the
+ * two shells record the same label for the same catalog.
+ */
+export function shippedSystemLabel(name: string | undefined): string {
+  if (!name) return 'Lolly';
+  return name.replace(/\s+(brand\s+)?(design\s+)?tokens$/i, '').trim() || name;
 }
 
 function matchesFilter(meta: CatalogAsset, filter: AssetQuery): boolean {

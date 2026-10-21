@@ -20,6 +20,8 @@ import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from './icons.ts';
 import { swatchInk, SWATCH_INK } from '../brand-vars.ts';
+import { describeColor } from '@lolly/engine';
+import type { ColorDescription } from '@lolly/engine';
 import type { PaletteEntry } from '../palette.ts';
 
 export const isTransparent = (hex: string): boolean => !hex || hex.toLowerCase() === 'transparent';
@@ -77,6 +79,91 @@ export function groupPalette(palette: readonly PaletteEntry[]): GroupedPalette {
   }
   return { brand, spectrum, ramps: [...ramps] };
 }
+
+// The token layers a brand keeps for the interface rather than as colours of its
+// own: the semantic slots, the document roles, the app chrome and the colourway
+// leads. Lolly derives them from the brand's colours (brand-derive.ts) or the brand
+// points them back at those colours, so in a colour library they read as clutter.
+const ROLE_LAYERS = new Set(['semantic', 'role', 'chrome', 'colourway']);
+
+/** The colours a person put in the brand, and the role colours kept beside them. */
+export interface SplitPalette {
+  /** Brand, custom (what the brand editor adds), ramp and spectrum colours. */
+  core: PaletteEntry[];
+  /** The role colours by layer, in first-seen order: a layer's swatches, and the
+   *  copies, each under the bucket they were found in. */
+  roles: PaletteRamp[];
+}
+
+/**
+ * Split the palette into its own colours and its role colours. A role colour sits
+ * in one of the interface layers, or repeats a colour already listed under the same
+ * name: an alias such as lolly-demo's spectrum, which points at its brand greens. A
+ * starter swatch has no token and is always the brand's own. A ramp step that shares
+ * a brand colour's value keeps its own name ("Jungle 1" beside "Pine"), so it stays.
+ */
+export function splitPalette(palette: readonly PaletteEntry[]): SplitPalette {
+  const core: PaletteEntry[] = [];
+  const roles = new Map<string, PaletteEntry[]>();
+  const seen = new Set<string>();
+  for (const c of palette) {
+    const layer = c.token?.path.split('.')[1] ?? '';
+    const key = `${c.label.toLowerCase()}\n${c.hex.toLowerCase()}`;
+    if (ROLE_LAYERS.has(layer) || seen.has(key)) {
+      if (!roles.has(layer)) roles.set(layer, []);
+      roles.get(layer)!.push(c);
+    } else {
+      core.push(c);
+      seen.add(key);
+    }
+  }
+  return { core, roles: [...roles] };
+}
+
+/** The palette in the order a Swatches panel shows it: brand, spectrum, each ramp,
+ *  then the role colours layer by layer. A swatch's index here is its place in that
+ *  panel, which is what card selection, downloads and paging through details read. */
+export function paletteInDisplayOrder(palette: readonly PaletteEntry[]): PaletteEntry[] {
+  const { core, roles } = splitPalette(palette);
+  const { brand, spectrum, ramps } = groupPalette(core);
+  return [...brand, ...spectrum, ...ramps.flatMap(([, cols]) => cols), ...roles.flatMap(([, cols]) => cols)];
+}
+
+/** One swatch's colour, read once: the value it was authored as, the value a
+ *  sheet leads with, and the description the colour surfaces report from. The
+ *  Assets swatch card and its details sheet both paint from this. */
+export interface SwatchFacts {
+  entry: PaletteEntry;
+  /** The colour as authored, or the hex when the token carries no other value. */
+  subject: string;
+  /** The value to lead with and copy first: the hex while the colour is inside
+   *  sRGB (where a hex holds it exactly), the authored value once it is wider. */
+  lead: string;
+  /** The sRGB hex: what a display without the authored value shows. */
+  hex: string;
+  /** Null for Transparent, which has no colour to describe. */
+  desc: ColorDescription | null;
+}
+
+/** True when the browser will paint `value` as a colour. A token value goes into
+ *  a style attribute, so anything that is not plainly a colour stays out. */
+const paintable = (value: string): boolean =>
+  typeof CSS === 'undefined' || typeof CSS.supports !== 'function' || CSS.supports('color', value);
+
+export function swatchFacts(entry: PaletteEntry): SwatchFacts {
+  if (isTransparent(entry.hex)) return { entry, subject: 'transparent', lead: 'transparent', hex: 'transparent', desc: null };
+  const css = entry.token?.css;
+  const authored = css && css.toLowerCase() !== entry.hex.toLowerCase() && paintable(css) ? describeColor(css) : null;
+  const desc = authored ?? describeColor(entry.hex);
+  const subject = authored ? css! : entry.hex;
+  return { entry, subject, lead: !desc || desc.inSrgb ? entry.hex.toUpperCase() : subject, hex: entry.hex, desc };
+}
+
+/** Inline `background` twice: the hex for every display, then the authored value
+ *  for a display that can show the authored colour. A display that cannot keeps
+ *  the hex. Empty for Transparent, so the checkerboard under the swatch shows. */
+export const swatchFill = (f: SwatchFacts): string =>
+  f.desc ? `background:${escape(f.hex)};background:${escape(f.subject)}` : '';
 
 /** `opts.fav` (host views that wire a favourites overlay, e.g. the Catalog) renders a
  *  star toggle on the card; omit it (or call via `.map(swatch)`, whose index lands here

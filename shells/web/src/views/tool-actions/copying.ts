@@ -13,6 +13,7 @@ import { t } from '../../i18n.ts';
 import { icon } from '../../lib/icons.ts';
 import { sendTargetId, sendTargetsFor } from '../../lib/send-target.ts';
 import { bumpMetric } from '../../metrics.js';
+import { foldBody } from '../../lib/disclosure-motion.ts';
 import { navigateTo } from '../../nav.js';
 import { escape as escapeText, safeHref } from '../../utils.js';
 import { captureThumbnail, exportTargetNode, flatExportNode } from '../tool-action-helpers.ts';
@@ -226,7 +227,7 @@ export function wireSendTargets(ta: ActionsCtx): void {
       ta.sendOpen = el!.querySelector('.export-send')?.classList.toggle('is-open') ?? false;
       head.setAttribute('aria-expanded', String(ta.sendOpen));
       const bodyEl = el!.querySelector<HTMLElement>('[data-send-body]');
-      if (bodyEl) bodyEl.style.display = ta.sendOpen ? 'flex' : 'none';
+      if (bodyEl) foldBody(bodyEl, ta.sendOpen, shown => { bodyEl.style.display = shown ? 'flex' : 'none'; });
       return;
     }
     const btn = (ev.target as HTMLElement).closest?.(

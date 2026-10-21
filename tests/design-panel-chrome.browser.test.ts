@@ -25,7 +25,7 @@ test('Design panels use short labels, opaque floating surfaces and redock contro
     for (const [field, label] of [['documentUnit', 'Units'], ['editingRange', 'Colour'], ['projectFps', 'Frame rate']]) {
       assert.equal(await inspector.locator(`[data-doc="${field}"]`).evaluate(el => el.closest('.fc-row')?.querySelector('.fc-row-help-label > span')?.textContent), label);
     }
-    assert.equal(await inspector.locator('.fc-seg[data-seg="lolly-doc-theme-0"]').getAttribute('aria-label'), 'Theme');
+    assert.equal(await inspector.locator('.fc-seg[data-seg="lolly-doc-theme-0"]').getAttribute('aria-label'), 'Mode');
     assert.equal(await inspector.locator('[data-act-col="maximize"], [data-act-col="detach"]').count(), 0);
     assert.equal(await inspector.locator('[data-act-col="dock"]').isVisible(), false);
 

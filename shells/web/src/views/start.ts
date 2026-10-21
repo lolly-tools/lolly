@@ -172,7 +172,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     start.navigation.wireBackPill();
     start.navigation.wireHomeFab();
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
-    const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: 'Design system', context: 'Editable head', consumers: webTokenConsumerSources(host) });
+    const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
     (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); workspace.teardown(); };
     return;
@@ -202,7 +202,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     start.navigation.wireBackPill();
     start.navigation.wireHomeFab();
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
-    const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: active?.label, context: 'Editable head', consumers: webTokenConsumerSources(host) });
+    const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
     (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); workspace.teardown(); };
     viewEl.querySelector('[data-ds-fork]')?.addEventListener('click', async () => {
@@ -235,6 +235,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   // in a detached setup prompt.
   const focusDsName =
     new URLSearchParams(params.startsWith('?') ? params.slice(1) : params).get('rename') === '1'; start.focusDsName = focusDsName;
+  start.nameSettled = false;
   // `?source=url&u=<address>` PREFILLS the website source's field and does
   // nothing else - the fetch button is the consent, so a link somebody sends
   // must never be able to start a read (plan 97 section 9). Read here rather than in

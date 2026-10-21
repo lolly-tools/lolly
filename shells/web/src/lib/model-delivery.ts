@@ -15,6 +15,12 @@ export async function modelPartialCache(): Promise<Cache | undefined> {
 }
 /** Complete bytes are published only after their size and full sha256 match.
  * Interrupted identity transfers retain a prefix only with a strong ETag. */
+/** The server answered and does not have the file: 404, 410, or an HTML page
+ *  (an app's fallback) in place of a file that is not HTML. */
+export const notOnServer = (response: Response, url = ''): boolean =>
+  response.status === 404 || response.status === 410
+  || (response.ok && (response.headers.get('content-type') ?? '').includes('text/html') && !url.endsWith('.html'));
+
 export async function downloadVerifiedModel(file: ModelFileIdentity, fetchUrl: string, opts: {
   signal?: AbortSignal; onProgress?: (p: ModelDownloadProgress) => void; partialCache?: Cache;
   fetcher?: typeof fetch;
@@ -35,7 +41,11 @@ export async function downloadVerifiedModel(file: ModelFileIdentity, fetchUrl: s
     if (prefix.length && tag) { headers.range = `bytes=${prefix.length}-`; headers['if-range'] = tag; }
     const response = await fetcher(fetchUrl, { headers, signal, cache: 'no-cache' });
     if (response.status === 416 && prefix.length) { prefix = new Uint8Array(0); tag = undefined; await partialCache?.delete(partialKey); continue; }
-    if (!response.ok || (response.headers.get('content-type') ?? '').includes('text/html')) throw new Error(`Model download failed (${response.status}).`);
+    if (!response.ok || (response.headers.get('content-type') ?? '').includes('text/html')) {
+      // `missing`: the server answered and does not have the file (404, 410, or
+      // its app page in place of the file), as opposed to a failure on the way.
+      throw Object.assign(new Error(`Model download failed (${response.status}).`), { missing: notOnServer(response) });
+    }
     if (response.status === 206) {
       const range = /^bytes (\d+)-(\d+)\/(\d+)$/.exec(response.headers.get('content-range') ?? '');
       if (!prefix.length || !range || Number(range[1]) !== prefix.length || Number(range[3]) !== file.size || Number(range[2]) !== file.size - 1 || response.headers.get('etag') !== tag || response.headers.has('content-encoding')) {

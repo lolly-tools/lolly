@@ -243,11 +243,13 @@ not establish parity for the complete public host or authorize a DNS cutover.
 
 ## Published images
 
-From Lolly 1.1.1 the neutral (`lolly-start`) images are released to the GitHub
-Container Registry. Each one is `linux/amd64`, built once by `deployment-suse.yml`
-and released unchanged by
-[`release-images.yml`](../../.github/workflows/release-images.yml). No image
-contains model files or the private SUSE brand pack.
+From Lolly 1.1.1 the public images are released to the GitHub Container
+Registry. Each one is `linux/amd64`, built once by `deployment-suse.yml` and
+released unchanged by
+[`release-images.yml`](../../.github/workflows/release-images.yml). They carry
+the profile lolly.tools ships, which `scripts/data/ship-targets.json` sets:
+`lolly-demo`, Lolly's own demo brand, from 1.1.2, and the neutral `lolly-start`
+in 1.1.1. No image contains model files or the private SUSE brand pack.
 
 | Repository | Dockerfile | Chart |
 |---|---|---|
@@ -278,7 +280,7 @@ digest: set `image.digest` to the digest listed in the release's `images.json`.
    - the run is a completed dispatch of `deployment-suse.yml` from main for that
      commit, and the complete job inventory of its attempt shows the
      prerequisites and every job behind each requested image passing;
-   - each receipt records that commit, run, attempt and the neutral profile,
+   - each receipt records that commit, run, attempt and the public profile,
      with its boot, render or browser-probe evidence (for web, the repository's
      public pin and a verified catalog);
    - the registry manifest hashes to the receipt's digest and is one

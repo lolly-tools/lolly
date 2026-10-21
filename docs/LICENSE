@@ -14,6 +14,10 @@ The documentation generator, other software source files and code examples
 remain licensed under the Mozilla Public License 2.0 (MPL-2.0); see ../LICENSE.
 Third-party material retains its stated license and attribution.
 
+Imported Lolly Work documentation under docs/work/ and its original
+screenshots under docs/shots/work/ retain MPL-2.0 and their existing third-party
+notices. See work/LICENSE and the per-page licence metadata in manifest.json.
+
 The full CC BY-SA 4.0 license follows.
 
 Attribution-ShareAlike 4.0 International

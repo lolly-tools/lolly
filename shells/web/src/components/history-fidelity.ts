@@ -61,7 +61,7 @@ export function mountHistoryFidelity(api: RevisionFidelityAPI, openCopy: (entry:
       }
       if (asset.replacement && !report.truncated) {
         const label = document.createElement('label'); label.className = 'revision-history-fidelity-choice';
-        const input = document.createElement('input'); input.type = 'checkbox';
+        const input = document.createElement('input'); input.type = 'checkbox'; input.className = 'field-check';
         const text = document.createTextNode(t('Use current version {version} in copy', { version: asset.replacement.version }));
         input.addEventListener('change', () => {
           if (input.checked) choices.set(asset.key, asset.replacement!); else choices.delete(asset.key);

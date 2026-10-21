@@ -90,8 +90,9 @@ export { assetVersionPin, encodeAssetVersion, decodeAssetVersion, assetDependenc
 export type { AssetVersionPin } from './asset-version.ts';
 export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplateWithNotes } from './batch.ts';
 export type { BatchRow } from './batch.ts';
-export { buildExportMeta } from './metadata.ts';
-export { extractFileMetadata, extractXmpPacket, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
+export { buildExportMeta, designRecordCarrier, designRecordEnvironment, designRecordFrom, designRecordWords, readDesignRecord, readDesignRecordXml, themesSelection, toolCredit, pdfKeywords } from './metadata.ts';
+export type { DesignRecord, MadeWithPreview } from './metadata.ts';
+export { extractFileMetadata, extractXmpPacket, readFileDesignRecord, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
 export type { FileMetadata, MetaField, MetaGroup } from './file-metadata.ts';
 export { softwareName, softwareOrigins, xmlProvenanceFields } from './software-origin.ts';
 export type { SoftwareOrigin, SoftwareEvidence, SoftwareRole } from './software-origin.ts';
@@ -705,6 +706,10 @@ export type { ColourwayRole, ColourwayLead, RotationContext, ColourwayPick, Colo
 // Editing an existing set of colourways (plans/319 A2, the Brand Studio's data layer).
 export { renameColourway, reorderColourways, setCanonicalColourway, removeColourway, duplicateColourway, colourwaysEditable, colourwayRolesOf, MAX_COLOURWAY_NAME } from './colourway.ts';
 export type { DuplicateColourwayOptions } from './colourway.ts';
+// plans/319 A4: a tool's manifest `tokenAxes` opt-out, which pins an ignored kind of
+// theme group to its canonical option, and the sentence a shell reports it with.
+export { ignoresTokenAxes, effectiveAxisKinds, ignoredTokenAxes, pinIgnoredTokenAxes, describeIgnoredTokenChoice } from './tool-token-axes.ts';
+export type { IgnoredTokenAxis, IgnoredTokenChoice, PinnedTokenSelection, ToolTokenAxes } from './tool-token-axes.ts';
 export {
   parseOklch, formatOklch, hexToOklch, oklchToHex, mixOklch, contrastRatio, deriveBrandTokens,
   RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,
@@ -799,7 +804,7 @@ export {
   paletteTokensJson, paletteCssVariables, paletteCssClasses,
   paletteScssVariables, paletteGpl, paletteAse,
 } from './palette-export.ts';
-export type { PaletteSwatch } from './palette-export.ts';
+export type { PaletteSpot, PaletteSwatch } from './palette-export.ts';
 // Tonal-curve model: a ramp as three editable L/C/H curves over tone position.
 // Defaults reproduce the derived primary ramp byte-for-byte; the serializable
 // form persists a hand-edited ramp under a token's $extensions.

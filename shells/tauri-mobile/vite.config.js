@@ -114,6 +114,7 @@ export default defineConfig({
     ...embedContentPlugins({
       outDirDefault: resolve(__dirname, 'dist'),
       mode: EMBED_CATALOG,
+      seedProfile: 'lolly-start',
     }),
     // LAST: it scans the finished dist/, so it must run after embedContentPlugins'
     // pruneEmbeddedDownloads has removed dist/models/. Without it there is no

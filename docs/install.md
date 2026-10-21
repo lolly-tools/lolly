@@ -50,10 +50,10 @@ pnpm -C shells/tauri-desktop install --frozen-lockfile
 Configure catalog signing as described in the Build Guide, then build:
 
 ```bash
-LOLLY_PROFILE=lolly-start LOLLY_EMBED_CATALOG=profile pnpm run build:desktop
+LOLLY_PROFILE=lolly-demo LOLLY_EMBED_CATALOG=profile pnpm run build:desktop
 ```
 
-The app is written to `shells/tauri-desktop/src-tauri/target/release/bundle/macos/`.
+The app is written to `shells/tauri-desktop/src-tauri/target/release/bundle/macos/`. It opens with the Lolly Demo design system, and Lolly Starter, a blank design system to make your own, is already on the device to switch to.
 
 Full prerequisites are in the [Build Guide](/info/build-guide.html).
 

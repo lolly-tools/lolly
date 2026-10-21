@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Outlined RGB Design pages from authored drawing operations, with the shared PDF finishing pass. */
-import { parseDimension, toPoints } from '@lolly/engine';
+import { parseDimension, pdfKeywords, toPoints } from '@lolly/engine';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { designPagesPdf } from '../../../engine/src/design-page-svg.ts';
 import type { PrintGeometry } from '../../../engine/src/print-marks.ts';
@@ -44,7 +44,7 @@ export async function designOpsPdfNode(node: Element | null | undefined, opts: P
         creator, author: m?.author || creator,
         ...(m?.tool ? { title: m.tool } : {}),
         ...(m?.description ? { subject: m.description } : {}),
-        ...(m ? { keywords: [m.software, m.source, m.contact].filter(Boolean).join(', ') } : {}),
+        ...(m ? { keywords: pdfKeywords(m).join(', ') } : {}),
       },
       place: (frame) => {
         const w = toPoints({ value: frame.width, unit: 'px' }), h = toPoints({ value: frame.height, unit: 'px' });

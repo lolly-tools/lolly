@@ -162,6 +162,9 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   if (dims.imprint === false) p.set('imprint', '0');
   else if (dims.imprint) p.set('imprint', '1');                  // durable pixel watermark
   if (dims.durable) p.set('durable', '1');                       // neural TrustMark credential
+  // The design-system record is default-on in the web shell too, so only the opt-out
+  // travels (plans/319): --no-madewith reaches the browser tier as `_madewith=0`.
+  if (dims.madeWith === false) p.set('_madewith', '0');
   if (dims.pressProfile) p.set('profile', dims.pressProfile);    // URL 'profile' = CMYK press condition
   // Content Credentials: forward the setting so the web shell is the single c2pa authority
   // for the browser tier (the Node post-stamp is skipped when this path ran; see run.ts /
@@ -363,6 +366,9 @@ export interface RenderDims extends ProductionBrowserOptions {
   pressProfile?: string;
   /** Content Credentials: true/off/undefined. undefined ⇒ the web shell's tool default. */
   c2pa?: boolean | null;
+  /** The design-system record (plans/319). `false` = the explicit opt-out, forwarded as
+   *  `_madewith=0`; `null`/absent = the web shell's own default, which records the system. */
+  madeWith?: boolean | null;
   /** Ephemeral-certificate lifetime in days (7/30/90/365) when c2pa is on. */
   c2paDays?: number | null;
   /** The deck state address (url-mode's `s`, plan 112): a 1-based slide position, a frame
@@ -939,6 +945,8 @@ export interface ExportDesignSessionOptions {
   c2pa?: boolean;
   /** The pixel Imprint on or off; absent keeps the app's default. Wins over `dims.imprint`. */
   imprint?: boolean;
+  /** `false` leaves the design-system record out (plans/319); absent keeps the app's default. */
+  madeWith?: boolean;
   /** Every other export setting the URL-mode export reads (plan 291 W9): size, unit, print prep, video, HDR. */
   dims?: RenderDims;
   /**
@@ -1009,6 +1017,7 @@ function sessionDims(opts: ExportDesignSessionOptions): RenderDims {
     ...(opts.frame ? { slide: opts.frame } : {}),
     ...(opts.c2pa !== undefined ? { c2pa: opts.c2pa } : {}),
     ...(opts.imprint !== undefined ? { imprint: opts.imprint } : {}),
+    ...(opts.madeWith === false ? { madeWith: false } : {}),
   };
 }
 

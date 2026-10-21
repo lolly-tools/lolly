@@ -7,7 +7,7 @@ import { mountEmojiStyleControl } from '../components/emoji-style-control.ts';
 import { tRaw } from '../i18n.ts';
 
 export function mountBrandEmoji(root: HTMLElement, host: HostV1, doc: () => Record<string, unknown>, commit: (doc: Record<string, unknown>) => void): { update(): void; destroy(): void } {
-  const card = document.createElement('details'); card.className = 'be-panel';
+  const card = document.createElement('details'); card.className = 'be-panel be-emoji-panel';
   const title = document.createElement('summary'); title.textContent = tRaw('Emoji'); card.append(title); root.after(card);
   const body = document.createElement('div'); card.append(body);
   const status = document.createElement('p'); status.setAttribute('role', 'status'); card.append(status);

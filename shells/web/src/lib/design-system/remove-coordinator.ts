@@ -29,8 +29,27 @@ export async function removeAndSwitchDesignSystem(
   }
   const wasActive = (await host.designSystems.activeId()) === id;
   let transition: SwitchResult | null = null;
-  if (wasActive) transition = await switchDesignSystem(host, 'shipped', { ...opts, noRemount: true, strictConnection: true });
+  if (wasActive) transition = await switchDesignSystem(host, await host.designSystems.fallbackId(id), { ...opts, noRemount: true, strictConnection: true });
   const removed = await removeDesignSystem(host, id);
   return { ...removed, wasActive, fallback: await host.designSystems.active(),
     catalogStatus: transition?.catalogStatus ?? 'unchanged', needsReload: transition?.needsReload ?? false };
+}
+
+/**
+ * "Remove" on the shipped row: switch away while the row is still listed, then
+ * hide the row. Nothing is deleted. Its catalogue material stays, a device still
+ * switches to the shipped system when nothing else is left, and "Bring back"
+ * shows the row again.
+ */
+export async function hideShippedDesignSystem(host: ManageHost & SwitchHost, opts: SwitchOptions = {}) {
+  const registry = host.designSystems;
+  registry.bust();
+  const shipped = await registry.get('shipped');
+  if (!shipped || shipped.locked) throw new Error(t('This design system cannot be removed.'));
+  const next = await registry.fallbackId('shipped');
+  if (next === 'shipped') throw new Error(t('Add another design system before removing this one.'));
+  const wasActive = (await registry.activeId()) === 'shipped';
+  if (wasActive) await switchDesignSystem(host, next, { ...opts, noRemount: true });
+  await registry.setShippedHidden(true);
+  return { wasActive, fallback: await registry.active() };
 }

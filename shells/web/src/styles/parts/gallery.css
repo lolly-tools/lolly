@@ -186,8 +186,8 @@
    flags, same CTA - position only. `relative` (not `static`) keeps the × in its
    corner. The card leads the page, so it carries the topbar clearance itself (the
    top row floats over the content rather than occupying a bar) and hands it back:
-   the masonry drops its own top padding while the card is above it, the way
-   .brand-tips does, so the two can't stack their gaps. With a featured strip up
+   the masonry drops its own top padding while the card is above it, so the two
+   can't stack their gaps. With a featured strip up
    the strip pads its own track, which leaves the card sitting a little loose above
    the covers - the fixed-position toast never met that case, and a rare loose gap
    beats reaching into another sheet's hero. */
@@ -1129,7 +1129,7 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
    colours. stroke-dasharray breaks each outline into short dashes, and the
    animated dashoffset moves the dashes slowly along the outline; the gaps between
    them show the muted base underneath. */
-.gtile-iconfill-trace {   color: hsl(var(--secondary) / 1); }
+.gtile-iconfill-trace {   color: hsl(var(--primary) / .35); stroke-linecap: round; stroke-linejoin: round; }
 .gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) {
   fill:transparent;
   stroke-width: 3px;             /* the same 3px as the base outline it walks over */
@@ -1192,6 +1192,7 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
    object-fit:contain, so differently-shaped example looks fit within the one frame
    without cropping and without resizing the box as the strip advances. */
 .gcar {
+  background: repeating-conic-gradient(var(--ui-color-surface-muted) 0% 25%, var(--ui-color-surface-canvas) 0% 50%) 50% / 16px 16px;
   position: relative;                /* anchor for nav, dots, badge, Continue chip */
   isolation: isolate;                /* contain the .gtile-iconfill backdrop's z-index:-1 */
   width: 100%;
@@ -1220,7 +1221,6 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
   scroll-snap-stop: always;
   position: relative;
   margin: 0;
-  background: repeating-conic-gradient(#00000005 0% 25%, #ffffff05 0% 50%) 50% / 10px 10px;
 
 }
 .gcar-open {
@@ -1527,7 +1527,7 @@ html[data-a11y-previews="hidden"] .tool-masonry:is([data-browse-layout="card"],[
    hit area, so starting fresh is as obvious as the hero's Continue. */
 /* Body fills the space under the square visual so every tile in a row is the same
    height (the grid stretches them; the body takes up the slack). */
-.gtile-body { position: relative; flex: 1 1 auto; padding-bottom:1.5rem;}
+.gtile-body { position: relative; flex: 1 1 auto; padding-bottom:32px;}
 /* The visual (preview hero / example carousel / icon-or-resume tile) is a fixed
    square and never shrinks in the flex column - so the grid stays regular. */
 .gtile > .gtile-hero,
@@ -1546,6 +1546,7 @@ html[data-a11y-previews="hidden"] .tool-masonry:is([data-browse-layout="card"],[
   display: flex;
   align-items: flex-start;
   gap: var(--sp-5);
+
 }
 .gtile-cap .tool-card-icon svg { width: 36px; height: 36px; }
 .gtile-meta { min-width: 0; flex: 1; display: flex; flex-direction: column; }
@@ -1604,8 +1605,7 @@ a.gtile-name:focus-visible::after {
 .yours-chip-icon { display: inline-flex; color: hsl(var(--muted-foreground)); }
 .yours-chip-icon svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
 /* On the rare resident gallery with no featured strip, the shelf leads the page
-   and must clear the fixed topbar itself - same clearance the tips strip takes
-   (welcome.css .brand-tips). */
+   and must clear the fixed topbar itself, the same clearance the masonry takes. */
 .gallery:not(.has-featured) .yours-shelf { margin-top: 6.4rem; }
 @media (max-width: 640px) {
   .gallery:not(.has-featured) .yours-shelf { margin-top: calc(4.4rem + var(--safe-top)); }
@@ -1642,8 +1642,8 @@ a.gtile-name:focus-visible::after {
   text-decoration: none;
   transition: background var(--dur-1);
   position:absolute;
-  bottom: .25rem;
-  right:.35rem;
+  bottom: 8px;
+  right:8px;
   text-transform: uppercase;
 }
 .gtile-tpl.btn:hover {
@@ -1656,7 +1656,7 @@ a.gtile-name:focus-visible::after {
   margin: 5px 0 0;
   font-size: var(--fs-sm);
   line-height: 1.45;
-  color: hsl(var(--muted-foreground) / .7);
+  color:color-mix(in srgb, var(--ui-color-surface-muted) 50%, var(--ui-color-text-default));
   /* Clamp to two lines so the caption block is a predictable height across every
      tile - the last thing that would make the grid ragged. */
   display: -webkit-box;
@@ -2075,8 +2075,10 @@ html[data-a11y-previews="hidden"] .tool-meta-dialog .meta-look-thumb { display: 
      wrapped its actions early. Size to the content; wrap only at the real edge. */
   width: max-content; max-width: calc(100vw - 24px);
   padding: 8px 8px 8px 16px; border-radius: var(--radius-pill);
-  background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
-  border: 1px solid hsl(var(--border)); box-shadow: 0 .6rem 2rem #0006;
+  background: color-mix(in srgb, var(--ui-color-surface-raised), transparent);
+  color: hsl(var(--popover-foreground));
+  box-shadow: 0 .6rem 2rem #0006;
+  backdrop-filter: blur(5px);
 }
 .gallery-bulkbar[hidden] { display: none; }
 .gallery-bulkbar-count { font-size: var(--fs-lg); font-weight: 700; white-space: nowrap; }

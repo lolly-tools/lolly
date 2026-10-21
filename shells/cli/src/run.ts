@@ -13,7 +13,7 @@ import { resolve, basename, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
-import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
+import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
 import type { Lang } from '@lolly/engine';
 import { RONDO_ASSET_FORMAT, RondoSourceError, isRondoFileName, rondoFromFile, rondoSourceBytes } from '@lolly/engine';
@@ -25,7 +25,7 @@ import type { Runtime } from '../../../engine/src/runtime.ts';
 // scoped Chromium).
 import { NODE_FORMATS, DEEP_FORMATS, needsFloatScene, nodePathFormat, pxDims, matchedExportFormat, canCarryPrintPrep, printPrepRefusal } from '@lolly-tools/node-shell/raster';
 import { wantsNativeHdrStill } from './raster.ts';
-import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
+import { buildExportC2paOpts, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
 // The enrolled signing identity (key + x5chain) - type only here; the module itself is
 // imported lazily in the render path so a run without --sign-key never loads it.
 import type { SigningIdentity } from '@lolly-tools/node-shell/signing-identity';
@@ -46,6 +46,7 @@ import { pickFramePage } from './frame-page.ts';
 import { isOn, rightsMode } from './args.ts';
 import type { HostV1, Profile, ExportOpts } from '@lolly-tools/core/host-v1';
 import { note, warn, writeOut, isStrict } from './output.ts';
+import { settleThemeChoices } from './token-axes-report.ts';
 import { EXIT, usageError, unavailableHere, refused, authError } from './exit-codes.ts';
 import { themeRuns, themedOutputPath, themesPlan } from './themes.ts';
 
@@ -143,9 +144,13 @@ async function deckDocProps(
   host: HostV1,
   manifest: Parameters<typeof buildExportMeta>[1],
   model: Parameters<typeof buildExportMeta>[3],
+  madeWith = true,
 ): Promise<{ title?: string; description?: string; source?: string; contact?: string; author?: string } | null> {
   try {
-    const meta = await buildExportMeta(host, manifest, null, model);
+    // The description gives the colourway beside the tool, as every other format's
+    // does, unless --no-madewith left the design-system record out (plans/319).
+    const snapshot = madeWith && host.tokens?.snapshot ? await host.tokens.snapshot().catch(() => null) : null;
+    const meta = await buildExportMeta(host, manifest, null, model, snapshot ? { snapshot } : undefined);
     return {
       ...(meta.tool ? { title: meta.tool } : {}),
       ...(meta.description ? { description: meta.description } : {}),
@@ -669,9 +674,14 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // transform/format paths so it works for any tool; a teammate reopens the exact config
   // without hand-reconstructing a URL. (A `file`-typed input has no shareable form, so it
   // is simply absent from the link - same as the web.)
+  // `--no-madewith` and `--_madewith=0` leave the design-system record out of the
+  // export's metadata and credential (plans/319), as unticking the web export
+  // panel's "Design system" card does.
+  const madeWithOff = isOn(params['no-madewith']) || parsedUrl.madeWith === false;
   if (share) {
     const runtime = await createRuntime(tool, host, values, { ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection });
-    const q = serializeUrlState(runtime.getModel(), { cuts, sampleTimes, motionBlur, sequenceRange, ...video, vq: video.quality, tokenSelection: runtime.tokenSelection });
+    settleThemeChoices(host, runtime, parsedUrl.tokenSelection, tool.manifest.name);
+    const q = serializeUrlState(runtime.getModel(), { cuts, sampleTimes, motionBlur, sequenceRange, ...video, vq: video.quality, tokenSelection: runtime.tokenSelection, ...(madeWithOff ? { madeWith: false } : {}) });
     await writeOut(`https://lolly.tools/#/tool/${tool.manifest.id}${q ? '?' + q : ''}\n`);
     return;
   }
@@ -720,6 +730,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
       );
     }
     const runtime = await createRuntime(tool, host, values, { ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection });
+    settleThemeChoices(host, runtime, parsedUrl.tokenSelection, tool.manifest.name);
     const fileIn = (tool.manifest.inputs ?? []).find(i => i.type === 'file');
     let tier = 'node';
     let bytes: Uint8Array;
@@ -835,6 +846,9 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   // The runtime resolves asset refs (catalog ids → AssetRefs with a `format`), which
   // the matchExportFormat default below reads - so it's created before format resolution.
   const runtime = await createRuntime(tool, host, values, { ...hookExecutorOpts(), tokenSelection: parsedUrl.tokenSelection });
+  // A `--_themes` choice the tool's `tokenAxes` ignores is said, never dropped silently,
+  // and from here on the bridge reads in the option the tool renders in.
+  settleThemeChoices(host, runtime, parsedUrl.tokenSelection, tool.manifest.name);
   let productionInputs: Record<string, string> | undefined;
   let browserProductionInputs: Record<string, string> | undefined;
   const productionContract = productionPath ? await (await import('@lolly-tools/node-shell/production')).productionContractFile(productionPath) : undefined;
@@ -852,6 +866,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
   await applyEmojiParams(runtime, host, { emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam });
   // `--licence=` declares the export's own licence; an unknown id is dropped by the runtime.
   if (licenceParam) runtime.setOutputLicence(licenceParam);
+  if (madeWithOff) runtime.setMadeWith(false);
   // `--rights=private`: this render is not being delivered to anyone, so the
   // conditions that apply on sharing do not apply to it. Parsed here, beside the
   // other render params, and never anything but an explicit statement of the use.
@@ -1308,7 +1323,7 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
             ...(host.tokens ? { brandFont: await (await import('./raster.ts')).authoredBrandFont(host.tokens) } : {}),
             // docProps come from the same assembly runtime.export would have used, so a
             // native deck is attributed the way the browser tier's deck was.
-            meta: bareRender ? null : await deckDocProps(host, tool.manifest, runtime.getModel()),
+            meta: bareRender ? null : await deckDocProps(host, tool.manifest, runtime.getModel(), runtime.madeWith()),
             // Pictures the catalog cannot answer alone (a session's uploads, a themed
             // icon) resolve through the bridge, the way the render resolved them.
             assets: host.assets,
@@ -1472,6 +1487,11 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
         const stamped = await embedC2pa(new Uint8Array(buf), finalFormat, buildExportC2paOpts({
           surface: 'cli', manifest: tool.manifest, model: runtime.getModel(),
           format: finalFormat, dims: { width, height, unit, dpi }, days: c2pa?.days, profile,
+          // The design system and colourway the export's own metadata records
+          // (plans/319), so the credential gives the same ones. Bytes the browser
+          // tier wrote carry the record in their own metadata, which is read back
+          // here. None when the record is off (--no-madewith) or no system is known.
+          meta: runtime.lastExportMeta ?? readFileDesignRecord(new Uint8Array(buf)),
           // The emoji artwork this render placed, one source ingredient per glyph,
           // carrying the set's own licence and creator. host.export.render ignores
           // opts.ingredients on this shell (the CLI stamps here, as the last byte
@@ -1547,6 +1567,13 @@ async function runToolCliCandidate({ toolId, params, repeated = {}, outputPath, 
       if (usedBrowser) { await teardownTierB(); usedBrowser = false; }
     }
   }
+
+  // The design-system record (plans/319) is approved on the condition that it is
+  // visible at the moment of export, so the CLI says what the file records, in the
+  // words it wrote. Read back from the finished bytes, so a file that kept no record
+  // (a browser-free PNG with its credential off) is never said to carry one.
+  const recordLine = designRecordWords(await recordedDesignInFile(new Uint8Array(buf), finalFormat, runtime.lastExportMeta));
+  if (recordLine) note(`Recorded the design system: ${recordLine}. Pass --no-madewith to leave the record out.`);
 
   // `--filename=<name>` names the file when no --output was given (contract B6). It is
   // resolved against the working directory, never against the tool or the catalog.
@@ -1715,6 +1742,9 @@ export const CLI_FLAGS = new Set([
   // The one-word provenance opt-out (contract section 12 O2). Consumed in the render path
   // above; listed here so it is never reported as "not an input of <tool>".
   'no-provenance',
+  // `--no-madewith`: leave the design-system record out (plans/319), the CLI spelling
+  // of `_madewith=0`. Read where the runtime is created.
+  'no-madewith',
   // The enrolled signing identity (contract section 1.3). Both take a PATH - never key
   // material, which would be visible in `ps` to every user on the machine.
   'sign-key', 'sign-cert',

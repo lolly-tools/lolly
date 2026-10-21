@@ -394,7 +394,7 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
   margin: 0 0 20px;
   border-radius: var(--radius);
   overflow: hidden;                                  /* clip the filmstrip to the rounded frame */
-  box-shadow: var(--edge);
+
 }
 .projects-featured .featured-viewport { border-radius: inherit; }
 /* Preview-strip view switcher - the shared .view-seg (Gallery | Cover Flow), centred just

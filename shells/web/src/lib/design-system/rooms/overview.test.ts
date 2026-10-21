@@ -322,6 +322,25 @@ test('two roles pointing at colours of your own are worth exporting', async () =
   assert.equal(model.worthExporting, true, 'two roles wired up, on two own colours');
 });
 
+test('roles pointing at keys the palette no longer shows are not worth exporting', async () => {
+  // Hiding every colour leaves the starter's roles aimed at keys that are not in
+  // the palette. Those are not decisions about a colour, so Export stays latched.
+  const model = await readOverview(stubHost({
+    installed: true, starter: STARTER,
+    doc: {
+      color: {
+        semantic: {
+          primary: { $value: '{color.ramp.primary.1}' },
+          text: { $value: '{color.ramp.primary.2}' },
+        },
+      },
+    },
+    // Both starter steps hidden: the palette the bridge answers with is empty.
+    swatches: [],
+  }));
+  assert.equal(model.worthExporting, false);
+});
+
 test('the own count leads, whatever the starter\'s size', () => {
   const html = overviewHtml({
     furnished: true, colors: [], colorCount: 5, starterCount: 2,
@@ -358,6 +377,8 @@ test('the empty state gives four material doors, local discovery and a way out',
   assert.match(html, /Choose a face/);
   assert.match(html, /Add a logo/);
   assert.match(html, /href="#\/"/);
+  // A logo is what most people have first, so its door leads.
+  assert.deepEqual([...html.matchAll(/data-ds-door="([^"]+)"/g)].map(m => m[1]).slice(0, 4), ['logos', 'color-pick', 'type-stage', 'file']);
   // The website door arrives with M6, gated on a transport that works - a
   // disabled third door would advertise something nobody here can use.
   assert.equal(/disabled/.test(html), false, 'no disabled door may be rendered');
@@ -487,7 +508,9 @@ test('a furnished system with nothing chosen still gets the doors', () => {
     },
   } as unknown as NonNullable<Parameters<typeof overviewHtml>[0]>);
   assert.match(html, /ds-ov--empty/);
-  assert.match(html, /Make it yours/);
+  // The page heading says "Make it yours"; the room's own heading says what to do.
+  assert.match(html, /Start with what you have/);
+  assert.equal(/Make it yours/.test(html), false, 'the room does not repeat the page title');
 });
 
 test('one own thing of any kind brings the cards back', () => {

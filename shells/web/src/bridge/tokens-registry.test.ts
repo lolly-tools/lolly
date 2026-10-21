@@ -70,15 +70,16 @@ interface Rig {
 }
 
 /** A device whose shipped catalog carries CATALOG_DOC, with an optional legacy user head. */
-async function rig(opts: { legacyHead?: unknown; brandLock?: boolean } = {}): Promise<Rig> {
+async function rig(opts: { legacyHead?: unknown; brandLock?: boolean; catalog?: { id: string; name: string } } = {}): Promise<Rig> {
   const db = memDb();
+  const catalog = opts.catalog ?? { id: 'lolly/tokens/brand', name: 'Lolly Starter Tokens' };
   await db.put('asset-meta', {
-    id: 'lolly/tokens/brand', type: 'tokens', name: 'Lolly Starter Tokens', version: '1.0.0',
-    formats: [{ format: 'json', url: '/catalog/assets/lolly/tokens/brand.json' }],
+    id: catalog.id, type: 'tokens', name: catalog.name, version: '1.0.0',
+    formats: [{ format: 'json', url: `/catalog/assets/${catalog.id}.json` }],
     ...(opts.brandLock ? { brandLock: true } : {}),
   });
   // The assets bridge keys a cached catalog blob `id:format:version`.
-  await db.put('asset-blob', blobOf(CATALOG_DOC), 'lolly/tokens/brand:json:1.0.0');
+  await db.put('asset-blob', blobOf(CATALOG_DOC), `${catalog.id}:json:1.0.0`);
   const assets = createAssetsAPI(db as unknown as Parameters<typeof createAssetsAPI>[0]);
   if (opts.legacyHead) {
     await assets._uploadUserAsset({ id: USER_TOKENS_ID, type: 'tokens', format: 'json', blob: blobOf(opts.legacyHead), version: '1.0.0', meta: { name: 'Acme' } });
@@ -139,6 +140,37 @@ test('a first install while shipped is active creates and activates the default 
   assert.equal(active?.label, 'Acme');
   assert.equal(await r.tokens.resolve('{color.brand.jungle}'), '#30ba78');
   assert.ok(await r.assets._getBlob(USER_TOKENS_ID));   // the legacy id, so nothing else on the device moves
+});
+
+test('a first edit of the blank starter is a new brand: a placeholder name to ask about, and the starter stays', async () => {
+  const r = await rig();
+  await installUserTokens(r.host as unknown as Parameters<typeof installUserTokens>[0], DOC2);
+  assert.equal((await r.tokens.active())?.label, 'My design system');
+  assert.deepEqual((await r.registry.get('default'))?.source, { kind: 'local' });
+  assert.deepEqual((await r.registry.visible()).map(x => x.id), ['shipped', 'default']);
+});
+
+test('a first edit of a shipped brand reads as editing it in place: its name, and the catalogue row hidden', async () => {
+  const r = await rig({ catalog: { id: 'lolly/tokens/demo', name: 'Lolly Demo' } });
+  // The studio writes with no label.
+  await installUserTokens(r.host as unknown as Parameters<typeof installUserTokens>[0], DOC2);
+  const active = await r.tokens.active();
+  assert.equal(active?.id, 'default');
+  assert.equal(active?.label, 'Lolly Demo', "the shipped system's name, not 'My design system'");
+  const fork = await r.registry.get('default');
+  assert.deepEqual(fork?.source, { kind: 'local', from: 'shipped' });
+  assert.equal(fork?.createdAt, (await r.registry.get('shipped'))?.createdAt, "the shipped row's place in the list");
+  assert.equal(await r.tokens.resolve('{color.brand.jungle}'), '#123456');
+  assert.deepEqual((await r.registry.visible()).map(x => x.id), ['default']);
+  assert.ok(await r.registry.get('shipped'), 'hidden, never deleted');
+  // Choosing the catalogue system again (a ds=shipped link) brings its row back.
+  await r.registry.setActive('shipped');
+  assert.deepEqual((await r.registry.visible()).map(x => x.id).sort(), ['default', 'shipped']);
+  // A second edit from shipped goes to the existing default, which keeps its name,
+  // and the catalogue row stays.
+  await installUserTokens(r.host as unknown as Parameters<typeof installUserTokens>[0], DOC);
+  assert.equal((await r.tokens.active())?.label, 'Lolly Demo');
+  assert.deepEqual((await r.registry.visible()).map(x => x.id).sort(), ['default', 'shipped']);
 });
 
 test('a head write with no label keeps the record label - the studio no longer renames the system', async () => {

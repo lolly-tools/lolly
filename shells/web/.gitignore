@@ -51,6 +51,8 @@ public/viz-presets/
 # written per build, icon/founded-by are copied from the repo root. Source-only
 # assets that only live here (mascots/, media/, fonts/, page images) STAY tracked.
 public/info/shots/
+# Generated Work marks and retained licence.
+public/info/work/
 # audio/, audio-index.json and docs-player* are the removed docs narration
 # (2026-10-08). The build deletes them, but an older local build can still hold
 # them, so they stay ignored rather than show up as 29 MB of untracked files.

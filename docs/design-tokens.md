@@ -6,7 +6,7 @@ This page is the spec. The engine model is [`engine/src/tokens.ts`](../engine/sr
 
 > **Status.** The **colour** slice is shipped: brand colours are canonical tokens, the picker's swatches come from them and a chosen brand colour stays *linked* to its token. **Dimension tokens** (radius, spacing, sizing, stroke, opacity, rotation, shadows) and **typography** (brand fonts) are shipped too, editable in the [Brand Studio](/info/brand-studio.html)'s Tokens and Type tabs. **User import/export** is shipped - import W3C DTCG / Tokens Studio / Penpot in the Studio (or via [`ingest:brand`](/info/configuration.html#brand-packs)), and export a `LollyBrand` pack or a design-tokens palette. Token-aware tool *injection into templates* is not built yet.
 
-![The Tokens panel - pick a kind, name it and the token joins the document your brand travels in](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=900&dpi=192&waitMs=1600&css=.start-head%7Bdisplay%3Anone%7D&cropSelector=.be-tokens&format=svg&walker=1&dark=1&filename=bs-token-editor)
+![The Tokens room on a fresh system - a card with the ways to start, the shape and spacing sliders, More tokens and the two advanced folds](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=900&dpi=192&waitMs=1600&css=.start-head%7Bdisplay%3Anone%7D&cropSelector=.be-tokens&format=svg&walker=1&dark=1&filename=bs-token-editor)
 
 ## Why tokens
 
@@ -65,10 +65,11 @@ lolly.ui.*          # stable application roles a design system may override
 brand.*             # your identity tokens
 ```
 
-The Tokens room shows the Lolly roles as **placeholders**. They affect the app
-and the Penpot UI-library export, but they do not bloat a brand document merely
-because it was opened. Changing one value saves only that owned `lolly.ui.*`
-leaf; Reset removes it and restores Lolly’s stock role.
+The Tokens room's **App appearance (advanced)** fold lists the Lolly roles, each
+marked *Lolly default* until you save a value of your own, which then reads *Your
+value*. The defaults affect the app and the Penpot UI-library export, but they do
+not bloat a brand document merely because it was opened. Saving one value adds
+only that `lolly.ui.*` leaf; Reset removes it and restores Lolly’s stock role.
 
 The supported UI contract is deliberately narrow: semantic text/surface/action,
 selection, border and focus colours; control/panel/page spacing; role-based

@@ -40,7 +40,7 @@ import { fmtBytes, openEmbedEditor } from '../tool-inputs.ts';
 import { collectExportParams, isTextEditing, shareDialogOptions, showShareDialog, shrinkUrl, wireUpCopyUrl } from './shared.ts';
 import { emojiDocumentCredits, emojiDocumentStyle, onEmojiDocumentChange, setEmojiDocumentStyle } from './emoji-doc.ts';
 import type { EmojiControlMount, InspectorEmojiPort } from '../design-inspector.ts';
-import { createDocumentThemeController } from '../../lib/document-theme.ts';
+import { madeWithLine } from '../../lib/made-with.ts';
 import { mountToolSiteEditor } from '../tool-site-tools.ts';
 
 async function createPageController(tview: ToolViewCtx) {
@@ -1336,11 +1336,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
                     editHref: '#/profile?focus=use-details',
                     get: async () => {
                       const pr = await tview.host.profile.get();
-                      const join = (a?: string, b?: string, sep = ' '): string =>
-                        [a, b]
-                          .map((s) => (s ?? '').trim())
-                          .filter(Boolean)
-                          .join(sep);
+                      const join = (a?: string, b?: string, sep = ' '): string => [a, b].map((s) => (s ?? '').trim()).filter(Boolean).join(sep);
                       return {
                         optedIn: pr.useDetails === true,
                         author: join(pr.firstname, pr.lastname),
@@ -1353,6 +1349,8 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
                     },
                   }
                 : undefined,
+            // The design-system record (plans/319), in the export panel card's words.
+            madeWith: () => madeWithLine(tview.runtime),
           },
           // Picking a Lolly link / saved session for a box image opens its inputs
           // first (configure → insert), same as the sidebar asset slots. The picker
@@ -1747,13 +1745,12 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
               onChange: setEmojiDocumentStyle,
             } : undefined;
             // The theme the document is shown in (plan 291 W4): runtime, address, canvas
-            // variables and saved session move together (lib/document-theme.ts).
-            const documentTheme = createDocumentThemeController({
-              runtime, host: tview.host, canvas: () => tview.contentEl ?? null,
-              markDirty: () => { markUserDirty(tview); syncUrl(tview); },
-              onChange: () => designInspector?.sync(),
-            });
-            tview.mountLifecycle.add('document theme', () => documentTheme.dispose());
+            // variables and saved session move together (lib/document-theme.ts). The
+            // controller is the view's one (stage-layout.ts, plans/319 A4), shared with
+            // the sidebar's Design system section, so a choice made in either surface is
+            // the one both show; the inspector only subscribes to that controller.
+            const documentTheme = tview.documentTheme;
+            tview.mountLifecycle.add('document theme in the inspector', documentTheme.subscribe(() => designInspector?.sync()));
             designInspector = initDesignInspector({
               stageEl,
               ...(emojiPort ? { emoji: emojiPort } : {}),

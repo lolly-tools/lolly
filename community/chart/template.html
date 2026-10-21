@@ -451,6 +451,16 @@
     var pal = String(cfg.palette || 'ordered');
     var SEED = (pal === 'seed' && cfg.seedPalette) ? cfg.seedPalette : null;
     var CAT_ORDERED = (cfg.brandOrdered && cfg.brandOrdered.length) ? cfg.brandOrdered : null;
+    /* The shipped hues stand in for a spectrum the design system did not author.
+       A design system with colourways puts its leads ahead of them (cfg.brandLeads,
+       see hooks.js) and drops each shipped hue a lead nearly matches. Two shipped
+       hues sit more than 20 apart in CIELAB, so a lead closer than 10 to one can
+       match no other: the list is never shorter than the shipped set. */
+    var CAT_SHIPPED = (function (leads) {
+      if (!leads || !leads.length) return CATEGORICAL;
+      function near(a, b) { var A = d3.lab(a), B = d3.lab(b); return Math.hypot(A.l - B.l, A.a - B.a, A.b - B.b) < 10; }
+      return leads.concat(CATEGORICAL.filter(function (h) { return !leads.some(function (l) { return near(l, h); }); }));
+    })(cfg.brandLeads);
     function isRampPalette(p) { return ['pine','waterhole','warm','cool','diverging','mono'].indexOf(p) >= 0; }
     /* Brand-native ramps when the hook derived them (variations + combinations of
        the brand's own hues); a seed palette brings its own; the shipped hand-tuned
@@ -549,14 +559,14 @@
     var VIVID_TO   = isHex(cfg.paletteBlendTo) ? cfg.paletteBlendTo : _vividAnchors[_vividAnchors.length - 1];
     function catColorFn(n) {
       var catList = null;
-      if (pal === 'ordered')   catList = CAT_ORDERED || CATEGORICAL;
+      if (pal === 'ordered')   catList = CAT_ORDERED || CAT_SHIPPED;
       // Seed mode is a DISTINCT categorical set by default - but choosing Vivid turns
       // it into a hue journey (base → Second colour, short/long way), so the series
       // sample that ramp instead. (Ramp palettes already sample it: catList stays null.)
       else if (pal === 'seed' && cfg.paletteBlend !== 'vivid')
                                catList = (SEED && SEED.categorical && SEED.categorical.length) ? SEED.categorical
-                                       : ((cfg.brandPalette && cfg.brandPalette.length) ? cfg.brandPalette : CATEGORICAL);
-      else if (pal === 'suse') catList = (cfg.brandPalette && cfg.brandPalette.length) ? cfg.brandPalette : CATEGORICAL;
+                                       : ((cfg.brandPalette && cfg.brandPalette.length) ? cfg.brandPalette : CAT_SHIPPED);
+      else if (pal === 'suse') catList = (cfg.brandPalette && cfg.brandPalette.length) ? cfg.brandPalette : CAT_SHIPPED;
       var baseFn;
       if (catList) {
         baseFn = function (i) { return legible(catList[i % catList.length], guardBg); };

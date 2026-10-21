@@ -24,3 +24,17 @@ test('motion queries include templates without including arbitrary Adobe project
 test('the Studio model query selects 3MF and excludes template/video assets', async () => {
   assert.deepEqual(await queryPickerAssets(assets, { type: 'model' }, false), [model]);
 });
+test('palette and token assets stay out of every pick that does not name them', async () => {
+  const palette = { ...template, id: 'brand/palette', type: 'palette', format: 'json' } as AssetRef;
+  const tokens = { ...template, id: 'brand/tokens', type: 'tokens', format: 'json' } as AssetRef;
+  const raster = { ...template, id: 'brand/photo', type: 'raster', format: 'png' } as AssetRef;
+  const library = { query: async ({ type }: { type?: string }) => [palette, tokens, raster, video].filter(a => !type || a.type === type) } as HostV1['assets'];
+  const picks: Array<[Parameters<typeof queryPickerAssets>[1], boolean]> = [
+    [{}, false], [{ type: 'image' }, true], [{ type: 'raster' }, true], [{ type: 'video' }, true], [{ type: 'image', motion: true }, true],
+  ];
+  for (const [opts, visual] of picks) {
+    const ids = (await queryPickerAssets(library, opts, visual)).map(a => a.id);
+    assert.ok(!ids.includes(palette.id) && !ids.includes(tokens.id), `${JSON.stringify(opts)} lists ${ids.join(', ')}`);
+  }
+  assert.deepEqual((await queryPickerAssets(library, { type: 'palette' }, false)).map(a => a.id), [palette.id], 'a palette slot still gets palettes');
+});

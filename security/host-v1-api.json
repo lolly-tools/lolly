@@ -200,7 +200,7 @@
     "ColorPaletteSwatch": {
       "module": "color.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "e5bf0d77093ab5094f0a4f30ad63931279ac49c7d9697f4dd969d9c799aa230a"
+      "sha256": "78491be653668b21e96d48c63a67b5ed44235d1ef1dd47b9ba802298d9413f19"
     },
     "ColorPaletteTextFormat": {
       "module": "color.ts",
@@ -440,12 +440,17 @@
     "ExportOpts": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "1e5109b65280395abe57ada07c0d99ffa169bab5811263c9e889ef7fa36f08c7"
+      "sha256": "5af2e76c13be287507cf6dfafa4347a0abdd5deb57942f701a335276fb43c970"
     },
     "ExportMeta": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "0a5d937b3cb6703fa9bd2c6ad99f96da8a38e07c0b7a48b3db472073c863c0e5"
+      "sha256": "075edf327033a5000bd2bec787fc44b649cec99a918c8984c42eccaeebc89302"
+    },
+    "ExportThemeChoice": {
+      "module": "export.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "5991cdc40e86fa5f304aa7ea78c0d9e895d6705fd308dce49a6af345743da33d"
     },
     "FontEmbeddingV1": {
       "module": "fonts.ts",
@@ -1227,6 +1232,21 @@
       "kind": "FirstStatement",
       "sha256": "de730f525fa7ec21273ddda3d64680347a804529d25849af031bcbe4eebaaf96"
     },
+    "TokenRotationPolicy": {
+      "module": "tokens.ts",
+      "kind": "TypeAliasDeclaration",
+      "sha256": "8cd06cbe18eb2c44c05875386bfac58575957ef19453db5119dd3a1419d92545"
+    },
+    "TokenAxisInfo": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "a004d50a06a23570bf135144b649edd68c78272e8779cc80658eac3a16133168"
+    },
+    "TokenFamilyMember": {
+      "module": "tokens.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "3945312470d588a1198d92d12ba4a4eb7b914217b6993a3dcd25edd6f343850e"
+    },
     "TokenSelection": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
@@ -1250,7 +1270,7 @@
     "TokensAPI": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "d9aedaf8953d8cbbefb87124600cfbcf74c05c64dcd8817153a3f6342fa1b494"
+      "sha256": "48254127859985ec719122ba6ad108dfe1a20b8f6f45100b0280a0ca6f02723e"
     },
     "TokensSnapshot": {
       "module": "tokens.ts",

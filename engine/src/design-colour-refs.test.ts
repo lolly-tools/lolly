@@ -175,7 +175,7 @@ async function mountTool() {
   return loadTool(manifest.id, async (path) => {
     if (path.endsWith('tool.json')) return JSON.stringify(manifest);
     if (path.endsWith('template.html')) return '<svg>{{#each boxes}}<g data-bg="{{bg}}" data-text="{{text}}" data-grad="{{grad}}"></g>{{/each}}<desc>{{seen}}</desc></svg>';
-    if (path.endsWith('hooks.js')) return 'var calls = 0; function onInput(ctx) { calls++; return { seen: ctx.id + calls }; }';
+    if (path.endsWith('hooks.js')) return 'var heard = []; function onInput(ctx) { heard.push(ctx.id); return { seen: heard.join(",") }; }';
     throw new Error('No optional source');
   });
 }
@@ -196,7 +196,8 @@ test('setTokenSelection switches a mounted document between themes and runs onIn
   assert.match(html, /data-bg="#1d1d1d"/);
   assert.match(html, /data-text="An \{#fe7c3f w500\|assumption\}"/);
   assert.match(html, /data-grad="lin_0_1d1d1df2-0_1d1d1d00-62"/);
-  assert.match(html, /<desc>boxes\d+<\/desc>/);
+  // The moved rows reach onInput first, then the switch itself as '__tokens'.
+  assert.match(html, /<desc>boxes,__tokens<\/desc>/);
   const rows = runtime.getModel()[0]!.value as Record<string, unknown>[];
   assert.equal(rows[1]!.fg, '#dcdbdc');
   await runtime.setTokenSelection({});

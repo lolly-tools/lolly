@@ -13,7 +13,7 @@ export function mountTextFrameControls(root: HTMLElement, read: () => TextFrameV
     updates.push(frame => field.set(value(frame))); return field.input;
   };
   const check = (parent: HTMLElement, label: string, value: (frame: TextFrameV1) => boolean, change: (checked: boolean) => Partial<TextFrameV1>) => {
-    const input = document.createElement('input'); input.type = 'checkbox'; input.addEventListener('change', () => write(change(input.checked)));
+    const input = document.createElement('input'); input.type = 'checkbox'; input.className = 'field-check'; input.addEventListener('change', () => write(change(input.checked)));
     textControlRow(parent, label, input); updates.push(frame => { input.checked = value(frame); }); return input;
   };
   const mode = document.createElement('select');

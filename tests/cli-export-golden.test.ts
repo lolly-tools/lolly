@@ -33,8 +33,10 @@
  *   • No annotation-comment stripping on CLI svg: nothing strips the engine's
  *     input-marker HTML comments (the CLI never calls annotateTemplate, so none
  *     appear - but the branch has no strip step either).
- *   • injectSvgMeta is DUPLICATED: shells/cli/src/bridge.ts carries its own
- *     copy of the web shell's provenance injector; the two can drift.
+ *   (The old "injectSvgMeta is duplicated" divergence is GONE as of plans/319 A7:
+ *   the CLI svg branch calls the engine's injectSvgMeta, the same writer the web
+ *   shell uses, so both write the same <metadata> block, rights and design-system
+ *   record included.)
  *   • eps-cmyk on the CLI is naive rgbToCmyk only - emitEps's cmykPalette
  *     (brand palette CMYK overrides, built by the web shell's renderEps) is
  *     never passed, so brand colours separate differently here than on web.

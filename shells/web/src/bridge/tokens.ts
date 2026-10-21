@@ -71,6 +71,7 @@ import type { DesignSystemSummary, TokensAPI, TokensSnapshot, TokenSet, TokenRes
 // type-only import: the registry is handed in through the host slice, so a test's
 // narrow stub (no registry) keeps the legacy discovery below byte for byte.
 import type { DesignSystemRecord, DesignSystemRegistry } from '../lib/design-system/registry.ts';
+import { STARTER_TOKENS_ID } from '../lib/design-system/starter.ts';
 import { DEFAULT_DESIGN_SYSTEM_ID, SHIPPED_DESIGN_SYSTEM_ID, designSystemHeadId, designSystemNamespace } from '../../../../engine/src/design-system.ts';
 // The exclusion read lives in its own leaf module (not lib/brand-doc.ts, whose
 // engine-barrel import would drag studio code into this bridge's boot graph).
@@ -111,7 +112,7 @@ interface TokensHost {
  *  the cache-buster. What `createTokensAPI` returns for the head, and what
  *  `forVersion` returns for a published version - one implementation, so a
  *  version can never resolve by different rules from the head. */
-export type TokenDocSurface = TokensAPI & { raw(): Promise<unknown>; bust(): void };
+export type TokenDocSurface = TokensAPI & Required<Pick<TokensAPI, 'axes' | 'family'>> & { raw(): Promise<unknown>; bust(): void };
 
 /** The web shell's tokens surface: HostV1's TokensAPI plus the cache-buster, the
  *  brand-lock query and the version reads (plans/97 section 6a). */
@@ -380,6 +381,14 @@ async function headName(host: InstallTokensHost, headId: string, label?: string)
  * the `default` record is created and activated first, which is exactly what a
  * first install used to mean when it shadowed the catalog. A record whose
  * material is read-only (the material lock, section 3.5) refuses the write.
+ *
+ * When the shipped system is a real brand (Lolly Demo, an ingested one), that
+ * first `default` reads as the shipped system edited in place: it takes the
+ * shipped system's name and place, and the catalog's copy leaves the lists
+ * (hidden, not deleted; registry.ts). The blank starter is different: a first
+ * edit there is someone starting their own brand, so it keeps a placeholder
+ * name for the studio to ask about (views/start/brand.ts) and the starter
+ * stays listed. An existing `default` is the person's own and keeps its name.
  */
 async function writeTarget(
   host: InstallTokensHost, system: string | undefined, label: string | undefined,
@@ -396,18 +405,22 @@ async function writeTarget(
     if (record?.locked || await host.tokens?.isLocked?.()) throw new BrandLockedError();
     const existing = await reg.get(DEFAULT_DESIGN_SYSTEM_ID);
     const now = Date.now();
+    // The shipped system edited in place; never the blank starter (see above).
+    const shipped = record && record.catalog?.available !== false && record.headId !== STARTER_TOKENS_ID ? record : null;
     record = existing ?? {
       id: DEFAULT_DESIGN_SYSTEM_ID,
-      label: label || 'My design system',
+      label: label || shipped?.label || 'My design system',
       ns: designSystemNamespace(DEFAULT_DESIGN_SYSTEM_ID),
       headId: designSystemHeadId(DEFAULT_DESIGN_SYSTEM_ID),
-      source: { kind: 'local' },
+      source: shipped ? { kind: 'local', from: 'shipped' } : { kind: 'local' },
       locked: false,
-      createdAt: now,
+      // The shipped row's place in the list, which is sorted by creation.
+      createdAt: shipped?.createdAt ?? now,
       lastUsedAt: now,
     };
     if (!existing) await reg.put(record);
     await reg.setActive(record.id);
+    if (!existing && shipped) await reg.setShippedHidden?.(true).catch(() => { /* the lists still show both */ });
   }
   // The material lock guards the ACTIVE-system write path - the studio's, which
   // names no system. A write that names its target is the import, the sync or
@@ -512,6 +525,15 @@ function tokenSurface(loadDoc: () => Promise<unknown>): TokenDocSurface {
     raw: () => doc(),
     /** Theme names declared in the document. */
     themes: async () => (await ensure()).themes(),
+    /** Every theme group with its meaning (plans/319); structure only. */
+    axes: async () => (await import('../../../../engine/src/token-context.ts')).tokenAxesOf(await doc()),
+    /** Every colourway's colour for one role, canonical first (plans/319). Reads
+     *  through the per-selection memo above, so a family read and the `get()` of
+     *  the same choices share one token set. */
+    family: async (role, opts = {}) => {
+      const { tokenFamily } = await import('../../../../engine/src/token-context.ts');
+      return tokenFamily(await doc(), role, opts, ensure);
+    },
     /** Drop the memoised document and per-theme sets. */
     bust() { setByTheme.clear(); docPromise = null; },
   };
@@ -836,6 +858,8 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
     resolve: async (ref, opts = {}) => { syncOverride(); return render.resolve(ref, opts); },
     themes: async () => { syncOverride(); return render.themes(); },
     inspect: async (opts = {}) => { syncOverride(); return render.inspect!(opts); },
+    axes: async () => { syncOverride(); return render.axes(); },
+    family: async (role, opts = {}) => { syncOverride(); return render.family(role, opts); },
     /** The EDIT HEAD's document (see WebTokensAPI.raw). */
     raw: () => head.raw(),
     /** The id the head was discovered at (see WebTokensAPI.headId). */
@@ -862,7 +886,8 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
     async list() {
       const reg = host.designSystems;
       if (reg) {
-        const [records, activeId] = await Promise.all([reg.list(), reg.activeId()]);
+        // What the person sees in their own lists: a removed shipped system is not offered.
+        const [records, activeId] = await Promise.all([reg.visible ? reg.visible() : reg.list(), reg.activeId()]);
         return records.map(r => reg.summary(r, activeId));
       }
       const id = (await headAsset())?.id ?? null;
