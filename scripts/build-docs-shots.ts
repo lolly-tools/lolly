@@ -937,7 +937,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
     await page.goto(baseUrl + shot.route, { waitUntil: 'load', timeout: 45_000 });
     await page.evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => undefined)).catch(() => {});
     await waitForRouteMounted(page);
-    const zoomCss =Math.abs((shot.zoom ?? 1) - 1) > 1e-3 ? `html{zoom:${shot.zoom}!important}` : '';
+    const zoomCss = Math.abs((shot.zoom ?? 1) - 1) > 1e-3 ? `html{zoom:${shot.zoom}!important}` : '';
     const styles = [zoomCss, params.css].filter(Boolean).join('\n');
     if (styles) await page.addStyleTag({ content: styles }).catch(() => {});
     // waitMs FIRST, scroll after: an SPA route lays out well after `load`, so a
