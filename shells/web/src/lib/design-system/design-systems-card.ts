@@ -26,7 +26,10 @@ import { hideShippedDesignSystem, prepareDesignSystemRemoval, removeAndSwitchDes
 import { resetDesignSystem, resetKind } from './reset.ts';
 import { switchDesignSystem, type SwitchHost } from './switch.ts';
 import { showUndoToast } from '../undo-toast.ts';
-import { catalogSourceHtml, catalogSourceLabel } from './catalog-source.ts';
+import { catalogSourceHtml } from './catalog-source.ts';
+import { sourceLine } from './source-line.ts';
+
+export { sourceLine };
 
 export type CardHost = ManageHost & SwitchHost;
 
@@ -58,34 +61,6 @@ function pickDesignSystemFile(): Promise<File | null> {
     input.addEventListener('cancel', () => finish(null), { once: true });
     input.click();
   });
-}
-
-/** What a row says under its label. Plain sentences, "design system" not "brand". */
-export function sourceLine(record: DesignSystemRecord, now = Date.now()): string {
-  const s = record.source;
-  switch (s.kind) {
-    case 'shipped': return catalogSourceLabel(record);
-    case 'local':
-      if (s.from === 'app') return t('Came with this app');
-      if (s.from === 'shipped') return t('Edited here');
-      return s.forkedFrom ? t('Made here, copied from {name}', { name: s.forkedFrom.id }) : t('Made here');
-    case 'file': return s.publisher ? t('From a file by {publisher}', { publisher: s.publisher }) : t('From a file');
-    case 'hosted': {
-      const host = s.instance.replace(/^https?:\/\//, '');
-      const when = s.lastSyncedAt ? relativeTime(now - s.lastSyncedAt) : null;
-      if (s.stale) return t('Hosted at {host}. Update available when online', { host });
-      return when ? t('Hosted at {host}. Synced {when}', { host, when }) : t('Hosted at {host}', { host });
-    }
-  }
-}
-
-function relativeTime(ms: number): string {
-  const m = Math.max(0, Math.round(ms / 60000));
-  if (m < 2) return t('just now');
-  if (m < 60) return t('{n} min ago', { n: m });
-  const h = Math.round(m / 60);
-  if (h < 48) return t('{n} h ago', { n: h });
-  return t('{n} days ago', { n: Math.round(h / 24) });
 }
 
 /** "3.2 MB" for a row; '' below a kilobyte so the shipped row and an empty new

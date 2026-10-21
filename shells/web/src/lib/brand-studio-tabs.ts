@@ -24,7 +24,7 @@ import { walkSwatches, isRec, type BrandSwatch } from './brand-doc.ts';
 import { colorIdentity, isNeutralRampKey, isRoleKey } from './design-system/ownership.ts';
 import { leadTokenSet } from './design-system/leads.ts';
 import { roleAssignments, roleReadouts, rampStepName, type RoleContrast } from './design-system/roles.ts';
-import { swatchTile } from './swatches.ts';
+import { rolePathName, swatchTile } from './swatches.ts';
 import { icon, ICON_METAPHORS, type IconName } from './icons.ts';
 import { prefersReducedMotion } from './a11y-prefs.ts';
 import type { SwatchExportFormat } from './swatch-export.ts';
@@ -240,13 +240,8 @@ const fontRoleLabel = (path: string): string => {
 const GROUP_PEEK = 12;
 
 const sentence = (s: string): string => { const w = s.replace(/[-_]+/g, ' ').trim(); return w.charAt(0).toUpperCase() + w.slice(1); };
-/** A role's row name from its key, not its description (which is often a sentence):
- *  `color.semantic.on-primary` is On primary, `color.chrome.edge` is Chrome edge. */
-const roleRowName = (s: BrandSwatch): string => {
-  const parts = s.key.split('.');
-  const leaf = parts.at(-1) ?? s.key, parent = parts.at(-2) ?? '';
-  return sentence(parent && parent !== 'semantic' && parent !== 'role' && parent !== 'color' ? `${parent} ${leaf}` : leaf);
-};
+/** A role's row name from its key, not its description (swatches.ts rolePathName). */
+const roleRowName = (s: BrandSwatch): string => rolePathName(s.key);
 const isUiKey = (key: string): boolean => key.startsWith('lolly.') || key.startsWith('color.lolly.');
 
 interface ColourRow { key: string; name: string; hex: string; value: string; starter: boolean; title: string }
