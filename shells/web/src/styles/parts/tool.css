@@ -1630,7 +1630,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   font: inherit; font-size: var(--fs-sm); cursor: pointer;
   transition: border-color var(--dur-1), color var(--dur-1);
 }
-.floatp-body,
+.floatp-body:hover,
 .block-add:hover,
 .blocks-drop-hint:hover,
 .blocks-collapse-all:hover,
