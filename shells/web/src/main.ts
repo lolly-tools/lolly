@@ -45,7 +45,7 @@ import { hydrateFeatureFlags, flagEnabledSync, isFlagOnSync, applyPerfUi, perfUi
 import { initSearchBar, applySearchBarRoute, prepareSearchBarNavigation } from './components/search-bar.ts';
 import { initSpotlightBoot } from './components/spotlight-boot.ts';
 import { ensureJelly, jellyEnabled } from './lib/jelly.ts';
-import { applyCaptureNeutral } from './lib/capture-neutral.ts';
+import { applyCaptureNeutral, ROUTE_MOUNTING_ATTR } from './lib/capture-neutral.ts';
 import { wireViewPrewarmIntent } from './lib/view-prewarm-intent.ts';
 import { peekNeuroDemo } from './lib/neuro-demo-peek.ts';
 import { syncJellyNavToggle, UTILITIES_FLAG_ID, type ViewToggleKey } from './components/view-toggle.ts';
@@ -568,6 +568,10 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // the page around it, which is a presenting deck's arrow keys.
   const loading = scriptedExport || browsingBoot || isIframeMode() ? null : beginViewLoading();
   routeLoading = loading;
+  // The same span as the card, on every route: set until this mount settles. Only the
+  // current navigation clears it, so a superseded mount finishing late cannot mark the
+  // newer one as mounted.
+  view.setAttribute(ROUTE_MOUNTING_ATTR, '');
   try {
   // The WebGPU startup check runs alongside boot (see boot()). A route that can run a
   // tool or a GPU operation waits for it here, under the loading card, and never mounts
@@ -888,6 +892,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   } finally {
     loading?.close();
     if (routeLoading === loading) routeLoading = null;
+    if (navigation === navigationSeq) view.removeAttribute(ROUTE_MOUNTING_ATTR);
   }
 
   if (navigation !== navigationSeq) { fade?.commit(); return; }

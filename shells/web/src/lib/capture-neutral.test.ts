@@ -38,7 +38,7 @@ globalThis.localStorage = dom.window.localStorage;
 globalThis.MutationObserver = dom.window.MutationObserver;
 
 const {
-  CAPTURE_NEUTRAL_KEY, CAPTURE_SETTLED_ATTR, LOOK_PENDING_ATTR, NEUTRALISED_FLAGS,
+  CAPTURE_NEUTRAL_KEY, CAPTURE_SETTLED_ATTR, LOOK_PENDING_ATTR, NEUTRALISED_FLAGS, ROUTE_MOUNTING_ATTR,
   applyCaptureNeutral, captureNeutralPinned, settleForCapture,
 } = await import('./capture-neutral.ts');
 const { flagEnabledSync, overrideFlagInMemory, JELLY_FLAG, NEUROSPICY_FLAG } = await import('../feature-flags.ts');
@@ -278,6 +278,30 @@ test('every capture context applies both pins', () => {
   const captureUrlCall = /captureUrl\(\s*\{[\s\S]*?\}/.exec(SHOTS_SCRIPT)?.[0] ?? '';
   assert.match(captureUrlCall, /initScript:\s*(?:CAPTURE_INIT|captureInit\()/, 'raster path must seed the init script');
   assert.match(captureUrlCall, /contextPrefs:\s*(?:CAPTURE_CONTEXT|captureContext\()/, 'raster path must pin the prefs');
+});
+
+test('every capture waits for the route to mount, on the attribute main.ts keeps', () => {
+  // A fixed waitMs stood in for mount time, and lost on a busy machine: the walker
+  // found no #tool-canvas, or framed the boot splash. The script holds its own copy of
+  // the attribute name (a build script cannot import a web-shell module).
+  assert.match(SHOTS_SCRIPT, new RegExp(`const ROUTE_MOUNTING_ATTR\\s*=\\s*'${ROUTE_MOUNTING_ATTR}'`),
+    'the script\'s copy of the attribute must match this module');
+  // main.ts route(): set before the mount, cleared in its finally, and only by the
+  // navigation that is still current, or a superseded mount would mark the newer one done.
+  const set = MAIN_TS.indexOf('view.setAttribute(ROUTE_MOUNTING_ATTR');
+  const clear = MAIN_TS.indexOf('if (navigation === navigationSeq) view.removeAttribute(ROUTE_MOUNTING_ATTR)');
+  assert.ok(set > 0, 'route() must set the attribute on #view');
+  assert.ok(clear > set, 'route() must clear it, for the current navigation only');
+  const tryAt = MAIN_TS.indexOf('try {', set);
+  assert.ok(tryAt > set && tryAt - set < 200, 'set right before the mount\'s try, so every exit path reaches the finally');
+  const finallyAt = MAIN_TS.lastIndexOf('} finally {', clear);
+  assert.ok(finallyAt > set && clear - finallyAt < 200, 'cleared in that finally');
+  // Every capture path waits on it: the vector capture and the crop measurement in
+  // the script, and the raster capture through captureUrl's readyFunction.
+  assert.ok((SHOTS_SCRIPT.match(/await waitForRouteMounted\(page\)/g) ?? []).length >= 2,
+    'the vector capture and the cropSelector measurement must both wait for the mount');
+  const captureUrlCall = /captureUrl\(\s*\{[\s\S]*?\}/.exec(SHOTS_SCRIPT)?.[0] ?? '';
+  assert.match(captureUrlCall, /readyFunction:\s*ROUTE_READY_PROBE/, 'the raster path must wait for the mount too');
 });
 
 test('the first-run tool guide is suppressed by the pin, not by a list of tool ids', () => {

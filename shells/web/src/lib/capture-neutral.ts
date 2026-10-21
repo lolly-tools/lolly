@@ -69,6 +69,13 @@ export function applyCaptureNeutral(): boolean {
 /** Attribute a settled view carries, as a `waitSelector=` recipe would name it. */
 export const CAPTURE_SETTLED_ATTR = 'data-shots-settled';
 
+/** Attribute `#view` carries from the start of a navigation until its view has
+ *  mounted (main.ts route()), for every route and every visitor. The loading card
+ *  marks the same span, but it is skipped for a scripted export, a framed tool and
+ *  the first gallery paint, and it waits 150 ms before it appears. A capture waits
+ *  for this attribute to clear instead of guessing a mount time with `waitMs`. */
+export const ROUTE_MOUNTING_ATTR = 'data-route-mounting';
+
 /** Attribute a look carries while it is still rendering - a gallery strip's dot whose
  *  look has not arrived yet (views/gallery-carousel.ts). Gallery-specific on purpose:
  *  a bare `data-pending` is a name a tool template already uses for its own business,
