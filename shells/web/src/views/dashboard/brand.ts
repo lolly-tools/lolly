@@ -69,9 +69,21 @@ interface TokensRead {
 interface MetaRead {
   _findMetaByType?(type: string): Promise<{ id: string; name?: string; meta?: Record<string, unknown> } | null>;
 }
-interface RegistryRead {
-  designSystems?: { visible?(): Promise<DesignSystemRecord[]> };
-}
+
+/**
+ * The host as this tab reads it: HostV1 plus what the web shell's host carries
+ * beyond it, the design system registry and two asset index reads. Each is
+ * optional, because a partial host (an older shell, a test) may lack it, so
+ * every read of one is guarded.
+ */
+export type BrandHost = HostV1 & {
+  designSystems?: StripHost['designSystems'];
+  assets: HostV1['assets'] & MetaRead & Partial<Pick<StripHost['assets'], '_getBlob'>>;
+};
+
+/** The strip reads covers and switches through the registry, so it mounts only on a host that has both. */
+const isStripHost = (host: BrandHost): host is BrandHost & StripHost =>
+  !!host.designSystems && typeof host.assets._getBlob === 'function';
 
 const tokensOf = (host: HostV1): TokensRead | undefined => host.tokens as TokensRead | undefined;
 
@@ -95,17 +107,16 @@ function headPalette(doc: unknown): PaletteEntry[] | null {
  * Preferences row do (preview.ts colourCountOf). The live palette stands in
  * only when there is no head to read.
  */
-export async function readBrandPanelInput(host: HostV1): Promise<BrandPanelInput> {
+export async function readBrandPanelInput(host: BrandHost): Promise<BrandPanelInput> {
   const tokens = tokensOf(host);
-  const registry = (host as unknown as RegistryRead).designSystems;
   const [live, doc, locked, record, meta, radius, systems] = await Promise.all([
     livePalette(host),
     settle<unknown>(() => tokens?.raw?.(), null),
     settle(() => tokens?.isLocked?.(), false),
     activeDesignSystemRecord(host),
-    settle(() => (host.assets as unknown as MetaRead)._findMetaByType?.('tokens'), null),
+    settle(() => host.assets._findMetaByType?.('tokens'), null),
     settle(async () => brandRadiusValue(await tokens?.resolve?.('{shape.radius}')), null),
-    settle<DesignSystemRecord[]>(() => registry?.visible?.(), []),
+    settle<DesignSystemRecord[]>(() => host.designSystems?.visible?.(), []),
   ]);
   // A record's label is the one the person set. Without a registry the asset's
   // own name stands in, its "... tokens" suffix trimmed ("SUSE Brand Design Tokens" reads "SUSE").
@@ -638,7 +649,7 @@ const isModifiedClick = (e: MouseEvent): boolean => e.button !== 0 || e.metaKey 
  * calls it, so any switch (the account menu, Undo, a hosted update) reaches
  * the tab. `teardown()` removes every listener; chain it onto the view's cleanup.
  */
-export function mountBrandPanel(panel: HTMLElement, host: HostV1, input: BrandPanelInput): { refresh(): Promise<void>; teardown(): void } {
+export function mountBrandPanel(panel: HTMLElement, host: BrandHost, input: BrandPanelInput): { refresh(): Promise<void>; teardown(): void } {
   let gen = 0;
   let live = true;
   let current = input;
@@ -649,9 +660,10 @@ export function mountBrandPanel(panel: HTMLElement, host: HostV1, input: BrandPa
     if (status) status.textContent = message;
   };
 
-  // The strip of design systems above the issue. Hidden with fewer than two.
+  // The strip of design systems above the issue. Hidden with fewer than two,
+  // and without a registry, where the list it would show is empty.
   const stripEl = panel.querySelector<HTMLElement>('[data-ds-strip]');
-  const strip = stripEl ? mountDsStrip(stripEl, host as unknown as StripHost, {
+  const strip = stripEl && isStripHost(host) ? mountDsStrip(stripEl, host, {
     activeId: input.activeRecord?.id ?? '',
     activeCover: stripCoverOf(input.model),
     records: input.systems,
