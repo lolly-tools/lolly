@@ -5,7 +5,7 @@ description: "Operate the Lolly Timezone tool (timezone) using its declared inpu
 
 # Timezone
 
-Tool ID: `timezone`. Tool version: `1.1.0`. Engine range: `^1.186.0`.
+Tool ID: `timezone`. Tool version: `1.1.1`. Engine range: `^1.186.0`.
 
 Turn places and timezones into artwork that follows the design system. Rotate a vector atlas or a detailed WebGL globe, unfold projections, label your people and places, then export artwork, a camera tour or structured schedules.
 
