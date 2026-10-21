@@ -85,7 +85,7 @@ Der Dateiname und das Formatmenü sitzen zusammen als ein `name.format`-Paar, un
 
 Die erste Zeile ist der häufige Fall. Ein in Ihrer Markenschrift gesetztes Wortzeichen wird als SVG exportiert, wobei jeder Buchstabe ein umrissener Pfad statt eines Pixels ist, sodass es aus derselben Datei sowohl in Visitenkartengröße als auch in Gebäudewand-Größe scharf bleibt.
 
-![Ein feines, weit gespurtes Wortzeichen mit der Aufschrift Aurora, die Art reiner Vektorgrafik, um die es in der SVG-Zeile der Tabelle geht](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Ein feines, weit gespurtes Wortzeichen mit der Aufschrift Aurora, die Art reiner Vektorgrafik, um die es in der SVG-Zeile der Tabelle geht](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## Größe & Druckeinheiten
 

@@ -65,7 +65,7 @@ Bu yüzden bakmaya değer olan şey, her seferinde ürettiği dosya değil **ara
 
 Belirlenimci motorun asıl getirdiği değişiklik budur. Yaratıcı ekip için bu bir yerine geçme değil, bir koruma bariyeridir - topu (veriyi, metni, görseli) yine sen atarsın, kod ise her atışı oyun dışına düşmekten alıkoyan bumper şeridi olur.
 
-![Prodüktörün tüm işi: kelimeleri yazmak. Yazı tipi, renk ve boşluklar araç yapıldığında belirlenmişti](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![Prodüktörün tüm işi: kelimeleri yazmak. Yazı tipi, renk ve boşluklar araç yapıldığında belirlenmişti](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## Bunun eşsiz olarak sağladığı
 

@@ -85,7 +85,7 @@ Share टूल के ऊपर खुलता है, जिसमें ल�
 
 पहली पंक्ति सबसे सामान्य मामला है। आपके ब्रांड फ़ेस में सेट किया गया एक वर्डमार्क SVG के रूप में एक्सपोर्ट होता है, जहाँ हर अक्षर पिक्सल के बजाय एक आउटलाइन पथ होता है, इसलिए यह विज़िटिंग-कार्ड साइज़ पर और उसी फ़ाइल से बिल्डिंग-रैप साइज़ पर भी तीखा बना रहता है।
 
-![एक हेयरलाइन वाइड-ट्रैक्ड वर्डमार्क जिसमें Aurora लिखा है, वैसा शुद्ध वेक्टर आर्टवर्क जिसके बारे में तालिका की SVG पंक्ति है](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![एक हेयरलाइन वाइड-ट्रैक्ड वर्डमार्क जिसमें Aurora लिखा है, वैसा शुद्ध वेक्टर आर्टवर्क जिसके बारे में तालिका की SVG पंक्ति है](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## साइज़ और प्रिंट यूनिट
 

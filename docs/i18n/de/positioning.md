@@ -65,7 +65,7 @@ Das Betrachtenswerte ist also das **Tool**, nicht jede Datei, die es erzeugt. Ri
 
 Das ist die Veränderung, die die deterministische Engine tatsächlich liefert. Für das Creative-Team ist sie eine Leitplanke, kein Ersatz - Sie werfen weiterhin den Ball (die Daten, den Text, das Bild), und der Code ist die Bumperbahn, die jeden Wurf aus der Gosse hält.
 
-![Der ganze Job des Producers: die Worte tippen. Schrift, Farbe und Abstand waren festgelegt, als das Tool entstand](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![Der ganze Job des Producers: die Worte tippen. Schrift, Farbe und Abstand waren festgelegt, als das Tool entstand](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## Was das einzigartig ermöglicht
 

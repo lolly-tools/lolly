@@ -85,7 +85,7 @@ Magkasama ang pangalan ng file at ang format menu bilang isang `name.format` pai
 
 Ang unang row ang karaniwang kaso. Ang isang wordmark na naka-set sa iyong brand face ay nag-e-export bilang SVG, kung saan ang bawat titik ay outlined path sa halip na pixel, kaya nananatili itong malinaw sa laki ng business-card at sa laki ng building-wrap mula sa parehong file.
 
-![Isang hairline wide-tracked wordmark na nagbabasang Aurora, ang uri ng purong vector artwork na tungkol dito ang SVG row ng talahanayan](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Isang hairline wide-tracked wordmark na nagbabasang Aurora, ang uri ng purong vector artwork na tungkol dito ang SVG row ng talahanayan](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## Laki at Print Units
 

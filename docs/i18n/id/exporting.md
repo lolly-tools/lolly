@@ -85,7 +85,7 @@ Nama file dan menu format berada bersama sebagai satu pasangan `name.format`, di
 
 Baris pertama adalah kasus yang paling umum. Wordmark yang disusun dalam font brand Anda diekspor sebagai SVG, di mana setiap huruf adalah jalur bergaris luar, bukan piksel, sehingga tetap tajam pada ukuran kartu nama maupun pada ukuran pembungkus gedung dari file yang sama.
 
-![Wordmark hairline dengan tracking lebar bertuliskan Aurora, jenis karya seni vektor murni yang dibahas pada baris SVG di tabel](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Wordmark hairline dengan tracking lebar bertuliskan Aurora, jenis karya seni vektor murni yang dibahas pada baris SVG di tabel](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## Ukuran & unit cetak
 

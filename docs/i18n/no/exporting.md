@@ -85,7 +85,7 @@ Filnavnet og formatmenyen sitter sammen som ett `name.format`-par, under **Last 
 
 Den første raden er standardtilfellet. Et ordmerke satt i merkevarens font eksporteres som SVG, der hver bokstav er en konturert bane i stedet for en piksel, så det forblir skarpt i visittkortstørrelse og i byggveggstørrelse fra samme fil.
 
-![Et tynt, bredsporet ordmerke med teksten Aurora, den typen rene vektorillustrasjoner SVG-raden i tabellen handler om](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Et tynt, bredsporet ordmerke med teksten Aurora, den typen rene vektorillustrasjoner SVG-raden i tabellen handler om](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## Størrelse og trykkeenheter
 

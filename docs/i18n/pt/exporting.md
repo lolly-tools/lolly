@@ -85,7 +85,7 @@ O nome do arquivo e o menu de formato ficam juntos como um único par `name.form
 
 A primeira linha é o caso comum. Um wordmark composto na fonte da sua marca exporta como SVG, onde cada letra é um caminho vetorizado em vez de um pixel, então ele permanece nítido no tamanho de um cartão de visita e no tamanho de um envelopamento de prédio a partir do mesmo arquivo.
 
-![Um wordmark de traço fino e espaçamento largo com o texto Aurora, o tipo de arte puramente vetorial de que trata a linha SVG da tabela](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Um wordmark de traço fino e espaçamento largo com o texto Aurora, o tipo de arte puramente vetorial de que trata a linha SVG da tabela](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## Tamanho e unidades de impressão
 

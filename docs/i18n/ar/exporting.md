@@ -85,7 +85,7 @@
 
 الصف الأول هو الحالة الشائعة. تُصدَّر علامة كتابية بخط علامتك التجارية كـSVG، حيث يكون كل حرف مسارًا محددًا لا بكسلات، فيبقى حادًا بحجم بطاقة عمل وبحجم غلاف مبنى من الملف نفسه.
 
-![علامة كتابية دقيقة الخط وواسعة التباعد تقرأ Aurora، وهي النوع من الأعمال المتجهية الخالصة التي يدور حولها صف SVG في الجدول](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![علامة كتابية دقيقة الخط وواسعة التباعد تقرأ Aurora، وهي النوع من الأعمال المتجهية الخالصة التي يدور حولها صف SVG في الجدول](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## الحجم ووحدات الطباعة
 

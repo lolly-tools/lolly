@@ -65,7 +65,7 @@ Lolly 是印刷機，不是草稿。你可以把任何東西帶進發想階段 -
 
 這才是確定性引擎真正帶來的改變。對創意團隊來說，這是護欄，而非取代 - 你依然投出那顆球（資料、文案、圖片），而程式碼就是保齡球道兩側的護欄，讓每一次投擲都不會滾進溝裡。
 
-![製作人唯一的工作：輸入文字。字體、顏色與間距早在工具做好時就已經定案](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![製作人唯一的工作：輸入文字。字體、顏色與間距早在工具做好時就已經定案](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## 這帶來的獨特價值
 

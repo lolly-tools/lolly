@@ -65,7 +65,7 @@ Dus het ding dat de moeite waard is om naar te kijken, is de **tool**, niet elk 
 
 Dit is de verandering die de deterministische engine daadwerkelijk levert. Voor het creatieve team is het een guard-rail, geen vervanging - je gooit nog steeds de bal (de data, de tekst, de afbeelding) en de code is de bumperlane die elke worp uit de goot houdt.
 
-![De hele taak van de producer: type de woorden. Type, kleur en spatiëring waren vastgelegd toen de tool werd gemaakt](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![De hele taak van de producer: type de woorden. Type, kleur en spatiëring waren vastgelegd toen de tool werd gemaakt](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## Wat dit uniek biedt
 

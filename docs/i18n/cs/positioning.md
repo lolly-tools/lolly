@@ -65,7 +65,7 @@ Takže to, co stojí za pohled, je **nástroj**, ne každý soubor, který vytvo
 
 Toto je změna, kterou deterministický engine skutečně přináší. Pro kreativní tým je to mantinel, ne náhrada - hod pořád provádíš ty (data, text, obrázek) a kód je bowlingový mantinel, který udrží každý hod mimo žlab.
 
-![Celá práce producenta: napsat text. Typografie, barva a rozestupy byly stanoveny, když byl nástroj vytvořen](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![Celá práce producenta: napsat text. Typografie, barva a rozestupy byly stanoveny, když byl nástroj vytvořen](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## Co to jedinečně přináší
 

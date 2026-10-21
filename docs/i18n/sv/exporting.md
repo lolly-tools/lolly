@@ -85,7 +85,7 @@ Filnamnet och formatmenyn sitter tillsammans som ett `name.format`-par, under **
 
 Den första raden är det vanliga fallet. Ett ordmärke satt i ditt varumärkes typsnitt exporteras som SVG, där varje bokstav är en konturerad bana snarare än en pixel, så den förblir skarp i visitkortsstorlek och i byggnadsinslagningsstorlek från samma fil.
 
-![Ett hårfint brett spärrat ordmärke som lyder Aurora, den typ av ren vektorkonst som SVG-raden i tabellen handlar om](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Ett hårfint brett spärrat ordmärke som lyder Aurora, den typ av ren vektorkonst som SVG-raden i tabellen handlar om](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## Storlek och utskriftsenheter
 

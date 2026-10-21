@@ -65,7 +65,7 @@ Așadar lucrul care merită privit este **instrumentul**, nu fiecare fișier pe 
 
 Aceasta este schimbarea pe care motorul determinist chiar o aduce. Pentru echipa creativă e o barieră de siguranță, nu un înlocuitor - tu tot arunci mingea (datele, textul, imaginea), iar codul este culoarul cu bumperi care ține fiecare aruncare departe de șanț.
 
-![Toată treaba producătorului: să tasteze cuvintele. Tipul de literă, culoarea și spațierea au fost stabilite când a fost creat instrumentul](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![Toată treaba producătorului: să tasteze cuvintele. Tipul de literă, culoarea și spațierea au fost stabilite când a fost creat instrumentul](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## Ce oferă acest lucru, în mod unic
 
