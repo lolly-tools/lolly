@@ -65,7 +65,8 @@ test('Profile creates and reopens editable systems beside a locked deployment br
     await page.locator('[data-be-editor-name]').fill('My edited colour');
     await page.locator('[data-be-editor-name]').press('Enter');
     await page.getByRole('checkbox', { name: 'Select My edited colour', exact: true }).waitFor();
-    await page.locator('[data-be-save-state]').filter({ hasText: /^Saved$/ }).waitFor();
+    // The Tokens room mirrors the same status, so read the Colours room's own.
+    await page.locator('.be-palette [data-be-save-state]').filter({ hasText: /^Saved$/ }).waitFor();
     const edited = await read();
     assert.notDeepEqual(edited.doc, created.doc);
 
