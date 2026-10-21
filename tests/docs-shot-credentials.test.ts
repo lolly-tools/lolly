@@ -631,7 +631,7 @@ test('a shut card opens again on the next visit', () => {
   (doc.getElementById('search') as HTMLElement).focus();
 });
 
-test('built pages ship every mark closed', { skip: existsSync(join(ROOT, 'shells/web/public/info/trust/ai-stance.html')) ? false : 'no built /info on disk' }, () => {
+test('built pages ship every mark closed', { skip: existsSync(join(ROOT, 'shells/web/public/info/trust/ai-stance.html')) ? false : 'no built /info on disk - run `pnpm run build:info`' }, () => {
   // The page asset (AI stance hero), the banked figure, a masthead, the landing mascots and
   // a page of screenshots: the kinds that used to differ in their resting state.
   const pages = ['trust/ai-stance.html', 'create/positioning.html', 'trust/security.html', 'index.html', 'build/url-inputs.html'];
