@@ -210,6 +210,24 @@ test('classifyVectorShot: unchanged ignores the baseline C2PA block; changes and
   assert.equal(DEFAULT_THRESHOLDS.vectorMinBytes, 2_048);
 });
 
+test('classifyVectorShot: the size change leaves the baseline credential out', () => {
+  // A small vector whose content barely moved, against a baseline carrying the ~2.7 KB
+  // C2PA block a stamped file has. Measured whole, the old file is twice the size of
+  // the fresh capture and the change reads as a 50% shrink.
+  const content = `<path d="${'M0 0h10v10z'.repeat(250)}"/>`;
+  const before = VEC(content);
+  const after = VEC(content.replace('M0 0h10', 'M0 0h11'));
+  const stamped = before.replace('>', `><metadata><c2pa:manifest>${'Q'.repeat(2_700)}</c2pa:manifest></metadata>`);
+  const bytes = (s: string): number => new TextEncoder().encode(s).byteLength;
+  const v = classifyVectorShot({
+    newText: after, newBytes: bytes(after), expected: null, oldText: stamped, oldBytes: bytes(stamped),
+  });
+  assert.equal(v.kind, 'changed');
+  assert.ok(Math.abs(v.sizeDelta ?? 1) < 0.01, `content-to-content, not content-to-file: ${v.sizeDelta}`);
+  assert.ok(!v.flags.includes('size-jump'));
+  assert.equal(acceptBlocker(v, after), null, 'and --accept takes it');
+});
+
 test('parseShotRecipes: format defaults to svg; ordinary images are ignored', () => {
   const { recipes, problems } = parseShotRecipes(
     '![shot](/t/url-shot?url=%2F%23%2Fp&filename=projects)\n' +
