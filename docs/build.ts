@@ -3794,7 +3794,10 @@ button.shot-cred-copy{border:0;background:none;padding:0;cursor:pointer}
 [data-theme="dark"] .shot-cred-btn{color:#99a0a4;background:hsl(var(--popover) / 0.9);box-shadow:0 1px 3px #0006}
 [data-theme="dark"] .shot:hover .shot-cred-btn,[data-theme="dark"] .showcase:hover .shot-cred-btn{color:var(--text)}
 [data-theme="dark"] .shot-cred-btn:hover,[data-theme="dark"] .shot-cred-btn:focus-visible{color:var(--text);background:hsl(var(--popover));box-shadow:0 2px 6px #0008}
-[data-theme="dark"] .shot-cred--ai .shot-cred-btn{color:var(--dark);background:var(--light)}
+/* The AI glyph keeps its ring in the dark theme too, and its puck is OPAQUE: the rule
+   above replaces every glyph's shadow at equal specificity, and a 40% green puck read at
+   about 1.5:1 on light artwork, quieter than a plain glyph. */
+[data-theme="dark"] .shot-cred--ai .shot-cred-btn{color:hsl(var(--primary-foreground));background:hsl(var(--primary));box-shadow:0 0 0 1.5px hsl(var(--popover)),0 0 0 3px var(--green)}
 /* On the dark and brand pages the card needs a deeper shadow to lift off the page, and
    the AI chip turns to the bright primary so it still reads as filled. */
 [data-theme="dark"] .shot-cred-line,[data-theme="brand"] .shot-cred-line{box-shadow:0 6px 20px #0000008c, inset 0 0 0 1px var(--border)}

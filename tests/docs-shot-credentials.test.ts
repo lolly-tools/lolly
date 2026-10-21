@@ -215,6 +215,12 @@ test('an AI declaration is never hidden behind the hover', () => {
   assert.match(ai[1]!, /background:/, 'the AI glyph must be filled, not merely un-faded');
   assert.doesNotMatch(ai[1]!, /opacity:1(?![\d.])/,
     'opacity:1 is inert now that the glyph never rests faded - promote it with colour instead');
+  // The dark theme replaces every glyph's shadow at equal specificity, so it must restate
+  // the AI glyph whole: an opaque puck AND the ring, or the declaration goes quiet there.
+  const darkAi = /\[data-theme="dark"\] \.shot-cred--ai \.shot-cred-btn\{([^}]*)\}/.exec(BUILD_TS);
+  assert.ok(darkAi, 'the dark theme must restate the AI glyph');
+  assert.match(darkAi[1]!, /background:hsl\(var\(--primary\)\)/, 'the dark AI puck must be an opaque fill');
+  assert.match(darkAi[1]!, /box-shadow:[^;}]*var\(--green\)/, 'the AI ring must survive the dark theme');
 });
 
 test('the showcase strips the manifest it inlines, and keeps the file it points at', () => {
