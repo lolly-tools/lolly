@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 브랜드를 활성화한 뒤에도 [**Brand Studio**](/info/brand-studio.html)(`#/start`)에서 계속 다듬을 수 있어요 - 색상이나 역할을 바꾸면 앱 전체의 미리보기가 입력하는 대로 갱신돼요. (`#/d`의 대시보드 **Design system** 탭은 브랜드를 읽기 전용으로 *보여 줄* 뿐이고, 편집은 Studio에서 해요.)
 
-![대시보드의 Design system 탭 - 활성 브랜드를 읽기 전용으로 보여 줘요](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) 같은 브랜드가 **Profile → Your brand** 카드에도 요약돼 있어요. 폰트는 실제 파일이에요. Google Fonts에서 고르면 Lolly가 그 파일을 브랜드 자산으로 **여러분의 기기에** 저장하니, 타이포그래피가 오프라인에서도 그대로 따라오고 렌더링 시점에 아무것도 내려받지 않아요.
+![대시보드의 Design system 탭 - 활성 브랜드를 읽기 전용으로 보여 줘요](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) 같은 브랜드가 **Profile → Your brand** 카드에도 요약돼 있어요. 폰트는 실제 파일이에요. Google Fonts에서 고르면 Lolly가 그 파일을 브랜드 자산으로 **여러분의 기기에** 저장하니, 타이포그래피가 오프라인에서도 그대로 따라오고 렌더링 시점에 아무것도 내려받지 않아요.
 
 마음에 들면 **브랜드를 `LollyBrand` 팩으로 내보내세요** - 동료가 가져오기만 하면 똑같은 팔레트, 폰트, 규칙을 그대로 얻는 단일 파일이에요. 브랜드가 중간에 서버 없이 사람과 기기 사이를 오가는 방식이에요.
 

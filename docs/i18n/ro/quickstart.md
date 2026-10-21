@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 Odată ce un brand e activ, continuă să-l modelezi în [**Brand Studio**](/info/brand-studio.html) (`#/start`) - schimbi o culoare sau un rol și fiecare previzualizare din aplicație se actualizează pe măsură ce tastezi. (Fila **Design system** de la `#/d` din dashboard *arată* brandul doar în citire; în Studio îl editezi.)
 
-![Fila Design-system din Dashboard - brandul activ, afișat doar în citire](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) Același brand este rezumat pe cardul **Profile → Your brand** (Profil → Brandul tău). Fonturile sunt reale: alegi din Google Fonts, iar Lolly stochează fișierul **pe dispozitivul tău** ca resursă de brand, astfel încât tipografia ta călătorește offline și nimic nu este preluat la randare.
+![Fila Design-system din Dashboard - brandul activ, afișat doar în citire](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) Același brand este rezumat pe cardul **Profile → Your brand** (Profil → Brandul tău). Fonturile sunt reale: alegi din Google Fonts, iar Lolly stochează fișierul **pe dispozitivul tău** ca resursă de brand, astfel încât tipografia ta călătorește offline și nimic nu este preluat la randare.
 
 Când ești mulțumit, **exportă brandul ca pachet `LollyBrand`** - un singur fișier pe care un coleg îl poate importa pentru a obține exact aceeași paletă, fonturi și reguli. Așa se mută un brand între oameni și mașini, fără un server la mijloc.
 

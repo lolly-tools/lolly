@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 Når en merkevare er aktiv, kan du fortsette å forme den i [**Brand Studio**](/info/brand-studio.html) (`#/start`) - endre en farge eller en rolle, så oppdateres alle forhåndsvisninger i appen mens du skriver. (Fanen **Design system** på dashbordet på `#/d` *viser* merkevaren skrivebeskyttet; det er i Studio du redigerer den.)
 
-![Design system-fanen på dashbordet - den aktive merkevaren vist skrivebeskyttet](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) Den samme merkevaren er oppsummert på kortet **Profile → Your brand**. Skriftene er ekte: velg fra Google Fonts, så lagrer Lolly filen **på enheten din** som en merkevareressurs, slik at typografien din virker uten nett og ingenting hentes ved gjengivelse.
+![Design system-fanen på dashbordet - den aktive merkevaren vist skrivebeskyttet](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) Den samme merkevaren er oppsummert på kortet **Profile → Your brand**. Skriftene er ekte: velg fra Google Fonts, så lagrer Lolly filen **på enheten din** som en merkevareressurs, slik at typografien din virker uten nett og ingenting hentes ved gjengivelse.
 
 Når du er fornøyd, **eksporter merkevaren som en `LollyBrand`-pakke** - én enkelt fil en kollega kan importere for å få nøyaktig samme palett, skrifter og regler. Slik flytter en merkevare seg mellom folk og maskiner uten en server i mellom.
 

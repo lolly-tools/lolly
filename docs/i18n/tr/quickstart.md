@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 Bir marka etkinleştikten sonra onu [**Brand Studio**](/info/brand-studio.html) (`#/start`) içinde şekillendirmeye devam et - bir rengi ya da bir rolü değiştir, uygulamadaki her önizleme sen yazarken güncellensin. (Panonun `#/d` adresindeki **Design system** sekmesi markayı salt okunur *gösterir*; düzenleme Studio'da yapılır.)
 
-![Panonun Design-system sekmesi - etkin marka salt okunur gösteriliyor](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) Aynı marka **Profile → Your brand** kartında da özetlenir. Fontlar gerçektir: Google Fonts'tan birini seç, Lolly dosyayı bir marka varlığı olarak **cihazında** saklasın; böylece tipografin çevrimdışı da yanında gelir ve render sırasında hiçbir şey indirilmez.
+![Panonun Design-system sekmesi - etkin marka salt okunur gösteriliyor](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) Aynı marka **Profile → Your brand** kartında da özetlenir. Fontlar gerçektir: Google Fonts'tan birini seç, Lolly dosyayı bir marka varlığı olarak **cihazında** saklasın; böylece tipografin çevrimdışı da yanında gelir ve render sırasında hiçbir şey indirilmez.
 
 Sonuçtan memnunsan **markayı bir `LollyBrand` paketi olarak dışa aktar** - bir iş arkadaşının içeri aktarıp tıpatıp aynı paleti, fontları ve kuralları alabileceği tek bir dosya. Bir marka, arada bir sunucu olmadan insanlar ve makineler arasında böyle dolaşır.
 

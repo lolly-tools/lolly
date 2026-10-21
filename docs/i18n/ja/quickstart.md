@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 ブランドを有効にしたあとも、[**Brand Studio**](/info/brand-studio.html)（`#/start`）で形を整え続けられます。色や役割を変えると、アプリ全体のプレビューが入力に合わせて即座に更新されます。（`#/d` のダッシュボードの **Design system** タブはブランドを読み取り専用で*表示*するもので、編集はスタジオで行います。）
 
-![ダッシュボードの Design system タブ。有効なブランドを読み取り専用で表示](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) 同じブランドは **Profile → Your brand** カードにも要約されます。フォントは実体を伴います。Google Fonts から選ぶと Lolly はそのファイルを**お使いのデバイス上に**ブランドアセットとして保存するので、書体はオフラインでも一緒に持ち運べ、描画時に何も取得しません。
+![ダッシュボードの Design system タブ。有効なブランドを読み取り専用で表示](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) 同じブランドは **Profile → Your brand** カードにも要約されます。フォントは実体を伴います。Google Fonts から選ぶと Lolly はそのファイルを**お使いのデバイス上に**ブランドアセットとして保存するので、書体はオフラインでも一緒に持ち運べ、描画時に何も取得しません。
 
 満足できたら、**ブランドを `LollyBrand` パックとして書き出しましょう**。同僚がインポートすれば、まったく同じパレット、フォント、ルールが手に入る1つのファイルです。サーバーを介さずにブランドが人と機械のあいだを移動する仕組みです。
 

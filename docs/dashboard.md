@@ -6,7 +6,7 @@
 |---|---|---|
 | **Preferences** | `#/settings` | Your details, appearance, accessibility, connections, storage and offline downloads |
 | **This device** | `#/settings?tab=device` | A live readout of the browser and machine, plus sound and storage |
-| **Design system** | `#/settings?tab=brand` | The active design system: logo, colours, type, tokens and print reference |
+| **Design system** | `#/settings?tab=brand` | The active design system as a cover and pages, with a strip of covers to switch systems |
 | **Capabilities** | `#/settings?tab=caps` | The platform's features, grouped into searchable cards |
 | **Activity & stats** | `#/settings?tab=activity` | The catalogue, your local counters and recent work |
 
@@ -20,9 +20,18 @@ Each section has its own address. Existing `#/profile` and `#/d` links still wor
 
 ## Design system
 
-The brand as it is actually loaded, rendered wearing its own variables: the name, the horizontal logo, the primary colour as a copyable value and the faces currently loaded on the device. Below the hero sit the palette on a hue/chroma wheel (greys have no hue, so they ride a lightness rail beside it), a live type specimen, the full colour palette, the brand token primitives - radius, spacing, effects, gradients - and a print and CMYK reference panel.
+The active design system, set out as a read. When this browser holds two or more design systems, a strip of small covers at the top lists them; choose one to make it active, and **Undo** in the notice that follows puts the previous one back.
 
-**Nothing on this tab writes brand state.** It is a mirror: the editing happens in the [Brand Studio](/info/brand-studio.html) at `#/start`, and the tab links there from the hero and from the tokens section. A **Brand locked** panel identifies a read-only design system. The lock applies to the selected system; local systems you create remain editable.
+The tab opens on a cover painted in the system's own colours, with its logo, its name in its display face and the note its author wrote. A line of counts on the cover links to each page:
+
+- <!--i:palette--> **Colour** - the surface, text, primary and secondary of the light and dark looks, every named colour with its hex and print ink, a band for each tint ramp and the chart spectrum, and the colour roles in a fold. Select a value to copy the hex.
+- <!--i:font--> **Type** - Headings, Text, Emphasis and Code, each set in its own face.
+- <!--i:image--> **Logos** - each logo file on the ground it was made for.
+- <!--i:layers--> **Colourways** - the light and dark pair of each colourway, when the system has more than one.
+- <!--i:sliders--> **Tokens** - radius, spacing, effects and gradients.
+- <!--i:document--> **Print & CMYK** - the colours locked to an exact ink, and the press conditions a CMYK PDF can declare.
+
+**Switching is the only change this tab makes.** Editing happens in the [Brand Studio](/info/brand-studio.html) at `#/start`, which the cover links to as **Edit in Start**. A read-only system says so on its cover; local systems you create remain editable.
 
 Theme and sound are in [Preferences](/info/profile.html), within the same Settings section.
 
@@ -47,8 +56,8 @@ Then your own side of it: **Your activity** counts what you have made on this de
 Every destination on the page is addressable, and the same registry Settings renders from is what [Search](/info/search.html) points its **Settings** results at - so a section can never be renamed out from under a search result.
 
 - <!--i:hash--> **A tab:** `#/settings?tab=brand`, `#/settings?tab=caps`, `#/settings?tab=device`, `#/settings?tab=activity`.
-- <!--i:hash--> **A section, exactly:** its own id as a bare flag - `#/settings?dash-storage`, `#/settings?dash-tokens`, `#/settings?cap-formats`. This is the precise form.
-- <!--i:search--> **A section by keyword:** `#/settings?print`, `#/settings?formats`, `#/settings?palette`, `#/settings?tokens`. Convenient, but keywords are shared - `print` belongs to both the brand tab's print reference and the Print production capability group - and the first one in page order wins. Use the id when it matters which.
+- <!--i:hash--> **A section, exactly:** its own id as a bare flag - `#/settings?dash-storage`, `#/settings?dash-logos`, `#/settings?dash-colourways`, `#/settings?cap-formats`. This is the precise form. The older `#/settings?dash-lock` and `#/settings?dash-palette-wheel` links open the cover and the Colour page.
+- <!--i:search--> **A section by keyword:** `#/settings?print`, `#/settings?formats`, `#/settings?palette` (the Colour page), `#/settings?tokens`. Convenient, but keywords are shared - `print` belongs to both the brand tab's print reference and the Print production capability group - and the first one in page order wins. Use the id when it matters which.
 
 A deep link switches to the tab that owns the target, opens it (and any group it is folded inside), then scrolls to it, re-landing for a moment or so while the asynchronous sections above it finish laying out.
 

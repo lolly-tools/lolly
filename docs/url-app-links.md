@@ -123,7 +123,7 @@ Room, focused wing and source-picker changes update the address. `seed` and `whe
 
 ### Dashboard (`#/d`)
 
-`#/d?tab=<tab>` opens a primary tab - `device`, `brand`, `caps`, `activity`. `#/d?<section-id>` scrolls to and opens one section directly (`#/d?dash-storage`, `#/d?cap-formats`); the section ids are the `DASH_SECTIONS` rows in `shells/web/src/views/dashboard-registry.ts`. `#/b` and `#/brand` are shortlinks to the Design system tab.
+`#/d?tab=<tab>` opens a primary tab - `device`, `brand`, `caps`, `activity`. `#/d?<section-id>` scrolls to and opens one section directly (`#/d?dash-storage`, `#/d?cap-formats`); the section ids are the `DASH_SECTIONS` rows in `shells/web/src/lib/dashboard-registry.ts`. `#/b` and `#/brand` are shortlinks to the Design system tab.
 
 ### Profile (`#/profile`)
 

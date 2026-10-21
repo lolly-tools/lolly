@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 品牌一旦启用，就继续在[**Brand Studio**](/info/brand-studio.html)（`#/start`）里塑造它：改一个颜色或一个角色，应用里的每个预览都会随你输入而更新。（仪表板 `#/d` 的 **Design system** 标签页只是以只读方式*显示*品牌；编辑在工作室里进行。）
 
-![仪表板的 Design system 标签页：以只读方式显示当前启用的品牌](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) 同一个品牌也会在 **Profile → Your brand** 卡片上做概要展示。字体是真实的：从 Google Fonts 里挑一款，Lolly 会把文件作为品牌资产存**在你的设备上**，这样你的排版可以离线随行，渲染时不必去取任何东西。
+![仪表板的 Design system 标签页：以只读方式显示当前启用的品牌](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) 同一个品牌也会在 **Profile → Your brand** 卡片上做概要展示。字体是真实的：从 Google Fonts 里挑一款，Lolly 会把文件作为品牌资产存**在你的设备上**，这样你的排版可以离线随行，渲染时不必去取任何东西。
 
 满意之后，**把品牌导出为一个 `LollyBrand` 包**，同事导入这一个文件，就能得到完全相同的调色板、字体和规则。品牌就是这样在人和机器之间流转的，中间不需要服务器。
 

@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 Com uma marca ativa, siga moldando ela no [**Brand Studio**](/info/brand-studio.html) (`#/start`) - mude uma cor ou um papel e toda prévia no app se atualiza enquanto você digita. (A aba **Design system** do painel, em `#/d`, *mostra* a marca em modo somente leitura; o Studio é onde você edita.)
 
-![A aba Design-system do painel - a marca ativa exibida em modo somente leitura](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) A mesma marca aparece resumida no card **Profile → Your brand**. As fontes são reais: escolha no Google Fonts e Lolly guarda o arquivo **no seu dispositivo** como um asset de marca, então sua tipografia viaja offline e nada é buscado na hora de renderizar.
+![A aba Design-system do painel - a marca ativa exibida em modo somente leitura](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) A mesma marca aparece resumida no card **Profile → Your brand**. As fontes são reais: escolha no Google Fonts e Lolly guarda o arquivo **no seu dispositivo** como um asset de marca, então sua tipografia viaja offline e nada é buscado na hora de renderizar.
 
 Quando estiver satisfeito, **exporte a marca como um pacote `LollyBrand`** - um único arquivo que um colega pode importar para ter exatamente a mesma paleta, as mesmas fontes e as mesmas regras. É assim que uma marca circula entre pessoas e máquinas sem um servidor no meio.
 

@@ -4,7 +4,7 @@ The **Brand Studio** at `#/start` is the one place you shape your brand - its lo
 
 Changes preview **live across the whole app** as you make them, so you can see a colour or a font land everywhere before you commit it. It's all on-device: your brand files and tokens never leave your machine (picking a Google Font fetches that one family from Google, once, after a consent dialog), and the brand travels in a single [brand pack](#move-a-brand-between-devices) file.
 
-> **This is the editor. The dashboard is the mirror.** The **Design system** tab on the Dashboard (`#/d`) *shows* your brand read-only; you *edit* it here at `#/start`. If you want to change a colour later, come back to the Brand Studio.
+> **This is the editor. The dashboard is the mirror.** The **Design system** tab on the Dashboard (`#/d`) *shows* the active design system read-only; you *edit* it here at `#/start`. If you want to change a colour later, come back to the Brand Studio.
 
 ## Removing a design system
 

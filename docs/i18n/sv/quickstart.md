@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 När ett varumärke är aktivt fortsätter du forma det i [**Brand Studio**](/info/brand-studio.html) (`#/start`) - ändra en färg eller en roll och varje förhandsvisning i appen uppdateras medan du skriver. (Instrumentpanelens flik **Designsystem** på `#/d` *visar* varumärket skrivskyddat; i studion redigerar du det.)
 
-![Instrumentpanelens flik Designsystem - det aktiva varumärket visat skrivskyddat](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) Samma varumärke sammanfattas på kortet **Profil → Ditt varumärke**. Typsnitt är riktiga: välj från Google Fonts så lagrar Lolly filen **på din enhet** som en varumärkesresurs, så din typografi följer med offline och inget hämtas vid rendering.
+![Instrumentpanelens flik Designsystem - det aktiva varumärket visat skrivskyddat](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) Samma varumärke sammanfattas på kortet **Profil → Ditt varumärke**. Typsnitt är riktiga: välj från Google Fonts så lagrar Lolly filen **på din enhet** som en varumärkesresurs, så din typografi följer med offline och inget hämtas vid rendering.
 
 När du är nöjd, **exportera varumärket som ett `LollyBrand`-paket** - en enda fil som en kollega kan importera för att få exakt samma palett, typsnitt och regler. Så förflyttas ett varumärke mellan människor och maskiner utan en server i mitten.
 

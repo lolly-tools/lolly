@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 Zodra een merk actief is, blijf je het vormgeven in de [**Brand Studio**](/info/brand-studio.html) (`#/start`) - verander een kleur of een rol en elke preview in de app wordt bijgewerkt terwijl je typt. (Het tabblad **Design system** op `#/d` *toont* het merk alleen-lezen; in de Studio bewerk je het.)
 
-![Het Design-system-tabblad van het dashboard - het actieve merk alleen-lezen getoond](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) Hetzelfde merk wordt samengevat op de kaart **Profiel → Je merk**. Lettertypen zijn echt: kies er een uit Google Fonts en Lolly slaat het bestand **op je apparaat** op als merkasset, zodat je typografie ook offline meegaat en er bij het renderen niets wordt opgehaald.
+![Het Design-system-tabblad van het dashboard - het actieve merk alleen-lezen getoond](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) Hetzelfde merk wordt samengevat op de kaart **Profiel → Je merk**. Lettertypen zijn echt: kies er een uit Google Fonts en Lolly slaat het bestand **op je apparaat** op als merkasset, zodat je typografie ook offline meegaat en er bij het renderen niets wordt opgehaald.
 
 Als je tevreden bent, **exporteer het merk als een `LollyBrand`-pack** - één bestand dat een collega kan importeren om exact hetzelfde palet, dezelfde lettertypen en dezelfde regels te krijgen. Zo verplaatst een merk zich tussen mensen en machines zonder server ertussenin.
 
