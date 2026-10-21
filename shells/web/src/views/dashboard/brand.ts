@@ -19,6 +19,11 @@
  * so a switch made from the account menu never leaves the previous system on
  * screen. A refresh started before a newer one is dropped, and so is one that
  * finishes after the view was torn down.
+ *
+ * Above the issue sits the design systems strip (lib/design-system/ds-strip.ts),
+ * one small cover per system in this browser, which switches in place. The
+ * active system's cover there is drawn from the model this tab already read,
+ * and the same refresh redraws the strip, so a switch costs one read.
  */
 import '../../styles/parts/design-issue.css';
 import { createTokenSet, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION } from '@lolly/engine';
@@ -35,8 +40,9 @@ import { listStudioTokens, formatStudioValue, gradientCss } from '../../lib/toke
 import type { StudioToken } from '../../lib/token-studio.ts';
 import { activeDesignSystemRecord, type ActiveRecord } from '../../lib/design-system/active.ts';
 import { readIssue, type IssueModel, type LookSlot } from '../../lib/design-system/issue-model.ts';
-import { coverVars, safeLogoSrc } from '../../lib/design-system/cover.ts';
-import { logoUrlsFor, type DesignSystemPreview } from '../../lib/design-system/preview.ts';
+import { coverVars, safeLogoSrc, type CoverPreview } from '../../lib/design-system/cover.ts';
+import { logoUrlsFor, monogramOf, type DesignSystemPreview } from '../../lib/design-system/preview.ts';
+import { mountDsStrip, type StripHost } from '../../lib/design-system/ds-strip.ts';
 import type { LeadColours } from '../../lib/design-system/leads.ts';
 import { sourceLine } from '../../lib/design-system/source-line.ts';
 import type { DesignSystemRecord } from '../../lib/design-system/registry.ts';
@@ -51,6 +57,8 @@ export interface BrandPanelInput {
   activeRecord: ActiveRecord | null;
   /** The corner radius as a safe CSS length (brand-vars.ts brandRadiusValue), or null. */
   radius: string | null;
+  /** The design systems in this browser, in registry order, for the strip. Empty without a registry. */
+  systems: DesignSystemRecord[];
 }
 
 interface TokensRead {
@@ -60,6 +68,9 @@ interface TokensRead {
 }
 interface MetaRead {
   _findMetaByType?(type: string): Promise<{ id: string; name?: string; meta?: Record<string, unknown> } | null>;
+}
+interface RegistryRead {
+  designSystems?: { visible?(): Promise<DesignSystemRecord[]> };
 }
 
 const tokensOf = (host: HostV1): TokensRead | undefined => host.tokens as TokensRead | undefined;
@@ -71,18 +82,20 @@ async function settle<T>(read: () => Promise<T> | undefined, fallback: T): Promi
 
 /**
  * Read the active design system for the tab. The palette, the head document,
- * the lock, the record, the asset name and the radius are read together, so
- * the tab waits for the slowest of them and no longer.
+ * the lock, the record, the asset name, the radius and the list of design
+ * systems are read together, so the tab waits for the slowest of them and no longer.
  */
 export async function readBrandPanelInput(host: HostV1): Promise<BrandPanelInput> {
   const tokens = tokensOf(host);
-  const [palette, doc, locked, record, meta, radius] = await Promise.all([
+  const registry = (host as unknown as RegistryRead).designSystems;
+  const [palette, doc, locked, record, meta, radius, systems] = await Promise.all([
     livePalette(host),
     settle<unknown>(() => tokens?.raw?.(), null),
     settle(() => tokens?.isLocked?.(), false),
     activeDesignSystemRecord(host),
     settle(() => (host.assets as unknown as MetaRead)._findMetaByType?.('tokens'), null),
     settle(async () => brandRadiusValue(await tokens?.resolve?.('{shape.radius}')), null),
+    settle<DesignSystemRecord[]>(() => registry?.visible?.(), []),
   ]);
   // A record's label is the one the person set. Without a registry the asset's
   // own name stands in, its "... tokens" suffix trimmed ("SUSE Brand Design Tokens" reads "SUSE").
@@ -90,7 +103,7 @@ export async function readBrandPanelInput(host: HostV1): Promise<BrandPanelInput
   const label = record?.label || metaName.replace(/\s+(brand\s+)?(design\s+)?tokens$/i, '').trim() || tRaw('Design system');
   const source = record ? sourceLine(record as DesignSystemRecord) : '';
   const model = readIssue({ doc, palette, label, source, locked: Boolean(locked) });
-  return { model, doc, activeRecord: record, radius };
+  return { model, doc, activeRecord: record, radius, systems };
 }
 
 // ── Small pieces ─────────────────────────────────────────────────────────────
@@ -538,6 +551,30 @@ export function brandPanelHtml(input: BrandPanelInput): string {
 
 // ── Wiring ───────────────────────────────────────────────────────────────────
 
+/** The active system's display face, which the chrome already carries. */
+const ACTIVE_DISPLAY = 'var(--font-display, var(--font-brand))';
+
+/**
+ * The strip's cover for the active system, drawn from the issue model, so the
+ * strip reads nothing twice. Until the logo URLs are known, a system that has
+ * logo files shows its ground and band with no letter, so no monogram flashes
+ * before the logo arrives.
+ */
+export function stripCoverOf(m: IssueModel, logos?: DesignSystemPreview['logos']): CoverPreview {
+  const colors = [...new Set(m.colours.core.map(c => safeHex(c.hex)).filter((h): h is string => !!h))];
+  return {
+    label: m.name,
+    monogram: !logos && m.logos.length ? '' : monogramOf(m.name),
+    looks: m.looks,
+    logos: logos ?? {},
+    display: ACTIVE_DISPLAY,
+    colors: colors.slice(0, 6),
+    colorCount: m.facts.colours,
+    colourways: m.facts.colourways,
+    families: [...new Set(m.fonts.map(f => f.family))],
+  };
+}
+
 /** The look each logo URL serves, one entry per distinct file (as cover.ts groups them). */
 function nameplateLogos(logos: DesignSystemPreview['logos'], hasDark: boolean): Array<[string, string[]]> {
   const perLook: Array<[string, string | undefined]> = [
@@ -576,16 +613,25 @@ export function mountBrandPanel(panel: HTMLElement, host: HostV1, input: BrandPa
     if (status) status.textContent = message;
   };
 
+  // The strip of design systems above the issue. Hidden with fewer than two.
+  const stripEl = panel.querySelector<HTMLElement>('[data-ds-strip]');
+  const strip = stripEl ? mountDsStrip(stripEl, host as unknown as StripHost, {
+    activeId: input.activeRecord?.id ?? '',
+    activeCover: stripCoverOf(input.model),
+    records: input.systems,
+  }) : null;
+
   const hideEmptyLogos = (): void => {
     const page = panel.querySelector<HTMLElement>('#dash-logos');
     const items = [...panel.querySelectorAll<HTMLElement>('[data-logo-id]')];
     if (page && items.length && items.every(li => li.hidden)) page.hidden = true;
   };
 
-  // After first paint: the cover's logo for each app theme and every file on
-  // the Logos page, into slots whose size is already set. `data-issue-ready`
-  // marks the moment they have all decoded, which the docs captures wait for.
-  const hydrate = async (my: number): Promise<void> => {
+  // After first paint: the cover's logo for each app theme (on the issue cover
+  // and the strip's active item) and every file on the Logos page, into slots
+  // whose size is already set. `data-issue-ready` marks the moment they have
+  // all decoded and the strip has read its covers, which the docs captures wait for.
+  const hydrate = async (my: number, stripDone: Promise<void> = strip?.settled() ?? Promise.resolve()): Promise<void> => {
     const { doc, model } = current;
     const items = [...panel.querySelectorAll<HTMLElement>('[data-logo-id]')];
     const [logos, files] = await Promise.all([
@@ -593,6 +639,8 @@ export function mountBrandPanel(panel: HTMLElement, host: HostV1, input: BrandPa
       Promise.all(items.map(li => settle(async () => (await host.assets.get(li.dataset.logoId ?? '') as { url?: unknown } | null)?.url, undefined))),
     ]);
     if (!isCurrent(my)) return;
+    const activeId = current.activeRecord?.id;
+    if (strip && activeId) strip.setCover(activeId, stripCoverOf(model, logos as DesignSystemPreview['logos']));
     const plate = panel.querySelector<HTMLElement>('[data-issue-nameplate]');
     if (plate) {
       const imgs = nameplateLogos(logos as DesignSystemPreview['logos'], !!model.looks.dark).slice(0, 3).map(([src, looks]) => {
@@ -613,7 +661,9 @@ export function mountBrandPanel(panel: HTMLElement, host: HostV1, input: BrandPa
       if (src && img) { img.src = src; img.hidden = false; } else li.hidden = true;
     });
     hideEmptyLogos();
-    const shown = [...panel.querySelectorAll<HTMLImageElement>('[data-issue] img')].filter(img => !img.hidden && img.getAttribute('src'));
+    await stripDone.catch(() => { /* a cover that cannot be read keeps its plate */ });
+    if (!isCurrent(my)) return;
+    const shown = [...panel.querySelectorAll<HTMLImageElement>('[data-issue] img, [data-ds-strip] img')].filter(img => !img.hidden && img.getAttribute('src'));
     await Promise.allSettled(shown.map(img => typeof img.decode === 'function' ? img.decode() : Promise.resolve()));
     if (isCurrent(my)) panel.dataset.issueReady = '1';
   };
@@ -631,7 +681,8 @@ export function mountBrandPanel(panel: HTMLElement, host: HostV1, input: BrandPa
     delete panel.dataset.issueReady;
     issue.innerHTML = issueHtml(next);
     if (hadFocus) issue.querySelector<HTMLElement>('#dash-brand-h')?.focus({ preventScroll: true });
-    await hydrate(my);
+    const stripDone = strip?.refresh(next.activeRecord?.id ?? '', stripCoverOf(next.model), next.systems);
+    await hydrate(my, stripDone);
   };
 
   const onClick = (event: Event): void => {
@@ -691,6 +742,7 @@ export function mountBrandPanel(panel: HTMLElement, host: HostV1, input: BrandPa
       window.removeEventListener(DESIGN_SYSTEM_CHANGED_EVENT, onChanged);
       panel.removeEventListener('click', onClick);
       panel.removeEventListener('error', onError, true);
+      strip?.teardown();
     },
   };
 }

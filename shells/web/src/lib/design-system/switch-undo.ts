@@ -7,10 +7,10 @@
  */
 import { tRaw } from '../../i18n.ts';
 import { showUndoToast } from '../undo-toast.ts';
-import { switchDesignSystem, type SwitchHost, type SwitchResult } from './switch.ts';
+import { switchDesignSystem, type SwitchHost, type SwitchOptions, type SwitchResult } from './switch.ts';
 
 /** Switch to `id`, then show "Using {name}." with an Undo that switches back with the same options. */
-export async function switchWithUndo(host: SwitchHost, id: string, opts: { route?: string; noRemount?: boolean } = {}): Promise<SwitchResult> {
+export async function switchWithUndo(host: SwitchHost, id: string, opts: Omit<SwitchOptions, 'previous'> = {}): Promise<SwitchResult> {
   const previous = await host.designSystems.active();
   const result = await switchDesignSystem(host, id, { ...opts, previous });
   showUndoToast({

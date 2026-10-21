@@ -1619,6 +1619,13 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // escape(), the source line is escape()d as a whole, and the rest is t() copy and
   // icon() markup. Nothing a record carries reaches the sink raw.
   'lib/design-system/design-systems-card.ts': 2,
+  // 2 as of 2026-10-21 (new file: the design systems strip on the Settings Design
+  // system tab). One sink draws the items, one swaps a cover in when its preview
+  // has been read. Record ids and labels and the counts line go through escape(); each
+  // cover is cover.ts coverHtml, whose style values are plain hex and whose logo
+  // URLs pass safeLogoSrc; the check is icon() markup. The title, the Manage link
+  // and the status line are built as DOM nodes with textContent.
+  'lib/design-system/ds-strip.ts': 2,
   // Local-content checklist: every device-owned name/detail is escape()d;
   // keys are numeric indices and the three group names are constants.
   'lib/design-system/brand-download.ts': 1,

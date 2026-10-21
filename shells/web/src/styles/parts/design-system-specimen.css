@@ -61,4 +61,45 @@
 .ds-cover-band i:first-child { flex: 3; background: var(--cv-primary); }
 .ds-cover-band i:nth-child(2) { background: var(--cv-secondary); }
 .ds-cover--row .ds-cover-band i:first-child { flex: 2; }
+/* A cover whose preview is still being read: the same box, a plain plate. */
+.ds-cover.is-pending { background: var(--ui-color-surface-muted); }
+
+/* The design systems strip (lib/design-system/ds-strip.ts): a toolbar of small
+   covers above the Design system tab's issue. The pressed item is a tinted fill
+   with a check and a heavier name, never an accent ring. The row scrolls inside
+   itself; its padding keeps a whole focus ring, the high-contrast one
+   included, inside the scroller. */
+.ds-strip { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3) var(--sp-5); margin-block-end: var(--sp-7); }
+.ds-strip[hidden] { display: none; }
+.ds-strip-title { margin: 0; font-size: var(--fs-xs); font-weight: 600; letter-spacing: var(--ui-type-tracking-label); text-transform: uppercase; color: var(--ui-color-text-muted); }
+.ds-strip-manage { padding-block: var(--sp-2); font-size: var(--fs-md); }
+.ds-strip-manage:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.ds-strip-items { grid-column: 1 / -1; display: flex; gap: var(--sp-3); overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: x proximity; padding: var(--sp-3); }
+.ds-strip-item {
+  flex: none; scroll-snap-align: start;
+  display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--sp-4); align-items: center;
+  max-inline-size: 18em; min-block-size: var(--ui-size-target);
+  padding-block: var(--sp-3); padding-inline: var(--sp-3) var(--sp-5);
+  border: 0; border-radius: var(--ui-radius-control);
+  background: transparent; color: var(--ui-color-text-default);
+  font: inherit; text-align: start; cursor: pointer;
+  transition: background-color var(--ui-motion-feedback);
+}
+.ds-strip-item .ds-cover { grid-row: 1 / span 2; }
+.ds-strip-name { display: flex; align-items: center; gap: var(--sp-2); min-inline-size: 0; font-size: var(--fs-lg); font-weight: 500; }
+.ds-strip-label { min-inline-size: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ds-strip-check { flex: none; inline-size: .875em; block-size: .875em; }
+.ds-strip-item:not([aria-pressed="true"]) .ds-strip-check { display: none; }
+/* One line is kept for the counts while a preview is read, so the name does not move when they arrive. */
+.ds-strip-sub { min-block-size: 1lh; font-size: var(--fs-sm); color: var(--ui-color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.ds-strip-item:hover { background: var(--ui-color-surface-muted); }
+.ds-strip-item[aria-pressed="true"] { background: var(--ui-color-selection-surface); }
+.ds-strip-item[aria-pressed="true"] .ds-strip-name { font-weight: 600; }
+.ds-strip-item:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.ds-strip-item[aria-disabled="true"] { cursor: progress; }
+@media (max-width: 640px) {
+  .ds-strip-sub { display: none; }
+  .ds-strip-item { max-inline-size: 12em; }
+  .ds-strip-item .ds-cover { grid-row: auto; }
+}
 }

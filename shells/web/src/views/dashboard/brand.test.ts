@@ -47,8 +47,8 @@ const record = (label: string, extra: Record<string, unknown> = {}) => ({
  * A host over one doc. `raw` counts its reads; `gate` (when set) holds a read
  * until the test releases it, so the order reads resolve in can be chosen.
  */
-function hostFor(doc: Doc, opts: { label?: string; locked?: boolean; radius?: string | null; missingLogos?: boolean } = {}) {
-  const state = { doc, raws: 0, gates: [] as Array<() => void>, hold: false };
+function hostFor(doc: Doc, opts: { label?: string; locked?: boolean; radius?: string | null; missingLogos?: boolean; systems?: Array<ReturnType<typeof record>> } = {}) {
+  const state = { doc, raws: 0, gates: [] as Array<() => void>, hold: false, activeId: 'shipped' };
   const excluded = (d: Doc): Set<string> => new Set(getExcludedSwatches(d));
   const host = {
     profile: { get: async () => ({}) },
@@ -62,7 +62,7 @@ function hostFor(doc: Doc, opts: { label?: string; locked?: boolean; radius?: st
       },
       isLocked: async () => !!opts.locked,
       resolve: async (ref: string) => (ref === '{shape.radius}' ? opts.radius ?? '12px' : null),
-      activeRecord: async () => record(opts.label ?? 'Lolly Demo', { locked: !!opts.locked }),
+      activeRecord: async () => opts.systems?.find(r => r.id === state.activeId) ?? record(opts.label ?? 'Lolly Demo', { locked: !!opts.locked }),
     },
     assets: {
       get: async (id: string) => {
@@ -70,7 +70,10 @@ function hostFor(doc: Doc, opts: { label?: string; locked?: boolean; radius?: st
         return { url: `/catalog/${id}.svg` };
       },
       _findMetaByType: async () => null,
+      _getBlob: async (id: string) => new Blob([JSON.stringify(id === 'lolly/tokens/demo' ? DEMO : START)]),
     },
+    // A registry only when the test hands one over: the strip shows with two or more systems.
+    ...(opts.systems ? { designSystems: { visible: async () => [...opts.systems!], activeId: async () => state.activeId } } : {}),
   };
   return { host, state };
 }
@@ -267,5 +270,46 @@ test('a contents link moves focus to its page title; a modified click is left to
   const modified = new dom.window.MouseEvent('click', { bubbles: true, cancelable: true, button: 0, ctrlKey: true });
   link.dispatchEvent(modified);
   assert.equal(modified.defaultPrevented, false);
+  brand.teardown();
+});
+
+test('the design systems strip sits above the cover, draws the active system from the same read, and follows a switch in place', async () => {
+  const systems = [record('Lolly Demo'), record('Lolly Starter', { id: 'lolly-starter', headId: 'user/ds/lolly-starter/tokens/brand' })];
+  const { panel, state, brand } = await mounted(DEMO, { systems });
+  const strip = panel.querySelector<HTMLElement>('[data-ds-strip]')!;
+  assert.equal(strip.hidden, false, 'two systems, so the strip shows at first paint');
+  assert.ok(strip.compareDocumentPosition(panel.querySelector('#dash-brand')!) & dom.window.Node.DOCUMENT_POSITION_FOLLOWING, 'above the cover');
+  const pressed = (): string[] => [...strip.querySelectorAll<HTMLElement>('.ds-strip-item[aria-pressed="true"]')].map(b => b.dataset.dsId!);
+  assert.deepEqual(pressed(), ['shipped']);
+  const activeCover = strip.querySelector<HTMLElement>('[data-ds-id="shipped"] .ds-cover')!;
+  assert.match(activeCover.getAttribute('style') ?? '', /--cv-l-primary:#033633;.*--cv-d-primary:#50c369/, 'painted from the issue model');
+  assert.equal(strip.querySelector('[data-ds-id="shipped"] .ds-strip-sub')!.textContent, '33 colours · 6 colourways');
+  await flush();
+  assert.deepEqual([...strip.querySelectorAll<HTMLImageElement>('[data-ds-id="shipped"] img.ds-cover-logo')].map(img => [img.getAttribute('src'), img.dataset.looks]), [
+    ['/catalog/lolly/logo/horizontal.svg', 'light'],
+    ['/catalog/lolly/logo/horizontal-reverse.svg', 'dark'],
+    ['/catalog/lolly/logo/horizontal-on-brand.svg', 'brand'],
+  ], 'the active logos arrive after paint, from the read the cover already made');
+  assert.equal(strip.dataset.ready, '1');
+  assert.equal(panel.dataset.issueReady, '1', 'the tab is ready once the strip has read its covers');
+
+  // A switch made elsewhere (the account menu): one read, the strip and the issue follow in place.
+  const before = state.raws;
+  state.activeId = 'lolly-starter';
+  state.doc = START;
+  window.dispatchEvent(new CustomEvent(DESIGN_SYSTEM_CHANGED_EVENT));
+  await flush();
+  assert.equal(state.raws, before + 1, 'one event, one read');
+  assert.deepEqual(pressed(), ['lolly-starter']);
+  assert.equal(panel.querySelector('#dash-brand-h')!.textContent, 'Lolly Starter');
+  assert.match(strip.querySelector('[data-ds-id="shipped"] .ds-cover')!.getAttribute('style') ?? '', /--cv-l-primary:#033633/, 'the system before keeps its own cover');
+  brand.teardown();
+});
+
+test('with one design system the strip stays out of the tab', async () => {
+  const { panel, brand } = await mounted(DEMO, { systems: [record('Lolly Demo')] });
+  const strip = panel.querySelector<HTMLElement>('[data-ds-strip]')!;
+  assert.equal(strip.hidden, true);
+  assert.equal(strip.childElementCount, 0);
   brand.teardown();
 });
