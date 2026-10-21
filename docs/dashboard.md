@@ -24,7 +24,7 @@ The active design system, set out as a read. When this browser holds two or more
 
 The tab opens on a cover painted in the system's own colours, with its logo, its name in its display face and the note its author wrote. A line of counts on the cover links to each page:
 
-- <!--i:palette--> **Colour** - the surface, text, primary and secondary of the light and dark looks, every named colour with its hex and print ink, a band for each tint ramp and the chart spectrum, and the colour roles in a fold. Select a value to copy the hex.
+- <!--i:palette--> **Colour** - the surface, text, primary and secondary of the light and dark looks, every named colour as a chip with its name and hex, a band for each tint ramp and the chart spectrum, and the colour roles in a fold. Select a value to copy the hex.
 - <!--i:font--> **Type** - Headings, Text, Emphasis and Code, each set in its own face.
 - <!--i:image--> **Logos** - each logo file on the ground it was made for.
 - <!--i:layers--> **Colourways** - the light and dark pair of each colourway, when the system has more than one.

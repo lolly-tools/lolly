@@ -9,8 +9,8 @@ Roughly 809,000 lines of TypeScript, tests included, and 62,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 561 files, 212,412 lines | 291 files, 94,698 lines | 10 files, 1,599 lines |
-| `lib/` | 839 files, 174,602 lines | 499 files, 98,059 lines | 13 files, 1,820 lines |
+| `views/` | 561 files, 212,459 lines | 291 files, 94,761 lines | 10 files, 1,599 lines |
+| `lib/` | 839 files, 174,747 lines | 499 files, 98,274 lines | 13 files, 1,820 lines |
 | `bridge/` | 224 files, 55,282 lines | 136 files, 28,591 lines | none |
 | `components/` | 128 files, 29,212 lines | 59 files, 15,149 lines | 24 files, 1,579 lines |
 | `org/` | 80 files, 20,267 lines | 56 files, 16,766 lines | none |
@@ -18,7 +18,7 @@ Roughly 809,000 lines of TypeScript, tests included, and 62,000 lines of CSS.
 | `pro/` | 32 files, 9,421 lines | 16 files, 2,305 lines | 3 files, 1,256 lines |
 | `catalog/` | 11 files, 1,834 lines | 9 files, 1,009 lines | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 10 files, 1,977 lines | 133 files, 55,408 lines |
+| `styles/` | none | 10 files, 1,977 lines | 133 files, 55,500 lines |
 
 Plus 53 `.ts`/`.js` files at the top level of `src/`, 19,127 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,329 of that.
 <!-- web-src-dirs:end -->

@@ -41,7 +41,7 @@ import type { StudioToken } from '../../lib/token-studio.ts';
 import { activeDesignSystemRecord, type ActiveRecord } from '../../lib/design-system/active.ts';
 import { readIssue, type IssueModel, type LookSlot } from '../../lib/design-system/issue-model.ts';
 import { coverVars, safeLogoSrc, type CoverPreview } from '../../lib/design-system/cover.ts';
-import { logoUrlsFor, monogramOf, type DesignSystemPreview } from '../../lib/design-system/preview.ts';
+import { docPalette, logoUrlsFor, modeIdOf, monogramOf, type DesignSystemPreview } from '../../lib/design-system/preview.ts';
 import { mountDsStrip, type StripHost } from '../../lib/design-system/ds-strip.ts';
 import type { LeadColours } from '../../lib/design-system/leads.ts';
 import { sourceLine } from '../../lib/design-system/source-line.ts';
@@ -80,15 +80,25 @@ async function settle<T>(read: () => Promise<T> | undefined, fallback: T): Promi
   try { return (await read()) ?? fallback; } catch { return fallback; }
 }
 
+/** The head document's colours, as the strip and the Preferences rows read them, or null when it has none to give. */
+function headPalette(doc: unknown): PaletteEntry[] | null {
+  try { return doc ? docPalette(doc) : null; } catch { return null; }
+}
+
 /**
  * Read the active design system for the tab. The palette, the head document,
  * the lock, the record, the asset name, the radius and the list of design
  * systems are read together, so the tab waits for the slowest of them and no longer.
+ *
+ * The colours come from the head document, the one the cover, the type and the
+ * logos are read from, so the tab counts a system as its strip item and its
+ * Preferences row do (preview.ts colourCountOf). The live palette stands in
+ * only when there is no head to read.
  */
 export async function readBrandPanelInput(host: HostV1): Promise<BrandPanelInput> {
   const tokens = tokensOf(host);
   const registry = (host as unknown as RegistryRead).designSystems;
-  const [palette, doc, locked, record, meta, radius, systems] = await Promise.all([
+  const [live, doc, locked, record, meta, radius, systems] = await Promise.all([
     livePalette(host),
     settle<unknown>(() => tokens?.raw?.(), null),
     settle(() => tokens?.isLocked?.(), false),
@@ -102,6 +112,7 @@ export async function readBrandPanelInput(host: HostV1): Promise<BrandPanelInput
   const metaName = typeof meta?.meta?.name === 'string' && meta.meta.name ? meta.meta.name : meta?.name ?? '';
   const label = record?.label || metaName.replace(/\s+(brand\s+)?(design\s+)?tokens$/i, '').trim() || tRaw('Design system');
   const source = record ? sourceLine(record as DesignSystemRecord) : '';
+  const palette = headPalette(doc) ?? live;
   const model = readIssue({ doc, palette, label, source, locked: Boolean(locked) });
   return { model, doc, activeRecord: record, radius, systems };
 }
@@ -152,8 +163,12 @@ function contentsOf(m: IssueModel, has: { logos: boolean; colourways: boolean; t
   ];
 }
 
+/** A fold's summary: the chevron that turns when it opens, then the label. */
+const foldChevron = (): string => icon('chevronRight', { className: 'ds-issue-chev' });
+
 function coverHtml(m: IssueModel, contents: Array<{ id: string; label: string }>): string {
-  const eyebrow = [tRaw('Design system'), m.source, m.facts.modes.length > 1 ? tRaw('Light and dark') : ''].filter(Boolean).join(' · ');
+  // Each fact keeps its words together, so a narrow cover breaks the line at a dot.
+  const eyebrow = [tRaw('Design system'), m.source, m.facts.modes.length > 1 ? tRaw('Light and dark') : ''].filter(Boolean);
   // The band at the foot: the primary and secondary of the look in force, then
   // a few more of the system's own colours that the cover does not already paint.
   const painted = [m.looks.light, m.looks.dark].flatMap(l => l ? [l.surface, l.primary, l.secondary] : []);
@@ -166,12 +181,12 @@ function coverHtml(m: IssueModel, contents: Array<{ id: string; label: string }>
       <div class="ds-issue-cover-body">
         <div class="ds-issue-cover-head">
           <span class="ds-issue-nameplate" data-issue-nameplate${m.logos.length ? ' data-reserve' : ''}></span>
-          <p class="ds-issue-eyebrow">${escapeText(eyebrow)}</p>
+          <p class="ds-issue-eyebrow">${eyebrow.map(part => `<span>${escapeText(part)}</span>`).join('')}</p>
         </div>
         <h2 class="ds-issue-name" id="dash-brand-h" tabindex="-1">${escapeText(m.name)}</h2>
         ${lock}
         ${m.standfirst.lead ? `<p class="ds-issue-standfirst">${escapeText(m.standfirst.lead)}</p>` : ''}
-        ${m.standfirst.rest ? `<details class="ds-issue-more"><summary>${t('Read the full note')}</summary><p>${escapeText(m.standfirst.rest)}</p></details>` : ''}
+        ${m.standfirst.rest ? `<details class="ds-issue-more"><summary>${foldChevron()}<span>${t('Read the full note')}</span></summary><p>${escapeText(m.standfirst.rest)}</p></details>` : ''}
         <nav class="ds-issue-contents" aria-label="${escapeText(tRaw('In this design system'))}">
           <ul>${contents.map(c => `<li><a href="${escapeText(jumpHref(c.id))}" data-issue-jump="${escapeText(c.id)}">${escapeText(c.label)}</a></li>`).join('')}</ul>
         </nav>
@@ -208,6 +223,22 @@ function bandHtml(title: string, cols: readonly PaletteEntry[], family = ''): st
     </div>`;
 }
 
+/**
+ * A named colour as a chip: the fill, its name and a hex that copies itself.
+ * The print data (inks, spot names, CMYK) stays in the Print & CMYK fold, so
+ * the Colour page reads as colour first.
+ */
+function chipHtml(c: PaletteEntry): string {
+  const hex = safeHex(c.hex);
+  if (!hex) return '';
+  return `
+    <li class="ds-chip">
+      <span class="ds-chip-fill" style="background:${hex}" aria-hidden="true"></span>
+      <span class="ds-chip-name">${escapeText(c.label)}</span>
+      ${hexButton(hex, c.label)}
+    </li>`;
+}
+
 function roleRowHtml(c: PaletteEntry): string {
   const hex = safeHex(c.hex);
   const path = c.token?.path ?? '';
@@ -240,13 +271,13 @@ function colourPage(m: IssueModel): string {
       ${named.length ? `
       <div class="ds-issue-part">
         <h3 class="ds-issue-sub">${t('Named colours')} <span class="ds-issue-count">${named.length}</span></h3>
-        <div class="plat-swatch-grid">${named.map(c => swatch(c)).join('')}</div>
+        <ul class="ds-chip-grid">${named.map(chipHtml).join('')}</ul>
       </div>` : ''}
       ${ramps.map(([family, cols]) => bandHtml(family, cols, family)).join('')}
       ${spectrum.length ? bandHtml(tRaw('Spectrum'), spectrum) : ''}
       ${roles.length ? `
       <details class="ds-issue-fold">
-        <summary>${icon('chevronRight', { className: 'ds-issue-chev' })}<span>${t('Colour roles')}</span> <span class="ds-issue-count">${roles.length}</span></summary>
+        <summary>${foldChevron()}<span>${t('Colour roles')}</span> <span class="ds-issue-count">${roles.length}</span></summary>
         <ul class="ds-role-list">${roles.map(roleRowHtml).join('')}</ul>
       </details>` : ''}
     </section>`;
@@ -449,10 +480,15 @@ function tokenChips(input: Pick<BrandPanelInput, 'doc' | 'radius'>): string[] {
   try {
     if (input.doc) {
       studio = listStudioTokens(input.doc);
-      const light = createTokenSet(input.doc, { theme: 'light' });
-      const dark = createTokenSet(input.doc, { theme: 'dark' });
+      // The doc's own mode ids, matched without regard to case ("Light", "dark").
+      const lightId = modeIdOf(input.doc, 'light');
+      const darkId = modeIdOf(input.doc, 'dark');
+      const light = createTokenSet(input.doc, lightId ? { theme: lightId } : {});
       looks.light = (ref: string) => light.resolve(ref);
-      looks.dark = (ref: string) => dark.resolve(ref);
+      if (darkId) {
+        const dark = createTokenSet(input.doc, { theme: darkId });
+        looks.dark = (ref: string) => dark.resolve(ref);
+      }
     }
   } catch { studio = []; }
   return [
@@ -475,8 +511,8 @@ function tokensPage(chips: readonly string[]): string {
 
 // ── 7. Print & CMYK ──────────────────────────────────────────────────────────
 
-// Reuses the shared swatch() tile, so a colour locked to an exact ink looks the
-// same here as on the Colour page.
+// The shared swatch() tile, with the ink flag, the spot name and the CMYK line.
+// The print data lives here; the Colour page shows the same colours as chips.
 function printBody(core: readonly PaletteEntry[]): string {
   const locked = core.filter((c) => isLockedInk(c) && !isTransparent(c.hex));
   return `

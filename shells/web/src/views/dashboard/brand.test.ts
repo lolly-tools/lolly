@@ -33,6 +33,7 @@ const { readBrandPanelInput, brandPanelHtml, mountBrandPanel } = await import('.
 const { DASH_SECTIONS, dashFlag } = await import('../../lib/dashboard-registry.ts');
 const { DESIGN_SYSTEM_CHANGED_EVENT } = await import('../../lib/design-system/switch.ts');
 const { getExcludedSwatches } = await import('../../lib/brand-exclusions.ts');
+const { colourCountOf } = await import('../../lib/design-system/preview.ts');
 
 type Doc = Record<string, unknown>;
 const fixture = (rel: string): Doc => JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8')) as Doc;
@@ -129,7 +130,9 @@ test('Lolly Demo reads as its own material: names, both looks, faces, logos and 
 
   const lead = [...panel.querySelectorAll('#dash-palette .ds-leads-mode')][0]!;
   assert.deepEqual([...lead.querySelectorAll('.ds-lead-name')].map(n => n.textContent), ['Sugar', 'Liquorice', 'Spearmint', 'Bunyapine']);
-  assert.equal(panel.querySelectorAll('#dash-palette .plat-swatch-grid .plat-swatch').length, 33, 'every named colour as a tile');
+  const chips = [...panel.querySelectorAll<HTMLElement>('#dash-palette .ds-chip-grid .ds-chip')];
+  assert.equal(chips.length, 33, 'every named colour as a chip');
+  assert.ok(chips.every(c => c.querySelector('.ds-chip-fill') && c.querySelector('.ds-chip-name') && c.querySelector('button.ds-hex[data-copy]')), 'each chip is a fill, a name and a hex that copies');
   assert.equal(panel.querySelectorAll('#dash-palette .ds-role').length, 37, 'the colour roles, folded');
   assert.equal(panel.querySelectorAll('#dash-typedemo .ds-type-row').length, 4);
   assert.deepEqual([...panel.querySelectorAll('#dash-typedemo .ds-type-family')].map(f => f.textContent), ['Outfit', 'SUSE', 'SUSE', 'SUSE Mono']);
@@ -144,7 +147,7 @@ test('Lolly Demo reads as its own material: names, both looks, faces, logos and 
 test('the starter shows its one Neutral ramp, its logo files and no Colourways page', async () => {
   const { panel, brand } = await mounted(START, { label: 'Lolly Starter' });
   assert.equal(panel.querySelector('#dash-colourways'), null, 'no colourways, no page');
-  assert.equal(panel.querySelector('#dash-palette .plat-swatch-grid'), null, 'no named colours');
+  assert.equal(panel.querySelector('#dash-palette .ds-chip-grid'), null, 'no named colours');
   const band = panel.querySelector('#dash-palette .ds-band')!;
   assert.equal(band.querySelectorAll('.ds-band-step').length, 9);
   assert.match(band.closest('.ds-band-block')!.querySelector('h3')!.textContent ?? '', /Neutral\s+9/);
@@ -311,5 +314,65 @@ test('with one design system the strip stays out of the tab', async () => {
   const strip = panel.querySelector<HTMLElement>('[data-ds-strip]')!;
   assert.equal(strip.hidden, true);
   assert.equal(strip.childElementCount, 0);
+  brand.teardown();
+});
+
+test('the Colour page shows colour, not print data; the inks stay in the Print & CMYK fold', async () => {
+  const { panel, brand } = await mounted(DEMO);
+  const colour = panel.querySelector<HTMLElement>('#dash-palette')!;
+  assert.equal(colour.querySelectorAll('.plat-swatch, .plat-chip-flag, .plat-swatch-cmyk').length, 0, 'no ink flag, spot code or CMYK line on the Colour page');
+  assert.doesNotMatch(colour.textContent ?? '', /\bSPOT\b|\bC \d+ M \d+/, 'no print values in its text');
+  assert.equal(panel.querySelectorAll('#dash-print .plat-swatch').length, 33, 'every locked ink is in the print fold');
+  brand.teardown();
+});
+
+test('the tab counts colours from the head it reads, as the strip and the Preferences row do', async () => {
+  for (const doc of [DEMO, START]) {
+    const { host } = hostFor(doc);
+    const input = await readBrandPanelInput(host as never);
+    assert.equal(input.model.facts.colours, colourCountOf(doc), 'the engine-backed render surface and the head agree');
+  }
+  // A published version (or a ?designv= override) puts a different render
+  // surface under host.tokens.colors(); the tab still counts the head.
+  const { host } = hostFor(DEMO);
+  host.tokens.colors = async () => createTokenSet(START).colors();
+  const input = await readBrandPanelInput(host as never);
+  assert.equal(input.model.facts.colours, colourCountOf(DEMO));
+  assert.equal(input.model.colours.named.length, 33);
+});
+
+test('a gradient whose stops differ per look draws one preview for each, whatever the case of the mode ids', async () => {
+  const doc = {
+    base: {
+      color: { $type: 'color', brand: { ink: { $value: '#101010' }, paper: { $value: '#fafafa' }, mint: { $value: '#033633' }, apple: { $value: '#50c369' } } },
+      gradient: { fade: { $type: 'gradient', $value: [{ color: '{color.semantic.primary}', position: 0 }, { color: '{color.brand.paper}', position: 1 }] } },
+    },
+    Light: { color: { $type: 'color', semantic: { primary: { $value: '{color.brand.mint}' }, surface: { $value: '{color.brand.paper}' } } } },
+    Dark: { color: { $type: 'color', semantic: { primary: { $value: '{color.brand.apple}' }, surface: { $value: '{color.brand.ink}' } } } },
+    $themes: [
+      { name: 'Light', selectedTokenSets: { base: 'enabled', Light: 'enabled' }, $extensions: { 'com.suse.lolly': { axis: { kind: 'mode' } } } },
+      { name: 'Dark', selectedTokenSets: { base: 'enabled', Dark: 'enabled' }, $extensions: { 'com.suse.lolly': { axis: { kind: 'mode' } } } },
+    ],
+  };
+  const { panel, brand } = await mounted(doc);
+  const grads = [...panel.querySelectorAll<HTMLElement>('#dash-tokens .dash-token-grad')];
+  assert.deepEqual(grads.map(g => g.dataset.looks), ['light brand', 'dark']);
+  assert.match(grads[0]!.getAttribute('style') ?? '', /#033633/, 'the light look starts on its primary');
+  assert.match(grads[1]!.getAttribute('style') ?? '', /#50c369/, 'the dark look starts on its own');
+  brand.teardown();
+});
+
+test('the cover eyebrow is plain text in one piece per fact, and the full note is a fold with a chevron', async () => {
+  const { host } = hostFor(DEMO);
+  host.tokens.activeRecord = async () => record('Lolly Demo', { id: 'acme', source: { kind: 'file', publisher: "O'Brien & Co" } });
+  const input = await readBrandPanelInput(host as never);
+  const view = document.querySelector<HTMLElement>('#view')!;
+  view.innerHTML = `<section data-dash-panel="brand">${brandPanelHtml(input)}</section>`;
+  const panel = view.querySelector<HTMLElement>('[data-dash-panel="brand"]')!;
+  const brand = mountBrandPanel(panel, host as never, input);
+  const parts = [...panel.querySelectorAll('.ds-issue-eyebrow > span')].map(p => p.textContent);
+  assert.deepEqual(parts, ['Design system', "From a file by O'Brien & Co", 'Light and dark'], 'escaped once, so the name reads as written');
+  const more = panel.querySelector<HTMLDetailsElement>('.ds-issue-more')!;
+  assert.ok(more.querySelector('summary .ds-issue-chev'), 'the same turning chevron as the other folds');
   brand.teardown();
 });

@@ -6,7 +6,8 @@
    fills, type and logo plates carry the page and words stay small and muted.
    Chrome stays calm: a neutral hairline at rest, the accent only on focus, and
    nothing moves. Sizes come from the type and space tokens, so Large text grows
-   the whole read. */
+   the whole read. A contents jump or a deep link lands each page below the
+   fixed top chrome, the same distance the Settings header keeps. */
 @layer views {
 
 .ds-issue {
@@ -18,11 +19,17 @@
 .ds-issue ~ .dash-foot { margin-block-start: clamp(var(--sp-8), 6vw, var(--ui-space-section)); }
 
 /* Focus is always the prominent ring. Inside the cover it takes the system's
-   own ink, which contrasts with the ground whatever the look. */
+   own ink, which contrasts with the ground whatever the look. Edit in Start is
+   filled with that ink, so its own colour is the ground: its ring takes the ink. */
 .ds-issue :is(a, button, summary, [tabindex="-1"]):focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .ds-issue-cover :is(a, button, summary, [tabindex="-1"]):focus-visible { outline-color: currentColor; }
+.ds-issue-cover a.ds-issue-edit:focus-visible { outline-color: var(--cv-ink); }
+
+.ds-issue-cover, .ds-issue-page, .ds-issue-print { scroll-margin-block-start: calc(var(--chrome-top) + var(--chrome-h) + var(--sp-4)); }
 
 /* ── The cover ────────────────────────────────────────────────────────────── */
+/* The cover is the active system's own ground, which is also the page's, so a
+   soft lift and the hairline set it off the canvas in every theme. */
 .ds-issue-cover {
   display: grid;
   overflow: hidden;
@@ -30,6 +37,7 @@
   color: var(--cv-ink);
   border: 1px solid var(--ui-color-border-default);
   border-radius: var(--ui-radius-surface);
+  box-shadow: var(--ui-elevation-panel);
 }
 .ds-issue-cover-body {
   display: grid;
@@ -38,9 +46,10 @@
   min-inline-size: 0;
   padding: clamp(var(--sp-7), 4vw, calc(var(--sp-8) * 2));
 }
+/* The logo, then the eyebrow under it, both on the left edge the name keeps. */
 .ds-issue-cover-head {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-  gap: var(--sp-3) var(--sp-6);
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: var(--sp-4);
   justify-self: stretch;
   font-size: var(--fs-xl);
 }
@@ -55,9 +64,14 @@
 }
 .ds-issue-eyebrow {
   margin: 0;
+  display: flex; flex-wrap: wrap; column-gap: var(--sp-2);
   font-size: var(--fs-xs); font-weight: 600;
   letter-spacing: var(--ui-type-tracking-label); text-transform: uppercase;
 }
+/* Each fact keeps its words on one line, and its dot trails it, so a wrapped
+   eyebrow breaks between facts and never opens a line on a dot. */
+.ds-issue-eyebrow > span { display: inline-flex; gap: var(--sp-2); white-space: nowrap; }
+.ds-issue-eyebrow > span:not(:last-child)::after { content: '·' / ''; }
 /* The vw middle term caps a long name so it never overflows at phone width;
    both ends are type tokens, so they grow with Large text. */
 .ds-issue-name {
@@ -70,11 +84,16 @@
   margin: 0; max-inline-size: 62ch;
   font: 400 var(--ui-type-lead)/1.45 var(--font-brand);
 }
+/* The rest of the note is a fold like Colour roles and Print & CMYK: a chevron
+   that turns when it opens, so it never reads as a link. */
 .ds-issue-more { max-inline-size: 62ch; font-size: var(--ui-type-body); line-height: 1.6; }
 .ds-issue-more > summary {
-  display: inline-flex; align-items: center; min-block-size: var(--ui-size-target);
-  cursor: pointer; font-weight: 600; text-decoration: underline; text-underline-offset: .2em;
+  display: inline-flex; align-items: center; gap: var(--sp-3); min-block-size: var(--ui-size-target);
+  list-style: none; cursor: pointer; font-weight: 600;
 }
+.ds-issue-more > summary::-webkit-details-marker { display: none; }
+.ds-issue-more[open] > summary .ds-issue-chev { rotate: 90deg; }
+.ds-issue-cover .ds-issue-chev { color: inherit; }
 .ds-issue-more > p { margin: 0 0 var(--sp-3); }
 .ds-issue-lock { display: flex; align-items: flex-start; gap: var(--sp-3); margin: 0; max-inline-size: 62ch; font-size: var(--ui-type-body); line-height: 1.5; }
 .ds-issue-lock svg { flex: none; inline-size: var(--ui-size-icon-md); block-size: var(--ui-size-icon-md); margin-block-start: .15em; }
@@ -100,11 +119,17 @@
 }
 .ds-issue-cover a.ds-issue-edit { color: var(--cv-surface); }
 .ds-issue-edit:hover { background: color-mix(in oklab, var(--cv-ink) 84%, var(--cv-surface)); }
-/* The foot of the cover: the look's primary and secondary, then a few more of its colours. */
+/* The foot of the cover: the look's primary and secondary, then a few more of
+   its colours. On a wide page the band runs down the cover's side instead, a
+   column of the system's colours beside the read. */
 .ds-issue-band { display: flex; block-size: clamp(var(--sp-5), 2.4vw, var(--sp-7)); }
 .ds-issue-band i { flex: 1; }
 .ds-issue-band i:first-child { flex: 4; background: var(--cv-primary); }
 .ds-issue-band i:nth-child(2) { flex: 2; background: var(--cv-secondary); }
+@container (min-width: 900px) {
+  .ds-issue-cover { grid-template-columns: minmax(0, 1fr) clamp(6rem, 18%, 12rem); }
+  .ds-issue-band { flex-direction: column; block-size: auto; }
+}
 
 /* ── Pages ────────────────────────────────────────────────────────────────── */
 /* A page never has a radius, so its top hairline is a plain rule. */
@@ -131,11 +156,13 @@
   .ds-issue-facts-line { text-align: end; }
 }
 
-/* A value in the mono face that copies itself. */
+/* A value in the mono face that copies itself. The negative margin sets its
+   text on the edge the name above it keeps; the hover fill bleeds past it. */
 .ds-hex {
   justify-self: start;
   min-block-size: var(--ui-size-control);
   padding: 0 var(--sp-2);
+  margin-inline: calc(-1 * var(--sp-2));
   border: 0; border-radius: var(--ui-radius-control);
   background: transparent; color: var(--ui-color-text-muted);
   font: 400 var(--fs-sm) var(--font-mono);
@@ -166,6 +193,27 @@
 .ds-lead-role { font-size: var(--fs-xs); letter-spacing: var(--ui-type-tracking-label); text-transform: uppercase; color: var(--ui-color-text-muted); }
 .ds-lead-name { font-size: var(--fs-lg); font-weight: 600; overflow-wrap: anywhere; }
 
+/* ── Colour: named colours as chips ───────────────────────────────────────── */
+/* The fill carries the chip; the name and the hex sit under it on the chrome.
+   The inks and spot names are print data, kept in the Print & CMYK fold. */
+.ds-chip-grid {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 6.5rem), 1fr));
+  gap: var(--sp-5) var(--sp-4);
+}
+@container (max-width: 640px) {
+  .ds-chip-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 4.75rem), 1fr)); gap: var(--sp-4) var(--sp-3); }
+}
+.ds-chip { display: grid; gap: var(--sp-1); align-content: start; min-inline-size: 0; }
+.ds-chip-fill {
+  display: block; aspect-ratio: 4 / 3;
+  margin-block-end: var(--sp-1);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-panel);
+}
+.ds-chip-name { font-size: var(--fs-sm); font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.ds-chip .ds-hex { font-size: var(--fs-xs); }
+
 /* ── Colour: bands for the tint ramps and the spectrum ────────────────────── */
 .ds-band {
   list-style: none; margin: 0; padding: 0;
@@ -175,7 +223,19 @@
   border-radius: var(--ui-radius-panel);
 }
 .ds-band > li { flex: 1 1 0; min-inline-size: 0; display: flex; }
-.ds-band-step { flex: 1; min-inline-size: 0; padding: 0; border: 0; border-radius: 0; cursor: pointer; }
+.ds-band-step { position: relative; flex: 1; min-inline-size: 0; padding: 0; border: 0; border-radius: 0; cursor: pointer; }
+/* A stripe under the pointer takes a neutral ring, and a copied one shows a
+   check on a plain disc that reads on any fill, as the hex buttons do. */
+.ds-band-step:hover:not(:focus-visible) { z-index: 1; outline: 2px solid var(--ui-color-text-default); outline-offset: 1px; }
+.ds-band-step.is-copied::after {
+  content: '✓' / '';
+  position: absolute; inset: 0; margin: auto;
+  display: grid; place-items: center;
+  inline-size: 1.75em; block-size: 1.75em;
+  border-radius: var(--radius-round);
+  background: var(--ui-color-surface-raised); color: var(--ui-color-text-default);
+  font-size: var(--fs-sm); font-weight: 700;
+}
 .ds-band > li:first-child .ds-band-step { border-start-start-radius: calc(var(--ui-radius-panel) - 1px); border-end-start-radius: calc(var(--ui-radius-panel) - 1px); }
 .ds-band > li:last-child .ds-band-step { border-start-end-radius: calc(var(--ui-radius-panel) - 1px); border-end-end-radius: calc(var(--ui-radius-panel) - 1px); }
 .ds-band-step:focus-visible { position: relative; z-index: 1; }
@@ -290,4 +350,11 @@
 .ds-issue-print-body { display: grid; gap: var(--sp-5); padding-block-start: var(--sp-5); min-inline-size: 0; }
 .ds-issue-print-body > * { margin: 0; }
 .ds-issue-table { overflow-x: auto; }
+
+/* Windows High Contrast flattens fills to the system colours. These fills are
+   the design system's own colours, the reason the page exists, so they keep
+   them; the text around them still takes the system colours. */
+@media (forced-colors: active) {
+  .ds-lead-fill, .ds-chip-fill, .ds-band-step, .ds-role-chip, .ds-colourway-half, .ds-issue-band, .ds-logo-plate { forced-color-adjust: none; }
+}
 }
