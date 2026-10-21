@@ -38,9 +38,9 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 ### Tune it in the app
 
-Once a brand is active, keep shaping it in the [**Brand Studio**](/info/brand-studio.html) (`#/start`) - change a colour or a role and every preview across the app updates as you type. (The dashboard's **Design system** tab at `#/d` *shows* the brand read-only; the Studio is where you edit it.)
+Once a brand is active, keep shaping it in the [**Brand Studio**](/info/brand-studio.html) (`#/start`) - change a colour or a role and every preview across the app updates as you type. (Settings → **Design system** at `#/settings?tab=brand` shows the active design system and switches between design systems; the Studio is where you edit one.)
 
-![The Dashboard's Design-system tab - the active brand shown read-only](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) The same brand is summarised on the **Profile → Your brand** card. Fonts are real: pick from Google Fonts and Lolly stores the file **on your device** as a brand asset, so your typography travels offline and nothing is fetched at render time.
+![The Design system tab in Settings: the active design system as a cover and pages](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) Each design system in this browser also has a row under **Settings → Preferences → Design systems**. Fonts are real: pick from Google Fonts and Lolly stores the file **on your device** as a brand asset, so your typography travels offline and nothing is fetched at render time.
 
 When you're happy, **export the brand as a `LollyBrand` pack** - a single file a colleague can import to get the exact same palette, fonts and rules. That's how a brand moves between people and machines without a server in the middle.
 

@@ -37,9 +37,16 @@ export function wireInstanceCard(pv: ProfileViewCtx): void {
   // card - the list, the switch and the doors live in lib/design-system/.
   {
     const dsBody = viewEl.querySelector<HTMLElement>('#design-systems-body');
+    pv.designSystemsUnsub?.();
+    pv.designSystemsUnsub = null;
     if (dsBody) {
       void import('../../lib/design-system/design-systems-card.ts')
-        .then(m => m.mountDesignSystemsCard(dsBody, host as unknown as Parameters<typeof m.mountDesignSystemsCard>[1]))
+        .then(m => {
+          const detach = m.mountDesignSystemsCard(dsBody, host as unknown as Parameters<typeof m.mountDesignSystemsCard>[1]);
+          // The view may have gone while the module loaded; then detach at once.
+          if (dsBody.isConnected) pv.designSystemsUnsub = detach;
+          else detach();
+        })
         .catch(() => { dsBody.innerHTML = ''; });
     }
   }
@@ -228,6 +235,8 @@ export function wireCleanup(pv: ProfileViewCtx): void {
     pv.trustedSitesUnsub = null;
     pv.inboxUnsub?.();
     pv.inboxUnsub = null;
+    pv.designSystemsUnsub?.();
+    pv.designSystemsUnsub = null;
   };
 }
 

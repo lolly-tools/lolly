@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 بمجرد تفعيل علامة، تابع تشكيلها في [**Brand Studio**](/info/brand-studio.html) (`#/start`) - غيّر لوناً أو دوراً فتتحدث كل المعاينات في التطبيق أثناء الكتابة. (علامة التبويب **Design system** على `#/d` في لوحة المعلومات *تعرض* العلامة للقراءة فقط؛ أما التحرير فيجري في الاستوديو.)
 
-![علامة تبويب Design system في لوحة المعلومات - العلامة النشطة معروضة للقراءة فقط](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) وتُلخَّص العلامة نفسها في بطاقة **Profile → Your brand**. والخطوط حقيقية: اختر من Google Fonts فتخزّن Lolly الملف **على جهازك** كأصل من أصول العلامة، فتسافر خطوطك معك دون اتصال ولا يُجلب شيء وقت العرض.
+![علامة تبويب Design system في لوحة المعلومات - العلامة النشطة معروضة للقراءة فقط](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) وتُلخَّص العلامة نفسها في بطاقة **Profile → Your brand**. والخطوط حقيقية: اختر من Google Fonts فتخزّن Lolly الملف **على جهازك** كأصل من أصول العلامة، فتسافر خطوطك معك دون اتصال ولا يُجلب شيء وقت العرض.
 
 وحين ترضى عن النتيجة، **صدّر العلامة كحزمة `LollyBrand`** - ملف واحد يستطيع زميل استيراده ليحصل على اللوحة والخطوط والقواعد نفسها تماماً. هكذا تنتقل العلامة بين الأشخاص والأجهزة دون خادم في المنتصف.
 

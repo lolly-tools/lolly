@@ -97,6 +97,8 @@ export interface ProfileViewCtx {
   trustedSitesUnsub: (() => void) | null;
   /** Detaches the instance card's Inbox button from the inbox count. */
   inboxUnsub: (() => void) | null;
+  /** Detaches the Design systems card from design-system switches and the page's key and press listeners. */
+  designSystemsUnsub: (() => void) | null;
   connectionsDetails: HTMLDetailsElement | null;
   connectionsLoaded: boolean;
   syncLoaded: boolean;

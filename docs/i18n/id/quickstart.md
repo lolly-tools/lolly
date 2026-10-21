@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 Begitu sebuah merek aktif, teruskan membentuknya di [**Brand Studio**](/info/brand-studio.html) (`#/start`) - ubah sebuah warna atau sebuah peran dan setiap pratinjau di seluruh aplikasi ikut berubah sambil Anda mengetik. (Tab **Design system** di dasbor pada `#/d` hanya *menampilkan* merek secara hanya-baca; Studio adalah tempat Anda menyuntingnya.)
 
-![Tab Design-system di Dasbor - merek aktif ditampilkan hanya-baca](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) Merek yang sama dirangkum pada kartu **Profile → Your brand**. Fontnya nyata: pilih dari Google Fonts dan Lolly menyimpan berkasnya **di perangkat Anda** sebagai aset merek, sehingga tipografi Anda ikut offline dan tidak ada yang diambil saat render.
+![Tab Design-system di Dasbor - merek aktif ditampilkan hanya-baca](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) Merek yang sama dirangkum pada kartu **Profile → Your brand**. Fontnya nyata: pilih dari Google Fonts dan Lolly menyimpan berkasnya **di perangkat Anda** sebagai aset merek, sehingga tipografi Anda ikut offline dan tidak ada yang diambil saat render.
 
 Kalau sudah pas, **ekspor merek sebagai paket `LollyBrand`** - satu berkas yang bisa diimpor rekan kerja untuk mendapatkan palet, font dan aturan yang persis sama. Begitulah sebuah merek berpindah antar orang dan mesin tanpa server di tengahnya.
 

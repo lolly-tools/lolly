@@ -1156,7 +1156,7 @@
   "shells/web/src/views/convert.ts": 1,
   "shells/web/src/views/cost-panel.test.ts": 1,
   "shells/web/src/views/cost-panel.ts": 4,
-  "shells/web/src/views/dashboard.ts": 7,
+  "shells/web/src/views/dashboard.ts": 6,
   "shells/web/src/views/deck-editor.test.ts": 1,
   "shells/web/src/views/deck-editor.ts": 19,
   "shells/web/src/views/design-import.ts": 10,

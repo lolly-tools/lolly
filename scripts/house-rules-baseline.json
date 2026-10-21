@@ -78,7 +78,7 @@
   },
   "shells/web/src/styles/parts/dashboard.css": {
     "H4": 8,
-    "H5": 5
+    "H5": 2
   },
   "shells/web/src/styles/parts/deck-editor.css": {
     "H4": 4,
@@ -151,7 +151,7 @@
   },
   "shells/web/src/styles/parts/profile.css": {
     "H4": 3,
-    "H5": 3
+    "H5": 2
   },
   "shells/web/src/styles/parts/projects.css": {
     "H4": 1,

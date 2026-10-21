@@ -37,6 +37,9 @@
   :is(.profile-view, .dashboard-view) > .settings-header {
     padding: calc(var(--chrome-top) + var(--chrome-h) + 1rem) .5rem 0;
   }
+  /* The Settings panels' own gutter (dashboard.css --dash-gutter), so the header
+     and the Design system column share one left edge. */
+  .dashboard-view > .settings-header { width: min(1080px, 100% - 2 * var(--dash-gutter, .5rem)); padding-inline: 0; }
   .profile-view:has(> .settings-header) .profile-layout { padding-top: 0; }
   .dashboard-view:has(> .settings-header) .dash-layout { padding-top: 0; }
 }
