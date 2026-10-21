@@ -675,7 +675,7 @@
   flex-direction: column;
   gap: var(--sp-7);
   scrollbar-width: thin;
-  scrollbar-color: hsl(var(--border)) transparent;
+  scrollbar-color: color-mix(in srgb, var(--ui-color-action-primary) 50%, var(--ui-color-surface-muted)) transparent;
   transition: opacity var(--dur-1);
 }
 

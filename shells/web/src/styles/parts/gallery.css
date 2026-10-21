@@ -2075,8 +2075,10 @@ html[data-a11y-previews="hidden"] .tool-meta-dialog .meta-look-thumb { display: 
      wrapped its actions early. Size to the content; wrap only at the real edge. */
   width: max-content; max-width: calc(100vw - 24px);
   padding: 8px 8px 8px 16px; border-radius: var(--radius-pill);
-  background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
-  border: 1px solid hsl(var(--border)); box-shadow: 0 .6rem 2rem #0006;
+  background: color-mix(in srgb, var(--ui-color-surface-raised), transparent);
+  color: hsl(var(--popover-foreground));
+  box-shadow: 0 .6rem 2rem #0006;
+  backdrop-filter: blur(5px);
 }
 .gallery-bulkbar[hidden] { display: none; }
 .gallery-bulkbar-count { font-size: var(--fs-lg); font-weight: 700; white-space: nowrap; }

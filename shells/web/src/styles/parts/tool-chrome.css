@@ -1353,6 +1353,7 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   font: inherit;
   font-size: var(--fs-md);
   transition: border-color var(--dur-1);
+  box-shadow: var(--ui-effect-inset);
 }
 
 /* :not(:focus) preserves the pre-dedupe outcome. The :focus ring is now the one
