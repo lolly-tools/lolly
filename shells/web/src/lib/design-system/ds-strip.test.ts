@@ -30,7 +30,7 @@ const scrolled: Array<{ id: string | undefined; opts: unknown }> = [];
 const { mountDsStrip } = await import('./ds-strip.ts');
 const { DESIGN_SYSTEM_CHANGED_EVENT } = await import('./switch.ts');
 const { flushUndoToasts } = await import('../undo-toast.ts');
-const { colourCountOf } = await import('./preview.ts');
+const { colourCountOf, PREVIEW_HEAD_RETRY_MS } = await import('./preview.ts');
 
 type Doc = Record<string, unknown>;
 const fixture = (rel: string): Doc => JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8')) as Doc;
@@ -235,11 +235,52 @@ test('activating an inactive item switches in place, says so, and Undo switches 
   assert.equal(s.item('shipped').getAttribute('aria-pressed'), 'false');
   assert.equal(document.activeElement, s.item('lolly-starter'), 'the focus is on the item now pressed');
   assert.equal(s.item('lolly-starter').tabIndex, 0);
-  toast.querySelector<HTMLButtonElement>('.undo-toast-btn')!.click();
+  // A press on Undo puts the focus on the notice's button, which then goes.
+  const undo = toast.querySelector<HTMLButtonElement>('.undo-toast-btn')!;
+  undo.focus();
+  undo.click();
   await settle();
   assert.deepEqual(s.state.switched, ['lolly-starter', 'shipped'], 'Undo goes back to the system in use before');
   assert.equal(remounts.length, 0, 'and Undo redraws in place too');
   assert.equal(s.item('shipped').getAttribute('aria-pressed'), 'true');
+  assert.equal(document.activeElement, s.item('shipped'), 'the focus lands on the item Undo pressed, not on the page');
+  assert.equal(s.item('shipped').tabIndex, 0);
+});
+
+test('flipping between systems keeps one notice, whose Undo goes back one step', async () => {
+  const s = mount([DEMO_REC, STARTER_REC]);
+  await settle();
+  s.item('lolly-starter').click();
+  await settle();
+  s.item('shipped').click();
+  await settle();
+  const toasts = [...document.querySelectorAll<HTMLElement>('.undo-toast')];
+  assert.equal(toasts.length, 1, 'the earlier notice went when the next switch came');
+  assert.equal(toasts[0]!.querySelector('.undo-toast-msg')!.textContent, 'Using Lolly Demo.');
+  toasts[0]!.querySelector<HTMLButtonElement>('.undo-toast-btn')!.click();
+  await settle();
+  assert.deepEqual(s.state.switched, ['lolly-starter', 'shipped', 'lolly-starter'], 'Undo goes back to the system before the latest switch');
+  assert.equal(document.querySelectorAll('.undo-toast').length, 0);
+});
+
+test('Undo that moves the instance base back remounts once, and the next strip takes the focus', async () => {
+  const records = [DEMO_REC, HOSTED_REC];
+  const bases: Array<string | null> = [];
+  const s = mount(records, { activeId: 'hosted', switchOptions: { setBase: async (url: string | null) => { bases.push(url); }, resync: async () => {} } });
+  await settle();
+  s.item('shipped').focus();
+  s.item('shipped').click();
+  await settle();
+  assert.equal(remounts.length, 0, 'leaving a hosted system for a local one keeps the base');
+  const undo = document.querySelector<HTMLButtonElement>('.undo-toast .undo-toast-btn')!;
+  undo.focus();
+  undo.click();
+  await settle();
+  assert.deepEqual(bases, ['https://brand.example'], 'Undo took the base back to the hosted system');
+  assert.equal(remounts.length, 1, 'so the view remounts once, as the switch forward would');
+  for (const down of teardowns.splice(0)) down();
+  const next = mount(records, { activeId: 'hosted' });
+  assert.equal(document.activeElement, next.item('hosted'), 'the new strip focuses the system Undo chose');
 });
 
 test('activating the pressed item does nothing', async () => {
@@ -286,7 +327,10 @@ test('a failed switch says why and leaves the focus where it was', async () => {
   starter.focus();
   starter.click();
   await settle();
-  assert.equal(s.el.querySelector('[data-ds-strip-status]')!.textContent, 'Storage unavailable');
+  const status = s.el.querySelector<HTMLElement>('[data-ds-strip-status]')!;
+  assert.equal(status.textContent, 'Storage unavailable');
+  assert.equal(status.classList.contains('visually-hidden'), false, 'the reason shows under the strip, not only to a screen reader');
+  assert.ok(status.classList.contains('ds-strip-note'));
   assert.equal(s.toolbar().hasAttribute('aria-busy'), false);
   assert.equal(s.el.querySelectorAll('[aria-disabled]').length, 0);
   assert.equal(document.activeElement, starter);
@@ -349,4 +393,75 @@ test('a refresh keeps the covers already read and reads again only the two syste
   assert.equal(s.item('shipped').querySelector('.ds-strip-sub')!.textContent, `${colourCountOf(DEMO)} colours · 6 colourways`);
   s.strip.setCover('lolly-starter', { ...activeCover('Lolly Starter'), logos: { light: '/catalog/x.svg' } });
   assert.equal(s.item('lolly-starter').querySelector('img.ds-cover-logo')!.getAttribute('src'), '/catalog/x.svg', 'the active logo swaps in after paint');
+});
+
+test('a system whose head is not written yet keeps its plate and no count, and is read again', async () => {
+  const saved = PREVIEW_HEAD_RETRY_MS.splice(0, PREVIEW_HEAD_RETRY_MS.length, 1, 1);
+  try {
+    const records = [DEMO_REC, STARTER_REC];
+    const { host, state } = hostFor(records);
+    let written = false;
+    const real = host.assets._getBlob;
+    host.assets._getBlob = async (id: string) => {
+      if (id !== STARTER_REC.headId || written) return real(id);
+      state.reads.push(id);
+      return null as never;
+    };
+    const el = document.createElement('div');
+    el.setAttribute('data-ds-strip', '');
+    document.body.append(el);
+    const strip = mountDsStrip(el, host as never, { activeId: 'shipped', activeCover: activeCover('Lolly Demo'), records: records as never });
+    teardowns.push(() => { strip.teardown(); el.remove(); });
+    await strip.settled();
+    const starter = (): HTMLElement => el.querySelector<HTMLElement>('[data-ds-id="lolly-starter"]')!;
+    assert.ok(starter().querySelector('.ds-cover.is-pending'), 'the plain plate stays: no blank cover is shown as the system');
+    assert.equal(starter().querySelector('.ds-strip-sub')!.textContent, '', 'and no count, never "0 colours"');
+    assert.equal(state.reads.filter(id => id === STARTER_REC.headId).length, 3, 'read, then read again after each pause');
+    assert.equal(el.dataset.ready, '1', 'the strip still settles');
+    written = true;
+    await strip.refresh('shipped', activeCover('Lolly Demo'), records as never);
+    await strip.settled();
+    assert.equal(starter().querySelector('.ds-cover.is-pending'), null, 'the next draw read it again and drew it');
+    assert.equal(starter().querySelector('.ds-strip-sub')!.textContent, `${colourCountOf(START)} colours`);
+  } finally { PREVIEW_HEAD_RETRY_MS.splice(0, PREVIEW_HEAD_RETRY_MS.length, ...saved); }
+});
+
+test('a head written a moment after its record is drawn in the same mount', async () => {
+  const saved = PREVIEW_HEAD_RETRY_MS.splice(0, PREVIEW_HEAD_RETRY_MS.length, 1, 1);
+  try {
+    const records = [DEMO_REC, STARTER_REC];
+    const { host } = hostFor(records);
+    let misses = 1;
+    const real = host.assets._getBlob;
+    host.assets._getBlob = async (id: string) => (id === STARTER_REC.headId && misses-- > 0 ? null : real(id)) as never;
+    const el = document.createElement('div');
+    el.setAttribute('data-ds-strip', '');
+    document.body.append(el);
+    const strip = mountDsStrip(el, host as never, { activeId: 'shipped', activeCover: activeCover('Lolly Demo'), records: records as never });
+    teardowns.push(() => { strip.teardown(); el.remove(); });
+    await strip.settled();
+    assert.equal(el.querySelector('[data-ds-id="lolly-starter"] .ds-cover.is-pending'), null);
+    assert.equal(el.querySelector('[data-ds-id="lolly-starter"] .ds-strip-sub')!.textContent, `${colourCountOf(START)} colours`);
+  } finally { PREVIEW_HEAD_RETRY_MS.splice(0, PREVIEW_HEAD_RETRY_MS.length, ...saved); }
+});
+
+test('the system switched away from is not drawn in the incoming display face while it is read again', async () => {
+  const fonts = Object.getOwnPropertyDescriptor(document, 'fonts');
+  Object.defineProperty(document, 'fonts', { configurable: true, value: [{ family: 'Outfit' }] });
+  try {
+    const s = mount([DEMO_REC, STARTER_REC]);
+    await s.strip.settled();
+    s.strip.setCover('shipped', { ...activeCover('Lolly Demo'), families: ['Outfit'] });
+    assert.match(s.item('shipped').querySelector('.ds-cover')!.getAttribute('style') ?? '', /--cv-font:var\(--font-display/, 'the active cover uses the live display face');
+    s.state.holdReads = true;
+    s.item('lolly-starter').click();
+    await settle();
+    assert.doesNotMatch(s.item('shipped').querySelector('.ds-cover')!.getAttribute('style') ?? '', /--cv-font/, 'the outgoing cover falls back to the text face');
+    s.state.holdReads = false;
+    s.state.release();
+    await s.strip.settled();
+  } finally {
+    if (fonts) Object.defineProperty(document, 'fonts', fonts);
+    else delete (document as unknown as { fonts?: unknown }).fonts;
+  }
 });

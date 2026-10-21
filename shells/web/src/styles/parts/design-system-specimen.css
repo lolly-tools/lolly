@@ -51,7 +51,7 @@
   border-radius: var(--ui-radius-control);
 }
 .ds-cover--thumb { --cv-w: 4em; --cv-h: 2.75em; }
-.ds-cover--row { --cv-w: 9em; --cv-h: 5.625em; }
+.ds-cover--row { --cv-w: 9em; --cv-h: 5.625em; border-radius: var(--ui-radius-panel); }
 .ds-cover-logo, .ds-cover-mono { grid-area: 1 / 1; }
 .ds-cover-logo { max-inline-size: 72%; max-block-size: 70%; object-fit: contain; }
 .ds-cover-mono { font: 600 1.25em/1 var(--cv-font, var(--font-brand)); }
@@ -63,18 +63,30 @@
 .ds-cover--row .ds-cover-band i:first-child { flex: 2; }
 /* A cover whose preview is still being read: the same box, a plain plate. */
 .ds-cover.is-pending { background: var(--ui-color-surface-muted); }
+/* Windows High Contrast would flatten every cover to the system colours; a
+   cover is the design system's own colours, so it keeps them. */
+@media (forced-colors: active) {
+  .ds-cover { forced-color-adjust: none; }
+}
 
 /* The design systems strip (lib/design-system/ds-strip.ts): a toolbar of small
    covers above the Design system tab's issue. The pressed item is a tinted fill
    with a check and a heavier name, never an accent ring. The row scrolls inside
    itself; its padding keeps a whole focus ring, the high-contrast one
-   included, inside the scroller. */
+   included, inside the scroller. A margin of the same size, plus the item's own
+   inline padding, sets each thumbnail on the column edge the title and the cover
+   share, while the pressed tint bleeds out past it. */
 .ds-strip { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3) var(--sp-5); margin-block-end: var(--sp-7); }
 .ds-strip[hidden] { display: none; }
 .ds-strip-title { margin: 0; font-size: var(--fs-xs); font-weight: 600; letter-spacing: var(--ui-type-tracking-label); text-transform: uppercase; color: var(--ui-color-text-muted); }
 .ds-strip-manage { padding-block: var(--sp-2); font-size: var(--fs-md); }
 .ds-strip-manage:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
-.ds-strip-items { grid-column: 1 / -1; display: flex; gap: var(--sp-3); overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: x proximity; padding: var(--sp-3); }
+.ds-strip-items {
+  grid-column: 1 / -1; display: flex; gap: var(--sp-3);
+  overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: x proximity;
+  padding: var(--sp-3); scroll-padding-inline: var(--sp-3);
+  margin-inline: calc(-2 * var(--sp-3));
+}
 .ds-strip-item {
   flex: none; scroll-snap-align: start;
   display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--sp-4); align-items: center;
@@ -97,9 +109,18 @@
 .ds-strip-item[aria-pressed="true"] .ds-strip-name { font-weight: 600; }
 .ds-strip-item:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .ds-strip-item[aria-disabled="true"] { cursor: progress; }
+/* A switch that failed says why under the strip, where the press was. */
+.ds-strip-note { grid-column: 1 / -1; margin: 0; font-size: var(--fs-sm); color: var(--ui-color-text-default); }
+/* A phone drops the counts and lets a name take a second line instead of
+   cutting it, so two systems that share a first word still read apart. The
+   strip scrolls sideways only when the names need more room than it has. */
 @media (max-width: 640px) {
   .ds-strip-sub { display: none; }
-  .ds-strip-item { max-inline-size: 12em; }
+  .ds-strip-item { max-inline-size: 13em; }
   .ds-strip-item .ds-cover { grid-row: auto; }
+  .ds-strip-label {
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+    white-space: normal; overflow-wrap: break-word; line-height: 1.2;
+  }
 }
 }

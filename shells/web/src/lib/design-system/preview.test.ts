@@ -11,10 +11,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   colourCountOf, docPalette, logoUrlsFor, looksFromColours, looksOf, monogramOf, previewFromDoc, previewOf,
-  readDesignSystemPreview, PREVIEW_DOC_BYTES, type CoverLooks, type DesignSystemPreview,
+  readDesignSystemPreview, PREVIEW_DOC_BYTES, PREVIEW_HEAD_RETRY_MS, type CoverLooks, type DesignSystemPreview,
 } from './preview.ts';
 import { readIssue } from './issue-model.ts';
 import type { DesignSystemRecord } from './registry.ts';
+
+// The pauses before a missing head is read again; each test that needs them sets its own.
+const RETRY_MS = PREVIEW_HEAD_RETRY_MS.splice(0, PREVIEW_HEAD_RETRY_MS.length);
 
 const read = (rel: string): Record<string, unknown> => JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8')) as Record<string, unknown>;
 const DEMO = read('../../../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json');
@@ -128,14 +131,48 @@ test('the active record with no stored blob reads the live tokens; an inactive o
   const inactive = fakeHost({ activeId: 'other', raw: DEMO });
   const q = await readDesignSystemPreview(inactive.host, record());
   assert.equal(inactive.rawCalls(), 0);
-  assert.equal(q.colorCount, 0);
+  assert.equal(q.unread, true, 'nothing was read, and the preview says so');
+  assert.equal(p.unread, undefined);
+});
+
+test('a head that is not there yet is read again after each pause, and a miss leaves the cache', async () => {
+  assert.deepEqual(RETRY_MS, [200, 600], 'the shell waits 200 ms, then 600 ms more');
+  PREVIEW_HEAD_RETRY_MS.push(1, 1);
+  try {
+    // Written between the first read and the second (manage.ts puts the record before the head).
+    let misses = 1;
+    const late = fakeHost();
+    late.host.assets._getBlob = async (id: string, o: { fetchIfMissing?: boolean } = {}) => {
+      late.blobCalls.push({ id, fetchIfMissing: o.fetchIfMissing });
+      return misses-- > 0 ? null : new Blob([JSON.stringify(START)]);
+    };
+    const cache = new Map<string, Promise<DesignSystemPreview>>();
+    const p = await readDesignSystemPreview(late.host, record(), cache);
+    assert.equal(late.blobCalls.length, 2);
+    assert.equal(p.unread, undefined);
+    assert.equal(p.colorCount, 9);
+    assert.equal(cache.size, 1, 'a preview that was read stays cached');
+
+    // Never written: three reads, then an unread preview that leaves the cache.
+    const never = fakeHost();
+    const misses2 = new Map<string, Promise<DesignSystemPreview>>();
+    const q = await readDesignSystemPreview(never.host, record(), misses2);
+    assert.equal(never.blobCalls.length, 3);
+    assert.equal(q.unread, true);
+    assert.equal(misses2.size, 0, 'so the next draw reads it again');
+
+    // A head with no id has nothing to wait for.
+    const none = fakeHost();
+    await readDesignSystemPreview(none.host, record({ headId: '' }));
+    assert.equal(none.blobCalls.length, 0);
+  } finally { PREVIEW_HEAD_RETRY_MS.length = 0; }
 });
 
 test('a head document over 2 MB is not parsed', async () => {
   const big = new Blob([JSON.stringify(DEMO), ' '.repeat(PREVIEW_DOC_BYTES)]);
   const fake = fakeHost({ blob: big, activeId: 'acme', raw: DEMO });
   const p = await readDesignSystemPreview(fake.host, record());
-  assert.equal(p.colorCount, 0);
+  assert.equal(p.unread, true, 'an oversize head is not read, and the preview says so');
   assert.equal(fake.rawCalls(), 0, 'a stored blob, even an oversize one, is the answer');
   const fits = fakeHost({ blob: new Blob([JSON.stringify(DEMO)]) });
   assert.equal((await readDesignSystemPreview(fits.host, record())).colorCount, 33);
@@ -158,8 +195,10 @@ test('previewOf keeps the old shape: font, at most six colours, the count and on
 
 test('a preview never rejects: an unreadable head gives a plain one', async () => {
   const fake = fakeHost({ blob: new Blob(['{not json']) });
-  const p = await readDesignSystemPreview(fake.host, record());
-  assert.equal(p.colorCount, 0);
+  const cache = new Map<string, Promise<DesignSystemPreview>>();
+  const p = await readDesignSystemPreview(fake.host, record(), cache);
+  assert.equal(p.unread, true, 'a surface prints no count for it');
+  assert.equal(cache.size, 1, 'a head that is there but unreadable is not read again');
   assert.deepEqual(p.logos, {});
   assert.ok(lookValues(p.looks).every(v => HEX.test(v)));
 });

@@ -48,6 +48,11 @@ export interface DesignSystemPreview extends BrandPreview {
   colourways: number;
   /** Distinct logo files across every logo slot. */
   logoCount: number;
+  /**
+   * True when no head document could be read, so the counts are not the
+   * system's own. A cover keeps its plain plate and prints no count.
+   */
+  unread?: boolean;
 }
 
 /** One font role, as the readers show the role. */
@@ -139,7 +144,7 @@ export function looksFromColours(colors: readonly string[]): CoverLooks {
 }
 
 /** The doc's mode id for `light` or `dark`, matched without regard to case. */
-function modeIdOf(doc: unknown, mode: 'light' | 'dark'): string | undefined {
+export function modeIdOf(doc: unknown, mode: 'light' | 'dark'): string | undefined {
   return leadModes(doc).find(m => m.id.toLowerCase() === mode)?.id;
 }
 
@@ -252,36 +257,73 @@ export async function logoUrlsFor(host: { assets: Pick<HostV1['assets'], 'get'> 
   return logos;
 }
 
-/** The record's head document, or null. Only the active record falls back to the live tokens. */
-async function headDocOf(host: PreviewHost, record: DesignSystemRecord): Promise<unknown> {
-  let blob: Blob | null = null;
+/**
+ * How long to wait, in turn, before reading a missing head again. manage.ts
+ * createDesignSystem writes a new system's record just before its head, so a
+ * list read between the two holds a system with no head yet. Exported so tests
+ * can set shorter pauses.
+ */
+export const PREVIEW_HEAD_RETRY_MS: number[] = [200, 600];
+
+const pause = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+
+/** A head read. `found` is false when no head was there to read, so a later read may find one. */
+interface HeadRead { doc: unknown; found: boolean }
+
+async function headBlobOf(host: PreviewHost, record: DesignSystemRecord): Promise<Blob | null> {
   try {
-    blob = record.headId ? await host.assets._getBlob(record.headId, { fetchIfMissing: record.source.kind === 'shipped' }) : null;
-  } catch { blob = null; }
-  if (blob) return blob.size <= PREVIEW_DOC_BYTES ? JSON.parse(await blob.text()) as unknown : null;
-  if ((await host.designSystems.activeId()) === record.id) return await host.tokens?.raw?.() ?? null;
-  return null;
+    return record.headId ? await host.assets._getBlob(record.headId, { fetchIfMissing: record.source.kind === 'shipped' }) : null;
+  } catch { return null; }
+}
+
+/**
+ * The record's head document. Only the active record falls back to the live
+ * tokens. Another record whose head is missing is read again after each pause in
+ * PREVIEW_HEAD_RETRY_MS before it counts as not found.
+ */
+async function headDocOf(host: PreviewHost, record: DesignSystemRecord): Promise<HeadRead> {
+  let blob = await headBlobOf(host, record);
+  if (!blob && (await host.designSystems.activeId()) === record.id) {
+    const raw = await host.tokens?.raw?.() ?? null;
+    return { doc: raw, found: raw != null };
+  }
+  const canRetry = !!record.headId && typeof host.assets._getBlob === 'function';
+  for (const ms of canRetry ? PREVIEW_HEAD_RETRY_MS : []) {
+    if (blob) break;
+    await pause(ms);
+    blob = await headBlobOf(host, record);
+  }
+  if (!blob) return { doc: null, found: false };
+  return { doc: blob.size <= PREVIEW_DOC_BYTES ? JSON.parse(await blob.text()) as unknown : null, found: true };
+}
+
+/** One record's preview, and whether its head was there to read. Never rejects. */
+async function readPreview(host: PreviewHost, record: DesignSystemRecord): Promise<{ preview: DesignSystemPreview; found: boolean }> {
+  let head: HeadRead;
+  try { head = await headDocOf(host, record); } catch { head = { doc: null, found: true }; }
+  let doc = head.doc;
+  let base: Omit<DesignSystemPreview, 'logos' | 'logoUrl'>;
+  try { base = previewFromDoc(doc, record.label); } catch { doc = null; base = previewFromDoc(null, record.label); }
+  const logos: DesignSystemPreview['logos'] = doc ? await logoUrlsFor(host, doc).catch(() => ({})) : {};
+  const logoUrl = logos.light ?? logos.dark ?? logos.brand;
+  return { preview: { ...base, logos, ...(logoUrl ? { logoUrl } : {}), ...(doc ? {} : { unread: true }) }, found: head.found };
 }
 
 /**
  * A record's preview, read from its own head document. `cache` belongs to one
  * mount (keyed `${id}|${headId}`), never to the module: a head document can
- * change under the same id. A preview never rejects; a doc that cannot be read
- * gives a plain one in black and white.
+ * change under the same id. A preview never rejects. A doc that cannot be read
+ * gives a preview marked `unread`, whose counts a surface must not print; one
+ * whose head was not there yet leaves the cache, so the next draw reads it again.
  */
 export function readDesignSystemPreview(host: PreviewHost, record: DesignSystemRecord, cache?: Map<string, Promise<DesignSystemPreview>>): Promise<DesignSystemPreview> {
   const key = `${record.id}|${record.headId}`;
   const hit = cache?.get(key);
   if (hit) return hit;
-  const read = (async (): Promise<DesignSystemPreview> => {
-    let doc: unknown = null;
-    try { doc = await headDocOf(host, record); } catch { doc = null; }
-    let base: Omit<DesignSystemPreview, 'logos' | 'logoUrl'>;
-    try { base = previewFromDoc(doc, record.label); } catch { doc = null; base = previewFromDoc(null, record.label); }
-    const logos: DesignSystemPreview['logos'] = doc ? await logoUrlsFor(host, doc).catch(() => ({})) : {};
-    const logoUrl = logos.light ?? logos.dark ?? logos.brand;
-    return { ...base, logos, ...(logoUrl ? { logoUrl } : {}) };
-  })();
+  const read: Promise<DesignSystemPreview> = readPreview(host, record).then(({ preview, found }) => {
+    if (!found && cache?.get(key) === read) cache.delete(key);
+    return preview;
+  });
   cache?.set(key, read);
   return read;
 }

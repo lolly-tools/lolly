@@ -41,7 +41,10 @@ test('inactive design-system card is one large switch target with labelled secon
   const hit = hosted.querySelector<HTMLButtonElement>('.ds-row-hit')!;
   assert.equal(active.querySelector('.ds-row-hit'), null, 'the already-active card is not a fake switch');
   assert.equal(hit.dataset.dsAct, 'switch');
-  assert.equal(hit.getAttribute('aria-label'), 'Switch to Hosted brand');
+  // Its name is what the row shows, the Use pill then the system's name (WCAG 2.5.3).
+  const name = (hit.getAttribute('aria-labelledby') ?? '').split(' ').map(id => body.querySelector(`#${id}`)?.textContent?.trim()).join(' ');
+  assert.equal(name, 'Use Hosted brand');
+  assert.equal(hit.hasAttribute('aria-label'), false);
   assert.equal(hosted.querySelector('[data-ds-act="refresh"]')?.textContent?.trim(), 'Check for updates');
   assert.equal(hosted.querySelector('[data-ds-act="fork"]')?.textContent?.trim(), 'Make an editable copy');
   assert.match(body.querySelector('[data-ds-act="file"]')?.textContent ?? '', /Open or import a file/);
@@ -385,4 +388,62 @@ test('a row menu closes on Escape and on a press elsewhere, and only one is open
   assert.equal(starterMenu.open, true);
   body.remove();
   document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+});
+
+test('a row whose head cannot be read keeps a plain plate and shows no count', async () => {
+  const { designSystemCardHtml } = await import('./design-systems-card.ts');
+  const el = document.createElement('div');
+  el.innerHTML = designSystemCardHtml(records[1] as never, 'active', 12 * 1024, { font: 'x', colors: [], colorCount: 0, families: ['SUSE'], unread: true });
+  assert.ok(el.querySelector('.ds-cover.ds-cover--row.is-pending'), 'the plate, not a blank cover drawn as the system');
+  assert.equal(el.querySelector('.ds-row-facts')?.textContent, '12 KB', 'the size alone');
+  assert.doesNotMatch(el.textContent ?? '', /0 colours/);
+});
+
+test('the card hands back a detach that takes its listeners off the page', async () => {
+  const { mountDesignSystemsCard } = await import('./design-systems-card.ts');
+  const { DESIGN_SYSTEM_CHANGED_EVENT } = await import('./switch.ts');
+  const body = document.createElement('div'); document.body.append(body);
+  let reads = 0;
+  const h = { ...host(), designSystems: { ...host().designSystems, visible: async () => { reads++; return [...records]; } } };
+  const settle = async (): Promise<void> => { for (let i = 0; i < 20; i++) await new Promise(resolve => setTimeout(resolve, 0)); };
+  const detach = mountDesignSystemsCard(body, h as never);
+  await settle();
+  assert.equal(typeof detach, 'function');
+  detach();
+  const before = reads;
+  window.dispatchEvent(new CustomEvent(DESIGN_SYSTEM_CHANGED_EVENT, { detail: records[1] }));
+  await settle();
+  assert.equal(reads, before, 'a detached card does not read, although it is still on the page');
+  body.remove();
+});
+
+test('a row menu with no room below inside the card opens upward', async () => {
+  const { mountDesignSystemsCard } = await import('./design-systems-card.ts');
+  const card = document.createElement('div');
+  card.style.overflow = 'clip';
+  const body = document.createElement('div');
+  card.append(body); document.body.append(card);
+  const settle = async (): Promise<void> => { for (let i = 0; i < 20; i++) await new Promise(resolve => setTimeout(resolve, 0)); };
+  const detach = mountDesignSystemsCard(body, host() as never);
+  await settle();
+  const rect = (top: number, bottom: number) => () => ({ top, bottom, left: 0, right: 0, width: 0, height: bottom - top, x: 0, y: top, toJSON() {} }) as DOMRect;
+  card.getBoundingClientRect = rect(0, 400);
+  const menus = [...body.querySelectorAll<HTMLDetailsElement>('details.ds-row-more')];
+  const last = menus.at(-1)!;
+  last.querySelector<HTMLElement>('summary')!.getBoundingClientRect = rect(340, 384);
+  last.querySelector<HTMLElement>('.ds-row-menu')!.getBoundingClientRect = rect(390, 540);
+  last.open = true;
+  last.dispatchEvent(new dom.window.Event('toggle'));
+  await settle();
+  assert.equal(last.querySelector<HTMLElement>('.ds-row-menu')!.hasAttribute('data-up'), true, 'the last row opens its menu upward');
+  last.open = false;
+  const first = menus[0]!;
+  first.querySelector<HTMLElement>('summary')!.getBoundingClientRect = rect(40, 84);
+  first.querySelector<HTMLElement>('.ds-row-menu')!.getBoundingClientRect = rect(90, 240);
+  first.open = true;
+  first.dispatchEvent(new dom.window.Event('toggle'));
+  await settle();
+  assert.equal(first.querySelector<HTMLElement>('.ds-row-menu')!.hasAttribute('data-up'), false, 'a row with room below opens downward');
+  detach();
+  card.remove();
 });

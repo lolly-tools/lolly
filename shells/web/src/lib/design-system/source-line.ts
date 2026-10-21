@@ -5,11 +5,15 @@
  * its own so the Settings tab can name a system's source without loading the
  * Preferences card and its dialogs; the card re-exports sourceLine.
  */
-import { t } from '../../i18n.ts';
+import { t, tRaw } from '../../i18n.ts';
 import { catalogSourceLabel } from './catalog-source.ts';
 import type { DesignSystemRecord } from './registry.ts';
 
-/** What a row says under its label. Plain sentences, "design system" not "brand". */
+/**
+ * What a row says under its label. Plain sentences, "design system" not "brand".
+ * Plain text, not markup: a name in it is not escaped, so a file by O'Brien
+ * reads O'Brien. Escape it for an HTML sink.
+ */
 export function sourceLine(record: DesignSystemRecord, now = Date.now()): string {
   const s = record.source;
   switch (s.kind) {
@@ -17,13 +21,13 @@ export function sourceLine(record: DesignSystemRecord, now = Date.now()): string
     case 'local':
       if (s.from === 'app') return t('Came with this app');
       if (s.from === 'shipped') return t('Edited here');
-      return s.forkedFrom ? t('Made here, copied from {name}', { name: s.forkedFrom.id }) : t('Made here');
-    case 'file': return s.publisher ? t('From a file by {publisher}', { publisher: s.publisher }) : t('From a file');
+      return s.forkedFrom ? tRaw('Made here, copied from {name}', { name: s.forkedFrom.id }) : t('Made here');
+    case 'file': return s.publisher ? tRaw('From a file by {publisher}', { publisher: s.publisher }) : t('From a file');
     case 'hosted': {
       const host = s.instance.replace(/^https?:\/\//, '');
       const when = s.lastSyncedAt ? relativeTime(now - s.lastSyncedAt) : null;
-      if (s.stale) return t('Hosted at {host}. Update available when online', { host });
-      return when ? t('Hosted at {host}. Synced {when}', { host, when }) : t('Hosted at {host}', { host });
+      if (s.stale) return tRaw('Hosted at {host}. Update available when online', { host });
+      return when ? tRaw('Hosted at {host}. Synced {when}', { host, when }) : tRaw('Hosted at {host}', { host });
     }
   }
 }

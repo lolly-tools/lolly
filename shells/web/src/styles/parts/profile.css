@@ -994,8 +994,12 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 .ds-row-more summary { display: grid; place-items: center; min-height: var(--ui-size-target); cursor: pointer; list-style: none; border-radius: var(--ui-radius-control); }
 .ds-row-more summary::-webkit-details-marker { display: none; }
 .ds-row-more summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
-/* Opens downward, so the first compact row cannot push it off the top of the card. */
-.ds-row-menu { position: absolute; z-index: 5; inset-inline-end: 0; top: calc(100% + var(--sp-3)); min-width: 210px; padding: var(--sp-3); background: var(--ui-color-surface-raised); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); box-shadow: var(--ui-effect-focus-halo); }
+/* Opens downward, so the first compact row cannot push it off the top of the
+   card; a row near the foot opens it upward when the card's clip would cut it
+   (design-systems-card.ts placeMenu sets data-up). A popover's lift at rest,
+   never the focus halo. */
+.ds-row-menu { position: absolute; z-index: 5; inset-inline-end: 0; top: calc(100% + var(--sp-3)); min-width: 210px; padding: var(--sp-3); background: var(--ui-color-surface-raised); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); box-shadow: var(--ui-elevation-floating); }
+.ds-row-menu[data-up] { top: auto; bottom: calc(100% + var(--sp-3)); }
 .ds-row-menu button { min-height: max(44px, var(--ui-size-target)); display: flex; align-items: center; gap: var(--sp-4); width: 100%; padding: var(--sp-5); text-align: start; background: none; border: 0; font: inherit; }
 .ds-row-menu button:hover { background: var(--ui-color-surface-muted); }
 .ds-row-menu .ds-row-remove { color: hsl(var(--destructive-text)); }

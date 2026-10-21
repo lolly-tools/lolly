@@ -11,6 +11,8 @@
  * lib/design-system/switch.ts's ordered sweep, called from here with the profile
  * route so the view remounts and this card re-renders with the new active tick.
  * A switch made elsewhere (the account menu) re-renders the card in place.
+ * mountDesignSystemsCard returns the function that detaches the card's window
+ * and document listeners; the Profile view calls it when the route changes.
  * "From an instance" (section 3.6) is a later milestone and is not rendered
  * until it works - never a door that opens on nothing.
  */
@@ -89,8 +91,10 @@ function colourCount(n: number): string {
 }
 
 /** The row's facts, in order: colours, up to three typefaces, colourways when
- *  there is a choice of them, and the size on this device. */
+ *  there is a choice of them, and the size on this device. A system whose head
+ *  could not be read shows its size alone, never "0 colours". */
 function factsOf(preview: RowPreview, size: string): string[] {
+  if (preview.unread) return size ? [size] : [];
   const facts = [colourCount(preview.colorCount ?? preview.colors.length)];
   const families = (preview.families ?? []).slice(0, 3);
   if (families.length) facts.push(families.join(', '));
@@ -114,7 +118,12 @@ async function readPreviews(host: CardHost, records: readonly DesignSystemRecord
 export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, bytes: number | undefined, preview: RowPreview, adminHref?: string | null, opts: { canHide?: boolean } = {}): string {
   const active = r.id === activeId;
   const removable = r.source.kind !== 'shipped' || (!!opts.canHide && !r.locked);
-  const cover = coverHtml({
+  // The switch's name is what the row shows: the "Use" pill, then the system's
+  // name, so a person who says "Click Use" with voice control reaches the switch.
+  const idPart = r.id.replace(/[^\w-]/g, '_');
+  const useId = `ds-row-use-${idPart}`;
+  const labelId = `ds-row-label-${idPart}`;
+  const cover = preview.unread ? '<span class="ds-cover ds-cover--row is-pending" aria-hidden="true"></span>' : coverHtml({
     ...preview,
     looks: preview.looks ?? looksFromColours(preview.colors),
     logos: preview.logos ?? (preview.logoUrl ? { light: preview.logoUrl } : {}),
@@ -126,12 +135,12 @@ export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, by
   const facts = list.map((f, i) => `<span class="ds-row-fact">${escape(f)}${i < list.length - 1 ? '<span aria-hidden="true"> ·</span>' : ''}</span>`).join(' ');
   return `
     <article class="ds-row${active ? ' is-active' : ' is-switchable'}" data-ds-row="${escape(r.id)}" aria-label="${escape(r.label)}">
-      ${active ? '' : `<button type="button" class="ds-row-hit" data-ds-act="switch" aria-label="${escape(tRaw('Switch to {name}', { name: r.label }))}"></button>`}
+      ${active ? '' : `<button type="button" class="ds-row-hit" data-ds-act="switch" aria-labelledby="${useId} ${labelId}"></button>`}
       <span class="ds-row-cover">${cover}</span>
       <div class="ds-row-main">
         <div class="ds-row-head">
-          <h3 class="ds-row-label">${escape(r.label)}${r.locked ? `<span class="ds-row-lock" title="${escape(t('Read-only'))}">${icon('lock', { size: 14 })}</span>` : ''}</h3>
-          ${active ? `<span class="ds-row-active">${icon('check', { size: 14 })} ${t('Active')}</span>` : `<span class="ds-row-use">${t('Use')}</span>`}
+          <h3 class="ds-row-label" id="${labelId}">${escape(r.label)}${r.locked ? `<span class="ds-row-lock" title="${escape(t('Read-only'))}">${icon('lock', { size: 14 })}</span>` : ''}</h3>
+          ${active ? `<span class="ds-row-active">${icon('check', { size: 14 })} ${t('Active')}</span>` : `<span class="ds-row-use" id="${useId}">${t('Use')}</span>`}
         </div>
         <span class="ds-row-source">${escape(sourceLine(r))}</span>
         <span class="ds-row-facts">${facts}</span>
@@ -202,8 +211,36 @@ function announce(body: HTMLElement, text: string): void {
   el.textContent = text;
 }
 
-/** Mount the card body and wire its actions. Re-renders itself after every action. */
-export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void {
+/**
+ * Open a row's More actions menu on the side with room. It opens downward, and
+ * on a row near the foot of the card the card's clip would cut it off, so it
+ * then opens upward when there is more room above.
+ */
+function placeMenu(menu: HTMLDetailsElement): void {
+  const list = menu.querySelector<HTMLElement>('.ds-row-menu');
+  const summary = menu.querySelector<HTMLElement>('summary');
+  const view = menu.ownerDocument.defaultView;
+  if (!list || !summary || !view) return;
+  delete list.dataset.up;
+  let clip: HTMLElement | null = menu.parentElement;
+  while (clip && clip !== menu.ownerDocument.body) {
+    const style = view.getComputedStyle(clip);
+    if ([style.overflow, style.overflowX, style.overflowY].some(v => v && v !== 'visible')) break;
+    clip = clip.parentElement;
+  }
+  const bounds = clip && clip !== menu.ownerDocument.body ? clip.getBoundingClientRect() : { top: 0, bottom: view.innerHeight };
+  const box = list.getBoundingClientRect();
+  if (box.bottom <= bounds.bottom) return;
+  const at = summary.getBoundingClientRect();
+  if (at.top - bounds.top > bounds.bottom - at.bottom) list.dataset.up = '';
+}
+
+/**
+ * Mount the card body and wire its actions. Re-renders itself after every
+ * action. Returns the function that detaches the card's window and document
+ * listeners, for the view's teardown.
+ */
+export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): () => void {
   let busy = true;
   const cache: PreviewCache = new Map();
 
@@ -255,7 +292,7 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
   };
   body.addEventListener('toggle', (e) => {
     const menu = e.target as HTMLDetailsElement | null;
-    if (menu?.matches?.('details.ds-row-more') && menu.open) closeMenus(menu);
+    if (menu?.matches?.('details.ds-row-more') && menu.open) { closeMenus(menu); placeMenu(menu); }
   }, true);
   const onKey = (e: KeyboardEvent): void => {
     if (!body.isConnected) { detach(); return; }
@@ -436,4 +473,5 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
       body.removeAttribute('aria-busy');
     }
   });
+  return detach;
 }

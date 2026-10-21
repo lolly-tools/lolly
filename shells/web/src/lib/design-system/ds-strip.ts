@@ -21,6 +21,12 @@
  * the view, because the catalogue and its counts followed the base; the new
  * strip then takes the focus back once. While a switch runs, every item reads
  * as unavailable through aria-disabled, never disabled, so the focus stays.
+ * Undo in the notice that follows switches back the same way and puts the focus
+ * on the item now pressed, since the notice it was pressed in has gone. A switch
+ * that fails says why on a line under the strip.
+ *
+ * A system whose head could not be read keeps its plain plate and shows no
+ * counts, and it is read again on the next draw.
  *
  * The strip is left out entirely when fewer than two design systems are here.
  */
@@ -31,7 +37,7 @@ import { prefersReducedMotion } from '../a11y-prefs.ts';
 import { coverHtml, wireCoverImages, type CoverPreview } from './cover.ts';
 import { readDesignSystemPreview, type DesignSystemPreview, type PreviewHost } from './preview.ts';
 import type { DesignSystemRecord } from './registry.ts';
-import type { SwitchHost, SwitchOptions } from './switch.ts';
+import type { SwitchHost, SwitchOptions, SwitchResult } from './switch.ts';
 import { switchWithUndo } from './switch-undo.ts';
 
 /** What the strip reads and switches with: the registry, and assets for the covers. */
@@ -74,7 +80,7 @@ const hasLogos = (p: CoverPreview | undefined): boolean => !!p && Object.values(
 /** The counts under a name: colours, colourways when there is a choice, and Read-only. */
 function subLine(r: DesignSystemRecord, cover: CoverPreview | null): string {
   const parts: string[] = [];
-  if (cover) {
+  if (cover && !cover.unread) {
     const n = cover.colorCount ?? cover.colors.length;
     parts.push(n === 1 ? tRaw('{n} colour', { n }) : tRaw('{n} colours', { n }));
     const ways = cover.colourways ?? 0;
@@ -118,7 +124,13 @@ export function mountDsStrip(el: HTMLElement, host: StripHost, opts: DsStripOpti
   const itemsOf = (): HTMLElement[] => bar ? [...bar.querySelectorAll<HTMLElement>('.ds-strip-item')] : [];
   const itemFor = (id: string): HTMLElement | undefined => itemsOf().find(item => item.dataset.dsId === id);
   const pressed = (): HTMLElement | undefined => itemsOf().find(item => item.getAttribute('aria-pressed') === 'true');
-  const say = (text: string): void => { if (statusEl) statusEl.textContent = text; };
+  /** The status line. An error shows under the strip; anything else is for assistive technology only. */
+  const say = (text: string, error = false): void => {
+    if (!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.classList.toggle('visually-hidden', !error);
+    statusEl.classList.toggle('ds-strip-note', error);
+  };
 
   /** One tab stop: the item that has (or last had) the focus, else the pressed one. */
   const setRoving = (target: HTMLElement | undefined): void => {
@@ -163,6 +175,25 @@ export function mountDsStrip(el: HTMLElement, host: StripHost, opts: DsStripOpti
     shown.set(id, cover);
   };
 
+  /**
+   * Undo in the switch notice. The notice and its button have gone, so the focus
+   * would rest on the page: it goes to the item now pressed. A switch back that
+   * moved the instance base remounts the view, as the switch forward did. A strip
+   * that has left the page does nothing, as the account menu's switch does not.
+   */
+  const onUndo = (back: SwitchResult): void => {
+    if (!live || !el.isConnected) return;
+    setPressed(back.record.id);
+    if (back.baseChanged) {
+      pendingFocusId = back.record.id;
+      window.dispatchEvent(new Event('lolly:remount'));
+      return;
+    }
+    const at = document.activeElement;
+    const target = itemFor(back.record.id);
+    if (target && (!at || at === document.body)) focusItem(target, false);
+  };
+
   // ── Keyboard, press and focus (the APG toolbar) ──
   const onKey = (event: Event): void => {
     const e = event as KeyboardEvent;
@@ -201,7 +232,7 @@ export function mountDsStrip(el: HTMLElement, host: StripHost, opts: DsStripOpti
     let failed = false;
     let chosen = id;
     try {
-      const result = await switchWithUndo(host, id, { ...opts.switchOptions, noRemount: true });
+      const result = await switchWithUndo(host, id, { ...opts.switchOptions, noRemount: true }, { onUndo });
       chosen = result.record.id;
       if (live) setPressed(chosen);
       if (result.baseChanged) {
@@ -213,7 +244,7 @@ export function mountDsStrip(el: HTMLElement, host: StripHost, opts: DsStripOpti
       }
     } catch (error) {
       failed = true;
-      say(error instanceof Error && error.message ? error.message : tRaw('Could not complete this action. Please try again.'));
+      say(error instanceof Error && error.message ? error.message : tRaw('Could not complete this action. Please try again.'), true);
     } finally {
       setBusy(false);
       if (!failed) {
@@ -313,6 +344,8 @@ export function mountDsStrip(el: HTMLElement, host: StripHost, opts: DsStripOpti
     const reads = (async (): Promise<void> => {
       for (let at = 0; at < waiting.length; at += BATCH) {
         await Promise.allSettled(waiting.slice(at, at + BATCH).map(r => readDesignSystemPreview(host, r, cache).then(preview => {
+          // A head that could not be read keeps the plate (or the last cover) and no counts.
+          if (preview.unread) return;
           fresh.set(previewKey(r), preview);
           if (live && my === gen && r.id !== activeId) swap(r.id, preview);
         })));
@@ -349,6 +382,12 @@ export function mountDsStrip(el: HTMLElement, host: StripHost, opts: DsStripOpti
     if (!live) return Promise.resolve();
     forget(activeId);
     forget(nextId);
+    // The outgoing cover was drawn in the live display face, which now belongs
+    // to the incoming system. Until its own preview is read it keeps its ground,
+    // logo and band, with the monogram in the shell's text face.
+    const outgoing = activeId !== nextId ? shown.get(activeId) : undefined;
+    if (outgoing) shown.set(activeId, { ...outgoing, display: '' });
+    if (statusEl?.classList.contains('ds-strip-note')) say('');
     activeId = nextId;
     activeCover = withShownLogos(nextId, nextCover);
     const my = ++gen;
