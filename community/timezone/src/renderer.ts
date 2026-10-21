@@ -24,7 +24,11 @@ export function mount(root: HTMLElement, state: State) {
     window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
     document.documentElement.dataset.a11yMotion === 'reduce';
   const wantsMotion = state.inputs.motion !== 'still';
-  playing = wantsMotion && !reduced;
+  // A one-shot render (a gallery look, a batch row) is a still picture: spinning it
+  // keeps the DOM changing, so the render never settles, and the picture shows
+  // whatever frame the spin had reached. Exports still draw exact frames through
+  // __lollyFrameRender, which does not depend on the wall-clock spin.
+  playing = wantsMotion && !reduced && !root.closest('[data-lolly-offscreen]');
   // The shell's export panel owns the containing artboard, including physical
   // units. Read its CSS size, so no duplicated tool size inputs can disagree.
   function readSize() {

@@ -1,7 +1,7 @@
 {
   "id": "booth-studio",
   "name": "Booth",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "engineVersion": "^1.0.0",
   "status": "experimental",
   "singleInstance": true,

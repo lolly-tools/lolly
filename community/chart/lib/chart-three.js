@@ -364,6 +364,10 @@
       global.__lollyAnim={active:true,owner:root,loopMs:loopMs,labels:isCinematic?(data.categories||[]):[],playing:!reduced&&prev.playing!==false,scrubT:prev.scrubT,curT:prev.curT||0};
       function tick(now) {
         if (disposed) return;
+        // A detached canvas is a dead preview: a one-shot render (a gallery look, a
+        // batch row) is removed without anyone calling dispose(), and only a later
+        // paint of the same chart would. Release it here instead of drawing forever.
+        if (!canvas.isConnected) { api.dispose(); return; }
         var A=global.__lollyAnim&&global.__lollyAnim.owner===root?global.__lollyAnim:null;
         var dt=lastNow==null?0:Math.max(0,now-lastNow); lastNow=now;
         if (!canvas.__lollyFrameDriven) {
@@ -375,7 +379,7 @@
       raf=requestAnimationFrame(tick);
     }
 
-    return {
+    var api = {
       renderAt:renderAt,
       inspect:function(){return state.report||null;},
       dispose:function(){
@@ -386,6 +390,7 @@
         try{renderer.dispose();}catch(e){} try{renderer.forceContextLoss();}catch(e){}
       }
     };
+    return api;
   }
 
   global.LollyChart3D = { mount: mount };
