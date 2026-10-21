@@ -8,9 +8,12 @@
  * contexts handle most of it (no localStorage ⇒ no theme, no a11y prefs), but a
  * DEFAULT is not the same as absent:
  *
- *   - Jelly effects (`jelly-effects`) default ON for an unlocked brand - which is
- *     exactly the neutral `lolly-start` profile the docs pipeline captures under.
- *     So the soft-body controls were in every baseline by default, not by choice.
+ *   - Effect flags carry defaults of their own. Jelly effects (`jelly-effects`)
+ *     defaulted ON for an unlocked brand until 2026-09-11, so the soft-body controls
+ *     were in every baseline by default, not by choice, and Neurospicy Mode is still
+ *     on by default. The docs pipeline captures under the `lolly-demo` profile (Lolly's
+ *     own public demo brand, never SUSE's), and its defaults are no more neutral than
+ *     any other brand's.
  *   - The a11y prefs (reduce motion / high contrast / large text) are canonical on
  *     the PROFILE, so a seeded or restored profile can turn them on before paint.
  *

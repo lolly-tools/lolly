@@ -624,9 +624,10 @@ function expectedDims(shot: ShotDef, dims: { width: number; height: number; dpi:
 //
 // Then the NEUTRAL-STATE pin (lib/capture-neutral.ts): a published screenshot
 // must show the app's plain chrome. A fresh browser context covers most of that
-// for free, but a default is not the same as absent - `jelly-effects` defaults
-// ON for an unlocked brand, which is precisely the `lolly-start` profile these
-// captures pin, so the soft-body controls were in every baseline by default. The
+// for free, but a default is not the same as absent - `jelly-effects` defaulted
+// ON for an unlocked brand until 2026-09-11, so the soft-body controls were in
+// every baseline by default, and Neurospicy Mode is still on by default under the
+// `lolly-demo` profile these captures pin, as under every other brand. The
 // app cannot honour a seeded flag mirror (hydrateFeatureFlags rewrites it from
 // the profile at boot), so it reads this one key after hydration instead and
 // forces the effect flags off + the a11y attributes clear. Set for EVERY shot
