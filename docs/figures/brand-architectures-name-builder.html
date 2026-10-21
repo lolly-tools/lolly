@@ -1,0 +1,262 @@
+<!--
+  Concept: product architecture: a product name built from Company, Domain, Descriptor and Context, step by step from a product line to a variant, with the optional version and edition inside the descriptor. Two styles of descriptor: a descriptive word (common in B2B, Northwind Freight Tracker) and an invented term (common in consumer brands, Northwind Devices Kestrel). Invented organisation (Northwind); real names in the wild: Microsoft SQL Server 2022 Enterprise and Sony PlayStation 5 Pro.
+  Band Contract: interactive fragment scoped under .nb, reads the docs theme tokens
+  (light/dark/brand via --secondary/--card-foreground/--primary, with fallbacks), one
+  script, no network. Without the script, and for readers who ask for less motion (the
+  system setting or the site's Reduce motion switch), it shows every row of both
+  examples. Otherwise the script shows one row at a time, with buttons for the style and
+  the step, and autoplay that pauses on hover, on focus, off screen and in a hidden tab.
+  Logos sit on white plates in every theme.
+  Trademarks: every logo is a trademark of its owner, shown to illustrate a brand
+  arrangement on a page about brand arrangements. No owner is connected with Lolly.
+  A product name beside a mark is set in the page's own type.
+  Logo sources (path data cleaned with svgo, viewBox cropped to the drawn bounds):
+    microsoft: gilbarbara/logos @ dafdf2df1 (microsoft.svg), CC0-1.0 (icon data)
+    playstation: Simple Icons 16.33.0 (playstation), CC0-1.0 (icon data)
+    sony: Simple Icons 16.33.0 (sony), CC0-1.0 (icon data)
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by
+  Andy Fitzsimon on 2026-10-21 from his earlier brand-architecture slides and his brief
+  on product naming. The C2PA signature added at bank time is this file's first
+  provenance record.
+-->
+<style>.nb{--nb-ink:hsl(var(--card-foreground,201 49% 7%));--nb-muted:hsl(var(--muted-foreground,208 11% 30%));
+--nb-ground:hsl(var(--secondary,85 55% 92%));--nb-card:hsl(var(--card,0 0% 100%));
+--nb-accent:hsl(var(--primary,177 90% 11%));--nb-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+--nb-ring:hsl(var(--ring,177 90% 11%));--nb-warn:var(--warn,#72251c);
+--nb-line:hsl(var(--card-foreground,201 49% 7%) / .2);--nb-soft:hsl(var(--card-foreground,201 49% 7%) / .07);
+--nb-mid:color-mix(in oklab,var(--nb-accent) 36%,var(--nb-ground));--nb-tint:color-mix(in oklab,var(--nb-accent) 13%,var(--nb-card));
+position:relative;container-type:inline-size;color:var(--nb-ink);background:var(--nb-ground);border-radius:1.2em;
+padding:clamp(12px,2.6vw,24px);font-size:1rem;line-height:1.35;text-align:start}
+.nb *{box-sizing:border-box}
+.nb ul,.nb ol{list-style:none;margin:0;padding:0}
+.nb li{list-style:none;margin:0;font-size:inherit}
+.nb p{margin:0}
+.nb [hidden]{display:none!important}
+.nb :where(button){font:inherit;color:inherit;margin:0;-webkit-tap-highlight-color:transparent}
+.nb :where(button):focus-visible{outline:2px solid var(--nb-ring);outline-offset:2px}
+.nb-logo{display:block;height:var(--h);width:auto;max-width:100%;flex:none}
+.nb-ico{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.nb-fill{fill:currentColor;stroke:none}
+.nb-live{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.nb-seg{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:999px;background:var(--nb-card);box-shadow:inset 0 0 0 1px var(--nb-line)}
+.nb-seg button{border:0;border-radius:999px;background:transparent;padding:.42em .95em;cursor:pointer;font-size:.86rem;font-weight:600;line-height:1.2;text-align:center}
+.nb-seg button small{display:block;font-size:.72em;font-weight:500;color:var(--nb-muted)}
+.nb-seg button:hover{background:var(--nb-tint)}
+.nb-seg button[aria-pressed="true"]{background:var(--nb-accent);color:var(--nb-on-accent)}
+.nb-seg button[aria-pressed="true"] small{color:inherit;opacity:.85}
+.nb-play{display:inline-flex;align-items:center;gap:.45em;border:0;border-radius:999px;background:var(--nb-card);
+box-shadow:inset 0 0 0 1px var(--nb-line);padding:.45em .95em .45em .8em;cursor:pointer;font-size:.84rem;font-weight:600}
+.nb-play:hover{background:var(--nb-tint)}
+.nb-ico--play,.nb.is-paused .nb-ico--pause{display:none}
+.nb.is-paused .nb-ico--play{display:block}
+.nb-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+.nb-modes button{min-width:9.5em}
+.nb .nb-key{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 18px;font-size:.8rem;color:var(--nb-muted)}
+.nb-key li{display:inline-flex;align-items:center;gap:.45em}
+.nb-sw{display:inline-block;width:1.5em;height:.95em;border-radius:.3em;flex:none}
+.nb-sw--co{background:var(--nb-accent)}
+.nb-sw--dm{background:var(--nb-mid)}
+.nb-sw--de{background:var(--nb-tint);box-shadow:inset 0 0 0 1px var(--nb-line)}
+.nb-sw--op{background:var(--nb-card);box-shadow:inset 0 0 0 1.5px var(--nb-line)}
+.nb-sw--cx{background:var(--nb-soft)}
+.nb-stage{display:grid;gap:22px}
+.nb .nb-ex-title{font-weight:700;font-size:.95rem;margin-bottom:10px}
+.nb-ex-title span{font-weight:400;color:var(--nb-muted)}
+.nb-rows{display:grid;gap:8px}
+.nb-row{display:grid;grid-template-columns:9.5em minmax(0,1fr);align-items:center;column-gap:12px}
+.nb-lvl{font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--nb-muted)}
+.nb-lvl--more{visibility:hidden}
+.nb-name{display:flex;flex-wrap:wrap;align-items:flex-end;gap:.38em .3em;font-size:clamp(.95rem,2.9cqi,1.3rem);font-weight:600;min-width:0}
+.nb-t{display:inline-flex;flex-direction:column;align-items:flex-start;gap:.35em;min-width:0;max-width:100%}
+.nb-c{display:inline-flex;flex-wrap:wrap;align-items:center;gap:.25em;border-radius:.42em;padding:.12em .42em .16em;line-height:1.2;max-width:100%}
+.nb-t--co .nb-c{background:var(--nb-accent);color:var(--nb-on-accent);font-weight:800}
+.nb-t--dm .nb-c{background:var(--nb-mid)}
+.nb-t--de .nb-c{background:var(--nb-tint);box-shadow:inset 0 0 0 1px var(--nb-line);font-weight:700}
+.nb-o{display:inline-block;font-size:.82em;font-weight:600;border-radius:.36em;padding:.02em .38em .06em;background:var(--nb-card);box-shadow:inset 0 0 0 1.5px var(--nb-line)}
+.nb-t--cx .nb-c{background:var(--nb-soft);font-weight:500}
+.nb-t--cx b{font-style:italic;font-weight:800}
+.nb-rep{visibility:hidden}
+.nb-tl{display:none;font-size:.52em;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--nb-muted);line-height:1.25;white-space:nowrap}
+.nb .nb-wild{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:14px}
+.nb-wild-k{font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--nb-muted)}
+.nb-plate{display:inline-flex;flex-wrap:wrap;align-items:flex-start;gap:4px 16px;background:#fff;color:#09141a;border-radius:12px;
+padding:9px 14px 7px;box-shadow:0 1px 2px #0000000f,0 6px 18px #0000000f;max-width:100%}
+.nb-w{display:inline-flex;flex-direction:column;align-items:center;gap:4px}
+.nb-w>span{display:inline-flex;align-items:center;gap:.3em;height:24px;font-weight:600;font-size:1.02rem;white-space:nowrap}
+.nb-w small{font-size:.58rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5b6770}
+.nb-ctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px}
+.nb-btn{display:grid;place-items:center;width:2.3em;height:2.3em;border:0;border-radius:50%;background:var(--nb-card);
+box-shadow:inset 0 0 0 1px var(--nb-line);cursor:pointer;font-size:.9rem}
+.nb-btn:hover{background:var(--nb-tint)}
+.nb-steps{display:flex;flex-wrap:wrap;align-items:center;gap:4px 2px}
+.nb-steps li{display:inline-flex;align-items:center;gap:2px}
+.nb-steps li+li::before{content:"";width:.7em;height:2px;border-radius:2px;background:var(--nb-line);margin:0 2px}
+.nb-step{border:0;border-radius:999px;background:var(--nb-soft);padding:.38em .8em;cursor:pointer;font-size:.8rem;font-weight:600}
+.nb-step:hover{background:var(--nb-tint)}
+.nb-step[aria-current="step"]{background:var(--nb-accent);color:var(--nb-on-accent)}
+.nb.is-live .nb-key,.nb.is-live .nb-ex-title{display:none}
+.nb.is-live .nb-stage{grid-template-areas:"x"}
+.nb.is-live .nb-ex{grid-area:x;visibility:hidden}
+.nb.is-live .nb-ex.is-on{visibility:visible}
+.nb.is-live .nb-rows{grid-template-areas:"r"}
+.nb.is-live .nb-row{grid-area:r;grid-template-columns:minmax(0,1fr);align-content:start;row-gap:10px;visibility:hidden}
+.nb.is-live .nb-ex.is-on .nb-row.is-on{visibility:visible}
+.nb.is-live .nb-lvl,.nb.is-live .nb-rep{visibility:inherit}
+.nb.is-live .nb-lvl{font-size:.72rem;color:var(--nb-accent)}
+.nb.is-live .nb-name{font-size:clamp(1.05rem,3.5cqi,1.5rem);column-gap:.34em}
+.nb.is-live .nb-tl{display:block}
+.nb.is-live .nb-wild{margin-top:18px;padding-top:14px;box-shadow:0 -1px 0 var(--nb-line)}
+.nb.is-live[data-row="1"] .nb-w:is(.nb-w--s2,.nb-w--s3),.nb.is-live[data-row="2"] .nb-w--s3{opacity:.28}
+@container (max-width:540px){
+.nb-row{grid-template-columns:minmax(0,1fr);row-gap:4px}
+.nb:not(.is-live) .nb-lvl--more,.nb:not(.is-live) .nb-rep{display:none}
+.nb .nb-plate{gap:4px 11px;padding:8px 11px 6px}
+.nb-w>span{font-size:.9rem;height:22px}
+.nb-w .nb-logo{height:calc(var(--h) * .85)}
+.nb-steps li+li::before{display:none}
+.nb-modes{width:100%}
+.nb-modes button{flex:1 1 0;min-width:0;padding-inline:.5em}
+.nb-steps{order:3;width:100%}
+}
+@media (prefers-reduced-motion:no-preference){
+html:not([data-a11y-motion="reduce"]) .nb.is-live .nb-row.is-on .nb-t.is-new .nb-tl{animation:nb-fade .4s ease backwards;animation-delay:calc(var(--i,0) * 120ms)}
+html:not([data-a11y-motion="reduce"]) .nb.is-live .nb-row.is-on .nb-lvl{animation:nb-fade .4s ease both}
+html:not([data-a11y-motion="reduce"]) .nb.is-live .nb-row.is-on .is-new>.nb-c,html:not([data-a11y-motion="reduce"]) .nb.is-live .nb-row.is-on .nb-o.is-new{animation:nb-in .52s cubic-bezier(.2,.9,.25,1.25) backwards,nb-glow 1.4s ease-out;animation-delay:calc(var(--i,0) * 120ms)}
+html:not([data-a11y-motion="reduce"]) .nb.is-live .nb-w{transition:opacity .45s ease}
+html:not([data-a11y-motion="reduce"]) .nb-seg button,html:not([data-a11y-motion="reduce"]) .nb-step,html:not([data-a11y-motion="reduce"]) .nb-btn{transition:background-color .2s,color .2s}
+@keyframes nb-in{from{opacity:0;transform:translateY(-.6em) scale(.86)}to{opacity:1;transform:none}}
+@keyframes nb-fade{from{opacity:0}to{opacity:1}}
+@keyframes nb-glow{from{outline:.28em solid color-mix(in oklab,var(--nb-accent) 34%,transparent)}to{outline:.28em solid transparent}}
+}
+@media (prefers-reduced-motion:reduce){.nb *{animation:none!important;transition:none!important}}
+html[data-a11y-motion="reduce"] .nb *{animation:none!important;transition:none!important}
+</style><div class="nb"><div class="nb-head" data-live-only hidden><div class="nb-seg nb-modes" role="group" aria-label="Descriptor"><button type="button" class="nb-mode" data-mode="b2b" aria-pressed="true">Descriptive word<small>Common in B2B</small></button><button type="button" class="nb-mode" data-mode="con" aria-pressed="false">Invented term<small>Common in consumer brands</small></button></div><button type="button" class="nb-play"><svg class="nb-ico nb-ico--pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3.5v9M10.5 3.5v9"/></svg><svg class="nb-ico nb-ico--play" viewBox="0 0 16 16" aria-hidden="true"><path class="nb-fill" d="M5 3.2v9.6L12.6 8z"/></svg><span class="nb-play-label">Pause</span></button></div><ul class="nb-key" aria-label="Parts of a product name"><li><span class="nb-sw nb-sw--co"></span>Company</li><li><span class="nb-sw nb-sw--dm"></span>Domain</li><li><span class="nb-sw nb-sw--de"></span>Descriptor</li><li><span class="nb-sw nb-sw--op"></span>Version or edition, optional, inside the descriptor</li><li><span class="nb-sw nb-sw--cx"></span>Context</li></ul><div class="nb-stage"><section class="nb-ex" data-ex="b2b" aria-label="Descriptive word"><p class="nb-ex-title">Descriptive word<span>, common in B2B</span></p><ol class="nb-rows"><li class="nb-row" data-row="1" data-say="Product line: Northwind Freight"><span class="nb-lvl">Product line</span><span class="nb-name"><span class="nb-t nb-t--co is-new" style="--i:0"><span class="nb-tl" aria-hidden="true">Company</span><span class="nb-c">Northwind</span></span> <span class="nb-t nb-t--dm is-new" style="--i:1"><span class="nb-tl" aria-hidden="true">Domain</span><span class="nb-c">Freight</span></span></span></li><li class="nb-row" data-row="2" data-say="Product: Northwind Freight Tracker"><span class="nb-lvl">Product</span><span class="nb-name"><span class="nb-t nb-t--co" style="--i:0"><span class="nb-tl" aria-hidden="true">Company</span><span class="nb-c">Northwind</span></span> <span class="nb-t nb-t--dm" style="--i:1"><span class="nb-tl" aria-hidden="true">Domain</span><span class="nb-c">Freight</span></span> <span class="nb-t nb-t--de is-new" style="--i:0"><span class="nb-tl" aria-hidden="true">Descriptor</span><span class="nb-c">Tracker</span></span></span></li><li class="nb-row" data-row="3" data-say="Version and edition: Northwind Freight Tracker 2025 Enterprise"><span class="nb-lvl">Version and edition, optional</span><span class="nb-name"><span class="nb-t nb-t--co" style="--i:0"><span class="nb-tl" aria-hidden="true">Company</span><span class="nb-c">Northwind</span></span> <span class="nb-t nb-t--dm" style="--i:1"><span class="nb-tl" aria-hidden="true">Domain</span><span class="nb-c">Freight</span></span> <span class="nb-t nb-t--de" style="--i:0"><span class="nb-tl" aria-hidden="true">Descriptor</span><span class="nb-c">Tracker <span class="nb-o is-new" style="--i:1">2025</span> <span class="nb-o is-new" style="--i:2">Enterprise</span></span></span></span></li><li class="nb-row" data-row="4" data-say="Variant: Northwind Freight Tracker 2025 Enterprise for Retail"><span class="nb-lvl">Variant</span><span class="nb-name"><span class="nb-t nb-t--co" style="--i:0"><span class="nb-tl" aria-hidden="true">Company</span><span class="nb-c">Northwind</span></span> <span class="nb-t nb-t--dm" style="--i:1"><span class="nb-tl" aria-hidden="true">Domain</span><span class="nb-c">Freight</span></span> <span class="nb-t nb-t--de" style="--i:0"><span class="nb-tl" aria-hidden="true">Descriptor</span><span class="nb-c">Tracker <span class="nb-o" style="--i:1">2025</span> <span class="nb-o" style="--i:2">Enterprise</span></span></span> <span class="nb-t nb-t--cx is-new" style="--i:0"><span class="nb-tl" aria-hidden="true">Context</span><span class="nb-c"><b>for</b> Retail</span></span></span></li><li class="nb-row" data-row="5" data-say="Variant: Northwind Freight Tracker 2025 Enterprise with Live Alerts"><span class="nb-lvl nb-lvl--more">Variant</span><span class="nb-name"><span class="nb-t nb-t--co nb-rep" style="--i:0"><span class="nb-tl" aria-hidden="true">Company</span><span class="nb-c">Northwind</span></span> <span class="nb-t nb-t--dm nb-rep" style="--i:1"><span class="nb-tl" aria-hidden="true">Domain</span><span class="nb-c">Freight</span></span> <span class="nb-t nb-t--de nb-rep" style="--i:0"><span class="nb-tl" aria-hidden="true">Descriptor</span><span class="nb-c">Tracker <span class="nb-o" style="--i:1">2025</span> <span class="nb-o" style="--i:2">Enterprise</span></span></span> <span class="nb-t nb-t--cx is-new" style="--i:0"><span class="nb-tl" aria-hidden="true">Context</span><span class="nb-c"><b>with</b> Live Alerts</span></span></span></li><li class="nb-row" data-row="6" data-say="Variant: Northwind Freight Tracker 2025 Enterprise on Android"><span class="nb-lvl nb-lvl--more">Variant</span><span class="nb-name"><span class="nb-t nb-t--co nb-rep" style="--i:0"><span class="nb-tl" aria-hidden="true">Company</span><span class="nb-c">Northwind</span></span> <span class="nb-t nb-t--dm nb-rep" style="--i:1"><span class="nb-tl" aria-hidden="true">Domain</span><span class="nb-c">Freight</span></span> <span class="nb-t nb-t--de nb-rep" style="--i:0"><span class="nb-tl" aria-hidden="true">Descriptor</span><span class="nb-c">Tracker <span class="nb-o" style="--i:1">2025</span> <span class="nb-o" style="--i:2">Enterprise</span></span></span> <span class="nb-t nb-t--cx is-new" style="--i:0"><span class="nb-tl" aria-hidden="true">Context</span><span class="nb-c"><b>on</b> Android</span></span></span></li></ol><p class="nb-wild"><span class="nb-wild-k">In the wild</span><span class="nb-plate"><span class="nb-w nb-w--s1"><span><svg class="nb-logo" viewBox="0 0 512 109.31" style="--h:19px;aspect-ratio:4.684" role="img" aria-label="Microsoft"><title>Microsoft</title><path fill="#706d6e" d="M512 49.45v-9h-11.18v-14l-.38.11-10.5 3.21-.2.07v10.6h-16.58v-5.9q0-4.15 1.82-6.26 1.81-2.1 5.13-2.1 2.38 0 4.86 1.1l.4.2v-9.5l-.19-.06a19 19 0 0 0-6.2-.83q-4.92 0-8.82 2.11a15 15 0 0 0-6.04 5.98 18 18 0 0 0-2.14 8.77v6.5h-7.79v9h7.79v37.93h11.18V49.45h16.57v24.1c0 9.93 4.69 14.96 13.92 14.96q2.3 0 4.75-.52a13 13 0 0 0 3.45-1.1l.15-.09v-9.08l-.45.3q-.92.6-2.25.98-1.34.37-2.21.37-3.25 0-4.76-1.73c-1-1.16-1.51-3.2-1.51-6.03V49.45zm-82.77 29.92q-6.1 0-9.5-3.99c-2.28-2.66-3.42-6.46-3.42-11.28 0-4.98 1.14-8.88 3.41-11.59 2.26-2.69 5.43-4.06 9.42-4.06q5.84 0 9.17 3.88 3.34 3.92 3.35 11.5c0 5.09-1.06 9-3.15 11.62-2.08 2.6-5.2 3.92-9.28 3.92m.5-40.06c-7.74 0-13.89 2.27-18.27 6.74s-6.6 10.67-6.6 18.4c0 7.35 2.17 13.27 6.44 17.57s10.1 6.5 17.3 6.5c7.5 0 13.53-2.3 17.9-6.84 4.39-4.53 6.6-10.66 6.6-18.22 0-7.46-2.08-13.42-6.19-17.7-4.1-4.28-9.89-6.45-17.18-6.45m-42.9 0c-5.26 0-9.61 1.35-12.94 4a12.8 12.8 0 0 0-5.05 10.42q0 3.32 1.1 5.82a12 12 0 0 0 3.33 4.36q2.24 1.84 6.8 3.8a51 51 0 0 1 5.65 2.64 8 8 0 0 1 2.49 2.04q.68.98.69 2.66c0 3.15-2.36 4.69-7.22 4.69q-2.72 0-6.11-1.12a23 23 0 0 1-6.26-3.18l-.47-.33v10.76l.18.08q2.38 1.1 5.92 1.83t6.33.73c5.71 0 10.31-1.35 13.67-4.02a13 13 0 0 0 5.1-10.66q-.01-4.77-2.75-8.07c-1.8-2.17-4.93-4.16-9.3-5.92q-5.24-2.1-6.63-3.45a4.8 4.8 0 0 1-1.34-3.61q0-2.03 1.7-3.35 1.74-1.34 4.76-1.34 2.8 0 5.66.87 2.85.87 4.94 2.3l.46.3v-10.2l-.18-.08a24 24 0 0 0-5.02-1.4q-3.08-.57-5.5-.57m-47.12 40.06c-4.06 0-7.26-1.34-9.51-3.99-2.27-2.66-3.42-6.46-3.42-11.28 0-4.98 1.15-8.88 3.42-11.59 2.25-2.69 5.42-4.06 9.42-4.06 3.87 0 6.96 1.3 9.17 3.88q3.34 3.92 3.34 11.5c0 5.09-1.06 9-3.15 11.62-2.07 2.6-5.2 3.92-9.27 3.92m.5-40.06c-7.75 0-13.9 2.27-18.28 6.74s-6.6 10.67-6.6 18.4c0 7.36 2.17 13.27 6.45 17.57 4.27 4.31 10.1 6.5 17.3 6.5 7.5 0 13.52-2.3 17.9-6.84s6.6-10.66 6.6-18.22c0-7.46-2.08-13.42-6.2-17.7-4.1-4.28-9.89-6.45-17.17-6.45m-41.85 9.26v-8.13h-11.04v46.94h11.04v-24q0-6.17 2.76-9.98a8.4 8.4 0 0 1 7.14-3.77q1.5 0 3.32.49 1.8.48 2.57 1.04l.47.33V40.36l-.18-.07a11 11 0 0 0-4.33-.66q-4.17.01-7.38 2.65c-1.87 1.54-3.22 3.65-4.25 6.3zm-30.8-9.26c-5.07 0-9.6 1.09-13.44 3.23a21.7 21.7 0 0 0-8.85 9.1c-2.02 3.9-3.04 8.43-3.04 13.5 0 4.43 1 8.5 2.95 12.09q2.97 5.4 8.27 8.35a24.6 24.6 0 0 0 12.07 2.93c5.24 0 9.72-1.05 13.32-3.11l.14-.09V75.2l-.46.34a21 21 0 0 1-5.4 2.8 16 16 0 0 1-5.3 1.03c-4.33 0-7.8-1.35-10.33-4.02-2.53-2.68-3.81-6.44-3.81-11.17 0-4.75 1.33-8.6 3.97-11.45q3.96-4.27 10.36-4.28c3.63 0 7.16 1.23 10.5 3.66l.47.34V41.79l-.15-.09a18 18 0 0 0-5.1-1.72q-3.2-.66-6.18-.67m-32.94 1.13h-11.04v46.94h11.04zm-5.4-20q-2.74.01-4.7 1.85a6 6 0 0 0-1.98 4.6q0 2.71 1.95 4.52a6.7 6.7 0 0 0 4.73 1.8q2.78 0 4.74-1.8a6 6 0 0 0 1.98-4.51 6.2 6.2 0 0 0-1.92-4.56 6.6 6.6 0 0 0-4.8-1.9m-27.55 16.54v50.4h11.27v-65.5h-15.6l-19.82 48.65-19.24-48.64h-16.23v65.5h10.6V36.97h.36l20.3 50.4h8l20-50.4z"/><path fill="#f1511b" d="M51.94 51.94H0V0h51.94z"/><path fill="#80cc28" d="M109.29 51.94H57.35V0h51.94z"/><path fill="#00adef" d="M51.94 109.31H0V57.37h51.94z"/><path fill="#fbbc09" d="M109.29 109.31H57.35V57.37h51.94z"/></svg></span><small>Company</small></span><span class="nb-w nb-w--s2"><span>SQL Server</span><small>Descriptor</small></span><span class="nb-w nb-w--s3"><span>2022</span><small>Version</small></span><span class="nb-w nb-w--s3"><span>Enterprise</span><small>Edition</small></span></span></p></section><section class="nb-ex" data-ex="con" aria-label="Invented term"><p class="nb-ex-title">Invented term<span>, common in consumer brands</span></p><ol class="nb-rows"><li class="nb-row" data-row="1" data-say="Product line: Northwind Devices"><span class="nb-lvl">Product line</span><span class="nb-name"><span class="nb-t nb-t--co is-new" style="--i:0"><span class="nb-tl" aria-hidden="true">Company</span><span class="nb-c">Northwind</span></span> <span class="nb-t nb-t--dm is-new" style="--i:1"><span class="nb-tl" aria-hidden="true">Domain</span><span class="nb-c">Devices</span></span></span></li><li class="nb-row" data-row="2" data-say="Product: Northwind Devices Kestrel"><span class="nb-lvl">Product</span><span class="nb-name"><span class="nb-t nb-t--co" style="--i:0"><span class="nb-tl" aria-hidden="true">Company</span><span class="nb-c">Northwind</span></span> <span class="nb-t nb-t--dm" style="--i:1"><span class="nb-tl" aria-hidden="true">Domain</span><span class="nb-c">Devices</span></span> <span class="nb-t nb-t--de is-new" style="--i:0"><span class="nb-tl" aria-hidden="true">Descriptor</span><span class="nb-c">Kestrel</span></span></span></li><li class="nb-row" data-row="3" data-say="Version and edition: Northwind Devices Kestrel 3 Pro"><span class="nb-lvl">Version and edition, optional</span><span class="nb-name"><span class="nb-t nb-t--co" style="--i:0"><span class="nb-tl" aria-hidden="true">Company</span><span class="nb-c">Northwind</span></span> <span class="nb-t nb-t--dm" style="--i:1"><span class="nb-tl" aria-hidden="true">Domain</span><span class="nb-c">Devices</span></span> <span class="nb-t nb-t--de" style="--i:0"><span class="nb-tl" aria-hidden="true">Descriptor</span><span class="nb-c">Kestrel <span class="nb-o is-new" style="--i:1">3</span> <span class="nb-o is-new" style="--i:2">Pro</span></span></span></span></li><li class="nb-row" data-row="4" data-say="Variant: Northwind Devices Kestrel 3 Pro for Students"><span class="nb-lvl">Variant</span><span class="nb-name"><span class="nb-t nb-t--co" style="--i:0"><span class="nb-tl" aria-hidden="true">Company</span><span class="nb-c">Northwind</span></span> <span class="nb-t nb-t--dm" style="--i:1"><span class="nb-tl" aria-hidden="true">Domain</span><span class="nb-c">Devices</span></span> <span class="nb-t nb-t--de" style="--i:0"><span class="nb-tl" aria-hidden="true">Descriptor</span><span class="nb-c">Kestrel <span class="nb-o" style="--i:1">3</span> <span class="nb-o" style="--i:2">Pro</span></span></span> <span class="nb-t nb-t--cx is-new" style="--i:0"><span class="nb-tl" aria-hidden="true">Context</span><span class="nb-c"><b>for</b> Students</span></span></span></li><li class="nb-row" data-row="5" data-say="Variant: Northwind Devices Kestrel 3 Pro with 5G"><span class="nb-lvl nb-lvl--more">Variant</span><span class="nb-name"><span class="nb-t nb-t--co nb-rep" style="--i:0"><span class="nb-tl" aria-hidden="true">Company</span><span class="nb-c">Northwind</span></span> <span class="nb-t nb-t--dm nb-rep" style="--i:1"><span class="nb-tl" aria-hidden="true">Domain</span><span class="nb-c">Devices</span></span> <span class="nb-t nb-t--de nb-rep" style="--i:0"><span class="nb-tl" aria-hidden="true">Descriptor</span><span class="nb-c">Kestrel <span class="nb-o" style="--i:1">3</span> <span class="nb-o" style="--i:2">Pro</span></span></span> <span class="nb-t nb-t--cx is-new" style="--i:0"><span class="nb-tl" aria-hidden="true">Context</span><span class="nb-c"><b>with</b> 5G</span></span></span></li><li class="nb-row" data-row="6" data-say="Variant: Northwind Devices Kestrel 3 Pro on Arm"><span class="nb-lvl nb-lvl--more">Variant</span><span class="nb-name"><span class="nb-t nb-t--co nb-rep" style="--i:0"><span class="nb-tl" aria-hidden="true">Company</span><span class="nb-c">Northwind</span></span> <span class="nb-t nb-t--dm nb-rep" style="--i:1"><span class="nb-tl" aria-hidden="true">Domain</span><span class="nb-c">Devices</span></span> <span class="nb-t nb-t--de nb-rep" style="--i:0"><span class="nb-tl" aria-hidden="true">Descriptor</span><span class="nb-c">Kestrel <span class="nb-o" style="--i:1">3</span> <span class="nb-o" style="--i:2">Pro</span></span></span> <span class="nb-t nb-t--cx is-new" style="--i:0"><span class="nb-tl" aria-hidden="true">Context</span><span class="nb-c"><b>on</b> Arm</span></span></span></li></ol><p class="nb-wild"><span class="nb-wild-k">In the wild</span><span class="nb-plate"><span class="nb-w nb-w--s1"><span><svg class="nb-logo" viewBox="0 9.89 24 4.22" style="--h:15px;aspect-ratio:5.687" role="img" aria-label="Sony"><path d="M8.55 9.89q1.38-.01 2.22.74c.39.35.6.85.6 1.37a2 2 0 0 1-.6 1.37 3.3 3.3 0 0 1-2.22.74 3.3 3.3 0 0 1-2.21-.74 1.85 1.85 0 0 1 0-2.74 3.5 3.5 0 0 1 2.21-.74m0 3.67c.46 0 .9-.16 1.2-.46q.44-.45.42-1.1 0-.66-.43-1.1c-.3-.3-.73-.46-1.19-.46s-.89.16-1.19.45q-.42.45-.43 1.1 0 .64.43 1.11c.3.3.74.46 1.2.46m-4.84-1.97q.24.06.47.16a1 1 0 0 1 .38.26q.3.32.3.77a1 1 0 0 1-.38.78 2 2 0 0 1-.7.35 4 4 0 0 1-1.2.17c-.35 0-.55-.05-.81-.1l-.08-.02q-.45-.09-.86-.28H.8a.1.1 0 0 0-.08.08v.2h-.6v-1.48h.53a1 1 0 0 0 .13.42c.21.26.44.36.66.44q.56.18 1.14.2c.55 0 .87-.14.94-.17h.01c.07-.03.32-.12.32-.4 0-.27-.24-.33-.39-.37h-.02a7 7 0 0 0-1-.14l-.14-.01a14 14 0 0 1-1.2-.18c-.5-.1-.7-.29-.82-.4v-.01a1 1 0 0 1-.28-.7c0-.5.34-.8.76-.98a4 4 0 0 1 3.16.11c.1.05.15-.02.15-.07v-.14h.53v1.28h-.48a1 1 0 0 0-.29-.49 1 1 0 0 0-.3-.18 3 3 0 0 0-2.33-.03q-.2.13-.2.31c0 .17.15.24.22.26.2.06.63.1.97.14l.2.02c.33.03 1.02.13 1.32.2m18.17-1v-.47H24v.47h-.48c-.17 0-.24.03-.37.17l-1.43 1.63-.01.07v.85a.2.2 0 0 0 .1.09h.62v.48h-2.57v-.47h.46l.13-.01a.2.2 0 0 0 .1-.1l.01-.1v-.73q0-.03-.03-.07l-1.41-1.6c-.08-.08-.2-.2-.4-.2h-.46v-.48h2.58v.47h-.3q-.14.02-.07.15l.9 1.05c.02 0 .9-1.04.9-1.05a.1.1 0 0 0 0-.13l-.07-.02zm-6.28 0h.48c.22 0 .26.09.26.3l.03 1.56-2.58-2.33h-1.85v.47h.42c.3 0 .31.17.31.31v2.22c0 .13 0 .3-.18.3H12v.46h2.16v-.47h-.53c-.21 0-.22-.1-.22-.3v-1.89l2.97 2.66h.76l-.04-3c0-.22.02-.3.24-.3h.47v-.46h-2.2Z"/></svg></span><small>Company</small></span><span class="nb-w nb-w--s2"><span><svg class="nb-logo" viewBox="0 2.6 24 18.8" style="--h:20px;aspect-ratio:1.277" aria-hidden="true" fill="#0070d1"><path d="M8.98 2.6v17.54l3.92 1.26V6.7c0-.7.3-1.15.8-1 .63.19.75.82.75 1.51v5.88c2.44 1.19 4.37 0 4.37-3.16 0-3.23-1.13-4.67-4.44-5.82a47 47 0 0 0-5.4-1.5zm4.66 16.24 6.3-2.28c.71-.26.82-.62.24-.82a4 4 0 0 0-2.36.13l-4.2 1.5v-2.39l.24-.08s1.2-.43 2.91-.62c1.7-.18 3.79.03 5.44.66 1.85.6 2.04 1.47 1.58 2.07a5 5 0 0 1-1.63 1.04l-8.54 3.1v-2.29zM1.81 18.6c-1.9-.55-2.22-1.67-1.35-2.32.8-.59 2.16-1.05 2.16-1.05l5.61-2.01v2.3L4.2 17c-.7.27-.82.63-.23.83.58.2 1.63.15 2.34-.12L8.25 17v2.07l-.4.08c-1.93.33-3.99.2-6.03-.48z"/></svg>PlayStation</span><small>Descriptor</small></span><span class="nb-w nb-w--s3"><span>5</span><small>Version</small></span><span class="nb-w nb-w--s3"><span>Pro</span><small>Edition</small></span></span></p></section></div><div class="nb-ctl" data-live-only hidden><button type="button" class="nb-btn nb-prev" aria-label="Previous step"><svg class="nb-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5"/></svg></button><ol class="nb-steps" aria-label="Steps"><li><button type="button" class="nb-step" data-go="1">Product line</button></li><li><button type="button" class="nb-step" data-go="2">Product</button></li><li><button type="button" class="nb-step" data-go="3">Version and edition</button></li><li><button type="button" class="nb-step" data-go="4">Variant</button></li></ol><button type="button" class="nb-btn nb-next" aria-label="Next step"><svg class="nb-ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button></div><p class="nb-live" aria-live="polite" aria-atomic="true"></p></div><script>
+(function () {
+  var roots = document.querySelectorAll('.nb');
+  for (var n = 0; n < roots.length; n++) {
+    if (!roots[n].hasAttribute('data-ready')) setup(roots[n]);
+  }
+
+  function setup(root) {
+    var page = document.documentElement;
+    var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    // Motion is opt-in. Under the system setting or the site's Reduce motion switch the
+    // figure stays in its static form, with every state shown at once and no autoplay.
+    function reduced() { return motionQuery.matches || page.getAttribute('data-a11y-motion') === 'reduce'; }
+    var exs = root.querySelectorAll('.nb-ex');
+    var modeBtns = root.querySelectorAll('.nb-mode');
+    var stepBtns = root.querySelectorAll('.nb-step');
+    var playBtn = root.querySelector('.nb-play');
+    var playLabel = root.querySelector('.nb-play-label');
+    var live = root.querySelector('.nb-live');
+    var LAST = 6;
+    var DWELL = [0, 1700, 1800, 2200, 1700, 1500, 2800];
+    var s = { mode: 'b2b', row: 1, paused: false, hover: false, focus: false, seen: true, timer: 0 };
+
+    function show(say) {
+      root.setAttribute('data-row', String(s.row));
+      for (var i = 0; i < exs.length; i++) {
+        var on = exs[i].getAttribute('data-ex') === s.mode;
+        exs[i].classList.toggle('is-on', on);
+        var rows = exs[i].querySelectorAll('.nb-row');
+        for (var r = 0; r < rows.length; r++) {
+          var hit = on && Number(rows[r].getAttribute('data-row')) === s.row;
+          rows[r].classList.toggle('is-on', hit);
+          if (hit && say) live.textContent = rows[r].getAttribute('data-say');
+        }
+      }
+      for (var m = 0; m < modeBtns.length; m++) {
+        modeBtns[m].setAttribute('aria-pressed', String(modeBtns[m].getAttribute('data-mode') === s.mode));
+      }
+      var step = Math.min(s.row, 4);
+      for (var k = 0; k < stepBtns.length; k++) {
+        if (Number(stepBtns[k].getAttribute('data-go')) === step) stepBtns[k].setAttribute('aria-current', 'step');
+        else stepBtns[k].removeAttribute('aria-current');
+      }
+    }
+    function canRun() { return !s.paused && !s.hover && !s.focus && s.seen && !document.hidden && !reduced(); }
+    function sync() {
+      if (canRun()) {
+        if (!s.timer) s.timer = window.setTimeout(tick, DWELL[s.row]);
+      } else if (s.timer) {
+        window.clearTimeout(s.timer);
+        s.timer = 0;
+      }
+      root.classList.toggle('is-paused', s.paused);
+      playLabel.textContent = s.paused ? 'Play' : 'Pause';
+    }
+    function tick() {
+      s.timer = 0;
+      if (s.row < LAST) s.row += 1;
+      else { s.mode = s.mode === 'b2b' ? 'con' : 'b2b'; s.row = 1; }
+      show(false);
+      sync();
+    }
+    function choose(change) {
+      change();
+      s.paused = true;
+      show(true);
+      sync();
+    }
+
+    for (var a = 0; a < modeBtns.length; a++) {
+      modeBtns[a].addEventListener('click', function (e) {
+        var mode = e.currentTarget.getAttribute('data-mode');
+        choose(function () { s.mode = mode; });
+      });
+    }
+    for (var b = 0; b < stepBtns.length; b++) {
+      stepBtns[b].addEventListener('click', function (e) {
+        var go = Number(e.currentTarget.getAttribute('data-go'));
+        choose(function () { s.row = go; });
+      });
+    }
+    root.querySelector('.nb-prev').addEventListener('click', function () {
+      choose(function () { s.row = s.row > 1 ? s.row - 1 : LAST; });
+    });
+    root.querySelector('.nb-next').addEventListener('click', function () {
+      choose(function () { s.row = s.row < LAST ? s.row + 1 : 1; });
+    });
+    playBtn.addEventListener('click', function () {
+      if (s.paused) {
+        s.paused = false;
+        s.hover = false;
+        s.focus = false;
+        if (s.timer) { window.clearTimeout(s.timer); s.timer = 0; }
+        tick();
+      } else {
+        s.paused = true;
+        sync();
+      }
+    });
+    root.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') { s.hover = true; sync(); } });
+    root.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') { s.hover = false; sync(); } });
+    root.addEventListener('focusin', function () { s.focus = true; sync(); });
+    root.addEventListener('focusout', function (e) {
+      if (!root.contains(e.relatedTarget)) { s.focus = false; sync(); }
+    });
+    // Autoplay stops off screen and in a hidden tab.
+    if ('IntersectionObserver' in window) {
+      s.seen = false;
+      new IntersectionObserver(function (entries) {
+        s.seen = entries[entries.length - 1].isIntersecting;
+        sync();
+      }, { threshold: 0.3 }).observe(root);
+    }
+    document.addEventListener('visibilitychange', sync);
+    var gated = root.querySelectorAll('[data-live-only]');
+    function apply() {
+      var on = !reduced();
+      root.classList.toggle('is-live', on);
+      for (var g = 0; g < gated.length; g++) gated[g].hidden = !on;
+      show(false);
+      sync();
+    }
+    if (motionQuery.addEventListener) motionQuery.addEventListener('change', apply);
+    new MutationObserver(apply).observe(page, { attributes: true, attributeFilter: ['data-a11y-motion'] });
+    root.setAttribute('data-ready', '');
+    apply();
+  }
+})();
+</script>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKI2p1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAn9anVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo0ZWI0NGQxNS02NGQ1LTQ2Y2QtYTFlNi1iMjM0NzQ4NDI5NTIAAAAEb2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjFUMTA6MzU6MjVaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBmA8WZsZW5ndGgZDeZkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIHI1POAWcBDDnsf2OyV6kxS9JNVaMPG+9Lf68rraBWpWY3BhZEgAAAAAAAAAAAAAAPhqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAADEY2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2x4IGJyYW5kLWFyY2hpdGVjdHVyZXMtbmFtZS1idWlsZGVyZGRhdGV4GDIwMjYtMTAtMjFUMTA6MzU6MjQuODU1WmpkaW1lbnNpb25zazE2IMOXIDE2IHB4aGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAt9qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACsGNib3KmaGRjOnRpdGxleCBicmFuZC1hcmNoaXRlY3R1cmVzLW5hbWUtYnVpbGRlcmppbnN0YW5jZUlEeC11cm46dXVpZDo5YTI2NTBjNy00OTc5LTQ1NmEtOTYwYS1kZTQ2MTdjYmM0Y2R0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIF9bUT90FKZyGwqCSFUiOCK9bneQTjKRIUKen2k08X7ComN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYILM8utvjVIQ5lr3kpfqkwgJVm1XaDSfw2KWVhfTXASPcomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCCCB5g8E3AZKJ43+uihPV1PgN8X2epIhMRTUMvL24x5/aJjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmBqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjBjYm9y0oRZAd+iASYYIYFZAdYwggHSMIIBeaADAgECAglVTGrNk/y9MzMwCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMTEwMzQyNFoXDTM2MTAxODEwMzUyNFowNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEs1JY/jDmh7CupoB2IKKgxuSPSTOvpuzoOsCExk0dKFaMl/APOs9/Ilyo6q8hR1rY4UZIxV5HU7V8HQXVER1TEqNyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFNYvIn4B7bPjPNjYcfU58c/Jsxl1MB8GA1UdIwQYMBaAFNYvIn4B7bPjPNjYcfU58c/Jsxl1MAoGCCqGSM49BAMCA0cAMEQCIEOvvVgKep4NmsvypcAJTgHTCbn8BLqAVVhyVTQ28H/aAiBRqnGZ9DYcBO5n08UsRD3DHfIW8G09fgCNv2nlHsWC96D2WEAXFgnTDQCJuCj2jqaKciLa+l+WhQpPs9BXZFAWxJFXeeLXY1V7//Xs1X9C3tDLu7OhvOg47F8RsXWWh4M1xKIX -----END C2PA MANIFEST----- -->

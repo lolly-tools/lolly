@@ -8,7 +8,7 @@
     "vendor": "Anthropic"
   },
   "oversight": "prompt_guided",
-  "source": "trainedAlgorithmicMedia",
+  "source": "compositeWithTrainedAlgorithmicMedia",
   "author": {
     "name": "Andy Fitzsimon"
   }

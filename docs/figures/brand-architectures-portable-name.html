@@ -1,0 +1,201 @@
+<!--
+  Concept: a portable name: two product lines move from one owner to another. The one named with a descriptive word (Northwind Freight Tracker) has to be renamed; the one with an invented term (Kestrel 3 Pro) keeps its name. In the wild: IBM introduced ThinkPad in 1992 and sold its PC business to Lenovo in 2005, and ThinkPad kept its name. Invented organisations (Northwind, Halcyon).
+  Band Contract: interactive fragment scoped under .pn, reads the docs theme tokens
+  (light/dark/brand via --secondary/--card-foreground/--primary, with fallbacks), one
+  script, no network. Without the script, and for readers who ask for less motion (the
+  system setting or the site's Reduce motion switch), it shows each product line before
+  and after the sale side by side. Otherwise the script shows one state at a time, moves
+  the card across, and autoplays with a pause on hover, on focus, off screen and in a
+  hidden tab. Logos sit on white plates in every theme.
+  Trademarks: every logo is a trademark of its owner, shown to illustrate a brand
+  arrangement on a page about brand arrangements. No owner is connected with Lolly.
+  A product name beside a mark is set in the page's own type.
+  Logo sources (path data cleaned with svgo, viewBox cropped to the drawn bounds):
+    ibm: gilbarbara/logos @ dafdf2df1 (ibm.svg), CC0-1.0 (icon data)
+    lenovo: Simple Icons 16.33.0 (lenovo), CC0-1.0 (icon data)
+    thinkpad: Simple Icons 16.33.0 (thinkpad), CC0-1.0 (icon data); the dot over the i split into its own path and printed red, as on the mark
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by
+  Andy Fitzsimon on 2026-10-21 from his earlier brand-architecture slides and his brief
+  on product naming. The C2PA signature added at bank time is this file's first
+  provenance record.
+-->
+<style>.pn{--pn-ink:hsl(var(--card-foreground,201 49% 7%));--pn-muted:hsl(var(--muted-foreground,208 11% 30%));
+--pn-ground:hsl(var(--secondary,85 55% 92%));--pn-card:hsl(var(--card,0 0% 100%));
+--pn-accent:hsl(var(--primary,177 90% 11%));--pn-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+--pn-ring:hsl(var(--ring,177 90% 11%));--pn-warn:var(--warn,#72251c);
+--pn-line:hsl(var(--card-foreground,201 49% 7%) / .2);--pn-soft:hsl(var(--card-foreground,201 49% 7%) / .07);
+--pn-mid:color-mix(in oklab,var(--pn-accent) 36%,var(--pn-ground));--pn-tint:color-mix(in oklab,var(--pn-accent) 13%,var(--pn-card));
+position:relative;container-type:inline-size;color:var(--pn-ink);background:var(--pn-ground);border-radius:1.2em;
+padding:clamp(12px,2.6vw,24px);font-size:1rem;line-height:1.35;text-align:start}
+.pn *{box-sizing:border-box}
+.pn ul,.pn ol{list-style:none;margin:0;padding:0}
+.pn li{list-style:none;margin:0;font-size:inherit}
+.pn p{margin:0}
+.pn [hidden]{display:none!important}
+.pn :where(button){font:inherit;color:inherit;margin:0;-webkit-tap-highlight-color:transparent}
+.pn :where(button):focus-visible{outline:2px solid var(--pn-ring);outline-offset:2px}
+.pn-logo{display:block;height:var(--h);width:auto;max-width:100%;flex:none}
+.pn-ico{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.pn-fill{fill:currentColor;stroke:none}
+.pn-live{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.pn-seg{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:999px;background:var(--pn-card);box-shadow:inset 0 0 0 1px var(--pn-line)}
+.pn-seg button{border:0;border-radius:999px;background:transparent;padding:.42em .95em;cursor:pointer;font-size:.86rem;font-weight:600;line-height:1.2;text-align:center}
+.pn-seg button small{display:block;font-size:.72em;font-weight:500;color:var(--pn-muted)}
+.pn-seg button:hover{background:var(--pn-tint)}
+.pn-seg button[aria-pressed="true"]{background:var(--pn-accent);color:var(--pn-on-accent)}
+.pn-seg button[aria-pressed="true"] small{color:inherit;opacity:.85}
+.pn-play{display:inline-flex;align-items:center;gap:.45em;border:0;border-radius:999px;background:var(--pn-card);
+box-shadow:inset 0 0 0 1px var(--pn-line);padding:.45em .95em .45em .8em;cursor:pointer;font-size:.84rem;font-weight:600}
+.pn-play:hover{background:var(--pn-tint)}
+.pn-ico--play,.pn.is-paused .pn-ico--pause{display:none}
+.pn.is-paused .pn-ico--play{display:block}
+.pn-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+.pn{--pn-gap:clamp(22px,6cqi,48px)}
+.pn-block{display:grid;gap:12px}
+.pn-block+.pn-block{margin-top:18px;padding-top:16px;box-shadow:0 -1px 0 var(--pn-line)}
+.pn-owners,.pn-track{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:var(--pn-gap);align-items:start}
+.pn-owner{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
+.pn-owner small{font-size:.64rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--pn-muted)}
+.pn-co{display:inline-block;border-radius:.42em;padding:.12em .5em .16em;font-weight:800;font-size:1.05rem;background:var(--pn-accent);color:var(--pn-on-accent)}
+.pn-co--new{background:var(--pn-ink);color:var(--pn-ground)}
+.pn-plate{display:inline-flex;align-items:center;justify-content:center;background:#fff;color:#09141a;border-radius:12px;padding:9px 14px;
+box-shadow:0 1px 2px #0000000f,0 6px 18px #0000000f;max-width:100%}
+.pn-lane{display:grid;gap:7px}
+.pn-k{font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--pn-muted)}
+.pn-track{position:relative}
+.pn-track::after{content:"";position:absolute;left:50%;top:50%;width:calc(var(--pn-gap) * .55);height:2px;border-radius:2px;
+background:var(--pn-muted);transform:translate(-50%,-50%);opacity:.6}
+.pn-track::before{content:"";position:absolute;left:calc(50% + var(--pn-gap) * .27 - 5px);top:50%;width:7px;height:7px;
+border:solid var(--pn-muted);border-width:2px 2px 0 0;transform:translate(-50%,-50%) rotate(45deg);opacity:.6}
+.pn-card{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0;border-radius:14px;padding:10px 12px;
+background:var(--pn-card);box-shadow:0 1px 2px #0000000f,0 4px 14px #0000000d}
+.pn-card--plate{background:#fff;color:#09141a;align-items:center}
+.pn-name{display:flex;flex-wrap:wrap;gap:.3em;font-size:clamp(.92rem,2.6cqi,1.12rem);font-weight:700;line-height:1.2}
+.pn-c{display:inline-block;border-radius:.4em;padding:.1em .4em .14em}
+.pn-c--co{background:var(--pn-accent);color:var(--pn-on-accent);font-weight:800}
+.pn-c--new{background:var(--pn-ink);color:var(--pn-ground);font-weight:800}
+.pn-c--plain{background:var(--pn-soft);font-weight:600}
+.pn-c--own{background:var(--pn-tint);box-shadow:inset 0 0 0 1px var(--pn-line)}
+.pn-by{font-size:.74rem;color:var(--pn-muted)}
+.pn-tag{display:inline-block;border-radius:999px;font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.22em .6em}
+.pn-tag--same{background:var(--pn-accent);color:var(--pn-on-accent)}
+.pn-tag--warn{color:var(--pn-warn);background:color-mix(in oklab,var(--pn-warn) 14%,transparent)}
+.pn-note{font-size:.84rem;line-height:1.45}
+.pn-ctl-note{font-size:.8rem;color:var(--pn-muted)}
+.pn.is-live .pn-card--to{opacity:0;visibility:hidden}
+.pn.is-live.is-after .pn-card--to{opacity:1;visibility:visible}
+.pn.is-live.is-after .pn-card--from{transform:translateX(calc(100% + var(--pn-gap)));opacity:0;visibility:hidden}
+.pn.is-live .pn-owner{opacity:1}
+.pn.is-live:not(.is-after) .pn-owner--to,.pn.is-live.is-after .pn-owner--from{opacity:.5}
+@container (max-width:460px){
+.pn-modes{width:100%}
+.pn-modes button{flex:1 1 0;padding-inline:.4em}
+.pn-card{padding:8px 9px}
+}
+@media (prefers-reduced-motion:no-preference){
+html:not([data-a11y-motion="reduce"]) .pn.is-live .pn-card--from{transition:transform .75s cubic-bezier(.5,0,.2,1),opacity .2s linear,visibility 0s linear}
+html:not([data-a11y-motion="reduce"]) .pn.is-live.is-after .pn-card--from{transition:transform .75s cubic-bezier(.5,0,.2,1),opacity .2s linear .7s,visibility 0s linear .9s}
+html:not([data-a11y-motion="reduce"]) .pn.is-live .pn-card--to{transition:opacity .15s linear,visibility 0s linear .15s}
+html:not([data-a11y-motion="reduce"]) .pn.is-live.is-after .pn-card--to{transition:opacity .25s linear .7s,visibility 0s linear .7s}
+html:not([data-a11y-motion="reduce"]) .pn.is-live.is-after .pn-card--to .pn-tag{animation:pn-pop .5s cubic-bezier(.2,.9,.25,1.3) .9s both}
+html:not([data-a11y-motion="reduce"]) .pn.is-live .pn-owner{transition:opacity .4s ease}
+html:not([data-a11y-motion="reduce"]) .pn-seg button,html:not([data-a11y-motion="reduce"]) .pn-play{transition:background-color .2s,color .2s}
+@keyframes pn-pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+}
+@media (prefers-reduced-motion:reduce){.pn *{animation:none!important;transition:none!important}}
+html[data-a11y-motion="reduce"] .pn *{animation:none!important;transition:none!important}
+</style><div class="pn"><div class="pn-head" data-live-only hidden><div class="pn-seg pn-modes" role="group" aria-label="Product lines"><button type="button" class="pn-mode" data-state="before" aria-pressed="true" data-say="Before the sale: Northwind owns Northwind Freight Tracker and Kestrel 3 Pro, and IBM owns ThinkPad.">Before the sale</button><button type="button" class="pn-mode" data-state="after" aria-pressed="false" data-say="After the sale: Halcyon owns the two product lines. Northwind Freight Tracker becomes Halcyon Freight Tracker, and Kestrel 3 Pro keeps its name. Lenovo owns ThinkPad, which keeps its name.">After the sale</button></div><button type="button" class="pn-play"><svg class="pn-ico pn-ico--pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3.5v9M10.5 3.5v9"/></svg><svg class="pn-ico pn-ico--play" viewBox="0 0 16 16" aria-hidden="true"><path class="pn-fill" d="M5 3.2v9.6L12.6 8z"/></svg><span class="pn-play-label">Pause</span></button></div><div class="pn-block"><div class="pn-owners"><p class="pn-owner pn-owner--from"><small>Owner before the sale</small><span class="pn-co">Northwind</span></p><p class="pn-owner pn-owner--to"><small>Owner after the sale</small><span class="pn-co pn-co--new">Halcyon</span></p></div><div class="pn-lane"><p class="pn-k">Descriptive word</p><div class="pn-track"><div class="pn-card pn-card--from"><p class="pn-name"><span class="pn-c pn-c--co">Northwind</span> <span class="pn-c pn-c--plain">Freight</span> <span class="pn-c pn-c--plain">Tracker</span></p></div><div class="pn-card pn-card--to"><p class="pn-name"><span class="pn-c pn-c--new">Halcyon</span> <span class="pn-c pn-c--plain">Freight</span> <span class="pn-c pn-c--plain">Tracker</span></p><span class="pn-tag pn-tag--warn">Renamed</span></div></div><p class="pn-note">Freight Tracker only describes the product. Buyers knew it by the Northwind name, which stays with Northwind.</p></div><div class="pn-lane"><p class="pn-k">Invented term</p><div class="pn-track"><div class="pn-card pn-card--from"><p class="pn-name"><span class="pn-c pn-c--own">Kestrel</span> <span class="pn-c pn-c--plain">3 Pro</span></p><span class="pn-by">from Northwind</span></div><div class="pn-card pn-card--to"><p class="pn-name"><span class="pn-c pn-c--own">Kestrel</span> <span class="pn-c pn-c--plain">3 Pro</span></p><span class="pn-by">from Halcyon</span><span class="pn-tag pn-tag--same">Same name</span></div></div><p class="pn-note">Kestrel is a name of its own, and the name moves with the product line to Halcyon.</p></div></div><div class="pn-block"><div class="pn-owners"><p class="pn-owner pn-owner--from"><small>Owner 1992 to 2005</small><span class="pn-plate"><svg class="pn-logo" viewBox="0 0 512 204.28" style="--h:22px;aspect-ratio:2.506" role="img" aria-label="IBM"><path d="M99.56 190.06v14.22H0v-14.22zm155.58 0a54 54 0 0 1-36.64 14.22l-104.72-.14v-14.08Zm148.03 0-4.97 14.22-4.92-14.22zm-47.61 0v14.22h-71.12v-14.22zm156.44 0v14.22h-71.11v-14.22zm-240.75-27.15a54 54 0 0 1-5.72 14.22H113.78v-14.22Zm141.45 0-5 14.22h-18.96l-5-14.22zm-57.14 0v14.22h-71.12v-14.22zm156.44 0v14.22h-71.11v-14.22zm-412.44 0v14.22H0v-14.22zM71.1 135.76v14.22H28.44v-14.22zm113.78 0v14.22h-42.67v-14.22zm86.02 0a54 54 0 0 1 1.9 14.22h-47.84v-14.22Zm151.32 0-5 14.22H379.2l-5-14.22zm-66.67 0v14.22h-42.67v-14.22zm128 0v14.22h-42.67v-14.22zM71.1 108.6v14.22H28.44V108.6zm284.45 0v14.22h-42.67V108.6zm128 0v14.22h-42.67V108.6zm-229.91 0a55 55 0 0 1 11.86 14.22H142.22V108.6Zm178.11 0-4.99 14.22h-57.1l-4.99-14.22zm-37.54-27.16 4 11.5 4-11.5h81.34v14.23h-42.67V82.6l-4.59 13.07h-76.16l-4.58-13.07v13.07h-42.67V81.45zm-252 0H265.5a55 55 0 0 1-11.86 14.23H142.22zm-71.1 0v14.23H28.43V81.45zm0-27.15v14.23H28.43V54.3zm113.77 0v14.23h-42.67V54.3zm87.92 0c0 4.8-.64 9.59-1.9 14.23h-45.94V54.3Zm111.97 0 4.95 14.23h-76.84V54.3zm98.78 0v14.23h-76.84l4.94-14.23zm-384-27.15v14.22H0V27.15zm165.97 0a54 54 0 0 1 5.72 14.22H113.78V27.15Zm246.47 0v14.22h-95.84l4.94-14.22zm-136.66 0 4.95 14.22h-95.85V27.15zM99.56 0v14.22H0V0zM218.5 0a54 54 0 0 1 36.64 14.22H113.78V0ZM512 0v14.22h-86.4L430.55 0zM365.9 0l4.94 14.22h-86.4V0z"/></svg></span></p><p class="pn-owner pn-owner--to"><small>Owner from 2005</small><span class="pn-plate"><svg class="pn-logo" viewBox="0 8 24 8" style="--h:22px;aspect-ratio:3" role="img" aria-label="Lenovo" fill="#e2231a"><path d="M21.04 12.29c0 .5-.34.87-.81.87a.84.84 0 0 1-.83-.87c0-.51.35-.87.82-.87s.82.38.82.87m-14.3-.92a.8.8 0 0 0-.65.3 1 1 0 0 0-.17.74l1.48-.61a.7.7 0 0 0-.66-.43m6.96.05c-.47 0-.81.36-.81.87 0 .48.36.87.82.87.48 0 .82-.37.82-.87a.84.84 0 0 0-.83-.87M24 8v8H0V8zM5.01 13.05H3.09V9.82h-.86v4h2.78zm1.14-.1 2.16-.9a2 2 0 0 0-.37-.85q-.43-.5-1.22-.5c-.93 0-1.63.68-1.63 1.59 0 .93.7 1.59 1.73 1.59.57 0 1.15-.27 1.43-.59l-.54-.41c-.35.26-.56.33-.88.33a1 1 0 0 1-.68-.25m5.57-1.03c0-.71-.51-1.23-1.26-1.23a1.3 1.3 0 0 0-1 .5v-.44h-.85v3.08h.85v-1.76c0-.31.24-.65.7-.65.35 0 .71.25.71.65v1.76h.85zm3.64.37c0-.9-.72-1.6-1.65-1.6s-1.66.7-1.66 1.6.73 1.59 1.65 1.59c.93 0 1.66-.7 1.66-1.6m2.07 1.54 1.27-3.08h-.97l-.76 2.1-.77-2.1h-.96l1.26 3.08zm4.45-1.54c0-.9-.73-1.6-1.65-1.6-.93 0-1.66.7-1.66 1.6s.72 1.59 1.65 1.59 1.66-.7 1.66-1.6"/></svg></span></p></div><div class="pn-lane"><p class="pn-k">In the wild</p><div class="pn-track"><div class="pn-card pn-card--from pn-card--plate"><svg class="pn-logo" viewBox="0 7.77 24 8.44" style="--h:26px;aspect-ratio:2.844" role="img" aria-label="ThinkPad"><path fill="#ee2624" d="M7 7.9a.68.68 0 0 0-.1 1.04.7.7 0 0 0 1.06-.1 1 1 0 0 0 .12-.38.7.7 0 0 0-.2-.48.7.7 0 0 0-.88-.09"/><path d="M17.24 8.3a1.3 1.3 0 0 0-.88-.35h-1.47v8.2h1.15v-3.56h.32c.68 0 1.27-.68 1.27-1.34v-2.1a1.2 1.2 0 0 0-.39-.86m-.65 3.05c0 .33-.29.33-.55.33v-2.8h.16c.3 0 .39.2.39.71zm2.77-1.87c-.84 0-1.37.4-1.37 1.1v1.28h1.08v-.93c0-.29-.03-.7.3-.7.31 0 .26.5.26.72 0 1.63-1.65 1.02-1.65 2.3v2.21q0 .75.76.76c.41 0 .61-.14.86-.53h.06a1 1 0 0 0 .07.45h1.02v-5.56c0-.68-.54-1.1-1.39-1.1m.3 5.56a.3.3 0 0 1-.3.3l-.12-.02a.3.3 0 0 1-.16-.13l-.03-.1v-1.72c0-.33.29-.51.62-.69zm3.28-7.11v2.04h-.03a1 1 0 0 0-.84-.5c-.43 0-.81.24-.81.72v5.25c-.01.55.37.78.8.78q.51-.05.8-.47h.08v.4H24V7.92zm0 7c-.02.34-.16.4-.33.4-.16 0-.29-.1-.29-.4v-4.18q0-.38.29-.38c.16 0 .31.04.33.4zM0 8.94h1.09v7.17h1.18V8.95h1.08V7.92H0zm5.5.52a.8.8 0 0 0-.8.47h-.04V7.91H3.6v8.22h1.07v-5.39c0-.17.04-.38.32-.38.24 0 .3.17.3.4v5.37h1.06v-5.6c0-.7-.12-1.06-.85-1.06m1.36.08h1.06v6.59H6.86zm3.44-.07a.9.9 0 0 0-.8.47h-.04v-.4H8.4v6.59h1.06v-5.33c0-.19.01-.43.34-.43.25 0 .28.22.28.43v5.33h1.07v-5.5c0-.69.01-1.16-.85-1.16m4.2.08h-1.07l-.61 3.04h-.1V7.93h-1.07v8.21h1.07v-3.47h.1l.62 3.47h1.1l-.68-3.6z"/></svg></div><div class="pn-card pn-card--to pn-card--plate"><svg class="pn-logo" viewBox="0 7.77 24 8.44" style="--h:26px;aspect-ratio:2.844" role="img" aria-label="ThinkPad"><path fill="#ee2624" d="M7 7.9a.68.68 0 0 0-.1 1.04.7.7 0 0 0 1.06-.1 1 1 0 0 0 .12-.38.7.7 0 0 0-.2-.48.7.7 0 0 0-.88-.09"/><path d="M17.24 8.3a1.3 1.3 0 0 0-.88-.35h-1.47v8.2h1.15v-3.56h.32c.68 0 1.27-.68 1.27-1.34v-2.1a1.2 1.2 0 0 0-.39-.86m-.65 3.05c0 .33-.29.33-.55.33v-2.8h.16c.3 0 .39.2.39.71zm2.77-1.87c-.84 0-1.37.4-1.37 1.1v1.28h1.08v-.93c0-.29-.03-.7.3-.7.31 0 .26.5.26.72 0 1.63-1.65 1.02-1.65 2.3v2.21q0 .75.76.76c.41 0 .61-.14.86-.53h.06a1 1 0 0 0 .07.45h1.02v-5.56c0-.68-.54-1.1-1.39-1.1m.3 5.56a.3.3 0 0 1-.3.3l-.12-.02a.3.3 0 0 1-.16-.13l-.03-.1v-1.72c0-.33.29-.51.62-.69zm3.28-7.11v2.04h-.03a1 1 0 0 0-.84-.5c-.43 0-.81.24-.81.72v5.25c-.01.55.37.78.8.78q.51-.05.8-.47h.08v.4H24V7.92zm0 7c-.02.34-.16.4-.33.4-.16 0-.29-.1-.29-.4v-4.18q0-.38.29-.38c.16 0 .31.04.33.4zM0 8.94h1.09v7.17h1.18V8.95h1.08V7.92H0zm5.5.52a.8.8 0 0 0-.8.47h-.04V7.91H3.6v8.22h1.07v-5.39c0-.17.04-.38.32-.38.24 0 .3.17.3.4v5.37h1.06v-5.6c0-.7-.12-1.06-.85-1.06m1.36.08h1.06v6.59H6.86zm3.44-.07a.9.9 0 0 0-.8.47h-.04v-.4H8.4v6.59h1.06v-5.33c0-.19.01-.43.34-.43.25 0 .28.22.28.43v5.33h1.07v-5.5c0-.69.01-1.16-.85-1.16m4.2.08h-1.07l-.61 3.04h-.1V7.93h-1.07v8.21h1.07v-3.47h.1l.62 3.47h1.1l-.68-3.6z"/></svg><span class="pn-tag pn-tag--same">Same name</span></div></div><p class="pn-note">IBM introduced ThinkPad in 1992 and sold its PC business to Lenovo in 2005. ThinkPad kept its name.</p></div></div><p class="pn-live" aria-live="polite" aria-atomic="true"></p></div><script>
+(function () {
+  var roots = document.querySelectorAll('.pn');
+  for (var n = 0; n < roots.length; n++) {
+    if (!roots[n].hasAttribute('data-ready')) setup(roots[n]);
+  }
+
+  function setup(root) {
+    var page = document.documentElement;
+    var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    // Motion is opt-in. Under the system setting or the site's Reduce motion switch the
+    // figure stays in its static form, with every state shown at once and no autoplay.
+    function reduced() { return motionQuery.matches || page.getAttribute('data-a11y-motion') === 'reduce'; }
+    var modeBtns = root.querySelectorAll('.pn-mode');
+    var playLabel = root.querySelector('.pn-play-label');
+    var live = root.querySelector('.pn-live');
+    var s = { after: false, paused: false, hover: false, focus: false, seen: true, timer: 0 };
+
+    function show(say) {
+      root.classList.toggle('is-after', s.after);
+      for (var m = 0; m < modeBtns.length; m++) {
+        var on = (modeBtns[m].getAttribute('data-state') === 'after') === s.after;
+        modeBtns[m].setAttribute('aria-pressed', String(on));
+        if (on && say) live.textContent = modeBtns[m].getAttribute('data-say');
+      }
+    }
+    function canRun() { return !s.paused && !s.hover && !s.focus && s.seen && !document.hidden && !reduced(); }
+    function sync() {
+      if (canRun()) {
+        if (!s.timer) s.timer = window.setTimeout(tick, s.after ? 4200 : 2600);
+      } else if (s.timer) {
+        window.clearTimeout(s.timer);
+        s.timer = 0;
+      }
+      root.classList.toggle('is-paused', s.paused);
+      playLabel.textContent = s.paused ? 'Play' : 'Pause';
+    }
+    function tick() {
+      s.timer = 0;
+      s.after = !s.after;
+      show(false);
+      sync();
+    }
+
+    for (var a = 0; a < modeBtns.length; a++) {
+      modeBtns[a].addEventListener('click', function (e) {
+        s.after = e.currentTarget.getAttribute('data-state') === 'after';
+        s.paused = true;
+        show(true);
+        sync();
+      });
+    }
+    root.querySelector('.pn-play').addEventListener('click', function () {
+      if (s.paused) {
+        s.paused = false;
+        s.hover = false;
+        s.focus = false;
+        if (s.timer) { window.clearTimeout(s.timer); s.timer = 0; }
+        tick();
+      } else {
+        s.paused = true;
+        sync();
+      }
+    });
+    root.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') { s.hover = true; sync(); } });
+    root.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') { s.hover = false; sync(); } });
+    root.addEventListener('focusin', function () { s.focus = true; sync(); });
+    root.addEventListener('focusout', function (e) {
+      if (!root.contains(e.relatedTarget)) { s.focus = false; sync(); }
+    });
+    // Autoplay stops off screen and in a hidden tab.
+    if ('IntersectionObserver' in window) {
+      s.seen = false;
+      new IntersectionObserver(function (entries) {
+        s.seen = entries[entries.length - 1].isIntersecting;
+        sync();
+      }, { threshold: 0.3 }).observe(root);
+    }
+    document.addEventListener('visibilitychange', sync);
+    var gated = root.querySelectorAll('[data-live-only]');
+    function apply() {
+      var on = !reduced();
+      root.classList.toggle('is-live', on);
+      for (var g = 0; g < gated.length; g++) gated[g].hidden = !on;
+      show(false);
+      sync();
+    }
+    if (motionQuery.addEventListener) motionQuery.addEventListener('change', apply);
+    new MutationObserver(apply).observe(page, { attributes: true, attributeFilter: ['data-a11y-motion'] });
+    root.setAttribute('data-ready', '');
+    apply();
+  }
+})();
+</script>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKJWp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAn/anVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDplODZiNThkZC1mZjA0LTQ5NGItOGFiZC02OGNlNWYxOTVmMWIAAAAEcGp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjFUMTA6MzU6MjVaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBlR2GZsZW5ndGgZDepkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYINO5VKBXOg73NYzbbLH68XMJebv3CFBYtc/PyiJSfcqYY3BhZEgAAAAAAAAAAAAAAPlqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAADFY2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2x4IWJyYW5kLWFyY2hpdGVjdHVyZXMtcG9ydGFibGUtbmFtZWRkYXRleBgyMDI2LTEwLTIxVDEwOjM1OjI1LjM4M1pqZGltZW5zaW9uc2sxNiDDlyAxNiBweGhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALganVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAArFjYm9ypmhkYzp0aXRsZXghYnJhbmQtYXJjaGl0ZWN0dXJlcy1wb3J0YWJsZS1uYW1lamluc3RhbmNlSUR4LXVybjp1dWlkOjgxZjQ1OWRjLTlhNjMtNGUyZi1hNTA5LTcwNWMzNDYxNWNlYnRjbGFpbV9nZW5lcmF0b3JfaW5mb6NkbmFtZWVMb2xseWd2ZXJzaW9uZzEuMjgxLjBrc3BlY1ZlcnNpb25lMi40LjByY3JlYXRlZF9hc3NlcnRpb25zhaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggX1tRP3QUpnIbCoJIVSI4Ir1ud5BOMpEhQp6faTTxfsKiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFgguJagc+jOiJPEoTdFcl2GqzKyjtWCNbaZqHzfEHKeCGGiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvdG9vbHMubG9sbHkuZXhwb3J0ZGhhc2hYICMU2Uvq6+M2znzJ7JFMLVV2oFFjOkv1DXmiPvFMkC7vomN1cmx4KHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2Nhd2cubWV0YWRhdGFkaGFzaFgg7iYlKJf/Z3Tb+oGzES2uAj7yXJtuDKwUN6DDNEbaboSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYILULL+IgRwhuFb2Z97+uFQ7MwZxWugE0GKMzzeUhYpqraXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMGNib3LShFkB36IBJhghgVkB1jCCAdIwggF5oAMCAQICCWDSwudVqDNY+jAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYxMDIxMTAzNDI1WhcNMzYxMDE4MTAzNTI1WjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAATS2mVEZ+oYwAyvvXpcCUq0Vh+yWW0LRZvs3tdghOcUR6rClJoUCbeN3ZJCh5bjBk3WLan/yWJoyiqo+FSi1M/Do3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQUvB/pnDz6TRJVRy6YUuf8hJWY9fowHwYDVR0jBBgwFoAUvB/pnDz6TRJVRy6YUuf8hJWY9fowCgYIKoZIzj0EAwIDRwAwRAIgZ8xdRX+kuiq98szwx3cMaqDJJ/kkWJPDwDebkNsyuvQCIH4i9TwpEdnEpNrcRaoN1Udov2Se4Q3Z5QZjslGYFJLAoPZYQJebaj50iRhaG1oqwdx4M1egPXM6OVNe1CsR7/4BFN6DC09tSE6gpddBJk/0F9pgEWPOLl3GMQuL7tYauoEYaec= -----END C2PA MANIFEST----- -->

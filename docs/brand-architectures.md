@@ -97,20 +97,30 @@ Lolly Demo, Lolly's own demonstration design system, has six colourways. Spearmi
 
 Not yet: no series, batch or copy flow picks colourways by a rule, and the batch grid has no control for a row's colourway. The engine's rules (cycle, by key, shuffle, by date) exist for scripts; see [Colourways](/info/token-workflows.html#colourways).
 
-### Naming in a masterbrand
+### Product architecture
 
-Under one masterbrand, a product's name is built from up to four parts, always in the same order. Each part narrows the one before.
+Product architecture is how an organisation builds its product names. Under one masterbrand, a product's name has up to four parts, always in the same order. Each part narrows the one before.
 
-::: figure brand-architectures-naming
-Company, domain, descriptor and context, from a product line to a product variant.
+::: figure brand-architectures-name-builder
+A product name built up part by part, from a product line to a variant, with a descriptive word or an invented term as the descriptor.
 :::
 
 - **Company** is the masterbrand. In a monolithic brand, the logo carries the company name.
 - **Domain** is the area of business, such as Freight or Air. Company and domain together make a product line.
-- **Descriptor** says what the product is, such as Tracker. Add it to make a product.
+- **Descriptor** says what the product is, such as Tracker. Add it to make a product. A descriptor can end in optional parts: a version, such as 3 or 2025, and an edition or tier, such as Pro, Lite or Enterprise.
 - **Context** makes a variant. It starts with a small word that says what kind of context follows: **for** a purpose, **with** a feature, or **on** a platform or architecture.
 
-**In Lolly:** keep the company logo in the design system and write the rest of the name as text in the template, so every piece sets the name in the same type. Add a finished lockup of logo and name as a **custom mark** when a piece needs the name as artwork.
+Real names often leave a part out. Microsoft SQL Server 2022 Enterprise and Sony PlayStation 5 Pro both go from the company straight to the descriptor, with no domain.
+
+The descriptor comes in two styles. Brands that sell to businesses tend to use a descriptive word, such as Tracker or SQL Server: a buyer can tell at once what the product does, and the company name carries the reputation. Consumer brands tend to use an invented term of their own, such as Kestrel or PlayStation. An invented word can be registered as a trademark, while a plain description is hard to protect on its own.
+
+An invented term also makes a product line easier to move. A group with a [detach](#detach-brands-that-stand-alone) strategy keeps its portfolio ready to sell a product line, or to move one to another company in the group. An invented name moves with the product. A name built on a descriptive word needs the company name to be recognised, so a new owner has to rename the product. IBM introduced ThinkPad in 1992 and sold its PC business to Lenovo in 2005. ThinkPad kept its name, and Lenovo still sells ThinkPad laptops.
+
+::: figure brand-architectures-portable-name
+When a product line changes owner, a descriptive name has to change, and an invented name moves with the product. ThinkPad moved from IBM to Lenovo in 2005.
+:::
+
+**In Lolly:** keep the company logo in the design system and write the rest of the name as text in the template, so every piece sets the name in the same type. Add a finished lockup of logo and name as a **custom mark** when a piece needs the name as artwork. A product with an invented name and a mark of its own can have a **logo identity** in the parent's design system. When the product line may move to another owner, give it a **design system of its own**, which travels as one brand pack file ([Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices)).
 
 ## Subset: a parent with tailored businesses
 
