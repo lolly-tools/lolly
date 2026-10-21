@@ -105,14 +105,19 @@ section at that baseline instead of minting a second near-identical shot.
 Open the tool and get the session to the state you want to share. Then:
 
 1. Press **Share** in the export controls, the same button that copies a share link.
-2. Scroll to **Private collab** and press **Start a collab**.
+2. Open **Private collab** and press **Start a collab**.
 3. Give yourself a name for this collab and press **Create the invite**.
 
-![The Share dialog's Private collab section - one line saying what it does, then Start a collab and Join with a code](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1100&height=900&dpi=192&waitMs=2600&drive=click%3A%23render-fab%3Bclick%3A%5Bdata-action%3D%22copy-url%22%5D&cropSelector=.share-private-collab&walker=1&format=svg&dark=1&filename=collab-share-section)
+![The Share dialog's Private collab section, opened - Start a collab, Join with a code, and an info button that says what a private collab is](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1100&height=900&dpi=192&waitMs=2600&drive=click%3A%23render-fab%3Bclick%3A%5Bdata-action%3D%22copy-url%22%5D%3Bclick%3Adetails%5Bdata-share-section%3D%22registry%3Ashare-private-collab%22%5D%3Esummary&cropSelector=details%5Bdata-share-section%3D%22registry%3Ashare-private-collab%22%5D&walker=1&format=svg&dark=1&filename=collab-share-section)
 
 <!--
-SHOT NOTE (collab-share-section): TWO clicks, not one, and the first is the fix for a
-failure this recipe shipped with. `[data-action="copy-url"]` (the Share button, wired to
+SHOT NOTE (collab-share-section): THREE clicks. The third opens the Private collab
+fold: since the Share dialog put every registered section in a <details> that starts
+closed (components/share-dialog.ts disclosureForRegisteredSection), the section is in
+the DOM but never painted, so a crop on .share-private-collab walked nothing and
+collab-invite-name could not reach Start a collab. The crop is the whole fold, because
+the "Private collab" heading now sits in its summary. The first two clicks are the fix
+for a failure this recipe shipped with. `[data-action="copy-url"]` (the Share button, wired to
 showShareDialog in views/tool.ts) does not live in the sidebar - it lives in the EXPORT
 PANEL, which is a `position: fixed` host holding a child pushed off the bottom by
 `transform: translateY(100%)` until `.tool-layout.export-open`. Measured at 1100x900:
@@ -132,7 +137,7 @@ this note used to warn about did not materialise.
 
 The name is chosen here, per collab, and it is the only thing about you that crosses the link. It is not read from your profile, and nothing else from your profile goes anywhere. Leave it empty and you appear as **Host** to the other person, or **Invitee** if you are the one joining.
 
-![Step 1 of 3 - naming yourself for this collab, with the note that the other person sees this name while you work together](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1100&height=900&dpi=192&waitMs=3000&drive=click%3A%23render-fab%3Bclick%3A%5Bdata-action%3D%22copy-url%22%5D%3Bclick%3A%5Bdata-act%3D%22start-private-collab%22%5D&cropSelector=.collab-ceremony&walker=1&format=svg&dark=1&filename=collab-invite-name)
+![Step 1 of 3 - naming yourself for this collab, with the note that the other person sees this name while you work together](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1100&height=900&dpi=192&waitMs=3000&drive=click%3A%23render-fab%3Bclick%3A%5Bdata-action%3D%22copy-url%22%5D%3Bclick%3Adetails%5Bdata-share-section%3D%22registry%3Ashare-private-collab%22%5D%3Esummary%3Bclick%3A%5Bdata-act%3D%22start-private-collab%22%5D&cropSelector=.collab-ceremony&walker=1&format=svg&dark=1&filename=collab-invite-name)
 
 The whole ceremony is numbered **1 of 3**, **2 of 3**, **3 of 3** on every screen, on both sides. That is deliberate: the hand-over has two legs, both people are looking at different screens and the numbers are how you tell each other where you are.
 

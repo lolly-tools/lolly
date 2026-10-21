@@ -293,7 +293,7 @@ CLI 的交互式对应物:一个全屏、以键盘为先的终端应用(基于 I
 
 **Strip Hidden Data** 是第一个**本机实用工具**(`privacy: "on-device"`):一个内容转换工具,接收 *你* 提供的文件,完全在浏览器中处理,并返回一份干净的副本 - 从不上传,从不加水印,不附加溯源信息。**Text** 是第二个 - 一个用于日常粘贴到网站类工作的本机工作台(JSON 格式化、JWT 解码、Base64、URL 编码/解码、SHA 哈希)。**Compress PDF** 是第三个 - 它通过重新压缩 PDF 中的图像来缩小体积,同样完全在本机完成。这个标记及其徽章文字 "Runs on your device - nothing is uploaded"(在你的设备上运行 - 不会上传任何内容)现在涵盖了整个转换工具集:Strip Hidden Data、Text、Compress PDF、**Convert Image**(HEIC/TIFF/AVIF → WebP/JPG/PNG)、**Convert Font**、**Redact**(销毁图像、SVG 或 PDF 中的区域)、**Prompt Card** 以及 **Rebrand**(在配置文件挂载该工具时原地重新设定 `.pptx` 的主题)。这是一个隐私实用工具类别,用来替代将机密文件交给单一用途的网站处理。
 
-!["工具"抽屉,其中每张卡片都是一个用来转换你已有文件的工具](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
+!["工具"抽屉,其中每张卡片都是一个用来转换你已有文件的工具](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 > 注意:`category` 和 `status` 会从每个 `tool.json` 反规范化到 `catalog/tools/index.json`(画廊读取的注册表)中。清单文件是唯一真实来源 - 该索引由 `pnpm run build:catalog` **生成**,如果已提交的索引与清单文件不一致,`pnpm run validate:catalog` 会使 CI 失败。
 

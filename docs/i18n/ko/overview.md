@@ -292,7 +292,7 @@ CLI의 대화형 짝입니다: 도구를 탐색하고, 입력을 채우고, 프�
 
 **Strip Hidden Data**는 최초의 **온디바이스(on-device) 유틸리티**(`privacy: "on-device"`)입니다. 이 콘텐츠 변환 도구는 *사용자*가 제공한 파일을 받아 전적으로 브라우저 안에서 처리한 뒤 깨끗한 사본을 돌려줍니다 - 업로드되지 않고, 워터마크가 찍히지 않으며, 출처(provenance) 정보도 찍히지 않습니다. **Text**는 두 번째로, JSON 포맷팅, JWT 디코딩, Base64, URL 인코딩/디코딩, SHA 해싱 등 웹사이트에 붙여넣어 하는 일상적인 작업을 위한 온디바이스 작업대입니다. **Compress PDF**는 세 번째로, 이미지를 다시 압축해 PDF를 축소하며 이 역시 전적으로 온디바이스에서 이루어집니다. 이 표시와 배지 문구 "당신의 기기에서 실행됩니다 - 아무것도 업로드되지 않습니다"는 이제 전체 변환 도구 집합을 아우릅니다: Strip Hidden Data, Text, Compress PDF, **Convert Image**(HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact**(이미지, SVG 또는 PDF의 영역을 파기), **Prompt Card**, 그리고 프로필이 마운트하는 경우의 **Rebrand**(`.pptx`를 그 자리에서 재테마 처리)까지입니다. 이는 기밀 파일을 단일 목적 웹사이트에 넘기는 방식을 대체하는 개인정보 보호 유틸리티 카테고리입니다.
 
-![이미 가지고 있는 파일을 변환하는 도구인 카드들이 모여 있는 유틸리티 서랍](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
+![이미 가지고 있는 파일을 변환하는 도구인 카드들이 모여 있는 유틸리티 서랍](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 > 참고: `category`와 `status`는 각 `tool.json`으로부터 `catalog/tools/index.json`(갤러리가 읽는 레지스트리)으로 비정규화(denormalise)되어 저장됩니다. 매니페스트가 신뢰할 수 있는 원본(source of truth)이며 - 인덱스는 `pnpm run build:catalog`로 **생성**되고, 커밋된 인덱스가 매니페스트와 어긋나면 `pnpm run validate:catalog`가 CI를 실패시킵니다.
 

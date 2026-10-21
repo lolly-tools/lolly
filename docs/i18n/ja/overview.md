@@ -289,7 +289,7 @@ CLIに対応するインタラクティブな存在です。ツールの閲覧�
 
 **Strip Hidden Data**は最初の**オンデバイスユーティリティ**(`privacy: "on-device"`)です。これは*あなたが*指定したファイルを受け取り、完全にブラウザ内で処理し、クリーンなコピーを返すコンテンツ変換ツールです - アップロードされることも、透かしが入れられることも、来歴が刻印されることもありません。**Text**は2番目のツールで、日常的にウェブサイトに貼り付けて行う作業(JSON整形、JWTデコード、Base64、URLエンコード/デコード、SHAハッシュ化)のためのオンデバイスワークベンチです。**Compress PDF**は3番目のツールで、画像を再圧縮することでPDFを縮小します。これも完全にオンデバイスで行われます。このマーカーとそのバッジテキスト「Runs on your device - nothing is uploaded」は、変換ツール群全体をカバーするようになりました: Strip Hidden Data、Text、Compress PDF、**Convert Image**(HEIC/TIFF/AVIF → WebP/JPG/PNG)、**Convert Font**、**Redact**(画像、SVG、PDFの領域を破棄)、**Prompt Card**、そしてプロファイルがマウントしている場合の**Rebrand**(`.pptx`をその場で再テーマ化)です。これは、機密ファイルを単一目的のウェブサイトに渡す行為に代わるプライバシーユーティリティのカテゴリです。
 
-![Utilitiesドロワー - すべてのカードが、すでに持っているファイルを変換するツールです](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Utilitiesドロワー - すべてのカードが、すでに持っているファイルを変換するツールです](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 > 注: `category`と`status`は各`tool.json`から`catalog/tools/index.json`(ギャラリーが読み込むレジストリ)に非正規化されています。マニフェストが正しい情報源であり、インデックスは`pnpm run build:catalog`によって**生成**され、コミットされたインデックスがマニフェストと乖離している場合は`pnpm run validate:catalog`がCIを失敗させます。
 
