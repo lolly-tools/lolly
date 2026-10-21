@@ -220,3 +220,20 @@ test('an unlabelled fence reads as plain text: labelled Code, no Copy', () => {
   assert.match(html, /<div class="doc-code" data-label="Code"><div class="doc-code-bar"/);
   assert.ok(!/data-copy/.test(html));
 });
+
+test('a list whose every item opens with a picture renders as a picture list', () => {
+  const html = mdToHtml([
+    '- <!--g:dark--> ![The reverse mark](/icon-reverse.svg) Reverse',
+    '- ![A koala](/info/mascots/koala.webp) **Koala** Builders',
+  ].join('\n'), mockContext());
+  assert.match(html, /^<ul class="md-pictures">/);
+  assert.match(html, /<li class="md-pic-on-dark"><span class="md-pic"><img src="\/icon-reverse.svg" alt="The reverse mark" loading="lazy"><\/span><span class="md-pic-cap">Reverse<\/span><\/li>/);
+  assert.match(html, /<li><span class="md-pic"><img src="\/info\/mascots\/koala.webp" alt="A koala" loading="lazy"><\/span><span class="md-pic-cap"><strong>Koala<\/strong> Builders<\/span><\/li>/);
+  assert.ok(!html.includes('g:dark'), 'the plate marker never reaches the page');
+});
+
+test('one item without a picture keeps the list an ordinary list', () => {
+  const html = mdToHtml('- ![A koala](/info/mascots/koala.webp) Koala\n- Plain words', mockContext());
+  assert.match(html, /^<ul>\n<li><img src="\/info\/mascots\/koala.webp"/);
+  assert.ok(!html.includes('md-pictures'));
+});

@@ -7,7 +7,10 @@
  * none is missing, the chart strip keeps the spectrum order, every colourway card
  * states the lead, the colour on the lead and the partner of its set, and every Try
  * link asks for a colourway the design system has. The pages are meant to be mostly
- * pictures, so their prose outside figures, headings and links stays short.
+ * pictures, so their prose outside figures, headings and links stays short, and each
+ * caption is one short line. The marks and the Fauna cast are shown from their original
+ * files, never as copies inside a banked figure, so every picture keeps the Content
+ * Credentials that say how it was made.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -56,6 +59,40 @@ test('the Lolly Demo pages keep their prose short', () => {
       .replace(/`[^`]*`/g, ' ');
     const words = prose.split(/\s+/).filter(w => /[A-Za-z]/.test(w));
     assert.ok(words.length <= 160, `${page} has ${words.length} words of prose outside figures, headings and links (160 at most)`);
+  }
+});
+
+test('every caption is one short line', () => {
+  for (const page of PAGES) {
+    for (const [, id = '', body = ''] of read(page).matchAll(/^::: figure ([a-z0-9-]+)\n([\s\S]*?)^:::$/gm)) {
+      const words = body.split(/\s+/).filter(w => /[A-Za-z]/.test(w));
+      assert.ok(words.length <= 15, `${id}'s caption has ${words.length} words (15 at most)`);
+    }
+  }
+});
+
+test('no banked Lolly Demo figure carries a copy of a picture', () => {
+  for (const page of PAGES) {
+    for (const [, id = ''] of read(page).matchAll(/^::: figure ([a-z0-9-]+)$/gm)) {
+      const fig = read(`docs/figures/${id}.html`);
+      assert.ok(!/data:image\//.test(fig), `${id} embeds no picture: show the original file on the page instead`);
+      assert.ok(!/880\.7\d/.test(fig), `${id} carries no copy of the Lolly mark's artwork`);
+    }
+  }
+});
+
+test('the marks and the Fauna cast are the original files /brand shows', () => {
+  const md = read('docs/lolly-demo.md');
+  const pictures = [...md.matchAll(/^- (?:<!--g:(?:light|dark|brand)--> )?!\[[^\]]+\]\(([^)]+)\)/gm)].map(m => m[1]!);
+  const brand = read('shells/web/public/brand/index.html');
+  for (const src of pictures) {
+    assert.ok(existsSync(resolve(ROOT, 'shells/web/public', src.slice(1))), `${src} is served`);
+    assert.ok(brand.includes(`src="${src}"`), `${src} is one of the pictures /brand shows`);
+  }
+  const cast = [...brand.matchAll(/<figure><div class="frame"><img class="colourful" src="(\/info\/mascots\/[a-z-]+\.webp)"[^>]*><\/div><figcaption><b>([^<]+)<\/b><small>([^<]+)<\/small>/g)];
+  assert.equal(cast.length, 6, '/brand shows six animals');
+  for (const [, src = '', name = '', role = ''] of cast) {
+    assert.ok(md.includes(`](${src}) **${name}** ${role}`), `${name}, ${role}, appears from ${src}`);
   }
 });
 
