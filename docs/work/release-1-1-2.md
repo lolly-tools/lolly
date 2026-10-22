@@ -73,7 +73,7 @@ they stay hidden or fail as described in the Lolly notes.
   `POST /api/v1/collab/sessions/:id/socket-ticket` issues a one-use ticket for one
   room, valid for 30 seconds, which the apps send as a WebSocket subprotocol. It needs
   a signed-in member with access to the session and the `collab.join` grant. Where no
-  collaboration gateway runs, such as the Vercel function, it answers
+  collaboration gateway runs, such as the serverless function adapter, it answers
   `501 UNAVAILABLE`. Tickets are held in memory, so the ticket request and the socket
   upgrade must reach the same process.
 - **App sign-in to a private Work server.** The device sign-in routes are unchanged
@@ -217,9 +217,10 @@ or the chart's migration Job, against the selected instance only.
 - **Helm chart 0.3.3.** The chart passes `LW_CATALOG_SIGNING_KEY` from the
   installation Secret when present, which the 0.3.1 chart never did. It gains Artifact
   Hub annotations, a Rancher `questions.yaml`, a licence, an icon and a README. The
-  default image tags follow appVersion 1.1.2. `values-official-release.yaml` still
-  pins the qualified 1.1.1 images until 1.1.2 is published and qualified. Chart
-  publication through `publish-helm.yml` is a separate, reviewed step.
+  default image tags follow appVersion 1.1.2. `values-official-release.yaml` is
+  generated from `deploy/marketplaces/release.json` and still pins the qualified
+  1.1.1 images. Chart publication through `publish-helm.yml` is a separate,
+  reviewed step and has not run yet.
 - **Neutral VM and Dokploy package.** `deploy/marketplaces` and `deploy/dokploy` pin
   a qualified release cohort, still Work 1.1.1. In a browser, the neutral 1.1.1 shell
   refuses the installation's per-caller catalogue, so browser use of that package is
@@ -257,9 +258,12 @@ that same Work commit.
 Lolly 1.1.2 publishes no new web archive, so a Work YunoHost package for 1.1.2 keeps
 the Lolly 1.1.1 web archive `https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz` (SHA-256
 above). That shell carries engine 1.261.0 and none of the Lolly 1.1.2 features above,
-and nothing checks the pairing. Until a `1.1.2~ynh1` package is cut, published and
-qualified, `1.1.1~ynh1` stays the current YunoHost package. If it is cut, use the
-maintained producer on the final Work commit:
+and nothing checks the pairing. The `1.1.2~ynh1` package is cut:
+`deploy/yunohost/manifest.toml` at the `v1.1.2` tag gives that version, and its Work archive
+`lolly-work-1.1.2-ynh1.tar.gz` is in the release's `SHA256SUMS`. It is not yet
+mirrored to `lolly-work_ynh` and has no `yunohost-runtime.yml` run, so the
+installable package there is still `1.1.1~ynh1`. The maintained producer cuts the
+package on the final Work commit:
 
 ```text
 node scripts/yunohost-release.ts --ynh-rev 1 --shell-url https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz --shell-sha256 bc78012aa407983ecc818e63be98ae1b45ed7db1dcad3f4c8d4ffe0c371116c1 --out ABS_NEW_ARTIFACT_DIRECTORY
@@ -271,8 +275,19 @@ archive byte equality, as for 1.1.1. Runtime results are recorded after its
 
 ## Images and qualification
 
-The release workflow builds, signs and publishes the server and render-worker
-images from the `v1.1.2` tag. The verified digests are recorded here after
-publication. The installation guides, the marketplace release cohort and the
-download page keep naming the 1.1.1 downloads until 1.1.2 is published and
-qualified.
+The release workflow built, signed and published the server and render-worker
+images from the `v1.1.2` tag push, on 2026-10-20. The release's
+`release-source-images.json` records their verified digests:
+
+| Image | Digest |
+|---|---|
+| `ghcr.io/lolly-tools/lolly-work-server:1.1.2` | `sha256:68ef78a1605c5530f6c2939e584cb8875fdcd5a8bdb0112b35c0515b2ddc0504` |
+| `ghcr.io/lolly-tools/lolly-work-render-worker:1.1.2` | `sha256:b9f7b5709ef6108ddb0e793b3a5039ebdcb5dcb5c2ad8c9d6f2d51b0e0cf39fb` |
+
+Both are multi-platform indexes for linux/amd64 and linux/arm64, signed keylessly
+with identity `https://github.com/lolly-tools/lolly-work/.github/workflows/release.yml@refs/tags/v1.1.2`.
+The signatures were verified with anonymous registry access. The record does not
+claim native arm64 runtime qualification. The installation guides and the download
+page name the 1.1.2 images. The marketplace release cohort (`deploy/marketplaces/release.json`),
+the Dokploy blueprint and `values-official-release.yaml` still pin the qualified
+1.1.1 images until 1.1.2 is qualified.

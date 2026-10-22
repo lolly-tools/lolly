@@ -81,8 +81,7 @@ docker compose exec -T server node scripts/audit-head.ts --json   # in the serve
 prints `linksIntact` (the hash links alone, no key). Keep the `seq` and `hash`: after the
 rotation, `retire-key --expect-head <seq>:<hash>` refuses unless that row still has that
 hash, and the hash links pin every row before it, so nothing up to the head can be rewritten
-between the rotation and the boundary. `deploy/vm/rotate-secrets.sh` records the head itself
-and prints the command with it filled in.
+between the rotation and the boundary.
 
 ### Recording the boundary
 
@@ -127,7 +126,7 @@ The two overrides are recorded on the boundary (`allowInterleaved`, `noWitness`)
 on, verification:
 
 - counts a row before the boundary whose MAC fails under the current key as a retired-key
-  row instead of failing it;
+  row instead of failing the row;
 - still checks every hash link through those rows. The boundary's MAC covers the hash it
   records, so an edit before the boundary breaks the chain exactly as before;
 - ignores a boundary whose MAC does not verify or that does not name the row directly before
@@ -154,7 +153,7 @@ were switched; the dry run counts them) rest on their hash links alone. So recor
 switch every host promptly, run `retire-key` straight after, and never run it to clear a
 broken chain that a rotation did not cause.
 
-## The one limitation, stated plainly
+## The one limitation
 
 Hash-chaining and the MAC detect edits **within** the log. They do not, by themselves,
 stop someone with superuser access from dropping the trigger and truncating the newest
@@ -213,6 +212,6 @@ IDs rather than a broader identity-directory lookup.
 
 ## Related
 
-- What else is recorded, and what deliberately is not: [telemetry](telemetry.md)
+- What else is recorded, and what is not: [telemetry](telemetry.md)
 - Monitoring and alerting: [operations](operations.md)
 - Who may export: [permissions](permissions.md)

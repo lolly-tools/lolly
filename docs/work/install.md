@@ -20,7 +20,7 @@ After the first owner can sign in, use [Guided customer setup](customer-setup.md
 | Run a small shared instance on one host | [5. Container (Compose)](#5-container-compose) | Allow time for identity, TLS and recovery checks |
 | Use an existing K3s/RKE2 or other Kubernetes platform | [7b. Kubernetes production](#7b-production) and [platform deployment](platform-deployment.md) | Depends on the existing platform |
 | Prepare a new SLES/openSUSE host | [Platform deployment](platform-deployment.md) | Host and cluster qualification required |
-| Use YunoHost accounts on a home or small-team box | [6. Bare metal → YunoHost](#yunohost) | Package qualification pending |
+| Use YunoHost accounts on a home or small-team box | [6. Bare metal → YunoHost](#yunohost) | Beta package; status in [official installations](official-installations.md) |
 | Drive it from a terminal | [8. The CLI](#8-the-cli) | - |
 | Connect a DAM or a bucket | [9. Connect a source](#9-connect-a-source) | 10 min |
 
@@ -145,7 +145,7 @@ The release source ZIP is an alternative to Git; extract it and open its root
 directory before running the package-manager commands.
 
 ```bash
-git clone --branch v1.1.1 --depth 1 https://github.com/lolly-tools/lolly-work.git
+git clone --branch v1.1.2 --depth 1 https://github.com/lolly-tools/lolly-work.git
 cd lolly-work
 # Install the pinned package manager once (or use Corepack).
 npm install --global pnpm@11.26.0
@@ -235,7 +235,7 @@ curl -s -H "Cookie: $C" http://localhost:8787/api/v1/policy/tools
 # a tools array: color-palette, mesh-gradient, qr-code   ← the pack is mounted
 
 curl -s -o out.svg -w '%{http_code} %{content_type}\n' -H "Cookie: $C" \
-  'http://localhost:8787/render/qr-code.svg?url=https://suse.com'
+  'http://localhost:8787/render/qr-code.svg?url=https://example.com'
 # 200 image/svg+xml                                ← the render plane works
 ```
 
@@ -415,11 +415,11 @@ demo values, and no later step notices.
 cd deploy/compose
 printf 'LW_SESSION_SECRET=%s\nLW_LINK_SECRET=%s\nPG_PASSWORD=%s\n' \
   "$(openssl rand -hex 32)" "$(openssl rand -hex 32)" "$(openssl rand -hex 32)" > .env
-# Use the published 1.1.1 server image; no local build is needed.
+# Use the published 1.1.2 server image; no local build is needed.
 cat > release-images.yaml <<'YAML'
 services:
   server:
-    image: ghcr.io/lolly-tools/lolly-work-server:1.1.1
+    image: ghcr.io/lolly-tools/lolly-work-server:1.1.2
 YAML
 docker compose -f docker-compose.yml -f release-images.yaml pull
 docker compose -f docker-compose.yml -f release-images.yaml up -d --no-build
@@ -553,10 +553,13 @@ its own, and signs members in with the host's accounts. The package is the
 `deploy/yunohost/` directory of this repository, mirrored to the
 `lolly-tools/lolly-work_ynh` app repository at each release.
 
-For a fresh install, use the exact Work package revision linked from the
-[published release](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.1).
-In YunoHost's custom-app installer, paste that `lolly-work_ynh` URL. The equivalent
-terminal command is below; replace the placeholder with the published revision:
+For a fresh install, use an exact tagged revision of `lolly-work_ynh`. The latest
+is `v1.1.1-ynh1`, which installs Work 1.1.1. The `1.1.2~ynh1` package is in
+`deploy/yunohost/` at the [v1.1.2 tag](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2),
+and its Work archive is in that release's `SHA256SUMS`, but it is not yet mirrored
+to `lolly-work_ynh`. In YunoHost's custom-app installer, paste the tagged
+`lolly-work_ynh` URL. The equivalent terminal command is below; replace the
+placeholder with that tag:
 
 ```bash
 sudo yunohost app install https://github.com/lolly-tools/lolly-work_ynh/tree/<published-package-revision>
@@ -592,11 +595,10 @@ The package keeps the API, share links, render links and the instance card
 reachable for non-browser clients (the `lw` CLI, MCP, SCIM, an open-source Lolly
 client connecting to this instance), because the server authenticates those itself.
 
-Qualification is specific to the selected version and architecture. The earlier
-1.1.0 beta passed fresh-install, backup/restore and same-version-upgrade checks on
-amd64; those results do not qualify 1.1.1 or an upgrade from an older release.
-Treat 1.1.1 as an evaluation package until its release records the actual Linux
-install/upgrade/backup/restore checks. The
+Qualification is specific to the selected version and architecture.
+`1.1.1~ynh1` is a beta: its package checks passed on amd64, and catalogue
+registration and arm64 acceptance are still open. The current state of each
+package is in [official installations](official-installations.md). The
 [YunoHost qualification guide](cloud-deployment.md#yunohost-qualification) lists
 the required run. Its current package does not provision a Chromium worker;
 available exports depend on the installed tool pack and renderer configuration.
@@ -620,13 +622,14 @@ and the [SUSE deployment runbook](../deploy/suse/README.md).
 
 **The image comes first.** Multi-arch images (amd64 + arm64) publish to
 `ghcr.io/lolly-tools/lolly-work-server` and `...-render-worker` on reviewed `v*`
-releases. The 1.1.1 packages are public and need no registry credentials. Pin their
-qualified digests for production. The commands below also support an operator-owned
+releases. The 1.1.2 images are public and need no registry credentials. Pin their
+digests for production; the [1.1.2 release notes](release-1-1-2.md#images-and-qualification)
+list them. The commands below also support an operator-owned
 registry or disconnected mirror; build a custom image only when needed:
 
 ```bash
-docker build -f deploy/compose/Dockerfile -t <registry>/lolly-work-server:1.1.1 .
-docker push <registry>/lolly-work-server:1.1.1
+docker build -f deploy/compose/Dockerfile -t <registry>/lolly-work-server:1.1.2 .
+docker push <registry>/lolly-work-server:1.1.2
 ```
 
 Enabling the chart's optional `renderWorker` tier needs a second image, built the same
@@ -638,7 +641,7 @@ way from `workers/render/Dockerfile`.
 
 ```bash
 helm install lolly-work deploy/helm -f deploy/helm/values-eval.yaml \
-  --set image.repository=ghcr.io/lolly-tools/lolly-work-server --set image.tag=1.1.1
+  --set image.repository=ghcr.io/lolly-tools/lolly-work-server --set image.tag=1.1.2
 ```
 
 The release is named `lolly-work` on purpose: Helm prefixes every object with the release
@@ -667,7 +670,7 @@ curl -s -H "Cookie: $C" http://localhost:8787/api/v1/policy/tools
 # color-palette, mesh-gradient, qr-code   (the demo pack rides in the image)
 
 curl -s -o out.svg -w '%{http_code} %{content_type}\n' -H "Cookie: $C" \
-  'http://localhost:8787/render/qr-code.svg?url=https://suse.com'
+  'http://localhost:8787/render/qr-code.svg?url=https://example.com'
 # 200 image/svg+xml
 ```
 
@@ -683,7 +686,7 @@ but browser sign-in and links need `instance.baseUrl` to match. Point it at the 
 
 ```bash
 helm upgrade lolly-work deploy/helm -f deploy/helm/values-eval.yaml \
-  --set image.repository=<registry>/lolly-work-server --set image.tag=0.2.0 \
+  --set image.repository=ghcr.io/lolly-tools/lolly-work-server --set image.tag=1.1.2 \
   --set config.instance.baseUrl=http://<node-or-lb-ip>
 ```
 
@@ -775,18 +778,20 @@ database migrations and infrastructure/content changes remain separate operation
 
 ### 7c. Published chart repository and Rancher
 
-After the first successful chart publication, confirm the public `index.yaml` at
-the URL in [official installations](official-installations.md). Add that HTTP
-repository and select an exact chart version:
+The chart repository is not published yet; until it is, install from
+`deploy/helm` in the release checkout, as above. After the first successful chart
+publication, confirm the public `index.yaml` at the URL in
+[official installations](official-installations.md). Add that HTTP repository and
+select an exact chart version:
 
 ```bash
 helm repo add lolly-work https://github.com/lolly-tools/lolly-work/releases/download/helm-index
 helm repo update lolly-work
-helm show chart lolly-work/lolly-work --version 0.3.2
+helm show chart lolly-work/lolly-work --version 0.3.3
 ```
 
 In the production recipe above, replace the local `deploy/helm` chart argument
-with `lolly-work/lolly-work --version 0.3.2`; keep your reviewed values, configuration
+with `lolly-work/lolly-work --version 0.3.3`; keep your reviewed values, configuration
 and stable Secret references. Verify the chart's Sigstore bundle and source record
 as described in the installation directory before applying the package.
 
@@ -916,8 +921,9 @@ decision on the same record: [catalog](catalog.md).
 The [official installation directory](official-installations.md) identifies the
 upstream sources, publication status and qualified architectures. This package
 combines the published Work server, matched neutral web shell, durable PostgreSQL
-and same-origin HTTPS. It is intended for a fresh VM or private server; it includes
-no private brand pack or production-instance configuration.
+and same-origin HTTPS. The current package pins Work 1.1.1 and the Lolly 1.1.1 web
+shell. It is intended for a fresh VM or private server; it includes no private
+brand pack or production-instance configuration.
 
 ### Prepare a fresh VM or UpCloud reference
 
@@ -1003,11 +1009,17 @@ members receive invitations and password links through **People**. See
 [identity](identity.md) for setup, recovery and optional SSO.
 
 Open `/admin`, sign in and confirm the expected owner role in **Customer setup**.
-Open Lolly at `/`, create and save a project, reload it,
+Create and save a project, reload it,
 invite a second member and verify a checked output. Confirm an unauthenticated
 request cannot fetch the gated catalogue/private project. Restart Work and verify
 the saved content and both users again. A healthy API alone does not finish this
 acceptance. Record architecture, source/digests, host/network facts and the results.
+
+In a browser, the 1.1.1 web shell at `/` shows no tools: it has the publisher's
+catalogue key built in, so it refuses the catalogue that this installation signs
+for each person. Browser use of this package is not qualified. The
+[reference qualification](../deploy/marketplaces/QUALIFICATION.md) ran the checks
+above through the API.
 
 The default has no Chromium worker and makes no server-rendering promise for
 hooked tools. Telemetry, guest links and nearby discovery are off. Models load

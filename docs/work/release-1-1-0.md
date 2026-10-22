@@ -181,7 +181,7 @@ path or every deployment platform.
 
 ## Migration and recovery
 
-This preparation adds no SQL migration. The maintained migration history contains56 files
+This preparation adds no SQL migration. The maintained migration history contains 56 files
 through `0066_catalog_delivery_sequence.sql`. Before upgrading, verify the actual
 database migration history with `pnpm run migrate:status`, take a fresh verified backup and
 complete an independent restore. Apply the maintained migration runner or the
