@@ -6,7 +6,7 @@ An AI agent is welcome to fill in the inputs. It is not welcome to claim it is y
 
 ![A woodcut-style pipe on cream paper, its smoke billowing up into a great cloud, captioned in cursive: Ceci n'est pas une pipe](/info/not-a-pipe.webp)
 
-%file{iykyk.png} %entity{Gemini} generated the source %entity{Lolly} %act{opened}, %act{cropped} and %act{rendered to WebP} as %file{not-a-pipe.webp} %detail{2474×1728, cropped to 1901×1728} %sig{signed by %entity{Lolly}} [Verify this now](/#/verify?src=%2Finfo%2Fnot-a-pipe.webp)
+%file{iykyk.png} %entity{Gemini} generated the source %entity{Lolly} %act{opened}, %act{cropped}, %act{resized} and %act{rendered to WebP} as %file{not-a-pipe.webp} %detail{2474×1728, cropped to 1901×1728, resized to 1600×1454} %sig{signed by %entity{Lolly}} [Verify this now](/#/verify?src=%2Finfo%2Fnot-a-pipe.webp)
 
 In 1929 René Magritte painted a pipe and lettered underneath it, in careful cursive, *Ceci n'est pas une pipe*, this is not a pipe. People reproached him for it, and his answer was flat: "could you stuff my pipe? No, it's just a representation. So if I had written 'This is a pipe', I'd have been lying." The painting is honest about being a painting. The lie on offer was the caption that would have claimed otherwise.
 

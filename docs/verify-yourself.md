@@ -6,7 +6,7 @@ If any check on this page doesn't produce the result shown, that's either a bug 
 
 ## See it work, in ten seconds
 
-Before the procedures, the payoff. Open [`/verify`](/#/verify) and drop a file on it - no upload, no account, no wait for a server. Here it is checking the [generated Queensland storm](/info/ai-stance.html) from our AI stance page: a Gemini image Lolly opened, resized and exported. Every badge below was computed on the device, from the file's own bytes.
+Before the procedures, the payoff. Open [`/verify`](/#/verify) and drop a file on it - no upload, no account, no wait for a server. Here it is checking the [generated Queensland storm](/info/ai-stance.html) from our AI stance page: a Gemini image Lolly opened, watermarked and exported. Every badge below was computed on the device, from the file's own bytes.
 
 ![Verify on a phone-width screen - the storm image, a green Made with Lolly verdict and the credential-intact and bytes-unchanged badges stacked beneath it](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

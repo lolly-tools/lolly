@@ -22,8 +22,10 @@ separate client and lifecycle.
   the exported bytes. Change a pixel and the seal breaks - the verifier says so.
 - **Verifiable identity, when you want it.** Enrol once (SUSE, GitHub, Google, or
   an email link) and your exports are signed by a short-lived certificate that
-  names *you*. Verifiers pinning the Lolly root then report **Verified - signed by
-  \<your email\>** instead of an anonymous signer. Enrolment is optional; skip it
+  names *you*. Verifiers pinning the Lolly root then show you as the signer
+  instead of an anonymous one: in Lolly's Verify, an export keeps its **Made with
+  Lolly** verdict and gains the line **Signed by \<your email\> - identity verified
+  by \<issuer\>**. Enrolment is optional; skip it
   and you still get tamper-evidence from an anonymous on-device signer. Know
   before you enrol: your email address is written into every file you export
   while enrolled. It stays in every copy you share and cannot be removed later,
@@ -81,10 +83,9 @@ independent checks, summarised as a row of pips ("Verification checks at a glanc
 under the headline verdict and then explained in full below it. **They all run on
 your device - nothing is uploaded.** The one network touch that can ever happen is
 called out where it applies: a **one-time detector download** for the opt-in deep
-scan (from the app's own origin, not a third party). SEAL verification in the web
-app makes **zero network requests** - a record whose key lives in DNS resolves only
-in the desktop/CLI shells, through your own machine's DNS. The file itself never
-leaves.
+scan (from the app's own origin, not a third party). SEAL verification makes **zero
+network requests**: no Lolly app looks a SEAL key up in DNS today, so a record whose
+key lives only in DNS is reported as not verified. The file itself never leaves.
 
 ### The Lolly Imprint
 
@@ -146,16 +147,18 @@ all on-device, nothing uploaded. It reads two marks:
 Verify also checks for a **SEAL** record - the [hackerfactor SEAL](https://github.com/hackerfactor/SEAL)
 format, which despite the name has **nothing to do with Meta's Content Seal above**.
 SEAL is a **cryptographic signature over the file's bytes** whose public key is
-published in **DNS**. Lolly verifies it on-device - and in the web app with **zero
-network requests**: a record carrying its key inline verifies fully offline, and a
-DNS-keyed record reports "no key resolver" rather than being looked up through a
-third-party DNS service. The desktop and CLI shells resolve DNS-published keys
-through your own machine's DNS; a signature that verifies against a key found that
-way shows **Signed by \<domain\> (SEAL)**: it proves **control of that domain** -
-domain-level attribution, not a CA-verified legal identity - and says nothing about
-the visual content. A signature that verifies
-against a key the file itself carries, but which isn't confirmed in DNS, is reported
-as internally consistent but unattributed.
+published in **DNS**. Lolly verifies it on-device with **zero network requests**,
+and no Lolly app looks the key up in DNS today: in a browser that lookup would show
+a third-party DNS service the domain and your IP address, the desktop and mobile
+apps run the same Verify view, and `lolly validate` does not check SEAL. A record that carries
+its key inline is checked fully offline; when the signature verifies against that
+key, Verify reports **SEAL signature is internally consistent**: the bytes match,
+but the domain is unconfirmed, because the key never came from DNS. A record whose
+key lives only in DNS is reported as **SEAL signature did not verify**, with the
+reason "no key resolver and no inline key". A **Signed by \<domain\> (SEAL)** result
+needs a key confirmed in DNS, so no Lolly app shows one yet. That result would prove
+**control of the domain** - domain-level attribution, not a CA-verified legal
+identity - and nothing about the visual content.
 
 ### Hidden data: appended payloads & steganalysis
 
@@ -210,7 +213,7 @@ key is generated locally and non-extractable.
 | Tier | Signer | Verifier result |
 |---|---|---|
 | 0 | Ephemeral self-signed (offline / not enrolled) | Structure valid, signer anonymous ("Credential intact" / "Made with Lolly") |
-| 1–2 | Device key + short-lived Lolly-CA cert | CA-verified identity ("Verified" / "Delivered by Lolly") for verifiers pinning the Lolly root |
+| 1–2 | Device key + short-lived Lolly-CA cert | CA-verified identity for verifiers pinning the Lolly root: a Lolly export reads "Made with Lolly" with a "Signed by" line, other files read "Verified" or "Delivered by Lolly" |
 | 3 (roadmap) | + RFC 3161 timestamp countersignature | proves *when* signed, so expired certs stay verifiable |
 | 4 (roadmap) | C2PA conformance program (audited KMS custody) | green in third-party validators (Adobe Verify etc.) |
 
@@ -244,14 +247,14 @@ the user's call, offered at the moment the certificate is actually minted:
 - **URL / CLI:** `c2pa` is a reserved URL-mode param (see [URL Mode](/info/url-mode.html)):
   `?c2pa=90` on a share/deep-link URL sets a 90-day ephemeral window (and pre-sets the
   export panel), `c2pa=off` forces it off and the CLI accepts the same as `--c2pa=90`.
-  A CLI render is credentialed **by default**, exactly as an export from the app is
-  ([plans/73-cli-ga-contract.md](https://github.com/lolly-tools/lolly/blob/main/plans/73-cli-ga-contract.md), section 12 O2). `--no-provenance` is the one-word opt-out, and the
+  A CLI render is credentialed **by default**, exactly as an export from the app is.
+  `--no-provenance` is the one-word opt-out, and the
   way to get byte-identical output run to run. The default signer there is the ephemeral
   on-device one - *browser* enrolment is a browser feature, because the device key is
   generated non-extractable and cannot be handed to a terminal - but the CLI can sign
   with an identity you already hold: `--sign-key=<key.pem> --sign-cert=<chain.pem>` puts
-  your own certificate chain in the manifest, and a verifier pinning its root reads the
-  file as **Verified**. See [Signing from the terminal](/info/cli-signing.html).
+  your own certificate chain in the manifest, and a verifier pinning its root shows that
+  identity as the signer. See [Signing from the terminal](/info/cli-signing.html).
 
 ---
 
