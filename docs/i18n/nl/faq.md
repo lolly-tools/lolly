@@ -20,7 +20,7 @@ Lolly produceert een grote hoeveelheid content. We hanteren een strikte datamini
 
 Lolly is ontwikkeld met AI-ondersteunde codering, AI-ondersteunde ontdekking en, op veel plekken, AI-ondersteunde inhoud, met behulp van een mix van modellen en leveranciers, waaronder die van toonaangevende public-cloudbedrijven.
 
-Op het moment van schrijven bevat Lolly geen bekende beveiligingskwetsbaarheden in zijn supply chain, en zet zich in voor snelle beveiligingsreacties zodra er CVE's opduiken.
+Een hoge of kritieke advisory in de afhankelijkheden van Lolly blokkeert CI. Een advisory die nog niet opgelost kan worden, wordt alleen vastgehouden als goedgekeurde uitzondering met een schriftelijke reden. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) vermeldt elke uitzondering die nu wordt vastgehouden, en de [release notes](https://github.com/lolly-tools/lolly/releases) vermelden de uitzonderingen die elke release meedraagt. SECURITY.md legt ook uit hoe je een kwetsbaarheid meldt.
 
 Een mens heeft de architectuur gemaakt, de code met intentie samengesteld en de ervaring artistiek geregisseerd.
 
@@ -52,7 +52,9 @@ Feature flags zetten onderdelen van Lolly aan of uit. Meestal beheert een beheer
 
 ## Hoe kom ik aan de mobiele of desktop-apps?
 
-Iedereen kan zijn eigen apps verspreiden, en de tools en configuratie van die apps horen sterk te verschillen afhankelijk van het publiek waarvoor ze bedoeld zijn. Er is dus niet één app, tenzij je hem zelf hebt gemaakt of iemand uit je omgeving hem aan je geeft.
+Download ze via [Lolly installeren](/info/install.html). De pagina vermeldt elke build voor macOS, Windows, Linux en Android en laat zien hoe je het gedownloade bestand controleert. Voor iPhone en iPad is er nog geen publieke download; [het gedeelte over iPhone en iPad](/info/install.html#iphone-and-ipad) zegt wat je in plaats daarvan kunt gebruiken.
+
+Iedereen kan ook zijn eigen kopie van de app bouwen en uitdelen, met de tools en instellingen die zijn of haar publiek nodig heeft. De [Build Guide](/info/build-guide.html) laat zien hoe.
 
 ## Waarom de naam "Lolly Tools"?
 
@@ -127,7 +129,7 @@ Lagen komen binnen als bewerkbare vakken op het open canvas: tekst blijft overty
 
 ## Waar is het ding dat ik gisteren maakte?
 
-Als je op **Opslaan als** of **Opslaan** hebt gedrukt, staat het in **Projecten**, op het startscherm, in de browser of app van waaruit je hebt opgeslagen. Heb je alleen op **Downloaden** gedrukt, dan staat het bestand waar je browser of systeem downloads opslaat, en meestal staat er een kopie in **Assets**. Negen tools bewaren niet-opgeslagen werk ook in **Projecten**. [Vind en herstel je werk](/info/find-your-work.html) behandelt elk geval.
+Als je op **Opslaan als** of **Opslaan** hebt gedrukt, staat het in **Projecten**, op het startscherm, in de browser of app van waaruit je hebt opgeslagen. Heb je alleen op **Downloaden** gedrukt, dan staat het bestand waar je browser of systeem downloads opslaat, en meestal staat er een kopie in **Assets**. Tools die [opslaan terwijl je werkt](/info/find-your-work.html#which-tools-save-as-you-work) bewaren niet-opgeslagen werk ook in **Projecten**. [Vind en herstel je werk](/info/find-your-work.html) behandelt elk geval.
 
 ## Ik heb het tabblad gesloten. Is mijn werk weg?
 
@@ -143,7 +145,7 @@ Ja. De één deelt een uitnodiging (een link, een QR-code of een korte code), de
 
 ## Waar zijn de tools met SUSE-merk gebleven?
 
-Die staan al in een aparte, private repository. Een publieke clone haalt het SUSE-merkpakket helemaal niet op, dus een publieke build draait het neutrale profiel `lolly-start` - de merkonafhankelijke community-tools plus een leeg merk dat je met je eigen merk invult. SUSE draait een eigen instantie om zijn handelsmerken te beschermen.
+Die staan al in een aparte, private repository. Een publieke clone haalt het SUSE-merkpakket helemaal niet op, dus een build ervan gebruikt het neutrale profiel `lolly-start`, tenzij je een ander kiest - de merkonafhankelijke community-tools plus een leeg merk dat je met je eigen merk invult. [lolly.tools](https://lolly.tools) is gebouwd met het profiel `lolly-demo` en opent in [Lolly Demo](/info/lolly-demo.html), het eigen design system van Lolly. SUSE draait een eigen instantie om zijn handelsmerken te beschermen.
 
 ## Waarom is het gratis? Wat is het addertje?
 
@@ -153,7 +155,7 @@ Die grens ligt vast in de licentie, niet in een belofte: alles wat lokaal draait
 
 ## Hoeveel houdt SUSE privé? (oftewel wanneer wordt het kleed onder ons vandaan getrokken)
 
-De engine, de shells, de schema's en de merkonafhankelijke tools zijn open source; SUSE's handelsmerken en merktools zijn het deel dat privé blijft, en die zijn al gescheiden. De publieke instantie op [lolly.tools](https://lolly.tools) draait op het blanco merk.
+De engine, de shells, de schema's en de merkonafhankelijke tools zijn open source; SUSE's handelsmerken en merktools zijn het deel dat privé blijft, en die zijn al gescheiden. De publieke instantie op [lolly.tools](https://lolly.tools) draait [Lolly Demo](/info/lolly-demo.html), het eigen design system van Lolly.
 
 De grens is structureel, geen belofte. Elke uitgebrachte versie is open source en kan niet worden teruggetrokken, er is geen contributor agreement dat iemands werk opnieuw zou kunnen licentiëren, en het enige wat wordt achtergehouden is het handelsmerk. Toen een ander bedrijf in 2023 zijn enterprise-Linux-broncode sloot, was SUSE medeoprichter van [OpenELA](https://openela.org) om die code open te houden - dezelfde houding die dit project overneemt.
 

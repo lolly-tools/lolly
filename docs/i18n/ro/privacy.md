@@ -1,6 +1,6 @@
 # Politica de confidențialitate
 
-*Ultima actualizare: 11 august 2026*
+*Ultima actualizare: 22 octombrie 2026*
 
 > **Versiunea pe scurt.** Documentele, imaginile, videoclipurile și fișierele pe care le creezi în Lolly rămân
 > pe dispozitivul tău. Nu există conturi pentru utilizarea obișnuită, nu există cookie-uri din partea aplicației
@@ -96,9 +96,9 @@ rețea. Dacă nu e aici, aplicația nu o face.
 | Ce | Ce anume iese efectiv de pe dispozitivul tău | Când (acțiunea care declanșează asta) | Dacă un operator blochează asta |
 |---|---|---|---|
 | Sincronizare catalog de instrumente | Nimic personal - o cerere pentru propriul index public de instrumente și resurse al Lolly, către originea proprie a aplicației | La pornire, apoi stocat în cache offline | Aplicația rulează pe setul de instrumente stocat în cache. Doar descoperirea de instrumente noi se oprește |
-| Un instrument care are nevoie de date live | Orice cere acel instrument specific, către gazda numită chiar în descrierea sa. Astăzi este doar căutarea de oraș din instrumentul Meeting Planner, care cere `geocoding-api.open-meteo.com` să transforme un nume de oraș în coordonate și fus orar - fără cont, fără cheie și fără identificator dincolo de cererea în sine. Câmpul de introducere spune asta chiar acolo unde tastezi, iar fiecare răspuns este salvat pe dispozitivul tău, astfel încât un oraș este căutat o singură dată | Doar cât timp folosești acel instrument, și doar după ce introduci o locație | Acea căutare eșuează. Poți totuși introduce coordonatele manual, iar nimic altceva nu este afectat |
+| Un instrument care are nevoie de date live | Orice cere acel instrument specific, către gazda numită chiar în descrierea sa. Astăzi este doar căutarea de oraș din instrumentul Meeting Planner, care cere `geocoding-api.open-meteo.com` să transforme fiecare nume de oraș (orașul gazdă și orașul fiecărui membru al echipei) în coordonate și fus orar - fără cont, fără cheie și fără identificator dincolo de cererea în sine. Câmpul Host city spune asta, iar fiecare răspuns este salvat pe dispozitivul tău, astfel încât un oraș este căutat o singură dată | Doar cât timp acel instrument este deschis, pentru orașul gazdă (completat implicit) și pentru orașul fiecărui membru al echipei | Căutarea eșuează, iar nimic altceva nu este afectat |
 | Google Fonts | Numele familiei de fonturi alese și adresa ta IP, către serverele de fonturi Google (`fonts.googleapis.com` pentru foaia de stil, `fonts.gstatic.com` pentru fișierul de font) | Doar dacă adaugi un Google Font în editorul de brand, **și doar după ce accepți asta într-un dialog care spune exact acest lucru** - o preluare unică per familie, apoi rămâne pe dispozitivul tău și este folosit offline | Selectorul Google Fonts eșuează în siguranță (fail closed). Încarcă în schimb un fișier de font |
-| Trimite pe Google Drive | Singurul fișier pe care ai ales să-l trimiți, către API-ul Drive al Google (`www.googleapis.com`), după o autentificare Google pe care o finalizezi în propria fereastră pop-up a Google. Accesul Lolly este limitat la fișierele pe care le-a creat (scopul `drive.file` - nu poate citi niciodată restul Drive-ului tău), iar tokenul de autentificare este păstrat în memorie doar pentru sesiune, niciodată stocat | Doar când apeși „Send to Google Drive” la un export EMF, și doar pe build-urile în care operatorul a configurat un id de client Google - fără unul, butonul nu există | Butonul nu apare niciodată. Descarcă fișierul și încarcă-l tu însuți pe Drive |
+| Trimite pe Google Drive | Singurul fișier pe care ai ales să-l trimiți, în orice format, către API-ul Drive al Google (`www.googleapis.com`), după o autentificare Google pe care o finalizezi în propria fereastră a Google. Accesul Lolly este limitat la fișierele pe care le-a creat (scopul `drive.file` - nu poate citi niciodată restul Drive-ului tău). În aplicația web, tokenul de autentificare este păstrat în memorie doar pentru sesiune, niciodată stocat; în celelalte aplicații, un token de reîmprospătare este stocat doar pe acest dispozitiv dacă bifezi „stay connected” | Doar când apeși „Send to Google Drive” la un fișier, și doar pe build-urile în care operatorul a configurat un id de client Google - fără unul, butonul nu există | Butonul nu apare niciodată. Descarcă fișierul și încarcă-l tu însuți pe Drive |
 | Trimite pe Dropbox | Singurul fișier pe care ai ales să-l trimiți, către API-ul Dropbox (`api.dropboxapi.com` pentru autentificare și metadate, `content.dropboxapi.com` pentru fișierul propriu-zis), după o autentificare Dropbox pe care o finalizezi în propria fereastră a Dropbox. Accesul Lolly este limitat la folderul aplicației (poate vedea doar `Apps/` și propriul folder de acolo - niciodată restul Dropbox-ului tău), linkul „Open” pe care ți-l arată este un link privat cu durată scurtă de viață (nu se creează niciun share public), iar un token de reîmprospătare este stocat doar dacă bifezi „stay connected” | Doar când apeși „Send to Dropbox” pe un fișier, și doar pe build-urile în care operatorul a configurat un id de client Dropbox - fără unul, butonul nu există | Butonul nu apare niciodată. Descarcă fișierul și încarcă-l tu însuți pe Dropbox |
 | Trimite pe OneDrive | Singurul fișier pe care ai ales să-l trimiți, către serviciile de identitate și Graph ale Microsoft (`login.microsoftonline.com` pentru autentificare, `graph.microsoft.com` pentru încărcare; un fișier mare este încărcat în bucăți către o adresă de încărcare deținută de Microsoft pe `api.onedrive.com`, `*.up.1drv.com` sau `*.sharepoint.com`), după o autentificare Microsoft pe care o finalizezi în propria fereastră a Microsoft. Accesul Lolly este limitat la propriul folder de sub `Apps/` (nu poate citi niciodată restul OneDrive-ului tău), plus numele tău de afișare pentru eticheta contului, iar un token de reîmprospătare este stocat doar dacă bifezi „stay connected” | Doar când apeși „Send to OneDrive” pe un fișier, și doar pe build-urile în care operatorul a configurat un id de client Microsoft - fără unul, butonul nu există | Butonul nu apare niciodată. Descarcă fișierul și încarcă-l tu însuți pe OneDrive |
 | Trimite pe LinkedIn | Singurul fișier pe care ai ales să-l trimiți, plus numele său ca text al postării, către LinkedIn (`www.linkedin.com` pentru autentificare, `api.linkedin.com` pentru încărcare și postare), după o autentificare LinkedIn pe care o finalizezi în propriul browser. Postarea ajunge în propriul tău feed, ca postare publică sub numele tău. Lolly poate posta în numele tău și îți poate citi numele pentru eticheta contului, nimic altceva de pe LinkedIn-ul tău, iar autentificarea este păstrată pe acest dispozitiv doar dacă bifezi „stay connected” - tokenurile LinkedIn durează 60 de zile și nu pot fi reînnoite silențios, așa că expiră de la sine | Doar când apeși „Send to LinkedIn” pe un fișier, doar în aplicațiile desktop, și doar pe build-urile în care este configurată o aplicație LinkedIn - fără una, butonul nu există | Nimic de blocat în aplicația web: asta există doar în **aplicațiile desktop**, astfel încât acele două gazde sunt în mod deliberat ABSENTE din Content-Security-Policy de mai jos a aplicației web. În aplicațiile desktop, elimină aplicația LinkedIn configurată și butonul nu mai apare niciodată |
@@ -146,11 +146,13 @@ Lolly. Orice altă excepție este numită explicit în secțiunile de mai jos.
 cheia de semnare a unui fișier este publicată în DNS. Browserele nu pot face interogări DNS, deci orice
 implementare web trebuie să direcționeze căutarea printr-un resolver DNS-over-HTTPS
 terț - care i-ar arăta acelui operator domeniul verificat plus adresa ta IP. Foloseam pe cel al Cloudflare. **Nu-l mai folosim, și nu există niciun
-înlocuitor**: aplicația web acum nu transmite niciun resolver deloc, deci verificarea SEAL
-aici nu face nicio cerere de rețea. Fișierele a căror înregistrare SEAL poartă cheia inline se
-verifică în continuare complet offline. Fișierele a căror cheie se află în DNS raportează "niciun resolver de
-chei" în schimb, și le poți verifica pe cele în aplicația desktop sau de linie de comandă,
-care rezolvă DNS nativ prin propriul tău dispozitiv, fără implicarea niciunui terț.
+înlocuitor**: Verify nu mai transmite niciun resolver deloc, deci verificarea SEAL
+nu face nicio cerere de rețea. Nicio aplicație Lolly nu caută astăzi chei SEAL în DNS: aplicațiile
+desktop și mobile rulează aceeași vizualizare Verify, iar `lolly validate` din linia de comandă
+nu verifică SEAL. Un fișier a cărui înregistrare SEAL poartă cheia inline este verificat
+offline, iar Verify consideră semnătura consecventă intern, fără a confirma
+domeniul. Un fișier a cărui cheie se află doar în DNS arată **SEAL signature did not
+verify**, cu motivul "no key resolver and no inline key".
 
 ![Ecranul Verify: o zonă de plasare și nimic altceva - fișierul este verificat exact unde se află deja, fără încărcare și fără cont](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop) Poți confirma singur acest lucru: verificări interogabile prin grep pentru aceasta și fiecare
 altă afirmație de pe această pagină, cu comenzile exacte și rezultatul așteptat, se află la
@@ -208,9 +210,11 @@ de randare, plus patru tool-uri care gestionează inevitabil octeți de fișiere
   trimiți vreunul: pe un server local self-hosted deck-ul nu părăsește niciodată acea
   mașină; pe un server găzduit, apelarea `lolly_rebrand` trimite deck-ul acolo, până
   la limitele de dimensiune și de diapozitive pe care le dă aceeași etapă.
-- <!--i:checklist--> Orice alt tool - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
-  `lolly_describe_tool` - funcționează doar din parametri (text, numere, culori, URL-uri, id-uri
-  de asset-uri din catalog), aceleași intrări pe care le folosește un URL de randare hot-link.
+- <!--i:checklist--> Tool-urile de imagine (`lolly_look`, `lolly_sample_color` și
+  `lolly_trace_edges`) pot primi și un fișier de imagine de la apelant, tratat
+  în același fel: în memorie, doar pentru acel apel. Orice alt tool funcționează din
+  parametrii apelului: text, numere, culori, URL-uri, id-uri de asset-uri din catalog sau
+  un document furnizat de apelant.
 - <!--i:lock--> Accesul este fie un token partajat pe care operatorul îl emite
   clienților în care are încredere, fie OAuth 2.1 fără stare: token-uri semnate cu durată
   scurtă de viață, verificate față de un secret partajat, nimic stocat server-side, iar
@@ -266,34 +270,53 @@ date.
 
 ## Extensia de browser
 
-Extensia de browser **Lolly URL Screenshot** nu colectează, stochează sau
-transmite date personale. Fără analytics, fără urmărire, fără server la distanță.
+Extensia de browser **Lolly URL Screenshot** nu colectează date personale pentru noi.
+Nu are analytics, urmărire sau server propriu. Pagina
+[Extensie de browser](/info/extension.html) descrie cum funcționează.
 
-**Ce face.** Când ceri aplicației web Lolly să facă o captură de ecran a unui URL,
-extensia deschide acea pagină într-o filă temporară din fundal, o capturează în browserul tău
-folosind DevTools Protocol, predă imaginea înapoi aplicației și închide
-fila. Totul se întâmplă local, pe propriul tău dispozitiv și rețea.
+**Ce face.** Aplicația web Lolly îi poate cere o captură de ecran a unei pagini web
+sau conținutul unei pagini, pentru a porni un sistem de design dintr-un site. Fiecare cerere
+deschide în extensie o fereastră de aprobare care arată site-ul solicitant,
+dacă vrea o captură de ecran sau conținutul paginii, și adresa paginii. Abia
+după ce apeși **Approve once** extensia deschide acea pagină într-o filă temporară
+din fundal, face captura sau citește pagina, predă rezultatul filei Lolly
+care a cerut-o și închide fila. Fiecare cerere are nevoie de propria aprobare.
 
 **Date.**
 
-- <!--i:shieldcheck--> **Nu colectăm nimic.** Extensia nu are servere și nu face nicio cerere de rețea
-  proprie.
-- <!--i:photos--> **Imaginile capturate** merg direct la aplicația Lolly din același browser - niciodată
-  încărcate de extensie.
-- <!--i:link--> **URL-urile pe care le capturezi** sunt folosite doar pentru a încărca acea pagină unică pentru acea unică
-  captură de ecran. Nu sunt logate sau partajate.
+- <!--i:shieldcheck--> **Nu colectăm nimic.** Rezultatul merge doar la pagina Lolly
+  care a cerut, în același browser. Extensia nu stochează conținutul paginilor
+  și nu adaugă niciun alt destinatar.
+- <!--i:globe--> **Cereri de rețea.** Pagina pe care o aprobi se încarcă așa cum s-ar încărca în
+  orice filă, împreună cu tot ce cere pagina însăși. Citirea conținutului unei pagini
+  preia și foile ei de stil și câteva dintre pictogramele și siglele ei,
+  din interiorul paginii, iar acele preluări nu trimit cookie-uri către alte
+  site-uri. Extensia nu face alte cereri, iar niciuna nu merge la un server Lolly.
+- <!--i:lock--> **Sesiunea browserului tău.** Pagina se încarcă cu sesiunea
+  browserului tău, așa cum s-ar încărca dacă ai deschide-o tu însuți, deci o pagină în care ești
+  autentificat poate pune informații private în rezultat.
+- <!--i:link--> **Adresele pe care le aprobi** sunt folosite doar pentru a încărca acea pagină
+  unică pentru acea cerere. Nu sunt logate sau partajate.
 
 **Permisiuni.**
 
-- <!--i:wrench--> **`debugger`** - pentru a captura pagina randată prin DevTools Protocol (același
+- <!--i:wrench--> **`debugger`** - pentru a face captura de ecran prin DevTools Protocol (același
   mecanism folosit de aplicația desktop Lolly).
-- <!--i:monitor--> **`tabs`** - pentru a deschide și închide fila temporară în care se încarcă pagina.
-- <!--i:globe--> **Acces la host (`<all_urls>`)** - pentru că pagina pe care alegi s-o capturezi poate fi
-  pe orice site. Chrome afișează asta la instalare ca un avertisment de permisiune
-  largă. Extensia vizitează doar URL-ul pe care i-l dai.
+- <!--i:monitor--> **`tabs`** - pentru a deschide și închide fila temporară și pentru a verifica
+  dacă nici pagina Lolly, nici pagina țintă nu s-au mutat de când ai aprobat.
+- <!--i:code--> **`scripting`** - pentru a citi conținutul unei pagini în fila temporară,
+  după ce aprobi acea cerere.
+- <!--i:database--> **`storage`** - pentru a nota id-urile filelor sale temporare în
+  stocarea de sesiune, astfel încât să se închidă totuși dacă browserul oprește extensia în timpul
+  unei cereri. Nu este stocat niciun conținut de pagină.
+- <!--i:check--> **Acces opțional la site-uri (`http://*/*`, `https://*/*`)** - nu este acordat
+  la instalare. Când apeși **Approve once**, extensia cere Chrome acces la
+  singurul site din acea cerere, iar Chrome te întreabă prima dată pentru fiecare
+  site. Un site pe care l-ai permis înainte are nevoie în continuare de o aprobare nouă pentru fiecare
+  cerere.
 
 Niciuna dintre acestea nu este folosită pentru a citi, monitoriza sau transmite navigarea ta dincolo de
-acea unică captură cerută.
+singura cerere pe care ai aprobat-o.
 
 ## Jurnale de infrastructură
 
@@ -306,12 +329,15 @@ Singura excepție deliberată este un fișier pe care îl predai explicit unui a
 `lolly_transform`, `lolly_verify`, `lolly_redact` sau `lolly_rebrand`, care este procesat
 în memorie și niciodată scris pe disc sau într-un jurnal, așa cum s-a descris mai sus.
 
-**Propriul cod al Lolly nu scrie nimic în acele jurnale.** Serverul MCP nu conține deloc
-instrucțiuni de logging. Serviciul de certificate emite exact două linii, ambele
-la eșec și ambele deliberat curățate: un cod de stare de eșec la trimitere fără adresa
-destinatarului, și un mesaj de eroare fără stack trace sau URL (un stack ar putea
-purta un token de înscriere). Orice altceva din jurnal aparține platformei de găzduire,
-nu nouă.
+**Serviciile publice reduc la minimum logging-ul aplicației.** Serverul MCP înregistrează
+pornirea, configurația și avertismentele de randare; nu ține niciun jurnal propriu
+de cereri și nu înregistrează token-uri sau adrese ale apelanților. Trecerea Penpot înregistrează
+numele fiecărei comenzi și starea răspunsului Penpot, niciodată antete, token-uri sau
+fișierul. Serviciul de certificate înregistrează setările sale de pornire și
+avertismentele de configurare, plus două linii curățate la eșec: un cod de stare
+de eșec la trimitere fără adresa destinatarului, și o linie fixă de eșec fără text de eroare,
+stack trace sau URL (o eroare a furnizorului poate purta valori de identitate sau
+credențiale). Orice altceva din jurnal aparține platformei de găzduire, nu nouă.
 
 Pentru lolly.tools, găzduirea este Vercel, iar reținerea jurnalelor de acces urmează propriile
 setări implicite ale platformei Vercel pentru planul nostru. Nu configurăm niciun drenaj de jurnale, niciun
@@ -401,6 +427,14 @@ Data din partea de sus se schimbă ori de câte ori se schimbă acest document. 
 afectează ce părăsește dispozitivul tău sau ce este reținut primește propria linie aici, nu o
 modificare tăcută - dacă vrei să vezi ce s-a schimbat, întreabă (mai jos) sau compară cu
 [sursa publică](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
+
+**22 octombrie 2026:** am corectat descrierea comportamentului existent. Secțiunea despre
+extensia de browser acoperă acum fereastra de aprobare pentru fiecare cerere, accesul la site-uri
+cerut câte un site pe rând și preluările de foi de stil și pictograme la citirea unui
+site. Au fost corectate și: rândurile Send to Google Drive și Meeting Planner, nota
+despre SEAL (nicio aplicație Lolly nu caută chei SEAL în DNS), nivelul implicit de
+telemetrie de utilizare al serviciului pentru organizații, tool-urile de imagine MCP și
+logging-ul aplicației al serviciilor publice. Software-ul în sine nu s-a schimbat.
 
 ## Cine este responsabil și cum ne poți contacta
 

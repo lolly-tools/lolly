@@ -6,7 +6,7 @@ Se alguma verificação nesta página não produzir o resultado mostrado, isso �
 
 ## Veja funcionando, em dez segundos
 
-Antes dos procedimentos, o resultado. Abra [`/verify`](/#/verify) e solte um arquivo nele - sem upload, sem conta, sem esperar por um servidor. Aqui está verificando a [tempestade de Queensland gerada](/info/ai-stance.html) da nossa página de posicionamento sobre IA: uma imagem do Gemini que o Lolly abriu, redimensionou e exportou. Cada selo abaixo foi calculado no dispositivo, a partir dos próprios bytes do arquivo.
+Antes dos procedimentos, o resultado. Abra [`/verify`](/#/verify) e solte um arquivo nele - sem upload, sem conta, sem esperar por um servidor. Aqui está verificando a [tempestade de Queensland gerada](/info/ai-stance.html) da nossa página de posicionamento sobre IA: uma imagem do Gemini que o Lolly abriu, marcou com marca d'água e exportou. Cada selo abaixo foi calculado no dispositivo, a partir dos próprios bytes do arquivo.
 
 ![Verify em uma tela largura de telefone - a imagem da tempestade, um veredito verde Made with Lolly e os selos de credencial intacta e bytes inalterados empilhados abaixo dela](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

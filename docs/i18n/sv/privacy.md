@@ -1,6 +1,6 @@
 # Integritetspolicy
 
-*Senast uppdaterad: 11 augusti 2026*
+*Senast uppdaterad: 22 oktober 2026*
 
 > **Kortversionen.** Dokumenten, bilderna, videorna och filerna du skapar i Lolly stannar
 > på din enhet. Det finns inga konton för vanlig användning, inga kakor från appen
@@ -95,9 +95,9 @@ nätverk. Om det inte finns här gör appen det inte.
 | Vad | Vad som faktiskt lämnar din enhet | När (händelsen som utlöser det) | Om en operatör blockerar det |
 |---|---|---|---|
 | Synkronisering av verktygskatalogen | Inget personligt - en förfrågan om Lollys egna publika verktygs- och tillgångsindex, till appens egen ursprungsadress | Vid start, sedan cachelagrat offline | Appen körs på sin cachelagrade verktygsuppsättning. Den slutar bara upptäcka nya verktyg |
-| Ett verktyg som behöver realtidsdata | Vad det specifika verktyget än begär, till den värd som anges i dess egen beskrivning. Idag är det bara stadssökningen i verktyget Meeting Planner, som frågar `geocoding-api.open-meteo.com` för att omvandla ett stadsnamn till koordinater och en tidszon - inget konto, ingen nyckel och ingen identifierare utöver själva förfrågan. Inmatningsfältet säger detta precis där du skriver, och varje svar sparas på din enhet så att en stad bara slås upp en gång | Endast medan du använder det verktyget, och endast när du anger en plats | Just den uppslagningen misslyckas. Du kan fortfarande skriva in koordinater för hand, och inget annat påverkas |
+| Ett verktyg som behöver realtidsdata | Vad det specifika verktyget än begär, till den värd som anges i dess egen beskrivning. Idag är det bara stadssökningen i verktyget Meeting Planner, som frågar `geocoding-api.open-meteo.com` för att omvandla varje stadsnamn (värdstaden och varje teammedlems stad) till koordinater och en tidszon - inget konto, ingen nyckel och ingen identifierare utöver själva förfrågan. Inmatningen Host city säger detta, och varje svar sparas på din enhet så att en stad bara slås upp en gång | Endast medan det verktyget är öppet, för värdstaden (ifylld som standard) och varje teammedlems stad | Den uppslagningen misslyckas, och inget annat påverkas |
 | Google Fonts | Det valda typsnittsfamiljenamnet och din IP-adress, till Googles typsnittsservrar (`fonts.googleapis.com` för stilmallen, `fonts.gstatic.com` för typsnittsfilen) | Endast om du lägger till ett Google-typsnitt i varumärkesredigeraren, **och endast efter att du godkänt det i en dialogruta som säger exakt detta** - en engångshämtning per familj, som sedan finns kvar på din enhet och används offline | Google Fonts-väljaren nekar som standard (fail-closed). Ladda upp en typsnittsfil istället |
-| Skicka till Google Drive | Den enda fil du valde att skicka, till Googles Drive-API (`www.googleapis.com`), efter en Google-inloggning som du slutför i Googles eget popup-fönster. Lollys åtkomst är begränsad till filer den själv har skapat (omfånget `drive.file` - den kan aldrig läsa resten av din Drive), och inloggningstoken hålls i minnet under sessionen, sparas aldrig | Endast när du trycker på "Send to Google Drive" vid en EMF-export, och endast i byggen där operatören har konfigurerat ett Google-klient-id - utan ett sådant finns knappen inte | Knappen visas aldrig. Ladda ner filen och ladda upp den till Drive själv |
+| Skicka till Google Drive | Den enda fil du valde att skicka, i valfritt format, till Googles Drive-API (`www.googleapis.com`), efter en Google-inloggning som du slutför i Googles eget fönster. Lollys åtkomst är begränsad till filer den själv har skapat (omfånget `drive.file` - den kan aldrig läsa resten av din Drive). I webbappen hålls inloggningstoken i minnet under sessionen och sparas aldrig; i de andra apparna sparas en uppdateringstoken på den här enheten bara om du kryssar i "stay connected" | Endast när du trycker på "Send to Google Drive" vid en fil, och endast i byggen där operatören har konfigurerat ett Google-klient-id - utan ett sådant finns knappen inte | Knappen visas aldrig. Ladda ner filen och ladda upp den till Drive själv |
 | Skicka till Dropbox | Den enda fil du valde att skicka, till Dropboxs API (`api.dropboxapi.com` för inloggning och metadata, `content.dropboxapi.com` för själva filen), efter en Dropbox-inloggning som du slutför i Dropboxs eget fönster. Lollys åtkomst gäller endast appmappen (den kan bara någonsin se `Apps/` och sin egen mapp där - aldrig resten av din Dropbox), länken "Open" som visas är en kortlivad privat länk (ingen offentlig delning skapas), och en förnyelsetoken sparas bara om du kryssar i "stay connected" | Endast när du trycker på "Send to Dropbox" på en fil, och endast i byggen där operatören har konfigurerat ett Dropbox-klient-id - utan ett sådant finns knappen inte | Knappen visas aldrig. Ladda ner filen och ladda upp den till Dropbox själv |
 | Skicka till OneDrive | Den enda fil du valde att skicka, till Microsofts identitets- och Graph-tjänster (`login.microsoftonline.com` för inloggning, `graph.microsoft.com` för uppladdningen; en stor fil laddas upp i delar till en Microsoft-ägd uppladdningsadress på `api.onedrive.com`, `*.up.1drv.com` eller `*.sharepoint.com`), efter en Microsoft-inloggning som du slutför i Microsofts eget fönster. Lollys åtkomst är begränsad till sin egen mapp under `Apps/` (den kan aldrig läsa resten av din OneDrive) plus ditt visningsnamn för kontoetiketten, och en förnyelsetoken sparas bara om du kryssar i "stay connected" | Endast när du trycker på "Send to OneDrive" på en fil, och endast i byggen där operatören har konfigurerat ett Microsoft-klient-id - utan ett sådant finns knappen inte | Knappen visas aldrig. Ladda ner filen och ladda upp den till OneDrive själv |
 | Skicka till LinkedIn | Den enda fil du valde att skicka, plus dess namn som inläggstext, till LinkedIn (`www.linkedin.com` för inloggningen, `api.linkedin.com` för uppladdningen och inlägget), efter en LinkedIn-inloggning som du slutför i din egen webbläsare. Inlägget publiceras på ditt eget flöde som ett offentligt inlägg i ditt namn. Lolly kan publicera i ditt namn och läsa ditt namn för kontoetiketten, inget annat på ditt LinkedIn, och inloggningen sparas bara på den här enheten om du kryssar i "stay connected" - LinkedIns token är giltig i 60 dagar och kan inte förnyas i tysthet, så den upphör av sig själv | Endast när du trycker på "Send to LinkedIn" på en fil, endast i skrivbordsapparna, och endast i byggen där en LinkedIn-app är konfigurerad - utan en sådan finns knappen inte | Inget att blockera i webbappen: detta finns **endast i skrivbordsapparna**, så dessa två värdar finns medvetet INTE med i webbappens Content-Security-Policy nedan. I skrivbordsapparna: ta bort den konfigurerade LinkedIn-appen så visas knappen aldrig |
@@ -146,12 +146,13 @@ fils signeringsnyckel publiceras i DNS. Webbläsare kan inte göra DNS-uppslag, 
 webbimplementering måste dirigera uppslaget genom en DNS-over-HTTPS-resolver
 från tredje part - vilket skulle visa den operatören domänen som kontrolleras plus din IP-
 adress. Vi använde tidigare Cloudflares. **Det gör vi inte längre, och det finns ingen
-ersättning**: webbappen skickar nu ingen resolver alls, så SEAL-verifiering
-här gör noll nätverksförfrågningar. Filer vars SEAL-post har sin nyckel inbäddad
-verifieras fortfarande helt offline. Filer vars nyckel finns i DNS rapporterar "no key
-resolver" i stället, och du kan kontrollera dem i skrivbords- eller kommandoradsappen,
-som löser DNS nativt via din egen dator utan att någon tredje part
-är inblandad.
+ersättning**: Verify skickar nu ingen resolver alls, så SEAL-verifiering
+här gör noll nätverksförfrågningar. Ingen Lolly-app slår upp SEAL-nycklar i DNS i dag:
+skrivbords- och mobilapparna kör samma Verify-vy, och kommandoradsverktyget `lolly validate`
+kontrollerar inte SEAL. En fil vars SEAL-post har sin nyckel inbäddad kontrolleras
+offline, och Verify kallar signaturen internt konsekvent utan att bekräfta
+domänen. En fil vars nyckel bara finns i DNS visar **SEAL signature did not
+verify**, med skälet "no key resolver and no inline key".
 
 ![Verify-skärmen: ett släppmål och inget annat - filen kontrolleras där den redan finns, utan uppladdning och utan konto](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop) Du kan bekräfta detta själv: greppbara kontroller för det här och varje
 annat påstående på den här sidan, med exakta kommandon och förväntad utdata, finns på
@@ -209,9 +210,11 @@ filbytes:
   några: på en självhostad lokal server lämnar bildspelet aldrig den maskinen;
   på en hostad server skickar ett anrop till `lolly_rebrand` bildspelet dit, upp till de
   storleks- och bildgränser som samma steg anger.
-- <!--i:checklist--> Alla andra verktyg - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
-  `lolly_describe_tool` - fungerar enbart med parametrar (text, siffror, färger,
-  URL:er, katalogtillgångs-id:n), samma indata som en direktlänkad render-URL tar.
+- <!--i:checklist--> Bildverktygen (`lolly_look`, `lolly_sample_color` och
+  `lolly_trace_edges`) kan också ta emot en bildfil från anroparen, hanterad på
+  samma sätt: i minnet, bara för det anropet. Alla andra verktyg fungerar utifrån
+  parametrarna i anropet: text, siffror, färger, URL:er, katalogtillgångs-id:n eller
+  ett dokument som anroparen lämnar.
 - <!--i:lock--> Åtkomst är antingen en delad token som operatören utfärdar till klienter den litar på, eller
   tillståndslös OAuth 2.1: kortlivade signerade tokens verifierade mot en delad
   hemlighet, inget lagras på serversidan och själva token skrivs aldrig till en
@@ -277,34 +280,54 @@ personuppgiftsansvarig för den datan.
 
 ## Webbläsartillägget
 
-Webbläsartillägget **Lolly URL Screenshot** samlar inte in, lagrar eller
-skickar någon personlig data. Ingen analys, ingen spårning, ingen fjärrserver.
+Webbläsartillägget **Lolly URL Screenshot** samlar inte in någon personlig data åt oss.
+Det har ingen analys, ingen spårning och ingen egen server. Sidan
+[Webbläsartillägg](/info/extension.html) beskriver hur det fungerar.
 
-**Vad det gör.** När du ber Lolly-webbappen ta en skärmdump av en URL öppnar
-tillägget den sidan i en tillfällig bakgrundsflik, fångar den i din webbläsare
-med DevTools Protocol, lämnar bilden tillbaka till appen och stänger
-fliken. Allt sker lokalt, på din egen enhet och ditt eget nätverk.
+**Vad det gör.** Lolly-webbappen kan be det om en skärmdump av en webbsida,
+eller om en sidas innehåll för att starta ett designsystem från en webbplats. Varje förfrågan
+öppnar ett godkännandefönster i tillägget som visar vilken sajt som frågar,
+om den vill ha en skärmdump eller sidans innehåll, och sidans adress. Först
+när du trycker på **Approve once** öppnar tillägget den sidan i en
+tillfällig bakgrundsflik, tar skärmdumpen eller läser sidan, lämnar resultatet
+till den Lolly-flik som bad om det och stänger fliken. Varje förfrågan kräver sitt eget
+godkännande.
 
 **Data.**
 
-- <!--i:shieldcheck--> **Vi samlar inte in något.** Tillägget har inga servrar och gör inga egna
-  nätverksförfrågningar.
-- <!--i:photos--> **Fångade bilder** går direkt till Lolly-appen i samma webbläsare - laddas
-  aldrig upp av tillägget.
-- <!--i:link--> **URL:erna du fångar** används bara för att ladda den ena sidan för den ena
-  skärmdumpen. De loggas eller delas inte.
+- <!--i:shieldcheck--> **Vi samlar inte in något.** Resultatet går bara till den Lolly-
+  sida som bad om det, i samma webbläsare. Tillägget lagrar inget sidinnehåll
+  och lägger inte till någon annan mottagare.
+- <!--i:globe--> **Nätverksförfrågningar.** Sidan du godkänner laddas som den skulle göra i
+  vilken flik som helst, tillsammans med vad sidan själv begär. När ett sidinnehåll läses
+  hämtas också sidans stilmallar och några av dess ikon- och logotypbilder,
+  inifrån sidan, och de hämtningarna skickar inga cookies till andra
+  sajter. Tillägget gör inga andra förfrågningar, och ingen går till en Lolly-server.
+- <!--i:lock--> **Din webbläsarsession.** Sidan laddas med din webbläsarsession,
+  så som den skulle göra om du öppnade den själv, så en sida du är inloggad
+  på kan lägga privat information i resultatet.
+- <!--i:link--> **Adresserna du godkänner** används bara för att ladda den ena sidan
+  för den ena förfrågan. De loggas eller delas inte.
 
 **Behörigheter.**
 
-- <!--i:wrench--> **`debugger`** - för att fånga den renderade sidan via DevTools Protocol (samma
+- <!--i:wrench--> **`debugger`** - för att ta skärmdumpen via DevTools Protocol (samma
   mekanism som Lollys skrivbordsapp använder).
-- <!--i:monitor--> **`tabs`** - för att öppna och stänga den tillfälliga flik sidan laddas i.
-- <!--i:globe--> **Värdåtkomst (`<all_urls>`)** - eftersom sidan du väljer att fånga kan vara
-  på vilken webbplats som helst. Chrome visar detta vid installationen som en bred behörighets-
-  varning. Tillägget besöker bara någonsin URL:en du ger det.
+- <!--i:monitor--> **`tabs`** - för att öppna och stänga den tillfälliga fliken, och för att kontrollera
+  att varken Lolly-sidan eller målsidan har flyttat sedan du godkände.
+- <!--i:code--> **`scripting`** - för att läsa en sidas innehåll i den tillfälliga fliken,
+  efter att du godkänt den förfrågan.
+- <!--i:database--> **`storage`** - för att notera id:n för dess tillfälliga flikar i
+  sessionslagring, så att de ändå stängs om webbläsaren stoppar tillägget under
+  en förfrågan. Inget sidinnehåll lagras.
+- <!--i:check--> **Valfri sajtåtkomst (`http://*/*`, `https://*/*`)** - beviljas inte
+  vid installation. När du trycker på **Approve once** ber tillägget Chrome om
+  åtkomst till den enda sajten i den förfrågan, och Chrome frågar dig första gången för
+  varje sajt. En sajt du tillåtit tidigare kräver ändå ett nytt godkännande för varje
+  förfrågan.
 
 Ingen av dessa används för att läsa, övervaka eller överföra din surfning utöver den
-ena begärda fångsten.
+ena förfrågan du godkände.
 
 ## Infrastrukturloggar
 
@@ -317,12 +340,15 @@ enda avsiktliga undantaget är en fil du uttryckligen lämnar till ett MCP-
 anrop av `lolly_transform`, `lolly_verify`, `lolly_redact` eller `lolly_rebrand`, som behandlas i minnet och aldrig
 skrivs till disk eller en logg, som beskrivet ovan.
 
-**Lollys egen kod skriver ingenting till de loggarna.** MCP-servern innehåller inga
-loggningssatser alls. Certifikattjänsten avger exakt två rader, båda vid
-fel och båda avsiktligt avskalade: en felstatuskod för misslyckad sändning utan
-mottagaradress, och ett felmeddelande utan stackspårning eller URL (en stack skulle kunna
-bära en registreringstoken). Allt annat i loggen tillhör värdplattformen,
-inte oss.
+**Lollys egen kod skriver ingenting till de loggarna.** MCP-servern loggar
+start, konfiguration och renderingsvarningar; den för ingen egen förfrågningslogg
+och loggar inte tokens eller anroparadresser. Penpot-genomströmningen loggar
+varje kommandonamn och Penpots svarsstatus, aldrig rubriker, tokens eller
+filen. Certifikattjänsten loggar sina startinställningar och
+konfigurationsvarningar, plus två avskalade rader vid fel: en felstatuskod för
+misslyckad sändning utan mottagaradress, och en fast felrad utan felmeddelande,
+stackspårning eller URL (ett leverantörsfel kan bära identitetsvärden eller
+inloggningsuppgifter). Allt annat i loggen tillhör värdplattformen, inte oss.
 
 För lolly.tools är hostingen Vercel, och lagringstiden för åtkomstloggar följer Vercels egna
 plattformsstandarder för vårt abonnemang. Vi konfigurerar ingen loggexport, ingen långsiktig logg-
@@ -412,6 +438,14 @@ Datumet högst upp ändras varje gång detta dokument gör det. En ändring som 
 vad som lämnar din enhet eller vad som sparas får en egen rad här, inte en tyst
 redigering - om du vill se vad som ändrats, fråga (nedan) eller jämför mot
 [den publika källkoden](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
+
+**22 oktober 2026:** rättade beskrivningen av befintligt beteende. Avsnittet om
+webbläsartillägget täcker nu godkännandefönstret för varje förfrågan, sajtåtkomst
+som begärs en sajt i taget och hämtningarna av stilmallar och ikoner vid läsning av en
+webbplats. Rättat är också: raderna Skicka till Google Drive och Meeting Planner, noten
+om SEAL (ingen Lolly-app slår upp SEAL-nycklar i DNS), standardnivån för användningstelemetri
+i organisationstjänsten, MCP-bildverktygen och applikationsloggningen
+i de publika tjänsterna. Själva programvaran ändrades inte.
 
 ## Vem som ansvarar, och hur du når oss
 

@@ -8,7 +8,7 @@ Lolly는 인쇄술 이후 미디어 제작 방식에 있어 가장 큰 변화의
 
 ![아웃백 농가 위로 초대형 폭풍우가 몰아치는 모습 - 아래로 보이는 물탱크와 헛간들, 이미 마른 목초지를 가로질러 물길을 내는 홍수](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} 생성 이미지 %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} 및 %act{exported to WebP} (으)로 %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [지금 확인하기](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} 생성 이미지 %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} 및 %act{exported to WebP} (으)로 %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [지금 확인하기](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 정확히 짚고 넘어가겠습니다 - 이 페이지가 정확성이 중요하다고 주장하고 있으니까요: 위 이미지는 촬영된 것이 아니라 생성된 것입니다. 그 농가에 카메라가 향한 적은 없습니다, 애초에 그런 농가가 존재하지 않기 때문입니다. 이 이미지는 영국에서 프롬프트를 입력해 미국의 데이터센터에서 생성된, 호주 퀸즐랜드 지역의 모습을 묘사합니다. 어떤 장소를 충실하게 묘사하려 하면서도 그 장소의 기록은 아니며, 그 차이야말로 Content Credentials가 이를 명시하는 전적인 이유입니다.
 

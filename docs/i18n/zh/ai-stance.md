@@ -8,7 +8,7 @@ Lolly 诞生于媒体制作方式自印刷术以来最大的一次变革之中�
 
 ![一场超级单体风暴在内陆一处农舍上空爆发 - 下方是水箱和棚屋，洪水已在干涸的牧场上冲出一道道水道](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} generated image %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} and %act{exported to WebP} as %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [立即验证](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} generated image %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} and %act{exported to WebP} as %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [立即验证](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 说得精确一点，因为这个页面主张精确本身就是重点：上面这张图是生成的，不是拍摄的。没有任何相机对准过那座农舍，因为那座农舍根本不存在。它描绘的是澳大利亚昆士兰州地区，提示词来自英国，生成于美国的一座数据中心。它试图对一个地方保持忠实，却并非对该地方的真实记录，而这一区别，正是它的 Content Credentials 要如实标注的全部理由。
 

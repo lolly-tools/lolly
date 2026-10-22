@@ -8,7 +8,7 @@ Lollyは、印刷機の登場以来メディアの作られ方における最大
 
 ![アウトバックの農場の上空で発達するスーパーセル嵐 - その下にはタンクと小屋があり、洪水の水はすでに乾いた牧草地に水路を刻んでいる](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} が生成した画像 %sig{signed by %entity{Google LLC}} %entity{Lolly} が %act{opened}、%act{resized} および %act{exported to WebP} として %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [今すぐ検証](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} が生成した画像 %sig{signed by %entity{Google LLC}} %entity{Lolly} が %act{opened}、%act{watermarked} および %act{exported to WebP} として %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [今すぐ検証](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 正確を期して言うと - このページは正確さこそが重要だと主張しているので - 上の画像は生成されたものであり、撮影されたものではありません。その農場にカメラが向けられたことは一度もありません。なぜなら、その農場は存在しないからです。この画像はオーストラリア・クイーンズランド州の地方部を描写しており、イギリスからプロンプトが入力され、アメリカのデータセンターで生成されました。ある場所に忠実であろうとしながらも、その記録ではないという点、その違いこそが、Content Credentialsがそう明記している理由のすべてです。
 

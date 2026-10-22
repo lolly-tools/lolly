@@ -4,7 +4,7 @@
 
 Acest document surprinde scopul, structura și deciziile arhitecturale pentru platforma Lolly. Reflectă atât viziunea produsului, cât și starea actuală a codului sursă.
 
-> **Status:** Lolly este un prototip intern aflat într-un **pilot închis, care nu s-a încheiat încă**. Motorul este determinist și consecvent intern, dar produsul este într-o etapă timpurie - SUSE este clientul numărul unu - iar motoarele sale de criptografie și analiză de fișiere trec în prezent prin întărirea strictă de infrastructură a SUSE, pregătindu-se pentru scară enterprise (suntem chiar buni la asta). Citește arhitectura de mai jos ca intenție de design aflată în testare, nu ca produs finit și certificat. Vezi [Adopție și guvernanță](/info/adoption-governance.html#status) pentru cum e condus și măsurat pilotul.
+> **Status:** Lolly a fost lansat. Versiunea 1.0 a apărut ca open source sub MPL-2.0 pe 30 august 2026, iar funcțiile, valorile implicite și catalogul de unelte se mai schimbă între versiuni. Motorul este [determinist](/info/determinism.html), cu o singură cale de randare în spatele fiecărui shell. Securitatea sa nu a trecut încă printr-un audit independent, iar dovezile de adopție au câteva luni. Vezi [Adopție și guvernanță](/info/adoption-governance.html#status) pentru starea actuală și pentru felul în care este măsurată adopția.
 
 > **Cum se citește această pagină.** Conține două tipuri de material, în ordine. Prima jumătate este
 > **de ce există**: problema, poziționarea și ciclul de viață prin care trece un singur activ. De la

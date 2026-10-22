@@ -4,7 +4,7 @@ Lolly は、色、書体、レイアウト、ロジックといったあなた�
 
 まず読むべきページはここ1枚です。すぐに使えるようになるために必要なのは2つ、**Lolly を自分のものにすること**と、**すでにお持ちのものを取り込むこと**（デザインファイルとトークン）です。それ以外はすべてリンクの先にあります。
 
-> Lolly は初めてで、とにかく何か作ってみたいですか。[60秒で何かを作る](/info/make-something.html) では3つの作例を案内します。あるいは [アプリを開いて](/#/)、ギャラリーから好きなツールを選び、空欄を埋めて **Export** を押してください。*あなたの*ブランドをまとわせたくなったら、このページに戻ってきてください。
+> Lolly は初めてで、とにかく何か作ってみたいですか。[最初のファイルを作る](/info/make-something.html) では QR コードを作る手順を案内します。あるいは [アプリを開いて](/#/)、ギャラリーから好きなツールを選び、空欄を埋めて **Export** を押してください。*あなたの*ブランドをまとわせたくなったら、このページに戻ってきてください。
 
 ![ユーティリティ画面。Strip Hidden Data、Compress PDF、Convert Image など、デバイス上で動く実用ツールが一か所に集まっています](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

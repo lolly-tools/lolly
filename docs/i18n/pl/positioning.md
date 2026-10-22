@@ -4,7 +4,7 @@ To, co Lolly robi, a czego dzisiejsze narzędzia kreatywne nie robią, oraz to, 
 
 Wersję porównującą narzędzie po narzędziu, po jednej stronie dla Canvy, Adobe, Figmy, API do renderowania i konwerterów online, znajdziesz w [Lolly na tle innych, narzędzie po narzędziu](/info/compare.html). Każda strona podaje, co dane narzędzie robi lepiej i co Lolly robi zamiast tego.
 
-> **Status pilotażu:** Lolly to prototyp w zamkniętym pilotażu, nie gotowy produkt, a jego bezpieczeństwo przechodzi obecnie rygorystyczne utwardzanie infrastruktury przez SUSE, przygotowujące do skali korporacyjnej. Strona [Adoption & Governance](/info/adoption-governance.html#status) opisuje bieżący stan.
+> **Status:** Lolly zostało wydane: wersja 1.0 ukazała się jako open source 30 sierpnia 2026. Jego bezpieczeństwo nie przeszło jeszcze niezależnego audytu, a dowody wdrożenia mają kilka miesięcy. Strona [Adoption & Governance](/info/adoption-governance.html#status) opisuje bieżący stan.
 
 ## Dzisiejsze narzędzia
 
@@ -14,7 +14,7 @@ Każdy pierścień poniżej ocenia, jak w pełni dana klasa produktu dostarcza d
 Kompletność możliwości w dzisiejszych narzędziach kreatywnych, na podstawie badania z sierpnia 2026. Punktacja: 0 brak, 25 na poziomie obejścia, 50 realne, ale ograniczone lub częściowe, 75 mocne z zastrzeżeniami, 100 kluczowa kompetencja.
 :::
 
-**Uwagi do oceny.** Oceny Lolly zakładają, że jego opublikowane deklaracje się utrzymują, dlatego dojrzałość jest jego jedynym czerwonym pierścieniem: zamknięty pilotaż, utwardzanie bezpieczeństwa w toku, nic jeszcze nieaudytowane. Research przeniósł kilka komórek.
+**Uwagi do oceny.** Dostępne funkcje i dojrzałość produkcyjna to dwie osobne kwestie. Ocena dojrzałości Lolly odzwierciedla pierwsze publiczne wydanie w sierpniu 2026 bez niezależnego audytu bezpieczeństwa; obecność SSO, zatwierdzeń czy renderowania po stronie serwera nie ustanawia historii produkcyjnej. Opisy funkcji poniżej obejmują lolly.work, podczas gdy oceny konkurentów zachowują swój datowany przegląd z sierpnia.
 
 Canva jest oceniana po najlepszym członku swojej rodziny produktów w każdym wierszu, ponieważ posiada Affinity i Cavalry (oba oddane za darmo w październiku 2025). Renderowanie offline i na urządzeniu ocenia się na 75 dzięki Affinity - pakietowi desktopowemu, który nadal wymaga zweryfikowanego konta i niesie telemetrię, co jest tym samym odliczeniem, jakie ponosi też Adobe - podczas gdy własny tryb offline Canvy edytuje wyłącznie wcześniej zsynchronizowane projekty, na jednym urządzeniu, w ograniczonym oknie czasowym. Autofill ocenia się na 50: realny, ale zablokowany za Enterprise, asynchroniczny, tylko tekst i obraz. Masowa generacja w Figmie wzrosła z 25 do 50, gdy Buzz wprowadził wypełnianie z arkusza kalkulacyjnego (darmowa beta, sierpień 2026).
 

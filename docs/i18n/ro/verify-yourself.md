@@ -6,7 +6,7 @@ Dacă vreo verificare de pe această pagină nu produce rezultatul arătat, este
 
 ## Vezi-o funcționând, în zece secunde
 
-Înainte de proceduri, recompensa. Deschide [`/verify`](/#/verify) și lasă un fișier pe ea - fără încărcare, fără cont, fără așteptare după un server. Iată-o verificând [furtuna din Queensland generată](/info/ai-stance.html) din pagina noastră despre poziția privind AI: o imagine Gemini pe care Lolly a deschis-o, redimensionat-o și exportat-o. Fiecare insignă de mai jos a fost calculată pe dispozitiv, din octeții proprii ai fișierului.
+Înainte de proceduri, recompensa. Deschide [`/verify`](/#/verify) și lasă un fișier pe ea - fără încărcare, fără cont, fără așteptare după un server. Iată-o verificând [furtuna din Queensland generată](/info/ai-stance.html) din pagina noastră despre poziția privind AI: o imagine Gemini pe care Lolly a deschis-o, a marcat-o cu filigran și a exportat-o. Fiecare insignă de mai jos a fost calculată pe dispozitiv, din octeții proprii ai fișierului.
 
 ![Verify pe un ecran cu lățime de telefon - imaginea furtunii, un verdict verde Made with Lolly și insignele credential-intact și bytes-unchanged stivuite dedesubt](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

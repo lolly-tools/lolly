@@ -6,7 +6,7 @@ Lolly의 개인정보 보호 및 보안 페이지는 여러 가지를 주장합�
 
 ## 10초 만에 직접 확인하기
 
-절차를 다루기 전에 결과부터 보여드립니다. [`/verify`](/#/verify)를 열고 파일을 끌어다 놓아 보세요 - 업로드도, 계정도, 서버 대기도 없습니다. 여기서는 AI 입장 페이지에 있는 [생성된 퀸즐랜드 폭풍](/info/ai-stance.html) 이미지를 확인하고 있습니다: Lolly가 열고, 크기를 조정하고, 내보낸 Gemini 이미지입니다. 아래의 배지는 모두 파일 자체의 바이트로부터 기기에서 계산된 것입니다.
+절차를 다루기 전에 결과부터 보여드립니다. [`/verify`](/#/verify)를 열고 파일을 끌어다 놓아 보세요 - 업로드도, 계정도, 서버 대기도 없습니다. 여기서는 AI 입장 페이지에 있는 [생성된 퀸즐랜드 폭풍](/info/ai-stance.html) 이미지를 확인하고 있습니다: Lolly가 열고, 워터마크를 넣고, 내보낸 Gemini 이미지입니다. 아래의 배지는 모두 파일 자체의 바이트로부터 기기에서 계산된 것입니다.
 
 ![휴대폰 너비 화면에서의 Verify - 폭풍 이미지, 초록색 Made with Lolly 판정, 그리고 그 아래 쌓인 자격 증명 무결·바이트 불변 배지](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

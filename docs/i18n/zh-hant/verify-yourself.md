@@ -6,7 +6,7 @@ Lolly 的隱私與安全頁面提出了一些主張：沒有分析、沒有追�
 
 ## 十秒內親眼見證
 
-在進入程序之前,先看看成果。開啟 [`/verify`](/#/verify),把一個檔案拖放到上面 - 不上傳、不需帳號、也不用等伺服器。這裡示範的是檢查來自我們 AI 立場頁面的[生成的 Queensland 風暴影像](/info/ai-stance.html)：一張由 Gemini 生成、經 Lolly 開啟、調整大小並匯出的影像。以下每個徽章,都是在裝置上根據檔案本身的位元組計算出來的。
+在進入程序之前,先看看成果。開啟 [`/verify`](/#/verify),把一個檔案拖放到上面 - 不上傳、不需帳號、也不用等伺服器。這裡示範的是檢查來自我們 AI 立場頁面的[生成的 Queensland 風暴影像](/info/ai-stance.html)：一張由 Gemini 生成、經 Lolly 開啟、加上浮水印並匯出的影像。以下每個徽章,都是在裝置上根據檔案本身的位元組計算出來的。
 
 ![在手機寬度螢幕上的 Verify - 風暴影像、綠色的 Made with Lolly 判定,以及底下堆疊的憑證完整與位元組未變動徽章](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

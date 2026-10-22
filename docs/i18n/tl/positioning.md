@@ -4,7 +4,7 @@ Kung ano ang ginagawa ng Lolly na hindi ginagawa ng mga creative tool ngayon, at
 
 Para sa bersyong tool-by-tool, isang pahina bawat isa para sa Canva, Adobe, Figma, rendering APIs at online converters, tingnan ang [Lolly compared, tool by tool](/info/compare.html). Sinasaad ng bawat pahina kung ano ang mas mahusay na ginagawa ng ibang tool at kung ano naman ang ginagawa ng Lolly sa halip.
 
-> **Pilot status:** Ang Lolly ay isang closed-pilot prototype, hindi isang tapos na produkto, at kasalukuyang sinasailalim ang seguridad nito sa mahigpit na infrastructure hardening ng SUSE, bilang paghahanda para sa enterprise scale. Sinasaklaw ng pahinang [Adoption & Governance](/info/adoption-governance.html#status) ang kasalukuyang kalagayan.
+> **Status:** Nailabas na ang Lolly: ang bersyon 1.0 ay inilabas bilang open source noong 30 Agosto 2026. Wala pang independent na audit ang seguridad nito, at ilang buwan na ang adoption evidence nito. Sinasaklaw ng pahinang [Adoption & Governance](/info/adoption-governance.html#status) ang kasalukuyang kalagayan.
 
 ## Mga tool ngayon
 
@@ -14,7 +14,7 @@ Sinusukat ng bawat ring sa ibaba kung gaano kabuo ang paghahatid ng isang produc
 Kumpletuhan ng kakayahan sa mga creative tool ngayon, sinaliksik noong Agosto 2026. Scoring: 0 wala, 25 workaround-grade, 50 tunay ngunit gated o partial, 75 malakas may mga caveat, 100 core competency.
 :::
 
-**Mga tala sa scoring.** Inaandar ng mga marka ng Lolly ang pagpapalagay na totoo ang mga inilathalang claim nito, kaya't ang maturity ang tanging pulang ring nito: closed pilot, may isinasagawang security hardening, wala pang na-audit. Nagpalipat ang research ng ilang cell.
+**Mga tala sa scoring.** Magkahiwalay na usapin ang mga available na feature at ang production maturity. Sumasalamin ang maturity score ng Lolly sa unang public release noong Agosto 2026 na wala pang independent na security audit; hindi nagpapatunay ng production track record ang pagkakaroon ng SSO, approvals o server rendering. Kasama ang lolly.work sa mga paglalarawan ng feature sa ibaba, habang nananatili sa mga marka ng kakumpitensya ang kanilang petsadong review noong Agosto.
 
 Sinusukat ang Canva batay sa pinakamahusay na miyembro ng pamilya nito bawat row, dahil pag-aari nito ang Affinity at Cavalry (parehong ipinamahagi nang libre noong Oktubre 2025). Nakakuha ng 75 ang offline at on-device rendering sa pamamagitan ng Affinity - isang desktop suite na kailangan pa rin ng verified account at may dalang telemetry, ang deduction na kinukuha rin ng Adobe - samantalang ina-edit lamang ng offline mode mismo ng Canva ang mga pre-synced design, isang device, limitadong window. Nakakuha ng 50 ang Autofill: totoo pero Enterprise-gated, async, text at image lamang. Umakyat ng 25 papuntang 50 ang mass generation ng Figma nang mag-ship ang Buzz ng spreadsheet fill (free beta, Agosto 2026).
 

@@ -4,7 +4,7 @@ Hva Lolly gjør som dagens kreative verktøy ikke gjør, og hva den bevisst over
 
 For versjonen verktøy for verktøy, én side hver for Canva, Adobe, Figma, rendrings-API-er og nettbaserte konvertere, se [Lolly sammenlignet, verktøy for verktøy](/info/compare.html). Hver side beskriver hva det andre verktøyet gjør bedre, og hva Lolly gjør i stedet.
 
-> **Pilotstatus:** Lolly er en lukket pilotprototype, ikke et ferdig produkt, og sikkerheten gjennomgår for tiden SUSEs strenge infrastrukturherding, i forberedelse til bedriftsskala. Siden [Adopsjon og styring](/info/adoption-governance.html#status) dekker gjeldende tilstand.
+> **Status:** Lolly er utgitt: versjon 1.0 kom som åpen kildekode 30. august 2026. Sikkerheten har ennå ikke hatt en uavhengig revisjon, og adopsjonsbeleggene er noen måneder gamle. Siden [Adopsjon og styring](/info/adoption-governance.html#status) dekker gjeldende tilstand.
 
 ## Dagens verktøy
 
@@ -14,7 +14,7 @@ Hver ring nedenfor viser hvor fullstendig en produktklasse leverer en kapabilite
 Funksjonsfullstendighet på tvers av dagens kreative verktøy, undersøkt august 2026. Poengsetting: 0 fraværende, 25 omvei-nivå, 50 reell, men avgrenset eller delvis, 75 sterk med forbehold, 100 kjernekompetanse.
 :::
 
-**Vurderingsnotater.** Lollys vurderinger forutsetter at de publiserte påstandene holder, som er grunnen til at modenhet er dens ene røde ring: lukket pilot, sikkerhetsherding pågår, ingenting revidert ennå. Undersøkelser flyttet flere celler.
+**Vurderingsnotater.** Tilgjengelige funksjoner og produksjonsmodenhet er to separate hensyn. Lollys modenhetsscore gjenspeiler en første offentlig utgivelse i august 2026 uten uavhengig sikkerhetsrevisjon ennå; at SSO, godkjenninger eller serverrendering finnes, etablerer ikke en produksjonshistorikk. Funksjonsbeskrivelsene nedenfor inkluderer lolly.work, mens konkurrentenes score beholder sin daterte augustvurdering.
 
 Canva vurderes ut fra sitt beste familiemedlem per rad, siden det eier Affinity og Cavalry (begge gitt bort gratis oktober 2025). Offline- og on-device-rendring skårer 75 gjennom Affinity - en desktop-pakke som fortsatt krever en verifisert konto og har telemetri, samme fradrag som Adobe også får - mens Canvas eget offline-modus kun redigerer forhåndssynkroniserte design, én enhet, begrenset tidsvindu. Autofyll skårer 50: reelt, men Enterprise-låst, asynkront, kun tekst og bilde. Figmas massegenerering steg fra 25 til 50 da Buzz leverte regneark-utfylling (gratis betaversjon, august 2026).
 

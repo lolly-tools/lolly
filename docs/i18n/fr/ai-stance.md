@@ -8,7 +8,7 @@ Lolly a été construit au milieu du plus grand changement dans la façon dont l
 
 ![Une tempête supercellulaire éclatant au-dessus d'une ferme isolée de l'outback - la cuve et les hangars en contrebas, l'eau de crue creusant déjà des rigoles dans le champ desséché](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} image générée %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} et %act{exported to WebP} sous le nom de %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Vérifie ça maintenant](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} image générée %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} et %act{exported to WebP} sous le nom de %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Vérifie ça maintenant](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 Pour être précis, car cette page défend l'idée que la précision compte : l'image ci-dessus est générée, pas photographiée. Aucun appareil photo n'a été pointé vers cette ferme, parce qu'il n'existe pas de ferme. Elle décrit le Queensland régional, en Australie, à partir d'une consigne rédigée depuis le Royaume-Uni, générée dans un centre de données aux États-Unis. Elle cherche à être fidèle à un lieu sans en être l'enregistrement, et cette distinction est la seule raison pour laquelle ses Content Credentials le précisent.
 

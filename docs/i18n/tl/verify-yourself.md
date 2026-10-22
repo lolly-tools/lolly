@@ -6,7 +6,7 @@ Kung may check sa page na ito na hindi nagbunga ng resultang ipinapakita, ito ay
 
 ## Panoorin itong gumana, sa loob ng sampung segundo
 
-Bago ang mga proseso, ang resulta. Buksan ang [`/verify`](/#/verify) at mag-drop ng file dito - walang upload, walang account, walang paghihintay sa server. Narito itong sinusuri ang [ginawang Queensland storm](/info/ai-stance.html) mula sa aming AI stance page: isang Gemini image na binuksan, binago ang laki, at ineksport ng Lolly. Bawat badge sa ibaba ay kinompyut sa device, mula sa sarili nitong bytes ng file.
+Bago ang mga proseso, ang resulta. Buksan ang [`/verify`](/#/verify) at mag-drop ng file dito - walang upload, walang account, walang paghihintay sa server. Narito itong sinusuri ang [ginawang Queensland storm](/info/ai-stance.html) mula sa aming AI stance page: isang Gemini image na binuksan, nilagyan ng watermark, at ineksport ng Lolly. Bawat badge sa ibaba ay kinompyut sa device, mula sa sarili nitong bytes ng file.
 
 ![Verify sa isang phone-width na screen - ang storm image, isang berdeng Made with Lolly verdict at ang credential-intact at bytes-unchanged badges na nakasalansan sa ilalim nito](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

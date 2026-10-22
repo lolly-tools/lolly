@@ -6,7 +6,7 @@ Lolly のプライバシーとセキュリティのページには主張があ�
 
 ## 10秒で動作を見る
 
-手順の前に、結果を先にお見せします。[`/verify`](/#/verify) を開いてファイルをドロップしてください - アップロードなし、アカウント不要、サーバー待ちもありません。ここでは、AI に関する立場のページの[生成されたクイーンズランドの嵐の画像](/info/ai-stance.html)をチェックしています。Lolly が開き、リサイズし、エクスポートした Gemini 画像です。以下のバッジはすべて、ファイル自身のバイト列からデバイス上で計算されたものです。
+手順の前に、結果を先にお見せします。[`/verify`](/#/verify) を開いてファイルをドロップしてください - アップロードなし、アカウント不要、サーバー待ちもありません。ここでは、AI に関する立場のページの[生成されたクイーンズランドの嵐の画像](/info/ai-stance.html)をチェックしています。Lolly が開き、透かしを入れ、エクスポートした Gemini 画像です。以下のバッジはすべて、ファイル自身のバイト列からデバイス上で計算されたものです。
 
 ![スマートフォン幅の画面での Verify - 嵐の画像、緑色の Made with Lolly の判定、その下に積み重なったクレデンシャル無傷およびバイト不変のバッジ](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

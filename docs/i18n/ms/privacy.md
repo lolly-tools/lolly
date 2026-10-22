@@ -1,6 +1,6 @@
 # Dasar Privasi
 
-*Terakhir dikemas kini: 11 Ogos 2026*
+*Terakhir dikemas kini: 22 Oktober 2026*
 
 > **Versi ringkasnya.** Dokumen, imej, video dan fail yang anda hasilkan dalam Lolly kekal
 > pada peranti anda. Tiada akaun untuk penggunaan biasa, tiada kuki daripada
@@ -98,9 +98,9 @@ rangkaian. Jika ia tiada di sini, aplikasi tidak melakukannya.
 | Apa | Apa yang sebenarnya meninggalkan peranti anda | Bila (tindakan yang mencetuskannya) | Jika pengendali menyekatnya |
 |---|---|---|---|
 | Penyegerakan katalog alat | Tiada apa-apa yang peribadi - permintaan untuk indeks alat dan aset awam Lolly sendiri, ke origin aplikasi itu sendiri | Semasa permulaan, kemudian dicache secara luar talian | Aplikasi berjalan dengan set alat yang dicache. Ia hanya berhenti menemui alat baharu |
-| Alat yang memerlukan data langsung | Apa sahaja yang diminta oleh alat tertentu itu, ke hos yang dinamakan dalam penerangannya sendiri. Pada masa ini itu hanyalah carian bandar dalam alat Meeting Planner, yang meminta `geocoding-api.open-meteo.com` untuk menukar nama bandar kepada koordinat dan zon waktu - tiada akaun, tiada kunci dan tiada pengenal selain permintaan itu sendiri. Medan input menyatakannya tepat di tempat anda menaip, dan setiap jawapan disimpan pada peranti anda supaya satu bandar hanya dicari sekali | Hanya semasa menggunakan alat itu, dan hanya sebaik sahaja anda memasukkan lokasi | Carian itu sahaja yang gagal. Anda masih boleh menaip koordinat secara manual, dan tiada apa-apa lagi terjejas |
+| Alat yang memerlukan data langsung | Apa sahaja yang diminta oleh alat tertentu itu, ke hos yang dinamakan dalam penerangannya sendiri. Pada masa ini itu hanyalah carian bandar dalam alat Meeting Planner, yang meminta `geocoding-api.open-meteo.com` untuk menukar setiap nama bandar (bandar hos dan bandar setiap ahli pasukan) kepada koordinat dan zon waktu - tiada akaun, tiada kunci dan tiada pengenal selain permintaan itu sendiri. Input Host city menyatakannya, dan setiap jawapan disimpan pada peranti anda supaya satu bandar hanya dicari sekali | Hanya semasa alat itu dibuka, untuk bandar hos (diisi secara lalai) dan bandar setiap ahli pasukan | Carian itu gagal, dan tiada apa-apa lagi terjejas |
 | Google Fonts | Nama keluarga fon yang dipilih dan alamat IP anda, ke pelayan fon Google (`fonts.googleapis.com` untuk helaian gaya, `fonts.gstatic.com` untuk fail fon) | Hanya jika anda menambah Google Font dalam editor jenama, **dan hanya selepas anda bersetuju dalam dialog yang menyatakan perkara ini dengan tepat** - satu capaian sekali sahaja bagi setiap keluarga, kemudian ia disimpan pada peranti anda dan digunakan secara luar talian | Pemilih Google Fonts gagal secara tertutup. Muat naik fail fon sebagai gantinya |
-| Hantar ke Google Drive | Satu fail yang anda pilih untuk dihantar, ke API Drive Google (`www.googleapis.com`), selepas anda log masuk Google yang anda lengkapkan dalam tetingkap pop timbul Google sendiri. Akses Lolly terhad kepada fail yang dicipta olehnya (skop `drive.file` - ia tidak akan sekali-kali dapat membaca selebihnya Drive anda), dan token log masuk disimpan dalam memori untuk sesi itu sahaja, tidak pernah disimpan kekal | Hanya apabila anda menekan "Send to Google Drive" pada eksport EMF, dan hanya pada binaan di mana pengendali telah mengkonfigurasikan id klien Google - tanpanya butang itu tidak wujud | Butang itu tidak pernah muncul. Muat turun fail itu dan muat naiknya sendiri ke Drive |
+| Hantar ke Google Drive | Satu fail yang anda pilih untuk dihantar, dalam apa-apa format, ke API Drive Google (`www.googleapis.com`), selepas anda log masuk Google yang anda lengkapkan dalam tetingkap Google sendiri. Akses Lolly terhad kepada fail yang dicipta olehnya (skop `drive.file` - ia tidak akan sekali-kali dapat membaca selebihnya Drive anda). Dalam aplikasi web, token log masuk disimpan dalam memori untuk sesi itu sahaja, tidak pernah disimpan kekal; dalam aplikasi lain, token muat semula disimpan pada peranti ini sahaja jika anda menanda "stay connected" | Hanya apabila anda menekan "Send to Google Drive" pada sesuatu fail, dan hanya pada binaan di mana pengendali telah mengkonfigurasikan id klien Google - tanpanya butang itu tidak wujud | Butang itu tidak pernah muncul. Muat turun fail itu dan muat naiknya sendiri ke Drive |
 | Hantar ke Dropbox | Satu fail yang anda pilih untuk dihantar, ke API Dropbox (`api.dropboxapi.com` untuk log masuk dan metadata, `content.dropboxapi.com` untuk fail itu sendiri), selepas anda log masuk Dropbox yang anda lengkapkan dalam tetingkap Dropbox sendiri. Akses Lolly terhad kepada folder aplikasi sahaja (ia hanya dapat melihat `Apps/` dan folder miliknya sendiri di situ - tidak pernah selebihnya Dropbox anda), pautan "Open" yang dipaparkan kepada anda ialah pautan peribadi berjangka pendek (tiada perkongsian awam dicipta), dan token muat semula hanya disimpan jika anda menandakan "stay connected" | Hanya apabila anda menekan "Send to Dropbox" pada satu fail, dan hanya pada binaan di mana pengendali telah mengkonfigurasikan id klien Dropbox - tanpanya butang itu tidak wujud | Butang itu tidak pernah muncul. Muat turun fail itu dan muat naiknya sendiri ke Dropbox |
 | Hantar ke OneDrive | Satu fail yang anda pilih untuk dihantar, ke perkhidmatan identiti dan Graph Microsoft (`login.microsoftonline.com` untuk log masuk, `graph.microsoft.com` untuk muat naik; fail besar dimuat naik secara berkelompok ke alamat muat naik milik Microsoft di `api.onedrive.com`, `*.up.1drv.com` atau `*.sharepoint.com`), selepas anda log masuk Microsoft yang anda lengkapkan dalam tetingkap Microsoft sendiri. Akses Lolly terhad kepada folder miliknya sendiri di bawah `Apps/` (ia tidak akan sekali-kali dapat membaca selebihnya OneDrive anda) ditambah nama paparan anda untuk label akaun, dan token muat semula hanya disimpan jika anda menandakan "stay connected" | Hanya apabila anda menekan "Send to OneDrive" pada satu fail, dan hanya pada binaan di mana pengendali telah mengkonfigurasikan id klien Microsoft - tanpanya butang itu tidak wujud | Butang itu tidak pernah muncul. Muat turun fail itu dan muat naiknya sendiri ke OneDrive |
 | Hantar ke LinkedIn | Satu fail yang anda pilih untuk dihantar, berserta namanya sebagai teks hantaran, ke LinkedIn (`www.linkedin.com` untuk log masuk, `api.linkedin.com` untuk muat naik dan hantaran), selepas anda log masuk LinkedIn yang anda lengkapkan dalam pelayar anda sendiri. Hantaran itu pergi ke suapan anda sendiri sebagai hantaran awam di bawah nama anda. Lolly boleh menghantar bagi pihak anda dan membaca nama anda untuk label akaun, tiada apa-apa lagi pada LinkedIn anda, dan log masuk itu disimpan pada peranti ini hanya jika anda menandakan "stay connected" - token LinkedIn bertahan 60 hari dan tidak boleh diperbaharui secara senyap, jadi ia luput dengan sendirinya | Hanya apabila anda menekan "Send to LinkedIn" pada satu fail, dalam aplikasi desktop sahaja, dan hanya pada binaan di mana aplikasi LinkedIn telah dikonfigurasikan - tanpanya butang itu tidak wujud | Tiada apa untuk disekat dalam aplikasi web: ini wujud dalam **aplikasi desktop sahaja**, jadi kedua-dua hos itu sengaja TIDAK berada dalam Content-Security-Policy aplikasi web di bawah. Dalam aplikasi desktop, buang aplikasi LinkedIn yang dikonfigurasikan dan butang itu tidak akan muncul |
@@ -149,11 +149,13 @@ kunci penandatanganan fail diterbitkan dalam DNS. Pelayar tidak boleh membuat pe
 pelaksanaan web perlu menghalakan carian itu melalui penyelesai DNS-over-HTTPS pihak ketiga
 - yang akan menunjukkan kepada pengendali itu domain yang sedang disemak berserta alamat IP
 anda. Dahulu kami menggunakan milik Cloudflare. **Kami tidak lagi berbuat demikian, dan tiada
-penggantinya**: aplikasi web kini tidak menghantar sebarang penyelesai langsung, jadi pengesahan SEAL
-di sini tidak membuat sebarang permintaan rangkaian. Fail yang rekod SEAL-nya membawa kuncinya secara terus (inline)
-masih boleh disahkan sepenuhnya secara luar talian. Fail yang kuncinya berada dalam DNS akan melaporkan "tiada penyelesai
-kunci" sebagai gantinya, dan anda boleh menyemaknya dalam aplikasi desktop atau baris arahan,
-yang menyelesaikan DNS secara asli melalui mesin anda sendiri tanpa melibatkan pihak ketiga.
+penggantinya**: Verify kini tidak menghantar sebarang penyelesai langsung, jadi pengesahan SEAL
+tidak membuat sebarang permintaan rangkaian. Tiada aplikasi Lolly yang mencari kunci SEAL dalam DNS
+hari ini: aplikasi desktop dan mudah alih menjalankan paparan Verify yang sama, dan `lolly validate`
+baris arahan tidak menyemak SEAL. Fail yang rekod SEAL-nya membawa kuncinya secara terus (inline)
+disemak secara luar talian, dan Verify menyifatkan tandatangan itu konsisten secara dalaman tanpa
+mengesahkan domain. Fail yang kuncinya hanya berada dalam DNS memaparkan **Tandatangan SEAL tidak disahkan**,
+dengan sebab "no key resolver and no inline key".
 
 ![Skrin Verify: sasaran jatuh (drop target) dan tiada apa-apa lagi - fail disemak di tempat ia sudah berada, tanpa muat naik dan tanpa akaun](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop) Anda boleh sahkan ini sendiri: semakan boleh-grep untuk dakwaan ini dan setiap
 lain dakwaan lain pada halaman ini, berserta arahan tepat dan output yang dijangka, terletak di
@@ -211,9 +213,11 @@ ditambah empat alat yang semestinya mengendalikan bait fail:
   menghantar apa-apa: pada pelayan tempatan yang self-hosted, dek itu tidak pernah meninggalkan
   mesin itu; pada pelayan yang dihoskan, memanggil `lolly_rebrand` menghantar dek itu ke sana,
   sehingga had saiz dan slaid yang diberikan peringkat yang sama.
-- <!--i:checklist--> Setiap alat lain - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
-  `lolly_describe_tool` - berfungsi berdasarkan parameter sahaja (teks, nombor, warna,
-  URL, id aset katalog), input yang sama seperti yang diambil oleh URL render pautan-terus.
+- <!--i:checklist--> Alat imej (`lolly_look`, `lolly_sample_color` dan
+  `lolly_trace_edges`) juga boleh menerima fail imej daripada pemanggil, dikendalikan
+  dengan cara yang sama: dalam memori, untuk panggilan itu sahaja. Setiap alat lain berfungsi
+  berdasarkan parameter dalam panggilan itu: teks, nombor, warna, URL, id aset katalog, atau
+  dokumen yang dibekalkan pemanggil.
 - <!--i:lock--> Akses sama ada token dikongsi yang dikeluarkan oleh pengendali kepada klien yang dipercayainya, atau
   OAuth 2.1 tanpa keadaan (stateless): token bertandatangan berjangka pendek yang disahkan terhadap rahsia
   yang dikongsi, tiada apa-apa disimpan di pihak pelayan dan token itu sendiri tidak pernah ditulis ke
@@ -279,34 +283,53 @@ data itu.
 
 ## Sambungan pelayar
 
-Sambungan pelayar **Lolly URL Screenshot** tidak mengumpul, menyimpan atau
-menghantar sebarang data peribadi. Tiada analitik, tiada penjejakan, tiada pelayan jauh.
+Sambungan pelayar **Lolly URL Screenshot** tidak mengumpul data peribadi untuk kami.
+Ia tiada analitik, tiada penjejakan dan tiada pelayan sendiri. Halaman
+[Sambungan Pelayar](/info/extension.html) menerangkan cara ia berfungsi.
 
-**Apa yang ia lakukan.** Apabila anda meminta aplikasi web Lolly untuk menangkap skrin sesuatu URL,
-sambungan itu membuka halaman tersebut dalam tab latar belakang sementara, menangkapnya dalam
-pelayar anda menggunakan DevTools Protocol, menyerahkan imej itu kembali kepada aplikasi dan menutup
-tab itu. Segala-galanya berlaku secara tempatan, pada peranti dan rangkaian anda sendiri.
+**Apa yang ia lakukan.** Aplikasi web Lolly boleh meminta tangkapan skrin sesebuah halaman web
+daripadanya, atau kandungan sesebuah halaman untuk memulakan sistem reka bentuk daripada sebuah laman web.
+Setiap permintaan membuka tetingkap kelulusan dalam sambungan yang menunjukkan laman yang membuat
+permintaan, sama ada ia mahu tangkapan skrin atau kandungan halaman, dan alamat halaman itu. Hanya
+selepas anda menekan **Approve once** barulah sambungan membuka halaman itu dalam tab latar belakang
+sementara, mengambil tangkapan skrin atau membaca halaman itu, menyerahkan hasilnya kepada tab Lolly
+yang memintanya dan menutup tab itu. Setiap permintaan memerlukan kelulusan tersendiri.
 
 **Data.**
 
-- <!--i:shieldcheck--> **Kami tidak mengumpul apa-apa.** Sambungan ini tiada pelayan dan tidak membuat sebarang
-  permintaan rangkaian sendiri.
-- <!--i:photos--> **Imej yang ditangkap** terus pergi ke aplikasi Lolly dalam pelayar yang sama - tidak pernah
-  dimuat naik oleh sambungan itu.
-- <!--i:link--> **URL yang anda tangkap** digunakan hanya untuk memuatkan halaman tunggal itu bagi tangkapan skrin
-  tunggal itu. Ia tidak dilog atau dikongsi.
+- <!--i:shieldcheck--> **Kami tidak mengumpul apa-apa.** Hasilnya hanya pergi ke halaman Lolly
+  yang memintanya, dalam pelayar yang sama. Sambungan ini tidak menyimpan kandungan halaman
+  dan tidak menambah penerima lain.
+- <!--i:globe--> **Permintaan rangkaian.** Halaman yang anda luluskan dimuatkan seperti dalam
+  mana-mana tab, bersama apa sahaja yang diminta oleh halaman itu sendiri. Membaca kandungan
+  halaman juga mengambil helaian gaya halaman itu dan beberapa imej ikon dan logonya,
+  dari dalam halaman, dan pengambilan itu tidak menghantar kuki kepada laman lain.
+  Sambungan ini tidak membuat permintaan lain, dan tiada yang pergi ke pelayan Lolly.
+- <!--i:lock--> **Sesi pelayar anda.** Halaman itu dimuatkan dengan sesi pelayar anda,
+  seperti jika anda membukanya sendiri, jadi halaman yang anda telah log masuk
+  boleh meletakkan maklumat peribadi dalam hasilnya.
+- <!--i:link--> **Alamat yang anda luluskan** digunakan hanya untuk memuatkan halaman tunggal itu
+  bagi permintaan tunggal itu. Ia tidak dilog atau dikongsi.
 
 **Kebenaran.**
 
-- <!--i:wrench--> **`debugger`** - untuk menangkap halaman yang dirender melalui DevTools Protocol (mekanisme
+- <!--i:wrench--> **`debugger`** - untuk mengambil tangkapan skrin melalui DevTools Protocol (mekanisme
   yang sama digunakan oleh aplikasi desktop Lolly).
-- <!--i:monitor--> **`tabs`** - untuk membuka dan menutup tab sementara tempat halaman itu dimuatkan.
-- <!--i:globe--> **Akses hos (`<all_urls>`)** - kerana halaman yang anda pilih untuk ditangkap boleh berada
-  pada mana-mana laman. Chrome memaparkan ini pada waktu pemasangan sebagai amaran
-  kebenaran yang luas. Sambungan ini hanya sekali-kala melawat URL yang anda berikan kepadanya.
+- <!--i:monitor--> **`tabs`** - untuk membuka dan menutup tab sementara, dan untuk menyemak
+  bahawa halaman Lolly mahupun halaman sasaran tidak berpindah sejak anda meluluskan.
+- <!--i:code--> **`scripting`** - untuk membaca kandungan halaman dalam tab sementara,
+  selepas anda meluluskan permintaan itu.
+- <!--i:database--> **`storage`** - untuk mencatat id tab sementaranya dalam
+  storan sesi, supaya ia tetap ditutup jika pelayar menghentikan sambungan semasa
+  permintaan. Tiada kandungan halaman disimpan.
+- <!--i:check--> **Akses laman pilihan (`http://*/*`, `https://*/*`)** - tidak diberikan
+  semasa pemasangan. Apabila anda menekan **Approve once**, sambungan meminta akses Chrome
+  untuk satu laman dalam permintaan itu, dan Chrome bertanya anda kali pertama bagi
+  setiap laman. Laman yang pernah anda benarkan masih memerlukan kelulusan baharu untuk setiap
+  permintaan.
 
 Tiada satu pun daripada ini digunakan untuk membaca, memantau atau menghantar penyemakan imbas anda melebihi
-tangkapan tunggal yang diminta itu.
+satu permintaan yang anda luluskan.
 
 ## Log infrastruktur
 
@@ -319,12 +342,15 @@ pengecualian yang disengajakan ialah fail yang anda serahkan secara jelas kepada
 `lolly_transform`, `lolly_verify`, `lolly_redact` atau `lolly_rebrand`, yang diproses dalam memori dan tidak pernah
 ditulis ke cakera atau log, seperti diterangkan di atas.
 
-**Kod Lolly sendiri tidak menulis apa-apa ke log tersebut.** Pelayan MCP langsung tiada
-penyataan pengelogan. Perkhidmatan sijil menghasilkan tepat dua baris sahaja, kedua-duanya
-apabila gagal dan kedua-duanya sengaja dilucutkan: kod status kegagalan hantar tanpa
-alamat penerima, dan mesej ralat tanpa jejak tindanan (stack trace) atau URL (jejak tindanan boleh
-membawa token pendaftaran). Segala-galanya yang lain dalam log itu adalah milik platform pengehosan,
-bukan milik kami.
+**Perkhidmatan awam meminimumkan pengelogan aplikasi.** Pelayan MCP merekodkan
+permulaan, konfigurasi dan amaran render; ia tidak menyimpan log permintaan sendiri
+dan tidak merekodkan token atau alamat pemanggil. Pass-through Penpot merekodkan
+setiap nama arahan dan status respons Penpot, tidak pernah pengepala, token atau
+failnya. Perkhidmatan sijil merekodkan tetapan permulaan dan amaran konfigurasinya,
+ditambah dua baris yang dilucutkan apabila gagal: kod status kegagalan hantar tanpa
+alamat penerima, dan baris kegagalan tetap tanpa teks ralat, jejak tindanan (stack trace) atau URL
+(ralat penyedia boleh membawa nilai identiti atau bukti kelayakan). Segala-galanya yang lain dalam log itu
+adalah milik platform pengehosan, bukan milik kami.
 
 Untuk lolly.tools, pengehosan ialah Vercel dan tempoh simpanan log capaian mengikut
 tetapan lalai platform Vercel sendiri untuk pelan kami. Kami tidak mengkonfigurasikan sebarang saliran log,
@@ -414,6 +440,14 @@ Tarikh di bahagian atas berubah setiap kali dokumen ini berubah. Perubahan yang 
 apa yang meninggalkan peranti anda atau apa yang disimpan mendapat barisnya sendiri di sini, bukan suntingan
 senyap - jika anda ingin melihat apa yang berubah, tanya (di bawah) atau bandingkan dengan
 [sumber awam](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
+
+**22 Oktober 2026:** membetulkan huraian tingkah laku sedia ada. Bahagian sambungan
+pelayar kini merangkumi tetingkap kelulusan untuk setiap permintaan, akses laman yang
+diminta satu laman pada satu masa serta pengambilan helaian gaya dan ikon semasa
+membaca sesebuah laman web. Turut dibetulkan: baris Hantar ke Google Drive dan Meeting Planner,
+nota SEAL (tiada aplikasi Lolly yang mencari kunci SEAL dalam DNS), tahap telemetri
+penggunaan lalai bagi perkhidmatan organisasi, alat imej MCP dan pengelogan aplikasi
+bagi perkhidmatan awam. Perisian itu sendiri tidak berubah.
 
 ## Siapa yang bertanggungjawab, dan cara menghubungi kami
 

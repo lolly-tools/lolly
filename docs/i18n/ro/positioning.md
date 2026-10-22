@@ -4,7 +4,7 @@ Ce face Lolly și uneltele creative de azi nu fac, și ce lasă în mod delibera
 
 Pentru versiunea unealtă cu unealtă, câte o pagină pentru Canva, Adobe, Figma, API-uri de randare și convertoare online, vezi [Lolly compared, tool by tool](/info/compare.html). Fiecare pagină precizează ce face mai bine cealaltă unealtă și ce face Lolly în schimb.
 
-> **Stare pilot:** Lolly este un prototip aflat într-un pilot închis, nu un produs finalizat, iar securitatea sa se află în prezent în procesul strict de întărire a infrastructurii SUSE, în pregătirea pentru scară enterprise. Pagina [Adoption & Governance](/info/adoption-governance.html#status) acoperă starea actuală.
+> **Status:** Lolly a fost lansat: versiunea 1.0 a apărut ca open source pe 30 august 2026. Securitatea sa nu a trecut încă printr-un audit independent, iar dovezile sale de adopție au câteva luni. Pagina [Adoption & Governance](/info/adoption-governance.html#status) acoperă starea actuală.
 
 ## Uneltele de azi
 
@@ -14,7 +14,7 @@ Fiecare inel de mai jos notează cât de complet livrează o clasă de produse o
 Completitudinea capacităților în uneltele creative de azi, cercetate în august 2026. Punctaj: 0 absent, 25 la nivel de soluție ocolitoare, 50 real dar restricționat sau parțial, 75 puternic cu rezerve, 100 competență de bază.
 :::
 
-**Note privind notarea.** Notele lui Lolly presupun că afirmațiile sale publicate sunt valabile, motiv pentru care maturitatea este singurul său inel roșu: pilot închis, întărirea securității în curs, nimic auditat încă. Cercetarea a modificat mai multe celule.
+**Note privind notarea.** Funcțiile disponibile și maturitatea în producție sunt considerații separate. Nota de maturitate a lui Lolly reflectă o primă lansare publică în august 2026, fără încă un audit de securitate independent; prezența SSO, a aprobărilor sau a randării pe server nu stabilește un istoric în producție. Descrierile funcțiilor de mai jos includ lolly.work, în timp ce notele concurenților păstrează revizuirea datată din august.
 
 Canva este notat pe baza celui mai bun membru al familiei sale pentru fiecare rând, întrucât deține Affinity și Cavalry (ambele oferite gratuit în octombrie 2025). Randarea offline și pe dispozitiv obține 75 prin Affinity - o suită desktop care tot mai are nevoie de un cont verificat și poartă telemetrie, aceeași deducere pe care o suferă și Adobe - în timp ce modul offline propriu al Canva editează doar design-uri presincronizate, pe un singur dispozitiv, într-o fereastră limitată. Autofill obține 50: real, dar limitat la Enterprise, asincron, doar text și imagine. Generarea în masă a Figma a urcat de la 25 la 50 când Buzz a lansat completarea din foaie de calcul (beta gratuit, august 2026).
 

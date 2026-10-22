@@ -4,7 +4,7 @@ Ginagawang mga tool ng Lolly ang mga alituntunin mo - kulay, font, layout, lohik
 
 Ito ang unang pahinang dapat basahin. Dalawang bagay ang magpapaproduktibo sa iyo: **gawing sarili mo ang Lolly** at **dalhin ang mga meron ka na** (ang iyong mga design file at token). Isang link na lang ang layo ng lahat ng iba pa.
 
-> Bago sa Lolly at gusto mo lang gumawa ng kahit ano? Gagabayan ka ng [Gumawa ng isang bagay sa loob ng 60 segundo](/info/make-something.html) sa tatlo, o [buksan ang app](/#/), pumili ng kahit anong tool mula sa gallery, punan ang mga blangko at pindutin ang **Export**. Bumalik dito kapag gusto mo nang isuot nito ang *iyong* brand.
+> Bago sa Lolly at gusto mo lang gumawa ng kahit ano? Gagabayan ka ng [Gumawa ng iyong unang file](/info/make-something.html) sa isang QR code, o [buksan ang app](/#/), pumili ng kahit anong tool mula sa gallery, punan ang mga blangko at pindutin ang **Export**. Bumalik dito kapag gusto mo nang isuot nito ang *iyong* brand.
 
 ![Ang Utilities view - ang mga on-device na kabalikat gaya ng Strip Hidden Data, Compress PDF at Convert Image, nasa iisang lugar](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

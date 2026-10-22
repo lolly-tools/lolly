@@ -8,7 +8,7 @@ Lolly foi construído no meio da maior mudança na forma de produzir mídia desd
 
 ![Uma supercélula rompendo sobre uma fazenda no interior - o tanque e os galpões abaixo, a enxurrada já abrindo canais na pastagem seca](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} imagem gerada %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} e %act{exported to WebP} como %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Verificar agora](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} imagem gerada %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} e %act{exported to WebP} como %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Verificar agora](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 Para ser preciso, porque esta página defende que precisão importa: a imagem acima é gerada, não fotografada. Nenhuma câmera foi apontada para essa fazenda, porque não existe fazenda. Ela descreve o interior de Queensland, Austrália, solicitada a partir do Reino Unido, gerada num data center nos Estados Unidos. Ela busca ser fiel a um lugar sem ser o registro de um lugar, e essa distinção é toda a razão de seus Content Credentials registrarem isso.
 

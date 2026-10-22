@@ -4,7 +4,7 @@
 
 Dokumen ini merakamkan tujuan, struktur dan keputusan seni bina bagi platform Lolly. Ia mencerminkan visi produk dan juga keadaan semasa pangkalan kod.
 
-> **Status:** Lolly ialah prototaip dalaman dalam **pilot tertutup yang belum selesai**. Enjin ini deterministik dan konsisten secara dalaman, tetapi produk ini masih awal - SUSE ialah pelanggan nombor satu - dan enjin kriptografi serta penghuraian failnya kini sedang menjalani pengukuhan infrastruktur ketat SUSE, bersedia untuk skala perusahaan (kami sangat mahir dalam hal ini). Baca seni bina di bawah sebagai niat reka bentuk yang sedang diuji, bukan produk siap dan disahkan. Lihat [Adoption & Governance](/info/adoption-governance.html#status) untuk cara pilot ini dijalankan dan diukur.
+> **Status:** Lolly telah dikeluarkan. Versi 1.0 dilancarkan sebagai sumber terbuka di bawah MPL-2.0 pada 30 Ogos 2026, dan ciri, lalai serta katalog alat masih berubah antara keluaran. Enjin ini [deterministik](/info/determinism.html), dengan satu laluan render di sebalik setiap shell. Keselamatannya belum menjalani audit bebas, dan bukti penerimaannya sudah berusia beberapa bulan. Lihat [Adoption & Governance](/info/adoption-governance.html#status) untuk keadaan semasa dan cara penerimaan diukur.
 
 > **Cara membaca halaman ini.** Ia membawa dua jenis bahan, secara berurutan. Separuh pertama ialah
 > **sebab ini wujud**: masalah, kedudukan dan kitaran hayat yang dilalui oleh satu aset.

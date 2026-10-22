@@ -6,7 +6,7 @@ Als een controle op deze pagina niet het getoonde resultaat oplevert, is dat óf
 
 ## Zie het werken, in tien seconden
 
-Voor de procedures, eerst de opbrengst. Open [`/verify`](/#/verify) en zet er een bestand op - geen upload, geen account, geen wachten op een server. Hier controleert hij de [gegenereerde storm boven Queensland](/info/ai-stance.html) van onze AI-standpuntpagina: een Gemini-afbeelding die Lolly heeft geopend, verkleind en geëxporteerd. Elk badge hieronder is op het apparaat berekend, uit de eigen bytes van het bestand.
+Voor de procedures, eerst de opbrengst. Open [`/verify`](/#/verify) en zet er een bestand op - geen upload, geen account, geen wachten op een server. Hier controleert hij de [gegenereerde storm boven Queensland](/info/ai-stance.html) van onze AI-standpuntpagina: een Gemini-afbeelding die Lolly heeft geopend, van een watermerk voorzien en geëxporteerd. Elk badge hieronder is op het apparaat berekend, uit de eigen bytes van het bestand.
 
 ![Verify op een telefoonbreed scherm - de stormafbeelding, een groen Made with Lolly-oordeel en daaronder gestapeld de badges credential-intact en bytes-unchanged](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

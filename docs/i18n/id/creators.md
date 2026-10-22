@@ -4,13 +4,13 @@ Anda mengisi beberapa field dan sebuah berkas jadi keluar, dengan font, warna, d
 
 Anda adalah satu tangan dalam sebuah estafet: seorang developer dapat menskalakan alat yang Anda gunakan menjadi sebuah pipeline dan seorang kolega dapat menjalankannya secara self-serve, sehingga [Siklus hidup sebuah kampanye](/info/overview.html#the-lifecycle-of-a-campaign) mengikuti satu aset melalui ketiga pasang tangan tersebut.
 
-Baru di sini? Mulai dengan **[Buat sesuatu dalam 60 detik](/info/make-something.html)** dan kembali lagi setelah Anda tahu bagian mana yang ingin Anda dalami. [Pertanyaan & jawaban](/info/faq.html) membahas apa yang ditanyakan orang sebelum mereka mempercayai sebuah alat gratis. [Bagaimana Lolly dibandingkan](/info/positioning.html) adalah penjelasan jujur tentang kapan sebaiknya Anda beralih ke alat lain.
+Baru di sini? Mulai dengan **[Buat berkas pertama Anda](/info/make-something.html)** dan kembali lagi setelah Anda tahu bagian mana yang ingin Anda dalami. [Pertanyaan & jawaban](/info/faq.html) membahas apa yang ditanyakan orang sebelum mereka mempercayai sebuah alat gratis. [Bagaimana Lolly dibandingkan](/info/positioning.html) adalah penjelasan jujur tentang kapan sebaiknya Anda beralih ke alat lain.
 
 ## Buat
 
 Pilih sebuah alat, isi beberapa field, dan unduh berkas jadinya. Atau buka Design canvas dan susun tata letaknya secara bebas: apa pun caranya, warna, tipografi, dan spasi berasal dari brand Anda, bukan dari ingatan, dan tidak satu pun memerlukan akun.
 
-- **[Buat sesuatu dalam 60 detik](/info/make-something.html)** - tiga walkthrough singkat tanpa perlu pengaturan apa pun, jika Anda belum pernah membuka Lolly sebelumnya.
+- **[Buat berkas pertama Anda](/info/make-something.html)** - satu pelajaran singkat tanpa perlu pengaturan apa pun: buat kode QR, unduh, lalu simpan salinan yang bisa diedit. Mulai dari sini jika Anda belum pernah membuka Lolly sebelumnya.
 - **[Menggunakan Lolly](/info/using.html)** - kanvas, kontrol, penyimpanan, Projects, dan penggunaan di ponsel: bagaimana aplikasi ini sendiri berperilaku.
 - **[Brand Studio](/info/brand-studio.html)** - saat logo, warna, dan tipografi harus milik Anda sendiri, bukan default.
 - **[Impor sebuah desain](/info/design-import.html)** - saat karya seni sudah ada sebagai berkas `.fig`, `.penpot`, `.ai`, `.idml`, atau SVG dan Anda ingin itu tetap dapat diedit, bukan diratakan.

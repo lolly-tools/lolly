@@ -8,7 +8,7 @@ Lolly dibina di tengah-tengah perubahan terbesar dalam cara media dihasilkan sej
 
 ![Ribut supercell pecah di atas sebuah ladang pedalaman - tangki dan bangsal di bawah, air banjir sudah mengorek saluran melalui padang yang kering](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} imej yang dijana %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} dan %act{exported to WebP} sebagai %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Sahkan sekarang](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} imej yang dijana %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} dan %act{exported to WebP} sebagai %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Sahkan sekarang](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 Untuk lebih tepat, kerana halaman ini berhujah bahawa ketepatan itu penting: imej di atas dijana, bukan digambar. Tiada kamera diarahkan ke ladang itu, kerana ladang itu tidak wujud. Ia menggambarkan kawasan Queensland, Australia, digesa daripada United Kingdom, dijana dalam pusat data di Amerika Syarikat. Ia cuba setia kepada sesuatu tempat tanpa menjadi rekod tempat itu, dan perbezaan itulah sepenuhnya sebab Content Credentials-nya menyatakan demikian.
 

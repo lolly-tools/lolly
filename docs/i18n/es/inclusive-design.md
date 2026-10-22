@@ -108,9 +108,10 @@ adapta en ambas direcciones, siempre de forma opcional:
 
 ## Inclusión cultural
 
-- <!--i:palette--> La marca neutral de partida no asume nada sobre quién eres;
-  Lolly existe para que tu propia identidad, paleta y tipografía sustituyan a
-  las nuestras en minutos.
+- <!--i:palette--> lolly.tools se abre en [Lolly Demo](/info/lolly-demo.html), el
+  propio sistema de diseño de demostración de Lolly, con el neutral Lolly Starter
+  a un solo interruptor de distancia; Lolly existe para que tu propia identidad,
+  paleta y tipografía sustituyan a las nuestras en minutos.
 - <!--i:pentool--> La tipografía se trata como una superficie cultural: las
   fuentes subidas y las de Google se modelan con conformado de texto correcto en
   todas las escrituras, para que los nombres, los diacríticos y el texto no
@@ -127,7 +128,12 @@ adapta en ambas direcciones, siempre de forma opcional:
   puntos de contacto de red están enumerados en la
   [Política de privacidad](/info/privacy.html). Las preferencias de
   accesibilidad e idioma se guardan en tu propio perfil, en tu dispositivo: una
-  discapacidad o un idioma nunca son telemetría.
+  discapacidad o un idioma nunca son telemetría. La app de Lolly no envía
+  telemetría, y nadie debería tener que entregar sus datos. Un servidor Lolly
+  Work, que una organización ejecuta para sus miembros, puede almacenar eventos
+  de uso formados por etiquetas, como el id de una herramienta, en el nivel que
+  fije la organización, y esos eventos nunca llevan ajustes de accesibilidad ni
+  de idioma; consulta [Telemetría y paneles](/info/work-telemetry.html).
 - <!--i:shieldcheck--> **Procedencia honesta.** Las exportaciones pueden llevar
   Content Credentials, y el contenido generado por IA se etiqueta como tal.
   Creemos que las audiencias merecen saber cómo se hizo un contenido, y que los

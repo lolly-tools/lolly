@@ -4,7 +4,7 @@ Was Lolly leistet, das die heutigen Kreativ-Tools nicht leisten, und was es ihne
 
 Für die Version Tool für Tool, mit je einer Seite für Canva, Adobe, Figma, Render-APIs und Online-Konverter, siehe [Lolly im Vergleich, Tool für Tool](/info/compare.html). Jede Seite nennt, was das jeweils andere Tool besser macht und was Lolly stattdessen tut.
 
-> **Pilot-Status:** Lolly ist ein Prototyp im geschlossenen Pilotbetrieb, kein fertiges Produkt, und seine Sicherheit durchläuft derzeit die strikte Infrastruktur-Härtung von SUSE, als Vorbereitung auf den Einsatz im Enterprise-Maßstab. Die Seite [Adoption & Governance](/info/adoption-governance.html#status) beschreibt den aktuellen Stand.
+> **Status:** Lolly ist veröffentlicht: Version 1.0 erschien am 30. August 2026 als Open Source. Die Sicherheit wurde noch nicht unabhängig geprüft, und die Belege zur Einführung sind einige Monate alt. Die Seite [Adoption & Governance](/info/adoption-governance.html#status) beschreibt den aktuellen Stand.
 
 ## Die heutigen Tools
 
@@ -14,7 +14,7 @@ Jeder Ring unten bewertet, wie vollständig eine Produktklasse eine Fähigkeit *
 Funktionsvollständigkeit heutiger Creative-Tools, recherchiert im August 2026. Bewertung: 0 nicht vorhanden, 25 nur mit Workaround, 50 real, aber eingeschränkt oder Teillösung, 75 stark mit Einschränkungen, 100 Kernkompetenz.
 :::
 
-**Hinweise zur Bewertung.** Lollys Bewertungen setzen voraus, dass die veröffentlichten Angaben zutreffen, weshalb Reife sein einziger roter Ring ist: geschlossener Pilotbetrieb, Sicherheits-Härtung in Arbeit, noch nichts auditiert. Research hat mehrere Zellen verschoben.
+**Hinweise zur Bewertung.** Verfügbare Funktionen und Produktionsreife sind getrennte Gesichtspunkte. Lollys Reifewert spiegelt eine erste öffentliche Veröffentlichung im August 2026 ohne bisherige unabhängige Sicherheitsprüfung; dass es SSO, Freigaben oder Server-Rendering gibt, begründet noch keine Praxiserfahrung im Produktionsbetrieb. Die Funktionsbeschreibungen unten schließen lolly.work ein, während die Bewertungen der Wettbewerber ihrer datierten August-Prüfung folgen.
 
 Canva wird pro Zeile anhand seines besten Familienmitglieds bewertet, da es Affinity und Cavalry besitzt (beide im Oktober 2025 verschenkt). Offline- und On-Device-Rendering erreichen 75 über Affinity - eine Desktop-Suite, die weiterhin ein verifiziertes Konto voraussetzt und Telemetrie mitführt, denselben Abzug, den auch Adobe hinnimmt -, während Canvas eigener Offline-Modus nur bereits synchronisierte Designs bearbeitet, ein Gerät, begrenztes Zeitfenster. Autofill erreicht 50: real, aber Enterprise-gesperrt, asynchron, nur Text und Bild. Figmas Massenerzeugung stieg von 25 auf 50, als Buzz die Tabellenkalkulations-Füllung auslieferte (kostenlose Beta, August 2026).
 

@@ -20,7 +20,7 @@ Lolly büyük hacimde içerik üretir. Riski önlemek için katı bir veri minim
 
 Lolly; yapay zeka destekli kodlama, yapay zeka destekli keşif ve birçok yerde yapay zeka destekli içerikle, kamu bulutunun öncü şirketleri dahil çeşitli model ve tedarikçilerin bir karışımı kullanılarak geliştirildi.
 
-Bu yazının yazıldığı tarih itibarıyla Lolly, tedarik zincirinde bilinen sıfır güvenlik açığı içeriyor ve CVE'ler ortaya çıktığında hızlı güvenlik müdahale uygulamalarını taahhüt ediyor.
+Lolly'nin bağımlılıklarındaki yüksek veya kritik bir güvenlik uyarısı CI'ı engeller. Henüz düzeltilemeyen bir uyarı, yalnızca yazılı gerekçesi olan onaylı bir istisna olarak bekletilir. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) bugün tutulan her istisnayı, [sürüm notları](https://github.com/lolly-tools/lolly/releases) ise her sürümün taşıdıklarını listeler. SECURITY.md ayrıca bir güvenlik açığının nasıl bildirileceğini de anlatır.
 
 Mimariyi bir insan oluşturdu, kodu bilinçli biçimde derledi ve deneyimin sanat yönetmenliğini üstlendi.
 
@@ -52,7 +52,9 @@ Bu liste, Lolly içine gömülü modelleri içermez.
 
 ## Mobil ya da masaüstü uygulamalarını nasıl edinirim?
 
-Herkes kendi uygulamasını dağıtabilir; bu uygulamaların araçları ve yapılandırması, hedeflenen kitleye göre büyük ölçüde değişir. Yani sen yapmadıkça ya da ilgili biri sana vermedikçe tek bir uygulama yok.
+Bunları [Lolly'yi kur](/info/install.html) sayfasından indir. Sayfa macOS, Windows, Linux ve Android için her derlemeyi listeler ve indirdiğin dosyayı nasıl denetleyeceğini gösterir. iPhone ve iPad için henüz herkese açık bir indirme yok; bunun yerine ne kullanacağını [iPhone ve iPad bölümü](/info/install.html#iphone-and-ipad) anlatır.
+
+Herkes ayrıca uygulamanın kendi kopyasını, kitlesinin ihtiyaç duyduğu araçlar ve ayarlarla derleyip dağıtabilir. [Derleme Kılavuzu](/info/build-guide.html) nasıl yapılacağını gösterir.
 
 ## Neden "Lolly Tools" adı?
 
@@ -127,7 +129,7 @@ Katmanlar açık tuvale düzenlenebilir kutular olarak gelir: metin yeniden yaz�
 
 ## Dün yaptığım şeyi nerede bulabilirim?
 
-**Farklı kaydet** ya da **Kaydet**'e bastıysan, kaydettiğin tarayıcıda ya da uygulamada, ana ekranda, **Projeler**'dedir. Yalnızca **İndir**'e bastıysan, dosya tarayıcının ya da sisteminin indirmeleri kaydettiği yerdedir ve genellikle bir kopyası **Varlıklar**'dadır. Dokuz araç, kaydedilmemiş çalışmayı da **Projeler**'de tutar. [Çalışmanı bul ve kurtar](/info/find-your-work.html) her durumu kapsar.
+**Farklı kaydet** ya da **Kaydet**'e bastıysan, kaydettiğin tarayıcıda ya da uygulamada, ana ekranda, **Projeler**'dedir. Yalnızca **İndir**'e bastıysan, dosya tarayıcının ya da sisteminin indirmeleri kaydettiği yerdedir ve genellikle bir kopyası **Varlıklar**'dadır. [Çalışırken kaydeden](/info/find-your-work.html#which-tools-save-as-you-work) araçlar, kaydedilmemiş çalışmayı da **Projeler**'de tutar. [Çalışmanı bul ve kurtar](/info/find-your-work.html) her durumu kapsar.
 
 ## Sekmeyi kapattım. Çalışmam gitti mi?
 
@@ -143,7 +145,7 @@ Evet. Biri bir davet paylaşır (bir bağlantı, bir QR kodu ya da kısa bir kod
 
 ## SUSE markalı araçlar nereye gitti?
 
-Onlar zaten ayrı, özel bir depoda duruyor. Herkese açık bir klon SUSE marka paketini hiç çekmez; dolayısıyla herkese açık bir derleme nötr `lolly-start` profilini çalıştırır - markadan bağımsız topluluk araçları ve kendi markanla doldurduğun boş bir marka. SUSE, ticari markalarını korumak için kendi örneğini işletir.
+Onlar zaten ayrı, özel bir depoda duruyor. Herkese açık bir klon SUSE marka paketini hiç çekmez; dolayısıyla ondan yapılan bir derleme, başka bir tane seçmezsen nötr `lolly-start` profilini kullanır - markadan bağımsız topluluk araçları ve kendi markanla doldurduğun boş bir marka. [lolly.tools](https://lolly.tools), `lolly-demo` profiliyle derlenir ve Lolly'nin kendi tasarım sistemi olan [Lolly Demo](/info/lolly-demo.html) ile açılır. SUSE, ticari markalarını korumak için kendi örneğini işletir.
 
 ## Neden ücretsiz? Bit yeniği nerede?
 
@@ -153,7 +155,7 @@ Bu sınır bir sözle değil, lisansla çizildi: yerelde çalışan her şey son
 
 ## SUSE ne kadarını özel tutuyor? (yani halı ne zaman ayağımızın altından çekilecek)
 
-Motor, kabuklar, şemalar ve markadan bağımsız araçlar açık kaynaktır; özel kalan kısım SUSE'nin ticari markaları ile markalı araçlarıdır ve bunlar zaten ayrılmış durumdadır. [lolly.tools](https://lolly.tools) adresindeki genel örnek, boş marka üzerinde çalışır.
+Motor, kabuklar, şemalar ve markadan bağımsız araçlar açık kaynaktır; özel kalan kısım SUSE'nin ticari markaları ile markalı araçlarıdır ve bunlar zaten ayrılmış durumdadır. [lolly.tools](https://lolly.tools) adresindeki genel örnek, Lolly'nin kendi tasarım sistemi olan [Lolly Demo](/info/lolly-demo.html) üzerinde çalışır.
 
 Bu sınır söz verilmiş değil, yapısaldır. Yayımlanan her sürüm açık kaynaktır ve yayımlanmamış hale getirilemez, kimsenin çalışmasını yeniden lisanslayabilecek bir katkıda bulunan sözleşmesi yoktur ve geride tutulan tek şey ticari markadır. 2023'te başka bir şirket kurumsal Linux kaynaklarını kapattığında SUSE, o kodu açık tutmak için [OpenELA](https://openela.org) oluşumunun kurucularından biri oldu - bu proje de aynı duruşu devralıyor.
 

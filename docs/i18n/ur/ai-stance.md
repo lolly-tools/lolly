@@ -8,7 +8,7 @@ Lolly کو اُس سب سے بڑی تبدیلی کے عین درمیان تعم�
 
 ![ایک سپر سیل طوفان دیہی علاقے کے ایک فارم ہاؤس پر ٹوٹتا ہوا - نیچے ٹینک اور شیڈز، سیلابی پانی پہلے ہی خشک کھیت میں راستے کاٹتا ہوا](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} سے تیار کردہ تصویر %sig{signed by %entity{Google LLC}} %entity{Lolly} نے %act{opened}، %act{resized} اور %act{exported to WebP} بطور %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [ابھی تصدیق کریں](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} سے تیار کردہ تصویر %sig{signed by %entity{Google LLC}} %entity{Lolly} نے %act{opened}، %act{watermarked} اور %act{exported to WebP} بطور %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [ابھی تصدیق کریں](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 اس بارے میں دقیق بات کریں، کیونکہ یہ صفحہ یہی دلیل دیتا ہے کہ درستگی اہم ہے: اوپر دی گئی تصویر تیار کی گئی ہے، تصویر کھینچی نہیں گئی۔ اُس فارم ہاؤس پر کوئی کیمرہ نہیں تانا گیا، کیونکہ وہاں کوئی فارم ہاؤس موجود ہی نہیں۔ یہ برطانیہ سے دیے گئے پرامپٹ سے، امریکہ کے ایک ڈیٹا سینٹر میں تیار کی گئی، اور کوئنزلینڈ، آسٹریلیا کے ایک علاقے کی منظر کشی کرتی ہے۔ یہ کسی جگہ کے ساتھ وفادار رہنے کی کوشش کرتی ہے بغیر اُس کا ریکارڈ ہوئے، اور یہی فرق اُس کی Content Credentials کے یہ کہنے کی پوری وجہ ہے۔
 

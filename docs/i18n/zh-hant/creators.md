@@ -4,13 +4,13 @@
 
 您是接力賽中的一棒:開發人員可以將您使用的工具擴展為一套流程,同事也能自助執行它,因此[活動的生命週期](/info/overview.html#the-lifecycle-of-a-campaign)一文追蹤了單一素材如何經過這三雙手。
 
-剛接觸這裡?先從**[六十秒做出成品](/info/make-something.html)**開始,等您確定想深入了解哪個部分後再回來。[問題與解答](/info/faq.html)整理了人們在信任一項免費工具之前會提出的疑問。[Lolly 與其他工具的比較](/info/positioning.html)則誠實說明了什麼時候該改用其他工具。
+剛接觸這裡?先從**[製作你的第一個檔案](/info/make-something.html)**開始,等您確定想深入了解哪個部分後再回來。[問題與解答](/info/faq.html)整理了人們在信任一項免費工具之前會提出的疑問。[Lolly 與其他工具的比較](/info/positioning.html)則誠實說明了什麼時候該改用其他工具。
 
 ## 製作
 
 選擇一項工具,填寫幾個欄位,下載成品檔案。或者開啟 Design 畫布,自由排版:無論哪種方式,色彩、字體與間距都取自您的品牌,而非憑記憶決定,且完全不需要帳號。
 
-- **[六十秒做出成品](/info/make-something.html)** - 三段簡短示範，完全不用設定，適合從未打開過 Lolly 的您。
+- **[製作你的第一個檔案](/info/make-something.html)** - 一堂完全不用設定的簡短課程：做一個 QR code，下載它，並儲存一份可編輯的副本。如果您從未打開過 Lolly，請從這裡開始。
 - **[使用 Lolly](/info/using.html)** - 畫布、控制項、儲存、Projects 與手機使用方式：應用程式本身的運作方式。
 - **[The Brand Studio](/info/brand-studio.html)** - 何時該讓標誌、色彩與字體真正屬於您，而非使用預設值。
 - **[匯入設計](/info/design-import.html)** - 當作品已存在為 `.fig`、`.penpot`、`.ai`、`.idml` 或 SVG 檔案，而您希望它可編輯而非扁平化時。

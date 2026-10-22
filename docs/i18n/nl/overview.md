@@ -4,7 +4,7 @@
 
 Dit document legt het doel, de structuur en de architectuurbeslissingen voor het Lolly-platform vast. Het weerspiegelt zowel de productvisie als de huidige staat van de codebase.
 
-> **Status:** Lolly is een intern prototype in een **gesloten pilot die nog niet is afgerond**. De engine is deterministisch en intern consistent, maar het product is vroeg - SUSE is klant nummer één - en de cryptografie- en bestandsparse-engines ondergaan momenteel SUSE's strikte infrastructuurhardening, ter voorbereiding op enterprise-schaal (daar zijn we echt goed in). Lees de architectuur hieronder als ontwerpintentie onder test, niet als een afgerond, gecertificeerd product. Zie [Adoptie & Governance](/info/adoption-governance.html#status) voor hoe de pilot wordt uitgevoerd en gemeten.
+> **Status:** Lolly is uitgebracht. Versie 1.0 verscheen op 30 augustus 2026 als open source onder MPL-2.0, en functies, standaardwaarden en de toolcatalogus veranderen nog tussen releases. De engine is [deterministisch](/info/determinism.html), met één renderpad achter elke shell. De beveiliging is nog niet onafhankelijk geaudit, en het bewijs voor adoptie is enkele maanden oud. Zie [Adoptie & Governance](/info/adoption-governance.html#status) voor de huidige stand van zaken en hoe adoptie wordt gemeten.
 
 > **Hoe je deze pagina leest.** Ze bevat twee soorten materiaal, in volgorde. De eerste helft gaat over
 > **waarom dit bestaat**: het probleem, de positionering en de levenscyclus die één asset doorloopt.

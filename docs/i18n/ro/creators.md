@@ -4,13 +4,13 @@ Completezi câteva câmpuri și iese un fișier finit, cu fonturile, culorile ș
 
 Ești o mână într-o ștafetă: un developer poate extinde instrumentul pe care îl folosești într-un pipeline, iar un coleg îl poate rula autonom (self-serve), așa că [Ciclul de viață al unei campanii](/info/overview.html#the-lifecycle-of-a-campaign) urmărește o resursă prin toate cele trei perechi de mâini.
 
-Nou aici? Începe cu **[Fă ceva în 60 de secunde](/info/make-something.html)** și revino odată ce știi ce parte vrei să aprofundezi. [Întrebări și răspunsuri](/info/faq.html) acoperă ce întreabă lumea înainte să aibă încredere într-un instrument gratuit. [Cum se compară Lolly](/info/positioning.html) este relatarea onestă despre când să alegi altceva.
+Nou aici? Începe cu **[Fă-ți primul fișier](/info/make-something.html)** și revino odată ce știi ce parte vrei să aprofundezi. [Întrebări și răspunsuri](/info/faq.html) acoperă ce întreabă lumea înainte să aibă încredere într-un instrument gratuit. [Cum se compară Lolly](/info/positioning.html) este relatarea onestă despre când să alegi altceva.
 
 ## Creează
 
 Alege un instrument, completează câteva câmpuri și descarcă fișierul finit. Sau deschide canvasul Design și așază totul de mână liberă: în ambele cazuri, culorile, tipografia și spațierea vin din brandul tău, nu din memorie, și nimic nu are nevoie de cont.
 
-- **[Fă ceva în 60 de secunde](/info/make-something.html)** - trei ghiduri scurte fără nimic de configurat, dacă n-ai mai deschis Lolly până acum.
+- **[Fă-ți primul fișier](/info/make-something.html)** - o lecție scurtă fără nimic de configurat: creează un cod QR, descarcă-l și salvează o copie editabilă. Începe de aici dacă n-ai mai deschis Lolly până acum.
 - **[Folosirea Lolly](/info/using.html)** - canvasul, comenzile, salvarea, Proiectele și folosirea pe telefon: cum se comportă aplicația în sine.
 - **[Brand Studio](/info/brand-studio.html)** - când siglele, culorile și tipografia trebuie să fie ale tale, nu cele implicite.
 - **[Importă un design](/info/design-import.html)** - când desenul există deja ca fișier `.fig`, `.penpot`, `.ai`, `.idml` sau SVG și vrei să fie editabil, nu aplatizat.

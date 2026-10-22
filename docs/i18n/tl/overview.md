@@ -4,7 +4,7 @@
 
 Nakukuha ng dokumentong ito ang layunin, istruktura at mga desisyon sa arkitektura para sa Lolly platform. Ipinapakita nito kapwa ang pananaw ng produkto at ang kasalukuyang estado ng codebase.
 
-> **Status:** Ang Lolly ay isang internal na prototype sa isang **closed pilot na hindi pa nakumpleto**. Deterministic at internally consistent ang engine, ngunit maaga pa ang produkto - si SUSE ang customer number one - at ang mga cryptography at file-parsing engine nito ay kasalukuyang sumasailalim sa mahigpit na infrastructure hardening ng SUSE, bilang paghahanda para sa enterprise scale (talagang magaling kami dito). Basahin ang arkitektura sa ibaba bilang design intent na nasa ilalim ng pagsubok, hindi isang tapos at certified na produkto. Tingnan ang [Adoption & Governance](/info/adoption-governance.html#status) para sa kung paano pinapatakbo at sinusukat ang pilot.
+> **Status:** Nailabas na ang Lolly. Ang bersyon 1.0 ay inilabas bilang open source sa ilalim ng MPL-2.0 noong 30 Agosto 2026, at nagbabago pa rin ang mga feature, default at tool catalog sa pagitan ng mga release. [Deterministic](/info/determinism.html) ang engine, na may iisang render path sa likod ng bawat shell. Wala pang independent na audit ang seguridad nito, at ilang buwan na ang adoption evidence. Tingnan ang [Adoption & Governance](/info/adoption-governance.html#status) para sa kasalukuyang kalagayan at kung paano sinusukat ang adoption.
 
 > **Paano basahin ang pahinang ito.** May dalang dalawang uri ng materyal ito, ayon sa pagkakasunod-sunod. Ang unang kalahati ay
 > **bakit ito umiiral**: ang problema, ang positioning at ang lifecycle na tinatahak ng isang solong asset

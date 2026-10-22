@@ -4,7 +4,7 @@
 
 Bu belge, Lolly platformunun amacını, yapısını ve mimari kararlarını kayıt altına alır. Hem ürün vizyonunu hem de kod tabanının mevcut durumunu yansıtır.
 
-> **Durum:** Lolly, **tamamlanmamış kapalı bir pilot** aşamasındaki bir dahili prototiptir. Motor deterministik ve dahili olarak tutarlıdır, ancak ürün henüz erken aşamadadır - SUSE bir numaralı müşteridir - ve kriptografi ile dosya ayrıştırma motorları şu anda SUSE'nin katı altyapı sağlamlaştırma sürecinden geçmektedir, kurumsal ölçeğe hazırlanmaktadır (bu konuda gerçekten iyiyiz). Aşağıdaki mimariyi bitmiş, sertifikalı bir ürün olarak değil, test altındaki tasarım niyeti olarak oku. Pilotun nasıl yürütüldüğü ve ölçüldüğü için bkz. [Benimseme ve Yönetişim](/info/adoption-governance.html#status).
+> **Durum:** Lolly yayımlandı. 1.0 sürümü 30 Ağustos 2026'da MPL-2.0 altında açık kaynak olarak çıktı; özellikler, varsayılanlar ve araç kataloğu sürümler arasında hâlâ değişiyor. Motor [deterministiktir](/info/determinism.html) ve her kabuğun arkasında tek bir render yolu vardır. Güvenliği henüz bağımsız bir denetimden geçmedi ve benimsenme kanıtı birkaç aylıktır. Güncel durum ve benimsenmenin nasıl ölçüldüğü için bkz. [Benimseme ve Yönetişim](/info/adoption-governance.html#status).
 
 > **Bu sayfa nasıl okunur.** İki tür içerik taşır, sırayla. İlk yarısı
 > **bunun neden var olduğu**dur: sorun, konumlandırma ve tek bir varlığın geçtiği yaşam döngüsü.

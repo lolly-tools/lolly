@@ -4,7 +4,7 @@ Apa yang dilakukan Lolly yang tidak dilakukan alat kreatif masa kini, dan apa ya
 
 Untuk versi per alat, satu halaman masing-masing untuk Canva, Adobe, Figma, API rendering dan konverter online, lihat [Lolly dibandingkan, alat demi alat](/info/compare.html). Setiap halaman menyatakan apa yang dilakukan alat lain dengan lebih baik dan apa yang dilakukan Lolly sebagai gantinya.
 
-> **Status pilot:** Lolly adalah prototipe pilot tertutup, bukan produk jadi, dan keamanannya saat ini sedang menjalani pengerasan infrastruktur ketat SUSE, mempersiapkan skala enterprise. Halaman [Adoption & Governance](/info/adoption-governance.html#status) membahas kondisi saat ini.
+> **Status:** Lolly sudah dirilis: versi 1.0 diluncurkan sebagai open source pada 30 Agustus 2026. Keamanannya belum pernah diaudit secara independen, dan bukti adopsinya berusia beberapa bulan. Halaman [Adoption & Governance](/info/adoption-governance.html#status) membahas kondisi saat ini.
 
 ## Alat masa kini
 
@@ -14,7 +14,7 @@ Setiap cincin di bawah ini menilai seberapa lengkap sebuah kelas produk memberik
 Kelengkapan kapabilitas di antara alat kreatif hari ini, diteliti Agustus 2026. Penilaian: 0 tidak ada, 25 tingkat akal-akalan, 50 nyata tetapi terbatas atau parsial, 75 kuat dengan catatan, 100 kompetensi inti.
 :::
 
-**Catatan penilaian.** Skor Lolly mengasumsikan klaim yang dipublikasikannya berlaku, itulah sebabnya kematangan adalah satu-satunya cincin merahnya: pilot tertutup, pengerasan keamanan sedang berlangsung, belum ada yang diaudit. Riset menggeser beberapa sel.
+**Catatan penilaian.** Ketersediaan fitur dan kematangan produksi adalah dua pertimbangan yang terpisah. Skor kematangan Lolly mencerminkan rilis publik pertama pada Agustus 2026 yang belum memiliki audit keamanan independen; adanya SSO, persetujuan atau rendering server tidak membuktikan rekam jejak produksi. Deskripsi fitur di bawah mencakup lolly.work, sedangkan skor pesaing tetap memakai tinjauan Agustus mereka yang bertanggal.
 
 Canva dinilai berdasarkan anggota keluarga terbaiknya per baris, karena ia memiliki Affinity dan Cavalry (keduanya digratiskan Oktober 2025). Rendering offline dan on-device mendapat skor 75 melalui Affinity - suite desktop yang masih memerlukan akun terverifikasi dan membawa telemetri, pengurangan yang juga diambil Adobe - sementara mode offline Canva sendiri hanya mengedit desain yang sudah disinkronkan sebelumnya, satu perangkat, jendela terbatas. Autofill mendapat skor 50: nyata tetapi dibatasi Enterprise, asinkron, hanya teks dan gambar. Mass generation Figma naik dari 25 ke 50 saat Buzz merilis pengisian spreadsheet (beta gratis, Agustus 2026).
 

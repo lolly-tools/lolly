@@ -1,6 +1,6 @@
 # Personvernerklæring
 
-*Sist oppdatert: 11. august 2026*
+*Sist oppdatert: 22. oktober 2026*
 
 > **Kortversjonen.** Dokumentene, bildene, videoene og filene du lager i Lolly, blir
 > på enheten din. Det finnes ingen kontoer for vanlig bruk, ingen infokapsler fra selve
@@ -97,9 +97,9 @@ nettverk. Hvis det ikke står her, gjør ikke appen det.
 | Hva | Hva som faktisk forlater enheten din | Når (handlingen som utløser det) | Hvis en operatør blokkerer det |
 |---|---|---|---|
 | Synkronisering av verktøykatalogen | Ingenting personlig - en forespørsel om Lollys egen offentlige verktøy- og ressursindeks, til appens egen opprinnelse | Ved oppstart, deretter bufret for bruk offline | Appen kjører på det bufrede verktøysettet sitt. Den slutter bare å oppdage nye verktøy |
-| Et verktøy som trenger sanntidsdata | Det den spesifikke verktøyet ber om, til verten som er nevnt i sin egen beskrivelse. I dag er dette bare bysøket i Meeting Planner-verktøyet, som spør `geocoding-api.open-meteo.com` om å gjøre et bynavn om til koordinater og en tidssone - ingen konto, ingen nøkkel og ingen identifikator utover selve forespørselen. Inndatafeltet sier dette rett der du skriver, og hvert svar lagres på enheten din slik at en by bare slås opp én gang | Bare mens du bruker det verktøyet, og bare når du oppgir et sted | Det ene oppslaget mislykkes. Du kan fortsatt skrive inn koordinater for hånd, og ingenting annet påvirkes |
+| Et verktøy som trenger sanntidsdata | Det den spesifikke verktøyet ber om, til verten som er nevnt i sin egen beskrivelse. I dag er dette bare bysøket i Meeting Planner-verktøyet, som spør `geocoding-api.open-meteo.com` om å gjøre hvert bynavn (vertsbyen og hvert teammedlems by) om til koordinater og en tidssone - ingen konto, ingen nøkkel og ingen identifikator utover selve forespørselen. Inndatafeltet Host city sier dette, og hvert svar lagres på enheten din slik at en by bare slås opp én gang | Bare mens det verktøyet er åpent, for vertsbyen (utfylt som standard) og hvert teammedlems by | Det oppslaget mislykkes, og ingenting annet påvirkes |
 | Google Fonts | Navnet på den valgte skriftfamilien og IP-adressen din, til Googles skriftservere (`fonts.googleapis.com` for stilarket, `fonts.gstatic.com` for skriftfilen) | Bare hvis du legger til en Google Font i merkevareredigeringen, **og bare etter at du godtar det i en dialogboks som sier nøyaktig dette** - én henting per familie, deretter ligger den på enheten din og brukes offline | Google Fonts-velgeren feiler lukket. Last opp en skriftfil i stedet |
-| Send to Google Drive | Den ene filen du valgte å sende, til Googles Drive-API (`www.googleapis.com`), etter en Google-innlogging du fullfører i Googles eget popup-vindu. Lollys tilgang er begrenset til filer den selv har opprettet (omfanget `drive.file` - den kan aldri lese resten av Driven din), og innloggingstoken holdes i minnet for økten, aldri lagret | Bare når du trykker på «Send to Google Drive» på en EMF-eksport, og bare i versjoner der operatøren har konfigurert en Google-klient-ID - uten en finnes ikke knappen | Knappen vises aldri. Last ned filen og last den opp til Drive selv |
+| Send to Google Drive | Den ene filen du valgte å sende, i et hvilket som helst format, til Googles Drive-API (`www.googleapis.com`), etter en Google-innlogging du fullfører i Googles eget vindu. Lollys tilgang er begrenset til filer den selv har opprettet (omfanget `drive.file` - den kan aldri lese resten av Driven din). I nettappen holdes innloggingstoken i minnet for økten, aldri lagret; i de andre appene lagres et fornyingstoken bare på denne enheten hvis du krysser av for «stay connected» | Bare når du trykker på «Send to Google Drive» på en fil, og bare i versjoner der operatøren har konfigurert en Google-klient-ID - uten en finnes ikke knappen | Knappen vises aldri. Last ned filen og last den opp til Drive selv |
 | Send to Dropbox | Den ene filen du valgte å sende, til Dropboxs API (`api.dropboxapi.com` for innlogging og metadata, `content.dropboxapi.com` for selve filen), etter en Dropbox-innlogging du fullfører i Dropboxs eget vindu. Lollys tilgang er begrenset til appmappen (den kan bare noensinne se `Apps/` og sin egen mappe der - aldri resten av Dropboxen din), «Open»-lenken den viser deg er en kortvarig privat lenke (ingen offentlig deling opprettes), og et fornyingstoken lagres bare hvis du krysser av for «stay connected» | Bare når du trykker på «Send to Dropbox» på en fil, og bare i versjoner der operatøren har konfigurert en Dropbox-klient-ID - uten en finnes ikke knappen | Knappen vises aldri. Last ned filen og last den opp til Dropbox selv |
 | Send to OneDrive | Den ene filen du valgte å sende, til Microsofts identitets- og Graph-tjenester (`login.microsoftonline.com` for innlogging, `graph.microsoft.com` for opplastingen; en stor fil lastes opp i biter til en Microsoft-eid opplastingsadresse på `api.onedrive.com`, `*.up.1drv.com` eller `*.sharepoint.com`), etter en Microsoft-innlogging du fullfører i Microsofts eget vindu. Lollys tilgang er begrenset til sin egen mappe under `Apps/` (den kan aldri lese resten av OneDriven din) pluss visningsnavnet ditt til kontoetiketten, og et fornyingstoken lagres bare hvis du krysser av for «stay connected» | Bare når du trykker på «Send to OneDrive» på en fil, og bare i versjoner der operatøren har konfigurert en Microsoft-klient-ID - uten en finnes ikke knappen | Knappen vises aldri. Last ned filen og last den opp til OneDrive selv |
 | Send to LinkedIn | Den ene filen du valgte å sende, pluss navnet på den som teksten i innlegget, til LinkedIn (`www.linkedin.com` for innloggingen, `api.linkedin.com` for opplastingen og innlegget), etter en LinkedIn-innlogging du fullfører i din egen nettleser. Innlegget går til din egen feed som et offentlig innlegg under navnet ditt. Lolly kan publisere som deg og lese navnet ditt til kontoetiketten, ingenting annet på LinkedIn-en din, og innloggingen beholdes på denne enheten bare hvis du krysser av for «stay connected» - LinkedIns tokener varer i 60 dager og kan ikke fornyes stille, så den utløper av seg selv | Bare når du trykker på «Send to LinkedIn» på en fil, bare i skrivebordsappene, og bare i versjoner der en LinkedIn-app er konfigurert - uten en finnes ikke knappen | Ingenting å blokkere i nettappen: dette finnes **bare i skrivebordsappene**, så disse to vertene er bevisst IKKE i nettappens Content-Security-Policy nedenfor. I skrivebordsappene, fjern den konfigurerte LinkedIn-appen, så vises knappen aldri |
@@ -148,12 +148,13 @@ fils signeringsnøkkel publiseres i DNS. Nettlesere kan ikke gjøre DNS-oppslag,
 nettleserimplementasjon må rute oppslaget gjennom en tredjeparts DNS-over-HTTPS-
 resolver - som ville vise den operatøren domenet som sjekkes, pluss IP-
 adressen din. Vi pleide å bruke Cloudflares. **Det gjør vi ikke lenger, og det finnes ingen
-erstatning**: webappen sender nå ingen resolver i det hele tatt, så SEAL-verifisering
-her gjør null nettverksforespørsler. Filer der SEAL-posten bærer nøkkelen sin inline
-verifiseres fortsatt helt offline. Filer der nøkkelen ligger i DNS, rapporterer "no key
-resolver" i stedet, og du kan sjekke dem i desktop- eller kommandolinje-appen,
-som løser DNS nativt gjennom din egen maskin uten at noen tredjepart
-er involvert.
+erstatning**: Verify sender nå ingen resolver i det hele tatt, så SEAL-verifisering gjør
+null nettverksforespørsler. Ingen Lolly-app slår opp SEAL-nøkler i DNS i dag: desktop-
+og mobilappene kjører den samme Verify-visningen, og kommandolinjens `lolly validate`
+sjekker ikke SEAL. En fil der SEAL-posten bærer nøkkelen sin inline, sjekkes offline,
+og Verify kaller signaturen internt konsistent uten å bekrefte domenet. En fil der
+nøkkelen bare ligger i DNS, viser **SEAL-signaturen ble ikke verifisert**, med årsaken
+"no key resolver and no inline key".
 
 ![Verify-skjermen: et droppmål og ingenting annet - filen sjekkes der den allerede er, uten opplasting og uten konto](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop) Du kan bekrefte dette selv: greppbare sjekker for denne og hver
 annen påstand på denne siden, med de nøyaktige kommandoene og forventet resultat, finnes på
@@ -211,9 +212,11 @@ filbytes:
   noen: på en selvhostet lokal server forlater presentasjonen aldri den maskinen;
   på en hostet server sender et kall til `lolly_rebrand` presentasjonen dit, opp til de
   størrelses- og lysbildegrensene det samme steget oppgir.
-- <!--i:checklist--> Alle andre verktøy - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
-  `lolly_describe_tool` - fungerer kun ut fra parametere (tekst, tall, farger,
-  URL-er, katalog-ressurs-id-er), de samme inndataene en hot-link render-URL tar.
+- <!--i:checklist--> Bildeverktøyene (`lolly_look`, `lolly_sample_color` og
+  `lolly_trace_edges`) kan også ta en bildefil fra den som kaller, behandlet på
+  samme måte: i minnet, bare for det kallet. Alle andre verktøy fungerer ut fra
+  parameterne i kallet: tekst, tall, farger, URL-er, katalog-ressurs-id-er eller
+  et dokument den som kaller leverer.
 - <!--i:lock--> Tilgang er enten et delt token operatøren utsteder til klienter de stoler på, eller
   tilstandsløs OAuth 2.1: kortvarige signerte tokener verifisert mot en delt
   hemmelighet, ingenting lagret server-side, og selve tokenet skrives aldri til en
@@ -279,34 +282,53 @@ behandlingsansvarlig for de dataene.
 
 ## Nettleserutvidelsen
 
-Nettleserutvidelsen **Lolly URL Screenshot** samler ikke inn, lagrer eller
-overfører noen personopplysninger. Ingen analyse, ingen sporing, ingen ekstern server.
+Nettleserutvidelsen **Lolly URL Screenshot** samler ikke inn personopplysninger for oss.
+Den har ingen analyse, ingen sporing og ingen egen server. Siden
+[Nettleserutvidelse](/info/extension.html) beskriver hvordan den fungerer.
 
-**Hva den gjør.** Når du ber Lolly-webappen om å ta skjermbilde av en URL, åpner
-utvidelsen den siden i en midlertidig bakgrunnsfane, fanger den i nettleseren din
-ved hjelp av DevTools Protocol, gir bildet tilbake til appen og lukker
-fanen. Alt skjer lokalt, på din egen enhet og ditt eget nettverk.
+**Hva den gjør.** Lolly-webappen kan be den om et skjermbilde av en nettside, eller om
+innholdet på en side for å starte et designsystem fra et nettsted. Hver forespørsel
+åpner et godkjenningsvindu i utvidelsen som viser nettstedet som ber om det, om det
+vil ha et skjermbilde eller sideinnholdet, og sideadressen. Først etter at du trykker
+**Approve once** åpner utvidelsen den siden i en midlertidig bakgrunnsfane, tar
+skjermbildet eller leser siden, gir resultatet til Lolly-fanen som spurte og lukker
+fanen. Hver forespørsel trenger sin egen godkjenning.
 
 **Data.**
 
-- <!--i:shieldcheck--> **Vi samler ikke inn noe.** Utvidelsen har ingen servere og gjør ingen nettverks-
-  forespørsler på egen hånd.
-- <!--i:photos--> **Bilder som fanges** går rett til Lolly-appen i samme nettleser - blir aldri
-  lastet opp av utvidelsen.
-- <!--i:link--> **URL-ene du fanger** brukes kun til å laste den ene siden for det ene
-  skjermbildet. De blir ikke logget eller delt.
+- <!--i:shieldcheck--> **Vi samler ikke inn noe.** Resultatet går bare til Lolly-siden som
+  spurte, i samme nettleser. Utvidelsen lagrer ikke sideinnhold og legger ikke til
+  noen annen mottaker.
+- <!--i:globe--> **Nettverksforespørsler.** Siden du godkjenner, lastes som den ville gjort i
+  en hvilken som helst fane, sammen med det siden selv ber om. Å lese innholdet på en side
+  henter også sidens stilark og noen av ikon- og logobildene, fra innsiden av siden,
+  og disse hentingene sender ingen informasjonskapsler til andre nettsteder. Utvidelsen
+  gjør ingen andre forespørsler, og ingen går til en Lolly-server.
+- <!--i:lock--> **Nettleserøkten din.** Siden lastes med nettleserøkten din, slik den ville
+  gjort hvis du åpnet den selv, så en side du er logget inn på, kan legge privat
+  informasjon i resultatet.
+- <!--i:link--> **Adressene du godkjenner** brukes kun til å laste den ene siden for den
+  ene forespørselen. De blir ikke logget eller delt.
 
 **Tillatelser.**
 
-- <!--i:wrench--> **`debugger`** - for å fange den rendrede siden via DevTools Protocol (den
+- <!--i:wrench--> **`debugger`** - for å ta skjermbildet via DevTools Protocol (den
   samme mekanismen Lolly desktop-appen bruker).
-- <!--i:monitor--> **`tabs`** - for å åpne og lukke den midlertidige fanen siden lastes i.
-- <!--i:globe--> **Vertstilgang (`<all_urls>`)** - fordi siden du velger å fange, kan være
-  på hvilket som helst nettsted. Chrome viser dette ved installasjon som en bred tillatelses-
-  advarsel. Utvidelsen besøker aldri noe annet enn URL-en du gir den.
+- <!--i:monitor--> **`tabs`** - for å åpne og lukke den midlertidige fanen, og for å sjekke
+  at verken Lolly-siden eller målsiden har flyttet seg siden du godkjente.
+- <!--i:code--> **`scripting`** - for å lese innholdet på en side i den midlertidige fanen,
+  etter at du godkjenner den forespørselen.
+- <!--i:database--> **`storage`** - for å notere id-ene til de midlertidige fanene i
+  økt-lagring, slik at de fortsatt lukkes hvis nettleseren stopper utvidelsen under
+  en forespørsel. Ingen sideinnhold lagres.
+- <!--i:check--> **Valgfri nettstedstilgang (`http://*/*`, `https://*/*`)** - ikke gitt
+  ved installasjon. Når du trykker **Approve once**, ber utvidelsen Chrome om
+  tilgang til det ene nettstedet i den forespørselen, og Chrome spør deg første gang for
+  hvert nettsted. Et nettsted du har tillatt før, trenger fortsatt en ny godkjenning
+  for hver forespørsel.
 
 Ingen av disse brukes til å lese, overvåke eller overføre nettleseraktiviteten din utover den
-ene forespurte fangsten.
+ene forespørselen du godkjente.
 
 ## Infrastrukturlogger
 
@@ -319,12 +341,15 @@ ene bevisste unntaket er en fil du eksplisitt gir til et MCP-kall
 `lolly_transform`, `lolly_verify`, `lolly_redact` eller `lolly_rebrand`, som behandles i minnet og aldri
 skrives til disk eller en logg, som beskrevet ovenfor.
 
-**Lollys egen kode skriver ingenting til de loggene.** MCP-serveren inneholder ingen
-loggeuttrykk i det hele tatt. Sertifikattjenesten skriver ut nøyaktig to linjer, begge
-ved feil og begge bevisst strippet: en statuskode for sendefeil uten
-mottakeradresse, og en feilmelding uten stack-spor eller URL (et stack-spor kunne
-bære et registreringstoken). Alt annet i loggen tilhører vertsplattformen,
-ikke oss.
+**De offentlige tjenestene minimerer applikasjonslogging.** MCP-serveren logger
+oppstart, konfigurasjon og renderingsadvarsler; den fører ingen egen forespørselslogg
+og logger ikke tokener eller oppringeradresser. Penpot-gjennomstrømmingen logger hvert
+kommandonavn og Penpots svarstatus, aldri overskrifter, tokener eller filen.
+Sertifikattjenesten logger oppstartsinnstillingene og
+konfigurasjonsadvarsler, pluss to strippede linjer ved feil: en statuskode for
+sendefeil uten mottakeradresse, og en fast feillinje uten feiltekst, stack-spor
+eller URL (en leverandørfeil kan bære identitetsverdier eller legitimasjon).
+Alt annet i loggen tilhører vertsplattformen, ikke oss.
 
 For lolly.tools er vertsleverandøren Vercel, og oppbevaring av tilgangslogger følger Vercels egne
 plattformstandarder for vårt abonnement. Vi konfigurerer ingen loggavløp, ingen langtids-
@@ -415,6 +440,14 @@ Datoen øverst endres hver gang dette dokumentet gjør det. En endring som påvi
 hva som forlater enheten din eller hva som lagres, får sin egen linje her, ikke en stille
 redigering - hvis du vil se hva som er endret, spør (nedenfor) eller sammenlign med
 [den offentlige kildekoden](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
+
+**22. oktober 2026:** rettet beskrivelsen av eksisterende atferd. Avsnittet om
+nettleserutvidelsen dekker nå godkjenningsvinduet for hver forespørsel, nettstedstilgang
+som ber om ett nettsted om gangen og henting av stilark og ikoner ved lesing av et nettsted.
+Rettet er også: radene Send to Google Drive og Meeting Planner, SEAL-merknaden (ingen
+Lolly-app slår opp SEAL-nøkler i DNS), standardnivået for bruksstatistikk i
+organisasjonstjenesten, MCP-bildeverktøyene og applikasjonsloggingen til de offentlige
+tjenestene. Selve programvaren endret seg ikke.
 
 ## Hvem er ansvarlig, og hvordan nå oss
 

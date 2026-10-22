@@ -8,7 +8,7 @@ Ginawa si Lolly sa gitna ng pinakamalaking pagbabago kung paano ginagawa ang med
 
 ![Isang supercell storm na sumasabog sa itaas ng isang outback homestead - ang tangke at mga sheds sa ibaba, gumagawa na ang baha ng mga kanal sa tuyong bukid](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} generated image %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} and %act{exported to WebP} as %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [I-verify ito ngayon](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} generated image %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} and %act{exported to WebP} as %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [I-verify ito ngayon](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 Para maging eksakto, dahil ang pahinang ito ay nagsasabing mahalaga ang precision: ang imahe sa itaas ay generated, hindi kinunan ng litrato. Walang kamera na itinutok sa homestead na iyon, dahil walang homestead. Naglalarawan ito ng regional Queensland, Australia, hiningi mula sa United Kingdom, ginawa sa isang datacenter sa United States. Sinusubukan nitong maging tapat sa isang lugar nang hindi ito naging talaan ng lugar na iyon, at ang pagkakaibang iyon ang buong dahilan kung bakit sinasabi ito ng Content Credentials nito.
 

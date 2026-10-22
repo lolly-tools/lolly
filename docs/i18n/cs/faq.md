@@ -20,7 +20,7 @@ Lolly vytváří velké množství obsahu. Držíme se přísné minimalizace da
 
 Lolly vznikala s pomocí AI asistovaného programování, AI asistovaného objevování a na mnoha místech i AI asistovaného obsahu, s využitím kombinace modelů a dodavatelů, včetně předních firem z oblasti veřejného cloudu.
 
-V době psaní tohoto textu neobsahuje Lolly žádné známé bezpečnostní zranitelnosti ve svém dodavatelském řetězci a zavazuje se k rychlé reakci na bezpečnostní incidenty, jakmile se objeví CVE.
+Upozornění s vysokou nebo kritickou závažností v závislostech Lolly zablokuje CI. Upozornění, které zatím nejde opravit, se zadrží jen jako schválená výjimka s písemným zdůvodněním. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) uvádí každou výjimku platnou dnes a [poznámky k vydání](https://github.com/lolly-tools/lolly/releases) uvádějí ty, které nese každé vydání. SECURITY.md také říká, jak nahlásit zranitelnost.
 
 Člověk vytvořil architekturu, cíleně kurátoroval kód a umělecky vedl výsledný zážitek.
 
@@ -52,7 +52,9 @@ Feature flagy zapínají a vypínají části Lolly. Obvykle je ovládá adminis
 
 ## Jak získám mobilní nebo desktopovou aplikaci?
 
-Vlastní aplikace může šířit kdokoli a nástroje i konfigurace takových aplikací se mají hodně lišit podle toho, pro jaké publikum jsou určené. Žádná jediná aplikace tedy neexistuje, pokud si ji nevytvoříš nebo ti ji nedá někdo relevantní.
+Stáhni si je na stránce [Instalace Lolly](/info/install.html). Stránka uvádí každý build pro macOS, Windows, Linux a Android a ukazuje, jak ověřit stažený soubor. iPhone a iPad zatím nemají veřejné stažení; [sekce o iPhonu a iPadu](/info/install.html#iphone-and-ipad) říká, co použít místo něj.
+
+Kdokoli si také může sestavit a rozdávat vlastní kopii aplikace s nástroji a nastavením, které potřebuje jeho publikum. [Průvodce sestavením](/info/build-guide.html) ukazuje jak.
 
 ## Proč název „Lolly Tools“?
 
@@ -127,7 +129,7 @@ Vrstvy přijdou jako upravitelné boxy na otevřeném plátně: text jde dál p�
 
 ## Kde je to, co jsem včera udělal/a?
 
-Pokud jsi stiskl/a **Uložit jako** nebo **Uložit**, je to v **Projektech**, na domovské obrazovce, v prohlížeči nebo aplikaci, ze které jsi ukládal/a. Pokud jsi stiskl/a jen **Stáhnout**, soubor je tam, kam tvůj prohlížeč nebo systém ukládá stažené soubory, a obvykle je kopie i v **Assetech**. Devět nástrojů uchovává neuloženou práci také v **Projektech**. [Najdi a obnov svou práci](/info/find-your-work.html) pokrývá každý z těchto případů.
+Pokud jsi stiskl/a **Uložit jako** nebo **Uložit**, je to v **Projektech**, na domovské obrazovce, v prohlížeči nebo aplikaci, ze které jsi ukládal/a. Pokud jsi stiskl/a jen **Stáhnout**, soubor je tam, kam tvůj prohlížeč nebo systém ukládá stažené soubory, a obvykle je kopie i v **Assetech**. Nástroje, které [ukládají průběžně](/info/find-your-work.html#which-tools-save-as-you-work), uchovávají neuloženou práci také v **Projektech**. [Najdi a obnov svou práci](/info/find-your-work.html) pokrývá každý z těchto případů.
 
 ## Zavřel/a jsem kartu. Zmizela mi práce?
 
@@ -143,7 +145,7 @@ Ano. Jeden pošle pozvánku (odkaz, QR kód nebo krátký kód), druhý ji přij
 
 ## Kam se poděly nástroje se značkou SUSE?
 
-Žijí už v samostatném, soukromém repozitáři. Veřejný klon brand pack SUSE vůbec nestahuje, takže veřejný build běží na neutrálním profilu `lolly-start` - komunitní nástroje nezávislé na značce plus prázdná značka, kterou naplníš tou svou. SUSE provozuje vlastní instanci, aby chránilo své ochranné známky.
+Žijí už v samostatném, soukromém repozitáři. Veřejný klon brand pack SUSE vůbec nestahuje, takže build z něj používá neutrální profil `lolly-start`, pokud nezvolíš jiný - komunitní nástroje nezávislé na značce plus prázdná značka, kterou naplníš tou svou. [lolly.tools](https://lolly.tools) se sestavuje s profilem `lolly-demo` a otevírá se v [Lolly Demo](/info/lolly-demo.html), vlastním design systému Lolly. SUSE provozuje vlastní instanci, aby chránilo své ochranné známky.
 
 ## Proč je to zadarmo? Kde je háček?
 
@@ -153,7 +155,7 @@ Tuhle čáru kreslí licence, ne slib: cokoli běží lokálně, je zdarma, nav�
 
 ## Kolik si SUSE nechává pro sebe? (neboli kdy nám vytáhnou koberec pod nohama)
 
-Engine, shelly, schémata a nástroje nezávislé na značce jsou open source; soukromá zůstává část s ochrannými známkami SUSE a značkovými nástroji, a ta je už oddělená. Veřejná instance na [lolly.tools](https://lolly.tools) běží na prázdné značce.
+Engine, shelly, schémata a nástroje nezávislé na značce jsou open source; soukromá zůstává část s ochrannými známkami SUSE a značkovými nástroji, a ta je už oddělená. Veřejná instance na [lolly.tools](https://lolly.tools) provozuje [Lolly Demo](/info/lolly-demo.html), vlastní design systém Lolly.
 
 Ta hranice je strukturální, ne slíbená. Každá vydaná verze je open source a vydání nejde vzít zpět, neexistuje žádná dohoda pro přispěvatele, která by mohla něčí práci přelicencovat, a jediné, co zůstává stranou, je ochranná známka. Když v roce 2023 jiná firma uzavřela zdrojové kódy svého enterprise Linuxu, SUSE spoluzaložilo [OpenELA](https://openela.org), aby ten kód zůstal otevřený - stejný postoj dědí i tenhle projekt.
 

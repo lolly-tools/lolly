@@ -4,13 +4,13 @@ Birkaç alanı doldurursun ve yazı tipleri, renkler ve düzen zaten kendi cihaz
 
 Bir bayrak yarışındaki ellerden birisin: bir geliştirici kullandığın aracı bir işlem hattına ölçeklendirebilir, bir meslektaşın onu kendi kendine çalıştırabilir, bu yüzden [Bir kampanyanın yaşam döngüsü](/info/overview.html#the-lifecycle-of-a-campaign) tek bir varlığı bu üç çift elin tamamından geçerken izler.
 
-Yeni misin? **[60 saniyede bir şey yap](/info/make-something.html)** ile başla, hangi bölüme daha derin bakmak istediğini öğrendiğinde geri dön. [Sorular ve yanıtlar](/info/faq.html), insanların ücretsiz bir araca güvenmeden önce sorduklarını ele alır. [Lolly nasıl karşılaştırılır](/info/positioning.html), ne zaman başka bir şeye yönelmen gerektiğinin dürüst anlatımıdır.
+Yeni misin? **[İlk dosyanı oluştur](/info/make-something.html)** ile başla, hangi bölüme daha derin bakmak istediğini öğrendiğinde geri dön. [Sorular ve yanıtlar](/info/faq.html), insanların ücretsiz bir araca güvenmeden önce sorduklarını ele alır. [Lolly nasıl karşılaştırılır](/info/positioning.html), ne zaman başka bir şeye yönelmen gerektiğinin dürüst anlatımıdır.
 
 ## Oluştur
 
 Bir araç seç, birkaç alanı doldur ve bitmiş dosyayı indir. Ya da Design tuvalini aç ve serbest elle düzenle: her iki durumda da renkler, yazı tipi ve boşluklar hafızandan değil markandan gelir ve hiçbiri hesap gerektirmez.
 
-- **[60 saniyede bir şey yap](/info/make-something.html)** - Lolly'yi daha önce hiç açmadıysan, kurulum gerektirmeyen üç kısa anlatım.
+- **[İlk dosyanı oluştur](/info/make-something.html)** - kurulum gerektirmeyen tek bir kısa ders: bir QR kodu yap, indir ve düzenlenebilir bir kopyasını kaydet. Lolly'yi daha önce hiç açmadıysan buradan başla.
 - **[Lolly'yi kullanma](/info/using.html)** - tuval, denetimler, kaydetme, Projeler ve telefon kullanımı: uygulamanın kendisi nasıl davranır.
 - **[Brand Studio](/info/brand-studio.html)** - logoların, renklerin ve yazı tipinin varsayılanlar yerine kendine ait olması gerektiğinde.
 - **[Bir tasarımı içe aktar](/info/design-import.html)** - çalışma zaten bir `.fig`, `.penpot`, `.ai`, `.idml` veya SVG dosyası olarak varsa ve onu düzleştirilmiş değil düzenlenebilir istiyorsan.

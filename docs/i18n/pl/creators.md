@@ -4,13 +4,13 @@ Wypełniasz kilka pól i na wyjściu masz gotowy plik, z czcionkami, kolorami i 
 
 Jesteś jednym ogniwem sztafety: deweloper może rozbudować narzędzie, z którego korzystasz, w cały potok, a kolega może uruchomić je samoobsługowo, więc [Cykl życia kampanii](/info/overview.html#the-lifecycle-of-a-campaign) śledzi jeden zasób przez wszystkie trzy pary rąk.
 
-Pierwszy raz tutaj? Zacznij od **[Zrób coś w 60 sekund](/info/make-something.html)** i wróć, gdy będziesz wiedzieć, w którą stronę chcesz pójść głębiej. [Pytania i odpowiedzi](/info/faq.html) opisuje, o co ludzie pytają, zanim zaufają darmowemu narzędziu. [Jak Lolly wypada na tle innych](/info/positioning.html) to szczery przegląd tego, kiedy warto sięgnąć po coś innego.
+Pierwszy raz tutaj? Zacznij od **[Zrób swój pierwszy plik](/info/make-something.html)** i wróć, gdy będziesz wiedzieć, w którą stronę chcesz pójść głębiej. [Pytania i odpowiedzi](/info/faq.html) opisuje, o co ludzie pytają, zanim zaufają darmowemu narzędziu. [Jak Lolly wypada na tle innych](/info/positioning.html) to szczery przegląd tego, kiedy warto sięgnąć po coś innego.
 
 ## Twórz
 
 Wybierz narzędzie, wypełnij kilka pól i pobierz gotowy plik. Albo otwórz płótno Design i ułóż wszystko odręcznie: tak czy inaczej kolory, typografia i odstępy pochodzą z twojej marki, a nie z pamięci, i nic nie wymaga konta.
 
-- **[Zrób coś w 60 sekund](/info/make-something.html)** - trzy krótkie przewodniki bez niczego do skonfigurowania, jeśli nigdy wcześniej nie otwierałeś Lolly.
+- **[Zrób swój pierwszy plik](/info/make-something.html)** - jedna krótka lekcja bez niczego do skonfigurowania: zrób kod QR, pobierz go i zapisz edytowalną kopię. Zacznij tutaj, jeśli nigdy wcześniej nie otwierałeś Lolly.
 - **[Korzystanie z Lolly](/info/using.html)** - płótno, elementy sterujące, zapisywanie, Projekty i użycie na telefonie: jak zachowuje się sama aplikacja.
 - **[Brand Studio](/info/brand-studio.html)** - kiedy logotypy, kolory i typografia powinny być twoje, a nie domyślne.
 - **[Zaimportuj projekt](/info/design-import.html)** - gdy grafika już istnieje jako plik `.fig`, `.penpot`, `.ai`, `.idml` lub SVG, a ty chcesz mieć ją do edycji, a nie spłaszczoną.

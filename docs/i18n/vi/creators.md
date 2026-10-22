@@ -4,13 +4,13 @@ Bạn điền vào vài trường và một tệp hoàn chỉnh ra đời, với
 
 Bạn là một mắt xích trong một cuộc chạy tiếp sức: một nhà phát triển có thể mở rộng công cụ bạn dùng thành một pipeline, và một đồng nghiệp có thể tự dùng nó mà không cần ai hỗ trợ, nên [Vòng đời của một chiến dịch](/info/overview.html#the-lifecycle-of-a-campaign) theo dõi một tài sản đi qua cả ba đôi bàn tay đó.
 
-Mới đến đây? Hãy bắt đầu với **[Tạo thứ gì đó trong 60 giây](/info/make-something.html)** rồi quay lại khi bạn đã biết mình muốn tìm hiểu sâu hơn phần nào. [Câu hỏi & giải đáp](/info/faq.html) trình bày những gì mọi người thắc mắc trước khi tin tưởng một công cụ miễn phí. [So sánh Lolly với các lựa chọn khác](/info/positioning.html) là lời kể thẳng thắn về những trường hợp nên tìm đến thứ khác.
+Mới đến đây? Hãy bắt đầu với **[Tạo tệp đầu tiên của bạn](/info/make-something.html)** rồi quay lại khi bạn đã biết mình muốn tìm hiểu sâu hơn phần nào. [Câu hỏi & giải đáp](/info/faq.html) trình bày những gì mọi người thắc mắc trước khi tin tưởng một công cụ miễn phí. [So sánh Lolly với các lựa chọn khác](/info/positioning.html) là lời kể thẳng thắn về những trường hợp nên tìm đến thứ khác.
 
 ## Tạo
 
 Chọn một công cụ, điền vào vài trường và tải về tệp hoàn chỉnh. Hoặc mở canvas Design và tự dàn trang theo ý mình: dù theo cách nào, màu sắc, kiểu chữ và khoảng cách đều lấy từ thương hiệu của bạn chứ không phải từ trí nhớ, và không gì cần đến tài khoản.
 
-- **[Tạo thứ gì đó trong 60 giây](/info/make-something.html)** - ba hướng dẫn ngắn không cần thiết lập gì cả, dành cho ai chưa từng mở Lolly.
+- **[Tạo tệp đầu tiên của bạn](/info/make-something.html)** - một bài học ngắn không cần thiết lập gì: tạo mã QR, tải xuống và lưu một bản có thể chỉnh sửa. Hãy bắt đầu từ đây nếu bạn chưa từng mở Lolly.
 - **[Sử dụng Lolly](/info/using.html)** - canvas, các điều khiển, lưu, Projects và dùng trên điện thoại: cách bản thân ứng dụng vận hành.
 - **[Brand Studio](/info/brand-studio.html)** - khi logo, màu sắc và kiểu chữ cần là của riêng bạn thay vì mặc định.
 - **[Nhập một thiết kế](/info/design-import.html)** - khi tác phẩm đã tồn tại dưới dạng tệp `.fig`, `.penpot`, `.ai`, `.idml` hoặc SVG và bạn muốn nó có thể chỉnh sửa thay vì bị làm phẳng.

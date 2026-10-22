@@ -1,6 +1,6 @@
 # Chính sách quyền riêng tư
 
-*Cập nhật lần cuối: 11 tháng 8 năm 2026*
+*Cập nhật lần cuối: 22 tháng 10 năm 2026*
 
 > **Phiên bản ngắn gọn.** Các tài liệu, hình ảnh, video và tệp bạn tạo trong Lolly luôn
 > ở lại trên thiết bị của bạn. Không có tài khoản cho việc sử dụng thông thường, không có cookie từ
@@ -97,9 +97,9 @@ mạng. Nếu không có ở đây, ứng dụng không làm điều đó.
 | Gì | Điều gì thực sự rời khỏi thiết bị của bạn | Khi nào (hành động kích hoạt điều đó) | Nếu quản trị viên chặn nó |
 |---|---|---|---|
 | Đồng bộ danh mục công cụ | Không có gì mang tính cá nhân - một yêu cầu lấy chỉ mục công cụ và tài sản công khai của chính Lolly, gửi đến chính máy chủ gốc của ứng dụng | Khi khởi động, sau đó được lưu đệm để dùng ngoại tuyến | Ứng dụng chạy trên bộ công cụ đã lưu đệm. Nó chỉ ngừng phát hiện công cụ mới |
-| Một công cụ cần dữ liệu trực tiếp | Bất kỳ điều gì công cụ cụ thể đó yêu cầu, gửi đến máy chủ được nêu tên ngay trong mô tả của nó. Hiện tại đó chỉ là tra cứu thành phố trong công cụ Meeting Planner, gọi đến `geocoding-api.open-meteo.com` để chuyển tên thành phố thành tọa độ và múi giờ - không tài khoản, không khóa và không định danh nào ngoài chính yêu cầu đó. Trường nhập liệu ghi rõ điều này ngay tại nơi bạn gõ, và mỗi câu trả lời được lưu trên thiết bị của bạn để một thành phố chỉ được tra cứu một lần | Chỉ khi đang dùng công cụ đó, và chỉ khi bạn nhập một địa điểm | Riêng lượt tra cứu đó thất bại. Bạn vẫn có thể gõ tọa độ bằng tay, và không gì khác bị ảnh hưởng |
+| Một công cụ cần dữ liệu trực tiếp | Bất kỳ điều gì công cụ cụ thể đó yêu cầu, gửi đến máy chủ được nêu tên ngay trong mô tả của nó. Hiện tại đó chỉ là tra cứu thành phố trong công cụ Meeting Planner, gọi đến `geocoding-api.open-meteo.com` để chuyển từng tên thành phố (thành phố đăng cai và thành phố của từng thành viên trong nhóm) thành tọa độ và múi giờ - không tài khoản, không khóa và không định danh nào ngoài chính yêu cầu đó. Trường nhập Host city ghi rõ điều này, và mỗi câu trả lời được lưu trên thiết bị của bạn để một thành phố chỉ được tra cứu một lần | Chỉ khi công cụ đó đang mở, cho thành phố đăng cai (được điền sẵn theo mặc định) và thành phố của từng thành viên trong nhóm | Lượt tra cứu đó thất bại, và không gì khác bị ảnh hưởng |
 | Google Fonts | Tên họ phông chữ đã chọn và địa chỉ IP của bạn, gửi đến máy chủ phông chữ của Google (`fonts.googleapis.com` cho stylesheet, `fonts.gstatic.com` cho tệp phông chữ) | Chỉ khi bạn thêm một Google Font trong trình chỉnh sửa thương hiệu, **và chỉ sau khi bạn đồng ý trong một hộp thoại ghi đúng nội dung này** - tải về một lần cho mỗi họ phông, sau đó nó nằm trên thiết bị của bạn và được dùng ngoại tuyến | Bộ chọn Google Fonts sẽ tắt hẳn (fail closed). Hãy tải lên một tệp phông chữ thay thế |
-| Gửi đến Google Drive | Chỉ một tệp bạn chọn để gửi, đến Google Drive API (`www.googleapis.com`), sau khi bạn đăng nhập Google hoàn tất trong cửa sổ popup riêng của Google. Quyền truy cập của Lolly giới hạn ở các tệp do nó tạo ra (phạm vi `drive.file` - nó không bao giờ đọc được phần còn lại trong Drive của bạn), và mã đăng nhập chỉ được giữ trong bộ nhớ cho phiên làm việc, không bao giờ được lưu trữ | Chỉ khi bạn nhấn "Send to Google Drive" trên một tệp xuất EMF, và chỉ trên các bản dựng mà quản trị viên đã cấu hình một client id của Google - nếu không có, nút này không tồn tại | Nút này không bao giờ xuất hiện. Hãy tự tải tệp về và tải lên Drive |
+| Gửi đến Google Drive | Chỉ một tệp bạn chọn để gửi, ở bất kỳ định dạng nào, đến Google Drive API (`www.googleapis.com`), sau khi bạn đăng nhập Google hoàn tất trong cửa sổ riêng của Google. Quyền truy cập của Lolly giới hạn ở các tệp do nó tạo ra (phạm vi `drive.file` - nó không bao giờ đọc được phần còn lại trong Drive của bạn). Trong ứng dụng web, mã đăng nhập chỉ được giữ trong bộ nhớ cho phiên làm việc, không bao giờ được lưu trữ; trong các ứng dụng khác, refresh token chỉ được lưu trên thiết bị này nếu bạn đánh dấu "stay connected" | Chỉ khi bạn nhấn "Send to Google Drive" trên một tệp, và chỉ trên các bản dựng mà quản trị viên đã cấu hình một client id của Google - nếu không có, nút này không tồn tại | Nút này không bao giờ xuất hiện. Hãy tự tải tệp về và tải lên Drive |
 | Gửi đến Dropbox | Chỉ một tệp bạn chọn để gửi, đến API của Dropbox (`api.dropboxapi.com` cho đăng nhập và metadata, `content.dropboxapi.com` cho chính tệp), sau khi bạn đăng nhập Dropbox hoàn tất trong cửa sổ riêng của Dropbox. Quyền truy cập của Lolly chỉ giới hạn trong thư mục ứng dụng (nó chỉ có thể thấy `Apps/` và thư mục riêng của nó trong đó - không bao giờ thấy phần còn lại trong Dropbox của bạn), liên kết "Open" mà nó hiển thị cho bạn là một liên kết riêng tư có thời hạn ngắn (không tạo chia sẻ công khai nào), và mã làm mới chỉ được lưu trữ nếu bạn tick chọn "stay connected" | Chỉ khi bạn nhấn "Send to Dropbox" trên một tệp, và chỉ trên các bản dựng mà quản trị viên đã cấu hình một client id của Dropbox - nếu không có, nút này không tồn tại | Nút này không bao giờ xuất hiện. Hãy tự tải tệp về và tải lên Dropbox |
 | Gửi đến OneDrive | Chỉ một tệp bạn chọn để gửi, đến các dịch vụ định danh và Graph của Microsoft (`login.microsoftonline.com` cho đăng nhập, `graph.microsoft.com` cho việc tải lên; một tệp lớn được tải lên theo từng phần đến một địa chỉ tải lên do Microsoft sở hữu trên `api.onedrive.com`, `*.up.1drv.com` hoặc `*.sharepoint.com`), sau khi bạn đăng nhập Microsoft hoàn tất trong cửa sổ riêng của Microsoft. Quyền truy cập của Lolly giới hạn trong thư mục riêng của nó dưới `Apps/` (nó không bao giờ đọc được phần còn lại trong OneDrive của bạn) cộng với tên hiển thị của bạn dùng cho nhãn tài khoản, và mã làm mới chỉ được lưu trữ nếu bạn tick chọn "stay connected" | Chỉ khi bạn nhấn "Send to OneDrive" trên một tệp, và chỉ trên các bản dựng mà quản trị viên đã cấu hình một client id của Microsoft - nếu không có, nút này không tồn tại | Nút này không bao giờ xuất hiện. Hãy tự tải tệp về và tải lên OneDrive |
 | Gửi đến LinkedIn | Chỉ một tệp bạn chọn để gửi, cùng tên của nó làm nội dung bài đăng, đến LinkedIn (`www.linkedin.com` cho đăng nhập, `api.linkedin.com` cho việc tải lên và đăng bài), sau khi bạn đăng nhập LinkedIn hoàn tất ngay trong trình duyệt của bạn. Bài đăng xuất hiện trên chính dòng thời gian của bạn dưới dạng bài đăng công khai mang tên bạn. Lolly có thể đăng bài dưới tên bạn và đọc tên bạn để dùng làm nhãn tài khoản, không gì khác trên LinkedIn của bạn, và thông tin đăng nhập chỉ được giữ lại trên thiết bị này nếu bạn tick chọn "stay connected" - mã của LinkedIn có hạn 60 ngày và không thể tự động gia hạn ngầm, nên nó tự hết hạn | Chỉ khi bạn nhấn "Send to LinkedIn" trên một tệp, chỉ trong các ứng dụng desktop, và chỉ trên các bản dựng có cấu hình một ứng dụng LinkedIn - nếu không có, nút này không tồn tại | Không có gì cần chặn trong ứng dụng web: tính năng này chỉ tồn tại trong **các ứng dụng desktop**, nên hai máy chủ đó cố tình KHÔNG có mặt trong Content-Security-Policy của ứng dụng web bên dưới. Trong các ứng dụng desktop, hãy gỡ bỏ ứng dụng LinkedIn đã cấu hình và nút này sẽ không bao giờ xuất hiện |
@@ -148,12 +148,7 @@ khóa ký của tệp được công bố trong DNS. Trình duyệt không thể
 triển khai web nào cũng phải định tuyến việc tra cứu qua một trình phân giải DNS-over-HTTPS của
 bên thứ ba - điều này sẽ cho bên vận hành đó thấy tên miền đang được kiểm tra cộng với địa chỉ IP
 của bạn. Trước đây chúng tôi từng dùng của Cloudflare. **Chúng tôi không dùng nữa, và không có
-sự thay thế nào**: giờ đây ứng dụng web không truyền bất kỳ trình phân giải nào cả, nên xác minh SEAL
-ở đây không tạo ra bất kỳ yêu cầu mạng nào. Các tệp có bản ghi SEAL mang khóa nội tuyến
-vẫn xác minh hoàn toàn ngoại tuyến. Các tệp có khóa nằm trong DNS sẽ báo "no key
-resolver" thay vào đó, và bạn có thể kiểm tra các tệp đó trong ứng dụng desktop hoặc dòng lệnh,
-nơi phân giải DNS trực tiếp qua chính máy của bạn mà không có bên thứ ba nào
-tham gia.
+sự thay thế nào**: Verify giờ không truyền bất kỳ trình phân giải nào cả, nên xác minh SEAL không tạo ra bất kỳ yêu cầu mạng nào. Hiện không ứng dụng Lolly nào tra cứu khóa SEAL trong DNS: ứng dụng desktop và di động chạy cùng màn hình Verify, còn lệnh `lolly validate` trên dòng lệnh không kiểm tra SEAL. Một tệp có bản ghi SEAL mang khóa nội tuyến được kiểm tra ngoại tuyến, và Verify gọi chữ ký là nhất quán nội bộ mà không xác nhận tên miền. Một tệp có khóa chỉ nằm trong DNS sẽ hiện **SEAL signature did not verify**, kèm lý do "no key resolver and no inline key".
 
 ![Màn hình Verify: một vùng thả tệp và không gì khác - tệp được kiểm tra ngay tại nơi nó đang có, không tải lên và không tài khoản](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop) Bạn có thể tự xác nhận điều này: các kiểm tra có thể grep được cho tuyên bố này và
 mọi tuyên bố khác trên trang này, cùng các lệnh chính xác và kết quả mong đợi, có tại
@@ -211,9 +206,11 @@ bốn công cụ tất yếu phải xử lý byte tệp:
   byte nào: trên một máy chủ cục bộ tự lưu trữ, bộ slide không bao giờ rời khỏi máy đó;
   trên một máy chủ được lưu trữ, gọi `lolly_rebrand` sẽ gửi bộ slide đến đó, trong giới hạn
   kích thước và số trang mà cùng giai đoạn đó cho biết.
-- <!--i:checklist--> Mọi công cụ khác - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
-  `lolly_describe_tool` - chỉ hoạt động từ các tham số (văn bản, số, màu sắc,
-  URL, id tài sản danh mục), cùng các dữ liệu đầu vào mà một URL render liên kết trực tiếp nhận.
+- <!--i:checklist--> Các công cụ hình ảnh (`lolly_look`, `lolly_sample_color` và
+  `lolly_trace_edges`) cũng có thể nhận một tệp hình ảnh từ bên gọi, được xử lý
+  theo cùng cách: trong bộ nhớ, chỉ cho lệnh gọi đó. Mọi công cụ khác hoạt động từ
+  các tham số trong lệnh gọi: văn bản, số, màu sắc, URL, id tài sản danh mục, hoặc
+  một tài liệu do bên gọi cung cấp.
 - <!--i:lock--> Quyền truy cập là hoặc một token dùng chung mà bên vận hành cấp cho các ứng dụng khách họ tin
   tưởng, hoặc OAuth 2.1 không trạng thái: các token đã ký có thời hạn ngắn được xác minh dựa trên
   một bí mật dùng chung, không có gì được lưu trữ phía máy chủ và chính token không bao giờ được ghi vào
@@ -279,34 +276,53 @@ dữ liệu đó khi làm vậy.
 
 ## Tiện ích mở rộng trình duyệt
 
-Tiện ích mở rộng trình duyệt **Lolly URL Screenshot** không thu thập, lưu trữ hay
-truyền bất kỳ dữ liệu cá nhân nào. Không phân tích, không theo dõi, không máy chủ từ xa.
+Tiện ích mở rộng trình duyệt **Lolly URL Screenshot** không thu thập dữ liệu cá nhân nào cho chúng tôi.
+Nó không có phân tích, không theo dõi và không có máy chủ riêng. Trang
+[Tiện ích mở rộng trình duyệt](/info/extension.html) mô tả cách nó hoạt động.
 
-**Nó làm gì.** Khi bạn yêu cầu ứng dụng web Lolly chụp ảnh màn hình một URL, tiện ích
-mở rộng mở trang đó trong một thẻ nền tạm thời, chụp nó trong trình duyệt của bạn bằng DevTools
-Protocol, trả hình ảnh lại cho ứng dụng và đóng thẻ. Mọi thứ diễn ra cục bộ, trên
-thiết bị và mạng của chính bạn.
+**Nó làm gì.** Ứng dụng web Lolly có thể yêu cầu nó chụp ảnh màn hình một trang web,
+hoặc lấy nội dung của một trang để bắt đầu một hệ thống thiết kế từ một trang web. Mỗi yêu cầu
+mở một cửa sổ phê duyệt trong tiện ích mở rộng, hiển thị trang web đang yêu cầu,
+việc đó là chụp ảnh màn hình hay đọc nội dung trang, và địa chỉ của trang. Chỉ
+sau khi bạn nhấn **Approve once**, tiện ích mở rộng mới mở trang đó trong một
+thẻ nền tạm thời, chụp ảnh màn hình hoặc đọc trang, trả kết quả
+cho thẻ Lolly đã yêu cầu và đóng thẻ. Mỗi yêu cầu cần được phê duyệt riêng.
 
 **Dữ liệu.**
 
-- <!--i:shieldcheck--> **Chúng tôi không thu thập gì cả.** Tiện ích mở rộng không có máy chủ nào và không tạo
-  bất kỳ yêu cầu mạng nào của riêng nó.
-- <!--i:photos--> **Hình ảnh đã chụp** đi thẳng tới ứng dụng Lolly trong cùng trình duyệt - không bao giờ
-  được tiện ích mở rộng tải lên.
-- <!--i:link--> **Các URL bạn chụp** chỉ được dùng để tải đúng trang đó cho đúng lần chụp đó. Chúng
-  không được ghi nhật ký hay chia sẻ.
+- <!--i:shieldcheck--> **Chúng tôi không thu thập gì cả.** Kết quả chỉ đi tới trang Lolly
+  đã yêu cầu, trong cùng trình duyệt. Tiện ích mở rộng không lưu nội dung trang
+  và không thêm bên nhận nào khác.
+- <!--i:globe--> **Yêu cầu mạng.** Trang bạn phê duyệt được tải như trong bất kỳ
+  thẻ nào, cùng với những gì chính trang đó yêu cầu. Việc đọc nội dung một trang cũng
+  tải các stylesheet của trang đó và một vài hình ảnh biểu tượng, logo của nó,
+  từ bên trong trang, và các lần tải đó không gửi cookie tới các trang web khác.
+  Tiện ích mở rộng không tạo yêu cầu nào khác, và không yêu cầu nào đi tới máy chủ Lolly.
+- <!--i:lock--> **Phiên trình duyệt của bạn.** Trang được tải bằng phiên trình duyệt của bạn,
+  như khi bạn tự mở nó, nên một trang bạn đã đăng nhập có thể đưa thông tin
+  riêng tư vào kết quả.
+- <!--i:link--> **Các địa chỉ bạn phê duyệt** chỉ được dùng để tải đúng trang đó
+  cho đúng yêu cầu đó. Chúng không được ghi nhật ký hay chia sẻ.
 
 **Quyền.**
 
-- <!--i:wrench--> **`debugger`** - để chụp trang đã render qua DevTools Protocol (cùng
+- <!--i:wrench--> **`debugger`** - để chụp ảnh màn hình qua DevTools Protocol (cùng
   cơ chế mà ứng dụng desktop của Lolly sử dụng).
-- <!--i:monitor--> **`tabs`** - để mở và đóng thẻ tạm thời mà trang được tải trong đó.
-- <!--i:globe--> **Quyền truy cập máy chủ (`<all_urls>`)** - vì trang bạn chọn để chụp có thể
-  ở bất kỳ trang web nào. Chrome hiển thị điều này lúc cài đặt như một cảnh báo quyền
-  rộng. Tiện ích mở rộng chỉ bao giờ truy cập đúng URL bạn cung cấp cho nó.
+- <!--i:monitor--> **`tabs`** - để mở và đóng thẻ tạm thời, và để kiểm tra
+  rằng cả trang Lolly lẫn trang đích đều chưa chuyển đi nơi khác kể từ lúc bạn phê duyệt.
+- <!--i:code--> **`scripting`** - để đọc nội dung một trang trong thẻ tạm thời,
+  sau khi bạn phê duyệt yêu cầu đó.
+- <!--i:database--> **`storage`** - để ghi lại id của các thẻ tạm thời trong
+  session storage, để chúng vẫn được đóng nếu trình duyệt dừng tiện ích mở rộng giữa
+  một yêu cầu. Không có nội dung trang nào được lưu.
+- <!--i:check--> **Quyền truy cập trang web tùy chọn (`http://*/*`, `https://*/*`)** - không được cấp
+  lúc cài đặt. Khi bạn nhấn **Approve once**, tiện ích mở rộng xin Chrome quyền truy cập
+  đúng một trang web trong yêu cầu đó, và Chrome hỏi bạn lần đầu cho từng
+  trang web. Một trang web bạn đã cho phép trước đó vẫn cần phê duyệt mới cho mọi
+  yêu cầu.
 
 Không quyền nào trong số này được dùng để đọc, giám sát hay truyền hoạt động duyệt web của bạn
-vượt ra ngoài lần chụp được yêu cầu đó.
+vượt ra ngoài đúng yêu cầu bạn đã phê duyệt.
 
 ## Nhật ký hạ tầng
 
@@ -319,12 +335,12 @@ lệ chủ ý duy nhất là một tệp bạn chủ động đưa cho một l�
 `lolly_transform`, `lolly_verify`, `lolly_redact` hoặc `lolly_rebrand`, được xử lý trong bộ nhớ và không bao giờ
 ghi vào đĩa hay nhật ký, như đã mô tả ở trên.
 
-**Mã nguồn của chính Lolly không ghi bất cứ điều gì vào các nhật ký đó.** Máy chủ MCP hoàn toàn không
-chứa câu lệnh ghi nhật ký nào. Dịch vụ chứng chỉ chỉ phát ra đúng hai dòng, cả hai đều
-khi thất bại và cả hai đều được cố ý loại bỏ thông tin: một mã trạng thái lỗi gửi không kèm
-địa chỉ người nhận, và một thông báo lỗi không có stack trace hay URL (một stack có
-thể mang theo token đăng ký). Mọi thứ khác trong nhật ký là của nền tảng lưu trữ,
-không phải của chúng tôi.
+**Mã nguồn của chính Lolly không ghi bất cứ điều gì vào các nhật ký đó.** Máy chủ MCP ghi nhật ký khởi động, cấu hình và các cảnh báo khi render; nó không giữ nhật ký yêu cầu
+riêng và không ghi token hay địa chỉ của bên gọi. Lớp chuyển tiếp Penpot ghi tên từng lệnh
+và trạng thái phản hồi của Penpot, không bao giờ ghi header, token hay tệp. Dịch vụ chứng chỉ ghi
+các thiết lập khởi động và cảnh báo cấu hình, cộng hai dòng đã loại bỏ thông tin khi thất bại: một mã trạng thái
+lỗi gửi không kèm địa chỉ người nhận, và một dòng lỗi cố định không có văn bản lỗi, stack trace
+hay URL (lỗi từ nhà cung cấp có thể mang theo giá trị danh tính hoặc thông tin xác thực). Mọi thứ khác trong nhật ký là của nền tảng lưu trữ, không phải của chúng tôi.
 
 Đối với lolly.tools, việc lưu trữ là Vercel và thời gian giữ nhật ký truy cập theo
 các mặc định nền tảng riêng của Vercel cho gói của chúng tôi. Chúng tôi không cấu hình bất kỳ log drain nào,
@@ -414,6 +430,8 @@ Ngày ghi ở đầu trang thay đổi mỗi khi tài liệu này thay đổi. M
 những gì rời khỏi thiết bị của bạn hoặc những gì được lưu trữ sẽ có dòng riêng ở đây, không phải chỉnh sửa
 âm thầm - nếu bạn muốn xem điều gì đã thay đổi, hãy hỏi (bên dưới) hoặc so sánh với
 [nguồn công khai](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
+
+**22 tháng 10 năm 2026:** đính chính phần mô tả hành vi hiện có. Phần tiện ích mở rộng trình duyệt nay nêu cửa sổ phê duyệt cho mọi yêu cầu, quyền truy cập trang web được xin từng trang một và việc tải stylesheet, biểu tượng khi đọc một trang web. Cũng được đính chính: các hàng Send to Google Drive và Meeting Planner, ghi chú về SEAL (không ứng dụng Lolly nào tra cứu khóa SEAL trong DNS), mức telemetry sử dụng mặc định của dịch vụ tổ chức, các công cụ hình ảnh của MCP và việc ghi nhật ký ứng dụng của các dịch vụ công khai. Bản thân phần mềm không thay đổi.
 
 ## Ai chịu trách nhiệm, và cách liên hệ với chúng tôi
 
