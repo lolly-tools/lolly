@@ -79,7 +79,7 @@ nie ma żadnego serwera, do którego można by go przesłać. Te narzędzia dzia
 offline, a ich wynik nie zawiera żadnego naszego znaku wodnego ani metadanych - celem
 większości z nich jest usuwanie i ochrona danych, a nie dodawanie ryzyka.
 
-![Plakietka, którą noszą te narzędzia: Runs on your device - nic nie jest przesyłane](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![Plakietka, którą noszą te narzędzia: Runs on your device - nic nie jest przesyłane](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing przechowuje robocze dane wejściowe, prywatne ustalenia i mapy zastąpień w
 pamięci, bez automatycznego dodawania ich do historii, linków, kopii zapasowych ani synchronizacji. Inspekcja

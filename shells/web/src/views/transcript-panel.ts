@@ -369,6 +369,7 @@ export function openTranscriptPanel(opts: TranscriptPanelOpts): TranscriptPanel 
   showSkipped.className = 'tr-chk';
   const showSkippedCb = document.createElement('input');
   showSkippedCb.type = 'checkbox';
+  showSkippedCb.className = 'field-check';
   showSkippedCb.checked = true;
   showSkipped.append(showSkippedCb, document.createTextNode(t('Show skipped')));
 
@@ -387,6 +388,7 @@ export function openTranscriptPanel(opts: TranscriptPanelOpts): TranscriptPanel 
   keepPrev.className = 'tr-chk';
   const keepPrevCb = document.createElement('input');
   keepPrevCb.type = 'checkbox';
+  keepPrevCb.className = 'field-check';
   keepPrevCb.checked = false;
   keepPrev.append(keepPrevCb, document.createTextNode(t('Keep the previous take')));
 

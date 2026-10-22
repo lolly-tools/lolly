@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 Gdy marka jest aktywna, kształtuj ją dalej w [**Brand Studio**](/info/brand-studio.html) (`#/start`) - zmień kolor albo rolę, a każdy podgląd w aplikacji zaktualizuje się w trakcie pisania. (Zakładka **Design system** na pulpicie pod `#/d` *pokazuje* markę tylko do odczytu; edytujesz ją w Studiu.)
 
-![Zakładka Design system na pulpicie - aktywna marka pokazana tylko do odczytu](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) Ta sama marka jest podsumowana na karcie **Profile → Your brand**. Fonty są prawdziwe: wybierz z Google Fonts, a Lolly zapisze plik **na twoim urządzeniu** jako zasób marki, więc twoja typografia jedzie z tobą offline i nic nie jest pobierane w czasie renderowania.
+![Zakładka Design system na pulpicie - aktywna marka pokazana tylko do odczytu](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) Ta sama marka jest podsumowana na karcie **Profile → Your brand**. Fonty są prawdziwe: wybierz z Google Fonts, a Lolly zapisze plik **na twoim urządzeniu** jako zasób marki, więc twoja typografia jedzie z tobą offline i nic nie jest pobierane w czasie renderowania.
 
 Gdy będziesz zadowolony, **wyeksportuj markę jako paczkę `LollyBrand`** - jeden plik, który współpracownik może zaimportować, by dostać dokładnie tę samą paletę, fonty i zasady. Tak marka przemieszcza się między ludźmi i maszynami bez serwera pośrodku.
 

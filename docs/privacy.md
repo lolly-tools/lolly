@@ -80,7 +80,7 @@ Content Credentials that record the song and declare any AI-generated singing,
 the Export panel says so before you export, and [Exporting](/info/exporting.html#files-from-the-rondocode-utility)
 lists exactly what is recorded.
 
-![The badge these tools carry: Runs on your device - nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![The badge these tools carry: Runs on your device - nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing holds working inputs, private findings and replacement maps
 in memory, without automatically adding them to history, links, backups or sync.

@@ -74,7 +74,7 @@ Den laddas aldrig upp, eftersom det inte finns någon server i vägen att ladda 
 De här verktygen fungerar offline, och deras utdata bär varken vattenstämpel eller metadata från
 oss - poängen med de flesta av dem är att ta bort & skydda data, inte lägga till risk.
 
-![Märket dessa verktyg har: Runs on your device - inget laddas upp](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![Märket dessa verktyg har: Runs on your device - inget laddas upp](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Förbered för delning håller arbetsindata, privata fynd och ersättningskartor i minnet, utan att
 automatiskt lägga till dem i historik, länkar, säkerhetskopior eller synk. Inspektion och ersättning

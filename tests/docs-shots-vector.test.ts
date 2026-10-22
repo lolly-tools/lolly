@@ -61,6 +61,13 @@ const RASTER_ALLOWED: Record<string, string> = {
   // snapshots the <canvas> (export.ts, tag === 'canvas') and downscales it to its rendered
   // box via the rasterDpi recipe param - walker=1&format=svg&rasterDpi=110 - so the audiogram
   // ships as vector chrome with the canvas embedded as a smaller bitmap, under the budget.
+  'incl-neuro-player':
+    'The subject is the Neurospicy dock\'s levels - the Effects slider and the Atmosphere '
+    + 'mixer with Wind, Birdsong and Crickets raised - and every range input in the dock is '
+    + '`appearance: none` with its track and thumb drawn by ::-webkit-slider-runnable-track and '
+    + '::-webkit-slider-thumb (packages/audio-dock/src/styles.ts). The walker cannot read those '
+    + 'pseudo-elements: measured 2026-10-21, the vector kept every label and icon and drew no '
+    + 'slider at all, a mixer with no levels. Re-check when the walker paints styled range inputs.',
   'anim-timeline-choreographed':
     'The subject is the keyframe DIAMONDS on nine clip bars - the 10px `.tl-kf-dot` markers '
     + 'in each bar\'s `.tl-kf-strip` - and the walker does not carry them through: measured '

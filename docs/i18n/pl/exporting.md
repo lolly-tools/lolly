@@ -85,7 +85,7 @@ Nazwa pliku i menu formatu znajdują się razem jako jedna para `name.format`, p
 
 Pierwszy wiersz to najczęstszy przypadek. Wordmark złożony krojem twojej marki eksportuje się jako SVG, gdzie każda litera jest konturową ścieżką, a nie pikselem, więc pozostaje ostry zarówno w rozmiarze wizytówki, jak i oklejenia budynku - z tego samego pliku.
 
-![Cienki, szeroko trackowany wordmark z napisem Aurora - rodzaj czystej grafiki wektorowej, o której mówi wiersz SVG w tabeli](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Cienki, szeroko trackowany wordmark z napisem Aurora - rodzaj czystej grafiki wektorowej, o której mówi wiersz SVG w tabeli](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## Rozmiar i jednostki druku
 

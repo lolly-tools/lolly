@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 Una volta che un brand è attivo, continua a modellarlo nel [**Brand Studio**](/info/brand-studio.html) (`#/start`) - cambia un colore o un ruolo e ogni anteprima dell'app si aggiorna mentre scrivi. (La scheda **Sistema di design** della dashboard su `#/d` *mostra* il brand in sola lettura; è nello Studio che lo modifichi.)
 
-![La scheda Sistema di design della dashboard - il brand attivo mostrato in sola lettura](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) Lo stesso brand è riassunto nella scheda **Profilo → Il tuo brand**. I font sono reali: scegli da Google Fonts e Lolly salva il file **sul tuo dispositivo** come asset di brand, così la tua tipografia viaggia offline e non viene scaricato nulla al momento del rendering.
+![La scheda Sistema di design della dashboard - il brand attivo mostrato in sola lettura](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) Lo stesso brand è riassunto nella scheda **Profilo → Il tuo brand**. I font sono reali: scegli da Google Fonts e Lolly salva il file **sul tuo dispositivo** come asset di brand, così la tua tipografia viaggia offline e non viene scaricato nulla al momento del rendering.
 
 Quando sei soddisfatto, **esporta il brand come pacchetto `LollyBrand`** - un unico file che un collega può importare per ottenere esattamente la stessa palette, gli stessi font e le stesse regole. È così che un brand si sposta tra persone e macchine senza un server in mezzo.
 

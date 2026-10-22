@@ -410,9 +410,7 @@ window.__lollyChipField=function(canvas,opt){
   // "Copy signed source" - the banked art's third action (plans/105 section 6). Fetches the
   // SAME file the other two actions point at and puts its text on the clipboard, so a
   // reader can paste it straight into /verify's box and check the credential without
-  // downloading anything. Wired FIRST, and independently of the reveal below: an
-  // always-open line (a figure's, a page asset's) carries data-static and is
-  // deliberately absent from that list.
+  // downloading anything. Wired first, and independently of the reveal below.
   var copies=document.querySelectorAll('.shot-cred-copy');
   for(var ci=0;ci<copies.length;ci++)(function(btn){
     var label=btn.querySelector('.shot-cred-copy-label')||btn;
@@ -441,42 +439,92 @@ window.__lollyChipField=function(canvas,opt){
       });
     });
   })(copies[ci]);
-  var creds=document.querySelectorAll('.shot-cred:not([data-static])');if(!creds.length)return;
-  function close(c){c.removeAttribute('data-open');var b=c.querySelector('.shot-cred-btn');if(b)b.setAttribute('aria-expanded','false');}
-  function closeAll(except){creds.forEach(function(c){if(c!==except)close(c);});}
-  // Keep an opened line inside the viewport. It grows from the artwork's corner
-  // toward inline-start, so on a narrow crop it can run past that edge of the
-  // screen; measure it and slide it back by the overshoot (plus an 8px margin).
+  var creds=document.querySelectorAll('.shot-cred');if(!creds.length)return;
+  // Each mark keeps two flags the CSS reads as :hover and :focus-within: h while the
+  // pointer is on it, f while the focus is inside it. A card shows while a tap pins it
+  // (data-open), or while it is hovered or focused and not shut (data-shut).
+  function shown(c){return c.hasAttribute('data-open')||(!c.hasAttribute('data-shut')&&!!(c._h||c._f));}
+  // aria-expanded follows what the reader sees, however the card opened.
+  function sync(){creds.forEach(function(c){var b=c.querySelector('.shot-cred-btn');if(b)b.setAttribute('aria-expanded',shown(c)?'true':'false');});}
+  function close(c){c.removeAttribute('data-open');}
+  // Keep an opened card inside the viewport. It opens above the glyph and grows toward
+  // inline-start, so measure it: open it below the glyph when the fixed site bar would
+  // cover its top (and there is room below), and slide it back by any sideways
+  // overshoot past either window edge (plus an 8px margin).
   function clamp(c){
     var line=c.querySelector('.shot-cred-line');if(!line)return;
+    c.removeAttribute('data-below');
     line.style.setProperty('--cred-shift','0px');
     var r=line.getBoundingClientRect(),edge=8,w=document.documentElement.clientWidth;
+    var bar=document.querySelector('.site-bar'),top=(bar?bar.getBoundingClientRect().bottom:0)+edge;
+    if(r.top<top&&c.getBoundingClientRect().bottom+r.height+edge*2<window.innerHeight)c.setAttribute('data-below','');
     var shift=r.left<edge?edge-r.left:(r.right>w-edge?w-edge-r.right:0);
     if(shift)line.style.setProperty('--cred-shift',Math.round(shift)+'px');
   }
   creds.forEach(function(c){
     var btn=c.querySelector('.shot-cred-btn');if(!btn)return;
-    btn.addEventListener('mouseenter',function(){clamp(c);});
-    btn.addEventListener('focus',function(){clamp(c);});
+    // Reaching one mark closes every other: a pinned card unpins, and a card still held
+    // open by the focus or a resting pointer is shut, so one card shows at a time.
+    function arrive(){
+      creds.forEach(function(o){if(o===c)return;close(o);if(o._h||o._f)o.setAttribute('data-shut','');});
+      clamp(c);sync();
+    }
+    c.addEventListener('mouseenter',function(){c._h=true;c.removeAttribute('data-shut');arrive();});
+    // A shut that only the pointer was holding (Escape on a hovered card) ends when the
+    // pointer leaves, so a later visit by keyboard opens the card again.
+    c.addEventListener('mouseleave',function(){c._h=false;if(!c._f)c.removeAttribute('data-shut');sync();});
+    // Focus arriving from outside the mark is a new visit and opens the card. A move
+    // inside the mark (Escape returning focus to the glyph) keeps a shut card shut.
+    c.addEventListener('focusin',function(e){
+      if(!c.contains(e.relatedTarget)){c._f=true;c.removeAttribute('data-shut');}
+      arrive();
+    });
+    // Focus moving on to another control closes a pinned card too, so a card opened
+    // from the keyboard does not stay over the page once the reader has tabbed past.
+    // A null relatedTarget (a click on the page, the window losing focus) leaves that
+    // to the click handler below.
+    c.addEventListener('focusout',function(e){
+      if(c.contains(e.relatedTarget))return;
+      c._f=false;
+      if(!c._h)c.removeAttribute('data-shut');
+      if(e.relatedTarget)close(c);
+      sync();
+    });
     btn.addEventListener('click',function(e){
       e.preventDefault();
       var open=!c.hasAttribute('data-open');
-      closeAll(c);
-      if(open){clamp(c);c.setAttribute('data-open','');btn.setAttribute('aria-expanded','true');}else close(c);
+      creds.forEach(function(o){if(o!==c)close(o);});
+      if(open){c.removeAttribute('data-shut');clamp(c);c.setAttribute('data-open','');}
+      // A second tap closes the card even though the pointer and focus are still on the glyph.
+      else{close(c);c.setAttribute('data-shut','');}
+      sync();
     });
   });
-  window.addEventListener('resize',function(){var o=document.querySelector('.shot-cred[data-open]');if(o)clamp(o);});
-  // Escape closes the open line and returns focus to its trigger, matching how the
-  // app's own overlays behave.
+  // Keep a shown card on screen while the page moves under it: a resize, or a scroll
+  // that would carry it under the fixed site bar. Once per frame at most.
+  var queued=false;
+  function reclamp(){
+    if(queued)return;queued=true;
+    requestAnimationFrame(function(){queued=false;creds.forEach(function(c){if(shown(c))clamp(c);});});
+  }
+  window.addEventListener('resize',reclamp);
+  window.addEventListener('scroll',reclamp,{passive:true});
+  // Escape closes the card the reader is on: the one holding focus, else the one that
+  // shows. Focus returns to the glyph only when it was inside that mark already, so an
+  // Escape pressed anywhere else (the search box, say) never pulls the reader back up
+  // the page. data-shut keeps the card closed while focus sits on its glyph.
   document.addEventListener('keydown',function(e){
     if(e.key!=='Escape')return;
-    var open=document.querySelector('.shot-cred[data-open]');
-    if(!open)return;
-    close(open);
-    var b=open.querySelector('.shot-cred-btn');if(b)b.focus();
+    var a=document.activeElement,mine=a&&a.closest?a.closest('.shot-cred'):null,open=mine;
+    if(!open)creds.forEach(function(c){if(!open&&shown(c))open=c;});
+    if(!open||!shown(open))return;
+    close(open);open.setAttribute('data-shut','');
+    if(mine){var b=open.querySelector('.shot-cred-btn');if(b)b.focus();}
+    sync();
   });
   document.addEventListener('click',function(e){
-    if(!e.target.closest||!e.target.closest('.shot-cred'))closeAll(null);
+    if(e.target.closest&&e.target.closest('.shot-cred'))return;
+    creds.forEach(close);sync();
   });
 })();
 ;

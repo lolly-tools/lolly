@@ -274,7 +274,13 @@ describe('geometric peers share a depth, so grids stay grids', () => {
   const GRIDS: Record<string, { rungs: number; biggest: number }> = {
     // The 2026-09-19 recipe adds five shades. Their wells and repeated controls
     // form three groups of five across 27 layers and 15 depth rungs.
-    'bs-palette-pane': { rungs: 15, biggest: 5 },
+    // Re-measured 2026-10-21 on the lolly-demo recapture: Lolly Demo's pane also
+    // shows its 8-colour Spectrum group, so 13 swatch cards fill a five-column grid
+    // over three rows, and their wells and cards each lift as ONE rung of 13 across
+    // both groups: 59 layers on 24 rungs. Each group's caption row is a rung of its
+    // own (5, then 8), because the Spectrum heading puts the second group 4.2
+    // caption heights below the first, past LIFT_PEER_GAP. The lift code did not change.
+    'bs-palette-pane': { rungs: 24, biggest: 13 },
     // Re-measured 2026-09-25: the panel-system re-capture (d0f6404b0) redrew the verify
     // cards, so the block now lifts as 8 layers on 5 rungs with a biggest rung of 4.
     'cc-verify-mobile': { rungs: 5, biggest: 4 },     // the card block
@@ -290,6 +296,9 @@ describe('geometric peers share a depth, so grids stay grids', () => {
     // rungs and the largest shared rung is 2. The lift code did not change.
     // Re-measured 2026-09-30: refreshed docs capture has 41 layers on 31 rungs.
     // Its four repeated controls share the largest rung; lift code is unchanged.
+    // The 2026-10-21 lolly-demo recapture measures the same. A capture that lifts as
+    // 36 layers on 28 rungs walked the timeline before the canvas painted its clips:
+    // the bars read "Box" and carry no thumbnails or waveform. Recapture that frame.
     'seq-studio-timeline': { rungs: 31, biggest: 4 },
   };
   for (const [name, want] of Object.entries(GRIDS)) {

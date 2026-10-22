@@ -65,7 +65,7 @@ Jadi yang layak diperhatikan adalah **alat**-nya, bukan setiap file yang dibuatn
 
 Inilah perubahan yang sebenarnya dihadirkan oleh mesin deterministik. Bagi tim kreatif ini adalah pagar pengaman, bukan pengganti - Anda tetap yang melempar bola (data, teks, gambar) dan kode adalah jalur bumper yang menjaga setiap lemparan tidak keluar dari jalur.
 
-![Seluruh pekerjaan produser: ketik kata-katanya. Jenis huruf, warna, dan spasi sudah ditetapkan saat alat itu dibuat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![Seluruh pekerjaan produser: ketik kata-katanya. Jenis huruf, warna, dan spasi sudah ditetapkan saat alat itu dibuat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## Apa yang secara unik disediakan ini
 

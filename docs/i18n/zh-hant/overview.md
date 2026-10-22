@@ -239,7 +239,7 @@ lolly/
 
 web 殼層採用單一版面配置做響應式設計。在桌面版上，工具是一個可調整大小的控制項側邊欄，搭配一個預覽舞台，並具備原生觸控板式的畫布導覽（Cmd/Ctrl + 滾輪或雙指縮放以游標為中心縮放、按住 Space 或中鍵拖曳平移、`0`/`1`/`+`/`−` 按鍵，以及 Fit/% HUD）。在行動裝置上（≤640px）控制項會變成一個上方固定的面板，附有可拖曳的把手，可吸附至窺視/半展開/全展開三種狀態（點擊可切換），覆蓋在靜態的全螢幕預覽上，而浮動的 **Render** 按鈕會以底部彈出面板開啟 **Export** 控制項。觸控操作可在預覽上進行雙指縮放與拖曳平移。兩者的算繪路徑與匯出控制項完全相同 - 只有介面外框會重新排版。
 
-![桌面版分割檢視 - 左側是從 manifest 產生的控制項，右側是即時畫布](/t/url-shot?url=%2F%23%2Ftool%2Fchart-creator&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=aud-web-split)
+![桌面版分割檢視 - 左側是從 manifest 產生的控制項，右側是即時畫布](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
 同一個工具在手機寬度下，不需要維護第二種版面：控制項變成頂端的表單頁，預覽佔滿整個畫面，輸出按鈕則浮在其上。
 
@@ -293,7 +293,7 @@ CLI 的互動版對應物：一個以鍵盤操作為主的全螢幕終端機應�
 
 **Strip Hidden Data** 是第一個**裝置端公用工具**(`privacy: "on-device"`):一個內容轉換工具,會接收*你*提供的檔案,完全在瀏覽器中處理後傳回乾淨的副本,不會上傳、不會加浮水印,也不會蓋上來源標記。**Text** 是第二個,一個裝置端工作台,用於日常貼上網站的作業(JSON 格式化、JWT 解碼、Base64、URL 編碼/解碼、SHA 雜湊)。**Compress PDF** 是第三個,它透過重新壓縮圖片來縮小 PDF 檔案,同樣完全在裝置端進行。標記及其徽章文字「在你的裝置上執行,沒有任何內容會被上傳」現在涵蓋整組轉換工具:Strip Hidden Data、Text、Compress PDF、**Convert Image**(HEIC/TIFF/AVIF → WebP/JPG/PNG)、**Convert Font**、**Redact**(在圖片、SVG 或 PDF 中銷毀指定區域)、**Prompt Card**,以及在設定檔掛載時的 **Rebrand**(就地重新套用 `.pptx` 的主題)。這是一個隱私公用工具類別,取代了將機密檔案交給單一用途網站處理的做法。
 
-![工具抽屜，其中每張卡片都是可轉換你既有檔案的工具](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
+![工具抽屜，其中每張卡片都是可轉換你既有檔案的工具](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 > 附註:`category` 與 `status` 會從每個 `tool.json` 反正規化寫入 `catalog/tools/index.json`(圖庫讀取的登錄檔)。清單檔案(manifest)才是真實來源 - 該索引是由 `pnpm run build:catalog` **產生**的,若已提交的索引與清單檔案不一致,`pnpm run validate:catalog` 會讓 CI 失敗。
 

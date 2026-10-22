@@ -120,6 +120,19 @@ export function splitPalette(palette: readonly PaletteEntry[]): SplitPalette {
   return { core, roles: [...roles] };
 }
 
+/**
+ * A role colour's row name from its token path, never from its description
+ * (which is often a sentence): `color.semantic.on-primary` is On primary and
+ * `color.chrome.edge` is Chrome edge. The layer word is kept only where it
+ * tells two roles apart, so the semantic and document roles read by their leaf.
+ */
+export function rolePathName(path: string): string {
+  const parts = path.split('.');
+  const leaf = parts.at(-1) ?? path, parent = parts.at(-2) ?? '';
+  const words = (parent && parent !== 'semantic' && parent !== 'role' && parent !== 'color' ? `${parent} ${leaf}` : leaf).replace(/[-_]+/g, ' ').trim();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 /** The palette in the order a Swatches panel shows it: brand, spectrum, each ramp,
  *  then the role colours layer by layer. A swatch's index here is its place in that
  *  panel, which is what card selection, downloads and paging through details read. */

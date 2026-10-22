@@ -5,8 +5,7 @@ import { escape as escapeText } from '../../utils.ts';
 import { icon } from '../icons.ts';
 import { swatchInk, SWATCH_INK } from '../../brand-vars.ts';
 export interface BrandPreview { font: string; colors: string[]; colorCount?: number; logoUrl?: string }
-/** The ink the specimen's words take on its first colour: the swatch ink (APCA).
- *  design-systems-card.ts picks the reverse logo by the same answer. */
+/** The ink the specimen's words take on its first colour: the swatch ink (APCA). */
 export const specimenInk = (background: string): string => swatchInk(background) ?? SWATCH_INK.dark;
 export function brandSpecimenHtml(label: string, preview: BrandPreview, active = false, showStatus = true): string {
   const colors = preview.colors.length ? preview.colors : ['#172b29', '#a5edda', '#f5f8f7'];

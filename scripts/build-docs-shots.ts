@@ -40,9 +40,10 @@
  * only when a baseline is actually (re)written, so an unchanged shot keeps its
  * committed bytes verbatim and git never churns.
  *
- * Captures are PINNED to the neutral brand (lolly-start profile) regardless of the
- * sticky profile: deterministic pixels, and public-safe - the SUSE brand pack is
- * private, so its pixels must never be committed into the public docs repo. The
+ * Captures are PINNED to Lolly's own demo brand (lolly-demo profile, the one
+ * lolly.tools ships) regardless of the sticky profile: deterministic pixels, and
+ * public-safe - the SUSE brand pack is private, so its pixels must never be
+ * committed into the public docs repo. The
  * pre-run profile is restored afterwards (same fallback rules as loldev's do_build).
  *
  * Every run is a snapshot comparison (scripts/lib/shot-compare.ts):
@@ -102,7 +103,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'shells', 'web', 'dist');
 const DOCS_DIR = join(ROOT, 'docs');
 const SHOTS_DIR = join(ROOT, 'docs', 'shots');
-const CAPTURE_PROFILE = 'lolly-start';
+const CAPTURE_PROFILE = 'lolly-demo';
 const SITE_URL = 'https://lolly.tools';
 
 // Freeze the page for a deterministic shot: jump animations/transitions to their
@@ -128,6 +129,35 @@ const VIEWPORT_DEFAULTS = { width: 1440, height: 900, dpi: 192 };
 // cards. Wait for its real settled signal; individual renders have their own
 // deadline, and this outer limit still fails a capture that never settles.
 const CAPTURE_READY_TIMEOUT_MS = 180_000;
+
+// The route has MOUNTED: main.ts route() keeps this attribute on #view from the start
+// of a navigation until the view's mount resolves (lib/capture-neutral.ts
+// ROUTE_MOUNTING_ATTR; the two spellings are asserted equal by capture-neutral.test.ts).
+// A fixed waitMs used to stand in for this. Under a parallel run a tool route took
+// longer than its waitMs to fetch its chunks and paint, so the walker found no
+// #tool-canvas, or framed the boot splash or an empty canvas. The boot splash's icon
+// (index.html) and the loading card are checked too, because the attribute only
+// exists once route() has run. The state has to hold for a moment, so the short gap
+// between one navigation's end and a follow-up navigation does not count as ready.
+const ROUTE_MOUNTING_ATTR = 'data-route-mounting';
+const ROUTE_READY_HOLD_MS = 250;
+const ROUTE_READY_TIMEOUT_MS = 60_000;
+/** How long a walker capture waits for its cropSelector to be in the DOM. */
+const CROP_TARGET_TIMEOUT_MS = 30_000;
+const ROUTE_READY_PROBE = `(() => {
+  const view = document.getElementById('view');
+  const ready = !!view && !view.hasAttribute('${ROUTE_MOUNTING_ATTR}')
+    && !view.querySelector('.loading-icon') && !document.querySelector('dialog.view-loading[open]');
+  const now = performance.now();
+  if (!ready) { window.__lollyShotsReadyAt = 0; return false; }
+  if (!window.__lollyShotsReadyAt) window.__lollyShotsReadyAt = now;
+  return now - window.__lollyShotsReadyAt >= ${ROUTE_READY_HOLD_MS};
+})()`;
+
+/** Block until the shot's route has mounted (ROUTE_READY_PROBE), before any waitMs. */
+async function waitForRouteMounted(page: { waitForFunction(fn: string, arg?: unknown, o?: { timeout?: number; polling?: number }): Promise<unknown> }): Promise<void> {
+  await page.waitForFunction(ROUTE_READY_PROBE, undefined, { timeout: ROUTE_READY_TIMEOUT_MS, polling: 50 });
+}
 
 /**
  * Drive behaviour for a DOCS capture: when a click's actionability retries run out
@@ -594,9 +624,10 @@ function expectedDims(shot: ShotDef, dims: { width: number; height: number; dpi:
 //
 // Then the NEUTRAL-STATE pin (lib/capture-neutral.ts): a published screenshot
 // must show the app's plain chrome. A fresh browser context covers most of that
-// for free, but a default is not the same as absent - `jelly-effects` defaults
-// ON for an unlocked brand, which is precisely the `lolly-start` profile these
-// captures pin, so the soft-body controls were in every baseline by default. The
+// for free, but a default is not the same as absent - `jelly-effects` defaulted
+// ON for an unlocked brand until 2026-09-11, so the soft-body controls were in
+// every baseline by default, and Neurospicy Mode is still on by default under the
+// `lolly-demo` profile these captures pin, as under every other brand. The
 // app cannot honour a seeded flag mirror (hydrateFeatureFlags rewrites it from
 // the profile at boot), so it reads this one key after hydration instead and
 // forces the effect flags off + the a11y attributes clear. Set for EVERY shot
@@ -739,6 +770,7 @@ async function resolveSelectorCrop(baseUrl: string, shot: ShotDef): Promise<Part
     const page = await ctx.newPage();
     await page.goto(baseUrl + shot.route, { waitUntil: 'load', timeout: 45_000 });
     await page.evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => undefined)).catch(() => {});
+    await waitForRouteMounted(page);
     if (params.css) await page.addStyleTag({ content: params.css }).catch(() => {});
     // waitMs FIRST, scroll after: an SPA route lays out well after `load`, so a
     // scroll issued immediately clamps against a 0-height document and the frame
@@ -771,6 +803,7 @@ async function resolveSelectorCrop(baseUrl: string, shot: ShotDef): Promise<Part
     if (shot.drive?.length) await runDriveSteps(page as unknown as PageLike, shot.drive, driveOptsFor(shot));
 
     const PAD = 24;
+    await page.waitForSelector(shot.cropSelector!, { state: 'attached', timeout: CROP_TARGET_TIMEOUT_MS });
     const box = await page.evaluate(({ sel, pad }: { sel: string; pad: number }) => {
       const el = document.querySelector(sel);
       if (!el) return null;
@@ -794,7 +827,7 @@ async function captureOneRaster(sharp: Sharp, baseUrl: string, shot: ShotDef): P
   let bytes: Uint8Array;
   try {
     ({ bytes } = await captureUrl(
-      { ...params, url: baseUrl + shot.route, initScript: captureInit(shot.theme), contextPrefs: captureContext(shot.theme) },
+      { ...params, url: baseUrl + shot.route, initScript: captureInit(shot.theme), contextPrefs: captureContext(shot.theme), readyFunction: ROUTE_READY_PROBE },
       shot.format, dims,
     ));
     // The Lolly Imprint goes in BEFORE the compare: embedWatermark is a fixed,
@@ -904,6 +937,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
     const page = await ctx.newPage();
     await page.goto(baseUrl + shot.route, { waitUntil: 'load', timeout: 45_000 });
     await page.evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => undefined)).catch(() => {});
+    await waitForRouteMounted(page);
     const zoomCss = Math.abs((shot.zoom ?? 1) - 1) > 1e-3 ? `html{zoom:${shot.zoom}!important}` : '';
     const styles = [zoomCss, params.css].filter(Boolean).join('\n');
     if (styles) await page.addStyleTag({ content: styles }).catch(() => {});
@@ -942,6 +976,11 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
     // there is no PDF window step and no cull - what is walked IS the frame.
     if (shot.walker) {
       const sel = shot.cropSelector || 'body';
+      // Some crop targets are built after the route's mount resolves (a tool's input
+      // rows, a panel a drive step opened), so they can still be on their way on a
+      // busy machine. Wait for the target for a bounded time. A selector that matches
+      // nothing still fails, after this wait rather than at once.
+      if (shot.cropSelector) await page.waitForSelector(sel, { state: 'attached', timeout: CROP_TARGET_TIMEOUT_MS });
       // A6: with no cropSelector the walked node is `body` - an unstyled
       // content-height block, so the frame would be 1440 x full document height
       // with the fixed chrome floating mid-image. Window the walk to the

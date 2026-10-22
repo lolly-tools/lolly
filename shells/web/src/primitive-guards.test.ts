@@ -653,7 +653,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/read-extract.ts': 5, // Read and extract: static shell markup plus escapeHtml()-wrapped counts and messages, and renderExtractHtml output
 
   // Fixed registry icons only; sidebar labels and metadata use textContent.
-  'components/asset-inspector-dock.ts': 3,
+  'components/asset-inspector-dock.ts': 2,
   // One fixed registry link icon; response URLs and labels are assigned as text/value.
   'components/invite-link-control.ts': 1,
   // Fixed registry icons only; button labels and comment content use textContent.
@@ -1156,7 +1156,14 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // `cat-empty` paragraph containing only t('unavailable'). It adds no data
   // interpolation; the ordinary storage renderer remains responsible for
   // escaping measured/device values before it reaches its own sink.
-  'views/dashboard.ts': 12,
+  // 12 to 9 on 2026-10-21: the Design system tab moved to views/dashboard/brand.ts,
+  // taking the hero status line, the lock seal and the token grid fills along.
+  'views/dashboard.ts': 9,
+  // The Design system tab's in-place refresh: the issue re-rendered by issueHtml,
+  // the same markup first paint writes. Every value from the design system doc
+  // (names, notes, token values, logo variants) goes through escape(); colours
+  // reach a style attribute only as plain hex, and t() strings are shell copy.
+  'views/dashboard/brand.ts': 1,
   'views/deck-editor.ts': 9,
   // 2 as of 2026-09-02 (new file: the Design editor's top bar, plan 179 M1). One is
   // the VERBATIM re-insert of the shell's own `backHomeHtml()` island, which the bar
@@ -1612,13 +1619,23 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // escape(), the source line is escape()d as a whole, and the rest is t() copy and
   // icon() markup. Nothing a record carries reaches the sink raw.
   'lib/design-system/design-systems-card.ts': 2,
+  // 2 as of 2026-10-21 (new file: the design systems strip on the Settings Design
+  // system tab). One sink draws the items, one swaps a cover in when its preview
+  // has been read. Record ids and labels and the counts line go through escape(); each
+  // cover is cover.ts coverHtml, whose style values are plain hex and whose logo
+  // URLs pass safeLogoSrc; the check is icon() markup. The title, the Manage link
+  // and the status line are built as DOM nodes with textContent.
+  'lib/design-system/ds-strip.ts': 2,
   // Local-content checklist: every device-owned name/detail is escape()d;
   // keys are numeric indices and the three group names are constants.
   'lib/design-system/brand-download.ts': 1,
   // 10 as of 2026-09-04: the Tokens room adds one complete Lolly UI starter-role
   // preview. Token paths, current values and controls all reach it through escape();
   // its actual brand write stays in the delegated submit handler below the sink.
-  'lib/brand-studio-tabs.ts': 10,
+  // 12 as of 2026-10-20: the room's tiles and Colours/Type/Logos sections (and their
+  // whole-room blank state) are two writes to one host. Paths, names, values and hex
+  // reach the sink through escape()/colorToHex, and tokenPreviewHtml escapes its own output.
+  'lib/brand-studio-tabs.ts': 12,
   'views/timeline-panel/helpers.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/timeline-panel/inspector-pane.ts': 4,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'views/timeline-panel/menus.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
@@ -1756,7 +1773,10 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'components/token-binding-field.ts': 3,
   'components/token-context-strip.ts': 1,
   'components/token-review-proof.ts': 1,
-  'components/token-workspace.ts': 7,
+  // 9 as of 2026-10-20: the zero-match list and the "hidden by the current filters"
+  // detail are their own writes. Paths, queries and values go through escape(), and
+  // tokenPreviewHtml escapes its own output.
+  'components/token-workspace.ts': 9,
   // The saved-work check repaints only its own section: session labels, tool ids,
   // paths and failure text go through escape(); counts, times and copy are t() output.
   'lib/token-consumer-index.ts': 1,
@@ -2003,7 +2023,9 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 257 to 256: the brand studio Set row marks itself with a full wash, not an inset rail.
     // 256 to 255: the swatch name chip is lifted by the floating elevation.
     // 255 to 254: the design system studio's Overview doors use the edge and control elevation.
-    pin: 254,
+    // 253 to 250: the Settings Design system tab's hero, primary chip and ink
+    // ribbon went with the illustrations; the new read uses hairlines only.
+    pin: 250,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,
@@ -2019,7 +2041,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 100 → 98: Design panel and thumbnail-cell radii use semantic tokens.
     // 96 → 94: the sidebar's history and language buttons took --radius-sm.
     // 92 → 91 on 2026-09-30: the Storage card's big archive button became a plain .btn.
-    pin: 91,
+    // 91 to 90 on 2026-10-21: the ink ribbon's 8px row left the Design system tab.
+    pin: 90,
     count: (t) => (t.match(/border-radius:\s*\d+(?:\.\d+)?px\s*[;}!]/g) ?? []).length,
     fix: 'use var(--radius-xs|sm|md|lg) (derived from --radius) or var(--radius) for the base panel size',
   },
@@ -2039,7 +2062,10 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 425 to 424: Share headings use the shared section type role.
     // 424 to 423: the simple upload dropzone replaces the separate touch CTA.
     // 423 to 422: the gallery tips strip and its type rule are removed.
-    pin: 422,
+    // 422 to 412 on 2026-10-21: the Settings Design system tab's hero, type
+    // facts and ink ribbon went; its read sizes type with the --fs-* and
+    // --ui-type-* tokens.
+    pin: 412,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },

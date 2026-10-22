@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 Jakmile je značka aktivní, tvaruj ji dál v [**Brand Studiu**](/info/brand-studio.html) (`#/start`) - změníš barvu nebo roli a každý náhled v aplikaci se aktualizuje při psaní. (Záložka **Systém designu** v přehledu na `#/d` značku jen *ukazuje*; edituje se ve Studiu.)
 
-![Záložka Systém designu v přehledu - aktivní značka zobrazená jen ke čtení](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) Stejná značka je shrnutá na kartě **Profil → Tvoje značka**. Písma jsou opravdová: vyber si z Google Fonts a Lolly uloží soubor **na tvém zařízení** jako součást značky, takže tvé písmo funguje i offline a při renderování se nic nestahuje.
+![Záložka Systém designu v přehledu - aktivní značka zobrazená jen ke čtení](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) Stejná značka je shrnutá na kartě **Profil → Tvoje značka**. Písma jsou opravdová: vyber si z Google Fonts a Lolly uloží soubor **na tvém zařízení** jako součást značky, takže tvé písmo funguje i offline a při renderování se nic nestahuje.
 
 Až budeš spokojený, **exportuj značku jako balíček `LollyBrand`** - jediný soubor, který kolega může importovat a získat naprosto stejnou paletu, písma a pravidla. Takhle se značka přesouvá mezi lidmi a stroji bez serveru uprostřed.
 

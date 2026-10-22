@@ -54,7 +54,7 @@ export function renderShell(pv: ProfileViewCtx): void {
 
       <div class="profile-panes">
 
-      <details class="profile-card profile-collapse" id="details-section"${pv.rows.startOpen('details-section')}>
+      <details class="profile-card profile-collapse section-card" id="details-section"${pv.rows.startOpen('details-section')}>
         ${summaryRow('details-section', t('Your details'), displayName
           ? `<span class="profile-summary-name">${escapeText(displayName)}</span>`
           : t('Nothing added - exports stay anonymous'))}
@@ -126,17 +126,17 @@ export function renderShell(pv: ProfileViewCtx): void {
       ${/* Content Credentials sits second, right under Your details: the two are one
            subject - what goes into the files you export - and splitting them across
            the page was what made the provenance story unfindable (plans/163 4.2). */''}
-      <details class="profile-card profile-collapse" id="identity-section"${pv.rows.startOpen('identity-section')}>
+      <details class="profile-card profile-collapse section-card" id="identity-section"${pv.rows.startOpen('identity-section')}>
         ${summaryRow('identity-section', t('Content Credentials'))}
         <div class="profile-collapse-body section-card-body" id="identity-body">${skeletonRow()}</div>
       </details>
 
-      <details class="profile-card profile-collapse" id="design-systems-section"${pv.rows.startOpen('design-systems-section')}>
+      <details class="profile-card profile-collapse section-card" id="design-systems-section"${pv.rows.startOpen('design-systems-section')}>
         ${summaryRow('design-systems-section', t('Design systems'), escapeText(activeDesignSystemLabel))}
         <div class="profile-collapse-body section-card-body" id="design-systems-body">${skeletonRow()}</div>
       </details>
 
-      <details class="profile-card profile-collapse profile-card--appearance" id="appearance-section"${pv.rows.startOpen('appearance-section')}>
+      <details class="profile-card profile-collapse section-card profile-card--appearance" id="appearance-section"${pv.rows.startOpen('appearance-section')}>
         ${summaryRow('appearance-section', t('Appearance'), escapeText(pv.summaries.themeLabel(activeTheme)))}
         <div class="profile-collapse-body section-card-body">
         <p class="profile-appearance-sub">${isTauriShell() ? t('How the app dresses for you - your preference, separate from your brand. Applied instantly and remembered on this device.') : t('How the app dresses for you - your preference, separate from your brand. Applied instantly and remembered in this browser.')}</p>
@@ -164,7 +164,7 @@ export function renderShell(pv: ProfileViewCtx): void {
            set every emoji in your text is drawn from, and the licence that travels
            with anything you export. The body mounts lazily (the shared control is
            its own chunk), so the summary is filled in by wireEmojiPref. */''}
-      <details class="profile-card profile-collapse" id="emoji-pref-section"${pv.rows.startOpen('emoji-pref-section')}>
+      <details class="profile-card profile-collapse section-card" id="emoji-pref-section"${pv.rows.startOpen('emoji-pref-section')}>
         ${summaryRow('emoji-pref-section', t('Emoji'))}
         <div class="profile-collapse-body section-card-body">
         <p class="profile-appearance-sub">${t('The set your emoji are drawn from when you start something new. Work you have already made keeps the set it was made with.')}</p>
@@ -172,7 +172,7 @@ export function renderShell(pv: ProfileViewCtx): void {
         </div>
       </details>
 
-      <details class="profile-card profile-collapse profile-card--a11y" id="a11y-section"${pv.rows.startOpen('a11y-section')}>
+      <details class="profile-card profile-collapse section-card profile-card--a11y" id="a11y-section"${pv.rows.startOpen('a11y-section')}>
         ${summaryRow('a11y-section', t('Accessibility'), pv.summaries.a11ySummary())}
         <div class="profile-collapse-body section-card-body">
         <p class="profile-appearance-sub">${t('Comfort settings for the app around your work. Each one is off until you turn it on, and none of them touch your designs or your exports.')}</p>
@@ -193,7 +193,7 @@ export function renderShell(pv: ProfileViewCtx): void {
            it syncs THROUGH the storage services grouped right above it, so the two
            were always one subject. Both bodies mount lazily when the card opens;
            an old ?focus=sync-section link opens this group too. */''}
-      <details class="profile-card profile-collapse" id="connections-section"${pv.rows.startOpen('connections-section')}>
+      <details class="profile-card profile-collapse section-card" id="connections-section"${pv.rows.startOpen('connections-section')}>
         ${summaryRow('connections-section', t('Connected services'))}
         <div class="profile-collapse-body section-card-body">
           <div id="connections-body">${skeletonRow()}</div>
@@ -207,7 +207,7 @@ export function renderShell(pv: ProfileViewCtx): void {
       ${/* Trusted sites (plan 288): the one list that answers "may Lolly contact this
            site without asking me?" for the Sandbox and for Design's web page boxes.
            The body is built by wireTrustedSites and repaints on every change. */''}
-      <details class="profile-card profile-collapse" id="trusted-sites-section"${pv.rows.startOpen('trusted-sites-section')}>
+      <details class="profile-card profile-collapse section-card" id="trusted-sites-section"${pv.rows.startOpen('trusted-sites-section')}>
         ${summaryRow('trusted-sites-section', t('Trusted sites'))}
         <div class="profile-collapse-body section-card-body">
         <p class="profile-appearance-sub">${t("Sites Lolly may contact without asking first: the fonts and scripts a Sandbox demo loads, and the pages Design shows on a slide. Trusting a site removes a question. A site the app's security policy blocks stays blocked.")}</p>
@@ -215,7 +215,7 @@ export function renderShell(pv: ProfileViewCtx): void {
         </div>
       </details>
 
-      <details class="profile-card profile-collapse" id="renders-section"${pv.rows.startOpen('renders-section')}>
+      <details class="profile-card profile-collapse section-card" id="renders-section"${pv.rows.startOpen('renders-section')}>
         ${summaryRow('renders-section', t('Your renders'), pv.summaries.rendersSummary())}
         <div class="profile-collapse-body section-card-body">
         <p class="profile-appearance-sub">${t('Keep a copy of everything you download, ready to reopen or reuse.')}</p>
@@ -224,18 +224,18 @@ export function renderShell(pv: ProfileViewCtx): void {
         </div>
       </details>
 
-      <details class="profile-card profile-collapse" id="storage-section"${pv.rows.startOpen('storage-section')}>
+      <details class="profile-card profile-collapse section-card" id="storage-section"${pv.rows.startOpen('storage-section')}>
         ${summaryRow('storage-section', t('Storage'))}
         <div class="profile-collapse-body section-card-body" id="storage-body">${skeletonRow()}</div>
       </details>
 
-      <details class="profile-card profile-collapse" id="offline-section"${pv.rows.startOpen('offline-section')}>
+      <details class="profile-card profile-collapse section-card" id="offline-section"${pv.rows.startOpen('offline-section')}>
         ${summaryRow('offline-section', t('Available offline'))}
         <div class="profile-collapse-body section-card-body" id="offline-body">${skeletonRow()}</div>
       </details>
 
       ${isTauriShell() ? `
-      <details class="profile-card profile-collapse" id="hotfolder-section"${pv.rows.startOpen('hotfolder-section')}>
+      <details class="profile-card profile-collapse section-card" id="hotfolder-section"${pv.rows.startOpen('hotfolder-section')}>
         ${summaryRow('hotfolder-section', t('Hot folder'), '')}
         <div class="profile-collapse-body section-card-body" id="hotfolder-body">
           <p class="profile-hint">${t('Watch one folder on this computer. Anything dropped into it is pulled into Lolly through the same chooser a drag-and-drop gets - nothing leaves the device.')}</p>
@@ -250,12 +250,12 @@ export function renderShell(pv: ProfileViewCtx): void {
         </div>
       </details>` : ''}
 
-      <details class="profile-card profile-collapse profile-activity" id="activity-section"${pv.rows.startOpen('activity-section')}>
+      <details class="profile-card profile-collapse section-card profile-activity" id="activity-section"${pv.rows.startOpen('activity-section')}>
         ${summaryRow('activity-section', t('Your activity'), t('{n} renders', { n: metrics.filesRendered }))}
         <div class="profile-collapse-body section-card-body">${renderActivity(metrics, window.__toolIndex?.tools ?? [])}</div>
       </details>
 
-      <details class="profile-card profile-collapse" id="feature-flags-section"${pv.rows.startOpen('feature-flags-section')}>
+      <details class="profile-card profile-collapse section-card" id="feature-flags-section"${pv.rows.startOpen('feature-flags-section')}>
         ${summaryRow('feature-flags-section', t('Feature flags'), pv.summaries.flagsSummary())}
         <div class="profile-collapse-body section-card-body">
           <p class="storage-hint-text feature-hint-text">${t('Self-governance, autonomy, choice. Enable or disable parts of the app here')}</p>
@@ -264,7 +264,7 @@ export function renderShell(pv: ProfileViewCtx): void {
         </div>
       </details>
 
-      <details class="profile-card profile-collapse" id="instance-section"${pv.rows.startOpen('instance-section')}>
+      <details class="profile-card profile-collapse section-card" id="instance-section"${pv.rows.startOpen('instance-section')}>
         ${summaryRow('instance-section', t('Lolly instance'), instanceBase ? escapeText(instanceBase) : workspace ? escapeText(workspace) : t('Bundled'))}
         <div class="profile-collapse-body section-card-body">
         <p class="profile-appearance-sub">${t('Where this install gets its tools and catalogue from.')}</p>

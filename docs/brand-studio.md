@@ -4,7 +4,7 @@ The **Brand Studio** at `#/start` is the one place you shape your brand - its lo
 
 Changes preview **live across the whole app** as you make them, so you can see a colour or a font land everywhere before you commit it. It's all on-device: your brand files and tokens never leave your machine (picking a Google Font fetches that one family from Google, once, after a consent dialog), and the brand travels in a single [brand pack](#move-a-brand-between-devices) file.
 
-> **This is the editor. The dashboard is the mirror.** The **Design system** tab on the Dashboard (`#/d`) *shows* your brand read-only; you *edit* it here at `#/start`. If you want to change a colour later, come back to the Brand Studio.
+> **This is the editor. The dashboard is the mirror.** The **Design system** tab on the Dashboard (`#/d`) *shows* the active design system read-only; you *edit* it here at `#/start`. If you want to change a colour later, come back to the Brand Studio.
 
 ## Removing a design system
 
@@ -12,7 +12,7 @@ Open **Settings → Design systems** and choose **Remove** from the system's men
 
 The system that comes from the deployment's catalogue reads **Came with this app**, or **From this instance** in an app connected to one. Expand **Catalogue source** to see who supplies it and which tokens asset it uses. A system reads **Managed by this instance** only when its catalogue locks it: you can use a managed system and download it, but its colours, type and logos stay as supplied, and **Make an editable copy** gives you a version you can change.
 
-Every other supplied system is yours to hide, edit and reset, including Lolly Demo and Lolly Starter on lolly.tools. **Remove** hides a supplied system and **Bring back** shows it again. Editing one keeps its name and marks the row **Edited here**. **Reset to original** in the system's menu discards the changes made on this device. Removing an imported or edited local copy does not remove the supplied system, its logos or its fonts. If the copy was active, the supplied system becomes active again.
+Every other supplied system is yours to hide, edit and reset, including Lolly Demo and Lolly Starter on lolly.tools. [Lolly Demo in use](/info/lolly-demo-in-use.html#switch-to-your-own) shows what your own system replaces and what stays with Lolly. **Remove** hides a supplied system and **Bring back** shows it again. Editing one keeps its name and marks the row **Edited here**. **Reset to original** in the system's menu discards the changes made on this device. Removing an imported or edited local copy does not remove the supplied system, its logos or its fonts. If the copy was active, the supplied system becomes active again.
 
 Changing those supplied files is an administrator's task. See [Removing a catalogue design system](/info/operate/deployment.html#removing-a-catalogue-design-system) for the self-hosted steps.
 
@@ -188,7 +188,7 @@ Selection in the palette pane is a gesture, not a mode. There is no button to pr
 - The grid has one tab stop. Arrows walk it, Shift-arrows extend the selection, Space toggles a tile, Delete removes the selection and Escape clears it. (Arrows only move the focus: to nudge a channel, press `l`, `c` or `h` first, as the readout says.)
 - On a touch screen there is no rectangle. Press and hold a tile to start a selection, then tap to add; per-group **Select all** carries the rest.
 
-The bar itself reads **{n} selected**, then **Move to** (an existing group, or a new one you name inside the menu), **Give a role** (each selected colour takes the next role in turn, so four tiles fill all four roles in one press), **Download** (the selection in any of the six palette formats), **Copy values** (one line per colour in its stored notation) and **Delete**. Move to and Give a role appear once the palette has shades to move around. One Ctrl/Cmd-Z undoes a whole bulk action - a move of forty, a role walk, a delete - and a delete says what it kept, because a selection reaches tiles this room does not remove.
+The bar itself reads **{n} selected**, then **Move to** (an existing group, or a new one you name inside the menu), **Give a role** (each selected colour takes the next role in turn, so four tiles fill all four roles in one press), **Download** (the selection in any of the six palette formats), **Duplicate** (a copy of each selected colour, named after it, placed right after it under the same heading), **Copy values** (one line per colour in its stored notation) and **Delete**. A copy is a colour of its own, so moving a copy a shade lighter, to another tone or to more chroma leaves the original as it was. One copy opens straight in the swatch editor for that adjustment; several copies stay selected for the next action. Move to and Give a role appear once the palette has shades to move around. One Ctrl/Cmd-Z undoes a whole bulk action - a move of forty, a role walk, a delete - and a delete says what it kept, because a selection reaches tiles this room does not remove.
 
 ### Gradients
 
@@ -243,13 +243,19 @@ The **Type roles** panel at the foot shows a live specimen of each role - body a
 
 ## Tokens
 
-The rest of the design system, editable without touching code:
+Tokens are the named values behind the design system: colours, typefaces, logos, corners and spacing. Tools read them by name, so a change here reaches every tool at once.
 
-![The Tokens room - a corner-radius slider plus spacing, sizing, shadows and the rest of the system](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
+![The Tokens room on a fresh system - one card with the ways to start, then the shape and spacing sliders](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
-- **Rounded corners** - a single radius slider (0–1.5rem) that cards, buttons and panels across the app follow.
-- **Neutrals** - the ink-through-paper ramp a fresh install ships with, listed as **Neutrals · starter · 9** with its nine steps and an **Open** into the Colours pane. It is the one place the starter neutrals are managed, and the *starter* tag goes the moment the ramp is generated rather than inherited.
+- **The head** says what tokens are, gives an example from your own system (*Primary is Spearmint, #033633*) and carries the file actions. **Download** saves the whole system as design tokens (JSON), or the palette as CSS variables, CSS classes, SCSS, a GIMP palette or an Adobe Swatch Exchange file. **Copy CSS** copies the palette as CSS variables, and **Add from…** reads a JSON file back in.
+- **Tiles** count each kind of token and jump to its section: Colours, Type, Logos, Shape and spacing, More and All tokens. Colours, Type and Logos count what is your own, the way Overview does: palette colours (roles point at a colour and are not counted again), faces installed on this device and logos you added. A tile marked *Starter* has only what came with the system. On a phone the tiles are one row you can scroll sideways.
+- **Colours** starts with the pairs tools put together (text on surface, on primary, muted on surface) and their APCA Lc readout, in light and in dark. Every colour group follows. A ramp is one row of chips; every other colour is a row with its value and the reference tools call it by, such as `{color.brand.spearmint}`. Press the reference to put it on the clipboard. A group that is all starter colours carries one *Starter* tag. A fresh system's ink-through-paper ramp shows as **Neutrals · starter · 9**, and **Edit in Colours** opens that group in the Colours room.
+- **Type** and **Logos** list the face for each role and each logo slot, each logo with a small picture of its mark. Faces and marks that came with the system sit under a *Starter* heading, below a line that says you have none of your own yet and a door into the room that changes them.
+- **Shape and spacing** holds the two sliders the app and every tool follow: **Rounded corners** (`shape.radius`) and **Spacing rhythm** (`space.base`). Each reads *Lolly default* until you move the slider and *Yours* after. A move is saved straight away and can be undone from the room's head.
 - **More tokens** - add and edit **spacing**, **sizing**, **stroke width**, **opacity**, **rotation**, plain **numbers** and **shadows**. Pick a type, name it (*Gutter, Card shadow…*) and set its value. These are stored as standard [design tokens](/info/design-tokens.html) (DTCG) and travel with the design system.
+- Two folds stay closed until you open them. **App appearance (advanced)** lists the colours, sizes and shadows Lolly's own screens use. **Inspect every token (advanced)** searches, filters and edits any token's stored value, and shows each change for review before it applies.
+
+A section with nothing in it says what is missing and offers the way to fill the gap: **Pick a colour**, **Choose a face** or **Add a logo**. A system with no colour, face or logo of its own yet shows one card with the doors, and says that tools use the starter's colours, faces and logos until then.
 
 ## Files
 

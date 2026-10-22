@@ -667,6 +667,11 @@ export function destroy(tp: TpCtx): void {
     /* already gone */
   }
   try {
+    tp.unsubPaint?.();
+  } catch {
+    /* already gone */
+  }
+  try {
     unsubPose();
   } catch {
     /* already gone */

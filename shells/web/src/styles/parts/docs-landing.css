@@ -1045,21 +1045,11 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgb(238 145 56 / .13)}
    (.about-mascot / .audience-mascot / .everywhere-mascot: width, flex-shrink, drop-shadow)
    rides on THIS span, so it stays the flex child it was; the img just fills it, and the
    corner credential positions against it. NOT .asset-cred (that is width:100%, for the
-   full-column docs hero). */
+   full-column docs hero). The credential's card is a popover anchored to its glyph (the
+   docs stylesheet's .shot-cred-line), so it needs no room inside a small mascot: it
+   opens over the band and the credential script keeps it on screen. */
 .mascot-cred{position:relative;display:block;flex-shrink:0}
 .mascot-cred>img{display:block;width:100%;height:auto;margin:0}
-/* Keep a landing mascot's credit INSIDE its box (the brief), unlike a screenshot's
-   caption which deliberately overhangs the artwork edge. Clamp the line to the mascot's
-   own width and let the pills WRAP into a compact stack rather than run off the side. The
-   glyph stays bottom-anchored; the expanded line grows upward within the box. */
-.mascot-cred .shot-cred{max-width:calc(100% - 1rem)}
-.mascot-cred .shot-cred-line{max-width:100%}
-.mascot-cred .shot-cred-row{flex-wrap:wrap}
-/* Narrow columns stack the line and its glyph (the docs stylesheet's max-width:640px
-   rule). Keep the glyph at the BOTTOM and stack the collapsed line above it - the
-   line keeps its height while hidden, and with the glyph on top it was pushed clear
-   off a small floated mascot into whatever sat above. */
-@media(max-width:640px){.mascot-cred .shot-cred{flex-direction:column-reverse}}
 .audience-header{display:flex;align-items:center;justify-content:center;gap:2rem;padding:2.75rem 3rem 1.5rem}
 .audience-header-text{text-align:start}
 .audience-mascot{width:clamp(200px,26vw,430px);flex-shrink:0;filter:drop-shadow(0 6px 20px rgba(3,54,51,.18))}

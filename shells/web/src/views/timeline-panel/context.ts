@@ -232,6 +232,8 @@ export interface TpCtx {
   lastTimeKey: string;
   unsubTick: () => void;
   unsubShot: () => void;
+  /** Stops re-applying the playhead after each content paint (timeline-panel.ts). */
+  unsubPaint: () => void;
   unsubPose: () => void;
   ro: ResizeObserver | null;
   // ---- operations, one namespace per module ----

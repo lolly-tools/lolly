@@ -1611,7 +1611,7 @@ export function initDeckEditor(opts: InitDeckEditorOpts): DeckEditorHandle {
       const fit = shared(texts, b => !!b.fit, false);
 
       const fitBox = document.createElement('input');
-      fitBox.type = 'checkbox'; fitBox.className = 'deck-free__check'; fitBox.checked = fit;
+      fitBox.type = 'checkbox'; fitBox.className = 'field-check deck-free__check'; fitBox.checked = fit;
       fitBox.addEventListener('change', () => patchSel('text', { fit: fitBox.checked }));
 
       bar.append(group(

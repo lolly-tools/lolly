@@ -76,7 +76,7 @@ Sie wird nie hochgeladen, weil kein Server im Übertragungsweg vorhanden ist, an
 Diese Werkzeuge funktionieren offline, und ihre Ausgabe trägt kein Wasserzeichen und keine Metadaten von
 uns - der Zweck der meisten von ihnen ist, Daten zu entfernen & zu schützen, nicht Risiken hinzuzufügen.
 
-![Das Abzeichen, das diese Tools tragen: Läuft auf Ihrem Gerät - nichts wird hochgeladen](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![Das Abzeichen, das diese Tools tragen: Läuft auf Ihrem Gerät - nichts wird hochgeladen](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Prepare for sharing hält Arbeitseingaben, private Funde und Ersetzungszuordnungen im Arbeitsspeicher,
 ohne sie automatisch zum Verlauf, zu Links, Backups oder zur Synchronisierung hinzuzufügen. Prüfung

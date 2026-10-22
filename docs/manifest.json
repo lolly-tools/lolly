@@ -86,6 +86,30 @@
       "group": "First file and installation"
     },
     {
+      "slug": "lolly-demo",
+      "title": "Meet Lolly Demo",
+      "src": "lolly-demo.md",
+      "description": "Lolly Demo is the look lolly.tools opens with. See the Lolly mark, the Opal colours and six colourways, Crossland type, Etiquette icons and the Fauna cast.",
+      "section": "start",
+      "path": "start/lolly-demo",
+      "icon": "palette",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "The Lolly Demo brand"
+    },
+    {
+      "slug": "lolly-demo-in-use",
+      "title": "Lolly Demo in use",
+      "src": "lolly-demo-in-use.md",
+      "description": "Where Lolly Demo shows up in the app and in the files you export, how to pick a colourway, Clinic's do and don't, and how to switch to your own design system.",
+      "section": "start",
+      "path": "start/lolly-demo-in-use",
+      "icon": "photos",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "The Lolly Demo brand"
+    },
+    {
       "slug": "faq",
       "title": "Questions & answers",
       "src": "faq.md",

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { createDesignSystemRegistry, type RegistryDb, type DesignSystemRecord } from './registry.ts';
 import { removeDesignSystem } from './manage.ts';
@@ -40,41 +41,74 @@ test('inactive design-system card is one large switch target with labelled secon
   const hit = hosted.querySelector<HTMLButtonElement>('.ds-row-hit')!;
   assert.equal(active.querySelector('.ds-row-hit'), null, 'the already-active card is not a fake switch');
   assert.equal(hit.dataset.dsAct, 'switch');
-  assert.equal(hit.getAttribute('aria-label'), 'Switch to Hosted brand');
+  // Its name is what the row shows, the Use pill then the system's name (WCAG 2.5.3).
+  const name = (hit.getAttribute('aria-labelledby') ?? '').split(' ').map(id => body.querySelector(`#${id}`)?.textContent?.trim()).join(' ');
+  assert.equal(name, 'Use Hosted brand');
+  assert.equal(hit.hasAttribute('aria-label'), false);
   assert.equal(hosted.querySelector('[data-ds-act="refresh"]')?.textContent?.trim(), 'Check for updates');
   assert.equal(hosted.querySelector('[data-ds-act="fork"]')?.textContent?.trim(), 'Make an editable copy');
   assert.match(body.querySelector('[data-ds-act="file"]')?.textContent ?? '', /Open or import a file/);
   assert.equal(body.querySelectorAll('[data-ds-act="download"]').length, records.length);
 });
 
-test('vertical reverse logo is read from each brand on dark surfaces, with primary and circles as fallbacks', async () => {
-  const requested: string[] = [];
-  let missing = false;
-  const doc = { color: { primary: { $type: 'color', $value: '#123024' } }, asset: { logo: {
-    'vertical-primary-reverse': { $type: 'asset', $value: 'brand/reverse' },
-    'vertical-primary': { $type: 'asset', $value: 'brand/primary' },
-  } } };
-  const record = { ...records[0], headId: 'user/ds/active/tokens/brand' };
+const DEMO = JSON.parse(readFileSync(new URL('../../../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json', import.meta.url), 'utf8')) as unknown;
+
+test('each app theme gets its own logo on the row cover, horizontal first, and a failed one hands its themes to the monogram', async () => {
+  const missing = new Set<string>();
+  const record = { ...records[0], label: 'Lolly Demo', headId: 'user/ds/active/tokens/brand' };
   const h = { ...host(), designSystems: { list: async () => [record], visible: async () => [record], activeId: async () => 'active' }, assets: {
-    _getBlob: async () => new Blob([JSON.stringify(doc)]),
-    get: async (id: string) => { requested.push(id); if (missing) throw new Error('Missing'); return { url: `/catalog/${id}.svg` }; },
+    _getBlob: async () => new Blob([JSON.stringify(DEMO)]),
+    get: async (id: string) => { if (missing.has(id)) throw new Error('Missing'); return { url: `/catalog/${id}.svg` }; },
   } };
-  assert.equal((await previewOf(h as never, record as never)).logoUrl, '/catalog/brand/reverse.svg');
-  assert.deepEqual(requested, ['brand/reverse']);
+  const logos = async () => (await previewOf(h as never, record as never)).logos;
+  assert.deepEqual(await logos(), {
+    light: '/catalog/lolly/logo/horizontal.svg', dark: '/catalog/lolly/logo/horizontal-reverse.svg', brand: '/catalog/lolly/logo/horizontal-on-brand.svg',
+  }, 'light reads the primary form, dark the reverse, brand the on-brand form');
+  missing.add('lolly/logo/horizontal-on-brand');
+  assert.equal((await logos()).brand, '/catalog/lolly/logo/horizontal-reverse.svg', 'brand falls back to the reverse');
+  missing.add('lolly/logo/horizontal-reverse');
+  assert.equal((await logos()).brand, '/catalog/lolly/logo/horizontal.svg', 'then to the primary');
+  missing.add('lolly/logo/horizontal');
+  assert.deepEqual(await logos(), {
+    light: '/catalog/lolly/logo/primary.svg', dark: '/catalog/lolly/logo/reverse.svg', brand: '/catalog/lolly/logo/reverse.svg',
+  }, 'with no horizontal file the vertical forms answer');
+  missing.clear();
+
   const body = document.querySelector<HTMLElement>('#card')!;
   await renderDesignSystemsCard(body, h as never);
-  const logo = body.querySelector<HTMLImageElement>('.ds-preview-logo')!;
-  assert.ok(logo); assert.equal(body.querySelectorAll('.ds-preview-mark i').length, 2);
-  logo.dispatchEvent(new Event('error'));
-  assert.equal(body.querySelector('.ds-preview-logo'), null, 'failed image reveals the circle fallback');
-  missing = true; requested.length = 0;
-  assert.equal((await previewOf(h as never, record as never)).logoUrl, undefined);
-  assert.deepEqual(requested, ['brand/reverse', 'brand/primary']);
-  doc.color.primary.$value = '#ffffff'; missing = false; requested.length = 0;
-  assert.equal((await previewOf(h as never, record as never)).logoUrl, '/catalog/brand/primary.svg');
+  const cover = body.querySelector<HTMLElement>('[data-ds-row="active"] .ds-cover.ds-cover--row')!;
+  assert.ok(cover, 'the row leads with a cover');
+  assert.equal(cover.getAttribute('aria-hidden'), 'true');
+  assert.deepEqual([...cover.querySelectorAll('img.ds-cover-logo[data-looks]')].map(img => [img.getAttribute('src'), img.getAttribute('data-looks')]), [
+    ['/catalog/lolly/logo/horizontal.svg', 'light'],
+    ['/catalog/lolly/logo/horizontal-reverse.svg', 'dark'],
+    ['/catalog/lolly/logo/horizontal-on-brand.svg', 'brand'],
+  ]);
+  const mono = cover.querySelector<HTMLElement>('.ds-cover-mono')!;
+  assert.equal(mono.textContent, 'L');
+  assert.equal(mono.dataset.looks, '', 'every theme has a logo, so the monogram stays hidden');
+  cover.querySelector('img[data-looks="dark"]')!.dispatchEvent(new Event('error'));
+  assert.equal(cover.querySelector('img[data-looks="dark"]'), null, 'the failed image leaves');
+  assert.equal(mono.dataset.looks, 'dark', 'and the monogram shows in its place under the dark theme');
+  assert.equal(body.querySelector('.ds-row-preview'), null, 'the old 391px specimen is gone from the card');
 });
 
-test('switching blocks overlapping actions and reports failure with controls and focus restored', async () => {
+test('a row reads its facts on one line: colours, typefaces, colourways when there is a choice, and size', async () => {
+  const { designSystemCardHtml } = await import('./design-systems-card.ts');
+  const el = document.createElement('div');
+  el.innerHTML = designSystemCardHtml(records[0] as never, 'active', 9 * 1024, {
+    font: "'SUSE', sans-serif", colors: ['#033633', '#008657'], colorCount: 33, families: ['Outfit', 'SUSE', 'SUSE Mono', 'Extra'], colourways: 6,
+  });
+  const facts = (): Array<string | null | undefined> => [...el.querySelectorAll('.ds-row-facts > .ds-row-fact')].map(s => s.firstChild?.textContent);
+  assert.deepEqual(facts(), ['33 colours', 'Outfit, SUSE, SUSE Mono', '6 colourways', '9 KB']);
+  assert.equal(el.querySelector('.ds-row-facts')?.textContent, '33 colours · Outfit, SUSE, SUSE Mono · 6 colourways · 9 KB', 'each separator trails its fact');
+  assert.match(el.querySelector('.ds-row-head .ds-row-active')?.textContent ?? '', /Active/);
+  assert.doesNotMatch(el.textContent ?? '', /DESIGN SYSTEM|Aa/, 'no eyebrow or type specimen on a row');
+  el.innerHTML = designSystemCardHtml(records[0] as never, 'active', undefined, { font: 'x', colors: ['#000000'], colorCount: 1, colourways: 1 });
+  assert.deepEqual(facts(), ['1 colour'], 'one colourway is no choice');
+});
+
+test('switching marks every control unavailable without disabling it, then reports failure with controls and focus restored', async () => {
   const { mountDesignSystemsCard } = await import('./design-systems-card.ts');
   const body = document.createElement('div'); document.body.append(body);
   let calls = 0, rejectSwitch: (error: Error) => void = () => {};
@@ -89,14 +123,53 @@ test('switching blocks overlapping actions and reports failure with controls and
   hit.focus(); hit.click(); await settle();
   assert.equal(body.getAttribute('aria-busy'), 'true');
   assert.match(body.textContent ?? '', /Loading design system/);
+  const controls = [...body.querySelectorAll<HTMLElement>('[data-ds-act], details.ds-row-more > summary')];
+  assert.ok(controls.length > 5);
+  assert.ok(controls.every(el => el.getAttribute('aria-disabled') === 'true'), 'every control reads as unavailable');
+  assert.equal(body.querySelectorAll(':disabled').length, 0, 'and none is disabled, so the focus stays');
+  assert.equal(document.activeElement, hit);
+  const menu = body.querySelector<HTMLDetailsElement>('details.ds-row-more')!;
+  menu.querySelector<HTMLElement>('summary')!.click();
+  assert.equal(menu.open, false, 'a row menu stays shut while the switch runs');
   hit.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true })); await settle();
   assert.equal(calls, 1);
   rejectSwitch(new Error('Storage unavailable')); await settle();
   assert.equal(body.hasAttribute('aria-busy'), false);
-  assert.equal(body.querySelectorAll('button:disabled').length, 0);
+  assert.equal(body.querySelectorAll('[aria-disabled="true"]').length, 0);
   assert.equal(body.querySelector('[role="status"]')?.textContent, 'Storage unavailable');
   assert.equal(document.activeElement, body.querySelector('[data-ds-act="switch"]'));
   body.remove();
+});
+
+test('a switch made elsewhere moves the active tick while the card is idle, keeping the focus in its row', async () => {
+  const { mountDesignSystemsCard } = await import('./design-systems-card.ts');
+  const { DESIGN_SYSTEM_CHANGED_EVENT } = await import('./switch.ts');
+  const body = document.createElement('div'); document.body.append(body);
+  let current = 'active';
+  let reads = 0;
+  const h = { ...host(), designSystems: { ...host().designSystems,
+    visible: async () => { reads++; return [...records]; },
+    activeId: async () => current,
+  } };
+  const settle = async (): Promise<void> => { for (let i = 0; i < 20; i++) await new Promise(resolve => setTimeout(resolve, 0)); };
+  mountDesignSystemsCard(body, h as never);
+  await settle();
+  assert.ok(body.querySelector('[data-ds-row="active"].is-active'));
+  body.querySelector<HTMLElement>('[data-ds-row="hosted"] [data-ds-act="studio"]')!.focus();
+  const before = reads;
+  current = 'hosted';
+  window.dispatchEvent(new CustomEvent(DESIGN_SYSTEM_CHANGED_EVENT, { detail: records[1] }));
+  await settle();
+  assert.equal(reads, before + 1, 'one event, one read');
+  assert.ok(body.querySelector('[data-ds-row="hosted"].is-active'), 'the tick moves to the system now in use');
+  assert.ok(body.querySelector('[data-ds-row="active"] .ds-row-hit'), 'the one before becomes a switch target');
+  const focused = document.activeElement as HTMLElement | null;
+  assert.equal(focused?.dataset.dsAct, 'studio');
+  assert.equal(focused?.closest<HTMLElement>('[data-ds-row]')?.dataset.dsRow, 'hosted', 'the focus stays on the same control');
+  body.remove();
+  window.dispatchEvent(new CustomEvent(DESIGN_SYSTEM_CHANGED_EVENT, { detail: records[0] }));
+  await settle();
+  assert.equal(reads, before + 1, 'a card that left the page no longer listens');
 });
 
 // Plan 320 M5: a switch repaints every tool, so it says so and offers the way back.
@@ -315,4 +388,62 @@ test('a row menu closes on Escape and on a press elsewhere, and only one is open
   assert.equal(starterMenu.open, true);
   body.remove();
   document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+});
+
+test('a row whose head cannot be read keeps a plain plate and shows no count', async () => {
+  const { designSystemCardHtml } = await import('./design-systems-card.ts');
+  const el = document.createElement('div');
+  el.innerHTML = designSystemCardHtml(records[1] as never, 'active', 12 * 1024, { font: 'x', colors: [], colorCount: 0, families: ['SUSE'], unread: true });
+  assert.ok(el.querySelector('.ds-cover.ds-cover--row.is-pending'), 'the plate, not a blank cover drawn as the system');
+  assert.equal(el.querySelector('.ds-row-facts')?.textContent, '12 KB', 'the size alone');
+  assert.doesNotMatch(el.textContent ?? '', /0 colours/);
+});
+
+test('the card hands back a detach that takes its listeners off the page', async () => {
+  const { mountDesignSystemsCard } = await import('./design-systems-card.ts');
+  const { DESIGN_SYSTEM_CHANGED_EVENT } = await import('./switch.ts');
+  const body = document.createElement('div'); document.body.append(body);
+  let reads = 0;
+  const h = { ...host(), designSystems: { ...host().designSystems, visible: async () => { reads++; return [...records]; } } };
+  const settle = async (): Promise<void> => { for (let i = 0; i < 20; i++) await new Promise(resolve => setTimeout(resolve, 0)); };
+  const detach = mountDesignSystemsCard(body, h as never);
+  await settle();
+  assert.equal(typeof detach, 'function');
+  detach();
+  const before = reads;
+  window.dispatchEvent(new CustomEvent(DESIGN_SYSTEM_CHANGED_EVENT, { detail: records[1] }));
+  await settle();
+  assert.equal(reads, before, 'a detached card does not read, although it is still on the page');
+  body.remove();
+});
+
+test('a row menu with no room below inside the card opens upward', async () => {
+  const { mountDesignSystemsCard } = await import('./design-systems-card.ts');
+  const card = document.createElement('div');
+  card.style.overflow = 'clip';
+  const body = document.createElement('div');
+  card.append(body); document.body.append(card);
+  const settle = async (): Promise<void> => { for (let i = 0; i < 20; i++) await new Promise(resolve => setTimeout(resolve, 0)); };
+  const detach = mountDesignSystemsCard(body, host() as never);
+  await settle();
+  const rect = (top: number, bottom: number) => () => ({ top, bottom, left: 0, right: 0, width: 0, height: bottom - top, x: 0, y: top, toJSON() {} }) as DOMRect;
+  card.getBoundingClientRect = rect(0, 400);
+  const menus = [...body.querySelectorAll<HTMLDetailsElement>('details.ds-row-more')];
+  const last = menus.at(-1)!;
+  last.querySelector<HTMLElement>('summary')!.getBoundingClientRect = rect(340, 384);
+  last.querySelector<HTMLElement>('.ds-row-menu')!.getBoundingClientRect = rect(390, 540);
+  last.open = true;
+  last.dispatchEvent(new dom.window.Event('toggle'));
+  await settle();
+  assert.equal(last.querySelector<HTMLElement>('.ds-row-menu')!.hasAttribute('data-up'), true, 'the last row opens its menu upward');
+  last.open = false;
+  const first = menus[0]!;
+  first.querySelector<HTMLElement>('summary')!.getBoundingClientRect = rect(40, 84);
+  first.querySelector<HTMLElement>('.ds-row-menu')!.getBoundingClientRect = rect(90, 240);
+  first.open = true;
+  first.dispatchEvent(new dom.window.Event('toggle'));
+  await settle();
+  assert.equal(first.querySelector<HTMLElement>('.ds-row-menu')!.hasAttribute('data-up'), false, 'a row with room below opens downward');
+  detach();
+  card.remove();
 });

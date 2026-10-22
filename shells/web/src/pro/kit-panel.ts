@@ -90,7 +90,7 @@ export function mountKitPanel<R extends KitRow>(
           const detached = kit.detached[o.id]?.includes(b.field);
           let current: InputValue = '';
           try { if (row) current = boundValue(row, b); } catch { /* issues names the missing slot */ }
-          return `<label><input type="checkbox" data-kit-link="${o.id}/${b.field}" ${detached ? '' : 'checked'} ${frozen ? 'disabled' : ''}> ${escapeHtml(t(f.label))}</label>${detached && f.type !== 'asset' ? `<input class="field-input" aria-label="${escapeHtml(tRaw('{output}: {field}', { output: o.name, field: f.label }))}" data-kit-override="${o.id}/${b.field}" value="${escapeHtml(typeof current === 'string' ? current : '')}" ${frozen ? 'disabled' : ''}>` : ''}`;
+          return `<label><input type="checkbox" class="field-check" data-kit-link="${o.id}/${b.field}" ${detached ? '' : 'checked'} ${frozen ? 'disabled' : ''}> ${escapeHtml(t(f.label))}</label>${detached && f.type !== 'asset' ? `<input class="field-input" aria-label="${escapeHtml(tRaw('{output}: {field}', { output: o.name, field: f.label }))}" data-kit-override="${o.id}/${b.field}" value="${escapeHtml(typeof current === 'string' ? current : '')}" ${frozen ? 'disabled' : ''}>` : ''}`;
         }).join('')}</details></article>`;
       }).join('')}</div>`;
     if (focusKey && focusValue) {

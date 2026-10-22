@@ -81,7 +81,7 @@ pagpapadalhan nito. Gumagana offline ang mga utility na ito, at ang output nila 
 walang dalang watermark o metadata mula sa amin - ang layunin ng karamihan sa mga
 ito ay alisin at protektahan ang data, hindi magdagdag ng panganib.
 
-![Ang badge na dala ng mga tool na ito: Runs on your device - walang ina-upload](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![Ang badge na dala ng mga tool na ito: Runs on your device - walang ina-upload](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 Ang **Prepare for sharing** ay iniingatan sa memory ang mga working input, pribadong natuklasan
 at replacement map, nang hindi awtomatikong idinaragdag ang mga ito sa history, mga link, backup o sync.

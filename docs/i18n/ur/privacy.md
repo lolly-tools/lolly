@@ -74,7 +74,7 @@ Lolly کے ویب، ڈیسک ٹاپ اور موبائل شیلز پورا رین
 یہ یوٹیلیٹیز آف لائن کام کرتی ہیں، اور ان کے آؤٹ پٹ پر ہمارا کوئی واٹر مارک یا میٹا ڈیٹا
 نہیں ہوتا - ان میں سے زیادہ تر کا مقصد ڈیٹا ہٹانا اور محفوظ کرنا ہے، خطرہ بڑھانا نہیں۔
 
-![یہ ٹولز جو بیج رکھتے ہیں: Runs on your device - کچھ بھی اپ لوڈ نہیں ہوتا](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![یہ ٹولز جو بیج رکھتے ہیں: Runs on your device - کچھ بھی اپ لوڈ نہیں ہوتا](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 **Prepare for sharing** ورکنگ ان پٹس، نجی نتائج اور تبدیلی کے نقشے میموری میں رکھتا ہے، انہیں خودکار
 طور پر history، لنکس، بیک اپس یا sync میں شامل کیے بغیر۔ معائنہ اور تبدیلی فائل کا مواد کسی سرور کو نہیں

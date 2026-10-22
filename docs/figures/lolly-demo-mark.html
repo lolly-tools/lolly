@@ -1,0 +1,82 @@
+<!--
+  Concept: the idea inside the Lolly mark and how to treat the mark. The three rings (you, Lolly, Lolly at
+  scale) as a plain diagram, then the four rules from the brand standards at /brand ("Three rings, three
+  parties"): clear space of a quarter all round, and never a stick, a dish or a tilt under the mark.
+  The real marks sit above this figure on the page as their own credentialed files; this figure
+  draws only the three-ring diagram, so it carries no copy of them.
+  Band Contract: static fragment scoped under .ldm, reads the docs theme tokens (light, dark and brand
+  via --secondary, --card, --card-foreground and --muted-foreground, with fallbacks), no script, no
+  motion, no network. Every rule tag is an icon and a word.
+  Sources: the rings diagram and the rule wording of the mark section of /brand; colours from
+  brands/lolly-demo/catalog/assets/lolly/tokens/demo.json.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-21. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.ldm{--ldm-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--ldm-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --ldm-ground:hsl(var(--secondary,84.5 55% 92.2%));--ldm-paper:hsl(var(--card,0 0% 100%));
+ --ldm-accent:hsl(var(--primary,176.5 89.5% 11.2%));--ldm-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --ldm-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .13);--ldm-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --ldm-head:#033633;--ldm-mark:#008657;--ldm-pop:#50c369;--ldm-yes:#0b6b45;--ldm-no:#a43427;
+ --ldm-display:"Outfit","SUSE",ui-sans-serif,system-ui,sans-serif;--ldm-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--ldm-ink);background:var(--ldm-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+:is([data-theme="dark"],[data-theme="brand"]) .ldm{--ldm-head:#ffffff;--ldm-mark:#50c369;--ldm-yes:#7ddc97;--ldm-no:#ef9275}
+.ldm *{box-sizing:border-box}
+.ldm ul,.ldm ol{list-style:none;margin:0;padding:0}
+.ldm li{list-style:none;margin:0;font-size:inherit}
+.ldm p{margin:0}
+.ldm.ldm a{color:inherit;text-decoration:none}
+.ldm.ldm a:hover{text-decoration:none}
+.ldm b{font-weight:600}
+.ldm .ldm-sprite{position:absolute;width:0;height:0;overflow:hidden}
+.ldm .ldm-cap{font:500 11px/1.3 var(--ldm-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ldm-muted)}
+.ldm .ldm-card{background:var(--ldm-paper);border-radius:18px;box-shadow:0 0 0 1px var(--ldm-line)}
+.ldm .ldm-tag{display:inline-flex;align-items:center;gap:6px;font:600 11.5px/1.2 var(--ldm-mono);letter-spacing:.03em}
+.ldm .ldm-yes{color:var(--ldm-yes)}
+.ldm .ldm-no{color:var(--ldm-no)}
+.ldm{display:grid;gap:12px;--ldm-sweep:radial-gradient(130% 95% at 50% 6%,#ffffff 0%,#edf6e0 60%,#dcecd6 100%);--ldm-clear:#d7eecb}
+:is([data-theme="dark"],[data-theme="brand"]) .ldm{--ldm-sweep:radial-gradient(130% 95% at 50% 6%,#1d2e28 0%,#111e1d 52%,#0b161b 100%);--ldm-clear:#17352b}
+.ldm-rings{display:grid;grid-template-columns:auto auto;justify-content:center;align-items:center;gap:18px 40px;padding:18px 22px}
+.ldm .ldm-ring-art{width:min(170px,34cqi);height:auto}
+.ldm-rings ol{display:grid;gap:14px}
+.ldm-rings li{display:grid;grid-template-columns:auto auto;align-items:center;justify-content:start;column-gap:10px}
+.ldm-rings li i{grid-row:span 2;width:14px;height:14px;border-radius:50%;background:var(--c)}
+.ldm-rings li b{font:500 22px/1.05 var(--ldm-display);color:var(--ldm-head)}
+.ldm-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.ldm-row li{display:grid;gap:7px;align-content:start;min-width:0}
+.ldm .ldm-plate{position:relative;display:grid;place-items:center;aspect-ratio:1;border-radius:16px;background:var(--ldm-sweep);box-shadow:0 0 0 1px var(--ldm-line);overflow:hidden}
+.ldm .ldm-m{width:52%;height:auto;position:relative;z-index:2}
+.ldm .ldm-clear{background:var(--ldm-clear)}
+.ldm .ldm-clear span{display:grid;place-items:center;width:72%;aspect-ratio:1;border-radius:12px;background:var(--ldm-paper)}
+.ldm .ldm-clear .ldm-m{width:66%}
+.ldm .ldm-stick{position:absolute;left:24%;bottom:22%;width:38%;height:5%;border-radius:99px;background:linear-gradient(180deg,#ffffff,#b7c4bd);
+ transform-origin:0 50%;transform:rotate(-45deg);box-shadow:0 0 0 1px rgb(9 20 26 / .12),0 4px 8px -3px rgb(0 0 0 / .35);z-index:1}
+.ldm .ldm-dish{position:absolute;left:50%;bottom:14%;width:74%;aspect-ratio:4.6/1;transform:translateX(-50%);border-radius:50%;
+ background:radial-gradient(70% 120% at 50% 20%,rgb(255 255 255 / .95),rgb(255 255 255 / .35));box-shadow:inset 0 -5px 10px rgb(0 134 87 / .3),0 14px 22px -12px rgb(0 0 0 / .35);z-index:1}
+.ldm .ldm-tilt{transform:rotate(-18deg) scaleX(1.25)}
+.ldm .ldm-t{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+@container (max-width:520px){
+ .ldm-rings{grid-template-columns:minmax(0,1fr);justify-items:center}
+ .ldm .ldm-ring-art{width:min(150px,52cqi)}
+ .ldm-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+</style>
+<div class="ldm">
+<div class="ldm-card ldm-rings">
+<svg class="ldm-ring-art" viewBox="0 0 200 200" role="img" aria-label="Three rings: you at the centre, Lolly around you, Lolly at scale on the outside"><use href="#ldm-rings"/></svg>
+<ol>
+<li><i style="--c:var(--ldm-head)"></i><b>You</b><span class="ldm-cap">Inner ring</span></li>
+<li><i style="--c:var(--ldm-mark)"></i><b>Lolly</b><span class="ldm-cap">Middle ring</span></li>
+<li><i style="--c:var(--ldm-pop);opacity:.6"></i><b>At Scale</b><span class="ldm-cap">Outer ring</span></li>
+</ol>
+</div>
+<ul class="ldm-row" aria-label="How to place the mark">
+<li><span class="ldm-plate ldm-clear"><span><svg class="ldm-m" viewBox="0 0 200 200" role="img" aria-label="The rings with clear space all round"><use href="#ldm-rings"/></svg></span></span><span class="ldm-tag ldm-yes"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ldm-t"><path d="M20 6 9 17l-5-5"/></svg>Clear space: a quarter</span></li>
+<li><span class="ldm-plate"><span class="ldm-stick"></span><svg class="ldm-m" viewBox="0 0 200 200" role="img" aria-label="Wrong: the rings on a stick"><use href="#ldm-rings"/></svg></span><span class="ldm-tag ldm-no"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ldm-t"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>No stick</span></li>
+<li><span class="ldm-plate"><span class="ldm-dish"></span><svg class="ldm-m" viewBox="0 0 200 200" role="img" aria-label="Wrong: the rings on a glass dish"><use href="#ldm-rings"/></svg></span><span class="ldm-tag ldm-no"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ldm-t"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>No dish</span></li>
+<li><span class="ldm-plate"><svg class="ldm-m ldm-tilt" viewBox="0 0 200 200" role="img" aria-label="Wrong: the rings tilted and stretched"><use href="#ldm-rings"/></svg></span><span class="ldm-tag ldm-no"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="ldm-t"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>No tilt or stretch</span></li>
+</ul>
+<svg class="ldm-sprite" viewBox="0 0 1 1" aria-hidden="true" focusable="false"><symbol id="ldm-rings" viewBox="0 0 200 200"><circle cx="100" cy="100" r="88" fill="none" stroke="var(--ldm-pop)" stroke-width="16" opacity=".6"/><circle cx="100" cy="100" r="56" fill="none" stroke="var(--ldm-mark)" stroke-width="16"/><circle cx="100" cy="100" r="25" fill="var(--ldm-head)"/></symbol></svg>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKAmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAncanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo4OTcxZmU5YS1lOWViLTRiMTItYjE3ZS0yNDMzYzllMGY1ODAAAAAEX2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjFUMTM6MjQ6MjJaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkd+GZsZW5ndGgZDbpkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYINkZRRdi7wNCBCE6fPJKYMh7vmbXYx27Er2Di66j9q6AY3BhZEgAAAAAAAAAAAAAAOhqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAAC0Y2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2xvbG9sbHktZGVtby1tYXJrZGRhdGV4GDIwMjYtMTAtMjFUMTM6MjQ6MjIuMDIxWmpkaW1lbnNpb25zbTIwMCDDlyAyMDAgcHhoYXJ0aWZhY3RmZmlndXJlaWdlbmVyYXRvcmtDbGF1ZGUgQ29kZWttb2RlbFZlbmRvcmlBbnRocm9waWMAAACNanVtYgAAACdqdW1kanNvbgARABCAAACqADibcQNjYXdnLm1ldGFkYXRhAAAAAF5qc29ueyJAY29udGV4dCI6eyJkYyI6Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIn0sImRjOmNyZWF0b3IiOlsiQW5keSBGaXR6c2ltb24iXX0AAADEanVtYgAAACxqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmFpLWRpc2Nsb3N1cmUAAAAAkGNib3KkaW1vZGVsVHlwZXBjMnBhLnR5cGVzLm1vZGVsaW1vZGVsTmFtZW9DbGF1ZGUgT3B1cyA1LjVvbW9kZWxJZGVudGlmaWVyb2NsYXVkZS1vcHVzLTUtNW5jb250ZW50UHJvZmlsZaFzaHVtYW5PdmVyc2lnaHRMZXZlbG1wcm9tcHRfZ3VpZGVkAAACzWp1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAKeY2JvcqZoZGM6dGl0bGVvbG9sbHktZGVtby1tYXJramluc3RhbmNlSUR4LXVybjp1dWlkOjg1OTVlOTY5LWNkYzgtNDMyMi1iNjc3LTljODU2NzhmYzcyZXRjbGFpbV9nZW5lcmF0b3JfaW5mb6NkbmFtZWVMb2xseWd2ZXJzaW9uZzEuMjgxLjBrc3BlY1ZlcnNpb25lMi40LjByY3JlYXRlZF9hc3NlcnRpb25zhaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgg0XyE2MVT2HQjA/jNuzfQqKTgfmrRxmJpzckOxbBpWF2iY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggLEau+E51CjjG2W87+sHiNq7QHqKoC62i12mnGkCrn4iiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvdG9vbHMubG9sbHkuZXhwb3J0ZGhhc2hYINcKkxusd1EP1RYFCtSAJ/JAfXytQr1RKqvBfUrtB1C0omN1cmx4KHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2Nhd2cubWV0YWRhdGFkaGFzaFgg7iYlKJf/Z3Tb+oGzES2uAj7yXJtuDKwUN6DDNEbaboSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYILULL+IgRwhuFb2Z97+uFQ7MwZxWugE0GKMzzeUhYpqraXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYWp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMWNib3LShFkB4KIBJhghgVkB1zCCAdMwggF5oAMCAQICCU4Vi9V9WGIIfjAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYxMDIxMTMyMzIyWhcNMzYxMDE4MTMyNDIyWjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAR1Oc1p1yDCyB864WBeFLRmIG3ZlhTPwd0zQ34jR7jGVSnM1mcByVmFfvn4hE3HbwrS2BqsPhv1viUGY9ayxemeo3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQUYLvhUs1hzLjNq3lNbTRovpZ1s98wHwYDVR0jBBgwFoAUYLvhUs1hzLjNq3lNbTRovpZ1s98wCgYIKoZIzj0EAwIDSAAwRQIhALwc5ZRBUd6/hyI+7STusd43+yldQ+e7/vl/9LbPhyZHAiAmPgrGM4xMPexuc4BpGNe/rMA/vMX7suYk8U7ePBGMQqD2WECJP3IKpV5RsEE0kB/E5FOYAA0jgHqfUwvvhUY7dqKUx92+OYnh2aH4iVOqSHq01dwWQ7u28HZrkq0pEN5cO5rs -----END C2PA MANIFEST----- -->

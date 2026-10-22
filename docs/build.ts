@@ -224,6 +224,8 @@ const pages: Page[] = [
   { slug: 'index', title: 'Lolly: information and documentation', src: 'site.md', canonicalPath: 'index', contentLicense: 'CC-BY-SA-4.0', isLanding: true },
   { slug: 'quickstart', title: 'Start', src: 'quickstart.md', pathway: 'quickstart', canonicalPath: 'start/quickstart', contentLicense: 'CC-BY-SA-4.0', headingId: 'quickstart', isHub: true },
   { slug: 'make-something', title: 'Make your first file', src: 'make-something.md', pathway: 'quickstart', canonicalPath: 'start/make-something', contentLicense: 'CC-BY-SA-4.0', description: 'Make a QR code for a web address, download it, check that it scans, and save an editable copy you can reopen from Projects. No account needed.', render: renderMakeSomethingPage },
+  { slug: 'lolly-demo', title: 'Meet Lolly Demo', src: 'lolly-demo.md', pathway: 'quickstart', canonicalPath: 'start/lolly-demo', contentLicense: 'CC-BY-SA-4.0', description: 'Lolly Demo is the look lolly.tools opens with. See the Lolly mark, the Opal colours and six colourways, Crossland type, Etiquette icons and the Fauna cast.' },
+  { slug: 'lolly-demo-in-use', title: 'Lolly Demo in use', src: 'lolly-demo-in-use.md', pathway: 'quickstart', canonicalPath: 'start/lolly-demo-in-use', contentLicense: 'CC-BY-SA-4.0', description: 'Where Lolly Demo shows up in the app and in the files you export, how to pick a colourway, Clinic\'s do and don\'t, and how to switch to your own design system.' },
   { slug: 'faq', title: 'Questions & answers', src: 'faq.md', pathway: 'quickstart', canonicalPath: 'start/faq', contentLicense: 'CC-BY-SA-4.0', description: 'The things people ask most: why it is free, what the catch is not, what happens to your files and where Lolly is going.', render: renderFaqPage },
   { slug: 'project-asset-transfers', title: 'Shared project assets', src: 'project-asset-transfers.md', pathway: 'creators', canonicalPath: 'create/project-asset-transfers', contentLicense: 'CC-BY-SA-4.0', description: 'Browse shared project folders, copy assets, submit originals to a workspace library and send files to connected destinations.' },
   { slug: 'organisation', title: 'Use Lolly at your organisation', src: 'organisation.md', pathway: 'quickstart', canonicalPath: 'start/organisation', contentLicense: 'CC-BY-SA-4.0', description: 'Use your organisation\'s Lolly, with optional lolly.work sign-in, shared projects, live collabs and managed settings. Learn what stays local and how to leave.' },
@@ -581,6 +583,10 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'make-something', label: 'Make your first file' },
       { slug: 'install', label: 'Install Lolly' },
       { slug: 'supported-environments', label: 'Supported environments' },
+    ] },
+    { label: 'The Lolly Demo brand', items: [
+      { slug: 'lolly-demo', label: 'Meet Lolly Demo' },
+      { slug: 'lolly-demo-in-use', label: 'Lolly Demo in use' },
     ] },
     { label: 'Product, organisation and vocabulary', items: [
       { slug: 'faq', label: 'Questions & answers' },
@@ -1071,15 +1077,16 @@ function shotRecipe(slug: string): ShotDef | null {
 // param there); the credential assembly is the only thing that used them and it moved too.
 
 /**
- * The credential line a screenshot carries: a photo-credit in the corner, except
+ * The credential mark a screenshot carries: a photo-credit in the corner, except
  * the credit is checkable.
  *
- * Deliberately almost invisible. At rest it is one small imprint glyph at low
- * opacity - the same weight a photographer's byline carries in a magazine, which
- * readers are practised at skimming past. It only becomes words on hover, focus or
- * tap. Every shot on the site was made the same way, so a permanently visible line
- * on all 155 would be noise repeated 155 times; the people who go looking are the
- * people it convinces.
+ * Deliberately quiet. At rest it is one small imprint glyph - the same weight a
+ * photographer's byline carries in a magazine, which readers are practised at
+ * skimming past. It only becomes words on hover, focus or tap, and that holds for
+ * every mark on the site (page assets, figures, mastheads and mascots too). Every
+ * shot on the site was made the same way, so a permanently visible line on all 155
+ * would be noise repeated 155 times; the people who go looking are the people it
+ * convinces.
  *
  * The facts come from the file's own manifest (docs/shot-provenance.ts), never from
  * anything hardcoded here, and the two links act on the SERVED FILE:
@@ -1092,16 +1099,15 @@ function shotRecipe(slug: string): ShotDef | null {
  * A shot whose credential will not decode gets NO line, rather than a line that
  * implies more than the file can back up.
  *
- * The second row (paths, groups, embedded images, KB) is the same idea pointed at the
- * artwork rather than at its signature: it says what the file IS. Every one of these
+ * The anatomy facts (paths, groups, embedded images, KB) are the same idea pointed at the
+ * artwork rather than at its signature: they say what the file IS. Every one of these
  * screenshots is a vector document, and the corpus lost 50% of its weight moving from
  * the print path to the walker, so "134 paths, 484 KB" is the claim in numbers a reader
  * can check against the bytes they were served. Every pill is a property of those bytes
  * - the recipe's capture viewport is NOT here, because it describes the request rather
  * than the file and disagrees with the shipped artwork on most shots; it lives in the
- * accessible label as context instead. The row appears only in the expanded state,
- * which is the whole line's state - see the CSS - and the line is bottom-anchored so
- * its second row never moves the resting glyph.
+ * accessible label as context instead. The facts appear only in the opened card, a
+ * popover anchored to the glyph, so nothing in it can move the resting glyph.
  */
 // shotTryLink now lives in @lolly-tools/docs-render's render.ts (as `shotTry`, driven by
 // docCtx.tryLink) - inline() moved with it, and nothing else in build.ts used it.
@@ -1132,11 +1138,9 @@ function credentialedMascot(src: string, cls: string, alt = ''): string {
   const path = resolve(outDir, file);
   const size = shotSize(file, path);
   const dims = size ? ` width="${size.w}" height="${size.h}"` : '';
-  // Rests CLOSED like a screenshot's credit (glyph only, expands on hover / focus / tap),
-  // NOT open like the AI-stance hero: a mascot sits in a narrow flex slot, so an
-  // always-open line would overflow the artwork. This is the "same imprint as the
-  // screenshots" the brief asked for. shot-cred--mascot is a positioning hook only - 
-  // it does NOT contain 'shot-cred--asset', so shotCredential leaves restsOpen false.
+  // Rests CLOSED like every credit on the site (glyph only, opens on hover / focus /
+  // tap): the "same imprint as the screenshots" the brief asked for. shot-cred--mascot
+  // is a positioning hook only.
   const cred = shotCredential(file, 'shot-cred--mascot', { path, src });
   // No readable credential → the plain mascot it was before, sizing class on the img.
   if (!cred) return `<img src="${src}"${dims} alt="${esc(alt)}" class="${esc(cls)}" loading="lazy"${alt ? '' : ' aria-hidden="true"'}>`;
@@ -2898,6 +2902,10 @@ const CSS = `
 @font-face{font-family:'SUSE';src:url('/fonts/SUSE-Italic[wght].woff2') format('woff2-variations'),url('/catalog/fonts/webfonts/SUSE-Italic[wght].woff2') format('woff2-variations');font-weight:100 900;font-style:italic;font-display:swap}
 @font-face{font-family:'SUSE Mono';src:url('/fonts/SUSEMono[wght].woff2') format('woff2-variations'),url('/catalog/fonts/webfonts/SUSEMono[wght].woff2') format('woff2-variations');font-weight:100 900;font-style:normal;font-display:swap}
 @font-face{font-family:'SUSE Mono';src:url('/fonts/SUSEMono-Italic[wght].woff2') format('woff2-variations'),url('/catalog/fonts/webfonts/SUSEMono-Italic[wght].woff2') format('woff2-variations');font-weight:100 900;font-style:italic;font-display:swap}
+/* Outfit (SIL OFL 1.1), Crossland's heading face, served by the shell on every profile; the latin
+   subset, as shells/web/src/styles/fonts.css splits the family. Only the Lolly Demo figures set type
+   in Outfit, so the browser fetches the file on those pages alone. */
+@font-face{font-family:'Outfit';src:url('/fonts/Outfit-latin[wght].woff2') format('woff2-variations');font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 /* Cinzel (SIL OFL 1.1, see /info/fonts/Cinzel-OFL.txt) - Roman inscriptional capitals,
    the same source Gill drew Perpetua Titling from. Self-hosted, not fetched from
    fonts.gstatic.com: a third-party request on every docs page would contradict what
@@ -3517,49 +3525,31 @@ ${LANDING_CSS}
 /* The credential is a mark on the ARTWORK, so it hangs off the band's own corner like a
    screenshot's does - but the band is full-bleed, so it is inset to the same gutter the
    footer and nav use rather than sitting against the window edge. Above both scrims
-   (z-index 3) or the melt gradient would fade the one line on the band that must stay
-   legible; pointer-events are restored by .shot-cred-btn/.shot-cred-line themselves. */
+   (z-index 3) or the melt gradient would fade the glyph. Its card opens upward into the
+   band. On a phone the fixed site bar covers the band's top, so the card opens below
+   the glyph instead, past the band's foot: while a mark is open the band stops
+   clipping and lifts above the article, or the card would be cut off at the band's
+   edge. The art keeps its own clip (.docs-mast-art), so nothing else spills. */
 .docs-masthead--art .shot-cred--mast{inset-block-end:.8rem;inset-inline-end:1.2rem;z-index:3}
-/* A banked masthead carries a full claim - signer, file, kind, date, an AI pill and its
-   model, plus all three actions - which is far more than the one short row .shot-cred-row's
-   nowrap was written for, so on the mast the line overflows its padded card and the facts
-   row lands adrift. Same fix the asset/mascot/figure marks use: give the card room and let
-   the row WRAP into a compact stack inside it, right-aligned to the anchored corner. */
-.docs-masthead--art .shot-cred--mast .shot-cred-line{max-width:min(30rem,calc(100vw - 3rem))}
-.docs-masthead--art .shot-cred--mast .shot-cred-row{flex-wrap:wrap}
+.docs-masthead--art:has(.shot-cred:hover,.shot-cred:focus-within,.shot-cred[data-open]){overflow:visible;z-index:4}
 /* ── Figures (::: figure - a banked artifact in the text flow) ────────────────
    Content, not decoration: it sits in the column with the prose that argues with it,
    and its caption is a real caption (the showcase's, which this deliberately matches -
-   two inlined-vector blocks that read differently would be two grammars for one idea).
-   The credential rides INSIDE the figcaption rather than on the artwork's corner: a
-   figure's provenance is part of what the caption says. */
+   two inlined-vector blocks that read differently would be two grammars for one idea). */
 .docs-figure{position:relative;margin:2.5rem auto;max-width:100%;min-width:0}
 .docs-figure-art{position:relative;border-radius:1.2em;overflow:hidden}
 .docs-figure-art>svg{display:block;width:100%;height:auto}
-.docs-figure figcaption{margin-top:.9rem;font-size:.8125rem;color:var(--muted);text-align:center;
-  display:flex;flex-direction:column;align-items:center;gap:.5rem}
+.docs-figure figcaption{margin-top:.9rem;font-size:.8125rem;color:var(--muted);text-align:center}
 .docs-figure figcaption p{margin:0}
-/* In the flow, not anchored: .shot-cred is absolutely positioned for the corner-mark
-   case, and inside a caption that would drop it onto the artwork above. Static, centred,
-   and the glyph BEFORE the line (row, not row-reverse) so it reads left-to-right as a
-   caption does. */
-.docs-figure figcaption .shot-cred{position:static;flex-direction:row;align-items:center;
-  justify-content:center;width:auto;max-width:100%}
-/* Open at rest, like the AI-stance hero's and for the same reason: in a caption a mark
-   that only appears on hover is a caption hiding half of itself, and a figure's own
-   origin is frequently the point the surrounding page is making. */
-.shot-cred--figure .shot-cred-line{opacity:1;pointer-events:auto;transform:none}
-.docs-figure figcaption .shot-cred-line{align-items:center;max-width:100%}
-.docs-figure figcaption .shot-cred-row{flex-wrap:wrap;justify-content:center}
-/* "Copy signed source" is a BUTTON among two links (it does something to the reader's
-   machine rather than going somewhere), so it is stripped back to look like them -
-   the alternative, a link with a click handler, would lie to the keyboard and to the
-   status bar about where it goes. */
-button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;font-size:.6875rem;
-  font-weight:600;color:inherit;cursor:pointer}
-.shot-cred-copy-label{pointer-events:none}
-/* The model pill's entity chip sits tight against its label, like the signer's. */
-.prov-model .prov-entity{margin-inline:.18em 0}
+/* The credential rides INSIDE the caption, after its last word, the way a photo credit
+   ends a caption: a figure's provenance is part of what the caption says. The last
+   paragraph runs inline so the glyph can trail it. The glyph is in the flow (static
+   insets, not the corner anchor a screenshot uses) and its card is the same popover as
+   everywhere else, so a closed mark takes no more room than the glyph itself. The
+   glyph is a little taller than the caption's line, so a small negative block margin
+   keeps it from opening up the last line's leading; the glyph does not move. */
+.docs-figure figcaption>p:last-of-type{display:inline}
+.docs-figure figcaption .shot-cred{position:relative;inset:auto;display:inline-flex;vertical-align:-.4em;margin-inline-start:.45em;margin-block:-.2rem}
 .docs-content img{height:auto;    max-width: min(100%, 40em);    height: auto;   margin: 0 auto; display: block;}
 /* App screenshots (docs/shots.json captures) read at full column width, framed like a window. */
 .docs-content img[src*="/info/shots/"]{max-width:100%;min-width:50%;border-radius:1.2em;
@@ -3622,36 +3612,27 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
   [data-theme="dark"] .shots-motion .shot:not(.shot--in)>img{box-shadow:inset 0 0 0 1px hsl(var(--border)), 0 28px 60px #00000073}
 }
 
-/* ── Screenshot credential line ─────────────────────────────────────────────
-   A photo-credit that can be checked. At rest: one imprint glyph in the corner at
-   low opacity. On hover, keyboard focus or tap it becomes a line of provenance
-   pills plus two actions.
+/* ── Credential mark ────────────────────────────────────────────────────────
+   A photo credit that can be checked. Every mark rests CLOSED: one imprint glyph on
+   the artwork's corner (or after a figure's caption). Hover, keyboard focus or a tap
+   opens a small card above the glyph that reads top to bottom: who signed the file
+   and when, what the file is, any AI disclosure, then the actions.
 
-   NO JavaScript is required for the reveal, and that is a deliberate a11y choice.
-   The line is never display:none - it is opacity 0 with pointer-events off - so it
-   stays in the accessibility tree and in tab order, and :focus-within brings it
-   into view the instant a keyboard reaches one of its links. A hidden-until-JS
-   popover would have had to lie about aria-expanded in the no-JS case; this cannot.
-   The script only adds tap-to-open and Escape-to-close, which hover cannot do. */
-/* width:max-content is doing real work. An absolutely positioned box shrink-to-fits
-   against its containing block, so on a 247px-wide shot the line was squeezed until
-   even "signed by Lolly" broke across three lines. Given intrinsic width and an
-   inline-end anchor with no inline-start, it lays out at its natural size and grows
-   LEFTWARDS across (and past) the artwork, like a caption.
+   The reveal needs no JavaScript. Hover and :focus-within open the card, so a
+   keyboard that reaches the glyph opens it and the next Tab lands on its first link.
+   The script adds only what CSS cannot: tap to open, Escape and a click outside to
+   close, aria-expanded, and keeping the card on screen.
 
-   pointer-events are handed to the children, not the container: the closed line
-   still occupies its full box, and a transparent 350px strip that opens on hover
-   would fire whenever the pointer crossed the bottom of the shot. */
-/* align-items:flex-END, not center: the line is a flex SIBLING of the glyph and is
-   opacity-0 (never display:none), so it keeps its box in the layout at rest. Under
-   center a taller line - which is exactly what the second, anatomy row makes it -
-   would re-centre the glyph upward off its anchored corner, on every shot, expanded or
-   not. Bottom-aligning pins the glyph to inset-block-end regardless of how tall the
-   invisible line beside it is, so the resting mark is identical whether or not a shot
-   has a readable second row. */
-.shot-cred{position:absolute;inset-block-end:.55rem;inset-inline-end:.7rem;z-index:2;
-  display:flex;align-items:flex-end;justify-content:flex-end;gap:.4rem;flex-direction:row-reverse;
-  width:max-content;max-width:min(28rem,calc(100vw - 3rem));pointer-events:none}
+   The card is a popover, absolutely positioned against the glyph, so a closed mark
+   takes exactly the glyph's room wherever it sits and nothing it holds can move the
+   glyph off its corner. Closed, the card is hidden (visibility as well as opacity):
+   its links leave the tab order and its text leaves the accessibility tree. The
+   script keeps the trigger's aria-expanded in step with whether the card shows,
+   however it opened. The trigger's label carries every fact. */
+.shot-cred{position:absolute;inset-block-end:.55rem;inset-inline-end:.7rem;z-index:2;display:flex}
+/* The mark that is open stacks above its neighbours, so its card is never under the
+   next screenshot's glyph or a figure below. */
+.shot-cred:hover,.shot-cred:focus-within,.shot-cred[data-open]{z-index:5}
 /* Quiet by COLOUR and size, never by transparency. This mark used to rest at
    opacity:.34, which faded the glyph's strokes along with its puck - so the ripple
    path dissolved into whatever the screenshot's own corner happened to be and, at
@@ -3662,32 +3643,94 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
    behind it (screenshot corners are unpredictable - a white card, a dark timeline, a
    photo), and the glyph is muted against that puck instead of against the shot. Rest
    is legible; hover only sharpens it. */
-.shot-cred-btn{display:grid;place-items:center;width:1.4rem;height:1.4rem;flex:none;padding:0;
+/* Positioned and lifted above the card, so the card's hover bridge (below) never lies
+   over the glyph and takes the click meant for the glyph. */
+.shot-cred-btn{position:relative;z-index:1;display:grid;place-items:center;width:1.4rem;height:1.4rem;flex:none;padding:0;
   border:0;border-radius:50%;cursor:pointer;color:var(--muted);background:hsl(var(--popover) / 0.9);
   box-shadow:0 1px 3px #00000024;
-  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);pointer-events:auto;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
   transition:color .2s ease,background .2s ease,box-shadow .2s ease}
 .shot-cred-btn svg{width:.9rem;height:.9rem;display:block}
 /* Approaching the shot at all sharpens it; it never shouts. */
 .shot:hover .shot-cred-btn,.showcase:hover .shot-cred-btn{color:var(--dark)}
 .shot-cred-btn:hover,.shot-cred-btn:focus-visible{color:var(--dark);background:hsl(var(--popover));box-shadow:0 2px 6px #0003}
-/* Sized against the VIEWPORT, never the shot. Some shots are a 236px-wide crop of
-   one control, and a line clamped to that width wraps into a stack taller than the
-   artwork. Because .shot-cred is anchored to the inline-end and nothing on the way
-   up clips, a wider line simply extends back across the shot (and past its edge on
-   a small one), which is how a caption behaves rather than how a box does. */
-.shot-cred-line{display:flex;flex-direction:column;align-items:flex-end;gap:.16rem;
-  max-width:min(26rem,calc(100vw - 3rem));padding:.28rem .45rem;border-radius:.9rem;
-  background:hsl(var(--popover) / 0.87);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-  box-shadow:0 2px 10px #0000001f, inset 0 0 0 1px hsl(var(--border));
-  opacity:0;pointer-events:none;transform:translateX(.4rem);
-  transition:opacity .22s ease,transform .22s ease}
-/* Hover is keyed off the GLYPH (and then the line itself, so the pointer can travel
-   onto it without it closing) rather than off the container, which is
-   pointer-events:none for the reason given above. */
-.shot-cred-btn:hover + .shot-cred-line,.shot-cred-btn:focus-visible + .shot-cred-line,
-.shot-cred-line:hover,.shot-cred:focus-within .shot-cred-line,
-.shot-cred[data-open] .shot-cred-line{opacity:1;pointer-events:auto;transform:none}
+/* The card. Anchored to the glyph's inline-END edge with no inline-start inset, it
+   grows toward inline-start (left in LTR, right in RTL): the side a page never
+   scrolls to, so even a closed card that reaches past the window edge adds no
+   sideways scroll. width:max-content gives it its natural size rather than the
+   glyph's; the max-width keeps it compact and inside a phone's width. 22rem holds a
+   vector shot's usual file row (kind, three counts and the size) on one line, so the
+   size is not left alone on a line of its own.
+   SHOT_CRED_SCRIPT sets --cred-shift on open when the card would cross a window
+   edge; the independent translate property composes with the open/close transform. */
+.shot-cred-line{position:absolute;inset-block-end:calc(100% + .4rem);inset-inline-end:0;
+  display:flex;flex-direction:column;align-items:flex-start;gap:.3rem;
+  box-sizing:border-box;width:max-content;max-width:min(22rem,calc(100vw - 2rem));
+  padding:.55rem .75rem .6rem;border-radius:.8rem;
+  font-size:.75rem;line-height:1.4;font-weight:400;letter-spacing:normal;text-align:start;white-space:normal;
+  color:hsl(var(--popover-foreground));background:hsl(var(--popover) / 0.96);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  box-shadow:0 6px 20px #00000024, inset 0 0 0 1px var(--border);
+  opacity:0;visibility:hidden;
+  transform:translateY(.25rem);translate:var(--cred-shift,0px) 0;
+  transition:opacity var(--dur-2) ease,transform var(--dur-2) ease,visibility 0s linear var(--dur-2)}
+/* The way from the glyph to the card stays inside the mark. A bridge spans the card's
+   full width from its edge down to the glyph's far edge (the .4rem gap plus the
+   1.4rem glyph), so a pointer that leaves the glyph sideways on a straight line to a
+   link is still on the mark. Hidden visibility, not pointer-events, is what makes a
+   closed card ignore the pointer, so for the .18s a closing card takes to fade a
+   pointer that reaches it opens it again. */
+.shot-cred-line::after{content:'';position:absolute;inset-inline:0;inset-block-start:100%;block-size:1.8rem}
+/* No room above (the fixed site bar would cover the card): the script opens it below. */
+.shot-cred[data-below] .shot-cred-line{inset-block-end:auto;inset-block-start:calc(100% + .4rem);transform:translateY(-.25rem)}
+.shot-cred[data-below] .shot-cred-line::after{inset-block-start:auto;inset-block-end:100%}
+.shot-cred:hover .shot-cred-line,.shot-cred:focus-within .shot-cred-line,
+.shot-cred[data-open] .shot-cred-line{opacity:1;visibility:visible;pointer-events:auto;transform:none;transition-delay:0s}
+/* Escape, or a second tap on the glyph, closes the card even while the pointer or the
+   focus is still on the glyph, and reaching another mark closes this one the same way.
+   The script clears this when the reader moves on. */
+.shot-cred[data-shut]:not([data-open]) .shot-cred-line{opacity:0;visibility:hidden;pointer-events:none}
+/* Rows. Facts are plain text separated by a middot (CSS content with empty alt text,
+   so a screen reader does not read the dots out). The dot hangs in the space before
+   each fact; the fact list is pulled back by that space and the row clips its own
+   start edge, so the dot before the FIRST fact on each line, a wrapped line too, falls
+   outside the row and is cut off. No row ever starts with a stray dot, in either
+   writing direction. */
+.shot-cred-row{max-width:100%}
+.shot-cred-who,.shot-cred-what{overflow:hidden}
+.shot-cred-facts{display:flex;flex-wrap:wrap;align-items:baseline;margin-inline-start:-1em}
+.shot-cred-anat{display:contents}
+/* Each fact takes its own direction from its text, so "39 KB" or a filename reads the
+   right way round inside an RTL row while the row itself still runs right to left. */
+.shot-cred-fact{position:relative;padding-inline-start:1em;white-space:nowrap;unicode-bidi:plaintext}
+.shot-cred-fact::before{content:'·';content:'·' / '';position:absolute;inset-inline-start:0;inline-size:1em;text-align:center;color:var(--muted)}
+/* (a) Who and when: the seal in the theme's green, the signer in full ink. The seal is
+   parted from "signed by" by a real space in the markup, and the site-wide seal margin
+   is taken off: a margin follows the page's direction while the fact follows its own
+   text, so in an RTL page the gap ended up on the wrong side of the seal. The signer
+   comes from the file's manifest and can be any length, so it wraps (at any letter if
+   it has to) rather than being cut off by the row's clipped start edge. */
+.shot-cred-who,.shot-cred-model{color:var(--muted)}
+.shot-cred-name{color:hsl(var(--popover-foreground));font-weight:650}
+.shot-cred-sig .shot-cred-name{white-space:normal;overflow-wrap:anywhere}
+.shot-cred-line .shot-cred-sig .prov-seal{width:.95em;height:.95em;margin-inline:0;vertical-align:-.15em;color:hsl(var(--primary))}
+/* (b) What the file is. A filename wraps rather than truncating - it is evidence the
+   card is naming, so hiding its tail hides the point. */
+.shot-cred-file{font-family:'SUSE Mono','SF Mono',monospace;font-size:.6875rem;overflow-wrap:anywhere}
+.shot-cred-what{color:var(--muted);font-variant-numeric:tabular-nums}
+/* (c) The AI disclosure is the one filled chip on the card, so it is never a fact to
+   skim past. */
+.shot-cred-ai{display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .45rem}
+.shot-cred-chip{padding:.05em .55em;border-radius:999px;font-weight:700;
+  background:hsl(var(--band-dark));color:hsl(var(--on-band-dark))}
+/* (d) The actions, as small links. The colour is the theme's primary, not --green:
+   the landing's dark bands repoint --green at their bright accent, which would sink
+   on this light card. */
+/* The row gap clears a focus ring (2px plus its 2px offset) when the actions wrap. */
+.shot-cred-acts{display:flex;flex-wrap:wrap;gap:.3rem .9rem;margin-block-start:.1rem}
+.shot-cred .shot-cred-do{font:inherit;font-weight:600;color:hsl(var(--primary));text-decoration:none;white-space:nowrap;border-radius:.3em}
+.shot-cred .shot-cred-do:hover{text-decoration:underline}
+.shot-cred .shot-cred-do:focus-visible{outline:2px solid hsl(var(--primary));outline-offset:2px}
 /* The "try it" offer under a shot. In the FLOW and OUTSIDE the .shot wrapper, not in
    the overlay: the credential is a mark on the artwork, this is a line of the page, and
    they must not compete. Outside matters structurally too - .shot-cred is anchored to
@@ -3714,27 +3757,12 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
 [data-theme="dark"] .docs-diagram--dual>img.diagram-alt,[data-theme="brand"] .docs-diagram--dual>img.diagram-alt{display:block}
 .diagram-actions a:hover{color:var(--green)}
 .diagram-actions a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
-/* A PAGE ASSET's credential (the AI stance hero): open at rest, because the file's
-   history is what the surrounding page is arguing about rather than a footnote to a
-   screenshot. Same mark, same line, same two links - only the resting state differs,
-   so a reader who never hovers still sees who signed the picture they are looking at. */
-.shot-cred--asset .shot-cred-line{opacity:1;pointer-events:auto;transform:none}
 /* Full column width, and nothing else: page artwork sizes itself (the hero is
    width:100% a few rules down), so the wrapper only has to be a positioned box the
    mark can hang off. An image that wants 100% of a fit-content parent resolves to
    zero, which is the other reason this is not a .shot. */
 .asset-cred{display:block;position:relative;width:100%}
 .asset-cred>img{display:block;width:100%;height:auto;margin:1em auto}
-/* A page-asset credential rests OPEN on a full-width hero, so - unlike a screenshot's
-   caption, which deliberately overhangs a narrow crop (see the .shot-cred notes above) -
-   it must stay INSIDE the frame: there is a whole column of room, so a spill past the
-   edge like the one on /input-not-impersonation is just a bug. Same fix the mascot credit
-   uses a few rules down: clamp the line to the artwork, and let the rows WRAP into a
-   compact stack rather than run off the side. The glyph stays anchored; the line grows
-   within the box. */
-.asset-cred .shot-cred{max-width:calc(100% - 1.4rem)}
-.asset-cred .shot-cred-line{max-width:18em}
-.asset-cred .shot-cred-row{flex-wrap:wrap}
 /* not-a-pipe keeps the DEFAULT centred, 40em-capped image (see .docs-content img above),
    so its .asset-cred wrapper is the full column - wider than the picture - and a mark
    anchored to the wrapper's edge hangs off into the margin. Hug the wrapper to the same cap
@@ -3745,52 +3773,37 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
    whole point of the picture - so this hero's mark sits mid-height rather than in the bottom
    corner where it would cover the words it is arguing about. */
 .asset-cred[data-shot="/info/not-a-pipe.webp"] .shot-cred{inset-block-end:50%}
-/* The line is a stack of ROWS, and a shot with no readable file has exactly one of
-   them - so the column above is byte-identical to the single row it replaced. The
-   second row (what the file is made of) only ever appears inside the expanded line,
-   which is the only state the line has: at rest the whole thing is opacity 0. The
-   glyph itself does not move when the second row is present, because .shot-cred
-   bottom-anchors it (align-items:flex-end) rather than centring it against the line.
-
-   nowrap on the ROW, not on the line: the row still refuses to break "signed by
-   Lolly" across lines, and a stack of two short rows is shorter than the four-row
-   wrap the one-row rule was written to prevent. */
-.shot-cred-row{display:flex;align-items:center;gap:.3rem;flex-wrap:nowrap;justify-content:flex-end}
-/* The line's pills are chips on a chip, so they sit a step quieter than the ones
-   the prose uses - and they must not inherit the docs paragraph line-height, which
-   would make the row twice as tall as the glyph beside it. */
-.shot-cred-row>*{flex:none}
-.shot-cred-line .prov-pill{font-size:.6875rem;line-height:1.3;padding:.1em .5em;margin:0;white-space:nowrap}
-.shot-cred-line .prov-seal{width:.8em;height:.8em}
-.shot-cred-do{font-size:.6875rem;font-weight:600;white-space:nowrap;padding:.1em .35em;border-radius:.6em}
-.shot-cred-do:hover{background:var(--pale);text-decoration:underline}
+/* "Copy signed source" is a BUTTON among two links (it does something to the reader's
+   machine rather than going somewhere), so it is stripped back to look like them -
+   the alternative, a link with a click handler, would lie to the keyboard and to the
+   status bar about where it goes. */
+button.shot-cred-copy{border:0;background:none;padding:0;cursor:pointer}
+.shot-cred-copy-label{pointer-events:none}
 /* An AI declaration is not a detail to be discovered - if a shot ever carries one,
    its mark arrives already at full contrast and wearing the brand ring, so it reads
-   as a statement rather than as the same quiet glyph every other shot has. */
-.shot-cred--ai .shot-cred-btn{color:hsl(var(--on-band-dark));background:hsl(var(--band-dark));box-shadow:0 0 0 2px var(--green)}
+   as a statement rather than as the same quiet glyph every other shot has. The ring
+   stands off the puck by a hairline of the card colour: in the light theme the puck
+   and --green are the same dark green, so a ring drawn straight onto the puck vanished
+   into it. With the words no longer showing at rest, the ring has to be seen. */
+.shot-cred--ai .shot-cred-btn{color:hsl(var(--on-band-dark));background:hsl(var(--band-dark));box-shadow:0 0 0 1.5px hsl(var(--popover)),0 0 0 3px var(--green)}
 /* Dark mode: same contract, inverted. The puck is near-opaque for the same reason -
    a dark screenshot's corner is not reliably darker than the puck - and the glyph is
-   a muted PALE against it, not a full-white one, so it stays quiet without becoming
-   the invisible stroke this used to be. */
+   a muted grey against it, not a full-white one, so it stays quiet without becoming
+   the invisible stroke this used to be. Approached, it turns to the page's ink (white):
+   --pale is a dark surface in this theme, and a glyph in it vanished on hover. */
 [data-theme="dark"] .shot-cred-btn{color:#99a0a4;background:hsl(var(--popover) / 0.9);box-shadow:0 1px 3px #0006}
-[data-theme="dark"] .shot:hover .shot-cred-btn,[data-theme="dark"] .showcase:hover .shot-cred-btn{color:var(--pale)}
-[data-theme="dark"] .shot-cred-btn:hover,[data-theme="dark"] .shot-cred-btn:focus-visible{color:var(--pale);background:hsl(var(--popover));box-shadow:0 2px 6px #0008}
-[data-theme="dark"] .shot-cred--ai .shot-cred-btn{color:var(--dark);background:var(--light)}
-[data-theme="dark"] .shot-cred-line{background:hsl(var(--popover) / 0.93);box-shadow:0 2px 10px #0007, inset 0 0 0 1px hsl(var(--border))}
-[data-theme="dark"] .shot-cred-do:hover{background:hsl(var(--foreground) / 0.08)}
+[data-theme="dark"] .shot:hover .shot-cred-btn,[data-theme="dark"] .showcase:hover .shot-cred-btn{color:var(--text)}
+[data-theme="dark"] .shot-cred-btn:hover,[data-theme="dark"] .shot-cred-btn:focus-visible{color:var(--text);background:hsl(var(--popover));box-shadow:0 2px 6px #0008}
+/* The AI glyph keeps its ring in the dark theme too, and its puck is OPAQUE: the rule
+   above replaces every glyph's shadow at equal specificity, and a 40% green puck read at
+   about 1.5:1 on light artwork, quieter than a plain glyph. */
+[data-theme="dark"] .shot-cred--ai .shot-cred-btn{color:hsl(var(--primary-foreground));background:hsl(var(--primary));box-shadow:0 0 0 1.5px hsl(var(--popover)),0 0 0 3px var(--green)}
+/* On the dark and brand pages the card needs a deeper shadow to lift off the page, and
+   the AI chip turns to the bright primary so it still reads as filled. */
+[data-theme="dark"] .shot-cred-line,[data-theme="brand"] .shot-cred-line{box-shadow:0 6px 20px #0000008c, inset 0 0 0 1px var(--border)}
+[data-theme="dark"] .shot-cred-chip,[data-theme="brand"] .shot-cred-chip{background:hsl(var(--primary));color:hsl(var(--primary-foreground))}
 @media(prefers-reduced-motion:reduce){.shot-cred-line{transition:none;transform:none}}
 html[data-a11y-motion="reduce"] .shot-cred-line{transition:none;transform:none}
-/* Narrow columns: the line stacks above the glyph instead of beside it. The box
-   stays anchored to the inline-END corner only and grows toward inline-start, the
-   side a page never scrolls to (left in LTR, right in RTL). Pinning the start edge
-   as well used to stretch the box toward the scrolling side: on a small crop the
-   mark left its artwork and the page gained a sideways scroll, open or closed.
-   SHOT_CRED_SCRIPT sets --cred-shift on open so a long line stays on screen; the
-   independent translate property composes with the open/close transform. */
-@media(max-width:640px){
-  .shot-cred{flex-direction:column;align-items:flex-end}
-  .shot-cred-line{max-width:min(26rem,calc(100vw - 2rem));transform:translateY(.4rem);translate:var(--cred-shift,0px) 0}
-}
 
 /* ── Geometry showcase (::: showcase - one inlined vector shot) ─────────────
    Scroll drives --p from 0 to 1. Everything that moves is geometry:
@@ -4347,22 +4360,21 @@ const SHOWCASE_SCRIPT = `<script>(function(){
 })();</script>`;
 
 /**
- * Tap-to-open for the credential line, and Escape to close it.
+ * Tap-to-open for the credential card, Escape and a click outside to close it, keeping
+ * an opened card on screen, and keeping aria-expanded true to what the reader sees.
  *
  * Everything else about the reveal is CSS (:hover / :focus-within), so this script
- * exists ONLY for the two things CSS cannot do: a touch device has no hover, and a
- * pointer user who opened the line by tapping needs a way out. aria-expanded is
- * managed here rather than in the markup because it is only ever true in a session
- * where this script is running - a static attribute would misreport the CSS-only
- * hover state.
+ * exists ONLY for what CSS cannot do: a touch device has no hover, a reader who
+ * opened the card by tapping needs a way out, a card near a window edge has to be
+ * measured to be moved, and only one card may show at a time. Every mark rests closed
+ * with aria-expanded="false"; the script turns it true whenever the card shows,
+ * whether a hover, the keyboard focus or a tap opened the card.
  */
 const SHOT_CRED_SCRIPT = `<script>(function(){
   // "Copy signed source" - the banked art's third action (plans/105 section 6). Fetches the
   // SAME file the other two actions point at and puts its text on the clipboard, so a
   // reader can paste it straight into /verify's box and check the credential without
-  // downloading anything. Wired FIRST, and independently of the reveal below: an
-  // always-open line (a figure's, a page asset's) carries data-static and is
-  // deliberately absent from that list.
+  // downloading anything. Wired first, and independently of the reveal below.
   var copies=document.querySelectorAll('.shot-cred-copy');
   for(var ci=0;ci<copies.length;ci++)(function(btn){
     var label=btn.querySelector('.shot-cred-copy-label')||btn;
@@ -4391,42 +4403,92 @@ const SHOT_CRED_SCRIPT = `<script>(function(){
       });
     });
   })(copies[ci]);
-  var creds=document.querySelectorAll('.shot-cred:not([data-static])');if(!creds.length)return;
-  function close(c){c.removeAttribute('data-open');var b=c.querySelector('.shot-cred-btn');if(b)b.setAttribute('aria-expanded','false');}
-  function closeAll(except){creds.forEach(function(c){if(c!==except)close(c);});}
-  // Keep an opened line inside the viewport. It grows from the artwork's corner
-  // toward inline-start, so on a narrow crop it can run past that edge of the
-  // screen; measure it and slide it back by the overshoot (plus an 8px margin).
+  var creds=document.querySelectorAll('.shot-cred');if(!creds.length)return;
+  // Each mark keeps two flags the CSS reads as :hover and :focus-within: h while the
+  // pointer is on it, f while the focus is inside it. A card shows while a tap pins it
+  // (data-open), or while it is hovered or focused and not shut (data-shut).
+  function shown(c){return c.hasAttribute('data-open')||(!c.hasAttribute('data-shut')&&!!(c._h||c._f));}
+  // aria-expanded follows what the reader sees, however the card opened.
+  function sync(){creds.forEach(function(c){var b=c.querySelector('.shot-cred-btn');if(b)b.setAttribute('aria-expanded',shown(c)?'true':'false');});}
+  function close(c){c.removeAttribute('data-open');}
+  // Keep an opened card inside the viewport. It opens above the glyph and grows toward
+  // inline-start, so measure it: open it below the glyph when the fixed site bar would
+  // cover its top (and there is room below), and slide it back by any sideways
+  // overshoot past either window edge (plus an 8px margin).
   function clamp(c){
     var line=c.querySelector('.shot-cred-line');if(!line)return;
+    c.removeAttribute('data-below');
     line.style.setProperty('--cred-shift','0px');
     var r=line.getBoundingClientRect(),edge=8,w=document.documentElement.clientWidth;
+    var bar=document.querySelector('.site-bar'),top=(bar?bar.getBoundingClientRect().bottom:0)+edge;
+    if(r.top<top&&c.getBoundingClientRect().bottom+r.height+edge*2<window.innerHeight)c.setAttribute('data-below','');
     var shift=r.left<edge?edge-r.left:(r.right>w-edge?w-edge-r.right:0);
     if(shift)line.style.setProperty('--cred-shift',Math.round(shift)+'px');
   }
   creds.forEach(function(c){
     var btn=c.querySelector('.shot-cred-btn');if(!btn)return;
-    btn.addEventListener('mouseenter',function(){clamp(c);});
-    btn.addEventListener('focus',function(){clamp(c);});
+    // Reaching one mark closes every other: a pinned card unpins, and a card still held
+    // open by the focus or a resting pointer is shut, so one card shows at a time.
+    function arrive(){
+      creds.forEach(function(o){if(o===c)return;close(o);if(o._h||o._f)o.setAttribute('data-shut','');});
+      clamp(c);sync();
+    }
+    c.addEventListener('mouseenter',function(){c._h=true;c.removeAttribute('data-shut');arrive();});
+    // A shut that only the pointer was holding (Escape on a hovered card) ends when the
+    // pointer leaves, so a later visit by keyboard opens the card again.
+    c.addEventListener('mouseleave',function(){c._h=false;if(!c._f)c.removeAttribute('data-shut');sync();});
+    // Focus arriving from outside the mark is a new visit and opens the card. A move
+    // inside the mark (Escape returning focus to the glyph) keeps a shut card shut.
+    c.addEventListener('focusin',function(e){
+      if(!c.contains(e.relatedTarget)){c._f=true;c.removeAttribute('data-shut');}
+      arrive();
+    });
+    // Focus moving on to another control closes a pinned card too, so a card opened
+    // from the keyboard does not stay over the page once the reader has tabbed past.
+    // A null relatedTarget (a click on the page, the window losing focus) leaves that
+    // to the click handler below.
+    c.addEventListener('focusout',function(e){
+      if(c.contains(e.relatedTarget))return;
+      c._f=false;
+      if(!c._h)c.removeAttribute('data-shut');
+      if(e.relatedTarget)close(c);
+      sync();
+    });
     btn.addEventListener('click',function(e){
       e.preventDefault();
       var open=!c.hasAttribute('data-open');
-      closeAll(c);
-      if(open){clamp(c);c.setAttribute('data-open','');btn.setAttribute('aria-expanded','true');}else close(c);
+      creds.forEach(function(o){if(o!==c)close(o);});
+      if(open){c.removeAttribute('data-shut');clamp(c);c.setAttribute('data-open','');}
+      // A second tap closes the card even though the pointer and focus are still on the glyph.
+      else{close(c);c.setAttribute('data-shut','');}
+      sync();
     });
   });
-  window.addEventListener('resize',function(){var o=document.querySelector('.shot-cred[data-open]');if(o)clamp(o);});
-  // Escape closes the open line and returns focus to its trigger, matching how the
-  // app's own overlays behave.
+  // Keep a shown card on screen while the page moves under it: a resize, or a scroll
+  // that would carry it under the fixed site bar. Once per frame at most.
+  var queued=false;
+  function reclamp(){
+    if(queued)return;queued=true;
+    requestAnimationFrame(function(){queued=false;creds.forEach(function(c){if(shown(c))clamp(c);});});
+  }
+  window.addEventListener('resize',reclamp);
+  window.addEventListener('scroll',reclamp,{passive:true});
+  // Escape closes the card the reader is on: the one holding focus, else the one that
+  // shows. Focus returns to the glyph only when it was inside that mark already, so an
+  // Escape pressed anywhere else (the search box, say) never pulls the reader back up
+  // the page. data-shut keeps the card closed while focus sits on its glyph.
   document.addEventListener('keydown',function(e){
     if(e.key!=='Escape')return;
-    var open=document.querySelector('.shot-cred[data-open]');
-    if(!open)return;
-    close(open);
-    var b=open.querySelector('.shot-cred-btn');if(b)b.focus();
+    var a=document.activeElement,mine=a&&a.closest?a.closest('.shot-cred'):null,open=mine;
+    if(!open)creds.forEach(function(c){if(!open&&shown(c))open=c;});
+    if(!open||!shown(open))return;
+    close(open);open.setAttribute('data-shut','');
+    if(mine){var b=open.querySelector('.shot-cred-btn');if(b)b.focus();}
+    sync();
   });
   document.addEventListener('click',function(e){
-    if(!e.target.closest||!e.target.closest('.shot-cred'))closeAll(null);
+    if(e.target.closest&&e.target.closest('.shot-cred'))return;
+    creds.forEach(close);sync();
   });
 })();</script>`;
 
@@ -5493,6 +5555,7 @@ interface SitemapSection { hub: Pathway; label: string; slugs: string[] }
 const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'quickstart', label: 'Product, organisation and vocabulary', slugs: ['index', 'faq', 'organisation', 'glossary', 'about', 'what-is-lolly', 'work-status'] },
   { hub: 'quickstart', label: 'First file and installation', slugs: ['make-something', 'install', 'supported-environments'] },
+  { hub: 'quickstart', label: 'The Lolly Demo brand', slugs: ['lolly-demo', 'lolly-demo-in-use'] },
   { hub: 'creators', label: 'Design and templates', slugs: ['project-asset-transfers', 'create-a-tool', 'training-creators', 'using', 'templates', 'brand-studio', 'brand-architectures', '3d-studio', 'design-import', 'rebrand', 'text-composition', 'utilities', 'extension'] },
   { hub: 'creators', label: 'Find and keep your work', slugs: ['profile', 'find-your-work', 'sync', 'search', 'ask', 'dashboard', 'favourites'] },
   { hub: 'creators', label: 'Collaborate and export', slugs: ['formats', 'collaborate', 'exporting'] },
@@ -5613,6 +5676,8 @@ const SIDEBAR_ICON: Record<string, string> = {
   'index': 'home',
   'quickstart': 'star',
   'make-something': 'pentool',
+  'lolly-demo': 'palette',
+  'lolly-demo-in-use': 'photos',
   'faq': 'document',
   'project-asset-transfers': 'folder',
   'organisation': 'people',

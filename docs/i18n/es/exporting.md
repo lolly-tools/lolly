@@ -85,7 +85,7 @@ El nombre del archivo y el menú de formato están juntos como un único par `na
 
 La primera fila es el caso común. Un logotipo tipográfico compuesto en la tipografía de tu marca se exporta como SVG, donde cada letra es una ruta perfilada en lugar de un píxel, así que se mantiene nítido tanto a tamaño de tarjeta de visita como a tamaño de vinilo de fachada, desde el mismo archivo.
 
-![Un logotipo tipográfico de trazo fino y tracking amplio que dice Aurora, el tipo de obra puramente vectorial de la que trata la fila SVG de la tabla](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Un logotipo tipográfico de trazo fino y tracking amplio que dice Aurora, el tipo de obra puramente vectorial de la que trata la fila SVG de la tabla](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## Tamaño y unidades de impresión
 

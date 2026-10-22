@@ -1,7 +1,7 @@
 {
   "id": "flythrough",
   "name": "Flythrough",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "engineVersion": "^1.0.0",
   "status": "official",
   "singleInstance": true,

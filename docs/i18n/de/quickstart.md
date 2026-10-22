@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 Sobald eine Marke aktiv ist, formen Sie sie im [**Brand Studio**](/info/brand-studio.html) (`#/start`) weiter - ändern Sie eine Farbe oder eine Rolle, und jede Vorschau in der App aktualisiert sich während der Eingabe. (Der Tab **Design-System** im Dashboard unter `#/d` *zeigt* die Marke nur an; bearbeitet wird sie im Studio.)
 
-![Der Tab Design-System im Dashboard - die aktive Marke, nur zur Ansicht](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) Dieselbe Marke wird auf der Karte **Profil → Ihre Marke** zusammengefasst. Schriften sind echt: Wählen Sie aus Google Fonts, und Lolly speichert die Datei **auf Ihrem Gerät** als Marken-Asset, sodass Ihre Typografie offline verfügbar bleibt und beim Rendern nichts abgerufen wird.
+![Der Tab Design-System im Dashboard - die aktive Marke, nur zur Ansicht](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) Dieselbe Marke wird auf der Karte **Profil → Ihre Marke** zusammengefasst. Schriften sind echt: Wählen Sie aus Google Fonts, und Lolly speichert die Datei **auf Ihrem Gerät** als Marken-Asset, sodass Ihre Typografie offline verfügbar bleibt und beim Rendern nichts abgerufen wird.
 
 Wenn Sie zufrieden sind, **exportieren Sie die Marke als `LollyBrand`-Paket** - eine einzelne Datei, die ein Kollege importieren kann, um exakt dieselbe Palette, dieselben Schriften und Regeln zu erhalten. So bewegt sich eine Marke zwischen Menschen und Maschinen, ohne dass ein Server dazwischensteht.
 

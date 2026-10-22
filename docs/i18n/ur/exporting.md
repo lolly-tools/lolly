@@ -85,7 +85,7 @@ Share ٹول کے اوپر کھلتا ہے، جس میں لنک پہلے سے ت
 
 پہلی قطار عام صورتحال ہے۔ آپ کے برانڈ فونٹ میں سیٹ کیا گیا ورڈ مارک SVG کے طور پر ایکسپورٹ ہوتا ہے، جہاں ہر حرف پکسل کے بجائے ایک آؤٹ لائنڈ پاتھ ہوتا ہے، اس لیے یہ بزنس کارڈ کے سائز اور اسی فائل سے عمارت کی ریپنگ کے سائز پر بھی صاف رہتا ہے۔
 
-![ایک باریک، وسیع ٹریکنگ والا ورڈ مارک جس پر Aurora لکھا ہے، خالص ویکٹر آرٹ ورک کی وہ قسم جس کے بارے میں ٹیبل کی SVG قطار ہے](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![ایک باریک، وسیع ٹریکنگ والا ورڈ مارک جس پر Aurora لکھا ہے، خالص ویکٹر آرٹ ورک کی وہ قسم جس کے بارے میں ٹیبل کی SVG قطار ہے](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## سائز اور پرنٹ یونٹس
 

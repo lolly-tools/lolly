@@ -36,7 +36,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 Una vez activa una marca, sigue dándole forma en el [**Brand Studio**](/info/brand-studio.html) (`#/start`) - cambia un color o un rol y cada vista previa de la app se actualiza mientras escribes. (La pestaña **Sistema de diseño** del panel, en `#/d`, *muestra* la marca en solo lectura; el estudio es donde la editas.)
 
-![La pestaña Sistema de diseño del panel - la marca activa mostrada en solo lectura](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand) La misma marca se resume en la tarjeta **Perfil → Tu marca**. Las tipografías son reales: elige entre Google Fonts y Lolly guarda el archivo **en tu dispositivo** como recurso de marca, así que tu tipografía viaja sin conexión y nada se descarga en el momento de renderizar.
+![La pestaña Sistema de diseño del panel - la marca activa mostrada en solo lectura](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) La misma marca se resume en la tarjeta **Perfil → Tu marca**. Las tipografías son reales: elige entre Google Fonts y Lolly guarda el archivo **en tu dispositivo** como recurso de marca, así que tu tipografía viaja sin conexión y nada se descarga en el momento de renderizar.
 
 Cuando estés satisfecho, **exporta la marca como paquete `LollyBrand`** - un único archivo que un compañero puede importar para obtener exactamente la misma paleta, tipografías y reglas. Así es como una marca viaja entre personas y máquinas sin un servidor de por medio.
 

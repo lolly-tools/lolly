@@ -85,7 +85,7 @@ Share টুলের উপরে খোলে, লিংকটি আগে �
 
 প্রথম সারিটিই সাধারণ ক্ষেত্র। আপনার ব্র্যান্ড ফেসে সেট করা একটি wordmark SVG হিসেবে এক্সপোর্ট হয়, যেখানে প্রতিটি অক্ষর পিক্সেল নয় বরং একটি আউটলাইন করা পাথ, তাই একই ফাইল থেকে এটি বিজনেস-কার্ড সাইজ এবং বিল্ডিং-র‍্যাপ সাইজ উভয় ক্ষেত্রেই স্পষ্ট থাকে।
 
-![Aurora লেখা একটি হেয়ারলাইন ওয়াইড-ট্র্যাকড wordmark, ঠিক যে ধরনের pure vector আর্টওয়ার্কের কথা টেবিলের SVG সারিতে বলা হয়েছে](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Aurora লেখা একটি হেয়ারলাইন ওয়াইড-ট্র্যাকড wordmark, ঠিক যে ধরনের pure vector আর্টওয়ার্কের কথা টেবিলের SVG সারিতে বলা হয়েছে](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## সাইজ ও প্রিন্ট ইউনিট
 

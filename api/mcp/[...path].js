@@ -171950,6 +171950,7 @@ async function captureUrl(params2, format, dims, opts = {}) {
     });
     await page3.evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => void 0)).catch(() => {
     });
+    if (params2.readyFunction) await page3.waitForFunction(params2.readyFunction, void 0, { timeout: 6e4, polling: 50 });
     const zoomCss = svgZoom === 1 && Math.abs(zoom - 1) > 1e-3 ? `html{zoom:${zoom}!important}` : "";
     const styles = [recolorCss(params2), zoomCss, params2.css || ""].filter(Boolean).join("\n");
     if (styles) await injectCss(page3, styles);

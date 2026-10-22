@@ -65,7 +65,7 @@ Więc rzeczą wartą uwagi jest **narzędzie**, a nie każdy plik, który ono tw
 
 To jest zmiana, którą faktycznie wprowadza deterministyczny silnik. Dla zespołu kreatywnego to bariera ochronna, nie zamiennik - nadal rzucasz piłkę (dane, tekst, obraz), a kod jest torem odbojowym, który nie pozwala żadnemu rzutowi wypaść poza rynnę.
 
-![Cała praca producenta: wpisać słowa. Krój, kolor i odstępy zostały ustalone, gdy powstało narzędzie](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
+![Cała praca producenta: wpisać słowa. Krój, kolor i odstępy zostały ustalone, gdy powstało narzędzie](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
 ## Co to daje wyjątkowo
 

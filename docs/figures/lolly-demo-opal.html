@@ -1,0 +1,93 @@
+<!--
+  Concept: Opal, the colours of Lolly Demo. All 31 named colours in the five families of the brand
+  standards at /brand, the chart order and the six colourways, which link to their cards on the Lolly
+  Demo in use page.
+  Band Contract: static fragment scoped under .ldo, reads the docs theme tokens with fallbacks, no
+  script, no motion, no network. Swatches paint their own values in every theme. Daylight asks for
+  HDR white where the browser draws HDR colour, and plain white everywhere else.
+  Sources: every value from brands/lolly-demo/catalog/assets/lolly/tokens/demo.json (base.color.brand,
+  base.color.spectrum); data-token on each swatch is the token key. The dots pair each colourway's
+  light lead with its dark lead, as the /brand top bar does.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-21. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.ldo{--ldo-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--ldo-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --ldo-ground:hsl(var(--secondary,84.5 55% 92.2%));--ldo-paper:hsl(var(--card,0 0% 100%));
+ --ldo-accent:hsl(var(--primary,176.5 89.5% 11.2%));--ldo-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --ldo-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .13);--ldo-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --ldo-wash:color-mix(in oklab,var(--ldo-accent) 14%,var(--ldo-paper));
+ --ldo-head:#033633;--ldo-mark:#008657;--ldo-yes:#0b6b45;--ldo-no:#a43427;
+ --ldo-display:"Outfit","SUSE",ui-sans-serif,system-ui,sans-serif;--ldo-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--ldo-ink);background:var(--ldo-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+:is([data-theme="dark"],[data-theme="brand"]) .ldo{--ldo-head:#ffffff;--ldo-mark:#50c369;--ldo-yes:#7ddc97;--ldo-no:#ef9275}
+.ldo *{box-sizing:border-box}
+.ldo ul,.ldo ol{list-style:none;margin:0;padding:0}
+.ldo li{list-style:none;margin:0;font-size:inherit}
+.ldo p{margin:0}
+.ldo.ldo a{color:inherit;text-decoration:none}
+.ldo.ldo a:hover{text-decoration:none}
+.ldo b{font-weight:600}
+.ldo .ldo-sprite{position:absolute;width:0;height:0;overflow:hidden}
+.ldo .ldo-ico{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ldo .ldo-cap{font:500 11px/1.3 var(--ldo-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ldo-muted)}
+.ldo .ldo-card{background:var(--ldo-paper);border-radius:18px;box-shadow:0 0 0 1px var(--ldo-line)}
+.ldo .ldo-tag{display:inline-flex;align-items:center;gap:6px;font:600 12px/1.2 var(--ldo-mono);letter-spacing:.03em}
+.ldo .ldo-tag svg{width:15px;height:15px;stroke-width:3}
+.ldo .ldo-yes{color:var(--ldo-yes)}
+.ldo .ldo-no{color:var(--ldo-no)}
+.ldo{display:grid;gap:16px}
+.ldo .ldo-fam{display:grid;gap:8px}
+.ldo .ldo-sws{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px 8px}
+.ldo .ldo-sw{display:grid;grid-template-columns:minmax(0,1fr);gap:3px;min-width:0}
+.ldo .ldo-sw i{display:block;aspect-ratio:5/3;margin-bottom:3px;border-radius:12px;background:var(--c);box-shadow:inset 0 0 0 1px rgb(127 127 127 / .22)}
+.ldo .ldo-sw b{min-width:0;font:500 14px/1.1 var(--ldo-display);color:var(--ldo-head);overflow-wrap:anywhere}
+.ldo .ldo-sw span{font:400 10.5px/1.2 var(--ldo-mono);color:var(--ldo-muted)}
+.ldo .ldo-hdr{dynamic-range-limit:no-limit}
+@supports (color:color(rec2100-pq 0.75 0.75 0.75)){.ldo .ldo-sw .ldo-hdr{background:color(rec2100-pq 0.75 0.75 0.75)}}
+.ldo .ldo-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.ldo .ldo-card{padding:14px 16px;display:grid;gap:10px;align-content:start}
+.ldo .ldo-bars{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px;align-items:end;height:92px}
+.ldo .ldo-bars i{display:block;border-radius:7px 7px 3px 3px;background:var(--c);height:var(--h)}
+.ldo .ldo-bar-names{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px;font:400 9.5px/1.15 var(--ldo-mono);color:var(--ldo-muted);text-align:center}
+.ldo.ldo a.ldo-ways{color:var(--ldo-ink)}
+.ldo.ldo a.ldo-ways:hover{box-shadow:0 0 0 1.5px var(--ldo-accent),0 14px 26px -18px rgb(9 20 26 / .55)}
+.ldo.ldo a.ldo-ways:focus-visible{outline:3px solid var(--ldo-accent);outline-offset:3px}
+.ldo .ldo-dots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 8px;padding-top:4px}
+.ldo .ldo-dots li{display:flex;align-items:center;gap:7px;font:500 13px/1.1 var(--ldo-display);color:var(--ldo-head);min-width:0}
+.ldo .ldo-dots i{flex:none;width:28px;height:28px;border-radius:50%;background:conic-gradient(from 225deg,var(--d1) 0 50%,var(--d2) 0);box-shadow:0 0 0 1px var(--ldo-line)}
+.ldo .ldo-more{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ldo .ldo-more svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@container (max-width:600px){
+ .ldo .ldo-sws{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .ldo .ldo-pair{grid-template-columns:minmax(0,1fr)}
+}
+@container (max-width:380px){
+ .ldo .ldo-dots{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .ldo .ldo-bar-names{font-size:8px}
+}
+@container (max-width:400px){
+ .ldo .ldo-sw b{font-size:12.5px}
+}
+@container (max-width:360px){
+ .ldo .ldo-sws{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+</style>
+<div class="ldo">
+<div class="ldo-fam"><p class="ldo-cap">Greens</p><ul class="ldo-sws"><li class="ldo-sw" data-token="spearmint"><i style="--c:#033633"></i><b>Spearmint</b><span>#033633</span></li><li class="ldo-sw" data-token="bunyapine"><i style="--c:#008657"></i><b>Bunyapine</b><span>#008657</span></li><li class="ldo-sw" data-token="green-apple"><i style="--c:#50c369"></i><b>Green Apple</b><span>#50c369</span></li><li class="ldo-sw" data-token="pandanus"><i style="--c:#ace1ad"></i><b>Pandanus</b><span>#ace1ad</span></li><li class="ldo-sw" data-token="avocado"><i style="--c:#edf6e0"></i><b>Avocado</b><span>#edf6e0</span></li><li class="ldo-sw" data-token="khaki"><i style="--c:#444f05"></i><b>Khaki</b><span>#444f05</span></li><li class="ldo-sw" data-token="olive"><i style="--c:#818e44"></i><b>Olive</b><span>#818e44</span></li></ul></div>
+<div class="ldo-fam"><p class="ldo-cap">Warm</p><ul class="ldo-sws"><li class="ldo-sw" data-token="ochre"><i style="--c:#72251c"></i><b>Ochre</b><span>#72251c</span></li><li class="ldo-sw" data-token="bauxite"><i style="--c:#a43427"></i><b>Bauxite</b><span>#a43427</span></li><li class="ldo-sw" data-token="outback"><i style="--c:#c55123"></i><b>Outback</b><span>#c55123</span></li><li class="ldo-sw" data-token="arvo"><i style="--c:#ef9275"></i><b>Arvo</b><span>#ef9275</span></li><li class="ldo-sw" data-token="banksia"><i style="--c:#ee9138"></i><b>Banksia</b><span>#ee9138</span></li><li class="ldo-sw" data-token="honey"><i style="--c:#fac044"></i><b>Honey</b><span>#fac044</span></li><li class="ldo-sw" data-token="wattle"><i style="--c:#fdec9e"></i><b>Wattle</b><span>#fdec9e</span></li></ul></div>
+<div class="ldo-fam"><p class="ldo-cap">Earth and sand</p><ul class="ldo-sws"><li class="ldo-sw" data-token="bark"><i style="--c:#734f31"></i><b>Bark</b><span>#734f31</span></li><li class="ldo-sw" data-token="pancake"><i style="--c:#d8b890"></i><b>Pancake</b><span>#d8b890</span></li><li class="ldo-sw" data-token="beach"><i style="--c:#f2e1bf"></i><b>Beach</b><span>#f2e1bf</span></li><li class="ldo-sw" data-token="meringue"><i style="--c:#f9f7ef"></i><b>Meringue</b><span>#f9f7ef</span></li></ul></div>
+<div class="ldo-fam"><p class="ldo-cap">Flowers and waters</p><ul class="ldo-sws"><li class="ldo-sw" data-token="fuchsia"><i style="--c:#da1889"></i><b>Fuchsia</b><span>#da1889</span></li><li class="ldo-sw" data-token="donut"><i style="--c:#f39dbd"></i><b>Donut</b><span>#f39dbd</span></li><li class="ldo-sw" data-token="jacaranda"><i style="--c:#7476e0"></i><b>Jacaranda</b><span>#7476e0</span></li><li class="ldo-sw" data-token="lagoon"><i style="--c:#1a85c4"></i><b>Lagoon</b><span>#1a85c4</span></li><li class="ldo-sw" data-token="sky"><i style="--c:#5fcaff"></i><b>Sky</b><span>#5fcaff</span></li><li class="ldo-sw" data-token="reef"><i style="--c:#25c2c2"></i><b>Reef</b><span>#25c2c2</span></li><li class="ldo-sw" data-token="swell"><i style="--c:#b6f1f1"></i><b>Swell</b><span>#b6f1f1</span></li></ul></div>
+<div class="ldo-fam"><p class="ldo-cap">Ink and light</p><ul class="ldo-sws"><li class="ldo-sw" data-token="void"><i style="--c:#000000"></i><b>Void</b><span>#000000</span></li><li class="ldo-sw" data-token="liquorice"><i style="--c:#09141a"></i><b>Liquorice</b><span>#09141a</span></li><li class="ldo-sw" data-token="basalt"><i style="--c:#373e44"></i><b>Basalt</b><span>#373e44</span></li><li class="ldo-sw" data-token="pebble"><i style="--c:#99a0a4"></i><b>Pebble</b><span>#99a0a4</span></li><li class="ldo-sw" data-token="sugar"><i style="--c:#ffffff"></i><b>Sugar</b><span>#ffffff</span></li><li class="ldo-sw" data-token="daylight"><i class="ldo-hdr" style="--c:#ffffff"></i><b>Daylight</b><span>HDR white</span></li></ul></div>
+<div class="ldo-pair">
+<div class="ldo-card"><p class="ldo-cap">Charts take them in this order</p>
+<div class="ldo-bars" role="img" aria-label="Eight bars in chart order: Green Apple, Reef, Honey, Donut, Banksia, Olive, Outback, Bark"><i style="--c:#50c369;--h:92%"></i><i style="--c:#25c2c2;--h:74%"></i><i style="--c:#fac044;--h:82%"></i><i style="--c:#f39dbd;--h:58%"></i><i style="--c:#ee9138;--h:66%"></i><i style="--c:#818e44;--h:44%"></i><i style="--c:#c55123;--h:52%"></i><i style="--c:#734f31;--h:36%"></i></div>
+<div class="ldo-bar-names" aria-hidden="true"><span>Green Apple</span><span>Reef</span><span>Honey</span><span>Donut</span><span>Banksia</span><span>Olive</span><span>Outback</span><span>Bark</span></div>
+</div>
+<a class="ldo-card ldo-ways" href="/info/start/lolly-demo-in-use.html#colourways-on-real-work"><span class="ldo-more"><span class="ldo-cap">Six colourways</span><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+<ul class="ldo-dots"><li><i style="--d1:#033633;--d2:#50c369"></i>Spearmint</li><li><i style="--d1:#c55123;--d2:#fac044"></i>Morning</li><li><i style="--d1:#da1889;--d2:#f39dbd"></i>Spring</li><li><i style="--d1:#1a85c4;--d2:#25c2c2"></i>Beach</li><li><i style="--d1:#72251c;--d2:#ef9275"></i>Afternoon</li><li><i style="--d1:#09141a;--d2:#7476e0"></i>Midnight</li></ul>
+</a>
+</div>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKAGp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnaanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo3NWE5ZTJiOS1kZWEwLTQ5OWUtYTcyZS1kYTFjZmRlOThlZTQAAAAEXWp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjFUMTM6MTk6MzlaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkpmGZsZW5ndGgZDbpkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIJJcihIEZhwU0jjQkf1w60B4V0Yf9CuEQC1kvmY/lOl7Y3BhZEgAAAAAAAAAAAAAAOZqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACyY2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2xvbG9sbHktZGVtby1vcGFsZGRhdGV4GDIwMjYtMTAtMjFUMTM6MTk6MzkuNzI1WmpkaW1lbnNpb25zazI0IMOXIDI0IHB4aGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAs1qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACnmNib3KmaGRjOnRpdGxlb2xvbGx5LWRlbW8tb3BhbGppbnN0YW5jZUlEeC11cm46dXVpZDo3NGI1NGQzYS03ZjQwLTQwYWItOTc5YS1kMmM3ZTgxODM2Mjh0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIJstNHskmszVCnBB3cjqA/40ocw9dpYh6KBCNSf53rBVomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIFVW4CV61Mh3YJ/ghfl0LF8EbVGrkqhqXWd3yOW9D7VMomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCDntb4hv0v2oq8sDJ3Oz54cuz3LUOrLtyDbwxjr8LDDdaJjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmFqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjFjYm9y0oRZAeCiASYYIYFZAdcwggHTMIIBeaADAgECAglAfLzhcM3aCLswCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMTEzMTgzOVoXDTM2MTAxODEzMTkzOVowNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAENrISeABxCMqS9D25rH6x36wFs/Ul2Q06U1I7tW8JcKOP0kzV2F211VOSSZd2jiBye6cA2xSdwkTVdGgVZNP0raNyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFIEx8w8TGVOuRhw9aKN0Zu64hYTUMB8GA1UdIwQYMBaAFIEx8w8TGVOuRhw9aKN0Zu64hYTUMAoGCCqGSM49BAMCA0gAMEUCIBC1fqS2xUsur0FSea0B1MVdNoy6KHzZhhR4Ko525LffAiEAsyyIcgeS2s2QO8obYVeGGv9hjJihfNyiY0sfuKuDVEeg9lhAf3aEO2K6a8vWOq9Bz5bYgF46SqQthCwjvASXeuAHQErAJ4WjbWp71Ae70n3FzrECknpBSE0fCGEei55xzehq2Q== -----END C2PA MANIFEST----- -->

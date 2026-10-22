@@ -76,7 +76,7 @@ Ele nunca é enviado, porque não há servidor no caminho para o qual enviá-lo.
 Esses utilitários funcionam offline, e sua saída não carrega nenhuma marca d'água ou metadado
 nosso - o objetivo da maioria deles é remover e proteger dados, não adicionar risco.
 
-![O selo que essas ferramentas exibem: Runs on your device - nada é enviado](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+![O selo que essas ferramentas exibem: Runs on your device - nada é enviado](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
 O Prepare for sharing guarda entradas de trabalho, descobertas privadas e mapas de substituição
 em memória, sem adicioná-los automaticamente ao histórico, a links, a backups ou à sincronização.

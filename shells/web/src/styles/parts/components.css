@@ -479,11 +479,12 @@ html[data-a11y-motion="reduce"] .profile-link .profile-link-mark .lolly-mark__sp
    fields above keep inherit only; their mono comes from their context). */
 .share-link-field {         /* dialogs.css */
   padding: 7px 10px;
-  border: 1px solid hsl(var(--border));
+  border: .5px solid hsl(var(--border));
   border-radius: var(--radius);
   background: hsl(var(--muted) / 0.4);
   font-size: var(--fs-sm);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  box-shadow: var(--ui-effect-inset);
 }
 
 /* Floating swatch-name chip - painted in the swatch's own colour. showSwatchTip

@@ -84,3 +84,21 @@ test('the Brand mode list offers the looks only, because a colourway is another 
   assert.deepEqual(options, ['', 'light', 'dark'], 'Pine and Persimmon are not modes');
   el.remove();
 });
+
+test('the Brand mode menu names the mode the empty value renders', async () => {
+  const { defaultModeName } = await import('./usage.ts');
+  const { readFileSync } = await import('node:fs');
+  const read = (rel: string): Record<string, unknown> => JSON.parse(readFileSync(new URL(rel, import.meta.url), 'utf8'));
+  const demo = read('../../../../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json');
+  const starter = read('../../../../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json');
+  assert.equal(defaultModeName(demo), 'light');
+  assert.equal(defaultModeName(starter), 'light');
+  // A document whose stored selection is dark renders dark with no theme asked
+  // for, so the default is named dark, not after the first theme in the list.
+  const groups = (demo.$themes as Array<{ group?: string; id?: string; name?: string; kind?: string }>);
+  const modeGroup = groups.find(theme => theme.name === 'dark')?.group ?? '';
+  const darkId = groups.find(theme => theme.name === 'dark')?.id ?? 'dark';
+  const storedDark = { ...demo, $metadata: { ...(demo.$metadata as object ?? {}), activeThemeSelection: { [modeGroup]: darkId } } };
+  assert.equal(defaultModeName(storedDark), 'dark');
+  assert.equal(defaultModeName({ color: { ink: { $type: 'color', $value: '#112233' } } }), '', 'no themes, no name: the menu says Default');
+});

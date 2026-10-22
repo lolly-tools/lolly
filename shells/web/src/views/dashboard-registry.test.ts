@@ -17,7 +17,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 
@@ -31,7 +31,18 @@ globalThis.localStorage = dom.window.localStorage;
 const { DASH_SECTIONS, dashFlag, dashHref } = await import('../lib/dashboard-registry.ts');
 const { CAPABILITY_SECTIONS } = await import('../lib/capabilities-data.ts');
 
-const DASHBOARD_SRC = readFileSync(fileURLToPath(new URL('./dashboard.ts', import.meta.url)), 'utf8');
+const { settingsRoute } = await import('./settings-route.ts');
+
+// The whole feature, not one file: the view and its modules under dashboard/
+// (the Design system tab lives in dashboard/brand.ts).
+const read = (rel: string): string => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
+const DASHBOARD_SRC = [
+  read('./dashboard.ts'),
+  ...readdirSync(fileURLToPath(new URL('./dashboard/', import.meta.url)))
+    .filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'))
+    .sort()
+    .map((f) => read(`./dashboard/${f}`)),
+].join('\n');
 
 test('registry invariants: unique ids, tab rows are exactly the flagless ones', () => {
   const ids = DASH_SECTIONS.map((s) => s.id);
@@ -52,6 +63,20 @@ test('dashFlag answers every registered id (appending the id as its unique token
   assert.equal(dashFlag('nope'), '');
 });
 
+test('retired Design system sections stay addressable as flag aliases on their new owners', () => {
+  // The lock seal became a line on the cover, the palette wheel the Colour page.
+  assert.ok(dashFlag('dash-brand').split(' ').includes('dash-lock'), 'dash-lock rides on the cover');
+  assert.ok(dashFlag('dash-palette').split(' ').includes('dash-palette-wheel'), 'dash-palette-wheel rides on the Colour page');
+  assert.equal(settingsRoute('dash-lock').name, 'dashboard');
+  assert.equal(settingsRoute('dash-palette-wheel').name, 'dashboard');
+  // Neither is a row of its own any more.
+  const ids = new Set(DASH_SECTIONS.map((s) => s.id));
+  assert.ok(!ids.has('dash-lock') && !ids.has('dash-palette-wheel'));
+  // The Design system pages in reading order.
+  assert.deepEqual(DASH_SECTIONS.filter((s) => s.tab === 'brand' && s.flag).map((s) => s.id),
+    ['dash-brand', 'dash-palette', 'dash-typedemo', 'dash-logos', 'dash-colourways', 'dash-tokens', 'dash-print']);
+});
+
 test('dashHref: sections by their unique id, tabs by ?tab=', () => {
   assert.equal(dashHref(DASH_SECTIONS.find((s) => s.id === 'dash-sound')!), '#/settings?dash-sound');
   assert.equal(dashHref(DASH_SECTIONS.find((s) => s.id === 'dpanel-brand')!), '#/settings?tab=brand');
@@ -61,6 +86,7 @@ test('dashHref: sections by their unique id, tabs by ?tab=', () => {
 
 test('dashboard.ts imports the registry and interpolates every data-flag', () => {
   assert.ok(DASHBOARD_SRC.includes("from '../lib/dashboard-registry.ts'"), 'imports the registry');
+  assert.ok(DASHBOARD_SRC.includes("from '../../lib/dashboard-registry.ts'"), 'the Design system tab imports it too');
   // Every data-flag attribute in the source is template interpolation - a NEW
   // hand-rolled `data-flag="lock brand …"` literal fails this scan.
   const literal = DASHBOARD_SRC.match(/data-flag="(?!\$\{)[^"]*"/);

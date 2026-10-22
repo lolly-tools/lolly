@@ -20,7 +20,7 @@ Pass the value directly. URL-encode spaces and special characters.
 
 The Wordmark tool is nothing but text params, so a link is the whole brief: `/#/tool/wordmark?text=Ship it&weight=800&tracking=-12&size=200`.
 
-![The word "Ship it" outlined in a heavy weight with the letters pulled tight, both settings carried in by the link alone](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DShip%2520it%26weight%3D800%26tracking%3D-12%26size%3D200&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=um-text-wordmark)
+![The word "Ship it" outlined in a heavy weight with the letters pulled tight, both settings carried in by the link alone](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DShip%2520it%26weight%3D800%26tracking%3D-12%26size%3D200&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&cropSelector=%23tool-canvas&filename=um-text-wordmark)
 
 ### Select
 
@@ -103,9 +103,9 @@ Blocks inputs are repeating groups of fields (e.g. a list of team members, each 
 ?people=[{"name":"Andy","city":"Nuremberg"},{"name":"Lisa","city":"Sydney"}]
 ```
 
-Each object's keys must match the field `id`s defined in the tool's manifest. Fields can be omitted - missing fields are treated as empty strings. Chart Creator's `data` input is a blocks list of label, value and colour, so a whole dataset travels in the link:
+Each object's keys must match the field `id`s defined in the tool's manifest. Fields can be omitted - missing fields are treated as empty strings. Wayfinding's `directions` input is a blocks list of a label, an arrow, a side and a colour per row, so a whole sign travels in the link:
 
-![A three bar chart whose labels, values and bar colours all arrived as one JSON blocks param](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3FchartType%3Dbar%26data%3D%255B%257B%2522label%2522%253A%2522Berlin%2522%252C%2522value%2522%253A%252242%2522%252C%2522color%2522%253A%2522%25232453ff%2522%257D%252C%257B%2522label%2522%253A%2522Sydney%2522%252C%2522value%2522%253A%252231%2522%252C%2522color%2522%253A%2522%252300a3a3%2522%257D%252C%257B%2522label%2522%253A%2522Lisbon%2522%252C%2522value%2522%253A%252219%2522%252C%2522color%2522%253A%2522%2523fe7c3f%2522%257D%255D&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=um-blocks-chart&waitSelector=%23tool-canvas%20svg)
+![A wayfinding sign whose three destinations, their arrows and their colours all arrived as one JSON blocks param](/t/url-shot?url=%2F%23%2Ftool%2Fwayfinding-signage%3Fheading%3DThis%2520way%26directions%3D%255B%257B%2522label%2522%253A%2522Registration%2522%252C%2522arrow%2522%253A%2522left%2522%252C%2522side%2522%253A%2522left%2522%252C%2522color%2522%253A%2522%2523008657%2522%257D%252C%257B%2522label%2522%253A%2522Keynote%2520hall%2522%252C%2522arrow%2522%253A%2522up%2522%252C%2522side%2522%253A%2522left%2522%252C%2522color%2522%253A%2522%25231a85c4%2522%257D%252C%257B%2522label%2522%253A%2522Workshops%2522%252C%2522arrow%2522%253A%2522right%2522%252C%2522side%2522%253A%2522right%2522%252C%2522color%2522%253A%2522%2523c55123%2522%257D%255D&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=um-blocks-wayfinding)
 
 **CLI:**
 ```bash

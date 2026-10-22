@@ -85,7 +85,7 @@ Dosya adı ve format menüsü, **İndir**'in altında tek bir `name.format` çif
 
 İlk satır yaygın durumdur. Marka yazı tipinle oluşturulmuş bir kelime markası SVG olarak dışa aktarılır, burada her harf bir piksel değil çevresi çizilmiş bir yoldur, bu yüzden aynı dosyadan hem bir kartvizit boyutunda hem de bir bina cephesi boyutunda keskin kalır.
 
-![Aurora yazan, ince ve geniş harf aralıklı bir kelime markası, SVG satırının bahsettiği türden saf vektör çizim](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Aurora yazan, ince ve geniş harf aralıklı bir kelime markası, SVG satırının bahsettiği türden saf vektör çizim](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## Boyut ve baskı birimleri
 

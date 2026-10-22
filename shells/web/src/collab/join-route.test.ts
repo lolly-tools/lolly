@@ -169,6 +169,19 @@ const settle = (): Promise<void> => new Promise((resolve) => { setImmediate(reso
 const frame = (): Promise<void> => new Promise((resolve) => { setTimeout(resolve, 0); });
 
 /**
+ * Turn the event loop until `ready()` holds. Past the enable card or the code door the
+ * flow runs on after `mountJoinRoute` has settled (main.ts closes its loading card on
+ * that settle), so a test waits for what the flow paints rather than for the mount.
+ */
+async function until(ready: () => boolean, what: string): Promise<void> {
+  for (let turn = 0; turn < 200; turn += 1) {
+    if (ready()) return;
+    await frame();
+  }
+  assert.fail(`the flow never reached ${what}`);
+}
+
+/**
  * A profile host that really stores what it is given, so "the flag persisted" can be
  * asserted against a RECORD rather than against the localStorage mirror alone. `set` is
  * omitted when `writable` is false - the structure of a host that cannot save.
@@ -353,6 +366,7 @@ test('#/join: the enable card is announced when it appears, and again when it is
   liveRegion.textContent = '';
   actOn(el, 'enable-collab')!.click();
   await mounting;
+  await until(() => titleOf(el) === STRINGS.joinTitle, 'the join page');
   await frame();
   assert.equal(liveRegion.textContent, STRINGS.enableDone, 'and the thing it did is said out loud too');
 });
@@ -435,6 +449,7 @@ test('#/join: "Turn on and continue" writes the flag to the PROFILE, not just th
   await settle();
   actOn(el, 'enable-collab')!.click();
   await mounting;
+  await until(() => titleOf(el) === STRINGS.joinTitle, 'the join page');
 
   // The record, which is what survives a reload - the mirror alone would light the
   // feature up for exactly one page load and lose it on the next boot.
@@ -462,6 +477,7 @@ test('#/join: turning it on falls straight through into the ceremony, with no re
 
   actOn(el, 'enable-collab')!.click();
   await mounting;
+  await until(() => openDialogs.length > 0, 'the ceremony');
   await settle();
 
   const dialog = openDialogs.at(-1)!;
@@ -484,6 +500,7 @@ test('#/join: a host that cannot save the choice says so rather than implying it
   await settle();
   actOn(el, 'enable-collab')!.click();
   await mounting;
+  await until(() => openDialogs.length > 0, 'the ceremony');
   await settle();
 
   // The invite still opens - it is time-limited, and refusing it would be the worse
@@ -577,12 +594,13 @@ test('#/join: once the feature is on, the SAME mangled invite gets its normal er
   assert.equal(titleOf(el), STRINGS.enableTitle);
   actOn(el, 'enable-collab')!.click();
   await mounting;
+  await until(() => titleOf(el) !== STRINGS.enableTitle, 'the next page');
 
   assert.equal(titleOf(el), STRINGS.unreadableTitle);
   assert.equal(isFlagOnSync(PRIVATE_COLLAB_FLAG), true, 'the choice they made still stands');
 });
 
-test('#/join: navigating away from the enable card settles the mount and paints nothing', async () => {
+test('#/join: navigating away from the enable card settles the wait and paints nothing', async () => {
   const el = view() as RoutedView;
   const { host, writes } = profileHost();
   let opened = 0;
@@ -596,8 +614,10 @@ test('#/join: navigating away from the enable card settles the mount and paints 
   el._cleanup?.();
   delete el._cleanup;
   el.replaceChildren(dom.window.document.createTextNode('THE NEXT VIEW'));
-  // The mount was parked on a human. Teardown has to settle it, or this never resolves.
+  // The flow was parked on a human. Teardown settles that wait, and the flow then stops
+  // without painting the declined card.
   await mounting;
+  await settle();
 
   assert.equal(el.textContent, 'THE NEXT VIEW', 'no declined card lands on the view that replaced this one');
   assert.equal(writes.length, 0, 'and leaving is not a decision');
@@ -618,6 +638,7 @@ test('#/join: the flag gate still refuses honestly when neither the record nor t
   await settle();
   actOn(el, 'enable-collab')!.click();
   await mounting;
+  await until(() => titleOf(el) !== STRINGS.enableTitle, 'the next page');
   assert.equal(titleOf(el), STRINGS.offTitle);
   assert.equal(bodyOf(el), STRINGS.offBody, 'a refusal that says nothing is a dead end');
 });
@@ -703,6 +724,7 @@ test('#/join with no invite in the link is a paste card, and a pasted code walks
 
   pasteCode(el, inviteToken());
   await mounting;
+  await until(() => openDialogs.length > 0, 'the ceremony');
   await settle();
 
   // The end state is the LINK path's end state, arrived at through the field: a real
@@ -729,6 +751,7 @@ test('#/join: the code door takes a whole invite LINK too, not only the bare cod
   await settle();
   pasteCode(el, `https://lolly.tools/${JOIN_ROUTE}?${INVITE_PARAM}=${inviteToken()}`);
   await mounting;
+  await until(() => openDialogs.length > 0, 'the ceremony');
   await settle();
   assert.equal(headingOf(openDialogs.at(-1)!.el), DIALOG_STRINGS.acceptNameHeading);
 });
@@ -789,7 +812,7 @@ test('#/join: an empty paste is refused beside the field, not on a page of its o
   await mounting;
 });
 
-test('#/join: leaving the code door settles the mount and paints nothing', async () => {
+test('#/join: leaving the code door settles the wait and paints nothing', async () => {
   const el = view() as RoutedView;
   const mounting = mountJoinRoute(el, null, '', {
     flagOn: () => true,
@@ -802,10 +825,111 @@ test('#/join: leaving the code door settles the mount and paints nothing', async
   el._cleanup?.();
   delete el._cleanup;
   el.replaceChildren(dom.window.document.createTextNode('THE NEXT VIEW'));
-  // The mount is parked on a human at a field. Teardown has to settle it, exactly as it
-  // does for the enable card, or this never resolves.
+  // The flow is parked on a human at a field. Teardown settles that wait exactly as it
+  // does for the enable card, and nothing is painted into the next view.
   await mounting;
+  await settle();
   assert.equal(el.textContent, 'THE NEXT VIEW');
+});
+
+// ── #/join: when the mount settles ────────────────────────────────────────────
+//
+// main.ts holds its "Loading" card open, and the view marked as mounting, until a mount
+// settles. A mount that waited on the person it was asking left that modal card over the
+// enable card and the code door, and nothing on either could be pressed. So the mount
+// settles once a screen that waits on a person is painted, and the flow carries on.
+
+/** Whether `promise` has settled, without waiting for it to. */
+async function hasSettled(promise: Promise<unknown>): Promise<boolean> {
+  let done = false;
+  void promise.then(() => { done = true; }, () => { done = true; });
+  await settle();
+  return done;
+}
+
+test('#/join: the mount settles once the enable card is painted, and the flow carries on', async () => {
+  const el = view();
+  const { host } = profileHost();
+  const mounting = mountJoinRoute(el, host, `${INVITE_PARAM}=${inviteToken()}`, {
+    governedOff: () => false,
+    openCeremony: trackedOpen,
+    effects: plainEffects(),
+    renderQr: null,
+    scan: null,
+  });
+  await settle();
+
+  assert.equal(titleOf(el), STRINGS.enableTitle);
+  assert.equal(await hasSettled(mounting), true, 'the router can close its loading card over a question');
+  assert.equal(openDialogs.length, 0, 'and settling decided nothing');
+
+  actOn(el, 'enable-collab')!.click();
+  await until(() => openDialogs.length > 0, 'the ceremony');
+  await settle();
+  assert.equal(headingOf(openDialogs.at(-1)!.el), DIALOG_STRINGS.acceptNameHeading, 'the answer still opens the invite');
+});
+
+test('#/join: the mount settles once the code door is painted, and a paste still opens the ceremony', async () => {
+  const el = view();
+  const mounting = mountJoinRoute(el, null, '', {
+    flagOn: () => true,
+    openCeremony: trackedOpen,
+    effects: plainEffects(),
+    renderQr: null,
+    scan: null,
+    channel: null,
+  });
+  await settle();
+
+  assert.equal(titleOf(el), STRINGS.codeTitle);
+  assert.equal(await hasSettled(mounting), true, 'the field is usable as soon as it is on screen');
+
+  pasteCode(el, inviteToken());
+  await until(() => openDialogs.length > 0, 'the ceremony');
+  await settle();
+  assert.equal(headingOf(openDialogs.at(-1)!.el), DIALOG_STRINGS.acceptNameHeading);
+});
+
+test('#/join: a failure before anyone is asked anything still reaches the router', async () => {
+  // No gate and no door: the mount runs to the ceremony, so a throw there is the router's
+  // to show with its Reload card, exactly as before.
+  const el = view();
+  await assert.rejects(
+    mountJoinRoute(el, null, `${INVITE_PARAM}=${inviteToken()}`, {
+      flagOn: () => true,
+      openCeremony: () => { throw new Error('the ceremony broke'); },
+      effects: plainEffects(),
+      renderQr: null,
+      scan: null,
+      channel: null,
+    }),
+    /the ceremony broke/,
+  );
+});
+
+test('#/join: a failure after the code door is logged, never left as an unhandled rejection', async () => {
+  const el = view();
+  const logged: unknown[][] = [];
+  const realError = console.error;
+  console.error = (...args: unknown[]) => { logged.push(args); };
+  try {
+    const mounting = mountJoinRoute(el, null, '', {
+      flagOn: () => true,
+      openCeremony: () => { throw new Error('the ceremony broke'); },
+      effects: plainEffects(),
+      renderQr: null,
+      scan: null,
+      channel: null,
+    });
+    await settle();
+    await mounting;
+
+    pasteCode(el, inviteToken());
+    await until(() => logged.length > 0, 'the log line');
+    assert.match(String((logged[0]?.[1] as Error | undefined)?.message), /the ceremony broke/);
+  } finally {
+    console.error = realError;
+  }
 });
 
 // ── #/join: the ceremony it opens ─────────────────────────────────────────────

@@ -85,7 +85,7 @@ De bestandsnaam en het formaatmenu staan samen als één paar `name.format`, ond
 
 De eerste rij is het gangbare geval. Een woordmerk gezet in je merklettertype exporteert als SVG, waarbij elke letter een omlijnd pad is in plaats van een pixel, zodat het scherp blijft op visitekaartjesformaat en op gevelgrootte vanuit hetzelfde bestand.
 
-![Een haarlijndun, breed getrackt woordmerk met de tekst Aurora, het soort pure vectorillustratie waar de SVG-rij van de tabel over gaat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-wordmark-vector)
+![Een haarlijndun, breed getrackt woordmerk met de tekst Aurora, het soort pure vectorillustratie waar de SVG-rij van de tabel over gaat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
 ## Grootte & druk-eenheden
 
