@@ -1,16 +1,16 @@
 # Adoption & Governance
 
-> Lolly shipped as open source in August 2026, and SUSE is its first customer. This page is the honest account of who it is for, how people are meant to adopt it, how we know whether it is working and who governs what it produces.
+> Lolly shipped as open source in August 2026, and SUSE runs it as an internal deployment. This page is the honest account of who it is for, how people are meant to adopt it, how we know whether it is working and who governs what it produces.
 
-Most of this platform's documentation describes what Lolly *can do*. This page describes what Lolly is *doing right now*: running SUSE's own rollout as the first pilot, gathering evidence and trying to change a behaviour - how ordinary, non-designer colleagues get an on-brand file made.
+Most of this platform's documentation describes what Lolly *can do*. This page describes what Lolly is *doing right now*: running inside SUSE as an internal deployment, gathering evidence and trying to change a behaviour - how ordinary, non-designer colleagues get an on-brand file made.
 
 ## Status
 
 **Lolly is released, and its evidence is young.**
 
-- **Version 1.0 is public.** The engine, every shell, the schemas and the docs shipped under MPL-2.0 on 30 August 2026, with installers for macOS, Linux, Android and iOS and the hosted app at lolly.tools. SUSE runs the same code on its own instance. Features, defaults and the tool catalog still move between releases as we learn.
+- **Lolly is public.** The engine, every shell, the schemas and the docs shipped under MPL-2.0 with the first public release, 1.0.1, on 30 August 2026. The current release is 1.1.2, with installers for macOS, Windows, Linux and Android and the hosted app at lolly.tools. SUSE runs the same code as an internal deployment. Features, defaults and the tool catalog still move between releases as we learn.
 - **Its security is strong by design and not yet independently audited.** The C2PA provenance seals, the X.509 identity handling and the on-device PDF, ZIP and link encryption are built on standard algorithms, covered by fuzz targets and a written [threat model](/info/threat-model.html). An independent audit has not been done. Where a contract requires that assurance, it does not exist yet.
-- **The maths is settled; the adoption data is not.** The engine is deterministic: the same inputs give the same render, and with provenance off many formats reproduce byte for byte ([how far that goes](/info/determinism.html#how-far-byte-identical-renders-go)). Real-world adoption evidence is still young, most of it SUSE's own. That is by design: we collect stories from people voluntarily, never data invisibly.
+- **The maths is settled; the adoption data is not.** The engine is deterministic: the same inputs give the same render, and with provenance off many formats reproduce byte for byte ([how far that goes](/info/determinism.html#how-far-byte-identical-renders-go)). There is no public adoption evidence yet: SUSE runs Lolly internally and shares no usage data. That is by design: we collect stories from people voluntarily, never data invisibly.
 - **If you're using it, we need your story.** The architecture is done; the evidence is not. What actually improves Lolly from here is real usage - what worked, what didn't and what you managed to make. See [We need your story](#we-need-your-story).
 
 The framing matters: judged as a finished marvel, Lolly could disappoint you at the fringes. Judged as a platform proving a specific behavioural change - routine asset creation, done safely and professionally, by the person who needs the file - its job and its measure of success are clear.
@@ -36,7 +36,7 @@ One producer case is easy to miss because it is not marketing at all: **critical
 ### The first 15 minutes (any producer)
 
 1. **Open Lolly** - the public web app needs no install, no account and no sign-up, and it makes your files in the browser. An organisation's own Lolly may ask you to sign in ([Use Lolly at your organisation](/info/organisation.html)).
-2. **Pick a tool** that matches what you need (an event tile, a quote card, a signature).
+2. **Pick a tool** that matches what you need (an event agenda, a social link card, a certificate).
 3. **Fill in the fields.** No fonts, colours or spacing to decide - the tool already holds the brand rules.
 4. **Get the file.** Download it, copy a share link or export a batch. Done.
 5. **Save your work** - reopen it later as a session, file it into a project or turn it into your own template to start from next time. No git, no waiting.
@@ -52,7 +52,7 @@ The measure of a good onboarding here is blunt: *did they leave with a finished,
 Onboarding is about handing over control of the rules, not the output:
 
 1. Define the **asset catalog** - logos, palettes, fonts as permanent IDs.
-2. Author the **tools** most in demand (start with the two or three asset types your team asks for weekly).
+2. Author the **tools** most in demand (start with your most common requests).
 3. Convert **one high-visibility output** and show the before/after side by side - this is the single most effective adoption lever.
 4. Set the **guard-rails**: lock what must never change, expose only what's meant to vary.
 
@@ -64,9 +64,9 @@ Onboarding is about handing over control of the rules, not the output:
 2. Wire a render into a **build step** or an **MCP endpoint**.
 3. Decide the **deployment model**: hosted PWA, self-hosted or air-gapped runner pods.
 
-The Dashboard's capability map is the inventory to scope that decision against: every part of the platform as its own card, grouped by what it makes and where it runs.
+The **Capabilities** tab in Settings is the inventory to scope that decision against: every part of the platform as its own card, grouped by what it makes and where it runs.
 
-![The Dashboard's What Lolly can do panel, the whole feature set laid out as grouped cards rather than a prose feature list](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dcaps&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23dash-caps&walker=1&format=svg&dark=1&filename=ce-capability-map)
+![The What Lolly can do panel in Settings, Capabilities, the whole feature set laid out as grouped cards rather than a prose feature list](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dcaps&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23dash-caps&walker=1&format=svg&dark=1&filename=ce-capability-map)
 
 ### IT & security
 
@@ -76,7 +76,7 @@ The Dashboard's capability map is the inventory to scope that decision against: 
 
 ## Measuring adoption
 
-We measure a behavioural change, not feature usage. The north-star is **self-served requests**: routine creative requests that people now serve themselves.
+We measure a behavioural change, not feature usage. The main measure is **self-served requests**: routine creative requests that people now serve themselves.
 
 | Signal | What it tells us | Type |
 |---|---|---|
@@ -85,12 +85,12 @@ We measure a behavioural change, not feature usage. The north-star is **self-ser
 | **Time-to-asset** | Brief → finished file, in minutes not days | Leading |
 | **Tool coverage** | Share of routine asset types that have a matching tool | Leading |
 | **Repeat use** | Users who come back within a 30-day window | Leading |
-| **Self-served requests** | Routine requests people now serve themselves | **Lagging / north-star** |
+| **Self-served requests** | Routine requests people now serve themselves | **Lagging / main measure** |
 | **Story capture** | Concrete before/after cases collected from real users | Qualitative |
 
-A leading signal moving without the self-served number following is a warning: people are trying Lolly but are not yet making their own files with it. That number is the one that says the behaviour actually changed.
+A leading signal moving without the self-served number following is a warning: people are trying Lolly but are not yet using Lolly to make their own files. That number is the one that says the behaviour actually changed.
 
-Standalone usage counters stay on each device. If you deploy **lolly.work**, its [telemetry and dashboards](https://github.com/lolly-tools/lolly-work/blob/main/docs/telemetry.md) can measure allowed usage labels across the instance, with off, aggregate and standard modes. Decide the attribution and consent policy before the pilot. Usage telemetry is separate from the audit record of governed actions, and neither measures the quality of the finished work for you.
+Standalone usage counters stay on each device. If you deploy **lolly.work**, its [telemetry and dashboards](/info/work-telemetry.html) can measure allowed usage labels across the instance, with off, aggregate and standard modes. Decide the attribution and consent policy before the pilot. Usage telemetry is separate from the audit record of governed actions, and neither measures the quality of the finished work for you.
 
 ### The 90-day pilot cycle
 
@@ -106,18 +106,18 @@ The 90-day cycle is the *cadence*. It is not the goal - it's how often we re-che
 
 Most people just make things - work in the app, save what they make as a **session** and pass it on as a share link, a backup or a live collaboration, with no git and nothing to wait for.
 
-They can go further without touching git at all. From any tool, **Save** offers *save as a template* and *save as a variation*: the current doc becomes a named starting point that appears in that tool's "New from template" chooser the next time it opens, kept with your profile. No deployment owner, no commit, no pull request. To hand one to a colleague, share it as a **`.lolly` file** - a self-contained bundle anyone can import - or submit it for catalog inclusion. A marketing team can build, name and circulate its own variations of a tool entirely inside the app.
+They can go further without touching git at all. From any tool, **Save** offers *Save as a template*: the current doc becomes a named starting point that appears in that tool's "New from template" chooser the next time it opens, kept with your profile. No deployment owner, no commit, no pull request. To hand one to a colleague, share it as a **`.lolly` file** - a self-contained bundle anyone can import - or submit it for catalog inclusion. A marketing team can build, name and circulate its own templates for a tool entirely inside the app.
 
 This is the answer to a claim you will hear often: that *governance by git* is a roadblock for anyone who does not live in git. Here it never was the only path, and it is no longer the default one. Brand governance lives **inside the tool itself** - the rules are part of the instrument, not a gate laid over it (see the guard-rails bullet below), so staying on-brand costs a producer nothing to learn and nothing to wait for.
 
 A **git-backed catalog** gives an organisation a reviewable source of truth. Its maintainer records template values in the brand pack and commits them; clients then see that template in the chooser and through `?template=<id>`. Creators can submit their work without using git themselves. This is one way to manage a shared catalog.
 
-**lolly.work** supplies another part of the same solution: an optional, separately deployed organisation service. It adds OIDC SSO and SCIM, group permissions, managed profile fields and tool controls, a shared asset catalog with uploads and federation, shared projects and work collabs, approvals, governed delivery, server render jobs, telemetry and audit. See [Deployment](/info/deployment.html#organisation-services-with-lolly-work) and the [operator documentation](https://github.com/lolly-tools/lolly-work/blob/main/docs/README.md).
+**lolly.work** supplies another part of the same solution: an optional, separately deployed organisation service. It adds OIDC SSO and SCIM, group permissions, managed profile fields and tool controls, a shared asset catalog with uploads and federation, shared projects and work collabs, approvals, governed delivery, server render jobs, telemetry and audit. See [Deployment](/info/deployment.html#organisation-services-with-lolly-work) and the [operator documentation](/info/operators.html).
 
 - **Choose how catalog changes are reviewed.** Git review works for repository-managed packs. lolly.work's shared asset catalog supports uploads, metadata, versions and approval workflows without making each contributor use git. Federated providers remain the source of truth for their own assets.
 - **Choose what is shared.** Personal libraries remain on-device; team projects and shared assets live on the organisation's service and follow its access and retention policies.
 
-- **Guard-rails are structural, not advisory.** Brand constraints are hard-coded in the tool; even the open canvas (the **Design** tool) conforms colours, type and assets to the brand globals. Off-brand output isn't policed after the fact - it's prevented at authoring time.
+- **Templates hold the guard-rails.** A template tool's brand constraints live in its manifest and template, so a producer changes only what the tool exposes. The open canvas (the **Design** tool) is freer: it allows colours, fonts and images outside the design system, and its export panel lists each one, with a suggested replacement where one exists, before the file goes out.
 - **Feature flags put control local.** Parts of Lolly can be turned on or off per deployment. Whoever runs the deployment owns those.
 - **Configuration is yours.** lolly.work provides organisation authentication, policy and reporting; configure the supported controls for your deployment. Signing can use the optional Lolly CA or your own certificate authority.
 
@@ -136,7 +136,7 @@ If you are piloting Lolly, the most valuable thing you can contribute is a concr
 To keep the framing straight, the things Lolly is *not* yet:
 
 - **Not yet independently certified.** See [Status](#status). The cryptography and parsers are fuzzed and threat-modelled; no independent party has certified them.
-- **Not finished.** Version 1.0 is the start of the public record; expect rough edges and change between releases.
+- **Not finished.** The 1.0 series started the public record; expect rough edges and change between releases.
 - **Not a turnkey pack of your templates.** Lolly is a platform - someone has to author the catalog and the tools before producers can self-serve.
 - **Fit depends on the workflow.** Design, animation and imported layouts support original creative work as well as repeatable templates. Check the specific editing, collaboration and governance features your team needs in the [comparisons](/info/compare.html).
 - **Not yet backed by much evidence.** The maths is sound; the track record is months old. Help us change that.

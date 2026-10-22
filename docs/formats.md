@@ -1,6 +1,6 @@
 # Every format Lolly can open and make
 
-Lolly reads dozens of source formats and writes dozens more. This is the whole set, grouped by what each one is, with a card behind every chip that says in plain language what that format is for and what Lolly supports in that format.
+Lolly reads dozens of source formats and writes dozens more. The table groups them by what each one is, with a card behind every chip that says in plain language what that format is for and what Lolly supports in that format. A few are not in the table yet: SRT and VTT captions, which Captions, Audiogram and Record export; STL and 3MF models, which 3D Studio opens; and Premiere XML + media, which Design exports.
 
 **How to read the table.** Each row is a family of formats. Anything Lolly only *reads* sits at the left edge, anything it only *writes* sits at the right edge and the formats it does **both ways** sit once in the middle - so a format Lolly reads and writes appears one time, never twice. Tap or click any chip for the full name, a plain description and the properties Lolly handles (transparency, colour profiles, layers, credentials and the rest), plus anything it does not handle yet. The same descriptions are listed in words under the table, one family at a time.
 
@@ -8,7 +8,7 @@ Lolly reads dozens of source formats and writes dozens more. This is the whole s
 
 ## Why "both ways" matters
 
-A format in the middle column is one you can bring a file in as, work on and send back out in the same shape. That is what stops a file becoming a dead end: a deck arrives as a deck and leaves as a deck, a design file arrives as editable layers, a spreadsheet goes back out as one. Nothing in Lolly needs a proprietary container to keep working.
+A format in the middle column is one you can bring a file in as, work on and send back out in the same shape. That is what stops a file becoming a dead end: a deck arrives as a deck and leaves as a deck, a design file arrives as editable layers, a CSV goes back out as a CSV. Nothing in Lolly needs a proprietary container to keep working.
 
 ## Where to go next
 

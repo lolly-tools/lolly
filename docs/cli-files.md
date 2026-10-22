@@ -22,10 +22,10 @@ export format never reaches the tool. Drop the flag, or use one of the tool's ow
 if it offers a conversion.
 ```
 
-A tool that genuinely converts does it through its **own input**, not the export flag. `convert-image` declares an input literally called `format`, which the reserved export param shadows, so it is set with the explicit namespace:
+A tool that converts does it through its **own input**, not the export flag. `convert-image` takes the new format as its `target` input (`webp`, `jpeg` or `png`):
 
 ```bash
-pnpm run cli convert-image --source=./photo.heic --input.format=png --output=./photo.png
+pnpm run cli convert-image --source=./photo.heic --target=png --output=./photo.png
 ```
 
 Choosing an `--output` name whose extension disagrees with the bytes a transform produces is a **warning**, not a refusal - the transform cannot change the container to match, and the file is written under the name you asked for with that fact stated on stderr.
@@ -76,7 +76,7 @@ pnpm run cli transcribe ./clip.wav --lang=en --json
 
 **`lolly transcribe <clip.wav>`** reads a clip back as text. The text is stdout and nothing else is, so `lolly transcribe take.wav > take.txt` is a whole workflow; `--lang=<code>` sets the spoken language, and `--json` adds the word timings.
 
-**WAV in, and it says so when it cannot.** Node has no MP3, AAC or Opus decoder, and shelling out to whatever `ffmpeg` happens to sit on `PATH` would make a headless run depend on a binary nobody declared. So an `mp3`, `m4a`, `aac`, `ogg`, `oga`, `opus`, `flac`, `weba`, `webm`, `mp4` or `mov` file is refused **by name** rather than read as noise, and a generated ZzFXM song is refused too (it carries no speech to quote back):
+**WAV in, and it says so when it cannot.** Node has no MP3, AAC or Opus decoder, and the speech-to-text command does not call an `ffmpeg` it finds on `PATH`. So an `mp3`, `m4a`, `aac`, `ogg`, `oga`, `opus`, `flac`, `weba`, `webm`, `mp4` or `mov` file is refused **by name** rather than read as noise, and a generated ZzFXM song is refused too (it carries no speech to quote back):
 
 ```
 $ lolly transcribe ./interview.m4a
@@ -98,7 +98,7 @@ That directory is `$LOLLY_MODELS_DIR` when you set one, then the repo's own `she
 
 ```
 $ lolly models ls
-Model files under /Users/andy/Build/lolly/shells/web/public/models
+Model files under /path/to/lolly/shells/web/public/models
   kokoro     speech synthesis (lolly speak)     complete (102.0 MB)
   whisper    transcription (lolly transcribe)   complete (76.0 MB)
   upscale    AI enlargement (lolly upscale)     complete (410.7 MB)
@@ -106,12 +106,12 @@ Model files under /Users/andy/Build/lolly/shells/web/public/models
   ocr        text recognition (lolly ocr)       complete (20.5 MB)
   ai-detect  AI-text estimate (lolly detect-ai) complete (33.0 MB)
   reword     on-device rewrite (lolly reword)   complete (372.0 MB)
-  depth      depth map (lolly depth)            not published yet
+  depth      depth map (lolly depth)            complete (26.0 MB)
 ```
 
-`lolly models fetch <family> --yes` stages any of them from `https://lolli.li/models/` (`$LOLLY_MODELS_BASE` overrides the host). `depth` is the one exception, and it is honest about it: no depth model is published yet, so there is nothing to download and the command says so instead of inventing a URL.
+`lolly models fetch <family> --yes` stages any of them from `https://lolli.li/models/` (`$LOLLY_MODELS_BASE` overrides the host).
 
-The fetch prints the file count, the total size and the biggest files by name **before** a byte moves, then asks - `upscale` is 410.7 MB because 324.5 MB of it is the GFPGAN face model, and a total that says so is not a surprise. `--yes` answers in advance; on a runner with no terminal and no `--yes` it downloads nothing, says how to proceed and exits `0`. Every file is checked against a pinned SHA-256 **before** it is written, and a mismatch writes nothing and exits `4` (`REFUSED`). Each file is written as `.part` and renamed on success, so an interrupted fetch cannot leave a half-file that looks whole.
+The fetch prints the file count, the total size and the biggest files by name **before** a byte moves, then asks - `upscale` is 410.7 MB because 324.5 MB of it is the GFPGAN face model, and a total that says so is not a surprise. These sizes, like every size `lolly models` prints, count a megabyte as 1,048,576 bytes. `--yes` answers in advance; on a runner with no terminal and no `--yes` it downloads nothing, says how to proceed and exits `0`. Every file is checked against a pinned SHA-256 **before** it is written, and a mismatch writes nothing and exits `4` (`REFUSED`). Each file is written as `.part` and renamed on success, so an interrupted fetch cannot leave a half-file that looks whole.
 
 A missing model is never a silent download:
 
@@ -135,12 +135,14 @@ upscale` to download it (4.0 MB), or point LOLLY_MODELS_DIR at a directory that 
 it. Looked in /…/models/upscale.
 ```
 
-- **`lolly upscale <image> [--scale=2|4] [--model=<id>] [--max-edge=N] [--out=<file.png>] [--models]`** - AI enlargement, PNG out, per-tile progress on stderr. `--scale` takes `2` or `4`; the models are natively x4 and `2` trims the result. `--models` prints the roster with sizes and licences: `realesr-general-x4v3` (4.0 MB, fast), `realesrgan-x4plus` (63.9 MB, quality), `realesrgan-x4plus-anime` (17.1 MB) and `gfpgan-v1.4` (340 MB, face restore, flagged "can invent face details"). An image the model cannot be run over is refused with the reason (exit `4`), not attempted and truncated.
+The size in that message is the one model the command needs. `lolly models fetch upscale` stages the whole family, 410.7 MB, and says so before a byte moves.
+
+- **`lolly upscale <image> [--scale=2|4] [--model=<id>] [--max-edge=N] [--out=<file.png>] [--models]`** - AI enlargement, PNG out, per-tile progress on stderr. `--scale` takes `2` or `4`; the models are natively x4 and `2` trims the result. `--models` prints the roster with sizes and licences: `realesr-general-x4v3` (fast), `realesrgan-x4plus` (quality), `realesrgan-x4plus-anime` (illustration) and `gfpgan-v1.4` (face restore, flagged "can invent face details"). An image the model cannot be run over is refused with the reason (exit `4`), not attempted and truncated.
 - **`lolly matte <image> [--model=u2netp|modnet] [--max-edge=N] [--edges=refined|as-drawn] [--edge-radius=12] [--edge-shift=0] [--edge-contrast=1] [--out=<file.png>] [--models]`** - background removal. `u2netp` (4.4 MB) is the default, `modnet` (24.7 MB) the portrait model. With `u2netp` the edges follow the photo's own edges by default, which gives a solid subject and brings back hair the coarse model cuts through; `modnet`'s soft matte is kept as drawn unless you ask with `--edges=refined`. `--edges=as-drawn` keeps the model's mask, `--edge-shift` moves the edge out or in and `--edge-contrast` hardens the mask edge. Every RGB pixel out is the input's byte for byte and only the alpha is computed, which is why a matte is disclosed as an edit in the app and an upscale is not.
 - **`lolly ocr <image> [--json] [--single-line] [--min-confidence=<n>] [--models]`** - text recognition with `ppocr-v5-mobile` (20.5 MB, ten languages). The recognised text **is** stdout, so `lolly ocr shot.png > shot.txt` works; `--json` adds per-line confidence and a box in source pixels. Nothing read is exit `5` (`NOT_FOUND`), a legitimate negative answer rather than a failure.
 - **`lolly detect-ai "<text>" [--json] [--in=<file.txt>]`** (a pipe works too) - prints an **estimate** with its operating point and the model that produced it, never a verdict. Under 50 words, or mostly non-Latin script, it prints "Not checked" with the reason and exits `5`: the detector is trained on English and over-scores non-native-English prose, and an absent check is not an answer.
 - **`lolly reword "<sentence>" [--style=plain] [--samples=N] [--json] [--in=<file.txt>]`** - on-device rewrites, shorter and plainer, one per line. Only `--style=plain` is accepted; anything else is a usage error that says why, because the prompt is engine data asking for exactly one thing and a silently ignored style would be the class of quiet failure this shell exists to remove. No candidate passing the gate (longer, off-topic, or a changed fact) is exit `5`, not a crash.
-- **`lolly depth <image> [--max-edge=N] [--out=<file.png>]`** - a greyscale depth map, white nearest. It refuses today, by name: no depth model is published, so there is nothing to fetch and nothing to run.
+- **`lolly depth <image> [--max-edge=N] [--out=<file.png>]`** - a greyscale depth map, white nearest, from Depth Anything V2 small (26.0 MB, Apache-2.0).
 
 Two things to know about these six. They write **plain files**: they are not a `lolly run`, so the export pipeline's Content Credentials and Imprint do not apply, and an upscaled PNG from the terminal carries no credential naming the model. And the execution provider is **CPU by default**, because that is what the app's WASM kernels match numerically and what every model on the roster is verified against. `LOLLY_ORT_EP=coreml` (or `=cuda`) opts into the accelerated provider, which is faster and can move the numbers on some graphs - an opt-in, never a default. `LOLLY_ORT_THREADS=<n>` caps the threads each model session may use (unset means every core); `1` runs a graph on the calling thread with no pool, which is slower but keeps the cost predictable on a shared machine.
 

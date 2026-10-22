@@ -8,7 +8,9 @@ made.
 The current main web shell requires WebGPU. See
 [supported environments](/info/supported-environments.html) for the tested browser
 versions and the separate native qualification status. A web-only update does
-not replace the packaged downloads below.
+not replace the packaged downloads below. The Windows, Linux and Android builds
+are version 1.1.0, and like the Intel Mac build they stay at 1.1.0 until each
+platform's web view passes the WebGPU check that later versions need.
 
 The app is the same either way. Same tools, same brand packs, same files out -
 on the web, macOS, Windows, Linux, iOS and Android, plus the [CLI](/info/cli.html)
@@ -98,8 +100,7 @@ were built against differs.
 **Leap 15.6 is not a target.** The dependency tree needs Rust 1.88 or newer and
 15.6's default toolchain is older, so supporting it would mean pinning a second
 Rust toolchain into the project and maintaining two build stories. Tumbleweed
-ships 1.97.1 and Leap 16 is current; those two are the supported pair. On 15.6,
-use the Flatpak below.
+and Leap 16 are the supported pair. On 15.6, use the Flatpak below.
 
 ---
 
@@ -206,10 +207,11 @@ that prompt is the system working correctly, not a warning about this file.
 
 - **Download:** [`lolly-latest.apk`](https://lolli.li/lolly-latest.apk) - always the newest build.
 - **Versioned:** `https://lolli.li/Lolly-<version>.apk`.
+- **Version:** 1.1.0. Android 11's web view has no WebGPU adapter, and Android 12 or later has not been checked yet.
 - **Minimum:** Android 7.0
 - **Architecture:** `arm64-v8a`
 
-Check the file before installing it. Every release publishes a checksums file at
+Check the file before installing the APK. Every release publishes a checksums file at
 `https://lolli.li/SHA256SUMS.txt`:
 
 ```bash
@@ -217,7 +219,7 @@ sha256sum lolly-latest.apk
 ```
 
 Compare the result with the line for that filename. If they differ, do not
-install it.
+install the file.
 
 Build it yourself from `shells/tauri-mobile` with `pnpm run build:android`; the
 Android SDK and NDK prerequisites are in the
@@ -227,14 +229,15 @@ Android SDK and NDK prerequisites are in the
 
 ## iPhone and iPad
 
-**iOS and iPadOS. No download yet.**
+**iOS and iPadOS 26 or later. From the App Store.**
 
-An iPhone or iPad app has to be signed with an Apple developer identity before
-the device will install the file, so there is no download to hand out. Until
-there is, open [the web app](/) in Safari. It is the same application, and
-**Share, then Add to Home Screen** gives the web app an icon of its own.
+Lolly for iPhone and iPad is **Lolly Tools** on the
+[App Store](https://apps.apple.com/app/id6804131681). The App Store signs the
+app and keeps it up to date, so there is no separate file to download or check.
 
-The web app needs WebGPU; [supported environments](/info/supported-environments.html)
+You can also use Lolly without installing anything: open [the web app](/) in
+Safari. It is the same application, and **Share, then Add to Home Screen** gives
+the web app an icon of its own. The web app needs WebGPU; [supported environments](/info/supported-environments.html)
 lists what has been tested so far. To build and sign the app yourself, see
 [Building for iOS](/info/ios-build.html).
 

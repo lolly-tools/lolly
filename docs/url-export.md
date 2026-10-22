@@ -12,7 +12,7 @@ Supported values:
 
 | Value | Output |
 |---|---|
-| `svg` | Scalable vector (requires `<svg>` root in the template) |
+| `svg` | Scalable vector |
 | `svg-anim` | Animated SVG - self-contained vector flipbook (animated tools only) |
 | `emf` | Enhanced Metafile vector (for Office apps) |
 | `eps` | Encapsulated PostScript vector (RGB) |
@@ -22,12 +22,16 @@ Supported values:
 | `jpg` / `jpeg` | Lossy raster |
 | `webp` | Lossy/lossless raster |
 | `avif` | AVIF raster |
+| `jxl` / `jxl-lossless` | JPEG XL raster, lossy or lossless |
 | `tiff` | Uncompressed sRGB raster (RGB TIFF) |
 | `exr` / `hdr` | Float raster interchange - OpenEXR and Radiance RGBE, written over a render carrying genuine headroom (`hdr=1`) |
 | `pdf` | PDF document |
 | `pdf-cmyk` | Print PDF - CMYK with output intent (see print marks & bleed) |
 | `cmyk-tiff` | Print TIFF - flattened CMYK raster |
 | `pptx` | PowerPoint deck - native editable text/shapes + extractable images/vectors |
+| `idml` | InDesign IDML - a static subset of the layout (Design) |
+| `premiere-xml` | Premiere XML sequence plus its media files, in a ZIP (Design) |
+| `scorm` | SCORM course package, a ZIP a learning system imports (Design) |
 | `penpot` | Penpot design file - boards, editable shapes and the brand's colours, typographies and design tokens |
 | `docx` / `odt` | Word / OpenDocument text - headings and paragraphs read off the render, editable, not a picture of the page |
 | `ico` | Icon bundle (e.g. `tool-logo`) |
@@ -38,15 +42,17 @@ Supported values:
 | `css` / `scss` | Colour tokens as CSS custom properties or Sass variables |
 | `gpl` / `ase` | Swatches for other design apps - GIMP palette, Adobe Swatch Exchange |
 | `ics` / `vcf` | Calendar event / contact card |
+| `srt` / `vtt` | Captions - SubRip and WebVTT |
 | `ttf` / `otf` / `woff` | Font files (Convert Font) |
 | `gif` | Animated GIF (animated tools only) |
 | `apng` | Animated PNG - full colour + real alpha (animated tools only) |
 | `webp-anim` | Animated WebP - full colour + alpha, smallest file (animated tools only) |
+| `lottie` | dotLottie animation (Design) |
 | `webm` | WebM video (animated tools only; Chrome/Firefox/Android) |
 | `mp4` | MP4 video (animated tools only; Safari/iOS and recent Chrome) |
 | `wav` / `mp3` / `m4a` / `opus` | Audio only - the sound with no picture |
 
-Not all tools support all formats - only the formats listed in the tool's manifest `render.formats` are valid. The authority on the whole set is the `render.formats` enum in `schemas/tool.schema.json`; this table shows what each value produces. Requesting an unsupported format falls back gracefully.
+Not all tools support all formats - only the formats listed in the tool's manifest `render.formats` are valid. The authority on the whole set is the `render.formats` enum in `schemas/tool.schema.json`; this table shows what each value produces, and [Every format Lolly can open and make](/info/formats.html) describes each format in more detail. Requesting an unsupported format falls back gracefully.
 
 ---
 
@@ -55,15 +61,15 @@ Not all tools support all formats - only the formats listed in the tool's manife
 Adding `export` (no value needed) triggers an automatic download the moment the tool finishes rendering. Pair it with `format=` to set the file type; if `format` is omitted the tool's default format is used.
 
 ```
-/#/tool/qr-code?url=https://suse.com&format=svg&export
-/#/tool/qr-code?url=https://suse.com&format=png&export
-/#/tool/qr-code?url=https://suse.com&format=pdf&export
+/t/qr-code?url=https://example.com&format=svg&export
+/t/qr-code?url=https://example.com&format=png&export
+/t/qr-code?url=https://example.com&format=pdf&export
 ```
 
 `export` without `format` downloads in the tool's first listed format:
 
 ```
-/#/tool/qr-code?url=https://suse.com&export
+/t/qr-code?url=https://example.com&export
 ```
 
 ---
@@ -73,10 +79,10 @@ Adding `export` (no value needed) triggers an automatic download the moment the 
 Sets the name of the downloaded file. The format extension is appended automatically - do not include it.
 
 ```
-/#/tool/qr-code?url=https://suse.com&format=png&export&filename=homepage-qr
+/t/qr-code?url=https://example.com&format=png&export&filename=homepage-qr
 → downloads as homepage-qr.png
 
-/#/tool/qr-code?url=https://suse.com&format=svg&export&filename=event-badge
+/t/qr-code?url=https://example.com&format=svg&export&filename=event-badge
 → downloads as event-badge.svg
 ```
 
@@ -89,9 +95,9 @@ Without `filename=`, the download is named after the tool ID (e.g. `qr-code.png`
 `copy` (no value needed) arms the tool's copy-to-clipboard action. Pair it with `format=` to choose the format; if `format` is omitted the tool's default is used.
 
 ```
-/#/tool/email-signature?firstname=Andy&format=html&copy
-/#/tool/qr-code?url=https://suse.com&copy
-/#/tool/qr-code?url=https://suse.com&format=png&copy
+/t/agenda?title=Launch+day&format=html&copy
+/t/qr-code?url=https://example.com&copy
+/t/qr-code?url=https://example.com&format=png&copy
 ```
 
 **It does not fire silently on load.** Browsers only allow a clipboard write in
@@ -127,7 +133,7 @@ Mixing long and short forms is fine - `?width=1200&h=630` works. The canvas prev
 `full` collapses the sidebar so the canvas fills the entire viewport. The value is ignored - presence of the param is enough.
 
 ```
-/#/tool/qr-code?url=https://suse.com&full
+/t/qr-code?url=https://example.com&full
 ```
 
 Any tool takes it. Mesh Gradient with `full` is artwork and nothing else.
@@ -137,7 +143,7 @@ Any tool takes it. Mesh Gradient with `full` is artwork and nothing else.
 Combine with `export` for a clean unattended export flow:
 
 ```
-/#/tool/qr-code?url=https://suse.com&format=png&filename=my-qr&export&full
+/t/qr-code?url=https://example.com&format=png&filename=my-qr&export&full
 ```
 
 ---
@@ -147,7 +153,7 @@ Combine with `export` for a clean unattended export flow:
 `options` opens the tool with the export-settings panel already expanded (format, dimensions, DPI and the export/copy buttons) instead of the collapsed **Render** button. Use it to share a link where the recipient is one click from downloading.
 
 ```
-/#/tool/qr-code?url=https://suse.com&options
+/t/qr-code?url=https://example.com&options
 ```
 
 ![The export panel already expanded at the foot of the sidebar, one click from a download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-popup&dark=1&filename=exp-options-panel)
@@ -164,15 +170,15 @@ Tools that support transparent export expose a `transparentBg` boolean input. Pa
 ?transparentBg=1
 ```
 
-Transparency is preserved in formats that support an alpha channel: `png`, `webp` and `avif`. It is ignored for `jpg`, `pdf` and `svg` (SVG has no background rect when transparent).
+Transparency is preserved in formats that support an alpha channel: `png`, `webp` and `avif`, and in `svg`, which then has no background shape. It is ignored for `jpg` and `pdf`.
 
 Full example:
 
 ```
-/#/tool/qr-code?url=https://suse.com&color=%230c322c&transparentBg=1&format=png&export&filename=qr-transparent
+/t/qr-code?url=https://example.com&color=%230c322c&transparentBg=1&format=png&export&filename=qr-transparent
 ```
 
-The engine injects a second export toggle the same way: `convertPaths` (the **Convert paths** text-to-vector outlining control) is added automatically to tools that export a vector format. It is URL-expressible as any boolean - `?convertPaths=0` to leave text live, `?convertPaths=1` to outline it - and defaults on. A tool that sets `render.convertPaths: false` suppresses it (and the param has no effect).
+The engine injects a second export toggle the same way: `convertPaths` (the **Convert paths** text-to-vector outlining control) is added automatically to tools that export a vector format. It is URL-expressible as any boolean - `?convertPaths=1` outlines text, `?convertPaths=0` leaves text live - and defaults off, so text stays live unless a link or the export panel asks for outlines. A tool that sets `render.convertPaths: false` suppresses it (and the param has no effect).
 
 ---
 
@@ -181,8 +187,8 @@ The engine injects a second export toggle the same way: `convertPaths` (the **Co
 Saved state slots are named snapshots of input values stored in the browser. The `slot` param loads one by name. Any URL params present alongside `slot` override the saved values for that render only.
 
 ```
-/#/tool/quotes?slot=andy-quote-v2
-/#/tool/qr-code?slot=homepage-qr&format=png&export
+/t/wordmark?slot=launch-wordmark
+/t/qr-code?slot=homepage-qr&format=png&export
 ```
 
 ---

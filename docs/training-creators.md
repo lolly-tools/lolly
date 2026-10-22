@@ -167,7 +167,7 @@ This is convenient local progress, not an authenticated training record. Keep ex
 | Format | Use |
 | --- | --- |
 | **Website** | Any static HTTP(S) host, including your own platform. Progress stays in the learner's browser. |
-| **SCORM 1.2** | The starting format for the Litmos pilot and general partner compatibility testing. |
+| **SCORM 1.2** | The format the **Litmos** and **Moodle** presets select, and a common starting point for LMS compatibility testing. |
 | **SCORM 2004 4th Edition** | A separate package for a customer whose LMS supports that edition. It uses a different tracking API from SCORM 1.2. |
 | **xAPI / Tin Can** | An experimental ZIP for an LMS with a compatible Tin Can launch. The launch must supply learner identity, registration and temporary tracking authorization. |
 | **cmi5** | An experimental package for a cmi5 LMS. It uses the cmi5 launch and authorization process. Do not assume it is interchangeable with Tin Can. |
@@ -204,7 +204,7 @@ Edit the draft, preview it, add version notes and choose **Export course**, run 
 
 Expand **Saved versions**, then use **Download SCORM 1.2 ZIP** or the corresponding format button to recover the exact stored file. **Package details** shows the checksums for file comparisons and acceptance records.
 
-To supply a different format of an existing version, choose **Export this version for another destination** beside it, select the destination, then check and download. This uses its frozen content, even if the current draft or original source has changed. An already built target downloads its existing artifact again.
+To supply a different format of an existing version, choose **Export this version for another destination** on that saved version, select the destination, then check and download. This uses its frozen content, even if the current draft or original source has changed. An already built target downloads its existing artifact again.
 
 Test a replacement with the LMS administrator before applying it to an active course. Progress belongs to the package release that created it. The player starts fresh if it receives saved state for a different release; an LMS may also reset or retain its own course status according to its replacement policy.
 

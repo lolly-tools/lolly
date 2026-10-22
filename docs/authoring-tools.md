@@ -35,11 +35,18 @@ community/your-tool-id/
 ├── template.html       # required - Handlebars-flavoured markup
 ├── styles.css          # optional - auto-scoped to #tool-canvas
 ├── hooks.js            # optional - imperative escape hatch
-├── thumb.png           # optional - gallery thumbnail (recommended)
+├── icon.svg            # optional - gallery icon, drawn in currentColor (recommended)
+├── card.svg            # optional - gallery card override (or card.html, card.png, card.webm)
+├── template.ics        # optional - sibling templates for text and data formats (.ics, .csv, .vtt, …)
+├── presentation.js     # optional - portable HTML runtime for render.portable
 ├── templates/          # optional - curated starting points (see Tool templates and presets)
 ├── i18n/               # optional - <lang>.json string overlays (see Publish and localize a tool)
+├── SKILL.md            # optional - authored agent guidance, with skill.json and skill/ (see Tool Skills)
+├── lib/                # optional - vendored scripts and data the tool loads
 └── assets/             # optional - tool-local images, fonts, etc.
 ```
+
+Without a card file, the gallery shows a preview of the tool's own output, rendered by `pnpm run previews`.
 
 ## Design system colours in templates and styles
 

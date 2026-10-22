@@ -1,13 +1,14 @@
 # Identity and sessions
 
 Two principals, two cookies, two token domains. Everything is a signed, stateless token -
-there is no session table.
+there is no table of live sessions, only a small store of revoked ones (sign-outs and
+back-channel logouts).
 
 ![The People directory - every signed-in member with role, groups and instant lockout](shots/people-directory.svg)
 
 | Principal | Cookie | Comes from | Lives |
 |---|---|---|---|
-| Member | `lw_session` | OIDC sign-in, reverse-proxy sign-in, or the dev provider | `policy.sessionTtlHours` (default 12h), renewed while in use up to `policy.sessionMaxHours` ([session length](#session-length-and-renewal)) |
+| Member | `lw_session` | any member sign-in: OIDC, GitHub, email and password, a passkey, reverse-proxy, device-code, or the dev provider | `policy.sessionTtlHours` (default 12h), renewed while in use up to `policy.sessionMaxHours` ([session length](#session-length-and-renewal)) |
 | Guest | `lw_guest` | admission through a guest-edit link | the remaining lifetime of that link |
 
 Cookies are `HttpOnly`, `SameSite=Lax`, `Path=/`, and `Secure` whenever `instance.baseUrl`
@@ -18,7 +19,7 @@ link signature or an OAuth state.
 ### Session length and renewal
 
 A member session lasts `policy.sessionTtlHours`. With `policy.sessionMaxHours` set, a person
-who keeps working is not sent back to sign in at the end of it (plans/75 RENEW):
+who keeps working is not sent back to sign in at the end of it:
 
 - Each session cookie carries `authAt`, when the sign-in that started its chain happened.
   A cookie minted before `authAt` existed counts from its sign-in time, which every sign-in
@@ -92,7 +93,7 @@ Routes: `GET /api/auth/config` (what the sign-in screen needs), `GET /api/auth/l
 ### More than one IdP
 
 A migration in flight, or a subsidiary on its own house: `idp.additional` lists further
-issuers beside the primary (plans/36) -
+issuers beside the primary -
 
 ```json
 "idp": {
@@ -108,7 +109,7 @@ Each entry carries its own client, display name, and (optionally) its own `group
 and `claimMap` - unset ones inherit the primary's. A confidential secret rides the env
 var `clientSecretRef` names; omit it for a public/PKCE client. With several houses
 configured, plain `/api/auth/login` serves a script-free **chooser page**, so every
-existing sign-in link (the console gate, the OSS shell's gate) grows the buttons with no
+existing sign-in link (the console gate, Lolly's own sign-in gate) grows the buttons with no
 client change; `?idp=<id>` picks one directly, and `/api/auth/config` +
 `GET /api/v1/instance` list `providers` for clients that render their own. The IdP that
 STARTS a flow finishes it - the id rides the signed state token - and an additional
@@ -204,6 +205,33 @@ docker compose exec server node scripts/password-link.ts --email ana@example.com
 
 The link behaves like one an owner issued: once, for 7 days, still subject to
 admission. The same command lets a locked-out bootstrap owner back in.
+
+### Passkeys
+
+A person who already has an account can add a passkey and use it as another way in. Passkeys
+are offered when `instance.baseUrl` is `https` on a host name (or `http://localhost`); an IP
+address base URL turns them off.
+
+- **Adding one.** In Lolly, **Settings** shows **Account security** for a signed-in member,
+  which opens `/api/auth/security`. Adding or removing a passkey needs a sign-in within the
+  last 10 minutes; otherwise the page asks the person to sign in again first. A person can
+  hold at most 10 passkeys. The device must verify the user (screen lock, fingerprint, face
+  or security key).
+- **Signing in.** When passkeys are on, the sign-in page offers **Sign in with a passkey**
+  (`/api/auth/passkeys/login`). The server refuses a passkey that belongs to a disabled
+  account; otherwise it mints an ordinary `lw_session` cookie at the account's current
+  session epoch. A passkey brings no IdP groups.
+- **Routes.** `POST /api/auth/passkeys/register/options` and `.../register/verify`,
+  `POST /api/auth/passkeys/authenticate/options` and `.../authenticate/verify`, and
+  `POST /api/auth/passkeys/:id/remove`.
+- **Audit.** `auth.passkey.add`, `auth.passkey.remove`, and `auth.login` with
+  `provider: "passkey"`.
+
+A passkey is a local credential with no IdP session, so a provider logout or **Sign out on
+all devices** leaves the passkey in place. To stop passkey sign-in, disable the account (or
+send SCIM `active=false`). See
+[enterprise identity](enterprise-identity.md#5-operate-and-upgrade) for how passkeys behave
+during offboarding.
 
 ## Who may sign in
 
@@ -869,14 +897,14 @@ instance session only - the proxy's own session is the proxy's to end.
 ## Device-code sign-in
 
 A device that cannot run the browser flow - the CLI, a native shell against a gated
-instance - signs in by code (plans/34): it asks `POST /api/v1/auth/device` for a short
+instance - signs in by code: it asks `POST /api/v1/auth/device` for a short
 code, the person opens `/activate` in any browser where they are already signed in and
 confirms it, and the device's next poll collects an ordinary session cookie minted for
 that person. The approving browser session is the whole authority - the flow never
 touches IdP credentials, works identically over OIDC and the dev provider, and the
 mint re-checks disable/revocation so an account closed mid-flow gets nothing. Codes
 live ten minutes, are single-use, and pending ones are listable (and deniable, never
-approvable) in the console's Fleet view. Codes are database rows (plans/35), so any
+approvable) in the console's Fleet view. Codes are database rows, so any
 replica answers the poll - HA needs no sticky sessions, and serverless deploys have
 the flow too.
 
@@ -991,7 +1019,7 @@ then revokes the old token. After every required integration has rotated, an own
 may set `policy.serviceTokens.allowLegacyUnbounded: false` to reject remaining
 unbounded tokens. No cutover date or automatic invalidation is selected.
 
-Automation identity (plans/35): CI running `lw export`/`lw apply`, a
+Automation identity: CI running `lw export`/`lw apply`, a
 governance-drift check, an audit poller - no more session cookies in secret
 stores. A token is minted by an owner (`lw tokens create --label ci --role
 admin`), shown once, stored as a hash, and revoked with one command; presenting
@@ -1027,7 +1055,7 @@ to ride out. SCIM `active=false` (above) composes exactly this. Two further note
   id. Older cookies use a token-specific fallback carried into renewal, leaving
   other device sessions active. Revocation markers remain in the existing logout
   store for its 31-day security window, beyond the maximum 30-day session chain.
-- **Sign out on all devices** is that lever in each person's own hands (plans/75 G18):
+- **Sign out on all devices** is that lever in each person's own hands:
   `POST /api/v1/me/revoke-sessions` bumps the caller's own epoch, so every session they
   hold, in any browser or app, ends on its next request, and it clears this browser's
   cookies as logout does (`204`). It takes the person's own session cookie only: a

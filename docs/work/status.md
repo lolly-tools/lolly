@@ -77,7 +77,7 @@ matched shell, pack, worker and engine-pin artifacts for an existing instance.
 |---|---|
 | Customer identity and source | Verify the selected tenant's registered callbacks, real owner groups, SCIM subject correlation, known original checksum, denied groups, revocation and source disable. Follow [Customer setup](customer-setup.md) and the selected [provider guide](providers/README.md). |
 | Other guided provider forms | WebDAV / Nextcloud and Google Drive are implemented. Other kinds retain advanced configuration and documented CLI consent where available; add the selected customer's next provider when its contract is known. |
-| Service-token scopes and expiry | Role assignment, last use and revocation are implemented. Narrow scopes and expiry require credential and authorization changes. See [Identity](identity.md). |
+| Service-token scopes | Role assignment, expiry (90 days by default, at most 365), last use and revocation are implemented. Narrow scopes require credential and authorization changes. See [Identity](identity.md#service-tokens). |
 | Editable defaults | Manifest defaults and governed locked values are available. Editable overlay defaults still need one agreed precedence across clients, collaboration, automation and server renders. |
 | Matched releases and delivery | Qualify the actual employee clients, worker formats, deployment images and mounted shell/pack. Current setup and pack inspection do not certify those artifacts. |
 | Approval-bound ordinary exports | Reviewer permission, chain editing and separation of duties are implemented. Binding an ordinary export to reviewed final bytes and `until-approved` watermarking remains separate work. |
@@ -96,8 +96,9 @@ matched shell, pack, worker and engine-pin artifacts for an existing instance.
   asset bytes, committed with the output under the same lease. Full dependency
   locking and campaign reconciliation remain next slices. See [Recoverable renders](renders.md).
 
-- Deploy config + fail-closed secrets; OIDC login (discovery, PKCE, JWKS-verified), dev
-  provider, member and guest sessions with domain-separated tokens.
+- Deploy config + fail-closed secrets; OIDC login (discovery, PKCE, JWKS-verified), GitHub,
+  email and password, passkeys, reverse-proxy and device-code sign-in, the dev provider, and
+  member and guest sessions with domain-separated tokens.
 - RBAC evaluator (roles + deny-wins grants) with the owner-only escalation guard; the grants
   editor in console, CLI and API.
 - Tool overlays (editable/choice/locked/hidden, hidden = absent), the enforce block, feature-
@@ -119,8 +120,8 @@ matched shell, pack, worker and engine-pin artifacts for an existing instance.
 - Catalog submit: members with `catalog.submit` add assets from a browser or the CLI, with a
   size cap, per-group quotas, checksum dedupe, an operator-pluggable pre-store scan hook, C2PA
   detection, and optional review through an approval chain.
-- Outbound delivery: fixed, group/RBAC-scoped organization targets with S3-compatible, WebDAV
-  and signed-HTTPS adapters, shell presentation beside (never over) personal targets, C2PA and
+- Outbound delivery: fixed, group/RBAC-scoped organization targets with S3-compatible, WebDAV,
+  signed-HTTPS, Brandfolder and Cloudinary adapters, shell presentation beside (never over) personal targets, C2PA and
   byte gates, optional approval-chain binding over immutable staged bytes, immutable durable
   receipts, idempotency, retry and audit. Completed automation renders publish by reference to
   the same retained bytes, scoped to the job principal and protected from deletion while in
@@ -152,11 +153,14 @@ matched shell, pack, worker and engine-pin artifacts for an existing instance.
 Sessions are stateless signed tokens with a `policy.sessionTtlHours` lifetime, but disabling
 a person (console or SCIM `active=false`) is now **instant revocation**: it bumps the user's
 **session epoch**, a counter the token embeds at mint, so every live session of theirs is
-refused from that request on. `bumpSessionEpoch` is the same lever without a disable. What
-remains is narrow and mostly cosmetic: revocation is **per user, not per individual session**,
-and the *role a shell's token claims* is stale until the next mint (authorization is not -
-`requireAction` resolves the live record every request). Mitigation for the residual: lower
-`sessionTtlHours`. See [identity](identity.md).
+refused from that request on. `bumpSessionEpoch` is the same lever without a disable. One
+session can also end on its own: signing out revokes that browser's session, and an
+OIDC back-channel logout revokes the sessions derived from one provider session (`sid`).
+What remains is narrow and mostly cosmetic: an admin cannot end **one chosen session** of
+another person (only all of them), and the *role a shell's token claims* is stale until the
+next mint (authorization is not - `requireAction` resolves the live record every request).
+Mitigation for the residual: lower `sessionTtlHours`. See
+[identity](identity.md#offboarding-disable-and-revocation).
 
 ### 2. Audit-head anchoring stops at the log line
 Head **logging is on by default** (boot + hourly, `audit.headLog`). Migration `0034`
@@ -195,7 +199,7 @@ covered on `main` - but a local `pnpm test` still exercises only the memory driv
 
 ### 7. `until-approved` watermarking
 `always` is wired; `never` is stored but never consulted (equivalent to unset); the
-per-render linkage between approval state and watermarking is deliberately not built yet.
+per-render linkage between approval state and watermarking is not built yet.
 Set `always` if you need the guarantee today.
 
 ### 8. The hosted demo is for evaluation
@@ -229,7 +233,7 @@ The plan sequences phases so each is independently useful:
 |---|---|---|
 | 0 | scaffold, schema, CI, workers, compose, serverless trial | done; the serverless adapter is trial-grade |
 | 1 (MVP) | SSO + catalog + render/links + fleet + audit core | done |
-| 2 | roles/grants, overlays, profile governance, org-config, message bridge | done; org-scoped MCP endpoint outstanding |
+| 2 | roles/grants, overlays, profile governance, org-config, message bridge | done; an MCP endpoint (`/api/workspace/mcp`) serves [document and project agents](document-agents.md); an organisation-wide MCP endpoint is not built |
 | 3 | approvals, watermarking, lifecycle, C2PA assertions | largely done (see gap 7) |
 | 4 | shared workspaces, collab presence, telemetry dashboards | projects/sessions and dashboards done; server collab substrate **done single-node** (ws gateway + rooms + persistence + guest join, `server/src/collab/`); employee-client release and rollout acceptance remain separate |
 | 5 | SAML/SCIM, SIEM streaming, live co-editing, air-gap hardening | **SCIM done** (`/scim/v2`: Users create/patch/`active=false`, Group membership, per-IdP bearer tokens); SAML deferred by design to Keycloak's SAML→OIDC bridge; live co-editing server side done but **rollout stays adoption-gated** (the conflict counter on the console Overview is the gate's instrument); SIEM forwarding **done** (batched, cursor-tracked, `lw_siem_lag` gauge - see [operations](operations.md#siem-forwarding)) |
@@ -241,6 +245,6 @@ The community gate is worth restating, because it is the test of the brand-agnos
 
 1. Select the customer's identity/source and qualify the real integration using the setup and provider guides.
 2. Qualify and publish matched deployment, worker and employee-client artifacts, then rehearse installation with their digests and registry access.
-3. Narrow service-token authority and expiry, then agree editable-default precedence across the selected clients and render paths.
+3. Narrow service-token authority, then agree editable-default precedence across the selected clients and render paths.
 
-Audit anchoring, HA, central publication and recovery stay conditional on the deployment's requirements. The table above records the application's deliberate deferrals; the setup screen shows which configured integrations have actually been observed.
+Audit anchoring, HA, central publication and recovery stay conditional on the deployment's requirements. The table above records what the application defers by design; the setup screen shows which configured integrations have actually been observed.

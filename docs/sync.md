@@ -42,7 +42,9 @@ The full list of every network request the app makes is on the
 **Syncs:**
 
 - saved sessions and projects, including work a tool filed in **Projects** as you worked;
-- your design systems, with their uploaded fonts and logos;
+- your design systems, with their uploaded fonts and logos, including one
+  added from a Lolly instance such as your organisation's (a locked one
+  stays locked);
 - your uploaded images and the copies of your downloads that Lolly keeps;
 - Convert's file results;
 - your profile and your preferences (theme, layout).
@@ -61,7 +63,7 @@ Each device signs in to your storage by itself.
 ## Choose where to sync
 
 What you can use depends on where you run Lolly. In the app, open
-**Settings → Connected services → Sync across devices**. The list "Where this
+**Settings → Preferences → Connected services → Sync across devices**. The list "Where this
 device can sync" shows what works on the device you are using, and why the
 other choices do not.
 
@@ -90,7 +92,7 @@ address, so they can reach your server directly.
 
 ## Turn on sync
 
-1. Open **Settings → Connected services** and connect your storage.
+1. Open **Settings → Preferences → Connected services** and connect your storage.
 2. Under **Sync across devices**, choose it in **Where to sync**.
 3. Turn on **Sync across my devices**.
 4. On each of your other devices, connect the same storage and do the same.

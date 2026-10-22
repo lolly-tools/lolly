@@ -39,11 +39,11 @@ Theme and sound are in [Preferences](/info/profile.html), within the same Settin
 
 ## Capabilities
 
-Every part of the platform written up as a card, in eleven groups: Experiences, Platforms & runtimes, Export formats, Import formats, Print production, Automation & AI, Determinism & reproducibility, Brand & design system, Privacy & data ownership, Security & access control and Architecture. Each group folds, carries its own card count and opens a card into a dialog with that capability's feature list and - for about half of them - the same vector screenshot this documentation site uses.
+Every part of the platform written up as a card, in twelve groups: Experiences, Platforms & runtimes, Accessibility & languages, Export formats, Import formats, Print production, Automation & AI, Determinism & reproducibility, Brand & design system, Privacy & data ownership, Security & access control and Architecture (for builders). Each group folds, carries its own card count and opens a card into a dialog with that capability's feature list and - for about half of them - the same vector screenshot this documentation site uses.
 
 A search field above the groups filters the cards as you type and force-opens whichever groups still hold a match, so a query turns the accordion into a flat result list. It says how many capabilities it is searching, and a query that matches nothing says that in words rather than leaving you with a column of empty sections.
 
-This map is written documentation of what Lolly can do, kept in step with the guides and the export bridge. It is not a probe of the machine you are on - that is the **This device** tab, one click to the left.
+This map is written documentation of what Lolly can do, kept in step with the guides and the export bridge. It is not a probe of the machine you are on - that is the **This device** tab.
 
 ## Activity & stats
 

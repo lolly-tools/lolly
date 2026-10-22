@@ -845,7 +845,7 @@
           "core-props"
         ],
         "preserves": "none",
-        "note": "Reads and writes docProps/core.xml (title, creator, description, created). A rebranded deck does not yet re-export the source deck's creator; the seam is recorded in plans/144 Wave 2."
+        "note": "Reads and writes docProps/core.xml (title, creator, description, created). A rebranded deck does not yet re-export the source deck's creator."
       }
     },
     {

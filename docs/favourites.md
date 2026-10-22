@@ -12,9 +12,9 @@ never rides along in a profile export either.
 
 # Your favourites
 
-Star a tool (or, on Utilities, a utility card) and a big, cinematic tile for it appears in a strip above the grid. It's the fastest way back to the handful of things you actually use - built by you, one star at a time, not pre-loaded with anyone's idea of what you'll want.
+Star a tool (or, on Utilities, a utility card) and a big tile for it appears in a strip above the grid. It's the fastest way back to the handful of things you actually use, built by you one star at a time.
 
-A fresh install shows none of this. There's no starter set: the strip simply doesn't exist until you star your first thing, and it collapses away again if you ever get back down to zero.
+Until you star your first thing, the strip shows a short starter set instead: up to six featured tools that ship with this install on the Tools gallery, and Verify & Inspect, Jump, Sandbox and Unpack on Utilities. Nothing is written to your profile for that set. Your first star replaces it with your own list, and if you later unstar everything, the strip goes away rather than bringing the starter set back.
 
 ![The Tools gallery with two favourited tools drifting past in the strip above the grid](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A%5Bdata-tool-id%3D%22qr-code%22%5D%7Cright%3Bclick%3A.folder-menu%20%5Bdata-act%3D%22fav%22%5D%3Bclick%3A%5Bdata-tool-id%3D%22battlecards%22%5D%7Cright%3Bclick%3A.folder-menu%20%5Bdata-act%3D%22fav%22%5D%3Bpress%3AHome%7Con%3Dbody%3Bwait%3A800&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&cropSelector=.featured&filename=fav-strip-gallery)
 <!--
@@ -47,18 +47,18 @@ lives in the card's right-click menu and the selection bar, so the shot opens th
 
 The same star works on a **utility** card in the Utilities view - Verify & Inspect, Colour Lab, Unpack, Spreadsheet and the rest. They aren't tools (no saved sessions, nothing to keep offline), but the strip treats a starred one exactly the same way: a tile of its own, icon-led since there's no preview to show.
 
-> Not the strip you're after? The **★ Favourites** pill in **Sort & filter** shows the same starred set as an ordinary filtered list in the grid below, instead of the drifting strip up top - useful if you'd rather scan a plain list.
+> Not the strip you're after? The **★ Favourites** pill under **View options → Filter** shows the same starred set as an ordinary filtered list in the grid below, instead of the drifting strip up top - useful if you'd rather scan a plain list.
 
 **One star, two lists.** The ★ on an **asset** ([Using Lolly → Assets](/info/using.html#assets-your-library)) is a different list entirely: it pins that logo, image or colour to the top of every asset picker. Same verb, same glyph, unrelated sets - starring a tool never touches your pinned assets, and vice versa.
 
 ## Gallery or Cover Flow
 
-Open **Sort & filter → Featured view** to choose how the strip itself looks:
+Open **View options** and, under **Favourites**, choose how the strip itself looks:
 
 - **Gallery** - a slow, calm filmstrip that drifts sideways on its own and pauses the moment you touch it.
 - **Cover Flow** - the same tiles fanned out in 3-D, one centred and upright, the rest tucked back at an angle; drag or flick through them, then press **Open** on whichever one is centred.
 
-A new install opens on Cover Flow at desktop width and on the plain filmstrip on a phone-width screen - the fan doesn't hold up that narrow yet - but the moment you pick one yourself, that choice sticks and stops guessing.
+A new install opens on Cover Flow at every screen width, and the fan works with touch as well as a mouse. Once you pick one yourself, that choice sticks.
 
 <!--
 No screenshot of the Featured-view switch itself, and not for the same reason
@@ -100,7 +100,7 @@ Your starred tools are saved onto your **profile** - the same on-device record t
 - It has nothing to do with the **design system** - the colours, fonts and tools the app was set up with. Starring a tool is a personal shortcut for you; it changes nothing about what anyone else's install shows.
 - It travels only where your whole profile does: with [Sync](/info/sync.html), to the storage you chose for it and on to your other devices, or in a backup you export and import yourself. It never goes to a Lolly server.
 
-Even the choice between **Gallery** and **Cover Flow** is more local still: it lives in a small preference kept only in this one browser's own storage, and it isn't part of that profile export at all. A new device always starts back on the plain default, no matter how many profiles you've moved around.
+Even the choice between **Gallery** and **Cover Flow** is more local still: it lives in a small preference kept only in this one browser's own storage, and it isn't part of that profile export at all. A new device always starts back on the default, Cover Flow, no matter how many profiles you've moved around.
 
 ---
 

@@ -317,10 +317,12 @@ for evaluation and loses its data when the process exits. Every replica must
 use the same database, byte store and compatible mounted content.
 
 The runner polls once per second and executes up to two requests per process.
+`LW_BACKGROUND_POLL_MS` changes the poll interval in milliseconds for the render and
+automation runners; `0` turns the timer off.
 Claims last 30 seconds and renew every 10 seconds. An attempt has a 120-second
 budget and retains at most 32 MiB. A crashed worker's expired claim can be taken
 by another replica, consuming another attempt. Exhausted requests become failed.
-These are initial runner defaults, not new `instance.json` settings.
+These runner defaults are not `instance.json` settings.
 
 Only the current unexpired lease can settle a result. Each attempt writes a
 distinct blob path, so a worker finishing late cannot overwrite the winning

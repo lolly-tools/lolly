@@ -36,8 +36,8 @@ claiming that the current version was reviewed. The Assets source-history form
 requests a review of one selected instance file; the API supports bounded sets.
 
 Chains, not graphs. An approval chain is an ordered list of steps; each step identifies an
-eligible team by group and a completion rule. There is no BPM engine, no DAG, no parallel
-branch - the shape that matches how a Marketing → Legal review actually runs.
+eligible team by group and a completion rule. There is no BPM engine, no DAG and no parallel
+branch.
 
 ![The approvals inbox - requests routed to your groups, and the ones you raised](shots/approvals-inbox.svg)
 
@@ -82,8 +82,9 @@ POST /api/v1/approvals/:id/act      # { action: 'approve' | 'reject', comment? }
 POST /api/v1/approvals/:id/withdraw
 ```
 
-Subjects are `asset`, `tool-change`, `config` or `guest-link` - one engine, several kinds of
-thing to approve.
+Subjects you can raise are `asset`, `tool-change`, `config`, `guest-link` or `source-review`;
+the server also raises `delivery` approvals for a destination with an approval chain
+([delivery](delivery.md)). One engine, several kinds of thing to approve.
 
 The chain is **snapshotted at submit**: an approval is judged by the rules it was raised
 under, so editing a chain never rewrites decisions already in flight.
@@ -95,7 +96,7 @@ automatically receive that permission; assign the approver role or an explicit g
 
 ## Invariants the engine enforces
 
-These are enforced in code and covered by property tests, not merely documented:
+These are enforced in code and covered by tests, not merely documented:
 
 - **Separation of duties.** The submitter can *never* satisfy a step - checked before
   eligibility, so they always get the specific reason (`SEPARATION_OF_DUTIES`).
@@ -114,7 +115,7 @@ the console's Approvals view) shows what needs them. The console's overview surf
 "what needs me" from the same source, and messages/inbox targeting is described in
 [api](api.md).
 
-## Watermarking preview output
+## Editing chains in the console
 
 The **Approval chains** console page edits ordered groups and any/quorum/all rules, moves
 steps, and previews aggregate reviewer counts. Editing requires `policy.edit`. Preview
@@ -130,10 +131,12 @@ members have the member role needs an explicit allow grant, for example `approva
 on `chain:brand-review`. A deny still wins. Review-chain configuration does not bind
 ordinary tool exports to reviewed final bytes; that export workflow remains pending.
 
+## Watermarking preview output
+
 An overlay can set `enforce.watermark: 'until-approved'`, which is the intended pairing with
 a chain: previews carry the diagonal PREVIEW brick pattern while the work is unapproved.
 Today the compositor knows only "watermark now" vs "don't": `always` is enforced, the
-per-render *until-approved* linkage to approval state is deliberately not yet wired, and
+per-render *until-approved* linkage to approval state is not yet wired, and
 `never` is stored but behaves the same as unset. See [sharing](sharing.md) and
 [status](status.md).
 

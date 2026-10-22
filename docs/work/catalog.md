@@ -22,7 +22,7 @@ tools/<id>/tool.json          per-tool input definitions
 Served at `/catalog/*` (blobs) and `/api/v1/catalog/assets/*`, filtered per caller. The
 pack's design tokens double as the console's own theme: **This Deploy → Design system**
 shows the live tokens the tools consume, and the sign-in screen inherits the pack's colours,
-fonts and logo through a deliberately narrow unauthenticated `/api/brand` route - brand
+fonts and logo through a narrow unauthenticated `/api/brand` route - brand
 chrome only, never the governed catalog.
 
 A pack is immutable for a process: publish a new pack and restart (or roll) to pick it up.
@@ -246,11 +246,11 @@ here. Every change is audited as `catalog.edit` with its before and after.
 Values ride the feed as one additive `fields` bag on the entry that carries them:
 
 ```json
-{ "id": "suse/tokens/brand", "name": "Brand tokens",
+{ "id": "lolly/tokens/brand", "name": "Brand tokens",
   "fields": { "campaign": "Autumn Launch", "region": "EMEA" } }
 ```
 
-Additive is the point: the OSS asset schema is untouched, a shell that knows nothing about the
+Additive is the point: Lolly's asset schema is untouched, a shell that knows nothing about the
 bag ignores it, one that renders unknown keys shows the values as ordinary rows, and no shell
 version is ever required in lockstep. `GET /api/v1/catalog/search` matches the values too, so
 an asset is findable by what an org filed it under.
@@ -291,7 +291,7 @@ curl -X PUT https://lolly.example/api/v1/catalog/collections/launch-kit \
   -H 'content-type: application/json' -b lw_session=... -d '{
     "name": "Launch kit",
     "description": "Everything for the spring launch.",
-    "members": ["inst/hero", "ext/brandfolder/a1", "suse/logos/mark"],
+    "members": ["inst/hero", "ext/brandfolder/a1", "lolly/logo/primary"],
     "groups": ["design", "sales"]
   }'
 ```
@@ -314,7 +314,7 @@ The per-caller feed carries them as one additive `collections` key beside `asset
 ```json
 { "assets": [ ... ],
   "collections": [
-    { "id": "launch-kit", "name": "Launch kit", "members": ["inst/hero", "suse/logos/mark"] }
+    { "id": "launch-kit", "name": "Launch kit", "members": ["inst/hero", "lolly/logo/primary"] }
   ] }
 ```
 
@@ -538,7 +538,8 @@ Kinds, the open and self-hostable ones first: `webdav` (RFC 4918 - Nextcloud, ow
 `imagerelay` (v2, OAuth2, off-boarding source), `canto` (REST v1, OAuth2, off-boarding source),
 `acquia-dam` (Widen v2, bearer, native availability), `intelligencebank` (v3 Graph API, login
 handshake), `cloudinary` (asset-ID originals), `orange-logic` (public Search v4 renditions),
-`mock`. No SDKs, publicly documented endpoints only.
+and `mock`, which serves only tests and the local demo. No SDKs, publicly documented
+endpoints only.
 
 Cloudinary and Orange Logic use the existing advanced source form and sealed credentials.
 Their files declare `original` or `rendition` in the served `meta.assetFiles` entries, with
@@ -831,7 +832,7 @@ on downstream sites.
 lw providers publish web-cmp --in ./summit-badge.png --name "Summit Badge"
 ```
 
-Deliberately narrow: the provider must declare the `publish` capability (`optimizely-cmp`
+The path is narrow by design: the provider must declare the `publish` capability (`optimizely-cmp`
 with `options.publish: true`), the action is owner-grantable (`catalog.provider.publish`),
 and the bytes must carry lolly's **C2PA export assertion** - verified server-side, so a
 federated or pack asset can never be pushed out. Each publish is audited with the export's
@@ -840,8 +841,9 @@ Credential (see [c2pa](c2pa.md)).
 
 ### Where instance bytes live
 
-Instance-owned catalog bytes (materialized assets, and later collab staging) live in a
-**BlobStore** chosen by `blobs.driver`:
+Work's own stored bytes (materialized and submitted assets and their versions, project files
+and uploads, render outputs and delivery staging) live in a **BlobStore** chosen by
+`blobs.driver`:
 
 | Driver | When |
 |---|---|

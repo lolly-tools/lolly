@@ -13,18 +13,23 @@ a completed privacy assessment.
 |---|---|---|
 | `users`, directory/SCIM and local group membership | Subject/email/name/title, groups, roles, consent and access state | IdP/SCIM is authoritative for managed identity; disable/revoke first. Account erasure removes the local identity row only when references permit. Directory access must also be removed to prevent re-provisioning. |
 | `grants`, API/SCIM tokens, device sign-in codes | Authorization principals, credential digests, short-lived sign-in payloads | Revoke/rotate through the identity/token procedures. Review principal references and directory copies separately. Never include live tokens in an access report. |
+| `user_identities`, `password_credentials`, `password_links`, `passkeys`, `invitations`, `access_requests` | Each sign-in linked to an account (the provider's subject), one password per email address stored as a scrypt hash (never the password), password setup and reset links, passkey public keys, invitations naming an email address and the groups it joins, and access requests with a verified email address | Account erasure removes the account's linked sign-ins, passkeys and access requests with the identity row. It also removes the password credentials its sign-ins name, and the invitations, access requests, passwords and password links for its email address, unless another account still carries that address. |
+| `oidc_logout_events`, `oidc_logout_targets` | Hashed keys from identity-provider back-channel logout notices, used to refuse a replayed notice and to end the matching sessions. No raw provider identifiers | Each new logout notice deletes replay records older than ten minutes and session targets older than 31 days. |
 | `projects`, `sessions`, `session_revisions`, `collab_room_snapshots` | Shared work, arbitrary inputs and metadata, authorship and collaboration history | Transfer business ownership where appropriate. Archiving or session tombstoning retains records and references; it is not erasure. Review shared rights, history and holds before deletion. |
+| `share_groups`, `users.share_groups`, `projects.sharing`, `project_members.expires_at` | Groups members create for sharing (name, description, owner, managers and creator), each person's group memberships as ids, a project's share settings and group grants, and end dates on memberships | A group is a shared record: erasing its owner's account clears the owner and keeps the group and its managers. Memberships are ids on the user row and go with that row. An expired membership gives no access; the row is kept so the people panel can offer Extend. |
+| `project_user_state` | Per person and project: whether they pinned or hid a shared project in their Projects list, and when they last opened the project. Shown to nobody else | Deleted with the account or the project row. Never blocks account erasure. |
 | `session_versions`, `session_version_contents`, `session_version_totals` | Saved versions of a document: its inputs and metadata at that point (stored once per document and content), a kind (automatic, closing, saved, named, restore or the state a restore replaced), an optional name, whether it is pinned, who created it and who first named or pinned it, and the ids and edit counts of the people and agents who edited since the previous version. Guests are counted together, with no link id | Removed by the retention rules and by a project manager, and all at once when the document is deleted. See [Session versions](#session-versions). Shared records: erasing an account leaves them, and the ids they hold, in place. |
 | `project_files` and their parts (`project-file/<id>/<n>` in the blob store) | Files members upload into a team project (often images, possibly personal content and embedded metadata), their names, declared digests, the shell's asset description (kind, format, size in pixels and name) and the uploader | A finished file stays until its uploader or a project manager deletes it; deleting removes the parts, then the row. An unfinished upload expires 15 minutes after its last accepted part, and at the latest after `policy.projectFiles.uploadTtlHours` (24 by default). Once it is an hour past expiry it is removed, parts first, at the next upload or retention run, and by the long-lived server's sweep at boot and daily. A finished file blocks account erasure of its uploader; unfinished uploads are removed by the erasure. Copies already downloaded to members' devices stay there. |
 | `uploads` and their parts (`upload/<id>/<n>` in the blob store) | Private files a person or a service token uploads as a catalog submission original, an automation input or a file reference, when `policy.uploads.enabled` is on (it is off by default): the bytes, their name, media type, declared digests, scope and owner (`user:<id>` or `service:svc_<id>`). A file reference also records whether it is an output, which of the owner's references it was made from, and the operation report that made it, which lists the input and output files and their digests | Only the owner can name one, and only the owner of a file reference reads one back. A finished upload expires `policy.uploads.readyTtlHours` (24 by default) after it finished, a file reference `policy.uploads.fileTtlHours` (168 by default), and a catalog submission removes its upload once it is stored; an unfinished one expires like a project file upload. Once it is an hour past expiry it is removed, parts first, at the next upload or retention run and by the long-lived server's daily sweep. Account erasure removes every upload the person owns before it removes the identity row; if any remain, it refuses with `409 ERASE_UPLOADS_REMAIN` and changes nothing else, so it can be run again. Bytes already submitted to the catalog follow the catalog lifecycle. |
 | `canvas_comment_reads`, `canvas_comment_read_floors` | Per person: when they last read each comment thread, and when they first listed a session's comments (older messages count as read). Shown to nobody else | Deleted with the account, the thread or the session row. Never blocks account erasure. |
 | `comment_notices` | One inbox notice per person per thread: the ids of the person, thread, session, project, the person who caused the newest event and that message, a kind (mention or reply), a count and the time of the newest event. No comment text and no names: the inbox builds those when it is read | Deleted when the person dismisses it or reads the thread, and when the inbox finds the session deleted or the project out of the person's reach. One hidden by a grant or a policy is kept until it is 30 days old. Notices older than 30 days are removed the next time the person's inbox is read (Lolly checks it once a minute while it is open) or a notice is written for them, and every notice written also removes all but the person's newest 200. Deleted with the account, the thread, the session or the project row. Erasing an account also deletes the notices it caused in other people's inboxes. Never blocks erasure. |
 | `comment_mention_sends` | Who was told about a mention in which message (thread, message, person, time), so an edit never notifies anyone twice | Removed again at once when the notice it stood for was not written (over a limit, or a failure), so a later edit can still tell the person. Deleted with the thread and with the person's account. The mention itself is part of the shared thread: a message stores each mentioned person's id and name, as it stores its author's, and erasing an account does not change shared threads. |
-| Instance assets, versions, metadata, collections, providers and lifecycle records | Uploaded media, possibly personal content and embedded metadata; publication/approval state | Catalog lifecycle and version retention apply. A hold protects retained assets from version pruning. Neither account removal nor version trimming is a complete content-erasure workflow. |
+| Instance assets, versions, metadata, collections, providers and lifecycle records | Uploaded media, possibly personal content and embedded metadata; publication/approval state; reviewed search text (up to 8,192 characters a member read from an asset on their own device, with that member's id and the time) | Catalog lifecycle and version retention apply. A hold protects retained assets from version pruning. Neither account removal nor version trimming is a complete content-erasure workflow. |
 | `instance_blobs` or configured S3-compatible storage | Asset, render and other stored bytes | Confirm the active blob driver, region, versioning and provider retention. A database-only recovery is insufficient for S3 deployments. Review old object versions and orphaned data. |
 | `instance_blob_months` | One row per UTC month: the bytes read from `instance_blobs` and when each [offload alert](operations.md#blob-offload-trigger) email went out. Aggregates only, with no person, blob or request | Holds nothing personal, so no rights request applies. Rows stay until removed by hand; deleting one only resets that month's figure and lets its alert email be sent again. |
 | `links`, `approvals`, messages and acknowledgements | Shared targets, review titles/state, communications and identity references | Revoke access and resolve retained records under their approved lifecycle. These can prevent identity-row deletion. External recipients may retain copies. |
 | Renders, batches, automation jobs and deliveries | Queries, inputs, outputs, manifests, idempotency/execution records and destination receipts | Review job/output retention, business purpose, blobs and external destinations. Account erasure does not sweep these records. |
+| `automation_callbacks` | For an automation job with a callback: the callback URL, the principal that started the job, delivery state, attempt count and the last status or error | Deleted with its job. Account erasure does not sweep these records. |
 | `telemetry_events`, rollups | Optional usage events, whitelisted attributes and optional attribution | Collection defaults to `policy.telemetry: "standard"` with `policy.telemetryAttribution: "opt-in"`; `"off"` stores no events. Disabling collection does not delete old data. Configured telemetry retention trims events; account erasure removes their user-id attribution, not their event payload. |
 | Audit log/anchor, SIEM receiver and infrastructure logs | Security/admin activity, actors, subjects, metadata, times, chain evidence and possibly network identifiers | Preserve chain integrity and approved retention/holds. Opaque actor IDs can remain linkable through other records. Off-box copies follow the receiver's approved lifecycle. |
 | Fleet clients/installs | Versions/platform, install identifiers, operator labels and last-seen account reference | Inspect and forget installs where appropriate; optional analytics being off does not mean this registry or security logging is off. |
@@ -34,7 +39,12 @@ a completed privacy assessment.
 | Backups, snapshots, restore destinations and exported evidence | Recoverable copies of the preceding stores | Agree access, location, retention, holds and restoration restrictions. Record completed erasures outside the restored dataset and reapply them before a recovered service accepts traffic. |
 
 Source anchors: `migrations/0001_init.sql` through
-`migrations/0034_audit_mac_and_append_guard.sql`, `migrations/0041_project_files.sql`,
+`migrations/0034_audit_mac_and_append_guard.sql`, `migrations/0038_invitations.sql`,
+`migrations/0039_user_identities.sql`, `migrations/0042_password_credentials.sql`,
+`migrations/0044_access_requests.sql`, `migrations/0048_passkeys.sql`,
+`migrations/0060_share_ladder.sql`, `migrations/0061_project_user_state.sql`,
+`migrations/0067_oidc_logout.sql`, `migrations/0074_automation_callbacks.sql`,
+`server/src/catalog/text-index.ts`, `migrations/0041_project_files.sql`,
 `migrations/0075_resumable_uploads.sql`, `migrations/0076_file_references.sql`,
 `server/src/uploads/scoped.ts`, `server/src/uploads/files.ts`,
 `migrations/0051_canvas_comment_reads.sql`, `migrations/0052_comment_notices.sql`,
@@ -90,7 +100,10 @@ organisation's decision. Retrieve only the in-scope records for review/redaction
 secure delivery. Use the existing correction, ownership-transfer, access-revocation
 and account operations only where they fulfil the request as decided.
 
-The current product does not automate a complete subject export, content-wide
+`lw users subject-export` returns an account's direct metadata one category at a
+time, and `lw users offboard` disables an account and revokes the credentials and links it issued directly; see
+[Account data controls](account-lifecycle.md). Neither completes a rights request:
+the current product does not automate a complete subject export, content-wide
 erasure, subject-wide legal hold or restore suppression. Your organisation defines the
 manual procedure for the data it keeps in Lolly Work, or adds its own controls, before
 relying on the service for that data. Do not treat a successful account-removal
@@ -193,9 +206,12 @@ action. Existing hash-chain and key-retirement procedures still apply.
 
 ## Offboarding procedure
 
-1. Remove admission and sign-in access at the authoritative identity provider. Disable
-   the local account, revoke sessions, and revoke any separate service or provisioning
-   credentials under the existing owner controls.
+1. Remove admission and sign-in access at the authoritative identity provider. Run
+   `lw users offboard-preview USER_ID --json`, then `lw users offboard USER_ID --json`.
+   Offboarding disables the local account, ends its sessions at their next check and
+   revokes the service credentials and links the account issued directly. Revoke any other service or
+   provisioning credentials under the existing owner controls. See
+   [Account data controls](account-lifecycle.md) for what offboarding leaves in place.
 2. Review the erasure preview and any holds. Transfer shared project ownership where
    approved. Resolve retained sessions, links, approvals, message acknowledgements and
    finished files through their own lifecycle controls; archiving does not erase them.
@@ -207,9 +223,10 @@ action. Existing hash-chain and key-retirement procedures still apply.
    exceptions in the case. Carry the approved removal record into restore procedures
    before traffic is admitted again.
 
-For a subject access request, gather the approved identity and reference inventory,
-shared records in scope and external recipient information through existing authorized
-reads. Review and securely deliver that collection under the operator's case process.
+For a subject access request, gather the approved identity and reference inventory
+(`lw users subject-export USER_ID --category <name> --json` pages through the account's
+direct metadata), shared records in scope and external recipient information through
+existing authorized reads. Review and securely deliver that collection under the operator's case process.
 There is no complete automatic subject export or content-wide erasure. A successful
 account erasure does not complete the wider request.
 

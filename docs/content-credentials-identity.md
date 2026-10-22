@@ -1,14 +1,8 @@
 # Content Credentials identity - verified signing for on-device C2PA
 
-Operators deploying the optional CA should follow the
-[managed identity deployment procedure](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md#deploy-and-maintain-managed-identity)
-for provider registration, strict verified-email policy, client secrets, upgrades
-and signing-key rotation. Organisation SSO and SCIM belong to Lolly Work, with a
-separate client and lifecycle.
-
 > **The short version.** Every image, PDF, or video you export from Lolly can carry a
 > **Content Credential** - a signed [C2PA](https://c2pa.org) manifest, created
-> entirely on your device - that proves the file hasn't been altered since it left
+> entirely on your device - that shows whether the file has been altered since it left
 > Lolly, and (once you enrol an identity) records *who* signed it. Anyone can check
 > it offline: hit **Verify** in the app (the shield in the bottom bar), drop in a
 > file and Lolly reports the result on-device. **Nothing is uploaded** - not the
@@ -20,8 +14,9 @@ separate client and lifecycle.
 
 - **Tamper-evidence, on by default.** The credential is a cryptographic seal over
   the exported bytes. Change a pixel and the seal breaks - the verifier says so.
-- **Verifiable identity, when you want it.** Enrol once (SUSE, GitHub, Google, or
-  an email link) and your exports are signed by a short-lived certificate that
+- **Verifiable identity, when you want it.** Enrol once in **Settings**, with a
+  sign-in provider your deployment offers (for example GitHub or Google), and your
+  exports are signed by a short-lived certificate that
   names *you*. Verifiers pinning the Lolly root then show you as the signer
   instead of an anonymous one: in Lolly's Verify, an export keeps its **Made with
   Lolly** verdict and gains the line **Signed by \<your email\> - identity verified
@@ -55,13 +50,17 @@ one honest verdict:
 
 | Verdict | What it means |
 |---|---|
-| **Made with Lolly** | The credential is intact and records a Lolly export - the file hasn't changed since it was made. (Integrity plus the maker's claim, from an on-device key.) |
-| **Verified** | The file matches what it signed **and** the signing certificate chains to the pinned Lolly CA root - integrity plus a CA-verified identity. |
+| **Made with Lolly** | The credential is intact and records a Lolly export - the file hasn't changed since it was made. (Integrity plus the maker's claim.) When the signer enrolled an identity, a **Signed by \<email\> - identity verified by \<issuer\>** line appears under this verdict. |
+| **Verified** | The file matches what it signed **and** the signing certificate chains to a pinned trust anchor, such as the Lolly CA root - integrity plus a CA-verified identity. A Lolly export reads **Made with Lolly** instead, so this verdict is for other files. |
 | **Delivered by Lolly** | A genuine catalog asset Lolly distributed but didn't author - chains to the Lolly root, so it's intact and its origin is CA-verified; who made it is recorded below. |
 | **Likely made with Lolly** | An amber middle ground: the credential's own signature and everything it references check out and it records a Lolly export, but the file's bytes no longer match the hard binding - it was probably re-saved, re-encoded, or re-uploaded through something that left the manifest intact. |
 | **Credential intact** | The structure checks out and the bytes match, but the signer isn't identified (an anonymous on-device key). |
 | **Credential expired** | The bytes still match exactly - nothing was modified - but the short-lived signing certificate has lapsed, so the credential no longer validates. |
 | **Credential broken** | The file carries Content Credentials, but they no longer match its bytes - modified after signing, or the manifest is damaged. |
+| **Not all of this file is covered by its credential** | The bytes the credential covers match, but its declared exclusion reaches beyond its own manifest, so part of the file was never signed and could have changed unnoticed. |
+| **Credential could not be checked** | The file declares a credential that could not be read out of it, so nothing was hashed or compared. Nothing here says the content changed. |
+| **Credential stored elsewhere** | The file points at a credential kept somewhere else. Verify fetches nothing, so these bytes were not checked against that credential. |
+| **Not inspected as text** | The file is past the size limit for on-device text inspection, so its text was never searched for a manifest. Nothing is claimed either way. |
 | **No Content Credentials** | Nothing to verify - the file carries no C2PA manifest. |
 
 The page also shows the recorded edit history, the "made from" ingredients and -
@@ -81,9 +80,11 @@ third-party C2PA validator pointed at the public Lolly root
 Verify is more than a C2PA reader. Every file you drop is put through several
 independent checks, summarised as a row of pips ("Verification checks at a glance")
 under the headline verdict and then explained in full below it. **They all run on
-your device - nothing is uploaded.** The one network touch that can ever happen is
-called out where it applies: a **one-time detector download** for the opt-in deep
-scan (from the app's own origin, not a third party). SEAL verification makes **zero
+your device - nothing is uploaded.** The network touches that can happen are
+called out where they apply: a **one-time detector download** for the opt-in deep
+scan (from the web app's own origin, or from Lolly's model host `lolli.li` in the
+desktop and mobile apps; never a third party) and, on a build configured for a
+managed CA, a request for that CA's revocation list. Neither sends the file. SEAL verification makes **zero
 network requests**: no Lolly app looks a SEAL key up in DNS today, so a record whose
 key lives only in DNS is reported as not verified. The file itself never leaves.
 
@@ -182,10 +183,12 @@ tool to strip it.
 ### Where each check runs
 
 The C2PA verdict runs in the CLI too (`lolly validate <file>`). The embedded-metadata
-read (EXIF/XMP, the AI declaration, appended-data) runs over MCP (`lolly_verify`) and in
-the web **Verify** view. The pixel-level reads - the Lolly Imprint, the opt-in deep scan
-and LSB steganalysis - and SEAL verification are features of the web **Verify** view.
-Wherever they run, they run on your machine.
+read (EXIF/XMP, the AI declaration, appended-data) runs in the web **Verify** view, in
+the CLI with `lolly validate --metadata` and over MCP (`lolly_verify`). The opt-in deep
+scan also runs from the CLI with `lolly validate --deep`, which drives the same Verify
+view in a local browser. The Lolly Imprint, LSB steganalysis and SEAL verification are
+features of the **Verify** view only. Every check runs on your machine, except over MCP,
+where the MCP server reads the file you send.
 
 ## Why identity, not app identity
 
@@ -222,10 +225,10 @@ trusted timestamp yet, so a file verified after the cert expired gets a
 distinct *expired* verdict - the bytes still match, but the time of signing can't
 be proven - never silently downgraded to broken, never inflated to verified.
 
-## Credential lifetime (7 / 30 / 90 / 365 days, default 30)
+## Credential lifetime
 
 Until the timestamp authority ships (Tier 3), the certificate window does
-double duty: it bounds abuse (expiry is our only revocation) **and** it is how
+double duty: it bounds abuse (on the default CA, expiry is the only revocation) **and** it is how
 long an exported file keeps its verified badge - the verifier compares the
 cert window against *verification* time, not signing time. So the lifetime is
 the user's call, offered at the moment the certificate is actually minted:
@@ -236,10 +239,11 @@ the user's call, offered at the moment the certificate is actually minted:
   per export, so the **export panel's Content Credentials card** carries the
   7/30/90/365 select directly - it sets the credential's validity window on that
   export. Default 30. Fully offline.
-- **Enrolled (CA identity):** the cert is fixed at enrolment, so the same
-  7/30/90/365 select lives in **Profile → Content Credentials** next to the
-  provider buttons; the CA clamps the chosen value to the allowed set
-  {7, 30, 90, 365} (policy stays server-side). The export panel then shows
+- **Enrolled (CA identity):** the cert is fixed at enrolment, so the lifetime
+  select lives in **Settings → Content Credentials** next to the provider buttons.
+  On the default CA it offers the same 7/30/90/365 days (default 30), and the CA
+  clamps the chosen value to that set (policy stays server-side). A managed
+  deployment offers shorter certificates, described below. The export panel then shows
   *"Signed as \<email\> · verified until \<date\>"* in place of the picker, with a
   renew nudge when expiry is near. A per-export choice can't exist here - you
   can't sign with validity your certificate doesn't have, and re-issuing at export
@@ -256,9 +260,23 @@ the user's call, offered at the moment the certificate is actually minted:
   your own certificate chain in the manifest, and a verifier pinning its root shows that
   identity as the signer. See [Signing from the terminal](/info/cli-signing.html).
 
+**Managed deployments.** An organisation can run the CA in managed mode, where a
+Vault PKI intermediate signs each certificate. There, a certificate lasts 24 hours by
+default and 7 days at most, and renewing needs a fresh sign-in. Settings adds a
+**Revoke certificate** button: your device proves it holds the key, and the CA
+revokes that certificate. Lolly's verifier, configured with the deployment's trust
+bundle, then checks the revocation list, and a device that was offline learns of a
+revocation once its cached list expires. While the certificate's status cannot be
+checked, exports use an anonymous credential.
+
 ---
 
-Organisation sign-in through optional **lolly.work** is separate from the on-device signing enrolment described here. Its SSO establishes access to the instance; server renders use the service's configured signing identity when available. See [Use Lolly at your organisation](/info/organisation.html) and lolly.work's [Content Credentials guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/c2pa.md).
+Organisation sign-in through optional **lolly.work** is separate from the on-device signing enrolment described here. Its SSO establishes access to the instance; server renders use the service's configured signing identity when available. Organisation SSO and SCIM belong to Lolly Work, with a separate client and lifecycle. See [Use Lolly at your organisation](/info/organisation.html) and lolly.work's [Content Credentials guide](/info/work-c2pa.html).
+
+Operators deploying the optional CA should follow the
+[hosted identity deployment procedure](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md#deploy-and-maintain-hosted-identity)
+for provider registration, strict verified-email policy, client secrets, upgrades
+and signing-key rotation.
 
 For the device/CA architecture, the engine contracts, the CA service protocol and
 environment, the web-shell wiring, the one-time operator setup, the threat model

@@ -4,13 +4,13 @@ Bring a finished design **out of Figma, Penpot, Illustrator or InDesign and into
 
 The good news for everything you've already made: none of it is stranded in the app you drew it in. A design you spent hours on in another tool arrives as an editable session, already conformed to your design globals - and once you save it, it's a reusable template anyone with Lolly can open and refill.
 
-Import lives in **[Design](/info/using.html)**, Lolly's free canvas: open it, click **Import a design** in the canvas toolbar and choose a file. The artboard resizes to the file's frame and every layer becomes an editable box on the same open canvas - so an imported artboard is just an ordinary Design session from the first click.
+Import lives in **[Design](/info/using.html)**, Lolly's free canvas: open the **Lolly menu** (the Lolly mark), choose **Import a design**, pick how the file arrives under **Import as**, then choose the file. **Replace the board**, the default, puts one page on the board and resizes the artboard to the file's frame; a multi-page file asks which page. **As artboards** makes every page or slide its own artboard, and **As timed scenes** makes every frame a scene on the timeline. Every layer becomes an editable box on the same open canvas - so an imported artboard is just an ordinary Design session from the first click.
 
-![Design's free canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Design's free canvas - Import a design sits in the Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 ## What you can import
 
-Several file kinds go in - a native Figma binary, a Penpot export, an Illustrator or PDF file, an InDesign markup file or **any SVG**. That last one is the wide door: SVG is a universal export (or native save) format, so almost any design app can reach Lolly through it.
+Several file kinds go in - a native Figma binary, a Penpot export, an Illustrator or PDF file, an InDesign markup file, a Photoshop document, a PowerPoint deck, a Premiere XML sequence or **any SVG**. That last one is the wide door: SVG is a universal export (or native save) format, so almost any design app can reach Lolly through it.
 
 | File | What it is |
 |---|---|
@@ -18,9 +18,12 @@ Several file kinds go in - a native Figma binary, a Penpot export, an Illustrato
 | **`.penpot` / `.zip`** | A Penpot export (its standard export bundle). |
 | **`.ai` / `.pdf`** | An Illustrator file (saved with the default *PDF-compatible* option) or any PDF. Vector paint, text and images are read straight out of the page. |
 | **`.idml`** | An InDesign layout (*File → Export → InDesign Markup*). A raw `.indd` can't be read directly - export IDML first. |
+| **`.psd` / `.psb`** | A Photoshop document. Text, shapes and paths come in editable; other layers come in as pictures at their place in the document. See [Photoshop precision and preservation](#photoshop-precision-and-preservation). |
+| **`.pptx`** | A PowerPoint deck. One slide replaces the board (a longer deck asks which), or every slide arrives as an artboard or a timed scene. |
+| **`.xml`** | A Final Cut Pro 7 XML sequence from Premiere, or a Lolly XML + media ZIP. Choose **Replace the board**; the clips open in Sequence. See [Premiere XML exchange](#premiere-xml-exchange). |
 | **`.svg`** | Any SVG - Figma and Penpot SVG exports, or hand-written markup. *Tip: for editable text from a Figma SVG, untick "Outline text" on Figma's export dialog.* |
 
-Bringing a **PowerPoint deck** instead? Decks have their own doors - file slides as assets, rebrand in place, or write a new deck in Markdown Slides. See [Decks and documents](#decks-and-documents) below.
+A **PowerPoint deck** has other doors too: file its slides as assets, move it onto your design system with Rebrand, or write a new deck in Markdown Slides. See [Decks and documents](#decks-and-documents) below.
 
 ### What each app is for
 
@@ -47,7 +50,7 @@ Select a container in Design and open **Dynamic layout** in the inspector. Choos
 
 Grid tracks accept `auto`, pixel sizes such as `120px`, fractions such as `1fr`, and percentages such as `25%`. Layers can occupy a specific row and column, span several cells, or share an occupied named area. Drag a child to change its flow order or grid cell. Hold Alt while dropping to detach the child. Spacing handles on the canvas edit padding and gaps.
 
-Native Penpot imports retain supported flex and grid rules, including nested ownership. The solver uses Penpot's modern Rust implementation. Native exports carry editable rules and membership. A group participates in its parent's layout as one item. **Fill** scales its contents with the allocated size; **Hug** fits the visible content in the group's own axes and also works outside a dynamic layout. A resize that would skew a rotated child produces a finding and leaves the document unchanged. Review those findings before continuing.
+Native Penpot imports retain supported flex and grid rules, including nested ownership. The solver follows the geometry of Penpot's current layout engine. Native exports carry editable rules and membership. A group participates in its parent's layout as one item. **Fill** scales its contents with the allocated size; **Hug** fits the visible content in the group's own axes and also works outside a dynamic layout. A resize that would skew a rotated child produces a finding and leaves the document unchanged. Review those findings before continuing.
 
 Penpot's legacy zip export stores each page as an SVG that lists its flex and grid layouts. Those pages import with every layer at the position Penpot exported, without the layout rules, and the message after the import says how many layouts came in as fixed positions. Use the native `.penpot` export to keep the rules editable. A board exported from Penpot as SVG does not list its layouts, so they cannot be detected: it imports the same way, with no message about layouts. A plain SVG never gains a layout from the way its artwork is arranged.
 
@@ -61,13 +64,13 @@ Groups appear as named containers in the layer tree. Select a group to move, rot
 
 Native Penpot document imports preserve all named pages, nested groups, group opacity and blend modes. Edit **Opacity** and **Blend mode** in a group's Appearance section; they apply to the group's combined artwork. Groups with masks, shadows or blur become an SVG asset when the importer can preserve their appearance; unsupported combinations report an error.
 
-Saved sessions, URLs, templates and `.lolly` files carry the full document. Ordinary hierarchy files require `.lolly` reader version 7; group effects and non-fixed group sizing require version 8. Document exports use every page and artboard, including empty pages; choosing a specific artboard still exports that artboard. SVG retains the group scopes. PDF pages with group opacity or blend use rasterization to preserve their appearance; disabling raster fallback refuses those pages. Native Penpot archives support up to 6,000 shapes and refuse larger documents with a clear error. The editor supports up to 20,000 layers and 256 pages, with the layer tree keeping a bounded number of rows mounted.
+Saved sessions, URLs, templates and `.lolly` files carry the full document. Ordinary hierarchy files require `.lolly` reader version 7; group effects and non-fixed group sizing require version 8. Document exports use every page and artboard, including empty pages; choosing a specific artboard still exports that artboard. SVG retains the group scopes. PDF pages with group opacity or blend use rasterization to preserve their appearance; disabling raster fallback refuses those pages. Native Penpot export supports up to 6,000 layers, including generated artboards, and refuses a larger document with a clear error. The editor supports up to 20,000 layers and 256 pages, with the layer tree keeping a bounded number of rows mounted.
 
 ## It conforms to the brand
 
 This is the point of importing rather than pasting a screenshot: the result is a **governed** layout, not a foreign artboard.
 
-- **Type remaps to the brand faces.** Imported fonts that are not already available map to your brand faces (monospace families map to the mono face, weights clamp to the cuts that exist). That's intended behaviour - the design arrives already on-brand. Add your company's typeface in **Make it yours → Type** before importing. When an SVG import substitutes fonts, its notice also offers **Add brand fonts**; use Back to return to the imported design.
+- **Type remaps to the brand faces.** Imported fonts that are not already available map to your brand faces (monospace families map to the mono face, weights clamp to the cuts that exist). That's intended behaviour - the design arrives already on-brand. Add your company's typeface in the [Brand Studio](/info/brand-studio.html)'s **Type** room before importing. When an SVG import substitutes fonts, its notice also offers **Add brand fonts**; use Back to return to the imported design.
 - **Colours are guarded.** Every imported fill passes the same colour sanitiser native boxes use; from there you can snap them to brand swatches with the normal pickers.
 - **Everything else is a normal session.** Drag, rotate, snap, group, clip; place [themable icons](/info/authoring-assets.html) and library assets; save it, share it as a URL, run it through [Batch](/info/exporting.html).
 
@@ -83,7 +86,7 @@ IDML opens every spread and its margins as artboards or scenes; single-board imp
 
 Photoshop imports admit 8-, 16- and 32-bit RGB, grayscale, CMYK and Lab. Previews use 8-bit pixels: Lab converts to sRGB and HDR clips to the display range. Unsupported text, effects and smart objects need approximation or raster layers.
 
-The CLI preserves unchanged source bytes. All 258 pinned Photoshop samples pass admission and byte-preservation checks; visual parity remains unverified.
+The CLI's `psd-preserve` writes a no-edit copy that keeps the source bytes unchanged. Visual parity with Photoshop is not verified.
 
 ```sh
 lolly adobe psd-inspect original.psd
@@ -129,8 +132,8 @@ The same files open on **Design's timeline** - and there the import means someth
 
 Two ways in:
 
-- In **Design**, open **Import a design** from the canvas menu and choose the file.
-- Drop the file anywhere on the gallery or dashboard and pick **Make a video from its frames**.
+- In **Design**, open **Import a design** from the Lolly menu, choose **As timed scenes** under **Import as**, then choose the file.
+- Drop the file anywhere on the gallery and pick **Make a video from its frames**.
 
 A deck that stays a click deck can still leave as a video. **Export slides as video** in the Present menu opens the export sheet on MP4, and the render places the slides on a timeline in order for that export only: each slide plays for its own dwell, or for the Duration in the export sheet when it has none, and the deck's slide transition plays between them as a dissolve. The document itself is not changed.
 
@@ -163,12 +166,12 @@ Import travels one direction; the **brand primitives travel both ways**. Lolly's
 ## Limits & safety
 
 - Imported SVG is treated as untrusted: scripts, event handlers and foreign objects are stripped **before** parsing, and anything flattened to disk is sanitised a second time on ingest. Nothing executes, nothing leaves the device.
-- Very large files are capped at **2,000 elements** - anything past that is dropped with a warning rather than locking the tab.
+- SVG artwork, including a Penpot export read as SVG pages, is capped at **2,000 elements** - anything past that is dropped with a warning rather than locking the tab. A Design document holds up to 20,000 layers and 256 pages, and a file over 100 MB is refused.
 - Effects outside the box model (complex blend stacks, exotic strokes) flatten into the image fallback rather than round-tripping as editable properties.
 
 ## Every format Lolly can read
 
-Design files are one way in - the table above covers them. For the complete picture, here is everything Lolly ingests. As with a design import, **every file is parsed on your device and nothing is uploaded**.
+Design files are one way in - the table above covers them. Here are the other common kinds Lolly ingests; [Every format Lolly can open and make](/info/formats.html) has the full register. As with a design import, **every file is parsed on your device and nothing is uploaded**.
 
 ### Images
 
@@ -176,7 +179,7 @@ Drop a photo or graphic into any image picker or your **My images** library.
 
 | Format | Notes |
 |---|---|
-| **`png` · `jpg`/`jpeg` · `webp`** | Decoded natively and kept **verbatim** in **My images**, so a Content Credential on the file still verifies; only a genuinely huge image prompts you to keep or resize it. Turn on *Strip metadata from uploads* in your profile to scrub EXIF/GPS on the way in. |
+| **`png` · `jpg`/`jpeg` · `webp`** | Decoded natively and kept **verbatim** in **My images**, so a Content Credential on the file still verifies; only a genuinely huge image prompts you to keep or resize it. Turn on *Strip metadata from uploads* in **Settings → Feature flags** to scrub EXIF/GPS on the way in. |
 | **`gif` · `apng` · animated `webp`** | Animated rasters are recognised and stored **verbatim** - frames intact - so they stay animated when placed. |
 | **`avif`** | Read wherever your browser decodes it natively (no bundled fallback). |
 | **`heic` / `heif`** (`.heic`, `.heif`) | iPhone photos decode even where the browser can't, via a bundled libheif fallback. |
@@ -186,7 +189,7 @@ Drop a photo or graphic into any image picker or your **My images** library.
 
 | Format | Notes |
 |---|---|
-| **`pptx`** (PowerPoint) | Three ways in, all on-device. Drop a deck on any upload surface and pick the slides you want - each becomes an SVG asset (text, shapes, images and tables drawn; charts and SmartArt as labelled placeholders) to place in a layout or grade. **Markdown Slides** writes a new branded deck from Markdown. The **Rebrand** utility re-themes a deck *without* re-authoring it: the theme palette, hardcoded colours and fonts swap to your brand while charts, SmartArt and animations pass through untouched, and you get a `.pptx` back. And dropping a `.pptx` on any upload area asks which slides to keep - each is stored as an SVG asset in your library. |
+| **`pptx`** (PowerPoint) | Several ways in, all on-device. Add a deck through any upload area, or drop it on the gallery and choose **Add slides to your library**: pick the slides you want, and each becomes an SVG asset (text, shapes, images and tables drawn; charts and SmartArt as labelled placeholders) to place in a layout or grade. **Edit in Design** opens the deck in Design with its slides editable. **Markdown Slides** writes a new branded deck from Markdown. [Rebrand](/info/rebrand.html) moves a deck onto your design system in one of two modes: **Renovate the layout** rebuilds each slide on the design system's slide master, and **Keep the design** keeps every slide where it is, swaps in your theme, colours and fonts, and gives you a `.pptx` back. |
 | **`pdf` / `.ai`** | Besides the Design import above, dropping a PDF on an upload area asks which pages to keep - each page becomes a self-contained SVG asset (vector paint, text and images preserved). |
 
 ### Data

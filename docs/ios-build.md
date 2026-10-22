@@ -6,8 +6,8 @@ web-shell source and the same `bridge-overrides/` (filesystem `state.ts`, mobile
 `capabilities-provided.ts`) as the desktop shell, wrapped in an Xcode project
 that is committed to the repository.
 
-For the cross-platform overview (CLI, desktop, Android), see
-`docs/build-guide.md`. This doc is the iOS-specific detail.
+For the cross-platform overview (CLI, desktop, Android), see the
+[Build Guide](/info/build-guide.html). This page is the iOS-specific detail.
 
 ---
 
@@ -126,7 +126,7 @@ shell's set *spread* plus `filesystem` (via `tauri-plugin-fs`) and minus
 Three capabilities are absent, and tools declaring them are greyed out in the
 gallery rather than failing at the tap:
 
-- `screen` - deliberately subtracted. Display capture is `getDisplayMedia`,
+- `screen` - removed from the set. Display capture is `getDisplayMedia`,
   which no mobile WebView implements (absent on iOS entirely; Android's WebView
   carries no picker).
 - `capture` - page capture on desktop is native headless Chrome; mobile ships no
@@ -148,8 +148,10 @@ pnpm run build:ios          # -> vite build, then tauri ios build
 ```
 
 Output is an `.ipa` under `src-tauri/gen/apple/build/`. The `vite build` step
-bundles `tools/` and `catalog/` into `dist/` first (see `vite.config.js`);
-`frontendDist` (`../dist`) points at it.
+writes `dist/` first and embeds the content catalog in that folder: by default a
+neutral seed from the `lolly-start` brand, or the selected profile's catalog with
+`LOLLY_EMBED_CATALOG=profile` (`shells/tauri-shared/vite-embed.mjs`).
+`tauri.conf.json` reads the folder as `frontendDist` (`../dist`).
 
 ### Code signing via environment variables
 
@@ -159,7 +161,7 @@ storage or the protected release environment.
 
 | Env var | Purpose |
 |---|---|
-| `APPLE_DEVELOPMENT_TEAM` | Apple Developer **Team ID** (10 chars). Required - Tauri writes it as `DEVELOPMENT_TEAM` so a signing identity is selected non-interactively. |
+| `APPLE_DEVELOPMENT_TEAM` | Apple Developer **Team ID** (10 chars). Overrides `bundle.iOS.developmentTeam` in `tauri.conf.json`; Tauri writes the team as `DEVELOPMENT_TEAM` so a signing identity is selected non-interactively. |
 | `APPLE_API_ISSUER` | App Store Connect API **issuer ID** (UUID), for CI / non-interactive signing + upload. |
 | `APPLE_API_KEY` | App Store Connect API **key ID**. |
 | `APPLE_API_KEY_PATH` | Path to the `.p8` API private key file. |
@@ -185,7 +187,7 @@ Program is needed for TestFlight / App Store.
 The compiler job installs dependencies, verifies the independently signed frontend
 and runs `tauri ios build --target aarch64 --no-sign --archive-only --ci`. It has
 no native signing environment, distribution certificate or App Store API key.
-The pinned [Tauri CLI implementation](https://github.com/tauri-apps/tauri/blob/tauri-cli-v2.12.1/crates/tauri-cli/src/mobile/ios/build.rs)
+The pinned [Tauri CLI implementation](https://github.com/tauri-apps/tauri/blob/tauri-cli-v2.12.3/crates/tauri-cli/src/mobile/ios/build.rs)
 archives without code signing and stops before IPA export for these flags.
 
 The protected `release-native-signing` job downloads the completed archive by its
@@ -244,4 +246,4 @@ iOS and Android share the mobile shell, the bridge overrides and the feature
 subset. The differences are toolchain-only: iOS requires macOS + full Xcode +
 CocoaPods and signs with an Apple Team ID / App Store Connect key; Android
 requires the Android SDK + NDK and signs with a Java keystore
-(`ANDROID_KEY_STORE*` - see `docs/build-guide.md`).
+(`ANDROID_KEY_STORE*` - see [Build the mobile apps](/info/build-mobile.html#production-build)).

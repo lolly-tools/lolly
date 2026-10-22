@@ -60,7 +60,7 @@ For tools that need a person's media or a recording before they can produce a us
 
 For transparent lettering and logos, templates can declare `galleryTheme: "light"` or `galleryTheme: "dark"`. The dark variant also serves the brand theme. Each is a real editable template, and its gallery link opens that exact variant. Omit the field when the artwork suits every theme. A tool can nominate one cover per theme; a cover without a theme applies to both.
 
-After changing a shared template, rebuild and validate both mounted profiles with
+After changing a shared template, rebuild and validate every mounted profile with
 `pnpm run build:catalog:all` and `pnpm run validate:catalog:all`.
 
 ### Templates people save
@@ -81,7 +81,7 @@ Two things follow for a tool author:
   `{ id, name, description, values }` in exactly the file format above. Put that file in
   `tools/<id>/templates/`, run `pnpm run build:catalog`, and it is a starter like the
   rest. That is the route from something one person made to something the tool ships, and
-  what a pull request against `lolly-tools` should carry.
+  what a pull request against `lolly-tools/lolly` should carry.
 
 What can be done to a template follows from who owns it. A template someone saved is
 theirs to delete. A template you ship can be hidden and restored, never deleted, whether
@@ -109,7 +109,7 @@ merged in - the rule `defaultHiddenTools` already follows. Hidden is not deleted
 template stays in the catalog, a `?template=` link still opens it, and the person can
 bring it back from the chooser's Hidden group.
 
-Both brand packs ship the key with an empty list, so there is an obvious place to add
+Every brand pack ships the key with an empty list, so there is an obvious place to add
 one. Editing it takes the usual catalog ritual: `pnpm run build:catalog:all`, then
 `pnpm run validate:catalog:all`.
 

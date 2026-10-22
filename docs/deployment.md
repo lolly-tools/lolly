@@ -5,13 +5,11 @@
 Lolly has no single deployment - it's an engine plus several shells, and you ship the ones your organisation needs. This guide covers each target: the hosted web app, the desktop/mobile apps, optional integrations and the separately deployed lolly.work organisation service.
 
 The maintained `lolly.tools` and `lolly.ing` instances use operator-managed
-UpCloud K3s releases after the 2026-10-07 cutover. Their current deployment
-handoff identifies the production host, cluster and resource owners. Use the
+UpCloud K3s releases after the 2026-10-07 cutover. Use the
 [sovereign Kubernetes profile](https://github.com/lolly-tools/lolly/tree/main/deploy/helm/profiles/sovereign)
 for that deployment type. `pnpm run gate` still validates the public content
 profile, but `pnpm run ship` refuses managed Lolly targets before building or
-uploading. Vercel remains an optional adapter for explicitly configured other
-instances; automatic Git deployment is disabled in the reference configuration.
+uploading.
 
 ## Choose a delivery model
 
@@ -21,7 +19,7 @@ The same build serves three postures - pick per team, not per organisation:
 - **Serve only** - run one hosted instance inside your network or behind a VPN; users reach it in a browser with nothing installed. Publish once, everyone updates instantly. Any static host will do, and the repo ships container images plus a Helm chart if that instance belongs on your own cluster.
 - **Hybrid** - both, pointed at the same tool library.
 
-See [Lolly for Operators](/info/operators.html) for the security rationale behind each.
+See [Threat Model](/info/threat-model.html) and [Server Surface](/info/server-surface.html) for what each posture runs and what it protects.
 
 ## Organisation services with lolly.work
 
@@ -29,13 +27,13 @@ Choose **Lolly + lolly.work** when a deployment needs organisation SSO, SCIM pro
 
 Deploy its service alongside the Lolly web build, configure the identity provider and permissions, and supply persistent database and blob storage for shared work. Server renders and batches use the same engine; browser-dependent formats need its optional render worker. The static web/MCP/CA Helm chart in this repository does not install lolly.work.
 
-Use lolly.work's [installation guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) for Compose, systemd, YunoHost and Helm, and its [deployment guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/deployment.md) for production topology, storage and backups. Review [current status](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) and [production readiness](https://github.com/lolly-tools/lolly-work/blob/main/docs/production-readiness.md) against the release you deploy. The public lolly.work site is a memory-only demonstration sandbox, not a persistent organisation deployment.
+Use lolly.work's [installation guide](/info/work-install.html) for Compose, systemd, YunoHost and Helm, and its [deployment guide](/info/work-deployment.html) for production topology, storage and backups. Review [current status](/info/work-status.html) and [production evidence](/info/work-production-readiness.html) against the release you deploy. The public lolly.work site is a memory-only demonstration sandbox, not a persistent organisation deployment.
 
 For users, link to [Use Lolly at your organisation](/info/organisation.html). For the change in data handling, read [Server Surface](/info/server-surface.html#organisation-services-with-lolly-work) and [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
 
 ### Managed enterprise identity
 
-Use Work's [Enterprise identity deployment runbook](https://github.com/lolly-tools/lolly-work/blob/main/docs/enterprise-identity.md)
+Use Work's [Enterprise identity deployment runbook](/info/work-enterprise-identity.html)
 for the exact IdP registration, admission, optional MFA assurance, SCIM mappings,
 logout acceptance checks, migrations and credential rotation. Serve the Lolly
 shell and Work on the same HTTPS origin and keep the authentication routes ahead
@@ -43,8 +41,8 @@ of any SPA fallback. Register Work's `/api/auth/callback` at the IdP; do not poi
 organisation sign-in at the Content Credentials CA.
 
 Ordinary **Sign out** ends the local browser session. **Sign out everywhere**, in
-Settings under the workspace card, ends every session the account holds on every
-device. The updated shell Profile and Work console offer a separate **Sign out of
+Settings under the **Lolly instance** card, ends every session the account holds on every
+device. The updated shell's Settings and the Work console offer a separate **Sign out of
 identity provider** action with a confirmation. Session-specific back-channel logout needs `sid` in both ID and
 logout tokens; it also revokes devices and renewals derived from that session.
 SCIM/admin suspension remains the control for all of a person's access. Linked
@@ -61,7 +59,7 @@ standalone MCP shared-secret OAuth adapter does not provide per-user Work SSO.
 ### UpCloud and Evroc
 
 Both providers have OpenTofu and Terraform foundations for an operator-managed VM.
-Start with the maintained [cloud deployment guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/cloud-deployment.md),
+Start with the maintained [cloud deployment guide](/info/work-cloud-deployment.html),
 then use the [UpCloud runbook](https://github.com/lolly-tools/lolly-work/blob/main/deploy/upcloud/README.md)
 or [Evroc runbook](https://github.com/lolly-tools/lolly-work/blob/main/deploy/evroc/README.md)
 for that provider's image, network, SSH and credential requirements. The shared
@@ -79,7 +77,7 @@ checks; a working private Work instance does not qualify that public cutover.
 
 ## The web shell
 
-The web shell is a static PWA built by Vite. Optional API services can run alongside it; [Server Surface](/info/server-surface.html) lists them and the separate lolly.work service.
+The web shell is a static PWA built by Vite. It needs a browser with WebGPU; check [Supported environments](/info/supported-environments.html) before you roll it out. Optional API services can run alongside it; [Server Surface](/info/server-surface.html) lists them and the separate lolly.work service.
 
 ```bash
 pnpm install --frozen-lockfile                 # preinstall checks at least one content profile is complete on disk
@@ -91,9 +89,9 @@ pnpm run build:web      # ONNX runtime copy, /info, per-tool + per-view OG image
 
 ### Any static host - including air-gapped
 
-The web build is plain static files, so this is the simplest and most portable path. Serve `shells/web/dist/` from any static host, CDN or an internal file server, with a single catch-all rewrite to `index.html` for client-side routing. Once loaded the PWA keeps working offline, and **Profile → Available offline** turns that from best-effort caching into a guarantee: users download the whole app, their tools, the catalogue (whole or by tag) and the docs ahead of a disconnection, with a progress bar and per-part sizes. That makes this the air-gapped path too: drop the static bundle behind your firewall (or into an MDM-delivered app) and nothing phones home. The build emits `dist/precache.json` (the app's own file inventory) and `/info/manifest.json` (the docs site's) - the download manager reads both, so keep them in the deployed bundle. If you don't need the optional services below, the catch-all and the headers in the next block are all you need.
+The web build is plain static files, so this is the simplest and most portable path. Serve `shells/web/dist/` from any static host, CDN or an internal file server, with a single catch-all rewrite to `index.html` for client-side routing. Once loaded the PWA keeps working offline, and **Settings → Available offline** turns that from best-effort caching into a guarantee: users download the whole app, their tools, the catalogue (whole or by tag) and the docs ahead of a disconnection, with a progress bar and per-part sizes. That makes this the air-gapped path too: drop the static bundle behind your firewall (or into an MDM-delivered app) and nothing phones home. The build emits `dist/precache.json` (the app's own file inventory) and `/info/manifest.json` (the docs site's) - the download manager reads both, so keep them in the deployed bundle. If you don't need the optional services below, the catch-all and the headers in the next block are all you need.
 
-**Clean routes keep their own rewrites.** Alongside the catch-all, point each clean route at the prerendered per-view HTML the build emits, so a shared link carries real OG tags instead of the generic shell: `/d` → `/view/d.html`, `/t/:id` → `/t/:id.html` and the rest of the clean routes. Two reference implementations of the same rules ship in the repo - the `rewrites` array in `vercel.json` and the `location =` blocks in `deploy/docker/nginx.conf` - and between them they carry the full current set, so copy from one of those rather than a list here. (The nginx config gets most of it from a single `try_files $uri $uri.html …` fallback; only the routes whose file name differs need naming.)
+**Clean routes keep their own rewrites.** Alongside the catch-all, point each clean route at the prerendered per-view HTML the build emits, so a shared link carries real OG tags instead of the generic shell: `/d` → `/view/d.html`, `/t/:id` → `/t/:id.html` and the rest of the clean routes. The `location` blocks in `deploy/docker/public.nginx.conf`, the public VM recipe, carry the full current set, and `tests/deployment-public-vm.test.ts` fails when one of them goes missing, so copy from that file rather than from a list here. (The nginx config gets most of it from a single `try_files $uri $uri.html …` fallback; only the routes whose file name differs need naming.)
 
 **Documentation routes come before the app fallback.** Both a public static host
 and a private Work instance serving a signed shell need the complete built
@@ -103,7 +101,7 @@ search indexes, styles, scripts, fonts and other documentation assets together.
 Missing documentation files must return 404 rather than the app's `index.html`.
 
 Preserve the `/docs` aliases and machine-readable discovery routes declared in
-`vercel.json` when configuring another host. Map `/robots.txt` to the chosen
+`deploy/docker/public.nginx.conf` when configuring another host. Map `/robots.txt` to the chosen
 deployment's crawl policy and `/sitemap.xml` to `/info/sitemap.xml`; serve the
 Markdown and discovery files with their correct content types. Check these routes
 at the candidate origin before publishing either deployment shape. Documentation
@@ -121,13 +119,13 @@ private APIs. The built pages retain their public documentation canonical URLs.
 
 The two `Cross-Origin-*` headers keep the app cross-origin isolated. Browsers give shared memory (`SharedArrayBuffer`) only to an isolated page, and some of the app's on-device models use that memory to run WebAssembly on several threads. The app still loads without the pair, so check for both headers explicitly.
 
-The CSP is the one that matters most, and not for the reason you might expect. Tool hooks run through `new Function` by design, so `script-src` keeps `'unsafe-eval'` and removing it would break shipping tools - that is a documented, accepted residual. The directive doing the actual work is `connect-src`: script that *can* execute still cannot exfiltrate to a host outside a fixed allowlist. `tests/security-headers.test.ts` pins the policy across all three copies of it in the repo and fails the build if they drift; [Threat Model](/info/threat-model.html) sets out what it does and does not contain.
+The CSP is the one that matters most, and not for the reason you might expect. Tool hooks run through `new Function` by design, so `script-src` keeps `'unsafe-eval'` and removing it would break shipping tools - that is a documented, accepted residual. The directive doing the actual work is `connect-src`: script that *can* execute still cannot exfiltrate to a host outside a fixed allowlist. `tests/security-headers.test.ts` pins the policy across the hosted configuration and the container and RPM nginx files, and fails the build if they drift; [Threat Model](/info/threat-model.html) sets out what it does and does not contain.
 
-**One path gets a second policy.** `/any-site/` serves the app shell under the same policy with one change: `frame-src` admits any `https:` page and the loopback. This is what a person's own **Allow pages from any site** setting (Profile, Trusted sites) reloads into, so Design can show pages beyond the few video and map players the base policy names. The reference deployments express the pair as two complementary rules in `vercel.json`, a second entry in the `$lolly_csp` map keyed on `$request_uri`, and `conf/any-site-headers.inc` with its own location in the YunoHost package. Serve the pair together. To withdraw the option, give `/any-site/` the base policy: the app reads the policy that path really carries, and offers the setting only where `frame-src` admits `https:`. Never leave `/any-site/` with no policy at all, because a path with no Content-Security-Policy restricts nothing and the app treats it as offered.
+**One path gets a second policy.** `/any-site/` serves the app shell under the same policy with one change: `frame-src` admits any `https:` page and the loopback. This is what a person's own **Allow pages from any site** setting (Settings, Trusted sites) reloads into, so Design can show pages beyond the few video and map players the base policy names. The reference deployments express the pair as a second entry in the `$lolly_csp` map keyed on `$request_uri` in the nginx configurations, and as `conf/any-site-headers.inc` with its own location in the YunoHost package. Serve the pair together. To withdraw the option, give `/any-site/` the base policy: the app reads the policy that path really carries, and offers the setting only where `frame-src` admits `https:`. Never leave `/any-site/` with no policy at all, because a path with no Content-Security-Policy restricts nothing and the app treats it as offered.
 
 `deploy/docker/security-headers.conf` is the copyable form - six `add_header … always` lines plus an `include` of the cache headers in `deploy/docker/delivery-headers.conf`, ready to translate into whatever your host uses. If you are serving with nginx, take the whole file rather than retyping it: nginx drops **all** inherited `add_header` directives inside any location that declares one of its own, so a location that sets `Cache-Control` silently ships with no security headers unless it re-`include`s them.
 
-**Which brand ships, and where the content comes from.** Set `LOLLY_PROFILE=<name>` on the build so the deploy carries the brand you mean rather than whichever profile the resolver would pick; a private pack that is not in the clone can never be it. `pnpm run build:web` writes a real `tools/` + `catalog/` tree into `dist/` from that profile, so the deployed site serves both paths as plain files and nothing has to resolve a profile to answer a page request. A function that *does* read tool source at request time (the `/tool/<id>.<ext>` render route below) needs the packs in its bundle and the same `LOLLY_PROFILE` in its **runtime** environment, not only in the build. See [Configuration](/info/configuration.html) for the resolver and its precedence.
+**Which brand ships, and where the content comes from.** Set `LOLLY_PROFILE=<name>` on the build so the deploy carries the brand you mean rather than whichever profile the resolver would pick; a private pack that is not in the clone can never be the one that ships. `pnpm run build:web` writes a real `tools/` + `catalog/` tree into `dist/` from that profile, so the deployed site serves both paths as plain files and nothing has to resolve a profile to answer a page request. A service that *does* read tool source at request time (the MCP service's `/tool/<id>.<ext>` render route below) needs the packs in its image and the same `LOLLY_PROFILE` in its **runtime** environment, not only in the build. See [Configuration](/info/configuration.html) for the resolver and its precedence.
 
 ### Removing a catalogue design system
 
@@ -146,15 +144,15 @@ An instance's administrator controls these files. The browser's **Remove** actio
 
 ### With the optional services
 
-To add the AI-agent (MCP) or verified-identity (CA) endpoints, deploy the two functions under `api/` (`api/mcp/**`, `api/ca/**`) to any serverless platform, or self-host `services/mcp` / `services/ca` as long-running processes. Route the app's `/api/mcp` and `/api/ca` paths to them, and keep the SPA catch-all for everything else - written to **exclude the API prefix** and listed last (`/((?!api/).*)` → `/index.html` in `vercel.json`), so it can't swallow the function routes. MCP also serves the two `/.well-known/oauth-*` discovery paths and a public `GET /tool/<id>.<ext>` render route; route those to the same function.
+To add the AI-agent (MCP), verified-identity (CA) or Penpot pass-through endpoints, run the published `lolly-mcp`, `lolly-ca` and `lolly-penpot` images described below, or self-host `services/mcp`, `services/ca` and `services/penpot` as long-running Node processes. Route the app's `/api/mcp`, `/api/ca` and `/api/penpot` paths to them, and keep the SPA catch-all for everything else - written to **exclude the API prefix** and listed last, so it can't swallow the service routes. MCP also serves the two `/.well-known/oauth-*` discovery paths, the `/api/fetch-image` pass-through behind the app's Add from URL action and a public `GET /tool/<id>.<ext>` render route; route those to the same service. `deploy/docker/public.caddy` routes all of these and is a working example.
 
 ### Container & Kubernetes
 
 The container images and the Helm chart ship in this repo, so running Lolly on your own cluster is a supported delivery model rather than a recipe to reconstruct.
 
-`deploy/docker/` holds five Dockerfiles - `web.Dockerfile`, `mcp.Dockerfile`, `mcp-browser.Dockerfile`, `ca.Dockerfile` and `penpot.Dockerfile` - each built with the **repo root** as context. From Lolly 1.1.1 public builds of all five are published at `ghcr.io/lolly-tools/lolly-web`, `lolly-mcp`, `lolly-mcp-browser`, `lolly-ca` and `lolly-penpot`, tagged with the release version, signed and attested. They carry the profile lolly.tools ships: Lolly's own demo brand `lolly-demo` from 1.1.2 and the neutral `lolly-start` in 1.1.1; the [published images guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md#published-images) shows how to verify and mirror them. The web image packages a frontend that was compiled and signed beforehand: a Node stage, with no network, verifies the signed receipt, every file and the catalog against the reviewed source commit, profile and public pin, then an `nginx-unprivileged` runtime stage (non-root, listening on 8080) serves it with the `nginx.conf` and `security-headers.conf` described above. The image build runs no compiler and receives no private key. One brand profile is fixed when the frontend is compiled, so the running container reads nothing at serve time - no pack to mount, no runtime config, no secret. The default is `lolly-start`, which ships no private SUSE pack; a `suse` frontend needs the private pack when it is compiled, and the release checks refuse missing content. The [Docker runbook](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md) describes the signing jobs and key custody. MCP installs its runtime workspace; CA and the Penpot adapter carry their own service source and run directly on Node.
+`deploy/docker/` holds five Dockerfiles - `web.Dockerfile`, `mcp.Dockerfile`, `mcp-browser.Dockerfile`, `ca.Dockerfile` and `penpot.Dockerfile` - each built with the **repo root** as context. From Lolly 1.1.1 public builds of all five are published at `ghcr.io/lolly-tools/lolly-web`, `lolly-mcp`, `lolly-mcp-browser`, `lolly-ca` and `lolly-penpot`, tagged with the release version, signed and attested. They carry the profile lolly.tools ships: Lolly's own demo brand, [Lolly Demo](/info/lolly-demo.html) (`lolly-demo`), from 1.1.2 and the neutral `lolly-start` in 1.1.1; the [published images guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md#published-images) shows how to verify and mirror them. The web image packages a frontend that was compiled and signed beforehand: a Node stage, with no network, verifies the signed receipt, every file and the catalog against the reviewed source commit, profile and public pin, then an `nginx-unprivileged` runtime stage (non-root, listening on 8080) serves it with the `nginx.conf` and `security-headers.conf` described above. The image build runs no compiler and receives no private key. One brand profile is fixed when the frontend is compiled, so the running container reads nothing at serve time - no pack to mount, no runtime config, no secret. The default is `lolly-start`, which ships no private SUSE pack; a `suse` frontend needs the private pack when it is compiled, and the release checks refuse missing content. The [Docker runbook](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md) describes the signing jobs and key custody. MCP installs its runtime workspace; CA and the Penpot adapter carry their own service source and run directly on Node.
 
-`deploy/helm/` is the chart, and one values file covers all three components. `web` is on by default: 2 stateless replicas behind a ClusterIP service, a TLS-ready ingress you enable with a hostname and `/healthz` liveness/readiness probes. `mcp` and `ca` are opt-in and disabled by default. The defaults are the secure ones - every pod runs non-root under `RuntimeDefault` seccomp with all capabilities dropped, no privilege escalation and a read-only root filesystem (writable `emptyDir`s exactly where nginx needs them), soft pod anti-affinity to spread replicas, an optional NetworkPolicy and no ServiceAccount token mounted since none of the components talk to the Kubernetes API. The CA's root key, certificate and service secret come either from a chart-managed Secret or, for production, from one you manage yourself (`ca.existingSecret`). A minimal install is one flag:
+`deploy/helm/` is the chart, and one values file covers all three components. `web` is on by default: 2 stateless replicas behind a ClusterIP service, a TLS-ready ingress you enable with a hostname and `/healthz` liveness/readiness probes. `mcp` and `ca` are opt-in and disabled by default. The defaults are the secure ones - every pod runs non-root under `RuntimeDefault` seccomp with all capabilities dropped, no privilege escalation and a read-only root filesystem (writable `emptyDir`s exactly where nginx needs them), soft pod anti-affinity to spread replicas, an optional NetworkPolicy and no ServiceAccount token mounted since none of the components talk to the Kubernetes API. The CA's root key, certificate and service secret come either from a chart-managed Secret or, for production, from one you manage yourself (`ca.existingSecret`). In the managed `vault-pki` issuer mode (`ca.config.issuerMode`) the root key stays in Vault instead and the chart refuses root key or certificate values. With Vault's Kubernetes sign-in, the CA pod is the one exception to the token rule above: it gets a ten-minute service-account token whose audience is Vault, not the Kubernetes API. A minimal install is one flag:
 
 ```bash
 helm install lolly deploy/helm --set web.image.digest=sha256:<digest>
@@ -162,7 +160,7 @@ helm install lolly deploy/helm --set web.image.digest=sha256:<digest>
 
 That pulls the published `ghcr.io/lolly-tools/lolly-web` image at the digest listed in the release's `images.json`; for an image you built, also set `web.image.repository`.
 
-The [Build Guide](/info/build-guide.html) covers building and pushing the images, the SUSE Application Collection base-image option and how to adapt the chart.
+[Build the web container and Helm chart](/info/build-kubernetes.html) covers building and pushing the images, the SUSE Application Collection base-image option and how to adapt the chart.
 
 ### K3s, RKE2 and SUSE dependency images
 
@@ -322,8 +320,8 @@ The MCP and CA services below are independently deployable. lolly.work has its o
 
 | Service | What it powers | Build | Hosting |
 |---|---|---|---|
-| **MCP server** (`services/mcp`, `api/mcp`) | The AI-agent endpoint - lets a model discover and run tools over MCP | `pnpm run build:mcp-fn` | A serverless function on any platform, or self-host `services/mcp` |
-| **CA service** (`services/ca`, `api/ca`) | Content-Credentials **identity** - issues short-lived signing certificates for verified C2PA | `pnpm run build:ca-fn` | A serverless function on any platform, or self-host; needs `services/ca/.env` |
+| **MCP server** (`services/mcp`) | The AI-agent endpoint - lets a model discover and run tools over MCP | `deploy/docker/mcp.Dockerfile`, published as `lolly-mcp` | A container, or self-host `services/mcp` as a Node process |
+| **CA service** (`services/ca`) | Content-Credentials **identity** - issues short-lived signing certificates for verified C2PA | `deploy/docker/ca.Dockerfile`, published as `lolly-ca` | A container, or self-host `services/ca` as a Node process; needs `services/ca/.env` |
 
 The CA service holds policy server-side (certificate-day limits, allowed providers) and never sees a signing key - those are generated and kept on the user's device. See [Content Credentials Identity](/info/content-credentials-identity.html) for the operator runbook (root of trust, provider setup) and [MCP Server](/info/mcp.html) for the endpoint and auth model.
 
@@ -338,8 +336,10 @@ Whoever controls the deployment can then lock a shared session in as a **templat
 For a **shared catalog** that many people sync, merge the tool into the directory your instance reads and run the catalog build; clients pick it up on next sync:
 
 ```bash
-pnpm run build:catalog     # regenerate catalog/tools/index.json, asset checksums, and the preview bundle
-pnpm run validate:catalog  # enforce schema + invariants (fails CI on drift)
+pnpm run build:catalog:all     # regenerate every mounted profile's tools/index.json, asset checksums and preview bundle
+pnpm run validate:catalog:all  # enforce schema + invariants for every mounted profile (fails on drift)
 ```
+
+The tool index is generated per brand, so a change to a tool that several profiles list needs the `:all` forms; `build:catalog` and `validate:catalog` cover only the active profile.
 
 If you want change control, manage that directory as a Git repository so tool changes get pull-request review and a full audit trail - an option, not a requirement. Which tools a given instance exposes is a [Configuration](/info/configuration.html) concern (profiles + brand packs), not a code change.

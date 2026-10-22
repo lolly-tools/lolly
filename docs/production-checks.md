@@ -123,7 +123,8 @@ For reusable Design tools, name their declared copy, number or data inputs.
 Keep layout alternatives in the tool's existing Share with rules choices and
 in the explicit repair plan. Portable `.lolly` renders retain the tool's trust,
 input and format policy checks; optional `sourceSha256` identifies the exact
-package bytes. The requirements file can be reused with each approved variant.
+package bytes. You can reuse one requirements file for every variant that keeps
+the protected inputs.
 
 These observations come from the runtime at its export boundary after export
 hooks. Chromium reports are matched to the exact downloaded bytes; Work signs
@@ -285,7 +286,7 @@ files explicitly.
 MCP `lolly_inspect` accepts `file`, `production` and optional base64
 `productionReference`. `lolly_render` accepts the same contract and reference;
 its shared render core enforces the requirement even for direct callers. Failure
-responses retain the report. The browser's Verify view has a Production checks
+responses retain the report. The browser's Verify view has a **Production policy**
 panel for a requirements file and optional reference. SVG inspection never
 mounts document code or fetches linked resources.
 

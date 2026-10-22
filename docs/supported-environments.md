@@ -4,8 +4,8 @@ The current web shell needs WebGPU to start. Use HTTPS, or a local development
 server on `localhost`, and a browser that can create a WebGPU adapter and device.
 If that check fails, Lolly explains the requirement before opening a tool.
 
-The web-only release approved on 9 October 2026 uses the completed Mac browser
-checks below. These are results on **macOS 27, Apple M4**, with the browser's
+Web releases since 9 October 2026, including 1.1.2 on lolly.tools, rely on the
+completed Mac browser checks below. These are results on **macOS 27, Apple M4**, with the browser's
 default adapter and graphics settings. They do not establish support for the
 same browsers on Windows, Linux, Android, iOS, Intel Macs or other GPUs.
 

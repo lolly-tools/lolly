@@ -1,6 +1,6 @@
 # Authoring Assets
 
-Assets are global, versioned, brand-controlled resources tools draw from. Logos and mascots, palettes, design tokens, event tiles, fonts, music beds and video b-roll. The authoritative list of asset types is the `type` enum in `schemas/asset.schema.json`: `vector | raster | video | audio | lottie | palette | tokens | font`.
+Assets are global, versioned, brand-controlled resources tools draw from. Logos and mascots, palettes, design tokens, event tiles, fonts, music beds and video b-roll. The authoritative list of asset types is the `type` enum in `schemas/asset.schema.json`: `vector | raster | video | audio | lottie | model | lut | palette | tokens | font | profile | ratecard | text | data`.
 
 Those types are what the filter row in Assets is built from, and it only offers the buckets the library actually holds, so a library of audio and tokens shows fewer pills than a library of logos and photos.
 
@@ -40,10 +40,10 @@ catalog/assets/
 Example:
 
 ```
-catalog/assets/suse/logo/primary.svg
-catalog/assets/suse/logo/primary.png
-catalog/assets/suse/palette/brand-core.json
-catalog/assets/event/kubecon-2026/badge.svg
+catalog/assets/lolly/logo/primary.svg
+catalog/assets/lolly/logo/reverse.svg
+catalog/assets/lolly/palette/riso-inks.json
+catalog/assets/lolly/tokens/demo.json
 ```
 
 ## The asset entry (in `index.json`)
@@ -52,23 +52,25 @@ Validated against `schemas/asset.schema.json`.
 
 ```json
 {
-  "id": "suse/logo/primary",
-  "name": "SUSE Primary Logo",
+  "id": "lolly/logo/primary",
+  "name": "Lolly Mark - Primary",
   "type": "vector",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "tier": "core",
-  "tags": ["logo", "official", "centermark"],
+  "tags": ["logo", "lolly", "mark", "primary"],
   "formats": [
     {
       "format": "svg",
-      "url": "/catalog/assets/suse/logo/primary.svg",
+      "url": "/catalog/assets/lolly/logo/primary.svg",
       "checksum": "sha256-...",
-      "size": 2048
+      "size": 19263
     }
   ],
   "license": "internal"
 }
 ```
+
+Other fields: `description`; `added`, the date the file entered its pack, which `build:catalog` stamps from git history (never write it by hand); `meta`, type-specific facts a shell needs before it downloads the bytes, such as an emoji pack's glyph count; `prefetch` (see Tiers); the rights fields below; and, on a tokens asset only, `brandLock`. `brandLock: true` makes that design system authoritative: the app uses its colours and fonts, ignores any brand the person installed, and turns off brand customisation.
 
 Each entry becomes one tile in Assets, grouped by what its tags say it is. A pack of audio beds and token documents appears under **More**; logos, backgrounds and icons get their own sections once the tags are there.
 
@@ -80,6 +82,17 @@ Each entry becomes one tile in Assets, grouped by what its tags say it is. A pac
 - **Bump `version` on every byte change.** Tools cache by id+version. Forgetting to bump means stale bytes everywhere.
 - **Always include a `checksum`.** SRI-format SHA-256. End-to-end integrity check, prevents CDN poisoning.
 - **Deprecate, don't delete.** Set `"deprecated": true` and optionally `"replacedBy": "new/asset/id"`. Existing references continue to resolve - a deprecated asset's own bytes keep loading forever, and `replacedBy` is curation metadata for people and catalog UI, **never a runtime redirect**: `get(id)` always returns the original asset, so a link or saved session that points at it renders exactly what it always did. (The chain is validated at build time - it must point at a real, non-deprecated asset - but nothing follows it on resolve.)
+
+## Rights and credits
+
+Record where each asset comes from. A missing record means "not recorded", never permission.
+
+- `license` - the declared licence, such as `cc-by-4.0` or `all-rights-reserved`.
+- `attribution` - the human-readable credit a licence requires, shown in the asset details.
+- `rights` - a structured creative-rights record (`CreativeWorkRecordV1` in `@lolly-tools/core`), kept beside the `license` and `attribution` strings.
+- `aiGenerated` - `full` or `partial` for an asset made wholly or partly with a generative model; Assets then shows a GEN AI label. Omit it for human-made work.
+
+A `.lolly` pack holds back catalog files whose licence is unrecorded or not yet interpreted, unless the sender chooses to include them, so record `license` and `rights` on anything meant to travel. See [Creative rights and credits](/info/creative-rights.html).
 
 ## Tiers
 
@@ -97,15 +110,15 @@ Locale-specific format variants go under `locales`:
 
 ```json
 {
-  "id": "suse/wordmark/horizontal",
+  "id": "lolly/logo/horizontal",
   "version": "1.0.0",
   "tier": "core",
   "formats": [
-    { "format": "svg", "url": "/catalog/assets/suse/wordmark/horizontal.svg", "checksum": "sha256-..." }
+    { "format": "svg", "url": "/catalog/assets/lolly/logo/horizontal.svg", "checksum": "sha256-..." }
   ],
   "locales": {
     "ja": [
-      { "format": "svg", "url": "/catalog/assets/suse/wordmark/horizontal-ja.svg", "checksum": "sha256-..." }
+      { "format": "svg", "url": "/catalog/assets/lolly/logo/horizontal-ja.svg", "checksum": "sha256-..." }
     ]
   }
 }
@@ -119,9 +132,9 @@ Palettes are a special asset type whose payload is JSON, not an image:
 
 ```json
 {
-  "name": "SUSE Brand Core",
+  "name": "Riso Ink Colours",
   "swatches": [
-    { "name": "Jungle", "hex": "#0C322C", "rgb": "...", "hsl": "..." },
+    { "id": "black", "label": "Black", "hex": "#000000" },
     ...
   ]
 }
@@ -133,7 +146,7 @@ A palette asset is what the Swatches section in Assets renders: every ramp step 
 
 Tools reference palette swatches through `host.assets.get(id)` → `ref.meta.swatches`. Note this is wired up in the **CLI shell** today (its bridge parses the palette JSON and spreads `swatches` into `meta`); the web shell's assets bridge does not yet populate `meta.swatches`, so don't rely on it cross-shell.
 
-The `color` input type also accepts a `palette` field (schema-valid, mapped to a `palette-picker` control in `engine/src/inputs.ts`), but the web shell currently renders that control as a **stub**. For a working brand-restricted picker today, use a `color` input with `"swatchesOnly": true` - it renders the real brand swatch picker (no hex/native/alpha).
+A `color` input's `palette` and `swatchesOnly` fields are covered on [Tool inputs](/info/tool-inputs.html#input-types).
 
 ## Themable two-colour icons
 
@@ -147,28 +160,24 @@ An icon tagged `themable` is an SVG that expresses its two colours only as class
 </svg>
 ```
 
-- `.c1` is the **accent**, `.c2` the **base**. The defaults (jungle on pine) are plain class rules, so inlining the SVG lets a page or tool override them - `.c1 { fill: … !important }` wins by design.
-- The colour pairings the picker offers come from a palette-type asset tagged `icon-themes` (`suse/palette/icon-themes`); its first pairing must match the defaults baked into the icons.
-- A non-default pairing chosen in the picker travels **inside the asset id** - `suse/icons/ai?theme=ocean` - because an asset value persists as its id alone (URL mode). Both shell bridges parse that suffix (`parseThemedAssetId`) and bake the pairing at resolve time (`applyIconTheme`: style block removed, fills inlined as attributes) so two differently-themed copies never fight over class rules inside one exported SVG/PDF.
+- `.c1` is the **accent**, `.c2` the **base**. The defaults are plain class rules, so inlining the SVG lets a page or tool override them - `.c1 { fill: … !important }` wins by design.
+- The colour pairings the picker offers come from a palette-type asset tagged `icon-themes` (`lolly/palette/opal-icon-themes` in the Lolly Demo pack); its first pairing must match the defaults baked into the icons.
+- A non-default pairing chosen in the picker travels **inside the asset id** - `example/icons/chat?theme=green` - because an asset value persists as its id alone (URL mode). Both shell bridges parse that suffix (`parseThemedAssetId`) and bake the pairing at resolve time (`applyIconTheme`: style block removed, fills inlined as attributes) so two differently-themed copies never fight over class rules inside one exported SVG/PDF.
 - The validator enforces the contract for every `themable`-tagged SVG (exactly one default style block; classes limited to `c1`/`c2`; no inline styles or strokes).
 
 ## Design tokens
 
-`type: "tokens"` is a DTCG (Design Tokens Community Group) JSON document - the canonical brand-color source. The core asset `suse/tokens/brand` feeds the color picker's swatches and the defaults for brand-bound inputs. Beyond the normal asset checks, the validator runs a dedicated DTCG-structure validation against `schemas/tokens.schema.json` (`scripts/validate-catalog.ts`). See [Design tokens](/info/design-tokens.html) for the token model and how palettes relate.
+`type: "tokens"` is a DTCG (Design Tokens Community Group) JSON document - the canonical brand-color source. The tokens asset that the index names in its top-level `brandTokens` key (`lolly/tokens/demo` in the Lolly Demo pack) feeds the colour picker's swatches and the defaults for brand-bound inputs. Beyond the normal asset checks, the validator runs a dedicated DTCG-structure validation against `schemas/tokens.schema.json` (`scripts/validate-catalog.ts`). See [Design tokens](/info/design-tokens.html) for the token model and how palettes relate.
 
 ## Fonts
 
-`font` is a valid asset type, but the shared SUSE typefaces don't live in the asset index - they ship as static files under `catalog/fonts/`, a sibling of `catalog/assets/`:
+`font` is a valid asset type, but most fonts do not go through the asset index:
 
-```
-catalog/fonts/
-├── variable/    # variable TTFs (SUSE[wght].ttf, SUSEMono[wght].ttf, + italic axes)
-├── webfonts/    # woff2 - the variable fonts plus per-weight statics
-├── ttf/         # static TTFs
-└── otf/         # static OTFs
-```
+- **Platform faces.** The shell serves SUSE and SUSE Mono (variable, upright and italic, SIL OFL 1.1) and Outfit from `/fonts/` on every brand pack (`shells/web/src/styles/fonts.css`). They are the defaults when a design system sets no font.
+- **A design system's fonts.** The tokens document gives the families in `font.brand` and `font.mono`, and the app and the community tools follow them through `var(--font-brand)` and `var(--font-mono)`. A brand pack can also ship font files under `catalog/fonts/`, a sibling of `catalog/assets/`. Those are plain static files, so they aren't versioned or checksummed through `index.json` the way catalog entries are.
+- **A person's own fonts.** Fonts uploaded in the brand editor's Fonts panel, and Google Fonts fetched once, stay on the device as user font assets.
 
-The web shell loads them via `@font-face` (`shells/web/src/styles/fonts.css`, with the variable woff2 preloaded from `index.html`); tool templates reference the same `/catalog/fonts/...` URLs directly. The text-to-path step (`host.text`, used when a vector export outlines its text) reads the static TTFs from `catalog/fonts/ttf/`. Because they're plain static files, they aren't versioned or checksummed through `index.json` the way catalog entries are.
+When a vector export outlines its text (`host.text`), the shell looks for a font file in that order: the brand pack's own files, then the person's fonts, then the platform faces.
 
 ## Workflow
 
@@ -179,16 +188,16 @@ The web shell loads them via `@font-face` (`shells/web/src/styles/fonts.css`, wi
    SHA-256 (SRI) and byte size for every asset format and writes them into the
    index. `pnpm run validate:catalog` then verifies every checksum against the
    bytes on disk.
-4. PR review. Approval = brand approval.
+4. If your organisation reviews brand assets, a pull request can carry that review.
 5. Merge → build catalog → deploy. Clients pick it up at next sync.
 
-This git-reviewed flow is for a **shared, governed catalog** - the model where a whole organisation syncs one asset library and wants every change to carry PR review as brand approval. It's an *option for that case*, not how the app works day to day.
+This git-reviewed flow is for a **shared, governed catalog**, where an organisation syncs one asset library and wants each change reviewed in a pull request. It's an *option for that case*, not how the app works day to day.
 
 Most people never touch it: in the open app you **ingest your own creative files straight into Assets** - drag them onto [Assets](/info/using.html#assets-your-library) or the Brand Studio's Files room, and they're instantly available in every tool's asset picker, on your device. **Add from URL** takes the same files by web address instead: paste an image link (or a Lolly tool link, which renders on your device) in the uploads section of Assets or a tool's asset picker, and it is added to your uploads the same way. Because the web app is only allowed to fetch from its own origin, a remote image is fetched for you by a small pass-through on the app's own origin; the desktop apps fetch it directly. Nothing is stored but the image, and the [privacy policy](/info/privacy.html) covers it in its own words.
 
 ![The Brand Studio's Files room - a drop area and the assets already ingested, the no-git route into the same picker every tool reads](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dcatalogue&width=1440&height=900&dpi=192&waitMs=2000&css=.start-head%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.be-cat&dark=1&filename=at2-brand-catalogue-tab)
 
-Those user assets live under the `user/` namespace and do not automatically enter a shared catalog. A repository-managed shared library uses the git route above. For an organisation-managed library, optional **lolly.work** also supports uploads, metadata, collections, versions and approval workflows, and can federate assets from existing storage or DAM services. Follow its [catalog guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/catalog.md); provider-backed assets remain governed by their source. See [Use Lolly at your organisation](/info/organisation.html) for the user-facing distinction.
+Those user assets live under the `user/` namespace and do not automatically enter a shared catalog. A repository-managed shared library uses the git route above. For an organisation-managed library, optional **Lolly Work** also supports uploads, metadata, collections, versions and approval workflows, and can federate assets from existing storage or DAM services. Follow its [catalog guide](/info/work-catalog.html); provider-backed assets remain governed by their source. See [Use Lolly at your organisation](/info/organisation.html) for the user-facing distinction.
 
 ![The Your uploads section in Assets - a drop area that takes files straight from your device into every tool's picker](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dyour-uploads&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&cropSelector=.cat-group--uploads&dark=1&filename=auth-assets-uploads)
 

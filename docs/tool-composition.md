@@ -23,7 +23,7 @@ A tool can embed **another tool's rendered output** as an image instead of re-im
 
 - Each entry renders `tool` with `inputs` and exposes the result under `id` as an `{{asset <id>}}` extra (the same store hook-computed values use).
 - String `inputs` values are **Handlebars**, hydrated against your tool's own context (its input values + extras), so a child input can bind to a parent value - e.g. `"url": "{{url}}"`.
-- `format` (defaults to the child tool's first declared format, `render.formats[0]`) fixes the child render; `width`/`height` (px) default to the child's native size. **Compose any tool's render: an `svg` child stays a true vector when the parent exports to SVG or PDF and rasterises crisply for PNG; raster children (`png`, `jpg`/`jpeg`, `webp`) embed as images.** `svg` is the only format wired declaratively today (`event-name-badge` composes `qr-code` as `svg`) and is the best-supported. The enum also lists `pdf`, but a **PDF child is not supported as a source** - nothing inlines a PDF blob, so don't set `format: "pdf"`. HTML / Markdown / plain-text composition is **not** supported.
+- `format` (defaults to the child tool's first declared format, `render.formats[0]`) fixes the child render; `width`/`height` (px) default to the child's native size. **Compose any tool's render: an `svg` child stays a true vector when the parent exports to SVG or PDF and rasterises crisply for PNG; raster children (`png`, `jpg`/`jpeg`, `webp`) embed as images.** `svg` is the best-supported format. No public tool declares `composes` yet, so the example above is the starting point. The enum also lists `pdf`, but a **PDF child is not supported as a source** - nothing inlines a PDF blob, so don't set `format: "pdf"`. HTML / Markdown / plain-text composition is **not** supported.
 - The composed value is a **normal asset URL**, so it works in a CSS `url()` background just as well as in an `<img src>` - bring another tool in exactly like a library image.
 - The child renders through the **same engine path** (pixel-identical) and is never watermarked or provenance-stamped (it's an intermediate). Recursion is **depth- and cycle-guarded**: `a → b → a` fails gracefully and the slot stays empty, so always `{{#if}}`-guard the reference.
 - Works wherever the shell can render the child to bytes; the lean CLI composes `svg` children. The mechanism is `host.compose` - see [Host API](/info/host-api.html).
@@ -35,21 +35,16 @@ Nesting is capped at **3 levels** - a tool composing a tool composing a tool. A 
 
 ## Brand logo (auto-switching)
 
-The catalog ships the SUSE logo as **8 variants** under `suse/logo/` - `{hor|vert}-{neg|pos}-{green|white|black}` (`hor`/`vert` = wide vs stacked; `neg` = for **dark** backgrounds, `pos` = for **light**; `green` is the brand mark, `white`/`black` are the high-contrast mono pair). A tool shouldn't hard-code one - it should pick the variant that fits the current background and space, and use the **actual SVG image** (this is distinct from `brand-lockup`, which renders the wordmark from the SUSE font, outlined via HarfBuzz `host.text`).
+A tool shouldn't hard-code one logo file. A design system lists its logos as token slots under `asset.logo`: `horizontal-` (wide) or `vertical-` (stacked), then `primary` or `mono`, with `-reverse` added for a dark background. In the Lolly Demo design system, `{asset.logo.vertical-primary}` resolves to `lolly/logo/primary` and `{asset.logo.vertical-primary-reverse}` to `lolly/logo/reverse`. A hook picks the slot that fits the background and the space, resolves it to an asset id with `host.tokens.resolve()`, and fetches the **actual SVG image** with `host.assets.get()`, so the same tool shows the right logo on any design system that fills those slots.
 
-The pattern: a hook chooses the id, resolves it with `host.assets.get()` and hands the template a ready `<image>`/`<img>`:
+The shared helper `resolveBrandLogo(dark, mono)` in `community/_shared/brand-logo.js` does this, and tries the other orientation and treatment when a slot is empty:
 
 ```js
-// hooks.js - WCAG luminance decides neg/pos; orientation + ink come from inputs.
-function logoId(inputs) {
-  const dark   = relLuminance(inputs.background) < 0.5;   // dark bg → neg
-  const orient = inputs.orientation === 'vertical' ? 'vert' : 'hor';
-  const ink    = inputs.ink === 'mono' ? (dark ? 'white' : 'black') : 'green';
-  return `suse/logo/${orient}-${dark ? 'neg' : 'pos'}-${ink}`;
-}
+// hooks.js - WCAG luminance decides the reverse slot; the ink comes from an input.
 async function onInit({ model }) {
   const inputs = Object.fromEntries(model.map(i => [i.id, i.value]));
-  return { logo: await host.assets.get(logoId(inputs)) }; // → extras.logo (an AssetRef)
+  const dark = relLuminance(inputs.background) < 0.5;   // dark bg → a -reverse slot
+  return { logo: await resolveBrandLogo(dark, inputs.ink === 'mono') }; // → extras.logo (an AssetRef, or null)
 }
 ```
 
@@ -60,7 +55,7 @@ async function onInit({ model }) {
 {{#if logo}}<img src="{{asset logo}}" alt="Logo">{{/if}}
 ```
 
-Putting the `<image>` inside an `<svg>` lets the export inline it (data-URI) and emit **true vector SVG**; an `<img>` in an HTML canvas exports raster/PDF only. `tools/tool-logo/` is the reference implementation (background colour, orientation, brand/mono, transparent-bg export). Reusing this in another org: keep the structure and swap the `suse/logo/...` id prefix for your own logo namespace (same variant matrix).
+Putting the `<image>` inside an `<svg>` lets the export inline it (data-URI) and emit **true vector SVG**; an `<img>` in an HTML canvas exports raster/PDF only. `certificate`, `stationery` and `link-card` use the helper. Copy it into your own hooks with the shared-region markers and `pnpm run sync:shared` (see [Shared helper regions](/info/tool-hooks.html#shared-helper-regions-community-shared)).
 
 ## Brand overlays (`extends`)
 

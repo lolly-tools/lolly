@@ -204,6 +204,7 @@ The story above had room for only some of the names. Here are the rest, grouped 
 - **[SmolLM2](https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct)** (Hugging Face), on-device rewording.
 - **[U2-Net](https://github.com/xuebinqin/U-2-Net)** (Xuebin Qin and colleagues) and **[MODNet](https://github.com/ZHKKKe/MODNet)** (Zhanghan Ke), background removal, general and portrait.
 - **[PP-OCRv5](https://github.com/PaddlePaddle/PaddleOCR)** (PaddlePaddle), reading text out of images.
+- **[Depth Anything V2](https://github.com/DepthAnything/Depth-Anything-V2)** Small (Lihe Yang and colleagues), the depth estimate behind the Spatial Photo tool.
 - **[Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN)** (Xintao Wang) with **[GFPGAN](https://github.com/TencentARC/GFPGAN)** (Tencent ARC) and **BlazeFace** (Google), upscaling and face restoration.
 - **[TrustMark](https://github.com/adobe/trustmark)** (Adobe), the deep scan for invisible watermarks in Verify.
 - An AI-text detector fine-tuned on e5-small by May Zhou.

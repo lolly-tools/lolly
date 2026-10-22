@@ -78,12 +78,14 @@ test('a file tile points at a stable lolli.li alias, a guide tile at a real head
   }
 });
 
-test('the iPhone and iPad tile offers no download', () => {
-  // No signed iOS build is published (docs/install.md, "iPhone and iPad"), so
-  // the tile opens that section and claims no file and no store listing.
+test('the iPhone and iPad tile points at the App Store section, not a file', () => {
+  // iPhone and iPad get the app from the App Store (docs/install.md, "iPhone
+  // and iPad"), so the tile opens that section, names the store and offers no
+  // file of its own: the store signs and updates the app.
   const ios = tiles.find((t) => t.id === 'ios');
   assert.ok(ios, 'the apps row has an iPhone and iPad tile');
   assert.equal(ios.file, undefined);
   assert.equal(ios.hash, 'iphone-and-ipad');
-  assert.ok(!/app store/i.test(JSON.stringify(downloads)), 'the rail must not mention an App Store listing');
+  assert.match(ios.note, /app store/i, 'the tile names the App Store');
+  assert.match(read('docs/install.md'), /apps\.apple\.com\/app\/id\d+/, 'the install page links the App Store listing');
 });

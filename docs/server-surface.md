@@ -11,8 +11,8 @@ The web app is a static PWA. A deployment can serve those files alone, add selec
 | Component | Route | Purpose | Optional? |
 |---|---|---|---|
 | Web shell | `/` (static files) | The app itself, served once, runs on-device | The app *is* this |
-| MCP endpoint | `/api/mcp` (and the hosted `mcp.lolly.tools`) | Lets AI agents discover and render tools over [MCP](https://modelcontextprotocol.io) | Yes - remove it and the app is unaffected |
-| Hot-link render | `GET /tool/<id>.<ext>` (part of the MCP function) | Renders a public catalogue tool from a plain URL - **public, unauthenticated by design** (public tool + catalogue data only, no Content Credentials) | Yes - **live on lolly.tools**; an operator switches it off with `LOLLY_DISABLE_RENDER_GET=1` (returns 404) |
+| MCP endpoint | `/api/mcp` (the hosted endpoints are listed on [MCP Server](/info/mcp.html)) | Lets AI agents discover and render tools over [MCP](https://modelcontextprotocol.io) | Yes - remove it and the app is unaffected |
+| Hot-link render | `GET /tool/<id>.<ext>` (part of the MCP function) | Renders a public catalogue tool from a plain URL - **public, unauthenticated by design** (public tool + catalogue data only, no Content Credentials) | Yes - on by default; an operator switches it off with `LOLLY_DISABLE_RENDER_GET=1` (returns 404) |
 | MCP OAuth | Discovery at `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource`, plus the flow itself: `POST …/register`, `…/authorize`, `…/token` and a `GET …/authorize` consent page (all part of the MCP function) | Standard OAuth 2.1 registration, authorization and token exchange for MCP connectors | Removed with the MCP endpoint |
 | MCP private files | `GET /api/mcp/files/<id>` and the `files_*` tools (part of the MCP function) | Holds a caller's imported and converted files, and any tool result over 1 MiB, in a private temporary directory, bound to that caller's bearer token. Results expire after five minutes, imported files after one hour, and a restart discards both | Yes - off by default; an operator turns it on with `LOLLY_MCP_PRIVATE_FILES=1` on a single-process gateway with an access token, and an anonymous endpoint never offers it |
 | Agent invitation relay | `POST /api/mcp/agents` (part of the MCP function), plus `/live/invitations`, `/live/rpc`, `/live/mcp` and the `/live/editor` WebSocket on a long-lived relay process | Lets an AI agent the person invites from **Share > Invite an agent** read one open document, and change it when the invitation allows editing. Reads, previews and edits pass between the agent and the person's open editor tab. The relay keeps invitations and pending calls in memory only: an unused invitation ends after ten minutes, a joined one after thirty minutes without activity | Yes - the `/live/*` routes run only on a long-lived process, never in the serverless function; `LOLLY_DISABLE_AGENT_CONNECTOR=1` turns off `/api/mcp/agents` |
@@ -31,26 +31,29 @@ The web app is a static PWA. A deployment can serve those files alone, add selec
 `lolly_compile`, `lolly_diff`, `lolly_inspect`, `lolly_measure`,
 `lolly_package`, `lolly_compose`, `lolly_inspect_tokens`, `lolly_look`,
 `lolly_sample_color`, `lolly_trace_edges`) so an
-AI agent can produce finished, rule-bound assets. The serverless tier renders
-browser-free formats.
-The full endpoint at `mcp.lolly.tools` drives a headless browser for
-raster/PDF/animation/video.
+AI agent can produce finished, rule-bound assets. Without a browser it renders
+the formats that need none. A deployment that adds the optional browser image
+drives a headless browser for raster, PDF, animation and video.
+[MCP Server](/info/mcp.html) lists the hosted endpoints and what each produces.
 
 **Authentication.** By default, MCP tool calls require OAuth 2.1 (as an MCP
-connector) or a bearer access token held by the operator. Two deliberate
-exceptions: the hot-link render route `GET /tool/<id>.<ext>` is public and
+connector) or a bearer access token held by the operator. Two exceptions, both
+by design: the hot-link render route `GET /tool/<id>.<ext>` is public and
 unauthenticated (it serves only public tool + catalogue data, never signs
 output and can be disabled with `LOLLY_DISABLE_RENDER_GET=1`), and an operator
 can open the whole endpoint with `LOLLY_MCP_ALLOW_ANONYMOUS=1` (off by
-default). lolly.tools opens `lolly.tools/api/mcp` this way; `mcp.lolly.tools`
-keeps the token. An open endpoint serves no OAuth routes, limits calls by the
+default). [MCP Server](/info/mcp.html) says which hosted endpoints are open. An
+open endpoint serves no OAuth routes, limits calls by the
 caller's address and stops for the rest of the UTC day once its daily CPU and
 data-transfer budget is spent.
 
-**What it stores.** Nothing persistent. The endpoint processes each request and
+**What it stores.** No content. The endpoint processes each request and
 returns the rendered bytes. There is no user database and no stored render
-history. Operational logging is the platform's function logging, covered by
-the [Privacy Policy](/info/privacy.html).
+history. Rate limits and the daily budget keep counters in a Redis-compatible
+store when the operator configures one: a SHA-256 digest of each caller's
+address or token per time window, and the day's CPU and byte totals. Operational
+logging is the host's process logging, covered by the
+[Privacy Policy](/info/privacy.html).
 
 **Some tools take a file.** `lolly_transform` (run an on-device utility on the
 caller's behalf), `lolly_redact` (destroy regions of an image, SVG or PDF),
@@ -126,9 +129,9 @@ archive into one of them. Penpot's API answers a browser's cross-origin
 preflight with a 401 and no CORS headers, so the web app cannot call it
 directly. This function forwards exactly those two commands to
 `https://design.penpot.app/api/rpc/command/` and returns the answer. The
-desktop apps call Penpot directly and never touch it.
+desktop apps call Penpot directly and never use this function.
 
-**What passes through it.** The user's own Penpot personal access token
+**What passes through the function.** The user's own Penpot personal access token
 (entered in the app, sent as `Authorization: Token …`) and, for an import, the
 archive being sent. Both are forwarded verbatim and discarded with the
 request; the function keeps no store and no credential. Beyond the platform's
@@ -149,13 +152,13 @@ The app's integration lives in `shells/web/src/org/`. On a standalone deployment
 
 **What it stores.** Unlike the stateless MCP endpoint, a persistent lolly.work deployment holds organisation accounts and memberships, shared sessions, uploaded assets and their versions, approval and delivery records, render requests and retained outputs, plus audit records and any enabled usage telemetry. The operator configures its database, blob storage, retention and backups. Federation also contacts the asset providers that operator configured.
 
-**Rendering and delivery.** Local app exports still use the on-device engine. Requests to `/api/v1/renders` and `/api/v1/render-batches` run on the organisation's server, retain outputs and support status, retry and cancellation. Formats needing a browser require the render worker. Governed delivery sends approved staged bytes to configured destinations. These operations deliberately send content to the service.
+**Rendering and delivery.** Local app exports still use the on-device engine. Requests to `/api/v1/renders` and `/api/v1/render-batches` run on the organisation's server, retain outputs and support status, retry and cancellation. Formats needing a browser require the render worker. Governed delivery sends approved staged bytes to configured destinations. These operations send content to the service by design.
 
 **Telemetry and audit.** The service supports `off`, `aggregate` and `standard` usage reporting. Event attributes are allowlisted labels, not tool input values. At `standard`, attribution defaults to requiring consent; an operator can configure attributed reporting instead. The hash-chained audit log is a separate record of governed actions and is not disabled by telemetry opt-out. See [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
 
 **If it is unavailable**, new sign-ins, shared saves, work collabs, server jobs and delivery cannot complete. Prepared local workflows remain on-device, subject to the instance's access policy. Do not assume that cached content is recalled immediately when a policy changes. The community app's **Settings → Lolly instance → Leave** removes its instance connection and managed content, while personal work stays; it does not erase server records. An operator needing a client that cannot leave must distribute its own client.
 
-Full references: lolly.work's [API](https://github.com/lolly-tools/lolly-work/blob/main/docs/api.md), [security boundaries](https://github.com/lolly-tools/lolly-work/blob/main/docs/security-platform.md), [data lifecycle](https://github.com/lolly-tools/lolly-work/blob/main/docs/data-lifecycle.md) and [current status](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md). The public lolly.work sandbox uses memory-only demo state; persistent organisation deployments need their own storage.
+Full references: lolly.work's [API](/info/work-api.html), [security boundaries](/info/work-security-platform.html), [data lifecycle](/info/work-data-lifecycle.html) and [current status](/info/work-status.html). The public lolly.work sandbox uses memory-only demo state; persistent organisation deployments need their own storage.
 
 ## What stays local
 

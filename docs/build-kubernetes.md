@@ -8,11 +8,11 @@ Part of [Build Guide](/info/build-guide.html).
 
 ## Web shell on Kubernetes (Helm)
 
-The web shell is a **static site** - a build produces a `dist/` folder of HTML, CSS, JS, the service worker, the HarfBuzz WASM, fonts, the bundled tool catalog and the `/info` site. Anything that can serve static files can host it. To run it **inside your own Kubernetes cluster** - air-gapped, on-prem or alongside the rest of your platform - the artefacts ship in this repo: `deploy/docker/` bakes `dist/` into an <!--l:nginx-->nginx image, and `deploy/helm/` deploys it. This section is what those files do and how to adapt them; [Deployment](/info/deployment.html) is where each piece runs.
+The web shell is a **static site** - a build produces a `dist/` folder of HTML, CSS, JS, the service worker, the HarfBuzz WASM, fonts, the bundled tool catalog and the `/info` site. Any static file server can host that folder. To run the web app **inside your own Kubernetes cluster** - air-gapped, on-prem or alongside the rest of your platform - the artefacts ship in this repo: `deploy/docker/` bakes `dist/` into an <!--l:nginx-->nginx image, and `deploy/helm/` deploys that image. This section is what those files do and how to adapt them; [Deployment](/info/deployment.html) is where each piece runs.
 
 Nothing in the chart is specific to one cluster: it is plain Kubernetes, so it deploys on any conformant distribution - including SUSE's own RKE2 and <!--l:k3s-->k3s - and on any managed service.
 
-> **The chart is shipped, and from Lolly 1.1.1 so are the public images.** `deploy/helm/` is a real chart with three components - `web` (the PWA, on by default), `mcp` and `ca` (both opt-in) - one `values.yaml` you edit and secure defaults on every pod. Its default repositories are the published `ghcr.io/lolly-tools/lolly-web`, `lolly-mcp` and `lolly-ca` images: `linux/amd64`, signed and attested, tagged with the release version, and built with the profile lolly.tools ships (Lolly's own demo brand `lolly-demo` from 1.1.2, the neutral `lolly-start` in 1.1.1). The [published images guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md#published-images) lists every repository and shows how to verify, mirror and pin a digest. Build your own images, as below, for another brand profile, your own signing key or another base image. There is no hosted Lolly chart repository, so you install from a checkout of this repo, and the SUSE Application Collection carries no Lolly chart of its own. Where a curated image or chart *does* exist there - the nginx runtime base, cert-manager - this section prefers it.
+> **The chart is shipped, and from Lolly 1.1.1 so are the public images.** `deploy/helm/` is a real chart with three components - `web` (the PWA, on by default), `mcp` and `ca` (both opt-in) - one `values.yaml` you edit and secure defaults on every pod. Its default repositories are the published `ghcr.io/lolly-tools/lolly-web`, `lolly-mcp` and `lolly-ca` images: `linux/amd64`, signed and attested, tagged with the release version, and built with the profile lolly.tools ships (Lolly's own demo brand `lolly-demo` from 1.1.2, the neutral `lolly-start` in 1.1.1). The [published images guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md#published-images) lists every repository and shows how to verify, mirror and pin a digest. Build your own images, as below, for another brand profile, your own signing key or another base image. There is no hosted Lolly chart repository, so you install from a checkout of this repo, and the SUSE Application Collection carries no Lolly chart of its own. Where a curated image or chart *does* exist there - the nginx runtime base, cert-manager - this section prefers the curated one.
 
 ### Why the SUSE Application Collection
 
@@ -26,7 +26,7 @@ Nothing in the chart is specific to one cluster: it is plain Kubernetes, so it d
 
 Access needs a free **SUSE Customer Center** account (`scc.suse.com`); sign in to `apps.rancher.io` and create either a personal **access token** (Settings → Access tokens) or an organization **service account** (Settings → Service accounts). Pulls are never anonymous.
 
-> **Free-tier gotcha for clusters.** A *user* access token on the Free tier allows pulls (≈100/24h), but a Free **service account is allowed 0 pulls** - so unattended in-cluster pulls through a service-account `imagePullSecret` realistically need a paid (Prime or higher) organization subscription. For builds on your own laptop a personal token on the Free tier is fine. If you can't subscribe, use the SUSE BCI nginx image from `registry.suse.com` instead (see the *Fallback* note under step 2) - it's free and needs no login.
+> **Free-tier gotcha for clusters.** A *user* access token on the Free tier allows pulls (≈100/24h), but a Free **service account is allowed 0 pulls** - so unattended in-cluster pulls through a service-account `imagePullSecret` realistically need a paid (Prime or higher) organization subscription. For builds on your own laptop a personal token on the Free tier is fine. These are SUSE's commercial terms and can change, so check the current ones on `apps.rancher.io`. If you can't subscribe, use the SUSE BCI nginx image from `registry.suse.com` instead (see the *Fallback* note under step 2) - it's free and needs no login.
 
 Log in - the same host for every client. The username/password pairing differs by credential type: a **user account** uses your username + an **access token**; a **service account** uses its username + a **secret** (never your account password):
 
@@ -56,7 +56,7 @@ What the two stages do:
 - **verify** - `node:26-bookworm`, pinned by digest, with no network. It checks the WebGPU release gate, then verifies the receipt, every artifact file, the signed catalog and the delivery configuration against the source commit, profile and public pin you supplied. A changed, extra, missing or symbolic-link file, or a different source, profile or key, fails the build. `--no-cache-filter verify` repeats these checks on every build.
 - **runtime** - `ghcr.io/nginx/nginx-unprivileged`, also digest-pinned, running as uid 101 on port **8080**. The verified frontend is copied to `/usr/share/nginx/html`, `deploy/docker/nginx.conf` becomes `conf.d/default.conf`, and `deploy/docker/security-headers.conf` and the delivery header files are copied into `/etc/nginx/`.
 
-The content profile (`lolly-start`, or `suse` with the private `brands/suse` pack mounted when the frontend is compiled) is fixed when the frontend is compiled and signed; `--build-arg LOLLY_PROFILE` must name the same profile, and the verify stage refuses another. Nothing is read at serve time, which is why the chart needs no pack, config or volume mounted for the web app; changing brand means a new signed frontend, a new image and a rolled deployment. Model files are the exception: the image ships none, and an optional read-only volume at `/usr/share/nginx/html/models` serves them (see the published images guide for its layout).
+The content profile (`lolly-demo`, `lolly-start`, or `suse` with the private `brands/suse` pack mounted when the frontend is compiled) is fixed when the frontend is compiled and signed; `--build-arg LOLLY_PROFILE` must name the same profile, and the verify stage refuses another. Nothing is read at serve time, which is why the chart needs no pack, config or volume mounted for the web app; changing brand means a new signed frontend, a new image and a rolled deployment. Model files are the exception: the image ships none, and an optional read-only volume at `/usr/share/nginx/html/models` serves them (see the published images guide for its layout).
 
 `mcp.Dockerfile`, `mcp-browser.Dockerfile` and `ca.Dockerfile` also build from the repo root and run their entry point on Node directly as the non-root `node` user: MCP and CA on a digest-pinned `node:26-alpine`, the browser MCP image on `node:26-bookworm-slim` with a lockfile-scoped Chromium. Build them only if you enable those components and do not use the published images.
 
@@ -67,51 +67,22 @@ The shipped runtime stage uses the upstream unprivileged nginx image so a plain 
 ```dockerfile
 # ---- runtime stage: SUSE Application Collection nginx ----
 # Pin the current tag from https://apps.rancher.io/applications/nginx
-FROM dp.apps.rancher.io/containers/nginx:1.29.4
+FROM dp.apps.rancher.io/containers/nginx:<tag>
 ```
 
 Two things to check against whichever base you pick. The shipped `nginx.conf` sets `root` explicitly, so the base image's default document root doesn't matter - but `dist/` has to be copied where that `root` points (or change the directive). And it listens on 8080 because non-root nginx cannot bind below 1024; if your base runs as root and you switch to 80, change `web.service.targetPort` in the chart to match.
 
-> **Fallback without an Application Collection subscription:** use the free SUSE BCI image `FROM registry.suse.com/suse/nginx:1.27` (no login required). Its default document root is `/srv/www/htdocs/` - copy there instead, or just keep the `root` directive from the shipped `nginx.conf`, which wins regardless of the base image's default.
+> **Fallback without an Application Collection subscription:** use the free SUSE BCI image `FROM registry.suse.com/suse/nginx:<tag>`, with a current tag (no login required). Its default document root is `/srv/www/htdocs/` - copy there instead, or just keep the `root` directive from the shipped `nginx.conf`, which wins regardless of the base image's default.
 
 ### 3. What the nginx config already handles
 
-Lolly is a single-page PWA, so the server has real work to do: URL-mode deep links (`/?tool=qr-code`) must fall back to `index.html`, the service worker must never be cached, hashed assets should be immutable, the HarfBuzz `.wasm` and the `.webmanifest` need correct MIME types and the security headers have to be on every response. `deploy/docker/nginx.conf` does all of it - `tests/security-headers.test.ts` pins its CSP against the other two copies in the repo, so edit it rather than writing a fresh one. The parts that matter, quoted from the shipped file:
+Lolly is a single-page PWA, so the server has real work to do: URL-mode deep links (`/?tool=qr-code`) must fall back to `index.html`, the service worker must never be cached, hashed assets should be immutable, the HarfBuzz `.wasm` and the `.webmanifest` need correct MIME types and the security headers have to be on every response. `deploy/docker/nginx.conf` does all of it - `tests/security-headers.test.ts` pins its CSP against the other shipped copies, so edit the file rather than writing a fresh one. What the shipped file does:
 
-```nginx
-server {
-    # nginx-unprivileged cannot bind <1024; 8080 is the image default.
-    listen       8080;
-    root   /usr/share/nginx/html;
-    index  index.html;
+- **Two servers.** The public server listens on port 8080 and proxies to an internal static server on `127.0.0.1:8081`, setting the content ETag that browsers revalidate against.
+- **Real files, then the SPA.** The internal server serves `/usr/share/nginx/html`. `/info/`, `/t/`, `/view/`, `/tools/` and `/catalog/` serve real files and return 404 when one is missing; `/api/`, `/live/` and `/tool/` return 404 because separate services own them; everything else tries the file, its `.html` twin and a directory index before it falls back to `index.html`.
+- **Headers on every location.** Each location includes `/etc/nginx/security-headers.conf`, which sends the security headers and the cache policy. The policy comes from `delivery-maps.conf`, generated by `scripts/build-delivery.ts` and keyed on status and path: `no-cache` for `sw.js`, long `immutable` caching for hashed `/_app/` files and other content-hashed paths, and revalidation for other successful responses.
 
-    # Security headers on every response (see the $lolly_csp map above).
-    include /etc/nginx/security-headers.conf;
-
-    # ── Service worker: MUST never be cached, and may control the whole scope.
-    location = /sw.js {
-        add_header Cache-Control "no-cache, no-store, must-revalidate";
-        add_header Service-Worker-Allowed "/";
-        include /etc/nginx/security-headers.conf;
-    }
-
-    # ── Content-hashed build output: safe to cache forever (immutable).
-    location /_app/ {
-        add_header Cache-Control "public, max-age=31536000, immutable";
-        include /etc/nginx/security-headers.conf;
-        try_files $uri =404;
-    }
-
-    # ── Everything else: serve the file, then its .html twin, then a directory
-    # index, then fall back to the SPA shell. Covers /t/<id> → /t/<id>.html and
-    # /info/* real pages while keeping client-routed paths on index.html.
-    location / {
-        try_files $uri $uri.html $uri/index.html /index.html;
-    }
-}
-```
-
-That repeated `include` is not redundancy: nginx drops **every** inherited `add_header` inside a location that declares one of its own, so any location setting `Cache-Control` would otherwise ship with no security headers at all. Keep the include when you add a location. The file also carries a cheap unauthenticated `/healthz` for the chart's probes, explicit `types` for `.wasm`/`.avif`/`.webmanifest`, long-cache rules for `/ort/`, `/models/` and `/fonts/` and the short URL aliases (`/d`, `/v`, `/a`, `/assets`, `/c`, `/p`, `/profile`) that mirror the hosted deployment's rewrites.
+The repeated `include` is not redundancy: nginx drops **every** inherited `add_header` inside a location that declares one of its own, so without the include a location that adds any header would ship with no security headers at all. Keep the include when you add a location. The file also carries a cheap unauthenticated `/healthz` for the chart's probes, explicit `types` for `.wasm`/`.avif`/`.webmanifest`, read-only CORS for `/models/`, and the short clean-URL aliases (`/d`, `/v`, `/a`, `/start`, `/batch` and the rest) that mirror the rewrites of the other shipped web server configurations; mirror every clean route when you write your own.
 
 ### 4. The chart
 
@@ -121,15 +92,22 @@ The Application Collection ships charts for stateful services (redis, postgresql
 deploy/helm/
 ├── Chart.yaml
 ├── values.yaml               ← the one file you edit
+├── values.schema.json
+├── README.md
+├── profiles/
+│   ├── lean.yaml             small-cluster resource profile
+│   └── sovereign/            separate single-node chart (see its README)
 └── templates/
     ├── _helpers.tpl          names, labels, image references
+    ├── _ca-managed.tpl       checks for the managed CA mode
     ├── web-deployment.yaml   the PWA (on by default)
     ├── web-service.yaml
     ├── mcp-deployment.yaml   MCP server (opt-in)
     ├── mcp-service.yaml
     ├── ca-deployment.yaml    credential authority (opt-in)
     ├── ca-service.yaml
-    ├── ca-secret.yaml        chart-managed mode only
+    ├── ca-secret.yaml        chart-managed secret only
+    ├── ca-vault-networkpolicy.yaml  managed CA mode only
     ├── ingress.yaml          one Ingress per enabled component
     ├── networkpolicy.yaml    off by default
     ├── serviceaccount.yaml
@@ -266,11 +244,11 @@ preflight rather than applying this install example to the live cluster.
 
 ### 6. The optional services
 
-Both stay off until you ask for them, and both are stateless.
+Both stay off until you ask for them, and both are stateless by default.
 
-**MCP** (`--set mcp.enabled=true`) exposes the tool catalog to AI agents over Streamable-HTTP on port 8790. Its brand content is baked in at build time exactly like the web image. The default `lolly-mcp` image ships no Chromium: SVG/data plus resvg-PNG work without a browser, and browser-tier formats are refused. For PNG, JPEG, PDF and video through Chromium, set `mcp.image.repository=ghcr.io/lolly-tools/lolly-mcp-browser` and point it at your web shell with `--set mcp.webBase=https://lolly.example.com`. Liveness is a TCP socket check; readiness polls `/readyz`, which turns 503 while the server drains.
+**MCP** (`--set mcp.enabled=true`) exposes the tool catalog to AI agents over Streamable-HTTP on port 8790. Its brand content is baked in at build time exactly like the web image. The default `lolly-mcp` image ships no Chromium: SVG/data plus resvg-PNG work without a browser, and browser-tier formats are refused. For PNG, JPEG, PDF and video through Chromium, set `mcp.image.repository=ghcr.io/lolly-tools/lolly-mcp-browser` and point it at your web shell with `--set mcp.webBase=https://lolly.example.com`. Liveness is a TCP socket check; readiness polls `/readyz`, which turns 503 while the server drains. The optional private result files (`mcp.privateFiles.enabled`) live in one process and expire on restart, so that mode needs `mcp.replicaCount: 1`.
 
-**CA** (`--set ca.enabled=true`) issues short-lived certificates for on-device C2PA signing on port 8787, under `/api/ca`. It needs a root key and certificate, generated once with `node services/ca/scripts/gen-root.mjs`, plus a service secret (`openssl rand -hex 32`). Two ways to supply them: fill in `ca.secrets` and let the chart create the Secret, or - the production choice - set `ca.existingSecret` to one your platform's secret store manages and leave `ca.secrets` empty. The chart refuses to render rather than deploy a CA with a missing root. Set `ca.config.allowedOrigins` to your web host, or enrollment tokens are rejected.
+**CA** (`--set ca.enabled=true`) issues short-lived certificates for on-device C2PA signing on port 8787, under `/api/ca`. In the default issuer mode (`ca.config.issuerMode: legacy-root`) it needs a root key and certificate, generated once with `node services/ca/scripts/gen-root.mjs`, plus a service secret (`openssl rand -hex 32`). Two ways to supply them: fill in `ca.secrets` and let the chart create the Secret, or - the production choice - set `ca.existingSecret` to one your platform's secret store manages and leave `ca.secrets` empty. The chart refuses to render rather than deploy a CA with a missing root. The managed mode (`ca.config.issuerMode: vault-pki`) issues from a Vault PKI mount configured under `ca.config.managed` instead, refuses root key material in the chart, and adds a NetworkPolicy that limits the CA's egress to the peers you list. Set `ca.config.allowedOrigins` to your web host, or enrollment tokens are rejected.
 
 ### TLS, the SUSE-curated way (optional)
 

@@ -45,7 +45,7 @@ Each property has one writer. Choices can own several properties or select one a
 
 Raw values are validated before normalization can truncate them. Number and percentage ranges include positive steps. Approved lists are enforced by the runtime, independent of the form. A failed change leaves the typed value available for correction and blocks export until corrected. Hosts that cannot measure bounded text report `NEEDS_BROWSER`; they must not export a guessed fit.
 
-The public `designTool` manifest policy carries the ordered rules, choice declarations, dimensions and allowed formats. It does not expose the master object array. Derived formats are not automatically added. Output sizes preserve the selected artboard's proportions. This is a supported editing contract, not encryption or DRM: someone deliberately editing the package can inspect its implementation.
+The public `designTool` manifest policy carries the ordered rules, choice declarations, dimensions and allowed formats. It does not expose the master object array. Derived formats are not automatically added. Output sizes preserve the selected artboard's proportions. This is a supported editing contract, not encryption or DRM: anyone who opens the package can inspect its implementation.
 
 ## Package and revisions
 
@@ -59,7 +59,7 @@ The CLI accepts `lolly run <file.lolly> --trust-tool`. It verifies the file, che
 
 `shells/web/src/lib/pdf-design-nodes.test.ts`, `pdf-font-metrics.test.ts` and `design-tool-source.test.ts` cover clipped paint, character advances and review persistence. `tests/pdf-text-advances.test.ts` covers compatible fragments, CID widths, spacing and separate styles/columns. `tests/design-tool.test.ts` checks compiler/runtime/package contracts. `tests/design-tool.browser.test.ts` exercises authoring, keyboard order, joined names, On-canvas access, clean installation, immutable revisions and offline PNG/SVG/PDF export. Run the browser suite against a current dev or built web shell with `LOLLY_DESIGN_TOOL_TEST_URL`.
 
-The first delivery is still artwork. Motion, custom CSS, incomplete font subsets and SVG images with live text or external content need repair before sharing. PDF and Illustrator conversion still depend on the source file: an original-file comparison and representative designer review are required for a fidelity claim. Automated tests do not establish the plan's five-person usability targets.
+The first delivery is still artwork. Motion, custom CSS, incomplete font subsets and SVG images with live text or external content need repair before sharing. PDF and Illustrator conversion still depend on the source file: an original-file comparison and representative designer review are required for a fidelity claim. Automated tests do not measure usability.
 
 ## Authoring continuity and optional limits
 

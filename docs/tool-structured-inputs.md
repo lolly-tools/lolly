@@ -30,13 +30,13 @@ In the template, iterate with `{{#each people}}…{{/each}}`. The value round-tr
 - `showFor: ["kind"]` on a sub-field limits it to blocks whose discriminator value is listed.
 - `multilineFor: ["kind"]` (with optional `rows`) renders a text sub-field as a textarea for those discriminator values.
 
-`color-block` is the reference for typed/heterogeneous blocks (`addMenu` keyed on a `kind` select, `showFor`, `multilineFor` and the full sub-field type set).
+`multi-page-pdf` is the reference for typed/heterogeneous blocks (`addMenu` keyed on a `kind` select, `showFor` and `multilineFor`); `deck-studio` does the same keyed on a `layout` select.
 
-**Drop files to add rows.** A `blocks` input may declare `dropToAdd: { field, accept }` - dropping one or more files onto the blocks list appends one row per file, uploading each into the named `asset` sub-`field` (the row's other fields start at their defaults). `accept` is a MIME filter (default `image/*`). `logo-wall` is the reference: drop many logos → one block each. (It ships with the **SUSE brand pack**, so it is only on disk on a profile that mounts that pack.)
+**Drop files to add rows.** A `blocks` input may declare `dropToAdd: { field, accept }` - dropping one or more files onto the blocks list appends one row per file, uploading each into the named `asset` sub-`field` (the row's other fields start at their defaults). `accept` is a MIME filter (default `image/*`). `logo-wall` is the reference: drop many logos → one block each.
 
 **Paste a Markdown document (`mdPaste`).** A `blocks` input may set `mdPaste: true` to add a **Paste Markdown** button to the blocks toolbar: it reads the clipboard, splits the Markdown into one block per heading (heading line → the block's `heading` field, the section beneath → its `body` field, kept as Markdown for a `{{markdown}}` render) and appends the blocks - so a whole document arrives as editable, page-flowing blocks. Used by the paged/document tools.
 
-**Import rows from a spreadsheet (`importData`).** A `blocks` input may declare `importData: { formats?, mode?, columns? }` to offer an **Import data** button that fills the whole list from a **CSV or JSON** file - the ingest counterpart to CSV/JSON *export*. The engine (`parseDataRows`) maps columns onto the block's sub-fields: an explicit `columns` map (`{ fieldId: "Column Name" }`) wins, otherwise each column header/key is matched case-insensitively to a field's `id` then its `label`. `formats` limits the accepted types (default both); `mode` is `replace` (default) or `append`. JSON may be an array of objects, an array of arrays (positional, in field order) or `{ "data": [ … ] }`. The imported rows are ordinary blocks - they serialise to the URL and save like any hand-entered data. `chart-creator` is the reference: import a two-column `Label,Value` sheet to chart it.
+**Import rows from a spreadsheet (`importData`).** A `blocks` input may declare `importData: { formats?, mode?, columns? }` to offer an **Import data** button that fills the whole list from a **CSV or JSON** file - the ingest counterpart to CSV/JSON *export*. The engine (`parseDataRows`) maps columns onto the block's sub-fields: an explicit `columns` map (`{ fieldId: "Column Name" }`) wins, otherwise each column header/key is matched case-insensitively to a field's `id` then its `label`. `formats` limits the accepted types (default both); `mode` is `replace` (default) or `append`. JSON may be an array of objects, an array of arrays (positional, in field order) or `{ "data": [ … ] }`. The imported rows are ordinary blocks - they serialise to the URL and save like any hand-entered data. `deck-studio` is the reference: import a CSV or JSON file with one row per slide.
 
 **Reference pickers (`optionsFrom`).** A sub-field can be a dropdown whose choices are the *rows of another blocks input* - so a row references another row by a friendly name instead of a hand-typed id. Declare `optionsFrom` on the field:
 
@@ -89,7 +89,16 @@ Three of the `canvas` keys turn a plain box canvas into a **diagram editor**:
   - `layerClass` - the CSS class on the tool's rendered connector `<svg>`, which the shell hides mid-drag while it paints its own live preview.
   - `default*` (`defaultStyle` / `defaultArrow` / `defaultHead` / `defaultColor` / `defaultWidth`) - the values a newly-drawn edge starts at.
 
-`org-chart` is the reference implementation: an `editor`-layout box canvas with `grid`, `fixedCanvas: true` and a `connect` writing to a `connectors` blocks input whose rows its hook turns into one artboard `<svg>` of arrows. It ships with the **SUSE brand pack**, so it is only on disk on a profile that mounts that pack.
+No public tool uses `connect` today. `org-chart` is the public reference for an `editor`-layout box canvas with `grid` and `fixedCanvas: true`, and it draws its connectors as **bound paths** instead: each connector is an ordinary row of the same `boxes` input, a path whose ends can attach to boxes. These `canvas` keys map those rows:
+
+- `pathField` - the text sub-field holding the authored path (the pen tool's nodes and handles, normalised to the box frame, so move, resize and rotate act on it like any box). Machine-written, so give it `showFor: []`.
+- `strokeField`, `strokeWField`, `strokeDashField`, `strokeCapField`, `strokeJoinField` and `fillRuleField` - the path's stroke and fill styling.
+- `headStartField` / `headEndField` - the decoration at the first and last point (`none` / `triangle` / `open` / `circle` / `diamond` / `bar`), the same set connectors use.
+- `bindStartField` / `bindEndField` - the id of the box each end is attached to, empty for a free end. Written by the bind gesture, never typed.
+- `routeField` - how a path with a bound end routes between its boxes (straight, elbow, curved or arc; empty means automatic).
+- `pathLayerClass` - the class on the `<svg>` layer where the hook draws the committed paths. The shell hides that layer during a drag while it paints its own preview.
+
+The `canvas` object has about a hundred keys in all. The `canvas` property of a `blocks` input in `schemas/tool.schema.json` describes each one.
 
 A canvas that maps the **ten time sub-fields** (`startField`, `durField`, `clipInField`, `speedField`, `enterField`, `exitField`, `enterMsField`, `exitMsField`, `muteField`, `laneField`) becomes a timeline editor: the shell mounts the timeline panel, the clock and the sequence export path. All ten or none - a partial mapping gives the panel somewhere to read from and nowhere to write, so it is treated as absent. Three further keys are **optional** on top of that, each additive on its own:
 
@@ -101,7 +110,7 @@ Two more depth affordances are values inside existing declarations rather than `
 
 ## `vector` - a group of numbers as one control
 
-Use `vector` when a few related numbers belong together - zoom + pan, an x/y offset, padding, margins. Instead of separate `number` inputs (one column each in `/pro` bulk mode), a `vector` is **one input, one control, one column**: a row of compact number fields where each label can be dragged to scrub the value (Figma-style) or typed into. Declare the numeric sub-fields under `fields`:
+Use `vector` when a few related numbers belong together - zoom + pan, an x/y offset, padding, margins. Instead of separate `number` inputs (one column each in Batch), a `vector` is **one input, one control, one column**: a row of compact number fields where each label can be dragged to scrub the value (Figma-style) or typed into. Declare the numeric sub-fields under `fields`:
 
 ```json
 {
@@ -120,13 +129,13 @@ Use `vector` when a few related numbers belong together - zoom + pan, an x/y off
 
 The value is an object keyed by field id, so the template reads each part with dot access: `{{imageFraming.zoom}}`, `{{imageFraming.x}}`, `{{imageFraming.y}}`. Each field clamps to its own `min`/`max` and falls back to its `default`.
 
-In URL mode (and `/pro` CSV) each field is its **own flat param/column**, namespaced `"<inputId>.<fieldId>"` - e.g. `?imageFraming.zoom=200&imageFraming.x=30&imageFraming.y=70`, or CSV columns `imageFraming.zoom`, `imageFraming.x`, `imageFraming.y`. There is no `urlKey` on a vector. `quotes` (`imageFraming`) is the reference implementation; the `filter` tool carries the same control per raster effect (namespaced, e.g. `du_imageFraming`).
+In URL mode (and Batch CSV) each field is its **own flat param/column**, namespaced `"<inputId>.<fieldId>"` - e.g. `?imageFraming.zoom=200&imageFraming.x=30&imageFraming.y=70`, or CSV columns `imageFraming.zoom`, `imageFraming.x`, `imageFraming.y`. There is no `urlKey` on a vector. `frame` (`imageFraming`) is the reference implementation; the `filter` tool carries the same control per raster effect (namespaced, e.g. `du_imageFraming`).
 
-`imageFraming` is a **canonical input** (see below) - reuse that id and field set verbatim for any zoom/pan-an-image control rather than inventing a synonym.
+`imageFraming` is a **canonical input** (see the [canonical input table](/info/tool-inputs.html#canonical-inputs-reuse-shared-ids)) - reuse that id and field set verbatim for any zoom/pan-an-image control rather than inventing a synonym.
 
 ## Framing an image: one pattern, every tool
 
-Placing, cropping, straightening and perspective-correcting an image is ONE control everywhere (plans/148). Do not write an `object-position` string by hand, and do not invent a second set of ids for the same job: a divergent id or range forfeits the shared `/pro` column, and a hand-written recipe drifts from what the export paths actually do.
+Placing, cropping, straightening and perspective-correcting an image is ONE control everywhere. Do not write an `object-position` string by hand, and do not invent a second set of ids for the same job: a divergent id or range forfeits the shared Batch column, and a hand-written recipe drifts from what the export paths actually do.
 
 Three declarations make an image slot framable:
 
@@ -176,7 +185,7 @@ One caveat before you offer `pitch`/`yaw`: a tilted plane is a projective homogr
 {{#each blocks}}<img src="{{asset this.bgImage}}" {{framing "bg" block="blocks" index=@index}}>{{/each}}
 ```
 
-Whole marks are the documented exception: `logo-wall`, `logo-lockup-partner` and `snippet`'s title icon offer scale only, because a logo is not cropped.
+Whole marks are the documented exception: `logo-wall` and `snippet`'s title icon offer scale only, because a logo is not cropped.
 
 [Back to Authoring Tools](/info/authoring-tools.html).
 

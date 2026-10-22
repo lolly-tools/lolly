@@ -30,7 +30,7 @@ registries and secrets stay separate.
   endpoint, bucket and key and can leave without migrating a Lolly-specific representation.
 
 `lolli.li` is the Lolly open-source project's release/model file host, **not a user-upload
-service and not a built-in destination**. Its UpCloud bucket is used only by an explicitly
+service and not a built-in destination**. Its object-storage bucket is used only by an explicitly
 gated developer canary to verify S3 interoperability; the canary writes inert bytes under a
 random technical key and deletes that exact key in `finally`.
 
@@ -168,10 +168,11 @@ exact download origin at every hop without API credentials. Bearer credentials g
 `visibility` declares the existing Brandfolder's access policy; it does not change that policy.
 Requalify it when administrators change remote access.
 
-The adapter follows [Brandfolder Binary Upload](https://developer-bak.brandfolder.com/binary_upload/):
+The adapter follows [Brandfolder Binary Upload](https://developers.smartsheet.com/api/brandfolder/openapi/binary_upload):
 request a temporary upload ticket, PUT the original, then create one asset in the pinned section.
-Brandfolder's temporary object URL is accessible to its importer and is vendor-managed; its docs
-state that upload URLs expire after 24 hours and temporary objects after seven days. Work never
+Brandfolder's temporary object URL is accessible to its importer and is vendor-managed; as of
+October 2026 its docs state that upload URLs expire after 24 hours and temporary objects after
+seven days. Work never
 publishes its own source blob or returns those temporary URLs to the shell.
 
 A private progress record is saved before creation and again with the created asset ID. Processing
@@ -269,8 +270,8 @@ uses the staged bytes and the same key:
 ```
 
 If the destination's endpoint, bucket, prefix, formats, exposure or other semantics change,
-the version changes and retry returns `409 DESTINATION_CHANGED`; the caller creates a new
-delivery deliberately. Credential rotation does not move the version.
+the version changes and retry returns `409 DESTINATION_CHANGED`; the caller must create a
+new delivery on purpose. Credential rotation does not move the version.
 
 ### Delivering an automation output
 
@@ -287,7 +288,7 @@ again before this route can deliver them.
 The delivery receipt exposes `sourceJobId` for correlation, never the private blob reference.
 The source job cannot be deleted while any delivery retains its output (`409
 JOB_OUTPUT_IN_USE`), including after successful egress, so retry and audit cannot be made false
-by deleting their evidence. A later retention policy will release both deliberately. A service
+by deleting their evidence. Releasing both is left to a future retention policy. A service
 token still cannot enter a destination's human approval chain; that boundary is identical for
 raw-body and job-output creation.
 
@@ -359,21 +360,26 @@ signed digest.
 Built now: shell presentation separated from personal connections; optional approval-chain
 binding over immutable staged bytes; completed automation-render output consumed by immutable
 reference with principal isolation and delete protection; fixed config-managed S3,
-WebDAV and signed-HTTPS targets; group/RBAC projection; C2PA and byte caps; durable records in
-both stores; idempotency; exact-byte retry; provider receipts; and audit events. The S3 wire is
-live-validated against the project's UpCloud host. WebDAV and HTTPS have injected-wire tests and
-the gated canaries above, which have not yet run against a real tenant or receiver, so neither
-adapter is called live-verified.
+WebDAV, signed-HTTPS, Brandfolder and Cloudinary targets; group/RBAC projection; C2PA and byte
+caps; durable records in both stores; idempotency; exact-byte retry; provider receipts; and
+audit events. The S3 adapter has been validated live against an S3-compatible host.
+WebDAV and HTTPS have injected-wire tests and the gated canaries above, which have not yet run
+against a real tenant or receiver, so neither adapter is called live-verified. The Brandfolder
+and Cloudinary adapters are fixture-tested; qualify each against your own tenant as described
+in their sections.
 
-Future asset-system destinations must also declare create/new-version/replace and conflict
-policy before writing. Transfer acceptance, processing, original readiness, review and public
-activation need separate observations. Reconcile uncertain completion using the remote
-asset/version identity and committed effects before another write. Source approval must retain
+The two DAM adapters each declare how they write: Brandfolder creates one new asset in the
+pinned section, and Cloudinary uploads under an operation-specific public ID with
+`overwrite=false`. Any further asset-system destination must also declare
+create/new-version/replace and conflict policy before writing. Transfer acceptance,
+processing, original readiness, review and public activation need separate observations.
+Reconcile uncertain completion using the remote asset/version identity and committed effects
+before another write. Source approval must retain
 its purpose, activation target and human/automated origin; it cannot stand in for approval of
-the staged final digest. These are qualification requirements, not capabilities added to the
-current S3, WebDAV or HTTPS adapters.
+the staged final digest. These are qualification requirements for a new destination, not
+capabilities added to the current adapters.
 
-Still deliberately pending:
+Not built yet:
 
 - the versioned small-workflow document/runner above the shipped job-output publish command;
 - a replica-safe background claimant for queued/stalled deliveries;

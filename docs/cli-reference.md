@@ -44,7 +44,7 @@ Both exit 0 here: this file is signed with an ephemeral on-device key that chain
 | `--metadata` | Also report what else is in the file: embedded metadata, PDF structure and text that is present in the file but not visible on the page. |
 | `--rebuild=<session.lolly>` | The reproducibility receipt: render the `.lolly`'s session again here and report `IDENTICAL` (exit 0) or `DIFFERENT` (exit 1) with every reason it could check - engine version, tool version, a font that resolves differently, or the offset where the content first diverges. `svg`, `emf`, `eps`, `dxf` and `csv` only; a raster or PDF artifact is refused with exit 2, because those bytes come from a browser engine rather than the engine's own emitters. See [Reproducibility](/info/reproducibility.html#prove-it-yourself). |
 
-The summary headlines whether the file was genuinely made with Lolly and is unchanged since. The exit code follows the table above: **0** the file matches what was signed (including an expired certificate - Lolly signs with short-lived on-device certificates, so any other rule would fail every gate on its own correct output within a month), **4** a credential is present and the bytes no longer match it, **5** no credential at all, **2** the path could not be read. `--strict` promotes expired to 4; `--require=none` turns off verdict-based exit codes entirely ("just tell me what is in this file"). Several files can be given at once - the exit code is the worst one's.
+The summary headlines whether the file was genuinely made with Lolly and is unchanged since. The exit code follows the [exit-code table](/info/cli-automation.html#exit-codes): **0** the file matches what was signed (including an expired certificate - Lolly signs with short-lived on-device certificates, so any other rule would fail every gate on its own correct output within a month), **4** a credential is present and the bytes no longer match it, **5** no credential at all, **2** the path could not be read. `--strict` promotes expired to 4; `--require=none` turns off verdict-based exit codes entirely ("just tell me what is in this file"). Several files can be given at once - the exit code is the worst one's.
 
 ### `--metadata`: what else is in this file
 
@@ -84,13 +84,13 @@ The tool-id list is a snapshot. Install new tools, then run `lolly completion <s
 
 ## Point it at another brand pack (`LOLLY_ROOT`)
 
-The CLI reads tools and the asset catalog from the repo root it finds itself in. Set `LOLLY_ROOT` to render from any directory with the same layout - a `tools/` directory of tool folders and a built `catalog/`:
+The CLI reads tools and the asset catalog from the repo root it finds itself in. Set `LOLLY_ROOT` to render from another root: a checkout of this repository, which carries `profiles.json`, or a materialized root, which is a `tools/` directory of tool folders and a built `catalog/`:
 
 ```bash
 LOLLY_ROOT=/path/to/brand-pack pnpm run cli qr-code --url=https://example.com --output=qr.svg
 ```
 
-The override is **marker-validated**: the directory must hold a generated catalog index (`catalog/tools/index.json` or `catalog/assets/index.json`), and a `LOLLY_ROOT` without one is ignored - resolution falls back to walking up from the CLI itself, then the working directory. That makes the CLI a generic brand-pack renderer: build a pack's `tools/` + `catalog/` and every command here - render, batch, smoke, assets - runs against it, with zero code change.
+The override is **marker-validated**: the directory must hold `profiles.json`, or a `tools/` directory and a generated catalog index (`catalog/tools/index.json` or `catalog/assets/index.json`), and a `LOLLY_ROOT` with neither is ignored - resolution falls back to walking up from the CLI itself, then the working directory. That makes the CLI a generic brand-pack renderer: build a pack's `tools/` + `catalog/` and every command here - render, batch, smoke, assets - runs against it, with zero code change.
 
 ## Where saved sessions live
 
@@ -103,6 +103,8 @@ A `lolly` run is ephemeral: state a tool saves stays in memory for that run and 
 
 Sessions sit in `saved-state/<slot>.json` there, in the record the desktop app writes, so a project saved in the app loads in the terminal by its slot and a project saved in the TUI opens in the app.
 
-Writing is the one asymmetry, and it is deliberate: `lolly` only writes state to disk when rungs 1 or 2 name the directory. A headless render should not leave files in your home directory, or in the app's store, that nobody asked for. Name a directory and a state-saving tool becomes scriptable across runs.
+Writing tool state is the one asymmetry: `lolly` writes a tool's saved state to disk only when rungs 1 or 2 name the directory. A headless render should not leave files in your home directory, or in the app's store, that nobody asked for. Name a directory and a state-saving tool becomes scriptable across runs.
+
+Terminal design systems are kept differently. `lolly system init`, `import`, `add` and `use` store them under `design-systems/`, with the list in `design-systems.json`, in whichever directory the order above picks. A bare `lolly` in a terminal also records in that list that you have seen its start screen.
 
 [Back to CLI](/info/cli.html).

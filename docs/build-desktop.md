@@ -80,7 +80,7 @@ Tauri first builds and signs its frontend, builds the native CLI sidecar, and bu
 |---|---|---|
 | macOS | `.app` + `.dmg` | `src-tauri/target/release/bundle/macos/` and `bundle/dmg/` |
 | Windows | `.msi` + `.exe` NSIS installer | `src-tauri/target/release/bundle/` |
-| Linux | `.deb` + `.AppImage` | `src-tauri/target/release/bundle/` |
+| Linux | `.deb` + `.rpm` + `.AppImage` | `src-tauri/target/release/bundle/` |
 
 The complete macOS package requires macOS 13.5 or later, matching the bundled Node CLI runtime. Set `APPLE_SIGNING_IDENTITY` for a Developer ID build, then notarise and staple the app and DMG before distribution.
 
@@ -92,7 +92,7 @@ For an authorised private SUSE build, mount `brands/suse` and set `LOLLY_PROFILE
 
 ### Cross-compilation
 
-Tauri does not support cross-compilation out of the box. Build each platform on its native OS, or use a CI matrix (GitHub Actions `macos-latest` / `windows-latest` / `ubuntu-latest`).
+Tauri does not support cross-compilation out of the box. Build each platform on its native OS. The repository's own release path builds the Linux packages in containers with the scripts in `shells/tauri-desktop/release/` (`build-deb.sh`, `build-rpm.sh`, `build-flatpak.sh`, `build-arch.sh`; the README there gives the order), and runs GitHub workflows for specific targets: `macos-intel.yml`, `linux-arm64.yml`, `linux-rpm.yml`, `flatpak.yml` and `desktop-extra.yml` (the Windows installers).
 
 ---
 

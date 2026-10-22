@@ -14,12 +14,17 @@ The media Lolly renders carries [Content Credentials](/info/content-credentials-
 - <!--i:seal--> [**Content Credentials**](/info/content-credentials-identity.html) - what gets signed, what the signature proves and who the signer is.
 - <!--i:cpu--> [**Content Credentials - Engineering**](/info/content-credentials-engineering.html) - the C2PA implementation itself: manifests, ingredients, action histories, formats.
 - <!--i:sunburst--> [**Our AI Stance**](/info/ai-stance.html) - where AI is welcome, where it is not and why AI-generated content declares itself.
+- <!--i:sparkle--> [**Generated once, rendered the same**](/info/ai-features.html) - which AI operations are marked as generated, which are plain edits, and why.
+- <!--i:document--> [**AI marking and the EU AI Act**](/info/eu-ai-act.html) - how these marks relate to Article 50, and what they do not establish.
+- <!--i:shield--> [**Input, not impersonation**](/info/input-not-impersonation.html) - an AI agent may fill in the inputs, and may not claim to be you.
+- <!--i:usercheck--> [**Creative rights and credits**](/info/creative-rights.html) - how a source's licence is recorded and how its credit travels with your file.
 
 ## Can I check that for myself?
 
 You can, and you should - the point of provenance is that it does not need our word.
 
 - <!--i:checklist--> [**Verify It Yourself**](/info/verify-yourself.html) - walk the claims on this site against a real export, step by step.
+- <!--i:search--> [**AI evidence in Verify**](/info/verify-ai-evidence.html) - the clues Verify finds in text and layout, offered as evidence rather than a verdict.
 - <!--i:shieldcheck--> [**Security & Verification**](/info/security.html) - how the code is built, signed and checked.
 - <!--i:lock--> [**Threat Model**](/info/threat-model.html) - what Lolly defends against, and what it explicitly does not.
 - <!--i:code--> [**Parser Inventory**](/info/parser-inventory.html) - every format Lolly parses, because parsers are where untrusted input meets your device.
@@ -33,6 +38,13 @@ Lolly renders on your device. That is not a privacy posture bolted on afterwards
 - <!--i:convert--> [**Data Transfer**](/info/data-transfer.html) - moving your work in and out, with nothing held hostage.
 - <!--i:people--> [**Inclusive Design**](/info/inclusive-design.html) - who the software is built to work for.
 
+## Where we stand
+
+- <!--i:clock--> [**The trade we never agreed to**](/info/status-quo.html) - the frictions we learned to accept, and what replaces them.
+- <!--i:star--> [**Tenets**](/info/tenets.html) - our vision, values and mission.
+- <!--i:pentool--> [**Beatrice Warde**](/info/beatrice-warde.html) - the typographer whose 1932 lines we adapted as our motto.
+- <!--i:layers--> [**Shoulders of giants**](/info/shoulders-of-giants.html) - the open source projects and people Lolly is built from.
+
 ## The refusal
 
 Nothing to sell you, nothing to take. Four commitments, stated once and checkable:
@@ -44,7 +56,7 @@ Nothing to sell you, nothing to take. Four commitments, stated once and checkabl
 
 ## Why this is free
 
-**We built Lolly for ourselves.** SUSE needed thousands of on-brand files, made without handing anything to outside services. So we built a tool that does all of it on the device, and released it as open source, like everything else we make. We keep maintaining it because we use it every day. **There is no obligation:** everything here works with or without us.
+**We built Lolly for ourselves.** SUSE needed thousands of on-brand files, made without handing anything to outside services. So we built a tool that does all of it on the device, and released it as open source. We keep maintaining it because we use it every day. **There is no obligation:** everything here works with or without us.
 
 ---
 

@@ -1,7 +1,7 @@
 # Rendering and sharing
 
-The control plane is Lolly's fourth shell: it can render a tool server-side to bytes, and it
-can wrap that render in a signed, expiring, revocable URL. Everything here enforces policy
+Lolly Work can also render a tool on the server to bytes, and it can wrap that render in a
+signed, expiring, revocable URL. Everything here enforces policy
 *before* rendering.
 
 ![Signed, expiring, revocable links - share, embed and download, revoked instantly](shots/share-links.svg)
@@ -18,13 +18,15 @@ engine → resolve overlays for the caller's groups → refuse or bake locked in
 optionally watermark → optionally embed provenance / sign → cache.
 
 - **Authorization:** a signed-in caller needs `export.server` (admin default, grantable). A
-  guest admitted to *that tool* may render that tool. Under `gated` mode, no principal at all is a
-  `401`.
+  guest admitted to *that tool* may render that tool. Under any access mode other than `open`
+  (`gated` or `per-tool`), no principal at all is a `401`.
 - **Policy first:** a caller-supplied value for a `locked` input is a `422 INPUT_LOCKED`; the
   locked value is baked in regardless of the query. `hidden` inputs are absent from the
   schema the shell ever saw.
 - **Caching:** an in-process LRU keyed by the render cache-key contract, plus an `ETag`
-  (`private, max-age=60`). The key folds in the pack version, the overlay state, provider
+  with `Cache-Control: private, no-cache, no-transform`, so a client revalidates before
+  reusing a copy. A render that ran brand rules answers `private, no-store` and is never
+  answered from the `ETag`. The key folds in the pack version, the overlay state, provider
   fragment hashes and a fingerprint of the instance's own assets, so a policy edit, a catalog
   refresh or a [new asset version](catalog.md#versions) invalidates exactly the affected
   renders and nothing else.
@@ -183,8 +185,9 @@ URL, a one-click copy, its status and its expiry.
 into the SVG root before any rasterisation, so both `svg` and `png` carry the watermark. Alternating
 brick rows use `#0002` and `#fff2` so it reads on light and dark artwork alike.
 
-`always` and `never` are fully wired. `until-approved` is the intended pairing with an
-approval chain, but the per-render linkage to approval state is not built yet - see
+`always` is enforced; `never` is stored but behaves like no rule. `until-approved` is the
+intended pairing with an approval chain, but the per-render linkage to approval state is not
+built yet - see
 [approvals](approvals.md) and [status](status.md).
 
 ## Provenance
@@ -198,7 +201,7 @@ list, C2PA-shaped, embedded with zero dependencies:
 
 Both survive ordinary copying and are readable with `exiftool`/`pngcheck`-class tooling. Each
 ingredient's `c2pa` field is the upstream manifest **if the source supplied one**, and
-explicitly `null` when it did not (Brandfolder ships none) - so "«filename» from «provider»
+explicitly `null` when it did not - so "«filename» from «provider»
 was used" still travels with the export, honestly labelled.
 
 With a signing identity configured, exports carry a real, signed C2PA Content Credential
@@ -244,7 +247,8 @@ Everyone who can see a project has one role on that project. The highest of thes
 | owner | the person who created the project, or the one it was handed to | everything below, and hand the project on |
 | manager | added as manager; or anyone holding `project.manage` (admins and owners by default) on a project they can see | rename, change visibility, archive, delete anyone's session, add, change and remove people, invite |
 | editor | added as editor; a member of one of the project's groups; any admin or owner | create sessions, save changes, delete their own sessions |
-| viewer | added as viewer | open the project and its sessions, read revisions |
+| commenter | added as commenter; a group, or everyone signed in to the workspace, given Commenter | everything a viewer may, and comment even where viewers may not; never changes artwork |
+| viewer | added as viewer | open the project and its sessions, read revisions, and comment unless the project turns off viewer comments |
 
 Group sharing works as before: a member of a project's group acts as an editor. Adding
 someone gives them a role even on a private project. The instance role still applies on
@@ -294,8 +298,8 @@ them to viewer or making the project private ends those guests' seats.
 
 In Lolly, **People with access** in the Share dialog and the Team projects view lists the
 people on a project, and **Invite by email** adds more. Under the hood that is
-`POST /api/v1/projects/:id/invite` with `{"emails": [...], "role": "viewer" | "editor" |
-"manager", "passwordSetup": false}`, which needs a manager of the project. Each address
+`POST /api/v1/projects/:id/invite` with `{"emails": [...], "role": "viewer" | "commenter" |
+"editor" | "manager", "passwordSetup": false}`, which needs a manager of the project. Each address
 gets a result:
 
 - `added`: the address belongs to an account, which becomes a member now. The person finds
@@ -408,7 +412,8 @@ invite **new** people and on what terms:
 - `domains`: when the list is not empty, a new address must be at one of these domains.
 - `maxTtlHours`: how long an invitation made from a project stays open (default 720, 30
   days). Adding a project to an existing invitation keeps its expiry.
-- `projectRoles`: which roles may be given, by invitation or role change (default all three).
+- `projectRoles`: which roles may be given, by invitation or role change (default all four:
+  viewer, commenter, editor and manager).
 - `passwordDomains`: domains whose addresses usually sign in with a password. When every
   address on an invite is at one of them, **Can set a password** starts ticked. It only
   suggests; the tick stays an admin's choice.

@@ -24,28 +24,30 @@ The TUI is the **CLI bridge under an interactive transport**. Its host bridge re
 | Best for | Scripts, CI, pipelines, batch fan-out | Exploring tools, hand-tuning inputs, quick one-offs |
 | Input | `--flag=value` argv | Keyboard, in place |
 | Engine / output | Same engine, same bytes | Same engine, same bytes |
-| State | In-memory, ephemeral per run | Persisted on disk (`~/.lolly`) |
+| State | No saved sessions; design systems on disk, shared with the TUI | Sessions, folders, profile and design systems on disk (see [Persistence](#persistence)) |
 
 If you can express a job as a URL, prefer the CLI - it's reproducible and pipeable. Reach for the TUI when you want to **see and adjust** a tool the way you would in the web shell, but from a terminal.
 
 ### Provenance defaults
 
-The **C2PA** and **Imprint** rows both open ON, the same default as the app and the CLI, and the same tool declarations opt them out: a tool that sets `render.c2pa:false`, and any on-device privacy utility, opens with both rows off and keeps them off. All three surfaces read one policy in the engine, so they cannot drift apart. The Imprint row reads `no pixels to mark` on a vector or data format, since there are no pixels to carry it. **Durable** stays off, since it is a neural encode and a model download.
+The **C2PA** and **Imprint** rows both open ON, the same default as the app and the CLI, and the same tool declarations opt them out: a tool that sets `render.c2pa:false`, and any on-device privacy utility, opens with both rows off and keeps them off. All three surfaces read one policy in the engine, so they cannot drift apart. The Imprint row reads `no pixels to mark` on a vector or data format, since that format has no pixels to carry a mark. **Durable** stays off, since it is a neural encode and a model download.
 
 Cycle either row to `off` for a barer render, or set both off for byte-reproducible output. The [CLI page](/info/cli-automation.html#what-provenance-costs) has the measured cost of that choice, and it applies here too, because the terminal exports through the same engine path: the credential is about 2 KB and no measurable time, while the Imprint on a raster costs time that scales with pixel count and grows the file, because the mark adds detail that lossless compression cannot squeeze away. A PNG carries its Imprint browser-free, so turning it on does not pull the export into the browser tier. What you get for leaving them on is a file that can prove where it came from, plus a mark that survives a re-encode or a screenshot, which a metadata credential alone does not.
 
 ## Views
 
-The TUI mirrors the web shell's layout, distilled to the terminal. Switch top-level views with the number keys; every view is keyboard-navigable (`hjkl` / arrows, `Enter` to open, `Esc` to go back).
+The TUI mirrors the web shell's layout, distilled to the terminal. Switch top-level views with the number keys: **1** Tools, **2** Projects, **3** Profile, **4** Assets and **5** System. Every view is keyboard-navigable (`hjkl` / arrows, `Enter` to open, `Esc` to go back).
 
-- **Gallery** - a responsive card grid of every tool. `/` searches, `Enter` opens a tool, `u` opens a pasted `lolly.tools` link already configured, `i` **imports a PDF or `.ai`** from disk (it becomes a saved, fully editable Design session - IDML and Penpot stay web-only), `f`/`F` favourite and filter to favourites, `o` cycles sort and `c` cycles the category filter. Only tools needing a live device the headless browser can't open (mic/camera recording) are hidden.
-- **Projects** - your saved sessions, organised into nested folders. Create folders (`n`), move sessions into them (`m`), open, delete and **batch** them: export a whole folder (`e`), tick an ad-hoc set with `Space` and batch the selection (`b`) or run a **CSV batch** (`c`) - all into one `.zip` on the Desktop.
-- **Assets** - browse every asset; favourite (`f`), hide (`d`) and **export an asset** (`e`) to any format (opens the `asset-export` tool seeded with it - that tool ships with the SUSE brand pack, so the action needs a profile that mounts it).
-- **Profile** - edit the details tools pre-fill from (`bindToProfile`): name, email, phone, company and the "credit me" preference. Changes persist. Two actions live here too: `b` **backs up and renders everything** - a portable data-backup zip plus a second zip of every saved project rendered out, with a live progress panel - and `v` runs an on-device **Content Credentials report** on a file. Both zips land in your Desktop folder, or your home directory if there isn't one.
-- **System** - the terminal's design system: start from one colour (`c`), bring a token file or `.lolly` (`i`), add resources (`a`), export a `.lolly` (`e`) and switch systems (`u`). `t` **inspects tokens**: one choice per theme group (`g` picks a group, `o` steps its choice as a preview), the issues, a searchable token list and, on `Enter`, a token's trace through the tokens it reads and the tokens that read this one. `s` reviews the previewed choices and `y` stores them on the active terminal system. See [Inspecting and reviewing design tokens](/info/token-workflows.html).
+The first time it runs, the TUI opens on a **Start** screen with five choices: **Make a QR code**, **One colour**, **Bring a file**, **Mix resources** and **Explore tools first**. Pick one with its number or `Enter`; none of them is a required step. Once you have chosen, later runs open on Tools.
+
+- **Tools** (`1`) - a responsive card grid of every tool. `/` searches, `Enter` opens a tool, `u` opens a pasted `lolly.tools` link already configured, `i` **imports a PDF or `.ai`** from disk (it becomes a saved, fully editable Design session - IDML and Penpot stay web-only), `f`/`F` favourite and filter to favourites, `o` cycles sort and `c` cycles the category filter. Only tools needing a live device the headless browser can't open (mic/camera recording) are hidden. Two more screens open from here: `p` opens **Prepare for sharing**, which inspects files for hidden data and personal values, lets you choose replacements and saves cleaned copies, all on the device (see [Utilities](/info/utilities.html)); `r` opens **Rebrand**, which reads a `.pptx` or `.pdf` deck, shows the plan as a checklist where you keep, replace or remove each item, and compiles the result to a folder (see [Rebrand a deck](/info/rebrand.html)).
+- **Projects** (`2`) - your saved sessions, organised into nested folders. Create folders (`n`), move sessions into them (`m`), open, delete and **batch** them: export a whole folder (`e`), tick an ad-hoc set with `Space` and batch the selection (`b`) or run a **CSV batch** (`c`) - all into one `.zip` on the Desktop.
+- **Profile** (`3`) - edit the details tools pre-fill from (`bindToProfile`): name, email, phone and company, plus **Embed my details in exports**, the opt-in that puts your name and contact details into an export's provenance, and **Trust anchors**, the PEM certificate files the Content Credentials report trusts. Changes persist. Two actions live here too: `b` **backs up and renders everything** - a portable data-backup zip plus a second zip of every saved project rendered out, with a live progress panel - and `v` runs an on-device **Content Credentials report** on a file. Both zips land in your Desktop folder, or your home directory if there isn't one.
+- **Assets** (`4`) - browse every asset; favourite (`f`), hide (`d`) and **export an asset** (`e`) to any format (opens the `asset-export` tool seeded with that asset).
+- **System** (`5`) - the terminal's design system: start from one colour (`c`), bring a token file or `.lolly` (`i`), add resources (`a`), export a `.lolly` (`e`) and switch systems (`u`). `t` **inspects tokens**: one choice per theme group (`g` picks a group, `o` steps its choice as a preview), the issues, a searchable token list and, on `Enter`, a token's trace through the tokens it reads and the tokens that read this one. `s` reviews the previewed choices and `y` stores them on the active terminal system. See [Inspecting and reviewing design tokens](/info/token-workflows.html).
 - **Tool view** - a two-pane (desktop) / stacked (mobile) layout: an **Inputs** panel beside an **Export** settings panel and a preview. `Tab` switches panels; `j`/`k` move between inputs; `Enter`/`e` edits; `Space` toggles booleans; `←`/`→` cycle selects (and step number sliders). `x` **exports**, `s` saves the session, `y` prints/copies a share link and `u`/`r` undo and redo. Every input type is editable, including repeating **blocks** (drill in to add/reorder/nest rows) and **`asset`** inputs (a catalog picker on `Enter`, or type an id / `lolly.tools` URL with `e`). Export settings expose **Format · Width · Height · Unit · DPI · Filename · Folder · Design system · C2PA · Imprint · Durable · Password** with a derived output path - so the terminal carries the same provenance and lock controls as the web export panel: **Design system** shows the exact words the export will record about its [design system and colourway](/info/exporting.html#the-design-system-record) in the chosen format (and says so when the format carries no metadata) and cycles to `off` to leave them out, cycle **C2PA** for a [Content Credential](/info/exporting.html) and its certificate lifetime, **Imprint** for the pixel watermark (on by default, off per export), **Durable** for the opt-in neural credential on the raster formats and set a **Password** to lock a rendered PDF or zip.
 
-### Batch (the "TUI way", no `/pro` grid)
+### Batch (the "TUI way", no `#/batch` grid)
 
 Three sources, one zip: a **Projects folder** subtree (`e`), a **ticked multiselection** of saved sessions across folders (`Space` to tick, `b` to run) or a **CSV/TSV file** (`c`) - the same row format the CLI `batch` subcommand reads (a `toolId` column, optional per-row `format`/`width`/`height`/`unit`/`dpi` and a column per input). The result is one `.zip` on your Desktop, optionally password-locked. A batch shows no **Design system** row, so its files carry no [design-system record](/info/exporting.html#the-design-system-record), and neither does the Profile view's render-everything zip. Export one file from the tool view to record the design system with the file.
 
@@ -63,7 +65,7 @@ The layout is responsive: narrow terminals collapse the two-pane tool view into 
 
 ## Inputs it can edit
 
-Every input type the engine models is editable from the keyboard - text, numbers, booleans, selects and repeating **`blocks`** (drill into a block → its rows → its fields; add, delete, reorder and nest). It also edits **`file`** inputs (give it a path - the bytes are read locally and handed to on-device utilities like `strip-data`) and **`asset`** inputs (a catalog id like `suse/logo/hor-pos-green`, or a pasted `lolly.tools` tool link, resolved to an embedded render).
+Every input type the engine models is editable from the keyboard - text, numbers, booleans, selects and repeating **`blocks`** (drill into a block → its rows → its fields; add, delete, reorder and nest). It also edits **`file`** inputs (give it a path - the bytes are read locally and handed to on-device utilities like `strip-data`) and **`asset`** inputs (a catalog id like `lolly/logo/primary`, or a pasted `lolly.tools` tool link, resolved to an embedded render).
 
 ## Inline preview
 
@@ -73,8 +75,8 @@ Preview is **opt-in** (`p`) and secondary - seeing inputs, files, projects and e
 
 Two tiers, picked automatically per format:
 
-- **DOM-free (always available):** **SVG (and SVGZ), EMF, WMF, EPS (and EPS-CMYK), DXF, BMP, HTML, plus the data formats** (JSON, CSV, ICS, VCF, MD) render through the same headless engine path as the CLI - instant, no browser.
-- **Browser tier (opt-in, on demand):** everything that needs a real layout/paint engine - **raster (PNG/JPG), PDF, video**, **live-URL capture** and **TXT** - is produced by a scoped headless **Chromium**. TXT belongs here because it is the *rendered* page serialised to plain text, so something has to lay the page out first. For an ordinary tool the TUI drives a built copy of the web shell so the bytes are *identical* to a web/desktop Download; there is no second render path to drift. The browser launches only when you first export one of these formats, never at startup. The TUI shares the CLI's renderer selection, so when a Lolly desktop app is running or installed here it renders through the app instead and needs no Chromium at all - see [What the CLI can render](/info/cli-rendering.html#what-the-cli-can-render) for the three rungs and `LOLLY_RENDERER`.
+- **DOM-free (always available):** **SVG (and SVGZ), EMF, WMF, EPS (and EPS-CMYK), DXF, Penpot, Lottie, IDML, Premiere XML, JPEG XL, EXR, HDR, BMP, HTML, plus the data formats** (JSON, CSV, ICS, VCF, MD) render through the same headless engine path as the CLI - instant, no browser. A **PNG** from a tool that draws in SVG needs no browser either: the TUI rasterises the engine's own SVG with resvg, Imprint included. A PNG that asks for the **Durable** mark, bleed or printer's marks still goes to the browser tier.
+- **Browser tier (opt-in, on demand):** everything that needs a real layout/paint engine - **the other raster formats (JPG, WebP, and PNG from a tool laid out in HTML), PDF, video**, **live-URL capture** and **TXT** - is produced by a scoped headless **Chromium**. TXT belongs here because it is the *rendered* page serialised to plain text, so something has to lay the page out first. For an ordinary tool the TUI drives a built copy of the web shell so the bytes are *identical* to a web/desktop Download; there is no second render path to drift. The browser launches only when you first export one of these formats, never at startup. The TUI shares the CLI's renderer selection, so when a Lolly desktop app is running or installed here it renders through the app instead and needs no Chromium at all - see [What the CLI can render](/info/cli-rendering.html#what-the-cli-can-render) for the three rungs and `LOLLY_RENDERER`.
 
 Set the browser tier up once:
 
@@ -98,14 +100,14 @@ Exports are written to your desktop (`~/Desktop`) by default, with the folder ed
 - **Recolor:** recolour the whole page before capture - invert, grayscale, sepia, a hue shift or a **tint** that washes it in a colour of your choice.
 - Plus the existing scroll-depth, settle delay and custom-CSS controls.
 
-The crop and recolor controls are ordinary tool inputs, so they're editable from the keyboard like any other. (Recolor also applies in the web/desktop shells; crop and vector PDF/SVG are the terminal capture's own.)
+The crop and recolor controls are ordinary tool inputs, so they're editable from the keyboard like any other. (The desktop app's capture also crops and recolours, and its vector capture produces a true vector SVG.)
 
 ## Persistence
 
-Unlike the ephemeral CLI, the TUI keeps state on disk: saved sessions, project folders and your profile. It uses the same directory the desktop app and the CLI use, picked in this order:
+Unlike the CLI, which saves no sessions, the TUI keeps state on disk: saved sessions, project folders and your profile. It uses the same directory the desktop app and the CLI use, picked in this order:
 
 1. `$LOLLY_STATE_DIR`, when you name one.
-2. `$LOLLY_TUI_DIR`, the old name for the same thing. It still works and prints a one-line note saying which name replaced it.
+2. `$LOLLY_TUI_DIR`, the old name for the same thing. It still works and prints a one-line note that points you to `LOLLY_STATE_DIR`.
 3. The desktop app's own data directory, when the app is installed here: `~/Library/Application Support/tools.lolly.Desktop` on macOS, `$XDG_DATA_HOME/tools.lolly.Desktop` (or `~/.local/share/...`) on Linux, `%APPDATA%\tools.lolly.Desktop` on Windows.
 4. `~/.lolly`.
 
@@ -119,5 +121,5 @@ Project folders and your profile stay terminal-only files beside them, `folders.
 
 - [CLI](/info/cli.html) - the one-shot, scriptable counterpart. Same engine, same output.
 - [URL Mode](/info/url-mode.html) - the parameter model both terminal shells share with the web shell.
-- [Exporting & Formats](/info/exporting.html) - what each format is for and which shells produce it.
+- [Exporting & Formats](/info/exporting.html) - what each format is for and which shells produce each one.
 - [Overview](/info/overview.html) - how the shells sit on top of one shared engine.

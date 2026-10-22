@@ -25,7 +25,7 @@ for testing and do not qualify a release.
 
 ## Prerequisites (all targets)
 
-- <!--l:node-->**Node.js ≥ 22.18** **or ≥ 24**, and **pnpm**. `npm install --global pnpm` installs it, and the repository pins the version it uses in `package.json`. The repo's scripts run TypeScript sources directly (`node scripts/foo.ts`), which relies on Node's unflagged type-stripping - added in Node 22.18 and 24. Node 20 and early 22.x fail at `pnpm install`. `.nvmrc` pins `24`, so nvm users can just run `nvm install` in the repo.
+- <!--l:node-->**Node.js ≥ 22.18** **or ≥ 24**, and **pnpm**. `npm install --global pnpm` installs it, and the repository pins the version it uses in `package.json`. The repo's scripts run TypeScript sources directly (`node scripts/foo.ts`), which relies on Node's unflagged type-stripping - added in Node 22.18 and 24. Node 20 and early 22.x fail at `pnpm install`. `.nvmrc` pins `26`, so nvm users can just run `nvm install` in the repo.
 - The repo checked out, dependencies installed - see below
 
 ---
@@ -34,11 +34,11 @@ for testing and do not qualify a release.
 
 Lolly is one repository. `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `docs/`, `community/`, `brands/lolly-start/`, every `shells/*` and both services live here as plain directories. The one exception is `brands/suse`, a **private** git submodule holding the SUSE tool pack and catalog - licensed fonts and music included, which is why it stays out of the public tree.
 
-Everything except `brands/suse` is public, so a read-only contributor gets a complete, buildable checkout with the script (or single command) below. Write access is enforced by the host at push time, not by the checkout, so the setup is identical whether you're a maintainer or just reading it.
+Everything except `brands/suse` is public, so a read-only contributor gets a complete, buildable checkout with the script (or single command) below. Write access is enforced by the host at push time, not by the checkout, so the setup is identical for maintainers and readers.
 
 ### The setup script
 
-On macOS and openSUSE, one script takes a fresh clone to a running state - it detects your package manager (<!--l:homebrew-->Homebrew or zypper), installs git and Node if they are missing or too old, runs `pnpm install` and selects a content profile:
+On macOS and openSUSE, one script takes a fresh clone to a running state - it detects your package manager (<!--l:homebrew-->Homebrew or zypper), installs git and Node if they are missing or too old, runs `pnpm install` and reports the content profile it resolved:
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git
@@ -49,8 +49,8 @@ pnpm run dev:web           # web shell at http://localhost:5173
 
 `./setup.sh` is idempotent - safe to re-run any time: after a `git pull`, or to repair a half-finished checkout. Flags:
 
-- `--suse` also mounts the private SUSE brand pack and selects the SUSE profile (needs repo access)
-- `--profile <suse|lolly-start>` forces a content profile after install
+- `--suse` also mounts the private SUSE brand pack (needs repo access); `suse` is the default profile in `profiles.json`, so a checkout with the pack resolves to it
+- `--profile <name>` sets this checkout's default content profile (it writes `.lolly-profile`); any profile in `profiles.json` works, such as `lolly-start` or `lolly-demo`
 - `--skip-node` leaves Node entirely to you - the nvm path: `nvm install` in the repo (it reads `.nvmrc`), then `./setup.sh --skip-node`
 - `--help` lists everything
 
@@ -81,7 +81,7 @@ git submodule update --init --checkout brands/suse
 LOLLY_PROFILE=suse pnpm run dev:web
 ```
 
-(`./setup.sh --suse` mounts it and selects the profile in one go.) Without it, `pnpm run profile` reports `lolly-start` as active - the blank brand, which is the correct default for anyone not doing SUSE-specific work, and the profile CI builds against. lolly.tools ships `lolly-demo`, the profile `scripts/data/ship-targets.json` sets for the site.
+(`./setup.sh --suse` mounts it in the same run, and `suse` then resolves as the default profile.) Without it, `pnpm run profile` reports `lolly-start` as active - the blank brand, which is the correct default for anyone not doing SUSE-specific work, and the profile CI builds against. lolly.tools ships `lolly-demo`, the profile `scripts/data/ship-targets.json` sets for the site.
 
 ### If something fails
 
@@ -104,17 +104,15 @@ pnpm run validate:catalog:all   # validate every mounted profile; exits 1 on dri
 
 ## How the Tauri shells relate to the web shell
 
-Both Tauri shells share the web shell's source (`shells/web/src/`). They build it with a Vite alias that swaps `bridge/state.ts` for a Tauri filesystem implementation at build time. Everything else - the engine, tools, templates, export logic - is identical to the web build. One render path, three delivery targets.
+Both Tauri shells share the web shell's source (`shells/web/src/`). Each builds it with a Vite plugin (`overrideBridgeModules` in the shell's `vite.config.js`) that swaps a few bridge modules for Tauri versions at build time: storage (`state.ts`, the filesystem instead of IndexedDB), file delivery (`export.ts`, which saves through the filesystem and keeps the web renderer) and the capability list, plus page capture on desktop and durable user assets on mobile. The desktop shell also installs native notifications, updates and zoom from the same folder. The engine, tools, templates and render path are identical to the web build. One render path, three delivery targets.
 
 ```
-shells/web/src/         ← canonical source
-    └── bridge/
-        └── state.ts    ← IndexedDB (web build)
+shells/web/src/bridge/            ← canonical source (web build)
 
-shells/tauri-desktop/
-shells/tauri-mobile/
-    └── bridge-overrides/
-        └── state.ts    ← filesystem via tauri-plugin-fs (Tauri builds)
+shells/tauri-desktop/bridge-overrides/
+    state.ts  export.ts  capabilities-provided.ts  capture.ts
+shells/tauri-mobile/bridge-overrides/
+    state.ts  export.ts  capabilities-provided.ts  assets.ts
 ```
 
 The Tauri-built frontend is written to `shells/tauri-{desktop,mobile}/dist/`, which `tauri.conf.json` references as `frontendDist`. The web shell's own `dist/` is unaffected.

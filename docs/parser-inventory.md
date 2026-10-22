@@ -1,6 +1,6 @@
 # Parser inventory
 
-Every engine module that turns attacker-controlled bytes or text into structure, with the bounds it actually declares, the test that covers it and whether the fuzz harness reaches it.
+This page lists the Lolly modules that turn attacker-controlled bytes or text into structure (most in the engine, a few in the shells, services and packages): the bounds each one declares, the test that covers it and whether the fuzz harness reaches that module. Parsers that are not registered yet are named under [Known gaps](#known-gaps).
 
 "Attacker-controlled" here means one of four sources:
 
@@ -9,7 +9,7 @@ Every engine module that turns attacker-controlled bytes or text into structure,
 - a URL param, because URL mode is first-class and every link is public,
 - a stream nested inside one of those, for example an ICC profile inside a JPEG, a CMap inside a PDF content stream or an XML part inside a .pptx zip.
 
-Two things this page deliberately does *not* do. It does not list the engine's format **writers** as attack surface. `engine/src/tiff.ts`, `apng.ts`, `webp-anim.ts`, `emf.ts`, `eps.ts`, `dxf.ts`, `hdr.ts`, `pptx.ts`, `pdfx.ts`, `zip-crypto.ts` and `pdf-crypto-r6.ts` are byte emitters that consume engine-internal IR, pixel buffers or already-encoded frames from the shell, so a hostile *file* never reaches them (see "Writers, not parsers" below). And it does not restate the shell's own gates: the web shell caps upload size and inflates zips before the engine sees a part map, and those caps live in `shells/web/src/bridge/`, not here.
+Two things this page does *not* do. It does not list the engine's format **writers** as attack surface. `engine/src/tiff.ts`, `apng.ts`, `webp-anim.ts`, `emf.ts`, `eps.ts`, `dxf.ts`, `hdr.ts`, `pptx.ts`, `pdfx.ts`, `zip-crypto.ts` and `pdf-crypto-r6.ts` are byte emitters that consume engine-internal IR, pixel buffers or already-encoded frames from the shell, so a hostile *file* never reaches them (see "Writers, not parsers" below). And it does not restate the shell's own gates: the web shell caps upload size and inflates zips before the engine sees a part map, and those caps live in the web shell (`shells/web/src/lib/zip.ts`, `lib/archive-ingest.ts` and their callers), not here.
 
 Fuzz coverage is the registered target list in `tests/fuzz/targets.ts` (`ALL_TARGETS`, at the end of the file). There are 70: `layout-abi`, `penpot-layout`, `design-guides`, `design-hierarchy`, `lolly-hierarchy`, `adobe-xml`, `adobe-psd`, `idml-read`, `motion-cues`, `motion-params`, `mcp-negotiation`, `text-source`, `text-document`, `text-frame`, `vector-paint`, `deep-image`, `emoji-bundle`, `jxl`, `lottie-edits`, `lottie`, `emoji-pack`, `emoji-svg`, `emoji-text`, `prepare`, `c2pa-verify`, `cbor`, `media-sniff`, `output-facts`, `pdf-map`, `pdf-derived`, `x509`, `file-metadata`, `strip-metadata`, `video-meta`, `data-import`, `brand-import`, `brand-reference`, `tar-read`, `epub-read`, `jpeg-structure`, `raster-decode`, `pptx-read`, `pptx-patch`, `pptx-bridge`, `icc`, `der-read`, `c2pa-extract`, `c2pa-containers`, `url-pack`, `wav`, `depth-hint`, `lut-parse`, `psd`, `psd-descriptor`, `xcf`, `docx-read`, `svg-readers`, `keyframes`, `present-interact`, `midi`, `zzfxm`, `rondo-source`, `rondo-staged`, `radiance`, `seal`, `png-unfilter`, `watermark-analysis`, `geom`, `svg-items` and `font-inspect`. `tests/fuzz-regression.test.ts` replays the eight saved regression inputs in `tests/fuzz/regressions/` and runs a few hundred seeded mutations per target inside the normal `pnpm test` glob; `node tests/fuzz/run.ts` is the standalone soak.
 
@@ -128,12 +128,12 @@ Listing these as attack surface would overstate the problem. Each consumes engin
 | `engine/src/pdfx.ts` | PDF/X-4 metadata authority: XMP packet strings and descriptor objects. Interpolated values get an XML escape (`esc`), which is output hygiene, not parsing. `N_ALLOWED = new Set([1, 3, 4])` validates a caller's channel count. |
 | `engine/src/zip-crypto.ts` | ZipCrypto and WinZip AES-256 **encryption** plus zip framing, over bytes fflate already compressed in the shell. All randomness is injected via `opts.rng`. |
 | `engine/src/pdf-crypto-r6.ts` | PDF R6 AES-256 `/Encrypt` value computation. Deterministic given its inputs; the shell supplies the file key, all four salts, the Perms tail and every IV. |
-| `engine/src/packbits.ts` | PackBits RLE, both directions, over byte buffers `psd.ts` and the TIFF path hand it. The decoder is defensive on every input and never throws (a truncated packet or either-side overrun returns `-1`), so it is covered wherever its callers are fuzzed rather than needing a container walk of its own. `tests/packbits.test.ts`. |
+| `engine/src/packbits.ts` | PackBits RLE, both directions, over byte buffers that `psd.ts` and the TIFF path pass in. The decoder is defensive on every input and never throws (a truncated packet or either-side overrun returns `-1`), so it is covered wherever its callers are fuzzed rather than needing a container walk of its own. `tests/packbits.test.ts`. |
 | `engine/src/metadata.ts` | Assembles the provenance record from profile plus manifest. No format or byte knowledge. |
 
 ## The standard to follow
 
-`engine/src/pptx-read.ts` is the module to copy when you add a parser. Its caps block sits at lines 156 to 167, immediately after the public types and before the first walker, so a reviewer meets the bounds before the code they bound:
+`engine/src/pptx-read.ts` is the module to copy when you add a parser. Its caps block, under the `hardening caps` comment, sits after the public types and before the first walker, so a reviewer meets the bounds before the code they bound. It opens like this, and continues with about two dozen more named caps for placeholders, outline levels, coordinates, alt text, spacing, links, charts and custom geometry:
 
 ```ts
 // ─── hardening caps ──────────────────────────────────────────────────────────
@@ -149,7 +149,6 @@ const MAX_TABLE_ROWS = 2000;
 const MAX_TABLE_COLS = 512;
 const MAX_TEXT_LEN = 200_000; // per run/cell text clamp
 const MAX_DFS_VISITS = 200_000; // bound any descendant search
-const MAX_COORD = 1e11; // EMU magnitude clamp (slide width is ~1.2e7)
 ```
 
 Four properties make this the exemplar rather than merely a long list.
@@ -169,6 +168,8 @@ Four properties make this the exemplar rather than merely a long list.
 Verified against `ALL_TARGETS` in `tests/fuzz/targets.ts` and against each module's own source. An earlier pass over this ground over-counted, because it treated the format writers as parsers.
 
 Every row is now mapped to a registered mutation target; there are no parser-assurance waivers. This is coverage accounting, not a proof of semantic correctness or exhaustive state exploration.
+
+**Parsers not yet in the register.** These modules also read untrusted input and have no row yet: `engine/src/zip.ts` (`readZip` and `readZipMembers`, the shared reader behind EPUB, dotLottie, IDML, ODT and other zip containers), `engine/src/xlsx-import.ts` (`readXlsx`, spreadsheet import, which also has no fuzz target), `engine/src/gzip.ts`, `engine/src/font-convert.ts` (`woffToSfnt`), `engine/src/psd-descriptor.ts`, `engine/src/psd-layer-semantics.ts`, `engine/src/rondo-source.ts`, `packages/rondo/src/staged.ts`, `shells/web/src/bridge/pptx.ts`, `engine/src/ogg.ts` (`walkOggPages`, called by the C2PA container readers), `engine/src/text-formats.ts` (`readYaml`, through the `yaml` library with an alias cap) and `shells/web/src/lib/font-utils.ts` (`parseFontMetadata`, for uploaded fonts). Four of them already have fuzz targets (`pptx-bridge`, `psd-descriptor`, `rondo-source` and `rondo-staged`). `check:parser-assurance` checks every row against a target but not every target against a row, so these targets passed without a row.
 
 **Named second-order bounds.** `pdf-map.ts` now owns the page-wide character, token and emitted-node budgets that bound every current consumer. The derived parsers still keep their own narrower shape-specific limits (`pdf-artwork.ts` candidates, `pdf-svg.ts` paths/clips, `pdf-redaction.ts` covers) because their public functions can also receive hand-built `PdfNode[]` values.
 

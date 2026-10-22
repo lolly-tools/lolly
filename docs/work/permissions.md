@@ -11,25 +11,27 @@ Two layers, one evaluator:
 Evaluation order is fixed and pure: **any matching deny wins → any matching allow →
 the role default**. `server/src/rbac/evaluate.ts` is the whole thing, and it never looks
 anything up: a resource arrives as the set of selectors it satisfies (e.g.
-`['tool:event-badge', 'tool:tag/external-facing', '*']`).
+`['tool:qr-code', 'tool:tag/external-facing', '*']`).
 
 ## Roles
 
 | Role | Comes from | Carries |
 |---|---|---|
-| `viewer` | service tokens only (`lw tokens create --role viewer`) - no group resolves a person to it | `catalog.read`, `session.view`, `collab.join` |
-| `member` | the default for any signed-in user | viewer + `tool.use`, `session.create/edit/delete/share`, `project.create`, `export.download`, `export.request`, `delivery.create`, `link.create` |
-| `author` | group `author` | member + `catalog.submit` |
-| `approver` | group `approver` | member + `approval.act` |
-| `admin` | group `admin` | author ∪ approver + `catalog.publish`, `catalog.expire`, `catalog.hold`, `catalog.scan`, `catalog.edit`, `catalog.collection.manage`, `catalog.provider.read`, `catalog.provider.manage`, `brand.switch`, `catalog.injectable.manage`, `policy.edit`, `grant.edit`, `link.revoke`, `link.create-guest`, `message.send`, `telemetry.view`, `fleet.view`, `fleet.manage`, `audit.export`, `project.manage`, `project.archive`, `approval.assign`, `export.server`, `user.invite` |
-| `owner` | group `owner` | admin + `instance.config`, `catalog.provider.credential`, `catalog.provider.publish`, `scim.manage`, `token.manage` |
+| `viewer` | a group mapped in `idp.roleGroups.viewer`, or a service token (`lw tokens create --role viewer`) | `catalog.read`, `session.view`, `collab.join`, `comment.view`, `comment.create`, `comment.edit` |
+| `member` | the default for any signed-in user, or a group mapped in `idp.roleGroups.member` | viewer + `tool.use`, `session.create/edit/delete/share`, `comment.resolve`, `comment.moderate`, `project.create`, `group.create`, `export.download`, `export.request`, `delivery.create`, `link.create` |
+| `author` | `idp.roleGroups.author`, or by default group `author` | member + `catalog.submit` |
+| `approver` | `idp.roleGroups.approver`, or by default group `approver` | member + `approval.act` |
+| `admin` | `idp.roleGroups.admin`, or by default group `admin` | author ∪ approver + `catalog.publish`, `catalog.expire`, `catalog.hold`, `catalog.scan`, `catalog.edit`, `catalog.collection.manage`, `catalog.provider.read`, `catalog.provider.manage`, `brand.switch`, `catalog.injectable.manage`, `policy.edit`, `grant.edit`, `link.revoke`, `link.create-guest`, `message.send`, `telemetry.view`, `fleet.view`, `fleet.manage`, `audit.export`, `project.manage`, `project.archive`, `approval.assign`, `export.server`, `user.invite` |
+| `owner` | `idp.roleGroups.owner`, or by default group `owner` | admin + `instance.config`, `catalog.provider.credential`, `catalog.provider.publish`, `scim.manage`, `token.manage` |
 | `guest` | a guest-edit link | **nothing** - access is entirely link-scoped grants |
 
-Role comes from the effective group set (IdP ∪ local groups): the highest of `owner`,
-`admin`, `approver`, `author`, else `member`. See [identity](identity.md).
+Role comes from the effective group set (IdP ∪ local groups): the highest match in the order
+`owner`, `admin`, `approver`, `author`, `member`, `viewer`, using the groups mapped in
+`idp.roleGroups` (or, for the top four, a group of the same name when that role has no
+mapping), else `member`. See [identity](identity.md#groups-role).
 
 Projects add a second, narrower layer: each person has a role on each project they can see
-(owner, manager, editor or viewer), and the project routes ask for both. Saving needs
+(owner, manager, editor, commenter or viewer), and the project routes ask for both. Saving needs
 `session.edit` and editor on that project; renaming, sharing and inviting need manager. The
 roles and where they come from are in [sharing](sharing.md#people-and-roles). Inviting new
 people from a project follows `policy.invites.allow` rather than `user.invite` alone; see
@@ -38,7 +40,7 @@ people from a project follows `policy.invites.allow` rather than `user.invite` a
 ### Who can see who has access
 
 A project's people list (`GET /api/v1/projects/:id/members`) marks each row with where the
-access comes from (plans/75 G15). Everyone on the project sees the owner (`via: 'owner'`)
+access comes from. Everyone on the project sees the owner (`via: 'owner'`)
 and the explicit members (`via: 'member'`); only the project's managers also see the other
 ways in, in a separate `effective` list, so no client offers a role select or Remove for
 access the project cannot take away:
@@ -146,7 +148,7 @@ reads" is one row:
 lw grants add group:design catalog.submit '*' --effect allow
 ```
 
-It is deliberately the whole of the submitter's authority. **There is no separate action for
+It is the whole of the submitter's authority. **There is no separate action for
 deciding a submission**: when `policy.submit.chain` identifies a chain, the decision is an ordinary
 approval - eligibility is membership of the step's approver groups plus separation of duties
 ([approvals](approvals.md)), and the review queue is only an ergonomic door onto that review step. Whoever may act on the step may also correct a pending
@@ -208,7 +210,7 @@ reads" is one row:
 lw grants add group:brand catalog.edit '*' --effect allow
 ```
 
-Two things it deliberately does not buy. **Defining** the fields is `policy.edit`, because a
+Two things it does not buy. **Defining** the fields is `policy.edit`, because a
 taxonomy is governance and lives in the [governance
 document](governance.md#policy-as-code) - filling a field in is not defining one. And it
 reaches only assets the caller can already see: the editor asks the same exposure question
@@ -221,7 +223,7 @@ Audited as `catalog.edit` with the before and after of every field that moved, a
 The same action carries the byte side of curation ([versions](catalog.md#versions)): replacing
 a published asset's bytes with a new version, rolling the head back to a prior one, deleting a
 stored version, and retiring an asset in favour of another (`replacedBy`). The split is
-deliberate - `catalog.submit` contributes an asset, `catalog.edit` changes what an asset that
+by design - `catalog.submit` contributes an asset, `catalog.edit` changes what an asset that
 is already in the catalog says or serves - and it is why a `policy.submit.chain` gates
 contributions and not versions: an approver already decided this asset belongs here. Audited as
 `catalog.version`, `catalog.rollback` and `catalog.version.delete`, each naming the version it

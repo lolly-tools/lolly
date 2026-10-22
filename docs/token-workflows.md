@@ -98,7 +98,7 @@ Imported files often encode colourways their own way, for example by overriding 
 
 **The app's own colours.** The app's accent, favicon and logo tint follow the canonical colourway whatever the open artefact uses: the app belongs to the device, the canvas to the artefact. The same holds for every other theme group, whether or not it declares a kind, except light and dark, which follow the app's appearance setting. A Persimmon poster shows Persimmon on the canvas and the canonical colour in the app around the poster.
 
-**Rules for a series.** The engine can pick colourways for a series of artefacts by a rule. No series or batch flow in the app applies these rules yet; for now only the engine's `pickColourway` function reads them. The design is that the rule is applied when each artefact is made, and the artefact stores the colourway it got, never the rule, so adding a colourway later changes what a rule picks for new work and leaves every existing artefact as it was.
+**Rules for a series.** The engine can pick colourways for a series of artefacts by a rule. No series or batch flow in the app applies these rules yet; for now only the engine's `pickColourway` function reads them. A rule is meant to be applied when each artefact is made, and the artefact stores the colourway it got, never the rule, so adding a colourway later changes what a rule picks for new work and leaves every existing artefact as it was.
 
 | Rule | Picks |
 | --- | --- |

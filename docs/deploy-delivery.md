@@ -117,8 +117,8 @@ hashed files in revalidated documents and need no bounded-render purge.
 
 Turn off edge resizing, transcoding, metadata stripping and re-signing. Also
 disable script injection, analytics, tag managers, script deferral, email
-obfuscation, bot challenges that replace application responses, Crawler Hints
-and Always Online. Compression must decode to the original signed bytes.
+obfuscation, bot challenges that replace application responses, crawler
+hinting and cached-copy fallback when the origin is down. Compression must decode to the original signed bytes.
 Compare HTML and images through the edge with their origin copies.
 
 Display renditions are generated and signed once, retain credits and an original

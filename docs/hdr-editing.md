@@ -1,6 +1,6 @@
 # Wide colour and HDR editing
 
-Design and Darkroom offer **Editing range: Wide colour / HDR**. Standard editing stays the default. The choice is saved with the document and works with Sequence video editing too.
+Design and Darkroom can both edit in wide colour and HDR. In Design, open **Canvas size** or **Artboard size** and set **Colour** to **Wide colour / HDR**. In Darkroom, set **Editing range** to **HDR**. Standard editing stays the default. The choice is saved with the document and works with Sequence video editing too.
 
 A brand swatch can contain an authored sRGB face and a Display P3 or Rec.2020 face. Standard documents use the sRGB face. Wide colour documents use the wider face, and new swatch picks keep their token reference so switching the document range selects the right variant. Compatible displays show P3 colours; a display's gamut does not change the saved colour or exported master. P3 means a wider range of colours. HDR additionally allows brightness above ordinary white.
 
