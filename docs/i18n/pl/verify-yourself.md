@@ -6,7 +6,7 @@ Jeśli którakolwiek kontrola na tej stronie nie daje pokazanego wyniku, to albo
 
 ## Zobacz, jak to działa, w dziesięć sekund
 
-Zanim przejdziemy do procedur, efekt końcowy. Otwórz [`/verify`](/#/verify) i upuść na nie plik - bez przesyłania, bez konta, bez czekania na serwer. Tutaj sprawdza [wygenerowaną burzę w Queensland](/info/ai-stance.html) z naszej strony o stanowisku wobec AI: obraz Gemini, który Lolly otworzyło, zmieniło rozmiar i wyeksportowało. Każda plakietka poniżej została obliczona na urządzeniu, na podstawie samych bajtów pliku.
+Zanim przejdziemy do procedur, efekt końcowy. Otwórz [`/verify`](/#/verify) i upuść na nie plik - bez przesyłania, bez konta, bez czekania na serwer. Tutaj sprawdza [wygenerowaną burzę w Queensland](/info/ai-stance.html) z naszej strony o stanowisku wobec AI: obraz Gemini, który Lolly otworzyło, opatrzyło znakiem wodnym i wyeksportowało. Każda plakietka poniżej została obliczona na urządzeniu, na podstawie samych bajtów pliku.
 
 ![Verify na ekranie o szerokości telefonu - obraz burzy, zielony werdykt Made with Lolly oraz plakietki nienaruszonych poświadczeń i niezmienionych bajtów ułożone pod nim](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

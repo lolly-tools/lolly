@@ -4,7 +4,7 @@
 
 Dokumen ini mencatat tujuan, struktur dan keputusan arsitektur untuk platform Lolly. Ini mencerminkan baik visi produk maupun kondisi basis kode saat ini.
 
-> **Status:** Lolly adalah prototipe internal dalam **uji coba tertutup yang belum selesai**. Mesinnya deterministik dan konsisten secara internal, tetapi produknya masih dini - SUSE adalah pelanggan nomor satu - dan mesin kriptografi serta penguraian filenya saat ini sedang menjalani pengerasan infrastruktur ketat milik SUSE, mempersiapkan skala enterprise (kami sangat mahir dalam hal ini). Bacalah arsitektur di bawah ini sebagai niat desain yang sedang diuji, bukan produk jadi yang tersertifikasi. Lihat [Adopsi & Tata Kelola](/info/adoption-governance.html#status) untuk cara uji coba ini dijalankan dan diukur.
+> **Status:** Lolly sudah dirilis. Versi 1.0 diluncurkan sebagai open source di bawah MPL-2.0 pada 30 Agustus 2026, dan fitur, bawaan serta katalog tool masih berubah antar rilis. Mesinnya [deterministik](/info/determinism.html), dengan satu jalur render di balik setiap shell. Keamanannya belum pernah diaudit secara independen, dan bukti adopsinya berusia beberapa bulan. Lihat [Adopsi & Tata Kelola](/info/adoption-governance.html#status) untuk kondisi saat ini dan cara adopsi diukur.
 
 > **Cara membaca halaman ini.** Halaman ini memuat dua jenis materi, secara berurutan. Separuh pertama adalah
 > **mengapa ini ada**: masalahnya, positioning-nya dan siklus hidup yang dilalui satu aset. Mulai dari

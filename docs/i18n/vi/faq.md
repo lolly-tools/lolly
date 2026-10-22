@@ -20,7 +20,7 @@ Lolly tạo ra một lượng nội dung rất lớn. Chúng tôi áp dụng cá
 
 Lolly được phát triển bằng việc viết mã có hỗ trợ AI, khám phá có hỗ trợ AI và, ở nhiều nơi, nội dung có hỗ trợ AI, sử dụng nhiều mô hình và nhà cung cấp khác nhau, kể cả từ các công ty tiên phong về đám mây công cộng.
 
-Tính đến thời điểm viết bài này, Lolly không có lỗ hổng bảo mật nào được biết đến trong chuỗi cung ứng của mình, và cam kết thực hiện các biện pháp ứng phó bảo mật nhanh chóng khi CVE xuất hiện.
+Một advisory mức high hoặc critical trong các dependency của Lolly sẽ chặn CI. Một advisory chưa thể sửa chỉ được giữ lại như một ngoại lệ đã được duyệt, kèm lý do bằng văn bản. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) liệt kê từng ngoại lệ đang được giữ hiện nay, còn [ghi chú phát hành](https://github.com/lolly-tools/lolly/releases) liệt kê những ngoại lệ mà mỗi bản phát hành mang theo. SECURITY.md cũng nêu cách báo cáo một lỗ hổng.
 
 Con người đã tạo ra kiến trúc, chọn lọc mã nguồn một cách có chủ đích và định hướng nghệ thuật cho trải nghiệm.
 
@@ -52,7 +52,9 @@ Feature flag bật hoặc tắt từng phần của Lolly. Thông thường qu�
 
 ## Làm sao để có ứng dụng di động hoặc máy tính?
 
-Ai cũng có thể phân phối ứng dụng của riêng mình, và bộ công cụ cùng cấu hình của những ứng dụng đó sẽ rất khác nhau tuỳ theo đối tượng mà nó nhắm tới. Nên không có một ứng dụng duy nhất nào, trừ khi bạn tự làm ra nó hoặc một người liên quan đưa nó cho bạn.
+Hãy tải về từ [Cài đặt Lolly](/info/install.html). Trang này liệt kê mọi bản build cho macOS, Windows, Linux và Android, và chỉ cách kiểm tra tệp bạn đã tải. iPhone và iPad chưa có bản tải công khai; [phần về iPhone và iPad](/info/install.html#iphone-and-ipad) cho biết nên dùng gì thay thế.
+
+Bất kỳ ai cũng có thể tự build và phân phối bản sao ứng dụng của riêng mình, với các công cụ và thiết lập mà đối tượng của họ cần. [Hướng dẫn Build](/info/build-guide.html) chỉ cách làm.
 
 ## Vì sao lại có tên "Lolly Tools"?
 
@@ -127,7 +129,7 @@ Các lớp hiện ra thành những hộp chỉnh sửa được trên canvas m�
 
 ## Tác phẩm tôi làm hôm qua đâu rồi?
 
-Nếu bạn nhấn **Lưu thành** hoặc **Lưu**, nó nằm trong **Dự án**, trên màn hình chính, trong trình duyệt hoặc ứng dụng bạn đã lưu từ đó. Nếu bạn chỉ nhấn **Tải xuống**, tệp nằm ở nơi trình duyệt hoặc hệ thống của bạn lưu các bản tải xuống, và thường có một bản sao trong **Tài sản**. Chín công cụ cũng giữ công việc chưa lưu trong **Dự án**. [Tìm và khôi phục công việc của bạn](/info/find-your-work.html) nói về mọi trường hợp.
+Nếu bạn nhấn **Lưu thành** hoặc **Lưu**, nó nằm trong **Dự án**, trên màn hình chính, trong trình duyệt hoặc ứng dụng bạn đã lưu từ đó. Nếu bạn chỉ nhấn **Tải xuống**, tệp nằm ở nơi trình duyệt hoặc hệ thống của bạn lưu các bản tải xuống, và thường có một bản sao trong **Tài sản**. Các công cụ [lưu khi bạn làm việc](/info/find-your-work.html#which-tools-save-as-you-work) cũng giữ công việc chưa lưu trong **Dự án**. [Tìm và khôi phục công việc của bạn](/info/find-your-work.html) nói về mọi trường hợp.
 
 ## Tôi đã đóng tab. Tác phẩm của tôi mất rồi à?
 
@@ -143,7 +145,7 @@ Có. Một người gửi lời mời (một liên kết, một mã QR hoặc m�
 
 ## Các công cụ mang thương hiệu SUSE đi đâu rồi?
 
-Chúng đã nằm trong một kho lưu trữ riêng, không công khai. Một bản clone công khai hoàn toàn không tải gói thương hiệu SUSE, nên bản build công khai chạy profile trung tính `lolly-start` - các công cụ cộng đồng không gắn thương hiệu cùng một thương hiệu trống để bạn điền của mình vào. SUSE vận hành instance riêng để bảo vệ nhãn hiệu của họ.
+Chúng đã nằm trong một kho lưu trữ riêng, không công khai. Một bản clone công khai hoàn toàn không tải gói thương hiệu SUSE, nên bản build từ đó dùng profile trung tính `lolly-start` trừ khi bạn chọn profile khác - các công cụ cộng đồng không gắn thương hiệu cùng một thương hiệu trống để bạn điền của mình vào. [lolly.tools](https://lolly.tools) được build với profile `lolly-demo` và mở ra trong [Lolly Demo](/info/lolly-demo.html), hệ thống thiết kế của chính Lolly. SUSE vận hành instance riêng để bảo vệ nhãn hiệu của họ.
 
 ## Vì sao nó miễn phí? Có bẫy gì không?
 
@@ -153,7 +155,7 @@ Ranh giới đó được vạch trong giấy phép, không phải trong một l
 
 ## SUSE giữ riêng bao nhiêu? (hay là bao giờ thì lật kèo)
 
-Engine, các shell, các schema và những công cụ không gắn thương hiệu đều là mã nguồn mở; nhãn hiệu của SUSE cùng các công cụ gắn thương hiệu là phần giữ riêng, và chúng đã được tách ra sẵn. Instance công khai tại [lolly.tools](https://lolly.tools) chạy trên thương hiệu trống.
+Engine, các shell, các schema và những công cụ không gắn thương hiệu đều là mã nguồn mở; nhãn hiệu của SUSE cùng các công cụ gắn thương hiệu là phần giữ riêng, và chúng đã được tách ra sẵn. Instance công khai tại [lolly.tools](https://lolly.tools) chạy [Lolly Demo](/info/lolly-demo.html), hệ thống thiết kế của chính Lolly.
 
 Ranh giới này mang tính cấu trúc chứ không phải một lời hứa. Mọi phiên bản đã phát hành đều là mã nguồn mở và không thể rút lại, không có thoả thuận đóng góp nào có thể cấp phép lại công sức của bất kỳ ai, và thứ duy nhất được giữ lại là nhãn hiệu. Khi một công ty khác đóng mã nguồn Linux doanh nghiệp của họ vào năm 2023, SUSE đã đồng sáng lập [OpenELA](https://openela.org) để giữ mã đó luôn mở - chính là lập trường mà dự án này kế thừa.
 

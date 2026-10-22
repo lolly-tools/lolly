@@ -118,8 +118,9 @@ the SCIM `externalId` linkage are untouched.
 
 ### Email and password
 
-Some people cannot use the instance's IdPs: their organisation's Google Workspace, for
-example, refuses OAuth apps it has not reviewed. For them, add one `kind: "password"`
+Some people cannot use the instance's IdPs: a Google Workspace administrator, for example,
+can restrict which third-party OAuth apps the organisation's accounts may sign in to. For
+those people, add one `kind: "password"`
 entry to `idp.additional` (see [configuration](configuration.md#email-and-password-kind-password)):
 
 ```json
@@ -259,7 +260,7 @@ only when it equals the `email` claim. Otherwise the address is unverified under
 and you must choose `trusted` on purpose for an IdP whose usernames you control.
 
 A reverse proxy is the authority for the address it sends, so proxy sign-ins count as
-verified. The refusal page starts with the workspace name ("lolly.ing is invite only"),
+verified. The refusal page starts with the workspace name ("Example Studio is invite only"),
 identifies the account the person used, says to sign in with the account the invitation went
 to or to ask an admin, and links to `/api/auth/login?prompt=select_account` so a browser
 holding several accounts can pick another (behind a proxy only the proxy can switch
@@ -364,9 +365,9 @@ to join and to use another account write the `access.*` rows listed in
 
 ### Planned sign-ins
 
-`idp.pending` lists providers that appear as disabled choices on sign-in and invitation pages. For example, `"pending": ["SUSE ID"]` shows **SUSE ID (pending)** without adding an authentication route. Remove the name when adding the registered OIDC provider to `idp.additional`.
+`idp.pending` lists providers that appear as disabled choices on sign-in and invitation pages. For example, `"pending": ["Company SSO"]` shows **Company SSO (pending)** without adding an authentication route. Remove the name when adding the registered OIDC provider to `idp.additional`.
 
-For SUSE ID, obtain the app's actual issuer and client ID from its administrator, register `https://lolly.ing/api/auth/callback`, and store its secret in the environment variable named by `clientSecretRef`. The discovery URL is specific to the app registration. Existing admission, invitation and email-verification checks also apply to this provider.
+For that provider, obtain the app's actual issuer and client ID from the provider's administrator, register `https://work.example.com/api/auth/callback` (your `instance.baseUrl` followed by `/api/auth/callback`), and store its secret in the environment variable named by `clientSecretRef`. The discovery URL is specific to the app registration. Existing admission, invitation and email-verification checks also apply to this provider.
 
 The sign-in and invitation pages share the console's local theme and fonts. Brand colours and fonts resolve from the active design-token source on the server; these pages need no scripts or external assets.
 
@@ -504,21 +505,21 @@ a project to an invitation can copy a working link at any time.
 the person, to which project and with which role, which address to use, and when the
 invitation ends:
 
-- the heading identifies the inviter and the project ("Andy invited you to Brand refresh"), or
-  the workspace for a workspace link ("Andy invited you to lolly.ing"). Each link shows
+- the heading identifies the inviter and the project ("Ana invited you to Brand refresh"), or
+  the workspace for a workspace link ("Ana invited you to Example Studio"). Each link shows
   its own project only, never the others the invitation carries. An archived project is
   shown as a workspace invite;
-- a line explains the role ("On lolly.ing, as an Editor. Editors can open and save work in
+- a line explains the role ("On Example Studio, as an Editor. Editors can open and save work in
   Brand refresh.");
 - the address is masked: "Sign in with the address this invitation was sent to:
-  an•••@suse.com". A screen reader hears "an address at suse.com that starts with an";
+  an•••@example.com". A screen reader hears "an address at example.com that starts with an";
 - the end date, as a relative time and a UTC date ("Ends in 30 days (2 Nov, UTC).");
 - one button per sign-in: **Set a password** first when the link may set one, then one
   button per OIDC or GitHub IdP, then **Sign in with email and password** when the
   address already has a password;
 - when GitHub is configured, a line saying that every verified address on the GitHub
   account counts;
-- `instance.inviteNote`, when set (on lolly.ing, which sign-ins to use when an
+- `instance.inviteNote`, when set (for example, which sign-ins to use when an
   organisation blocks Google);
 - inside an in-app browser (a mail, chat or social app's own web view, where Google
   sign-in can fail), a hint to open the link in Safari or Chrome, with the link to copy.
@@ -536,7 +537,7 @@ opened. It is marked opened when someone presses a sign-in button.
 | Pending, signed in as another account | 200 | "You are signed in as another account", sign-in buttons that ask for an account, and [Use this account instead?](#using-another-account) |
 | Accepted by the reader | 200 | "You are already in" and **Open Brand refresh** |
 | Accepted by someone else, or signed out | 200 | "This invitation was already used", with **Sign in** |
-| Ended (pending past its end date) | 410 | "This invitation has ended. … Ask Andy for a new link." |
+| Ended (pending past its end date) | 410 | "This invitation has ended. … Ask Ana for a new link." |
 | Unknown, malformed, revoked or replaced | 410 | "This link no longer works", the same page for every cause |
 
 **Signing in from the page.** A sign-in button posts to `POST /api/auth/invite`. The server
@@ -567,8 +568,8 @@ owner can let the invite link set the password, so they send one link, not an in
 and a password link. The tick is "Can set a password" on **Invite people** in the console
 and on Lolly's invite form, and it is only offered to an admin or owner while a `password`
 entry is configured. It starts ticked when every address on the invite is at a domain in
-`policy.invites.passwordDomains` (on lolly.ing, `suse.com`, whose Google Workspace blocks
-apps it has not reviewed).
+`policy.invites.passwordDomains` (for example, the domain of an organisation whose Google
+Workspace refuses sign-in to apps its administrator has not allowed).
 
 The invite page then shows **Set a password** first. Pressing it works only when all of
 these hold, and they are checked at that moment:
@@ -584,7 +585,7 @@ The server then mints a one-time password link valid for an hour (audited as
 `auth.password.link.issue` with `via: "invitation"`) and shows the set-password form,
 including the optional name. Setting the password signs the person in and opens the
 project. If any check fails, the invite page shows "This invitation can no longer set a
-password. Sign in another way, or ask Andy for a sign-in link."
+password. Sign in another way, or ask Ana for a sign-in link."
 
 Whoever holds such a link can set the password for the address until one is set, so the
 link is a credential: send it privately, not in a shared channel. Once a password exists,
@@ -620,24 +621,24 @@ revoked.
 
 ### Asking to join
 
-A person who signed in but is not invited sees the refusal page ("lolly.ing is invite
-only"). With `policy.requests.join` on (off by default; on for lolly.ing), the page also
-offers **Ask to join**: "Ask the admins of lolly.ing to let sam.k@gmail.com in.", with an
+A person who signed in but is not invited sees the refusal page ("Example Studio is invite
+only"). With `policy.requests.join` on (off by default), the page also
+offers **Ask to join**: "Ask the admins of Example Studio to let sam.k@example.net in.", with an
 optional note of up to 280 characters. The request carries the address the sign-in just
 verified, never a typed one. With it off, the page says to ask the person who invited them
 to invite this address. Other refusals (a disabled account, an unverified email, a
 `hostedDomain` or `tenantId` mismatch) never offer that sign-in route.
 
 - **Who answers.** Every enabled account that may invite new people (`policy.invites.allow`;
-  on lolly.ing, admins and owners). They see the request in the console's Requests card on
+  by default, admins and owners). They see the request in the console's Requests card on
   People and in their inbox.
 - **Approve.** Needs an approver who may invite new people and an address at a domain
   `policy.invites.domains` allows. It writes an invitation for the address
   (`createdVia: "request"`), so the person is admitted at their next sign-in. The approver gets a message to send ("You can
-  now sign in to lolly.ing. Open https://lolly.ing and sign in as … with GitHub."). An
+  now sign in to Example Studio. Open https://work.example.com and sign in as … with GitHub."). An
   address that already has an account needs nothing more.
 - **While it is open,** signing in again shows "You asked to join 3 hours ago. An admin of
-  lolly.ing has not answered yet." with **Withdraw request**.
+  Example Studio has not answered yet." with **Withdraw request**.
 - **Declined,** the page says so for 7 days with the date, and hides the form until then.
 - **Limits.** One open request per address, 3 per address in 30 days, and at most
   `policy.requests.joinOpenMax` open requests to join and to use another account across
@@ -647,14 +648,14 @@ to invite this address. Other refusals (a disabled account, an unverified email,
   invitation, closes the open request.
 
 While people email is off (see [configuration](configuration.md#notify)), the "Request
-sent" page says "lolly.ing does not send email yet. Sign in again later: once an admin
+sent" page says "Example Studio does not send email yet. Sign in again later: once an admin
 approves, you are in."
 
 ### Using another account
 
 An invitation is for the invited address only. When someone opens an invite link and
-signs in with another account, the wrong-account page lets them ask the inviter: "Andy
-decides whether sam.k@gmail.com can use this invitation." (The signed-in page asks
+signs in with another account, the wrong-account page lets them ask the inviter: "Ana
+decides whether sam.k@example.net can use this invitation." (The signed-in page asks
 "Use this account instead?", shown when the reader is not the inviter and has less than
 the invitation gives.) This files a request of kind `switch`. It goes to the admins who
 may invite new people and, when the person already has an account here, also to the
@@ -802,7 +803,7 @@ same cookie, the same role derivation, the same audit row (`auth.login` with
   "displayName": "YunoHost",
   "secretRef": "LW_PROXY_AUTH_SECRET",
   "headers": { "user": "ynh_user", "email": "ynh_user_email", "name": "ynh_user_fullname", "groups": "" },
-  "groups": { "andy": ["owner"] },
+  "groups": { "ana": ["owner"] },
   "directory": {
     "url": "ldap://127.0.0.1:389",
     "userDn": "uid={user},ou=users,dc=yunohost,dc=org",
@@ -970,8 +971,8 @@ already assigned to another connector cannot be reassigned by this route. Legacy
 without an expiry and resources without an assignment remain unavailable to SCIM.
 
 The secret is stored only as its sha256, so a leaked database yields hashes, not usable
-tokens. **SAML is not implemented**, and does not need to be: Keycloak (which id.suse.com
-runs) bridges a SAML-only IdP to the OIDC this already speaks.
+tokens. **SAML is not implemented**, and does not need to be: an OIDC broker such as
+Keycloak bridges a SAML-only IdP to the OIDC this already speaks.
 
 ## Service tokens
 

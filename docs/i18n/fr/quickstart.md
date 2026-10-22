@@ -4,7 +4,7 @@ Lolly transforme tes règles - couleurs, typographie, mises en page, logique - e
 
 C'est la page à lire en premier. Deux choses te rendent opérationnel : **fais de Lolly la tienne** et **importe ce que tu as déjà** (tes fichiers de design et tes tokens). Tout le reste n'est qu'à un lien de distance.
 
-> Nouveau sur Lolly et tu veux juste créer quelque chose ? [Créer quelque chose en 60 secondes](/info/make-something.html) t'en fait faire trois, ou alors [ouvre l'application](/#/), choisis n'importe quel outil dans la galerie, remplis les champs et clique sur **Exporter**. Reviens ici quand tu voudras que ce soit aux couleurs de *ta* marque.
+> Nouveau sur Lolly et tu veux juste créer quelque chose ? [Crée ton premier fichier](/info/make-something.html) te fait créer un QR code, ou alors [ouvre l'application](/#/), choisis n'importe quel outil dans la galerie, remplis les champs et clique sur **Exporter**. Reviens ici quand tu voudras que ce soit aux couleurs de *ta* marque.
 
 ![La vue Utilities - les bêtes de somme qui tournent sur l'appareil comme Strip Hidden Data, Compress PDF et Convert Image, toutes au même endroit](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

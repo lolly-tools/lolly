@@ -20,7 +20,7 @@ Lolly menghasilkan konten dalam jumlah besar. Kami menerapkan pendekatan minimal
 
 Lolly dikembangkan dengan coding berbantuan AI, penemuan berbantuan AI dan, di banyak bagian, konten berbantuan AI, menggunakan berbagai model dan vendor, termasuk dari perusahaan cloud publik terdepan.
 
-Hingga tulisan ini dibuat, Lolly tidak memiliki kerentanan keamanan yang diketahui dalam rantai pasokannya, dan berkomitmen pada praktik respons keamanan yang cepat saat CVE muncul.
+Advisori tingkat tinggi atau kritis pada dependensi Lolly memblokir CI. Advisori yang belum bisa diperbaiki hanya ditahan sebagai pengecualian yang disetujui dengan alasan tertulis. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) mencantumkan setiap pengecualian yang berlaku saat ini, dan [catatan rilis](https://github.com/lolly-tools/lolly/releases) mencantumkan pengecualian yang dibawa setiap rilis. SECURITY.md juga menjelaskan cara melaporkan kerentanan.
 
 Seorang manusia menciptakan arsitekturnya, mengkurasi kodenya dengan sengaja dan mengarahkan seni pengalamannya.
 
@@ -52,7 +52,9 @@ Feature flag menyalakan atau mematikan bagian-bagian Lolly. Biasanya administrat
 
 ## Bagaimana cara mendapatkan aplikasi seluler atau desktopnya?
 
-Siapa pun bisa mendistribusikan aplikasinya sendiri, dan alat serta konfigurasi aplikasi itu semestinya sangat beragam tergantung audiens yang dituju. Jadi tidak ada satu aplikasi tunggal kecuali Anda yang membuatnya atau seseorang yang relevan memberikannya kepada Anda.
+Unduh dari [Pasang Lolly](/info/install.html). Halaman itu mencantumkan setiap build untuk macOS, Windows, Linux dan Android, dan menunjukkan cara memeriksa berkas yang Anda unduh. iPhone dan iPad belum punya unduhan publik; [bagian iPhone dan iPad](/info/install.html#iphone-and-ipad) menjelaskan apa yang bisa dipakai sebagai gantinya.
+
+Siapa pun juga bisa membangun dan membagikan salinan aplikasinya sendiri, dengan alat dan pengaturan yang dibutuhkan audiensnya. [Panduan Build](/info/build-guide.html) menunjukkan caranya.
 
 ## Mengapa namanya "Lolly Tools"?
 
@@ -127,7 +129,7 @@ Layer masuk sebagai kotak yang bisa diedit di kanvas terbuka: teks tetap bisa di
 
 ## Di mana yang saya buat kemarin?
 
-Jika Anda menekan **Simpan sebagai** atau **Simpan**, karya itu ada di **Proyek**, di layar utama, di browser atau aplikasi tempat Anda menyimpannya. Jika Anda hanya menekan **Unduh**, berkasnya ada di tempat browser atau sistem Anda menyimpan unduhan, dan biasanya sebuah salinan ada di **Aset**. Sembilan tool juga menyimpan karya yang belum disimpan di **Proyek**. [Temukan dan pulihkan karya Anda](/info/find-your-work.html) membahas semua kasus.
+Jika Anda menekan **Simpan sebagai** atau **Simpan**, karya itu ada di **Proyek**, di layar utama, di browser atau aplikasi tempat Anda menyimpannya. Jika Anda hanya menekan **Unduh**, berkasnya ada di tempat browser atau sistem Anda menyimpan unduhan, dan biasanya sebuah salinan ada di **Aset**. Tool yang [menyimpan sambil Anda bekerja](/info/find-your-work.html#which-tools-save-as-you-work) juga menyimpan karya yang belum disimpan di **Proyek**. [Temukan dan pulihkan karya Anda](/info/find-your-work.html) membahas semua kasus.
 
 ## Saya menutup tab. Apakah karya saya hilang?
 
@@ -143,7 +145,7 @@ Ya. Satu orang membagikan undangan (tautan, kode QR atau kode pendek), yang lain
 
 ## Ke mana perginya alat-alat bermerek SUSE?
 
-Semuanya sudah berada di repositori privat yang terpisah. Klon publik sama sekali tidak mengambil brand pack SUSE, sehingga build publik menjalankan profil netral `lolly-start` - alat komunitas yang tidak terikat merek ditambah merek kosong yang Anda isi dengan merek Anda sendiri. SUSE menjalankan instansnya sendiri untuk melindungi merek dagangnya.
+Semuanya sudah berada di repositori privat yang terpisah. Klon publik sama sekali tidak mengambil brand pack SUSE, sehingga build darinya memakai profil netral `lolly-start` kecuali Anda memilih yang lain - alat komunitas yang tidak terikat merek ditambah merek kosong yang Anda isi dengan merek Anda sendiri. [lolly.tools](https://lolly.tools) dibangun dengan profil `lolly-demo` dan terbuka di [Lolly Demo](/info/lolly-demo.html), design system milik Lolly sendiri. SUSE menjalankan instansnya sendiri untuk melindungi merek dagangnya.
 
 ## Mengapa gratis? Apa jebakannya?
 
@@ -153,7 +155,7 @@ Batas itu ditarik di dalam lisensinya, bukan di dalam sebuah janji: apa pun yang
 
 ## Seberapa banyak yang disimpan SUSE secara privat? (alias kapan kami ditinggal di tengah jalan)
 
-Engine, shell, skema dan alat yang tidak terikat merek bersifat open source; merek dagang SUSE dan alat bermereknya adalah bagian yang tetap privat, dan keduanya sudah dipisahkan. Instans publik di [lolly.tools](https://lolly.tools) berjalan pada merek kosong.
+Engine, shell, skema dan alat yang tidak terikat merek bersifat open source; merek dagang SUSE dan alat bermereknya adalah bagian yang tetap privat, dan keduanya sudah dipisahkan. Instans publik di [lolly.tools](https://lolly.tools) menjalankan [Lolly Demo](/info/lolly-demo.html), design system milik Lolly sendiri.
 
 Batasnya bersifat struktural, bukan sekadar dijanjikan. Setiap versi yang dirilis bersifat open source dan tidak bisa ditarik dari peredaran, tidak ada perjanjian kontributor yang bisa melisensikan ulang karya siapa pun, dan satu-satunya yang ditahan adalah merek dagangnya. Ketika perusahaan lain menutup sumber Linux enterprise-nya pada 2023, SUSE ikut mendirikan [OpenELA](https://openela.org) agar kode itu tetap terbuka - sikap yang sama yang diwarisi proyek ini.
 

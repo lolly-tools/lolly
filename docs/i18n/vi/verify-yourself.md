@@ -6,7 +6,7 @@ Nếu bất kỳ mục kiểm tra nào trên trang này không cho ra kết qu�
 
 ## Xem nó hoạt động, trong mười giây
 
-Trước khi vào các quy trình, đây là kết quả cuối. Mở [`/verify`](/#/verify) và thả một tệp vào đó - không tải lên, không cần tài khoản, không chờ máy chủ. Đây là nó đang kiểm tra [cơn bão Queensland do AI tạo ra](/info/ai-stance.html) từ trang lập trường về AI của chúng tôi: một hình ảnh Gemini mà Lolly đã mở, đổi kích thước và xuất ra. Mọi huy hiệu bên dưới đều được tính toán trên thiết bị, từ chính các byte của tệp.
+Trước khi vào các quy trình, đây là kết quả cuối. Mở [`/verify`](/#/verify) và thả một tệp vào đó - không tải lên, không cần tài khoản, không chờ máy chủ. Đây là nó đang kiểm tra [cơn bão Queensland do AI tạo ra](/info/ai-stance.html) từ trang lập trường về AI của chúng tôi: một hình ảnh Gemini mà Lolly đã mở, đóng watermark và xuất ra. Mọi huy hiệu bên dưới đều được tính toán trên thiết bị, từ chính các byte của tệp.
 
 ![Verify trên màn hình rộng bằng điện thoại - hình ảnh cơn bão, một kết luận Made with Lolly màu xanh lá và các huy hiệu credential-intact cùng bytes-unchanged xếp bên dưới](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

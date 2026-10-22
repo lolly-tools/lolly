@@ -10,7 +10,7 @@ For individual comparisons with Canva, Adobe, Figma, Penpot, brand portals, rend
 
 An individual can use Lolly without an account or server. An organisation can operate both parts on its own infrastructure. Local rendering remains on the device; shared projects, work collabs, server jobs and delivery use the configured services. The public lolly.work site is an evaluation sandbox. Its [operator documentation](https://github.com/lolly-tools/lolly-work/tree/main/docs) covers durable deployments and current limits.
 
-> **Pilot status:** Lolly is a closed-pilot prototype, not a finished product, and its security is currently undergoing SUSE's strict infrastructure hardening, preparing for enterprise scale. The [Adoption & Governance](/info/adoption-governance.html#status) page covers the current state.
+> **Status:** Lolly is released: version 1.0 shipped as open source on 30 August 2026. Its security has not yet had an independent audit, and its adoption evidence is a few months old. The [Adoption & Governance](/info/adoption-governance.html#status) page covers the current state.
 
 ## Today's tools
 
@@ -20,7 +20,7 @@ Each ring below scores how completely a product class delivers a capability, wit
 Capability comparison: competitor research and scores from August 2026; Lolly + lolly.work coverage reviewed 28 September 2026. Scoring: 0 absent, 25 workaround-grade, 50 real but gated or partial, 75 strong with caveats, 100 core competency.
 :::
 
-**Scoring notes.** Available features and production maturity are separate considerations. Lolly's maturity score reflects its pilot status and security hardening; the presence of SSO, approvals or server rendering does not establish a production track record. The feature descriptions below include lolly.work, while competitor scores retain their dated August review.
+**Scoring notes.** Available features and production maturity are separate considerations. Lolly's maturity score reflects a first public release in August 2026 with no independent security audit yet; the presence of SSO, approvals or server rendering does not establish a production track record. The feature descriptions below include lolly.work, while competitor scores retain their dated August review.
 
 Canva is scored on its best family member per row, since it owns Affinity and Cavalry (both given away October 2025). Offline and on-device rendering score 75 through Affinity - a desktop suite that still needs a verified account and carries telemetry, the deduction Adobe also takes - while Canva's own offline mode edits only pre-synced designs, one device, limited window. Autofill scores 50: real but Enterprise-gated, async, text and image only. Figma's mass generation rose 25 to 50 when Buzz shipped spreadsheet fill (free beta, August 2026).
 

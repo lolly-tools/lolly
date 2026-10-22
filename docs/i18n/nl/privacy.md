@@ -1,6 +1,6 @@
 # Privacybeleid
 
-*Laatst bijgewerkt: 11 augustus 2026*
+*Laatst bijgewerkt: 22 oktober 2026*
 
 > **De korte versie.** De documenten, afbeeldingen, video's en bestanden die je in Lolly
 > maakt, blijven op je apparaat. Er zijn geen accounts nodig voor gewoon gebruik, geen
@@ -98,9 +98,9 @@ netwerk. Staat het hier niet, dan doet de app het niet.
 | Wat | Wat er daadwerkelijk je apparaat verlaat | Wanneer (de handeling die het activeert) | Als een operator het blokkeert |
 |---|---|---|---|
 | Synchronisatie van de toolcatalogus | Niets persoonlijks - een verzoek om Lolly's eigen publieke tool- en assetindex, naar de eigen oorsprong van de app | Bij het opstarten, daarna offline gecachet | De app draait op zijn gecachete toolset. Hij stopt alleen met het ontdekken van nieuwe tools |
-| Een tool die live gegevens nodig heeft | Wat die specifieke tool ook opvraagt, naar de host die in zijn eigen beschrijving wordt genoemd. Vandaag is dat alleen de plaatsopzoeking in de Meeting Planner-tool, die `geocoding-api.open-meteo.com` vraagt om een plaatsnaam om te zetten in coördinaten en een tijdzone - geen account, geen sleutel en geen identifier voorbij het verzoek zelf. De invoer zegt dat precies waar je typt, en elk antwoord wordt op je apparaat opgeslagen zodat een plaats maar één keer wordt opgezocht | Alleen tijdens het gebruik van die tool, en alleen zodra je een locatie invoert | Die ene opzoeking mislukt. Je kunt nog steeds coördinaten met de hand typen, en verder wordt niets beïnvloed |
+| Een tool die live gegevens nodig heeft | Wat die specifieke tool ook opvraagt, naar de host die in zijn eigen beschrijving wordt genoemd. Vandaag is dat alleen de plaatsopzoeking in de Meeting Planner-tool, die `geocoding-api.open-meteo.com` vraagt om elke plaatsnaam (de hostplaats en de plaats van elk teamlid) om te zetten in coördinaten en een tijdzone - geen account, geen sleutel en geen identifier voorbij het verzoek zelf. De invoer Host city zegt dat, en elk antwoord wordt op je apparaat opgeslagen zodat een plaats maar één keer wordt opgezocht | Alleen terwijl die tool open is, voor de hostplaats (standaard ingevuld) en de plaats van elk teamlid | Die opzoeking mislukt, en verder wordt niets beïnvloed |
 | Google Fonts | De gekozen fontfamilienaam en je IP-adres, naar Google's fontservers (`fonts.googleapis.com` voor het stylesheet, `fonts.gstatic.com` voor het fontbestand) | Alleen als je een Google Font toevoegt in de merkeditor, **en alleen nadat je akkoord gaat in een dialoog die precies dit zegt** - een eenmalige ophaling per familie, waarna hij op je apparaat leeft en offline wordt gebruikt | De Google Fonts-kiezer faalt gesloten. Upload in plaats daarvan een fontbestand |
-| Versturen naar Google Drive | Het ene bestand dat je koos om te versturen, naar Google's Drive-API (`www.googleapis.com`), na een Google-aanmelding die je voltooit in Google's eigen pop-upvenster. Lolly's toegang is beperkt tot bestanden die het zelf heeft aangemaakt (de scope `drive.file` - het kan nooit de rest van je Drive lezen), en het aanmeldtoken wordt tijdens de sessie in het geheugen bewaard, nooit opgeslagen | Alleen wanneer je op "Versturen naar Google Drive" drukt bij een EMF-export, en alleen op builds waar de operator een Google-client-id heeft geconfigureerd - zonder dat bestaat de knop niet | De knop verschijnt nooit. Download het bestand en upload het zelf naar Drive |
+| Versturen naar Google Drive | Het ene bestand dat je koos om te versturen, in elk formaat, naar Google's Drive-API (`www.googleapis.com`), na een Google-aanmelding die je voltooit in Google's eigen venster. Lolly's toegang is beperkt tot bestanden die het zelf heeft aangemaakt (de scope `drive.file` - het kan nooit de rest van je Drive lezen). In de webapp wordt het aanmeldtoken tijdens de sessie in het geheugen bewaard, nooit opgeslagen; in de andere apps wordt alleen op dit apparaat een vernieuwingstoken opgeslagen als je "stay connected" aanvinkt | Alleen wanneer je op "Versturen naar Google Drive" drukt bij een bestand, en alleen op builds waar de operator een Google-client-id heeft geconfigureerd - zonder dat bestaat de knop niet | De knop verschijnt nooit. Download het bestand en upload het zelf naar Drive |
 | Versturen naar Dropbox | Het ene bestand dat je koos om te versturen, naar Dropbox's API (`api.dropboxapi.com` voor aanmelding en metadata, `content.dropboxapi.com` voor het bestand zelf), na een Dropbox-aanmelding die je voltooit in Dropbox's eigen venster. Lolly's toegang is beperkt tot de app-map (het kan alleen `Apps/` en zijn eigen map daarin zien - nooit de rest van je Dropbox), de "Open"-link die het je toont is een kortlevende privélink (er wordt geen publieke share aangemaakt), en een refreshtoken wordt alleen opgeslagen als je "stay connected" aanvinkt | Alleen wanneer je op "Versturen naar Dropbox" drukt bij een bestand, en alleen op builds waar de operator een Dropbox-client-id heeft geconfigureerd - zonder dat bestaat de knop niet | De knop verschijnt nooit. Download het bestand en upload het zelf naar Dropbox |
 | Versturen naar OneDrive | Het ene bestand dat je koos om te versturen, naar Microsofts identity- en Graph-diensten (`login.microsoftonline.com` voor aanmelding, `graph.microsoft.com` voor de upload; een groot bestand wordt in delen geüpload naar een Microsoft-eigen uploadadres op `api.onedrive.com`, `*.up.1drv.com` of `*.sharepoint.com`), na een Microsoft-aanmelding die je voltooit in Microsofts eigen venster. Lolly's toegang is beperkt tot zijn eigen map onder `Apps/` (het kan nooit de rest van je OneDrive lezen) plus je weergavenaam voor het accountlabel, en een refreshtoken wordt alleen opgeslagen als je "stay connected" aanvinkt | Alleen wanneer je op "Versturen naar OneDrive" drukt bij een bestand, en alleen op builds waar de operator een Microsoft-client-id heeft geconfigureerd - zonder dat bestaat de knop niet | De knop verschijnt nooit. Download het bestand en upload het zelf naar OneDrive |
 | Versturen naar LinkedIn | Het ene bestand dat je koos om te versturen, plus zijn naam als tekst van de post, naar LinkedIn (`www.linkedin.com` voor de aanmelding, `api.linkedin.com` voor de upload en de post), na een LinkedIn-aanmelding die je voltooit in je eigen browser. De post gaat naar je eigen feed als een openbare post onder je naam. Lolly kan als jou posten en je naam lezen voor het accountlabel, verder niets op je LinkedIn, en de aanmelding wordt alleen op dit apparaat bewaard als je "stay connected" aanvinkt - LinkedIns tokens duren 60 dagen en kunnen niet stilzwijgend worden vernieuwd, dus vervallen ze vanzelf | Alleen wanneer je op "Versturen naar LinkedIn" drukt bij een bestand, alleen in de desktopapps, en alleen op builds waar een LinkedIn-app is geconfigureerd - zonder dat bestaat de knop niet | Niets te blokkeren in de webapp: dit bestaat alleen in de **desktopapps**, dus die twee hosts staan bewust NIET in het Content-Security-Policy van de webapp hieronder. In de desktopapps verwijder je de geconfigureerde LinkedIn-app en verschijnt de knop nooit |
@@ -149,12 +149,13 @@ de ondertekeningssleutel van een bestand in DNS wordt gepubliceerd. Browsers kun
 elke webimplementatie moet de opzoeking routeren via een externe DNS-over-HTTPS-
 resolver - waardoor die operator het gecontroleerde domein plus je IP-
 adres te zien zou krijgen. We gebruikten vroeger die van Cloudflare. **Dat doen we niet meer, en er is geen
-vervanging**: de webapp geeft nu helemaal geen resolver door, dus SEAL-verificatie hier
-doet nul netwerkverzoeken. Bestanden waarvan het SEAL-record de sleutel inline draagt, verifiëren
-nog steeds volledig offline. Bestanden waarvan de sleutel in DNS staat, melden "geen sleutel-
-resolver" in plaats daarvan, en je kunt die controleren in de desktop- of command-line-app,
-die DNS native via je eigen machine oplost zonder enige derde partij
-erbij betrokken.
+vervanging**: Verify geeft nu helemaal geen resolver door, dus SEAL-verificatie doet
+nul netwerkverzoeken. Geen enkele Lolly-app zoekt vandaag SEAL-sleutels op in DNS:
+de desktop- en mobiele apps draaien dezelfde Verify-weergave, en de opdrachtregel-`lolly validate`
+controleert SEAL niet. Een bestand waarvan het SEAL-record de sleutel inline draagt, wordt
+offline gecontroleerd, en Verify noemt de handtekening intern consistent zonder
+het domein te bevestigen. Een bestand waarvan de sleutel alleen in DNS staat, toont **SEAL-handtekening kon niet worden geverifieerd**,
+met de reden "no key resolver and no inline key".
 
 ![Het Verify-scherm: een drop-target en verder niets - het bestand wordt gecontroleerd waar het al staat, zonder upload en zonder account](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop) Je kunt dit zelf controleren: doorzoekbare checks voor deze en elke
 andere claim op deze pagina, met de exacte commando's en verwachte uitvoer, vind je op
@@ -212,9 +213,11 @@ plus vier tools die noodzakelijkerwijs met bestandsbytes werken:
   een verstuurt: op een zelfgehoste lokale server verlaat het deck die machine nooit; op een
   gehoste server stuurt het aanroepen van `lolly_rebrand` het deck daarnaartoe, tot aan de grootte-
   en slidelimieten die diezelfde fase opgeeft.
-- <!--i:checklist--> Elke andere tool - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
-  `lolly_describe_tool` - werkt alleen met parameters (tekst, getallen, kleuren,
-  URL's, catalogus-asset-id's), dezelfde invoer die een hotlink-render-URL gebruikt.
+- <!--i:checklist--> De beeldtools (`lolly_look`, `lolly_sample_color` en
+  `lolly_trace_edges`) kunnen ook een afbeeldingsbestand van de aanroeper
+  accepteren, op dezelfde manier behandeld: in het geheugen, alleen voor die aanroep.
+  Elke andere tool werkt met de parameters in de aanroep: tekst, getallen, kleuren,
+  URL's, catalogus-asset-id's, of een document dat de aanroeper aanlevert.
 - <!--i:lock--> Toegang is ofwel een gedeeld token dat de operator uitgeeft aan clients die hij vertrouwt, of
   stateless OAuth 2.1: kortlevende ondertekende tokens die worden geverifieerd tegen een gedeeld
   geheim, niets server-side opgeslagen en het token zelf wordt nooit weggeschreven naar een
@@ -269,34 +272,54 @@ en worden daarmee de verwerkingsverantwoordelijke voor die data.
 
 ## De browserextensie
 
-De browserextensie **Lolly URL Screenshot** verzamelt, bewaart of verzendt geen enkele
-persoonlijke data. Geen analyse, geen tracking, geen externe server.
+De browserextensie **Lolly URL Screenshot** verzamelt geen persoonlijke gegevens voor ons.
+Ze heeft geen analyse, geen tracking en geen eigen server. De pagina
+[Browserextensie](/info/extension.html) beschrijft hoe ze werkt.
 
-**Wat het doet.** Wanneer je de Lolly-webapp vraagt om een URL te fotograferen, opent de
-extensie die pagina in een tijdelijk achtergrondtabblad, legt hem vast in je
-browser via het DevTools Protocol, geeft de afbeelding terug aan de app en sluit
-het tabblad. Alles gebeurt lokaal, op je eigen apparaat en netwerk.
+**Wat het doet.** De Lolly-webapp kan haar om een screenshot van een webpagina vragen,
+of om de inhoud van een pagina om een design system uit een website te starten.
+Elk verzoek opent in de extensie een goedkeuringsvenster dat de aanvragende site toont,
+of die een screenshot of de inhoud van de pagina wil, en het paginaadres. Pas
+nadat je op **Approve once** drukt, opent de extensie die pagina in een tijdelijk
+achtergrondtabblad, maakt de screenshot of leest de pagina, geeft het resultaat aan
+het Lolly-tabblad dat erom vroeg en sluit het tabblad. Elk verzoek heeft een eigen
+goedkeuring nodig.
 
 **Gegevens.**
 
-- <!--i:shieldcheck--> **We verzamelen niets.** De extensie heeft geen servers en doet geen eigen
-  netwerkverzoeken.
-- <!--i:photos--> **Vastgelegde afbeeldingen** gaan rechtstreeks naar de Lolly-app in dezelfde browser - nooit
-  geüpload door de extensie.
-- <!--i:link--> **De URL's die je vastlegt** worden alleen gebruikt om die ene pagina te laden voor die ene
-  screenshot. Ze worden niet gelogd of gedeeld.
+- <!--i:shieldcheck--> **We verzamelen niets.** Het resultaat gaat alleen naar de Lolly-pagina
+  die erom vroeg, in dezelfde browser. De extensie slaat geen pagina-inhoud op
+  en voegt geen andere ontvanger toe.
+- <!--i:globe--> **Netwerkverzoeken.** De pagina die je goedkeurt laadt zoals in
+  elk tabblad, samen met alles wat die pagina zelf opvraagt. Het lezen van de inhoud
+  van een pagina haalt ook de stylesheets van die pagina op en een paar van haar icoon- en
+  logo-afbeeldingen, vanuit de pagina zelf, en die ophaalacties sturen geen cookies naar andere
+  sites. De extensie doet geen andere verzoeken, en er gaat er geen naar een Lolly-server.
+- <!--i:lock--> **Je browsersessie.** De pagina wordt geladen met je browsersessie,
+  zoals wanneer je hem zelf opent, dus een pagina waarop je bent ingelogd kan
+  privégegevens in het resultaat zetten.
+- <!--i:link--> **De adressen die je goedkeurt** worden alleen gebruikt om die ene pagina
+  te laden voor dat ene verzoek. Ze worden niet gelogd of gedeeld.
 
 **Machtigingen.**
 
-- <!--i:wrench--> **`debugger`** - om de gerenderde pagina vast te leggen via het DevTools Protocol (hetzelfde
+- <!--i:wrench--> **`debugger`** - om de screenshot te maken via het DevTools Protocol (hetzelfde
   mechanisme dat de Lolly-desktopapp gebruikt).
-- <!--i:monitor--> **`tabs`** - om het tijdelijke tabblad te openen en sluiten waarin de pagina laadt.
-- <!--i:globe--> **Hosttoegang (`<all_urls>`)** - omdat de pagina die je kiest om vast te leggen op
-  elke site kan staan. Chrome toont dit bij installatie als een brede machtigings-
-  waarschuwing. De extensie bezoekt alleen de URL die je opgeeft.
+- <!--i:monitor--> **`tabs`** - om het tijdelijke tabblad te openen en sluiten, en om te controleren
+  dat noch de Lolly-pagina noch de doelpagina is verplaatst sinds je goedkeurde.
+- <!--i:code--> **`scripting`** - om de inhoud van een pagina in het tijdelijke tabblad te lezen,
+  nadat je dat verzoek goedkeurt.
+- <!--i:database--> **`storage`** - om de id's van haar tijdelijke tabbladen in
+  sessieopslag te noteren, zodat ze toch sluiten als de browser de extensie tijdens
+  een verzoek stopt. Er wordt geen pagina-inhoud opgeslagen.
+- <!--i:check--> **Optionele sitetoegang (`http://*/*`, `https://*/*`)** - niet verleend
+  bij installatie. Wanneer je op **Approve once** drukt, vraagt de extensie Chrome om
+  toegang tot de ene site in dat verzoek, en Chrome vraagt het jou de eerste keer voor
+  elke site. Een site die je eerder toestond, heeft nog steeds voor elk verzoek een
+  nieuwe goedkeuring nodig.
 
 Geen van deze wordt gebruikt om je surfgedrag te lezen, te monitoren of door te sturen buiten
-die ene gevraagde opname.
+het ene verzoek dat je goedkeurde.
 
 ## Infrastructuurlogs
 
@@ -309,12 +332,15 @@ ene bewuste uitzondering is een bestand dat je expliciet aan een MCP-aanroep
 `lolly_transform`, `lolly_verify`, `lolly_redact` of `lolly_rebrand` geeft, dat
 in het geheugen wordt verwerkt en nooit naar schijf of een log wordt geschreven, zoals hierboven beschreven.
 
-**Lolly's eigen code schrijft niets naar die logs.** De MCP-server bevat helemaal geen
-logging-statements. De certificaatservice geeft precies twee regels uit, allebei
-bij falen en allebei bewust gestript: een verzendfout-statuscode zonder
-ontvangeradres, en een foutmelding zonder stacktrace of URL (een stack zou
-een inschrijvingstoken kunnen bevatten). Al het overige in het log is van het hostingplatform,
-niet van ons.
+**De publieke services minimaliseren applicatielogging.** De MCP-server logt
+opstart-, configuratie- en renderwaarschuwingen; hij houdt geen eigen requestlog bij
+en logt geen tokens of aanroepersadressen. De Penpot-doorgifte logt
+elke opdrachtnaam en de responsstatus van Penpot, nooit headers, tokens of het
+bestand. De certificaatservice logt zijn opstartinstellingen en
+configuratiewaarschuwingen, plus twee gestripte regels bij falen: een verzendfout-
+statuscode zonder ontvangeradres, en een vaste foutregel zonder foutmelding, stacktrace
+of URL (een providerfout kan identiteitswaarden of inloggegevens bevatten). Al het overige in het log is
+van het hostingplatform, niet van ons.
 
 Voor lolly.tools is Vercel de hostingpartij en de bewaartermijn van toegangslogs volgt
 Vercel's eigen platformstandaarden voor ons abonnement. We configureren geen logdrain, geen
@@ -405,6 +431,14 @@ De datum bovenaan verandert zodra dit document verandert. Een wijziging die vera
 wat je apparaat verlaat of wat wordt bewaard, krijgt hier zijn eigen regel, geen stille
 bewerking - als je wilt zien wat er is gewijzigd, vraag het (hieronder) of vergelijk met de
 [publieke bron](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
+
+**22 oktober 2026:** de beschrijving van bestaand gedrag gecorrigeerd. Het gedeelte over de
+browserextensie behandelt nu het goedkeuringsvenster voor elk verzoek, sitetoegang die
+een site tegelijk wordt gevraagd en het ophalen van stylesheets en iconen bij het
+lezen van een website. Ook gecorrigeerd: de rijen Versturen naar Google Drive en Meeting Planner,
+de SEAL-opmerking (geen enkele Lolly-app zoekt SEAL-sleutels op in DNS), het standaardniveau
+van gebruikstelemetrie van de organisatieservice, de MCP-beeldtools en de
+applicatielogging van de publieke services. De software zelf is niet veranderd.
 
 ## Wie is verantwoordelijk, en hoe ons te bereiken
 

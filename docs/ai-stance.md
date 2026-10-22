@@ -8,7 +8,7 @@ Lolly was built in the middle of the biggest change in how media gets made since
 
 ![A supercell storm breaking over an outback homestead - the tank and sheds below, floodwater already cutting channels through the dry paddock](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} generated image %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} and %act{exported to WebP} as %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Verify this now](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} generated image %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} and %act{exported to WebP} as %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Verify this now](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 To be precise about it, because this page argues that precision matters: the image above is generated, not photographed. No camera was pointed at that homestead, because there is no homestead. It describes regional Queensland, Australia, prompted from The United Kingdom, generated in a datacenter in the United States. It attempts to be faithful to a place without being a record of one, and that distinction is the entire reason its Content Credentials record it.
 

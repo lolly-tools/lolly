@@ -4,7 +4,7 @@ Lolly mengubah aturan Anda - warna, tipografi, tata letak, logika - menjadi alat
 
 Inilah halaman yang perlu dibaca lebih dulu. Dua hal membuat Anda produktif: **jadikan Lolly milik Anda** dan **bawa masuk apa yang sudah Anda punya** (berkas desain dan token Anda). Selebihnya hanya berjarak satu tautan.
 
-> Baru mengenal Lolly dan hanya ingin membuat sesuatu? [Buat sesuatu dalam 60 detik](/info/make-something.html) memandu Anda lewat tiga contoh, atau [buka aplikasinya](/#/), pilih alat mana pun dari galeri, isi kolom yang kosong lalu tekan **Export**. Kembalilah ke sini saat Anda ingin hasilnya mengenakan merek *Anda*.
+> Baru mengenal Lolly dan hanya ingin membuat sesuatu? [Buat berkas pertama Anda](/info/make-something.html) memandu Anda membuat kode QR, atau [buka aplikasinya](/#/), pilih alat mana pun dari galeri, isi kolom yang kosong lalu tekan **Export**. Kembalilah ke sini saat Anda ingin hasilnya mengenakan merek *Anda*.
 
 ![Tampilan Utilities - alat andalan di perangkat seperti Strip Hidden Data, Compress PDF dan Convert Image, semuanya di satu tempat](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

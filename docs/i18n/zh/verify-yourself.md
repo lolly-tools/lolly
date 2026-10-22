@@ -6,7 +6,7 @@ Lolly 的隐私和安全页面做出了一些声明:没有分析统计、没有�
 
 ## 十秒钟看它如何运作
 
-在讲步骤之前,先看结果。打开 [`/verify`](/#/verify),把一个文件拖放上去 - 无需上传、无需账号、无需等待服务器。这里展示的是它在检查我们 AI 立场页面中的[生成的 Queensland 风暴图](/info/ai-stance.html):一张由 Gemini 生成、经 Lolly 打开、调整大小并导出的图像。下面的每一个徽章都是在设备上根据文件自身的字节计算出来的。
+在讲步骤之前,先看结果。打开 [`/verify`](/#/verify),把一个文件拖放上去 - 无需上传、无需账号、无需等待服务器。这里展示的是它在检查我们 AI 立场页面中的[生成的 Queensland 风暴图](/info/ai-stance.html):一张由 Gemini 生成、经 Lolly 打开、加水印并导出的图像。下面的每一个徽章都是在设备上根据文件自身的字节计算出来的。
 
 ![手机宽度屏幕上的 Verify - 风暴图像、绿色的 Made with Lolly 判定,以及下方叠放的凭证完整和字节未变徽章](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

@@ -35,7 +35,7 @@ to the database nor calls identity, renderer or asset providers. The owner conso
 
 | Key | Default | What it does |
 |---|---|---|
-| `name` | `Lolly Work` | the deploy's display name, also called the workspace name: console rail, sign-in card, `/healthz`, `instanceName` in `/api/auth/config`, and the invite, refusal and request pages, notices and copied invite messages ("Andy invited you to lolly.ing"). Put the name people know first: lolly.ing uses `lolly.ing` |
+| `name` | `Lolly Work` | the deploy's display name, also called the workspace name: console rail, sign-in card, `/healthz`, `instanceName` in `/api/auth/config`, and the invite, refusal and request pages, notices and copied invite messages ("Ana invited you to Example Studio"). Use the name people already know |
 | `baseUrl` | `http://localhost:8787` | the URL this deploy answers on. Drives OIDC redirect URIs and the `Secure` cookie flag - **must** match reality |
 | `pack` | `./packs/demo` | the brand pack mount: catalog, tools, design tokens, fonts, logos. The default is the small demo pack committed at `packs/demo`; the server warns at boot if the path does not exist, and the catalog is empty until it does |
 | `catalogPublicationGeneration` | `0` | operator-provisioned, nonnegative safe integer identifying an immutable mounted release. Production requires a positive generation, supplied here or by a verified signed source envelope. Advance it when changing an unsigned pack or its engine pin; never decrease it or reuse it for different bytes. |
@@ -70,7 +70,7 @@ For generated deployment files and a staged owner cutover, use [Customer setup](
 |---|---|---|
 | `issuer` | `""` | Exact OIDC issuer URL; see the supported profile in the enterprise identity guide |
 | `clientId` | `""` | the client this deploy authenticates as |
-| `displayName` | `""` | human name on the sign-in button ("Keycloak", "SUSE ID", "ZITADEL"). Empty ⇒ "SSO" |
+| `displayName` | `""` | human name on the sign-in button ("Keycloak", "Company SSO", "ZITADEL"). Empty ⇒ "SSO" |
 | `groupsClaim` | `groups` | the claim carrying group membership |
 | `claimMap` | `given_name` / `family_name` / `email` / `title` | which claims fill firstname, lastname, email, title. `email_verified` vouches only for the `email` claim: a remapped email counts as verified only when it equals `email`, otherwise only under `emailVerification: trusted` |
 | `roleGroups` | `{}` | exact groups for owner/admin/approver/author/member/viewer. Highest match wins; unmatched accounts are members. Omitted high roles retain literal legacy names; omitted member/viewer have no mapping. An explicit empty array disables that role mapping. Each group can appear once. Applies to IdP and local groups, including existing accounts after restart. |
@@ -241,16 +241,16 @@ org-config. See [sharing](sharing.md#invite-policy).
 
 `policy.requests` is optional too, and unknown keys in it are refused at startup. Requests
 answer to the same rules as inviting: an approver may only grant what they could grant
-directly. lolly.ing runs with join requests on, the invitation lifetime at its 30-day
-default, and the password tick suggested for SUSE addresses:
+directly. This example turns join requests on, keeps the invitation lifetime at its 30-day
+default, and suggests the password tick for `example.com` addresses:
 
 ```json
 "instance": {
-  "name": "lolly.ing",
-  "inviteNote": "If your organisation blocks Google sign-in (for example @suse.com), use GitHub or email and password."
+  "name": "Example Studio",
+  "inviteNote": "If your organisation blocks Google sign-in, use GitHub or email and password."
 },
 "policy": {
-  "invites": { "passwordDomains": ["suse.com"] },
+  "invites": { "passwordDomains": ["example.com"] },
   "requests": { "join": true, "project": true, "ttlDays": 14, "joinOpenMax": 50 }
 }
 ```
@@ -549,7 +549,7 @@ relay never fails or slows a request. What gets sent, and to whom, is written up
 | `smtp.user` | *unset* | AUTH PLAIN user; the password rides `LW_SMTP_PASSWORD`, never this file |
 | `webhook.url` | *unset* | one JSON POST per event, signed with `LW_WEBHOOK_SECRET` (required - an unsigned webhook is refused at boot) |
 | `people.email` | `false` | also email people notices: access requests and their answers and accepted invitations, which always reach the inbox of anyone with an account, and invitations and approved requests to join, for addresses with no account yet. Needs `smtp`. See below |
-| `people.fromName` | `instance.name` | the sender's display name on those emails, 1 to 60 characters on one line. An invitation is sent as "Andy via lolly.ing" |
+| `people.fromName` | `instance.name` | the sender's display name on those emails, 1 to 60 characters on one line |
 
 ### Emailing people notices
 
@@ -563,7 +563,7 @@ Email is on only when all three hold: `people.email` is `true`, `smtp` is set, a
 server's mail sender can confirm that the relay accepted each message. The sender in this
 release sends and forgets, so it cannot confirm, and people notices stay inbox-only even
 with the first two set. Still to be built: that confirming sender; plain-text mails sent as
-"Andy via lolly.ing" from the `smtp.from` address, which never carry text a person wrote
+"Ana via Example Studio" from the `smtp.from` address, which never carry text a person wrote
 (such as a request note) and end with "Not expecting this? You can ignore this email." and
 a link to stop emails from the instance; and caps of 50 invitation emails a day per
 inviter, one email per address a day, and one per request to each approver. Once a release
@@ -571,33 +571,29 @@ carries them, switching email on takes these steps:
 
 1. **Pick a provider** that gives you an SMTP relay on port 587 with STARTTLS and its own
    DNS records, such as Postmark, or Amazon SES. The sender address needs no mailbox.
-2. **Configure** the relay in `instance.json` and apply it through your instance's
-   reviewed deployment route. lolly.ing uses UpCloud/K3s; its old
-   `deploy/vm/push.sh` route is historical (see
-   [current hosted production](deployment.md#current-hosted-production)):
+2. **Configure** the relay in `instance.json`, deploy the file the way you deploy any other
+   configuration change, and restart the server, which reads the file only at start:
 
    ```json
    "notify": {
-     "smtp": { "host": "<relay host>", "port": 587, "secure": false, "from": "no-reply@lolly.ing", "user": "<relay user or API token name>" },
-     "people": { "email": true, "fromName": "lolly.ing" }
+     "smtp": { "host": "<relay host>", "port": 587, "secure": false, "from": "no-reply@example.com", "user": "<relay user or API token name>" },
+     "people": { "email": true, "fromName": "Example Studio" }
    }
    ```
 
    Put the relay password or token in `LW_SMTP_PASSWORD` in the server's environment
    through your deployment's secret store, never in the configuration file.
-   On Kubernetes, use the existing instance Secret; the former
-   `/opt/lolly-ing/.env` is not the current lolly.ing configuration. `secure: false`
-   with port 587 takes STARTTLS when the relay offers it; use `secure: true` only for
-   port 465.
-3. **Publish the DNS records** the provider shows, in the domain's DNS. For lolly.ing that
-   is Namecheap, Domain List > Manage > Advanced DNS, zone `lolly.ing`:
+   `secure: false` with port 587 takes STARTTLS when the relay offers it; use
+   `secure: true` only for port 465.
+3. **Publish the DNS records** the provider shows, in the DNS zone of the sending domain
+   (`example.com` here):
 
    | Record | Host | Value |
    |---|---|---|
-   | SPF (TXT) | `@` | `v=spf1 include:<provider SPF host> ~all`. A domain has one SPF record: if a `v=spf1` record exists already (Namecheap's mail forwarding adds `include:spf.efwd.registrar-servers.com`), add the provider's `include:` to that record, never publish a second |
+   | SPF (TXT) | `@` | `v=spf1 include:<provider SPF host> ~all`. A domain has one SPF record: if a `v=spf1` record exists already, for example from a mail-forwarding service, add the provider's `include:` to that record, never publish a second |
    | DKIM (TXT or CNAME) | `<selector>._domainkey` | exactly what the provider shows |
    | Bounce domain | the provider's return-path host, for example `pm-bounces` (Postmark, a CNAME) or `mail` (SES custom MAIL FROM, an MX and a TXT) | what the provider shows; it lets SPF align with the From domain |
-   | DMARC (TXT) | `_dmarc` | `v=DMARC1; p=none; rua=mailto:andyfitz@gmail.com; adkim=s; aspf=r`. Move to `p=quarantine` after a clean week of reports |
+   | DMARC (TXT) | `_dmarc` | `v=DMARC1; p=none; rua=mailto:dmarc-reports@example.com; adkim=s; aspf=r`, with `rua` set to a mailbox you read. Move to `p=quarantine` after a clean week of reports |
 
    No MX record is needed to send from `no-reply@`.
 4. **Check.** Wait until the provider shows the domain as verified. Then approve a request

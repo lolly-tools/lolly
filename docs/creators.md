@@ -4,13 +4,13 @@ You fill in a few fields and a finished file comes out, with the fonts, the colo
 
 You are one hand in a relay: a developer can scale the tool you use into a pipeline and a colleague can run it self-serve, so [The lifecycle of a campaign](/info/overview.html#the-lifecycle-of-a-campaign) follows one asset through all three pairs of hands.
 
-New here? Start with **[Make something in 60 seconds](/info/make-something.html)** and come back once you know which part you want to go deeper on. [Questions & answers](/info/faq.html) covers what people ask before they trust a free tool. [How Lolly compares](/info/positioning.html) is the honest account of what to reach for something else for.
+New here? Start with **[Make your first file](/info/make-something.html)** and come back once you know which part you want to go deeper on. [Questions & answers](/info/faq.html) covers what people ask before they trust a free tool. [How Lolly compares](/info/positioning.html) is the honest account of what to reach for something else for.
 
 ## Make
 
 Pick a tool, fill in a few fields and download the finished file. Or open the Design canvas and lay it out freehand: either way the colours, the type and the spacing come from your brand rather than from memory, and nothing needs an account.
 
-- **[Make something in 60 seconds](/info/make-something.html)** - three short walkthroughs with nothing to set up, if you have never opened Lolly before.
+- **[Make your first file](/info/make-something.html)** - one short lesson with nothing to set up: make a QR code, download it and save an editable copy. Start here if you have never opened Lolly before.
 - **[Using Lolly](/info/using.html)** - the canvas, the controls, saving, Projects and phone use: how the app itself behaves.
 - **[The Brand Studio](/info/brand-studio.html)** - when the logos, colours and type should be yours rather than the defaults.
 - **[Import a design](/info/design-import.html)** - when the artwork already exists as a `.fig`, `.penpot`, `.ai`, `.idml` or SVG file and you want it editable rather than flattened.

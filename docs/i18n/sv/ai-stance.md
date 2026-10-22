@@ -8,7 +8,7 @@ Lolly byggdes mitt i den största förändringen i hur media skapas sedan tryckp
 
 ![En superkraftig storm som bryter ut över en outbackfarm - tanken och uthusen nedanför, redan skärande flodvatten som gräver kanaler genom den torra åkern](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} genererad bild %sig{signerad av %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} och %act{exporterade till WebP} som %file{the-flood.webp} %detail{10,6 MB ner till 0,8 MB} %sig{signerad av %entity{Lolly}} [Verifiera detta nu](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} genererad bild %sig{signerad av %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} och %act{exporterade till WebP} som %file{the-flood.webp} %detail{10,6 MB ner till 0,8 MB} %sig{signerad av %entity{Lolly}} [Verifiera detta nu](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 För att vara precis, eftersom den här sidan hävdar att precision spelar roll: bilden ovan är genererad, inte fotograferad. Ingen kamera pekades mot den där farmen, för det finns ingen farm. Den beskriver regionala Queensland, Australien, promptad från Storbritannien, genererad i ett datacenter i USA. Den försöker vara trogen en plats utan att vara ett register över en, och den distinktionen är hela anledningen till att dess Content Credentials säger så.
 

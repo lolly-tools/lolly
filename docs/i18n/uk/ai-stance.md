@@ -8,7 +8,7 @@ Lolly створили посеред найбільшої зміни в том�
 
 ![Суперкомірка грози над фермою в аутбеку - бак і сараї внизу, повеневі води вже прорізають канали через сухий вигін](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} згенероване зображення %sig{підписано %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} і %act{експортовано у WebP} як %file{the-flood.webp} %detail{з 10.6 МБ до 0.8 МБ} %sig{підписано %entity{Lolly}} [Перевірте це зараз](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} згенероване зображення %sig{підписано %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} і %act{експортовано у WebP} як %file{the-flood.webp} %detail{з 10.6 МБ до 0.8 МБ} %sig{підписано %entity{Lolly}} [Перевірте це зараз](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 Якщо бути точним у цьому, адже ця сторінка стверджує, що точність важлива: зображення вище - згенероване, а не сфотографоване. Жодна камера не була спрямована на цю ферму, бо цієї ферми не існує. Воно зображує регіон Квінсленд, Австралія, за запитом зі Сполученого Королівства, згенероване в дата-центрі у Сполучених Штатах. Воно намагається бути правдоподібним щодо місця, не будучи його записом, і саме ця відмінність - причина, чому про це повідомляють його Content Credentials.
 

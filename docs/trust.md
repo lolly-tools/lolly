@@ -2,7 +2,7 @@
 
 Most software asks you to trust it. This section is the opposite: every claim Lolly makes about your content, your data and its own behaviour is written down here with the mechanism that enforces it, so you can check rather than believe.
 
-> **The internet is optional with Lolly: use it when it helps, never surrender control.** A font you pick, a place you look up, a link you share - things happen online only because you asked. Nothing you make ever leaves your device without your control and informed consent, Nobody is listening in. Go offline and everything you have works. **Freedom is sweet.**
+> **The internet is optional with Lolly: use it when it helps, never surrender control.** A font you pick, a place you look up, a link you share - things happen online only because you asked. Nothing you make leaves your device unless you send it or turn on a feature that does, such as Sync. The app asks before it downloads an on-device AI model, and the brand editor asks before it fetches a font from Google. Nobody is listening in. Go offline and everything you have works. **Freedom is sweet.**
 >
 > The receipts: the [Privacy Policy](/info/privacy.html) lists every request the app can ever make, and [Verify It Yourself](/info/verify-yourself.html) shows you how to check each one.
 
@@ -39,7 +39,7 @@ Nothing to sell you, nothing to take. Four commitments, stated once and checkabl
 
 - <!--i:check--> **Free, and it stays free.** A version that has been released is licensed so it can never be taken back. The free Lolly always exists, whatever happens next - the exact mechanism is on [How Lolly compares](/info/positioning.html).
 - <!--i:code--> **Open source.** Read it, run it, fork it, keep it. Nothing on this page needs to be believed: the code is public and the claims are checkable.
-- <!--i:eyeoff--> **Blind by design.** Lolly reports nothing back. Nobody, the makers included, can see who runs it or what they make - see the [Privacy Policy](/info/privacy.html). A tool that cannot see you has nothing to sell about you.
+- <!--i:eyeoff--> **Blind by design.** The Lolly app sends no analytics, usage reports or crash reports, so nobody, the makers included, can see what you make or how you use the app - see the [Privacy Policy](/info/privacy.html). A tool that cannot see you has nothing to sell about you. A Lolly Work server, which an organisation runs for its members, is different. When your app is connected to one, the server keeps an audit log of sign-ins and other governed actions such as approvals. It records which app versions connect to it and, while you are signed in, from which devices. It can also store usage events made of labels such as a tool id, never your inputs, at a level the organisation sets. See [Telemetry and dashboards](/info/work-telemetry.html).
 - <!--i:checklist--> **Your vote, visible.** Your work never goes where you have no say. Anything that touches the internet happens because you chose it, at the moment you chose it, and the code that keeps that promise is open.
 
 ## Why this is free

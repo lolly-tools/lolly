@@ -8,7 +8,7 @@ Lolly vznikla uprostřed největší změny ve způsobu tvorby médií od dob kn
 
 ![Supercelární bouře propukající nad usedlostí v australském vnitrozemí - nádrž a kůlny dole, povodňová voda už protíná koryta suchou pastvinou](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} vygenerovaný obrázek %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} a %act{exported to WebP} jako %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Ověřit nyní](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} vygenerovaný obrázek %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} a %act{exported to WebP} jako %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Ověřit nyní](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 Abychom byli přesní, protože tahle stránka tvrdí, že na přesnosti záleží: obrázek výše je vygenerovaný, ne vyfocený. Na tu usedlost nemířil žádný fotoaparát, protože žádná taková usedlost neexistuje. Popisuje region Queensland v Austrálii, zadaný ze Spojeného království, vygenerovaný v datacentru ve Spojených státech. Snaží se být věrný místu, aniž by byl jeho záznamem, a tohle rozlišení je celý důvod, proč to jeho Content Credentials zaznamenávají.
 

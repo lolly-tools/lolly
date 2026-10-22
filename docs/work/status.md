@@ -50,7 +50,7 @@ routes and renders a real SVG with `require(ESM)` disabled before permitting dep
 
 ## Engine source update, 2026-10-09
 
-The maintained source pins engine `1.248.0`, core `1.1.0` and 33 schemas from upstream
+The maintained source then pinned engine `1.248.0`, core `1.1.0` and 33 schemas from upstream
 commit `fa6779d5cc5b064bb71911c04b90f9ac16caf054`. The consumed source hashes and
 HostV1 bridge version remain verified; third-party dependency versions and the
 Handlebars `4.7.10` override are preserved.
@@ -67,7 +67,7 @@ matched shell, pack, worker and engine-pin artifacts for an existing instance.
 | Setup milestone local tests | 1,142 tests; 1,123 passed, zero failures, 19 conditional skips. Postgres checks also passed in an isolated local database. |
 | CI tests | 1,159 tests; 1,153 passed, zero failures, six conditional skips with Postgres enabled. |
 | Deployment gates | Full tests and packaged function rendering, typecheck, root/worker production dependency audits, SBOM freshness, server and render-worker image builds. |
-| Engine consumption | Pinned, unmodified engine `1.248.0` and core `1.1.0`, verified before tests. Pack inspection checks manifests, required files and available server formats. |
+| Engine consumption | Pinned, unmodified engine and core, verified before tests. Work 1.1.2 pins engine `1.281.0` and core `1.5.0` ([matching components](release-1-1-2.md#matching-components)). Pack inspection checks manifests, required files and available server formats. |
 | Documentation images | SVG captures of the real local console, with embedded fonts, paired light/dark variants and signed screen-capture credentials. Examples contain evaluation data. |
 | Release qualification | Passing app CI does not select or certify a matched employee-client, worker and deployment-image release for a customer. |
 
@@ -168,11 +168,12 @@ receipt; local stdout alone is not an external anchor. See [audit](audit.md).
 ### 3. Deployment image qualification
 The release workflow builds server and render-worker images on a `v*` tag with signatures,
 SBOM and provenance attestations; see [image verification](deployment.md#verifying-the-images).
-The package version remains `0.2.0`, while `main` includes the new setup work. Current CI
-builds both images but does not publish a new customer release. Select and verify the intended
-image digests, client and worker versions before installation. Confirm registry access in the
-target environment and configure `imagePullSecrets` if required; historical package visibility
-is not a current pull test.
+The current release is Work 1.1.2, published on 2026-10-20 with signed server and
+render-worker images for Linux amd64 and arm64; see the [1.1.2 release notes](release-1-1-2.md).
+The 1.1.2 release record does not claim native arm64 runtime qualification. Select and verify the
+intended image digests, client and worker versions before installation. Confirm registry
+access in the target environment and configure `imagePullSecrets` if required; historical
+package visibility is not a current pull test.
 
 ### 4. Shell delivery on Kubernetes
 Serving the web shell needs a built dist on a volume you populate; brand-pack delivery is
@@ -181,8 +182,8 @@ wrong path now fails loudly instead of quietly un-governing employees, which is 
 improvement - not a substitute for a delivery pipeline.
 
 ### 5. Engine pin drift (a recurring risk, currently closed)
-The vendored engine is pinned and pin-verified (`engine-pin.json`, `@lolly/engine@1.248.0` and `@lolly-tools/core@1.1.0`
-from committed upstream source on 2026-10-09). The pin is re-verified as `pretest`; `engine-drift.yml` reports upstream drift
+The vendored engine is pinned and pin-verified (`engine-pin.json`; Work 1.1.2 pins `@lolly/engine@1.281.0` and
+`@lolly-tools/core@1.5.0` from committed upstream source). The pin is re-verified as `pretest`; `engine-drift.yml` reports upstream drift
 weekly and `repin-engine` applies a reviewed snapshot. `inspect:pack` and Customer setup now
 load manifests through the installed engine and report incompatible requirements, missing
 files and unsupported server formats. A matched release still needs its client and worker
@@ -197,12 +198,10 @@ covered on `main` - but a local `pnpm test` still exercises only the memory driv
 per-render linkage between approval state and watermarking is deliberately not built yet.
 Set `always` if you need the guarantee today.
 
-### 8. Vercel is a pilot vehicle
-The hosted demo renders for real - `GET /render/<toolId>.<format>` serves live SVG/PNG bytes
-off the jsdom fast path (verified against www.lolly.work). What makes it a pilot, not
-production: it runs **memory-only** (no `DATABASE_URL`, so seeded/created state resets), there
-is **no Chromium worker tier** (only curated demo hooks opt into in-process rendering), and
-pack delivery is demo-scoped. Fine for a trial, not for production.
+### 8. The hosted demo is for evaluation
+The hosted lolly.work demo renders for real: `GET /render/<toolId>.<format>` serves live
+output. It holds sample data that does not persist and runs apart from private workspaces.
+Use it for a trial, not as a production instance.
 
 ### 9. Employee client distribution
 The Work repository's audits, SBOM and notices cover its own deployment. They do not clear
@@ -228,12 +227,12 @@ The plan sequences phases so each is independently useful:
 
 | Phase | Content | State |
 |---|---|---|
-| 0 | scaffold, schema, CI, workers, compose, Vercel trial | done, Vercel trial-grade |
+| 0 | scaffold, schema, CI, workers, compose, serverless trial | done; the serverless adapter is trial-grade |
 | 1 (MVP) | SSO + catalog + render/links + fleet + audit core | done |
 | 2 | roles/grants, overlays, profile governance, org-config, message bridge | done; org-scoped MCP endpoint outstanding |
 | 3 | approvals, watermarking, lifecycle, C2PA assertions | largely done (see gap 7) |
 | 4 | shared workspaces, collab presence, telemetry dashboards | projects/sessions and dashboards done; server collab substrate **done single-node** (ws gateway + rooms + persistence + guest join, `server/src/collab/`); employee-client release and rollout acceptance remain separate |
-| 5 | SAML/SCIM, SIEM streaming, live co-editing, air-gap hardening | **SCIM done** (`/scim/v2`: Users create/patch/`active=false`, Group membership, per-IdP bearer tokens - plans/31 section 8); SAML deliberately deferred to Keycloak's SAML→OIDC bridge; live co-editing server side done but **rollout stays adoption-gated** (the conflict counter on the console Overview is the gate's instrument); SIEM forwarding **done** (plans/35: batched, cursor-tracked, `lw_siem_lag` gauge - see [operations](operations.md#siem-forwarding)) |
+| 5 | SAML/SCIM, SIEM streaming, live co-editing, air-gap hardening | **SCIM done** (`/scim/v2`: Users create/patch/`active=false`, Group membership, per-IdP bearer tokens); SAML deferred by design to Keycloak's SAML→OIDC bridge; live co-editing server side done but **rollout stays adoption-gated** (the conflict counter on the console Overview is the gate's instrument); SIEM forwarding **done** (batched, cursor-tracked, `lw_siem_lag` gauge - see [operations](operations.md#siem-forwarding)) |
 
 The community gate is worth restating, because it is the test of the brand-agnostic claim:
 **someone who is not us stands a deploy up from the Helm chart.**

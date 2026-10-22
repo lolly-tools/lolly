@@ -4,13 +4,13 @@ Sie füllen ein paar Felder aus, und heraus kommt eine fertige Datei, bei der Sc
 
 Sie sind eine Hand in einer Staffel: Ein Entwickler kann das Tool, das Sie nutzen, zu einer Pipeline ausbauen, und eine Kollegin oder ein Kollege kann es im Selbstbedienungsmodus ausführen, daher verfolgt [Der Lebenszyklus einer Kampagne](/info/overview.html#the-lifecycle-of-a-campaign) ein Asset durch alle drei Paar Hände.
 
-Neu hier? Beginnen Sie mit **[In 60 Sekunden etwas erstellen](/info/make-something.html)** und kommen Sie zurück, sobald Sie wissen, welchen Teil Sie vertiefen möchten. [Fragen & Antworten](/info/faq.html) behandelt, was Menschen fragen, bevor sie einem kostenlosen Tool vertrauen. [Wie Lolly im Vergleich abschneidet](/info/positioning.html) ist die ehrliche Einschätzung, wofür Sie besser zu etwas anderem greifen.
+Neu hier? Beginnen Sie mit **[Ihre erste Datei erstellen](/info/make-something.html)** und kommen Sie zurück, sobald Sie wissen, welchen Teil Sie vertiefen möchten. [Fragen & Antworten](/info/faq.html) behandelt, was Menschen fragen, bevor sie einem kostenlosen Tool vertrauen. [Wie Lolly im Vergleich abschneidet](/info/positioning.html) ist die ehrliche Einschätzung, wofür Sie besser zu etwas anderem greifen.
 
 ## Erstellen
 
 Wählen Sie ein Tool, füllen Sie ein paar Felder aus und laden Sie die fertige Datei herunter. Oder öffnen Sie die Design-Leinwand und legen Sie frei Hand an: In beiden Fällen kommen Farben, Schrift und Abstände aus Ihrer Marke statt aus dem Gedächtnis, und nichts erfordert ein Konto.
 
-- **[Make something in 60 seconds](/info/make-something.html)** - drei kurze Rundgänge ganz ohne Einrichtung, falls Sie Lolly noch nie geöffnet haben.
+- **[Ihre erste Datei erstellen](/info/make-something.html)** - eine kurze Lektion ganz ohne Einrichtung: einen QR-Code erstellen, herunterladen und eine bearbeitbare Kopie speichern. Beginnen Sie hier, wenn Sie Lolly noch nie geöffnet haben.
 - **[Lolly nutzen](/info/using.html)** - die Leinwand, die Steuerelemente, das Speichern, Projekte und die Nutzung am Telefon: wie sich die App selbst verhält.
 - **[Das Brand Studio](/info/brand-studio.html)** - wann Logos, Farben und Schrift Ihre eigenen sein sollen statt der Standardvorgaben.
 - **[Ein Design importieren](/info/design-import.html)** - wenn die Grafik bereits als `.fig`-, `.penpot`-, `.ai`-, `.idml`- oder SVG-Datei vorliegt und Sie sie bearbeitbar statt geplättet haben möchten.

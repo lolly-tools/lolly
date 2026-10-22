@@ -4,7 +4,7 @@ Lolly 把你的規範（色彩、字體、版面、邏輯）變成任何人都�
 
 這是最該先讀的一頁。兩件事能讓你真正上手：**讓 Lolly 成為你的**，以及**把你既有的資產帶進來**（你的設計檔與 tokens）。其餘一切都只隔著一個連結。
 
-> 剛接觸 Lolly，只想先做點東西？[60 秒做出一件作品](/info/make-something.html) 會帶你走過三個例子；或是[開啟應用程式](/#/)，從工具庫挑一個工具，把空格填一填，然後按 **Export**。等你想讓成品換上*你自己的*品牌時，再回到這一頁。
+> 剛接觸 Lolly，只想先做點東西？[製作你的第一個檔案](/info/make-something.html) 會帶你做一個 QR code；或是[開啟應用程式](/#/)，從工具庫挑一個工具，把空格填一填，然後按 **Export**。等你想讓成品換上*你自己的*品牌時，再回到這一頁。
 
 ![Utilities 檢視畫面：Strip Hidden Data、Compress PDF、Convert Image 這些在裝置上完成工作的實用工具，全都集中在一處](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

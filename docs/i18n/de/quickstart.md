@@ -4,7 +4,7 @@ Lolly verwandelt Ihre Regeln - Farben, Schrift, Layouts, Logik - in Werkzeuge, m
 
 Dies ist die eine Seite, die Sie zuerst lesen sollten. Zwei Dinge machen Sie produktiv: **Machen Sie Lolly zu Ihrem eigenen** und **bringen Sie ein, was Sie bereits haben** (Ihre Designdateien und Tokens). Alles Weitere ist nur einen Link entfernt.
 
-> Neu bei Lolly und möchten einfach etwas erstellen? [In 60 Sekunden etwas erstellen](/info/make-something.html) führt Sie durch drei Beispiele, oder [öffnen Sie die App](/#/), wählen Sie ein beliebiges Werkzeug aus der Galerie, füllen Sie die Lücken aus und klicken Sie auf **Export**. Kommen Sie hierher zurück, wenn es *Ihre* Marke tragen soll.
+> Neu bei Lolly und möchten einfach etwas erstellen? [Ihre erste Datei erstellen](/info/make-something.html) führt Sie durch einen QR-Code, oder [öffnen Sie die App](/#/), wählen Sie ein beliebiges Werkzeug aus der Galerie, füllen Sie die Lücken aus und klicken Sie auf **Export**. Kommen Sie hierher zurück, wenn es *Ihre* Marke tragen soll.
 
 ![Die Utilities-Ansicht - die Arbeitspferde auf dem Gerät wie Strip Hidden Data, Compress PDF und Convert Image, alle an einem Ort](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

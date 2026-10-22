@@ -4,7 +4,7 @@ Ce que Lolly fait que les outils créatifs actuels ne font pas, et ce qu'il leur
 
 Pour la version outil par outil, une page chacun pour Canva, Adobe, Figma, les API de rendu et les convertisseurs en ligne, voir [Lolly comparé, outil par outil](/info/compare.html). Chaque page indique ce que l'autre outil fait mieux et ce que Lolly fait à la place.
 
-> **Statut pilote :** Lolly est un prototype en pilote fermé, pas un produit fini, et sa sécurité est actuellement soumise au durcissement d'infrastructure strict de SUSE, en préparation d'une échelle entreprise. La page [Adoption & gouvernance](/info/adoption-governance.html#status) couvre l'état actuel.
+> **Statut :** Lolly est publié : la version 1.0 est sortie en open source le 30 août 2026. Sa sécurité n'a pas encore fait l'objet d'un audit indépendant, et ses preuves d'adoption datent de quelques mois. La page [Adoption & gouvernance](/info/adoption-governance.html#status) couvre l'état actuel.
 
 ## Les outils d'aujourd'hui
 
@@ -14,7 +14,7 @@ Chaque anneau ci-dessous note à quel point une classe de produit livre complèt
 Exhaustivité des fonctionnalités des outils créatifs actuels, étudiée en août 2026. Notation : 0 absent, 25 solution de contournement, 50 réel mais restreint ou partiel, 75 solide avec réserves, 100 compétence de base.
 :::
 
-**Notes sur la notation.** Les scores de Lolly supposent que ses affirmations publiées tiennent, ce qui explique pourquoi la maturité est son seul anneau rouge : pilote fermé, durcissement de sécurité en cours, rien d'audité pour l'instant. La recherche a déplacé plusieurs cellules.
+**Notes sur la notation.** La disponibilité des fonctionnalités et la maturité en production sont deux considérations distinctes. Le score de maturité de Lolly reflète une première version publique en août 2026 et l'absence d'audit de sécurité indépendant à ce jour ; la présence du SSO, des approbations ou du rendu serveur n'établit pas un historique en production. Les descriptions de fonctionnalités ci-dessous incluent lolly.work, tandis que les scores des concurrents conservent leur revue datée d'août.
 
 Canva est noté sur son meilleur membre de famille par ligne, puisqu'il possède Affinity et Cavalry (tous deux offerts en octobre 2025). Le rendu hors ligne et sur l'appareil obtient 75 grâce à Affinity - une suite de bureau qui exige toujours un compte vérifié et porte de la télémétrie, la même déduction qu'Adobe subit - tandis que le mode hors ligne propre de Canva n'édite que des créations pré-synchronisées, un seul appareil, fenêtre limitée. L'autofill obtient 50 : réel mais réservé à l'Enterprise, asynchrone, texte et image seulement. La génération de masse de Figma est passée de 25 à 50 quand Buzz a livré le remplissage de feuille de calcul (bêta gratuite, août 2026).
 

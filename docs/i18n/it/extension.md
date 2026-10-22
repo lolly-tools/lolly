@@ -2,7 +2,7 @@
 
 L'estensione **Lolly URL Screenshot** permette all'app web di fare uno screenshot di qualsiasi pagina web dall'interno del tuo browser. Senza di essa, catturare un URL richiede l'app desktop - una pagina del browser non può leggere i pixel di un altro sito da sola. L'estensione può farlo, usando la stessa cattura che usa l'app desktop.
 
-Fa un altro lavoro allo stesso modo: leggere un'unica pagina che tu nomini, così Brand Studio può estrarre un marchio da un sito web live. Entrambi sono trattati qui sotto.
+Fa altri due lavori allo stesso modo. Un indirizzo web incollato in uno slot immagine può diventare uno screenshot di quella pagina (**Cattura questa pagina**), e l'estensione può leggere un'unica pagina che tu nomini, così Brand Studio può estrarre un marchio da un sito web live. Ogni richiesta attende la tua approvazione nell'estensione.
 
 Funziona su browser basati su Chromium: **Chrome, Edge, Brave, Arc, Opera** - Chrome 111 o più recente.
 
@@ -22,18 +22,23 @@ Ogni controllo è attivo mentre aspetti: l'URL di destinazione, la profondità d
 
 ### Caricala tu stesso (sviluppatori)
 
-L'estensione si trova nel repo in `shells/chrome-extension/`.
+L'estensione si trova nel repo in `shells/chrome-extension/`. Quella cartella è la build di produzione, che funziona con Lolly solo su `https://lolly.tools`.
 
 1. Apri `chrome://extensions`.
 2. Attiva **Modalità sviluppatore** (in alto a destra).
 3. Clicca su **Carica estensione non pacchettizzata** e scegli la cartella `shells/chrome-extension/`.
 4. Ricarica Lolly - **URL Screenshot** ora funziona nel browser.
 
+Per un server di sviluppo locale, esegui `pnpm run pack:chrome-extension:dev` e carica `dist/chrome-extension-dev`. Quel pacchetto accetta anche `http://localhost:5173` e ha **Development** nel nome.
+
 ## Come funziona
 
-- Un piccolo script segnala a Lolly che l'estensione è presente, così lo strumento **URL Screenshot** si attiva automaticamente - nessuna configurazione.
-- Quando esegui il rendering, l'estensione apre la pagina di destinazione in una scheda in background, la cattura tramite il DevTools Protocol (lo stesso `Page.captureScreenshot` usato dall'app desktop), poi chiude la scheda e restituisce l'immagine.
-- Gira interamente nel tuo browser, sulla tua rete - quindi catturare `localhost` o un sito interno funziona. La cattura in sé non viene mai caricata da nessuna parte; l'unico traffico di rete è il tuo stesso browser che carica la pagina che hai chiesto di fotografare.
+- Un piccolo script segnala a Lolly che l'estensione è presente, così **URL Screenshot** può salvare le catture senza ulteriore configurazione.
+- Approvi ogni richiesta. Quando Lolly la fa, l'estensione apre una propria finestra **Approve page request**, che mostra il sito richiedente, se vuole uno screenshot o il contenuto della pagina, e l'indirizzo della pagina. Nulla viene letto finché non premi **Approve once**. **Cancel**, o la chiusura della finestra, termina la richiesta.
+- La prima volta che approvi una richiesta per un sito, Chrome chiede anche se l'estensione può accedere a quel sito. Chrome mantiene quell'accesso una volta concesso, ma ogni richiesta successiva richiede comunque il suo **Approve once**.
+- Un'approvazione copre una sola richiesta e scade dopo 30 secondi. Solo una richiesta alla volta può essere in attesa o in esecuzione, e una richiesta approvata si ferma dopo 55 secondi. Se la pagina Lolly si chiude o cambia, o la pagina di destinazione passa a un altro sito, la richiesta viene annullata.
+- Dopo che hai approvato, l'estensione apre la pagina di destinazione in una scheda in background, la cattura tramite il DevTools Protocol (lo stesso `Page.captureScreenshot` usato dall'app desktop), poi chiude la scheda e restituisce l'immagine alla scheda Lolly che l'ha richiesta.
+- Gira interamente nel tuo browser, sulla tua rete - quindi catturare `localhost` o un sito interno funziona. La pagina si carica con la sessione del tuo browser, quindi una pagina a cui hai effettuato l'accesso può mostrare informazioni private nel risultato. La cattura in sé non viene mai caricata da nessuna parte; l'unico traffico di rete è il tuo stesso browser che carica la pagina che hai chiesto di fotografare.
 
 Mentre una cattura è in corso potresti vedere brevemente un banner *"…started debugging this browser"* sulla scheda temporanea. È il DevTools Protocol al lavoro; scompare da solo quando lo scatto è terminato.
 
@@ -43,33 +48,33 @@ La sorgente **Website** in Brand Studio avvia un brand a partire da un sito che 
 
 Cosa succede quando lo premi:
 
-- Un indirizzo, una pagina. L'estensione la apre nello stesso tipo di scheda in background, legge il markup renderizzato, il testo dei fogli di stile e una manciata di icone e loghi, poi chiude la scheda. Non segue i link e non fa crawling.
-- Anche i fogli di stile e i font ospitati altrove (una CDN, un servizio di font) vengono recuperati, perché colori e tipografia della pagina risiedono lì. Le richieste cross-origin vanno senza i tuoi cookie; quelle same-origin li usano, esattamente come farebbe la pagina stessa.
+- Un indirizzo, una pagina. Dopo che hai approvato, l'estensione la apre nello stesso tipo di scheda in background, legge il markup renderizzato, il testo dei fogli di stile e una manciata di icone e loghi, poi chiude la scheda. Non segue i link e non fa crawling.
+- Anche i fogli di stile ospitati altrove (una CDN, un servizio di font) vengono recuperati, perché colori e tipografia della pagina risiedono lì. Le richieste cross-origin vanno senza i tuoi cookie; quelle same-origin li usano, esattamente come farebbe la pagina stessa.
 - Tutto ha un limite - un numero massimo di fogli, immagini e byte - così una pagina ostile o mezza rotta restituisce materiale parziale invece di bloccarsi.
 - I byte tornano direttamente alla scheda Lolly che li ha richiesti. L'analisi in colori, tipografia e loghi avviene sul tuo dispositivo; niente viene caricato.
 
-Nulla viene letto finché non premi. Incollare un indirizzo si limita a compilare il campo.
+Incollare un indirizzo si limita a compilare il campo. Nulla viene letto finché non avvii la lettura e premi **Approve once**.
 
 ## Dopo l'installazione
 
-Ricarica la scheda Lolly. Il messaggio "Get the extension" scompare e **URL Screenshot** diventa disponibile nella galleria e in modalità Batch.
+Ricarica la scheda Lolly. Il messaggio "Get the extension" scompare, **URL Screenshot** (sotto Utility) può salvare le catture in un file, e lo strumento diventa disponibile in modalità Batch.
 
 ## Permessi
 
-Il suo `manifest.json` dichiara quattro permessi più l'accesso agli host:
+Il suo `manifest.json` dichiara quattro permessi, più l'accesso ai siti che richiede un sito alla volta:
 
 - `debugger` - guida la scheda in background attraverso il DevTools Protocol. È ciò che scatta lo screenshot.
-- `tabs` - apre la scheda temporanea in background e la richiude dopo.
+- `tabs` - apre la scheda temporanea in background e la richiude dopo, e verifica che né la pagina Lolly né la pagina di destinazione si siano spostate da quando hai approvato la richiesta.
 - `scripting` - esegue il lettore a pagina singola all'interno del sito che hai indicato, per la sorgente Website di Brand Studio.
 - `storage` - annota l'id di una scheda che ha aperto, solo nella session storage, così la scheda viene comunque chiusa se il browser sospende l'estensione a metà lettura. Viene azzerata al riavvio successivo; nulla su di te viene conservato.
-- `host_permissions: ["<all_urls>"]` - accesso host a *tutti* i siti, perché puoi puntarla verso qualsiasi URL tu scelga. Chrome mostra questo, al momento dell'installazione, come un avviso generico "leggi e modifica tutti i tuoi dati su tutti i siti web".
+- `optional_host_permissions: ["http://*/*", "https://*/*"]` - accesso ai siti, che non viene concesso all'installazione. Quando premi **Approve once**, l'estensione chiede a Chrome l'accesso al solo sito di quella richiesta, e Chrome te lo chiede la prima volta per ogni sito.
 
-Nonostante quell'avviso, legge solo la singola pagina che le chiedi di catturare o importare, e non legge né trasmette i tuoi dati di navigazione - niente viene caricato da nessuna parte.
+Legge solo la singola pagina che approvi, e non legge né trasmette i tuoi dati di navigazione - niente viene caricato da nessuna parte.
 
-Il manifest imposta anche `minimum_chrome_version: 111`. La versione attuale è 0.2.1.
+Il manifest imposta anche `minimum_chrome_version: 111`. La versione attuale è 0.4.0.
 
 ## Risoluzione dei problemi
 
 - **Vedi ancora "Get the extension"?** Ricarica la scheda Lolly - il rilevamento avviene al caricamento della pagina.
-- **Non succede nulla su questo sito?** L'estensione si attiva solo sulle origini proprie di Lolly. Stai eseguendo una build personalizzata su un altro dominio? Aggiungilo a `content_scripts.matches` nel `manifest.json` dell'estensione.
-- **Una cattura fallisce?** Controlla che l'URL sia raggiungibile e inizi con `http://` o `https://`. Alcune pagine bloccano attivamente la cattura automatizzata.
+- **Non succede nulla su questo sito?** L'estensione funziona solo su `https://lolly.tools`, più `http://localhost:5173` nel pacchetto di sviluppo. Un'altra origine, come una copia di Lolly ospitata da te, richiede una build separata dell'estensione che elenchi quell'origine sia in `manifest.json` sia in `policy.js`. Modificare solo il manifest non funziona più.
+- **Una cattura fallisce?** Controlla che l'URL sia raggiungibile e inizi con `http://` o `https://`. Alcune pagine bloccano attivamente la cattura automatizzata. Se hai premuto **Cancel**, hai chiuso la finestra di approvazione o hai aspettato più di 30 secondi, avvia di nuovo la cattura.

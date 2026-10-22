@@ -4,13 +4,13 @@ Compili alcuni campi ed esce un file finito, con i font, i colori e il layout gi
 
 Sei una mano in una staffetta: uno sviluppatore può trasformare in una pipeline lo strumento che usi e un collega può farlo girare in autonomia, così [Il ciclo di vita di una campagna](/info/overview.html#the-lifecycle-of-a-campaign) segue un singolo asset attraverso tutte e tre le paia di mani.
 
-Sei nuovo qui? Inizia con **[Crea qualcosa in 60 secondi](/info/make-something.html)** e torna quando saprai quale parte vuoi approfondire. [Domande e risposte](/info/faq.html) copre ciò che le persone chiedono prima di fidarsi di uno strumento gratuito. [Come si confronta Lolly](/info/positioning.html) è il resoconto onesto di quando cercare altrove.
+Sei nuovo qui? Inizia con **[Crea il tuo primo file](/info/make-something.html)** e torna quando saprai quale parte vuoi approfondire. [Domande e risposte](/info/faq.html) copre ciò che le persone chiedono prima di fidarsi di uno strumento gratuito. [Come si confronta Lolly](/info/positioning.html) è il resoconto onesto di quando cercare altrove.
 
 ## Crea
 
 Scegli uno strumento, compila alcuni campi e scarica il file finito. Oppure apri la tela di Design e componi liberamente: in entrambi i casi i colori, i caratteri e le spaziature provengono dal tuo brand invece che a memoria, e niente richiede un account.
 
-- **[Crea qualcosa in 60 secondi](/info/make-something.html)** - tre brevi percorsi guidati senza nulla da configurare, se non hai mai aperto Lolly prima d'ora.
+- **[Crea il tuo primo file](/info/make-something.html)** - una breve lezione senza nulla da configurare: crea un codice QR, scaricalo e salva una copia modificabile. Inizia da qui se non hai mai aperto Lolly prima d'ora.
 - **[Usare Lolly](/info/using.html)** - la tela, i controlli, il salvataggio, Progetti e l'uso da telefono: come si comporta l'app stessa.
 - **[Il Brand Studio](/info/brand-studio.html)** - per quando i loghi, i colori e i caratteri devono essere i tuoi invece dei valori predefiniti.
 - **[Importa un design](/info/design-import.html)** - per quando la grafica esiste già come file `.fig`, `.penpot`, `.ai`, `.idml` o SVG e la vuoi modificabile invece che appiattita.

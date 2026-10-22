@@ -8,7 +8,7 @@ Lolly powstało w środku największej zmiany w sposobie tworzenia mediów od cz
 
 ![Superkomórka burzowa nadciągająca nad zagrodą w buszu - zbiornik i szopy poniżej, woda powodziowa już żłobi kanały w suchym polu](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} wygenerowany obraz %sig{podpisany przez %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} i %act{wyeksportowała do WebP} jako %file{the-flood.webp} %detail{10,6 MB do 0,8 MB} %sig{podpisany przez %entity{Lolly}} [Zweryfikuj to teraz](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} wygenerowany obraz %sig{podpisany przez %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} i %act{wyeksportowała do WebP} jako %file{the-flood.webp} %detail{10,6 MB do 0,8 MB} %sig{podpisany przez %entity{Lolly}} [Zweryfikuj to teraz](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 Żeby być precyzyjnym, bo ta strona twierdzi, że precyzja ma znaczenie: obraz powyżej jest wygenerowany, nie sfotografowany. Żaden aparat nie był skierowany na to gospodarstwo, ponieważ żadne takie gospodarstwo nie istnieje. Przedstawia region Queensland w Australii, zlecony ze Zjednoczonego Królestwa, wygenerowany w centrum danych w Stanach Zjednoczonych. Stara się być wierny miejscu, nie będąc jego zapisem, i to rozróżnienie jest całym powodem, dla którego zapisują je jego Content Credentials.
 

@@ -14,7 +14,7 @@ Install the [Rust toolchain and Tauri CLI](/info/build-desktop.html#prerequisite
 
 1. <!--l:android-->Install [Android Studio](https://developer.android.com/studio)
 2. In SDK Manager, install:
-   - Android SDK Platform (API 33 or higher)
+   - Android SDK Platform 36 (the app compiles and targets API 36)
    - NDK (Side by side) - version 26+
    - Android SDK Command-line Tools
 3. Set environment variables:
@@ -38,7 +38,7 @@ rustup target add \
 
 1. <!--l:apple-->Install Xcode from the App Store (the full app, not just the Command Line Tools)
 2. Accept the license: `sudo xcodebuild -license accept`
-3. Install CocoaPods - `tauri ios init` generates a Podfile and runs `pod install`: `brew install cocoapods`
+3. Install CocoaPods: `brew install cocoapods`
 4. Add iOS Rust targets:
 
 ```bash
@@ -48,27 +48,17 @@ rustup target add \
   x86_64-apple-ios
 ```
 
-See [Building for iOS](/info/ios-build.html) for the full iOS walkthrough - prerequisites, one-time init, the simulator dev loop, code signing and camera permissions.
+See [Building for iOS](/info/ios-build.html) for the full iOS walkthrough - prerequisites, the simulator dev loop, code signing and permissions.
 
 ### First-time platform init
 
-Run once to generate the native project files, from the repository root. For Android, which writes `gen/android/`:
+There is no init step. Both native projects are in the repository: the Android Studio (Gradle) project in `shells/tauri-mobile/src-tauri/gen/android/` and the Xcode project in `shells/tauri-mobile/src-tauri/gen/apple/`. Do not run `tauri android init` or `tauri ios init` on a checkout. The Android project holds hand-maintained code (the share-target and file-open handling in `MainActivity.kt`, the intent filters and FileProvider in `AndroidManifest.xml`, and `res/xml/file_paths.xml`), and regenerating the project can overwrite those files.
+
+Install the mobile shell's own dependencies once, from the repository root, then go to [Development](#development):
 
 ```bash
-cd shells/tauri-mobile
-pnpm install
-pnpm run tauri android init
+pnpm -C shells/tauri-mobile install --frozen-lockfile
 ```
-
-For iOS, which writes `gen/apple/`:
-
-```bash
-cd shells/tauri-mobile
-pnpm install
-pnpm run tauri ios init
-```
-
-The `gen/` directory contains the generated Gradle / Xcode projects. It is gitignored - regenerate it with the init command on a fresh checkout.
 
 ### Icons (mobile)
 
@@ -124,14 +114,13 @@ export ANDROID_KEY_PASSWORD=...
 
 All four variables are required together. With none set, the build is unsigned. Keep the keystore and passwords outside the checkout; release APK and AAB files must use the established application key so installed copies can update.
 
-**iOS signing** - configure your Development Team in Xcode:
+**iOS signing** - configure your Development Team in Xcode. From the repository root:
 
 ```bash
-cd gen/apple
-open Lolly.xcodeproj
+open shells/tauri-mobile/src-tauri/gen/apple/lolly-mobile.xcodeproj
 ```
 
-Set the team in the project's Signing & Capabilities tab, then build from CLI or Xcode.
+Set the team in the project's Signing & Capabilities tab, then build from CLI or Xcode. The committed project and `bundle.iOS.developmentTeam` in `shells/tauri-mobile/src-tauri/tauri.conf.json` already name a development team; the `APPLE_DEVELOPMENT_TEAM` environment variable overrides the configured team.
 
 The `ios-release.yml` GitHub workflow builds a signed IPA using the configured distribution identity on a supported macOS runner. Dispatch it with `upload=false` to collect the IPA without submitting it to App Store Connect.
 

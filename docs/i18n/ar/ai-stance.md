@@ -8,7 +8,7 @@
 
 ![عاصفة رعدية عملاقة تنفجر فوق مزرعة نائية - الخزان والحظائر أسفلها، ومياه الفيضان تشق بالفعل قنوات عبر الحقل الجاف](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} صورة تم إنشاؤها %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} و %act{exported to WebP} بصيغة %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [تحقق من هذا الآن](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} صورة تم إنشاؤها %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} و %act{exported to WebP} بصيغة %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [تحقق من هذا الآن](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 لنكون دقيقين في الأمر، لأن هذه الصفحة تجادل بأن الدقة مهمة: الصورة أعلاه مولَّدة، لا مصوَّرة. لم توجَّه أي كاميرا نحو تلك المزرعة، لأنه لا وجود لمزرعة. إنها تصف منطقة كوينزلاند في أستراليا، طُلبت من المملكة المتحدة، وتم إنشاؤها في مركز بيانات بالولايات المتحدة. تحاول أن تكون صادقة تجاه مكان دون أن تكون سجلًا له، وهذا التمييز هو السبب الكامل وراء تسجيل Content Credentials الخاصة بها لذلك.
 

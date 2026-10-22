@@ -1,6 +1,6 @@
 # Privacy Policy
 
-*Last updated: 11 October 2026*
+*Last updated: 22 October 2026*
 
 > **The short version.** Ordinary Lolly editing, rendering and downloads happen on
 > your device and need no account. Features such as sharing, Sync, hosted rendering
@@ -167,9 +167,9 @@ An operator's configured identity and asset providers can add destinations to th
 | What | What actually leaves your device | When (the act that triggers it) | If an operator blocks it |
 |---|---|---|---|
 | Tool catalogue sync | Nothing personal - a request for Lolly's own public tool and asset index, to the app's own origin | On startup, then cached offline | The app runs on its cached tool set. It only stops discovering new tools |
-| A tool that needs live data | Whatever that specific tool requests, to the host named in its own description. Today that is only the city lookup in the Meeting Planner tool, which asks `geocoding-api.open-meteo.com` to turn a city name into coordinates and a time zone - no account, no key and no identifier beyond the request itself. The input says so right where you type, and each answer is saved on your device so a city is looked up once | Only while using that tool, and only once you enter a location | That one lookup fails. You can still type coordinates by hand, and nothing else is affected |
+| A tool that needs live data | Whatever that specific tool requests, to the host named in its own description. Today that is only the city lookup in the Meeting Planner tool, which asks `geocoding-api.open-meteo.com` to turn each city name (the host city and every team member's city) into coordinates and a time zone - no account, no key and no identifier beyond the request itself. The Host city input says so, and each answer is saved on your device so a city is looked up once | Only while that tool is open, for the host city (filled in by default) and each team member's city | That lookup fails, and nothing else is affected |
 | Google Fonts | The chosen font family name and your IP address, to Google's font servers (`fonts.googleapis.com` for the stylesheet, `fonts.gstatic.com` for the font file) | Only if you add a Google Font in the brand editor, **and only after you agree to it in a dialog that says exactly this** - a one-time fetch per family, then it lives on your device and is used offline | The Google Fonts picker fails closed. Upload a font file instead |
-| Send to Google Drive | The one file you chose to send, to Google's Drive API (`www.googleapis.com`), after a Google sign-in you complete in Google's own popup window. Lolly's access is limited to files it created (the `drive.file` scope - it can never read the rest of your Drive), and the sign-in token is held in memory for the session, never stored | Only when you press "Send to Google Drive" on an EMF export, and only on builds where the operator has configured a Google client id - without one the button does not exist | The button never appears. Download the file and upload it to Drive yourself |
+| Send to Google Drive | The one file you chose to send, in any format, to Google's Drive API (`www.googleapis.com`), after a Google sign-in you complete in Google's own window. Lolly's access is limited to files it created (the `drive.file` scope - it can never read the rest of your Drive). In the web app the sign-in token is held in memory for the session, never stored; in the other apps a refresh token is stored on this device only if you tick "stay connected" | Only when you press "Send to Google Drive" on a file, and only on builds where the operator has configured a Google client id - without one the button does not exist | The button never appears. Download the file and upload it to Drive yourself |
 | Send to Dropbox | The one file you chose to send, to Dropbox's API (`api.dropboxapi.com` for sign-in and metadata, `content.dropboxapi.com` for the file itself), after a Dropbox sign-in you complete in Dropbox's own window. Lolly's access is app-folder only (it can only ever see `Apps/` and its own folder there - never the rest of your Dropbox), the "Open" link it shows you is a short-lived private link (no public share is created), and a refresh token is stored only if you tick "stay connected" | Only when you press "Send to Dropbox" on a file, and only on builds where the operator has configured a Dropbox client id - without one the button does not exist | The button never appears. Download the file and upload it to Dropbox yourself |
 | Send to OneDrive | The one file you chose to send, to Microsoft's identity and Graph services (`login.microsoftonline.com` for sign-in, `graph.microsoft.com` for the upload; a large file uploads in chunks to `api.onedrive.com` or operator configured storage origins), after a Microsoft sign-in you complete in Microsoft's own window. Lolly's access is limited to its own folder under `Apps/` (it can never read the rest of your OneDrive) plus your display name for the account label, and a refresh token is stored only if you tick "stay connected" | Only when you press "Send to OneDrive" on a file, and only on builds where the operator has configured a Microsoft client id - without one the button does not exist | The button never appears. Download the file and upload it to OneDrive yourself |
 | Send to LinkedIn | The one file you chose to send, plus its name as the text of the post, to LinkedIn (`www.linkedin.com` for the sign-in, `api.linkedin.com` for the upload and the post), after a LinkedIn sign-in you complete in your own browser. The post goes to your own feed as a public post under your name. Lolly can post as you and read your name for the account label, nothing else on your LinkedIn, and the sign-in is kept on this device only if you tick "stay connected" - LinkedIn's tokens last 60 days and cannot be renewed silently, so it lapses on its own | Only when you press "Send to LinkedIn" on a file, in the desktop apps only, and only on builds where a LinkedIn app is configured - without one the button does not exist | Nothing to block in the web app: this exists in the **desktop apps only**, so those two hosts are deliberately NOT in the web app's Content-Security-Policy below. In the desktop apps, remove the configured LinkedIn app and the button never appears |
@@ -221,12 +221,13 @@ file's signing key is published in DNS. Browsers can't make DNS queries, so any
 web implementation has to route the lookup through a third-party DNS-over-HTTPS
 resolver - which would show that operator the domain being checked plus your IP
 address. We used to use Cloudflare's. **We don't any more, and there is no
-replacement**: the web app now passes no resolver at all, so SEAL verification
-here makes zero network requests. Files whose SEAL record carries its key inline
-still verify completely offline. Files whose key lives in DNS report "no key
-resolver" instead, and you can check those in the desktop or command-line app,
-which resolve DNS natively through your own machine with no third party
-involved.
+replacement**: Verify now passes no resolver at all, so SEAL verification makes
+zero network requests. No Lolly app looks up SEAL keys in DNS today: the desktop
+and mobile apps run the same Verify view, and the command-line `lolly validate`
+does not check SEAL. A file whose SEAL record carries its key inline is checked
+offline, and Verify calls the signature internally consistent without confirming
+the domain. A file whose key lives only in DNS shows **SEAL signature did not
+verify**, with the reason "no key resolver and no inline key".
 
 ![The Verify screen: a drop target and nothing else - the file is checked where it already is, with no upload and no account](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop) You can confirm this yourself: greppable checks for this and every
 other claim on this page, with the exact commands and expected output, live at
@@ -258,9 +259,11 @@ request. This is traffic to the configured instance, not a report to the Lolly
 project about deployments it does not operate.
 
 **Usage telemetry has three levels:** `off` stores no usage events; `aggregate`
-strips user ids; `standard` can attribute events. The default attribution policy
-is `opt-in`, which requires the user's consent before storing a user id. An
-operator can instead configure attributed reporting with
+strips user ids; `standard` can attribute events. The default level is
+`standard`, so an instance stores the usage events it receives unless its operator
+chooses `off`.
+The default attribution policy is `opt-in`, which requires the user's consent
+before storing a user id. An operator can instead configure attributed reporting with
 `telemetryAttribution: default`. Allowed attributes are labels, not tool input
 values. See the [telemetry reference](https://github.com/lolly-tools/lolly-work/blob/main/docs/telemetry.md).
 
@@ -336,9 +339,11 @@ separate temporary-output handling described under Delivery hosts and processors
   any: on a self-hosted local server the deck never leaves that machine; on a
   hosted server, calling `lolly_rebrand` sends the deck there, up to the size
   and slide limits that same stage gives.
-- <!--i:checklist--> Every other tool - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
-  `lolly_describe_tool` - works from parameters only (text, numbers, colours,
-  URLs, catalogue asset ids), the same inputs a hot-link render URL takes.
+- <!--i:checklist--> The image tools (`lolly_look`, `lolly_sample_color` and
+  `lolly_trace_edges`) can also take an image file from the caller, handled the
+  same way: in memory, for that call only. Every other tool works from the
+  parameters in the call: text, numbers, colours, URLs, catalogue asset ids, or
+  a document the caller supplies.
 - <!--i:lock--> On lolly.tools, `lolly.tools/api/mcp` is open to anyone with no token.
   Its calls are limited per address and by a daily budget: the address becomes
   a one-way-derived bucket key in the abuse-control store, as on the sign-in
@@ -422,34 +427,54 @@ for issuer custody, provider retention and qualification boundaries.
 
 ## The browser extension
 
-The **Lolly URL Screenshot** browser extension does not collect, store or
-transmit any personal data. No analytics, no tracking, no remote server.
+The **Lolly URL Screenshot** browser extension collects no personal data for us.
+It has no analytics, no tracking and no server of its own. The
+[Browser Extension](/info/extension.html) page describes how it works.
 
-**What it does.** When you ask the Lolly web app to screenshot a URL, the
-extension opens that page in a temporary background tab, captures it in your
-browser using the DevTools Protocol, hands the image back to the app and closes
-the tab. Everything happens locally, on your own device and network.
+**What it does.** The Lolly web app can ask it for a screenshot of a web page,
+or for a page's contents to start a design system from a website. Each request
+opens an approval window in the extension that shows the requesting site,
+whether it wants a screenshot or the page contents, and the page address. Only
+after you press **Approve once** does the extension open that page in a
+temporary background tab, take the screenshot or read the page, hand the result
+to the Lolly tab that asked and close the tab. Every request needs its own
+approval.
 
 **Data.**
 
-- <!--i:shieldcheck--> **We collect nothing.** The extension has no servers and makes no network
-  requests of its own.
-- <!--i:photos--> **Captured images** go straight to the Lolly app in the same browser - never
-  uploaded by the extension.
-- <!--i:link--> **The URLs you capture** are used only to load that one page for that one
-  screenshot. They are not logged or shared.
+- <!--i:shieldcheck--> **We collect nothing.** The result goes only to the Lolly
+  page that asked, in the same browser. The extension stores no page contents
+  and adds no other recipient.
+- <!--i:globe--> **Network requests.** The page you approve loads as it would in
+  any tab, along with whatever that page requests itself. Reading a page's
+  contents also fetches that page's stylesheets and a few of its icon and logo
+  images, from inside the page, and those fetches send no cookies to other
+  sites. The extension makes no other requests, and none go to a Lolly server.
+- <!--i:lock--> **Your browser session.** The page loads with your browser
+  session, the way it would if you opened it yourself, so a page you are signed
+  in to can put private information in the result.
+- <!--i:link--> **The addresses you approve** are used only to load that one page
+  for that one request. They are not logged or shared.
 
 **Permissions.**
 
-- <!--i:wrench--> **`debugger`** - to capture the rendered page via the DevTools Protocol (the
+- <!--i:wrench--> **`debugger`** - to take the screenshot via the DevTools Protocol (the
   same mechanism the Lolly desktop app uses).
-- <!--i:monitor--> **`tabs`** - to open and close the temporary tab the page loads in.
-- <!--i:globe--> **Host access (`<all_urls>`)** - because the page you choose to capture can be
-  on any site. Chrome surfaces this at install time as a broad permission
-  warning. The extension only ever visits the URL you give it.
+- <!--i:monitor--> **`tabs`** - to open and close the temporary tab, and to check
+  that neither the Lolly page nor the target page has moved since you approved.
+- <!--i:code--> **`scripting`** - to read a page's contents in the temporary tab,
+  after you approve that request.
+- <!--i:database--> **`storage`** - to note the ids of its temporary tabs in
+  session storage, so they still close if the browser stops the extension during
+  a request. No page contents are stored.
+- <!--i:check--> **Optional site access (`http://*/*`, `https://*/*`)** - not granted
+  at install. When you press **Approve once**, the extension asks Chrome for
+  access to the one site in that request, and Chrome asks you the first time for
+  each site. A site you allowed before still needs a fresh approval for every
+  request.
 
-None of these are used to read, monitor or transmit your browsing beyond that
-one requested capture.
+None of these are used to read, monitor or transmit your browsing beyond the one
+request you approved.
 
 ## Delivery hosts and processors
 
@@ -515,12 +540,15 @@ can contain the text supplied by its caller, as explained above. MCP file tools
 process supplied bytes in memory. A separate lolly.work deployment additionally
 holds the service records described above and has its operator's logging policy.
 
-**The public services minimise application logging.** The MCP server contains no
-logging statements at all. The certificate service emits exactly two lines, both
-on failure and both deliberately stripped: a send-failure status code with no
-recipient address, and an error message with no stack trace or URL (a stack could
-carry an enrolment token). Everything else in the log is the hosting platform's,
-not ours.
+**The public services minimise application logging.** The MCP server logs
+startup, configuration and rendering warnings; it keeps no request log of its
+own and does not log tokens or caller addresses. The Penpot pass-through logs
+each command name and Penpot's response status, never headers, tokens or the
+file. The certificate service logs its startup settings and
+configuration warnings, plus two stripped lines on failure: a send-failure
+status code with no recipient address, and a fixed failure line with no error
+text, stack trace or URL (a provider error can carry identity values or
+credentials). Everything else in the log is the hosting platform's, not ours.
 
 For lolly.tools, the instance administrator controls request logging, rotation
 and retention on UpCloud. This page does not state an unverified maximum log
@@ -618,6 +646,14 @@ UpCloud application hostname inventory, distinguished optional identity and asse
 providers, and described content-addressed delivery and the held MCP download
 mode. No third-party CDN is enabled by this change. Log retention is controlled
 by the administrator rather than a stated Vercel plan default.
+
+**22 October 2026:** corrected the description of existing behaviour. The browser
+extension section now covers the approval window for every request, site access
+asked for one site at a time and the stylesheet and icon fetches of a website
+reading. Also corrected: the Send to Google Drive and Meeting Planner rows, the
+SEAL note (no Lolly app looks up SEAL keys in DNS), the default usage-telemetry
+level of the organisation service, the MCP image tools and the application
+logging of the public services. The software itself did not change.
 
 ## Who is responsible, and how to reach us
 

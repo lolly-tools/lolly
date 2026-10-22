@@ -14,9 +14,12 @@ The web app is a static PWA. A deployment can serve those files alone, add selec
 | MCP endpoint | `/api/mcp` (and the hosted `mcp.lolly.tools`) | Lets AI agents discover and render tools over [MCP](https://modelcontextprotocol.io) | Yes - remove it and the app is unaffected |
 | Hot-link render | `GET /tool/<id>.<ext>` (part of the MCP function) | Renders a public catalogue tool from a plain URL - **public, unauthenticated by design** (public tool + catalogue data only, no Content Credentials) | Yes - **live on lolly.tools**; an operator switches it off with `LOLLY_DISABLE_RENDER_GET=1` (returns 404) |
 | MCP OAuth | Discovery at `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource`, plus the flow itself: `POST …/register`, `…/authorize`, `…/token` and a `GET …/authorize` consent page (all part of the MCP function) | Standard OAuth 2.1 registration, authorization and token exchange for MCP connectors | Removed with the MCP endpoint |
-| CA service | `/api/ca` - `GET /health`, `GET /root.pem`, `GET /auth/:provider`, `GET /callback/:provider`, `POST /email/start`, `POST /enroll` | Issues short-lived signing certificates so exports can carry a **verified identity** in their Content Credentials. `health` reports which OIDC providers a deployment has actually configured, so the app offers only buttons that work; `root.pem` serves the public root anyone can pin | Yes - without it, exports still sign, anonymously |
+| MCP private files | `GET /api/mcp/files/<id>` and the `files_*` tools (part of the MCP function) | Holds a caller's imported and converted files, and any tool result over 1 MiB, in a private temporary directory, bound to that caller's bearer token. Results expire after five minutes, imported files after one hour, and a restart discards both | Yes - off by default; an operator turns it on with `LOLLY_MCP_PRIVATE_FILES=1` on a single-process gateway with an access token, and an anonymous endpoint never offers it |
+| Agent invitation relay | `POST /api/mcp/agents` (part of the MCP function), plus `/live/invitations`, `/live/rpc`, `/live/mcp` and the `/live/editor` WebSocket on a long-lived relay process | Lets an AI agent the person invites from **Share > Invite an agent** read one open document, and change it when the invitation allows editing. Reads, previews and edits pass between the agent and the person's open editor tab. The relay keeps invitations and pending calls in memory only: an unused invitation ends after ten minutes, a joined one after thirty minutes without activity | Yes - the `/live/*` routes run only on a long-lived process, never in the serverless function; `LOLLY_DISABLE_AGENT_CONNECTOR=1` turns off `/api/mcp/agents` |
+| CA service | `/api/ca` - `GET /health`, `GET /root.pem`, `GET /auth/:provider`, `GET /callback/:provider`, `POST /email/start`, `POST /enroll`; in managed issuer mode also `GET /issuer/:id/crl`, `POST /revoke/challenge` and `POST /revoke` | Issues short-lived signing certificates so exports can carry a **verified identity** in their Content Credentials. `health` reports which OIDC providers a deployment has actually configured, so the app offers only buttons that work; `root.pem` serves the public root anyone can pin. In managed mode it also serves the issuer's revocation list and lets a device revoke its own certificate | Yes - without it, exports still sign, anonymously |
 | Penpot pass-through | `POST /api/penpot/rpc/get-all-projects` and `POST /api/penpot/rpc/import-binfile` | Forwards two Penpot RPC calls to `design.penpot.app` on the user's behalf, because Penpot's API refuses cross-origin browser calls. Carries the user's own Penpot personal access token and the `.penpot` archive being sent, stores nothing | Yes - without it, "Send to Penpot" fails closed; the desktop apps do not use it |
 | Image pass-through | `GET /api/fetch-image` | Fetches a public image URL for the web app's Add from URL action; returns image bytes without persistent storage | Yes - disable with `LOLLY_DISABLE_IMAGE_PROXY=1`; desktop apps fetch directly |
+| Model files | `/models/<dir>/<file>` (static files), or the model host set at build time with `VITE_MODELS_BASE`; the desktop and mobile apps use `lolli.li` | On-device AI model files (background removal, upscaling, watermark detection, speech and similar), downloaded when a feature first needs one or when the person chooses to download them for offline use, then kept on the device. A request asks for one file by its path; nothing you made is sent | Yes - without them, only the features that need a model stop working |
 | lolly.work | Separate instance: `/api/auth/*`, `/api/v1/*`, plus its collaboration WebSocket and admin console | Organisation identity, policy, shared catalog and projects, work collabs, approvals, render jobs, delivery, telemetry and audit | Yes - omit it for standalone Lolly; organisation services need a reachable instance |
 
 ## MCP endpoint (`services/mcp`, `api/mcp`)
@@ -60,11 +63,21 @@ source deck the caller supplies), `lolly_compose` (lay slides out from a slide
 master, given a source deck's bytes for its text and its suggested layouts) and
 the three looking tools (`lolly_look`, `lolly_sample_color`,
 `lolly_trace_edges`, when given a picture) each operate on bytes supplied in the
-call, in memory, for that call only. Nothing is written server-side. `lolly_rebrand`'s
+call, in memory, for that call only. `lolly_inspect` also takes a file: its video
+and print-production checks write a temporary working copy and delete it when the
+call returns. No file outlives its call unless the operator turns on private files,
+below. `lolly_rebrand`'s
 `capabilities` stage states where the deck goes before any is sent: it never
 leaves a self-hosted local server, and a hosted server necessarily receives it
 for the call, up to that stage's stated size and slide limits. Every other
 tool works from parameters alone.
+
+**Private files (off by default).** On a self-hosted, single-process gateway with an
+access token, an operator can set `LOLLY_MCP_PRIVATE_FILES=1`. The server then writes
+to a private temporary directory: files a caller imports with the `files_*` tools,
+kept for up to one hour, and tool results over 1 MiB, which the same bearer token
+downloads from `GET /api/mcp/files/<id>` within five minutes. A restart discards both.
+See [Private download links for large results](/info/mcp.html#private-download-links-for-large-results).
 
 Full reference: [MCP Server](/info/mcp.html).
 
@@ -77,13 +90,27 @@ address or an emailed magic link (inbox control). Your browser then generates a
 X.509 certificate that binds that public key to your verified identity. Your
 private key never leaves your device and never transits the service.
 
-**What it stores.** No account database, and deliberately **no issuance log**
-(a privacy decision, documented in the [Privacy Policy](/info/privacy.html)).
-Certificate lifetime is user-selectable: 7, 30, 90 or 365 days. The default is
-30, and the deployment caps it (`CA_CERT_MAX_DAYS`). Expiry is the recall
-mechanism: there is no revocation infrastructure, so the lifetime you pick
-bounds misuse of a lost device. The service holds its own signing material and
-OIDC client secrets as deployment secrets.
+**What it stores.** No account database and **no issuance log** (a privacy
+decision, documented in the [Privacy Policy](/info/privacy.html)). The service
+holds its signing material or issuer credentials and its OIDC client secrets as
+deployment secrets. Lifetimes and recall depend on the issuer mode the operator
+sets with `CA_ISSUER_MODE`:
+
+- **`legacy-root`**, the default when no `CA_VAULT_*` setting is present: the
+  service signs with its own root. Certificate lifetime is user-selectable: 7,
+  30, 90 or 365 days. The default is 30, and the deployment caps it
+  (`CA_CERT_MAX_DAYS`). Expiry is the recall mechanism: this mode has no
+  revocation, so the lifetime you pick bounds misuse of a lost device.
+- **`vault-pki`** (managed): a separate PKI issuer the operator runs signs each
+  certificate, and the service holds no root private key. The default lifetime
+  is at most 24 hours and the maximum at most 7 days. Each enrolment sign-in
+  works once; a shared store keeps a keyed identifier and request digest for at
+  most ten minutes to enforce that. A device can revoke its own certificate
+  through `POST /api/ca/revoke/challenge` and `POST /api/ca/revoke`, and
+  `GET /api/ca/issuer/<id>/crl` serves the issuer's revocation list. What the
+  PKI issuer itself retains depends on its configuration; the
+  [CA service README](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md#lifetime-revocation-and-retained-data)
+  lists what to review.
 
 **If it is off**, exports still carry a full, verifiable Content Credential,
 signed anonymously. That is the default anyway.
@@ -91,7 +118,7 @@ signed anonymously. That is the default anyway.
 Full reference: [Content Credentials Identity](/info/content-credentials-identity.html)
 and the [engineering detail](/info/content-credentials-engineering.html).
 
-## Penpot pass-through (`api/penpot`)
+## Penpot pass-through (`services/penpot`, `api/penpot`)
 
 **What it does.** The Design tool's "Send to Penpot" needs two calls to
 Penpot's RPC API: list the user's projects, then import the exported `.penpot`
@@ -104,14 +131,15 @@ desktop apps call Penpot directly and never touch it.
 **What passes through it.** The user's own Penpot personal access token
 (entered in the app, sent as `Authorization: Token …`) and, for an import, the
 archive being sent. Both are forwarded verbatim and discarded with the
-request; the function keeps no store, no log of its own beyond the platform's
-function logging, and no credential. Only those two command names are
-accepted; any other path is refused.
+request; the function keeps no store and no credential. Beyond the platform's
+function logging, it logs one line for each call Penpot answers: the command
+name and Penpot's response status. Only those two command names are accepted;
+any other path is refused.
 
 **If it is off**, "Send to Penpot" fails with a clear message and nothing
-else changes. Export the `.penpot` file and import it in Penpot yourself.
-Self-hosters who run their own Penpot point the function at it with
-`PENPOT_UPSTREAM_BASE`.
+else changes. Export the `.penpot` file and import it in Penpot yourself. Do
+the same for a self-hosted Penpot server: the function forwards only to
+`design.penpot.app`, an address fixed in its code.
 
 ## Organisation services with lolly.work
 

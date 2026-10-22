@@ -8,7 +8,7 @@ Lolly được xây dựng giữa lòng thay đổi lớn nhất trong cách n�
 
 ![Một cơn bão siêu tế bào ập xuống trang trại vùng hẻo lánh - bồn nước và các nhà kho phía dưới, nước lũ đã bắt đầu khoét thành các rãnh chảy qua cánh đồng khô hạn](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} tạo hình ảnh %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} và %act{exported to WebP} thành %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Xác minh ngay](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} tạo hình ảnh %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} và %act{exported to WebP} thành %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Xác minh ngay](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 Để nói cho chính xác, vì trang này lập luận rằng độ chính xác quan trọng: hình ảnh ở trên là được tạo ra, không phải được chụp. Không có máy ảnh nào từng chĩa vào trang trại đó, vì không hề có trang trại nào cả. Nó mô tả vùng Queensland, Australia, được yêu cầu (prompt) từ Vương quốc Anh, được tạo ra trong một trung tâm dữ liệu ở Hoa Kỳ. Nó cố gắng trung thực với một địa điểm mà không phải là bản ghi lại địa điểm đó, và sự khác biệt này chính là toàn bộ lý do vì sao Content Credentials của nó nói như vậy.
 

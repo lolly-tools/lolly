@@ -4,13 +4,13 @@ Tu remplis quelques champs et un fichier terminé en ressort, avec les polices, 
 
 Tu es un maillon d'un relais : un développeur peut faire évoluer l'outil que tu utilises en pipeline, et un collègue peut l'exécuter en libre-service, donc [Le cycle de vie d'une campagne](/info/overview.html#the-lifecycle-of-a-campaign) suit un même asset à travers ces trois paires de mains.
 
-Nouveau ici ? Commence par **[Fais quelque chose en 60 secondes](/info/make-something.html)** et reviens une fois que tu sais quelle partie tu veux approfondir. [Questions et réponses](/info/faq.html) couvre ce que les gens demandent avant de faire confiance à un outil gratuit. [Comment Lolly se compare](/info/positioning.html) est le compte-rendu honnête de ce pour quoi il vaut mieux se tourner ailleurs.
+Nouveau ici ? Commence par **[Crée ton premier fichier](/info/make-something.html)** et reviens une fois que tu sais quelle partie tu veux approfondir. [Questions et réponses](/info/faq.html) couvre ce que les gens demandent avant de faire confiance à un outil gratuit. [Comment Lolly se compare](/info/positioning.html) est le compte-rendu honnête de ce pour quoi il vaut mieux se tourner ailleurs.
 
 ## Créer
 
 Choisis un outil, remplis quelques champs et télécharge le fichier terminé. Ou ouvre le canevas Design et compose-le à main levée : dans les deux cas, les couleurs, la typographie et les espacements viennent de ta marque plutôt que de ta mémoire, et rien ne nécessite de compte.
 
-- **[Fais quelque chose en 60 secondes](/info/make-something.html)** - trois courtes visites guidées sans rien à configurer, si tu n'as jamais ouvert Lolly auparavant.
+- **[Crée ton premier fichier](/info/make-something.html)** - une courte leçon sans rien à configurer : crée un QR code, télécharge-le et enregistre une copie modifiable. Commence ici si tu n'as jamais ouvert Lolly auparavant.
 - **[Utiliser Lolly](/info/using.html)** - le canevas, les contrôles, l'enregistrement, les Projets et l'usage sur téléphone : comment l'application elle-même se comporte.
 - **[Le Brand Studio](/info/brand-studio.html)** - quand les logos, les couleurs et la typographie doivent être les tiens plutôt que les valeurs par défaut.
 - **[Importer un design](/info/design-import.html)** - quand l'illustration existe déjà sous forme de fichier `.fig`, `.penpot`, `.ai`, `.idml` ou SVG et que tu veux qu'il reste modifiable plutôt qu'aplati.

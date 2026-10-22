@@ -4,13 +4,13 @@ Du fyller i några fält och en färdig fil kommer ut, med typsnitt, färger och
 
 Du är en hand i ett stafettlopp: en utvecklare kan skala upp verktyget du använder till en pipeline och en kollega kan köra det självbetjänat, så [En kampanjs livscykel](/info/overview.html#the-lifecycle-of-a-campaign) följer en tillgång genom alla tre par händer.
 
-Ny här? Börja med **[Skapa något på 60 sekunder](/info/make-something.html)** och kom tillbaka när du vet vilken del du vill gå djupare i. [Frågor och svar](/info/faq.html) tar upp det folk undrar innan de litar på ett gratis verktyg. [Så jämför sig Lolly](/info/positioning.html) är den ärliga redogörelsen för när du ska välja något annat.
+Ny här? Börja med **[Skapa din första fil](/info/make-something.html)** och kom tillbaka när du vet vilken del du vill gå djupare i. [Frågor och svar](/info/faq.html) tar upp det folk undrar innan de litar på ett gratis verktyg. [Så jämför sig Lolly](/info/positioning.html) är den ärliga redogörelsen för när du ska välja något annat.
 
 ## Skapa
 
 Välj ett verktyg, fyll i några fält och ladda ner den färdiga filen. Eller öppna Design-kanvasen och lägg upp den fritt för hand: oavsett vilket kommer färgerna, typografin och avstånden från ditt varumärke snarare än från minnet, och inget kräver ett konto.
 
-- **[Skapa något på 60 sekunder](/info/make-something.html)** - tre korta genomgångar utan något att ställa in, om du aldrig öppnat Lolly förut.
+- **[Skapa din första fil](/info/make-something.html)** - en kort lektion utan något att ställa in: gör en QR-kod, ladda ner den och spara en redigerbar kopia. Börja här om du aldrig öppnat Lolly förut.
 - **[Att använda Lolly](/info/using.html)** - kanvasen, kontrollerna, sparande, Projekt och användning på mobil: hur appen själv beter sig.
 - **[Brand Studio](/info/brand-studio.html)** - när loggor, färger och typsnitt ska vara dina egna snarare än standardvärdena.
 - **[Importera en design](/info/design-import.html)** - när konstverket redan finns som en `.fig`-, `.penpot`-, `.ai`-, `.idml`- eller SVG-fil och du vill ha den redigerbar snarare än plattgjord.

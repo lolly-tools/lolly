@@ -110,18 +110,22 @@ at the candidate origin before publishing either deployment shape. Documentation
 availability does not change authentication for workspace records, uploads or
 private APIs. The built pages retain their public documentation canonical URLs.
 
-**Headers you must serve.** A static host serves the headers you configure and no others, so these four are yours to add. Every reference deployment in the repo sends them on *every* response, and a proxy that terminates TLS and drops them loses the protection they give:
+**Headers you must serve.** A static host serves the headers you configure and no others, so these six are yours to add. Every reference deployment in the repo sends them on *every* response, and a proxy that terminates TLS and drops them loses the protection they give:
 
 - `Content-Security-Policy` - the policy string in the `$lolly_csp` map at the top of `deploy/docker/nginx.conf`
 - `Referrer-Policy: no-referrer`
 - `X-Content-Type-Options: nosniff`
+- `Cross-Origin-Opener-Policy: same-origin`
+- `Cross-Origin-Embedder-Policy: credentialless`
 - `Permissions-Policy: camera=(self), microphone=(self), display-capture=(self), geolocation=()`
+
+The two `Cross-Origin-*` headers keep the app cross-origin isolated. Browsers give shared memory (`SharedArrayBuffer`) only to an isolated page, and some of the app's on-device models use that memory to run WebAssembly on several threads. The app still loads without the pair, so check for both headers explicitly.
 
 The CSP is the one that matters most, and not for the reason you might expect. Tool hooks run through `new Function` by design, so `script-src` keeps `'unsafe-eval'` and removing it would break shipping tools - that is a documented, accepted residual. The directive doing the actual work is `connect-src`: script that *can* execute still cannot exfiltrate to a host outside a fixed allowlist. `tests/security-headers.test.ts` pins the policy across all three copies of it in the repo and fails the build if they drift; [Threat Model](/info/threat-model.html) sets out what it does and does not contain.
 
 **One path gets a second policy.** `/any-site/` serves the app shell under the same policy with one change: `frame-src` admits any `https:` page and the loopback. This is what a person's own **Allow pages from any site** setting (Profile, Trusted sites) reloads into, so Design can show pages beyond the few video and map players the base policy names. The reference deployments express the pair as two complementary rules in `vercel.json`, a second entry in the `$lolly_csp` map keyed on `$request_uri`, and `conf/any-site-headers.inc` with its own location in the YunoHost package. Serve the pair together. To withdraw the option, give `/any-site/` the base policy: the app reads the policy that path really carries, and offers the setting only where `frame-src` admits `https:`. Never leave `/any-site/` with no policy at all, because a path with no Content-Security-Policy restricts nothing and the app treats it as offered.
 
-`deploy/docker/security-headers.conf` is the copyable form - four `add_header … always` lines, ready to translate into whatever your host uses. If you are serving with nginx, take the whole file rather than retyping it: nginx drops **all** inherited `add_header` directives inside any location that declares one of its own, so a location that sets `Cache-Control` silently ships with no security headers unless it re-`include`s them.
+`deploy/docker/security-headers.conf` is the copyable form - six `add_header … always` lines plus an `include` of the cache headers in `deploy/docker/delivery-headers.conf`, ready to translate into whatever your host uses. If you are serving with nginx, take the whole file rather than retyping it: nginx drops **all** inherited `add_header` directives inside any location that declares one of its own, so a location that sets `Cache-Control` silently ships with no security headers unless it re-`include`s them.
 
 **Which brand ships, and where the content comes from.** Set `LOLLY_PROFILE=<name>` on the build so the deploy carries the brand you mean rather than whichever profile the resolver would pick; a private pack that is not in the clone can never be it. `pnpm run build:web` writes a real `tools/` + `catalog/` tree into `dist/` from that profile, so the deployed site serves both paths as plain files and nothing has to resolve a profile to answer a page request. A function that *does* read tool source at request time (the `/tool/<id>.<ext>` render route below) needs the packs in its bundle and the same `LOLLY_PROFILE` in its **runtime** environment, not only in the build. See [Configuration](/info/configuration.html) for the resolver and its precedence.
 

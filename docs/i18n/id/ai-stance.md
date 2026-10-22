@@ -8,7 +8,7 @@ Lolly dibangun di tengah perubahan terbesar dalam cara media dibuat sejak mesin 
 
 ![Badai supersel pecah di atas sebuah rumah peternakan di pedalaman - tangki dan gudang di bawahnya, air banjir sudah memotong saluran melalui padang rumput kering](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} membuat gambar %sig{ditandatangani oleh %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} dan %act{mengekspor ke WebP} sebagai %file{the-flood.webp} %detail{10.6 MB turun menjadi 0.8 MB} %sig{ditandatangani oleh %entity{Lolly}} [Verifikasi sekarang](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} membuat gambar %sig{ditandatangani oleh %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} dan %act{mengekspor ke WebP} sebagai %file{the-flood.webp} %detail{10.6 MB turun menjadi 0.8 MB} %sig{ditandatangani oleh %entity{Lolly}} [Verifikasi sekarang](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 Agar tepat, karena halaman ini berargumen bahwa presisi itu penting: gambar di atas dihasilkan, bukan difoto. Tidak ada kamera yang diarahkan ke rumah peternakan itu, karena rumah peternakan itu tidak ada. Gambar ini menggambarkan wilayah Queensland, Australia, diminta dari Britania Raya, dihasilkan di sebuah pusat data di Amerika Serikat. Ia berusaha setia pada sebuah tempat tanpa menjadi catatan tempat itu, dan perbedaan itulah seluruh alasan mengapa Content Credentials-nya menyatakan demikian.
 

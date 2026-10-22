@@ -4,13 +4,13 @@ Du fyller inn noen få felt, og en ferdig fil kommer ut, med skriftene, fargene 
 
 Du er én hånd i et stafettløp: en utvikler kan skalere verktøyet du bruker til en pipeline, og en kollega kan kjøre det selvbetjent, så [Livssyklusen til en kampanje](/info/overview.html#the-lifecycle-of-a-campaign) følger én ressurs gjennom alle tre par hender.
 
-Ny her? Start med **[Lag noe på 60 sekunder](/info/make-something.html)** og kom tilbake når du vet hvilken del du vil gå dypere inn i. [Spørsmål og svar](/info/faq.html) dekker det folk lurer på før de stoler på et gratis verktøy. [Hvordan Lolly sammenlignes](/info/positioning.html) er den ærlige gjennomgangen av når du bør velge noe annet.
+Ny her? Start med **[Lag din første fil](/info/make-something.html)** og kom tilbake når du vet hvilken del du vil gå dypere inn i. [Spørsmål og svar](/info/faq.html) dekker det folk lurer på før de stoler på et gratis verktøy. [Hvordan Lolly sammenlignes](/info/positioning.html) er den ærlige gjennomgangen av når du bør velge noe annet.
 
 ## Lag
 
 Velg et verktøy, fyll inn noen få felt og last ned den ferdige filen. Eller åpne Design-canvasen og legg det ut for hånd: uansett kommer fargene, typografien og avstanden fra merkevaren din i stedet for fra hukommelsen, og ingenting krever en konto.
 
-- **[Lag noe på 60 sekunder](/info/make-something.html)** - tre korte gjennomganger uten noe å sette opp, hvis du aldri har åpnet Lolly før.
+- **[Lag din første fil](/info/make-something.html)** - én kort leksjon uten noe å sette opp: lag en QR-kode, last den ned og lagre en redigerbar kopi. Start her hvis du aldri har åpnet Lolly før.
 - **[Bruke Lolly](/info/using.html)** - canvasen, kontrollene, lagring, Projects og bruk på telefon: hvordan appen selv oppfører seg.
 - **[Brand Studio](/info/brand-studio.html)** - når logoene, fargene og typografien skal være dine i stedet for standardvalgene.
 - **[Importere en design](/info/design-import.html)** - når kunstverket allerede finnes som en `.fig`-, `.penpot`-, `.ai`-, `.idml`- eller SVG-fil, og du vil ha den redigerbar i stedet for flatet ut.

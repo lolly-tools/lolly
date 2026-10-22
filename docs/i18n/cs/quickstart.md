@@ -4,7 +4,7 @@ Lolly mění tvá pravidla - barvy, písmo, rozvržení, logiku - na nástroje, 
 
 Tohle je stránka, kterou si přečti jako první. K produktivitě tě dostanou dvě věci: **udělej si Lolly svým** a **přines si, co už máš** (své návrhové soubory a tokeny). Všechno ostatní je jen odkaz daleko.
 
-> Jsi v Lolly nový a chceš si jen něco vytvořit? [Vytvoř něco za 60 sekund](/info/make-something.html) tě provede třemi věcmi, nebo [otevři aplikaci](/#/), vyber z galerie libovolný nástroj, vyplň políčka a klikni na **Export**. Vrať se sem, až budeš chtít, aby to neslo *tvou* značku.
+> Jsi v Lolly nový a chceš si jen něco vytvořit? [Vytvoř svůj první soubor](/info/make-something.html) tě provede QR kódem, nebo [otevři aplikaci](/#/), vyber z galerie libovolný nástroj, vyplň políčka a klikni na **Export**. Vrať se sem, až budeš chtít, aby to neslo *tvou* značku.
 
 ![Zobrazení Utility - tahouni běžící přímo na zařízení, jako Odstranění skrytých dat, Komprese PDF a Převést obrázek, všichni na jednom místě](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

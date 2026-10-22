@@ -8,7 +8,7 @@ Lolly 誕生於媒體製作方式自印刷術問世以來最劇烈的變革之�
 
 ![超級胞暴風雨在內陸農莊上空爆發 - 下方是水塔與棚舍，洪水已在乾燥的牧場上沖出一道道渠道](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} 生成的圖片 %sig{由 %entity{Google LLC} 簽署} %entity{Lolly} %act{opened}、%act{resized}並%act{匯出為 WebP},存為 %file{the-flood.webp} %detail{從 10.6 MB 縮減為 0.8 MB} %sig{由 %entity{Lolly} 簽署} [立即驗證](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} 生成的圖片 %sig{由 %entity{Google LLC} 簽署} %entity{Lolly} %act{opened}、%act{watermarked}並%act{匯出為 WebP},存為 %file{the-flood.webp} %detail{從 10.6 MB 縮減為 0.8 MB} %sig{由 %entity{Lolly} 簽署} [立即驗證](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 說得精確一點，因為這個頁面主張精確性至關重要：上方那張圖片是生成的，不是拍攝的。沒有任何相機對準過那座農莊，因為那座農莊根本不存在。它描繪的是澳洲昆士蘭地區，提示詞來自英國，生成於美國的某座資料中心。它試圖忠實呈現一個地方，卻不是那個地方的紀錄，而這正是它的 Content Credentials 如此標示的全部理由。
 

@@ -1,6 +1,6 @@
 # Política de privacidad
 
-*Última actualización: 11 de agosto de 2026*
+*Última actualización: 22 de octubre de 2026*
 
 > **La versión corta.** Los documentos, imágenes, vídeos y archivos que creas en Lolly se quedan
 > en tu dispositivo. No hay cuentas para el uso ordinario, ni cookies de la propia app,
@@ -97,9 +97,9 @@ red. Si no está aquí, la aplicación no lo hace.
 | Qué | Qué sale realmente de tu dispositivo | Cuándo (la acción que lo activa) | Si un operador lo bloquea |
 |---|---|---|---|
 | Sincronización del catálogo de herramientas | Nada personal - una solicitud del propio índice público de herramientas y recursos de Lolly, al origen propio de la app | Al iniciar, y luego se guarda en caché sin conexión | La app funciona con su conjunto de herramientas en caché. Solo deja de descubrir herramientas nuevas |
-| Una herramienta que necesita datos en vivo | Lo que esa herramienta concreta solicite, al host indicado en su propia descripción. Hoy eso es solo la búsqueda de ciudad en la herramienta Meeting Planner, que pregunta a `geocoding-api.open-meteo.com` para convertir un nombre de ciudad en coordenadas y una zona horaria - sin cuenta, sin clave y sin identificador más allá de la propia solicitud. El campo lo indica justo donde escribes, y cada respuesta se guarda en tu dispositivo para que una ciudad se busque una sola vez | Solo mientras usas esa herramienta, y solo una vez que introduces una ubicación | Esa búsqueda concreta falla. Aún puedes escribir las coordenadas a mano, y nada más se ve afectado |
+| Una herramienta que necesita datos en vivo | Lo que esa herramienta concreta solicite, al host indicado en su propia descripción. Hoy eso es solo la búsqueda de ciudad en la herramienta Meeting Planner, que pregunta a `geocoding-api.open-meteo.com` para convertir cada nombre de ciudad (la ciudad anfitriona y la de cada miembro del equipo) en coordenadas y una zona horaria - sin cuenta, sin clave y sin identificador más allá de la propia solicitud. El campo «Host city» lo indica, y cada respuesta se guarda en tu dispositivo para que una ciudad se busque una sola vez | Solo mientras esa herramienta está abierta, para la ciudad anfitriona (rellenada por defecto) y la ciudad de cada miembro del equipo | Esa búsqueda falla, y nada más se ve afectado |
 | Google Fonts | El nombre de la familia tipográfica elegida y tu dirección IP, a los servidores de fuentes de Google (`fonts.googleapis.com` para la hoja de estilos, `fonts.gstatic.com` para el archivo de fuente) | Solo si añades una Google Font en el editor de marca, **y solo después de aceptarlo en un diálogo que dice exactamente esto** - una descarga única por familia, que luego vive en tu dispositivo y se usa sin conexión | El selector de Google Fonts falla de forma segura. Sube un archivo de fuente en su lugar |
-| Send to Google Drive | El único archivo que elegiste enviar, a la API de Drive de Google (`www.googleapis.com`), tras un inicio de sesión de Google que completas en la propia ventana emergente de Google. El acceso de Lolly se limita a los archivos que ha creado (el ámbito `drive.file` - nunca puede leer el resto de tu Drive), y el token de inicio de sesión se mantiene en memoria durante la sesión, nunca se almacena | Solo cuando pulsas «Send to Google Drive» en una exportación EMF, y solo en las compilaciones donde el operador ha configurado un id de cliente de Google - sin uno, el botón no existe | El botón nunca aparece. Descarga el archivo y súbelo tú mismo a Drive |
+| Send to Google Drive | El único archivo que elegiste enviar, en cualquier formato, a la API de Drive de Google (`www.googleapis.com`), tras un inicio de sesión de Google que completas en la propia ventana de Google. El acceso de Lolly se limita a los archivos que ha creado (el ámbito `drive.file` - nunca puede leer el resto de tu Drive). En la app web el token de inicio de sesión se mantiene en memoria durante la sesión, nunca se almacena; en las demás apps se guarda un token de actualización en este dispositivo solo si marcas «stay connected» | Solo cuando pulsas «Send to Google Drive» en un archivo, y solo en las compilaciones donde el operador ha configurado un id de cliente de Google - sin uno, el botón no existe | El botón nunca aparece. Descarga el archivo y súbelo tú mismo a Drive |
 | Send to Dropbox | El único archivo que elegiste enviar, a la API de Dropbox (`api.dropboxapi.com` para el inicio de sesión y los metadatos, `content.dropboxapi.com` para el propio archivo), tras un inicio de sesión de Dropbox que completas en la propia ventana de Dropbox. El acceso de Lolly se limita a la carpeta de la app (solo puede ver `Apps/` y su propia carpeta ahí dentro - nunca el resto de tu Dropbox), el enlace «Open» que te muestra es un enlace privado de corta duración (no se crea ningún recurso compartido público), y un token de actualización solo se guarda si marcas «stay connected» | Solo cuando pulsas «Send to Dropbox» en un archivo, y solo en las compilaciones donde el operador ha configurado un id de cliente de Dropbox - sin uno, el botón no existe | El botón nunca aparece. Descarga el archivo y súbelo tú mismo a Dropbox |
 | Send to OneDrive | El único archivo que elegiste enviar, a los servicios de identidad y Graph de Microsoft (`login.microsoftonline.com` para el inicio de sesión, `graph.microsoft.com` para la subida; un archivo grande se sube en fragmentos a una dirección de subida propiedad de Microsoft en `api.onedrive.com`, `*.up.1drv.com` o `*.sharepoint.com`), tras un inicio de sesión de Microsoft que completas en la propia ventana de Microsoft. El acceso de Lolly se limita a su propia carpeta bajo `Apps/` (nunca puede leer el resto de tu OneDrive) más tu nombre visible para la etiqueta de la cuenta, y un token de actualización solo se guarda si marcas «stay connected» | Solo cuando pulsas «Send to OneDrive» en un archivo, y solo en las compilaciones donde el operador ha configurado un id de cliente de Microsoft - sin uno, el botón no existe | El botón nunca aparece. Descarga el archivo y súbelo tú mismo a OneDrive |
 | Send to LinkedIn | El único archivo que elegiste enviar, además de su nombre como texto de la publicación, a LinkedIn (`www.linkedin.com` para el inicio de sesión, `api.linkedin.com` para la subida y la publicación), tras un inicio de sesión de LinkedIn que completas en tu propio navegador. La publicación va a tu propio feed como publicación pública bajo tu nombre. Lolly puede publicar en tu nombre y leer tu nombre para la etiqueta de la cuenta, nada más de tu LinkedIn, y el inicio de sesión se conserva en este dispositivo solo si marcas «stay connected» - los tokens de LinkedIn duran 60 días y no se pueden renovar de forma silenciosa, así que caducan por sí solos | Solo cuando pulsas «Send to LinkedIn» en un archivo, únicamente en las apps de escritorio, y solo en las compilaciones donde hay una app de LinkedIn configurada - sin una, el botón no existe | Nada que bloquear en la app web: esto existe **solo en las apps de escritorio**, así que esos dos hosts están deliberadamente excluidos de la Content-Security-Policy de la app web más abajo. En las apps de escritorio, elimina la app de LinkedIn configurada y el botón nunca aparece |
@@ -148,12 +148,13 @@ la clave de firma de un archivo se publica en el DNS. Los navegadores no pueden 
 implementación web tiene que enrutar la búsqueda a través de un resolutor DNS-over-HTTPS de
 un tercero - lo cual mostraría a ese operador el dominio que se está comprobando más tu dirección
 IP. Antes usábamos el de Cloudflare. **Ya no lo hacemos, y no hay ningún
-reemplazo**: la aplicación web ahora no pasa ningún resolutor, así que la verificación SEAL
-aquí no hace ninguna solicitud de red. Los archivos cuyo registro SEAL lleva su clave incorporada
-siguen verificándose por completo sin conexión. Los archivos cuya clave vive en el DNS informan "no key
-resolver" en su lugar, y puedes comprobarlos en la aplicación de escritorio o de línea de
-comandos, que resuelven el DNS de forma nativa a través de tu propia máquina sin que intervenga
-ningún tercero.
+reemplazo**: Verify ahora no pasa ningún resolutor, así que la verificación SEAL no hace
+ninguna solicitud de red. Ninguna app de Lolly busca hoy claves SEAL en el DNS: las apps de
+escritorio y móviles ejecutan la misma vista de Verify, y el comando `lolly validate` de la
+línea de comandos no comprueba SEAL. Un archivo cuyo registro SEAL lleva su clave incorporada
+se comprueba sin conexión, y Verify considera la firma internamente coherente sin confirmar el
+dominio. Un archivo cuya clave vive solo en el DNS muestra **La firma SEAL no se verificó**,
+con el motivo "no key resolver and no inline key".
 
 ![La pantalla de Verify: una zona para soltar archivos y nada más - el archivo se comprueba donde ya está, sin subida y sin cuenta](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop) Puedes confirmarlo tú mismo: comprobaciones verificables con grep para esta y cada
 otra afirmación de esta página, con los comandos exactos y la salida esperada, están en
@@ -211,13 +212,20 @@ etapa, `capabilities`, indica con palabras adónde irían tus bytes antes de que
 ninguno: en un servidor local autoalojado, la presentación nunca sale de esa máquina; en
 un servidor alojado, llamar a `lolly_rebrand` envía la presentación allí, hasta los
 límites de tamaño y de diapositivas que da esa misma etapa.
-- <!--i:checklist--> El resto de herramientas - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
-  `lolly_describe_tool` - funcionan solo a partir de parámetros (texto, números, colores,
-  URLs, ids de recursos del catálogo), las mismas entradas que toma una URL de renderizado con enlace directo.
-- <!--i:lock--> El acceso es o bien un token compartido que el operador emite a los clientes en los que confía, o bien
-  OAuth 2.1 sin estado: tokens firmados de corta duración verificados frente a un secreto
-  compartido, nada almacenado del lado del servidor, y el propio token nunca se escribe en un
-  registro ni en una URL de renderizado.
+- <!--i:checklist--> Las herramientas de imagen (`lolly_look`, `lolly_sample_color` y
+  `lolly_trace_edges`) también pueden recibir un archivo de imagen de quien llama, y lo
+  tratan de la misma manera: en memoria, solo para esa llamada. Cualquier otra herramienta
+  funciona con los parámetros de la llamada: texto, números, colores, URLs, ids de recursos
+  del catálogo o un documento que aporta quien llama.
+- <!--i:lock--> En lolly.tools, `lolly.tools/api/mcp` está abierto a cualquiera sin token.
+  Sus llamadas están limitadas por dirección y por un presupuesto diario: la dirección se
+  convierte en una clave de cubo derivada en un solo sentido en el almacén de control de abuso,
+  como en los endpoints de inicio de sesión de más abajo, y el presupuesto cuenta solo tiempo
+  de CPU y bytes enviados, sin ninguna dirección. El endpoint restringido opcional previsto
+  en `mcp.lolly.tools` usa un token de portador que el operador emite a clientes de confianza,
+  o OAuth 2.1 sin estado: tokens firmados de corta duración verificados frente a un secreto
+  compartido. La activación está pendiente. El propio token de portador nunca se escribe en
+  un registro ni en una URL de renderizado.
 
 ## Identidad de Content Credentials (un inicio de sesión que tienes que iniciar tú mismo)
 
@@ -269,35 +277,52 @@ datos al hacerlo.
 
 ## La extensión de navegador
 
-La extensión de navegador **Lolly URL Screenshot** no recopila, almacena ni
-transmite ningún dato personal. Sin análisis, sin rastreo, sin servidor remoto.
+La extensión de navegador **Lolly URL Screenshot** no recopila ningún dato personal
+para nosotros. No tiene análisis, rastreo ni servidor propio. La página
+[Extensión de navegador](/info/extension.html) describe cómo funciona.
 
-**Qué hace.** Cuando le pides a la aplicación web de Lolly que capture la
-captura de pantalla de una URL, la extensión abre esa página en una pestaña temporal en segundo
-plano, la captura en tu navegador usando el DevTools Protocol, entrega la imagen
-de vuelta a la aplicación y cierra la pestaña. Todo ocurre localmente, en tu propio
-dispositivo y red.
+**Qué hace.** La aplicación web de Lolly puede pedirle una captura de una página web, o el
+contenido de una página para iniciar un sistema de diseño a partir de un sitio web. Cada
+solicitud abre en la extensión una ventana de aprobación que muestra el sitio que la
+solicita, si quiere una captura o el contenido de la página, y la dirección de la página.
+Solo después de que pulsas **Approve once** la extensión abre esa página en una pestaña temporal
+en segundo plano, toma la captura o lee la página, entrega el resultado a la pestaña de Lolly
+que lo pidió y cierra la pestaña. Cada solicitud necesita su propia aprobación.
 
 **Datos.**
 
-- <!--i:shieldcheck--> **No recopilamos nada.** La extensión no tiene servidores y no realiza
-  solicitudes de red propias.
-- <!--i:photos--> **Las imágenes capturadas** van directamente a la aplicación Lolly en el mismo navegador - nunca
-  se suben desde la extensión.
-- <!--i:link--> **Las URL que capturas** se usan solo para cargar esa página concreta para esa
-  captura de pantalla. No se registran ni se comparten.
+- <!--i:shieldcheck--> **No recopilamos nada.** El resultado va solo a la página de
+  Lolly que lo pidió, en el mismo navegador. La extensión no almacena contenido de páginas
+  y no añade ningún otro destinatario.
+- <!--i:globe--> **Solicitudes de red.** La página que apruebas se carga como en cualquier
+  pestaña, junto con todo lo que esa página solicita por sí misma. Leer el contenido de una
+  página también obtiene las hojas de estilos de esa página y algunas de sus imágenes de
+  iconos y logotipos, desde dentro de la página, y esas obtenciones no envían cookies a otros
+  sitios. La extensión no hace ninguna otra solicitud, y ninguna va a un servidor de Lolly.
+- <!--i:lock--> **Tu sesión del navegador.** La página se carga con tu sesión del
+  navegador, igual que si la abrieras tú mismo, así que una página en la que has iniciado
+  sesión puede poner información privada en el resultado.
+- <!--i:link--> **Las direcciones que apruebas** se usan solo para cargar esa página
+  concreta para esa solicitud concreta. No se registran ni se comparten.
 
 **Permisos.**
 
-- <!--i:wrench--> **`debugger`** - para capturar la página renderizada mediante el DevTools Protocol (el
+- <!--i:wrench--> **`debugger`** - para tomar la captura mediante el DevTools Protocol (el
   mismo mecanismo que usa la aplicación de escritorio de Lolly).
-- <!--i:monitor--> **`tabs`** - para abrir y cerrar la pestaña temporal en la que se carga la página.
-- <!--i:globe--> **Acceso a hosts (`<all_urls>`)** - porque la página que elijas capturar puede estar
-  en cualquier sitio. Chrome muestra esto en el momento de la instalación como una advertencia
-  de permiso amplio. La extensión solo visita la URL que le indiques.
+- <!--i:monitor--> **`tabs`** - para abrir y cerrar la pestaña temporal, y para comprobar
+  que ni la página de Lolly ni la página de destino se han movido desde que aprobaste.
+- <!--i:code--> **`scripting`** - para leer el contenido de una página en la pestaña
+  temporal, después de que apruebas esa solicitud.
+- <!--i:database--> **`storage`** - para anotar los ids de sus pestañas temporales en el
+  almacenamiento de sesión, de modo que se cierren igualmente si el navegador detiene la
+  extensión durante una solicitud. No se almacena contenido de páginas.
+- <!--i:check--> **Acceso opcional a sitios (`http://*/*`, `https://*/*`)** - no se concede
+  al instalar. Cuando pulsas **Approve once**, la extensión pide a Chrome acceso al único
+  sitio de esa solicitud, y Chrome te pregunta la primera vez por cada sitio. Un sitio que
+  permitiste antes sigue necesitando una aprobación nueva para cada solicitud.
 
-Ninguno de estos se usa para leer, monitorizar o transmitir tu navegación más allá de esa
-única captura solicitada.
+Ninguno de estos permisos se usa para leer, monitorizar o transmitir tu navegación más allá
+de la única solicitud que aprobaste.
 
 ## Registros de infraestructura
 
@@ -310,12 +335,15 @@ contenido de tus documentos, porque esos nunca llegan a un servidor en primer lu
 `lolly_transform`, `lolly_verify`, `lolly_redact` o `lolly_rebrand`, que se procesa en memoria y nunca
 se escribe en disco ni en un registro, como se describe arriba.
 
-**El propio código de Lolly no escribe nada en esos registros.** El servidor MCP no contiene
-ninguna instrucción de registro. El servicio de certificados emite exactamente dos líneas, ambas
-en caso de fallo y ambas deliberadamente reducidas: un código de estado de fallo de envío sin
-dirección de destinatario, y un mensaje de error sin traza de pila ni URL (una traza podría
-contener un token de inscripción). Todo lo demás en el registro pertenece a la plataforma de hosting,
-no a nosotros.
+**El propio código de Lolly no escribe nada en esos registros.** El servidor MCP registra
+el arranque, la configuración y las advertencias de renderizado; no guarda un registro de
+solicitudes propio y no registra tokens ni direcciones de quien llama. La pasarela de Penpot
+registra el nombre de cada comando y el estado de respuesta de Penpot, nunca cabeceras, tokens
+ni el archivo. El servicio de certificados registra sus ajustes de arranque y las advertencias
+de configuración, más dos líneas reducidas en caso de fallo: un código de estado de fallo de
+envío sin dirección de destinatario, y una línea de fallo fija sin texto de error, traza de
+pila ni URL (un error del proveedor puede llevar valores de identidad o credenciales). Todo
+lo demás en el registro pertenece a la plataforma de hosting, no a nosotros.
 
 Para lolly.tools, el hosting es Vercel y la retención de registros de acceso sigue los valores
 predeterminados propios de la plataforma de Vercel para nuestro plan. No configuramos ningún drenaje de registros, ninguna
@@ -406,6 +434,14 @@ La fecha en la parte superior cambia cada vez que cambia este documento. Un camb
 lo que sale de tu dispositivo o lo que se retiene recibe su propia línea aquí, no una edición
 silenciosa - si quieres ver qué cambió, pregunta (abajo) o compáralo con el
 [código fuente público](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
+
+**22 de octubre de 2026:** se corrigió la descripción del comportamiento existente. La sección de la
+extensión de navegador ahora cubre la ventana de aprobación de cada solicitud, el acceso a sitios
+que se pide de uno en uno y las obtenciones de hojas de estilos e iconos al leer un sitio web.
+También se corrigieron las filas de Send to Google Drive y Meeting Planner, la nota sobre SEAL
+(ninguna app de Lolly busca claves SEAL en el DNS), el nivel de telemetría de uso por defecto del
+servicio de organización, las herramientas de imagen de MCP y el registro de aplicación de los
+servicios públicos. El software en sí no cambió.
 
 ## Quién es responsable y cómo contactarnos
 

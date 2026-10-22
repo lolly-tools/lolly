@@ -6,7 +6,7 @@ Si algún control en esta página no produce el resultado mostrado, eso es un er
 
 ## Míralo funcionar, en diez segundos
 
-Antes de los procedimientos, la recompensa. Abre [`/verify`](/#/verify) y suelta un archivo sobre ella - sin subida, sin cuenta, sin esperar a un servidor. Aquí está comprobando la [tormenta de Queensland generada](/info/ai-stance.html) de nuestra página de postura sobre IA: una imagen de Gemini que Lolly abrió, redimensionó y exportó. Cada insignia de abajo se calculó en el dispositivo, a partir de los propios bytes del archivo.
+Antes de los procedimientos, la recompensa. Abre [`/verify`](/#/verify) y suelta un archivo sobre ella - sin subida, sin cuenta, sin esperar a un servidor. Aquí está comprobando la [tormenta de Queensland generada](/info/ai-stance.html) de nuestra página de postura sobre IA: una imagen de Gemini que Lolly abrió, marcó con una marca de agua y exportó. Cada insignia de abajo se calculó en el dispositivo, a partir de los propios bytes del archivo.
 
 ![Verify en una pantalla de ancho de teléfono - la imagen de la tormenta, un veredicto verde Made with Lolly y las insignias de credencial intacta y bytes sin cambios apiladas debajo](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

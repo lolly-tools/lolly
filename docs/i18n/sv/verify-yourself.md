@@ -6,7 +6,7 @@ Om någon kontroll på den här sidan inte ger det visade resultatet är det ant
 
 ## Se det fungera, på tio sekunder
 
-Före procedurerna, belöningen. Öppna [`/verify`](/#/verify) och släpp en fil på den - ingen uppladdning, inget konto, ingen väntan på en server. Här är den och kontrollerar den [genererade Queensland-stormen](/info/ai-stance.html) från vår AI-ståndpunktssida: en Gemini-bild som Lolly öppnade, ändrade storlek på och exporterade. Varje badge nedan beräknades på enheten, från filens egna byte.
+Före procedurerna, belöningen. Öppna [`/verify`](/#/verify) och släpp en fil på den - ingen uppladdning, inget konto, ingen väntan på en server. Här är den och kontrollerar den [genererade Queensland-stormen](/info/ai-stance.html) från vår AI-ståndpunktssida: en Gemini-bild som Lolly öppnade, vattenmärkte och exporterade. Varje badge nedan beräknades på enheten, från filens egna byte.
 
 ![Verify på en skärm i telefonbredd - stormbilden, ett grönt Made with Lolly-utlåtande och badgarna för intakt uppgift och oförändrade byte staplade under den](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

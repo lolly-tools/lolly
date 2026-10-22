@@ -4,13 +4,13 @@ Você preenche alguns campos e sai um arquivo pronto, com as fontes, as cores e 
 
 Você é uma das mãos em um revezamento: um desenvolvedor pode escalar a ferramenta que você usa em um pipeline, e um colega pode executá-la por conta própria, então [O ciclo de vida de uma campanha](/info/overview.html#the-lifecycle-of-a-campaign) acompanha um ativo pelas três duplas de mãos.
 
-Novo por aqui? Comece com **[Faça algo em 60 segundos](/info/make-something.html)** e volte quando souber em qual parte quer se aprofundar. [Perguntas e respostas](/info/faq.html) cobre o que as pessoas perguntam antes de confiar em uma ferramenta gratuita. [Como a Lolly se compara](/info/positioning.html) é o relato honesto de quando buscar outra coisa.
+Novo por aqui? Comece com **[Faça seu primeiro arquivo](/info/make-something.html)** e volte quando souber em qual parte quer se aprofundar. [Perguntas e respostas](/info/faq.html) cobre o que as pessoas perguntam antes de confiar em uma ferramenta gratuita. [Como a Lolly se compara](/info/positioning.html) é o relato honesto de quando buscar outra coisa.
 
 ## Criar
 
 Escolha uma ferramenta, preencha alguns campos e baixe o arquivo pronto. Ou abra o canvas do Design e monte tudo livremente: de qualquer forma, as cores, a tipografia e o espaçamento vêm da sua marca em vez da memória, e nada exige uma conta.
 
-- **[Faça algo em 60 segundos](/info/make-something.html)** - três passo a passo curtos sem nada para configurar, se você nunca abriu a Lolly antes.
+- **[Faça seu primeiro arquivo](/info/make-something.html)** - uma lição curta sem nada para configurar: crie um QR code, baixe-o e salve uma cópia editável. Comece aqui se você nunca abriu a Lolly antes.
 - **[Usando a Lolly](/info/using.html)** - o canvas, os controles, salvar, Projetos e o uso no celular: como o próprio aplicativo se comporta.
 - **[O Brand Studio](/info/brand-studio.html)** - quando os logotipos, as cores e a tipografia devem ser seus em vez dos padrões.
 - **[Importar um design](/info/design-import.html)** - quando a arte já existe como um arquivo `.fig`, `.penpot`, `.ai`, `.idml` ou SVG e você quer que ela fique editável em vez de achatada.

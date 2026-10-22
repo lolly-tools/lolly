@@ -30,7 +30,7 @@ application menu and a copy that keeps working with the network unplugged.
 
 **Apple silicon (M1 and later) and Intel, `.dmg`.**
 
-Version 1.0.9 requires macOS 13.5 or later, including its bundled terminal tools.
+The current downloads are version 1.1.1 for Apple silicon and 1.1.0 for Intel. Both need macOS 13.5 or later, and so do their bundled terminal tools.
 
 Download the disk image, open it, and drag Lolly to Applications. Nothing else
 is needed - the app carries its own engine and tool catalogue.
@@ -107,9 +107,10 @@ use the Flatpak below.
 
 **Any Linux distribution, `.flatpak`.**
 
-The Flatpak is the right choice on Fedora, Debian, Ubuntu, Arch, Leap 15.6, an
-immutable desktop, or anything else that is not one of the two RPM targets. It
-brings its own runtime, so it does not care what your distribution ships.
+The Flatpak is the right choice on Fedora, Leap 15.6, an immutable desktop, or
+any other distribution without a package of its own on this page. Debian and
+Ubuntu have a `.deb`, and Arch has a pacman repository; both are below. The
+Flatpak brings its own runtime, so it does not care what your distribution ships.
 
 Download the single-file bundle and install it:
 
@@ -300,6 +301,7 @@ stronger check - see [Verify It Yourself](/info/verify-yourself.html).
 - **You are on Windows.** The `.exe` installer.
 - **You are on Tumbleweed or Leap 16.** The RPM built for your distribution.
 - **You are on Arch.** The pacman repository.
+- **You are on Debian or Ubuntu.** The `.deb` for your architecture.
 - **You are on any other Linux.** The Flatpak.
 - **You are on a phone.** The APK on Android; the web app on iPhone and iPad.
 - **You run a YunoHost server.** The YunoHost app.

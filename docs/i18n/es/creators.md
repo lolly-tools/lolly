@@ -4,13 +4,13 @@ Rellenas unos pocos campos y sale un archivo terminado, con las fuentes, los col
 
 Eres una mano en un relevo: un desarrollador puede escalar la herramienta que usas hasta convertirla en un pipeline, y un compañero puede ejecutarla de forma autoservicio, así que [El ciclo de vida de una campaña](/info/overview.html#the-lifecycle-of-a-campaign) sigue un mismo recurso a través de las tres manos.
 
-¿Nuevo por aquí? Empieza con **[Haz algo en 60 segundos](/info/make-something.html)** y vuelve cuando sepas en qué parte quieres profundizar. [Preguntas y respuestas](/info/faq.html) recoge lo que la gente pregunta antes de confiar en una herramienta gratuita. [Cómo se compara Lolly](/info/positioning.html) es el relato honesto de para qué te conviene buscar otra herramienta.
+¿Nuevo por aquí? Empieza con **[Haz tu primer archivo](/info/make-something.html)** y vuelve cuando sepas en qué parte quieres profundizar. [Preguntas y respuestas](/info/faq.html) recoge lo que la gente pregunta antes de confiar en una herramienta gratuita. [Cómo se compara Lolly](/info/positioning.html) es el relato honesto de para qué te conviene buscar otra herramienta.
 
 ## Crear
 
 Elige una herramienta, rellena unos pocos campos y descarga el archivo terminado. O abre el lienzo de Design y compón el diseño a mano alzada: en cualquier caso, los colores, la tipografía y el espaciado vienen de tu marca en lugar de la memoria, y nada requiere una cuenta.
 
-- **[Haz algo en 60 segundos](/info/make-something.html)** - tres recorridos breves sin nada que configurar, si nunca has abierto Lolly antes.
+- **[Haz tu primer archivo](/info/make-something.html)** - una lección breve sin nada que configurar: crea un código QR, descárgalo y guarda una copia editable. Empieza aquí si nunca has abierto Lolly antes.
 - **[Usar Lolly](/info/using.html)** - el lienzo, los controles, guardar, Proyectos y el uso en el móvil: cómo se comporta la app en sí.
 - **[El Brand Studio](/info/brand-studio.html)** - cuando los logotipos, los colores y la tipografía deben ser tuyos en lugar de los predeterminados.
 - **[Importar un diseño](/info/design-import.html)** - cuando el arte ya existe como archivo `.fig`, `.penpot`, `.ai`, `.idml` o SVG y quieres que sea editable en lugar de aplanado.

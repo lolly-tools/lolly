@@ -9,8 +9,8 @@ Most of this platform's documentation describes what Lolly *can do*. This page d
 **Lolly is released, and its evidence is young.**
 
 - **Version 1.0 is public.** The engine, every shell, the schemas and the docs shipped under MPL-2.0 on 30 August 2026, with installers for macOS, Linux, Android and iOS and the hosted app at lolly.tools. SUSE runs the same code on its own instance. Features, defaults and the tool catalog still move between releases as we learn.
-- **Its security is strong by design and not yet independently audited.** The C2PA provenance seals, the X.509 identity handling and the on-device PDF, ZIP and link encryption are built on standard algorithms, covered by fuzz targets and a written [threat model](/info/threat-model.html), and hardened inside SUSE's own security practice. An independent audit has not been done. Where a contract requires that assurance, it does not exist yet.
-- **The maths is settled; the adoption data is not.** The engine is deterministic and a render reproduces byte for byte. Real-world adoption evidence is a few months old, most of it SUSE's own. That is by design: we collect stories from people voluntarily, never data invisibly.
+- **Its security is strong by design and not yet independently audited.** The C2PA provenance seals, the X.509 identity handling and the on-device PDF, ZIP and link encryption are built on standard algorithms, covered by fuzz targets and a written [threat model](/info/threat-model.html). An independent audit has not been done. Where a contract requires that assurance, it does not exist yet.
+- **The maths is settled; the adoption data is not.** The engine is deterministic: the same inputs give the same render, and with provenance off many formats reproduce byte for byte ([how far that goes](/info/determinism.html#how-far-byte-identical-renders-go)). Real-world adoption evidence is still young, most of it SUSE's own. That is by design: we collect stories from people voluntarily, never data invisibly.
 - **If you're using it, we need your story.** The architecture is done; the evidence is not. What actually improves Lolly from here is real usage - what worked, what didn't and what you managed to make. See [We need your story](#we-need-your-story).
 
 The framing matters: judged as a finished marvel, Lolly could disappoint you at the fringes. Judged as a platform proving a specific behavioural change - routine asset creation, done safely and professionally, by the person who needs the file - its job and its measure of success are clear.
@@ -135,7 +135,7 @@ If you are piloting Lolly, the most valuable thing you can contribute is a concr
 
 To keep the framing straight, the things Lolly is *not* yet:
 
-- **Not yet independently certified.** See [Status](#status). The cryptography and parsers are fuzzed, threat-modelled and hardened inside SUSE; no independent party has certified them.
+- **Not yet independently certified.** See [Status](#status). The cryptography and parsers are fuzzed and threat-modelled; no independent party has certified them.
 - **Not finished.** Version 1.0 is the start of the public record; expect rough edges and change between releases.
 - **Not a turnkey pack of your templates.** Lolly is a platform - someone has to author the catalog and the tools before producers can self-serve.
 - **Fit depends on the workflow.** Design, animation and imported layouts support original creative work as well as repeatable templates. Check the specific editing, collaboration and governance features your team needs in the [comparisons](/info/compare.html).

@@ -20,7 +20,7 @@ Lolly produces a large volume of content. We take a strict data minimization app
 
 Lolly was developed with AI-assisted coding, AI-assisted discovery and, in many places, AI-assisted content, using a mix of models and vendors, including those from public-cloud frontier companies.
 
-As of this writing Lolly contains zero known security vulnerabilities in its supply chain, and commits to rapid security response practices when CVEs surface.
+A high or critical advisory in Lolly's dependencies blocks CI. An advisory that cannot be fixed yet is held back only as an approved exception with a written reason. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) lists each exception held today, and the [release notes](https://github.com/lolly-tools/lolly/releases) list the ones each release carries. SECURITY.md also says how to report a vulnerability.
 
 A human created the architecture, curated the code with intention and art directed the experience.
 
@@ -49,7 +49,9 @@ Feature flags turn parts of Lolly on or off. In standalone use, you choose your 
 
 ## How do I get the mobile or desktop apps?
 
-Anybody can distribute their own apps, the tools and configuration of those apps should vary widely depending on what audience it's intended for. So there's no one app unless you made it or someone relevant gives it to you.
+Download them from [Install Lolly](/info/install.html). The page lists every build for macOS, Windows, Linux and Android, and shows how to check the file you downloaded. iPhone and iPad have no public download yet; [the iPhone and iPad section](/info/install.html#iphone-and-ipad) says what to use instead.
+
+Anyone can also build and hand out their own copy of the app, with the tools and settings their audience needs. The [Build Guide](/info/build-guide.html) shows how.
 
 ## Why the name "Lolly Tools"?
 
@@ -118,7 +120,7 @@ Layers arrive as editable boxes on the open canvas: text stays retypable, shapes
 
 ## Where is the thing I made yesterday?
 
-If you pressed **Save as** or **Save**, it is in **Projects**, on the home screen, in the browser or app you saved from. If you only pressed **Download**, the file is where your browser or system saves downloads, and usually a copy is in **Assets**. Nine tools also keep unsaved work in **Projects**. [Find and recover your work](/info/find-your-work.html) covers every case.
+If you pressed **Save as** or **Save**, it is in **Projects**, on the home screen, in the browser or app you saved from. If you only pressed **Download**, the file is where your browser or system saves downloads, and usually a copy is in **Assets**. Tools that [save as you work](/info/find-your-work.html#which-tools-save-as-you-work) also keep unsaved work in **Projects**. [Find and recover your work](/info/find-your-work.html) covers every case.
 
 ## I closed the tab. Is my work gone?
 
@@ -140,7 +142,7 @@ Yes. One person shares an invite (a link, a QR code or a short code), the other 
 
 ## Where did the SUSE-branded tools go?
 
-They already live in a separate, private repository. A public clone doesn't fetch the SUSE brand pack at all, so a public build runs the neutral `lolly-start` profile - the brand-agnostic community tools plus a blank brand you fill in with your own. SUSE operates its own instance to protect its trademarks.
+They already live in a separate, private repository. A public clone doesn't fetch the SUSE brand pack at all, so a build from it uses the neutral `lolly-start` profile unless you choose another - the brand-agnostic community tools plus a blank brand you fill in with your own. [lolly.tools](https://lolly.tools) is built with the `lolly-demo` profile and opens in [Lolly Demo](/info/lolly-demo.html), Lolly's own design system. SUSE operates its own instance to protect its trademarks.
 
 ## Why is it free? What's the catch?
 
@@ -150,7 +152,7 @@ That line is drawn in the licence, not in a promise: anything that runs locally 
 
 ## How much is SUSE keeping private? (aka when is the rug-pull)
 
-The engine, the shells, the schemas and the brand-agnostic tools are open source; SUSE's trademarks and branded tools are the part that stays private, and they are already separated out. The public instance at [lolly.tools](https://lolly.tools) runs on the blank brand.
+The engine, the shells, the schemas and the brand-agnostic tools are open source; SUSE's trademarks and branded tools are the part that stays private, and they are already separated out. The public instance at [lolly.tools](https://lolly.tools) runs [Lolly Demo](/info/lolly-demo.html), Lolly's own design system.
 
 The boundary is structural rather than promised. Every released version is open source and cannot be un-released, there is no contributor agreement that could relicense anyone's work, and the only thing held back is the trademark. When another company closed its enterprise Linux sources in 2023, SUSE co-founded [OpenELA](https://openela.org) to keep that code open - the same posture this project inherits.
 

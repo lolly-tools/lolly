@@ -4,7 +4,7 @@ Wat Lolly doet dat de creatieve tools van vandaag niet doen, en wat het bewust a
 
 Voor de tool-voor-tool-versie, één pagina elk voor Canva, Adobe, Figma, render-API's en online converters, zie [Lolly vergeleken, tool voor tool](/info/compare.html). Elke pagina vermeldt wat de andere tool beter doet en wat Lolly in plaats daarvan doet.
 
-> **Pilootstatus:** Lolly is een prototype in een gesloten piloot, geen af product, en de beveiliging ervan ondergaat momenteel de strikte infrastructuurverharding van SUSE, ter voorbereiding op enterprise-schaal. De pagina [Adoption & Governance](/info/adoption-governance.html#status) beschrijft de huidige stand van zaken.
+> **Status:** Lolly is uitgebracht: versie 1.0 verscheen op 30 augustus 2026 als open source. De beveiliging is nog niet onafhankelijk geaudit, en het bewijs voor adoptie is enkele maanden oud. De pagina [Adoption & Governance](/info/adoption-governance.html#status) beschrijft de huidige stand van zaken.
 
 ## De tools van vandaag
 
@@ -14,7 +14,7 @@ Elke ring hieronder scoort hoe volledig een productklasse een capaciteit levert 
 Volledigheid van functionaliteit bij de creatieve tools van vandaag, onderzocht in augustus 2026. Score: 0 afwezig, 25 workaround-niveau, 50 echt maar beperkt of gedeeltelijk, 75 sterk met kanttekeningen, 100 kerncompetentie.
 :::
 
-**Opmerkingen bij de scores.** De scores van Lolly gaan uit van de juistheid van de gepubliceerde claims, en dat is waarom volwassenheid zijn enige rode ring is: gesloten piloot, beveiligingsverharding in uitvoering, nog niets geaudit. Onderzoek verplaatste verschillende cellen.
+**Opmerkingen bij de scores.** Beschikbare functies en productierijpheid zijn aparte overwegingen. De volwassenheidsscore van Lolly weerspiegelt een eerste openbare release in augustus 2026 zonder onafhankelijke beveiligingsaudit tot nu toe; de aanwezigheid van SSO, goedkeuringen of serverrendering bewijst geen staat van dienst in productie. De functiebeschrijvingen hieronder omvatten lolly.work, terwijl de scores van concurrenten hun gedateerde beoordeling van augustus behouden.
 
 Canva wordt per rij beoordeeld op zijn beste familielid, omdat het Affinity en Cavalry bezit (beide weggegeven in oktober 2025). Offline en on-device renderen scoren 75 dankzij Affinity - een desktopsuite die nog steeds een geverifieerd account vereist en telemetrie meedraagt, de aftrek die Adobe ook krijgt - terwijl de eigen offlinemodus van Canva alleen vooraf gesynchroniseerde ontwerpen bewerkt, op één apparaat, met een beperkt venster. Autofill scoort 50: reëel maar Enterprise-gebonden, asynchroon, alleen tekst en afbeeldingen. De massagenerering van Figma steeg van 25 naar 50 toen Buzz spreadsheet-fill uitbracht (gratis bèta, augustus 2026).
 

@@ -3,41 +3,11 @@
 How to build and run the Lolly mobile shell (`shells/tauri-mobile`, identifier
 `tools.lolly.mobile`) on iOS. iOS is a Tauri 2 mobile target: the same
 web-shell source and the same `bridge-overrides/` (filesystem `state.ts`, mobile
-`capabilities-provided.ts`) as the desktop shell, wrapped in a generated Xcode
-project.
+`capabilities-provided.ts`) as the desktop shell, wrapped in an Xcode project
+that is committed to the repository.
 
 For the cross-platform overview (CLI, desktop, Android), see
 `docs/build-guide.md`. This doc is the iOS-specific detail.
-
----
-
-## Status on this dev machine
-
-> **Point-in-time snapshot, not a spec.** The table below records one developer
-> machine's toolchain state as of **June 2026** - it goes stale the moment the
-> prerequisites are installed. It's here to show *what a not-yet-ready machine
-> looks like*, not to describe the project. If you're setting up iOS builds, skip
-> to [Prerequisites](#prerequisites); the requirements there are durable.
-
-**iOS builds cannot run on that machine yet.** This was a tooling gap, not a code
-problem - the desktop `.app`/`.dmg` build works because it only needs Command
-Line Tools.
-
-Verified state (2026-06):
-
-| Requirement | Needed for iOS | Present here |
-|---|---|---|
-| Full **Xcode** (`xcodebuild`) | yes | No - only Command Line Tools (`xcode-select -p` -> `/Library/Developer/CommandLineTools`) |
-| iOS **Simulator** (`simctl`) | yes | No - `xcrun simctl` needs full Xcode |
-| **CocoaPods** (`pod`) | yes | Yes - installed (`pod` 1.16.2, via Homebrew) |
-| iOS **Rust targets** | yes | Yes - `aarch64-apple-ios`, `aarch64-apple-ios-sim`, `x86_64-apple-ios` installed |
-| Mobile `node_modules` + Tauri CLI | yes | Yes - installed (`@tauri-apps/cli`, `plugin-fs`, `plugin-http`) |
-| `src-tauri/gen/apple/` (init output) | yes | No - iOS project not initialized |
-
-`tauri ios init`, `pnpm run dev:ios` and `pnpm run build:ios` all require full
-Xcode (plus CocoaPods), so each fails here until the prerequisites below are met.
-The Rust targets, JS dependencies and CocoaPods are already in place; the
-remaining blockers are full Xcode and the one-time project init.
 
 ---
 
@@ -53,23 +23,20 @@ remaining blockers are full Xcode and the one-time project init.
 
    Launch Xcode once so it installs the iOS platform and Simulator components.
 
-2. **CocoaPods** (Tauri generates a Podfile and runs `pod install` during init).
-   Already installed on this machine (`pod` 1.16.2 via Homebrew); the command is
-   idempotent on a fresh checkout, and does not require Xcode:
+2. **CocoaPods**. The command does not require Xcode:
 
    ```bash
-   brew install cocoapods   # Homebrew is already present at /opt/homebrew/bin/brew
+   brew install cocoapods
    ```
 
-3. **iOS Rust targets** (device + both simulator archs) - already installed here;
-   the command is idempotent on a fresh checkout:
+3. **iOS Rust targets** (device + both simulator archs):
 
    ```bash
    rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
    ```
 
 4. **Shell dependencies** (the mobile shell has its own `node_modules` and Tauri
-   CLI) - already installed here:
+   CLI):
 
    ```bash
    cd shells/tauri-mobile
@@ -82,48 +49,50 @@ the Apple Developer portal / Xcode account settings).
 
 ---
 
-## One-time project init
+## The Xcode project
 
-Generates the native Xcode project under
-`shells/tauri-mobile/src-tauri/gen/apple/`. This directory is gitignored
-(`**/src-tauri/gen/`), so it is regenerated per checkout - it is not committed.
-
-```bash
-cd shells/tauri-mobile
-export APPLE_DEVELOPMENT_TEAM=XXXXXXXXXX   # your 10-char Team ID; pre-fills the project's signing team
-pnpm run tauri ios init
-```
+The Xcode project is in the repository, at
+`shells/tauri-mobile/src-tauri/gen/apple/lolly-mobile.xcodeproj`, so there is
+nothing to generate. Do not run `tauri ios init` on a checkout: the committed project
+carries settings such as the usage strings below and the privacy manifest
+(`lolly-mobile_iOS/PrivacyInfo.xcprivacy`), and a regenerated project may not
+keep them.
 
 Notes:
 
-- Icons are already committed under `src-tauri/icons/` (including the `ios/`
-  set); init wires them into the project's `Assets.xcassets`. To regenerate the
-  whole set from a source PNG: `npx @tauri-apps/cli icon path/to/icon-1024.png`.
-- Init reads `src-tauri/tauri.conf.json` (`productName: "Lolly"`,
-  `identifier: "tools.lolly.mobile"`, `bundle.iOS.minimumSystemVersion: "14.3"`).
+- Icons are committed under `src-tauri/icons/` (including the `ios/` set) and
+  in the project's `Assets.xcassets`. To regenerate the whole set from a source
+  PNG: `npx @tauri-apps/cli icon path/to/icon-1024.png`.
+- `src-tauri/tauri.conf.json` sets `productName: "Lolly"`,
+  `identifier: "tools.lolly.mobile"` and
+  `bundle.iOS.minimumSystemVersion: "26.0"`, the same deployment target as the
+  Xcode project. The app needs iOS or iPadOS 26.0 or later, because the web
+  shell needs WebGPU from startup and WKWebView offers WebGPU from iOS 26.
 - The configured Apple Team ID is public build metadata. Set the approved team
-  in `bundle.iOS.developmentTeam` or through `APPLE_DEVELOPMENT_TEAM`; keep
-  certificates, passwords and API private keys outside the source tree.
+  in `bundle.iOS.developmentTeam` or through `APPLE_DEVELOPMENT_TEAM`, which
+  overrides the configured team; keep certificates, passwords and API private
+  keys outside the source tree.
 
 ### Permissions (Info.plist)
 
-`tauri ios init` generates `src-tauri/gen/apple/<app>_iOS/Info.plist`. Any tool
-that uses the camera via the WebView's `getUserMedia` requires a usage-description
-string, or iOS denies access (and may terminate the app). Add, after init:
+iOS grants the camera, the microphone and similar features only to an app whose
+`Info.plist` carries a usage-description string for each. Without the string,
+iOS denies access and may terminate the app. The committed project already
+carries these. Their source is the `info.properties` block of
+`src-tauri/gen/apple/project.yml`, from which xcodegen writes
+`lolly-mobile_iOS/Info.plist`:
 
-```xml
-<key>NSCameraUsageDescription</key>
-<string>Lolly uses the camera for tools that scan or capture images on-device.</string>
-```
+- `NSCameraUsageDescription`, for the photo, filter and recording tools
+- `NSMicrophoneUsageDescription`, for the voice and video recording tools
+- `NSPhotoLibraryAddUsageDescription`, for saving exports to the photo library
+- `NSLocalNetworkUsageDescription`, used only by development builds to load the
+  interface from the local dev server
 
-Add `NSPhotoLibraryUsageDescription` / `NSMicrophoneUsageDescription` only if a
-tool actually touches those. The `gen/apple` tree is gitignored, so to persist
-these edits across checkouts either re-apply them after each init or point
-`bundle.iOS.infoPlist` at a tracked Info.plist fragment that Tauri merges in.
-
-WKWebView `getUserMedia` is only available on **iOS 14.3+**, which is why
-`bundle.iOS.minimumSystemVersion` is pinned to `14.3` rather than the Tauri
-default of `13.0`.
+A change that gives a tool a new permission adds its usage string to
+`project.yml` in the same commit. A key edited into `Info.plist` directly does
+not survive the next regeneration. `bundle.iOS.infoPlist` points at the tracked
+`src-tauri/Info.ios.plist`, which Tauri merges in; that file holds the scene
+manifest and the `lolly:` URL scheme.
 
 ---
 

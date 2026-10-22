@@ -8,7 +8,7 @@ Lolly को छापेखाने के आविष्कार के ब
 
 ![एक आउटबैक फ़ार्महाउस पर टूटता सुपरसेल तूफ़ान - नीचे टंकी और शेड, सूखे खेत में बाढ़ का पानी पहले से ही नालियाँ काट रहा है](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} द्वारा जनरेट की गई छवि %sig{signed by %entity{Google LLC}} %entity{Lolly} में %act{opened}, %act{resized} और %act{exported to WebP} के रूप में %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [इसे अभी सत्यापित करें](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} द्वारा जनरेट की गई छवि %sig{signed by %entity{Google LLC}} %entity{Lolly} में %act{opened}, %act{watermarked} और %act{exported to WebP} के रूप में %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [इसे अभी सत्यापित करें](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 इस बारे में सटीक रहने के लिए, क्योंकि यह पेज दलील देता है कि सटीकता मायने रखती है: ऊपर की इमेज जनरेट की गई है, फ़ोटो नहीं खींची गई। उस घर की तरफ़ कोई कैमरा नहीं तना, क्योंकि वह घर है ही नहीं। यह ऑस्ट्रेलिया के क्षेत्रीय Queensland का वर्णन करती है, प्रॉम्प्ट United Kingdom से दिया गया, जनरेट United States के एक डेटासेंटर में हुई। यह किसी जगह के प्रति वफ़ादार दिखने की कोशिश करती है बिना उसका रिकॉर्ड हुए, और यही फ़र्क़ वह पूरी वजह है कि इसके Content Credentials इसे दर्ज करते हैं।
 

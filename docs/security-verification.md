@@ -10,7 +10,7 @@ The app's Verify view and the local CLI verify **locally, offline, without uploa
 
 ![The Verify screen - nothing but a drop target, no upload button, no account, because the check runs where the file already is](/t/url-shot?url=%2F%23%2Fverify&width=460&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop-sq)
 
-Here is a real check, start to finish. This is the [generated Queensland storm](/info/ai-stance.html) from our AI stance. It is a Gemini image Lolly opened, resized and exported to WebP. Drop it on `/verify` and the whole story comes back: a green **Made with Lolly** verdict, the two key validations (credential intact, bytes unchanged), the provenance scorecard and an honest **GEN AI** flag because a machine made the pixels. None of it left your device to get there.
+Here is a real check, start to finish. This is the [generated Queensland storm](/info/ai-stance.html) from our AI stance. It is a Gemini image Lolly opened, watermarked and exported to WebP. Drop it on `/verify` and the whole story comes back: a green **Made with Lolly** verdict, the two key validations (credential intact, bytes unchanged), the provenance scorecard and an honest **GEN AI** flag because a machine made the pixels. None of it left your device to get there.
 
 ![The full Verify verdict for the generated storm image - the image itself, a green Made with Lolly pill, the intact-credential and unchanged-bytes badges and the provenance scorecard](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1240&height=940&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-masthead)
 
@@ -83,7 +83,7 @@ An automated test in the repository (`pnpm test`) backs every cryptographic clai
 - **Supply chain.** A full **CycloneDX SBOM** is generated deterministically and **drift-checked in CI**, and `npm audit` **blocks** any high- or critical-severity dependency advisory from landing.
 - **Static analysis.** An **Opengrep** SAST job runs on every push and pull request. Lolly's own rules (`.github/opengrep/`) scan the whole tree - every shell, the tool packs, the engine, the services and the scripts - and **block** on a finding. The upstream community rule packs run alongside them, diff-only against the merge base, and are advisory: they resolve over a third-party registry, so a gate there would go red on someone else's outage.
 
-The cryptography and parsers are additionally undergoing **SUSE's enterprise-scale security hardening**. They are strong by design today. Where a contract calls for certified assurance, deploy Lolly as one layer of defence-in-depth.
+The cryptography and parsers are strong by design today and have not been independently audited. Where a contract calls for certified assurance, deploy Lolly as one layer of defence-in-depth.
 
 ## Design boundaries (worth having straight)
 

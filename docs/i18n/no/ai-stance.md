@@ -8,7 +8,7 @@ Lolly ble bygget midt i den største endringen i hvordan media lages siden trykk
 
 ![En supercelle-storm som bryter løs over en outback-gård - tanken og skurene nedenfor, flomvann som allerede skjærer kanaler gjennom den tørre jordet](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} generert bilde %sig{signert av %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} og %act{exported to WebP} som %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signert av %entity{Lolly}} [Bekreft dette nå](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} generert bilde %sig{signert av %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} og %act{exported to WebP} som %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signert av %entity{Lolly}} [Bekreft dette nå](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 For å være presis om det, fordi denne siden argumenterer for at presisjon betyr noe: bildet over er generert, ikke fotografert. Ingen kamera var rettet mot den gården, fordi det ikke finnes noen gård. Det skildrer regionale Queensland, Australia, promptet fra Storbritannia, generert i et datasenter i USA. Det forsøker å være tro mot et sted uten å være en gjengivelse av ett, og det skillet er hele grunnen til at Content Credentials-innholdet sier det.
 

@@ -6,7 +6,7 @@ Se un controllo di questa pagina non produce il risultato mostrato, è un bug op
 
 ## Guardalo funzionare, in dieci secondi
 
-Prima delle procedure, il risultato. Apri [`/verify`](/#/verify) e trascinaci sopra un file - nessun caricamento, nessun account, nessuna attesa di un server. Ecco qui che controlla la [tempesta generata su Queensland](/info/ai-stance.html) dalla nostra pagina sulla posizione riguardo all'IA: un'immagine Gemini che Lolly ha aperto, ridimensionato ed esportato. Ogni badge qui sotto è stato calcolato sul dispositivo, a partire dai byte stessi del file.
+Prima delle procedure, il risultato. Apri [`/verify`](/#/verify) e trascinaci sopra un file - nessun caricamento, nessun account, nessuna attesa di un server. Ecco qui che controlla la [tempesta generata su Queensland](/info/ai-stance.html) dalla nostra pagina sulla posizione riguardo all'IA: un'immagine Gemini che Lolly ha aperto, marchiato con watermark ed esportato. Ogni badge qui sotto è stato calcolato sul dispositivo, a partire dai byte stessi del file.
 
 ![Verify su uno schermo largo quanto un telefono - l'immagine della tempesta, un verdetto verde Made with Lolly e i badge di credenziale intatta e byte invariati impilati sotto](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

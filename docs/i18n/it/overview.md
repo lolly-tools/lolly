@@ -4,7 +4,7 @@
 
 Questo documento riassume lo scopo, la struttura e le decisioni architetturali della piattaforma Lolly. Riflette sia la visione del prodotto sia lo stato attuale del codice.
 
-> **Stato:** Lolly è un prototipo interno in un **pilota chiuso non ancora completato**. Il motore è deterministico e internamente coerente, ma il prodotto è agli inizi - SUSE è il cliente numero uno - e i suoi motori di crittografia e di parsing dei file sono attualmente sottoposti al rigido irrobustimento infrastrutturale di SUSE, in preparazione alla scala enterprise (in questo siamo davvero bravi). Leggi l'architettura qui sotto come intento progettuale in fase di test, non come un prodotto finito e certificato. Vedi [Adozione e Governance](/info/adoption-governance.html#status) per come viene condotto e misurato il pilota.
+> **Stato:** Lolly è rilasciato. La versione 1.0 è uscita come open source con licenza MPL-2.0 il 30 agosto 2026, e funzionalità, impostazioni predefinite e catalogo degli strumenti continuano a cambiare tra un rilascio e l'altro. Il motore è [deterministico](/info/determinism.html), con un solo percorso di rendering dietro ogni shell. La sua sicurezza non ha ancora avuto un audit indipendente, e le prove di adozione risalgono a pochi mesi fa. Vedi [Adozione e Governance](/info/adoption-governance.html#status) per lo stato attuale e come viene misurata l'adozione.
 
 > **Come leggere questa pagina.** Contiene due tipi di materiale, in ordine. La prima metà spiega
 > **perché esiste**: il problema, il posizionamento e il ciclo di vita che attraversa un singolo asset.

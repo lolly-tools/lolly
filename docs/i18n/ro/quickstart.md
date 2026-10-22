@@ -4,7 +4,7 @@ Lolly îți transformă regulile - culori, tipografie, layout-uri, logică - în
 
 Aceasta este pagina pe care s-o citești prima. Două lucruri te fac productiv: **fă-ți Lolly al tău** și **adu ce ai deja** (fișierele tale de design și tokenii). Orice altceva e la un link distanță.
 
-> Ești nou în Lolly și vrei doar să creezi ceva? [Creează ceva în 60 de secunde](/info/make-something.html) te trece prin trei exemple, sau [deschide aplicația](/#/), alege orice instrument din galerie, completează câmpurile și apasă **Export**. Revino aici când vrei să poarte brandul *tău*.
+> Ești nou în Lolly și vrei doar să creezi ceva? [Fă-ți primul fișier](/info/make-something.html) te trece printr-un cod QR, sau [deschide aplicația](/#/), alege orice instrument din galerie, completează câmpurile și apasă **Export**. Revino aici când vrei să poarte brandul *tău*.
 
 ![Vizualizarea Utilities - instrumentele de zi cu zi care rulează pe dispozitiv, ca Strip Hidden Data, Compress PDF și Convert Image, toate într-un singur loc](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

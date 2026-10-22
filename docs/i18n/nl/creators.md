@@ -4,13 +4,13 @@ Je vult een paar velden in en er komt een afgewerkt bestand uit, met de fonts, d
 
 Je bent één hand in een estafette: een developer kan de tool die je gebruikt opschalen tot een pipeline en een collega kan hem self-service uitvoeren, zodat [De levenscyclus van een campagne](/info/overview.html#the-lifecycle-of-a-campaign) één asset door alle drie paar handen volgt.
 
-Nieuw hier? Begin met **[Iets maken in 60 seconden](/info/make-something.html)** en kom terug zodra je weet welk onderdeel je verder wilt verdiepen. [Vragen en antwoorden](/info/faq.html) behandelt wat mensen vragen voordat ze een gratis tool vertrouwen. [Hoe Lolly zich verhoudt](/info/positioning.html) is het eerlijke verhaal over wanneer je beter iets anders kunt pakken.
+Nieuw hier? Begin met **[Je eerste bestand maken](/info/make-something.html)** en kom terug zodra je weet welk onderdeel je verder wilt verdiepen. [Vragen en antwoorden](/info/faq.html) behandelt wat mensen vragen voordat ze een gratis tool vertrouwen. [Hoe Lolly zich verhoudt](/info/positioning.html) is het eerlijke verhaal over wanneer je beter iets anders kunt pakken.
 
 ## Maken
 
 Kies een tool, vul een paar velden in en download het afgewerkte bestand. Of open het Design-canvas en werk het vrij uit: in beide gevallen komen de kleuren, het lettertype en de afstanden uit je merk in plaats van uit je geheugen, en niets vereist een account.
 
-- **[Iets maken in 60 seconden](/info/make-something.html)** - drie korte walkthroughs zonder iets in te stellen, als je Lolly nog nooit hebt geopend.
+- **[Je eerste bestand maken](/info/make-something.html)** - één korte les zonder iets in te stellen: maak een QR-code, download hem en bewaar een bewerkbare kopie. Begin hier als je Lolly nog nooit hebt geopend.
 - **[Lolly gebruiken](/info/using.html)** - het canvas, de bedieningselementen, opslaan, Projects en gebruik op de telefoon: hoe de app zelf zich gedraagt.
 - **[De Brand Studio](/info/brand-studio.html)** - wanneer de logo's, kleuren en het lettertype van jou moeten zijn in plaats van de standaardwaarden.
 - **[Een ontwerp importeren](/info/design-import.html)** - wanneer het werk al bestaat als `.fig`-, `.penpot`-, `.ai`-, `.idml`- of SVG-bestand en je het bewerkbaar wilt houden in plaats van platgeslagen.

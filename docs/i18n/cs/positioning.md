@@ -4,7 +4,7 @@ Co Lolly dělá, co dnešní kreativní nástroje ne, a co záměrně nechává 
 
 Verzi po jednotlivých nástrojích, jednu stránku pro Canvu, Adobe, Figmu, vykreslovací API a online konvertory, najdeš v [Lolly ve srovnání, nástroj po nástroji](/info/compare.html). Každá stránka uvádí, co daný jiný nástroj dělá lépe a co místo toho dělá Lolly.
 
-> **Stav pilotního projektu:** Lolly je prototyp v uzavřeném pilotu, ne hotový produkt, a jeho zabezpečení právě prochází přísným zpevňováním infrastruktury podle SUSE, jako příprava na podnikové měřítko. Stránka [Přijetí a řízení](/info/adoption-governance.html#status) popisuje aktuální stav.
+> **Stav:** Lolly je vydaná: verze 1.0 vyšla jako open source dne 30. srpna 2026. Její zabezpečení zatím neprošlo nezávislým auditem a důkazy o jejím přijetí jsou několik měsíců staré. Stránka [Přijetí a řízení](/info/adoption-governance.html#status) popisuje aktuální stav.
 
 ## Dnešní nástroje
 
@@ -14,7 +14,7 @@ Každý kruh níže hodnotí, jak úplně daná třída produktů naplňuje dano
 Úplnost schopností napříč dnešními kreativními nástroji, zkoumáno v srpnu 2026. Hodnocení: 0 chybí, 25 úroveň obcházení, 50 reálné, ale omezené nebo částečné, 75 silné s výhradami, 100 klíčová kompetence.
 :::
 
-**Poznámky k hodnocení.** Hodnocení Lolly předpokládá, že její zveřejněná tvrzení platí, a proto je zralost jejím jediným červeným kruhem: uzavřený pilot, zpevňování zabezpečení probíhá, zatím nic auditováno. Výzkum posunul několik buněk.
+**Poznámky k hodnocení.** Dostupné funkce a produkční zralost jsou dvě oddělené věci. Skóre zralosti Lolly odráží první veřejné vydání v srpnu 2026 bez zatím žádného nezávislého bezpečnostního auditu; přítomnost SSO, schvalování nebo serverového renderování ještě nedokládá zkušenost z ostrého provozu. Popisy funkcí níže zahrnují lolly.work, zatímco skóre konkurentů zůstává u svého srpnového přezkumu s datem.
 
 Canva je hodnocena podle svého nejlepšího člena rodiny, protože vlastní Affinity a Cavalry (obě rozdala zdarma v říjnu 2025). Offline a on-device vykreslování dosahuje 75 díky Affinity - desktopové sadě, která přesto vyžaduje ověřený účet a nese telemetrii, což je srážka, kterou bere i Adobe - zatímco vlastní offline režim Canvy edituje jen předem synchronizované návrhy, na jednom zařízení, s omezeným oknem. Automatické vyplňování dosahuje 50: reálné, ale uzamčené za Enterprise, asynchronní, jen text a obrázky. Hromadné generování ve Figmě vzrostlo z 25 na 50, když Buzz vydala vyplňování z tabulky (bezplatná beta, srpen 2026).
 

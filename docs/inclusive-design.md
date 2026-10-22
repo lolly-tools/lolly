@@ -98,7 +98,8 @@ opt-in:
 
 ## Cultural inclusion
 
-- <!--i:palette--> The neutral starting brand assumes nothing about who you are; Lolly exists so
+- <!--i:palette--> lolly.tools opens in [Lolly Demo](/info/lolly-demo.html), Lolly's own demo
+  design system, with the neutral Lolly Starter one switch away; Lolly exists so
   your own identity, palette and type replace ours in minutes.
 - <!--i:pentool--> Type is treated as a cultural surface: uploaded and Google fonts are shaped
   with proper text shaping across scripts, so names, diacritics and non-Latin
@@ -147,9 +148,12 @@ your content has nothing to revise.
   trackers or analytics in the codebase, and the few network touchpoints are
   enumerated in the [Privacy Policy](/info/privacy.html). Accessibility and
   language preferences are stored in your own profile, on your device - a
-  person's disability or language is never telemetry. Telemetry is no friend
-  of this project: we don't want it, and nobody should have to give their
-  data away.
+  person's disability or language is never telemetry. The Lolly app sends no
+  telemetry, and nobody should have to give their data away. A Lolly Work
+  server, which an organisation runs for its members, can store usage events
+  made of labels such as a tool id at a level the organisation sets, and those
+  events never carry accessibility or language settings; see [Telemetry and
+  dashboards](/info/work-telemetry.html).
 - <!--i:shieldcheck--> **Honest provenance.** Exports can carry Content Credentials, and
   AI-generated content is labelled as such. We believe audiences deserve to know
   how media was made, and creators deserve tools that can prove their work is

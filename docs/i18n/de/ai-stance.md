@@ -8,7 +8,7 @@ Lolly entstand mitten in der größten Veränderung, wie Medien entstehen, seit 
 
 ![Eine Superzelle bricht über einem Outback-Gehöft los - der Tank und die Schuppen darunter, das Flutwasser gräbt bereits Rinnen durch das trockene Feld](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} generiertes Bild %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} und %act{exported to WebP} als %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Jetzt überprüfen](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} generiertes Bild %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} und %act{exported to WebP} als %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Jetzt überprüfen](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 Um hier präzise zu sein, denn diese Seite argumentiert, dass Präzision zählt: Das Bild oben ist generiert, nicht fotografiert. Keine Kamera wurde auf dieses Gehöft gerichtet, denn es gibt kein Gehöft. Es beschreibt das ländliche Queensland, Australien, per Prompt aus dem Vereinigten Königreich, generiert in einem Rechenzentrum in den Vereinigten Staaten. Es versucht, einem Ort treu zu bleiben, ohne dessen Aufzeichnung zu sein, und genau dieser Unterschied ist der ganze Grund, warum seine Content Credentials das so sagen.
 

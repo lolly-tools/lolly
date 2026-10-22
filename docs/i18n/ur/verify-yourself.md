@@ -6,7 +6,7 @@ Lolly کے privacy اور security صفحات دعوے کرتے ہیں: کوئی
 
 ## اسے کام کرتے دیکھیں، دس سیکنڈ میں
 
-طریقہ کار سے پہلے، نتیجہ۔ [`/verify`](/#/verify) کھولیں اور اس پر ایک فائل ڈالیں - نہ کوئی upload، نہ account، نہ کسی server کا انتظار۔ یہاں یہ ہمارے AI stance صفحے سے [generated Queensland طوفان](/info/ai-stance.html) کو چیک کر رہا ہے: ایک Gemini تصویر جسے Lolly نے کھولا، resize کیا اور export کیا۔ نیچے ہر badge device پر ہی، فائل کے اپنے bytes سے حساب کیا گیا۔
+طریقہ کار سے پہلے، نتیجہ۔ [`/verify`](/#/verify) کھولیں اور اس پر ایک فائل ڈالیں - نہ کوئی upload، نہ account، نہ کسی server کا انتظار۔ یہاں یہ ہمارے AI stance صفحے سے [generated Queensland طوفان](/info/ai-stance.html) کو چیک کر رہا ہے: ایک Gemini تصویر جسے Lolly نے کھولا، watermark کیا اور export کیا۔ نیچے ہر badge device پر ہی، فائل کے اپنے bytes سے حساب کیا گیا۔
 
 ![Verify on a phone-width screen - the storm image, a green Made with Lolly verdict and the credential-intact and bytes-unchanged badges stacked beneath it](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

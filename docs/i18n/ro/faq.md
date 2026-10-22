@@ -20,7 +20,7 @@ Lolly produce un volum mare de conținut. Adoptăm o abordare strictă de minimi
 
 Lolly a fost dezvoltat cu programare asistată de AI, descoperire asistată de AI și, în multe locuri, conținut asistat de AI, folosind un mix de modele și furnizori, inclusiv de la companii de frontieră din cloud public.
 
-La data redactării, Lolly nu conține nicio vulnerabilitate de securitate cunoscută în lanțul de aprovizionare și se angajează la practici de răspuns rapid în materie de securitate atunci când apar CVE-uri.
+O avertizare de severitate ridicată sau critică în dependențele lui Lolly blochează CI-ul. O avertizare care nu poate fi remediată încă este ținută deoparte doar ca excepție aprobată, cu un motiv scris. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) listează fiecare excepție păstrată astăzi, iar [notele de lansare](https://github.com/lolly-tools/lolly/releases) le listează pe cele pe care le poartă fiecare versiune. SECURITY.md spune și cum se raportează o vulnerabilitate.
 
 Un om a creat arhitectura, a curatoriat codul cu intenție și a direcționat artistic experiența.
 
@@ -52,7 +52,9 @@ Feature flags activează sau dezactivează părți din Lolly. De obicei le contr
 
 ## Cum obțin aplicațiile pentru mobil sau desktop?
 
-Oricine își poate distribui propriile aplicații, iar instrumentele și configurația acestor aplicații ar trebui să difere mult în funcție de publicul căruia i se adresează. Deci nu există o singură aplicație, decât dacă ai făcut-o tu sau ți-o dă cineva relevant.
+Descarcă-le de la [Instalează Lolly](/info/install.html). Pagina listează fiecare versiune pentru macOS, Windows, Linux și Android și arată cum verifici fișierul descărcat. iPhone și iPad nu au încă o descărcare publică; [secțiunea despre iPhone și iPad](/info/install.html#iphone-and-ipad) spune ce să folosești în loc.
+
+Oricine își poate construi și distribui și propria copie a aplicației, cu instrumentele și setările de care are nevoie publicul său. [Ghidul de construire](/info/build-guide.html) arată cum.
 
 ## De ce numele "Lolly Tools"?
 
@@ -127,7 +129,7 @@ Straturile ajung ca niște casete editabile pe canvasul deschis: textul rămâne
 
 ## Unde e lucrul pe care l-am făcut ieri?
 
-Dacă ai apăsat **Salvează ca** sau **Salvează**, e în **Proiecte**, pe ecranul principal, în browserul sau aplicația din care ai salvat. Dacă ai apăsat doar **Descarcă**, fișierul e acolo unde browserul sau sistemul tău salvează descărcările, și de obicei o copie e în **Resurse**. Nouă instrumente păstrează și lucrarea nesalvată în **Proiecte**. [Găsește și recuperează-ți lucrarea](/info/find-your-work.html) acoperă fiecare caz.
+Dacă ai apăsat **Salvează ca** sau **Salvează**, e în **Proiecte**, pe ecranul principal, în browserul sau aplicația din care ai salvat. Dacă ai apăsat doar **Descarcă**, fișierul e acolo unde browserul sau sistemul tău salvează descărcările, și de obicei o copie e în **Resurse**. Instrumentele care [salvează pe măsură ce lucrezi](/info/find-your-work.html#which-tools-save-as-you-work) păstrează și lucrarea nesalvată în **Proiecte**. [Găsește și recuperează-ți lucrarea](/info/find-your-work.html) acoperă fiecare caz.
 
 ## Am închis fila. S-a dus lucrarea mea?
 
@@ -143,7 +145,7 @@ Da. O persoană trimite o invitație (un link, un cod QR sau un cod scurt), ceal
 
 ## Unde au dispărut instrumentele cu brand SUSE?
 
-Se află deja într-un depozit separat, privat. O clonă publică nu descarcă deloc pachetul de brand SUSE, așa că un build public rulează profilul neutru `lolly-start` - instrumentele comunitare, independente de brand, plus un brand gol pe care îl completezi cu al tău. SUSE își operează propria instanță pentru a-și proteja mărcile înregistrate.
+Se află deja într-un depozit separat, privat. O clonă publică nu descarcă deloc pachetul de brand SUSE, așa că un build făcut din ea folosește profilul neutru `lolly-start`, dacă nu alegi altul - instrumentele comunitare, independente de brand, plus un brand gol pe care îl completezi cu al tău. [lolly.tools](https://lolly.tools) este construit cu profilul `lolly-demo` și se deschide în [Lolly Demo](/info/lolly-demo.html), sistemul de design propriu al lui Lolly. SUSE își operează propria instanță pentru a-și proteja mărcile înregistrate.
 
 ## De ce este gratuit? Unde e șmecheria?
 
@@ -153,7 +155,7 @@ Linia aceasta este trasată în licență, nu într-o promisiune: tot ce ruleaz�
 
 ## Cât păstrează SUSE privat? (adică, când se trage covorul de sub picioare)
 
-Motorul, shell-urile, schemele și instrumentele independente de brand sunt open source; mărcile înregistrate SUSE și instrumentele cu brand sunt partea care rămâne privată și sunt deja separate. Instanța publică de la [lolly.tools](https://lolly.tools) rulează pe brandul neutru.
+Motorul, shell-urile, schemele și instrumentele independente de brand sunt open source; mărcile înregistrate SUSE și instrumentele cu brand sunt partea care rămâne privată și sunt deja separate. Instanța publică de la [lolly.tools](https://lolly.tools) rulează [Lolly Demo](/info/lolly-demo.html), sistemul de design propriu al lui Lolly.
 
 Granița este structurală, nu promisă. Fiecare versiune lansată este open source și nu poate fi retrasă, nu există niciun acord de contribuitor care să poată relicenția munca cuiva, iar singurul lucru păstrat deoparte este marca înregistrată. Când o altă companie și-a închis sursele Linux pentru întreprinderi în 2023, SUSE a cofondat [OpenELA](https://openela.org) pentru a menține acel cod deschis - aceeași poziție pe care o moștenește acest proiect.
 
