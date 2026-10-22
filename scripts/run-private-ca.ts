@@ -12,6 +12,7 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TASKS = {
   server: ['services/ca/server.mjs'],
   'sign-catalog': ['scripts/sign-credentialed-assets.ts', '--ca', '--catalog'],
+  'sign-docs-media': ['scripts/sign-docs-media.ts', 'shells/web/public/info/not-a-pipe.webp'],
   'sign-logos': ['scripts/sign-inline-logos.ts'],
   'sign-renditions': ['scripts/build-catalog-renditions.ts', '--generate'],
 } as const;
