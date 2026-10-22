@@ -475,11 +475,11 @@ name and never by email to anyone who could not already see the address:
 
 | `data.kind` | Goes to | Title |
 |---|---|---|
-| `access-request` | the people who may answer it | "Sam asks to edit Brand refresh", "… asks to view …", "Sam asks to join lolly.ing", or "Sam asks to use their own account for an invitation", with the address, the sign-in and the note in the body, and **Review** |
+| `access-request` | the people who may answer it | "Sam asks to edit Brand refresh", "… asks to view …", "Sam asks to join Example Studio", or "Sam asks to use their own account for an invitation", with the address, the sign-in and the note in the body, and **Review** |
 | `access-answer` | the requester | "Andy gave you edit access to Brand refresh" with **Open**, or "Your request for Brand refresh was not approved" |
 | `invite-accepted` | each person who invited them (at most 5) | "Sam accepted your invitation", with **Open** (the project) or **Open People** (the console) |
 | `invite-skipped` | the invitee | "Your invitation to Brand refresh no longer works", when the person who added the project can no longer add people to it, or the project was archived |
-| `welcome` | the invitee, on accepting | "Welcome to lolly.ing", with the inviter and, for a project, its name, the role and **Open** |
+| `welcome` | the invitee, on accepting | "Welcome to Example Studio", with the inviter and, for a project, its name, the role and **Open** |
 | `comment-mention` | a person mentioned in a comment | "Ana mentioned you in Spring poster", with the start of the newest message and **Open thread** |
 | `comment-reply` | the people in a comment thread when someone replies | "Ana replied in Spring poster", or "New replies in Spring poster: 3", with **Open thread** |
 

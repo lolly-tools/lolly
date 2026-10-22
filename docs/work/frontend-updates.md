@@ -110,7 +110,7 @@ for the reusable caller policy. Input assembly remains an operator review step.
 
 ## Public Nginx instance: choose its delivery layout
 
-A Plan300 image has a full SHA validator map and gzip/Brotli siblings. Its root
+A complete-root public image has a full SHA validator map and gzip/Brotli siblings. Its root
 and map must come from the same complete inventory. The old five-path producer
 refuses that baseline; do not remove its hold or reuse a baked map for new
 JavaScript. The maintained
@@ -146,8 +146,6 @@ New preparation holds the complete current validator source closure as well.
 This avoids rebuilding an unchanged image; whole-root and HTTP qualification
 still take time proportional to the retained content and are not an instant
 publish operation.
-
-For the current `lolly.tools` layout, follow its protected production handoff.
 
 After successful complete-root observation, the publisher retains
 `observe.accepted.json` and writes `accepted-release.actual.json` plus
@@ -266,10 +264,6 @@ responses. Inspect the current state read-only; do not repeat apply, replay an
 intent or relabel a failure as success. A forward fix or rollback needs a new
 reviewed intent against the current state. Retain old qualified claims until
 acceptance, and preserve current user data.
-
-For `lolly.ing` and `lolly.tools`, use the production handoff in
-`lolly-private/production/README.md` and its `check-target.py`. Historical
-`candidate` names identify the current UpCloud K3s production host.
 
 
 ### Public qualification costs

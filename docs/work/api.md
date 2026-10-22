@@ -396,7 +396,7 @@ form field, and carries the verified address, so the address on a request is nev
 | `GET /api/v1/access-requests/mine?projectId=…` or `?sessionId=…` | member | `{ requests: MyRequest[] }`: the caller's own requests for that target, open or answered in the last 30 days, newest first |
 | `POST /api/v1/access-requests/:id/withdraw` | the requester | body `{}`; `200 { request: MyRequest }`, or `404` for anyone else |
 | `GET /api/v1/access-requests?status=open\|answered&since=…` | member | `{ requests: RequestView[] }`: the requests the caller may answer now, and nothing for someone who answers none |
-| `POST /api/v1/access-requests/:id/approve` | an approver, checked again now | body `{ role? }` (project requests; the role asked for when absent). `200 { request, outcome, invitation?, link?, message? }`, with `outcome` one of `added`, `already`, `invited` or `moved`. `message.text` is a ready-to-send line for an approved join, for example "You can now sign in to lolly.ing. Open https://lolly.ing and sign in as sam.k@gmail.com with GitHub." |
+| `POST /api/v1/access-requests/:id/approve` | an approver, checked again now | body `{ role? }` (project requests; the role asked for when absent). `200 { request, outcome, invitation?, link?, message? }`, with `outcome` one of `added`, `already`, `invited` or `moved`. `message.text` is a ready-to-send line for an approved join, for example "You can now sign in to Example Studio. Open https://work.example.com and sign in as sam.k@example.net with GitHub." |
 | `POST /api/v1/access-requests/:id/decline` | an approver | body `{}`; `200 { request }` |
 
 ```ts
