@@ -79,9 +79,9 @@ test('a file tile points at a stable lolli.li alias, a guide tile at a real head
 });
 
 test('the iPhone and iPad tile points at the App Store section, not a file', () => {
-  // iPhone and iPad get the app from the App Store (docs/install.md, "iPhone
-  // and iPad"), so the tile opens that section, names the store and offers no
-  // file of its own: the store signs and updates the app.
+  // The iPhone and iPad app comes from the App Store (see the "iPhone and iPad"
+  // section of docs/install.md). The tile links to that section and shows the
+  // store. It offers no file, because the store installs and updates the app.
   const ios = tiles.find((t) => t.id === 'ios');
   assert.ok(ios, 'the apps row has an iPhone and iPad tile');
   assert.equal(ios.file, undefined);
