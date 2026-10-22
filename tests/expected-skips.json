@@ -1627,6 +1627,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/docs-md-links.test.ts",
+      "fullName": "no built docs page links a relative .md target or into plans/",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
       "file": "tests/docs-meta-descriptions.test.ts",
       "fullName": "descriptions are not all the same site-wide sentence",
       "reason": "no built /info on disk",
