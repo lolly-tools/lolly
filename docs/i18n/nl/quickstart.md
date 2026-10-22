@@ -4,7 +4,7 @@ Lolly zet jouw regels - kleuren, typografie, lay-outs, logica - om in tools waar
 
 Dit is de ene pagina die je als eerste leest. Twee dingen maken je productief: **maak Lolly van jou** en **breng mee wat je al hebt** (je ontwerpbestanden en tokens). Al het andere is maar één link verderop.
 
-> Nieuw bij Lolly en wil je gewoon iets maken? [Maak iets in 60 seconden](/info/make-something.html) neemt je mee door drie voorbeelden, of [open de app](/#/), kies een willekeurige tool uit de galerij, vul de velden in en klik op **Exporteren**. Kom hier terug wanneer je wilt dat het *jouw* merk draagt.
+> Nieuw bij Lolly en wil je gewoon iets maken? [Je eerste bestand maken](/info/make-something.html) neemt je mee door het maken van een QR-code, of [open de app](/#/), kies een willekeurige tool uit de galerij, vul de velden in en klik op **Exporteren**. Kom hier terug wanneer je wilt dat het *jouw* merk draagt.
 
 ![De weergave Hulpprogramma's - de werkpaarden op je eigen apparaat zoals Strip Hidden Data, Compress PDF en Convert Image, allemaal op één plek](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

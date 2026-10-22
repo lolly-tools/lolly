@@ -2,7 +2,7 @@
 
 Tiện ích mở rộng **Lolly URL Screenshot** cho phép ứng dụng web chụp ảnh màn hình bất kỳ trang web nào ngay từ trong trình duyệt của bạn. Không có nó, việc chụp một URL cần đến ứng dụng desktop - một trang trình duyệt không thể tự đọc pixel từ một trang khác. Tiện ích mở rộng thì có thể, dùng cùng cơ chế chụp mà ứng dụng desktop sử dụng.
 
-Nó còn làm một việc khác theo cùng cách đó: đọc một trang duy nhất mà bạn nêu tên để Brand Studio có thể rút ra một thương hiệu từ một trang web trực tiếp. Cả hai đều được trình bày bên dưới.
+Nó còn làm hai việc khác theo cùng cách đó. Một địa chỉ web dán vào ô ảnh có thể trở thành ảnh chụp trang đó (**Chụp trang này**), và tiện ích mở rộng có thể đọc một trang duy nhất mà bạn nêu tên để Brand Studio rút ra một thương hiệu từ một trang web trực tiếp. Mọi yêu cầu đều chờ bạn phê duyệt trong tiện ích mở rộng.
 
 Nó chạy trên các trình duyệt dựa trên Chromium: **Chrome, Edge, Brave, Arc, Opera** - Chrome 111 trở lên.
 
@@ -22,18 +22,23 @@ Mọi điều khiển đều hoạt động trong khi bạn chờ: URL đích, �
 
 ### Tự tải lên (dành cho nhà phát triển)
 
-Tiện ích mở rộng nằm trong kho mã tại `shells/chrome-extension/`.
+Tiện ích mở rộng nằm trong kho mã tại `shells/chrome-extension/`. Thư mục đó là bản build production, chỉ hoạt động với Lolly tại `https://lolly.tools`.
 
 1. Mở `chrome://extensions`.
 2. Bật **Developer mode** (chế độ nhà phát triển, ở góc trên bên phải).
 3. Nhấp **Load unpacked** và chọn thư mục `shells/chrome-extension/`.
 4. Tải lại Lolly - **URL Screenshot** giờ đã hoạt động trong trình duyệt.
 
+Với máy chủ phát triển cục bộ, hãy chạy `pnpm run pack:chrome-extension:dev` và tải `dist/chrome-extension-dev` thay thế. Gói đó cũng chấp nhận `http://localhost:5173` và có chữ **Development** trong tên.
+
 ## Cách hoạt động
 
-- Một đoạn script nhỏ báo cho Lolly biết tiện ích mở rộng đã có mặt, nhờ đó công cụ **URL Screenshot** tự động bật lên - không cần thiết lập.
-- Khi bạn kết xuất, tiện ích mở rộng mở trang đích trong một tab nền, chụp nó qua DevTools Protocol (cùng `Page.captureScreenshot` mà ứng dụng desktop dùng), rồi đóng tab và trả hình ảnh về.
-- Nó chạy hoàn toàn trong trình duyệt của bạn, trên mạng của bạn - nên chụp `localhost` hay một trang nội bộ vẫn hoạt động. Bản thân cảnh chụp không bao giờ được tải lên bất cứ đâu; lưu lượng mạng duy nhất là chính trình duyệt của bạn tải trang bạn yêu cầu chụp.
+- Một đoạn script nhỏ báo cho Lolly biết tiện ích mở rộng đã có mặt, nhờ đó **URL Screenshot** có thể lưu ảnh chụp mà không cần thiết lập thêm.
+- Bạn phê duyệt mọi yêu cầu. Khi Lolly hỏi, tiện ích mở rộng mở cửa sổ **Approve page request** của riêng nó, hiển thị trang web đang yêu cầu, việc đó là chụp ảnh màn hình hay đọc nội dung trang, và địa chỉ của trang. Không có gì được đọc cho đến khi bạn nhấn **Approve once**. **Cancel**, hoặc đóng cửa sổ, sẽ kết thúc yêu cầu.
+- Lần đầu bạn phê duyệt yêu cầu cho một trang web, Chrome cũng hỏi liệu tiện ích mở rộng có được truy cập trang đó không. Chrome giữ quyền truy cập này sau khi bạn cho phép, nhưng mỗi yêu cầu về sau vẫn cần **Approve once** riêng.
+- Một lần phê duyệt chỉ áp dụng cho một yêu cầu và hết hạn sau 30 giây. Mỗi lúc chỉ một yêu cầu có thể chờ hoặc chạy, và yêu cầu đã phê duyệt sẽ dừng sau 55 giây. Nếu trang Lolly bị đóng hoặc thay đổi, hoặc trang đích chuyển sang một trang web khác, yêu cầu bị hủy.
+- Sau khi bạn phê duyệt, tiện ích mở rộng mở trang đích trong một tab nền, chụp nó qua DevTools Protocol (cùng `Page.captureScreenshot` mà ứng dụng desktop dùng), rồi đóng tab và trả hình ảnh về tab Lolly đã yêu cầu.
+- Nó chạy hoàn toàn trong trình duyệt của bạn, trên mạng của bạn - nên chụp `localhost` hay một trang nội bộ vẫn hoạt động. Trang được tải bằng phiên trình duyệt của bạn, nên một trang bạn đã đăng nhập có thể hiện thông tin riêng tư trong kết quả. Bản thân cảnh chụp không bao giờ được tải lên bất cứ đâu; lưu lượng mạng duy nhất là chính trình duyệt của bạn tải trang bạn yêu cầu chụp.
 
 Trong lúc chụp, bạn có thể thấy thoáng qua một biểu ngữ *"…started debugging this browser"* trên tab tạm thời. Đó là DevTools Protocol đang hoạt động; nó tự biến mất khi cảnh chụp hoàn tất.
 
@@ -43,33 +48,33 @@ Nguồn **Website** trong Brand Studio khởi tạo một thương hiệu từ m
 
 Điều gì xảy ra khi bạn nhấn vào đó:
 
-- Một địa chỉ, một trang. Tiện ích mở rộng mở nó trong cùng loại tab nền, đọc mã đánh dấu đã kết xuất, nội dung stylesheet và một số hình ảnh biểu tượng, logo, rồi đóng tab. Nó không theo các liên kết và không thu thập dữ liệu hàng loạt.
-- Các stylesheet và font được lưu trữ ở nơi khác (một CDN, một dịch vụ font) cũng được tải về, vì màu sắc và kiểu chữ của trang nằm trong đó. Các yêu cầu khác nguồn gửi đi không kèm cookie của bạn; các yêu cầu cùng nguồn thì dùng cookie, đúng như chính trang đó sẽ làm.
+- Một địa chỉ, một trang. Sau khi bạn phê duyệt, tiện ích mở rộng mở nó trong cùng loại tab nền, đọc mã đánh dấu đã kết xuất, nội dung stylesheet và một số hình ảnh biểu tượng, logo, rồi đóng tab. Nó không theo các liên kết và không thu thập dữ liệu hàng loạt.
+- Các stylesheet được lưu trữ ở nơi khác (một CDN, một dịch vụ font) cũng được tải về, vì màu sắc và kiểu chữ của trang nằm trong đó. Các yêu cầu khác nguồn gửi đi không kèm cookie của bạn; các yêu cầu cùng nguồn thì dùng cookie, đúng như chính trang đó sẽ làm.
 - Mọi thứ đều bị giới hạn - một số lượng stylesheet, hình ảnh và byte có giới hạn - để một trang độc hại hoặc lỗi nửa chừng trả về tài liệu một phần thay vì bị treo.
 - Các byte được gửi thẳng về tab Lolly đã yêu cầu. Việc phân tích thành màu sắc, kiểu chữ và logo diễn ra trên thiết bị của bạn; không có gì được tải lên.
 
-Không có gì được đọc cho đến khi bạn nhấn. Dán một địa chỉ chỉ điền vào ô trống.
+Dán một địa chỉ chỉ điền vào ô trống. Không có gì được đọc cho đến khi bạn bắt đầu việc đọc và nhấn **Approve once**.
 
 ## Sau khi cài đặt
 
-Tải lại tab Lolly. Lời nhắc "Get the extension" biến mất và **URL Screenshot** trở nên khả dụng trong thư viện và trong chế độ Batch.
+Tải lại tab Lolly. Lời nhắc "Get the extension" biến mất, **URL Screenshot** (trong Tiện ích) có thể lưu ảnh chụp ra tệp, và công cụ này khả dụng trong chế độ Batch.
 
 ## Quyền truy cập
 
-Tệp `manifest.json` của nó khai báo bốn quyền cộng với quyền truy cập host:
+Tệp `manifest.json` của nó khai báo bốn quyền, cộng với quyền truy cập trang web mà nó xin từng trang một:
 
 - `debugger` - điều khiển tab nền qua DevTools Protocol. Đây là thứ thực hiện việc chụp ảnh màn hình.
-- `tabs` - mở tab nền tạm thời và đóng lại sau đó.
+- `tabs` - mở tab nền tạm thời và đóng lại sau đó, và kiểm tra rằng cả trang Lolly lẫn trang đích đều chưa chuyển đi nơi khác kể từ lúc bạn phê duyệt yêu cầu.
 - `scripting` - chạy trình đọc một trang bên trong trang web bạn chỉ định, dành cho nguồn Website của Brand Studio.
 - `storage` - ghi lại id của một tab đã mở, chỉ trong bộ nhớ phiên (session storage), để tab vẫn được đóng nếu trình duyệt tạm dừng tiện ích mở rộng giữa chừng lúc đọc. Được xóa vào lần khởi động tiếp theo; không có gì về bạn được lưu trữ.
-- `host_permissions: ["<all_urls>"]` - quyền truy cập host tới *mọi* trang web, vì bạn có thể trỏ nó tới bất kỳ URL nào bạn chọn. Chrome hiển thị điều này lúc cài đặt như một cảnh báo rộng "read and change all your data on all websites".
+- `optional_host_permissions: ["http://*/*", "https://*/*"]` - quyền truy cập trang web, không được cấp lúc cài đặt. Khi bạn nhấn **Approve once**, tiện ích mở rộng xin Chrome quyền truy cập đúng một trang web trong yêu cầu đó, và Chrome hỏi bạn lần đầu cho từng trang web.
 
-Bất chấp cảnh báo đó, nó chỉ đọc đúng một trang bạn yêu cầu chụp hoặc nhập vào, và nó không đọc hay truyền dữ liệu duyệt web của bạn - không có gì được tải lên bất cứ đâu.
+Nó chỉ đọc đúng một trang bạn phê duyệt, và nó không đọc hay truyền dữ liệu duyệt web của bạn - không có gì được tải lên bất cứ đâu.
 
-Manifest cũng thiết lập `minimum_chrome_version: 111`. Phiên bản hiện tại là 0.2.1.
+Manifest cũng thiết lập `minimum_chrome_version: 111`. Phiên bản hiện tại là 0.4.0.
 
 ## Khắc phục sự cố
 
 - **Vẫn thấy "Get the extension"?** Tải lại tab Lolly - việc phát hiện diễn ra khi tải trang.
-- **Không có gì xảy ra trên trang này?** Tiện ích mở rộng chỉ kích hoạt trên các nguồn gốc của chính Lolly. Đang chạy một bản build tùy chỉnh trên tên miền khác? Thêm nó vào `content_scripts.matches` trong `manifest.json` của tiện ích mở rộng.
-- **Chụp bị lỗi?** Kiểm tra xem URL có truy cập được không và có bắt đầu bằng `http://` hoặc `https://` không. Một số trang chủ động chặn việc chụp tự động.
+- **Không có gì xảy ra trên trang này?** Tiện ích mở rộng chỉ hoạt động trên `https://lolly.tools`, cộng với `http://localhost:5173` trong gói phát triển. Một nguồn gốc khác, chẳng hạn bản Lolly tự lưu trữ, cần một bản build tiện ích mở rộng riêng liệt kê nguồn gốc đó trong cả `manifest.json` lẫn `policy.js`. Chỉ sửa manifest không còn hiệu quả nữa.
+- **Chụp bị lỗi?** Kiểm tra xem URL có truy cập được không và có bắt đầu bằng `http://` hoặc `https://` không. Một số trang chủ động chặn việc chụp tự động. Nếu bạn đã nhấn **Cancel**, đóng cửa sổ phê duyệt hoặc chờ quá 30 giây, hãy bắt đầu chụp lại.

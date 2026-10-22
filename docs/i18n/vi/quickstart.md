@@ -4,7 +4,7 @@ Lolly biến các quy tắc của bạn - màu sắc, kiểu chữ, bố cục, 
 
 Đây là trang bạn nên đọc trước tiên. Hai việc giúp bạn bắt tay vào làm ngay: **biến Lolly thành của bạn** và **mang vào những gì bạn đã có** (các tệp thiết kế và token của bạn). Mọi thứ khác chỉ cách một liên kết.
 
-> Mới biết Lolly và chỉ muốn làm ra thứ gì đó? [Làm một thứ gì đó trong 60 giây](/info/make-something.html) sẽ dẫn bạn qua ba ví dụ, hoặc [mở ứng dụng](/#/), chọn bất kỳ công cụ nào trong thư viện, điền vào các ô trống rồi bấm **Export**. Quay lại đây khi bạn muốn nó mang thương hiệu *của bạn*.
+> Mới biết Lolly và chỉ muốn làm ra thứ gì đó? [Tạo tệp đầu tiên của bạn](/info/make-something.html) sẽ dẫn bạn làm một mã QR, hoặc [mở ứng dụng](/#/), chọn bất kỳ công cụ nào trong thư viện, điền vào các ô trống rồi bấm **Export**. Quay lại đây khi bạn muốn nó mang thương hiệu *của bạn*.
 
 ![Màn hình Utilities - những công cụ chạy ngay trên thiết bị như Strip Hidden Data, Compress PDF và Convert Image, gom về một chỗ](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

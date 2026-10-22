@@ -4,7 +4,7 @@ Lolly menukar peraturan anda - warna, tipografi, susun atur, logik - menjadi ala
 
 Inilah halaman pertama yang perlu dibaca. Dua perkara menjadikan anda produktif: **jadikan Lolly milik anda** dan **bawa masuk apa yang anda sudah ada** (fail reka bentuk dan token anda). Selebihnya hanya sepautan jauhnya.
 
-> Baru mengenal Lolly dan hanya mahu menghasilkan sesuatu? [Hasilkan sesuatu dalam 60 saat](/info/make-something.html) membimbing anda melalui tiga, atau [buka aplikasi](/#/), pilih mana-mana alat daripada galeri, isi ruang kosong dan tekan **Export**. Kembali ke sini apabila anda mahu ia memakai jenama *anda*.
+> Baru mengenal Lolly dan hanya mahu menghasilkan sesuatu? [Buat fail pertama anda](/info/make-something.html) membimbing anda membuat kod QR, atau [buka aplikasi](/#/), pilih mana-mana alat daripada galeri, isi ruang kosong dan tekan **Export**. Kembali ke sini apabila anda mahu ia memakai jenama *anda*.
 
 ![Paparan Utilities - alat kerja harian atas peranti seperti Strip Hidden Data, Compress PDF dan Convert Image, semuanya di satu tempat](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

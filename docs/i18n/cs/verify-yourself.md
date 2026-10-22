@@ -6,7 +6,7 @@ Pokud kterákoli kontrola na téhle stránce nedá výsledek, jaký je uvedený,
 
 ## Vidíš to fungovat, za deset sekund
 
-Než přijdou postupy, tady je odměna. Otevři [`/verify`](/#/verify) a přetáhni na něj soubor - žádný upload, žádný účet, žádné čekání na server. Tady kontroluje [vygenerovanou bouři nad Queenslandem](/info/ai-stance.html) ze stránky o našem přístupu k AI: obrázek z Gemini, který Lolly otevřela, zmenšila a exportovala. Každý odznak níže byl spočítaný přímo na zařízení, ze samotných bajtů souboru.
+Než přijdou postupy, tady je odměna. Otevři [`/verify`](/#/verify) a přetáhni na něj soubor - žádný upload, žádný účet, žádné čekání na server. Tady kontroluje [vygenerovanou bouři nad Queenslandem](/info/ai-stance.html) ze stránky o našem přístupu k AI: obrázek z Gemini, který Lolly otevřela, opatřila vodoznakem a exportovala. Každý odznak níže byl spočítaný přímo na zařízení, ze samotných bajtů souboru.
 
 ![Verify na obrazovce o šířce telefonu - obrázek bouře, zelený verdikt Made with Lolly a pod ním naskládané odznaky neporušený certifikát a nezměněné bajty](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

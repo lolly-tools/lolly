@@ -4,7 +4,7 @@ Lolly trasforma le tue regole - colori, tipografia, layout, logica - in strument
 
 Questa è la prima pagina da leggere. Due cose ti rendono operativo: **rendi Lolly tuo** e **porta con te quello che hai già** (i tuoi file di design e i tuoi token). Tutto il resto è a un link di distanza.
 
-> Sei nuovo di Lolly e vuoi solo creare qualcosa? [Crea qualcosa in 60 secondi](/info/make-something.html) te ne fa creare tre, oppure [apri l'app](/#/), scegli uno strumento qualsiasi dalla galleria, compila i campi e premi **Esporta**. Torna qui quando vorrai che indossi *il tuo* brand.
+> Sei nuovo di Lolly e vuoi solo creare qualcosa? [Crea il tuo primo file](/info/make-something.html) ti guida a creare un codice QR, oppure [apri l'app](/#/), scegli uno strumento qualsiasi dalla galleria, compila i campi e premi **Esporta**. Torna qui quando vorrai che indossi *il tuo* brand.
 
 ![La vista Utility - i cavalli di battaglia che lavorano sul dispositivo, come Rimuovi dati nascosti, Comprimi PDF e Converti immagine, tutti in un unico posto](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

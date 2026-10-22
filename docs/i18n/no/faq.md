@@ -20,7 +20,7 @@ Lolly produserer store mengder innhold. Vi følger en streng dataminimering for 
 
 Lolly ble utviklet med AI-assistert koding, AI-assistert oppdagelse og, mange steder, AI-assistert innhold, med en blanding av modeller og leverandører, inkludert ledende selskaper innen offentlig skyteknologi.
 
-På tidspunktet dette ble skrevet, inneholder Lolly null kjente sikkerhetssårbarheter i forsyningskjeden og forplikter seg til rask sikkerhetsrespons når CVE-er dukker opp.
+En høy eller kritisk sikkerhetsmelding i Lollys avhengigheter blokkerer CI. En melding som ikke kan rettes ennå, holdes tilbake bare som et godkjent unntak med en skriftlig begrunnelse. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) lister hvert unntak som gjelder i dag, og [versjonsmerknadene](https://github.com/lolly-tools/lolly/releases) lister de hver utgivelse bærer. SECURITY.md forklarer også hvordan du melder fra om en sårbarhet.
 
 Et menneske skapte arkitekturen, kuraterte koden med hensikt og artdirigerte opplevelsen.
 
@@ -52,7 +52,9 @@ Funksjonsflagg slår deler av Lolly av og på. Vanligvis er det en administrator
 
 ## Hvordan får jeg tak i mobil- eller skrivebordsappene?
 
-Hvem som helst kan distribuere sine egne apper, og verktøyene og oppsettet i dem vil variere mye ut fra hvilket publikum de er laget for. Derfor finnes det ingen enkelt app, med mindre du har laget den selv eller noen relevant gir deg den.
+Last dem ned fra [Installer Lolly](/info/install.html). Siden lister hvert bygg for macOS, Windows, Linux og Android, og viser hvordan du sjekker filen du lastet ned. iPhone og iPad har ingen offentlig nedlasting ennå; [avsnittet om iPhone og iPad](/info/install.html#iphone-and-ipad) sier hva du kan bruke i stedet.
+
+Hvem som helst kan også bygge og dele ut sin egen kopi av appen, med verktøyene og innstillingene målgruppen trenger. [Byggeveiledningen](/info/build-guide.html) viser hvordan.
 
 ## Hvorfor navnet «Lolly Tools»?
 
@@ -127,7 +129,7 @@ Lag kommer inn som redigerbare bokser på det åpne lerretet: tekst kan fortsatt
 
 ## Hvor er det jeg lagde i går?
 
-Hvis du trykte på **Lagre som** eller **Lagre**, er det i **Prosjekter**, på hjemskjermen, i nettleseren eller appen du lagret fra. Hvis du bare trykte på **Last ned**, er filen der nettleseren eller systemet ditt lagrer nedlastinger, og som regel ligger en kopi i **Ressurser**. Ni verktøy beholder også ulagret arbeid i **Prosjekter**. [Finn og gjenopprett arbeidet ditt](/info/find-your-work.html) dekker hvert tilfelle.
+Hvis du trykte på **Lagre som** eller **Lagre**, er det i **Prosjekter**, på hjemskjermen, i nettleseren eller appen du lagret fra. Hvis du bare trykte på **Last ned**, er filen der nettleseren eller systemet ditt lagrer nedlastinger, og som regel ligger en kopi i **Ressurser**. Verktøy som [lagrer mens du jobber](/info/find-your-work.html#which-tools-save-as-you-work) beholder også ulagret arbeid i **Prosjekter**. [Finn og gjenopprett arbeidet ditt](/info/find-your-work.html) dekker hvert tilfelle.
 
 ## Jeg lukket fanen. Er arbeidet mitt borte?
 
@@ -143,7 +145,7 @@ Ja. Én person deler en invitasjon (en lenke, en QR-kode eller en kort kode), de
 
 ## Hvor ble det av de SUSE-merkede verktøyene?
 
-De ligger allerede i et eget, privat repositorium. En offentlig klone henter ikke SUSE-merkevarepakken i det hele tatt, så et offentlig bygg kjører den nøytrale profilen `lolly-start` - de merkevareuavhengige fellesskapsverktøyene pluss en tom merkevare du fyller inn med din egen. SUSE drifter sin egen instans for å beskytte varemerkene sine.
+De ligger allerede i et eget, privat repositorium. En offentlig klone henter ikke SUSE-merkevarepakken i det hele tatt, så et bygg fra den bruker den nøytrale profilen `lolly-start` med mindre du velger en annen - de merkevareuavhengige fellesskapsverktøyene pluss en tom merkevare du fyller inn med din egen. [lolly.tools](https://lolly.tools) bygges med profilen `lolly-demo` og åpner i [Lolly Demo](/info/lolly-demo.html), Lollys eget designsystem. SUSE drifter sin egen instans for å beskytte varemerkene sine.
 
 ## Hvorfor er det gratis? Hva er haken?
 
@@ -153,7 +155,7 @@ Den grensa er trukket i lisensen, ikke i et løfte: alt som kjører lokalt, er g
 
 ## Hvor mye holder SUSE privat? (altså: når blir teppet dratt vekk?)
 
-Motoren, skallene, skjemaene og de merkevareuavhengige verktøyene er åpen kildekode; SUSEs varemerker og merkede verktøy er den delen som forblir privat, og de er allerede skilt ut. Den offentlige instansen på [lolly.tools](https://lolly.tools) kjører på den blanke merkevaren.
+Motoren, skallene, skjemaene og de merkevareuavhengige verktøyene er åpen kildekode; SUSEs varemerker og merkede verktøy er den delen som forblir privat, og de er allerede skilt ut. Den offentlige instansen på [lolly.tools](https://lolly.tools) kjører [Lolly Demo](/info/lolly-demo.html), Lollys eget designsystem.
 
 Grensa er strukturell, ikke lovet. Hver utgitte versjon er åpen kildekode og kan ikke trekkes tilbake, det finnes ingen bidragsyteravtale som kunne gitt noens arbeid en ny lisens, og det eneste som holdes tilbake, er varemerket. Da et annet selskap lukket kildekoden til sin enterprise-Linux i 2023, var SUSE med på å grunnlegge [OpenELA](https://openela.org) for å holde den koden åpen - den samme holdningen som dette prosjektet arver.
 

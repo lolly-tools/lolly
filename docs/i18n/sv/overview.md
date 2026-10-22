@@ -4,7 +4,7 @@
 
 Det här dokumentet beskriver syftet, strukturen och de arkitektoniska besluten för Lolly-plattformen. Det speglar både produktvisionen och kodbasens nuvarande tillstånd.
 
-> **Status:** Lolly är en intern prototyp i en **sluten pilot som ännu inte är avslutad**. Motorn är deterministisk och internt konsekvent, men produkten är tidig - SUSE är kund nummer ett - och dess kryptografi- och filtolkningsmotorer genomgår för närvarande SUSE:s strikta infrastrukturhärdning inför enterprise-skala (vi är riktigt bra på det här). Läs arkitekturen nedan som designintention under test, inte en färdig, certifierad produkt. Se [Adoption & Governance](/info/adoption-governance.html#status) för hur piloten drivs och mäts.
+> **Status:** Lolly är släppt. Version 1.0 släpptes som öppen källkod under MPL-2.0 den 30 augusti 2026, och funktioner, standardvärden och verktygskatalogen ändras fortfarande mellan versionerna. Motorn är [deterministisk](/info/determinism.html), med en och samma renderingsväg bakom varje skal. Dess säkerhet har ännu inte granskats av en oberoende part, och adoptionsunderlaget är några månader gammalt. Se [Adoption & Governance](/info/adoption-governance.html#status) för det aktuella läget och hur adoption mäts.
 
 > **Så läser du den här sidan.** Den innehåller två sorters material, i ordning. Första halvan är
 > **varför det här finns**: problemet, positioneringen och livscykeln en enskild tillgång går

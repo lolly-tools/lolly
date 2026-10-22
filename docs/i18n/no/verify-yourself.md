@@ -6,7 +6,7 @@ Hvis en sjekk på denne siden ikke gir resultatet som vises, er det enten en fei
 
 ## Se det fungere, på ti sekunder
 
-Før prosedyrene, gevinsten. Åpne [`/verify`](/#/verify) og slipp en fil på den - ingen opplasting, ingen konto, ingen venting på en server. Her sjekker den det [genererte Queensland-uværet](/info/ai-stance.html) fra vår AI-holdning-side: et Gemini-bilde Lolly åpnet, endret størrelse på og eksporterte. Hvert merke under ble beregnet på enheten, ut fra filens egne bytes.
+Før prosedyrene, gevinsten. Åpne [`/verify`](/#/verify) og slipp en fil på den - ingen opplasting, ingen konto, ingen venting på en server. Her sjekker den det [genererte Queensland-uværet](/info/ai-stance.html) fra vår AI-holdning-side: et Gemini-bilde Lolly åpnet, vannmerket og eksporterte. Hvert merke under ble beregnet på enheten, ut fra filens egne bytes.
 
 ![Verify på en telefonbredde-skjerm - uværsbildet, en grønn Made with Lolly-dom og merkene for intakt legitimasjon og uendrede bytes stablet under den](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

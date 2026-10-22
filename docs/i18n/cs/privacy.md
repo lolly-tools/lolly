@@ -1,6 +1,6 @@
 # Zásady ochrany osobních údajů
 
-*Naposledy aktualizováno: 11. srpna 2026*
+*Naposledy aktualizováno: 22. října 2026*
 
 > **Krátká verze.** Dokumenty, obrázky, videa a soubory, které v Lolly vytvoříš, zůstávají
 > na tvém zařízení. Pro běžné použití nejsou potřeba žádné účty, appka sama
@@ -94,9 +94,9 @@ tady není, aplikace to nedělá.
 | Co | Co skutečně opustí tvé zařízení | Kdy (úkon, který to spustí) | Pokud to operátor zablokuje |
 |---|---|---|---|
 | Synchronizace katalogu nástrojů | Nic osobního - požadavek na veřejný index nástrojů a assetů Lolly, na vlastní origin aplikace | Při spuštění, poté uloženo do mezipaměti pro offline použití | Aplikace běží na uložené sadě nástrojů v mezipaměti. Přestane pouze objevovat nové nástroje |
-| Nástroj, který potřebuje živá data | Cokoliv si daný konkrétní nástroj vyžádá, na hostitele uvedeného přímo v jeho vlastním popisu. Dnes je to jen vyhledávání měst v nástroji Meeting Planner, který se dotazuje `geocoding-api.open-meteo.com`, aby převedl název města na souřadnice a časové pásmo - žádný účet, žádný klíč a žádný identifikátor kromě samotného požadavku. Vstupní pole to uvádí přímo tam, kde píšeš, a každá odpověď se uloží na tvé zařízení, takže se město vyhledá jen jednou | Jen při používání daného nástroje, a jen poté, co zadáš lokaci | To jedno vyhledání selže. Souřadnice můžeš stále zadat ručně a nic dalšího to neovlivní |
+| Nástroj, který potřebuje živá data | Cokoliv si daný konkrétní nástroj vyžádá, na hostitele uvedeného přímo v jeho vlastním popisu. Dnes je to jen vyhledávání měst v nástroji Meeting Planner, který se dotazuje `geocoding-api.open-meteo.com`, aby převedl každý název města (město pořadatele i město každého člena týmu) na souřadnice a časové pásmo - žádný účet, žádný klíč a žádný identifikátor kromě samotného požadavku. Vstupní pole pro město pořadatele (Host city) to uvádí a každá odpověď se uloží na tvé zařízení, takže se město vyhledá jen jednou | Jen když je daný nástroj otevřený, pro město pořadatele (vyplněné ve výchozím stavu) a město každého člena týmu | Toto vyhledání selže a nic dalšího to neovlivní |
 | Google Fonts | Název zvolené rodiny písma a tvá IP adresa, na servery Google s písmy (`fonts.googleapis.com` pro styly, `fonts.gstatic.com` pro soubor s písmem) | Jen pokud přidáš Google Font v editoru značky, **a jen poté, co s tím souhlasíš v dialogu, který přesně toto říká** - jednorázové stažení pro každou rodinu, poté zůstává na tvém zařízení a používá se offline | Výběr Google Fonts selže bezpečně - zůstane zablokovaný. Místo toho nahraj soubor s písmem |
-| Send to Google Drive | Ten jeden soubor, který ses rozhodl odeslat, na Google Drive API (`www.googleapis.com`), po přihlášení přes Google, které dokončíš ve vlastním vyskakovacím okně Google. Přístup Lolly je omezen na soubory, které sama vytvořila (rozsah `drive.file` - nikdy nemůže číst zbytek tvého Disku), a přihlašovací token je držen v paměti jen po dobu relace, nikdy se neukládá | Jen když stiskneš "Send to Google Drive" u exportu EMF, a jen ve verzích, kde operátor nakonfiguroval Google client id - bez něj tlačítko neexistuje | Tlačítko se nikdy nezobrazí. Soubor si stáhni a na Disk nahraj sám |
+| Send to Google Drive | Ten jeden soubor, který ses rozhodl odeslat, v libovolném formátu, na Google Drive API (`www.googleapis.com`), po přihlášení přes Google, které dokončíš ve vlastním okně Google. Přístup Lolly je omezen na soubory, které sama vytvořila (rozsah `drive.file` - nikdy nemůže číst zbytek tvého Disku). Ve webové aplikaci je přihlašovací token držen v paměti jen po dobu relace, nikdy se neukládá; v ostatních aplikacích se obnovovací token ukládá jen na tomto zařízení, pokud zaškrtneš "stay connected" | Jen když stiskneš "Send to Google Drive" u souboru, a jen ve verzích, kde operátor nakonfiguroval Google client id - bez něj tlačítko neexistuje | Tlačítko se nikdy nezobrazí. Soubor si stáhni a na Disk nahraj sám |
 | Send to Dropbox | Ten jeden soubor, který ses rozhodl odeslat, na Dropbox API (`api.dropboxapi.com` pro přihlášení a metadata, `content.dropboxapi.com` pro samotný soubor), po přihlášení přes Dropbox, které dokončíš ve vlastním okně Dropboxu. Přístup Lolly je omezen jen na složku aplikace (vidí jen `Apps/` a svou vlastní složku v ní - nikdy zbytek tvého Dropboxu), odkaz "Open", který ti ukáže, je krátkodobý soukromý odkaz (nevytváří se žádné veřejné sdílení) a obnovovací token se uloží jen pokud zaškrtneš "stay connected" | Jen když stiskneš "Send to Dropbox" u souboru, a jen ve verzích, kde operátor nakonfiguroval Dropbox client id - bez něj tlačítko neexistuje | Tlačítko se nikdy nezobrazí. Soubor si stáhni a do Dropboxu nahraj sám |
 | Send to OneDrive | Ten jeden soubor, který ses rozhodl odeslat, na identitní a Graph služby Microsoftu (`login.microsoftonline.com` pro přihlášení, `graph.microsoft.com` pro nahrání; velký soubor se nahrává po částech na nahrávací adresu vlastněnou Microsoftem na `api.onedrive.com`, `*.up.1drv.com` nebo `*.sharepoint.com`), po přihlášení přes Microsoft, které dokončíš ve vlastním okně Microsoftu. Přístup Lolly je omezen na vlastní složku pod `Apps/` (nikdy nemůže číst zbytek tvého OneDrive) plus tvé zobrazované jméno pro popisek účtu, a obnovovací token se uloží jen pokud zaškrtneš "stay connected" | Jen když stiskneš "Send to OneDrive" u souboru, a jen ve verzích, kde operátor nakonfiguroval Microsoft client id - bez něj tlačítko neexistuje | Tlačítko se nikdy nezobrazí. Soubor si stáhni a do OneDrive nahraj sám |
 | Send to LinkedIn | Ten jeden soubor, který ses rozhodl odeslat, plus jeho název jako text příspěvku, na LinkedIn (`www.linkedin.com` pro přihlášení, `api.linkedin.com` pro nahrání a příspěvek), po přihlášení přes LinkedIn, které dokončíš ve vlastním prohlížeči. Příspěvek jde do tvého vlastního feedu jako veřejný příspěvek pod tvým jménem. Lolly může přispívat za tebe a číst tvé jméno pro popisek účtu, nic jiného na tvém LinkedIn, a přihlášení zůstává na tomto zařízení jen pokud zaškrtneš "stay connected" - tokeny LinkedIn vydrží 60 dní a nelze je tiše obnovit, takže samy vyprší | Jen když stiskneš "Send to LinkedIn" u souboru, jen v desktopových aplikacích, a jen ve verzích, kde je nakonfigurovaná aplikace LinkedIn - bez ní tlačítko neexistuje | Ve webové aplikaci není co blokovat: toto existuje jen **v desktopových aplikacích**, takže tyto dva hostitele úmyslně NEJSOU v Content-Security-Policy webové aplikace níže. V desktopových aplikacích odeber nakonfigurovanou aplikaci LinkedIn a tlačítko se nikdy nezobrazí |
@@ -144,12 +144,13 @@ server Lolly. Jakákoli jiná výjimka je výslovně uvedená v sekcích níže.
 je podpisový klíč souboru zveřejněný v DNS. Prohlížeče neumí dělat DNS dotazy, takže jakákoli
 webová implementace musí vyhledávání směrovat přes resolver DNS-over-HTTPS třetí strany -
 což by tomuto provozovateli ukázalo kontrolovanou doménu plus tvoji IP adresu. Dřív jsme
-používali resolver Cloudflare. **Už ho nepoužíváme a náhrada neexistuje**: webová aplikace
-teď nepředává žádný resolver vůbec, takže ověřování SEAL tady nedělá žádné síťové požadavky.
-Soubory, jejichž záznam SEAL nese klíč přímo v sobě, se dál ověřují úplně offline. Soubory,
-jejichž klíč žije v DNS, hlásí "no key resolver" místo toho, a ty je můžeš zkontrolovat v
-desktopové nebo příkazové aplikaci, které DNS rozlišují nativně přes tvůj vlastní počítač bez
-zapojení třetí strany.
+používali resolver Cloudflare. **Už ho nepoužíváme a náhrada neexistuje**: Verify teď
+nepředává žádný resolver vůbec, takže ověřování SEAL nedělá žádné síťové požadavky.
+Žádná aplikace Lolly dnes klíče SEAL v DNS nevyhledává: desktopová a mobilní aplikace
+spouštějí stejný pohled Verify a příkazový řádek `lolly validate` SEAL nekontroluje.
+Soubor, jehož záznam SEAL nese klíč přímo v sobě, se kontroluje offline a Verify označí
+podpis za vnitřně konzistentní, aniž by potvrdil doménu. Soubor, jehož klíč žije jen v DNS,
+ukáže **SEAL signature did not verify** s důvodem "no key resolver and no inline key".
 
 ![Obrazovka Verify: cíl pro přetažení a nic víc - soubor se kontroluje tam, kde už je, bez nahrávání a bez účtu](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop) Můžeš si to ověřit sám: greppovatelné kontroly k tomuto i každému
 dalšímu tvrzení na této stránce, s přesnými příkazy a očekávaným výstupem, najdeš na
@@ -207,9 +208,10 @@ slovy uvede, kam by tvoje bajty šly ještě předtím, než
 nějaké pošleš: na self-hostovaném lokálním serveru prezentace nikdy neopustí ten
 stroj; na hostovaném serveru volání `lolly_rebrand` tam prezentaci pošle, až
 do limitu velikosti a počtu snímků, který udává tatáž fáze.
-- <!--i:checklist--> Každý další nástroj - `lolly_render`, `lolly_build_url`, `lolly_list_tools`, `lolly_describe_tool`
-- pracuje jen s parametry (text, čísla, barvy, URL, id
-assetů katalogu), stejnými vstupy, jaké přijímá hot-link render URL.
+- <!--i:checklist--> Nástroje pro obrázky (`lolly_look`, `lolly_sample_color` a
+  `lolly_trace_edges`) mohou také přijmout soubor s obrázkem od volajícího, zpracovaný
+  stejně: v paměti, jen pro toto volání. Každý další nástroj pracuje s parametry
+  ve volání: text, čísla, barvy, URL, id assetů katalogu nebo dokument, který volající dodá.
 - <!--i:lock--> Přístup je buď sdílený token, který provozovatel vydává klientům,
 kterým důvěřuje, nebo bezstavové OAuth 2.1: krátkodobé podepsané tokeny ověřované proti
 sdílenému tajemství, nic se neukládá na straně serveru a samotný
@@ -264,34 +266,53 @@ těchto dat.
 
 ## Rozšíření prohlížeče
 
-Rozšíření prohlížeče **Lolly URL Screenshot** nesbírá, neukládá ani nepřenáší
-žádná osobní data. Žádná analytika, žádné sledování, žádný vzdálený server.
+Rozšíření prohlížeče **Lolly URL Screenshot** pro nás nesbírá žádná osobní data.
+Nemá žádnou analytiku, žádné sledování a žádný vlastní server. Stránka
+[Rozšíření prohlížeče](/info/extension.html) popisuje, jak funguje.
 
-**Co to dělá.** Když požádáš webovou aplikaci Lolly, aby vyfotila snímek obrazovky URL, rozšíření
-otevře danou stránku v dočasné pozadí kartě, zachytí ji ve tvém prohlížeči
-pomocí protokolu DevTools, předá obrázek zpět aplikaci a kartu zavře.
-Všechno se odehrává lokálně, na tvém vlastním zařízení a síti.
+**Co to dělá.** Webová aplikace Lolly si od něj může vyžádat snímek webové stránky,
+nebo obsah stránky, aby založila design systém z webu. Každý požadavek otevře v rozšíření
+okno schválení, které ukáže žádající web, zda chce snímek, nebo obsah stránky, a adresu
+stránky. Teprve když stiskneš **Approve once**, rozšíření otevře tu stránku v dočasné
+záložce na pozadí, pořídí snímek nebo stránku přečte, předá výsledek záložce Lolly,
+která o něj požádala, a záložku zavře. Každý požadavek potřebuje své vlastní
+schválení.
 
 **Data.**
 
-- <!--i:shieldcheck--> **Nesbíráme nic.** Rozšíření nemá žádné servery a nevytváří žádné vlastní síťové
-  požadavky.
-- <!--i:photos--> **Zachycené obrázky** jdou přímo do aplikace Lolly ve stejném prohlížeči - nikdy je
-  rozšíření nikam nenahrává.
-- <!--i:link--> **URL, které zachytíš** se použijí jen k načtení té jedné stránky pro ten jeden
-  snímek obrazovky. Nezaznamenávají se ani nesdílejí.
+- <!--i:shieldcheck--> **Nesbíráme nic.** Výsledek jde jen do stránky Lolly, která o něj
+  požádala, ve stejném prohlížeči. Rozšíření neukládá žádný obsah stránek
+  a nepřidává žádného dalšího příjemce.
+- <!--i:globe--> **Síťové požadavky.** Stránka, kterou schválíš, se načte tak, jak by se
+  načetla v jakékoli záložce, spolu se vším, co si sama vyžádá. Čtení obsahu stránky
+  také stáhne stylesheety té stránky a několik jejích ikon a log, zevnitř stránky,
+  a tato stahování neposílají žádné cookies na jiné weby. Rozšíření nevytváří žádné
+  jiné požadavky a žádný nejde na server Lolly.
+- <!--i:lock--> **Tvá relace v prohlížeči.** Stránka se načte s tvou relací v prohlížeči,
+  stejně jako kdyby sis ji otevřel sám, takže stránka, do které jsi přihlášený,
+  může do výsledku dostat soukromé informace.
+- <!--i:link--> **Adresy, které schválíš,** se použijí jen k načtení té jedné stránky
+  pro ten jeden požadavek. Nezaznamenávají se ani nesdílejí.
 
 **Oprávnění.**
 
-- <!--i:wrench--> **`debugger`** - k zachycení vykreslené stránky přes protokol DevTools (stejný
+- <!--i:wrench--> **`debugger`** - k pořízení snímku přes protokol DevTools (stejný
   mechanismus, jaký používá desktopová aplikace Lolly).
-- <!--i:monitor--> **`tabs`** - k otevření a zavření dočasné karty, ve které se stránka načte.
-- <!--i:globe--> **Přístup k hostitelům (`<all_urls>`)** - protože stránka, kterou se rozhodneš zachytit,
-  může být na jakémkoli webu. Chrome to při instalaci zobrazí jako široké
-  varování o oprávnění. Rozšíření ale vždy navštíví jen URL, kterou mu zadáš.
+- <!--i:monitor--> **`tabs`** - k otevření a zavření dočasné karty a k ověření,
+  že se od tvého schválení nepřesunula ani stránka Lolly, ani cílová stránka.
+- <!--i:code--> **`scripting`** - ke čtení obsahu stránky v dočasné záložce,
+  až poté, co ten požadavek schválíš.
+- <!--i:database--> **`storage`** - k zapsání id jejích dočasných záložek do
+  úložiště relace, aby se záložky zavřely, i když prohlížeč rozšíření během
+  požadavku zastaví. Neukládá se žádný obsah stránek.
+- <!--i:check--> **Volitelný přístup k webům (`http://*/*`, `https://*/*`)** - neuděluje se
+  při instalaci. Když stiskneš **Approve once**, rozšíření požádá Chrome o přístup
+  k jedinému webu z daného požadavku a Chrome se tě zeptá při prvním použití každého
+  webu. Web, který jsi povolil dříve, stále potřebuje nové schválení pro každý
+  požadavek.
 
 Nic z toho se nepoužívá ke čtení, sledování ani přenosu tvého prohlížení nad rámec
-toho jednoho požadovaného zachycení.
+jednoho požadavku, který jsi schválil.
 
 ## Infrastrukturní logy
 
@@ -304,11 +325,15 @@ Jedinou záměrnou výjimkou je soubor, který výslovně předáš volání MCP
 `lolly_verify`, `lolly_redact` nebo `lolly_rebrand`, které se zpracuje v paměti a nikdy
 se nezapíše na disk ani do logu, jak je popsáno výše.
 
-**Vlastní kód Lolly do těchto logů nic nezapisuje.** Server MCP neobsahuje žádné
-logovací příkazy. Certifikační služba vypíše přesně dva řádky, oba jen při selhání a oba
-záměrně ořezané: stavový kód selhání odeslání bez adresy příjemce a chybovou
-zprávu bez stack trace nebo URL (stack trace by mohl nést registrační token). Všechno
-ostatní v logu patří hostingové platformě, ne nám.
+**Veřejné služby omezují aplikační logování na minimum.** Server MCP loguje
+spuštění, konfiguraci a varování při renderování; nevede žádný vlastní log požadavků
+a neloguje tokeny ani adresy volajících. Průchozí vrstva pro Penpot loguje název každého
+příkazu a stavový kód odpovědi Penpotu, nikdy hlavičky, tokeny ani soubor.
+Certifikační služba loguje své spouštěcí nastavení a varování konfigurace plus dva
+ořezané řádky při selhání: stavový kód selhání odeslání bez adresy příjemce a pevný
+řádek o selhání bez textu chyby, stack trace nebo URL (chyba poskytovatele může nést
+identity nebo přihlašovací údaje). Všechno ostatní v logu patří hostingové platformě,
+ne nám.
 
 Pro lolly.tools je hostingem Vercel a doba uchovávání přístupových logů se řídí
 vlastními výchozími hodnotami platformy Vercel pro náš tarif. Nekonfigurujeme žádný odvod logů, žádný
@@ -398,6 +423,13 @@ Datum nahoře se mění pokaždé, když se změní tento dokument. Změna, kter
 co opustí tvé zařízení nebo co se uchovává, dostane svůj vlastní řádek tady, ne tichou
 úpravu - pokud chceš vidět, co se změnilo, zeptej se (níže) nebo porovnej se
 [veřejným zdrojem](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
+
+**22. října 2026:** opraven popis stávajícího chování. Sekce o rozšíření prohlížeče
+nyní zahrnuje okno schválení pro každý požadavek, přístup k webům vyžadovaný po jednom
+webu a stahování stylesheetů a ikon při čtení webu. Opraveny jsou také řádky Send to
+Google Drive a Meeting Planner, poznámka o SEAL (žádná aplikace Lolly nevyhledává klíče
+SEAL v DNS), výchozí úroveň telemetrie používání u organizační služby, nástroje MCP pro
+obrázky a aplikační logování veřejných služeb. Samotný software se nezměnil.
 
 ## Kdo je odpovědný a jak nás kontaktovat
 

@@ -4,7 +4,7 @@ Lolly gör dina regler - färger, typografi, layouter, logik - till verktyg som 
 
 Det här är sidan du bör läsa först. Två saker gör dig produktiv: **gör Lolly till din** och **ta in det du redan har** (dina designfiler och tokens). Allt annat är en länk bort.
 
-> Ny på Lolly och vill bara skapa något? [Skapa något på 60 sekunder](/info/make-something.html) går igenom tre stycken, eller [öppna appen](/#/), välj valfritt verktyg från galleriet, fyll i fälten och tryck på **Exportera**. Kom tillbaka hit när du vill att det ska bära *ditt* varumärke.
+> Ny på Lolly och vill bara skapa något? [Skapa din första fil](/info/make-something.html) går igenom en QR-kod, eller [öppna appen](/#/), välj valfritt verktyg från galleriet, fyll i fälten och tryck på **Exportera**. Kom tillbaka hit när du vill att det ska bära *ditt* varumärke.
 
 ![Verktygsvyn - arbetshästarna som körs på enheten, som Ta bort dold data, Komprimera PDF och Konvertera bild, samlade på ett ställe](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

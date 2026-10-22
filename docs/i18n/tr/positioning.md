@@ -4,7 +4,7 @@ Lolly'nin bugünün yaratıcı araçlarının yapmadığını yaptığı şeyler
 
 Araç araç karşılaştırma için - Canva, Adobe, Figma, render API'leri ve çevrimiçi dönüştürücüler için birer sayfa - [Lolly compared, tool by tool](/info/compare.html) sayfasına bak. Her sayfa diğer aracın neyi daha iyi yaptığını ve Lolly'nin bunun yerine neyi yaptığını belirtir.
 
-> **Pilot durumu:** Lolly kapalı bir pilot prototiptir, bitmiş bir ürün değildir ve güvenliği şu anda kurumsal ölçeğe hazırlanarak SUSE'nin sıkı altyapı sertleştirmesinden geçmektedir. [Adoption & Governance](/info/adoption-governance.html#status) sayfası mevcut durumu ele alıyor.
+> **Durum:** Lolly yayımlandı: 1.0 sürümü 30 Ağustos 2026'da açık kaynak olarak çıktı. Güvenliği henüz bağımsız bir denetimden geçmedi ve benimsenme kanıtı birkaç aylıktır. [Adoption & Governance](/info/adoption-governance.html#status) sayfası mevcut durumu ele alıyor.
 
 ## Bugünün araçları
 
@@ -14,7 +14,7 @@ Aşağıdaki her halka, bir ürün sınıfının bir yeteneği **pazarlandığı
 Ağustos 2026'da araştırılan, günümüzün yaratıcı araçları arasındaki yetenek eksiksizliği. Puanlama: 0 yok, 25 iş bitirici düzey, 50 gerçek ama kısıtlı veya kısmi, 75 çekincelerle güçlü, 100 temel yetkinlik.
 :::
 
-**Puanlama notları.** Lolly'nin puanları, yayımlanan iddialarının geçerli olduğunu varsayar; olgunluğun tek kırmızı halkası olmasının nedeni budur: kapalı pilot, devam eden güvenlik sertleştirmesi, henüz denetlenmemiş. Araştırma birkaç hücreyi değiştirdi.
+**Puanlama notları.** Mevcut özellikler ile üretim olgunluğu ayrı hususlardır. Lolly'nin olgunluk puanı, Ağustos 2026'daki ilk herkese açık sürümü ve henüz bağımsız bir güvenlik denetimi olmamasını yansıtır; SSO, onaylar veya sunucu render'ının varlığı üretimde bir geçmiş kaydı oluşturmaz. Aşağıdaki özellik açıklamaları lolly.work'ü içerir; rakip puanları ise tarihli Ağustos incelemesini korur.
 
 Canva, Affinity ve Cavalry'ye sahip olduğundan (ikisi de Ekim 2025'te ücretsize açıldı) her satırda en iyi aile üyesi üzerinden puanlanır. Çevrimdışı ve cihaz üzerinde render, Affinity üzerinden 75 puan alır - hâlâ doğrulanmış bir hesap gerektiren ve telemetri taşıyan bir masaüstü paketi, Adobe'nin de aldığı aynı indirim - Canva'nın kendi çevrimdışı modu ise yalnızca önceden senkronize edilmiş tasarımları, tek bir cihazda, sınırlı bir pencerede düzenler. Otomatik doldurma 50 puan alır: gerçek ama Enterprise'a kilitli, eşzamansız, yalnızca metin ve görsel. Figma'nın kitlesel üretimi, Buzz elektronik tablo doldurmayı gönderdiğinde (ücretsiz beta, Ağustos 2026) 25'ten 50'ye yükseldi.
 

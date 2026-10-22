@@ -6,7 +6,7 @@ Jika mana-mana semakan pada halaman ini tidak menghasilkan keputusan yang ditunj
 
 ## Lihat ia berfungsi, dalam sepuluh saat
 
-Sebelum prosedur, ganjarannya dahulu. Buka [`/verify`](/#/verify) dan lepaskan fail padanya - tiada muat naik, tiada akaun, tiada menunggu pelayan. Ini dia sedang menyemak [ribut Queensland yang dijana](/info/ai-stance.html) daripada halaman pendirian AI kami: imej Gemini yang dibuka, disaiz semula dan dieksport oleh Lolly. Setiap lencana di bawah dikira pada peranti, daripada bait fail itu sendiri.
+Sebelum prosedur, ganjarannya dahulu. Buka [`/verify`](/#/verify) dan lepaskan fail padanya - tiada muat naik, tiada akaun, tiada menunggu pelayan. Ini dia sedang menyemak [ribut Queensland yang dijana](/info/ai-stance.html) daripada halaman pendirian AI kami: imej Gemini yang dibuka, diberi tanda air dan dieksport oleh Lolly. Setiap lencana di bawah dikira pada peranti, daripada bait fail itu sendiri.
 
 ![Verify pada skrin lebar telefon - imej ribut, keputusan hijau Made with Lolly dan lencana credential-intact serta bytes-unchanged bertindan di bawahnya](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

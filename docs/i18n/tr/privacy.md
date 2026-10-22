@@ -1,6 +1,6 @@
 # Gizlilik Politikası
 
-*Son güncelleme: 11 Ağustos 2026*
+*Son güncelleme: 22 Ekim 2026*
 
 > **Kısa versiyon.** Lolly'de oluşturduğun belgeler, görseller, videolar ve dosyalar
 > cihazında kalır. Sıradan kullanım için hesap yoktur, uygulamanın kendisinden
@@ -101,9 +101,9 @@ eksiksiz listesidir. Burada yoksa, uygulama onu yapmıyor demektir.
 | Ne | Cihazından gerçekte ne çıkıyor | Ne zaman (bunu tetikleyen eylem) | Bir operatör bunu engellerse |
 |---|---|---|---|
 | Araç kataloğu eşitleme | Kişisel hiçbir şey yok - Lolly'nin kendi genel araç ve varlık dizini için, uygulamanın kendi kaynağına yapılan bir istek | Başlangıçta, ardından çevrimdışı önbelleğe alınır | Uygulama önbelleğe alınmış araç kümesiyle çalışmaya devam eder. Yalnızca yeni araçları keşfetmeyi durdurur |
-| Canlı veri gerektiren bir araç | O aracın kendi açıklamasında adı geçen sunucuya, ne isterse. Bugün bu yalnızca Toplantı Planlayıcı aracındaki şehir aramasıdır; bu araç bir şehir adını koordinatlara ve saat dilimine çevirmek için `geocoding-api.open-meteo.com` adresine istek gönderir - hesap yok, anahtar yok, isteğin kendisi dışında herhangi bir kimlik belirteci yok. Girdi alanı tam olarak yazdığın yerde bunu belirtir ve her yanıt cihazında kaydedilir, böylece bir şehir yalnızca bir kez aranır | Yalnızca o aracı kullanırken ve yalnızca bir konum girdiğinde | Yalnızca o arama başarısız olur. Koordinatları hâlâ elle yazabilirsin ve başka hiçbir şey etkilenmez |
+| Canlı veri gerektiren bir araç | O aracın kendi açıklamasında adı geçen sunucuya, ne isterse. Bugün bu yalnızca Toplantı Planlayıcı aracındaki şehir aramasıdır; bu araç her şehir adını (ev sahibi şehir ve her ekip üyesinin şehri) koordinatlara ve saat dilimine çevirmek için `geocoding-api.open-meteo.com` adresine istek gönderir - hesap yok, anahtar yok, isteğin kendisi dışında herhangi bir kimlik belirteci yok. **Host city** girdisi bunu belirtir ve her yanıt cihazında kaydedilir, böylece bir şehir yalnızca bir kez aranır | Yalnızca o araç açıkken; ev sahibi şehir (varsayılan olarak doldurulur) ve her ekip üyesinin şehri için | Bu arama başarısız olur ve başka hiçbir şey etkilenmez |
 | Google Fonts | Seçilen yazı tipi ailesinin adı ve IP adresin, Google'ın yazı tipi sunucularına gönderilir (stil sayfası için `fonts.googleapis.com`, yazı tipi dosyası için `fonts.gstatic.com`) | Yalnızca marka düzenleyicisinde bir Google Fonts yazı tipi eklersen **ve yalnızca tam olarak bunu söyleyen bir iletişim kutusunda onayladıktan sonra** - aile başına tek seferlik bir indirme, ardından cihazında kalır ve çevrimdışı kullanılır | Google Fonts seçici kapalı kalır. Bunun yerine bir yazı tipi dosyası yükle |
-| Google Drive'a gönder | Google'ın kendi açılır penceresinde tamamladığın bir Google oturum açma işleminin ardından, göndermeyi seçtiğin tek dosya Google'ın Drive API'sine (`www.googleapis.com`) gönderilir. Lolly'nin erişimi kendi oluşturduğu dosyalarla sınırlıdır (`drive.file` kapsamı - Drive'ının geri kalanını asla okuyamaz) ve oturum açma jetonu yalnızca oturum süresince bellekte tutulur, hiçbir zaman saklanmaz | Yalnızca bir EMF dışa aktarımında "Send to Google Drive"a bastığında ve yalnızca operatörün bir Google istemci kimliği yapılandırdığı derlemelerde - bu olmadan düğme hiç var olmaz | Düğme hiç görünmez. Dosyayı indir ve Drive'a kendin yükle |
+| Google Drive'a gönder | Göndermeyi seçtiğin tek dosya, hangi biçimde olursa olsun, Google'ın kendi penceresinde tamamladığın bir Google oturum açma işleminin ardından Google'ın Drive API'sine (`www.googleapis.com`) gönderilir. Lolly'nin erişimi kendi oluşturduğu dosyalarla sınırlıdır (`drive.file` kapsamı - Drive'ının geri kalanını asla okuyamaz). Web uygulamasında oturum açma jetonu yalnızca oturum süresince bellekte tutulur, hiçbir zaman saklanmaz; diğer uygulamalarda, "stay connected"ı işaretlersen yalnızca bu cihazda bir yenileme jetonu saklanır | Yalnızca bir dosyada "Send to Google Drive"a bastığında ve yalnızca operatörün bir Google istemci kimliği yapılandırdığı derlemelerde - bu olmadan düğme hiç var olmaz | Düğme hiç görünmez. Dosyayı indir ve Drive'a kendin yükle |
 | Dropbox'a gönder | Dropbox'ın kendi penceresinde tamamladığın bir Dropbox oturum açma işleminin ardından, göndermeyi seçtiğin tek dosya Dropbox'ın API'sine gönderilir (oturum açma ve meta veriler için `api.dropboxapi.com`, dosyanın kendisi için `content.dropboxapi.com`). Lolly'nin erişimi yalnızca uygulama klasörüyle sınırlıdır (yalnızca `Apps/` klasörünü ve oradaki kendi klasörünü görebilir - Dropbox'ının geri kalanını asla göremez), sana gösterilen "Open" bağlantısı kısa ömürlü bir özel bağlantıdır (herkese açık paylaşım oluşturulmaz) ve bir yenileme jetonu yalnızca "stay connected" seçeneğini işaretlersen saklanır | Yalnızca bir dosyada "Send to Dropbox"a bastığında ve yalnızca operatörün bir Dropbox istemci kimliği yapılandırdığı derlemelerde - bu olmadan düğme hiç var olmaz | Düğme hiç görünmez. Dosyayı indir ve Dropbox'a kendin yükle |
 | OneDrive'a gönder | Microsoft'un kendi penceresinde tamamladığın bir Microsoft oturum açma işleminin ardından, göndermeyi seçtiğin tek dosya Microsoft'un kimlik ve Graph hizmetlerine gönderilir (oturum açma için `login.microsoftonline.com`, yükleme için `graph.microsoft.com`; büyük bir dosya `api.onedrive.com`, `*.up.1drv.com` veya `*.sharepoint.com` üzerindeki Microsoft'a ait bir yükleme adresine parçalar halinde yüklenir). Lolly'nin erişimi `Apps/` altındaki kendi klasörüyle (OneDrive'ının geri kalanını asla okuyamaz) ve hesap etiketi için görünen adınla sınırlıdır, bir yenileme jetonu ise yalnızca "stay connected" seçeneğini işaretlersen saklanır | Yalnızca bir dosyada "Send to OneDrive"a bastığında ve yalnızca operatörün bir Microsoft istemci kimliği yapılandırdığı derlemelerde - bu olmadan düğme hiç var olmaz | Düğme hiç görünmez. Dosyayı indir ve OneDrive'a kendin yükle |
 | LinkedIn'e gönder | Kendi tarayıcında tamamladığın bir LinkedIn oturum açma işleminin ardından, göndermeyi seçtiğin tek dosya, adı gönderi metni olarak birlikte LinkedIn'e gönderilir (oturum açma için `www.linkedin.com`, yükleme ve gönderi için `api.linkedin.com`). Gönderi, adın altında herkese açık bir gönderi olarak kendi akışına gider. Lolly senin adına gönderi paylaşabilir ve hesap etiketi için adını okuyabilir, LinkedIn'inde başka hiçbir şeye erişemez; oturum açma bilgisi yalnızca "stay connected" seçeneğini işaretlersen bu cihazda tutulur - LinkedIn'in jetonları 60 gün sürer ve sessizce yenilenemez, bu yüzden kendiliğinden sona erer | Yalnızca bir dosyada "Send to LinkedIn"e bastığında, yalnızca masaüstü uygulamalarında ve yalnızca bir LinkedIn uygulamasının yapılandırıldığı derlemelerde - bu olmadan düğme hiç var olmaz | Web uygulamasında engellenecek bir şey yok: bu yalnızca **masaüstü uygulamalarında** var, bu yüzden bu iki sunucu aşağıdaki web uygulamasının İçerik Güvenliği Politikası'nda kasıtlı olarak YER ALMAZ. Masaüstü uygulamalarında, yapılandırılmış LinkedIn uygulamasını kaldır, düğme hiç görünmez |
@@ -153,13 +153,15 @@ edebilir. Tarayıcılar DNS sorguları yapamaz, bu yüzden herhangi bir web
 uygulaması aramayı üçüncü taraf bir DNS-over-HTTPS çözümleyicisi üzerinden
 yönlendirmek zorundadır - bu da o işletmeciye kontrol edilen alan adını ve IP
 adresini gösterirdi. Eskiden Cloudflare'inkini kullanıyorduk. **Artık
-kullanmıyoruz ve yerine bir şey koymadık**: web uygulaması artık hiçbir
-çözümleyici geçirmiyor, bu yüzden buradaki SEAL doğrulaması sıfır ağ isteği
-yapıyor. SEAL kaydı anahtarını satır içinde taşıyan dosyalar hâlâ tamamen
-çevrimdışı doğrulanır. Anahtarı DNS'de yaşayan dosyalar bunun yerine "no key
-resolver" bildirir ve bunları, hiçbir üçüncü taraf olmadan DNS'i kendi
-makinen üzerinden yerel olarak çözen masaüstü veya komut satırı uygulamasında
-kontrol edebilirsin.
+kullanmıyoruz ve yerine bir şey koymadık**: Verify artık hiçbir çözümleyici
+geçirmiyor, bu yüzden SEAL doğrulaması sıfır ağ isteği yapıyor. Bugün hiçbir
+Lolly uygulaması SEAL anahtarlarını DNS'de aramıyor: masaüstü ve mobil
+uygulamalar aynı Verify görünümünü çalıştırır ve komut satırındaki
+`lolly validate` SEAL'i kontrol etmez. SEAL kaydı anahtarını satır içinde
+taşıyan bir dosya çevrimdışı kontrol edilir ve Verify, alan adını
+doğrulamadan imzayı kendi içinde tutarlı olarak değerlendirir. Anahtarı yalnızca
+DNS'de yaşayan bir dosya, "no key resolver and no inline key" gerekçesiyle
+**SEAL signature did not verify** gösterir.
 
 ![Verify ekranı: bir bırakma hedefi ve başka hiçbir şey - dosya zaten
 bulunduğu yerde kontrol edilir, yükleme veya hesap yoktur](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop) Bunu
@@ -208,10 +210,16 @@ duruşunu paylaşır, buna ek olarak dosya baytlarını zorunlu olarak işleyen 
 
 - <!--i:cpu--> **`lolly_transform`** (çağıran ajan adına, sunucu tarafında
   bir cihaz üstü aracı çalıştırır), **`lolly_verify`** (Content Credentials
-  kontrolü yapar) ve **`lolly_redact`** (bir görsel veya PDF'in bölgelerini
-  karartır) çağrandan bir dosyanın baytlarını kabul eder. Bunlar **işlem
-  içinde, bellekte** işlenir ve sonuç aynı çağrıda döndürülür - dosya asla
-  diske yazılmaz ve istek tamamlandığında asla saklanmaz.
+  kontrolü yapar), **`lolly_redact`** (bir görsel veya PDF'in bölgelerini
+  karartır), **`lolly_read`** (bir sunum destesinin ne dediğini okur),
+  **`lolly_check`** (bir belgeyi veya dışa aktarımı, isteğe bağlı olarak kaynak
+  destesiyle karşılaştırarak kontrol eder), **`lolly_package`** (bir Design
+  belgesini, çağıranın verdiği görseller ve kaynak desteyle bir `.lolly`
+  olarak paketler) ve **`lolly_compose`** (bir slayt ana sayfasından slaytları
+  yerleştirir, çağıranın verdiği kaynak destenin metnini okur) çağırandan bir
+  dosyanın baytlarını kabul eder. Bunlar **işlem içinde, bellekte** işlenir ve
+  sonuç aynı çağrıda döndürülür - dosya asla diske yazılmaz ve istek
+  tamamlandığında asla saklanmaz.
 - <!--i:cpu--> **`lolly_rebrand`** (eski bir sunum destesini `plan`, `compile` ve
   `inspect` aşamaları boyunca bir tasarım sistemine yeniler) bir destenin baytlarını
   aynı şekilde kabul eder ve onları **yalnızca o çağrı için, bellekte** işler -
@@ -220,13 +228,21 @@ duruşunu paylaşır, buna ek olarak dosya baytlarını zorunlu olarak işleyen 
   gideceğini sözcüklerle belirtir: kendi barındırdığın yerel bir sunucuda deste o
   makineden asla çıkmaz; barındırılan bir sunucuda, `lolly_rebrand`'i çağırmak
   desteyi oraya gönderir, yine o aşamanın verdiği boyut ve slayt sınırlarına kadar.
-- <!--i:checklist--> Diğer tüm araçlar - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
-  `lolly_describe_tool` - yalnızca parametrelerle çalışır (metin, sayılar, renkler, URL'ler,
-  katalog varlık kimlikleri), doğrudan bağlantılı bir render URL'sinin aldığı aynı girdilerle.
-- <!--i:lock--> Erişim, ya işletmecinin güvendiği istemcilere verdiği
-  paylaşılan bir jetondur ya da durumsuz OAuth 2.1'dir: paylaşılan bir sırra
-  karşı doğrulanan, kısa ömürlü imzalı jetonlar; sunucu tarafında hiçbir şey
-  saklanmaz ve jetonun kendisi asla bir günlüğe veya render URL'sine yazılmaz.
+- <!--i:checklist--> Görsel araçlar (`lolly_look`, `lolly_sample_color` ve
+  `lolly_trace_edges`) çağırandan bir görsel dosyası da alabilir ve aynı şekilde
+  işler: bellekte, yalnızca o çağrı için. Diğer tüm araçlar çağrıdaki
+  parametrelerle çalışır: metin, sayılar, renkler, URL'ler, katalog varlık
+  kimlikleri veya çağıranın verdiği bir belge.
+- <!--i:lock--> lolly.tools'ta `lolly.tools/api/mcp` jetonsuz herkese açıktır.
+  Çağrıları adres başına ve günlük bir bütçeyle sınırlıdır: adres, aşağıdaki
+  oturum açma uç noktalarında olduğu gibi, kötüye kullanım denetimi deposunda
+  tek yönlü türetilmiş bir kova anahtarına dönüşür ve bütçe yalnızca CPU
+  süresini ve gönderilen baytları sayar, adres içermez. `mcp.lolly.tools`
+  adresindeki planlanan isteğe bağlı kısıtlı uç nokta, işletmecinin güvenilen
+  istemcilere verdiği bir taşıyıcı jeton (bearer token) ya da durumsuz OAuth
+  2.1 kullanır: paylaşılan bir sırra karşı doğrulanan, kısa ömürlü imzalı
+  jetonlar. Etkinleştirme beklemede. Taşıyıcı jetonun kendisi asla bir günlüğe
+  veya render URL'sine yazılmaz.
 
 ## Content Credentials kimliği (senin kendin başlatman gereken bir oturum açma)
 
@@ -288,35 +304,52 @@ denetleyicisi haline gelebilir.
 
 ## Tarayıcı uzantısı
 
-**Lolly URL Screenshot** tarayıcı uzantısı hiçbir kişisel veri toplamaz,
-saklamaz veya iletmez. Analiz yok, izleme yok, uzak sunucu yok.
+**Lolly URL Screenshot** tarayıcı uzantısı bizim için hiçbir kişisel veri
+toplamaz. Analizi, izlemesi ve kendine ait bir sunucusu yoktur.
+[Tarayıcı Uzantısı](/info/extension.html) sayfası nasıl çalıştığını açıklar.
 
-**Ne yapar.** Lolly web uygulamasından bir URL'nin ekran görüntüsünü almasını
-istediğinde, uzantı o sayfayı geçici bir arka plan sekmesinde açar, DevTools
-Protocol kullanarak tarayıcında yakalar, görseli uygulamaya geri verir ve
-sekmeyi kapatır. Her şey yerel olarak, kendi cihazında ve ağında gerçekleşir.
+**Ne yapar.** Lolly web uygulaması ondan bir web sayfasının ekran görüntüsünü ya
+da bir web sitesinden tasarım sistemi başlatmak için sayfanın içeriğini isteyebilir.
+Her istek, uzantıda isteyen siteyi, ekran görüntüsü mü yoksa sayfa içeriği mi
+istendiğini ve sayfa adresini gösteren bir onay penceresi açar. Uzantı yalnızca sen
+**Approve once**'a bastıktan sonra o sayfayı geçici bir arka plan sekmesinde açar,
+ekran görüntüsünü alır veya sayfayı okur, sonucu isteyen Lolly sekmesine verir ve
+sekmeyi kapatır. Her istek kendi onayını gerektirir.
 
 **Veri.**
 
-- <!--i:shieldcheck--> **Hiçbir şey toplamayız.** Uzantının hiçbir sunucusu yoktur ve kendi
-  başına hiçbir ağ isteği yapmaz.
-- <!--i:photos--> **Yakalanan görseller** aynı tarayıcıdaki Lolly uygulamasına doğrudan
-  gider - uzantı tarafından asla yüklenmez.
-- <!--i:link--> **Yakaladığın URL'ler** yalnızca o tek ekran görüntüsü için o tek sayfayı
+- <!--i:shieldcheck--> **Hiçbir şey toplamayız.** Sonuç yalnızca isteyen Lolly
+  sayfasına, aynı tarayıcıda gider. Uzantı sayfa içeriği saklamaz ve başka bir
+  alıcı eklemez.
+- <!--i:globe--> **Ağ istekleri.** Onayladığın sayfa, herhangi bir sekmede
+  olduğu gibi yüklenir; sayfanın kendi yaptığı istekler de buna dahildir. Bir
+  sayfanın içeriğini okumak ayrıca o sayfanın stil sayfalarını ve birkaç simge ile
+  logo görselini sayfanın içinden getirir ve bu istekler diğer sitelere çerez
+  göndermez. Uzantı başka istek yapmaz ve hiçbiri bir Lolly sunucusuna gitmez.
+- <!--i:lock--> **Tarayıcı oturumun.** Sayfa, kendin açsan olacağı gibi tarayıcı
+  oturumunla yüklenir; bu yüzden oturum açtığın bir sayfa sonuca özel bilgi
+  koyabilir.
+- <!--i:link--> **Onayladığın adresler** yalnızca o tek istek için o tek sayfayı
   yüklemek amacıyla kullanılır. Günlüğe kaydedilmez veya paylaşılmaz.
 
 **İzinler.**
 
-- <!--i:wrench--> **`debugger`** - render edilen sayfayı DevTools Protocol üzerinden
-  yakalamak için (Lolly masaüstü uygulamasının kullandığı aynı mekanizma).
-- <!--i:monitor--> **`tabs`** - sayfanın yüklendiği geçici sekmeyi açıp kapatmak için.
-- <!--i:globe--> **Sunucu erişimi (`<all_urls>`)** - çünkü yakalamayı seçtiğin sayfa
-  herhangi bir sitede olabilir. Chrome bunu kurulum sırasında geniş bir izin
-  uyarısı olarak gösterir. Uzantı yalnızca sana verdiğin URL'yi ziyaret
-  eder.
+- <!--i:wrench--> **`debugger`** - ekran görüntüsünü DevTools Protocol üzerinden
+  almak için (Lolly masaüstü uygulamasının kullandığı aynı mekanizma).
+- <!--i:monitor--> **`tabs`** - geçici sekmeyi açıp kapatmak ve sen onayladığından
+  beri ne Lolly sayfasının ne de hedef sayfanın yer değiştirmediğini denetlemek için.
+- <!--i:code--> **`scripting`** - sen o isteği onayladıktan sonra, geçici sekmede
+  bir sayfanın içeriğini okumak için.
+- <!--i:database--> **`storage`** - geçici sekmelerinin kimliklerini oturum
+  depolamasına not etmek için; böylece tarayıcı bir istek sırasında uzantıyı
+  durdursa bile sekmeler yine kapanır. Sayfa içeriği saklanmaz.
+- <!--i:check--> **İsteğe bağlı site erişimi (`http://*/*`, `https://*/*`)** -
+  kurulumda verilmez. **Approve once**'a bastığında uzantı, Chrome'dan o istekteki
+  tek site için erişim ister ve Chrome her site için ilk seferde sana sorar.
+  Daha önce izin verdiğin bir site için de her istekte yeni bir onay gerekir.
 
-Bunların hiçbiri, istenen o tek yakalama işleminin ötesinde tarama
-geçmişini okumak, izlemek veya iletmek için kullanılmaz.
+Bunların hiçbiri, onayladığın o tek isteğin ötesinde tarama geçmişini okumak,
+izlemek veya iletmek için kullanılmaz.
 
 ## Altyapı günlükleri
 
@@ -329,12 +362,16 @@ Kasıtlı olan tek istisna, yukarıda açıklandığı gibi bellekte işlenen ve
 diske veya bir günlüğe yazılmayan, açıkça bir MCP `lolly_transform`,
 `lolly_verify`, `lolly_redact` veya `lolly_rebrand` çağrısına verdiğin dosyadır.
 
-**Lolly'nin kendi kodu bu günlüklere hiçbir şey yazmaz.** MCP sunucusunda
-hiçbir günlükleme ifadesi yoktur. Sertifika servisi tam olarak iki satır
-üretir, ikisi de hata durumunda ve ikisi de kasıtlı olarak sadeleştirilmiştir:
-alıcı adresi olmayan bir gönderim hatası durum kodu ve yığın izi veya URL
-olmayan bir hata mesajı (bir yığın izi bir kayıt jetonu taşıyabilirdi).
-Günlükteki geri kalan her şey bize değil, barındırma platformuna aittir.
+**Herkese açık servisler uygulama günlüğünü en aza indirir.** MCP sunucusu
+başlatmayı, yapılandırmayı ve render uyarılarını günlüğe yazar; kendine ait bir
+istek günlüğü tutmaz ve jetonları veya çağıran adreslerini günlüğe yazmaz. Penpot
+geçiş katmanı her komut adını ve Penpot'un yanıt durum kodunu günlüğe yazar;
+başlıkları, jetonları veya dosyayı asla. Sertifika servisi başlatma ayarlarını
+ve yapılandırma uyarılarını günlüğe yazar, ayrıca hata durumunda sadeleştirilmiş
+iki satır: alıcı adresi olmayan bir gönderim hatası durum kodu ve hata metni,
+yığın izi veya URL içermeyen sabit bir hata satırı (bir sağlayıcı hatası kimlik
+değerleri veya kimlik bilgileri taşıyabilir). Günlükteki geri kalan her şey bize
+değil, barındırma platformuna aittir.
 
 lolly.tools için barındırma Vercel'dedir ve erişim günlüğü saklama süresi,
 planımız için Vercel'in kendi platform varsayılanlarını takip eder. Hiçbir
@@ -407,6 +444,14 @@ Veri satmıyoruz. Satacak bir verimiz de yok.
 ## Bu politikadaki değişiklikler
 
 En üstteki tarih, bu belge her değiştiğinde değişir. Cihazından neyin çıktığını veya neyin saklandığını değiştiren bir değişiklik, sessiz bir düzenleme olarak değil, burada kendi satırını alır - neyin değiştiğini görmek istersen sor (aşağıda) veya [genel kaynakla](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md) karşılaştır.
+
+**22 Ekim 2026:** mevcut davranışın açıklaması düzeltildi. Tarayıcı uzantısı bölümü
+artık her istek için onay penceresini, her seferinde tek bir site için istenen site
+erişimini ve bir web sitesi okumasının stil sayfası ile simge getirmelerini kapsıyor.
+Ayrıca düzeltildi: Google Drive'a gönder ve Toplantı Planlayıcı satırları, SEAL notu
+(hiçbir Lolly uygulaması SEAL anahtarlarını DNS'de aramıyor), kuruluş servisinin
+varsayılan kullanım telemetrisi düzeyi, MCP görsel araçları ve herkese açık
+servislerin uygulama günlüğü. Yazılımın kendisi değişmedi.
 
 ## Kim sorumlu ve bize nasıl ulaşılır
 

@@ -8,7 +8,7 @@ Lolly se construyó en medio del mayor cambio en cómo se producen los medios de
 
 ![Una tormenta supercelular estallando sobre una granja del outback - el tanque y los cobertizos abajo, el agua de la inundación ya abriendo canales en el potrero seco](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} imagen generada %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} y %act{exported to WebP} como %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Verificar ahora](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} imagen generada %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} y %act{exported to WebP} como %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Verificar ahora](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 Para ser precisos, porque esta página sostiene que la precisión importa: la imagen de arriba está generada, no fotografiada. Ninguna cámara apuntó a esa granja, porque no hay ninguna granja. Describe la región de Queensland, Australia, a partir de un prompt escrito desde el Reino Unido, generada en un centro de datos en Estados Unidos. Intenta ser fiel a un lugar sin ser el registro de uno, y esa distinción es la razón entera por la que sus Content Credentials lo indican.
 

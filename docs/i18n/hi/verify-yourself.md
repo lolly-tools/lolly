@@ -6,7 +6,7 @@ Lolly के गोपनीयता और सुरक्षा पेज द
 
 ## दस सेकंड में इसे काम करते देखें
 
-प्रक्रियाओं से पहले, नतीजा। [`/verify`](/#/verify) खोलें और उस पर एक फ़ाइल छोड़ें - कोई अपलोड नहीं, कोई अकाउंट नहीं, किसी सर्वर के लिए इंतज़ार नहीं। यहाँ यह हमारे AI stance पेज से [जेनरेट किए गए Queensland तूफ़ान](/info/ai-stance.html) की जाँच कर रहा है: एक Gemini इमेज जिसे Lolly ने खोला, रीसाइज़ किया और एक्सपोर्ट किया। नीचे हर बैज डिवाइस पर, फ़ाइल के अपने बाइट्स से गणना किया गया था।
+प्रक्रियाओं से पहले, नतीजा। [`/verify`](/#/verify) खोलें और उस पर एक फ़ाइल छोड़ें - कोई अपलोड नहीं, कोई अकाउंट नहीं, किसी सर्वर के लिए इंतज़ार नहीं। यहाँ यह हमारे AI stance पेज से [जेनरेट किए गए Queensland तूफ़ान](/info/ai-stance.html) की जाँच कर रहा है: एक Gemini इमेज जिसे Lolly ने खोला, वॉटरमार्क किया और एक्सपोर्ट किया। नीचे हर बैज डिवाइस पर, फ़ाइल के अपने बाइट्स से गणना किया गया था।
 
 ![फ़ोन-चौड़ाई स्क्रीन पर Verify - तूफ़ान की इमेज, एक हरा Made with Lolly निर्णय और नीचे स्टैक किए गए credential-intact और bytes-unchanged बैज](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

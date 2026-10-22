@@ -8,7 +8,7 @@ Lolly is gebouwd te midden van de grootste verandering in hoe media gemaakt word
 
 ![Een supercelstorm die losbarst boven een outback homestead - de tank en schuren beneden, vloedwater dat al kanalen snijdt door het droge veld](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} genereerde afbeelding %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} en %act{exported to WebP} als %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Verifieer dit nu](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} genereerde afbeelding %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} en %act{exported to WebP} als %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Verifieer dit nu](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 Om precies te zijn, omdat deze pagina betoogt dat precisie ertoe doet: de afbeelding hierboven is gegenereerd, niet gefotografeerd. Er is geen camera op dat homestead gericht, want er is geen homestead. Het beschrijft regionaal Queensland, Australië, geprompt vanuit het Verenigd Koninkrijk, gegenereerd in een datacenter in de Verenigde Staten. Het probeert trouw te zijn aan een plek zonder een registratie van een plek te zijn, en dat onderscheid is de hele reden waarom de Content Credentials dat vastleggen.
 

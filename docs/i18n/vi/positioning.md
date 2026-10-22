@@ -4,7 +4,7 @@ Những gì Lolly làm mà các công cụ sáng tạo hiện nay không làm, v
 
 Để xem phiên bản so sánh từng công cụ, mỗi trang riêng cho Canva, Adobe, Figma, các API kết xuất và các bộ chuyển đổi trực tuyến, xem [Lolly so sánh, từng công cụ một](/info/compare.html). Mỗi trang nêu rõ công cụ kia làm tốt hơn ở điểm nào và Lolly làm gì thay vào đó.
 
-> **Trạng thái thử nghiệm:** Lolly là một nguyên mẫu thử nghiệm khép kín (closed-pilot), chưa phải là sản phẩm hoàn thiện, và tính bảo mật của nó hiện đang trải qua quá trình tăng cường hạ tầng nghiêm ngặt của SUSE, chuẩn bị cho quy mô doanh nghiệp. Trang [Adoption & Governance](/info/adoption-governance.html#status) trình bày tình trạng hiện tại.
+> **Trạng thái:** Lolly đã được phát hành: phiên bản 1.0 ra mắt dưới dạng mã nguồn mở vào ngày 30 tháng 8 năm 2026. Bảo mật của nó chưa được kiểm toán độc lập, và bằng chứng về mức độ áp dụng đã có từ vài tháng trước. Trang [Adoption & Governance](/info/adoption-governance.html#status) trình bày tình trạng hiện tại.
 
 ## Các công cụ hiện nay
 
@@ -14,7 +14,7 @@ Mỗi vòng tròn bên dưới chấm điểm mức độ đầy đủ mà một
 Mức độ hoàn thiện năng lực trên các công cụ sáng tạo hiện nay, khảo sát tháng 8/2026. Thang điểm: 0 không có, 25 mức giải pháp tạm, 50 có thật nhưng bị giới hạn hoặc một phần, 75 mạnh nhưng có lưu ý, 100 năng lực cốt lõi.
 :::
 
-**Ghi chú chấm điểm.** Điểm số của Lolly giả định các tuyên bố đã công bố của nó là đúng, đó là lý do vì sao độ chín muồi là vòng tròn đỏ duy nhất của nó: thử nghiệm khép kín, đang trong quá trình tăng cường bảo mật, chưa có gì được kiểm toán. Nghiên cứu đã làm thay đổi một số ô.
+**Ghi chú chấm điểm.** Tính năng sẵn có và độ chín muồi khi vận hành thực tế là hai việc riêng biệt. Điểm độ chín muồi của Lolly phản ánh một bản phát hành công khai đầu tiên vào tháng 8 năm 2026 và chưa có kiểm toán bảo mật độc lập; việc có SSO, phê duyệt hay kết xuất phía máy chủ không chứng minh được thành tích vận hành thực tế. Phần mô tả tính năng bên dưới có bao gồm lolly.work, trong khi điểm của các đối thủ giữ nguyên đợt đánh giá tháng 8 đã ghi ngày.
 
 Canva được chấm điểm dựa trên thành viên tốt nhất trong họ sản phẩm của nó cho mỗi hàng, vì nó sở hữu Affinity và Cavalry (cả hai được tặng miễn phí từ tháng 10/2025). Kết xuất ngoại tuyến và trên thiết bị đạt điểm 75 qua Affinity - một bộ ứng dụng desktop vẫn cần tài khoản đã xác minh và mang theo telemetry, khoản trừ điểm mà Adobe cũng phải chịu - trong khi chế độ ngoại tuyến của chính Canva chỉ chỉnh sửa các thiết kế đã đồng bộ trước, một thiết bị, khoảng thời gian giới hạn. Tự động điền đạt điểm 50: có thật nhưng bị giới hạn cho gói Enterprise, không đồng bộ, chỉ văn bản và hình ảnh. Khả năng tạo hàng loạt của Figma tăng từ 25 lên 50 khi Buzz phát hành tính năng điền bảng tính (bản beta miễn phí, tháng 8/2026).
 

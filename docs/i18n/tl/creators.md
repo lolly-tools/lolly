@@ -4,13 +4,13 @@ Punan mo ang ilang field at lalabas ang isang tapos na file, na may mga font, ku
 
 Ikaw ay isang kamay sa isang relay: maaaring i-scale ng isang developer ang tool na ginagamit mo tungo sa isang pipeline, at maaari itong patakbuhin nang self-serve ng isang kasamahan, kaya sinusubaybayan ng [Ang Siklo ng Buhay ng Isang Kampanya](/info/overview.html#the-lifecycle-of-a-campaign) ang isang asset sa lahat ng tatlong pares ng kamay.
 
-Bago ka lang dito? Magsimula sa **[Gumawa ng Bagay sa 60 Segundo](/info/make-something.html)** at bumalik kapag alam mo na kung aling bahagi ang gusto mong palalimin pa. Tinatalakay ng [Mga Tanong at Sagot](/info/faq.html) ang mga itinatanong ng mga tao bago sila magtiwala sa isang libreng tool. Ang [Paano Ihahambing ang Lolly](/info/positioning.html) ay ang tapat na paglalahad kung kailan mas mainam pumili ng iba.
+Bago ka lang dito? Magsimula sa **[Gumawa ng Iyong Unang File](/info/make-something.html)** at bumalik kapag alam mo na kung aling bahagi ang gusto mong palalimin pa. Tinatalakay ng [Mga Tanong at Sagot](/info/faq.html) ang mga itinatanong ng mga tao bago sila magtiwala sa isang libreng tool. Ang [Paano Ihahambing ang Lolly](/info/positioning.html) ay ang tapat na paglalahad kung kailan mas mainam pumili ng iba.
 
 ## Gumawa
 
 Pumili ng tool, punan ang ilang field at i-download ang tapos na file. O buksan ang Design canvas at ilatag ito nang malaya: sa magkabilang paraan, ang mga kulay, uri ng titik at espasyo ay nagmumula sa iyong brand sa halip na sa alaala, at wala sa mga ito ang nangangailangan ng account.
 
-- **[Gumawa ng Bagay sa 60 Segundo](/info/make-something.html)** - tatlong maikling walkthrough na walang kailangang i-set up, kung hindi mo pa nabubuksan ang Lolly noon.
+- **[Gumawa ng Iyong Unang File](/info/make-something.html)** - isang maikling aralin na walang kailangang i-set up: gumawa ng QR code, i-download ito at mag-save ng nae-edit na kopya. Magsimula rito kung hindi mo pa nabubuksan ang Lolly noon.
 - **[Paggamit ng Lolly](/info/using.html)** - ang canvas, ang mga control, pag-save, Projects at paggamit sa telepono: kung paano kumikilos ang app mismo.
 - **[Ang Brand Studio](/info/brand-studio.html)** - kung kailan dapat sarili mo ang mga logo, kulay at uri ng titik sa halip na ang mga default.
 - **[Mag-import ng Disenyo](/info/design-import.html)** - kung kailan umiiral na ang artwork bilang isang `.fig`, `.penpot`, `.ai`, `.idml` o SVG file at gusto mo itong maging editable sa halip na flattened.

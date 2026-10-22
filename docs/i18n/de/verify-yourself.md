@@ -6,7 +6,7 @@ Wenn eine Prüfung auf dieser Seite nicht das gezeigte Ergebnis liefert, ist das
 
 ## In zehn Sekunden sehen, dass es funktioniert
 
-Vor den Verfahren die Belohnung. Öffnen Sie [`/verify`](/#/verify) und legen Sie eine Datei darauf ab - kein Upload, kein Konto, kein Warten auf einen Server. Hier prüft es den [generierten Sturm über Queensland](/info/ai-stance.html) von unserer KI-Haltungsseite: ein Gemini-Bild, das Lolly geöffnet, verkleinert und exportiert hat. Jedes Abzeichen unten wurde auf dem Gerät berechnet, aus den eigenen Bytes der Datei.
+Vor den Verfahren die Belohnung. Öffnen Sie [`/verify`](/#/verify) und legen Sie eine Datei darauf ab - kein Upload, kein Konto, kein Warten auf einen Server. Hier prüft es den [generierten Sturm über Queensland](/info/ai-stance.html) von unserer KI-Haltungsseite: ein Gemini-Bild, das Lolly geöffnet, mit einem Wasserzeichen versehen und exportiert hat. Jedes Abzeichen unten wurde auf dem Gerät berechnet, aus den eigenen Bytes der Datei.
 
 ![Verify auf einem Bildschirm in Telefonbreite - das Sturmbild, ein grünes Made-with-Lolly-Urteil und darunter die Abzeichen für intakte Zertifizierung und unveränderte Bytes](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

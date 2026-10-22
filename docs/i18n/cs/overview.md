@@ -4,7 +4,7 @@
 
 Tento dokument zachycuje účel, strukturu a architektonická rozhodnutí platformy Lolly. Odráží jak produktovou vizi, tak aktuální stav kódové základny.
 
-> **Stav:** Lolly je interní prototyp v **uzavřeném pilotu, který ještě neskončil**. Engine je deterministický a vnitřně konzistentní, ale produkt je raný - SUSE je zákazník číslo jedna - a jeho kryptografie a enginy pro parsování souborů právě procházejí přísným zpevňováním infrastruktury SUSE, přípravou na podnikové měřítko (v tomhle jsme fakt dobří). Čti architekturu níže jako designový záměr v testování, ne jako hotový, certifikovaný produkt. Viz [Přijetí a řízení](/info/adoption-governance.html#status), jak je pilot veden a měřen.
+> **Stav:** Lolly je vydaná. Verze 1.0 vyšla jako open source pod licencí MPL-2.0 dne 30. srpna 2026 a funkce, výchozí hodnoty i katalog nástrojů se mezi vydáními stále mění. Engine je [deterministický](/info/determinism.html), s jednou renderovací cestou za každým shellem. Jeho zabezpečení zatím neprošlo nezávislým auditem a důkazy o přijetí jsou několik měsíců staré. Viz [Přijetí a řízení](/info/adoption-governance.html#status), jaký je aktuální stav a jak se přijetí měří.
 
 > **Jak číst tuto stránku.** Nese dva druhy materiálu, v tomto pořadí. První polovina je
 > **proč tohle existuje**: problém, pozicování a životní cyklus, kterým prochází jeden asset. Od

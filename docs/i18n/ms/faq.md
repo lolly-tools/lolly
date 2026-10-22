@@ -20,7 +20,7 @@ Lolly menghasilkan kandungan dalam jumlah yang besar. Kami mengambil pendekatan 
 
 Lolly dibangunkan dengan pengekodan berbantukan AI, penemuan berbantukan AI dan, di banyak tempat, kandungan berbantukan AI, menggunakan pelbagai model dan vendor, termasuk daripada syarikat cloud awam terkemuka.
 
-Setakat penulisan ini, Lolly tidak mempunyai sebarang kelemahan keselamatan yang diketahui dalam rantaian bekalannya, dan komited kepada amalan tindak balas keselamatan yang pantas apabila CVE muncul.
+Nasihat tahap tinggi atau kritikal dalam kebergantungan Lolly menyekat CI. Nasihat yang belum boleh dibaiki hanya ditahan sebagai pengecualian yang diluluskan dengan sebab bertulis. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) menyenaraikan setiap pengecualian yang ditahan hari ini, dan [nota keluaran](https://github.com/lolly-tools/lolly/releases) menyenaraikan pengecualian yang dibawa oleh setiap keluaran. SECURITY.md juga menerangkan cara melaporkan kelemahan keselamatan.
 
 Seorang manusia mencipta senibinanya, mengkurasi kodnya dengan sengaja dan mengarah seni pengalaman itu.
 
@@ -52,7 +52,9 @@ Feature flags menghidupkan atau mematikan bahagian-bahagian Lolly. Biasanya pent
 
 ## Bagaimana saya mendapatkan apl mudah alih atau desktop?
 
-Sesiapa sahaja boleh mengedarkan apl mereka sendiri, dan alat serta konfigurasi apl itu sepatutnya berbeza-beza mengikut khalayak yang disasarkan. Jadi tiada satu apl tunggal melainkan anda yang membinanya atau seseorang yang berkaitan memberikannya kepada anda.
+Muat turunnya daripada [Pasang Lolly](/info/install.html). Halaman itu menyenaraikan setiap build untuk macOS, Windows, Linux dan Android, dan menunjukkan cara menyemak fail yang anda muat turun. iPhone dan iPad belum mempunyai muat turun awam; [bahagian iPhone dan iPad](/info/install.html#iphone-and-ipad) menerangkan apa yang perlu digunakan sebagai ganti.
+
+Sesiapa sahaja juga boleh membina dan mengedarkan salinan apl mereka sendiri, dengan alat dan tetapan yang diperlukan oleh khalayak mereka. [Panduan Bina](/info/build-guide.html) menunjukkan caranya.
 
 ## Kenapa nama "Lolly Tools"?
 
@@ -127,7 +129,7 @@ Lapisan tiba sebagai kotak yang boleh disunting pada kanvas terbuka: teks kekal 
 
 ## Di mana perkara yang saya buat semalam?
 
-Jika anda menekan **Simpan sebagai** atau **Simpan**, ia berada dalam **Projek**, pada skrin utama, dalam pelayar atau aplikasi yang anda simpan daripadanya. Jika anda hanya menekan **Muat turun**, fail itu berada di tempat pelayar atau sistem anda menyimpan muat turun, dan biasanya satu salinan berada dalam **Aset**. Sembilan alat turut menyimpan kerja yang belum disimpan dalam **Projek**. [Cari dan pulihkan hasil kerja anda](/info/find-your-work.html) merangkumi setiap kes.
+Jika anda menekan **Simpan sebagai** atau **Simpan**, ia berada dalam **Projek**, pada skrin utama, dalam pelayar atau aplikasi yang anda simpan daripadanya. Jika anda hanya menekan **Muat turun**, fail itu berada di tempat pelayar atau sistem anda menyimpan muat turun, dan biasanya satu salinan berada dalam **Aset**. Alat yang [menyimpan semasa anda bekerja](/info/find-your-work.html#which-tools-save-as-you-work) turut menyimpan kerja yang belum disimpan dalam **Projek**. [Cari dan pulihkan hasil kerja anda](/info/find-your-work.html) merangkumi setiap kes.
 
 ## Saya menutup tab. Adakah kerja saya hilang?
 
@@ -143,7 +145,7 @@ Ya. Seorang berkongsi jemputan (pautan, kod QR atau kod pendek), seorang lagi me
 
 ## Ke mana perginya alat berjenama SUSE?
 
-Semuanya sudah pun berada dalam repositori peribadi yang berasingan. Klon awam langsung tidak mengambil pek jenama SUSE, jadi binaan awam menjalankan profil neutral `lolly-start` - alat komuniti yang tidak terikat jenama serta satu jenama kosong yang anda isi dengan jenama anda sendiri. SUSE mengendalikan instansnya sendiri untuk melindungi tanda dagangannya.
+Semuanya sudah pun berada dalam repositori peribadi yang berasingan. Klon awam langsung tidak mengambil pek jenama SUSE, jadi binaan daripadanya menggunakan profil neutral `lolly-start` melainkan anda memilih yang lain - alat komuniti yang tidak terikat jenama serta satu jenama kosong yang anda isi dengan jenama anda sendiri. [lolly.tools](https://lolly.tools) dibina dengan profil `lolly-demo` dan dibuka dalam [Lolly Demo](/info/lolly-demo.html), sistem reka bentuk Lolly sendiri. SUSE mengendalikan instansnya sendiri untuk melindungi tanda dagangannya.
 
 ## Kenapa ia percuma? Apa muslihatnya?
 
@@ -153,7 +155,7 @@ Garisan itu ditetapkan dalam lesen, bukan dalam janji: apa sahaja yang berjalan 
 
 ## Berapa banyak yang SUSE simpan secara peribadi? (iaitu bila tikar akan ditarik dari bawah kaki)
 
-Enjin, shell, skema dan alat yang tidak terikat jenama adalah sumber terbuka; tanda dagangan SUSE dan alat berjenamanya ialah bahagian yang kekal peribadi, dan semuanya sudah pun diasingkan. Instans awam di [lolly.tools](https://lolly.tools) berjalan atas jenama kosong.
+Enjin, shell, skema dan alat yang tidak terikat jenama adalah sumber terbuka; tanda dagangan SUSE dan alat berjenamanya ialah bahagian yang kekal peribadi, dan semuanya sudah pun diasingkan. Instans awam di [lolly.tools](https://lolly.tools) menjalankan [Lolly Demo](/info/lolly-demo.html), sistem reka bentuk Lolly sendiri.
 
 Sempadan itu bersifat struktur, bukan sekadar janji. Setiap versi yang dilepaskan adalah sumber terbuka dan tidak boleh dinyahlepaskan, tiada perjanjian penyumbang yang boleh melesenkan semula hasil kerja sesiapa, dan satu-satunya perkara yang ditahan ialah tanda dagangan. Apabila sebuah syarikat lain menutup sumber Linux perusahaannya pada 2023, SUSE menjadi pengasas bersama [OpenELA](https://openela.org) untuk mengekalkan kod itu terbuka - pendirian yang sama diwarisi oleh projek ini.
 

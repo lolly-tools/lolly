@@ -8,7 +8,7 @@ Lolly, matbaadan bu yana medyanın üretilme biçimindeki en büyük değişimin
 
 ![Issız bir çiftlik evinin üzerinde patlayan bir süper hücre fırtınası - aşağıda su deposu ve barakalar, sel suyu kurak otlağın içinde şimdiden kanallar açıyor](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} generated image %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} and %act{exported to WebP} as %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Şimdi doğrula](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} generated image %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} and %act{exported to WebP} as %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Şimdi doğrula](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 Konuya kesin olmak gerekirse - çünkü bu sayfa hassasiyetin önemli olduğunu savunuyor: yukarıdaki görsel fotoğraflanmamış, üretilmiştir. O çiftlik evine hiçbir kamera yöneltilmedi, çünkü öyle bir çiftlik evi yok. Avustralya'nın Queensland bölgesini tasvir ediyor, Birleşik Krallık'tan istenen bir komutla Amerika Birleşik Devletleri'ndeki bir veri merkezinde üretildi. Bir yerin kaydı olmadan o yere sadık kalmaya çalışıyor ve Content Credentials bilgisinin bunu belirtmesinin tek nedeni de bu ayrım.
 

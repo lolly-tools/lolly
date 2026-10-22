@@ -4,7 +4,7 @@
 
 Tài liệu này ghi lại mục đích, cấu trúc và các quyết định kiến trúc cho nền tảng Lolly. Nó phản ánh cả tầm nhìn sản phẩm lẫn hiện trạng của codebase.
 
-> **Trạng thái:** Lolly là một nguyên mẫu nội bộ trong một **giai đoạn thử nghiệm khép kín chưa hoàn tất**. Engine có tính tất định và nhất quán nội tại, nhưng sản phẩm còn ở giai đoạn sớm - SUSE là khách hàng số một - và các engine mã hóa cùng phân tích file của nó hiện đang trải qua quá trình siết chặt hạ tầng nghiêm ngặt của SUSE, chuẩn bị cho quy mô doanh nghiệp (chúng tôi thực sự giỏi khoản này). Hãy đọc kiến trúc dưới đây như ý đồ thiết kế đang được kiểm chứng, không phải một sản phẩm hoàn thiện, đã được chứng nhận. Xem [Áp dụng & Quản trị](/info/adoption-governance.html#status) để biết giai đoạn thử nghiệm được vận hành và đo lường ra sao.
+> **Trạng thái:** Lolly đã được phát hành. Phiên bản 1.0 ra mắt dưới dạng mã nguồn mở theo giấy phép MPL-2.0 vào ngày 30 tháng 8 năm 2026, và các tính năng, giá trị mặc định cùng danh mục công cụ vẫn thay đổi giữa các bản phát hành. Engine có tính [tất định](/info/determinism.html), với một render path duy nhất phía sau mọi shell. Bảo mật của nó chưa được kiểm toán độc lập, và bằng chứng về mức độ áp dụng đã có từ vài tháng trước. Xem [Áp dụng & Quản trị](/info/adoption-governance.html#status) để biết tình trạng hiện tại và cách đo lường mức độ áp dụng.
 
 > **Cách đọc trang này.** Trang này chứa hai loại nội dung, theo thứ tự. Nửa đầu là
 > **vì sao điều này tồn tại**: vấn đề, định vị và vòng đời mà một tài sản đơn lẻ trải

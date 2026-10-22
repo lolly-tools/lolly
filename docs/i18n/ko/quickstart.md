@@ -4,7 +4,7 @@ Lolly는 여러분의 규칙 - 색상, 서체, 레이아웃, 로직 - 을 누구
 
 이 페이지를 가장 먼저 읽어 보세요. 두 가지만 하면 바로 쓸 수 있어요. **Lolly를 내 것으로 만들기**, 그리고 **이미 가진 것 가져오기**(디자인 파일과 토큰)예요. 나머지는 모두 링크 하나로 이어져요.
 
-> Lolly가 처음이라 일단 뭔가 만들어 보고 싶으세요? [60초 만에 무언가 만들기](/info/make-something.html)에서 세 가지를 따라 해 볼 수 있고, 아니면 [앱 열기](/#/)로 갤러리에서 아무 도구나 골라 빈칸을 채우고 **Export**를 누르면 돼요. *여러분의* 브랜드를 입히고 싶어지면 이 페이지로 돌아오세요.
+> Lolly가 처음이라 일단 뭔가 만들어 보고 싶으세요? [첫 파일 만들기](/info/make-something.html)에서 QR 코드를 만들어 볼 수 있고, 아니면 [앱 열기](/#/)로 갤러리에서 아무 도구나 골라 빈칸을 채우고 **Export**를 누르면 돼요. *여러분의* 브랜드를 입히고 싶어지면 이 페이지로 돌아오세요.
 
 ![Utilities 화면 - Strip Hidden Data, Compress PDF, Convert Image 같은 온디바이스 일꾼들을 한곳에 모아 둔 곳](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

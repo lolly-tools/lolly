@@ -20,7 +20,7 @@ Lolly erzeugt sehr viele Inhalte. Wir gehen streng nach dem Grundsatz der Datenm
 
 Lolly wurde mit KI-unterstütztem Coding, KI-unterstützter Recherche und, an vielen Stellen, KI-unterstützten Inhalten entwickelt, unter Verwendung einer Mischung aus Modellen und Anbietern, darunter auch solche von Public-Cloud-Frontier-Unternehmen.
 
-Zum Zeitpunkt der Erstellung enthält Lolly null bekannte Sicherheitslücken in seiner Lieferkette und verpflichtet sich zu einer schnellen Reaktion auf Sicherheitsprobleme, sobald CVEs bekannt werden.
+Eine Warnung mit hohem oder kritischem Schweregrad in Lollys Abhängigkeiten blockiert die CI. Eine Warnung, die sich noch nicht beheben lässt, wird nur als genehmigte Ausnahme mit schriftlicher Begründung zurückgehalten. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) listet jede heute geltende Ausnahme auf, und die [Release Notes](https://github.com/lolly-tools/lolly/releases) nennen die Ausnahmen, die jede Version mitführt. SECURITY.md erklärt auch, wie Sie eine Sicherheitslücke melden.
 
 Ein Mensch hat die Architektur entworfen, den Code mit Bedacht kuratiert und das Erlebnis künstlerisch geleitet.
 
@@ -52,7 +52,9 @@ Feature-Flags schalten Teile von Lolly ein oder aus. Üblicherweise steuert das 
 
 ## Wie bekomme ich die Apps für Mobilgeräte oder den Desktop?
 
-Jeder kann eigene Apps verteilen; die Werkzeuge und die Konfiguration dieser Apps unterscheiden sich stark, je nachdem, für welches Publikum sie gedacht sind. Es gibt also nicht die eine App - es sei denn, Sie haben sie selbst gebaut oder jemand aus Ihrem Umfeld gibt sie Ihnen.
+Laden Sie sie über [Lolly installieren](/info/install.html) herunter. Die Seite listet jeden Build für macOS, Windows, Linux und Android und zeigt, wie Sie die heruntergeladene Datei prüfen. Für iPhone und iPad gibt es noch keinen öffentlichen Download; [der Abschnitt zu iPhone und iPad](/info/install.html#iphone-and-ipad) sagt, was Sie stattdessen nutzen können.
+
+Jeder kann außerdem eine eigene Kopie der App bauen und verteilen, mit den Werkzeugen und Einstellungen, die das eigene Publikum braucht. Der [Build-Leitfaden](/info/build-guide.html) zeigt, wie.
 
 ## Warum der Name "Lolly Tools"?
 
@@ -127,7 +129,7 @@ Ebenen kommen als bearbeitbare Kästen auf der offenen Arbeitsfläche an: Text b
 
 ## Wo ist das, was ich gestern gemacht habe?
 
-Wenn Sie **Speichern unter** oder **Speichern** gedrückt haben, ist es in **Projekte**, auf dem Startbildschirm, in dem Browser oder der App, aus dem Sie gespeichert haben. Wenn Sie nur **Herunterladen** gedrückt haben, liegt die Datei dort, wo Ihr Browser oder System Downloads speichert, und meist liegt auch eine Kopie in **Assets**. Neun Tools halten außerdem nicht gespeicherte Arbeit in **Projekte**. [Ihre Arbeit finden und wiederherstellen](/info/find-your-work.html) deckt jeden Fall ab.
+Wenn Sie **Speichern unter** oder **Speichern** gedrückt haben, ist es in **Projekte**, auf dem Startbildschirm, in dem Browser oder der App, aus dem Sie gespeichert haben. Wenn Sie nur **Herunterladen** gedrückt haben, liegt die Datei dort, wo Ihr Browser oder System Downloads speichert, und meist liegt auch eine Kopie in **Assets**. Tools, die [während der Arbeit speichern](/info/find-your-work.html#which-tools-save-as-you-work), halten außerdem nicht gespeicherte Arbeit in **Projekte**. [Ihre Arbeit finden und wiederherstellen](/info/find-your-work.html) deckt jeden Fall ab.
 
 ## Ich habe den Tab geschlossen. Ist meine Arbeit weg?
 
@@ -143,7 +145,7 @@ Ja. Eine Person teilt eine Einladung (einen Link, einen QR-Code oder einen kurze
 
 ## Wo sind die Werkzeuge mit SUSE-Branding geblieben?
 
-Sie liegen bereits in einem separaten, privaten Repository. Ein öffentlicher Klon holt das SUSE-Brand-Pack gar nicht erst, deshalb läuft ein öffentlicher Build mit dem neutralen Profil `lolly-start` - den markenunabhängigen Community-Werkzeugen plus einer leeren Marke, die Sie mit Ihrer eigenen füllen. SUSE betreibt eine eigene Instanz, um seine Marken zu schützen.
+Sie liegen bereits in einem separaten, privaten Repository. Ein öffentlicher Klon holt das SUSE-Brand-Pack gar nicht erst, deshalb nutzt ein daraus gebauter Build das neutrale Profil `lolly-start`, solange Sie kein anderes wählen - die markenunabhängigen Community-Werkzeuge plus eine leere Marke, die Sie mit Ihrer eigenen füllen. [lolly.tools](https://lolly.tools) wird mit dem Profil `lolly-demo` gebaut und öffnet sich in [Lolly Demo](/info/lolly-demo.html), Lollys eigenem Designsystem. SUSE betreibt eine eigene Instanz, um seine Marken zu schützen.
 
 ## Warum ist es kostenlos? Wo ist der Haken?
 
@@ -153,7 +155,7 @@ Diese Grenze zieht die Lizenz, nicht ein Versprechen: Alles, was lokal läuft, i
 
 ## Wie viel behält SUSE für sich? (also: wann kommt der Rückzieher)
 
-Die Engine, die Shells, die Schemas und die markenunabhängigen Werkzeuge sind Open Source; privat bleiben die Marken von SUSE und die gebrandeten Werkzeuge, und die sind bereits herausgetrennt. Die öffentliche Instanz unter [lolly.tools](https://lolly.tools) läuft mit der leeren Marke.
+Die Engine, die Shells, die Schemas und die markenunabhängigen Werkzeuge sind Open Source; privat bleiben die Marken von SUSE und die gebrandeten Werkzeuge, und die sind bereits herausgetrennt. Die öffentliche Instanz unter [lolly.tools](https://lolly.tools) läuft mit [Lolly Demo](/info/lolly-demo.html), Lollys eigenem Designsystem.
 
 Die Grenze ist strukturell, nicht bloß versprochen. Jede veröffentlichte Version ist Open Source und lässt sich nicht zurückziehen, es gibt keine Contributor-Vereinbarung, die die Arbeit anderer neu lizenzieren könnte, und zurückgehalten wird allein die Marke. Als ein anderes Unternehmen 2023 die Quellen seines Enterprise-Linux schloss, hat SUSE [OpenELA](https://openela.org) mitgegründet, um diesen Code offen zu halten - dieselbe Haltung erbt dieses Projekt.
 

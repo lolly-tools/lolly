@@ -20,7 +20,7 @@ Malaki ang dami ng content na nagagawa ng Lolly. Mahigpit ang aming data minimiz
 
 Binuo ang Lolly gamit ang AI-assisted coding, AI-assisted discovery at sa maraming bahagi, AI-assisted content, gamit ang iba't ibang model at vendor, kabilang ang mula sa mga nangungunang kompanya sa public cloud.
 
-Sa oras na isinulat ito, wala ni isang kilalang security vulnerability ang Lolly sa supply chain nito, at nangangako sa mabilisang security response kapag lumitaw ang mga CVE.
+Hinaharang ng CI ang isang mataas o kritikal na advisory sa mga dependency ng Lolly. Ang advisory na hindi pa maaayos ay itinatago lang bilang aprubadong exception na may nakasulat na dahilan. Inililista ng [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) ang bawat exception na umiiral ngayon, at inililista ng [release notes](https://github.com/lolly-tools/lolly/releases) ang mga dala ng bawat release. Sinasabi rin ng SECURITY.md kung paano mag-ulat ng vulnerability.
 
 Isang tao ang lumikha ng architecture, nag-curate ng code nang may intensyon at nag-art direct sa experience.
 
@@ -52,7 +52,9 @@ Binubuksan o isinasara ng mga feature flag ang mga bahagi ng Lolly. Karaniwan, a
 
 ## Paano ko makukuha ang mobile o desktop apps?
 
-Kahit sino ay puwedeng mamahagi ng sarili niyang apps, at dapat malaki ang pagkakaiba-iba ng tools at configuration ng mga app na iyon depende sa audience na pinaglalaanan nito. Kaya walang iisang app maliban kung ikaw ang gumawa nito o may kaugnay na taong nagbigay nito sa iyo.
+I-download ang mga ito mula sa [I-install ang Lolly](/info/install.html). Inililista ng pahina ang bawat build para sa macOS, Windows, Linux at Android, at ipinapakita kung paano suriin ang file na dinownload mo. Wala pang public download ang iPhone at iPad; sinasabi ng [seksyon tungkol sa iPhone at iPad](/info/install.html#iphone-and-ipad) kung ano ang gagamitin sa halip.
+
+Puwede ring bumuo at mamahagi ang sinuman ng sarili niyang kopya ng app, na may mga tool at setting na kailangan ng kanyang audience. Ipinapakita ng [Build Guide](/info/build-guide.html) kung paano.
 
 ## Bakit "Lolly Tools" ang pangalan?
 
@@ -127,7 +129,7 @@ Dumarating ang mga layer bilang mga kahong puwedeng i-edit sa open canvas: nanan
 
 ## Nasaan ang ginawa ko kahapon?
 
-Kung pinindot mo ang **I-save bilang** o **I-save**, nasa **Mga Project** ito, sa home screen, sa browser o app na pinagsimulan mong mag-save. Kung **I-download** lang ang pinindot mo, nasa kinaroroonan ng mga download ng browser o system mo ang file, at karaniwang may kopya sa **Mga asset**. Iniingatan din ng siyam na tool ang hindi na-save na gawa sa **Mga Project**. Sinasaklaw ng [Hanapin at bawiin ang gawa mo](/info/find-your-work.html) ang bawat kaso.
+Kung pinindot mo ang **I-save bilang** o **I-save**, nasa **Mga Project** ito, sa home screen, sa browser o app na pinagsimulan mong mag-save. Kung **I-download** lang ang pinindot mo, nasa kinaroroonan ng mga download ng browser o system mo ang file, at karaniwang may kopya sa **Mga asset**. Iniingatan din ng mga tool na [nagse-save habang gumagawa ka](/info/find-your-work.html#which-tools-save-as-you-work) ang hindi na-save na gawa sa **Mga Project**. Sinasaklaw ng [Hanapin at bawiin ang gawa mo](/info/find-your-work.html) ang bawat kaso.
 
 ## Isinara ko ang tab. Nawala na ba ang ginawa ko?
 
@@ -143,7 +145,7 @@ Oo. Nagbabahagi ng imbitasyon ang isa (isang link, isang QR code o isang short c
 
 ## Saan napunta ang mga SUSE-branded na tool?
 
-Nasa hiwalay at pribadong repository na sila. Hindi man lang kinukuha ng isang public clone ang SUSE brand pack, kaya ang tumatakbo sa isang public build ay ang neutral na `lolly-start` profile - ang mga brand-agnostic na community tool kasama ang blangkong brand na pupunan mo ng sarili mo. May sariling instance ang SUSE para protektahan ang mga trademark nito.
+Nasa hiwalay at pribadong repository na sila. Hindi man lang kinukuha ng isang public clone ang SUSE brand pack, kaya ang build mula rito ay gumagamit ng neutral na `lolly-start` profile maliban kung pumili ka ng iba - ang mga brand-agnostic na community tool kasama ang blangkong brand na pupunan mo ng sarili mo. Ang [lolly.tools](https://lolly.tools) ay binuo gamit ang `lolly-demo` profile at bumubukas sa [Lolly Demo](/info/lolly-demo.html), ang sariling design system ng Lolly. May sariling instance ang SUSE para protektahan ang mga trademark nito.
 
 ## Bakit libre ito? Ano ang kapalit?
 
@@ -153,7 +155,7 @@ Nakaguhit ang linyang iyon sa lisensya, hindi sa pangako: anumang tumatakbo nang
 
 ## Gaano karami ang itinatago ng SUSE bilang pribado? (o kung kailan kami iiwan sa ere)
 
-Open source ang engine, ang mga shell, ang mga schema at ang mga brand-agnostic na tool; ang mga trademark at branded na tool ng SUSE ang bahaging nananatiling pribado, at nakahiwalay na ang mga ito. Ang pampublikong instance sa [lolly.tools](https://lolly.tools) ay tumatakbo gamit ang blangkong brand.
+Open source ang engine, ang mga shell, ang mga schema at ang mga brand-agnostic na tool; ang mga trademark at branded na tool ng SUSE ang bahaging nananatiling pribado, at nakahiwalay na ang mga ito. Ang pampublikong instance sa [lolly.tools](https://lolly.tools) ay tumatakbo sa [Lolly Demo](/info/lolly-demo.html), ang sariling design system ng Lolly.
 
 Estruktural ang hangganan, hindi lamang pangako. Bawat inilabas na bersyon ay open source at hindi na maibabalik sa pagkakatago, walang contributor agreement na puwedeng mag-relicense ng gawa ninuman, at ang trademark lang ang pinipigil. Nang isara ng isa pang kumpanya ang mga source ng enterprise Linux nito noong 2023, isa ang SUSE sa nagtatag ng [OpenELA](https://openela.org) para manatiling bukas ang code na iyon - ito rin ang paninindigang minana ng proyektong ito.
 

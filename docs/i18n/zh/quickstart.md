@@ -4,7 +4,7 @@ Lolly 把你的规则（配色、字体、版式、逻辑）变成任何人都�
 
 这是最先该读的一页。两件事让你上手：**把 Lolly 变成你自己的**，以及**把你已有的东西带进来**（你的设计文件和设计令牌）。其余内容都只在一个链接之外。
 
-> 第一次用 Lolly，只想先做点东西出来？[60 秒做出一件作品](/info/make-something.html)会带你走完三个例子，或者[打开应用](/#/)，从图库里挑一个工具，把空格填好，按 **Export**。等你想让它穿上*你自己的*品牌时，再回到这一页。
+> 第一次用 Lolly，只想先做点东西出来？[制作你的第一份文件](/info/make-something.html)会带你做一个二维码，或者[打开应用](/#/)，从图库里挑一个工具，把空格填好，按 **Export**。等你想让它穿上*你自己的*品牌时，再回到这一页。
 
 ![Utilities 视图：Strip Hidden Data、Compress PDF、Convert Image 这类在设备上干活的常用工具，全都集中在一处](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

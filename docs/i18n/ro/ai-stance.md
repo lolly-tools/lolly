@@ -8,7 +8,7 @@ Lolly a fost construit chiar în mijlocul celei mai mari schimbări din modul î
 
 ![O furtună supercelulară dezlănțuindu-se deasupra unei ferme izolate din outback - rezervorul și șoproanele dedesubt, apa de inundație tăind deja canale prin pășunea uscată](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} imagine generată %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} și %act{exported to WebP} ca %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Verifică acum](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} imagine generată %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} și %act{exported to WebP} ca %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Verifică acum](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 Ca să fim preciși, pentru că această pagină susține că precizia contează: imaginea de mai sus este generată, nu fotografiată. Nicio cameră nu a fost îndreptată spre acea fermă, pentru că nu există nicio fermă. Ea descrie regiunea Queensland, Australia, solicitată printr-un prompt din Regatul Unit, generată într-un centru de date din Statele Unite. Încearcă să fie fidelă unui loc fără să fie o înregistrare a acestuia, iar această distincție este întregul motiv pentru care Content Credentials ale sale o spun.
 

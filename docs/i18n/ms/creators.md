@@ -4,13 +4,13 @@ Anda isikan beberapa medan dan fail siap pun terhasil, dengan fon, warna dan sus
 
 Anda ialah satu peringkat dalam larian berganti-ganti: seorang pembangun boleh mengembangkan alat yang anda guna menjadi satu saluran paip, dan seorang rakan sekerja boleh menjalankannya secara layan diri, jadi [Kitaran hayat kempen](/info/overview.html#the-lifecycle-of-a-campaign) mengikuti satu aset melalui ketiga-tiga pasangan tangan itu.
 
-Baru di sini? Mulakan dengan **[Buat sesuatu dalam 60 saat](/info/make-something.html)** dan kembali semula sebaik sahaja anda tahu bahagian mana yang anda mahu terokai dengan lebih mendalam. [Soalan & jawapan](/info/faq.html) merangkumi apa yang orang tanya sebelum mereka mempercayai alat percuma. [Bagaimana Lolly dibandingkan](/info/positioning.html) ialah penjelasan jujur tentang bila anda patut menggunakan sesuatu yang lain.
+Baru di sini? Mulakan dengan **[Buat fail pertama anda](/info/make-something.html)** dan kembali semula sebaik sahaja anda tahu bahagian mana yang anda mahu terokai dengan lebih mendalam. [Soalan & jawapan](/info/faq.html) merangkumi apa yang orang tanya sebelum mereka mempercayai alat percuma. [Bagaimana Lolly dibandingkan](/info/positioning.html) ialah penjelasan jujur tentang bila anda patut menggunakan sesuatu yang lain.
 
 ## Cipta
 
 Pilih satu alat, isikan beberapa medan dan muat turun fail siap. Atau buka kanvas Reka Bentuk dan susun aturnya secara bebas: apa jua caranya, warna, jenis huruf dan jarak datang daripada jenama anda dan bukan daripada ingatan, dan tiada satu pun memerlukan akaun.
 
-- **[Buat sesuatu dalam 60 saat](/info/make-something.html)** - tiga panduan ringkas tanpa apa-apa persediaan, jika anda belum pernah membuka Lolly sebelum ini.
+- **[Buat fail pertama anda](/info/make-something.html)** - satu pelajaran ringkas tanpa apa-apa persediaan: buat kod QR, muat turunnya dan simpan salinan yang boleh disunting. Mulakan di sini jika anda belum pernah membuka Lolly sebelum ini.
 - **[Menggunakan Lolly](/info/using.html)** - kanvas, kawalan, penyimpanan, Projects dan penggunaan telefon: cara aplikasi itu sendiri berkelakuan.
 - **[Studio Jenama](/info/brand-studio.html)** - apabila logo, warna dan jenis huruf patut menjadi milik anda dan bukannya lalai.
 - **[Import reka bentuk](/info/design-import.html)** - apabila karya seni sudah wujud sebagai fail `.fig`, `.penpot`, `.ai`, `.idml` atau SVG dan anda mahukannya boleh disunting dan bukan diratakan.

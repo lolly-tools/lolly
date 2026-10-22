@@ -6,7 +6,7 @@ Bu sayfadaki herhangi bir kontrol gösterilen sonucu üretmiyorsa, bu ya bir hat
 
 ## On saniyede çalıştığını gör
 
-Prosedürlerden önce, karşılığı gör. [`/verify`](/#/verify) sayfasını aç ve üzerine bir dosya bırak - yükleme yok, hesap yok, sunucu beklemesi yok. İşte AI duruşu sayfamızdan [oluşturulmuş Queensland fırtınasını](/info/ai-stance.html) kontrol ediyor: Lolly'nin açtığı, yeniden boyutlandırdığı ve dışa aktardığı bir Gemini görseli. Aşağıdaki her rozet, cihazda, dosyanın kendi baytlarından hesaplandı.
+Prosedürlerden önce, karşılığı gör. [`/verify`](/#/verify) sayfasını aç ve üzerine bir dosya bırak - yükleme yok, hesap yok, sunucu beklemesi yok. İşte AI duruşu sayfamızdan [oluşturulmuş Queensland fırtınasını](/info/ai-stance.html) kontrol ediyor: Lolly'nin açtığı, filigran eklediği ve dışa aktardığı bir Gemini görseli. Aşağıdaki her rozet, cihazda, dosyanın kendi baytlarından hesaplandı.
 
 ![Telefon genişliğinde bir ekranda Verify - fırtına görseli, yeşil bir Made with Lolly kararı ve altında sıralanmış kimlik bilgisi-sağlam ve bayt-değişmemiş rozetleri](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

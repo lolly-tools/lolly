@@ -8,7 +8,7 @@ Lolly беше изграден в разгара на най-голямата �
 
 ![Суперклетъчна буря се разразява над ферма в австралийската пустош - резервоарът и постройките долу, водата от наводнението вече прорязва канали през сухата ливада](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} генерирано изображение %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} и %act{exported to WebP} като %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Провери сега](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} генерирано изображение %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} и %act{exported to WebP} като %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Провери сега](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 За да сме точни, защото тази страница твърди, че точността има значение: изображението по-горе е генерирано, а не заснето. Никаква камера не е била насочена към тази ферма, защото такава ферма не съществува. То изобразява регион в Куинсланд, Австралия, зададено с промпт от Обединеното кралство, генерирано в дейта център в Съединените щати. То се опитва да бъде вярно на едно място, без да е негов запис, и точно тази разлика е причината неговите Content Credentials да го посочват.
 

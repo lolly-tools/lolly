@@ -4,7 +4,7 @@ Lolly zamienia twoje zasady - kolory, typografię, układy, logikę - w narzędz
 
 To jest ta jedna strona, którą warto przeczytać najpierw. Dwie rzeczy dają ci sprawność w pracy: **dostosuj Lolly do siebie** i **wnieś to, co już masz** (twoje pliki projektowe i tokeny). Wszystko inne jest oddalone o jeden link.
 
-> Dopiero zaczynasz z Lolly i chcesz po prostu coś zrobić? [Zrób coś w 60 sekund](/info/make-something.html) przeprowadzi cię przez trzy przykłady, albo [otwórz aplikację](/#/), wybierz dowolne narzędzie z galerii, wypełnij pola i kliknij **Export**. Wróć tutaj, gdy zechcesz, by nosiło *twoją* markę.
+> Dopiero zaczynasz z Lolly i chcesz po prostu coś zrobić? [Zrób swój pierwszy plik](/info/make-something.html) przeprowadzi cię przez kod QR, albo [otwórz aplikację](/#/), wybierz dowolne narzędzie z galerii, wypełnij pola i kliknij **Export**. Wróć tutaj, gdy zechcesz, by nosiło *twoją* markę.
 
 ![Widok Utilities - lokalne konie robocze, takie jak Strip Hidden Data, Compress PDF i Convert Image, wszystkie w jednym miejscu](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

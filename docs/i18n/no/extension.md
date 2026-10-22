@@ -2,7 +2,7 @@
 
 Utvidelsen **Lolly URL Screenshot** lar webappen ta skjermbilde av en hvilken som helst nettside fra innsiden av nettleseren din. Uten den krever fangst av en URL skrivebordsappen - en nettleserside kan ikke lese piksler fra en annen side på egen hånd. Utvidelsen kan, ved å bruke samme fangst som skrivebordsappen bruker.
 
-Den gjør én annen jobb på samme måte: leser en enkelt side du oppgir, slik at Brand Studio kan hente en merkevare ut av et livenettsted. Begge er dekket under.
+Den gjør to andre jobber på samme måte. En nettadresse limt inn i et bildefelt kan bli et skjermbilde av den siden (**Ta skjermbilde av denne siden**), og utvidelsen kan lese en enkelt side du oppgir, slik at Brand Studio kan hente en merkevare ut av et livenettsted. Hver forespørsel venter på godkjenningen din i utvidelsen.
 
 Den kjører på Chromium-baserte nettlesere: **Chrome, Edge, Brave, Arc, Opera** - Chrome 111 eller nyere.
 
@@ -22,18 +22,23 @@ Hver kontroll er live mens du venter: mål-URL-en, rullodybden, roforsinkelsen, 
 
 ### Last den inn selv (utviklere)
 
-Utvidelsen ligger i repoet under `shells/chrome-extension/`.
+Utvidelsen ligger i repoet under `shells/chrome-extension/`. Den mappen er produksjonsbuilden, som bare fungerer med Lolly på `https://lolly.tools`.
 
 1. Åpne `chrome://extensions`.
 2. Slå på **Developer mode** (øverst til høyre).
 3. Klikk **Load unpacked** og velg mappen `shells/chrome-extension/`.
 4. Last Lolly på nytt - **URL Screenshot** fungerer nå i nettleseren.
 
+For en lokal utviklingsserver kjører du `pnpm run pack:chrome-extension:dev` og laster inn `dist/chrome-extension-dev` i stedet. Den pakken godtar også `http://localhost:5173` og har **Development** i navnet.
+
 ## Slik fungerer det
 
-- Et lite skript forteller Lolly at utvidelsen er til stede, slik at verktøyet **URL Screenshot** slår seg på automatisk - ingen oppsett.
-- Når du rendrer, åpner utvidelsen målsiden i en bakgrunnsfane, fanger den via DevTools Protocol (samme `Page.captureScreenshot` som skrivebordsappen bruker), lukker deretter fanen og leverer bildet tilbake.
-- Den kjører helt i nettleseren din, på ditt nettverk - så fangst av `localhost` eller et internt nettsted fungerer. Selve fangsten lastes aldri opp noe sted; den eneste nettverkstrafikken er din egen nettleser som laster siden du ba om å skyte.
+- Et lite skript forteller Lolly at utvidelsen er til stede, slik at **URL Screenshot** kan lagre fangster uten videre oppsett.
+- Du godkjenner hver forespørsel. Når Lolly spør, åpner utvidelsen sitt eget vindu, **Approve page request**, som viser nettstedet som ber om det, om det vil ha et skjermbilde eller sideinnholdet, og sideadressen. Ingenting leses før du trykker **Approve once**. **Cancel**, eller å lukke vinduet, avslutter forespørselen.
+- Første gang du godkjenner en forespørsel for et nettsted, spør Chrome også om utvidelsen får tilgang til det nettstedet. Chrome beholder den tilgangen når du har tillatt den, men hver senere forespørsel trenger fortsatt sin egen **Approve once**.
+- En godkjenning dekker én forespørsel og utløper etter 30 sekunder. Bare én forespørsel kan vente eller kjøre om gangen, og en godkjent forespørsel stopper etter 55 sekunder. Hvis Lolly-siden lukkes eller endres, eller målsiden flytter til et annet nettsted, avbrytes forespørselen.
+- Etter at du har godkjent, åpner utvidelsen målsiden i en bakgrunnsfane, fanger den via DevTools Protocol (samme `Page.captureScreenshot` som skrivebordsappen bruker), lukker deretter fanen og leverer bildet tilbake til Lolly-fanen som spurte.
+- Den kjører helt i nettleseren din, på ditt nettverk - så fangst av `localhost` eller et internt nettsted fungerer. Siden lastes med nettleserøkten din, så en side du er logget inn på, kan vise privat informasjon i resultatet. Selve fangsten lastes aldri opp noe sted; den eneste nettverkstrafikken er din egen nettleser som laster siden du ba om å skyte.
 
 Mens en fangst kjører kan du kort se en *"…startet feilsøking av denne nettleseren"*-banner på den midlertidige fanen. Det er DevTools Protocol i arbeid; den forsvinner av seg selv når skuddet er ferdig.
 
@@ -43,33 +48,33 @@ Kilden **Website** i Brand Studio starter en merkevare fra et nettsted du allere
 
 Hva som skjer når du trykker på den:
 
-- Én adresse, én side. Utvidelsen åpner den i samme slags bakgrunnsfane, leser den rendrede markeringen, stilarktekst og en håndfull ikon- og logobilder, og lukker deretter fanen. Den følger ikke lenker og den crawler ikke.
-- Stilark og skrifter hostet andre steder (et CDN, en skrifttjeneste) hentes også, fordi sidens farger og typografi bor i dem. Kryssopprinnelses-forespørsler går uten dine informasjonskapsler; forespørsler fra samme opprinnelse bruker dem, akkurat som selve siden ville gjort.
+- Én adresse, én side. Etter at du har godkjent, åpner utvidelsen den i samme slags bakgrunnsfane, leser den rendrede markeringen, stilarktekst og en håndfull ikon- og logobilder, og lukker deretter fanen. Den følger ikke lenker og den crawler ikke.
+- Stilark hostet andre steder (et CDN, en skrifttjeneste) hentes også, fordi sidens farger og typografi bor i dem. Kryssopprinnelses-forespørsler går uten dine informasjonskapsler; forespørsler fra samme opprinnelse bruker dem, akkurat som selve siden ville gjort.
 - Alt er begrenset - et avgrenset antall ark, bilder og bytes - slik at en fiendtlig eller halvt ødelagt side returnerer delvis materiale i stedet for å henge.
 - Bytene går rett tilbake til Lolly-fanen som spurte. Tolkningen til farger, typografi og logoer skjer på din enhet; ingenting lastes opp.
 
-Ingenting leses før du trykker. Å lime inn en adresse fyller bare ut feltet.
+Å lime inn en adresse fyller bare ut feltet. Ingenting leses før du starter lesingen og trykker **Approve once**.
 
 ## Etter installasjon
 
-Last Lolly-fanen på nytt. Prompten "Get the extension" forsvinner og **URL Screenshot** blir tilgjengelig i galleriet og i batch-modus.
+Last Lolly-fanen på nytt. Prompten "Get the extension" forsvinner, **URL Screenshot** (under Nyttefunksjoner) kan lagre fangster til en fil, og verktøyet blir tilgjengelig i batch-modus.
 
 ## Tillatelser
 
-`manifest.json` erklærer fire tillatelser pluss vertstilgang:
+`manifest.json` erklærer fire tillatelser, pluss nettstedstilgang som den ber om ett nettsted om gangen:
 
 - `debugger` - styre bakgrunnsfanen gjennom DevTools Protocol. Dette er det som tar skjermbildet.
-- `tabs` - åpne den midlertidige bakgrunnsfanen og lukke den igjen etterpå.
+- `tabs` - åpne den midlertidige bakgrunnsfanen og lukke den igjen etterpå, og sjekke at verken Lolly-siden eller målsiden har flyttet seg siden du godkjente forespørselen.
 - `scripting` - kjøre ensidelesern inne i nettstedet du oppga, for Brand Studios Website-kilde.
 - `storage` - notere id-en til en fane den åpnet, kun i økt-lagring, slik at fanen fortsatt blir lukket hvis nettleseren suspenderer utvidelsen midt i lesingen. Tømmes ved neste oppstart; ingenting om deg lagres.
-- `host_permissions: ["<all_urls>"]` - vertstilgang til *alle* nettsteder, fordi du kan peke den mot en hvilken som helst URL du velger. Chrome viser dette ved installasjon som en bred "les og endre alle dataene dine på alle nettsteder"-advarsel.
+- `optional_host_permissions: ["http://*/*", "https://*/*"]` - nettstedstilgang, som ikke gis ved installasjon. Når du trykker **Approve once**, ber utvidelsen Chrome om tilgang til det ene nettstedet i den forespørselen, og Chrome spør deg første gang for hvert nettsted.
 
-Til tross for den advarselen leser den bare den ene siden du ber den fange eller importere, og den leser eller overfører ikke nettleserdataene dine - ingenting lastes opp noe sted.
+Den leser bare den ene siden du godkjenner, og den leser eller overfører ikke nettleserdataene dine - ingenting lastes opp noe sted.
 
-Manifestet setter også `minimum_chrome_version: 111`. Gjeldende versjon er 0.2.1.
+Manifestet setter også `minimum_chrome_version: 111`. Gjeldende versjon er 0.4.0.
 
 ## Feilsøking
 
 - **Ser fortsatt "Get the extension"?** Last Lolly-fanen på nytt - deteksjon skjer ved sidelasting.
-- **Ingenting skjer på dette nettstedet?** Utvidelsen aktiveres kun på Lollys egne opprinnelser. Kjører du en egendefinert build på et annet domene? Legg det til i `content_scripts.matches` i utvidelsens `manifest.json`.
-- **En fangst feiler?** Sjekk at URL-en er nåbar og starter med `http://` eller `https://`. Enkelte sider blokkerer aktivt automatisert fangst.
+- **Ingenting skjer på dette nettstedet?** Utvidelsen fungerer bare på `https://lolly.tools`, pluss `http://localhost:5173` i utviklingspakken. En annen opprinnelse, for eksempel en selvhostet kopi av Lolly, trenger en separat build av utvidelsen som lister den opprinnelsen i både `manifest.json` og `policy.js`. Å redigere bare manifestet fungerer ikke lenger.
+- **En fangst feiler?** Sjekk at URL-en er nåbar og starter med `http://` eller `https://`. Enkelte sider blokkerer aktivt automatisert fangst. Hvis du trykket **Cancel**, lukket godkjenningsvinduet eller ventet lenger enn 30 sekunder, starter du fangsten på nytt.

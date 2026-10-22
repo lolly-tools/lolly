@@ -4,13 +4,13 @@ Vyplníš pár polí a vyjede hotový soubor, s písmy, barvami a rozvržením u
 
 Jsi jednou rukou ve štafetě: vývojář může nástroj, který používáš, rozšířit do pipeline a kolega ho může spustit samoobslužně, takže [Životní cyklus kampaně](/info/overview.html#the-lifecycle-of-a-campaign) sleduje jeden asset skrz všechny tři páry rukou.
 
-Jsi tu nový? Začni na **[Vytvoř něco za 60 sekund](/info/make-something.html)** a vrať se, až budeš vědět, kterou část chceš prozkoumat hlouběji. [Otázky a odpovědi](/info/faq.html) pokrývá to, na co se lidé ptají, než začnou důvěřovat bezplatnému nástroji. [Jak si Lolly stojí ve srovnání](/info/positioning.html) je upřímný přehled toho, kdy sáhnout po něčem jiném.
+Jsi tu nový? Začni na **[Vytvoř svůj první soubor](/info/make-something.html)** a vrať se, až budeš vědět, kterou část chceš prozkoumat hlouběji. [Otázky a odpovědi](/info/faq.html) pokrývá to, na co se lidé ptají, než začnou důvěřovat bezplatnému nástroji. [Jak si Lolly stojí ve srovnání](/info/positioning.html) je upřímný přehled toho, kdy sáhnout po něčem jiném.
 
 ## Tvorba
 
 Vyber si nástroj, vyplň pár polí a stáhni si hotový soubor. Nebo otevři plátno Design a rozvrhni si to od ruky: tak jako tak barvy, písmo a rozestupy vycházejí z tvé značky, ne z paměti, a nic nevyžaduje účet.
 
-- **[Vytvoř něco za 60 sekund](/info/make-something.html)** - tři krátké návody bez čehokoliv k nastavování, pokud jsi Lolly ještě nikdy neotevřel.
+- **[Vytvoř svůj první soubor](/info/make-something.html)** - jedna krátká lekce bez čehokoliv k nastavování: vytvoř QR kód, stáhni ho a ulož si upravitelnou kopii. Začni tady, pokud jsi Lolly ještě nikdy neotevřel.
 - **[Používání Lolly](/info/using.html)** - plátno, ovládací prvky, ukládání, Projects a použití na telefonu: jak se aplikace samotná chová.
 - **[Brand Studio](/info/brand-studio.html)** - kdy by loga, barvy a písmo měly být tvoje vlastní, ne výchozí.
 - **[Importuj návrh](/info/design-import.html)** - když grafika už existuje jako soubor `.fig`, `.penpot`, `.ai`, `.idml` nebo SVG a chceš ji editovatelnou, ne zploštělou.

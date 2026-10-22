@@ -4,7 +4,7 @@ Lolly, kurallarını - renkleri, tipografiyi, yerleşimleri, mantığı - herkes
 
 Önce okunması gereken tek sayfa bu. Seni üretken kılan iki şey var: **Lolly'yi kendine göre ayarlamak** ve **halihazırda elinde olanı içeri almak** (tasarım dosyaların ve token'ların). Geri kalan her şey bir bağlantı uzakta.
 
-> Lolly'de yenisin ve hemen bir şey üretmek mi istiyorsun? [60 saniyede bir şey üret](/info/make-something.html) sana üç örnek üzerinden yol gösterir; ya da [uygulamayı aç](/#/), galeriden bir araç seç, boşlukları doldur ve **Export**'a bas. Ürettiğin şeyin *senin* markanı taşımasını istediğinde buraya geri dön.
+> Lolly'de yenisin ve hemen bir şey üretmek mi istiyorsun? [İlk dosyanı oluştur](/info/make-something.html) sana bir QR kodu üzerinden yol gösterir; ya da [uygulamayı aç](/#/), galeriden bir araç seç, boşlukları doldur ve **Export**'a bas. Ürettiğin şeyin *senin* markanı taşımasını istediğinde buraya geri dön.
 
 ![Utilities görünümü - Strip Hidden Data, Compress PDF ve Convert Image gibi cihaz üzerinde çalışan iş atları, hepsi tek yerde](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

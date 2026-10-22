@@ -4,7 +4,7 @@ Lolly transforma suas regras - cores, tipografia, layouts, lógica - em ferramen
 
 Esta é a página para ler primeiro. Duas coisas deixam você produtivo: **deixe Lolly com a sua cara** e **traga o que você já tem** (seus arquivos de design e tokens). Todo o resto está a um link de distância.
 
-> Chegou agora em Lolly e só quer criar algo? [Crie algo em 60 segundos](/info/make-something.html) leva você por três deles, ou [abra o app](/#/), escolha qualquer ferramenta da galeria, preencha os campos e clique em **Export**. Volte aqui quando quiser tudo com a *sua* marca.
+> Chegou agora em Lolly e só quer criar algo? [Faça seu primeiro arquivo](/info/make-something.html) leva você por um QR code, ou [abra o app](/#/), escolha qualquer ferramenta da galeria, preencha os campos e clique em **Export**. Volte aqui quando quiser tudo com a *sua* marca.
 
 ![A visão Utilities - as ferramentas que rodam no dispositivo, como Strip Hidden Data, Compress PDF e Convert Image, todas em um só lugar](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

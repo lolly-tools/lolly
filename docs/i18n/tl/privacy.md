@@ -1,6 +1,6 @@
 # Patakaran sa Privacy
 
-*Huling na-update: 11 Agosto 2026*
+*Huling na-update: 22 Oktubre 2026*
 
 > **Ang maikling bersyon.** Ang mga dokumento, larawan, video, at file na ginagawa mo sa Lolly ay
 > nananatili sa device mo. Walang account para sa ordinaryong paggamit, walang cookie mula sa
@@ -102,9 +102,9 @@ ipinapadala ng app sa network. Kung wala ito rito, hindi ito ginagawa ng app.
 | Ano | Ano talaga ang lumalabas mula sa iyong device | Kailan (ang aksyon na nagta-trigger nito) | Kung babawalan ito ng operator |
 |---|---|---|---|
 | Pag-sync ng tool catalogue | Walang personal - isang request para sa sariling pampublikong tool at asset index ng Lolly, papunta sa sariling origin ng app | Sa pag-startup, pagkatapos ay naka-cache offline | Tumatakbo ang app gamit ang naka-cache nitong tool set. Tumitigil lang itong tumuklas ng mga bagong tool |
-| Isang tool na nangangailangan ng live data | Anuman ang hinihiling ng partikular na tool na iyon, papunta sa host na pinangalanan sa sarili nitong deskripsyon. Sa ngayon, iyon lang ang city lookup sa Meeting Planner tool, na tumatawag sa `geocoding-api.open-meteo.com` upang gawing coordinates at time zone ang pangalan ng lungsod - walang account, walang key at walang identifier maliban sa mismong request. Nakasaad ito sa input mismo kung saan ka nagta-type, at bawat sagot ay naka-save sa iyong device kaya minsan lang tinitingnan ang isang lungsod | Habang ginagamit lang ang tool na iyon, at kapag naglagay ka lang ng lokasyon | Nabibigo ang isang lookup na iyon. Maaari ka pa ring mag-type ng coordinates nang manwal, at walang ibang naaapektuhan |
+| Isang tool na nangangailangan ng live data | Anuman ang hinihiling ng partikular na tool na iyon, papunta sa host na pinangalanan sa sarili nitong deskripsyon. Sa ngayon, iyon lang ang city lookup sa Meeting Planner tool, na tumatawag sa `geocoding-api.open-meteo.com` upang gawing coordinates at time zone ang bawat pangalan ng lungsod (ang host city at ang lungsod ng bawat miyembro ng team) - walang account, walang key at walang identifier maliban sa mismong request. Nakasaad ito sa Host city input, at bawat sagot ay naka-save sa iyong device kaya minsan lang tinitingnan ang isang lungsod | Habang bukas lang ang tool na iyon, para sa host city (may default na laman) at sa lungsod ng bawat miyembro ng team | Nabibigo ang lookup na iyon, at walang ibang naaapektuhan |
 | Google Fonts | Ang napiling pangalan ng font family at ang iyong IP address, papunta sa mga font server ng Google (`fonts.googleapis.com` para sa stylesheet, `fonts.gstatic.com` para sa font file) | Kapag lang nagdagdag ka ng Google Font sa brand editor, **at kapag lang sumang-ayon ka rito sa isang dialog na sinasabi mismo ito** - isang beses lang na fetch bawat family, pagkatapos ay nananatili ito sa iyong device at ginagamit offline | Nabibigo ang Google Fonts picker sa closed na paraan. Mag-upload na lamang ng font file |
-| Send to Google Drive | Ang isang file na pinili mong ipadala, papunta sa Drive API ng Google (`www.googleapis.com`), pagkatapos ng Google sign-in na kinukumpleto mo sa sarili ng Google na popup window. Limitado ang access ng Lolly sa mga file na nilikha nito (ang `drive.file` scope - hindi nito kayang basahin ang natitira sa iyong Drive), at ang sign-in token ay naka-hold sa memory para sa session lamang, hindi kailanman naka-store | Kapag lang pinindot mo ang "Send to Google Drive" sa isang EMF export, at kapag lang naka-configure ang operator ng Google client id sa build - kung wala nito, hindi umiiral ang button | Hindi kailanman lumalabas ang button. I-download ang file at i-upload mo mismo ito sa Drive |
+| Send to Google Drive | Ang isang file na pinili mong ipadala, sa anumang format, papunta sa Drive API ng Google (`www.googleapis.com`), pagkatapos ng Google sign-in na kinukumpleto mo sa sariling window ng Google. Limitado ang access ng Lolly sa mga file na nilikha nito (ang `drive.file` scope - hindi nito kayang basahin ang natitira sa iyong Drive). Sa web app, ang sign-in token ay naka-hold sa memory para sa session lamang, hindi kailanman naka-store; sa ibang mga app, may refresh token na naka-store sa device na ito kung itsek mo lang ang "stay connected" | Kapag lang pinindot mo ang "Send to Google Drive" sa isang file, at kapag lang naka-configure ang operator ng Google client id sa build - kung wala nito, hindi umiiral ang button | Hindi kailanman lumalabas ang button. I-download ang file at i-upload mo mismo ito sa Drive |
 | Send to Dropbox | Ang isang file na pinili mong ipadala, papunta sa API ng Dropbox (`api.dropboxapi.com` para sa sign-in at metadata, `content.dropboxapi.com` para sa file mismo), pagkatapos ng Dropbox sign-in na kinukumpleto mo sa sarili ng Dropbox na window. App-folder lamang ang access ng Lolly (makikita lang nito ang `Apps/` at ang sarili nitong folder doon - hindi kailanman ang natitira sa iyong Dropbox), ang link na "Open" na ipinapakita nito sa iyo ay isang panandaliang pribadong link (walang nililikhang pampublikong share), at ang refresh token ay naka-store lamang kung tinitikan mo ang "stay connected" | Kapag lang pinindot mo ang "Send to Dropbox" sa isang file, at kapag lang naka-configure ang operator ng Dropbox client id sa build - kung wala nito, hindi umiiral ang button | Hindi kailanman lumalabas ang button. I-download ang file at i-upload mo mismo ito sa Dropbox |
 | Send to OneDrive | Ang isang file na pinili mong ipadala, papunta sa identity at Graph services ng Microsoft (`login.microsoftonline.com` para sa sign-in, `graph.microsoft.com` para sa upload; ang malaking file ay ina-upload nang paputol-putol papunta sa isang upload address na pag-aari ng Microsoft sa `api.onedrive.com`, `*.up.1drv.com` o `*.sharepoint.com`), pagkatapos ng Microsoft sign-in na kinukumpleto mo sa sarili ng Microsoft na window. Limitado ang access ng Lolly sa sarili nitong folder sa ilalim ng `Apps/` (hindi nito kayang basahin ang natitira sa iyong OneDrive) kasama ang iyong display name para sa account label, at ang refresh token ay naka-store lamang kung tinitikan mo ang "stay connected" | Kapag lang pinindot mo ang "Send to OneDrive" sa isang file, at kapag lang naka-configure ang operator ng Microsoft client id sa build - kung wala nito, hindi umiiral ang button | Hindi kailanman lumalabas ang button. I-download ang file at i-upload mo mismo ito sa OneDrive |
 | Send to LinkedIn | Ang isang file na pinili mong ipadala, kasama ang pangalan nito bilang text ng post, papunta sa LinkedIn (`www.linkedin.com` para sa sign-in, `api.linkedin.com` para sa upload at post), pagkatapos ng LinkedIn sign-in na kinukumpleto mo sa sarili mong browser. Ang post ay napupunta sa sarili mong feed bilang pampublikong post sa ilalim ng iyong pangalan. Kayang mag-post ng Lolly bilang ikaw at basahin ang iyong pangalan para sa account label, wala nang iba pa sa iyong LinkedIn, at ang sign-in ay nananatili sa device na ito lamang kung tinitikan mo ang "stay connected" - ang mga token ng LinkedIn ay tumatagal ng 60 araw at hindi maaaring i-renew nang tahimik, kaya mag-e-expire ito nang mag-isa | Kapag lang pinindot mo ang "Send to LinkedIn" sa isang file, sa desktop apps lamang, at kapag lang naka-configure ang isang LinkedIn app sa build - kung wala nito, hindi umiiral ang button | Walang babawalan sa web app: umiiral ito **sa desktop apps lamang**, kaya sinadyang HINDI isinama ang dalawang host na iyon sa Content-Security-Policy ng web app sa ibaba. Sa desktop apps, alisin ang naka-configure na LinkedIn app at hindi na kailanman lumalabas ang button |
@@ -155,13 +155,13 @@ implementation ay kailangang i-route ang lookup sa pamamagitan ng isang
 third-party na DNS-over-HTTPS resolver - na magpapakita sa operator na iyon ng
 domain na sinusuri kasama ng iyong IP address. Ginamit namin dati ang sa
 Cloudflare. **Hindi na namin ito ginagamit, at walang kapalit**: hindi na
-nagpapasa ng resolver ang web app ngayon, kaya walang network request na
-inilalabas ng pag-verify ng SEAL dito. Ang mga file na ang SEAL record ay may
-dalang key nang inline ay nagve-verify pa rin nang buong offline. Ang mga file
-na ang key ay nasa DNS ay mag-uulat ng "no key resolver" sa halip, at puwede
-mong suriin ang mga ito sa desktop o command-line app, na nagre-resolve ng DNS
-nang katutubo sa pamamagitan ng sarili mong makina nang walang kasamang
-third party.
+nagpapasa ng resolver ang Verify ngayon, kaya walang network request na
+inilalabas ng pag-verify ng SEAL dito. Walang Lolly app ang nagla-lookup ng mga SEAL key sa DNS
+ngayon: pareho ang Verify view na pinapatakbo ng desktop at mobile apps, at
+hindi sinusuri ng command-line na `lolly validate` ang SEAL. Ang file na ang SEAL record ay may
+dalang key nang inline ay sinusuri offline, at sinasabi ng Verify na internally consistent ang
+signature nang hindi kinukumpirma ang domain. Ang file na ang key ay nasa DNS lang ay nagpapakita ng
+**SEAL signature did not verify**, na may dahilang "no key resolver and no inline key".
 
 ![Ang Verify screen: isang drop target at wala nang iba pa - sinusuri ang file kung nasaan na ito, nang walang upload at walang account](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop) Puwede mo itong kumpirmahin sa iyong sarili: ang mga greppable check para dito
 at sa bawat iba pang claim sa pahinang ito, kasama ang eksaktong mga command at
@@ -221,9 +221,11 @@ postura ng render path, kasama ng apat na tool na kinakailangang humawak ng file
   ng kahit ano: sa isang self-hosted na lokal na server, hindi kailanman umaalis sa makinang iyon
   ang deck; sa isang hosted na server, ang pagtawag sa `lolly_rebrand` ay nagpapadala roon ng deck,
   hanggang sa limitasyon ng laki at bilang ng slide na ibinibigay ng parehong stage.
-- <!--i:checklist--> Ang bawat iba pang tool - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
-  `lolly_describe_tool` - ay gumagana mula sa mga parameter lamang (teksto, numero,
-  kulay, URL, catalogue asset id), ang parehong mga input na kinukuha ng isang hot-link render URL.
+- <!--i:checklist--> Ang mga image tool (`lolly_look`, `lolly_sample_color` at
+  `lolly_trace_edges`) ay maaari ring tumanggap ng image file mula sa tumatawag, na hinahawakan sa
+  parehong paraan: sa memory, para sa tawag na iyon lamang. Ang bawat iba pang tool ay gumagana mula sa
+  mga parameter sa tawag: teksto, numero, kulay, URL, catalogue asset id, o
+  isang dokumentong ibinibigay ng tumatawag.
 - <!--i:lock--> Ang access ay alinman sa isang shared token na inilalabas ng operator sa mga
   client na pinagkakatiwalaan nila, o stateless OAuth 2.1: mga short-lived na
   naka-sign na token na na-verify laban sa isang shared secret, walang naka-store sa server-side
@@ -281,39 +283,54 @@ magiging controller ng data na iyon sa paggawa nito.
 
 ## Ang browser extension
 
-Ang browser extension na **Lolly URL Screenshot** ay hindi kumukolekta,
-nag-iimbak, o nagpapadala ng anumang personal na data. Walang analytics, walang
-tracking, walang remote server.
+Ang browser extension na **Lolly URL Screenshot** ay hindi kumukolekta ng anumang personal na data para sa amin.
+Walang analytics, walang tracking at walang sariling server. Inilalarawan ng pahinang
+[Browser Extension](/info/extension.html) kung paano ito gumagana.
 
-**Ano ang ginagawa nito.** Kapag hiniling mo sa Lolly web app na kunan ng
-litrato ang isang URL, binubuksan ng extension ang page na iyon sa isang
-pansamantalang background tab, kinukunan ito ng litrato sa iyong browser gamit
-ang DevTools Protocol, ibinibigay ang larawan pabalik sa app, at isinasara ang
-tab. Nangyayari nang lokal ang lahat, sa sarili mong device at network.
+**Ano ang ginagawa nito.** Maaaring hilingan ito ng Lolly web app ng screenshot ng isang web page,
+o ng nilalaman ng isang page para magsimula ng design system mula sa isang website. Bawat request
+ay nagbubukas ng approval window sa extension na nagpapakita ng site na humihiling,
+kung screenshot o nilalaman ng page ang gusto nito, at ang address ng page. Pagkatapos mo lang
+pindutin ang **Approve once** bubuksan ng extension ang page na iyon sa isang
+pansamantalang background tab, kukunin ang screenshot o babasahin ang page, ibibigay ang resulta
+sa Lolly tab na humiling at isasara ang tab. Bawat request ay nangangailangan ng sarili nitong
+pag-apruba.
 
 **Data.**
 
-- <!--i:shieldcheck--> **Wala kaming kinokolekta.** Walang server ang extension at hindi ito gumagawa
-  ng sariling network request.
-- <!--i:photos--> **Ang mga nakunang larawan** ay diretsong napupunta sa Lolly app sa parehong
-  browser - hindi kailanman ina-upload ng extension.
-- <!--i:link--> **Ang mga URL na kinukuhanan mo ng litrato** ay ginagamit lang para i-load
-  ang isang page na iyon para sa isang screenshot na iyon. Hindi ito naka-log o
-  ibinabahagi.
+- <!--i:shieldcheck--> **Wala kaming kinokolekta.** Sa Lolly page lang na humiling napupunta
+  ang resulta, sa parehong browser. Hindi nag-iimbak ang extension ng nilalaman ng page
+  at hindi ito nagdaragdag ng ibang tatanggap.
+- <!--i:globe--> **Mga network request.** Nilo-load ang page na inaprubahan mo gaya ng sa
+  anumang tab, kasama ang anumang hinihiling ng page mismo. Ang pagbasa sa nilalaman ng page
+  ay kumukuha rin ng mga stylesheet nito at ilang icon at logo image,
+  mula sa loob ng page, at walang cookies na ipinapadala ng mga fetch na iyon sa ibang
+  site. Walang ibang request na ginagawa ang extension, at wala ni isang napupunta sa Lolly server.
+- <!--i:lock--> **Ang iyong browser session.** Nilo-load ang page gamit ang iyong browser
+  session, gaya ng kung ikaw mismo ang nagbukas nito, kaya ang page na naka-sign in ka
+  ay maaaring maglagay ng pribadong impormasyon sa resulta.
+- <!--i:link--> **Ang mga address na inaprubahan mo** ay ginagamit lang para i-load ang isang page na iyon
+  para sa isang request na iyon. Hindi ito naka-log o ibinabahagi.
 
 **Mga Pahintulot.**
 
-- <!--i:wrench--> **`debugger`** - para kunan ng litrato ang na-render na page sa pamamagitan ng
+- <!--i:wrench--> **`debugger`** - para kunin ang screenshot sa pamamagitan ng
   DevTools Protocol (ang parehong mekanismo na ginagamit ng Lolly desktop app).
-- <!--i:monitor--> **`tabs`** - para buksan at isara ang pansamantalang tab kung saan nilo-load
-  ang page.
-- <!--i:globe--> **Host access (`<all_urls>`)** - dahil puwedeng nasa kahit anong site ang page
-  na pinipili mong kunan ng litrato. Ipinapakita ito ng Chrome sa oras ng
-  pag-install bilang isang malawak na babala sa permission. Ang extension ay
-  binibisita lamang ang URL na ibinigay mo rito.
+- <!--i:monitor--> **`tabs`** - para buksan at isara ang pansamantalang tab, at para tiyakin
+  na hindi lumipat ang Lolly page o ang target page mula nang aprubahan mo.
+- <!--i:code--> **`scripting`** - para basahin ang nilalaman ng page sa pansamantalang tab,
+  pagkatapos mong aprubahan ang request na iyon.
+- <!--i:database--> **`storage`** - para itala ang mga id ng pansamantalang tab nito sa
+  session storage, para masara pa rin ang mga ito kung ihinto ng browser ang extension habang
+  may request. Walang nilalaman ng page na naka-store.
+- <!--i:check--> **Opsyonal na site access (`http://*/*`, `https://*/*`)** - hindi ibinibigay
+  sa pag-install. Kapag pinindot mo ang **Approve once**, humihingi ang extension sa Chrome ng
+  access sa nag-iisang site sa request na iyon, at tinatanong ka ng Chrome sa unang beses para sa
+  bawat site. Ang site na pinayagan mo noon ay nangangailangan pa rin ng bagong pag-apruba para sa bawat
+  request.
 
 Wala sa mga ito ang ginagamit para basahin, subaybayan, o ipadala ang iyong
-pag-browse lampas doon sa isang hiniling na capture.
+pag-browse lampas doon sa isang request na inaprubahan mo.
 
 ## Mga infrastructure log
 
@@ -326,13 +343,15 @@ ng iyong mga dokumento, dahil hindi kailanman nakararating ang mga iyon sa isang
 isang sinasadyang eksepsiyon ay isang file na tahasan mong ibinigay sa isang tawag ng MCP na `lolly_transform`,
 `lolly_verify`, `lolly_redact`, o `lolly_rebrand`, na pino-proseso sa memory at hindi kailanman isinusulat sa disk o sa isang log, tulad ng inilarawan sa itaas.
 
-**Walang isinusulat ang sariling code ng Lolly sa mga log na iyon.** Ang MCP
-server ay walang kahit anong logging statement. Ang certificate service ay
-naglalabas ng eksaktong dalawang linya, pareho lang sa pagkabigo at pareho lang
-sinasadyang tinanggalan: isang send-failure status code na walang recipient
-address, at isang error message na walang stack trace o URL (dahil puwedeng may
-dala ang isang stack na enrolment token). Ang lahat ng iba pa sa log ay sa
-hosting platform, hindi sa amin.
+**Walang isinusulat ang sariling code ng Lolly sa mga log na iyon.** Nagla-log
+ang MCP server ng startup, configuration at rendering warning; wala itong sariling request log
+at hindi nito nilo-log ang mga token o address ng tumatawag. Nilo-log ng Penpot pass-through
+ang pangalan ng bawat command at ang response status ng Penpot, hindi kailanman ang mga header, token o
+ang file. Nilo-log ng certificate service ang mga startup setting at
+configuration warning nito, kasama ang dalawang tinanggalang linya sa pagkabigo: isang send-failure
+status code na walang recipient address, at isang nakapirming failure line na walang error
+text, stack trace o URL (ang error ng provider ay maaaring may dalang identity value o
+credential). Ang lahat ng iba pa sa log ay sa hosting platform, hindi sa amin.
 
 Para sa lolly.tools, Vercel ang hosting at sinusunod ng access-log retention
 ang sariling mga platform default ng Vercel para sa plano namin. Hindi kami
@@ -424,6 +443,14 @@ Nagbabago ang petsa sa itaas tuwing nagbabago ang dokumentong ito. Ang isang pag
 sa kung ano ang umaalis sa iyong device o kung ano ang pinapanatili ay bibigyan ng sarili nitong linya dito, hindi isang
 tahimik na edit - kung gusto mong makita kung ano ang nagbago, magtanong (sa ibaba) o ikumpara laban sa
 [pampublikong pinagmulan](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
+
+**22 Oktubre 2026:** itinama ang paglalarawan ng umiiral na behavior. Sakop na ngayon ng
+seksyon ng browser extension ang approval window para sa bawat request, ang site access
+na hinihingi nang isang site bawat beses at ang mga fetch ng stylesheet at icon sa pagbasa ng
+website. Itinama rin: ang mga row ng Send to Google Drive at Meeting Planner, ang tala
+tungkol sa SEAL (walang Lolly app ang nagla-lookup ng mga SEAL key sa DNS), ang default na antas
+ng usage telemetry ng organisation service, ang mga MCP image tool at ang application
+logging ng mga pampublikong serbisyo. Hindi nagbago ang software mismo.
 
 ## Sino ang responsable, at paano kami maabot
 

@@ -6,7 +6,7 @@ Jika ada pemeriksaan di halaman ini yang tidak menghasilkan hasil yang ditunjukk
 
 ## Lihat cara kerjanya, dalam sepuluh detik
 
-Sebelum prosedurnya, inilah hasilnya. Buka [`/verify`](/#/verify) dan letakkan sebuah berkas di atasnya - tanpa unggah, tanpa akun, tanpa menunggu server. Berikut ini memeriksa [badai Queensland yang dihasilkan](/info/ai-stance.html) dari halaman sikap AI kami: gambar Gemini yang dibuka, diubah ukurannya dan diekspor oleh Lolly. Setiap lencana di bawah dihitung di perangkat, dari byte berkas itu sendiri.
+Sebelum prosedurnya, inilah hasilnya. Buka [`/verify`](/#/verify) dan letakkan sebuah berkas di atasnya - tanpa unggah, tanpa akun, tanpa menunggu server. Berikut ini memeriksa [badai Queensland yang dihasilkan](/info/ai-stance.html) dari halaman sikap AI kami: gambar Gemini yang dibuka, diberi watermark dan diekspor oleh Lolly. Setiap lencana di bawah dihitung di perangkat, dari byte berkas itu sendiri.
 
 ![Verify di layar selebar ponsel - gambar badai, verdict hijau Made with Lolly dan lencana credential-intact serta bytes-unchanged bertumpuk di bawahnya](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

@@ -6,7 +6,7 @@ Si une vérification de cette page ne produit pas le résultat indiqué, c'est s
 
 ## Vois-le fonctionner, en dix secondes
 
-Avant les procédures, le résultat concret. Ouvre [`/verify`](/#/verify) et dépose un fichier dessus - pas de téléversement, pas de compte, pas d'attente pour un serveur. Voici sa vérification de l'[orage du Queensland généré](/info/ai-stance.html) tiré de notre page de position sur l'IA : une image Gemini que Lolly a ouverte, redimensionnée et exportée. Chaque badge ci-dessous a été calculé sur l'appareil, à partir des octets mêmes du fichier.
+Avant les procédures, le résultat concret. Ouvre [`/verify`](/#/verify) et dépose un fichier dessus - pas de téléversement, pas de compte, pas d'attente pour un serveur. Voici sa vérification de l'[orage du Queensland généré](/info/ai-stance.html) tiré de notre page de position sur l'IA : une image Gemini que Lolly a ouverte, filigranée et exportée. Chaque badge ci-dessous a été calculé sur l'appareil, à partir des octets mêmes du fichier.
 
 ![Verify sur un écran largeur téléphone - l'image de l'orage, un verdict vert Made with Lolly et les badges credential-intact et bytes-unchanged empilés en dessous](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 

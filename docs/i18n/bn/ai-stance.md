@@ -8,7 +8,7 @@
 
 ![একটি সুপারসেল ঝড় আউটব্যাকের একটি খামারবাড়ির উপর ভেঙে পড়ছে - নিচে ট্যাংক ও শেড, বন্যার পানি ইতিমধ্যে শুকনো ক্ষেতের মধ্য দিয়ে খাল কাটছে](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} তৈরি করা ছবি %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} এবং %act{exported to WebP} হিসেবে %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [এখনই যাচাই করুন](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} তৈরি করা ছবি %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} এবং %act{exported to WebP} হিসেবে %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [এখনই যাচাই করুন](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
 এই বিষয়ে নির্ভুল থাকতে, কারণ এই পাতাটা যুক্তি দেয় যে নির্ভুলতাই আসল কথা: উপরের ছবিটা জেনারেট করা, ছবি তোলা নয়। সেই বাড়ির দিকে কোনো ক্যামেরা তাক করা হয়নি, কারণ সেই বাড়িটাই নেই। এটা অস্ট্রেলিয়ার আঞ্চলিক Queensland-এর বর্ণনা দেয়, প্রম্পট দেওয়া হয়েছে The United Kingdom থেকে, জেনারেট হয়েছে United States-এর একটা ডেটাসেন্টারে। এটা কোনো জায়গার প্রতি বিশ্বস্ত দেখানোর চেষ্টা করে তার রেকর্ড না হয়েও, আর এই পার্থক্যটাই পুরো কারণ যে কেন এর Content Credentials এটা লিপিবদ্ধ করে।
 

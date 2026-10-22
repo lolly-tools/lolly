@@ -1,6 +1,6 @@
 # Kebijakan Privasi
 
-*Terakhir diperbarui: 11 Agustus 2026*
+*Terakhir diperbarui: 22 Oktober 2026*
 
 > **Versi singkatnya.** Dokumen, gambar, video dan file yang Anda buat di Lolly tetap
 > berada di perangkat Anda. Tidak ada akun untuk penggunaan biasa, tidak ada cookie dari
@@ -98,9 +98,9 @@ jaringan. Jika tidak ada di sini, aplikasi tidak melakukannya.
 | Apa | Apa yang benar-benar meninggalkan perangkat Anda | Kapan (tindakan yang memicunya) | Jika operator memblokirnya |
 |---|---|---|---|
 | Sinkronisasi katalog alat | Tidak ada yang bersifat pribadi - permintaan untuk indeks alat dan aset publik milik Lolly sendiri, ke origin milik aplikasi itu sendiri | Saat startup, lalu di-cache untuk offline | Aplikasi berjalan dengan kumpulan alat yang di-cache. Aplikasi hanya berhenti menemukan alat baru |
-| Alat yang memerlukan data langsung | Apa pun yang diminta oleh alat tersebut secara spesifik, ke host yang disebutkan dalam deskripsinya sendiri. Saat ini itu hanya pencarian kota di alat Meeting Planner, yang meminta `geocoding-api.open-meteo.com` untuk mengubah nama kota menjadi koordinat dan zona waktu - tanpa akun, tanpa kunci, dan tanpa identifier selain permintaan itu sendiri. Input menyatakannya tepat di tempat Anda mengetik, dan setiap jawaban disimpan di perangkat Anda sehingga sebuah kota hanya dicari sekali | Hanya saat menggunakan alat tersebut, dan hanya setelah Anda memasukkan sebuah lokasi | Pencarian tersebut gagal. Anda tetap bisa mengetik koordinat secara manual, dan tidak ada yang lain yang terpengaruh |
+| Alat yang memerlukan data langsung | Apa pun yang diminta oleh alat tersebut secara spesifik, ke host yang disebutkan dalam deskripsinya sendiri. Saat ini itu hanya pencarian kota di alat Meeting Planner, yang meminta `geocoding-api.open-meteo.com` untuk mengubah setiap nama kota (kota tuan rumah dan kota setiap anggota tim) menjadi koordinat dan zona waktu - tanpa akun, tanpa kunci, dan tanpa identifier selain permintaan itu sendiri. Input Host city menyatakannya, dan setiap jawaban disimpan di perangkat Anda sehingga sebuah kota hanya dicari sekali | Hanya saat alat itu terbuka, untuk kota tuan rumah (terisi secara default) dan kota setiap anggota tim | Pencarian itu gagal, dan tidak ada yang lain yang terpengaruh |
 | Google Fonts | Nama keluarga font yang dipilih dan alamat IP Anda, ke server font Google (`fonts.googleapis.com` untuk stylesheet, `fonts.gstatic.com` untuk berkas font) | Hanya jika Anda menambahkan sebuah Google Font di editor brand, **dan hanya setelah Anda menyetujuinya dalam sebuah dialog yang menyatakan persis ini** - satu kali pengambilan per keluarga font, lalu tersimpan di perangkat Anda dan digunakan secara offline | Pemilih Google Fonts gagal secara tertutup (fail closed). Unggah berkas font Anda sendiri sebagai gantinya |
-| Kirim ke Google Drive | Satu berkas yang Anda pilih untuk dikirim, ke Drive API milik Google (`www.googleapis.com`), setelah Anda menyelesaikan sign-in Google di jendela popup Google sendiri. Akses Lolly dibatasi pada berkas yang dibuatnya sendiri (scope `drive.file` - Lolly tidak pernah bisa membaca sisa Drive Anda), dan token sign-in disimpan di memori hanya untuk sesi tersebut, tidak pernah disimpan permanen | Hanya saat Anda menekan "Send to Google Drive" pada sebuah ekspor EMF, dan hanya pada build tempat operator telah mengonfigurasi sebuah client id Google - tanpa itu, tombolnya tidak ada | Tombolnya tidak pernah muncul. Unduh berkasnya dan unggah sendiri ke Drive |
+| Kirim ke Google Drive | Satu berkas yang Anda pilih untuk dikirim, dalam format apa pun, ke Drive API milik Google (`www.googleapis.com`), setelah Anda menyelesaikan sign-in Google di jendela Google sendiri. Akses Lolly dibatasi pada berkas yang dibuatnya sendiri (scope `drive.file` - Lolly tidak pernah bisa membaca sisa Drive Anda). Di aplikasi web, token sign-in disimpan di memori hanya untuk sesi tersebut, tidak pernah disimpan permanen; di aplikasi lain, refresh token disimpan hanya di perangkat ini jika Anda mencentang "stay connected" | Hanya saat Anda menekan "Send to Google Drive" pada sebuah berkas, dan hanya pada build tempat operator telah mengonfigurasi sebuah client id Google - tanpa itu, tombolnya tidak ada | Tombolnya tidak pernah muncul. Unduh berkasnya dan unggah sendiri ke Drive |
 | Kirim ke Dropbox | Satu berkas yang Anda pilih untuk dikirim, ke API Dropbox (`api.dropboxapi.com` untuk sign-in dan metadata, `content.dropboxapi.com` untuk berkas itu sendiri), setelah Anda menyelesaikan sign-in Dropbox di jendela Dropbox sendiri. Akses Lolly hanya sebatas app-folder (Lolly hanya bisa melihat `Apps/` dan foldernya sendiri di sana - tidak pernah sisa Dropbox Anda), tautan "Open" yang ditampilkan adalah tautan privat berumur pendek (tidak ada share publik yang dibuat), dan refresh token hanya disimpan jika Anda mencentang "stay connected" | Hanya saat Anda menekan "Send to Dropbox" pada sebuah berkas, dan hanya pada build tempat operator telah mengonfigurasi sebuah client id Dropbox - tanpa itu, tombolnya tidak ada | Tombolnya tidak pernah muncul. Unduh berkasnya dan unggah sendiri ke Dropbox |
 | Kirim ke OneDrive | Satu berkas yang Anda pilih untuk dikirim, ke layanan identitas dan Graph milik Microsoft (`login.microsoftonline.com` untuk sign-in, `graph.microsoft.com` untuk unggahan; berkas besar diunggah dalam chunk ke alamat unggah milik Microsoft di `api.onedrive.com`, `*.up.1drv.com` atau `*.sharepoint.com`), setelah Anda menyelesaikan sign-in Microsoft di jendela Microsoft sendiri. Akses Lolly dibatasi pada foldernya sendiri di bawah `Apps/` (Lolly tidak pernah bisa membaca sisa OneDrive Anda) ditambah nama tampilan Anda untuk label akun, dan refresh token hanya disimpan jika Anda mencentang "stay connected" | Hanya saat Anda menekan "Send to OneDrive" pada sebuah berkas, dan hanya pada build tempat operator telah mengonfigurasi sebuah client id Microsoft - tanpa itu, tombolnya tidak ada | Tombolnya tidak pernah muncul. Unduh berkasnya dan unggah sendiri ke OneDrive |
 | Kirim ke LinkedIn | Satu berkas yang Anda pilih untuk dikirim, beserta namanya sebagai teks postingan, ke LinkedIn (`www.linkedin.com` untuk sign-in, `api.linkedin.com` untuk unggahan dan postingan), setelah Anda menyelesaikan sign-in LinkedIn di browser Anda sendiri. Postingan tersebut masuk ke feed Anda sendiri sebagai sebuah postingan publik atas nama Anda. Lolly dapat memposting atas nama Anda dan membaca nama Anda untuk label akun, tidak ada yang lain di LinkedIn Anda, dan sign-in tersebut hanya disimpan di perangkat ini jika Anda mencentang "stay connected" - token LinkedIn berlaku 60 hari dan tidak dapat diperbarui secara diam-diam, sehingga akan kedaluwarsa dengan sendirinya | Hanya saat Anda menekan "Send to LinkedIn" pada sebuah berkas, hanya di aplikasi desktop, dan hanya pada build tempat sebuah aplikasi LinkedIn telah dikonfigurasi - tanpa itu, tombolnya tidak ada | Tidak ada yang perlu diblokir di aplikasi web: ini hanya ada di **aplikasi desktop**, sehingga kedua host tersebut secara sengaja TIDAK ada dalam Content-Security-Policy aplikasi web di bawah ini. Di aplikasi desktop, hapus aplikasi LinkedIn yang dikonfigurasi dan tombolnya tidak akan pernah muncul |
@@ -149,12 +149,13 @@ kunci penandatanganan sebuah file dipublikasikan di DNS. Peramban tidak dapat me
 web apa pun harus merutekan pencarian melalui resolver DNS-over-HTTPS pihak ketiga -
 yang akan memperlihatkan kepada operator itu domain yang diperiksa plus alamat IP Anda. Dulu kami
 menggunakan milik Cloudflare. **Kami sudah tidak lagi menggunakannya, dan tidak ada
-penggantinya**: aplikasi web sekarang tidak meneruskan resolver sama sekali, sehingga verifikasi SEAL
-di sini tidak membuat permintaan jaringan sama sekali. File yang catatan SEAL-nya membawa kuncinya secara inline
-tetap terverifikasi sepenuhnya secara offline. File yang kuncinya berada di DNS melaporkan "no key
-resolver" sebagai gantinya, dan Anda dapat memeriksanya di aplikasi desktop atau command-line,
-yang me-resolve DNS secara native melalui mesin Anda sendiri tanpa keterlibatan
-pihak ketiga.
+penggantinya**: Verify sekarang tidak meneruskan resolver sama sekali, sehingga verifikasi SEAL
+membuat nol permintaan jaringan. Tidak ada aplikasi Lolly yang mencari kunci SEAL di DNS saat ini: aplikasi
+desktop dan seluler menjalankan tampilan Verify yang sama, dan `lolly validate` di command-line
+tidak memeriksa SEAL. File yang catatan SEAL-nya membawa kuncinya secara inline diperiksa
+secara offline, dan Verify menyebut tanda tangan itu konsisten secara internal tanpa memastikan
+domainnya. File yang kuncinya hanya berada di DNS menampilkan **Tanda tangan SEAL tidak terverifikasi**,
+dengan alasan "no key resolver and no inline key".
 
 ![Layar Verify: sebuah drop target dan tidak ada yang lain - file diperiksa di tempatnya sudah berada, tanpa unggahan dan tanpa akun](/t/url-shot?url=%2F%23%2Fverify&width=1440&height=900&dpi=192&waitMs=1400&walker=1&format=svg&cropSelector=.valid-layout&dark=1&filename=cc-verify-drop) Anda dapat memastikan sendiri: pemeriksaan yang dapat di-grep untuk ini dan setiap
 klaim lain di halaman ini, dengan perintah persis dan keluaran yang diharapkan, ada di
@@ -212,9 +213,11 @@ ditambah empat tool yang secara inheren menangani byte file:
   apa pun: pada sebuah server lokal yang di-self-host, deck tidak pernah meninggalkan mesin itu; pada sebuah
   server hosted, memanggil `lolly_rebrand` mengirim deck ke sana, hingga batas ukuran
   dan jumlah slide yang diberikan tahap yang sama.
-- <!--i:checklist--> Setiap tool lainnya - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
-  `lolly_describe_tool` - bekerja hanya dari parameter (teks, angka, warna,
-  URL, id aset katalog), input yang sama seperti yang diambil oleh URL render hot-link.
+- <!--i:checklist--> Tool gambar (`lolly_look`, `lolly_sample_color` dan
+  `lolly_trace_edges`) juga bisa menerima berkas gambar dari pemanggil, ditangani
+  dengan cara yang sama: di memori, hanya untuk panggilan itu. Setiap tool lainnya bekerja dari
+  parameter dalam panggilan: teks, angka, warna, URL, id aset katalog, atau
+  dokumen yang diberikan pemanggil.
 - <!--i:lock--> Akses berupa token bersama yang diterbitkan operator kepada klien yang mereka percayai, atau
   OAuth 2.1 tanpa state: token bertanda tangan berumur pendek yang diverifikasi terhadap sebuah
   secret bersama, tidak ada yang disimpan di sisi server dan token itu sendiri tidak pernah ditulis ke
@@ -279,34 +282,54 @@ data itu dengan melakukannya.
 
 ## Ekstensi peramban
 
-Ekstensi peramban **Lolly URL Screenshot** tidak mengumpulkan, menyimpan atau
-mengirimkan data pribadi apa pun. Tidak ada analitik, tidak ada pelacakan, tidak ada server jarak jauh.
+Ekstensi peramban **Lolly URL Screenshot** tidak mengumpulkan data pribadi apa pun untuk kami.
+Ekstensi ini tidak memiliki analitik, pelacakan, maupun server sendiri. Halaman
+[Ekstensi Browser](/info/extension.html) menjelaskan cara kerjanya.
 
-**Apa yang dilakukannya.** Saat Anda meminta aplikasi web Lolly untuk melakukan screenshot sebuah URL,
-ekstensi membuka halaman itu di tab latar belakang sementara, menangkapnya di
-peramban Anda menggunakan DevTools Protocol, menyerahkan gambar itu kembali ke aplikasi dan menutup
-tab. Semuanya terjadi secara lokal, di perangkat dan jaringan Anda sendiri.
+**Apa yang dilakukannya.** Aplikasi web Lolly dapat meminta tangkapan layar sebuah halaman web,
+atau isi sebuah halaman untuk memulai design system dari sebuah website. Setiap permintaan
+membuka jendela persetujuan di ekstensi yang menampilkan situs yang meminta,
+apakah ia menginginkan tangkapan layar atau isi halaman, dan alamat halamannya. Hanya
+setelah Anda menekan **Approve once** ekstensi membuka halaman itu di
+tab latar belakang sementara, mengambil tangkapan layar atau membaca halaman, menyerahkan hasilnya
+ke tab Lolly yang memintanya dan menutup tab. Setiap permintaan memerlukan persetujuannya
+sendiri.
 
 **Data.**
 
-- <!--i:shieldcheck--> **Kami tidak mengumpulkan apa pun.** Ekstensi ini tidak memiliki server dan tidak membuat permintaan
-  jaringan sendiri.
-- <!--i:photos--> **Gambar yang ditangkap** langsung menuju aplikasi Lolly di peramban yang sama - tidak pernah
-  diunggah oleh ekstensi.
-- <!--i:link--> **URL yang Anda tangkap** hanya digunakan untuk memuat satu halaman itu untuk satu
-  screenshot itu. URL tidak dicatat atau dibagikan.
+- <!--i:shieldcheck--> **Kami tidak mengumpulkan apa pun.** Hasilnya hanya menuju halaman Lolly
+  yang memintanya, di peramban yang sama. Ekstensi tidak menyimpan isi halaman
+  dan tidak menambah penerima lain.
+- <!--i:globe--> **Permintaan jaringan.** Halaman yang Anda setujui dimuat seperti di
+  tab mana pun, beserta apa pun yang diminta halaman itu sendiri. Membaca isi halaman
+  juga mengambil stylesheet halaman itu dan beberapa gambar ikon serta logonya,
+  dari dalam halaman, dan pengambilan itu tidak mengirim cookie ke situs
+  lain. Ekstensi tidak membuat permintaan lain, dan tidak ada yang menuju server Lolly.
+- <!--i:lock--> **Sesi peramban Anda.** Halaman dimuat dengan sesi peramban
+  Anda, seperti jika Anda membukanya sendiri, jadi halaman tempat Anda masuk
+  bisa menaruh informasi pribadi di hasilnya.
+- <!--i:link--> **Alamat yang Anda setujui** hanya digunakan untuk memuat satu halaman itu
+  untuk satu permintaan itu. Alamat tidak dicatat atau dibagikan.
 
 **Izin.**
 
-- <!--i:wrench--> **`debugger`** - untuk menangkap halaman yang dirender melalui DevTools Protocol (mekanisme
+- <!--i:wrench--> **`debugger`** - untuk mengambil tangkapan layar melalui DevTools Protocol (mekanisme
   yang sama yang digunakan aplikasi desktop Lolly).
-- <!--i:monitor--> **`tabs`** - untuk membuka dan menutup tab sementara tempat halaman dimuat.
-- <!--i:globe--> **Akses host (`<all_urls>`)** - karena halaman yang Anda pilih untuk ditangkap bisa
-  berada di situs mana pun. Chrome menampilkan ini saat instalasi sebagai peringatan izin
-  yang luas. Ekstensi hanya pernah mengunjungi URL yang Anda berikan.
+- <!--i:monitor--> **`tabs`** - untuk membuka dan menutup tab sementara, dan untuk memeriksa
+  bahwa halaman Lolly maupun halaman target tidak berpindah sejak Anda menyetujui.
+- <!--i:code--> **`scripting`** - untuk membaca isi halaman di tab sementara,
+  setelah Anda menyetujui permintaan itu.
+- <!--i:database--> **`storage`** - untuk mencatat id tab sementaranya di
+  session storage, sehingga tab tetap ditutup jika browser menghentikan ekstensi saat
+  permintaan berlangsung. Tidak ada isi halaman yang disimpan.
+- <!--i:check--> **Akses situs opsional (`http://*/*`, `https://*/*`)** - tidak diberikan
+  saat instalasi. Saat Anda menekan **Approve once**, ekstensi meminta Chrome memberi
+  akses ke satu situs dalam permintaan itu, dan Chrome menanyakannya kepada Anda saat pertama kali untuk
+  setiap situs. Situs yang pernah Anda izinkan tetap memerlukan persetujuan baru untuk setiap
+  permintaan.
 
 Tak satu pun dari izin ini digunakan untuk membaca, memantau atau mengirimkan aktivitas menjelajah Anda di luar
-satu penangkapan yang diminta itu.
+satu permintaan yang Anda setujui.
 
 ## Log infrastruktur
 
@@ -319,12 +342,15 @@ pengecualian yang disengaja adalah file yang secara eksplisit Anda serahkan ke p
 `lolly_transform`, `lolly_verify`, `lolly_redact` atau `lolly_rebrand`, yang diproses di memori dan tidak pernah
 ditulis ke disk atau log, seperti dijelaskan di atas.
 
-**Kode Lolly sendiri tidak menulis apa pun ke log tersebut.** Server MCP sama sekali tidak berisi
-pernyataan logging. Layanan sertifikat mengeluarkan tepat dua baris, keduanya
-saat gagal dan keduanya sengaja dipangkas: sebuah kode status kegagalan pengiriman tanpa
-alamat penerima, dan sebuah pesan error tanpa stack trace atau URL (sebuah stack bisa
-membawa token pendaftaran). Semua yang lain dalam log itu milik platform hosting,
-bukan milik kami.
+**Kode Lolly sendiri tidak menulis apa pun ke log tersebut.** Server MCP mencatat
+startup, konfigurasi dan peringatan rendering; ia tidak menyimpan log permintaan sendiri
+dan tidak mencatat token maupun alamat pemanggil. Pass-through Penpot mencatat
+nama setiap perintah dan status respons Penpot, tidak pernah header, token atau
+berkasnya. Layanan sertifikat mencatat pengaturan startup dan peringatan
+konfigurasinya, ditambah dua baris yang dipangkas saat gagal: kode status kegagalan pengiriman
+tanpa alamat penerima, dan baris kegagalan tetap tanpa teks error, stack trace atau URL
+(error penyedia bisa membawa nilai identitas atau kredensial). Semua yang lain dalam log itu
+milik platform hosting, bukan milik kami.
 
 Untuk lolly.tools, hosting menggunakan Vercel dan retensi log akses mengikuti default
 platform Vercel sendiri untuk paket kami. Kami tidak mengonfigurasi log drain apa pun, tidak ada ekspor
@@ -415,6 +441,14 @@ Tanggal di bagian atas berubah setiap kali dokumen ini berubah. Perubahan yang m
 apa yang keluar dari perangkat Anda atau apa yang disimpan mendapat baris tersendiri di sini, bukan
 suntingan diam-diam - jika Anda ingin melihat apa yang berubah, tanyakan (di bawah) atau bandingkan dengan
 [sumber publik](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
+
+**22 Oktober 2026:** memperbaiki deskripsi perilaku yang sudah ada. Bagian ekstensi
+peramban kini mencakup jendela persetujuan untuk setiap permintaan, akses situs
+yang diminta satu situs per satu kali, serta pengambilan stylesheet dan ikon pada pembacaan
+website. Diperbaiki juga: baris Send to Google Drive dan Meeting Planner, catatan
+SEAL (tidak ada aplikasi Lolly yang mencari kunci SEAL di DNS), level telemetri penggunaan bawaan
+dari layanan organisasi, tool gambar MCP dan logging aplikasi
+dari layanan publik. Perangkat lunaknya sendiri tidak berubah.
 
 ## Siapa yang bertanggung jawab, dan cara menghubungi kami
 

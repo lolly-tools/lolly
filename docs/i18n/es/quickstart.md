@@ -4,7 +4,7 @@ Lolly convierte tus reglas - colores, tipografía, diseños, lógica - en herram
 
 Esta es la primera página que conviene leer. Dos cosas te hacen productivo: **haz que Lolly sea tuya** y **aprovecha lo que ya tienes** (tus archivos de diseño y tus tokens). Todo lo demás está a un enlace de distancia.
 
-> ¿Eres nuevo en Lolly y solo quieres crear algo? [Crea algo en 60 segundos](/info/make-something.html) te guía por tres, o [abre la app](/#/), elige cualquier herramienta de la galería, rellena los campos y pulsa **Exportar**. Vuelve aquí cuando quieras que lleve *tu* marca.
+> ¿Eres nuevo en Lolly y solo quieres crear algo? [Haz tu primer archivo](/info/make-something.html) te guía por un código QR, o [abre la app](/#/), elige cualquier herramienta de la galería, rellena los campos y pulsa **Exportar**. Vuelve aquí cuando quieras que lleve *tu* marca.
 
 ![La vista Utilidades - las herramientas de trabajo que corren en tu dispositivo, como Strip Hidden Data, Compress PDF y Convert Image, todas en un mismo sitio](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

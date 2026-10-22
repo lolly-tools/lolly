@@ -4,7 +4,7 @@ Vad Lolly gör som dagens kreativa verktyg inte gör, och vad den medvetet lämn
 
 För versionen verktyg för verktyg, en sida vardera för Canva, Adobe, Figma, render-API:er och webbaserade konverterare, se [Lolly jämfört, verktyg för verktyg](/info/compare.html). Varje sida anger vad det andra verktyget gör bättre och vad Lolly gör istället.
 
-> **Pilotstatus:** Lolly är en prototyp i sluten pilot, inte en färdig produkt, och dess säkerhet genomgår för närvarande SUSE:s strikta infrastrukturhärdning, som förbereder för enterprise-skala. Sidan [Adoption & Governance](/info/adoption-governance.html#status) redogör för det aktuella läget.
+> **Status:** Lolly är släppt: version 1.0 släpptes som öppen källkod den 30 augusti 2026. Dess säkerhet har ännu inte granskats av en oberoende part, och underlaget för adoption är några månader gammalt. Sidan [Adoption & Governance](/info/adoption-governance.html#status) redogör för det aktuella läget.
 
 ## Dagens verktyg
 
@@ -14,7 +14,7 @@ Varje ring nedan poängsätter hur fullständigt en produktklass levererar en f�
 Funktionsfullständighet över dagens kreativa verktyg, undersökt augusti 2026. Poängsättning: 0 saknas, 25 nödlösningsnivå, 50 riktigt men begränsat eller partiellt, 75 starkt med förbehåll, 100 kärnkompetens.
 :::
 
-**Anteckningar om poängsättningen.** Lollys poäng förutsätter att dess publicerade påståenden håller, vilket är varför mognad är dess enda röda ring: sluten pilot, säkerhetshärdning pågår, inget granskat ännu. Efterforskning flyttade flera celler.
+**Anteckningar om poängsättningen.** Tillgängliga funktioner och produktionsmognad är två skilda frågor. Lollys mognadspoäng speglar en första publik version i augusti 2026 utan någon oberoende säkerhetsgranskning än; att SSO, godkännanden eller serverrendering finns visar inte att det finns en produktionshistorik. Funktionsbeskrivningarna nedan inkluderar lolly.work, medan konkurrenternas poäng behåller sin daterade granskning från augusti.
 
 Canva poängsätts på sin bästa familjemedlem per rad, eftersom det äger Affinity och Cavalry (båda skänkta bort oktober 2025). Offline- och on-device-rendering får 75 via Affinity - en desktopsvit som fortfarande kräver ett verifierat konto och bär på telemetri, samma avdrag Adobe också tar - medan Canvas egen offlineläge bara redigerar förhandssynkade designer, en enhet, begränsat tidsfönster. Autofill får 50: verkligt men Enterprise-låst, asynkront, endast text och bild. Figmas massgenerering steg 25 till 50 när Buzz levererade kalkylbladsifyllnad (gratis beta, augusti 2026).
 

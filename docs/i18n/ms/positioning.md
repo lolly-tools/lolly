@@ -4,7 +4,7 @@ Apa yang dilakukan Lolly yang tidak dilakukan oleh alat kreatif hari ini, dan ap
 
 Untuk versi alat demi alat, satu halaman untuk setiap satu Canva, Adobe, Figma, API pemaparan dan penukar dalam talian, lihat [Lolly compared, tool by tool](/info/compare.html). Setiap halaman menyatakan apa yang dilakukan alat lain dengan lebih baik dan apa yang dilakukan Lolly sebaliknya.
 
-> **Status pilot:** Lolly adalah prototaip pilot tertutup, bukan produk siap, dan keselamatannya kini sedang menjalani pengukuhan infrastruktur ketat SUSE, bersiap sedia untuk skala perusahaan. Halaman [Adoption & Governance](/info/adoption-governance.html#status) merangkumi keadaan semasa.
+> **Status:** Lolly telah dikeluarkan: versi 1.0 dilancarkan sebagai sumber terbuka pada 30 Ogos 2026. Keselamatannya belum menjalani audit bebas, dan bukti penerimaannya sudah berusia beberapa bulan. Halaman [Adoption & Governance](/info/adoption-governance.html#status) merangkumi keadaan semasa.
 
 ## Alat hari ini
 
@@ -14,7 +14,7 @@ Setiap gelang di bawah menilai sejauh mana lengkapnya sesuatu kelas produk menya
 Kelengkapan keupayaan merentasi alat kreatif hari ini, dikaji pada Ogos 2026. Pemarkahan: 0 tiada, 25 gred jalan pintas, 50 nyata tetapi terhad atau separa, 75 kukuh dengan kaveat, 100 kecekapan teras.
 :::
 
-**Nota penilaian.** Skor Lolly mengandaikan tuntutannya yang diterbitkan adalah benar, itulah sebabnya kematangan adalah satu-satunya gelang merahnya: pilot tertutup, pengukuhan keselamatan sedang berjalan, belum diaudit lagi. Penyelidikan menggerakkan beberapa sel.
+**Nota pemarkahan.** Ciri yang tersedia dan kematangan pengeluaran ialah dua pertimbangan yang berasingan. Skor kematangan Lolly mencerminkan keluaran awam pertamanya pada Ogos 2026 tanpa audit keselamatan bebas lagi; kehadiran SSO, kelulusan atau render pelayan tidak membuktikan rekod pengeluaran. Huraian ciri di bawah merangkumi lolly.work, manakala skor pesaing mengekalkan kajian Ogos mereka yang bertarikh.
 
 Canva dinilai berdasarkan ahli keluarganya yang terbaik bagi setiap baris, kerana ia memiliki Affinity dan Cavalry (kedua-duanya diberikan percuma Oktober 2025). Pemaparan luar talian dan pada peranti mendapat 75 melalui Affinity - suite desktop yang masih memerlukan akaun yang disahkan dan membawa telemetri, potongan yang turut dikenakan kepada Adobe - manakala mod luar talian Canva sendiri hanya mengedit reka bentuk yang telah diselaraskan terlebih dahulu, satu peranti, tetingkap terhad. Autofill mendapat 50: sebenar tetapi berkunci-Enterprise, tak segerak, teks dan imej sahaja. Penjanaan pukal Figma naik daripada 25 kepada 50 apabila Buzz menghantar isian hamparan (beta percuma, Ogos 2026).
 
