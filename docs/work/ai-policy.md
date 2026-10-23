@@ -16,7 +16,7 @@ below.
 | `watermark` | neural TrustMark and ContentSeal detection, and durable watermark encoding |
 | `sing` | Rondocode singing voices: their download and the model files handed to a song |
 
-Checks run before bridge execution, worker creation and dispatch, or model download, including
+Checks run before bridge execution, before worker creation and dispatch and before any model download, including
 cached weights and offline pre-downloads. Revoking a capability ends model workers, stops guarded
 downloads and drops late results. The offline profile reports that AI downloads are disabled and
 still allows removing cached model files. Pure image operations and cryptographic Content

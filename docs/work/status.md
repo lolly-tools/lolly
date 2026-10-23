@@ -8,18 +8,18 @@ audit trail.
 The current release is Work 1.1.2, published on 2026-10-20 and paired with Lolly 1.1.2. The
 [release notes](release-1-1-2.md) list the exact component versions. This page groups what
 the release does into three lists: ready to use, worth checking against your own systems
-first, and not built yet.
+first and not built yet.
 
 ::: figure work-status-capabilities
-What Work 1.1.2 does, what to check on your own systems before you rely on it, and what is not built.
+What Work 1.1.2 does, what to check on your own systems before you rely on it and what is not built.
 :::
 
 ## Ready to use
 
 - **Sign-in.** Your own OpenID Connect provider (one or several), GitHub, email and password,
   passkeys, a reverse proxy or a short code for the CLI and native apps. SCIM adds, changes
-  and disables people from your directory, and a provider's back-channel logout ends one
-  provider session. See [Sign-in and sessions](identity.md).
+  and disables people from your directory. Back-channel logout from your provider ends the
+  Work sessions that came from one provider session. See [Sign-in and sessions](identity.md).
 - **People and access.** Roles that follow your directory groups, allow and deny grants,
   invitations with personal links, requests to join and requests for access. See
   [Roles and grants](permissions.md) and [Invite people and handle requests](invitations.md).
@@ -29,8 +29,8 @@ What Work 1.1.2 does, what to check on your own systems before you rely on it, a
 - **A governed library.** Your design system, assets members submit with optional review,
   your own metadata fields, collections, versions, expiry and holds, plus 15 kinds of DAM and
   storage source. See [Catalog and content](catalog.md).
-- **Rules for tools.** Lock, restrict or hide a tool's inputs per group, govern feature flags
-  and managed AI, and keep the whole policy as one document. See
+- **Rules for tools.** Lock, restrict or hide a tool's inputs per group. Govern feature flags
+  and managed AI. Keep the whole policy as one document. See
   [Policy and governance](governance.md).
 - **Renders and links.** Server renders in SVG and PNG, and JPG and PDF with a render worker.
   Durable render jobs and batches that recover after a restart. Signed links that expire and
@@ -39,8 +39,8 @@ What Work 1.1.2 does, what to check on your own systems before you rely on it, a
 - **Delivery.** Send finished exports to S3-compatible storage, WebDAV, a signed HTTPS
   receiver, Brandfolder or Cloudinary, with an optional approval step. See
   [Organisation delivery destinations](delivery.md).
-- **Approvals.** Ordered chains with `any`, quorum and `all` rules, separation of duties, and
-  review of a frozen set of source files. See [Approvals](approvals.md).
+- **Approvals.** Ordered chains with `any`, quorum and `all` rules. Separation of duties.
+  Review of a frozen set of source files. See [Approvals](approvals.md).
 - **Records.** Content Credentials signing, a hash-chained audit log, telemetry dashboards and
   SIEM forwarding. See [Audit log](audit.md) and [Telemetry and dashboards](telemetry.md).
 - **Agents.** Invite an MCP agent to one document or one project, under your own identity.
@@ -55,8 +55,8 @@ runs apart from private workspaces, so use it for a trial, not as a production i
 
 ## Check on your own systems first
 
-Work's tests use recorded fixtures for identity providers and DAMs. They show that the code
-follows each vendor's published contract. They cannot show that your tenant matches that
+Work's tests use recorded fixtures for identity providers and DAMs. They check the code against
+each vendor's published contract. They cannot show that your tenant matches that
 contract, so run these checks before you rely on an integration.
 
 - **Identity.** Check your registered callbacks, real owner groups, SCIM subject correlation,

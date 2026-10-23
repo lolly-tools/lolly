@@ -120,7 +120,7 @@ that ([bootstrap owners](identity.md#bootstrap-owners)).
 Go to App registrations, New registration, "Accounts in this organizational directory only",
 add a Web redirect URI as above, then create a client secret. Add the optional `email` claim,
 or map the sign-in name as below. For roles, define app roles on the registration, assign
-people or groups to them, and read the `roles` claim.
+people or groups to them, then read the `roles` claim.
 
 ```json
 { "id": "microsoft", "displayName": "Microsoft",

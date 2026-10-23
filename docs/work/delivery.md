@@ -245,8 +245,9 @@ folders. It does not generate image or video renditions or publish a public CDN 
   retry first looks up that ID through the Admin API, and accepts existing bytes only when the
   destination, operation markers and original download digest all match.
 - Only the delivery ID and SHA-256 are added as reconciliation context. No source tags, approval,
-  private notes, prompts or other organisation fields are copied, and the adapter sends no upload
-  preset, eager or incoming transformation, moderation, AI or add-on, or URL-import parameters.
+  private notes, prompts or other organisation fields are copied. The adapter sends no upload
+  preset, no eager or incoming transformation and no moderation, AI, add-on or URL-import
+  parameters.
   Check tenant-wide processing settings separately. See the [Upload
   API](https://cloudinary.com/documentation/image_upload_api_reference) and [folder
   modes](https://cloudinary.com/documentation/folder_modes).
@@ -409,7 +410,7 @@ item as removed only when the `DELETE` succeeds. If the management API cannot re
 ids, the test reports the cleanup as unconfirmed, and the operator must check the receiver by
 hand. When the receipt carries a digest, it must match the bytes sent. A second HTTPS test sends
 three requests the receiver must refuse with a 4xx status: a signature from another secret, a
-timestamp a day old, and a body that does not match its signed digest.
+timestamp a day old and a body that does not match its signed digest.
 :::
 
 ## Not built yet

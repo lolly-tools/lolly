@@ -44,8 +44,8 @@ accepted by the write paths ([the enforce block](governance.md#the-enforce-block
 
 ### Edit chains in the console
 
-The **Approval chains** console page edits ordered groups and `any`, quorum and `all` rules,
-moves steps, and previews how many reviewers each step has. Editing needs `policy.edit`.
+The **Approval chains** console page edits ordered groups and `any`, quorum and `all` rules. It
+moves steps and previews how many reviewers each step has. Editing needs `policy.edit`.
 
 The preview leaves out disabled accounts, applies `approval.act` grants and denies, and
 excludes you, because a requester cannot review their own work. It previews the chain; it

@@ -13,8 +13,8 @@ The application signs a bounded job for the existing render worker:
 
 - EPS uses Ghostscript with SAFER enabled; EMF and WMF use Inkscape.
 - Byte signatures are checked before a decoder is chosen.
-- Child processes receive no application credentials, use an isolated temporary directory, run
-  without a shell, and have time, memory and output limits.
+- Child processes receive no application credentials, use an isolated temporary directory and
+  run without a shell. Each has time, memory and output limits.
 - Input is capped at 16 MiB and output at 32 MiB, and one conversion runs per worker.
 - Temporary files are removed on success, failure and cancellation.
 

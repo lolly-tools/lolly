@@ -6,7 +6,7 @@ saved so colleagues can open the same work. Both live in the instance's store, s
 saved on a laptop opens on a phone after sign-in.
 
 By the end you will know who sees a project, what each project role allows, how saving and
-shared files work, and what happens when two people save at once.
+shared files work and what happens when two people save at once.
 
 ## Who sees a project
 

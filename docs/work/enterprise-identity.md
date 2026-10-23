@@ -22,7 +22,7 @@ registration and trust policy; a Work session does not sign a person into that C
 Choose the final HTTPS `instance.baseUrl` before registering the client. Keep
 `dev.enabled: false`, use PostgreSQL and store stable `LW_SESSION_SECRET`, `LW_LINK_SECRET`
 and provider secrets in your secret manager. All replicas must use the same configuration,
-secrets and database. Pin application and shell releases, keep the previous configuration, and
+secrets and database. Pin application and shell releases, keep the previous configuration and
 test database restoration. Follow the platform guide for TLS, proxy trust, storage and
 backups.
 
@@ -65,7 +65,7 @@ back-channel route directly, without an interactive proxy login.
 - It shares the configurable per-IP `auth` rate-limit bucket with sign-in. Qualify provider
   retries for HTTP 429 and 503, and size that bucket for logout bursts.
 - It accepts form-encoded POSTs, requires the logout event, issuer, audience, issue time and
-  unique event ID, and refuses a nonce.
+  unique event ID. It refuses a nonce.
 - Events older than five minutes, or more than one minute in the future, are refused.
 - Subject-only logout is unsupported, because it would end other provider sessions for the
   same account.

@@ -2,9 +2,9 @@
 
 This page is for anyone who hands Lolly output to someone else: a colleague, a partner or an
 agency. Work can render a tool on the server, then wrap the result, a library asset or a whole
-collection in a signed link that expires and that you can turn off at any time. Your design
-system's locks apply before anything renders, so a locked logo stays locked in every shared
-file.
+collection in a signed link that expires and that you can turn off at any time. Your
+organisation's input locks apply before anything renders, so a locked logo stays locked in
+every shared file.
 
 ![Signed, expiring, revocable links: share, embed and download, revoked at once](shots/share-links.svg)
 
@@ -52,7 +52,7 @@ it, or has had too many wrong passwords.
 ### Guest links in a browser
 
 A browser that opens a `guest-edit` link gets a landing page, not JSON. It says who invited
-them and to which tool, when the link ends (in UTC, since the page runs no script), and asks
+them, to which tool and when the link ends (in UTC, since the page runs no script). It asks
 for their name, and for the password when the link has one. Opening the page admits nobody, so
 a chat preview or a mail scanner that fetches the link is not counted as a guest.
 
@@ -85,6 +85,7 @@ address:
   them.
 - A password link answers `private, no-store`, because the cookie, not the address, decides
   who reads the file.
+- The server keeps only an scrypt hash of a link's password.
 - Ten wrong passwords from one address within 15 minutes lock the link for that address
   (`429 PASSWORD_LOCKED`, with `Retry-After`).
 

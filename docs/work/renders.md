@@ -319,8 +319,8 @@ include them in storage sizing and backups. Losing attempts normally delete thei
 blobs; an ambiguous database commit or a failed cleanup may leave an orphan for later collection.
 Changes to jobs are audited.
 
-**Not built yet.** Dependency snapshots, campaign reconciliation, collection-wide approval and
-promotion, and a transactional lifecycle event outbox. Organisation delivery accepts completed
+**Not built yet.** Dependency snapshots, campaign reconciliation, a transactional lifecycle event
+outbox and collection-wide approval and promotion. Organisation delivery accepts completed
 `/jobs` render outputs ([delivering an automation
 output](delivery.md#delivering-an-automation-output)); delivering one of these durable render
 jobs by reference is not built, and a successful render alone publishes nothing to a destination.

@@ -7,7 +7,7 @@ you a personal link and a ready-to-send message, and you send them yourself by c
 ::: timeline
 - <!--i:usercheck--> **Invite an address.** From the console's People view for the whole workspace, or from a project's People panel in Lolly.
 - <!--i:link--> **Send the link.** Copy the invite link, or the ready-to-send message, and send it yourself.
-- <!--i:globe--> **They open the link.** The page says who invited them, to what, and which address to sign in with.
+- <!--i:globe--> **They open the link.** The page says who invited them and to what. It also shows the address to sign in with.
 - <!--i:check--> **They sign in with that address.** Work accepts the invitation and opens the project, or the workspace.
 :::
 
@@ -64,8 +64,8 @@ a person's local groups:
 - No group may map to a role above the inviter's own. An owner group is owner-only, and so is
   a group holding a grant for an owner-only action.
 - An address that already belongs to an account joins the groups at once, under the same
-  controls. That is refused for your own account, a disabled one, and an owner's unless an
-  owner is inviting.
+  controls. That is refused for your own account and for a disabled one. An owner's account
+  is refused too, unless an owner is inviting.
 - Only an owner may name a provider group or role group that is not in the registry. That is
   how a second owner joins an instance whose provider sends no groups: an owner invites them
   into the owner group, which the console offers to owners.
@@ -169,7 +169,7 @@ API](api.md#invite-links-and-access-requests)), so every inviter who added a pro
 invitation can copy a working link at any time.
 
 **The invite page.** Opening a link shows a page with no script. It says who invited the
-person, to which project and with which role, which address to use, and when the invitation
+person, to which project and with which role, which address to use and when the invitation
 ends:
 
 - The heading shows the inviter and the project ("Ana invited you to Brand refresh"), or the
@@ -391,7 +391,7 @@ API](api.md#invite-links-and-access-requests)).
 
 Filing never tells the requester anything about the project. The answer is the same `202`
 whether the project exists, is archived, the person already has that access, a request is
-already open, or requests are switched off. The requester never learns who manages a project
+already open or requests are switched off. The requester never learns who manages a project
 until someone approves.
 
 **Who answers.** The project's owner and its managers, when at least one of them is an enabled
@@ -462,15 +462,15 @@ links and send them yourself.
 
 ::: details Audit actions for invitations and requests
 - `invite.create`: payload `email`, `groups`, `expiresAt`, `via` (`console`, `project`,
-  `request` or `reinvite`), `from` for an invitation made again, and `passwordSetup`.
+  `request` or `reinvite`) and `passwordSetup`, plus `from` for an invitation made again.
 - `invite.link`: a new link; payload `email` and `version`.
 - `invite.open`: actor `anonymous`, the first sign-in started from a link; payload `provider`
   and `idp`.
 - `invite.wrong-account`: payload the signed-in `email`, `provider`, `idp` and `admitted`.
 - `invite.revoke`: payload `email` and `was`, the status before revoking.
-- `invite.accept`: actor the new member; payload `provider`, `idp`, `email`, `groups`, `via`
-  (`sign-in`, `join` or `link`), and `createdGroups` when the sign-in created local groups, or
-  `groupsNotApplied` when the account came before the invitation or is the inviter's own.
+- `invite.accept`: actor the new member; payload `provider`, `idp`, `email`, `groups` and `via`
+  (`sign-in`, `join` or `link`). It adds `createdGroups` when the sign-in created local groups,
+  or `groupsNotApplied` when the account came before the invitation or is the inviter's own.
 - `invite.project.skip`, `invite.project.remove`.
 - `access.request`, `access.request.held`, `access.approve`, `access.decline`,
   `access.withdraw` and `access.supersede`. A request's note is recorded only as its length.

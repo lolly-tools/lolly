@@ -117,7 +117,7 @@ without the field keep their earlier refresh behaviour.
 
 **Usage & rules** shows the design system's published guide and, for policy editors, a reviewed
 mapping from the guide's example roles to installed tool inputs. Brand labels stay separate from
-Lolly's interface roles. Select a tool, choose the matching example and token mode, and connect
+Lolly's interface roles. Select a tool, choose the matching example and token mode, then connect
 only inputs that serve those purposes. The review shows required input coverage separately for
 each output format before you apply.
 

@@ -1,7 +1,7 @@
 # Policy and governance
 
 This page is for the brand or design-system admin who sets the rules members work within:
-which tools each group sees, which inputs they may change, which shell features they get, and
+which tools each group sees, which inputs they may change, which shell features they get and
 how to keep all of it as one reviewable document. A typical rule: sales can change the
 headline, but not the logo.
 
@@ -11,7 +11,7 @@ its rules over that definition. Everything here is live-editable in the console 
 **This Deploy → Feature flags** and **Grants**) and reaches connected shells on their next
 poll.
 
-![Tool policy: lock a preset, restrict choices, or hide an input entirely, per group](shots/tool-policy.svg)
+![Tool policy: lock a preset, restrict choices or hide an input entirely, per group](shots/tool-policy.svg)
 
 ## Tool overlays
 

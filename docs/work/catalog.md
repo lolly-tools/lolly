@@ -2,7 +2,7 @@
 
 This page is for the brand or library admin who decides what members can use in Lolly Work:
 which tools and brand assets they see, where those come from, how long each one stays
-available, and how to retire an asset. The catalog holds tools, brand assets, tokens, fonts and
+available and how to retire an asset. The catalog holds tools, brand assets, tokens, fonts and
 logos from three sources, and every source passes through the same governance before it
 reaches a member.
 
@@ -34,7 +34,7 @@ replicas, to pick it up.
 
 **Which design system members get.** The deployment default and the downloadable connect pack
 are separate choices. In **This Deploy → Design system**, inspect source details, preview a
-replacement or retirement, and apply the reviewed revision. Stopping a connect download keeps
+replacement or retirement, then apply the reviewed revision. Stopping a connect download keeps
 the mounted catalog, and selection, retirement and suppression persist in PostgreSQL without
 changing mounted files. Source layouts, permissions, reference impact and rollback are on
 [Design-system administration](design-system-administration.md).
@@ -102,11 +102,11 @@ that says `image/png` and is not one is stored as what it is.
 - **Safe serving.** Submitted files are served with a content-security policy that sandboxes
   them and allows no script. An SVG is markup rather than a picture, and the console shares
   this origin, so a member's file never runs as whoever opens it: through `/catalog/*`, through
-  a share link, or in the review preview.
+  a share link or in the review preview.
 
 The console's Catalog view has a **Submit an asset** button for anyone holding
-`catalog.submit`: choose a file or a template's JSON, give it a name and tags, and send the file. The button reports
-whether the asset went live or is waiting for review. From a terminal:
+`catalog.submit`: choose a file or a template's JSON, give it a name and tags, then send the
+file. The button reports whether the asset went live or is waiting for review. From a terminal:
 
 ```bash
 lw catalog submit ./hero.png --name "Campaign Hero" --tags campaign,hero --groups design
@@ -155,8 +155,8 @@ The queue needs `catalog.read`, which the `viewer` role carries, but the rows ar
 gate: a caller sees their own submissions plus the ones open on a step their groups may act on,
 the same two-sided rule the approvals inbox uses. Deciding goes through the approvals engine,
 so separation of duties and step eligibility are enforced in one place, and the same decision
-made from the Approvals view settles the asset identically. Approve publishes the asset, reject
-returns it with the comment, and the submitter is told either way through the inbox.
+made from the Approvals view settles the asset identically. Approve publishes the asset and reject
+returns it with the comment. Either way the submitter is told through the inbox.
 
 **A reviewer can fix the metadata** instead of returning the asset over a metadata mistake.
 `PATCH` corrects a pending submission's declared `name`, `type`, `tags` and `description`,
@@ -241,7 +241,8 @@ PUT /api/v1/catalog/assets/<id>/meta          # catalog.edit
 - `name`, `description` and `tags` apply to an `inst/*` asset only. A federated asset keeps the
   name its source gives it, because the deployment does not own that record and a shadowed
   title would make the two disagree with nothing to say which was written here.
-- Every change is audited as `catalog.edit` with its before and after.
+- Every change is audited as `catalog.edit` with its before and after. Defining or retiring a
+  field is audited as `catalog.field.edit` or `catalog.field.delete`.
 
 Values reach the feed as one additional `fields` bag on the entry that carries them:
 
