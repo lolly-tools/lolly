@@ -86,6 +86,9 @@ const ALLOWED_PACKAGES = new Set([
   // Portable record types; no DOM, storage, network or host implementation.
   '@lolly-tools/core/learning-v1',
   '@lolly-tools/core/rights-v1',
+  // Brand skills (plan 323): the catalog record and the Agent Skills frontmatter reader.
+  '@lolly-tools/core/brand-skill-v1',
+  '@lolly-tools/core/skill-frontmatter-v1',
   // Portable Design rules and pure value evaluation, shared with packaged hooks.
   '@lolly-tools/core/design-tool-v1',
   // Portable brand vocabulary and its static validation schema.

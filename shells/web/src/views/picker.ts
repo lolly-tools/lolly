@@ -196,7 +196,7 @@ interface PickerOpts extends Omit<AssetPickerOpts, 'type'> {
     | 'profile'
     | 'ratecard'
     | 'text'
-    | 'data'
+    | 'data' | 'skill'
     | 'image';
   namespace?: string;
   tags?: string[];

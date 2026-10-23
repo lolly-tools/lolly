@@ -18,6 +18,7 @@ From a branded house, in which the parent is the brand, to a house of brands, in
 | **Logo identities** | Several named sets of logos in one design system. The main set is "Your logo". | **Logos** room, **+ Add another logo** |
 | **Custom marks** | Marks under your own names: a crest, a favicon, a finished lockup. | **Logos** room, **Custom marks** |
 | **House rules** | Approved colour pairings, type per role and other rules a composition is checked against. | Written in the token file and listed in the studio's **Usage & rules** room, where **Add rule** adds rules for the example pieces. `lolly check` checks house rules on a saved Design document; see [Usage & rules](/info/brand-studio.html#usage-rules) |
+| **Brand skills** | The brand's written standards, one skill per discipline (overall brand, photography, motion and others), for people and AI agents to read. Guidance, not checks: house rules are what Lolly checks. Each design system keeps its own skills under its own name, and colourways share them. | A brand pack's catalog, read with `lolly system skills` or Lolly's MCP server; see [Brand skills](/info/brand-skills.html) |
 | **Versions** | Permanent named copies of a design system. A link can pin one with `designv`. | **Versions** at the foot of the studio rail |
 | **Several design systems** | Any number on one device, one active at a time. A design system travels as a single brand pack file. | **Settings → Preferences → Design systems**; [Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices) |
 | **Theme groups of other kinds** | A design system can declare groups such as `campaign`, `brand` or `expression`. Lolly keeps them and resolves them as plain theme choices today. | The token file; chosen from a list in a tool's **Design system** section. See [What a theme group means](/info/design-tokens.html#what-a-theme-group-means) |
@@ -36,7 +37,7 @@ A common way to group arrangements is by how much of the parent brand the audien
 | Endorse | Apparent | Distinct marks that share type, grid and motion | A design system per brand, copied from a shared start | A shared core the brands keep in step with |
 | Detach | Shadow | Related brands that each define themselves | A design system per brand | A record of how they relate |
 | Detach | Discrete | Brands with no visible relationship | A design system per brand, switched per job | One artefact per brand open side by side |
-| Across | Co-branding | A partner's mark on your artwork | The partner's logo placed as an image | The partner's own rules: clear space, minimum size |
+| Across | Co-branding | A partner's mark on your artwork | The partner's logo placed as an image; each brand's skills given to an agent under their own names | The partner's own rules: clear space, minimum size |
 | Across | White label | One asset re-skinned for each client | A design system per client | Keeping clients apart automatically |
 | Across | Seasons and campaigns | A seasonal skin over the core, for a set time | A theme group of kind `campaign` with a date window, chosen in the tool | Applying the window to new work; scheduling |
 
@@ -189,6 +190,7 @@ A sponsor's or partner's mark on your event poster.
 
 - Place the partner's logo as an image in Design.
 - Record where the logo came from and its licence with [creative rights](/info/creative-rights.html).
+- When an agent does the work, give the agent each brand's [brand skills](/info/brand-skills.html) as they are, and say which brand leads. Each brand's skills keep their own names and ids. Lolly does not merge two brands' skills or decide which brand wins.
 
 Not yet: Lolly does not hold the partner's rules (clear space, minimum size, allowed treatments), and the partner's mark is not a design system of its own inside the artwork.
 
@@ -243,9 +245,9 @@ When a product line changes owner, the company part of its name usually changes.
 
 Choose the smallest block that holds the difference.
 
-1. **Only the colour differs:** a **colourway**.
+1. **Only the colour differs:** a **colourway**. A colourway shares the design system's brand skills.
 2. **The colour differs and the part has its own logo:** a **colourway** and a **logo identity** in the same design system.
-3. **The part has its own assets, its own tools or its own rules:** a **design system of its own**.
+3. **The part has its own assets, its own tools, its own rules or its own written standards:** a **design system of its own**, which carries its own brand skills.
 
 A part can move down this list as it grows. Moving down means copying material into a new design system; Lolly does not move it for you.
 

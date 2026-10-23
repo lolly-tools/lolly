@@ -188,6 +188,9 @@ export function gridAdmits(a: AssetRef): boolean {
     // palettes) covered by their own surfaces, and without this split every
     // brand-pack data file would flood the grid.
     || ((a.type === 'text' || a.type === 'data') && a.source === 'user')
+    // A brand skill (plan 323) is the design system's own guidance, catalog or not:
+    // a text tile that opens the reader, filed under Guidelines.
+    || a.type === 'skill'
     // The one library data file that IS shown: an emoji pack. Its rights record,
     // its licence and its coverage are things a person chooses a set on, and the
     // grid was the only place they were unreachable.

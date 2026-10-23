@@ -924,6 +924,18 @@
       "group": "Author tools and design systems"
     },
     {
+      "slug": "brand-skills",
+      "title": "Brand skills",
+      "src": "brand-skills.md",
+      "description": "A brand's written standards for each discipline as Agent Skills, carried with the design system and handed to any model through MCP or an exported folder.",
+      "section": "build",
+      "path": "build/brand-skills",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Author tools and design systems"
+    },
+    {
       "slug": "glossary",
       "title": "Glossary",
       "src": "glossary.md",

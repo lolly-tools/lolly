@@ -30,6 +30,9 @@
   "lolly/palette/icon-themes": "2026-07-17",
   "lolly/palette/photo-treatments": "2026-07-17",
   "lolly/palette/riso-inks": "2026-07-31",
+  "lolly/skill/brand": "2026-10-23",
+  "lolly/skill/motion": "2026-10-23",
+  "lolly/skill/photography": "2026-10-23",
   "lolly/songs/amber-glow": "2026-07-10",
   "lolly/songs/bn-copacabana-breeze": "2026-07-10",
   "lolly/songs/ct-pixel-quest": "2026-07-10",
@@ -399,5 +402,8 @@
   "suse/photos/susecon26-keynote-tues-59": "2026-07-08",
   "suse/photos/susecon26-keynote-tues-95": "2026-07-08",
   "suse/photos/susecon26-keynote-wed-11": "2026-07-08",
+  "suse/skill/brand": "2026-10-23",
+  "suse/skill/iconography": "2026-09-30",
+  "suse/skill/production-notes": "2026-08-24",
   "suse/tokens/brand": "2026-07-08"
 }

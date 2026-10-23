@@ -32,6 +32,7 @@
     "./session-store": "./src/session-store.ts",
     "./design-systems": "./src/design-systems.ts",
     "./design-brief": "./src/design-brief.ts",
+    "./brand-skills": "./src/brand-skills.ts",
     "./token-report": "./src/token-report.ts",
     "./browsers": "./src/browsers.ts",
     "./transform-tool": "./src/transform-tool.ts",

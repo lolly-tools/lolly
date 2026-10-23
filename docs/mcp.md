@@ -356,6 +356,9 @@ Agents should not guess asset ids or brand colours. Alongside the tools, the ser
 | `lolly://skill/{path}` | One reference or example file from that skill, such as `reference/design.md`. |
 | `lolly://tool/{id}/skill` | Guidance for one tool, matched to the tool revision this server runs, with its references and version. |
 | `lolly://design-context` | The design brief for this server's design system: resolved tokens, source evidence, coverage and brand rules, plus approved colour pairings, type per role, logos per surface, icons and their themes, media families, the slide master and machine-checkable house rules. The same brief `lolly system context --json` prints, with `origin` giving where its tokens came from: always the server's content profile and its head tokens asset, the design system `lolly_check` checks against. The CLI tries `--file` and the terminal's active system before the profile; the server reads neither. Read it before composing, and before `lolly_check`. |
+| `lolly://design-system/skills` | The [brand skills](/info/brand-skills.html) index: the brand's own guidance per discipline, without bodies, plus the baseline Lolly generates from the design brief. Read the overall brand skill before composing. A hosted server lists public skills only. |
+| `lolly://design-system/skill/{name}` | One brand skill as `SKILL.md`, with the brand's body unchanged and frontmatter `metadata` giving its asset, revision and checksum. |
+| `lolly://design-system/skill/{name}/{path}` | A brand skill's `coverage.json` (what the skill says against what Lolly checks), its `lolly.json` or a reference file. |
 | `lolly://catalog` | The full generated tool index. |
 | `lolly://assets` | Every catalog asset id with its type, name, tags and formats. Enumerate here first, so you never invent an id. |
 | `lolly://tokens` | The brand's design tokens (DTCG): named colour swatches with CMYK. |

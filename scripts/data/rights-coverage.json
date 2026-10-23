@@ -286,6 +286,14 @@
       "note": "Whether a catalog asset may travel is decided by the reviewed rules in lib/redistribution.ts, the same answer a session share uses. A held-back asset stays an external reference and the file's CREDITS.txt gives the reason. No receipt is measured from the finished file."
     },
     {
+      "id": "delivery.brand-skill-export",
+      "kind": "delivery",
+      "title": "Brand skill as an Agent Skills zip or one file (Start, Skills room)",
+      "status": "not-assessed",
+      "code": ["shells/web/src/lib/design-system/rooms/skills.ts"],
+      "note": "Hands out one brand skill of the active design system as a zip or as text on the clipboard. The body is the brand's text with catalog links rewritten to this instance; lolly.json and the frontmatter metadata record the source asset, revision and sha256, and generated frontmatter carries the asset's licence. Linked catalog assets travel as links, never as bytes, so no source terms are evaluated and no receipt is measured."
+    },
+    {
       "id": "delivery.brand-pack-export",
       "kind": "delivery",
       "title": "Brand pack, design system package, tokens and font package exports",

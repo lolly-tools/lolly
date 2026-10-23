@@ -18,12 +18,12 @@ import {
   C2PA_FORMATS, embedC2pa, buildInputModel, serializeUrlState, parseProductionSpec,
   parseDimension, toPixels, PENPOT_MIME,
   attributionCredits, checkAttributionReadback, verifyC2pa, describeIgnoredTokenChoice,
-  ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection, designRecordWords,
+  ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection, designRecordWords, guidedByWords, readDesignRecord,
 } from '@lolly/engine';
 import type { C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes, DesignRecord } from '@lolly/engine';
 import type { RightsEvaluationV1 } from '@lolly-tools/core/rights-v1';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
-import type { ExportFormat, ExportMeta, ExportOpts, Profile, InputFile, HostV1 } from '@lolly-tools/core/host-v1';
+import type { ExportBrandSkill, ExportFormat, ExportMeta, ExportOpts, Profile, InputFile, HostV1 } from '@lolly-tools/core/host-v1';
 import type { ToolManifest } from '../../../engine/src/loader.ts';
 // Relative imports (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // Vercel MCP bundle, where a bare workspace specifier would dangle (see bridge.ts).
@@ -109,6 +109,12 @@ export interface RenderOpts {
   rondo?: RondoCaps;
   /** The design-system record (the `_madewith` param, plans/319): false leaves it out. */
   madeWith?: boolean | null;
+  /**
+   * The brand skills the agent declared it read and followed for this piece (plan
+   * 323), already resolved against the profile. Recorded beside the design-system
+   * record and left out with it (`madeWith: false`). Never travels in a link.
+   */
+  brandSkills?: ExportBrandSkill[] | null;
 }
 
 /**
@@ -153,7 +159,8 @@ export interface RenderResult {
   songs?: { expected: string[]; recorded: string[] };
   /**
    * The design-system record the delivered file carries (plans/319): the design
-   * system, published version and colourway, read back from the final bytes.
+   * system, published version and colourway, read back from the final bytes, and
+   * the brand skills that guided the piece (plan 323) when the agent declared any.
    * Absent when the file carries none (`madeWith: false`, or no design system).
    */
   designRecord?: DesignRecord;
@@ -162,12 +169,19 @@ export interface RenderResult {
 /**
  * The design-system record a delivered file carries, as the line a tool result
  * prints (plans/319). The record is approved on the condition that it is visible
- * at the moment of export, so an agent sees the same words the CLI prints. Empty
- * when the file carries none.
+ * at the moment of export, so an agent sees the same words the CLI prints. The
+ * brand skills (plan 323) get a sentence of their own, in the "guided by" words:
+ * a skill is guidance, and the record is not a check. Empty when the file
+ * carries none.
  */
 export function designRecordText(record: DesignRecord | null | undefined): string {
-  const words = designRecordWords(record);
-  return words ? `Recorded the design system: ${words}. Pass madeWith: false to leave the record out.` : '';
+  const words = designRecordWords(record, { skills: false });
+  const guided = guidedByWords(record?.brandSkills);
+  const said = [
+    words && `Recorded the design system: ${words}.`,
+    guided && `Recorded as guided by: ${guided}.`,
+  ].filter(Boolean);
+  return said.length ? `${said.join(' ')} Pass madeWith: false to leave the record out.` : '';
 }
 
 /** Formats whose bytes carry sound, and so can hold a song. */
@@ -256,6 +270,8 @@ function exportOpts(o: RenderOpts): ExportOpts & { password?: string } {
   if (o.depth && o.depth !== 'auto') opts.depth = o.depth;
   // `_madewith=0` leaves the design-system record out of the file (plans/319).
   if (o.madeWith === false) opts.madeWith = false;
+  // The brand skills the agent declared (plan 323) ride the same switch.
+  else if (o.brandSkills?.length) opts.brandSkills = o.brandSkills;
   // MCP has no brand-palette surface of its own, so the HDR view transform runs with
   // hdr.ts's includeWhite default only: near-whites get real above-1.0 headroom, brand
   // colours do not glow the way a CLI/web export with a resolved palette does.
@@ -916,7 +932,7 @@ export async function stampC2pa(
   bytes: Uint8Array, fmt: string, manifest: ToolManifest, values: Record<string, unknown>, o: RenderOpts,
   ingredients: C2paSourceIngredient[] = [],
   /** The design-system record the file's own metadata carries (plans/319), for the credential. */
-  meta: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes'> | null = null,
+  meta: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills'> | null = null,
 ): Promise<Uint8Array> {
   // The shared node-shell payload (dimensions, inputs digest, date, author gate),
   // so an MCP-made asset inspects as richly as a CLI/TUI/browser-made one.
@@ -957,18 +973,39 @@ export async function credentialAndRecord(
   },
 ): Promise<{ bytes: Uint8Array; designRecord: DesignRecord | null }> {
   let bytes = out.bytes;
-  const record: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes'> | null = out.tier.startsWith('B')
+  type Recorded = Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills'>;
+  // What the file's own metadata holds: the browser tier wrote it, so it is read off
+  // the bytes; a browser-free render embedded `recorded`.
+  const inFile: Recorded | null = out.tier.startsWith('B')
     ? await recordedDesignInFile(out.bytes, o.exportFmt)
     : o.recorded;
+  // The browser tier's web shell has no agent, so the brand skills the agent
+  // declared (plan 323) are not in the file it wrote. The credential stamped here
+  // is the one place left that can carry them.
+  const skills = out.tier.startsWith('B') && o.merged.madeWith !== false ? o.merged.brandSkills ?? [] : [];
+  const record: Recorded | null = skills.length ? { ...(inFile ?? {}), brandSkills: skills } : inFile;
+  let stamped = false;
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt as ExportFormat) && !(o.exportFmt === 'pdf' && o.merged.password)) {
-    try { bytes = await stampC2pa(bytes, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record); }
+    try { bytes = await stampC2pa(bytes, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record); stamped = true; }
     catch (e) { o.warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
   } else if (!o.sampled && o.merged.c2pa?.on) {
     o.warnings.push(`Format "${o.fmt}" cannot carry Content Credentials - skipped.`);
   }
-  // Read back from the final bytes. A PDF's keywords were written from that same
-  // record, so it stands in for them when the file holds no credential to read.
-  const designRecord = await recordedDesignInFile(bytes, o.deliveredFormat, record);
+  if (skills.length && !stamped) {
+    o.warnings.push('The brand skills were not recorded: this format renders in the browser tier, which writes the file without them, '
+      + 'and only a Content Credential can carry them here. Pass c2pa (e.g. "30") to record them.');
+  }
+  // Read back from the final bytes. A PDF's keywords were written from the file's
+  // own record, so it stands in for them when the file holds no credential to read.
+  let designRecord = await recordedDesignInFile(bytes, o.deliveredFormat, inFile);
+  // The file's own metadata is read first, and on the browser tier it holds no
+  // brand skills, so the credential stamped above is read for them.
+  if (skills.length && stamped && !designRecord?.brandSkills?.length) {
+    try {
+      const fromCredential = readDesignRecord((await verifyC2pa(bytes)).environment ?? null);
+      if (fromCredential?.brandSkills?.length) designRecord = { ...(designRecord ?? {}), brandSkills: fromCredential.brandSkills };
+    } catch { /* an unreadable credential gives no skills */ }
+  }
   return { bytes, designRecord };
 }
 

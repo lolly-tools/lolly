@@ -90,7 +90,7 @@ export { assetVersionPin, encodeAssetVersion, decodeAssetVersion, assetDependenc
 export type { AssetVersionPin } from './asset-version.ts';
 export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplateWithNotes } from './batch.ts';
 export type { BatchRow } from './batch.ts';
-export { buildExportMeta, designRecordCarrier, designRecordEnvironment, designRecordFrom, designRecordWords, readDesignRecord, readDesignRecordXml, themesSelection, toolCredit, pdfKeywords } from './metadata.ts';
+export { buildExportMeta, designRecordCarrier, designRecordEnvironment, designRecordFrom, designRecordWords, guidedByWords, readDesignRecord, readDesignRecordXml, themesSelection, toolCredit, pdfKeywords } from './metadata.ts';
 export type { DesignRecord, MadeWithPreview } from './metadata.ts';
 export { extractFileMetadata, extractXmpPacket, readFileDesignRecord, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
 export type { FileMetadata, MetaField, MetaGroup } from './file-metadata.ts';
@@ -984,6 +984,9 @@ export type { BrandCheckCatalogOpts, BrandFinding, BrandFix } from './brand-chec
 // pairings, type, logos, icons, media, master and machine-checkable rules.
 export { designBrief, brandCheckCatalog } from './design-brief.ts';
 export type { DesignBriefAssetV1, DesignBriefCatalogV1, DesignBriefOpts, DesignBriefV1 } from './design-brief.ts';
+// Brand skills (plan 323): a brand's standards per discipline as design-system assets.
+export { parseBrandSkill, brandSkillScopeHints, admitBrandSkill, classifyBrandSkillLinks, brandSkillCoverage, brandSkillCoverageFacts, exportBrandSkillFolder, brandSkillFreshness, brandSkillsSection, baselineBrandSkill, measureSvgFamily, spreadExemplars, brandSkillFilesSize } from './brand-skill.ts';
+export type { BrandSkillFindingV1, BrandSkillHeadingV1, BrandSkillLinkV1, ParsedBrandSkillV1, AdmittedBrandSkillV1, BrandSkillAdmissionV1, BrandSkillCatalogAssetV1, BrandSkillLinkClassV1, BrandSkillCoverageFactsV1, BrandSkillCoverageStatusV1, BrandSkillCoverageRowV1, BrandSkillCoverageV1, BrandSkillExportModeV1, BrandSkillExportInputV1, BrandSkillExportV1, BrandSkillFreshnessV1, SvgFamilyMeasureV1 } from './brand-skill.ts';
 export { checkDesignHouseRules, designHouseRules, combinationPolicy, DESIGN_HOUSE_RULE_KINDS } from './design-house-rules.ts';
 export type { DesignHouseRuleKind, DesignHouseRuleOpts, DesignHouseRuleResult, HouseRuleFinding } from './design-house-rules.ts';
 // One finding shape for every Design checker, and fidelity to a source inventory (plan 291 W1).

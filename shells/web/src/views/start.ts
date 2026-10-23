@@ -42,7 +42,9 @@ import '../styles/parts/design-system-specimen.css';
 
 import '../styles/parts/start.css';
 import '../styles/parts/start-usage.css';
+import '../styles/parts/start-skills.css';
 import { mountUsageRoom } from '../lib/design-system/rooms/usage.ts';
+import { mountSkillsRoom } from '../lib/design-system/rooms/skills.ts';
 import type { TokensExtraction } from '@lolly/engine';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { applyChromeBrandVars } from '../brand-vars.ts';
@@ -89,8 +91,8 @@ import { lifecycleOps } from './start/lifecycle.ts';
 // foot-pinned panel this view renders itself, and parking its key on the same
 // attribute is exactly how the editor hides - the same trick `overview` uses.
 type RoomsArePanels =
-  Exclude<StartRoom, 'overview' | 'usage'> extends BrandTabKey
-    ? BrandTabKey extends Exclude<StartRoom, 'overview' | 'usage'>
+  Exclude<StartRoom, 'overview' | 'usage' | 'skills'> extends BrandTabKey
+    ? BrandTabKey extends Exclude<StartRoom, 'overview' | 'usage' | 'skills'>
       ? true
       : never
     : never;
@@ -166,7 +168,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
           <h1 class="start-title">${t('This brand is set')}</h1>
           <p class="start-sub">${t('This build ships with a fixed brand. Explore its usage rules and examples below.')}</p>
         </header>
-        <section data-token-readonly></section><section data-usage-readonly></section>
+        <section data-token-readonly></section><section data-usage-readonly></section><section data-skills-readonly></section>
       </div>`;
     attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
     start.navigation.wireBackPill();
@@ -174,7 +176,8 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
     const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
-    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); workspace.teardown(); };
+    const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host, readonly: true });
+    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); skills.teardown(); workspace.teardown(); };
     return;
   }
 
@@ -196,7 +199,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
             <a class="be-btn" href="#/profile?focus=design-systems-section">${t('Switch')}</a>
           </p>
         </header>
-        <section data-token-readonly></section><section data-usage-readonly></section>
+        <section data-token-readonly></section><section data-usage-readonly></section><section data-skills-readonly></section>
       </div>`;
     attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
     start.navigation.wireBackPill();
@@ -204,7 +207,8 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
     const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
-    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); workspace.teardown(); };
+    const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host, readonly: true });
+    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); skills.teardown(); workspace.teardown(); };
     viewEl.querySelector('[data-ds-fork]')?.addEventListener('click', async () => {
       const [{ createDesignSystem }, { switchDesignSystem }] = await Promise.all([
         import('../lib/design-system/manage.ts'),
@@ -256,6 +260,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     tokens: t('Tokens'),
     catalogue: t('Files'),
     usage: t('Usage & rules'),
+    skills: t('Skills'),
     versions: t('Versions'),
   }; start.ROOM_LABELS = ROOM_LABELS;
 
@@ -275,6 +280,8 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   const overviewPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="overview"]')!; start.overviewPanel = overviewPanel;
   start.usagePanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="usage"]')!;
   start.usage = null;
+  start.skillsPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="skills"]')!;
+  start.skills = null;
   const versionsPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="versions"]')!; start.versionsPanel = versionsPanel;
   const versionsBtn = viewEl.querySelector<HTMLButtonElement>('[data-ds-room="versions"]'); start.versionsBtn = versionsBtn;
   const versionsLink = viewEl.querySelector<HTMLButtonElement>('[data-ds-versions-link]'); start.versionsLink = versionsLink;

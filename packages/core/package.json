@@ -70,7 +70,9 @@
     "./schema/design-compose-v1.schema.json": "./schema/design-compose-v1.schema.json",
     "./present-receiver": "./src/present-receiver.ts",
     "./delivery-v1": "./src/delivery-v1.ts",
-    "./tool-skill-v1": "./src/tool-skill-v1.ts"
+    "./tool-skill-v1": "./src/tool-skill-v1.ts",
+    "./skill-frontmatter-v1": "./src/skill-frontmatter-v1.ts",
+    "./brand-skill-v1": "./src/brand-skill-v1.ts"
   },
   "files": [
     "src",
