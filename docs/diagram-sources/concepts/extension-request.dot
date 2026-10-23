@@ -1,0 +1,11 @@
+digraph extension_request {
+  rankdir=TB
+  node [shape=box]
+  ask [label="Lolly tab\nasks for one page"]
+  approve [label="Approval window\nyou press Approve once"]
+  read [label="Background tab\nopens, reads, closes"]
+  result [label="Lolly tab\ngets the result"]
+  ask -> approve
+  approve -> read
+  read -> result
+}
