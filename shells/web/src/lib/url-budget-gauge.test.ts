@@ -129,3 +129,72 @@ test('meter: the state is on the root, every Share button describes it, and a la
   assert.equal(root.style.getPropertyValue('--share-link-fill'), '');
   assert.equal(share.hasAttribute('aria-description'), false);
 });
+
+test('meter: a link is costed only while a Share button shows the meter', () => {
+  const share = document.querySelector('#share') as HTMLElement;
+  const view = dom.window as unknown as { IntersectionObserver?: unknown };
+  const observers: Array<{ fire(visible: boolean): void; watched: Element[]; live: boolean }> = [];
+  // jsdom has no layout and no IntersectionObserver: a stand-in for both.
+  let shown = false;
+  const rects = mockRects(share, () => shown);
+  view.IntersectionObserver = class {
+    watched: Element[] = [];
+    live = true;
+    readonly cb: (entries: Array<{ isIntersecting: boolean }>) => void;
+    constructor(cb: (entries: Array<{ isIntersecting: boolean }>) => void) { this.cb = cb; observers.push(this); }
+    observe(el: Element): void { this.watched.push(el); }
+    disconnect(): void { this.live = false; }
+    fire(visible: boolean): void { if (this.live) this.cb([{ isIntersecting: visible }]); }
+  };
+  const meter = createShareMeter(null, { used: (pct) => `URL budget: ${pct}%`, reassure: '' });
+  try {
+    let costed = 0;
+    meter.costWhenShown(() => { costed++; });
+    assert.equal(costed, 0, 'a hidden meter is not costed');
+    assert.deepEqual(observers[0]?.watched, [share], 'it waits for the Share button to show');
+    meter.costWhenShown(() => { costed += 10; });
+    assert.equal(observers[0]?.live, false, 'a newer request replaces the waiting one');
+    observers[1]!.fire(false);
+    assert.equal(costed, 0);
+    observers[1]!.fire(true);
+    assert.equal(costed, 10, 'costed once the button comes on screen, with the newest request');
+    observers[1]!.fire(true);
+    assert.equal(costed, 10, 'and only once');
+
+    shown = true;
+    meter.costWhenShown(() => { costed++; });
+    assert.equal(costed, 11, 'a meter on screen is costed at once');
+    assert.equal(observers.length, 2, 'without watching for it');
+
+    shown = false;
+    meter.costWhenShown(() => { costed++; });
+    meter.dispose();
+    observers[2]!.fire(true);
+    assert.equal(costed, 11, 'an unmounted meter is never costed');
+  } finally {
+    delete view.IntersectionObserver;
+    rects.restore();
+    meter.dispose();
+  }
+  // Without an observer nothing could say the meter came back, so the cost runs at once.
+  const plain = createShareMeter(null, { used: (pct) => `URL budget: ${pct}%`, reassure: '' });
+  let costed = 0;
+  plain.costWhenShown(() => { costed++; });
+  assert.equal(costed, 1);
+  plain.dispose();
+});
+
+/** jsdom lays nothing out: report one client rect for `el` while `visible()` says so. */
+function mockRects(el: Element, visible: () => boolean): { restore(): void } {
+  const own = Object.getOwnPropertyDescriptor(el, 'getClientRects');
+  Object.defineProperty(el, 'getClientRects', {
+    configurable: true,
+    value: () => (visible() ? [{ width: 80, height: 32 }] : []),
+  });
+  return {
+    restore() {
+      if (own) Object.defineProperty(el, 'getClientRects', own);
+      else delete (el as unknown as { getClientRects?: unknown }).getClientRects;
+    },
+  };
+}
