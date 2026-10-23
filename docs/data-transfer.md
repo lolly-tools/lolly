@@ -1,47 +1,49 @@
-# Data Transfer - the `lolly-backup` bundle
+# Data transfer: the `lolly-backup` bundle
 
-Lolly's personal library lives **on the device**. Organisation-held work in optional lolly.work is separate, as described below. The data-transfer bundle is how that value moves: export it on one install, carry the file by any means (USB, AirDrop, email-to-self, a network share) and import it on another. The file *is* the transport. The target can be offline or online. Exporting and importing the bundle need no server.
+Lolly keeps your personal library on the device. A backup bundle is how that library moves: export it on one install, carry the file any way you like (USB, AirDrop, email to yourself or a network share) and import it on another. Exporting and importing need no server, and the target can be offline.
+
+This page is the format specification, for people who build shells, tools or scripts around backups: what is in the zip, how versions are gated, how an import merges and what is checked. The walkthrough for people moving their own work is [Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device).
 
 ![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-This page is the format spec. For the end-user walkthrough see [Find and recover your work → Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device). The implementation is [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), and [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) pins the round-trip contract.
-
-> **Scope.** A bundle carries *user data*, not catalogue tools. Catalogue tools and catalog assets are synced separately and are assumed to already be present on the target (worst case at a higher version); tools a user made themselves travel inside `profile.json`. Importing never installs or upgrades a catalogue tool.
+> **Scope.** A bundle carries *user data*, not catalog tools. Catalog tools and catalog assets are synced separately and are assumed to be present on the target already, at worst at a higher version. Tools a user made themselves travel inside `profile.json`. Importing never installs or upgrades a catalog tool.
 
 ## Goals
 
-- <!--i:box--> **One format, every shell.** The web PWA, Tauri desktop/mobile apps and future shells share the same envelope and supported part schemas. Optional parts depend on each shell's capabilities; unsupported parts are reported. Each capability bridge supplies its storage adapter.
-- <!--i:shieldcheck--> **Survives the trip.** A bundle mangled or truncated in transit fails loudly on import, never half-restores.
-- <!--i:clock--> **Outlives this version.** An older app can still import a newer bundle's recognised parts. A genuinely breaking format is refused cleanly.
+- <!--i:box--> **One format, every shell.** The web app, the desktop and mobile apps and future shells share the same envelope and part schemas. Optional parts depend on each shell's capabilities, and unsupported parts are reported. Each capability bridge supplies its storage adapter.
+- <!--i:shieldcheck--> **Survives the trip.** A bundle mangled or truncated in transit fails loudly on import and never half-restores.
+- <!--i:clock--> **Outlives this version.** An older app can still import the parts of a newer bundle that it recognises. A truly breaking format is refused cleanly.
 - <!--i:check--> **Safe to merge.** Importing onto an install that is already in use never wipes anything that was not in the bundle.
 
 ## The envelope
 
-A bundle is a plain `.zip`. The download is named for the person it belongs to - `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (for example `LollyTools-Ada-Lovelace-2026-06-26-1.zip`) - so a Downloads folder of backups stays legible. The first and last parts come from the profile and are omitted when unset. No profile gives `LollyTools-2026-06-26-1.zip`, and a first name alone gives `LollyTools-Ada-2026-06-26-1.zip`. Each part is sanitised to a filename-safe token (Unicode letters/digits kept, spaces/punctuation stripped, capped at 32 chars). `<n>` is a per-day, per-device sequence, so repeat exports on the same day do not collide and stay in order. `backupFilename()` in [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts) builds the name. The zip's contents are identical regardless of name. Inside:
+A bundle is a plain `.zip`, so it survives any transport intact and any unzip tool can inspect the contents.
+
+The download is named for the person it belongs to: `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip`, for example `LollyTools-Ada-Lovelace-2026-06-26-1.zip`, so a Downloads folder of backups stays readable. The first and last names come from the profile and are left out when unset: no profile gives `LollyTools-2026-06-26-1.zip`, and a first name alone gives `LollyTools-Ada-2026-06-26-1.zip`. Each name is reduced to a filename-safe token (Unicode letters and digits kept, spaces and punctuation stripped, at most 32 characters). `<n>` is a per-day, per-device sequence, so repeat exports on one day do not collide and stay in order. `backupFilename()` in `data-transfer.ts` builds the name, and the zip's contents are the same whatever its name.
 
 | Path | Required | Contents |
 |---|---|---|
 | `manifest.json` | yes | Format id, versions, counts and per-part integrity. The first thing a reader looks at. |
 | `profile.json` | when set | The user's whole `me` record: name, contact, headshot ref and flags, plus folders, Trash, project blueprints, user templates and user-made tools, favourites, hidden tools, language and emoji choice. Read via `host.profile`. |
-| `sessions.json` | yes | Every saved session: slot, tool id/version, label, thumbnail (data-URL) and full input data. Read via `host.state`. |
+| `sessions.json` | yes | Every saved session: slot, tool id and version, label, thumbnail (data URL) and full input data. Read via `host.state`. |
 | `assets.json` | yes | Metadata for each uploaded asset (images, fonts, brand tokens, logos, saved copies of downloads), each pointing at its bytes under `assets/blobs/`. |
-| `assets/blobs/<n>.<ext>` | per asset | The raw asset bytes (image and font files). Stored uncompressed (already-compressed formats). The extension is cosmetic. The MIME in `assets.json` is authoritative. |
+| `assets/blobs/<n>.<ext>` | per asset | The raw asset bytes, stored uncompressed because most are already compressed formats. The extension is cosmetic; the MIME type in `assets.json` is authoritative. |
 | `assets/blobs/<n>.c2pa` | when present | Extracted Content Credentials as exact binary bytes, referenced by `_credentialFile` in the asset record. These are not device signing keys. |
-| `design-systems.json` | when present | The design systems made or added on this install, as `{ active, records }`. Merged by id on import; the bundle's active choice applies only when the target has no design system of its own. |
-| `file-history.json` | optional | Versioned asset snapshots, terminal file-operation reports and complete batch manifests. The history part has its own version; provided by the shell's internal `fileHistory` backup adapter. |
-| `revision-history.json` | optional, manual backups | Stable creation IDs, retained checkpoints, thumbnails and rolling recovery drafts. Provided by `host.state.history.backup` where supported. |
-| `file-history/versions/` | per snapshot | Previous asset bytes and extracted credentials, independent of whether the current asset still exists. |
-| `file-history/results/` | per completed operation | Exact output bytes. No original selected-for-conversion file is retained or included. |
+| `design-systems.json` | when present | The design systems made or added on this install, as `{ active, records }`. See [Import rules](#import-rules). |
+| `file-history.json` | optional | Versioned asset snapshots, finished file-operation reports and complete batch manifests, with a version of its own. Provided by the shell's internal `fileHistory` backup adapter. |
+| `revision-history.json` | optional, manual backups | Stable creation IDs, kept checkpoints, thumbnails and rolling recovery drafts. Provided by `host.state.history.backup` where supported. |
+| `file-history/versions/` | per snapshot | Previous asset bytes and extracted credentials, whether or not the current asset still exists. |
+| `file-history/results/` | per finished operation | Exact output bytes. No original file selected for conversion is kept or included. |
 | `prefs.json` | yes | User-owned local preferences: `theme`, `sidebarWidth` and the `ct-metrics` activity tally. |
-| `lolly.txt` | yes | A human-readable summary of the bundle (counts, profile, filename) for anyone who opens the zip without Lolly. Regenerated on every export and recognised on import, so it never counts as a skipped part. It is written *after* the integrity map, so it stays outside it. |
+| `lolly.txt` | yes | A readable summary of the bundle (counts, profile, filename) for anyone who opens the zip without Lolly. Regenerated on every export and recognised on import, so it never counts as a skipped part. It is written after the integrity map, so the map does not cover this file. |
 
-The bundle is a plain zip on purpose: it survives any transport intact, and any unzip tool can inspect it.
+::: details How export writes the zip
+Export writes the zip a part at a time (`shells/web/src/lib/zip-stream.ts`). Uploads, saved results and saved asset versions are read in 4 MiB slices, never whole, and saved results and versions are first checked against their recorded SHA-256. Every file is then read for its checksum and integrity digest, and the zip refers to it where it is.
 
-Export writes the zip a part at a time ([`shells/web/src/lib/zip-stream.ts`](../shells/web/src/lib/zip-stream.ts)). Uploads, saved results and saved asset versions are read in 4 MiB slices, never whole. Saved results and versions are first checked against their recorded SHA-256. Every file is then read for its checksum and integrity digest, and the zip refers to it where it is. Nothing is re-encoded, so a file carrying Content Credentials keeps the exact bytes its signature covers. Every part keeps its exact bytes and digest. For the same parts and time the zip is identical to the earlier writer's, except that a history file over 16 MiB is compressed in pieces. [`tests/backup-streaming.test.ts`](../tests/backup-streaming.test.ts) checks this against recorded reference digests. On a 192 MiB synthetic library, measured in Node, finishing the backup took about 125 to 150 MiB on top of the library, against about 850 MiB for the in-memory writer (`node scripts/bench-backup-finalise.ts`). Import still reads the whole zip into memory.
+Nothing is re-encoded, so a file carrying Content Credentials keeps the exact bytes its signature covers, and every part keeps its exact bytes and digest. For the same parts and time the zip is identical to the earlier in-memory writer's, except that a history file over 16 MiB is compressed in pieces. `tests/backup-streaming.test.ts` checks this against recorded reference digests.
 
-`profile.json` is the smallest part and the one a reader sees first in the app: the details a producer fills in once, plus the opt-in that lets tools use them.
-
-![The Profile details form that becomes profile.json: name, contact details and headshot](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+On a 192 MiB synthetic library, measured in Node, finishing the backup took about 125 to 150 MiB on top of the library, against about 850 MiB for the in-memory writer (`node scripts/bench-backup-finalise.ts`). Import still reads the whole zip into memory.
+:::
 
 ## `manifest.json`
 
@@ -69,121 +71,148 @@ Export writes the zip a part at a time ([`shells/web/src/lib/zip-stream.ts`](../
 | Field | Meaning |
 |---|---|
 | `format` | Always `lolly-backup`. A file without it is rejected as "not a Lolly backup". |
-| `formatVersion` | The layout this bundle was **written** with. Bumped on any change to the part set or shapes. Readers do **not** gate on it. |
-| `minReader` | The minimum reader version required to import this bundle **safely**. This is the field readers gate on. |
+| `formatVersion` | The layout this bundle was **written** with. Bumped on any change to the part set or shapes. Readers do **not** gate on this field. |
+| `minReader` | The minimum reader version that can import this bundle **safely**. This is the field readers gate on. |
 | `app` | Producing app id, for diagnostics. |
 | `exportedAt` | ISO timestamp the bundle was created. |
-| `counts` | What the writer put in, for display and sanity-checking. |
+| `counts` | What the writer put in, for display and sanity checks. |
 | `integrity` | Optional. Maps every part except `manifest.json` to an SRI-style `sha256-<base64>` digest of its **uncompressed** bytes. |
 
-## Version policy (forward compatibility)
+## Version policy
 
-The split between `formatVersion` and `minReader` is what lets the format grow without orphaning older installs:
+Two version numbers let the format grow without stranding older installs.
 
-- A reader imports a bundle when `manifest.minReader ≤` its own reader version. It refuses (with "needs a newer version of the app") only when the bundle explicitly demands a newer reader.
-- An **additive** change - a new *optional* part, or a new optional manifest field - bumps `formatVersion` but leaves `minReader` unchanged. Older apps still import every part they recognise. Parts they do not recognise are skipped (see below), not dropped silently.
-- A **breaking** change - one where a wrong import of a part corrupts data, or where a previously optional part becomes mandatory - raises `minReader`. Older apps then refuse cleanly instead of importing something they cannot handle.
-- If a future bundle sets `formatVersion` but omits `minReader`, readers conservatively fall back to gating on `formatVersion` (treat the change as breaking).
+![A change to the bundle format is either additive, which old readers can ignore, or breaking, where a wrong import corrupts. Additive bumps formatVersion and keeps minReader; breaking bumps formatVersion and raises minReader. A reader imports when minReader is at most its own version.](/info/diagrams/concepts/backup-version-gate.svg)
 
-> **Rule of thumb for authors:** if every existing reader would still do the right thing by ignoring your addition, it is additive - bump `formatVersion`, leave `minReader`. Otherwise raise `minReader`.
+- A reader imports a bundle when `manifest.minReader` is at most its own reader version. It refuses, with "needs a newer version of the app", only when the bundle demands a newer reader.
+- An **additive** change, such as a new optional part or a new optional manifest field, bumps `formatVersion` and leaves `minReader` alone. Older apps still import every part they recognise, and parts they do not recognise are reported as skipped, not dropped silently.
+- A **breaking** change, where a wrong import of a part corrupts data or an optional part becomes mandatory, raises `minReader`. Older apps then refuse cleanly instead of importing something they cannot handle.
+- If a future bundle sets `formatVersion` but leaves out `minReader`, readers fall back to gating on `formatVersion` and treat the change as breaking.
+
+> **Rule of thumb for authors:** if every existing reader would still do the right thing by ignoring your addition, the change is additive: bump `formatVersion` and leave `minReader`. Otherwise raise `minReader`.
 
 ## Integrity
 
-When `manifest.integrity` is present, a reader verifies each listed part's SHA-256 **before writing anything**. A mismatch ("failed its integrity check") or a missing part ("incomplete") aborts the whole import - there is no partial restore. This catches the corruption a file transport can introduce (a truncated AirDrop, an email gateway that re-encoded the attachment, a bad USB sector).
+When `manifest.integrity` is present, a reader checks each listed part's SHA-256 **before writing anything**. A mismatch ("failed its integrity check") or a missing part ("incomplete") stops the whole import, so there is no partial restore. This catches the damage a file transport can do: a truncated AirDrop, an email gateway that re-encoded the attachment, a bad USB sector.
 
-Integrity is best-effort by design: it is written only where Web Crypto is available (every secure browser context and modern Node), and verified only when both the map and Web Crypto are present. A bundle without the map - for example one from before integrity existed - imports unchanged. "Cannot verify" is never treated as "corrupt".
+Integrity is best effort. It is written only where Web Crypto is available (every secure browser context and modern Node), and checked only when both the map and Web Crypto are present. A bundle without the map, such as one from before integrity existed, imports unchanged: "cannot verify" never counts as "corrupt".
 
-The manifest lists neither itself nor the regenerated `lolly.txt` README. The digests cover the parts the manifest vouches for.
+The manifest lists neither itself nor the regenerated `lolly.txt`. The digests cover the parts the manifest vouches for.
 
-## Import semantics
+## Import rules
 
-Import is a **merge**, never replace-all:
+An import runs in one of two modes.
 
-- Existing data on the target is left in place.
-- When a session slot or uploaded image id is on both, the copy saved more recently is kept, so an older backup never overwrites newer work on the target. Equal or unknown times keep the target's copy. On a web install with creation history, the same rule decides which copy of a creation stays current, and the other copy is kept as a protected draft (see below).
-- The profile record is merged, not replaced. Every folder on the target stays with its contents; a folder from the bundle that the target lacks is added, and a folder on both keeps the target's name and parent and gains the bundle's members it lacks. A session filed in a folder on the target stays filed there.
-- Favourites (tools, catalog assets and Projects items) are combined. Templates, Projects templates and user tools from the bundle are added when the target has no record with that id. Trash entries from both are kept, so an item that could be restored on either install still can be.
-- Every other profile field (name, contact details, language, feature flags, hidden tools and the other settings) keeps the target's value. A field that is empty on the target takes the bundle's value. The same goes for `prefs.json`: a preference is written only where the target has none.
-- Device sync's ordinary apply is the exception: keeping devices in step, it takes the synced copy's profile record, preferences, sessions and images. Restoring an earlier copy does the same, since it goes back in time on purpose. The first join, **Bring it to this device**, merges like an import.
-- Historical asset versions and operation IDs are immutable exceptions: a repeat import is idempotent, and an ID already naming different bytes/history is refused, not overwritten. Re-importing an identical current asset preserves its version. A changed current asset must carry a different version.
-- Creation history merges too. A creation on both sides keeps the copy saved more recently as current and the other copy as a protected draft; a creation whose slot the target uses for a different creation is added beside it; a creation in the target's Trash stays there. A checkpoint id that names different content on the target keeps the target's. An archive that fails its own checks stops the import before any profile, session, asset or preference change. An identical repeat import adds no storage.
-- Nothing that was not in the bundle is touched. A session the target had but the bundle did not survives the import.
+- **Merge** is what **Import data…** does, and what sync's first join, **Bring it to this device**, does. Data on the target stays, and nothing that was not in the bundle is touched: a session the target had and the bundle did not survives the import.
+- **Replace** is what device sync uses to keep devices in step: it takes the synced copy's profile record, preferences, sessions and images, and removes only items another device deleted since the last sync. Restoring an earlier copy goes further and makes the device match that copy, removing everything the copy does not hold, after saving the device first. [Sync your devices](/info/sync.html) covers what a person sees.
 
-Saved sessions re-link to their images automatically: asset references are kept by id, and the bridge re-resolves them after the uploaded images are restored (it must anyway, because `blob:` URLs do not survive a reload).
+In a merge, anything only on the target is kept, and each kind of data in the bundle meets the target like this:
 
-The import summary reports `{ profile, sessions, userAssets, prefs, skipped, failedAssets }`. `failedAssets` counts uploaded assets that could not be restored (device storage full, say). It is distinct from `skipped`, which counts parts from a forward-compatible newer writer that this build did not recognise. The UI surfaces `skipped` ("… · N newer items skipped"), so the restore is honest about what it left behind.
+| Data | Already on the target | Only in the bundle |
+|---|---|---|
+| Sessions (by slot) and uploaded images (by id) | The copy saved more recently is kept, so an older backup never overwrites newer work. Equal or unknown times keep the target's copy. | Added |
+| Folders | The target's name and parent are kept, and the folder gains the bundle's members it lacks. A session filed in a folder on the target stays filed there. | Added |
+| Favourites (tools, catalog assets and Projects items) | Combined | Added |
+| Templates, Projects templates and user tools (by id) | The target's record is kept. | Added |
+| Trash entries | Both kept, so an item that could be restored on either install still can be | Added |
+| Other profile fields (name, contact details, language, feature flags, hidden tools and other settings) | The target's value is kept. | Taken where the target's field is empty |
+| Preferences (`prefs.json`) | The target's value is kept. | Written where the target has none |
+| Design systems (by id) | The bundle's record replaces the target's. | Added. The bundle's active choice applies only when the target has no design system of its own. |
+| Creation history | The copy saved more recently stays current, and the other is kept as a protected draft. | Added |
 
-When file history is present, the summary also carries `assetVersions`, `fileOperations` and `failedHistory`. Storage exhaustion or immutable-ID conflicts can cause a partial restore; the UI tells the user to retain the source backup. Cloud sync does **not** advance its applied revision after a partial or unsupported restore, so the snapshot remains available for retry. Restore is not a single transaction across all profile/session/asset/history stores.
+**Saved sessions re-link to their images automatically.** Asset references are kept by id, and the bridge re-resolves them after the images are restored, which it has to do anyway because `blob:` URLs do not survive a reload.
 
-## Creation history (v3)
+**History records never change after they are written.** A repeat import of asset versions and operation IDs adds nothing, and an ID that already names different bytes or history is refused, not overwritten. Re-importing an identical current asset keeps its version, and a changed current asset must carry a different version.
 
-Manual backups from a history-capable web host include `revision-history.json` with its own `{ version: 1, documents, revisions, recoveries }` schema. It carries the retained IDs, canonical input snapshots, version stamps, raster previews and separate writer drafts. The history adapter captures current sessions and their heads in one read transaction; `sessions.json` uses those same current snapshots for older readers.
+**Creation history has a few more rules.** A creation whose slot the target uses for a different creation is added as a separate creation, and a creation in the target's Trash stays there. A checkpoint id that names different content on the target keeps the target's. An archive that fails its own checks stops the import before any profile, session, asset or preference changes, and an identical repeat import adds no storage.
 
-Restore checks payload SHA-256 and byte counts, unique identities, document/head relationships, ancestry, timestamps, preview types and limits before committing the archive in one transaction. Compacted parent references may be absent. Existing current work is never replaced silently: when a creation is on both sides, the side not kept current becomes a protected draft. The archive's 384 MiB transfer limit is checked explicitly, and storage limits are enforced without truncating retained checkpoints. Export writes `revision-history.json` and `sessions.json` in chunks, with the same bytes a single `JSON.stringify` gives, so the file text is never held whole. A history file that would pass the limit is dropped as soon as it does and only counted from there; the archive is then made again without its oldest automatic checkpoints, as before, or refused whole.
+**The summary reports what happened.** Every import returns `profile`, `sessions`, `userAssets`, `prefs`, `skipped` and `failedAssets`.
 
-The summary adds `revisions` and `recoveryDrafts`, counting only what this import added, and `added`, `kept`, `replaced`, `copies` and `hidden` for how each creation was merged. A shell without this capability restores ordinary sessions and reports the history part as skipped. Native filesystem history remains unsupported until its adapter supplies durable history transactions. P2P guest state has no durable history or recovery archive.
+- `failedAssets` counts uploaded assets that could not be restored, for example because device storage is full.
+- `skipped` counts parts from a newer writer that this build did not recognise. The app shows it ("… · N newer items skipped"), so a restore states what it left behind.
+- With file history, the summary adds `assetVersions`, `fileOperations`, `fileBatches` and `failedHistory`. Storage exhaustion or an immutable-ID conflict can cause a partial restore, and the app then tells the person to keep the source backup.
+- With creation history, it adds `revisions` and `recoveryDrafts`, counting only what this import added, and `added`, `kept`, `replaced`, `copies` and `hidden` for how each creation was merged.
+- A replace import adds `removed` and `failedRemovals`.
 
-Personal snapshot sync explicitly excludes creation history. Applying a snapshot to a history-bearing local document preserves its previous working state as a separate recovery draft and invalidates any open editor's write token. Its immutable checkpoints remain on the device. This protects local history during snapshot replacement; it does not merge concurrent device histories.
-
-Historical asset references are retained, while rendering still resolves assets through the destination's existing library. This archive does not yet guarantee exact old asset bytes or old tool renders. Asset-version and file-result bytes continue to travel through their existing separate backup part.
-
-## Saved versions and file results (v2)
-
-The optional history part contains `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`; readers also accept the earlier history-v1 shape without batches. Each snapshot identifies the stable asset ID and exact version, its save time, byte length and hex SHA-256, plus an asset record whose `_file` and optional `_credentialFile` point to binary parts. Operations carry the original file facts, request, report, timestamps and optional result `_file`; storage backend names, OPFS handles and execution leases do not travel. Older history-v1-only readers refuse the new history version before importing, rather than silently dropping batch membership.
-
-Batch manifests record every selected source before processing, including files never read, cancelled members, failures to reserve result space and interrupted work. Each member has a stable operation ID, source reference/facts, requested output name and terminal report. An unread source has declared facts, not an invented digest. Import validates member identity and consistency with any carried operation report. Batch reports remain available when individual results have been explicitly removed, but a receipt does not imply that its output bytes are still stored.
-
-- Every known history record, report and referenced file is validated before any profile or asset import writes. Missing bytes and mismatched SHA-256 fail even if the envelope has no integrity map. Extracted credentials remain byte arrays, including imports from older writers that JSON-serialized them as numeric-key objects.
-- Running operations become interrupted records in the backup, with an explanatory failure report and no result. Restoring never restarts background work or imports an active lease. Retrying requires selecting the original file, checked against its recorded SHA-256 when available.
-- Restored results commit their bytes and metadata together in IndexedDB. Ordinary new results use OPFS where available, with an IndexedDB fallback. An existing live operation is never replaced by an import.
-- Export streams these bytes into the archive, but restore still unzips a whole backup in memory, so the limits stay: **256 MiB of history payload**, **4 MiB of history metadata**, at most **100 operations**, **100 batches** and **2,000 snapshots**. Export refuses oversized or incomplete history explicitly; it never silently omits it. Download important versions/results individually before removing older local copies. These limits are not a measured peak-memory guarantee for phones.
-- Local result history has a 512 MiB budget and 100-record cap. Asset snapshots have a separate 512 MiB budget and at most 20 historical versions per asset; extracted credential bytes count toward that snapshot budget. Restore respects these limits and never silently evicts existing user data.
-- Local batch metadata has a separate 4 MiB budget, at most 100 manifests and 20 members per batch. Pending members reserve metadata capacity, with a 32 KiB per-member report ceiling. This is a logical budget, not a browser disk-space guarantee; a real quota failure is surfaced and the in-memory report remains downloadable. Retrying a batch member creates a new batch without overwriting the old report. Removing a batch record does not remove individual result bytes or library assets.
-- Converted results can be explicitly added to the library without normalization or re-encoding. Source/output hashes and the operation relation accompany the asset. Repeated adds reuse an unchanged copy; an edited copy is never overwritten. Raster images can start a new Design document. That document uses the current library asset ID: enforcing exact version pins throughout Design's runtime and URL path is still separate work. SVG/HTML/PDF/ZIP results are kept as opaque file assets by this handoff, not promoted to trusted interactive/vector content.
-- **Convert → Recent file operations** exposes history usage, reports, downloads and the version manager. The manager also finds earlier versions of deleted library assets. Restoring a snapshot creates a new current version while keeping the selected snapshot intact. **Settings → Storage** accounts for results and versions separately from disposable caches.
-- Explicit temporary-file cleanup removes only operation-owned, unreferenced bytes. Current records protect their files; recent OPFS files have a one-hour grace period. Saved results and asset snapshots are not automatically cleared.
-
-Older readers still accept the v2 envelope (`minReader: 1`) and restore familiar parts, counting unsupported history parts as skipped. Full history recovery requires a shell with the `fileHistory` adapter; this is a shell-internal seam, not a new tool-facing `HostV1` capability. Real two-device restore is covered by the local Chromium gate; installed Tauri/iOS/Android recovery acceptance remains separate.
+Restore is not one transaction across the profile, session, asset and history stores. Cloud sync does **not** advance its applied revision after a partial or unsupported restore, so the copy stays available to retry.
 
 ## What does not travel
 
-- **Catalog caches** (downloaded asset metadata and blobs, the tool index) - re-synced for free on the target.
-- **Catalogue tools and catalogue assets** - out of scope, and assumed already present on the target. Brand tokens, fonts and logos the user added are user assets, so they do travel.
-- **`blob:` / object URLs** - regenerated by the bridge on load.
-- **Conversion originals, live execution leases and machine-local access/signing secrets** - not portable history payload. A saved result is a copy, not a promise that the original source was backed up.
-- **The export sequence counter** - the per-day download-naming counter (`localStorage` key `lolly-export-seq`) is a local naming convenience. It is kept out of `PREF_KEYS`, so it never rides in a bundle.
+- **Catalog caches** (downloaded asset metadata and blobs, the tool index), which the target re-syncs for free.
+- **Catalog tools and catalog assets**, which are out of scope and assumed present on the target. Brand tokens, fonts and logos the user added are user assets, so they do travel.
+- **`blob:` and object URLs**, which the bridge regenerates on load.
+- **Conversion originals, live execution leases and machine-local access or signing secrets.** These are not portable history. A saved result is a copy, not a promise that the original source was backed up.
+- **The export sequence counter**, the per-day download-naming counter in `localStorage` (`lolly-export-seq`). It is kept out of `PREF_KEYS`, so it never rides in a bundle.
 
-The storage meter itemises the same split. Saved sessions, My images and File results & versions ride in a bundle. The asset cache, tool previews and offline pins below them are all re-derivable, so they stay behind.
+The storage meter shows the same split. Saved sessions, My images and File results & versions go into a bundle. The asset cache, tool previews and offline pins below them can all be rebuilt, so they stay behind.
 
 ![The storage meter breaking this device's data into named categories, with Saved sessions and My images tracked separately from the Asset cache, here on a fresh install where every category is still empty](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
-## Organisation data with lolly.work
+## Organisation data with Lolly Work
 
-This bundle backs up the device's personal library. It is not a backup of a **lolly.work** instance: organisation accounts, access policies, shared projects, catalog versions, approvals, render jobs and audit records are held separately by that service. Reconnect and sign in to regain access to shared work; importing a personal bundle does not grant that access.
+This bundle backs up the device's personal library. It is not a backup of a **Lolly Work** instance: organisation accounts, access policies, shared projects, catalog versions, approvals, render jobs and audit records are held by that service. Reconnect and sign in to regain access to shared work; importing a personal bundle does not grant that access.
 
-Operators should follow lolly.work's [deployment](https://github.com/lolly-tools/lolly-work/blob/main/docs/deployment.md) and [data lifecycle](https://github.com/lolly-tools/lolly-work/blob/main/docs/data-lifecycle.md) guides for server backups, retention and erasure. Clearing or exporting this device does not perform those server operations.
+Operators back up, retain and erase server data with Lolly Work's own guides: [Backup and restore](/info/work-operations.html#backup-and-restore) and [Work storage and data lifecycle](/info/work-data-lifecycle.html). Clearing or exporting a device does not do any of those server operations.
 
-## Cross-shell guarantee
+## Across shells
 
-`data-transfer.ts` reads and writes exclusively through the capability bridge (`host.profile`, `host.state`, `host.assets`) and the shared `localStorage` prefs. The same module reads and writes the common envelope on web and Tauri, over IndexedDB or filesystem storage. Optional history parts appear only where the corresponding adapter is available; an unsupported part is reported as skipped on import. The headless suite exercises the common parts against an in-memory bridge, while history transactions also have real-browser tests.
+`data-transfer.ts` reads and writes only through the capability bridge (`host.profile`, `host.state`, `host.assets`) and the shared `localStorage` preferences. The same module reads and writes the common envelope on the web and in the desktop and mobile apps, over IndexedDB or filesystem storage. Optional history parts appear only where their adapter is available, and an unsupported part is reported as skipped on import. The headless suite exercises the common parts against an in-memory bridge, and history transactions also have real-browser tests.
 
 Two shells sit outside that guarantee, for different reasons:
 
-- The **one-shot CLI** has nothing to carry - its state is in-memory and ephemeral per invocation.
-- The **TUI** does persist state (`~/.lolly`: sessions, folders, profile) and its Profile view can back it up, but it writes a *simpler* archive of its own: `saved-state/<slot>.json` per session plus `profile.json` and `folders.json`, with no manifest, no `formatVersion`/`minReader` and no integrity map. It is **not** importable by this format - a reader rejects it as "not a Lolly backup" - and confusingly it uses a similar name (`lolly-backup-<stamp>.zip`). Unifying the two is a known gap.
+- The **one-shot CLI** has nothing to carry: its state is in memory and lasts one invocation.
+- The **TUI** keeps state in `~/.lolly` (sessions, folders, profile), and its Profile view can back it up, but it writes a simpler archive of its own: `saved-state/<slot>.json` per session plus `profile.json` and `folders.json`, with no manifest, no `formatVersion` or `minReader` and no integrity map. This format cannot import it (a reader rejects it as "not a Lolly backup"), and its name is confusingly similar (`lolly-backup-<stamp>.zip`). Unifying the two is a known gap.
 
-## Reserved extension points
+## Not yet portable
 
-The envelope is a manifest plus a set of named parts by design, so new kinds of portable data can ride it later **without a breaking change**. They slot in as additive parts (new `formatVersion`, same `minReader`), and today's reader skips what it does not recognise. These are not built yet. The names are reserved here so the format stays coherent when they land.
+The envelope is a manifest plus named parts, so new kinds of portable data can join later as additive parts (a new `formatVersion`, the same `minReader`), and today's readers skip what they do not recognise. Design systems already travel this way, as `design-systems.json` plus their user assets.
 
-- **`tokens.json` - design tokens.** A [W3C DTCG](https://tr.designtokens.org/format/) design-tokens document (the format [Penpot imports and exports](https://help.penpot.app/user-guide/design-systems/design-tokens/) - tokens with `$value`/`$type`/`$description`, organised into groups, sets and themes). A token set in the bundle lets a user move their brand primitives between installs alongside their sessions. (A user's own brand tokens already travel today as the `user/tokens/brand` asset in `assets.json`; this part would carry a whole DTCG document with its sets and themes.) Longer term, an ingested token set becomes a first-class source that tools and palette assets resolve against.
-- **`penpot/` - ingested Penpot files.** A reserved directory for a Penpot file (or its extracted, Lolly-relevant subset) imported and surfaced *as a tool*. The bundle will carry the ingested definition, so it travels with the rest of the user's data.
+Two names are reserved for data that does not travel yet:
 
-Anything outside these reserved names and the parts above is, to a reader, an unknown part: left untouched and counted in `skipped`.
+- **`tokens.json`** would carry a whole [W3C DTCG](https://tr.designtokens.org/format/) design-tokens document with its groups, sets and themes, the format [Penpot imports and exports](https://help.penpot.app/user-guide/design-systems/design-tokens/). A user's own brand tokens already travel as the `user/tokens/brand` asset in `assets.json`, and a design system's tokens travel with its record.
+- **`penpot/`** is reserved for an ingested Penpot file, or its Lolly-relevant subset, surfaced as a tool.
+
+Anything outside the parts above and these reserved names is, to a reader, an unknown part: left untouched and counted in `skipped`.
+
+## History parts
+
+The two history parts are optional and have their own versions. Most readers can skip this section.
+
+::: details Creation history (v3)
+Manual backups from a web install with creation history include `revision-history.json`, with its own `{ version: 1, documents, revisions, recoveries }` schema. It carries the kept IDs, canonical input snapshots, version stamps, raster previews and separate writer drafts. The history adapter captures current sessions and their heads in one read transaction, and `sessions.json` uses the same current snapshots for older readers.
+
+Restore checks payload SHA-256 and byte counts, unique identities, document and head relationships, ancestry, timestamps, preview types and limits before committing the archive in one transaction. Compacted parent references may be missing. Existing current work is never replaced silently: when a creation is on both sides, the side not kept current becomes a protected draft.
+
+The archive's 384 MiB transfer limit is checked explicitly, and storage limits are enforced without truncating kept checkpoints. Export writes `revision-history.json` and `sessions.json` in chunks, with the same bytes a single `JSON.stringify` gives, so the file text is never held whole. A history file that would pass the limit is dropped the moment it does and only counted from there. The archive is then made again without its oldest automatic checkpoints, and the export summary counts those as `checkpointsLeftOut`, or the archive is refused whole.
+
+A shell without this capability restores ordinary sessions and reports the history part as skipped. Native filesystem history stays unsupported until its adapter supplies durable history transactions. Guests in a private collab have no durable history or recovery archive.
+
+Personal snapshot sync leaves creation history out. Applying a snapshot to a local document with history keeps its previous working state as a separate recovery draft and invalidates any open editor's write token. Its immutable checkpoints stay on the device. This protects local history during a snapshot replacement; it does not merge concurrent device histories.
+
+Historical asset references are kept, while rendering still resolves assets through the destination's existing library. This archive does not yet guarantee exact old asset bytes or old tool renders. Asset-version and file-result bytes travel in their own backup part.
+:::
+
+::: details Saved versions and file results (v2)
+The optional history part holds `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`, and readers also accept the earlier history-v1 shape without batches. Each snapshot gives the stable asset ID and exact version, its save time, byte length and hex SHA-256, plus an asset record whose `_file` and optional `_credentialFile` point to binary parts. Operations carry the original file facts, request, report, timestamps and optional result `_file`. Storage backend names, OPFS handles and execution leases do not travel. Readers that know only history v1 refuse the new history version before importing, rather than silently dropping batch membership.
+
+Batch manifests record every selected source before processing, including files never read, cancelled members, failures to reserve result space and interrupted work. Each member has a stable operation ID, source reference and facts, requested output name and final report. An unread source has declared facts, not an invented digest. Import validates member identity and consistency with any carried operation report. Batch reports stay available when individual results have been removed, but a receipt does not mean its output bytes are still stored.
+
+- **Validation first.** Every known history record, report and referenced file is validated before any profile or asset import writes. Missing bytes and mismatched SHA-256 fail even when the envelope has no integrity map. Extracted credentials stay byte arrays, including imports from older writers that serialised them as numeric-key objects.
+- **Running work.** Running operations become interrupted records in the backup, with an explanatory failure report and no result. Restoring never restarts background work or imports an active lease. Retrying means selecting the original file again, checked against its recorded SHA-256 when available.
+- **Storage.** Restored results commit their bytes and metadata together in IndexedDB. Ordinary new results use OPFS where available, with an IndexedDB fallback. An existing live operation is never replaced by an import.
+- **Backup limits.** Export streams these bytes into the archive, but restore still unzips a whole backup in memory, so the limits stay: **256 MiB of history payload**, **4 MiB of history metadata**, at most **100 operations**, **100 batches** and **2,000 snapshots**. Export refuses oversized or incomplete history explicitly and never silently leaves it out. Download important versions and results one by one before removing older local copies. These limits are not a measured peak-memory guarantee for phones.
+- **Local budgets.** Local result history has a 512 MiB budget and a 100-record cap. Asset snapshots have a separate 512 MiB budget and at most 20 historical versions per asset, and extracted credential bytes count toward that budget. Restore respects these limits and never silently evicts existing user data.
+- **Batch metadata.** Local batch metadata has a separate 4 MiB budget, at most 100 manifests and 20 members per batch. Pending members reserve metadata capacity, with a 32 KiB report ceiling per member. This is a logical budget, not a browser disk-space guarantee: a real quota failure is shown, and the in-memory report stays downloadable. Retrying a batch member creates a new batch without overwriting the old report. Removing a batch record does not remove individual result bytes or library assets.
+- **Results in the library.** Converted results can be added to the library without normalisation or re-encoding, with the source and output hashes and the operation relation attached. Repeated adds reuse an unchanged copy, and an edited copy is never overwritten. Raster images can start a new Design document, which uses the current library asset ID; enforcing exact version pins throughout Design's runtime and URL path is separate work. SVG, HTML, PDF and ZIP results are kept as opaque file assets, not promoted to trusted interactive or vector content.
+- **Where people see this.** **Convert → Recent file operations** shows history usage, reports, downloads and the version manager, which also finds earlier versions of deleted library assets. Restoring a snapshot creates a new current version and keeps the selected snapshot. **Settings → Preferences → Storage** counts results and versions separately from disposable caches.
+- **Cleanup.** Explicit temporary-file cleanup removes only operation-owned, unreferenced bytes. Current records protect their files, and recent OPFS files have a one-hour grace period. Saved results and asset snapshots are not cleared automatically.
+
+Older readers still accept the v2 envelope (`minReader: 1`) and restore the parts they know, counting unsupported history parts as skipped. Full history recovery needs a shell with the `fileHistory` adapter, a seam inside the shell rather than a new tool-facing `HostV1` capability. Real two-device restore is covered by the local Chromium gate; recovery on installed desktop, iOS and Android apps is still to be accepted separately.
+:::
 
 ## Reference
 
-- Module: [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts) (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION` - the `backupFilename()` namer is internal).
-- Contract test: [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) - round-trip, merge, integrity, forward-compat and reader-gate cases.
-- History contract tests: [`tests/file-history-backup.test.ts`](../tests/file-history-backup.test.ts), [`tests/file-batch-history.test.ts`](../tests/file-batch-history.test.ts) and [`tests/file-result-library.test.ts`](../tests/file-result-library.test.ts). Browser acceptance: [`tests/file-history.browser.test.ts`](../tests/file-history.browser.test.ts), [`tests/file-batch-history.browser.test.ts`](../tests/file-batch-history.browser.test.ts) and [`tests/file-result-reuse.browser.test.ts`](../tests/file-result-reuse.browser.test.ts).
-- Bridge surface used: `host.profile`, `host.state`, `host.assets` - see [Host API](/info/host-api.html).
+- Module: `shells/web/src/data-transfer.ts` (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION`; the `backupFilename()` namer is internal).
+- Contract test: `tests/data-transfer.test.ts`, covering round trip, merge, integrity, forward compatibility and the reader gate.
+- History contract tests: `tests/file-history-backup.test.ts`, `tests/file-batch-history.test.ts` and `tests/file-result-library.test.ts`. Browser acceptance: `tests/file-history.browser.test.ts`, `tests/file-batch-history.browser.test.ts` and `tests/file-result-reuse.browser.test.ts`.
+- Bridge surface used: `host.profile`, `host.state` and `host.assets`; see [Host API](/info/host-api.html).
