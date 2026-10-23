@@ -1,4 +1,4 @@
-# FAQ
+# Questions & answers
 
 Frequently asked questions, rendered as the accordion on `/info/start/faq.html`.
 
@@ -55,7 +55,7 @@ Saved work is still in **Projects**. Unsaved work is gone, except in the tools t
 
 Yes. When a link cannot carry everything, such as your own photos or long text, the Share dialog says what would go missing and offers a **.lolly** file instead: one file holding the design, the images it uses and, if you choose, the tool itself.
 
-You decide how much travels. Your name and details go in only if your profile opts in, licensed art is held back unless you include it, and whoever opens a file that carries a tool is asked whether they trust it before it can run. See [Sharing your work](/info/using.html#sharing-your-work).
+You decide how much travels. Your name and details go in only if your profile opts in, and licensed art is held back unless you choose to include the art. Whoever opens a file that carries a tool is asked whether they trust the tool before it can run. See [Sharing your work](/info/using.html#sharing-your-work).
 
 ## What do my profile details do?
 
@@ -84,11 +84,11 @@ Yes. Open **Design** and click **Import a design**: it accepts a native Figma **
 
 ![Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
-Layers arrive as editable boxes: text stays retypable, shapes stay shapes, and images join your own library. Save it, and **Share with rules** can turn the layout into a tool anyone with Lolly can refill. See [Import a design](/info/design-import.html).
+Layers arrive as editable boxes: text stays retypable, shapes stay shapes and images join your own library. Save it, and **Share with rules** can turn the layout into a tool anyone with Lolly can refill. See [Import a design](/info/design-import.html).
 
 ## Can two people work on the same design without the internet?
 
-Yes. One person shares an invite, the other accepts, and both devices hold the same session live, presence and focus rings included. It works on any shared network, including a phone hotspot in a basement, because there is no server in the middle. See [Working together](/info/collaborate.html). For colleagues on different networks, an organisation's Lolly Work instance provides authenticated work collabs.
+Yes. One person shares an invite and the other accepts. Both devices then hold the same session live, presence and focus rings included. It works on any shared network, including a phone hotspot in a basement, because there is no server in the middle. See [Working together](/info/collaborate.html). For colleagues on different networks, an organisation's Lolly Work instance provides authenticated work collabs.
 
 ## What are the feature flags?
 

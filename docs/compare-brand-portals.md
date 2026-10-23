@@ -6,7 +6,7 @@ If your organisation keeps its approved assets in Bynder, Frontify, Marq or Bran
 
 ## What an established portal does better
 
-Established portals offer managed hosting, support and extensive asset-management workflows. For example, [Frontify's enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combines asset discovery, access controls, approval workflows and distribution. The Lolly stack is younger, its approval chains are sequential rather than arbitrary branching workflows, and [Work status and roadmap](/info/work-status.html) records its deployment limits.
+Established portals offer managed hosting, support and extensive asset-management workflows. For example, [Frontify's enterprise DAM](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combines asset discovery, access controls, approval workflows and distribution. The Lolly stack is younger and its approval chains are sequential rather than arbitrary branching workflows. [Work status and roadmap](/info/work-status.html) records its deployment limits.
 
 ## Where they overlap
 

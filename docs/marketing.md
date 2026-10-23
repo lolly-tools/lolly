@@ -3,7 +3,7 @@
 You need a social card, a certificate and a profile badge today, not next sprint. Lolly hands them back finished and on-brand, even if you have never opened a design tool.
 
 - **Fill in a few fields, get the finished file.** No fonts to pick, no colours to second-guess, no "is this the right logo?" The tool already knows. Start with [Make your first file](/info/make-something.html).
-- **Endless versions, one source.** Localise a link card into a dozen languages, make a certificate for every name on a roster, or make every size for every placement, without touching the design.
+- **Endless versions, one source.** Localise a link card into a dozen languages, make a certificate for every name on a roster or make every size for every placement, without touching the design.
 - **Routine files, self-serve.** Link cards, countdowns, certificates, work avatars and QR codes: everything the team needs on a Tuesday at 4pm.
 - **Nothing to buy for one picture.** Lolly needs no subscription and no per-seat licence for the person who needs one tile.
 

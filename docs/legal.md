@@ -1,6 +1,6 @@
 # Lolly for legal teams
 
-A file about to be shared is often a PDF full of names, a screenshot with a face in it, or a document whose hidden metadata says more than its pages do. Lolly cleans it on the device it is already on, with no upload, no account and no server in the middle.
+A file about to be shared is often a PDF full of names, a screenshot with a face in it or a document whose hidden metadata says more than its pages do. Lolly cleans it on the device it is already on, with no upload, no account and no server in the middle.
 
 ## Clean a file without sending it anywhere
 
@@ -8,7 +8,7 @@ A file about to be shared is often a PDF full of names, a screenshot with a face
 - **Anonymise the text.** The de-identify mode in [Text](/t/text-helper) swaps the personal identifiers in a block of text for placeholders, so an interview, a log or an export can be shared without identifying the people it names.
 - **Strip what the pages do not show.** [Strip Hidden Data](/t/strip-data) reveals and removes the metadata riding inside images and PDFs: locations, devices, authors, edit history.
 - **Shrink without sending.** [Compress](/t/compress-pdf) recompresses a PDF's images on the device, where a free online compressor would mean uploading the file to someone else's server.
-- **Check what you were sent.** [Verify](/#/verify) reads a file's Content Credentials where you are: who made it, with what, and whether AI was involved. The walk-through is [Verify it yourself](/info/verify-yourself.html).
+- **Check what you were sent.** [Verify](/#/verify) reads a file's Content Credentials where you are: who made it, with what and whether AI was involved. The walk-through is [Verify it yourself](/info/verify-yourself.html).
 
 ![Strip Hidden Data: the file arrives on the canvas and the badge states plainly that nothing is uploaded](/info/shots/aud-strip-data.svg)
 

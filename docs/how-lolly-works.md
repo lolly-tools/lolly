@@ -37,7 +37,7 @@ Every route runs the same engine on the same tool, so the file a script makes ma
 - <!--i:people--> **In the app, one at a time.** Open a tool, fill in the fields and press **Export**. [Make your first file](/info/make-something.html) walks you through one.
 - <!--i:layers--> **In the app, many at once.** [Batch](/info/using.html#batch-pro-mode) (`#/batch`) takes a pasted or imported table and renders one finished file per row.
 - <!--i:cpu--> **From a script or an AI agent.** The [CLI](/info/cli.html) runs a tool headless, and the [MCP server](/info/mcp.html) lets an agent discover and run tools. A link to a tool carries its inputs too, so a link is a complete request.
-- <!--i:server--> **Through your organisation's server.** [Lolly Work](/info/organisation.html) renders on the server under your organisation's sign-in and tool policy, keeps jobs it can resume, and holds the output for download or approved delivery.
+- <!--i:server--> **Through your organisation's server.** [Lolly Work](/info/organisation.html) renders on the server under your organisation's sign-in and tool policy, keeps jobs it can resume and holds the output for download or approved delivery.
 
 Which route a job can use depends on the tool's formats and what the host can do: some formats need a browser, so the command line hands them to a browser tier. [Render with the CLI](/info/cli-rendering.html) lists which formats render where.
 

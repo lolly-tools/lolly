@@ -24,7 +24,7 @@ Signed system repositories (openSUSE OBS, Flathub) are planned. Until they land,
 
 **Apple silicon and Intel, `.dmg`. macOS 13.5 or later.**
 
-Download the disk image, open it, and drag Lolly to Applications. The app carries its own engine and tool catalogue, and its bundled terminal tools need the same macOS version.
+Download the disk image, open it and drag Lolly to Applications. The app carries its own engine and tool catalogue, and its bundled terminal tools need the same macOS version.
 
 - **Apple silicon:** [`lolly-latest.dmg`](https://lolli.li/lolly-latest.dmg), version 1.1.1.
 - **Intel:** [`lolly-latest-x64.dmg`](https://lolli.li/lolly-latest-x64.dmg), version 1.1.0.
@@ -42,7 +42,7 @@ You can also open [the web app](/) in Safari. **Share, then Add to Home Screen**
 
 **Phone and tablet, `.apk`, installed directly. Android 7.0 or later, `arm64-v8a`.**
 
-There is no store and no store account. Download the APK, open it, and allow your browser or file manager to install applications this once. Android asks first: that prompt is the system working correctly, not a warning about this file.
+There is no store and no store account. Download the APK, open it and allow your browser or file manager to install applications this once. Android asks first: that prompt is the system working correctly, not a warning about this file.
 
 - **Download:** [`lolly-latest.apk`](https://lolli.li/lolly-latest.apk), version 1.1.0.
 - **Versioned:** `https://lolli.li/Lolly-<version>.apk`.
@@ -155,7 +155,7 @@ On a [YunoHost](https://yunohost.org) server, install Lolly from its app package
 sudo yunohost app install https://github.com/lolly-tools/lolly_ynh
 ```
 
-The package serves the same web app, version 1.1.1, from a domain of your own, with the same security headers as lolly.tools. It needs a whole domain, keeps nothing on the server, and fetches the on-device models from `lolli.li` the first time a tool asks for one. The [YunoHost section of the deployment guide](/info/deployment.html#yunohost) covers what the package installs and how access works.
+The package serves the same web app, version 1.1.1, from a domain of your own, with the same security headers as lolly.tools. It needs a whole domain, keeps nothing on the server and fetches the on-device models from `lolli.li` the first time a tool asks for one. The [YunoHost section of the deployment guide](/info/deployment.html#yunohost) covers what the package installs and how access works.
 
 ### A container image
 
