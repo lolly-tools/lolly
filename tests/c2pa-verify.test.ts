@@ -112,6 +112,19 @@ test('the design-system record survives the credential round trip as flat scalar
   assert.equal(readDesignRecord(before.environment), null);
 });
 
+test('the brand skills record (plan 323) survives the credential round trip as one JSON string', async () => {
+  const brandSkills = [{ id: 'acme/skill/brand', name: 'acme-brand', revision: '1.0', sha256: '0f'.repeat(32) }];
+  const record = { designSystem: { id: 'acme', label: 'Acme' }, brandSkills };
+  const signed = await embedC2paInPdf(buildTestPdf(), {
+    title: 'Guided', claimGenerator: 'LollyTest/1.0',
+    environment: { tool: 'Chart', format: 'pdf', surface: 'mcp', ...designRecordEnvironment(record) },
+  });
+  const report: any = await verifyC2pa(signed);
+  assert.equal(report.state, 'valid');
+  assert.equal(typeof report.environment.brandSkills, 'string', 'kept as a scalar');
+  assert.deepEqual(readDesignRecord(report.environment), record);
+});
+
 test('a PDF without credentials → found:false, state none', async () => {
   const report: any = await verifyC2pa(buildTestPdf());
   assert.equal(report.found, false);

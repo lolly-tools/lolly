@@ -28,7 +28,7 @@ import { forensicPanelHtml, mountForensicVerify } from './valid-forensics.ts';
 import '../styles/parts/valid.css';   // async CSS chunk (lazy view - not on the landing)
 import '../styles/parts/valid-report.css';
 import { verifyC2pa, verifySeal, extractFileMetadata, appendedIsExpected, stripMetadata, detectWatermark, detectWatermarkSearch, analyzeLsb, isPptx, pptxMediaImages, evaluateReuse, licenceDisplayName, normaliseLicence, rightsReportFromC2pa } from '@lolly/engine';
-import { madeWithFact, recreateHrefFor } from '../lib/made-with.ts';
+import { guidedByFact, madeWithFact, recreateHrefFor } from '../lib/made-with.ts';
 import type { FileMetadata, StripFormat, SealVerifyResult } from '@lolly/engine';
 import type { CreativeOperationV1, CreativeUseRoleV1, DeliveryRouteV1 } from '@lolly-tools/core/rights-v1';
 import { looksLikePptxFile, inflatePptx, PPTX_MIME } from '../bridge/pptx.ts';
@@ -1668,6 +1668,7 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
           ${fact(t('Title'), claim.title, 'tag')}
           ${fact(t('Tool'), env.tool && env.toolVersion ? `${env.tool} ${env.toolVersion}` : env.tool, 'tool')}
           ${fact(t('Design system'), madeWithFact(env), 'palette')}
+          ${fact(t('Guided by'), guidedByFact(env), 'document')}
           ${fact(t('Produced by'), report.author ? `${report.author.name}${report.author.email ? ` <${report.author.email}>` : ''}` : null, 'user')}
           ${fact(t('Contact'), report.author?.url ?? null, 'link')}
           ${fact(t('Rights / licence'), report.rights ?? null, 'badgeCheck')}

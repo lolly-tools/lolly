@@ -297,6 +297,8 @@ const EXPECTED: readonly string[] = [
   'DesignRecord', 'MadeWithPreview', 'designRecordCarrier', 'designRecordEnvironment', 'designRecordFrom',
   'designRecordWords', 'pdfKeywords', 'readDesignRecord', 'readDesignRecordXml', 'readFileDesignRecord',
   'themesSelection', 'toolCredit',
+  // Additive 1.282 (plan 323): the brand skills that guided an agent-made export, as words.
+  'guidedByWords',
   // 1.265 (plans/319): theme-group meaning and colourways.
   'readTokenAxes',
   'axisOfKind',
