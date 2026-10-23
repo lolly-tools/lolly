@@ -53,7 +53,7 @@ lolly smoke --only=qr-code,chart         # just these ids
 lolly smoke --format=svg                 # force one browser-free format
 ```
 
-`lolly smoke` is the catalog-wide render gate. Every tool in the active profile renders at its defaults to its first browser-free format. A tool whose formats are all browser-only falls back to an `html` render, which still runs load, hydrate and hooks. Each output is checked for blank or empty results, each tool prints a ✓ or ✗ row, and the exit code is non-zero if anything fails. Wired into CI, a `hooks.js` regression cannot ship a tool that renders blank. `smoke` renders bare, like `batch`.
+`lolly smoke` is the catalog-wide render gate. Every tool in the active profile renders at its defaults to its first browser-free format. A tool whose formats are all browser-only falls back to an `html` render, which still runs load, hydrate and hooks. Each output is checked for blank or empty results, each tool prints a ✓ or ✗ row and the exit code is non-zero if anything fails. Wired into CI, a `hooks.js` regression cannot ship a tool that renders blank. `smoke` renders bare, like `batch`.
 
 A transform tool (`strip-data`, `compress-pdf` and the other on-device utilities) has nothing to render at its defaults, so smoke runs it once over a small committed fixture, chosen by the file types its input accepts. It passes when the output is non-empty and is one of the formats the tool declares; a hook error is a real failure.
 

@@ -1,6 +1,6 @@
 # CLI file and media utilities
 
-Clean, convert or redact files you already have, or run speech and the on-device models, without uploading anything. Every command here reads your file on this machine and writes a new file; nothing is sent anywhere.
+Clean, convert or redact files you already have, or run speech and the on-device models. Your files are read on this machine and written as new files, and nothing is uploaded.
 
 ## Clean or convert a file
 
@@ -75,7 +75,7 @@ for f in ./inbox/*.pdf; do
 done
 ```
 
-`--verify` prints a line per file once the tool's own gate has run. The redacted copy is reopened and scanned again before any bytes are written: no metadata, one end-of-file marker, no recoverable covered text, and every bar region solid. A failed check exits non-zero with the tool's own sentence and writes **no file**, so a shell loop can treat failures as failures. It cannot tell you whether an invisible whole-image watermark was present: nothing here detects or removes one.
+`--verify` prints a line per file once the tool's own gate has run. The redacted copy is reopened and scanned again before any bytes are written: no metadata, one end-of-file marker, no recoverable covered text and every bar region solid. A failed check exits non-zero with the tool's own sentence and writes **no file**, so a shell loop can treat failures as failures. It cannot tell you whether an invisible whole-image watermark was present: nothing here detects or removes one.
 
 ## Text to speech and back
 
@@ -107,7 +107,7 @@ Six utilities run the same models the app does. Each is a thin wrapper over the 
 
 | Command | What it does | Model and size | Exit `5` means |
 |---|---|---|---|
-| `lolly upscale <image>` | AI enlargement, PNG out | Real-ESRGAN family, 410.7 MB staged | |
+| `lolly upscale <image>` | AI enlargement, PNG out | Real-ESRGAN models and the GFPGAN face model, 410.7 MB as a family | |
 | `lolly matte <image>` | Background removal, PNG with alpha | `u2netp` 4.4 MB, or `modnet` 24.7 MB for portraits | |
 | `lolly ocr <image>` | Text recognition; the text is stdout | `ppocr-v5-mobile`, 20.5 MB, ten languages | nothing was read |
 | `lolly detect-ai "<text>"` | An **estimate** of AI-written text, never a verdict | 33.0 MB | under 50 words or mostly non-Latin script: "Not checked" |

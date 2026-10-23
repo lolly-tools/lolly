@@ -9,9 +9,9 @@ Every command answers with one code per outcome, so a pipeline can branch on the
 | Code | Name | Meaning | What to do |
 |---|---|---|---|
 | 0 | `OK` | The requested thing was produced. | Carry on. |
-| 1 | `FAILED` | It was possible, it ran, and it failed: a hook threw, or the render produced nothing. A gate inside a tool's own hook (`--verify`) fails this way too. | Read the message; fix the input or the tool. |
-| 2 | `USAGE` | Wrong invocation: unknown tool, undeclared format, missing argument, unreadable path, or a `learning build` source that only a change to the module can fix (`LEARNING_NO_RENDITION`, `LEARNING_DEVICE_FILE`, `LEARNING_LOCAL_PATH`). | Fix the command line. |
-| 3 | `UNAVAILABLE_HERE` | Impossible in **this** installation: no browser, an unmet capability, a paint-tier render that could not produce the file, an on-device model that is not staged (`MODEL_NOT_STAGED`, `MODEL_NOT_INSTALLED`), a runtime this install does not carry (`CAPABILITY_UNAVAILABLE`), `--hdr` with `--durable` (`HDR_DURABLE_UNAVAILABLE`), or a `learning build` source this install cannot render (`LEARNING_FORMAT_UNAVAILABLE`, `MOTION_RENDERER_UNAVAILABLE`). | Retry on a runner that has what is missing. |
+| 1 | `FAILED` | It was possible, it ran and it failed: a hook threw, or the render produced nothing. A gate inside a tool's own hook (`--verify`) fails this way too. | Read the message; fix the input or the tool. |
+| 2 | `USAGE` | Wrong invocation: unknown tool, undeclared format, missing argument, unreadable path or a `learning build` source that only a change to the module can fix (`LEARNING_NO_RENDITION`, `LEARNING_DEVICE_FILE`, `LEARNING_LOCAL_PATH`). | Fix the command line. |
+| 3 | `UNAVAILABLE_HERE` | Impossible in **this** installation: no browser, an unmet capability, a paint-tier render that could not produce the file, an on-device model that is not staged (`MODEL_NOT_STAGED`, `MODEL_NOT_INSTALLED`), a runtime this install does not carry (`CAPABILITY_UNAVAILABLE`), `--hdr` with `--durable` (`HDR_DURABLE_UNAVAILABLE`) or a `learning build` source this install cannot render (`LEARNING_FORMAT_UNAVAILABLE`, `MOTION_RENDERER_UNAVAILABLE`). | Retry on a runner that has what is missing. |
 | 4 | `REFUSED` | A protective check this shell ran said no. | Read the findings; do not ship the file as it is. |
 | 5 | `NOT_FOUND` | A legitimate negative answer: `validate` found no credential, `rebrand compile` has a deck that needs review, `check` has findings to review and no errors. With `--json`, the envelope carries the full result and `ok: false`. | Look at the result; it is an answer, not an error. |
 | 6 | `AUTH` | A missing or wrong password or passphrase. | Supply the secret. |
@@ -90,7 +90,7 @@ A flag that takes a value is refused in its bare form rather than read as `"1"`:
 
 ## Environment variables
 
-A flag always wins over its environment variable. `lolly list --json` reports which of the CLI's own variables are set, under `result.environment.env`.
+Where a flag and a variable set the same thing, the flag wins. `--trust-anchor` is the exception: it adds to the roots in `LOLLY_TRUST_ANCHOR`. When the variables that decide where the CLI reads and renders are set, `lolly list --json` reports them under `result.environment.env`.
 
 | Variable | Effect |
 |---|---|
@@ -148,18 +148,18 @@ Both exit `0`: this file is signed with an on-device key that chains to nothing,
 | Flag | Meaning |
 |---|---|
 | `--json` | The shared envelope. `result.files[]` holds one record per file: `verdict` (the stable slug), `resolved` (the engine's verdict), `report` (the full verifier output), `metadata` (the `--metadata` report, or `null`) and `anchors`. A file that could not be read gets a record with its own `error`, so one typo does not hide nine results. |
-| `--deep` | Also run the neural pixel-watermark scan (TrustMark, Content Seal and the Lolly durable mark). Needs the paint tier, and is **advisory**: it never changes the exit code. |
+| `--deep` | Also run the neural pixel-watermark scan (TrustMark, Content Seal and the Lolly durable mark). Needs the headless Chromium and a built web shell, and is **advisory**: it never changes the exit code. |
 | `--trust-anchor=<root.pem>` | Trust another root certificate, such as your organisation's CA. Repeatable; `$LOLLY_TRUST_ANCHOR` adds more as a `PATH`-style list (`:` on Unix, `;` on Windows), and a leading `~` expands. A pinned root that cannot be read stops the run (exit `2`) rather than quietly weakening the verdict. |
 | `--no-default-anchors` | Trust **only** what you pinned. With nothing pinned, every signer reads untrusted: the bare-trust check, which confirms a green verdict came from a root you chose. |
 | `--require=credential\|none` | `credential` (the default) gates the exit code on the verdict; `none` reports what is in the file and exits `0` when it could be read. |
 | `--metadata` | Also report what else is in the file ([below](#metadata-what-else-is-in-this-file)). |
-| `--rebuild=<session.lolly>` | The reproducibility receipt: render the session again here and report `IDENTICAL` (exit `0`) or `DIFFERENT` (exit `1`) with every reason it could check: engine version, tool version, a font that resolves differently, or the offset where the content first differs. `svg`, `emf`, `eps`, `dxf` and `csv` only; a raster or PDF is refused with exit `2`, because those bytes come from a browser engine. See [Reproducibility](/info/reproducibility.html#prove-it-yourself). |
+| `--rebuild=<session.lolly>` | The reproducibility receipt: render the session again here and report `IDENTICAL` (exit `0`) or `DIFFERENT` (exit `1`) with every reason it could check: engine version, tool version, a font that resolves differently or the offset where the content first differs. `svg`, `emf`, `eps`, `dxf` and `csv` only; a raster or PDF is refused with exit `2`, because those bytes come from a browser engine. See [Reproducibility](/info/reproducibility.html#prove-it-yourself). |
 
 ### --metadata: what else is in this file
 
 `--metadata` answers the question people have before sending a file on. On top of the credential verdict it reports:
 
-- **Embedded metadata**: EXIF, XMP and IPTC fields, a GPS fix if the file records one, an AI source-type *declaration* if the generator wrote one, and any bytes after the container's end. Fields the engine considers personally identifying are marked.
+- **Embedded metadata**: EXIF, XMP and IPTC fields, a GPS fix if the file records one, an AI source-type *declaration* if the generator wrote one and any bytes after the container's end. Fields the engine considers personally identifying are marked.
 - **PDF structure**: pages, page sizes, fonts, images, annotations, the Info dictionary, whether an XMP packet is present and how much text can be extracted. Pages with no text layer are named as scans that need OCR.
 - **Text in the file but not visible on the page**: the classic failed redaction, where a black bar covers words that are still in the content stream. The report says where those words are and quotes them back. It cannot say why they are there.
 
@@ -171,13 +171,13 @@ lolly validate ./photo.jpg --metadata --require=none    # report only, never a g
 | | `--metadata` | `--deep` |
 |---|---|---|
 | Reads | Embedded fields, PDF structure, hidden text | Pixel watermarks: TrustMark, Content Seal, the Lolly durable mark |
-| Needs | Nothing extra | The paint tier |
+| Needs | Nothing extra | The headless Chromium and a built web shell |
 | Changes the exit code | Under `--strict`: hidden text, a GPS fix or bytes after the container exit `4` | Never |
 
 What this report does not check:
 
 - **No invisible or neural watermark detection runs under `--metadata`.** SynthID is not detected by Lolly at all.
-- The hidden-text pass covers one case: text under an opaque shape that covers most of the line. Text hidden by an invisible render mode, a clip path, white-on-white colour, or a bar drawn tight around the glyphs is not reported.
+- The hidden-text pass covers one case: text under an opaque shape that covers most of the line. Text hidden by an invisible render mode, a clip path, white-on-white colour or a bar drawn tight around the glyphs is not reported.
 - PDFs are read to 25 pages. A longer document's report says how many pages it read and claims nothing about the rest.
 - A file too broken to parse gives fewer findings plus an explicit "this report is incomplete" line, never a crash and never a clean bill of health.
 

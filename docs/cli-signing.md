@@ -59,12 +59,12 @@ chmod 600 ~/.config/lolly/signing-key.pem
 
 `600` means only you can read the key, and `700` stops anyone else listing the directory. On a shared machine, that is the only thing between your identity and every other account on the machine. The certificate chain is public, because it is embedded in every file you sign, so it needs no protection.
 
-**Never pass a key on the command line.** No flag takes key material or a passphrase, only paths. Arguments show in `ps` output to **every user on the machine**, your shell writes them to its history file, and CI systems log the command line of every step. A path is not a secret; the file it points at is.
+**Never pass a key on the command line.** No flag takes key material or a passphrase, only paths. Arguments show in `ps` output to **every user on the machine**, your shell writes them to its history file and CI systems log the command line of every step. A path is not a secret; the file it points at is.
 
 ## Sign
 
 ```bash
-lolly qr-code --url=https://lolly.tools --export=svg --output=./signed.svg \
+lolly qr-code --url=https://lolly.tools --export=svg --output=./out.svg \
   --sign-key=~/.config/lolly/signing-key.pem --sign-cert=./signing-chain.pem
 ```
 
@@ -140,7 +140,7 @@ lolly validate ./out.svg --trust-anchor=./signing-cert.pem
   Trust anchors: C2PA known-certificate list (54) · pinned: signing-cert.pem · Lolly CA root
 ```
 
-`signingCredential.trusted` with your address on it is the whole feature. Without the pin, the same file reads untrusted, and the reason tells you which of four situations you are in:
+`signingCredential.trusted` with your address on it is the whole feature. Without the pin, the same file reads untrusted, and the reason says why. Each kind of signer has its own verdict and its own fix:
 
 ::: figure cli-signing-trust
 What a recipient's `lolly validate` says about each kind of signer, and the fix for each.
@@ -199,7 +199,7 @@ lolly validate ./out.png --trust-anchor=./signing-cert.pem --json \
   | jq -e '.result.files[0].resolved.trusted and .result.files[0].resolved.identity.email == "release-bot@example.org"'
 ```
 
-Signing adds two exit codes to the [usual set](/info/cli-reference.html#exit-codes): `2` for a misconfigured identity (missing chain, unreadable file, mismatch, expired, bad chain order, wrong algorithm) and `6` for a missing or wrong passphrase. They differ so a pipeline that can fetch a secret can tell "give me the passphrase" from "you configured this wrong".
+Signing uses two of the [usual exit codes](/info/cli-reference.html#exit-codes): `2` for a misconfigured identity (missing chain, unreadable file, mismatch, expired, bad chain order, wrong algorithm) and `6` for a missing or wrong passphrase. They differ so a pipeline that can fetch a secret can tell "give me the passphrase" from "you configured this wrong".
 
 A signed file is never byte-reproducible: a fixed identity removes the fresh certificate, but every credential still carries a fresh timestamp and manifest id. If a pipeline needs identical bytes, render with `--no-provenance` and sign a separate copy. The render itself, the input digest, the exit codes and the JSON envelope's shape are deterministic.
 
@@ -245,7 +245,7 @@ Each message is the exact text the CLI prints.
 | `The passphrase for the signing key at … is wrong (the key did not decrypt).` (exit 6) | Wrong passphrase. | Check the secret. The message never echoes what you supplied. |
 | `--no-provenance turns every provenance mark off, but --sign-key/--sign-cert asks for a signed credential.` | Two contradicting instructions. | Drop one. |
 | `A signing identity is configured, but Content Credentials are off for this run…` | The identity loaded, but the tool or the run has credentials off, so nothing was signed. | Drop `--c2pa=off`, or accept that this tool never signs (`privacy: 'on-device'` tools do not). |
-| `Warning: format "dxf" has no C2PA container - Content Credentials skipped.` | The format cannot carry a credential. Because you asked for one, the skip is a warning. | Export a format that can: `pdf`, `pdf-cmyk`, `png`, `apng`, `jpg`, `jpeg`, `gif`, `svg`, `tiff`, `cmyk-tiff`, `webp`, `avif`, `mp4`, `m4a`, `webm`, `mp3`, `wav`, `ogg`, `opus`, `flac`, or the text formats `html`, `js`, `css` and `md`. `webm` (a Matroska part), `ogg`/`opus` (a `C2PA=` comment field) and `flac` (an application metadata block) are Lolly's own homes for the manifest, so only Lolly's verifier reads those back. The text formats use the C2PA 2.4 text bindings, and the rest verify in third-party tools. |
+| `Warning: format "dxf" has no C2PA container - Content Credentials skipped.` | The format cannot carry a credential. Because you asked for one, the skip is a warning. | Export a format that can: `pdf`, `pdf-cmyk`, `png`, `apng`, `jpg`, `jpeg`, `gif`, `svg`, `tiff`, `cmyk-tiff`, `webp`, `avif`, `mp4`, `m4a`, `webm`, `mp3`, `wav`, `ogg`, `opus`, `flac` or the text formats `html`, `js`, `css` and `md`. `webm` (a Matroska part), `ogg`/`opus` (a `C2PA=` comment field) and `flac` (an application metadata block) are Lolly's own homes for the manifest, so only Lolly's verifier reads those back. The text formats use the C2PA 2.4 text bindings, and the rest verify in third-party tools. |
 :::
 
 ## What a signature proves

@@ -1,6 +1,6 @@
 # lolly CLI: create and process files
 
-Use `lolly` when you want a Lolly file without opening the app: in a build script, a CI job, a folder of files to process, or an agent's tool call. It runs the same engine as the app, so the file matches the one the export panel would make.
+Use `lolly` when you want a Lolly file without opening the app: in a build script, a CI job, a folder of files to process or an agent's tool call. It runs the same engine as the app, so the file matches the one the export panel would make.
 
 From the terminal you can:
 
@@ -9,7 +9,7 @@ From the terminal you can:
 - set up your design system for the terminal;
 - check, clean or convert files you already have.
 
-Every flag is a URL parameter by another name. `--url=https://example.com` is `?url=https://example.com` in a share link, which is why a link copied from the app renders the same here. To browse with the keyboard instead, run `lolly tui` ([TUI](/info/tui.html)).
+Every flag is a URL parameter by another name. `--url=https://example.com` is `?url=https://example.com` in a share link, which is why a link copied from the app renders the same here ([URL Mode](/info/url-mode.html)). To browse with the keyboard instead, run `lolly tui` ([TUI](/info/tui.html)).
 
 ## Install
 
@@ -38,7 +38,7 @@ Two kinds of directory work:
 - a **checkout** of this repository, which holds `profiles.json` and the packs under `community/` and `brands/`;
 - a **materialized** root: a `tools/` directory of tool folders and a built `catalog/` with its generated index, which is what a `dist/` build, an RPM payload or a container image carries.
 
-A `LOLLY_ROOT` that holds neither is ignored, and the CLI falls back to looking upward from itself, then from the working directory. Build any pack's `tools/` and `catalog/` this way and every command (render, batch, smoke, assets) runs against it with no code change. The desktop app brings its own root, so it needs no pointing.
+A `LOLLY_ROOT` that holds neither is ignored, and the CLI falls back to looking upward from itself, then in the working directory. Build any pack's `tools/` and `catalog/` this way and every command (render, batch, smoke, assets) runs against it with no code change. The desktop app brings its own root, so it needs no pointing.
 
 `lolly system import <pack.lolly>` is a different thing: it imports **your design system**, and it adds no tools, so it needs a root as well. Run a command that needs content without any, and the CLI lists these routes and exits `3`. It never downloads anything on its own.
 
@@ -54,6 +54,8 @@ The CLI says which design system it recorded in the file, then ends with a line 
 Recorded the design system: Lolly Starter. Pass --no-madewith to leave the record out.
 ✓ Wrote 20381 bytes to qr.svg
 ```
+
+In a checkout, a note that the catalog is unsigned comes first. That is expected for a local catalog.
 
 `qr.svg` is written to the current directory, replacing any file of that name. If your own address contains `?` or `&`, put it in quotes.
 
@@ -83,7 +85,7 @@ lolly assets --type=raster
 
 `describe` lists a tool's essential inputs with their defaults and a usage line; `--all` shows every input. Inputs that are not a plain value (`asset`, `blocks`, `vector`, `file`, `color`) get a `↳` line showing how to write one.
 
-`list --q=<words>` matches tool ids, names, descriptions, categories and formats, and `--limit=1..100` keeps an agent's answer short. `assets --type=` is checked against the catalog, so a typo is an error that lists the real types rather than an empty list:
+`list --q=<words>` matches tool ids, names, descriptions, categories and formats, and `--limit=1..100` keeps an agent's answer short. With `--json`, either option adds `query`, `limit` and `total` to the result. `assets --type=` is checked against the catalog, so a typo is an error that lists the real types rather than an empty list:
 
 ```text
 $ lolly assets --type=rastor
@@ -119,7 +121,7 @@ Design-system commands: lolly system status | list | use | import | add | export
 
 Piped into another program, the same bare `lolly` lists the tools instead.
 
-A terminal design system is the colours, type and logos every render then uses. Build one from a single colour with `system init`, or bring one in with `system import`: a `.lolly` pack, a tokens file, a Penpot file, a token zip or an SVG. `system add` keeps fonts, logos and other source material with the system. `system status` shows which system is active, `system use <id>` switches, and `system export` writes the active one as a portable `.lolly` pack.
+A terminal design system is the colours, type and logos every render then uses. Build one from a single colour with `system init`, or bring one in with `system import`: a `.lolly` pack, a tokens file, a Penpot file, a token zip or an SVG. `system add` keeps fonts, logos and other source material with the system. `system status` shows which system is active, `system use <id>` switches and `system export` writes the active one as a portable `.lolly` pack.
 
 The CLI and the TUI share one store, so a system set up in one is active in the other. [Where saved sessions live](/info/cli-reference.html#where-saved-sessions-live) says which directory holds the store. [Token workflows](/info/token-workflows.html) covers `system inspect`, `diff`, `generate` and `sync`.
 

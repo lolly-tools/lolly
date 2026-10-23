@@ -1,6 +1,6 @@
 # Render with the CLI
 
-Most formats are written on this machine with nothing else installed. The rest need a paint engine, and the CLI finds one for you. This page shows which formats render where, how to size a print page or shape a video, and what to do when the browser step fails. Every flag is listed at the end.
+Most formats are written on this machine with nothing else installed. The rest need a paint engine, and the CLI finds one for you. This page shows which formats render where, how to size a print page or shape a video and what to do when the browser step fails. Every flag is listed at the end.
 
 ## What the CLI can render
 
@@ -10,13 +10,13 @@ Each rung adds formats. The CLI takes the lowest rung that can write the format 
 
 1. **Nothing extra.** SVG, SVGZ, EMF, WMF, EPS, EPS-CMYK, DXF, HTML and the data formats (JSON, CSV, ICS, VCF, Markdown) are written in Node. So are `penpot` from an `<svg>`-based tool and Lottie, IDML and Premiere XML from a Design document.
 2. **Pixels from a vector tool.** resvg turns an `<svg>`-based tool's own SVG into pixels, still with no browser. PNG, BMP and JPEG XL come from that frame, and so do the HDR stills (`--hdr=1` with `png` or `jpg`) and the float formats EXR and HDR.
-3. **Everything else.** JPG, WebP, PPTX, video, most PDFs, PNG from page-layout tools, `ico` and `txt` need a paint engine: a running Lolly desktop app, an installed one the CLI starts in the background, or the CLI's own headless Chromium.
+3. **Everything else.** JPG, WebP, PPTX, video, most PDFs, PNG from page-layout tools, `ico` and `txt` need a paint engine: a running Lolly desktop app, an installed one the CLI starts in the background or the CLI's own headless Chromium.
 
 `lolly list --json` reports which rungs this machine has, and why any is missing ([Discovery, for an agent](/info/cli-reference.html#discovery-for-an-agent)).
 
 ### Formats with no browser
 
-The CLI renders in a headless DOM (jsdom), and those formats come straight from the template's own vector shapes, with no rasteriser. It carries the same HarfBuzz text shaping as the app (`host.text`), so text becomes true vector paths at export: EPS and DXF carry text as geometry that needs no fonts, and EMF keeps plain runs as editable text records unless you pass `--text=outline`. Font-driven tools, such as a wordmark built on `host.text`, render here too.
+The CLI renders in a headless DOM (jsdom), and those formats come straight from the template's own shapes and data, with no rasteriser. It carries the same HarfBuzz text shaping as the app (`host.text`), so text becomes true vector paths at export: EPS and DXF carry text as geometry that needs no fonts, and EMF keeps plain runs as editable text records unless you pass `--text=outline`. Font-driven tools, such as a wordmark built on `host.text`, render here too.
 
 Shaping reads `ttf` and `otf` fonts under the content root, from the catalog and the tool's own folder. A browser-only `woff2` face is refused with a clear error rather than shaped as blanks.
 
@@ -48,7 +48,7 @@ lolly run design --boxes-data=slides.json --export=pdf --text=outline --bleed=3m
 
 A static Design frame also exports as `svgz` with no browser (select one with `--s=<frame-id>`). Outlined strike-through and underline keep each run's font weight, colour and placement in SVG, SVGZ and PDF, and an underline clears descenders the way the browser does. A shared link's **Convert paths** setting is kept; by default words stay editable.
 
-Some documents still take the browser route, with the reason reported: live text, composed text stories, password-protected PDFs, credentialed pictures, themed asset compositions, watermarks, unsupported effects or picture formats, and runs whose glyph or decoration metrics cannot be resolved. The CLI sends the document once. A failed finishing or security pass fails the export, even with `--html-fallback`, and a hook failure is never retried as a tier limit. `pdf-cmyk` always takes the browser route, and a packed `.lolly` uses the app's exporter.
+Some documents still take the browser route, with the reason reported: live text, composed text stories, password-protected PDFs, credentialed pictures, themed asset compositions, watermarks, unsupported effects or picture formats and runs whose glyph or decoration metrics cannot be resolved. The CLI sends the document once. A failed finishing or security pass fails the export, even with `--html-fallback`, and a hook failure is never retried as a tier limit. `pdf-cmyk` always takes the browser route, and a packed `.lolly` uses the app's exporter. `lolly list --json` lists `pdf` among Design's `nativeFormats` as a candidate, with these checks still applied to each document.
 
 ### Capture a web page
 
@@ -93,7 +93,7 @@ Like the app, a CLI render carries two marks by default:
 - a [Content Credential](/info/content-credentials-identity.html), signed with an anonymous on-device certificate unless you [set up your own identity](/info/cli-signing.html);
 - the [Lolly Imprint](/info/exporting.html), a pixel watermark, in the formats whose bytes can carry a mark.
 
-It also records the [design system](/info/exporting.html#the-design-system-record) it drew with, and prints that line before `✓ Wrote`.
+It also records the [design system](/info/exporting.html#the-design-system-record) it drew with, and prints that line before `✓ Wrote`. That system is the one a `--file` tokens document names, else the active terminal design system, else the catalog's own tokens.
 
 `--no-provenance` turns off the credential, the Imprint and the durable mark in one word. Both default marks embed a fresh timestamp, so it is also the switch for byte-identical output; `smoke` and `batch` apply it themselves ([How far byte-identical output goes](/info/cli-automation.html#how-far-byte-identical-output-goes)). `--c2pa=off` and `--imprint=0` turn off one mark, and `--no-madewith` leaves out the design-system record. A tool opts out for everyone with `render.c2pa: false`, and an on-device privacy utility never carries either mark.
 
@@ -101,13 +101,13 @@ A render whose placed sources still need a licence decision writes the file and 
 
 ## Video and timelines
 
-`--export=mp4`, `webm`, `gif`, `apng` or `webp-anim` drives the app's own sequence renderer inside the headless Chromium. Nothing is rebuilt for the terminal: the CLI hands the built web shell the tool's state, the shell records its timeline through WebCodecs, and the finished file comes back as bytes. A Design timeline, a deck's `pptx` and an animated tool's `gif` all take that one path, so the file is the one the export panel would write.
+`--export=mp4`, `webm`, `gif`, `apng` or `webp-anim` drives the app's own sequence renderer inside the headless Chromium. Nothing is rebuilt for the terminal: the CLI hands the built web shell the tool's state, the shell records its timeline through WebCodecs and the finished file comes back as bytes. A Design timeline, a deck's `pptx` and an animated tool's `gif` all take that one path, so the file is the one the export panel would write.
 
-The clip is yours to shape: `--fps=60 --seconds=6 --codec=h264 --vq=best` renders six seconds at 60 frames a second in H.264, and `--wait=2` holds two seconds before the first frame for a tool that fades in. These are the export panel's Frame rate, Duration, Start after, Codec and Quality fields, handed over as the URL parameters `fps`, `seconds`, `wait`, `codec` and `vq`, so a share link carrying them renders the same clip. `--seconds` sets an exact length even for a tool that would run to the end of its material. Without these flags the tool's own defaults apply. Use `--codec=h264` when the file has to play everywhere, because Auto may pick AV1.
+The clip is yours to shape: `--fps=60 --seconds=6 --codec=h264 --vq=best` renders six seconds at 60 frames a second in H.264, and `--wait=2` holds two seconds before the first frame for a tool that fades in. These are the export panel's Frame rate, Duration, Start after, Codec and Quality fields, handed over as the URL parameters `fps`, `seconds`, `wait`, `codec` and `vq`, so a share link carrying them renders the same clip. `--seconds` sets an exact length even for a tool that would run to the end of its material. Without these flags the tool's own defaults apply: 30 frames a second and the length the tool or its material sets. Use `--codec=h264` when the file has to play everywhere, because Auto may pick AV1.
 
-For Design movies, `--seqrange=2,5` exports the authored two-to-five-second range with its mix. `--motionblur=8,180` blends eight subframes with a 180-degree shutter; it supports SDR flat Sequence output, unsupported colour and tilt paths fail explicitly, and neither setting changes audio timing.
+For Design movies, `--seqrange=2,5` exports the authored two-to-five-second range with its mix. `--motionblur=8,180` blends eight subframes with a 180-degree shutter; it supports SDR flat Sequence output, unsupported colour and tilt paths fail explicitly. Neither setting changes audio timing.
 
-A long movie can take much longer to render than to play. The CLI waits as long as the render keeps reporting progress: each frame restarts a ten-minute idle wait, a stall still stops, and a page crash fails at once. Set `LOLLY_EXPORT_IDLE_TIMEOUT` in seconds to allow more (`1800` is thirty minutes); desktop render endpoints use `LOLLY_CLI_TIMEOUT` instead. A web shell built before progress reporting gets the longer wait but cannot restart the timer, so rebuild the web shell.
+A long movie can take much longer to render than to play. The CLI waits as long as the render keeps reporting progress: each frame restarts a ten-minute idle wait. A stall still stops the render, and a page crash fails at once. Set `LOLLY_EXPORT_IDLE_TIMEOUT` in seconds to allow more (`1800` is thirty minutes); desktop render endpoints use `LOLLY_CLI_TIMEOUT` instead. A web shell built before progress reporting gets the longer wait but cannot restart the timer, so rebuild the web shell.
 
 ::: details Measured times and sizes
 Measured in September 2026 on one machine (Apple silicon, a built `shells/web/dist` and the headless Chromium), from a nine-box animated `design` state and a four-slide deck. Your numbers will differ; the pattern will not.
@@ -164,7 +164,7 @@ A mix that holds a song is signed with Content Credentials that record each song
 
 Some tools place another tool's render as an asset, declared in the manifest (`composes`), with no tool-to-tool imports. No tool in the public catalog declares `composes` today; a brand pack's tool can, for example a badge that places a `qr-code` render. The runtime resolves it on mount, so the outer tool renders with **no extra flags**.
 
-On the CLI an SVG child composes end to end and stays vector. A raster child is left out and the outer tool still renders, without that slot.
+On the CLI an SVG child composes end to end and stays vector. A raster child is left out and the outer tool still renders, without that slot. The app composes a raster child in full.
 
 ## Run a share link
 
@@ -176,7 +176,7 @@ lolly 'https://lolly.tools/#/tool/qr-code?url=https://example.com&color=%230c322
 lolly 'https://lolly.tools/tool/qr-code.svg?url=https://example.com' --output=qr.svg
 ```
 
-The first is the link the app's address bar and Share dialog give you, the second the older route form, and the third the embed URL, whose extension picks the format. The `/tool/<id>` spelling, a bare `/<id>` and a `lolly://` link work too. Anything else is a usage error naming the URL, never a render of the tool's defaults.
+The first is the link the app's address bar and Share dialog give you, the second the older route form and the third the embed URL, whose extension picks the format. The `/tool/<id>` spelling, a bare `/<id>` and a `lolly://` link work too. Anything else is a usage error naming the URL, never a render of the tool's defaults.
 
 The reverse is `--share` (or `--link`), which prints a link for the inputs you passed instead of rendering:
 
@@ -186,7 +186,7 @@ lolly qr-code --url=https://example.com --share
 
 ## When the browser tier fails, ask it why (--tier-b-debug)
 
-A failed paint-tier render exits `3` and says which step ran out of time. `--tier-b-debug` (or `LOLLY_TIER_B_DEBUG=1`) keeps the headless page's console, page errors and network log, times every step, and **on failure** writes them to `<output>.tier-b-debug.log`, or to `lolly-tier-b-debug-<tool>.<format>.log` in the working directory when there is no `--output`. A run that succeeds writes nothing, and each section stops at 500 lines.
+A failed paint-tier render exits `3` and says which step ran out of time. `--tier-b-debug` (or `LOLLY_TIER_B_DEBUG=1`) keeps the headless page's console, page errors and network log, times every step and **on failure** writes them to `<output>.tier-b-debug.log`, or to `lolly-tier-b-debug-<tool>.<format>.log` in the working directory when there is no `--output`. A run that succeeds writes nothing, and each section stops at 500 lines.
 
 ```text
 $ lolly wordmark --export=jpg --tier-b-debug --output=fail.jpg
@@ -224,7 +224,7 @@ Every reserved flag below works on `lolly run` and on the bare `lolly <tool-id>`
 | `--input.<id>=<value>` | Set a tool input whose id is also a reserved flag (`width`, `height`, `format`). Without it the value goes to the export. |
 | `--text=outline\|live` | Vector text as paths or editable text. `svg` defaults to `outline`. `emf` defaults to `live`: real metafile text records, editable in Office and Google Slides, with runs the format cannot express (tracking, feature settings, strokes, skew) outlined per run. `live` cannot apply to `wmf`, `eps` or `dxf`, and the paint tier follows the app's defaults; both cases warn. |
 | `--html-fallback` | Opt in: when the format cannot be produced here, write HTML under a `.html` name instead of failing. Hook, integrity and PDF finishing failures still fail. |
-| `--export-report=<path>` | After the file is written, compare what was asked for with what the file holds, read from its bytes: container, size, page count, resolution, duration and frames, alpha, colour model, HDR signalling, Content Credentials presence, encryption and fonts. The JSON report is bound to the bytes by SHA-256 (`-` writes it to stderr). A value the file cannot supply is a gap, never a pass, and each difference warns, so `--strict` exits `4` when the file is not what was asked for. A credential is reported as present, not verified; run `lolly validate` for that. With `--bleed` or `--marks`, a PDF with a trim box is compared with the trim, one with only a media box with the whole sheet, and a CMYK TIFF with the whole sheet's pixels. On-device transforms refuse the flag. |
+| `--export-report=<path>` | After the file is written, compare what was asked for with what the file holds, read from its bytes: container, size, page count, resolution, duration and frames, alpha, colour model, HDR signalling, Content Credentials presence, encryption and fonts. The JSON report is bound to the bytes by SHA-256 (`-` writes it to stderr). A value the file cannot supply is a gap, never a pass, and each difference warns, so `--strict` exits `4` when the file is not what was asked for. A credential is reported as present, not verified; run `lolly validate` for that. With `--bleed` or `--marks`, a PDF with a trim box is compared with the trim, one with only a media box with the whole sheet and a CMYK TIFF with the whole sheet's pixels. On-device transforms refuse the flag. |
 :::
 
 ::: details Size, print and colour

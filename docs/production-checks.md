@@ -1,6 +1,6 @@
 # Production checks
 
-You agreed the output before production: a 1280 by 800 SVG, one page, with the legal line reading exactly "Legal 125". A production check reads the finished file and answers each requirement with **Passed**, **Mismatch** or **Unchecked**. Unchecked means the fact could not be measured, and it is never counted as a pass.
+You agreed the output before production: a 200 by 100 pixel SVG, one page, with the legal line reading exactly "Legal 125". A production check reads the finished file and answers each requirement with **Passed**, **Mismatch** or **Unchecked**. Unchecked means the fact could not be measured, and it is never counted as a pass.
 
 Write the requirements once, as a small JSON file, then check wherever the file is:
 

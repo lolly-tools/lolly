@@ -4,7 +4,7 @@ An old deck needs to become your design system's own, and you want a script or a
 
 There are two routes:
 
-- **Renovate in place** with `lolly rebrand`. Colours, fonts and the logo snap to the design system, decoration and page furniture come out, and the content carries over. Choose this to keep the deck's own layout.
+- **Renovate in place** with `lolly rebrand`. Colours, fonts and the logo snap to the design system, decoration and page furniture come out and the content carries over. Choose this to keep the deck's own layout.
 - **Rebuild in Design.** Read what the old deck holds, compose new slides from the design system's slide master, then package, check and export them. Choose this when the deck should look like your other new decks.
 
 ::: figure cli-decks-routes
@@ -33,9 +33,9 @@ The plan is plain JSON (`schemas/rebrand-plan-v1.schema.json`). Between the two 
 The app's Rebrand view does the same work with a review screen, and two flags give you its bulk actions:
 
 - `--accept-suggestions` answers every unreviewed row, like **Accept all suggestions**; `=all` also answers rows that need attention.
-- `--auto-match` sets each slide's layout from the structure it reads as, like **Auto-match layouts**: `=clear` takes only clear reads, `=likely` adds likely ones, and a bare flag or `=all` takes every slide. It never changes a layout a person or a preset set, and the `--json` envelope counts the slides it set per band under `autoMatched`.
+- `--auto-match` sets each slide's layout from the structure it reads as, like **Auto-match layouts**: `=clear` takes only clear reads, `=likely` adds likely ones and a bare flag or `=all` takes every slide. It never changes a layout a person or a preset set, and the `--json` envelope counts the slides it set per band under `autoMatched`.
 
-Each deck ends `ready`, `needs-review` or `failed`. `compile` exits `5` when every deck compiled but at least one needs review, `4` on a refused plan or an existing output, and `2` on a usage error ([Exit codes](/info/cli-reference.html#exit-codes)).
+Each deck ends `ready`, `needs-review` or `failed`. `compile` exits `5` when every deck compiled but at least one needs review, `4` on a refused plan or an existing output and `2` on a usage error ([Exit codes](/info/cli-reference.html#exit-codes)).
 
 ::: details Folders, presets and longer runs
 - `lolly rebrand plan|compile <dir>` works through every deck a folder holds; `--recursive` adds its subfolders, mirrored in the output. A PDF beside a `.pptx` of the same name is left out.
@@ -76,7 +76,7 @@ With `--json` the envelope's `result` is the inventory (`schemas/content-invento
 
 `--media=<dir>` writes each distinct picture once, named by its SHA-256 (`<sha256>.<ext>`). A file already there with the same bytes is reused; one with other bytes is refused with exit `4` and nothing is written, unless you pass `--force`. A drawing is written as its SVG, with its raster stand-in as `fallbackRef`. `--thumbnails` also draws each slide there as a PNG and records it as the slide's `thumbnail`.
 
-A slide that is one picture of a slide reads as a picture, with a `slide-flattened` warning. `--ocr` reads the text of such pages with the text recognition model on this machine (`lolly models fetch ocr` downloads it; `read` never does). Each frame read that way carries a `recognition` record: the model, its release and languages, and its confidence. A scan's own text layer is listed as hidden text with the model `pdf-text-layer`.
+A slide that is one picture of a slide reads as a picture, with a `slide-flattened` warning. `--ocr` reads the text of such pages with the text recognition model on this machine (`lolly models fetch ocr` downloads it; `read` never does). Each frame read that way carries a `recognition` record: the model, its release and languages and its confidence. A scan's own text layer is listed as hidden text with the model `pdf-text-layer`.
 
 A hidden object, such as a Photoshop layer switched off, is left out of the text and pictures and listed under `objects` with `hidden`. Macros, scripts, controls and embedded files are never run or opened; a warning says when the file carries any.
 
@@ -86,17 +86,19 @@ A hidden object, such as a Photoshop layer switched off, is left out of the text
 
 - `--pages=<range>` reads only those pages (`3`, `1-4`, `2,5-7`, `9-`); a page outside the file is refused.
 - `--max-chars=N` stops before the block that would pass N characters and gives that block's id as `next`; `--from=<block>` with the same `--pages` reads on from there.
-- Plain text is the default, `--markdown` writes Markdown, and `--json` gives a `ReadExtractV1` (`schemas/read-extract-v1.schema.json`).
+- Plain text is the default, `--markdown` writes Markdown and `--json` gives a `ReadExtractV1` (`schemas/read-extract-v1.schema.json`).
 
 The app's Read and extract view (`#/extract`) runs the same extract on the device.
 
 ## Which design system a command uses
 
-Every verb that needs a design system looks in the same three places, in this order:
+The Design verbs on this page (`system context`, `compose`, `measure`, `package`, `check` and `run design`) look for a design system in the same three places, in this order:
 
 1. `--file=<tokens.json>`;
 2. the active terminal system (`lolly system use`);
 3. the content profile's own system (`LOLLY_PROFILE`).
+
+`lolly rebrand` is the exception: it always reads the content profile's own system.
 
 `lolly system context` is the brief to read before composing, and its `origin` says which of the three answered. Beside the tokens, source evidence and rules, it gives the approved colour pairings, type per role, logos per surface, icons and their themes, photography and illustration families, the slide master's archetypes and the brand's house rules, as records a program can check. A section the design system does not declare is marked `unavailable` or `derived` in `coverage`, never left out.
 
@@ -124,10 +126,10 @@ lolly compose spec.json --source=old.pptx --output=deck.json --edits-out=edits.j
 
 **`--suggest --source=<deck>`** (or `--inventory=<inventory.json>`) writes a first spec: an archetype for each slide with the reason it was chosen, the slots filled with `from` references to the deck's text, the pictures as placeholder keys (`photo:` and the first 12 hex digits of the picture's SHA-256), and each slide's `source` and notes. Treat it as a draft to edit slide by slide.
 
-**`compose <spec.json|->`** composes a spec (`schemas/design-compose-v1.schema.json`): a list of `slides`, each with an `archetype` and its `slots`. A slot takes Design text markup, `null` to leave it out, or an object with `from` (an inventory object id), `text` or `image`, plus any layer field to set over the master's. `lolly compose --help` prints every key, and the agent skill's [Design reference](/info/skills/lolly/reference/design.md) explains each.
+**`compose <spec.json|->`** composes a spec (`schemas/design-compose-v1.schema.json`): a list of `slides`, each with an `archetype` and its `slots`. A slot takes Design text markup, `null` to leave it out or an object with `from` (an inventory object id), `text` or `image`, plus any layer field to set over the master's. `lolly compose --help` prints every key, and the agent skill's [Design reference](/info/skills/lolly/reference/design.md) explains each.
 
 ::: details Every key a spec can carry
-A slide can also carry `cells` for the repeated cells of a columns or steps archetype, `source` (the 1-based source slide whose text `from` reads and whose notes are carried), `ground`, `notes`, `furniture` (`omit`, `footer`, `logo`), `emphasis`, `case`, and `under` and `over` rows written with the authoring keys, painted before and after the archetype's layers.
+A slide can also carry `cells` for the repeated cells of a columns or steps archetype, `source` (the 1-based source slide whose text `from` reads and whose notes are carried), `ground`, `notes`, `furniture` (`omit`, `footer`, `logo`), `emphasis` and `case`, plus `under` and `over` rows written with the authoring keys, painted before and after the archetype's layers.
 
 At the top, `size`, `theme`, `themes`, `footer`, `pageNumbers`, `transition`, `gap` and `$styles` apply to the whole deck. `furniture`, `emphasis` and `case` there are defaults a slide's own merge over: the `omit` lists add up, and a slide's `footer` and `logo` win.
 
@@ -138,7 +140,7 @@ A slot object's `from` takes `para` for one paragraph (or a list), `join` to run
 
 Every slide keeps its binding to the master: the archetype, each slot's role and the master's furniture. That binding is why `lolly check` judges a composed slide by the master's house rules, and why the `.pptx` export has slide layouts with title, subtitle and body placeholders a person can edit. Every empty slot is dropped and reported. Page numbers count the slides in presentation order, and the footer is the spec's text.
 
-The master is the first of these: `--master=<masters.json>`, the slide master of the design system in use, or the engine's neutral master. The report says which it used. A `--file` system from another brand has no catalog master or logos here, so it composes on the neutral master with no logo, and a note says so.
+The master is the first of these: `--master=<masters.json>`, the slide master of the design system in use or the engine's neutral master. The report says which it used. A `--file` system from another brand has no catalog master or logos here, so it composes on the neutral master with no logo, and a note says so.
 
 ::: details Dark slides, themes and logos on photographs
 `--theme=dark` (or a slide's `ground`) takes each archetype's dark twin, and a `flow-cards-N-C` or `flow-columns-N-C` layout takes a twin made from the master's dark content slide. A light archetype without a twin is drawn from the master under the design system's Dark theme, and the report says so. An archetype that is dark by design keeps its ground in a light deck, with a note when a slide asked for light.
@@ -169,7 +171,7 @@ Before anything else reads the document, these are lowered to ordinary layers in
 
 Every verb here accepts an authoring document: `run design --document=<file|->`, `compile design --inputs=<file>`, `validate design --inputs=<file> --document`, `check`, `measure --text-layers` and `package`.
 
-A placeholder picture such as `photo:title` gets its bytes only when `lolly package --asset` writes the `.lolly`. Before that, `run design --document` draws the slide without it and warns `Asset not in catalog: photo:title`, and `check` lists it as a `brand.asset.review` finding. To preview or check a document with its pictures, package it first and run or check the `.lolly`.
+A placeholder picture such as `photo:title` gets its bytes only when `lolly package --asset` writes the `.lolly`. Before that, `run design --document` draws the slide without it and warns `Asset not in catalog: photo:title`, `--asset` is refused there and `check` lists it as a `brand.asset.review` finding, because it is not one of the design system's asset ids. To preview or check a document with its pictures, package it first and run or check the `.lolly`.
 
 ### Measure text before it is drawn
 
@@ -203,7 +205,7 @@ The last two also resolve a key ending in the first hex digits of a picture's SH
 
 **`lolly run <file.lolly> --export=<format>`** exports a saved Design session with the app's own exporter, so the PPTX, PDF or image is the one the app writes. Formats are `pptx`, `pdf`, `png` (the default), `svg`, `jpg` and `webp`.
 
-- `--output=<file>` writes there and reports the byte count. `run` always replaces an existing file; a folder that does not exist is refused with exit `2` before a browser starts.
+- `--output=<file>` writes there and reports the byte count. `run` always replaces an existing file, and accepts `--force` as `compose` and `package` do; a folder that does not exist is refused with exit `2` before a browser starts.
 - `--s=<slide>` picks one slide. On `lolly run design --document` and on a saved session, `--s` takes a 1-based slide number in presentation order (`--s=2`) or a frame id (`--s=s2`). A frame's name is not an address, and an `--s` that matches no slide exits `2` with nothing written.
 - A `png`, `svg`, `jpg` or `webp` from a deck of several frames with no `--s` is the first frame, and stderr says so. A one-slide picture paints that slide's own background.
 - `--no-provenance`, `--c2pa`, `--imprint` and `--no-madewith` work as on any other render.
@@ -223,7 +225,7 @@ lolly run deck.lolly --themes=light,dark --export=pptx --output=deck.pptx
 
 The names are the themes the design system declares, and `all` takes every look in order. A design system with [colourways](/info/token-workflows.html#colourways) keeps them out of `all`, so each look is exported once, in the colourway the session was saved in or else the canonical one. Name a colourway, as in `--themes=Persimmon`, to export in that colourway. The same flag works on `lolly run <tool>`, including `design --document`.
 
-`--themes` needs `--output`, refuses a name the design system does not declare (and lists the ones it does), and cannot be combined with `--_themes`, `--share` or `--production-repairs`. Standard input is read once and given to every theme. For one file in one theme under the exact name you give, use `--theme=<name>`: `--theme=light --output=light.pptx` writes `light.pptx`, where `--themes=light` would write `light-light.pptx`. A photo look is baked into the picture's pixels; on a CLI without `@napi-rs/canvas` the plain picture is used and a warning says so.
+`--themes` needs `--output`, refuses a name the design system does not declare (and lists the ones it does), and cannot be combined with `--_themes`, `--share` or `--production-repairs`. Standard input is read once and given to every theme. For one file in one theme under the exact name you give, use `--theme=<name>` (or `--_themes=<json>`, the URL parameter `_themes`): `--theme=light --output=light.pptx` writes `light.pptx`, where `--themes=light` would write `light-light.pptx`. A photo look is baked into the picture's pixels; on a CLI without `@napi-rs/canvas` the plain picture is used and a warning says so.
 
 ::: details How a Design document reaches the browser
 `lolly run design --document`, a saved session and the `render` family of `lolly check` all reach the web shell as a saved session through its `#/open` route. The file is served once, from a random path on the same local server, to one GET of up to 64 MB, so a document with full-resolution pictures never has to fit in an address.
@@ -237,7 +239,7 @@ The desktop renderer keeps the address. Under `LOLLY_RENDERER=auto` (the default
 lolly check review.lolly --source=old.inventory.json --json > check.json
 ```
 
-`lolly check <file>` runs every check Lolly has on a Design document (`.json`), a `.lolly` or an export (`.pdf`, `.pptx`, `.png`, `.jpg`, `.webp`, `.svg`) and returns one findings list. Each finding has a stable dotted code, a severity (`error`, `warn` or `info`), the layer and artboard where there is one, the message the app shows, and a fix where one is safe to apply. With `--json` the `result` follows `schemas/check-report-v1.schema.json`.
+`lolly check <file>` runs every check Lolly has on a Design document (`.json`), a `.lolly` or an export (`.pdf`, `.pptx`, `.png`, `.jpg`, `.webp`, `.svg`) and returns one findings list. Each finding has a stable dotted code, a severity (`error`, `warn` or `info`), the layer and artboard where there is one, the message the app shows and a fix where one is safe to apply. With `--json` the `result` follows `schemas/check-report-v1.schema.json`.
 
 The checks come in five families:
 
@@ -247,7 +249,7 @@ The checks come in five families:
 | `render` | What the Design editor checks on the painted page: clipped text, contrast and font coverage, with the pictures painted. Text over a photograph is measured against the pixels under its lines: failing over nearly all of them is `design.text.contrast-low`, and a partly light, partly dark picture is `design.text.contrast-review`. Needs the browser tier; without one this family is `unavailable`, with the reason, and the others still run. |
 | `brand` | Colours, fonts and asset ids against the design system, and its house rules: headline weight, alignment, approved colour pairings, accent edges on rounded shapes, dashed lines, logo per surface. A palette colour with an alpha channel counts as that colour; any other translucent colour is `brand.color.unknown`. Uploaded pictures are not reviewed. On a `.pptx` it reads the colours the slides paint in the `--theme` given: an off-palette colour is `brand.color.review`, and a slide ground that is not the theme's surface, primary or secondary colour is `brand.ground.theme`. Other exports have no brand family. |
 | `verify` | The Verify layout clues (a coloured edge on a rounded card, an eyebrow above a heading, decorative numbering), from the layers or, for an export, from the file. Text recognition is off unless you pass `--ocr`, so two machines give the same answer. |
-| `fidelity` | With `--source=<deck or inventory.json>`: every source string is in the result or listed as an edit, every speaker note is carried over, and the slide count and order match. A change of case or spelling is listed for review. A string repeated on several slides must appear on each of their artboards. `--edits=<edits.json>` records wording changed on purpose: those findings stay as notes marked excepted, listed under `fidelity.excepted`, never as passed. |
+| `fidelity` | With `--source=<deck or inventory.json>`: every source string is in the result or listed as an edit, every speaker note is carried over and the slide count and order match. A change of case or spelling is listed for review. A string repeated on several slides must appear on each of their artboards; one found only on another artboard is reported as moved. `--edits=<edits.json>` (a JSON array of `{ "source", "result", "reason" }`, or the file `compose --edits-out` writes) records wording changed on purpose: those findings stay as notes marked excepted, listed under `fidelity.excepted`, never as passed. |
 
 A check never reads as clean on what it did not read. An export page with no text layer, read without `--ocr`, is a `verify.text.unread` warning, and pages past the cap are a `verify.pages-capped` warning.
 
@@ -257,7 +259,7 @@ A check never reads as clean on what it did not read. An export page with no tex
 - `--strict` turns weak Verify clues into errors and refuses on any warning.
 - `--browser=off` skips the render family.
 - `--theme=<name>` is the token theme the document is checked in; a theme the design system does not declare is a usage error.
-- `--themes=<a,b|all>` checks in several themes in one report. The render, brand and Verify families run once per theme, each finding carries `theme`, and structure and fidelity run once. A link that does not resolve in a theme is `brand.token-link.unresolved`. `--theme` and `--themes` together are refused.
+- `--themes=<a,b|all>` checks in several themes in one report. The render, brand and Verify families run once per theme and each finding carries `theme`. Structure and fidelity run once. A link that does not resolve in a theme is `brand.token-link.unresolved`. `--theme` and `--themes` together are refused.
 - `--page-cap=<n>` limits how many artboards or pages Verify reads (1 to 100).
 - On a standalone CLI with no design system, the brand family is `unavailable`.
 :::
