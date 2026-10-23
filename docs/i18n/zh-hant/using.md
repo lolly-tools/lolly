@@ -20,7 +20,7 @@
 
 每個工具都是分割檢視：一側是**控制項**，另一側是即時**預覽**。更改控制項，預覽立即跟著變化，你看到的就是匯出的結果。
 
-![某個工具的分割檢視畫面：左側是控制項堆疊,右側是即時繪製的分組長條圖](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
+![某個工具的分割檢視畫面——左側是控制項堆疊,右側是即時繪製的分組長條圖](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
 **Design** 是例外。它以自由畫布的形式開啟，上面的方塊可拖曳、調整大小並輸入文字，並有自己的頂端列、時間軸與簡報控制項。[Design：自由畫布](/info/design.html)是它的指南。
 

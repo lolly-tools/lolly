@@ -20,7 +20,7 @@
 
 每个工具都是分栏视图：一侧是**控制项**，另一侧是实时**预览**。更改一个控制项，预览立即跟着变化，所见即所导出。
 
-![某工具的分栏视图：左侧是控制面板堆栈,右侧是它实时绘制的分组柱状图](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
+![某工具的分栏视图——左侧是控制面板堆栈,右侧是它实时绘制的分组柱状图](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
 **Design** 是个例外。它打开为一块自由画布，上面是可以拖动、缩放和输入文字的方框，并有自己的顶部栏、时间线和演示控制项。[Design：自由画布](/info/design.html)是它的指南。
 
@@ -28,7 +28,7 @@
 
 工具只显示打算让你改变的输入项。作者已经固定了颜色、版面、字体和逻辑，所以你做的一切都遵守他们的规则。输入项包括文字、滑块、取色器、下拉菜单、日期、图片选择器和重复的行组，有些位于可折叠的分区中。
 
-![工具的控件栏：一个文本框、几个颜色触发器和一个滑块，作者选择锁定的其余内容都不在这里](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
+![工具的控件栏——一个文本框、几个颜色触发器和一个滑块，作者选择锁定的其余内容都不在这里](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
 
 **点击设计即可找到它的控制项。** 点击预览中的任意元素，对应的控制项就会获得焦点并滚动到视野内。在重复的行组中，你点击的那一行会展开。
 
@@ -263,7 +263,7 @@ storage-seeding hook.
 - **控制项变成顶部的一张面板**，其下边缘有一个拖动把手。拖动把手可以吸附到 **peek**、**half** 或 **full**，或点按它来折叠和展开。预览填满下方的空间，并在你编辑时保持可见。
 - 浮动的 **Export** 按钮会打开导出面板：格式、尺寸、复制、保存和下载都在一处。点按背景可关闭面板。
 
-![手机宽度屏幕上的一个工具：顶部是面板形式的控件，下方预览中是生成的调色板，渲染胶囊按钮浮在底部中央](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
+![手机宽度屏幕上的一个工具——顶部是面板形式的控件，下方预览中是生成的调色板，渲染胶囊按钮浮在底部中央](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
 ## 设置、声音和舒适度
 
