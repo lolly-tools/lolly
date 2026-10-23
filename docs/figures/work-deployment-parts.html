@@ -1,0 +1,94 @@
+<!--
+  Concept: the parts of a Lolly Work deployment. People and apps reach one HTTPS edge; behind it, one
+  Work server answers the console, the API and links, owns live collaboration and renders SVG and PNG
+  itself. PostgreSQL is the one required service. A Chromium render worker, a design-system pack, the
+  Lolly web app and an S3-compatible store are optional parts.
+  Band Contract: static fragment scoped under .wdp, reads the docs theme tokens with fallbacks, no
+  script, no motion, no network.
+  Sources: docs/work/deployment.md (render topologies, chart defaults, environment dependencies) and
+  docs/work/configuration.md (blob drivers). Code: deploy/helm/values.yaml defaults in lolly-work.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23 for the plan 322 docs remediation. The C2PA signature added at bank time is the first
+  provenance record of this file.
+-->
+<style>
+.wdp{--wdp-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--wdp-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --wdp-ground:hsl(var(--secondary,84.5 55% 92.2%));--wdp-paper:hsl(var(--card,0 0% 100%));
+ --wdp-accent:hsl(var(--primary,176.5 89.5% 11.2%));--wdp-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --wdp-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--wdp-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --wdp-wash:color-mix(in oklab,var(--wdp-accent) 12%,var(--wdp-paper));
+ color:var(--wdp-ink);background:var(--wdp-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size;display:grid;gap:8px;justify-items:stretch}
+.wdp *{box-sizing:border-box}
+.wdp ul{list-style:none;margin:0;padding:0}
+.wdp li{list-style:none;margin:0;font-size:inherit}
+.wdp p{margin:0}
+.wdp svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.wdp .wdp-tier{background:var(--wdp-paper);border-radius:16px;box-shadow:0 0 0 1px var(--wdp-line);padding:11px 12px;display:grid;gap:8px}
+.wdp .wdp-head{display:flex;align-items:center;gap:8px;font-weight:600}
+.wdp .wdp-head svg{width:20px;height:20px;flex:none;color:var(--wdp-accent)}
+.wdp .wdp-tag{margin-left:auto;padding:2px 9px;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.wdp .wdp-req{background:var(--wdp-accent);color:var(--wdp-on-accent)}
+.wdp .wdp-opt{box-shadow:inset 0 0 0 1px var(--wdp-line);color:var(--wdp-muted)}
+.wdp .wdp-text{font-size:.88rem;color:var(--wdp-muted)}
+.wdp .wdp-chips{display:flex;flex-wrap:wrap;gap:6px}
+.wdp .wdp-chips li{padding:4px 10px;border-radius:999px;background:var(--wdp-wash);font-size:.86rem}
+.wdp .wdp-arrow{display:grid;place-items:center;color:var(--wdp-muted)}
+.wdp .wdp-arrow svg{width:20px;height:20px}
+.wdp .wdp-server{background:var(--wdp-wash);box-shadow:0 0 0 2px var(--wdp-accent)}
+.wdp .wdp-jobs{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+@container (min-width:560px){.wdp .wdp-jobs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.wdp .wdp-jobs li{display:flex;gap:7px;align-items:flex-start;font-size:.9rem;padding:6px 8px;border-radius:10px;background:var(--wdp-paper);box-shadow:0 0 0 1px var(--wdp-line)}
+.wdp .wdp-jobs svg{width:16px;height:16px;flex:none;margin-top:2px;color:var(--wdp-accent)}
+.wdp .wdp-below{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+@container (min-width:560px){.wdp .wdp-below{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.wdp .wdp-db{box-shadow:0 0 0 2px var(--wdp-accent)}
+</style>
+<div class="wdp" role="group" aria-label="The parts of a Lolly Work deployment">
+  <section class="wdp-tier" aria-label="People and apps">
+    <p class="wdp-head"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17.5" cy="9.5" r="2.5"/><path d="M15.5 14.4c.6-.2 1.3-.4 2-.4 2.5 0 4.5 2 4.5 4.5"/></svg>People and apps</p>
+    <ul class="wdp-chips">
+      <li>Browsers</li>
+      <li>Desktop and mobile apps</li>
+      <li>The lw CLI</li>
+      <li>Agents and automation</li>
+    </ul>
+  </section>
+  <div class="wdp-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v16M6 14l6 6 6-6"/></svg></div>
+  <section class="wdp-tier" aria-label="HTTPS edge">
+    <p class="wdp-head"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>HTTPS proxy or ingress<span class="wdp-tag wdp-req">Needed for a team</span></p>
+    <p class="wdp-text">Caddy, nginx or your cluster ingress ends TLS and forwards to the server.</p>
+  </section>
+  <div class="wdp-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v16M6 14l6 6 6-6"/></svg></div>
+  <section class="wdp-tier wdp-server" aria-label="Work server">
+    <p class="wdp-head"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/><path d="M8 7.5h.01M8 16.5h.01"/></svg>Work server, one process<span class="wdp-tag wdp-req">Required</span></p>
+    <ul class="wdp-jobs">
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>The console at /admin</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>The API, share and embed links</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg>Live collaboration, owned by this one process</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16l4-4 3 3 5-6 4 4"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg>SVG and PNG renders, in process</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.5 2.3 3.5 5 3.5 8s-1 5.7-3.5 8c-2.5-2.3-3.5-5-3.5-8s1-5.7 3.5-8z"/></svg>The Lolly web app at /, when you mount it</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7l8-4 8 4-8 4-8-4z"/><path d="M4 12l8 4 8-4M4 17l8 4 8-4"/></svg>A design-system pack, mounted read-only</li>
+    </ul>
+  </section>
+  <div class="wdp-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v16M6 14l6 6 6-6"/></svg></div>
+  <div class="wdp-below">
+    <section class="wdp-tier wdp-db" aria-label="PostgreSQL">
+      <p class="wdp-head"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>PostgreSQL<span class="wdp-tag wdp-req">Required</span></p>
+      <p class="wdp-text">Accounts, projects, approvals, jobs and the audit log; asset bytes too with the default pg driver.</p>
+    </section>
+    <section class="wdp-tier" aria-label="Render worker">
+      <p class="wdp-head"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 7h.01M10 7h.01"/></svg>Chromium render worker<span class="wdp-tag wdp-opt">Optional</span></p>
+      <p class="wdp-text">Adds JPG and PDF and tools with scripts. Without it, those answer 501 and apps are told up front.</p>
+    </section>
+    <section class="wdp-tier" aria-label="Object storage">
+      <p class="wdp-head"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5l9-4.5 9 4.5v9l-9 4.5-9-4.5v-9z"/><path d="M3 7.5l9 4.5 9-4.5M12 12v9"/></svg>S3-compatible storage<span class="wdp-tag wdp-opt">Optional</span></p>
+      <p class="wdp-text">Holds asset bytes with the s3 driver; back it up separately from the database.</p>
+    </section>
+    <section class="wdp-tier" aria-label="Identity provider">
+      <p class="wdp-head"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="10" r="3"/><path d="M4 19c.8-2.6 2.7-4 5-4s4.2 1.4 5 4"/><path d="M15 8h6M15 12h6M17 16h4"/></svg>Identity provider<span class="wdp-tag wdp-opt">Optional</span></p>
+      <p class="wdp-text">OIDC single sign-on and SCIM. Built-in email and password sign-in works without one.</p>
+    </section>
+  </div>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKAGp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnaanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDpiMjc1YzE3YS0zOTc0LTQ2MzEtYmM3YS1iMzIwNzhlNWE1NTgAAAAEVmp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNzoxNDo1M1oAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GSBWZmxlbmd0aBkNumRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggQjR8DIRhyLilOYBVs7uevWyeSMYkPz0uUc2Pmm7vGAJjcGFkSAAAAAAAAAAAAAAA7Gp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAALhjYm9yqGdzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHV3b3JrLWRlcGxveW1lbnQtcGFydHNkZGF0ZXgYMjAyNi0xMC0yM1QwNzoxNDo1My4wNjdaamRpbWVuc2lvbnNrMjQgw5cgMjQgcHhoYXJ0aWZhY3RmZmlndXJlaWdlbmVyYXRvcmtDbGF1ZGUgQ29kZWttb2RlbFZlbmRvcmlBbnRocm9waWMAAACNanVtYgAAACdqdW1kanNvbgARABCAAACqADibcQNjYXdnLm1ldGFkYXRhAAAAAF5qc29ueyJAY29udGV4dCI6eyJkYyI6Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIn0sImRjOmNyZWF0b3IiOlsiQW5keSBGaXR6c2ltb24iXX0AAADEanVtYgAAACxqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmFpLWRpc2Nsb3N1cmUAAAAAkGNib3KkaW1vZGVsVHlwZXBjMnBhLnR5cGVzLm1vZGVsaW1vZGVsTmFtZW9DbGF1ZGUgT3B1cyA1LjVvbW9kZWxJZGVudGlmaWVyb2NsYXVkZS1vcHVzLTUtNW5jb250ZW50UHJvZmlsZaFzaHVtYW5PdmVyc2lnaHRMZXZlbG1wcm9tcHRfZ3VpZGVkAAAC02p1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAKkY2JvcqZoZGM6dGl0bGV1d29yay1kZXBsb3ltZW50LXBhcnRzamluc3RhbmNlSUR4LXVybjp1dWlkOjM2NjgyMTM3LTM0YzQtNDQwMC1iYzQzLTI0YTVhOTkxZmNmYXRjbGFpbV9nZW5lcmF0b3JfaW5mb6NkbmFtZWVMb2xseWd2ZXJzaW9uZzEuMjgxLjBrc3BlY1ZlcnNpb25lMi40LjByY3JlYXRlZF9hc3NlcnRpb25zhaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgg891MLjm3Qcc1lAVq0cg+ywJcg/8Zq7VjL85KuOX0IqSiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggJlOJNw7s/U/r/55eLkWLWsXqQJW9LX7DLxYYJqN+p3miY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvdG9vbHMubG9sbHkuZXhwb3J0ZGhhc2hYIP2ZxFKu/38HKao1krt6dxaVT0+s+nWfI5r05RrqrHAiomN1cmx4KHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2Nhd2cubWV0YWRhdGFkaGFzaFgg7iYlKJf/Z3Tb+oGzES2uAj7yXJtuDKwUN6DDNEbaboSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYILULL+IgRwhuFb2Z97+uFQ7MwZxWugE0GKMzzeUhYpqraXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYmp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMmNib3LShFkB4aIBJhghgVkB2DCCAdQwggF5oAMCAQICCUPy34IjUWt2fzAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYxMDIzMDcxMzUzWhcNMzYxMDIwMDcxNDUzWjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAS+WFym5n80kofPXOzPen3B0BfS2DHT9NpQ8VXlv9O7t31ZyDbMlkhFkv/f6+mlIWOyVMCyvMEldF6jQuA3j64no3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQUNWo44i9KyzPIIllPsdVgpdkxfE8wHwYDVR0jBBgwFoAUNWo44i9KyzPIIllPsdVgpdkxfE8wCgYIKoZIzj0EAwIDSQAwRgIhANXSuBmb2Ui7wACfyQZ0Q8M3GlUk7lTobS/5baeyUq5EAiEA1DZ74zMEz2XNpsbNVnyC32MKJsVRx3i+Fpd/HNnhlIug9lhAEYvEm1Zf+munseWwE3Bb4J19cmnUz66s/j9z0T+SgorTpkocpXaMzHZyMuOvs9cZl1XwUSi3RwTFkaSfN7phqg== -----END C2PA MANIFEST----- -->
