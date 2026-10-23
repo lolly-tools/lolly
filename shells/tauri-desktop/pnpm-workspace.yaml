@@ -7,3 +7,6 @@ enablePrePostScripts: true
 strictDepBuilds: true
 allowBuilds:
   fsevents: true
+
+# Same three-day supply-chain cooldown as the root pnpm-workspace.yaml.
+minimumReleaseAge: 4320
