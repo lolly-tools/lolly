@@ -27,6 +27,11 @@
  * with no browser tier, 1 a family that crashed. Findings are data, never a tool
  * error: `isError` is set only when the request or the input cannot be read.
  *
+ * CREATION FEEDBACK. A document's verify family carries the writing score of its
+ * visible text (`verify.writing-score`, `info` below the strong band, `warn` at it,
+ * never `error`), which informs and never changes `exitCode`. The description asks
+ * an agent to read it with the house-rule findings and revise the named layers.
+ *
  * ERRORS carry a stable code (`CHECK_TOOL_CODES`); the call never throws.
  */
 
@@ -138,6 +143,8 @@ export function checkToolDef(p: CheckSchemaParts) {
       "brand (this server's design system and the house rules its brand pack declares; read lolly://design-context first), " +
       'Verify (layout clues from the layers, or from the file for an export; no OCR), and fidelity to a source deck or a lolly_read inventory. ' +
       'Each finding has a stable code, a severity, the layer id where there is one, the message the app shows and a fix where one is safe. ' +
+      "For a document, Verify also carries the writing score of its visible text (verify.writing-score, the score Verify shows for text: info below the strong band, warn at it, never error); the score is a signal, not a verdict, and never changes exitCode. " +
+      'Read the house-rule findings and the writing score as creation feedback: revise the layers they name, then check again. They inform and never block. ' +
       `exitCode is the code lolly check exits with: 0 clean, 5 to review, 4 refused, 3 no browser under browser: "require" (a document only; an export has no render family), 1 a family failed or nothing could be decoded. ` +
       `Files ${FILE_SIZE_NOTE}, and up to 100 slides or PDF pages per file on a hosted server; ` +
       'on a hosted server the file and the source travel in one request, so pass inventory rather than the source deck there.',

@@ -1222,7 +1222,7 @@ export async function serverInstructions(): Promise<string> {
     `A successful render is complete when its requested checks pass; review is only needed for a named requirement this instance cannot measure. ` +
     `Use lolly_build_url for a shareable/editable link without rendering, lolly_transform for on-device file utilities, ` +
     `lolly_rebrand to renovate a .pptx deck into this design system in stages (capabilities, plan, compile, inspect), ` +
-    `lolly_read to read what a deck says (text in reading order with roles, speaker notes, pictures, tables), lolly_check to check a Design document, .lolly or export in one findings list (read lolly://design-context first to brief yourself on the brand), ` +
+    `lolly_read to read what a deck says (text in reading order with roles, speaker notes, pictures, tables), lolly_check to check a Design document, .lolly or export in one findings list (read lolly://design-context first to brief yourself on the brand; its house-rule findings and the writing score of the visible text are creation feedback that informs and never blocks, so revise the layers they name and check again), ` +
     `lolly_inspect_tokens to explain a design token's value, theme choices, issues and references, ` +
     `lolly_redact to destroy regions of an image/SVG/PDF from one reusable instruction string, ` +
     `and lolly_verify to check a file's Content Credentials (C2PA). ` +
@@ -1301,7 +1301,8 @@ export async function getPrompt(name: string, args: Record<string, string> = {})
       '2. Call lolly_describe_tool with its toolId for the exact input schema and examples.\n' +
       '3. Call lolly_validate with the toolId and inputs; correct every error.\n' +
       '4. Call lolly_render with the toolId, your inputs, and a supported format.\n' +
-      '5. Share the returned editable lolly.tools link so the user can fine-tune the result.\n\n' +
+      '5. For a Design document, call lolly_check and read the house-rule findings and the writing score (verify.writing-score) as feedback: revise the layers they name and check again. They inform and never block; the writing score is a signal, not a verdict.\n' +
+      '6. Share the returned editable lolly.tools link so the user can fine-tune the result.\n\n' +
       `Catalog:\n${listing}`;
     return { description: GENERIC_PROMPT_DEF.description, messages: [{ role: 'user', content: { type: 'text', text } }] };
   }
@@ -1324,6 +1325,7 @@ export async function getPrompt(name: string, args: Record<string, string> = {})
     ...(looks.length ? [JSON.stringify(looks, null, 2)] : []),
     `3. Call lolly_validate with toolId "${m.id}" and the chosen inputs; correct every error.`,
     `4. Call lolly_render with toolId "${m.id}" and a format from: ${m.render.formats.join(', ')}.`,
+    ...(m.id === 'design' ? ['5. Call lolly_check with the same toolId and inputs. Read the house-rule findings and the writing score (verify.writing-score) as feedback and revise the layers they name; they inform and never block, and the writing score is a signal, not a verdict.'] : []),
     ...(given.length ? ['', 'User-provided inputs to honour:', JSON.stringify(Object.fromEntries(given), null, 2)] : []),
   ].join('\n');
   const featured = (m as { featured?: { blurb?: string } }).featured;
