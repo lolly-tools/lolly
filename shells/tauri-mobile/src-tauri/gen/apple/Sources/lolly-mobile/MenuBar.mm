@@ -143,7 +143,7 @@ static void buildLollyMenus(id<UIMenuBuilder> builder) {
     routeAction(@"Unpack a PDF", @"#/unpack")
   ])];
   [go addObject:inlineMenu(@[
-    keyed(@"Set Up Your Brand", @"b", UIKeyModifierCommand | UIKeyModifierShift, @"#/start"),
+    keyed(@"Design System Setup", @"b", UIKeyModifierCommand | UIKeyModifierShift, @"#/start"),
     keyed(@"Profile & Settings", @",", UIKeyModifierCommand, @"#/profile")
   ])];
   UIMenu *goMenu = [UIMenu menuWithTitle:@"Go" children:go];

@@ -572,7 +572,7 @@ function resultMarkup(x: Extracted, canRead = false): string {
         </div>
         <div class="pdfx-bar-actions">
           ${canRead && scans ? `<button type="button" class="btn" data-act="read-scans">${t('Read scanned pages')}</button>` : ''}
-          ${studio ? `<button type="button" class="btn" data-act="studio">${t('Send to the design system studio')}</button>` : ''}
+          ${studio ? `<button type="button" class="btn" data-act="studio">${t('Send to Design System Setup')}</button>` : ''}
           ${x.textSupported ? `<button type="button" class="btn" data-act="copy">${t('Copy all')}</button>` : ''}
           ${x.textSupported ? `<button type="button" class="btn" data-act="md">${t('Download .md')}</button>` : ''}
           ${x.textSupported ? `<button type="button" class="btn" data-act="txt">${t('Download .txt')}</button>` : ''}
@@ -1343,7 +1343,7 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
     } catch (err) {
       host.log('warn', 'pdf-extract: studio handoff failed', { error: (err as Error)?.message });
       btn.textContent = t('Could not send');
-      announce(t('Nothing could be sent to the studio.'), { assertive: true });
+      announce(t('Nothing could be sent to Design System Setup.'), { assertive: true });
       setTimeout(() => { btn.textContent = was; setBusy(btn, false); }, 1800);
     }
   }

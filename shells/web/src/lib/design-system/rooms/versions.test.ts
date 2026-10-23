@@ -681,7 +681,7 @@ test('the mounted panel reads the head and the active system for the strip, and 
   assert.ok(strip, 'the publish form carries the strip');
   assert.match(strip.textContent!, /Acme/);
   assert.match(strip.textContent!, /Editable head/);
-  assert.match(strip.textContent!, /Read-only\. Start can make an editable copy\./);
+  assert.match(strip.textContent!, /Read-only\. Design System Setup can make an editable copy\./);
   assert.deepEqual(writes, [], 'reading the context publishes nothing');
   room.teardown();
 });

@@ -391,9 +391,9 @@ export function displayName(s: Specimen): string {
 const slug = (text: string): string => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 const USE_CASES: Record<string, [string, string]> = {
-  'Colour tools': ['#/start?area=color', 'Colour studio'],
+  'Colour tools': ['#/start?area=color', 'Colours in Design System Setup'],
   'Design workspace': ['#/design', 'Design workspace'],
-  'Dashboard & Brand studio': ['#/start', 'Brand studio'],
+  'Dashboard & Design System Setup': ['#/start', 'Design System Setup'],
   'Profile': ['#/profile', 'Profile'],
   'Gallery': ['#/', 'Tool gallery'],
   'Assets': ['#/a', 'Assets'],

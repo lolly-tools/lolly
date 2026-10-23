@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The mark handoff stash (plan 97 section 8, M5) - how logos extracted somewhere else
- * (the `#/pdf` exploder's "Send to the Design System studio") reach the Logos
+ * (the `#/pdf` exploder's "Send to Design System Setup") reach the Logos
  * room across one navigation.
  *
  * This is the `takePendingToolFile` pattern from `lib/drop-router.ts`, kept to

@@ -486,7 +486,7 @@ type ReadinessWay = ReadinessActionV1 | 'studio';
 /**
  * The readiness row in this view's words, keyed on the row's id and state rather than
  * on the English sentence the readiness module keeps for its log. A missing master or
- * mark is fixed in the design system studio, never by a download or another file.
+ * mark is fixed in Design System Setup, never by a download or another file.
  */
 export function readinessCopy(item: ReadinessItemV1): { text: string; ways: ReadinessWay[] } {
   const [kind = '', tag = ''] = item.id.split(':');
@@ -531,7 +531,7 @@ function readinessWayLabel(way: ReadinessWay): string {
     case 'choose-another-file':
       return tRaw('Choose another file');
     case 'studio':
-      return tRaw('Open the design system studio');
+      return tRaw('Open Design System Setup');
   }
 }
 
@@ -977,7 +977,7 @@ function wayLabel(way: ErrorWay): string {
     case 'close':
       return tRaw('Close project');
     case 'studio':
-      return tRaw('Open the design system studio');
+      return tRaw('Open Design System Setup');
     case 'report':
       return tRaw('Open the report');
     case 'models':
