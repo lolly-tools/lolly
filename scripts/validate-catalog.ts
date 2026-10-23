@@ -1634,7 +1634,7 @@ for (const asset of assetsIndex.assets) {
     const entry = (asset.formats ?? []).find((f: { format: string }) => f.format === 'md');
     if (!entry || asset.formats.length !== 1) { errors.push(`${where}: formats must hold exactly one md entry (references go in meta.skill.files)`); continue; }
     const entryPath = catalogUrlPath(entry.url);
-    if (!existsSync(entryPath)) continue; // the asset loop above already names a missing file
+    if (!existsSync(entryPath)) continue; // the asset loop above already reports a missing file
     const files: Record<string, Uint8Array> = { 'SKILL.md': readFileSync(entryPath) };
     let filesOk = true;
     for (const file of record.files ?? []) {

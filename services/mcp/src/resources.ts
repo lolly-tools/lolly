@@ -91,7 +91,7 @@ async function assetsListing(uri: string): Promise<ResourceContent> {
   const idx = assetIndex<AssetIndex>();
   // Same listing shape host.assets.query resolves (id/type/name/tags), minus bytes;
   // fetch an individual asset via lolly://asset/{id}.
-  // A hosted server never names an internal brand skill (plan 323).
+  // A hosted server never lists an internal brand skill (plan 323).
   const assets = idx.assets.filter(a => !isHostedServer() || isPublicBrandSkillAsset(a)).map(a => ({
     id: a.id, type: a.type,
     ...(a.name ? { name: a.name } : {}),

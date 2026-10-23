@@ -240,7 +240,7 @@ test('export: generated frontmatter, the brand body unchanged, linked rewrites l
   assert.equal(fm.metadata['lolly-source'], 'https://lolly.example/catalog/assets/acme/skills/brand/SKILL.md');
   assert.equal(fm.metadata['lolly-sha256'], admitted.skill.sha256.slice('sha256:'.length));
   assert.deepEqual(out.rewrites, [{ from: 'https://cdn.example.com/at/abc/Acme_Logo-hor_L_Blue-pos_sRGB.svg?auto=webp&format=png', to: 'https://lolly.example/catalog/assets/acme/logo/pos-blue.svg' }]);
-  // Undo the listed rewrites and the body is the brand's text, byte for byte.
+  // Undoing the listed rewrites gives back the brand's exact bytes.
   let body = fm.body.replace(/^\n/, '');
   for (const r of out.rewrites) body = body.split(r.to).join(r.from);
   assert.equal(body, PLAIN);
@@ -364,11 +364,11 @@ test('audience: a public listing withholds internal skills, the developer\'s own
     assert.equal(pub.withheld, 1);
     assert.equal(await readProfileBrandSkill('acme-secret', { root, audience: 'public' }), null);
     assert.ok(await readProfileBrandSkill('acme-secret', { root, audience: 'all' }));
-    // The brief's catalog facts never name an internal skill unless the caller may see it.
+    // The brief's catalog facts leave out an internal skill unless the caller may see internal skills.
     const briefIds = (audience?: 'all') => readProfileBriefCatalog({ root, ...(audience ? { skillAudience: audience } : {}) })!.assets!.map((a) => a.id);
     assert.deepEqual(briefIds(), ['acme/skill/brand']);
     assert.deepEqual(briefIds('all'), ['acme/skill/brand', 'acme/skill/secret']);
-        // A static build is public whatever profile made it: the internal skill is not in it.
+        // A static build is public whatever profile made the build, so the internal skill is left out.
     const dist = join(root, 'dist');
     materializeInto(dist, contentRoots({ root }));
     const served = JSON.parse(readFileSync(join(dist, 'catalog/assets/index.json'), 'utf8'));

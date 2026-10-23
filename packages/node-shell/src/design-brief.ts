@@ -120,7 +120,7 @@ export function readProfileBriefCatalog(opts: ProfileSourceOptsV1 = {}): (Design
     };
   }).flatMap((row, i) => {
     // A brand skill carries its index row (plan 323), so the brief lists it without bodies.
-    // An internal one is not named at all unless the caller may see it.
+    // An internal skill is left out entirely unless the caller may see internal skills.
     if (row.type !== 'skill') return [row];
     const skill = brandSkillIndexEntry(assets[i]);
     if (!skill) return [row];

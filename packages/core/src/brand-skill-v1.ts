@@ -75,7 +75,7 @@ export interface BrandSkillMetaV1 {
   status: BrandSkillStatusV1;
   /** The brand's own revision label (`1.0`), apart from the catalog SemVer. */
   skillRevision: string;
-  /** Who answers for it, as the brand names them. */
+  /** Who answers for the skill, in the brand's own words. */
   owner?: string;
   /** When the owner last reviewed it (YYYY-MM-DD). */
   reviewed?: string;
@@ -108,7 +108,7 @@ export interface BrandSkillIndexEntryV1 {
   generated?: boolean;
   /** Bytes of SKILL.md plus its references. */
   size?: number;
-  /** The SRI checksum of SKILL.md, as the index records it. */
+  /** The SRI checksum of SKILL.md, as recorded in the index. */
   checksum?: string;
   references?: string[];
 }
@@ -228,7 +228,7 @@ export function brandSkillApplies(entry: Pick<BrandSkillIndexEntryV1, 'disciplin
 
 /**
  * The skills a static catalog may carry. Internal skills never reach one: a statically
- * hosted catalog is public whatever profile built it.
+ * hosted catalog is public whatever profile built the catalog.
  */
 export function isPublicBrandSkillAsset(asset: unknown): boolean {
   if (!record(asset) || asset.type !== 'skill') return true;

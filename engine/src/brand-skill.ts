@@ -227,7 +227,7 @@ export async function admitBrandSkill(files: Record<string, Uint8Array>): Promis
   return { ok: true, skill: { markdown, references, sha256, size: total, parsed } };
 }
 
-/** A catalog asset as link mapping reads it. */
+/** The fields of a catalog asset that link mapping reads. */
 export interface BrandSkillCatalogAssetV1 {
   id: string;
   type?: string;
@@ -737,7 +737,7 @@ export function measureSvgFamily(sources: readonly string[]): SvgFamilyMeasureV1
   };
 }
 
-/** An evenly spread pick of `limit` ids from a family, so exemplars are not all one corner of it. */
+/** An evenly spread pick of `limit` ids from a family, so exemplars cover the whole family. */
 export function spreadExemplars(ids: readonly string[], limit = 12): string[] {
   const sorted = [...ids].sort();
   if (sorted.length <= limit) return sorted;

@@ -747,7 +747,7 @@ function copyTree(src: string, dst: string): void {
 /** The one remaining copy path: write a real tools/ + catalog/ tree into dest. */
 /**
  * Internal brand skills (plan 323) never reach a static catalog: a statically hosted tree
- * is public whatever profile built it. Their files and index rows are removed from the
+ * is public whatever profile built the tree. Their files and index rows are removed from the
  * copy; the pack's own index is never touched. With no internal skill in the index the
  * served index is left byte for byte as copied, so a later signing step sees the same file.
  */

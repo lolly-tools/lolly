@@ -211,7 +211,7 @@ export async function exportProfileBrandSkill(name: string, opts: BrandSkillExpo
   const heldBack: Array<{ asset: string; reason: string }> = [];
   const extras: Record<string, string | Uint8Array> = {};
   let budget = opts.budget ?? 4 * 1024 * 1024;
-  // Each asset is copied once and held back once, however many times the skill names it.
+  // Each asset is copied once and held back once, however often the skill links to the asset.
   const taken = new Map<string, { file: string; bytes: Uint8Array } | null>();
   const take = (asset: CatalogAsset): { file: string; bytes: Uint8Array } | null => {
     if (taken.has(asset.id)) return taken.get(asset.id)!;
