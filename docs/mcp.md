@@ -37,7 +37,7 @@ Start with the open endpoint: it needs no setup and covers every SVG-native tool
 - **Answers up to 4.4 MB.** A larger answer comes back as a tool error that says why. The operator sets this with `LOLLY_MCP_RESPONSE_MAX_BYTES`. Anonymous calls never receive a server-held download link.
 - **Decks up to 100 slides** per call, for `lolly_rebrand`, `lolly_read`, `lolly_check` and `lolly_compose`. A PDF counts its pages, and a source deck or inventory given to `lolly_check` or `lolly_compose` is held to the same limit.
 - **Up to 262,144 characters of slide text measured** per `lolly_compose` call, counting each extra measure that `fit: "shrink"` makes. A text slot past that comes back unmeasured with a `compose.fit.unmeasured` note, and the result says how many slots were not measured.
-- **Files up to about 3.2 MiB** each for the tools that take a file, so that a file and its base64 encoding fit in one request of up to 4.5 MB (`LOLLY_MCP_REQUEST_MAX_BYTES`). A local server takes files up to 24 MiB. A refusal gives the endpoint's exact figure in bytes.
+- **Files up to about 3.2 MiB** each for the tools that take a file, so that a file and its base64 encoding fit in one request of up to 4.5 MB (`LOLLY_MCP_REQUEST_MAX_BYTES`). A refusal gives the endpoint's exact figure in bytes.
 
 Lolly on your own machine lifts these limits, except that a file can still be at most 24 MiB.
 :::
