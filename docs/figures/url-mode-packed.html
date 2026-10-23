@@ -1,0 +1,46 @@
+<!--
+  Concept: the same Design link readable and packed. Two bars on one scale of characters: the
+  readable query at 2,729 characters and the packed z form at 1,059, with the 1,800-character line
+  where the address bar switches to the packed form, and the region past about 2,000 characters
+  where pasted links, QR codes and some servers start to fail.
+  Band Contract: static fragment scoped under .ump, reads the docs theme tokens with fallbacks,
+  no script, no motion, no network.
+  Sources: AUTO_PACK_MIN = 1800 in shells/web/src/lib/url-budget.ts; the example lengths are the
+  ones the URL Mode guide quotes for one Design document.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.ump{--ump-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--ump-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --ump-ground:hsl(var(--secondary,84.5 55% 92.2%));--ump-paper:hsl(var(--card,0 0% 100%));
+ --ump-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .16);
+ --ump-read:#1a6fa3;--ump-pack:#008657;--ump-risk:#b2461c;
+ --ump-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--ump-ink);background:var(--ump-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+:is([data-theme="dark"],[data-theme="brand"]) .ump{--ump-read:#5fcaff;--ump-pack:#50c369;--ump-risk:#fac044}
+.ump *{box-sizing:border-box}
+.ump p{margin:0}
+.ump ul{list-style:none;margin:0;padding:0}
+.ump li{list-style:none;margin:0;font-size:inherit}
+.ump-plate{position:relative;background:var(--ump-paper);border-radius:14px;padding:16px 14px 12px;
+ box-shadow:0 1px 2px #0000000f,0 6px 18px #0000000f}
+.ump-track{position:relative;display:flex;flex-direction:column;gap:14px;padding-top:26px}
+.ump-row{display:grid;grid-template-columns:5.6em minmax(0,1fr);align-items:center;gap:10px}
+.ump-label{font-weight:650;font-size:.82rem}
+.ump-lane{position:relative;height:30px}
+.ump-bar{position:absolute;inset:0 auto 0 0;width:var(--w);border-radius:8px;background:var(--c);display:flex;align-items:center;
+ justify-content:flex-end;padding:0 8px;color:var(--ump-paper);font:600 12px/1 var(--ump-mono);white-space:nowrap}
+.ump-marks{position:absolute;top:0;bottom:0;left:calc(5.6em + 10px);right:0;pointer-events:none}
+.ump-mark{position:absolute;top:0;bottom:-6px;left:var(--x);border-left:2px dashed var(--c)}
+.ump-mark span{position:absolute;top:0;left:6px;font:600 11px/1.2 var(--ump-mono);color:var(--c);white-space:nowrap}
+.ump-risk{position:absolute;top:22px;bottom:-6px;left:var(--x);right:0;background:repeating-linear-gradient(135deg,transparent 0 6px,hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06) 6px 12px);border-radius:0 8px 8px 0}
+.ump-scale{position:relative;height:14px;margin:8px 0 0 calc(5.6em + 10px);font:500 11px/1 var(--ump-mono);color:var(--ump-muted)}
+.ump-scale span{position:absolute;top:0;left:var(--x);transform:translateX(-50%);white-space:nowrap}
+.ump-scale span:first-child{transform:none}
+.ump-scale span:last-child{transform:translateX(-100%)}
+.ump-key{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin-top:12px;font-size:.8rem;color:var(--ump-muted)}
+@container (max-width:460px){.ump-key{grid-template-columns:1fr}.ump-mark span{font-size:10px}}
+.ump-key b{color:var(--ump-ink);font-weight:650}
+</style><div class="ump"><div class="ump-plate"><div class="ump-track"><div class="ump-marks" aria-hidden="true"><div class="ump-risk" style="--x:66.67%"></div><div class="ump-mark" style="--x:60%;--c:var(--ump-ink)"><span>1,800</span></div></div><div class="ump-row"><p class="ump-label">Readable</p><div class="ump-lane"><p class="ump-bar" style="--w:90.97%;--c:var(--ump-read)">2,729</p></div></div><div class="ump-row"><p class="ump-label">Packed <code>z</code></p><div class="ump-lane"><p class="ump-bar" style="--w:35.3%;--c:var(--ump-pack)">1,059</p></div></div></div><p class="ump-scale" aria-hidden="true"><span style="--x:0%">0</span><span style="--x:33.33%">1,000</span><span style="--x:66.67%">2,000</span><span style="--x:100%">3,000 characters</span></p></div><ul class="ump-key"><li><b>1,800 characters.</b> Past this length the address bar switches to the packed form, when packing is shorter.</li><li><b>Past about 2,000.</b> Pasted links, social crawlers, QR codes and some servers start to fail.</li></ul></div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ6Wp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnDanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDozM2I3NzI3Yi1mZmVlLTQzOTgtYjRjNS0yNzc0Y2MxNTg1MDMAAAAERmp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDU6NTc6NTNaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkRrGZsZW5ndGgZDZpkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIIGjZp3xuYnHRUETJGn9DHkq1WisytzHbl+NUn1j4UHvY3BhZEgAAAAAAAAAAAAAAM9qdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACbY2Jvcqdnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2xvdXJsLW1vZGUtcGFja2VkZGRhdGV4GDIwMjYtMTAtMjNUMDU6NTc6NTMuOTEzWmhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALNanVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAp5jYm9ypmhkYzp0aXRsZW91cmwtbW9kZS1wYWNrZWRqaW5zdGFuY2VJRHgtdXJuOnV1aWQ6YjZlYzc1YzAtMGY3OC00N2Q2LTk5NWEtY2Q0NjgxYzU2ZDgzdGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGtzcGVjVmVyc2lvbmUyLjQuMHJjcmVhdGVkX2Fzc2VydGlvbnOFomN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCCA3xWCmHhQ1B09/HrQk3t3iUQ1aLf2fgI5qvDWeakHJqJjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCBmB+yJheXJ5VapfGFWav7QK0ekHbAFlZWLDZulejaguqJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy90b29scy5sb2xseS5leHBvcnRkaGFzaFgg3ng3clcowWqejmZt64Q0x2IP9iVaMW1NUSUhH9la+B+iY3VybHgoc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvY2F3Zy5tZXRhZGF0YWRoYXNoWCDuJiUol/9ndNv6gbMRLa4CPvJcm24MrBQ3oMM0RtpuhKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFpLWRpc2Nsb3N1cmVkaGFzaFggtQsv4iBHCG4VvZn3v64VDszBnFa6ATQYozPN5SFimqtpc2lnbmF0dXJleBlzZWxmI2p1bWJmPWMycGEuc2lnbmF0dXJlY2FsZ2ZzaGEyNTYAAAJhanVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAAAIxY2JvctKEWQHgogEmGCGBWQHXMIIB0zCCAXmgAwIBAgIJcOlO28lSnG4SMAoGCCqGSM49BAMCMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDAeFw0yNjEwMjMwNTU2NTNaFw0zNjEwMjAwNTU3NTNaMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABNuGRjIU5TdUgF1ANbmlByDiaANK3ACnpO6H+XV2UpS1QcKn8V9XkDT9v8MWLjgK9JrP068U9w1otw8QDpaJDaujcjBwMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMEMB0GA1UdDgQWBBTKQKRTMN3e8nLtrHB6FTeWuIfbbTAfBgNVHSMEGDAWgBTKQKRTMN3e8nLtrHB6FTeWuIfbbTAKBggqhkjOPQQDAgNIADBFAiByHrRj23nmCO5ItRv4BhxW16sqDB1fSaL9itRuOBNkBQIhALGuzYH5raSmC2GGkNvaoQfoaEpsicMqnuGNm517JBqHoPZYQNUr/3Uil+K5pjFPxOuP7kt8N8zq6jQF4hb5wkiNAcHOiePyftJXwjPumJfvy6J+xaJc2OOzzd0gGF1nazvl9Qc= -----END C2PA MANIFEST----- -->

@@ -1,6 +1,6 @@
-# Lolly and Work 1.1.2
+# Release 1.1.2: Lolly and Work
 
-Work 1.1.2 pairs the Work server and render worker with
+This is the current release. Work 1.1.2 pairs the Work server and render worker with
 [Lolly 1.1.2](https://github.com/lolly-tools/lolly/releases/tag/v1.1.2), built from
 Lolly source `fe27a843813b0a653c648e6db078ae8f982b2654`. It is published as
 [Work v1.1.2](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2).
@@ -37,6 +37,19 @@ builds and spot inks into the app's palette downloads, which no Work route calls
 Lolly 1.1.2 lists these features as needing Lolly Work. Against a Work 1.1.1 server
 they stay hidden or fail as described in the Lolly notes.
 
+| Lolly 1.1.2 feature | What Work 1.1.2 adds |
+|---|---|
+| Shared library browsing | Shared scope, type and taxonomy filters and each source's sync status on the asset list |
+| Reviewed search text | A stored, reviewed text entry per asset, bound to the source revision |
+| Shared project files into the library | Submitting a file straight from a shared project, with checksums |
+| Source review | Approvals for frozen instance-owned originals |
+| Live shared sessions in the desktop and mobile apps | A one-use socket ticket for each room |
+| App sign-in to a private Work server | The device code kept through the browser sign-in round trip |
+| Guest landing | A page without scripts for guest edit links, with name and password fields |
+| Model downloads through Work | A `/models/` route that answers from the web app folder or a model origin |
+| Collaboration claims for Scale and keyframes | Core 1.5.0 claim rules in the collaboration gateway |
+
+::: details The API detail behind each feature
 - **Shared library browsing.** `GET /api/v1/catalog/assets` takes `scope=shared`,
   up to 16 `types` and a `taxonomyKind` with `taxonomyId` (section, collection or
   folder). Answers report each source's sync status (`sources`, `complete`) and
@@ -102,6 +115,7 @@ they stay hidden or fail as described in the Lolly notes.
   an object's keyframe track and the content fields a Scale writes, and adds the
   `'scale'` preview kind. A Work 1.1.1 server, built with core 1.4.0, sees Scale
   previews as resizes.
+:::
 
 ## Other changes since 1.1.1
 
@@ -167,6 +181,10 @@ they stay hidden or fail as described in the Lolly notes.
 
 ## Changes for API clients and operators
 
+These change what an API client or operator sees, so check them before upgrading an
+integration.
+
+::: details Every API and operator change
 - **Credentials leave URLs.** `GET /api/v1/jobs/:id/result` takes its token in the
   `x-lw-job-token` header, and callbacks and job resources carry `resultToken`. Link
   passwords are posted as a form or JSON field and kept in an `lw_link_<id>` cookie.
@@ -188,6 +206,7 @@ they stay hidden or fail as described in the Lolly notes.
   `sourceFingerprint`, so clients older than Lolly 1.1.2 cannot act on one. Other
   approvals are unchanged.
 - **PostgreSQL blob size.** The `pg` blob driver refuses blobs over 500 MiB.
+:::
 
 ## Migrations
 
@@ -200,14 +219,19 @@ This release adds six SQL migrations since 1.1.1:
 - `0076_file_references.sql`
 - `0076_session_version_history.sql`
 
-Number 0071 is reserved by unmerged work and two files share 0076. The runner records
-each full file name, sorts by name and applies both 0076 files. The maintained history
-now has 66 files. `0076_session_version_history.sql` builds an ordinary index on
-`session_versions`, not a concurrent one, inside the runner's 120 second statement
-timeout; on a large instance, plan for that table to be locked while it runs. Before
-upgrading, check the database with `pnpm run migrate:status`, take a fresh verified
-backup and complete an independent restore. Then apply the maintained migration runner
-or the chart's migration Job, against the selected instance only.
+`0076_session_version_history.sql` builds an ordinary index on `session_versions`, not a
+concurrent one, inside the runner's 120 second statement timeout. On a large instance,
+plan for that table to be locked while it runs.
+
+Before upgrading, check the database with `pnpm run migrate:status`, take a fresh verified
+backup and complete an independent restore. Then apply the maintained migration runner or
+the chart's migration Job, against the selected instance only.
+
+::: details Why there is no 0071 and two 0076 files
+Number 0071 is reserved by work not yet merged, and two files share 0076. The runner
+records each full file name, sorts by name and applies both 0076 files. The maintained
+history now has 66 files.
+:::
 
 ## Deployment
 
@@ -231,6 +255,9 @@ or the chart's migration Job, against the selected instance only.
 
 ## Prepare and qualify
 
+This section is for Work maintainers cutting the release.
+
+::: details Maintainer commands
 The commands are the same as for 1.1.1, with `vendor/lolly` at the Lolly source
 above:
 
@@ -252,6 +279,7 @@ Before tagging or publishing images, the exact final Work commit needs ordinary
 CI, including the native server image checks and the real Chromium worker checks
 with the matched signed shell. The tagged server and worker images must come from
 that same Work commit.
+:::
 
 ## YunoHost packaging
 

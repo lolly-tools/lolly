@@ -2,7 +2,7 @@
   "what": {
     "heading": "A template-driven creative engine.",
     "body": "A tool remembers layout, type and colours. Add your words, media, or data. You get a finished file in the format you need.",
-    "more": { "label": "How a tool works", "slug": "overview" }
+    "more": { "label": "How Lolly works", "slug": "how-lolly-works" }
   },
   "stats": [
     { "count": "tools", "label": "tools ready", "slug": "make-something" },

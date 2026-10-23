@@ -1,0 +1,11 @@
+digraph asset_renditions {
+  rankdir=TB
+  node [shape=box]
+  source [label="Original file\nchecksum and credit"]
+  renditions [label="WebP renditions\n320, 640, 1280 wide"]
+  previews [label="Previews\ngallery and picker"]
+  use [label="Placing and export\nalways the original"]
+  source -> renditions
+  renditions -> previews
+  source -> use
+}

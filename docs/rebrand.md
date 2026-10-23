@@ -13,7 +13,7 @@ Rebrand offers two modes, and you choose one before you open a deck.
 | **Renovate the layout** | Rebuilds each slide on your design system's slide master: its layouts, colours, typeface and marks. | The deck should look like it was made in your design system from the start. |
 | **Keep the design** | Keeps every slide where it is and swaps in your theme, colours and fonts. | The layout is fine and only the look needs to change. |
 
-Most of this page is about Renovate the layout, because that is where the review happens. [Keep the design](#keep-the-design) has its own section at the end.
+The review below is for Renovate the layout; [Keep the design](#keep-the-design) has its own section.
 
 ## Try it with the sample deck
 
@@ -31,9 +31,9 @@ There are three ways in:
 - Drop a deck anywhere in Lolly and choose **Rebrand** from the choices that appear.
 - Open a `.lolly` file that holds a Rebrand project, and choose **Open in Rebrand**.
 
-While the deck is read, a line says what is happening, for example "Reading slide 12 of 30", and the slides fill in underneath. A 30-slide deck takes about five seconds.
+While the deck is read, a line says what is happening, for example "Reading slide 12 of 30", and the slides fill in underneath.
 
-If your design system has no slide master of its own, the Rebrand screen adds "with the neutral slide master" and the deck goes onto a plain one instead. [The Brand Studio](/info/brand-studio.html) is where a design system gets its masters, logos, colours and fonts.
+If your design system has no slide master of its own, the Rebrand screen adds "with the neutral slide master" and the deck goes onto a plain one instead. [Design System Setup](/info/brand-studio.html) is where a design system gets its masters, logos, colours and fonts.
 
 ## The review screen
 
@@ -82,7 +82,7 @@ Click any object on the slide to decide on it. The caption under the slide gives
 The decision panel's heading says what is selected, such as "Mark on slide 2" or "Slide 3 of 9". Under **Decision**:
 
 - **Keep**, **Replace** or **Remove** the object.
-- **Replace** offers what to put in its place: **Use the design system mark**, **Choose a picture** or **Add a labelled stand-in**, and for a photo **Treat with Filter** or **Treat with Darkroom**.
+- **Replace** offers what to put in its place: **Use the design system mark**, **Choose a picture** or **Add a labelled stand-in**, and for a photo **Treat with Filter** or **Treat with Darkroom**. An endorsed or co-branded deck that must keep a second mark can answer **Keep** for that card; see [Brand architectures](/info/brand-architectures.html).
 - **Apply to** chooses between every object of this kind in the deck and only this one. Objects you have changed by hand keep your change unless you tick the box that includes them.
 
 If Rebrand read some text and is unsure of it, a **Text** field shows what it read, so you can correct it.
@@ -150,7 +150,7 @@ The **Report**, in the footer, accounts for every object in the original deck: t
 
 ![Keep the design with the sample deck: the result large, the original inset, and Download .pptx beside it.](/t/url-shot?url=%2F%23%2Frebrand%3Fmode%3Dkeep%26sample%3Dharbourside-night-market&width=1440&height=900&dpi=96&waitMs=600&format=svg&walker=1&rasterDpi=96&filename=rebrand-keep&try=1&waitSelector=.rb-keep-layout%5Bdata-status%3D%22ready%22%5D&css=.float-cluster%7Bdisplay%3Anone%21important%7D)
 
-Choose **Keep the design** on the Rebrand screen, or switch to it in the top bar. Rebrand swaps the theme, colours and fonts and says what it changed, for example "Changed 5 theme colours, 4 slide colours and 2 fonts". Compare the result with **Original**, **Result**, **Both** or **Wipe**, then choose **Download .pptx**, or **Open the result in Design**.
+Keep the design replaces the former **Theme swap** tool. Choose **Keep the design** on the Rebrand screen, or switch to it in the top bar. Rebrand swaps the theme, colours and fonts and says what it changed, for example "Changed 5 theme colours, 4 slide colours and 2 fonts". Compare the result with **Original**, **Result**, **Both** or **Wipe**, then choose **Download .pptx**, or **Open the result in Design**.
 
 Keep the design works on PowerPoint files. A PDF or a Photoshop document cannot take this path, so open it with Renovate the layout.
 
@@ -166,10 +166,9 @@ Every deck you open becomes a project, saved on this device. **Recent projects**
 
 ## From the command line
 
-The same stages run from the command line and from AI agents: `lolly rebrand plan`, `compile` and `inspect`. See [Rebrand: renovate an old deck](/info/cli.html#rebrand-renovate-an-old-deck) in the CLI guide.
+The same stages run from the command line and from AI agents: `lolly rebrand plan`, `compile` and `inspect`. [Rebuild a deck from the terminal](/info/cli-decks.html#renovate-in-place-with-lolly-rebrand) covers them.
 
-## Words you will see
-
+::: details Words you will see
 | Word | What it means |
 |---|---|
 | Suggestion | What Rebrand would do with an object. Shown on the Proposed slide, but not final until you accept it. |
@@ -180,9 +179,8 @@ The same stages run from the command line and from AI agents: `lolly rebrand pla
 | Keep as a picture | The slide stays exactly as it was, as one picture. |
 | Left out | A slide that will not go to Design. It is not deleted, and Include brings it back. |
 | Not placed | Content that fits no layout. It goes to its own artboard in Design. |
+:::
 
 ## Good to know
 
-- Rebrand reads `.pptx`, PDF and Photoshop files. A deck from Keynote or Google Slides works once it is exported as PowerPoint. In a Photoshop document, layer effects and adjustment layers are not carried; the report lists each one.
-- Its suggestions, layout matches and recognised text are its best reading of the deck, not a guarantee. The review is there so you can check them, and the report shows every outcome.
-- The original file is never changed, and deleting a project leaves the file alone.
+Rebrand's suggestions, layout matches and recognised text are its best reading of the deck, not a guarantee. The review is there so you can check them, the report shows every outcome, and the original file is never changed. A deck from Keynote or Google Slides works once it is exported as PowerPoint. In a Photoshop document, layer effects and adjustment layers are not carried, and the report lists each one.

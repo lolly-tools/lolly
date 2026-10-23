@@ -1,0 +1,185 @@
+{
+  "$comment": "Pages whose first # heading is not their manifest title or a longer form of it, recorded 2026-10-23 with the docs PRs open then. tests/docs-h1-title.test.ts fails only on a page missing here. Fix the heading or the title; do not add to this list. Regenerate with node scripts/docs-ratchets.ts --write.",
+  "pages": {
+    "about": {
+      "title": "About",
+      "h1": "Lolly"
+    },
+    "agenda": {
+      "title": "Agenda screens and programmes",
+      "h1": "Agenda"
+    },
+    "ai-agents": {
+      "title": "AI Agents",
+      "h1": "Driving Lolly from an AI agent"
+    },
+    "catalog-resource-reading": {
+      "title": "Read verified catalog resources",
+      "h1": "Reading resources from a verified catalog"
+    },
+    "cli": {
+      "title": "lolly CLI: create and process files",
+      "h1": "CLI"
+    },
+    "configuration": {
+      "title": "Profiles, brands and tool configuration",
+      "h1": "Configuration guide"
+    },
+    "create-a-tool": {
+      "title": "Share a design with rules",
+      "h1": "Share your design with your rules"
+    },
+    "creative-rights": {
+      "title": "Creative rights and credits",
+      "h1": "Creative rights, credits and what stays yours"
+    },
+    "dashboard": {
+      "title": "The Dashboard",
+      "h1": "Settings"
+    },
+    "deployment": {
+      "title": "Choose a deployment",
+      "h1": "Deployment guide"
+    },
+    "faq": {
+      "title": "Questions & answers",
+      "h1": "FAQ"
+    },
+    "index": {
+      "title": "Lolly: information and documentation",
+      "h1": "Lolly - Landing page copy"
+    },
+    "ios-build": {
+      "title": "Building for iOS",
+      "h1": "iOS Build"
+    },
+    "overview": {
+      "title": "Lolly architecture",
+      "h1": "Overview"
+    },
+    "tenets": {
+      "title": "Tenets",
+      "h1": "all potential to all mediums"
+    },
+    "token-workflows": {
+      "title": "Token workflows",
+      "h1": "Inspecting and reviewing design tokens"
+    },
+    "tool-skills": {
+      "title": "Tool Skills",
+      "h1": "Tool guidance and agent invitations"
+    },
+    "training-creators": {
+      "title": "Training courses",
+      "h1": "Create a training course for a website or LMS"
+    },
+    "work-account-lifecycle": {
+      "title": "Account data controls",
+      "h1": "Account lifecycle operations"
+    },
+    "work-ai-policy": {
+      "title": "Manage organisation AI policy",
+      "h1": "Managed AI execution"
+    },
+    "work-api": {
+      "title": "Lolly Work API",
+      "h1": "API surface"
+    },
+    "work-application-release-classification": {
+      "title": "Application release classification",
+      "h1": "Classify application changes before preparing a release"
+    },
+    "work-c2pa": {
+      "title": "Configure Work export signing",
+      "h1": "Signing exports with C2PA - the IT setup"
+    },
+    "work-cli": {
+      "title": "lw CLI: administer an instance",
+      "h1": "`lw` CLI"
+    },
+    "work-configuration": {
+      "title": "Work instance configuration",
+      "h1": "Configuration reference"
+    },
+    "work-customer-setup": {
+      "title": "Configure your first Work instance",
+      "h1": "Customer setup"
+    },
+    "work-data-lifecycle": {
+      "title": "Work storage and data lifecycle",
+      "h1": "Data inventory and account erasure"
+    },
+    "work-delivery": {
+      "title": "Organisation delivery destinations",
+      "h1": "Outbound delivery"
+    },
+    "work-deployment": {
+      "title": "Lolly Work deployment options",
+      "h1": "Deployment shapes"
+    },
+    "work-document-agents": {
+      "title": "Invite an agent to a document",
+      "h1": "Document agent invitations"
+    },
+    "work-enterprise-identity": {
+      "title": "Set up enterprise identity",
+      "h1": "Enterprise identity deployment"
+    },
+    "work-frontend-updates": {
+      "title": "Fast frontend updates",
+      "h1": "Update the web frontend without rebuilding its image"
+    },
+    "work-install": {
+      "title": "Install Lolly Work",
+      "h1": "Installing"
+    },
+    "work-instance-pack-production": {
+      "title": "Build a verified instance pack",
+      "h1": "Build a raw Work pack from a signed Lolly release"
+    },
+    "work-official-installations": {
+      "title": "Official installation routes",
+      "h1": "Official Lolly Work installations"
+    },
+    "work-overview": {
+      "title": "Lolly Work architecture",
+      "h1": "What this deploy is"
+    },
+    "work-project-portability": {
+      "title": "Preview a project transfer",
+      "h1": "Project transfer preview"
+    },
+    "work-public-model-proof-reuse": {
+      "title": "Public model verification reuse",
+      "h1": "Model proof reuse and release measurements"
+    },
+    "work-release-1-1-0": {
+      "title": "Release 1.1.0 (historical record)",
+      "h1": "Lolly and Work 1.1.0"
+    },
+    "work-release-1-1-1": {
+      "title": "Release 1.1.1",
+      "h1": "Lolly and Work 1.1.1"
+    },
+    "work-release-1-1-2": {
+      "title": "Release 1.1.2",
+      "h1": "Lolly and Work 1.1.2"
+    },
+    "work-renders": {
+      "title": "Recover and inspect render jobs",
+      "h1": "Recoverable renders"
+    },
+    "work-security-platform": {
+      "title": "Where work happens and what crosses the network",
+      "h1": "Security and platform overview"
+    },
+    "work-status": {
+      "title": "Work status and roadmap",
+      "h1": "Status and roadmap"
+    },
+    "work-wasm-deployment": {
+      "title": "WebAssembly and Kubewarden choices",
+      "h1": "WebAssembly deployment choices"
+    }
+  }
+}

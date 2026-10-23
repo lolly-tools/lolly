@@ -1,0 +1,90 @@
+<!--
+  Concept: the Host API in one picture. A tool (manifest, template, hooks) hands every outside job
+  to one object, host. Six members exist on every shell; the optional APIs are grouped by the job
+  a tool author wants done, the same groups the page uses. Six shells implement the same contract.
+  Band Contract: static fragment scoped under .hab, reads the docs theme tokens with fallbacks
+  (light/dark/brand via --card/--card-foreground/--muted-foreground/--secondary/--primary), no
+  script, no motion, no network. Cards rest on a neutral hairline; required members are filled,
+  optional groups are tinted, so the two read apart without a dashed border.
+  Sources: packages/core/src/host-v1/host.ts (the six required members, host.shell values) and
+  packages/core/src/host-v1/apis.ts (HOST_V1_OPTIONAL_APIS); the shells are the web app, the two
+  Tauri apps, the CLI, the TUI (the CLI's bridge) and the MCP server (services/mcp).
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23 for the docs remediation plan. The C2PA signature added at bank time is the first
+  provenance record of this file.
+-->
+<style>
+.hab{--hab-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--hab-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --hab-ground:hsl(var(--secondary,84.5 55% 92.2%));--hab-paper:hsl(var(--card,0 0% 100%));
+ --hab-accent:hsl(var(--primary,176.5 89.5% 11.2%));--hab-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --hab-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);
+ --hab-wash:color-mix(in oklab,var(--hab-accent) 12%,var(--hab-paper));
+ --hab-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--hab-ink);background:var(--hab-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.hab *{box-sizing:border-box}
+.hab ul{list-style:none;margin:0;padding:0}
+.hab li{list-style:none;margin:0;font-size:inherit}
+.hab p{margin:0}
+.hab code{font-family:var(--hab-mono);font-size:.86em;background:none;padding:0}
+.hab .hab-grid{display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(0,1.7fr) 28px minmax(0,1fr);gap:10px;align-items:stretch}
+.hab .hab-card{background:var(--hab-paper);border-radius:16px;box-shadow:0 0 0 1px var(--hab-line);padding:14px 14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.hab .hab-cap{font:600 11px/1.3 var(--hab-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--hab-muted)}
+.hab .hab-title{font-weight:600;font-size:1.05rem}
+.hab .hab-files li{display:flex;flex-direction:column;gap:1px;padding:7px 0;border-top:1px solid var(--hab-line)}
+.hab .hab-files li:first-child{border-top:0;padding-top:0}
+.hab .hab-files span{font-size:.82rem;color:var(--hab-muted)}
+.hab .hab-sub{font-size:.8rem;color:var(--hab-muted);margin-top:2px}
+.hab .hab-chips{display:flex;flex-wrap:wrap;gap:6px}
+.hab .hab-chips li{border-radius:999px;padding:4px 10px;font-size:.84rem;line-height:1.25}
+.hab .hab-req li{background:var(--hab-accent);color:var(--hab-on-accent);font-family:var(--hab-mono);font-size:.8rem}
+.hab .hab-opt li{background:var(--hab-wash);color:var(--hab-ink);box-shadow:inset 0 0 0 1px var(--hab-line)}
+.hab .hab-shells li{padding:6px 0;border-top:1px solid var(--hab-line);font-size:.92rem}
+.hab .hab-shells li:first-child{border-top:0;padding-top:0}
+.hab .hab-shells small{display:block;font-size:.78rem;color:var(--hab-muted)}
+.hab .hab-arrow{display:flex;align-items:center;justify-content:center;color:var(--hab-accent)}
+.hab .hab-arrow svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.hab .hab-note{margin-top:12px;font-size:.82rem;color:var(--hab-muted);text-align:center}
+@container (max-width:640px){
+ .hab .hab-grid{grid-template-columns:minmax(0,1fr)}
+ .hab .hab-arrow{height:22px}
+ .hab .hab-arrow svg{transform:rotate(90deg)}
+}
+</style>
+<div class="hab">
+  <div class="hab-grid">
+    <section class="hab-card" aria-label="A tool">
+      <p class="hab-cap">A tool</p>
+      <ul class="hab-files">
+        <li><code>tool.json</code><span>what it takes</span></li>
+        <li><code>template.html</code><span>what it draws</span></li>
+        <li><code>hooks.js</code><span>what it works out</span></li>
+      </ul>
+    </section>
+    <div class="hab-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+    <section class="hab-card" aria-label="The host object">
+      <p class="hab-cap">Calls <code>host</code></p>
+      <p class="hab-sub">On every shell</p>
+      <ul class="hab-chips hab-req">
+        <li>profile</li><li>assets</li><li>state</li><li>clip<wbr>board</li><li>export</li><li>log</li>
+      </ul>
+      <p class="hab-sub">Optional, grouped by job</p>
+      <ul class="hab-chips hab-opt">
+        <li>Brand and type</li><li>Pictures and pixels</li><li>Vector, layout and motion</li><li>Documents and text</li>
+        <li>Sound, speech and camera</li><li>Reaching outside the tool</li><li>On-device AI models</li><li>Provenance</li>
+      </ul>
+    </section>
+    <div class="hab-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+    <section class="hab-card" aria-label="Shells that implement host">
+      <p class="hab-cap">Each shell implements host</p>
+      <ul class="hab-shells">
+        <li>Web app<small>browser</small></li>
+        <li>Desktop and mobile apps<small>Tauri</small></li>
+        <li>CLI and TUI<small>terminal</small></li>
+        <li>MCP server<small>agents</small></li>
+      </ul>
+    </section>
+  </div>
+  <p class="hab-note">Check an optional API before you call it, or list it in the manifest's <code>requires</code>.</p>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKAGp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnaanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo0Njc5MDc0Ni04ZmZiLTRlMDQtYTgwYy0yZDQxOGZhZDI4ZWUAAAAEXWp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDU6NDg6MjBaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkWrGZsZW5ndGgZDbpkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIBqumwa7KPwUlkMbYcCNsw2++O0stVog7RcmLPKyxxg+Y3BhZEgAAAAAAAAAAAAAAOZqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACyY2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2xvaG9zdC1hcGktYnJpZGdlZGRhdGV4GDIwMjYtMTAtMjNUMDU6NDg6MjAuNTA3WmpkaW1lbnNpb25zazI0IMOXIDI0IHB4aGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAs1qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACnmNib3KmaGRjOnRpdGxlb2hvc3QtYXBpLWJyaWRnZWppbnN0YW5jZUlEeC11cm46dXVpZDplZjU4MGEyMS1kMmFmLTQ0MTEtOTZiYi0zZjhiNDdkY2QzZmN0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIL8pYKX2lPV237gTS+s5UyThVodoqLcXUS9Ajtib+tUfomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIDZq56gECmRc86kF+qoypDn6wtqSSsrOvGxLuRjPxtJBomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCDUgbYjcRnnit1zOMy+cN+B6uuiR29A/xpAZrUYAluBOqJjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmFqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjFjYm9y0oRZAeCiASYYIYFZAdcwggHTMIIBeaADAgECAgl9uJxeUUlolwswCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMzA1NDcyMFoXDTM2MTAyMDA1NDgyMFowNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEkIeCQooRgUAcw3XoRvS3QSzEpO3pnrM+mUsq2Z3fjvB4AXJdDeff2lsfdOfenvOHFNuGvVgmAFPxHjPBS8L15aNyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFItrHqoS4nEMTskOmD30F22sdb8fMB8GA1UdIwQYMBaAFItrHqoS4nEMTskOmD30F22sdb8fMAoGCCqGSM49BAMCA0gAMEUCIQCxU6G5ZTOLtQaesafSy0MmzCKB5IJIUEIrYWnZHdvliwIgcMK4rQGV++LpLaw436H1QsQUScUEd7/ClF5t5sJwHQKg9lhA026GqInNAILWv++1HObdHtfDXtwLpyL0peDPBKkaviR1ULdCpIC46WQmFoSPrF8bPhDQgAhUHwJTS/nCcqyxXQ== -----END C2PA MANIFEST----- -->

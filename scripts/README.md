@@ -158,6 +158,7 @@ These drive tools in a real browser and export through the app's own render path
 | `check-ui-performance.ts` | `check:ui-performance` | Measures gallery scroll/search, tool opening/editing, idle main-thread use and live Performance UI toggling in Chromium. Repeated OFF/ON runs with CPU throttling; JSON report and optional target enforcement. See [`shells/web/PERFORMANCE.md`](../shells/web/PERFORMANCE.md). | browser, network |
 | `build-docs-shots.ts` | `docs:shots` | Captures, compares and credentials the docs screenshots that are declared as ordinary markdown images in the docs pages. Pins the `lolly-start` profile for the capture, since SUSE tools and assets must never reach the public docs repo. | DESTRUCTIVE, submodule, browser, native |
 | `lib/shot-compare.ts` | none | The pure comparison logic behind `build-docs-shots.ts`. | |
+| `docs-ratchets.ts` | none | Three one-directional docs checks with baselines in `scripts/data/docs-ratchets/`: an English page that uses a tool or asset id a public clone lacks, a page whose first heading is not its nav title, and a page that names Vercel more often than before. Reports by default; `--write` rewrites the baselines from this tree, and `--also-ref=<ref>` adds what another branch carries. The tests are `tests/docs-public-examples.test.ts`, `tests/docs-h1-title.test.ts` and `tests/docs-platform-neutral.test.ts`. | |
 | `lib/rasterize-svg-browser.ts` | none | SVG to PNG through our own render path in Chromium rather than resvg. | browser |
 | `lib/pdfrender.swift` | none | Renders page one of a PDF to PNG via Quartz, the renderer every macOS app uses. An independent ground truth for the vector audit. | native |
 | `audit-vector-render.ts` | none | Three-way conformance audit of the print-PDF to SVG interpreter: a screen screenshot, the same print PDF rendered by an independent engine (poppler `pdftoppm`, else macOS `sips`), and our SVG rasterised back. Splits the loss into Chromium's print pass and our interpreter. Writes a dated report under `plans/`. | browser, native, network |
@@ -232,3 +233,556 @@ projects and managed domains cannot be deployed through either legacy adapter.
 The Vercel configuration remains an optional adapter with automatic Git
 deployments disabled. Operators adopting that adapter must deliberately arrange
 their own project and deployment trigger.
+
+## Hosted web app releases
+
+These are maintainer runbooks for publishing the Lolly web app to the project's hosted
+sites and to private Lolly Work instances. They moved here from `/info` on 2026-10-23,
+because readers who install Lolly or Lolly Work do not run them. They are English only
+and are not translated. Unless a step says otherwise, the commands run from a qualified
+`lolly-work` checkout, and every `deploy/helm/...` path below is in that repository. The
+reader-facing page for a private instance is
+[Shell deployment workflow](https://lolly.tools/info/operate/shell-deployment-workflow.html).
+
+### The hosted sites
+
+Since 7 October 2026, `lolly.ing` and `lolly.tools`, with their `www` aliases, run on one
+UpCloud host with openSUSE Leap 16.0 and K3s. Work, the render worker and the live relay
+are separate Kubernetes workloads, and PostgreSQL 18.6, the public web app, the APIs and
+the managed HTTPS edge run on the same host. The `lolly.work` evaluation demo runs there
+too, in its own namespace, with throwaway sample data, separate keys and network
+isolation from private workspaces; its automatic deployment from Work's CI is retired.
+
+The former `lolly.ing` Compose services stay stopped and their database access is fenced.
+That host is kept only for SSH access and checked HTTPS forwarding to the current host.
+Do not replay its Compose, hosted-database or serverless rollback commands, restore its
+database access, or point production DNS at those old targets. The reviewed deployment
+handoff for each instance defines its real host, cluster, secrets, volumes and pinned
+release; a generic example in the docs is not that handoff.
+
+### Classify a change before preparing a release
+
+`scripts/classify-application-release.ts` inspects a clean local Lolly or Lolly Work
+checkout at an exact candidate commit. It reads Git objects only: it never builds,
+downloads, starts a workflow or contacts production. Node 24 and Git are the only
+prerequisites. Use full lowercase commit hashes and the canonical absolute checkout
+folder, and the base must be an ancestor of the candidate. Dirty tracked files, untracked
+files and changed submodules refuse the inspection.
+
+```sh
+node scripts/classify-application-release.ts \
+  --repo /absolute/isolated/lolly-checkout \
+  --base FULL_PREVIOUS_SOURCE_COMMIT \
+  --candidate FULL_CANDIDATE_SOURCE_COMMIT
+```
+
+The JSON records both commits and tree hashes, every changed path and object identity, a
+deterministic inventory checksum and an advisory classification:
+
+| Classification | Meaning |
+| --- | --- |
+| `web-shell-only` | Only regular web source, the web entry or the service worker changed, optionally with tests and the generated web source README. Shared engine, core, schema, tool, profile, brand, catalog, dependency, deployment and service inputs are unchanged. |
+| `no-change` | The committed trees are identical. This does not show whether a running deployment already matches them. |
+| `full-or-paired-required` | The rule cannot establish a narrow web scope. Review the actual changes before choosing broader qualification or deciding that no application release is needed. |
+
+Documentation-only, test-only and README-only changes do not select a web release.
+Unknown or mixed paths, browser-support and release-gate changes, symlinks and submodule
+pointers need manual review, and Work changes stay in the broader category because no
+backend rule has been qualified. The limits are 4,096 changed paths, 1,024 bytes per path
+and 2 MiB of Git output per command. Invalid UTF-8, unsafe file names and ambiguous ranges
+refuse the whole inspection, and renames record both the removed and the added path.
+
+This is a preparation aid, not permission to deploy or reuse an artifact. Every result
+keeps `normalCiRequired` and `privateCompatibilityReviewRequired` true, and
+`artifactReuseAuthorized` and `promotionAuthorized` false. It does not authenticate main,
+CI, image provenance, signatures or the production target. Do not classify a moving main
+reference or derive deployment state from local source; ignored build output is neither
+read nor evidence.
+
+For an advisory web-only result, Lolly's `deployment-suse.yml` accepts an explicit
+`release_scope=web` with the exact reviewed source and its successful normal push or main
+CI. The main-web preparation workflow runs its own source and web release-gate checks
+before requesting a candidate. The classifier is connected to neither workflow and cannot
+bypass their checks. Native and device holds stay independent. A private web app still
+needs its own signing and profile inputs, a compatible engine, pack and pin review,
+retention of old lazy-loaded assets, and acceptance of the owning runtime, HTTPS and
+interaction.
+
+Follow the [application update guide](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/APP-UPDATES.md)
+for reviewed image plans and existing volume custody. For compatible frontend changes,
+use the [private shell quickstart](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/PRIVATE-SHELL-QUICKSTART.md)
+or the [public shell preparation guide](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/PUBLIC-SHELL-UPDATES.md).
+These reuse accepted images and keep the existing engine and tool catalogue. Automatic
+promotion of a moving main is separate work, and the classifier changes no production
+credentials, infrastructure, database, DNS or release gates. Its disposable Git fixture
+tests need no cluster: `node --test tests/application-release-classification.test.ts`.
+
+### Update the web app without rebuilding its image
+
+Start from an exact qualified source commit and the instance's current accepted release.
+For a compatible web TypeScript, CSS or layout change, build the new frontend and publish
+a new shell claim, keeping the accepted application image, engine, catalogue, database and
+infrastructure. A single-owner `Recreate` instance has a short reconnect window when its
+new owner starts, and someone using the instance sees the new interface after acceptance,
+possibly after reconnecting an open tab. No cloud provisioning, Helm reinstall or database
+restore is part of a normal application update.
+
+Use this path for web application code only. Backend TypeScript, the baked Work admin
+console, dependencies, engine, core and schema, tools, brand and build-policy changes need
+their broader release path. The classifier above checks the exact committed changes; an
+allowed file name alone does not prove compatibility. A developer supplies the immutable
+source and its successful CI, and the operator supplies the accepted baseline and the
+protected instance inputs. A new commit on `main` is the input to qualification, not an
+automatic live release, and old claims and immutable files stay until the new release is
+accepted.
+
+| Change | Release path |
+| --- | --- |
+| Compatible web TypeScript, CSS or layout | The private shell commands below; on a public site, the root and validator map advance together |
+| Images or documentation inside unchanged signed content | Reuse those accepted bytes; there is no need to rebuild them |
+| Changed tools, catalogued assets, brand content or served documentation | Qualify a complete content release with signatures and kept addresses; reuse the runtime only when its exact compatibility is established |
+| Backend TypeScript or the baked admin console | A qualified application image, through the application update guide |
+| Engine, schema, native runtime or dependency changes | The matched release and its broader checks; infrastructure stays unless the release needs an infrastructure change |
+
+#### Before the first update
+
+An IT operator sets up the reusable inputs and records the first accepted baseline, then
+keeps the protected files available to the release operator. The private lane needs an
+existing dedicated shell volume. The public lane needs an accepted Nginx image; its first
+update adds five read-only serving mounts and a read-only whole-volume anchor. The public
+producer uses the reviewed `lolly.tools` policy, and another public instance needs its own
+reviewed policy contract.
+
+| Reusable instance input | What the operator reviews |
+| --- | --- |
+| Target and guard programs | Cluster and host identity, all protected components, the mandatory preflight and actual host mount checks |
+| Accepted image and runtime inputs | Engine, pack and pin or public Nginx configuration, and separate model storage |
+| Public verification key | The existing public-only P-256 key; no signing secret is needed for unchanged signed content |
+| Helper source closure | Exact maintained scripts, imports and probe hashes; review again when helpers change |
+| Private instance profile | Storage bounds, stage-name policy, runtime probes and an optional approved signed-in catalogue caller |
+
+| Fresh release input | Where it comes from |
+| --- | --- |
+| Exact main commit and successful normal CI | Original source, run and job records for that immutable commit; a moving `main` name or a local success label is not enough |
+| Current accepted baseline | The genuine `accepted.previous.json`, the complete accepted snapshot and manifest; advance only after acceptance |
+| New build custody and evidence | Accepted settings and compatibility inputs, original producer and web-gate reports and complete manifests |
+| New shell claim and attempt folders | An explicit reviewed selection and unused names; outputs are exclusive |
+
+Use Node 24 or later, Python 3.10 or later and already installed locked dependencies in
+clean isolated checkouts; the producer installs nothing. Reuse the exact accepted ignored
+ORT and ORT-HF cache bytes where Vite needs them. IT supplies the reviewed custody and
+evidence files: these commands do not create provider-origin proof from handwritten JSON.
+Keep protected instance inputs outside the source repository.
+
+#### Private Work instance: three commands
+
+Replace the uppercase placeholders with reviewed full commits and SHA-256 values, and the
+`/protected/` paths with your existing protected folder. The accepted snapshot includes
+kept lazy chunks that already-open tabs still need.
+
+```sh
+pnpm update:shell:build \
+  --source /clean/lolly --base ACCEPTED_SHELL_COMMIT --candidate NEW_MAIN_COMMIT \
+  --previous-shell /protected/accepted-shell --public-key /protected/public.jwk.json \
+  --custody /protected/build-custody.json --custody-sha256 REVIEWED_CUSTODY_SHA256 \
+  --out /protected/build-NEW_MAIN_COMMIT
+
+pnpm update:shell:prepare \
+  --evidence /protected/shell-evidence.json \
+  --reviewed-evidence-sha256 REVIEWED_EVIDENCE_SHA256 \
+  --existing-public-pin-sha256 REVIEWED_CANONICAL_PUBLIC_JWK_SHA256 \
+  --node /path/to/node24 --out-dir /protected/prepared-NEW_MAIN_COMMIT
+
+pnpm update:shell run \
+  --profile /protected/instance-profile.json --profile-sha256 REVIEWED_PROFILE_SHA256 \
+  --prepared /protected/prepared-NEW_MAIN_COMMIT/shell.prepared.json \
+  --prepared-sha256 REVIEWED_PREPARED_SHA256 \
+  --operator-sha256 REVIEWED_UPDATE_OPERATOR_SHA256 \
+  --out /protected/update-NEW_MAIN_COMMIT
+```
+
+Build and preparation are local; review their original reports and hashes before `run`.
+`run` captures fresh resources, stages isolated content, plans, dry-runs, applies once and
+observes the new owner. It streams snapshots through the current owner into new claims and
+never mounts an active claim into a staging pod. A successful `run.actual.json` has status
+`PRIVATE_SHELL_UPDATE_RUNTIME_ACCEPTED` and links `accepted.previous.json` and
+`instance-profile.next.json`. Use that exact next profile for the next release, keeping both
+profiles and their snapshots and receipts. It advances the baseline while keeping the
+reviewed image, pack, pin and caller policy. Export, document-agent and signed-in reconnect
+checks stay separate.
+
+The [private quickstart](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/PRIVATE-SHELL-QUICKSTART.md)
+covers the offline `check` and `plan`, naming and next-profile details; the
+[private input contract](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/SHELL-UPDATES.md)
+covers custody and preparation; and the
+[signed-in catalogue guide](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/PRIVATE-SHELL-CATALOG-PROBES.md)
+covers the reusable caller policy. Assembling the inputs stays an operator review step.
+
+#### Public Nginx instance: the complete-root layout
+
+A complete-root public image has a full SHA validator map with gzip and Brotli siblings,
+and its root and map must come from the same complete inventory. The old five-path
+producer refuses that baseline: do not remove its hold or reuse a baked map for new
+JavaScript. The maintained
+[complete-root preparation helpers](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/PLAN300-PUBLIC-FULL-ROOT.md)
+assemble current and kept content, validate every coding and derive one guarded root-claim
+patch, reusing the accepted image, configuration and models for a compatible later update.
+
+Complete-root assembly and patch derivation are local preparation. A site's stager, native
+qualifier and publisher must bind that protocol and provide real resource, memory, HTTP,
+retirement and TLS acceptance before promotion; these helpers do not make the older public
+facade work on a map-bearing image. The
+[complete-root runtime adapter](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/PUBLIC-DELIVERY-RUNTIME.md)
+provides explicit prepare, isolated stage, qualified switch and observation commands for
+its declared managed K3s layout; its source controls do not replace registration and real
+native acceptance on the operator's target. Only the new qualified frontend root and its
+paired map advance.
+
+`update:public-shell:build` accepts an original version 2 complete-root serving record. It
+verifies that record through the maintained read-only validator and emits a version 2
+`public-full-root-frontend` descriptor. The builder keeps the accepted image, public catalog,
+configuration and model recipe, recompiles the frontend and compresses only changed entry
+files and new chunks. Kept immutable identities and gzip and Brotli bytes stay exact; it
+checks every encoded file and generates the validator map from the final inventory.
+Complete-root assembly then reads this descriptor in `frontend` mode, and the legacy
+five-path facade still refuses a map-bearing root.
+
+Keep the original preparation, qualification and publication records, including any
+explicitly verified continuation after an interrupted staging attempt. Reading that history
+does not rerun old operators or erase failed journals, and new preparation also holds the
+complete current validator source closure. Avoiding an image rebuild does not make
+publication instant: whole-root and HTTP qualification take time in proportion to the kept
+content.
+
+After a successful complete-root observation, the publisher keeps `observe.accepted.json`
+and writes `accepted-release.actual.json` plus `handoff.accepted.json`. Use that version 2
+record as the next preparation's `acceptedRelease`, with its manifest as `previousManifest`
+and fresh complete target captures. The next preparation checks again the original input
+and source, dry run, atomic switch, retirement, command streams and stable serving owner
+bookends; a failed or partial observation cannot produce this handoff. Existing registered
+version 1 baselines stay readable. This records serving acceptance only; browser and native
+target registration keep their own scope. Memory admission keeps the adapter's
+current ≤ peak < configured limit and zero-OOM requirements.
+
+Kept HTTP verification binds the complete held identity rows to a closed count, byte total
+and canonical SHA-256 digest before any request. Its finite 8 GiB transfer ceiling matches
+complete-root assembly and is separate from the pod's memory limit. Single bodies stay
+capped at 2 GiB and stream in 64 KiB blocks. Native result capture, strict parsing and
+compact HTTP receipts share a 32 MiB envelope including newlines; every response field stays
+in that receipt, and an oversized result refuses qualification rather than dropping headers
+or rows. Process identity, hash, cache, Range and CORS checks and command deadlines still
+apply. Admission checks the historical preparer's original hash and reviewed source
+membership independently of the current checkout, all resources and protected fields are
+derived again under the current guards, and original receipts are kept when preparation
+moves to another checkout.
+
+#### Legacy public Nginx instance: supervised phases
+
+These five-path commands remain for an accepted legacy image without a validator map, and
+cannot stand in for complete-root publication. The public lane reuses its accepted image
+and signed neutral catalogue. Its overlay holds only `_app`, `index.html`, `precache.json`,
+`sw.js` and `portable/player.js`; models and the rest of the image stay unchanged. Keep
+private artifacts out of this lane.
+
+For the managed local-volume plugin, the claim source stays writable to the kubelet while
+every application mount stays read-only. The first whole-volume mount allows normal SELinux
+relabelling before the five serving subpaths. The selected `OnRootMismatch` policy keeps file
+modes when the backing root already has GID 101, owner and group `rwx` and setgid. The
+operator checks that root before each handoff, and the separate model root before
+publication; a mismatch stops the update without changing permissions. These checks support
+the pinned `local` plugin with `rancher.io/local-path`, not CSI or `hostPath` volumes.
+
+```sh
+pnpm update:public-shell:build \
+  --source /clean/lolly --base ACCEPTED_SHELL_COMMIT --candidate NEW_MAIN_COMMIT \
+  --previous-shell /protected/accepted-public-static --public-key /protected/public.jwk.json \
+  --custody /protected/public-custody.json --custody-sha256 REVIEWED_CUSTODY_SHA256 \
+  --out /protected/public-build-NEW_MAIN_COMMIT
+
+pnpm update:public-shell:prepare \
+  --evidence /protected/public-evidence.json \
+  --reviewed-evidence-sha256 REVIEWED_EVIDENCE_SHA256 \
+  --node /path/to/node24 --out-dir /protected/public-prepared-NEW_MAIN_COMMIT
+
+python3 -B scripts/stage-public-shell.py check \
+  --inputs /protected/public-stage.json --sha256 REVIEWED_STAGE_INPUT_SHA256 \
+  --operator-sha256 REVIEWED_STAGER_SOURCE_SHA256
+python3 -B scripts/stage-public-shell.py run \
+  --inputs /protected/public-stage.json --sha256 REVIEWED_STAGE_INPUT_SHA256 \
+  --operator-sha256 REVIEWED_STAGER_SOURCE_SHA256
+```
+
+IT assembles the stage input from the original preparation and fresh complete captures.
+After a successful isolated qualification and exact writer and qualifier retirement,
+assemble and review the publication input from those actual receipts. Run each command
+separately, and inspect the previous result before going on:
+
+```sh
+python3 -B scripts/publish-public-shell.py check \
+  --inputs /protected/publication.json --sha256 REVIEWED_PUBLICATION_INPUT_SHA256 \
+  --operator-sha256 REVIEWED_PUBLISHER_SOURCE_SHA256
+python3 -B scripts/publish-public-shell.py dryrun \
+  --inputs /protected/publication.json --sha256 REVIEWED_PUBLICATION_INPUT_SHA256 \
+  --operator-sha256 REVIEWED_PUBLISHER_SOURCE_SHA256
+python3 -B scripts/publish-public-shell.py apply \
+  --inputs /protected/publication.json --sha256 REVIEWED_PUBLICATION_INPUT_SHA256 \
+  --operator-sha256 REVIEWED_PUBLISHER_SOURCE_SHA256
+python3 -B scripts/publish-public-shell.py observe \
+  --inputs /protected/publication.json --sha256 REVIEWED_PUBLICATION_INPUT_SHA256 \
+  --operator-sha256 REVIEWED_PUBLISHER_SOURCE_SHA256
+```
+
+There is no public one-command facade. `observe` writes
+`observe.acceptance.original.json` with `PUBLIC_SHELL_RUNTIME_AND_HTTPS_ACCEPTED` and a
+genuine `accepted.previous.json` for the next preparation. Keep the original image
+expectation, the new effective-static and overlay manifests and the original receipts;
+browser, presentation and native checks keep their own scope. The
+[public preparation guide](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/PUBLIC-SHELL-UPDATES.md)
+defines custody and baseline fields, and the
+[public promotion guide](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/PUBLIC-SHELL-PROMOTION.md)
+defines the stage and publication inputs, exact guards and phases.
+
+#### Results, timing and refusals
+
+Full file hashes, sizes, modes, the signed catalogue and storage and owner identity stay
+mandatory. Public snapshots are single-member gzip tar streams: the CRC, trailer, complete
+file inventory and tar end blocks must pass before extraction, and a zero exit code alone
+does not prove complete transport.
+
+Read measured phase receipts rather than treating Vite time as deployment time. The private
+facade records `elapsedSecondsByPhase`; neither lane promises a fixed end-to-end duration or
+follows main unattended. A local build, offline plan or synthetic fixture is not live
+acceptance, and normal CI and the explicit web release gate stay required, with native and
+device holds separate.
+
+Serialise updates that share a target. Every change needs its mandatory site preflight last,
+plus fresh exact resource guards. If a phase refuses, keep the exclusive attempt folder and
+`*.uncertain.json` with its original responses, and inspect the current state read-only: do
+not repeat apply, replay an intent or relabel a failure as success. A forward fix or rollback
+needs a new reviewed intent against the current state. Keep old qualified claims until
+acceptance, and keep current user data.
+
+The maintained full-root stage and publisher write `<phase>.timing.actual.json` with
+monotonic elapsed seconds, including their guard work. Model HTTPS checks also write
+`models-http.timing.actual.json` during qualification and
+`owning-models-tls.timing.actual.json` during observation. They record requests started,
+responses completed and response-body bytes actually read, including partial reads on
+failure; bytes exclude headers and TLS framing and are not network-interface measurements.
+Model time is part of its enclosing phase time, so do not add them, and constructor and
+local preparation time are not covered. These diagnostic files grant no acceptance: keep the
+accepted or uncertain receipt and the original command evidence beside them. An interrupted
+process may leave no timing file.
+
+Avoiding an image build does not make a full public release immediate. The full-root
+qualifier still checks the complete static root, the models, native HTTP behaviour and
+normal-TLS responses before publication. At each of its three model checkpoints it uses one
+complete physical scan for both the owner assertion and the inode and hash comparison, which
+removes three duplicate scans without reusing an older checkpoint or skipping a byte check on
+either side of HTTP; the accepted receipt format is unchanged. One 177-model qualification
+read 5.39 GB of models and transferred 10.78 GB over TLS through ordinary and mismatching
+If-Range requests; its TLS part took about 13 minutes and the full qualification about 28.
+Those are measurements from that run, not a promised duration or a measured result of the
+scan reduction. The accepted-checkpoint option and operation measurements below address the
+work tracked in [issue 115](https://github.com/lolly-tools/lolly-work/issues/115).
+
+Reuse of model proofs stays within the exact same verified owner and process checkpoint. A
+replaced owner or process needs full qualification even when image and storage identities
+match, and a `Recreate` rollout always changes the owner, so a proof from the old serving
+owner cannot qualify the new one.
+
+#### Completing a failed observation under the same owner
+
+The maintained frontend publisher writes `observe.checkpoint.actual.json` only after its full
+model TLS checks, complete physical checks on both sides of HTTP and the final owner and
+native-process bookend succeed. This checkpoint is explicitly **not release acceptance**. If a
+later diagnostic fails, keep the original `observe.uncertain.json` and every command and raw
+stream.
+
+`continue-public-observation.py` supports only `check` and `observe`. A reviewed input binds
+the original publication proof (with its checkpoint as the observation receipt), the original
+started and uncertain markers, the complete sorted list of original command references and a
+new exclusive output folder. The continuation operator must already belong to the original
+reviewed source registry. Pass the exact input and operator hashes with
+`--reviewed-input-sha256` and `--reviewed-operator-sha256`; there is no publication or
+rollback action.
+
+A continuation must start and finish within 15 minutes of the checkpoint. It needs the same
+Deployment, ReplicaSet, pod, container, native PID and start ticks, boot, namespace,
+executable and root identity, with unchanged reviewed configuration and storage. It runs
+fresh complete physical model and static hashes, health, native HTTP, memory and fixed-entry
+TLS checks, and every model gets fresh cache, CORS, conditional request and range checks whose
+range hashes must match the original full verification. Only the two complete-body transfers
+for model files larger than 64 KiB are reused, labelled `REUSED` with their original values
+and receipt rather than described as new downloads; smaller files still get both
+complete-body requests.
+
+Expiry, an owner or process replacement, changed bytes, configuration or storage, missing
+original commands, altered validators, a failed fresh check, or an attempt already accepted
+or rolled back all refuse the continuation. A failed continuation keeps its own uncertain
+journal and never erases or retries the original attempt, and normal publication acceptance
+validates both journals and the exact proof links. This recovery path keeps full physical
+scans and applies only to its original owner; no production speedup is claimed for this
+path.
+
+### Model proof reuse and release measurements
+
+A frontend stage can opt into a prior successful model checkpoint by adding a `modelReuse`
+held file reference to its reviewed runtime input. Without that field, staging still
+downloads every model body. The referenced request has exactly these fields:
+
+```json
+{
+  "version": 1,
+  "status": "REVIEWED_ACCEPTED_MODEL_CHECKPOINT_REUSE_NOT_EXECUTED",
+  "acceptedRelease": { "path": "/absolute/accepted-release.actual.json", "sha256": "<exact sha256>" },
+  "checkpointProof": { "version": 1, "input": {}, "operator": {}, "phases": {} }
+}
+```
+
+`checkpointProof` is the original accepted publication proof, with its observe accepted
+reference pointing at its genuine `observe.checkpoint.actual.json`. The helper derives the
+accepted publication and checkpoint again, including the original source, commands, owner,
+configuration and full-body HTTP proof. The empty objects above are placeholders, not
+runnable inputs.
+
+The checkpoint must be no more than **24 hours old at both qualification bookends**. Its exact
+Deployment, ReplicaSet, pod, container, native PID and start time, boot, namespaces,
+executable and root must still be selected, and the model recipe, image, configuration bytes,
+origin, claim and volume identities and backing specs must match. Historical records without
+the native-process checkpoint cannot opt in. An invalid or expired explicit opt-in refuses;
+choosing full qualification needs a separately reviewed input without the option.
+
+Staging still runs all three complete physical model hash and inode scans, full static
+qualification, native HTTP and fresh global resource checks, and every model gets fresh
+normal-TLS cache, CORS, conditional and range checks. Only the two full-body responses for
+models larger than 64 KiB may be reused; smaller models still transfer both bodies. The model
+receipt links `reuse` to the prior full-body proof and the new process, physical and HTTP
+bookends, never describes prior bytes as a current download, and staging mounts no active
+model volume. Publication after `Recreate` always runs the full model-body checks on the new
+owning process, and its newly accepted checkpoint can seed the next stage. The separate
+failed-observation continuation uses its 15-minute window and does not allow new owners or
+replace successful-stage admission.
+
+`measure-public-release.py run` wraps one explicitly reviewed Python or Node command and runs
+no later phase automatically; the wrapped adapter keeps its own source checks, preflights,
+approvals and original receipts. A reviewed input contains `version: 1`,
+`status: REVIEWED_SINGLE_PUBLIC_RELEASE_OPERATION`, one `releaseId`, an `activity` of
+`preparation`, `staging`, `publication` or `verification`, held `program` and `entrypoint`
+files, `interpreterArguments`, literal `arguments`, held `inputFiles`, an exact `cwd`, a new
+`outputDirectory`, `timeoutSeconds` and the expected new `httpTimingPaths`. Pass its checksum
+and the wrapper's:
+
+```sh
+python3 -B scripts/measure-public-release.py run \
+  --input /absolute/operation-input.json \
+  --reviewed-input-sha256 <sha256> \
+  --reviewed-operator-sha256 <sha256>
+```
+
+Each journal keeps the original process exit, standard output and error and the monotonic
+interval, including the wrapped constructor and local preparation. A failed command or a
+corrupt or missing expected sidecar stays recorded, and telemetry cannot turn a command
+failure into success. The wrapper never retries, and a command that succeeds while telemetry
+fails keeps its real zero exit code apart from the refused timing result.
+
+For an end-to-end record, wrap preparation, each staging command and each publication command
+with the same release ID, then pass an array of their held `operation.actual.json` references
+to the `summarize` action, with `--output` naming a new file. A summary needs one host boot and
+intervals that do not overlap. It reports activity totals, the elapsed time from the first
+command to the last and unmeasured gaps separately. Nested model HTTP seconds are not added to
+operation seconds. HTTP bytes count response bodies actually read, including partial failure
+reads, and exclude headers and TLS framing. Wrapper setup before the first command and after
+the last is outside the measured span.
+
+**Local measurements.** `tests/public_model_reuse_measurement_fixture.py --out-dir <newdir>`
+uses a real loopback HTTP server with four synthetic models (empty, 64 KiB, 64 KiB plus 1 byte
+and 8 MiB). It compares complete verification, same-process reuse and an unconditional
+full-publication transfer control; it does not establish production owner custody or measure
+TLS or network performance. On the 2026-10-13 run, the 8,519,681-byte inventory transferred
+17,039,653 response-body bytes in the full pass, 131,363 in the reuse pass and 17,039,653 again
+in the control, with HTTP parts of about 0.108 s, 0.084 s and 0.108 s and the whole wrapped
+fixture about 0.986 s.
+
+`python3 -B tests/public_release_end_to_end_fixture.py run --out-dir /absolute/new-local-benchmark`
+runs a complete local qualification through the maintained operation timer. It creates real
+files and serves them over loopback HTTP from a child process; prepares the inventory and
+frontend; runs an initial full model check; copies and hashes the staged frontend; scans the
+model bytes three times while checking the same serving process again; then publishes a local
+copy and starts a distinct serving process, which always gets full-body checks. It does not run
+or simulate Kubernetes acceptance phases, and its result sets `clusterCustodyQualified`,
+`tlsMeasured` and `productionCalls` to false. On 2026-10-13, on macOS 27.0.1 arm64 with Python
+3.14.6, with four models totalling 8,519,681 bytes and 524,364 frontend bytes:
+
+| Operation | Command time | HTTP body bytes | Physical model scans |
+| --- | ---: | ---: | ---: |
+| Preparation | 0.146 s | 0 | 1 |
+| Initial full model verification | 0.235 s | 17,039,653 | 2 |
+| Same-owner staging and protocol recheck | 0.191 s | 131,363 | 3 |
+| Publication with a new serving process | 0.310 s | 17,039,653 | 2 |
+
+The four commands took 0.882 s of active time and 0.991 s from first start to final exit,
+including 0.109 s between commands for local server start-up, shutdown and receipt handling;
+HTTP checks account for 0.242 s within the command times. Outputs are local test artifacts
+and must not be committed as release acceptance. These short loopback times are not
+production release estimates: production adds TLS, network and storage throughput, full
+signed catalog and static verification, Kubernetes allocation and guards, source custody,
+native container ownership and `Recreate` readiness. The 177-model baseline above remains the
+production expectation. Do not scale the loopback time into a production estimate or describe
+a release as instant.
+
+### Shell update benchmarks
+
+The private shell deployment avoids rebuilding accepted artifacts and replaying successful
+stages, and guard batching cuts network round trips while keeping each fresh response. A
+previous deployment spent about 369 seconds preparing the local shell although Vite took about
+11 seconds, with copying and repeated content hashes costing several more minutes; the journal
+now records preparation durations alongside each operator's per-command timings.
+
+Local delta validation indexes candidate paths once before checking every protected resource,
+instead of scanning the whole candidate for each accepted file, with the same exact path, size
+and content-hash comparisons. To compare the former scan and the indexed lookup on saved
+manifests (read-only; three samples per implementation, with a check that their complete
+deltas match; in-memory comparison only):
+
+```sh
+node scripts/benchmark-shell-update-delta.ts \
+  "$PRIVATE_RELEASE/previous-shell.manifest.json" \
+  "$PRIVATE_RELEASE/candidate-shell.manifest.json"
+```
+
+Fresh file hashes use a zeroed read buffer capped to the file size and 1 MiB; empty files keep
+a one-byte buffer so the end-of-file read still detects growth. Every descriptor, path, stamp
+and folder check stays, and each inventory still reads and hashes every byte. To measure one
+fresh inventory of a saved tree, checking the resulting manifest bytes and reporting its shell
+ID (an optional third argument selects a saved `shell-update-files.ts` helper for before and
+after runs; alternate the order on the same immutable tree and keep all samples, since caches
+and host load affect results):
+
+```sh
+node scripts/benchmark-shell-manifest.ts \
+  "$PRIVATE_RELEASE/prepared-shell" \
+  "$PRIVATE_RELEASE/prepared-shell.manifest.json"
+```
+
+### Public documentation routes and moving the public host
+
+The public Lolly web app, like a Work instance that serves a signed web app, must serve its
+public documentation before the app fallback: `/info/`, literal `/info/` articles, `/docs`
+aliases, `/robots.txt` and the sitemap. The public hosted web app does not offer the
+extensionless article addresses that native Work does. A static host needs equivalent aliases
+and discovery routing; a generic single-page fallback alone does not meet the contract. Before
+accepting a release, run the checks in the reader page
+[Run Lolly Work on UpCloud or Evroc](https://lolly.tools/info/operate/cloud-deployment.html)
+against the candidate address.
+
+Serving static files on a VM does not reproduce every hosted function. Before moving the
+public domain, list the CA, public MCP, image fetch and Penpot RPC proxy, and keep their
+existing authentication, token custody, origin checks, request limits, SSRF protection and
+rate-limit behaviour. The Work document-agent connector must still require the member's scoped
+grant even when the public catalog MCP allows anonymous reads. Lolly has standalone CA and MCP
+server entry points; the Penpot proxy still uses a hosted-function entry point and needs an
+explicit standalone mount, and full route parity with the public hosted web app, Penpot
+included, is not yet qualified. The existing VM router can proxy these APIs while the public
+host is qualified. Replace that dependency only after signed catalog, discovery, MCP, CA,
+Penpot, image-fetch, models, WebSocket and mobile first-load checks pass at the candidate
+address, and keep OAuth callback addresses and trusted signing keys across the move.
