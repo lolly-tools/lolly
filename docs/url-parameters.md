@@ -7,7 +7,7 @@ Look a name up below. Each row says where it works, and links to the page that e
 Some rules hold for every table:
 
 - **Presence flags.** `export`, `copy`, `full`, `iframe`, `options`, `nostage`, `present` and `kiosk` are presence flags. Their value is ignored; what matters is whether the key appears in the link.
-- **Reserved namespaces.** Any name that starts with `_` is skipped before input matching, and no tool input or `urlKey` may claim one, so future reserved names come from there and can never collide with a tool's inputs. Parameters that start with `pkg.` are kept for the Linux package export (`format=rpm`, `srpm` or `tar.gz`) in the same way.
+- **Reserved namespaces.** Any name that starts with `_` is skipped before input matching, and no tool input or `urlKey` may claim one, so future reserved names come from there and can never collide with a tool's inputs. Parameters that start with `pkg.` are kept for Linux package metadata in the same way.
 - **The CLI.** Each name works on the command line as `--name=value`, unless its row says web only. A row marked CLI only has no meaning in a browser.
 
 ## What happens on open
@@ -21,7 +21,7 @@ Some rules hold for every table:
 | `options` | web only | Open with the export settings panel expanded instead of the collapsed Render button. `full` wins if both are set. |
 | `nostage` | web only | On a tool that exports: the `html` export fills the whole window, with no centred card. On a tool with no export: open as a plain web page with no controls. [How to use](/info/url-export.html#open-clean-embed-or-publish) |
 | `present` | web only | Open a Design document as a fullscreen, click-advanced deck, or start a timed document's playback. [How to use](/info/url-export.html#present-a-deck) |
-| `s` | web + CLI | A slide's address in a deck: a 1-based position, a frame id, or `2.3` for a build step. With `present` it opens that slide; with an export format it renders that slide alone. |
+| `s` | web + CLI | A slide's address in a deck: a 1-based position, a frame id or `2.3` for a build step. With `present` it opens that slide; with an export format it renders that slide alone. |
 | `kiosk` | web only | With `present`: wrap at the ends and loop a timed document, for signage. |
 | `slot` | web only | Load a saved session by name. Other parameters in the link override the saved values. [How to use](/info/url-export.html#resume-a-saved-session) |
 | `template` | web only | Start a fresh session from one of the tool's `templates[]` entries, skipping the **New from template** chooser. |
@@ -32,7 +32,7 @@ Some rules hold for every table:
 
 **`present`** turns a frame document (Design) into a deck: its frames become slides in presentation order (`order`, then `x` to break a tie). A timed document that is not made of frames mounts normally and starts its sequence transport instead. The CLI accepts the flag and does nothing with it, because there is no screen to present on.
 
-**`s`** takes `s=2` as the 1-based position in presentation order. Any other value (`s=slide1`, a ULID) is a frame id, and an `.N` suffix (`s=2.3`) picks a build step. Without `present`, the editor centres that frame when it opens. As a still-export filter, `?s=2&format=png` renders just that slide, which gives every slide an image link, and `lolly design --s=2 --export=png` means the same thing, because both shells resolve the address with the same engine code. Build steps are for the presenter only: a still export always shows every build. Formats that carry the whole deck (`pdf`, `zip`, `pptx`, `html`) and the motion formats, where time picks the frame, are rendered whole, and the CLI reports that it ignored the filter. An address that matches no slide never falls back to slide 1: the web app exports the whole deck and reports the mismatch, and the CLI exits 2 and writes nothing.
+**`s`** takes `s=2` as the 1-based position in presentation order. Any other value (`s=slide1`, a ULID) is a frame id, and an `.N` suffix (`s=2.3`) picks a build step. Without `present`, the editor centres that frame when it opens. As a still-export filter, `?s=2&format=png` renders just that slide, which gives every slide an image link, and `lolly design --s=2 --export=png` means the same thing, because both shells resolve the address with the same engine code. Build steps are for the presenter only: a still export always shows every build. Formats that carry the whole deck (`pdf`, `zip`, `pptx`, `html`, `scorm`) and the motion formats, where time picks the frame, are rendered whole, and the CLI reports that it ignored the filter. An address that matches no slide never falls back to slide 1: the web app exports the whole deck and reports the mismatch, and the CLI exits 2 and writes nothing.
 
 **`kiosk`** makes the presenter wrap at the ends and a timed document's transport loop, so `?present&kiosk` is digital signage; pair it with each frame's `dur` for the dwell time. The flag was called `loop` until 2026-08-28. `loop` is an input id in several tools, so the name could not be reserved; old `?present&loop` links no longer loop and need `kiosk` instead.
 
@@ -45,7 +45,7 @@ Some rules hold for every table:
 
 | Param | Where | What it does |
 |---|---|---|
-| `format` | web + CLI | The output format (`png`, `svg`, `pdf`, …). Used by `export` and `copy`. It takes any value in the tool's `render.formats`; [Every format Lolly can open and make](/info/formats.html) lists them all. |
+| `format` | web + CLI | The output format (`png`, `svg`, `pdf`, …). Used by `export` and `copy`. It takes any value in the tool's `render.formats`. [Every format value](/info/url-export.html#download-a-file) lists the values, and [Every format Lolly can open and make](/info/formats.html) says what each format is for. |
 | `filename` | web only | Name of the downloaded file, without the extension. Defaults to the tool id. |
 | `output` | CLI only | The path to write the file to. Defaults to stdout. |
 | `width` / `w` | web + CLI | Output width, as a value in `unit`. Also fills in the export panel. [How to use](/info/url-export.html#set-the-size) |
@@ -120,7 +120,7 @@ A tool opts out with `render.c2pa: false`, and an on-device privacy utility neve
 :::
 
 ::: details More on imprint
-The imprint marks raster exports (`png`, `jpg`/`jpeg`, `webp`, `avif` and the RGB `tiff`, not Print TIFF). It also marks raster content Lolly rendered inside a `pdf`, `pdf-cmyk` or `pptx` export, such as a composed tool render, a gradient or filter fallback, or an SVG illustration walked to pixels. A `zip` carries it through to whichever members qualify. It never marks your own uploaded image, only art Lolly rasterised.
+The imprint marks raster exports (`png`, `jpg`/`jpeg`, `webp`, `avif` and the RGB `tiff`, not Print TIFF). It also marks raster content Lolly rendered inside a `pdf`, `pdf-cmyk` or `pptx` export, such as a composed tool render, a gradient or filter fallback and an SVG illustration walked to pixels. A `zip` carries it through to whichever members qualify. It never marks your own uploaded image, only art Lolly rasterised.
 
 `imprint=1`, or a bare `?imprint`, is still accepted for older links. The CLI marks by default too, and its browser-free resvg PNG path embeds the mark itself rather than moving to the browser tier. A render below the watermark's detection floor is reported and written unmarked.
 
@@ -165,7 +165,7 @@ Formats that are deep by nature (OpenEXR, Radiance `.hdr`) ignore the parameter 
 | Param | Where | What it does |
 |---|---|---|
 | `_themes` | web + CLI (`--themes=`) + `/tool/<id>.<ext>` | The **theme** chosen in each token group of the design system, as JSON: `_themes={"":"dark"}` picks the `dark` theme of a design system whose themes have no group, and `_themes={"":"dark","colourway":"beach"}` also picks a [colourway](/info/colourways.html). A document whose colours are token references then renders in that theme, logos and photo looks included. A choice the design system does not declare draws that group's default theme, with no warning. The public route `/tool/<id>.<ext>` draws only the tools it can render without a browser, so it refuses a Design document in any theme: render one with `--themes` on the CLI. |
-| `ds` | web + CLI | The design system to draw with: the id of one held on the device (`default`, `shipped`, or a slug such as `acme-2026`). Never written into a share link. |
+| `ds` | web + CLI | The design system to draw with: the id of one held on the device (`default`, `shipped` or a slug such as `acme-2026`). Never written into a share link. |
 | `designv` | web + CLI | The design-system version to draw with: a published version's slug, or `latest` for the edit head. Never written into a share link. |
 | `lang` | web + CLI | The interface language for this session, as a short code such as `ja` or `ar`. The recipient's saved preference is untouched. |
 | `emoji` | web + CLI (`--emoji=`) | The emoji set to draw every emoji from, as `<id>@<version>`, such as `emoji=twemoji/color-starter@17.0.3`. Travels in a share link. |
@@ -203,7 +203,7 @@ The codes are `en` (the default), `es`, `de`, `fr`, `zh` (Simplified), `zh-hant`
 | `z` | web + CLI | A packed link: the whole readable query, compressed and base64url-encoded. [Packed links](/info/url-mode.html#packed-links-z) |
 | `zx` | web only | An encrypted link: the packed state encrypted under a password the link never holds. [Encrypted links](/info/url-mode.html#encrypted-links-zx) |
 | `_v` | web + CLI | The tool version the link was made against, such as `1.0.0`. Ignored when it does not match, so a link keeps working. |
-| `pkg.*` | web + CLI | Linux package metadata for `format=rpm`, `srpm` and `tar.gz` (`pkg.name`, `pkg.version`, `pkg.dest`, `pkg.type` and more). Skipped before input matching. |
+| `pkg.*` | web + CLI | Kept for Linux package metadata (`pkg.name`, `pkg.version`, `pkg.dest` and the like). Skipped before input matching, so no tool input can use one. The web app's `rpm` and `tar.gz` export reads these values from its export panel, not from a link. |
 
 The reserved `z` and `zx` are top-level parameters only. A box's own `z` depth field and a keyframe track's `z` channel live inside the `boxes` block's per-box fields, a separate namespace read by position, so the names never collide.
 

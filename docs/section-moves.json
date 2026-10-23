@@ -441,6 +441,16 @@
       "slug": "url-app-links",
       "anchor": "what-a-link-carries",
       "label": "What a link carries"
+    },
+    "integration-patterns": {
+      "slug": "url-mode",
+      "anchor": "share-embed-or-automate",
+      "label": "Share, embed or automate"
+    },
+    "choose-a-guide": {
+      "slug": "url-mode",
+      "anchor": "where-to-go-next",
+      "label": "Where to go next"
     }
   },
   "cli": {
@@ -883,6 +893,16 @@
       "slug": "token-workflows",
       "anchor": "review-a-change",
       "label": "Review a change"
+    },
+    "linking-many-documents-at-once": {
+      "slug": "token-workflows",
+      "anchor": "link-many-documents-at-once",
+      "label": "Link many documents at once"
+    },
+    "shared-interface": {
+      "slug": "token-workflows",
+      "anchor": "inspect-a-token",
+      "label": "Inspect a token"
     }
   },
   "design-tokens": {
@@ -905,6 +925,11 @@
       "slug": "design-tokens",
       "anchor": "how-the-token-engine-is-built",
       "label": "How the token engine is built"
+    },
+    "token-workflows": {
+      "slug": "token-workflows",
+      "anchor": "inspect-a-token",
+      "label": "Token workflows"
     }
   }
 }

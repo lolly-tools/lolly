@@ -127,7 +127,7 @@ CMYK survives Lolly-to-Lolly round trips through `$extensions`, and Penpot ignor
 
 ## Theme the app itself
 
-Your design system describes your brand. It can also dress Lolly's own interface, in two ways: `lolly.ui.*` roles that hold one value in every theme, and a `color.chrome` group that sets the app's surfaces separately for light and dark. Neither can move a pixel of an export.
+Your design system describes your brand. It can also dress Lolly's own interface, in two ways: `lolly.ui.*` roles that hold one value in every theme, and a `color.chrome` group that sets the app's surfaces separately for light and dark.
 
 ### Lolly UI tokens
 

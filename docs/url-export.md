@@ -21,7 +21,53 @@ Add `export` and the file downloads as soon as the tool finishes rendering. `for
 
 Without `format`, the download uses the first format the tool lists. Without `filename`, the file is named after the tool id, as in `qr-code.png`.
 
-`format=` takes any value in the tool's `render.formats`. [Every format Lolly can open and make](/info/formats.html) lists every format and what each one is for. A format the tool does not list falls back gracefully.
+`format=` takes any value in the tool's `render.formats`. A format the tool does not list falls back gracefully. [Every format Lolly can open and make](/info/formats.html) says what each format is for, and the fold below gives the value to write in a link.
+
+::: details Every format value
+Not every tool offers every format: a link can ask only for one the tool lists in `render.formats`. The `render.formats` list in `schemas/tool.schema.json` is the authority on the whole set.
+
+| Value | What you get |
+|---|---|
+| `svg` | Scalable vector |
+| `svg-anim` | Animated SVG, a self-contained vector flipbook (animated tools only) |
+| `emf` | Enhanced Metafile vector, for Office apps |
+| `eps` | Encapsulated PostScript vector (RGB) |
+| `eps-cmyk` | Encapsulated PostScript vector in DeviceCMYK, a simple conversion with no output intent |
+| `dxf` | DXF cut file: AutoCAD R12, paths in millimetres, for laser, vinyl and CNC |
+| `png` | Lossless raster |
+| `jpg` / `jpeg` | Lossy raster |
+| `webp` | Lossy or lossless raster |
+| `avif` | AVIF raster |
+| `jxl` / `jxl-lossless` | JPEG XL raster, lossy or lossless |
+| `tiff` | Uncompressed sRGB raster (RGB TIFF) |
+| `exr` / `hdr` | Float raster interchange, OpenEXR and Radiance RGBE, written over a render with real headroom (`hdr=1`) |
+| `pdf` | PDF document |
+| `pdf-cmyk` | Print PDF: CMYK with an output intent ([Print-ready output](#print-ready-output)) |
+| `cmyk-tiff` | Print TIFF: a flattened CMYK raster |
+| `pptx` | PowerPoint deck with native editable text and shapes, and images and vectors you can extract |
+| `idml` | InDesign IDML: a static subset of the layout (Design) |
+| `premiere-xml` | Premiere XML sequence and its media files, in a ZIP (Design) |
+| `scorm` | SCORM course package, a ZIP a learning system imports (Design) |
+| `penpot` | Penpot design file: boards, editable shapes and the brand's colours, typographies and design tokens |
+| `docx` / `odt` | Word or OpenDocument text: headings and paragraphs read off the render, editable rather than a picture of the page |
+| `ico` | Icon bundle (Icon, Asset Export) |
+| `zip` | A bundle of several files, which a password can lock ([Exporting](/info/exporting.html#password-protection)) |
+| `html` | Static HTML document |
+| `md` / `txt` | Markdown or plain text |
+| `json` / `csv` | Structured data |
+| `css` / `scss` | Colour tokens as CSS custom properties or Sass variables |
+| `gpl` / `ase` | Swatches for other design apps: GIMP palette and Adobe Swatch Exchange |
+| `ics` / `vcf` | Calendar event or contact card |
+| `srt` / `vtt` | Captions: SubRip and WebVTT |
+| `ttf` / `otf` / `woff` | Font files (Convert Font) |
+| `gif` | Animated GIF (animated tools only) |
+| `apng` | Animated PNG with full colour and real alpha (animated tools only) |
+| `webp-anim` | Animated WebP with full colour and alpha, the smallest file (animated tools only) |
+| `lottie` | dotLottie animation (Design) |
+| `webm` | WebM video (animated tools only; Chrome, Firefox and Android) |
+| `mp4` | MP4 video (animated tools only; Safari, iOS and recent Chrome) |
+| `wav` / `mp3` / `m4a` / `opus` | Audio only: the sound with no picture |
+:::
 
 ### Transparency and outlined text
 
@@ -80,7 +126,7 @@ Four flags change what the person sees when the link opens.
 
 | Flag | What opens | Use it for |
 |---|---|---|
-| `full` | The tool with the sidebar collapsed, so the artwork fills the window | Showing a finished piece, or an unattended export with `export` |
+| `full` | The tool with the sidebar collapsed, so the artwork fills the window | Showing a finished piece, or running an unattended export with `export` |
 | `options` | The tool with the export panel already expanded | A link where the recipient is one click from a download |
 | `iframe` | Only the rendered output, with no app chrome, keeping nothing on the device | A tool placed inside another page ([Embed a tool in a page](/info/url-mode.html#embed-a-tool-in-a-page)) |
 | `nostage` | On a tool with no export, a plain web page with no controls | Publishing a jump page or a countdown as a page |

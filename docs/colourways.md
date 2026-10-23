@@ -45,7 +45,7 @@ Some tools draw several colours at once, and they draw on the whole family: ever
 
 When a piece's colourway or look changes, Chart, Mesh Gradient and Filter read the colours they keep from the design system again as the open tool redraws, and every input keeps its value. Covers belong to the app, not to a piece: they list the same leads whatever colourway a piece uses, in the app's own light or dark appearance.
 
-A design system with one colourway, or none, has no family, and each of these tools draws exactly as before. Tool authors reach the family through canvas variables and a palette option; [Authoring Tools](/info/authoring-tools.html#design-system-colours-in-templates-and-styles) and [Tool inputs](/info/tool-inputs.html) cover both.
+A design system with one colourway, or none, has no family, and each of these tools draws exactly as before. Tool authors reach the family through the canvas variables `--brand-lead-1` onwards and a colour input's `"palette": "colourway-leads"` option; [Authoring Tools](/info/authoring-tools.html#design-system-colours-in-templates-and-styles) and [Tool inputs](/info/tool-inputs.html) cover both.
 
 ## Tools that keep their own colours
 

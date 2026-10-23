@@ -11,7 +11,7 @@ Every tool is a directory with a `tool.json` manifest, validated against `schema
 
 Inputs are declared, never inferred from the template. Reading a manifest tells you everything a person using the tool can change, before you open the template.
 
-The declaration also carries the bounds. A `number` input's `min` and `max` clamp on update, a `text` input's `maxLength` truncates, a `select` closes its option list, and a `color` input can point at a `palette` asset to restrict choices to brand swatches, with `swatchesOnly` removing the hex field and the native picker entirely (`schemas/tool.schema.json`, the `color` conditional).
+The declaration also carries the bounds. A `number` input's `min` and `max` clamp on update, a `text` input's `maxLength` truncates, a `select` closes its option list and a `color` input can point at a `palette` asset to restrict choices to brand swatches, with `swatchesOnly` removing the hex field and the native picker entirely (`schemas/tool.schema.json`, the `color` conditional).
 
 ## The template cannot compute
 
@@ -35,7 +35,7 @@ Colour, type and spacing can bind to the brand's design tokens. `engine/src/toke
 
 Most converted colours become sRGB hex strings; safe named colours and `transparent` can stay CSS keywords, and ordinary unbound input strings pass through. A wide-gamut `oklch()` token is gamut-mapped to reach that hex (an authored sRGB override wins where one is given), while the token itself keeps the notation its author typed.
 
-A colour input can hold a token reference rather than a literal, as `{ ref, value }`. The reference is what travels in a share link, and the template only ever sees the resolved string. So re-pointing a brand token updates every tool that refers to it, and no template has to change. A design system can also keep a tool to its canonical theme or colourway with `tokenAxes` ([Colourways](/info/colourways.html#tools-that-keep-their-own-colours)).
+A colour input can hold a token reference rather than a literal, as `{ ref, value }`. The reference is what travels in a share link, and the template only ever sees the resolved string. So re-pointing a brand token updates every tool that refers to it, and no template has to change. A tool whose colours are its content can declare `tokenAxes` in its manifest to stay in the canonical theme or colourway, whatever a link asks for ([Colourways](/info/colourways.html#tools-that-keep-their-own-colours)).
 
 ## One place input semantics live
 

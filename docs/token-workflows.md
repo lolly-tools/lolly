@@ -14,7 +14,7 @@ The Tokens room lists every definition the design system keeps, including custom
 - the set that won and the order the sets overrode one another;
 - the tokens it reads directly, and the tokens that read this one.
 
-Declared brand roles and consumer slots appear apart from those dependents, because a declaration is not proof that anything uses the token, and not a rule check. A read-only system offers the same inspection.
+Declared brand roles and consumer slots appear apart from those dependents, because a declaration is not proof that anything uses the token, and not a rule check. A read-only system offers the same inspection. The list shows 100 tokens a page.
 
 Design System Setup reads the editable head. A document reads its render version, which can differ from the head when a published version is active.
 
@@ -36,7 +36,7 @@ In the TUI, press `t` in the **System** view. The inspector reads the design sys
 | `/` | Search token paths. |
 | `x` | List only tokens with issues. |
 | `Enter` | Open a token's trace: its values, winning set and override order, issues and declared roles, then what it reads and what reads this token. `Enter` on a step opens that token; `Esc` goes back. |
-| `s`, then `y` | Review the previewed choices, with a count of the resolved values that change, then store them in `$metadata.activeThemeSelection` on the active terminal system. |
+| `s`, then `y` | Review the previewed choices, with a count of the resolved values that change, then store them in `$metadata.activeThemeSelection` on the active terminal system, so later CLI and TUI renders use them. |
 
 A content profile is read-only here. If another shell changes the system after the review starts, the review stores nothing and shows the current choices again.
 
@@ -53,7 +53,7 @@ Each imported theme group has its own control, using the source's group names an
 - **For the design system.** Preview a choice in the Tokens room; previewing writes nothing. **Use these choices for this system** creates a review, and **Apply reviewed change** commits the choices through Design System Setup's usual saving and undo.
 - **For one document.** A Design document's theme rows change only that document. The choice is saved with it as `__tokenSelection`, travels in its link as `_themes` and comes back when it reopens. The design system's stored choices stay as they were, and other documents keep their own.
 
-A session's choices go wherever the session is drawn: a [multi-edit](/info/using.html#editing-side-by-side-multi-edit) card, a [batch](/info/using.html#batch-pro-mode) row and the batch CSV's `_themes` column, a Design document export, and every tool link [composed](/info/url-mode.html#tool-composition-portable-embed-url) inside the document. [Colourways](/info/colourways.html) covers choosing a lead colour for a piece.
+A session's choices go wherever the session is drawn: a [multi-edit](/info/using.html#editing-side-by-side-multi-edit) card, a [batch](/info/using.html#batch-pro-mode) row and the batch CSV's `_themes` column, a Design document export and every tool link [composed](/info/url-mode.html#tool-composition-portable-embed-url) inside the document. [Colourways](/info/colourways.html) covers choosing a lead colour for a piece.
 
 ```sh
 lolly system inspect --file=beacon.tokens.json --_themes='{"appearance":"night","density":"roomy"}' --json
@@ -94,8 +94,8 @@ For several selected layers, common paint and compatible text groups offer the s
 | Design composites | One shadow with zero spread and no inset; a gradient of 2 to 12 resolved sRGB stops, written as a rightward linear gradient. Layered shadows and unsupported gradients are refused. |
 | Design borders | Whole borders: colour, absolute width and solid, dashed or dotted style in one undo step. Custom stroke styles and relative widths are refused. |
 | Design motion | Duration tokens convert to the field's seconds or milliseconds; easing tokens become checked cubic Bezier curves. A zero-delay transition links Enter duration and easing for one layer that is not a frame. |
-| Composed paragraphs | Line height, space before and after, and start, end and first-line indents, at the caret, range or story. **Whole typography** sets font, size, weight, tracking and line height together. |
-| Not yet | Transition delay, Exit, and frame or deck consumers. |
+| Composed paragraphs | Line height, the space before and after and the start, end and first-line indents, at the caret, range or story. **Whole typography** sets font, size, weight, tracking and line height together. |
+| Not yet | Transition delay, Exit and frame or deck consumers. |
 
 ::: details Linking typography, borders and motion in Design
 **Composites keep separate links.** A whole composite keeps its own reference and adapter on each property, so editing one property keeps the other links. A missing or incompatible source value keeps its last value. Composed paragraphs store their links with the paragraph settings, and linking across paragraphs keeps their other links.
@@ -132,7 +132,7 @@ In the Batch grid, a linked cell is shaded and its accessible name includes the 
 ## Review a change
 
 ::: timeline
-- <!--i:pentool--> **Make the change.** Edit a token, generate a scale from a recipe, or bring in an updated file from upstream.
+- <!--i:pentool--> **Make the change.** Edit a token, generate a scale from a recipe or bring in an updated file from upstream.
 - <!--i:search--> **Read the review.** It lists what you changed and every resolved value that moves because of it, and can render a real piece before and after.
 - <!--i:check--> **Apply or discard.** **Apply reviewed change** commits it through the usual saving and undo. **Discard preview** writes nothing.
 :::

@@ -74,7 +74,7 @@ A catalog asset is `available` when the file was made without asking a catalog f
 :::
 
 ::: details How the report keeps credentials out
-A web address keeps its scheme, host and path and loses its user name, password, query and fragment, which is where signed addresses and most tokens live. Any other address, such as a `mailto:` link or a host and path with no scheme, loses its query and fragment too. A path segment shaped like a key (long and opaque, a three-part token, or letters with digits scattered through them) is replaced with `{redacted}`. Asset ids pass unchanged, because a reader finds an asset by its id.
+A web address keeps its scheme, host and path and loses its user name, password, query and fragment, which is where signed addresses and most tokens live. Any other address, such as a `mailto:` link or a host and path with no scheme, loses its query and fragment too. A path segment shaped like a key (long and opaque, a three-part token or letters with digits scattered through them) is replaced with `{redacted}`. Asset ids pass unchanged, because a reader finds an asset by its id.
 
 The rule looks only at the characters of each segment, so a short key written into a path can remain: treat the report as a list of where each dependency comes from, not as a scrubbed copy of every address. The design's own values still hold the full address, because the design needs the address to draw.
 :::

@@ -1,6 +1,6 @@
 # App links and deep links
 
-Tool links open a tool. The rest of the app answers to links too: a shelf of Assets, a Projects folder, a room of Design System Setup or one card in Settings. Use these links in a launcher, a bookmark, a bug report or an automation that has to find the app in a known state with no clicking. Every screenshot in these docs is one of these links handed to `url-shot`.
+Tool links open a tool. The rest of the app answers to links too: a shelf of Assets, a Projects folder, a room of Design System Setup or one card in Settings. Use these links in a launcher, a bookmark, a bug report or an automation that has to find the app in a known state with no clicking. Every screenshot in these docs is a Lolly link handed to `url-shot`.
 
 ## The `lolly://` scheme
 
@@ -73,7 +73,7 @@ Either way, an explicit off value or a cleared field reopens as you left it, and
 
 These rules change only what a generated link holds. A link that sets a personal input explicitly still loads it, the CLI still accepts every input, and your own saved sessions keep the original values.
 
-**When the bytes must travel, send a file.** Share reports the local dependencies a link leaves out. A `.lolly` file carries the saved design to another device, with the images it uses. It carries the design separately from the generated link, so review the file before you send it on.
+**When the bytes must travel, send a file.** Share reports the local dependencies a link leaves out. A `.lolly` file carries the saved design to another device, with the files Lolly can include, such as your uploaded images. It carries the design separately from the generated link, so review the file before you send it on.
 
 ## Three rules for every app link
 
@@ -116,7 +116,7 @@ The server paths `/a` and `/assets` open the same view. The earlier addresses, `
 | `type` | Filetype filter: `all`, `image`, `vector`, `motion`, `audio` or `text`. Falls back to `all` when that group is empty on this install. |
 | `hidden` | Presence flag: shows hidden assets. |
 | `sort`, `rev` | Sort key and direction (`rev=1` reverses, `rev=0` keeps the usual direction). |
-| `view`, `favourites` | The preview strip mode, and whether the favourites strip is open. |
+| `view`, `favourites` | The preview strip mode and whether the favourites strip is open. |
 
 Search, type, sorting, asset focus and sections keep one another in the address.
 
@@ -153,7 +153,7 @@ Room, wing and source-picker changes update the address. `seed` and `wheel` act 
 
 ### Settings (`#/settings`)
 
-`#/settings?tab=<tab>` opens one tab: `device` (This device), `brand` (Design system), `caps` (Capabilities) or `activity` (Activity & stats). With no tab, Settings opens on Preferences. `#/b` and `#/brand` are shortlinks to the Design system tab, and the older `#/d` and `#/profile` routes read the same parameters.
+`#/settings?tab=<tab>` opens one tab: `device` (This device), `brand` (Design system), `caps` (Capabilities) or `activity` (Activity & stats). With no tab, Settings opens on Preferences. `#/b` and `#/brand` are shortlinks to the Design system tab. The older `#/d` route reads `tab` and the section ids below, and the older `#/profile` route reads `focus`.
 
 - **A tab section.** `#/settings?<section-id>` scrolls to and opens one section, as in `#/settings?dash-storage`, `#/settings?dash-colourways` or `#/settings?cap-formats`. The section ids are the `DASH_SECTIONS` rows in `shells/web/src/lib/dashboard-registry.ts`.
 - **A Preferences card.** `#/settings?focus=<section>` opens Preferences and scrolls to one card: `details-section`, `identity-section`, `design-systems-section`, `appearance-section`, `emoji-pref-section`, `a11y-section`, `connections-section`, `trusted-sites-section`, `renders-section`, `storage-section`, `offline-section`, `hotfolder-section` (installed apps only), `activity-section`, `feature-flags-section` or `instance-section`. `sync-section` still works and opens `connections-section`, where Sync across devices now sits.
@@ -177,8 +177,8 @@ Settings navigation writes `focus`, card toggles write `_open` and the settings 
 
 ### On a tool route
 
-Most of the flags that live on a tool link are in [Reserved URL parameters](/info/url-parameters.html#what-happens-on-open): `options`, `full`, `template=<id>`, `present` with `s=` and `kiosk`, and `slot=`. A bare `?template=` opens the template chooser itself, which is what the gallery's **+New** chip links to. The one exception is `share`, a presence flag read by the tool view rather than the engine: it opens the Share dialog on load, so a click-only control has an address.
+Most of the flags that live on a tool link are in [Reserved URL parameters](/info/url-parameters.html#what-happens-on-open): `options`, `full`, `template=<id>`, `slot=` and `present` with `s=` and `kiosk`. A bare `?template=` opens the template chooser itself, which is what the gallery's **+New** chip links to. The one exception is `share`, a presence flag read by the tool view rather than the engine: it opens the Share dialog on load, so a click-only control has an address.
 
 Canvas editors keep EDITOR state in `_sel=<id>,<id>`, `_t=<seconds>`, `_panel=choreograph` or `_ui=`. The first three select boxes, seek the timeline and open Choreograph. The object form is base64url UTF-8 JSON, for example `{ "v": 1, "sel": ["a", "b"], "t": 2.5, "page": "page-1", "timeline": true }`. Fields are optional; unknown keys are ignored and shorthands win on conflict. Selection, page, playhead and timeline visibility update the address through `_ui`; an empty selection and `timeline:false` are explicit state. `window.lolly.ui.getState()` and `apply(state)` use the same object, as does a trusted embedding page's `postMessage({ type: 'lolly:ui', state })`.
 
-The shell also writes `_view` for the stage viewport, `_nav` and `_inspector` for Design's columns, and `_dialog=share` while the Share dialog is open. These workspace keys stay outside packed content, so a delayed pack cannot overwrite newer view state, and they never enter a content Share link. `share` remains an arrival alias for opening that dialog. The engine reserves the `_` namespace, so tool inputs cannot collide with these keys.
+The shell also writes three more workspace keys: `_view` for the stage viewport, `_dialog=share` while the Share dialog is open and `_nav` with `_inspector` for Design's columns. These workspace keys stay outside packed content, so a delayed pack cannot overwrite newer view state, and they never enter a content Share link. `share` remains an arrival alias for opening that dialog. The engine reserves the `_` namespace, so tool inputs cannot collide with these keys.
