@@ -36,13 +36,15 @@ import { observeProductionInputs } from '@lolly-tools/node-shell/production-brow
 import { waitForExport, type ExportWait } from '@lolly-tools/node-shell/export-wait';
 import { checksInOpenedPage, openSessionInPage, OpenSessionError, packageDesignSession, sessionQuery, shortenUrls } from '@lolly-tools/node-shell/open-session';
 import { readFile, stat } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { loadToolCached } from './catalog.ts';
 import { followRuntimeSelection, withHost } from './host.ts';
 import { withAudioScope } from './audio-runs.ts';
 import { prerenderSongInputs, recordedSongs, songIngredientsIn, type ComputedAudioFailure, type ComputedAudioRun, type RondoCaps } from '@lolly-tools/node-shell/audio';
 import type { Jsdom } from './host.ts';
 import { fontsDir, BROWSERS_DIR } from './paths.ts';
-import { webShellBase, closeWebShell } from './webshell.ts';
+import { webShellBase, webShellReady, closeWebShell } from './webshell.ts';
+import { isHostedServer } from './hosted.ts';
 import {
   BrowserJobQueue, BrowserQueueFullError, BrowserQueueTimeoutError, browserQueueOptions,
 } from './browser-jobs.ts';
@@ -682,17 +684,52 @@ export function browserLaunchOptions(env: NodeJS.ProcessEnv = process.env): {
   };
 }
 
+/**
+ * Resolve Chromium from this package's scoped install (services/mcp/.browsers, via
+ * `pnpm run install:browser`) unless the deployment pins its own browser: an
+ * installed OS channel, an explicit binary, or a preset browsers path. Runs before
+ * playwright-core first loads, because that module reads the browsers path once.
+ */
+function pinBrowsersPath(): void {
+  if (!process.env.LOLLY_BROWSER_CHANNEL && !process.env.LOLLY_BROWSER_PATH) {
+    process.env.PLAYWRIGHT_BROWSERS_PATH ??= BROWSERS_DIR;
+  }
+}
+
+/**
+ * Whether this server has a browser to open, found without launching one: the
+ * binary `LOLLY_BROWSER_PATH` names, an installed OS channel
+ * (`LOLLY_BROWSER_CHANNEL`), or Playwright's Chromium on disk, the same file the
+ * browser image's build checks for.
+ */
+export async function browserInstalled(env: Record<string, string | undefined> = process.env): Promise<boolean> {
+  if (env.LOLLY_BROWSER_PATH) return existsSync(env.LOLLY_BROWSER_PATH);
+  if (env.LOLLY_BROWSER_CHANNEL) return true;
+  pinBrowsersPath();
+  try {
+    const { chromium } = await import('playwright-core');
+    const path = chromium.executablePath();
+    return !!path && existsSync(path);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Whether the browser tier can run here: a browser to open and a web shell to
+ * drive (webshell.ts `webShellReady`). The MCP image has neither; the browser
+ * image has Chromium, and its deployment sets `LOLLY_WEB_BASE` to the shell.
+ */
+export async function browserTierAvailable(env: Record<string, string | undefined> = process.env): Promise<boolean> {
+  return webShellReady(env) && (await browserInstalled(env));
+}
+
 async function getBrowser(): Promise<import('playwright-core').Browser> {
   if (!browserPromise) {
     browserPromise = (async () => {
       const channel = process.env.LOLLY_BROWSER_CHANNEL; // e.g. 'chrome'
       const executablePath = process.env.LOLLY_BROWSER_PATH;
-      // Resolve Chromium from this package's scoped install (services/mcp/.browsers,
-      // via `pnpm run install:browser`) unless the deployment pins its own browser:
-      // an installed OS channel, an explicit binary, or a preset browsers path.
-      if (!channel && !executablePath) {
-        process.env.PLAYWRIGHT_BROWSERS_PATH ??= BROWSERS_DIR;
-      }
+      pinBrowsersPath();
       const { chromium } = await import('playwright-core');
       try {
         return await chromium.launch({
@@ -711,10 +748,10 @@ async function getBrowser(): Promise<import('playwright-core').Browser> {
       } catch (err) {
         const msg = (err as Error).message || '';
         if (/executable doesn't exist|Executable doesn't exist|please run/i.test(msg)) {
-          // On a hosted/serverless deployment (no browser by design) the dev "install a
-          // browser" advice is noise. Steer the caller to the browser-free formats that
-          // DO render here. Keep the actionable install hint for local / self-host dev.
-          const hosted = !!process.env.VERCEL || process.env.LOLLY_MCP_HOSTED === '1';
+          // On a hosted server with no browser the dev "install a browser" advice is
+          // noise for the caller. Steer them to the browser-free formats that DO render
+          // here. Keep the actionable install hint for a local server.
+          const hosted = isHostedServer(process.env);
           throw new RenderError(
             hosted
               ? `This format needs the browser render tier, which isn't enabled on this hosted ` +

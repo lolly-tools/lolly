@@ -134,6 +134,16 @@ test('an oversized image is a 413', async () => {
   assert.equal(r.status, 413);
 });
 
+test('a hosted proxy stops at LOLLY_MCP_MAX_IMAGE_BYTES, 4 MiB unless set; a local one at 25 MiB', async () => {
+  const five = new Uint8Array(5 * 1024 * 1024);
+  const { impl } = fakeFetch(() => imageResponse(five, 'image/png'));
+  const hosted = { LOLLY_MCP_HOSTED: '1' } as NodeJS.ProcessEnv;
+  assert.equal((await proxyImage(proxyReq('https://good.example/five.png'), { ip: ip(), env: hosted, resolver, fetchImpl: impl })).status, 413);
+  const raised = { ...hosted, LOLLY_MCP_MAX_IMAGE_BYTES: String(8 * 1024 * 1024) } as NodeJS.ProcessEnv;
+  assert.equal((await proxyImage(proxyReq('https://good.example/five.png'), { ip: ip(), env: raised, resolver, fetchImpl: impl })).status, 200);
+  assert.equal((await proxyImage(proxyReq('https://good.example/five.png'), { ip: ip(), env, resolver, fetchImpl: impl })).status, 200);
+});
+
 test('the kill switch makes every request a 404', async () => {
   const { impl } = fakeFetch(() => imageResponse());
   const r = await proxyImage(proxyReq('https://good.example/logo.png'), { ip: ip(), env: { LOLLY_DISABLE_IMAGE_PROXY: '1' } as NodeJS.ProcessEnv, resolver, fetchImpl: impl });

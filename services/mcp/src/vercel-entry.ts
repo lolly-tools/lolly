@@ -7,6 +7,10 @@
 //
 // The catch-all `api/mcp/[...path].js` (+ the well-known rewrites in vercel.json)
 // send every OAuth/discovery/JSON-RPC path here; createGateway() routes by path.
+//
+// vercel-platform.ts comes first: it states this platform's limits as settings
+// before the gateway and the modules it imports run.
+import './vercel-platform.ts';
 import { createGateway } from './gateway.ts';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { vercelRenderUrl } from './vercel-render-url.ts';
