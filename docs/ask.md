@@ -1,20 +1,16 @@
 # Ask Lolly
 
-Ask Lolly is the in-app help view: you type a question, and it hands back the section of this documentation that answers it, word for word, with the page it came from cited beside it. Nothing is generated. The answer is retrieved, quoted and attributed, and the whole exchange happens on your device.
+Type a question and Ask Lolly answers with the section of these guides that covers it, word for word, with the page it came from cited and an **Open in docs** link straight to that section. Nothing is generated: the answer is retrieved, quoted and attributed, on your device.
 
-## What it is
-
-One job: find the part of these guides that answers your question, and show it to you unchanged. There is no summarising step - the words in an answer are the documentation's own words, the citation under them gives the page and section and an **Open in docs** link goes straight there. An optional matching model, described under [Asking a question](#asking-a-question), can help find the right section, but it never writes the answer.
-
-Under the quoted section sit the places in the app the same question matches: a tool, a utility, a saved project, a catalogue asset, a setting, a page of the app. Each is a row that only navigates. Nothing in an answer flips a setting, opens a file or acts on your behalf - the same rule [Search](/info/search.html) follows.
+Under the quoted section sit the places in the app that match the same question: a tool, a utility, a saved project, a catalogue asset, a setting or a page of the app. Each row only navigates. Nothing in an answer changes a setting, opens a file or acts for you, the same rule [Search](/info/search.html) follows.
 
 ## Asking a question
 
-Type into the composer at the foot of the view and press Enter. Anything shorter than two characters is ignored. Answers build up in the transcript above, newest last, and you can keep asking.
+Type into the question field at the foot of the view and press Enter. Anything shorter than two characters is ignored. Answers stack up above the field, newest last, and you can keep asking.
 
-![Ask Lolly, open and empty: the composer at the foot of the view, with the note that answers come from the docs](/t/url-shot?url=%2F%23%2Fask&width=1200&height=820&waitMs=2200&format=svg&walker=1&filename=ask-view)
+![Ask Lolly, open and empty: the question field at the foot of the view, with the note that answers come from the docs](/t/url-shot?url=%2F%23%2Fask&width=1200&height=820&waitMs=2200&format=svg&walker=1&filename=ask-view)
 
-Follow-ups are answered on their own. The transcript is a record of what you asked, not a conversation that carries context forward, so "what about PDF?" after a question about exporting will be read as a question about PDF and nothing else. Ask the whole question each time.
+Each question is answered on its own: earlier questions carry no context forward, so "what about PDF?" after a question about exporting is read as a question about PDF and nothing else. Ask the whole question each time.
 
 The first word of your question decides what leads the answer:
 
@@ -24,11 +20,11 @@ The first word of your question decides what leads the answer:
 | *make*, *create*, *generate*, *build*, *design*, *convert*, *resize*, *compress*, *remove*, *strip*, *export*, *render*, *add* | the tools that match |
 | anything else - including *how do I* and *what is* | the documentation section, which is the default |
 
-Both halves are always retrieved, so a misread question reorders an answer rather than losing half of it.
+Both halves are always retrieved, so a misread question reorders an answer rather than losing half of the answer.
 
-Matching drops the common question words (*how*, *do*, *I*, *the*, *my*) and ranks a section first by how many of your remaining words it covers, then by where they matched - a heading counts for more than body text. It is substring matching, folded for case and accents, not fuzzy: it will not correct a typo or guess at a word you did not type. When nothing matches, it says so and points at the documentation index rather than inventing an answer.
+Matching drops the common question words (*how*, *do*, *I*, *the*, *my*) and ranks a section by how many of your remaining words it covers, then by where they matched: a heading counts for more than body text. Matching is by substring, folded for case and accents, so a typo is not corrected. When nothing matches, Ask says so and points at the documentation index rather than inventing an answer.
 
-**Better matching** is optional. After your first answer, Ask can offer a small matching model, with its download size, that helps match a question to a guide that uses different words for the same thing. It downloads only when you agree, runs on this device, and only changes which sections rank first: the answer is still the documentation's own words. You can also download it from **Settings → Preferences → Available offline**, where it is listed as **Ask matching model**.
+**Better matching** is optional. After your first answer, Ask can offer a small matching model, with its download size, that helps match a question to a guide that uses different words for the same thing. It downloads only when you agree, runs on this device and only changes which sections rank first: the answer is still the documentation's own words. You can also download it from **Settings → Preferences → Available offline**, where it is listed as **Ask matching model** ([Available offline](/info/dashboard.html#available-offline)).
 
 ## What comes back
 
@@ -45,16 +41,16 @@ The full text comes from the plain-markdown twin each documentation page publish
 
 The route is `#/ask`. It has no tab and no tile in the Utilities grid; the ways in are the search bar and the address itself.
 
-- <!--i:search--> **From search.** Every result panel carries an **Ask Lolly: *your query*** row at the very bottom, under whatever concrete hits the other groups found. It hands the question over as `#/ask?q=…` and the view asks it once on arrival. The seed arrives folded by the shared tokenizer - lower case, punctuation dropped - so it will not look exactly as you typed it; the composer is where you refine it.
+- <!--i:search--> **From search.** Every result panel carries an **Ask Lolly: *your query*** row at the very bottom, under whatever concrete hits the other groups found. It hands the question over as `#/ask?q=…`, and the view asks the question once on arrival. The handed-over words arrive in lower case with punctuation dropped, so refine them in the question field if you need to.
 - <!--i:link--> **From a link.** `#/ask?q=how%20do%20I%20export%20a%20transparent%20png` opens the view with that question already asked. The hash is the entry seed only: questions you type afterwards are answered in place and never rewrite the address.
 
-The shell's search bar steps aside inside this view, since the composer takes Enter, and the back pill returns you to wherever you came from.
+The search bar steps aside inside this view, since the question field takes Enter, and the back pill returns you to wherever you came from.
 
-The transcript is session memory. It survives navigating away and coming back, and a reload clears it. Nothing is written to storage, so there is no history to manage and nothing to clear.
+The answers on screen last for this session: they are still there if you navigate away and come back, and a reload clears them. Nothing is written to storage, so there is no history to manage.
 
 ## Offline
 
-Answers are assembled from two static files the documentation site already publishes: the per-language search index and the page's markdown twin. Both are fetched by name, so Ask keeps working with no connection once they are cached. Reading the guides in the app caches them as you go, and **Settings → Preferences → Available offline → Guides & docs** takes the whole site, screenshots included, in one download - see [Available offline](/info/profile.html#available-offline).
+Answers are assembled from two static files the documentation site already publishes: the per-language search index and the page's markdown twin. Both are fetched by name, so Ask keeps working with no connection once they are cached. Reading the guides in the app caches them as you go, and **Guides & docs** under [Available offline](/info/dashboard.html#available-offline) takes the whole site, screenshots included, in one download.
 
 Without them the documentation half of an answer simply does not appear, with no error. The in-app rows still do, because those are matched against data already on the device.
 
@@ -64,4 +60,4 @@ Your question never leaves the device. Matching runs locally against files fetch
 
 ---
 
-**Related:** [Search](/info/search.html) for the bar that hands questions over. [Using Lolly](/info/using.html#ask-lolly) for how Ask works within the rest of the app. [Your profile](/info/profile.html#available-offline) for taking the documentation offline first.
+**Related:** [Search](/info/search.html) for the bar that hands questions over. [Using Lolly](/info/using.html) for the rest of the app. [Settings](/info/dashboard.html#available-offline) for taking the documentation offline first.
