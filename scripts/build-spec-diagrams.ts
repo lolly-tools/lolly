@@ -153,6 +153,9 @@ export const CONCEPT_FIGURES: Figure[] = [
   { set: 'concepts', name: 'token-resolution', lang: 'dot', title: 'From token sources to tool values', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'one-render-path', lang: 'dot', title: 'Two transports, one render path', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'rights-evidence-to-delivery', lang: 'dot', title: 'Evidence, obligation and delivery', flags: ['--look=minimal', '--cardWidth=190'] },
+  { set: 'concepts', name: 'two-ways-to-resize', lang: 'dot', title: 'Two ways to resize a logo', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=24'] },
+  { set: 'concepts', name: 'signing-architecture', lang: 'dot', title: 'From device key to verified signer', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=18'] },
+  { set: 'concepts', name: 'trusted-two-gates', lang: 'dot', title: 'Two gates to trusted', flags: ['--look=minimal', '--cardWidth=178', '--siblingGap=18'] },
 ];
 
 /** Every figure the script renders, in set order. */
