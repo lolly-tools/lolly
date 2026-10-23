@@ -12,8 +12,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  createHistory, sameValue, carriesBytes, cloneValue, describeRowChange,
-  HISTORY_LIMIT, COALESCE_MS,
+  createHistory, sameValue, carriesBytes, cloneValue, describeRowChange, freezeValue,
+  FREEZE_HISTORY_VALUES, HISTORY_LIMIT, COALESCE_MS,
 } from './tool-history.ts';
 import type { InputValue } from '../../../../engine/src/inputs.js';
 import { buildInputModel, updateInput, tokenRestoreRefsOf } from '../../../../engine/src/inputs.ts';
@@ -163,16 +163,37 @@ test('the default limit and window are the documented ones', () => {
   assert.equal(COALESCE_MS, 500);
 });
 
-test('recorded values are CLONED, so later mutation cannot corrupt history', () => {
+test('a recorded value is frozen in a test build, so a later write fails loudly instead of corrupting history', () => {
+  assert.equal(FREEZE_HISTORY_VALUES, true, 'node tests are a test build');
   const h = createHistory();
   const before = { n: 1 };
-  const after = { n: 2 };
+  const after = { n: 2, rows: [{ x: 1 }] };
   h.record(edit('obj', before, after), 0);
-  after.n = 99;
-  before.n = 98;
+  assert.throws(() => { after.n = 99; }, TypeError);
+  assert.throws(() => { before.n = 98; }, TypeError);
+  assert.throws(() => { after.rows[0]!.x = 5; }, TypeError, 'all the way down');
+  assert.throws(() => { after.rows.push({ x: 2 }); }, TypeError);
   const e = h.undo();
   assert.deepEqual(e?.before, { n: 1 });
-  assert.deepEqual(e?.after, { n: 2 });
+  assert.deepEqual(e?.after, { n: 2, rows: [{ x: 1 }] });
+});
+
+test('freezeValue freezes arrays and plain objects, and leaves bytes and instances alone', () => {
+  const bytes = new Uint8Array([1, 2]);
+  const when = new Date(0);
+  const value = freezeValue({ rows: [{ a: 1 }], bytes, when, none: null });
+  assert.ok(Object.isFrozen(value) && Object.isFrozen(value.rows) && Object.isFrozen(value.rows[0]));
+  assert.equal(Object.isFrozen(bytes), false, 'freezing a typed array with elements would throw');
+  assert.equal(Object.isFrozen(when), false, 'an instance is not model data');
+  bytes[0] = 9;
+  assert.equal(bytes[0], 9);
+  // An object already frozen is taken as frozen all the way down: a commit that replaced
+  // one row walks that row only.
+  const kept = Object.freeze({ a: 1 });
+  const next = freezeValue([kept, { b: 2 }]);
+  assert.ok(Object.isFrozen(next[1]));
+  assert.equal(freezeValue(5), 5);
+  assert.equal(freezeValue(null), null);
 });
 
 // ── undo / redo ──────────────────────────────────────────────────────────────

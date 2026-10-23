@@ -56,6 +56,36 @@ export function cloneValue(v: InputValue): InputValue {
 }
 
 /**
+ * Development and test builds freeze every value history is handed. Model values are
+ * copy on write (a commit builds a new array and keeps the rows it did not change), and
+ * history relies on that: a value history keeps must never change afterwards. Freezing
+ * turns any code that writes to a model value in place into a TypeError where a test or
+ * a developer sees it, instead of a corrupted undo step in production. Production
+ * builds skip the walk.
+ */
+export const FREEZE_HISTORY_VALUES = import.meta.env?.PROD !== true;
+
+/**
+ * Deep-freeze a value's arrays and plain objects, in place, and return the value. Anything
+ * else (bytes, a Blob, a class instance) is left alone: freezing a typed array with
+ * elements throws, and an instance is not model data. An object already frozen is taken
+ * as frozen all the way down, so a commit that replaced one row walks that row only.
+ */
+export function freezeValue<T>(v: T): T {
+  if (!v || typeof v !== 'object' || Object.isFrozen(v)) return v;
+  if (!Array.isArray(v)) {
+    const proto: unknown = Object.getPrototypeOf(v);
+    if (proto !== Object.prototype && proto !== null) return v;
+  }
+  Object.freeze(v);
+  for (const child of Array.isArray(v) ? v : Object.values(v)) freezeValue(child);
+  return v;
+}
+
+/** A value as history keeps it: frozen in development and test builds. */
+const kept = (v: InputValue): InputValue => (FREEZE_HISTORY_VALUES ? freezeValue(v) : v);
+
+/**
  * Value equality for "did this edit actually change anything". JSON-based, so it
  * compares structurally rather than by reference; an unserialisable value (a
  * cycle, a function) reports NOT equal, which errs toward recording a step
@@ -215,6 +245,8 @@ export function createHistory(opts: { limit?: number; coalesceMs?: number } = {}
     record({ id, label, before, after, collabStamp, fields, tokenLinks }, now) {
       if (sameValue(before, after) && sameValue(tokenLinks?.before ?? null, tokenLinks?.after ?? null)) return 'ignored';
       if (carriesBytes(after) || carriesBytes(before)) return 'ignored';
+      // The values as the caller holds them: for a plain write, the model's own.
+      kept(before); kept(after);
 
       const last = undoStack[undoStack.length - 1];
       const structural = Array.isArray(before) && Array.isArray(after) && before.length !== after.length;
@@ -222,11 +254,11 @@ export function createHistory(opts: { limit?: number; coalesceMs?: number } = {}
       const decision = structural || bindingChange;
       let outcome: RecordOutcome;
       if (!decision && last && lastRecordId === id && JSON.stringify(last.fields) === JSON.stringify(fields) && (holding || now - lastRecordTime < coalesceMs)) {
-        last.after = cloneValue(after);   // extend the gesture, keep its original `before`
+        last.after = kept(cloneValue(after));   // extend the gesture, keep its original `before`
         if (tokenLinks) last.tokenLinks = { before: last.tokenLinks?.before ?? { ...tokenLinks.before }, after: { ...tokenLinks.after } };
         outcome = 'coalesced';
       } else {
-        undoStack.push({ id, label, before: cloneValue(before), after: cloneValue(after), ...(collabStamp !== undefined ? { collabStamp } : {}), ...(fields ? { fields: [...fields] } : {}), ...(tokenLinks ? { tokenLinks: structuredClone(tokenLinks) } : {}) });
+        undoStack.push({ id, label, before: kept(cloneValue(before)), after: kept(cloneValue(after)), ...(collabStamp !== undefined ? { collabStamp } : {}), ...(fields ? { fields: [...fields] } : {}), ...(tokenLinks ? { tokenLinks: structuredClone(tokenLinks) } : {}) });
         if (undoStack.length > limit) undoStack.shift();
         outcome = 'pushed';
       }
