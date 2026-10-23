@@ -69,8 +69,32 @@
       "icon": "star",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "First file and installation",
+      "group": "First steps",
       "headingId": "quickstart"
+    },
+    {
+      "slug": "what-is-lolly",
+      "title": "What is Lolly?",
+      "src": "what-is-lolly.md",
+      "section": "start",
+      "group": "First steps",
+      "path": "start/what-is-lolly",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "description": "What Lolly makes, where it runs and who it is for, in five minutes: the place to begin."
+    },
+    {
+      "slug": "how-lolly-works",
+      "title": "How Lolly works",
+      "src": "how-lolly-works.md",
+      "description": "One tool, your rules, many files: who sets a tool up, the four routes from a tool to a finished file and what runs on your device or on your organisation's server.",
+      "section": "start",
+      "path": "start/how-lolly-works",
+      "icon": "cpu",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "First steps"
     },
     {
       "slug": "make-something",
@@ -83,7 +107,7 @@
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "renderer": "renderMakeSomethingPage",
-      "group": "First file and installation"
+      "group": "First steps"
     },
     {
       "slug": "lolly-demo",
@@ -113,7 +137,7 @@
       "slug": "faq",
       "title": "Questions & answers",
       "src": "faq.md",
-      "description": "The things people ask most: why it is free, what the catch is not, what happens to your files and where Lolly is going.",
+      "description": "The things people ask most: why it is free, where your files go, why everything is green, how to get the apps, what to do about WebGPU and who made Lolly.",
       "section": "start",
       "path": "start/faq",
       "icon": "document",
@@ -126,7 +150,7 @@
       "slug": "organisation",
       "title": "Use Lolly at your organisation",
       "src": "organisation.md",
-      "description": "Use your organisation's Lolly, with optional lolly.work sign-in, shared projects, live collabs and managed settings. Learn what stays local and how to leave.",
+      "description": "Reach your organisation's Lolly, sign in and see what changes with Lolly Work: managed settings, locked design systems, team projects and approvals. What stays on your device, and how to leave.",
       "section": "start",
       "path": "start/organisation",
       "icon": "people",
@@ -141,25 +165,25 @@
       "slug": "install",
       "title": "Install Lolly",
       "src": "install.md",
-      "description": "Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap RPMs, the Flatpak, the Android APK, and how to check the file you downloaded is the one we made.",
+      "description": "Every way to get Lolly: the Mac and Windows apps, Lolly Tools on the App Store, the Android APK, Linux packages (Flatpak, RPM, deb, Arch, AppImage), YunoHost and the container image, with versions and how to check a download.",
       "section": "start",
       "path": "start/install",
       "icon": "download",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "First file and installation"
+      "group": "First steps"
     },
     {
       "slug": "supported-environments",
       "title": "Supported environments",
       "src": "supported-environments.md",
-      "description": "Tested browser and app environments, the WebGPU startup requirement, and the separate web and native release scopes.",
+      "description": "Where the web app's WebGPU check has been tested, what to try when your browser is refused and the qualification evidence behind each result.",
       "section": "start",
       "path": "start/supported-environments",
       "icon": "check",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "First file and installation"
+      "group": "First steps"
     },
     {
       "slug": "creators",
@@ -216,7 +240,7 @@
       "title": "Manage",
       "src": "operators.md",
       "isHub": true,
-      "description": "Roll Lolly out across an organisation: governance, deployment, configuration and the trust properties your security review will ask about.",
+      "description": "Run Lolly for a team with Lolly Work: access, roles and policy, shared assets, approvals and the data each part keeps.",
       "section": "manage",
       "path": "manage/organisation-management",
       "icon": "checklist",
@@ -685,7 +709,7 @@
       "slug": "compare",
       "title": "Lolly compared, tool by tool",
       "src": "compare.md",
-      "description": "Where Lolly overlaps with Canva, Adobe, Figma, rendering APIs and online converters, and what each of those does better. Dated, concession first, no superlatives.",
+      "description": "What runs on your device and what runs on a Lolly Work server, the limits every comparison shares and one page per product: Canva, Adobe, Figma, Penpot, brand portals, rendering APIs and converters.",
       "section": "create",
       "path": "create/compare",
       "icon": "checklist",
@@ -781,7 +805,7 @@
       "slug": "overview",
       "title": "Lolly architecture",
       "src": "overview.md",
-      "description": "How the Lolly platform is put together: the engine, the shells, the capability bridge, and why tools are data rather than bundled code.",
+      "description": "For contributors: how the engine, shells and tool packs fit, the repository layout, the ten architectural commitments and the lifecycle of one render.",
       "section": "build",
       "path": "build/overview",
       "icon": "layers",
@@ -815,7 +839,7 @@
       "slug": "glossary",
       "title": "Glossary",
       "src": "glossary.md",
-      "description": "The words Lolly uses with exact meanings: engine, shell, bridge, tool, brand pack, profile, view, catalog, session, utility, collab, and what each is not.",
+      "description": "The words you meet in the app, such as design system, colourway, saved session and Lolly Work, then the builder words (engine, shell, bridge, tool, brand pack, profile and catalog) and what each is not.",
       "section": "start",
       "path": "start/glossary",
       "icon": "document",
@@ -1451,24 +1475,10 @@
       "group": "Architecture and contracts"
     },
     {
-      "slug": "about",
-      "title": "About",
-      "src": "../README.md",
-      "description": "What Lolly is, who builds it, and how the pieces fit together. The project's own README.",
-      "section": "start",
-      "path": "start/about",
-      "icon": "document",
-      "aliases": [
-        "build/about"
-      ],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Product, organisation and vocabulary"
-    },
-    {
       "slug": "sales",
       "title": "Lolly for sales teams",
       "src": "sales.md",
-      "description": "Walk into every meeting with exactly the file you need: fix the deck you already have, rebuild it as a native deck file, and make the asset on the way there.",
+      "description": "Walk into every meeting with exactly the file you need: move the old deck onto your design system, write a new one fast and make the one-pager on the way there.",
       "section": "create",
       "path": "create/sales",
       "icon": "people",
@@ -1482,7 +1492,7 @@
       "slug": "press",
       "title": "Lolly for the newsroom",
       "src": "press.md",
-      "description": "Build the info-editorial style once, then generate publication-quality charts, maps and tables from live data, in the house style, for print and screen.",
+      "description": "Build each graphic format once, then fill charts, diagrams and maps with live data in the house style, for print and screen.",
       "section": "create",
       "path": "create/press",
       "icon": "document",
@@ -1496,7 +1506,7 @@
       "slug": "marketing",
       "title": "Lolly for marketing teams",
       "src": "marketing.md",
-      "description": "Every size, every language, one source of truth: paste a spreadsheet and get one finished file per row, with no agency bottleneck for routine files.",
+      "description": "Every size, every language, one source of truth: paste a spreadsheet and get one finished file per row, with routine files made by the people who need them.",
       "section": "create",
       "path": "create/marketing",
       "icon": "photos",
@@ -1510,7 +1520,7 @@
       "slug": "legal",
       "title": "Lolly for legal teams",
       "src": "legal.md",
-      "description": "Redact, anonymise, verify and compress on the device the file already lives on, so nothing leaves the building to be cleaned, with the licence and the EU AI Act position stated plainly.",
+      "description": "Redact, anonymise, strip and compress on the device the file already lives on, check what you were sent and read the licence, creative-rights and AI-marking positions stated plainly.",
       "section": "create",
       "path": "create/legal",
       "icon": "lock",
@@ -1704,17 +1714,6 @@
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Principles, rights and AI"
-    },
-    {
-      "slug": "what-is-lolly",
-      "title": "What is Lolly?",
-      "src": "what-is-lolly.md",
-      "section": "start",
-      "group": "Product, organisation and vocabulary",
-      "path": "start/what-is-lolly",
-      "icon": "layers",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0"
     },
     {
       "slug": "operate",
@@ -2896,6 +2895,20 @@
         "path": "status.md",
         "icon": "docs"
       }
+    },
+    {
+      "slug": "about",
+      "title": "About",
+      "src": "../README.md",
+      "description": "What Lolly is, who builds it and how the pieces fit together. The project's own README.",
+      "section": "start",
+      "path": "start/about",
+      "icon": "document",
+      "aliases": [
+        "build/about"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Product, organisation and vocabulary"
     },
     {
       "slug": "work-resumable-uploads",

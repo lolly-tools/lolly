@@ -14,6 +14,8 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | --- | --- |
 | Lolly: information and documentation | [site.md](site.md) |
 | Start | [quickstart.md](quickstart.md) |
+| What is Lolly? | [what-is-lolly.md](what-is-lolly.md) |
+| How Lolly works | [how-lolly-works.md](how-lolly-works.md) |
 | Make your first file | [make-something.md](make-something.md) |
 | Meet Lolly Demo | [lolly-demo.md](lolly-demo.md) |
 | Lolly Demo in use | [lolly-demo-in-use.md](lolly-demo-in-use.md) |
@@ -22,9 +24,8 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Install Lolly | [install.md](install.md) |
 | Supported environments | [supported-environments.md](supported-environments.md) |
 | Glossary | [glossary.md](glossary.md) |
-| About | [../README.md](../README.md) |
-| What is Lolly? | [what-is-lolly.md](what-is-lolly.md) |
 | Work status and roadmap | [work/status.md](work/status.md) |
+| About | [../README.md](../README.md) |
 
 ## Create
 

@@ -2,26 +2,26 @@
 
 _Last checked: 28 September 2026._
 
-Lolly makes on-brand graphics, social posts, presentations and layouts in the browser. Together with [lolly.work](https://lolly.work), it also supports shared projects, live work collaboration, approved assets and organisation policies.
+If your team makes social posts, slides and flyers in Canva today, this page says where Lolly does the same job and where Canva stays the better fit.
+
+## What Canva does better
+
+Canva combines a large template and stock library, apps and hosted team workflows in one managed service. That ready-made content and experience help when you need a starting point today. See [Canva's templates](https://www.canva.com/templates/) and [apps marketplace](https://www.canva.com/apps/). Its live editing also has a long operating history at a scale Lolly's work collabs have not reached.
 
 ## Where they overlap
 
-Both let someone start from a template and produce a finished graphic without being a designer. Both support team workflows and brand controls: [Canva packages these in its business plans](https://www.canva.com/canva-business/); Lolly separates the creative apps from the organisation service.
+Both let someone start from a template and produce a finished graphic without being a designer. Both support team work and brand controls: [Canva packages these in its business plans](https://www.canva.com/canva-business/), while Lolly keeps the creative app and the organisation server apart.
 
-Lolly runs standalone on your device with no account. lolly.work adds SSO, SCIM provisioning, roles, shared catalogues, approvals and usage reporting when your organisation needs them. It is part of the Lolly project, separately deployed and open source under MPL-2.0, like Lolly itself.
+## How Lolly does the overlapping job
 
-## Templates and teamwork
+A Lolly tool encodes the changes people may make, and the same tool runs in the browser, the desktop app or the CLI. A layout made on the Design canvas can become a [tool with rules](/info/create-a-tool.html), and one tool can make many files from a table of values.
 
-Canva combines a large template and stock library, apps and hosted team workflows in one service. That ready-made content and managed experience can be useful when choosing a starting point. See [Canva's templates](https://www.canva.com/templates/) and [apps marketplace](https://www.canva.com/apps/).
+![Design's free canvas, where the colours, faces and assets on offer are the design system's own](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
-Lolly's tools encode permitted changes and can be reused in the browser, desktop app or CLI. A design can become a [tool with rules](/info/create-a-tool.html), and the same tool can produce many outputs from a table of values. lolly.work manages access, shared work and policy around those tools.
+Standalone Lolly keeps making and exporting on the device, with no account, and works offline once its assets are saved. Two people can edit live in a [private collab](/info/collaborate.html), device to device. Content Credentials are on by default for supported exports, and you can turn them off.
 
-Live editing is available through both [private collabs](/info/collaborate.html), which connect two devices directly, and work collabs through an organisation's lolly.work instance. Work collabs include shared edits, cursors and saved team sessions. The current server deployment uses a single collaboration node; its scale and operating history differ from Canva's established service.
+## With an organisation
 
-## Where the work lives
+Lolly Work, run on your organisation's own server, adds sign-in, shared projects, live work collabs, approved assets and policies. [What runs where](/info/compare.html#what-runs-where) sets the two parts side by side, with the limits every comparison shares.
 
-Standalone Lolly keeps creation and export on the device and can work offline once its assets are available. Work collaboration, team storage and server rendering use the organisation's configured services. This choice of deployment is the distinction: an organisation can operate both parts of Lolly itself, with no per-seat software licence charge, while paying for its own hosting and administration.
-
-Content Credentials are optional for supported exports. lolly.work can sign server output with a configured organisation identity; a verifier must trust that identity before showing the signer as trusted. See [Content Credentials Identity](/info/content-credentials-identity.html) and the [combined-solution overview](/info/compare.html).
-
-Canva is a trademark of its owner. This page describes where the two solutions overlap and is not affiliated with Canva.
+Canva is a trademark of its owner. This page describes where the two products overlap and is not affiliated with Canva.
