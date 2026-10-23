@@ -128509,7 +128509,8 @@ function baselineSkillName(systemName) {
   const slug4 = systemName.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 54).replace(/-+$/, "");
   return `${slug4 || "design-system"}-baseline`;
 }
-function baselineBrandSkill(brief2, opts = {}) {
+function baselineBrandSkill(source, opts = {}) {
+  const brief2 = source;
   const systemName = typeof brief2.name === "string" && brief2.name.trim() ? brief2.name.trim() : "Design system";
   const name = baselineSkillName(systemName);
   const description = `The ${systemName} design system as Lolly holds it: named colours, approved pairings, type, logos per surface, icon themes, media families and the house rules Lolly checks. Generated from the design brief; the brand's own skills take precedence.`;
@@ -146267,6 +146268,7 @@ __export(content_roots_exports, {
   contentRoots: () => contentRoots,
   contentUrlFile: () => contentUrlFile,
   contentUrlFileExact: () => contentUrlFileExact,
+  isPublicSkillRow: () => isPublicSkillRow,
   listToolFiles: () => listToolFiles,
   materializeInto: () => materializeInto,
   readAssetIndex: () => readAssetIndex,
@@ -146709,19 +146711,24 @@ function contentUrlFileExact(url, r5) {
 function copyTree(src, dst) {
   cpSync(src, dst, { recursive: true, dereference: true, filter: () => true });
 }
+function isPublicSkillRow(asset2) {
+  if (!asset2 || typeof asset2 !== "object" || asset2.type !== "skill") return true;
+  const meta = asset2.meta;
+  return !!meta && typeof meta === "object" && meta.skill?.audience === "public";
+}
 function dropInternalSkills(catalogOut) {
   const indexPath2 = join2(catalogOut, "assets", "index.json");
   if (!existsSync2(indexPath2)) return;
   const index2 = JSON.parse(readFileSync(indexPath2, "utf8"));
   const assets = Array.isArray(index2.assets) ? index2.assets : [];
-  const internal2 = assets.filter((a) => !isPublicBrandSkillAsset(a));
+  const internal2 = assets.filter((a) => !isPublicSkillRow(a));
   if (!internal2.length) return;
   for (const asset2 of internal2) {
     for (const { url } of [...asset2.formats ?? [], ...asset2.meta?.skill?.files ?? []]) {
       if (typeof url === "string" && url.startsWith("/catalog/") && !url.includes("..")) rmSync(join2(catalogOut, ...url.slice("/catalog/".length).split("/")), { force: true });
     }
   }
-  writeFileSync(indexPath2, JSON.stringify({ ...index2, assets: assets.filter((a) => isPublicBrandSkillAsset(a)) }, null, 2) + "\n");
+  writeFileSync(indexPath2, JSON.stringify({ ...index2, assets: assets.filter((a) => isPublicSkillRow(a)) }, null, 2) + "\n");
 }
 function materializeInto(dest, r5) {
   const roots2 = r5 ?? contentRoots();
@@ -146764,7 +146771,6 @@ var init_content_roots = __esm({
   "packages/node-shell/src/content-roots.ts"() {
     "use strict";
     init_repo_root();
-    init_brand_skill_v1();
     BASE_PACK = "community";
     BASE_PACK_DATA_DIRS = /* @__PURE__ */ new Set(["slide-structures"]);
     PHYSICAL_TOOL_DIRECTORY = /^[a-z0-9-]+@[a-f0-9]{16}$/;
