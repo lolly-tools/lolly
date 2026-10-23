@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Visa text i ett skrivbordsfönster, som stillbild eller som en regisserad interaktion med skrivning, markeringar, autokomplettering och rörelse.",
   "inputs.code.label": "Kod",
   "inputs.code.placeholder": "Klistra in din kod här…",
   "inputs.fileName.label": "Filnamn",

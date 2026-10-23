@@ -1,6 +1,6 @@
 {
   "name": "Agenda",
-  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
+  "description": "Gawing branded screens, interactive na web page, animated na overview, PowerPoint slides at calendar ang isang programme.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} session, {{trackCount}} track",
   "inputs.title.label": "Kaganapan",
   "inputs.title.help": "Naka-print sa ulo ng bawat layout, at pinangalanan nito ang na-export na file.",

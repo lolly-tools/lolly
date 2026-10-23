@@ -1,6 +1,6 @@
 {
   "name": "Gradient",
-  "description": "Degrade-uri moi în stil mesh, din eșantioanele brandului tău. Trage punctele de culoare direct pe canvas, sau activează Derivă și exportă bucla ca WebM, MP4 sau GIF.",
+  "description": "Cinci moduri de a construi un gradient din culorile sistemului de design: Blend radial moale, o plasă Coons reală ca SVG clar (Subdivide) sau raster neted (Mesh), puncte Warp libere și valurile animate Flow. Trage totul direct pe pânză; exportă imagini statice sau bucle video fără cusătură.",
   "a11yLabel": "Degrade mesh care combină {{count}} culori",
   "inputs.count.label": "Puncte de culoare",
   "inputs.color1.label": "Culoare 1 (bază)",

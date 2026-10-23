@@ -1,6 +1,6 @@
 {
   "name": "Chương trình",
-  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
+  "description": "Biến một chương trình thành màn hình đúng thương hiệu, trang web tương tác, bản tổng quan hoạt hình, slide PowerPoint và lịch.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} phiên, {{trackCount}} bài hát",
   "inputs.title.label": "Sự kiện",
   "inputs.title.help": "Được in ở đầu mỗi bố cục và đặt tên cho tệp được xuất.",

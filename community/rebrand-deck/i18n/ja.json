@@ -1,6 +1,6 @@
 {
-  "name": "Theme swap",
-  "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
+  "name": "テーマの入れ替え",
+  "description": "PowerPoint デッキのテーマ、色、フォントをこのデバイス上で入れ替えます。Rebrand ならこれ以上のこともできます。",
   "a11yLabel": "{{fileName}} 用デッキリブランダー",
   "inputs.source.label": "PowerPointファイル",
   "inputs.source.help": ".pptx ファイルです。お使いの端末上で読み込まれ、アップロードされることはありません。",
