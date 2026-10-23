@@ -75,7 +75,7 @@ lw providers health acme-imagerelay
 - **Not yet confirmed against a live tenant.** The endpoints and field names come from Image
   Relay's documentation. [Check a source on your own tenant](tenant-check.md#image-relay) lists
   what to look at. Contributors changing the driver follow its
-  [maintainer runbook](imagerelay-live-verify.md) in the Lolly Work repository.
+  [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/imagerelay.md) in the Lolly Work repository.
 - **Signed, short-lived download links,** fetched on each request and pinned to `imagerelay.com`.
   The driver sends the `User-Agent` Image Relay requires and keeps to **5 requests a second**.
 - **Deleted files leave the catalog.** A file Image Relay reports as deleted is dropped.

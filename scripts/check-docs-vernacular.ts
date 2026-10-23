@@ -281,8 +281,6 @@ const ALLOW: Record<string, string[]> = {
   // Work's policy key and diagnostic text are literal names emitted by the server.
   'docs/work/ai-policy.md': ['`speech`, `transcription`'],
   'docs/work/cli.md': ['read with care: 3 comparison(s) used a stamp that names no timezone'],
-  'docs/work/providers/acquia-dam-live-verify.md': ['`read with care: … names no timezone`'],
-  'docs/work/providers/intelligencebank-live-verify.md': ['`read with care: … names no timezone`'],
   'docs/animating.md': ['follow the shape of the artwork'],
   'docs/ai-features.md': ['actual shape of the audio'],
   'docs/url-inputs.md': ['actual shape of the catalogue track'],

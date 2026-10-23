@@ -98,7 +98,7 @@ lw providers enable orange-media
 Check the sample, metadata, rendition labels and group access before enabling, then run the
 [Orange Logic check](tenant-check.md#orange-logic). A successful HTTP call proves neither the
 file's fidelity nor an upstream rights clearance. Contributors changing the driver follow its
-[maintainer runbook](orange-logic-live-verify.md) in the Lolly Work repository.
+[maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/orange-logic.md) in the Lolly Work repository.
 
 ## Notes / limits
 

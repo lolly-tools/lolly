@@ -22,6 +22,9 @@ test('the approved sections share one generated registry and canonical entrance'
   const duplicate = structuredClone(registry);
   duplicate.pages[1]!.aliases.push(registry.pages[0]!.path);
   assert.throws(() => validateRegistry(duplicate), /overwrite/);
+  const anchored = structuredClone(registry);
+  anchored.pages[1]!.aliasAnchors = { 'not-an-old-path': 'top' };
+  assert.throws(() => validateRegistry(anchored), /Section anchor/);
 });
 
 test('all imported Work guides keep their console identities and original screenshot bytes', () => {

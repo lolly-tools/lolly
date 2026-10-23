@@ -21,6 +21,8 @@ export interface DocsPage {
   path: string;
   icon: string;
   aliases: string[];
+  /** An old path that now opens at one section of this page: alias to the section's id. */
+  aliasAnchors?: Record<string, string>;
   secondarySections?: string[];
   description?: string;
   headingId?: string;
@@ -72,6 +74,9 @@ export function validateRegistry(registry: DocsRegistry, root = DOCS_ROOT): void
     for (const alias of page.aliases) {
       if (!PATH.test(alias) || aliases.has(alias)) throw new Error(`Duplicate or invalid old documentation path: ${alias}`);
       aliases.add(alias);
+    }
+    for (const [alias, anchor] of Object.entries(page.aliasAnchors ?? {})) {
+      if (!page.aliases.includes(alias) || !ID.test(anchor)) throw new Error(`Section anchor for an unknown old path, or an invalid id: ${alias}`);
     }
     for (const section of page.secondarySections ?? []) if (!sections.has(section)) throw new Error(`Unknown cross-listed section: ${section}`);
     if (page.work) {

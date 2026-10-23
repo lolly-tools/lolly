@@ -473,8 +473,13 @@ function pathSlug(slug: string): string {
 for (const p of pages) {
   if (PAGE_DOOR[p.slug]) stubs.push({ slug: p.slug, target: `/info/${pathSlug(p.slug)}.html` });
 }
+// An alias with a section anchor (manifest `aliasAnchors`) opens at that section: the
+// seven provider live-verify runbooks moved to the Work repository, and their old
+// addresses land on the matching source in the tenant check, as the Work console does.
+const aliasTarget = (page: (typeof DOCS_REGISTRY.pages)[number], alias: string): string =>
+  `/info/${page.path}.html${page.aliasAnchors?.[alias] ? '#' + page.aliasAnchors[alias] : ''}`;
 for (const page of DOCS_REGISTRY.pages) for (const alias of page.aliases) {
-  stubs.push({ slug: alias, target: `/info/${page.path}.html` });
+  stubs.push({ slug: alias, target: aliasTarget(page, alias) });
 }
 /**
  * Rewrite the flat internal links a page's rendered HTML carries (hand-authored
@@ -487,9 +492,14 @@ for (const page of DOCS_REGISTRY.pages) for (const alias of page.aliases) {
 function doorizeLinks(html: string): string {
   const langAlt = LANGS.filter(l => l !== 'en').join('|');
   const aliases = new Map(DOCS_REGISTRY.pages.flatMap(p => [[p.slug, p.path], ...p.aliases.map(alias => [alias, p.path])] as Array<[string, string]>));
+  const anchors = new Map(DOCS_REGISTRY.pages.flatMap(p => Object.entries(p.aliasAnchors ?? {})));
   const re = new RegExp(`/info/((?:${langAlt})/)?([\\w/-]+)\\.(html|md)`, 'g');
-  return html.replace(re, (original, langPrefix: string | undefined, path: string, extension: string) =>
-    aliases.has(path) ? `/info/${langPrefix ?? ''}${aliases.get(path)}.${extension}` : original);
+  return html.replace(re, (original, langPrefix: string | undefined, path: string, extension: string, offset: number) => {
+    if (!aliases.has(path)) return original;
+    // A link with no section or query of its own opens at the alias's section.
+    const anchor = extension === 'html' && anchors.has(path) && !/[#?]/.test(html[offset + original.length] ?? '') ? '#' + anchors.get(path) : '';
+    return `/info/${langPrefix ?? ''}${aliases.get(path)}.${extension}${anchor}`;
+  });
 }
 
 /**
