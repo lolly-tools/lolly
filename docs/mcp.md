@@ -209,7 +209,7 @@ One predicate decides when a call needs the browser tier, shared by the CLI, the
 | `lolly_verify` | Verify a file's Content Credentials (C2PA). |
 | `lolly_rebrand` | Renovate a PowerPoint deck you supply into this server's design system, in stages. |
 | `lolly_read` | Read what a deck you supply says (`.pptx`, PDF or Photoshop `.psd`), slide by slide. |
-| `lolly_check` | Check a Design document, a `.lolly` or an export with every check Lolly has, in one findings list. |
+| `lolly_check` | Check a Design document, a `.lolly` or an export with every check Lolly has, in one findings list. For a document it also checks the house rules layer by layer and gives the writing score of its visible text, which never changes the exit code. |
 
 On an authenticated connection with a file scope, six more tools appear for importing a private file once and working on its handle: `files_import`, `files_list`, `files_download`, `files_convert`, `files_report` and `files_delete`.
 
@@ -274,12 +274,14 @@ When an agent rebuilds a deck in Design rather than renovating it with `lolly_re
 - <!--i:document--> **Read `lolly://design-context`.** The design brief: approved colour pairings, type per role, logos per surface, icons, the slide master and the brand's house rules.
 - <!--i:search--> **Read the source.** `lolly_read` gives the source deck's content.
 - <!--i:palette--> **Write the document.** Compose, measure and package it (next section).
-- <!--i:check--> **Check the result.** `lolly_check` against the source or its inventory.
+- <!--i:check--> **Check the result.** `lolly_check` against the source or its inventory, then revise the layers its house-rule findings and writing score name, and check again.
 :::
 
 `lolly_read` takes `{file}` and returns the content inventory (schema `content-inventory-v1`) with counts per kind: text in reading order with roles and runs, speaker notes with paragraphs and line breaks kept apart, pictures by content hash with placement and crop, tables and charts as data, plus the class of every object. An inventory over 128 KB comes back as an embedded JSON resource instead of inside the structured result. Pictures come back as facts (hash, type, size, placement); `media: "inline"` also returns the bytes of each distinct picture, one embedded resource each. No text recognition runs, so a slide that is one picture of a slide reads as a picture (`ocr` is `false`). The same reader as `lolly read --json`.
 
 `lolly_check` returns the same report `lolly check --json` writes (schema `check-report-v1`): five families (`structure`, `render`, `brand`, `verify`, `fidelity`), each `ran`, `skipped`, `unavailable` or `failed` with a reason, and one findings list. Each finding has a stable `code`, a `severity`, the `layerId` where there is one, the message the app shows and a `fix` where one is safe. Findings are data, so the call is a tool error only when the request or the file cannot be read.
+
+For a Design document or a `.lolly`, the `verify` family also carries one `verify.writing-score` finding: the writing score Verify shows for the document's visible text, with hidden layers left out. It is `info` below the strong band and `warn` at it, never `error`, and its evidence gives the score, the band and the layers that hold the strongest flagged phrases. The score is a signal, not a verdict, and it never changes `exitCode`, with `strict` or without. Read it with the house-rule findings in the `brand` family as creation feedback: revise the layers they name and check again. The feedback informs and never blocks a render.
 
 The render family (clipped text, contrast and font coverage on the painted page, with the document's pictures painted) needs the browser tier. A hosted server runs it only where it has a browser and a web shell to drive: the browser image with `LOLLY_WEB_BASE` set. On `lolly.tools/api/mcp`, which has no browser, it reports `unavailable` and the other families still run. Verify runs with text recognition off on every server. On a hosted server the file and the source travel in one request, so pass the `lolly_read` inventory rather than the source deck there.
 
@@ -299,6 +301,8 @@ Add `source` (a deck) or `inventory` (what `lolly_read` returned, or the whole `
 | `4` | An error finding, or any warning with `strict` |
 | `3` | `browser: "require"` and no browser is available to render the document. An export has no render family, so the requirement does not apply to an export |
 | `1` | A family that failed, or an export with no page that could be decoded |
+
+`verify.writing-score` never counts toward the code: a document whose only warning is a strong writing score still exits `0`.
 :::
 
 ### Compose, measure and package a Design document

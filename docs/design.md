@@ -165,7 +165,13 @@ The export panel's card also compares the composition with your design system, a
 
 Where a concrete colour or font suggestion exists, its button changes that one layer, and **Undo** restores the original. Locked or since-changed layers are never overwritten by an old suggestion. Gradients, effects, nested tool content, rights and subjective quality are outside this comparison, and no check blocks Download.
 
-The house rules a design system brings with it, such as approved colour pairings or a logo per surface, are not part of this card yet. `lolly check` applies them to a saved Design document, layer by layer; [Usage & rules](/info/brand-studio.html#usage-rules) lists them.
+### House rules and the writing signal
+
+The export panel's card also checks the house rules your design system brings with it, such as text weight and alignment, approved colour pairings or a logo per surface, layer by layer. Each finding is a warning with the layer's name above the rule. A rule this build has no checker for is listed as not checked, never as followed. [Usage & rules](/info/brand-studio.html#usage-rules) lists the rules, and `lolly check` applies the same ones to a saved document.
+
+The same card shows the writing signal for the text the document draws: its band (none, weak, notable or strong), then Verify's own sentence with the score out of 100 and up to three flagged phrases, each with the layer that holds them. **Open the text in Verify** takes that text to [Verify](/#/verify) for the full reading; [AI evidence in Verify](/info/verify-ai-evidence.html) explains what the score weighs. The score is a signal, not a verdict: it counts patterns common in generated writing and cannot tell who wrote the words. Hidden layers are left out of both checks, and the card says how many.
+
+House-rule findings and a strong writing signal count toward the card's "to fix" total so they are easy to find. They inform and never block: Download stays available, and there is nothing to dismiss or record as an exception. An agent working in the open document gets the same report through its site tools ([Agents in an open document](/info/open-document-agents.html)).
 
 The print checks (bleed, resolution, ink coverage and plate counts) join the same card when you turn on **Settings → Feature flags → Print preflight**. In other tools that flag is what shows the card at all; [Export a file](/info/exporting.html) describes the print checks.
 

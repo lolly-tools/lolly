@@ -20,7 +20,7 @@ import { checkFile } from '@lolly-tools/node-shell/check';
 import { readProfileBriefCatalog, readProfileTokenDocument } from '@lolly-tools/node-shell/design-brief';
 import { CHECK_OUTCOME_EXIT_CODES, type CheckReportV1 } from '@lolly-tools/core';
 import { dispatch } from '../src/server.ts';
-import { serverInstructions } from '../src/tools.ts';
+import { getPrompt, serverInstructions } from '../src/tools.ts';
 import type { JsonRpcResponse } from '../src/protocol.ts';
 import { CHECK_LIMITS, CHECK_OUTPUT_SCHEMA, CHECK_TOOL_CODES, callCheck, type CheckDesignResolver } from '../src/check.ts';
 import { callRead } from '../src/read.ts';
@@ -319,4 +319,24 @@ test('edits records deliberate wording changes: excepted in the report, never pa
   refusedWith(await check({ file: trapFile, browser: 'off', edits: [{ source: dropped, reason: 'x' }] }), 'request.invalid');
   refusedWith(await check({ file: trapFile, browser: 'off', inventory, edits: [{ source: dropped }] }), 'request.invalid');
   refusedWith(await check({ file: trapFile, browser: 'off', inventory, edits: 'all of them' }), 'request.invalid');
+});
+
+test('creation feedback: the writing score is in the report, never changes exitCode, and agents are told to revise', async () => {
+  const report = reportOf(await check({ file: trapFile, browser: 'off' }));
+  const writing = report.findings.filter((f) => f.code === 'verify.writing-score');
+  assert.equal(writing.length, 1);
+  assert.notEqual(writing[0]!.severity, 'error');
+  const counted = report.findings.filter((f) => f.code !== 'verify.writing-score');
+  assert.equal(report.exitCode, counted.some((f) => f.severity === 'error') ? 4 : counted.some((f) => f.severity === 'warn') ? 5 : 0);
+
+  const res = (await dispatch({ jsonrpc: '2.0', id: nextId++, method: 'tools/list', params: {} })) as JsonRpcResponse;
+  const description = (res.result as { tools: Array<{ name: string; description: string }> }).tools.find((t) => t.name === 'lolly_check')?.description ?? '';
+  assert.match(description, /verify\.writing-score/);
+  assert.match(description, /never changes exitCode/);
+  assert.match(description, /revise the layers they name/);
+  assert.match(await serverInstructions(), /creation feedback that informs and never blocks, so revise the layers they name/);
+  const prompt = await getPrompt('design', {});
+  assert.match((prompt!.messages[0]!.content as { text: string }).text, /Call lolly_check with the same toolId and inputs\. Read the house-rule findings and the writing score/);
+  const generic = await getPrompt('create-branded-asset', { brief: 'a slide' });
+  assert.match((generic!.messages[0]!.content as { text: string }).text, /call lolly_check and read the house-rule findings and the writing score/);
 });

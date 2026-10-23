@@ -127,7 +127,8 @@ test('the trap document reports structure, render, brand and Verify findings on 
   assert.ok(report.findings.some((f) => f.origin.checker === 'house-rules' && f.evidence?.review === 'draft'));
   // A rule kind this build has no checker for is listed, never passed.
   assert.ok(report.findings.some((f) => f.code === 'brand.rule.unknown' && f.evidence?.rule === 'clear-space'));
-  for (const f of report.findings) if (f.family !== 'brand' || f.code !== 'brand.rule.unknown') assert.ok(f.layerId, `${f.code} has a layer`);
+  // The writing score is about the whole text, so it names layers in its evidence, not one layerId.
+  for (const f of report.findings) if (f.code !== 'brand.rule.unknown' && f.code !== 'verify.writing-score') assert.ok(f.layerId, `${f.code} has a layer`);
 
   assert.equal(report.outcome, 'review');
   assert.equal(report.exitCode, 5);
@@ -155,9 +156,72 @@ test('strict turns Verify clues into errors and refuses on any warning', async (
   const report = await checkFile(TRAP_BYTES, 'trap.boxes.json', withTokens({ strict: true }));
   assertReport(report);
   assert.equal(report.strict, true);
-  assert.ok(report.findings.filter((f) => f.family === 'verify').every((f) => f.severity === 'error'));
+  assert.ok(report.findings.filter((f) => f.family === 'verify' && f.code !== 'verify.writing-score').every((f) => f.severity === 'error'));
+  // The writing score informs only: strict never makes it an error.
+  assert.ok(report.findings.filter((f) => f.code === 'verify.writing-score').every((f) => f.severity !== 'error'));
   assert.equal(report.outcome, 'refused');
   assert.equal(report.exitCode, 4);
+});
+
+/** The exit code the findings call for with the writing score left out, for a report whose families all ran or skipped. */
+function exitWithoutWritingScore(report: CheckReportV1): number {
+  const counted = report.findings.filter((f) => f.code !== 'verify.writing-score');
+  if (counted.some((f) => f.severity === 'error') || (report.strict && counted.some((f) => f.severity === 'warn'))) return 4;
+  return counted.some((f) => f.severity === 'warn') ? 5 : 0;
+}
+
+const STRONG_TEXT =
+  "In today's fast-paced world, it's important to delve into the rich tapestry of innovation. As an AI language model, I hope this helps! " +
+  'Let me know if you have any other questions. This is a testament to our commitment, and it underscores the pivotal, transformative role we play in the ever-evolving landscape.\u200B';
+const writingDoc = (text: string, extra: Record<string, unknown>[] = []): Uint8Array => new TextEncoder().encode(JSON.stringify([
+  { id: 'board', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, bg: '#ffffff' },
+  { id: 'body', kind: 'text', frame: 'board', x: 80, y: 80, w: 1600, h: 600, text, fontSize: 32, fg: '#111111' },
+  ...extra,
+]));
+
+test('the writing score is one verify finding that never changes the exit code', async () => {
+  const trap = await checkFile(TRAP_BYTES, 'trap.boxes.json', withTokens({ browser: 'off' }));
+  assertReport(trap);
+  const quiet = trap.findings.filter((f) => f.code === 'verify.writing-score');
+  assert.equal(quiet.length, 1, 'one writing score per document');
+  assert.equal(quiet[0]!.severity, 'info');
+  assert.equal(quiet[0]!.origin.checker, 'forensic');
+  assert.equal(quiet[0]!.origin.id, 'writing-score');
+  assert.equal(typeof quiet[0]!.evidence?.score, 'number');
+  assert.match(trap.families.verify.reason ?? '', /Writing score \d+\/100 \(\w+\) over \d+ text layers?; it informs and does not change the exit code\./);
+  assert.equal(trap.exitCode, exitWithoutWritingScore(trap));
+
+  for (const strict of [false, true]) {
+    const report = await checkFile(writingDoc(STRONG_TEXT), 'strong.boxes.json', { browser: 'off', strict });
+    assertReport(report);
+    const writing = report.findings.find((f) => f.code === 'verify.writing-score')!;
+    assert.equal(writing.evidence?.band, 'strong');
+    assert.equal(writing.severity, 'warn', 'warn at the strong band, strict or not');
+    assert.equal(writing.needs, 'review');
+    assert.equal(writing.evidence?.layers, 'body');
+    assert.match(writing.message, /^Writing signal \(strong\): Strong signals were found/);
+    assert.doesNotMatch(writing.message, /AI-generated\.|passes/);
+    assert.equal(report.exitCode, exitWithoutWritingScore(report), `strict ${strict}`);
+    // Counted in the tallies, since it is in the findings list.
+    assert.equal(report.summary.warn, report.findings.filter((f) => f.severity === 'warn').length);
+  }
+});
+
+test('the writing score leaves hidden layers out and is absent when no text is drawn', async () => {
+  const hiddenOnly = await checkFile(new TextEncoder().encode(JSON.stringify([
+    { id: 'board', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080 },
+    { id: 'body', kind: 'text', frame: 'board', x: 80, y: 80, w: 1600, h: 600, text: STRONG_TEXT, hidden: true },
+  ])), 'hidden.boxes.json', { browser: 'off' });
+  assertReport(hiddenOnly);
+  assert.ok(!hiddenOnly.findings.some((f) => f.code === 'verify.writing-score'), 'nothing visible to score');
+  assert.match(hiddenOnly.families.verify.reason ?? '', /No visible text, so no writing score\. 1 hidden text layer was left out\./);
+
+  const mixed = await checkFile(writingDoc('Our quarterly results are in. Revenue grew in every region.', [
+    { id: 'draft', kind: 'text', frame: 'board', x: 80, y: 700, w: 1600, h: 200, text: STRONG_TEXT, hidden: true },
+  ]), 'mixed.boxes.json', { browser: 'off' });
+  const writing = mixed.findings.find((f) => f.code === 'verify.writing-score')!;
+  assert.notEqual(writing.evidence?.band, 'strong', 'the hidden draft is not scored');
+  assert.equal(writing.evidence?.hiddenLayers, 1);
 });
 
 test('an approved required house rule is an error and refuses the check', async () => {

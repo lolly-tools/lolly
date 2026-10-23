@@ -632,6 +632,8 @@ test('the maintained recreation spec composes both themes without clipped text, 
       source: inventory, edits: fidelity.edits, theme, designSystem: { doc: JSON.parse(readFileSync(TOKENS, 'utf8')), origin: 'file' }, browser: 'off',
     });
     assert.equal(checked.summary.error, 0);
-    assert.deepEqual(checked.findings.filter((f) => f.code.startsWith('verify.') || f.code.startsWith('brand.rule.') || f.code === 'design.text.overflow'), [], theme);
+    // The writing score is a reading of the whole text, not a Verify clue: it is there, and quiet.
+    assert.deepEqual(checked.findings.filter((f) => (f.code.startsWith('verify.') && f.code !== 'verify.writing-score') || f.code.startsWith('brand.rule.') || f.code === 'design.text.overflow'), [], theme);
+    assert.deepEqual(checked.findings.filter((f) => f.code === 'verify.writing-score').map((f) => [f.severity, f.evidence?.band]), [['info', 'none']], theme);
   }
 });
