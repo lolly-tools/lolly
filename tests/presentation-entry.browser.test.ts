@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 test('a delayed previous route cannot replace Design when presentation gains focus', { timeout: 120_000 }, async t => {
   const { createServer } = await import('vite');
@@ -38,6 +39,7 @@ test('a delayed previous route cannot replace Design when presentation gains foc
   await page.route('**/src/views/projects.ts*', async route => { requested(); await held; await route.continue(); });
   try {
     await page.goto(`${origin}/#/u`, { waitUntil: 'networkidle' });
+    await shellSettled(page);
     await page.evaluate(() => { location.hash = '#/p'; });
     await projectsRequested;
     const boxes = Array.from({ length: 45 }, (_, i) => ({ id: `page-${i}`, kind: 'frame', x: (i % 9) * 2000, y: Math.floor(i / 9) * 1200, w: 1920, h: 1080, order: i, bg: '#123e33' }));

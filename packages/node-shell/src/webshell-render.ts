@@ -26,6 +26,7 @@ import {
 import { repoRoot } from './repo-root.ts';
 import { catalogFile, readAssetIndex, toolFile } from './content-roots.ts';
 import { waitForExport, type ExportWait } from './export-wait.ts';
+import { waitForShellStartup } from './shell-startup.ts';
 import type { ConsoleMessage, Page } from 'playwright-core';
 import { OpenSessionError, checksInOpenedPage, openRouteRefusal, openSessionInPage, packageDesignSession, sessionExportQuery, shortenUrls } from './open-session.ts';
 
@@ -511,6 +512,7 @@ export async function transformViaWebShell(
   try {
     const page = await ctx.newPage();
     await page.goto(url, { waitUntil: 'load', timeout: 30_000 });
+    await shellStarted(page);
     const picker = `.file-picker[data-input-id="${fileInputId}"] input.file-native`;
     try {
       await page.waitForSelector(picker, { state: 'attached', timeout: 30_000 });
@@ -742,6 +744,19 @@ export async function renderVideoViaScreenshot(
   }
 }
 
+/**
+ * Wait for the shell's WebGPU startup check before waiting for a tool view (shell-startup.ts).
+ * A tool route mounts only once the check settles, and under automation the device may
+ * take as long as a 30 s view wait, so that wait alone races the check. A check that
+ * failed shows the unsupported-environment card instead of the view, which is said here
+ * rather than left to read as a missing element.
+ */
+async function shellStarted(page: Page): Promise<void> {
+  if (await waitForShellStartup(page) === 'unsupported') {
+    throw new BrowserError('The web shell could not start WebGPU in this browser, so it cannot open the tool. Run with a browser that has WebGPU (LOLLY_BROWSER_PATH or LOLLY_BROWSER_CHANNEL).');
+  }
+}
+
 /** A portable tool is installed in an isolated reader, then rendered by the ordinary export path. */
 export async function renderToolPackageViaWebShell(bytes: Uint8Array, toolId: string, query: string, format: string, production: ProductionBrowserOptions = {}): Promise<Uint8Array> {
   const base = await webShellBase();
@@ -751,16 +766,26 @@ export async function renderToolPackageViaWebShell(bytes: Uint8Array, toolId: st
   try {
     const page = await context.newPage();
     const observeInputs = await observeProductionInputs(page, toolId, production.productionInputIds ?? []);
+    // The file is dropped on the gallery, whose moving previews compete for the GPU with
+    // the WebGPU startup check (plan 295). In a headless browser that check then runs out
+    // its 30 s device budget, where a still gallery settles it in seconds. So the gallery
+    // is shown still until the check settles, and the tool view and its export run with
+    // the browser's own motion setting.
+    await page.emulateMedia({reducedMotion:'reduce'});
     await page.goto(base, {waitUntil:'load',timeout:30_000});
     // Network idleness is not a boot signal: the WebGPU startup check (plan 295) can keep
     // the network quiet for seconds on a cold software adapter. Drop the file once the
     // gallery's drop router is attached.
     await page.locator('#view[data-drop-ready]').waitFor({state:'attached',timeout:30_000});
+    await shellStarted(page);
+    await page.emulateMedia({reducedMotion:null});
     await page.evaluate(data => {
       const transfer = new DataTransfer(); transfer.items.add(new File([new Uint8Array(data)], 'tool.lolly'));
       (document.querySelector('#view') || document.body).dispatchEvent(new DragEvent('drop', {bubbles:true,cancelable:true,dataTransfer:transfer}));
     }, [...bytes]);
     await page.getByRole('button', {name:'Trust & install',exact:true}).click({timeout:10_000}).catch(async () => { throw new BrowserError(`The reader could not open this tool file: ${(await page.locator('body').innerText()).slice(-1500)}`); });
+    // The installed tool opens on a tool route, which mounts only once the WebGPU check settles.
+    await shellStarted(page);
     await page.locator('.lolly-locked-design').waitFor({timeout:30_000});
     waiting = await waitForExport(page, format);
     const downloading = waiting.result;

@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import type { Page } from 'playwright';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { shellSettled } from './helpers/shell-settled.ts';
 import type { SiteToolDefinition } from '../shells/web/src/lib/site-tools.ts';
 import type { LiveDocumentV1 } from '../packages/core/src/live-v1.ts';
 
@@ -47,6 +48,7 @@ test('Lolly site tools discover tools and edit the mounted document through visi
     });
     page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') console.error(message.text()); });
     await page.goto(`${origin}/#/tool/qr-code?url=https%3A%2F%2Fexample.com`);
+    await shellSettled(page);
     await page.waitForFunction(() => (window as ToolWindow).siteTestTools?.has('lolly_undo_document_changes'));
     await waitContext(page, context => context.tool?.id === 'qr-code');
     const described = await call<{ inputs: Array<{ id: string; value: unknown }> }>(page, 'lolly_describe_tool', { id: 'qr-code' });
@@ -56,6 +58,7 @@ test('Lolly site tools discover tools and edit the mounted document through visi
     await assert.rejects(call(page, 'lolly_read_document'), /Open a Design document/);
     const boxes = [{ id: 'site-title', kind: 'text', x: 50, y: 50, w: 500, h: 100, text: 'Hello', fg: '#222222', fontSize: 36 }];
     await page.goto(`${origin}/#/tool/design?boxes=${encodeURIComponent(JSON.stringify(boxes))}`);
+    await shellSettled(page);
     await page.waitForFunction(() => (window as ToolWindow).siteTestTools?.has('lolly_undo_document_changes'));
     await waitContext(page, context => context.capabilities.document);
     const doc = await call<LiveDocumentV1>(page, 'lolly_read_document', { ids: ['site-title'] });

@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_PRESENT_TEST_URL;
 declare global { interface Window { __presentationCameraProbe: { requests: MediaStreamConstraints[]; tracks: MediaStreamTrack[] } } }
@@ -25,6 +26,7 @@ test('private framing, camera selection and saved scenes stay separate from the 
     });
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
     await page.goto(`${origin}/#/tool/countdown-timer`);
+    await shellSettled(page);
     const opened = page.waitForEvent('popup'); await page.getByRole('button', { name: 'Present with camera', exact: true }).click();
     const controls = await opened;
     await controls.getByText('Framing', { exact: true }).click();

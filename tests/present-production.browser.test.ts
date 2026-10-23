@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
+import { shellSettled } from './helpers/shell-settled.ts';
 
 const origin = process.env.LOLLY_PRESENT_TEST_URL;
 const output = process.env.LOLLY_PRESENT_TEST_OUTPUT ?? '/tmp/lolly-presentation-260';
@@ -15,6 +16,7 @@ test('Countdown publishes one live timer into clean output and private preview',
     const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
     const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
     await page.goto(`${origin}/#/tool/countdown-timer`);
+    await shellSettled(page);
     await page.locator('.ct-input').waitFor();
     const popup = page.waitForEvent('popup');
     await page.getByRole('button', { name: 'Present with camera', exact: true }).click();
@@ -54,6 +56,7 @@ test('Design saves the composition with its document and reopens without acquiri
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
     const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
     await page.goto(`${origin}/#/tool/design?template=slide-deck`);
+    await shellSettled(page);
     async function openControls() {
       await page.getByRole('button', { name: 'Present options', exact: true }).click();
       const popup = page.waitForEvent('popup');
