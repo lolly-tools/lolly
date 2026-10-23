@@ -1,10 +1,8 @@
-# Profiles - who you are when you create
+# Profiles
 
-A **profile** is the working identity Lolly creates *as*. It's the small set of details a tool can pull from so you don't retype them every time - your name, contact details, an optional headshot, a few preferences - plus everything you accumulate while you work: saved sessions, uploaded images and the local activity tally.
+Set your name, contact details and headshot once, and every tool built to use them fills them in for you: an email signature, a badge, a speaker card. That small record is your **profile**, and it lives on your device.
 
-Your personal profile lives **on the device**, in the browser's local database (IndexedDB on the web PWA, the filesystem on the Tauri apps). Standalone use needs no account. Optional Sync, sharing and organisation services have their own data flows, described below. You manage it under **Settings → Preferences** (in the footer or avatar menu); tools only ever *read* it, and only the specific fields they were built to pre-fill.
-
-> Settings brings your profile and the former Dashboard into one destination. **Preferences** holds your details and personal choices; **This device**, **Design system**, **Capabilities** and **Activity & stats** sit alongside it. See [Settings](/info/dashboard.html) for the full map.
+Your profile also holds what you build up while you work: saved sessions, uploaded images and your local activity tally. You manage it under **Settings → Preferences**; tools only ever read the fields they were built to pre-fill. Standalone use needs no account, and optional Sync, sharing and organisation services each have their own data flows, described below.
 
 ## What's in a profile
 
@@ -13,148 +11,87 @@ Your personal profile lives **on the device**, in the browser's local database (
 | **Name** | First and last name. |
 | **Contact** | Email and phone. |
 | **Location** | City and country. |
-| **Headshot** | An optional photo, cropped to a square and kept as a local image. Used by tools like email signatures, quote cards, org charts and dynamic layouts. |
-| **Use my details to create** | A single opt-in switch (it reads **Using my details** once it's on). It controls whether your personal details ride along as **provenance** - the author/credit line embedded in exported files - and as the author on **/pro** batch runs. (It doesn't gate pre-fill: see [How tools use your profile](#how-tools-use-your-profile).) |
-| **Preferences** | Your theme (Light, Dark or Brand - the brand theme paints the app in your own palette) and which parts of the app you've enabled via **Feature flags**. |
-| **Accessibility** | Four comfort switches - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - kept on the profile record, so they ride along in a profile export. See [Accessibility](#accessibility). |
-| **Your work** | Saved sessions (with thumbnails) - organised into nested folders in **[Projects](/info/using.html)** - your **My images** library and the local activity stats, all keyed to this profile. |
+| **Headshot** | An optional photo, cropped to a square and kept as a local image, for tools such as email signatures, quote cards and org charts. |
+| **Use my details to create** | One opt-in switch (it reads **Using my details** once on). It decides whether your details travel as the author credit in exported files and on Batch runs. It does not affect pre-fill; see [How tools use your profile](#how-tools-use-your-profile). |
+| **Preferences** | Your theme, your accessibility settings and which parts of the app you turned on in **Feature flags**. |
+| **Your work** | Saved sessions with their thumbnails, organised in [Projects](/info/find-your-work.html), your uploaded images and your local activity stats. |
 
-None of this is required. A blank profile is a perfectly good profile; you fill in only what saves you typing.
+None of it is required. A blank profile works; fill in only what saves you typing.
 
-![The Profile screen - name, contact, an optional headshot and your preferences](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
+![Settings on the Preferences tab: the settings rail, and Your details with the Use my details to create switch and the name, contact and location fields](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-Preferences are the one part that changes how the app looks back at you. The theme cards are live previews and apply the moment you pick one, on this device only.
+[Settings](/info/dashboard.html) maps everything else under Preferences, from appearance and emoji to storage and offline downloads.
 
-The page is a long one, so it carries its own **settings rail** down the side - Your details, Appearance, Accessibility, Lolly instance, Your activity, Storage, Available offline, Feature flags, Content Credentials - with a **Search settings** field above it that filters the list as you type. Every section is deep-linkable as `#/settings?focus=<section-id>`, which opens it and scrolls it into view (`#/settings?focus=storage-section`, `?focus=feature-flags-section`, and so on), so a link can point at one setting rather than at the top of the page.
+## You, a team or a role
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+The word "profile" suggests one fixed person. In Lolly it is closer to a creating context: who you are while you make this thing. It can take three shapes, and Lolly handles each the same way.
 
-## A profile is a context, not just a person
+::: cols
+## As yourself
 
-The word "profile" suggests one fixed person, but in Lolly it's really a **creating context** - *who you are while you make this thing*. That context can be three different shapes, and Lolly handles all of them the same way.
+The default. Your name, your email, your headshot. Set it once and your signature, badge and conference lockup fill themselves in.
 
-### As an individual
+## As a team
 
-The default. The profile is you: your name, your email, your headshot. Set it once and your signature, your badge, your conference lockup all fill themselves in. This is what most people will ever need.
+A team's shared name, a group inbox such as `events@…`, a department and the team's mark. One person sets it up and exports it, and everyone else loads the same profile, so the team's files carry consistent details. A shared kiosk or a demo laptop can run one team profile.
+
+## As a role
+
+An event manager three days a year wants the event inbox and the event sub-brand on badges and signage, then their usual identity back. Keep that role as a saved profile file, load it for the event and set it aside afterwards.
+:::
 
 ![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
-### As a team
+::: details Profiles at an organisation using Lolly Work
+When you sign in to an [organisation's Lolly](/info/organisation.html), Lolly Work can supply verified profile fields from its identity provider and fix fields or preferences under organisation policy. A managed field is labelled in the app.
 
-A profile doesn't have to be a single human. It can stand in for a **team or function within an org**: the team's shared name, a group inbox address (`events@…`), a department, the team's headshot or unit mark. One person sets it up, exports it (see below) and the rest of the team loads the same profile - so everything the team produces carries consistent details without anyone re-entering them. A shared kiosk or a checked-out demo laptop can run a single team profile that everyone behind it creates as.
-
-### As a function - a role you wear sometimes
-
-This is the case the rigid "one person, one profile" model misses. You might be an **event manager three days a year** and something else entirely the rest of the time. Those three days you want event details, the event inbox, maybe an event sub-brand to fill in your badges and signage; the other 362 you want your normal identity back.
-
-In Lolly, that role is just **another profile you keep on hand** - a saved bundle (next section) you load for the event and set aside afterwards. The role is a hat, not a new account. Wear it when you need it, take it off when you're done.
-
-::: details Profiles at an organisation using lolly.work
-When you sign in to an [organisation's Lolly](/info/organisation.html), **lolly.work** can supply verified profile fields from its identity provider and fix fields or preferences under organisation policy. A managed field is labelled in the app.
-
-That sign-in also controls access to shared projects and assets. A team profile file is still a local bundle; it does not grant organisation membership or replace a work account. Your **Use my details to create** choice controls export attribution, not the organisation's sign-in or audit records. See [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
+That sign-in also controls access to shared projects and assets. A team profile file is still a local file: it does not grant organisation membership or replace a work account. **Use my details to create** controls the credit in your exports, not the organisation's sign-in or audit records. See [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
 :::
 
-## One install, one active profile - many you can keep
+## Keep several, use one
 
-At any moment an install has **one active profile** - the details a tool sees right now. There's no in-app profile switcher; instead, each profile is a **portable bundle** (a single `.zip`, see [below](#moving-a-profile-to-a-new-device)). That's deliberately the same mechanism as moving to a new device - a profile is a file you can save, copy and load.
+An install has one active profile at a time, and there is no in-app switcher. Instead, each profile is a portable file, the same backup file you would use to move to a new device. To step into another context:
 
-So if you genuinely juggle several contexts (you, your team, the event-manager hat), you keep several bundles and load the one you need:
+::: timeline
+- <!--i:download--> **Export my data** under **Settings → Storage → Move to another device** saves the current profile as one `.zip`.
+- <!--i:trash--> **Clear all my data** empties this install.
+- <!--i:upload--> **Import data…** loads the profile file for the context you are stepping into.
+:::
 
-- <!--i:trash--> **Cleanest switch:** **Settings → Preferences → Storage → Clear all my data**, then **Import** the bundle for the context you're stepping into. You're now creating purely as that profile.
-- <!--i:layers--> **Layering:** importing *without* clearing first **merges** - the imported sessions and images land on top of what's already there; where both have the same one, the copy saved more recently is kept, and the rest is left alone. Folders, favourites and templates are added to yours, and your own details and settings stay. Handy for pulling one team's saved sessions into your own setup; not what you want if you need a clean role boundary.
-- <!--i:monitor--> **Side by side:** because everything is device-scoped, a separate browser profile, a separate user account or a second installed PWA each carries its own independent Lolly profile. Run your personal install and the event kiosk install at once, no switching.
+Importing without clearing first **merges** instead. Imported sessions and images are added; where both copies exist, the one saved more recently is kept. Folders, favourites and templates are added beside yours, and your own details stay, apart from empty fields, which take the file's values. That suits pulling one team's sessions into your own setup, but not a clean break between roles.
 
-Storage is where both halves of that live: the meter accounts for every byte this install is holding, category by category, and the buttons under it are how you clear or carry it.
-
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
-
-> Keep a bundle per context and rename the files for what they are (`LollyTools-events-2026.zip`, `LollyTools-me.zip`). The file *is* the profile.
-
-## Accessibility
-
-**Settings → Preferences → Accessibility** holds four comfort settings for the app *around* your work. Each is off until you turn it on, and none of them reach inside a tool canvas or an export - a calmer app must not move a pixel of the file you ship.
-
-- <!--i:film--> **Reduce motion** - turns off the transitions, slides and animated flourishes in the app. Your tool canvas and any animated export keep moving exactly as designed.
-- <!--i:image--> **Hide colourful previews** - swaps the gallery preview artwork for calm icon-and-text cards, and lowers the colour and contrast of your project thumbnails so they stay recognisable without shouting. Inside a tool everything shows in full colour.
-- <!--i:sliders--> **High contrast** - strengthens the borders, text and focus rings of the app. Your brand colours and everything on the canvas stay exactly as you set them.
-- <!--i:font--> **Large text** - grows the app type: labels, menus and button text. The controls keep their size, so only the words inside them get bigger, and type inside your designs is untouched, so nothing you export reflows.
-
-These live on the profile record itself, which is why they travel in a profile export and land on the next install alongside your name and your sessions. (The device also keeps a small local mirror so the setting applies before the first paint; that mirror is device-only and doesn't travel.)
-
-## Your Lolly instance
-
-**Settings → Preferences → Lolly instance** says where this install gets its tools and catalogue from - the address of the instance, or *Bundled with this app* when everything ships inside the build. Where a deployment offers one, an **Instance console** link opens its admin surface, **Change** re-points the install, and **Leave** removes the instance's design system, tools and catalogue while your own work stays (see [Use Lolly at your organisation](/info/organisation.html#leaving)).
-
-Re-pointing at another instance needs the **desktop app**: a browser blocks a page from loading tools and assets across origins, so on the web the section reports where you are and leaves it there.
-
-## Available offline
-
-Lolly caches as you go, but caching-as-you-go only covers where you've already been. **Settings → Preferences → Available offline** is for the trip you can see coming: an hour on airport wifi before a flight with none. Download the parts you'll need, watch one progress bar, and everything you took keeps working with the connection gone.
-
-Seven parts, each with its size stated before you commit:
-
-- <!--i:layout--> **The app** - every view, editor and font, including the ones you haven't opened yet. Without this, a screen you never visited online can't load offline.
-- <!--i:image--> **Catalogue** - brand assets beyond the essentials. Take all of it, or open *Choose by tag* and take only the tags you use.
-- <!--i:book--> **Guides & docs** - this documentation site, in your language, screenshots included.
-- <!--i:cpu--> **Speech voices** - the voice models behind Script audio and narration. Downloaded once, then it runs on-device.
-- <!--i:zap--> **Upscaling models** - the AI image upscalers: photo, illustration/anime and face.
-- <!--i:layers--> **Background removal** - the on-device cut-out models behind *Remove background*.
-- <!--i:shield--> **Verify deep scan** - the on-device watermark scanner, for checking Content Credentials away from a connection.
-
-The last four are marked **large download**, and they are deliberately individual opt-ins: **Download everything** at the top takes the app, the catalogue scope you chose, the docs and all tools in one pass and nothing else. Speech voices, the upscalers, background removal and the deep scan each download only when you ask for that row by name - a few hundred megabytes hiding inside one button would be dishonest.
-
-Below the parts sits the per-tool list: each tool downloads individually (the tick means ready offline), or **Download all** sweeps the lot. Downloads are resumable - cancel or lose the connection and the next run picks up where it stopped, fetching only what's missing - and they refresh themselves when you're back online, pulling just what a new release changed.
-
-If the browser hasn't granted persistent storage, the section says so and offers **Protect downloads**, which asks for it - the difference between "downloaded" and "downloaded until the browser wants the space back".
-
-## Moving a profile to a new device
-
-To move your personal profile and library onto a blank install, **carry the file**, as below, or use storage you choose, as [Sync your devices](/info/sync.html) explains. Signing in to lolly.work restores access to organisation-held work and managed details; it does not restore the personal data stored only on your old device.
-
-Under **Settings → Preferences → Storage → Move to another device**:
-
-- <!--i:download--> **Export my data** downloads one `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - named for the profile it belongs to, with a per-day sequence number so repeat exports don't collide (name parts are dropped when the profile doesn't have them). It contains your profile, every saved session (with its thumbnail), your uploaded images - your brand tokens and installed fonts ride along as user assets - and your preferences (theme, layout, local activity stats).
-- <!--i:upload--> **Import data…** on the other install reads that file back in and you pick up exactly where you left off. It also takes a copy [Sync](/info/sync.html) keeps in your storage.
-- <!--i:box--> **Export my data & render everything** writes that same backup *plus* a second zip that renders every saved session to its finished output file, in folders that mirror your Projects. A complete offline archive of both the sources and the results - and it can be large and slow with a lot of sessions.
+For two contexts at once, use a separate browser profile, a separate user account or a second installed copy of the web app: each carries its own independent Lolly profile.
 
 ![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-The bundle is a plain, self-contained zip, so it travels by **any** means - USB, AirDrop, a network share, email-to-yourself - and the target can be completely offline. Each part is checksummed, so a file damaged in transit is caught on import rather than restored half-broken. Import **merges** (of a same-named session or image, the copy saved more recently is kept; folders, favourites and templates are added; the target's details and settings stay; everything else is kept), so it never wipes a target that was already in use.
+> Keep one file per context and name each for what it is, such as `LollyTools-events-2026.zip` and `LollyTools-me.zip`. The file is the profile.
 
-What doesn't travel: the catalogue cache (it re-downloads itself on the new device) and the tools themselves (assumed already present). 
-
-For the exact bundle layout, version policy and integrity rules, see **[Data Transfer](/info/data-transfer.html)**; for the end-to-end walkthrough, **[Using Lolly → Moving to another device](/info/using.html#moving-to-another-device)**.
+[Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device) covers what the file holds, what stays behind and the other ways to move, including Sync.
 
 ## How tools use your profile
 
-A tool only ever *pre-fills* the profile fields it was explicitly built to bind:
+**Pre-fill.** A tool author marks an input as drawing from your profile (`bindToProfile: "firstname"`, `"email"`, `"headshot"` and so on). When the tool opens, that input fills from your profile, and you can override it for one session without changing the profile, unless an organisation policy locks the input. Pre-fill is a local convenience and happens whether or not **Use my details** is on.
 
-**Explicit binding.** A tool author marks an input as drawing from the profile (`bindToProfile: "firstname"`, `"email"`, `"headshot"`, …). When the tool opens, that input pre-fills from your profile - and you can override that input for one session without changing the profile, unless an organisation policy locks the input. Pre-fill is a local convenience and happens whether or not **Use my details** is on.
+**Credit.** When you export, your details can travel as the author credit in the file's metadata (PNG, PDF, SVG and more), so a finished file can say who made the work. **Use my details to create** governs this, and the author on Batch runs. With it off, the export still says it was made with Lolly, and carries no personal author or contact line.
 
-**The opt-in (provenance).** When you export an asset, your details optionally ride along as **provenance** - an author/credit line embedded in the file's metadata (PNG, PDF, SVG, …) - so a finished asset can say who made it. *This* is what **Use my details to create** governs: leave it off and the export still carries the "Made with Lolly" tool/platform attribution, but no personal author/contact line is embedded. (The same opt-in sets the author on **/pro** batch runs.) (Tool authors: see [Authoring Tools → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) and [Host API → `host.profile`](/info/host-api.html#host-profile).)
+Tool authors: see [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) and [`host.profile`](/info/host-api.html#host-profile).
 
 ![The single Use my details to create switch, marked opt-in and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
-## Profile vs Platform vs Capabilities
+## Profile, design system and capabilities
 
-Three things sit near each other in the UI and are easy to confuse:
+Three things sit near each other in Settings and are easy to confuse:
 
-- <!--i:people--> **Profile** - *you* (or your team, or the role you're in): name, contact, headshot, your saved work. Personal, device-local, portable as a bundle.
-- <!--i:palette--> **Platform** - the *brand*: colours, fonts and global settings every tool renders against. Shared and consistent, not personal.
-- <!--i:sliders--> **Capabilities** - *what the app can do*: the full feature set and the tools available to you.
+- <!--i:people--> **Profile** - you, your team or the role you are in: name, contact, headshot and saved work. Personal, kept on the device and portable as a file.
+- <!--i:palette--> **Design system** - the brand: colours, fonts and settings every tool renders with. Shared and consistent rather than personal; see [Design System Setup](/info/brand-studio.html).
+- <!--i:sliders--> **Capabilities** - what the app can do: the features and tools available to you.
 
-A profile changes who an asset is *from*; the platform changes what it *looks like*; capabilities are *what you can make*.
+A profile changes who a file is from; the design system changes how the file looks; capabilities are what you can make.
 
-### "Profile" means two other things elsewhere - not this one
-
-The word is overloaded across the project. Neither of these is the personal profile this page is about:
-
-- <!--i:box--> **Content profile** - a build-time configuration in `profiles.json` that binds a set of tool packs to a brand catalog (e.g. `suse`, `lolly-start`). It's what an operator picks when deploying, and it's what the `profile` **URL/CLI parameter** also selects a *colour* variant of at export time (the ICC/CMYK press condition - see [URL Mode](/info/url-mode.html)). Both are about the *build/output*, not about *you*. See [Configuration](/info/configuration.html).
-- <!--i:seal--> **Identity profile** - the optional **verified Content Credentials identity** you can enrol (a short-lived certificate that ties your email to your signed exports). That's a signing identity, separate from the personal profile's name/contact fields, though **Use my details to create** governs whether either is embedded. See [Content Credentials Identity](/info/content-credentials-identity.html).
+The word has three other meanings in Lolly. A **content profile** is a build setting that chooses which tools and catalogue a deployment ships; the [Glossary](/info/glossary.html) defines the term. The `profile` link parameter picks a colour profile for an export, such as a CMYK press condition; see [Reserved URL parameters](/info/url-parameters.html#reserved-parameters). A **verified identity** is the optional signing certificate that ties your email to your signed exports, separate from these details, though **Use my details to create** governs whether either is embedded; see [Content Credentials](/info/content-credentials-identity.html).
 
 ![The Verified identity card, phone-width: the certificate lifetime picker and the enrolment step beneath it - the identity profile, separate from your personal details](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 ## Privacy
 
-Your personal profile is stored locally. Details can travel in a backup or Sync copy, in content you share or export, and during optional Content Credentials enrolment. On a lolly.work instance, sign-in, shared work, telemetry policy and audit records are separate from this local profile. **Settings → Preferences → Clear all my data** clears this device; it does not erase copies held by your storage provider or organisation. See the [Privacy Policy](/info/privacy.html).
+Your personal profile is stored locally. Your details can travel in a backup or Sync copy, in content you share or export and during optional Content Credentials enrolment. On a Lolly Work instance, sign-in, shared work, telemetry policy and audit records are separate from this local profile. **Settings → Preferences → Clear all my data** clears this device; it does not erase copies held by your storage provider or organisation. See the [Privacy Policy](/info/privacy.html).

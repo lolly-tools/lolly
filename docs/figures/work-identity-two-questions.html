@@ -1,0 +1,93 @@
+<!--
+  Concept: every Lolly Work sign-in answers two questions, in order, before an account is written and a session starts.
+  Band Contract: static fragment scoped under .lwf, reads the docs theme tokens (light, dark and
+  brand via --secondary, --card, --card-foreground and --primary, with fallbacks), no script, no
+  motion, no network. Narrow containers stack the flow vertically.
+  Sources: docs/work/identity.md (Who may sign in, One person, several sign-ins).
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23 for the Lolly Work guides (docs plan 322). The C2PA signature added at bank time is
+  the first provenance record of this file.
+-->
+<style>
+.lwf{--lwf-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--lwf-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --lwf-ground:hsl(var(--secondary,84.5 55% 92.2%));--lwf-paper:hsl(var(--card,0 0% 100%));
+ --lwf-accent:hsl(var(--primary,176.5 89.5% 11.2%));--lwf-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --lwf-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--lwf-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --lwf-yes:#0b6b45;--lwf-warn:#8a5a00;--lwf-no:#a43427;--lwf-off:#5b6770;
+ color:var(--lwf-ink);background:var(--lwf-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+:is([data-theme="dark"],[data-theme="brand"]) .lwf{--lwf-yes:#7ddc97;--lwf-warn:#f0c060;--lwf-no:#ef9275;--lwf-off:#a9b4bc}
+.lwf *{box-sizing:border-box}
+.lwf ol,.lwf ul{list-style:none;margin:0;padding:0}
+.lwf li{list-style:none;margin:0;font-size:inherit}
+.lwf p{margin:0}
+.lwf.lwf b{font-weight:600;color:inherit}
+.lwf.lwf code{font-family:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.86em;color:inherit;background:var(--lwf-soft);border-radius:4px;padding:0 .25em}
+.lwf-stack{display:flex;flex-direction:column;gap:10px}
+.lwf-cap{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--lwf-muted);font-weight:600}
+.lwf-node{background:var(--lwf-paper);border-radius:14px;box-shadow:0 0 0 1px var(--lwf-line);padding:10px 12px;
+ display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.lwf-node>b{font-size:.95rem}
+.lwf-node>span{font-size:.82rem;color:var(--lwf-muted)}
+.lwf-node.is-accent{background:var(--lwf-accent);color:var(--lwf-on-accent);box-shadow:none}
+.lwf-node.is-accent>span,.lwf-node.is-accent code{color:inherit;opacity:.88}
+.lwf.lwf .lwf-node.is-accent code{background:transparent}
+.lwf-node.is-muted{background:transparent;box-shadow:0 0 0 1px var(--lwf-line)}
+.lwf-node.is-muted>b{color:var(--lwf-muted)}
+.lwf-group{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+.lwf-flow{display:flex;align-items:stretch;gap:6px}
+.lwf-flow>li{display:flex;align-items:stretch;gap:6px;flex:1 1 0;min-width:0}
+.lwf-arr{width:22px;height:22px;flex:none;align-self:center;color:var(--lwf-muted)}
+.lwf-arr path{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.lwf-side{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:8px}
+.lwf-side>li{background:var(--lwf-soft);border-radius:12px;padding:8px 12px;font-size:.84rem;display:flex;flex-direction:column;gap:2px}
+.lwf-side>li>span{color:var(--lwf-muted)}
+.lwf-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:12px}
+.lwf-col{background:var(--lwf-paper);border-radius:14px;box-shadow:0 0 0 1px var(--lwf-line);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.lwf-col-h{display:flex;align-items:center;gap:8px;font-weight:600}
+.lwf-dot{width:11px;height:11px;border-radius:50%;flex:none;background:var(--lwf-off)}
+.is-yes>.lwf-col-h .lwf-dot,.lwf-chip.is-yes::before{background:var(--lwf-yes)}
+.is-warn>.lwf-col-h .lwf-dot,.lwf-chip.is-warn::before{background:var(--lwf-warn)}
+.is-off>.lwf-col-h .lwf-dot,.lwf-chip.is-off::before{background:var(--lwf-off)}
+.lwf-chip.is-no::before{background:var(--lwf-no)}
+.lwf-col ul{display:flex;flex-direction:column;gap:6px;font-size:.86rem}
+.lwf-col li{padding-inline-start:14px;position:relative}
+.lwf-col li::before{content:"";position:absolute;inset-inline-start:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--lwf-line)}
+.lwf-ladder{display:flex;flex-direction:column;gap:6px}
+.lwf-band{background:var(--lwf-accent);color:var(--lwf-on-accent);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.lwf-band>span{font-size:.84rem;opacity:.88}
+.lwf.lwf .lwf-band code{background:transparent}
+.lwf-rung{display:flex;gap:6px}
+.lwf-step{flex:1;min-width:0;background:var(--lwf-paper);border-radius:12px;box-shadow:0 0 0 1px var(--lwf-line);padding:8px 12px;
+ display:grid;grid-template-columns:minmax(5.5rem,7.5rem) 1fr;gap:4px 10px;align-items:baseline}
+.lwf-step>b{font-family:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.86rem}
+.lwf-step>span{font-size:.84rem;color:var(--lwf-muted)}
+.lwf-step.is-muted{background:transparent}
+.lwf-split{display:grid;grid-template-columns:1fr minmax(9.5rem,.8fr) 1fr;gap:10px;align-items:stretch}
+.lwf-panel{background:var(--lwf-paper);border-radius:14px;box-shadow:0 0 0 1px var(--lwf-line);padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.lwf-panel ul{display:flex;flex-direction:column;gap:6px;font-size:.86rem}
+.lwf-panel li{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.lwf-panel li>span{color:var(--lwf-muted);font-size:.82rem;text-align:end}
+.lwf-panel li.is-plain{justify-content:flex-start;padding-inline-start:14px;position:relative}
+.lwf-panel li.is-plain::before{content:"";position:absolute;inset-inline-start:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--lwf-line)}
+.lwf-panel-h{font-weight:600}
+.lwf-wire{display:flex;flex-direction:column;justify-content:center;gap:8px}
+.lwf-wire>li{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--lwf-muted)}
+.lwf-wire>li.is-back{flex-direction:row-reverse;text-align:end}
+.lwf-wire>li.is-back .lwf-arr{transform:scaleX(-1)}
+.lwf-chip{display:inline-flex;align-items:center;gap:6px;font-size:.8rem}
+.lwf-chip::before{content:"";width:8px;height:8px;border-radius:50%;flex:none}
+@container (max-width:560px){
+ .lwf-flow{flex-direction:column}
+ .lwf-flow>li{flex-direction:column;align-items:stretch}
+ .lwf-flow .lwf-arr{transform:rotate(90deg);align-self:center}
+ .lwf-split{grid-template-columns:1fr}
+ .lwf-wire>li,.lwf-wire>li.is-back{flex-direction:row;text-align:start}
+ .lwf-wire .lwf-arr{transform:rotate(90deg)}
+ .lwf-wire>li.is-back .lwf-arr{transform:rotate(-90deg)}
+ .lwf-step{grid-template-columns:1fr}
+ .lwf-rung{flex-direction:column}
+}
+</style>
+<div class="lwf lwf-identity-two-questions"><div class="lwf-stack"><ol class="lwf-flow"><li><div class="lwf-node"><b>Your identity provider</b><span>Who is this? The token or password is verified first.</span></div></li><li><svg class="lwf-arr" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h16m-6-6 6 6-6 6"/></svg><div class="lwf-node"><b>Work admission</b><span>Do they belong here? Disabled accounts, directory pins, verified email, the lists, an invitation.</span></div></li><li><svg class="lwf-arr" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h16m-6-6 6 6-6 6"/></svg><div class="lwf-node"><b>The account</b><span>Link to a known sign-in, or create one.</span></div></li><li><svg class="lwf-arr" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h16m-6-6 6 6-6 6"/></svg><div class="lwf-node is-accent"><b>A session</b><span><code>lw_session</code>, renewed while in use</span></div></li></ol><ul class="lwf-side"><li><b>Refused at admission</b><span>A 403 page and an <code>auth.denied</code> audit row. No account is written.</span></li><li><b>Checked again later</b><span>Every renewal and every device sign-in asks the admission question again.</span></li></ul></div></div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKDGp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnmanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo0OTg1Yjg5OC03ZTY5LTRjMTItOWU2Mi1hOTlmOGFjYjdhODEAAAAEXWp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNjo1Nzo1NVoAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GR9EZmxlbmd0aBkNymRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggEXGossAmgffFrRio9YQzW8Qls1YCEbPNIiwCaSy5pDhjcGFkSAAAAAAAAAAAAAAA82p1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAAL9jYm9yqGdzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHgbd29yay1pZGVudGl0eS10d28tcXVlc3Rpb25zZGRhdGV4GDIwMjYtMTAtMjNUMDY6NTc6NTUuNDQwWmpkaW1lbnNpb25zazI0IMOXIDI0IHB4aGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAtpqdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACq2Nib3KmaGRjOnRpdGxleBt3b3JrLWlkZW50aXR5LXR3by1xdWVzdGlvbnNqaW5zdGFuY2VJRHgtdXJuOnV1aWQ6MTM5YWNjYTYtYzcxMi00Njk0LTkzYjEtODc4NzYwNmY4MWY3dGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGtzcGVjVmVyc2lvbmUyLjQuMHJjcmVhdGVkX2Fzc2VydGlvbnOFomN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCAvhB+dKw2QGR4oDvDImWz+1p5DRBZ5U55VFS1GNOGGYKJjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCBDWeRQFk7XsyjfEBVfLqe9mbLHSixGTvUoLOLIKOJiw6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy90b29scy5sb2xseS5leHBvcnRkaGFzaFggAuHz42SRAH1WB87H2FGD44gu55zxQEGwWnz7+VuUg1miY3VybHgoc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvY2F3Zy5tZXRhZGF0YWRoYXNoWCDuJiUol/9ndNv6gbMRLa4CPvJcm24MrBQ3oMM0RtpuhKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFpLWRpc2Nsb3N1cmVkaGFzaFggtQsv4iBHCG4VvZn3v64VDszBnFa6ATQYozPN5SFimqtpc2lnbmF0dXJleBlzZWxmI2p1bWJmPWMycGEuc2lnbmF0dXJlY2FsZ2ZzaGEyNTYAAAJganVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAAAIwY2JvctKEWQHfogEmGCGBWQHWMIIB0jCCAXmgAwIBAgIJbWRtyism0V8eMAoGCCqGSM49BAMCMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDAeFw0yNjEwMjMwNjU2NTVaFw0zNjEwMjAwNjU3NTVaMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABI7mbPAFU6xBYEl5jcFVxbWVby+5vL8V+MaZjHscqbqzRjThO29UgBi0tkIarP91r4Ua7Dn3YhW8uAHTMP330DujcjBwMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMEMB0GA1UdDgQWBBRUlNvnkAWrAv7T2z0ALrVJkV4glDAfBgNVHSMEGDAWgBRUlNvnkAWrAv7T2z0ALrVJkV4glDAKBggqhkjOPQQDAgNHADBEAiASke2zNG+jfailV+2FWeNL3XJoYMQbup2D7Yhf0ksPHwIgEL1CRU2p0ft02qVPhCRfxWd++a4Bk5jqwKt2xeMwmCig9lhAd0mxC1u0n4aKZMkX4IiJg7lIzMFYv0lL1Eg3z6PyZOG9oRb8v82Z+1vWS010KOTTRNYlLxwlTTVCsDOvOpFaJg== -----END C2PA MANIFEST----- -->

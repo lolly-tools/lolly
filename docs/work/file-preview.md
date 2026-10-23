@@ -1,11 +1,31 @@
-# Asset conversion previews
+# Asset previews
 
-Members can request a disposable PDF preview of an EPS, EMF or WMF file. The selected original and its permanent file identity stay intact. Converted previews can substitute missing fonts or change unsupported effects; the viewer labels the representation. Download returns the original and Convert remains the explicit derivative workflow.
+A member who opens an EPS, EMF or WMF file in the asset viewer can ask Lolly Work for a
+disposable PDF preview. The original and its permanent file identity stay intact: **Download**
+still returns the original, and **Convert** stays the explicit way to make a derivative file.
 
-The application signs a bounded job for the existing render worker. EPS uses Ghostscript with SAFER enabled; EMF and WMF use Inkscape. Child processes receive no application credentials, use an isolated temporary directory, run without a shell and have time, memory and output limits. Input is capped at 16 MiB, output at 32 MiB, and one conversion runs per worker. Byte signatures are checked before choosing a decoder. Temporary files are removed on success, failure and cancellation.
+A converted preview can substitute missing fonts or change effects the converter does not
+support, so the viewer labels it as a preview rather than the original.
 
-The worker image includes the distribution's Ghostscript and Inkscape packages. Their upstream projects publish their source and licence terms at https://ghostscript.com and https://inkscape.org. These are input converters; Lolly's engine EMF/EPS emitters continue to handle exports.
+## How a conversion runs
 
-The member API is `POST /api/v1/catalog/file-preview`. Federated attachment previews use the same original-byte route with `view=1`; current exposure, availability and attachment membership still apply. Streaming providers support this path. Redirect-only providers retain their normal preview and download flows. Conversion responses are private and not cached.
+The application signs a bounded job for the existing render worker:
 
-`GET /api/v1/catalog/sources` reports only enabled connections visible to the caller, with counts derived from the visible catalog. The response includes no credentials, vendor options or raw error strings. Cached listings are marked stale when an upstream refresh fails; file access is checked on every read.
+- EPS uses Ghostscript with SAFER enabled; EMF and WMF use Inkscape.
+- Byte signatures are checked before a decoder is chosen.
+- Child processes receive no application credentials, use an isolated temporary directory and
+  run without a shell. Each has time, memory and output limits.
+- Input is capped at 16 MiB and output at 32 MiB, and one conversion runs per worker.
+- Temporary files are removed on success, failure and cancellation.
+
+The member API is `POST /api/v1/catalog/file-preview`. Federated attachment previews use the same
+original-byte route with `view=1`, and current exposure, availability and attachment membership
+still apply. Streaming providers support this path; providers that only redirect keep their
+normal preview and download flows. Conversion responses are private and not cached.
+
+## The worker image
+
+The render worker image includes the distribution's Ghostscript and Inkscape packages. Their
+upstream projects publish their source and licence terms at https://ghostscript.com and
+https://inkscape.org. These are input converters only; Lolly's own engine EMF and EPS emitters
+still produce exports. Deploying the render worker is in [deployment](deployment.md).
