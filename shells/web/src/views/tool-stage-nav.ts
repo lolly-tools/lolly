@@ -23,6 +23,7 @@ import { stageBottomReserve, stageSideReserve } from '../lib/design-panel-layout
 import type { ZoomHud } from '../components/zoom-hud.ts';
 import { deepActiveElement, isTypingTarget } from '../lib/typing-target.ts';
 import { icon } from '../lib/icons.ts';
+import { endCanvasCost, startCanvasCost } from '../lib/canvas-feedback.ts';
 import { t } from '../i18n.ts';
 import {
   requestDock, releaseDock, isDocked, dockedFullCount, onDockChange,
@@ -355,11 +356,14 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   function notifyZoom(): void {
     zoomNotifyPending = false;
     zoomNotifyRaf = 0;
+    const started = startCanvasCost();
     const EventType = stageEl.ownerDocument.defaultView?.CustomEvent;
     if (EventType) stageEl.dispatchEvent(new EventType('lolly:stage-view'));
-    if (!zoomListeners.size) return;
-    const abs = absScale();
-    for (const cb of zoomListeners) { try { cb(abs); } catch { /* a bad readout must not break the view */ } }
+    if (zoomListeners.size) {
+      const abs = absScale();
+      for (const cb of zoomListeners) { try { cb(abs); } catch { /* a bad readout must not break the view */ } }
+    }
+    endCanvasCost('stage-view', started);
   }
 
   function apply(): void {
