@@ -6,8 +6,8 @@
  * outputSchema, the capabilities stage tells a local server from a hosted one
  * and says `ocr: false` where there is no OCR, and a plan for other bytes is
  * refused with `plan.hash-mismatch`. The hosted caps (slides, the request and the
- * response on Vercel) and the preset checks run through `callRebrand` with the
- * limits lowered, so a small fixture reaches them.
+ * response) and the preset checks run through `callRebrand` with the limits
+ * lowered, so a small fixture reaches them.
  *
  * Counts are never pinned: where a number is compared, the test reads it from
  * the same pipeline the tool runs.
@@ -37,6 +37,7 @@ import {
   type RebrandLimitsV1,
 } from '../src/rebrand.ts';
 import { MAX_TRANSFORM_INPUT_BYTES } from '../src/render.ts';
+import { HOSTED_REQUEST_MAX_BYTES, HOSTED_RESPONSE_MAX_BYTES } from '../src/hosted.ts';
 
 const FIXTURES = new URL('../../../tests/fixtures/rebrand/', import.meta.url);
 const simple = new Uint8Array(readFileSync(new URL('simple.pptx', FIXTURES)));
@@ -123,7 +124,7 @@ test('capabilities on a local server: the file stays on the machine, and no OCR'
 });
 
 test('capabilities on a hosted server says the file is sent there, with its limits and retention', async () => {
-  const hosted = await rebrandCapabilities({ VERCEL: '1', LOLLY_MCP_PUBLIC_ORIGIN: 'https://mcp.example.test' });
+  const hosted = await rebrandCapabilities({ LOLLY_MCP_HOSTED: '1', LOLLY_MCP_PUBLIC_ORIGIN: 'https://mcp.example.test' });
   assertValid(hosted);
   assert.equal(hosted.surface, 'mcp-hosted');
   assert.equal(hosted.bytes, 'configured-server');
@@ -133,7 +134,7 @@ test('capabilities on a hosted server says the file is sent there, with its limi
   assert.match(String(hosted.transfer), /sends the file to the server at https:\/\/mcp\.example\.test/);
   assert.match(String(hosted.retention), /not kept/);
   const limits = hosted.limits as { maxBytes: number; maxRequestBytes?: number; maxResponseBytes?: number };
-  assert.ok((limits.maxRequestBytes ?? 0) > 0 && (limits.maxResponseBytes ?? 0) > 0, 'the platform body limits are stated');
+  assert.ok((limits.maxRequestBytes ?? 0) > 0 && (limits.maxResponseBytes ?? 0) > 0, 'the request and response limits are stated');
   // The largest file stated is one whose base64 fits a request, not the reader's 24 MiB.
   assert.ok(limits.maxBytes <= ((limits.maxRequestBytes ?? 0) * 3) / 4, `maxBytes ${limits.maxBytes} fits a ${limits.maxRequestBytes}-byte request as base64`);
   assert.equal(hosted.maxInputBytes, limits.maxBytes);
@@ -145,10 +146,22 @@ test('capabilities on a hosted server says the file is sent there, with its limi
   assert.equal(isHostedServer({ LOLLY_MCP_PUBLIC_ORIGIN: 'http://localhost:8790' }), false);
   assert.equal(isHostedServer({}), false);
 
+  // Every hosted server states the limits it works to: the defaults, or its settings.
+  type Stated = { maxBytes: number; maxRequestBytes?: number; maxResponseBytes?: number };
   const flagged = await rebrandCapabilities({ LOLLY_MCP_HOSTED: '1' });
   assert.equal(flagged.bytes, 'configured-server');
-  assert.equal((flagged.limits as Record<string, unknown>).maxRequestBytes, undefined);
-  assert.equal((flagged.limits as { maxBytes: number }).maxBytes, MAX_TRANSFORM_INPUT_BYTES);
+  assert.equal((flagged.limits as Stated).maxRequestBytes, HOSTED_REQUEST_MAX_BYTES);
+  assert.equal((flagged.limits as Stated).maxResponseBytes, HOSTED_RESPONSE_MAX_BYTES);
+  const raised = (await rebrandCapabilities({ NODE_ENV: 'production', LOLLY_MCP_REQUEST_MAX_BYTES: '33554432', LOLLY_MCP_RESPONSE_MAX_BYTES: '16000000' })).limits as Stated;
+  assert.equal(raised.maxRequestBytes, 33_554_432);
+  assert.equal(raised.maxResponseBytes, 16_000_000);
+  assert.equal(raised.maxBytes, Math.min(MAX_TRANSFORM_INPUT_BYTES, Math.floor(((33_554_432 - REQUEST_ENVELOPE_BYTES) * 3) / 4)));
+  // A value that is not a whole number of bytes keeps the default.
+  assert.equal(((await rebrandCapabilities({ LOLLY_MCP_HOSTED: '1', LOLLY_MCP_REQUEST_MAX_BYTES: '4MB' })).limits as Stated).maxRequestBytes, HOSTED_REQUEST_MAX_BYTES);
+  // A local server states neither and takes the reader's whole limit.
+  const local = (await rebrandCapabilities({})).limits as Stated;
+  assert.equal(local.maxRequestBytes, undefined);
+  assert.equal(local.maxBytes, MAX_TRANSFORM_INPUT_BYTES);
 });
 
 test('plan returns the summary, the queue and the outcome the pipeline computes', async () => {
@@ -304,7 +317,7 @@ test('a scanned PDF page keeps its picture here, and a plan made with text recog
 // ─── hosted limits, presets and plan checks ──────────────────────────────────
 
 const simpleFile = { base64: b64(simple), name: 'simple.pptx' };
-const VERCEL = { VERCEL: '1', LOLLY_MCP_PUBLIC_ORIGIN: 'https://mcp.example.test' };
+const HOSTED = { LOLLY_MCP_HOSTED: '1', LOLLY_MCP_PUBLIC_ORIGIN: 'https://mcp.example.test' };
 
 function limitsWith(over: Partial<RebrandLimitsV1>): RebrandLimitsV1 {
   return { ...REBRAND_LIMITS, ...over };
@@ -328,8 +341,8 @@ function contentOnly(result: Result): number {
   return total;
 }
 
-test('on Vercel the output guard measures the serialised response, and refuses with output.too-large', async () => {
-  const raw = await callRebrand({ stage: 'plan', file: simpleFile }, VERCEL, limitsWith({ responseMaxBytes: 1e9 }));
+test('on a hosted server the output guard measures the serialised response, and refuses with output.too-large', async () => {
+  const raw = await callRebrand({ stage: 'plan', file: simpleFile }, HOSTED, limitsWith({ responseMaxBytes: 1e9 }));
   const roomy: Result = raw;
   assert.ok(!roomy.isError, roomy.content[0]?.text ?? '');
   const sent = responseBytes(raw);
@@ -338,13 +351,13 @@ test('on Vercel the output guard measures the serialised response, and refuses w
   const margin = 2000;
   assert.ok(contentOnly(roomy) < sent - margin, `the wire count ${sent} is above the content count ${contentOnly(roomy)}`);
 
-  const refused = await direct({ stage: 'plan', file: simpleFile }, VERCEL, { responseMaxBytes: sent - margin });
+  const refused = await direct({ stage: 'plan', file: simpleFile }, HOSTED, { responseMaxBytes: sent - margin });
   assert.equal(codeOf(refused), 'output.too-large', refused.content[0]?.text ?? '');
-  const fits = await callRebrand({ stage: 'plan', file: simpleFile }, VERCEL, limitsWith({ responseMaxBytes: sent + margin }));
+  const fits = await callRebrand({ stage: 'plan', file: simpleFile }, HOSTED, limitsWith({ responseMaxBytes: sent + margin }));
   assert.ok(!fits.isError);
   assert.ok(responseBytes(fits) <= sent + margin);
 
-  // Off Vercel there is no platform limit to guard.
+  // A local server has no response limit to guard.
   const local = await direct({ stage: 'plan', file: simpleFile }, {}, { responseMaxBytes: 10 });
   assert.ok(!local.isError, local.content[0]?.text ?? '');
 });
@@ -371,7 +384,7 @@ test('the hosted slide cap refuses before the read, and a deck the reader cut sh
     { stage: 'compile', file: simpleFile, plan },
     { stage: 'inspect', file: simpleFile, plan },
   ]) {
-    const result = await direct(args, VERCEL, { hostedMaxSlides: cap });
+    const result = await direct(args, HOSTED, { hostedMaxSlides: cap });
     assert.equal(codeOf(result), 'source.too-large', `${args.stage}: ${result.content[0]?.text ?? ''}`);
   }
   // The local cap is not the hosted one.
@@ -391,15 +404,15 @@ test('the hosted slide cap refuses before the read, and a deck the reader cut sh
   assert.doesNotThrow(() => checkSlides(read.source, { env: {}, limits: REBRAND_LIMITS }));
 });
 
-test('on Vercel a plan whose compile request would not fit is refused at the plan stage', async () => {
+test('on a hosted server a plan whose compile request would not fit is refused at the plan stage', async () => {
   const plan = planFrom(await simplePlan());
   const planBytes = Buffer.byteLength(JSON.stringify(plan));
   const fileB64 = b64(simple).length;
   // Room for the file alone and half the plan: the plan stage reads it, a compile could not arrive.
   const bodyMaxBytes = REQUEST_ENVELOPE_BYTES + fileB64 + Math.floor(planBytes / 2);
-  const caps = await rebrandCapabilities(VERCEL, limitsWith({ bodyMaxBytes }));
+  const caps = await rebrandCapabilities(HOSTED, limitsWith({ bodyMaxBytes }));
   assert.ok((caps.maxInputBytes as number) >= simple.byteLength, 'the file alone is under the stated limit');
-  const result = await direct({ stage: 'plan', file: simpleFile }, VERCEL, { bodyMaxBytes });
+  const result = await direct({ stage: 'plan', file: simpleFile }, HOSTED, { bodyMaxBytes });
   assert.equal(codeOf(result), 'source.too-large', result.content[0]?.text ?? '');
   assert.match(result.content[0]?.text ?? '', /compile call/);
 });

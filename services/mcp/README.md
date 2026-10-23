@@ -74,6 +74,32 @@ directory with 0600 permissions, bounded owner/global/count quotas and expiry
 cleanup. Hold and download bytes count against the daily budget. Never persist
 these temporary URLs as asset identities or provenance ingredient URLs.
 
+### Hosted size limits
+
+A hosted server works to three size settings, each a whole number of bytes
+(`src/hosted.ts`). A value that is not one keeps the default and is reported
+once in the log.
+
+| Setting | Default | What it limits |
+|---|---|---|
+| `LOLLY_MCP_REQUEST_MAX_BYTES` | 4,500,000 | The JSON-RPC request body the gateway reads, and so the room the file tools have for a file and its base64 |
+| `LOLLY_MCP_RESPONSE_MAX_BYTES` | 4,400,000 | The JSON-RPC answer sent; a larger one becomes a tool error that says why |
+| `LOLLY_MCP_MAX_IMAGE_BYTES` | 4 MiB | The image `/api/fetch-image` fetches |
+
+A server is hosted when it sets `LOLLY_MCP_HOSTED=1` or `NODE_ENV=production`
+(every image and both Helm charts set the second), or when
+`LOLLY_MCP_PUBLIC_ORIGIN` is not a loopback address. A local server reads none
+of these settings: it takes 32 MiB requests, sends answers of any size and
+fetches images up to 25 MiB. The sovereign chart sets all three explicitly
+(`components.mcp.limits`); keep the request limit within the edge's 32 MiB MCP
+request body. The Vercel function adapter states its platform's limits as these
+same settings in `src/vercel-platform.ts`.
+
+lolly_check's render family opens a browser on a hosted server only where the
+browser tier exists: a Chromium on disk (or `LOLLY_BROWSER_PATH`,
+`LOLLY_BROWSER_CHANNEL`) and a web shell to drive (`LOLLY_WEB_BASE`, or a built
+shell at `LOLLY_WEB_DIST`). Elsewhere it reports the family as unavailable.
+
 ### Separate gateway admission counters
 
 `LOLLY_MCP_ADMISSION_NAMESPACE` optionally separates a gateway's rate limits and

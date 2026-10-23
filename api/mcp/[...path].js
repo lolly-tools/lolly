@@ -166823,7 +166823,7 @@ var init_production2 = __esm({
 });
 
 // packages/node-shell/src/desktop-renderer.ts
-import { constants, existsSync as existsSync17, accessSync, statSync as statSync4, lstatSync, openSync, fstatSync, readSync, closeSync } from "node:fs";
+import { constants, existsSync as existsSync18, accessSync, statSync as statSync4, lstatSync, openSync, fstatSync, readSync, closeSync } from "node:fs";
 import { homedir as homedir5, tmpdir as tmpdir4 } from "node:os";
 import { basename as basename3, delimiter, join as join28 } from "node:path";
 import { spawn as spawn3, spawnSync } from "node:child_process";
@@ -166913,7 +166913,7 @@ function windowsInstallLocations(env) {
 }
 function executable(path) {
   try {
-    if (!existsSync17(path)) return false;
+    if (!existsSync18(path)) return false;
     if (process.platform !== "win32") accessSync(path, constants.X_OK);
     return true;
   } catch {
@@ -167237,7 +167237,7 @@ __export(webshell_render_exports, {
 });
 import { createServer as createServer2 } from "node:http";
 import { readFile as readFile26, stat as stat6 } from "node:fs/promises";
-import { existsSync as existsSync18, writeFileSync as writeFileSync2 } from "node:fs";
+import { existsSync as existsSync19, writeFileSync as writeFileSync2 } from "node:fs";
 import { join as join29, resolve as resolve7, extname as extname3, normalize as normalize3 } from "node:path";
 async function webShellBase2() {
   const remote = process.env.LOLLY_WEB_BASE;
@@ -167266,14 +167266,14 @@ function activeContentResponse(urlPath) {
   try {
     if (head2 === "catalog" && rest2.join("/") === "assets/index.json") return { json: JSON.stringify(readAssetIndex()) };
     const file = head2 === "catalog" ? catalogFile(rest2.join("/")) : head2 === "tools" && rest2.length > 1 ? toolFile(rest2[0], rest2.slice(1).join("/")) : null;
-    return file && existsSync18(file) ? { file } : null;
+    return file && existsSync19(file) ? { file } : null;
   } catch {
     return null;
   }
 }
 function serveDist2() {
   const dist2 = process.env.LOLLY_WEB_DIST || join29(repoRoot(), "shells", "web", "dist");
-  if (!existsSync18(join29(dist2, "index.html"))) {
+  if (!existsSync19(join29(dist2, "index.html"))) {
     throw new BrowserError(
       `No built web shell at ${dist2}. Run \`pnpm run build:web\` (or set LOLLY_WEB_DIST to a prebuilt shell / LOLLY_WEB_BASE to a running one). Raster/PDF/video export needs it; svg and data formats render without it.`
     );
@@ -167294,7 +167294,7 @@ function serveDist2() {
         res.writeHead(403).end();
         return;
       }
-      if (!live2 && (urlPath === "/" || !existsSync18(filePath) || !(await stat6(filePath)).isFile())) {
+      if (!live2 && (urlPath === "/" || !existsSync19(filePath) || !(await stat6(filePath)).isFile())) {
         filePath = join29(root2, "index.html");
       }
       const data = await readFile26(filePath);
@@ -167849,7 +167849,7 @@ function assertDurableEncoder(dims, remote) {
   if (!dims.durable || remote) return;
   const dist2 = process.env.LOLLY_WEB_DIST || join29(repoRoot(), "shells", "web", "dist");
   const model2 = join29(dist2, "models", "trustmark", "encoder_Q.onnx");
-  if (!existsSync18(model2)) {
+  if (!existsSync19(model2)) {
     throw new BrowserError(
       `The durable credential needs the TrustMark encoder model, which isn't in the built web shell (${model2}). Rebuild it with \`pnpm run build:web\` (the model ships in shells/web/public), or export without --durable.`
     );
@@ -170341,6 +170341,12 @@ var init_pdf_file_operation = __esm({
   }
 });
 
+// services/mcp/src/vercel-platform.ts
+process.env.LOLLY_MCP_HOSTED ??= "1";
+process.env.LOLLY_MCP_REQUEST_MAX_BYTES ??= "4500000";
+process.env.LOLLY_MCP_RESPONSE_MAX_BYTES ??= "4400000";
+process.env.LOLLY_MCP_MAX_IMAGE_BYTES ??= String(4 * 1024 * 1024);
+
 // services/mcp/src/gateway.ts
 import { isIP as isIP4 } from "node:net";
 
@@ -171050,6 +171056,7 @@ init_production_browser();
 init_export_wait();
 init_open_session();
 import { readFile as readFile24, stat as stat5 } from "node:fs/promises";
+import { existsSync as existsSync16 } from "node:fs";
 
 // shells/cli/src/bridge.ts
 init_token_context();
@@ -176540,6 +176547,10 @@ async function webShellBase() {
   });
   return (await served).base;
 }
+function webShellReady(env = process.env) {
+  if (env.LOLLY_WEB_BASE) return true;
+  return existsSync15(join23(env.LOLLY_WEB_DIST || join23(REPO_ROOT, "shells", "web", "dist"), "index.html"));
+}
 async function buildAndServe() {
   const dist2 = process.env.LOLLY_WEB_DIST || join23(REPO_ROOT, "shells", "web", "dist");
   if (!existsSync15(join23(dist2, "index.html"))) {
@@ -176594,6 +176605,46 @@ function serveDist(dist2) {
       });
     });
   });
+}
+
+// services/mcp/src/hosted.ts
+var HOSTED_REQUEST_MAX_BYTES = 45e5;
+var HOSTED_RESPONSE_MAX_BYTES = 44e5;
+var HOSTED_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+function hostedDeployment(env = process.env) {
+  return env.LOLLY_MCP_HOSTED === "1" || env.NODE_ENV === "production";
+}
+function isHostedServer(env = process.env) {
+  if (hostedDeployment(env)) return true;
+  const origin = env.LOLLY_MCP_PUBLIC_ORIGIN?.trim();
+  if (!origin) return false;
+  try {
+    const host = new URL(origin).hostname;
+    return !(host === "localhost" || host === "127.0.0.1" || host === "[::1]");
+  } catch {
+    return false;
+  }
+}
+var reported = /* @__PURE__ */ new Set();
+function bytesSetting(env, name, fallback) {
+  const raw = env[name]?.trim();
+  if (!raw) return fallback;
+  const value = Number(raw);
+  if (/^\d+$/.test(raw) && Number.isSafeInteger(value) && value > 0) return value;
+  if (!reported.has(name)) {
+    reported.add(name);
+    console.warn(`[mcp] ${name} must be a whole number of bytes; using ${fallback}`);
+  }
+  return fallback;
+}
+function hostedRequestMaxBytes(env = process.env) {
+  return bytesSetting(env, "LOLLY_MCP_REQUEST_MAX_BYTES", HOSTED_REQUEST_MAX_BYTES);
+}
+function hostedResponseMaxBytes(env = process.env) {
+  return bytesSetting(env, "LOLLY_MCP_RESPONSE_MAX_BYTES", HOSTED_RESPONSE_MAX_BYTES);
+}
+function hostedMaxImageBytes(env = process.env) {
+  return bytesSetting(env, "LOLLY_MCP_MAX_IMAGE_BYTES", HOSTED_MAX_IMAGE_BYTES);
 }
 
 // services/mcp/src/browser-jobs.ts
@@ -177013,14 +177064,32 @@ function browserLaunchOptions(env = process.env) {
     args: browserLaunchArgs(env)
   };
 }
+function pinBrowsersPath() {
+  if (!process.env.LOLLY_BROWSER_CHANNEL && !process.env.LOLLY_BROWSER_PATH) {
+    process.env.PLAYWRIGHT_BROWSERS_PATH ??= BROWSERS_DIR;
+  }
+}
+async function browserInstalled(env = process.env) {
+  if (env.LOLLY_BROWSER_PATH) return existsSync16(env.LOLLY_BROWSER_PATH);
+  if (env.LOLLY_BROWSER_CHANNEL) return true;
+  pinBrowsersPath();
+  try {
+    const { chromium } = await import("playwright-core");
+    const path = chromium.executablePath();
+    return !!path && existsSync16(path);
+  } catch {
+    return false;
+  }
+}
+async function browserTierAvailable(env = process.env) {
+  return webShellReady(env) && await browserInstalled(env);
+}
 async function getBrowser2() {
   if (!browserPromise2) {
     browserPromise2 = (async () => {
       const channel5 = process.env.LOLLY_BROWSER_CHANNEL;
       const executablePath = process.env.LOLLY_BROWSER_PATH;
-      if (!channel5 && !executablePath) {
-        process.env.PLAYWRIGHT_BROWSERS_PATH ??= BROWSERS_DIR;
-      }
+      pinBrowsersPath();
       const { chromium } = await import("playwright-core");
       try {
         return await chromium.launch({
@@ -177039,7 +177108,7 @@ async function getBrowser2() {
       } catch (err) {
         const msg3 = err.message || "";
         if (/executable doesn't exist|Executable doesn't exist|please run/i.test(msg3)) {
-          const hosted = !!process.env.VERCEL || process.env.LOLLY_MCP_HOSTED === "1";
+          const hosted = isHostedServer(process.env);
           throw new RenderError(
             hosted ? `This format needs the browser render tier, which isn't enabled on this hosted endpoint. What renders here: vector formats (svg, eps, emf), the data formats (html, md, json, csv, ics, vcf), and png for SVG-native tools. Try svg - it works for every tool - or png for a simple vector tool (e.g. qr-code).` : `Chromium is not installed for the Tier-B render path. Run \`pnpm run install:browser\` (downloads Chromium into services/mcp/.browsers), or point LOLLY_BROWSER_CHANNEL / LOLLY_BROWSER_PATH at an existing browser.`
           );
@@ -177560,7 +177629,7 @@ init_design_system2();
 init_src();
 init_content_roots();
 init_state_dir();
-import { existsSync as existsSync16, readFileSync as readFileSync8 } from "node:fs";
+import { existsSync as existsSync17, readFileSync as readFileSync8 } from "node:fs";
 import { isAbsolute as isAbsolute3, join as join27, resolve as resolve5 } from "node:path";
 var PRESET_ASSET_TAGS = ["slides", "rebrand-preset"];
 var PRESET_FILE_VERSION = 1;
@@ -177792,7 +177861,7 @@ function listPresets(opts = {}) {
       }
     }
   }
-  if (existsSync16(personalFile)) {
+  if (existsSync17(personalFile)) {
     try {
       const sorted = sortEntries(readPresetFile(personalFile), { origin: "personal", file: personalFile });
       const packIds = /* @__PURE__ */ new Set([
@@ -178862,8 +178931,6 @@ var REBRAND_STAGES = ["capabilities", "plan", "compile", "inspect"];
 var HOSTED_MAX_SLIDES = 100;
 var LOCAL_MAX_SLIDES = 1999;
 var PLAN_INLINE_MAX_BYTES = 128 * 1024;
-var VERCEL_BODY_MAX_BYTES = 45e5;
-var VERCEL_RESPONSE_MAX_BYTES = 4e6;
 var REQUEST_ENVELOPE_BYTES = 16 * 1024;
 var PLAN_QUEUE_SHOWN = 50;
 var QUEUE_ITEM_IDS_SHOWN = 50;
@@ -178875,19 +178942,12 @@ var REBRAND_LIMITS = Object.freeze({
   hostedMaxSlides: HOSTED_MAX_SLIDES,
   localMaxSlides: LOCAL_MAX_SLIDES,
   planInlineBytes: PLAN_INLINE_MAX_BYTES,
-  bodyMaxBytes: VERCEL_BODY_MAX_BYTES,
-  responseMaxBytes: VERCEL_RESPONSE_MAX_BYTES
+  bodyMaxBytes: HOSTED_REQUEST_MAX_BYTES,
+  responseMaxBytes: HOSTED_RESPONSE_MAX_BYTES
 });
-function isHostedServer(env = process.env) {
-  if (env.VERCEL || env.LOLLY_MCP_HOSTED === "1" || env.NODE_ENV === "production") return true;
-  const origin = env.LOLLY_MCP_PUBLIC_ORIGIN?.trim();
-  if (!origin) return false;
-  try {
-    const host = new URL(origin).hostname;
-    return !(host === "localhost" || host === "127.0.0.1" || host === "[::1]");
-  } catch {
-    return false;
-  }
+function rebrandLimitsFor(env = process.env) {
+  if (!isHostedServer(env)) return REBRAND_LIMITS;
+  return { ...REBRAND_LIMITS, bodyMaxBytes: hostedRequestMaxBytes(env), responseMaxBytes: hostedResponseMaxBytes(env) };
 }
 function maxSlidesFor(ctx) {
   return isHostedServer(ctx.env) ? ctx.limits.hostedMaxSlides : ctx.limits.localMaxSlides;
@@ -178896,7 +178956,7 @@ function base64Length(bytes2) {
   return Math.ceil(bytes2 / 3) * 4;
 }
 function maxInputBytesFor(ctx) {
-  if (!ctx.env.VERCEL) return MAX_TRANSFORM_INPUT_BYTES;
+  if (!isHostedServer(ctx.env)) return MAX_TRANSFORM_INPUT_BYTES;
   return Math.min(MAX_TRANSFORM_INPUT_BYTES, Math.floor((ctx.limits.bodyMaxBytes - REQUEST_ENVELOPE_BYTES) * 3 / 4));
 }
 function mebibytes(bytes2) {
@@ -179476,7 +179536,7 @@ function success(sentence, structured, files, ctx) {
     ],
     structuredContent: structured
   };
-  if (ctx.env.VERCEL) {
+  if (isHostedServer(ctx.env)) {
     const size = responseBytes(result);
     if (size > ctx.limits.responseMaxBytes) {
       throw new RebrandToolError("output.too-large", `The result comes to ${size} bytes and this server answers up to ${ctx.limits.responseMaxBytes} bytes; run lolly rebrand on the CLI for this deck.`);
@@ -179500,7 +179560,7 @@ function waitingSentence(counts) {
   if (counts.tray) parts.push(`${counts.tray} objects wait in the tray`);
   return parts.length ? parts.join(", ") : "nothing is waiting";
 }
-async function rebrandCapabilities(env = process.env, limits = REBRAND_LIMITS) {
+async function rebrandCapabilities(env = process.env, limits = rebrandLimitsFor(env)) {
   const ctx = { env, limits };
   const hosted = isHostedServer(env);
   const maxSlides2 = maxSlidesFor(ctx);
@@ -179527,7 +179587,7 @@ async function rebrandCapabilities(env = process.env, limits = REBRAND_LIMITS) {
     limits: { maxBytes, maxSlides: maxSlides2 },
     retention: hosted ? "The file is processed in memory for this call and not kept: nothing is written to disk or stored after the response." : "The file is processed in memory by this local process for this call and not kept."
   };
-  const transfer = !hosted ? "The file stays on the machine this server runs on, which is this machine when the client runs here too, and the server sends it nowhere else." : env.VERCEL ? `Calling lolly_rebrand sends the file to ${where}, which processes it in memory for that call only, up to ${maxSlides2} slides and a file of about ${megabytes(maxBytes)}, because the platform takes requests up to ${megabytes(limits.bodyMaxBytes)} and compile and inspect send the file and the plan together in one request.` : `Calling lolly_rebrand sends the file to ${where}, which processes it in memory for that call only, up to ${mebibytes(maxBytes)} and ${maxSlides2} slides.`;
+  const transfer = !hosted ? "The file stays on the machine this server runs on, which is this machine when the client runs here too, and the server sends it nowhere else." : `Calling lolly_rebrand sends the file to ${where}, which processes it in memory for that call only, up to ${maxSlides2} slides and a file of about ${megabytes(maxBytes)}, because this server takes requests up to ${megabytes(limits.bodyMaxBytes)} and compile and inspect send the file and the plan together in one request.`;
   return {
     stage: "capabilities",
     surface: contract2.surface,
@@ -179547,7 +179607,7 @@ async function rebrandCapabilities(env = process.env, limits = REBRAND_LIMITS) {
       maxBytes,
       maxSlides: maxSlides2,
       planInlineBytes: limits.planInlineBytes,
-      ...env.VERCEL ? { maxRequestBytes: limits.bodyMaxBytes, maxResponseBytes: limits.responseMaxBytes } : {}
+      ...hosted ? { maxRequestBytes: limits.bodyMaxBytes, maxResponseBytes: limits.responseMaxBytes } : {}
     },
     retention: contract2.retention,
     transfer,
@@ -179606,7 +179666,7 @@ async function planStage(args, ctx) {
   return success(sentence, structured, files, ctx);
 }
 function checkCompileRequest(deck, plan, ctx) {
-  if (!ctx.env.VERCEL) return;
+  if (!isHostedServer(ctx.env)) return;
   const request2 = REQUEST_ENVELOPE_BYTES + base64Length(deck.bytes.byteLength) + Buffer.byteLength(JSON.stringify(plan), "utf8");
   if (request2 > ctx.limits.bodyMaxBytes) {
     throw new RebrandToolError("source.too-large", `A compile call for ${deck.name} would carry the file and its plan in about ${request2} bytes, over the ${ctx.limits.bodyMaxBytes} bytes this server takes in one request; run lolly rebrand on the CLI for this deck.`);
@@ -179843,7 +179903,7 @@ async function inspectStage(args, ctx) {
   const structured = { ...base, slides, note: withoutFile };
   return success(`The plan covers ${plan.slides.length} slides; pass slide to list one slide's objects.`, structured, [], ctx);
 }
-async function callRebrand(args, env = process.env, limits = REBRAND_LIMITS) {
+async function callRebrand(args, env = process.env, limits = rebrandLimitsFor(env)) {
   const stage = typeof args.stage === "string" ? args.stage : "";
   const ctx = { env, limits };
   try {
@@ -180947,9 +181007,13 @@ var STRUCTURED_LIMITS = Object.freeze({
   hostedMaxSlides: HOSTED_MAX_SLIDES,
   localMaxSlides: LOCAL_MAX_SLIDES,
   inlineBytes: 128 * 1024,
-  bodyMaxBytes: VERCEL_BODY_MAX_BYTES,
-  responseMaxBytes: VERCEL_RESPONSE_MAX_BYTES
+  bodyMaxBytes: HOSTED_REQUEST_MAX_BYTES,
+  responseMaxBytes: HOSTED_RESPONSE_MAX_BYTES
 });
+function structuredLimitsFor(env = process.env) {
+  if (!isHostedServer(env)) return STRUCTURED_LIMITS;
+  return { ...STRUCTURED_LIMITS, bodyMaxBytes: hostedRequestMaxBytes(env), responseMaxBytes: hostedResponseMaxBytes(env) };
+}
 function maxFileBytes(ctx) {
   return maxInputBytesFor({
     env: ctx.env,
@@ -181009,7 +181073,7 @@ function success2(sentence, structured, files, ctx, tooLarge2, hint) {
     content: [{ type: "text", text: sentence }, { type: "text", text: JSON.stringify(structured) }, ...files],
     structuredContent: structured
   };
-  if (ctx.env.VERCEL) {
+  if (isHostedServer(ctx.env)) {
     const size = responseBytes(result);
     if (size > ctx.limits.responseMaxBytes)
       throw new ToolCodeError(tooLarge2, `The result comes to ${size} bytes and this server answers up to ${ctx.limits.responseMaxBytes} bytes; ${hint}`);
@@ -181044,7 +181108,6 @@ var CODES2 = {
 };
 var READ_TOOL_CODES = Object.keys(CODES2);
 var READ_MEDIA_MODES = ["facts", "inline"];
-var READ_LIMITS = STRUCTURED_LIMITS;
 var inventory = contractPart(content_inventory_v1_schema_default);
 var SOURCE = inventory.root.properties.source;
 var COUNTS = obj2({ slides: INT2, text: INT2, notes: INT2, pictures: INT2, tables: INT2, charts: INT2, media: INT2 });
@@ -181153,7 +181216,7 @@ function countsOf2(inv) {
     media: inv.media.length
   };
 }
-async function callRead(args, env = process.env, limits = READ_LIMITS) {
+async function callRead(args, env = process.env, limits = structuredLimitsFor(env)) {
   const ctx = { env, limits };
   try {
     const extra = Object.keys(args).find((key2) => key2 !== "file" && key2 !== "media");
@@ -181849,7 +181912,6 @@ var CODES3 = {
 };
 var CHECK_TOOL_CODES = Object.keys(CODES3);
 var CHECK_BROWSER_MODES = ["auto", "off", "require"];
-var CHECK_LIMITS = STRUCTURED_LIMITS;
 var report2 = contractPart(check_report_v1_schema_default);
 var CHECK_OUTPUT_SCHEMA = {
   type: "object",
@@ -181983,8 +182045,12 @@ var localBrowser = async (session) => {
 };
 var noBrowser = async () => ({
   kind: "no-hook",
-  reason: "This server is a serverless function with no browser, so the render family (clipping, contrast and font coverage in the painted editor) does not run here. Call lolly_check on a local Lolly MCP server, or run lolly check."
+  reason: "This server has no browser, so the render family (clipping, contrast and font coverage in the painted editor) does not run here. Call lolly_check on a local Lolly MCP server, or run lolly check."
 });
+async function renderChecksFor(env) {
+  if (!isHostedServer(env)) return localBrowser;
+  return await browserTierAvailable(env) ? localBrowser : noBrowser;
+}
 function asCheckError(err) {
   if (err instanceof ToolCodeError && Object.hasOwn(CODES3, err.code)) return err;
   if (err instanceof CheckInputError) return new ToolCodeError(err.code, err.message);
@@ -182074,7 +182140,7 @@ function editsOf(args) {
 function familiesLine(families) {
   return Object.entries(families).map(([name, f]) => `${name} ${f.state}`).join(", ");
 }
-async function callCheck(args, resolveDesign, env = process.env, limits = CHECK_LIMITS, deps = {}) {
+async function callCheck(args, resolveDesign, env = process.env, limits = structuredLimitsFor(env), deps = {}) {
   const ctx = { env, limits };
   try {
     const extra = Object.keys(args).find((key2) => !KNOWN_ARGS.has(key2));
@@ -182088,7 +182154,7 @@ async function callCheck(args, resolveDesign, env = process.env, limits = CHECK_
     if (args.theme !== void 0 && (typeof args.theme !== "string" || !args.theme)) throw new ToolCodeError("request.invalid", "theme is a theme name.");
     if (args.themes !== void 0 && args.themes !== "all" && !(Array.isArray(args.themes) && args.themes.length > 0 && args.themes.length <= 16 && args.themes.every((n7) => typeof n7 === "string" && n7)))
       throw new ToolCodeError("request.invalid", 'themes is "all" or a list of theme names.');
-    if (env.VERCEL && args.source !== void 0) {
+    if (isHostedServer(env) && args.source !== void 0) {
       const carried = fileArgLength(args.file) + fileArgLength(args.source);
       if (carried > requestRoom(ctx))
         throw new ToolCodeError("source.too-large", `The file and the source come to ${carried} bytes of base64 and one request here carries ${requestRoom(ctx)}; pass the lolly_read inventory as inventory instead of the source deck.`);
@@ -182113,7 +182179,7 @@ async function callCheck(args, resolveDesign, env = process.env, limits = CHECK_
       ocr: false,
       // Family reasons name this tool's arguments, never a CLI flag.
       surface: "mcp",
-      renderChecks: deps.renderChecks ?? (env.VERCEL ? noBrowser : localBrowser),
+      renderChecks: deps.renderChecks ?? await renderChecksFor(env),
       ...manifest !== void 0 ? { designManifest: manifest } : {}
     });
     const s = result.summary;
@@ -182696,7 +182762,7 @@ function documentRows(doc) {
     throw new ToolCodeError("request.invalid", `document has ${boxes2.length} rows; this tool reads up to ${MEASURE_TEXT_MAX_LAYERS * 4}. Run lolly measure --text-layers on the CLI.`);
   return boxes2;
 }
-async function callMeasureText(args, env = process.env, limits = STRUCTURED_LIMITS) {
+async function callMeasureText(args, env = process.env, limits = structuredLimitsFor(env)) {
   const ctx = { env, limits };
   try {
     const extra = Object.keys(args).find((key2) => !Object.hasOwn(ARGS, key2));
@@ -183025,7 +183091,7 @@ function choicesSentence(choices2) {
   const entries = Object.entries(choices2);
   return entries.length ? entries.map(([group, id3]) => `${group || "theme"} ${id3}`).join(", ") : "no theme groups";
 }
-async function callInspectTokens(args, env = process.env, limits = STRUCTURED_LIMITS) {
+async function callInspectTokens(args, env = process.env, limits = structuredLimitsFor(env)) {
   const ctx = { env, limits };
   try {
     const extra = Object.keys(args).find((key2) => !Object.hasOwn(INSPECT_TOKEN_ARGS, key2));
@@ -183878,7 +183944,7 @@ function sizeArg(value, parse2) {
   if (!parsed) throw new ToolCodeError("request.invalid", 'size is the artboard size in px: "1920x1080" or {width, height}.');
   return parsed;
 }
-async function callCompose(args, env = process.env, limits = STRUCTURED_LIMITS) {
+async function callCompose(args, env = process.env, limits = structuredLimitsFor(env)) {
   const ctx = { env, limits };
   try {
     const extra = Object.keys(args).find((key2) => !Object.hasOwn(ARGS2, key2));
@@ -184305,7 +184371,6 @@ var MCP_ONLY = {
   internal: true
 };
 var PACKAGE_TOOL_CODES = [...DESIGN_PACKAGE_ERROR_CODES, ...Object.keys(MCP_ONLY)];
-var PACKAGE_LIMITS = STRUCTURED_LIMITS;
 var LOLLY_MIME2 = "application/vnd.lolly+zip";
 var report3 = contractPart(design_package_v1_schema_default);
 var LEGACY_OUT = obj2({
@@ -184441,7 +184506,7 @@ function holdsColourRefs(doc) {
   }
   return Array.isArray(rows2) && hasDesignColourRefs(rows2, ["bg", "fg", "stroke", "shadowColor"], "tokenLinks", false);
 }
-async function callPackage(args, resolveDesign, env = process.env, limits = PACKAGE_LIMITS, deps = {}) {
+async function callPackage(args, resolveDesign, env = process.env, limits = structuredLimitsFor(env), deps = {}) {
   const ctx = { env, limits };
   try {
     const extra = Object.keys(args).find((key2) => !KNOWN_ARGS2.has(key2));
@@ -184467,7 +184532,7 @@ async function callPackage(args, resolveDesign, env = process.env, limits = PACK
       return success2(`Packaged the compiled document as ${name2} (${packed2.bytes.byteLength} bytes).`, structured, [block2], ctx, "output.too-large", "run lolly package on the CLI.");
     }
     if (shape !== "design") throw new ToolCodeError("input.unsupported", "document must be a Design document (a boxes array, {boxes} or {values: {boxes}}) or a compiled document as lolly_compile returns it.");
-    if (env.VERCEL) {
+    if (isHostedServer(env)) {
       const carried = (Array.isArray(args.assets) ? args.assets.reduce((n7, a) => n7 + fileArgLength(a), 0) : 0) + fileArgLength(args.source);
       if (carried > requestRoom(ctx))
         throw new ToolCodeError("asset.too-large", `The pictures and the source come to ${carried} bytes of base64 and one request here carries ${requestRoom(ctx)}; run lolly package on the CLI.`);
@@ -186787,8 +186852,7 @@ function restStoreConfig(env) {
 function createRateLimiter(env, namespace3 = "mcp", onWrite) {
   const store = restStoreConfig(env);
   if (store) return new RedisRestRateLimiter({ ...store, namespace: namespace3, onWrite });
-  const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === "1" || env.NODE_ENV === "production";
-  if (hosted && env.LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT !== "1") {
+  if (hostedDeployment(env) && env.LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT !== "1") {
     console.warn(`[rate-limit] ${UNCONFIGURED_REASON}`);
     return new UnconfiguredRateLimiter(UNCONFIGURED_REASON);
   }
@@ -186847,7 +186911,7 @@ function limitFromEnv(raw, fallback, scale) {
   return Math.round(n7 * scale);
 }
 function budgetLimits(env) {
-  const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === "1" || env.NODE_ENV === "production";
+  const hosted = hostedDeployment(env);
   return {
     cpuMs: limitFromEnv(env.LOLLY_BUDGET_CPU_SECONDS_PER_DAY, hosted ? HOSTED_CPU_SECONDS_PER_DAY * 1e3 : 0, 1e3),
     egressBytes: limitFromEnv(env.LOLLY_BUDGET_EGRESS_MB_PER_DAY, hosted ? HOSTED_EGRESS_MB_PER_DAY * 1024 * 1024 : 0, 1024 * 1024)
@@ -186976,8 +187040,7 @@ function createUsageBudget(env, namespace3 = "mcp", onWrite) {
   const store = restStoreConfig(env);
   if (store) return new RedisRestUsageBudget({ ...store, namespace: namespace3, limits, onWrite });
   if (limits.cpuMs || limits.egressBytes) {
-    const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === "1" || env.NODE_ENV === "production";
-    if (hosted) console.warn("[usage-budget] no durable store is configured, so the daily budget is counted per instance");
+    if (hostedDeployment(env)) console.warn("[usage-budget] no durable store is configured, so the daily budget is counted per instance");
   }
   return new MemoryUsageBudget(limits);
 }
@@ -187365,7 +187428,6 @@ function matchImageProxyPath(path) {
 }
 var MAX_URL_LEN = 2048;
 var MAX_IMAGE_BYTES = 25 * 1024 * 1024;
-var VERCEL_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 var OVERALL_TIMEOUT_MS = 2e4;
 var RL_WINDOW_MS2 = 6e4;
 var DEFAULT_RPM2 = 60;
@@ -187430,7 +187492,7 @@ async function proxyImage(reqUrl, opts) {
   }
   let privateResponse = false;
   let cacheAge = 3600;
-  const maxBytes = env.VERCEL ? VERCEL_MAX_IMAGE_BYTES : MAX_IMAGE_BYTES;
+  const maxBytes = isHostedServer(env) ? hostedMaxImageBytes(env) : MAX_IMAGE_BYTES;
   let bytes2;
   let rawType;
   try {
@@ -187774,7 +187836,6 @@ var CORS = {
   "access-control-expose-headers": "WWW-Authenticate, ETag, Content-Disposition, Content-Length"
 };
 var MCP_BODY_MAX = 32 * 1024 * 1024;
-var VERCEL_MCP_RESPONSE_MAX = 44e5;
 var OAUTH_BODY_MAX = 64 * 1024;
 var RATE_WINDOW_MS = 6e4;
 var BodyTooLargeError = class extends Error {
@@ -187832,7 +187893,7 @@ function readBody(req, maxBytes = MCP_BODY_MAX) {
 function publicOrigin(env) {
   const configured = env.LOLLY_MCP_PUBLIC_ORIGIN?.trim();
   if (!configured) {
-    if (env.VERCEL || env.LOLLY_MCP_HOSTED === "1" || env.NODE_ENV === "production") {
+    if (hostedDeployment(env)) {
       throw new Error("LOLLY_MCP_PUBLIC_ORIGIN is required in hosted/production mode");
     }
     const port = env.PORT == null || env.PORT.trim() === "" ? 8790 : Number(env.PORT);
@@ -187951,6 +188012,9 @@ function createGateway(env = process.env, options2 = {}) {
   const budget3 = options2.budget ?? createUsageBudget(env, namespace3, options2.onWrite);
   const open3 = openAccess(env);
   const files = options2.resultFiles ?? resultFiles;
+  const hosted = isHostedServer(env);
+  const requestMax = hosted ? hostedRequestMaxBytes(env) : MCP_BODY_MAX;
+  const responseMax = hosted ? hostedResponseMaxBytes(env) : Number.POSITIVE_INFINITY;
   return async (req, rawResponse) => {
     const res = deliveryResponse(req, rawResponse);
     const method = req.method || "GET";
@@ -188009,7 +188073,7 @@ function createGateway(env = process.env, options2 = {}) {
         return;
       }
       let body = JSON.stringify(response);
-      if (env.VERCEL && Buffer.byteLength(body) > VERCEL_MCP_RESPONSE_MAX) body = JSON.stringify(ok(message.id ?? null, { isError: true, content: [{ type: "text", text: "Read fewer layers or fields, or request a smaller preview. This result exceeds the hosted response limit." }] }));
+      if (Buffer.byteLength(body) > responseMax) body = JSON.stringify(ok(message.id ?? null, { isError: true, content: [{ type: "text", text: "Read fewer layers or fields, or request a smaller preview. This result exceeds the hosted response limit." }] }));
       await budget3.record(Buffer.byteLength(body));
       res.writeHead(200, { ...CORS, "content-type": "application/json", "cache-control": "no-store" });
       res.end(body);
@@ -188126,7 +188190,7 @@ function createGateway(env = process.env, options2 = {}) {
       if (spent) return send(res, spent);
       let raw;
       try {
-        raw = await readBody(req, MCP_BODY_MAX);
+        raw = await readBody(req, requestMax);
       } catch (error2) {
         if (error2 instanceof BodyTooLargeError) {
           res.writeHead(413, { ...CORS, "content-type": "application/json" });
@@ -188186,9 +188250,9 @@ function createGateway(env = process.env, options2 = {}) {
       }
       const status = modern && response.error ? response.error.code === ERR.METHOD_NOT_FOUND ? 404 : (/* @__PURE__ */ new Set([ERR.HEADER_MISMATCH, ERR.MISSING_CAPABILITY, ERR.UNSUPPORTED_VERSION, ERR.INVALID_PARAMS])).has(response.error.code) ? 400 : 200 : 200;
       let body = JSON.stringify(response);
-      if (env.VERCEL && Buffer.byteLength(body) > VERCEL_MCP_RESPONSE_MAX) {
+      if (Buffer.byteLength(body) > responseMax) {
         const mb2 = (Buffer.byteLength(body) / 1e6).toFixed(1);
-        const message = `The result is ${mb2} MB, over the ${VERCEL_MCP_RESPONSE_MAX / 1e6} MB this hosted endpoint can return. Ask for svg, a smaller size, or run Lolly locally for large files.`;
+        const message = `The result is ${mb2} MB, over the ${(responseMax / 1e6).toFixed(1)} MB this hosted endpoint can return. Ask for svg, a smaller size, or run Lolly locally for large files.`;
         body = JSON.stringify(msg3.method === "tools/call" ? ok(response.id ?? null, { content: [{ type: "text", text: message }], isError: true }) : fail(response.id ?? null, ERR.INTERNAL, message));
       }
       await budget3.record(Buffer.byteLength(body));
