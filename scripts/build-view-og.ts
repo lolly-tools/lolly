@@ -170,7 +170,7 @@ const VIEWS: View[] = [
   },
   {
     slug: 'start',
-    title: 'Brand setup',
+    title: 'Design System Setup',
     description: 'Import your tokens, fonts and logos, then every tool follows them.',
     hash: '#/start',
     // palette - the brand editor's own mark (lib/icons.ts)

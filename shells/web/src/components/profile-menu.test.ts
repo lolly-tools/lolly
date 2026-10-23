@@ -75,7 +75,7 @@ test('click opens the menu with the consolidated rows', async () => {
 });
 
 // Plan 320 J11: in a workspace that locks its design system there is nothing to set up.
-test('Set up your brand is offered unless the design system is locked', async () => {
+test('Design System Setup is offered unless the design system is locked', async () => {
   for (const locked of [false, true]) {
     const lockHost = { ...host, tokens: { isLocked: async () => locked } } as unknown as Parameters<typeof attachProfileMenu>[1];
     const detach = attachProfileMenu(trigger(), lockHost);

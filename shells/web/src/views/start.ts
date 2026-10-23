@@ -3,7 +3,7 @@ import { mountTokenWorkspace } from '../components/token-workspace.ts';
 import { webTokenConsumerSources } from '../lib/token-consumer-index.ts';
 import '../styles/parts/design-system-specimen.css';
 /**
- * #/start - the Design System studio (plan 97). This is THE place the design
+ * #/start - Design System Setup (plan 97). This is THE place the design
  * system is set, saved, edited and deleted; the Dashboard's Design-system tab
  * renders the result read-only, and user preferences (theme, sound) live on
  * Profile. Five of the six rooms are lib/brand-editor.ts's panels, mounted once
@@ -119,7 +119,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   start.host = host;
   start.params = params;
 
-  document.title = 'Make it yours · Lolly';
+  document.title = 'Design System Setup · Lolly';
 
   // The back pill wears the name of the view the user came from - a tool's
   // "Manage fonts", the Dashboard CTA, a project folder - and returns there;

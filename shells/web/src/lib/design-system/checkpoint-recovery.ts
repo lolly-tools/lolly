@@ -108,7 +108,7 @@ export function mountCheckpointRecovery(studio: StudioState, refresh: () => Prom
       if (!await studio.restoreCheckpoint(id, tRaw('Before restore'))) throw new Error('Checkpoint unavailable');
       try { await refresh(); }
       catch {
-        if (modal.el.isConnected) status.textContent = tRaw('Brand settings restored. Reopen Make it yours to refresh the view.');
+        if (modal.el.isConnected) status.textContent = tRaw('Brand settings restored. Reopen Design System Setup to refresh the view.');
         return;
       }
       if (!modal.el.isConnected) return;

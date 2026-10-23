@@ -73,7 +73,7 @@ export interface ToolSupport {
 }
 
 /**
- * How the Design System studio's website source stands on THIS device
+ * How Design System Setup's website source stands on THIS device
  * (plan 97 section 9). The same three-verdict vocabulary `toolSupport` uses, for a
  * feature that is gated by a transport rather than by a tool manifest:
  *

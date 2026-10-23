@@ -114,7 +114,7 @@ place to install them - the same reason `eyedropper-shim.ts` is imported there.
 
 #### Website source transport
 
-There is no `site-fetch` bridge override, and there never fired one (a stale vite.config.js map key for it was removed 2026-09-05). The Design System studio's Website source calls the native `site_fetch` command directly: it probes Tauri's own `__TAURI_INTERNALS__.invoke` global at runtime (`detectSiteTransport` in `shells/web/src/lib/design-system/sources/website.ts`) and, when present, invokes `site_fetch` (`src-tauri/src/site_fetch.rs`) without going through a build-time module substitution at all.
+There is no `site-fetch` bridge override, and there never fired one (a stale vite.config.js map key for it was removed 2026-09-05). Design System Setup's Website source calls the native `site_fetch` command directly: it probes Tauri's own `__TAURI_INTERNALS__.invoke` global at runtime (`detectSiteTransport` in `shells/web/src/lib/design-system/sources/website.ts`) and, when present, invokes `site_fetch` (`src-tauri/src/site_fetch.rs`) without going through a build-time module substitution at all.
 
 
 
