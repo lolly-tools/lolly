@@ -27,6 +27,8 @@ import {
   exportProfileBrandSkill, listProfileBrandSkills, profileBrandSkillFreshness, readProfileBrandSkill,
 } from '../packages/node-shell/src/brand-skills.ts';
 import { readProfileBriefCatalog, readProfileTokenDocument } from '../packages/node-shell/src/design-brief.ts';
+import { contentRoots, materializeInto } from '../packages/node-shell/src/content-roots.ts';
+import { existsSync, readFileSync } from 'node:fs';
 
 const enc = (s: string): Uint8Array => new TextEncoder().encode(s);
 const sha = (s: string | Uint8Array): string => createHash('sha256').update(s).digest('hex');
@@ -362,6 +364,14 @@ test('audience: a public listing withholds internal skills, the developer\'s own
     assert.equal(pub.withheld, 1);
     assert.equal(await readProfileBrandSkill('acme-secret', { root, audience: 'public' }), null);
     assert.ok(await readProfileBrandSkill('acme-secret', { root, audience: 'all' }));
+    // A static build is public whatever profile made it: the internal skill is not in it.
+    const dist = join(root, 'dist');
+    materializeInto(dist, contentRoots({ root }));
+    const served = JSON.parse(readFileSync(join(dist, 'catalog/assets/index.json'), 'utf8'));
+    assert.deepEqual(served.assets.map((a: { id: string }) => a.id), ['acme/skill/brand']);
+    assert.ok(existsSync(join(dist, 'catalog/assets/acme/skills/brand/SKILL.md')));
+    assert.ok(!existsSync(join(dist, 'catalog/assets/acme/skills/secret/SKILL.md')));
+    assert.ok(existsSync(join(cat, 'assets/acme/skills/secret/SKILL.md')), 'the pack itself is untouched');
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

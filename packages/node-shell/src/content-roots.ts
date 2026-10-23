@@ -59,6 +59,7 @@ import { readFile } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 
 import { isMaterializedRoot, repoRoot } from './repo-root.ts';
+import { isPublicBrandSkillAsset } from '@lolly-tools/core/brand-skill-v1';
 
 /** The only base pack `extends` may name in v1 (brand overlays of community tools). */
 const BASE_PACK = 'community';
@@ -744,6 +745,27 @@ function copyTree(src: string, dst: string): void {
 }
 
 /** The one remaining copy path: write a real tools/ + catalog/ tree into dest. */
+/**
+ * Internal brand skills (plan 323) never reach a static catalog: a statically hosted tree
+ * is public whatever profile built it. Their files and index rows are removed from the
+ * copy; the pack's own index is never touched. With no internal skill in the index the
+ * served index is left byte for byte as copied, so a later signing step sees the same file.
+ */
+function dropInternalSkills(catalogOut: string): void {
+  const indexPath = join(catalogOut, 'assets', 'index.json');
+  if (!existsSync(indexPath)) return;
+  const index = JSON.parse(readFileSync(indexPath, 'utf8')) as { assets?: unknown[] };
+  const assets = Array.isArray(index.assets) ? index.assets : [];
+  const internal = assets.filter((a) => !isPublicBrandSkillAsset(a)) as Array<{ formats?: Array<{ url?: string }>; meta?: { skill?: { files?: Array<{ url?: string }> } } }>;
+  if (!internal.length) return;
+  for (const asset of internal) {
+    for (const { url } of [...(asset.formats ?? []), ...(asset.meta?.skill?.files ?? [])]) {
+      if (typeof url === 'string' && url.startsWith('/catalog/') && !url.includes('..')) rmSync(join(catalogOut, ...url.slice('/catalog/'.length).split('/')), { force: true });
+    }
+  }
+  writeFileSync(indexPath, JSON.stringify({ ...index, assets: assets.filter((a) => isPublicBrandSkillAsset(a)) }, null, 2) + '\n');
+}
+
 export function materializeInto(dest: string, r?: ContentRoots): void {
   const roots = r ?? contentRoots();
   const toolsOut = join(dest, 'tools');
@@ -766,6 +788,7 @@ export function materializeInto(dest: string, r?: ContentRoots): void {
     mkdirSync(join(merged, '..'), { recursive: true });
     writeFileSync(merged, JSON.stringify(readAssetIndex(roots), null, 2) + '\n');
   }
+  dropInternalSkills(catalogOut);
 
   for (const [id, { dir, base }] of plan) {
     const out = join(toolsOut, id);
