@@ -26,7 +26,7 @@ import type { DesignSystemRecord } from './registry.ts';
 import { createDesignSystem, type ManageHost } from './manage.ts';
 import { hideShippedDesignSystem, prepareDesignSystemRemoval, removeAndSwitchDesignSystem } from './remove-coordinator.ts';
 import { resetDesignSystem, resetKind } from './reset.ts';
-import { DESIGN_SYSTEM_CHANGED_EVENT, switchDesignSystem, type SwitchHost } from './switch.ts';
+import { DESIGN_SYSTEM_CHANGED_EVENT, DESIGN_SYSTEMS_LISTED_EVENT, switchDesignSystem, type SwitchHost } from './switch.ts';
 import { switchWithUndo } from './switch-undo.ts';
 import { catalogSourceHtml } from './catalog-source.ts';
 import { sourceLine } from './source-line.ts';
@@ -275,6 +275,12 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): () =>
     if (busy) { staleWhileBusy = true; return; }
     refresh();
   };
+  // Companions seeded after the first sync: new rows, the same active system.
+  const onListed = (): void => {
+    if (!body.isConnected) { detach(); return; }
+    if (busy) { staleWhileBusy = true; return; }
+    refresh();
+  };
 
   body.setAttribute('aria-busy', 'true');
   announce(body, t('Loading design systems…'));
@@ -311,10 +317,12 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): () =>
     document.removeEventListener('keydown', onKey, true);
     document.removeEventListener('pointerdown', onPress, true);
     window.removeEventListener(DESIGN_SYSTEM_CHANGED_EVENT, onChanged);
+    window.removeEventListener(DESIGN_SYSTEMS_LISTED_EVENT, onListed);
   };
   document.addEventListener('keydown', onKey, true);
   document.addEventListener('pointerdown', onPress, true);
   window.addEventListener(DESIGN_SYSTEM_CHANGED_EVENT, onChanged);
+  window.addEventListener(DESIGN_SYSTEMS_LISTED_EVENT, onListed);
 
   body.addEventListener('click', async (e) => {
     const target = e.target as Element;

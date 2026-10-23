@@ -43,6 +43,11 @@ import { withoutLeadColours } from './leads.ts';
 /** Fired on `window` after a switch, before any remount. `detail` is the new record. */
 export const DESIGN_SYSTEM_CHANGED_EVENT = 'lolly:design-system-changed';
 
+/** Fired on `window` when systems are added to the list without a switch: the
+ *  catalog's companions, seeded after the first sync (companions.ts). A view that
+ *  lists systems reads the list again; the active system is unchanged. */
+export const DESIGN_SYSTEMS_LISTED_EVENT = 'lolly:design-systems-listed';
+
 /** The routes a switch may remount in place: they hold no work of the person's.
  *  Everything else (a tool, batch, projects) is left standing and told. */
 export const REMOUNTABLE_ROUTES = new Set(['gallery', 'utilities', 'dashboard', 'profile', 'start', 'catalog']);

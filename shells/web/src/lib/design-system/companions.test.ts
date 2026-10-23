@@ -14,6 +14,7 @@ import { createTokensAPI, USER_TOKENS_ID } from '../../bridge/tokens.ts';
 import { createDesignSystemRegistry, type RegistryDb } from './registry.ts';
 import { readCompanionDesignSystems, seedCompanionDesignSystems, type CompanionHost } from './companions.ts';
 import { removeDesignSystem, renameDesignSystem } from './manage.ts';
+import { DESIGN_SYSTEMS_LISTED_EVENT } from './switch.ts';
 import { resetDesignSystem, resetKind } from './reset.ts';
 import { installUserTokens } from '../../bridge/tokens.ts';
 import { readDesignSystemIdentity } from '../../../../../engine/src/design-system.ts';
@@ -116,6 +117,24 @@ test('a companion is seeded once: a second sync adds nothing, and a removed one 
   await removeDesignSystem(r.host as unknown as Parameters<typeof removeDesignSystem>[0], 'lolly-starter');
   assert.equal((await seed(r.host)).length, 0);
   assert.deepEqual((await r.registry.visible()).map(x => x.id), ['shipped']);
+});
+
+test('seeding tells a view already showing the list, once, and only when it added a system', async () => {
+  const r = await rig({ catalog: DEMO });
+  const g = globalThis as { window?: EventTarget };
+  const had = 'window' in g ? g.window : undefined;
+  const page = new EventTarget();
+  let heard = 0;
+  page.addEventListener(DESIGN_SYSTEMS_LISTED_EVENT, () => { heard++; });
+  g.window = page;
+  try {
+    assert.equal((await seed(r.host)).length, 1);
+    assert.equal(heard, 1, 'the first visit announces Lolly Starter');
+    assert.equal((await seed(r.host)).length, 0);
+    assert.equal(heard, 1, 'a later sync that adds nothing stays quiet');
+  } finally {
+    if (had === undefined) delete g.window; else g.window = had;
+  }
 });
 
 test('a locked build gets no companion, and nor does a catalog naming its own system', async () => {

@@ -46,7 +46,7 @@ import { mountDsStrip, type StripHost } from '../../lib/design-system/ds-strip.t
 import type { LeadColours } from '../../lib/design-system/leads.ts';
 import { sourceLine } from '../../lib/design-system/source-line.ts';
 import type { DesignSystemRecord } from '../../lib/design-system/registry.ts';
-import { DESIGN_SYSTEM_CHANGED_EVENT } from '../../lib/design-system/switch.ts';
+import { DESIGN_SYSTEM_CHANGED_EVENT, DESIGN_SYSTEMS_LISTED_EVENT } from '../../lib/design-system/switch.ts';
 import { DASH_SECTIONS, dashFlag, dashHref } from '../../lib/dashboard-registry.ts';
 
 /** Everything the tab renders, read in one go so first paint needs no second read. */
@@ -780,6 +780,9 @@ export function mountBrandPanel(panel: HTMLElement, host: BrandHost, input: Bran
   panel.addEventListener('click', onClick);
   panel.addEventListener('error', onError, true);
   window.addEventListener(DESIGN_SYSTEM_CHANGED_EVENT, onChanged);
+  // On a first visit the catalog's companions are seeded after this tab read the
+  // list, so the strip (hidden with one system) would stay hidden until a re-entry.
+  window.addEventListener(DESIGN_SYSTEMS_LISTED_EVENT, onChanged);
   void hydrate(gen);
 
   return {
@@ -788,6 +791,7 @@ export function mountBrandPanel(panel: HTMLElement, host: BrandHost, input: Bran
       live = false;
       gen++;
       window.removeEventListener(DESIGN_SYSTEM_CHANGED_EVENT, onChanged);
+      window.removeEventListener(DESIGN_SYSTEMS_LISTED_EVENT, onChanged);
       panel.removeEventListener('click', onClick);
       panel.removeEventListener('error', onError, true);
       strip?.teardown();
