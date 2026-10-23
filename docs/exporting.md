@@ -245,11 +245,11 @@ The card is stripped from every export stage, so it never changes the file. It i
 
 ### Video
 
-Animated tools export **MP4** and **WebM**. The picker shows only the containers this browser can make, and a shared `?format=` link that asks for one it cannot make falls back to the other, with a matching file name. Animated tools also offer **Wait** (seconds to let the animation settle before recording) and **Duration** (clip length).
+Animated tools export **MP4** and **WebM**. The picker shows only the containers this browser can make, and a shared `?format=` link that asks for one it cannot make falls back to the other, with a matching file name. Animated tools also offer **Start after**, which holds the canvas still for a moment so animations and fonts settle before recording, and **Duration**, the length of the finished clip. **Motion blur** (Off, Draft quality, Standard or High, with a **Shutter angle**) blurs fast movement at the cost of render time. Where the browser supports it, **Record live** records the on-screen preview in real time through a screen share instead.
 
-![The video settings in the export panel: Quality, then Advanced with Codec, Frame rate, Rate mode and Hardware acceleration](/t/url-shot?url=%2F%23%2Ftool%2Flottie-digi-ad%3Fformat%3Dmp4%26options&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=.video-params&walker=1&format=svg&dark=1&filename=exp-video-settings)
+![The timing settings for an animated export: Start after, Duration, Motion blur with its Shutter angle, and Record live](/t/url-shot?url=%2F%23%2Ftool%2Flottie-digi-ad%3Fformat%3Dmp4%26options&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=.video-params&walker=1&format=svg&dark=1&filename=exp-video-settings)
 
-**Quality** chooses Smaller file, Balanced or Best quality. **Advanced** opens **Codec**, **Frame rate**, **Rate mode** and **Hardware acceleration**. Where a tool has captions, **Captions** chooses an **Embedded track** or a **Sidecar .vtt + .srt** beside the video. A link carries the same settings as `vq`, `codec`, `fps`, `seconds` and `wait` ([URL parameters](/info/url-parameters.html)).
+**Quality** chooses Smaller file, Balanced or Best quality. **Advanced** opens **Codec**, **Frame rate**, **Rate mode** and **Hardware acceleration**. Where a tool has captions, **Captions** chooses an **Embedded track** or a **Sidecar .vtt + .srt** beside the video. A link carries these settings as `vq`, `codec`, `fps`, `seconds` and `wait` ([URL parameters](/info/url-parameters.html)).
 
 Video exports keep their sound. A tool can lay a **music bed** under the clip: an audio asset looped or trimmed to the clip length, with fades, volume and ducking under the footage's own sound. The recording tools carry their live audio through to the file.
 
