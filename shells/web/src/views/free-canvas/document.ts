@@ -7,11 +7,12 @@
  * a value (an event listener), goes through `fc.<module>.<fn>`. Extracted verbatim
  * from initFreeCanvas() by scripts/split-closure.ts.
  */
-import { activeFrameIdFor, clampBoxToCanvas, nextFrameOrder, num, seedBox, seedFrameOrders, withRect } from '../free-canvas-math.ts';
+import { activeFrameIdFor, boxAABB, clampBoxToCanvas, nextFrameOrder, num, seedBox, seedFrameOrders, withRect } from '../free-canvas-math.ts';
 import type { Box, Rect as MathRect } from '../free-canvas-math.ts';
 import type { CanvasRect } from '../design-ports.ts';
-import { frameThumb, iconRow, opt, posGridHtml, segHtml, segRow, tiltRow, wireSegs } from '../free-canvas-fields.ts';
-import { designHierarchyAncestors, designHierarchyIndex, designHierarchyPageBoxes, toCssPx } from '@lolly/engine';
+import { frameThumb, frameThumbSize, iconRow, opt, posGridHtml, segHtml, segRow, tiltRow, wireSegs } from '../free-canvas-fields.ts';
+import { thumbnailWork } from '../design-thumbnail-work.ts';
+import { designHierarchyAncestors, designHierarchyFlags, designHierarchyIndex, designHierarchyPageBoxes, toCssPx } from '@lolly/engine';
 import { escape as escapeText } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { colorFieldHtml, wireColorField } from '../../components/color-field.ts';
@@ -19,7 +20,14 @@ import { SVG, icon } from '../free-canvas-icons.ts';
 import { FC_TILT, boolOf } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
+/** Teardown a panel in the one `morePanel` slot registers for when it closes. */
+const panelCleanups = new WeakMap<HTMLElement, () => void>();
 export function closeMorePanel(fc: FcCtx) {
+  const panel = fc.morePanel;
+  if (panel) {
+    panelCleanups.get(panel)?.();
+    panelCleanups.delete(panel);
+  }
   fc.morePanel?.remove();
   fc.morePanel = null;
 }
@@ -698,35 +706,160 @@ export function makeArtboardAround(fc: FcCtx, ids: readonly string[]): void {
  * the StageNav, and tool.ts still owns it. Answered inline - `dispatchEvent` runs its
  * listeners synchronously, so the asker reads `detail.rect` the moment it returns.
  *
- *   · `content`   - the union of every artboard PAGE, so Fit frames the WORK instead of
- *                   the 1920×1080 export box. A 3-slide deck used to open on slide 1
- *                   with 2 and 3 off the right edge and nothing saying they existed.
- *                   Null when this canvas has no frame primitive or no artboards, which
- *                   is exactly what keeps Fit unchanged in every other document.
+ *   · `content`   - the union of every artboard PAGE and every loose layer, so Fit
+ *                   frames the WORK instead of the 1920×1080 export box. A 3-slide deck
+ *                   used to open on slide 1 with 2 and 3 off the right edge and nothing
+ *                   saying they existed. Read from the model (`contentRect`), and carries
+ *                   the page's whole extent for the zoom-out floor. Null when this canvas
+ *                   has no frame primitive, or has no artboards and nothing outside the
+ *                   export box, which is what keeps Fit unchanged in every other document.
  *   · `selection` - the current selection's AABB, for Zoom to selection (Shift+2).
  *
  * CLIENT coords, deliberately, for the reason focusRect documents: a frames tool's
  * canvas overflows its nominal width with pasteboard artboards, so any native→screen
- * scale derived from nativeW is wrong by the pasteboard ratio. A live rect is not. It
- * also makes a rotated box's AABB free - a client rect already IS one.
+ * scale derived from nativeW is wrong by the pasteboard ratio. The selection and active
+ * rects are live client rects (a rotated box's AABB comes free); the content rect maps the
+ * model through the overlay's own metrics, the mapping the selection chrome is drawn with.
  *
  * The listener is not unregistered: `disposed` makes it inert, and stageEl is rebuilt
  * with the view that owns it (same reasoning as the `tl-*` handlers, which only need
  * explicit removal because the timeline can be closed and reopened within one mount).
  */
+/** Canvas-native bounds: model px, origin at the export box's top-left. */
+interface NativeBounds { minX: number; minY: number; maxX: number; maxY: number }
+/** The active page's geometry, read from the rows. */
+interface PageGeometry {
+  /** True when the page holds an artboard, shown or hidden: the page is in frames mode. */
+  frames: boolean;
+  /** What Fit all frames: every shown artboard and every shown loose layer, by id. */
+  targets: Array<{ id: string; b: NativeBounds }>;
+  /** The union of `targets`. */
+  content: NativeBounds | null;
+  /** Every shown layer on the page, artboard children included: the zoom-out floor. */
+  extent: NativeBounds | null;
+}
+const pageGeometryCache = new WeakMap<FcCtx, { boxes: Box[]; pages: unknown; page: string; geom: PageGeometry }>();
+const unionBounds = (a: NativeBounds | null, b: NativeBounds): NativeBounds =>
+  a ? { minX: Math.min(a.minX, b.minX), minY: Math.min(a.minY, b.minY), maxX: Math.max(a.maxX, b.maxX), maxY: Math.max(a.maxY, b.maxY) } : { ...b };
+/**
+ * Fit all from the MODEL, not the DOM (review N1). Fit used to measure the live
+ * `.lolly-frame-page` elements, so it framed artboards only and left a layer parked on
+ * the pasteboard off screen, and it could not survive culling: a page that is not drawn
+ * measures as nothing. The rows give the same answer for artboards and also see the
+ * loose layers.
+ *
+ * The membership rules are the renderer's (design-renderer.js `frameGroupsFor` and
+ * `pasteboardFor`), so the model and the drawing agree on what is on the pasteboard: an
+ * artboard's page box is its rounded x/y/w/h (at least 1 px), a layer is loose when no
+ * ancestor is an artboard and its own `frame` points at no artboard, and hidden rows (a hidden
+ * artboard takes its children with it), groups, cameras and audio beds leave no mark.
+ * Cached per model revision; `getBoxes` and the hierarchy index are identity-stable.
+ */
+function pageGeometry(fc: FcCtx, frameKind: string, frameField: string): PageGeometry {
+  const { cfg, frameCfg } = fc;
+  const all = fc.select.getBoxes();
+  const pages = fc.opts?.getDesignPages?.();
+  const page = String(fc.opts?.getActivePage?.() ?? '');
+  const hit = pageGeometryCache.get(fc);
+  if (hit && hit.boxes === all && hit.pages === pages && hit.page === page) return hit.geom;
+  const index = designHierarchyIndex(all, pages);
+  const onPage = new Set<Box>(pageBoxes(fc, all));
+  const frameIds = new Set<string>();
+  all.forEach((b, i) => { if (b && String(b[cfg.kindField]) === frameKind) frameIds.add(fc.select.idOf(b, i)); });
+  const hiddenField = frameCfg?.hiddenField || 'hidden';
+  const geom: PageGeometry = { frames: false, targets: [], content: null, extent: null };
+  for (let i = 0; i < all.length; i++) {
+    const b = all[i];
+    if (!b || !onPage.has(b)) continue;
+    const kind = String(b[cfg.kindField] ?? '');
+    const isFrame = kind === frameKind;
+    if (isFrame) geom.frames = true;
+    if (kind === 'group' || kind === 'camera' || kind === 'audio') continue;
+    const id = fc.select.idOf(b, i);
+    if (boolOf(b[hiddenField], false) || designHierarchyFlags(index, id).hidden) continue;
+    let bounds: NativeBounds;
+    if (isFrame) {
+      const x = Math.round(num(b[cfg.xField])), y = Math.round(num(b[cfg.yField]));
+      bounds = { minX: x, minY: y, maxX: x + Math.max(1, Math.round(num(b[cfg.wField], 1))), maxY: y + Math.max(1, Math.round(num(b[cfg.hField], 1))) };
+    } else {
+      const a = boxAABB(b, cfg);
+      bounds = { minX: a.minX, minY: a.minY, maxX: a.maxX, maxY: a.maxY };
+    }
+    if (![bounds.minX, bounds.minY, bounds.maxX, bounds.maxY].every(Number.isFinite)) continue;
+    geom.extent = unionBounds(geom.extent, bounds);
+    const inFrame = !isFrame && (frameIds.has(String(b[frameField] ?? ''))
+      || designHierarchyAncestors(index, id).some(owner => frameIds.has(owner)));
+    if (inFrame) continue;
+    geom.targets.push({ id, b: bounds });
+    geom.content = unionBounds(geom.content, bounds);
+  }
+  pageGeometryCache.set(fc, { boxes: all, pages, page, geom });
+  return geom;
+}
+/**
+ * The ids the sequence clock is hiding at the playhead (`seq-off`). A timed deck shows one
+ * scene at a time and Fit has always framed what is on screen, so a hidden scene stays out
+ * of the fit. One class query, and only in a timed document: nothing else is ever `seq-off`.
+ */
+function seqOffIds(fc: FcCtx): Set<string> | null {
+  const { SEQ_OFF_CLASS, canvasEl, timeCfg } = fc;
+  if (!timeCfg) return null;
+  const ids = new Set<string>();
+  for (const el of canvasEl.querySelectorAll<HTMLElement>(`.${SEQ_OFF_CLASS}`)) {
+    const id = el.dataset.frameId ?? el.dataset.boxId;
+    if (id) ids.add(id);
+  }
+  return ids.size ? ids : null;
+}
+/**
+ * Fit all's target in client px, with the page's whole extent on `extent` for the stage's
+ * zoom-out floor. Null when Fit should stay the plain fit of the export box: no frame
+ * primitive, nothing shown, or a document without artboards whose layers all sit inside
+ * the export box (its framing is exactly what it always was).
+ */
+function contentRect(fc: FcCtx): (CanvasRect & { extent?: CanvasRect }) | null {
+  const { frameCfg } = fc;
+  if (!frameCfg) return null;
+  const geom = pageGeometry(fc, frameCfg.frameKind, frameCfg.frameField);
+  const off = seqOffIds(fc);
+  let content = geom.content;
+  if (off) {
+    content = null;
+    for (const t of geom.targets) if (!off.has(t.id)) content = unionBounds(content, t.b);
+  }
+  if (!content) return null;
+  let extent = geom.extent ?? content;
+  if (!geom.frames) {
+    // No artboards: the export box is the page, and Fit frames it unless a layer is outside.
+    const { w, h } = fc.helpers.canvasWH();
+    const page: NativeBounds = { minX: 0, minY: 0, maxX: w, maxY: h };
+    if (content.minX >= 0 && content.minY >= 0 && content.maxX <= w && content.maxY <= h) return null;
+    content = unionBounds(page, content);
+    extent = unionBounds(page, extent);
+  }
+  const m = fc.stage.metrics();
+  const toClient = (b: NativeBounds): CanvasRect => ({
+    x: m.cr.left + b.minX * m.scale,
+    y: m.cr.top + b.minY * m.scale,
+    w: (b.maxX - b.minX) * m.scale,
+    h: (b.maxY - b.minY) * m.scale,
+  });
+  const r = toClient(content);
+  if (!(r.w > 0) || !(r.h > 0)) return null;
+  return { ...r, extent: toClient(extent) };
+}
 /**
  * The computation behind BOTH doors onto a fit target: the `fc-query-rect` event below
  * (tool.ts's StageNav) and `handle.design`'s `contentRect()`/`selectionRect()`. One
  * function, so the top bar's Fit buttons and the stage's own keys can never frame two
- * different rectangles.
+ * different rectangles. `content` is read from the model (see `contentRect`); the
+ * selection and the active artboard are still measured on the live page.
  */
-export function queryRect(fc: FcCtx, what: 'content' | 'selection' | 'active'): CanvasRect | null {
-  const { canvasEl, frameCfg } = fc;
+export function queryRect(fc: FcCtx, what: 'content' | 'selection' | 'active'): (CanvasRect & { extent?: CanvasRect }) | null {
+  const { canvasEl } = fc;
   const els: HTMLElement[] = [];
   if (what === 'content') {
-    if (!frameCfg) return null;
-    for (const el of canvasEl.querySelectorAll<HTMLElement>('.lolly-frame-page[data-frame-id]'))
-      els.push(el);
+    return contentRect(fc);
   } else if (what === 'active') {
     const id = activeArtboardId(fc);
     if (!id) return null;
@@ -815,6 +948,8 @@ export function openFramesPanel(fc: FcCtx, anchor: HTMLElement): void {
     void fc.runtime.applyEmojiToDom?.(thumb)?.catch(() => undefined);
     return thumb;
   };
+  let thumbs: ReturnType<typeof thumbnailWork<Box>> | null = null;
+  panelCleanups.set(p, () => { thumbs?.dispose(); thumbs = null; });
 
   function goTo(i: number, frames: Box[], keyboard = false): void {
     if (!frames.length) return;
@@ -890,9 +1025,26 @@ export function openFramesPanel(fc: FcCtx, anchor: HTMLElement): void {
         .join('') +
       `</div>`;
     const cells = p.querySelectorAll<HTMLElement>('.fc-frame-cell');
-    cells.forEach((cell, i) =>
-      { cell.querySelector('.fc-frame-cell-slot')?.replaceChildren(makeThumb(frames[i]!)); }
-    );
+    // Thumbnails cost a page clone each, so only the cells scrolled into (or near) the
+    // strip build one, the way the navigator column's rows do. Until then each slot holds
+    // an empty box of the thumbnail's own size, so the strip neither jumps nor reads as
+    // fully visible to the observer.
+    thumbs?.dispose();
+    const strip = p.querySelector<HTMLElement>('.fc-frames-strip')!;
+    const work = thumbnailWork<Box>(strip, makeThumb, () => undefined);
+    thumbs = work;
+    cells.forEach((cell, i) => {
+      const slot = cell.querySelector<HTMLElement>('.fc-frame-cell-slot');
+      const fb = frames[i];
+      if (!slot || !fb) return;
+      const size = frameThumbSize(fb, cfg, { maxW: THUMB_MAX_W, maxH: THUMB_MAX_H });
+      const hold = document.createElement('span');
+      hold.className = 'fc-frame-thumb';
+      hold.style.width = `${size.w}px`;
+      hold.style.height = `${size.h}px`;
+      slot.replaceChildren(hold);
+      work.set(String(i), fb, slot);
+    });
     cells.forEach((cell) =>
       { cell.addEventListener('click', () => goTo(num(cell.dataset.fi), frames)); }
     );

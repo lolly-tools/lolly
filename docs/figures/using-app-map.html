@@ -1,0 +1,106 @@
+<!--
+  Concept: the map a first-time reader needs before "Using Lolly": the home screen (four tabs, a grid of
+  tool cards, the bar at the foot) and a tool once opened (controls on one side, the live preview on the
+  other, the render pill with Export and Save).
+  Band Contract: static fragment scoped under .uam, reads the docs theme tokens with fallbacks, no script,
+  no motion, no network. Two columns, one column under 640px.
+  Sources: the tab labels and order are KEYS/LABELS in shells/web/src/components/view-toggle.ts; the bar is
+  footerNav() in components/footer-nav.ts (Open, Settings, search, Verify, What?); the render pill is
+  views/tool/stage-layout.ts (Export, Save).
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.uam{--uam-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--uam-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --uam-ground:hsl(var(--secondary,84.5 55% 92.2%));--uam-paper:hsl(var(--card,0 0% 100%));
+ --uam-accent:hsl(var(--primary,176.5 89.5% 11.2%));--uam-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --uam-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--uam-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --uam-wash:color-mix(in oklab,var(--uam-accent) 12%,var(--uam-paper));
+ --uam-display:"Outfit","SUSE",ui-sans-serif,system-ui,sans-serif;--uam-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--uam-ink);background:var(--uam-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.uam *{box-sizing:border-box}
+.uam ul,.uam ol{list-style:none;margin:0;padding:0}
+.uam li{list-style:none;margin:0;font-size:inherit}
+.uam p{margin:0}
+.uam .uam-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+.uam .uam-panel{background:var(--uam-paper);border-radius:18px;box-shadow:0 0 0 1px var(--uam-line);padding:14px;display:grid;gap:12px;align-content:start}
+.uam .uam-head{display:flex;align-items:center;gap:8px;font:500 18px/1.15 var(--uam-display)}
+.uam .uam-num{display:grid;place-items:center;width:24px;height:24px;flex:none;border-radius:50%;background:var(--uam-accent);color:var(--uam-on-accent);font:600 12px/1 var(--uam-mono)}
+.uam .uam-win{border-radius:12px;background:var(--uam-ground);box-shadow:inset 0 0 0 1px var(--uam-line);padding:10px;display:grid;gap:10px;min-height:230px;grid-template-rows:auto 1fr auto}
+.uam .uam-tabs{display:flex;justify-content:center;gap:4px;padding:4px;border-radius:999px;background:var(--uam-paper);box-shadow:0 0 0 1px var(--uam-line);font:600 11.5px/1 var(--uam-display);justify-self:center;flex-wrap:wrap}
+.uam .uam-tabs span{padding:6px 9px;border-radius:999px}
+.uam .uam-tabs .uam-on{background:var(--uam-wash)}
+.uam .uam-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;align-content:start}
+.uam .uam-card{border-radius:9px;background:var(--uam-paper);box-shadow:0 0 0 1px var(--uam-line);padding:6px;display:grid;gap:5px}
+.uam .uam-card i{display:block;height:28px;border-radius:6px;background:var(--uam-soft)}
+.uam .uam-card i.uam-a{background:var(--uam-wash)}
+.uam .uam-card b{display:block;height:6px;width:70%;border-radius:4px;background:var(--uam-line)}
+.uam .uam-bar{display:flex;align-items:center;gap:5px;flex-wrap:wrap;font:600 11px/1 var(--uam-display)}
+.uam .uam-bar span{padding:6px 8px;border-radius:999px;background:var(--uam-paper);box-shadow:0 0 0 1px var(--uam-line)}
+.uam .uam-bar .uam-search{flex:1 1 70px;color:var(--uam-muted);font-weight:500}
+.uam .uam-bar .uam-verify{background:hsl(151 57% 42%);color:#fff;box-shadow:none}
+.uam .uam-split{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:8px}
+.uam .uam-controls{display:grid;gap:7px;align-content:start}
+.uam .uam-field{border-radius:8px;background:var(--uam-paper);box-shadow:0 0 0 1px var(--uam-line);padding:6px 7px;display:grid;gap:4px}
+.uam .uam-field small{font:600 9.5px/1 var(--uam-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--uam-muted)}
+.uam .uam-field i{display:block;height:7px;border-radius:4px;background:var(--uam-soft)}
+.uam .uam-field .uam-slider{height:4px;background:linear-gradient(90deg,var(--uam-accent) 0 60%,var(--uam-line) 60% 100%)}
+.uam .uam-dot{width:12px;height:12px;border-radius:50%;background:var(--uam-accent);justify-self:end}
+.uam .uam-preview{border-radius:9px;background:var(--uam-paper);box-shadow:0 0 0 1px var(--uam-line);display:grid;place-items:center;padding:10px}
+.uam .uam-preview svg{width:72%;max-width:120px;height:auto}
+.uam .uam-pill{justify-self:center;display:flex;gap:2px;border-radius:999px;background:var(--uam-accent);color:var(--uam-on-accent);font:600 11.5px/1 var(--uam-display);padding:4px}
+.uam .uam-pill span{padding:6px 10px;border-radius:999px}
+.uam .uam-keys{display:grid;gap:6px;font-size:14px}
+.uam .uam-keys li{display:flex;gap:8px;align-items:baseline}
+.uam .uam-keys b{font-weight:600}
+.uam [data-k]{position:relative}
+.uam [data-k]::after{content:attr(data-k);position:absolute;top:-8px;left:-8px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--uam-ink);color:var(--uam-paper);font:600 10px/1 var(--uam-mono)}
+.uam .uam-controls[data-k]::after{top:auto;bottom:-8px}
+.uam .uam-preview[data-k]::after{left:auto;right:-8px}
+.uam .uam-keys .uam-k{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--uam-ink);color:var(--uam-paper);font:600 10px/1 var(--uam-mono);flex:none;align-self:flex-start;margin-top:1px}
+@container (max-width:640px){
+ .uam .uam-cols{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+<div class="uam">
+<div class="uam-cols">
+<div class="uam-panel">
+<p class="uam-head"><span class="uam-num">1</span>The home screen</p>
+<div class="uam-win" role="img" aria-label="The home screen: the Tools, Utilities, Assets and Projects tabs at the top, a grid of tool cards, and a bar at the foot with Open, Settings, a search field, Verify and What?">
+<p class="uam-tabs" data-k="A"><span class="uam-on">Tools</span><span>Utilities</span><span>Assets</span><span>Projects</span></p>
+<div class="uam-grid" data-k="B">
+<div class="uam-card"><i class="uam-a"></i><b></b></div><div class="uam-card"><i></i><b></b></div><div class="uam-card"><i></i><b></b></div>
+<div class="uam-card"><i></i><b></b></div><div class="uam-card"><i class="uam-a"></i><b></b></div><div class="uam-card"><i></i><b></b></div>
+</div>
+<p class="uam-bar" data-k="C"><span>Open</span><span>Settings</span><span class="uam-search">Search Lolly…</span><span class="uam-verify">Verify</span><span>What?</span></p>
+</div>
+<ul class="uam-keys">
+<li><span class="uam-k">A</span><span><b>Tabs</b>: tools to make with, utilities for jobs such as converting a file, your library of assets, and the projects you saved.</span></li>
+<li><span class="uam-k">B</span><span><b>Cards</b>: click one to start something new in that tool.</span></li>
+<li><span class="uam-k">C</span><span><b>The bar</b>: open a file, reach Settings, search everything, check a file's credentials or read the guides.</span></li>
+</ul>
+</div>
+<div class="uam-panel">
+<p class="uam-head"><span class="uam-num">2</span>A tool, open</p>
+<div class="uam-win" role="img" aria-label="A tool open in a split view: a column of controls on the left, the live preview on the right, and the render pill with Export and Save below">
+<div></div>
+<div class="uam-split">
+<div class="uam-controls" data-k="D">
+<div class="uam-field"><small>Text</small><i></i></div>
+<div class="uam-field"><small>Colour</small><span class="uam-dot"></span></div>
+<div class="uam-field"><small>Size</small><i class="uam-slider"></i></div>
+</div>
+<div class="uam-preview" data-k="E"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><rect x="4" y="4" width="92" height="92" rx="10" fill="none" stroke="currentColor" stroke-opacity=".18" stroke-width="2"/><rect x="16" y="16" width="26" height="26" rx="4" fill="currentColor"/><rect x="58" y="16" width="26" height="26" rx="4" fill="currentColor"/><rect x="16" y="58" width="26" height="26" rx="4" fill="currentColor"/><rect x="58" y="58" width="11" height="11" rx="2" fill="currentColor"/><rect x="73" y="73" width="11" height="11" rx="2" fill="currentColor"/><rect x="58" y="73" width="11" height="11" rx="2" fill="currentColor" fill-opacity=".45"/></svg></div>
+</div>
+<p class="uam-pill" data-k="F"><span>↑ Export</span><span>✓ Save</span></p>
+</div>
+<ul class="uam-keys">
+<li><span class="uam-k">D</span><span><b>Controls</b>: only the inputs the tool's author lets you change.</span></li>
+<li><span class="uam-k">E</span><span><b>Preview</b>: updates as you change a control, and is exactly what exports.</span></li>
+<li><span class="uam-k">F</span><span><b>Export and Save</b>: make the file, or keep the design to reopen from Projects.</span></li>
+</ul>
+</div>
+</div>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ/Wp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnXanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDpiNjMyY2FlNC0zMTBiLTRiNmMtYmE3Mi03YWM4NjUzYjBhMTIAAAAEXWp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDY6MTA6MTlaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkjcGZsZW5ndGgZDbZkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIJy36ByTFbOPtbBXRuVEFa15lxySpHP3ui5BIvE8R0yHY3BhZEgAAAAAAAAAAAAAAOZqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACyY2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2xtdXNpbmctYXBwLW1hcGRkYXRleBgyMDI2LTEwLTIzVDA2OjEwOjE5LjM4N1pqZGltZW5zaW9uc20xMDAgw5cgMTAwIHB4aGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAstqdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACnGNib3KmaGRjOnRpdGxlbXVzaW5nLWFwcC1tYXBqaW5zdGFuY2VJRHgtdXJuOnV1aWQ6MGIzMWRlMmQtMjU5Yi00YjdkLTllYTAtYjA4NzQzNDYzNzM3dGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGtzcGVjVmVyc2lvbmUyLjQuMHJjcmVhdGVkX2Fzc2VydGlvbnOFomN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCCLytBaXMFu3mjemca0tbDCEIfaUo7cB51Muz9qI3Y/3KJjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCAtRmhTQndlWlA52A2X+eoO6rqR7a76hmrR3MCs+UDTt6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy90b29scy5sb2xseS5leHBvcnRkaGFzaFggVzy3BFAgGNNFe+Xx8crjVvL/dasYKSKSPoWWr2J0WMaiY3VybHgoc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvY2F3Zy5tZXRhZGF0YWRoYXNoWCDuJiUol/9ndNv6gbMRLa4CPvJcm24MrBQ3oMM0RtpuhKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFpLWRpc2Nsb3N1cmVkaGFzaFggtQsv4iBHCG4VvZn3v64VDszBnFa6ATQYozPN5SFimqtpc2lnbmF0dXJleBlzZWxmI2p1bWJmPWMycGEuc2lnbmF0dXJlY2FsZ2ZzaGEyNTYAAAJganVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAAAIwY2JvctKEWQHfogEmGCGBWQHWMIIB0jCCAXmgAwIBAgIJcboTBEGJW4CeMAoGCCqGSM49BAMCMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDAeFw0yNjEwMjMwNjA5MTlaFw0zNjEwMjAwNjEwMTlaMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABOMF6ARDo3huQJST7BbeM87u86/KypMEi6W5jNlJ4qv3TxFvuU0oChZwxSGD+kxtdFkjK6e4Kq6ovcUnRJ0KM7yjcjBwMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMEMB0GA1UdDgQWBBRXuAc/AUJX/kgXbvrTjOXBH1B6MjAfBgNVHSMEGDAWgBRXuAc/AUJX/kgXbvrTjOXBH1B6MjAKBggqhkjOPQQDAgNHADBEAiAfj74dvb/B4AJ0c88R8w5p1CQN7W3dmBrZA5p9Y3wg2AIgN2iJOYO4zaNntZXDu1Qkc3lfJhcugxERjxIJ98cc1y2g9lhASC8F+ShAebVNKf4+lS7ZeN3I2t6CeTmIXEkUCJgy+n0sip9GztHlaopooxIm+9bmak8xDLLTRcZfULsmsCkf+Q== -----END C2PA MANIFEST----- -->

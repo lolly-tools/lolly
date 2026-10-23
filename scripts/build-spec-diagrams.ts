@@ -52,6 +52,7 @@ const SET_DIRS = {
   'document-model': { src: join(ROOT, 'docs/spec/document-model/diagrams'), out: join(ROOT, 'docs/diagrams/document-model'), dark: false },
   'shoulders-of-giants': { src: join(ROOT, 'docs/diagram-sources/shoulders-of-giants'), out: join(ROOT, 'docs/diagrams/shoulders-of-giants'), dark: true },
   concepts: { src: join(ROOT, 'docs/diagram-sources/concepts'), out: join(ROOT, 'docs/diagrams/concepts'), dark: true },
+  'work-integrations': { src: join(ROOT, 'docs/diagram-sources/work-integrations'), out: join(ROOT, 'docs/diagrams/work-integrations'), dark: true },
 } as const;
 export type FigureSet = keyof typeof SET_DIRS;
 const CLI = join(ROOT, 'shells/cli/bin/lolly.ts');
@@ -153,10 +154,36 @@ export const CONCEPT_FIGURES: Figure[] = [
   { set: 'concepts', name: 'token-resolution', lang: 'dot', title: 'From token sources to tool values', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'one-render-path', lang: 'dot', title: 'Two transports, one render path', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'rights-evidence-to-delivery', lang: 'dot', title: 'Evidence, obligation and delivery', flags: ['--look=minimal', '--cardWidth=190'] },
+  { set: 'concepts', name: 'two-ways-to-resize', lang: 'dot', title: 'Two ways to resize a logo', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=24'] },
+  { set: 'concepts', name: 'signing-architecture', lang: 'dot', title: 'From device key to verified signer', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=18'] },
+  { set: 'concepts', name: 'trusted-two-gates', lang: 'dot', title: 'Two gates to trusted', flags: ['--look=minimal', '--cardWidth=178', '--siblingGap=18'] },
+  { set: 'concepts', name: 'token-three-places', lang: 'dot', title: 'One token, three places', flags: ['--look=minimal', '--cardWidth=170', '--siblingGap=16'] },
+  { set: 'concepts', name: 'template-context', lang: 'dot', title: 'All a template can see', flags: ['--look=minimal', '--cardWidth=178'] },
+  { set: 'concepts', name: 'link-render-needs', lang: 'dot', title: 'What a link needs to render', flags: ['--look=minimal', '--cardWidth=138', '--siblingGap=14'] },
+  { set: 'concepts', name: 'composed-text-path', lang: 'dot', title: 'One layout, three uses', flags: ['--look=minimal', '--cardWidth=170', '--siblingGap=16'] },
+  { set: 'concepts', name: 'tool-lifecycle', lang: 'dot', title: 'From a tool folder to a file', flags: ['--look=minimal', '--cardWidth=170', '--siblingGap=16'] },
+  { set: 'concepts', name: 'data-formats', lang: 'dot', title: 'One input model, many formats', flags: ['--look=minimal', '--cardWidth=178', '--siblingGap=16'] },
+  { set: 'concepts', name: 'tool-composition', lang: 'dot', title: 'One tool inside another', flags: ['--look=minimal', '--cardWidth=178'] },
+  { set: 'concepts', name: 'learning-progress', lang: 'dot', title: 'Where course progress goes', flags: ['--look=minimal', '--cardWidth=178'] },
+  { set: 'concepts', name: 'asset-renditions', lang: 'dot', title: 'Renditions are for previews', flags: ['--look=minimal', '--cardWidth=178'] },
+  { set: 'concepts', name: 'collab-ways', lang: 'dot', title: 'Which way to work together', flags: ['--look=minimal', '--cardWidth=168', '--siblingGap=16'] },
+  { set: 'concepts', name: 'sync-conflict', lang: 'dot', title: 'When two devices disagree', flags: ['--look=minimal', '--cardWidth=184'] },
+  { set: 'concepts', name: 'extension-request', lang: 'dot', title: 'One request, one approval', flags: ['--look=minimal', '--cardWidth=200', '--rowGap=36'] },
+  { set: 'concepts', name: 'backup-version-gate', lang: 'dot', title: 'Two version numbers, one gate', flags: ['--look=minimal', '--cardWidth=196'] },
+  { set: 'concepts', name: 'tool-to-file', lang: 'dot', title: 'Three things make a file', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=18'] },
+  { set: 'concepts', name: 'asset-relay', lang: 'dot', title: 'One tool, many hands', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=24'] },
+];
+
+/** Lolly Work guides: connecting a source, Penpot's two lanes, a resumable upload and an agent invitation. */
+export const WORK_INTEGRATION_FIGURES: Figure[] = [
+  { set: 'work-integrations', name: 'source-flow', lang: 'dot', title: 'From your source to Lolly tools', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=18'] },
+  { set: 'work-integrations', name: 'penpot-lanes', lang: 'dot', title: 'Two lanes out of Penpot', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=18'] },
+  { set: 'work-integrations', name: 'upload-parts', lang: 'dot', title: 'A resumable upload', flags: ['--look=minimal', '--cardWidth=178', '--rowGap=36'] },
+  { set: 'work-integrations', name: 'agent-invite', lang: 'dot', title: 'An agent invitation', flags: ['--look=minimal', '--cardWidth=190', '--rowGap=36'] },
 ];
 
 /** Every figure the script renders, in set order. */
-export const ALL_FIGURES: Figure[] = [...FIGURES, ...GIANTS_FIGURES, ...CONCEPT_FIGURES];
+export const ALL_FIGURES: Figure[] = [...FIGURES, ...GIANTS_FIGURES, ...CONCEPT_FIGURES, ...WORK_INTEGRATION_FIGURES];
 
 const setOf = (fig: Figure): FigureSet => fig.set ?? 'document-model';
 const sourcePath = (fig: Figure): string => join(SET_DIRS[setOf(fig)].src, `${fig.name}.${EXT[fig.lang]}`);

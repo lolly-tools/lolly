@@ -1,0 +1,14 @@
+digraph upload_parts {
+  rankdir=TB
+  node [shape=box]
+  begin [label="Begin\nsize and checksums"]
+  parts [label="Send parts\n1 MiB, any order"]
+  ask [label="After a drop\nask what arrived"]
+  rest [label="Send the rest\nmissing parts only"]
+  finish [label="Finalize\nevery byte checked"]
+  begin -> parts
+  parts -> ask
+  ask -> rest
+  rest -> finish
+  parts -> finish
+}

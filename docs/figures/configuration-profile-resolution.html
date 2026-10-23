@@ -1,0 +1,79 @@
+<!--
+  Concept: How a command finds its content profile (the first of five rules that applies wins) and what the resolver hands back: tool roots, the catalog and shared asset roots, which materializeInto writes into a build.
+  Band Contract: static fragment scoped under .cpr, reads the docs theme tokens with fallbacks, no
+  script, no motion, no network, so the complete figure renders with JS disabled and in both themes.
+  Sources: packages/node-shell/src/content-roots.ts (resolution order, exclude, shared roots, materializeInto), profiles.json, setup.sh --profile.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by
+  Andy Fitzsimon on 2026-10-23. The C2PA signature added at bank time is the first provenance record
+  of this file.
+-->
+<style>
+.cpr{--cpr-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--cpr-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --cpr-ground:hsl(var(--secondary,84.5 55% 92.2%));--cpr-paper:hsl(var(--card,0 0% 100%));
+ --cpr-accent:hsl(var(--primary,176.5 89.5% 11.2%));--cpr-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --cpr-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--cpr-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --cpr-wash:color-mix(in oklab,var(--cpr-accent) 12%,var(--cpr-paper));
+ --cpr-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--cpr-ink);background:var(--cpr-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.cpr *{box-sizing:border-box}
+.cpr ul,.cpr ol{list-style:none;margin:0;padding:0}
+.cpr li{list-style:none;margin:0;font-size:inherit}
+.cpr p{margin:0}
+.cpr code{font:500 .8em/1.3 var(--cpr-mono);background:var(--cpr-soft);border-radius:5px;padding:.08em .32em;white-space:nowrap}
+.cpr b{font-weight:600}
+.cpr .cpr-cap{font:600 11px/1.3 var(--cpr-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--cpr-muted)}
+.cpr .cpr-card{background:var(--cpr-paper);border-radius:16px;box-shadow:0 0 0 1px var(--cpr-line);padding:14px}
+.cpr .cpr-title{font-weight:600;font-size:1.02rem;line-height:1.2}
+.cpr .cpr-note{font-size:.84rem;color:var(--cpr-muted)}
+.cpr .cpr-tag{display:inline-block;font:600 11px/1.2 var(--cpr-mono);letter-spacing:.03em;padding:3px 8px;border-radius:999px;background:var(--cpr-wash);color:var(--cpr-ink)}
+.cpr .cpr-tag.cpr-solid{background:var(--cpr-accent);color:var(--cpr-on-accent)}
+.cpr .cpr-down{display:flex;justify-content:center;padding:6px 0}
+.cpr .cpr-down i{display:block;width:2px;height:18px;background:var(--cpr-line);position:relative}
+.cpr .cpr-down i::after{content:"";position:absolute;left:-5px;bottom:-6px;border:6px solid transparent;border-top-color:var(--cpr-muted);border-bottom:0}
+.cpr .cpr-grid{display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr);align-items:center;gap:6px}
+.cpr .cpr-grid>.cpr-card{display:grid;gap:8px;align-content:start;height:100%}
+.cpr .cpr-order{display:grid;gap:6px}
+.cpr .cpr-order li{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.88rem}
+.cpr .cpr-order span{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--cpr-wash);font:600 11px/1 var(--cpr-mono);flex:none}
+.cpr .cpr-order em{font-style:normal;font-size:.78rem;color:var(--cpr-muted)}
+.cpr .cpr-mid{display:flex;align-items:center;justify-content:center}
+.cpr .cpr-mid i{display:block;height:2px;width:20px;background:var(--cpr-line);position:relative}
+.cpr .cpr-mid i::after{content:"";position:absolute;right:-6px;top:-5px;border:6px solid transparent;border-left-color:var(--cpr-muted);border-right:0}
+.cpr .cpr-res{background:var(--cpr-wash)}
+.cpr .cpr-gives{display:grid;gap:8px}
+.cpr .cpr-gives li{display:grid;gap:2px;font-size:.9rem}
+.cpr .cpr-out{text-align:center;max-width:36rem;margin:0 auto;display:grid;gap:6px;font-size:.9rem}
+@container (max-width:620px){.cpr .cpr-grid{grid-template-columns:minmax(0,1fr)}.cpr .cpr-mid i{width:2px;height:18px}.cpr .cpr-mid i::after{right:-5px;top:auto;bottom:-6px;border:6px solid transparent;border-top-color:var(--cpr-muted);border-bottom:0}}
+</style>
+<div class="cpr">
+<div class="cpr-grid">
+<div class="cpr-card">
+<p class="cpr-cap">Which profile?</p>
+<p class="cpr-title">The first that applies wins</p>
+<ol class="cpr-order">
+<li><span>1</span><code>--profile=&lt;name&gt;</code></li>
+<li><span>2</span><code>LOLLY_PROFILE</code></li>
+<li><span>3</span><code>.lolly-profile</code> <em>if its packs are on disk</em></li>
+<li><span>4</span><code>default</code> in <code>profiles.json</code> <em>if its packs are on disk</em></li>
+<li><span>5</span>The first profile whose packs are all on disk</li>
+</ol>
+</div>
+<div class="cpr-mid" aria-hidden="true"><i></i></div>
+<div class="cpr-card cpr-res">
+<p class="cpr-cap">The resolver</p>
+<p class="cpr-title"><code>content-roots.ts</code></p>
+<ul class="cpr-gives">
+<li><b>Tool roots</b><span class="cpr-note">community, then the brand's own; later roots win, then <code>exclude</code> drops ids</span></li>
+<li><b>The catalog</b><span class="cpr-note">the brand's logos, colours, type and tokens</span></li>
+<li><b>Shared asset roots</b><span class="cpr-note">such as the emoji packs, the same files on every brand</span></li>
+</ul>
+</div>
+</div>
+<div class="cpr-down" aria-hidden="true"><i></i></div>
+<div class="cpr-card cpr-out">
+<p class="cpr-cap">A build</p>
+<p><code>materializeInto</code> writes a real <code>tools/</code> and <code>catalog/</code> tree into <code>dist/</code>, an RPM or an image. Nothing is written into your checkout.</p>
+</div>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKAGp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnaanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo3OWEzYzgwMi03OTYwLTRmNTgtYTc5Ny1kN2ZhOWRjMWU5YTIAAAAES2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNjoyNzozOFoAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GRX0Zmxlbmd0aBkNumRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggM55CCqoRA/yKnk4/KqyqN2JjMWCF1F75F0W6jxgcBzhjcGFkSAAAAAAAAAAAAAAA4Wp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAAK1jYm9yp2dzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHggY29uZmlndXJhdGlvbi1wcm9maWxlLXJlc29sdXRpb25kZGF0ZXgYMjAyNi0xMC0yM1QwNjoyNzozOC4wMTZaaGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAt9qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACsGNib3KmaGRjOnRpdGxleCBjb25maWd1cmF0aW9uLXByb2ZpbGUtcmVzb2x1dGlvbmppbnN0YW5jZUlEeC11cm46dXVpZDpiYmIzNzJkZi0xZTQ5LTQwZmMtYjdhYi0zYzNkNzBhY2M0OWF0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIMmNpvlvwC62x5kmqjnPT6ISEDjc8Tc5wQjBc/s8RVmoomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIF8d/cI3r/AMMg7nStHplAKDk5YFUAGDA/jHEYIMTiW9omN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCA+SgKZ8e4vLUB1GybsXMbThDVbetEa/eXHfp6mmuNUl6JjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmFqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjFjYm9y0oRZAeCiASYYIYFZAdcwggHTMIIBeaADAgECAglHhOG4ZUuucUYwCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMzA2MjYzOFoXDTM2MTAyMDA2MjczOFowNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEgnnHx2M0YOf0/g4qAtvflLIbI6fBid//Le41WF8aLLOkG5lA9otQJQDbzDn4T3m4Tzwsq9zxxdqf/HiUcJu2FqNyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFI8ouYaVdCFXxWURhFshe3jarhfcMB8GA1UdIwQYMBaAFI8ouYaVdCFXxWURhFshe3jarhfcMAoGCCqGSM49BAMCA0gAMEUCIQD4bik8WPnJKT3G/867cV9+RrYG4qIvITiFoLAO3u6hnwIgAYAxD9tQStKhP93Xu8vzRwhwnh+4VqyVIc/4TmUW4Lyg9lhA6fDkS1PmVi/HlZWxR8sxiTCo82d5ULvHKCQ8jxBkPdOBYHgpy//QO2hCk8Gvijwka9BXGApaqNjNUpytHJGdLA== -----END C2PA MANIFEST----- -->

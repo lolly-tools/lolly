@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * studio-state.ts - the Design System studio's save discipline (plan 97 section 6).
+ * studio-state.ts - Design System Setup's save discipline (plan 97 section 6).
  *
  * One head document, one write path. Every committed action installs the whole
  * tokens document immediately through `installUserTokens` - the single write

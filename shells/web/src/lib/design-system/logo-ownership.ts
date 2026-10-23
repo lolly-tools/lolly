@@ -102,7 +102,7 @@ function valuesOf(doc: unknown): Set<string> {
 
 // ── One head write at a time ──────────────────────────────────────────────────
 
-// The Logos room, the brand studio's save and this pass each read the stored
+// The Logos room, Design System Setup's save and this pass each read the stored
 // head, change part of it and write it back. Run in parallel, the later write
 // is built on a copy that predates the earlier one and silently drops it, so
 // every such read-modify-write in this document goes through one queue.

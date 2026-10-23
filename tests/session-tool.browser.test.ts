@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdir, readFile } from 'node:fs/promises';
 import { chromium, webkit } from 'playwright';
+import { settledUrl } from './helpers/settled-address.ts';
 const origin = process.env.LOLLY_DESIGN_TOOL_TEST_URL;
 const skip = origin ? false : 'Serve the web shell and set LOLLY_DESIGN_TOOL_TEST_URL.';
 const output = process.env.LOLLY_DESIGN_TOOL_TEST_OUTPUT || '/tmp/lolly-session-tool-261';
@@ -121,6 +122,6 @@ test('an existing Design template opens Rules in a separate authoring copy', { s
       return createUserTemplateStore(await createBridge()).get(id);
     }, template.id);
     assert.deepEqual(unchanged, template);
-    assert.ok(!page.url().includes('template='));
+    assert.ok(!(await settledUrl(page)).includes('template='));
   } finally { await browser.close(); }
 });

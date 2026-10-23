@@ -2,7 +2,7 @@
 
 Organisations arrange their brands in different ways. One company shows a single masterbrand everywhere and gives each division a colour. Another puts its name above every product. A third endorses a brand it bought for a year or two, and a fourth keeps each brand entirely apart. Brand architecture is the name for that arrangement.
 
-Lolly does not ask you which arrangement you have. It gives you a few building blocks, and each arrangement uses them in its own way. This page maps the arrangements, lists the blocks, then walks through each arrangement: what it looks like in the wild, how to set it up in Lolly today, and what Lolly cannot do for it yet. The logos show well-known organisations that use each arrangement. The step-by-step examples use invented organisations.
+Lolly does not ask you which arrangement you have. It gives you a few building blocks, and each arrangement uses them in its own way: below, each one shows how it looks in the wild, how to set it up in Lolly today and what Lolly cannot do for it yet. The logos show well-known organisations that use each arrangement; the step-by-step examples use invented organisations.
 
 ::: figure brand-architectures-spectrum
 From a branded house, in which the parent is the brand, to a house of brands, in which each brand stands alone. Choose a column to go to its section.
@@ -12,15 +12,15 @@ From a branded house, in which the parent is the brand, to a house of brands, in
 
 | Block | What it holds | Where |
 | --- | --- | --- |
-| **Design system** | Colours, type, logos, the rest of the tokens, and versions. Tools, pages and exports follow the active one. | [The Brand Studio](/info/brand-studio.html), and **Settings → Design systems** to switch or remove |
+| **Design system** | Colours, type, logos, the rest of the tokens, and versions. Tools, pages and exports follow the active one. | [Design System Setup](/info/brand-studio.html), and **Settings → Preferences → Design systems** to switch or remove |
 | **Looks** | Light and dark. Every artefact can be drawn in either. | Built in; the studio derives both. A tool's **Design system** section switches the look when the look changes that tool, and the open tool redraws with no reload |
-| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour, chosen per artefact. One is canonical, and the app's own colours always use the canonical one. Tools that draw several colours at once, such as Chart and Mesh Gradient, draw on every lead together. | Written in the token file; chosen per artefact in a tool's **Design system** section, which redraws the open tool with no reload. Rebuilding the palette in the studio keeps every colourway. See [Colourways](/info/token-workflows.html#colourways) |
+| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour, chosen per artefact. One is canonical, and the app's own colours always use the canonical one. Tools that draw several colours at once, such as Chart and Mesh Gradient, draw on every lead together. | Written in the token file; chosen per artefact in a tool's **Design system** section, which redraws the open tool with no reload. Rebuilding the palette in the studio keeps every colourway. See [Colourways](/info/colourways.html) |
 | **Logo identities** | Several named sets of logos in one design system. The main set is "Your logo". | **Logos** room, **+ Add another logo** |
 | **Custom marks** | Marks under your own names: a crest, a favicon, a finished lockup. | **Logos** room, **Custom marks** |
-| **House rules** | Approved colour pairings, type per role and other rules a composition is checked against. | The design system's rules; see [Check a composition](/info/brand-studio.html#check-a-composition-against-the-design-system) |
+| **House rules** | Approved colour pairings, type per role and other rules a composition is checked against. | Written in the token file and listed in the studio's **Usage & rules** room, where **Add rule** adds rules for the example pieces. `lolly check` checks house rules on a saved Design document; see [Usage & rules](/info/brand-studio.html#usage-rules) |
 | **Versions** | Permanent named copies of a design system. A link can pin one with `designv`. | **Versions** at the foot of the studio rail |
-| **Several design systems** | Any number on one device, one active at a time. A design system travels as a single brand pack file. | **Settings → Design systems**; [Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices) |
-| **Theme groups of other kinds** | A design system can declare groups such as `campaign`, `brand` or `expression`. Lolly keeps them and resolves them as plain theme choices today. | The token file; chosen from a list in a tool's **Design system** section. See [What a theme group means](/info/token-workflows.html#what-a-theme-group-means) |
+| **Several design systems** | Any number on one device, one active at a time. A design system travels as a single brand pack file. | **Settings → Preferences → Design systems**; [Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices) |
+| **Theme groups of other kinds** | A design system can declare groups such as `campaign`, `brand` or `expression`. Lolly keeps them and resolves them as plain theme choices today. | The token file; chosen from a list in a tool's **Design system** section. See [What a theme group means](/info/design-tokens.html#what-a-theme-group-means) |
 
 ## Arrangements at a glance
 
@@ -61,7 +61,7 @@ Monolithic brands in the wild: FedEx, GE, Intel and Apple.
 - Use **house rules** to approve the division colours.
 - With the export panel's **Design system** card ticked, an export records the colourway that drew the file, and its description gives the colourway beside the tool, as in *Poster (Freight colourway)*. See [The design-system record](/info/exporting.html#the-design-system-record).
 
-Not yet: the studio cannot author colourways, so a colourway is written into the token file today ([the format](/info/token-workflows.html#colourways)).
+Not yet: the studio cannot author colourways, so a colourway is written into the token file today ([the format](/info/colourways.html)).
 
 ### Expanded
 
@@ -91,36 +91,11 @@ Lolly Demo, Lolly's own demonstration design system, has six colourways. Spearmi
 
 - Make **one design system** with a **colourway** for each lead colour. Each colourway carries its own lead, the colour that sits on it, and a partner, in both light and dark.
 - Mark one colourway canonical. An artefact that chooses none uses it, and so does the app.
-- Pieces that show the whole family at once draw on every lead, canonical first: Chart's series and palettes, Mesh Gradient's shuffle, the Audiogram visualiser's colours and the audio and text covers in Assets. Template authors reach the same leads as `--brand-lead-1` onwards ([Authoring tools](/info/authoring-tools.html#design-system-colours-in-templates-and-styles)).
-- For a series, give each [batch](/info/using.html#batch-pro-mode) row its colourway in the CSV's `_themes` column. Each row renders in its own colourway, and so does a tool placed inside it, such as a QR code. A saved session keeps its colourway in multi-edit, in a batch and in a Design document export.
+- Pieces that show the whole family at once draw on every lead, canonical first: Chart's series and palettes, Mesh Gradient's shuffle, the Audiogram visualiser's colours and the audio and text covers in Assets. Template authors reach the same leads as `--brand-lead-1` onwards ([Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles)).
+- For a series, give each [batch](/info/batch.html#make-many-versions-of-one-design) row its colourway in the CSV's `_themes` column. Each row renders in its own colourway, and so does a tool placed inside it, such as a QR code. A saved session keeps its colourway in multi-edit, in a batch and in a Design document export.
 - [Verify](/verify) reads back which colourway drew each piece, from the record an export carries while its **Design system** card is ticked.
 
-Not yet: no series, batch or copy flow picks colourways by a rule, and the batch grid has no control for a row's colourway. The engine's rules (cycle, by key, shuffle, by date) exist for scripts; see [Colourways](/info/token-workflows.html#colourways).
-
-### Product architecture
-
-Product architecture is how an organisation builds its product names. Under one masterbrand, a product's name has up to four parts, always in the same order. Each part narrows the one before.
-
-::: figure brand-architectures-name-builder
-A product name built up part by part, from a product line to a variant, with a descriptive word or an invented term as the descriptor.
-:::
-
-- **Company** is the masterbrand. In a monolithic brand, the logo carries the company name.
-- **Domain** is the area of business, such as Freight or Air. Company and domain together make a product line.
-- **Descriptor** says what the product is, such as Tracker. Add it to make a product. A descriptor can end in optional parts: a version, such as 3 or 2025, and an edition or tier, such as Pro, Lite or Enterprise.
-- **Context** makes a variant. It starts with a small word that says what kind of context follows: **for** a purpose, **with** a feature, or **on** a platform or architecture.
-
-Real names often leave a part out. Microsoft SQL Server 2022 Enterprise goes from the company straight to the descriptor, with no domain. Sony Interactive Entertainment sells its pro controller as PlayStation DualSense Edge, with no company name in front. PlayStation is the domain, like Walkman for Sony's portable players, DualSense is the invented descriptor and Edge is its edition.
-
-The descriptor comes in two styles. Brands that sell to businesses tend to use a descriptive word, such as Tracker or SQL Server: a buyer can tell at once what the product does, and the company name carries the reputation. Consumer brands tend to use an invented term of their own, such as Ondaro or DualSense. A term like this, whether a coined word or an everyday word used for something unrelated, can be registered as a trademark, while a plain description is hard to protect on its own.
-
-An invented term also makes a product line easier to move. A group with a [detach](#detach-brands-that-stand-alone) strategy keeps its portfolio ready to sell a product line, or to move one to another company in the group. A name built on a descriptive word needs the company name to be recognised, and the company name stays with the seller, so a new owner usually renames the product. An invented term is the part buyers know, and that part moves with the product. IBM introduced ThinkPad in 1992 and sold its PC business to Lenovo in 2005. ThinkPad kept its name, and Lenovo still sells ThinkPad laptops.
-
-::: figure brand-architectures-portable-name
-When a product line changes owner, the company part of its name usually changes. A descriptive name then loses the part buyers knew, and an invented term moves with the product. ThinkPad moved from IBM to Lenovo in 2005.
-:::
-
-**In Lolly:** keep the company logo in the design system and write the rest of the name as text in the template, so every piece sets the name in the same type. Add a finished lockup of logo and name as a **custom mark** when a piece needs the name as artwork. A product with an invented name and a mark of its own can have a **logo identity** in the parent's design system. Tools draw the main logo set, so place a product's own logo by hand, as in [Expanded](#expanded). When the product line may move to another owner, give it a **design system of its own**, which travels as one brand pack file ([Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices)).
+Not yet: no series, batch or copy flow picks colourways by a rule, and the batch grid has no control for a row's colourway. The engine's rules (cycle, by key, shuffle, by date) exist for scripts; see [Colourways](/info/colourways.html).
 
 ## Subset: a parent with tailored businesses
 
@@ -200,7 +175,7 @@ Discrete brands in the wild: Unilever and Procter & Gamble.
 
 **In Lolly:**
 
-- Make a **design system per brand** on the same device and switch per job in **Settings → Design systems**.
+- Make a **design system per brand** on the same device and switch per job in **Settings → Preferences → Design systems**.
 - One active design system applies to the whole device. A link that carries `ds=` switches the device to that design system.
 - A Lolly workspace supplies one design system to everyone who joins it, so each brand that needs a workspace has its own.
 
@@ -232,12 +207,37 @@ Not yet: nothing keeps one client's material out of another client's work automa
 
 A holiday skin, a launch, a yearly conference theme: an overlay on the core for a set time.
 
-- Declare a theme group of kind `campaign` in the token file, with a date window on each option ([the format](/info/token-workflows.html#what-a-theme-group-means)).
+- Declare a theme group of kind `campaign` in the token file, with a date window on each option ([the format](/info/design-tokens.html#what-a-theme-group-means)).
 - Choose the campaign per artefact from the list in the tool's **Design system** section, in every tool the campaign changes.
 - Publish a **version** to keep a record of the design system as it was.
 - An export records the campaign option that drew the file, as it records a colourway.
 
 Not yet: nothing applies the window to new work or schedules a campaign.
+
+## Product architecture
+
+Product architecture is how an organisation builds its product names. Under one masterbrand, a product's name has up to four parts, always in the same order. Each part narrows the one before.
+
+::: figure brand-architectures-name-builder
+A product name built up part by part, from a product line to a variant, with a descriptive word or an invented term as the descriptor.
+:::
+
+- **Company** is the masterbrand. In a monolithic brand, the logo carries the company name.
+- **Domain** is the area of business, such as Freight or Air. Company and domain together make a product line.
+- **Descriptor** says what the product is, such as Tracker. Add it to make a product. A descriptor can end in optional parts: a version, such as 3 or 2025, and an edition or tier, such as Pro, Lite or Enterprise.
+- **Context** makes a variant. It starts with a small word that says what kind of context follows: **for** a purpose, **with** a feature, or **on** a platform or architecture.
+
+Real names often leave a part out. Microsoft SQL Server 2022 Enterprise goes from the company straight to the descriptor, with no domain. Sony Interactive Entertainment sells its pro controller as PlayStation DualSense Edge, with no company name in front. PlayStation is the domain, like Walkman for Sony's portable players, DualSense is the invented descriptor and Edge is its edition.
+
+The descriptor comes in two styles. Brands that sell to businesses tend to use a descriptive word, such as Tracker or SQL Server, so a buyer can tell at once what the product does. Consumer brands tend to use an invented term, such as Ondaro or DualSense, which can be registered as a trademark where a plain description is hard to protect.
+
+An invented term also travels when a product line changes owner, which matters to a group with a [detach](#detach-brands-that-stand-alone) strategy. A descriptive name leans on the company name, which stays with the seller; an invented term is the part buyers know. IBM introduced ThinkPad in 1992 and sold its PC business to Lenovo in 2005, and Lenovo still sells ThinkPad laptops.
+
+::: figure brand-architectures-portable-name
+When a product line changes owner, the company part of its name usually changes. A descriptive name then loses the part buyers knew, and an invented term moves with the product. ThinkPad moved from IBM to Lenovo in 2005.
+:::
+
+**In Lolly:** keep the company logo in the design system and write the rest of the name as text in the template, so every piece sets the name in the same type. Add a finished lockup of logo and name as a **custom mark** when a piece needs the name as artwork. A product with an invented name and a mark of its own can have a **logo identity** in the parent's design system. Tools draw the main logo set, so place a product's own logo by hand, as in [Expanded](#expanded). When the product line may move to another owner, give it a **design system of its own**, which travels as one brand pack file ([Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices)).
 
 ## A colourway, a logo identity, or a design system of its own
 
@@ -255,6 +255,6 @@ The logos on this page are trademarks of their owners. They appear only to show 
 
 ## Where to go next
 
-- **[Token workflows](/info/token-workflows.html#colourways)**: the colourway format and how a colourway is chosen.
-- **[The Brand Studio](/info/brand-studio.html)**: logos, colours, versions and copies.
+- **[Colourways](/info/colourways.html)**: how a colourway is chosen and how to add colourways to a design system.
+- **[Design System Setup](/info/brand-studio.html)**: logos, colours, versions and copies.
 - **[Design Tokens](/info/design-tokens.html)**: the token model every design system is written in.

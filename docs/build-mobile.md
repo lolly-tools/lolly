@@ -1,109 +1,84 @@
 # Build the mobile apps
 
-Set up, develop and package Android and iOS shells.
+This page is for a developer who wants to run the Android app on an emulator or a phone, or build a signed APK and AAB. One mobile shell, `shells/tauri-mobile`, serves Android and iOS; iOS has its own page, [Building for iOS](/info/ios-build.html), because it needs a Mac and Apple signing.
 
-Part of [Build Guide](/info/build-guide.html).
+You need a checkout from [Get the source](/info/contributing-setup.html), plus the Rust toolchain and Tauri CLI from [Build the desktop app](/info/build-desktop.html#prerequisites).
 
-## Mobile apps (iOS / Android)
+::: cols
+## Android, on this page
 
-### Prerequisites
+- Any of macOS, Windows or Linux
+- Android Studio, SDK Platform 36 and the NDK
+- Signs with a Java keystore
+- Writes an APK and an AAB
 
-Install the [Rust toolchain and Tauri CLI](/info/build-desktop.html#prerequisites), then add the prerequisites for your target:
+## iOS, on its own page
 
-#### Android
+- A Mac with the full Xcode app
+- CocoaPods and the iOS Rust targets
+- Signs with an Apple Team ID and provisioning profile
+- Writes an `.ipa`, then [Building for iOS](/info/ios-build.html) takes over
+:::
 
-1. <!--l:android-->Install [Android Studio](https://developer.android.com/studio)
-2. In SDK Manager, install:
-   - Android SDK Platform 36 (the app compiles and targets API 36)
-   - NDK (Side by side) - version 26+
-   - Android SDK Command-line Tools
-3. Set environment variables:
+## Prerequisites
 
-```bash
-export ANDROID_HOME=$HOME/Library/Android/sdk   # macOS
-export NDK_HOME=$ANDROID_HOME/ndk/$(ls $ANDROID_HOME/ndk | tail -1)
-```
+1. <!--l:android-->Install [Android Studio](https://developer.android.com/studio).
+2. In its SDK Manager, install:
+   - Android SDK Platform 36 (the app compiles against and targets API 36);
+   - NDK (Side by side), version 26 or later;
+   - Android SDK Command-line Tools.
+3. Point the build at the SDK and NDK:
 
-4. Add Android Rust targets:
+   ```bash
+   export ANDROID_HOME=$HOME/Library/Android/sdk   # macOS
+   export NDK_HOME=$ANDROID_HOME/ndk/$(ls $ANDROID_HOME/ndk | tail -1)
+   ```
 
-```bash
-rustup target add \
-  aarch64-linux-android \
-  armv7-linux-androideabi \
-  i686-linux-android \
-  x86_64-linux-android
-```
+4. Add the Android Rust targets:
 
-#### iOS (macOS only)
+   ```bash
+   rustup target add \
+     aarch64-linux-android \
+     armv7-linux-androideabi \
+     i686-linux-android \
+     x86_64-linux-android
+   ```
 
-1. <!--l:apple-->Install Xcode from the App Store (the full app, not just the Command Line Tools)
-2. Accept the license: `sudo xcodebuild -license accept`
-3. Install CocoaPods: `brew install cocoapods`
-4. Add iOS Rust targets:
+5. Install the mobile shell's own dependencies, a separate pnpm project, from the repository root:
 
-```bash
-rustup target add \
-  aarch64-apple-ios \
-  aarch64-apple-ios-sim \
-  x86_64-apple-ios
-```
+   ```bash
+   pnpm -C shells/tauri-mobile install --frozen-lockfile
+   ```
 
-See [Building for iOS](/info/ios-build.html) for the full iOS walkthrough - prerequisites, the simulator dev loop, code signing and permissions.
+## The native projects are in the repository
 
-### First-time platform init
+There is no init step. The Android Studio (Gradle) project is committed in `shells/tauri-mobile/src-tauri/gen/android/`, and the Xcode project in `shells/tauri-mobile/src-tauri/gen/apple/`.
 
-There is no init step. Both native projects are in the repository: the Android Studio (Gradle) project in `shells/tauri-mobile/src-tauri/gen/android/` and the Xcode project in `shells/tauri-mobile/src-tauri/gen/apple/`. Do not run `tauri android init` or `tauri ios init` on a checkout. The Android project holds hand-maintained code (the share-target and file-open handling in `MainActivity.kt`, the intent filters and FileProvider in `AndroidManifest.xml`, and `res/xml/file_paths.xml`), and regenerating the project can overwrite those files.
+::: warning Do not run tauri android init on a checkout
+The Android project holds hand-maintained code: the share-target and file-open handling in `MainActivity.kt`, the intent filters and FileProvider in `AndroidManifest.xml`, and `res/xml/file_paths.xml`. Regenerating the project can overwrite those files. The same goes for `tauri ios init`.
+:::
 
-Install the mobile shell's own dependencies once, from the repository root, then go to [Development](#development):
+## Development
 
-```bash
-pnpm -C shells/tauri-mobile install --frozen-lockfile
-```
-
-### Icons (mobile)
-
-```bash
-cd shells/tauri-mobile
-npx @tauri-apps/cli icon path/to/icon-1024.png
-```
-
-### Development
-
-**Android** (emulator or connected device with USB debugging enabled):
+With an emulator running, or a phone connected with USB debugging turned on:
 
 ```bash
 pnpm run dev:android
 ```
 
-**iOS** (macOS only - requires Simulator or provisioned device):
+## Production build
 
-```bash
-pnpm run dev:ios
-```
-
-Run both from the repository root; the same script names also work inside `shells/tauri-mobile`.
-
-### Production build
-
-Use the public content profile and provide `LOLLY_CATALOG_SIGNING_KEY` plus `VITE_CATALOG_PUBLIC_KEY_JWK` through your private credential store. The production frontend wrapper signs the exact catalog embedded in the app. Install the mobile shell's separate dependencies with `pnpm -C shells/tauri-mobile install --frozen-lockfile` from the repository root.
-
-For Android, which writes an APK and an AAB:
+Build with the public content profile. Provide `LOLLY_CATALOG_SIGNING_KEY` and `VITE_CATALOG_PUBLIC_KEY_JWK` from your private credential store; the production frontend wrapper signs the exact catalog embedded in the app.
 
 ```bash
 export LOLLY_PROFILE=lolly-start
 export LOLLY_EMBED_CATALOG=profile
-pnpm run build:android
+pnpm run build:android     # writes an APK and an AAB
 ```
 
-For iOS, which writes an `.ipa`:
+The mobile app ships the blank `lolly-start` brand. Without `LOLLY_EMBED_CATALOG=profile`, its build embeds a lean neutral seed from that same brand.
 
-```bash
-export LOLLY_PROFILE=lolly-start
-export LOLLY_EMBED_CATALOG=profile
-pnpm run build:ios
-```
-
-**Android signing** - set these env vars before building for release:
+**Signing.** Set all four variables before a release build. With none set, the build is unsigned.
 
 ```bash
 export ANDROID_KEY_STORE=/path/to/keystore.jks
@@ -112,18 +87,13 @@ export ANDROID_KEY_ALIAS=...
 export ANDROID_KEY_PASSWORD=...
 ```
 
-All four variables are required together. With none set, the build is unsigned. Keep the keystore and passwords outside the checkout; release APK and AAB files must use the established application key so installed copies can update.
+Keep the keystore and passwords outside the checkout. Release APK and AAB files must use the established application key, so that installed copies can update.
 
-**iOS signing** - configure your Development Team in Xcode. From the repository root:
+## Icons
 
 ```bash
-open shells/tauri-mobile/src-tauri/gen/apple/lolly-mobile.xcodeproj
+cd shells/tauri-mobile
+npx @tauri-apps/cli icon path/to/icon-1024.png
 ```
 
-Set the team in the project's Signing & Capabilities tab, then build from CLI or Xcode. The committed project and `bundle.iOS.developmentTeam` in `shells/tauri-mobile/src-tauri/tauri.conf.json` already name a development team; the `APPLE_DEVELOPMENT_TEAM` environment variable overrides the configured team.
-
-The `ios-release.yml` GitHub workflow builds a signed IPA using the configured distribution identity on a supported macOS runner. Dispatch it with `upload=false` to collect the IPA without submitting it to App Store Connect.
-
----
-
-[Back to Build Guide](/info/build-guide.html).
+That regenerates the icon set in `src-tauri/icons/` from one 1024-pixel source image.

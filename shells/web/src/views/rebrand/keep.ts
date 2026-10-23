@@ -454,7 +454,7 @@ function panelHtml(rb: RbCtx): string {
       acts += `<button type="button" class="btn btn--ghost" data-keep-act="pick" data-key="pick">${t('Choose the file again')}</button>`;
     }
     if (keep.error === 'keep.no-system' || !rb.state.designSystem) {
-      acts += `<button type="button" class="btn btn--ghost" data-keep-act="studio" data-key="studio">${t('Open the design system studio')}</button>`;
+      acts += `<button type="button" class="btn btn--ghost" data-keep-act="studio" data-key="studio">${t('Open Design System Setup')}</button>`;
     }
     rows.push(`<div class="rb-keep-acts">${acts}</div>`);
   }

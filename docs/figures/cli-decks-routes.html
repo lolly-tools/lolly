@@ -1,0 +1,67 @@
+<!--
+  Concept: two routes from an old deck to a file the app opens. Renovate in place with lolly rebrand
+  (plan, then compile), or rebuild in Design (read, brief, compose, package, check, export). Each step
+  shows its verb and the file it writes.
+  Band Contract: static fragment scoped under .cdr, reads the docs theme tokens with fallbacks, no
+  script, no motion, no links out. Steps wrap, then stack in a narrow container.
+  Sources: the rebrand and rebuild examples in docs/cli-decks.md; the verbs' usage in
+  shells/cli/bin/lolly.ts.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.cdr{--cdr-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--cdr-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --cdr-ground:hsl(var(--secondary,84.5 55% 92.2%));--cdr-paper:hsl(var(--card,0 0% 100%));
+ --cdr-accent:hsl(var(--primary,176.5 89.5% 11.2%));--cdr-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --cdr-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .13);--cdr-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --cdr-head:#033633;--cdr-mark:#008657;
+ --cdr-display:"Outfit","SUSE",ui-sans-serif,system-ui,sans-serif;--cdr-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--cdr-ink);background:var(--cdr-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size;display:grid;gap:12px}
+:is([data-theme="dark"],[data-theme="brand"]) .cdr{--cdr-head:#ffffff;--cdr-mark:#50c369}
+.cdr *{box-sizing:border-box}
+.cdr ol{list-style:none;margin:0;padding:0}
+.cdr li{list-style:none;margin:0;font-size:inherit}
+.cdr p{margin:0}
+.cdr .cdr-start{display:flex;align-items:center;gap:10px;font:500 15px/1.2 var(--cdr-display);color:var(--cdr-head)}
+.cdr .cdr-deck{display:inline-flex;align-items:center;justify-content:center;width:42px;height:30px;border-radius:6px;background:var(--cdr-paper);box-shadow:0 0 0 1px var(--cdr-line),3px 3px 0 0 var(--cdr-line);font:600 10px/1 var(--cdr-mono);color:var(--cdr-muted)}
+.cdr .cdr-lane{background:var(--cdr-paper);border-radius:18px;padding:14px;box-shadow:0 0 0 1px var(--cdr-line);display:grid;gap:10px}
+.cdr .cdr-lane>p{font:500 19px/1.15 var(--cdr-display);color:var(--cdr-head)}
+.cdr .cdr-lane>p span{display:block;font:400 14px/1.3 "SUSE",ui-sans-serif,system-ui,sans-serif;color:var(--cdr-muted);margin-top:3px}
+.cdr .cdr-steps{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+.cdr .cdr-steps li{position:relative;flex:1 1 136px;display:grid;gap:4px;align-content:start;padding:10px 12px;border-radius:12px;background:var(--cdr-soft)}
+.cdr .cdr-steps li+li::before{content:"";position:absolute;inset-inline-start:-8px;top:50%;width:8px;height:2px;background:var(--cdr-mark)}
+.cdr .cdr-k{font:600 11px/1.2 var(--cdr-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--cdr-mark)}
+.cdr .cdr-v{font:600 12px/1.25 var(--cdr-mono);color:var(--cdr-ink);overflow-wrap:break-word}
+.cdr .cdr-o{font:400 12px/1.25 var(--cdr-mono);color:var(--cdr-muted);overflow-wrap:break-word}
+.cdr .cdr-steps li.cdr-end{background:var(--cdr-accent);color:var(--cdr-on-accent)}
+.cdr .cdr-end .cdr-k,.cdr .cdr-end .cdr-v,.cdr .cdr-end .cdr-o{color:var(--cdr-on-accent)}
+@container (max-width:520px){
+ .cdr .cdr-steps{flex-direction:column}
+ .cdr .cdr-steps li{flex:none}
+ .cdr .cdr-steps li+li::before{inset-inline-start:22px;top:-8px;width:2px;height:8px}
+}
+</style>
+<div class="cdr">
+<p class="cdr-start"><span class="cdr-deck" aria-hidden="true">PPTX</span>old.pptx, a deck someone else made</p>
+<div class="cdr-lane">
+<p>Renovate in place<span>Keep the deck's layout; snap colours, fonts and the logo to the design system.</span></p>
+<ol class="cdr-steps">
+<li><span class="cdr-k">Plan</span><span class="cdr-v">lolly rebrand plan</span><span class="cdr-o">plan.json</span></li>
+<li><span class="cdr-k">Review</span><span class="cdr-v">edit the plan</span><span class="cdr-o">rebrand inspect</span></li>
+<li class="cdr-end"><span class="cdr-k">Compile</span><span class="cdr-v">lolly rebrand compile</span><span class="cdr-o">old.lolly, old.rebranded.pptx</span></li>
+</ol>
+</div>
+<div class="cdr-lane">
+<p>Rebuild in Design<span>New slides from the design system's slide master.</span></p>
+<ol class="cdr-steps">
+<li><span class="cdr-k">Read</span><span class="cdr-v">lolly read</span><span class="cdr-o">old.inventory.json</span></li>
+<li><span class="cdr-k">Brief</span><span class="cdr-v">lolly system context</span><span class="cdr-o">brief.json</span></li>
+<li><span class="cdr-k">Compose</span><span class="cdr-v">lolly compose</span><span class="cdr-o">deck.json, edits.json</span></li>
+<li><span class="cdr-k">Package</span><span class="cdr-v">lolly package</span><span class="cdr-o">review.lolly</span></li>
+<li><span class="cdr-k">Check</span><span class="cdr-v">lolly check</span><span class="cdr-o">findings</span></li>
+<li class="cdr-end"><span class="cdr-k">Export</span><span class="cdr-v">lolly run</span><span class="cdr-o">review.pptx</span></li>
+</ol>
+</div>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ6mp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnEanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo1ZDA1NmQ5NS0wZDU3LTRmM2ItYmMyNC1kMzdiMjZjMjk4YWYAAAAER2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDU6NTY6MDZaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkUVWZsZW5ndGgZDZpkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIEbjGonRHKZg+noKxTIEZ/+Elw3W15UMKT6R4QjG41HvY3BhZEgAAAAAAAAAAAAAANBqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACcY2Jvcqdnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2xwY2xpLWRlY2tzLXJvdXRlc2RkYXRleBgyMDI2LTEwLTIzVDA1OjU2OjA2LjQ3MFpoYXJ0aWZhY3RmZmlndXJlaWdlbmVyYXRvcmtDbGF1ZGUgQ29kZWttb2RlbFZlbmRvcmlBbnRocm9waWMAAACNanVtYgAAACdqdW1kanNvbgARABCAAACqADibcQNjYXdnLm1ldGFkYXRhAAAAAF5qc29ueyJAY29udGV4dCI6eyJkYyI6Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIn0sImRjOmNyZWF0b3IiOlsiQW5keSBGaXR6c2ltb24iXX0AAADEanVtYgAAACxqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmFpLWRpc2Nsb3N1cmUAAAAAkGNib3KkaW1vZGVsVHlwZXBjMnBhLnR5cGVzLm1vZGVsaW1vZGVsTmFtZW9DbGF1ZGUgT3B1cyA1LjVvbW9kZWxJZGVudGlmaWVyb2NsYXVkZS1vcHVzLTUtNW5jb250ZW50UHJvZmlsZaFzaHVtYW5PdmVyc2lnaHRMZXZlbG1wcm9tcHRfZ3VpZGVkAAACzmp1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAKfY2JvcqZoZGM6dGl0bGVwY2xpLWRlY2tzLXJvdXRlc2ppbnN0YW5jZUlEeC11cm46dXVpZDoxODcwZDMwOC1jZTQzLTQ4MjItYmNmMC04OTdjODRiYjFmYmV0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIHefIFHTH8uTfhgE0ftTJAvWAyIMjWlOy02FO5K3wepbomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIGU3SvKqs8PHcBVPICSrziMllT1ouYMFR3bim4VLSmnSomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCAFAhFWwLAV5Wn49yQb+ajuqgqDYPDrMtuDaBLu9VLuwKJjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmBqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjBjYm9y0oRZAd+iASYYIYFZAdYwggHSMIIBeaADAgECAglPxQ+dICzNNKUwCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMzA1NTUwNloXDTM2MTAyMDA1NTYwNlowNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE6QEKELALP/Ln0k6nWYifv9r85kNDY1JgXdD+a+4tHt5u/ewOT0SaPxhI3RiSjgjxXscIdm7jbn52JH+FDzGv2KNyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFIm+bml4oP3VIEceXQkCff/4r06AMB8GA1UdIwQYMBaAFIm+bml4oP3VIEceXQkCff/4r06AMAoGCCqGSM49BAMCA0cAMEQCIArj0Sz979JW7guSFNg8YcSRwqenzXgnQivDCArsDKfyAiB4K2Y7E7GESOaAT/G6TI11pnl5voIWb5JQg67PpkgsiaD2WEC6x6Kz6KbFgVmcoyrR04I9P02NGcCtjC/XQAhEF8W+hypQCceknu4f0pfUmgxNEPdKZ53fxOsRiS5k76OaNbj4 -----END C2PA MANIFEST----- -->

@@ -221,7 +221,7 @@ export function fontsSectionHtml(cat: CatCtx): string {
   // Show the licence line only when a bundled (downloadable) face is present.
   const anyBundled = cat.catFonts.some(f => f.downloads.length);
   const body = `
-      <p class="cat-panel-desc">${t('The fonts your brand carries - available to every tool canvas and the app UI. Add more from the brand editor.')}</p>
+      <p class="cat-panel-desc">${t('The fonts your brand carries - available to every tool canvas and the app UI. Add more in Design System Setup.')}</p>
       <div class="plat-font-grid cat-font-grid">${cards}</div>
       ${anyBundled ? `<p class="cat-panel-foot">${tRaw('Bundled faces licensed under the {link}.', { link: `<a href="${FONT_LICENSE.href}" target="_blank" rel="noopener">${escapeText(FONT_LICENSE.label)}</a>` })}</p>` : ''}`;
   return cat.tiles.groupSection('fonts', 'Fonts', cat.catFonts.length, body);

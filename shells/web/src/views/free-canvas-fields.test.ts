@@ -273,6 +273,65 @@ test('frameThumb: video in the clone is muted, paused and stripped of autoplay',
   assert.equal(v.hasAttribute('autoplay'), false);
 });
 
+test('frameThumb: a decoded video becomes a still of its live frame, with nothing left to load', (ctx) => {
+  document.body.innerHTML = '<div id="tool-canvas"><div class="lolly-frame-page" data-frame-id="f1">'
+    + '<video class="lolly-box-img lolly-box-video" src="blob:clip" data-video-key="v1" muted loop autoplay playsinline style="width:100%;height:100%;object-fit:cover"></video>'
+    + '</div></div>';
+  const canvas = document.getElementById('tool-canvas')!;
+  const live = canvas.querySelector('video')!;
+  // What a browser reports for a playing 1080p clip in a 1600x900 box.
+  for (const [k, v] of Object.entries({ videoWidth: 1920, videoHeight: 1080, readyState: 4, offsetWidth: 1600, offsetHeight: 900 })) {
+    Object.defineProperty(live, k, { configurable: true, value: v });
+  }
+  const drawn: unknown[][] = [];
+  const proto = dom.window.HTMLCanvasElement.prototype as unknown as { getContext: unknown };
+  const real = proto.getContext;
+  proto.getContext = () => ({ drawImage: (...args: unknown[]) => { drawn.push(args); } });
+  ctx.after(() => { proto.getContext = real; });
+
+  const thumb = frameThumb(canvas, { id: 'f1', w: 1600, h: 900 }, CFG, { maxW: 132, maxH: 90 });
+  assert.equal(thumb.querySelector('video'), null, 'no media element in the thumbnail');
+  const still = thumb.querySelector<HTMLCanvasElement>('canvas')!;
+  assert.ok(still, 'a still stands in for it');
+  assert.equal(drawn.length, 1);
+  assert.equal(drawn[0]![0], live, 'drawn from the LIVE video, not the clone');
+  assert.equal(still.className, 'lolly-box-img lolly-box-video', 'the class rides along');
+  assert.match(still.getAttribute('style')!, /object-fit: ?cover/, 'and the framing');
+  // The thumbnail shows the box at 132/1600 of its size, so the still needs 132 px across.
+  assert.deepEqual([still.width, still.height], [132, 74], 'drawn at the size it is shown, not 1920x1080');
+  assert.equal(live.getAttribute('src'), 'blob:clip', 'the live video is untouched');
+});
+
+test('frameThumb: thumbnails of one canvas share ONE stylesheet, rewritten in place when the CSS changes', (ctx) => {
+  const base = mountScopedStyle('.lolly-box { position: absolute; }', '#tool-canvas');
+  ctx.after(() => base.remove());
+  document.body.innerHTML = `<div id="tool-canvas"><style data-lolly-scope="#tool-canvas">#tool-canvas .t { font-size: 40px; }</style>
+    <div class="lolly-frame-page" data-frame-id="f1"><p class="t">one</p></div>
+    <div class="lolly-frame-page" data-frame-id="f2"><p class="t">two</p></div></div>`;
+  const canvas = document.getElementById('tool-canvas')!;
+  const a = frameThumb(canvas, { id: 'f1', w: 800, h: 600 }, CFG, { maxW: 132, maxH: 90 });
+  const b = frameThumb(canvas, { id: 'f2', w: 800, h: 600 }, CFG, { maxW: 132, maxH: 90 });
+  document.body.append(a, b);
+  assert.equal(a.querySelector('style'), null, 'no stylesheet inside a thumbnail');
+  assert.equal(a.dataset.frameThumbScope, b.dataset.frameThumbScope, 'both read the same scope');
+  const sheets = () => [...document.head.querySelectorAll('style[data-frame-thumb-style]')]
+    .filter((s) => (s as HTMLElement).dataset.frameThumbStyle === a.dataset.frameThumbScope);
+  assert.equal(sheets().length, 1, 'one sheet for the canvas');
+  assert.equal(getComputedStyle(b.querySelector('.t')!).fontSize, '40px');
+  canvas.querySelector('style')!.textContent = '#tool-canvas .t { font-size: 48px; }';
+  frameThumb(canvas, { id: 'f1', w: 800, h: 600 }, CFG, { maxW: 132, maxH: 90 });
+  assert.equal(sheets().length, 1, 'still one sheet after a CSS edit');
+  assert.equal(getComputedStyle(b.querySelector('.t')!).fontSize, '48px', 'and an earlier thumbnail follows it');
+  // Font faces and keyframes are document-wide: the canvas's own sheet already defines
+  // them, and a lasting copy would be read again by exporters that walk document.styleSheets.
+  canvas.querySelector('style')!.textContent = '@font-face { font-family: Brand; src: url(brand.woff2); }'
+    + ' @keyframes spin { to { opacity: 0; } } #tool-canvas .t { font-size: 50px; }';
+  frameThumb(canvas, { id: 'f1', w: 800, h: 600 }, CFG, { maxW: 132, maxH: 90 });
+  const rules = [...(sheets()[0] as HTMLStyleElement).sheet!.cssRules];
+  assert.deepEqual(rules.filter((r) => r.type === 5 || r.type === 7), [], 'no @font-face or @keyframes copy');
+  assert.equal(getComputedStyle(b.querySelector('.t')!).fontSize, '50px', 'the scoped rules stay');
+});
+
 test('frameThumb: with no frame page it clips the whole canvas and shifts it to the frame origin', () => {
   document.body.innerHTML = '<div id="tool-canvas"><p>flat</p></div>';
   const canvasEl = document.getElementById('tool-canvas')!;

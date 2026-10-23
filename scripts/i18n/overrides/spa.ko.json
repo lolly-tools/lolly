@@ -1819,5 +1819,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "정확한 잉크로 고정된 색상이 아직 없습니다. {start}에서 색상의 인쇄 설정으로 하나를 고정하세요.",
   "Ink and paper": "잉크와 종이",
   "Named colours": "이름 있는 색상",
-  "Emphasis": "강조"
+  "Emphasis": "강조",
+  "Zoom to selection": "선택 항목에 맞게 확대/축소"
 }

@@ -44,7 +44,7 @@ test('keywords widen recall: oklch finds the Colour Lab, apart finds the Unpack 
 
 test('a label hit (w3) outranks a keyword-only hit (w1)', async () => {
   const hits = await provider.search(tokenize('design'), 5);
-  // 'Design System studio' matches the label; nothing else carries 'design' as
+  // 'Design System Setup' matches the label; nothing else carries 'design' as
   // a label word, so it must lead whatever keyword matches trail it.
   assert.equal(hits[0]?.href, '#/start');
 });

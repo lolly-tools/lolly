@@ -1,148 +1,112 @@
-# UpCloud, Evroc and fewer hosting services
+# Run Lolly Work on UpCloud or Evroc
 
-Lolly Work already runs as a Node server, PostgreSQL and a reverse proxy. Its
-render worker is a separate container with its own bounded resources and render
-credential. The modules in `deploy/upcloud/` and `deploy/evroc/` make provider
-resources repeatable with OpenTofu or Terraform. Their application release and
-recovery contracts are shared. A separate optional PostgreSQL override supports
-a local database. These additions do not move an existing deployment.
+UpCloud and Evroc are the two European clouds the Work repository has infrastructure
+modules for. The modules in `deploy/upcloud/` and `deploy/evroc/` create the virtual
+machine, disk, address and firewall with OpenTofu or Terraform, so a new host is
+repeatable. They create no database and do not move an existing deployment.
 
-## Supported foundation
+Once the machine exists, Work runs on it the same way it runs anywhere: a Node server,
+PostgreSQL and a reverse proxy, with the render worker as a separate container that has
+its own resources and render credential. Pick the install path at
+[Run Lolly Work](self-host.md); the [ready-made package](ready-made-package.md) has an
+UpCloud reference qualification.
 
-| Component | Current support | Qualification still needed before a new deployment |
+## What the modules give you
+
+| Part | Supported today | Still to qualify before a new deployment |
 |---|---|---|
-| UpCloud VM and firewall | Provider-pinned module; mocked plans under both CLIs | Qualified image, zone/plan availability, boot and capacity |
-| Evroc VM, disk, public IP and security group | Official provider-pinned module; mocked plans under both CLIs | Qualified image and SSH user, project/region/profile availability, boot and capacity |
-| Private Lolly Work | Compose, openSUSE provisioning, signed shell mount, WebSockets | Instance configuration, owner sign-in, provider access and shared editing |
-| PostgreSQL | External connection by default; opt-in Compose database | Restore rehearsal, maintenance cutover and independent backups |
-| Render worker | In-repo image, isolated secret and resources | Real document render through the chosen shell origin |
-| Public Lolly APIs | Existing standalone CA and MCP in the Lolly repository | Complete route parity with the public hosted shell, including Penpot |
-| YunoHost | In-repo package, SSO/LDAP contracts and backup/restore scripts | Real Linux package_check, release artifact pins and architecture checks |
+| UpCloud VM and firewall | A module pinned to the provider version; mocked plans under both tools | A qualified image, zone and plan availability, boot and capacity |
+| Evroc VM, disk, public address and security group | The official provider, pinned; mocked plans under both tools | A qualified image and SSH user, project, region and profile availability, boot and capacity |
+| Private Lolly Work | Compose, openSUSE provisioning, a signed web app mount, WebSockets | Instance configuration, owner sign-in, source access and shared editing |
+| PostgreSQL | An outside connection by default; an opt-in Compose database | A restore rehearsal, a maintenance cutover and independent backups |
+| Render worker | An image built in the repository, with its own secret and resources | A real document render through the chosen web app address |
 
 Use the [UpCloud runbook](../deploy/upcloud/README.md) or
-[Evroc runbook](../deploy/evroc/README.md) for credential-free validation and reviewed
-VM creation. Use the [VM runbook](../deploy/vm/README.md) for the
-application release. Public APIs and private workspace records remain separate:
-moving a public host must not publish private packs, uploaded assets or member cookies.
+[Evroc runbook](../deploy/evroc/README.md) to validate without credentials and create
+the VM, then the [VM runbook](../deploy/vm/README.md) for the application release.
+YunoHost's package status is in [official installation routes](official-installations.md).
 
-## SUSE Kubernetes and dependency images
+Kubernetes works on either cloud too: [Install on Kubernetes](platform-deployment.md)
+covers K3s and RKE2, and the
+[SUSE deployment runbook](../deploy/suse/README.md) covers a small K3s profile, RKE2 for
+larger needs, provider storage and Longhorn for qualified multi-node storage. A cluster
+still uses the underlying VM or bare-metal capacity: sharing services on it reduces
+separate guest and service overhead, but not the cloud's compute charges.
 
-The [platform deployment guide](platform-deployment.md) provides separate
-starting points for readers, IT operators and release developers, including
-on-premises and other cloud foundations, host readiness, Ansible/Salt and
-rootless Podman image builds.
-
-The optional [SUSE deployment runbook](../deploy/suse/README.md) covers a small
-K3s profile, RKE2 for larger operational requirements, provider CSI storage and
-Longhorn for qualified multi-node storage. Both cloud foundations can host these
-choices; Kubernetes still consumes the underlying VM or bare-metal capacity.
-Sharing services on a cluster reduces separate guest and service overhead, but
-does not remove the cloud's compute charges.
-
-The Work chart includes `values-small-suse.yaml`, immutable application digest
-references, inherited worker registry credentials, worker placement and bounded
-scratch/artifact copies. The public Lolly chart has its own `profiles/lean.yaml`;
-that chart installs only the static shell and optional CA/MCP services. These
-profiles preserve the existing deployment defaults until explicitly selected.
-Use Application Collection PostgreSQL as a separately managed dependency when
-appropriate. Lolly Work uses PostgreSQL for durable jobs and does not need Redis.
-
-## Provider boundaries
+## How the two providers differ
 
 | Contract | UpCloud | Evroc |
 |---|---|---|
-| Authentication | Provider environment, such as `UPCLOUD_TOKEN` | Existing SDK login configuration or service-account environment |
-| Operating-system image | Explicit template UUID; existing bootstrap kit is UpCloud-specific | Explicit disk image; project inventory and cloud-init must be qualified |
-| Host preparation | Existing openSUSE provisioning kit | Same kit only for a qualified openSUSE image; another OS needs equivalent host preparation |
-| Public network | One public IPv4 interface; cloud firewall | Separate public IPv4 plus dual-stack VM; custom security group only |
-| SSH | Key-only image account and administrator CIDRs | Complete non-root key-only user data and administrator CIDRs; no broad default SSH group |
-| Root disk | 80 GB default, encrypted storage flag, protected VM | 80 GB default, protected disk/VM/address; no encryption field in the provider schema |
-| Database | Managed PostgreSQL is available; local database is opt-in | Reviewed external PostgreSQL or opt-in local database; no managed product assumed |
-| Object storage | Qualify bucket access, recovery and endpoint behavior | Qualify documented S3 feature compatibility, bucket access and recovery |
-| Application release | Signed shell, configured Work/worker/relay, database migrations, smoke checks | Same artifact, configuration, migration and acceptance contracts |
+| Authentication | Provider environment, such as `UPCLOUD_TOKEN` | Existing SDK login configuration or a service-account environment |
+| Operating-system image | An explicit template UUID; the existing bootstrap kit is UpCloud-specific | An explicit disk image; the project inventory and cloud-init must be qualified |
+| Host preparation | The existing openSUSE provisioning kit | The same kit, only for a qualified openSUSE image; another OS needs equivalent preparation |
+| Public network | One public IPv4 interface; cloud firewall | A separate public IPv4 plus a dual-stack VM; a custom security group only |
+| SSH | Key-only image account and administrator address ranges | Complete non-root, key-only user data and administrator address ranges; no broad default SSH group |
+| Root disk | 80 GB by default, encrypted storage flag, protected VM | 80 GB by default, protected disk, VM and address; no encryption field in the provider schema |
+| Database | Managed PostgreSQL is available; a local database is opt-in | A reviewed outside PostgreSQL or the opt-in local database; no managed product assumed |
+| Object storage | Qualify bucket access, recovery and endpoint behaviour | Qualify the documented S3 feature compatibility, bucket access and recovery |
+| Application release | Signed web app, configured Work, worker and relay, database migrations, smoke checks | The same files, configuration, migration and acceptance contracts |
 
-Both targets require real boot, SSH/reboot, host security, capacity and recovery
-checks before production. A provider mock validates configuration against the
-schema; it cannot establish an available image, quota, compliance or performance.
-The openSUSE `provision.sh` does not support Ubuntu. See the target runbook before
-choosing an image. Public APIs and private data retain the same boundaries on
-either provider; public CA/MCP/Penpot containers receive no private Work secrets.
+A provider mock checks configuration against the schema; it cannot prove an image is
+available, or quota, compliance or performance. Both targets need real boot, SSH and
+reboot, host security, capacity and recovery checks before production. The openSUSE
+`provision.sh` does not support Ubuntu, so read the target runbook before choosing an
+image.
 
-## Public documentation on both deployment types
-
-The public Lolly shell and a private Work instance serving a signed shell must
-both expose the shell's public documentation before the app fallback. This
-contract is the same on UpCloud and Evroc. It covers `/info/`, literal `/info/`
-articles, `/docs` aliases, `/robots.txt` and the sitemap. Native Work also offers
-extensionless `/info/` article URLs; the public hosted shell does not currently
-provide that convenience. Native serving resolves only files inside the signed
-shell release. Missing articles return 404 rather than an app page with a
-successful status.
-
-GET serves the signed document bytes unchanged. HEAD returns the same public
-document headers and file size without reading or sending its body. The root
-`/robots.txt` uses the release's `robots-lolly-tools.txt`; `/sitemap.xml` redirects
-to `/info/sitemap.xml`, which is served as XML. Preserve the common docs'
-canonical `https://lolly.tools` URLs, search index and sitemap. Mirroring those
-docs does not create a second canonical site or publish tenant documentation.
-
-Public shell docs require no workspace sign-in. The separate Work markdown API,
-`/api/v1/docs`, stays member-only on a governed instance, as do private catalogs,
-uploads, projects and render routes. Robots instructions are discovery hints;
-authentication and route policy enforce the private boundary.
-
-Before accepting a release on either provider, check unauthenticated GET and
-HEAD at the candidate origin. Confirm that `/info/` and
-`/docs/operate/deployment` contain the documentation titles and their existing
-canonical links, rather than the app shell. Check the root robots and sitemap
-redirect, XML content type, empty HEAD bodies, missing-document 404 responses
-and private API/catalog refusals. The native server's HTTP tests exercise these
-boundaries. A static shell host needs equivalent aliases and discovery routing;
-a generic SPA fallback alone does not meet this contract. Use the maintained
-[UpCloud](../deploy/upcloud/README.md), [Evroc](../deploy/evroc/README.md) and
-[application VM](../deploy/vm/README.md) runbooks together with these checks.
+Keep public and private apart on either provider. Public APIs must not publish private
+packs, uploaded assets or member cookies, and the public CA, MCP and Penpot containers
+receive no private Work secrets.
 
 ## Custom instance domain
 
 The [VM kit's custom-domain procedure](../deploy/vm/README.md#custom-instance-domains)
-derives the deployment hostname from a validated HTTPS `instance.baseUrl`. Both
-providers use the same generated Caddy and application release. Custom domains
-have only explicitly requested redirect aliases; smoke can check a configured
-non-Google provider and its callback. The managed worker's `LOLLY_WEB_BASE` is set
-in the private environment and must match that origin before it can start.
+takes the host name from a validated HTTPS `instance.baseUrl`. Both providers use the
+same generated Caddy configuration and application release. A custom domain gets only
+the redirect aliases you ask for, and the smoke check can test a configured non-Google
+sign-in provider and its callback. The managed worker's `LOLLY_WEB_BASE` is set in the
+private environment and must match that address before the worker starts.
 
-The openSUSE kit retains its existing compatible paths and SUSE pack default.
-Operators with another OS, brand or additional Compose overlays must use the
-corresponding host preparation and complete release file list. Keep actual
-image/SSH/reboot, owner sign-in, shared editing and real exports as acceptance
-gates. Generating a hostname does not register an OIDC client or move DNS.
+The openSUSE kit keeps its existing compatible paths, and its pack builder still selects
+the SUSE profile by default, so point it at your own pack. With another operating
+system, brand or extra Compose files, use the matching host preparation and the complete
+list of release files. Generating a host name does not register an OIDC client or move
+DNS. Keep real image, SSH, reboot, owner sign-in, shared editing and export checks as the
+acceptance gates.
 
-## Database migration
+## Move a PostgreSQL database
 
-Choose managed PostgreSQL when its operations, availability and recovery policy
-fit the deployment. [UpCloud's managed database service](https://upcloud.com/global/products/managed-databases/)
-provides PostgreSQL and backup options. Price the actual database, storage and
-backup configuration before provisioning the database. On Evroc, use a reviewed external
-service or the local option; no managed PostgreSQL product has been assumed.
-Neither VM module creates a database.
+Choose managed PostgreSQL when its operations, availability and recovery policy fit.
+[UpCloud's managed database service](https://upcloud.com/global/products/managed-databases/)
+offers PostgreSQL with backup options; price the actual database, storage and backups
+before you create one. On Evroc, use a reviewed outside service or the local option;
+no managed PostgreSQL product is assumed.
 
-The local option is `deploy/vm/postgres.compose.yml`. It keeps PostgreSQL inside
-the Compose network, persists it in a named volume and waits for readiness before
-the server starts. Its password must be URL-safe because the connection URL is
-composed from that value. Generate a random hexadecimal password and store it as
-`LW_LOCAL_PG_PASSWORD` in the existing private `.env`; preserve every other secret.
-The database service is not part of the default deployment and no port is published.
+**The local option** is `deploy/vm/postgres.compose.yml`. It keeps PostgreSQL inside the
+Compose network in a named volume, publishes no port and waits for readiness before
+the server starts. It is not part of the default deployment. Its password must be safe
+in a URL, because the connection URL is built from the password. Generate a random hexadecimal
+password and store it as `LW_LOCAL_PG_PASSWORD` in the existing private `.env`, keeping
+every other secret.
 
-For a migration, use PostgreSQL client tools at least as new as the source server.
-Keep credentials in a mode-0600 libpq service/password file rather than a command
-argument. For example, `~/.pg_service.conf` can define `lolly-source` and
-`lolly-target` with host, port, database, user and TLS mode; `PGPASSFILE` identifies the
-separate password file. PostgreSQL documents [password-file permissions](https://www.postgresql.org/docs/17/libpq-pgpass.html).
+**Before a migration**, use PostgreSQL client tools at least as new as the source server.
+Keep credentials in a mode-0600 libpq service and password file, never in a command
+argument. For example, `~/.pg_service.conf` can define `lolly-source` and `lolly-target`
+with host, port, database, user and TLS mode, and `PGPASSFILE` points at the separate
+password file; PostgreSQL documents the
+[password-file permissions](https://www.postgresql.org/docs/17/libpq-pgpass.html).
 
-Rehearse on a separate database first. The helper creates a custom-format dump,
-checks that it is readable and writes a SHA-256 companion file. Both files have
-owner-only permissions. It refuses an existing destination and removes unfinished
-temporary files after a failed dump.
+The move, in order:
+
+::: timeline
+- <!--i:database--> **Rehearse first.** Run the whole move against a separate database before the real one.
+- <!--i:download--> **Dump.** The helper writes a custom-format dump and a matching SHA-256 file, both owner-only.
+- <!--i:check--> **Check the dump.** `verify` reads the dump back, so you know the file is sound.
+- <!--i:pause--> **Stop the writers.** For the final dump, stop the server and every other writer, and wait for the collaboration drain.
+- <!--i:upload--> **Restore into an empty target.** The helper refuses a database that already has user schemas or objects.
+- <!--i:layers--> **Migrate the target.** Run migrations against the restored database.
+- <!--i:people--> **Accept.** Check people, projects, assets, sources, agents, audit and exports on the target.
+- <!--i:lock--> **Keep the source.** Leave the original database in place until acceptance and a rollback rehearsal pass.
+:::
 
 ```sh
 PGSERVICE=lolly-source deploy/vm/postgres-backup.sh backup /private/backups/lolly.dump
@@ -151,25 +115,28 @@ PGSERVICE=lolly-target deploy/vm/postgres-backup.sh restore /private/backups/lol
   --confirm-database lollywork
 ```
 
-Restore checks the actual connected database name, refuses existing user schemas
-or objects, and restores in one transaction. It never drops existing objects.
-The dedicated database name must contain letters, digits, underscores or hyphens.
-The checksum detects corruption; store the archive and checksum together in
-protected independent storage. This is a logical database backup, not a complete
-backup of the host or external object storage. See [PostgreSQL's dump](https://www.postgresql.org/docs/17/app-pgdump.html)
-and [restore documentation](https://www.postgresql.org/docs/17/app-pgrestore.html).
+The helper refuses an existing destination file and removes unfinished temporary files
+after a failed dump. Restore checks the name of the database it is actually connected
+to, refuses existing user schemas or objects, restores in one transaction and never
+drops anything. The database name may contain letters, digits, underscores or hyphens.
+The checksum detects corruption, so store the archive and checksum together in
+protected, independent storage. This is a logical database backup, not a backup of the
+host or of outside object storage. See PostgreSQL's
+[dump](https://www.postgresql.org/docs/17/app-pgdump.html) and
+[restore](https://www.postgresql.org/docs/17/app-pgrestore.html) documentation.
 
-For local PostgreSQL, stage the override and `postgres-backup.sh` beside the existing base Compose file.
-Start **only** the database first, preserving the project's existing Compose name:
+::: details Restoring into the local Compose database
+Stage the override and `postgres-backup.sh` beside the existing base Compose file, then
+start **only** the database, keeping the project's existing Compose name:
 
 ```sh
 docker compose -f docker-compose.yml -f postgres.compose.yml up -d db
 ```
 
-Keep the server on its existing database during rehearsal. The database has no
-public or host port. For a local restore, copy the verified archive and checksum
-into its temporary directory and run the same helper with the container's client
-tools. Use the same complete Compose file list and project name in each command:
+Keep the server on its existing database during the rehearsal. To restore, copy the
+checked archive and checksum into the database container's temporary folder and run the
+same helper with the container's client tools. Use the same complete Compose file list
+and project name in every command:
 
 ```sh
 docker compose -f docker-compose.yml -f postgres.compose.yml cp /private/backups/lolly.dump db:/tmp/lolly.dump
@@ -179,81 +146,75 @@ docker compose -f docker-compose.yml -f postgres.compose.yml exec -T db bash -c 
   < postgres-backup.sh
 ```
 
-The password stays inside the database container. Remove its temporary archive
-copies after recording the restore result; keep the independent backup.
-For managed PostgreSQL use its reviewed TLS connection or a temporary
-operator-controlled tunnel. Do not add a public PostgreSQL port for the helper.
-Before the final dump, stop the server and every
-other writer using the source database; preserve the render/relay overlays and
-wait for the collaboration drain. Restore into the empty target, then run
-migrations against that database. Add the override to the complete Compose file list only
-for the reviewed server cutover. Subsequent deployments must use that same file
-list; the existing `push.sh` base-only path does not manage this optional database.
+The password stays inside the database container. Remove the temporary archive copies
+after you record the result, and keep the independent backup.
 
-Check owners and project memberships, session revisions, uploaded asset bytes on
-another device, sealed provider credentials, Brandfolder queries, agent grants and
-activity, audit continuity and real exports. Keep the original database in place
-until this acceptance and a rollback rehearsal pass. After writes resume on the
-target, rollback requires reconciling those writes; changing the URL alone would
-discard them.
+Add the override to the complete Compose file list only for the reviewed server cutover.
+Later deployments must use that same file list; the existing `push.sh` base-only path
+does not manage this optional database. Keep the render and relay overlays in place.
+:::
 
-Alongside the dump, retain `instance.json`, governance export, signing keys,
-session/link and credential-sealing secrets, exact application/shell versions,
-provider settings and independently retained audit heads. With the default `pg`
-blob driver the database includes uploaded asset bytes. With `s3`, back up the
-bucket and its versions separately. See [operations](operations.md#backup-and-restore).
+For managed PostgreSQL, use its reviewed TLS connection or a temporary tunnel you
+control; never add a public PostgreSQL port for the helper.
 
-## Public shell cutover
+**Accepting the target** means checking owners and project memberships, session
+revisions, uploaded asset bytes on another device, sealed source credentials,
+Brandfolder queries, agent grants and activity, audit continuity and real exports.
+After writes resume on the target, rolling back means reconciling those writes:
+changing the URL alone would throw them away.
 
-Serving static files on a VM does not reproduce every hosted function. Inventory
-CA, public MCP, image fetch and the Penpot RPC proxy before moving the public
-domain. Keep their existing authentication, token custody, origin checks, request
-limits, SSRF protection and rate-limit behavior. The Work document-agent connector
-must still require the member's scoped grant even when the public catalog MCP
-permits anonymous reads.
+Alongside the dump, keep `instance.json`, the governance export, the signing keys, the
+session, link and credential-sealing secrets, the exact application and web app
+versions, source settings and independently kept audit heads. With the default `pg`
+asset driver the database includes uploaded asset bytes; with `s3`, back up the bucket
+and its versions separately. See [backup and restore](operations.md#backup-and-restore).
 
-Lolly has standalone CA and MCP server entry points. The Penpot proxy currently
-uses a hosted-function entry point and needs an explicit standalone mount. The
-existing VM router can still proxy these APIs while the public host is qualified.
-Replace that dependency only after signed catalog, discovery, MCP, CA, Penpot,
-image-fetch, models, WebSocket and mobile first-load checks pass at the candidate
-origin. Preserve OAuth callback URLs and trusted signing keys across the cutover.
+## What your instance serves at /info
 
-## YunoHost qualification
+A Work instance that serves a signed web app also serves that web app's public
+documentation, ahead of the app itself, on either provider. Work answers `/info/`,
+literal `/info/` articles, `/docs` aliases, `/robots.txt` and the sitemap, and also
+offers article addresses without the `.html` extension. It serves only files inside the
+signed release, unchanged, and a missing article returns 404 rather than an app page
+with a success status.
 
-The package is developed in `deploy/yunohost/` and mirrored at release time.
-Release source URLs and checksums are generated by `scripts/yunohost-release.ts`;
-do not hand-edit them. Repository tests exercise rendered configuration, sign-in
-and role mapping, shell headers, script syntax and package contracts.
+::: details What to check before accepting a release
+HEAD returns the same public headers and file size as GET, without the body. The root
+`/robots.txt` uses the release's `robots-lolly-tools.txt`, and `/sitemap.xml` redirects to
+`/info/sitemap.xml`, served as XML. The documentation keeps its canonical
+`https://lolly.tools` addresses, search index and sitemap, so mirroring it does not
+create a second canonical site or publish your own documentation.
 
-Run the official [package linter](https://github.com/YunoHost/package_linter) for
-static packaging checks, then [package_check](https://github.com/YunoHost/package_check)
-on a disposable Linux host with Incus or LXD. That integration run covers actual
-installation, multi-instance behavior, upgrade, backup/restore and URL changes.
-It is separate from the repository contract tests and is required before claiming
-a qualified YunoHost release. Retain the real test logs and archive checksums.
-The repository workflow blocks static code errors while reporting catalog
-registration and working-state metadata separately. Those publication checks
-remain pending until the mirrored package is registered and qualified.
+The public documentation needs no sign-in. Work's own Markdown API, `/api/v1/docs`, stays
+members-only on a governed instance, as do private catalogs, uploads, projects and render
+routes. Robots instructions are only hints: sign-in and route policy enforce the private
+boundary.
+
+At the candidate address, check unauthenticated GET and HEAD. Confirm that `/info/` and
+`/docs/operate/deployment` return the documentation, with titles and canonical links,
+rather than the app. Check the root robots file, the sitemap redirect and its XML content
+type, empty HEAD bodies, 404 answers for missing documents and refusals for private API
+and catalog routes. The server's own HTTP tests exercise these boundaries.
+:::
 
 ## Capacity and recovery
 
-On either UpCloud or Evroc, allow space for the current signed shell, rollback shells, container layers,
-database growth and temporary artifacts. Reuse identical immutable files during
-deployment and prune only generated releases that are neither active nor needed
-for rollback. Keep model weights and backups off the root disk where possible.
-Measure memory while the render worker and active editing are running before
-adding a local database or public gateway to a small VM.
+Leave room for the current signed web app, rollback copies, container layers, database
+growth and temporary files. Reuse identical immutable files when you deploy, and remove
+only generated releases that are neither active nor needed for rollback. Keep model files
+and backups off the root disk where you can. Measure memory while the render worker and
+live editing run before you add a local database or a public gateway to a small VM.
 
-Use TCP liveness for frequent checks, authenticated HTTP readiness for meaningful
-service checks, and bounded container logs. Collect `/metrics` with its token,
-database/disk pressure, render queue failures, provider sync health and agent
-activity without recording access tokens or document bodies. A successful deploy
-requires a restore and rollback rehearsal as well as healthy processes.
+Use TCP liveness for frequent checks and signed-in HTTP readiness for meaningful
+service checks, and keep container logs bounded. Collect `/metrics` with its token, along with
+database and disk pressure, render queue failures, source sync health and agent
+activity, without recording access tokens or document bodies. A deploy counts as
+successful only after a restore and rollback rehearsal, not just healthy processes.
 
-For object-storage migration, compare the actual provider's feature matrix with
-the blob driver and backup requirements. Evroc documents [S3 compatibility](https://docs.evroc.com/products/storage/object-storage/s3compat.html),
-including features that are absent. Prove private reads, original-byte hashes,
-version recovery, retention, CORS and Range/HEAD behavior on a disposable bucket
-before changing asset or archive URLs. A cloud-local backup is not independent
-of that cloud account or region.
+Before moving asset bytes to object storage, compare the provider's feature list with
+the asset driver and your backup needs. Evroc documents its
+[S3 compatibility](https://docs.evroc.com/products/storage/object-storage/s3compat.html),
+including the features it lacks. Prove private reads, original-byte hashes, version
+recovery, retention, CORS and Range and HEAD behaviour on a throwaway bucket before you
+change asset or archive addresses. A backup inside the same cloud is not independent of
+that cloud account or region.
