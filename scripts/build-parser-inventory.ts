@@ -66,9 +66,11 @@ export function renderParserTable(registry: ParserAssuranceRegistry): string {
   const families = [...groups.keys()].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
   const entries = Object.values(registry.parsers);
   const fuzzed = entries.filter((entry) => entry.fuzzTargets?.length).length;
+  const waived = entries.length - fuzzed;
+  const count = `${entries.length} ${entries.length === 1 ? 'parser' : 'parsers'} in ${families.length} ${families.length === 1 ? 'family' : 'families'}`;
   const summary = fuzzed === entries.length
-    ? `${entries.length} parsers in ${families.length} families. Every one reaches a fuzz target, and none needs a waiver. Open a family to see its parsers.`
-    : `${entries.length} parsers in ${families.length} families: ${fuzzed} reach a fuzz target and ${entries.length - fuzzed} carry an owned, expiring waiver. Open a family to see its parsers.`;
+    ? `${count}. ${entries.length === 1 ? 'It reaches a fuzz target and needs no waiver' : 'Every one reaches a fuzz target, and none needs a waiver'}. Open a family to see its parsers.`
+    : `${count}: ${fuzzed} ${fuzzed === 1 ? 'reaches' : 'reach'} a fuzz target and ${waived} ${waived === 1 ? 'carries' : 'carry'} an owned, expiring waiver. Open a family to see its parsers.`;
   const blocks = families.flatMap((family) => {
     const rows = groups.get(family)!;
     return [`::: details ${family} (${rows.length})`, ...TABLE_HEAD, ...rows, ':::', ''];
@@ -84,7 +86,7 @@ export function renderTargetCensus(targets: string[], regressions?: number): str
   const saved = regressions === undefined
     ? 'the saved regression inputs'
     : `the ${regressions} saved regression input${regressions === 1 ? '' : 's'}`;
-  return `Fuzz coverage is the registered target list in \`tests/fuzz/targets.ts\` (\`ALL_TARGETS\`, at the end of the file). There are ${targets.length}: ${listed}. \`tests/fuzz-regression.test.ts\` replays ${saved} in \`tests/fuzz/regressions/\` and runs a few hundred seeded mutations per target inside the normal \`pnpm test\` glob; \`node tests/fuzz/run.ts\` is the standalone soak.`;
+  return `Fuzz coverage is the registered target list in \`tests/fuzz/targets.ts\` (\`ALL_TARGETS\`, at the end of the file). There ${targets.length === 1 ? 'is' : 'are'} ${targets.length}: ${listed}. \`tests/fuzz-regression.test.ts\` replays ${saved} in \`tests/fuzz/regressions/\` and runs a few hundred seeded mutations per target inside the normal \`pnpm test\` glob; \`node tests/fuzz/run.ts\` is the standalone soak.`;
 }
 
 /** The saved crash inputs the regression test replays, counted at build time. */
