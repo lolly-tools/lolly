@@ -38,7 +38,6 @@ import { embedWavInfo } from '../engine/src/riff-meta.ts';
 import { packTiff } from '../engine/src/tiff.ts';
 import { writeDocx } from '../engine/src/docx.ts';
 import { writeOdt } from '../engine/src/odt.ts';
-import { writeEpub } from '../engine/src/epub.ts';
 import { buildPptxParts } from '../engine/src/pptx.ts';
 import { readZip } from '../engine/src/zip.ts';
 import { gzip } from '../engine/src/gzip.ts';
@@ -258,12 +257,6 @@ const PROOFS: Proof[] = [
       // claims - so the title is what the sentinel goes into.
       const zip = writeOdt({ title: SENTINEL, blocks: [{ type: 'paragraph', text: 'body' }] });
       assert.ok(zipPart(zip, 'meta.xml').includes(`<dc:title>${SENTINEL}</dc:title>`));
-    },
-  },
-  {
-    token: 'EPUB', field: 'dc', check: () => {
-      const zip = writeEpub({ title: 'Claim test', author: SENTINEL, chapters: [{ title: 'One', xhtml: '<p>body</p>' }] });
-      assert.ok(zipPart(zip, 'OEBPS/content.opf').includes(SENTINEL), 'dc:creator in the OPF');
     },
   },
   {

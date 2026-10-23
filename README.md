@@ -47,7 +47,7 @@ Import supported Figma, Penpot, Illustrator, InDesign or PDF designs into the ca
 
 Export images, vectors, PDFs, editable PowerPoint decks, audio or video where the tool supports them. Print workflows include physical sizes, bleed, crop marks and CMYK output.
 
-The format register covers **50 in, 56 out** (35 round-trip). Availability depends on the tool, browser and export path; the [format guide](https://lolly.tools/info/formats.html) gives the details.
+The format register covers **55 in, 59 out** (39 round-trip). Availability depends on the tool, browser and export path; the [format guide](https://lolly.tools/info/create/formats.html) gives the details.
 
 Authoring tools can attach **Content Credentials**, a signed record of how a file was made. [Read about credentials and identity](docs/content-credentials-identity.md).
 

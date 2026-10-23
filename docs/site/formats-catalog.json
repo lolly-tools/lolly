@@ -151,7 +151,8 @@
       "Reads .idml markup export",
       "Text stays editable",
       "Images extracted",
-      "Brand-conformed editable session"
+      "Brand-conformed editable session",
+      "Writes .idml from a Design document: one page per artboard"
     ],
     "Figma": [
       "Decodes .fig entirely in-browser",
@@ -420,19 +421,14 @@
       "Shared strings, inline text, numbers, booleans and formula results resolve",
       "Up to 1,000 rows; macro-enabled .xlsm is refused; import-only"
     ],
-    "EPUB": [
-      "One XHTML file per chapter; OPF spine in reading order",
-      "EPUB 3 navigation TOC; packed as a valid OCF zip",
-      "Reflowable text; opens in Books/Kobo/Calibre; export-only"
-    ],
     "GZ": [
       "RFC 1952 gzip: CRC-32 + ISIZE trailer, deterministic output",
       "In-tree inflate (no platform DecompressionStream dependency)",
-      "Powers .svgz and generic single-file compression"
+      "Makes .svgz and the tar.gz Linux package"
     ],
     "TAR": [
       "USTAR headers; readable by system tar and libarchive",
-      "Gzip it for .tar.gz; reads members back on drop",
+      "Written inside the tar.gz Linux package; reads members back on drop",
       "Over-long names / >8 GiB files are refused, never truncated"
     ],
     "JXL": [
@@ -442,6 +438,32 @@
       "Verified original JPEG reconstruction in Convert",
       "Local worker codec; cached offline after use",
       "Animation and auxiliary channels refused; no C2PA writer"
+    ],
+    "Premiere XML": [
+      "Reads sequence.xml, alone or zipped with its Media folder",
+      "Relinks selected media or keeps labelled placeholders",
+      "Writes sequence.xml plus the original media and credits",
+      "One sequence artboard, up to 10,000 clips"
+    ],
+    "SRT": [
+      "Numbered cues with start and end times",
+      "Read through Add data in the caption tools",
+      "Re-serialised as one clean dialect on export"
+    ],
+    "VTT": [
+      "WEBVTT header and timed cues",
+      "Plays in an HTML video track element",
+      "On the way in, cue settings and inline tags are dropped and NOTE and STYLE blocks skipped"
+    ],
+    "STL": [
+      "Triangle mesh, geometry only",
+      "Read on device, never uploaded",
+      "Rendered by 3D Studio as a still or turntable"
+    ],
+    "3MF": [
+      "Zipped 3D-printing package",
+      "Read on device, never uploaded",
+      "Rendered by 3D Studio as a still or turntable"
     ]
   },
   "_unsupported_note": "Known gaps per format token, shown in the dialog under 'Not yet supported'. Editorial and accurate, not exhaustive: seed only what is genuinely true today. A format with no entry shows no gap list. Expand this during the format-support roadmap review.",
@@ -474,8 +496,13 @@
       "First worksheet only",
       "Import-only (round-trip out via CSV/JSON)"
     ],
-    "EPUB": [
-      "Export-only (no EPUB import yet)"
+    "InDesign": [
+      "Export writes a static subset: solid paints, rectangles, ovals, text frames and PNG or JPEG images",
+      "Gradients, clipping, effects, transparency, composed stories and custom CSS are refused on export (use PDF)"
+    ],
+    "Premiere XML": [
+      "Export carries unprocessed media clips only: titles, shapes, effects, speed changes and keyframes need video export",
+      "Authored canvas placement and fitting are not transferred"
     ]
   },
   "formats": [
@@ -945,17 +972,18 @@
       "name": "InDesign",
       "full": "InDesign Markup Language (.idml)",
       "category": "Vector",
-      "dir": "in",
+      "dir": "both",
       "features": [
         "vector",
         "editable-text",
         "embeds-bitmaps"
       ],
-      "desc": "Adobe InDesign page layouts. Lolly can't read a raw .indd, but InDesign's File → Export → InDesign Markup gives an .idml that comes in as an editable, brand-conformed Lolly session, text as text and images extracted, so a print layout keeps working rather than becoming a flat picture.",
+      "desc": "Adobe InDesign page layouts, carried as InDesign Markup (.idml). Lolly can't read a raw .indd, but InDesign's File → Export → InDesign Markup gives an .idml that comes in as an editable, brand-conformed Lolly session, text as text and images extracted, so a print layout keeps working rather than becoming a flat picture. Lolly writes one back from a Design document on the web and in the CLI: each artboard becomes a page, with live text frames, rectangles, ovals and PNG or JPEG images bundled in the package's Links folder.",
       "metadata": {
         "reads": [],
         "writes": [],
-        "preserves": "n/a"
+        "preserves": "none",
+        "note": "The export carries no InDesign document metadata block. When the export has metadata, it travels as lolly-metadata.json inside the package, beside readable credits."
       }
     },
     {
@@ -1071,6 +1099,25 @@
         "writes": [],
         "preserves": "none",
         "note": "The original package stays intact as an asset. Edited exports create a new composition with readable credits and a metadata JSON companion; they do not carry signed Content Credentials."
+      }
+    },
+    {
+      "token": "Premiere XML",
+      "name": "Premiere XML",
+      "full": "Premiere Pro XML interchange (xmeml sequence)",
+      "category": "Motion",
+      "dir": "both",
+      "features": [
+        "animation",
+        "audio",
+        "multi-file-bundle"
+      ],
+      "desc": "The XML sequence format Adobe Premiere Pro reads and writes for moving an edit between apps. Lolly opens a sequence.xml, or a zip holding one with its Media folder, as a timed Design sequence, relinking the media you select or leaving labelled placeholders. From a Design sequence of unprocessed video, audio and image clips, Lolly writes a zip with sequence.xml, the original media bytes and readable credits, on the web and in the CLI. Titles, effects and anything else that needs rendering go out as video instead.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "sequence.xml carries the sequence name and clip timing, not document metadata. When the export has metadata, it travels as lolly-metadata.json inside the package."
       }
     },
     {
@@ -1209,6 +1256,38 @@
         "3d"
       ],
       "desc": "The text-based sibling of GLB: the same open 3D standard, written as a JSON file (often alongside separate texture files) rather than one binary blob. Lolly's 3D tool loads a .gltf to render as a photo or a spinning turntable clip, all on your device. Import-only.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "STL",
+      "name": "STL",
+      "full": "Stereolithography mesh",
+      "category": "3D",
+      "dir": "in",
+      "features": [
+        "3d"
+      ],
+      "desc": "The plain triangle-mesh format of 3D printing and CAD, with geometry only and no colour or texture. 3D Studio loads your own .stl on your device, never uploaded, to render as a still or a turntable. An input for 3D Studio, not a Lolly export format.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "3MF",
+      "name": "3MF",
+      "full": "3D Manufacturing Format",
+      "category": "3D",
+      "dir": "in",
+      "features": [
+        "3d"
+      ],
+      "desc": "The zipped XML successor to STL that 3D-printing tools use, able to carry colour and several objects in one file. 3D Studio loads your own .3mf on your device, never uploaded, to render as a still or a turntable. An input for 3D Studio, not a Lolly export format.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1568,6 +1647,40 @@
       }
     },
     {
+      "token": "SRT",
+      "name": "SRT",
+      "full": "SubRip subtitles",
+      "category": "Data",
+      "dir": "both",
+      "features": [
+        "editable-text"
+      ],
+      "desc": "The plain-text caption file nearly every video player, editor and upload page accepts: numbered cues, each with a start and end time and its lines of text. The Captions, Audiogram and Record tools take an existing .srt through Add data, or captions made from speech on your device, and write the cues back out as .srt, so the words spoken in a clip travel beside the video as text anyone can correct.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "An SRT file is cues and text only, with no metadata block."
+      }
+    },
+    {
+      "token": "VTT",
+      "name": "WebVTT",
+      "full": "Web Video Text Tracks",
+      "category": "Data",
+      "dir": "both",
+      "features": [
+        "editable-text"
+      ],
+      "desc": "The caption format browsers read natively for an HTML video's track element, with the same timed cues as SRT under a WEBVTT header. The Captions, Audiogram and Record tools read a .vtt through Add data, skipping NOTE and STYLE blocks, and write a clean one beside the SRT.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "NOTE, STYLE and REGION blocks are skipped on the way in. Lolly writes the WEBVTT header and cues only."
+      }
+    },
+    {
       "token": "DTCG",
       "name": "DTCG",
       "full": "W3C Design Tokens",
@@ -1821,26 +1934,6 @@
       }
     },
     {
-      "token": "EPUB",
-      "name": "EPUB",
-      "full": "EPUB 3 e-book",
-      "category": "Document",
-      "dir": "out",
-      "features": [
-        "multi-file-bundle",
-        "editable-text"
-      ],
-      "desc": "A reflowable EPUB 3 e-book: one XHTML file per chapter, a spine in reading order and a navigation table of contents, packed as a valid OCF zip. Opens in Apple Books, Kobo, Calibre and every e-reader, and the text reflows to any screen. Export-only.",
-      "metadata": {
-        "reads": [],
-        "writes": [
-          "dc"
-        ],
-        "preserves": "n/a",
-        "note": "The OPF package carries dc:title, dc:creator and dc:language."
-      }
-    },
-    {
       "token": "DOCX",
       "name": "DOCX",
       "full": "Word Open XML Document",
@@ -1888,7 +1981,7 @@
         "compression",
         "lossless"
       ],
-      "desc": "Single-file gzip compression (RFC 1952), the ubiquitous .gz. Wraps raw DEFLATE with a CRC-checked header and trailer. Lolly compresses and decompresses on-device; it is what powers .svgz and a generic 'compress this download'.",
+      "desc": "Single-file gzip compression (RFC 1952), the ubiquitous .gz. Wraps raw DEFLATE with a CRC-checked header and trailer. Lolly compresses and decompresses on-device; it is what makes .svgz and the tar.gz Linux package.",
       "metadata": {
         "reads": [],
         "writes": [],
@@ -1905,7 +1998,7 @@
       "features": [
         "multi-file-bundle"
       ],
-      "desc": "The classic uncompressed multi-file archive (POSIX USTAR): one header per file, readable by system tar, libarchive and every standard library. Pack several assets into one download, or drop a .tar (or a gzipped .tar.gz) back in and Lolly explodes it, adding each member as its own asset.",
+      "desc": "The classic uncompressed multi-file archive (POSIX USTAR): one header per file, readable by system tar, libarchive and every standard library. Lolly writes one inside the tar.gz Linux package, which unpacks a render into your home folder, and a .tar (or a gzipped .tar.gz) dropped back in is exploded, each member added as its own asset.",
       "metadata": {
         "reads": [],
         "writes": [],
