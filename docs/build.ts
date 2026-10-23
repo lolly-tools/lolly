@@ -372,7 +372,7 @@ const pages: Page[] = [
   { slug: 'work-configuration', title: 'Work instance configuration', src: 'work/configuration.md', pathway: 'operators', canonicalPath: 'operate/instance-configuration', contentLicense: 'MPL-2.0', description: 'Every instance.json key and every LW_* environment variable, with defaults.' },
   { slug: 'work-identity', title: 'Identity and sessions', src: 'work/identity.md', pathway: 'managers', canonicalPath: 'manage/identity-and-sessions', contentLicense: 'MPL-2.0', description: 'OIDC SSO, group mapping, member and guest sessions, the dev provider.' },
   { slug: 'work-account-lifecycle', title: 'Account data controls', src: 'work/account-lifecycle.md', pathway: 'managers', canonicalPath: 'manage/account-data-controls', contentLicense: 'MPL-2.0', description: 'Owner metadata exports, scoped offboarding, documented limits and review of shared content.' },
-  { slug: 'work-document-agents', title: 'Invite an agent to a document', src: 'work/document-agents.md', pathway: 'builders', canonicalPath: 'build/document-agents', contentLicense: 'MPL-2.0', description: 'Invite MCP agents under your identity, with document access, expiry, live collaboration and revocation.' },
+  { slug: 'work-document-agents', title: 'Invite an agent', src: 'work/document-agents.md', pathway: 'builders', canonicalPath: 'build/document-agents', contentLicense: 'MPL-2.0', description: 'Let an AI agent read or edit a shared document or project under your identity, for a period you choose, with every call recorded.' },
   { slug: 'work-design-system-administration', title: 'Design-system administration', src: 'work/design-system-administration.md', pathway: 'managers', canonicalPath: 'manage/design-system-administration', contentLicense: 'MPL-2.0', description: 'Inspect sources, review replacements and retirement, and manage durable connect downloads.' },
   { slug: 'work-permissions', title: 'Roles and grants', src: 'work/permissions.md', pathway: 'managers', canonicalPath: 'manage/permissions', contentLicense: 'MPL-2.0', description: 'The seven roles, every action they carry, and deny-wins fine-grained grants.' },
   { slug: 'work-governance', title: 'Policy and governance', src: 'work/governance.md', pathway: 'managers', canonicalPath: 'manage/governance', contentLicense: 'MPL-2.0', description: 'Tool overlays, input locking, profile policy, feature flags, policy-as-code.' },
@@ -414,9 +414,9 @@ const pages: Page[] = [
   { slug: 'work-audit', title: 'Audit log', src: 'work/audit.md', pathway: 'operators', canonicalPath: 'operate/audit', contentLicense: 'MPL-2.0', description: 'The hash-chained record, verification, and anchoring the head off-box.' },
   { slug: 'work-project-portability', title: 'Preview a project transfer', src: 'work/project-portability.md', pathway: 'managers', canonicalPath: 'manage/project-transfer-preview', contentLicense: 'MPL-2.0', description: 'Read-only project inventory, access mapping, file and history coverage, and preparation for moving work between instances.' },
   { slug: 'work-api', title: 'Lolly Work API', src: 'work/api.md', pathway: 'builders', canonicalPath: 'build/work-api', contentLicense: 'MPL-2.0', description: 'Every route the console and CLI use, with the action each one requires.' },
-  { slug: 'work-cli', title: 'lw CLI: administer an instance', src: 'work/cli.md', pathway: 'builders', canonicalPath: 'build/lw-cli', contentLicense: 'MPL-2.0', description: 'Command reference for the admin CLI.' },
+  { slug: 'work-cli', title: 'lw CLI: administer Lolly Work', src: 'work/cli.md', pathway: 'builders', canonicalPath: 'build/lw-cli', contentLicense: 'MPL-2.0', description: 'Every lw command for running a Lolly Work instance: people, sources, catalog, renders, audit and governance.' },
   { slug: 'work-status', title: 'Work status and roadmap', src: 'work/status.md', pathway: 'quickstart', canonicalPath: 'start/status', contentLicense: 'MPL-2.0', description: 'What is built, what is pending, and the honest gaps before go-live.' },
-  { slug: 'work-resumable-uploads', title: 'Resumable uploads', src: 'work/resumable-uploads.md', pathway: 'builders', canonicalPath: 'build/resumable-uploads', contentLicense: 'MPL-2.0', description: 'Decision record: the parts protocol over tus, its resume report, and the scopes that share it.' },
+  { slug: 'work-resumable-uploads', title: 'Upload large files', src: 'work/resumable-uploads.md', pathway: 'builders', canonicalPath: 'build/resumable-uploads', contentLicense: 'MPL-2.0', description: 'Send large files to Lolly Work in parts that survive a dropped connection: turn scoped uploads on, use lw upload or the API, and know the limits.' },
 ];
 // END GENERATED DOCS pages
 
@@ -695,9 +695,9 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'learning-integration', label: 'Learning integration' },
       { slug: 'mcp', label: 'MCP Server' },
       { slug: 'ai-agents', label: 'AI Agents' },
-      { slug: 'work-document-agents', label: 'Invite an agent to a document' },
+      { slug: 'work-document-agents', label: 'Invite an agent' },
       { slug: 'work-api', label: 'Lolly Work API' },
-      { slug: 'work-resumable-uploads', label: 'Resumable uploads' },
+      { slug: 'work-resumable-uploads', label: 'Upload large files' },
     ] },
     { label: 'Author tools and design systems', items: [
       { slug: 'design-tokens', label: 'Design Tokens' },
@@ -730,7 +730,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'cli-reference', label: 'CLI verification and configuration' },
       { slug: 'cli-signing', label: 'Signing from the terminal' },
       { slug: 'tui', label: 'TUI' },
-      { slug: 'work-cli', label: 'lw CLI: administer an instance' },
+      { slug: 'work-cli', label: 'lw CLI: administer Lolly Work' },
     ] },
     { label: 'Build and contribute to the apps', items: [
       { slug: 'contributing-setup', label: 'Contributing Setup' },
@@ -764,7 +764,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'work-permissions', label: 'Roles and grants' },
     ] },
     { label: 'Agents, APIs and integrations', items: [
-      { slug: 'work-document-agents', label: 'Invite an agent to a document' },
+      { slug: 'work-document-agents', label: 'Invite an agent' },
     ] },
     { label: 'Shared assets and provider connections', items: [
       { slug: 'work-design-system-administration', label: 'Design-system administration' },

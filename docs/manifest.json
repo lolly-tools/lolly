@@ -1995,7 +1995,7 @@
     },
     {
       "slug": "work-document-agents",
-      "title": "Invite an agent to a document",
+      "title": "Invite an agent",
       "src": "work/document-agents.md",
       "section": "build",
       "group": "Agents, APIs and integrations",
@@ -2003,7 +2003,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Invite MCP agents under your identity, with document access, expiry, live collaboration and revocation.",
+      "description": "Let an AI agent read or edit a shared document or project under your identity, for a period you choose, with every call recorded.",
       "work": {
         "slug": "document-agents",
         "path": "document-agents.md",
@@ -2747,7 +2747,7 @@
     },
     {
       "slug": "work-cli",
-      "title": "lw CLI: administer an instance",
+      "title": "lw CLI: administer Lolly Work",
       "src": "work/cli.md",
       "section": "build",
       "group": "URL and CLI automation",
@@ -2755,7 +2755,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Command reference for the admin CLI.",
+      "description": "Every lw command for running a Lolly Work instance: people, sources, catalog, renders, audit and governance.",
       "work": {
         "slug": "cli",
         "path": "cli.md",
@@ -2781,7 +2781,7 @@
     },
     {
       "slug": "work-resumable-uploads",
-      "title": "Resumable uploads",
+      "title": "Upload large files",
       "src": "work/resumable-uploads.md",
       "section": "build",
       "path": "build/resumable-uploads",
@@ -2789,7 +2789,7 @@
       "aliases": [],
       "contentLicense": "MPL-2.0",
       "group": "Agents, APIs and integrations",
-      "description": "Decision record: the parts protocol over tus, its resume report, and the scopes that share it.",
+      "description": "Send large files to Lolly Work in parts that survive a dropped connection: turn scoped uploads on, use lw upload or the API, and know the limits.",
       "work": {
         "slug": "resumable-uploads",
         "path": "resumable-uploads.md",
