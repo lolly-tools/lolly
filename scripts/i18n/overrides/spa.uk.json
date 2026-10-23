@@ -988,7 +988,7 @@
   "Sign in as {email} with {providers}.": "Увійдіть як {email} через {providers}.",
   "Open the link to set your password.": "Відкрийте посилання, щоб встановити пароль.",
   "This invitation ends on {date}.": "Це запрошення діє до {date}.",
-  "{name} is a private Lolly workspace. Sign in with the account your invitation went to.": "{name} — приватний робочий простір Lolly. Увійдіть з облікового запису, на який надійшло запрошення.",
+  "{name} is a private Lolly workspace. Sign in with the account your invitation went to.": "{name} - приватний робочий простір Lolly. Увійдіть з облікового запису, на який надійшло запрошення.",
   "Sign in to open the team project you were sent.": "Увійдіть, щоб відкрити командний проєкт, який вам надіслали.",
   "Signed in as {name} ({email})": "Ви ввійшли як {name} ({email})",
   "Signed in as {email}": "Ви ввійшли як {email}",
