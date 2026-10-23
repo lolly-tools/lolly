@@ -1,0 +1,72 @@
+<!--
+  Concept: where a creator's work lives, for "Find and recover your work". Inside this browser (or the
+  app's own storage): Projects, History, Trash and Assets. Outside it: the downloads folder, a Sync copy in
+  storage the person chose, and an Export my data backup file. Clearing browser data empties the first box
+  and leaves the second.
+  Band Contract: static fragment scoped under .fwp, reads the docs theme tokens with fallbacks, no script,
+  no motion, no network. Two columns, one column under 640px.
+  Sources: docs/find-your-work.md (the lookup table, "If you clear your browser data", "Move your work to
+  another device"), Trash's 30 days from the same page.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.fwp{--fwp-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--fwp-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --fwp-ground:hsl(var(--secondary,84.5 55% 92.2%));--fwp-paper:hsl(var(--card,0 0% 100%));
+ --fwp-accent:hsl(var(--primary,176.5 89.5% 11.2%));--fwp-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --fwp-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--fwp-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --fwp-wash:color-mix(in oklab,var(--fwp-accent) 12%,var(--fwp-paper));
+ --fwp-display:"Outfit","SUSE",ui-sans-serif,system-ui,sans-serif;--fwp-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--fwp-ink);background:var(--fwp-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.fwp *{box-sizing:border-box}
+.fwp ul{list-style:none;margin:0;padding:0}
+.fwp li{list-style:none;margin:0;font-size:inherit}
+.fwp p{margin:0}
+.fwp .fwp-cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:stretch}
+.fwp .fwp-box{border-radius:18px;padding:14px;display:grid;gap:10px;align-content:start}
+.fwp .fwp-in{background:var(--fwp-paper);box-shadow:0 0 0 2px var(--fwp-accent)}
+.fwp .fwp-out{background:var(--fwp-paper);box-shadow:0 0 0 1px var(--fwp-line)}
+.fwp .fwp-cap{font:600 11px/1.3 var(--fwp-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--fwp-muted)}
+.fwp .fwp-title{font:500 18px/1.15 var(--fwp-display)}
+.fwp .fwp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fwp .fwp-item{display:flex;gap:9px;align-items:flex-start;padding:10px;border-radius:12px;background:var(--fwp-soft)}
+.fwp .fwp-in .fwp-item{background:var(--fwp-wash)}
+.fwp .fwp-item svg{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;color:var(--fwp-accent);margin-top:1px}
+.fwp .fwp-item b{display:block;font:600 14px/1.2 var(--fwp-display)}
+.fwp .fwp-item span{display:block;font-size:12.5px;color:var(--fwp-muted);margin-top:2px}
+.fwp .fwp-stack{display:grid;gap:8px}
+.fwp .fwp-note{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--fwp-muted);padding-top:2px}
+.fwp .fwp-note svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@container (max-width:640px){
+ .fwp .fwp-cols{grid-template-columns:minmax(0,1fr)}
+}
+@container (max-width:380px){
+ .fwp .fwp-grid{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+<div class="fwp">
+<div class="fwp-cols">
+<div class="fwp-box fwp-in">
+<p class="fwp-cap">Inside this browser or app</p>
+<p class="fwp-title">On this device only</p>
+<ul class="fwp-grid">
+<li class="fwp-item"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg><div><b>Projects</b><span>Saved sessions and folders</span></div></li>
+<li class="fwp-item"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.5 2"/></svg><div><b>History</b><span>Earlier versions and recovered edits</span></div></li>
+<li class="fwp-item"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><div><b>Trash</b><span>Deleted items, for 30 days</span></div></li>
+<li class="fwp-item"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="6" y="2" width="16" height="16" rx="2"/><path d="M18 22H4a2 2 0 0 1-2-2V6"/><circle cx="12" cy="8" r="2"/><path d="m22 13-1.3-1.3a2.4 2.4 0 0 0-3.4 0L11 18"/></svg><div><b>Assets</b><span>Your uploads and copies of downloads</span></div></li>
+</ul>
+<p class="fwp-note"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>Clearing this site's browser data empties this box.</p>
+</div>
+<div class="fwp-box fwp-out">
+<p class="fwp-cap">Outside the browser</p>
+<p class="fwp-title">Copies that survive a clear</p>
+<ul class="fwp-stack">
+<li class="fwp-item"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg><div><b>Downloads folder</b><span>Every file you pressed Download for</span></div></li>
+<li class="fwp-item"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg><div><b>Sync copy</b><span>In storage you chose, when Sync is on</span></div></li>
+<li class="fwp-item"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/></svg><div><b>Backup file</b><span>The zip that Export my data writes</span></div></li>
+</ul>
+</div>
+</div>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKDGp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnmanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDplNzRjM2IxMS1iYTkwLTQ3M2YtYTk4YS00MWEzNDJkNTc5MDUAAAAEY2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDY6MDA6MjdaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkYAWZsZW5ndGgZDcpkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIET2eX4Jlufb1U3DHdATedDoqA112i9b0w9NhC/3QiVUY3BhZEgAAAAAAAAAAAAAAOxqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAAC4Y2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2x1ZmluZC15b3VyLXdvcmstcGxhY2VzZGRhdGV4GDIwMjYtMTAtMjNUMDY6MDA6MjcuMjMzWmpkaW1lbnNpb25zazI0IMOXIDI0IHB4aGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAtNqdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACpGNib3KmaGRjOnRpdGxldWZpbmQteW91ci13b3JrLXBsYWNlc2ppbnN0YW5jZUlEeC11cm46dXVpZDo0YjRlZGFjMS1jZTgzLTQ0YzgtYTAwZi0zZjRmMjRmOWE0NWR0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIPx0QguvqYak07M4ZZdoh2flw04h62z06PmfG0m62gK6omN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIDNjXzzgE9UmPYr70omNqlAEaUEDCT0ujQ6n89JbQS0GomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCA2BhlslCkH+aCeNJhVCtiWa5/T/uocIeFs1ZFTin57+KJjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmFqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjFjYm9y0oRZAeCiASYYIYFZAdcwggHTMIIBeaADAgECAglHgHGPBGsfzIcwCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMzA1NTkyN1oXDTM2MTAyMDA2MDAyN1owNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE9n3zOlVnvIGrZNX9V4ced74kVToA5ecDpmf3K16mhhU63yZjl2P324WisFJ1mpB0o5m1IarZTmfgCW99dT7SP6NyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFDKt2Q2BFHGisLi9fSPOQAV8SvYAMB8GA1UdIwQYMBaAFDKt2Q2BFHGisLi9fSPOQAV8SvYAMAoGCCqGSM49BAMCA0gAMEUCIQCce/FJUoIGF6WZmJ4cNzb3CrR4GH7qcigABpiGta1mbwIgb2ewxWPYM4DNeLUhamasq0w+xRcZ7V/3yPoEltO9KfWg9lhAlVV5x+31ulX9HtUGkZX0ucFGhRUrxZ121WpCccpFnlyKLNmBaik8FU18GF4/eZyDDmS5ovM0l+eK0MLAUWCtjg== -----END C2PA MANIFEST----- -->

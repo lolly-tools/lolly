@@ -1,0 +1,15 @@
+digraph composed_text_path {
+  rankdir=TB
+  node [shape=box]
+  story [label="Story source\ntext and pinned fonts"]
+  shaping [label="Shaping\nHarfBuzz, bidi, breaks"]
+  layout [label="layoutRuns\nruns, carets, extents"]
+  svg [label="SVG outlines\nevery shell"]
+  edit [label="Native editing\nweb projection"]
+  receipt [label="Export receipt\nsettled geometry"]
+  story -> shaping
+  shaping -> layout
+  layout -> svg
+  layout -> edit
+  layout -> receipt
+}

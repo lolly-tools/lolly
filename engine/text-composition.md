@@ -1,6 +1,10 @@
 # Authored text composition
 
-Engine 1.217 adds an optional composed-text path. Legacy text keeps its existing renderer until an explicit upgrade. The implementation is shared by web, CLI and the Node bridge used by TUI and MCP. Read [the Design text guide](/info/create/text-composition.html) for the editing workflow.
+Composed text is Design's editable, typeset text: stories that flow through linked frames or along a path, shaped by HarfBuzz and exported as the same outlines on every shell. This page is the engine contract underneath, for engineers working on composed text, shaping or export receipts. [Text in Design](/info/create/text-composition.html) covers the editing workflow.
+
+The composed-text path arrived in engine 1.217 and is optional: legacy text keeps its existing renderer until an explicit upgrade. One implementation serves the web app, the CLI and the Node bridge that the TUI and MCP use.
+
+![A story's literal source and pinned fonts are shaped by HarfBuzz into one layoutRuns result, which feeds SVG outlines, the web app's native editing surface and the export receipt.](/info/diagrams/concepts/composed-text-path.svg)
 
 ## Source and ownership
 
@@ -20,9 +24,13 @@ Unicode 17 grapheme, bidi and line-break data are pinned. Thai segmentation uses
 
 Standard composition retains legal greedy lines. Best paragraph scores admitted candidates across the paragraph; Balanced heading adds a preference for similar line lengths. Hard breaks, no-break ranges and cluster boundaries take priority over spacing preferences. The candidate graph has a fixed budget and reports its bounded fallback. Frame flow retries at most 12 width schedules; balancing uses at most 16 searches. Shrink-to-fit uses at most 12 searches and respects the smallest authored size. Linked frames cannot shrink independently.
 
-A host-owned cache retains at most 32 prepared paragraphs within 32 MiB, with a separate 8 MiB settled flow snapshot and at most 128 prefix checkpoints. Individual line-shape caches are limited to 128 entries and 1 MiB. Source, ranges, styles, fonts, artwork, frames and wrap geometry invalidate the relevant work. A single paragraph bypasses prefix retention because every source edit invalidates that paragraph. Returned layouts cannot mutate cached revisions.
+Layout work is cached by the host and dropped when its inputs change: source, ranges, styles, fonts, artwork, frames and wrap geometry each invalidate the work that depends on them. Returned layouts cannot change a cached revision.
 
-Settled clipboard receipts use a separate eight-entry, 32 MiB cache. Serialized receipts produce fresh objects on retrieval. Native glyph measurements retain at most 1,024 entries within 128 KiB. Cached screen transforms include all six matrix coordinates, so rotated frames invalidate their projections correctly.
+::: details Cache bounds
+A host-owned cache keeps at most 32 prepared paragraphs within 32 MiB, with a separate 8 MiB settled flow snapshot and at most 128 prefix checkpoints. Each line-shape cache is limited to 128 entries and 1 MiB. A single paragraph skips prefix retention, because every source edit invalidates that paragraph.
+
+Settled clipboard receipts use a separate cache of eight entries and 32 MiB, and serialised receipts produce fresh objects when read. Native glyph measurements keep at most 1,024 entries within 128 KiB. Cached screen transforms include all six matrix coordinates, so rotated frames invalidate their projections correctly.
+:::
 
 ## Native editing and collaboration
 

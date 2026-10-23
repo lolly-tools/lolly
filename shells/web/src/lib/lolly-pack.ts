@@ -100,7 +100,7 @@ export const LOLLY_MIME = 'application/vnd.lolly+zip';
 export const LOLLY_EXT = '.lolly';
 /** The sender's design system, as the DTCG document their studio holds. An additive part
  *  (readers before it simply see no `designSystem` in the manifest), so the file also
- *  carries the brand a session was made under - the design-system studio's "Add from a
+ *  carries the brand a session was made under - Design System Setup's "Add from a
  *  file" can bring it across without the sender's pack. */
 export const DESIGN_SYSTEM_PART = 'design-system.json';
 /** The templates the file carries (plans/226 section 4.7), as `{ templates: [...] }`.

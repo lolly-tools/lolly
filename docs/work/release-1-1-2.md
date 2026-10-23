@@ -1,6 +1,6 @@
-# Lolly and Work 1.1.2
+# Release 1.1.2: Lolly and Work
 
-Work 1.1.2 pairs the Work server and render worker with
+This is the current release. Work 1.1.2 pairs the Work server and render worker with
 [Lolly 1.1.2](https://github.com/lolly-tools/lolly/releases/tag/v1.1.2), built from
 Lolly source `fe27a843813b0a653c648e6db078ae8f982b2654`. It is published as
 [Work v1.1.2](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2).
@@ -37,6 +37,19 @@ builds and spot inks into the app's palette downloads, which no Work route calls
 Lolly 1.1.2 lists these features as needing Lolly Work. Against a Work 1.1.1 server
 they stay hidden or fail as described in the Lolly notes.
 
+| Lolly 1.1.2 feature | What Work 1.1.2 adds |
+|---|---|
+| Shared library browsing | Shared scope, type and taxonomy filters and each source's sync status on the asset list |
+| Reviewed search text | A stored, reviewed text entry per asset, bound to the source revision |
+| Shared project files into the library | Submitting a file straight from a shared project, with checksums |
+| Source review | Approvals for frozen instance-owned originals |
+| Live shared sessions in the desktop and mobile apps | A one-use socket ticket for each room |
+| App sign-in to a private Work server | The device code kept through the browser sign-in round trip |
+| Guest landing | A page without scripts for guest edit links, with name and password fields |
+| Model downloads through Work | A `/models/` route that answers from the web app folder or a model origin |
+| Collaboration claims for Scale and keyframes | Core 1.5.0 claim rules in the collaboration gateway |
+
+::: details The API detail behind each feature
 - **Shared library browsing.** `GET /api/v1/catalog/assets` takes `scope=shared`,
   up to 16 `types` and a `taxonomyKind` with `taxonomyId` (section, collection or
   folder). Answers report each source's sync status (`sources`, `complete`) and
@@ -73,7 +86,7 @@ they stay hidden or fail as described in the Lolly notes.
   `POST /api/v1/collab/sessions/:id/socket-ticket` issues a one-use ticket for one
   room, valid for 30 seconds, which the apps send as a WebSocket subprotocol. It needs
   a signed-in member with access to the session and the `collab.join` grant. Where no
-  collaboration gateway runs, such as the Vercel function, it answers
+  collaboration gateway runs, such as the serverless function adapter, it answers
   `501 UNAVAILABLE`. Tickets are held in memory, so the ticket request and the socket
   upgrade must reach the same process.
 - **App sign-in to a private Work server.** The device sign-in routes are unchanged
@@ -102,6 +115,7 @@ they stay hidden or fail as described in the Lolly notes.
   an object's keyframe track and the content fields a Scale writes, and adds the
   `'scale'` preview kind. A Work 1.1.1 server, built with core 1.4.0, sees Scale
   previews as resizes.
+:::
 
 ## Other changes since 1.1.1
 
@@ -167,6 +181,10 @@ they stay hidden or fail as described in the Lolly notes.
 
 ## Changes for API clients and operators
 
+These change what an API client or operator sees, so check them before upgrading an
+integration.
+
+::: details Every API and operator change
 - **Credentials leave URLs.** `GET /api/v1/jobs/:id/result` takes its token in the
   `x-lw-job-token` header, and callbacks and job resources carry `resultToken`. Link
   passwords are posted as a form or JSON field and kept in an `lw_link_<id>` cookie.
@@ -188,6 +206,7 @@ they stay hidden or fail as described in the Lolly notes.
   `sourceFingerprint`, so clients older than Lolly 1.1.2 cannot act on one. Other
   approvals are unchanged.
 - **PostgreSQL blob size.** The `pg` blob driver refuses blobs over 500 MiB.
+:::
 
 ## Migrations
 
@@ -200,14 +219,19 @@ This release adds six SQL migrations since 1.1.1:
 - `0076_file_references.sql`
 - `0076_session_version_history.sql`
 
-Number 0071 is reserved by unmerged work and two files share 0076. The runner records
-each full file name, sorts by name and applies both 0076 files. The maintained history
-now has 66 files. `0076_session_version_history.sql` builds an ordinary index on
-`session_versions`, not a concurrent one, inside the runner's 120 second statement
-timeout; on a large instance, plan for that table to be locked while it runs. Before
-upgrading, check the database with `pnpm run migrate:status`, take a fresh verified
-backup and complete an independent restore. Then apply the maintained migration runner
-or the chart's migration Job, against the selected instance only.
+`0076_session_version_history.sql` builds an ordinary index on `session_versions`, not a
+concurrent one, inside the runner's 120 second statement timeout. On a large instance,
+plan for that table to be locked while it runs.
+
+Before upgrading, check the database with `pnpm run migrate:status`, take a fresh verified
+backup and complete an independent restore. Then apply the maintained migration runner or
+the chart's migration Job, against the selected instance only.
+
+::: details Why there is no 0071 and two 0076 files
+Number 0071 is reserved by work not yet merged, and two files share 0076. The runner
+records each full file name, sorts by name and applies both 0076 files. The maintained
+history now has 66 files.
+:::
 
 ## Deployment
 
@@ -217,9 +241,10 @@ or the chart's migration Job, against the selected instance only.
 - **Helm chart 0.3.3.** The chart passes `LW_CATALOG_SIGNING_KEY` from the
   installation Secret when present, which the 0.3.1 chart never did. It gains Artifact
   Hub annotations, a Rancher `questions.yaml`, a licence, an icon and a README. The
-  default image tags follow appVersion 1.1.2. `values-official-release.yaml` still
-  pins the qualified 1.1.1 images until 1.1.2 is published and qualified. Chart
-  publication through `publish-helm.yml` is a separate, reviewed step.
+  default image tags follow appVersion 1.1.2. `values-official-release.yaml` is
+  generated from `deploy/marketplaces/release.json` and still pins the qualified
+  1.1.1 images. Chart publication through `publish-helm.yml` is a separate,
+  reviewed step and has not run yet.
 - **Neutral VM and Dokploy package.** `deploy/marketplaces` and `deploy/dokploy` pin
   a qualified release cohort, still Work 1.1.1. In a browser, the neutral 1.1.1 shell
   refuses the installation's per-caller catalogue, so browser use of that package is
@@ -230,6 +255,9 @@ or the chart's migration Job, against the selected instance only.
 
 ## Prepare and qualify
 
+This section is for Work maintainers cutting the release.
+
+::: details Maintainer commands
 The commands are the same as for 1.1.1, with `vendor/lolly` at the Lolly source
 above:
 
@@ -251,15 +279,19 @@ Before tagging or publishing images, the exact final Work commit needs ordinary
 CI, including the native server image checks and the real Chromium worker checks
 with the matched signed shell. The tagged server and worker images must come from
 that same Work commit.
+:::
 
 ## YunoHost packaging
 
 Lolly 1.1.2 publishes no new web archive, so a Work YunoHost package for 1.1.2 keeps
 the Lolly 1.1.1 web archive `https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz` (SHA-256
 above). That shell carries engine 1.261.0 and none of the Lolly 1.1.2 features above,
-and nothing checks the pairing. Until a `1.1.2~ynh1` package is cut, published and
-qualified, `1.1.1~ynh1` stays the current YunoHost package. If it is cut, use the
-maintained producer on the final Work commit:
+and nothing checks the pairing. The `1.1.2~ynh1` package is cut:
+`deploy/yunohost/manifest.toml` at the `v1.1.2` tag gives that version, and its Work archive
+`lolly-work-1.1.2-ynh1.tar.gz` is in the release's `SHA256SUMS`. It is not yet
+mirrored to `lolly-work_ynh` and has no `yunohost-runtime.yml` run, so the
+installable package there is still `1.1.1~ynh1`. The maintained producer cuts the
+package on the final Work commit:
 
 ```text
 node scripts/yunohost-release.ts --ynh-rev 1 --shell-url https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz --shell-sha256 bc78012aa407983ecc818e63be98ae1b45ed7db1dcad3f4c8d4ffe0c371116c1 --out ABS_NEW_ARTIFACT_DIRECTORY
@@ -271,8 +303,19 @@ archive byte equality, as for 1.1.1. Runtime results are recorded after its
 
 ## Images and qualification
 
-The release workflow builds, signs and publishes the server and render-worker
-images from the `v1.1.2` tag. The verified digests are recorded here after
-publication. The installation guides, the marketplace release cohort and the
-download page keep naming the 1.1.1 downloads until 1.1.2 is published and
-qualified.
+The release workflow built, signed and published the server and render-worker
+images from the `v1.1.2` tag push, on 2026-10-20. The release's
+`release-source-images.json` records their verified digests:
+
+| Image | Digest |
+|---|---|
+| `ghcr.io/lolly-tools/lolly-work-server:1.1.2` | `sha256:68ef78a1605c5530f6c2939e584cb8875fdcd5a8bdb0112b35c0515b2ddc0504` |
+| `ghcr.io/lolly-tools/lolly-work-render-worker:1.1.2` | `sha256:b9f7b5709ef6108ddb0e793b3a5039ebdcb5dcb5c2ad8c9d6f2d51b0e0cf39fb` |
+
+Both are multi-platform indexes for linux/amd64 and linux/arm64, signed keylessly
+with identity `https://github.com/lolly-tools/lolly-work/.github/workflows/release.yml@refs/tags/v1.1.2`.
+The signatures were verified with anonymous registry access. The record does not
+claim native arm64 runtime qualification. The installation guides and the download
+page name the 1.1.2 images. The marketplace release cohort (`deploy/marketplaces/release.json`),
+the Dokploy blueprint and `values-official-release.yaml` still pin the qualified
+1.1.1 images until 1.1.2 is qualified.

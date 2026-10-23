@@ -1,0 +1,75 @@
+<!--
+  Concept: the path a script takes through the Lolly Work automation API. Four steps (a service
+  token, GET /api/v1/discovery/me, GET /api/v1/schema/:toolId, POST /api/v1/render), then the two
+  ways a render answers: the file at once, or with ?async=1 a job whose result is fetched with the
+  job token, sent to a signed callback or delivered to a destination.
+  Band Contract: static fragment scoped under .waj, reads the docs theme tokens with fallbacks, no
+  script, no motion, no network. Steps run in a row on a wide column and stack below 560px.
+  Sources: lolly-work server/src/api/app.ts (POST /api/v1/render, the async branch and
+  POST /api/v1/tokens), server/src/automation/discovery.ts and server/src/automation/jobs.ts.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.waj{--waj-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--waj-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --waj-ground:hsl(var(--secondary,84.5 55% 92.2%));--waj-paper:hsl(var(--card,0 0% 100%));
+ --waj-accent:hsl(var(--primary,176.5 89.5% 11.2%));--waj-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --waj-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);
+ --waj-wash:color-mix(in oklab,var(--waj-accent) 12%,var(--waj-paper));
+ --waj-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--waj-ink);background:var(--waj-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.waj *{box-sizing:border-box}
+.waj ol,.waj ul{list-style:none;margin:0;padding:0}
+.waj li{margin:0;font-size:inherit}
+.waj p{margin:0}
+.waj b{font-weight:600}
+.waj code{font:500 12px/1.35 var(--waj-mono);background:none;padding:0;color:inherit;overflow-wrap:anywhere}
+.waj .waj-cap{font:500 11px/1.3 var(--waj-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--waj-muted);margin-bottom:10px}
+.waj .waj-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;position:relative}
+.waj .waj-step{position:relative;background:var(--waj-paper);border-radius:14px;box-shadow:0 0 0 1px var(--waj-line);padding:12px;display:grid;gap:6px;align-content:start}
+.waj .waj-step:not(:last-child)::after{content:"";position:absolute;top:50%;right:-17px;width:12px;height:12px;
+ border-top:2px solid var(--waj-accent);border-right:2px solid var(--waj-accent);transform:translateY(-50%) rotate(45deg)}
+.waj .waj-num{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--waj-accent);color:var(--waj-on-accent);font:600 12px/1 var(--waj-mono)}
+.waj .waj-step b{font-size:15px;line-height:1.2}
+.waj .waj-step p{font-size:13px;color:var(--waj-muted)}
+.waj .waj-fork{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.waj .waj-then{margin:16px 0 8px}
+.waj .waj-out{border-radius:14px;padding:12px;display:grid;gap:8px;align-content:start;background:var(--waj-wash);box-shadow:0 0 0 1px var(--waj-line)}
+.waj .waj-out b{font-size:15px}
+.waj .waj-out p{font-size:13px}
+.waj .waj-chain{display:grid;gap:6px}
+.waj .waj-chain li{display:grid;grid-template-columns:16px minmax(0,1fr);gap:8px;align-items:start;font-size:13px}
+.waj .waj-chain svg{width:16px;height:16px;margin-top:1px;fill:none;stroke:var(--waj-accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@container (max-width:560px){
+ .waj .waj-steps{grid-template-columns:minmax(0,1fr);gap:18px}
+ .waj .waj-step:not(:last-child)::after{top:auto;bottom:-14px;right:auto;left:22px;transform:rotate(135deg)}
+ .waj .waj-fork{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+<div class="waj" role="group" aria-label="The path from a service token to a rendered file">
+  <p class="waj-cap">From a token to a file</p>
+  <ol class="waj-steps">
+    <li class="waj-step"><span class="waj-num">1</span><b>Get a token</b><code>lw tokens create</code><p>An owner mints it once. Send it as <code>Bearer lwt_…</code></p></li>
+    <li class="waj-step"><span class="waj-num">2</span><b>Ask what it may do</b><code>GET /api/v1/discovery/me</code><p>Formats this server renders, and whether the token may render</p></li>
+    <li class="waj-step"><span class="waj-num">3</span><b>Read the inputs</b><code>GET /api/v1/schema/:toolId</code><p>Hidden, locked and choice inputs already applied</p></li>
+    <li class="waj-step"><span class="waj-num">4</span><b>Render</b><code>POST /api/v1/render</code><p><code>{ toolId, format, inputs }</code></p></li>
+  </ol>
+  <p class="waj-cap waj-then">Step 4 answers in one of two ways</p>
+  <div class="waj-fork">
+    <div class="waj-out">
+      <b>The file, straight away</b>
+      <p><code>200</code> with the bytes, their media type and an <code>x-lolly-brand-check</code> header</p>
+    </div>
+    <div class="waj-out">
+      <b>A job, with <code>?async=1</code></b>
+      <ul class="waj-chain">
+        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg><span><code>202 { jobId, statusUrl }</code></span></li>
+        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg><span>read the result with the <code>x-lw-job-token</code> header</span></li>
+        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg><span>or take a signed callback at <code>notify.webhook.url</code></span></li>
+        <li><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg><span>or deliver it to a destination by reference</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKDWp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnnanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDpkNTdiNDZkMi03ZTJhLTQwNmMtYjg5Yi1lNDc0YjRiZGI3OGIAAAAEXWp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNjozODoyNloAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GRY2Zmxlbmd0aBkNymRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggTuSY0DUQn/b3phbunxNtDyzuw+f3JH7NPglALRd8lkpjcGFkSAAAAAAAAAAAAAAA82p1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAAL9jYm9yqGdzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHgbd29yay1hdXRvbWF0aW9uLWFwaS1qb3VybmV5ZGRhdGV4GDIwMjYtMTAtMjNUMDY6Mzg6MjYuNjQzWmpkaW1lbnNpb25zazE2IMOXIDE2IHB4aGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAtpqdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACq2Nib3KmaGRjOnRpdGxleBt3b3JrLWF1dG9tYXRpb24tYXBpLWpvdXJuZXlqaW5zdGFuY2VJRHgtdXJuOnV1aWQ6NGRmZTAzYzMtMTgzZi00ZTM2LWEwZjItYTZjM2JkNTg4ZGY2dGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGtzcGVjVmVyc2lvbmUyLjQuMHJjcmVhdGVkX2Fzc2VydGlvbnOFomN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCBQ6V5svJCUCAVMKcl72wNXCbdBroDt3Z/R58TU+3kR3aJjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCC3BR76rbZE/uGWeFmRbnlyUKlCHwoTlipt8Kzd+zkrzKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy90b29scy5sb2xseS5leHBvcnRkaGFzaFggpDWFhH2e+fmBS7b1XmzopByGlKHrOcBRjLj6QgbaXCeiY3VybHgoc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvY2F3Zy5tZXRhZGF0YWRoYXNoWCDuJiUol/9ndNv6gbMRLa4CPvJcm24MrBQ3oMM0RtpuhKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFpLWRpc2Nsb3N1cmVkaGFzaFggtQsv4iBHCG4VvZn3v64VDszBnFa6ATQYozPN5SFimqtpc2lnbmF0dXJleBlzZWxmI2p1bWJmPWMycGEuc2lnbmF0dXJlY2FsZ2ZzaGEyNTYAAAJhanVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAAAIxY2JvctKEWQHgogEmGCGBWQHXMIIB0zCCAXmgAwIBAgIJRIiRhdG0VsJPMAoGCCqGSM49BAMCMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDAeFw0yNjEwMjMwNjM3MjZaFw0zNjEwMjAwNjM4MjZaMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABMLat1nZpBxkoZq5+OSQh5SBKCiuEBXWW4f/BuhUir0v6LhXZcDk3pnTtnXeaLkePnM0YWmnHKwlJgkCA8EPNWajcjBwMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMEMB0GA1UdDgQWBBQGX+o7Dpbi9Wcg1CV6pLLxrLo3mDAfBgNVHSMEGDAWgBQGX+o7Dpbi9Wcg1CV6pLLxrLo3mDAKBggqhkjOPQQDAgNIADBFAiBr7y0oJLKH4oopxsoCnS3tjTvdaQQivypsYrYzV8ysBwIhANdx2NxndiOO5nqI1FzS8OXT49etqGlL4JOe4jb5NB4YoPZYQCInJ5MP4QSLglWjM0FdzKmVrXyLwEbsCbqn8W9+801oYEPQ8wqqdLCDGuBrrxHcLpv7lixvc+5L2VKjsHyYbAY= -----END C2PA MANIFEST----- -->

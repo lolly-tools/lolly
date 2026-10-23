@@ -84,7 +84,8 @@ export function touchesDependencies(changes: Change[]): boolean {
 /** Reviewed ratchet baselines. The typecheck job still enforces every one of them on the same run. */
 const BASELINES = ['scripts/house-rules-baseline.json', 'scripts/vernacular-code-baseline.json',
   'scripts/vernacular-docs-baseline.json', 'scripts/vernacular-ui-baseline.json', 'security/lint-baseline.json',
-  'security/maintainability-baseline.json'];
+  'security/maintainability-baseline.json', 'scripts/data/docs-ratchets/h1-title.json',
+  'scripts/data/docs-ratchets/public-examples.json', 'scripts/data/docs-ratchets/vercel.json'];
 /** Test paths the heavy shards own by name, after scripts/run-test-suite.ts (browser, Tauri, conformance, fuzz). */
 const HEAVY_TEST_NAME = /(?:^|[/_.-])(?:browser|capture|dom-emitter|export-emitter-golden|playwright|screen-capture|svg-walker|walker|webgpu|gpu|geometry|drawing|tauri|native|c2pa|c2patool|conformance|foreign|qpdf|fuzz)(?:[/_.-]|$)/i;
 /** The runtime markers scripts/run-test-suite.ts uses to put a test file in the browser shard. */

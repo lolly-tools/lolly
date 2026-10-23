@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Native site transport, shared by BOTH Tauri shells - the JS half of the
- * Design System studio's website source (plans/97 section 9 / SS9).
+ * Design System Setup's website source (plans/97 section 9 / SS9).
  *
  * The studio never fetches a site itself. It asks a TRANSPORT for one, and there
  * are exactly two (plan 97 section 9, decision resolved: no server fetch, ever): this

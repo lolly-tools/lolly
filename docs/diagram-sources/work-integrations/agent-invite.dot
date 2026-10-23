@@ -1,0 +1,13 @@
+digraph agent_invite {
+  rankdir=TB
+  node [shape=box]
+  member [label="You\nInvite agent"]
+  key [label="Connection key\nshown once"]
+  client [label="Agent's MCP client\nprivate settings"]
+  room [label="Document or project\nyour access, no more"]
+  audit [label="Audit trail\nevery call recorded"]
+  member -> key
+  key -> client
+  client -> room
+  room -> audit
+}

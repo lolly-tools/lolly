@@ -39,7 +39,7 @@ export function renderShell(start: StartCtx): void {
       <div class="start-back-row">${backPill}${homeFab}</div>
       <div class="gallery-topright start-topright">${langFabHtml()}</div>
       <header class="start-head">
-        <p class="start-eyebrow">${t('Design system')}</p>
+        <p class="start-eyebrow">${t('Design System Setup')}</p>
         <h1 class="start-title">${t('Make it yours')}</h1>
         <p class="start-sub">${isTauriShell() ? t('Your design system stays on this device.') : t('Your design system stays in this browser.')}</p>
         <!-- Which design system the studio is editing (plans/186 section 5): filled

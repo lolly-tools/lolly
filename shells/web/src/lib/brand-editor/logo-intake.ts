@@ -267,7 +267,7 @@ export function seedIntakeQueue(bedit: BrandEditorCtx): void {
   const { root } = bedit;
   /**
    * Marks sent over from another view (plan 97 section 8, M5 - the PDF exploder's
-   * "Send to the Design System studio"). They go through addLogoFiles, the very
+   * "Send to Design System Setup"). They go through addLogoFiles, the very
    * same door a multi-file drop uses: classified, chipped, and waiting for a tap.
    * A mark lifted off page 3 of a guidelines PDF is exactly as much of a guess as
    * one dropped by hand, so it is never placed into a slot on arrival.

@@ -1,40 +1,68 @@
-# Outbound delivery
+# Organisation delivery destinations
 
-Outbound delivery sends one finished Lolly export to a fixed destination owned by the
-organization. Brandfolder and Cloudinary adapters cover fixed DAM destinations. Three open adapters cover object storage, sovereign file servers and a small
-receiver protocol: generic S3-compatible storage (AWS S3, MinIO, Ceph RGW, Garage, UpCloud),
-WebDAV (including Nextcloud/ownCloud), and HMAC-signed HTTPS.
+Your team finishes a poster, and it has to reach the campaign archive exactly as approved. This
+page is for the admin who sets up those fixed organisation destinations in Lolly Work, and for
+the people and automations that send to them. Delivery sends one finished Lolly export to a
+destination your organisation owns: S3-compatible storage (such as AWS S3, MinIO, Ceph RGW or
+Garage), WebDAV (including Nextcloud and ownCloud), an HMAC-signed HTTPS receiver, Brandfolder
+or Cloudinary.
 
-This is not a writable catalog provider. Catalog providers federate remote assets **into**
-Lolly, normally read-only; delivery sends a generated output **out**. Reusing the same
-credential would silently upgrade read authority to write authority, so the two contracts,
-registries and secrets stay separate.
+## How delivery differs from a source
 
-## Freedom boundary
+A catalog provider brings remote assets **into** Lolly, normally read-only. Delivery sends a
+generated output **out**. Reusing one credential for both would silently turn read authority
+into write authority, so the two keep separate contracts, registries and secrets.
 
-- Personal send targets stay on the person's device. Work cannot inspect, disable, redirect,
-  credential, or select them.
-- Organization destinations contain organization credentials on the server. A shell receives
-  only `{id, kind, label, formats, maxBytes, visibility, projectFiles?}` after group and RBAC filtering.
-- Organization destinations cannot become a person's automatic export home.
-- No destination is configured by default; absence means zero outbound delivery.
-- A manual send is explicit. Automation may publish only its own completed, immutable render
-  output by reference; it cannot nominate a personal file, another principal's job, or an
-  arbitrary BlobStore key.
-- The connected shell presents organization targets beside personal ones. An organization S3
-  target cannot replace a person's S3 connection, and a person's connector preference cannot
-  withdraw an organization target. Export sends require a Content Credential on the exact sent
-  bytes. DAM destinations may explicitly accept a verified shared-project original through
-  `projectFiles: true`; local and federated catalog assets do not gain this authority.
-- S3 is an open protocol adapter, not a privileged hosted service. A deploy brings its own
-  endpoint, bucket and key and can leave without migrating a Lolly-specific representation.
+- **Personal targets stay personal.** A person's own send targets stay on their device. Work
+  cannot see, disable, redirect, credential or choose them, and they never appear in Work
+  configuration, grants, history or credentials.
+- **Organisation credentials stay on the server.** A shell receives only
+  `{id, kind, label, formats, maxBytes, visibility, projectFiles?}`, after group and permission
+  filtering.
+- **Side by side, never instead.** The connected shell shows organisation destinations beside
+  personal ones. An organisation S3 destination cannot replace a person's S3 connection or
+  become their automatic export home, and a person's preference cannot withdraw an organisation
+  destination.
+- **Nothing by default.** No destination is configured until you add one, and no destination
+  means no outbound delivery.
+- **Explicit sends.** A manual send is a person's choice. Automation may publish only its own
+  completed, unchangeable render output by reference; it cannot choose a personal file, another
+  principal's job or an arbitrary storage key.
+- **Signed exports only.** An export send needs a Content Credential on the exact bytes sent. DAM
+  destinations may also accept a verified shared-project original with `projectFiles: true`;
+  local and federated catalog assets never gain that authority.
+- **No lock-in.** S3 is an open protocol adapter, not a privileged hosted service. You bring your
+  own endpoint, bucket and key, and can leave without migrating a Lolly-specific format.
 
-`lolli.li` is the Lolly open-source project's release/model file host, **not a user-upload
-service and not a built-in destination**. Its UpCloud bucket is used only by an explicitly
-gated developer canary to verify S3 interoperability; the canary writes inert bytes under a
-random technical key and deletes that exact key in `finally`.
+## Pick an adapter
 
-## Configure a fixed S3 destination
+| Adapter | Credential | After writing, Work checks | Revoke |
+|---|---|---|---|
+| `s3` | `<accessKeyId>:<secretAccessKey>` | a signed `HEAD` confirms the size | no |
+| `webdav` | `<username>:<app-password>`, or `bearer:<token>` | authenticated `HEAD` and a bounded `GET` confirm size and SHA-256 | no |
+| `https` | a dedicated random HMAC secret | the receiver's returned digest, when it sends one | no; the protocol has no safe universal delete |
+| `brandfolder` | an API token used only for writing | reads the original back and compares SHA-256 | no; it never updates, replaces, moves or deletes an asset |
+| `cloudinary` | JSON `{ "apiKey", "apiSecret" }` | reads the original back and compares SHA-256 | no; an id collision is never replaced |
+
+S3, WebDAV and signed HTTPS refuse redirects, and Brandfolder refuses API and upload redirects.
+S3 and WebDAV receipts record
+`transformation: "none"` and the delivered digest. Signed HTTPS derives that status from the
+receiver's digest rather than assuming every publisher keeps bytes unchanged.
+
+## Configure a destination
+
+Destinations live in the instance configuration under `delivery`. Every destination has an
+`id`, a `kind`, a `label`, a `credentialRef` (the environment variable that holds its secret),
+`enabled`, the `groups` that may see it, the `formats` it accepts and an optional `maxBytes`
+below the instance-wide `delivery.maxBytes`.
+
+::: warning Use a credential made for this destination
+Use a write credential dedicated to one destination and restricted to its bucket, folder or
+section. Do not reuse a catalog-provider credential, the instance BlobStore credential or an
+operator's broad release key.
+:::
+
+### Configure a fixed S3 destination
 
 ```json
 {
@@ -68,16 +96,14 @@ Set the referenced secret in the deployment environment:
 LW_DESTINATION_CAMPAIGN_ARCHIVE='<accessKeyId>:<secretAccessKey>'
 ```
 
-Use a write key dedicated to this destination and restricted to the configured bucket/prefix.
-Do not reuse the catalog-provider credential, the instance BlobStore credential, or an
-operator's broad release key. `publicBaseUrl` is optional and means exactly what it says: when
-present, Work marks the descriptor public and returns the corresponding object URL in the
-receipt. An unguessable public URL is not access control.
+`publicBaseUrl` is optional and means exactly what it says: when present, Work marks the
+destination public and returns the matching object URL in the receipt. An unguessable public URL
+is not access control.
 
-## Configure a fixed WebDAV destination
+### Configure a fixed WebDAV destination
 
-The collection and any `prefix` subdirectory must already exist. Delivery neither browses the
-account nor creates a folder tree; it can write only beneath the fixed collection URL.
+The collection, and any `prefix` subdirectory, must already exist. Delivery neither browses the
+account nor creates folders; it writes only beneath the fixed collection URL.
 
 ```json
 {
@@ -95,17 +121,17 @@ account nor creates a folder tree; it can write only beneath the fixed collectio
 }
 ```
 
-Set `LW_DESTINATION_TEAM_FILES='<username>:<app-password>'`, or use
-`bearer:<token>` for a token-fronted DAV server. For Nextcloud, use a revocable app password,
-not the account password. A deterministic flat filename makes a retry overwrite the same
-resource; a successful `PUT` is followed by authenticated `HEAD` and bounded `GET` verification
-of size and SHA-256 before the receipt claims byte preservation. `publicBaseUrl` is optional and
-separate from the credentialed collection URL.
+Set `LW_DESTINATION_TEAM_FILES='<username>:<app-password>'`, or `bearer:<token>` for a
+token-fronted DAV server. For Nextcloud, use a revocable app password, not the account password.
+A predictable flat filename makes a retry overwrite the same resource. A successful `PUT` is
+followed by authenticated `HEAD` and bounded `GET` checks of size and SHA-256 before the receipt
+claims the bytes arrived unchanged. `publicBaseUrl` is optional and separate from the
+credentialed collection URL.
 
-## Configure a signed-HTTPS destination
+### Configure a signed-HTTPS destination
 
-This is the adapter for an organization-owned publishing service without coupling Work to its
-vendor or API. The target is one exact HTTPS endpoint, not a user-entered webhook:
+This adapter connects an organisation-owned publishing service without tying Work to its vendor
+or API. The target is one exact HTTPS endpoint, not a webhook a person types in:
 
 ```json
 {
@@ -122,24 +148,23 @@ vendor or API. The target is one exact HTTPS endpoint, not a user-entered webhoo
 
 Set the referenced variable to a dedicated random HMAC secret. Work sends the raw export body
 with `x-lolly-delivery-id`, `x-lolly-format`, a base64url `x-lolly-name`,
-`x-lolly-content-sha256`, `x-lolly-timestamp`, and
-`x-lolly-signature: v1=<hex-hmac-sha256>`. The signed canonical string is:
+`x-lolly-content-sha256`, `x-lolly-timestamp` and `x-lolly-signature: v1=<hex-hmac-sha256>`.
+The signed canonical string is:
 
 ```text
 lolly-delivery-v1\n<timestamp>\n<delivery-id>\n<format>\n<base64url-name>\n<content-type>\n<size>\n<sha256>
 ```
 
-The receiver should reject stale timestamps and duplicate delivery ids. It may return no body,
-or JSON `{ "id": "…", "url": "https://…", "sha256": "…" }` (maximum 64 KiB). A matching
-digest yields `transformation: "none"`; a different digest is recorded as
-`"provider-managed"`; no digest stays honestly `"unknown"`. Work does not offer a revoke for
-this protocol because it has no safe universal delete contract.
+The receiver should reject stale timestamps and duplicate delivery ids. It may return no body, or
+JSON `{ "id": "…", "url": "https://…", "sha256": "…" }` (at most 64 KiB). A matching digest
+records `transformation: "none"`, a different digest records `"provider-managed"`, and no digest
+records `"unknown"`.
 
-## Configure Brandfolder writes
+### Configure Brandfolder writes
 
-Use a separate write credential, even when Brandfolder is already a catalog source. The existing
-read-only source does not grant delivery permission. Configure one existing Brandfolder and file
-section per destination:
+Use a separate write credential, even when Brandfolder is already a catalog source: the read-only
+source does not grant delivery permission. Configure one existing Brandfolder and file section
+per destination:
 
 ```json
 {
@@ -161,30 +186,34 @@ section per destination:
 }
 ```
 
-The referenced environment variable holds the Brandfolder API token. Supply exact HTTPS storage
-origins observed and qualified for your tenant; the example origins are placeholders. API and
-upload redirects are refused. Original readback follows at most three redirects, checking the
-exact download origin at every hop without API credentials. Bearer credentials go only to `https://brandfolder.com/api/v4`, never to storage.
-`visibility` declares the existing Brandfolder's access policy; it does not change that policy.
-Requalify it when administrators change remote access.
+- The referenced variable holds the Brandfolder API token. Bearer credentials go only to
+  `https://brandfolder.com/api/v4`, never to storage.
+- Supply the exact HTTPS storage origins you observed and checked for your tenant; the example
+  origins are placeholders. API and upload redirects are refused. Reading the original back
+  follows at most three redirects, checking the exact download origin at every hop, without API
+  credentials.
+- `visibility` declares the existing Brandfolder's access policy; it does not change that policy.
+  Check the setting again when administrators change remote access.
 
-The adapter follows [Brandfolder Binary Upload](https://developer-bak.brandfolder.com/binary_upload/):
-request a temporary upload ticket, PUT the original, then create one asset in the pinned section.
-Brandfolder's temporary object URL is accessible to its importer and is vendor-managed; its docs
-state that upload URLs expire after 24 hours and temporary objects after seven days. Work never
-publishes its own source blob or returns those temporary URLs to the shell.
+The adapter follows [Brandfolder Binary
+Upload](https://developers.smartsheet.com/api/brandfolder/openapi/binary_upload): it requests a
+temporary upload ticket, uploads the original, then creates one asset in the chosen section.
+Brandfolder's temporary object URL is reachable by its importer and managed by the vendor. As of
+October 2026, Brandfolder's documentation says upload URLs expire after 24 hours and temporary
+objects after seven days. Work never publishes its own source blob or returns those temporary URLs
+to the shell.
 
-A private progress record is saved before creation and again with the created asset ID. Processing
-or verification failures retry that known asset, without uploading or creating it again. If the
-create response is lost, Brandfolder documents no idempotency key: the delivery stops with an
-uncertain-outcome message. An operator must reconcile the asset before another create is attempted.
-Do not create a fresh delivery just to bypass that message. This adapter never updates, replaces,
-moves or deletes an existing Brandfolder asset and does not assign collection membership.
+A private progress record is saved before creation and again with the created asset ID, so a
+processing or verification failure retries that known asset without uploading or creating it
+again. If the create response is lost, Brandfolder documents no idempotency key, so the delivery
+stops with an uncertain-outcome message. An operator must reconcile the asset before another
+create is attempted; do not create a fresh delivery just to get past the message. The adapter does
+not assign collection membership.
 
-## Configure Cloudinary writes
+### Configure Cloudinary writes
 
-This first adapter stores authenticated **raw** originals in an explicitly declared dynamic-folder
-product environment. It does not generate image/video renditions or publish a public CDN URL.
+This adapter stores authenticated **raw** originals in a product environment that uses dynamic
+folders. It does not generate image or video renditions or publish a public CDN URL.
 
 ```json
 {
@@ -207,113 +236,136 @@ product environment. It does not generate image/video renditions or publish a pu
 }
 ```
 
-The secret is JSON `{ "apiKey": "...", "apiSecret": "..." }`, used only on the server.
-Regions are `us` (default), `eu` and `ap`. The folder and public-ID prefix are separately pinned:
-`asset_folder` does not imply a public-ID path in dynamic-folder mode. Fixed-folder tenants are
-not supported by this first writer. Keep the delivery ceiling at or below 64 MiB; chunked uploads
-are outside this adapter.
+- The secret is JSON `{ "apiKey": "...", "apiSecret": "..." }`, used only on the server. Regions
+  are `us` (default), `eu` and `ap`.
+- The folder and the public-ID prefix are set separately: `asset_folder` does not imply a
+  public-ID path in dynamic-folder mode. Fixed-folder tenants are not supported.
+- Keep the delivery limit at or below 64 MiB; chunked uploads are outside this adapter.
+- Uploads use an operation-specific public ID, `type=authenticated` and `overwrite=false`. A
+  retry first looks up that ID through the Admin API, and accepts existing bytes only when the
+  destination, operation markers and original download digest all match.
+- Only the delivery ID and SHA-256 are added as reconciliation context. No source tags, approval,
+  private notes, prompts or other organisation fields are copied. The adapter sends no upload
+  preset, no eager or incoming transformation and no moderation, AI, add-on or URL-import
+  parameters.
+  Check tenant-wide processing settings separately. See the [Upload
+  API](https://cloudinary.com/documentation/image_upload_api_reference) and [folder
+  modes](https://cloudinary.com/documentation/folder_modes).
 
-Uploads use an operation-specific public ID, `type=authenticated` and `overwrite=false`. A retry
-first looks up that ID through the Admin API. Existing bytes are accepted only when destination,
-operation markers and the original download digest all match; an ID collision is never replaced.
-Only the delivery ID and SHA-256 are added as reconciliation context. No source tags, approval,
-private notes, prompts or other organization fields are copied. The adapter sends no upload preset,
-eager/incoming transformation, moderation, AI/add-on or URL-import parameters. Qualify tenant-wide
-processing settings separately. See the [Upload API](https://cloudinary.com/documentation/image_upload_api_reference)
-and [folder modes](https://cloudinary.com/documentation/folder_modes).
-
-Both DAM adapters read the stored original back, with a byte ceiling, and compare SHA-256 before
-issuing a delivered receipt. A successful fixture run is not live vendor qualification: before
-enabling a destination, use a dedicated test section/folder to qualify credentials, tenant settings,
-readback, access, processing latency and timeout recovery.
+::: note Test a DAM destination before you enable it
+Both DAM adapters are fixture-tested. Before enabling one, use a dedicated test section or folder
+to check credentials, tenant settings, readback, access, processing time and timeout recovery on
+your own tenant.
+:::
 
 ### Send a shared original
 
 With `projectFiles: true` on a DAM destination, the Assets view offers that destination when the
-selected asset is a shared-project original. The shell POSTs an empty body to
-`/api/v1/destinations/:id/deliveries?projectId=...&fileId=...&checksum=...`.
-No `name` or `format` override is accepted. The server reads the ready file, verifies every stored
-part and its whole digest, and derives the format from bytes with the stored filename as fallback.
-The destination allowlist and byte ceiling apply. No browser download/upload round trip is needed.
+selected asset is a shared-project original. The shell posts an empty body to
+`/api/v1/destinations/:id/deliveries?projectId=...&fileId=...&checksum=...`; no `name` or
+`format` override is accepted. The server reads the ready file, verifies every stored part and
+the whole digest, and works out the format from the bytes, with the stored filename as a
+fallback. The destination's format list and size limit apply, and no browser download and upload
+round trip is needed.
 
-The original stays in its project. Work stages an immutable private copy for retry, retaining the
-source selector only on the server. The configured submit scan hook runs before provider egress,
-using the same reject/error policy as catalog admission. No hook means no scan was performed.
-The source person's current project access, account status, destination grants and configuration
-are checked again before egress, after scanning, on retry and after any human approval. Service
-tokens cannot select project originals. The destination's access rules apply separately from the
-source project; sending an original does not copy its project permissions or approval state.
+- The original stays in its project. Work stages an unchangeable private copy for retry, and
+  keeps the source reference only on the server.
+- The configured submit scan hook runs before the file leaves, with the same reject and error
+  policy as catalog admission. No hook means no scan was performed.
+- The source person's current project access, account status, destination grants and
+  configuration are checked again before sending, after scanning, on retry and after any human
+  approval. Service tokens cannot choose project originals.
+- The destination's own access rules apply. Sending an original does not copy its project
+  permissions or approval state.
 
-Raw-body and automation-output routes continue to require genuine signed Lolly exports. This
-capability does not make arbitrary catalog or device bytes eligible for governed publishing.
+Raw-body and automation-output sends still need genuine signed Lolly exports; this capability
+does not make arbitrary catalog or device files eligible.
 
-## Delivery lifecycle
+## What happens when you send
 
-The raw body is accepted only when it carries Lolly's C2PA export assertion. Before provider
-egress, Work records its SHA-256 and stages the exact bytes in the configured BlobStore:
+A raw body is accepted only when it carries Lolly's C2PA export assertion. Before anything leaves,
+Work records its SHA-256 and stages the exact bytes in the configured BlobStore.
 
-```text
-awaiting-approval --approve--> queued -> delivering -> delivered
-        |                               \-> failed -> retry -> delivering
-        \--reject/withdraw--> rejected/cancelled
-```
+::: figure work-delivery-lifecycle
+A delivery waits for approval when its destination has a chain, then is queued, delivered or failed. A retry sends the same staged bytes again; a reject or a withdrawal ends the delivery.
+:::
 
-The record binds the destination version, name, format, MIME, size and SHA-256. Those facts are
-immutable in both memory and Postgres stores. Attempts are claimed atomically across replicas,
-so concurrent retries cannot both execute. A process interrupted while `delivering` remains held
-for operator reconciliation; it is not automatically taken over by another worker. For S3, a retry
-uses the staged bytes and the same key:
-
-```text
-<prefix>/<delivery-id>/<sha256-prefix>-<safe-filename>.<format>
-```
-
-If the destination's endpoint, bucket, prefix, formats, exposure or other semantics change,
-the version changes and retry returns `409 DESTINATION_CHANGED`; the caller creates a new
-delivery deliberately. Credential rotation does not move the version.
+- **The record does not change.** It binds the destination version, name, format, MIME type,
+  size and SHA-256, in both the memory and PostgreSQL stores.
+- **One attempt at a time.** Attempts are claimed atomically across replicas, so two retries
+  cannot both run. A process interrupted while `delivering` stays held for an operator to
+  reconcile; another worker does not take it over automatically.
+- **Retries send the same bytes.** For S3, a retry uses the staged bytes and the same key:
+  `<prefix>/<delivery-id>/<sha256-prefix>-<safe-filename>.<format>`.
+- **A changed destination needs a new delivery.** If the destination's endpoint, bucket, prefix,
+  formats, exposure or other meaning changes, its version changes and a retry returns
+  `409 DESTINATION_CHANGED`. Credential rotation does not change the version.
+- **History.** Delivery history is scoped to the principal that sent the delivery. Stored records and audit
+  events contain destination ids and output facts, never credentials. Creation is audited once as
+  `delivery.created`, and each attempt records `delivery.delivered` or `delivery.failed`.
+- **Rate limits.** Creating and retrying share the automation rate-limit bucket, because each may
+  spend an organisation credential; discovery and receipt history do not.
+- **Removing a destination** stops new sends and retries. It does not delete remote objects or
+  erase receipts.
 
 ### Delivering an automation output
 
-`POST /api/v1/jobs/:id/deliveries` consumes a completed `render` job owned by the same member or
+`POST /api/v1/jobs/:id/deliveries` sends a completed `render` job owned by the same member or
 service principal. The JSON body is `{ "destinationId": "campaign-archive", "name": "Launch
-poster" }`; an optional `format` must equal the immutable render request rather than overriding
-the render request. When the job completes, Work records SHA-256 over the actual output bytes independently of
-the blob provider (an S3 ETag is not a portable content digest). Delivery reads the retained
-result, verifies it against that digest, re-verifies its Lolly Content Credential, then points
-the delivery's private `sourceRef` at that existing blob. There is no download/upload round trip
-and no second stored copy. Jobs completed before digest storage was introduced must be rendered
-again before this route can deliver them.
+poster" }`; an optional `format` must equal the job's recorded format and cannot override that format.
 
-The delivery receipt exposes `sourceJobId` for correlation, never the private blob reference.
-The source job cannot be deleted while any delivery retains its output (`409
-JOB_OUTPUT_IN_USE`), including after successful egress, so retry and audit cannot be made false
-by deleting their evidence. A later retention policy will release both deliberately. A service
-token still cannot enter a destination's human approval chain; that boundary is identical for
-raw-body and job-output creation.
+When the job completes, Work records a SHA-256 over the actual output bytes, independently of the
+storage provider (an S3 ETag is not a portable content digest). Delivery reads the stored result,
+checks it against that digest, verifies its Lolly Content Credential again, then points the
+delivery's private `sourceRef` at the existing blob. There is no download and upload round trip
+and no second stored copy. Jobs completed before digests were stored must be rendered again
+before this route can deliver them.
+
+The receipt shows `sourceJobId` for correlation, never the private storage reference. The source
+job cannot be deleted while any delivery keeps its output (`409 JOB_OUTPUT_IN_USE`), even after a
+successful send, so retry and audit cannot be undermined by deleting their evidence. Durable render
+jobs from `/api/v1/renders` cannot be delivered this way yet ([Render jobs and
+batches](renders.md#hosting-and-recovery)).
 
 ### Optional human approval
 
 Set `approvalChain` on a destination to an existing chain id. Creation then returns `202` with
-`state: "awaiting-approval"` and an `approvalId`; no provider request has happened. The approval
-subject is the delivery id, whose immutable record already binds destination version, name,
-format, size and digest. A terminal approval runs that exact staged record. Rejection becomes
-the terminal delivery state `rejected`, withdrawal becomes `cancelled`, and neither can be
-relabelled as a transport failure or bypassed through the retry route. A configured chain that
-does not exist fails closed before the request body is accepted. Service tokens cannot create
-a human-review request; later workflow automation must enter through its own explicit approval
-step rather than laundering a token as a person.
+`state: "awaiting-approval"` and an `approvalId`, and nothing has been sent. The approval subject
+is the delivery id, whose record already binds the destination version, name, format, size and
+digest, and a final approval sends that exact staged record.
 
-S3 `PUT` is followed by a signed `HEAD` size check; WebDAV performs authenticated
-`PUT`/`HEAD`/bounded-`GET` digest verification. Their receipts record `transformation: "none"`
-and the delivered digest. Signed
-HTTPS derives that status from the receiver's digest instead of pretending every publisher is
-byte-preserving. Redirects are refused by all three adapters.
-Delivery creation and retry share the existing automation rate-limit bucket because each may
-spend an organization-owned credential; read-only discovery and receipt history do not.
+- A rejection becomes the final delivery state `rejected`, and a withdrawal becomes `cancelled`.
+  Neither can be relabelled as a transport failure or bypassed through the retry route.
+- A configured chain that does not exist fails closed, before the request body is accepted.
+- Service tokens cannot create a human-review request, for raw bodies and job outputs alike.
+  Future workflow automation must enter through its own explicit approval step.
 
-Delivery history is principal-scoped. Stored records and audit events contain destination ids
-and output facts, never credentials. Removing a destination stops new sends and retries but
-does not delete remote objects or erase historical receipts.
+How chains work is on [Approvals](approvals.md).
+
+## Who may send
+
+`delivery.create` is the right to send to a fixed organisation destination. Members carry it by
+default, because the operator has already chosen, credentialed and enabled each destination. The
+destination's `groups` and resource grants narrow it further:
+
+```bash
+lw grants add group:contractors delivery.create 'destination:campaign-archive' --effect deny
+```
+
+- A matching deny removes that destination from the caller's `org-config`, and is checked again
+  when the delivery is written. The same deny-wins decision applies to discovery, creation and
+  retry.
+- An explicit per-destination allow can extend a destination beyond its configured groups, for
+  example to give a `viewer` service token exactly one delivery right without raising its role.
+- When a destination has an `approvalChain`, `delivery.create` allows staging and requesting
+  review, not the send itself; the approval chain and its separation-of-duties rules decide that.
+- For an automation output, the same action adds no general storage authority: the caller must
+  own the job, it must be a finished `render`, its recorded format cannot change and its stored
+  bytes pass integrity and C2PA checks again.
+- Losing the permission stops new sends and retries, but does not erase the caller's own
+  receipts. `delivery.create` has no authority over personal send targets.
+
+Grants in general are on [Roles and grants](permissions.md).
 
 ## API example
 
@@ -323,17 +375,22 @@ curl -X POST \
   -H 'Content-Type: image/png' \
   -H 'Idempotency-Key: campaign-42-poster-v1' \
   --data-binary @poster.png \
-  'https://work.example/api/v1/destinations/campaign-archive/deliveries?name=Launch%20poster&format=png'
+  'https://work.example.com/api/v1/destinations/campaign-archive/deliveries?name=Launch%20poster&format=png'
 ```
 
-Discovery and history routes are listed in the [API reference](api.md#outbound-delivery).
+Discovery and history routes are in the [API reference](api.md#outbound-delivery).
 
-## Interoperability canaries
+## Check a destination against a live system
 
-Three gated tests check each adapter against a real endpoint. Each one is skipped unless its
-switch is set to `1`, writes inert text under a random `canary-<uuid>` delivery id, and removes
-that exact object afterwards, or fails and lists each id whose removal it could not confirm.
-None of them lists or browses the remote side or prints a credential.
+The S3 adapter has been checked against a live S3-compatible host. WebDAV and signed HTTPS have
+injected-wire tests, and opt-in checks in the Work repository that have not yet run against a real
+tenant or receiver, so neither is called live-verified.
+
+::: details The opt-in interoperability checks
+Three gated tests in the Work repository check each adapter against a real endpoint. Each is
+skipped unless its switch is set to `1`. It writes inert text under a random `canary-<uuid>`
+delivery id and removes that exact object afterwards, or fails and lists each id whose removal it
+could not confirm. None of them lists or browses the remote side or prints a credential.
 
 | Test | Switch | Settings (each prefixed with the switch name) |
 |---|---|---|
@@ -341,46 +398,32 @@ None of them lists or browses the remote side or prints a credential.
 | `tests/webdav-delivery-canary.test.ts` | `LW_WEBDAV_CANARY` | `_URL`, `_CREDENTIAL`, optional `_PREFIX` |
 | `tests/https-delivery-canary.test.ts` | `LW_HTTPS_CANARY` | `_URL`, `_SECRET`, `_CLEANUP_URL`, optional `_CLEANUP_CREDENTIAL` |
 
-Point the WebDAV canary at an existing collection set aside for the test. It delivers twice to
-confirm that a retry overwrites the same resource, then reads the bytes back with its own
-request. The signed-HTTPS protocol has no delete contract, so that canary deletes through the
-receiver's own management API: `LW_HTTPS_CANARY_CLEANUP_URL` is an HTTPS URL with one `{id}`
-placeholder, filled with the `id` from each receipt, and a `GET` of the same URL must then answer
-404 or 410. When a receipt is missing, unusable or has no `id`, the canary uses the delivery id
-instead and counts the item as removed only when the `DELETE` succeeds. The management API
-should resolve delivery ids; if it cannot, the canary reports the cleanup as unconfirmed and the
-operator must check the receiver by hand. When the receipt carries a digest, it must match the
-bytes sent. A second HTTPS test sends three requests the receiver must refuse with a 4xx status:
-a signature from another secret, a timestamp a day old, and a body that does not match its
-signed digest.
+The S3 test accepts any S3-compatible endpoint. Point the WebDAV test at an existing collection
+set aside for the test: it delivers twice to confirm that a retry overwrites the same resource,
+then reads the bytes back with its own request.
 
-## Current edge of the first slice
+The signed-HTTPS protocol has no delete contract, so that test deletes through the receiver's own
+management API. `LW_HTTPS_CANARY_CLEANUP_URL` is an HTTPS URL with one `{id}` placeholder, filled
+with the `id` from each receipt, and a `GET` of the same URL must then answer 404 or 410. When a
+receipt is missing, unusable or has no `id`, the test uses the delivery id instead and counts the
+item as removed only when the `DELETE` succeeds. If the management API cannot resolve delivery
+ids, the test reports the cleanup as unconfirmed, and the operator must check the receiver by
+hand. When the receipt carries a digest, it must match the bytes sent. A second HTTPS test sends
+three requests the receiver must refuse with a 4xx status: a signature from another secret, a
+timestamp a day old and a body that does not match its signed digest.
+:::
 
-Built now: shell presentation separated from personal connections; optional approval-chain
-binding over immutable staged bytes; completed automation-render output consumed by immutable
-reference with principal isolation and delete protection; fixed config-managed S3,
-WebDAV and signed-HTTPS targets; group/RBAC projection; C2PA and byte caps; durable records in
-both stores; idempotency; exact-byte retry; provider receipts; and audit events. The S3 wire is
-live-validated against the project's UpCloud host. WebDAV and HTTPS have injected-wire tests and
-the gated canaries above, which have not yet run against a real tenant or receiver, so neither
-adapter is called live-verified.
+## Not built yet
 
-Future asset-system destinations must also declare create/new-version/replace and conflict
-policy before writing. Transfer acceptance, processing, original readiness, review and public
-activation need separate observations. Reconcile uncertain completion using the remote
-asset/version identity and committed effects before another write. Source approval must retain
-its purpose, activation target and human/automated origin; it cannot stand in for approval of
-the staged final digest. These are qualification requirements, not capabilities added to the
-current S3, WebDAV or HTTPS adapters.
+- A versioned small-workflow document and runner above the job-output send.
+- A replica-safe background claimant for queued or stalled deliveries.
+- Retention for staged retry bytes, and for job outputs a delivery keeps.
+- Destination setup in the console or CLI; destinations are configuration only.
+- A passing run of the WebDAV and signed-HTTPS checks against a real tenant and receiver.
 
-Still deliberately pending:
-
-- the versioned small-workflow document/runner above the shipped job-output publish command;
-- a replica-safe background claimant for queued/stalled deliveries;
-- retention for staged retry bytes;
-- administrator UI/CLI for destination configuration;
-- a passing run of the WebDAV and signed-HTTPS canaries against an operator-supplied tenant and
-  receiver.
-
-Those additions extend this record and adapter seam; they do not widen catalog providers or
-the personal connected-services contract.
+Any further DAM destination must declare how it writes (create, new version or replace) and its
+conflict policy before it writes anything. Transfer acceptance, processing, original readiness,
+review and public activation need separate observations, and an uncertain completion must be
+reconciled against the remote asset and its committed effects before another write. Approval of
+a source cannot stand in for approval of the staged final digest. These are requirements for a
+new destination, not capabilities of the current adapters.

@@ -221,7 +221,7 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   'components/view-toggle.ts': 2,   // 3 → 2, 2026-08-20: the Tools tab's inline wrench went - it's icon('hammer') from lib/icons.ts now
   'lib/audio-coaching.ts': 1,
   // 5 → 0, plan 97 M1 (2026-08-09): the five BRAND_TABS glyphs went with the tab
-  // bar they fed. The design-system studio is rooms now, and views/start.ts
+  // bar they fed. Design System Setup is rooms now, and views/start.ts
   // builds its own navigation out of lib/icons.ts.
   'lib/brand-seal.ts': 1,
   'lib/capabilities-data.ts': 1,
@@ -962,14 +962,14 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // admits no `<`, `>`, quote or backslash in a reported value at all, which
   // add-color.test.ts pins directly.
   'lib/design-system/add-color.ts': 2,
-  // The Design-system studio's Overview room (plan 97 section 5). Its one sink is
+  // Design System Setup's Overview room (plan 97 section 5). Its one sink is
   // paint()'s whole-room re-render from overviewHtml(). Reviewed 2026-08-08:
   // every interpolated value is a t() literal, an icon() constant, or escape()d
   // (utils.ts) - the door/card helpers escape their area key, label and value,
   // the palette strip escapes each swatch hex before it reaches a style
   // attribute, and the font list is escaped as one card value.
   'lib/design-system/rooms/overview.ts': 1,
-  // The Design-system studio's Versions panel (plan 97 section 6a, M7). Its one sink is
+  // Design System Setup's Versions panel (plan 97 section 6a, M7). Its one sink is
   // paint()'s whole-panel re-render from the pure versionsHtml(). Reviewed
   // 2026-08-09: the hostile input here is the user's own version LABEL and NOTE,
   // and both are escape()d (utils.ts) wherever they appear - the list row, the
@@ -1382,7 +1382,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // audioTransportHtml() (labels escaped internally), and the saved line's one
   // interpolation is the freshly minted asset id, encodeURIComponent + escape()d.
   'views/script-studio.ts': 5,
-  // The Design-system studio (plan 97). 7, unchanged by the M2 fix pass - 
+  // Design System Setup (plan 97). 7, unchanged by the M2 fix pass - 
   // reviewed 2026-08-09: the two view scaffolds and the editor-error line (t()
   // literals, escape()d error text), the result sink `importResult.innerHTML`
   // (every caller composes with escape()/t(), and the one refusal helper escapes
@@ -2024,9 +2024,9 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 263 to 262: the docs reading components print with an outline, not a shadow.
     // 260 to 259: the recommended Share file card uses the semantic bevel.
     // 259 to 257: export controls share the canonical inset surface.
-    // 257 to 256: the brand studio Set row marks itself with a full wash, not an inset rail.
+    // 257 to 256: Design System Setup's Set row marks itself with a full wash, not an inset rail.
     // 256 to 255: the swatch name chip is lifted by the floating elevation.
-    // 255 to 254: the design system studio's Overview doors use the edge and control elevation.
+    // 255 to 254: Design System Setup's Overview doors use the edge and control elevation.
     // 253 to 250: the Settings Design system tab's hero, primary chip and ink
     // ribbon went with the illustrations; the new read uses hairlines only.
     pin: 250,

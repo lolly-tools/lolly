@@ -1,0 +1,70 @@
+<!--
+  Concept: four kinds of signer and what a recipient's lolly validate says about each. The seal holds
+  in all four; what differs is whether the recipient can verify who signed. Each card gives the
+  verdict and the fix.
+  Band Contract: static fragment scoped under .cst, reads the docs theme tokens with fallbacks, no
+  script, no motion, no links out. Two columns, one in a narrow container.
+  Sources: the signingCredential.trusted and signingCredential.untrusted lines captured in
+  docs/cli-signing.md, and the three fixes that page gives.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.cst{--cst-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--cst-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --cst-ground:hsl(var(--secondary,84.5 55% 92.2%));--cst-paper:hsl(var(--card,0 0% 100%));
+ --cst-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .13);--cst-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --cst-head:#033633;--cst-yes:#0b6b45;--cst-warn:#8a5a00;
+ --cst-display:"Outfit","SUSE",ui-sans-serif,system-ui,sans-serif;--cst-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--cst-ink);background:var(--cst-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size;display:grid;gap:12px}
+:is([data-theme="dark"],[data-theme="brand"]) .cst{--cst-head:#ffffff;--cst-yes:#7ddc97;--cst-warn:#f2c46b}
+.cst *{box-sizing:border-box}
+.cst ul{list-style:none;margin:0;padding:0}
+.cst li{list-style:none;margin:0;font-size:inherit}
+.cst p{margin:0}
+.cst .cst-lede{font-size:14px;color:var(--cst-muted);padding-inline:4px}
+.cst .cst-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.cst .cst-card{background:var(--cst-paper);border-radius:18px;padding:14px;box-shadow:0 0 0 1px var(--cst-line);display:grid;gap:8px;align-content:start}
+.cst .cst-who{font:500 18px/1.2 var(--cst-display);color:var(--cst-head)}
+.cst .cst-verdict{display:inline-flex;align-items:center;gap:8px;font:600 13px/1.2 var(--cst-mono)}
+.cst .cst-verdict svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.cst .cst-ok{color:var(--cst-yes)}
+.cst .cst-addr{white-space:nowrap}
+.cst .cst-no{color:var(--cst-warn)}
+.cst .cst-code{font:400 12px/1.3 var(--cst-mono);color:var(--cst-muted);overflow-wrap:anywhere}
+.cst .cst-fix{font-size:14px;line-height:1.3;padding:8px 10px;border-radius:12px;background:var(--cst-soft)}
+.cst .cst-fix b{font-weight:600}
+@container (max-width:440px){
+ .cst .cst-grid{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+<div class="cst">
+<p class="cst-lede">In all four, the seal holds and the file is unchanged. What differs is whether the recipient can verify the signer.</p>
+<ul class="cst-grid">
+<li class="cst-card">
+<p class="cst-who">Your identity, root pinned</p>
+<p class="cst-verdict cst-ok"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>Verified: <span class="cst-addr">release-bot@example.org</span></span></p>
+<p class="cst-code">signingCredential.trusted</p>
+<p class="cst-fix"><b>Nothing to fix.</b> This is the goal.</p>
+</li>
+<li class="cst-card">
+<p class="cst-who">Issued by a CA nobody here pinned</p>
+<p class="cst-verdict cst-no"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v5M12 16.2v.1"/></svg>Untrusted</p>
+<p class="cst-code">chains to no pinned trust anchor</p>
+<p class="cst-fix"><b>Fix:</b> ask the recipient to pin the CA's root.</p>
+</li>
+<li class="cst-card">
+<p class="cst-who">Self-signed, not pinned</p>
+<p class="cst-verdict cst-no"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v5M12 16.2v.1"/></svg>Untrusted</p>
+<p class="cst-code">vouches only for itself</p>
+<p class="cst-fix"><b>Fix:</b> hand out your root for recipients to pin.</p>
+</li>
+<li class="cst-card">
+<p class="cst-who">The default anonymous key</p>
+<p class="cst-verdict cst-no"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v5M12 16.2v.1"/></svg>Untrusted: unidentified signer</p>
+<p class="cst-code">not a CA-issued identity</p>
+<p class="cst-fix"><b>Fix:</b> set up a signing identity.</p>
+</li>
+</ul>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKBGp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAneanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDo2NGE4YzVhZC0xZjM5LTRkOWYtODE5NC1iMDAwZDlkZWYxZmYAAAAEX2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDY6MDA6NDFaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkRzmZsZW5ndGgZDb5kbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIAIAIg5FzLkF5EESleo3E7kqaiobyCkrijEyxFEpdNspY3BhZEgAAAAAAAAAAAAAAOhqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAAC0Y2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2xxY2xpLXNpZ25pbmctdHJ1c3RkZGF0ZXgYMjAyNi0xMC0yM1QwNjowMDo0MS4yMzJaamRpbWVuc2lvbnNrMjQgw5cgMjQgcHhoYXJ0aWZhY3RmZmlndXJlaWdlbmVyYXRvcmtDbGF1ZGUgQ29kZWttb2RlbFZlbmRvcmlBbnRocm9waWMAAACNanVtYgAAACdqdW1kanNvbgARABCAAACqADibcQNjYXdnLm1ldGFkYXRhAAAAAF5qc29ueyJAY29udGV4dCI6eyJkYyI6Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIn0sImRjOmNyZWF0b3IiOlsiQW5keSBGaXR6c2ltb24iXX0AAADEanVtYgAAACxqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmFpLWRpc2Nsb3N1cmUAAAAAkGNib3KkaW1vZGVsVHlwZXBjMnBhLnR5cGVzLm1vZGVsaW1vZGVsTmFtZW9DbGF1ZGUgT3B1cyA1LjVvbW9kZWxJZGVudGlmaWVyb2NsYXVkZS1vcHVzLTUtNW5jb250ZW50UHJvZmlsZaFzaHVtYW5PdmVyc2lnaHRMZXZlbG1wcm9tcHRfZ3VpZGVkAAACz2p1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAKgY2JvcqZoZGM6dGl0bGVxY2xpLXNpZ25pbmctdHJ1c3RqaW5zdGFuY2VJRHgtdXJuOnV1aWQ6N2Q0ODBmNzMtZDcxZC00NTQ2LTg1NGUtMThkZTUyYjFhMTI3dGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGtzcGVjVmVyc2lvbmUyLjQuMHJjcmVhdGVkX2Fzc2VydGlvbnOFomN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCB7PwAhbF7Lnurxz+BJtasXwTUg+DsTozZOeefb7tHaU6JjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCB84P2N8/lZOaqpnPQgteH+F4sXj7oilO9mEDwhEQTffaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy90b29scy5sb2xseS5leHBvcnRkaGFzaFgg4tSLeTqLnyMbQ8WnHb1gxgdExtNPVkMgQI4I8B+FgpKiY3VybHgoc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvY2F3Zy5tZXRhZGF0YWRoYXNoWCDuJiUol/9ndNv6gbMRLa4CPvJcm24MrBQ3oMM0RtpuhKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFpLWRpc2Nsb3N1cmVkaGFzaFggtQsv4iBHCG4VvZn3v64VDszBnFa6ATQYozPN5SFimqtpc2lnbmF0dXJleBlzZWxmI2p1bWJmPWMycGEuc2lnbmF0dXJlY2FsZ2ZzaGEyNTYAAAJhanVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAAAIxY2JvctKEWQHgogEmGCGBWQHXMIIB0zCCAXmgAwIBAgIJYAXwclxU4cRWMAoGCCqGSM49BAMCMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDAeFw0yNjEwMjMwNTU5NDFaFw0zNjEwMjAwNjAwNDFaMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABLuHkKAO8YejjQ6jjg75MvaUQ1BC2zDeRXmnhQGJbeX8GRkZOJizLt8rA17nDUHGXhmAHVIUEW/byvHurH0XQ9qjcjBwMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMEMB0GA1UdDgQWBBQ+b8xykVqn4c0iShZj/IttQH7v+zAfBgNVHSMEGDAWgBQ+b8xykVqn4c0iShZj/IttQH7v+zAKBggqhkjOPQQDAgNIADBFAiBdv/4K6pjL69CHreAt4S6EGespGy4jLbsOXw+94TdjkwIhALSysRjM/z/ADJ0pW9W+GnbFstQZ9rkDXW7lioxXHbjooPZYQPu2gxbpurvw7/BNWJvUpkYdv3J+7bKGoB0anFhV90kZNHXz1GmifzR+mmKuLdthb55V9n4CshftB22tFR5rqYc= -----END C2PA MANIFEST----- -->

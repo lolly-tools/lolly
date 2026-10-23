@@ -21,7 +21,7 @@ v2-named call is the login handshake IntelligenceBank documents as the auth mech
 
 ```bash
 export LW_BASE=https://lolly.example
-lw login --email you@acme.example          # or: lw login --cookie 'lw_session=…'
+lw login                                   # device sign-in; or: lw login --cookie 'lw_session=…'
 
 lw providers preview --kind intelligencebank \
     --options '{"platformUrl":"https://acme.intelligencebank.com"}'
@@ -40,7 +40,7 @@ worked. Step 2 needs one resource id: re-run this command with `--json` and read
 | `health FAILED: intelligencebank login returned no sid/apiV3url (live-verify: the login response field names …)` | the login succeeded and the driver could not read the response | Only the response key names are wrong: rows 2 and 3. |
 | `health FAILED: intelligencebank api 401 for /resources?per_page=100&page=1` | the session was established and the v3 API refused it | The `sid`/`clientid` headers, not the login (row 4). |
 | `health FAILED: intelligencebank platformUrl outside intelligencebank.com` | the host guard refused the URL you passed | A custom-domain tenant (row 21). |
-| `health FAILED: intelligencebank apiV3url outside intelligencebank.com` | the login handed back a base off the family | Row 21. The guard is deliberate: a poisoned login response must not redirect the driver. |
+| `health FAILED: intelligencebank apiV3url outside intelligencebank.com` | the login handed back a base off the family | Row 21. The guard stays on purpose: a poisoned login response must not redirect the driver. |
 
 Exit code `2` means health failed. `--shape` calls the tenant only when health is ok.
 
@@ -176,4 +176,6 @@ lw providers rm acme-ib
 
 See also: [the IntelligenceBank guide](intelligencebank.md) · [off-boarding](../offboarding.md) ·
 [the CLI](../cli.md) · the other runbooks: [canto](canto-live-verify.md) ·
-[imagerelay](imagerelay-live-verify.md) · [acquia-dam](acquia-dam-live-verify.md).
+[imagerelay](imagerelay-live-verify.md) · [acquia-dam](acquia-dam-live-verify.md) ·
+[cloudinary](cloudinary-live-verify.md) · [orange-logic](orange-logic-live-verify.md) ·
+[webdav](webdav-live-verify.md).

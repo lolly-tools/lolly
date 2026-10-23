@@ -1,0 +1,17 @@
+digraph two_ways_to_resize {
+  rankdir=TB
+  node [shape=box]
+  logo [label="Your logo\nneeds a resize"]
+  upload [label="The usual way\nupload to a server"]
+  kept [label="Their disk\ntheir retention rules"]
+  bill [label="The bill\nads, data or training"]
+  back [label="A download\nyou hope matches"]
+  local [label="Here\nyour device renders"]
+  done [label="Your file\nno second copy"]
+  logo -> upload
+  upload -> kept
+  kept -> bill
+  bill -> back
+  logo -> local
+  local -> done
+}

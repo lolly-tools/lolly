@@ -20,7 +20,11 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const BUILT = join(ROOT, 'shells/web/public/info');
-const DOORS = ['start', 'create', 'build', 'manage', 'operate', 'trust'];
+/** The folders English pages are built into: each manifest section's `prefix`. The
+ *  reader sees the pathway names (Start, Create, Automate, Manage, Deploy, Trust);
+ *  the folders keep their own names, so this follows the manifest, not the labels. */
+const DOORS: string[] = (JSON.parse(readFileSync(join(ROOT, 'docs/manifest.json'), 'utf-8')) as
+  { sections: Array<{ prefix: string }> }).sections.map((s) => s.prefix);
 const MOVES: Record<string, Record<string, { slug: string; anchor: string }>> =
   JSON.parse(readFileSync(join(ROOT, 'docs/section-moves.json'), 'utf-8'));
 

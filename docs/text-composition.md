@@ -1,6 +1,8 @@
 # Text in Design
 
-Create and edit text directly on the canvas. The local text bar contains font, size, weight, colour, emoji and paragraph controls. The optional Inspector offers the same settings. A scope caption tells you whether a change affects selected text, paragraphs or entire stories.
+Set a headline, flow a long article across frames and pages, or curve a line of type around a badge, all directly on Design's canvas. The text bar holds font, size, weight, colour, emoji and paragraph controls, and the Inspector offers the same settings. A scope caption tells you whether a change affects the selected text, its paragraphs or whole stories.
+
+Emoji come from an emoji set (Twemoji, OpenMoji, Fluent, Noto or Blobmoji, with the default chosen under Settings → Preferences → Emoji) rather than your computer's font, so an export draws the same picture on every device, and each export credits the glyphs it uses ([Creative rights and credits](/info/creative-rights.html)).
 
 ## Headings and paragraphs
 
@@ -8,7 +10,7 @@ Press **T**, then click for text that grows with its content, or drag to make a 
 
 Ordinary typing, paste and the emoji picker preserve your literal text. Formatting does not replace spaces, change quotes or insert hyphens into the source. **Typography cleanup** previews optional changes before applying them. **Focus text** quietens unrelated artwork while you edit.
 
-Numeric controls share the Design Inspector's behaviour. Drag the grip beside a value to adjust it, or click the number to type. Shift makes a drag or arrow-key adjustment ten times larger; Alt makes it ten times smaller. You can enter arithmetic such as `1920/2`, relative changes such as `+10`, or a decimal comma. Enter or leaving the field applies the value; Escape restores it. Each drag or arrow-key burst makes one Undo step. Mixed selections show **Mixed** until you choose a shared value.
+Number fields work as everywhere in Design; see [Layout in Design](/info/design-layout.html#precise-numbers-and-the-view).
 
 Use **Paragraph > Composition** to choose Standard, Best paragraph or Balanced heading. Best paragraph considers line endings across the paragraph. Balanced heading prefers similar line lengths. **Avoid short last line** discourages a lone final word. Explicit line breaks and unbreakable text still take priority. If the constraints cannot fit, the text remains available and the frame shows overflow.
 
@@ -25,8 +27,6 @@ Frame options control size, insets, columns, vertical alignment, baseline grids 
 Deleting a frame keeps its text. Deleting the last frame offers **Place text**, where you can edit the whole story or place it again. **Delete story and frames** is the separate action that removes source. Copying selected frames copies their settled visible text into independent stories; **Copy entire story** includes text beyond the last frame.
 
 To keep an article readable at a frame boundary, open **More paragraph settings** and adjust the minimum lines before and after a break, or keep the paragraph with following lines. Overflow findings point to the affected text. Enlarge the frame, continue the story, or relax the conflicting setting.
-
-Zoom with the view controls or pinch gesture. Pan with the wheel, middle-button drag or Space-drag. Every canvas edge and the surrounding pasteboard remain reachable when zoomed in. Use **Fit** or **0** to return to the whole canvas.
 
 ![The long read continues one article through three linked text frames across two artboards.](/t/url-shot?url=%2Fdesign%3Ftemplate%3Dpublishing-long-read%26_sel%3Dopening&width=1200&height=840&dpi=96&waitMs=3000&format=svg&walker=1&chrome=1&filename=publishing-linked-frames&cropSelector=.tool-stage&try=1&waitSelector=svg%5Bdata-text-frame%3D%22closing%22%5D&drive=press%3A0%3Bwait%3A600&css=.fc-toolbar-dock%7Bvisibility%3Ahidden%21important%7D)
 
@@ -60,22 +60,16 @@ For a linked frame, **Duplicate appearance** preserves the original flow. **Deta
 
 A hidden source copy does not need its font to export the converted artwork. Showing that copy again checks its pinned font before it can render.
 
-## Save, export and recover
+## Share and export
 
-Open **Share** for a link or an editable `.lolly` file. It has its own tab beside Inspector and Export, so you can return to your settings without closing it. The link follows your current design. On a phone, Share opens as a dialog.
+Saved sessions, share links, portable `.lolly` files and generated tools keep the written text and the identity of each font. User fonts follow the portable file's asset rules. A missing or changed font is reported; Lolly does not quietly swap in a different face. The editor uses the first face in a font file, so for another face in a font collection, choose a separate font file; layout and export can still use a pinned collection face.
 
-Save, share links, portable `.lolly` files and generated tools retain the authored text document and font identities. User font assets follow the portable file's asset rules. A missing or changed active font is reported; Lolly does not silently substitute a different face.
+SVG, PDF, raster exports and Sequence frames all use the same letter shapes. In PowerPoint and Penpot, composed text arrives as vector artwork rather than editable text, so keep the Lolly document for wording changes. dotLottie refuses text, audio and converted vectors with independent paint; use MP4 or WebM for those.
 
-The native editor currently requires the first face of a font file. For another face in a font collection, choose a separate font file. Layout and export can still use a pinned collection face.
+Export waits for the current text layout. Overflowing text needs a layout fix, or the explicit **Export visible text only** choice, which leaves clipped and unplaced text out of the picture while keeping it in the document.
 
-SVG, PDF, raster exports and Sequence frames use the same settled glyph geometry. Composed text in PowerPoint and Penpot is vector artwork, so it does not provide ordinary text editing in those applications. Keep the editable Lolly document for source changes.
+::: details Collaboration, recovery and limits
+Collaboration syncs the whole text document; it does not merge simultaneous edits character by character. An incomplete story or frame update pauses editing and export. **Previous text** keeps a limited number of recovery copies until the document closes. An incoming edit during input-method composition keeps the received text and offers your conflicting draft to copy or download. If a frame is hidden or removed while you compose, editing closes and the unfinished draft stays available for recovery; copy or download it before closing the document.
 
-dotLottie is a structural animation format with a smaller supported feature set. It currently refuses text, audio and converted vectors with independent paint. Use MP4 or WebM for those compositions. SCORM opens the course builder, where you choose the content and review the learning package before downloading it.
-
-Export waits for current text layout. Overflow requires either a layout correction or the explicit **Export visible text only** choice. That choice omits clipped and unplaced source from the exported picture while retaining it in the document.
-
-Collaboration synchronises the complete text document. It does not merge simultaneous edits character by character. Incomplete story/frame updates pause editing and export. **Previous text** retains bounded recovery copies until the document closes. An incoming edit during IME composition keeps the received text and offers the conflicting local draft for copying or downloading.
-
-If a frame is hidden or removed while an input method is composing text, editing closes and the unfinished draft remains available for recovery. Copy or download a needed draft before closing the document.
-
-The current bounds are 65,536 UTF-16 source units per story, 128 stories, 256 named styles and an 8 MB text document. Layout, path geometry and caches have additional limits. If a share link is too large, use an editable file. See the [engine text guide](/info/build/text-composition-engine.html) for the layout contract and supported limits.
+A story holds up to about 65,000 characters (65,536 UTF-16 units), and a document up to 128 stories, 256 named styles and 8 MB of text. Layout, path geometry and caches have further limits. If a share link grows too large, use an editable file instead. The [engine text guide](/info/build/text-composition-engine.html) has the layout contract and its limits.
+:::

@@ -1817,5 +1817,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "Henüz hiçbir renk tam bir mürekkebe kilitli değil. {start} içinde bir rengin baskı ayarından birini kilitle.",
   "Ink and paper": "Mürekkep ve kâğıt",
   "Named colours": "Adlandırılmış renkler",
-  "Emphasis": "Vurgu"
+  "Emphasis": "Vurgu",
+  "Zoom to selection": "Seçime yakınlaştır"
 }

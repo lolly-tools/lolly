@@ -1286,7 +1286,7 @@ async function render(
   /**
    * The trim-to-content offer on the picker's upload flow (plan 97 section 7.3) - the path
    * EVERY tool's asset input goes through, so a padded logo dropped straight into a
-   * tool gets the same before/after card as one added in the design-system studio.
+   * tool gets the same before/after card as one added in Design System Setup.
    *
    * The card mounts INSIDE this dialog (the `.asset-picker-trim` slot above the
    * upload row), never as a second dialog over it. Resolves to the file to actually

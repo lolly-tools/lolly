@@ -70,6 +70,7 @@ import { setSessionEmojiStamp } from '../../bridge/state.ts';
 import type { PanelEl, ToolRuntime } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
 import { navigateTo } from '../../nav.ts';
+import { endCanvasCost, startCanvasCost } from '../../lib/canvas-feedback.ts';
 
 /** Network allowlist notice, initial values and the first render pass. */
 export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
@@ -740,6 +741,7 @@ export function wrapSetInput(tview: ToolViewCtx): void {
     const pending = baseSetInput(id, value, options);
     const admitted = runtime.getModel().find((i) => i.id === id);
     if (!tview.applyingHistory) {
+      const started = startCanvasCost();
       // `label` is what the toast shows on undo/redo - what CHANGED where we can name it.
       if (
         cur && admitted &&
@@ -751,6 +753,7 @@ export function wrapSetInput(tview: ToolViewCtx): void {
         tview.historyToastEl?.classList.remove('is-visible'); // dismiss a now-stale undo/redo toast
         tview.history.refreshHistoryUI();
       }
+      endCanvasCost('history', started);
     }
     return trackRevisionInput(pending, () => tview.revisionChanged());
   }, () => tview.applyingHistory, () => runtime.refresh());

@@ -357,7 +357,7 @@ personal one with the same id. `presetOf` checks every field the engine reads
 and drops a preset that would not validate. `presetFromPlan` turns the
 person's own decisions into a preset: a class the person decided one way
 every time, a layout per source layout chosen consistently, the fallback and
-the logo policy. Publishing a preset into a pack is a design system studio
+the logo policy. Publishing a preset into a pack is a Design System Setup
 action, not done here.
 
 ## compile-diff.ts
