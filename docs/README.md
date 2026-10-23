@@ -225,6 +225,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Content Credentials - Engineering | [content-credentials-engineering.md](content-credentials-engineering.md) |
 | Security & Verification | [security-verification.md](security-verification.md) |
 | Threat Model & Trust Boundaries | [threat-model.md](threat-model.md) |
+| How Lolly Reads Files | [reading-files.md](reading-files.md) |
 | Parser Inventory | [parser-inventory.md](parser-inventory.md) |
 | Server Surface | [server-surface.md](server-surface.md) |
 | Verify It Yourself | [verify-yourself.md](verify-yourself.md) |
@@ -236,5 +237,5 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | AI marking and the EU AI Act | [eu-ai-act.md](eu-ai-act.md) |
 | Beatrice Warde | [beatrice-warde.md](beatrice-warde.md) |
 | Shoulders of giants | [shoulders-of-giants.md](shoulders-of-giants.md) |
-| Where work happens and what crosses the network | [work/security-platform.md](work/security-platform.md) |
+| Work security overview | [work/security-platform.md](work/security-platform.md) |
 | Work storage and data lifecycle | [work/data-lifecycle.md](work/data-lifecycle.md) |

@@ -1532,7 +1532,7 @@
       "slug": "threat-model",
       "title": "Threat Model & Trust Boundaries",
       "src": "threat-model.md",
-      "description": "What Lolly defends against, what it explicitly does not, and where each trust boundary sits. Written for reviewers who need the limits stated as plainly as the protections.",
+      "description": "Every place Lolly accepts something it did not make, the code that checks it, the test that proves the check and the risk we accept.",
       "section": "trust",
       "path": "trust/threat-model",
       "icon": "lock",
@@ -1541,21 +1541,34 @@
       "group": "Privacy, data and trust boundaries"
     },
     {
+      "slug": "reading-files",
+      "title": "How Lolly Reads Files",
+      "src": "reading-files.md",
+      "description": "What happens when you open a file someone sent you: the limits every parser checks before reading, and the three ways a parser answers a bad file.",
+      "section": "trust",
+      "path": "trust/reading-files",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Privacy, data and trust boundaries"
+    },
+    {
       "slug": "parser-inventory",
       "title": "Parser Inventory",
       "src": "parser-inventory.md",
+      "description": "Every module that reads untrusted bytes or text, grouped by family: the limits each checks, its tests and the fuzz target that reaches it.",
       "section": "trust",
       "path": "trust/parser-inventory",
       "icon": "code",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Accessibility and input boundaries"
+      "group": "Privacy, data and trust boundaries"
     },
     {
       "slug": "server-surface",
       "title": "Server Surface",
       "src": "server-surface.md",
-      "description": "The complete inventory of what a Lolly server does and does not see, component by component, so you can audit the whole network surface in one sitting.",
+      "description": "Every server component a Lolly deployment can run: what each one receives, what it keeps and what stops working without it.",
       "section": "trust",
       "path": "trust/server-surface",
       "icon": "server",
@@ -1591,6 +1604,7 @@
       "slug": "privacy",
       "title": "Privacy Policy",
       "src": "privacy.md",
+      "description": "What happens to your files and data: what stays on your device, every request the app can make, what the lolly.tools services keep and whom to ask.",
       "section": "trust",
       "path": "trust/privacy",
       "icon": "eyeoff",
@@ -1921,7 +1935,7 @@
     },
     {
       "slug": "work-security-platform",
-      "title": "Where work happens and what crosses the network",
+      "title": "Work security overview",
       "src": "work/security-platform.md",
       "section": "trust",
       "group": "Privacy, data and trust boundaries",
