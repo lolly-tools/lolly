@@ -129,7 +129,7 @@ The Lolly Demo photography entry, with its checksum and size left for the build 
 }
 ```
 
-To add a skill to a brand pack, put `SKILL.md` and any `references/` under `catalog/assets/<namespace>/skills/<slug>/`, add the entry, then follow the asset [workflow](/info/authoring-assets.html#workflow). `pnpm run validate:catalog` runs the same admission check the CLI and the MCP server run on every read. It also checks the id pattern, the tier, the licence, the single `md` format, that no two skills share a name and each reference file's checksum. A skill that fails is refused with the reason. Owner lint warnings, such as a long body or an unclosed code fence, are printed and do not fail the build.
+To add a skill to a brand pack, put `SKILL.md` and any `references/` under `catalog/assets/<namespace>/skills/<slug>/`, add the entry, then follow the steps in [Add an asset to a catalog](/info/authoring-assets.html#add-an-asset-to-a-catalog). `pnpm run validate:catalog` runs the same admission check the CLI and the MCP server run on every read. It also checks the id pattern, the tier, the licence, the single `md` format, that no two skills share a name and each reference file's checksum. A skill that fails is refused with the reason. Owner lint warnings, such as a long body or an unclosed code fence, are printed and do not fail the build.
 
 ## Public and internal skills
 
@@ -142,7 +142,7 @@ To add a skill to a brand pack, put `SKILL.md` and any `references/` under `cata
 | A hosted MCP server | Listed and served | Not listed and not served |
 | The CLI, and an MCP server on your own machine | Listed and served | Listed and served |
 
-A statically hosted catalog is public whichever profile built the catalog, so `internal` is enforced by leaving files out of static output, not by hiding them. The CLI and an MCP server on your own machine read the brand pack from your disk, so they serve internal skills too. An MCP server counts as hosted when it runs on Vercel, with `NODE_ENV=production`, with `LOLLY_MCP_HOSTED=1` or with a `LOLLY_MCP_PUBLIC_ORIGIN` that is not a local address (`localhost`, `127.0.0.1` or `[::1]`). A hosted listing reports how many skills it left out as `withheld`.
+A statically hosted catalog is public whichever profile built the catalog, so `internal` is enforced by leaving files out of static output, not by hiding them. The CLI and an MCP server on your own machine read the brand pack from your disk, so they serve internal skills too. An MCP server counts as hosted when it sets `LOLLY_MCP_HOSTED=1` or `NODE_ENV=production`, or when its `LOLLY_MCP_PUBLIC_ORIGIN` is not a local address (`localhost`, `127.0.0.1` or `[::1]`). A hosted listing reports how many skills it left out as `withheld`.
 
 ## What the coverage map says
 
