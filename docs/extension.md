@@ -1,6 +1,6 @@
 # Browser extension
 
-A web page cannot read the pixels of another website, so in Chrome or Edge the Lolly web app needs help to screenshot a page. The free **Lolly URL Screenshot** extension gives that help, using the same capture the desktop app uses. It runs in Chromium-based browsers (Chrome, Edge, Brave, Arc and Opera) from Chrome 111. With it installed:
+A web page cannot read the pixels of another website, so the Lolly web app needs help to screenshot a page. In a Chromium-based browser (Chrome, Edge, Brave, Arc or Opera, from Chrome 111), the free **Lolly URL Screenshot** extension gives that help, using the same capture the desktop app uses. With it installed:
 
 - **[URL Screenshot](/t/url-shot)** saves the page you composed as a file;
 - a web address pasted into an image slot can become a screenshot of that page, with **Screenshot this page**;
@@ -27,13 +27,13 @@ Every control works while you wait: the target URL, the scroll depth, the settle
 1. Open `chrome://extensions`.
 2. Turn on **Developer mode** (top right).
 3. Click **Load unpacked** and choose the `shells/chrome-extension/` folder.
-4. Reload the Lolly tab. Detection happens when the page loads, so the "Get the extension" prompt disappears, **URL Screenshot** (under Utilities) can save captures to a file, and the tool becomes available in Batch mode.
+4. Reload the Lolly tab. Detection happens when the page loads, so the "Get the extension" prompt disappears. **URL Screenshot** (under Utilities) can then save captures to a file and becomes available in Batch mode.
 
 For a local development server, run `pnpm run pack:chrome-extension:dev` and load `dist/chrome-extension-dev` instead. That package also accepts `http://localhost:5173` and has **Development** in its name.
 
 ## What happens when Lolly asks
 
-![The Lolly tab asks for one page, you press Approve once in the extension's approval window, a background tab opens, reads and closes, and the Lolly tab gets the result.](/info/diagrams/concepts/extension-request.svg)
+![The Lolly tab asks for one page and you press Approve once in the extension's approval window. A background tab opens, reads the page and closes. Then the Lolly tab gets the result.](/info/diagrams/concepts/extension-request.svg)
 
 1. **Lolly asks.** A small script tells Lolly the extension is present, so a capture or a page reading can start with no further setup.
 2. **You approve.** The extension opens its own **Approve page request** window. It shows the requesting site, whether it wants a screenshot or the page contents, and the page address. Nothing is read until you press **Approve once**. **Cancel**, or closing the window, ends the request.
@@ -61,13 +61,13 @@ Pasting an address only fills in the field. Nothing is read until you start the 
 
 The extension's `manifest.json` declares four permissions, plus site access that it asks for one site at a time. It sets `minimum_chrome_version: 111`, and the current version is 0.4.0.
 
-| Permission | What it is for | When you are asked |
+| Permission | What it is for | When it is granted |
 |---|---|---|
 | `debugger` | Drives the background tab through the DevTools Protocol, which takes the screenshot. | At install |
 | `tabs` | Opens the temporary background tab and closes it afterwards, and checks that neither the Lolly page nor the target page has moved since you approved. | At install |
 | `scripting` | Runs the one-page reader inside the site you named, for the Website source. | At install |
 | `storage` | Notes the id of a tab it opened, in session storage only, so the tab still closes if the browser suspends the extension mid-read. Cleared on the next start; nothing about you is stored. | At install |
-| `optional_host_permissions: ["http://*/*", "https://*/*"]` | Site access, not granted at install. When you press **Approve once**, the extension asks Chrome for access to the one site in that request. | The first time for each site |
+| `optional_host_permissions: ["http://*/*", "https://*/*"]` | Site access, not granted at install. When you press **Approve once**, the extension asks Chrome for access to the one site in that request. | The first time you approve a request for that site, after Chrome asks you |
 
 The extension reads only the single page you approve. It does not read or send your browsing data, and nothing is uploaded.
 

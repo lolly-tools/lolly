@@ -9,7 +9,7 @@ Two people can edit the same tool session at the same time, each on their own de
 
 ## Start a private collab
 
-One person invites, the other replies, and the two devices connect. From then on, a change on one device appears on the other.
+One person invites. The other replies, and the two devices connect. From then on, a change on one device appears on the other.
 
 ![The starting device makes an invite, the joining device makes a reply, and the starting device accepts the reply. Once connected, both devices compare their matching plates.](/info/diagrams/concepts/private-collab-handshake.svg)
 
@@ -21,7 +21,7 @@ One person invites, the other replies, and the two devices connect. From then on
 - <!--i:hash--> **Compare the plates.** Both screens show the same six characters. Read them out loud.
 :::
 
-![The Share dialog's Private collab section, opened - Start a collab, Join with a code, and an info button that says what a private collab is](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1100&height=900&dpi=192&waitMs=2600&drive=click%3A%23render-fab%3Bclick%3A%5Bdata-action%3D%22copy-url%22%5D%3Bclick%3Adetails%5Bdata-share-section%3D%22registry%3Ashare-private-collab%22%5D%3Esummary&cropSelector=details%5Bdata-share-section%3D%22registry%3Ashare-private-collab%22%5D&walker=1&format=svg&dark=1&filename=collab-share-section)
+![The Share dialog's Private collab section, opened - Start a collab, Join with a code and an info button that says what a private collab is](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1100&height=900&dpi=192&waitMs=2600&drive=click%3A%23render-fab%3Bclick%3A%5Bdata-action%3D%22copy-url%22%5D%3Bclick%3Adetails%5Bdata-share-section%3D%22registry%3Ashare-private-collab%22%5D%3Esummary&cropSelector=details%5Bdata-share-section%3D%22registry%3Ashare-private-collab%22%5D&walker=1&format=svg&dark=1&filename=collab-share-section)
 
 <!--
 SHOT NOTE (collab-share-section): three clicks. #render-fab opens the export panel (the Share
@@ -164,7 +164,7 @@ which draws no canvas region of its own, so only the sidebar half shows.
 
 **If the connection wobbles**, the dot says Reconnecting and nothing is torn down. A brief drop heals on its own. A real drop needs a fresh invite, because the session lives only on the two devices (see [If it does not connect](#if-it-does-not-connect)).
 
-**If the two devices run different versions**, you are told. A small difference in the tool says some fields may not match. A larger difference in the collab format makes both devices **observers**: each keeps seeing the session, and edits from either device are not sent.
+**If the two devices run different versions**, you are told. A small difference in the tool says some fields may not match. A larger difference in the collab format makes both devices observers, and the pill says **Observing**. Each keeps seeing the session, and edits from either device are not sent.
 
 ## Send a session
 
@@ -183,7 +183,7 @@ while the bulk channel is open, so the drill returns quietly when the control is
 
 - **What travels:** the session, plus the files you brought to it, such as uploads, recordings and captures. Those exist on one device only, so the session needs them to arrive complete.
 - **What stays behind:** anything already in the catalog on both devices. Those items travel as references and resolve on the other side, so the transfer is the size of your own work, not of a design system. If a reference cannot be resolved there, the transfer lists which ones.
-- **On arrival:** a received session is always filed as a **new** session, labelled with who sent it, and never overwrites anything. Files are stored byte for byte as they arrived, with no re-encoding, and checked against their declared size and digest, which keeps Content Credentials intact. A file the device already has is recognised by its checksum and not stored twice.
+- **On arrival:** a received session is always filed as a **new** session labelled with the sender's name. It never overwrites anything. Files are stored byte for byte as they arrived, with no re-encoding, and checked against their declared size and digest, which keeps Content Credentials intact. A file the device already has is recognised by its checksum and not stored twice.
 
 **Send this session** is the one beam control today, and it appears only while the transfer channel is open. The format can also carry a hand-picked set of files, a whole project or everything under a tag, but the app does not offer those yet.
 
@@ -245,12 +245,12 @@ In a **work collab**, everyone edits a session held by the organisation's instan
 
 **Your edits go to the organisation's server** and are saved to its shared session. Wait for **Saved to work** before you leave. **View only** means you can follow the session but not change anything. Your organisation manages access to the shared copy and how long it is kept.
 
-**An AI agent can join too**, where your organisation allows agents. **Invite agent** in **Collaboration settings** on the pill brings one in. It appears in the roster tagged **AI agent**, with **Pause agent** (then **Resume agent**) and **Disconnect agent**. [Invite an agent to a document](/info/work-document-agents.html) explains what an agent may do.
+**An AI agent can join too**, when you are a member and your organisation's instance offers agent invitations. **Invite agent** in **Collaboration settings** on the pill brings one in. It appears in the roster tagged **AI agent**, with **Pause agent** (then **Resume agent**) and **Disconnect agent**. [Invite an agent to a document](/info/work-document-agents.html) explains what an agent may do.
 
 If **Team projects** is missing, or a shared session opens without the collab pill, ask whoever runs your organisation's Lolly whether the feature and your access are turned on. Operators set up an instance from [Run your own server](/info/work-self-host.html).
 
 ::: details Comments, mentions and links
-A work collab can hold a review: comments pinned to the canvas, mentions that tell a colleague, and links that open one thread. All of it stays inside your organisation's instance, and none of it changes who can open the document.
+A work collab can hold a review: comments pinned to the canvas, mentions that tell a colleague and links that open one thread. All of it stays inside your organisation's instance, and none of it changes who can open the document.
 
 **Comments.** Open **Collaboration settings** on the collab pill and choose **Comments**. **Pin a comment** and then choose an object or a point, or use **Comment on selection** or **Comment at canvas center**. Each comment starts a thread that anyone who can open the document can read and reply to. **Resolve thread** moves it out of the open list; **Reopen thread** brings it back.
 
@@ -272,7 +272,7 @@ A work collab can hold a review: comments pinned to the canvas, mentions that te
 :::
 
 ::: details Following, presenting and versions
-**What everyone in the document can see.** While you are connected, your device shares where you are: the artboard you are on, the part of the canvas in view and your zoom, what you have selected, your pointer, whether you are presenting, and whom you are following. Everyone in the document can see all of this, not only the person you follow. Closing the document stops the sharing.
+**What everyone in the document can see.** While you are connected, your device shares where you are: the artboard you are on, the part of the canvas in view and your zoom, what you have selected, your pointer, whether you are presenting and whom you are following. Everyone in the document can see all of this, not only the person you follow. Closing the document stops the sharing.
 
 **Following someone.** Press a person's picture in the bar at the top of the canvas to follow them, or press their name in the list of people (your own picture opens the list). Your view then moves with theirs: their artboard, where they are looking and their zoom. Their selection stays theirs. If they open a comment thread, your Comments panel opens the same thread. The bar shows **Following** and their name, and an outline in their colour frames your canvas.
 

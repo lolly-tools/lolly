@@ -2,14 +2,14 @@
 
 Sometimes you do not need a new design. You need a file fixed: a photo in the wrong format, a PDF that carries more than it should, or two versions of a spreadsheet to compare. The **Utilities** tab (`#/u`) collects these jobs. They work on your device, and the file you bring is not uploaded.
 
-![The Utilities tab: a featured strip with Verify & Inspect and Jump, then cards for Compare, Prepare for sharing, Verify & Inspect, Read and extract, Rebrand and Colour Lab](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![The Utilities tab: a featured strip with Verify & Inspect and Jump, then cards for Compare, Prepare for sharing, Verify & Inspect, Unpack, Read and extract, Rebrand, Colour Lab and Spreadsheet](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
 ## Find the right utility
 
 - <!--i:shieldcheck--> **Share a file safely:** [Prepare for sharing, Strip Hidden Data and Redact](#share-a-file-safely).
 - <!--i:search--> **See what changed between two versions:** [Compare](#see-what-changed).
 - <!--i:convert--> **Change a format or a size:** [Convert, Compress, Convert Image and Convert Font](#change-a-format-or-a-size).
-- <!--i:document--> **Get the words or pictures out:** [Unpack, Read and extract, and Text](#get-the-contents-out).
+- <!--i:document--> **Get the words or pictures out:** [Unpack, Text or Read and extract](#get-the-contents-out).
 - <!--i:seal--> **Check where a file came from:** [Verify & Inspect](#check-where-a-file-came-from).
 - <!--i:layers--> **Rearrange or sign PDF pages:** [Pages and Sign](#pdf-pages).
 - <!--i:neurobeat--> **Cut or clean audio and video, or record your voice:** [Trim, Clean, Voice Recorder and Script audio](#audio-and-video).
@@ -24,7 +24,7 @@ Most utilities are tools. A tool keeps its inputs in the URL, so it saves sessio
 
 The rest are **views**: pages of the app with no manifest and no export panel. Compare, Prepare for sharing, Verify & Inspect, Unpack, Read and extract, Rebrand, Colour Lab, Spreadsheet and Script audio each have a card. Convert has none; open it from [Search](/info/search.html) by typing "convert", or go to `#/convert`.
 
-A view keeps no session, but it has room: it can use the app's own controls, run as a tall page and hold a 200,000-row grid or a 400-page document. It does not keep the file you drop. You take away a download or a copy: Convert keeps finished copies in **Recent file operations**, Prepare for sharing can **Add to library**, and Rebrand keeps each deck as a project.
+A view keeps no session, but it has room: it can use the app's own controls, run as a tall page and hold a 200,000-row grid or a 400-page document. It does not keep the file you drop. You take away a download or a copy: Convert keeps finished copies in **Recent file operations**, Prepare for sharing can **Add to library** and Rebrand keeps each deck as a project.
 
 Every tile can be starred ([Your favourites](/info/favourites.html)) and has a details dialog. A view's tile has no *keep offline* or *saved sessions*, because views ship inside the app.
 
@@ -43,7 +43,7 @@ Supported PDF, JPEG, PNG and SVG copies can use **Strip Hidden Data** inside the
 
 Visible content needs its own review. **Redact** opens the selected original in its own utility, and its exported copy can come back to preparation. Opening a utility leaves the preparation view, so finish or download other copies first.
 
-Supported DOCX files can remove selected core and custom properties, Company, Manager, Template, hyperlink base, application name and version, and document statistics from a new copy. Other application properties and Office content stay inspect-only. Property-dependent fields, bound controls and digital-signature data prevent cleanup. A field or relative link that uses one of the newer properties keeps that property, and files with charts, pictures, shapes or embedded objects keep the application name and version. Audio, OCR and language-model expansion are separate work.
+Supported DOCX files can remove these from a new copy: selected core and custom properties, document statistics, Company, Manager, Template, hyperlink base and the application name and version. Other application properties and Office content stay inspect-only. Property-dependent fields, bound controls and digital-signature data prevent cleanup. A field or relative link that uses one of the newer properties keeps that property, and files with charts, pictures, shapes or embedded objects keep the application name and version. Audio, OCR and language-model expansion are separate work.
 :::
 
 ::: details Limits, and what is kept
@@ -76,7 +76,7 @@ In the TUI, press **P** from Tools, add file paths, inspect, choose replacements
 
 ## See what changed
 
-**Compare** (`#/compare`) puts two versions side by side on your device: text, JSON, YAML, CSV, TSV or XLSX tables, the extracted text of DOCX, PPTX and PDF files, or image and PDF-page previews. The sources stay unchanged. Compare does not merge, apply edits, save the inputs or send their contents anywhere.
+**Compare** (`#/compare`) puts two versions side by side on your device. It compares text, JSON, YAML, tables (CSV, TSV or XLSX) and image or PDF-page previews. For DOCX, PPTX and PDF files it compares the extracted text. The sources stay unchanged. Compare does not merge, apply edits, save the inputs or send their contents anywhere.
 
 The same comparison opens from Assets and from file-operation review, including a saved copy with a reselected original whose hash must match. **Compare table files** in Spreadsheet and **Compare document text** in Unpack open it too. Changed values start folded, and a downloaded report holds only the summary until you select **Include source names, paths and values**. The inputs never enter the address bar or a default report.
 
@@ -111,7 +111,7 @@ Drop or choose a file, or a batch of up to 20 images, pick an output format and 
 | TrueType, OpenType or WOFF | either of the other two container formats |
 | SVG or SVGZ | its compressed or uncompressed twin, a copy with its viewBox fitted to the artwork, plus the image formats below |
 | Any image the app can decode | JPEG XL (lossy or lossless), PNG, JPEG, WebP, AVIF, TIFF, BMP, PDF (one page, sized to the pixels) or ICO. A JPEG can also become a JPEG XL that keeps the original JPEG, and that file can give the JPEG back. |
-| PDF | Markdown, a ZIP of one PDF per page, a ZIP of one PNG per page, a copy without its descriptive metadata, or a copy with structural compression |
+| PDF | Markdown, a ZIP of one PDF per page, a ZIP of one PNG per page, a copy without its descriptive metadata or a copy with structural compression |
 | PowerPoint `.pptx` or Word `.docx` | Markdown |
 | Plain text `.txt` or Markdown `.md` | HTML, RTF, Word `.docx` or OpenDocument `.odt` |
 | MP4, MOV, MKV or WebM video | the same tracks in another of those containers, or its audio track, both without re-encoding |
@@ -158,7 +158,7 @@ Convert Font reports what the font's own tables say: outline format, family and 
 
 Most software treats a design file as one sealed thing. **Unpack** (`#/unpack`) opens the container: the words, the vector marks, the images, the fonts, the colours and the attachments, each one viewable and downloadable. Nothing is uploaded, and the older `#/pdf` link still works.
 
-Drop a PDF or Illustrator file, an SVG, an HTML page, an InDesign `.idml`, a Penpot `.penpot`, a Figma `.fig`, a PowerPoint `.pptx`, or a Photoshop or GIMP `.psd`, `.psb` or `.xcf`. What comes out depends on what the format holds:
+Drop a PDF or Illustrator file, an SVG, an HTML page, an InDesign `.idml`, a Penpot `.penpot`, a Figma `.fig`, a PowerPoint `.pptx` or a Photoshop or GIMP `.psd`, `.psb` or `.xcf`. What comes out depends on what the format holds:
 
 | You bring | What comes out |
 |---|---|
@@ -179,12 +179,12 @@ A names-only font row cannot be downloaded, because the file holds no font bytes
 - **Palette:** the distinct colours the file paints with, each with a copy button.
 - **Logos:** vector marks, downloadable as SVG and sharp at any size. In a guidelines file these are often the most useful thing.
 - **Images:** embedded rasters. Images that cannot be decoded, or that are linked from elsewhere, are counted rather than hidden, and a linked image's pixels are never fetched.
-- **Fonts:** each with its embedding caveats stated: a subset is called a subset, a names-only face carries no bytes, and "no embedding restriction" is not called a licence.
+- **Fonts:** each with its embedding caveats stated: a subset is called a subset, a names-only face carries no bytes and "no embedding restriction" is not called a licence.
 - **Attachments.**
 
 **Hidden words are reported first.** Text painted underneath an opaque shape appears at the top of the report, with the hidden words shown. A black bar that does not remove the words under it is worth seeing rather than trusting.
 
-**Three hand-offs go straight into your design system:** a font row installs its face, a mark goes to the Logos room of [Design System Setup](/info/brand-studio.html), and the bar sends the whole scan there. None of them re-reads the document; each is built from what the passes already extracted.
+**Three hand-offs go straight into your design system:** a font row installs its face, a mark goes to the Logos room of [Design System Setup](/info/brand-studio.html) and the bar sends the whole scan there. None of them re-reads the document; each is built from what the passes already extracted.
 
 Unpack reads up to 400 pages and 120 MB. Beyond that it reads what it can and says the rest is too long. A single mark over 4 MB is not sent to Design System Setup: download the SVG instead.
 
@@ -199,15 +199,15 @@ A page that is a picture of its text offers **Read the text on this device**, wh
 **[Text](/t/text-helper)** brings character exploration and text work into one tool. Its permanent tool ID is still `text-helper`, so existing links keep working.
 
 - **Characters & emoji** browses the loaded brand font or searches emoji. Picking a character copies its exact Unicode sequence.
-- **Write & edit** opens a persistent editor with syntax highlighting, selection actions and Undo. Highlighting is a display aid, not a code validator, and unknown languages stay readable as plain text. The editor and character grid use the active brand's font and interface colours.
+- **Write & edit** opens a persistent editor with syntax highlighting, selection actions and Undo. Highlighting is a display aid, not a code validator, and unknown languages stay readable as plain text. Snippet, Sandbox and code assets opened in Assets share the same highlighting. The editor and character grid use the active brand's font and interface colours.
 - **Find an action** is a searchable chooser for editing, inspection, conversion and generation: the writing signals also shown in Verify and Assets, plain-language suggestions, de-identification with reviewable aliases, line and word comparison, regular-expression matching and replacement, JSON, YAML and TOML conversion, formatting and validation, encodings, checksums and ASCII lettering. Markdown can be previewed or downloaded as a document. QR codes stay in the QR tool.
 
-Open a file, pick a text asset, or use **Open in Text** in Assets, Projects or a Verify text extract. **Save** adds the text to Assets, and to its source project when there is one. For text opened from one of your own assets the button reads **Save changes**, which updates that asset under the same ID so project references keep working; **Save a copy** in the same dialog keeps both versions. Save changes refuses to overwrite a source that changed after you opened the text. Text reads the complete file, up to 4 MiB, even where Assets shows a shortened preview. Drafts use normal saved-session storage and recovery, and edits do not put the document's contents into the address bar.
+Open a file or pick a text asset. **Open in Text** in Assets, Projects or a Verify text extract opens one too. **Save** adds the text to Assets, and to its source project when there is one. For text opened from one of your own assets the button reads **Save changes**, which updates that asset under the same ID so project references keep working; **Save a copy** in the same dialog keeps both versions. Save changes refuses to overwrite a source that changed after you opened the text. Text reads the complete file, up to 4 MiB, even where Assets shows a shortened preview. Drafts use normal saved-session storage and recovery, and edits do not put the document's contents into the address bar.
 
 ::: details Log analysis
-Log analysis takes pasted or opened log text, including JSON lines and journal-style fields. It keeps unclassified lines, groups consecutive repeated events, filters by text, severity, source and time, and lets a row open its original lines and fields. It does not read the system journal.
+Log analysis takes pasted or opened log text, including JSON lines and journal-style fields. It keeps unclassified lines and groups consecutive repeated events. You can filter by text, severity, source and time, and a row opens its original lines and fields. It does not read the system journal.
 
-**AI synopsis** uses the optional local model to pick original excerpts, with source references. **AI rewrite** checks names, numbers and links before offering a result. Both need your review, and neither replaces the document automatically. The model downloads only when you ask, actions show progress and **Cancel**, and a result from an older edit cannot overwrite newer text.
+**AI synopsis** uses the optional local model to pick original excerpts, with source references. **AI rewrite** checks names, numbers and links before offering a result. Both need your review, and neither replaces the document automatically. The model downloads only when you ask. Actions show progress and **Cancel**. A result from an older edit cannot overwrite newer text.
 :::
 
 ## Check where a file came from
@@ -216,7 +216,7 @@ Log analysis takes pasted or opened log text, including JSON lines and journal-s
 
 ## PDF pages
 
-**[Pages](/t/pages)** is the PDF page manager. Give it a 1-based expression such as `1-3,7,10-` to reorder, rotate, extract or delete those pages, append a second PDF, or split comma-separated ranges into separate files. The page strip shows the selection before download. Pages keeps the main document's own metadata, adds none of Lolly's, and refuses encrypted PDFs and XFA forms rather than risk a partial document.
+**[Pages](/t/pages)** is the PDF page manager. Give it a 1-based expression such as `1-3,7,10-` to reorder, rotate, extract or delete those pages. It can also append a second PDF or split comma-separated ranges into separate files. The page strip shows the selection before download. Pages keeps the main document's own metadata and adds none of Lolly's. It refuses encrypted PDFs and XFA forms rather than risk a partial document.
 
 Pages also turns images into a PDF. Add photos, scans or screenshots, alone or with PDFs, and each image becomes one page in the same draggable sequence. **Image page size** sizes each page from the image's own resolution (**Match each image**, at 96 pixels per inch when the image gives none) or fits the image inside an **A4** or **US Letter** page, with **Image margin (mm)** setting the margin.
 
@@ -227,14 +227,20 @@ A JPEG is placed without re-encoding and turned upright from its camera orientat
 ::: details What changes in the PDF
 Before download, **What changes** lists what the operation does to the bookmarks, comments, links, form fields and signatures in your PDFs.
 
-Rotating a single PDF edits that file, so everything keeps working except a digital signature, which no longer verifies once the file is saved again. Every other operation builds a new PDF from copies of the pages. Comments and other annotations travel with their pages, but bookmarks are not carried over, links to other pages stop working, form fields can no longer be filled in, and the new PDF is unsigned. A page you delete or leave out does not come along through a link or form field that pointed to it, and the signer's name, date and certificate are left out with the signature.
+Rotating a single PDF edits that file, so everything keeps working except a digital signature, which no longer verifies once the file is saved again. Every other operation builds a new PDF from copies of the pages. Comments and other annotations travel with their pages, but bookmarks are not carried over, links to other pages stop working, form fields can no longer be filled in and the new PDF is unsigned. A page you delete or leave out does not come along through a link or form field that pointed to it, and the signer's name, date and certificate are left out with the signature.
 :::
 
 **[Sign](/t/sign)** places a transparent signature on a chosen PDF page, in PDF-point coordinates: drag it on the page or enter the numbers. Initials and today's date are optional. A Content Credential is on by default and records the profile signer only when **Use my details** is on. A password lock is available at download time, but not together with that credential, because encrypting afterwards would break the credential. Sign makes a visible signed document with optional provenance, not a regulated e-signature or identity-verification service.
 
 ## Audio and video
 
-**[Trim](/t/trim)** cuts audio and video at exact in and out points on your device. Under **Make** it also takes a **Poster frame** (the picture at the start point) or a **Contact sheet** of frames across the range. It can keep or change the container, **Rotate** the picture, **Remove audio**, **Extract audio** as M4A, Opus or WAV, re-encode to a **Sharing size** of 1080p, 720p or 480p, aim for a **Size limit (MB)**, and make GIFs of up to 15 seconds. The result reports the real container and any codec the device could not handle.
+**[Trim](/t/trim)** cuts audio and video at exact in and out points on your device. Under **Make** it also takes a **Poster frame** (the picture at the start point) or a **Contact sheet** of frames across the range. For a clip it can:
+
+- keep or change the container, or make a GIF of up to 15 seconds;
+- **Rotate** the picture, **Remove audio** or **Extract audio** as M4A, Opus or WAV;
+- re-encode to a **Sharing size** of 1080p, 720p or 480p, or aim for a **Size limit (MB)**.
+
+The result reports the real container and any codec the device could not handle.
 
 ::: details Exact, Re-encode and Fast cuts
 Trim copies packets when the chosen boundary and container allow, but a copy can only begin on a key frame, so **Cut** offers three modes:
@@ -244,13 +250,13 @@ Trim copies packets when the chosen boundary and container allow, but a copy can
 - **Fast** keeps the original packets and may start a little early.
 :::
 
-**[Clean](/t/clean)** reduces voice noise with the on-device speech model, trims silent edges to the exact sample, normalises to podcast, streaming or broadcast loudness, and keeps the output under a -1 dBTP ceiling. Audio can leave as WAV, MP3, M4A or Opus. For a video, the picture is carried into the new container and the cleaned audio replaces its original track. The terminal path accepts WAV; other containers move to the browser tier or are refused by name.
+**[Clean](/t/clean)** reduces voice noise with the on-device speech model and trims silent edges to the exact sample. It normalises to podcast, streaming or broadcast loudness and keeps the output under a -1 dBTP ceiling. Audio can leave as WAV, MP3, M4A or Opus. For a video, the picture is carried into the new container and the cleaned audio replaces its original track. The terminal path accepts WAV; other containers move to the browser tier or are refused by name.
 
 **[Voice Recorder](/t/voice-recorder)** records a voice note with a live level meter and gentle coaching, then saves it as MP3.
 
 **Script audio** (`#/script`) is a writing surface over on-device speech. Write or paste a script; Markdown is fine, because only the words are read, so code blocks and images drop out and links keep their text. Pick a voice, audition it, choose a speed and press **Generate speech** (or Ctrl or Cmd and Enter). Under the script sit the word count and an estimate of how long it takes to listen to.
 
-- **Shape the reading.** **Sound marks** type marks into the script for you: more energy, a question, a breath, a pause, a slower or faster sentence, or a word spelled out in phonemes. **Tips** explains each one. **Blend with** mixes a second voice into the first, with one slider for the weight.
+- **Shape the reading.** **Sound marks** type marks into the script for you, such as more energy, a question, a breath, a pause, a slower sentence or a word spelled out in phonemes. **Tips** explains each one. **Blend with** mixes a second voice into the first, with one slider for the weight.
 - **Downloads and limits.** The first run downloads the voice model once, with its size shown before you start. After that it runs on the device, and the script is never uploaded. A script past about five thousand characters gets a warning, not a refusal.
 - **Save the clip.** **Save to your uploads** writes a WAV to your asset library, with the voice, speed and per-word timings kept on the record for captioning. It is marked as AI-generated and signed with a Content Credential in the WAV bytes ([why](/info/ai-features.html)).
 - **Fix a saved clip.** Opening a saved clip in Script audio (`#/script?asset=<id>`) fills in its recipe. **Save changes to this clip** rewrites the same asset, so every document that uses the clip hears the fix; **Save as new clip** keeps both.
@@ -279,7 +285,7 @@ There is no export, canvas or CLI equivalent: copy the notations you need, or sh
 The comparison target is sRGB, Display-P3, Rec.2020 or a press profile you load yourself. A stored profile is a user asset, like an uploaded font: the storage meter counts it, a data export carries its bytes and *Clear all my data* removes the stored profile too. Its id comes from the file's own content, so a `&limit=icc:…` link matches the same profile on someone else's device rather than relying on a filename. Two kinds of file are refused rather than stored: one the parser cannot read, and one that no rendering intent can answer a gamut question for. This is also where you load the CMYK profile a PDF/X-4 export has to embed; see [URL Mode](/info/url-mode.html).
 :::
 
-**[Contrast](/t/contrast-check)** checks a text and background pair, or every pairing in the design system palette, against WCAG 2.1 and APCA, and shows how it reads to colour-blind viewers. **[Palette Lab](/t/color-palette)** grows a palette from one seed colour, with harmony accents, perceptual OKLab ramps and readability badges, and exports DTCG tokens and CSV.
+**[Contrast](/t/contrast-check)** checks a text and background pair, or every pairing in the design system palette, against WCAG 2.1 and APCA, and shows how it reads to colour-blind viewers. **[Palette Lab](/t/color-palette)** grows a palette from one seed colour, with harmony accents, perceptual OKLab ramps and readability badges. It exports DTCG tokens and CSV.
 
 ## Spreadsheets
 
@@ -298,7 +304,7 @@ The grid draws only the rows in view and recycles them as you scroll, so a very 
 ## More utilities
 
 - **[Screen Capture](/t/screencap)** takes a screenshot or recording of your whole screen, a window or a browser tab. Drag on the canvas to crop; the export keeps the exact pixels you captured.
-- **[URL Screenshot](/t/url-shot)** captures any web page at any scroll depth, with custom CSS. In Chrome or Edge it needs the [browser extension](/info/extension.html); the desktop app does the same job without the extension.
+- **[URL Screenshot](/t/url-shot)** captures any web page at any scroll depth, with custom CSS. In a browser it needs the [browser extension](/info/extension.html), which runs in Chromium-based browsers such as Chrome and Edge. The desktop app does the same job without the extension.
 - **[Annotate](/t/annotate)** marks up your own screenshot with arrows, boxes, numbered steps, callouts, a highlighter and a spotlight dim.
 - **[Scan](/t/scan-code)** reads QR codes and barcodes on your device. It explains what a code carries (a link, Wi-Fi details, a contact or a product code) and copies first; opening, joining or adding is a separate, deliberate tap.
 - **[Claim](/t/claim)** stamps your author, copyright and licence onto media you already made (an image, PDF, video or audio file) as Content Credentials, with a durable Imprint on images, and keeps any credential already in the file.

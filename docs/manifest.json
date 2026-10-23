@@ -1181,7 +1181,7 @@
       "slug": "extension",
       "title": "Browser extension",
       "src": "extension.md",
-      "description": "Screenshot web pages and read a site for Design System Setup from the Lolly web app in Chrome or Edge, approving every request in the extension.",
+      "description": "Screenshot web pages and read a site for Design System Setup from the Lolly web app in a Chromium-based browser, approving every request in the extension.",
       "section": "create",
       "path": "create/extension",
       "icon": "globe",

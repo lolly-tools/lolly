@@ -4,7 +4,7 @@ Keep your projects, your brand and your settings the same on your computer, your
 
 ## Your storage is the only server involved
 
-When you turn on sync, you choose one place to hold your work: your Dropbox, Google Drive or OneDrive, your own Nextcloud or WebDAV server, or your own S3 bucket. The app on each device talks to that storage directly.
+When you turn on sync, you choose one place to hold your work. It can be a cloud drive (Dropbox, Google Drive or OneDrive), your own Nextcloud or WebDAV server or your own S3 bucket. The app on each device talks to that storage directly.
 
 ![A computer and a phone or tablet each sync their local work directly with the shared backup copy in your chosen storage.](/info/diagrams/concepts/personal-sync.svg)
 
@@ -27,6 +27,8 @@ If your storage already holds Lolly data, Lolly asks before it syncs.
 
 - **Bring it to this device** adds that data here and removes nothing. This device keeps its folders, favourites, templates and settings and gains the ones it did not have. Where a project is on both, the copy saved more recently is kept.
 - **Replace it with this device** makes this device the synced copy.
+
+In a browser, these buttons and the ones further down say "this browser" instead of "this device".
 
 ::: cols
 ## What syncs
@@ -147,7 +149,7 @@ Lolly can see only its own app folder in your OneDrive. Personal accounts and wo
 
 ### A file you move yourself
 
-Open **Settings → Preferences → Storage → Move to another device**, press **Export my data**, move the file to your other device, and press **Import data…** there. This works everywhere and needs no network. [Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device) has the steps and what the file holds.
+Open **Settings → Preferences → Storage → Move to another device** and press **Export my data**. Move the file to your other device and press **Import data…** there. This works everywhere and needs no network. [Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device) has the steps and what the file holds.
 
 ## Limits
 
@@ -156,10 +158,10 @@ Open **Settings → Preferences → Storage → Move to another device**, press 
 - **Android sign-in.** If Android closes the app while a sign-in page is open, start the sign-in again.
 
 ::: details For people who host Lolly or build the apps
-Each provider needs a registration before its sign-in can work. None of these registrations is a server: each one only tells the provider which return addresses to trust. The sign-in answer comes back to the Lolly site in a browser, to the app itself on the desktop, to `tools.lolly.mobile:/oauth2redirect` in the mobile app, and through Google Play services for Google Drive on Android.
+Each provider needs a registration before its sign-in can work. None of these registrations is a server: each one only tells the provider which return addresses to trust. The sign-in answer comes back to the Lolly site in a browser, to the app itself on the desktop, to `tools.lolly.mobile:/oauth2redirect` in the mobile app and through Google Play services for Google Drive on Android.
 
 - **Dropbox:** one app. Add `<site>/oauth-return.html` for the web and `tools.lolly.mobile:/oauth2redirect` for the mobile apps (the desktop apps need nothing). Build values: `VITE_DROPBOX_CLIENT_ID`, and `VITE_DROPBOX_MOBILE=1` once the mobile redirect is added.
-- **Google:** a **Web application** client for the site (`VITE_GOOGLE_CLIENT_ID`), a **Desktop app** client for the desktop apps (`VITE_GOOGLE_DESKTOP_CLIENT_ID` and its secret, which Google treats as not confidential for installed apps), and an **iOS** client for bundle id `tools.lolly.mobile` (`VITE_GOOGLE_IOS_CLIENT_ID`). For Android, an **Android** client for package `tools.lolly.mobile` with the SHA-1 fingerprint of each signing certificate (debug, release and, if you use it, the Play App Signing key); no client id goes into the build, only `VITE_GOOGLE_ANDROID_SIGN_IN=1`. The Android sign-in uses Google's Play services library, which is not open source. A build for de-Googled phones or F-Droid sets the Gradle property `lollyGooglePlayServices=false`, and Google Drive is then unavailable in that build.
+- **Google:** a **Web application** client for the site (`VITE_GOOGLE_CLIENT_ID`), a **Desktop app** client for the desktop apps (`VITE_GOOGLE_DESKTOP_CLIENT_ID` and its secret, which Google treats as not confidential for installed apps) and an **iOS** client for bundle id `tools.lolly.mobile` (`VITE_GOOGLE_IOS_CLIENT_ID`). For Android, an **Android** client for package `tools.lolly.mobile` with the SHA-1 fingerprint of each signing certificate (debug, release and, if you use it, the Play App Signing key); no client id goes into the build, only `VITE_GOOGLE_ANDROID_SIGN_IN=1`. The Android sign-in uses Google's Play services library, which is not open source. A build for de-Googled phones or F-Droid sets the Gradle property `lollyGooglePlayServices=false`, and Google Drive is then unavailable in that build.
 - **Microsoft (Entra):** one app registration, with the scopes `Files.ReadWrite.AppFolder`, `User.Read` and `offline_access`, open to personal and work or school accounts. Under **Single-page application**, add `<site>/oauth-return.html` (`VITE_MS_CLIENT_ID`). Under **Mobile and desktop applications**, add `http://localhost/oauth-return` for the desktop apps (`VITE_MS_DESKTOP_CLIENT_ID`) and `tools.lolly.mobile:/oauth2redirect` for the mobile apps (`VITE_MS_MOBILE_CLIENT_ID`).
 - **A self-hosted site** keeps the same content policy as lolly.tools. It already allows Dropbox, Google and Microsoft, including the Microsoft download hosts that OneDrive personal accounts use (`*.files.1drv.com`, `my.microsoftpersonalcontent.com`).
 :::

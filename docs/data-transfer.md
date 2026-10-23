@@ -104,7 +104,7 @@ The manifest lists neither itself nor the regenerated `lolly.txt`. The digests c
 An import runs in one of two modes.
 
 - **Merge** is what **Import data…** does, and what sync's first join, **Bring it to this device**, does. Data on the target stays, and nothing that was not in the bundle is touched: a session the target had and the bundle did not survives the import.
-- **Replace** is what device sync uses to keep devices in step: it takes the synced copy's profile record, preferences, sessions and images, and removes only items another device deleted since the last sync. Restoring an earlier copy goes further and makes the device match that copy, removing everything the copy does not hold, after saving the device first. [Sync your devices](/info/sync.html) covers what a person sees.
+- **Replace** is what device sync uses to keep devices in step: it takes the synced copy's profile record, preferences, sessions, images and choice of active design system, and removes only items another device deleted since the last sync. Restoring an earlier copy goes further and makes the device match that copy, removing everything the copy does not hold, after saving the device first. [Sync your devices](/info/sync.html) covers what a person sees.
 
 In a merge, anything only on the target is kept, and each kind of data in the bundle meets the target like this:
 
@@ -114,7 +114,7 @@ In a merge, anything only on the target is kept, and each kind of data in the bu
 | Folders | The target's name and parent are kept, and the folder gains the bundle's members it lacks. A session filed in a folder on the target stays filed there. | Added |
 | Favourites (tools, catalog assets and Projects items) | Combined | Added |
 | Templates, Projects templates and user tools (by id) | The target's record is kept. | Added |
-| Trash entries | Both kept, so an item that could be restored on either install still can be | Added |
+| Trash entries | The target's entry is kept. | Added, so an item that could be restored on either install still can be. An entry whose folder is back in use on the target, or whose Trash slot the target already uses, is left out. |
 | Other profile fields (name, contact details, language, feature flags, hidden tools and other settings) | The target's value is kept. | Taken where the target's field is empty |
 | Preferences (`prefs.json`) | The target's value is kept. | Written where the target has none |
 | Design systems (by id) | The bundle's record replaces the target's. | Added. The bundle's active choice applies only when the target has no design system of its own. |
@@ -131,7 +131,7 @@ In a merge, anything only on the target is kept, and each kind of data in the bu
 - `failedAssets` counts uploaded assets that could not be restored, for example because device storage is full.
 - `skipped` counts parts from a newer writer that this build did not recognise. The app shows it ("… · N newer items skipped"), so a restore states what it left behind.
 - With file history, the summary adds `assetVersions`, `fileOperations`, `fileBatches` and `failedHistory`. Storage exhaustion or an immutable-ID conflict can cause a partial restore, and the app then tells the person to keep the source backup.
-- With creation history, it adds `revisions` and `recoveryDrafts`, counting only what this import added, and `added`, `kept`, `replaced`, `copies` and `hidden` for how each creation was merged.
+- With creation history, it adds `revisions` and `recoveryDrafts`, counting only what this import added, and `added`, `kept`, `replaced`, `copies` and `hidden` for how each creation was merged. `skippedCheckpoints` counts checkpoints whose id names different content on the target, and `historyLeftOut` counts older checkpoints and drafts that did not fit the device's history space.
 - A replace import adds `removed` and `failedRemovals`.
 
 Restore is not one transaction across the profile, session, asset and history stores. Cloud sync does **not** advance its applied revision after a partial or unsupported restore, so the copy stays available to retry.
@@ -172,7 +172,7 @@ Two names are reserved for data that does not travel yet:
 - **`tokens.json`** would carry a whole [W3C DTCG](https://tr.designtokens.org/format/) design-tokens document with its groups, sets and themes, the format [Penpot imports and exports](https://help.penpot.app/user-guide/design-systems/design-tokens/). A user's own brand tokens already travel as the `user/tokens/brand` asset in `assets.json`, and a design system's tokens travel with its record.
 - **`penpot/`** is reserved for an ingested Penpot file, or its Lolly-relevant subset, surfaced as a tool.
 
-Anything outside the parts above and these reserved names is, to a reader, an unknown part: left untouched and counted in `skipped`.
+Today's readers know neither name yet. Like anything else outside the parts above, each is an unknown part to them: left untouched and counted in `skipped`.
 
 ## History parts
 
