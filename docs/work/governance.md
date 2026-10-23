@@ -79,8 +79,8 @@ groups: not greyed out, not hidden in the client. `*` means everyone.
 |---|---|---|
 | `formats` | for example `["svg","png"]` | Enforced: restricts output formats. |
 | `watermark` | `always` | Enforced: every render carries the [PREVIEW watermark](sharing.md#preview-watermarking). |
-| `watermark` | `never` | Stored, and behaves exactly like no rule. |
-| `watermark` | `until-approved` | Stored, not enforced: the link between a render and approval state is not built. Set `always` if you need the watermark today. |
+| `watermark` | `never` | Enforced: no render carries the watermark, including a render made for a share link or preview that would otherwise ask for one. |
+| `watermark` | `until-approved` | Stored, not linked to approval state yet: it behaves like no rule, so only a render made for a share link or preview carries the watermark. Set `always` if you need the watermark on every render. |
 | `defaults` | input values | Stored, not applied to a tool's initial inputs by org-config or the render paths. Locked presets do enforce values. |
 | `c2pa`, `escalation` | | Declared in the overlay type, refused by the write paths. Signing is instance-wide through `render.c2pa` ([Configure Work export signing](c2pa.md)), and chain binding works as [Approvals](approvals.md) describes. |
 
