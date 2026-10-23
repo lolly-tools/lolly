@@ -286,12 +286,6 @@ const ALLOW: Record<string, string[]> = {
   'docs/animating.md': ['follow the shape of the artwork'],
   'docs/ai-features.md': ['actual shape of the audio'],
   'docs/url-inputs.md': ['actual shape of the catalogue track'],
-  'docs/using.md': ['filled shape of the same outline',
-    // the Ask view's transcript is that UI's real object, not prose flourish
-    'The transcript is session memory:'],
-  'docs/ask.md': ['Answers build up in the transcript above',
-    'The transcript is a record of what you asked',
-    'The transcript is session memory.'],
   // render.transcribe (engine 1.150): the literal MANIFEST KEY a tool author has
   // to type, in its heading and in the example block. The prose around them says
   // "speech to text" instead.

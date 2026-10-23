@@ -123,20 +123,6 @@
       "group": "Product, organisation and vocabulary"
     },
     {
-      "slug": "project-asset-transfers",
-      "title": "Shared project assets",
-      "src": "project-asset-transfers.md",
-      "description": "Browse shared project folders, copy assets, submit originals to a workspace library and send files to connected destinations.",
-      "section": "create",
-      "path": "create/project-asset-transfers",
-      "icon": "folder",
-      "aliases": [
-        "start/project-asset-transfers"
-      ],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Design and templates"
-    },
-    {
       "slug": "organisation",
       "title": "Use Lolly at your organisation",
       "src": "organisation.md",
@@ -187,6 +173,30 @@
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates",
       "headingId": "lolly-for-creators"
+    },
+    {
+      "slug": "using",
+      "title": "Using Lolly",
+      "src": "using.md",
+      "section": "create",
+      "path": "create/using",
+      "icon": "pentool",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates",
+      "description": "Open a tool, change what it lets you change, save the result and share it as a link or a .lolly file, then make the home screen and your library your own."
+    },
+    {
+      "slug": "design",
+      "title": "Design: the free canvas",
+      "src": "design.md",
+      "description": "Build layouts, decks and motion on Design's free canvas: shape boxes, draw paths, place 3D scenes and tools, add a timeline, check the result and present it.",
+      "section": "create",
+      "path": "create/design",
+      "icon": "pentool",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
     },
     {
       "slug": "builders",
@@ -335,17 +345,6 @@
       "group": "Agents, APIs and integrations"
     },
     {
-      "slug": "using",
-      "title": "Using Lolly",
-      "src": "using.md",
-      "section": "create",
-      "path": "create/using",
-      "icon": "pentool",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Design and templates"
-    },
-    {
       "slug": "templates",
       "title": "Templates",
       "src": "templates.md",
@@ -358,15 +357,28 @@
       "group": "Design and templates"
     },
     {
+      "slug": "batch",
+      "title": "Batch and Multi-edit",
+      "src": "batch.md",
+      "description": "Make many versions of one design from rows or a spreadsheet with Batch, or edit up to eight saved designs side by side with Multi-edit.",
+      "section": "create",
+      "path": "create/batch",
+      "icon": "layers",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
       "slug": "brand-studio",
-      "title": "The Brand Studio",
+      "title": "Design System Setup",
       "src": "brand-studio.md",
       "section": "create",
       "path": "create/brand-studio",
       "icon": "palette",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Design and templates"
+      "group": "Design and templates",
+      "description": "Make the design system yours at #/start: logo, colours, type, tokens, files and usage rules, then export it, move it between devices and manage the systems you keep."
     },
     {
       "slug": "brand-architectures",
@@ -377,7 +389,8 @@
       "icon": "layers",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Design and templates"
+      "group": "Design and templates",
+      "description": "How masterbrands, divisions, products, endorsed brands, clients and seasons map onto design systems, colourways and logo identities in Lolly."
     },
     {
       "slug": "3d-studio",
@@ -390,18 +403,6 @@
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
-    },
-    {
-      "slug": "profile",
-      "title": "Profiles",
-      "src": "profile.md",
-      "description": "The working identity Lolly creates as - your name, role and contact details, filled into tools automatically and stored on your own device.",
-      "section": "create",
-      "path": "create/profile",
-      "icon": "usercheck",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Find and keep your work"
     },
     {
       "slug": "find-your-work",
@@ -426,6 +427,66 @@
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Find and keep your work"
+    },
+    {
+      "slug": "search",
+      "title": "Search",
+      "src": "search.md",
+      "section": "create",
+      "path": "create/search",
+      "icon": "search",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work",
+      "description": "Press Ctrl-Space and type to reach tools, saved work, assets, settings and the guides from the bar at the foot of the screen."
+    },
+    {
+      "slug": "dashboard",
+      "title": "Settings",
+      "src": "dashboard.md",
+      "section": "create",
+      "path": "create/dashboard",
+      "icon": "monitor",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work",
+      "description": "Every tab of Settings in one map: your details, design systems, accessibility, sound, storage, offline downloads, this device, capabilities and activity."
+    },
+    {
+      "slug": "profile",
+      "title": "Profiles",
+      "src": "profile.md",
+      "description": "The working identity Lolly creates as - your name, role and contact details, filled into tools automatically and stored on your own device.",
+      "section": "create",
+      "path": "create/profile",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work"
+    },
+    {
+      "slug": "ask",
+      "title": "Ask Lolly",
+      "src": "ask.md",
+      "section": "create",
+      "path": "create/ask",
+      "icon": "sparkle",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work",
+      "description": "Type a question and get the matching section of these guides, quoted and cited, with the places in the app that match. Runs on your device."
+    },
+    {
+      "slug": "favourites",
+      "title": "Your favourites",
+      "src": "favourites.md",
+      "section": "create",
+      "path": "create/favourites",
+      "icon": "star",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Find and keep your work",
+      "description": "Star the tools you use so they lead the gallery, and choose between the drifting strip and Cover Flow."
     },
     {
       "slug": "design-import",
@@ -573,37 +634,18 @@
       "group": "Collaborate and export"
     },
     {
-      "slug": "search",
-      "title": "Search",
-      "src": "search.md",
+      "slug": "project-asset-transfers",
+      "title": "Shared project assets",
+      "src": "project-asset-transfers.md",
+      "description": "With Lolly Work, browse shared project folders, copy files between projects, offer originals to the organisation library and send files to connected services.",
       "section": "create",
-      "path": "create/search",
-      "icon": "search",
-      "aliases": [],
+      "path": "create/project-asset-transfers",
+      "icon": "folder",
+      "aliases": [
+        "start/project-asset-transfers"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Find and keep your work"
-    },
-    {
-      "slug": "ask",
-      "title": "Ask Lolly",
-      "src": "ask.md",
-      "section": "create",
-      "path": "create/ask",
-      "icon": "sparkle",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Find and keep your work"
-    },
-    {
-      "slug": "dashboard",
-      "title": "The Dashboard",
-      "src": "dashboard.md",
-      "section": "create",
-      "path": "create/dashboard",
-      "icon": "monitor",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Find and keep your work"
+      "group": "Collaborate and export"
     },
     {
       "slug": "utilities",
@@ -616,17 +658,6 @@
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
-    },
-    {
-      "slug": "favourites",
-      "title": "Your favourites",
-      "src": "favourites.md",
-      "section": "create",
-      "path": "create/favourites",
-      "icon": "star",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Find and keep your work"
     },
     {
       "slug": "exporting",
