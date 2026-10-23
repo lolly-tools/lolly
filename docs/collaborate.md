@@ -179,9 +179,9 @@ The invite as a `#/join?inv=...` URL. Send it through any channel the two of you
 
 The invite as a QR on screen. The other device points its camera at it and scans.
 
-**When it fits:** the two devices are in the same room and there is no channel between them at all. It is also the leg that works when one device is a phone and the other is a laptop across a desk.
+**When it fits:** the two devices are in the same room, for example a phone and a laptop across a desk.
 
-Two things to know. The reply comes back the same way, so this is genuinely two scans and not one: your device shows the invite, theirs scans it, then theirs shows the reply and yours scans that. Numbering the steps 1-2-3 is what stops that going wrong. And scanning is only offered where the browser can actually decode a QR, which today means Chromium-family browsers. Where it cannot, there is no **Scan a code** button at all rather than a button that opens a camera and never finds anything - the code beside the QR is the same payload, so pasting is always available.
+Two things to know. Only the invite has a QR. The reply comes back as a link or a code, so the two of you still need a way to send each other a short message for that leg (see [Sending the reply back](#sending-the-reply-back)). And Lolly's own **Scan a code** button is only offered where the browser can actually decode a QR, which today means Chromium-family browsers. Where it cannot, there is no button at all rather than one that opens a camera and never finds anything. The code beside the QR is the same payload, so pasting is always available.
 
 ### A code
 
@@ -195,7 +195,7 @@ The invite as a block of text. Copy it, send it however you like and the other p
 
 ## Sending the reply back
 
-This is the leg pairs give up on, so it is worth being explicit: **an invite on its own does not connect anything.** The joining device makes a reply, and that reply has to get back to the waiting device before either of you is connected. Same three forms, same choice.
+This is the leg pairs give up on, so it is worth being explicit: **an invite on its own does not connect anything.** The joining device makes a reply, and that reply has to get back to the waiting device before either of you is connected. The joining device shows the reply in two forms, a link and a code, each with its own copy button. Send either one back to the person who invited you through any channel you both use: a messaging app, email or a direct share between the two devices. There is no QR for the reply, because the waiting screen has no camera to scan one with.
 
 ![The starting device makes an invite, the joining device makes a reply, and the starting device accepts the reply. Once connected, both devices compare their matching plates.](/info/diagrams/concepts/private-collab-handshake.svg)
 
@@ -204,14 +204,14 @@ SHOT DROPPED (collab-answer-minted): the same call as collab-invite-minted above
 for the same first reason. It WAS captured: the drill reaches the reply screen, and the
 walker serialises it cleanly (126 KB of vector). What it serialises is the problem.
 The reply link carries the origin the capture ran against, so the file read
-`http://localhost:5213/#/join-reply?ans=...`, and the code and the QR beside it are two
-further renderings of the same single-use payload.
+`http://localhost:5213/#/join-reply?ans=...`, and the reply code on the same screen is a
+further rendering of the same single-use payload.
 
 So the rule both drops share, stated once: LOLLY'S DOCS DO NOT PHOTOGRAPH A ONE-TIME
 SECRET. There is no framing of these two screens that is both honest and publishable:
 the token IS the screen, and the only "fix" available is to invent a token and an origin,
 which would make the picture a drawing of the product rather than a picture of it. The
-three forms are described in the prose instead.
+forms are described in the prose instead.
 
 Everything downstream of the handover still has its picture, because none of those
 screens carries a secret: the plate, the pill and roster, the focus ring and the beam
@@ -220,7 +220,6 @@ consent card are all captured by the drill below.
 
 - **As a link.** The reply is a `#/join-reply?ans=...` URL. Opening it on the same device that made the invite hands the reply straight to the window that is waiting, and that window moves on by itself. The tab that did the handing says so and can be closed. If no window on that device is waiting, it says that too and leaves the code on screen to copy.
 - **As a code.** Paste it into the **Paste the reply here** field on the waiting screen and press **Connect**.
-- **As a QR.** The waiting screen has its own **Scan a code** button, so the reply can be scanned back exactly like the invite was scanned across.
 
 **Testing it with two tabs on one device works.** If you open your own invite in another tab, the join screen notices and says so in one dismissible line. It is information and never a refusal - the pairing is real, it just happens to be between two windows of one browser.
 
@@ -357,7 +356,8 @@ This is the case the feature was built for.
 |---|---|
 | Editing together | Both devices reachable from each other on the same network. Nothing else. |
 | Opening an invite link | The joining device has to be able to load Lolly at the address in the link. Already installed as an app, or already open on that device, and it loads offline. A first-ever visit needs to be able to reach the address. |
-| A code or a QR | Nothing beyond the app being open on both devices. This is the fully cold path. |
+| The invite as a code or a QR | Nothing beyond the app being open on both devices. |
+| The reply | A way to pass a link or a code of about a hundred characters back to the inviting device. With no internet at all, that means a direct share between the two devices. There is no reply QR. |
 | Scanning a QR | A camera, and a browser that can decode barcodes - Chromium-family today. |
 | A beam | Both people in the tool. There is no queue for a transfer offered before the other side has the tool open. |
 

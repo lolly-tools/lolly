@@ -317,7 +317,6 @@ test('#/join: a FRESH profile joins straight away - on by default means no card 
   await mountJoinRoute(el, null, `${INVITE_PARAM}=${inviteToken()}`, {
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
     profileName: 'Sam',
   });
@@ -356,7 +355,6 @@ test('#/join: the enable card is announced when it appears, and again when it is
     governedOff: () => false,
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
   });
   await settle();
@@ -443,7 +441,6 @@ test('#/join: "Turn on and continue" writes the flag to the PROFILE, not just th
     governedOff: () => false,
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
   });
   await settle();
@@ -469,7 +466,6 @@ test('#/join: turning it on falls straight through into the ceremony, with no re
     governedOff: () => false,
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
   });
   await settle();
@@ -494,7 +490,6 @@ test('#/join: a host that cannot save the choice says so rather than implying it
     governedOff: () => false,
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
   });
   await settle();
@@ -711,7 +706,6 @@ test('#/join with no invite in the link is a paste card, and a pasted code walks
     flagOn: () => true,
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
     channel: null,
   });
@@ -744,7 +738,6 @@ test('#/join: the code door takes a whole invite LINK too, not only the bare cod
     flagOn: () => true,
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
     channel: null,
   });
@@ -854,7 +847,6 @@ test('#/join: the mount settles once the enable card is painted, and the flow ca
     governedOff: () => false,
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
   });
   await settle();
@@ -875,7 +867,6 @@ test('#/join: the mount settles once the code door is painted, and a paste still
     flagOn: () => true,
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
     channel: null,
   });
@@ -899,7 +890,6 @@ test('#/join: a failure before anyone is asked anything still reaches the router
       flagOn: () => true,
       openCeremony: () => { throw new Error('the ceremony broke'); },
       effects: plainEffects(),
-      renderQr: null,
       scan: null,
       channel: null,
     }),
@@ -917,7 +907,6 @@ test('#/join: a failure after the code door is logged, never left as an unhandle
       flagOn: () => true,
       openCeremony: () => { throw new Error('the ceremony broke'); },
       effects: plainEffects(),
-      renderQr: null,
       scan: null,
       channel: null,
     });
@@ -940,7 +929,6 @@ test('#/join: opens the ACCEPTOR ceremony with the invite already delivered', as
     flagOn: () => true,
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
     profileName: 'Sam',
   });
@@ -959,7 +947,6 @@ test('#/join: a missing tool is the ceremony\'s refusal, not the route\'s', asyn
     flagOn: () => true,
     openCeremony: trackedOpen,
     effects: plainEffects({ checkTool: async () => ({ status: 'missing' as const }) }),
-    renderQr: null,
     scan: null,
   });
   await settle();
@@ -972,7 +959,6 @@ test('#/join: closing the ceremony leaves the page saying so', async () => {
     flagOn: () => true,
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
   });
   await settle();
@@ -986,7 +972,6 @@ test('#/join: navigating away closes the dialog without repainting a view being 
     flagOn: () => true,
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
   });
   await settle();
@@ -1008,7 +993,6 @@ test('#/join: a route torn down mid-mount opens nothing and keeps the next view\
     flagOn: () => true,
     openCeremony: (opts) => { opened += 1; return trackedOpen(opts); },
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
   });
   await settle();
@@ -1037,7 +1021,6 @@ test('#/join: closing the ceremony hangs up a pair nobody adopted', async () => 
     flagOn: () => true,
     // No `effects`: the real composition runs, so there is a transport to hang up.
     openCeremony: (opts) => { fire = opts.onConnected; return trackedOpen({ ...opts, onConnected: undefined }); },
-    renderQr: null,
     scan: null,
   });
   await settle();
@@ -1087,7 +1070,6 @@ test('#/join: an invite minted in this browser gets one dismissible note, and no
     flagOn: () => true,
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
     channel: () => hub.open(),
     askMs: 0,
@@ -1115,7 +1097,7 @@ test('#/join: with nobody answering the ask, the flow is byte-identical to one t
   // case - an invite from somebody else's device - must not be able to tell it happened.
   const quiet = view();
   await mountJoinRoute(quiet, null, `${INVITE_PARAM}=${inviteToken()}`, {
-    flagOn: () => true, openCeremony: trackedOpen, effects: plainEffects(), renderQr: null, scan: null,
+    flagOn: () => true, openCeremony: trackedOpen, effects: plainEffects(), scan: null,
     channel: null,
   });
   await settle();
@@ -1130,7 +1112,7 @@ test('#/join: with nobody answering the ask, the flow is byte-identical to one t
 
   const asked = view();
   await mountJoinRoute(asked, null, `${INVITE_PARAM}=${inviteToken()}`, {
-    flagOn: () => true, openCeremony: trackedOpen, effects: plainEffects(), renderQr: null, scan: null,
+    flagOn: () => true, openCeremony: trackedOpen, effects: plainEffects(), scan: null,
     channel: () => hub.open(),
     askMs: 0,
   });
@@ -1216,7 +1198,6 @@ test('the link the dialog mints is the route the router registers', async () => 
     flagOn: () => true,
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
   });
   await settle();
@@ -1252,7 +1233,6 @@ test('the links a route mints point at the app ROOT, never at this page\'s pathn
     flagOn: () => true,
     openCeremony: trackedOpen,
     effects: plainEffects(),
-    renderQr: null,
     scan: null,
   });
   await settle();
