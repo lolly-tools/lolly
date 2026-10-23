@@ -50,9 +50,13 @@ Some tools, such as **Strip Hidden Data**, **Compress** and others with the **Ru
 
 ![The badge these tools carry: Runs on your device - nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
+**Prepare for sharing** and **Compare** work in memory on the device and send nothing to a server, and Prepare adds nothing to history, links, backups or Sync until you save a result.
+
+::: details How Prepare for sharing and Compare handle your files
 **Prepare for sharing** holds working inputs, private findings and replacement maps in memory, without adding them to history, links, backups or Sync. Inspection and replacement send no file contents to a server and check no credentials online. You choose whether to copy, download, send or save a result to your library; a saved result then follows your library's backup and Sync settings. Recipe files leave out earlier content and literal mappings, and summary reports contain counts, scope IDs and file hashes. The CLI saves a private review file with the original values only when asked to with `--review-file`. Leaving a preparation view releases its working state, which is not a promise of forensic erasure from browser or operating-system memory.
 
 Prepared copies and finished file operations share the Compare controls. Removed values start collapsed, and comparison reports leave out source names, paths and values unless you choose to include them. File history saves the copy, so comparing after a reload means selecting the original again, matched by its recorded SHA-256. Selecting it does not save or upload the file.
+:::
 
 Strip Hidden Data and Prepare for sharing also inspect DOCX, PPTX and XLSX files on the device. Supported DOCX files can have selected properties removed in a new copy; other Office content is inspect-only, and private previews stay behind a reveal control.
 
