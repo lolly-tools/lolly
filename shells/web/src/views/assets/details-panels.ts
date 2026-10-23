@@ -13,6 +13,7 @@ import { assetAiKind } from '../../lib/genai-pill.ts';
 import { analyzeVerifyText, heatBucket } from '../valid-text.ts';
 import DOMPurify from 'dompurify';
 import { mdToHtml } from '../../lib/markdown.ts';
+import { readableMarkdown, tidyReaderLinks } from '../../lib/text-kinds.ts';
 import { LEXICON_VERSION, analyzeTextSignals, rewordableSpans, suggestRewrites } from '@lolly/engine';
 import type { RewordSuggestion } from '@lolly/engine';
 import { appendVisibleText } from '../../lib/invisible-chars.ts';
@@ -227,7 +228,10 @@ export const setTextRenderMode = (dt: DetailsCtx, on: boolean): void => {
   const fillSrc = dt.dPreviewText ?? dt.dTextContent;
   if (on && fillSrc != null && !box.dataset.filled) {
     const capped = fillSrc.length > 262144 ? fillSrc.slice(0, 262144) : fillSrc;
-    box.innerHTML = DOMPurify.sanitize(mdToHtml(capped));
+    // Frontmatter is metadata for agents (a skill's name and description), not
+    // prose: rendered, the block read as a rule and a paragraph. The raw view keeps every byte.
+    box.innerHTML = DOMPurify.sanitize(mdToHtml(readableMarkdown(capped)));
+    tidyReaderLinks(box);
     box.dataset.filled = '1';
   }
   pre.hidden = on;

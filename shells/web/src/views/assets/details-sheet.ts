@@ -37,6 +37,8 @@ import type { MatteHost } from '../matte-dialog.ts';
 import type { ExtractAudioHost } from '../../lib/extract-audio.ts';
 import type { VideoJobHost } from '../../lib/video-jobs.ts';
 import { looksLikeMarkdown } from '../../lib/markdown.ts';
+import { isSkillKind, isTextKind } from '../../lib/text-kinds.ts';
+import { skillDetailRows } from '../../lib/design-system/brand-skills.ts';
 import { derivePeaks } from '../../lib/audio-peaks.ts';
 import { songUrlToWavBlobUrl } from '../../lib/zzfxm-render.ts';
 import { modUrlToWavBlobUrl } from '../../lib/mod-render.ts';
@@ -308,8 +310,10 @@ export function readAsset(dt: DetailsCtx): void {
 export function buildSheet(dt: DetailsCtx): void {
   const { cat, host, isUser, name, nav, ref, showVerify, tags, themable, treatable } = dt;
   dt.dTextZoom = 1;    // font scale for the text reading surface (both modes)
-  // A text asset (.txt/.md): the bytes are the text. Offers Copy text + Analyse text.
-  const isTextAsset = ref.type === 'text'; dt.isTextAsset = isTextAsset;
+  // A text asset (.txt/.md) or a brand skill: the bytes are the text. Offers Copy
+  // text, and Analyse text everywhere but on a skill (lib/text-kinds.ts says why).
+  const isTextAsset = isTextKind(ref.type); dt.isTextAsset = isTextAsset;
+  dt.isSkillAsset = isSkillKind(ref.type);
   // A Lottie plays in the details view as a live SVG player (mounted below), not a still - with a
   // play/pause overlay. Both library (json on meta.animationUrl) and user (url IS the json) lotties.
   const lottieJson = ref.type === 'lottie'
@@ -324,7 +328,7 @@ export function buildSheet(dt: DetailsCtx): void {
   const specialPreview = (ref.original?.format ?? ref.format) === 'mogrt';
   const zoomable = !ownsPreview && !specialPreview && !ref.meta?._placeholder
     && ref.type !== 'audio' && ref.type !== 'model'
-    && ref.type !== 'text' && ref.type !== 'data'
+    && !isTextKind(ref.type) && ref.type !== 'data'
     && ref.type !== 'palette'   // a scrollable swatch card, not a zoom stage
     && !(ref.type === 'lottie' && !isMotionLottie); dt.zoomable = zoomable;
   // Crop only makes sense on a static raster/vector - never a live motion preview or a video.
@@ -442,6 +446,7 @@ export function buildSheet(dt: DetailsCtx): void {
         <dl class="cat-details-meta">
           ${assetRightsRows(ref, isUser)}
           ${emojiPackRows(ref)}
+          ${skillDetailRows(ref)}
           <div><dt>${t('Category')}</dt><dd>${escapeText(t(categoryLabel(libCategory(ref, cat.overrides))))}</dd></div>
           <div><dt>${t('Format')}</dt><dd>${escapeText(String(ref.format ?? ref.type).toUpperCase())}</dd></div>
           ${(() => {
@@ -471,7 +476,7 @@ export function buildSheet(dt: DetailsCtx): void {
         ${dt.rondo.rondoSectionHtml()}
         <div class="cat-details-tech" data-tech hidden></div>
         <div class="cat-details-tech" data-usage hidden></div>
-        ${isTextAsset || canOcr || canReadDoc || canReadVector ? `<div class="cat-details-tsig" data-tsig hidden></div>` : ''}
+        ${(isTextAsset && !dt.isSkillAsset) || canOcr || canReadDoc || canReadVector ? `<div class="cat-details-tsig" data-tsig hidden></div>` : ''}
         ${themable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colours')}</span>${cat.thumbs.iconSwatchRow(dt.dTheme)}</div>` : ''}
         ${treatable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colour')}</span>${cat.thumbs.treatmentSwatchRow(dt.dTreatment)}</div>` : ''}
       </div>`; dt.content = content;

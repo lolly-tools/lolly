@@ -22,7 +22,8 @@ export interface AssetRef {
     | 'profile'
     | 'ratecard'
     | 'text'
-    | 'data';
+    | 'data'
+    | 'skill';
   format: string;
   url: string;
   /** Original encoded file when url is a prepared display image. Disposable

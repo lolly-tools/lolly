@@ -54,6 +54,9 @@ test('each bucket admits exactly its own types', () => {
   assert.equal(matchesType(A('a', { type: 'video' }), 'motion'), true);
   assert.equal(matchesType(A('a', { type: 'lottie' }), 'motion'), true);
   assert.equal(matchesType(A('a', { type: 'audio' }), 'audio'), true);
+  // A brand skill reads as text (lib/text-kinds.ts), so the Text filter shows it (plan 323).
+  assert.equal(matchesType(A('a', { type: 'skill' }), 'text'), true);
+  assert.equal(typeBucket({ type: 'skill' }), 'text');
   assert.equal(matchesType(A('a', { type: 'audio' }), 'motion'), false);
 });
 

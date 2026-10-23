@@ -22,6 +22,7 @@
 
 import { RateLimitUnavailableError, restStoreConfig } from './rate-limit.ts';
 import type { WriteObserver } from '../../shared/http-lifecycle.mjs';
+import { hostedDeployment } from './hosted.ts';
 
 export interface BudgetState {
   ok: boolean;
@@ -83,7 +84,7 @@ function limitFromEnv(raw: string | undefined, fallback: number, scale: number):
 /** The limits this deployment runs with. Hosted deployments get the defaults
  *  above; a local server has no ceiling unless one is set. */
 export function budgetLimits(env: NodeJS.ProcessEnv): BudgetLimits {
-  const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === '1' || env.NODE_ENV === 'production';
+  const hosted = hostedDeployment(env);
   return {
     cpuMs: limitFromEnv(env.LOLLY_BUDGET_CPU_SECONDS_PER_DAY, hosted ? HOSTED_CPU_SECONDS_PER_DAY * 1000 : 0, 1000),
     egressBytes: limitFromEnv(env.LOLLY_BUDGET_EGRESS_MB_PER_DAY, hosted ? HOSTED_EGRESS_MB_PER_DAY * 1024 * 1024 : 0, 1024 * 1024),
@@ -236,8 +237,7 @@ export function createUsageBudget(env: NodeJS.ProcessEnv, namespace = 'mcp', onW
   const store = restStoreConfig(env);
   if (store) return new RedisRestUsageBudget({ ...store, namespace, limits, onWrite });
   if (limits.cpuMs || limits.egressBytes) {
-    const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === '1' || env.NODE_ENV === 'production';
-    if (hosted) console.warn('[usage-budget] no durable store is configured, so the daily budget is counted per instance');
+    if (hostedDeployment(env)) console.warn('[usage-budget] no durable store is configured, so the daily budget is counted per instance');
   }
   return new MemoryUsageBudget(limits);
 }

@@ -7,6 +7,7 @@ import { budgetRefusal, type UsageBudget } from './usage-budget.ts';
 import { createHash } from 'node:crypto';
 import { deliveryHeaders } from './delivery-http.ts';
 import { tag, renderTags } from '../../../packages/core/src/delivery-v1.ts';
+import { hostedMaxImageBytes, isHostedServer } from './hosted.ts';
 
 export interface ImageProxyResponse {
   status: number;
@@ -24,12 +25,12 @@ export function matchImageProxyPath(path: string): boolean {
 }
 
 const MAX_URL_LEN = 2048;
+// A local server fetches images up to 25 MiB. A hosted one stops at
+// `LOLLY_MCP_MAX_IMAGE_BYTES` (4 MiB unless set, hosted.ts), so a public endpoint's
+// memory and daily transfer budget are not spent on one large picture.
 const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
-// On Vercel a response body over 4.5 MB is refused by the platform, so a larger
-// image would be downloaded in full only to fail on the way out.
-const VERCEL_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 // One deadline covers the whole request (every redirect hop plus the body read),
-// so a chain of slow hops cannot outlive the serverless function's own limit.
+// so a chain of slow hops cannot hold a request open past that deadline.
 const OVERALL_TIMEOUT_MS = 20_000;
 
 const RL_WINDOW_MS = 60_000;
@@ -119,7 +120,7 @@ export async function proxyImage(reqUrl: URL, opts: ImageProxyOpts): Promise<Ima
 
   let privateResponse = false;
   let cacheAge = 3600;
-  const maxBytes = env.VERCEL ? VERCEL_MAX_IMAGE_BYTES : MAX_IMAGE_BYTES;
+  const maxBytes = isHostedServer(env) ? hostedMaxImageBytes(env) : MAX_IMAGE_BYTES;
   let bytes: Uint8Array;
   let rawType: string;
   try {

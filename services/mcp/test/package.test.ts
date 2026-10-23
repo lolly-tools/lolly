@@ -124,15 +124,15 @@ test('a missing-picture refusal names this tool\'s arguments, never a CLI flag',
 });
 
 test('on a hosted server the pictures share one request and the file one response', async () => {
-  const vercel = { VERCEL: '1' };
+  const hosted = { LOLLY_MCP_HOSTED: '1' };
   const tight = { ...PACKAGE_LIMITS, bodyMaxBytes: 1024 };
   const big = new Uint8Array(4096);
   big.set(JPG);
-  const tooBig = (await callPackage({ document: DOC, assets: [{ key: 'photo:hero', base64: b64(big) }] }, unreachable, vercel, tight)) as Result;
+  const tooBig = (await callPackage({ document: DOC, assets: [{ key: 'photo:hero', base64: b64(big) }] }, unreachable, hosted, tight)) as Result;
   assertValid(tooBig);
   refusedWith(tooBig, 'asset.too-large');
   const small = { ...PACKAGE_LIMITS, responseMaxBytes: 200 };
-  const answer = (await callPackage({ document: DOC, assets: [{ key: 'photo:hero', base64: b64(JPG) }] }, unreachable, vercel, small, { brief: async () => null })) as Result;
+  const answer = (await callPackage({ document: DOC, assets: [{ key: 'photo:hero', base64: b64(JPG) }] }, unreachable, hosted, small, { brief: async () => null })) as Result;
   assertValid(answer);
   refusedWith(answer, 'output.too-large');
 });

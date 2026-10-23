@@ -144,7 +144,7 @@ test('refusals carry their codes', async () => {
 });
 
 test('a hosted answer over the response limit is refused as output.too-large', async () => {
-  const hosted = { VERCEL: '1' };
+  const hosted = { LOLLY_MCP_HOSTED: '1' };
   const result = (await callInspectTokens({ tokens: BEACON }, hosted, { ...STRUCTURED_LIMITS, responseMaxBytes: 500 })) as Result;
   assertValid(result);
   refusedWith(result, 'output.too-large', /smaller limit/);

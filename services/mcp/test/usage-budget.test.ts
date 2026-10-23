@@ -16,10 +16,12 @@ const NOON = Date.UTC(2026, 8, 30, 12, 0, 0);
 
 test('limits: hosted defaults, local has none, env overrides, 0 turns a ceiling off', () => {
   assert.deepEqual(budgetLimits({}), { cpuMs: 0, egressBytes: 0 });
-  const hosted = budgetLimits({ VERCEL: '1' });
+  const hosted = budgetLimits({ LOLLY_MCP_HOSTED: '1' });
   assert.equal(hosted.cpuMs, HOSTED_CPU_SECONDS_PER_DAY * 1000);
   assert.ok(hosted.egressBytes > 0);
-  assert.deepEqual(budgetLimits({ VERCEL: '1', LOLLY_BUDGET_CPU_SECONDS_PER_DAY: '0', LOLLY_BUDGET_EGRESS_MB_PER_DAY: '1' }), { cpuMs: 0, egressBytes: 1024 * 1024 });
+  assert.deepEqual(budgetLimits({ NODE_ENV: 'production' }), hosted, 'a production container is hosted');
+  assert.deepEqual(budgetLimits({ VERCEL: '1' }), { cpuMs: 0, egressBytes: 0 }, 'VERCEL alone is not a hosted signal; the Vercel entry sets LOLLY_MCP_HOSTED');
+  assert.deepEqual(budgetLimits({ LOLLY_MCP_HOSTED: '1', LOLLY_BUDGET_CPU_SECONDS_PER_DAY: '0', LOLLY_BUDGET_EGRESS_MB_PER_DAY: '1' }), { cpuMs: 0, egressBytes: 1024 * 1024 });
   assert.throws(() => budgetLimits({ LOLLY_BUDGET_CPU_SECONDS_PER_DAY: '-1' }), /non-negative/);
 });
 

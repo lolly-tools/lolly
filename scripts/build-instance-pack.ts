@@ -56,6 +56,7 @@ import { zipSync, strToU8 } from 'fflate';
 import { CATALOG_SIG_ALG, jwkThumbprint } from '../engine/src/catalog-integrity.ts';
 import { pemToDer } from '../engine/src/x509.ts';
 import { ENGINE_VERSION } from '../engine/src/version.ts';
+import { isPublicBrandSkillAsset } from '../packages/core/src/brand-skill-v1.ts';
 import {
   listToolFiles, readToolManifestText, toolFile, type ContentRoots,
 } from '../packages/node-shell/src/content-roots.ts';
@@ -101,6 +102,11 @@ interface PackRecipe {
   excludeAssetFamilies: string[];
   /** `<tool-id>/assets/<path>` files supplied by the configured community instance. */
   reuseCommunityToolAssets?: string[];
+  /**
+   * Brand skills (plan 323). Internal-audience skills ride only when the recipe says so,
+   * because the brand decides where this pack is hosted; public ones ride like any asset.
+   */
+  skills?: { internal?: boolean };
 }
 
 interface AssetFormat { format: string; url: string; checksum?: string; size?: number }
@@ -261,7 +267,9 @@ async function main(): Promise<void> {
     if (included && excluded) throw new Error(`asset "${asset.id}" matches BOTH include and exclude families - fix the recipe`);
     if (!included && !excluded) throw new Error(`asset "${asset.id}" matches NO declared family - classify it in brands/${args.brand}/pack.json`);
     if (!included) continue;
-    for (const fmt of asset.formats ?? []) {
+    if (!recipe.skills?.internal && !isPublicBrandSkillAsset(asset)) continue;
+    const skillFiles = asset.type === 'skill' ? ((asset.meta as { skill?: { files?: AssetFormat[] } } | undefined)?.skill?.files ?? []) : [];
+    for (const fmt of [...(asset.formats ?? []), ...skillFiles]) {
       if (AUDIO_EXT.test(fmt.url) || asset.type === 'audio') {
         throw new Error(`audio may never ship in a pack: ${asset.id} (${fmt.url}) - the licence rule is absolute`);
       }

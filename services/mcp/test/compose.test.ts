@@ -148,7 +148,7 @@ test('refusals carry their codes', async () => {
 
 test('a hosted call measures within its budget, and the sentence counts the slots it did not measure', async () => {
   const lowered = { ...STRUCTURED_LIMITS, hostedMeasureUnits: 10 };
-  const hosted = (await callCompose({ spec: SPEC, fit: 'shrink' }, { VERCEL: '1' }, lowered)) as Result;
+  const hosted = (await callCompose({ spec: SPEC, fit: 'shrink' }, { LOLLY_MCP_HOSTED: '1' }, lowered)) as Result;
   assertValid(hosted);
   assert.ok(!hosted.isError, hosted.content[0]?.text ?? '');
   assert.match(hosted.content[0]!.text!, /4 text slots not measured/);

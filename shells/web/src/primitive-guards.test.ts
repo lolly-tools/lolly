@@ -1733,6 +1733,10 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/start/reference.ts': 3,
   // Rule labels, origins, resources and text escape at interpolation; IDs and states are bounded.
   'lib/design-system/rooms/usage.ts': 2,
+  // Skills room (plan 323): the room shell and the reader escape every catalog and skill
+  // value at interpolation (swatches only after a strict #rrggbb test); the third sink is
+  // the skill's Markdown, admitted by the engine and passed through DOMPurify.sanitize.
+  'lib/design-system/rooms/skills.ts': 3,
   // Form options escape labels and values; colour previews use the CSS property setter.
   'lib/design-system/usage-editor.ts': 3,
   // Hydrated tool markup enters an inert template for resource embedding, then

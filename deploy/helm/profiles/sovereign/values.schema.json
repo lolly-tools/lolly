@@ -498,6 +498,28 @@
                   "maximum": 60000
                 }
               }
+            },
+            "limits": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["requestMaxBytes", "responseMaxBytes", "maxImageBytes"],
+              "properties": {
+                "requestMaxBytes": {
+                  "type": "integer",
+                  "minimum": 65536,
+                  "maximum": 33554432
+                },
+                "responseMaxBytes": {
+                  "type": "integer",
+                  "minimum": 65536,
+                  "maximum": 33554432
+                },
+                "maxImageBytes": {
+                  "type": "integer",
+                  "minimum": 65536,
+                  "maximum": 26214400
+                }
+              }
             }
           },
           "required": [
@@ -510,7 +532,8 @@
             "heapMiB",
             "allowAnonymous",
             "webBase",
-            "browser"
+            "browser",
+            "limits"
           ]
         },
         "ca": {
