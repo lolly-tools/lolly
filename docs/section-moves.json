@@ -1198,13 +1198,13 @@
     },
     "importing-a-design-figma-penpot-illustrator-indesign": {
       "slug": "design-import",
-      "anchor": "import-a-design-figma-penpot-illustrator-indesign",
-      "label": "Importing a design (Figma, Penpot, Illustrator, InDesign)"
+      "anchor": "import-a-design",
+      "label": "Import a design"
     },
     "exporting": {
       "slug": "exporting",
-      "anchor": "exporting-formats",
-      "label": "Exporting"
+      "anchor": "export-a-file",
+      "label": "Export a file"
     }
   },
   "profile": {
