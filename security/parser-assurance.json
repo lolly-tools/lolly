@@ -64,7 +64,7 @@
         "bounds": "`PDF_MAP_MAX_ARRAY_DEPTH = 16`, `PDF_MAP_MAX_BF_RANGE = 0x10000`, `PDF_MAP_MAX_RUN_DEPTH = 12`, `PDF_MAP_MAX_PAGE_NODES = 4,000`, `PDF_MAP_MAX_TOKENS = 4 M`, `PDF_MAP_MAX_CONTENT_CHARS = 16 M`, `PDF_MAP_MAX_TOTAL_CONTENT_CHARS = 32 M`, plus named pattern/mask evaluation and node ceilings",
         "directTests": "`tests/pdf-map.test.ts`",
         "fuzzCoverage": "`pdf-map` (`interpretPdfPage` + `parseToUnicode`)",
-        "notes": "Two of the eight saved regressions are this module: `pdf-map-deep-array-nesting.bin` and `pdf-map-tounicode-range-oom.bin`. The CMap cap blocks a four-billion-iteration range; tokenizer accounting includes nested array members, and decoded characters, tokens and emitted nodes are charged page-wide across nested form, glyph, pattern and mask runs."
+        "notes": "Two saved regressions are this module: `pdf-map-deep-array-nesting.bin` and `pdf-map-tounicode-range-oom.bin`. The CMap cap blocks a four-billion-iteration range; tokenizer accounting includes nested array members, and decoded characters, tokens and emitted nodes are charged page-wide across nested form, glyph, pattern and mask runs."
       }
     },
     "engine/src/pdf-svg.ts": {
@@ -404,7 +404,7 @@
         "bounds": "`MAX_CBOR_DEPTH = 64`",
         "directTests": "`tests/c2pa-extract.test.ts`, plus coverage through `tests/c2pa-verify.test.ts`, `tests/c2pa-formats.test.ts`, `tests/c2pa-foreign-fixture.test.ts`, `tests/c2pa-jpeg-segments.test.ts`",
         "fuzzCoverage": "`c2pa-extract` (`collectActionChain` + `prepareC2paIngredientFromStore` + `sniffFormat` + `parseC2paStore`), `cbor` (`decodeCbor`, hit directly) and `c2pa-verify` (end to end)",
-        "notes": "Split out of `c2pa-verify.ts` precisely so the parsing is reviewable apart from the cryptography; nothing in this file does or checks crypto. Four of the eight saved regressions are its CBOR decoder. The decoder accepts indefinite lengths and half/single/double floats because foreign manifests use them. The target runs the never-throw pair first, because `parseC2paStore`'s controlled throw would otherwise skip them."
+        "notes": "Split out of `c2pa-verify.ts` precisely so the parsing is reviewable apart from the cryptography; nothing in this file does or checks crypto. Four saved regressions exercise its CBOR decoder. The decoder accepts indefinite lengths and half/single/double floats because foreign manifests use them. The target runs the never-throw pair first, because `parseC2paStore`'s controlled throw would otherwise skip them."
       }
     },
     "engine/src/c2pa-containers.ts": {

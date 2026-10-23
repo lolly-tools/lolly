@@ -4,21 +4,21 @@ Someone sends you a PDF, a slide deck, a photo or a font, and you open it in Lol
 
 ## What a parser does
 
-A file is a sequence of bytes. To show you a picture, the words on a slide or the colours in a profile, Lolly has to turn those bytes into structure, and the code that does this is a parser. Lolly has one for every format it opens, and each one runs on your device. Opening a file does not upload the file anywhere.
+A file is a sequence of bytes. To show you a picture, the words on a slide or the colours in a profile, Lolly has to turn those bytes into structure, and the code that does this is a parser. In the Lolly apps, every parser runs on your device, so opening a file does not upload it anywhere.
 
 A file from someone else can be damaged, or made on purpose to cause trouble. It can claim to be far larger than it is, nest one part inside another thousands of times, or state a length that runs past its own end. A careless parser that believes those claims can hang, run out of memory or read the wrong bytes.
 
-So every Lolly parser checks named limits before it reads. A limit is a constant in the code, such as the largest part it will read, the deepest nesting it will follow or the most records it will count, with a comment that gives its unit and the largest real value it was measured against.
+So each parser checks limits before it reads. A limit is usually a named constant in the code, such as the largest part it will read, the deepest nesting it will follow or the most records it will count. Where a limit is set by the structure of the format rather than by a number, the module's header says so. [Parser Inventory](/info/parser-inventory.html) lists each parser's limits.
 
 ::: figure reading-files-sources
 Four kinds of untrusted input reach a parser. Each parser checks its named limits before reading, then answers in one of three ways.
 :::
 
-## What every parser promises
+## The rules each parser is held to
 
 - <!--i:hash--> **Limits first.** Every length, count and depth a file declares is checked before the parser acts on the value. A length is checked before the bytes it describes are read, because reading past the end of a buffer gives an empty value that quietly breaks the next check.
 - <!--i:document--> **One stated contract.** Each parser says in its header how it answers a bad file, and keeps to that answer everywhere. There are three, below.
-- <!--i:checklist--> **A test and a fuzz target.** Each parser has a test file that feeds it truncated, garbled and oversized input by hand. It also has a fuzz target: a harness that mutates real files, hundreds of times on every test run and many thousands in a weekly run, and fails on runaway recursion, a hang or a runaway allocation. The weekly run keeps any input that breaks a parser, and once that input joins the saved set it is replayed on every test run.
+- <!--i:checklist--> **A fuzz target, and tests.** Every registered parser has a fuzz target: a harness that mutates real files, hundreds of times on every test run and thousands more in a weekly run, and fails on runaway recursion, a hang or a runaway allocation. Most also have a test file of their own that feeds them truncated, garbled and oversized input by hand. The weekly run keeps any input that breaks a parser, and once that input joins the saved set it is replayed on every test run.
 - <!--i:check--> **A list that cannot drift.** [Parser Inventory](/info/parser-inventory.html) is generated from a register, and CI fails when a listed parser loses its fuzz target or the register and the code disagree.
 
 ## Three ways a parser can answer

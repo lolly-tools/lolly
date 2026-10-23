@@ -369,7 +369,7 @@ const pages: Page[] = [
   { slug: 'work-cloud-deployment', title: 'UpCloud, Evroc and fewer hosting services', src: 'work/cloud-deployment.md', pathway: 'operators', canonicalPath: 'operate/cloud-deployment', contentLicense: 'MPL-2.0', description: 'Two cloud targets, OpenTofu/Terraform, private VM boundaries, database restore and public-host migration.' },
   { slug: 'work-platform-deployment', title: 'Deploy with your platform team', src: 'work/platform-deployment.md', pathway: 'operators', canonicalPath: 'operate/platform-deployment', contentLicense: 'MPL-2.0', description: 'Reader, operator and developer paths for SUSE hosts, K3s/RKE2, Ansible/Salt, OCI builds and cloud or on-premises deployment.' },
   { slug: 'work-wasm-deployment', title: 'WebAssembly and Kubewarden choices', src: 'work/wasm-deployment.md', pathway: 'operators', canonicalPath: 'operate/wasm-deployment', contentLicense: 'MPL-2.0', description: 'Optional policy and component hosting tracks, current WASI compatibility, runtime qualification and bounded worker canaries.' },
-  { slug: 'work-security-platform', title: 'Work security overview', src: 'work/security-platform.md', pathway: 'trust', canonicalPath: 'trust/security-platform', contentLicense: 'MPL-2.0', description: 'Local work, connected services and the boundaries operators control.' },
+  { slug: 'work-security-platform', title: 'Lolly Work security overview', src: 'work/security-platform.md', pathway: 'trust', canonicalPath: 'trust/security-platform', contentLicense: 'MPL-2.0', description: 'Local work, connected services and the boundaries operators control.' },
   { slug: 'work-configuration', title: 'Work instance configuration', src: 'work/configuration.md', pathway: 'operators', canonicalPath: 'operate/instance-configuration', contentLicense: 'MPL-2.0', description: 'Every instance.json key and every LW_* environment variable, with defaults.' },
   { slug: 'work-identity', title: 'Identity and sessions', src: 'work/identity.md', pathway: 'managers', canonicalPath: 'manage/identity-and-sessions', contentLicense: 'MPL-2.0', description: 'OIDC SSO, group mapping, member and guest sessions, the dev provider.' },
   { slug: 'work-account-lifecycle', title: 'Account data controls', src: 'work/account-lifecycle.md', pathway: 'managers', canonicalPath: 'manage/account-data-controls', contentLicense: 'MPL-2.0', description: 'Owner metadata exports, scoped offboarding, documented limits and review of shared content.' },
@@ -900,7 +900,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'parser-inventory', label: 'Parser Inventory' },
       { slug: 'server-surface', label: 'Server Surface' },
       { slug: 'privacy', label: 'Privacy Policy' },
-      { slug: 'work-security-platform', label: 'Work security overview' },
+      { slug: 'work-security-platform', label: 'Lolly Work security overview' },
       { slug: 'work-data-lifecycle', label: 'Work storage and data lifecycle' },
     ] },
     { label: 'Accessibility and input boundaries', items: [

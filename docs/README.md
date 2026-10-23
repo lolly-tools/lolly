@@ -237,5 +237,5 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | AI marking and the EU AI Act | [eu-ai-act.md](eu-ai-act.md) |
 | Beatrice Warde | [beatrice-warde.md](beatrice-warde.md) |
 | Shoulders of giants | [shoulders-of-giants.md](shoulders-of-giants.md) |
-| Work security overview | [work/security-platform.md](work/security-platform.md) |
+| Lolly Work security overview | [work/security-platform.md](work/security-platform.md) |
 | Work storage and data lifecycle | [work/data-lifecycle.md](work/data-lifecycle.md) |
