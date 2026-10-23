@@ -17,7 +17,7 @@ Follow one campaign card through an organisation and three pairs of hands appear
 ![A designer sets the rules once in a tool; a developer runs it from a script and anyone can fill in its fields; both make finished files](/info/diagrams/concepts/asset-relay.svg)
 
 ::: timeline
-- <!--i:pentool--> **A designer sets the rules.** They lay out the card in Design, fix the brand's type and colours, and choose which fields stay open. They do this once, so nobody hand-localises the card again.
+- <!--i:pentool--> **A designer sets the rules.** They lay out the card in Design with the brand's type and colours, then choose which fields stay open. They do this once, so nobody hand-localises the card again.
 - <!--i:code--> **A developer scales the tool.** The same tool runs in a nightly script through the command line, so a fresh chart or a new language version arrives without anyone reopening the design.
 - <!--i:people--> **Anyone fills it in.** A sales rep on a plane, with no network and no design training, opens the tool and makes the card for tomorrow's meeting.
 :::

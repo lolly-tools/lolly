@@ -10,7 +10,7 @@ If your team designs in Penpot, Lolly works alongside Penpot: both are open sour
 
 ## Where they overlap
 
-[Penpot's design tokens](https://help.penpot.app/user-guide/design-systems/design-tokens/) use the DTCG format, which Lolly also reads, so colours, type and other token values move between the two. Lolly's [Import a design](/info/design-import.html) opens a `.penpot` export as an editable layout, and **Send to Penpot** in Lolly sends a design back as a `.penpot` archive.
+[Penpot's design tokens](https://help.penpot.app/user-guide/design-systems/design-tokens/) use the DTCG format, which Lolly also reads, so colours, type and other token values move between the two. Lolly's [Import a design](/info/design-import.html) opens a `.penpot` export as an editable layout, and **Send to Penpot** in Lolly sends a design back as a `.penpot` archive. Lolly also maintains the [Lolly Export plugin for Penpot](https://github.com/lolly-tools/lolly-plugins-penpot-export), which uses Lolly's engine to add opt-in Content Credentials on the device.
 
 ## How Lolly does the overlapping job
 
@@ -20,6 +20,6 @@ Lolly's Design canvas makes editable assets and can turn a layout into a [tool w
 
 Lolly Work adds single sign-on, SCIM provisioning, shared catalogues and projects, roles, approvals, audit records, work collabs and server rendering. Both repositories are MPL-2.0 and an organisation can run both. [What runs where](/info/compare.html#what-runs-where) sets the two parts side by side.
 
-Many teams use both: Penpot for interface design and prototyping, Lolly for repeatable files, joined by shared tokens and imported designs.
+You can use both: Penpot for interface design and prototyping, Lolly for repeatable files, joined by shared tokens and imported designs.
 
 Penpot is a trademark of its owner. This page describes where the two products overlap and is not affiliated with Penpot.

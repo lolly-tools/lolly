@@ -88,7 +88,7 @@ Layers arrive as editable boxes: text stays retypable, shapes stay shapes and im
 
 ## Can two people work on the same design without the internet?
 
-Yes. One person shares an invite and the other accepts. Both devices then hold the same session live, presence and focus rings included. It works on any shared network, including a phone hotspot in a basement, because there is no server in the middle. See [Working together](/info/collaborate.html). For colleagues on different networks, an organisation's Lolly Work instance provides authenticated work collabs.
+Yes. One person shares an invite, as a link, a QR code or a short code, and the other accepts. Both devices then hold the same session live, presence and focus rings included. It works on any shared network, including a phone hotspot in a basement, because there is no server in the middle. See [Working together](/info/collaborate.html). For colleagues on different networks, an organisation's Lolly Work instance provides authenticated work collabs.
 
 ## What are the feature flags?
 
@@ -98,13 +98,15 @@ Feature flags turn parts of Lolly on or off. In standalone use, you choose your 
 
 ## What makes utilities different from tools?
 
-A utility does one quick job on a file you already have, such as compressing a PDF, converting a photo or stripping hidden data, and many of them run on your device with nothing uploaded. They exist so the jobs people usually hand to a random website stay inside Lolly. [Utility views](/info/utilities.html) lists them, and [Why this differs](/info/status-quo.html) tells the story behind them.
+A utility does one quick job on a file you already have, such as compressing a PDF, converting a photo or stripping hidden data, and many of them run on your device with nothing uploaded. They exist so the jobs people usually hand to a random website stay inside Lolly. Compressing a contract, converting holiday photos with their location still inside or pasting a token into an online formatter should not mean giving the file to a site with unknown retention, jurisdiction and business model. [Utility views](/info/utilities.html) lists them, and [The trade we never agreed to](/info/status-quo.html) tells the story behind them.
 
 ![The Utilities view: Strip Hidden Data, Compress PDF, Convert Image and the other on-device jobs, all in one place](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
 ## Can our organisation use SSO, shared projects and approvals?
 
-Yes, with **Lolly Work**, the organisation server of the same open-source project. It runs separately and adds sign-in, shared projects and assets, approvals and audit records; the everyday app still works on its own. [Use Lolly at your organisation](/info/organisation.html) covers signing in and finding shared work, and [Deployment](/info/deployment.html#organisation-services-with-lolly-work) covers setting it up.
+Yes, with **Lolly Work**, the organisation server of the same open-source project. It runs separately and adds single sign-on through your identity provider, SCIM provisioning, group permissions, shared projects and assets, live work collabs, approvals and audit records. The everyday app still works on its own.
+
+[Use Lolly at your organisation](/info/organisation.html) covers signing in and finding shared work, and [Deployment](/info/deployment.html#organisation-services-with-lolly-work) covers setting it up. Shared content and organisation records follow that instance's privacy and retention policies.
 
 ## What hurdles could I expect adopting Lolly?
 
@@ -118,7 +120,9 @@ Lolly was developed with AI-assisted coding, AI-assisted discovery and, in many 
 
 A high or critical advisory in Lolly's dependencies blocks CI. An advisory that cannot be fixed yet is held back only as an approved exception with a written reason. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) lists each exception held today, and the [release notes](https://github.com/lolly-tools/lolly/releases) list the ones each release carries. SECURITY.md also says how to report a vulnerability.
 
-Checks in the build also reject wording that reads as machine-made in the code comments, the app and these docs, so the text stays plain for whoever reads the code, the app or the docs. Most importantly, Lolly stands on the shoulders of decades of open source work by experts around the world.
+Checks in the build also reject wording that reads as machine-made in the code comments, the app and these docs, to keep the text plain for every reader. A side effect is that a detector may find it harder to tell which text a model wrote. We did not set out to cause that.
+
+Most importantly, Lolly stands on the shoulders of decades of open source work by experts around the world.
 
 **Generative AI disclosure:**
 

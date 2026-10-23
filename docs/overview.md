@@ -64,7 +64,7 @@ Every surface uses the same engine and the same tool files.
 - **The web app.** A progressive web app that works offline once its service worker has cached the tools and assets. It needs no account; state lives in IndexedDB on each device. One responsive layout serves desktop and phone: on a phone the controls become a sheet and the export controls open from a floating pill.
 - **The desktop and mobile apps.** Tauri packages of the same web app, with native file dialogs, filesystem state and full offline use.
 - **The CLI.** `lolly <tool-id> --input=value --output=file.png` loads the same engine in a headless DOM and writes the file. It is URL mode over a different transport, not a separate implementation. See [CLI](/info/cli.html).
-- **The TUI.** A full-screen, keyboard-first terminal app that reuses the CLI's bridge, keeps its state under `~/.lolly`, and starts a scoped headless browser only when a format needs one. See [TUI](/info/tui.html).
+- **The TUI.** A full-screen, keyboard-first terminal app that reuses the CLI's bridge, keeps saved sessions on disk (in the desktop app's own folder when the app is installed, otherwise under `~/.lolly`) and starts a scoped headless browser only when a format needs one. See [TUI](/info/tui.html).
 
 ![The desktop split view: controls generated from the manifest on the left, the live canvas on the right](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
@@ -105,7 +105,7 @@ Tools never touch the DOM outside their template, never call `fetch` directly an
 | `host.export` | Rasterise or serialise the render target, and the on-device file transform path |
 | `host.log` | Leveled logging to the host |
 
-Every other API is optional and additive: `tokens`, `text`, `color`, `geom`, `pdf`, `compose`, `media`, `recorder` and many more. Some are gated by a capability the tool declares, and the rest are feature-detected. `packages/core/src/host-v1/apis.ts` lists them all and [Host API](/info/host-api.html) documents each one. Adding a method is a minor version; removing or changing one is a major version, and v1 keeps working when v2 ships.
+Every other API is optional and additive: `tokens`, `text`, `color`, `geom`, `pdf`, `compose`, `media`, `recorder` and many more. A tool's manifest lists under `requires` the optional APIs its hooks call without checking first, and a host that lacks one refuses to mount the tool; hooks feature-detect the rest. A few, such as `recorder`, also need a device capability the tool declares. `packages/core/src/host-v1/apis.ts` lists them all and [Host API](/info/host-api.html) documents each one. Adding a method is a minor version; removing or changing one is a major version, and v1 keeps working when v2 ships.
 
 ### 4. Asset ids are forever
 
@@ -170,7 +170,7 @@ Someone opens `https://lolly.tools/t/qr-code?url=https://example.com&ecl=H`:
 5. **Start the runtime.** `createRuntime(tool, host, initialValues)` builds the input model from profile data, defaults and the link, resolves asset references, loads the hooks and calls `onInit`.
 6. **Render.** The shell subscribes to the runtime, draws the controls from the model and writes the filled template into `#tool-canvas`.
 7. **Interact.** Typing calls `runtime.setInput`, which applies constraints, calls `onInput`, fills the template again and redraws.
-8. **Export.** **Download** calls `runtime.export(node, format)`, and the shell's `host.export` produces the file: a raster, a vector from the DOM walker, a PDF, a document or one of the other formats in `schemas/tool.schema.json`. Physical units are converted per format, metadata and Content Credentials are embedded where the format can hold them, and experimental tools get their watermark from the host, not the tool. [Templates and rendering](/info/tool-rendering.html) and [Exporting & Formats](/info/exporting.html) cover the export step.
+8. **Export.** **Download** calls `runtime.export(node, format)`, and the shell's `host.export` produces the file: a raster, a vector from the DOM walker, a PDF, a document or one of the other formats in `schemas/tool.schema.json`. Physical units are converted per format, and metadata and Content Credentials are embedded where the format can hold them. Experimental tools get their watermark from the host, not the tool. [Templates and rendering](/info/tool-rendering.html) and [Exporting & Formats](/info/exporting.html) cover the export step.
 
 ![The export panel that ?options opens: the filename and format pair, the output size and the controls that write the file](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 

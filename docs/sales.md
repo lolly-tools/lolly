@@ -1,6 +1,6 @@
 # Lolly for sales teams
 
-The client changed their logo last week, the meeting is tomorrow, and the deck still has the old one. Lolly turns the device you carry into the studio that fixes that tonight, on-brand, without waiting for anyone.
+Your brand was refreshed last month, the meeting is tomorrow and the deck still wears the old look. Lolly turns the device you carry into the studio that fixes that tonight, on-brand, without waiting for anyone.
 
 ## Walk in with exactly what you need
 

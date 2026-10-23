@@ -5,7 +5,7 @@ By the end of this page your tools will wear your own colours and fonts, and the
 ::: timeline
 - <!--i:sparkle--> **Make one file.** [Make your first file](/info/make-something.html) walks you through a QR code in a few minutes.
 - <!--i:palette--> **Put your brand in.** Start from one colour, a tokens file or a finished design.
-- <!--i:layers--> **Make more of the same.** Share a link, fill a spreadsheet, or run the tool from a script.
+- <!--i:layers--> **Make more of the same.** Share a link, fill a spreadsheet or run the tool from a script.
 :::
 
 New to the idea itself? [What is Lolly?](/info/what-is-lolly.html) is the five-minute introduction, and [How Lolly works](/info/how-lolly-works.html) shows who does what.
@@ -17,12 +17,12 @@ lolly.tools opens in **Lolly Demo**, Lolly's own sample design system; [Meet Lol
 Choose the route that matches what you have:
 
 - <!--i:palette--> **One colour.** Open **Design System Setup** (`#/start`), give your design system a name and pick a primary colour. Lolly derives a complete, accessible palette from it, with light and dark surfaces, text and accents. Pick a font and you have a working brand.
-- <!--i:upload--> **A tokens file.** **Add from…**, at the foot of the room rail in Design System Setup, takes a DTCG, Tokens Studio or Penpot tokens file, an SVG or a `LollyBrand` pack. Drop it in and the palette fills.
+- <!--i:upload--> **A tokens file.** **Add from…**, at the foot of the room rail in Design System Setup, takes a DTCG, Tokens Studio or Penpot tokens file, an SVG or a `LollyBrand` pack. Drop it in and the palette fills. While the design system is still empty, **Start from a reference** in the Overview room opens the same picker.
 - <!--i:pentool--> **A finished design.** In Design, choose **Import a design** and drop a `.fig`, `.penpot`, `.ai`, `.idml` or SVG file. See [Bring in what you already have](#bring-in-what-you-already-have) below.
 
-On a blank install, the first run opens a short welcome with the same choices: **Make it yours** opens Design System Setup, **Bring your design** opens a file picker for a design, and **Explore the community tools** closes the welcome.
+The first time you open the gallery, a short welcome offers the same choices: **Make it yours** opens Design System Setup, **Bring your design** opens a file picker for a design and **Explore the community tools** closes the welcome.
 
-![The Colours room of Design System Setup on a fresh install: one live chip, one field, and the whole of the first decision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![The Colours room of Design System Setup on a fresh install: one live chip, one field and the whole of the first decision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
 From there, seven rooms take it as far as you like, in any order: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** and **Usage & rules**. Every preview in the app updates as you type. [Design System Setup](/info/brand-studio.html) covers each room.
 
@@ -70,7 +70,7 @@ An imported layout is an ordinary Design session. **Share with rules** turns it 
 
 ## Make many, share and automate
 
-- <!--i:download--> **Export.** Any tool makes SVG, PDF, PNG, JPG, WebP, video and more, at true print sizes when you need them. See [Exporting & Formats](/info/exporting.html).
+- <!--i:download--> **Export.** Tools make SVG, PDF, PNG, JPG, WebP, video and more, in the formats each tool offers, at true print sizes when you need them. See [Exporting & Formats](/info/exporting.html).
 - <!--i:link--> **Share a link.** A tool's settings travel in its link, so the link reopens the same file anywhere.
 - <!--i:layers--> **Make one per row.** Drive a tool from a spreadsheet in [Batch](/info/using.html#batch-pro-mode).
 - <!--i:cpu--> **Automate.** The same render runs from the [CLI](/info/cli.html) and from an [AI agent](/info/ai-agents.html).

@@ -41,7 +41,7 @@ An organisation can add **Lolly Work**, an open-source server it runs itself, fo
 ## Find your way
 
 - **[Start](/info/quickstart.html)**: put your own brand in and bring the work you already have.
-- **[How Lolly works](/info/how-lolly-works.html)**: one tool, your rules, many files, and who does what.
+- **[How Lolly works](/info/how-lolly-works.html)**: who does what, and how one tool with your rules makes many files.
 - **[Create](/info/creators.html)**: making, animating, recording, sharing and exporting.
 - **[Automate](/info/builders.html)**: the command line, links, agents and building your own tools.
 - **[Manage](/info/operators.html)**: running Lolly for a team.

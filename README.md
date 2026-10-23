@@ -65,7 +65,7 @@ pnpm run dev:web
 
 Open <http://localhost:5173>. The web app needs a browser with a working WebGPU adapter and graphics acceleration. See [supported environments](docs/supported-environments.md) for the tested combinations.
 
-A public clone includes community tools, **Lolly Demo** (the design system lolly.tools runs) and the neutral **Lolly Start** design system. SUSE's private brand pack is optional.
+A public clone includes community tools, **Lolly Demo** (the design system lolly.tools runs) and the neutral **Lolly Starter** design system. SUSE's private brand pack is optional.
 
 On macOS or openSUSE, `./setup.sh` can install prerequisites and dependencies. See [INSTALL.md](INSTALL.md) for setup help, or [Releases](https://github.com/lolly-tools/lolly/releases) for packaged apps.
 
@@ -82,6 +82,8 @@ Use tool inputs in scripts, URLs and batch jobs, or let AI agents call tools thr
 [CLI guide](docs/cli.md) · [URL inputs](docs/url-mode.md) · [MCP server](docs/mcp.md)
 
 ## Use Lolly with a team
+
+Lolly began at SUSE, where people needed to make on-brand files without sending their work to outside services. It is maintained as open source and runs independently of SUSE.
 
 For organisation sign-in, shared assets and projects, approvals, work collaboration, audit records or server rendering, add [Lolly Work](https://github.com/lolly-tools/lolly-work), the organisation server of the same project. It is optional and maintained in its own repository, and hosting and operations have their own costs. [Why Lolly is free](docs/faq.md) tells the story of who builds it and why.
 

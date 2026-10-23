@@ -52,7 +52,7 @@ The browser corpus checks numerical results on the main thread and in a worker, 
 
 The Mac qualification app also checked actual gallery startup, a mounted tool, its embedded content and Content Security Policy. These checks do not certify every presentation clicker, embedded website or native platform.
 
-The release tools read the table above: `scripts/webgpu-release-gate.ts` refuses a release whose environments are not all published as supported, and its header explains the web and per-platform release scopes. The MCP, certificate service, Penpot service and documentation builds do not depend on this table.
+The release tools read the table above: `scripts/webgpu-release-gate.ts` refuses a release whose environments are not all published as supported, and its header explains the web and per-platform release scopes. The MCP, certificate service, Penpot service and documentation builds do not depend on this table. The [Build Guide](/info/build-guide.html) covers producing a signed build.
 :::
 
 ::: details Recorded evidence

@@ -17,7 +17,7 @@ You may not need to install anything: [lolly.tools](/) runs in a current browser
 lolly.tools always has the newest version. The 1.1.0 builds stay at 1.1.0 until each platform's web view passes the WebGPU check that later versions need. Every file links straight to `lolli.li`: a `lolly-latest.*` link always points at the newest build, and versioned files beside it never change. You can [check any file](#checking-what-you-downloaded) against the published checksums.
 
 ::: note Updates
-Signed system repositories (openSUSE OBS, Flathub) are planned. Until they land, a direct `.rpm`, `.deb` or AppImage does not update itself, so check back here for a newer build. The Arch repository updates through pacman, and the App Store keeps the iPhone and iPad app current.
+Signed system repositories (openSUSE OBS, Flathub) are planned. Until they land, a direct `.rpm`, `.deb`, `.flatpak` bundle or AppImage does not update itself, so check back here for a newer build. The Arch repository updates through pacman, and the App Store keeps the iPhone and iPad app current.
 :::
 
 ## Mac

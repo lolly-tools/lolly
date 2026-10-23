@@ -39,7 +39,7 @@
         "cta": { "label": "Open the app ↗", "href": "#/" },
         "doc": { "label": "Exporting", "slug": "exporting" } },
       { "tab": "Teams", "mascot": "wedge-tailed-eagle",
-        "pitch": "Playbooks for the teams that make the most files: a seller with a meeting tomorrow, a marketer with forty sizes to fill, a newsroom on deadline and a legal reviewer cleaning a file before it travels.",
+        "pitch": "Playbooks for four teams: a seller with a meeting tomorrow, a marketer with forty sizes to fill, a newsroom on deadline and a legal reviewer cleaning a file before it travels.",
         "links": [
           { "label": "For sales teams", "slug": "sales" },
           { "label": "For marketing teams", "slug": "marketing" },
@@ -67,7 +67,7 @@
         ],
         "doc": { "label": "Automate", "slug": "builders" } },
       { "tab": "AI", "mascot": "bin-chicken",
-        "pitch": "Agents are first-class users. Anything a person can make in the app, an agent can make through the MCP server or the CLI: the same tools, the same brand rules, the same render path, and the file still says who made it.",
+        "pitch": "Agents are first-class users. Anything a person can make in the app, an agent can make through the MCP server or the CLI: the same tools, the same brand rules and the same render path, and the file still says who made it.",
         "links": [
           { "label": "MCP Server", "slug": "mcp", "note": "agents" },
           { "label": "CLI", "slug": "cli", "note": "lolly qr-code --url=… --export=png" },
@@ -112,7 +112,7 @@
         "cta": { "label": "Open the utilities ↗", "href": "#/utilities" },
         "doc": { "label": "Trust", "slug": "trust" } },
       { "tab": "Privacy",
-        "pitch": "What stays with you, what each optional service receives, and what Lolly never collects, written out in full.",
+        "pitch": "What stays with you, what each optional service receives and what Lolly never collects, written out in full.",
         "doc": { "label": "Privacy", "slug": "privacy" } },
       { "tab": "Verify",
         "pitch": "A file Lolly makes can say who made it and with what. Drop any file on Verify to read its Content Credentials and check them yourself.",

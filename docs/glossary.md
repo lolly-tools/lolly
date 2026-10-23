@@ -48,7 +48,7 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **Imprint.** An invisible mark Lolly seals into an image's pixels, on by default for raster exports. It can survive a re-save or a metadata strip that removes the credential, so it is a hint that a file came from Lolly, not a cryptographic guarantee.
 
-**Watermark.** The visible mark experimental tools put on exports unless the person exporting turns it off. Not the same thing as Content Credentials or the Imprint.
+**Watermark.** The visible mark an experimental tool puts on its exports. The app always adds the mark; code that calls the export directly can turn the mark off. Not the same thing as Content Credentials or the Imprint.
 
 **Lolly Work.** The organisation server of the Lolly project: sign-in, shared projects and assets, approvals, server rendering and audit records, on a server the organisation runs. **lolly.work** is the domain of its hosted demo, not the software.
 
@@ -104,7 +104,7 @@ These words matter when you build tools, run Lolly or read the code. The diagram
 
 **Design tokens.** The DTCG-format values a design system is made of: colours, type, spacing, gradients. Tools read them through `host.tokens`, and community tools take their look from them. Importable from DTCG, Tokens Studio and Penpot files.
 
-**Theme group.** One choice a design system offers, such as light or dark, or roomy or compact. Each option turns on token sets, and a piece of work picks one option per group. A group can say what kind of choice it is: `mode` for light and dark, `colourway` for the lead colour, and a few more. A group that says nothing behaves as a plain choice.
+**Theme group.** One choice a design system offers, such as light or dark, or roomy or compact. Each option turns on token sets, and a piece of work picks one option per group. A group can say what kind of choice it is: `mode` for light and dark, `colourway` for the lead colour and a few more. A group that says nothing behaves as a plain choice.
 
 **Design system and brand.** The same thing seen from two sides. User-facing copy says *design system* because people who do not think of themselves as a brand use Lolly too. Code contracts keep the word brand (`brands/`, `brand-*.ts`, `--brand-*`).
 
