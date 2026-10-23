@@ -542,10 +542,10 @@ export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', '
 // minted from that namespace (`_v` is the founding member) so they can never
 // collide with a shipped tool's input the way `loop` did.
 //
-// The `pkg.` PREFIX is a second reserved namespace (plan 197): Linux-package
-// metadata for the `format=rpm|srpm|tar.gz` export path (pkg.name, pkg.version,
-// pkg.dest, pkg.type, …). parseUrlState skips it before input matching, and no
-// tool input id/urlKey may start with `pkg.`.
+// The `pkg.` PREFIX is a second reserved namespace (plan 197), kept for Linux-package
+// metadata (pkg.name, pkg.version, pkg.dest, …) beside the rpm and tar.gz formats. No
+// link carries it yet: the export panel passes ExportOpts.pkg and `lolly pack` takes
+// flags. parseUrlState skips it, and an input id or urlKey cannot hold a dot anyway.
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.
@@ -705,9 +705,9 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     // there in a future engine must read as an unknown control on an old one, never
     // as a tool input - and no input may claim such a name (validator-enforced).
     if (key.startsWith('_')) continue;
-    // The `pkg.` prefix is a reserved namespace too (plan 197): Linux-package
-    // metadata (pkg.name, pkg.version, pkg.dest, …) read by the export bridge when
-    // format=rpm|srpm|tar.gz, never as a tool input. No input may claim such a name.
+    // The `pkg.` prefix is a reserved namespace too (plan 197), kept for Linux-package
+    // metadata (pkg.name, pkg.version, …). Nothing reads it from a link yet, and it is
+    // never a tool input: the schema's id and urlKey patterns admit no dot.
     if (key.startsWith('pkg.')) continue;
     const vec = vectorFieldByKey[key];
     if (vec) {
