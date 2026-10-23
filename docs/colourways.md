@@ -22,7 +22,7 @@ The choice travels wherever the piece goes:
 
 - **In a link,** with the other theme choices: `_themes={"":"dark","colourway":"beach"}` ([Reserved URL parameters](/info/url-parameters.html#design-system-language-and-emoji)).
 - **On the command line,** as the same JSON in `--_themes`. On `lolly run`, `--themes=all` exports each look once, in the colourway a saved session was saved in or else the canonical colourway, and `--themes=Beach` exports in that colourway. A design system whose only themes are colourways exports each colourway under `all`.
-- **In a batch,** per row, in the CSV's `_themes` column ([Batch](/info/using.html#batch-pro-mode)).
+- **In a batch,** per row, in the CSV's `_themes` column ([Batch](/info/batch.html#make-many-versions-of-one-design)).
 - **In the exported file,** as the [design-system record](/info/exporting.html#the-design-system-record), which gives the colourway beside the tool: *Chart (Beach colourway)*.
 
 ## The app keeps the canonical colourway
@@ -45,11 +45,11 @@ Some tools draw several colours at once, and they draw on the whole family: ever
 
 When a piece's colourway or look changes, Chart, Mesh Gradient and Filter read the colours they keep from the design system again as the open tool redraws, and every input keeps its value. Covers belong to the app, not to a piece: they list the same leads whatever colourway a piece uses, in the app's own light or dark appearance.
 
-A design system with one colourway, or none, has no family, and each of these tools draws exactly as before. Tool authors reach the family through the canvas variables `--brand-lead-1` onwards and a colour input's `"palette": "colourway-leads"` option; [Authoring Tools](/info/authoring-tools.html#design-system-colours-in-templates-and-styles) and [Tool inputs](/info/tool-inputs.html) cover both.
+A design system with one colourway, or none, has no family, and each of these tools draws exactly as before. Tool authors reach the family through the canvas variables `--brand-lead-1` onwards and a colour input's `"palette": "colourway-leads"` option; [Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles) and [Tool inputs](/info/tool-inputs.html) cover both.
 
 ## Tools that keep their own colours
 
-A tool whose colours are its content, such as a tonal ramp, can declare `"tokenAxes": { "colourway": "ignore" }` in its manifest ([Authoring Tools](/info/authoring-tools.html#colours-that-are-the-content) has the format). That tool renders in the canonical colourway whatever a link, a saved session or the design system's stored choice asks for, and its sidebar offers no colourway. Any other kind works the same way, such as `mode` for a print piece always drawn in the canonical look.
+A tool whose colours are its content, such as a tonal ramp, can declare `"tokenAxes": { "colourway": "ignore" }` in its manifest ([Tool manifests](/info/tool-manifest.html#colours-that-are-the-content) has the format). That tool renders in the canonical colourway whatever a link, a saved session or the design system's stored choice asks for, and its sidebar offers no colourway. Any other kind works the same way, such as `mode` for a print piece always drawn in the canonical look.
 
 When a link or `--_themes` asks such a tool for another option, `lolly run` prints a `THEME_CHOICE_IGNORED` warning, which `--strict` turns into a failure, and an MCP render adds the same sentence to its warnings.
 

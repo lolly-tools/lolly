@@ -223,7 +223,7 @@ lolly run deck.lolly --themes=light,dark --export=pptx --output=deck.pptx
 # writes deck-light.pptx and deck-dark.pptx
 ```
 
-The names are the themes the design system declares, and `all` takes every look in order. A design system with [colourways](/info/token-workflows.html#colourways) keeps them out of `all`, so each look is exported once, in the colourway the session was saved in or else the canonical one. Name a colourway, as in `--themes=Persimmon`, to export in that colourway. The same flag works on `lolly run <tool>`, including `design --document`.
+The names are the themes the design system declares, and `all` takes every look in order. A design system with [colourways](/info/colourways.html) keeps them out of `all`, so each look is exported once, in the colourway the session was saved in or else the canonical one. Name a colourway, as in `--themes=Beach`, to export in that colourway. The same flag works on `lolly run <tool>`, including `design --document`.
 
 `--themes` needs `--output`, refuses a name the design system does not declare (and lists the ones it does), and cannot be combined with `--_themes`, `--share` or `--production-repairs`. Standard input is read once and given to every theme. For one file in one theme under the exact name you give, use `--theme=<name>` (or `--_themes=<json>`, the URL parameter `_themes`): `--theme=light --output=light.pptx` writes `light.pptx`, where `--themes=light` would write `light-light.pptx`. A photo look is baked into the picture's pixels; on a CLI without `@napi-rs/canvas` the plain picture is used and a warning says so.
 

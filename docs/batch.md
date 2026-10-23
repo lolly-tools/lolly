@@ -44,7 +44,7 @@ Drag across cells, Shift-click a cell or use Shift+Arrow keys to select a rectan
 
 Each row keeps its own theme choices: light or dark, and a colourway when the design system has them. A row opened from Projects, a folder or a saved batch renders in the choices its session was saved in, and its preview opens in them. The print sheet, a duplicated row and a filled row all keep them.
 
-A CSV carries the choices in a `_themes` column after the size columns, holding the same JSON as the `_themes` link parameter, for example `{"":"dark","colourway":"persimmon"}`. A blank cell, or `{}`, means the design system's defaults. The column is written only when some row has choices, so a batch without any exports the same CSV as before. On import, a cell that is not valid theme choices is listed as an issue and its row renders in the defaults. The grid has no control for changing a row's choices yet, so set them in the CSV or in the saved session.
+A CSV carries the choices in a `_themes` column after the size columns, holding the same JSON as the `_themes` link parameter, for example `{"":"dark","colourway":"beach"}`. A blank cell, or `{}`, means the design system's defaults. The column is written only when some row has choices, so a batch without any exports the same CSV as before. On import, a cell that is not valid theme choices is listed as an issue and its row renders in the defaults. The grid has no control for changing a row's choices yet, so set them in the CSV or in the saved session.
 
 ### Batch, or Render folder
 
@@ -73,6 +73,6 @@ Each card draws in its own session's theme choices, including a tool placed insi
 
 ## Where to go next
 
-- **[Exporting & Formats](/info/exporting.html)**: the formats, sizes and print settings each row can use.
+- **[Export a file](/info/exporting.html)**: the formats, sizes and print settings each row can use.
 - **[Templates](/info/templates.html)**: starting points that make a good first row.
 - **[Find and recover your work](/info/find-your-work.html)**: Projects, folders and rendering what you saved.

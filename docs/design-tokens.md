@@ -20,7 +20,7 @@ Each brand pack ships its design system as a `tokens` asset in its catalog, and 
 
 A pack's design system is the asset its index's `brandTokens` field points at, or its only tokens asset when the field is absent. The asset is `core` tier, so it is always available offline, and it is validated against [`schemas/tokens.schema.json`](../schemas/tokens.schema.json) by `pnpm run validate:catalog`, versioned and checksummed like any asset.
 
-Tokens you make or import live on your device, travel as the `tokens.json` part of a `LollyBrand` pack and go into the full data backup as a user asset ([Data Transfer](/info/data-transfer.html)). A device can hold several design systems, and a link can name one with `ds` ([Reserved URL parameters](/info/url-parameters.html#design-system-language-and-emoji)). [Brand architectures](/info/brand-architectures.html) shows how several brands can share a system or keep their own.
+Tokens you make or import live on your device, travel as the `tokens.json` part of a `LollyBrand` pack and go into the full data backup as a user asset ([Data transfer](/info/data-transfer.html)). A device can hold several design systems, and a link can name one with `ds` ([Reserved URL parameters](/info/url-parameters.html#design-system-language-and-emoji)). [Brand architectures](/info/brand-architectures.html) shows how several brands can share a system or keep their own.
 
 The corner radius is the plainest dimension token: one slider writes one `shape.radius` value, and the app chrome, the panels and every tool that opts in follow that value.
 
@@ -85,7 +85,7 @@ Tools reach tokens three ways:
 
 - **Inputs, through the platform.** The colour field takes its swatches from `host.tokens.colors()` for the active theme, labelled and grouped by token. Choosing a token swatch stores a reference, not a frozen hex, so a later token edit reaches every linked value.
 - **Hooks, through `host.tokens`.** A hook can read the token set, resolve a reference or list every colourway's lead with `family()`. Chart, Mesh Gradient, Filter and Wordmark are among the community tools that do. When the document's theme or colourway changes, the runtime runs `onInput` once with the id `__tokens`, so a hook that keeps colours it read can read them again.
-- **Templates and styles, through canvas variables.** The canvas carries the design system's semantic colours as CSS custom properties (`--brand-primary` and the rest), plus `--brand-lead-1` onwards when the design system has two or more colourways. [Authoring tools](/info/authoring-tools.html#design-system-colours-in-templates-and-styles) lists them.
+- **Templates and styles, through canvas variables.** The canvas carries the design system's semantic colours as CSS custom properties (`--brand-primary` and the rest), plus `--brand-lead-1` onwards when the design system has two or more colourways. [Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles) lists them.
 
 Handing the resolved token tree to a template's context, through the `extras` mechanism and opted into from the manifest, is not built yet. Fields other than colour link through each field's **Input actions** menu; [Token workflows](/info/token-workflows.html#link-a-field-to-a-token) covers that.
 

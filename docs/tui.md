@@ -182,5 +182,5 @@ If you can express a job as a URL, prefer the CLI: it is reproducible and pipeab
 
 - [CLI](/info/cli.html): the one-shot, scriptable counterpart. Same engine, same output.
 - [URL Mode](/info/url-mode.html): the parameter model both terminal shells share with the web app.
-- [Exporting & Formats](/info/exporting.html): what each format is for and which shells produce each one.
+- [Export a file](/info/exporting.html): what each format is for and which shells produce each one.
 - [Lolly architecture](/info/overview.html): how the shells sit on top of one shared engine.

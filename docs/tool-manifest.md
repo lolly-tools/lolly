@@ -170,7 +170,7 @@ A design system can offer several colourways, and a person picks one per piece i
 { "tokenAxes": { "colourway": "ignore" } }
 ```
 
-The keys are the kinds of theme group in [What a theme group means](/info/token-workflows.html#what-a-theme-group-means): `mode`, `colourway`, `expression`, `medium`, `contrast`, `density`, `campaign` and `brand`. The only value is `"ignore"`. For each kind it ignores, the tool renders in that group's canonical option whatever a link, a saved session or the design system's stored choice asks for, and the sidebar does not offer that group in this tool.
+The keys are the kinds of theme group in [What a theme group means](/info/design-tokens.html#what-a-theme-group-means): `mode`, `colourway`, `expression`, `medium`, `contrast`, `density`, `campaign` and `brand`. The only value is `"ignore"`. For each kind it ignores, the tool renders in that group's canonical option whatever a link, a saved session or the design system's stored choice asks for, and the sidebar does not offer that group in this tool.
 
 The pin covers every colour the render reads, so a print export uses the CMYK or spot build the design system authored for the canonical option. `"mode": "ignore"` keeps a print piece in the canonical look; in a design system with no `mode` group, its light and dark themes with no group count as the mode.
 

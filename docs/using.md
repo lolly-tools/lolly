@@ -156,7 +156,7 @@ If the file carries a tool you don't have, **Trust this tool?** shows the tool a
 - A **design-system pack** (`lolly-brand`) holds tokens and may hold fonts, logos, published versions and retained resources. Opening the pack adds a separate named design system and makes that system active.
 - A **workspace or instance pack** is a `lolly-brand` with declared tools, catalogue assets and optionally an instance address. Loading one replaces the single workspace overlay loaded before, and the preview lists those device-wide effects.
 
-A full device backup is not a `.lolly`. It stays a `LollyTools-….zip` (format `lolly-backup`) and restores through **Settings → Storage → Import data…**. A zipped tool folder also stays a `.zip`. [Data Transfer](/info/data-transfer.html) is the format reference.
+A full device backup is not a `.lolly`. It stays a `LollyTools-….zip` (format `lolly-backup`) and restores through **Settings → Storage → Import data…**. A zipped tool folder also stays a `.zip`. [Data transfer](/info/data-transfer.html) is the format reference.
 
 A `.lolly` is an ordinary zip. Rename it `.zip` to look inside: your own images are under `assets/uploads/`, catalogue art under `assets/catalog/`, `manifest.json` lists every file, and a README says what the file is.
 
@@ -283,7 +283,7 @@ A blank panel or a "failed to fetch" message right after an update usually clear
 
 - **[Design: the free canvas](/info/design.html)**: the canvas, shapes, the timeline and presenting a deck.
 - **[Batch and Multi-edit](/info/batch.html)**: many versions of one design, or several saved designs edited together.
-- **[Exporting & Formats](/info/exporting.html)**: choosing a format, size, print units, transparency and video.
+- **[Export a file](/info/exporting.html)**: choosing a format, size, print units, transparency and video.
 - **[Import a design](/info/design-import.html)**: bring a Figma, Penpot, Illustrator or InDesign file into Design and keep editing.
 - **[Templates](/info/templates.html)**: saved starting points for a tool.
 - **[Wide Colour and HDR](/info/hdr-editing.html)**: keep original image precision in Design and Darkroom.

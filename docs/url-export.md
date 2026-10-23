@@ -165,7 +165,7 @@ Four flags change what the person sees when the link opens.
 
 A timed document that is not made of frames starts its playback instead, and `kiosk` loops the playback. Give each frame a `dur` for how long a sign stays on each slide.
 
-Without `present`, `s` is a still filter: `?s=2&format=png&export` downloads slide 2 alone, so every slide has an image link of its own. [Presenting](/info/using.html#presenting) covers the deck in the app, and [Presenting with camera](/info/presenting.html) puts your camera over the deck.
+Without `present`, `s` is a still filter: `?s=2&format=png&export` downloads slide 2 alone, so every slide has an image link of its own. [Presenting](/info/design.html#presenting) covers the deck in the app, and [Presenting with camera](/info/presenting.html) puts your camera over the deck.
 
 ## Print-ready output
 

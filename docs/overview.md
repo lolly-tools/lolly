@@ -72,7 +72,7 @@ The same tool at phone width needs no second layout: the controls become a sheet
 
 ![An audiogram on a 430px-wide screen: the controls sheet above, the finished square artwork below and the floating export pill](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-The web app also ships **Batch** (`#/batch`, `shells/web/src/pro/`), a spreadsheet-style grid that renders many rows at once across one or many tools; [Using Lolly](/info/using.html#batch-pro-mode) covers Batch. **Settings → Capabilities** maps everything the platform declares it can do.
+The web app also ships **Batch** (`#/batch`, `shells/web/src/pro/`), a spreadsheet-style grid that renders many rows at once across one or many tools; [Batch and Multi-edit](/info/batch.html#make-many-versions-of-one-design) covers Batch. **Settings → Capabilities** maps everything the platform declares it can do.
 
 ![Batch on a fresh install: one empty row waiting for a tool, with the spreadsheet surface and its Render button in place before any data arrives](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
@@ -129,7 +129,7 @@ The CLI builds the same URL state from its arguments and runs the same pipeline,
 
 ### 6. Storage goes through the bridge
 
-The web app uses IndexedDB, Tauri the filesystem and the CLI memory. Tools see only `host.state.save(slot, data)` and `host.state.load(slot)`, never `localStorage`. People can keep several named sessions per tool with no account. Because the bridge is the only seam, that state is also portable: `shells/web/src/data-transfer.ts` reads it back out into one `lolly-backup` file that imports on any other install ([Data Transfer](/info/data-transfer.html)), and [Sync](/info/sync.html) sends the same bundle to storage the person chooses.
+The web app uses IndexedDB, Tauri the filesystem and the CLI memory. Tools see only `host.state.save(slot, data)` and `host.state.load(slot)`, never `localStorage`. People can keep several named sessions per tool with no account. Because the bridge is the only seam, that state is also portable: `shells/web/src/data-transfer.ts` reads it back out into one `lolly-backup` file that imports on any other install ([Data transfer](/info/data-transfer.html)), and [Sync](/info/sync.html) sends the same bundle to storage the person chooses.
 
 ### 7. Maturity tags say what a tool is
 
@@ -170,7 +170,7 @@ Someone opens `https://lolly.tools/t/qr-code?url=https://example.com&ecl=H`:
 5. **Start the runtime.** `createRuntime(tool, host, initialValues)` builds the input model from profile data, defaults and the link, resolves asset references, loads the hooks and calls `onInit`.
 6. **Render.** The shell subscribes to the runtime, draws the controls from the model and writes the filled template into `#tool-canvas`.
 7. **Interact.** Typing calls `runtime.setInput`, which applies constraints, calls `onInput`, fills the template again and redraws.
-8. **Export.** **Download** calls `runtime.export(node, format)`, and the shell's `host.export` produces the file: a raster, a vector from the DOM walker, a PDF, a document or one of the other formats in `schemas/tool.schema.json`. Physical units are converted per format, and metadata and Content Credentials are embedded where the format can hold them. Experimental tools get their watermark from the host, not the tool. [Templates and rendering](/info/tool-rendering.html) and [Exporting & Formats](/info/exporting.html) cover the export step.
+8. **Export.** **Download** calls `runtime.export(node, format)`, and the shell's `host.export` produces the file: a raster, a vector from the DOM walker, a PDF, a document or one of the other formats in `schemas/tool.schema.json`. Physical units are converted per format, and metadata and Content Credentials are embedded where the format can hold them. Experimental tools get their watermark from the host, not the tool. [Templates and rendering](/info/tool-rendering.html) and [Export a file](/info/exporting.html) cover the export step.
 
 ![The export panel that ?options opens: the filename and format pair, the output size and the controls that write the file](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 

@@ -98,7 +98,7 @@ Feature flags turn parts of Lolly on or off. In standalone use, you choose your 
 
 ## What makes utilities different from tools?
 
-A utility does one quick job on a file you already have, such as compressing a PDF, converting a photo or stripping hidden data, and many of them run on your device with nothing uploaded. They exist so the jobs people usually hand to a random website stay inside Lolly. Compressing a contract, converting holiday photos with their location still inside or pasting a token into an online formatter should not mean giving the file to a site with unknown retention, jurisdiction and business model. [Utility views](/info/utilities.html) lists them, and [The trade we never agreed to](/info/status-quo.html) tells the story behind them.
+A utility does one quick job on a file you already have, such as compressing a PDF, converting a photo or stripping hidden data, and many of them run on your device with nothing uploaded. They exist so the jobs people usually hand to a random website stay inside Lolly. Compressing a contract, converting holiday photos with their location still inside or pasting a token into an online formatter should not mean giving the file to a site with unknown retention, jurisdiction and business model. [Utilities](/info/utilities.html) lists them, and [The trade we never agreed to](/info/status-quo.html) tells the story behind them.
 
 ![The Utilities view: Strip Hidden Data, Compress PDF, Convert Image and the other on-device jobs, all in one place](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 

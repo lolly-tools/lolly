@@ -21,7 +21,7 @@ function onInit({ model, host }) {
 }
 ```
 
-[Authoring Tools](/info/authoring-tools.html) covers a tool's anatomy, and [Tool hooks](/info/tool-hooks.html) covers when each hook runs.
+[Build a tool](/info/authoring-tools.html) covers a tool's anatomy, and [Tool hooks](/info/tool-hooks.html) covers when each hook runs.
 
 ## Rules of the contract
 
@@ -118,7 +118,7 @@ The host owns the renderer, so tools do not bundle their own. `render` turns the
 | `canShare(opts?)` *(optional, v1.126)* | `boolean` | Synchronous: will `share()` reach a share sheet for a file of this type on this shell? Show a "Send to" control only when this is `true` |
 | `checkLayout(node)` *(optional)* | `Promise<{ ok, issues }>` | Measure declared text layout before export |
 
-`format` is a format id. The `render.formats` enum in `schemas/tool.schema.json` is the full set: the catalog validator enforces it, a tool's manifest says which ids it offers, and [Every format Lolly can open and make](/info/formats.html) and [Exporting & Formats](/info/exporting.html) describe each one. The `ExportFormat` type in `packages/core/src/host-v1/export.ts` does not match the schema (it has no `webp`, `avif`, `tiff`, `pptx` or `zip`, for example), so check the schema, not the type. The unit maths is in `engine/src/units.ts`.
+`format` is a format id. The `render.formats` enum in `schemas/tool.schema.json` is the full set: the catalog validator enforces it, a tool's manifest says which ids it offers, and [Every format Lolly can open and make](/info/formats.html) and [Export a file](/info/exporting.html) describe each one. The `ExportFormat` type in `packages/core/src/host-v1/export.ts` does not match the schema (it has no `webp`, `avif`, `tiff`, `pptx` or `zip`, for example), so check the schema, not the type. The unit maths is in `engine/src/units.ts`.
 :::
 
 ::: details `ExportOpts` fields
@@ -154,14 +154,14 @@ The host owns the renderer, so tools do not bundle their own. `render` turns the
 :::
 
 ::: details The design-system record in `meta`
-When the runtime assembles `meta` with the record on, it reads `host.tokens.snapshot()` through the document's own theme choice and records the snapshot's `system`, its `version` unless that is the working head, and every theme choice except the light or dark one. A manifest that ignores an axis kind through `tokenAxes` records no choice of that kind. When a colourway is recorded, `description` gives the colourway beside the tool (`"Made with https://lolly.tools : Chart (Persimmon colourway)"`); a description bound with `bindToMeta` is left as written.
+When the runtime assembles `meta` with the record on, it reads `host.tokens.snapshot()` through the document's own theme choice and records the snapshot's `system`, its `version` unless that is the working head, and every theme choice except the light or dark one. A manifest that ignores an axis kind through `tokenAxes` records no choice of that kind. When a colourway is recorded, `description` gives the colourway beside the tool (`"Made with https://lolly.tools : Chart (Beach colourway)"`); a description bound with `bindToMeta` is left as written.
 
 A shell writes the record as flat `designSystem`, `designSystemLabel`, `designVersion` and `themes` keys of the `tools.lolly.export` credential assertion (`designRecordEnvironment`), as `lolly:` XMP or SVG properties (`designRecordXml`) and as PDF keywords (`pdfKeywords`). `runtime.madeWithPreview()` returns the record and both descriptions without exporting, for a shell to show before anything is written, and `runtime.lastExportMeta` is the metadata the last export embedded, for a shell that stamps the credential afterwards. [Exporting](/info/exporting.html#the-design-system-record) describes what a person sees.
 :::
 
 ### File inputs
 
-A `file`-typed input (the person's own file, picked into memory) arrives as an **`InputFile`**: `{ __file: true, name, mime, size, bytes (Uint8Array), url }`. The hook reads `bytes` directly. There is no `host.*` call, because the bytes ride in the input value: the portable `host` surface has no file-read API, so the same hook runs on every shell. A `file` value never serialises to a URL and is never persisted. The `exportFile` hook transforms those bytes and returns `{ bytes, mime, filename }`, which the shell delivers through `host.export.file`. `strip-data` is the reference; [Authoring Tools](/info/authoring-tools.html) has the full pattern.
+A `file`-typed input (the person's own file, picked into memory) arrives as an **`InputFile`**: `{ __file: true, name, mime, size, bytes (Uint8Array), url }`. The hook reads `bytes` directly. There is no `host.*` call, because the bytes ride in the input value: the portable `host` surface has no file-read API, so the same hook runs on every shell. A `file` value never serialises to a URL and is never persisted. The `exportFile` hook transforms those bytes and returns `{ bytes, mime, filename }`, which the shell delivers through `host.export.file`. `strip-data` is the reference; [Build a tool](/info/authoring-tools.html) has the full pattern.
 
 ### `host.log`
 
@@ -659,7 +659,7 @@ Windowing and vector capture (v1.45):
 ::: details `ComposeSpec` and pasted tool links
 `ComposeSpec`: `{ toolId, inputs, format?, width?, height?, unit?, dpi?, transient?, settleMs? }` (`width`/`height` are in `unit`: `px` by default, or `mm`/`cm`/`in`/`pt`). The last two arrived in **v1.5**. `transient: true` skips the host's render cache entirely for a one-shot bake (a design import turning 30-odd scenes into stored assets), which means the *caller* owns the returned `url` and must release it once the bytes are copied. `settleMs` shortens the wait after mounting before the child is captured, for a child you know carries no images, Lottie or video to decode (advisory; a host may clamp or ignore the value).
 
-`render` returns an `AssetRef` whose `url` is a `blob:` or `data:` URL, so the embedded render behaves like any other asset: an **SVG** child stays a true vector through the parent's SVG and PDF exports (and rasterises crisply for PNG), while **raster** children (`png`/`jpg`/`webp`) embed as images. SVG is the format the declarative `composes` path is built for. The `icon` tool calls `render` from its `exportStill` hook with `transient: true` to bake each member of an icon kit. The child render is guarded against depth and cycles and is never watermarked or provenance-stamped, because it is an intermediate. [Authoring Tools](/info/authoring-tools.html) has the `composes` manifest shape.
+`render` returns an `AssetRef` whose `url` is a `blob:` or `data:` URL, so the embedded render behaves like any other asset: an **SVG** child stays a true vector through the parent's SVG and PDF exports (and rasterises crisply for PNG), while **raster** children (`png`/`jpg`/`webp`) embed as images. SVG is the format the declarative `composes` path is built for. The `icon` tool calls `render` from its `exportStill` hook with `transient: true` to bake each member of an icon kit. The child render is guarded against depth and cycles and is never watermarked or provenance-stamped, because it is an intermediate. [Build a tool](/info/authoring-tools.html) has the `composes` manifest shape.
 
 `renderUrl(url, opts?)` is the **end-user** counterpart to `render`, added in **engine v1.3**, so check for `host.compose?.renderUrl`. When a person pastes a Lolly tool *link* (an embed URL, a hash share route or a pretty path) into an asset picker, the host parses it against the tool's manifest (typed inputs coerce exactly as [URL mode](/info/url-mode.html) would), renders that tool and returns an `AssetRef` whose `id` is the **canonical embed URL** (`https://lolly.tools/tool/<id>.<ext>?…`). That id *is* the asset's persistent identity: it round-trips through URL mode and saved sessions, and the runtime feeds it back here to re-render on load, so a tool-sourced image survives a reload and travels inside a shared link, like a library asset id. `ComposeUrlOpts` (`format` · `width` · `height` · `unit` · `dpi`) overrides take precedence over anything parsed from the URL and are folded into the returned id. Like `render`, the child is never watermarked or provenance-stamped. It returns `null` when the URL is not a recognised tool URL or the tool cannot render (the caller leaves the slot empty); a pasted link can only render a tool that already ships in this build.
 :::

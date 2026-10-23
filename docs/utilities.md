@@ -316,4 +316,4 @@ The grid draws only the rows in view and recycles them as you scroll, so a very 
 
 ---
 
-**Related:** [Using Lolly](/info/using.html) for the tools and the gallery these sit beside. [Search](/info/search.html) for reaching any utility by name. [Exporting & Formats](/info/exporting.html) for what the tools themselves can write.
+**Related:** [Using Lolly](/info/using.html) for the tools and the gallery these sit beside. [Search](/info/search.html) for reaching any utility by name. [Export a file](/info/exporting.html) for what the tools themselves can write.

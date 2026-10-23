@@ -40,13 +40,13 @@ Lolly's web, desktop and mobile apps run the whole render engine on the device. 
 
 ![The storage section of Settings on a phone-width screen: every category of on-device data named, with the Clear all my data button beside the list](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
-**Export my data** produces a `lolly-backup` file that you keep and control. It never touches our servers unless you send it somewhere yourself. See [Data Transfer](/info/data-transfer.html).
+**Export my data** produces a `lolly-backup` file that you keep and control. It never touches our servers unless you send it somewhere yourself. See [Data transfer](/info/data-transfer.html).
 
 ### Utilities that run on your device
 
 Some tools, such as **Strip Hidden Data**, **Compress** and others with the **Runs on your device** badge, work on a file you provide. The file is read into memory, transformed on the device and offered back as a download. It is never uploaded, because there is no server in the path. These utilities work offline, and their output carries no watermark or metadata of ours.
 
-**Rondocode** is the one exception, because it makes new audio from your song rather than transforming a file of yours. Every audio file it writes carries Content Credentials that record the song and declare any AI-generated singing. The Export panel says so before you export, and [Exporting](/info/exporting.html#files-from-the-rondocode-utility) lists exactly what is recorded.
+**Rondocode** is the one exception, because it makes new audio from your song rather than transforming a file of yours. Every audio file it writes carries Content Credentials that record the song and declare any AI-generated singing. The Export panel says so before you export, and [Rondocode songs](/info/rondocode.html#files-from-the-rondocode-utility) lists exactly what is recorded.
 
 ![The badge these tools carry: Runs on your device - nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Ftext-helper&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=%5Bdata-privacy%5D&dark=1&filename=pv-ondevice-badge)
 
@@ -255,7 +255,7 @@ The service uses authentication cookies, including `lw_session` for signed-in me
 
 ## The browser extension
 
-The **Lolly URL Screenshot** browser extension collects no personal data for us. It has no analytics, no tracking and no server of its own. The [Browser Extension](/info/extension.html) page describes how it works.
+The **Lolly URL Screenshot** browser extension collects no personal data for us. It has no analytics, no tracking and no server of its own. The [Browser extension](/info/extension.html) page describes how it works.
 
 **What it does.** The Lolly web app can ask it for a screenshot of a web page, or for a page's contents to start a design system from a website. Each request opens an approval window in the extension that shows the requesting site, whether it wants a screenshot or the page contents, and the page address. Only after you press **Approve once** does the extension open that page in a temporary background tab, take the screenshot or read the page, hand the result to the Lolly tab that asked and close the tab. Every request needs its own approval.
 

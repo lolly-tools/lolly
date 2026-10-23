@@ -58,7 +58,7 @@ shasum -a 256 c.svg d.svg     # different: each carries its own fresh credential
 
 ## What it buys you in a pipeline
 
-A machine can act on determinism only if it can branch on the result. Every CLI command returns one exit code per outcome, frozen at general availability, and `--json` puts one document on stdout and moves every human line to stderr ([Exit codes](/info/cli-automation.html#exit-codes)).
+A machine can act on determinism only if it can branch on the result. Every CLI command returns one exit code per outcome, frozen at general availability, and `--json` puts one document on stdout and moves every human line to stderr ([Exit codes](/info/cli-reference.html#exit-codes)).
 
 That gives a build step three options: render a vector format bare and compare hashes; render a raster format and compare it visually; or verify the credential and compare provenance. None of them asks you to trust that a hosted service returned the same thing it returned last week. In practice: commit the hash of an SVG rendered with `--no-provenance` if you want a lockfile entry, and compare a PDF, an ICS, a JPEG or anything signed by rendering and inspecting rather than by digest.
 

@@ -28,7 +28,7 @@ Lolly's live collaboration includes direct two-device private collabs and authen
 ## Reach for Lolly when
 
 - The same kind of file is needed again and again: event tiles, badges, certificates, alerts, social cards
-- Many files come from one template and a table of values, in [Batch](/info/using.html#batch-pro-mode) or the CLI
+- Many files come from one template and a table of values, in [Batch](/info/batch.html#make-many-versions-of-one-design) or the CLI
 - The colours, type and assets must stay inside the design system, even on an open canvas
 - A finished Figma, Penpot, Illustrator, InDesign or PDF design should become editable and repeatable ([Import a design](/info/design-import.html))
 - The files must be made on your own devices or servers

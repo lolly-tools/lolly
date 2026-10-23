@@ -58,7 +58,7 @@ You do not start from a blank page.
 
 **Decks.** Drop a PowerPoint `.pptx` on Lolly to file its slides as assets, write a new deck from Markdown in **Markdown Slides**, or use [Rebrand a deck](/info/rebrand.html) to move the whole deck onto your design system.
 
-**Data.** Paste or drop a CSV or JSON table and a tool's repeating fields fill from it, or [Batch](/info/using.html#batch-pro-mode) makes one finished file per row.
+**Data.** Paste or drop a CSV or JSON table and a tool's repeating fields fill from it, or [Batch](/info/batch.html#make-many-versions-of-one-design) makes one finished file per row.
 
 ### From a one-off to a template
 
@@ -70,9 +70,9 @@ An imported layout is an ordinary Design session. **Share with rules** turns it 
 
 ## Make many, share and automate
 
-- <!--i:download--> **Export.** Tools make SVG, PDF, PNG, JPG, WebP, video and more, in the formats each tool offers, at true print sizes when you need them. See [Exporting & Formats](/info/exporting.html).
+- <!--i:download--> **Export.** Tools make SVG, PDF, PNG, JPG, WebP, video and more, in the formats each tool offers, at true print sizes when you need them. See [Export a file](/info/exporting.html).
 - <!--i:link--> **Share a link.** A tool's settings travel in its link, so the link reopens the same file anywhere.
-- <!--i:layers--> **Make one per row.** Drive a tool from a spreadsheet in [Batch](/info/using.html#batch-pro-mode).
+- <!--i:layers--> **Make one per row.** Drive a tool from a spreadsheet in [Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Automate.** The same render runs from the [CLI](/info/cli.html) and from an [AI agent](/info/ai-agents.html).
 
 A link is a complete request. Nobody drew the chart below: its type, its heading and its whole data table were typed into the address bar, and the same link draws the same chart on any device.

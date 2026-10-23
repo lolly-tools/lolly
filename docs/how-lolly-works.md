@@ -35,7 +35,7 @@ Every route runs the same engine on the same tool, so the file a script makes ma
 ![URL parameters and command-line arguments become the same input model, run through one shared runtime and export bridge](/info/diagrams/concepts/one-render-path.svg)
 
 - <!--i:people--> **In the app, one at a time.** Open a tool, fill in the fields and press **Export**. [Make your first file](/info/make-something.html) walks you through one.
-- <!--i:layers--> **In the app, many at once.** [Batch](/info/using.html#batch-pro-mode) (`#/batch`) takes a pasted or imported table and renders one finished file per row.
+- <!--i:layers--> **In the app, many at once.** [Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) takes a pasted or imported table and renders one finished file per row.
 - <!--i:cpu--> **From a script or an AI agent.** The [CLI](/info/cli.html) runs a tool headless, and the [MCP server](/info/mcp.html) lets an agent discover and run tools. A link to a tool carries its inputs too, so a link is a complete request.
 - <!--i:server--> **Through your organisation's server.** [Lolly Work](/info/organisation.html) renders on the server under your organisation's sign-in and tool policy, keeps jobs it can resume and holds the output for download or approved delivery.
 

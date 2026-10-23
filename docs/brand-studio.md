@@ -117,7 +117,7 @@ Once the palette has shades, the strip shows all seven roles a tool can read: Pr
 
 The app's own accent follows the design system by default. That is the **Interface follows the design system** setting in **Settings → Appearance**; turning the setting off leaves the app's chrome neutral, while tools, canvases and exports follow the design system either way.
 
-**Colourways.** A design system can hold several lead colours, each chosen per piece. Lolly keeps every colourway, but this room cannot author one yet: a colourway is written in the token file. On a system with colourways, every colourway needs its own primary and secondary, and its own surface when the colourways tint the background, so those roles stay set in the swatch editor. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work, and [Token workflows](/info/token-workflows.html#colourways) has the format.
+**Colourways.** A design system can hold several lead colours, each chosen per piece. Lolly keeps every colourway, but this room cannot author one yet: a colourway is written in the token file. On a system with colourways, every colourway needs its own primary and secondary, and its own surface when the colourways tint the background, so those roles stay set in the swatch editor. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work, and [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) has the format.
 
 ### Find more colours
 
@@ -349,15 +349,15 @@ Choose **Remove** from a system's menu; the confirmation says which system will 
 
 Removing a supplied system only hides it: its catalogue assets stay, **Bring back** shows it again and it returns by itself if you remove everything else. Removing an imported or edited copy does not remove the supplied system, its logos or its fonts, and if the copy was active, the supplied system becomes active again. Removing an active hosted copy clears only that copy's connection; a separately chosen instance stays selected.
 
-Changing what a server supplies is an administrator's task: its operator changes the source catalogue and redeploys, or a Lolly Work administrator reviews and applies a server change. Edits here stay local. See [Removing a catalogue design system](/info/operate/deployment.html#removing-a-catalogue-design-system) and [Configuration](/info/configuration.html#supplied-and-local-design-systems).
+Changing what a server supplies is an administrator's task: its operator changes the source catalogue and redeploys, or a Lolly Work administrator reviews and applies a server change. Edits here stay local. See [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) and [Configuration](/info/configuration.html#supplied-and-local-design-systems).
 
 ## Use design context outside the app
 
-**Download design context** saves the token document, resolved colours, declared font families, asset ids, source evidence where recorded, coverage and explicit rules, with no font files and no proof of ownership. The command line reads the file with no server: `lolly system import` makes it the terminal's design system and `lolly system check` checks Design inputs against the saved context. [The lolly CLI](/info/cli.html#read-a-deck-then-check-the-recreation) covers both, and an MCP client reads the same brief from `lolly://design-context` ([MCP Server](/info/mcp.html)).
+**Download design context** saves the token document, resolved colours, declared font families, asset ids, source evidence where recorded, coverage and explicit rules, with no font files and no proof of ownership. The command line reads the file with no server: `lolly system import` makes it the terminal's design system and `lolly system check` checks Design inputs against the saved context. [Bring your design system](/info/cli.html#bring-your-design-system) covers the import and [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) covers the check, and an MCP client reads the same brief from `lolly://design-context` ([MCP Server](/info/mcp.html)).
 
 ## Where to go next
 
 - **[Using Lolly](/info/using.html)**: the tools, saving, sharing and Assets.
 - **[Brand architectures](/info/brand-architectures.html)**: how divisions, products, endorsed brands, clients and seasons map onto design systems, colourways and logo identities.
 - **[Design Tokens](/info/design-tokens.html)**: the token model your brand is written in.
-- **[Exporting & Formats](/info/exporting.html)**: print units, CMYK and the formats your brand renders into.
+- **[Export a file](/info/exporting.html)**: print units, CMYK and the formats your brand renders into.

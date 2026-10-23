@@ -89,7 +89,7 @@ Setting a variable inline like that keeps it out of the history file in most she
 
 ### What the credential records
 
-A credential records the tool and a digest of its inputs, the output format and size, the surface (`cli`), a timestamp, the action history, the [design system, version and colourway](/info/exporting.html#the-design-system-record) the render drew with and, with an identity, your certificate chain. The CLI prints the design-system words it read back from the finished file, such as `Recorded the design system: Acme · Colourway: Persimmon. Pass --no-madewith to leave the record out.`
+A credential records the tool and a digest of its inputs, the output format and size, the surface (`cli`), a timestamp, the action history, the [design system, version and colourway](/info/exporting.html#the-design-system-record) the render drew with and, with an identity, your certificate chain. The CLI prints the design-system words it read back from the finished file, such as `Recorded the design system: Lolly Demo · Colourway: Beach. Pass --no-madewith to leave the record out.`
 
 To record yourself as the author as well, pass a user-profile file with `useDetails: true`:
 

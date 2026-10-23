@@ -82,7 +82,7 @@ An imported layout is an ordinary Design session, so it can do everything a nati
 - <!--i:layers--> **Mix in tools.** Any box can hold another Lolly tool as a live asset, such as a QR code or a live chart, re-rendered on load rather than flattened.
 - <!--i:layers--> **Animate the layers.** Import onto **Replace the board**, select layers and choose **Choreograph**; see [Choreograph](/info/animating.html#choreograph-one-click-a-whole-motion-arc).
 - <!--i:download--> **Export the design.** SVG, PDF, Print PDF, Print TIFF, PNG, JPG and WebP work as for any Design document, as does **InDesign IDML** for a round trip ([Export a file](/info/exporting.html#word-opendocument-and-indesign)).
-- <!--i:folder--> **Make many.** Drive it from [Batch](/info/using.html#batch-pro-mode), one finished file per spreadsheet row, or keep it in a [Projects](/info/using.html#projects) folder.
+- <!--i:folder--> **Make many.** Drive it from [Batch](/info/batch.html#make-many-versions-of-one-design), one finished file per spreadsheet row, or keep it in a [Projects](/info/find-your-work.html#find-something-you-saved) folder.
 - <!--i:palette--> **Bring the tokens across.** Lolly's colours are [DTCG design tokens](/info/design-tokens.html), the format Penpot reads and writes and Tokens Studio brings to Figma, so the palette you design with and the palette Lolly applies can be one file. Import them in [Design System Setup](/info/brand-studio.html).
 
 ## Limits and safety

@@ -13,8 +13,8 @@ Pick a tool and fill it in, or lay a page out freely on the Design canvas.
 - **[Templates](/info/templates.html)** - start from a saved layout instead of a blank tool.
 - **[Text in Design](/info/text-composition.html)** - headings, flowing text and type that fits its box.
 - **[3D Studio](/info/3d-studio.html)** - SVG artwork and 3D models arranged, lit and rendered as one scene.
-- **[Utility views](/info/utilities.html)** - the spreadsheet, the converter, the Colour Lab, the PDF extractor and Script audio, for jobs that are not a tool render.
-- **[Browser Extension](/info/extension.html)** - capture a live web page and reuse it as an asset in your own designs.
+- **[Utilities](/info/utilities.html)** - fix a file on your device: share it safely, compare two versions, change its format, get the words out or check a colour.
+- **[Browser extension](/info/extension.html)** - screenshot a live web page from the web app, or read a site to start a design system.
 
 ## Make it yours
 
@@ -47,7 +47,7 @@ Text that moves, scenes on a timeline and motion that stays on-brand. A motion e
 
 Record a clean take with a count-in and a level meter, or put yourself in front of your slides.
 
-- **[Using Lolly](/info/using.html#timeline-sequence)** - recording a voiceover straight onto the timeline.
+- **[The Design timeline](/info/design.html#timeline-sequence)** - recording a voiceover straight onto the timeline.
 - **[Make your first file](/info/make-something.html#other-first-projects)** - the audiogram, for when you would rather be heard than seen.
 - **[Presenting with camera](/info/presenting.html)** - your camera, logo and name over a deck or Countdown, with private controls in a separate window.
 - **[Live pages that take the clicker](/info/interactive-pages.html)** and **[Agenda screens](/info/agenda.html)** - pages and programmes for the room.
@@ -64,7 +64,7 @@ Two people, two devices, one design, edited live, with no account and no server 
 
 Send it where it was asked for: a link, a print-true PDF, a video, a deck or a folder of variants, all from the same source.
 
-- **[Exporting & Formats](/info/exporting.html)** - print units, bleed and crop marks, video, batch runs and the export panel.
+- **[Export a file](/info/exporting.html)** - print units, bleed and crop marks, video, batch runs and the export panel.
 - **[Every format Lolly can open and make](/info/formats.html)** - the full in-and-out list.
 - **[Creative rights and credits](/info/creative-rights.html)** - the licences of what you used, and the credits that travel with the file.
 

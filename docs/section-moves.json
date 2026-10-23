@@ -1114,6 +1114,16 @@
       "slug": "open-document-agents",
       "anchor": "site-tools-in-the-browser-webmcp",
       "label": "Browser site tools (WebMCP)"
+    },
+    "two-hosted-endpoints": {
+      "slug": "mcp",
+      "anchor": "choose-an-endpoint",
+      "label": "Two hosted endpoints"
+    },
+    "reproducibility-what-is-and-is-not-byte-stable": {
+      "slug": "determinism",
+      "anchor": "how-far-byte-identical-renders-go",
+      "label": "Reproducibility: what is and is not byte-stable"
     }
   },
   "url-parameters": {

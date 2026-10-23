@@ -33,7 +33,7 @@ You can, and you should: the point of provenance is that it does not need our wo
 Lolly renders on your device. That is not a privacy setting added afterwards: it is the architecture, and it is why most of the usual questions have short answers.
 
 - <!--i:eyeoff--> [**Privacy Policy**](/info/privacy.html): what is collected, what is not and what leaves your device.
-- <!--i:convert--> [**Data Transfer**](/info/data-transfer.html): moving your work in and out, with nothing held hostage.
+- <!--i:convert--> [**Data transfer**](/info/data-transfer.html): moving your work in and out, with nothing held hostage.
 
 ## Where we stand
 

@@ -129,7 +129,7 @@ Video bytes are **not** the same run to run, because the browser's paint and enc
 
 ### Review a timed composition
 
-Use `--export=png --cuts=6 --output=frames.zip` for six evenly spaced stills, or `--sampletimes=0,1.5,3` for exact timeline seconds. One time gives one image; several give a ZIP of PNG, JPG, WebP or SVG stills, or one paged PDF. Both need the paint tier and exit `3` without one. Times must increase and fall before the timeline ends; they cover native timed layers and refuse unsupported animated media. [URL parameters](/info/url-parameters.html#contact-sheets-cuts) has the full contract.
+Use `--export=png --cuts=6 --output=frames.zip` for six evenly spaced stills, or `--sampletimes=0,1.5,3` for exact timeline seconds. One time gives one image; several give a ZIP of PNG, JPG, WebP or SVG stills, or one paged PDF. Both need the paint tier and exit `3` without one. Times must increase and fall before the timeline ends; they cover native timed layers and refuse unsupported animated media. [Contact sheets](/info/url-export.html#contact-sheets) has the full contract.
 
 ### Motion delivery checks
 

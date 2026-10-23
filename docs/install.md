@@ -169,7 +169,7 @@ The signed web image, `ghcr.io/lolly-tools/lolly-web`, serves the same app lolly
 | **Terminal** | `pnpm run cli` in a checkout. The same engine, headless; the desktop app carries the same CLI. See [the CLI guide](/info/cli.html#install). |
 | **Terminal, interactive** | `pnpm run tui` in a checkout. A full-screen terminal interface on the same engine. See [the TUI guide](/info/tui.html). |
 | **Tool-author SDK** | `npm i -D @lolly-tools/core`. The `HostV1` contract types, the manifest validator and a mock host for testing a tool without the app or a clone of the repository. See [Publish and localize a tool](/info/tool-publishing.html#try-it-without-the-monorepo). |
-| **Browser extension** | Load unpacked. See [Browser Extension](/info/extension.html). |
+| **Browser extension** | Load unpacked. See [Browser extension](/info/extension.html). |
 
 To build the desktop app yourself on a Mac:
 

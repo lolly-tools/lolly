@@ -9,7 +9,7 @@ You need a social card, a certificate and a profile badge today, not next sprint
 
 ## One file per row
 
-Paste or import a spreadsheet in [Batch](/info/using.html#batch-pro-mode) and get one finished file per row, in the formats and sizes you set.
+Paste or import a spreadsheet in [Batch](/info/batch.html#make-many-versions-of-one-design) and get one finished file per row, in the formats and sizes you set.
 
 ![Batch export settings: file name, default format, units, DPI and the number of rows to render](/info/shots/use-batch-toolbar.svg)
 

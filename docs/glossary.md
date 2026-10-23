@@ -14,7 +14,7 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **Managed design system.** A design system your build or your organisation supplies. It shows a lock and stays read-only; you can make an editable copy.
 
-**Colourway.** One of several lead colours a design system offers, with the colour that sits on it and a partner colour, chosen per piece of work. Organisations that rotate their primary colour across pieces use colourways. A colourway combines with light and dark rather than replacing them. One colourway is canonical: work that chooses none is drawn in it, and the app's own colours (its accent, favicon and logo tint) always follow it, never the colourway of the piece on screen. See [Token workflows](/info/token-workflows.html#colourways).
+**Colourway.** One of several lead colours a design system offers, with the colour that sits on it and a partner colour, chosen per piece of work. Organisations that rotate their primary colour across pieces use colourways. A colourway combines with light and dark rather than replacing them. One colourway is canonical: work that chooses none is drawn in it, and the app's own colours (its accent, favicon and logo tint) always follow it, never the colourway of the piece on screen. See [Colourways](/info/colourways.html).
 
 **Brand architecture.** How an organisation relates its brands to one another, from one masterbrand with coloured divisions to brands with no visible relationship. Lolly maps each arrangement onto design systems, colourways and logo identities; see [Brand architectures](/info/brand-architectures.html).
 
@@ -22,7 +22,7 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **Utility.** A tool in the `utility` category, listed in the app's **Utilities** tab (`#/u`) for one quick job, such as Strip Hidden Data, Scan or Countdown. Many utilities are *on-device*: they take your own file in and give a file back without uploading anything (strip data, compress a PDF, convert an image). The engine never watermarks an on-device tool's output or adds Content Credentials to it; Sign and Rondocode write a credential through their own export code.
 
-**Utility view.** A workbench built into the app with no manifest, such as Compare or Verify & Inspect, with a card in the same Utilities tab (see [Utility views](/info/utilities.html)). Neither word is a loose name for any tool.
+**Utility view.** A workbench built into the app with no manifest, such as Compare or Verify & Inspect, with a card in the same Utilities tab (see [Utilities](/info/utilities.html)). Neither word is a loose name for any tool.
 
 **Saved session.** One tool with its inputs, saved with **Save** or **Save as** and listed in **Projects**. It stays in the browser or app you saved it in, unless you turn on Sync.
 

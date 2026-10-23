@@ -155,7 +155,7 @@ On the CLI and MCP, `hdr` is also what makes the float formats possible. `--expo
 :::
 
 ::: details More on depth
-`float` means floating-point samples, the depth film and VFX formats use. A 16-bit file made from an 8-bit canvas render is padding, so Lolly writes the 8-bit file instead of a bigger one with no more picture. `auto` asks for the deepest the chain supports, so deep output becomes the default as more of the pipeline can make it, the same rule gamut follows ([Colour spaces](/info/exporting.html#colour-spaces)).
+`float` means floating-point samples, the depth film and VFX formats use. A 16-bit file made from an 8-bit canvas render is padding, so Lolly writes the 8-bit file instead of a bigger one with no more picture. `auto` asks for the deepest the chain supports, so deep output becomes the default as more of the pipeline can make it, the same rule gamut follows ([how colour is written](/info/colour-engine.html#writing)).
 
 Formats that are deep by nature (OpenEXR, Radiance `.hdr`) ignore the parameter except for one choice: on the CLI, `depth=float` writes an EXR with 32-bit float samples instead of the default 16-bit half. An HDR PNG is written at 16 bits regardless, because 8-bit PQ bands; `depth=8` there falls back to the older encode. The CLI does not honour `depth=16` for `png` or `tiff`: its render path rasterises to 8-bit sRGB, so the request is ignored. Invalid values (`depth=32`, `depth=deep`, an empty value) read as `auto` rather than failing the export.
 :::
@@ -173,7 +173,7 @@ Formats that are deep by nature (OpenEXR, Radiance `.hdr`) ignore the parameter 
 | `emojistyle` | web + CLI (`--emojistyle=`) | An exact `EmojiStyleV1` JSON snapshot. Generated links carry it, and it takes precedence over `emoji` and `emojifx`. |
 
 ::: details More on _themes
-A tool whose manifest ignores a kind of theme group (`tokenAxes`, see [Authoring Tools](/info/authoring-tools.html#colours-that-are-the-content)) renders that group in its canonical option, and the CLI and MCP warn when a link asks for another. On the CLI, `--themes=light,dark` (or `--themes=all`) exports one file per theme, named `<stem>-<theme>.<ext>`, and needs `--output`. Only `--themes` refuses a name the design system does not declare, and lists the ones it does. [Colourways](/info/colourways.html#choose-a-colourway-for-one-piece) covers choosing a colourway in the app.
+A tool whose manifest ignores a kind of theme group (`tokenAxes`, see [Tool manifests](/info/tool-manifest.html#colours-that-are-the-content)) renders that group in its canonical option, and the CLI and MCP warn when a link asks for another. On the CLI, `--themes=light,dark` (or `--themes=all`) exports one file per theme, named `<stem>-<theme>.<ext>`, and needs `--output`. Only `--themes` refuses a name the design system does not declare, and lists the ones it does. [Colourways](/info/colourways.html#choose-a-colourway-for-one-piece) covers choosing a colourway in the app.
 :::
 
 ::: details More on ds and designv

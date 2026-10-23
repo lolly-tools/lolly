@@ -18,7 +18,7 @@ A `blocks` input is a list of repeating records, such as team members with a nam
 }
 ```
 
-In the template, loop with `{{#each people}}…{{/each}}`. The value travels in a link as a JSON array, and the shell packs a long link automatically. When a list grows past what a link can carry, the Share dialog points to a `.lolly` file instead, and a [saved slot](/info/url-export.html#loading-saved-state-with-slot) also works. Rows are edited in a side panel, and clicking a rendered row on the canvas focuses its fields. `meeting-planner` is the reference for rows that all have the same fields.
+In the template, loop with `{{#each people}}…{{/each}}`. The value travels in a link as a JSON array, and the shell packs a long link automatically. When a list grows past what a link can carry, the Share dialog points to a `.lolly` file instead, and a [saved slot](/info/url-export.html#resume-a-saved-session) also works. Rows are edited in a side panel, and clicking a rendered row on the canvas focuses its fields. `meeting-planner` is the reference for rows that all have the same fields.
 
 ![Deck Studio's blocks input - each row is its own card of fields, carrying the row type as its label and an Add slide button below the stack](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&cropSelector=.blocks-input%5Bdata-input-id%3D%22deck%22%5D&dark=1&filename=auth-blocks-rows)
 

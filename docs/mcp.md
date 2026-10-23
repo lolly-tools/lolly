@@ -325,7 +325,7 @@ For what no archetype holds (a slide's `under` and `over` rows) and for slides w
 
 ## What a render records
 
-**The design system and colourway.** A render records the [design system and colourway](/info/exporting.html#the-design-system-record) that drew the file, in its metadata and its Content Credential, as an export from the app does. The result reads the delivered bytes back and prints the words the file carries, such as `Recorded the design system: Acme · Colourway: Persimmon.` Pass `madeWith: false` to `lolly_render` or `lolly_build_url` to leave the record out; the link then carries `_madewith=0`, so the file and the link agree.
+**The design system and colourway.** A render records the [design system and colourway](/info/exporting.html#the-design-system-record) that drew the file, in its metadata and its Content Credential, as an export from the app does. The result reads the delivered bytes back and prints the words the file carries, such as `Recorded the design system: Lolly Demo · Colourway: Beach.` Pass `madeWith: false` to `lolly_render` or `lolly_build_url` to leave the record out; the link then carries `_madewith=0`, so the file and the link agree.
 
 **Songs.** A video or audio file that plays a rondocode song records each song in its Content Credentials: its name, a hash of its source and how Lolly's sandbox rendered the song. The result reads the delivered bytes back and states, on a `Songs:` line, which songs the credential records and any it does not. `lolly_transform` adds no credential, so its result says the file records none of its songs.
 

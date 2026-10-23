@@ -166,7 +166,7 @@ Every deck you open becomes a project, saved on this device. **Recent projects**
 
 ## From the command line
 
-The same stages run from the command line and from AI agents: `lolly rebrand plan`, `compile` and `inspect`. See [Rebrand: renovate an old deck](/info/cli.html#rebrand-renovate-an-old-deck) in the CLI guide.
+The same stages run from the command line and from AI agents: `lolly rebrand plan`, `compile` and `inspect`. [Rebuild a deck from the terminal](/info/cli-decks.html#renovate-in-place-with-lolly-rebrand) covers them.
 
 ::: details Words you will see
 | Word | What it means |

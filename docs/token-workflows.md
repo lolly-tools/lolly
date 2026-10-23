@@ -53,7 +53,7 @@ Each imported theme group has its own control, using the source's group names an
 - **For the design system.** Preview a choice in the Tokens room; previewing writes nothing. **Use these choices for this system** creates a review, and **Apply reviewed change** commits the choices through Design System Setup's usual saving and undo.
 - **For one document.** A Design document's theme rows change only that document. The choice is saved with it as `__tokenSelection`, travels in its link as `_themes` and comes back when it reopens. The design system's stored choices stay as they were, and other documents keep their own.
 
-A session's choices go wherever the session is drawn: a [multi-edit](/info/using.html#editing-side-by-side-multi-edit) card, a [batch](/info/using.html#batch-pro-mode) row and the batch CSV's `_themes` column, a Design document export and every tool link [composed](/info/url-mode.html#tool-composition-portable-embed-url) inside the document. [Colourways](/info/colourways.html) covers choosing a lead colour for a piece.
+A session's choices go wherever the session is drawn: a [multi-edit](/info/batch.html#edit-several-saved-designs-together) card, a [batch](/info/batch.html#make-many-versions-of-one-design) row and the batch CSV's `_themes` column, a Design document export and every tool link [composed](/info/url-mode.html#tool-composition-portable-embed-url) inside the document. [Colourways](/info/colourways.html) covers choosing a lead colour for a piece.
 
 ```sh
 lolly system inspect --file=beacon.tokens.json --_themes='{"appearance":"night","density":"roomy"}' --json

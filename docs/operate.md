@@ -1,12 +1,12 @@
 # Deploy
 
-Hosting the Lolly web app, handing out the packaged app and running a Lolly Work server are separate jobs. Start with the one you have, and read only the pages it needs.
+Hosting the Lolly web app, handing out the packaged app and running a Lolly Work server are separate jobs. Start with the one you have, and read only the pages it needs. [Choose a deployment](/info/deployment.html) compares the routes for the web app and the packaged apps.
 
 ## Choose and install
 
-- [Choose a deployment](/info/deployment.html): the web app, packaged apps, air-gapped installs and where each piece runs.
-- [Run your own Work server](/info/work-self-host.html): which Lolly Work installation suits your organisation.
-- [Install Lolly Work](/info/work-install.html): a single server, step by step.
+- [Run Lolly Work](/info/work-self-host.html): the path that matches what you have, from the public demo to Kubernetes, with downloads and checksums.
+- [How a Work deployment fits together](/info/work-deployment.html): the parts every Lolly Work deployment runs and the ones you can leave out.
+- [Official installation routes](/info/work-official-installations.html): which packages exist, what each has passed and how to check a download.
 
 ## Configure the instance
 

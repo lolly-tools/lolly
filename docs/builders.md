@@ -28,15 +28,15 @@ The app, the CLI and an agent all make the same file from the same inputs, becau
 
 **Build tools:**
 
-- **[Authoring Tools](/info/authoring-tools.html)** - the guide: manifest, template, styles, hooks, composition and publishing.
+- **[Build a tool](/info/authoring-tools.html)** - the guide: manifest, template, styles, hooks, composition and publishing.
 - **[Host API](/info/host-api.html)** - the `HostV1` capability bridge every tool is written against.
-- **[Browser Extension](/info/extension.html)** - capture a live web page as an asset for a tool to compose.
+- **[Browser extension](/info/extension.html)** - capture a live web page as an asset for a tool to compose.
 
 **How it holds together:**
 
 - **[Lolly architecture](/info/overview.html)** - the engine, the shells, the bridge and the commitments that constrain every change.
 - **[Constraints](/info/constraints.html)**, **[Determinism](/info/determinism.html)** and **[Reproducibility](/info/reproducibility.html)** - why output comes out right, what is byte-for-byte repeatable and how far a bare link carries.
-- **[Data Transfer](/info/data-transfer.html)** - the `lolly-backup` bundle: envelope, integrity and the cross-shell guarantees.
+- **[Data transfer](/info/data-transfer.html)** - the `lolly-backup` bundle: envelope, integrity and the cross-shell guarantees.
 
 ## Lolly Work automation
 
@@ -48,7 +48,7 @@ When your organisation runs Lolly Work, automation can run on its server, under 
 
 ## Build and contribute
 
-- **[Contributing Setup](/info/contributing-setup.html)** - a development checkout sized to what you are here to do.
+- **[Get the source](/info/contributing-setup.html)** - a development checkout sized to what you are here to do.
 - **[Build Guide](/info/build-guide.html)** - build every target: CLI, TUI, desktop, mobile and the web app. [Building for iOS](/info/ios-build.html) adds Apple's extra steps.
 - **[Profiles, brands and tool configuration](/info/configuration.html)** - profiles, brand packs, capability gating, feature flags and catalog validation.
 - **[Threat Model & Trust Boundaries](/info/threat-model.html)** - what Lolly defends against, what it does not and where each boundary falls.
