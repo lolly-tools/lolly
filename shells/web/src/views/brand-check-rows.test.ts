@@ -7,7 +7,7 @@
  */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { brandCheckRows, hostBrandCatalog, type BrandCatalogHost } from './brand-check-rows.ts';
+import { brandCheckRows, coverageText, hostBrandCatalog, type BrandCatalogHost } from './brand-check-rows.ts';
 
 const DOC = {
   color: { ink: { $type: 'color', $value: '#112233' } },
@@ -54,4 +54,13 @@ test('the host catalog reads asset ids, themes and treatments, and survives a ho
   const broken: BrandCatalogHost = { assets: { query: async () => { throw new Error('offline'); } } };
   assert.deepEqual(await hostBrandCatalog(broken), { assets: [] });
   assert.deepEqual(await hostBrandCatalog(undefined), { assets: [] });
+});
+
+test('the coverage line reads correctly for one and for many', async () => {
+  assert.equal(coverageText({ colors: 1, fonts: 1, assets: 1 }),
+    'Compared 1 colour value, 1 font choice and 1 asset ID. Gradients, effects, nested content and subjective quality were not assessed.');
+  assert.equal(coverageText({ colors: 0, fonts: 2, assets: 3 }),
+    'Compared 0 colour values, 2 font choices and 3 asset IDs. Gradients, effects, nested content and subjective quality were not assessed.');
+  const rows = await rowsFor('example/logo/primary', HOST);
+  assert.match(rows.find((r) => r.id === 'brand.coverage')?.text ?? '', /^Compared \d+ colour values?, \d+ font choices? and 1 asset ID\./);
 });
