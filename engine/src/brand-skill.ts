@@ -111,7 +111,7 @@ export function parseBrandSkill(text: string): ParsedBrandSkillV1 {
   for (const row of rows) {
     if (row.code) continue;
     const h = /^\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$/.exec(row.text);
-    if (h && h[2]) headings.push({ level: h[1]!.length, text: h[2].replace(/\*\*/g, '').trim(), slug: slugOf(h[2]), line: row.line });
+    if (h?.[2]) headings.push({ level: h[1]!.length, text: h[2].replace(/\*\*/g, '').trim(), slug: slugOf(h[2]), line: row.line });
     let masked = row.text;
     for (const m of row.text.matchAll(MD_LINK)) {
       links.push({ target: m[3]!, text: m[2]!, line: row.line, image: m[1] === '!' });
