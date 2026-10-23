@@ -7,9 +7,10 @@
  * a value (an event listener), goes through `tview.<module>.<fn>`. Extracted verbatim
  * from mountTool() by scripts/split-closure.ts.
  */
-import { replaceRouteUrl, updateRouteParams } from '../../lib/url-state.ts';
+import { flushAddressWrites, replaceRouteUrl, updateRouteParams } from '../../lib/url-state.ts';
 import { acquireCollabSession } from '../../lib/collab-session-source.ts';
 import { mountPeerViewport } from '../tool-peer-view.ts';
+import { mountViewAddress } from '../tool-view-address.ts';
 import { stageBottomReserve, stageSideReserve } from '../../lib/design-panel-layout.ts';
 import { carryMountState, willRemountForCollab } from '../../lib/collab-live-mount.ts';
 import { releaseTeamSessionOrigin } from '../../org/team-session-origin.ts';
@@ -66,8 +67,10 @@ export function setSidebarWidth(tview: ToolViewCtx, w: number, save = true): voi
   if (save) localStorage.setItem('sidebarWidth', String(snapped));
 }
 // The live param string, whichever URL form the bar is in: the path's ?search once
-// syncUrl has prettified it, or the hash's #…?query in the instant after boot.
+// syncUrl has prettified it, or the hash's #…?query in the instant after boot. A write
+// still waiting for its edits to settle goes out first, so the caller reads the latest.
 export function currentQuery(_tview: ToolViewCtx): string {
+  flushAddressWrites();
   if (window.location.search) return window.location.search.slice(1);
   const qi = window.location.hash.indexOf('?');
   return qi >= 0 ? window.location.hash.slice(qi + 1) : '';
@@ -868,15 +871,7 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     );
     const zoom = tview.stageZoom;
     tview.mountLifecycle.add('peer viewport', mountPeerViewport(tview.runtime, stageEl, canvasEl, zoom));
-    let lastView = '';
-    const offView = zoom.subscribe(() => {
-      if (isIframeMode() || !zoom.isUserZoomed() || zoom.isSuspended()) return;
-      const view = JSON.stringify(zoom.viewState());
-      if (view === lastView) return;
-      lastView = view;
-      updateRouteParams({ _view: view });
-    });
-    tview.mountLifecycle.add('viewport URL', offView);
+    tview.mountLifecycle.add('viewport URL', mountViewAddress(zoom, stageEl));
     const linkedView = tview.urlFlags.get('_view');
     if (linkedView && !designChrome) requestAnimationFrame(() => {
       if (!viewEl.isConnected) return;
