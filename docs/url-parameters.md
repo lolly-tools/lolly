@@ -2,7 +2,7 @@
 
 Most of a Lolly link is the design itself: each parameter is one of the tool's inputs. A short list of names is kept back for the app. They choose the file's format and size, what happens when the link opens and what goes into the file's metadata. No tool may use one of these names for an input, so `format=pdf` means the same thing in every tool.
 
-Look a name up below. Each row says where it works and links to the page that explains it in full. For worked examples, such as downloading on open, a print-ready PDF or presenting a deck, start with [Links that do something on open](/info/url-export.html).
+Look a name up below. Each row says where it works, and links to the page that explains it in full where there is one. For worked examples, such as downloading on open, a print-ready PDF or presenting a deck, start with [Links that do something on open](/info/url-export.html).
 
 Some rules hold for every table:
 
