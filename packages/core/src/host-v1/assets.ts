@@ -188,7 +188,8 @@ export interface AssetQuery {
     | 'profile'
     | 'ratecard'
     | 'text'
-    | 'data';
+    | 'data'
+    | 'skill';
   namespace?: string; // e.g. 'suse/logo' matches everything under it
   tags?: string[]; // AND across tags
   includeDeprecated?: boolean; // default false

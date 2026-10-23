@@ -6,6 +6,15 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.282.0
+
+- Brand skills (plan 323): a brand's standards for one discipline, written as an Agent Skill and carried as a design-system asset of the new type `skill`. The catalog record is the asset's `meta.skill` (`BrandSkillMetaV1` in `@lolly-tools/core/brand-skill-v1`): an Agent Skills `name`, `description`, `discipline`, `audience` (`public` or `internal`), `status`, the brand's own `skillRevision`, and optional `appliesTo` (tools, categories, formats, media and asset families), owner, review date and reference files.
+- `parseBrandSkill`, `admitBrandSkill`, `classifyBrandSkillLinks`, `brandSkillCoverage`, `exportBrandSkillFolder`, `brandSkillFreshness` and `baselineBrandSkill` read, admit, map, export and generate brand skills. Admission refuses scripts, files inside the skill other than text references, traversal, malformed UTF-8 and files over the tool-skill limits, with a reason; it never strips a file silently. An export changes the brand's body only where a link target is rewritten and lists each rewrite in a `lolly.json` companion.
+- The coverage map is fixed pattern work with no model: colour values against the tokens, font names against the declared families, and lines that point at a house rule kind. Its rows say `agree`, `conflict`, `not-in-tokens`, `checked` or `guidance-only`.
+- `designBrief` gains a `skills` section (the index without bodies, plus the generated baseline's name) and `coverage.skills`. `DesignBriefAssetV1` gains an optional `skill` index row.
+- `@lolly-tools/core/skill-frontmatter-v1` reads Agent Skills frontmatter for tool skills and brand skills alike; the tool-skill reader now uses it, keeping its `lolly-` name prefix.
+- `measureSvgFamily` and `spreadExemplars` measure an SVG asset family and pick an even spread of exemplars, for the draft conformance profile an asset-making skill exports with.
+
 ## 1.281.0
 
 - `PaletteSwatch` (and the SDK's `ColorPaletteSwatch`, for `host.color.paletteExport` and `paletteExportBytes`) gains three optional fields: `css`, the colour as authored; `cmyk`, a locked CMYK build in percentages; and `spot`, a locked spot ink (`name`, `book`, `finish`).
