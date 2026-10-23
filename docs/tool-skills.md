@@ -59,3 +59,7 @@ declared JSON input values. File bytes and device actions require separate
 supported routes. Read grants refuse mutations at the operation boundary.
 Read current revision, verify document identity and inspect after a permitted
 change. The live context supplies the open editor's effective design system.
+
+A design system's own guidance is a separate layer: the brand's standards, one
+skill per discipline, carried with the design system. See
+[Brand skills](/info/brand-skills.html).

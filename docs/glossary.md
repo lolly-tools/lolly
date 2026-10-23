@@ -52,6 +52,8 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **Brand architecture.** How an organisation relates its brands to one another, from one masterbrand with coloured divisions to brands with no visible relationship. Lolly maps each arrangement onto design systems, colourways and logo identities; see [Brand architectures](/info/brand-architectures.html).
 
+**Brand skill.** A brand's standards for one discipline (the overall brand, photography, motion, iconography and so on), written as an Agent Skill: a Markdown file, with optional text references, that people and AI agents read. It is a catalog asset of type `skill` with a permanent id such as `lolly/skill/photography`, carried with the design system it belongs to, and Lolly never rewrites its text. Each skill is `public` or `internal`, and internal skills stay out of every static catalog. A skill is guidance and never gives a pass or a fail; the design system's house rules are what Lolly checks. Not the Lolly skill, which says how to operate Lolly, and not a tool skill, which says how to operate one tool. See [Brand skills](/info/brand-skills.html).
+
 **Design system vs brand.** The same thing seen from two sides. User-facing copy says *design system* because people who do not think of themselves as a brand use Lolly too. Code contracts keep the word brand (`brands/`, `brand-*.ts`, `--brand-*`).
 
 ## Sessions and editing

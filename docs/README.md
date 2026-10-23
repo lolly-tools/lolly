@@ -85,6 +85,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Lolly architecture | [overview.md](overview.md) |
 | Design Tokens | [design-tokens.md](design-tokens.md) |
 | Token workflows | [token-workflows.md](token-workflows.md) |
+| Brand skills | [brand-skills.md](brand-skills.md) |
 | Document model draft | [document-model.md](document-model.md) |
 | Constraints | [constraints.md](constraints.md) |
 | Determinism | [determinism.md](determinism.md) |
