@@ -8,7 +8,7 @@
 
   /* A row is one card; its title button covers the card, so the whole row is the
      control while the accessible name stays the skill's label. */
-  .skills-row { position: relative; padding-block: 16px; align-items: center; transition: background-color .15s ease; }
+  .skills-row { position: relative; padding-block: 16px; align-items: center; transition: background-color var(--dur-1); }
   .skills-row h3 { margin-bottom: 2px; }
   .skills-row .usage-rule-icon { padding-top: 0; }
   .skills-row p.usage-hint { margin: 0; }

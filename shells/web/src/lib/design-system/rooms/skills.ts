@@ -280,7 +280,7 @@ export function mountSkillsRoom(el: HTMLElement, opts: SkillsRoomOpts) {
       label = rec?.label || active?.label || t('Your design system');
       const brief = designBrief(doc, { assets: briefSkillAssets(skills) }, { name: label, ...(theme ? { theme } : {}) });
       facts = brandSkillCoverageFacts(brief);
-      const baseline = baselineBrandSkill(brief as unknown as Record<string, unknown>);
+      const baseline = baselineBrandSkill(brief);
       const baselineEntry: BrandSkillIndexEntryV1 = {
         id: BASELINE_KEY, name: baseline.meta.name, label: t('{name} baseline', { name: label }),
         description: brief.skills.baseline.description, discipline: 'brand', audience: 'public', status: 'draft',

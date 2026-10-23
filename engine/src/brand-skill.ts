@@ -621,7 +621,8 @@ const cell = (v: unknown): string => String(v ?? '').replace(/[\r\n|]/g, ' ').tr
  * values Lolly holds and the rules Lolly checks, and says plainly that it is generated:
  * the brand's own skills win on anything they cover.
  */
-export function baselineBrandSkill(brief: Record<string, unknown>, opts: { revision?: string } = {}): { meta: BrandSkillMetaV1; markdown: string } {
+export function baselineBrandSkill(source: object, opts: { revision?: string } = {}): { meta: BrandSkillMetaV1; markdown: string } {
+  const brief = source as Record<string, unknown>;
   const systemName = typeof brief.name === 'string' && brief.name.trim() ? brief.name.trim() : 'Design system';
   const name = baselineSkillName(systemName);
   const description = `The ${systemName} design system as Lolly holds it: named colours, approved pairings, type, logos per surface, icon themes, media families and the house rules Lolly checks. Generated from the design brief; the brand's own skills take precedence.`;

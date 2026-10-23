@@ -154,7 +154,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `brand-resources.ts` | 24 | Asset dependencies in brand vocabulary, independent of labels and rule prose. | no | indirect | – |
 | `brand-rules.ts` | 116 | Bounded predicates for named example slots. | no | `tests/brand-rules.test.ts` | – |
 | `brand-schemes.ts` | 168 | Brand scheme accents. | yes | `tests/brand-schemes.test.ts` | – |
-| `brand-skill.ts` | 751 | Brand skills (plan 323): reading, admitting, mapping and exporting a brand's standards when they arrive as Agent Skills. | yes | `tests/brand-skill.test.ts` | – |
+| `brand-skill.ts` | 752 | Brand skills (plan 323): reading, admitting, mapping and exporting a brand's standards when they arrive as Agent Skills. | yes | `tests/brand-skill.test.ts` | – |
 | `brand-system.ts` | 34 | Reads portable brand vocabulary and rule records without claiming enforcement. | no | `tests/brand-system.test.ts` | – |
 | `brand-treatments.ts` | 286 | Brand-derived photo treatments + icon duo themes. | yes | `tests/brand-treatments.test.ts` | – |
 | `bridge/host-v1.ts` | 23 | Capability Bridge - v1 (re-export). | no | indirect | – |

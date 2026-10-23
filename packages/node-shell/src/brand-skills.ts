@@ -140,7 +140,7 @@ export async function readProfileBrandSkill(name: string, opts: BrandSkillReadOp
 function baselineFor(name: string, opts: ProfileSourceOptsV1): Promise<ProfileBrandSkillV1 | null> | null {
   const b = brief(opts);
   if (b.skills.baseline.name !== name) return null;
-  const { meta, markdown } = baselineBrandSkill(b as unknown as Record<string, unknown>);
+  const { meta, markdown } = baselineBrandSkill(b);
   return admitBrandSkill({ 'SKILL.md': new TextEncoder().encode(markdown) }).then((admitted) => {
     if (!admitted.ok) throw new Error(`The generated baseline was refused: ${admitted.reason}`);
     const id = `generated/skill/${meta.name}`;

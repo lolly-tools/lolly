@@ -44,7 +44,7 @@ import '../styles/parts/start.css';
 import '../styles/parts/start-usage.css';
 import '../styles/parts/start-skills.css';
 import { mountUsageRoom } from '../lib/design-system/rooms/usage.ts';
-import { mountSkillsRoom, type SkillsRoomHost } from '../lib/design-system/rooms/skills.ts';
+import { mountSkillsRoom } from '../lib/design-system/rooms/skills.ts';
 import type { TokensExtraction } from '@lolly/engine';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { applyChromeBrandVars } from '../brand-vars.ts';
@@ -176,7 +176,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
     const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
-    const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host: host as unknown as SkillsRoomHost, readonly: true });
+    const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host, readonly: true });
     (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); skills.teardown(); workspace.teardown(); };
     return;
   }
@@ -207,7 +207,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
     const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
-    const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host: host as unknown as SkillsRoomHost, readonly: true });
+    const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host, readonly: true });
     (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); skills.teardown(); workspace.teardown(); };
     viewEl.querySelector('[data-ds-fork]')?.addEventListener('click', async () => {
       const [{ createDesignSystem }, { switchDesignSystem }] = await Promise.all([

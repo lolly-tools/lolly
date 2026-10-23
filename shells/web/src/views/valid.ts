@@ -1667,8 +1667,7 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
         <dl class="valid-facts">
           ${fact(t('Title'), claim.title, 'tag')}
           ${fact(t('Tool'), env.tool && env.toolVersion ? `${env.tool} ${env.toolVersion}` : env.tool, 'tool')}
-          ${fact(t('Design system'), madeWithFact(env), 'palette')}
-          ${fact(t('Guided by'), guidedByFact(env), 'document')}
+          ${fact(t('Design system'), madeWithFact(env), 'palette')}${fact(t('Guided by'), guidedByFact(env), 'document')}
           ${fact(t('Produced by'), report.author ? `${report.author.name}${report.author.email ? ` <${report.author.email}>` : ''}` : null, 'user')}
           ${fact(t('Contact'), report.author?.url ?? null, 'link')}
           ${fact(t('Rights / licence'), report.rights ?? null, 'badgeCheck')}

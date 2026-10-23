@@ -320,7 +320,7 @@ test('the lolly-demo pack: every skill admits, the brief lists them and the base
   const brief = designBrief(tokens.doc, readProfileBriefCatalog(opts), { name: tokens.label! });
   assert.equal(brief.coverage.skills, 'declared');
   assert.equal(brief.skills.index[0]!.name, 'lolly-demo-brand');
-  const { markdown, meta } = baselineBrandSkill(brief as unknown as Record<string, unknown>);
+  const { markdown, meta } = baselineBrandSkill(brief);
   assert.equal(meta.generated, true);
   const admitted = await admitBrandSkill({ 'SKILL.md': enc(markdown) });
   assert.ok(admitted.ok);

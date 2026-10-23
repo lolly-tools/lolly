@@ -10,7 +10,7 @@
 import { updateRouteParams, bindDisclosureUrl, routeParams } from '../../lib/url-state.ts';
 import { mountOverviewRoom, readOverview } from '../../lib/design-system/rooms/overview.ts';
 import { mountUsageRoom } from '../../lib/design-system/rooms/usage.ts';
-import { mountSkillsRoom, type SkillsRoomHost } from '../../lib/design-system/rooms/skills.ts';
+import { mountSkillsRoom } from '../../lib/design-system/rooms/skills.ts';
 import { isStartArea } from '../../lib/design-system/start-route.ts';
 import type { StartArea } from '../../lib/design-system/start-route.ts';
 import { playSfx } from '../../lib/sfx.ts';
@@ -121,7 +121,7 @@ export const selectRoom = (start: StartCtx, area: StartArea, opts: { focus?: boo
   start.skillsPanel.hidden = area !== 'skills';
   if (area === 'skills') {
     if (start.skills) void start.skills.refresh();
-    else start.skills = mountSkillsRoom(start.skillsPanel, { host: start.host as unknown as SkillsRoomHost });
+    else start.skills = mountSkillsRoom(start.skillsPanel, { host: start.host });
   } else start.skills?.suspend();
   versionsPanel.hidden = area !== 'versions';
   editorRoot?.setAttribute('data-active-tab', area);

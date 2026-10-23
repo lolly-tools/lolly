@@ -9,7 +9,7 @@ Roughly 811,000 lines of TypeScript, tests included, and 62,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 561 files, 212,587 lines | 292 files, 94,908 lines | 10 files, 1,599 lines |
+| `views/` | 561 files, 212,584 lines | 292 files, 94,908 lines | 10 files, 1,599 lines |
 | `lib/` | 842 files, 175,554 lines | 502 files, 98,733 lines | 13 files, 1,820 lines |
 | `bridge/` | 224 files, 55,282 lines | 136 files, 28,591 lines | none |
 | `components/` | 128 files, 29,212 lines | 59 files, 15,149 lines | 24 files, 1,579 lines |
@@ -59,9 +59,9 @@ Do not be ambushed by these. The largest source files, by line count:
 | Lines | File | Direct test coverage |
 |---|---|---|
 | 6,248 | `bridge/export.ts` | yes, but mostly gated. `export-audio-bed.test.ts` imports `bedStartOffset` and `connectMusic` directly and always runs; the SVG and PDF emission is covered by ten `chromiumOrSkip()` suites (`export-m3`, `export-paint-order`, `export-stroke-paint`, `export-shadow-fidelity`, `export-pdf-shadow-fidelity`, `export-emf-eps-shadow`, `export-atomic-inline`, `export-backdrop-blur`, `export-form-controls`, `export-text-emission`) that esbuild-bundle the real `renderSvgFromHtml` and drive it in Chromium, and which **self-skip** when no Chromium is installed. `export-text-emission` is the newest and covers the `<path>`-vs-`<text>` decision layer specifically; unlike the SUSE-gated golden suite it is brand-independent, so it runs on `lolly-start` too. |
-| 3,956 | `views/valid.ts` | `valid-verdict.test.ts` only |
+| 3,955 | `views/valid.ts` | `valid-verdict.test.ts` only |
 | 3,806 | `views/tool-inputs.ts` | none |
-| 3,776 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
+| 3,775 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
 | 3,624 | `views/color-lab.ts` | yes |
 | 3,187 | `bridge/sequence-render.ts` | yes |
 | 3,063 | `bridge/export-svg-walker.ts` | **none** |
