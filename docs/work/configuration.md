@@ -48,7 +48,9 @@ A production instance needs a handful of keys, and the rest can keep their defau
 Set `DATABASE_URL`, `LW_SESSION_SECRET` and `LW_LINK_SECRET` in the environment (signing secrets
 of at least 32 bytes), plus `LW_IDP_CLIENT_SECRET` if the identity provider issues one. Add
 `idp.admission` to limit who may sign in: without it every verified sign-in is admitted, and
-setup warns.
+setup warns. Map `idp.roleGroups` too: setup also warns for each of owner, admin, approver and
+author left unmapped, because a group with exactly that name at the identity provider would grant
+the role.
 
 Run `pnpm run check:setup` with the deployment's configuration and environment to read the same
 local checks as startup. It exits 1 for failed production checks and 0 otherwise; a zero exit
@@ -184,8 +186,7 @@ checks are in [email and password](identity.md#email-and-password).
 ## `policy`
 
 What members may do, how long things last and how much they may store. The tables group the keys
-by job. Unknown keys and values outside the lists are refused at startup. Lolly reads the limits
-it needs from org-config.
+by job. Lolly reads the limits it needs from org-config.
 
 ### Access, sessions and AI
 
@@ -228,11 +229,13 @@ replace the offboarding integration.
 | `sharing.maxGrantDays` | *unset* | the longest end date a membership or group grant may carry, in whole days (1 to 3660). Unset means no limit |
 | `nearby.enabled` | `true` | instance-mediated "nearby" presence: the `collab.nearby` capability bit and both `/api/v1/collab/nearby` routes. `false` keeps the whole surface dark fleet-wide |
 
-`policy.invites` is optional; leaving it out keeps the defaults above. The tier and the domain list govern
-invitations, which let someone new sign in; sharing a project with someone who already has
-an account needs manager on the project and an allowed role only. The console does not edit
-this block (its configuration document covers grants, overlays, chains, providers, flags and
-catalog fields), so change it in the configuration and redeploy. See
+`policy.invites` is optional; leaving it out keeps the defaults above. Unknown keys and values
+outside the lists are refused at startup, here and in `policy.sharing` and `policy.ai`.
+
+The tier and the domain list govern invitations, which let someone new sign in; sharing a project
+with someone who already has an account needs manager on the project and an allowed role only.
+The console does not edit this block (its configuration document covers grants, overlays, chains,
+providers, flags and catalog fields), so change it in the configuration and redeploy. See
 [sharing](sharing.md#invite-policy).
 
 ```json
@@ -241,7 +244,7 @@ catalog fields), so change it in the configuration and redeploy. See
 }
 ```
 
-`policy.requests` is optional too. Requests
+`policy.requests` is optional too, and unknown keys in it are refused at startup. Requests
 answer to the same rules as inviting: an approver may only grant what they could grant
 directly. This example turns join requests on, keeps the invitation lifetime at its 30-day
 default, and suggests the password tick for `example.com` addresses:

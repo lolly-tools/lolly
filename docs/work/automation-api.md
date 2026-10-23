@@ -50,19 +50,21 @@ the `member` role cannot render until someone grants that permission. The other 
 
 **What a token is.** A token acts as its own account, with its role and no groups. Its jobs and
 [file references](api.md#file-references) belong to the token, not to the owner who minted the
-token. A token is refused wherever a person has to decide, such as approvals, submissions and
-live collaboration. [Who can call what](api.md#who-can-call-what) lists every credential.
+token. A token is refused wherever a person has to decide or act, such as approvals, deliveries
+to a destination that needs approval and live collaboration.
+[Who can call what](api.md#who-can-call-what) lists every credential.
 
 On an `open` instance, a caller with no credential may also use and render any tool that no
 visibility rule hides. On a `gated` instance, every route on this page except the public
-`GET /api/v1/discovery` answers `401` without a credential.
+`GET /api/v1/discovery` answers `401` without a credential; a job's result token counts as one
+for that job's result.
 
 ## Find out what you can do
 
 | Route | Who | What it answers |
 |---|---|---|
 | `GET /api/v1/discovery` | public | What this deployment can do, the same for everyone: document API and engine versions, server render formats, hooked tools, Content Credentials, automation verbs and batch limits, live collaboration, document agents, whether [file references](api.md#file-references) are on (`files.references`), and `unavailable` entries for what it lacks. Shared caches may hold it; it carries an ETag |
-| `GET /api/v1/discovery/me` | member, service token or anonymous on an `open` instance | What the caller can do: `principal` (`member`, `service` or `guest`), `can` bits for `tool.use`, `export.server`, `export.request`, `delivery.create` and `catalog.read`, provider reference schemes that resolve for the caller, limits, the render worker's live readiness when one is configured, and `unavailable` entries. Private, never cached |
+| `GET /api/v1/discovery/me` | member or service token; anyone on an instance that is not `gated` | What the caller can do: `principal` (`member`, `service` or `guest`), `can` bits for `tool.use`, `export.server`, `export.request`, `delivery.create` and `catalog.read`, provider reference schemes that resolve for the caller, limits, the render worker's live readiness when one is configured, and `unavailable` entries. Private, never cached |
 | `GET /api/v1/discovery/tools?limit=&cursor=` | as above | The tools the caller can use, sorted by id, 25 a page by default and at most 100. Each entry has `name`, `version`, `renderer`, the server `formats` the caller may request, `can.render`, its schema URL and `unavailable` entries. `next` is an opaque cursor, or `null` on the last page |
 | `GET /api/v1/schema/:toolId?view=&format=` | `tool.use` | The caller's effective input schema (below). `view=raw` returns the tool's own schema and needs `policy.edit`. `format` selects the output format whose design-system rules apply. Without it, the schema carries only the rules that apply to every format |
 
@@ -181,7 +183,9 @@ share link carries them. It suits an image tag or a script with no JSON body.
 
 Who may call it: a member who may use the tool and holds `export.server`; a guest whose link
 opens that tool; or, on an `open` instance, anyone without signing in, for a tool visible to
-everyone. A query that is not in canonical order is answered `308` to the canonical one.
+everyone. A service token cannot call this route, because it reads only a session or a guest
+link; a script with a token uses `POST /api/v1/render`. A query that is not in canonical order
+is answered `308` to the canonical one.
 
 For worker-backed renders, asset inputs use the same URL encoding as the Lolly shell. A
 `user/team/<fileId>` reference is resolved to that project's file endpoint only when the
@@ -304,7 +308,7 @@ requirements.
   `PRODUCTION_VERIFICATION_FAILED` diagnostics on the render record. See
   [production still checks](renders.md#production-still-checks-and-permitted-repairs).
 - **Render batches.** `POST /api/v1/render-batches` creates a parent and up to 200 independent
-  child renders at once. Read its ordered rows and output receipts, download a JSON manifest,
+  child renders in one atomic step. Read its ordered rows and output receipts, download a JSON manifest,
   cancel unfinished rows, or retry a terminal batch while keeping its successful children. The
   [batch API](renders.md#batches-with-durable-rows) is separate from the `/api/v1/batch` job and
   ZIP contract.

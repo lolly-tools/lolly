@@ -94,7 +94,7 @@ category and actor.
 **Fleet** answers "which Lolly versions are talking to this deploy" from the `X-Lolly-Client`
 header: shell, shell version, engine version, platform, request counts and last seen. Publish
 checks and upgrade nudges start there, and message targeting can then pick an audience by
-groups, shell and engine-version range.
+groups, shell and engine-version range ([messages](api.md#approvals-and-inbox)).
 
 ![The client fleet: which shell and engine versions are talking to this deployment](shots/client-fleet.svg)
 
@@ -112,11 +112,11 @@ tool activity, not a separate event, and the console says that on the page.
 
 ## Prometheus
 
-`GET /metrics` exposes gauges for the audit-chain integrity flag, process uptime and memory, live
+`GET /metrics` exposes gauges for the audit-chain integrity flag, process uptime and memory (RSS), live
 rate-limit buckets, per-provider enabled state, asset count and last error, and blob bytes
 stored by driver. Its counters cover HTTP requests, blob bytes read by driver and response bytes
-by delivery class. Two gauges appear only when they apply: `lw_siem_lag` while `siem.url` is
-set, and `lw_provider_credential_expiry_days` for a provider whose credential has a stated
+by delivery class. Two gauges appear only when they apply: `lw_siem_lag` (audit events the SIEM
+receiver has not yet confirmed) while `siem.url` is set, and `lw_provider_credential_expiry_days` for a provider whose credential has a stated
 expiry. Every series is an aggregate: none identifies a person, a blob or a request.
 
 With `LW_METRICS_TOKEN` set, the endpoint needs that bearer token. Without one, only loopback

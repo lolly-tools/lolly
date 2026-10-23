@@ -24,9 +24,9 @@ reach at all. The action in each table then decides what that caller may do ther
 | Caller | How it identifies itself | What it can reach |
 |---|---|---|
 | A person | the `lw_session` cookie, from signing in on the instance or approving a device sign-in | every route their role and grants allow |
-| A service token | `Authorization: Bearer lwt_…` ([service tokens](#service-tokens)) | routes gated by an action its role holds: automation, uploads and file references, fleet, providers, governance export and apply, audit and the telemetry summary. Refused where a person decides or acts: approvals, catalog submissions, live collaboration, telemetry consent, comments, versions, history, access requests and project file uploads |
-| A guest | the `lw_guest` cookie, from joining through a guest-edit link | only what the link grants: the document and tool it opens, `GET /render/…` and `/tools/*` for that tool, and telemetry |
-| An agent | `Authorization: Bearer <key>` on `POST /api/workspace/mcp` only ([agent invitations](#project-agent-invitations)) | one project or document, through MCP tools; never the REST API |
+| A service token | `Authorization: Bearer lwt_…` ([service tokens](#service-tokens)) | routes gated by an action its role holds: automation (but not `GET /render/…`), uploads and file references, catalog submissions of bytes or uploads, fleet, providers, governance export and apply, audit and the telemetry summary. Refused where a person decides or acts: approvals, deliveries to a destination that needs approval, live collaboration, telemetry consent, comments, versions, history, access requests, project file uploads and submitting a project file to the catalog |
+| A guest | the `lw_guest` cookie, from joining through a guest-edit link | only what the link grants: the document and tool it opens (that tool's files under `/tools/*`, a catalog that lists only that tool and `GET /render/…` for it), its own session and telemetry |
+| An agent | `Authorization: Bearer <key>` on `/api/workspace/mcp` only: `POST` for MCP calls, `DELETE` to disconnect ([agent invitations](#project-agent-invitations)) | one project or document, through MCP tools; never the REST API |
 | An identity provider | a SCIM bearer on `/scim/v2/*` only ([SCIM](#scim-provisioning)) | the SCIM protocol routes |
 | A signed link | the `?s=` signature on `/l/:id`, plus the `lw_link_<id>` cookie for a password link | that link's target |
 | A job receiver | the `x-lw-job-token` header on `GET /api/v1/jobs/:id/result` | that one job's result, for 24 hours |
@@ -158,7 +158,7 @@ leaving the instance client-side deletes the id.
 
 ## People and access
 
-Sign-in, the people on the instance, how new people are invited or ask to join, and the machine
+Sign-in, the people on the instance, how new people are invited or ask to join and the machine
 credentials that act without a person.
 
 ### Sign-in and sessions
@@ -419,7 +419,7 @@ disable + session-epoch bump. Group membership maps to each user's local groups.
 ## Projects and documents
 
 Projects, the documents (sessions) inside them, who can open them, their saved versions and
-comments, and the live room where people and agents edit together.
+comments and the live room where people and agents edit together.
 
 ### Projects and sessions
 
@@ -728,7 +728,7 @@ answer is `429 RATE_LIMITED` with `retry-after` in seconds (3600 when the hourly
 limit is the one reached, otherwise 60).
 
 **Policy.** `policy.comments` turns review, mentions, notices and the document title in mention
-email on or off; the keys and defaults are in [configuration](configuration.md#policy). Mention
+email on or off; the keys and defaults are in [configuration](configuration.md#comments-and-versions). Mention
 email is a seam that is off in this release. When it is switched on, a new mention is mailed as
 "Ana mentioned you on <workspace>" with a link to the thread, never the comment text, and
 identifies the document only with `emailTitles: true`. Replies are not mailed.
@@ -855,7 +855,7 @@ open, or one that is not a Design document, answers `404`.
 
 Three ways to keep bytes on the instance. **Project files** are shared inside a team project.
 **Uploads** are private, resumable uploads one person or service token makes for a catalog
-submission or an automation input. **File references** are finished uploads kept for a week, so
+submission or an automation input. **File references** are finished uploads kept for a week by default, so
 a script can inspect, optimize and read back a file without sending it again.
 
 ### The parts protocol
@@ -1100,7 +1100,7 @@ audited. [Discovery](automation-api.md#find-out-what-you-can-do) reports `files.
 ## Catalog and design system
 
 The assets members browse and place, how new ones are submitted and reviewed, the external
-sources Work federates, the destinations it delivers to, and the design-system rules renders are
+sources Work federates, the destinations it delivers to and the design-system rules renders are
 checked against.
 
 ### Catalog
@@ -1249,7 +1249,7 @@ See [managed production rules](design-system-administration.md#managed-productio
 
 ## Governance, approvals and inbox
 
-Tool policy, grants and approval chains, the approvals people act on, and the inbox where
+Tool policy, grants and approval chains, the approvals people act on and the inbox where
 messages and comment notices arrive.
 
 ### Policy and governance
@@ -1279,9 +1279,11 @@ messages and comment notices arrive.
 | `GET/POST /api/v1/messages` | `message.send` |
 
 Message targeting is groups × shell selectors × engine-version range. Besides the
-console's messages, the server writes its own (approvals, expiry, collab invites, shares, access
-requests and their answers); `data.kind` identifies which and `data.at` is when it happened.
-[Sharing](sharing.md#notices) lists the kinds.
+console's messages, the server writes `approval`, `expiry`, `collab` and `share` messages,
+`request` (someone asks for access and you may answer) and `notice` (an answer to your request,
+an accepted invitation, a welcome, an invitation entry that no longer works). `data.kind`
+identifies which, and `data.at` is when it happened; [sharing](sharing.md#notices) lists the
+kinds.
 
 The inbox hides a message whose subject the caller can no longer reach: a project share
 or a live-collab invite once they cannot see the project, an invite also once its session
@@ -1309,7 +1311,9 @@ empty when the app is served from this origin. The text is English; a client sho
 its own title from `data` and its own link from `data.sessionId` and `data.threadId`.
 
 Each notice is checked again on every read with the rule the
-[comments routes](#canvas-comments) use, and `policy.comments.notices` must not be `false`. A
+[comments routes](#canvas-comments) use: the caller can still open the session, `session.view`
+and `comment.view` hold, and `policy.comments.enabled` and `policy.comments.notices` are not
+`false`. A
 notice that fails a grant or the policy is hidden and kept until it is 30 days old; after that the
 next read of the inbox (or of org-config) removes it, as does the next notice written for
 the person. One whose session is deleted, or whose project the caller can no longer reach,

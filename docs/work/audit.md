@@ -3,7 +3,7 @@
 Work keeps a tamper-evident, append-only record of every governed action on this deploy:
 sign-ins, grant and policy edits, approvals, group and lockout changes, link mints and
 revocations, provider changes, catalog changes and configuration applies. Admins read it in the
-console, auditors export it, and anyone who holds a copy of the head can show later that nothing
+console and auditors export a copy. Anyone who holds a copy of the head can later show that nothing
 was edited or cut off the end.
 
 Entries are never edited, only added. They are removed only by stated retention:
