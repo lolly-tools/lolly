@@ -1315,6 +1315,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // for group) so positioning can address them positionally.
   fc.chromeKey = null;
   fc.chromeNodes = null;
+  fc.chromeSetHeld = null;
 
   // Dock wrapper flex-centres the rail at rest without a transform on the rail
   // itself, and carries the left/top of a DRAGGED rail for the same reason
@@ -1773,6 +1774,15 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
 
   // ── overlay rendering ─────────────────────────────────────────────────────────
   fc.syncScheduled = false;
+  // A pan or zoom asks only for the view to be followed (chrome-sync.ts, renderChromeView);
+  // anything else asks for the full sync, and one is run once the view rests.
+  fc.syncFull = false;
+  fc.viewSettleTimer = 0;
+  // The painted canvas by id (stage.ts), dropped on every paint, and what the
+  // accessibility stamps last walked (chrome-sync.ts, syncBoxA11y).
+  fc.canvasIndex = null;
+  fc.a11yIndex = null;
+  fc.a11yPressed = new Set<string>();
 
   // ── active artboard → export bar (plans/141 WP-B) ─────────────────────────────
   // The export bar mirrors the artboard the user is working with. Emit (deduped)
@@ -1797,6 +1807,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // discipline positionFrameScrim uses. Hidden entirely while editing text or in pen mode so
   // the canvas stays clean. frameCfg-gated.
   fc.frameLabelKey = '';
+  fc.frameLabelFrames = null;
 
   // ── artboard rename (plans/179 A10) ──────────────────────────────────────────
   //
@@ -1821,6 +1832,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.ctxBlockers = null;
   /** The placement held for the life of a box gesture (see positionCtxBar). */
   fc.ctxFrozen = null;
+  fc.ctxPlacedBand = '';
 
   // ── wiring ────────────────────────────────────────────────────────────────────
   // Two-finger-tap recognition - capture phase, so a second finger is already recorded by
@@ -1871,6 +1883,9 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   const mo = new MutationObserver(fc.keys.onStageMove); fc.mo = mo;
   if (canvasEl.parentElement)
     mo.observe(canvasEl.parentElement, { attributes: true, attributeFilter: ['style'] });
+  // Every paint and fast-path patch may have replaced box elements, so the id index the
+  // chrome reads them through is dropped and read afresh on its next use.
+  canvasEl.addEventListener('lolly-canvas-painted', fc.stage.dropCanvasIndex);
   // Re-sync after every model change (paint()).
   // A bulk external apply - picking an ANIMATED template after the blank mount - can flip
   // the doc from untimed to timed; open the timeline the first time that happens, so the
@@ -2391,6 +2406,11 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       unwireWeb?.();
       ro.disconnect();
       mo.disconnect();
+      canvasEl.removeEventListener('lolly-canvas-painted', fc.stage.dropCanvasIndex);
+      if (fc.viewSettleTimer) {
+        clearTimeout(fc.viewSettleTimer);
+        fc.viewSettleTimer = 0;
+      }
       fc.poseMo?.disconnect();
       fc.dirtyObserver?.disconnect();
       unsub?.();
