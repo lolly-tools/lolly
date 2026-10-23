@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { AgentGuidanceHost } from '../lib/agent-invitation-host.ts';
+import type { BrandSkillHost } from '../lib/design-system/brand-skills.ts';
 import type { ToolViewCtx } from './tool/context.ts';
 import { getInstanceBase } from '../lib/instance.ts';
 import type { LiveEditor } from '../lib/live-agent.ts';
@@ -29,6 +30,17 @@ export async function mountToolAgentGuidance(tview: ToolViewCtx, documentId: str
       const skill = await resolveToolSkill(tool);
       if (!active()) throw new Error('This document has closed.');
       return skill;
+    },
+    // The active design system's brand skills that apply to this tool (plan 323): the
+    // overall brand skill always, the rest by their appliesTo. Public catalog skills
+    // only, as URLs on this instance.
+    async brandSkillLinks() {
+      if (!active()) return [];
+      const { agentBrandSkills } = await import('../lib/design-system/brand-skills.ts');
+      const links = await agentBrandSkills(tview.host as unknown as BrandSkillHost, {
+        tool: tool.manifest.id, ...(tool.manifest.category ? { category: tool.manifest.category } : {}),
+      });
+      return active() ? links : [];
     },
   };
   if (active()) tview.mountLifecycle.add('agent guidance', installAgentGuidance(tview.runtime, guidance));

@@ -129,6 +129,8 @@ export function renderShell(start: StartCtx): void {
             role="region" aria-labelledby="ds-room-versions" hidden></section>
           <section class="ds-panel" id="start-panel-usage" data-ds-panel="usage"
             role="region" aria-labelledby="ds-room-usage" hidden></section>
+          <section class="ds-panel" id="start-panel-skills" data-ds-panel="skills"
+            role="region" aria-labelledby="ds-room-skills" hidden></section>
           <div class="start-editor-wrap">
             <div class="start-editor-mount" data-start-editor><p class="start-editor-loading">${t('Loading the design system…')}</p></div>
           </div>

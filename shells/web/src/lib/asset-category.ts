@@ -38,6 +38,8 @@ export const LIB_GROUPS: LibGroup[] = [
   { key: 'headshots',     label: 'Headshots' },
   { key: 'icons',         label: 'Icons' },
   { key: 'illustrations', label: 'Illustrations' },
+  // A design system's written guidance: its brand skills (plan 323).
+  { key: 'guidelines',    label: 'Guidelines' },
   { key: 'music',         label: 'Music',         audio: true },
   { key: 'sound-effects', label: 'Sound effects', audio: true },
   { key: 'voice',         label: 'Voice',         audio: true },
@@ -89,6 +91,8 @@ export function libCategory(ref: AssetRef | undefined, overrides?: Record<string
   const t = new Set((ref?.meta?.tags as string[] | undefined) || []);
   // Audio first, so a "background music" tag never files a track under Backgrounds.
   if (isAudioAsset(ref)) return audioCategory(t, ref?.format?.toLowerCase());
+  // A brand skill is guidance by type, whatever it is tagged.
+  if (ref?.type === 'skill')  return 'guidelines';
   if (t.has('campaign'))   return 'campaign';   // campaign photos are their own group, checked before 'photo'
   if (t.has('background')) return 'backgrounds';
   if (t.has('logo'))       return 'logos';

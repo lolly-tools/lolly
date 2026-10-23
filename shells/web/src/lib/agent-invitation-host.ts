@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 import { readLiveRelay } from '@lolly-tools/core/live-invite-v1';
 import type { ToolSkillV1 } from '@lolly-tools/core/tool-skill-v1';
+import type { AgentBrandSkillLink } from './design-system/brand-skills.ts';
+export type { AgentBrandSkillLink };
 export interface AgentGuidanceHost {
   documentId: string;
   toolId: string;
@@ -8,6 +10,8 @@ export interface AgentGuidanceHost {
   facts: string;
   active(): boolean;
   skill(): Promise<ToolSkillV1>;
+  /** The active design system's public brand skills that apply to this tool (plan 323). */
+  brandSkillLinks?(): Promise<AgentBrandSkillLink[]>;
 }
 export interface AgentInvitationHost {
   canEdit(): boolean;
