@@ -29,6 +29,7 @@ import type { LollySummary } from '../lib/lolly-pack.ts';
 import { AUTO_PACK_MIN, SHARE_WARN_LEN, BROWSER_HARD_CAP, type ShareFidelity } from '../lib/url-budget.ts';
 import { toLollyAppLink } from '../lib/deep-link.ts';
 import { appPathname } from '../lib/any-site.ts';
+import { flushAddressWrites } from '../lib/url-state.ts';
 
 /** The `.lolly` download vehicle (plans/114 Wave 2). Supplied by the tool view, which
  *  has the host + session the link builder never sees. `build(includeLicensed)` returns
@@ -573,6 +574,8 @@ function renderShareSurface(
   for (const cb of checkboxes) cb.addEventListener('change', () => { syncFullWins(); refresh(); });
 
   dialog.querySelector<HTMLButtonElement>('.share-copy-btn')!.addEventListener('click', async function (this: HTMLButtonElement) {
+    // The address bar says what the copied link says: a write still settling goes out now.
+    flushAddressWrites();
     const prev = this.textContent;
     try { await copyToClipboard(field.value); }
     catch {

@@ -7,12 +7,14 @@
 // this helper keeps the one History-API write that leaves a tool in a single place.
 
 import { noteLeavingHref } from './lib/back-nav.ts';
+import { flushAddressWrites } from './lib/url-state.ts';
 
 // Programmatic SPA navigation: set the URL (new history entry) and tell the router to
 // re-render. pushState alone fires no event, so dispatch the router's own. Needed for
 // in-app links that leave a tool (→ gallery): the old hash-clearing trick
 // (location.hash = '') is a no-op against a path URL, so it wouldn't route.
 export function navigateTo(url: string): void {
+  flushAddressWrites(); // the entry being left keeps the latest state of its view
   noteLeavingHref(window.location.href); // pushState fires no event with an oldURL - capture it here
   history.pushState(null, '', url);
   window.dispatchEvent(new Event('lolly:navigate'));
