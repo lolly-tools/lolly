@@ -16,6 +16,7 @@ import { HANDLES } from './shared.ts';
 import type { Bounds, CanvasIndex, HandleName, Metrics, Point, Rect } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
 import { fieldFocusToken } from '../../lib/collab-field-focus.ts';
+import { endCanvasCost, startCanvasCost } from '../../lib/canvas-feedback.ts';
 
 /** How long the view rests after a pan or zoom before the full sync it put off. */
 export const VIEW_SETTLE_MS = 150;
@@ -60,6 +61,7 @@ function requestSync(fc: FcCtx): void {
 // group moves its descendants, and the group row has no element of its own, so its
 // chrome froze at the pre-gesture rect while the artwork moved.
 export function renderChromeLive(fc: FcCtx): void {
+  const started = startCanvasCost();
   const boxes = fc.select.getBoxes();
   const rects = new Map<number, Rect>();
   const g = fc.gesture;
@@ -96,8 +98,10 @@ export function renderChromeLive(fc: FcCtx): void {
   fc.selectionTransform.paintLabel(rects);
   fc.storyFlowUi?.paint();
   fc.layout?.paint();
+  endCanvasCost('chrome-sync', started, 'live');
 }
 export function renderChrome(fc: FcCtx): void {
+  const started = startCanvasCost();
   const boxes = fc.select.getBoxes();
   if (fc.selection.size) fc.authoringGuides?.select(null);
   fc.authoringGuides?.sync();
@@ -108,6 +112,7 @@ export function renderChrome(fc: FcCtx): void {
   // pan/zoom, or edit (drops the selection if its edge/box has gone).
   if (fc.selectedEdges.size) fc.edges.refreshEdgeChrome();
   emitActiveArtboard(fc);
+  endCanvasCost('chrome-sync', started, 'full');
 }
 /**
  * The sync for a view that moved while nothing else changed: what is drawn in stage
@@ -118,6 +123,7 @@ export function renderChrome(fc: FcCtx): void {
  * the full sync `scheduleViewSync` queues once the view rests.
  */
 export function renderChromeView(fc: FcCtx): void {
+  const started = startCanvasCost();
   const boxes = fc.select.getBoxes();
   if (fc.selection.size) fc.authoringGuides?.select(null);
   fc.authoringGuides?.sync();
@@ -125,6 +131,7 @@ export function renderChromeView(fc: FcCtx): void {
   fc.storyFlowUi?.paint(true);
   fc.layout?.follow();
   if (fc.selectedEdges.size) fc.edges.refreshEdgeChrome();
+  endCanvasCost('chrome-sync', started, 'view');
 }
 export function notifyActiveArtboard(fc: FcCtx, id: string): void {
   const { artboardListeners } = fc;
