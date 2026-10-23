@@ -153,6 +153,10 @@ export const CONCEPT_FIGURES: Figure[] = [
   { set: 'concepts', name: 'token-resolution', lang: 'dot', title: 'From token sources to tool values', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'one-render-path', lang: 'dot', title: 'Two transports, one render path', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'rights-evidence-to-delivery', lang: 'dot', title: 'Evidence, obligation and delivery', flags: ['--look=minimal', '--cardWidth=190'] },
+  { set: 'concepts', name: 'token-three-places', lang: 'dot', title: 'One token, three places', flags: ['--look=minimal', '--cardWidth=170', '--siblingGap=16'] },
+  { set: 'concepts', name: 'template-context', lang: 'dot', title: 'All a template can see', flags: ['--look=minimal', '--cardWidth=178'] },
+  { set: 'concepts', name: 'link-render-needs', lang: 'dot', title: 'What a link needs to render', flags: ['--look=minimal', '--cardWidth=138', '--siblingGap=14'] },
+  { set: 'concepts', name: 'composed-text-path', lang: 'dot', title: 'One layout, three uses', flags: ['--look=minimal', '--cardWidth=170', '--siblingGap=16'] },
 ];
 
 /** Every figure the script renders, in set order. */
