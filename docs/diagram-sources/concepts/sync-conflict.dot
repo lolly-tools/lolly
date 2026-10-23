@@ -1,0 +1,13 @@
+digraph sync_conflict {
+  rankdir=TB
+  node [shape=box]
+  other [label="Another device\nsynced newer work"]
+  local [label="This device\nhas changes too"]
+  ask [label="Sync stops\nand asks you"]
+  synced [label="Use the synced copy\nthis device saved first"]
+  keep [label="Keep this device\nreplaced copy kept"]
+  other -> ask
+  local -> ask
+  ask -> synced
+  ask -> keep
+}

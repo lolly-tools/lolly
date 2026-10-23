@@ -67,11 +67,11 @@ Lolly is a Production Studio
 
 %file{warde-production-studio.mp4} %entity{Lolly} %act{produced and signed} the audiogram %detail{a waveform drawn from the audio, its full history sealed inside the file, the voice within declared as AI-generated} %entity{Google AI Studio} %act{generated} the voice %detail{Gemini text-to-speech, voice Sulafat, Australian accent, energetic read - generated audio, not a human reader} %sig{signed by %entity{Lolly}}
 
-The words are Warde's; the reading is a 2026 Australian one, and the voice is a model. Lawrence Lessig said creativity always builds on the past. It does - but the debt runs both ways: the future owes the present the plain truth of what it borrowed and how it was made. So we label the voice as generated now, while a machine still sounds like one, because a safeguard that only holds while the technology is crude is a postponement, not a safeguard. The proof rides inside the file - the AI origin declared in its credential - and you can [verify it yourself](/info/verify-yourself.html). Fixed in time, having been verified in proof.
+The words are Warde's; the reading is a 2026 Australian one, and the voice is a model. Lawrence Lessig said creativity always builds on the past. It does, but the debt runs both ways: the future owes the present the plain truth of what it borrowed and how it was made. So the voice is labelled as generated, even while a machine still sounds like one ([why we mark it now](/info/ai-features.html#what-gets-marked)). The proof rides inside the file, the AI origin declared in its credential, and you can [verify it yourself](/info/verify-yourself.html). Fixed in time, having been verified in proof.
 
 Three changes and one addition, and we would rather list them than let you find them:
 
-- <!--i:pentool--> **"This is a Printing Office" becomes "Lolly is a Production Studio"**, in the first line and the last. Her subject was a room with presses in it. Ours is a room that emits PNG, SVG, PDF, video and audio. The claim is the same claim.
+- <!--i:pentool--> **"This is a Printing Office" becomes "Lolly is a Production Studio"**, in the first line and the last. Her subject was a room full of presses. Ours is a room that emits PNG, SVG, PDF, video and audio. The claim is the same claim.
 - <!--i:sparkle--> **"words may fly abroad" becomes "ideas may fly abroad."** Lolly is not a text tool.
 - <!--i:clock--> **"Not to perish on waves of sound" becomes "Not to perish on shores of change."** Her contrast was writing against speech, the permanent against the spoken. Ours is the permanent against version drift, dead links and lapsed subscriptions.
 - <!--i:seal--> **We added one line. After "Incessant trumpet of trade": "that no impostor can sound."** Her boast was that the press heralds the trade. Ours is that the herald cannot be faked. It is the only line here that is not hers, and the place the adaptation stops borrowing and answers - because she beat an impostor problem by becoming an impostor, and a Lolly file is a trumpet no impostor can sound.
@@ -82,7 +82,7 @@ Everything else is hers, including the line this whole page is about - and inclu
 
 Warde meant a proof pull: the sheet you take off the press and check before committing to the run. The word survived into our trade almost unchanged, then quietly acquired a second meaning she could not have intended.
 
-Every Lolly export in a format that can hold one [carries its own record](/info/content-credentials-identity.html) - a signed, machine-readable account of what a file is, what it was made from and what was done to it. Proof in her sense is the check before the run. Proof in ours is the check anyone can run afterwards, on the finished file, without asking us. Same word, same job, nearly a century apart. You can [verify it yourself](/info/verify-yourself.html).
+Every Lolly export in a format that can hold one [carries its own record](/info/content-credentials-identity.html) - a signed, machine-readable account of what a file is, what it was made from and every step taken since. Proof in her sense is the check before the run. Proof in ours is the check anyone can run afterwards, on the finished file, without asking us. Same word, same job, nearly a century apart. You can [verify it yourself](/info/verify-yourself.html).
 
 ## Who she was
 
@@ -98,18 +98,16 @@ She kept writing as him. The phrase every designer knows first appears under the
 >
 > - Beatrice Warde, collected in *The Crystal Goblet*, 1955
 
-The half that gets dropped is the half that makes it an argument. Loving ideas obliges you to care about words, and caring about words obliges you to care how they are dressed. Meaning is not changed by its setting, but its reception entirely is: the same sentence in the wrong face is a different sentence to the person reading it. That is the case for rigour at scale, made in two lines by a woman writing under a man's name because the trade would not print her own.
-
-So the woman who wrote "fixed in time having been verified in proof" is the same person who went to the archive, found a three-hundred-year misattribution, published the correction under a false name because that was the price of being read and then had to claim it back as her own.
+The half that gets dropped is the half that makes it an argument. Loving ideas obliges you to care about words, and caring about words obliges you to care how they are dressed. Meaning is not changed by its setting, but its reception entirely is: the same sentence in the wrong face is a different sentence to the reader. That is the case for rigour at scale, made in two lines by a woman writing under a man's name because the trade would not print her own.
 
 She died in Epsom, Surrey, England on 16 September 1969.
 
 ## What we take from her
 
 - <!--i:star--> **Quality.** Her argument in the crystal goblet essay is that the craft succeeds by disappearing: you should see the wine, not the glass. Constraint-first tooling is the same bet. The template holds the brand so the person using it can think about the message instead of the margins.
-- <!--i:check--> **Correctness.** She checked. The whole trade had been calling a typeface by the wrong name for three centuries because nobody had. Every claim on this site is paired with the mechanism that enforces it, and none of them ask for your trust.
-- <!--i:people--> **Fairness.** She had to invent a man in order to be read - a false name and a false biography, the whole apparatus of a person who did not exist, because that was the price of being printed. That is not a charming anecdote, it is what the field cost her. Her story is familiar to anyone who has had to mask who they are, or reinvent themselves, to be taken seriously in a room that was not built for them - which is why [who gets to make things](/info/inclusive-design.html) is a design decision here rather than a footnote.
-- <!--i:shieldcheck--> **Attribution.** This is the one she is owed. Provenance is on by default here, and the chain covers ingredients as well as edits, so a work's history travels with it instead of being reconstructed by a stranger later. We adapted her in public and listed our changes.
+- <!--i:check--> **Correctness.** She checked. The whole trade had been calling a typeface by the wrong name for three centuries because nobody had. So every claim on this site can be checked.
+- <!--i:people--> **Fairness.** She had to invent a man in order to be read - a false name and a false biography, the whole apparatus of a person who did not exist, because that was the price of being printed, and later she had to claim the work back as her own. It was what the field cost her. Her story is familiar to anyone who has had to mask who they are, or reinvent themselves, to be taken seriously in a room that was not built for them - which is why [who gets to make things](/info/inclusive-design.html) is a design decision here rather than a footnote.
+- <!--i:shieldcheck--> **Attribution.** This is the one she is owed. A work's history travels with it here, ingredients as well as edits, instead of being reconstructed by a stranger later. We adapted her in public and listed our changes.
 
 ---
 

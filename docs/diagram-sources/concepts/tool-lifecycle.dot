@@ -1,0 +1,17 @@
+digraph tool_lifecycle {
+  rankdir=TB
+  node [shape=box]
+  manifest [label="tool.json\ninputs and formats"]
+  template [label="template.html\nthe picture"]
+  hooks [label="hooks.js\noptional maths"]
+  engine [label="Engine\none input model"]
+  sidebar [label="Sidebar\ncontrols"]
+  canvas [label="Canvas\nlive render"]
+  files [label="Export\nfiles and links"]
+  manifest -> engine
+  template -> engine
+  hooks -> engine
+  engine -> sidebar
+  engine -> canvas
+  engine -> files
+}
