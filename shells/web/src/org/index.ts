@@ -36,6 +36,7 @@ import {
   ensureInstallId, setInstallTag, setInstanceSession,
 } from '../lib/instance.ts';
 import { wireDeviceCodeSignIn } from './device-sign-in.ts';
+import { currentAddress } from '../lib/url-state.ts';
 import { noteCatalogRefused } from '../lib/catalog-access.ts';
 import { setFieldPolicies } from '../lib/field-policy.ts';
 import { beginAiProbe, finishAiProbe, knownManagedAi, startAiPolicyPolling, stopAiPolicyPolling } from './ai-policy.ts';
@@ -841,7 +842,7 @@ export function applyInjectables(config: OrgConfig | null): void {
  *  returnTo=<the URL the visitor asked for>, plus `prompt=select_account` after a
  *  sign-out on this device (see {@link signedOutKey}). */
 function loginUrl(loginPath: string): string {
-  const returnTo = location.pathname + location.search + location.hash;
+  const returnTo = currentAddress();
   const base = instancePath(loginPath);
   const sep = base.includes('?') ? '&' : '?';
   let picker = false;

@@ -126,6 +126,28 @@ test('export, Share, Shrink URL, leaving the tool and address readers flush a se
   assert.match(read('lib/collab-live-mount.ts'), /currentQuery\(\) \{\s*if \(typeof window === 'undefined'\) return '';[^\n]*\n[^\n]*\n\s*flushAddressWrites\(\);/, 'starting a collab carries the latest edit');
 });
 
+test('sign-in return addresses and page exits read the address after a settling write', () => {
+  // Every capture of the whole address goes through currentAddress(), which flushes first.
+  const capture = /location\.pathname\s*\+\s*(?:window\.)?location\.search\s*\+\s*(?:window\.)?location\.hash/;
+  const walk = (dir: string): string[] => readdirSync(join(SRC, dir), { withFileTypes: true }).flatMap((entry) =>
+    entry.isDirectory() ? walk(join(dir, entry.name)) : /\.ts$/.test(entry.name) && !entry.name.includes('.test.') ? [join(dir, entry.name)] : []);
+  for (const file of walk('.')) {
+    if (file === join('lib', 'url-state.ts')) continue;
+    assert.doesNotMatch(read(file), capture, `${file} builds a return address without flushing; use currentAddress()`);
+  }
+  assert.match(read('lib/url-state.ts'), /export function currentAddress\(\): string \{\s*flushAddressWrites\(\);/);
+  assert.match(read('org/team-link.ts'), /returnTo: currentAddress\(\),/);
+  assert.match(read('org/team-project-link.ts'), /returnTo: currentAddress\(\),/);
+  assert.match(read('org/team-link-shared.ts'), /const here = currentAddress;/, 'the sign-in card and Use a different account');
+  assert.match(read('org/linked-signins.ts'), /const returnTo = opts\.returnTo \?\? currentAddress;/);
+  assert.match(read('org/index.ts'), /function loginUrl\(loginPath: string\): string \{\s*const returnTo = currentAddress\(\);/, 'the instance sign-in gate');
+  // Connecting to a workspace leaves the page with the current route.
+  const sheet = read('components/instance-sheet.ts');
+  assert.equal(sheet.match(/flushAddressWrites\(\);[^\n]*\n\s*location\.assign\(workspaceAppUrl\(/g)?.length, 2);
+  assert.match(read('org/team-open.ts'), /flushAddressWrites\(\);\s*const from = window\.location\.href;/, 'a settling write is not mistaken for leaving');
+  assert.match(read('org/account-chip.ts'), /deps\.go \?\? \(\(hash: string\) => \{ flushAddressWrites\(\); location\.hash = hash; \}\)/);
+});
+
 test('no tool view module writes history directly around the guarded address writer', () => {
   const here = join(SRC, 'views', 'tool');
   for (const file of readdirSync(here).filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'))) {

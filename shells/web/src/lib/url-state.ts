@@ -110,6 +110,13 @@ export function flushAddressWrites(): void {
   for (const writer of [...waiting]) writer.flush();
 }
 
+/** The address on screen, path, query and hash, after any waiting write: what a sign-in
+ *  or another page should bring the person back to. */
+export function currentAddress(): string {
+  flushAddressWrites();
+  return window.location.pathname + window.location.search + window.location.hash;
+}
+
 function listenForHide(): void {
   if (flushOnHide) return;
   flushOnHide = true;

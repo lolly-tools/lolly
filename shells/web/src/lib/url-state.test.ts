@@ -8,7 +8,7 @@ globalThis.window = dom.window as unknown as typeof globalThis.window;
 globalThis.document = dom.window.document;
 globalThis.location = dom.window.location as unknown as Location;
 
-const { flushAddressWrites, mergeRouteParams, replaceRouteUrl, routeParams, settledWrite } = await import('./url-state.ts');
+const { currentAddress, flushAddressWrites, mergeRouteParams, replaceRouteUrl, routeParams, settledWrite } = await import('./url-state.ts');
 
 /** Count the browser's address writes and the `lolly:url-state` events they announce. */
 function watchWrites(): { writes: string[]; events: () => number; restore: () => void } {
@@ -179,4 +179,14 @@ test('a refused settled write is tried again, then waits for the next change', (
   write.schedule();
   mock.timers.tick(400);
   assert.equal(attempts, 6, 'the next change writes again');
+});
+
+test('currentAddress, the return address a sign-in carries, includes a write still settling', () => {
+  const write = settledWrite(() => replaceRouteUrl(mergeRouteParams(location.href, { bx: 'signed' })), 400);
+  try {
+    dom.window.history.replaceState(null, '', '/design?bx=a#frag');
+    write.schedule();
+    assert.equal(currentAddress(), '/design?bx=signed#frag');
+    assert.equal(write.pending(), false);
+  } finally { write.cancel(); }
 });
