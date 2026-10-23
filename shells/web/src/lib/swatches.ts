@@ -9,7 +9,7 @@
  * `.plat-swatch-chip[data-copy]` buttons.
  *
  * `swatchTile()` is a second, smaller markup factory (component-audit rec 12) for the
- * two SHAPE-ONLY tiles - the brand studio's editable grid (`.be-swatch`) and the mobile
+ * two SHAPE-ONLY tiles - Design System Setup's editable grid (`.be-swatch`) and the mobile
  * palette sheet's read-only mirror chip (`.stu-chip`) - which show no visible text, only
  * a colour + title/aria-label. It's deliberately separate from `swatch()` above: that one
  * renders a full read-only card (name + hex + CMYK row) and its three call sites
@@ -225,7 +225,7 @@ export interface SwatchTileEntry {
 }
 
 export interface SwatchTileOptions {
-  /** 'md' (default) = the brand studio's interactive grid tile (`.be-swatch`);
+  /** 'md' (default) = Design System Setup's interactive grid tile (`.be-swatch`);
    *  'sm' = the mobile palette sheet's read-only mirror chip (`.stu-chip`). */
   size?: 'md' | 'sm';
   /** Grid index, wired as `data-be-tile` (md) / `data-stu-tile` (sm) so click
@@ -233,7 +233,7 @@ export interface SwatchTileOptions {
    *  as `""` - callers that always expect the attribute rely on that. */
   idx?: number | string;
   /** md only: whether to show the locked/empty state classes. Default true -
-   *  the brand studio's own grid always wants them; a caller reusing the 'md'
+   *  Design System Setup's own grid always wants them; a caller reusing the 'md'
    *  shape purely for layout (none currently) can opt out. */
   editable?: boolean;
   /** md only: the role mark this tile wears in the corner - `P`, `S`, `Su`, `T`

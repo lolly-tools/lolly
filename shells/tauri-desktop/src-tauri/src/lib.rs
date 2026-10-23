@@ -162,7 +162,7 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
             // raw HTTP plugin, this command pins public DNS answers, enforces
             // HTTPS, bounds bytes/headers and rechecks every redirect.
             remote_fetch::remote_fetch,
-            // Website source for the Design System studio (plans/97 section 9). GUI
+            // Website source for Design System Setup (plans/97 section 9). GUI
             // only, deliberately: unlike capture, which cli.rs also registers
             // because the url-shot TOOL calls host.capture mid-render, this
             // command is reachable only from a button in the studio. A headless

@@ -1577,9 +1577,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
                 options: DESIGN_INTENT_OPTIONS,
               },
               zoom: {
-                fitAll: () => {
-                  tview.stageZoom?.fit();
-                },
+                fitAll: () => tview.stageZoom?.fit(),
                 // Deliberately the overlay's own focus path (`fc-focus-rect`), not a rect this
                 // view converts: the overlay owns the canvas→client mapping, and the navigator
                 // and the timeline already frame artboards through exactly this door.
@@ -1587,6 +1585,8 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
                   const id = design.activeFrameId();
                   if (id) design.artboard.focus(id);
                 },
+                fitSelection: () => tview.stageZoom?.fitSelection(),
+                hasSelection: () => design.selection.get().length > 0,
                 zoomBy: (f) => {
                   tview.stageZoom?.zoomBy(f);
                 },

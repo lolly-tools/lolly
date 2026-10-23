@@ -113,7 +113,7 @@ export function attachProfileMenu(
         <span>${t('Design system')}</span><span class="profile-menu-count" data-ds-label></span>
       </button>
       <a class="profile-menu-item" role="menuitem" href="#/start" data-act="brand">
-        <span>${t('Set up your brand')}</span>
+        <span>${t('Design System Setup')}</span>
         ${CHEVRON}
       </a>
       <a class="profile-menu-item" role="menuitem" href="#/settings" data-act="settings">

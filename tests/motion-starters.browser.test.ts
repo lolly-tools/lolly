@@ -7,6 +7,7 @@ import { loadTool } from '../engine/src/loader.ts';
 import { parseUrlState } from '../engine/src/url-mode.ts';
 import { expandQuery } from '../engine/src/url-pack.ts';
 import { shellSettled } from './helpers/shell-settled.ts';
+import { settledUrl } from './helpers/settled-address.ts';
 
 const origin = process.env.LOLLY_MOTION_TEST_URL ?? process.env.LOLLY_EXPORT_TEST_URL;
 const output = process.env.LOLLY_MOTION_TEST_OUTPUT ?? 'plans/artifacts/297/motion-starters';
@@ -42,10 +43,10 @@ test('Motion collection, photo composition and non-writing choreography preview 
     await page.locator('[data-choreo="drift-loop"]').click();
     await page.locator('[data-choreo-sec]').fill('4');
     const tool = await loadTool('design', path => readFile(new URL(`../community/${path}`, import.meta.url), 'utf8'));
-    const before = parseUrlState(await expandQuery(new URL(page.url()).searchParams.toString()), tool.manifest).values;
+    const before = parseUrlState(await expandQuery(new URL(await settledUrl(page)).searchParams.toString()), tool.manifest).values;
     await page.locator('[data-choreo-preview]').click();
     await page.locator('.choreo-preview-stage').waitFor({ timeout: 45000 });
-    assert.deepEqual(parseUrlState(await expandQuery(new URL(page.url()).searchParams.toString()), tool.manifest).values, before, 'preview does not alter authored URL state');
+    assert.deepEqual(parseUrlState(await expandQuery(new URL(await settledUrl(page)).searchParams.toString()), tool.manifest).values, before, 'preview does not alter authored URL state');
     assert.equal(await headline.getAttribute('data-t-dur'), '8000', 'source duration stays intact during preview');
     await page.locator('[data-choreo-scrub]').focus(); await page.locator('[data-choreo-scrub]').press('End');
     assert.equal(await page.locator('[data-choreo-preview]').getAttribute('aria-pressed'), 'false');
@@ -61,7 +62,7 @@ test('Motion collection, photo composition and non-writing choreography preview 
     await page.locator('.fc-choreo-panel').waitFor({ state: 'detached' });
     await page.waitForFunction(() => document.querySelector('.lolly-box[data-box-id="headline"]')?.getAttribute('data-t-dur') === '4000');
     await page.locator('.tl-panel').waitFor();
-    const state = parseUrlState(await expandQuery(new URL(page.url()).searchParams.toString()), tool.manifest);
+    const state = parseUrlState(await expandQuery(new URL(await settledUrl(page)).searchParams.toString()), tool.manifest);
     if (process.env.LOLLY_MOTION_UI_EXPORT) {
       await page.setViewportSize({ width: 1280, height: 900 });
       await page.locator('[data-topbar="export"]').click();
@@ -86,7 +87,7 @@ test('Motion collection, photo composition and non-writing choreography preview 
     }
     await page.goto(`${origin}/t/darkroom?template=motion-warm`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.getByRole('button', { name: 'Import Adobe photo preset', exact: true }).waitFor();
-    assert.equal(new URL(page.url()).searchParams.get('filmLook'), 'portrait');
+    assert.equal(new URL(await settledUrl(page)).searchParams.get('filmLook'), 'portrait');
     assert.deepEqual(errors, []);
   } catch (error) {
     for (const page of browser.contexts().flatMap(context => context.pages())) {

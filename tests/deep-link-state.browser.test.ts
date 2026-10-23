@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 import { expandQuery } from '../engine/src/url-pack.ts';
 import { shellSettled } from './helpers/shell-settled.ts';
+import { settledUrl } from './helpers/settled-address.ts';
 
 const origin = process.env.LOLLY_DEEP_LINK_TEST_URL;
 const skip = origin ? false : 'LOLLY_DEEP_LINK_TEST_URL environment variable not set';
@@ -27,7 +28,7 @@ test('tool content and output settings survive first sync, a fresh context and s
   const { page, context } = await open('/t/qr-code?p=text&text=Test&join=false&width=500&height=400&c2pa=0&meta=off&depth=16');
   try {
     await page.waitForFunction(() => new URLSearchParams(location.search).get('c2pa') === '0' && !!document.querySelector('[data-action="export-width"]'));
-    const params = await query(page.url());
+    const params = await query(await settledUrl(page));
     for (const [key, value] of Object.entries({ p: 'text', text: 'Test', join: 'false', w: '500', h: '400', c2pa: '0', meta: 'off', depth: '16' })) assert.equal(params.get(key), value, key);
     const fresh = await (await getBrowser()).newContext();
     try {
@@ -48,7 +49,7 @@ test('tool content and output settings survive first sync, a fresh context and s
     await page.waitForFunction(() => new URLSearchParams(location.search).get('w') === '650');
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => !new URLSearchParams(location.search).has('options'));
-    assert.equal((await query(page.url())).get('w'), '650', 'closing export keeps edits made over its history entry');
+    assert.equal((await query(await settledUrl(page))).get('w'), '650', 'closing export keeps edits made over its history entry');
   } finally { await context.close(); }
 });
 
@@ -128,7 +129,7 @@ test('Design workspace state restores while Share contains only content and outp
       const value = new URLSearchParams(location.search).get('_ui');
       return value && JSON.parse(atob(value.replace(/-/g, '+').replace(/_/g, '/'))).t === 3;
     });
-    const href = page.url();
+    const href = await settledUrl(page);
     await page.locator('[data-topbar="share"]').click();
     await page.waitForFunction(() => new URLSearchParams(location.search).get('_dialog') === 'share');
     const shared = await query(await page.locator('.share-link-field').inputValue());
@@ -145,7 +146,7 @@ test('Design workspace state restores while Share contains only content and outp
         return state?.t === 3 && state.sel.includes('shape');
       });
     } finally { await fresh.close(); }
-    assert.equal((await query(page.url())).get('bx'), (await query(href)).get('bx'));
+    assert.equal((await query(await settledUrl(page))).get('bx'), (await query(href)).get('bx'));
     await page.evaluate(() => {
       const params = new URLSearchParams(location.search);
       params.set('_ui', btoa(JSON.stringify({ v: 1, sel: [], timeline: false })));

@@ -134,7 +134,7 @@ function contextChip(model: TokenContextModel): string {
 }
 
 function contextSentence(model: TokenContextModel): string {
-  if (model.context === 'head') return t('The working copy in Start, including edits that are not published yet.');
+  if (model.context === 'head') return t('The working copy in Design System Setup, including edits that are not published yet.');
   if (model.context === 'candidate') return t('A proposed change. Nothing changes until it is applied.');
   return t('The design system version this document draws with.');
 }
@@ -144,7 +144,7 @@ const choiceText = (choice: TokenContextChoice): string => `${choice.group}: ${c
 function detailsHtml(model: TokenContextModel, open: boolean): string {
   const rows: string[] = [`<dt>${t('Context')}</dt><dd>${esc(contextSentence(model))}</dd>`];
   if (model.source) rows.push(`<dt>${t('Source')}</dt><dd>${esc(model.source)}${model.instance ? ` (${esc(model.instance)})` : ''}</dd>`);
-  if (model.locked) rows.push(`<dt>${t('Editing')}</dt><dd>${esc(t('Read-only. Start can make an editable copy.'))}</dd>`);
+  if (model.locked) rows.push(`<dt>${t('Editing')}</dt><dd>${esc(t('Read-only. Design System Setup can make an editable copy.'))}</dd>`);
   if (model.choices.length) {
     const items = model.choices.map((choice) => `<li>${esc(choiceText(choice))}${choice.chosen ? ` (${esc(t('chosen for this document'))})` : ''}</li>`).join('');
     rows.push(`<dt>${t('Theme choices')}</dt><dd><ul>${items}</ul></dd>`);
