@@ -128,7 +128,8 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Read verified catalog resources | [catalog-resource-reading.md](catalog-resource-reading.md) |
 | Data Transfer | [data-transfer.md](data-transfer.md) |
 | Invite an agent to a document | [work/document-agents.md](work/document-agents.md) |
-| Lolly Work API | [work/api.md](work/api.md) |
+| Automate with the Work API | [work/automation-api.md](work/automation-api.md) |
+| Lolly Work API reference | [work/api.md](work/api.md) |
 | lw CLI: administer an instance | [work/cli.md](work/cli.md) |
 | Resumable uploads | [work/resumable-uploads.md](work/resumable-uploads.md) |
 

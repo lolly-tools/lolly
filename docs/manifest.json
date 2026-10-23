@@ -2816,8 +2816,25 @@
       }
     },
     {
+      "slug": "work-automation-api",
+      "title": "Automate with the Work API",
+      "src": "work/automation-api.md",
+      "section": "build",
+      "group": "Agents, APIs and integrations",
+      "path": "build/work-automation-api",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Render on-brand files from a script: a token, discovery, the effective schema, the document verbs, jobs, callbacks and batches.",
+      "work": {
+        "slug": "automation-api",
+        "path": "automation-api.md",
+        "icon": "docs"
+      }
+    },
+    {
       "slug": "work-api",
-      "title": "Lolly Work API",
+      "title": "Lolly Work API reference",
       "src": "work/api.md",
       "section": "build",
       "group": "Agents, APIs and integrations",
@@ -2825,7 +2842,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Every route the console and CLI use, with the action each one requires.",
+      "description": "The routes the console, the lw CLI and the apps call, grouped by job, with who may call each one.",
       "work": {
         "slug": "api",
         "path": "api.md",
