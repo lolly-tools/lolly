@@ -153,6 +153,11 @@ export const CONCEPT_FIGURES: Figure[] = [
   { set: 'concepts', name: 'token-resolution', lang: 'dot', title: 'From token sources to tool values', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'one-render-path', lang: 'dot', title: 'Two transports, one render path', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'rights-evidence-to-delivery', lang: 'dot', title: 'Evidence, obligation and delivery', flags: ['--look=minimal', '--cardWidth=190'] },
+  { set: 'concepts', name: 'tool-lifecycle', lang: 'dot', title: 'From a tool folder to a file', flags: ['--look=minimal', '--cardWidth=170', '--siblingGap=16'] },
+  { set: 'concepts', name: 'data-formats', lang: 'dot', title: 'One input model, many formats', flags: ['--look=minimal', '--cardWidth=178', '--siblingGap=16'] },
+  { set: 'concepts', name: 'tool-composition', lang: 'dot', title: 'One tool inside another', flags: ['--look=minimal', '--cardWidth=178'] },
+  { set: 'concepts', name: 'learning-progress', lang: 'dot', title: 'Where course progress goes', flags: ['--look=minimal', '--cardWidth=178'] },
+  { set: 'concepts', name: 'asset-renditions', lang: 'dot', title: 'Renditions are for previews', flags: ['--look=minimal', '--cardWidth=178'] },
 ];
 
 /** Every figure the script renders, in set order. */
