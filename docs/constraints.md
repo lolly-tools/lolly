@@ -2,7 +2,7 @@
 
 A constraint in Lolly is a rule the software enforces at load time and render time, rather than guidance a style guide offers an author: a tool exposes a fixed set of declared inputs, and the values its template can see are exactly those inputs plus whatever the tool's own code computed. That describes the template data context; the hook execution boundary is separate, as explained below.
 
-That is what the landing page means by "[it comes out right](/info/index.html)" - a property of the mechanism, not a promise about care. This page is the mechanism, the tests that hold it and the places it stops.
+That is what the landing page means when it says the finished file "[comes out right](/info/index.html)": a property of the mechanism, not a promise about care. This page is the mechanism, the tests that hold it and the places it stops.
 
 ## The manifest declares the inputs
 
@@ -85,15 +85,15 @@ pnpm install                              # the contract tests import ajv + hand
 node --test tests/engine.test.ts         # the validate / inputs / template contract
 ```
 
-The manifest you just read is the same file the browser fetches, the CLI loads and the catalog validator checks. There is no second, richer configuration behind it.
+The manifest you just read is the same file the browser fetches, the CLI loads and the catalog validator checks. There is no second, richer configuration hidden elsewhere.
 
 ## Limits
 
 - **Constraints bound the filler, not the author.** A tool author can write a badly proportioned layout, pick a poor default or expose an input that should have been locked. The engine has no opinion about whether a design is good, only about whether the person using the tool can leave its rules. Authoring quality is a review question, and [Authoring Tools](/info/authoring-tools.html) is where that review starts.
-- **Trusted hooks are the escape hatch.** In-realm execution loads `hooks.js` through `new Function` with the host bridge injected; strict untrusted execution uses the Worker path described above. `engine/src/runtime.ts` says so at the site: closure-scope injection, not isolation. In a browser shell a hook can reach `window`, `document` and `fetch`, and some shipping tools rely on it. Async hook results are time-boxed by `HOOK_BUDGET_MS`, a synchronous runaway hook cannot be preempted in-realm, and a manifest may opt into a Worker with `isolate: true` where its hooks touch no DOM globals. Run tools you have reviewed. The [Threat Model](/info/threat-model.html) states this boundary in full.
+- **Trusted hooks are the escape hatch.** In-realm execution loads `hooks.js` through `new Function` with the host bridge injected; strict untrusted execution uses the Worker path described above. `engine/src/runtime.ts` says so at the site: closure-scope injection, not isolation. In a browser shell a hook can reach `window`, `document` and `fetch`, and some shipping tools rely on that access. Async hook results are time-boxed by `HOOK_BUDGET_MS`, a synchronous runaway hook cannot be preempted in-realm, and a manifest may opt into a Worker with `isolate: true` where its hooks touch no DOM globals. Run tools you have reviewed. The [Threat Model](/info/threat-model.html) states this boundary in full.
 - **Raw output is available on purpose.** Triple braces (`{{{x}}}`) bypass Handlebars escaping. Review the producer and the destination of that content. The `markdown` helper escapes text and limits generated tags and URL schemes; it is not an arbitrary HTML passthrough.
-- **Size is bounded on the hosted route, not in the app.** The public render route refuses a side over 10,000 px or a DPI over 1,200, and caps a PNG at 2,048 by 2,048 pixels of allocation, because an unauthenticated request must not be able to ask for a 400 MB raster (`services/mcp/src/render-get.ts`). The web app and the CLI apply no such ceiling: a multi-page PDF or a high-DPI raster is limited by the device's memory, and a request the browser cannot satisfy fails as an export error rather than a smaller file. Physical sizes convert to pixels at the chosen DPI before any check, so 10,000 mm at 300 DPI is the same ask as 118,000 px.
-- **A constraint holds inside the tool.** Once a file is exported it is an ordinary PNG, SVG or PDF, and anyone can open it in another program and change it. Constraints govern how the file was made, which is also why the export carries a [Content Credential](/info/security.html) recording that.
+- **Size is bounded on the hosted route, not in the app.** The public render route refuses a side over 10,000 px or a DPI over 1,200, and caps a PNG's area at about 4.2 million pixels (2,048 by 2,048), because an unauthenticated request must not be able to ask for a 400 MB raster (`services/mcp/src/render-get.ts`). The web app and the CLI apply no such ceiling: a multi-page PDF or a high-DPI raster is limited by the device's memory, and a request the browser cannot satisfy fails as an export error rather than a smaller file. Physical sizes convert to pixels at the chosen DPI before any check, so 10,000 mm at 300 DPI is the same ask as 118,000 px.
+- **A constraint holds inside the tool.** Once a file is exported it is an ordinary PNG, SVG or PDF, and anyone can open the file in another program and change its contents. Constraints govern how the file was made, which is also why the export carries a [Content Credential](/info/security.html) recording that.
 
 ## Related
 

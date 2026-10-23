@@ -8,12 +8,12 @@ signatures identify the upstream packages.
 
 | Route | Upstream source | Current boundary |
 |---|---|---|
-| Server and optional worker | Public `ghcr.io/lolly-tools/lolly-work-server` and `lolly-work-render-worker` | Signed 1.1.1 images are published for amd64/arm64. The neutral package's server passes native container qualification on amd64 and arm64 in CI. The render worker's arm64 image has no runtime qualification |
-| Helm and Rancher | [Work chart](https://github.com/lolly-tools/lolly-work/tree/main/deploy/helm) | Chart 0.3.2 and HTTP publication workflow are prepared. The repository URL becomes live after its first successful publication; Artifact Hub registration/badges remain pending |
-| Neutral VM / private server | [Shared distribution package](https://github.com/lolly-tools/lolly-work/tree/main/deploy/marketplaces) | Pinned 1.1.1 server, complete matched neutral shell and PostgreSQL. Fresh provider acceptance must be recorded for each target |
+| Server and optional worker | Public `ghcr.io/lolly-tools/lolly-work-server` and `lolly-work-render-worker` | Signed 1.1.2 images (current) and 1.1.1 images are published for amd64/arm64. The neutral package's 1.1.1 server passes native container qualification on amd64 and arm64 in CI. The render worker's arm64 image has no runtime qualification |
+| Helm and Rancher | [Work chart](https://github.com/lolly-tools/lolly-work/tree/main/deploy/helm) | Chart 0.3.3 and HTTP publication workflow are prepared. The repository URL becomes live after its first successful publication; Artifact Hub registration/badges remain pending |
+| Neutral VM / private server | [Shared distribution package](https://github.com/lolly-tools/lolly-work/tree/main/deploy/marketplaces) | Pinned 1.1.1 server, complete matched neutral shell and PostgreSQL. Fresh provider acceptance must be recorded for each target. Browser use is not qualified: the 1.1.1 shell refuses the catalogue the installation signs for each person, so it shows no tools ([section 10](install.md#10-official-neutral-package)) |
 | UpCloud | [Infrastructure module](https://github.com/lolly-tools/lolly-work/tree/main/deploy/upcloud) plus the neutral VM package | [Ubuntu 24.04 amd64 reference](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/QUALIFICATION.md): fresh install, public HTTPS, native owner/member sign-in, checked SVG, reboot and independent application restore passed. Cross-version upgrade and second-host recovery remain open; module checks are separate |
 | Evroc | [Infrastructure module](https://github.com/lolly-tools/lolly-work/tree/main/deploy/evroc) | Separate European foundation; boot/runtime acceptance remains target-specific |
-| YunoHost | [Project package](https://github.com/lolly-tools/lolly-work_ynh/tree/v1.1.1-ynh1) | 1.1.1~ynh1 beta. All seven package checks passed on amd64 Bookworm, but absence from the catalogue makes the overall workflow fail. Catalogue registration and arm64 acceptance remain pending |
+| YunoHost | [Project package](https://github.com/lolly-tools/lolly-work_ynh/tree/v1.1.1-ynh1) | 1.1.1~ynh1 beta. All seven package checks passed on amd64 Bookworm, but absence from the catalogue makes the overall workflow fail. Catalogue registration and arm64 acceptance remain pending. The 1.1.2~ynh1 package and its Work archive are published with the v1.1.2 release but not yet mirrored to `lolly-work_ynh` or run through package_check |
 | Dokploy | [Upstream blueprint](https://github.com/lolly-tools/lolly-work/tree/main/deploy/dokploy) | Prepared for online import/submission; runtime target acceptance and public catalogue admission remain pending |
 
 The [channel record](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/CHANNELS.md)
@@ -35,9 +35,11 @@ choices; [enterprise identity](enterprise-identity.md) covers provider setup.
 
 ## Release verification
 
-The [Work 1.1.1 release](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.1)
-publishes image/source/signature receipts. The neutral package reuses that release
-and its checksum-verified signed Lolly web archive. It downloads the archive from
+Each Work release publishes image/source/signature receipts: the current
+[Work 1.1.2 release](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2) and
+the previous [Work 1.1.1 release](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.1).
+The neutral package reuses the 1.1.1 release and its checksum-verified signed Lolly
+web archive. It downloads the archive from
 `lolli.li` on first installation and fetches models from the same origin on use.
 This package therefore needs network access. [External services and
 mirrors](#external-services-and-mirrors) lists each source it uses and how to
@@ -53,9 +55,10 @@ the storage location for Work projects.
 
 Verify container images by digest with `cosign verify`, using issuer
 `https://token.actions.githubusercontent.com` and the exact identity in the
-release's `release-source-images.json`. Server 1.1.1 uses
-`https://github.com/lolly-tools/lolly-work/.github/workflows/release.yml@refs/heads/main`;
-its worker uses the same path at `refs/tags/v1.1.1`. A successful build or multiarch
+release's `release-source-images.json`. Both 1.1.2 images use
+`https://github.com/lolly-tools/lolly-work/.github/workflows/release.yml@refs/tags/v1.1.2`.
+Server 1.1.1 uses the same path at `refs/heads/main`, and its worker uses
+`refs/tags/v1.1.1`. A successful build or multiarch
 manifest does not establish runtime qualification on every device.
 
 After chart publication, download its `.tgz`, `SHA256SUMS`,
@@ -75,7 +78,7 @@ air-gap](deployment.md#air-gap).
 | Source | Used for | When it is contacted | Your own copy |
 |---|---|---|---|
 | `ghcr.io/lolly-tools` | Work server image for the neutral VM package (including UpCloud), Dokploy and Helm; optional render worker image. YunoHost uses the `lolli.li` Work archive instead | Image pull at installation and update. Kubernetes also pulls on any node that does not have the image yet | Copy each multi-platform image by digest into your registry |
-| `public.ecr.aws/docker/library` | PostgreSQL 17 and Caddy images in the neutral VM package; PostgreSQL in the Dokploy blueprint | Image pull at installation and update | Copy by digest. The same digests are also published at `docker.io/library/postgres` and `docker.io/library/caddy` |
+| `docker.io/library` (Docker Hub) | PostgreSQL 17 and Caddy images in the neutral VM package; PostgreSQL in the Dokploy blueprint | Image pull at installation and update | Copy by digest. The same digests are also published at `public.ecr.aws/docker/library/postgres` and `public.ecr.aws/docker/library/caddy` |
 | `lolli.li`, release archives | Matched neutral web shell archive (VM, Dokploy, YunoHost); the YunoHost Work archive | First start of each release. Restarts reuse the extracted content | Serve the checksum-verified archive from your own HTTPS server and set `LW_SHELL_URL` |
 | `lolli.li`, model files | On-device model files that the shell fetches in the browser | In each person's browser, on first use of a model feature | No mirror setting: the location is built into the 1.1.1 shell archive. See [model files](#model-files) |
 | Public ACME certificate authorities | Caddy's automatic HTTPS in the VM package; Dokploy's proxy; cert-manager when you configure it | At first start and before every renewal. The authority must also reach the host on TCP 80 or 443 | An internal ACME server or a certificate you supply; see [certificates](#certificates-without-public-acme) |
@@ -90,13 +93,11 @@ Telemetry is off in the neutral package.
 
 ### Rate limits on public registries
 
-ECR Public limits anonymous pulls, including the amount of data one source address
-can download. The project's own CI was refused the PostgreSQL image under such a
-data limit and now pulls the same digest from Docker Hub. Shared NAT addresses, CI
+Docker Hub, GHCR and ECR Public each limit anonymous pulls; ECR Public also limits
+the amount of data one source address can download. Shared NAT addresses, CI
 runners and repeated reinstallation reach these limits first. Signing in to a
-registry raises its limits; a mirror removes the repeated pulls. Docker Hub and
-GHCR apply their own anonymous limits. For PostgreSQL and Caddy, pulling by
-digest returns the same bytes from either registry.
+registry raises its limits; a mirror removes the repeated pulls. For PostgreSQL
+and Caddy, pulling by digest returns the same bytes from Docker Hub or ECR Public.
 
 ### Mirror the neutral VM package
 
@@ -239,15 +240,15 @@ with its own model location (`VITE_MODELS_BASE`, see Lolly's
 [delivery guide](https://github.com/lolly-tools/lolly/blob/main/docs/deploy-delivery.md))
 and the model files on that host. An empty base serves them from the instance's
 own origin; a separate model host must also be allowed by the browser policy.
+Such a shell is a different shell release, with its own checksum and catalogue key
+pins and its own acceptance. The project does not publish or qualify such a bundle yet.
 
-A shell built with an empty base asks the instance for `/models/...`. Work answers
-from the shell dist when the files are there, and otherwise passes the request to
-`instance.modelOrigin` (default `https://lolli.li`, see
+A shell built with an empty base asks the instance for `/models/...`. Work 1.1.2
+answers from the shell dist when the files are there, and otherwise passes the
+request to `instance.modelOrigin` (default `https://lolli.li`, see
 [configuration](configuration.md)), so the browser contacts only the instance and
 the Work server contacts the model host. Set `modelOrigin` to `null` when the dist
 carries its models or the installation offers none.
-That is a different shell release, with its own checksum and catalogue key pins
-and its own acceptance. The project does not publish or qualify such a bundle yet.
 
 ## Operation and support
 

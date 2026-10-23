@@ -41,6 +41,10 @@ plane configured behaves exactly as it does standalone.
 | Signed links | `/l/:id` | anyone holding the link, until expiry or revocation |
 | Org config | `/api/v1/org-config` | connected shells, polled |
 | Health / metrics | `/healthz`, `/metrics` | monitoring (metrics is token- or loopback-gated) |
+| SCIM provisioning | `/scim/v2/*` | your identity provider, with a SCIM token ([identity](identity.md#scim-provisioning)) |
+| Device sign-in | `/activate` | a signed-in member approving a sign-in from the CLI or a native app ([identity](identity.md#device-code-sign-in)) |
+| Agent connections (MCP) | `/api/workspace/mcp` | document and project agents, with a connection key ([document agents](document-agents.md)) |
+| Instance pack download | `/connect/pack.lolly` | anyone on an `open` instance, otherwise members; `404` when no pack is hosted |
 
 The one document a connected shell polls is `/api/v1/org-config`: who the user is, which
 tools they see, which inputs are locked, which profile fields are managed, which feature
@@ -52,7 +56,9 @@ a quiet poll is a `304`.
 ## The trust model
 
 - **Renders happen where the content is trusted.** The in-process (jsdom) fast path never
-  runs a tool's `hooks.js` unless you opt in per pack (`render.allowHooksInFastPath`);
+  runs a tool's `hooks.js` unless an operator turns on `render.allowHooksInFastPath`, one
+  instance-wide setting meant for a pack whose every tool they curate (the server warns at
+  boot when it is on for any pack but the demo);
   hooked and HTML-heavy tools go to the isolated Chromium worker, or are refused with
   `501 HOOKED_TOOL_NEEDS_CHROMIUM`.
 - **Policy is enforced server-side, before rendering.** A locked input is a `422
@@ -61,7 +67,9 @@ a quiet poll is a `304`.
   replayed as a guest token, a link signature or an OAuth state. Member requests resolve
   the live account: disable or a session-epoch bump revokes its existing tokens, and
   authorization uses current roles/groups. Tokens also expire at `policy.sessionTtlHours`.
-  Revocation is per user; individual-session revocation remains open. See [identity](identity.md).
+  Signing out revokes that browser's session, and an OIDC back-channel logout revokes the
+  sessions from one provider session; an admin can end all of a person's sessions but not one
+  chosen session. See [identity](identity.md#offboarding-disable-and-revocation).
 - **Telemetry never carries input values**, and below `standard` (or without consent when
   attribution is opt-in) it never carries a user id.
 - **The audit log is hash-chained**, so edits and truncation are detectable - provided you

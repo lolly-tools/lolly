@@ -1,8 +1,8 @@
 # Image Relay (kind: `imagerelay`)
 
-Federate an Image Relay DAM **read-only**. Canto acquired Image Relay in September 2024 and is
-moving that customer base onto its own platform, so read [Off-boarding](#off-boarding) before
-you plan anything else here. OAuth2 (BYOT) - see the
+Federate an Image Relay DAM **read-only**. Canto acquired Image Relay in September 2024. If
+your tenant has moved to Canto, use the [Canto source](canto.md); if you are not sure, read
+[Off-boarding](#off-boarding) first. OAuth2 (BYOT) - see the
 [shared OAuth onboarding](README.md#kinds-whose-consent-flow-is-not-registered-canto-imagerelay-optimizely-cmp).
 
 ## What you need from Image Relay
@@ -85,8 +85,8 @@ every guessed endpoint and field name, and which constant to edit when one is wr
 
 ## Off-boarding
 
-**An exit target, the urgent one.** Canto owns the platform now, so run the vendor's migration
-once, into a store you own.
+**An exit target.** If your tenant is moving to Canto, check which driver applies before you
+plan an exit.
 
 Kind-specific: which driver you exit through depends on where the vendor has put your tenant -
 a legacy tenant exits through this driver, a migrated `<name>.canto.com` tenant through

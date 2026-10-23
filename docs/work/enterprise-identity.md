@@ -77,7 +77,7 @@ and keep the installation's pack, shell, storage and deployment settings:
 }
 ```
 
-Map directory groups and `roleGroups` deliberately; verify one operator can
+Map directory groups and `roleGroups` with care; verify one operator can
 administer the instance before inviting everyone. Email admission normally needs
 boolean `email_verified: true`. Tenant-managed providers that omit this claim
 need an explicit reviewed `emailVerification: "trusted"` choice and the appropriate
@@ -148,8 +148,8 @@ Use a candidate environment with the same ingress and IdP policy as production:
    Test through each replica and the collaboration endpoint. This checks access on
    the next authenticated operation; it does not erase previously downloaded data.
 6. Disable the person through SCIM or the Work admin interface. Confirm every sign-in
-   and device loses access, including linked personal identities. Re-enable only under
-   the organisation's recovery procedure.
+   and device loses access, including linked personal identities. Re-enable only once
+   you have confirmed the person should regain access.
 7. Rotate an IdP signing key in the candidate. A new `kid` should trigger an early JWKS
    refresh. Retain the old public key while tokens signed with it can still be valid.
 
@@ -185,7 +185,7 @@ Upgrade all replicas before depending on the new checks. Older cookies have no
 IdP session binding or standing deadline, so they cannot acquire these protections
 through renewal. Let them expire under the previous maximum lifetime or revoke
 accounts' existing sessions and require fresh sign-in for a bounded cutover. Deploy
-the updated Lolly shell to expose the provider sign-out action in Profile; the
+the updated Lolly shell to expose the provider sign-out action in Settings; the
 updated Work console offers the same action independently.
 
 **Rollback.** Retain the new tables; do not automatically reverse database migrations.

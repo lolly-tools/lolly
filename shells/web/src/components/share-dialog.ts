@@ -338,7 +338,7 @@ function renderShareSurface(
         <div class="share-file-licensed" data-lolly-licensed hidden></div>
       </div>`, 'data-share-file') : ''}
       ${shareSectionHtml(t('Link options'), 'link', 'share-link-options', `
-          ${appLinkable ? shareOption('Open in the installed app', '<input type="checkbox" class="field-check" data-app-link>', 'The recipient needs Lolly installed to open this link.', 'data-app-link-row', { href: '/info/build/url-mode.html#the-lolly-scheme', text: t('URI guide') }) : ''}
+          ${appLinkable ? shareOption('Open in the installed app', '<input type="checkbox" class="field-check" data-app-link>', 'The recipient needs Lolly installed to open this link.', 'data-app-link-row', { href: '/info/build/url-app-links.html#the-lolly-scheme', text: t('URI guide') }) : ''}
           ${shareOption('Shortest link', '<input type="checkbox" class="field-check" data-shortest>', 'Compresses the link while keeping the same inputs and settings.', 'data-shortest-row hidden')}
           ${encryptable ? `
           ${shareOption('Password-protect this link', '<input type="checkbox" class="field-check" data-encrypt>', 'Encrypts the link on this device. The recipient needs your password to open the saved inputs and settings.', 'data-encrypt-row')}

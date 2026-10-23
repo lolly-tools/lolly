@@ -57,7 +57,20 @@ function onFrame({ frame, model, host }) {
 
 Declared hooks must be flagged in the manifest's `hooks` object (`{ "onInit": true, ... }`) - a manifest with no `hooks` object never loads hooks.js at all, and the flags are what validation and shell affordances (e.g. the transform-download wiring for `exportFile`) read.
 
-Engine v1.254 adds optional `ctx.view` for local presentation choices. Design uses `ctx.view.pageId` to render the viewer's chosen page while `ctx.model` retains the full document. A shell can call `runtime.setViewState()` to refresh that view through `onInput` with `id: '__view'`; patches from this refresh can update computed extras, but cannot write declared inputs. View state stays outside saved sessions, URLs, undo and collaboration. One-shot document renders leave `pageId` absent to render every page.
+Every hook receives one context object:
+
+| Field | What it holds |
+|---|---|
+| `model` | The input model: every declared input with its current value. |
+| `host` | The host bridge. |
+| `lang` | The language the tool is rendering in, such as `de`; `en` when none is set. |
+| `view` | Local presentation choices, when the shell sets any (below). |
+| `report(patch, { ready })` | `onInit` and `onInput` only: publish an intermediate patch before the hook finishes. A report is ignored once a newer run has started. In `onInit`, `{ ready: true }` tells a view that shows partial renders that the document can be shown as it stands (engine v1.228). |
+| `progressive` | `onInit` only: `true` when a view is showing reported patches as they arrive, so a partial render is worth sending. |
+
+`onInput` also gets `id` and `value`, the input that changed. Three reserved ids mark runs the runtime starts itself: `'__view'` (a view change, below), `'__tokens'` (a theme or colourway change, below) and `'__emoji'`, which runs when the emoji set changes for a tool that drew emoji itself through `host.emoji.renderSvg`, `host.emoji.renderText` or `host.text.layoutRuns`.
+
+Engine v1.255 adds optional `ctx.view` for local presentation choices. Design uses `ctx.view.pageId` to render the viewer's chosen page while `ctx.model` retains the full document. A shell can call `runtime.setViewState()` to refresh that view through `onInput` with `id: '__view'`; patches from this refresh can update computed extras, but cannot write declared inputs. View state stays outside saved sessions, URLs, undo and collaboration. One-shot document renders leave `pageId` absent to render every page.
 
 ### When the theme or colourway changes
 
@@ -134,16 +147,24 @@ function onLevel({ level, model, host }) {
 
 An **`AudioLevel`** is `{ rms, peak, dbfs, clipping, t }` - `rms` (0–1 loudness, the value a VU bar tracks), `peak` (0–1 instantaneous), `dbfs` (peak in dB; `0` = clip, `−∞` = silence) and `clipping` (true while peak sits at the "too hot" threshold, ~0.99). Engine **v1.19** adds four optional background-noise cues (feature-detect - `undefined` on shells that don't compute spectral levels): `noiseFloor` (dBFS floor in the quiet gaps), `snr` (dB signal-to-noise; ≲15 dB = a noisy room), `hum` (0–1 share of energy in the mains bands - electrical hum / ground loop) and `hiss` (0–1 spectral flatness - broadband fan/HVAC hiss). The noise cues are trustworthy only from the **raw** meter (the sound-check runs the mic with noise-suppression/AGC off); a recording session runs them on for a clean file, so its floor reads artificially low.
 
-`voice-recorder` (`capture: "audio"` + `onLevel` coaching), `top-tail-recorder` (`capture: "av"`) and `screencap` (`capture: "screen"`, declaring `["screen", "microphone"]`) are the reference tools; the `host.recorder` bridge (`meter` / `record`) is documented in [Host API](/info/host-api.html).
+`voice-recorder` (`capture: "audio"` + `onLevel` coaching), `record` (`capture: "av"`) and `screencap` (`capture: "screen"`, declaring `["screen", "microphone"]`) are the reference tools; the `host.recorder` bridge (`meter` / `record`) is documented in [Host API](/info/host-api.html).
 
 **What you can call:**
-- Everything on `host.*` your manifest's `capabilities` allows.
+- The required `host.*` APIs, the optional ones you feature-detect or list in `requires`, and the ones your `capabilities` unlock (`host.net` with `network`, `host.recorder` with `microphone`, `camera` or `screen`, and authored `composes` with `compose`).
 - Pure JS computation.
 
 **What to stay away from:**
 - `window`, `document`, `fetch`, `localStorage`. Hooks are loaded via `new Function` with `host` injected as closure scope - a **portability contract, not a sandbox** - so in a browser shell these globals *are* technically reachable. But leaning on them ties your tool to browser shells (it breaks headless in the CLI) and prevents strict Worker execution. Sideloaded tools already use strict isolation. `host.*` is the only supported surface. (Browser-only paths like the `onFrame` canvas trick above are the deliberate exception.)
 - Importing other modules. Hooks are loaded as a single source string, so `import` doesn't work.
-- Slow work. Async hook results are time-boxed (`onInit` 5s, `onInput` 2s, `beforeExport`/`afterExport` 5s, `exportFile` 10s) and a result that arrives late is discarded; a synchronous overrun can't be preempted and just gets logged as a warning.
+- Slow work. Async hook results are time-boxed (`onInit` 5s, `onInput` 2s, `beforeExport`/`afterExport` 5s, `exportFile` and `exportStill` 10s). When `onInit` or `onInput` overruns, the runtime applies nothing at first, then applies the late result when it arrives, unless a newer `onInit` or `onInput` run has started. Export-path hooks never apply late: a `beforeExport`, `exportFile` or `exportStill` overrun fails that export, and an `afterExport` overrun is only logged. A synchronous overrun can't be preempted and just gets logged as a warning.
+
+### Run hooks in a Worker (`isolate`)
+
+A built-in tool can set `isolate: true` in its manifest (engine v1.105 and later) to ask the web shell to run its hooks in a Web Worker while the tool is open for editing. The executor keeps colour, geometry and design-token calls inside the Worker and forwards the other `host.*` calls to the shell. If a Worker cannot start, the shell runs the hooks in the page instead. The CLI runs hooks in a worker thread only when `LOLLY_HOOK_WORKER=1` is set.
+
+Do not set the flag by hand. `node scripts/tool-isolation.ts --verify --write` sets it only when both checks pass: the hooks use none of the page-only globals a Worker lacks (`document`, `window`, `Image` and the like), and `lolly smoke` renders the tool byte for byte the same in the page and in a worker thread. A tool that later gains a DOM dependency fails `--verify` and loses the flag the same way.
+
+The flag is a request, not a grant. A sideloaded or remote tool always runs its hooks in strict isolation, whatever its manifest says, and fails closed when isolation is unavailable.
 
 ### Transcribing audio (`render.transcribe`)
 

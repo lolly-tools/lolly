@@ -111,8 +111,8 @@ editing claims and uncommitted gestures do not become transferable records.
 ## Prepare a future transfer
 
 Before implementing or running a transfer, agree the source and destination,
-business ownership, identity and group mapping, asset scope, retained history,
-required approvals and rollback procedure. Test a destination instance with its
+who will own the moved project, identity and group mapping, asset scope, retained
+history, and how you would undo the move. Test a destination instance with its
 own credentials and verify database and blob recovery independently.
 
 A future transfer needs a consistent content snapshot, bounded and authenticated

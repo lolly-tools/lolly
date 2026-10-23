@@ -51,8 +51,8 @@ A token-refresh failure means the grant was revoked - re-run `lw providers auth`
 
 ## Notes / limits
 
-- Temporary download links are short-lived (`expiringUrls`) - fetched per request, streamed,
-  host-pinned; nothing persisted.
+- Each download is a fresh authenticated request to Dropbox (`files/download`), streamed
+  through Work and host-pinned; nothing is persisted.
 - Supports the **exit** (materialize → cutover). Does **not** accept published exports.
 
 See also: [OAuth onboarding](README.md#kinds-with-a-registered-consent-flow-dropbox-gdrive-o365) · [catalog](../catalog.md) · [permissions](../permissions.md).

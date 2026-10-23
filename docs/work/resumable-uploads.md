@@ -8,7 +8,7 @@ the [API reference](api.md#project-files) and the limits in
 
 ## Context
 
-Work takes files in from four places:
+Work takes files in from three places:
 
 - **Project files.** Members share files inside a team project. They are also how a
   session stages its images: a session saved in a project identifies each image as a
@@ -29,8 +29,8 @@ to send a file larger than one request at all.
 
 The constraints that decide the protocol:
 
-- Request bodies are capped in front of Work. A Vercel function takes at most 4.5 MB,
-  nginx defaults to 1 MB and ingress controllers set their own limits.
+- Request bodies are capped in front of Work. A serverless function host can cap a request
+  at 4.5 MB, nginx defaults to 1 MB and ingress controllers set their own limits.
 - Every BlobStore driver stores whole objects by id: a Postgres row per blob, an S3
   object per key. None can append to an existing blob, and S3 multipart parts must be
   at least 5 MiB except the last.
@@ -75,8 +75,8 @@ Work keeps the parts protocol and adds the resume report. It does not adopt tus.
 
 - Only bytes that match a declared digest are ever stored, and the unit stored is the
   unit checked. No driver needs to append.
-- A part is 1 MiB, under every request cap above, so the same client works on Vercel,
-  behind nginx and on Kubernetes.
+- A part is 1 MiB, under every request cap above, so the same client works on a serverless
+  function host, behind nginx and on Kubernetes.
 - Parts can be sent in parallel, in any order and again after a failure, with no
   extra resource model.
 - The shell keeps its existing client; resuming is one extra request.
@@ -151,7 +151,7 @@ more scope on the `uploads` table over the same primitive.
    `409 UPLOAD_INCOMPLETE` means a part is still missing: ask again.
 4. On `404` or `410` the upload is gone or expired: begin again.
 
-`lw upload <file> --project <id>` or `--scope catalog-submission|automation-input`
+`lw upload <file> --project <id>` or `--scope catalog-submission|automation-input|file`
 does this. It reads the file one part at a time and keeps each unfinished upload's id
 under `~/.config/lolly-work/uploads/`; running the same command again carries on.
 

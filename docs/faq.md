@@ -49,7 +49,7 @@ Feature flags turn parts of Lolly on or off. In standalone use, you choose your 
 
 ## How do I get the mobile or desktop apps?
 
-Download them from [Install Lolly](/info/install.html). The page lists every build for macOS, Windows, Linux and Android, and shows how to check the file you downloaded. iPhone and iPad have no public download yet; [the iPhone and iPad section](/info/install.html#iphone-and-ipad) says what to use instead.
+Download them from [Install Lolly](/info/install.html). The page lists every build for macOS, Windows, Linux and Android, and shows how to check the file you downloaded. iPhone and iPad get Lolly Tools from the App Store; [the iPhone and iPad section](/info/install.html#iphone-and-ipad) has the link.
 
 Anyone can also build and hand out their own copy of the app, with the tools and settings their audience needs. The [Build Guide](/info/build-guide.html) shows how.
 

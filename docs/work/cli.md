@@ -20,7 +20,7 @@ lw login --email admin@example.test         # dev provider (dev.enabled only)
 lw login --cookie 'lw_session=…'            # paste a browser session (works everywhere)
 ```
 
-Plain `lw login` runs the device-code flow (plans/34): it prints a short code and the
+Plain `lw login` runs the device-code flow: it prints a short code and the
 instance's `/activate` URL; open that in any browser where you are already signed in,
 type the code, approve - and the CLI collects an ordinary session on its next poll. The
 flow works on every deploy shape - codes are database rows, so any replica answers the poll.
@@ -35,6 +35,7 @@ lw fleet              # which shells/engines are connected (and this deploy's en
 lw fleet installs     # registered installs - devices that spoke install/<id> while signed in
 lw instance           # the public instance manifest - what a fresh app reads first
 lw links [--all]
+lw links revoke <id>
 lw audit verify       # exits 2 if the chain is broken
 lw audit head         # seq · hash · count · intact  (exits 2 if broken)
                       # "intact (N rows signed with a retired key before …)" after a rotation
@@ -184,6 +185,16 @@ lw retention run            # apply the stated retention policy now (trims telem
 lw users erase <id>         # erasure: delete the person's row + de-attribute their telemetry
 ```
 
+Account offboarding and subject export have their own commands, all owner-only and
+documented in [account lifecycle](account-lifecycle.md):
+
+```bash
+lw users erase-preview <id>       # read-only reference counts and erasure scope
+lw users subject-export <id>      # one bounded page of the account's metadata (--category, --cursor, --limit)
+lw users offboard-preview <id>    # direct issuance counts and what remains to review
+lw users offboard <id>            # disable, end sessions, revoke direct issuance (content is kept)
+```
+
 `retention run` also runs daily on a long-lived server; on serverless, cron it with a service
 token (`LW_TOKEN=… lw retention run`). It also removes unfinished project-file uploads more
 than an hour past their expiry, and expired [scoped uploads](#resumable-uploads), and reports
@@ -212,7 +223,8 @@ lw providers rm <id>
 ```
 
 Kinds: `webdav`, `s3`, `git`, `brandfolder`, `dropbox`, `gdrive`, `o365`, `optimizely-cmp`,
-`imagerelay`, `canto`, `acquia-dam`, `intelligencebank`, `penpot`, `mock`. See
+`imagerelay`, `canto`, `acquia-dam`, `intelligencebank`, `cloudinary`, `orange-logic`, `penpot`,
+`mock`. See
 [catalog](catalog.md), the first-connection walkthrough in
 [install section 9](install.md#9-connect-a-source), and the per-kind
 [provider guides](providers/README.md).
@@ -236,7 +248,8 @@ mapped sample: 10 of 100 on the first page
 
 The credential is prompted hidden, exactly like `lw providers credential` - it is a real
 tenant secret even in a dry run, so it never reaches argv or shell history. Press enter on
-the prompt for a source that needs none (a public `git` manifest, an open `s3` bucket).
+the prompt for a source that needs none (a public `git` manifest). The `s3` kind always needs
+its `<accessKeyId>:<secretAccessKey>` credential.
 
 Read the table as a mapping check: the `id` is the federated id this kind would mint, `type`
 is what `mapping.typeMap`/`defaultType` resolved to, and sections arrive **as tags** unless
@@ -248,17 +261,23 @@ means the health check failed.
 
 `--shape` answers the other question, and returns **no sample**: the call the driver made, and
 the key labels and value **types** the tenant returned, diffed against the key labels the driver
-reads. Never a value, so the output redirects straight to a file you can send. Only the drivers
-whose field names are still taken from vendor documentation implement it - every other kind
-answers that it carries no live-verify debt. It is the first command in each live-verify
-runbook ([canto](providers/canto-live-verify.md), [imagerelay](providers/imagerelay-live-verify.md),
+reads. Never a value, so the output redirects straight to a file you can send. Seven drivers
+whose field names are still taken from vendor documentation implement it: `webdav`, `canto`,
+`imagerelay`, `intelligencebank`, `acquia-dam`, `cloudinary` and `orange-logic`. Every other
+kind reports no structure; `optimizely-cmp` and `penpot` also have unconfirmed field names but
+no shape report yet. It is the first command in each live-verify runbook
+([webdav](providers/webdav-live-verify.md), [canto](providers/canto-live-verify.md),
+[imagerelay](providers/imagerelay-live-verify.md),
 [intelligencebank](providers/intelligencebank-live-verify.md),
-[acquia-dam](providers/acquia-dam-live-verify.md)), which explains the report's three diff
+[acquia-dam](providers/acquia-dam-live-verify.md),
+[cloudinary](providers/cloudinary-live-verify.md),
+[orange-logic](providers/orange-logic-live-verify.md)), which explains the report's diff
 groups.
 
 `--remote-id <id>` alongside `--shape` adds a second report, on the per-asset **detail** call
 the byte path makes (the one that carries the download link). Only the kinds whose bytes need
-that call implement it - `imagerelay`, `intelligencebank`, `acquia-dam`; a kind that builds its
+that call implement it - `imagerelay`, `intelligencebank`, `acquia-dam`, `cloudinary` and
+`orange-logic`; a kind that builds its
 binary path out of the list record, like `canto`, answers that there is no other response to
 describe. It fetches JSON about one asset, never its bytes.
 
@@ -354,7 +373,7 @@ The fields an org defines for itself, on assets it already serves
 
 ```bash
 lw catalog fields                                            # what this instance defines
-lw catalog meta suse/tokens/brand --field region=EMEA --field campaign="Autumn Launch"
+lw catalog meta lolly/logo/primary --field region=EMEA --field campaign="Autumn Launch"
 lw catalog meta inst/ab12cd34 --field region= --name "Campaign Hero 2026" --tags campaign,hero
 ```
 
@@ -373,7 +392,7 @@ Named, ordered, group-visible sets of catalog assets
 ```bash
 lw catalog collections                                       # every set, with its size and audience
 lw catalog collection launch-kit --name "Launch kit" \
-    --members inst/ab12cd34,ext/brandfolder/a1,suse/logos/mark \
+    --members inst/ab12cd34,ext/brandfolder/a1,lolly/logo/mono \
     --groups design,sales --label "Everything for the spring launch."
 lw catalog collection launch-kit --members inst/ab12cd34      # replaces the member list whole
 lw catalog collection launch-kit --rm
@@ -412,6 +431,18 @@ lw msg send --title "Update by Aug 15" \
     [--groups marketing,legal] [--shells tauri] [--max-engine 1.52.99]
 ```
 
+## Design-system sources and project transfer
+
+```bash
+lw brand                                             # design-system sources and your permissions
+lw brand preview <action> <source-id> [--replacement <id>] > review.json   # review an impact as JSON
+lw brand apply review.json                           # apply that reviewed revision
+lw projects transfer-preview <id> [--json] [--out file.json]   # read-only project inventory
+```
+
+See [design-system administration](design-system-administration.md#review-and-apply) and
+[project transfer preview](project-portability.md).
+
 ## Local infrastructure commands
 
 These talk to something other than the API base:
@@ -439,6 +470,7 @@ skip it and use your own chain. See [c2pa](c2pa.md).
 | Flag | Meaning |
 |---|---|
 | `--base <url>` / `LW_BASE` | which deploy to talk to (default `http://localhost:8787`) |
+| `--token <token>` / `LW_TOKEN` | act as a [service token](#service-tokens); takes precedence over a stored session |
 | `--json` | machine-readable output |
 
 Exit codes: `1` on any API error or usage mistake (including `migrate --check` with a

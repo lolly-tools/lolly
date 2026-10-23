@@ -4,7 +4,7 @@ Design tokens are Lolly's **single source of truth for brand primitives** - colo
 
 This page is the spec. The engine model is [`engine/src/tokens.ts`](../engine/src/tokens.ts); the format contract is pinned by [`tests/tokens.test.ts`](../tests/tokens.test.ts).
 
-> **Status.** The **colour** slice is shipped: brand colours are canonical tokens, the picker's swatches come from them and a chosen brand colour stays *linked* to its token. **Dimension tokens** (radius, spacing, sizing, stroke, opacity, rotation, shadows) and **typography** (brand fonts) are shipped too, editable in the [Brand Studio](/info/brand-studio.html)'s Tokens and Type tabs. **User import/export** is shipped - import W3C DTCG / Tokens Studio / Penpot in the Studio (or via [`ingest:brand`](/info/configuration.html#brand-packs)), and export a `LollyBrand` pack or a design-tokens palette. Token-aware tool *injection into templates* is not built yet.
+> **Status.** The **colour** slice is shipped: brand colours are canonical tokens, the picker's swatches come from them and a chosen brand colour stays *linked* to its token. **Dimension tokens** (radius, spacing, sizing, stroke, opacity, rotation, shadows) and **typography** (brand fonts) are shipped too, editable in the [Brand Studio](/info/brand-studio.html)'s Tokens and Type rooms. **User import/export** is shipped - import W3C DTCG / Tokens Studio / Penpot in the Studio (or via [`ingest:brand`](/info/configuration.html#brand-packs)), and export a `LollyBrand` pack or a design-tokens palette. Token-aware tool *injection into templates* is not built yet.
 
 ![The Tokens room on a fresh system - a card with the ways to start, the shape and spacing sliders, More tokens and the two advanced folds](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=900&dpi=192&waitMs=1600&css=.start-head%7Bdisplay%3Anone%7D&cropSelector=.be-tokens&format=svg&walker=1&dark=1&filename=bs-token-editor)
 
@@ -21,14 +21,14 @@ A token document is DTCG JSON. A **token** is an object with `$value` (required)
   "color": {
     "$type": "color",
     "brand": {
-      "jungle": {
-        "$value": "#30ba78",
-        "$description": "Jungle",
-        "$extensions": { "com.suse.lolly": { "cmyk": [70, 0, 65, 0] } }
+      "spearmint": {
+        "$value": "#033633",
+        "$description": "Spearmint",
+        "$extensions": { "com.suse.lolly": { "cmyk": [100, 31, 59, 79] } }
       }
     },
     "semantic": {
-      "primary": { "$value": "{color.brand.jungle}" }
+      "primary": { "$value": "{color.brand.spearmint}" }
     }
   }
 }
@@ -45,11 +45,11 @@ Two deliberate choices keep us interoperable with Penpot while serving Lolly's p
 
 **1. Engine - [`engine/src/tokens.ts`](../engine/src/tokens.ts).** Platform-agnostic, like `units.ts`. `createTokenSet(doc, { theme })` parses a document, inherits group `$type`, resolves `{}` aliases (chains, cycle-safe), applies the theme and returns a flat lookup with `get` / `resolve` / `query({type})` / `colors()` / `themes()`. It knows DTCG and nothing else - no DOM, no storage, no SUSE - so it ships as part of the open-source engine.
 
-**2. Catalog - a `tokens` asset.** Each brand pack ships one core-tier `tokens` asset and the active profile decides which is canonical - `suse/tokens/brand` in the SUSE pack, `lolly/tokens/brand` in the blank brand, `<brand>/tokens/brand` for a pack built by `ingest:brand` (a `tokens`-type catalog asset, `core` tier so it's always available offline). It is generated from the shell palette by [`scripts/build-brand-tokens.ts`](../scripts/build-brand-tokens.ts) and validated against [`schemas/tokens.schema.json`](../schemas/tokens.schema.json) by `pnpm run validate:catalog`. Versioned and checksummed like any asset.
+**2. Catalog - a `tokens` asset.** Each brand pack ships its design system as a `tokens`-type catalog asset, `core` tier so it is always available offline, and the active profile decides which pack is in use. A pack's design system is the asset its index's `brandTokens` field points at, or its one tokens asset when the field is absent: `lolly/tokens/demo` (Lolly Demo) in the demo pack, `lolly/tokens/brand` (Lolly Starter) in the blank brand, and `<brand>/tokens/brand` for a pack built by `ingest:brand`. An index can also offer companion design systems (`companionDesignSystems`), which is how the demo pack offers Lolly Starter beside Lolly Demo. Every tokens asset is validated against [`schemas/tokens.schema.json`](../schemas/tokens.schema.json) by `pnpm run validate:catalog`, and versioned and checksummed like any asset. The SUSE pack's document is generated from the shell palette by [`scripts/build-brand-tokens.ts`](../scripts/build-brand-tokens.ts).
 
 **3. User tokens - *shipped*.** A device-local store for the tokens a user creates or imports (from Penpot, DTCG or a `LollyBrand` pack), travelling as the `tokens.json` part of a `LollyBrand` pack, and inside the full data backup as a user asset in `assets.json` (see [Data Transfer](/info/data-transfer.html)). The [Brand Studio](/info/brand-studio.html) handles import, editing, the active theme and export back to DTCG.
 
-**4. Bridge - `host.tokens`.** An additive, optional v1 capability (like `net`/`text`): `get` / `colors` / `resolve` / `themes`. Each shell implements it over the engine model and its sources; a shell that doesn't is simply not token-driven. Loading is offline-safe (prefers the core-prefetched blob, falls back to a direct fetch, then to the built-in palette).
+**4. Bridge - `host.tokens`.** An additive, optional v1 capability (like `net`/`text`): `get` / `colors` / `resolve` / `themes`, plus the optional `inspect`, `axes`, `family`, `list`, `active` and `snapshot` ([Host API](/info/host-api.html) lists them). Each shell implements it over the engine model and its sources; a shell that doesn't is simply not token-driven. Loading is offline-safe (prefers the core-prefetched blob, falls back to a direct fetch, then to the built-in palette).
 
 ![Catalog and user tokens feed the engine token model, which resolves themes and aliases. The shell exposes that model through host.tokens so tools can look up resolved values.](/info/diagrams/concepts/token-resolution.svg)
 
@@ -71,7 +71,7 @@ value*. The defaults affect the app and the Penpot UI-library export, but they d
 not bloat a brand document merely because it was opened. Saving one value adds
 only that `lolly.ui.*` leaf; Reset removes it and restores Lolly’s stock role.
 
-The supported UI contract is deliberately narrow: semantic text/surface/action,
+The supported UI contract is narrow: semantic text/surface/action,
 selection, border and focus colours; control/panel/page spacing; role-based
 radius; elevation/edge/focus effects; UI fonts/type sizes; feedback/overlay/
 navigation motion; and chrome/overlay/toast layers. Lolly validates each value
@@ -86,13 +86,13 @@ Two foundation values are especially useful when starting with a token library:
   `1.25×`, `1.5×`, `2×`, `3×`), so a system’s base unit reaches panels and
   controls without copying individual gaps.
 
-Choose **Export Lolly UI to Penpot** in [Components](/#/components) to get the
-stock library as editable frames plus both token layers and the active brand.
-The archive holds every declared app component/pattern and uses sample data by
-default. Token records are present in `tokens.json`; a property that Penpot
-cannot bind natively remains an editable resolved value rather than a misleading
-claim of a live binding. Lolly does not export personal sessions or current
-content as an app surface unless that surface explicitly records consent.
+Choose **Download visible collection** in [Components](/#/components) to get
+the components on show as one `.penpot` archive of editable frames, with both
+token layers in its `tokens.json`. Each card's **Download as .penpot** takes one
+component, and **Download tokens.json** takes the tokens alone. The components
+hold sample data, not your sessions or content. A property that Penpot cannot
+bind natively remains an editable resolved value rather than a misleading claim
+of a live binding.
 
 ## App chrome from a design pack
 
@@ -119,7 +119,7 @@ its canonical lead while an artefact on the canvas uses another.
 | `muted-ink` | `--muted-foreground` | secondary text | Lolly's muted ink for the theme |
 | `unsaved` | `--brand-warn` | the colour that marks unsaved work | see "Unsaved work" below |
 
-Opal's dark set is an example of the group in place:
+Lolly Demo's dark set is an example of the group in place:
 
 ```json
 {
@@ -131,6 +131,7 @@ Opal's dark set is an example of the group in place:
         "raised": { "$value": "{color.brand.liquorice-raised}" },
         "overlay": { "$value": "{color.brand.liquorice-panel}" },
         "muted": { "$value": "{color.brand.liquorice-panel}" },
+        "hover": { "$value": "#263239" },
         "edge": { "$value": "{color.brand.basalt}" },
         "ink": { "$value": "{color.brand.sugar}" },
         "muted-ink": { "$value": "{color.brand.pebble}" },
@@ -225,24 +226,25 @@ own cool room.
 
 ## How tools consume tokens
 
-**Platform hydration (the common case).** Most tools never mention tokens. The platform feeds them:
+Tools reach tokens three ways:
 
-- **The picker's swatches are tokens.** The colour field sources its swatches from `host.tokens.colors()` for the active theme, labelled and grouped by token. This is what the `palette` input field always promised.
-- **Brand-bound values stay linked.** Choosing a token swatch stores a *reference*, not a frozen hex (see below), so a later token edit propagates everywhere.
+- **Inputs, through the platform.** The colour field sources its swatches from `host.tokens.colors()` for the active theme, labelled and grouped by token. Choosing a token swatch stores a *reference*, not a frozen hex (see below), so a later token edit reaches every linked value.
+- **Hooks, through `host.tokens`.** A hook can read the token set, resolve a reference or list every colourway's lead with `family()`. Chart, Mesh Gradient, Filter and Wordmark are among the community tools that do. When the document's theme or colourway changes, the runtime runs `onInput` once with the id `__tokens`, so a hook that keeps colours it read can read them again.
+- **Templates and styles, through canvas variables.** The canvas carries the design system's semantic colours as CSS custom properties (`--brand-primary` and the rest), plus `--brand-lead-1` onwards when the design system has two or more colourways. [Authoring tools](/info/authoring-tools.html#design-system-colours-in-templates-and-styles) lists them.
 
-**Direct injection - *(planned)*.** A token-aware tool (a brand sheet, a style guide, a chart that maps series to brand colours) can receive the resolved token tree in its template context via the existing `extras` mechanism, opted into from the manifest.
+Handing the resolved token tree to a template's context (through the `extras` mechanism, opted into from the manifest) is not built yet.
 
 ## The value model: reference + cached value
 
 When a user picks a token-backed colour, the stored value is **a reference plus the hex it last resolved to**:
 
 ```json
-{ "ref": "{color.brand.jungle}", "value": "#30ba78" }
+{ "ref": "{color.brand.spearmint}", "value": "#033633" }
 ```
 
 A token-backed swatch reads as its token in the sidebar: the trigger carries the swatch's *name*, not a frozen hex, which is the visible difference between a linked value and one typed in by hand.
 
-![A tool's colour row holding a token-backed value, the trigger showing the swatch circle and its name instead of a hex code](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DLinked%26color%3D%257Bcolor.spectrum.rose%257D&width=1440&height=900&dpi=192&waitMs=2000&css=%23tool-canvas%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.input-row%3Ahas%28%5Bdata-color-field%3D%22color%22%5D%29&dark=1&filename=at2-token-linked-swatch)
+![A tool's colour row holding a token-backed value, the trigger showing the swatch circle and its name instead of a hex code](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DLinked%26color%3D%257Bcolor.spectrum.donut%257D&width=1440&height=900&dpi=192&waitMs=2000&css=%23tool-canvas%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.input-row%3Ahas%28%5Bdata-color-field%3D%22color%22%5D%29&dark=1&filename=at2-token-linked-swatch)
 
 The `ref` keeps the value canonical - editing the token, or switching themes, re-resolves it everywhere. The cached `value` is the graceful fallback for a device where that token is absent. The path is fully backward-compatible: a plain colour string (a custom pick, or any existing tool) flows through untouched.
 
@@ -250,13 +252,13 @@ How it moves through the engine:
 
 - **Hydration** ([`runtime.ts`](../engine/src/runtime.ts) → `resolveTokenRefs`, mirroring asset-ref resolution): on load, each token-backed colour re-resolves against the live token set and its cached hex is refreshed. `modelToValues` then hands the template a plain hex string - templates and data/JSON exports never see an object.
 - **Hooks** see the flattened hex too (`modelForHooks` in [`inputs.ts`](../engine/src/inputs.ts)): the `{ ref, value }` shape is an engine detail and never reaches a tool's `onInit`/`onInput`, so the common `(inputs.x || '').trim()` pattern keeps working.
-- **URL mode** ([`url-mode.ts`](../engine/src/url-mode.ts)): a token colour serialises to its reference (`?bg={color.brand.jungle}`), so a shared link re-resolves against the *recipient's* tokens. Parsing a `{path}` yields an unresolved token value the runtime then resolves.
+- **URL mode** ([`url-mode.ts`](../engine/src/url-mode.ts)): a token colour serialises to its reference (`?bg={color.brand.spearmint}`), so a shared link re-resolves against the *recipient's* tokens. Parsing a `{path}` yields an unresolved token value the runtime then resolves.
 
-- **Editing past a token** (typing a hex, dragging alpha) emits a plain string - deliberately de-linking from the token, because the user just overrode it.
+- **Editing past a token** (typing a hex, dragging alpha) emits a plain string, which de-links the value from its token: the user has chosen a colour of their own.
 
-The link below holds no colour value. Its three colour params are token paths (`{color.spectrum.violet}`, `{color.spectrum.teal}`, `{color.spectrum.amber}`), resolved at render time against whatever brand the device is carrying.
+The link below holds no colour value. Its three colour params are token paths (`{color.spectrum.green-apple}`, `{color.spectrum.reef}`, `{color.spectrum.honey}`, from Lolly Demo), resolved at render time against whatever brand the device is carrying.
 
-![A mesh gradient whose violet, teal and amber all arrived as token references in the link rather than as hex values](/t/url-shot?url=%2F%23%2Ftool%2Fgradient%3Fcount%3D3%26color1%3D%257Bcolor.spectrum.violet%257D%26color2%3D%257Bcolor.spectrum.teal%257D%26color3%3D%257Bcolor.spectrum.amber%257D%26full&width=880&height=560&dpi=96&waitMs=2400&walker=1&format=svg&dark=1&filename=at2-token-refs-in-url)
+![A mesh gradient whose green, turquoise and gold all arrived as token references in the link rather than as hex values](/t/url-shot?url=%2F%23%2Ftool%2Fgradient%3Fcount%3D3%26color1%3D%257Bcolor.spectrum.green-apple%257D%26color2%3D%257Bcolor.spectrum.reef%257D%26color3%3D%257Bcolor.spectrum.honey%257D%26full&width=880&height=560&dpi=96&waitMs=2400&walker=1&format=svg&dark=1&filename=at2-token-refs-in-url)
 
 ## Penpot interop
 
@@ -273,15 +275,15 @@ The round trip above, step by step - no code involved.
 
 **Import into Penpot.** Open a Penpot file and switch to the Tokens panel in the left sidebar. Import the JSON you just downloaded. Your sets appear in the panel, and the colours and fonts can be applied to shapes and text from there.
 
-Two more paths exist beyond the token file. Once Penpot is connected under Profile → Connected services, a finished render can be sent from Lolly into a Penpot project as an image. And the Lolly bridge plugin for Penpot - installed by URL from a Lolly instance - can place a working Lolly session on the Penpot canvas as editable shapes.
+Two more paths exist beyond the token file. Once Penpot is connected under **Settings → Connected services**, a finished render can be sent from Lolly into a Penpot project as an image. And the Lolly bridge plugin for Penpot - installed by URL from a Lolly instance - can place a working Lolly session on the Penpot canvas as editable shapes.
 
 ## Migration & status
 
-The brand colours moved into tokens without changing what anyone sees: `scripts/build-brand-tokens.ts` derives the token document from the existing palette, so the picker shows the same colours - now sourced canonically. The shell palette remains the fallback (and, for now, the source of CMYK anchors on export). With dimension/typography tokens and user import/export now shipped, most of the app resolves from tokens and the standalone palette recedes; template-level token *injection* is the main piece still to land.
+The brand colours moved into tokens without changing what anyone sees: `scripts/build-brand-tokens.ts` derives the SUSE pack's token document from the existing palette, so the picker shows the same colours - now sourced canonically. The shell palette remains the fallback (and, for now, the source of CMYK anchors on export). With dimension/typography tokens and user import/export now shipped, most of the app resolves from tokens and the standalone palette recedes; template-level token *injection* is the main piece still to land.
 
 The corner radius is the plainest of the shipped dimension tokens: one slider writing one `shape.radius` value that the app chrome, the panels and every opted-in tool then follow.
 
-![The Rounded corners control in the Tokens tab - a live preview square, a slider and the value it writes, all standing for a single dimension token](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=900&dpi=192&waitMs=1800&css=.tk-dial%7Bpadding%3A14px%2016px%7D&walker=1&format=svg&cropSelector=.tk-dial%3Ahas%28%5Bdata-be-radius-slider%5D%29&dark=1&filename=at2-token-radius-dimension)
+![The Rounded corners control in the Tokens room - a live preview square, a slider and the value it writes, all standing for a single dimension token](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=900&dpi=192&waitMs=1800&css=.tk-dial%7Bpadding%3A14px%2016px%7D&walker=1&format=svg&cropSelector=.tk-dial%3Ahas%28%5Bdata-be-radius-slider%5D%29&dark=1&filename=at2-token-radius-dimension)
 
 ## Token workflows
 
@@ -291,5 +293,5 @@ The [token workflow guide](/info/token-workflows.html) covers retained source in
 
 - Engine model: [`engine/src/tokens.ts`](../engine/src/tokens.ts) - `createTokenSet`, `resolveColorValue`, `colorToHex`, `isAlias`, `isTokenValue`, `TOKEN_EXT`.
 - Tests: [`tests/tokens.test.ts`](../tests/tokens.test.ts) (model) and [`tests/tokens-value-path.test.ts`](../tests/tokens-value-path.test.ts) (URL/hydration round-trip).
-- Schema: [`schemas/tokens.schema.json`](../schemas/tokens.schema.json). Generator: [`scripts/build-brand-tokens.ts`](../scripts/build-brand-tokens.ts).
-- Bridge contract: `TokensAPI` in [`packages/core/src/host-v1.ts`](../packages/core/src/host-v1.ts) (re-exported as `engine/src/bridge/host-v1.ts`). Web impl: [`shells/web/src/bridge/tokens.ts`](../shells/web/src/bridge/tokens.ts).
+- Schema: [`schemas/tokens.schema.json`](../schemas/tokens.schema.json). Generator for the SUSE pack: [`scripts/build-brand-tokens.ts`](../scripts/build-brand-tokens.ts).
+- Bridge contract: `TokensAPI` in [`packages/core/src/host-v1/tokens.ts`](../packages/core/src/host-v1/tokens.ts) (re-exported as `engine/src/bridge/host-v1.ts`). Web impl: [`shells/web/src/bridge/tokens.ts`](../shells/web/src/bridge/tokens.ts).

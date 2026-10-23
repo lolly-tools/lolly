@@ -14,7 +14,8 @@ Since 7 October 2026, **lolly.ing** and **lolly.tools**, including their `www`
 aliases, run on the same UpCloud host with openSUSE Leap 16.0 and K3s. Work,
 the render worker and live relay are separate Kubernetes workloads. PostgreSQL
 18.6 runs on that host; the public shell, APIs and managed HTTPS edge also run
-there. These two domains no longer use Vercel or Neon for their live runtime.
+there. These two domains no longer use their former serverless host or hosted
+database for their live runtime.
 Read the [SUSE deployment guide](../deploy/suse/README.md) and
 [small Kubernetes profile](../deploy/helm/SMALL-SUSE.md) for the reusable kits.
 The reviewed instance deployment handoff defines the actual host, cluster,
@@ -22,14 +23,14 @@ secrets, persistent volumes and pinned release; a generic example is not that ha
 
 The former lolly.ing Compose services remain stopped and their database access
 is fenced. That host is retained for SSH access and verified HTTPS forwarding
-to the current host. Do not replay its Compose, Neon or Vercel rollback commands,
+to the current host. Do not replay its Compose, hosted-database or serverless rollback commands,
 restore its database access, or point production DNS at those old targets.
 
 The **lolly.work** evaluation demo also runs on that UpCloud host, in its own
 namespace with ephemeral sample data, separate keys and network isolation from
-private workspaces. Its automatic Vercel deployment from this repository's CI has
-been retired. Optional generic Vercel adapters remain qualified in CI for
-operators who choose that target.
+private workspaces. Its automatic deployment to a serverless host from this
+repository's CI has been retired. The optional serverless function adapters remain
+qualified in CI for operators who choose that target.
 
 | Shape | Where used | Schema owner | Pack / shell |
 |---|---|---|---|
@@ -37,9 +38,9 @@ operators who choose that target.
 | Compose (`deploy/compose/`) | single VM, small org | boot auto-migrate | bind mounts |
 | Helm (`deploy/helm/`) | Kubernetes / Rancher, one collaboration owner | pre-install/upgrade Job | volumes you mount |
 | YunoHost (`deploy/yunohost/`) | a self-hosting box, sign-in with its accounts | boot auto-migrate | seeded from the shell into the app's data directory |
-| Vercel (`vercel.json` + `scripts/build-vercel-fn.mjs`) | trial / pilot / public demo | Neon + external migrate | demo pack bundled; shell not served |
+| Serverless function (`scripts/build-vercel-fn.mjs`) | trial / pilot / public demo | hosted PostgreSQL + external migrate | demo pack bundled; shell not served |
 | Single VM with Caddy (`deploy/vm/`) | one small team on its own domain, with live co-editing | boot auto-migrate over the direct URL | pack mounted read-only; a signed shell served natively when configured, otherwise proxied through Caddy |
-| Vercel private instance (the same build with `LW_SHELL_ORIGIN`, `LW_PACK_DIR`) | a small, sign-in gated team on its own domain | Neon, migrated at cold start | pack from `scripts/build-instance-pack.ts` bundled; a public shell proxied onto the same origin, catalog signed per caller with `LW_CATALOG_SIGNING_KEY`; no live co-editing. See `deploy/vercel/README.md`, section 6 |
+| Serverless private instance (the same build with `LW_SHELL_ORIGIN`, `LW_PACK_DIR`) | a small, sign-in gated team on its own domain | hosted PostgreSQL, migrated at cold start | pack from `scripts/build-instance-pack.ts` bundled; a public shell proxied onto the same origin, catalog signed per caller with `LW_CATALOG_SIGNING_KEY`; no live co-editing. See `deploy/vercel/README.md`, section 6 |
 
 ## Render topologies - the default is Chromium-free
 
@@ -92,8 +93,9 @@ same application configuration and release checks on either cloud.
 
 The chart targets **any conformant Kubernetes** and is exercised against both
 Rancher-managed distributions: **RKE2** (datacenter - etcd, ingress-nginx, CIS/FIPS
-posture) and **k3s** (edge - verified live 2026-08-11 on k3s v1.35: install, Traefik
-ingress via the cluster default class, sign-in gate, catalog, renders). There is **no
+posture) and **k3s** (edge - an install, Traefik ingress through the cluster default
+class, the sign-in gate, catalog and renders were verified live on k3s v1.35 in August
+2026; the pinned K3s operator path in `deploy/suse/k3s.lock.json` uses v1.34.12+k3s1). There is **no
 k3s API ceiling** for this workload - k3s is CNCF-conformant, and the chart uses only
 core primitives (Deployment, Service, Ingress, Job, HPA). The honest k3s boundaries are
 operational, not functional:
@@ -134,7 +136,7 @@ Do not merge `values-eval.yaml` into that production release. Follow
 replica until room routing and operation ordering are qualified. Independent
 render workers can scale after capacity testing.
 
-The official 1.1.1 GHCR images are public. An operator-owned private mirror needs
+The official 1.1.2 GHCR images are public. An operator-owned private mirror needs
 `imagePullSecrets`; a disconnected cluster needs verified image transport, such as
 `docker save` with `k3d image import` or `ctr images import` on the node.
 
@@ -259,7 +261,7 @@ you can:
 
 | Component | Required? | Notes |
 |---|---|---|
-| PostgreSQL 16/17 | **yes** | the only hard external service |
+| PostgreSQL 17 or 18 | **yes** | the only hard external service; CI and Compose use 17, the SUSE profile pins 18.6 |
 | Ingress (nginx) | practically | chart ships the Ingress template |
 | cert-manager | practically | TLS; annotation example is in `values.yaml` |
 | Keycloak or any OIDC IdP | yes for SSO | fully IdP-agnostic; `idp.displayName` identifies it in the UI |
@@ -314,7 +316,8 @@ Work server for native signed-shell serving. Otherwise it proxies the public she
 with the session cookie removed. Public OSS API functions continue through the
 public API proxy until standalone parity is qualified. Control-plane paths and
 `/ws/collab/<session>` go to the Work server. `node scripts/build-caddyfile.ts` writes `deploy/vm/Caddyfile`;
-`tests/vercel-routes.test.ts` checks both tables agree on every path but the WebSocket.
+`tests/vercel-routes.test.ts` checks that the Caddyfile and the serverless adapter's
+route table agree on every path but the WebSocket.
 
 The kit: `bootstrap-opensuse.sh` (puts openSUSE Leap 16.0 on an UpCloud server, which has
 no openSUSE template, by way of a Debian one), `provision.sh` (Leap 16 as `sles` through
@@ -335,18 +338,19 @@ pending and the database answers. Migrations run over
 `DATABASE_URL_UNPOOLED` when it is set and take a transaction-level lock, so a connection
 pooler cannot keep the lock after the runner leaves.
 
-## Vercel (trial / public demo)
+## Serverless function adapter (trial / public demo)
 
-Vercel hosts a public evaluation path with the limitations below. It is optional
-for self-hosted Work. Moving a public host to UpCloud or Evroc requires complete
-API parity and an accepted candidate release, as described in the
+The serverless function adapter runs a public evaluation path on a serverless
+platform, with the limitations below. It is optional for self-hosted Work. Moving
+a public host to UpCloud or Evroc requires complete API parity and an accepted
+candidate release, as described in the
 [cloud deployment guide](cloud-deployment.md#public-shell-cutover).
 
-`vercel.json` runs `scripts/build-vercel-fn.mjs` as the build command: it esbuild-bundles the
+The adapter's build command, `scripts/build-vercel-fn.mjs`, esbuild-bundles the
 whole app + the vendored engine into one plain-JS function (Build Output API) - necessary
-because Vercel's per-file transpile can't resolve this repo's `.ts`-native imports, and Node
+because the platform's per-file transpile can't resolve this repo's `.ts`-native imports, and Node
 won't type-strip the engine under `node_modules`. Config arrives as one JSON string in
-`LW_CONFIG_JSON`; persistence needs a Neon Postgres (EU region) via the Marketplace, else the
+`LW_CONFIG_JSON`; persistence needs a hosted PostgreSQL database (EU region), else the
 in-memory store (ephemeral). On the public demo (no `DATABASE_URL`, `dev.enabled`), that
 in-memory store is **fully seeded on every cold start** - governance fixture, plus 14 days of
 usage telemetry, a mixed fleet, shared links, approvals across every state, and a synthetic
@@ -356,8 +360,8 @@ live-room registry - so a signed-in visitor arrives at populated dashboards, not
 Auth, org-config, RBAC, overlays, links, telemetry, inbox, audit, fleet, console, CLI **and
 `/render/*`** all work - the small `packs/demo` (qr-code, mesh-gradient, colour-palette) is
 bundled into the function, so Tier-A (SVG + resvg PNG) renders in-process. What's still
-absent: no large real pack mount, no Chromium (Tier-B jpg/pdf), the 1.9 GB Lolly
-web shell is not served (the demo landing at `/` stands in), and **no real WebSocket collab**
+absent: no large real pack mount, no Chromium (Tier-B jpg/pdf), the Lolly web shell
+(about 1.5 GB unpacked) is not served (the demo landing at `/` stands in), and **no real WebSocket collab**
 (the Rooms panel shows mock rooms; live editing is the sovereign Helm deploy's ws gateway -
 see `deploy/vercel/WS-SPIKE.md`). This adapter is optional; the hosted **lolly.work**
 evaluation now uses the isolated UpCloud/K3s workload described above. Adapter

@@ -50,8 +50,8 @@ The sessions themselves are untouched, and stay where they were.
 
 Each tool remembers one of three answers for a blank open:
 
-- **Ask me** - the chooser opens with every template that tool has. This is the answer until you change it.
-- **Blank** - the tool opens on its own defaults, no chooser.
+- **Ask me every time** - the chooser opens with every template that tool has. This is the answer until you change it.
+- **Blank canvas** (**Blank** in Projects) - the tool opens on its own defaults, no chooser.
 - **A template** - the tool opens on that one, no chooser.
 
 Four places set it: the checkbox in the save dialog, the tile menu in the chooser, the Templates collection in Projects, and the tool card's info dialog.
@@ -66,20 +66,22 @@ Three things it never changes:
 
 ### In the chooser
 
-The chooser opens on a blank open when the answer is **Ask me**, and from inside a tool whenever you want it: Design's **Lolly** menu has **New from template**, and every other tool has a **Templates** button above the controls.
+The chooser opens on a blank open when the answer is **Ask me every time**, and from inside a tool whenever you want it: Design's **Lolly** menu has **New from template**, and every other tool has a **Templates** button above the controls.
 
 Every tile carries a menu, on right-click, long-press, or the **…** that appears when you point at it:
 
 - **Use** it, the same as clicking the tile.
-- **Start Chart with this** (again naming the tool you are in), or clear it if this one is already the starting point.
-- **Rename** and edit the description, on one of yours.
+- **Share with rules**, described under [Share a constrained tool](#share-a-constrained-tool).
+- **Start Chart with this** (again naming the tool you are in), or **Ask me every time** if this one is already the starting point.
+- **Rename** and **Edit description**, on one of yours.
+- **Update from this document**, on one of yours, when you opened the chooser from inside a tool. The template takes the settings of the document you are working on.
 - **Make a copy**, on one that shipped, so you have your own version to change.
-- **Export as file (.json)** and **Share template (.lolly)**, for passing one on.
+- **Export as file (.json)**, on one of yours, for passing one on.
 - **Hide**, on one that shipped, or **Delete**, on one of yours.
 
 ### The Templates collection
 
-Open **Projects** and choose the **Templates** tile. Inside a folder, the **Templates** chip in the rail opens the same collection. It lists templates across every tool in three groups: **Yours**, **Shipped with** each tool, and **Hidden**. There is a chip per tool to narrow it down, the search box works here as it does everywhere else in Projects, and every tile has the same menu as in the chooser.
+Open **Projects** and choose the **Templates** tile. Inside a folder, the **Templates** chip in the rail opens the same collection. It lists templates across every tool in three groups: **Yours**, **Shipped with** each tool, and **Hidden**. There is a chip per tool to narrow it down, the search box works here as it does everywhere else in Projects, and every tile has the chooser's menu, with **Share template (.lolly)** added on one of yours and without **Update from this document**.
 
 It is a view, not a folder: nothing can be dragged into it, and it has no rename or delete of its own.
 
@@ -111,13 +113,13 @@ A design system can arrive with some of its starters hidden already, so a team s
 ### Passing one on
 
 - **Export as file (.json)** writes the template out in the same file format a tool's own shipped templates use. Drop it into a tool's `templates/` folder, or send it to whoever maintains that tool, and it can ship for everybody.
-- **Share template (.lolly)** wraps it as a file you can send. Opening it on the other device adds it there as a template.
+- **Share template (.lolly)**, in the Templates collection, wraps it as a file you can send. Opening it on the other device adds it there as a template.
 
 ## Presets
 
-A template that shipped with a tool can carry **presets**: named variants inside the one template, like a poster in three colourways. Pick the one you want in the chooser.
+A template that shipped with a tool can carry **presets**: named variants inside the one template, like a poster in three layouts. Each preset is a button on the template's tile in the chooser; pick the one you want.
 
-You cannot make a preset in the app. A saved template is how you keep a variant of your own: save the second colourway as its own template, name it for what it is, and it appears in the chooser beside the first.
+You cannot make a preset in the app. A saved template is how you keep a variant of your own: save the second layout as its own template, name it for what it is, and it appears in the chooser beside the first.
 
 ---
 

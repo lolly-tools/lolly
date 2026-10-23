@@ -38,7 +38,7 @@ or later wherever they render, including the Work server.
   allow `blob:`, in both `server/src/api/shell-headers.ts` and the YunoHost
   `deploy/yunohost/conf/shell-headers.inc`. Before this change the
   shell policy refused those loads, so tools whose libraries load this way, such as
-  SUSECON Background and 3D, fell back to their reduced output.
+  3D, fell back to their reduced output.
 - **The render worker serves HTTPS.** Set `LW_RENDER_TLS_CERT_FILE` and
   `LW_RENDER_TLS_KEY_FILE`, with optional `LW_RENDER_TLS_CA_FILE` and
   `LW_RENDER_TLS_SERVER_NAME`. The chart takes `renderWorker.tls.existingSecret`,
@@ -102,7 +102,7 @@ that same Work commit.
 The `1.1.1~ynh1` package pairs Work 1.1.1 with the signed neutral Lolly web archive
 `https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz` (SHA-256 above). The Work archive is cut
 with the maintained producer after this document is committed, so the archive
-includes it:
+includes this document:
 
 ```text
 node scripts/yunohost-release.ts --ynh-rev 1 --shell-url https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz --shell-sha256 bc78012aa407983ecc818e63be98ae1b45ed7db1dcad3f4c8d4ffe0c371116c1 --out ABS_NEW_ARTIFACT_DIRECTORY
@@ -114,6 +114,16 @@ after its `yunohost-runtime.yml` run. Until then it is not qualified.
 
 ## Images and qualification
 
-The release workflow builds, signs and publishes the server and render-worker
-images from the `v1.1.1` tag. The verified digests are recorded here after
-publication.
+The release workflow built, signed and published the server and render-worker
+images from the tagged source `9fddbf2f`. The render worker came from the `v1.1.1`
+tag push. The server came from a server-only dispatch on `main` after its emulated
+arm64 build failed twice, so its signing identity ends in `refs/heads/main`. The
+release's `release-source-images.json` records the verified digests:
+
+| Image | Digest | Signing identity |
+|---|---|---|
+| `ghcr.io/lolly-tools/lolly-work-server:1.1.1` | `sha256:5fa8b86328bf453635791fc104f4cf6179fc3d3c02a1516da4dea07bd6ae1e55` | `https://github.com/lolly-tools/lolly-work/.github/workflows/release.yml@refs/heads/main` |
+| `ghcr.io/lolly-tools/lolly-work-render-worker:1.1.1` | `sha256:e15db945956db805a991e73e1c7f1d5ce59cdf0787bd93f2aee023d6fee25b6e` | `https://github.com/lolly-tools/lolly-work/.github/workflows/release.yml@refs/tags/v1.1.1` |
+
+Both are multi-platform indexes for linux/amd64 and linux/arm64. The record does
+not claim native arm64 runtime qualification.

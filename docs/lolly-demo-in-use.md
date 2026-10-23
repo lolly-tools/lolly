@@ -33,7 +33,7 @@ Your design system takes the room; the craft stays.
 :::
 
 - <!--i:upload--> [Import a brand you already have](/info/quickstart.html#import-a-brand-you-already-have).
-- <!--i:box--> Start from a blank: **Lolly Starter**, the neutral system beside Lolly Demo on lolly.tools.
+- <!--i:box--> Start from a blank: **Lolly Starter**, the neutral system that lolly.tools offers with Lolly Demo in [Settings → Design systems](/#/settings?focus=design-systems-section).
 - <!--i:trash--> [Remove a design system](/info/brand-studio.html#removing-a-design-system).
 
 [The full Lolly brand standards](/brand) · [Meet Lolly Demo](/info/lolly-demo.html)

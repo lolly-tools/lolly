@@ -14,20 +14,20 @@ configuration, a paged preview, one original-file checksum, sealed credential st
 reviewed activation. Google Drive captures consent in the browser using your registered web
 client. The other kinds currently use their advanced forms or CLI consent flows below.
 
-Open and sovereign sources lead the table: a server you run yourself is the first thing to reach
-for, and the vendor platforms below that table are mostly sources you are federating in order to leave.
+Open and self-hosted sources lead the table, because a server you run yourself is the first
+thing to reach for. The cloud drives come next, then the DAM platforms.
 
 | Kind | Auth | Guide |
 |---|---|---|
 | `webdav` | `user:app password` (Basic) or bearer; Nextcloud, ownCloud, mod_dav | [webdav.md](webdav.md) |
-| `brandfolder` | bearer API key | [brandfolder.md](brandfolder.md) |
 | `s3` | `key:secret` (SigV4) | [s3.md](s3.md) |
-| `optimizely-cmp` | OAuth2 (federate-in **and** publish-out) | [optimizely-cmp.md](optimizely-cmp.md) |
 | `git` | token (or public) | [git.md](git.md) |
+| `penpot` | personal access token (self-hosted); design-system source | [penpot.md](penpot.md) |
 | `dropbox` | OAuth2 (BYOT) | [dropbox.md](dropbox.md) |
 | `gdrive` | OAuth2 (BYOT) | [gdrive.md](gdrive.md) |
 | `o365` | OAuth2 (BYOT) | [o365.md](o365.md) |
-| `penpot` | personal access token (self-hosted); design-system source | [penpot.md](penpot.md) |
+| `brandfolder` | bearer API key | [brandfolder.md](brandfolder.md) |
+| `optimizely-cmp` | OAuth2 (federate-in **and** publish-out) | [optimizely-cmp.md](optimizely-cmp.md) |
 | `imagerelay` | OAuth2 (BYOT); off-boarding source | [imagerelay.md](imagerelay.md) |
 | `canto` | OAuth2 (BYOT); off-boarding source | [canto.md](canto.md) |
 | `acquia-dam` | bearer token (Widen v2); native availability | [acquia-dam.md](acquia-dam.md) |
@@ -39,13 +39,13 @@ for, and the vendor platforms below that table are mostly sources you are federa
 
 ## The live-verify runbooks
 
-Seven drivers ship **fixture-verified**: their endpoint paths and field names come from public
+Nine drivers ship **fixture-verified**: their endpoint paths and field names come from public
 documentation and have not been confirmed against a real server, because this repo signs no
 vendor EULA to obtain a tenant and runs no reference installation. Each carries a `LIVE-VERIFY`
-checklist in its source header and a runbook beside its guide that discharges it in one ordered
-pass - `lw providers preview --shape` for the record structure the server returns, an assumption
-table mapping each guess to the constant that holds it, and a blob fetch to prove the bytes are
-the original rather than a rendition:
+checklist in its source header. Seven of them also have a runbook beside their guide that
+discharges it in one ordered pass - `lw providers preview --shape` for the record structure the
+server returns, an assumption table mapping each guess to the constant that holds it, and a blob
+fetch to prove the bytes are the original rather than a rendition:
 
 | Kind | Runbook |
 |---|---|
@@ -57,9 +57,12 @@ the original rather than a rendition:
 | `cloudinary` | [cloudinary-live-verify.md](cloudinary-live-verify.md) |
 | `orange-logic` | [orange-logic-live-verify.md](orange-logic-live-verify.md) |
 
-The six DAM runbooks are written for the platform team running the pass on a customer's tenant;
-the `webdav` one is written for whoever administers the server, since with this kind that is
-usually the same organization. All of them name file paths and constants.
+`optimizely-cmp` and `penpot` carry the same `LIVE-VERIFY` checklist but have no runbook or
+`--shape` report yet. `brandfolder` carries no checklist, but its availability field names
+(`availability_start` / `availability_end`) still await a check against a real tenant.
+
+The six DAM runbooks are written for whoever runs the pass against a DAM tenant; the `webdav`
+one is written for whoever administers the server. All of them name file paths and constants.
 
 Universal rules across every kind: credentials are **write-only** (sealed at rest, only a
 fingerprint is ever returned), providers are **read-only** federation (deleting one never
@@ -131,8 +134,8 @@ lw providers enable acme-x      # owner-only
 
 1. Prompts for **your** app's client id and (unless it's a public/PKCE-only app) client
    secret - never argv, never shell history.
-2. Runs a **PKCE loopback** consent: opens the platform's consent screen, receives the code
-   on `http://127.0.0.1:<port>`, exchanges it for a **refresh token**.
+2. Runs a **PKCE loopback** consent: prints the platform's consent URL for you to open in a
+   browser, receives the code on `http://127.0.0.1:<port>`, exchanges it for a **refresh token**.
 3. Stores `{clientId, clientSecret?, refreshToken}` through the same write-only credential
    endpoint as any API key. Access tokens are never persisted - they're minted per process
    from the refresh token and cached in memory.
@@ -155,8 +158,9 @@ lw providers enable acme-canto       # owner-only
 **Where the refresh token comes from.** The vendor's own documented OAuth2
 authorization-code flow, run once by hand against the app you registered:
 
-1. Register an app under your own contract in the vendor's console (Canto issues its App ID +
-   Secret through support) and allow a redirect URI you control.
+1. Register an app under your own contract in the vendor's console (in Canto, an admin creates
+   the App ID + Secret under *Settings > Configuration Options > API Keys*) and allow a redirect
+   URI you control.
 2. Run the vendor's documented authorize/consent step for that app, asking for read scopes
    plus offline access, and collect the authorization code it returns.
 3. Exchange that code for a **refresh token** at the vendor's documented token endpoint.

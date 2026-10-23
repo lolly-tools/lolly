@@ -6,17 +6,17 @@ Start with [Make your first file](/info/make-something.html), [use Lolly in your
 
 ## Use it on your device
 
-The engine and app render on your device. Keep the app, tools and required assets available before relying on an offline workflow. Optional online features have their own connections and limits. [Create & use](/info/creators.html) covers making, finding, sharing and exporting work.
+The engine and app render on your device. Keep the app, tools and required assets available before relying on an offline workflow. Optional online features have their own connections and limits. [Create](/info/creators.html) covers making, finding, sharing and exporting work.
 
 ## Add organisation services when you need them
 
 Lolly Work is the optional organisation service. An organisation can use it for sign-in, group permissions, shared projects and assets, policies, approvals, server render jobs and delivery records. Those services use the organisation's server and storage.
 
-[Use Lolly at your organisation](/info/organisation.html) explains the member experience. [Manage an organisation](/info/operators.html) covers administration. [Deploy & operate](/info/operate.html) covers hosting, configuration, updates and recovery.
+[Use Lolly at your organisation](/info/organisation.html) explains the member experience. [Manage](/info/operators.html) covers administration. [Deploy](/info/operate.html) covers hosting, configuration, updates and recovery.
 
 ## Build and automate
 
-The creative `lolly` CLI, URLs and public rendering MCP drive tools and make files. The `lw` CLI administers a Work instance. Document agent invitations delegate access to a specific shared document; they do not grant infrastructure access. [Build & automate](/info/builders.html) links to the interfaces and their limits.
+The creative `lolly` CLI, URLs and public rendering MCP drive tools and make files. The `lw` CLI administers a Work instance. Document agent invitations delegate access to a specific shared document; they do not grant infrastructure access. [Automate](/info/builders.html) links to the interfaces and their limits.
 
 ## Understand the boundaries
 

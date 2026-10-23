@@ -1,7 +1,15 @@
 # API surface
 
-Every route the console and the CLI use - they share one API, so the two surfaces stay in
-parity by construction. Errors are `{ error: { code, message } }` with an honest HTTP status.
+The routes the console, the `lw` CLI and the Lolly apps use, grouped by job. The console
+and the CLI call the same API, so they stay in step. Errors are
+`{ error: { code, message } }` with an HTTP status that matches the error.
+
+A few routes are described on the page that owns their feature: personal data export and
+offboarding in [account lifecycle](account-lifecycle.md) and [data lifecycle](data-lifecycle.md),
+reverse-proxy sign-in and SCIM ownership in [identity](identity.md), back-channel logout in
+[enterprise identity](enterprise-identity.md), the AI policy read in [managed AI](ai-policy.md),
+catalog sources and file previews in [file previews](file-preview.md), and the transfer
+inventory in [project portability](project-portability.md).
 
 "Action" is the RBAC action the caller must hold ([permissions](permissions.md)); *member*
 means any signed-in member; *public* means no session needed.
@@ -11,8 +19,8 @@ means any signed-in member; *public* means no session needed.
 | Route | Action | Notes |
 |---|---|---|
 | `GET /healthz` | public | `{ ok, name, accessMode, appUrl? }` - liveness |
-| `GET /readyz` | public | `{ ok, store }`, 503 while the store cannot answer - readiness |
-| `GET /metrics` | token | Prometheus; loopback-only unless `LW_METRICS_TOKEN` is set |
+| `GET /readyz` | public | `{ ok, store }` - readiness. `503` while the store cannot answer or the mounted catalog is not prepared yet, and in production also while migrations are pending or the setup checks fail |
+| `GET /metrics` | token | Prometheus. With `LW_METRICS_TOKEN` set, the bearer token is required. Without one, only loopback may read it, and only on an evaluation instance with no proxy: in production, behind `proxyAuth` or with `rateLimit.trustedProxyHops` above `0`, a request without the token gets `404`, from loopback too |
 | `GET /api/v1/alerts` | `telemetry.view` | `{ alerts: [{ id, kind, level, month, value, threshold, title, detail, href }] }`: alerts the server raises for administrators, shown as the console banner. Today only the [blob offload trigger](operations.md#blob-offload-trigger) |
 
 ## Instance manifest and the connect surface
@@ -27,9 +35,11 @@ means any signed-in member; *public* means no session needed.
 
 The manifest is what a downloaded app learns about this deployment before
 anyone signs in: `{ name, accessMode, provider, providerName, loginPath,
-engineVersion, capabilities, brand, connect? }`. `engineVersion` is the vendored
+engineVersion, capabilities, providers, brand, branding, connect? }`. `engineVersion` is the vendored
 engine pin this deploy serves tools against; `capabilities` identifies the surfaces
-the server ships (`catalog`, `collab`, `submit`, `scim`); `connect.packUrl`
+the server ships (`catalog`, `collab`, `submit`, `scim`); `providers` lists the sign-ins
+on offer as `[{ id, name, kind, loginPath }]`; `branding` is described under
+[Catalog](#catalog); `connect.packUrl`
 appears exactly while a pack is hosted. It carries no secrets and no user
 data, and shares the auth rate-limit bucket. Any origin may read it
 (`Access-Control-Allow-Origin: *`, with `OPTIONS` answering the preflight),
@@ -40,15 +50,15 @@ this instance is where the finished pack publishes to. See "Connecting apps to
 this instance" in [operations](operations.md) for the connect story.
 
 `brand` is the design system this deployment hosts, for a client that adds one
-by URL and keeps it on the device for offline use (OSS `plans/186`):
+by URL and keeps it on the device for offline use:
 
 ```json
 "brand": {
-  "profile": "suse",
-  "label": "SUSE tokens",
+  "profile": "lolly-demo",
+  "label": "Lolly Demo",
   "version": "1.2.0",
   "checksum": "sha256-QOn2…",
-  "locked": true,
+  "locked": false,
   "packUrl": "https://brand.example/connect/pack.lolly"
 }
 ```
@@ -97,14 +107,25 @@ in on the instance and export the pack, or connect from the desktop app.
 | `GET /api/v1/me/identities` | member | the person's linked sign-ins: `{ identities: [{ idp, subjectHash, displayName, email, emailVerified, linkedAt, lastLoginAt, canUnlink, unlinkBlocked? }], available: [{ id, name, kind, linkPath }] }` |
 | `DELETE /api/v1/me/identities/:idp/:subjectHash` | member | `204`: the removal ends every session of the account, and the browser that asked gets a fresh session cookie in the same chain (the same `authAt` and sign-in time, cut at `authAt + sessionMaxHours`; see [identity](identity.md#session-length-and-renewal)). No cookie when the request carried no session cookie of the person's or that chain has reached its cap, and the person signs in again. `409 ACCOUNT_SIGN_IN` for the sign-in the account was created with, `409 LAST_SIGN_IN` for the last one |
 | `POST /api/v1/me/revoke-sessions` | member (own session cookie) | sign out on all devices: bumps the caller's own session epoch, so every session they hold ends on its next request, and clears `lw_session` and `lw_guest` on this browser. `204` with `cache-control: no-store`. A service token, a bearer caller or an agent acting for someone gets `401`. Five calls an hour per person, then `429 RATE_LIMITED` with `retry-after: 3600`. Audited `user.sessions.revoked` with `{ self: true }` |
+| `GET /api/auth/security` | member (page) | Account security: the person's passkeys, and Add a passkey and Remove when they signed in within the last 10 minutes. Signed out, it redirects to sign-in |
+| `GET /api/auth/passkeys/login`, `GET /api/auth/passkeys/client.js` | public (page) | the passkey sign-in page and the script both passkey pages load |
+| `POST /api/auth/passkeys/register/options`, `POST /api/auth/passkeys/register/verify` | member, signed in within the last 10 minutes | add a passkey: ask for options, then send the authenticator's `response` with a `label` of 1 to 80 characters. `201 { ok: true }`; `401 REAUTH_REQUIRED` once the 10 minutes have passed, `409 PASSKEY_LIMIT` at 10 passkeys, `400 PASSKEY_REFUSED` when the response does not verify |
+| `POST /api/auth/passkeys/authenticate/options`, `POST /api/auth/passkeys/authenticate/verify` | public | sign in with a passkey: options (body `{ returnTo? }`), then the `response`. `200 { ok, returnTo }` with `lw_session`; `400 PASSKEY_REFUSED` for an unknown passkey, a disabled account or a failed check, `400 PASSKEY_EXPIRED` for a used or expired challenge |
+| `POST /api/auth/passkeys/:id/remove` | member, signed in within the last 10 minutes | `200 { ok: true }`; `404` when the passkey is not on the account |
 | `GET /api/auth/dev?email=…` | public | dev provider only; `404` when `dev.enabled` is false |
 | `GET /api/auth/session` | member/guest | the current principal |
 | `POST /api/auth/logout` | any | clears both cookies |
+| `GET/POST /api/auth/logout-provider` | member signed in through an OIDC provider | sign out of the identity provider as well: the `GET` page asks to confirm, and its form's `POST` ends this browser's Work sessions and answers `303` to the provider's end-session endpoint. `401 NO_OIDC_SESSION` without an OIDC sign-in, `409 NO_PROVIDER_LOGOUT` when the provider offers no end-session endpoint. See [enterprise identity](enterprise-identity.md) |
 | `POST /api/v1/auth/device` | public | start device sign-in: `{deviceCode, userCode, verificationUri, interval, expiresIn}` |
 | `POST /api/v1/auth/device/token` | public | the device's poll: `{status}` of `pending`/`denied`/`expired`, or `approved` + the session cookie (single read). The cookie continues the approving browser's chain and ends no later than its `authAt + sessionMaxHours` (`sessionTtlHours` from that sign-in while renewal is off); once that chain has ended the answer is `denied`, audited `auth.denied` with `reason: 'session-max'` |
-| `GET /activate` | member (page) | where a person types and confirms a device code - approval binds the approver's identity, so it lives here and nowhere else |
+| `GET/POST /activate` | member (page) | where a person types and confirms a device code - approval binds the approver's identity, so it lives here and nowhere else |
 | `GET /api/v1/auth/device/pending` | `fleet.view` | pending codes, oldest first |
 | `POST /api/v1/auth/device/deny` | `fleet.manage` | refuse a pending code from the console |
+
+The passkey routes exist only while `instance.baseUrl` is HTTPS on a host name, or
+`http://localhost`; a bare IP address gets none. Every passkey `POST` must come from this
+instance's own origin (`403 ORIGIN_REQUIRED`), a challenge lasts five minutes, and the
+routes share the `auth` rate-limit bucket.
 
 ## The polled document
 
@@ -127,7 +148,7 @@ in on the instance and export the pack, or connect from the desktop app.
 | `PUT /api/v1/catalog/assets/<id>/head` | `catalog.edit` | roll back: `{ "version": N }` points the head at a version that already exists |
 | `DELETE /api/v1/catalog/assets/<id>/versions/<n>` | `catalog.edit` | `409 VERSION_IS_HEAD` for the served version, `409 ASSET_HELD` while a hold is set |
 | `GET /catalog/inst/<id>/<format>?v=N` | per access mode | a prior version's bytes, through every gate the head answers to |
-| `GET /api/v1/catalog/fields` | `catalog.read` | the org's field definitions, plus a `canEdit` bit for honest UI |
+| `GET /api/v1/catalog/fields` | `catalog.read` | the org's field definitions, plus a `canEdit` bit so a client offers editing only to someone who may edit |
 | `PUT/DELETE /api/v1/catalog/fields/<id>` | `policy.edit` | define or retire one field; the definitions also ride the governance document |
 | `GET /api/v1/catalog/tags[?provider=<id>]` | `policy.edit` or `catalog.provider.manage` | every label the catalog carries, counted per source, with the rules hiding each one |
 | `PUT /api/v1/catalog/tags/rules` | `policy.edit` (scope `*`), `catalog.provider.manage` (scope `provider:<id>`) | `{ scope, hidden }` replaces a hidden-tag list, `{ scope, hide, show }` edits it; applied when the index is served |
@@ -257,6 +278,7 @@ C2PA export assertion. See
 | `GET /api/v1/config/export` | `policy.edit` |
 | `POST /api/v1/config/apply?dryRun=1&prune=1` | `policy.edit` (+ owner for owner-only grants) |
 | `GET /api/v1/chains`, `PUT /api/v1/chains/:id` | member / `policy.edit` |
+| `POST /api/v1/chains/preview` | `policy.edit` - checks a draft chain before saving: `{ steps: [{ name, eligibleCount, otherEligibleCount, required, viable }], viable }`, where a step is viable when enough people other than the caller may act on it |
 
 ## People and groups
 
@@ -387,6 +409,19 @@ The `ask` token is minted only on a page the server renders right after it verif
 sign-in (the refusal and wrong-account pages). It lives 30 minutes, travels in a hidden
 form field, and carries the verified address, so the address on a request is never typed.
 
+**Project join links.** A manager can also make one reusable link that anyone may open to
+join a project, or one document in it, with a fixed role. Opening the link changes nothing;
+joining takes a signed-in account or, when the link allows new people, a personal
+invitation for the address the person enters.
+
+| Route | Who | Notes |
+|---|---|---|
+| `POST /api/v1/projects/:id/invite-links` | manager | body `{ role: "viewer" \| "commenter" \| "editor", sessionId? }`. `201 { id, role, allowNewPeople, url, expiresAt }`, or `200` with the caller's own live link of the same kind. A link lasts 7 days, or `policy.invites.maxTtlHours` when that is shorter. `allowNewPeople` is true when the caller may invite new people. `403 ROLE_NOT_ALLOWED` for a role `policy.invites.projectRoles` leaves out, `409 PROJECT_ARCHIVED`, and after 50 new links in a day `429 RATE_LIMITED` |
+| `GET /api/v1/projects/:id/invite-links` | manager | `{ links }`: the project's links that still work |
+| `DELETE /api/v1/projects/:id/invite-links/:link` | manager | revoke; `204` |
+| `GET /l/join/:id?s=…` | public; reads the session cookie | the join page. A link stops working (`410`) once its maker is disabled or no longer a manager, the project is archived, the document is deleted or the role is no longer allowed |
+| `POST /api/auth/project-link` | public form | the join page's form: `id`, `sig`, `csrf`, `action` (`join` or `new`) and `email` (for `new`). `join` adds the signed-in person and answers `303` to the project; `new` makes an invitation for the address and answers `303` to its invite page, at most 50 addresses an hour per link |
+
 **Requests.** JSON routes with the session cookie. Service tokens are refused.
 
 | Route | Who | Notes |
@@ -438,9 +473,9 @@ stores nothing, so its subject is `request`). A note is recorded only as its len
 
 | Route | Action | Notes |
 |---|---|---|
-| `POST /api/v1/tokens` | `token.manage` (**owner**) | mint; the secret (`lwt_…`) appears in this response and never again |
-| `GET /api/v1/tokens` | `token.manage` (**owner**) | list with last-used and revocation state - never secrets |
-| `DELETE /api/v1/tokens/:id` | `token.manage` (**owner**) | revoke; the very next use gets `401` |
+| `POST /api/v1/tokens` | `token.manage` (**owner**) | mint: body `{ label, role, ttlDays? }`. `label` says which automation holds the token (up to 80 characters), `role` is any role but `guest`, and `ttlDays` is a whole number from 1 to 365 (90 by default). `201` with the token record and `token`, the secret (`lwt_…`), which appears in this response and never again |
+| `GET /api/v1/tokens` | `token.manage` (**owner**) | list with expiry, last-used and revocation state - never secrets |
+| `DELETE /api/v1/tokens/:id` | `token.manage` (**owner**) | revoke: `200 { ok: true }`, or `404` for a token that is unknown or already revoked; the very next use gets `401` |
 
 A minted token rides `Authorization: Bearer lwt_…` and resolves to a synthetic
 principal carrying the token's role (no groups) - RBAC, grants and audit see it
@@ -489,7 +524,7 @@ or a live-collab invite once they cannot see the project, an invite also once it
 is deleted, and an access request for a project once they no longer manage the project. Hidden is
 not deleted: the message comes back if the access does.
 
-Comment notices (plan 76 milestone 4) appear in the same list. There is one per person
+Comment notices appear in the same list. There is one per person
 per thread, updated as replies arrive, and it is built when the inbox is read:
 
 ```json
@@ -528,7 +563,7 @@ are never emailed today; see `policy.comments` under [Canvas comments](#canvas-c
 | `GET /l/:id?s=…[&name=…]` | public (the signature *is* the authorization); a password link also needs its cookie. A browser opening a guest link gets its landing page, which admits nobody |
 | `POST /l/:id?s=…[&name=…]` | public: checks a password link's password and sets its cookie; the guest landing's form joins here (`name`, `password`) and is answered with `303` into the app |
 | `GET /l/:id?s=…&zip=1`, `…&asset=<id>[&dl=1]` | public - a collection link's zip-all, and one member of that set (an id it does not name is `404 NOT_IN_COLLECTION`) |
-| `GET /render/<toolId>.<format>` | `export.server`, or a guest scoped to that tool |
+| `GET /render/<toolId>.<format>` | a member who may use the tool and holds `export.server` (admins by default; a grant can give it to others); a guest whose link opens that tool; or, on an `open` instance, anyone without signing in, for a tool visible to everyone. A query that is not in canonical order is answered `308` to the canonical one |
 
 A password link's password goes in the body of `POST /l/:id?s=…`, as the form
 field `password` or as JSON `{"password": "…"}`. The answer sets an HttpOnly
@@ -539,9 +574,9 @@ passwords from one address within 15 minutes lock the link for that address
 (`429 PASSWORD_LOCKED` with `Retry-After`). A browser that opens a password link
 without the cookie gets a page with that form. Password links answer
 `private, no-store`, because the cookie, not the URL, decides who reads them.
-`&pw=…` on the `GET` is deprecated and still works for one more release: the
+`&pw=…` on the `GET` is deprecated as of Work 1.1.2, which still accepts the parameter: the
 answer carries a `Deprecation` header and sets the same cookie, and the server
-logs one warning per link. See [Password links](sharing.md#password-links).
+logs one warning per link. A later release refuses `&pw=`. See [Password links](sharing.md#password-links).
 
 For worker-backed renders, asset inputs use the same URL encoding as the Lolly
 shell. A `user/team/<fileId>` reference is resolved to that project's file endpoint
@@ -590,6 +625,8 @@ separate from the existing `/api/v1/batch` job/ZIP contract.
 | `GET /api/v1/projects/:id/folders` | viewer; `{ folders: [{ id, projectId, parentId, name, createdAt, createdBy, items: [{ kind, ref }] }] }` |
 | `POST /api/v1/projects/:id/folders` | editor and `session.edit`, project not archived; `{ name, parentId? }`; `201 { folder }`. An omitted or null parent creates a folder at the project root |
 | `PATCH /api/v1/projects/:id/folders/:folderId` | editor and `session.edit`; `{ name }` renames a folder |
+| `PUT /api/v1/projects/:id/folders/:folderId/parent` | editor and `session.edit`; `{ parentId }`, a folder in this project or `null` for the root, moves the folder. `200 { parentId }`; `400 INVALID_INPUT` for a parent outside the project or inside the folder itself |
+| `DELETE /api/v1/projects/:id/folders/:folderId` | editor and `session.edit`; `204`. The folder's documents, files and subfolders move up to its parent folder, or to the project root |
 | `PUT /api/v1/projects/:id/folders/items/:kind/:ref` | editor and `session.edit`; `{ folderId }` moves a session or finished file into a folder in this project. Null returns it to the project root. Changes no document content or file bytes |
 | `GET/POST /api/v1/projects/:id/sessions` | viewer / editor and `session.create`. List rows carry `updatedByName` |
 | `GET /api/v1/sessions/:id`, `GET …/revisions` | viewer. The full session carries `myRole`, the caller's effective project role; workspace capabilities still apply |
@@ -613,6 +650,7 @@ separate from the existing `/api/v1/batch` job/ZIP contract.
 | `POST /api/v1/sessions/bulk` | `session.edit` and `project.manage`; only sessions in projects where the caller is an editor |
 | `GET /api/v1/collab/invitees?sessionId=…&q=…` | member with read access to the session |
 | `POST /api/v1/collab/invites` | `collab.edit` (= `session.edit`) |
+| `POST /api/v1/collab/sessions/:id/socket-ticket` | signed-in member (session cookie) with read access to the session and `collab.join` - a one-use ticket for [the collab socket](#the-collab-socket): `200 { ticket }` |
 | `GET /api/v1/collab/rooms` | `telemetry.view` - live room census for the console |
 | `GET/POST /api/v1/collab/nearby` | `collab.join` - the nearby-discovery handover lane |
 
@@ -667,7 +705,7 @@ route here answers `404 NOT_FOUND` with the message `project files are off`.
 | `POST /api/v1/projects/:id/files/:fileId/finalize` | the uploader | `200 { file }` with `ready: true`; repeating it is harmless |
 | `GET /api/v1/projects/:id/files/:fileId` | viewer | the bytes, as an attachment, `private, no-store` |
 | `PATCH /api/v1/projects/:id/files/:fileId` | editor and `session.edit`, project not archived; a person, so a service token gets `403` | `200 { name }`; the body is `{ name }`, 1 to 200 characters with no control characters. The bytes, id and checksum do not change, so sessions that use the file keep working. `400 INVALID_INPUT` for a bad name, `403` without editor access, `404` for an unknown or unfinished file or a file in another project |
-| `DELETE /api/v1/projects/:id/files/:fileId` | the uploader, or manager and up | `204`; on an unfinished upload this cancels it |
+| `DELETE /api/v1/projects/:id/files/:fileId` | the uploader, or manager and up | `204`; on an unfinished upload this cancels the upload |
 
 The begin body is `{ name, size, checksum, contentType, parts: [{ size, checksum }], asset }`,
 where `checksum` is the hex SHA-256 of the whole file and of each part, every part but the
@@ -796,7 +834,7 @@ owners who keep the same bytes get two references.
 `POST /api/v1/files` takes `{ name, contentType, bytesBase64, checksum?, role?, derivedFrom?,
 report? }`, with the bytes as canonical base64, up to 4 MiB or `policy.uploads.maxFileBytes` if
 that is smaller. `checksum` is the sha256 you expect; other bytes are refused. Behind a request
-cap smaller than the body, such as Vercel's 4.5 MB, or for a larger file, begin an upload with
+cap smaller than the body, such as a serverless host's limit of a few megabytes, or for a larger file, begin an upload with
 scope `file` instead and send it in parts; `lw upload <file> --scope file` does that.
 
 `role` is `original` unless the bytes are the `output` of an operation done elsewhere. An
@@ -864,8 +902,17 @@ audited. [Discovery](#effective-schemas-and-discovery) reports `files.references
 
 ### The collab socket
 
-Live co-editing runs over `GET /ws/collab/:sessionId`, a WebSocket upgrade
-carrying the same session cookie an HTTP call would. Authorization happens
+Live co-editing runs over `GET /ws/collab/:sessionId`, a WebSocket upgrade. A browser
+upgrade carries the same session cookie an HTTP call would, and must come from this
+instance's origin (`403 FORBIDDEN_ORIGIN` otherwise). The desktop and mobile apps instead
+send a one-use ticket from `POST /api/v1/collab/sessions/:id/socket-ticket` as
+`Sec-WebSocket-Protocol: lolly-collab-v1, lolly-ticket.<ticket>`. A ticket opens one
+session's room once, within 30 seconds of being issued, and stands in for the member's
+session. An upgrade that sends `Sec-WebSocket-Protocol` without a valid ticket is refused
+`401`. Tickets are held in the memory of the process that issued them, so the ticket
+request and the upgrade must reach the same process; the ticket route answers
+`501 UNAVAILABLE` where no collaboration gateway runs, such as a serverless deploy, and
+`429 BUSY` while too many tickets are waiting. Authorization happens
 **before the handshake completes**, so a refusal is a plain HTTP status on the
 socket rather than a mystery disconnect: `401` unauthenticated, `404` no such
 session, `403` the project is not visible to you or `collab.join` is denied,
@@ -882,7 +929,7 @@ unaffected:
 | `dsi` | the instance base that design system came from |
 
 A room hosted here runs under exactly one design system, the one this deployment
-governs (OSS `plans/186` section 3.10). When a client identifies one, `dsi` must be
+governs. When a client identifies one, `dsi` must be
 this instance's `baseUrl` (a trailing slash and letter case are not a
 difference, and the comparison is on the origin) and, on a profile-aware pack,
 `ds` must be the **active** brand profile that `GET /api/v1/brand/profiles`
@@ -998,7 +1045,7 @@ timestamps come from the server; audit records contain identifiers, not message 
 
 ### Session versions
 
-Saved versions of a document (plan 76 milestone 4). What is kept, and for how long, is
+Saved versions of a document. What is kept, and for how long, is
 in [data lifecycle](data-lifecycle.md#session-versions). Every route needs a signed-in
 person (a service token gets `401`), current session read access (`404`, `403`, `410`
 as for the session) and `session.view`. Saving, naming, pinning and restoring also need
@@ -1062,7 +1109,7 @@ Saves, name and pin changes and restores share one limit per person: 10 a minute
 ### History across documents
 
 `GET /api/v1/history` lists the versions of every document you can read, newest first,
-in one request (plan 221). It needs a signed-in person: a service token gets `401`, and
+in one request. It needs a signed-in person: a service token gets `401`, and
 a request an agent makes for a person gets `403`, because an agent's access is one
 project or one document. The answer is `200 { entries, before? }`, private to you
 (`cache-control: private, no-store`).
@@ -1121,6 +1168,7 @@ document's content or an email address. Read a version's content with
 | `GET /api/v1/system/setup/tools/:id` | `instance.config` plus current tool use/export permission: sample input metadata and governed checked formats |
 | `GET /api/v1/system/migrations` | `instance.config` (**owner**) |
 | `GET /api/v1/docs`, `GET /api/v1/docs/:slug` | member - this documentation set |
+| `GET /api/v1/docs/img/:file`, `GET /api/v1/docs/shots/:file`, `GET /api/v1/docs/shots/:file/cred` | member - the images and screenshots those pages show, and a screenshot's Content Credentials as JSON (`404 NO_CRED` when it carries none) |
 
 ## Static
 
@@ -1128,7 +1176,8 @@ document's content or an email address. Read a version's content with
 |---|---|
 | `GET /admin`, `GET /admin/*` | the admin console (static; every call it makes is auth-enforced) |
 | `GET /tools/*` | a tool's files (`tool.json`, `template.html`, `hooks.js`, ...) from the pack's `tools/<id>/`, never from the shell dist. Gated like `/catalog/*`, and a tool the caller's groups cannot see answers 404, the same absence the tool index shows. A guest may fetch the tool its link opens |
-| `GET /`, `GET /*` | the Lolly web shell, when `instance.shellDir` is set. Registered last, so API/console/catalog/render/link routes always win; `api`, `catalog`, `tools`, `render`, `l`, `admin`, `healthz` are reserved prefixes |
+| `GET /models/*` | the shell's on-device model files, when `instance.shellDir` is set: from the shell dist when it carries them, otherwise passed through to `instance.modelOrigin` (see [configuration](configuration.md#instance)) |
+| `GET /`, `GET /*` | the Lolly web shell, when `instance.shellDir` is set. Registered last, so API/console/catalog/render/link routes always win; `api`, `catalog`, `tools`, `render`, `l`, `e`, `o`, `admin`, `scim`, `healthz`, `activate` and `connect` are reserved prefixes |
 
 ## Common error codes
 
@@ -1141,7 +1190,7 @@ document's content or an email address. Read a version's content with
 | `BAD_SIGNATURE` | 403 | link signature invalid |
 | `CONFIG_MANAGED` | 409 | the target is owned by `instance.json` |
 | `CONFLICT` | 409 | stale session `rev` - the body's `current` is the server session to rebase on |
-| `LINK_EXPIRED` / `LINK_REVOKED` | 410 | self-explanatory |
+| `LINK_EXPIRED` / `LINK_REVOKED` | 410 | the link has passed its expiry, or has been revoked |
 | `INPUT_LOCKED` | 422 | a locked input was supplied by the caller |
 | `INPUT_HIDDEN` | 422 | the caller supplied an input that policy hides from them |
 | `INPUT_NOT_ALLOWED` | 422 | the value is not one of those a choice rule allows |
@@ -1153,7 +1202,7 @@ document's content or an email address. Read a version's content with
 | `ROW_VALIDATION_FAILED` | 422 | a batch row does not satisfy the selected tool contract |
 | `IDEMPOTENCY_KEY_REUSED` | 409 | the principal reused an idempotency key for different request bytes |
 | `UNSUPPORTED_FORMAT` | 400 | a format this deployment cannot produce (org_config's `render.formats` identifies what it can) |
-| `FORMAT_NOT_ALLOWED` | 403 | the format exists here but this tool's overlay policy excludes it |
+| `FORMAT_NOT_ALLOWED` | 403 or 415 | `403` from a render: the format exists here but this tool's overlay policy excludes the format. `415` from an outbound delivery: the destination does not accept that format |
 | `RENDER_BUSY` | 503 | the render worker is at capacity - retry after `Retry-After` seconds |
 | `HOOKED_TOOL_NEEDS_CHROMIUM` | 501 | hooked tool, no worker configured (org_config's `render.hookedTools` is `false`) |
 | `TOOL_REQUIRES_UNMET` | 501 | the manifest's `requires` identifies a `host.*` API the in-process render host lacks (`text`, `compose`, `audio`, the device APIs); route the tool through the Chromium worker |
@@ -1167,12 +1216,15 @@ that carries a live member session, it registers the install in the fleet regist
 Anonymous and guest traffic with the same token feeds the histogram and nothing else, and
 there is no heartbeat: an install is seen exactly when its person uses the instance, and
 leaving the instance client-side deletes the id.
-# Automation and document API
+
+## Automation and document API
 
 The typed automation surface mirrors the open-source engine's document verbs:
 `POST /api/v1/compile`, `/validate`, `/inspect`, `/diff`, `/measure`, `/optimize`,
 `/package`, and `/render`; `GET /api/v1/schema/:toolId` publishes a tool's input
-schema. JSON requests use `{toolId, inputs}` rather than URL-only merge fields.
+schema. JSON requests use `{toolId, inputs}` rather than URL-only merge fields;
+`/render` also requires `format` and answers `400 INVALID_INPUT` without one, for
+example `{"toolId": "qr-code", "format": "svg", "inputs": {"url": "https://example.com"}}`.
 Schema, compile, package and render all enforce the caller's `tool.use` decision
 and tool-visibility overlay; a document verb cannot be used to discover a tool
 hidden from that principal. Render additionally requires `export.server`.
@@ -1246,8 +1298,8 @@ as a text length, are not in the schema; the render checks them and refuses a
 value that breaks one with `BRAND_RULE_VIOLATION`.
 
 The discovery routes and the schema route share the `rateLimit.automation`
-bucket. The public deployment record uses it too, so reading that record never
-costs a sign-in attempt.
+bucket. That includes `GET /api/v1/discovery`, the public deployment record, so
+reading the record never costs a sign-in attempt.
 
 Discovery is served under `/api/v1` rather than `/.well-known/`, because on a
 shared origin `/.well-known/` belongs to the web shell, whose static
@@ -1276,12 +1328,11 @@ that one job's result: send it as the `x-lw-job-token` header on
 A completed job resource carries the same `resultToken`, and `null` before then.
 
 The token used to travel in the URL, as `resultUrl?token=…`. A URL ends up in
-access logs, proxy logs and CDN logs, so that form is deprecated. For one more
-release `resultUrl` still carries `?token=` and the result route still accepts
-it, answering with a `Deprecation` header
-([RFC 9745](https://www.rfc-editor.org/rfc/rfc9745)). After that release
-`resultUrl` loses its query and a query token is refused, so move receivers to
-the header now.
+access logs, proxy logs and CDN logs, so that form is deprecated as of Work 1.1.2.
+In Work 1.1.2 `resultUrl` still carries `?token=` and the result route still accepts
+the query token, answering with a `Deprecation` header
+([RFC 9745](https://www.rfc-editor.org/rfc/rfc9745)). A later release drops the
+query from `resultUrl` and refuses a query token, so move receivers to the header now.
 
 Callbacks go through a durable outbox. The write that settles a job also stores
 its callback, and any Work process sends callbacks that are due, so a callback
@@ -1325,8 +1376,8 @@ checksum }` naming one of the caller's [file references](#file-references). `/op
 `{toolId,inputs}` and can run asynchronously.
 
 These routes use the configurable `rateLimit.automation` bucket. It is technical
-admission control, not printer-rate pricing; durable per-principal quotas and
-usage accounting are specified in plan 45.
+admission control, not pricing; Work keeps no per-principal quota or usage account
+for these routes.
 
 Durable render and batch requests accept `production: { contract,
 referenceBase64?, repair? }` for the engine's `lolly/production-still-v1` profile.
@@ -1350,6 +1401,7 @@ for fields, collector limits and worker compatibility.
 
 See [managed production rules](design-system-administration.md#managed-production-rules) for scope and draft handling. Render input checks do not certify output appearance. Durable output metadata includes `brandRules` with disposition, scope and revision; synchronous and durable downloads expose `x-lolly-brand-check`.
 
+## Presence and agents
 
 ### Project session presence
 
@@ -1384,3 +1436,15 @@ These routes require a signed-in person with access to the project. They never r
 | `DELETE /api/v1/projects/:id/agents/:agentId` | inviter or project manager; revokes the key and closes its document connections; `204` |
 
 Project keys authenticate only `POST /api/workspace/mcp`, using `Authorization: Bearer <key>`. They do not authenticate the REST API. `DELETE /api/workspace/mcp` disconnects document connections without revoking the key. MCP requests recheck current inviter access. Project tools accept only their declared arguments and never a caller-selected project or HTTP path. Tool failures return `isError: true` with a safe error code and explanation. Document tools require `sessionId` for a project key; a document key remains bound to its original document.
+
+### Document agent invitations
+
+A document key admits an agent to one Design document. These routes need a signed-in
+person who can open the document and holds `collab.join`. A document the caller cannot
+open, or one that is not a Design document, answers `404`.
+
+| Route | Access and response |
+|---|---|
+| `GET /api/v1/sessions/:id/agents` | `{ enabled, canEdit, agents }`. Each row includes `actingFor` (the inviter's display name), expiry, connection state and `canRevoke`; no key or hash |
+| `POST /api/v1/sessions/:id/agents` | `{ label, role, hours? }`, with `viewer` or `editor` access and 1 to 168 hours (default 24). An `editor` agent needs a caller with editor access and edit rights. Refused on archived projects (`403 READ_ONLY`), `409 AGENT_LIMIT` when the caller already has 16 live document and project agent invitations, `503 AGENT_UNAVAILABLE` where no live room host runs. `201 { agent, endpoint, secret }` returns the connection key once |
+| `DELETE /api/v1/sessions/:id/agents/:agentId` | inviter or project manager; revokes the key and closes its connection; `204` |

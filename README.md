@@ -65,7 +65,7 @@ pnpm run dev:web
 
 Open <http://localhost:5173>. The web app needs a browser with a working WebGPU adapter and graphics acceleration. See [supported environments](docs/supported-environments.md) for the tested combinations.
 
-A public clone includes community tools and the neutral **Lolly Start** design system. SUSE's private brand pack is optional.
+A public clone includes community tools, **Lolly Demo** (the design system lolly.tools runs) and the neutral **Lolly Start** design system. SUSE's private brand pack is optional.
 
 On macOS or openSUSE, `./setup.sh` can install prerequisites and dependencies. See [INSTALL.md](INSTALL.md) for setup help, or [Releases](https://github.com/lolly-tools/lolly/releases) for packaged apps.
 
@@ -105,7 +105,7 @@ The **engine** loads tools and drives rendering. Each **shell** supplies the pla
 | [`brands/`](brands/) | Design systems, assets and brand-specific tools |
 | [`packages/`](packages/) | The tool-author SDK and shared components |
 | [`schemas/`](schemas/) | Contracts for tool manifests and assets |
-| [`services/`](services/) | Optional MCP and certificate services |
+| [`services/`](services/) | Optional MCP, certificate and Penpot services, and the server code they share |
 | [`docs/`](docs/) | Guides, architecture and the documentation site |
 
 Start with the [tool-authoring guide](docs/authoring-tools.md), [architecture overview](docs/overview.md) or [glossary](docs/glossary.md).

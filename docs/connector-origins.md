@@ -14,7 +14,7 @@ wildcards, credentials, queries, fragments, IP literals and scheme-only grants
 are refused. Origins are normalized by host and port; an omitted port means
 443. Configure every upload/download origin used by a provider, including
 preauthenticated storage URLs. Never paste a token or a signed URL into this
-setting. Selecting an endpoint in Profile does not approve its origin.
+setting. Selecting an endpoint in Settings does not approve its origin.
 
 Native builds include these values in the application policy. The shared
 connector transport forwards the exact approved list to Rust, which checks the
@@ -33,10 +33,11 @@ Browser connector redirects fail closed; configure a canonical endpoint that
 does not redirect. The destination must also permit CORS.
 
 Use `node scripts/configure-connector-origins.ts INPUT OUTPUT` with the public
-variable set to render a Vercel JSON or nginx configuration. Only `connect-src`
-changes. Review the rendered file before deployment. For Vercel, provide the
-rendered configuration through `vercel --local-config OUTPUT`; setting a build
-environment variable alone does not update Vercel response headers. For an RPM
+variable set to render your web server's header configuration, for example the
+nginx file. The script accepts any configuration file that declares a
+`connect-src` policy, and only `connect-src` changes. Review the rendered file
+before deployment. Setting the build variable alone does not change the
+response headers a host sends, so deploy the rendered file as well. For an RPM
 or public VM, install the rendered nginx file through the deployment's normal
 configuration process and validate nginx before reloading. Application artifact
 bytes and their signed receipt remain unchanged.

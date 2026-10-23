@@ -653,8 +653,8 @@
     },
     "illustrative-project-layout": {
       "slug": "build-obs",
-      "anchor": "illustrative-project-layout",
-      "label": "Illustrative project layout"
+      "anchor": "recipes-in-the-repository",
+      "label": "Recipes in the repository"
     },
     "web-shell-on-kubernetes-helm": {
       "slug": "build-kubernetes",

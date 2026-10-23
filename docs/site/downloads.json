@@ -29,8 +29,8 @@
           "logo": "apple",
           "os": "iOS",
           "name": "iPhone, iPad",
-          "ext": "WEB",
-          "note": "no download yet",
+          "ext": "APP",
+          "note": "App Store",
           "slug": "install",
           "hash": "iphone-and-ipad"
         },

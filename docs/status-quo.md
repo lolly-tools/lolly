@@ -34,7 +34,7 @@ Living inside it gave the trade its textures. The quiet fear of picking the wron
 | **Friction** | Upload, queue, sign in, dismiss the upsell, download something you hope is right | Open a link and work. No account, no upload, no waiting on a stranger's server |
 | **Risk** | Your file rests on someone else's disk, under their retention policy and their breach exposure | The file never leaves your device, so there is no second copy to leak |
 | **Quality** | Silently re-encoded, resolution capped on the free tier, a watermark you pay to remove | Real vector out, print-ready colour, the same render on every device, nothing withheld |
-| **Trust** | A policy you have to believe, rewritable at any time without telling you | An architecture you can check, and a signed credential travelling inside every export |
+| **Trust** | A policy you have to believe, rewritable at any time without telling you | An architecture you can check, and a signed credential inside every export whose format can carry one |
 | **Ethics** | Your work becomes training data or an ad profile by default, and consent is a wall you click through | Nothing is collected, so nothing can be repurposed. AI declares itself, and access needs are settings rather than requests |
 
 And the same trade, scene by scene:
@@ -52,14 +52,14 @@ And the same trade, scene by scene:
 
 Each row is a claim you can test rather than a slogan, which is what the rest of this section is for.
 
-## Trust what you can verify 
+## Trust what you can verify
 
 Every one of those has a fix that is architectural, not a promise in a policy document. The difference matters: a promise is a thing a company can change on a Tuesday, and an architecture is a thing you can check.
 
 - <!--i:cpu--> **The work happens on your device.** Rendering, exporting, converting, stripping metadata: all of it runs in your browser, on your machine. Not as a privacy feature bolted on afterwards, but because that is where the engine lives. It follows that your content cannot be collected, sold or trained on by us, because it never arrives. See [Privacy](/info/privacy.html), and the complete list of what a server ever sees in [Server Surface](/info/server-surface.html).
 - <!--i:download--> **Exports are ordinary files.** PNG, SVG, PDF, WebP, TIFF and the rest. They open in software that has nothing to do with us, they keep working if this project disappears and there is no export tier. Your last day using Lolly leaves you with everything you made. See [Exporting and Formats](/info/exporting.html) and [Data Transfer](/info/data-transfer.html).
-- <!--i:seal--> **Provenance travels with the work.** Exports carry [Content Credentials](/info/content-credentials-identity.html) by default, recording what made a file and from what. Anyone can check it, including you, including on files we did not make. That turns "trust me" into a question with an answer. Try it on something you made: [Verify It Yourself](/info/verify-yourself.html).
-- <!--i:globe--> **There is no consent wall.** No trackers, no analytics, no profile, no account required to use the tools. The engine is open source, works offline and needs no sign-in, so there is no tracking to ask you about. [Security and Verification](/info/security.html) covers how to confirm that rather than take our word.
+- <!--i:seal--> **Provenance travels with the work.** What you make with the tools carries [Content Credentials](/info/content-credentials-identity.html) by default, in every format that can hold one, recording what made a file and from what. Anyone can check it, including you, including on files we did not make. That turns "trust me" into a question with an answer. Try it on something you made: [Verify It Yourself](/info/verify-yourself.html).
+- <!--i:globe--> **There is no consent wall.** No trackers, no analytics, no ad profile, no account required to use the tools. The engine is open source, works offline and needs no sign-in, so there is no tracking to ask you about. [Security and Verification](/info/security.html) covers how to confirm that rather than take our word.
 - <!--i:people--> **Accessibility is not a later release.** Motion, contrast, text size and preview intensity are preferences in the product, not accommodations you request. See [Inclusive Design](/info/inclusive-design.html).
 
 ## What this is not

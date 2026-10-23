@@ -18,9 +18,9 @@ AI declares itself in the same verdict, as a badge nobody has to go looking for.
 
 ![The GEN AI flag Verify raises for the storm image - a labelled badge reading that the image was AI-generated, with the SynthID note](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=820&height=900&dpi=192&waitMs=6000&waitSelector=.valid-ai-flag&walker=1&format=svg&cropSelector=.valid-ai-flag&dark=1&filename=cc-verify-genai)
 
-The engine's crypto core is **platform-agnostic and uses only `globalThis.crypto` / WebCrypto**. There is no bespoke crypto library, no Node-only APIs and **no network calls anywhere in the engine**. In the web app, verification makes **no network request to any third party**. The only fetch it can ever make is the opt-in deep scan's one-time detector download, from the app's own origin. Even a **SEAL** record whose signing key lives in DNS is reported as "no key resolver" rather than routed through a third-party DNS-over-HTTPS service (the desktop and command-line shells resolve such keys through your own machine's DNS, with no third party involved).
+The engine's crypto core is **platform-agnostic and uses only `globalThis.crypto` / WebCrypto**. There is no bespoke crypto library, no Node-only APIs and **no network calls anywhere in the engine**. In the web app, verification makes **no network request to any third party**. It can make two fetches, both to the app's own origin and neither carrying the file: the opt-in deep scan's one-time detector download and, on a build configured for a managed CA, that CA's revocation list. Even a **SEAL** record whose signing key lives in DNS is reported as "no key resolver" rather than routed through a third-party DNS-over-HTTPS service. No Lolly app looks SEAL keys up in DNS today: the desktop and mobile apps run the same Verify view, and `lolly validate` does not check SEAL.
 
-For **Lolly + lolly.work**, review the organisation service as well as these local cryptographic paths. It adds identity, permission checks, shared storage, work collabs and server jobs, with its own [security boundaries](https://github.com/lolly-tools/lolly-work/blob/main/docs/security-platform.md) and [audit controls](https://github.com/lolly-tools/lolly-work/blob/main/docs/audit.md). The local verification tests below do not certify those services.
+For **Lolly + lolly.work**, review the organisation service as well as these local cryptographic paths. It adds identity, permission checks, shared storage, work collabs and server jobs, with its own [security boundaries](/info/work-security-platform.html) and [audit controls](/info/work-audit.html). The local verification tests below do not certify those services.
 
 ## Standards implemented
 
@@ -63,7 +63,7 @@ There is **no timestamp authority yet**, so an authentic-but-*expired* signature
 
 ## Complementary provenance signals
 
-Beyond the C2PA credential, Verify surfaces several read-only signals. Each is an honest heuristic that only ever *adds* confidence, never a false alarm:
+Beyond the C2PA credential, Verify surfaces several read-only signals. Each is labelled with its confidence. The statistical ones (the Meta Content Seal read, LSB steganalysis) can raise false alarms, and Verify says so where it shows them:
 
 - **The Lolly Imprint** - an invisible pixel watermark, on by default, that survives a screenshot or re-save (where the credential dies to any container change). Presence-only, no personal data. It is **security-through-obscurity**: casual-stripping cover, not a hardened defence. It complements the credential rather than replacing it.
 - **SEAL** byte-level signatures, **AI-generated-content** declarations, third-party **pixel-watermark** deep scans (opt-in, one-time on-device model download) and **hidden-data** detection. All of these run locally.
@@ -89,7 +89,7 @@ The cryptography and parsers are strong by design today and have not been indepe
 
 - **Content Credentials are tamper-*evident*, not tamper-*proof*.** They detect alteration cryptographically and offline. They don't prevent it. That is exactly what makes fully offline verification possible.
 - **The on-device signer is anonymous by design** unless you enrol a verified identity. No real credential ever leaves the device.
-- **Tool hooks are not a security sandbox by default.** A tool's optional `hooks.js` runs with the host bridge injected but, in a browser shell, executes in the page's realm. Worker isolation ships as a per-tool opt-in - a manifest declaring `isolate: true` runs its hooks off-thread in a Worker, with the in-realm path as the fallback where no Worker executor exists - so the default remains in-realm. Run only tools you've reviewed. An org running a shared catalog can gate it through Git review.
+- **Tool hooks are not a sandbox.** A tool's optional `hooks.js` runs with the host bridge injected. A built-in tool's hooks run in the page's realm unless its manifest declares `isolate: true`, which moves them to a Worker, with the in-realm path as the fallback where a Worker cannot start. Sideloaded and remote tools always run in a locked-down Worker with the browser's own network and storage APIs removed, so they reach only the host bridge, and they are refused if that Worker cannot start. Review is still the control: run only tools you've reviewed. An org running a shared catalog can gate it through Git review.
 - **Interoperability:** two containers have no standardised C2PA mapping yet, so Lolly gives each a home of its own - WebM (the manifest as a Matroska part) and Ogg/Opus (the store as a `C2PA=` comment field, its byte range excluded from the binding so the audio still hashes identically). Lolly's own verifier reads both; a third-party tool will not. Every other format Lolly stamps uses its spec-defined place - MP4, M4A, AVIF, MP3 and WAV among them - and verifies in third-party tools by default.
 
 ## Reporting a vulnerability

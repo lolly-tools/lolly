@@ -76,7 +76,8 @@ lw providers publish acme-cmp --in ./summit-badge.png --name "Summit Badge"
 Only **lolly-generated** exports may be pushed - the server verifies the bytes carry lolly's
 C2PA export assertion, so a federated or pack asset can never be published out. Requires an
 instance C2PA signer ([c2pa.md](../c2pa.md)); each publish is audited with the export's
-provenance chain.
+provenance chain. The upload request and response shapes are modelled on CMP's documentation
+and have not yet been confirmed against a live tenant.
 
 ## Notes / limits
 

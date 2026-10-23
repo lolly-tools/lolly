@@ -11,7 +11,7 @@ multistatus body is read by a small parser written for that one layout. No SDK, 
 
 ## Guided connection in the app
 
-Open **Instance → Providers** at `/admin#/providers` and choose **Guided connection** on
+Open **Assets & tools > Providers** at `/admin#/providers` and choose **Guided connection** on
 the WebDAV storage card. Enter the server type and URL, the folder to expose, catalog mapping
 and member groups. Group and section fields accept one exact name per line; a comma stays
 part of the name. An empty folder exposes the entire files root, and empty groups expose the
@@ -52,7 +52,7 @@ flows; [Google Drive](gdrive.md#guided-connection-in-the-app) also has a guided 
 
 WebDAV does not provide approval status; use a folder curated to contain approved files.
 Availability controls apply only to custom DAV properties your server actually returns.
-Complete the [live-verify runbook](webdav-live-verify.md) for customer acceptance.
+Complete the [live-verify runbook](webdav-live-verify.md) before you rely on this source.
 
 ## What you need from the server
 
@@ -154,7 +154,7 @@ Generic WebDAV:
   directory level below the root becomes a **section**, so `exposure.includeSections` and section
   tags work on the folder structure you already have.
 - **`options.minGapMs`** - minimum gap between calls to this provider, default `250` (about 4
-  requests a second). WebDAV publishes no rate limit, so that default is deliberate caution rather
+  requests a second). WebDAV publishes no rate limit, so that default is a cautious choice rather
   than a documented ceiling; raise it for a small self-hosted box.
 - **`mapping.availabilityFields`** applies only if your server exposes a **custom DAV property**
   carrying a date; naming it imports an
@@ -207,7 +207,7 @@ constant to edit when one is wrong.
   [runbook](webdav-live-verify.md); read the first sync as the verification and report anything
   that does not match.
 - **No server-side search, no thumbnails, no expiring URLs.** WebDAV has no search this driver
-  relies on (Nextcloud's SEARCH method is deliberately not built until one server confirms it),
+  relies on (Nextcloud's SEARCH method is not built until one server confirms it),
   no rendition endpoint, and bytes stream through the driver per request rather than through a
   signed URL, so nothing expires.
 - **No availability window.** A WebDAV file has a size, a modification stamp and a content
@@ -215,10 +215,11 @@ constant to edit when one is wrong.
   whole story unless a custom property is named in `mapping.availabilityFields` (above).
 - **A rename federates as a new asset.** The federated id is the file's path relative to the files
   root, so moving or renaming a file upstream produces a new one downstream. Nextcloud's
-  `oc:fileid` would survive a rename but cannot address bytes, so it is deliberately not requested.
-- **The recursive walk is bounded.** At most 500 directories per walk (`MAX_DIRS`), and a single
-  sync stops after 50 pages, one page being one directory - the smaller bound wins. Hitting either
-  is reported as an operator note on the sync, never as silence. Narrow `options.root` rather than
+  `oc:fileid` would survive a rename but cannot address bytes, so the driver does not request that property.
+- **The recursive walk is bounded.** At most 500 directories per walk (`MAX_DIRS`). A sync also
+  stops at its page ceiling, one page being one directory; the ceiling is at least 50 pages and
+  grows with `sync.maxAssets` (5,000 at the default of 100,000 assets), so `MAX_DIRS` is usually
+  the bound you meet. Hitting either is reported as an operator note on the sync, never as silence. Narrow `options.root` rather than
   federating a whole home directory.
 - **Directories become sections, never assets.** Each level of the path below the root is one
   section, which is what `exposure.includeSections` scopes on.

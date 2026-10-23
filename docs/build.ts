@@ -8,6 +8,7 @@ import { movedSectionLinks } from './section-moves.ts';
 import { readRegistry } from './navigation.ts';
 import { syncDocsNavigation } from '../scripts/sync-docs-navigation.ts';
 import { publicWorkMarkdown, workApplicability } from './work-pages.ts';
+import { resolveSourceLink, unpublishedLinks } from './doc-links.ts';
 import { createIconSprite } from './icon-sprite.ts';
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, cpSync, existsSync, readdirSync, rmSync, statSync, watch } from 'node:fs';
 import { resolve, dirname, relative, sep } from 'node:path';
@@ -473,6 +474,37 @@ function doorizeLinks(html: string): string {
   const re = new RegExp(`/info/((?:${langAlt})/)?([\\w/-]+)\\.(html|md)`, 'g');
   return html.replace(re, (original, langPrefix: string | undefined, path: string, extension: string) =>
     aliases.has(path) ? `/info/${langPrefix ?? ''}${aliases.get(path)}.${extension}` : original);
+}
+
+/**
+ * Links a reader cannot follow, found in the written pages: a relative link to a `.md`
+ * file (the site serves .html, so the link opened the raw Markdown twin or a 404), or a
+ * link into plans/, which is gitignored and never published. Collected per page as each
+ * one is written, then refused in one message that lists every page and target, with
+ * the locale copies of an English page counted on its line rather than listed 26 times.
+ */
+const unpublished = new Map<string, { page: string; target: string; english: boolean; locales: number }>();
+/** `page` is the English URL of the page written, which stands for every locale copy too. */
+function auditLinks(page: string, lang: Lang, html: string): void {
+  for (const target of new Set(unpublishedLinks(html))) {
+    const key = `${page}\0${target}`;
+    const entry = unpublished.get(key) ?? { page, target, english: false, locales: 0 };
+    if (lang === 'en') entry.english = true;
+    else entry.locales++;
+    unpublished.set(key, entry);
+  }
+}
+function failOnUnpublishedLinks(): void {
+  if (!unpublished.size) return;
+  const copies = (n: number): string => `${n} locale ${n === 1 ? 'copy' : 'copies'}`;
+  const lines = [...unpublished.values()]
+    .sort((a, b) => a.page.localeCompare(b.page) || a.target.localeCompare(b.target))
+    .map(({ page, target, english, locales }) => english
+      ? `  ${page} links ${target}${locales ? ` (and ${copies(locales)})` : ''}`
+      : `  ${page}, in ${copies(locales)}, links ${target}`);
+  throw new Error(`${unpublished.size} docs ${unpublished.size === 1 ? 'link points' : 'links point'} at a Markdown source or into plans/, and a reader cannot open ${unpublished.size === 1 ? 'that target' : 'those targets'}:\n${lines.join('\n')}\n`
+    + 'A relative link to a .md file becomes its page when docs/manifest.json registers that source, or its GitHub URL when the file is in this repository. '
+    + 'Correct a target that matches neither, and remove links into plans/, which is gitignored and never published.');
 }
 
 /**
@@ -5147,6 +5179,11 @@ function t(s: string): string { return activeCatalog[s] ?? s; }
 // (<slug>.<lang>.<ext>, captured with ?lang= injected) when one exists, else the
 // English baseline. Set in build()'s per-locale loop.
 let activeLang: Lang = 'en';
+// The registry source of the page being rendered (`create-a-tool.md`, `work/catalog.md`,
+// `../README.md`), so a link to a Markdown file resolves from that page's own
+// directory. A locale page keeps its English source here, because a translation keeps
+// the English link targets. Empty outside a page render, which resolves from docs/.
+let activeSrc = '';
 /** A `<slug>.<lang>.<ext>` localized shot exists on disk (docs/shots/) for this pass? */
 function localizedShot(slug: string, ext: string): string | null {
   if (activeLang === 'en') return null;
@@ -5191,6 +5228,10 @@ const docCtx: DocsRenderContext = {
   // The contract's second arg is a served /info/ URL (a page asset), which this impl
   // resolves to its built path; a bare shot (no assetSrc) reads from docs/shots/<file>.
   shotSize: (f, assetSrc) => shotSize(f, assetSrc ? resolve(outDir, assetSrc.replace(/^\/info\//, '')) : undefined),
+  sourceLink: (url) => resolveSourceLink(url, activeSrc, {
+    pages: DOCS_REGISTRY.pages,
+    repoFile: (path) => existsSync(resolve(repoRoot, path)),
+  }),
   tryLink: (file) => {
     if (file.startsWith('diagrams/')) return diagramRecipes()[file.replace(/\.svg$/, '')] ?? null;
     const def = shotRecipe(file.split('.')[0] ?? '');
@@ -6426,6 +6467,7 @@ function buildLlmsFormatsSection(): string {
 async function build() {
   // Ensure output dirs exist and copy static assets (icons).
   mkdirSync(outDir, { recursive: true });
+  unpublished.clear();
 
   // The shared chrome CSS + JS (plan 131 B.1), written once and linked per page.
   // Mirror, don't accumulate: a content change moves the hash, so drop any prior
@@ -6637,12 +6679,19 @@ async function build() {
         continue;
       }
 
-      let content = page.isLanding ? buildLandingContent(md, lang)
-        : page.render ? page.render(md, lang)
-        : mdToHtml(md);
+      let content: string;
+      activeSrc = page.src;
+      try {
+        content = page.isLanding ? buildLandingContent(md, lang)
+          : page.render ? page.render(md, lang)
+          : mdToHtml(md);
+      } finally {
+        activeSrc = '';
+      }
       if (page.headingId && srcPath === resolvePageSrc(page, 'en')) content = content.replace(/(<h1\b[^>]*\bid=")[^"]+(")/, `$1${page.headingId}$2`);
       const moved = srcPath === resolvePageSrc(page, 'en') ? movedSectionLinks(page.slug, slug => localeHref(lang,slug)) : '';
       const html    = doorizeLinks(wrapPage(lang, page, content + moved, ogSlugs, md));
+      auditLinks(localeHref('en', page.slug), lang, html);
       const outFile = page.slug === 'index' ? 'index.html' : `${pathSlug(page.slug)}.html`;
       if (outFile.includes('/')) mkdirSync(dirname(resolve(localeOutDir, outFile)), { recursive: true });
       writeFileSync(resolve(localeOutDir, outFile), html, 'utf-8');
@@ -6698,10 +6747,11 @@ async function build() {
       const slug = `formats/${model.slug}`;
       const gp: Page = { slug, title: model.title, src: '', description: model.description, pathway: 'creators', generated: true };
       const content = renderFormatSideDoor(model, lang);
-      const html = wrapPage(lang, gp, content, ogSlugs, '');
+      const html = doorizeLinks(wrapPage(lang, gp, content, ogSlugs, ''));
+      auditLinks(localeHref('en', slug), lang, html);
       const dir = resolve(localeOutDir, 'formats', model.slug);
       mkdirSync(dir, { recursive: true });
-      writeFileSync(resolve(dir, 'index.html'), doorizeLinks(html), 'utf-8');
+      writeFileSync(resolve(dir, 'index.html'), html, 'utf-8');
       // One record per page (no id'd headings inside): the searcher who types a
       // format name must find its page, not only the formats table.
       searchRecords.push(...indexSections(content, slug, gp.title));
@@ -6713,10 +6763,11 @@ async function build() {
       const slug = `convert/${model.slug}`;
       const gp: Page = { slug, title: model.title, src: '', description: model.description, pathway: 'creators', generated: true };
       const content = renderConvertSideDoor(model, lang);
-      const html = wrapPage(lang, gp, content, ogSlugs, '');
+      const html = doorizeLinks(wrapPage(lang, gp, content, ogSlugs, ''));
+      auditLinks(localeHref('en', slug), lang, html);
       const dir = resolve(localeOutDir, 'convert', model.slug);
       mkdirSync(dir, { recursive: true });
-      writeFileSync(resolve(dir, 'index.html'), doorizeLinks(html), 'utf-8');
+      writeFileSync(resolve(dir, 'index.html'), html, 'utf-8');
       searchRecords.push(...indexSections(content, slug, gp.title));
       if (lang === 'en') sitemapUrls.push({ slug });
       sideDoorCount++;
@@ -6749,8 +6800,10 @@ async function build() {
     const path = resolve(outDir, rel);
     mkdirSync(dirname(path), { recursive: true });
     const published = rel.endsWith('.md') ? `${body.trimEnd()}\n\n---\n\n${DOCS_LICENSE_MD}\n` : body;
+    if (rel.endsWith('.html')) auditLinks(`/info/${rel}`, 'en', published);
     writeFileSync(path, published, 'utf-8');
   }
+  failOnUnpublishedLinks();
   if (Object.keys(specFiles).length) {
     console.log(`✓  /info/${SPEC_BASE}/ (${Object.keys(specFiles).length - 2} chapters, the index and the whole draft in one file)`);
   }

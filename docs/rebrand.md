@@ -112,7 +112,7 @@ A slide with more than its new layout holds continues onto another slide. The ca
 
 ![The deck theme choices, each drawn with the sample's first slide: Light and Dark, then the design system's looks.](/t/url-shot?url=%2F%23%2Frebrand%3Fsample%3Dharbourside-night-market&width=1440&height=900&dpi=96&waitMs=600&format=svg&walker=1&rasterDpi=96&filename=rebrand-theme&try=1&waitSelector=.rb%5Bdata-drawn%5D&drive=click%3A.rb-theme-btn%3Bwait%3A2500&cropSelector=.rb-theme-pop&css=.float-cluster%7Bdisplay%3Anone%21important%7D)
 
-The theme button in the top bar shows the deck's colours. Open it to choose **Light** or **Dark** for the whole deck, **Brand colour** where the design system has one, or one of its **Looks**. Each choice is drawn with your own first slide. If a theme would make some text hard to read, the choice warns you before you apply it, and **Background** in the decision panel changes a single slide.
+The theme button in the top bar shows the deck's colours. Open it to choose **Light** or **Dark** for the whole deck, **Brand colour** where the design system has one, or one of its saved **Looks**. A managed design system, one its catalogue locks, offers no Looks here. Each choice is drawn with your own first slide. If a theme would make some text hard to read, the choice warns you before you apply it, and **Background** in the decision panel changes a single slide.
 
 ## Arrange the slides
 
@@ -158,7 +158,7 @@ Keep the design works on PowerPoint files. A PDF or a Photoshop document cannot 
 
 Some decks are pictures of slides rather than slides: a scanned PDF, or a PowerPoint file with one picture per slide. Rebrand tells you ("All 15 slides are pictures") and offers **Read the text**, which recognises the text on each picture and rebuilds the slide from it, or **Keep as pictures**.
 
-Reading the text uses a text recognition model on your device. The first time, Rebrand offers to download it and says how large it is; the download sends nothing from your deck. The rebuilt slides are marked "Rebuilt from pictures" in the review list, so you can check each one before it goes to Design.
+Reading the text uses a text recognition model on your device. The first time, Rebrand offers to download it and says how large it is; the download sends nothing from your deck. The review list then holds a card such as "Rebuilt 15 slides from pictures", marked "Check each before Design", so you can check each rebuilt slide before it goes to Design.
 
 ## Your projects
 

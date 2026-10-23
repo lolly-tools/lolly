@@ -9,7 +9,15 @@ The simplest, most GitOps-native source: your catalog is a JSON file under versi
   `https://raw.githubusercontent.com/acme/brand/main`.
 - **A read token** if the repo is private (a fine-grained PAT with *contents: read* on
   GitHub; a read token on GitLab/Gitea). Public repos need no credential.
-- A **manifest** committed to the repo (default `lolly-catalog.json`) listing assets by path.
+- A **manifest** committed to the repo (default `lolly-catalog.json`) listing assets by path:
+
+  ```json
+  { "assets": [ { "path": "logos/summit.svg", "name": "Summit Logo", "type": "vector",
+                  "sections": ["Logos"], "tags": ["event"] } ] }
+  ```
+
+  Only `path` is required. A path containing `..` is dropped, and only paths the manifest
+  lists can be fetched.
 
 ## Credential shape
 

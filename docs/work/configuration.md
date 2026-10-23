@@ -2,8 +2,8 @@
 
 One JSON file plus environment secrets. The standalone server reads `./instance.json`, or
 whatever path `LW_CONFIG` names. (`LW_CONFIG_JSON` is a different thing and not
-interchangeable: it carries the whole config as a *string* and is read only by the Vercel
-entrypoint.) Unset keys take the defaults below - `instance.example.json` is a working
+interchangeable: it carries the whole config as a *string* and is read only by the serverless
+function entrypoint.) Unset keys take the defaults below - `instance.example.json` is a working
 starting point, and `server/src/config/instance.ts` is the authority.
 
 ![Feature-flag governance - default state and toggle visibility, per user](shots/feature-flags.svg)
@@ -15,7 +15,7 @@ the environment.
 
 | Key | Default | What it does |
 |---|---|---|
-| `mode` | `auto` | `production` enforces production checks regardless of NODE_ENV. `evaluation` deliberately permits memory storage and ephemeral secrets, including inside a production container. `auto` inherits production from NODE_ENV for existing installations. |
+| `mode` | `auto` | `production` enforces production checks regardless of NODE_ENV. `evaluation` permits memory storage and ephemeral secrets, including inside a production container. `auto` inherits production from NODE_ENV for existing installations. |
 | `application` | `api` | `api` serves the console and API without requiring an employee shell. `web` requires a governed shellDir or external appUrl. A configured shellDir is checked in either profile. |
 | `requireServerRendering` | `false` | Require every advertised tool to have at least one configured server format. Hooked tools need a worker URL and secret. This checks configuration, not a successful worker render. |
 
@@ -36,17 +36,19 @@ to the database nor calls identity, renderer or asset providers. The owner conso
 | Key | Default | What it does |
 |---|---|---|
 | `name` | `Lolly Work` | the deploy's display name, also called the workspace name: console rail, sign-in card, `/healthz`, `instanceName` in `/api/auth/config`, and the invite, refusal and request pages, notices and copied invite messages ("Ana invited you to Example Studio"). Use the name people already know |
-| `baseUrl` | `http://localhost:8787` | the URL this deploy answers on. Drives OIDC redirect URIs and the `Secure` cookie flag - **must** match reality |
+| `baseUrl` | `http://localhost:8787` | the URL this deploy answers on. Drives OIDC redirect URIs and the `Secure` cookie flag - **must** match reality. Passkeys are offered only when this is HTTPS on a host name, or `http://localhost`; never on a bare IP address |
 | `pack` | `./packs/demo` | the brand pack mount: catalog, tools, design tokens, fonts, logos. The default is the small demo pack committed at `packs/demo`; the server warns at boot if the path does not exist, and the catalog is empty until it does |
-| `catalogPublicationGeneration` | `0` | operator-provisioned, nonnegative safe integer identifying an immutable mounted release. Production requires a positive generation, supplied here or by a verified signed source envelope. Advance it when changing an unsigned pack or its engine pin; never decrease it or reuse it for different bytes. |
+| `catalogPublicationGeneration` | *unset* | operator-provisioned, positive safe integer identifying an immutable mounted release; `0` and negative numbers are refused. Production requires a generation, supplied here or by a verified signed source envelope. Advance the number when changing an unsigned pack or its engine pin; never decrease a generation or reuse one for different bytes. |
+| `catalogPublicKey` | *unset* | a public P-256 key as a JWK (`kty: "EC"`, `crv: "P-256"`, no private `d`) that verifies a mounted catalog's signed publication sequence |
 | `shellDir` | *unset* | path to a built Lolly `shells/web/dist`. Set ⇒ the shell is served at `/` on one origin (session cookies work, the shell's `org/` governance seam activates) |
-| `appUrl` | *unset* | where the Lolly app lives when it is *not* same-origin (a Vite dev server, a split deploy). The console routes "Open Lolly" and deep links through it |
-| `modelOrigin` | `https://lolli.li` | where the served shell's on-device models come from when the shell dist does not carry them. The public shell build does not: its 1.2 GB of model weights live on the project's release host. A request for `/models/...` that `shellDir` cannot answer is passed to this exact origin, so the browser stays on one origin and an interrupted download resumes (Range, If-Range and the validators go through). `null` keeps every model request on this server, for a dist built with its models or a deployment that offers none. HTTPS only, without a path (a loopback `http://` origin is accepted for local testing) |
+| `shellReleasePointer` | *unset* | `true` serves immutable shell releases instead of one dist: `shellDir/current.json` selects the current release under `shellDir/releases/`, and the previous and retained releases keep answering for clients still on them. Needs an absolute `shellDir` |
+| `appUrl` | *unset* | where the Lolly app lives when it is *not* same-origin (a Vite dev server, a split deploy). The console sends "Open Lolly" and deep links to this address |
+| `modelOrigin` | `https://lolli.li` | where the served shell's on-device models come from when the shell dist does not carry them. The public shell build does not: its model files live on the project's release host. A request for `/models/...` that `shellDir` cannot answer is passed to this exact origin, so the browser stays on one origin and an interrupted download resumes (Range, If-Range and the validators go through). `null` keeps every model request on this server, for a dist built with its models or a deployment that offers none. HTTPS only, without a path (a loopback `http://` origin is accepted for local testing) |
 | `connectorOrigins` | *unset* | exact HTTPS origins (no paths, wildcards or credentials; at most 32) that the served shell's custom connectors may reach. Added to the shell's `connect-src` only; every other directive and header is unchanged. Use it where the ingress cannot replace response headers, for example a shared cluster with snippet annotations disabled. The shell build's `VITE_CONNECTOR_ORIGINS` must list the same origins, and each provider's CORS must allow the workspace origin |
 | `brandTokens` | *unset* | map source IDs (`mounted` or `profile:<name>`) to explicit tokens asset IDs; required when a source has multiple independent heads |
 | `connectPack` | *unset* | a `.lolly` instance pack to HOST from boot - a path relative to `pack` (or absolute). Seeded only before any durable branding decision, while no download is suppressed or hosted, so an ephemeral deploy offers `/connect/pack.lolly` without an owner ever uploading; an owner's own upload always wins, and a file naming a different instance base is refused loudly at seed time |
 | `inviteNote` | *unset* | one plain-text line shown on the invite page and at the end of copied invite messages, such as which sign-in to use when an organisation blocks one. Trimmed, at most 240 characters, no line breaks; an empty line is the same as unset. See [invite links](identity.md#invite-links) |
-| `homeView` | *unset* | the view a signed-in member's Lolly opens on when they arrive at the bare address: `tools` (the tools gallery) or `projects` (their Projects). Unset means tools. A link to a tool, a team project or a view still opens where it points, and choosing Tools later still shows the tools. Sent to members' shells in `GET /api/v1/org-config` as `home`; a shell that predates it ignores it |
+| `homeView` | *unset* | the view a signed-in member's Lolly opens on when they arrive at the bare address: `tools` (the tools gallery) or `projects` (their Projects). Unset means tools. A link to a tool, a team project or a view still opens where it points, and choosing Tools later still shows the tools. Sent to members' shells in `GET /api/v1/org-config` as `home`; a shell that predates the setting ignores `home` |
 | `homeUrl` | *unset* | optional destination for the Home button and arrival at the bare address, overriding `homeView`. A root-relative URL such as `/#/p?team=project-id`, or an HTTPS URL for an organisation's own landing page. Credentials, protocol-relative URLs and executable schemes are refused. Explicit document and view links keep their destinations |
 
 `pack` supports materialized trees, modern `profiles.json` roots and legacy brand layouts. Selection lives in the Store; mounted files are never rewritten. See [Design-system administration](design-system-administration.md) for persistence requirements and explicit tokens selection.
@@ -78,8 +80,9 @@ For generated deployment files and a staged owner cutover, use [Customer setup](
 | `admission` | absent | who may sign in, checked on every OIDC, GitHub, password and proxy sign-in before a user row is written: `{ emails?: string[], domains?: string[], invitations?: boolean (default true) }`. Absent = every verified sign-in is admitted (production setup warns). `{}` admits invitations only. Admission by email, domain or invitation needs a verified email (see `emailVerification`). See [who may sign in](identity.md#who-may-sign-in) |
 | `linkedStandingDays` | `30` | whole days, 1-365. How long one sign-in's IdP groups, and the account's own sign-in's standing under `admission`, carry over to the person's other linked sign-ins. See [one person, several sign-ins](identity.md#one-person-several-sign-ins) |
 | `bootstrapOwners` | `[]` | emails that get the owner group (first `roleGroups.owner` name, else `owner`) on first account creation once admitted with a verified email. The group remains in local membership until an owner removes the group. Audited as `auth.bootstrap-owner`. Each must be admitted by `admission.emails` or `admission.domains`; refused when `roleGroups.owner` is `[]` |
+| `pending` | absent | up to eight provider names (each up to 80 characters) shown as disabled choices, such as **Company SSO (pending)**, on the sign-in and invitation pages. Adds no sign-in route. See [planned sign-ins](identity.md#planned-sign-ins) |
 | `hostedDomain` | absent | per IdP. Google Workspace domain: the `hd` claim must equal it (a mismatch or missing claim refuses), and it is sent as the `hd` authorization parameter |
-| `tenantId` | absent | per IdP. Microsoft Entra directory id (GUID): the `tid` claim must equal it |
+| `tenantId` | absent | per IdP. Microsoft Entra directory id (GUID): the `tid` claim must equal this id |
 | `emailVerification` | `claim` | per IdP. `claim`: email-based admission needs `email_verified: true`. `trusted`: every email this IdP sends counts as verified (tenant-pinned IdPs that omit the claim) |
 | `linkByEmail` | primary: `true` under `claim`; additional: `false` | per IdP. Whether a sign-in from this IdP may join an existing person whose email matches. Additional providers require an explicit choice. Owner and admin accounts never join by email. The primary default requires a verified address; set `true` to link from a `trusted` IdP (refused unless that IdP has a `hostedDomain` or `tenantId` pin), or `false` to never link from this one |
 | `scopes` | `["openid", "profile", "email"]` | per IdP. Requested scopes, a list or a space-separated string; must include `openid` |
@@ -94,7 +97,7 @@ claim semantics, acceptance checks and lifecycle procedures.
 |---|---|---|
 | `tokenEndpointAuthMethod` | `client_secret_post` with a secret, otherwise `none` | `client_secret_basic`, `client_secret_post` or `none`; must match provider registration and advertised metadata |
 | `signingAlgorithm` | `RS256` | Exactly one of `RS256`, `ES256`, `PS256`; other algorithms are refused |
-| `trustedAudiences` | absent | Explicit additional audience strings; the Work client must still be present and `azp`, when present, must match it |
+| `trustedAudiences` | absent | Explicit additional audience strings; the Work client must still be present and `azp`, when present, must match the Work client |
 | `assurance.acrValues` | absent | Nonempty string list; returned `acr` must equal one entry |
 | `assurance.amrValues` | absent | Nonempty string list; returned `amr` must include every entry |
 | `assurance.maxAgeSeconds` | absent | Integer 0-86400; requires `auth_time` within this age, with sixty seconds of tolerance |
@@ -115,8 +118,8 @@ organisation blocks unreviewed OAuth apps. Add one entry to `idp.additional`:
 |---|---|---|
 | `id` | - | the slug in `/api/auth/login?idp=<id>`. `password` is reserved for this kind |
 | `kind` | - | `password` |
-| `label` | `Email and password` | the chooser button and the sign-in list in a profile; `displayName` is accepted instead |
-| `linkByEmail` | `true` | whether a password sign-in joins the existing person who holds the same verified email. The other way round never happens: a password sign-in is stored unverified (an admin typed the address, no mailbox proved it), so no later sign-in through another provider joins an account by it |
+| `label` | `Email and password` | the chooser button and the sign-in list in a person's Lolly Settings; `displayName` is accepted instead |
+| `linkByEmail` | `false` | as for every `additional` entry, unset means no. `true` lets a password sign-in join the existing person who holds the same verified email. The other way round never happens: a password sign-in is stored unverified (an admin typed the address, no mailbox proved it), so no later sign-in through another provider joins an account by it |
 
 - At most one `password` entry. It takes no `issuer`, `clientId`, `clientSecretRef`,
   `groupsClaim`, `claimMap`, `hostedDomain`, `tenantId`, `scopes` or `authParams`, and
@@ -149,7 +152,7 @@ organisation blocks unreviewed OAuth apps. Add one entry to `idp.additional`:
 - Every password sign-in runs the same admission, linking, invitation and "Disable
   access" checks as any other sign-in. Setting a new password from a link ends every
   session the account had. Removing the email and password sign-in from a person
-  (their profile, or the console) deletes the password.
+  (in their Settings, or from the console) deletes the password.
 - Passwords are 12 to 256 characters and not the email address. They are stored as
   scrypt hashes (N 2^15, r 8, p 1). At most two hashes are computed at once and 32
   wait; past that a sign-in gets `503` with `Retry-After` at once.
@@ -261,8 +264,8 @@ else is refused at startup. Budgets count finished files and unfinished uploads 
 expired, each at its size plus 4096 bytes for its database rows, so many tiny files fill a budget
 too. One person's unfinished uploads may declare twice `maxFileBytes` in all, and one person may
 download twice `instanceBudgetBytes` a day (counted per server process). The defaults are sized for a small hosted Postgres that also holds the file bytes (the
-`pg` blob driver); Neon's free plan, for example, has 1 GB of storage in all and stops writes
-past that storage limit. Raise them only with the storage to match.
+`pg` blob driver); a small hosted plan can stop accepting writes once its storage allowance
+is used. Raise them only with the storage to match.
 
 ```json
 "policy": {
@@ -304,7 +307,7 @@ asset goes live immediately. Name a `submit.chain` when the org wants review. Qu
 group names, and a submission is charged to every group its submitter belongs to, so extra
 memberships only tighten a member's budget. See [catalog](catalog.md#submitting-an-asset).
 
-`catalog.versionKeep` keeps everything by default; set a ceiling only when you deliberately
+`catalog.versionKeep` keeps everything by default; set a ceiling only when you
 want to bound blob growth - see
 [operations](operations.md#blob-growth-and-version-retention) and
 [catalog](catalog.md#versions).
@@ -337,7 +340,7 @@ need their own deployment qualification.
 
 `policy.serviceTokens.allowLegacyUnbounded` defaults to `true` for existing
 credentials without expiry. New service credentials always use a bounded expiry.
-Rotate the legacy integrations before deliberately setting the policy to `false`.
+Rotate the legacy integrations before setting the policy to `false`.
 
 Every tool in the committed `packs/demo` ships hooks, so `instance.example.json` and
 `values-eval.yaml` both set `allowHooksInFastPath: true` - that pack is curated in this
@@ -362,7 +365,7 @@ The worker itself takes `LW_RENDER_MAX_CONCURRENT` (default `4`, Helm
 visible to the HPA - and drops out of readiness (`/readyz`) until a slot frees. Its own
 timeouts are `LW_RENDER_NAV_TIMEOUT_MS`, `LW_RENDER_EXPORT_TIMEOUT_MS` and
 `LW_RENDER_TS_SKEW_MS` (HMAC clock skew between plane and worker) - see
-`workers/render/README.md`.
+[Render worker](#render-worker) under environment variables.
 
 Worker HMAC key and C2PA private key are secrets - see below and [c2pa](c2pa.md).
 
@@ -385,7 +388,7 @@ restricted deletion access in the receiving system - see [audit](audit.md).
 | `users` | `[]` | `{ email, name?, groups? }` entries the dev provider will admit |
 
 **Keep this off in production.** It bypasses OIDC entirely, and setting `idp.issuer` does
-not turn it off - the two coexist happily and the passwordless route stays live. The server
+not turn it off - the two run side by side and the passwordless route stays live. The server
 warns at boot when it finds both.
 
 ## `proxyAuth`
@@ -417,12 +420,13 @@ Authelia, oauth2-proxy) states who the person is in request headers. See
 
 | Key | Default | What it does |
 |---|---|---|
-| `enabled` | `true` | per-IP token buckets on the auth, telemetry and link surfaces |
+| `enabled` | `true` | per-IP token buckets on the auth, telemetry, link and automation surfaces; other routes are not throttled here |
 | `trustedProxyHops` | `0` | how many reverse proxies to trust in `X-Forwarded-For`. `0` reads only the socket peer. Behind one ingress, set `1` |
 | `maxBuckets` | `50000` | bucket table cap |
-| `auth` | `capacity 10, refillPerSec 0.2` | sign-in attempts, including each email and password guess and each use of a password link, and the invite page's and refusal page's forms (`/api/auth/invite`, `/api/auth/request`) |
+| `auth` | `capacity 10, refillPerSec 0.2` | sign-in attempts (`/api/auth/login`, the callback, linking a sign-in, passkeys, proxy sign-in, device sign-in and provider logout), including each email and password guess and each use of a password link, the invite page's and refusal page's forms (`/api/auth/invite`, `/api/auth/request`), and the instance card (`GET /api/v1/instance`) |
 | `telemetry` | `capacity 120, refillPerSec 4` | event ingest |
-| `link` | `capacity 30, refillPerSec 1` | signed-link resolution, including invite pages (`/l/invite/`) |
+| `link` | `capacity 30, refillPerSec 1` | signed-link resolution, including invite and join pages (`/l/invite/`, `/l/join/`), and the instance pack download (`/connect/pack.lolly`) |
+| `automation` | `capacity 120, refillPerSec 2` | the automation API (discovery, schemas, the document verbs, `/api/v1/render`, durable renders, render batches, `/api/v1/batch` and jobs), `GET /render/…`, agent connections (`/api/workspace/mcp`) and the outbound delivery `POST`s |
 
 ## `blobs`
 
@@ -605,8 +609,8 @@ is the one a new person is most likely to trust.
 
 ## `siem`
 
-Audit events pushed to the org's own receiver in signed batches (plans/35). `url` absent
-(the default) means off. Loss-free by construction: the audit log is the outbox, a durable
+Audit events pushed to the org's own receiver in signed batches. `url` absent
+(the default) means off. Nothing is lost: the audit log is the outbox, a durable
 cursor records the highest seq the receiver confirmed, and a refused batch replays whole.
 Long-lived server only - on a serverless deploy, poll `GET /api/v1/audit` with a service
 token instead. Delivery lag is the `lw_siem_lag` gauge on `/metrics`.
@@ -641,6 +645,12 @@ and decoded response, and accepts 1 to 1 GiB; review the required media sizes be
 changing that limit. Requests have a 30-second budget. These controls apply to
 catalog federation, setup/consent checks, preview, hosted catalog bytes and publish
 requests. They do not define the identity provider or delivery destination policy.
+
+| Key | Default | What it does |
+|---|---|---|
+| `network.providers.allowedPrivateOrigins` | `[]` | exact origins (scheme, host and port) a connector may reach although they resolve to private addresses |
+| `network.providers.redirectOrigins` | `[]` | exact origins a GET or HEAD read may be redirected to from another origin |
+| `network.providers.maxBytes` | `67108864` | largest request and decoded response (64 MiB), from 1 byte to 1 GiB |
 
 Deploy-time (GitOps / air-gap) provider entries, upserted at boot as `managedBy: 'config'`
 and read-only in the API. Each entry: `id` (lowercase, dash-separated), `kind`, `label`,
@@ -714,17 +724,42 @@ sessions die on restart. In production (`NODE_ENV=production`) their absence thr
 | Var | Default | What |
 |---|---|---|
 | `LW_CONFIG` | `./instance.json` | config file **path**. The one the standalone server, Compose and Helm read |
-| `LW_CONFIG_JSON` | - | the whole config as a **string**. Read only by the Vercel entrypoint (`api/_lib/bootstrap.ts`); the standalone server ignores it |
+| `LW_CONFIG_JSON` | - | the whole config as a **string**. Read only by the serverless function entrypoint (`api/_lib/bootstrap.ts`); the standalone server ignores it |
+| `LW_BASE_URL` | - | serverless entrypoint only, with no `LW_CONFIG_JSON`: the `instance.baseUrl` of the inert fallback configuration |
+| `LW_BOOT_TIMEOUT_MS` | `30000` | serverless entrypoint only: how long requests wait for a boot before they fail and the next request starts a fresh one |
 | `DATABASE_URL` | - | Postgres. Unset ⇒ in-memory store (evaluation only) |
+| `DATABASE_URL_UNPOOLED` | - | a direct (unpooled) Postgres URL that migrations run over when set; otherwise they use `DATABASE_URL` |
 | `LW_AUTO_MIGRATE` | `true` when unset | boot-time DDL. `false`/`0`/`off`/`no`/empty ⇒ no DDL and refuse to start on a pending schema (the HA invariant) |
 | `LW_SEED_CONFIG` | - | path to a governance document applied at boot; trusted and idempotent ([governance](governance.md)) |
 | `LW_ALLOW_STALE_SHELL` | - | `1` downgrades the stale-shell boot refusal to a warning |
+| `LW_BACKGROUND_POLL_MS` | `1000` | how often the durable render and automation runners look for queued work. `0` sets no timer: work still runs at boot and on submission, so a database that scales to zero can sleep. See [deployment](deployment.md) |
+| `LW_LIVE_RELAY_ORIGIN` | - | the bare HTTPS origin of a live-session relay on another origin; added, with its `wss://` form, to the served shell's `connect-src` |
+| `LW_RENDER_LEGACY_RESVG` | - | `1` forces the in-process resvg raster path even when a Chromium worker is configured, as a fallback if the worker's raster path misbehaves |
 | `PORT` | `8787` | listen port |
 | `NODE_ENV` | - | `production` makes secret checks fail-closed |
 | `LW_TEST_DATABASE_URL` | - | enables the Postgres conformance leg in `pnpm test` |
 | `LW_TEST_S3_ENDPOINT`, `LW_TEST_S3_CREDENTIAL` | - | with `LW_TEST_DATABASE_URL`, run the process-level automation lease acceptance (`tests/automation-leases-process.test.ts`) against a disposable S3-compatible store. The credential is `<accessKeyId>:<secretAccessKey>`; the bucket is `LW_TEST_S3_BUCKET` (default `lolly-work-test`) and is created when missing |
 | `LOLLY_OSS_DIR` | `../lolly` | where `pnpm run demo` finds the built OSS web shell |
 | `LW_DEMO_MOCK_ASSETS` | - | `pnpm run demo` only: also seeds a mock provider, `demo-dam-large`, with this many synthetic assets (half SVG, half PNG, up to 200000) for checking the shell against a large catalog |
+
+### Render worker
+
+The Chromium render worker is a separate process with its own environment.
+
+| Var | Default | What |
+|---|---|---|
+| `LW_RENDER_WORKER_SECRET` | - | required: the shared HMAC key, the same value as on the server |
+| `LOLLY_WEB_BASE` | - | required: the HTTPS address of the Lolly shell the worker drives (HTTP only for localhost development) |
+| `LW_RENDER_TLS_CERT_FILE`, `LW_RENDER_TLS_KEY_FILE` | - | the worker's certificate chain and matching key, read-only files. Required in production |
+| `LW_RENDER_TLS_SERVER_NAME`, `LW_RENDER_TLS_CA_FILE` | - | the service name and private CA bundle the worker's own TLS health check uses |
+| `LW_RENDER_DEPLOYMENT_MODE` | - | `production` requires TLS; `evaluation` listens over HTTP on loopback only. Unset follows `NODE_ENV` |
+| `LW_RENDER_ALLOWED_ORIGINS` | - | comma-separated origins a rendered page may reach even on a private address, such as an internal asset host; plain origins, no paths |
+| `LW_RENDER_REQUIRE_USER_NAMESPACE` | - | `1` stops the worker before Chromium starts unless it runs in its own user namespace; Helm sets it when it grants the sandbox capabilities |
+| `LW_RENDER_MAX_CONCURRENT` | `4` | renders at once per worker |
+| `LW_RENDER_NAV_TIMEOUT_MS`, `LW_RENDER_EXPORT_TIMEOUT_MS` | `30000`, `20000` | per-render timeouts |
+| `LW_RENDER_TS_SKEW_MS` | `300000` | the clock skew the request HMAC tolerates between server and worker |
+| `LW_RENDER_BROWSER_STARTUP_TIMEOUT_MS` | `30000` | browser startup and recovery budget, from 1000 to 120000 |
+| `PORT` | `8791` | listen port |
 
 ## Changing configuration
 

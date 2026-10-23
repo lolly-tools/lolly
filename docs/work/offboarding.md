@@ -44,13 +44,13 @@ project:
 
 ## Canto and Image Relay: which driver do you exit through?
 
-Canto acquired Image Relay in September 2024 and is moving that customer base onto its own
-platform, which splits one set of customers across two APIs. The exit driver follows the
-tenant, not the logo:
+Image Relay tenants may be moved to Canto, so one set of customers can sit across two APIs.
+Check which API serves your tenant before you plan: the exit driver follows the tenant, not
+the logo.
 
 | Where the tenant lives today | Exit driver | Notes |
 |---|---|---|
-| **Legacy Image Relay** (api.imagerelay.com still serves the tenant) | `imagerelay` | Exit now, before the vendor's migration adds a second hop |
+| **Legacy Image Relay** (api.imagerelay.com still serves the tenant) | `imagerelay` | Exit before a move to Canto adds a second hop |
 | **Migrated to Canto** (tenant is `<name>.canto.com`) | `canto` | Same motion, new driver. Folder structure arrives as Canto albums; a custom expiry field carried into a Canto custom field just renames the `mapping.availabilityFields` entry |
 | **Mid-migration** (both alive) | both, `imagerelay` first | The legacy tenant holds the copy your organization curated; use `canto` for assets born after the migration. The exit is idempotent per (provider, remoteId), so running both is safe |
 | **Native Canto customer** (never Image Relay) | `canto` | The ordinary legacy-DAM motion, at contract end |
@@ -78,8 +78,8 @@ guess turns out wrong: [canto](providers/canto-live-verify.md),
 
 | Kind | Driver | What imports | Original bytes out | Exit verdict |
 |---|---|---|---|---|
-| `brandfolder` | Public v4 API, bearer key | Native window (`availability_start` / `availability_end`) and a native `approved` boolean; Brandfolder sections → sections | Yes. The attachment's signed storage URL is re-fetched per request and streamed, host-pinned to `brandfolder.com` / `bfldr.com` | **Exit target**, one of the two priority off-boarding paths of record. Live confirmation of the availability field names open |
-| `imagerelay` | Public v2 API, OAuth2 (BYOT) | No native window: availability comes from `mapping.availabilityFields` naming custom-metadata keys. No approval signal at all, so approval stays a lolly-side decision. Folder → section; deletions are reported positively and dropped | Yes. `download_url` re-fetched signed per request, host-pinned to `imagerelay.com`; the driver self-caps at 5 req/s | **Exit target, the urgent one.** Canto owns the platform now - check the fork matrix above first, because your tenant may already be on the other side of the migration. Live confirmation of the endpoint paths and field names open |
+| `brandfolder` | Public v4 API, bearer key | Native window (`availability_start` / `availability_end`) and a native `approved` boolean; Brandfolder sections → sections | Yes. The attachment's signed storage URL is re-fetched per request and streamed, host-pinned to `brandfolder.com` / `bfldr.com` | **Exit target.** Live confirmation of the availability field names open |
+| `imagerelay` | Public v2 API, OAuth2 (BYOT) | No native window: availability comes from `mapping.availabilityFields` naming custom-metadata keys. No approval signal at all, so approval stays a lolly-side decision. Folder → section; deletions are reported positively and dropped | Yes. `download_url` re-fetched signed per request, host-pinned to `imagerelay.com`; the driver self-caps at 5 req/s | **Exit target.** Check the Canto and Image Relay table above first, because your tenant may already have moved to Canto. Live confirmation of the endpoint paths and field names open |
 | `canto` | REST v1, OAuth2 (BYOT, App ID + Secret issued by Canto to the tenant owner) | Availability from `mapping.availabilityFields` read off the record's custom-field bag; approval states → approved via `options.approvedStates` (default `["approved"]`); albums and folders → sections | Expected yes: `api_binary` streams the original per scheme, host-pinned to the canto family. Whether it returns the true original rather than a rendition is on the driver's `LIVE-VERIFY` checklist | **Exit target.** Nothing in this driver has been confirmed against a Canto tenant yet, so run the runbook before committing a schedule |
 | `acquia-dam` | Widen v2 API, bearer token | Native window (`release_date` → available from, `expiration_date` → available until); asset `status` → approved via `options.approvedStatuses` (default `["active"]`); categories → sections | Yes. The `embeds.original` URL (or the download link) re-fetched per request, host-pinned to `widencollective.com` / `widencdn.net` | **Exit target**, and the least mapping work of the set - governance arrives native, so no custom-field wiring. Live confirmation of the field names open |
 | `intelligencebank` | v3 Graph API only. Login handshake, single sealed credential | Native window (`publish_date` → available from, `expiry_date` or `review_date` → available until); workflow state → approved via `options.approvedStates` (absent leaves approval unfiltered); folder and category → sections | Yes. The resource `download_url` re-fetched per request, host-pinned to the `intelligencebank.com` family (a custom-domain tenant needs its host added) | **Exit target.** Governance-rich, so an exit keeps most of what the DAM knew. Live confirmation of the login response and field names open |
@@ -89,7 +89,7 @@ guess turns out wrong: [canto](providers/canto-live-verify.md),
 
 The non-DAM kinds (`webdav`, `s3`, `git`, `dropbox`, `gdrive`, `o365`, `penpot`) are storage and
 design sources, not brand libraries held under someone else's contract. They have no
-off-boarding story and are absent from the table deliberately. `webdav` earns its own note:
+off-boarding story, so the table leaves them out. `webdav` needs a note of its own:
 a Nextcloud or an Apache `mod_dav` mount is a server the organization runs itself, so there is
 no vendor to leave, and it is far more often **the destination of an exit** than the start of one.
 Materialize works against it like any other source, and its driver is fixture-verified with its

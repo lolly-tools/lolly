@@ -4,7 +4,7 @@ Ask Lolly is the in-app help view: you type a question, and it hands back the se
 
 ## What it is
 
-One job: find the part of these guides that answers your question, and show it to you unchanged. There is no model and no summarising step - the words in an answer are the documentation's own words, the citation under them gives the page and section and an **Open in docs** link goes straight there.
+One job: find the part of these guides that answers your question, and show it to you unchanged. There is no summarising step - the words in an answer are the documentation's own words, the citation under them gives the page and section and an **Open in docs** link goes straight there. An optional matching model, described under [Asking a question](#asking-a-question), can help find the right section, but it never writes the answer.
 
 Under the quoted section sit the places in the app the same question matches: a tool, a utility, a saved project, a catalogue asset, a setting, a page of the app. Each is a row that only navigates. Nothing in an answer flips a setting, opens a file or acts on your behalf - the same rule [Search](/info/search.html) follows.
 
@@ -20,13 +20,15 @@ The first word of your question decides what leads the answer:
 
 | You start with | What leads |
 |---|---|
-| *where*, *find*, *open*, *show*, *go to*, *jump*, *switch* | the places in the app that match |
-| *make*, *create*, *convert*, *resize*, *compress*, *remove*, *strip*, *export*, *render*, *add* | the tools that match |
+| *where*, *find*, *open*, *show*, *go to*, *goto*, *take*, *jump*, *navigate*, *switch* | the places in the app that match |
+| *make*, *create*, *generate*, *build*, *design*, *convert*, *resize*, *compress*, *remove*, *strip*, *export*, *render*, *add* | the tools that match |
 | anything else - including *how do I* and *what is* | the documentation section, which is the default |
 
 Both halves are always retrieved, so a misread question reorders an answer rather than losing half of it.
 
 Matching drops the common question words (*how*, *do*, *I*, *the*, *my*) and ranks a section first by how many of your remaining words it covers, then by where they matched - a heading counts for more than body text. It is substring matching, folded for case and accents, not fuzzy: it will not correct a typo or guess at a word you did not type. When nothing matches, it says so and points at the documentation index rather than inventing an answer.
+
+**Better matching** is optional. After your first answer, Ask can offer a small matching model, with its download size, that helps match a question to a guide that uses different words for the same thing. It downloads only when you agree, runs on this device, and only changes which sections rank first: the answer is still the documentation's own words. You can also download it from **Settings → Preferences → Available offline**, where it is listed as **Ask matching model**.
 
 ## What comes back
 
@@ -52,7 +54,7 @@ The transcript is session memory. It survives navigating away and coming back, a
 
 ## Offline
 
-Answers are assembled from two static files the documentation site already publishes: the per-language search index and the page's markdown twin. Both are fetched by name, so Ask keeps working with no connection once they are cached. Reading the guides in the app caches them as you go, and **Profile → Available offline → Guides & docs** takes the whole site, screenshots included, in one download - see [Your profile](/info/profile.html#available-offline).
+Answers are assembled from two static files the documentation site already publishes: the per-language search index and the page's markdown twin. Both are fetched by name, so Ask keeps working with no connection once they are cached. Reading the guides in the app caches them as you go, and **Settings → Preferences → Available offline → Guides & docs** takes the whole site, screenshots included, in one download - see [Available offline](/info/profile.html#available-offline).
 
 Without them the documentation half of an answer simply does not appear, with no error. The in-app rows still do, because those are matched against data already on the device.
 

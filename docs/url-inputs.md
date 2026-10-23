@@ -13,12 +13,12 @@ Every input defined in a tool's manifest can be set as a URL parameter using its
 Pass the value directly. URL-encode spaces and special characters.
 
 ```
-?quote=The+best+way+to+predict+the+future+is+to+create+it.
-?name=Andy+Fitzsimon
-?url=https%3A%2F%2Fwww.suse.com
+?text=Ship+it
+?heading=Quarterly+results
+?url=https%3A%2F%2Fexample.com
 ```
 
-The Wordmark tool is nothing but text params, so a link is the whole brief: `/#/tool/wordmark?text=Ship it&weight=800&tracking=-12&size=200`.
+The Wordmark tool is nothing but text params, so a link is the whole brief: `/t/wordmark?text=Ship it&weight=800&tracking=-12&size=200`.
 
 ![The word "Ship it" outlined in a heavy weight with the letters pulled tight, both settings carried in by the link alone](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DShip%2520it%26weight%3D800%26tracking%3D-12%26size%3D200&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&cropSelector=%23tool-canvas&filename=um-text-wordmark)
 
@@ -40,7 +40,7 @@ A one-word change swaps the whole render: `?theme=dark` repaints a design from t
 ?padding=4
 ```
 
-A number can also set how much of a thing gets made. Colour Palette builds one ramp cell per step, so `/#/tool/color-palette?steps=11` returns a wider sheet than the default seven.
+A number can also set how much of a thing gets made. Colour Palette builds one ramp cell per step, so `/t/color-palette?steps=11` returns a wider sheet than the default seven.
 
 ![A palette sheet eleven cells wide, the count set only by the steps param](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fsteps%3D11&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=um-number-steps)
 
@@ -50,12 +50,12 @@ A number can also set how much of a thing gets made. Colour Palette builds one r
 
 ```
 ?join=1
-?showBorder=false
+?showGrid=false
 ```
 
-One flag can add a whole layer of information: `/#/tool/chart?showValues=1` prints the number on every bar.
+One flag can add a whole layer of information: `/t/chart?chartType=line&showPoints=1` marks every data point on a line chart.
 
-![The D3 bar chart with a value printed on each bar, switched on by a single boolean param](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3FshowValues%3D1&width=1440&height=900&dpi=192&waitMs=2800&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=um-boolean-values)
+![A chart with a mark on every data point, switched on by a single boolean param](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3FshowValues%3D1&width=1440&height=900&dpi=192&waitMs=2800&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=um-boolean-values)
 
 ### Color
 
@@ -75,8 +75,8 @@ Colour params stack. Mesh Gradient takes one per stop, so three hex values in a 
 Pass the asset's library ID - the runtime resolves it to the full asset object at render time.
 
 ```
-?logo=suse/logo/primary
-?headshot=team/andy-fitzsimon
+?logo=lolly/logo/primary
+?image=lolly/demo/lorikeet-lollipop
 ```
 
 To discover asset IDs, open the asset picker in the tool UI and inspect the value shown when an asset is selected. An audio ID works the same way as an image: Audiogram decodes whichever track the link names and draws its real waveform.
@@ -88,7 +88,7 @@ An explicit `AssetRef.pin`, available from engine 1.185, requests an exact retai
 **An asset value can also be another tool's render.** When a user pastes a Lolly tool link into the asset picker (a share link or an embed URL), the chosen value's "id" is the **canonical embed URL** of that render, so it round-trips through the URL exactly like a library id - just longer:
 
 ```
-?hero=https%3A%2F%2Flolly.tools%2Ftool%2Fqr-code.svg%3Furl%3Dhttps%3A%2F%2Fsuse.com%26w%3D600%26h%3D600
+?image=https%3A%2F%2Flolly.tools%2Ftool%2Fqr-code.svg%3Furl%3Dhttps%3A%2F%2Fexample.com%26w%3D600%26h%3D600
 ```
 
 On load the runtime re-renders it via `host.compose.renderUrl` instead of looking it up in the catalog. This is how one tool's output (a QR code, a filtered hero graphic) flows into another tool's image slot through a plain shareable link. See [Tool composition](/info/url-mode.html#tool-composition-portable-embed-url) and the authoring guide.
@@ -100,7 +100,7 @@ On load the runtime re-renders it via `host.compose.renderUrl` instead of lookin
 Blocks inputs are repeating groups of fields (e.g. a list of team members, each with a name and city). Pass the value as a JSON array of objects, URL-encoded.
 
 ```
-?people=[{"name":"Andy","city":"Nuremberg"},{"name":"Lisa","city":"Sydney"}]
+?people=[{"name":"Mei","city":"Nuremberg"},{"name":"Lisa","city":"Sydney"}]
 ```
 
 Each object's keys must match the field `id`s defined in the tool's manifest. Fields can be omitted - missing fields are treated as empty strings. Wayfinding's `directions` input is a blocks list of a label, an arrow, a side and a colour per row, so a whole sign travels in the link:
@@ -109,12 +109,12 @@ Each object's keys must match the field `id`s defined in the tool's manifest. Fi
 
 **CLI:**
 ```bash
-lolly meeting-planner --people='[{"name":"Andy","city":"Nuremberg"},{"name":"Lisa","city":"Sydney"}]'
+lolly meeting-planner --people='[{"name":"Mei","city":"Nuremberg"},{"name":"Lisa","city":"Sydney"}]'
 ```
 
 The URL updates automatically as block items are added, removed or edited in the UI - copy from the address bar to get a shareable link with all entries included.
 
-> Blocks with a JSON representation larger than 8 KB are not written to the URL to avoid exceeding browser URL limits. In that case, use a saved state `slot` for sharing.
+> A blocks value has no size cap. A large one packs into the `z` link, and when a link grows too long to pass around, the Share dialog offers a `.lolly` file instead.
 
 ### Vector
 
@@ -124,7 +124,7 @@ A `vector` input is a fixed group of numbers edited as one control (e.g. a zoom 
 ?imageFraming.zoom=200&imageFraming.x=30&imageFraming.y=70
 ```
 
-One readable value per param. Used by tools such as `pose-geeko`, `chart-creator`, `filter`, `dynamic-layout` and `quotes`. Mesh Gradient parks each colour stop with one, so adding `?pos1.x=8&pos1.y=8&pos2.x=92&pos2.y=12&pos3.x=50&pos3.y=94` to the gradient above drives its three blooms out to the edges:
+One readable value per param. Used by tools such as `frame`, `darkroom`, `filter`, `3d` and `gradient`. Mesh Gradient parks each colour stop with one, so adding `?pos1.x=8&pos1.y=8&pos2.x=92&pos2.y=12&pos3.x=50&pos3.y=94` to the gradient above drives its three blooms out to the edges:
 
 ![The coral, amber and violet gradient again, this time with each bloom pinned to an edge by its own dotted x and y param](/t/url-shot?url=%2F%23%2Ftool%2Fgradient%3Fcount%3D3%26blend%3Dnormal%26color1%3D%2523ff5f6d%26color2%3D%2523ffc371%26color3%3D%25236a11cb%26pos1.x%3D8%26pos1.y%3D8%26pos2.x%3D92%26pos2.y%3D12%26pos3.x%3D50%26pos3.y%3D94&width=880&height=560&dpi=96&waitMs=2400&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=um-vector-positions)
 
@@ -180,7 +180,7 @@ Tools can opt into a shorter URL form, which the web shell emits when you **copy
 - **Tilde-delimited block arrays** - instead of JSON, blocks serialise as `field,field,field~field,field,field` (one `~`-separated group per item; values URL-encoded, colors `#`-less).
 - **Omitted defaults** - values equal to the input's default are dropped from the URL entirely.
 
-`chart-creator` is a live tool that uses `urlKey`, so a link copied via its Copy URL / share button won't match the long-form examples in this doc - that's expected. `d3` uses them too: `?ct=radar&pl=cool&t=Short keys&lg=0` is chart type, palette, heading and legend in twelve characters of query.
+`chart` is a live tool that uses `urlKey`, so a link copied via its Copy URL / share button won't match the long-form examples in this doc - that's expected. For example, `?ct=radar&pl=cool&t=Short keys&lg=0` is chart type, palette, heading and legend in twelve characters of query.
 
 ![A radar chart in the cool palette, drawn from four short-key params instead of their long names](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dradar%26pl%3Dcool%26t%3DShort%2520keys%26lg%3D0&width=1440&height=900&dpi=192&waitMs=2800&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=um-compact-shortkeys)
 

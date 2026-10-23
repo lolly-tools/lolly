@@ -8,17 +8,17 @@ Lolly is one repository, with one private submodule for the SUSE brand pack (the
 
 ## Why the repo is big
 
-The working tree is modest; the weight is history: committed catalog images (tool previews, OG share cards) re-rendered over time, screenshot baselines for every docs page re-shot whenever the UI changes, and the web PWA's long history with its fonts and binary assets. Budget roughly 1.2 GB of download and 2.6 GB on disk once `node_modules` is installed.
+The working tree is modest; the weight is history: committed catalog images (tool previews, OG share cards) re-rendered over time, screenshot baselines for every docs page re-shot whenever the UI changes, and the web PWA's long history with its fonts and binary assets. In October 2026, budget roughly 1.2 GB of download and 2.6 GB on disk once `node_modules` is installed; both grow with the history.
 
 Two things a fresh clone never downloads, whatever path you take: `brands/suse` (the private SUSE brand pack, marked `update = none` - public clones fall back to the neutral `lolly-start` profile and everything still builds) and `shells/web/public/models` (the on-device AI models are untracked local staging; the app fetches them on demand at runtime).
 
-To build with the models bundled into your own `dist` instead of fetched at runtime, vendor them first with `pnpm run models:vendor` (~1.2 GB, opt-in - never run by install or CI). It downloads every family from its pinned upstream, verifies each file's hash before writing, and skips anything already present, so re-running only fetches what's missing (`--only=kokoro,matte` for a subset, `--list` to see the families). The files stay gitignored; nothing to commit.
+To build with the models bundled into your own `dist` instead of fetched at runtime, vendor them first with `pnpm run models:vendor` (~1.2 GB, opt-in - never run by install or CI). It downloads every family from its pinned upstream, except the opt-in singing models (about 2.8 GB more, fetched only with `--only=sing`), verifies each file's hash before writing, and skips anything already present, so re-running only fetches what's missing (`--only=kokoro,matte` for a subset, `--list` to see the families). The files stay gitignored; nothing to commit.
 
 ---
 
 ## The full clone
 
-The always-works path. On macOS and openSUSE, `./setup.sh` does everything after the clone - installs git and Node if missing or too old, runs `pnpm install`, selects a content profile - and it is idempotent, so re-run it freely after a `git pull` or to repair a half-finished checkout:
+The always-works path. On macOS and openSUSE, `./setup.sh` does everything after the clone - installs git and Node if missing or too old, runs `pnpm install` and reports the content profile it resolved (`--profile` sets this checkout's default) - and it is idempotent, so re-run it freely after a `git pull` or to repair a half-finished checkout:
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git

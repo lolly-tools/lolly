@@ -161,6 +161,13 @@ export interface DocsRenderContext {
   credential(file: string, opts?: { assetSrc?: string; art?: boolean }): CredentialFacts | null;
   /** The editable app route for a shot or diagram file, or null. */
   tryLink(file: string): { route: string } | null;
+  /**
+   * The URL for a link whose target is a Markdown source file (`create-a-tool.md`,
+   * `../README.md#licensing`): the published page, or the file on GitHub when the site
+   * does not publish the file. Null leaves the link as written. Optional: a context that
+   * cannot resolve sources leaves every such link unchanged.
+   */
+  sourceLink?(url: string): string | null;
   /** Resolve a `::: showcase` recipe's slug to its animation frame, or null (bail to a plain shot). */
   showcase(slug: string): ShowcaseResolution | null;
   /** Resolve a banked masthead/figure id to its stripped inline HTML + served src, or null. */

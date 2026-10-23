@@ -6,7 +6,7 @@ Part of [URL Mode](/info/url-mode.html).
 
 ## App links
 
-[Tool URLs](/info/url-mode.html) address an individual tool. The rest of the app is addressable the same way: the browse views, the studio, the dashboard and the settings pages each read a few params off their own route, so a link can land someone on a particular shelf of Assets or a particular settings card rather than on the front door.
+[Tool URLs](/info/url-mode.html) address an individual tool. The rest of the app is addressable the same way: the browse views, the studio and every Settings tab each read a few params off their own route, so a link can land someone on a particular shelf of Assets or a particular settings card rather than on the front door.
 
 Use an address-bar link to reopen a workspace or drive automation:
 
@@ -26,9 +26,9 @@ Three rules hold everywhere below:
 The installed apps register `lolly://` as their own URL scheme, so anything that can open a URL can open Lolly at an exact place: a launcher's "open URL" action (Raycast, Alfred, PowerToys Run), a macOS Shortcut, a `.desktop` Action, a GNOME Shell or KRunner result, a link in a note or a QR code on a slide, or a terminal:
 
 ```bash
-open      "lolly://t/qr-code?url=https://suse.com"     # macOS
-xdg-open  "lolly://t/qr-code?url=https://suse.com"     # Linux
-start     "lolly://t/qr-code?url=https://suse.com"     # Windows
+open      "lolly://t/qr-code?url=https://example.com"     # macOS
+xdg-open  "lolly://t/qr-code?url=https://example.com"     # Linux
+start     "lolly://t/qr-code?url=https://example.com"     # Windows
 ```
 
 The grammar is the web address with the site name taken for granted: `lolly://<route>` is `https://lolly.tools/<route>`. Every tool form works (`lolly://t/<id>?…`, `lolly://tool/<id>?…`, a bare `lolly://<id>?…`, and the embed form `lolly://tool/<id>.svg?…`, whose extension becomes `format=`), with the same inputs, reserved parameters and packed `z=` links as the https form. Any app route works too (`lolly://lab`, `lolly://verify?asset=lolly/logo/primary`, `lolly://docs/build/authoring-tools`). A copied https link with `https://` swapped for `lolly://` keeps working - the `lolly.tools` host segment is dropped rather than read as a tool id.
@@ -40,12 +40,12 @@ Read an app URI in three pieces; there is no second parameter vocabulary hiding 
 | Piece | Example | Meaning |
 |---|---|---|
 | Scheme | `lolly://` | Ask the operating system to launch the installed Lolly app. |
-| Route | `t/qr-code` | Open a tool (`t/<id>`), or another documented app route such as `lab`, `profile` or `verify`. |
-| Query | `?url=https%3A%2F%2Fsuse.com&full` | The tool inputs and reserved controls from the tables on this page. Values use normal URL encoding; a presence flag such as `full` needs no `=1`. |
+| Route | `t/qr-code` | Open a tool (`t/<id>`), or another documented app route such as `lab`, `settings` or `verify`. |
+| Query | `?url=https%3A%2F%2Fexample.com&full` | The tool inputs and reserved controls from the tables on this page. Values use normal URL encoding; a presence flag such as `full` needs no `=1`. |
 
-So `lolly://t/qr-code?url=https%3A%2F%2Fsuse.com&full` launches Lolly, opens QR Code with its `url` input filled, and uses the reserved `full` behaviour. `z=` and `zx=` are just compact or encrypted versions of the same query state; every readable flag that follows them still wins in the usual way.
+So `lolly://t/qr-code?url=https%3A%2F%2Fexample.com&full` launches Lolly, opens QR Code with its `url` input filled, and uses the reserved `full` behaviour. `z=` and `zx=` are just compact or encrypted versions of the same query state; every readable flag that follows them still wins in the usual way.
 
-A link for a route the app does not own is refused, not guessed at: the OS hands the app an untrusted string, so the mapper only ever opens a tool id that parses or a word from the app's frozen route vocabulary. Pasting a `lolly://` link anywhere the app already accepts a Lolly link (the asset picker, the pasted-link paths, the CLI's `Lolly <link>` form) works the same way.
+A link for a route the app does not own is refused, not guessed at: the OS hands the app an untrusted string, so the mapper only ever opens a tool id that parses or a word from the app's frozen route vocabulary. Pasting a `lolly://` link anywhere the app already accepts a Lolly link (the asset picker, the pasted-link paths, the CLI's `lolly <link>` form) works the same way.
 
 Where it is registered: the macOS and Windows installers and the Linux `.desktop` entries all declare the scheme, as do the Android and iOS apps. A `tauri dev` build registers itself on Windows and Linux at launch; on macOS only the installed `.app` can receive the scheme. Spotlight itself opens web addresses, not custom schemes - on a Mac, reach the scheme through `open`, a Shortcut or a launcher. The MCP server's resource URIs (`lolly://catalog`, `lolly://tool/{id}`) share the prefix but are a different namespace: resources an agent reads, not routes the app opens.
 
@@ -53,10 +53,10 @@ Where it is registered: the macOS and Windows installers and the Linux `.desktop
 
 | Param | Description |
 |---|---|
-| `lang` | UI language for this session, on any route (`#/a?lang=ja`, `/#/profile?lang=ar`). Same value set as the [tool-route `lang`](/info/url-parameters.html); same "session only, saved preference untouched" rule. |
-| `theme` | `light`, `dark` or `brand` - pins the app's look for this page load. Deliberately **not** saved to the profile or to `localStorage`: a link you paste must not permanently flip someone's theme. Mostly for screenshots and for "here's how it looks in dark" links. **App views only** - on a tool link (`/t/<id>`, `#/tool/<id>`, `/design`) it is left alone, because `theme` is a declared input in a dozen tools where it already means "draw the artwork dark". |
+| `lang` | UI language for this session, on any route (`#/a?lang=ja`, `#/settings?lang=ar`). Same value set as the [tool-route `lang`](/info/url-parameters.html); same "session only, saved preference untouched" rule. |
+| `theme` | `light`, `dark` or `brand` - pins the app's look for this page load. **Not** saved to the profile or to `localStorage`: a link you paste must not permanently flip someone's theme. Mostly for screenshots and for "here's how it looks in dark" links. **App views only** - on a tool link (`/t/<id>`, `#/tool/<id>`, `/design`) it is left alone, because `theme` is a declared input in several tools where it already means "draw the artwork dark". |
 | `_appearance` | App appearance, including on tool routes. Takes the same values as `theme` and wins over that legacy override. Written by the appearance control and excluded from content Share. |
-| `_open=<id>,<id>` | Open disclosure cards in Settings, Dashboard, Components and the design system studio. An explicit `_open=` closes all addressable cards. |
+| `_open=<id>,<id>` | Open disclosure cards in Settings, Components and the design system studio. An explicit `_open=` closes all addressable cards. |
 
 ### Gallery (`#/`, and `#/u` for utilities)
 
@@ -112,8 +112,8 @@ Search, type, sorting, asset focus and section changes preserve one another in t
 
 | Param | Description |
 |---|---|
-| `area` | Which room: `overview`, `color`, `type`, `logos`, `tokens`, `catalogue`, or `versions`. |
-| `focus` | A wing of the colour room: `generate`, `curves`, `contrast`, `print`, `chart`. |
+| `area` | Which room: `overview`, `color`, `type`, `logos`, `tokens`, `catalogue` (labelled **Files**), `usage` (**Usage & rules**) or `versions`. |
+| `focus` | A wing of the colour room: `generate`, `curves`, `contrast`, `print`, `chart`. Three more open a first decision: `pick` (the Colours room's colour picker), `stage` (the Type room's face stage) and `looks` (**Find a look**, ready-made colours and type). |
 | `seed=<hex>` | Primes the Generate wing's primary colour before it opens. |
 | `wheel` | Presence flag - opens the OKLCH colour chart (the same target as `focus=chart`). |
 | `import` | Presence flag - opens the source picker on arrival (`import=0` means shut). |
@@ -123,11 +123,11 @@ Room, focused wing and source-picker changes update the address. `seed` and `whe
 
 ### Dashboard (`#/d`)
 
-`#/d?tab=<tab>` opens a primary tab - `device`, `brand`, `caps`, `activity`. `#/d?<section-id>` scrolls to and opens one section directly (`#/d?dash-storage`, `#/d?cap-formats`); the section ids are the `DASH_SECTIONS` rows in `shells/web/src/lib/dashboard-registry.ts`. `#/b` and `#/brand` are shortlinks to the Design system tab.
+These are the Settings tabs. `#/settings?tab=<tab>` opens one: `device` (This device), `brand` (Design system), `caps` (Capabilities) or `activity` (Activity & stats). `#/settings?<section-id>` scrolls to and opens one section directly (`#/settings?dash-storage`, `#/settings?dash-colourways`, `#/settings?cap-formats`); the section ids are the `DASH_SECTIONS` rows in `shells/web/src/lib/dashboard-registry.ts`. The older `#/d` route reads the same parameters. `#/b` and `#/brand` are shortlinks to the Design system tab.
 
 ### Profile (`#/profile`)
 
-`#/profile?focus=<section>` opens and scrolls to one settings card. The sections are `details-section`, `identity-section`, `appearance-section`, `a11y-section`, `connections-section`, `renders-section`, `storage-section`, `offline-section`, `activity-section`, `feature-flags-section` and `instance-section`.
+`#/settings?focus=<section>` opens the Preferences tab of Settings and scrolls to one card. The older `#/profile` route reads the same parameter. The sections are `details-section`, `identity-section`, `design-systems-section`, `appearance-section`, `emoji-pref-section`, `a11y-section`, `connections-section`, `trusted-sites-section`, `renders-section`, `storage-section`, `offline-section`, `hotfolder-section` (installed apps only), `activity-section`, `feature-flags-section` and `instance-section`. `sync-section` still works and opens `connections-section`, where Sync across devices now sits.
 
 Settings navigation writes `focus`, card toggles write `_open`, and the settings search writes `q`. Settings tabs add browser history entries.
 

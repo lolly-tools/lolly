@@ -55,8 +55,8 @@ Run a command that needs content without any and the CLI prints those three rout
 ## Discovering tools & assets
 
 ```bash
-pnpm run cli                      # list every tool (id, status, description)
-pnpm run cli list              # the same thing, spelled explicitly
+pnpm run cli                   # in a terminal: the start screen; piped: the tool list
+pnpm run cli list              # list every tool (id, status, description)
 pnpm run cli list --json --q=chart --limit=5  # bounded machine discovery
 pnpm run cli describe qr-code  # that tool's inputs, defaults, and formats
 pnpm run cli qr-code           # sugar for describe, when no flags follow
@@ -73,13 +73,13 @@ pnpm run cli assets --type=raster
 
 ```
 $ lolly assets --type=rastor
-Error: No catalog asset has type "rastor". This catalog has: audio, lottie, palette, raster, tokens, vector.
+Error: No catalog asset has type "rastor". This catalog has: audio, data, lut, model, palette, raster, tokens, vector.
 ```
 
-Any listed **asset id** can be passed to an `asset`-type input (the engine resolves it to the embedded asset), and so can a **`lolly.tools` tool URL** - a whole tool's render becomes the asset. To render a **bare asset** straight to a file, use the `asset-export` tool - note it ships with the **SUSE brand pack**, so it is profile-dependent and absent on a community-only profile (where these commands print `Tool not found: asset-export`):
+Any listed **asset id** can be passed to an `asset`-type input (the engine resolves it to the embedded asset), and so can a **`lolly.tools` tool URL** - a whole tool's render becomes the asset. To render a **bare asset** straight to a file, use the `asset-export` tool:
 
 ```bash
-pnpm run cli asset-export --src=suse/logo/hor-neg-green --export=svg --output=logo.svg
+pnpm run cli asset-export --src=lolly/logo/primary --export=svg --output=logo.svg
 pnpm run cli asset-export --src='https://lolly.tools/tool/qr-code.svg?url=x' --output=qr.svg
 ```
 
@@ -102,10 +102,10 @@ lolly package document.json --output=session.lolly
 Schema; `inspect`, `measure` and `diff` are semantic reads. `optimize` reports
 the immutable stages it ran when writing a file, and `package` writes an
 `application/vnd.lolly+zip` share envelope. A logical asset input such as
-`image://brand/logo`, `catalog://suse/logo/primary` or
+`image://brand/logo`, `catalog://lolly/logo/primary` or
 `library://user/upload/…` is resolved by the same host bridge used for an
-ordinary render. Device CLI runs deliberately leave credentialled `cms://` and
-governed `net://` refs to Lolly Work.
+ordinary render. A CLI run on a device does not resolve credentialled `cms://`
+or governed `net://` refs; those need Lolly Work.
 
 `measure` and `package` also take a Design document directly. `lolly measure
 --text=…` and `lolly measure <design.json> --text-layers` measure text before it
@@ -139,7 +139,7 @@ output.
 
 ### Verbs, and why they exist
 
-The first argument is either a **verb** or a **tool id**, and the verbs win. The verbs include `list`, `describe`, `run`, `assets`, `batch`, `smoke`, `validate`, `preflight`, `install-browser`, `completion`, `help`, `version`, `models`, `speak`, `transcribe`, `mix`, `upscale`, `matte`, `ocr`, `detect-ai`, `reword`, `depth`, `rebrand`, `read`, `check`, `compose`, `look`, `sample` and `trace`, plus `prepare`, `files`, `start`, `system`, `compile`, `schema`, `inspect`, `diff`, `measure`, `optimize`, `package`, `icons`, `pack` and `tui` - reserved words a tool id may never take, otherwise a brand pack shipping a tool called `batch` would be permanently unreachable. Run `lolly --help` for the full, current set. `lolly run <tool-id>` and `lolly describe <tool-id>` are the unambiguous spellings; the bare `lolly <tool-id>` sugar renders when flags follow and describes when they do not.
+The first argument is either a **verb** or a **tool id**, and the verbs win. The verbs include `list`, `describe`, `run`, `assets`, `batch`, `smoke`, `validate`, `preflight`, `install-browser`, `completion`, `help`, `version`, `models`, `speak`, `transcribe`, `mix`, `upscale`, `matte`, `ocr`, `detect-ai`, `reword`, `depth`, `rebrand`, `read`, `check`, `compose`, `look`, `sample` and `trace`, plus `prepare`, `files`, `learning`, `adobe`, `start`, `system`, `compile`, `schema`, `inspect`, `diff`, `measure`, `optimize`, `package`, `icons`, `pack` and `tui` - reserved words a tool id may never take, otherwise a brand pack shipping a tool called `batch` would be permanently unreachable. `learning` checks and builds a [training course](/info/training-creators.html) package, and `adobe` reads presets, timelines, IDML and Photoshop files ([Import a design](/info/design-import.html)). Run `lolly --help` for the full, current set. `lolly run <tool-id>` and `lolly describe <tool-id>` are the unambiguous spellings; the bare `lolly <tool-id>` sugar renders when flags follow and describes when they do not.
 
 ### Global flags
 
@@ -160,10 +160,10 @@ A flag that takes a value is refused in its bare form rather than parsed as the 
 
 ```bash
 # Write to a file (extension is yours to choose):
-pnpm run cli qr-code --url=https://suse.com --output=./qr.svg
+pnpm run cli qr-code --url=https://example.com --output=./qr.svg
 
 # Explicit format, stream to stdout (pipe or redirect):
-pnpm --silent run cli qr-code --url=https://suse.com --export=png > qr.png
+pnpm --silent run cli qr-code --url=https://example.com --export=png > qr.png
 ```
 
 If `--output` is given, the file is written and a byte count is reported on stderr; otherwise the bytes go to **stdout** so you can pipe them.
@@ -183,13 +183,14 @@ native timed layers and refuse unsupported animated media. See
 An extension picks a format, so it is checked like one. If the tool does not declare it, the run stops - it does not fall back to the tool's first format and write those bytes under your filename:
 
 ```
-$ lolly meeting-planner --output=times.csv
-Error: --output=times.csv asks for ".csv", which "meeting-planner" does not produce.
-Supported: png, jpeg, svg, ics, json. Name one with --export=<format> if you meant to
-write it under that filename anyway.
+$ lolly qr-code --output=qr.csv
+Error: --output=qr.csv asks for ".csv", which "qr-code" does not produce. Supported: svg,
+penpot, png, jpeg, webp, avif, tiff, pdf, pdf-cmyk, cmyk-tiff, eps, eps-cmyk, dxf, emf,
+svgz, wmf, bmp, jxl, jxl-lossless. Name one with --export=<format> if you meant to write
+it under that filename anyway.
 ```
 
-Naming the format explicitly is how you opt out, because then you have said which bytes you expect: `lolly meeting-planner --export=json --output=times.notes` writes JSON under that name and exits 0. An `--output` with no extension at all renders the tool's default format.
+Naming the format explicitly is how you opt out, because then you have said which bytes you expect: `lolly qr-code --export=svg --output=qr.notes` writes SVG under that name and exits 0. An `--output` with no extension at all renders the tool's default format.
 
 ## Rebrand: renovate an old deck
 
@@ -308,7 +309,7 @@ The MCP server offers the same composer as `lolly_compose`, with `mode` `compose
 - [URL Mode](/info/url-mode.html) - the parameter model the CLI shares with the web shell (and the reserved params).
 - [Exporting & Formats](/info/exporting.html) - what each format is for.
 - [AI Agents](/info/ai-agents.html) - driving the same surface from an LLM.
-- **/pro batch** - the web shell's interactive counterpart to the scripted fan-out loop above: a spreadsheet-style grid with CSV round-trip, spreadsheet paste and per-row output across one or many tools.
+- **Batch** (`#/batch`) - the web shell's interactive counterpart to [`lolly batch`](/info/cli-automation.html#batch): a spreadsheet-style grid with CSV round-trip, spreadsheet paste and per-row output across one or many tools.
 
 ### Motion delivery checks
 

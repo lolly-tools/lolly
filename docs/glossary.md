@@ -14,7 +14,7 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **Manifest.** The tool's `tool.json`, validated against `schemas/tool.schema.json`. It declares the inputs, the engine version range, status, capabilities and export options. Inputs are declared here, never inferred from the template.
 
-**Template.** The tool's `template.html`, written in Handlebars and kept logic-less so non-developers can author it. Note the second meaning below under *user template*.
+**Template.** The tool's `template.html`, written in Handlebars and kept logic-less so non-developers can author templates. Note the second meaning below under *user template*.
 
 **Hooks.** The tool's optional `hooks.js`, the imperative escape hatch. Hooks return a plain object: keys that match a declared input update that input, and every other key goes into `extras`, values the template can read without a user-facing control. They run with the host bridge injected and are time-boxed per hook.
 
@@ -34,15 +34,15 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **Community tools.** The brand-agnostic tools in `community/`, a directory of this public repository. They inherit whatever design system is active.
 
-**Brand pack.** A directory under `brands/` carrying one brand's own tools and its catalog. `brands/suse/` is private; `brands/lolly-start/` is the blank, neutral pack a public clone uses. In user-facing copy the preferred word is *design system*; "brand" is used only where a brand is the subject.
+**Brand pack.** A directory under `brands/` carrying one brand's own tools and its catalog. `brands/suse/` is private; `brands/lolly-demo/` is Lolly Demo, the design system lolly.tools runs; `brands/lolly-start/` is the blank, neutral pack a public clone opens with by default. In user-facing copy the preferred word is *design system*; "brand" is used only where a brand is the subject.
 
-**Content profile, or profile.** An entry in `profiles.json` naming which tool roots and which catalog to mount, for example `suse` or `lolly-start`. A profile is resolved per process - `LOLLY_PROFILE=<name>`, or `--profile=<name>` on a catalog script - and nothing switches it globally. Not the user profile (name, theme, accessibility preferences), which is the `Profile` record a shell stores on the device.
+**Content profile, or profile.** An entry in `profiles.json` naming which tool roots and which catalog to mount, for example `lolly-demo`, `lolly-start` or `suse`. A profile is resolved per process - `LOLLY_PROFILE=<name>`, or `--profile=<name>` on a catalog script - and nothing switches it globally. Not the user profile (name, theme, accessibility preferences), which is the `Profile` record a shell stores on the device.
 
 **Materialized root.** A real `tools/` + `catalog/` pair written out of the packs by `materializeInto`, for the places that serve those two paths over HTTP: a `dist/` build, an RPM payload, a container image, the desktop app's exported content root. A checkout has neither directory; every script and shell asks `packages/node-shell/src/content-roots.ts` where a tool and the catalog are instead. Not a UI view, which is a route in the web shell such as the gallery or a tool page.
 
 **Catalog.** The registry of assets and tools a profile mounts: `catalog/assets/` with checksums, tokens and fonts, and the generated `catalog/tools/index.json`. The gallery reads the generated index, and the validator fails the build if it drifts from the manifests.
 
-**Asset.** A catalogued file (logo, palette, font, photo, music) with a permanent id such as `suse/logo/primary`. Ids are never renamed or reused; versions live in metadata. A user's own uploads join the on-device catalog the same way.
+**Asset.** A catalogued file (logo, palette, font, photo, music) with a permanent id such as `lolly/logo/primary`. Ids are never renamed or reused; versions live in metadata. A user's own uploads join the on-device catalog the same way.
 
 **Design tokens.** The DTCG-format values a design system is made of: colours, type, spacing, gradients. Tools read them through `host.tokens`, and community tools take their look from them. Importable from DTCG, Tokens Studio and Penpot files.
 
@@ -60,11 +60,11 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **User template.** A saved tool session promoted to a starting point, offered in that tool's "New from template" chooser and deep-linkable as `?template=<id>`. Different from the Handlebars template above.
 
-**Utility.** A specific kind of tool: an on-device transform that takes the user's own file in and gives bytes out (strip data, compress a PDF, convert an image). Utilities never watermark and never embed provenance. Not a loose word for any tool.
+**Utility.** A tool in the `utility` category, listed in the app's **Utilities** tab (`#/u`) for one quick job, such as Strip Hidden Data, Scan or Countdown. Many utilities are *on-device* (`privacy: "on-device"` in the manifest): they take the user's own file in and give bytes out without uploading anything (strip data, compress a PDF, convert an image). The engine never watermarks an on-device tool's output or adds provenance to it; Sign and Rondocode write a Content Credential through their own export code. A **utility view** is different: a workbench built into the app with no manifest, such as Compare or Verify & Inspect, with a card in the same tab (see [Utility views](/info/utilities.html)). Neither is a loose word for any tool.
 
 **Batch.** Rendering one tool many times from a table of values, at `#/batch`. **Multi-edit** (`#/multi`) is different: one person editing several saved sessions at once.
 
-**Collab.** Live multi-user editing. A *work collab* runs through an organisation's instance; a *private collab* is direct, device to device, with no server. Two Ls; not "colab", and never "rooms".
+**Collab.** Live multi-user editing. A *work collab* runs through an organisation's instance; a *private collab* is direct, device to device, with no server. Two Ls; not "colab", and a collab is never called a room (rooms are the areas of the Brand Studio).
 
 **Project.** The Projects view groups saved tool sessions, renders and imported files for one piece of work.
 
@@ -72,11 +72,11 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **Export.** Turning a render into a file in a chosen format, through `host.export`. Physical units (`mm`, `in`, `pt`) and `dpi` are resolved at export time, per format, by the engine.
 
-**Content Credentials.** The C2PA provenance record a file can carry, stating who made it and with what. Authoring tools enable credentials by default unless their manifest opts out. The export control and `c2pa` parameter can disable them. Input fingerprints replace full values; authorship requires a separate opt-in, and a utility never embeds a credential.
+**Content Credentials.** The C2PA provenance record a file can carry, stating who made it and with what. Authoring tools enable credentials by default unless their manifest opts out. The export control and `c2pa` parameter can disable them. Input fingerprints replace full values; authorship requires a separate opt-in, and the engine adds no credential to an on-device utility's output.
 
 **Watermark.** The visible mark experimental tools put on exports unless the caller turns it off. Not the same thing as Content Credentials.
 
-**Available offline.** The download manager in the user profile that pre-fetches fonts, shaping code and on-device models, so a render needs no network at all afterwards.
+**Available offline.** The download manager in Settings that pre-fetches fonts, shaping code and on-device models, so a render needs no network at all afterwards.
 
 **Ship gate.** The maintainer's pre-deploy run: typecheck, tests, catalog validation, docs screenshots and bundle budgets. Also known as `loldev gtg` (good to go).
 

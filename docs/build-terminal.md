@@ -18,13 +18,13 @@ pnpm run cli
 pnpm run cli qr-code
 
 # Run a tool and write output
-pnpm run cli qr-code --url=https://suse.com --color=#0c322c --output=./qr.svg
+pnpm run cli qr-code --url=https://example.com --color=#0c322c --output=./qr.svg
 
 # Explicit format
-pnpm run cli quotes --quote="Open source wins." --name="Andy" --export=png --output=./quote.png
+pnpm run cli qr-code --url=https://example.com --export=png --output=./qr.png
 ```
 
-The CLI supports **SVG, EMF, EPS, HTML and the text/data formats** (JSON, CSV, ICS, VCF, MD, TXT) natively - hydrated by the engine with no browser engine needed (SVG/EMF only for tools with an `<svg>`-based template, since the lean CLI has no layout engine). **PNG** from an `<svg>`-based tool is also browser-free: resvg rasterises the engine's own SVG (Tier A). Outlined static Design PDFs also render without a browser with `--export=pdf --text=outline`, using the shared print/metadata finishing pass; unsupported documents retain the browser route. See [CLI rendering](/info/cli-rendering.html). The remaining paint formats - **JPG, WebP, other PDF and video (GIF, WebM, MP4)**, plus HTML-layout PNG - render through the CLI's own scoped headless Chromium (Tier B): install it once with `lolly install-browser`, then they export straight from the CLI. (ZIP is the one format the lean CLI leaves out - no zip dependency - so its batch writes a folder instead.)
+The CLI supports **SVG (and SVGZ), EMF, WMF, EPS, DXF, HTML and the text/data formats** (JSON, CSV, ICS, VCF, MD) natively - hydrated by the engine with no browser engine needed (the vector formats only for tools with an `<svg>`-based template, since the lean CLI has no layout engine). A `.penpot` file from an `<svg>`-based tool is browser-free too, and so are the formats only some tools offer, such as dotLottie, IDML, Premiere XML and JPEG XL. **PNG** from an `<svg>`-based tool is also browser-free: resvg rasterises the engine's own SVG (Tier A). Outlined static Design PDFs also render without a browser with `--export=pdf --text=outline`, using the shared print/metadata finishing pass; unsupported documents retain the browser route. [CLI rendering](/info/cli-rendering.html) has the full list. The remaining paint formats - **JPG, WebP, other PDF, PPTX and video (GIF, APNG, WebM, MP4)**, plus HTML-layout PNG - need a paint tier: a Lolly desktop app on the same machine when one is available, otherwise the CLI's own scoped headless Chromium (Tier B). Install Chromium once with `lolly install-browser`; from a checkout, the Chromium route also needs a built web shell (`pnpm run build:web`, or `LOLLY_WEB_DIST` pointing at one). (ZIP is the one format the lean CLI leaves out - no zip dependency - so its batch writes a folder instead.)
 
 ### Standalone binary
 
@@ -65,10 +65,10 @@ It's the CLI's engine and render path under an interactive, keyboard-first UI (b
 
 ### Browser render tier (raster / PDF / video / URL capture)
 
-Unlike the bare CLI, the TUI can produce browser-bound formats via a scoped headless Chromium - the same one the MCP server uses. Set it up once:
+Like the CLI, the TUI produces browser-bound formats through the same scoped headless Chromium launcher. Set it up once:
 
 ```bash
-pnpm run install:browser   # Chromium → services/mcp/.browsers (shared with services/mcp)
+pnpm run install:browser   # Chromium → .browsers at the repository root (a copy under services/mcp/.browsers is reused if present)
 pnpm run build:web         # a built web shell the TUI drives for pixel-identical raster/pdf/video
 ```
 

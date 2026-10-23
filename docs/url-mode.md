@@ -27,9 +27,9 @@ That path form is canonical - it's what the address bar shows once a tool has lo
 **Examples:**
 
 ```
-/#/tool/qr-code?url=https://suse.com&color=%230c322c
-/#/tool/qr-code?url=https://suse.com&format=png&export&filename=my-qr
-/#/tool/quotes?quote=Open+source+wins.&name=Andy&format=svg&export&full
+/t/qr-code?url=https://example.com&color=%230c322c
+/t/qr-code?url=https://example.com&format=png&export&filename=my-qr
+/t/wordmark?text=Ship+it&weight=800&format=svg&export&full
 ```
 
 The first of those opens the QR tool with the address and the dark green already applied, no clicks in between.
@@ -38,11 +38,11 @@ The first of those opens the QR tool with the address and the dark green already
 
 ### Clean URL redirect
 
-If a tool is deployed at a dedicated domain or path, you can use a plain query string and the shell redirects to hash form automatically:
+A bare tool id also works as the path. The shell forwards it, query included, to the tool, and the address bar then shows the canonical form:
 
 ```
-https://qr.brand.example.com/?url=https://suse.com
-  → redirects to → /#/tool/qr-code?url=https://suse.com
+https://your-host/qr-code?url=https://example.com
+  → opens → /t/qr-code?url=https://example.com
 ```
 
 ---
@@ -52,7 +52,7 @@ https://qr.brand.example.com/?url=https://suse.com
 All parameters compose freely. A fully-specified automation URL might look like:
 
 ```
-/#/tool/qr-code?url=https://suse.com/event&color=%230c322c&background=%23ffffff&ecl=H&padding=4&format=png&export&filename=event-qr&w=600&h=600&full
+/t/qr-code?url=https://example.com/event&color=%230c322c&background=%23ffffff&ecl=H&padding=4&format=png&export&filename=event-qr&w=600&h=600&full
 ```
 
 This opens the QR tool, applies all inputs, sets the canvas to 600×600, collapses the sidebar and immediately downloads `event-qr.png`.
@@ -60,7 +60,7 @@ This opens the QR tool, applies all inputs, sets the canvas to 600×600, collaps
 The same stacking works on a chart, where inputs, compact keys, canvas size and `full` arrive together:
 
 ```
-/#/tool/chart?ct=donut&pl=warm&t=Everything+in+one+link&lg=1&lp=right&sv=1&w=1200&h=800&full
+/t/chart?ct=donut&pl=warm&t=Everything+in+one+link&lg=1&lp=right&sv=1&w=1200&h=800&full
 ```
 
 ![A warm-palette donut with a legend on the right and values on every slice, filling the window because the same link also passed full](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Ddonut%26pl%3Dwarm%26t%3DEverything%2520in%2520one%2520link%26lg%3D1%26lp%3Dright%26sv%3D1%26w%3D1200%26h%3D800%26full&width=1440&height=900&dpi=192&waitMs=2800&walker=1&format=svg&dark=1&filename=um-combined-stack)
@@ -72,11 +72,11 @@ The same stacking works on a chart, where inputs, compact keys, canvas size and 
 The CLI uses the same param names as URL mode - `--key=value` instead of `?key=value`. `--export=<fmt>` sets the output format and `--output` the destination; all other params are tool inputs. Note that on the CLI `--export` *takes* the format - it is not URL mode's presence flag, which has no CLI equivalent because writing a file **is** the export. (`--format=<fmt>` is accepted as a synonym, but never pass a bare `--export` alongside it: the bare form is read as the format `1` and the render aborts.)
 
 ```bash
-# Web equivalent: /t/qr-code?url=https://suse.com&format=png&export&filename=my-qr
-lolly qr-code --url=https://suse.com --export=png --output=my-qr.png
+# Web equivalent: /t/qr-code?url=https://example.com&format=png&export&filename=my-qr
+lolly qr-code --url=https://example.com --export=png --output=my-qr.png
 
 # Pipe SVG to another tool
-lolly qr-code --url=https://suse.com --export=svg > qr.svg
+lolly qr-code --url=https://example.com --export=svg > qr.svg
 
 # Print available inputs for a tool
 lolly qr-code
@@ -92,10 +92,10 @@ The web shell writes inputs, result settings and supported workspace state to th
 
 ### Pre-filled embed
 
-Embed the tool in an iframe with inputs pre-filled via URL:
+Embed the tool in an iframe with inputs pre-filled via URL, and add the `iframe` flag. It shows only the tool's rendered output, with none of the app's controls, and keeps nothing on the visitor's device: no saved session and no history entry.
 
 ```html
-<iframe src="https://brand.example.com/#/tool/qr-code?url=https://suse.com&full"
+<iframe src="https://brand.example.com/t/qr-code?url=https://example.com&iframe"
         width="900" height="700" frameborder="0"></iframe>
 ```
 
@@ -105,25 +105,25 @@ frames inside its own site but not inside someone else's. That is the safer defa
 for an app holding your documents and offering export actions, since a page you do
 not control can otherwise position an invisible frame over its own buttons. Framing
 within one origin (your marketing page embedding your own Lolly) needs no change.
-To allow another origin, the operator adds it to `frame-ancestors` where the headers
-are set (`vercel.json`, or `deploy/docker/security-headers.conf` for the container),
-naming the specific origins rather than widening it to every site.
+To allow another origin, the operator adds it to `frame-ancestors` in the deployment's
+Content-Security-Policy (see [Deployment](/info/deployment.html)), naming the specific
+origins rather than widening the directive to every site.
 
 ### Tool composition (portable embed URL)
 
 A tool can embed **another tool's** render with no tool-to-tool imports. The URL-mode face of this is a portable embed URL - a real-looking image URL whose query is ordinary URL-mode params:
 
 ```html
-<img src="https://lolly.tools/tool/qr-code.svg?url=https://suse.com&color=0c322c">
+<img src="https://lolly.tools/tool/qr-code.svg?url=https://example.com&color=0c322c">
 ```
 
 **Nothing is ever fetched from `lolly.tools`.** A shell recognises this exact shape and renders the named tool **locally**, substituting the result (a placeholder pixel shows until the local render resolves). Anything that isn't exactly this grammar is treated as an ordinary image - that strict match is the security boundary.
 
 The path extension is the author's fidelity choice. Compose any tool's render: an SVG child stays a **true vector** when the parent exports to SVG or PDF and rasterises crisply for PNG; raster children (`png`, `jpg`/`jpeg`, `webp`) embed as images. (`pdf` appears in the grammar but is not inlined as a child format.)
 
-A child draws in the **theme choices** of the document it is placed in, so a QR code inside a dark document, or one in a [colourway](/info/token-workflows.html#colourways), takes that document's colours. In the web app this holds in the tool view, a framed tool, a multi-edit card, a batch row and a document export alike. A link that carries `_themes` of its own keeps its choice for the groups it names, and the document's choices fill in the rest: `_themes={"":"light"}` inside a dark Persimmon document draws the child light, in Persimmon. A document that made no choice of its own draws in the choices its design system is set to, so those fill in the rest instead. A pasted tool link keeps its `_themes` in the canonical id it is stored under, so it reopens in the same choice; choices inherited from the document never enter the id. The CLI writes the same id, so a link it writes back keeps the child's `_themes`, but it does not yet draw the child in them.
+A child draws in the **theme choices** of the document it is placed in, so a QR code inside a dark document, or one in a [colourway](/info/token-workflows.html#colourways), takes that document's colours. In the web app this holds in the tool view, a framed tool, a multi-edit card, a batch row and a document export alike. A link that carries `_themes` of its own keeps its choice for the groups it names, and the document's choices fill in the rest: `_themes={"":"light"}` inside a dark Beach document draws the child light, in Beach. A document that made no choice of its own draws in the choices its design system is set to, so those fill in the rest instead. A pasted tool link keeps its `_themes` in the canonical id it is stored under, so it reopens in the same choice; choices inherited from the document never enter the id. The CLI writes the same id, so a link it writes back keeps the child's `_themes`, but it does not yet draw the child in them.
 
-This is the URL-mode surface of composition. The declarative form - a manifest `composes: [{ id, tool, inputs, format? }]` block resolved by the engine and placed in the template as `{{asset <id>}}` - is not a URL param; see the authoring guide. Either form requires the tool to declare the `compose` capability. `event-name-badge` composes `qr-code` as SVG today.
+This is the URL-mode surface of composition. The declarative form - a manifest `composes: [{ id, tool, inputs, format? }]` block resolved by the engine and placed in the template as `{{asset <id>}}` - is not a URL param; see the authoring guide. Either form requires the tool to declare the `compose` capability. Design declares it: a tool placed in a Design document, a QR code for example, is an embed URL rendered this way.
 
 ### Automation / CI
 
@@ -131,7 +131,7 @@ Call the CLI in a build pipeline to generate assets on demand:
 
 ```bash
 lolly qr-code \
-  --url=https://suse.com/product/${SLUG} \
+  --url=https://example.com/product/${SLUG} \
   --color=#0c322c \
   --export=svg \
   --output=./dist/qr-${SLUG}.svg

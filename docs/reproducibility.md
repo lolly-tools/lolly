@@ -4,19 +4,18 @@ Reproducibility in Lolly means the inputs to a render are portable and durable: 
 
 This is the neighbour of [determinism](/info/determinism.html) and a different claim. Determinism says the same inputs give the same file. Reproducibility says you still have the inputs - they are a short piece of text you can paste in a ticket, commit to a repository or bookmark, rather than a document trapped in an account.
 
-It is what the landing page means by "[same inputs, same file, every time](/info/index.html)" being worth anything at all a year later.
 
 ## Every input is expressible as a URL param
 
-`engine/src/url-mode.ts` owns the round-trip in both directions: `parseUrlState` turns a query string into input values, `serializeUrlState` turns the current state back into a query string. Being expressible as a URL param is a hard requirement on every input type rather than a convenience some tools happen to implement, which is also why the CLI works: it is that same conversion under a different transport.
+`engine/src/url-mode.ts` owns the round-trip in both directions: `parseUrlState` turns a query string into input values, `serializeUrlState` turns the current state back into a query string. Being expressible as a URL param is a hard requirement on every input type except `file` (whose bytes stay on the device) rather than a convenience some tools happen to implement, which is also why the CLI works: it is that same conversion under a different transport.
 
-The parameters that mean something without being inputs are a closed set, `RESERVED` at `engine/src/url-mode.ts:327`: `format`, `export`, `copy`, `full`, `options`, `slot`, `output`, `filename`, `_v`, `width`/`w`, `height`/`h`, `unit`, `dpi`, `bleed`, `marks`, `cuts`, `c2pa`, `imprint`, `durable`, `hdr`, `depth`, `password`, `profile`, `lang`, `z`, `zx` and a handful more. Everything else in a link is the design.
+The parameters that mean something without being inputs are a closed set, the `RESERVED` set in `engine/src/url-mode.ts`: `format`, `width`, `unit`, `dpi`, `c2pa` and the rest, each listed in [Reserved URL parameters](/info/url-parameters.html). Everything else in a link is the design.
 
 Tools can opt into compact encoding - `urlKey` aliases, `#`-less colours, tilde-delimited block arrays - so a long design stays a manageable link. Where that is still not enough, `engine/src/url-pack.ts` packs the whole query into one token, and `packEncrypted` does the same under a password that is never in the link.
 
 ## Physical intent travels too
 
-A link carries what the render is meant to be, not just what it looked like on the screen that made it. `width` and `height` are values in `unit` (`px`, `mm`, `cm`, `in` or `pt`), `dpi` sets raster resolution for physical units, and `bleed`, `marks` and `profile` carry the print intent. The conversion is the engine's single source of truth in `engine/src/units.ts`, applied per format at export time - PDF to real points, SVG to unit plus a pixel viewBox, raster to pixels at the requested DPI with a `pHYs` chunk.
+A link carries what the render is meant to be, not just what it looked like on the screen that made the link. `width` and `height` are values in `unit` (`px`, `mm`, `cm`, `in`, `pt` or `pc`), `dpi` sets raster resolution for physical units, and `bleed`, `marks` and `profile` carry the print intent. The conversion is the engine's single source of truth in `engine/src/units.ts`, applied per format at export time - PDF to real points, SVG to unit plus a pixel viewBox, raster to pixels at the requested DPI with a `pHYs` chunk.
 
 So `?unit=mm&width=210&height=297&dpi=300&bleed=3mm&marks=crop,reg` is a reproducible A4 print job, not a screenshot someone hopes is big enough.
 
@@ -24,17 +23,17 @@ So `?unit=mm&width=210&height=297&dpi=300&bleed=3mm&marks=crop,reg` is a reprodu
 
 A colour input can hold a token reference rather than a baked hex value, and the reference is what travels. `tests/tokens-value-path.test.ts` pins exactly that: a token-backed colour survives serialization into a shared link and comes back as a reference, while the template only ever sees the resolved string.
 
-The consequence is the useful one. A link made against `color.brand.primary` re-renders under whatever that token means when it is opened, so a rebrand updates old links instead of breaking them. A link made with a literal colour keeps that colour. You choose which one you wanted at the moment you picked the value.
+The consequence is the useful one. A link made against `color.semantic.primary` re-renders under whatever that token means when it is opened, so a rebrand updates old links instead of breaking them. A link made with a literal colour keeps that colour. You choose which one you wanted at the moment you picked the value.
 
 ## A tool-sourced image is a recipe
 
 Paste a Lolly link into an asset picker and the picture it makes becomes an input to another tool. `engine/src/tool-url.ts` recognises every shape the app can hand you - the embed form, the hash share route and the pretty path - and `buildEmbedUrl` canonicalises it into one strict embed URL that becomes the asset's persistent identity.
 
-That identity round-trips through URL mode and saved sessions, and the runtime re-renders it through `host.compose.renderUrl` on every load rather than storing a bitmap. A nested chart inside a poster stays live: change the chart's link and the poster changes with it.
+That identity round-trips through URL mode and saved sessions, and the runtime re-renders it through `host.compose.renderUrl` on every load rather than storing a bitmap. A nested chart inside a poster stays live: change the chart's link and the poster changes too.
 
 ## Sessions, projects and templates carry the same state
 
-The same state serialization backs the app's own storage. A saved session holds the values; **Share link** on any session in Projects produces the URL form of it; a `.lolly` bundle carries one for handing to a colleague, and an operator who wants a starting point to be permanent records those values as a `templates[]` entry on the tool's manifest in the brand pack, deep-linkable as `?template=<id>` ([Deployment](/info/deployment.html)). Each is the same inputs in a different envelope.
+The same state serialization backs the app's own storage. A saved session holds the values; **Share link** on any session in Projects produces its URL form; a `.lolly` bundle carries one for handing to a colleague, and an operator who wants a starting point to be permanent records those values as a `templates[]` entry on the tool's manifest in the brand pack, deep-linkable as `?template=<id>` ([Deployment](/info/deployment.html)). Each is the same inputs in a different envelope.
 
 ## What has to survive for a link to render in ten years
 
@@ -43,7 +42,7 @@ Worth being concrete about the dependency list, because it is short and every it
 1. **The link.** Plain text. Paste it in a ticket, a spreadsheet cell, a commit message or a `README`.
 2. **The tool.** A directory: `tool.json`, `template.html`, optional `styles.css`, optional `hooks.js`. Data, not a binary. Keep it in version control if the render matters.
 3. **An engine that satisfies the tool's `engineVersion` range.** The manifest declares it and the loader enforces it, so an incompatible pairing is refused rather than rendered wrongly.
-4. **The assets the link names.** Catalog assets have permanent ids by design - `suse/logo/primary` is never renamed or reused - so a reference stays valid as long as the pack does.
+4. **The assets the link names.** Catalog assets have permanent ids by design - `lolly/logo/primary` is never renamed or reused - so a reference stays valid as long as the pack does.
 
 Nothing on that list is an account, a subscription or a running service. Every item is a file you can copy and keep.
 
@@ -51,13 +50,13 @@ Nothing on that list is an account, a subscription or a running service. Every i
 
 ```
 # a link and the CLI carry the same state; both write the same SVG
-lolly qr-code --url=https://suse.com --export=svg --no-provenance --output=./a.svg
+lolly qr-code --url=https://example.com --export=svg --no-provenance --output=./a.svg
 
 # the same inputs, expressed as a URL
-https://lolly.tools/#/tool/qr-code?url=https://suse.com&format=svg&export
+https://lolly.tools/t/qr-code?url=https://example.com&format=svg&export
 ```
 
-Then change one input in the app, copy the link out of the Share dialog and read it. Every value you set is visible in it, which is the whole claim in one glance.
+Then change one input in the app, copy the link out of the Share dialog and read the link. Every value you set is visible in it, which is the whole claim in one glance.
 
 ## Prove it yourself
 
@@ -95,7 +94,7 @@ The report keeps credentials out by rule. A web address keeps its scheme, host a
 
 The same report drives an offline check: open the file on an empty profile with networking turned off, and each dependency comes back `ready`, `needs-network`, `held-back`, `unavailable` or `damaged` (the report says a dependency is carried and the bytes disagree). The check reads the file and asks the receiving device what it already has. It never fetches anything.
 
-One more honest limit: the rebuild renders through the CLI. A file exported from the browser was serialised by the web shell, whose SVG writer is not byte-identical to the terminal's, so comparing one of those reports `content`. Compare a CLI export with the CLI, and use the reason list on a web export to see whether the engine, the tool or a font moved under it.
+One more limit: the rebuild renders through the CLI. A file exported from the browser was serialised by the web shell, whose SVG writer is not byte-identical to the terminal's, so comparing one of those reports `content`. Compare a CLI export with the CLI, and use the reason list on a web export to see whether the engine, the tool or a font has changed since the export.
 
 ## The receipts
 
@@ -122,7 +121,7 @@ One more honest limit: the rebuild renders through the CLI. A file exported from
 - **Reproducibility is of the declared render.** `format`, `unit`, `dpi`, `bleed`, `marks`, `profile` and `depth` are parameters like any other. A link reproduces the render it declares. Ask the same link for a different format and you have asked for a different render, and whether that one comes back byte-identical is a [determinism](/info/determinism.html) question with a format-by-format answer.
 - **Files you uploaded do not travel in a bare link.** Images from your device exist on your device, and a shared URL does not contain them - [Using Lolly](/info/using.html) says so at the Share dialog, which is where you meet the limit. When the bytes have to move, the file is the vehicle: the backup archive carries your profile, every saved session, your uploaded images and your preferences as one zip ([Data Transfer](/info/data-transfer.html) is its format spec), and a `.lolly` file hands a single saved starting point to a colleague. A link whose asset is missing reports the dropped reference rather than rendering something wrong.
 - **A link renders against the tool the deployment holds.** The Share dialog can stamp `_v`, the tool version the link was made against, and `_v` is reserved for exactly that. What guarantees the old version is still there is the tool being data: a manifest, a template and optional hooks in a directory you can keep in version control and serve yourself. If a render has to survive a decade, keep the tool alongside the link.
-- **A password-protected link is only as durable as the password.** `packEncrypted` keeps the password out of the URL by design, which means nothing can recover the state without it.
+- **A password-protected link is only as durable as the password.** `packEncrypted` keeps the password out of the URL by design, which means nothing can recover the state without the password.
 - **A link is a snapshot.** Two people opening the same link get the same starting point and then diverge. Editing the same session at the same time is a different feature, described in [Working together](/info/collaborate.html).
 
 ## Related

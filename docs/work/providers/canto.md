@@ -1,16 +1,16 @@
 # Canto (kind: `canto`)
 
 Federate a Canto DAM **read-only**. Canto acquired Image Relay in September 2024, so this kind
-serves two populations: native Canto tenants leaving at contract end, and Image Relay tenants
-the vendor migration has already carried across. Either way the destination is your own store
-([Off-boarding](#off-boarding)). OAuth2 (BYOT) - see the
+serves Canto tenants and Image Relay tenants that have moved to Canto. It also supports the
+exit into your own store ([Off-boarding](#off-boarding)). OAuth2 (BYOT) - see the
 [shared OAuth onboarding](README.md#kinds-whose-consent-flow-is-not-registered-canto-imagerelay-optimizely-cmp).
 
 ## What you need from Canto
 
-- **An API key (App ID + Secret)**, requested from **Canto support under your own contract**.
-  BYOT: lolly holds no Canto agreement and registers no Canto app, so the connector terms are
-  between you and Canto, as for every DAM connector here.
+- **An API key (App ID + Secret)**, which a Canto admin creates under
+  *Settings > Configuration Options > API Keys*, under your own contract. BYOT: Lolly Work
+  holds no Canto agreement and registers no Canto app, so the connector terms are between you
+  and Canto, as for every DAM connector here.
 - **Confirmation that API access is included on your contract tier.** A tenant without API
   access cannot be federated, or drained, through this driver at all.
 - **Your regional domain** - `com`, `global`, or `de`, the one in your tenant URL
@@ -22,8 +22,8 @@ the vendor migration has already carried across. Either way the destination is y
 
 ## Credential shape
 
-One sealed OAuth JSON blob. `clientId`/`clientSecret` are the App ID and Secret Canto support
-issued you, and `refreshToken` is the grant against them:
+One sealed OAuth JSON blob. `clientId`/`clientSecret` are the App ID and Secret of your API
+key, and `refreshToken` is the grant against them:
 
 ```json
 { "clientId": "…", "clientSecret": "…", "refreshToken": "…" }
@@ -34,7 +34,7 @@ lw providers credential acme-canto     # prompts for the blob; never argv, never
 ```
 
 Capture that refresh token by running **Canto's own documented OAuth2 authorization-code
-flow** once by hand against the App ID/Secret support issued you. No consent flow is
+flow** once by hand against your App ID/Secret. No consent flow is
 registered for this kind, so `lw providers auth` refuses it: see the
 [shared OAuth onboarding](README.md#kinds-whose-consent-flow-is-not-registered-canto-imagerelay-optimizely-cmp).
 
@@ -89,8 +89,8 @@ endpoint and field name, and which constant to edit when one is wrong.
 ## Notes / limits
 
 - **This driver is fixture-verified only.** Its endpoint paths and record field names come from
-  Canto's public documentation and have not been confirmed against a live tenant; lolly holds
-  no Canto account, so that pass runs on a customer's own tenant under their contract. Read the
+  Canto's public documentation and have not been confirmed against a live tenant; Lolly Work
+  holds no Canto account, so that pass runs on your own tenant under your contract. Read the
   first sync as the verification and report anything that does not match.
 - **Listing walks schemes.** Canto lists per scheme (image, video, audio, document,
   presentation, other), so a federated id carries its scheme (`image:AB12C`). An album-scoped
@@ -99,12 +99,11 @@ endpoint and field name, and which constant to edit when one is wrong.
   `canto.com`/`canto.global`/`canto.de` family, and never persisted (`expiringUrls`). The
   driver identifies itself with a `User-Agent` and self-caps at about 3 requests/second, which
   is a conservative default rather than a published limit.
-- Does **not** accept published exports: Canto is a source being exited, never a publish
-  destination.
+- Does **not** accept published exports.
 
 ## Off-boarding
 
-**An exit target** - the acquisition-tier one.
+**An exit target.**
 
 Kind-specific: expiry rides `mapping.availabilityFields` (above) and approval rides
 `options.approvedStates`, so both are lolly-side config that survives a re-point. Coming from

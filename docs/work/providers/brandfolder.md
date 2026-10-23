@@ -35,7 +35,8 @@ lw providers credential acme-bf     # prompts; never argv, never shell history
 - `options.brandfolderId` (required) - the Brandfolder id. `options.baseUrl` is for tests only.
 - `exposure.requireApproved: true` federates only assets Brandfolder marks **approved**.
 - Brandfolder's `availability_start`/`availability_end` import automatically as an
-  [availability window](../catalog.md#imported-availability-windows).
+  [availability window](../catalog.md#imported-availability-windows). These two field names
+  have not yet been confirmed against a live tenant.
 
 ## Verify
 
@@ -44,7 +45,8 @@ lw providers preview  --kind brandfolder --options '{"brandfolderId":"…"}'   #
 lw providers health acme-bf
 ```
 
-A good preview returns `health.ok: true` and a mapped sample. `401`/`403` means the key is
+A good preview prints `health ok - brandfolder` and a mapped sample (`health.ok: true` with
+`--json`). `401`/`403` means the key is
 wrong or lacks access; an empty sample under `requireApproved` means nothing is approved yet.
 
 ## Notes / limits
@@ -59,8 +61,8 @@ wrong or lacks access; an empty sample under `requireApproved` means nothing is 
 **A primary exit target** - one of the two off-boarding paths of record.
 
 Kind-specific: Brandfolder's `availability_start`/`availability_end` and its `approved` flag
-import natively, so the governance travels with the assets and no `mapping.availabilityFields`
-wiring is needed.
+are read natively, so the governance travels with the assets and no `mapping.availabilityFields`
+wiring is needed. Live confirmation of the availability field names is still open.
 
 Motion, cadence and the per-DAM readiness table: [off-boarding](../offboarding.md).
 

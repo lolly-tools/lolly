@@ -35,7 +35,7 @@ remains available for advanced and config-managed sources.
 6. Confirm the folder and member groups, then choose **Sync and enable source**. A failed
    sync or zero exposed files leaves it disabled. Settings or credential changes invalidate
    activation evidence; test the saved source again. A bounded sample is not a full inventory.
-7. Finish the live verification below before accepting the customer installation.
+7. Finish the live verification below before you rely on the connection.
 
 ![Google Drive guided folder, catalog mapping, exact member groups and refresh settings](../shots/provider-gdrive-setup.svg)
 
@@ -90,7 +90,7 @@ Disable an enabled source before editing its folder, groups or credential. Save 
 - Disable the source and confirm its catalog entries disappear and an earlier blob URL
   cannot serve. Reconnect and test a revoked grant to rehearse recovery.
 - Record the source/account, folder, installed app version, group results, known-original
-  checksum and consent audience/status. Run this against the actual customer Workspace:
+  checksum and consent audience/status. Run this against the Workspace you will connect:
   automated fixtures and browser rehearsal do not discharge live acceptance.
 
 ## Credential shape

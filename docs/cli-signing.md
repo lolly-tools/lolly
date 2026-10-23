@@ -6,15 +6,15 @@ This page takes you from a clean machine to a terminal that signs with a **real 
 
 Every example here that shows output is a command that was run, with its real output. Where an example needs something only a CA can hand you, it says so and gives the self-signed equivalent you can run right now.
 
-> **Read [CLI](/info/cli.html) first if you have not.** It is the reference for the whole command surface - every flag, every exit code, `--json`, `batch`, `smoke`. This page covers only what that page does not: identity.
+> **Read [CLI](/info/cli.html) first if you have not.** It covers installing and running the CLI; [Render with the CLI](/info/cli-rendering.html) lists the render flags, and [CLI batch and automation](/info/cli-automation.html) covers exit codes, `--json`, `batch` and `smoke`. This page covers only what those pages do not: identity.
 
 ---
 
-For renders submitted to **lolly.work**, configure signing on the organisation service instead of copying a personal CLI key to each caller. Its [Content Credentials guide](https://github.com/lolly-tools/lolly-work/blob/main/docs/c2pa.md) covers the server identity and trust roots. [Organisation jobs](/info/cli-automation.html#organisation-jobs-with-lolly-work) explains that separate render path; the steps below configure the local `lolly` CLI.
+For renders submitted to **lolly.work**, configure signing on the organisation service instead of copying a personal CLI key to each caller. Its [Content Credentials guide](/info/work-c2pa.html) covers the server identity and trust roots. [Organisation jobs](/info/cli-automation.html#organisation-jobs-with-lolly-work) explains that separate render path; the steps below configure the local `lolly` CLI.
 
 ## 1. Install and prerequisites
 
-You need **Node 22.18 or later** (the repo runs TypeScript directly through Node's type-stripping; this page was produced on v24.18.1), **pnpm** and a checkout of the repo. The CLI runs as a package script, and its arguments follow the script name with no `--` in between:
+You need **Node 22.18 or later** (the repo runs TypeScript directly through Node's type-stripping; this page was produced on v24.22.1), **pnpm** and a checkout of the repo. The CLI runs as a package script, and its arguments follow the script name with no `--` in between:
 
 ```bash
 git clone https://github.com/lolly-tools/lolly
@@ -24,18 +24,20 @@ pnpm --silent run cli --version
 ```
 
 ```
-lolly 0.1.0 (engine 1.95.0)
+lolly 0.1.0 (engine 1.281.0)
 ```
 
 Every captured output block on this page reports the engine version it was
 produced against; yours will read higher, and that is the only difference you
-should see. `engine/src/version.ts` holds the live number.
+should see. `engine/src/version.ts` holds the live number. A checkout's catalog
+is unsigned, so each run in a checkout also prints a `catalog integrity: unsigned
+catalog` note first; the captures below leave that line out.
 
 Use `pnpm --silent run cli` (not plain `pnpm run cli`) whenever you redirect or pipe: pnpm can print its own lines on stdout, and they would end up inside your PNG. An installed `lolly` binary prints none.
 
-**What works with no browser.** Everything on this page. SVG, PDF, EMF, EPS, DXF and the data formats render browser-free, PNG renders browser-free for SVG-native tools and signing, verification and trust anchors are pure Node.
+**What works with no browser.** Everything on this page. SVG, EMF, EPS, DXF and the data formats render browser-free, PNG renders browser-free for SVG-native tools, a static Design document's PDF can too, and signing, verification and trust anchors are pure Node.
 
-**What needs the browser tier.** Raster and video output from HTML-layout tools, print bleed and crop marks and `validate --deep`. One-time setup:
+**What needs the browser tier.** JPG, WebP, PPTX and video from any tool, PNG from HTML-layout tools, other PDFs with their print bleed and crop marks, and `validate --deep`. One-time setup:
 
 ```bash
 pnpm run build:web            # the web shell the browser tier drives
@@ -49,8 +51,8 @@ See [CLI → What the CLI can render](/info/cli-rendering.html#what-the-cli-can-
 ## 2. First run
 
 ```bash
-pnpm --silent run cli                     # every tool in the active profile
-pnpm --silent run cli describe qr-code # that tool's inputs, defaults, formats
+pnpm --silent run cli list                # every tool in the active profile
+pnpm --silent run cli describe qr-code    # that tool's inputs, defaults, formats
 ```
 
 A command is `lolly <tool-id> --<input>=<value> --export=<fmt> --output=<path>`:
@@ -60,7 +62,8 @@ pnpm --silent run cli qr-code --url=https://lolly.tools --export=svg --output=./
 ```
 
 ```
-✓ Wrote 18536 bytes to ./qr.svg
+Recorded the design system: Lolly Starter. Pass --no-madewith to leave the record out.
+✓ Wrote 20381 bytes to ./qr.svg
 ```
 
 The CLI is URL mode under another transport: `--url=…` is the same value the web shell reads from `?url=…`. [URL Mode](/info/url-mode.html) is the shared contract.
@@ -94,9 +97,9 @@ pnpm --silent run cli qr-code --url=https://lolly.tools --user-profile=./me.json
 
 You need two things: a **P-256 (prime256v1) private key**, and the **certificate chain** for it, leaf first. Content Credentials are signed with ES256, so P-256 is the only curve that works; an RSA or P-384 key is refused by name at setup.
 
-Three ways to get them, in the order most operators will:
+Three ways to get them:
 
-1. **Your organisation's CA.** Ask for an S/MIME-style certificate: EC P-256, `keyUsage: digitalSignature`, `extendedKeyUsage: emailProtection` and your address in the subjectAltName. That is the C2PA certificate profile, and it is a shape every enterprise CA already issues.
+1. **Your organisation's CA.** If your organisation runs one, ask for an S/MIME-style certificate: EC P-256, `keyUsage: digitalSignature`, `extendedKeyUsage: emailProtection` and your address in the subjectAltName. That is the C2PA certificate profile.
 2. **Lolly's own CA.** Enrolment (`services/ca`) issues short-lived certificates bound to an OIDC-verified email, and it is a **browser flow** - the device key is generated non-extractable in the browser and never leaves it, which is exactly what makes the private key safe there and unavailable here. **There is no CLI enrolment**, and a browser-enrolled key cannot be exported to a file for the CLI to use. See [Content Credentials identity](/info/content-credentials-identity.html).
 3. **Self-signed**, for testing the plumbing and for closed loops where you distribute your own root. Runnable right now:
 
@@ -144,8 +147,9 @@ pnpm --silent run cli qr-code --url=https://lolly.tools --export=svg --output=./
 Run against the self-signed pair from 4.1 (paths shortened here for width):
 
 ```
-Signing as release-bot@example.org (Example Org) · 1 certificate in the chain · valid until 2026-10-30T11:10:29.000Z
-✓ Wrote 18620 bytes to ./out.svg
+Signing as release-bot@example.org (Example Org) · 1 certificate in the chain · valid until 2027-01-20T13:08:17.000Z
+Recorded the design system: Lolly Starter. Pass --no-madewith to leave the record out.
+✓ Wrote 20417 bytes to ./out.svg
 ```
 
 That line prints on every signed run, to stderr, so a CI log records which identity produced which artefact.
@@ -160,8 +164,9 @@ LOLLY_SIGN_KEY_PASSWORD=… pnpm --silent run cli qr-code --url=https://lolly.to
 ```
 
 ```
-Signing as release-bot@example.org (Example Org) · 1 certificate in the chain · valid until 2026-10-30T11:10:29.000Z
-✓ Wrote 18620 bytes to ./enc.svg
+Signing as release-bot@example.org (Example Org) · 1 certificate in the chain · valid until 2027-01-20T13:08:17.000Z
+Recorded the design system: Lolly Starter. Pass --no-madewith to leave the record out.
+✓ Wrote 20417 bytes to ./enc.svg
 ```
 
 Setting an environment variable inline like that keeps it out of your shell history in most shells, but not all - prefer a secret store (4.5) or an interactive prompt.
@@ -189,25 +194,25 @@ pnpm --silent run cli validate ./out.svg --trust-anchor=./signing-cert.pem
 ```
 
 ```
-out.svg  [svg]
+./out.svg  [svg]
 ✦ Made with Lolly - credential intact, file unchanged since export
-  Title       QR Code Generator
+  Title       QR Code
   Identity    release-bot@example.org - verified by release-bot@example.org
-  Tool        QR Code Generator
-  Made with   Lolly 1.95.0
-  Signed      2026-08-01T11:10:33Z
-  Where       cli · node v24.18.1 · darwin
+  Tool        QR Code
+  Made with   Lolly 1.281.0
+  Signed      2026-10-22T13:08:18Z
+  Where       cli
   Signer      release-bot@example.org
   Issuer      Example Org (self-signed)
   Algorithm   ES256
-  Manifest    urn:uuid:b9e6ce01-0d00-4eaf-9f9d-ceed4af868ff
-  ✓ assertion.hashedURI.match - hashed uri matched: self#jumbf=c2pa.assertions/c2pa.actions.v2
-  ✓ assertion.hashedURI.match - hashed uri matched: self#jumbf=c2pa.assertions/c2pa.hash.data
-  ✓ assertion.hashedURI.match - hashed uri matched: self#jumbf=c2pa.assertions/tools.lolly.export
-  ✓ claimSignature.validated - claim signature valid
-  ✓ claimSignature.insideValidity - signing certificate within its validity window
-  ✓ assertion.dataHash.match - data hash valid
-  ✓ signingCredential.trusted - signing certificate chains to a pinned CA root - verified identity: release-bot@example.org
+  Manifest    urn:uuid:1c5d0e91-83b5-446c-bd6c-73cd91c4402a
+  ✓ assertion.hashedURI.match  - hashed uri matched: self#jumbf=c2pa.assertions/c2pa.actions.v2
+  ✓ assertion.hashedURI.match  - hashed uri matched: self#jumbf=c2pa.assertions/c2pa.hash.data
+  ✓ assertion.hashedURI.match  - hashed uri matched: self#jumbf=c2pa.assertions/tools.lolly.export
+  ✓ claimSignature.validated  - claim signature valid
+  ✓ claimSignature.insideValidity  - signing certificate within its validity window
+  ✓ assertion.dataHash.match  - data hash valid
+  ✓ signingCredential.trusted  - signing certificate chains to a pinned CA root - verified identity: release-bot@example.org
   Trust anchors: C2PA known-certificate list (54) · pinned: signing-cert.pem · Lolly CA root
 ```
 
@@ -215,13 +220,13 @@ out.svg  [svg]
 
 ```
 # the self-signed identity from 4.1
-  ℹ signingCredential.untrusted - signing certificate untrusted - a self-signed certificate, which vouches only for itself (pin it as a trust anchor to verify the identity)
+  ℹ signingCredential.untrusted  - signing certificate untrusted - a self-signed certificate, which vouches only for itself (pin it as a trust anchor to verify the identity)
 
 # an identity issued by a real CA whose root nobody here pinned
-  ℹ signingCredential.untrusted - signing certificate untrusted - a CA-issued certificate that chains to no pinned trust anchor (pin its root to verify the identity)
+  ℹ signingCredential.untrusted  - signing certificate untrusted - a CA-issued certificate that chains to no pinned trust anchor (pin its root to verify the identity)
 
 # no identity at all: the default anonymous signer
-  ℹ signingCredential.untrusted - signing certificate untrusted - an ephemeral on-device key, not a CA-issued identity
+  ℹ signingCredential.untrusted  - signing certificate untrusted - an ephemeral on-device key, not a CA-issued identity
 ```
 
 Three different problems with three different fixes: distribute your root, ask the recipient to pin the CA, or configure an identity.
@@ -246,7 +251,7 @@ Precedence is the CLI's uniform rule: **flag, then environment**. Configuring a 
 
 ## 5. Trust anchors
 
-**Pinned by default:** the **Lolly CA root** and the **vendored C2PA known-certificate list** (54 roots - Adobe, the camera makers, the big generators). That default is [contract section 12, O1](https://github.com/lolly-tools/lolly/blob/main/plans/73-cli-ga-contract.md), decided so that "Verified" means the same thing in a browser and in a terminal.
+**Pinned by default:** the **Lolly CA root** and the **vendored C2PA known-certificate list** (54 roots - Adobe, the camera makers, the big generators). That default was chosen so that "Verified" means the same thing in a browser and in a terminal.
 
 **Pin your own root**, repeatably, or through the environment:
 
@@ -271,11 +276,11 @@ Note what the default does **not** do: a stranger's CA is not trusted because it
 
 ## 6. Provenance defaults
 
-Content Credentials and the Lolly Imprint are **on by default** for `lolly run`, matching the app exactly ([contract section 12, O2](https://github.com/lolly-tools/lolly/blob/main/plans/73-cli-ga-contract.md)). A tool opts out for everyone through its manifest (`render.c2pa: false`, or `privacy: 'on-device'`); a run opts out with `--c2pa=off`, `--imprint=0`, or `--no-provenance` for all of them at once.
+Content Credentials and the Lolly Imprint are **on by default** for `lolly run`, matching the app exactly. A tool opts out for everyone through its manifest (`render.c2pa: false`, or `privacy: 'on-device'`); a run opts out with `--c2pa=off`, `--imprint=0`, or `--no-provenance` for all of them at once.
 
-What a credential embeds: the tool and its input digest, the output format and dimensions, the surface (`cli`), the Node version and OS, a timestamp, the action history, your author details when `useDetails` is on, the [design system, version and colourway](/info/exporting.html#the-design-system-record) the render drew with and - with an identity - your certificate chain.
+What a credential embeds: the tool and its input digest, the output format and dimensions, the surface (`cli`), a timestamp, the action history, your author details when `useDetails` is on, the [design system, version and colourway](/info/exporting.html#the-design-system-record) the render drew with and - with an identity - your certificate chain.
 
-**The design-system record has its own switch.** The CLI identifies its design system the way the app does: the active terminal design system, else the catalog's own tokens, labelled from that asset's name. The record goes into the credential and into the file's own metadata, and the CLI prints the words the finished file carries on standard error (`Recorded the design system: Acme · Colourway: Persimmon.`), read back from the file. `--no-madewith` (or `--_madewith=0`) leaves the record out. `--no-provenance` leaves the record alone: the record holds no timestamp, so two runs with the same design system still write the same bytes.
+**The design-system record has its own switch.** The CLI identifies its design system the way the app does: the active terminal design system, else the catalog's own tokens, labelled from that asset's name. The record goes into the credential and into the file's own metadata, and the CLI prints the words the finished file carries on standard error (`Recorded the design system: Acme · Colourway: Persimmon. Pass --no-madewith to leave the record out.`), read back from the file. `--no-madewith` (or `--_madewith=0`) leaves the record out. `--no-provenance` leaves the record alone: the record holds no timestamp, so two runs with the same design system still write the same bytes.
 
 **Byte-reproducibility.** Both marks embed a fresh timestamp, so two identical runs no longer produce identical bytes. `--no-provenance` is the one word that buys determinism back, and `smoke` and `batch` apply it themselves. `--no-provenance` together with `--sign-key` is a refusal rather than a guess:
 
@@ -332,7 +337,7 @@ Every message below is the exact text the CLI prints, keyed to what to do about 
 | `The passphrase for the signing key at … is wrong (the key did not decrypt).` (exit 6) | Wrong passphrase. | Check the secret. Note the message never echoes what you supplied. |
 | `--no-provenance turns every provenance mark off, but --sign-key/--sign-cert asks for a signed credential.` | Two contradictory instructions. | Drop one. |
 | `A signing identity is configured, but Content Credentials are off for this run…` | The identity loaded but the tool or the run has credentials off, so nothing was signed with it. | Drop `--c2pa=off`, or accept that this tool never signs (`privacy: 'on-device'` tools do not). |
-| `Warning: format "dxf" has no C2PA container - Content Credentials skipped.` | The format cannot carry a credential at all. Because you asked for one, the skip is reported as a warning instead of staying silent. | Export a format that can: `pdf`, `pdf-cmyk`, `png`, `apng`, `jpg`, `jpeg`, `gif`, `svg`, `tiff`, `cmyk-tiff`, `webp`, `avif`, `mp4`, `m4a`, `webm`, `mp3`, `wav`, `ogg`, `opus`. Two of those are Lolly's own home for the manifest rather than a spec-defined one - `webm` (a Matroska part) and `ogg`/`opus` (a `C2PA=` comment field) - so only Lolly's verifier reads them back; the rest verify in third-party tools. |
+| `Warning: format "dxf" has no C2PA container - Content Credentials skipped.` | The format cannot carry a credential at all. Because you asked for one, the skip is reported as a warning instead of staying silent. | Export a format that can: `pdf`, `pdf-cmyk`, `png`, `apng`, `jpg`, `jpeg`, `gif`, `svg`, `tiff`, `cmyk-tiff`, `webp`, `avif`, `mp4`, `m4a`, `webm`, `mp3`, `wav`, `ogg`, `opus`, `flac`, or the text formats `html`, `js`, `css` and `md`. Three of those are Lolly's own home for the manifest rather than a spec-defined one - `webm` (a Matroska part), `ogg`/`opus` (a `C2PA=` comment field) and `flac` (an application metadata block) - so only Lolly's verifier reads them back. The text formats use the C2PA 2.4 text bindings, and the rest verify in third-party tools. |
 
 ---
 
@@ -346,7 +351,7 @@ Every message below is the exact text the CLI prints, keyed to what to do about 
 
 **If a key is compromised, assume everything it signed is suspect** - not just what was signed after the theft, because there is no trusted timestamp yet and therefore no way to prove *when* anything was signed.
 
-**Revocation: there is none.** The Lolly CA writes no issuance log and publishes no CRL or OCSP responder - a deliberate privacy choice, recorded in `services/ca/lib/enroll.mjs`, that leaves nothing personal at rest on a server. **Expiry is the only revocation**, which is why certificates are short-lived (7/30/90/365 days). If yours is compromised: stop using it, get a new one and if you run your own root, rotate the root and re-issue - because the only lever you have is un-pinning something. Prefer the shortest lifetime your workflow tolerates; a 7-day certificate is a 7-day incident, a 365-day one is a year-long one.
+**Revocation.** In its default mode the Lolly CA keeps no record of who it issued to and publishes no CRL or OCSP responder, a privacy choice that leaves nothing personal at rest on a server. **There, expiry is the only revocation**, which is why certificates are short-lived (7/30/90/365 days). A CA deployed in managed mode hands issuance to Vault PKI, which publishes CRL status and can revoke a certificate; see the [CA service guide](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md#managed-intermediate-enrollment). If yours is compromised: stop using it, get a new one and if you run your own root, rotate the root and re-issue - because the only lever you have is un-pinning something. Prefer the shortest lifetime your workflow tolerates; a 7-day certificate is a 7-day incident, a 365-day one is a year-long one.
 
 **A signature asserts identity, so a shared key is shared accountability.** A key on a CI runner signs as whoever the certificate names, and every file it produces is attributable to that person. Give a build pipeline its own identity with its own address (`release-bot@…`), not a human's. If several people can trigger that pipeline, the credential proves the pipeline signed it and nothing about which of them pressed the button - the credential is not an audit log, and treating it as one is how the wrong person ends up accountable.
 
@@ -356,7 +361,7 @@ Every message below is the exact text the CLI prints, keyed to what to do about 
 
 ## Related
 
-- [CLI](/info/cli.html) - the full command surface
+- [CLI](/info/cli.html) - install the CLI and find every command; [Render with the CLI](/info/cli-rendering.html) and [CLI batch and automation](/info/cli-automation.html) hold the flags, exit codes and `--json`
 - [Content Credentials identity](/info/content-credentials-identity.html) - the identity model and the trust tiers
 - [Content Credentials - engineering](/info/content-credentials-engineering.html) - the CA service, the manifest internals
 - [Security & Verification](/info/security.html) - the cryptography, summarised for a reviewer

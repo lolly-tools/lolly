@@ -172,20 +172,20 @@ Existing individual required checks remain in force until that explicit
 protection update. Requiring the old exhaustive checks alongside the new
 aggregate still waits for the full suite.
 
-This initial policy/workflow/helper change is release-ready. The private shell
-producer compares its accepted engine baseline with the candidate, so these
-new non-runtime files can still require a compatibility policy update or a new
-matched baseline. Any private exception must name the reviewed CI/test/docs
-paths, require full-tier evidence for the transition and preserve every protected
-runtime input. Fast CI eligibility alone does not permit engine reuse. Root
-`package.json` and `pnpm-lock.yaml` are unchanged by this activation.
+The change that introduced this policy, workflow and helper (2026-10-14) was
+itself release-ready. The private shell producer compares its accepted engine
+baseline with the candidate, so new non-runtime files can still require a
+compatibility policy update or a new matched baseline. Any private exception must
+name the reviewed CI/test/docs paths, require full-tier evidence for the
+transition and preserve every protected runtime input. Fast CI eligibility alone
+does not permit engine reuse.
 
-The bootstrap also requires the security patch from `rustls` 0.23.45 to 0.23.46
-in the desktop, mobile and isolated-capture Cargo locks, with regenerated license
-and SBOM records. These Tauri dependency locks are protected runtime inputs.
-The first deployment after this rollout therefore needs a matched full release
-baseline. A CI/test/docs metadata exception cannot authorize reuse across those
-dependency changes.
+The same rollout carried the `rustls` 0.23.45 to 0.23.46 security patch in the
+desktop, mobile and isolated-capture Cargo locks, with regenerated license and
+SBOM records. These Tauri dependency locks are protected runtime inputs, so the
+first deployment after the rollout needed a matched full release baseline. A
+CI/test/docs metadata exception cannot authorize reuse across such dependency
+changes.
 
 ## Measurements and remaining work
 
@@ -242,7 +242,7 @@ The local pre-push hook now checks the web source map and engine module table
 from every distinct pushed commit tip before the wording checks. Its temporary
 snapshot comes from raw Git blobs, so dirty working files cannot hide committed
 drift. This check requires no installation and leaves the index and working tree
-untouched. See [CONTRIBUTING.md](../CONTRIBUTING.md) for setup and repair commands.
+untouched. See [CONTRIBUTING.md](https://github.com/lolly-tools/lolly/blob/main/CONTRIBUTING.md) for setup and repair commands.
 CI's existing generated-source drift checks remain in force.
 
 On 2026-10-14, the local web source-map check fell from 17.34 seconds to 0.71

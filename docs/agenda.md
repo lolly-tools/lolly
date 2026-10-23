@@ -8,7 +8,7 @@ Arrow keys select cells. Enter or F2 starts editing; arrows then move the text c
 
 ![The Agenda sidebar, grouping its controls by what they change: content first, then style, then layout](/t/url-shot?url=%2F%23%2Ftool%2Fagenda&width=1440&height=900&waitMs=2600&format=svg&walker=1&cropSelector=.sidebar&filename=agenda-editor)
 
-Paste into a selected cell to fill a rectangle without changing the other sessions. Open **Edit programme** for a wide grid and a session form. **Import programme** accepts spreadsheet paste, including HTML tables, or CSV/TSV files. Review the column mapping and sample rows before choosing **Add sessions** or **Replace programme**. Unknown columns stay in the source. Undo and redo restore whole table edits. The same virtual grid handles short programmes and 500-row schedules.
+Paste into a selected cell to fill a rectangle without changing the other sessions. Open **Edit programme** for a wide grid and a session form. **Import programme** accepts spreadsheet paste, including HTML tables, or CSV/TSV files. Review the column mapping and sample rows before choosing **Add sessions** or **Replace programme**. Unknown columns stay in the source. Undo and redo restore whole table edits. The same virtual grid handles short programmes and long schedules. An import takes up to 10,000 rows, and a CSV or TSV file must be under 5 MB.
 
 The form includes date/time pickers, room/track suggestions, descriptions, links, status and optional image URLs. Insert, duplicate, delete or move sessions without rebuilding the table. **Shift times** changes the active session or all rows by whole minutes and days, recording end dates when midnight is crossed. **Preview this time** sets the screen reference without changing the programme.
 
@@ -18,7 +18,7 @@ Dates use YYYY-MM-DD. Start and End are event-local times. A blank End means one
 
 ## Screens and motion
 
-Overview, Departures, Now and next, Spotlight, Track chapters, Room wall, Wide ribbon, Starting soon, Intermission and Event close share the same session data. Room, track and day filters narrow an individual screen. The page count, event identity and time-zone label preserve orientation while scenes rotate.
+Programme overview, Departures, Now and next, Session spotlight, Track chapters, Room wall, Wide ribbon, Starting soon, Intermission and Event close share the same session data. Room, track and day filters narrow an individual screen. The page count, event identity and time-zone label preserve orientation while scenes rotate.
 
 Reading distance controls the type size. Long titles hold at the beginning, travel at a constant speed, and hold at the end. The scene extends when its text needs more time. **Scenes and coverage** shows scene previews, duration, minimum title/anchor sizes, longest wait and fit or timing issues. Advanced **Scene order** accepts session IDs; unlisted sessions follow in programme order. Type is measured after the brand font loads and after a size change. It is not reduced to make an unlimited programme fit on one screen.
 
@@ -32,7 +32,7 @@ Video offers three time policies:
 
 Recorded video never receives programme updates. Portable screen HTML can follow its device clock, but its schedule is the exported snapshot; export it again after schedule changes. Space pauses a screen, arrow keys change scene, and the playback controls appear on focus or hover. Reduced-motion mode wraps titles and pauses automatic playback.
 
-Silk, luminous and contour backgrounds share the Backdrop shader source. Colour planes, paper, patterns, depth and clear surfaces have CSS fallbacks. All use the selected design system's colours. Background intensity and variation are reproducible. Strict palette mode disables blended shader treatment. Gallery and spotlight layouts can show session photos; an optional background image keeps solid reading surfaces. Reading surfaces stay opaque, the shader resolution is bounded, and the presentation owns one export clock for both the background and the text.
+Silk, luminous and contour backgrounds share the Backdrop shader source. Colour planes, paper, patterns, depth and clear surfaces have CSS fallbacks. All use the selected design system's colours. Background intensity and variation are reproducible. **Use only design system colours** turns off the blended shader treatment. Gallery and spotlight layouts can show session photos; an optional background image keeps solid reading surfaces. Reading surfaces stay opaque, the shader resolution is bounded, and the presentation owns one export clock for both the background and the text.
 
 ## Interactive HTML
 

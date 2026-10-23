@@ -20,31 +20,30 @@ matched.
 ## Where it lives
 
 The field sits in the middle of the bar fixed to the bottom of the window, the
-same bar that carries the Dashboard and Verify links.
+same bar that carries the Open, Settings, Verify and What? buttons.
 
 <!--
 SHOT NOTE (srch-footer-closed): the bar `footerNav()` writes is
-`[Pro?] [Dashboard] <search> [Verify] [What?]`, and the Pro link renders unless
-the `pro-batch` flag is explicitly off - flags default ON and the capture
-context seeds nothing for it, so Pro WILL be in frame. The alt text below includes
-it for that reason; drop the word if a future capture profile turns Pro off.
+`[Open] [Settings] <search> [Verify] [What?]` (components/footer-nav.ts).
+Batch moved out of this bar to the Projects top bar.
 -->
  It's one field for the
 whole app rather than a different box on every screen, and it follows you: it
-shows on the Tools gallery, Utilities, Assets, Projects, the Dashboard
-and Profile.
+shows on the Tools gallery, Utilities, Assets, Projects, Settings and the
+guides you read inside the app.
 
-![the persistent search bar at rest: Pro and Dashboard on the left, the search field with its magnifier icon and a Ctrl-Space hint chip, Verify and What? on the right](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&cropSelector=.gallery-footer&dark=1&filename=srch-footer-closed)
+![the persistent search bar at rest: Open and Settings on the left, the search field with its magnifier icon and a Ctrl-Space hint chip, Verify and What? on the right](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&cropSelector=.gallery-footer&dark=1&filename=srch-footer-closed)
 
 It doesn't show everywhere. Once you're inside a tool's own canvas, Batch
-mode, Verify, Convert, the spreadsheet, the Colour Lab, the PDF tool,
-Multi-edit, the Design System studio, the component library, Script audio or
-Ask Lolly, the bar is gone and the shortcut below does nothing - those
-surfaces keep their own chrome for now (Ask Lolly has its own composer). That's
-a narrower gap than the list makes it sound: every one of those except
-Multi-edit is still a destination you can search your way *to*, from any screen
-that does show the bar - they're in the Places group below, and Ask Lolly gets
-a group of its own. Multi-edit is the one place search doesn't know about yet.
+mode, Verify, Convert, Compare, Prepare for sharing, Rebrand, the spreadsheet,
+the Colour Lab, Unpack, Read and extract, History, Multi-edit, the Design
+System studio, the component library, Script audio or Ask Lolly, the bar is
+gone and the shortcut below does nothing - those surfaces keep their own
+chrome (Ask Lolly has its own composer). Most of them are still a destination
+you can search your way *to*, from any screen that does show the bar: they're
+in the Places group below, and Ask Lolly gets a group of its own. Compare,
+Prepare for sharing, History and Multi-edit are the places search doesn't know
+about yet.
 
 Search also reaches Lolly from outside the app. The installed apps own the
 `lolly://` URL scheme, so a launcher's "open URL" action (Raycast, Alfred,
@@ -73,9 +72,10 @@ A match is sorted into groups, always shown in the same order:
   and the feature flags, matched on their names and on the words people
   actually search for ("dark mode", "calm", "storage").
 - **Places** - the app's own destinations, most of which don't carry the bar
-  themselves: Verify, Convert, the spreadsheet, the Colour Lab, the PDF tool,
-  the Design System studio, the component library, Script audio and Batch
-  mode. Typing "verify" or "oklch" takes you there directly.
+  themselves: Verify, Convert, Unpack, Read and extract, Rebrand, the
+  spreadsheet, the Colour Lab, the component library, the Design System
+  studio, Settings, Script audio and Batch mode. Typing "verify" or "oklch"
+  takes you there directly.
 
 <!--
 ACCURACY NOTE for whoever merges this: "the feature flags" is deliberately not
@@ -84,8 +84,8 @@ plus a hand-listed STANDALONE_FLAGS (neurospicy, jelly, pro, strip-upload-meta,
 preflight) - PRIVATE_COLLAB_FLAG is NOT in that array, so "private collab" is
 currently unfindable in Settings. That is a one-line fix in the provider, and
 this sentence can go back to "every" the moment it ships.
-Places also carries Dashboard and Profile, which DO show the bar - hence "most
-of which" rather than the flat claim.
+Places also carries Settings, which DOES show the bar - hence "most of which"
+rather than the flat claim.
 -->
 
 - **Docs** - this site: every published page and heading.
@@ -95,12 +95,11 @@ of which" rather than the flat claim.
   "didn't see it above?" row, not a result of its own.
 
 What happens with a match depends on where you're standing. On the Tools
-gallery, Utilities and Assets, the grid you're already looking at
-filters itself, exactly as it always has - that grid *is* the result, so its
-own group is left out of the floating panel. On Projects, the Dashboard and
-Profile, the screen behind never changes shape while you type: everything,
-including your own projects and your own settings, shows in the panel
-instead, so nothing you own can look like it quietly disappeared. Inside the
+gallery, Utilities, Assets and Projects, the grid you're already looking at
+filters itself as you type. In Settings and in the guides, the screen behind
+never changes shape while you type. Either way, the group for the screen
+you're on leads the panel, highlighted and with room for more rows, so its
+matches stay in view even where the panel covers the grid. Inside the
 Tools, Utilities, Projects and Assets groups, a "See all in ..." row hands
 off to a proper results view when a handful of matches isn't enough; Settings,
 Places, Docs and Ask just end.
@@ -116,7 +115,7 @@ Every hit is an ordinary link. A **Places** result goes to a plain hash route -
 send it to a colleague, and several take you further in than the front door:
 `#/lab?c=<any css colour>` opens the Colour Lab already reporting on that
 colour, `#/ask?q=<question>` opens Ask Lolly with the question already asked
-and `#/d?tab=<device|brand|caps|activity>` opens the Dashboard on that tab. A
+and `#/settings?tab=<device|brand|caps|activity>` opens Settings on that tab. A
 hit in **Projects** is a link too, but it points at a saved slot on this device
 (`#/tool/<tool>?slot=…`), so that one travels no further than the device does.
 

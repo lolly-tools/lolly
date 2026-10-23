@@ -17,7 +17,7 @@ a local database. These additions do not move an existing deployment.
 | PostgreSQL | External connection by default; opt-in Compose database | Restore rehearsal, maintenance cutover and independent backups |
 | Render worker | In-repo image, isolated secret and resources | Real document render through the chosen shell origin |
 | Public Lolly APIs | Existing standalone CA and MCP in the Lolly repository | Complete route parity with the public hosted shell, including Penpot |
-| YunoHost | In-repo package, SSO/LDAP contracts and backup/restore scripts | Real Linux package_check, release artifact pins and architecture checks |
+| YunoHost | In-repo package, SSO/LDAP contracts and backup/restore scripts; the 1.1.1~ynh1 beta passed its package checks on amd64 | Catalogue registration and arm64 acceptance; the current state is in [official installations](official-installations.md) |
 
 Use the [UpCloud runbook](../deploy/upcloud/README.md) or
 [Evroc runbook](../deploy/evroc/README.md) for credential-free validation and reviewed

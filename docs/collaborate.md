@@ -26,7 +26,7 @@ If **Team projects** is absent, or a shared session opens without the collab pil
 ::: details Work collabs: comments, mentions and links
 A work collab can also hold a review: comments pinned to the canvas, mentions that tell a colleague, and links that open one thread. All of it stays inside your organisation's instance, and none of it changes who can open the document.
 
-**Comments.** Press **Comments** over the canvas. **Pin a comment** and then choose an object or a point, or use **Comment on selection** or **Comment at canvas center**. Each comment starts a thread that anyone who can open the document can read and reply to. **Resolve thread** moves it out of the open list; **Reopen thread** brings it back.
+**Comments.** Open **Collaboration settings** on the collab pill and choose **Comments**. **Pin a comment** and then choose an object or a point, or use **Comment on selection** or **Comment at canvas center**. Each comment starts a thread that anyone who can open the document can read and reply to. **Resolve thread** moves it out of the open list; **Reopen thread** brings it back.
 
 **Finding feedback.** The four filters at the top of the panel are **Open threads**, **Resolved threads**, **Unread** and **Involving me** (threads you started, replied to or were mentioned in). Each shows how many threads it holds.
 
@@ -34,7 +34,7 @@ A work collab can also hold a review: comments pinned to the canvas, mentions th
 - **Previous thread** and **Next thread**, or Alt+Up and Alt+Down, step through the threads in the current filter.
 - **Hide pins** clears the pins from your canvas without changing anyone else's. The choice is kept on this device.
 
-**Unread.** The Comments button counts the threads with replies you have not seen, and each of those threads carries a dot. Opening a thread marks it read, and **Mark all as read** clears the rest. Read state is yours alone: nobody else sees what you have read.
+**Unread.** **Comments** counts the threads with replies you have not seen, and each of those threads carries a dot. While any are unread, the **Collaboration settings** button carries a dot too. Opening a thread marks it read, and **Mark all as read** clears the rest. Read state is yours alone: nobody else sees what you have read.
 
 **Mentions.** Type @ in a comment to choose a colleague. Only people who can already open the document are offered, by name and never by email address, and a mention never gives anyone access. The people you mention, and everyone already in the thread, get a notice in their inbox; its **Open thread** button opens the document and the thread. If you lose access to the document, or it is deleted, its notices leave your inbox. Your organisation can turn mentions or notices off.
 
@@ -58,7 +58,7 @@ A work collab can also hold a review: comments pinned to the canvas, mentions th
 
 **Presenting.** When someone presents the document, everyone else sees that they are presenting, with **Follow presentation**. Following a presentation shows each slide they show, and it ends when they stop presenting. If two people present at once, only the one who joined the document first is shown. Guests cannot present.
 
-**Hide pointers.** **Hide pointers** in the collab controls hides other people's pointers on your canvas, and **Show pointers** brings them back. It changes only what you see: others still see your pointer, and the pictures, pins and follow outline stay. The choice is kept on this device.
+**Show pointers.** **Show pointers** in **Collaboration settings** on the collab pill is a checkbox. Clear it to hide other people's pointers on your canvas, and select it again to bring them back. It changes only what you see: others still see your pointer, and the pictures, pins and follow outline stay. The choice is kept on this device.
 
 **Versions.** Open **History** to see the document's versions, newest first. Your organisation's instance keeps them with the document. Each version says when it was made, why (**Automatic version**, **Saved version**, **Restored version** or **Recovered work**) and who edited since the previous version. Names never include email addresses, and guests are shown as "Guest".
 
@@ -72,22 +72,22 @@ Deleting the document deletes all its versions. An older instance without saved 
 
 ## What a private collab is
 
-A **private collab** is a live editing link between two devices. One person invites, the other joins and from that moment both are typing into the same tool session: change a field on one device and it appears on the other. The link is made by the two browsers talking to each other directly. Your work does not travel through a service on the way, because there is no service - the invite and the reply are the whole of the setup, and you are the one who carries them across.
+A **private collab** is a live editing link between two devices. One person invites, the other joins and from that moment both are typing into the same tool session: change a field on one device and it appears on the other. The link is made by the two browsers talking to each other directly. Your work does not travel through a service on the way, because there is no service - the invite and the reply are the whole of the setup, and you carry them across yourself or through storage you both have connected.
 
 Two things follow from that, and it helps to have them straight before you invite anyone.
 
-- **The person who invites owns the session.** The saved session lives on the inviting device, and that device keeps its History as you work, with the other person's changes included. The joining device gets a working copy that is deliberately never written into its own Projects or History. That copy is real, editable and exportable on the joining device, but it is not filed there and it does not survive the collab.
+- **The person who invites owns the session.** The saved session lives on the inviting device, and that device keeps its History as you work, with the other person's changes included. The joining device gets a working copy that is not filed in its own Projects. That copy is real, editable and exportable on the joining device, but it does not survive the collab. Its **History** holds checkpoints in memory while the collab lasts, and **Open as a copy** on one of them files a separate copy on the joining device.
 - **Anyone holding the invite can join and edit.** The invite is the key. Send it through a channel you would send the work itself through, and treat a re-sent invite as a re-shared document.
 
-The feature is on by default. It carries a **beta** pill in the profile settings, which is where you can also turn it off. Turning it off means an invite link opened on that device offers to turn it back on rather than dead-ending.
+The feature is on by default. It carries a **beta** pill in **Settings → Preferences → Feature flags**, which is where you can also turn it off. Turning it off means an invite link opened on that device offers to turn it back on rather than dead-ending.
 
-![The Feature flags section of the profile, with Private collab and its beta pill at the end of the list](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2400&cropSelector=%23feature-flags-section&walker=1&format=svg&dark=1&filename=collab-flag-setting)
+![The Feature flags section of Settings, with Private collab and its beta pill as the last switch before Connectors](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2400&cropSelector=%23feature-flags-section&walker=1&format=svg&dark=1&filename=collab-flag-setting)
 
 <!--
 SHOT NOTE (collab-flag-setting): geometry copied from the PROVEN recipe for the same
 element (docs/adoption-governance.md's `aud-feature-switches`, 1440x1800). Do not shrink
-it: `PRIVATE_COLLAB_FLAG` is the LAST row `flagRow()` writes into #feature-flags-section
-(views/profile.ts), and a walker crop is windowed to min(element box, recipe frame), so a
+it: `PRIVATE_COLLAB_FLAG` is the last flag row `flagRow()` writes into #feature-flags-section
+before the Connectors fold (views/profile/rows.ts), and a walker crop is windowed to min(element box, recipe frame), so a
 900px frame culls the very row this shot is for.
 The flag's `info` sentence is NOT inline copy - it is a help-tip popover (`.help-tip-pop`,
 `hidden` until hover/tap) behind the (i) button on the row, which is why the alt text
@@ -98,7 +98,7 @@ ALSO: `aud-feature-switches` already publishes this element. Consider pointing t
 section at that baseline instead of minting a second near-identical shot.
 -->
 
-**What both devices need.** The same tool, present locally on each. A collab sends values, never code, so the template and the logic always come from the catalogue on each device. If the joining device does not have the tool, the join is refused at the moment the invite is read, by name, rather than opening something that renders nothing.
+**What both devices need.** The same tool, present locally on each. A collab sends values, never code, so the template and the logic always come from the catalogue on each device. If the joining device does not have the tool, the join is refused at the moment the invite is read, rather than opening something that renders nothing. The refusal gives the tool's id, such as `qr-code`.
 
 ## Start a collab
 
@@ -135,11 +135,11 @@ this note used to warn about did not materialise.
 -->
 
 
-The name is chosen here, per collab, and it is the only thing about you that crosses the link. It is not read from your profile, and nothing else from your profile goes anywhere. Leave it empty and you appear as **Host** to the other person, or **Invitee** if you are the one joining.
+The name is chosen here, per collab, and it is the only thing about you that crosses the link. On the joining device the field starts with the first name from your details, which you can change or clear; nothing else from your profile goes anywhere. Leave it empty and you appear as **Host** to the other person, or **Invitee** if you are the one joining.
 
 ![Step 1 of 3 - naming yourself for this collab, with the note that the other person sees this name while you work together](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1100&height=900&dpi=192&waitMs=3000&drive=click%3A%23render-fab%3Bclick%3A%5Bdata-action%3D%22copy-url%22%5D%3Bclick%3Adetails%5Bdata-share-section%3D%22registry%3Ashare-private-collab%22%5D%3Esummary%3Bclick%3A%5Bdata-act%3D%22start-private-collab%22%5D&cropSelector=.collab-ceremony&walker=1&format=svg&dark=1&filename=collab-invite-name)
 
-The whole ceremony is numbered **1 of 3**, **2 of 3**, **3 of 3** on every screen, on both sides. That is deliberate: the hand-over has two legs, both people are looking at different screens and the numbers are how you tell each other where you are.
+On both sides the steps are headed **Step 1 of 3** to **Step 3 of 3**. The hand-over has two legs and the two of you are looking at different screens, so the step numbers are how you tell each other where you are.
 
 ## Handing over the invite
 
@@ -158,9 +158,9 @@ withdrawn, because what it captures cannot be published:
    single-use payload: a DTLS fingerprint and an ICE ufrag that are new every run. A
    vector baseline compares EXACTLY, so this recipe would report ▲ CHANGED on every
    run for the rest of its life, and `tolerance=` is inert on a vector.
-3. THE ALT TEXT PROMISED A QR THAT IS NOT THERE. `qrSlot` returns null unless the
-   caller passes `renderQr` (collab-ceremony.ts ~1221); on this path it does not, so
-   the screen is link + code, not link + code + QR.
+3. (Since fixed.) The inviter's screen did not draw a QR when this shot was dropped.
+   `collab/private-opener.ts` now passes `renderQr` by default, so the screen is
+   link + code + QR on both sides.
 
 A drill capture does not rescue it: the drill's own base is a dev server, so leg 1
 stands. Freezing the payload with `css=` would be staging a fake. The three forms are
@@ -181,7 +181,7 @@ The invite as a QR on screen. The other device points its camera at it and scans
 
 **When it fits:** the two devices are in the same room and there is no channel between them at all. It is also the leg that works when one device is a phone and the other is a laptop across a desk.
 
-Two things to know. The reply comes back the same way, so this is genuinely two scans and not one: your device shows the invite, theirs scans it, then theirs shows the reply and yours scans that. Numbering the steps 1-2-3 is what stops that going wrong. And scanning is only offered where the browser can actually decode a QR, which today means Chromium-family browsers. Where it cannot, there is no **Scan a code** button at all rather than a button that opens a camera and never finds anything - the code beside the QR is the same payload, so pasting is always available.
+Two things to know. The joining device's **Scan a code** button appears only where the browser can decode a QR, which today means Chromium-family browsers. Where it cannot, there is no button at all rather than one that opens a camera and never finds anything. A phone's own camera app can still open the QR on the **Invite link** tab. The code beside the QR is the same payload, so pasting is always available. And the waiting screen on your device has no scanner, so the reply comes back as a link or a code (see [Sending the reply back](#sending-the-reply-back)).
 
 ### A code
 
@@ -191,11 +191,15 @@ The invite as a block of text. Copy it, send it however you like and the other p
 
 ![The bare join screen - one field, one button and the note that a code or a link both work here](/t/url-shot?url=%2F%23%2Fjoin&width=1100&height=760&dpi=192&waitMs=2400&cropSelector=%5Bdata-collab-join%5D&walker=1&format=svg&dark=1&filename=collab-join-code-door)
 
+### Over shared cloud
+
+If you both have the same storage connected in Lolly (an S3 bucket, a WebDAV server, Google Drive or Dropbox), the Share dialog's Private collab section also offers **Over shared cloud**. One of you hosts, the other joins, and you both enter the same **Session code**. The invite and the reply then pass through that storage, so neither has to be sent by hand. Your edits still go straight between the two devices.
+
 > **The invite does not last forever.** While you are waiting, the screen counts down how long the current invite still works. After ten minutes a fresh one is minted automatically and the screen says so, so send the new one rather than the one you already sent. That happens twice; after that the wait gives up and tells you nothing came back in time. **Make a new invite** sits on the waiting screen throughout, if you want to start the clock again yourself.
 
 ## Sending the reply back
 
-This is the leg pairs give up on, so it is worth being explicit: **an invite on its own does not connect anything.** The joining device makes a reply, and that reply has to get back to the waiting device before either of you is connected. Same three forms, same choice.
+This is the leg pairs give up on, so it is worth being explicit: **an invite on its own does not connect anything.** The joining device makes a reply, and that reply has to get back to the waiting device before either of you is connected. It comes as a link, a code and a QR, like the invite, but the waiting screen cannot scan, so send it back as a link or a code.
 
 ![The starting device makes an invite, the joining device makes a reply, and the starting device accepts the reply. Once connected, both devices compare their matching plates.](/info/diagrams/concepts/private-collab-handshake.svg)
 
@@ -219,8 +223,8 @@ consent card are all captured by the drill below.
 -->
 
 - **As a link.** The reply is a `#/join-reply?ans=...` URL. Opening it on the same device that made the invite hands the reply straight to the window that is waiting, and that window moves on by itself. The tab that did the handing says so and can be closed. If no window on that device is waiting, it says that too and leaves the code on screen to copy.
-- **As a code.** Paste it into the **Paste the reply here** field on the waiting screen and press **Connect**.
-- **As a QR.** The waiting screen has its own **Scan a code** button, so the reply can be scanned back exactly like the invite was scanned across.
+- **As a code.** Paste it into the **Paste the reply code here** field on the waiting screen and press **Connect**.
+- **As a QR.** The waiting screen has no **Scan a code** button. If the waiting device is a phone, its camera app can open the QR on the **Reply link** tab, which then works like opening the link above.
 
 **Testing it with two tabs on one device works.** If you open your own invite in another tab, the join screen notices and says so in one dismissible line. It is information and never a refusal - the pairing is real, it just happens to be between two windows of one browser.
 
@@ -267,7 +271,7 @@ A few details that follow from how it is built:
 
 Once you are connected, the tool opens on both devices with the session in it and you both just work.
 
-**What you see.** A **collab pill** sits over the canvas: the people in the collab as a stack of initials, and a dot for the state of the link - Connecting, Live, Reconnecting, Away, Disconnected. Open it for the roster, which names everyone and tags who is you, who is away and who is observing.
+**What you see.** A **collab pill** sits over the canvas: the people in the collab as a stack of initials, and a dot for the state of the link - Connecting, Live, Reconnecting, Away, Disconnected. Open it for the roster, which names everyone and tags who is you, who is the host, who is away, who is observing and any AI agent.
 
 ![The collab pill: a status dot and two stacked initials over the canvas](/info/shots/collab-pill.svg)
 
@@ -298,7 +302,7 @@ distinct canvas region of its own, so only the sidebar half is painted; the canv
 outline appears in this same frame whenever the peer is in a control that draws one.
 -->
 
-**What you do not see is a floating mouse pointer.** That is a decision rather than a gap: the canvas here is a rendered preview and not a freeform surface, so "Priya is editing the Headline" is both truer and cheaper than an arrow drifting over a picture. Nothing about presence is written into the render - the rings and outlines are painted on a layer above it - so someone else working alongside you cannot change a single byte of what you export.
+**Pointers appear on canvas tools.** In a tool with a freeform canvas, such as Design, you see the other person's pointer, and **Show pointers** in **Collaboration settings** on the pill turns pointers off for you. In a form tool the canvas is a rendered preview, so the focus rings show where the other person is working instead of a pointer. Nothing about presence is written into the render - the rings and outlines are painted on a layer above it - so someone else working alongside you cannot change a single byte of what you export.
 
 **Undo stays yours.** Your undo history is a record of your own edits and nothing else. A change arriving from the other device never goes onto your undo stack, so you can never undo something you did not do. When you do undo, the value goes back the way you meant and that change travels to the other device like any other edit.
 
@@ -306,7 +310,7 @@ outline appears in this same frame whenever the peer is in a control that draws 
 
 **If the connection wobbles**, the dot says Reconnecting and nothing is torn down. A brief drop heals on its own. A real drop needs a fresh invite, because a private collab has no server to resume from: the state lives on the two devices and nowhere else.
 
-**If the two devices are running different versions**, you are told rather than left to wonder. A minor difference in the tool says some fields may not match. A larger difference in the collab format puts the older device into **Observing**: it keeps seeing everything, and its own edits are not sent.
+**If the two devices are running different versions**, you are told rather than left to wonder. A minor difference in the tool says some fields may not match. A larger difference in the collab format puts both devices into **Observing**: each keeps seeing the session, and edits from either device are not sent.
 
 ## Sending files and sessions
 
@@ -357,8 +361,8 @@ This is the case the feature was built for.
 |---|---|
 | Editing together | Both devices reachable from each other on the same network. Nothing else. |
 | Opening an invite link | The joining device has to be able to load Lolly at the address in the link. Already installed as an app, or already open on that device, and it loads offline. A first-ever visit needs to be able to reach the address. |
-| A code or a QR | Nothing beyond the app being open on both devices. This is the fully cold path. |
-| Scanning a QR | A camera, and a browser that can decode barcodes - Chromium-family today. |
+| A code | Nothing beyond the app being open on both devices. This is the fully cold path. |
+| Scanning the invite's QR | On the joining device, a camera and a browser that can decode barcodes (Chromium-family today), or a phone's camera app for the **Invite link** tab. The reply goes back as a link or a code. |
 | A beam | Both people in the tool. There is no queue for a transfer offered before the other side has the tool open. |
 
 **Across different networks**, private pairing is limited. It uses the addresses each device can see on its own network, and this build configures no external address-discovery server. For a private collab, use one shared network or a hotspot. If your organisation offers [work collabs through lolly.work](#work-collabs-with-lolly-work-optional), each participant connects to its instance instead.
@@ -382,7 +386,7 @@ button, so if it turns out to be impractical to reach, DROP the shot rather than
 fake one - the copy is quoted in the text above and carries the same information.
 -->
 
-**Nothing came back in time.** The reply never arrived. Make a new invite and send it again. Nine times in ten this is the reply leg: the invite was sent, the other person opened it and the reply is still sitting on their screen waiting to be sent back.
+**Nothing came back in time.** The reply never arrived. Make a new invite and send it again. Usually this is the reply leg: the invite was sent, the other person opened it and the reply is still sitting on their screen waiting to be sent back.
 
 **The connection dropped.** The other device stopped answering. A new invite is needed to carry on - there is no server holding the session, so there is nothing to resume from. Your work is untouched on your own device.
 

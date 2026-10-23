@@ -13,16 +13,16 @@ An `asset` input opens the host's asset picker and stores the chosen `AssetRef` 
   "id": "logo",
   "type": "asset",
   "label": "Logo",
-  "assetType": "image",    // vector | raster | image | video | audio | lottie | any - constrains the picker
+  "assetType": "image",    // vector | raster | image | video | audio | lottie | model | any - constrains the picker
   "allowUpload": true       // also let the user add an image from their device
 }
 ```
 
-`assetType` constrains what the picker offers: `raster` (bitmaps only), `vector` (SVG only - for inline-recolourable logos), `image` (**any still image - raster _or_ vector**, the right choice for a generic picture slot), `video`, `audio` (`audiogram` uses this), `lottie` or `any` (everything, including non-image assets). Prefer `image` over `raster` for photo/illustration slots so users can also pick or upload SVGs.
+`assetType` constrains what the picker offers: `raster` (bitmaps only), `vector` (SVG only - for inline-recolourable logos), `image` (**any still image - raster _or_ vector**, the right choice for a generic picture slot), `video`, `audio` (`audiogram` uses this), `lottie`, `model` (3D models; `3d-studio` uses this) or `any` (everything, including non-image assets). `filter` narrows the picker further: `{ "tags": [...], "namespace": "..." }` is passed to `host.assets.query()`. Prefer `image` over `raster` for photo/illustration slots so users can also pick or upload SVGs.
 
 ![The Image row in the Filter tool - a thumbnail slot and a Choose asset button that opens the host's picker, with nothing about pickers in the manifest](/t/url-shot?url=%2F%23%2Ftool%2Ffilter&width=1440&height=900&dpi=192&waitMs=2000&css=%23tool-canvas%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.input-row%3Ahas%28.asset-picker-trigger%5Bdata-input-id%3D%22image%22%5D%29&dark=1&filename=at2-input-asset-picker)
 
-When `allowUpload` is `true`, the picker offers the user's **personal image library** alongside the catalog. Users add images from their device; the host stores the bytes **verbatim** (a silent re-encode would break a Content Credential's hard binding) and only offers to downscale when a file is genuinely huge. Metadata stripping is a separate, opt-in user preference (*Strip metadata from uploads*, default off). The library is **not capped by count** - the only limit is the device's own storage, checked before each write - and it is reusable across tools and managed in **Profile → Storage → My images**. SVG uploads are sanitised on ingest (script/handler stripping) and pass through without rasterising.
+When `allowUpload` is `true`, the picker offers the user's **personal image library** alongside the catalog. Users add images from their device; the host stores the bytes **verbatim** (a silent re-encode would break a Content Credential's hard binding) and only offers to downscale when a file is genuinely huge. Metadata stripping is a separate, opt-in user preference (*Strip metadata from uploads*, default off). The library is **not capped by count** - the only limit is the device's own storage, checked before each write - and it is reusable across tools and managed in **Settings → Storage → My images**. SVG uploads are sanitised on ingest (script/handler stripping) and pass through without rasterising.
 
 These images are **device-local**: their `AssetRef.source` is `"user"` and their `user/…` id is meaningful only on the device that holds the bytes, so they are **omitted from shareable URLs** (see `docs/url-mode.md`). Tools treat `user` and `library` assets identically - no tool code is involved in the upload.
 
@@ -48,6 +48,7 @@ With `layout: "canvas"` a single `file` input stops being a sidebar row and beco
 
 - `accept` - allowlist of MIME types and/or extensions for the picker (a UX hint; still validate bytes in the hook). Omit to accept anything.
 - `maxSize` - max bytes; the host rejects larger files at pick time.
+- `multiple` - `true` accepts many files at once. The value becomes an array of `FileRef`s, the CLI collects repeated `--<id>=path` arguments, and an `exportFile` hook may return one result per file, which the host delivers as a single zip (`pages`, `claim`).
 
 The value is a **`FileRef`**: `{ __file: true, name, mime, size, bytes, url }`. The `bytes` are a `Uint8Array` the hook reads directly (no `host.*` call - the bytes ride in the value by design, because the portable `host.*` surface has no file-read API). A `file` value is **never serialised into a URL** (binary has no shareable form) and **never persisted** - it lives only in memory on the device, which is the whole privacy point. In CLI transport a file param is a path the runner loads: `--photo=./pic.jpg`.
 

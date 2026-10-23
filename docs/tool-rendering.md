@@ -37,13 +37,13 @@ Handlebars-flavoured. **Logic-less by design.**
 | `{{default x "fallback"}}` | `x` unless it's null/undefined, then the fallback. |
 | `{{upper s}}` / `{{lower s}}` | Upper/lower-case a string. |
 | `{{eq a b}}` | Strict equality - use inside a condition, e.g. `{{#if (eq kind "note")}}`. |
-| `{{markdown body}}` | Render a **small Markdown subset** to safe HTML: `#`…`######` headings, `**bold**`, `*italic*`, `~~strike~~`, bullet and numbered lists, `[label](url)` links and `![alt](url)` images. Author text is HTML-escaped **before** any tag is introduced, and link/image URLs are scheme-allowlisted (links: http/https/mailto/tel; images add data:/blob:) - anything else renders as plain text. Images carry `class="md-image"` so a tool can size them. Use `{{{markdown body}}}` (triple braces). Used for `blocks` bodies, `table` cells and pasted Markdown. |
+| `{{markdown body}}` | Render a **small Markdown subset** to safe HTML: `#`…`######` headings, `**bold**`, `*italic*`, `~~strike~~`, bullet and numbered lists, `[label](url)` links and `![alt](url)` images. Author text is HTML-escaped **before** any tag is introduced, and link/image URLs are scheme-allowlisted (links: http/https/mailto/tel; images add data:/blob:) - anything else renders as plain text. Images carry `class="md-image"` so a tool can size them. A list whose lines start with `>`, `<`, `^` or `v` gets a per-direction class (`md-arrow`, `md-arrow-left`, `md-arrow-up`, `md-arrow-down`) for matching arrow markers. The output is already safe HTML, so `{{markdown body}}` and `{{{markdown body}}}` both work. Used for `blocks` bodies, `table` cells and pasted Markdown. |
 | `{{arrow text}}` | A leading `>` `<` `^` `v` becomes `→ ← ↑ ↓` (for directional labels). |
 | `{{asset ref}}` | The resolved URL of an asset input. Use in `src`/`href`. |
 | `{{asset ref "width"}}` | A specific field of the asset (`width`, `height`, …). |
-| `{{media ref}}` | Emits the right element for **any** asset kind - `<img>`, `<video>` or a Lottie marker - from one call. Options hash: `class`, `style`, `loop`, `autoplay`, `muted`, `controls`, `fit` (`contain`/`cover`), `key`. |
-
-The data-format helpers `{{icsStamp}}`, `{{rfcText}}` and `{{csvCell}}` are for the sibling text templates - see [Data formats](#data-formats-json-csv-ics-vcf) below.
+| `{{media ref}}` | Emits the right element for **any** asset kind - `<img>`, `<video>` or a Lottie marker - from one call. Options hash: `class`, `style`, `loop`, `autoplay`, `muted`, `controls`, `fit` (`contain`/`cover`), `key`, and `framing` (an input id, placed as `{{framing}}` does). |
+| `{{framing "imageFraming"}}` | Emits the placement style and overlay marker for a framed image. Takes the framing input's **id**; see [Framing an image](/info/tool-structured-inputs.html#framing-an-image-one-pattern-every-tool). |
+| `{{icsStamp d}}` / `{{rfcText s}}` / `{{csvCell s}}` | Data-format escaping for the sibling text templates; see [Data formats](#data-formats-json-csv-ics-vcf) below. |
 
 **Emoji insertion is shared.** The web sidebar adds an Insert emoji button to plain text, long text and plain block text fields. URL, numeric, read-only and managed fields keep their existing controls. The picker asks for an emoji set on first use, can remember it for new work, and respects a set already pinned by a document or link. Text insertion uses the current selection and the normal input edit path. A table column declared with `columnEditors: ["emoji"]` opens the same picker and replaces its cell value.
 
@@ -68,7 +68,7 @@ gpu.width = view.width; gpu.height = view.height;
 function present() { ctx.clearRect(0, 0, view.width, view.height); ctx.drawImage(gpu, 0, 0); }
 ```
 
-Call `present()` at the end of every render, including inside `__lollyFrameRender`. The visible canvas then always holds the last frame, every export reader sees pixels, and the tool is free to pick WebGPU where the browser offers it and fall back to WebGL 2 where it does not. `3d` does this with three.js's `WebGPURenderer({ forceWebGL })` and reports its choice as `data-backend` on the canvas. Feature-detect with `navigator.gpu.requestAdapter()`: an adapter that resolves to `null` means no WebGPU, whatever `navigator.gpu` says.
+Call `present()` at the end of every render, including inside `__lollyFrameRender`. The visible canvas then always holds the last frame, every export reader sees pixels, and the tool is free to pick WebGPU or WebGL 2. The web shell needs WebGPU to start, so WebGL 2 is the fallback for a tool that cannot get a working WebGPU device. `3d` does this with three.js's `WebGPURenderer({ forceWebGL })`, falls back when there is no adapter or the device fails to start, and reports its choice as `data-backend` on the canvas. Feature-detect with `navigator.gpu.requestAdapter()`: an adapter that resolves to `null` means no WebGPU, whatever `navigator.gpu` says.
 
 ## Styles (`styles.css`)
 
@@ -89,7 +89,7 @@ SVG and PDF exports are not screenshots. The exporter reads each element's compu
 | `overflow: hidden`; `clip-path` with `circle()`, `ellipse()`, `inset()` or `polygon()` | Kept as a clip. `clip-path: url()` or `path()` rasterises. |
 | `mask-image`, `mask` | Raster. |
 | `backdrop-filter` | A plain `blur()` is kept in snapshot exports; anything richer rasterises. |
-| Text | Outlined to paths with the real font, including `-webkit-text-stroke` and `paint-order`. A glyph the font lacks (an emoji, say) keeps that whole line as live `<text>`, which then needs the font on the viewer's machine. |
+| Text | Outlined to paths with the real font, including `-webkit-text-stroke` and `paint-order`. A glyph the font lacks (a CJK character in a Latin-only face, say) keeps that whole line as live `<text>`, which then needs the font on the viewer's machine. |
 | `background-image` | Gradients become real gradients and a single image an `<image>`; `conic-gradient` rasterises. |
 | `transform` | 2-D transforms are kept. 3-D (`rotateY`, `perspective`) is not. |
 
@@ -132,7 +132,7 @@ Some tools export *data* alongside the rendered image - a calendar invite, a con
 - **`srt` / `vtt`** (v1.150) - the same sibling-template mechanism, for subtitle sidecars: ship `template.srt` or `template.vtt`. The cue text itself is a hook extra (a captions tool already holds one in its target input), so the template is usually a single `{{captions}}`. SRT downloads as `text/plain` (SubRip has no registered MIME), WebVTT as `text/vtt`.
 - **`css` / `scss` / `gpl`** - the same sibling-template mechanism, for palette output: ship `template.css`, `template.scss` or `template.gpl`. `color-palette` is the reference (its `ase` sibling is binary, so that one comes from an `exportStill` hook instead of a template).
 
-Example `template.ics` (see `tools/meeting-planner/`):
+Example `template.ics` (see `community/meeting-planner/`):
 
 ```handlebars
 BEGIN:VCALENDAR
@@ -145,7 +145,7 @@ END:VEVENT
 END:VCALENDAR
 ```
 
-Reference wirings: `meeting-planner`→ICS, `email-signature`→vCard, `chart-creator`→CSV. Raster, `pdf`, video, `zip` and `ico` come from a browser engine - the web shell, the Tauri-bundled CLI or the node CLI's raster tiers (resvg renders `png` from SVG-native tools browser-free; a scoped Chromium via `lolly install-browser` covers the rest) - while the node CLI writes `svg`/`svgz`/`emf`/`wmf`/`eps`/`eps-cmyk`/`dxf`/`bmp` and the text/data formats DOM-free. The CMYK formats pair with the `convertPaths` outlining toggle (see [The `render` block](/info/tool-manifest.html#the-render-block)) for fonts-not-installed print fidelity; `pdf-cmyk` ships on more tools than `cmyk-tiff` does (a subset) - e.g. `qr-code` offers both, while `wayfinding-signage` and `event-name-badge` ship `pdf-cmyk`.
+Reference wirings: `meeting-planner` and `calendar-ics`→ICS, `timezone` and `pricing-table`→CSV, `captions`→SRT and VTT. No public tool ships a `template.vcf` yet. Raster, `pdf`, video, `zip` and `ico` come from a browser engine - the web shell, the Tauri-bundled CLI or the node CLI's raster tiers (resvg renders `png` from SVG-native tools browser-free; a scoped Chromium via `lolly install-browser` covers the rest) - while the node CLI writes `svg`/`svgz`/`emf`/`wmf`/`eps`/`eps-cmyk`/`dxf`/`bmp` and the text/data formats DOM-free. The CMYK formats pair with the `convertPaths` outlining toggle (see [The `render` block](/info/tool-manifest.html#the-render-block)) for fonts-not-installed print fidelity; `pdf-cmyk` ships on more tools than `cmyk-tiff` does (a subset) - e.g. `qr-code` offers both, while `org-chart` and `logo-wall` ship only `pdf-cmyk`.
 
 [Back to Authoring Tools](/info/authoring-tools.html).
 

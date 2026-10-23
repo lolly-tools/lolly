@@ -64,8 +64,8 @@ constant to edit when one is wrong.
   v2-named call used is the login handshake, which IntelligenceBank defines as the auth
   mechanism *for* v3.
 - The discovered per-tenant `apiV3url` and all downloads are host-pinned to the
-  `intelligencebank.com` family (no open proxy); a custom-domain tenant needs that host added
-  at ship time.
+  `intelligencebank.com` family (no open proxy). Tenants on a custom domain are not supported
+  yet: a `platformUrl` outside `intelligencebank.com` is refused.
 - Does **not** accept published exports.
 
 ## Off-boarding

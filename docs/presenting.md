@@ -47,7 +47,7 @@ Change **Camera device** while the camera is running to switch sources. Lolly re
 
 ### Add your logo and name
 
-Open **Logo** and choose a PNG, JPEG, WebP or SVG image. Adjust **Logo width** and choose the top-left corner if preferred; the default is top right. Choose **Apply scene** when the image finishes loading. **Remove logo** also needs Apply.
+Open **Logo** and choose a PNG, JPEG, WebP or SVG image. Adjust **Logo width**. The logo sits top right by default; select **Logo at top left** to move the logo. Choose **Apply scene** when the image finishes loading. **Remove logo** also needs Apply.
 
 In **Lower third**, enter a name and detail, such as a role or topic. Apply the text, then choose **Show lower third**. The same button hides it. Hide and show again to replay the short entrance. Reduced-motion preferences remove the movement.
 

@@ -1,12 +1,12 @@
 # Telemetry and dashboards
 
-The posture is deliberate and defensible to a works council: **labels, never content; and
-no name on an event unless the person agreed to attribution.** Both invariants are enforced at the
-door, at ingest - not in the query layer, where a mistake would already have stored the data.
+Work records **labels, never content, and no name on an event unless the person agreed to
+attribution.** The rules below are enforced at the door, at ingest - not in the query layer,
+where a mistake would already have stored the data.
 
 ![The activity feed - a linear, human-readable record where every noun links back](shots/activity-timeline.svg)
 
-## The two invariants
+## The three invariants
 
 1. **No input values, ever.** Each event type has a closed allowlist of attribute keys;
    anything else is dropped before storage. Surviving values are coerced to strings and
@@ -14,6 +14,11 @@ door, at ingest - not in the query layer, where a mistake would already have sto
 2. **Attribution policy applies at ingest.** Below `standard`, or at `standard` when
    `telemetryAttribution: 'opt-in'` and the user has not consented, the user id is stripped -
    unconsented events are aggregate from the first byte.
+3. **Only contact fields in a profile update.** `profile.update` keeps, in its `fields`
+   label, only the names of eight contact fields: `firstname`, `lastname`, `email`, `phone`,
+   `title`, `city`, `country` and `headshot`. Any other field name, such as a preference
+   or a consent flag, is dropped; an update that changed none of the eight is stored with
+   no `fields` label.
 
 ## Levels
 
@@ -28,8 +33,8 @@ door, at ingest - not in the query layer, where a mistake would already have sto
 | `opt-in` (default) | a user id is stored only after that user consents |
 | `default` | events are attributed |
 
-Consent is per user: `POST /api/v1/telemetry/consent`. The shell surfaces it; the control
-plane simply honours that consent.
+Consent is per user: `POST /api/v1/telemetry/consent`. The shell asks the person; the
+control plane honours their answer.
 
 ## What is recorded
 
@@ -43,7 +48,7 @@ plane simply honours that consent.
 | `catalog.asset-use` | `assetId` |
 | `catalog.asset-download` | `assetId`, `via` (`direct` / `link` / `zip`) |
 | `approval.requested` / `approved` / `rejected` | `chainId`, `step` |
-| `profile.update` | `fields` (field identifiers only) |
+| `profile.update` | `fields` (field identifiers, from the eight contact fields above) |
 | `collab.join` | `toolId` |
 | `session.tool` | `toolId`, `seconds` |
 | `session.shell` | `shell`, `seconds` |
@@ -52,8 +57,8 @@ An unknown event id is dropped, not stored-and-ignored. CLI sessions are intenti
 captured (they are short or instantaneous by design).
 
 `seconds` is a numeric label used for seat-utility rollups. There is no free-text attribute
-anywhere in the vocabulary, which is what makes the no-values invariant hold by construction
-rather than by review.
+anywhere in the vocabulary, so the no-values invariant holds without anyone having to review
+what is sent.
 
 Ingest: `POST /api/v1/telemetry`. Rate-limited per IP
 (`rateLimit.telemetry`, default capacity 120, refill 4/s).
@@ -97,9 +102,14 @@ the console says so on the page.
 `GET /metrics` exposes gauges for the audit-chain integrity flag, process uptime and RSS,
 live rate-limit buckets, per-provider enabled/asset-count/last-error and blob bytes stored
 by driver, and counters for HTTP requests, blob bytes read by driver and response bytes by
-delivery class. Every series is an aggregate: none identifies a person, a blob or a request. The
-endpoint is **loopback-only** unless `LW_METRICS_TOKEN` is set, and it is registered before auth so it
-cannot be shadowed. See [operations](operations.md).
+delivery class. Two gauges appear only when they apply: `lw_siem_lag` (audit events the SIEM
+receiver has not yet confirmed) while `siem.url` is set, and
+`lw_provider_credential_expiry_days` for a provider whose credential has a stated expiry.
+Every series is an aggregate: none identifies a person, a blob or a request. With
+`LW_METRICS_TOKEN` set, the endpoint needs that bearer token. Without one, only loopback may
+read the endpoint, and only on an evaluation instance with no proxy: in production, behind
+`proxyAuth` or with `rateLimit.trustedProxyHops` above `0`, it answers `404`. The route is
+registered before auth so no other route can shadow `/metrics`. See [operations](operations.md).
 
 ## Related
 

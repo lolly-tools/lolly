@@ -12,14 +12,14 @@ From a branded house, in which the parent is the brand, to a house of brands, in
 
 | Block | What it holds | Where |
 | --- | --- | --- |
-| **Design system** | Colours, type, logos, the rest of the tokens, and versions. Tools, pages and exports follow the active one. | [The Brand Studio](/info/brand-studio.html), and **Settings → Design systems** to switch or remove |
+| **Design system** | Colours, type, logos, the rest of the tokens, and versions. Tools, pages and exports follow the active one. | [The Brand Studio](/info/brand-studio.html), and **Settings → Preferences → Design systems** to switch or remove |
 | **Looks** | Light and dark. Every artefact can be drawn in either. | Built in; the studio derives both. A tool's **Design system** section switches the look when the look changes that tool, and the open tool redraws with no reload |
 | **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour, chosen per artefact. One is canonical, and the app's own colours always use the canonical one. Tools that draw several colours at once, such as Chart and Mesh Gradient, draw on every lead together. | Written in the token file; chosen per artefact in a tool's **Design system** section, which redraws the open tool with no reload. Rebuilding the palette in the studio keeps every colourway. See [Colourways](/info/token-workflows.html#colourways) |
 | **Logo identities** | Several named sets of logos in one design system. The main set is "Your logo". | **Logos** room, **+ Add another logo** |
 | **Custom marks** | Marks under your own names: a crest, a favicon, a finished lockup. | **Logos** room, **Custom marks** |
-| **House rules** | Approved colour pairings, type per role and other rules a composition is checked against. | The design system's rules; see [Check a composition](/info/brand-studio.html#check-a-composition-against-the-design-system) |
+| **House rules** | Approved colour pairings, type per role and other rules a composition is checked against. | The studio's **Usage & rules** room, with **Add rule**. Design checks them before export; see [Check a composition](/info/brand-studio.html#check-a-composition-against-the-design-system) |
 | **Versions** | Permanent named copies of a design system. A link can pin one with `designv`. | **Versions** at the foot of the studio rail |
-| **Several design systems** | Any number on one device, one active at a time. A design system travels as a single brand pack file. | **Settings → Design systems**; [Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices) |
+| **Several design systems** | Any number on one device, one active at a time. A design system travels as a single brand pack file. | **Settings → Preferences → Design systems**; [Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices) |
 | **Theme groups of other kinds** | A design system can declare groups such as `campaign`, `brand` or `expression`. Lolly keeps them and resolves them as plain theme choices today. | The token file; chosen from a list in a tool's **Design system** section. See [What a theme group means](/info/token-workflows.html#what-a-theme-group-means) |
 
 ## Arrangements at a glance
@@ -200,7 +200,7 @@ Discrete brands in the wild: Unilever and Procter & Gamble.
 
 **In Lolly:**
 
-- Make a **design system per brand** on the same device and switch per job in **Settings → Design systems**.
+- Make a **design system per brand** on the same device and switch per job in **Settings → Preferences → Design systems**.
 - One active design system applies to the whole device. A link that carries `ds=` switches the device to that design system.
 - A Lolly workspace supplies one design system to everyone who joins it, so each brand that needs a workspace has its own.
 

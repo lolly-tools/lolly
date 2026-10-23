@@ -2,7 +2,7 @@
 
 *20 September 1900 – 16 September 1969*
 
-In 1932 a typographer wrote fourteen lines about what a printing office is for. They were set in Eric Gill's Perpetua Titling for a Monotype type specimen, and they got away: reprinted more than possibly any other broadside in the trade, translated into seventeen languages, cast in bronze in Washington. Ninety-four years later they describe this project better than anything we have written about ourselves.
+In 1932 a typographer wrote fourteen lines about what a printing office is for. They were set in Eric Gill's Perpetua Titling for a Monotype type specimen, and they got away: reprinted more than possibly any other broadside in the trade, translated into seventeen languages, cast in bronze in Washington. Nearly a century later they describe this project better than anything we have written about ourselves.
 
 So we adapted them. This page shows you what she wrote, what we changed and who she was.
 
@@ -82,7 +82,7 @@ Everything else is hers, including the line this whole page is about - and inclu
 
 Warde meant a proof pull: the sheet you take off the press and check before committing to the run. The word survived into our trade almost unchanged, then quietly acquired a second meaning she could not have intended.
 
-Every Lolly export [carries its own record](/info/content-credentials-identity.html) - a signed, machine-readable account of what a file is, what it was made from and what was done to it. Proof in her sense is the check before the run. Proof in ours is the check anyone can run afterwards, on the finished file, without asking us. Same word, same job, ninety-four years apart. You can [verify it yourself](/info/verify-yourself.html).
+Every Lolly export in a format that can hold one [carries its own record](/info/content-credentials-identity.html) - a signed, machine-readable account of what a file is, what it was made from and what was done to it. Proof in her sense is the check before the run. Proof in ours is the check anyone can run afterwards, on the finished file, without asking us. Same word, same job, nearly a century apart. You can [verify it yourself](/info/verify-yourself.html).
 
 ## Who she was
 
@@ -113,4 +113,4 @@ She died in Epsom, Surrey, England on 16 September 1969.
 
 ---
 
-Adapted from Beatrice L. Warde's "This is a Printing Office", first printed in 1932 by the Monotype Corporation, Salfords, Surrey. Reproduced and adapted here with attribution, in the tradition of a text the printing trade has reprinted, translated and reset for ninety-four years. First printed in 1932, not yet out of date.
+Adapted from Beatrice L. Warde's "This is a Printing Office", first printed in 1932 by the Monotype Corporation, Salfords, Surrey. Reproduced and adapted here with attribution, in the tradition of a text the printing trade has reprinted, translated and reset ever since. First printed in 1932, not yet out of date.

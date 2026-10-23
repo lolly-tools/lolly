@@ -71,7 +71,7 @@ deliberately.
 ### When the old value is gone
 
 The PREVIOUS variables need the old value. A platform that stores secrets write-only (a
-Vercel "sensitive" variable, say) cannot give it back, so a rotation there is a clean break:
+hosting platform's "sensitive" environment variable, say) cannot give it back, so a rotation there is a clean break:
 
 - **`LW_SESSION_SECRET`**: every signed-in person signs in again, and outstanding guest and
   state tokens stop verifying. Every audit row written before the rotation fails its MAC
@@ -460,13 +460,12 @@ order:
    pack that enrolls devices somewhere else is the one mistake an operator
    must not be able to make silently. A key-pinned build refuses an unsigned
    or wrongly-signed pack on import. A deploy can also carry the pack in its
-   own mount and host it from boot (`instance.connectPack` - how the demo
-   sandbox offers its SUSE pack) - the same inspection applies, and an
-   owner's upload still wins.
+   own mount and host it from boot (`instance.connectPack`) - the same
+   inspection applies, and an owner's upload still wins.
 2. **The first-run instance sheet** (desktop and mobile shells): the person
    types this deployment's URL; the shell probes `GET /api/v1/instance` and
    `GET /api/auth/config` and takes it from there.
-3. **Profile → Lolly instance → Change**, on an already-running shell.
+3. **Change** on the **Lolly instance** card in **Settings**, on an already-running shell.
 
 Two realities shape the setup:
 
@@ -491,9 +490,9 @@ Two realities shape the setup:
 Users enroll from their client; the instance never reaches out to a device.
 While signed in, org policy applies and work saved here (projects, sessions,
 submissions, audit) lives server-side. Either side can end it unilaterally:
-the person leaves from the client (Profile → Lolly instance → Leave removes
-the org brand, tools, cached catalog and install id; personal work is
-untouched), the organization disables the user (every live session dies on
+the person leaves from the client (**Leave** on the **Lolly instance** card in
+**Settings** removes the org brand, tools, cached catalog and install id;
+personal work is untouched), the organization disables the user (every live session dies on
 its next request). Afterwards: no remote wipe, no export block, no exit
 toll - and a departed device keeps no org catalog. Exports made while
 enrolled keep their Content Credentials.

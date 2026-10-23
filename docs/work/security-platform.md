@@ -2,7 +2,7 @@
 
 Lolly helps people make files on their own devices. Lolly Work adds organisation sign-in, approved tools, rules and shared services. The security boundary depends on the workflow you choose.
 
-[Explore the interactive overview](/#security-platform).
+The landing page of a Lolly Work demo sandbox shows an interactive version of this overview.
 
 ## Where the work happens
 
@@ -39,6 +39,6 @@ Use [audit](audit.md), [operations](operations.md) and [production evidence](pro
 
 ## Scope of this explanation
 
-The interactive examples explain the architecture; they do not inspect a live deployment or change its settings. The offline control is an explanation, not a network test.
+The interactive overview on the demo sandbox's landing page explains the architecture; it does not inspect a live deployment or change its settings. Its offline control is an explanation, not a network test.
 
 The two repositories have different jobs: `lolly/` contains the engine, tools and apps; `lolly-work/` contains the organisation service and admin console. Work consumes a pinned engine. Check the deployed pin and shell release when applying this guide. For endpoint implementation details, use Lolly's `docs/threat-model.md`, `shells/web/src/lib/mount-runtime.ts` and `shells/web/src/bridge/hook-worker.ts`.

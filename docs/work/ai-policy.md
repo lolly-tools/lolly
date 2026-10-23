@@ -7,7 +7,7 @@ authorizes changes (admin/owner by default, or an explicitly delegated grant), a
 the existing `policy.flag.edit` audit event records the previous and new setting.
 Policy-as-code export/apply also includes the `ai` flag.
 
-The first internal production profile keeps this configuration:
+We recommend starting a production install with AI off:
 
 ```json
 { "policy": { "ai": { "enabled": false, "capabilities": [] } } }
@@ -103,6 +103,6 @@ remote command; their lease expires instead. Previously exported files are not
 recalled. The switch does not delete cached data or satisfy a privacy erasure request.
 
 Policy changes are audited without prompts or media. No inference-content logging
-was added by this control. Confirm central audit receipt, organizational review,
-model inventory, approved use/data scope and the applicable assessments before
-enabling AI in production.
+was added by this control. Before enabling AI in production, confirm that these audit
+events reach your central log, and complete whatever review, model inventory and
+assessments your organisation requires.

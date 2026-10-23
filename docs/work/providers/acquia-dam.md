@@ -6,9 +6,10 @@ needed. It is also an exit target ([Off-boarding](#off-boarding)).
 
 ## What you need from Widen
 
-- **A Widen API token** (personal access token) with read access to the assets/categories you
-  want to federate. In Widen: *Account → API* (or your admin issues one). It is a bearer
-  token - treat it as a secret.
+- **A Widen API token** (a user access token) with read access to the assets/categories you
+  want to federate. An Acquia DAM administrator generates one under
+  *Admin → Global settings → API setup*: register an integration, then choose
+  **Generate User Access Token**. It is a bearer token - treat it as a secret.
 - Optionally, a **search query** to scope what federates (else the whole collective).
 - No app registration or OAuth flow - scope what federates with lolly-side **exposure**, not
   the token.
