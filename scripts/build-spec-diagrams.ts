@@ -52,6 +52,7 @@ const SET_DIRS = {
   'document-model': { src: join(ROOT, 'docs/spec/document-model/diagrams'), out: join(ROOT, 'docs/diagrams/document-model'), dark: false },
   'shoulders-of-giants': { src: join(ROOT, 'docs/diagram-sources/shoulders-of-giants'), out: join(ROOT, 'docs/diagrams/shoulders-of-giants'), dark: true },
   concepts: { src: join(ROOT, 'docs/diagram-sources/concepts'), out: join(ROOT, 'docs/diagrams/concepts'), dark: true },
+  'work-integrations': { src: join(ROOT, 'docs/diagram-sources/work-integrations'), out: join(ROOT, 'docs/diagrams/work-integrations'), dark: true },
 } as const;
 export type FigureSet = keyof typeof SET_DIRS;
 const CLI = join(ROOT, 'shells/cli/bin/lolly.ts');
@@ -155,8 +156,16 @@ export const CONCEPT_FIGURES: Figure[] = [
   { set: 'concepts', name: 'rights-evidence-to-delivery', lang: 'dot', title: 'Evidence, obligation and delivery', flags: ['--look=minimal', '--cardWidth=190'] },
 ];
 
+/** Lolly Work guides: connecting a source, Penpot's two lanes, a resumable upload and an agent invitation. */
+export const WORK_INTEGRATION_FIGURES: Figure[] = [
+  { set: 'work-integrations', name: 'source-flow', lang: 'dot', title: 'From your source to Lolly tools', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=18'] },
+  { set: 'work-integrations', name: 'penpot-lanes', lang: 'dot', title: 'Two lanes out of Penpot', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=18'] },
+  { set: 'work-integrations', name: 'upload-parts', lang: 'dot', title: 'A resumable upload', flags: ['--look=minimal', '--cardWidth=178', '--rowGap=36'] },
+  { set: 'work-integrations', name: 'agent-invite', lang: 'dot', title: 'An agent invitation', flags: ['--look=minimal', '--cardWidth=190', '--rowGap=36'] },
+];
+
 /** Every figure the script renders, in set order. */
-export const ALL_FIGURES: Figure[] = [...FIGURES, ...GIANTS_FIGURES, ...CONCEPT_FIGURES];
+export const ALL_FIGURES: Figure[] = [...FIGURES, ...GIANTS_FIGURES, ...CONCEPT_FIGURES, ...WORK_INTEGRATION_FIGURES];
 
 const setOf = (fig: Figure): FigureSet => fig.set ?? 'document-model';
 const sourcePath = (fig: Figure): string => join(SET_DIRS[setOf(fig)].src, `${fig.name}.${EXT[fig.lang]}`);
