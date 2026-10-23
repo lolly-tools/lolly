@@ -1,6 +1,6 @@
 # Verify It Yourself
 
-Every promise on this site can be checked, with no account and nothing to install. If a check below does not give the result shown, that is a bug or a broken promise, and we want to hear about it: see [If a check fails](#if-a-check-fails).
+Every promise on this site can be checked, with no account. Most checks need only a browser; the rest need a terminal and a copy of the source. If a check below does not give the result shown, that is a bug or a broken promise, and we want to hear about it: see [If a check fails](#if-a-check-fails).
 
 Start with the quickest one: drop a file on Verify. Then go further: watch the network while you use a tool, pull the plug and keep working, count the cookies and read the source.
 
@@ -60,7 +60,34 @@ Each deployment chooses (`LOLLY_DISABLE_RENDER_GET=1`): on an instance that sets
 
 **7. Check the services your deployment enables.** [Server Surface](/info/server-surface.html) lists the optional services and links their detailed references. For Lolly Work, include its authenticated APIs, collaboration connection, storage and configured providers. A probe of the public lolly.tools does not test a private organisation instance.
 
-If you run your own instance, [Delivery deployment](/info/deploy-delivery.html) has the release checks for it: the signed catalog, model integrity, the edge probe, display renditions and the private download gateway.
+If you run your own instance, [Delivery deployment](/info/deploy-delivery.html) has the release checks for it: model integrity, the edge probe, display renditions and the private download gateway. The checks below add what that page does not cover.
+
+::: details Check a delivery release of your own instance
+These qualify one build and route configuration. The code being present, or a source test passing, does not show that a live deployment passes.
+
+**Check the signed catalog before its indexes.** In DevTools, watch the catalog envelope load before `index.<sha16>.json`. The envelope must cover the exact tool, asset and slim index bytes. Repeat the sync: unchanged responses can return 304, but the saved bytes must still pass their full hashes. In IndexedDB's profile store, `catalog-trust-v1:` records hold the accepted snapshot and its sequence together. A changed index, a forged higher sequence or an older signed envelope must show a refusal and leave that record unchanged. Run those negative cases against a test instance, not a shared production catalog.
+
+**Check offline verification.** Accept a verified catalog, go offline, reload and use a cached tool. The catalog reports its offline verification state. A plain-HTTP context without WebCrypto must say that verification is unavailable rather than claim it verified the signature.
+
+**Give the edge probe a reviewed sample list.** Each sample gives the expected full hash, taken from the release manifest or asset index, and the checks to run:
+
+```json
+[
+  {
+    "origin": "https://your-instance.example",
+    "path": "/catalog/assets/example.0123456789abcdef.svg",
+    "cls": "public-immutable",
+    "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "checkConditional": true,
+    "checkRange": true,
+    "requireStrongETag": true,
+    "compress": true
+  }
+]
+```
+
+Replace the illustrative path and hash with the real release values. For private resources, add samples for two readers with separate `credentialEnv` names and `credentialType: "cookie"` or `"bearer"`, using resources expected to differ between them, so a response shared by mistake shows up. Keep the credentials in the environment, never in the sample URL.
+:::
 
 ## In the source
 
@@ -74,9 +101,9 @@ cd lolly
 **8. No tracker and no analytics SDK, anywhere.** Search the code that ships (the engine, every shell including the browser extension, the Tauri bridge overrides and the service worker, the server functions and the tool packs) for the usual suspects:
 
 ```bash
-grep -rn --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' \
+grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' \
   -e googletagmanager -e google-analytics -e posthog -e mixpanel -e hotjar \
-  -e sentry.io -e segment.com \
+  -e sentry.io -e segment.com -e '@vercel/analytics' \
   engine/src shells/*/src shells/chrome-extension shells/*/bridge-overrides \
   shells/web/public/sw.js services packages api community brands/*/tools
 # (no output)
@@ -87,7 +114,7 @@ This scan looks for third-party tracking SDKs. It does not show the absence of f
 **9. No third-party DNS resolver.** Verify's SEAL check never sends a lookup through a DNS-over-HTTPS provider, because the app has no resolver:
 
 ```bash
-grep -rn --include='*.ts' --include='*.js' --include='*.mjs' \
+grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' \
   -e cloudflare-dns.com -e dns.google -e /dns-query \
   engine/src shells/*/src shells/chrome-extension shells/*/bridge-overrides \
   shells/web/public/sw.js services packages api community brands/*/tools

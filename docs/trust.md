@@ -38,7 +38,7 @@ Lolly renders on your device. That is not a privacy setting added afterwards: it
 ## Where we stand
 
 - <!--i:convert--> [**The trade we never agreed to**](/info/status-quo.html): the frictions we learned to accept, and what replaces them.
-- <!--i:sunburst--> [**Our AI Stance**](/info/ai-stance.html): AI welcome as labour, refused as impersonation and declared wherever it made something.
+- <!--i:sunburst--> [**Our AI Stance**](/info/ai-stance.html): AI welcome as input, never as impersonation, and declared wherever it made something.
 - <!--i:usercheck--> [**Input, not impersonation**](/info/input-not-impersonation.html): what an AI agent can supply, and what it can never claim.
 - <!--i:sparkle--> [**Generated once, rendered the same**](/info/ai-features.html): Lolly's own AI features, and why inventing pixels is marked while removing them is not.
 - <!--i:document--> [**AI marking and the EU AI Act**](/info/eu-ai-act.html): how Lolly preserves, declares and verifies AI marks for an Article 50 review.

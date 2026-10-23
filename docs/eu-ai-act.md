@@ -1,6 +1,6 @@
 # AI marking and the EU AI Act
 
-If you deploy Lolly in the EU, the AI Act may ask you to mark synthetic output and disclose deep fakes. Lolly gives that review three technical facts to work with. They support the assessment; they do not establish compliance.
+If you deploy Lolly in the EU, the AI Act may ask you to mark synthetic output and disclose deep fakes. Lolly gives your legal review three technical facts to work with. They support the assessment; they do not establish compliance.
 
 ::: cols
 ## Preserved
@@ -9,7 +9,7 @@ AI marks that arrive with a file stay. Its declared AI origin is copied onto Lol
 
 ## Declared
 
-What Lolly generates says so. Synthetic speech, upscaling, kept rewordings and synthesised singing are each marked in the file's Content Credentials.
+What Lolly generates says so. Synthetic speech, upscaling, kept rewordings and synthesised singing are each declared, and exports that use them carry that declaration in their Content Credentials.
 
 ## Verified
 

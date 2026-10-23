@@ -28,7 +28,7 @@ The line between "marked as AI" and "an honest edit" is a mechanical test: **did
 | Synthesised singing | Yes | Yes: a singing voice | AI-generated, with the models listed |
 | Background removal | Yes, or a colour key with none | No: keeps the original pixels | A plain edit |
 | Pixel-art scaling | No | No: copies existing pixels | A plain edit |
-| Retouch | No | No: copies nearby texture | A plain edit |
+| Retouch | No | No model invents anything: it fills from nearby pixels | A plain edit |
 | Depth for Spatial Photo | Yes | No: moves the photo's own pixels | No badge; the photo stays an ingredient |
 | Reading text or speech | Yes | No: produces no media at all | Nothing |
 
