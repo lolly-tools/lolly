@@ -1,62 +1,75 @@
 # Create
 
-You fill in a few fields and a finished file comes out, with the fonts, the colours and the layout already decided on your own device. You ship in minutes and it looks like you spent hours, and because the brand rules are baked into the tool, it is never your name on the off-brand file. Pick the lane below that matches what you are doing today.
+You fill in a few fields and a finished file comes out, with the fonts, the colours and the layout already decided, on your own device. Because the brand rules are in the tool, it is never your name on the off-brand file. Pick the lane that matches what you are doing today.
 
-You are one hand in a relay: a developer can scale the tool you use into a pipeline and a colleague can run it self-serve, so [The lifecycle of a campaign](/info/overview.html#the-lifecycle-of-a-campaign) follows one asset through all three pairs of hands.
-
-New here? Start with **[Make your first file](/info/make-something.html)** and come back once you know which part you want to go deeper on. [Questions & answers](/info/faq.html) covers what people ask before they trust a free tool. [How Lolly compares](/info/positioning.html) is the honest account of what to reach for something else for.
+New here? Start with **[Make your first file](/info/make-something.html)**. [How Lolly works](/info/how-lolly-works.html) shows how a tool you use can also run from a script or a colleague's phone, and [Questions & answers](/info/faq.html) covers what people ask before they trust a free tool.
 
 ## Make
 
-Pick a tool, fill in a few fields and download the finished file. Or open the Design canvas and lay it out freehand: either way the colours, the type and the spacing come from your brand rather than from memory, and nothing needs an account.
+Pick a tool and fill it in, or lay a page out freely on the Design canvas.
 
-- **[Make your first file](/info/make-something.html)** - one short lesson with nothing to set up: make a QR code, download it and save an editable copy. Start here if you have never opened Lolly before.
+- **[Make your first file](/info/make-something.html)** - one short lesson with nothing to set up: a QR code, downloaded and saved as an editable copy.
 - **[Using Lolly](/info/using.html)** - the canvas, the controls, saving, Projects and phone use: how the app itself behaves.
-- **[The Brand Studio](/info/brand-studio.html)** - when the logos, colours and type should be yours rather than the defaults.
-- **[Import a design](/info/design-import.html)** - when the artwork already exists as a `.fig`, `.penpot`, `.ai`, `.idml` or SVG file and you want it editable rather than flattened.
-- **[Utility views](/info/utilities.html)** - the spreadsheet, the converter, the Colour Lab, the PDF extractor and Script audio, for the jobs that are not a tool render.
+- **[Templates](/info/templates.html)** - start from a saved layout instead of a blank tool.
+- **[Text in Design](/info/text-composition.html)** - headings, flowing text and type that fits its box.
+- **[3D Studio](/info/3d-studio.html)** - SVG artwork and 3D models arranged, lit and rendered as one scene.
+- **[Utility views](/info/utilities.html)** - the spreadsheet, the converter, the Colour Lab, the PDF extractor and Script audio, for jobs that are not a tool render.
 - **[Browser Extension](/info/extension.html)** - capture a live web page and reuse it as an asset in your own designs.
-- **[Search](/info/search.html)** - one field that reaches your tools, your saved work, your assets and your settings.
-- **[Ask Lolly](/info/ask.html)** - type a question and get the matching section of these guides back, with a link straight into it.
-- **[The Dashboard](/info/dashboard.html)** - what this device can do, your design system read-only and a glance at storage.
-- **[Your favourites](/info/favourites.html)** - star what you use often so it gets a tile of its own above the grid.
-- **[Profiles](/info/profile.html)** - the details tools pre-fill from and the four accessibility switches that calm the app without moving a pixel of what you export.
+
+## Make it yours
+
+Your design system decides what every tool looks like.
+
+- **[Design System Setup](/info/brand-studio.html)** - logos, colours, type and the rest, set once at `#/start`.
+- **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - colourways on real work, and switching to your own design system.
+- **[Brand architectures](/info/brand-architectures.html)** - several design systems, or one with several colourways, for one organisation.
+- **[Import a design](/info/design-import.html)** - a `.fig`, `.penpot`, `.ai`, `.idml` or SVG file opened as an editable layout rather than a flat picture.
+- **[Rebrand a deck](/info/rebrand.html)** - a PowerPoint deck moved onto your design system, charts and animations intact.
+- **[Share a design with rules](/info/create-a-tool.html)** - turn a layout into a tool other people fill in.
+
+## Find and keep your work
+
+- **[Find and recover your work](/info/find-your-work.html)** - where a saved, downloaded or unsaved file went.
+- **[Search](/info/search.html)** and **[Ask Lolly](/info/ask.html)** - one field for your tools, saved work, assets and settings, and answers from these guides.
+- **[Settings](/info/dashboard.html)** - what this device can do, your design system read-only and your storage.
+- **[Your favourites](/info/favourites.html)** and **[Profiles](/info/profile.html)** - starred tools, the details tools pre-fill from and the accessibility switches.
+- **[Sync your devices](/info/sync.html)** - the same work on your computer and your phone, through storage you choose.
 
 ## Animate
 
-Text that moves, scenes on a timeline and motion that stays on-brand. A motion export is composited frame by frame from a driven clock rather than recorded off the screen, so the timing never drifts and the same link renders the same clip at any length.
+Text that moves, scenes on a timeline and motion that stays on-brand. A motion export is drawn frame by frame from a driven clock rather than recorded off the screen, so the same link makes the same clip.
 
-- **[Animating](/info/animating.html)** - keyframes, real depth and a scene camera to fly over the result.
-- **[The sequence editor](/info/sequence-editor.html)** - the timeline itself: clips, overlay lanes, trim and split, transitions and the audio mix.
-- **[Exporting & Formats](/info/exporting.html)** - the video, GIF and animated PNG side of the export panel, once the motion is right.
+- **[Animating](/info/animating.html)** - keyframes, real depth and a scene camera.
+- **[The sequence editor](/info/sequence-editor.html)** - clips, overlay lanes, trim and split, transitions and the audio mix.
+- **[Wide Colour and HDR](/info/hdr-editing.html)** - colour beyond the usual range, on screens and in formats that can show the extra range.
 
-## Record
+## Record and present
 
-Record a clean take with a count-in, a level meter and gentle coaching, or turn a voice note into a finished video that moves with the sound. There is no separate Record page yet: Using Lolly carries it, in the timeline section.
+Record a clean take with a count-in and a level meter, or put yourself in front of your slides.
 
-- **[Using Lolly](/info/using.html#timeline-sequence)** - recording a voiceover straight onto the timeline, where the take is saved and how it reaches the mix.
+- **[Using Lolly](/info/using.html#timeline-sequence)** - recording a voiceover straight onto the timeline.
 - **[Make your first file](/info/make-something.html#other-first-projects)** - the audiogram, for when you would rather be heard than seen.
-- **[Utility views](/info/utilities.html)** - Script audio, when the words come first and the voice comes after.
-
-## Present
-
-Put your camera, logo and name over a Design deck or Countdown, with private controls in a separate window.
-
-- **[Presenting with camera](/info/presenting.html)** - framing, saved scenes, audience sharing, local recording and the current trial limitations.
+- **[Presenting with camera](/info/presenting.html)** - your camera, logo and name over a deck or Countdown, with private controls in a separate window.
+- **[Live pages that take the clicker](/info/interactive-pages.html)** and **[Agenda screens](/info/agenda.html)** - pages and programmes for the room.
 
 ## Collaborate
 
-Two people, two devices, one session, edited live. Scan a code across the table and both screens hold the same work, with no account and no server in the middle - and no internet at all when both devices are on the same network.
+Two people, two devices, one design, edited live, with no account and no server in the middle.
 
-- **[Working together](/info/collaborate.html)** - private collabs between devices, plus optional **lolly.work** collabs through your organisation's instance. Work collabs support live editing across reachable networks and save shared state to the organisation's server.
-- **[Using Lolly](/info/using.html#sharing-your-work)** - the quieter ways to hand work on: a share link that carries the whole state, or one `.lolly` file.
-
-If your organisation uses lolly.work, [Use Lolly at your organisation](/info/organisation.html) also covers sign-in, team projects, shared assets and managed settings. These are optional additions to the everyday app.
+- **[Working together](/info/collaborate.html)** - private collabs between devices, and work collabs through your organisation's Lolly Work.
+- **[Using Lolly](/info/using.html#sharing-your-work)** - a share link that carries the whole state, or one `.lolly` file.
+- **[Use Lolly at your organisation](/info/organisation.html)** - sign-in, team projects and managed settings, when your organisation runs Lolly Work.
 
 ## Post
 
-Send it where it was asked for: a link that carries the design, a print-true PDF, a video, a deck or a folder of variants. The same source makes every one of them, so you build it once.
+Send it where it was asked for: a link, a print-true PDF, a video, a deck or a folder of variants, all from the same source.
 
-- **[Exporting & Formats](/info/exporting.html)** - print units, DPI, bleed and crop marks, video, batch runs and the export panel itself.
-- **[Every format Lolly can open and make](/info/formats.html)** - the full in-and-out list, with a plain-language card behind every chip.
-- **[Data Transfer](/info/data-transfer.html)** - the backup bundle, for moving everything you have made to another device.
+- **[Exporting & Formats](/info/exporting.html)** - print units, bleed and crop marks, video, batch runs and the export panel.
+- **[Every format Lolly can open and make](/info/formats.html)** - the full in-and-out list.
+- **[Creative rights and credits](/info/creative-rights.html)** - the licences of what you used, and the credits that travel with the file.
+
+## Team playbooks and comparisons
+
+- **For your team:** [sales](/info/sales.html), [marketing](/info/marketing.html), [the newsroom](/info/press.html) and [legal](/info/legal.html).
+- **[How Lolly compares](/info/positioning.html)** - what Lolly is good at, and when to reach for something else.
+- **[Lolly compared, tool by tool](/info/compare.html)** - Canva, Adobe, Figma, Penpot, brand portals, rendering APIs and online converters.

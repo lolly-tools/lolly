@@ -1,0 +1,45 @@
+<!--
+  Concept: the anatomy of a Lolly link. One QR code link split into its four parts (where Lolly
+  runs, the tool, the tool's inputs and the reserved words), each part keyed by number and
+  colour, with the same request written as a command line underneath in the same colours.
+  Band Contract: static fragment scoped under .uma, reads the docs theme tokens with fallbacks,
+  no script, no motion, no network. The link sits on a paper plate in every theme.
+  Sources: engine/src/url-mode.ts (parseUrlState, RESERVED), the /t/<id> route in
+  shells/web/src/main.ts and the qr-code tool's url and color inputs in community/qr-code/tool.json.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.uma{--uma-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--uma-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --uma-ground:hsl(var(--secondary,84.5 55% 92.2%));--uma-paper:hsl(var(--card,0 0% 100%));
+ --uma-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);
+ --uma-c1:#5b6770;--uma-c2:#008657;--uma-c3:#1a6fa3;--uma-c4:#b2461c;
+ --uma-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--uma-ink);background:var(--uma-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+:is([data-theme="dark"],[data-theme="brand"]) .uma{--uma-c1:#a9b6be;--uma-c2:#50c369;--uma-c3:#5fcaff;--uma-c4:#fac044}
+.uma *{box-sizing:border-box}
+.uma p{margin:0}
+.uma ol,.uma ul{list-style:none;margin:0;padding:0}
+.uma li{list-style:none;margin:0;font-size:inherit}
+.uma-plate{background:var(--uma-paper);border-radius:14px;padding:14px 14px 12px;
+ box-shadow:0 1px 2px #0000000f,0 6px 18px #0000000f}
+.uma-cap{font:600 11px/1.3 var(--uma-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--uma-muted);margin-bottom:8px}
+.uma-url{display:flex;flex-wrap:wrap;align-items:flex-end;row-gap:10px;font:500 clamp(12px,2.1cqi,15px)/1.4 var(--uma-mono)}
+.uma-seg{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;max-width:100%}
+.uma-seg code{font:inherit;color:inherit;background:none;padding:0 0 3px;border-bottom:3px solid var(--c);overflow-wrap:anywhere}
+.uma-n{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--c);color:var(--uma-paper);
+ font:700 11px/1 ui-sans-serif,system-ui,sans-serif}
+.uma-parts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+@container (max-width:620px){.uma-parts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container (max-width:340px){.uma-parts{grid-template-columns:1fr}}
+.uma-part{display:flex;flex-direction:column;gap:5px;background:var(--uma-paper);border-radius:12px;padding:10px 12px;
+ box-shadow:inset 0 0 0 1px var(--uma-line)}
+.uma-part-head{display:flex;align-items:center;gap:7px;font-weight:650;font-size:.88rem}
+.uma-part p{font-size:.8rem;color:var(--uma-muted)}
+.uma-cli{margin-top:12px}
+.uma-cli .uma-url{font-size:clamp(12px,1.9cqi,14px);column-gap:.6em}
+.uma-cli .uma-seg code{border-bottom-width:2px}
+.uma-key{margin-top:12px;font-size:.78rem;color:var(--uma-muted)}
+</style><div class="uma"><div class="uma-plate"><p class="uma-cap">A link</p><p class="uma-url" aria-label="lolly.tools/t/qr-code?url=example.com&amp;color=#033633&amp;format=png&amp;export"><span class="uma-seg" style="--c:var(--uma-c1)"><code>lolly.tools</code><span class="uma-n" aria-hidden="true">1</span></span><span class="uma-seg" style="--c:var(--uma-c2)"><code>/t/qr-code</code><span class="uma-n" aria-hidden="true">2</span></span><span class="uma-seg" style="--c:var(--uma-c3)"><code>?url=example.com&amp;color=%23033633</code><span class="uma-n" aria-hidden="true">3</span></span><span class="uma-seg" style="--c:var(--uma-c4)"><code>&amp;format=png&amp;export</code><span class="uma-n" aria-hidden="true">4</span></span></p></div><ol class="uma-parts"><li class="uma-part" style="--c:var(--uma-c1)"><p class="uma-part-head"><span class="uma-n" aria-hidden="true">1</span>Where Lolly runs</p><p>lolly.tools, your organisation's own site, or lolly:// for the installed app.</p></li><li class="uma-part" style="--c:var(--uma-c2)"><p class="uma-part-head"><span class="uma-n" aria-hidden="true">2</span>The tool</p><p>/t/ and the tool's id. A tool id is permanent, so the link keeps working.</p></li><li class="uma-part" style="--c:var(--uma-c3)"><p class="uma-part-head"><span class="uma-n" aria-hidden="true">3</span>Its inputs</p><p>One parameter for each input you set, called by the input's id. Inputs you leave out keep their defaults.</p></li><li class="uma-part" style="--c:var(--uma-c4)"><p class="uma-part-head"><span class="uma-n" aria-hidden="true">4</span>Reserved words</p><p>The format, the size and what happens on open. No tool may use these names for an input.</p></li></ol><div class="uma-plate uma-cli"><p class="uma-cap">The same request on the command line</p><p class="uma-url"><span class="uma-seg" style="--c:var(--uma-c2)"><code>lolly qr-code</code></span><span class="uma-seg" style="--c:var(--uma-c3)"><code>--url=example.com --color=#033633</code></span><span class="uma-seg" style="--c:var(--uma-c4)"><code>--export=png</code></span></p></div><p class="uma-key">The command line has no host part: the tool runs on your machine, and writing the file is the export.</p></div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ62p1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnFanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDowYWMxMjg1Yi0yOGY4LTRkZWUtYWY4NS1hYjM1YjUxNGE0ZDYAAAAER2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDU6NTc6NTNaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkVfWZsZW5ndGgZDZ5kbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIJT4s1gHtgI1rLhTa+h1/ZaYZ531P3p8ywNghPBUcaDxY3BhZEgAAAAAAAAAAAAAANBqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACcY2Jvcqdnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2xwdXJsLW1vZGUtYW5hdG9teWRkYXRleBgyMDI2LTEwLTIzVDA1OjU3OjUzLjkxMFpoYXJ0aWZhY3RmZmlndXJlaWdlbmVyYXRvcmtDbGF1ZGUgQ29kZWttb2RlbFZlbmRvcmlBbnRocm9waWMAAACNanVtYgAAACdqdW1kanNvbgARABCAAACqADibcQNjYXdnLm1ldGFkYXRhAAAAAF5qc29ueyJAY29udGV4dCI6eyJkYyI6Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIn0sImRjOmNyZWF0b3IiOlsiQW5keSBGaXR6c2ltb24iXX0AAADEanVtYgAAACxqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmFpLWRpc2Nsb3N1cmUAAAAAkGNib3KkaW1vZGVsVHlwZXBjMnBhLnR5cGVzLm1vZGVsaW1vZGVsTmFtZW9DbGF1ZGUgT3B1cyA1LjVvbW9kZWxJZGVudGlmaWVyb2NsYXVkZS1vcHVzLTUtNW5jb250ZW50UHJvZmlsZaFzaHVtYW5PdmVyc2lnaHRMZXZlbG1wcm9tcHRfZ3VpZGVkAAACzmp1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAKfY2JvcqZoZGM6dGl0bGVwdXJsLW1vZGUtYW5hdG9teWppbnN0YW5jZUlEeC11cm46dXVpZDowMDIxNThlNC1jYWQ1LTQ1OWQtYjYxYy03OTBjZGRkZjliODJ0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIIDfFYKYeFDUHT38etCTe3eJRDVot/Z+Ajmq8NZ5qQcmomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIBjC2riOg7n9vW6hFbGSDjb9WQQkAvYNP9qt7DbCwnSqomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCD4XWeM3UJGsvrXUc+wwv1xor54zUd6rXMjW9gxqEkWDaJjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmFqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjFjYm9y0oRZAeCiASYYIYFZAdcwggHTMIIBeaADAgECAgl5gYS7W5cmqmIwCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMzA1NTY1M1oXDTM2MTAyMDA1NTc1M1owNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEytSmPYLfEmpdCrFCQRasbEMA6I6rlOgYswNaO9NT1H13w7796tVJZuLucfckfke5nYWokx7i0neIPkNMQG2YTKNyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFK0lUBjTiITnMjvAQUtsC3fpSE9+MB8GA1UdIwQYMBaAFK0lUBjTiITnMjvAQUtsC3fpSE9+MAoGCCqGSM49BAMCA0gAMEUCIGYMza44EsjV+1X4+o0DfGXXIodwII2Lvf88lJUQjAxiAiEAq6yq3TkNYKBIvXfatKIqTpyTgOV7beAa9ZHzClqoa+Kg9lhAku4rkW6yfhFsfpBBP9ExbagAAHJIjFYtbBU3IlfuRt2fMcfzn1JIEB7kY0getzRW6Q+dNFMEoq9hOWpPL3iG9Q== -----END C2PA MANIFEST----- -->
