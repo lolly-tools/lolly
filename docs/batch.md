@@ -26,13 +26,13 @@ Open **Projects** and press **Batch** in its header. The grid starts with one ro
 
 ![Batch on a new grid: the file name and the row tools across the top, and the first row's template list open on the tools you can choose](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
-**Fill the rows.** Type into a cell, paste a block straight from Excel, Google Sheets or another spreadsheet, or use **Import CSV** to add rows or replace the batch. When you paste into a cell that holds export settings, Lolly asks which input each pasted column fills. **Export CSV** writes the grid back out. Open **Columns** below the grid to show more inputs, or per-row width, height, unit and DPI.
+**Fill the rows.** Type into a cell or paste a block straight from Excel, Google Sheets or another spreadsheet. **Import CSV** adds rows or replaces the batch. When you paste into a cell that holds export settings, Lolly asks which input each pasted column fills. **Export CSV** writes the grid back out. Open **Columns** below the grid to show more inputs, or per-row width, height, unit and DPI.
 
 **Set the output.** The toolbar sets the zip's file name, the **Default format**, units and DPI for every row. The format menu is the export panel's grouped list, showing the formats the catalogue offers and your browser supports. A row with its own format, size or file name keeps its own setting.
 
 **Render.** **Render all** exports every row into one `.zip`. Select rows first and **Render selected**, **Export selected CSV** and **Print selected rows** act on just those; clear the selection to work on the whole batch again. **Print sheet** lays the rows out on a printable sheet. **Batch activity** reports each import and render, and folds away to give the table more room.
 
-**Keep the batch.** **Sessions** saves the whole grid as a named batch session, which reopens later from Projects. Sessions always saves every row, whatever is selected.
+**Keep the batch.** **Sessions** saves the whole grid as a named batch session, which reopens later from Projects. Sessions always saves every row, whatever is selected. **Folders…** in the same menu opens a whole Projects folder as rows, one per saved session, with each file name carrying its folder path.
 
 ::: details Selecting rows and cells
 Select rows with their checkboxes, or Shift-click a checkbox for a range. The header checkbox selects the current page, and **Select all *N* rows** takes the rows on other pages too. Selections stay as you move between pages. **Edit input**, **Duplicate** and **Remove** act on the selected rows, and **Undo remove** restores the rows removed last. From a focused cell, Shift+Space selects that row and Escape clears the selection.
@@ -42,7 +42,7 @@ Drag across cells, Shift-click a cell or use Shift+Arrow keys to select a rectan
 
 ### Colourways and themes per row
 
-Each row keeps its own theme choices: light or dark, and a colourway when the design system has them. A row opened from Projects, a folder or a saved batch renders in the choices its session was saved in, its preview opens in them, and the print sheet, a duplicated row and a filled row all keep them.
+Each row keeps its own theme choices: light or dark, and a colourway when the design system has them. A row opened from Projects, a folder or a saved batch renders in the choices its session was saved in, and its preview opens in them. The print sheet, a duplicated row and a filled row all keep them.
 
 A CSV carries the choices in a `_themes` column after the size columns, holding the same JSON as the `_themes` link parameter, for example `{"":"dark","colourway":"persimmon"}`. A blank cell, or `{}`, means the design system's defaults. The column is written only when some row has choices, so a batch without any exports the same CSV as before. On import, a cell that is not valid theme choices is listed as an issue and its row renders in the defaults. The grid has no control for changing a row's choices yet, so set them in the CSV or in the saved session.
 
@@ -68,7 +68,7 @@ Each card draws in its own session's theme choices, including a tool placed insi
 
 - **Eight at most.** Every card mounts its own live runtime, and eight is the number that stays responsive. A link asking for more, or for a session that no longer exists, says so rather than half-loading.
 - **The link is local.** It names your own saved slots, so it reopens that set on this device. It is not a share link.
-- **For anything bigger,** choose **Edit as sheet** in the same selection bar. It opens the whole selection as rows in the batch grid (`#/batch?s=…`), with no size limit and no same-tool rule. Folders stay out of both; they have their own render path.
+- **For anything bigger,** choose **Edit as sheet** in the same selection bar. It opens the whole selection as rows in the batch grid (`#/batch?s=…`), with no size limit and no same-tool rule. Folders stay out of both: open a folder in the grid with **Sessions → Folders…**, or render one with **Render folder** in Projects.
 - **Search does not reach Multi-edit.** It is the one view the search bar does not know about.
 
 ## Where to go next

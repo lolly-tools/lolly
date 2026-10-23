@@ -7,10 +7,10 @@ Everything here runs on your device, with no account, and keeps working offline 
 ## Find your way around
 
 ::: figure using-app-map
-The home screen: four tabs along the top, the bar at the foot, and a tool open as controls beside a live preview.
+The home screen: four tabs along the top and the bar at the foot. A tool, once open, shows its controls beside a live preview.
 :::
 
-Four tabs run along the top of the home screen: **Tools**, **Utilities**, **Assets** and **Projects**. Tools are what you make with, Utilities are workbenches for jobs such as converting, checking or cleaning up a file, Assets is your library, and Projects holds what you saved.
+Four tabs run along the top of the home screen: **Tools**, **Utilities**, **Assets** and **Projects**. Tools are what you make with, Utilities are workbenches for jobs such as converting, checking or cleaning up a file, Assets is your library and Projects holds what you saved.
 
 The bar at the foot holds **Open**, **Settings**, a search field, **Verify** and **What?**. It shows on Tools, Utilities, Assets, Projects, Settings and the guides you read in the app, and steps aside once a tool is open. [Search](/info/search.html) reaches your tools, saved work, assets and settings from that field. [Ask Lolly](/info/ask.html) answers a typed question with the matching section of these guides.
 
@@ -34,9 +34,9 @@ A tool shows only the inputs meant to vary. Its author has already fixed the col
 
 **Clear changes**, above the controls, returns every input to its default.
 
-**Design system choices.** When your design system offers more than one colourway, a light and a dark look or another theme choice, a **Design system** section under the controls holds them. A choice appears only when it changes this tool, so a file utility shows no section at all. Each colourway is a dot in its own colours, light and dark are two buttons, and any other choice is a list.
+**Design system choices.** When your design system offers more than one colourway, a light and a dark look or another theme choice, a **Design system** section under the controls holds them. A choice appears only when it changes this tool, so a file utility shows no section at all. Each colourway is a dot in its own colours, light and dark are two buttons and any other choice is a list.
 
-The choice belongs to this piece. It travels in the link and the saved session, every colour linked to the design system follows it, and the app's own colours stay as they are. Design shows the same choices in the Inspector's **Canvas** tab. A tool whose colours are its content can stay on the canonical colourway, and then offers no colourway dots. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work.
+The choice belongs to this piece. It travels in the link and the saved session, every colour linked to the design system follows it and the app's own colours stay as they are. Design shows the same choices in the Inspector's **Canvas** tab. A tool whose colours are its content can stay on the canonical colourway, and then offers no colourway dots. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work.
 
 ### Zoom and pan the preview
 
@@ -68,7 +68,7 @@ The **Filter** tool's effects (Halftone, Scanline, Posterize, Voronoi, Duotone, 
 
 ## Saving & continuing
 
-To keep your work, press **Save**, the tick beside **Export** on the render pill. New work goes to **My library**, work you saved before is updated where it is, and nothing downloads. The export panel has the same **Save** button.
+To keep your work, press **Save**, the tick beside **Export** on the render pill. New work goes to **My library**, work you saved before is updated where it is and nothing downloads. The export panel has the same **Save** button.
 
 To choose where it goes, press **Save as**, beside **Download** in the export panel. Under **Save to a project**, leave **My library** selected or choose a project (**＋ New project…** makes one), then press **Save**; **Save as a template** keeps the design as a [template](/info/templates.html), a starting point for new documents. In Design, **Save as** is in the Lolly menu; on a phone, press **•••**, then **File menu**, then **Save as**.
 
@@ -106,7 +106,7 @@ A design goes out as a link or as a file. **Share** in the export controls opens
 
 - Carries the saved session with the images and files on this device, and can carry the tool and the design system too.
 - Holds back licensed catalogue art unless you choose to include the files.
-- Opens in Lolly: double-click it, use **Open**, or drop it on the app.
+- Opens in Lolly: double-click it, use **Open** or drop it on the app.
 :::
 
 ### The link
@@ -144,15 +144,15 @@ Three things are yours to decide before a file goes:
 - **Whether held-back art goes in.** Licensed art, brand-locked art and catalogue works whose licence was never recorded stay out by default. If the design uses any, the dialog says how many and offers *Download without them* or *Include and download*, because including them hands the files to whoever opens the `.lolly`. The file's `CREDITS.txt` lists what travelled and what did not, with the reason; [Creative rights and credits](/info/creative-rights.html) explains the rules.
 - **Whether the tool goes in.** **Include the tool** packs the tool's own files, so the design opens on a device without that tool. It starts ticked for a custom tool, such as a fork, and unticked for a tool the signed catalogue lists. On a build with no signed catalogue, every tool counts as custom.
 
-**Opening one.** In the desktop and mobile apps, double-click or tap a `.lolly`, choose **Open with Lolly**, or send it to Lolly from the share sheet. In the web app, press **Open** or drop the file on Lolly. Every route reads the file's manifest first and shows its size, contents and what will happen, before anything is written.
+**Opening one.** In the desktop and mobile apps, double-click or tap a `.lolly`, choose **Open with Lolly** or send it to Lolly from the share sheet. In the web app, press **Open** or drop the file on Lolly. Every route reads the file's manifest first and shows its size, contents and what will happen, before anything is written.
 
-If the file carries a tool you don't have, **Trust this tool?** shows the tool and its author, and says that opening it runs the tool's own code on your device. **Trust & install** goes ahead. Decline and the work is still saved to Projects, waiting for the day you add the tool.
+If the file carries a tool you don't have, **Trust this tool?** shows the tool and its author, and says that opening it runs the tool's own code on your device. **Trust & install** goes ahead. Decline and the work is still saved to Projects, waiting for the day you add the tool. A tool whose code ships as a module cannot be installed this way yet, and is turned away the same way.
 
 ::: details What a .lolly holds, and how opening one works
 `.lolly` is Lolly's bundle extension, and the `format` in its `manifest.json` says what is inside:
 
 - A **shared design** (`lolly-share`) holds one saved session, its embedded files and a receipt for anything that still resolves by reference. It may also carry the tool and the design system. Opening it adds a new Project and never overwrites a session.
-- A **shared project** (`lolly-share`, kind `project`) holds a folder from Projects: its sub-folders, every session in them with its tile, and the pictures filed there. Opening it adds a copy of the whole folder. Each session travels as `sessions/<key>.json` with its tile under `thumbs/`. A Lolly from before project files existed asks you to update.
+- A **shared project** (`lolly-share`, kind `project`) holds a folder from Projects: its sub-folders, every session in them with its tile and the pictures filed there. Opening it adds a copy of the whole folder. Each session travels as `sessions/<key>.json` with its tile under `thumbs/`. A Lolly from before project files existed asks you to update.
 - A **design-system pack** (`lolly-brand`) holds tokens and may hold fonts, logos, published versions and retained resources. Opening the pack adds a separate named design system and makes that system active.
 - A **workspace or instance pack** is a `lolly-brand` with declared tools, catalogue assets and optionally an instance address. Loading one replaces the single workspace overlay loaded before, and the preview lists those device-wide effects.
 
@@ -160,7 +160,7 @@ A full device backup is not a `.lolly`. It stays a `LollyTools-….zip` (format 
 
 A `.lolly` is an ordinary zip. Rename it `.zip` to look inside: your own images are under `assets/uploads/`, catalogue art under `assets/catalog/`, `manifest.json` lists every file, and a README says what the file is.
 
-macOS, Windows, Linux, iOS and Android all register the format, desktop file managers show it as a Lolly document, and GNOME Files can show a saved session's own thumbnail. Opening from Design System Setup recommends the design-system action when a shared design carries one, but never hides **Open shared design**.
+macOS, Windows, Linux, iOS and Android all register the format, desktop file managers show it as a Lolly document and GNOME Files can show a saved session's own thumbnail. Opening from Design System Setup recommends the design-system action when a shared design carries one, but never hides **Open shared design**.
 
 A document handed in from another app on iOS or Android is capped at 48 MB, because the hand-off copies its bytes across the app boundary, and the app says so. **Open** inside Lolly has no such cap, so use it for a larger bundle.
 
@@ -175,7 +175,7 @@ A link and a file both hand over a snapshot. For live editing, [Working together
 
 ![Assets, with the brand's swatches and fonts and your own uploads](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
-- <!--i:upload--> **Bring your files in.** Drop an image, SVG, audio clip, video, Lottie, PDF or PowerPoint deck on the upload area, or click to choose. It arrives in Assets at once and in every tool's asset picker. A multi-page PDF or a `.pptx` asks which pages or slides to keep, and each becomes an SVG asset. An image you add inside a tool is kept as it arrived, so a Content Credential on it still verifies, and only a very large file asks whether to resize. There is no cap beyond your device's storage. To scrub EXIF and GPS data as images come in, turn on **Strip metadata from uploads** under **Settings → Feature flags**; Content Credentials are kept either way.
+- <!--i:upload--> **Bring your files in.** Drop an image, SVG, audio clip, video, Lottie, PDF or PowerPoint deck on the upload area, or click to choose. It arrives in Assets at once and in every tool's asset picker. A multi-page PDF or a `.pptx` asks which pages or slides to keep, and each becomes an SVG asset. An image you add inside a tool is kept as it arrived in **My images**, so a Content Credential on it still verifies, and only a very large file asks whether to resize. **Settings → Storage** shows how much **My images** holds. There is no cap beyond your device's storage. To scrub EXIF and GPS data as images come in, turn on **Strip metadata from uploads** under **Settings → Feature flags**; Content Credentials are kept either way.
 - <!--i:star--> **Favourite what you reach for.** Star an asset or a brand swatch and it pins to the top of every picker.
 - <!--i:folder--> **Tidy up.** Move an asset to another group, hide a shared brand asset you don't use (**Show hidden** brings it back) or delete your own uploads. The same selection bar as Projects acts on a whole selection.
 - <!--i:layers--> **Lift a video off its background.** Open a video's details, or right-click its card in an asset picker, and choose **Remove background…**. An **On-device model** cuts a subject out of a busy scene; a **Colour key** removes an evenly lit backdrop such as a green screen, with **Tolerance**, **Softness** and **Spill removal** for the edge, and needs no download. **Resolution** (360, 480, 720 or 1080p, never past the source) trades detail for speed. The cut-out, an animated WebP or PNG with real transparency, is saved beside the original, and the source's Content Credential rides along as an ingredient. [Generated once, rendered the same](/info/ai-features.html) explains why this stays a plain edit.
@@ -184,17 +184,17 @@ A link and a file both hand over a snapshot. For live editing, [Working together
 
 The **Swatches** panel in Assets shows the colours your brand is made of: its brand colours, colours you added, its ramps and its spectrum. The role colours Lolly keeps for the interface (text, surfaces, edges, colourway leads and copies of a brand colour under another name) wait behind a grey **Show colour roles** card at the foot of the panel.
 
-Each colour is a card like any other asset. Click one to open its details, select a few to download just those, or download the whole palette in the format your other tool reads:
+Each colour is a card like any other asset. Click one to open its details, select a few to download just those or download the whole palette in the format your other tool reads:
 
 - <!--i:code--> **Design tokens (JSON)**, **CSS variables** or **CSS classes**, for a stylesheet or a build. A colour wider than sRGB keeps its wide value: the CSS sets it after the hex, and the JSON keeps the hex with the wide colour, the CMYK build and the spot ink alongside.
-- <!--i:palette--> **Adobe Swatch Exchange (.ase)**, for Illustrator or Photoshop. A colour locked to a CMYK build arrives as that CMYK swatch, a spot ink as a named spot swatch, and a colour wider than sRGB as Lab.
+- <!--i:palette--> **Adobe Swatch Exchange (.ase)**, for Illustrator or Photoshop. A colour locked to a CMYK build arrives as that CMYK swatch, a spot ink as a named spot swatch and a colour wider than sRGB as Lab.
 - <!--i:pentool--> **GIMP palette (.gpl)**, for GIMP or Inkscape, and **SCSS variables**, both in sRGB.
 
 ![The Swatches panel - the five palette download buttons across the top, then every brand colour as a chip that opens its details](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
 
-Select colours with the dot on each card: Shift-click a second dot for everything between, drag a box through the gaps, or press Cmd/Ctrl+A with a card focused. The bar offers **Download as…** in the same six formats, **Copy hex** and **Favourite**. Before you pick a format, the menu lists any colour no format can hold (Transparent has no colour at all), which formats save a wide colour as its sRGB fallback (SCSS and GIMP) and which carry the CMYK and spot values (JSON and .ase). Right-click a card for the same actions on one colour.
+Select colours with the dot on each card: Shift-click a second dot for everything between, drag a box through the gaps or press Cmd/Ctrl+A with a card focused. The bar offers **Download as…** in the same six formats, **Copy hex** and **Favourite**. Before you pick a format, the menu lists any colour no format can hold (Transparent has no colour at all), which formats save a wide colour as its sRGB fallback (SCSS and GIMP) and which carry the CMYK and spot values (JSON and .ase). Right-click a card for the same actions on one colour.
 
-A colour's details fill the preview with the colour and fold out **Linked values** (its CMYK build or spot ink, any value authored for a particular space or press, and its design token), **Every notation** (hex, OKLCH, Display-P3 and the rest, each with a copy button), **Plotted on a colour space**, **Tones** and **Readability**. The arrow keys step through the palette, **Copy link** shares the colour itself and **Open in Colour Lab** takes it further.
+A colour's details fill the preview with the colour and fold out **Linked values** (its CMYK build or spot ink, any value authored for a particular space or press and its design token), **Every notation** (hex, OKLCH, Display-P3 and the rest, each with a copy button), **Plotted on a colour space**, **Tones** and **Readability**. The arrow keys step through the palette, **Copy link** shares the colour itself and **Open in Colour Lab** takes it further.
 
 The **Fonts** panel lists your brand faces with a **download** for each, to install locally or hand to a print shop.
 

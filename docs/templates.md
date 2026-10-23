@@ -35,7 +35,7 @@ Your saved templates, and your choices about shipped ones, are kept on your [pro
 ::: timeline
 - <!--i:check--> Press **Save as**, beside **Download** in the export panel. In **Design**, **Save as a template…** in the Lolly menu opens the dialog with the template card ready.
 - <!--i:document--> Of the two cards, **Save to a project** keeps this one document and **Save as a template** keeps a starting point for new ones.
-- <!--i:pentool--> Name it, add a line of description if that will help you recognise it in six months, and save.
+- <!--i:pentool--> Name it, add a line of description if that will help you recognise it in six months and save.
 :::
 
 The template card also carries a checkbox labelled with the tool you are in, such as **Start new Chart documents with this**. Tick it and every blank open of that tool begins from this template instead of asking; [Start with](#start-with) has the details.

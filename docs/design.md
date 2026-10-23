@@ -8,7 +8,7 @@ This page walks the canvas from the first box to a finished deck: the window, sh
 
 ## The Design window
 
-The **top bar** carries the document: **Home**, the **File menu**, the document's name (click to rename), **Undo**, **Redo** and **History**, the zoom controls with **Fit all** and **Fit artboard**, and toggles for the **Timeline**, the **Navigator** and the **Inspector**. On the right sit **Share**, **Present** and **Export**. On a phone, the less-used buttons move into **More actions**.
+The **top bar** starts with **Home**, the **File menu** and the document's name (click the name to rename the document). The middle holds **Undo**, **Redo**, **History**, the zoom controls (with **Fit all** and **Fit artboard**) and toggles for the **Timeline**, the **Navigator** and the **Inspector**. On the right sit **Share**, **Present** and **Export**. On a phone, the less-used buttons move into **More actions**.
 
 The **tool rail** down the side holds the Lolly menu and the tools you draw with: **Pointer**, **Add a box**, **Pen**, **Edit points**, **Line**, then the Timeline, Artboards and Auto-arrange buttons.
 
@@ -25,7 +25,7 @@ The canvas works like a designer's pasteboard around the artboard:
 
 ### The Navigator and the Inspector
 
-The **Navigator** lists every artboard (headed **Artboards**, or **Slides** in a deck) as a folding group of its **Layers**. Select an artboard's name to jump there, expand it to select or reorder its layers, and use the arrow keys to move through the list; Left returns to the artboard heading. **Pages** groups artboards into named pages, and choosing a page only changes which artboards the editor shows.
+The **Navigator** lists every artboard (headed **Artboards**, or **Slides** in a deck) as a folding group of its **Layers**. Select an artboard's name to jump there, expand it to select or reorder its layers and use the arrow keys to move through the list; Left returns to the artboard heading. **Pages** groups artboards into named pages, and choosing a page only changes which artboards the editor shows.
 
 The **Inspector** puts the selected object's text or image controls first. Option chips cover the quick choices, and **Advanced** holds the styling detail. On a phone the Inspector opens as a sheet from **More actions**; Escape or Back closes the sheet and keeps your selection.
 
@@ -78,7 +78,7 @@ Boxes, circles and rounded frames cover most layouts. For any other shape, draw 
 
 The result is an ordinary box. Move, resize, rotate, group, align, restack, fill, shade or fade the path like any other box. The first path takes the fill and stroke your brand gives a path, and each new path after that takes whatever you last used. In a tool whose brand sets nothing for paths, a new path is stroked in the colour you drew with, so the shape is never invisible.
 
-**Edit the points again.** Double-click the shape, or use **Edit points** on the object bar. Drag a point to move it, drag a handle to re-aim the curve, click on the curve to insert a point, or drag a box round several points and press Delete. A path always keeps at least two points.
+**Edit the points again.** Double-click the shape, or use **Edit points** on the object bar. Drag a point to move it, drag a handle to re-aim the curve, click on the curve to insert a point or drag a box round several points and press Delete. A path always keeps at least two points.
 
 **Spline type** decides what kind of curve runs through your points:
 
@@ -121,7 +121,7 @@ A box can hold more than a picture. Both kinds below keep a recipe rather than a
 
 Choose **3D scene** from the rail's add menu and drag out a frame: 3D Studio opens on the new box, and what you set there comes back to the canvas. Afterwards, select the box and press **Edit in 3D Studio** in the Inspector's **3D scene** section. Applying writes the edited scene back as one undo step; closing without applying changes nothing. The box's place, size, shadow and timing stay in their usual sections.
 
-Every scene box shows a poster, a still drawn off screen at the box's size, and the selected scene box is the one live scene. A document with twenty scenes still uses one drawing context. On the timeline a scene follows the playhead like a video clip, and in an export each scene is drawn fresh at the size the file needs. A device that cannot open a floating-point graphics context keeps the poster and says why inside the box.
+Every scene box shows a poster, a still drawn off screen at the box's size, and the selected scene box is the one live scene. A document with twenty scenes still uses one drawing context, and a document with no 3D box loads no 3D code at all. The live scene is for looking, not orbiting: change a scene through **Edit in 3D Studio**. On the timeline a scene follows the playhead like a video clip. In an export each scene is drawn fresh at the size the file needs, and a scene that cannot be drawn fails the export and says why. A device that cannot open a floating-point graphics context keeps the poster and says why inside the box.
 
 A scene stores 3D Studio's own link query, so a scene built on your own upload shows the studio's default picture on someone else's device unless the document travels as a `.lolly` file. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) has the studio side.
 
@@ -133,21 +133,21 @@ Choose **Image** from the rail's add menu, drag out a frame and pick a tool on t
 
 ## Timeline (Sequence)
 
-**Sequence** is Design's timeline: it adds time to the canvas. Every box can start at a moment, run for a length and animate in and out, and the timeline docked under the artboard is where you arrange them. Start from Design's **Video** template and a short sequence is already in place (a title card, a clip, an end card, a lower-third and a music bed), so you can see how it works before you change anything.
+**Sequence** is Design's timeline: it adds time to the canvas. Every box can start at a moment, run for a length and animate in and out, and the timeline docked under the artboard is where you arrange them. Start from Design's **Video** template and a short sequence is already in place: two timed text cards on the sequence row and a procedural music bed under them, so you can see how the timeline works before you change anything.
 
 ![The Sequence timeline: the transport, the ruler, an overlay lane, the magnetic sequence row with its clips and seam chips and the Always on strip](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
 
 There are two kinds of row:
 
-- The **sequence row** is magnetic. Clips sit end to end, dragging one reorders the run, and deleting one closes the gap. This is the spine.
+- The **sequence row** is magnetic. Clips sit end to end, dragging one reorders the run and deleting one closes the gap. This is the spine.
 - **Overlay lanes** are free. A lower-third, a logo or a caption floats over the spine at its own time, each in its own lane.
 - Below them, **Always on** holds boxes with no timing, present the whole way through. The `+` on a chip moves one onto a lane; **Make always on** sends it back.
 
 Opening the timeline gives it the keyboard, so Space and the arrow keys drive the playhead. A composition that already has timing opens the timeline by itself.
 
-**Editing.** Drag a clip's middle to move it, drag near either end to trim it, and press **Split at playhead** (or `S`) to cut it in two. Split needs a clip with a real **Length** and the playhead a little way inside it, so an open-ended clip such as the music bed cannot be split. **Snap to edges** is on by default, snapping to clip edges, the playhead and whole seconds; hold Alt to drag without snapping. Every drag is one undo step, and the preview while you drag uses the same arithmetic as the result.
+**Editing.** Drag a clip's middle to move it, drag near either end to trim it and press **Split at playhead** (or `S`) to cut it in two. Split needs a clip with a real **Length** and the playhead a little way inside it, so an open-ended clip such as the music bed cannot be split. **Snap to edges** is on by default, snapping to clip edges, the playhead and whole seconds; hold Alt to drag without snapping. Every drag is one undo step, and the preview while you drag uses the same arithmetic as the result.
 
-Select a clip and the inspector gives the same edits as numbers: **Length**, **Trim in** (how far into the source the clip starts), **Speed** from ×0.25 to ×4, **Animate in** and **Animate out** with their lengths, and **Mute clip**. A clip on the magnetic row has no **Start** field, because the row owns the order.
+Select a clip and the inspector gives the same edits as numbers: **Length**, **Trim in** (how far into the source the clip starts), **Speed** from ×0.25 to ×4, **Animate in** and **Animate out** with their lengths and **Mute clip**. A clip on the magnetic row has no **Start** field, because the row owns the order.
 
 **Transitions** are presets: Fade, Pop, Grow, Rise, Drop, the four Slides, Zoom in and out, Tilt, Swoop, Spin, Drift or **Cut (no animation)**. Distances scale with the object, so one preset reads right on a full-frame card and a small badge. Between two clips on the sequence row, a **seam chip** chooses **Cut** or **Crossfade**; open it again to set the **Length (ms)** and press **Done**. In a crossfade, the first clip plays on past the cut and fades out while the next fades in, the same in the preview and the file.
 
@@ -155,9 +155,9 @@ Select a clip and the inspector gives the same edits as numbers: **Length**, **T
 
 ![The timeline with the music clip selected: its strip runs along the bottom with Speed, Fades, Volume, Pan, EQ, Pitch, Normalize volume and the Effect slot](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
 
-**Rendering.** A motion export draws, decodes and encodes each frame at an exact time, so the file does not depend on your machine keeping up, and MP4 and WebM have no practical frame ceiling. The timeline's length sets the duration unless you type one, and Content Credentials are stamped as on any other export. A still export gives the frame at the playhead, or a contact sheet from the **Frames** field; see [Stills from a timed composition](/info/exporting.html#stills-from-a-timed-composition). A sequence is capped at one hour, GIF and animated PNG hold every frame in memory and so suit short clips, and **Record live** is hidden here because the frame-by-frame render is the better path.
+**Rendering.** A motion export draws, decodes and encodes each frame at an exact time, so the file does not depend on your machine keeping up, and MP4 and WebM have no practical frame ceiling. The timeline's length sets the duration unless you type one, and Content Credentials are stamped as on any other export. A still export gives the frame at the playhead, or a contact sheet from the **Frames** field; see [Stills from a timed composition](/info/exporting.html#stills-from-a-timed-composition). A sequence is capped at one hour. GIF and animated PNG hold every frame in memory, so they suit short clips. **Record live** is hidden here because the frame-by-frame render is the better path.
 
-**Keyframes, depth and a camera.** A transition animates a clip as it arrives and leaves. To pose a box within a clip (drift, fade, blur, lift it off the page and settle it back), select the clip and press **+Keyframe**: the diamond in the timeline's tools, the diamond on the canvas object bar, or **Shift+K** with the timeline focused. The playhead's position decides which pose your next edit writes. The same keyframes give a timed composition a camera that pushes in, pans and pulls focus. [Animating](/info/animating.html) is the full guide, and [The sequence editor](/info/sequence-editor.html) covers selection, onion skin, splitting, trimming and markers.
+**Keyframes, depth and a camera.** A transition animates a clip as it arrives and leaves. To pose a box within a clip (drift, fade, blur, lift it off the page and settle it back), select the clip and press **+Keyframe**: the diamond in the timeline's tools, the diamond on the canvas object bar or **Shift+K** with the timeline focused. The playhead's position decides which pose your next edit writes. The same keyframes give a timed composition a camera that pushes in, pans and pulls focus. [Animating](/info/animating.html) is the full guide, and [The sequence editor](/info/sequence-editor.html) covers selection, onion skin, splitting, trimming and markers.
 
 ## Before you export
 
@@ -165,15 +165,17 @@ Design checks your document before you send the file. The **Before you export** 
 
 ### Check a composition against the design system
 
-The export panel's card also compares the composition with your design system, at the same design-system version the render uses. It looks at authored colours, token aliases, font choices and image asset ids, and at the rules you approved in the **Usage & rules** room of [Design System Setup](/info/brand-studio.html#usage-rules). A custom value may be intentional, and an image outside the declared brand assets is a review item, not a banned image.
+The export panel's card also compares the composition with your design system, at the same design-system version the render uses. It looks at authored colours, token aliases, font choices and image asset ids. A custom value may be intentional, and an image outside the declared brand assets is a review item, not a banned image.
 
 Where a concrete colour or font suggestion exists, its button changes that one layer, and **Undo** restores the original. Locked or since-changed layers are never overwritten by an old suggestion. Gradients, effects, nested tool content, rights and subjective quality are outside this comparison, and no check blocks Download.
 
-The print preflight, with bleed, resolution, ink coverage and plate counts, is a separate card you turn on in **Settings → Feature flags → Print preflight**; [Exporting & Formats](/info/exporting.html) describes that card.
+The house rules a design system brings with it, such as approved colour pairings or a logo per surface, are not part of this card yet. `lolly check` applies them to a saved Design document, layer by layer; [Usage & rules](/info/brand-studio.html#usage-rules) lists them.
+
+The print checks (bleed, resolution, ink coverage and plate counts) join the same card when you turn on **Settings → Feature flags → Print preflight**. In other tools that flag is what shows the card at all; [Exporting & Formats](/info/exporting.html) describes the print checks.
 
 ## Presenting
 
-A Design document made of artboards is already a deck. Press **Present** in the top bar, or choose **Present** at the foot of the Lolly menu on the rail, and each artboard becomes a full-screen slide in the order the artboards sit on the canvas. The deck runs on a copy of the rendered artboards, so leaving puts you back exactly where you were.
+A Design document made of artboards is already a deck. Press **Present** in the top bar and each artboard becomes a full-screen slide, in the order the artboards sit on the canvas. The button reads **Preview** until the document's **Design outcome** is **Slides**. The deck runs on a copy of the rendered artboards, so leaving puts you back exactly where you were.
 
 The arrow beside **Present** opens **Present from this slide**, **Speaker view**, **Present with camera**, **Narrate**, **Auto-advance slides**, **Loop the deck (kiosk)** and **Export slides as video**.
 
@@ -195,9 +197,9 @@ A small control bar fades in when you move the pointer and hides again when you 
 - **Kiosk.** Give an artboard a **Length** and the deck holds there for that long, then advances behind a thin progress bar. Add `kiosk` to the link and the deck wraps at the end, for signage.
 - **Sub-slide stacks.** Right-click an artboard and choose **Stack under the previous slide** to make it a step of that slide. The overview shows one card, and the inspector's **Stack** row says which slide the artboard belongs to.
 - **Morph.** When consecutive slides both hold a box with the same **Morph match** name (`hero`, say), the transition moves, resizes and recolours that box instead of cutting. A deck-wide **Morph** transition does the same for every matched pair.
-- **Narration.** Each artboard's **Speaker notes** can be read aloud. In the Inspector's **Document** section choose a **Voice**, optionally a second voice to **Blend with**, the **Speed**, and a **Lead-in** and **Tail** in milliseconds; **Show captions when presenting** shows the words as they are spoken. The voice runs on your device, and the same notes become the soundtrack of a video export, slide audio in a PowerPoint export and the narrated film in a [SCORM package](/info/create/exporting.html#scorm-course-packages).
+- **Narration.** Each artboard's **Speaker notes** can be read aloud. In the Inspector's **Document** section choose a **Voice**, optionally a second voice to **Blend with**, the **Speed** and a **Lead-in** and **Tail** in milliseconds; **Show captions when presenting** shows the words as they are spoken. The voice runs on your device, and the same notes become the soundtrack of a video export, slide audio in a PowerPoint export and the narrated film in a [SCORM package](/info/create/exporting.html#scorm-course-packages).
 
-The deck is a link too. `?present` opens straight into it and `s=` picks the slide (a position, an artboard id, or `id.step` for a build step), and the address follows you, so what you send is the slide you are on. [Reserved URL parameters](/info/url-parameters.html#reserved-parameters) documents them.
+The deck is a link too. `?present` opens straight into it and `s=` picks the slide (a position, an artboard id or `id.step` for a build step), and the address follows you, so what you send is the slide you are on. [Reserved URL parameters](/info/url-parameters.html#reserved-parameters) documents them.
 
 **Present with camera** places your camera, a logo and a name caption over the slides, with private controls and saved scenes; see [Presenting with camera](/info/presenting.html). A **Web page** box can take the clicker during a talk when you turn on **Make interactive** in its inspector: at its **Focus on click** step, Up and Down control the page while Next continues the deck. [Live pages that take the clicker](/info/interactive-pages.html) covers focus styles, scroll stops and site approval.
 

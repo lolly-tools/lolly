@@ -11,7 +11,7 @@ ROUTES table in main.ts. Two facts to keep in step with the code:
 
 # Search
 
-Press **Ctrl-Space**, type two letters, and Lolly shows the tools, saved work, assets and settings that match. One field, always in the same place at the foot of the screen, reaches all of them.
+Press **Ctrl-Space** and type two letters: Lolly shows the tools, saved work, assets and settings that match. One field, always in the same place at the foot of the screen, reaches all of them.
 
 ## Open search
 

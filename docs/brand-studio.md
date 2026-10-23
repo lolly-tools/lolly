@@ -2,7 +2,7 @@
 
 Your logo, colours and typefaces belong in one place, so every tool, page and export draws with them. That place is **Design System Setup**, at `#/start`, and its tagline says what it is for: *Make it yours*.
 
-Start with whatever you have. Drop in a logo and Lolly reads its colours. Choose a typeface, or drop the font file your company licenses. Each change shows across the whole app straight away. Nothing leaves this device, except a Google Font you pick, which Lolly fetches once after asking.
+Start with whatever you have. Drop in a logo and Lolly reads its colours. Choose a typeface, or drop the font file your company licenses. Each change shows across the whole app straight away. Your logo, fonts and tokens stay on this device. Picking a Google Font is the one step that reaches out: Lolly asks first, then fetches the family once.
 
 When it looks right, give the design system a name and press **Export**. You get one `.lolly` file to keep, to open on another device or to hand to a colleague. [Settings](/info/dashboard.html#design-system) shows the active system read-only, and its cover links back here for editing.
 
@@ -36,13 +36,13 @@ The studio is a set of rooms in a rail down the side, in no fixed order: nothing
 
 Link to a room with `#/start?area=<key>`. The Files room keeps the key `catalogue`, because a room key is a permanent contract, and `?tab=` still works as an older alias. An unknown key opens Overview.
 
-The **foot of the rail** holds the actions for the whole system rather than one room: **Add from…** brings a brand in ([Bring a brand in](#bring-a-brand-in)), the **Tray** holds what a scan found and you have not added yet, and **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** and **Restore brand settings** keep and move the system ([Keep and move your design system](#keep-and-move-your-design-system)). Each appears once there is something for it to act on.
+The **foot of the rail** holds the actions for the whole system rather than one room. **Add from…** brings a brand in ([Bring a brand in](#bring-a-brand-in)), and the **Tray** holds what a scan found that you have not added yet. **Export**, **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions** and **Restore brand settings** keep and move the system ([Keep and move your design system](#keep-and-move-your-design-system)). Each appears once there is something for it to act on.
 
 ## Overview
 
 With nothing chosen yet, Overview offers four ways to start. **Start from a reference** opens the source picker for a logo, screenshot, web page or design file, and **Pick a colour**, **Choose a face** and **Add a logo** open those controls directly. Opening one writes nothing, and **Explore the tools** is there from the start.
 
-Once anything is your own, Overview shows what you have, with your own counts leading. Colours gives the number of colours, with a muted `· N starter` where inherited colours show; its strip puts your colours first, then a hairline, then the faded starter ones. Type reads by role (*Inter for headings*, with *Starter for the rest* on the line below). Logos says how many slots are filled, or **Not set**, Tokens shows the corner radius, and Files says **Nothing yet** while the library is empty. Every block opens its room.
+Once anything is your own, Overview shows what you have, with your own counts leading. Colours gives the number of colours, with a muted `· N starter` where inherited colours show; its strip puts your colours first, then a hairline, then the faded starter ones. Type reads by role (*Inter for headings*, with *Starter for the rest* on the line below). Logos says how many slots are filled (or **Not set**), Tokens shows the corner radius and Files says **Nothing yet** while the library is empty. Every block opens its room.
 
 ### Starter and yours
 
@@ -111,7 +111,7 @@ Your colours sit beside an **In context** preview on a wide screen, and above it
 
 ### Roles: what tools read
 
-**Roles** say which colour plays each part in every tool and export. They are optional (three loose colours and no roles is a perfectly good system), any colour can take one, and the contrast readout is measured against the surface, APCA first. Each role row shows an own colour at full strength, a starter colour standing in, or **↳ follows Primary**.
+**Roles** say which colour plays each part in every tool and export. They are optional (three loose colours and no roles is a perfectly good system), any colour can take one and the contrast readout is measured against the surface, APCA first. Each role row shows an own colour at full strength, a starter colour standing in, or **↳ follows Primary**.
 
 Once the palette has shades, the strip shows all seven roles a tool can read: Primary, Secondary, Surface, Text, Muted, Edge and On primary. On primary is derived from the primary, reads **Derived** and has no picker.
 
@@ -145,7 +145,7 @@ All three use the same perceptual colour maths (OKLCH) as the engine. In **Explo
 
 ### Committing a generated palette
 
-Open **Rebuild the whole palette…** and press **Preview full rebuild**. The review counts how many roles stay as you assigned them, how many of your own colours are kept, and how many shade curves, print locks, hidden shades and gradient stops are re-anchored or kept. **Apply rebuilt palette** commits; **Cancel** changes nothing. Afterwards the card offers **Undo** with focus on it, and the checkpoint taken before the swap restores the whole system.
+Open **Rebuild the whole palette…** and press **Preview full rebuild**. The review counts how many roles stay as you assigned them, how many of your own colours are kept and how many shade curves, print locks, hidden shades and gradient stops are re-anchored or kept. **Apply rebuilt palette** commits; **Cancel** changes nothing. Afterwards the card offers **Undo** with focus on it, and the checkpoint taken before the swap restores the whole system.
 
 A system with colourways keeps every colourway through a rebuild. The canonical colourway follows the new starting colour, and every other colourway keeps its own colours, name, order and settings. The review lists which colourway follows and which keep their colours. Lolly does not rebuild a system that encodes its colourways in a way it cannot edit; the card says why, and nothing changes.
 
@@ -230,7 +230,7 @@ The stage opens inside the room, under the card you pressed, and the cards fold 
 
 ### Fonts on this device
 
-The **Fonts** panel lists every face on this device and the role it serves. Faces you added lead under **In the design system**, each with its roles and a delete. The starter faces follow in one muted, folded row. **Add a face** opens the compare stage for any role. The **Type roles** panel shows a live specimen of each role with its family and state, such as *Inter* or *SUSE · follows Primary*.
+The **Fonts** panel lists every face on this device and the role it serves. Faces you added lead under **In the design system**, each with its roles and a delete. The starter faces follow in one muted, folded row. **Add a face** opens the compare stage for any role. The **Type roles** panel shows a live specimen of each role with its family and state, such as *Inter* or *Inter · follows Primary*.
 
 ## Tokens
 
@@ -262,10 +262,12 @@ Drop the files your brand keeps, apart from logos: **vector**, **image**, **audi
 
 - a **Rule name** in your own words, such as *Beacon accents*;
 - the **Check**: **Colour choices**, **Font choices**, **Fixed artwork** or **Text length**, with the brand role it uses, under your own name for the role;
-- the **Example** it applies to (Poster, Title slide, Content slide or Chart), the **Mode**, and whether it is **Required** or **Advisory**;
+- the **Example** it applies to (Poster, Title slide, Content slide or Chart), the **Mode** and whether it is **Required** or **Advisory**;
 - **Reviewed by**, then **Save draft** or **Approve & save**.
 
-Approval records your own decision on this device. Approved required rules constrain the reusable poster, and checks cover the example PNGs only; they change no other tool. Rules a design system brings with it, such as approved colour pairings, text weight and alignment, or a logo per surface, show **Checked in Design**: Design's export checks and `lolly check` apply them to a document. A rule this build has no checker for is kept as supplied and marked **Unchecked**.
+Approval records your own decision on this device. Approved required rules constrain the reusable poster, and checks cover the example PNGs only; they change no other tool.
+
+Rules a design system brings with it in its token file, such as approved colour pairings, text weight and alignment or a logo per surface, are listed here as **Checked in Design**. Today `lolly check` applies them to a saved Design document, layer by layer; the app's own export panel does not check them yet. A rule this build has no checker for is kept as supplied and marked **Unchecked**.
 
 **Try your brand in use** renders four examples from the current revision with **Render & check examples**. Choose a **Brand mode** and **Try your own text** for the heading, supporting text and slide text. Each example reports what was measured, with **See checks & sources** and **Download check report**, and **Make reusable poster** downloads a `.lolly` whose fixed layout and approved input choices travel with the file. Examples are local: nothing is published or approved by running a check.
 
@@ -293,7 +295,7 @@ Choose the design-file source and the next card lists the accepted formats as ic
 
 ### Review a reference
 
-A logo, screenshot, website or saved page opens **Try these colours**: an example in the proposed colours, a **Main colour** you can change and a name for a new system. A box spells out what applying does: it **replaces** the active token settings with the generated palette and default styles, **keeps** your fonts and library files, and the previous system can be **recovered**. **Apply suggested settings** applies the light and dark palettes, after a checkpoint, and **Restore brand settings** can bring the old settings back. **Change reference** picks another source.
+A logo, screenshot, website or saved page opens **Try these colours**: an example in the proposed colours, a **Main colour** you can change and a name for a new system. A box spells out what applying does: it **replaces** the active token settings with the generated palette and default styles, **keeps** your fonts and library files and the previous system can be **recovered**. **Apply suggested settings** applies the light and dark palettes, after a checkpoint, and **Restore brand settings** can bring the old settings back. **Change reference** picks another source.
 
 **Palette, source details and individual choices** shows what was read, any font names found and the preview's contrast. Font names are suggestions only; Type is still where you install a face. The source details can include typography, gaps, padding and corner values where observed, labelled **Not observed** otherwise. A saved page or a native website read reports declared styles, which the page may not use, and the browser extension can report measured styles from a sample of visible elements. These are observations: nothing is installed, and source spacing never replaces your own. **Choose individual items in the tray** keeps single items, and **Download design context** saves a JSON report of observations, proposed tokens and source information (with a SHA-256 of any supplied HTML or CSS). The report holds no raw page text and is not a signed Content Credential.
 
@@ -335,7 +337,7 @@ A published version is a **permanent, named copy** kept on this device. It never
 
 Open **Settings → Preferences → Design systems** to switch, add or remove systems. **Open** selects a system and opens it here; **Make a new one** creates a local system and opens it with its name field ready. One system is active at a time, for the whole device. [Brand architectures](/info/brand-architectures.html) helps decide when a brand needs a design system of its own.
 
-**Where a system comes from.** The system a deployment's catalogue supplies reads **Came with this app**, or **From this instance** in an app connected to one. Expand **Catalogue source** to see who supplies it, its tokens asset and namespace, and its known version or checksum; if a refresh fails, cached material is labelled.
+**Where a system comes from.** The system a deployment's catalogue supplies reads **Came with this app**, or **From this instance** in an app connected to one. Expand **Catalogue source** to see who supplies it, its tokens asset and namespace and its known version or checksum; if a refresh fails, cached material is labelled.
 
 **Managed systems are read-only.** A system reads **Managed by this instance** (or **Managed by this app** in the desktop app with no instance) when its catalogue locks the system. You can use and download it, and opening it here shows a read-only note with **Make an editable copy** and **Switch**. Your own local systems stay editable, even when the managed one came first. A build with one fixed brand opens Design System Setup on *This brand is set*, with the brand's tokens and usage rules to read.
 
@@ -345,7 +347,7 @@ Open **Settings → Preferences → Design systems** to switch, add or remove sy
 
 Choose **Remove** from a system's menu; the confirmation says which system will be active afterwards. Saved sessions, uploads and material shared with another system stay.
 
-Removing a supplied system only hides it: its catalogue assets stay, **Bring back** shows it again, and it returns by itself if you remove everything else. Removing an imported or edited copy does not remove the supplied system, its logos or its fonts, and if the copy was active, the supplied system becomes active again. Removing an active hosted copy clears only that copy's connection; a separately chosen instance stays selected.
+Removing a supplied system only hides it: its catalogue assets stay, **Bring back** shows it again and it returns by itself if you remove everything else. Removing an imported or edited copy does not remove the supplied system, its logos or its fonts, and if the copy was active, the supplied system becomes active again. Removing an active hosted copy clears only that copy's connection; a separately chosen instance stays selected.
 
 Changing what a server supplies is an administrator's task: its operator changes the source catalogue and redeploys, or a Lolly Work administrator reviews and applies a server change. Edits here stay local. See [Removing a catalogue design system](/info/operate/deployment.html#removing-a-catalogue-design-system) and [Configuration](/info/configuration.html#supplied-and-local-design-systems).
 

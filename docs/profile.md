@@ -1,4 +1,4 @@
-# Profiles: who you are when you create
+# Profiles
 
 Set your name, contact details and headshot once, and every tool built to use them fills them in for you: an email signature, a badge, a speaker card. That small record is your **profile**, and it lives on your device.
 
@@ -88,10 +88,10 @@ Three things sit near each other in Settings and are easy to confuse:
 
 A profile changes who a file is from; the design system changes how the file looks; capabilities are what you can make.
 
-The word has two other meanings in Lolly. A **content profile** is a build setting that chooses which tools and catalogue a deployment ships; the [Glossary](/info/glossary.html) defines the term. A **verified identity** is the optional signing certificate that ties your email to your signed exports, separate from these details, though **Use my details to create** governs whether either is embedded; see [Content Credentials](/info/content-credentials-identity.html).
+The word has three other meanings in Lolly. A **content profile** is a build setting that chooses which tools and catalogue a deployment ships; the [Glossary](/info/glossary.html) defines the term. The `profile` link parameter picks a colour profile for an export, such as a CMYK press condition; see [Reserved URL parameters](/info/url-parameters.html#reserved-parameters). A **verified identity** is the optional signing certificate that ties your email to your signed exports, separate from these details, though **Use my details to create** governs whether either is embedded; see [Content Credentials](/info/content-credentials-identity.html).
 
 ![The Verified identity card, phone-width: the certificate lifetime picker and the enrolment step beneath it - the identity profile, separate from your personal details](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 ## Privacy
 
-Your personal profile is stored locally. Your details can travel in a backup or Sync copy, in content you share or export, and during optional Content Credentials enrolment. On a Lolly Work instance, sign-in, shared work, telemetry policy and audit records are separate from this local profile. **Settings → Preferences → Clear all my data** clears this device; it does not erase copies held by your storage provider or organisation. See the [Privacy Policy](/info/privacy.html).
+Your personal profile is stored locally. Your details can travel in a backup or Sync copy, in content you share or export and during optional Content Credentials enrolment. On a Lolly Work instance, sign-in, shared work, telemetry policy and audit records are separate from this local profile. **Settings → Preferences → Clear all my data** clears this device; it does not erase copies held by your storage provider or organisation. See the [Privacy Policy](/info/privacy.html).

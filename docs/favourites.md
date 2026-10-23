@@ -100,7 +100,7 @@ Your starred tools are saved on your [profile](/info/profile.html), the same on-
 
 - They are saved in this browser's own storage, with no account and nothing uploaded.
 - They are separate from the **design system**: starring a tool is a shortcut for you and changes nothing on anyone else's install.
-- They travel only where your whole profile does: with [Sync](/info/sync.html), through the storage you chose, or in a backup you export and import yourself. They never go to a Lolly server.
+- They travel only where your whole profile does: with [Sync](/info/sync.html) through the storage you chose, or in a backup you export and import yourself. They never go to a Lolly server.
 
 The choice between **Gallery** and **Cover Flow** is kept in this browser only and is not part of a profile export, so a new device starts on Cover Flow.
 

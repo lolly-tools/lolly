@@ -24,7 +24,7 @@ Both halves are always retrieved, so a misread question reorders an answer rathe
 
 Matching drops the common question words (*how*, *do*, *I*, *the*, *my*) and ranks a section by how many of your remaining words it covers, then by where they matched: a heading counts for more than body text. Matching is by substring, folded for case and accents, so a typo is not corrected. When nothing matches, Ask says so and points at the documentation index rather than inventing an answer.
 
-**Better matching** is optional. After your first answer, Ask can offer a small matching model, with its download size, that helps match a question to a guide that uses different words for the same thing. It downloads only when you agree, runs on this device, and only changes which sections rank first: the answer is still the documentation's own words. You can also download it from **Settings → Preferences → Available offline**, where it is listed as **Ask matching model** ([Available offline](/info/dashboard.html#available-offline)).
+**Better matching** is optional. After your first answer, Ask can offer a small matching model, with its download size, that helps match a question to a guide that uses different words for the same thing. It downloads only when you agree, runs on this device and only changes which sections rank first: the answer is still the documentation's own words. You can also download it from **Settings → Preferences → Available offline**, where it is listed as **Ask matching model** ([Available offline](/info/dashboard.html#available-offline)).
 
 ## What comes back
 

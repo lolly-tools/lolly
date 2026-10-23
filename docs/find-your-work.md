@@ -160,7 +160,7 @@ Automatic checkpoints thin out with age: one a minute for the last hour, one an 
 
 When History storage fills up, the oldest automatic checkpoints of creations you have not opened for 30 days are removed first. A save is always kept, even then: it is written as the current work, and History says that this save is not kept as a version. **Settings → Storage** shows how much History uses.
 
-The **History** page (`#/history`) covers every creation in this browser. Open it with the clock button, **History**, at the top right of **Projects**, or with **Open app history** in a tool's History panel. On the home screen, the clock button and the profile menu's **Saved sessions** open **Your recent work** instead: your latest saved sessions and exports, with a link to Projects.
+The **History** page (`#/history`) covers every creation in this browser. To open it, press the clock button at the top right of the home screen or of **Projects**, choose **Saved sessions** in the profile menu (on a phone, the round logo button at the top right), or press **Open app history** in a tool's History panel. The desktop and mobile apps keep no History page, so there the home screen's clock button and **Saved sessions** open **Your recent work** instead: your latest saved sessions and exports, with a link to Projects.
 
 - **Recent** lists your creations, newest first, with **Resume**.
 - **Changes** puts checkpoints, downloads and Convert results on one timeline. A download has **Reopen settings**.

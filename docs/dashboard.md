@@ -47,9 +47,9 @@ The theme cards are live previews and apply the moment you pick one, on this dev
 
 These settings live on your profile, so they travel in a profile export and arrive on the next install with your name and sessions. A small device-only copy applies them before the first paint.
 
-The same card holds **Sound**, a gentle layer of assistive sounds for what you do (arriving in the gallery, a Content Credentials result, closing a panel), and **Neurospicy Mode**, a calm focus track. Turning Neurospicy on opens a small player in the corner that follows you across the app, where you pick a track (procedural *Lolly Sings* tunes, ambient loops and beats, your own audio, or internet radio stations that need a connection), skip, set the volume, or minimise or close the player. Both are off by default and remembered, and turning Sound off mutes the focus track too. The profile menu and **This device** carry the same switch.
+The same card holds **Sound**, a gentle layer of assistive sounds for what you do (arriving in the gallery, a Content Credentials result, closing a panel), and **Neurospicy Mode**, a calm focus track. Turning Neurospicy on opens a small player in the corner that follows you across the app. There you pick a track, skip, set the volume and minimise or close the player. Tracks include procedural *Lolly Sings* tunes, ambient loops and beats, your own audio and internet radio stations, which need a connection. Both are off by default and remembered, and turning Sound off mutes the focus track too. The profile menu and **This device** carry the same switch.
 
-The interface is keyboard-navigable, custom controls carry labels for screen readers, and each tool's live preview is exposed as one labelled image describing what it shows.
+The interface is keyboard-navigable, custom controls carry labels for screen readers and each tool's live preview is exposed as one labelled image describing what it shows.
 
 ### Storage
 
@@ -66,7 +66,7 @@ Under the meter:
 
 ### Available offline
 
-Lolly caches screens as you visit them, which only covers where you have already been. **Available offline** is for the trip you can see coming: download the parts you will need, watch one progress bar, and everything you took keeps working with no connection.
+Lolly caches screens as you visit them, which only covers where you have already been. **Available offline** is for the trip you can see coming: download the parts you will need and watch one progress bar, and everything you took keeps working with no connection.
 
 - <!--i:monitor--> **App, catalogue and guides** - **The app** (every view, editor and font, including screens you have never opened), the **Catalogue** (all of it, or **Choose by tag**) and **Guides & docs** (this documentation in your language, screenshots included).
 - <!--i:cpu--> **AI models** - each on-device model on its own row with its size: Speech voices, Upscaling models, Background removal, Text recognition, Verify deep scan, Durable credential, Rewriter model, Ask matching model, AI text detector and Singing voices. A model over 50 MB is marked **large download**.

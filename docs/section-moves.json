@@ -822,6 +822,16 @@
       "slug": "dashboard",
       "anchor": "available-offline",
       "label": "Offline & install"
+    },
+    "importing-a-design-figma-penpot-illustrator-indesign": {
+      "slug": "design-import",
+      "anchor": "import-a-design-figma-penpot-illustrator-indesign",
+      "label": "Importing a design (Figma, Penpot, Illustrator, InDesign)"
+    },
+    "exporting": {
+      "slug": "exporting",
+      "anchor": "exporting-formats",
+      "label": "Exporting"
     }
   },
   "profile": {
