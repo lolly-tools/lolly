@@ -190,3 +190,36 @@ test('currentAddress, the return address a sign-in carries, includes a write sti
     assert.equal(write.pending(), false);
   } finally { write.cancel(); }
 });
+
+test('addressSettled waits for a waiting write to run, without forcing it early', async () => {
+  const { addressSettled } = await import('./url-state.ts');
+  globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => setTimeout(() => cb(0), 16)) as unknown as typeof requestAnimationFrame;
+  let written = 0;
+  const write = settledWrite(() => { written++; return replaceRouteUrl(mergeRouteParams(location.href, { bx: 'settled' })); }, 400);
+  try {
+    write.schedule();
+    let settled = false;
+    const done = addressSettled().then(() => { settled = true; });
+    for (let ms = 25; ms < 400; ms += 25) {
+      mock.timers.tick(25);
+      await Promise.resolve();
+    }
+    assert.equal(settled, false, 'still waiting while the write is held back');
+    assert.equal(written, 0, 'and the wait does not write early');
+    for (let i = 0; i < 8 && !settled; i++) { mock.timers.tick(25); await Promise.resolve(); await Promise.resolve(); }
+    await done;
+    assert.equal(written, 1);
+    assert.equal(routeParams().get('bx'), 'settled');
+  } finally { write.cancel(); }
+});
+
+test('only an automated browser gets the settled-address hook', async () => {
+  const { ADDRESS_SETTLED_HOOK, addressSettled, exposeAddressSettled } = await import('./url-state.ts');
+  assert.equal((dom.window as unknown as Record<string, unknown>)[ADDRESS_SETTLED_HOOK], undefined, 'jsdom is not automated');
+  const person: Record<string, unknown> & { navigator: { webdriver?: boolean } } = { navigator: { webdriver: false } };
+  exposeAddressSettled(person);
+  assert.equal(person[ADDRESS_SETTLED_HOOK], undefined);
+  const driven: Record<string, unknown> & { navigator: { webdriver?: boolean } } = { navigator: { webdriver: true } };
+  exposeAddressSettled(driven);
+  assert.equal(driven[ADDRESS_SETTLED_HOOK], addressSettled);
+});
