@@ -304,8 +304,7 @@ const ALLOW: Record<string, string[]> = {
   'docs/cli-files.md': ['pnpm run cli transcribe ./clip.wav --lang=en --json', '**`lolly transcribe <clip.wav>`** reads a clip back as text', '$ lolly transcribe ./interview.m4a', 'whisper    transcription (lolly transcribe)'],
   'docs/cli-automation.md': ['`speak`, `transcribe`, `ocr`'],
   // host.speech transcription: the industry feature name and literal API names
-  'docs/host-api.md': ['speech synthesis + transcription',
-    'Transcription (v1.99) is the reverse',
+  'docs/host-api.md': ['Transcription (v1.99) is the reverse',
     '`transcribeAvailable()`', '`transcribeCached()`',
     '`transcribeModelBytes()`', '`transcribe(src, opts?)`', 'SpeechTranscript',
     // plan 183: the two CLI subcommands that surface this API headlessly
