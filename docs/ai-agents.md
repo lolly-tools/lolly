@@ -87,6 +87,7 @@ Report each result with one of six words: `complete`, `partial`, `approximate`, 
 
 A few more habits help:
 
+- **Read the feedback on a Design document and revise.** `lolly_check` (or `lolly check`) lists the design system's house rules that a layer does not follow and gives a writing score for the visible text as `verify.writing-score`. In an open document, `lolly_apply_document_changes` returns the same feedback after each change and `lolly_check_document` returns the whole report. Revise the layers the feedback names, then check again. The writing score is a signal, not a verdict: it never changes the exit code, and nothing in the feedback blocks a render.
 - **Validate links you build yourself.** MCP compile, build and render calls refuse unknown fields and bad values with exact paths. A hand-written URL is read leniently for older links, so check one with `lolly_validate` before you share the link.
 - **`_v` records a version; it does not pin one.** A newer tool still renders the link, and the CLI warns that it ignores `_v`. To catch a change from a tool update, render the same inputs again and compare.
 - **Use catalog assets, not uploads.** A picture someone uploaded lives on their device and cannot travel in a link. Reference catalog assets by id; the MCP resource `lolly://assets` lists them.

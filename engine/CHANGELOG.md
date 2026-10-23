@@ -6,6 +6,15 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.283.0
+
+Follows 1.282.0 (brand skills, PR #499), which merges first.
+
+- `creationFeedback(boxes, rules, doc, opts)` returns one report for a Design document that informs a person or an agent while they make it and never blocks anything. It holds the house-rule findings (`checkDesignHouseRules` against the design system's rules, `brandSystemOf(doc).rules` when `rules` is undefined) and the writing score for the text the document draws (`analyzeTextSignals(text, { source: 'digital' })`: score, band, the engine's own summary sentence, the signals and the strongest flagged phrases, each with its layer id). A plain `summary` says what to revise. Rules of the `BRAND_RULE_KINDS` are left to the Usage room's examples; a kind no checker knows is listed in `unknown`.
+- `designVisibleText(boxes, opts)` reads the words a Design document draws in reading order, one segment per layer, with markup dropped and composed stories read from `textDocument`. Hidden layers, members of a hidden artboard and members of a hidden group are left out and counted. Text past 65,536 characters is left out whole layers at a time and marked partial. `designWritingScore` scores those words.
+- `creationFeedbackDelta(before, after, touched)` is the compact answer after one edit: the score and band (with the previous ones), house-rule findings on the touched layers that are new or say something new, how many earlier ones no longer apply, and flagged phrases in those layers.
+- `checkFindingFromWritingScore(writing)` maps the score to one `verify.writing-score` check finding (`WRITING_SCORE_CODE`): `warn` at the strong band, `info` below it, never `error`. `lolly check` adds it for a document and leaves it out of the exit code.
+- Pure and deterministic: no DOM, clock, network or randomness.
 ## 1.282.0
 
 - Brand skills (plan 323): a brand's standards for one discipline, written as an Agent Skill and carried as a design-system asset of the new type `skill`. The catalog record is the asset's `meta.skill` (`BrandSkillMetaV1` in `@lolly-tools/core/brand-skill-v1`): an Agent Skills `name`, `description`, `discipline`, `audience` (`public` or `internal`), `status`, the brand's own `skillRevision`, and optional `appliesTo` (tools, categories, formats, media and asset families), owner, review date and reference files.
