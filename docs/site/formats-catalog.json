@@ -847,10 +847,11 @@
       "metadata": {
         "reads": [],
         "writes": [
+          "id3",
           "c2pa"
         ],
         "preserves": "none",
-        "note": "No ID3 title or artist writer today. The Content Credential travels in an ID3v2 GEOB frame."
+        "note": "Writes an ID3v2.3 tag (title, artist, album, comment). The Content Credential travels in an ID3v2 GEOB frame."
       }
     },
     {

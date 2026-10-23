@@ -310,6 +310,7 @@ const BRIDGE_WRITTEN: Record<string, string> = {
   'Animated SVG:dc': 'the animated writer builds its own Dublin Core block in shells/web/src/lib/svg-anim-core.ts',
   'ICS:prodid': 'PRODID comes from the calendar tools own template and hooks (meeting-planner, calendar-ics), not an engine writer',
   'AAC:id3': 'mediabunny\'s ADTS muxer writes the ID3v2 tag from buildAudioTags (shells/web/src/lib/audio-tags.ts), driven by shells/web/src/lib/audio-encode.ts',
+  'MP3:id3': 'id3v2Tag in shells/web/src/lib/audio-encode.ts hand-builds the ID3v2.3 tag (TIT2/TPE1/TALB/COMM) and prepends it, because lamejs writes no metadata',
 };
 
 /** Register token → the format string embedC2pa takes. Checked against the
