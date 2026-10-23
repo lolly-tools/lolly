@@ -42,3 +42,14 @@ test('a remote write prevents partial undo of a cross-input invariant', async ()
     assert.equal(runtime.getModel().find(item => item.id === 'textDocument')!.value, 'peer source');
   } finally { untrack(); }
 });
+test('a command keeps the values it changed by reference, not as copies', async () => {
+  const runtime = fixture(), history = createHistory();
+  const oldBoxes = runtime.getModel().find(item => item.id === 'boxes')!.value;
+  const patch = { boxes: [{ id: 'box', text: 'New' }], textDocument: 'source' };
+  await commitToolTransaction(runtime, history, patch, 'Rewrite');
+  const entry = history.undo()!;
+  assert.equal((entry.before as Record<string, InputValue>).boxes, oldBoxes, 'before is the value the model held');
+  assert.equal((entry.after as Record<string, InputValue>).boxes, patch.boxes, 'after is the value the model holds');
+  const restore = transactionHistoryValues(runtime, entry, false)!;
+  assert.equal(restore.boxes, oldBoxes, 'and undo hands the same value back');
+});
