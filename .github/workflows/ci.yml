@@ -16,8 +16,12 @@
 #   api-bundles     - regenerate the committed api/ function bundles and fail
 #                     on drift (they are generated esbuild output, like
 #                     catalog/tools/index.json).
-#   audit           - every npm/Cargo lock is inventoried; npm audit and RustSec
-#                     block known vulnerabilities. Also checks SBOM freshness
+#   audit           - every npm/Cargo lock is inventoried on every run. The npm,
+#                     pnpm and RustSec advisory lookup blocks known high and
+#                     critical vulnerabilities on every main push and on a pull
+#                     request whose trusted scope changes a manifest, lockfile or
+#                     the audit policy; dependency-audit.yml also runs it nightly
+#                     and on release tags. Also checks SBOM freshness
 #                     (regenerate sbom.cdx.json, fail on drift - advisory only on
 #                     a dependabot[bot] PR, which cannot carry the regenerated
 #                     file; sbom-refresh.yml repairs main after the merge)
@@ -43,10 +47,14 @@ on:
 permissions:
   contents: read
 
-# Cancel an in-flight run when new commits land on the same ref.
+# A newer push to a pull request cancels its in-flight run. A main push is never
+# cancelled once it has started, so every started main run reports a complete
+# result for its commit (deployment and release tooling need a successful push
+# run for the exact commit). A main run that is still queued is replaced by a
+# newer one, which costs no runner time, and the newest main commit always runs.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # onnxruntime-node's postinstall attempts a CUDA EP download on linux runners and
 # dies on an unhandled rejection (macOS never takes that path). No job here needs
@@ -69,12 +77,18 @@ env:
 jobs:
   # Scope comes from the exact event base. Changes to this workflow or policy
   # require the full suite. The bootstrap PR has no base policy and is full-only.
+  # Every consumer of these outputs treats a missing or unknown value as the
+  # strict case: the full suite, and an advisory lookup.
   deployment-scope:
     name: deployment scope
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
       public-ready: ${{ steps.scope.outputs.public-ready }}
+      lane: ${{ steps.scope.outputs.lane }}
+      dependency-change: ${{ steps.scope.outputs.dependency-change }}
+      heavy-tier: ${{ steps.shards.outputs.heavy-tier }}
+      test-shards: ${{ steps.shards.outputs.test-shards }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -104,15 +118,56 @@ jobs:
             headRepository: env.CI_HEAD_REPOSITORY, headBranch: env.CI_HEAD_BRANCH,
             event: env.GITHUB_EVENT_NAME, runId: Number(env.GITHUB_RUN_ID), runAttempt: Number(env.GITHUB_RUN_ATTEMPT),
             policyCommit: env.CI_BASE_SHA, policySha256: null, publicReadyEligible: false,
+            lane: 'full', dependencyChange: true,
             changes: [], changedPathsSha256: createHash('sha256').update('[]').digest('hex'),
             reasons: ['Trusted base has no CI policy; full release required'] };
           writeFileSync('artifacts/ci-scope.json', JSON.stringify(scope, null, 2) + '\n', { flag: 'wx' });
-          appendFileSync(env.GITHUB_OUTPUT, 'public-ready=false\n');
+          appendFileSync(env.GITHUB_OUTPUT, 'public-ready=false\nlane=full\ndependency-change=true\n');
           NODE
           fi
+      # The long test matrix is chosen here from the trusted lane above. Only a
+      # pull request in the docs-and-tests lane (every change is documentation
+      # content, a test or a reviewed baseline: classifyDocsAndTests in
+      # scripts/ci-qualification.ts) leaves out the heavy tier: the four WebGPU
+      # browser partitions and their gate, Tauri, conformance (qpdf and
+      # c2patool) and fuzz regression. Every main push, every other pull request
+      # and any run whose lane is missing or unknown keeps every shard. This
+      # step runs even when classification fails, so the matrix always exists.
+      - name: Select the test shards for this scope
+        id: shards
+        if: always()
+        env:
+          LANE: ${{ steps.scope.outputs.lane }}
+          LIGHT_SHARDS: >-
+            [{"shard": "unit:engine", "artifact": "unit-engine", "timeout": 40},
+            {"shard": "unit:web", "artifact": "unit-web", "timeout": 30},
+            {"shard": "tools", "artifact": "tools", "timeout": 15}]
+          HEAVY_SHARDS: >-
+            [{"shard": "browser", "artifact": "browser-1", "partition": "1/4", "timeout": 105},
+            {"shard": "browser", "artifact": "browser-2", "partition": "2/4", "timeout": 105},
+            {"shard": "browser", "artifact": "browser-3", "partition": "3/4", "timeout": 105},
+            {"shard": "browser", "artifact": "browser-4", "partition": "4/4", "timeout": 105},
+            {"shard": "tauri", "artifact": "tauri", "timeout": 40},
+            {"shard": "conformance", "artifact": "conformance", "timeout": 25},
+            {"shard": "fuzz:regression", "artifact": "fuzz-regression", "timeout": 15}]
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = pull_request ] && [ "$LANE" = docs-and-tests ]; then
+            heavy=skip
+            shards=$(jq -c . <<<"$LIGHT_SHARDS")
+          else
+            heavy=run
+            shards=$(jq -cn --argjson light "$LIGHT_SHARDS" --argjson heavy "$HEAVY_SHARDS" '$light + $heavy')
+          fi
+          echo "heavy-tier=$heavy" >> "$GITHUB_OUTPUT"
+          echo "test-shards=$shards" >> "$GITHUB_OUTPUT"
+          echo "Lane '${LANE:-unknown}': heavy tier $heavy; shards $(jq -r 'map(.artifact) | join(", ")' <<<"$shards")"
+      # Inputs to later jobs are named by run, not attempt, so "Re-run failed
+      # jobs" finds the files that carried-over jobs uploaded in an earlier
+      # attempt. A download by name takes the newest upload of that name.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: ci-scope-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ci-scope-${{ github.run_id }}
           path: artifacts/ci-scope.json
           if-no-files-found: error
           retention-days: 14
@@ -142,7 +197,7 @@ jobs:
         run: node scripts/run-public-ready-ui.ts
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: public-ready-ui-${{ github.run_id }}-${{ github.run_attempt }}
+          name: public-ready-ui-${{ github.run_id }}
           path: artifacts/public-ready-ui.json
           if-no-files-found: error
           retention-days: 14
@@ -557,7 +612,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: test-skips-${{ matrix.artifact }}-${{ github.run_attempt }}
+          name: test-skips-${{ matrix.artifact }}-${{ github.run_id }}
           path: |
             artifacts/test-skips.json
             artifacts/browser-coverage.json
@@ -592,24 +647,20 @@ jobs:
     timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
+      # The shard list lives in the deployment-scope job ("Select the test
+      # shards for this scope"): the light shards always, plus the heavy tier
+      # unless a docs-and-tests pull request leaves it out. Leaving a matrix
+      # entry out, rather than skipping a matrix job, keeps every reported job
+      # name exact.
       matrix:
-        include:
-          - { shard: 'unit:engine', artifact: 'unit-engine', timeout: 40 }
-          - { shard: 'unit:web', artifact: 'unit-web', timeout: 30 }
-          - { shard: 'tools', artifact: 'tools', timeout: 15 }
-          - { shard: 'browser', artifact: 'browser-1', partition: '1/4', timeout: 105 }
-          - { shard: 'browser', artifact: 'browser-2', partition: '2/4', timeout: 105 }
-          - { shard: 'browser', artifact: 'browser-3', partition: '3/4', timeout: 105 }
-          - { shard: 'browser', artifact: 'browser-4', partition: '4/4', timeout: 105 }
-          - { shard: 'tauri', artifact: 'tauri', timeout: 40 }
-          - { shard: 'conformance', artifact: 'conformance', timeout: 25 }
-          - { shard: 'fuzz:regression', artifact: 'fuzz-regression', timeout: 15 }
+        include: ${{ fromJSON(needs.deployment-scope.outputs.test-shards) }}
     steps: *ci-test-steps
 
   browser-gate:
     name: test (browser)
-    needs: test
-    if: ${{ !cancelled() }}
+    needs: [deployment-scope, test]
+    # Skipped only when the trusted scope left the browser partitions out.
+    if: ${{ !cancelled() && needs.deployment-scope.outputs.heavy-tier != 'skip' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -625,10 +676,13 @@ jobs:
           node-version: '26'
           package-manager-cache: false
 
-      - name: Download all browser partition reports from this attempt
+      # Takes the newest report of each partition in this run, so after "Re-run
+      # failed jobs" a re-run partition replaces its failed report and a
+      # carried-over partition keeps the report it uploaded earlier.
+      - name: Download the newest report of every browser partition in this run
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          pattern: test-skips-browser-*-${{ github.run_attempt }}
+          pattern: test-skips-browser-*-${{ github.run_id }}
           path: artifacts/browser-reports
           merge-multiple: false
 
@@ -980,10 +1034,23 @@ jobs:
   # security/dependency-roots.json (see SECURITY.md, "Dependency audit
   # exceptions"). audit:all ignores those ids for that lockfile alone and fails,
   # in both steps below, once the lockfile shows the fix has resolved.
+  #
+  # When the advisory lookup runs: every main push, because release tooling
+  # qualifies from the main push run, and every pull request whose trusted scope
+  # (read from the base commit, like the test lane) changes a manifest, lockfile,
+  # resolver setting or the audit policy. Other pull requests skip only the
+  # lookup, so an advisory published upstream does not turn every open pull
+  # request red; the inventory, SBOM, notices and licence-map gates below still
+  # run on every pull request. dependency-audit.yml runs the same lookup nightly
+  # and on every release tag. A missing scope keeps the lookup on.
   audit:
     name: npm audit (high+critical)
+    needs: deployment-scope
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      ADVISORY_LOOKUP: ${{ github.event_name != 'pull_request' || needs.deployment-scope.outputs.dependency-change != 'false' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -1003,12 +1070,38 @@ jobs:
         timeout-minutes: 10
         run: pnpm install --frozen-lockfile
 
-      - name: Install cargo-audit
-        timeout-minutes: 10
-        run: cargo install cargo-audit --locked --version 0.22.2
+      # The release binary replaces a from-source `cargo install`, which took
+      # minutes on every run. The statically linked musl build does not depend
+      # on the runner's glibc. Verify the archive before executing anything.
+      - name: Install pinned cargo-audit
+        if: env.ADVISORY_LOOKUP == 'true'
+        timeout-minutes: 5
+        env:
+          CARGO_AUDIT_VERSION: '0.22.2'
+          CARGO_AUDIT_LINUX_X64_SHA256: '7fb9497f8594b389e5fce5ef9b92db08432996895b2e0c5a0167a69ed445c428'
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/cargo-audit.tgz"
+          bindir="$RUNNER_TEMP/cargo-audit-bin"
+          curl --fail --silent --show-error --location --retry 3 \
+            --output "$archive" \
+            "https://github.com/rustsec/rustsec/releases/download/cargo-audit%2Fv${CARGO_AUDIT_VERSION}/cargo-audit-x86_64-unknown-linux-musl-v${CARGO_AUDIT_VERSION}.tgz"
+          echo "$CARGO_AUDIT_LINUX_X64_SHA256  $archive" | sha256sum --check
+          mkdir -p "$bindir"
+          tar -xzf "$archive" -C "$bindir" --strip-components=1 \
+            "cargo-audit-x86_64-unknown-linux-musl-v${CARGO_AUDIT_VERSION}/cargo-audit"
+          PATH="$bindir:$PATH" cargo audit --version
+          echo "$bindir" >> "$GITHUB_PATH"
 
-      - name: Audit every npm and Cargo dependency root
+      - name: Audit every npm and Cargo dependency root against current advisories
+        if: env.ADVISORY_LOOKUP == 'true'
         run: pnpm run audit:all
+
+      - name: Advisory lookup not needed for this pull request
+        if: env.ADVISORY_LOOKUP != 'true'
+        run: |
+          echo "The trusted scope reports no manifest, lockfile or audit policy change, so the"
+          echo "advisory lookup runs on the main push after merge, nightly and on release tags."
 
       - name: Dependency lock inventory stays complete
         if: always()
@@ -1189,14 +1282,21 @@ jobs:
             --error . || true
 
 
-  # Allocate the qualifier only after fast checks finish, without waiting for
-  # the long test matrix. Read every current-attempt job and refuse known failures.
+  # Aggregators. Each one lists every job it requires in `needs:`, so it starts
+  # only after those jobs finish and no runner sits polling the test matrix.
+  # Each then reads the provider's record of the same run attempt once (with a
+  # short retry while the API catches up), refuses any failed, cancelled or
+  # unreviewed skipped job, and uploads its receipt. The receipts keep their
+  # `<tier>-<runId>-<runAttempt>` names: lolly-work's shell request reads them.
+  #
+  # public-ready runs for an eligible UI change once the fast checks finish,
+  # without waiting for the long test matrix.
   public-ready:
     name: public-ready
     needs: [deployment-scope, public-ready-ui, test-fast, secrets, typecheck, validate-catalog, smoke, build, sast]
     if: ${{ !cancelled() && needs.deployment-scope.result == 'success' && needs.deployment-scope.outputs.public-ready == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 15
     permissions:
       contents: read
       actions: read
@@ -1211,7 +1311,7 @@ jobs:
           package-manager-cache: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          name: ci-scope-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ci-scope-${{ github.run_id }}
           path: scope
       - name: Qualify exact attempt with trusted base policy
         env:
@@ -1226,9 +1326,63 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  # release-ready qualifies the full suite. A docs-and-tests pull request does
+  # not run the full suite, so it skips this job and the qualification below
+  # accepts that skip only for that lane.
   release-ready:
     name: release-ready
     needs: [deployment-scope, public-ready-ui, secrets, test-fast, test, browser-gate, typecheck, validate-catalog, smoke, instance-shell, build, api-bundles, render-action, audit, sast]
+    if: ${{ always() && !cancelled() && needs.deployment-scope.outputs.heavy-tier != 'skip' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Require successful scope classification
+        env:
+          SCOPE_RESULT: ${{ needs.deployment-scope.result }}
+        run: test "$SCOPE_RESULT" = success
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+          package-manager-cache: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: ci-scope-${{ github.run_id }}
+          path: scope
+      - name: Qualify full suite
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          policy=scripts/ci-qualification.ts
+          if git cat-file -e "$CI_BASE_SHA:scripts/ci-qualification.ts" 2>/dev/null; then
+            git show "$CI_BASE_SHA:scripts/ci-qualification.ts" > "$RUNNER_TEMP/ci-qualification.ts"
+            policy="$RUNNER_TEMP/ci-qualification.ts"
+          fi
+          node "$policy" qualify release-ready scope/ci-scope.json artifacts/release-ready
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-ready-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/release-ready/*.json
+          if-no-files-found: error
+          retention-days: 14
+
+  # Stable branch-protection check: the only required check on main. It needs
+  # every other job, so it fails when any of them failed and never waits on a
+  # runner. The tier comes from the trusted scope: release-ready for broad
+  # changes and every main push, public-ready for an eligible UI change, and
+  # docs-and-tests for a docs-and-tests pull request. In every tier a failed,
+  # cancelled or unreviewed skipped job anywhere in the run refuses it. Keep
+  # `always()` in its condition: without it a failed job would skip this one,
+  # and GitHub counts a skipped required check as passing.
+  qualification:
+    name: qualification
+    needs: [deployment-scope, public-ready-ui, test-fast, secrets, test, browser-gate, typecheck, validate-catalog, smoke, instance-shell, build, api-bundles, render-action, audit, sast, public-ready, release-ready]
     if: ${{ always() && !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -1250,52 +1404,7 @@ jobs:
           package-manager-cache: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          name: ci-scope-${{ github.run_id }}-${{ github.run_attempt }}
-          path: scope
-      - name: Qualify full suite
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          policy=scripts/ci-qualification.ts
-          if git cat-file -e "$CI_BASE_SHA:scripts/ci-qualification.ts" 2>/dev/null; then
-            git show "$CI_BASE_SHA:scripts/ci-qualification.ts" > "$RUNNER_TEMP/ci-qualification.ts"
-            policy="$RUNNER_TEMP/ci-qualification.ts"
-          fi
-          node "$policy" qualify release-ready scope/ci-scope.json artifacts/release-ready
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        with:
-          name: release-ready-${{ github.run_id }}-${{ github.run_attempt }}
-          path: artifacts/release-ready/*.json
-          if-no-files-found: error
-          retention-days: 14
-
-  # Stable branch-protection check. Broad changes wait for release-ready;
-  # eligible UI changes finish after public-ready while exhaustive tests continue.
-  qualification:
-    name: qualification
-    needs: [deployment-scope, public-ready-ui, test-fast, secrets, typecheck, validate-catalog, smoke, build, sast]
-    if: ${{ always() && !cancelled() }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
-    permissions:
-      contents: read
-      actions: read
-    steps:
-      - name: Require successful scope classification
-        env:
-          SCOPE_RESULT: ${{ needs.deployment-scope.result }}
-        run: test "$SCOPE_RESULT" = success
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
-        with:
-          node-version: '26'
-          package-manager-cache: false
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
-        with:
-          name: ci-scope-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ci-scope-${{ github.run_id }}
           path: scope
       - name: Require the selected exact-attempt aggregate
         env:
