@@ -558,6 +558,7 @@ test('ENGINE_VERSION is 1.283.0', () => {
   // 1.279.0 adds host.tokens family() and axes() and the canvas lead variables (plans/319 A5); capture is unchanged.
   // 1.280.0 records the design system and colourway that made each export (plans/319 A7); capture is unchanged.
   // 1.281.0 lets the palette exporters carry a wider colour, a CMYK build and a spot ink; capture is unchanged.
+  // 1.282.0 adds brand skills as design-system assets (plan 323); capture is unchanged.
   // 1.283.0 adds creation feedback for Design (house rules and the writing score); capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.283.0');
 });

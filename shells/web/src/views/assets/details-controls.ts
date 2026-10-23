@@ -40,8 +40,10 @@ export function editingHtml(dt: DetailsCtx): string {
     { act: 'vid-upscale', label: t('Upscale…'), glyph: icon('aiSpark'), available: dt.canVideoUpscale },
     { act: 'vid-grade', label: t('Grade…'), glyph: icon('palette'), available: dt.canVideoGrade },
     { act: 'vid-trim', label: t('Trim…'), glyph: icon('filmStrip'), available: dt.canVideoTrim },
-    { act: 'analyse-text', label: t('Analyse text'), glyph: icon('aiSpark'), available: dt.isTextAsset },
-    { act: 'humanize', label: t('Fix characters'), glyph: icon('wrench'), available: dt.isTextAsset },
+    // A brand skill is the brand team's own text: no AI-signal analysis, and no
+    // character fixes on a file Lolly never rewrites (lib/text-kinds.ts).
+    { act: 'analyse-text', label: t('Analyse text'), glyph: icon('aiSpark'), available: dt.isTextAsset && !dt.isSkillAsset },
+    { act: 'humanize', label: t('Fix characters'), glyph: icon('wrench'), available: dt.isTextAsset && !dt.isSkillAsset },
     { act: 'copy-text', label: t('Copy text'), glyph: icon('duplicate'), available: dt.isTextAsset },
   ];
   return `<div class="cat-edit-toolbar" role="group" aria-label="${escapeText(t('Edit and transform'))}">

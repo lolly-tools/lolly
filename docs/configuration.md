@@ -177,6 +177,6 @@ Keep that service's configuration in its own deployment. See its [configuration]
 ## The services' own config
 
 - **CA service** reads `services/ca/.env` for provider credentials and certificate policy (`CA_CERT_DAYS` default 30, `CA_CERT_MAX_DAYS` default 365 and the allowed day set). Policy stays on the server; see [Content Credentials identity](/info/content-credentials-identity.html).
-- **MCP server** needs an access token (OAuth or bearer) unless the operator opens it with `LOLLY_MCP_ALLOW_ANONYMOUS=1`. A hosted server keeps a daily CPU and data-transfer budget (`LOLLY_BUDGET_CPU_SECONDS_PER_DAY`, `LOLLY_BUDGET_EGRESS_MB_PER_DAY`) and a PNG area cap (`LOLLY_MCP_MAX_RASTER_PIXELS`). [MCP server](/info/mcp.html) covers self-hosting, the limits and the tool surface.
+- **MCP server** needs an access token (OAuth or bearer) unless the operator opens it with `LOLLY_MCP_ALLOW_ANONYMOUS=1`. A hosted server keeps a daily CPU and data-transfer budget (`LOLLY_BUDGET_CPU_SECONDS_PER_DAY`, `LOLLY_BUDGET_EGRESS_MB_PER_DAY`), a PNG area cap (`LOLLY_MCP_MAX_RASTER_PIXELS`) and request, answer and image size limits (`LOLLY_MCP_REQUEST_MAX_BYTES`, `LOLLY_MCP_RESPONSE_MAX_BYTES`, `LOLLY_MCP_MAX_IMAGE_BYTES`). [MCP server](/info/mcp.html) covers self-hosting, the limits and the tool surface.
 
 The engine version and the time limits on tool hooks are fixed by the engine rather than set per deployment; [Host API](/info/host-api.html) and [Tool hooks](/info/tool-hooks.html) cover them.

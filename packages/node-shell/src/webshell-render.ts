@@ -34,7 +34,7 @@ const MIME: Record<string, string> = {
   '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
   '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif',
-  '.zip': 'application/zip', '.pdf': 'application/pdf',
+  '.zip': 'application/zip', '.pdf': 'application/pdf', '.md': 'text/markdown; charset=utf-8',
   '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   '.ico': 'image/x-icon', '.wasm': 'application/wasm', '.woff': 'font/woff',
   '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.map': 'application/json; charset=utf-8',

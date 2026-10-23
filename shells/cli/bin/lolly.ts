@@ -45,6 +45,13 @@ Usage:
                                            system, the content profile's own system
   lolly system check <design-inputs.json>   review colours, type, asset references and the
                                            brand's house rules locally
+  lolly system skills                      the brand skills: the brand's own guidance per
+                                           discipline, plus the generated baseline
+  lolly system skill <name> [--into=<dir>]  print a brand skill, or write it as an Agent
+                                           Skills folder (--mode=linked|bundled,
+                                           --origin=<url>, --include-licensed)
+  lolly system skill coverage <name>        what the skill says against what Lolly checks
+  lolly system skill check <folder>         is an exported skill the current revision?
   lolly system list | use <id>              list or switch on-device systems
   lolly system inspect                     inspect token sources, references and choices
   lolly system diff <tokens.json>           compare authored and resolved token changes

@@ -24,6 +24,23 @@ test('sovereign profile stays explicitly separate from the default public chart'
   assert.doesNotMatch(profile, /10\.4\.|80\.47\.|87\.58\./);
 });
 
+test('the public MCP gateway works to explicit size limits, not to a platform it no longer runs on', () => {
+  const profile = read('values.yaml');
+  assert.match(profile, /requestMaxBytes: 4500000/);
+  assert.match(profile, /responseMaxBytes: 4400000/);
+  assert.match(profile, /maxImageBytes: 4194304/);
+  const applications = read('templates/applications.yaml');
+  for (const [name, key] of [
+    ['LOLLY_MCP_REQUEST_MAX_BYTES', 'requestMaxBytes'],
+    ['LOLLY_MCP_RESPONSE_MAX_BYTES', 'responseMaxBytes'],
+    ['LOLLY_MCP_MAX_IMAGE_BYTES', 'maxImageBytes'],
+  ] as const) {
+    // int64, so a large number renders as digits and not as 4.5e+06.
+    assert.ok(applications.includes(`{name: ${name}, value: {{ $component.limits.${key} | int64 | quote }}}`), name);
+  }
+  assert.doesNotMatch(applications, /VERCEL/);
+});
+
 test('private routes preserve relay ownership and cookie custody', () => {
   const source = read('files/private.caddy');
   assert.match(source, /\.Values\.private\.relay/);

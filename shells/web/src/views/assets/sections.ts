@@ -25,6 +25,7 @@ import { bulkBarHtml as buildBulkBar } from '../../lib/bulk-bar.ts';
 import { mountAudioThumbs } from '../picker.ts';
 import type { PickerHost } from '../picker.ts';
 import { mountTextThumbs } from '../../lib/text-thumbs.ts';
+import { isTextKind } from '../../lib/text-kinds.ts';
 import { mountPdfThumbs } from '../../lib/pdf-thumbs.ts';
 import { mountEmojiSpecimens } from '../../lib/emoji-specimen.ts';
 import { groupPalette, paletteInDisplayOrder, splitPalette, type PaletteRamp } from '../../lib/swatches.ts';
@@ -68,14 +69,14 @@ export function mountFavStrip(cat: CatCtx): void {
     // an .opus/.mp3/.xm, and a TEXT/data asset's bytes ARE the text - an <img> (what
     // the featured-row renders) breaks on all of them, so omit the preview rather than
     // ship a broken tile.
-    preview: (a.meta?._placeholder || (a.type === 'lottie' && a.source === 'user') || a.type === 'video' || a.type === 'audio' || a.type === 'text' || a.type === 'data') ? undefined : a.url,
+    preview: (a.meta?._placeholder || (a.type === 'lottie' && a.source === 'user') || a.type === 'video' || a.type === 'audio' || isTextKind(a.type) || a.type === 'data') ? undefined : a.url,
     // ...and fill the strip's `icon` slot so those tiles still carry art. Audio gets
     // the SAME waveform the grid draws; motion and text get their type glyphs (the
     // icon-hero treatment) - otherwise a starred one is a card with a name and
     // nothing above it (the fourth renderer to hit this).
     icon: a.type === 'audio' ? cat.details.audioCardArt(a)
       : (a.type === 'video' || a.type === 'lottie') ? CAT_ICONS.motion
-      : (a.type === 'text' || a.type === 'data') ? CAT_ICONS.text
+      : (isTextKind(a.type) || a.type === 'data') ? CAT_ICONS.text
       : undefined,
     formats: a.format ? [a.format] : undefined,
     href: `#/a?asset=${encodeURIComponent(a.id)}`,   // → this view + the details modal

@@ -13,7 +13,8 @@ import {
 import { register } from '../src/oauth.ts';
 
 test('hosted MCP requires a canonical HTTPS public origin', () => {
-  assert.throws(() => publicOrigin({ VERCEL: '1' }), /PUBLIC_ORIGIN is required/);
+  assert.throws(() => publicOrigin({ LOLLY_MCP_HOSTED: '1' }), /PUBLIC_ORIGIN is required/);
+  assert.throws(() => publicOrigin({ NODE_ENV: 'production' }), /PUBLIC_ORIGIN is required/);
   assert.throws(() => publicOrigin({ LOLLY_MCP_PUBLIC_ORIGIN: 'http://mcp.example.test' }), /must use https/);
   assert.throws(() => publicOrigin({ LOLLY_MCP_PUBLIC_ORIGIN: 'https://mcp.example.test/path' }), /only scheme/);
   assert.throws(() => publicOrigin({ LOLLY_MCP_PUBLIC_ORIGIN: 'https://user:pw@mcp.example.test' }), /only scheme/);

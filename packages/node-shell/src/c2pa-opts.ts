@@ -39,9 +39,10 @@ export interface BuildExportC2paOpts {
    * record (plans/319) becomes the same flat `designSystem`, `designSystemLabel`,
    * `designVersion` and `themes` keys the web shell writes, so a CLI-, TUI- or
    * MCP-made credential gives the design system and colourway a browser-made one
-   * would. Absent, or with the record off, the credential carries none of them.
+   * would, plus the `brandSkills` an agent declared (plan 323). Absent, or with the
+   * record off, the credential carries none of them.
    */
-  meta?: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes'> | null;
+  meta?: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills'> | null;
   /**
    * An enrolled signing identity (key + x5chain). Absent = the ephemeral
    * self-signed on-device signer, byte-for-byte the behaviour that shipped before
@@ -148,7 +149,7 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
 export async function recordedDesignInFile(
   bytes: Uint8Array,
   format: string,
-  meta?: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes'> | null,
+  meta?: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills'> | null,
 ): Promise<DesignRecord | null> {
   const own = readFileDesignRecord(bytes);
   if (own) return own;
@@ -160,7 +161,7 @@ export async function recordedDesignInFile(
   }
   if (format === 'pdf' || format === 'pdf-cmyk') {
     const fromMeta = designRecordFrom(meta);
-    if (fromMeta.designSystem || fromMeta.designVersion || fromMeta.themes) return fromMeta;
+    if (fromMeta.designSystem || fromMeta.designVersion || fromMeta.themes || fromMeta.brandSkills) return fromMeta;
   }
   return null;
 }

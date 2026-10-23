@@ -52,6 +52,8 @@ In the app, **Share** lets a person name an agent and copy instructions for that
 
 For live editing, the agent uses the adapter and capabilities the open editor reports. A Design layer adapter supports layer operations, and an input adapter supports the declared JSON input values. File bytes and device actions need their own supported routes. A read-only grant refuses changes at the operation boundary. The agent reads the current revision, checks the document's identity and inspects the result after each permitted change. The live context supplies the open editor's effective design system.
 
+A design system's own guidance is a separate layer: the brand's standards, one skill per discipline, carried with the design system. See [Brand skills](/info/brand-skills.html).
+
 ## Regenerate after a change
 
 Run `node scripts/gen-agent-skill.ts` after changing authored guidance or manifests; `--check` verifies every public output and the overall `.claude` copy. Public generation reads the community and lolly-start packs explicitly, so a private pack on your machine cannot add private guidance to the public index. Pack materialisation and catalog signing carry tool-local files through the existing content paths.

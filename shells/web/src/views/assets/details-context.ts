@@ -61,6 +61,8 @@ export interface DetailsCtx {
   dCard: HTMLElement | null;
   dTextZoom: number;
   isTextAsset: boolean;
+  /** A brand skill (plan 323): read like text, never analysed for AI signals. */
+  isSkillAsset: boolean;
   lottieJson: string;
   isMotionLottie: boolean;
   zoomable: boolean;

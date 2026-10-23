@@ -2,6 +2,7 @@
 import { presentApis, type AssetRef, type HostV1 } from '@lolly-tools/core/host-v1';
 import { buildInputModel } from '../../../../engine/src/inputs.ts';
 import { designBrief } from '../../../../engine/src/design-brief.ts';
+import { briefSkillCatalog } from './design-system/brand-skills.ts';
 import { toolSupport } from '../capabilities.ts';
 import { getTool } from '../bridge/tool-loader.ts';
 import { getInstanceBase } from './instance.ts';
@@ -62,6 +63,8 @@ export function createSiteToolCall(host: HostV1): SiteToolCall {
       result = { documentId: read?.documentId ?? null, revision: read?.revision ?? null, ...report };
     } else if (name === 'lolly_read_context') {
       const snapshot = await (sources.tool?.host ?? host).tokens?.snapshot?.(); current();
+      // The brand skills index rides in the brief (plan 323), bodies never.
+      const skills = snapshot ? await briefSkillCatalog(sources.tool?.host ?? host).catch(() => null) : null; current();
       const data = await project(); current();
       result = { view: sources.view.name,
         capabilities: { project: !!data?.id, document: !!sources.editor && !sources.editor.state().closed, editDocument: !!sources.editor && !sources.editor.state().closed && !sources.editor.state().paused && !sources.tool?.readOnly(),
@@ -72,7 +75,7 @@ export function createSiteToolCall(host: HostV1): SiteToolCall {
         tool: sources.tool ? { id: sources.tool.tool.manifest.id, version: sources.tool.tool.manifest.version,
           slot: sources.tool.slot() ?? null, readOnly: sources.tool.readOnly(), inputs: siteData(siteInputs(sources.tool.model(), true), 18_000) } : null,
         designSystem: snapshot ? { system: snapshot.system, version: snapshot.version, selection: snapshot.selection,
-          brief: siteData(designBrief(snapshot.document, null, { name: snapshot.system?.label, theme: snapshot.selection.theme ?? undefined }), 20_000) } : null,
+          brief: siteData(designBrief(snapshot.document, skills, { name: snapshot.system?.label, theme: snapshot.selection.theme ?? undefined }), 20_000) } : null,
       };
     } else if (name === 'lolly_read_project') {
       const data = await project(); current();

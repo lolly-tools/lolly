@@ -10,9 +10,9 @@
  *   - content[0] is one plain sentence, content[1] the structured result as JSON text
  *     (identical to `structuredContent`), then any embedded resources;
  *   - an error is `isError: true` with `structuredContent: {error: {code, message}}`;
- *   - on Vercel the serialised response is measured before it is returned, so an
- *     answer too large for the platform is refused with `output.too-large` instead of
- *     being replaced by the gateway with a plain error.
+ *   - on a hosted server the serialised response is measured before it is returned,
+ *     so an answer over `LOLLY_MCP_RESPONSE_MAX_BYTES` is refused with
+ *     `output.too-large` instead of being replaced by the gateway with a plain error.
  *
  * Nothing in this module reads or checks a document: that work is in
  * `@lolly-tools/node-shell` (content-inventory.ts, check.ts), shared with the CLI.
@@ -24,12 +24,11 @@ import {
   HOSTED_MAX_SLIDES,
   LOCAL_MAX_SLIDES,
   REQUEST_ENVELOPE_BYTES,
-  VERCEL_BODY_MAX_BYTES,
-  VERCEL_RESPONSE_MAX_BYTES,
   isHostedServer,
   maxInputBytesFor,
   responseBytes,
 } from './rebrand.ts';
+import { HOSTED_REQUEST_MAX_BYTES, HOSTED_RESPONSE_MAX_BYTES, hostedRequestMaxBytes, hostedResponseMaxBytes } from './hosted.ts';
 
 export type Env = Record<string, string | undefined>;
 export type Schema = Record<string, unknown>;
@@ -57,22 +56,25 @@ export function errorOut(codes: readonly string[]): Schema {
  * A contract schema (draft 2020-12, with `$defs`) as a part of an output schema: its
  * root without `$schema` and `$id`, and its `$defs` to place on the output schema's
  * root, where every `#/$defs/...` reference in it then resolves. The schema is
- * imported, never read from disk, so the bundled Vercel function carries the schema.
+ * imported, never read from disk, so the bundled function carries the schema.
  */
 export function contractPart(schema: Schema): { root: Schema; defs: Record<string, Schema> } {
   const { $schema: _schema, $id: _id, $defs, ...root } = schema as Schema & { $defs?: Record<string, Schema> };
   return { root, defs: { ...($defs ?? {}) } };
 }
 
-/** The numbers one call works to. A test lowers them to reach a cap with a small fixture. */
+/**
+ * The numbers one call works to. `structuredLimitsFor` reads a hosted server's size
+ * settings over these defaults; a test lowers them to reach a cap with a small fixture.
+ */
 export interface StructuredLimitsV1 {
   hostedMaxSlides: number;
   localMaxSlides: number;
   /** JSON at or under this many bytes travels inside the structured result; larger as a resource. */
   inlineBytes: number;
-  /** The request body the platform takes, on Vercel. */
+  /** The request body a hosted server reads (`LOLLY_MCP_REQUEST_MAX_BYTES`). */
   bodyMaxBytes: number;
-  /** The serialised response this surface sends, on Vercel. */
+  /** The serialised response a hosted server sends (`LOLLY_MCP_RESPONSE_MAX_BYTES`). */
   responseMaxBytes: number;
 }
 
@@ -80,9 +82,15 @@ export const STRUCTURED_LIMITS: Readonly<StructuredLimitsV1> = Object.freeze({
   hostedMaxSlides: HOSTED_MAX_SLIDES,
   localMaxSlides: LOCAL_MAX_SLIDES,
   inlineBytes: 128 * 1024,
-  bodyMaxBytes: VERCEL_BODY_MAX_BYTES,
-  responseMaxBytes: VERCEL_RESPONSE_MAX_BYTES,
+  bodyMaxBytes: HOSTED_REQUEST_MAX_BYTES,
+  responseMaxBytes: HOSTED_RESPONSE_MAX_BYTES,
 });
+
+/** The limits this deployment works to: on a hosted server, its size settings read over the defaults. */
+export function structuredLimitsFor(env: Env = process.env): Readonly<StructuredLimitsV1> {
+  if (!isHostedServer(env)) return STRUCTURED_LIMITS;
+  return { ...STRUCTURED_LIMITS, bodyMaxBytes: hostedRequestMaxBytes(env), responseMaxBytes: hostedResponseMaxBytes(env) };
+}
 
 /** What every call reads: the environment and the limits. */
 export interface StructuredCtx {
@@ -90,7 +98,7 @@ export interface StructuredCtx {
   limits: Readonly<StructuredLimitsV1>;
 }
 
-/** The largest file one argument carries here: 24 MiB, or what fits one Vercel request as base64. */
+/** The largest file one argument carries here: 24 MiB, or on a hosted server what fits one request as base64. */
 export function maxFileBytes(ctx: StructuredCtx): number {
   return maxInputBytesFor({
     env: ctx.env,
@@ -104,12 +112,12 @@ export function maxFileBytes(ctx: StructuredCtx): number {
   });
 }
 
-/** Slides one call reads: fewer on a hosted server, where the function has 30 seconds. */
+/** Slides one call reads: fewer on a hosted server, which shares its time between callers. */
 export function maxSlides(ctx: StructuredCtx): number {
   return isHostedServer(ctx.env) ? ctx.limits.hostedMaxSlides : ctx.limits.localMaxSlides;
 }
 
-/** Room left in one Vercel request for file arguments, after the envelope. */
+/** Room left in one request to a hosted server for file arguments, after the envelope. */
 export function requestRoom(ctx: StructuredCtx): number {
   return ctx.limits.bodyMaxBytes - REQUEST_ENVELOPE_BYTES;
 }
@@ -178,8 +186,8 @@ export function readFileArg<C extends string>(
 export type StructuredResult = ToolCallResult & { structuredContent: Record<string, unknown> };
 
 /**
- * A success result. On Vercel the serialised response is measured first, and one over
- * the limit throws `tooLarge` with `hint` added, so the caller hears why in words.
+ * A success result. On a hosted server the serialised response is measured first, and
+ * one over the limit throws `tooLarge` with `hint` added, so the caller hears why in words.
  */
 export function success<C extends string>(
   sentence: string,
@@ -193,7 +201,7 @@ export function success<C extends string>(
     content: [{ type: 'text', text: sentence }, { type: 'text', text: JSON.stringify(structured) }, ...files],
     structuredContent: structured,
   };
-  if (ctx.env.VERCEL) {
+  if (isHostedServer(ctx.env)) {
     const size = responseBytes(result);
     if (size > ctx.limits.responseMaxBytes)
       throw new ToolCodeError(tooLarge, `The result comes to ${size} bytes and this server answers up to ${ctx.limits.responseMaxBytes} bytes; ${hint}`);
