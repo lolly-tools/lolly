@@ -117,6 +117,36 @@ export function currentAddress(): string {
   return window.location.pathname + window.location.search + window.location.hash;
 }
 
+/**
+ * Resolves once no address write is waiting, without forcing one. Two frames pass
+ * first, so a render an edit has queued paints and schedules its write; then the
+ * promise waits for that write to run or be dropped. Browser tests read the address
+ * through this instead of guessing at the settle time (tests/helpers/settled-address.ts).
+ */
+export function addressSettled(): Promise<void> {
+  const frame = (): Promise<void> => new Promise((done) => {
+    requestAnimationFrame(() => done());
+    setTimeout(done, 100); // a hidden page draws no frames, and queues no paints either
+  });
+  return frame().then(frame).then(() => new Promise<void>((done) => {
+    const check = (): void => { if (waiting.size) setTimeout(check, 25); else done(); };
+    check();
+  }));
+}
+
+/** The hook a browser driver reads the settled address through. */
+export const ADDRESS_SETTLED_HOOK = '__lollyAddressSettled';
+
+/**
+ * Give an automated browser (WebDriver and Playwright set `navigator.webdriver`, the
+ * signal lib/webgpu/device.ts already reads) the {@link addressSettled} hook. A person's
+ * browser never gets the hook, and no app code calls the hook.
+ */
+export function exposeAddressSettled(win: { navigator?: { webdriver?: boolean } }): void {
+  if (win.navigator?.webdriver) (win as Record<string, unknown>)[ADDRESS_SETTLED_HOOK] = addressSettled;
+}
+if (typeof window !== 'undefined') exposeAddressSettled(window);
+
 function listenForHide(): void {
   if (flushOnHide) return;
   flushOnHide = true;
