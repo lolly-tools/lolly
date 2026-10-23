@@ -6,9 +6,9 @@
 // Output: shells/web/public/info/
 import { movedSectionLinks } from './section-moves.ts';
 import { readRegistry } from './navigation.ts';
+import { expandVersionTokens, readVersionFacts } from './version-tokens.ts';
 import { syncDocsNavigation } from '../scripts/sync-docs-navigation.ts';
 import { publicWorkMarkdown, workApplicability } from './work-pages.ts';
-import { expandVersionTokens, readVersionFacts } from './version-tokens.ts';
 import { createIconSprite } from './icon-sprite.ts';
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, cpSync, existsSync, readdirSync, rmSync, statSync, watch } from 'node:fs';
 import { resolve, dirname, relative, sep } from 'node:path';
