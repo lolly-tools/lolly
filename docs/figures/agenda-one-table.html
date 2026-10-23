@@ -1,0 +1,62 @@
+<!--
+  Concept: one Agenda programme table feeds every output: the foyer screen, one screen per room, the
+  attendee page, calendar files, PowerPoint and PDF, and the event kit ZIP that bundles them.
+  Contract: static fragment scoped under .aot, reads the docs theme tokens with fallbacks, no script, no
+  motion, no network.
+  Sources: community/agenda/tool.json (layouts, render formats), the event kit contents in
+  shells/web/src/bridge/export-presentation-kit.ts and docs/agenda.md.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.aot{--aot-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--aot-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --aot-ground:hsl(var(--secondary,84.5 55% 92.2%));--aot-paper:hsl(var(--card,0 0% 100%));
+ --aot-accent:hsl(var(--primary,176.5 89.5% 11.2%));--aot-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);
+ --aot-wash:color-mix(in oklab,var(--aot-accent) 10%,var(--aot-paper));
+ --aot-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--aot-ink);background:var(--aot-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.aot *{box-sizing:border-box}
+.aot p{margin:0}
+.aot ul{list-style:none;margin:0;padding:0}
+.aot li{list-style:none;margin:0;font-size:inherit}
+.aot .aot-row{display:grid;grid-template-columns:minmax(0,1fr) 40px minmax(0,1.3fr);gap:10px;align-items:center}
+.aot .aot-table{background:var(--aot-paper);border-radius:12px;box-shadow:0 0 0 1px var(--aot-line);padding:10px;font-size:.74em}
+.aot .aot-table p{font-weight:600;font-size:1.15em;margin-bottom:6px}
+.aot .aot-grid{display:grid;grid-template-columns:3.6em 1fr 4.4em;gap:3px 6px;font-family:var(--aot-mono)}
+.aot .aot-grid span{padding:2px 4px;border-radius:3px;background:var(--aot-wash);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aot .aot-grid span.aot-h{background:transparent;color:var(--aot-muted);font-weight:600}
+.aot .aot-arrow{display:flex;justify-content:center}
+.aot .aot-arrow svg{width:36px;height:auto;fill:none;stroke:var(--aot-accent);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.aot .aot-out{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.aot .aot-out li{background:var(--aot-paper);border-radius:10px;box-shadow:0 0 0 1px var(--aot-line);padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.aot .aot-out b{font-weight:600;font-size:.92em}
+.aot .aot-out span{font-size:.76em;color:var(--aot-muted)}
+.aot .aot-out li.aot-kit{grid-column:1/-1;background:var(--aot-wash)}
+@container (max-width:560px){.aot .aot-row{grid-template-columns:minmax(0,1fr)}.aot .aot-arrow svg{transform:rotate(90deg)}}
+</style>
+<div class="aot" role="group" aria-label="One programme table feeds every Agenda output">
+  <div class="aot-row">
+    <div class="aot-table" role="img" aria-label="A programme table with start times, session titles and rooms">
+      <p>Programme</p>
+      <div class="aot-grid">
+        <span class="aot-h">Start</span><span class="aot-h">Session</span><span class="aot-h">Room</span>
+        <span>09:00</span><span>Opening keynote</span><span>Hall A</span>
+        <span>10:15</span><span>Design systems at scale</span><span>Room 2</span>
+        <span>10:15</span><span>Hands-on: motion</span><span>Room 3</span>
+        <span>12:00</span><span>Lunch</span><span>Foyer</span>
+      </div>
+    </div>
+    <div class="aot-arrow" aria-hidden="true"><svg viewBox="0 0 36 24"><path d="M2 12h30M24 4l8 8-8 8"/></svg></div>
+    <ul class="aot-out">
+      <li><b>Foyer screen</b><span>Now and next, rotating</span></li>
+      <li><b>Room screens</b><span>One per room</span></li>
+      <li><b>Attendee page</b><span>Searchable HTML, works offline</span></li>
+      <li><b>Calendar</b><span>ICS for all or chosen sessions</span></li>
+      <li><b>PowerPoint and PDF</b><span>Full titles, measured pages</span></li>
+      <li><b>Video</b><span>MP4 or WebM</span></li>
+      <li class="aot-kit"><b>Event kit ZIP</b><span>The screens, page, PDF, poster, calendar and a README, from one shared revision</span></li>
+    </ul>
+  </div>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKAmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAncanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDpjZWI1NmE3MC02NGMxLTQyMDUtODcyYy0wNmVhMDA2ZTRlMmEAAAAEXmp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDU6NTA6MTBaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkQ1mZsZW5ndGgZDbpkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIGu3o5XObdTVoo7SuHczALv2lN4oML5dluIR2Pz4d0LAY3BhZEgAAAAAAAAAAAAAAOdqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACzY2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2xwYWdlbmRhLW9uZS10YWJsZWRkYXRleBgyMDI2LTEwLTIzVDA1OjUwOjEwLjczM1pqZGltZW5zaW9uc2szNiDDlyAyNCBweGhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALOanVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAp9jYm9ypmhkYzp0aXRsZXBhZ2VuZGEtb25lLXRhYmxlamluc3RhbmNlSUR4LXVybjp1dWlkOjY1NTA3OTIwLWNlMGEtNDk5ZS04YzRhLWY5NjFiOWI3MzYzN3RjbGFpbV9nZW5lcmF0b3JfaW5mb6NkbmFtZWVMb2xseWd2ZXJzaW9uZzEuMjgxLjBrc3BlY1ZlcnNpb25lMi40LjByY3JlYXRlZF9hc3NlcnRpb25zhaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggMK+xB3tNfD6oD0wdxh+0bbqNY3k59/FDnRLKcncWes2iY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggTW7yJtvlS+qPwM5NwLKfe1kduUYCZ9otzHisCdhqpBaiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvdG9vbHMubG9sbHkuZXhwb3J0ZGhhc2hYIJbkFADwprYV+LFFfX/qZycV9v1GksTrHTrsEyTc+22yomN1cmx4KHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2Nhd2cubWV0YWRhdGFkaGFzaFgg7iYlKJf/Z3Tb+oGzES2uAj7yXJtuDKwUN6DDNEbaboSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYILULL+IgRwhuFb2Z97+uFQ7MwZxWugE0GKMzzeUhYpqraXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYWp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMWNib3LShFkB4KIBJhghgVkB1zCCAdMwggF5oAMCAQICCWUR2EpH5QCvBjAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYxMDIzMDU0OTEwWhcNMzYxMDIwMDU1MDEwWjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAATNs8IHXfhqajecR4sXaHRyiQB9dKxxhESVNZyodCjhn6wTbus+c7Kifl3Y0SPCMg/aM7Y1LPjkszlrr8SpAjDho3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQUwJW6FFF3pOs/e58BXxc6xq3+YkwwHwYDVR0jBBgwFoAUwJW6FFF3pOs/e58BXxc6xq3+YkwwCgYIKoZIzj0EAwIDSAAwRQIhAOz6Jc0m7snzXzlJB2LI6Wto/YxhdmH1777u5ZOkA3cZAiAxQD4+Yp+c5/k3rtkbJ/lZ/Oxuq+HN4Uq3s7E/1HFK8qD2WEA7T2UtHaeQ6XpSS/sdQvns6RbxLIeTJjA9D6ce/wjag9CmZgCEIgjb9UdVfD2T2dUtiuHGMFO1+v5P9727eB2+ -----END C2PA MANIFEST----- -->
