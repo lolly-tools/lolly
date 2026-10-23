@@ -157,6 +157,8 @@ export const CONCEPT_FIGURES: Figure[] = [
   { set: 'concepts', name: 'sync-conflict', lang: 'dot', title: 'When two devices disagree', flags: ['--look=minimal', '--cardWidth=184'] },
   { set: 'concepts', name: 'extension-request', lang: 'dot', title: 'One request, one approval', flags: ['--look=minimal', '--cardWidth=200', '--rowGap=36'] },
   { set: 'concepts', name: 'backup-version-gate', lang: 'dot', title: 'Two version numbers, one gate', flags: ['--look=minimal', '--cardWidth=196'] },
+  { set: 'concepts', name: 'tool-to-file', lang: 'dot', title: 'Three things make a file', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=18'] },
+  { set: 'concepts', name: 'asset-relay', lang: 'dot', title: 'One tool, many hands', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=24'] },
 ];
 
 /** Every figure the script renders, in set order. */
