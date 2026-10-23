@@ -322,7 +322,6 @@ const ALLOW: Record<string, string[]> = {
   'docs/sequence-editor.md': ['### Subtitles and the transcript',
     '**Edit transcript** opens the transcript as flowing text'],
   'docs/parser-inventory.md': ['the boundary is what lets a reviewer'],
-  'docs/threat-model.md': ['the boundary is simply gone'],
 };
 
 /**
