@@ -46,7 +46,8 @@ import { mountDsStrip, type StripHost } from '../../lib/design-system/ds-strip.t
 import type { LeadColours } from '../../lib/design-system/leads.ts';
 import { sourceLine } from '../../lib/design-system/source-line.ts';
 import type { DesignSystemRecord } from '../../lib/design-system/registry.ts';
-import { DESIGN_SYSTEM_CHANGED_EVENT, DESIGN_SYSTEMS_LISTED_EVENT } from '../../lib/design-system/switch.ts';
+import { DESIGN_SYSTEM_CHANGED_EVENT } from '../../lib/design-system/switch.ts';
+import { DESIGN_SYSTEMS_LISTED_EVENT } from '../../lib/design-system/list-event.ts';
 import { DASH_SECTIONS, dashFlag, dashHref } from '../../lib/dashboard-registry.ts';
 
 /** Everything the tab renders, read in one go so first paint needs no second read. */

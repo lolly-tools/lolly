@@ -14,7 +14,7 @@ import { createTokensAPI, USER_TOKENS_ID } from '../../bridge/tokens.ts';
 import { createDesignSystemRegistry, type RegistryDb } from './registry.ts';
 import { readCompanionDesignSystems, seedCompanionDesignSystems, type CompanionHost } from './companions.ts';
 import { removeDesignSystem, renameDesignSystem } from './manage.ts';
-import { DESIGN_SYSTEMS_LISTED_EVENT } from './switch.ts';
+import { DESIGN_SYSTEMS_LISTED_EVENT } from './list-event.ts';
 import { resetDesignSystem, resetKind } from './reset.ts';
 import { installUserTokens } from '../../bridge/tokens.ts';
 import { readDesignSystemIdentity } from '../../../../../engine/src/design-system.ts';

@@ -18,7 +18,7 @@
 import { STARTER_TOKENS_ID, starterSeed, type StarterHost } from './starter.ts';
 import { createDesignSystem, type ManageHost } from './manage.ts';
 import type { DesignSystemRecord } from './registry.ts';
-import { DESIGN_SYSTEMS_LISTED_EVENT } from './switch.ts';
+import { DESIGN_SYSTEMS_LISTED_EVENT } from './list-event.ts';
 
 /** One `companionDesignSystems` entry of a catalog's assets index. */
 export interface CompanionDesignSystem {
