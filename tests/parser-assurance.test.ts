@@ -85,7 +85,7 @@ test('parser inventory table is generated from registry details and escapes cell
   assert.match(table, /^::: details Images and colour \(1\)$/m);
   assert.match(table, /^::: details Emoji \(1\)$/m);
   assert.ok(table.indexOf('Images and colour') < table.indexOf('Emoji'), 'families follow PARSER_FAMILY_ORDER');
-  assert.match(table, /2 parsers in 2 families: 1 reach a fuzz target and 1 carry an owned, expiring waiver/);
+  assert.match(table, /2 parsers in 2 families: 1 reaches a fuzz target and 1 carries an owned, expiring waiver/);
   const generated = generateParserInventory(inventoryMarkdown, registry(), ['alpha', 'spare'], 3);
   assert.match(generated, /There are 2: `alpha` and `spare`/);
   assert.match(generated, /replays the 3 saved regression inputs/);
@@ -115,4 +115,18 @@ test('coverage drift, stale entries and expired or missing waivers fail closed',
   assert.match(errors.join('\n'), /fuzz mapping drift/);
   assert.match(errors.join('\n'), /expired/);
   assert.match(errors.join('\n'), /stale registry entry/);
+});
+
+test('the parser summary agrees in number for one and for many', () => {
+  const one = registry();
+  delete one.parsers['engine/src/b.ts (reader)'];
+  assert.match(renderParserTable(one), /^1 parser in 1 family\. It reaches a fuzz target and needs no waiver\./m);
+  assert.match(generateParserInventory(inventoryMarkdown, one, ['alpha'], 1), /There is 1: `alpha`/);
+
+  const many = registry();
+  for (const id of ['engine/src/c.ts', 'engine/src/d.ts']) {
+    many.parsers[id] = { ...structuredClone(many.parsers['engine/src/b.ts (reader)']!), family: 'Emoji' };
+  }
+  many.parsers['engine/src/e.ts'] = structuredClone(many.parsers['engine/src/a.ts']!);
+  assert.match(renderParserTable(many), /^5 parsers in 2 families: 2 reach a fuzz target and 3 carry an owned, expiring waiver\./m);
 });

@@ -306,13 +306,14 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
   },
   {
     flag: 'formats', id: 'cap-formats', title: 'Export formats', icon: ICONS.image,
-    desc: '56 formats across vector, raster, layered, print, motion, audio, documents, data, design tokens and bundles. A tool offers only the formats its author declared, and the picker hides any your browser can’t produce.',
+    desc: '59 formats across vector, raster, layered, print, motion, audio, documents, data, design tokens and bundles. A tool offers only the formats its author declared, and the picker hides any your browser can’t produce.',
     cards: [
-      { icon: ICONS.vector, title: 'Vector', shot: 'vt-wordmark-vector', keywords: 'svg svgz eps emf wmf dxf illustrator postscript outlines paths cut file laser cnc plotter penpot boards', features: [
+      { icon: ICONS.vector, title: 'Vector', shot: 'vt-wordmark-vector', keywords: 'svg svgz eps emf wmf dxf illustrator postscript outlines paths cut file laser cnc plotter penpot boards indesign idml', features: [
         { name: 'SVG · SVGZ', desc: 'Infinitely scalable and self-contained - text is outlined to paths (HarfBuzz-shaped) so it renders identically without the font installed. SVGZ is the same file gzip-compressed, 60 to 70% smaller.' },
         { name: 'EMF · WMF · EPS · EPS (CMYK)', desc: 'EMF pastes as editable vector into PowerPoint and Word, and WMF does the same for older Office builds; EPS is PostScript vector for Illustrator and press workflows, with a DeviceCMYK variant. Text is outlined to paths in all of them.' },
         { name: 'DXF (cut file)', desc: 'AutoCAD R12 interchange for laser cutters, vinyl plotters and CNC/CAD - outline paths in millimetres, colour as the nearest AutoCAD Color Index. Line-art only.' },
         { name: 'Penpot (.penpot)', desc: 'A Design’s frames become Penpot boards with editable shapes and text, and the brand’s colours, typographies and design tokens travel inside the file.' },
+        { name: 'InDesign (.idml)', desc: 'A Design document goes to InDesign as an <code>.idml</code>: each artboard becomes a page, with live text frames, rectangles, ovals and PNG or JPEG images in the package’s Links folder. Gradients, effects and transparency are refused rather than flattened, so use PDF for those.' },
       ] },
       { icon: ICONS.image, title: 'Raster', shot: 'exp-format-picker', keywords: 'png jpg jpeg webp avif jxl jpeg xl bmp ico bitmap dpi icc srgb transparent alpha hdr', features: [
         { name: 'PNG · JPG · WebP · AVIF · TIFF · ICO', desc: 'Lossless or compact, alpha where supported, with the real DPI and an embedded sRGB ICC profile so colour reproduces faithfully.' },
@@ -325,27 +326,29 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
       { icon: ICONS.printer, title: 'Print', shot: 'exp-export-dims', keywords: 'pdf cmyk tiff press prepress fogra swop bleed', features: [
         { name: 'PDF · Print PDF (CMYK) · CMYK TIFF', desc: 'True page sizes and DeviceCMYK output for the press - see Print production below.' },
       ] },
-      { icon: ICONS.film, title: 'Motion', keywords: 'mp4 webm gif apng animated webp video animation loop svg keyframes fps lottie dotlottie bodymovin', features: [
+      { icon: ICONS.film, title: 'Motion', keywords: 'mp4 webm gif apng animated webp video animation loop svg keyframes fps lottie dotlottie bodymovin premiere xml xmeml sequence', features: [
         { name: 'MP4 · WebM · GIF · Animated PNG · Animated WebP', desc: 'Animated tools record to video (the picker shows what your browser can encode), or to GIF, lossless animated PNG, and colour-plus-alpha animated WebP - all of which work everywhere.' },
         { name: 'Animated SVG', desc: 'A self-contained vector animation - stacks vector snapshots with embedded CSS keyframes, so it scales to any size with no codec and loops in a browser tab or an <code>&lt;img&gt;</code>.' },
         { name: 'Lottie (.lottie)', desc: 'Placed Lottie clips, with the layers, timing and colours you edited in the timeline, export as one composed dotLottie animation. Anything it cannot carry is reported rather than silently dropped.' },
+        { name: 'Premiere XML', desc: 'A Design sequence of unprocessed video, audio and image clips goes to Premiere Pro as a zip holding <code>sequence.xml</code> and the original media. Titles, effects and speed changes go out as video instead.' },
       ] },
       { icon: ICONS.film, title: 'Audio', keywords: 'mp3 m4a wav opus audio soundtrack voice recorder audiogram sequence studio lossless encode', features: [
-        { name: 'MP3 · M4A · WAV · Opus', desc: 'Recording and audio tools (the Voice Recorder, Audiogram and Sequence Studio) export their soundtrack on its own - compact MP3, M4A or Opus, or full-quality lossless WAV - encoded on your device.' },
+        { name: 'MP3 · M4A · WAV · Opus', desc: 'Recording and audio tools (the Voice Recorder, Audiogram and a Design sequence) export their soundtrack on its own - compact MP3, M4A or Opus, or full-quality lossless WAV - encoded on your device.' },
       ] },
-      { icon: ICONS.doc, title: 'Documents & data', keywords: 'pptx powerpoint keynote html markdown md txt json csv ics calendar vcf contact vcard docx word odt libreoffice epub ebook scorm lms course', features: [
+      { icon: ICONS.doc, title: 'Documents & data', keywords: 'pptx powerpoint keynote html markdown md txt json csv ics calendar vcf contact vcard docx word odt libreoffice scorm lms course srt vtt webvtt captions subtitles', features: [
         { name: 'PowerPoint (PPTX)', desc: 'Multi-page and layout tools export an editable deck - each page decomposed into native text boxes, real shapes, and extractable images and vectors (logos embedded as real SVG). Built to hand a colleague content they can edit and reuse, not a flat screenshot.' },
         { name: 'HTML · MD · TXT', desc: 'HTML pastes formatted into mail clients; Markdown and plain text for content.' },
-        { name: 'Word (DOCX) · OpenDocument (ODT) · EPUB', desc: 'Writing leaves as real editable text: a .docx for Word and Google Docs, an .odt for LibreOffice, or a reflowable EPUB 3 e-book for Apple Books, Kobo and every other e-reader.' },
+        { name: 'Word (DOCX) · OpenDocument (ODT)', desc: 'Writing leaves as real editable text: a .docx for Word and Google Docs, or an .odt for LibreOffice.' },
         { featureFlag: LEARNING_FLAG, name: 'SCORM course package', desc: 'A Design deck becomes a zip every learning management system imports (SCORM 1.2): a launch page that steps through the slides and reports completion, the slides themselves, and a narrated film of the speaker notes, read by an on-device voice, with captions.' },
         { name: 'JSON · CSV · ICS · VCF', desc: 'Structured data straight from the input model - calendar invites, contacts, tabular and machine-readable payloads.' },
+        { name: 'SRT · WebVTT captions', desc: 'The Captions, Audiogram and Record tools write their timed cues as <code>.srt</code> and <code>.vtt</code> caption files, ready for a video player or an upload page.' },
       ] },
       { icon: ICONS.font, title: 'Fonts', keywords: 'font ttf otf woff webfont convert wrap unwrap truetype opentype cff', features: [
         { name: 'TTF · OTF · WOFF', desc: 'Convert Font turns a web font back into a plain TTF or OTF, or wraps one up as WOFF, losslessly and on your device; the outlines pass through untouched.' },
       ] },
-      { icon: ICONS.zip, title: 'Bundles', keywords: 'zip tar gz gzip tarball archive multiple formats password encrypt download', features: [
+      { icon: ICONS.zip, title: 'Bundles', keywords: 'zip tar gz gzip tarball archive multiple formats password encrypt download rpm linux package', features: [
         { name: 'ZIP', desc: 'Bundle several formats of one design into a single download - optionally password-locked (ZipCrypto or AES-256), with any PDF inside individually locked too.' },
-        { name: 'tar · gzip', desc: 'A plain tar of several assets for system tools, or one file gzip-compressed (the way SVGZ is made).' },
+        { name: 'Linux packages (RPM · tar.gz)', desc: 'A tool that renders SVG, PNG, JPG or WebP can wrap the render as an RPM that installs it system-wide, or as a tar.gz that unpacks it into your home folder. The same gzip makes SVGZ.' },
       ] },
       { icon: ICONS.swatch, title: 'Design tokens & palettes', keywords: 'dtcg design tokens ase adobe swatch exchange gpl gimp inkscape krita css variables custom properties scss sass palette export brand colours', features: [
         { name: 'DTCG · ASE · GPL · CSS variables · SCSS', desc: 'Export your brand palette as W3C design tokens (DTCG JSON), an Adobe Swatch Exchange (.ase) for Photoshop / Illustrator / InDesign, a GIMP · Inkscape · Krita .gpl, or ready-to-paste CSS custom properties or Sass variables - so the exact brand colours drop into any tool or codebase, no eyedropper.' },
@@ -354,7 +357,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
   },
   {
     flag: 'import', id: 'cap-import', title: 'Import formats', icon: ICONS.install,
-    desc: '50 formats, from photos and design files to decks, documents, tables, audio, video and 3D models. Every file is parsed on your device and never uploaded: design files open as an editable layout, images join your local library, and data fills a tool’s blocks.',
+    desc: '55 formats, from photos and design files to decks, documents, tables, audio, video and 3D models. Every file is parsed on your device and never uploaded: design files open as an editable layout, images join your local library, and data fills a tool’s blocks.',
     cards: [
       { icon: ICONS.image, title: 'Images', shot: 'auth-assets-uploads', keywords: 'png jpg jpeg webp avif heic heif jxl jpeg xl bmp ico favicon iphone photo exif gps strip gif apng animated svg svgz sanitise', features: [
         { name: 'PNG · JPG · WebP · AVIF · HEIC/HEIF', desc: 'Drop a photo or graphic into any image picker or your <strong>My images</strong> library. Stills are downscaled and stripped of EXIF/GPS on ingest; iPhone HEIC/HEIF decodes even where the browser can’t, via a bundled fallback. AVIF reads wherever the browser decodes it.' },
@@ -362,9 +365,10 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'JPEG XL · BMP · ICO', desc: 'A JPEG XL original is kept and shown as an sRGB view for editing; a BMP, or the largest image in an ICO, decodes directly.' },
         { name: 'SVG · SVGZ', desc: 'Vector artwork is sanitised - scripts, <code>on*</code> handlers and <code>javascript:</code> URLs are stripped - and normalised to a clean viewBox before it’s stored. A compressed <code>.svgz</code> unzips first.' },
       ] },
-      { icon: ICONS.vector, title: 'Design files', shot: 'design', keywords: 'figma fig penpot illustrator ai indesign idml pdf sketch import layout editable pptx powerpoint deck slides', features: [
+      { icon: ICONS.vector, title: 'Design files', shot: 'design', keywords: 'figma fig penpot illustrator ai indesign idml pdf sketch import layout editable pptx powerpoint deck slides premiere xml xmeml sequence timeline', features: [
         { name: 'Figma · Penpot · Illustrator · InDesign · PDF', desc: 'Design imports a native Figma <code>.fig</code>, a Penpot export, an Illustrator <code>.ai</code> or any <code>.pdf</code>, and an InDesign <code>.idml</code> - each parsed in the browser into editable boxes. Text stays text, shapes stay shapes, complex art flattens faithfully.' },
         { name: 'Photoshop (PSD · PSB) · GIMP (XCF)', desc: 'Layered Photoshop and GIMP files open with their layers intact - each layer becomes an editable box - read on-device by the engine’s own PSD/XCF parsers, big PSB documents included.' },
+        { name: 'Premiere XML', desc: 'A Premiere Pro <code>sequence.xml</code>, alone or zipped with its Media folder, opens in Design as a timed sequence. Pick the media it refers to, or keep labelled placeholders.' },
         { name: 'Any SVG is the wide door', desc: 'Almost every design app can export SVG, so an SVG export becomes an editable, brand-conformed layout - the universal way in.' },
       ] },
       { icon: ICONS.present, title: 'Decks', keywords: 'pptx powerpoint deck slides presentation import keynote rebrand', features: [
@@ -373,9 +377,10 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
       { icon: ICONS.swatch, title: 'Tokens from other tools', keywords: 'dtcg design tokens tokens studio figma plugin json brand import theme palette ramps', features: [
         { name: 'DTCG · Tokens Studio', desc: 'A W3C design-token file or a Tokens Studio export builds a whole brand - palette, ramps, type and themes - ready to use.' },
       ] },
-      { icon: ICONS.doc, title: 'Data & animation', shot: 'auth-blocks-rows', keywords: 'csv json xlsx excel table rows paste spreadsheet html markdown md text rich lottie bodymovin dotlottie', features: [
+      { icon: ICONS.doc, title: 'Data & animation', shot: 'auth-blocks-rows', keywords: 'csv json xlsx excel table rows paste spreadsheet html markdown md text rich lottie bodymovin dotlottie srt vtt webvtt captions subtitles', features: [
         { name: 'CSV · JSON · XLSX', desc: 'Paste or drop a table and a tool’s repeating blocks fill from it - RFC 4180 CSV (quoted fields, embedded newlines), JSON rows/arrays, or the first sheet of an Excel workbook, up to a thousand rows. Macro-enabled workbooks are refused.' },
         { name: 'HTML · Markdown · text', desc: 'A pasted rich-text selection or an HTML table fills a tool’s content or rows; Markdown and plain text come in as content.' },
+        { name: 'SRT · WebVTT captions', desc: 'The Captions, Audiogram and Record tools take an existing caption file through Add data, so a transcript you already have needs no speech model.' },
         { name: 'Lottie (.json · .lottie)', desc: 'Bodymovin JSON and dotLottie animations validate and place as live vector animations.' },
       ] },
       { icon: ICONS.film, title: 'Video', keywords: 'mp4 mov webm footage clip verbatim transcode', features: [

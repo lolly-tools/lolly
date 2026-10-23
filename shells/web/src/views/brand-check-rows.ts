@@ -16,6 +16,17 @@ function findingText(f: BrandFinding): string {
   if (f.kind === 'asset') return tRaw('“{name}”: this image is outside the design system’s declared asset IDs. It may be intentional.', { name: f.label });
   return tRaw('“{name}”: {field} {value} is outside this design system. Suggested: {suggestion}.', { name: f.label, field, value: f.value ?? '', suggestion: f.suggestion ?? '' });
 }
+/** What the brand check compared. Each count is its own singular or plural phrase,
+ *  written as two whole t() literals so the translation extractor sees both forms. */
+export function coverageText(checked: { colors: number; fonts: number; assets: number }): string {
+  const { colors, fonts, assets } = checked;
+  return tRaw('Compared {colors}, {fonts} and {assets}. Gradients, effects, nested content and subjective quality were not assessed.', {
+    colors: colors === 1 ? t('1 colour value') : tRaw('{n} colour values', { n: colors }),
+    fonts: fonts === 1 ? t('1 font choice') : tRaw('{n} font choices', { n: fonts }),
+    assets: assets === 1 ? t('1 asset ID') : tRaw('{n} asset IDs', { n: assets }),
+  });
+}
+
 /** The slice of the web host the catalog facts come from; every part is optional. */
 export interface BrandCatalogHost {
   assets?: {
@@ -82,7 +93,7 @@ export async function brandCheckRows(options: {
     } } : {}),
   }));
   if (snapshot?.system?.label) rows.unshift({ id: 'brand.system', tone: 'note', text: tRaw('Design system: {name}', { name: snapshot.system.label }) });
-  rows.push({ id: 'brand.coverage', tone: 'gap', text: tRaw('Compared {colors} colour values, {fonts} font choices and {assets} asset IDs. Gradients, effects, nested content and subjective quality were not assessed.', report.checked) });
+  rows.push({ id: 'brand.coverage', tone: 'gap', text: coverageText(report.checked) });
   if (report.coverage.truncated || report.findings.length > 60) rows.push({ id: 'brand.limit', tone: 'gap', text: t('Some items are not shown. Review the rest after these items.') });
   return rows;
 }

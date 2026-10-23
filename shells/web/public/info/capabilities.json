@@ -489,10 +489,10 @@
       "token": "InDesign",
       "name": "InDesign",
       "category": "Vector",
-      "dir": "in",
+      "dir": "both",
       "reads": true,
-      "writes": false,
-      "roundTrips": false,
+      "writes": true,
+      "roundTrips": true,
       "features": [
         "vector",
         "editable-text",
@@ -501,7 +501,8 @@
       "metadata": {
         "reads": [],
         "writes": [],
-        "preserves": "n/a"
+        "preserves": "none",
+        "note": "The export carries no InDesign document metadata block. When the export has metadata, it travels as lolly-metadata.json inside the package, beside readable credits."
       }
     },
     {
@@ -623,6 +624,26 @@
         "writes": [],
         "preserves": "none",
         "note": "The original package stays intact as an asset. Edited exports create a new composition with readable credits and a metadata JSON companion; they do not carry signed Content Credentials."
+      }
+    },
+    {
+      "token": "Premiere XML",
+      "name": "Premiere XML",
+      "category": "Motion",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "animation",
+        "audio",
+        "multi-file-bundle"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "sequence.xml carries the sequence name and clip timing, not document metadata. When the export has metadata, it travels as lolly-metadata.json inside the package."
       }
     },
     {
@@ -761,6 +782,40 @@
     {
       "token": "glTF",
       "name": "glTF",
+      "category": "3D",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "3d"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "STL",
+      "name": "STL",
+      "category": "3D",
+      "dir": "in",
+      "reads": true,
+      "writes": false,
+      "roundTrips": false,
+      "features": [
+        "3d"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a"
+      }
+    },
+    {
+      "token": "3MF",
+      "name": "3MF",
       "category": "3D",
       "dir": "in",
       "reads": true,
@@ -1145,6 +1200,42 @@
       }
     },
     {
+      "token": "SRT",
+      "name": "SRT",
+      "category": "Data",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "editable-text"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "An SRT file is cues and text only, with no metadata block."
+      }
+    },
+    {
+      "token": "VTT",
+      "name": "WebVTT",
+      "category": "Data",
+      "dir": "both",
+      "reads": true,
+      "writes": true,
+      "roundTrips": true,
+      "features": [
+        "editable-text"
+      ],
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "none",
+        "note": "NOTE, STYLE and REGION blocks are skipped on the way in. Lolly writes the WEBVTT header and cues only."
+      }
+    },
+    {
       "token": "DTCG",
       "name": "DTCG",
       "category": "Tokens",
@@ -1409,27 +1500,6 @@
         "writes": [],
         "preserves": "n/a",
         "note": "Cells are read; the workbook core properties are not."
-      }
-    },
-    {
-      "token": "EPUB",
-      "name": "EPUB",
-      "category": "Document",
-      "dir": "out",
-      "reads": false,
-      "writes": true,
-      "roundTrips": false,
-      "features": [
-        "multi-file-bundle",
-        "editable-text"
-      ],
-      "metadata": {
-        "reads": [],
-        "writes": [
-          "dc"
-        ],
-        "preserves": "n/a",
-        "note": "The OPF package carries dc:title, dc:creator and dc:language."
       }
     },
     {

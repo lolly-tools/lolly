@@ -174,7 +174,7 @@ test('the chip list is generated from the formats catalog, not hand-written', { 
   const exportable = catalog.formats.filter(f => f.dir !== 'in');
   // Newer formats the old 27-entry hand list never had. If someone replaces the
   // generator with a literal again, these are the first things to go missing.
-  for (const ext of ['.EXR', '.DOCX', '.WOFF', '.PSD', '.EPUB', '.ODT', '.SVGZ']) {
+  for (const ext of ['.EXR', '.DOCX', '.WOFF', '.PSD', '.SRT', '.ODT', '.SVGZ']) {
     assert.ok(exts.includes(ext), `the chips lost ${ext} - is the list hand-written again?`);
   }
   // …and one that was in the hand list but is NOT in the catalog: its presence would
