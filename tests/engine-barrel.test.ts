@@ -10,6 +10,13 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.283 creation feedback: house rules and the writing score in one report that informs and never blocks.
+  'CREATION_FEEDBACK_FORMAT', 'CREATION_FEEDBACK_TEXT_LIMIT', 'CREATION_FEEDBACK_VERSION',
+  'CreationFeedbackDeltaV1', 'CreationFeedbackHouseRules', 'CreationFeedbackOpts', 'CreationFeedbackPhrase',
+  'CreationFeedbackReportV1', 'CreationFeedbackSignal', 'CreationFeedbackWriting',
+  'DesignTextSegment', 'DesignVisibleText', 'DesignVisibleTextOpts',
+  'WRITING_SCORE_CODE', 'checkFindingFromWritingScore',
+  'creationFeedback', 'creationFeedbackDelta', 'designVisibleText', 'designWritingScore',
   // Additive 1.262 static-copy findings for layouts declared in legacy Penpot SVG.
   'LayoutFinding', 'PenpotSvgLayout', 'penpotSvgLayoutFindings',
   // Additive 1.262 data conversion choices and the all-worksheets manifest.

@@ -986,8 +986,12 @@ export { designBrief, brandCheckCatalog } from './design-brief.ts';
 export type { DesignBriefAssetV1, DesignBriefCatalogV1, DesignBriefOpts, DesignBriefV1 } from './design-brief.ts';
 export { checkDesignHouseRules, designHouseRules, combinationPolicy, DESIGN_HOUSE_RULE_KINDS } from './design-house-rules.ts';
 export type { DesignHouseRuleKind, DesignHouseRuleOpts, DesignHouseRuleResult, HouseRuleFinding } from './design-house-rules.ts';
+// Creation feedback (engine 1.283): house-rule findings and the writing score for the
+// text a Design document draws, one report that informs and never blocks.
+export { creationFeedback, creationFeedbackDelta, designVisibleText, designWritingScore, CREATION_FEEDBACK_FORMAT, CREATION_FEEDBACK_VERSION, CREATION_FEEDBACK_TEXT_LIMIT } from './creation-feedback.ts';
+export type { CreationFeedbackDeltaV1, CreationFeedbackHouseRules, CreationFeedbackOpts, CreationFeedbackPhrase, CreationFeedbackReportV1, CreationFeedbackSignal, CreationFeedbackWriting, DesignTextSegment, DesignVisibleText, DesignVisibleTextOpts } from './creation-feedback.ts';
 // One finding shape for every Design checker, and fidelity to a source inventory (plan 291 W1).
-export { checkFindingFromDesign, checkFindingFromMounted, checkFindingFromBrand, checkFindingFromHouseRule, checkFindingsFromHouseRules, checkFindingFromUnknownHouseRule, checkFindingsFromForensic, verifyDesignDocument, designLayerLookup, mountedFindingMessage, brandFindingMessage, forensicFindingMessage } from './design-check.ts';
+export { checkFindingFromDesign, checkFindingFromMounted, checkFindingFromBrand, checkFindingFromHouseRule, checkFindingsFromHouseRules, checkFindingFromUnknownHouseRule, checkFindingsFromForensic, checkFindingFromWritingScore, WRITING_SCORE_CODE, verifyDesignDocument, designLayerLookup, mountedFindingMessage, brandFindingMessage, forensicFindingMessage } from './design-check.ts';
 export type { DesignLayerPlace, MountedDesignFindingInput, HouseRuleFindingInput, ForensicMapOptions, DesignVerifyOptions, DesignVerifyResult } from './design-check.ts';
 export { checkFidelity, normaliseFidelityText, FIDELITY_IGNORED_CLASSES, FIDELITY_IGNORED_ROLES, FIDELITY_EDIT_SIMILARITY } from './check-fidelity.ts';
 export { parseFidelityEdits, FIDELITY_MAX_SOURCE_STRINGS, FIDELITY_MAX_RESULT_LINES, FIDELITY_MAX_EDITS } from './check-fidelity.ts';
