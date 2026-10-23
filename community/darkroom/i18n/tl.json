@@ -1,5 +1,5 @@
 {
   "name": "Darkroom",
-  "description": "Isang pro na darkroom para sa photo grading: mga film look, third-party na .cube LUT, mga color treatment ng design system at finishing texture - pagkatapos ay i-bake ang iyong look bilang LUT na magagamit ng kahit anong editor. Binubuksan din nito ang Photoshop o GIMP file bilang mga layer: i-position, i-blend at itago ang bawat isa, i-grade ang composite, at mag-export ng flat na larawan o layered PSD.",
+  "description": "I-grade ang mga litrato at video gamit ang film looks, Adobe XMP presets, .cube LUTs at mga kulay ng design system mo. Gamitin muli ang look sa LUT export o Grade a video. Nagbubukas ng Photoshop at GIMP layers para sa posisyon, blending at image export.",
   "featured.blurb": "I-grade ang mga larawan gamit ang film looks, LUTs at kulay ng iyong brand"
 }

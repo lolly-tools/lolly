@@ -278,6 +278,7 @@ tests/fuzz/current-*.bin
 # Translation work files: the offline path's scratch (npm run translate -- --export-pending).
 # Intermediate by design - the durable artefacts are the shipped locale catalogs.
 scripts/i18n/pending/
+scripts/i18n/pending-*/
 
 # Translation-memory cache (~17 MB) written by scripts/translate.ts (saveCache -> CACHE_PATH).
 # A dev-only tool artefact: nothing in the build:web chain or the node:test suite reads it

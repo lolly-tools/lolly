@@ -27,3 +27,7 @@ Attributie, herkomst, privacy, & toestemming
 creativiteit & vertrouwen te midden van het oneindige
 
 iedereen kan creëren, op elke schaal, overal
+
+## Waarom
+
+### [Omdat we op de schouders van reuzen staan](/info/trust/shoulders-of-giants.html)

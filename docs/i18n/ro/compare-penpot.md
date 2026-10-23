@@ -2,24 +2,24 @@
 
 _Ultima verificare: 28 septembrie 2026._
 
-Lolly și Penpot oferă ambele instrumente de design open source, design tokeni partajați și colaborare în timp real. Lolly combină crearea pe dispozitiv cu [lolly.work](https://lolly.work), serviciul său de organizație implementat separat.
+Dacă echipa ta proiectează în Penpot, Lolly lucrează alături de Penpot: ambele sunt open source și ambele citesc aceleași design tokens. Această pagină spune pentru ce sarcină este fiecare.
 
-## Fundamente de design comune
+## Ce face Penpot mai bine
 
-[Design tokenii Penpot](https://help.penpot.app/user-guide/design-systems/design-tokens/) folosesc formatul DTCG, pe care Lolly îl citește și el. Culorile, tipografia și alte valori de token pot fi partajate între cele două fluxuri de lucru. [Import a design](/info/design-import.html) din Lolly deschide un export `.penpot` ca layout editabil.
+[Penpot](https://penpot.app/) oferă design de interfețe, componente, layouturi flexibile, prototipuri interactive și inspecție pentru dezvoltatori, cu editare în timp real și cursoare live. Oferă instalări găzduite și găzduite propriu, cu [opțiuni de instalare Docker și Kubernetes](https://help.penpot.app/technical-guide/getting-started/). Pentru proiectarea unei aplicații, Penpot este instrumentul.
 
-Pluginul Lolly Export pentru Penpot este întreținut de Lolly. Folosește motorul Lolly pentru Content Credentials C2PA opționale (opt-in), pe dispozitiv. Integritatea semnăturii și încrederea în semnatar sunt lucruri separate: un verificator are nevoie de o identitate în care are încredere, așa cum este descris în [Content Credentials Identity](/info/content-credentials-identity.html).
+## Unde se suprapun
 
-## Fluxuri de lucru de design și de echipă
+[Design tokens Penpot](https://help.penpot.app/user-guide/design-systems/design-tokens/) folosesc formatul DTCG, pe care îl citește și Lolly, deci culorile, fonturile și alte valori de tokenuri se mută între cele două. [Importă un design](/info/design-import.html) din Lolly deschide un export `.penpot` ca layout editabil, iar **Send to Penpot** din Lolly trimite un design înapoi ca arhivă `.penpot`. Lolly întreține și [pluginul Lolly Export pentru Penpot](https://github.com/lolly-tools/lolly-plugins-penpot-export), care folosește motorul Lolly pentru a adăuga Content Credentials opt-in pe dispozitiv.
 
-[Penpot](https://penpot.app/) oferă design de interfețe, componente, layouturi flexibile, prototipuri interactive și inspecție pentru dezvoltatori. Are implementări găzduite și autogăzduite, cu [opțiuni de instalare Docker și Kubernetes](https://help.penpot.app/technical-guide/getting-started/).
+## Cum face Lolly sarcina comună
 
-Canvasul Design al Lolly creează active editabile și poate transforma un layout într-un [instrument cu reguli](/info/create-a-tool.html). Același instrument randează în browser, în aplicația desktop sau în CLI și poate genera variante pornind de la date. Pentru lucrul în echipă, Lolly are atât [collaburi private](/info/collaborate.html) directe între două dispozitive, cât și collaburi de lucru prin lolly.work, cu editări partajate, cursoare și sesiuni de echipă salvate.
+Canvasul Design din Lolly face resurse editabile și poate transforma un layout într-un [instrument cu reguli](/info/create-a-tool.html). Același instrument randează în browser, în aplicația desktop sau în CLI și face variante din date. Lolly de sine stătător randează și semnează pe dispozitiv, fără cont sau server. Un [collab privat](/info/collaborate.html) împerechează direct două dispozitive.
 
-## Cum diferă implementările
+## Cu o organizație
 
-Lolly de sine stătător randează și semnează pe dispozitiv, fără cont sau server. lolly.work adaugă SSO, provizionare SCIM, cataloage și proiecte partajate, roluri, aprobări, jurnale de audit și randare pe server. Ambele depozite sunt open source sub MPL-2.0 și pot fi operate de organizație. Munca partajată folosește instanța configurată; crearea locală rămâne disponibilă independent.
+Lolly Work adaugă single sign-on, provizionare SCIM, cataloage și proiecte comune, roluri, aprobări, înregistrări de audit, work collab-uri și randare pe server. Ambele depozite sunt MPL-2.0, iar o organizație le poate rula pe amândouă. [Ce rulează unde](/info/compare.html#what-runs-where) pune cele două părți una lângă alta.
 
-Alegerea depinde de muncă: fluxul Penpot de design de interfețe și prototipare, producția repetabilă de active din Lolly sau o combinație care folosește tokeni partajați și designuri importate. Colaborarea de lucru din Lolly rulează în prezent pe un singur nod de server, iar [starea implementării](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) ar trebui să facă parte din evaluarea unei organizații.
+Le poți folosi pe amândouă: Penpot pentru design de interfețe și prototipare, Lolly pentru fișiere repetabile, unite prin tokenuri comune și designuri importate.
 
-Penpot este o marcă comercială a proprietarului său. Pluginul de mai sus aparține Lolly. Vezi [Cum se compară Lolly](/info/positioning.html) și [prezentarea generală a soluției combinate](/info/compare.html) pentru comparația mai largă.
+Penpot este o marcă comercială a proprietarului ei. Această pagină descrie unde se suprapun cele două produse și nu este afiliată cu Penpot.

@@ -2,34 +2,35 @@
 
 _Última verificação: 28 de setembro de 2026._
 
-O Lolly e o [lolly.work](https://lolly.work) juntos cobrem os fluxos de criação e governança para os quais as equipes usam portais de marca: ativos aprovados, modelos bloqueados, controle de acesso, revisão e distribuição. Compare essa solução combinada com Bynder, Frontify, Marq ou Brandfolder ao escolher como as pessoas encontram ativos de marca e criam novos.
+Se a sua organização mantém os recursos aprovados no Bynder, Frontify, Marq ou Brandfolder, esta página compara isso com o Lolly mais o Lolly Work: como as pessoas encontram os recursos da marca e como criam novos arquivos a partir deles.
 
-## Criação e serviços de organização
+## O que um portal consolidado faz melhor
 
-O motor e os apps do Lolly produzem os arquivos. Modelos, design tokens e entradas permitidas definem o que alguém pode alterar, e a renderização pode permanecer no dispositivo da pessoa. O Lolly independente não exige conta.
+Os portais consolidados oferecem hospedagem gerenciada, suporte e extensos fluxos de gestão de recursos. Por exemplo, o [DAM corporativo do Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combina descoberta de recursos, controles de acesso, fluxos de aprovação e distribuição. A pilha do Lolly é mais jovem e suas cadeias de aprovação são sequenciais, e não fluxos de trabalho com ramificação arbitrária. [Work status and roadmap](/info/work-status.html) registra os limites de implantação dela.
 
-O lolly.work é o serviço de organização do mesmo projeto, mantido em um [repositório separado](https://github.com/lolly-tools/lolly-work) e implantado junto com o Lolly. Ele acrescenta identidade, armazenamento compartilhado, políticas, aprovações e relatórios. As duas partes são de código aberto sob MPL-2.0. A separação permite que uma pessoa use o Lolly de forma independente e que uma organização execute a solução combinada em uma infraestrutura que ela controla.
+## Onde eles se sobrepõem
 
-## O que a solução combinada oferece
+Ambos cobrem recursos aprovados, templates bloqueados, controle de acesso, revisão e distribuição. O Lolly cria os arquivos: templates, design tokens e entradas permitidas definem o que alguém pode mudar, e a renderização pode ficar no dispositivo da pessoa. O Lolly Work acrescenta identidade, armazenamento compartilhado, política, aprovações e relatórios em uma infraestrutura que a organização controla.
 
-| Necessidade | Lolly + lolly.work |
+![O sistema de design ativo em Settings, mostrado como uma capa e páginas: as cores, a tipografia e os logotipos com que toda ferramenta desenha](/info/shots/dashboard-brand.svg)
+
+## O que o Lolly e o Lolly Work oferecem
+
+| Necessidade | Lolly + Lolly Work |
 |---|---|
-| Login e provisionamento | Login único (SSO) via OIDC, múltiplos provedores de identidade, provisionamento de usuários e associação a grupos via SCIM 2.0, e desativação de contas que revoga as sessões existentes. Um provedor de identidade apenas SAML pode se conectar por meio de uma ponte OIDC, como o Keycloak. |
-| Modelos aprovados | O Lolly define as entradas editáveis do modelo; o lolly.work aplica visibilidade por grupo e políticas de entrada que bloqueiam valores, restringem opções ou ocultam controles. |
-| Biblioteca de ativos compartilhada | Uploads pertencentes à instância, coleções, metadados personalizados e catálogos com controle de acesso, além de conectores que leem bibliotecas de DAM e de armazenamento existentes. |
-| Revisão | Etapas de aprovação ordenadas, grupos de aprovadores elegíveis, regras de quórum e separação de funções; a revisão pode governar envios ao catálogo e entregas a destinos da organização. |
-| Histórico e disponibilidade de ativos | Versões e rollback para ativos pertencentes à instância, retenção e bloqueios legais, disponibilidade agendada, expiração e revogação. Os provedores conectados mantêm o próprio histórico de origem. |
-| Relatórios | Contagens de uso e de downloads de ativos, atividade de ferramentas e de exportação, painéis e uma trilha de auditoria. A atribuição de uso segue a política de telemetria da implantação; a configuração padrão de atribuição exige consentimento. |
-| Distribuição | Links com expiração e revogáveis, coleções compartilhadas, acesso de convidados e entrega a destinos da organização configurados. |
+| Login e provisionamento | Single sign-on OIDC, vários provedores de identidade, provisionamento de usuários SCIM 2.0 e associação a grupos, e desativação de contas que revoga as sessões existentes. Um provedor de identidade somente SAML pode se conectar por uma ponte OIDC como o Keycloak. |
+| Templates aprovados | O Lolly define as entradas editáveis do template; o Lolly Work aplica visibilidade por grupo e políticas de entrada que bloqueiam valores, restringem escolhas ou ocultam controles. |
+| Biblioteca de recursos compartilhada | Envios pertencentes à instância, coleções, metadados personalizados e catálogos com controle de acesso, além de conectores que leem bibliotecas DAM e de armazenamento existentes. |
+| Revisão | Etapas de aprovação ordenadas, grupos de aprovadores elegíveis, regras de quórum e separação de funções; a revisão pode governar envios ao catálogo e a entrega a destinos da organização. |
+| Histórico e disponibilidade de recursos | Versões e reversão de recursos pertencentes à instância, retenção e bloqueios, disponibilidade agendada, expiração e revogação. Os provedores conectados mantêm o próprio histórico de origem. |
+| Licenças e créditos | O Lolly registra a licença de cada origem que um arquivo usa e prepara os créditos devidos; [Creative rights and credits](/info/creative-rights.html) explica o que ele registra e onde os créditos são gravados. Ele não libera direitos. |
+| Relatórios | Contagens de uso e de download de recursos, atividade de ferramentas e exportações, painéis e uma trilha de auditoria. A atribuição de uso segue a política de telemetria da implantação; a configuração padrão de atribuição exige consentimento. |
+| Distribuição | Links com expiração e revogáveis, coleções compartilhadas, acesso de convidados e entrega a destinos configurados da organização. |
 
-Os [guias do operador do lolly.work](https://github.com/lolly-tools/lolly-work/tree/main/docs) descrevem esses recursos e sua configuração. São capacidades disponíveis, e não recursos que exigem construir outro sistema em volta do Lolly.
+[Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) e [Policy and governance](/info/work-governance.html) descrevem esses recursos e sua configuração.
 
-## Como escolher um fluxo de portal
+## Manter o seu portal atual
 
-Portais consolidados oferecem hospedagem gerenciada, suporte e fluxos de DAM extensos. Por exemplo, o [DAM empresarial da Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) combina descoberta de ativos, controles de acesso, fluxos de aprovação e distribuição. Compare o fluxo exato de revisão e de direitos de que você precisa: o Lolly oferece controles de metadados, de acesso e de disponibilidade, mas a liberação jurídica e as obrigações de licenciamento ainda exigem o processo da organização. Suas cadeias de aprovação são sequenciais; elas não modelam fluxos de trabalho com ramificações arbitrárias.
+Um DAM existente pode continuar sendo a fonte da verdade. Os conectores de catálogo do Lolly Work tornam os recursos aprovados dele disponíveis no Lolly, onde as pessoas criam novos arquivos sob as regras da organização. Essa é uma escolha de integração; a biblioteca e as aprovações do próprio Lolly estão lá quando a organização quiser operá-las por conta própria. [What runs where](/info/compare.html#what-runs-where) lista os limites que toda comparação compartilha.
 
-A stack do Lolly é mais jovem, e a [página de status do lolly.work](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) registra seus limites de implantação. Em particular, o site público do lolly.work é um sandbox de avaliação. Uma implantação durável em uma organização precisa de armazenamento persistente e de um operador. Não há cobrança de licença de software por usuário para hospedagem própria; a infraestrutura e a administração ainda têm custo.
-
-Um DAM existente também pode continuar sendo a fonte da verdade. Os conectores de catálogo do lolly.work disponibilizam seus ativos aprovados no Lolly, onde as pessoas criam novos arquivos sob as regras da organização. Essa é uma escolha de integração; a biblioteca e as aprovações do próprio Lolly estão disponíveis quando a organização quer gerenciar esses fluxos por conta própria.
-
-Consulte [Como o Lolly se compara](/info/positioning.html) para a comparação de capacidades e [Lolly comparado, ferramenta por ferramenta](/info/compare.html) para o restante deste conjunto. Os nomes de fornecedores identificam os produtos comparados; o Lolly não é afiliado a eles.
+Veja [How Lolly compares](/info/positioning.html) para a comparação de capacidades. Os nomes de fornecedores identificam os produtos comparados; o Lolly não é afiliado a eles.

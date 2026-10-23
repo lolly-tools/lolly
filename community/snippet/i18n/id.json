@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Tampilkan teks di jendela desktop, sebagai gambar diam, atau sebagai interaksi terarah dengan pengetikan, pemilihan, pelengkapan otomatis, dan gerakan.",
   "inputs.code.label": "Kode",
   "inputs.code.placeholder": "Tempel kode Anda di sini…",
   "inputs.fileName.label": "Nama file",

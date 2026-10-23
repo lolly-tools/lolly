@@ -2,24 +2,28 @@
 
 _Zuletzt geprüft: 28. September 2026._
 
-Lolly erzeugt Assets aus Vorlagen und Daten auf Ihrem Gerät, in CI oder über die Server-API von [lolly.work](https://lolly.work). Die Gesamtlösung deckt automatisiertes Rendering ab sowie Identität, Richtlinien und Auslieferung rund um die Produktionsaufträge einer Organisation.
+Wenn Sie heute über eine API Bilder aus Vorlagen erzeugen, sagt diese Seite, wie Lolly dieselbe Aufgabe auf Ihrem eigenen Gerät, in der CI oder auf Ihrem eigenen Server erledigt.
+
+## Was gehostete Rendering-APIs besser können
+
+[Bannerbear](https://www.bannerbear.com/) und [Placid](https://placid.app/) bieten Rendering als verwaltete Dienste an, mit eigener Infrastruktur, Integrationen und Support. Sie senden eine Anfrage, und jemand anderes betreibt die Server.
 
 ## Wo sie sich überschneiden
 
-[Bannerbear](https://www.bannerbear.com/) und [Placid](https://placid.app/) erzeugen Bilder und andere Medien aus Vorlagen über APIs und Integrationen. Lolly verfolgt denselben Ansatz aus Vorlage plus Eingaben, mit [URL-Modus](/info/url-mode.html), [CLI](/info/cli.html), Batch-Raster und Server-Endpunkten als Wegen, Aufträge einzureichen.
+Beide machen aus einer Vorlage plus Eingaben Medien. Lolly nimmt die Eingaben aus einem [Link](/info/url-mode.html), der [CLI](/info/cli.html), einem Batch-Raster oder einem Server-Endpunkt.
 
-## Was lolly.work bietet
+## Wie Lolly die überlappende Aufgabe erledigt
 
-lolly.work ist der getrennt betriebene Organisationsdienst im Lolly-Projekt. Er führt die Lolly-Engine hinter einer API aus, wendet Richtlinien für Werkzeugsichtbarkeit und Eingaben an und liefert gerenderte Dateien sowie signierte Freigabelinks aus. Sein [wiederherstellbarer Render-Dienst](https://github.com/lolly-tools/lolly-work/blob/main/docs/renders.md) unterstützt Einzelaufträge und Batches, idempotente Einreichung, Status, begrenzte Wiederholungen, Abbruch und aufbewahrte Ausgaben. Unterbrochene Arbeit kann nach einem Server-Neustart fortgesetzt werden, wenn persistenter Speicher konfiguriert ist.
+Dasselbe Tool rendert auf einem Laptop, in einem CI-Job oder auf einem Server, aus denselben Eingaben. Lokales und CI-Rendering brauchen überhaupt keinen Dienst.
 
-Der Server nutzt einen schnellen SVG/PNG-Renderpfad und einen optionalen Chromium-Worker für Werkzeuge, die einen Browser benötigen. Automatisierungen authentifizieren sich mit Service-Tokens, und fertige Ausgaben können über [Governed Delivery](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md) an Ziele der Organisation gesendet werden. Eine konfigurierte Signaturidentität aktiviert C2PA-Signierung für unterstützte Server-Ausgaben.
+![Batch-Export-Einstellungen: Dateiname, Standardformat, Einheiten, DPI und die Zahl der zu rendernden Zeilen](/info/shots/use-batch-toolbar.svg)
+
+Auf einem Server führt [Lolly Work](/info/compare.html#what-runs-where) die Lolly-Engine hinter einer API aus und wendet Tool-Sichtbarkeit und Eingaberichtlinien an. Sein [wiederaufnehmbarer Render-Dienst](/info/work-renders.html) unterstützt einzelne Aufträge und Batches, idempotente Einreichung, Status, begrenzte Wiederholungen, Abbruch und aufbewahrte Ausgaben, und unterbrochene Arbeit wird nach einem Neustart fortgesetzt, wenn persistenter Speicher konfiguriert ist.
+
+Der Server hat einen schnellen SVG- und PNG-Pfad und einen optionalen Chromium-Worker für Tools, die einen Browser brauchen. Automatisierung meldet sich mit Service-Tokens an, fertige Ausgabe kann über [freigegebene Lieferung](/info/work-delivery.html) an Organisationsziele gehen, und eine konfigurierte Signaturidentität fügt unterstützter Ausgabe Content Credentials hinzu.
 
 ## Wer den Dienst betreibt
 
-Bannerbear und Placid bieten Rendering als verwaltete Dienste mit eigener Infrastruktur und eigenen Integrationen. Mit Lolly kann eine Einzelperson lokal rendern oder ein Team lolly.work auf eigener Infrastruktur betreiben. Beide Lolly-Repositories sind Open Source unter MPL-2.0; beim Selbst-Hosting fällt keine Software-Lizenzgebühr pro Rendering an, doch Rechenleistung, Speicher und Betrieb bleiben Kosten, die eingeplant werden müssen.
+Mit Lolly rendert eine Einzelperson lokal, oder ein Team betreibt Lolly Work auf seiner eigenen Infrastruktur. Das Einreichen eines Server-Auftrags sendet seine Eingaben und die nötigen Assets an diese Instanz, was sich vom Pfad auf dem Gerät unterscheidet. Ein dauerhafter Dienst braucht eine persistente Datenbank und Ausgabespeicher, und browserabhängige Tools brauchen den Chromium-Worker; [Lolly Work installieren](/info/work-install.html) beschreibt beides.
 
-Die öffentliche Website lolly.work ist eine Evaluierungs-Sandbox und keine Zusage für Produktions-Hosting. Ein dauerhafter Dienst braucht persistenten Datenbank- und Ausgabespeicher; browserabhängige Werkzeuge brauchen den Chromium-Worker. Die [Installationsanleitung](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) und die [Statusseite](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) beschreiben diese Voraussetzungen und aktuellen Einschränkungen.
-
-Lokales Rendering und Rendering in CI bleiben ohne den Organisationsdienst möglich. Wer einen Server-Auftrag einreicht, sendet dessen Eingaben und benötigte Assets an diese Instanz; das unterscheidet sich vom Weg auf dem Gerät. Siehe die [Übersicht der Gesamtlösung](/info/compare.html).
-
-Bannerbear und Placid sind Marken ihrer Inhaber. Diese Seite beschreibt, wo sich die Lösungen überschneiden, und steht in keiner Verbindung zu einem der beiden.
+Bannerbear und Placid sind Marken ihrer Inhaber. Diese Seite beschreibt, wo sich die Produkte überschneiden, und steht in keiner Verbindung zu einem von beiden.

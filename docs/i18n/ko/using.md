@@ -1,27 +1,211 @@
 # Lolly 사용하기
 
-앱을 실제로 *사용하는* 방법을 담은 실용 안내서예요 - 도구 열기, 캔버스 작업, 내보내기, 저장과 공유. 여기 나오는 모든 것은 **내 기기에서** 실행돼요. 계정도, 업로드도 없고, 이미 열어 둔 화면은 인터넷도 필요 없어요.
+Lolly를 열었고 무언가를 만들어 보관하고 전달하고 싶군요. 이 페이지는 그 흐름을 안내해요. 도구를 열고, 허용된 부분을 바꾸고, 결과를 저장하고, 링크나 파일로 공유해요.
 
-> 처음 오셨나요? [빠른 시작](/info/quickstart.html)으로 몇 분 만에 무언가를 만들 수 있고, [운영자를 위한 Lolly](/info/operators.html)는 앱 설치와 배포를 다뤄요. 이 페이지는 앱을 연 다음 다루는 방법에 관한 내용이에요.
+여기 있는 모든 것은 계정 없이 기기에서 실행되며, 필요한 도구와 에셋을 내려받은 뒤에는 오프라인에서도 계속 동작해요. 앱이 시작하려면 WebGPU가 있는 브라우저나 앱이 필요해요. [지원되는 환경](/info/supported-environments.html)에서 테스트된 환경을 나열해요.
 
-## 도구 열기
+## 화면 둘러보기
 
-홈 화면은 **갤러리**예요 - 모든 도구가 분류별로 묶여 있어요. 카드를 클릭하면 그 도구에서 새로 시작할 수 있고, [저장한 작업](#saving-continuing)은 **프로젝트**에서 다시 열어요. 검색창으로 이름을 걸러 내거나, 여섯 개 목록 화면(갤러리, 유틸리티, 프로젝트, 애셋, Dashboard, 프로필) 아래쪽 바에서 [검색](/info/search.html)하세요 - 도구뿐 아니라 저장한 작업물과 애셋, 설정까지 찾아 줘요. 도구 안에서는 이 바가 물러나고 도구 자체의 조작 영역이 그 자리를 차지해요.
+::: figure using-app-map
+홈 화면: 위쪽에 탭 네 개, 아래쪽에 막대 하나가 있어요. 도구를 열면 실시간 미리보기 옆에 컨트롤이 표시돼요.
+:::
+
+홈 화면 위쪽에 **Tools**, **Utilities**, **Assets**, **Projects** 탭 네 개가 있어요. Tools는 만드는 데 쓰는 것이고, Utilities는 파일 변환, 확인, 정리 같은 작업을 위한 작업대이며, Assets는 라이브러리이고, Projects는 저장한 것을 담아요.
+
+아래쪽 막대에는 **Open**, **Settings**, 검색 입력란, **Verify**, **What?**이 있어요. Tools, Utilities, Assets, Projects, Settings와 앱에서 읽는 가이드에 표시되고, 도구를 열면 비켜나요. [검색](/info/search.html)은 이 입력란에서 도구, 저장된 작업물, 에셋, 설정에 닿아요. [Ask Lolly](/info/ask.html)는 입력한 질문에 이 가이드의 해당 섹션으로 답해요.
+
+카드를 클릭하면 그 도구에서 새로 시작해요. 저장된 작업물은 **Projects**에서 다시 열어요.
 
 ![탐색 예시와 New 동작을 보여주는 갤러리 카드](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
-도구마다 화면이 둘로 나뉘어요. 한쪽에는 **컨트롤**, 다른 쪽에는 실시간 **미리보기**(캔버스)가 있어요. 컨트롤을 바꾸면 미리보기가 즉시 갱신돼요.
+각 도구는 분할 보기예요. 한쪽에는 **컨트롤**, 다른 쪽에는 실시간 **미리보기**가 있어요. 컨트롤을 바꾸면 미리보기가 바로 따라오고, 보이는 대로 내보내져요.
 
 ![도구의 분할 화면 - 왼쪽에는 컨트롤 스택, 오른쪽에는 실시간으로 그려지는 그룹형 막대 차트](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-> 일부 도구(예를 들면 **Design**)는 대신 **자유 캔버스**로 열려요 - 조작 틀이 없는 직접 조작 화면에서 텍스트와 도형, 이미지 상자를 끌고, 크기를 바꾸고, 돌리고, 맞물리게 놓고, 더블클릭해 그 자리에서 텍스트를 편집해요. 다른 모든 도구와 똑같은 렌더 경로로 내보내니, 캔버스가 *그대로* 파일이에요. 아래 [자유 캔버스](#the-free-canvas-design)를 참고하세요.
+**Design**은 예외예요. 끌고, 크기를 조정하고, 글을 입력하는 박스로 이루어진 자유 캔버스로 열리며, 자체 상단 막대, 타임라인, 덱 컨트롤이 있어요. [Design: 자유 캔버스](/info/design.html)가 그 가이드예요.
 
-격자 자체를 원하는 모습으로 다듬는 방법은 두 가지예요:
+## 도구가 허용하는 것 바꾸기
 
-- <!--i:star--> **자주 쓰는 것에 별을 다세요.** 카드에 ★를 달면 격자 위쪽 띠에 큼직한 전용 타일이 생겨요 - [즐겨찾기](/info/favourites.html)를 참고하세요.
-- <!--i:eyeoff--> **한 번도 쓰지 않는 도구는 숨기세요.** 카드를 오른쪽 클릭하거나(여러 개를 골라 선택 바를 써도 돼요) → **Hide tool**을 고르세요. 격자에서 빠지고, 격자에서 타이핑해 찾는 결과에서도 빠져요. 맨 끝의 회색 **Show hidden tools (N)** 타일을 누르면 흐리게 다시 나타나고, 각 카드의 메뉴에 **Unhide tool**이 생겨요. 숨기기는 내 격자에만 해당돼요 - 저장한 링크나 즐겨찾기로는 그대로 열리고, 다른 사람에게는 있던 자리에 그대로 남아요.
+도구에는 달라져야 할 입력만 표시돼요. 작성자가 색상, 레이아웃, 글꼴, 로직을 이미 고정했으므로 만드는 것은 모두 그 규칙을 따라요. 입력에는 텍스트, 슬라이더, 색상 선택기, 드롭다운, 날짜, 이미지 선택기, 반복 행 그룹이 있고, 일부는 접히는 섹션에 있어요.
 
-![숨긴 도구가 드러난 Tools 격자의 끝부분 - 흐리게 표시된 QR Code Generator 카드와, 그 옆에서 카드를 다시 보이게 만든 회색 타일(지금은 Hide hidden tools로 표시)](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
+![도구의 컨트롤 묶음 - 텍스트 칸과 색 버튼, 슬라이더뿐이고 나머지는 제작자가 고정해 뒀어요](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
+
+**디자인을 클릭해서 해당 컨트롤 찾기.** 미리보기의 어떤 요소든 클릭하면 해당 컨트롤에 포커스가 가고 화면에 스크롤돼요. 반복 행 그룹에서는 클릭한 행이 정확히 펼쳐져요.
+
+컨트롤 위의 **Clear changes**는 모든 입력을 기본값으로 되돌려요.
+
+**디자인 시스템 선택.** 디자인 시스템이 컬러웨이, 밝은 모습과 어두운 모습, 또는 다른 테마 선택지를 둘 이상 제공하면 컨트롤 아래의 **Design system** 섹션에 이것이 있어요. 선택지는 이 도구에 영향을 줄 때만 나타나므로 파일 유틸리티에는 섹션이 아예 없어요. 각 컬러웨이는 자체 색상의 점이고, 밝음과 어두움은 두 개의 버튼이며, 그 밖의 선택은 목록이에요.
+
+선택은 이 작품에 속해요. 링크와 저장된 세션에 담겨 이동하고, 디자인 시스템에 연결된 모든 색상이 이를 따르며, 앱 자체의 색상은 그대로예요. Design은 Inspector의 **Canvas** 탭에서 같은 선택을 보여줘요. 색상이 곧 콘텐츠인 도구는 표준 컬러웨이에 머물 수 있으며, 그러면 컬러웨이 점을 제공하지 않아요. [Lolly Demo 사용하기](/info/lolly-demo-in-use.html#colourways-on-real-work)에서 실제 작업의 컬러웨이를 보여줘요.
+
+### 미리보기 확대/축소와 이동
+
+미리보기는 언제나 내보내질 결과 그대로를 보여 줘요.
+
+- **확대/축소:** Cmd/Ctrl 스크롤 또는 트랙패드 핀치로, 포인터를 중심으로 확대/축소해요. 키보드에서는 `0`이 창에 맞추고, `1`이 100%이고, `+` / `−`로 확대/축소해요.
+- **이동:** **Space**를 누른 채 끌거나 마우스 가운데 버튼으로 끌어요. 일반 클릭은 디자인의 부분을 클릭하는 용도로 그대로 비워 둬요.
+- **터치:** 핀치로 확대/축소하고, 끌어서 이동하고, 두 번 탭해서 맞춰요.
+- **확대/축소 HUD:** 모서리의 Lolly 소용돌이를 길게 누르면 `−`, **Fit**, `+`가 펼쳐져요. 소용돌이를 짧게 탭하면 여전히 프로필 메뉴가 열려요.
+
+출력 크기가 바뀌면 보기가 항상 깔끔하게 맞춰진 상태로 돌아가요.
+
+![캔버스 모서리의 소용돌이에서 펼쳐진 확대/축소 HUD: 빼기, Fit, 더하기, 그다음 테마와 소리 토글, 이를 옮기는 손잡이](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
+
+### 실행 취소와 다시 실행
+
+**Cmd/Ctrl-Z**로 뒤로 가고 **Cmd/Ctrl-Shift-Z**(또는 **Cmd/Ctrl-Y**)로 앞으로 가요. 같은 한 쌍이 컨트롤 위에 **Undo**와 **Redo** 버튼으로도 있으며(Design에서는 상단 막대에 있어요), 되돌릴 것이 없으면 각각 회색으로 바뀌어요. 메시지가 각 실행 취소로 복원된 입력을 알려주며, 메시지에 **Redo** 버튼이 있어요.
+
+- **끌기는 한 단계예요.** 0.5초 안에 한 컨트롤을 반복해서 바꾸면 합쳐지므로, 슬라이더를 끝까지 당겨도 실행 취소는 한 번이에요.
+- **마지막 100단계가 보관돼요.** 실행 취소 후에 새로 편집하면 앞으로 가기 스택이 지워져요.
+- **텍스트 상자에서는** Cmd/Ctrl-Z가 입력란에 속하며 글자 단위로 작동해요. 슬라이더, 드롭다운, 색상, 스위치는 Lolly가 맡아요.
+- 파일 입력에서 **파일 선택**은 단계가 아니에요. 그 바이트는 이번 세션에서만 유지되기 때문이에요.
+
+실시간 [협업](/info/collaborate.html)에서도 기록은 사용자만의 것이에요. 다른 기기의 변경이 사용자의 스택에 들어가지 않아요. 실행 취소는 도구를 떠나거나 새로고침할 때까지 유지돼요. 더 오래된 것은 작업하는 동안 저장하는 도구가 **History** 아래에 이전 버전을 보관해요. [이전 버전으로 돌아가기](/info/find-your-work.html#go-back-to-an-earlier-version)를 참고하세요.
+
+### 라이브 카메라
+
+**Filter** 도구의 효과(Halftone, Scanline, Posterize, Voronoi, Duotone, Stretch, Misprint, Dither, ASCII art, Glitch)는 카메라를 쓸 수 있으면 **Go live** 버튼을 보여줘요. 켜면 효과가 웹캠을 프레임 단위로 따라가고, 모션 내보내기는 결과를 GIF, WebM, MP4로 기록해요. 프레임은 기기에서 처리되며, 멈추거나 도구를 떠나는 순간 카메라가 해제돼요. 모든 이미지 선택기에는 한 프레임을 위한 **Take a photo**도 있어요.
+
+## 저장하고 이어서 하기
+
+작업물을 보관하려면 렌더 알약의 **Export** 옆 체크 표시인 **Save**를 누르세요. 새 작업물은 **My library**로 가고, 이전에 저장한 작업물은 그 자리에서 업데이트되며 다운로드되는 것은 없어요. 내보내기 패널에도 같은 **Save** 버튼이 있어요.
+
+저장 위치를 고르려면 내보내기 패널의 **Download** 옆 **Save as**를 누르세요. **Save to a project** 아래에서 **My library**를 그대로 두거나 프로젝트를 고르고(**＋ New project…**로 만들 수 있어요) **Save**를 누르세요. **Save as a template**은 디자인을 새 문서의 출발점인 [템플릿](/info/templates.html)으로 보관해요. Design에서는 **Save as**가 Lolly 메뉴에 있어요. 휴대폰에서는 **•••**, **File menu**, **Save as** 순으로 누르세요.
+
+![두 부분으로 나뉜 렌더 알약: 내보내기 패널을 여는 위쪽 화살표의 Export, 제자리에 저장하는 체크 표시의 Save](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+
+::: timeline
+- <!--i:check--> 렌더 알약에서 **Save**를 누르거나, **Save as**로 프로젝트를 고르세요.
+- <!--i:folder--> 항목이 **My library** 또는 고른 프로젝트로 가요.
+- <!--i:home--> 나중에 왼쪽 위의 **Home**을 누르고 **Projects** 탭을 여세요.
+- <!--i:document--> 항목을 열어요. 모든 설정이 돌아와 있어서 바로 바꾸고 다시 내보낼 수 있어요.
+:::
+
+항목 이름은 내보내기 패널에 입력한 파일 이름을 따르며, 없으면 **QR Code** 같은 도구 이름을 따라요. **Download**로 받은 파일은 완성된 사본이므로, 나중에 바꾸려면 Projects에서 저장된 항목을 여세요.
+
+개인 저장물은 [Sync](/info/sync.html)를 켜지 않는 한 저장한 브라우저나 앱의 이 기기에 남아요. 예상한 곳에 없다면 [작업물 찾기와 복구](/info/find-your-work.html)가 닫힌 탭부터 지워진 브라우저 데이터까지 모든 경우를 다뤄요.
+
+::: details Lolly Work의 팀 프로젝트(선택 사항)
+[조직이 Lolly Work를 사용한다면](/info/organisation.html) 그 인스턴스에 로그인하고 **Projects → Team projects**를 열어 공유받은 세션을 확인하세요. 접근과 보관은 조직이 정하며, 해당 세션은 조직의 Lolly Work 서비스가 저장해요. 조직이 실시간 편집을 허용하면 공유 세션은 열릴 때 실시간 collab에 합류해요. [함께 작업하기](/info/collaborate.html#work-collabs-with-lolly-work-optional)에서 단계를 설명해요.
+
+개인 라이브러리는 별개로 유지돼요. 다른 기기에서 로그인하면 팀 작업은 오지만, 개인 저장물은 Sync나 백업이 있어야 옮겨져요.
+:::
+
+## 작업물 공유하기
+
+디자인은 링크나 파일로 나가요. 내보내기 컨트롤의 **Share**는 둘 다 제공하는 대화상자를 열고, Projects에 저장된 세션의 **Share link**는 그 세션에 대해 같은 대화상자를 열어요.
+
+::: cols
+## 링크
+
+- 주소에 모든 입력이 담기므로 링크가 디자인을 그대로 재현해요.
+- 이 기기에서 추가한 이미지와 파일, 아주 긴 텍스트, 아주 큰 목록은 빠져요.
+- 어느 브라우저에서나 열리므로 링크를 북마크하고, 붙여넣고, 커밋할 수 있어요.
+
+## .lolly 파일
+
+- 이 기기의 이미지와 파일이 포함된 저장 세션을 담고, 도구와 디자인 시스템도 담을 수 있어요.
+- 파일 포함을 선택하지 않으면 라이선스가 있는 카탈로그 아트는 제외해요.
+- Lolly에서 열려요. 더블클릭하거나 **Open**을 쓰거나 앱에 끌어다 놓으세요.
+:::
+
+### 링크
+
+바로 복사할 수 있는 링크가 대화상자 맨 위에 **Copy**와 링크로 QR Code 도구를 여는 **QR** 버튼과 함께 있어요. 링크 아래의 **Link options**에는 다음이 있어요.
+
+- **Open in the installed app**은 링크를 Shortcuts, 런처, 자동화용 `lolly://` 주소로 바꾸며 모든 매개변수는 그대로예요.
+- **Shortest link**는 긴 디자인을 간결한 토큰으로 압축하고 줄어든 글자 수를 보여줘요. 읽을 수 있는 형태도 항상 함께 있어요.
+- **Password-protect this link**는 링크를 기기에서 AES-256으로 암호화해요. 비밀번호는 링크에 절대 포함되지 않아요.
+- **Pin this tool version**은 `_v` 플래그를 추가해서 나중에 도구가 업데이트돼도 링크의 렌더링 결과가 바뀌지 않게 해요.
+- **When the recipient opens the link…**는 전체 화면, 이미 펼쳐진 내보내기 패널, 열 때 다운로드(`&export`), 클립보드로 복사(`&copy`) 중에서 골라요.
+- **Copy credit**은 게시물이나 슬라이드용으로 링크와 함께 "Made with Lolly" 캡션을 복사해요.
+
+도구에 이름 같은 개인 필드가 있으면 **Review personal fields**가 해당 필드를 선택할 때까지 링크에 넣지 않아요. [URL 모드](/info/url-mode.html)에서 링크에 담을 수 있는 모든 것을 다뤄요.
+
+**대화상자는 링크가 담을 수 없는 것을 알려줘요.** 이 기기에서 추가한 이미지나 파일, 아주 긴 텍스트 값, 아주 큰 목록은 주소에 들어가지 않아요. 링크를 만들 때 각각 집계돼요. 무언가 빠졌다면 그림이 빠진 채로 열리는 링크를 건네는 대신, 대화상자가 그 목록을 보여주고 파일 옵션을 안내해요. 길기만 한 링크에는 글자 수와 함께 더 가벼운 안내가 나와요.
+
+**어떤 도구는 링크 자체가 제품이에요.** Jump Page는 링크를 한 페이지에 모아 나눠 주게 해요. 프로필 링크, 강연, 매장 앞면 등이에요. 페이지가 곧 링크이므로 호스팅도 계정도 없어요. 방문자는 전체 너비로 보고, 스크롤하면 장면마다 링크 하나씩 나와요.
+
+![편집기에서 본 Jump Page: 페이지 상단의 제목 장면과 그 아래의 링크 장면들](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+
+::: details Lolly Work의 조직 관리형 링크
+만료, 폐기, 비밀번호가 필요한 공유를 위해 Lolly Work는 공유 세션, 도구, 카탈로그 에셋에 대한 관리형 링크를 제공해요. 이 링크는 조직의 서비스를 통해 확인되며 그 접근 규칙을 따라요. 위의 독립형 링크와는 별개이며, 링크를 폐기해도 누군가 이미 내려받은 파일을 회수할 수는 없어요. [렌더링과 공유](/info/manage/sharing.html)에서 링크 유형과 권한을 나열해요.
+:::
+
+### .lolly 파일
+
+공유 대화상자의 **Editable file** 섹션에 있는 **Download .lolly**는 현재 디자인을 파일 하나로 써요. 이 기기의 이미지와 파일이 포함된 저장 세션을 담고, 일반 카탈로그 아트도 함께 들어가요. 오래됐거나 사용할 수 없는 파일은 사라지지 않고 외부 참조로 남아요. 저장하기 전에 대화상자가 파일 크기, 포함된 파일 수, 참조된 파일 수, 도구 포함 여부를 보여줘요. 기기에 공유 시트가 있으면 **Send to…**가 파일을 바로 넘겨줘요(AirDrop, Android 공유).
+
+**Projects**의 폴더 메뉴에 있는 **Download project (.lolly)**는 폴더 전체를 써서 다른 사람이 폴더의 모든 세션을 이어서 작업할 수 있게 해요. Batch 세션은 제외되며 알림에 몇 개인지 표시돼요. 같은 메뉴의 **Download originals**는 각 항목을 개별 파일로 담은 일반 zip을 써요.
+
+파일이 나가기 전에 사용자가 결정할 것이 세 가지 있어요.
+
+- **이름을 넣을지.** 이름, 이메일, 조직은 [프로필](/info/profile.html)에서 **Use my details to create**가 켜져 있을 때만 기록돼요. 꺼져 있으면 파일에는 Lolly로 만들었다는 사실과 시간만 기록돼요.
+- **제외된 아트를 넣을지.** 라이선스가 있는 아트, 브랜드 잠금 아트, 라이선스가 기록되지 않은 카탈로그 작품은 기본적으로 빠져요. 디자인이 그중 하나라도 쓰면 대화상자가 몇 개인지 알려주고 *Download without them* 또는 *Include and download*를 제공해요. 포함하면 `.lolly`를 여는 사람에게 그 파일이 넘어가기 때문이에요. 파일의 `CREDITS.txt`는 무엇이 포함되었고 무엇이 제외되었는지 이유와 함께 나열하며, [크리에이티브 권리와 크레딧](/info/creative-rights.html)이 규칙을 설명해요.
+- **도구를 넣을지.** **Include the tool**은 도구 자체의 파일을 묶어서, 그 도구가 없는 기기에서도 디자인이 열리게 해요. 포크 같은 사용자 지정 도구는 선택된 채로 시작하고, 서명된 카탈로그에 있는 도구는 선택 해제된 채로 시작해요. 서명된 카탈로그가 없는 빌드에서는 모든 도구가 사용자 지정으로 간주돼요.
+
+**파일 열기.** 데스크톱과 모바일 앱에서는 `.lolly`를 더블클릭하거나 탭하고, **Open with Lolly**를 선택하거나, 공유 시트에서 Lolly로 보내세요. 웹 앱에서는 **Open**을 누르거나 Lolly에 파일을 끌어다 놓으세요. 어느 경로든 무언가 쓰기 전에 먼저 파일의 매니페스트를 읽고 크기, 내용, 이어질 일을 보여줘요.
+
+파일에 없는 도구가 들어 있으면 **Trust this tool?**이 도구와 작성자를 보여주고, 이를 열면 도구 자체 코드가 기기에서 실행된다고 알려줘요. **Trust & install**을 누르면 진행해요. 거절해도 작업물은 Projects에 저장되어 도구를 추가하는 날을 기다려요. 코드가 모듈로 제공되는 도구는 아직 이 방식으로 설치할 수 없으며 같은 방식으로 거절돼요.
+
+::: details .lolly에 담기는 것과 열리는 방식
+`.lolly`는 Lolly의 번들 확장자이며, `manifest.json`의 `format`이 안에 든 것을 알려줘요.
+
+- **공유 디자인**(`lolly-share`)은 저장된 세션 하나, 포함된 파일, 아직 참조로 확인되는 것의 영수증을 담아요. 도구와 디자인 시스템도 담을 수 있어요. 열면 새 Project가 추가되며 세션을 덮어쓰지 않아요.
+- **공유 프로젝트**(`lolly-share`, kind `project`)는 Projects의 폴더 하나를 담아요. 하위 폴더, 그 안의 모든 세션과 타일, 거기 보관된 그림이에요. 열면 폴더 전체의 사본이 추가돼요. 각 세션은 `sessions/<key>.json`으로, 타일은 `thumbs/` 아래에 담겨 이동해요. 프로젝트 파일이 생기기 전의 Lolly는 업데이트하라고 안내해요.
+- **디자인 시스템 팩**(`lolly-brand`)은 토큰을 담고 글꼴, 로고, 게시된 버전, 유지된 리소스를 담을 수 있어요. 팩을 열면 별도로 이름 붙은 디자인 시스템이 추가되고 그 시스템이 활성화돼요.
+- **워크스페이스 또는 인스턴스 팩**은 선언된 도구, 카탈로그 에셋, 선택적으로 인스턴스 주소가 있는 `lolly-brand`예요. 하나를 불러오면 이전에 불러온 단일 워크스페이스 오버레이를 대체하며, 미리보기에 이런 기기 전체 영향이 나열돼요.
+
+전체 기기 백업은 `.lolly`가 아니에요. `LollyTools-….zip`(형식 `lolly-backup`)으로 남으며 **Settings → Storage → Import data…**로 복원해요. zip으로 묶인 도구 폴더도 `.zip`으로 남아요. [데이터 이전](/info/data-transfer.html)이 형식 참조예요.
+
+`.lolly`는 일반 zip이에요. 이름을 `.zip`으로 바꾸면 내용을 볼 수 있어요. 직접 올린 이미지는 `assets/uploads/` 아래, 카탈로그 아트는 `assets/catalog/` 아래에 있고, `manifest.json`이 모든 파일을 나열하며, README가 파일이 무엇인지 알려줘요.
+
+macOS, Windows, Linux, iOS, Android 모두 이 형식을 등록하며, 데스크톱 파일 관리자는 이를 Lolly 문서로 표시하고 GNOME Files는 저장된 세션 자체의 썸네일을 보여줄 수 있어요. Design System Setup에서 열면 공유 디자인에 디자인 시스템이 들어 있을 때 디자인 시스템 동작을 추천하지만 **Open shared design**을 숨기지는 않아요.
+
+iOS나 Android에서 다른 앱이 넘긴 문서는 48 MB로 제한돼요. 넘기는 과정이 앱 경계를 넘어 바이트를 복사하기 때문이며, 앱이 이를 알려줘요. Lolly 안의 **Open**에는 그런 제한이 없으니 더 큰 번들에는 그것을 쓰세요.
+
+확인하면 Lolly가 번들을 한 번 풀고 검증해요. 에셋은 체크섬으로 대조되어 라이브러리로 가고 이미 기기에 있는 파일은 재사용돼요. 세션은 새 ID로 Projects에 가므로 같은 파일을 두 번 열 수 있으며, 도구가 없는 세션은 그곳에서 기다려요. 100 MB가 넘는 파일은 큼으로 표시되고, 브라우저 저장소의 여유 공간이 파일에 필요한 것보다 적다고 보고하면 미리보기가 경고해요. 무엇이든 확정되기 전에 무결성 대상인 모든 부분을 확인하며, 손상된 사본은 아무것도 남기지 않고 거부돼요.
+:::
+
+링크와 파일은 모두 스냅샷을 전달해요. 실시간 편집에 관해서는 [함께 작업하기](/info/collaborate.html)가 두 기기 간 비공개 collab과 Lolly Work를 통한 선택적 업무 collab을 다뤄요.
+
+## 애셋 - 내 라이브러리
+
+**Assets**(`#/a`)는 도구가 활용할 수 있는 모든 것을 모아요. 브랜드 로고, 이미지, 오디오, 모션이 종류별로 묶여 있고 직접 올린 파일도 있어요. 업로드한 파일은 기기에 저장돼요. Lolly Work를 쓰는 조직은 자체 접근 규칙에 따른 공유 카탈로그도 제공할 수 있어요. [조직에서 Lolly 사용하기](/info/organisation.html)를 참고하세요.
+
+![애셋 - 브랜드 색상 견본과 글꼴, 그리고 내가 올린 파일](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+
+- <!--i:upload--> **파일 가져오기.** 이미지, SVG, 오디오 클립, 동영상, Lottie, PDF, PowerPoint 덱을 업로드 영역에 놓거나 클릭해서 고르세요. Assets와 모든 도구의 에셋 선택기에 즉시 나타나요. 여러 페이지 PDF나 `.pptx`는 유지할 페이지나 슬라이드를 묻고, 각각 SVG 에셋이 돼요. 도구 안에서 추가한 이미지는 받은 그대로 **My images**에 보관되므로 거기 붙은 Content Credential도 여전히 검증되며, 아주 큰 파일만 크기 조정 여부를 물어요. **Settings → Storage**가 **My images**의 용량을 보여줘요. 기기 저장소 외에 다른 제한은 없어요. 이미지가 들어올 때 EXIF와 GPS 데이터를 지우려면 **Settings → Feature flags**에서 **Strip metadata from uploads**를 켜세요. Content Credentials는 어느 쪽이든 유지돼요.
+- <!--i:star--> **자주 쓰는 것을 즐겨찾기.** 에셋이나 브랜드 견본에 별표를 하면 모든 선택기의 맨 위에 고정돼요.
+- <!--i:folder--> **정리하기.** 에셋을 다른 그룹으로 옮기고, 쓰지 않는 공유 브랜드 에셋을 숨기거나(**Show hidden**으로 되돌려요) 직접 올린 파일을 삭제해요. Projects와 같은 선택 막대가 선택 항목 전체에 적용돼요.
+- <!--i:layers--> **동영상에서 배경 걷어내기.** 동영상의 세부 정보를 열거나 에셋 선택기에서 카드를 우클릭하고 **Remove background…**를 선택하세요. **On-device model**은 복잡한 장면에서 피사체를 잘라내고, **Colour key**는 그린 스크린처럼 고르게 조명된 배경을 제거하며 가장자리를 위한 **Tolerance**, **Softness**, **Spill removal**이 있고 다운로드가 필요 없어요. **Resolution**(360, 480, 720 또는 1080p, 원본을 넘지 않음)은 디테일과 속도를 맞바꿔요. 진짜 투명도를 가진 애니메이션 WebP 또는 PNG인 잘라낸 결과가 원본 옆에 저장되고, 원본의 Content Credential이 구성 요소로 함께 따라가요. [한 번 생성하고 똑같이 렌더링](/info/ai-features.html)에서 이것이 평범한 편집으로 유지되는 이유를 설명해요.
+
+### 팔레트와 글꼴을 어디로든 가져가기
+
+Assets의 **Swatches** 패널은 브랜드를 이루는 색상을 보여줘요. 브랜드 색상, 추가한 색상, 램프, 스펙트럼이에요. Lolly가 인터페이스용으로 보관하는 역할 색상(텍스트, 표면, 가장자리, 컬러웨이 리드, 다른 이름으로 된 브랜드 색상의 사본)은 패널 하단의 회색 **Show colour roles** 카드 뒤에 있어요.
+
+각 색상은 다른 에셋처럼 카드예요. 하나를 클릭하면 세부 정보가 열리고, 몇 개를 선택해 그것만 다운로드하거나, 다른 도구가 읽는 형식으로 팔레트 전체를 다운로드할 수 있어요.
+
+- <!--i:code--> 스타일시트나 빌드용 **Design tokens (JSON)**, **CSS variables**, **CSS classes**. sRGB보다 넓은 색상은 넓은 값을 유지해요. CSS는 헥스 뒤에 이를 설정하고, JSON은 헥스에 넓은 색상, CMYK 빌드, 별색 잉크를 함께 유지해요.
+- <!--i:palette--> Illustrator나 Photoshop용 **Adobe Swatch Exchange (.ase)**. CMYK 빌드로 잠긴 색상은 그 CMYK 견본으로, 별색 잉크는 이름 있는 별색 견본으로, sRGB보다 넓은 색상은 Lab으로 들어가요.
+- <!--i:pentool--> GIMP나 Inkscape용 **GIMP palette (.gpl)**와 **SCSS variables**이며 둘 다 sRGB예요.
+
+![Swatches 패널: 위쪽에 팔레트 다운로드 버튼 다섯 개, 그 아래에 세부 정보를 여는 칩으로 된 모든 브랜드 색상](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+
+각 카드의 점으로 색상을 선택해요. 두 번째 점을 Shift 클릭하면 사이의 모든 것이 선택되고, 상자를 끌어 틈을 지나가거나, 카드에 포커스를 둔 채 Cmd/Ctrl+A를 눌러요. 막대는 같은 여섯 가지 형식의 **Download as…**, **Copy hex**, **Favourite**를 제공해요. 형식을 고르기 전에 메뉴가 어떤 형식도 담을 수 없는 색상(Transparent는 색 자체가 없어요), 넓은 색상을 sRGB 대체값으로 저장하는 형식(SCSS와 GIMP), CMYK와 별색 값을 담는 형식(JSON과 .ase)을 나열해요. 카드를 우클릭하면 색상 하나에 같은 동작을 쓸 수 있어요.
+
+색상의 세부 정보는 미리보기를 그 색으로 채우고 **Linked values**(CMYK 빌드 또는 별색 잉크, 특정 공간이나 인쇄기용으로 작성된 값, 디자인 토큰), **Every notation**(헥스, OKLCH, Display-P3 등, 각각 복사 버튼 포함), **Plotted on a colour space**, **Tones**, **Readability**를 펼쳐요. 화살표 키로 팔레트를 이동하고, **Copy link**는 색상 자체를 공유하며, **Open in Colour Lab**이 더 깊이 들어가게 해요.
+
+**Fonts** 패널은 브랜드 글꼴을 나열하고 각각에 **download**가 있어서 로컬에 설치하거나 인쇄소에 넘길 수 있어요.
+
+## 그리드 맞춤 설정
+
+- <!--i:star--> **쓰는 것을 즐겨찾기.** 카드를 우클릭하고 **Add to favourites**를 선택하면 그리드 위 띠에 큰 타일이 생겨요. [즐겨찾기](/info/favourites.html)에서 이 띠를 다뤄요.
+- <!--i:eyeoff--> **쓰지 않는 도구 숨기기.** 카드를 우클릭하거나 여러 개를 선택하고 **Hide tool**을 선택하세요. 그리드와 그리드에서 입력해 찾는 결과에서 사라져요. 끝에 있는 회색 **Show hidden tools (N)** 타일이 흐리게 처리된 채로 다시 보여주며, 각각의 메뉴에 **Unhide tool**이 있어요. 숨기기는 사용자의 그리드만 바꿔요. 링크나 북마크로는 도구가 여전히 열려요.
+- <!--i:clock--> **내 도구를 먼저.** 서로 다른 도구 세 개에서 작업물을 저장하고 나면, 그리드 위의 **Yours** 칩 행이 즐겨찾기와 최근 도구를 앞에 보여줘요.
+- <!--i:sliders--> **원하는 대로 배치.** **View options**로 레이아웃(**Grid**, **Card**, **List**), 카드 크기와 밀도, 정렬 순서, 카테고리 필터를 정해요.
+
+![숨긴 도구가 드러난 Tools 그리드의 끝: 흐려진 Wordmark 카드와, 그 옆에 다시 보이게 토글한 회색 타일이 이제 Hide hidden tools로 표시돼요](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
 <!--
 SHOT NOTE (misc-hidden-tools): the trailing `press:End` is required. The
 hidden box and the revealed cards live at the very END of the grid, and
@@ -31,26 +215,26 @@ gallery under a caption about its bottom. `press:` with no `on=` goes to the
 keyboard, and the End key with focus on the just-clicked box scrolls the
 document; the walker then anchors the body walk to that band.
 The tile reads "HIDE hidden tools" in the shot, not "Show" - it is a toggle and
-the recipe has just pressed it. The alt says so rather than quoting the resting
+the recipe has just pressed the tile. The alt says so rather than quoting the resting
 label the prose above already gives.
-There is no standalone per-card "hide" button
-(unlike the always-visible fav/pin corner icons) - Hide only exists inside a
-tile's right-click menu or the bulk bar, both confirmed in views/gallery.ts.
-The recipe goes the bulk-bar route since it needs no `|right` context-menu
-step: tick the card (`[data-select="qr-code"]`, the same checkbox hook the
-selection bullet under Projects uses), click the bar's Hide button
-(`[data-bulk="hide"]` - the literal `data-bulk` value bulkBarHtml() writes,
-confirmed in lib/bulk-bar.ts), then click the grey reveal tile
-(`.gtile--hiddenbox`, confirmed in gallery.ts).
+The recipe hides nothing itself. The lolly-demo catalog the captures pin
+ships Wordmark hidden (`defaultHiddenTools` in its assets index.json), so a
+fresh profile already has one hidden tool and the recipe only clicks the grey
+reveal tile (`.gtile--hiddenbox`, confirmed in gallery.ts). It used to tick
+the QR Code card and press the bulk bar's Hide button first; under lolly-demo
+that published Wordmark dimmed and QR Code not, under a caption naming QR
+Code, so the steps were dropped rather than relied on. QR Code was hidden
+in that run too: the End scroll had left the pointer over its card, and a
+hovered hidden card lifts its dimming (gallery.css), so it read as a normal
+tool. The closing `hover:` puts the pointer back on the reveal tile, which
+keeps every revealed card dimmed.
 -->
 
-여러 카드를 한 번에 다루려면 각 카드의 체크박스를 켜거나, 빈 곳에서 선택 상자를 끌거나, **Shift/Cmd-click**하세요 - 그러면 떠 있는 실행 바가 나타나요. **선택 바가 무엇을 내주는지**는 보기마다 조금씩 달라요. 모든 동작이 어디서나 말이 되는 건 아니니까요:
+**여러 카드에 한꺼번에 작업하기.** 각 카드의 체크박스를 선택하거나, 빈 공간에서 선택 상자를 끌거나, Shift/Cmd 클릭하면 해당 보기가 허용하는 동작이 담긴 막대가 나타나요.
 
-- **도구 / 유틸리티:** 즐겨찾기(또는 즐겨찾기 해제), 숨기기(또는 숨김 해제), 오프라인 사용 가능(또는 오프라인에서 제거), **세션 보기**(그 도구로 만든 세션만 보이는 프로젝트를 열어요), 그리고 카드가 정확히 하나만 선택됐을 때의 링크 복사예요.
-- **애셋:** 즐겨찾기와 숨기기는 어떤 선택에도 적용돼요. 중복, 다운로드, 삭제는 선택한 항목이 모두 내가 올린 것일 때만 나타나요 - 공유된 디자인 시스템 자산은 영구적인 약속이라, 한꺼번에 처리할 때조차 이 셋은 붙지 않아요.
-- **프로젝트:** [작업 찾기 및 복구](/info/find-your-work.html#find-something-you-saved)를 참고하세요.
-
-> 이름 때문에 헷갈리기 쉬운 지점 하나: **세션 보기**는 무언가 *선택된* 뒤에만 있어요. 선택하지 않은 카드 하나를 오른쪽 클릭하면 대신 **저장된 세션 N개**가 나오는데, 이건 그 도구의 저장된 세션 목록을 열고, 여기서 삭제하면 프로젝트로 이동하는 대신 그 세션을 휴지통으로 옮겨요.
+- **Tools와 Utilities:** Favourite, Hide, Available offline, **View sessions**(Projects에서 해당 도구로 만든 세션만 표시), 카드 하나에 대한 Copy link.
+- **Assets:** 모든 선택에 Favourite와 Hide. Duplicate, Download, Delete는 선택한 항목이 모두 직접 올린 것일 때만 나타나요. 공유 디자인 시스템 에셋은 영구 계약이기 때문이에요.
+- **Projects:** [작업물 찾기와 복구](/info/find-your-work.html#find-something-you-saved)를 참고하세요.
 
 ![두 도구에 대한 갤러리 선택 바 - Available offline, View sessions, Favourite, Hide를 제공해요](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
 <!--
@@ -70,409 +254,37 @@ already exist, and build-docs-shots.ts gives every shot a fresh
 storage-seeding hook.
 -->
 
-### Ask Lolly
-
-뒤지기보다 물어보고 싶을 때, **Ask Lolly**(`#/ask`)는 입력한 질문을 받아 이 문서에서 해당하는 부분을 **그대로** 돌려줘요 - 요약도 생성도 아닌 안내서 자신의 문장이에요 - 어느 페이지에서 왔는지 밝히고 그 옆에 **Open in docs** 링크를 붙여서요. 답변 아래에는 같은 질문에 걸리는 앱 안의 자리가 놓여요. 도구, 설정, 저장한 프로젝트가 각각 버튼이고, 누르면 그리로 이동할 뿐이에요.
-
-대화 기록은 세션 단위 기억이에요. 이어서 물으면 실타래가 쌓여 가고, 새로 고치면 처음부터 다시 시작해요. 검색 결과 맨 아래에는 **Ask Lolly: *입력한 검색어*** 줄이 붙어요 - 다른 묶음이 찾아낸 구체적인 결과 아래에요 - 이 줄이 질문을 그대로 넘겨 주니, 검색 바에서 시작해 여기서 마무리할 수 있어요.
-
-## 캔버스(미리보기)
-
-미리보기는 언제나 내보내질 결과 그대로를 보여 줘요.
-
-**데스크톱**
-
-- **확대/축소:** Cmd/Ctrl-스크롤, 또는 트랙패드에서 손가락 모으기 - 포인터를 중심으로 확대돼요.
-- **화면 이동:** **Space**를 누른 채 끌거나, **마우스 가운데 버튼**으로 끄세요. (일반 클릭은 디자인의 각 부분을 클릭하는 데 그대로 남겨 뒀어요.)
-- **키보드:** `0` = 창에 맞추기 · `1` = 100% · `+` / `−` = 확대/축소.
-- **줌 HUD:** 모서리에 있는 작은 `−  NN%  +  Fit` 컨트롤이에요. 퍼센트를 클릭하면 Fit ↔ 100%가 번갈아요.
-
-![캔버스 모서리의 줌 HUD - 빼기, 실시간 퍼센트, 더하기, Fit, 그리고 테마와 소리 토글](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
-
-**터치**
-
-- **핀치**로 확대/축소하고, **드래그**로 이동하고, **더블 탭**으로 화면에 맞춰 되돌려요. 자유 캔버스에서는 선택한 개체 위의 두 손가락이 화면 대신 선택 항목의 배율, 회전, 이동을 조절해요([크기 조절, 배율, 회전](#resize-scale-and-rotate) 참고).
-
-**클릭해서 해당 컨트롤로 건너뛰기:** 디자인의 아무 요소나 클릭하면 대응하는 사이드바 입력에 포커스가 가고 화면에 보이도록 스크롤돼요. 반복 행 묶음이라면 클릭한 바로 그 행이 펼쳐지니, 보이는 것을 고치는 데 한 번의 탭이면 충분해요.
-
-크기를 바꾸면 보기가 언제나 깔끔한 맞춤 상태로 되돌아가요.
-
-### 자유 캔버스(Design)
-
-자유 캔버스 도구는 아트보드 *바깥*에 작업 공간을 더해요. 디자이너의 작업대처럼요:
-
-- **캔버스 밖 대기 공간.** 상자를 프레임 밖으로 끌어내도 **완전히 보이고 선택할 수 있는** 상태로 남아요 - 구성을 짜는 동안 요소를 옆에 세워 뒀다가 다시 끌어 넣으세요. 프레임 바깥은 모두 **은은하게 흐려져서** 내보내기 영역이 한눈에 읽히고, 프레임에는 그림자가 남아 파일이 어디서 시작하는지 정확히 알려 줘요.
-- **프레임 안쪽만 내보내져요.** 내보낸 파일의 경계는 아트보드예요 - 바깥에 남은 것(또는 가장자리에 걸친 상자의 일부)은 래스터든 벡터든 결과물에서 그대로 잘려 나가요.
-- **Fit보다 더 축소**(20%까지)하면 프레임에서 멀리 떨어진 곳까지 세워 뒀을 때 작업대 전체를 볼 수 있어요.
-- **크기를 바꿀 수 있는 아트보드.** 내보내기 크기를 바꾸면 프레임이 제자리에서 리사이즈돼요. 상자는 위치를 지키니, 기존 내용을 중심으로 레이아웃을 다시 잡을 수 있어요.
-- **내보내기 전에.** 인스펙터의 **문서** 섹션이 저장된 레이어 구조를 확인한 다음, 정착된 캔버스를 읽어 잘린 텍스트와 단색 대비를 검사해요. SVG/PDF 외곽선 처리에 쓰는 것과 같은 폰트 레지스트리에 각 텍스트 런에 내장 가능한 폰트 바이트가 있는지도 물어봐요. 이미지와 그러데이션 배경은 꾸며낸 대비 점수를 받는 대신 육안 확인이 필요한 항목으로 표시돼요.
-
-![Design의 자유 캔버스 - 아트보드와 그 주변의 페이스트보드](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
-
-**선택 항목 뒤집기.** 아무 박스나 우클릭한 뒤 **Flip horizontal** 또는 **Flip vertical**을 선택하면 그 자리에서 좌우 또는 상하로 뒤집힙니다. 키보드로는 `Shift+H` / `Shift+V`를 누르면 됩니다 - Shift를 쓰는 이유는 단독 `V`가 포인터 도구이기 때문입니다. 선택한 각 박스는 자신의 축을 기준으로 실행 취소 한 단계 안에서 뒤집히며, 이 뒤집기는 실제 변형이므로 캔버스뿐 아니라 내보낸 SVG, PDF, PNG에도 그대로 유지됩니다.
-
-### 크기 조절, 배율, 회전
-
-개체를 선택한 뒤 핸들을 드래그하면 크기를 바꿀 수 있고, 선택 항목 아래의 둥근 핸들을 드래그하면 개체를 회전할 수 있어요. 크기 드래그는 두 가지 모드로 동작해요.
-
-- **크기 조절**은 기본 모드로, 상자만 바꿔요. 텍스트는 새 크기에 맞춰 줄바꿈되고, 글꼴 크기, 획 두께, 모서리 반경, 효과는 그대로예요.
-- **배율**은 개체를 내용과 함께 키우거나 줄여요. 글꼴 크기, 획, 모서리 반경, 그림자, 흐림, 안쪽 여백, 간격이 모두 같은 비율로 바뀌어요.
-
-`K`를 누르면 배율을 켜고 끌 수 있어요. 키보드가 없으면 Lolly 메뉴에서 **배율 모드**를 고르거나, 도구 레일의 **포인터** 버튼을 길게 누르거나 마우스 오른쪽 버튼으로 클릭한 뒤 **배율**을 고르세요. 터치 화면에서는 개체 막대에도 배율 토글이 있어요. 배율이 켜져 있는 동안 포인터 버튼에는 배율 아이콘이 보이고, 핸들마다 가운데에 점이 생겨요. `V` 또는 **Escape**를 누르면 선택을 유지한 채 크기 조절로 돌아가요. 문서를 열 때는 항상 배율이 꺼져 있어서 실수로 획을 키우는 일이 없어요. 배율은 한 번에 실행 취소 한 단계이며 **배율**이라는 이름이 붙어요.
-
-**숫자로 배율 조절.** 배율이 켜져 있거나 개체를 여러 개 선택했을 때 개체 막대의 수치를 클릭하면 **배율** 팝오버가 열려요. 백분율이나 너비, 높이 중 하나를 입력하고(나머지 두 값은 따라 바뀌어요), 3 x 3 격자에서 고정할 기준점을 고른 뒤 **적용**을 선택하세요. 드래그할 필요 없이 실행 취소 한 단계로 처리돼요. 배율이 꺼져 있으면 여러 개체는 크기와 위치만 바뀌어요.
-
-**여러 개체.** 개체를 여러 개 선택하면 모서리뿐 아니라 가장자리에도 핸들이 생겨요. 선택한 모든 개체가 똑바로 서 있거나 90도 단위로만 회전했고 그룹이나 원이 없으면, 모서리 드래그로 너비와 높이를 자유롭게 바꿀 수 있어요. 그렇지 않으면 선택 항목은 비율을 유지해요. 핸들에는 배율 커서가 나타나고, 드래그하는 동안 수치에 **비율 유지**가 덧붙어요. 크기를 조절하거나 배율을 바꾸는 동안 선택 항목 옆의 작은 라벨이 크기를, 배율 모드에서는 백분율을 보여 줘요.
-
-**드래그하는 동안 누르는 키**는 누르거나 떼는 즉시 적용돼요(단축키 시트의 `?`에도 나와 있어요).
-
-| 누르는 키 | 크기·배율 조절 | 회전 | 이동 |
-|---|---|---|---|
-| **Shift** | 비율 유지(배율은 항상 유지) | 15도 단위로 회전 | 변화 없음 |
-| **Alt**(Option) | 중앙 기준 | 자유롭게 회전 | 스냅과 격자 끔 |
-| **Cmd/Ctrl** | 스냅과 격자 끔 | 자유롭게 회전 | 스냅과 격자 끔 |
-
-아무 키도 누르지 않으면 회전이 15도 배수에서 4도 이내로 가까워질 때 가장 가까운 15도로 끌려가요. 아트보드는 회전하지 않아서 회전 핸들이 없어요.
-
-**가장자리 어디든 잡을 수 있어요.** 핸들을 정확히 맞출 필요가 없어요. 선택 항목의 각 변은 전체 길이에 걸쳐 크기 조절 띠가 되고, 마우스나 펜에서는 각 모서리 바로 바깥에 회전 영역이 있어요. 포인터는 드래그하면 무엇이 일어나는지를 선택 항목의 방향에 맞춰 보여 줘요. 띠나 영역을 눌러도 드래그를 시작해야 비로소 크기 조절이나 회전이 되므로, 그냥 클릭하면 예전처럼 선택, 선택에 추가, 선택 해제가 돼요. 잠긴 개체에는 핸들, 띠, 영역이 없어요.
-
-**작은 개체도 움직일 수 있어요.** 화면에서 25픽셀 이하인 개체에서는 모서리와 겹치는 가운데 핸들이 숨겨지고 나머지 핸들은 윤곽선에서 조금 바깥으로 옮겨져서, 개체를 누르면 개체가 이동해요. 10픽셀 이하에서는 모서리 핸들도 사라지고, 가는 선은 양 끝에 핸들이 하나씩 남아요. 가는 선이나 아주 작은 개체 바로 옆을 눌러도, 핸들에 닿지 않았다면 개체가 이동해요.
-
-**큰 잡기 영역.** 터치 화면에서는 잡기 영역이 커져요. 각 모서리 영역은 화면에서 선택 항목 너비와 높이의 4분의 1이며 24~44픽셀 사이로 유지되고, 각 변 영역은 두 모서리 사이 구간을 덮어요. 선택 항목이 너무 작으면 영역이 윤곽선 바깥으로 옮겨져서, 가운데를 눌러도 선택 항목이 이동해요. 포인터 아래 또는 누르고 있는 손가락 아래의 영역은 음영으로 표시돼요. 마우스나 펜에서도 같은 영역을 쓰려면 Lolly 메뉴에서 **큰 잡기 영역**을 켜세요. 이 설정은 이 기기에만 저장돼요.
-
-**선택 항목 위의 두 손가락.** 터치 화면에서 선택한 개체 위에 두 손가락을 올려 보세요. 핀치하면 선택 항목의 배율이 바뀌고, 비틀면 회전하고, 두 손가락을 함께 움직이면 선택 항목이 따라 이동해요. 두 손가락으로 한 모든 동작은 실행 취소 한 단계로 처리돼요. 배율이 켜져 있으면 핀치가 내용까지 함께 조절하고, 꺼져 있으면 핀치가 선택 항목의 크기를 비율에 맞춰 조절해요. 비틀기는 15도에 가까워지면 그 각도로 끌려가고, 두 손가락 이동은 스냅되지 않아요. 다른 곳에서 두 손가락을 쓰면 예전처럼 화면을 확대/축소하고 이동하며, 두 손가락 탭은 여전히 메뉴를 열어요. 첫 번째 손가락이 선택 항목 위에 닿아야 하고, 두 번째 손가락이 선택 항목 위나 그 가장자리 바로 바깥에 곧바로 이어져야 해요. 선택 항목에 아트보드나 잠긴 개체가 있거나, 화면 대부분을 차지하거나, 화면 가장자리를 벗어나면 두 손가락은 대신 확대/축소와 이동을 해요.
-
-### 레이어와 인스펙터
-
-**레이어**에서는 아트보드마다 접을 수 있는 상위 그룹이 돼요. 이름을 선택하면 그리로 이동하고, 레이어를 펼쳐서 그 아트보드 안의 개체를 선택하거나 순서를 바꿀 수 있어요. 섬네일과 페이지 순서를 보려면 **페이지**로 전환하세요. 화살표 키로 레이어 목록을 이동하고, 왼쪽 화살표를 누르면 아트보드 제목으로 돌아가요.
-
-**인스펙터**는 선택한 개체의 텍스트나 이미지 컨트롤을 맨 앞에 둬요. 빠르게 고르려면 옵션 칩을 쓰고, 스타일 세부 사항을 보려면 **Advanced**를 펼치세요. 휴대폰에서는 **추가 작업**에서 **인스펙터**를 열어요. 컨트롤은 시트로 열리고, Escape나 뒤로 가기를 누르면 선택은 유지한 채 닫혀요.
-
-### 직접 도형 그리기(펜)
-
-상자와 원, 모서리가 둥근 프레임이면 대부분의 레이아웃은 해결돼요. 그 목록에 없는 도형이 필요하면 직접 그리세요. 도구 막대의 **Pen** 버튼(또는 `P` 키)을 누르면 그리기 모드로 들어가요. 모드 사이는 키 하나로 오가요 - **`V`**는 Pointer로 돌아가고, **`P`**는 Pen, **`N`**은 노드 도구(**Edit points**)예요 - 어떤 모드에 있든 빠져나오는 길은 언제나 Pointer예요.
-
-![자유 캔버스의 도구 막대 - 끌기 손잡이, Lolly 메뉴, 그리고 Pointer, Add a box, Pen, Edit points, Line, Timeline, Artboards, Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
-
-- **클릭**해서 점을 놓으세요. 기본 곡선 유형에서는 **클릭한 채 끌면** 그 점의 핸들이 딸려 나오고, 이렇게 해서 모서리가 아닌 곡선을 그려요 - 클릭할 때 **Alt**를 누르면 대신 각진 모서리가 돼요. (다른 곡선 유형에서는 놓는 점이 모두 모서리라서 끌어도 아무 일도 일어나지 않아요. 아래 **Spline type**을 보세요.)
-- 점을 놓는 동안 아트보드와 다른 상자에 맞물리면서, 평소 끌기와 똑같은 안내선이 그려져요. Alt를 누르면 그리는 동안에는 격자가, 나중에 점을 끄는 동안에는 격자와 가장자리가 함께 무시돼요.
-- **첫 점을 클릭**하면 고리가 닫히면서 한 번에 끝나요. 그렇지 않으면 **Enter**를 누르거나 더블클릭하거나 그냥 도구를 바꾸세요 - 그린 것은 버려지지 않고 남아요.
-- **Escape**는 한 칸씩 물러나요. 처음 누르면 그리던 것을 버리고 아무것도 남기지 않고, 한 번 더 누르면 펜에서 나와요.
-- 그리는 중에 **Delete**를 누르면 마지막에 놓은 점이 지워져요.
-
-결과는 캔버스 위의 평범한 상자예요. 옮기고, 크기를 바꾸고, 돌리고, 묶고, 정렬하고, 앞뒤 순서를 바꾸고, 채우기와 그러데이션, 그림자, 불투명도를 주세요 - 패스도 다른 상자와 똑같이 동작하고, 어느 컨트롤도 패스를 다르게 다루지 않아요.
-
-색도 입혀진 채로 나와요. 처음 그린 패스는 브랜드가 패스에 지정해 둔 채우기와 선을 받고, 그다음부터 새 패스는 **마지막에 쓴 값**을 물려받아요 - 도형마다 다시 칠하는 대신 채우기를 한 번 정해 두고 계속 그리면 돼요. (브랜드가 패스에 관해 아무것도 정해 두지 않은 도구에서는, 그리는 동안 눈에 보이던 그 색으로 선이 그어지니 보이지 않는 일은 없어요.)
-
-**점을 다시 편집하기.** 도형을 더블클릭하거나 개체 바의 **Edit points**를 쓰면 점이 다시 나타나요. 점을 끌어 옮기고, 핸들을 끌어 방향을 다시 잡고, 곡선 아무 데나 클릭해 점을 넣고, 여러 점을 올가미로 묶은 뒤 Delete를 눌러 선택한 점을 지우세요. 패스에는 점이 늘 최소 두 개는 남으니, 실수로 지워서 아예 없애 버릴 일은 없어요.
-
-**Spline type**은 놓은 점들을 어떤 곡선이 지나갈지 정하고, 알아 둘 가치가 있는 선택이에요:
-
-| 유형 | 하는 일 |
-|---|---|
-| **Smooth (auto)** | 기본값이에요. 핸들 길이를 스스로 계산하니, 클릭만 이어 가도 핸들과 씨름하지 않고 정말 매끄러운 곡선이 나와요. 핸들을 직접 잡으면 *방향*만 고정되고 길이는 곡선이 계속 맡아요. |
-| **Bezier handles** | 고전적인 펜이에요. 핸들이 곧 제어점이고, 점을 넣어도 곡선은 움직이지 않아요. |
-| **Through the points** | 놓은 모든 점을 정확히 지나가고, 핸들은 없어요. |
-| **B-spline** | 점을 지나는 대신 그 곁을 흘러가서 더 부드러운 형태가 돼요. |
-| **Straight lines** | 꺾은선이에요. |
-
-이미 그린 패스를 핸들을 스스로 계산하는 유형으로 바꾸면 먼저 확인을 물어요. 직접 정한 핸들 길이는 되돌릴 수 없거든요 - **Bezier handles**로 바꾸는 것은 언제나 손실이 없어요. 그리는 도중에는 확인이 없어요. 바꾼 값이 곧바로 초안에 적용되고, 이미 끌어낸 핸들도 함께 사라져요. 핸들을 곡선이 맡는 유형에서는 점을 넣으면 곡선이 아주 살짝 달라지고, **Bezier handles**에서는 그렇지 않아요.
-
-점마다 연속성 규칙도 있고, 캔버스에서는 점의 모양으로 알 수 있어요 - 네모는 **Corner**(핸들이 따로 움직여요), 동그라미는 **Smooth**(핸들이 일직선을 지켜요), 테두리 있는 동그라미는 **Symmetric**(일직선에 길이까지 같아요)이에요. 선택한 점에 규칙을 정하면 곡선이 곧바로 그 규칙에 맞춰 다시 그려져요.
-
-![링크에서 곧바로 렌더링한 펜 패스 두 개 - 선으로 그린 S자 곡선과, 닫혀서 채워진 덩어리 도형](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22curve%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A140%2C%22y%22%3A180%2C%22w%22%3A800%2C%22h%22%3A420%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A14%2C%22path%22%3A%221!cubic!0_.02!.85!!!.25!-.45!s_.5!.5!-.22!.32!.22!-.32!y_.98!.12!-.25!.45!!!s%22%7D%2C%7B%22id%22%3A%22blob%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A340%2C%22y%22%3A620%2C%22w%22%3A400%2C%22h%22%3A320%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23d1e7ff%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A6%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!catmull-rom!1_.5!0_1!.42_.78!1_.22!1_0!.42%22%7D%5D&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=pen-path-geometry)
-
-그린 패스도 다른 모든 것처럼 링크에 실려 다녀요. 그래서 직접 그린 도형은 공유 링크로 다시 열리고, CLI에서도 똑같이 렌더링돼요. 어느 것도 편집기에 기대지 않아요.
-
-### 도형 합치기(패스 연산)
-
-도형을 둘 이상 선택하고 캔버스를 **오른쪽 클릭**하면(터치에서는 두 손가락 탭) 드로잉 앱에서 기대할 만한 연산이 메뉴에 나와요:
-
-- **Union**은 도형을 하나로 합치고, 맨 위 도형의 색을 따라요.
-- **Subtract**는 위에 있는 것을 전부 맨 아래 도형에서 잘라 내요.
-- **Intersect**는 겹친 부분만 남겨요.
-- **Exclude**는 겹친 부분만 빼고 모두 남겨요.
-
-도형 하나에 쓰는 연산도 셋 있어요. **Outline stroke…**는 선을 같은 윤곽의 채워진 도형으로 바꾸고(그린 굵기를 그대로 지키고 싶을 때 좋아요), **Offset path…**는 실루엣을 바깥으로 키우거나 음수를 넣으면 안쪽으로 줄이며, **Simplify**는 같은 모양을 더 적은 구간으로 다시 만들어요.
-
-![Subtract로 만들어 낸 초승달과, 가운데가 진짜로 뚫린 고리](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
-
-결과는 펜으로 계속 편집할 수 있는 새 패스예요. 구멍은 진짜 구멍이고, 선 패널의 **Fill rule** 컨트롤이 겹친 윤곽을 채울지(*non-zero*) 뚫을지(*even-odd*) 정해요.
-
-이 연산이 일부러 하지 않는 일이 둘 있어요. 첫째, **망가뜨리는 대신 거절해요.** 겹치지 않는 두 도형을 교차시키려 하면 남길 것이 없다고 알려 주고, 아무것도 바뀌지 않아요. 둘째, 텍스트와 이미지 상자에는 다룰 윤곽이 없어서, 프레임으로 어림잡는 대신 그냥 두어요. 합쳐진 결과는 평범한 베지어 곡선으로 저장되는데, 드로잉 앱도 그렇게 해요 - 원래의 스플라인 유형은 연산을 넘어 살아남지 않아요.
-
-### 3D 장면
-
-도구 레일의 추가 메뉴에서 **3D 장면**을 고르고 프레임을 끌어내세요. 3D Studio가 새 상자에 대해 곧바로 열리고, 거기서 설정한 내용이 캔버스로 돌아와요. 그 밖의 모든 면에서 장면 상자는 평범한 상자예요. 옮기고, 크기를 바꾸고, 돌리고, 그림자를 주고, 슬라이드나 타임라인에 올려도 다른 상자와 똑같이 동작해요.
-
-**장면 상자가 담는 건 그림이 아니라 레시피예요.** 이미지 상자는 렌더링된 파일을 담지만, 장면 상자가 담는 건 설정 하나 - 장면 자체를 3D Studio 고유의 링크 쿼리로 적어 둔 것이고, 스튜디오 기본값 그대로인 값은 전부 빠져 있어요. 그래서 장면은 레시피 전체가 드는 몇 킬로바이트가 아니라 백 바이트쯤이고, 같은 문자열이 공유 링크에서도 편집기 문에서도 똑같이 동작하며, 스튜디오에 새 컨트롤이 생겨도 Design 쪽은 바뀔 게 없어요. 상자가 예전에 찍어 둔 그림을 확대하는 대신 문서가 요구하는 그때그때의 크기와 순간에 맞춰 다시 렌더링되는 이유이기도 해요. 장면이 쓰는 그림은 그대로 애셋으로 남아 id로 오가니, 장면 안에서의 업로드도 문서의 나머지와 함께 `.lolly` 파일에 들어가요.
-
-**스튜디오에서 편집하기.** 상자를 선택하면 인스펙터에 **3D 장면** 섹션이 나타나요 - 장면이 무엇으로 이루어졌는지 말해 주는 줄, 조명 스튜디오를 고른 뒤에 그 이름을 말해 주는 줄, 그리고 **Edit in 3D Studio** 버튼 하나예요. 이 버튼은 그 상자의 장면을 도구의 모든 컨트롤과 함께 스튜디오에서 열어요. Apply를 누르면 편집한 장면이 한 단계로 다시 기록되어 실행 취소 한 번이면 시작했던 장면으로 돌아가고, Apply 없이 스튜디오를 닫으면 아무것도 바뀌지 않아요. 상자에 관한 나머지 - 아트보드 위 위치, 크기, 그림자, 슬라이드에 등장하는 시점 - 는 늘 쓰던 섹션에 그대로 남아요. 장면 상자는 자신만의 이미지도 캡션도 갖지 않아요. 그림은 스튜디오에서 오고, 글도 거기서 정해져요.
-
-**살아 있는 장면은 하나, 나머지 상자는 모두 포스터예요.** 문서 안의 모든 3D 상자는 포스터를 보여줘요 - 공유 렌더러 풀을 통해 화면 밖에서, 그 상자가 차지하는 크기로 그려진 장면의 정지 화면이에요. 장면이 스무 개 있는 문서라도 그리기 컨텍스트는 스무 개가 아니라 하나예요. 장면 상자를 선택하면 그것이 문서에서 유일하게 살아 있는 장면이 되고, 선택을 풀면 화면에 있던 프레임이 그대로 포스터가 되어 아무것도 튀지 않아요. 살아 있는 장면은 한 번에 하나뿐이고, 장면 상자 두 개를 동시에 선택하면 둘 다 포스터로 남아요. 이번 릴리스에서 살아 있는 장면은 보기 위한 것이지 궤도를 돌기 위한 것이 아니에요 - 장면을 바꾸려면 **Edit in 3D Studio**를 쓰세요. 부동소수점 그래픽 컨텍스트를 열 수 없는 기기는 빈 사각형을 보여주는 대신 포스터를 유지하고 그 이유를 상자 안에 말해 주며, 문서의 나머지는 영향받지 않아요. 3D 상자가 없는 Design 문서를 여는 것만으로는 3D 코드가 전혀 로드되지 않아요.
-
-**타임라인에서는** 장면 상자가 비디오 클립처럼 재생 헤드를 따라가요. 시작 지점과 클립 인, 속도가 장면 자체의 애니메이션을 움직이고, 장면의 길이는 3D Studio에서 정한 그대로라서 상자를 짧게 다듬으면 빨라지는 대신 장면의 일부만 보여요. 살아 있는 건 선택된 장면 상자뿐이고, 나머지는 모두 정지 화면이라 스크러빙에 반응하지 않아요.
-
-**내보낼 때는** 각 장면이 스튜디오가 쓰는 것과 같은 렌더러로, 파일에 필요한 크기에 맞춰 새로 그려져요. 영상은 장면마다, 순간마다 프레임 하나씩을 렌더링하고, PNG나 SVG, PDF는 상자마다 그 상자 고유의 픽셀 크기로 그림 하나를 담아요. 화면에서 그대로 찍어 오는 건 없으니, 내보내기는 어느 상자를 선택했었는지와 무관해요. 그릴 수 없는 장면은 내보내기를 실패시키고 스튜디오 자신의 말로 그 이유를 알려줘요.
-
-**직접 올린 파일로 만든 장면을 공유하기.** Design 문서의 공유 링크는 이미지 상자라면 비워 버릴 자리에서도, 장면 안의 기기 전용 업로드 id를 있는 그대로 실어 날라요. 그래서 아트워크나 모델이 직접 올린 파일인 장면은, 바이트를 함께 나르는 `.lolly` 파일로 옮기지 않는 한 다른 사람의 기기에서는 그 그림 자리에 스튜디오 기본값이 나와요.
-
-## 타임라인(시퀀스)
-
-**시퀀스**는 Design의 타임라인이에요. 자유 캔버스에 *시간*을 더하죠. 어떤 상자든 어느 순간에 시작해서 일정한 길이만큼 재생되고 들어오고 나가는 애니메이션을 붙일 수 있고, 아트보드 아래 붙박인 타임라인이 그것들을 배치하는 자리예요. 열어 보면 이미 시퀀스가 재생 중이에요 - 타이틀 카드, 클립, 엔딩 카드, 하단 자막, 배경 음악까지 - 그래서 아무것도 바꾸기 전부터 구조가 눈에 보여요.
-
-![시퀀스 타임라인: 트랜스포트, 눈금자, 오버레이 레인, 클립과 이음매 칩이 있는 자석형 시퀀스 행, Always on 스트립](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
-
-행에는 두 종류가 있고, 그 차이가 핵심 그 자체예요:
-
-- **시퀀스 행**은 *자석*처럼 붙어요. 클립이 빈틈없이 줄줄이 놓이고, 하나를 끌면 구멍이 남는 대신 순서가 바뀌어요. 클립을 지우면 나머지가 붙어 메워요. 여기가 뼈대예요.
-- **오버레이 레인**은 자유로워요. 하단 자막, 로고, 캡션처럼 뼈대 위에 각자의 시간으로 떠 있는 것은 저마다의 레인과 시작 시점을 가져요.
-- 그 아래 **Always on**은 타이밍이 아예 없는 상자를 모아 둬요. 처음부터 끝까지 그냥 있는 배경 요소죠. 칩의 `+`를 누르면 하나를 레인으로 올리고, **Make always on**은 다시 내려보내요.
-
-![편집 스테이지: 중앙의 아트보드, 왼쪽의 도구 레일, 모서리의 줌 HUD](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&chrome=1&dark=1&filename=seq-studio-stage)
-
-타임라인을 열면 키보드가 타임라인으로 넘어가서 Space와 화살표 키가 페이지 대신 재생 헤드를 움직여요 - 이미 타이밍이 있는 구성에서는 저절로 열리니, 시퀀스가 뜨는 순간부터 그래요.
-
-> **[시퀀스 편집기](/info/sequence-editor.html)**는 시간 위에서의 편집이 예측 가능하게 느껴지는지를 좌우하는 네 가지를 더 깊이 다뤄요. 캔버스 클릭이 어느 클립을 편집하는지, 이웃 클립의 어니언 스킨 잔상, 분할 범위와 자른 것을 되돌리는 Join, 그리고 트리밍(키보드 조작 포함)이에요. 타임라인에 포커스를 둔 채 `?`를 누르면 단축키 목록이 나와요.
-
-**편집.** 클립 가운데를 끌면 옮기거나 순서를 바꾸고, 양 끝에서 몇 픽셀 안쪽을 끌면 길이를 다듬고, **Split at playhead**(또는 `S`)를 누르면 클립 하나가 둘로 잘려요. 분할하려면 클립에 실제 **Length**가 있어야 하고 재생 헤드가 그 안쪽으로 조금 들어와 있어야 해서, 끝이 열린 클립(예를 들면 배경 음악)은 자를 수 없어요. **Snap to edges**는 기본으로 켜져 있고 클립 가장자리와 재생 헤드, 정수 초에 맞물려요. Alt를 누르면 무시돼요. 끌기 하나가 실행 취소 한 단계이고, 끄는 중의 미리보기가 확정과 똑같은 계산을 쓰니 끄는 동안 보이는 그대로가 결과예요.
-
-클립을 선택하면 인스펙터가 같은 편집을 숫자로 내줘요. **Length**, **Trim in**(원본의 어느 지점부터 시작하는지), ×0.25에서 ×4까지 정해진 배수 중에 고르는 **Speed**, 길이까지 함께 정하는 **Animate in** / **Animate out**, 그리고 **Mute clip**이에요. 자석 행의 클립에는 **Start** 칸이 일부러 없어요 - 순서는 행이 맡으니, 옮길 때는 끌면 돼요.
-
-**트랜지션**은 키프레임이 아니라 프리셋이에요. Fade, Pop, Grow, Rise, Drop, 네 방향 Slide, Zoom in과 out, Tilt, Swoop, Spin, Drift, 그리고 **Cut (no animation)**이 있어요. 이동 거리는 개체 크기에 맞춰 조정되니, 같은 프리셋이 화면을 가득 채운 카드에서도 작은 배지에서도 제대로 읽혀요. 시퀀스 행에서 맞붙은 두 클립 사이에는 **이음매 칩**이 있어요. 칩을 클릭해 **Cut**이나 **Crossfade**를 고르면 곧바로 적용되고 닫혀요. 같은 칩을 다시 열면 **Length (ms)**를 바꾸고 **Done**을 누를 수 있어요. 크로스페이드는 앞 클립의 페이드 아웃과 뒤 클립의 페이드 인으로 저장되고, 실제 디졸브는 그 한 쌍에서 만들어져요. 첫 클립은 컷을 지나서도 계속 재생되며 페이드 아웃되고, 다음 클립은 그 아래에서 페이드 인돼요. 미리보기와 파일이 같은 규칙을 따르니까, 이음매에서 보이는 게 곧 내보내지는 결과예요.
-
-**소리.** **Audio** 클립을 넣으면 다른 클립과 똑같이 타임라인에 자리 잡아요. 파형이 보이고, 다듬고, 음소거할 수 있어요. (기본 세션에 딸려 오는 생성 배경음만 예외예요 - 내보낼 때 합성되기 때문에, 렌더링하기 전까지는 막대가 밋밋하고 소리도 나지 않아요.) 마이크를 누르면 카운트인과 레벨 미터와 함께 **보이스오버를 녹음**해 곧바로 타임라인에 올릴 수 있고, 녹음본은 시작한 지점에 내 자산으로 저장돼요. 그 옆의 카메라를 누르면 같은 방식으로 **영상을 녹화**할 수 있어요. 녹화하는 동안 테이크가 아트보드의 내보내기 크기에 맞춰 계속 잘리기 때문에, 작은 셀프뷰에는 재생 헤드 위치의 시퀀스에 그대로 들어갈 내용이 풀프레임으로 정확히 보여요 - 공유 링크로 동료의 클립을 받아 오는 방법이기도 해요. 음악과 대사, 클립 자체의 사운드트랙이 모두 내보낸 믹스에 담겨요. (내보내기 패널의 **Audio track**은 다른 것이에요. 클립 전체 아래에 깔리는 배경음 하나로, 페이드와 더킹이 붙어요. 둘은 함께 있을 수 있어요.)
-
-**오디오 스트립.** 소리가 있는 클립을 선택하면 타임라인 아래에 작은 스트립이 열려요: **Volume** 페이더, 스테레오 위치를 정하는 **Pan**, 3밴드 **EQ**(**Low**, **Mid**, **High**), 목소리의 질감은 유지한 채 반음 단위로 조옮김하는 **Pitch** 컨트롤, 그리고 조용한 보이스 메모와 큰 트랙의 음량을 맞춰 주는 방송 러프니스(BS.1770)로 클립을 끌어올리는 **Normalize volume**이에요. 두 클립이 만나는 자리에서는 자르는 대신 **Crossfade**가 이음매를 부드럽게 섞어요. **Effect** 슬롯은 클립에 기기 내 처리를 실행하는데, **Voice cleanup**은 녹음에서 방음과 히스 노이즈를 걷어내요. 속도를 바꿔도 피치는 유지돼요 - 느리거나 빠르게 한 클립은 다람쥐 소리가 되는 대신 타임 스트레치돼요. 내보낼 때는 어떤 믹스든 대사가 오가는 동안 음악을 자동으로 낮추고, 프로그램 전체를 트루피크 리미터 아래 붙잡아 두어 출력 단계에서 클리핑이 생기지 않아요. 클리핑이 났을 파형에는 그 지점에 경고가 그려져요.
-
-![음악 클립이 선택된 타임라인 - 아래쪽 스트립에 Speed, Fades, Volume, Pan, EQ, Pitch, Normalize volume, Effect 슬롯이 늘어서 있어요](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
-
-**렌더링하기.** 모션 내보내기는 화면 녹화가 아니라 **결정적인 합성**이에요 - 프레임마다 정확한 시각에 디코딩되고 그려지고 인코딩되니, 파일이 내 기기가 따라오는지에 좌우되지 않고 MP4나 WebM에는 사실상 프레임 상한도 없어요. 길이를 직접 입력하지 않으면 타임라인 자체의 길이가 재생 시간이 돼요. Content Credentials는 다른 내보내기와 똑같이 새겨져요. 스틸로 내보내면 재생 헤드 위치의 프레임을 얻고, 출력 크기 옆 **Frames** 칸을 쓰면 통째로 컨택트 시트를 얻어요 - [내보내기](/info/exporting.html#stills-from-a-timed-composition)를 보세요.
-
-염두에 둘 제한이 몇 가지 있어요. 시퀀스는 최대 한 시간이고, GIF와 애니메이션 PNG는 프레임을 쌓아 두기 때문에 짧게 유지돼요. 빠르거나 느리게 재생한 클립도 피치는 유지돼요(오디오 스트립이 타임 스트레치를 하고, **Pitch** 컨트롤이 목소리의 질감은 유지한 채 반음 단위로 조옮김해요). 그리고 여기서는 합성 경로가 더 낫기 때문에 **Record live**는 숨겨 뒀어요.
-
-**프리셋을 넘어서: 키프레임, 깊이, 카메라.** 트랜지션은 클립이 들어오고 나갈 때 애니메이션을 적용해요. 클립 *안에서* 요소를 배치하려면 - 이동시키거나, 페이드하거나, 블러 처리하거나, 화면 밖으로 들어 올렸다가 다시 내려놓으려면 - 키프레임을 추가하세요: 클립을 선택하고 **+Keyframe**(타임라인 도구 모음의 다이아몬드, 캔버스 객체 바의 다이아몬드, 또는 `K`)을 누르면 재생 헤드의 위치가 다음 편집이 기록할 포즈를 결정해요. 같은 키프레임 시스템이 모든 타임드 컴포지션에 밀어 들어가고, 가로로 패닝하고, 초점을 당기는 **카메라**를 제공하며, 평면 SVG 하나를 층층이 넘나들 수 있는 레이어 스택으로 바꿔줘요. **[애니메이션 만들기](/info/animating.html)**가 전체 가이드예요.
-
-Design 도구에도 같은 타임라인이 있어요. 그래서 다른 도구로 옮기지 않고도 레이아웃에 시간을 입힐 수 있고, 모션으로 내보내기도 해요.
-
-## 발표하기
-
-카메라 화면과 로고, 이름 캡션을 관객이 보는 화면 위에 얹으려면 **Present with camera**를 쓰세요. 전용 컨트롤과 저장된 장면, 공유와 녹화 절차는 [카메라로 발표하기](/info/presenting.html)에서 다뤄요. 아래의 일반 덱 컨트롤은 **발표**로도 그대로 쓸 수 있어요.
-
-**아트보드**로 이루어진 Design 문서는 그 자체로 이미 슬라이드 덱이에요. 도구 막대의 **Lolly menu**를 열고 맨 아래 줄의 **Present**를 고르면, 캔버스에 놓인 순서 그대로 아트보드마다 전체 화면 슬라이드가 돼요. 덱은 렌더링된 아트보드의 사본으로 돌아가니 아래의 편집기는 전혀 건드리지 않고, 나가면 있던 자리로 정확히 돌아와요.
-
-- **Space**, `→`, **Page Down** 키 또는 화면 오른쪽 가장자리의 스트립을 클릭하면 **다음으로 넘어가고**, `←`, **Page Up** 키 또는 왼쪽 가장자리의 스트립을 클릭하면 되돌아가요. **Home**과 **End**는 각각 첫 슬라이드와 마지막 슬라이드로 이동해요. 포인터를 움직이면 작은 컨트롤 바가 나타났다가 멈추면 다시 사라져요.
-- **개요 보기**(`O` 또는 그리드 버튼)는 캔버스에서 배치한 순서 그대로 모든 아트보드를 한 번에 늘어놓아요. 하나를 클릭하면 열려요.
-- **단계 공개.** 박스를 우클릭해 기본값인 **항상 표시** 대신 **1단계에서 공개**, **2**, **3** 중 하나를 선택하세요. 그러면 해당 박스는 자신의 단계로 넘어갈 때까지 기다리므로 슬라이드가 여러 조각으로 나뉘어 등장할 수 있고, 같은 번호를 공유하는 박스는 함께 등장해요.
-- **발표자 보기**(`S`)는 현재 슬라이드, 다음 슬라이드, 해당 슬라이드의 메모, 진행 시계를 담은 두 번째 창을 열어요. 브라우저가 팝업을 막으면 덱 위에 패널로 대신 표시돼요. 메모는 아트보드마다 설정되며 슬라이드 자체에는 절대 나타나지 않아요.
-- `B`는 검은 화면을 유지하고(아무 키나 누르면 슬라이드로 돌아와요), `F`는 전체 화면으로 되돌리고, **Escape**는 한 번에 한 단계씩 벗겨내요: 개요 보기는 덱으로, 덱은 에디터로요.
-- **키오스크.** 아트보드에 **Length**를 지정하면 덱이 그 시간만큼 머물다가 얇은 진행 표시줄 뒤에서 스스로 다음으로 넘어가요; `K`(또는 무언가에 Length가 지정된 뒤에만 나타나는 일시정지 버튼)로 멈추고 다시 시작할 수 있어요. 링크에 `kiosk`를 추가하면 덱이 끝에서 처음으로 되돌아가는데, 이것이 바로 사이니지가 되는 지점이에요.
-
-- **서브 슬라이드 스택.** 아트보드를 오른쪽 클릭해 **Stack under the previous slide**를 선택하면 독립된 슬라이드 대신 그 슬라이드의 한 단계가 돼요. 개요에는 카드 하나로 보이고, 덱은 순서대로 스택을 훑으며, 인스펙터의 **Stack** 행이 어느 슬라이드에 속하는지 말해줘요.
-- **모프.** 연속된 두 슬라이드가 같은 **Morph match** 이름을 가진 상자를 각각 갖고 있으면(상자를 오른쪽 클릭하거나 인스펙터의 **Morph match** 행에서 지정해요 - 예를 들면 `hero`), 트랜지션은 자르는 대신 그 상자를 있던 자리에서 새 자리로, 도중에 크기와 색을 바꿔 가며 옮겨요. 덱 전체의 **Morph** 트랜지션은 일치하는 모든 쌍에 대해 같은 일을 해요.
-- **내레이션.** 각 아트보드의 **Speaker notes**는 소리 내어 읽을 수 있어요. 인스펙터의 **Document** 섹션에서 **Voice**를 고르고, 필요하면 **Blend with**로 섞을 두 번째 목소리, 읽는 **Speed**, 슬라이드 앞뒤의 **Lead-in**과 **Tail**을 밀리초 단위로 정하세요. **Show captions when presenting**를 켜면 말하는 대로 자막이 나타나요. 목소리는 내 기기에서 실행돼요. 같은 노트가 영상 내보내기에서는 필름이 되고, PowerPoint 내보내기에서는 실제 슬라이드 음성이 되며, [SCORM 패키지](/info/create/exporting.html#scorm-course-packages) 안에서는 내레이션이 담긴 필름이 돼요.
-
-![인스펙터의 Document 섹션: Voice, Blend with, Speed, Lead-in, Tail, Show captions when presenting](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
-
-덱은 링크이기도 해요. `?present`는 곧장 덱으로 열고, `s=`는 슬라이드를 지정해요(위치, 아트보드 id, 또는 빌드 단계라면 `id.step`). 이동할 때마다 주소가 갱신되니 보내는 링크가 곧 지금 보고 있는 슬라이드예요. 도구 제작자를 위해: 이 매개변수는 [URL Mode](/info/url-parameters.html#reserved-parameters) 페이지에 정리돼 있어요.
+**View sessions**는 무언가 선택된 뒤에만 나타나요. 대신 선택되지 않은 카드 하나를 우클릭하면 **N saved sessions**를 제공하며, 그 도구의 저장된 세션 목록에서 삭제하면 세션이 휴지통으로 가요.
 
 ## 휴대폰에서
 
-좁은 화면에서는 레이아웃이 한 열로 다시 흘러요:
+좁은 화면에서는 레이아웃이 한 열이 돼요.
 
-- **컨트롤이 위쪽 시트**가 되고 아래쪽 가장자리에 **끌기 손잡이**가 붙어요. 손잡이를 끌어 크기를 조절하면 **peek / half / full**에 맞물리고, 손잡이를 **탭**하면 접힘 ↔ 펼침이 번갈아요. 미리보기는 그 아래 공간을 채우고 편집하는 동안 계속 보여요.
-- 떠 있는 **Export** 버튼을 누르면 내보내기 시트가 열려요. 형식과 크기, 복사, 저장, 다운로드 컨트롤이 한자리에 다 있어요. 배경을 탭하면 닫혀요.
+- **컨트롤이 시트가 되어** 위에 놓이고 아래 가장자리에 끌기 손잡이가 있어요. 손잡이를 끌어 **peek**, **half**, **full**로 맞추거나, 탭해서 접고 펼치세요. 미리보기가 아래 공간을 채우고 편집하는 동안 계속 보여요.
+- 떠 있는 **Export** 버튼이 내보내기 시트를 열어요. 형식, 크기, 복사, 저장, 다운로드가 한곳에 있어요. 배경을 탭하면 시트가 닫혀요.
 
 ![휴대폰 너비 화면의 도구 - 위쪽에 시트로 놓인 컨트롤, 그 아래 미리보기를 채운 생성된 팔레트, 그리고 아래 가운데에 떠 있는 렌더 알약 버튼](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
-## 컨트롤(입력)
-
-도구는 달라져야 하는 입력만 드러내요 - 나머지(색, 레이아웃, 타이포그래피, 로직)는 도구 제작자가 고정해 두기 때문에, 무엇을 만들든 제작자가 정한 규칙을 지켜요. 입력에는 텍스트, 슬라이더, 색 선택기, 드롭다운, 날짜, 이미지 선택기, 반복 행 묶음이 있어요. 일부는 접을 수 있는 구역으로 묶여 있어요.
-
-![도구의 컨트롤 묶음 - 텍스트 칸과 색 버튼, 슬라이더뿐이고 나머지는 제작자가 고정해 뒀어요](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
-
-**초기화:** *Clear changes*는 모든 입력을 기본값으로 되돌려요.
-
-### 실행 취소와 다시 실행
-
-**Cmd/Ctrl-Z**는 한 단계 되돌리고, **Cmd/Ctrl-Shift-Z**(또는 **Cmd/Ctrl-Y**)는 다시 앞으로 나아가요. 같은 짝이 컨트롤 위쪽 줄에 **Undo**와 **Redo** 버튼으로도 놓여 있고(자유 캔버스에서는 대신 도구 레일에 있어요), 되돌릴 게 없으면 각각 흐려져요. 단계마다 그것이 무엇이었는지 알려줘요 - 색을 되돌리면 방금 복원한 입력이 무엇인지 알려 주는 작은 메시지가 뜨고, 그 안에 돌아가는 길인 **Redo** 버튼이 있어요.
-
-- **끌기 하나가 한 단계예요.** 같은 컨트롤을 0.5초 안에 반복해 바꾸면 하나로 합쳐지니, 슬라이더를 끝에서 끝까지 끌어도 실행 취소는 이백 번이 아니라 한 번이에요.
-- **최근 100단계가 보관돼요** - 그보다 오래된 것은 밀려나요. 되돌린 뒤에 새로 편집하면 앞으로 갈 기록이 지워지는데, 이건 어디서나 마찬가지예요.
-- **텍스트 상자에 커서가 있는 동안**에는 Cmd/Ctrl-Z가 그 칸의 몫이라 글자 단위로 되돌아가요. Lolly는 쓸 만한 자체 실행 취소가 없는 컨트롤, 즉 슬라이더와 드롭다운, 색, 스위치를 맡아요.
-- **file** 입력에서 **파일을 고르는 것**은 한 단계가 아니에요. 그 바이트는 세션 동안만 들고 있어서 되돌릴 것이 없거든요.
-
-실시간 [협업](/info/collaborate.html) 중에도 히스토리는 오직 나만의 것으로 유지돼요. 다른 기기에서 들어온 변경 사항은 절대 내 스택에 올라가지 않으므로, 실행 취소는 언제나 내가 한 작업만 되돌릴 수 있어요.
-
-**실행 취소**는 이번 방문 동안의 작업만 되돌릴 수 있어요; 작업 중에도 저장되는 도구는 **실행 취소** 옆의 **History**에도 이전 버전을 보관해요([이전 버전으로 돌아가기](/info/find-your-work.html#go-back-to-an-earlier-version) 참고).
-
-## 내 정보와 프로필 사진
-
-**설정**(갤러리 오른쪽 위, 이름을 설정하면 그 이름이 표시돼요)에는 이름, 연락처, 선택적인 **헤드샷**을 저장해요. 이 항목을 요구하는 도구는 자동으로 미리 채워져요 - 한 번 설정해 두면 이메일 서명, 로고 조합, 배지가 저절로 채워져요. 세션마다 개별적으로 덮어쓸 수도 있어요. **내 정보를 사용해 만들기**를 켜면 내보내는 결과물에 작성자로 내 정보가 함께 실려요.
-
-프로필 사진과 정보는 **이 기기에만** 있어요. 프로필은 나 자신만이 아니라, 팀이나 가끔 맡는 역할일 수도 있어요. 여러 개를 두는 방법까지 포함한 전체 그림은 **[프로필](/info/profile.html)**을 보세요.
-
-## 저장하고 이어서 하기
-
-작업을 남기려면 **내보내기** 옆의 체크 표시인 **다른 이름으로 저장**을 누르세요. **Save to a project** 아래에서 **내 라이브러리**를 그대로 두거나 프로젝트를 고르고(**＋ 새 프로젝트…**로 새로 만들 수 있어요), 그다음 **저장**을 누르세요. 다시 저장하면 사본을 만드는 대신 같은 항목이 업데이트돼요. Design에서는 **다른 이름으로 저장**이 Lolly 로고 아래 메뉴에 있고, 휴대폰에서는 **•••**를 누른 다음 **File menu**, 이어서 **다른 이름으로 저장**을 누르세요.
-
-내보내기 패널의 **저장** 버튼도 클릭 한 번으로 똑같이 하고, 파일을 다운로드하지는 않아요. 새 작업은 내 라이브러리로 가고, 전에 저장한 작업은 있던 자리에서 업데이트돼요.
-
-나중에 다시 돌아오려면 왼쪽 위의 **홈**을 누른 다음 **프로젝트** 탭을 여세요(휴대폰에서는 폴더 아이콘). 내 라이브러리에 저장한 것은 그 첫 화면에 있고, 프로젝트는 거기서 폴더가 돼요. 항목은 내보내기 패널에서 입력한 파일 이름을 따서 붙여지고, 아무것도 입력하지 않았다면 **QR 코드**처럼 그 도구의 이름을 따서 붙여져요. 하나를 열면 모든 설정이 그대로 남아 있어서 다시 바꾸고 내보낼 수 있어요.
-
-[동기화](/info/sync.html)를 켜지 않는 한, 저장한 작업은 저장할 때 쓴 브라우저나 앱 안에서 이 기기에만 남아요. **다운로드**로 받은 파일은 완성된 사본이고, 나중에 바꾸려면 프로젝트에서 저장한 항목을 여세요. 예상한 곳에 없다면 [작업 찾기 및 복구](/info/find-your-work.html)를 참고하세요.
-
-![반으로 나뉜 렌더 알약 버튼 - 내보내기 패널을 여는 위쪽 화살표와, 저장 시트를 여는 Save as라고 적힌 체크 표시](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
-
-## Projects
-
-**프로젝트**는 홈 화면 위쪽의 **프로젝트** 탭으로, 직접 만든 폴더에 저장한 모든 것을 보관해요. 거기서 작업을 찾고 정렬하고 검색하는 방법과 **휴지통**에서 항목을 복원하는 방법은 [작업 찾기 및 복구](/info/find-your-work.html#find-something-you-saved)에서 다뤄요.
-
-
-## 작업물 공유하기
-
-디자인이 밖으로 나가는 길은 둘 중 하나예요. 링크로, 또는 파일로요. Share 대화상자가 둘 다 내줘요. 내보내기 컨트롤의 **Share**로 열고, Projects에서 저장한 세션의 **Share link**를 누르면 그 세션에 대해 같은 대화상자가 열려요.
-
-### 링크
-
-모든 입력이 페이지 URL에 담기니, 링크가 *곧* 디자인이에요. 대화상자 맨 위에는 바로 복사할 수 있는 링크가 있고, 그 아래에 접힌 구역이 둘 있어요.
-
-- **Link options**에는 **Open in the installed app**(Shortcuts와 런처, 자동화를 위해 필드를 `lolly://` URI로 바꿔요. 모든 매개변수는 그대로예요), **Shortest link**(큰 디자인은 URL이 길어지니, 상태 전체를 작은 토큰으로 담고 글자 수가 얼마나 줄었는지 보여줘요. 읽을 수 있는 형태도 언제나 함께 있어요), **Password-protect this link**(링크 전체에 AES-256을 씌우고, 비밀번호는 링크에 담기지 않아요), **Pin this tool version**(지금 보고 있는 도구 버전에 링크를 못 박는 `_v` 플래그로, 나중에 업데이트돼도 렌더 결과가 바뀌지 않아요)이 있어요.
-- **Link behaviour**는 받는 사람이 링크를 열었을 때 무슨 일이 일어날지예요. 전체 화면, 내보내기 패널이 이미 펼쳐진 상태, `&export`로 열자마자 다운로드하기, `&copy`로 클립보드에 복사하기요.
-
-링크를 동료에게 붙여넣거나, 즐겨찾기에 넣거나, 저장소에 커밋하세요. (자세한 내용: [URL 모드](/info/url-mode.html).)
-
-**어떤 도구는 링크 자체가 곧 완성된 제품이에요.** Jump Page는 여러 링크를 나눠줄 페이지 하나로 모아줘요 - 바이오 링크, 컨퍼런스 발표, 매장 소개 페이지 등이에요. 호스팅할 것도 없고 뒤에 계정도 없어요: 페이지가 곧 링크이므로 URL이 도달하는 속도만큼 빠르게 열려요. 편집기에서는 완성된 페이지를 입력 필드 옆에서 볼 수 있고, 링크를 여는 방문자는 전체 너비로, 스크롤할 때마다 장면당 링크 하나씩 보게 돼요.
-
-![편집기에서 본 Jump Page: 페이지 상단의 제목 장면과 그 아래의 링크 장면들](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
-
-**링크가 담을 수 없는 것은 대화상자가 말해줘요.** URL에 들어가지 못하는 것이 셋 있어요. 이 기기에서 추가한 이미지나 파일, 아주 긴 텍스트 값, 아주 큰 목록이에요. 링크를 만들면서 각각을 세어 둬요. 빠뜨릴 수밖에 없는 것이 있으면, 그림이 빠진 채 열리는 링크를 건네는 대신 무엇이 빠졌는지 대화상자가 짚어 주고 아래의 파일 쪽으로 안내해요. 단지 *길기만* 한 링크에는 글자 수와 함께 더 가벼운 안내가 붙어요. 길이는 압축으로 아직 구할 수 있으니까요.
-
-### .lolly 파일
-
-`.lolly`는 Lolly의 이동 가능한 번들 확장자일 뿐, 모든 파일이 같은 내용을 담는다는 약속은 아니에요. 근거가 되는 건 `manifest.json` 안의 `format`이에요. 앱은 무언가를 쓰기 전에 먼저 이 작은 매니페스트를 읽어 크기와 내용, 동작을 보여줘요:
-
-- **공유 디자인**(`lolly-share`)에는 저장된 도구 세션 하나와 그 안에 담긴 파일들, 그리고 여전히 참조로 해결되는 항목에 대한 영수증이 담겨요. 만든 도구와 디자인 시스템까지 함께 실릴 수도 있어요. 열면 새 프로젝트가 추가되고, 기존 세션을 덮어쓰는 일은 절대 없어요.
-- **공유 프로젝트**(`project` 종류의 `lolly-share`)에는 프로젝트의 폴더 하나 - 그 하위 폴더들, 거기에 정리된 모든 저장된 세션, 각 세션의 타일과 거기 담긴 그림들 - 가 담겨요. 열면 폴더 전체의 사본이 프로젝트에 추가되고, 이미 있던 건 아무것도 바뀌지 않아요. 프로젝트 파일이 생기기 전의 Lolly는 이걸 읽지 못하고 업데이트하라고 말해요.
-- **디자인 시스템 팩**(`lolly-brand`)에는 토큰이 담기고, 글꼴과 로고, 게시된 버전, 보관된 리소스가 담길 수도 있어요. 열면 이름이 붙은 별도의 디자인 시스템으로 추가되고 그쪽으로 전환돼요. 기기에 이미 있던 시스템은 그대로 남아요.
-- **브랜드 워크스페이스 / 인스턴스 팩**은 선언된 도구와 카탈로그 애셋, 그리고 선택적으로 인스턴스 주소를 가진 `lolly-brand`예요. 불러오면 이전에 불러왔던 단 하나의 워크스페이스 오버레이가 교체되기 때문에, 프리플라이트가 그 기기 전체에 미치는 영향을 나열해요.
-
-기기/프로필 전체 **백업은 `.lolly`가 아니에요**. 형식이 `lolly-backup`인 `LollyTools-….zip`으로 남고, **설정 → 저장 공간 → 데이터 가져오기…**를 통해 복원하며, 이때 동기화가 저장소에 보관하는 사본도 함께 가져와요. 평범하게 압축한 도구 폴더도 `.zip`으로 남아요. 다시 말해 세션과 디자인 시스템 번들은 `.lolly`를 쓰고, 백업과 단순 압축 작업 흐름은 그렇지 않아요.
-
-작업 중인 도구의 Share 대화상자에 있는 **Download .lolly**는 지금의 디자인을 공유 디자인 번들로 써 내요. 저장한 세션과 함께 이 기기에서 쓸 수 있는 이미지와 파일도 담아요. 평범한 카탈로그 아트도 함께 실려요. 라이선스가 걸린 아트는 명시적으로 포함하지 않는 한 빠지고, 오래됐거나 쓸 수 없는 파일은 사라지는 대신 외부 참조로 남아요. 준비된 영수증에는 실제 `.lolly` 크기, 내장 파일 개수, 외부 참조 개수, 도구 포함 여부가 나와요. 기기에 공유 시트가 있다면 **Send to…**가 디스크에 저장하는 대신 그 파일을 곧바로 건네줘요(AirDrop, Android 공유 등).
-
-**프로젝트**의 폴더 메뉴에 있는 **Download project (.lolly)**는 그 폴더를 공유 프로젝트로 써 내서, 다른 사람이 열어 그 안의 모든 세션을 이어갈 수 있게 해요. 각 세션은 자기만의 부분(`sessions/<key>.json`, 타일은 `thumbs/` 아래)으로 오가고, 폴더 트리는 `manifest.json`에 나열되며, 업로드와 카탈로그 아트는 단일 공유 디자인과 같은 규칙으로 오가요. 배치 세션은 도구 세션이 아니라서 남겨지고, 알림이 몇 개인지 알려줘요. 그 옆의 **Download originals**는 그대로예요 - 각 항목을 자기 파일로 단순히 압축한 것이에요.
-
-`.lolly`는 평범한 zip이에요. 이름을 `.zip`으로 바꿔 열어 보세요. 내가 올린 이미지는 `assets/uploads/`에, 카탈로그 자산은 `assets/catalog/`에 각각 원래 이름과 확장자 그대로 들어 있고, `manifest.json`이 전부를 목록으로 담고 있으며, 맨 위의 README가 이 파일이 무엇인지 말해 줘요.
-
-나가기 전에 직접 정할 것이 셋 있어요:
-
-- **내 이름 포함 여부.** 이름, 이메일, 소속 조직은 프로필에서 **Use my details to create**가 켜져 있을 때만 파일에 기록됩니다. 꺼져 있으면 파일에는 Lolly로 언제 만들어졌는지만 남고 당신에 대한 정보는 남지 않습니다.
-- **라이선스 아트 포함 여부.** 라이선스가 걸려 있거나 브랜드에 잠긴 에셋은 기본적으로 제외됩니다. 디자인에 그런 에셋이 있으면 대화상자에 몇 개인지 표시되고 두 가지 버튼 중 하나를 선택할 수 있습니다 - *Download without them* 또는 *Include and download* - 포함하면 `.lolly`를 여는 사람에게 실제 파일이 넘어가기 때문입니다.
-- **도구 포함 여부.** **Include the tool**을 선택하면 도구 자체의 파일이 디자인과 함께 패키징되어 그 도구가 없는 기기에서도 열립니다. 커스텀 도구 - 수신자가 갖고 있을 가능성이 낮은 포크나 비공개 브랜드 도구 - 는 기본적으로 체크되어 있고, 서명된 카탈로그에 등재된 도구는 상대방도 같은 출처에서 받으므로 기본적으로 체크되어 있지 않습니다. (서명된 카탈로그가 없는 빌드에서는 모든 도구가 커스텀으로 취급되어 체크박스가 처음부터 켜져 있습니다.)
-
-**파일 열기.** 설치된 데스크톱이나 모바일 앱에서는 `.lolly`를 더블클릭하거나 탭하고 **Open with Lolly**를 고르거나, 시스템 공유 시트에서 Lolly로 보내세요. macOS, Windows, Linux, iOS, Android가 모두 이 형식을 등록해 두어서, 데스크톱 파일 관리자에는 Lolly 문서로 표시돼요(GNOME Files는 저장된 세션 자체의 섬네일도 보여줄 수 있어요). 웹 앱에서는 **Open**을 쓰거나 파일을 Lolly 위로 끌어다 놓으세요. 어느 문이든 매니페스트를 먼저 보는 같은 프리플라이트를 써요. Brand Studio에서 열면 공유 디자인에 디자인 시스템이 딸려 있을 때 그 동작을 추천하지만, 파일 이름을 바꿔 부르거나 **Open shared design**을 숨기는 일은 절대 없어요.
-
-다른 앱에서 건네받은 iOS나 Android 문서는 48MB로 제한돼요. 네이티브 핸드오프가 앱 경계를 넘어 바이트를 복사해야 하기 때문이에요. 모바일 앱은 너무 큰 파일을 조용히 무시하는 대신 그렇다고 말해줘요. Lolly 안의 **Open**은 그 핸드오프를 쓰지 않으니, 더 큰 번들은 이 경로로 시도해 보세요.
-
-확인 후, 선택한 리더가 번들을 한 번 풀어서 검증해요. 공유 디자인의 애셋은 라이브러리로, 세션은 프로젝트로 가고, 도구는 있으면 열려요. 공유 프로젝트의 세션은 폴더의 새 사본으로 프로젝트에 들어가요(같은 파일을 두 번 열 수 있도록 새 id가 붙어요). 폴더는 열리고, 이 기기에 없는 도구를 쓰는 세션은 거기서 기다려요. 기기에 이미 있는 애셋은 체크섬으로 대조해 재사용돼요. 디자인 시스템 팩은 앱이 전환하기 전에 자기만의 네임스페이스에 저장돼요. 100MB가 넘는 파일은 크다고 표시되고, 브라우저 저장 공간이 선언된 용량보다 여유가 적다고 하면 프리플라이트가 경고해요. 무결성이 검사되는 모든 부분은 작업이 확정되기 전에 검증되고, 손상된 사본은 거부되며 새로 만든 대상은 롤백돼요.
-
-파일에 내게 없는 도구가 실려 있으면, Lolly는 그 도구가 실행되기 전에 먼저 물어요. **Trust this tool?**은 도구 이름과 제작자를 밝히고, 이것을 열면 도구 자체의 코드가 내 기기에서 실행된다고 분명하게 말해줘요. 계속하는 길은 **Trust & install**이에요. 거절해도 공유받은 작업물은 프로젝트에 저장돼서, 그 도구를 추가하는 날까지 거기서 기다려요. (아직 곁다리로 설치할 수 없는 도구가 한 종류 있어요 - 코드가 모듈로 배포되는 도구인데, 같은 방식으로 돌려보내져요.)
-
-링크와 파일은 둘 다 어느 한 시점의 사본을 건네줘요. 다른 사람과 같은 세션을 *동시에* 작업하려면 - 기기 두 대, 서버 없이, 같은 네트워크에 있다면 인터넷도 필요 없이 - [함께 작업하기](/info/collaborate.html)를 보세요.
-
-## 실시간 카메라(움직임에 반응하는 도구)
-
-사진 **Filter** 도구는 모두 - Halftone, Scanline, Posterize, Voronoi cells, Colour treatment, Pixel stretch, Imperfections - 카메라를 쓸 수 있는 곳에서 **Go live** 버튼을 보여 줘요. 켜면 효과가 웹캠을 프레임 단위로 따라가며 움직임에 반응하고, 그 결과를 GIF나 WebM, MP4로 녹화할 수 있어요. 프레임은 **내 기기에서** 읽히고 처리되며 절대 밖으로 나가지 않고, 멈추거나 도구를 떠나는 순간 카메라가 풀려요. (어떤 이미지 선택기에도 **Take a photo**가 있어서 한 프레임을 기기 안의 이미지로 담을 수 있어요.)
-
-## 내 이미지
-
-도구에서 내 기기의 이미지를 추가하면 들어온 그대로 보관돼요 - 그래서 거기에 붙은 Content Credential도 그대로 검증돼요 - 그리고 개인 **내 이미지** 라이브러리(**설정 → 저장 공간** 아래)에 저장돼요. 정말로 큰 파일일 때만 그대로 둘지 크기를 줄일지 물어봐요. 어느 도구에서든 다시 쓰세요. 들어오는 이미지에서 EXIF/GPS를 지우려면 프로필에서 **업로드에서 메타데이터 제거**를 켜세요. 개수 제한은 없어요. 라이브러리는 전부 로컬이고 기기의 저장 공간만이 한계예요 - 이미지 관리와 삭제도 거기서 해요.
-
-## 애셋 - 내 라이브러리
-
-**애셋**(`#/a`, 또는 모든 목록 화면 위쪽에 있는 도구 · 유틸리티 · 애셋 · 프로젝트 전환기의 **애셋** 칸)은 도구가 끌어다 쓸 수 있는 모든 것을 모아 둬요 - 브랜드 로고, 이미지, 오디오, 모션이 종류별로 묶여 있어요 - 그리고 **직접 만든 파일**도 여기에 살아요. 서버도, 관리 콘솔도, 풀 리퀘스트도 없어요. 전부 내 기기 안에 있어요.
-
-![애셋 - 브랜드 색상 견본과 글꼴, 그리고 내가 올린 파일](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
-
-- <!--i:upload--> **파일을 가져오세요.** 이미지, SVG, 오디오 클립, 동영상, Lottie, PDF, PowerPoint 덱을 업로드 영역에 드래그하거나 - 클릭해서 선택하면 - 즉시 애셋에 도착해 모든 도구의 애셋 선택기에서 바로 사용할 수 있어요. 여러 페이지의 PDF나 `.pptx`는 유지할 페이지나 슬라이드를 물어보고, 각각이 SVG 애셋이 돼요. 원하는 만큼 가져오세요. 기기 밖으로 나가지 않아요.
-- <!--i:star--> **자주 쓰는 항목을 즐겨찾기하세요.** 애셋(또는 브랜드 색상 견본)에 ★를 표시하면 모든 선택기 맨 위에 고정되어, 자주 쓰는 로고나 색상을 클릭 한 번으로 사용할 수 있어요.
-- <!--i:folder--> **정리하세요.** 애셋을 다른 그룹으로 다시 분류하거나, 사용하지 않는 공유 브랜드 애셋을 숨기거나(**Show hidden**으로 다시 불러올 수 있어요), 직접 업로드한 항목을 완전히 삭제할 수 있어요. 프로젝트와 같은 다중 선택 제스처와 플로팅 작업 표시줄을 여기서도 사용할 수 있어서, 선택한 전체 항목에 한 번에 적용할 수 있어요.
-- <!--i:layers--> **동영상에서 배경을 제거하세요.** 애셋 선택기에서 동영상의 세부 정보를 열거나 카드를 오른쪽 클릭해 **Remove background…**를 선택하면 투명 버전을 저장할 수 있어요 - 실제 알파값을 가진 애니메이션 WebP 또는 PNG예요. **Method**를 선택하세요: **On-device model**은 복잡한 장면에서 피사체를 오려내고, **Colour key**는 그린 스크린이나 단색 벽처럼 조명이 고른 단색 배경을 제거하며, **Tolerance**, **Softness**, **Spill removal**로 경계를 다듬을 수 있어요. 컬러 키는 모델 다운로드도 네트워크도 필요 없어서 **Remove background**는 모든 동영상에서 제공되며, 깔끔하게 촬영된 영상에서 더 좋은 결과를 낼 때가 많아요. **Resolution** 설정(360, 480, 720 또는 1080p, 원본을 넘지 않음)은 화질과 더 작고 빠른 파일 사이에서 절충할 수 있게 해줘요. 이 작업은 기기에서 백그라운드 작업으로 실행돼요. 완성된 오려내기는 원본 옆에 별도의 애셋으로 저장되고, 원본 동영상의 Content Credential이 재료로 함께 따라가요. (배경 제거가 왜 평범한 편집으로 유지되는지는 [한 번 생성하면 똑같이 렌더링](/info/ai-features.html)을 참고하세요.)
-
-### 팔레트와 글꼴을 어디로든 가져가기
-
-애셋의 **Swatches** 패널은 보여주기만 하지 않아요 - 색을 클릭하면 복사되고, 다른 도구가 알아듣는 형식으로 **브랜드 팔레트 전체를 내려받을** 수도 있어요:
-
-- <!--i:code--> **디자인 토큰(JSON)**, **CSS 변수** 또는 **CSS 클래스** - 브랜드를 스타일시트나 빌드에 그대로 넣으세요;
-- <!--i:palette--> **Adobe Swatch Exchange (.ase)** - Illustrator나 Photoshop으로 불러오세요;
-- <!--i:pentool--> **GIMP palette (.gpl)** - GIMP나 Inkscape용이에요.
-
-![Swatches 패널 - 위쪽에 늘어선 다섯 개의 팔레트 다운로드 버튼과, 그 아래 복사할 수 있는 칩으로 놓인 모든 브랜드 색](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
-
-**Fonts** 패널은 브랜드 글꼴을 나열하고 각각 옆에 **download**를 두어, 기기에 설치하거나 인쇄소에 건넬 수 있게 해요. ([Brand Studio](/info/brand-studio.html)의 Colours 방에서도 같은 팔레트 다운로드를 제공해요.)
-
-자산은 열려 있는 직접 만들기 경로의 한쪽이고, 다른 한쪽은 **직접 도구 만들기**예요 - 위에서 설명한 자유 캔버스(Design)로 코드 없이 눈으로 보며 만들 수 있어요.
-
-## 소리와 접근성
-
-Lolly는 누구에게나 편안하게 쓰이는 것을 목표로 해요. 인터페이스는 키보드로 이동할 수 있고, 맞춤 컨트롤에는 화면 낭독기를 위한 제대로 된 레이블이 붙으며, 모든 도구의 실시간 미리보기는 무엇을 만들고 있는지 설명하는 레이블이 달린 하나의 이미지로 노출돼요.
-
-은은한 **보조 사운드**가 방금 한 일을 확인해 줘요 - 갤러리에 도착할 때, Content Credentials 검사가 유효하거나 유효하지 않을 때, 패널을 닫을 때, 필터를 바꿀 때요. 기본값은 **꺼짐**이에요. 스위치가 보이는 곳(각 화면의 옵션 팝오버나 **설정**)에서 **사운드**를 켜면 그 선택이 기억돼요.
-
-직접 켜는 편의 설정 네 가지가 **설정 → 접근성**에 있어요. **Reduce motion**(앱의 전환과 장식 효과를 걷어내요), **Hide colourful previews**(갤러리 카드를 아이콘과 글자만으로 차분하게, 프로젝트 미리보기도 조용하게 만들어요), **High contrast**(테두리와 글자, 포커스 테두리를 더 진하게 해요), **Large text**(레이블과 메뉴, 버튼 글자 등 앱 글씨를 크게 해요)예요. 네 가지 모두 작업물 *주변*의 앱을 가라앉힐 뿐이에요. 도구 캔버스 안으로는 절대 들어가지 않고 내보낸 결과물의 픽셀도 바꾸지 않으며, 켜기 전까지는 각각 꺼져 있어요. 자세한 내용은 [내 프로필 → 접근성](/info/profile.html#accessibility)에 있어요.
-
-Sound 스위치 옆에는 **Neurospicy Mode**가 있어요 - 일하는 동안 조용히 흐르는, 선택 사항인 차분한 집중용 배경 음악이에요. 켜면 화면 아래 모서리에 작은 **플레이어 독**이 열려 앱 어디를 가든 따라와요. 거기서 트랙을 검색해 고르고, 앞뒤로 건너뛰고, 볼륨을 정하고, 최소화하거나 닫을 수 있어요. 트랙 목록은 몇 갈래를 아울러요. 절차적으로 만들어지는 *Lolly Sings* 곡, 앰비언트 루프와 비트, 직접 올린 오디오, 그리고 몇몇 실시간 인터넷 **라디오** 방송이에요(라디오는 연결이 필요하고, 나머지는 오프라인에서도 재생돼요). 기본값은 **꺼짐**이고, Sound와 마찬가지로 세션과 기기를 넘어 기억돼요. Sound를 끄면 집중용 트랙도 함께 음소거돼요.
-
-## 저장 공간과 개인정보
-
-Lolly는 작업물을 사용자의 기기에 보관해요 - 웹 앱에서는 이 브라우저 자체의 저장소에, 데스크톱과 모바일 앱에서는 앱 자체의 저장소에요. 무엇이 보관되는지, **내 데이터 모두 지우기**가 무엇을 지우는지, 브라우저 데이터를 지우면 무엇이 함께 사라지는지는 [작업 찾기 및 복구](/info/find-your-work.html#if-you-clear-your-browser-data)에, 앱이 가져오거나 보내는 모든 것은 [Privacy Policy](/info/privacy.html)에, 선택적인 서버 구성 요소는 [Server Surface](/info/server-surface.html)에 정리되어 있어요.
-
-## 다른 기기로 옮기기
-
-작업을 두 번째 컴퓨터나 휴대폰으로 옮기려면 동기화, 백업 파일, 또는 `.lolly` 파일을 사용하세요. [다른 기기로 작업 옮기기](/info/find-your-work.html#move-your-work-to-another-device)에서 이 세 가지를 비교하고 **내 데이터 내보내기**와 **데이터 가져오기…**의 과정을 안내해요.
-
-## 디자인 가져오기(Figma, Penpot, Illustrator, InDesign)
-
-이미 있는 디자인을 Lolly로 가져와 이어서 작업할 수 있어요. **Design**을 열고 캔버스 툴바의 **Import a design**을 클릭한 다음, Figma **.fig**나 SVG, Penpot **.penpot**, Illustrator **.ai** / **.pdf**, InDesign **.idml** 중에서 고르세요. 레이어는 자유 캔버스의 편집 가능한 상자가 돼요 - 텍스트는 다시 입력할 수 있고, 이미지는 **My images**로 들어가며, 글꼴과 색은 브랜드 전역 값에 맞춰져요 - 그다음부터 결과물은 다른 세션과 똑같이 저장되고 공유되고 렌더링돼요. 해석은 전부 내 기기에서 일어나요. 자세한 내용: **[디자인 가져오기](/info/design-import.html)**.
-
-## 내보내기
-
-전체 이야기는 **[내보내기와 형식](/info/exporting.html)**을 보세요 - 형식 고르기, 출력 크기와 인쇄 단위, 투명도, 영상, 복사와 공유까지요. 요약하면, 형식을 고르고 필요하면 크기를 정한 뒤 **Download**(또는 클립보드로 **Copy**)를 누르면 돼요.
-
-## 배치(Pro) 모드
-
-고급 사용자를 위한 **Batch**(갤러리에서 연결되고, 기본으로 켜져 있는 Pro 기능 플래그 뒤에 있어요)는 여러 변형을 한 번에 렌더링해요. 각 행이 입력 한 벌인 격자를 함께 내보내는 방식이에요. 카드 하나를 열두 개 언어로 현지화하거나, 모든 크기 변형을 한 번에 만들 때 딱 맞아요. 행은 직접 입력하거나 스프레드시트에서 그대로 붙여넣거나 CSV를 가져와 채우고(다시 CSV로 내보낼 수도 있어요), 행마다 형식과 크기, 출력 파일 이름을 정하세요. 격자 전체를 이름 붙인 **배치 세션**으로 저장하면 갤러리에서 다시 열리고, 모든 행을 하나의 `.zip`으로 내려받을 수 있어요.
-
-![일괄 처리 도구 모음 - zip 이름, 단위, DPI, 모든 행이 상속하는 형식이 있고 오른쪽에는 Sessions와 Render가 있어요](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
-
-Batch는 **하나의 템플릿에서 여러 변형**을 한 번에 만들어 내는 기능이에요. **이미 저장한** 세션을 다시 렌더링하려면 **프로젝트 → 폴더 렌더링 / 선택 항목 렌더링**을 쓰세요([작업 찾기 및 복구](/info/find-your-work.html#find-something-you-saved) 참고) - Pro는 필요 없어요.
-
-## 나란히 편집하기(Multi-edit)
-
-일괄 처리(Batch)는 *하나의* 디자인에 대한 여러 변형이에요. **Multi-edit**은 그 반대편 절반을 담당해요: **서로 다른** 저장된 디자인 여러 개를 한 번에 열어서, 하나의 변경이 모두에 적용돼요. **Projects**에서 **2개에서 8개** 사이의 저장된 세션을 선택하고 선택 표시줄에서 **Edit together**(함께 편집)를 선택하세요. 그러면 `#/multi?s=<slot>,<slot>…`에서 나란히 놓인 실시간 카드로 열려요. 각 카드는 저장된 썸네일이 아니라 해당 세션의 실제 렌더링이므로, 보이는 그대로 내보내져요.
-
-사이드바 하나가 전부를 움직여요:
-
-- <!--i:sliders--> 맨 앞은 **Shared** 예요. 고른 세션 중 둘 이상이 *같은 방식으로* 선언한 입력(같은 id, 같은 유형, 같은 제약 - 배치 격자가 열에 쓰는 것과 같은 병합 규칙이에요)이 모여요. 공유 컨트롤을 한 번 바꾸면 그 값이 그것을 선언한 모든 세션으로 퍼져서 모든 카드에 바로 반영돼요. 같은 도구의 두 세션은 전부를 공유하고, 서로 다른 두 도구는 겹치는 입력만 공유해요.
-- <!--i:document--> 그 아래에는 **세션마다 접힌 카드 하나**가 있고, 그 세션 자체의 모든 입력이 도구의 사이드바와 같은 수준으로 들어 있어요. 자산 선택기, 반복 행 묶음, 색 입력에 더해 간결한 내보내기 묶음(**Format**, **W** / **H**, **Unit**, **DPI**, 그리고 자체 **Download**)까지요. 그 Download는 세션을 먼저 저장한 뒤 평범한 세션 내보내기 경로로 렌더링하니, 파일에는 도구에서 곧바로 내보낼 때와 같은 파일 이름과 형식, Content Credentials가 담겨요.
-- <!--i:search--> 맨 위의 **Filter inputs…**는 *모든* 카드의 컨트롤을 한 번에 좁혀 줘요. 여덟 개 세션에서 "헤드라인"을 찾아 스크롤하지 않고 바로 닿는 방법이죠.
-
-아무 캔버스나 클릭하거나 그 위에서 Enter를 누르면 해당 세션의 사이드바 카드가 열리며 화면에 보이도록 스크롤돼요. **Save all**은 모든 세션을 각자의 칸에 다시 써 넣어요. **Download all**은 먼저 저장한 뒤 전체를 Projects의 **Render selection**과 같은 경로로 렌더링해요. 결과는 zip 하나이고, 가는 길에 선택 사항인 비밀번호 잠금을 권해요.
-
-솔직히 말할 제한이 둘 있어요. 2~8개라는 상한은 실제 제한이에요. 카드마다 자체 실시간 런타임을 띄우는데, 반응이 살아 있는 개수가 그만큼이거든요. 그보다 많은 것(또는 이제 없는 세션)을 요구하는 링크는 절반만 불러오는 대신 그렇다고 말해 줘요. 그리고 이 링크는 *내* 저장 칸을 가리키기 때문에 이 기기에서 그 묶음을 다시 열 뿐, 공유 링크가 아니에요.
-
-선택이 여덟 개를 넘거나, 여러 도구가 섞였거나, 세션과 함께 이미지까지 들어 있다면 비상구는 같은 선택 바의 **Edit as sheet**예요. 선택 전체를 **배치 격자의 행**(`#/pro?s=…`)으로 열고, 개수 제한도 같은 도구여야 한다는 규칙도 없어요. 폴더는 둘 다에서 빠져요 - 폴더에는 격자에서 여는 자체 경로가 있어요. ([검색](/info/search.html)만은 아직 여기까지 닿지 않아요. Multi-edit은 검색 바가 모르는 유일한 화면이에요.)
-
-## 오프라인과 설치
-
-Lolly는 PWA예요. 이미 열어 둔 화면에서는 **오프라인**에서도 계속 동작하고, **설정 → 오프라인 사용 가능** 아래의 **앱**이 나머지를 내려받아요 - 브라우저 주소창에서 설치하면(모바일에서는 *Add to Home Screen*) 앱처럼 전체 화면으로 쓸 수 있어요. 다시 온라인이 되면 스스로 업데이트해요.
-
-업데이트에 대해: 업데이트 직후 화면이 로드되지 않는다면(빈 패널이나 구석에 뜨는 "failed to fetch" 메시지), 페이지를 한 번 새로고침하세요 - 앱은 새 버전을 깔끔하게 받아들이고, 작업물과 세션, 브랜드는 그대로 유지돼요. 추가했지만 한 번도 저장하지 않은 이미지만 다시 추가해야 할 수 있어요. 모든 것은 페이지가 아니라 기기에 저장돼요.
-
-Design와 Darkroom은 **Wide colour / HDR** 편집으로 원본 이미지의 정밀도를 지킬 수 있고, 이건 Sequence 영상도 마찬가지예요. 브랜드 색상 견본은 sRGB와 P3 값을 따로 가질 수 있어요. 출력 선택지와 현재 제한 사항은 [와이드 컬러와 HDR 편집](/info/hdr-editing.html)을 보세요.
-
-
-### Live pages that take the clicker
-
-Select a Web page box and turn on **Make interactive**. Its focus step keeps the clicker in the deck while Up and Down control the highlighted page. Owner settings cover highlights, scroll stops, automatic movement and keyboard handover. See [Live pages that take the clicker](/info/interactive-pages.html).
+## Settings, 소리, 편안함
+
+홈 화면 하단의 **Settings**에는 내 정보, 디자인 시스템, 접근성, 저장소, 오프라인 다운로드가 있어요. [Settings](/info/dashboard.html)가 모든 탭을 안내해요.
+
+- **내 정보와 프로필 사진**은 이메일 서명이나 배지처럼 이를 쓰도록 만들어진 모든 도구에 채워져요. [프로필](/info/profile.html)에서 다뤄요.
+- **접근성**에는 네 가지 편의 스위치가 있어요. **Reduce motion**, **Hide colourful previews**, **High contrast**, **Large text**예요. 작업물 주변의 앱을 바꾸며 도구 캔버스나 내보내기는 절대 바꾸지 않아요.
+- **소리**는 사용자의 동작에 맞는 부드러운 보조 소리를 재생하고, **Neurospicy Mode**는 차분한 집중 트랙을 재생해요. 둘 다 **Settings → Accessibility**나 프로필 메뉴에서 켜기 전까지 꺼져 있어요.
+- **Available offline**은 연결이 끊기기 전에 앱의 나머지, 도구, 카탈로그, 가이드를 내려받아요. Lolly는 설치할 수 있는 웹 앱이에요. 브라우저의 설치 버튼이나 휴대폰의 *Add to Home Screen*을 사용하면, 다시 온라인이 되었을 때 스스로 업데이트되는 전체 화면 앱을 얻어요.
+- **Storage**는 Lolly가 이 기기에 보관하는 것을 보여줘요. [브라우저 데이터를 지우면](/info/find-your-work.html#if-you-clear-your-browser-data)에서 지울 때 제거되는 것을 설명하고, [개인정보 처리방침](/info/privacy.html)은 앱이 가져오거나 보내는 모든 것을 나열해요.
+
+::: note 업데이트 후 보기가 로드되지 않을 때
+업데이트 직후 빈 패널이나 "failed to fetch" 메시지가 나오면 보통 한 번 새로고침하면 해결돼요. 저장된 작업물, 세션, 디자인 시스템은 기기에 저장되어 있으므로 영향을 받지 않아요. 추가했지만 저장하지 않은 그림만 다시 추가해야 할 수 있어요.
+:::
+
+## 다음으로 갈 곳
+
+- **[Design: 자유 캔버스](/info/design.html)**: 캔버스, 도형, 타임라인, 덱 발표를 다뤄요.
+- **[Batch와 Multi-edit](/info/batch.html)**: 한 디자인의 여러 버전, 또는 저장된 여러 디자인의 동시 편집을 다뤄요.
+- **[파일 내보내기](/info/exporting.html)**: 형식, 크기, 인쇄 단위, 투명도, 동영상 선택을 다뤄요.
+- **[디자인 가져오기](/info/design-import.html)**: Figma, Penpot, Illustrator, InDesign 파일을 Design으로 가져와 계속 편집해요.
+- **[템플릿](/info/templates.html)**: 도구의 저장된 출발점이에요.
+- **[Wide Colour와 HDR](/info/hdr-editing.html)**: Design과 Darkroom에서 원본 이미지 정밀도를 유지해요.
+- **[작업물 찾기와 복구](/info/find-your-work.html)**: 모든 것이 어디에 있는지, 다른 기기로 옮기는 방법을 다뤄요.

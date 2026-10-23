@@ -27,3 +27,7 @@ Atıf, köken, gizlilik ve rıza
 sonsuzluğun içinde yaratıcılık ve güven
 
 herkes, her ölçekte, her yerde yaratabilir
+
+## Neden
+
+### [Çünkü devlerin omuzlarında duruyoruz](/info/trust/shoulders-of-giants.html)

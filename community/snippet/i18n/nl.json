@@ -1,6 +1,6 @@
 {
   "name": "Snippet",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Toon tekst in een bureaubladvenster, als stilstaand beeld of als gestuurde interactie met typen, selecties, aanvullen en beweging.",
   "inputs.code.label": "Code",
   "inputs.code.placeholder": "Plak je code hier…",
   "inputs.fileName.label": "Bestandsnaam",

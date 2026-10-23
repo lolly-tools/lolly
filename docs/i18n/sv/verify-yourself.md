@@ -1,68 +1,81 @@
 # Verifiera det själv
 
-Lollys sidor om integritet och säkerhet gör påståenden: ingen analys, ingen spårning, filer lämnar aldrig enheten, en enda cookie i hela systemet. Den här sidan är annorlunda: den ber dig inte tro på något av det. Det är en lista med procedurer, var och en med det exakta kommandot eller klickvägen och resultatet du kommer att se. Varje påstående här går att motbevisa på några minuter, de flesta utan att installera något.
+Varje löfte på den här webbplatsen kan kontrolleras, utan konto. De flesta kontroller behöver bara en webbläsare; resten behöver en terminal och en kopia av källkoden. Om en kontroll nedan inte ger det visade resultatet är det en bugg eller ett brutet löfte, och vi vill höra om det: se [Om en kontroll misslyckas](#if-a-check-fails).
 
-Om någon kontroll på den här sidan inte ger det visade resultatet är det antingen en bugg eller ett brutet löfte. [Rapportera det](#if-a-check-fails) oavsett, så behandlar vi det med den allvarlighetsgrad ett brutet löfte förtjänar.
+Börja med den snabbaste: släpp en fil på Verify. Gå sedan längre: titta på nätverket medan du använder ett verktyg, dra ur sladden och fortsätt arbeta, räkna cookies och läs källkoden.
+
+De här kontrollerna gäller Lolly på egen hand. Om din organisation kör Lolly Work lägger det till inloggning, delat innehåll, konfigurerad telemetri och granskningsposter; kontrollera dem mot [Server Surface](/info/server-surface.html) och [organisationsavsnittet i integritetspolicyn](/info/privacy.html#organisation-services-with-lolly-work).
 
 ## Se det fungera, på tio sekunder
 
-Före procedurerna, belöningen. Öppna [`/verify`](/#/verify) och släpp en fil på den - ingen uppladdning, inget konto, ingen väntan på en server. Här är den och kontrollerar den [genererade Queensland-stormen](/info/ai-stance.html) från vår AI-ståndpunktssida: en Gemini-bild som Lolly öppnade, vattenmärkte och exporterade. Varje badge nedan beräknades på enheten, från filens egna byte.
+Öppna [`/verify`](/#/verify) och släpp en fil på sidan. Det finns ingen uppladdning, inget konto och ingen väntan på en server. Här kontrollerar den [den genererade Queensland-stormen](/info/ai-stance.html) från Vår hållning till AI: en bild som Gemini genererade, som Lolly öppnade, märkte och konverterade. Varje märke räknades ut på enheten, från filens egna byte.
 
 ![Verify på en skärm i telefonbredd - stormbilden, ett grönt Made with Lolly-utlåtande och badgarna för intakt uppgift och oförändrade byte staplade under den](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 
-Utlåtandet är inte en enda badge utan en liten hög av dem, var och en ett oberoende faktum:
+Utlåtandet är en liten hög med märken, vart och ett ett oberoende faktum:
 
-- <!--i:lock--> **Made with Lolly** - uppgiften är intakt *och* registrerar en Lolly-export.
-- <!--i:seal--> **Uppgiften är intakt** - det signerade C2PA-manifestet tolkas och dess egen anspråkssignatur verifieras.
-- <!--i:hash--> **Byten har inte ändrats** - filens hash matchar fortfarande det som signerades. Ändra en pixel och den här badgen slår om.
-- <!--i:sparkle--> **GEN AI** - en maskin skapade dessa pixlar, och filen säger det. Lolly läser tillbaka det påståendet i stället för att dölja det.
+- <!--i:lock--> **Made with Lolly**: credentialen är intakt *och* registrerar en Lolly-export.
+- <!--i:seal--> **The credential is intact**: det signerade C2PA-manifestet tolkas och dess egen anspråkssignatur verifieras.
+- <!--i:hash--> **The bytes have not changed**: filens hash matchar fortfarande det som signerades. Ändra en pixel och det här märket slår om.
+- <!--i:sparkle--> **GEN AI**: en maskin gjorde de här pixlarna, och filen säger det. Lolly läser den deklarationen tillbaka i stället för att dölja faktumet.
 
-Och hela historiken följer med filen. Nio steg överlever här - fem som Google registrerade när den genererade och vattenmärkte bilden, sedan fyra som Lolly registrerade när den öppnade, märkte och konverterade kopian på den här sidan - lästa rakt ur byten, på din enhet, och återgivna som en tidslinje. Det här är samma bild, verifierad på samma sätt, som C2PA-tidslinjen på [AI-ståndpunktssidan](/info/ai-stance.html).
+Hela historiken följer med filen. Nio steg överlever här: fem som Google registrerade när den genererade och vattenstämplade bilden, sedan fyra som Lolly registrerade när den öppnade, märkte och konverterade kopian på den här sidan. Verify läser dem direkt ur byten och ritar dem som en tidslinje.
 
 ![Ändringshistoriken Verify läser tillbaka ur stormbilden - fem steg registrerade av Google, sedan fyra av Lolly, som slutar i webp-filen på den här sidan](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
 
-Inget av det är dock själva förtroendeutfästelsen - det är demot. Resten av den här sidan är förtroendeutfästelsen: varje märke ovan är reproducerbart, och här är hur du reproducerar garantierna bakom dem.
+Det är demon. Kontrollerna nedan är garantierna under den, och var och en är reproducerbar. [Content Credentials](/info/content-credentials-identity.html) förklarar varje utlåtande.
 
 ## I din webbläsare, inga verktyg krävs
 
-**1. Titta på nätverket.** Öppna [lolly.tools](https://lolly.tools), öppna webbläsarens DevTools (F12), växla till fliken **Network** och använd ett verktyg - skriv in en URL i [QR Code](/t/qr-code), byt färger, exportera en PNG. Alla förfrågningar stannar på `lolly.tools`: appskalet, verktygets egna filer, katalogtillgångar. Ingen analyshost, ingen CDN-beacon, ingen typsnittstjänst, ingen "felrapporterings"-endpoint. Det du skriver in i ett verktyg dyker upp i **ingen förfrågan alls** - renderingen är lokal.
+::: timeline
+- <!--i:globe--> **1. Titta på nätverket.** Öppna [lolly.tools](https://lolly.tools), öppna webbläsarens DevTools (F12), byt till **Network** och använd ett verktyg: skriv en webbadress i [QR Code](/t/qr-code), ändra färger, exportera en PNG. Varje förfrågan stannar på `lolly.tools`: appskalet, verktygets egna filer och katalogtillgångar. Det finns ingen analysvärd, ingen CDN-beacon, ingen typsnittstjänst och ingen slutpunkt för felrapportering. Det du skriver i ett verktyg syns i **ingen förfrågan alls**, eftersom renderingen är lokal.
+- <!--i:eyeoff--> **2. Dra ur sladden.** Läs in appen och öppna ett verktyg eller två, gå sedan offline (flygplansläge, eller DevTools → Network → Offline) och ladda om. Galleriet och varje verktyg du öppnade fortsätter fungera, inklusive rendering och export i formaten du använde. Ett verktygs filer och ett formats kodare cachas första gången du använder dem, så använd ett verktyg en gång online innan du testar det offline. Det här är den starkaste enskilda kontrollen på den här sidan: programvara som ringer hem överlever inte att sladden kapas.
+- <!--i:check--> **3. Räkna cookies.** DevTools → **Application** (Firefox: **Storage**) → Cookies → `https://lolly.tools`. Listan är tom: appen sätter inga cookies. Klistra in `document.cookie` i konsolen så får du `""`. Den valfria CA-registreringen sätter en kortlivad `HttpOnly`-cookie, `lolly_ca_state`, avgränsad till `/api/ca`, som `document.cookie` inte kan visa. En Lolly Work-instans använder egna inloggningscookies; jämför dem med [Integritet](/info/privacy.html#organisation-services-with-lolly-work).
+- <!--i:layers--> **4. Läs din egen lagring.** I samma panel finns allt Lolly behåller framför dig: ett par dussin vanliga `localStorage`-nycklar (tema, språk, sidofältsbredd, ljud- och visningsinställningar, och en cachad kopia av det publika verktygskatalogindexet) och dina egna dokument i IndexedDB. Varje värde är en läsbar sträng eller JSON, utan något obfuskerat. Att rensa webbplatsdata tar bort de här lokala posterna, men inte en Sync-säkerhetskopia eller poster som en Lolly Work-instans håller. **Settings → Storage → Clear all my data** gör detsamma inifrån appen, och du kan se lagren och cacharna tömmas.
+- <!--i:lock--> **5. Kontrollera att kontaktvägen för rapportering finns.** [`/.well-known/security.txt`](/.well-known/security.txt) svarar med ett [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116)-kontaktblock, inte en HTML-sida.
+:::
 
-De ärliga undantagen - vart och ett opt-in, användarinitierat och synligt i samma Network-flik när det sker: att lägga till ett **Google Font** i varumärkesredigeraren hämtar den enda familjen från Google, efter en samtyckesdialog som talar om exakt det, en gång, innan den första hämtningen; att klicka på en **ICC-tryckprofil**-förinställning hämtar den profilen från ICC:s offentliga register på color.org; att spela den valfria inbyggda **radion** strömmar från stationen; att ange en plats i **Meeting Planner** slår upp den platsen hos open-meteos geokodningstjänst för dess koordinater och tidszon, en gång per stad (svaren sparas på din enhet), och fältet bär den upplysningen precis där du skriver; och **URL Screenshot** laddar med nödvändighet den URL du skrev in - det är dess uppgift, och du ser det hända. Ett verktyg som deklarerar en nätverksfunktion får bara hämta från de hostar dess manifest tillåtlistar, och den mekanismen är fail-closed; inget verktyg som levereras för närvarande deklarerar en sådan, så den webbläsarframtvingade Content-Security-Policy:n är gränsen som faktiskt håller listan ovan till sina hostar. [Integritetspolicyn](/info/privacy.html) håller den kanoniska tabellen över alla dessa; dess stående regel är att en nätverkskontakt som inte finns med i den tabellen inte sker.
+::: details Vad mer du kan se i fliken Network
+Vissa funktioner når nätverket bara när du använder dem, och var och en syns i samma flik:
 
-**2. Dra ur kontakten.** Ladda appen och öppna ett verktyg eller två, gå sedan offline - flygplansläge, eller DevTools → Network → Offline. Ladda om. Galleriet och varje verktyg du har öppnat fortsätter fungera, inklusive rendering och export i de format du har använt - ett verktygs filer och ett formats kodare cachas första gången du använder dem, så kör ett verktyg en gång online innan du testar det offline. Detta är den starkaste enskilda kontrollen på den här sidan: mjukvara som ringer hem överlever inte att sladden dras ur.
+- att lägga till ett **Google Font** i Design System Setup hämtar den familjen från Google, efter en samtyckesdialog som säger det, en gång, före den första hämtningen;
+- att klicka på en **ICC press-profile preset** hämtar den profilen från ICC:s publika register på color.org;
+- att spela den valfria inbyggda **radion** strömmar från stationen;
+- att ange en plats i **Meeting Planner** slår upp den platsen hos open-meteos geokodningstjänst för dess koordinater och tidszon, en gång per stad (svar sparas på din enhet), och fältet säger det där du skriver;
+- **URL Screenshot** laddar adressen du skrev, eftersom det är dess jobb, och du ser det ske.
 
-**3. Räkna cookies.** DevTools → **Application** (Firefox: **Storage**) → Cookies → `https://lolly.tools`. Listan är tom - appen sätter inga cookies. Eller klistra in `document.cookie` i konsolen: du får `""`. (Den enda cookien i hela systemet, `lolly_ca_state`, lever i högst tio minuter under en valfri identitetsinloggning - raderas i samma stund som inloggningen slutförs - är avgränsad till `/api/ca` och är `HttpOnly`: [integritetspolicyn](/info/privacy.html) beskriver den exakt.)
-
-**4. Läs din egen lagring.** Samma Application-panel: allt Lolly sparar går att inspektera framför dig - ett par dussin enkla `localStorage`-nycklar (tema, språk, sidopanelens bredd, ljud- och visningsinställningar, plus en cachad kopia av det offentliga verktygskatalogindexet), och dina egna dokument i IndexedDB. Varje värde är en läsbar sträng eller JSON - inget är förvanskat, inget är kodat för att avskräcka från att läsa det. Att rensa webbplatsdata i webbläsaren tar bort allt detta, och Lolly har ingen serverkopia; **Inställningar → Lagring → Rensa all min data** gör samma sak inifrån appen, och du kan se lagren och cacharna tömmas i den här panelen.
-
-**5. Kontrollera att upplysningskontakten finns.** [`/.well-known/security.txt`](/.well-known/security.txt) svarar med ett kontaktblock enligt [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116), inte en HTML-sida.
+Ett verktyg som deklarerar en nätverksförmåga får bara hämta från de värdar dess manifest tillåtlistar, och den kontrollen misslyckas på den säkra sidan. Inget verktyg som levereras i dag deklarerar en, så den webbläsarupprätthållna Content-Security-Policy är det som håller listan ovan till sina värdar. [Integritetspolicyn](/info/privacy.html) har den kanoniska tabellen över allt detta, inklusive trafik från hanterade instanser som policyuppdateringar och aktiverad rapportering.
+:::
 
 ## Från en terminal
 
-**6. Renderingsslutpunkten svarar bara med offentliga data.** Den enda serverfunktion som lägger användarinmatade värden i en URL - hot-link-renderingar - är aktiv här, och [integritetspolicyn](/info/privacy.html) beskriver vad det innebär för de värden du lägger i en länk:
+**6. Renderingsslutpunkten svarar bara med publika data.** Den enda serverfunktionen som lägger skrivna indata i en URL, hot-link-renderingar, är live här. [Integritetspolicyn](/info/privacy.html) säger vad det betyder för indata du lägger i en länk.
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Omkopplaren är per driftsättning (`LOLLY_DISABLE_RENDER_GET=1`): på en instans som sätter den returnerar samma sondering `404` - den skillnaden är flaggan som fungerar, inte en inkonsekvens.
+Varje installation väljer (`LOLLY_DISABLE_RENDER_GET=1`): på en instans som sätter den returnerar samma prob `404`. Den skillnaden är inställningen som fungerar, inte en inkonsekvens.
 
-**7. Serverytan går att räkna upp.** [Server Surface](/info/server-surface.html) listar varje serversidig rutt som finns, med den stående regeln att en endpoint som inte står på den sidan inte är en del av Lolly. `curl`:a dem; det finns inget annat att hitta.
+**7. Kontrollera tjänsterna din installation aktiverar.** [Server Surface](/info/server-surface.html) listar de valfria tjänsterna och länkar deras detaljerade referenser. För Lolly Work, ta med dess autentiserade API:er, collab-anslutning, lagring och konfigurerade leverantörer. En prob mot publika lolly.tools testar inte en privat organisationsinstans.
+
+Om du kör din egen instans har [Delivery deployment](/info/deploy-delivery.html) releasekontrollerna för den: modellintegritet, kantproben och dess exempellista, visningsrenderingar, den privata nedladdningsgatewayen och den signerade katalogen i en webbläsare.
+
 
 ## I källkoden
 
-Allt ovan skulle fortfarande kunna vara teater om den driftsatta koden skilde sig från den publika koden. Så kontrollera koden - driftsättningen byggs från [det publika repositoriet](https://github.com/lolly-tools/lolly):
+Allt ovan kunde ändå vara teater om den driftsatta koden skilde sig från den publika koden. Så kontrollera koden. Installationen byggs från [det publika arkivet](https://github.com/lolly-tools/lolly):
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
-**8. Ingen spårare, ingen analys-SDK, någonstans.** Sök i koden som levereras - motorn, varje shell (inklusive webbläsartillägget, Tauri-bridgeöverstyrningarna och service workern), serverfunktionerna och verktygspaketen - efter de vanliga misstänkta:
+**8. Ingen spårare och inget analys-SDK, någonstans.** Sök i koden som levereras (motorn, varje skal inklusive webbläsartillägget, Tauri-bryggans överskrivningar och service workern, serverfunktionerna och verktygspaketen) efter de vanliga misstänkta:
 
 ```bash
-grep -rn --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' \
+grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' \
   -e googletagmanager -e google-analytics -e posthog -e mixpanel -e hotjar \
   -e sentry.io -e segment.com -e '@vercel/analytics' \
   engine/src shells/*/src shells/chrome-extension shells/*/bridge-overrides \
@@ -70,10 +83,12 @@ grep -rn --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' 
 # (no output)
 ```
 
-**9. Ingen DNS-resolver från tredje part.** Verifys SEAL-kontroll dirigerar aldrig uppslag genom en DNS-over-HTTPS-leverantör - webbappen har helt enkelt ingen resolver:
+Den här skanningen letar efter spårnings-SDK:er från tredje part. Den visar inte att förstapartsanvändningsrapportering saknas: Lolly Work stöder organisationstelemetri och en separat granskningslogg, med egen policy och egna tester.
+
+**9. Ingen DNS-resolver från tredje part.** Verifys SEAL-kontroll skickar aldrig ett uppslag genom en DNS-över-HTTPS-leverantör, eftersom appen inte har någon resolver:
 
 ```bash
-grep -rn --include='*.ts' --include='*.js' --include='*.mjs' \
+grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' \
   -e cloudflare-dns.com -e dns.google -e /dns-query \
   engine/src shells/*/src shells/chrome-extension shells/*/bridge-overrides \
   shells/web/public/sw.js services packages api community brands/*/tools
@@ -82,23 +97,25 @@ grep -rn --include='*.ts' --include='*.js' --include='*.mjs' \
 #  bans them)
 ```
 
-**10. Certifikattjänsten sparar ingenting.** Identitets-CA:n har ingen utfärdandelogg - inte din e-post, inte en tidsstämpel, ingen webhook. Frånvaron går att greppa:
+**10. Certifikattjänsten för ingen utfärdningslogg.** Identitets-CA:n för ingen logg över vad den utfärdat och ingen förteckning över identiteter: ingen stdout-rad, ingen webhook, inget certifikatlager. Frånvaron går att söka efter:
 
 ```bash
 grep -rn logIssuance services/ca api/ca
 # (no output)
 ```
 
-## Framtvingat av tester, inte löften
+CA:n behåller kortlivat arbetstillstånd: hastighetsbegränsningshinkar håller hashade IP- och e-postnycklar under sitt fönster, och en hanterad installations tillträdeslager behåller en nyckelad identifierare och en förfrågningsdigest i högst tio minuter. [Content Credentials engineering](/info/content-credentials-engineering.html#protocol) har detaljerna.
 
-De tre källkontrollerna ovan är inte en engångsgranskning - de är fastnaglade i testsviten, så de inte kan förfalla i det tysta. [`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts) får bygget att misslyckas om:
+## Upprätthållet av tester
 
-- någon analys- eller spårnings-SDK förekommer någonstans i den levererade källkod den skannar - app-, motor-, server-, tilläggs- och verktygspaketskod likaså,
-- någon DNS-over-HTTPS-resolver från tredje part förekommer i den källkoden,
-- CA-utfärdandeloggen dyker upp igen - i källkoden **eller** i det genererade serverbundlet,
-- integritetspolicyn förlorar sina lagstadgade uppgifter (namngiven personuppgiftsansvarig, rättslig grund, rätt att klaga).
+Källkontrollerna ovan är ingen engångsgranskning: de är fastlåsta i testsviten, så de kan inte i tysthet förfalla. [`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts) kontrollerar en längre lista med spårarnamn än skanningen ovan och fäller bygget om:
 
-Kör dem själv i klonen (Node 22.18+; ingen `pnpm install` behövs för den här filen):
+- något analys- eller spårnings-SDK dyker upp var som helst i den levererade källkod den skannar, i app-, motor-, server-, tilläggs- och verktygspaketskod;
+- någon DNS-över-HTTPS-resolver från tredje part dyker upp i den källan;
+- CA:ns utfärdningslogg kommer tillbaka, i källan **eller** det genererade serverpaketet;
+- integritetspolicyn tappar sina lagkrav (namngiven personuppgiftsansvarig, rättslig grund, rätt att klaga).
+
+Kör dem själv i klonen (Node 22.18 eller senare; den här filen behöver ingen `pnpm install`):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -110,14 +127,12 @@ node --test tests/no-trackers.test.ts
 
 Den fullständiga svitan (`pnpm install && pnpm test`) kör flera tusen till, inklusive de kontradiktoriska kryptografitesterna som beskrivs i [Säkerhet och verifiering](/info/security.html).
 
-## Vad du inte kan verifiera utifrån - sagt rent ut
+## Vad du inte kan verifiera utifrån
 
-En sida som den här förtjänar förtroende genom att namnge sina egna begränsningar:
-
-- **Hostingens åtkomstloggar.** Vilken server som helst som besvarar en förfrågan kan logga förfrågan - IP, sökväg, tidsstämpel. Du kan inte verifiera vad en host sparar eller inte sparar, och det kan inte vi heller, bortom vår leverantörs dokumenterade beteende. Det är exakt därför arkitekturen håller ditt innehåll helt borta från nätet: det som aldrig lämnar din enhet kan inte loggas av någon.
-- **Att driftsättningen kör den här koden.** Du kan verifiera att källkoden är ren och att det driftsatta beteendet matchar den (kontrollerna ovan gör bägge delarna), men attestering på binärnivå av en webbdriftsättning är inget webbplattformen erbjuder. Åtgärderna är det publika repositoriet, de framtvingade testerna och offline-kontrollen - en manipulerad driftsättning som ringer hem misslyckas omedelbart med kontroll 1 och 2.
-- **Verktygshooks är inte sandlådade som standard.** Ett verktygs valfria logik körs granskad, i sidans egen realm; varje verktyg på lolly.tools är förstapart och granskat innan det levereras. Worker-isolering levereras nu som en opt-in per verktyg - ett verktyg vars manifest sätter `isolate: true` kör istället sina hooks utanför huvudtråden - så det du inte kan verifiera utifrån krymper, men standardvägen är fortfarande i samma realm och granskning är fortfarande kontrollen. Detta är uttalat, inte dolt - se avsnittet [design boundaries](/info/security.html), som alltid har sagt det.
+- **Åtkomstloggar hos värdtjänsten.** Varje server som svarar på en förfrågan kan logga den: IP-adress, sökväg och tid. En utomstående prob kan inte fastställa hur länge loggar sparas. Operatören styr loggning, rotation och exporter, och måste redovisa de valen. Lokal rendering håller vanliga redigeringar på din enhet; valfri serverrendering och delade arbetsytetjänster har de separata dataflöden som integritetspolicyn beskriver.
+- **Att installationen kör den här koden.** Du kan kontrollera att källan är ren och att det driftsatta beteendet matchar den, och kontrollerna ovan gör båda. Attestering på binärnivå av en webbinstallation är inget webbplattformen erbjuder. Skydden är det publika arkivet, de upprätthållna testerna och offlinekontrollen: en manipulerad installation som ringer hem fallerar kontroll 1 och 2 på en gång.
+- **Verktygshooks.** Ett inbyggt verktygs valfria logik granskas snarare än isoleras: den körs på sidan om inte verktyget väljer en Worker. Varje verktyg på lolly.tools är förstaparts och granskas innan det levereras. [Threat Model](/info/threat-model.html#trust-boundaries) redogör för var hooks körs och vad som begränsar dem.
 
 ## Om en kontroll misslyckas
 
-En diskrepans mellan den här sidan och observerat beteende är en säkerhetsrapport, och vi vill uppriktigt hellre höra om den än inte: [fitzy+security@suse.com](mailto:fitzy+security@suse.com), knappen **Report a vulnerability** på vilket [lolly-tools-repositorium](https://github.com/lolly-tools) som helst, eller kontakten i [`/.well-known/security.txt`](/.well-known/security.txt). Samordnat offentliggörande och kredit till rapportören är den stående policyn - [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md) har detaljerna.
+En skillnad mellan den här sidan och det du observerar är en säkerhetsrapport. Skicka den genom de privata kanalerna på [Security & Verification](/info/security.html#reporting-a-vulnerability). Vi tillämpar samordnat röjande och krediterar rapportörer.

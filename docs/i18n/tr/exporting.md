@@ -1,8 +1,10 @@
-# Dışa Aktarma ve Formatlar
+# Dosya dışa aktar
 
-Bir aracın **Dışa aktar | Farklı kaydet** düğmesinde **Dışa aktar**'a bas, dosya adının yanındaki menüden bir format seç, ardından **İndir**'e bas. Sıradan bir indirme cihazında oluşturulur. Kuruluş onayı ve teslim seçenekleri aşağıda anlatılıyor.
+Bir şey yaptın ve Lolly'den çıkması gerekiyor: bir sohbet için bir PNG, matbaa için bir PDF, bir meslektaşının düzenlemeye devam edeceği bir sunum. **Export | Save** hapının sol yarısı olan **Export** düğmesine bas. Dosya adının yanından bir biçim seç, sonra **Download** düğmesine bas. Dosya cihazında yapılır.
 
-Çoğu iş için üç formattan biri doğrudur:
+Tuvalde gördüğün, dosyanın içerdiğidir. Biçim menüsü yalnızca bu aracın bu tarayıcıda yapabildiklerini listeler.
+
+İşlerin çoğu için üç biçimden biri doğrudur:
 
 | İçin | Kullan | Çünkü |
 |---|---|---|
@@ -14,182 +16,195 @@ Bir aracın **Dışa aktar | Farklı kaydet** düğmesinde **Dışa aktar**'a ba
 Göndermeden önce, yapıldığı ekranda aç, ya da gerçek boyutunda yazdır.
 :::
 
-Bu sayfanın geri kalanı her formatı, boyutu ve seçeneği kapsar.
+::: details Lolly Work ile onaylar ve teslimat (isteğe bağlı)
+[Lolly Work çalıştıran bir kuruluş](/info/organisation.html) üyelerinin hangi biçimleri ve dışa aktarma ayarlarını göreceğini yönetebilir. Onayın gerektiği yerde **Request approval**, **Download** düğmesinin yerini alır. Örneğinin gösterdiği politikayı izle.
+
+Lolly Work ayrıca onay adımları, teslimat makbuzları ve denetim kaydıyla yapılandırılmış S3, WebDAV ve HTTP hedeflerine dosya teslim edebilir. O iş akışı için bir dosya göndermek, onu kuruluşun hizmetine gönderir; sıradan bir indirme cihazında kalır. Kişisel Send hedefleri ve kuruluş teslimatı ayrı yapılandırılır.
+
+İşletmeler bunu [organisation delivery guide](/info/work-delivery.html) ile kurar. Kuyruğa alınmış sunucu render'ları ve toplu işler için bkz. [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+:::
 
 ## Dışa aktarma nasıl çalışır
 
-Önizleme *dosyanın kendisidir*. Dışa aktardığında, host o tuvali seçtiğin formata işler ve sana bir indirme sunar (veya panoya koyar). Seçici, tarayıcının üretemeyeceği formatları gizler (bkz. [Video](#video)).
+Dışa aktardığında aracın tuvali seçtiğin biçime render edilir ve sana indirme olarak teslim edilir ya da panona konur.
 
-Bir dosya üreten üç yol vardır. Çoğu araç **tuvali** seçilen formata işler. Metin ve veri formatları (HTML, MD, TXT, JSON, CSV, ICS, VCF) ise resimden rasterleştirilmek yerine **aracın içeriğinden üretilir**. Ve gizlilik araçları (örn. *Gizli Verileri Temizle*) üçüncü bir yol kullanır: *senin* seçtiğin dosya cihaz üzerinde bayt bayt dönüştürülür ve doğrudan geri verilir - tuval yok, filigran yok ve eklenen köken meta verisi yok, çünkü zaten senin kendi dosyandır.
+Üç yol bir dosya üretir. Çoğu araç **tuvali render eder**. Metin ve veri biçimleri (HTML, Markdown, TXT, JSON, CSV, ICS, VCF), resimden çizilmek yerine **aracın içeriğinden üretilir**. *Strip Hidden Data* gibi gizlilik yardımcı araçları **seçtiğin dosyayı** cihazında **dönüştürür** ve zaten kendi dosyan olduğu için tuval, filigran veya eklenmiş meta veri olmadan geri verir.
 
-Dışa aktarma panelindeki eylemler:
+![Üç dışa aktarma yolu bitmiş bir dosyada buluşur: tuvali render et, içerikten metin veya veri üret ya da seçilen bir dosyayı cihazda dönüştür.](/info/diagrams/concepts/three-export-paths.svg)
 
-- <!--i:download--> **İndir** - dosyayı kaydet (birincil eylem). Sonradan bulamıyorsan, bkz. [İndirdiğin bir dosyayı bul](/info/find-your-work.html#find-a-file-you-downloaded).
-- <!--i:photos--> **Kopyala** - görseli doğrudan Slack'e, e-postaya, bir belgeye yapıştırmak üzere panona koy. Tarayıcının görselleri kopyalayamadığı yerde bunun yerine indirir ve sana bildirir.
-- <!--i:folder--> **Kaydet** - mevcut tasarımı tek tıkla, nereye sorulmadan Projeler'de tutar; asla bir dosya indirmez. **Dışa aktar**'ın yanındaki **Farklı kaydet**, nereye olduğunu sorar (bkz. [Kaydetme ve devam etme](/info/using.html#saving-continuing)).
-- <!--i:link--> **Paylaş** - **Share dialog**'u açar: tasarımı yeniden üreten kopyalanabilir bir bağlantı, ziyarette açılan geçişler (tam ekran, dışa aktarma paneli, açılışta indirme veya kopyalama) ve tüm durumu kompakt bir tokene sıkıştıran isteğe bağlı bir **Shortest link** (bkz. [URL Modu](/info/url-mode.html)).
+Dışa aktarma paneli bu eylemleri sunar. Bir aracın yazarı hangilerinin görüneceğini seçer; varsayılan küme Copy, Download ve Save'dir.
 
-(Bunlardan hangilerinin görüneceğini aracın yazarı seçer; varsayılan küme Kopyala, İndir ve Kaydet'tir.)
+- <!--i:download--> **Download** dosyayı kaydeder. Sonradan bulamazsan bkz. [Find a file you downloaded](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Copy** görseli panona koyar; bir sohbete, e-postaya veya belgeye yapıştırmaya hazır. Bir tarayıcının görsel kopyalayamadığı yerde bunun yerine indirir ve bunu söyler.
+- <!--i:folder--> **Save** geçerli tasarımı tek tıkla Projects içinde tutar ve asla dosya indirmez. **Download** yanındaki **Save as** nereye olacağını sorar (bkz. [Saving and continuing](/info/using.html#saving-continuing)).
+- <!--i:link--> **Share** Share iletişim kutusunu açar: tasarımı yeniden üreten bir bağlantı, ziyaret sırasındaki anahtarlar (tam ekran, dışa aktarma paneli, açılışta indirme veya kopyalama) ve tüm durumu kompakt bir belirteçte paketleyen isteğe bağlı **Shortest link** (bkz. [URL Mode](/info/url-mode.html)).
 
 ![Dışa aktarma paneli - format, boyut ve Kopyala / İndir / Kaydet / Paylaş eylemleri](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
-Paylaş, aracın üzerinde açılır; bağlantı önceden oluşturulmuş ve ziyarette açılan geçişler altındadır.
+Bir tasarım, örneğin bir QR Code bağlantısı tutan bir Design görsel kutusu gibi, başka bir aracın render'ını gömdüğünde, iç içe render ebeveynin dışa aktarmasına çizilir. SVG ve PDF'de gerçek vektör kalır ve PNG, JPG ve WebP'de net rasterleşir. Gömülü render filigran ve kendi kaynak bilgisini almaz; yalnızca bitmiş dosya alır. HTML, Markdown ve TXT dışa aktarmaları bileşik bir render tutamaz.
 
-::: details lolly.work ile onay ve teslim (isteğe bağlı)
-[lolly.work kullanan bir kuruluş](/info/organisation.html) kullanılabilir formatları ve dışa aktarma ayarlarını yönetebilir. Onay gerektiğinde uygulama **İndir** yerine **Request approval** (onay iste) gösterebilir. Örneğinin gösterdiği ilkeyi izle.
-
-Hizmet ayrıca yapılandırılmış S3, WebDAV ve HTTP hedeflerine yönetilen teslimi destekler; yapılandırıldığı yerlerde onay adımları, teslim makbuzları ve bir denetim kaydı bulunur. Bir dosyayı bu iş akışına göndermek onu kuruluşun hizmetine iletir; sıradan yerel indirmeler cihazda kalır. Kişisel Gönder hedeflerinin ve yönetilen kuruluş teslimatının yapılandırması ayrıdır.
-
-Operatörler için [teslim kılavuzuna](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md) bak. Kuyruğa alınmış sunucu işlemleri ve toplu işler için [CLI toplu işlem ve otomasyon](/info/cli-automation.html#organisation-jobs-with-lolly-work) bölümüne bak.
-:::
-
-### Aynı anda birçoğunu işleme
-
-Tek bir dışa aktarma bir dosyadır, ama tek geçişte **birçoğunu** işleyebilirsin - her biri bir `.zip` olarak teslim edilir:
-
-- <!--i:folder--> **Projeler → Klasörü işle**, bir klasördeki (ve alt klasörlerindeki) her kaydedilmiş oturumu tek bir iç içe zip olarak dışa aktarır; **Seçimi işle** aynısını herhangi bir çoklu seçim için yapar; tek bir kaydedilmiş oturum doğrudan kendi dosyasına işlenir. Batch/Pro gerekmez - bkz. [Lolly'yi Kullanma → Projeler](/info/using.html).
-- <!--i:layers--> **Batch (Pro)**, girdi kümelerinden oluşan bir ızgarayı işler - tek bir şablonun tüm varyantlarını bir kerede.
-
-Kaydedilmiş bir oturum, Projeler'den bir araç bağlantısı olarak yeniden de paylaşılabilir (kaydedilmiş girdilerden araç URL'sini yeniden oluşturur), böylece bir bağlantı onu tam olarak aynı ayarlarla yeniden açar.
-
-## Format seçme
+## Bir biçim seç
 
 Dosya adı ve format menüsü, **İndir**'in altında tek bir `name.format` çifti olarak birlikte durur.
 
 ![Dosya adı alanı format seçiciyle birleşmiş, böylece dışa aktarma tek bir ad.format çifti gibi okunur](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| İstediğin… | Kullan | Neden |
+Dosyanın nereye gittiğinden başla. Her kart o hedefe uyan biçimleri listeler; bir araç yalnızca yapabildiklerini gösterir.
+
+::: figure exporting-format-chooser
+Altı hedef ve her birine uyan biçimler.
+:::
+
+Tasarım sisteminin yazı tipinde dizilmiş bir logotype, her harfi dış çizgili bir yol olarak SVG dışa aktarılır; böylece tek dosya hem kartvizit boyutunda hem bina kaplaması boyutunda net kalır.
+
+![Aurora yazan, ince, geniş aralıklı bir logotype; tablonun SVG satırının anlattığı türden saf vektör çalışma](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
+
+::: details Her biçim ve ne için olduğu
+| İstediğin | Kullan | Neden |
 |---|---|---|
-| Ölçeklenen net logolar/görseller | **SVG** | Vektör - sonsuz ölçeklenebilir, küçük, düzenlenebilir; vektör dışa aktarımın çizemediği bir efekt, görsel olarak gömülür |
-| Office/Windows uygulamaları için vektör | **EMF** | PowerPoint/Word'e düzenlenebilir vektör olarak yapıştırılır; metin canlı ve düzenlenebilir kalır, Google Drive ise Slaytlar için Google Çizimler'de açar |
-| Baskı/tasarım uygulamaları için vektör | **EPS** veya **EPS (CMYK)** | Illustrator/matbaa iş akışları için PostScript vektör |
-| Kesim/CAD makineleri için vektör | **DXF** | Lazer kesiciler, vinil plotterlar, CNC - milimetre cinsinden dış hat yolları |
-| Düzenlenebilir bir slayt destesi | **PowerPoint** (PPTX) | Yerel düzenlenebilir metin + şekiller, görseller ve vektörler çıkarılabilir kalır |
-| Taşınabilir bir eğitim kursu | **Export course** | Proje içeriğini gözden geçir ve sürümlenmiş bir Web Sitesi, SCORM veya deneysel bir xAPI paketi oluştur |
+| Ölçeklenen net logolar veya çalışmalar | **SVG** | Vektör: ölçeklenebilir, küçük ve düzenlenebilir; vektör dışa aktarmanın çizemediği bir efekt görsel olarak gömülür |
+| Office ve Windows uygulamaları için vektör | **EMF** | PowerPoint ve Word'e canlı metinle düzenlenebilir vektör olarak yapışır; Google Drive onu Google Drawings'te açar |
+| Baskı ve tasarım uygulamaları için vektör | **EPS** veya **EPS (CMYK)** | Illustrator ve baskı iş akışları için PostScript vektör |
+| Kesim makineleri için vektör | **DXF** | Lazer kesiciler, vinil plotterlar ve CNC: milimetre cinsinden dış çizgi yolları |
+| Düzenlenebilir bir slayt sunumu | **PowerPoint** (PPTX) | Yerel düzenlenebilir metin ve şekiller; görseller ve vektörler çıkarılabilir kalır |
 | Düzenlenebilir bir metin belgesi | **Word** (DOCX) veya **OpenDocument** (ODT) | Bir kelime işlemcinin düzenlemeye devam edebileceği gerçek paragraflar ve başlıklar (Doc Studio) |
+| InDesign için bir düzen | **InDesign IDML (static subset)** | Metin, dikdörtgenler, oval şekiller ve görseller; çalışma alanı başına bir yayılım (Design) |
+| Düzenlenebilir bir Penpot belgesi | **Penpot** | Panolar, şekiller, metin ve bağlı token'lar |
 | Bir fotoğraf veya genel amaçlı görsel | **PNG** (kayıpsız) veya **JPG** (daha küçük) | Evrensel raster |
-| Daha küçük modern görseller | **WebP** / **AVIF** | Daha iyi sıkıştırma, alfa |
-| Baskı | **PDF** veya **Print PDF** (CMYK) | Gerçek sayfa boyutu; matbaa için CMYK |
-| Matbaa için baskı rasteri | **Print TIFF** (CMYK) | Bir RIP için DeviceCMYK pikselleri |
-| Web için animasyon | **GIF** | Her yerde çalışır, daha büyük dosyalar |
-| Tam renk + gerçek alfa ile animasyon | **APNG** | Animasyonlu PNG - palet sınırı yok, gerçek saydamlık |
-| Animasyon, en küçük dosya | **Animasyonlu WebP** | Tam renk + alfa, GIF veya APNG'den daha iyi sıkıştırılmış |
-| Ölçeklenen animasyonlu vektör | **Animasyonlu SVG** | Kendi kendine yeterli; bir tarayıcıda veya `<img>` içinde döngüye girer, codec gerekmez, her boyutta |
-| Sosyal medya/paylaşım için video | **MP4** veya **WebM** | Bayt başına en iyi kalite (aşağıya bakın) |
-| Zengin metin/e-posta imzası | **HTML** | Posta istemcilerine biçimlendirilmiş şekilde yapıştırılır |
-| Düz içerik | **MD** / **TXT** | Sadece metin |
+| Daha küçük modern görseller | **WebP** veya **AVIF** | Saydamlıkla daha iyi sıkıştırma |
+| Baskı | **PDF** veya **Print PDF** (CMYK) | Gerçek sayfa boyutu; baskı makinesi için CMYK |
+| Baskı makinesi için raster baskı | **Print TIFF** (CMYK) | RIP için DeviceCMYK pikselleri |
+| Web için animasyonlu | **GIF** | Her yerde oynar; daha büyük dosyalar |
+| Tam renkli ve gerçek saydamlıklı animasyon | **APNG** | Animasyonlu PNG: palet sınırı yok |
+| Animasyonlu, en küçük dosya | **Animated WebP** | Tam renk ve saydamlık, GIF veya APNG'den küçük |
+| Ölçeklenen animasyonlu vektör | **Animated SVG** | Kendi kendine yeten; tarayıcıda veya bir `<img>` içinde, her boyutta döner (Lottie Ad) |
+| Düzenlenebilir kalan bir animasyon | **dotLottie** | Design'ın zaman çizelgesinden şekiller, yollar ve dış dönüşüm anahtarları |
+| Bir Premiere devri | **Premiere XML + media** | Premiere için zamanlanmış klipler ve özgün medya (Design) |
+| Sosyal medya ve paylaşım için video | **MP4** veya **WebM** | Dosya boyutuna göre en iyi kalite (bkz. [Video](#video)) |
+| Altyazılar | **SRT** veya **VTT** | Bir video oynatıcı için zamanlanmış metin (Captions, Audiogram ve Record) |
+| Bir eğitim kursu | **SCORM (LMS)** | Sürümlü bir web sitesi, SCORM veya xAPI paketi (bkz. [SCORM](#scorm-course-packages)) |
+| Zengin metin veya bir e-posta imzası | **HTML** | Posta istemcilerine biçimlendirilmiş olarak yapışır |
+| Düz içerik | **MD** veya **TXT** | Yalnızca metin |
 | Bir takvim etkinliği | **ICS** | Herhangi bir takvim uygulamasına aktarılır |
-| Bir kişi kartı | **VCF** | Kişiler/adres defterlerine aktarılır |
-| Yeniden içe aktarılacak yapılandırılmış veri | **JSON** / **CSV** | Aracın içeriğini karşılıklı olarak aktarır |
-| Bir favicon | **ICO** | Çok boyutlu site simgesi (**ZIP** birkaç formatı bir araya getirir) |
+| Bir kişi kartı | **VCF** | Adres defterlerine aktarılır |
+| Yeniden içe aktarılacak yapılandırılmış veri | **JSON** veya **CSV** | Aracın içeriğini gidiş dönüş yapar |
+| Bir favicon | **ICO** | Çok boyutlu site simgesi; **ZIP** birkaç biçimi paketler |
+:::
 
-İlk satır yaygın durumdur. Marka yazı tipinle oluşturulmuş bir kelime markası SVG olarak dışa aktarılır, burada her harf bir piksel değil çevresi çizilmiş bir yoldur, bu yüzden aynı dosyadan hem bir kartvizit boyutunda hem de bir bina cephesi boyutunda keskin kalır.
+### Saydamlık
 
-![Aurora yazan, ince ve geniş harf aralıklı bir kelime markası, SVG satırının bahsettiği türden saf vektör çizim](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
+Destekleyen araçlar **No BG** gibi saydam arka plan anahtarı sunar. PNG, WebP, AVIF, SVG, APNG ve Animated WebP saydamlığı korur ve GIF sert bir kenar tutar. JPG ve PDF her zaman opaktır. TIFF beyaza düzleşir veya [HDR](#hdr-bright-colours) altında anlatılan HDR yolunda siyaha.
 
 ## Boyut ve baskı birimleri
 
-Varsayılan olarak dışa aktarımlar aracın doğal piksel boyutunu kullanır. Bir aracın **boyutlar** sunduğu yerde, genişlik × yükseklik ve bir **birim** ayarlayabilirsin:
+Araç **boyutlar** sunmadıkça dışa aktarmalar aracın yerel piksel boyutunu kullanır. Sunduğunda genişlik, yükseklik ve bir **unit** ayarlarsın:
 
-- **px** (varsayılan) - tam piksel.
-- **mm · cm · in · pt · pc** - fiziksel/baskı boyutları. Fiziksel bir birimle **DPI** de ayarlarsın (baskı için varsayılan **300**); motor formata göre doğru şekilde dönüştürür - **PDF** o boyutta gerçek bir sayfa olur, **raster** DPI için doğru piksel sayısında işlenir (ve çözünürlüğü gömer), **SVG** px viewBox ile fiziksel birimi korur.
+- **px** (varsayılan) tam piksellerdir.
+- **mm, cm, in, pt** ve **pc** fiziksel boyutlardır. Fiziksel bir birimle ayrıca **DPI** (varsayılan 300) ayarlarsın. Bir **PDF** o boyutta gerçek bir sayfa olur, bir **raster** o DPI için piksel sayısını alır ve çözünürlüğü kaydeder ve bir **SVG** fiziksel birimi bir piksel viewBox ile korur.
 
-Daha yüksek çözünürlüklü bir raster elde etmek için daha büyük bir genişlik/yükseklik gir, veya fiziksel bir birim seçip DPI'yi yükselt (piksel = boyut × DPI). Tek tıklamalı bir ölçek anahtarı yoktur.
-
-Örnek: genişlik `210`, yükseklik `297`, birim `mm` → bir A4 sayfası.
+Daha yüksek çözünürlüklü bir raster için daha büyük bir genişlik ve yükseklik gir ya da fiziksel bir birim seç ve DPI'yi yükselt (piksel = boyut × DPI). Genişlik `210`, yükseklik `297` ve birim `mm` bir A4 sayfası yapar.
 
 ![210 çarpı 297 mm olarak ayarlanmış boyutlar satırı, birim fiziksel olduğu için ortaya çıkan DPI alanıyla](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-dims&walker=1&dark=1&filename=exp-export-dims)
 
 ## Zamanlı bir kompozisyondan durağan kareler
 
-**Zamanlanmış bir kompozisyon** - Design'daki bir [Sequence](/info/using.html#timeline-sequence) zaman çizelgesi ya da zaman çizelgesi tabanlı herhangi bir çalışma yüzeyi - hareketli bir şeydir, bu yüzden sabit bir dışa aktarma "hangi an?" sorusunu yanıtlamak zorundadır. Kural beklediğin gibidir: **oynatma başlığındaki kare**. Oynatma başlığını istediğin görüntünün olduğu yere getir ve dışa aktar; gördüğün şey çıkan şeydir.
+Design içindeki bir [Sequence](/info/sequence-editor.html) zaman çizelgesi gibi zamanlanmış bir kompozisyon hareket eder; bu yüzden durağan bir dışa aktarma bir an seçmelidir: **oynatma kafasındaki kare**. Oynatma kafasını resmi istediğin yere park et ve dışa aktar.
 
-Birden fazla an istediğinde, çıktı boyutunun yanında **Kareler** alanı görünür (yalnızca zamanlı bir kompozisyon için, ve yalnızca durağan bir format için - PNG, JPG, WebP, SVG veya PDF). Oynatma başlığı karesi için `1`'de bırak. Yükselttiğinde, tüm dizi boyunca eşit aralıklarla örneklenmiş o kadar durağan kare elde edersin:
+Birden fazla an için çıktı boyutunun yanında **Frames** alanı belirir. Yalnızca zamanlanmış bir kompozisyon ve durağan bir biçim (PNG, JPG, WebP, SVG veya PDF) için gösterilir. Oynatma kafasındaki kare için `1` bırak. Yükseltirsen tüm dizi boyunca eşit aralıklı olarak o kadar durağan görsel elde edersin:
 
-- **Raster ve SVG** tek bir **zip** olarak döner - `<name>-01.png`, `-02.png` ve benzeri.
-- **PDF** ise **o kadar sayfadan oluşan tek bir belge** olarak döner.
+- PNG, JPG, WebP ve SVG tek bir ZIP olarak gelir: `<name>-01.png`, `-02.png` ve böyle devam eder.
+- PDF o kadar sayfalı tek bir belge olarak gelir.
 
-Bir hikaye tahtası, bir küçük resim sayfası, inceleme için bir kontak baskı sayfası veya doğrudan bir video kurgusundan kesilen bir sosyal medya karuseli için kullanışlıdır.
+Her durağan görsel, zaman çizelgesinin diliminin ortasından gelir; bu yüzden ilk kare asla yarı solmuş bir giriş, sonuncusu asla her klip bittikten sonraki boş an olmaz.
 
-Örnekleme, kenarlarda değil her aralığın **orta noktasında** alınır, çünkü bir dizinin ilk anı genellikle henüz solmamış bir giriş geçişidir ve son anı da her klibin bittiği durumdur - uç nokta örneklemesi karelerinden ikisini neredeyse boş olanlara harcardı. Sayı **64** ile sınırlıdır (bir kontak baskı sayfası bir insanın okuması içindir), ve alana yazılan anlamsız herhangi bir şey, dışa aktarımı başarısız kılmak yerine `1`'e geri döner. Her kare sıradan bir durağan karedir, bu yüzden Content Credentials, damga, fiziksel birimler ve DPI tam olarak tek bir dışa aktarımda davrandığı gibi davranır.
+::: figure exporting-contact-sheet
+Frames: 4 diziyi dört eşit dilime keser ve her birinin ortasını alır.
+:::
 
-**Kareler** alanı bugün bir sayfa elde etmenin yoludur. Motor eşleşen bir `cuts` URL parametresi ayırır, ama henüz hiçbir shell bunu bir bağlantıdan okumaz, bu yüzden paylaşılan bir bağlantı her zaman oynatma başlığı karesinde yeniden açılır - bkz. [URL Modu](/info/url-parameters.html#contact-sheets-cuts).
+Bir storyboard, bir inceleme kontak sayfası veya bir video düzenlemesinden kesilmiş bir sosyal medya karuseli için kullan. Sayı 64 ile sınırlıdır ve alana yazılan başka her şey `1` değerine döner. Her kare sıradan bir durağan görseldir; bu yüzden kimlik bilgileri, Imprint, fiziksel birimler ve DPI tek bir dışa aktarmadaki gibi davranır. Bir dışa aktarma bağlantısı, CLI ve MCP aynı sayfayı `cuts=` ile ister (bkz. [Contact sheets](/info/url-export.html#contact-sheets)).
 
-## Çok sayfalı PDF
+## Aynı anda çok dosya
 
-Bazı araçlar tek bir çalışma yerine **çok sayfalı bir PDF belgesi** oluşturur - bir kapak, gerektiği kadar sayfaya yayılan içerik ve bir arka sayfa, hepsi tek bir dosyada (*Booklet* aracına bakın). Her sayfa, o sayfanın kutusuna göre boyutlandırılmış **gerçek bir PDF sayfasıdır**, böylece okuyucular ve yazıcılar tek bir uzun görsel değil, gerçek sayfalar alır.
+Lolly'nin hacimli çalışmak için üç yolu vardır; her biri farklı bir iş için:
 
-- **İçerikten sayfalar.** Metin ve görsel blokları ekle; bloklar doldukça yeni sayfalar otomatik olarak oluşturulur, ve herhangi bir bloğu yeni bir sayfa başlatmaya zorlayabilirsin.
-- **Gerçek sayfa boyutları.** A4, US Letter veya A5 (dikey - iki sütunlu düzen bunun için tasarlanmıştır) seç - her sayfa, ve dışa aktarılan PDF, tam olarak o boyutta işlenir.
+::: cols
+## Bir tablo tek bir belge olur
+**Battlecards** gibi tablo girdili bir araç her satırı bir sayfaya çevirir. Elektronik tablondan bir tablo yapıştır ve tek bir PDF al. Satırları elektronik tabloda düzelt ve yeniden yapıştır.
+## Bir CSV satır başına bir dosya olur
+**Batch** (`#/batch`) bir CSV alır ve her satır için bir dışa aktarma render eder: isim rozetleri veya sertifikalar, her biri bir dosya, bir ZIP içinde teslim edilir. Bkz. [Batch](/info/batch.html#make-many-versions-of-one-design).
+## Birkaç tasarım tek düzenleme alır
+**Multi-edit**, farklı tasarımlarda aynı rötuşu yapmak için birkaç kayıtlı oturumu yan yana açar. Bkz. [Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+:::
 
-Çok sayfalı PDF'ler RGB belgelerdir ve kesim/taşma işaretleri taşımaz - bunlar yukarıdaki tek sayfalı **Print PDF** yoluna aittir. Ancak her PDF dışa aktarımıyla aynı **PDF/X-4 meta verilerini** taşırlar (sayfa kutuları, XMP, belge kimliği, gömülü profille bir sRGB çıktı amacı) ve **Content Credentials** sunarlar (aşağıda) - *Booklet* aracında bu seçenek önceden seçilmiş olarak gelir.
+**Projects** içinden **Render folder**, bir klasördeki ve alt klasörlerindeki her kayıtlı oturumu iç içe tek bir ZIP olarak dışa aktarır ve **Render selection** herhangi bir çoklu seçim için aynısını yapar; tek bir kayıtlı oturum kendi dosyasına render edilir. Kayıtlı bir oturum ayrıca Projects içinden, aynı ayarlarla yeniden açan bir araç bağlantısı olarak yeniden paylaşılabilir.
 
-## Aynı anda birçok şey üretme
+## Başka yerde düzenlenebilir kalan dosyalar
 
-Lolly'nin hacimde çalışmak için üç farklı yolu vardır, ve bunlar farklı işleri çözer - toplu düzenleme platformun birinci sınıf bir yeteneğidir, her aracın yeniden icat ettiği bir şey değil:
+Bazı biçimler işini bir resim yerine düzenlenebilir içerik olarak başka bir uygulamaya devreder.
 
-- <!--i:document--> **Bir tasarım × bir satır tablosu → tek bir çok sayfalı belge.** `table` girdisine sahip araçlar (*Battlecards* gibi) her satırı otomatik olarak bir sayfaya dönüştürür - elektronik tablondan bir tablo yapıştır, deste boyutunda bir PDF al. Gerçek toplu düzenleyicin elektronik tablo olarak kalır: on satırı orada düzelt, yeniden yapıştır. Aracın kendisi sayfaları hiç yönetmez.
-- <!--i:layers--> **Bir tasarım × bir veri dosyası → birçok ayrı dosya.** `/pro` toplu ızgarası bir CSV alır ve *satır başına* bir dışa aktarım işler - isim rozetleri, sertifikalar, her biri bir dosya.
-- <!--i:sliders--> **Yan yana düzenlenen birçok farklı varlık.** *Multi-edit*, farklı tasarımlar arasında koordineli rötuşlar için tek bir görünümde birkaç kaydedilmiş oturumu açar.
+### PowerPoint (PPTX)
 
-Genel kural: **tek bir belgeye** ait aynı tasarımın satırları → tablo tabanlı bir araç; **ayrı dosyalar** olarak gönderilmesi gereken satırlar → `/pro`; aynı düzeltmeyi gerektiren **farklı tasarımlar** → multi-edit. (Planlanan bir "medyayı birleştir" işleme seçeneği ilk ikisi arasında köprü kuracak - aynı formattaki dışa aktarımları tek bir PDF'de, tek bir videoda veya bir onay kontak baskı sayfasında birleştirerek.)
+Design, Markdown Slides, Booklet, Doc Studio, Chart, Diagrams, Flow Chart ve Agenda, sayfa başına bir slayt olacak şekilde bir PowerPoint sunumu dışa aktarır. Her sayfa yerel nesnelere ayrılır; böylece bir meslektaşın sunumu düzenleyebilir ve varlıkları çıkarabilir:
 
-## PowerPoint (PPTX)
-
-Design, Markdown Slides, Booklet, Doc Studio, Chart ve Diagrams bir **PowerPoint destesi** dışa aktarabilir - sayfa başına bir slayt. Buradaki amaç piksel mükemmelliğinde bir ekran görüntüsü değil; bir meslektaşına gerçekten **düzenleyebileceği ve içinden varlık çıkarabileceği** bir deste vermektir. Bu yüzden her sayfa yerel nesnelere ayrıştırılır:
-
-- <!--i:font--> **Metin**, düzendeki yazı tipi boyutu, rengi, kalınlığı, italiği ve hizalamasıyla gerçek, **düzenlenebilir PowerPoint metin kutularına** dönüşür - böylece PowerPoint'te bir yazım hatasını düzeltebilir veya stili yeniden ayarlayabilirsin.
-- <!--i:pentool--> **Vektörler** (logolar, ikonlar, SUSE amblemi) **gerçek SVG resimleri** olarak gömülür - her boyutta net kalırlar ve PowerPoint bunlar üzerinde *Convert to Shape* bile yapabilir.
-- <!--i:photos--> **Görseller**, kendi çıkarılabilir resimleri olarak yerel çözünürlüklerinde gelir (`cover` ile kırpılmış bir kahraman görsel, kırpmanın arkasındaki tam görseli korur, böylece yeniden çerçeveleyebilirsin), görsel üzerindeki her işlem (filtreler, karışımlar) sadakatle pişirilmiş olarak.
-- <!--i:layers--> **Arka planlar, kenarlıklar ve çizgiler** gerçek dikdörtgen/çizgi şekillerine dönüşür.
+- <!--i:font--> **Metin**, düzenin yazı tipi boyutu, rengi, ağırlığı, italikleri ve hizalamasıyla düzenlenebilir PowerPoint metin kutuları olur.
+- <!--i:pentool--> Logolar ve simgeler gibi **vektörler** SVG resimleri olarak gömülür; net kalırlar ve PowerPoint onlar üzerinde *Convert to Shape* yapabilir.
+- <!--i:photos--> **Görseller** yerel çözünürlükte kendi resimleri olarak gelir. Kırpılmış bir kahraman görsel, kırpmanın arkasındaki tam görseli korur ve üzerindeki her filtre veya karışım içine işlenir.
+- <!--i:layers--> **Arka planlar, kenarlıklar ve çizgiler** dikdörtgen ve çizgi şekilleri olur.
 
 ![PowerPoint seçiliyken dışa aktarma paneli: sayfa başına bir slayt, metin ve şekiller düzenlenebilir kalır](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
 
-Düzen tasarım gereği yaklaşıktır - amaç, kilitli bir ekran görüntüsü değil, sadık ve yeniden kullanılabilir **içerik**tir. Walker'ın yerel olarak ifade edemediği her şey (karmaşık filtrelenmiş veya maskelenmiş bir bölge) hiçbir şey kaybolmasın diye resim olarak gömülür. Bir sunumun tek bir slayt boyutu vardır, ilk sayfadan alınır.
+Düzen yaklaşıktır; amaç yeniden kullanılabilir içeriktir. Yürüteç karmaşık filtreli veya maskeli bir bölge gibi yerel olarak ifade edemediği her şey bir resim olarak gömülür; böylece hiçbir şey kaybolmaz. Bir sunumun ilk sayfadan alınan tek bir slayt boyutu vardır.
 
-PowerPoint aynı zamanda **içeri** giren bir yoldur. Herhangi bir yükleme yüzeyine bir `.pptx` bırak ve istediğin slaytları seç - her biri yerleştirebileceğin, düzenleyebileceğin veya üzerine inşa edebileceğin bir varlık haline gelir. **Markdown Slides**, Markdown'dan yepyeni bir deste yazar (ve markalı bir `.pptx` şablonu verir), **Rebrand** yardımcı aracı ise var olan bir desteyi olduğu yerde yeniden temalandırır - tema paleti, sabit kodlanmış renkler ve yazı tipleri - grafiklerine, SmartArt'ına veya animasyonlarına dokunmadan, geri bir `.pptx` verir. Bkz. [Bir tasarımı içe aktar → Desteler ve belgeler](/info/design-import.html#decks-and-documents).
+PowerPoint ayrıca bir giriş yoludur: [Rebrand a deck](/info/rebrand.html) bir sunumu tasarım sistemine taşır ve [Import a design](/info/design-import.html) birini Design'da açar.
 
-## Penpot
+### Penpot
 
-SVG dışa aktarabilen herhangi bir araç bir **Penpot dosyası** (`.penpot`) da dışa aktarabilir - sadece bakmak için değil, Penpot'ta düzenlemeye devam etmeye hazır bir belge.
-
-- <!--i:layout--> **Design**'dan, her çerçeve bir Penpot **board**'una (pano) dönüşür, üzerindeki her kutu kendi düzenlenebilir şekli olarak aktarılır - dikdörtgen, elips, metin, görsel veya yol - ve sonuç, Assets panelinde yeniden dışarı sürüklemeye hazır, yeniden kullanılabilir bir **component** (bileşen) olarak gelir.
-- <!--i:pentool--> Çıktısı **düz geometri** olan bir araçtan - QR Code, Street Map, Wordmark ve Palette Lab gibi vektör araçları - her yol, dikdörtgen, metin dizisi ve gradyan aynı şekilde, kendi düzenlenebilir şekli olarak aktarılır.
-- <!--i:font--> Çıktısını **HTML** olarak düzenleyen bir araçtan, **metin metin olarak kalır** - satır başına bir düzenlenebilir Penpot metin nesnesi, bir dış hat veya düz bir resim değil. Penpot'un karşılığı olmayan bir sanat eseri parçası - karmaşık bir illüstrasyon, canlı bir tuval - kendi başına bir görsel olarak yanında gelir, böylece etrafındaki metni ve kutuları asla düzleştirmez. Penpot'un sadakatle ayıramayacağı bütün bir düzen yine de tam sadakatte tek bir görsel olarak aktarılabilir, böylece hiçbir şey asla kaybolmaz.
-- <!--i:palette--> Bir şeklin **bir marka token'ından devraldığı** bir renk veya yazı tipi, dosyada o token'a **bağlı** kalır: token'ı Penpot'un Tokens panelinde değiştir, onu devralan her şekil birlikte yeniden boyanır; tek seferlik sabit bir renk ise tam olduğu yerde kalır. Markanın renkleri ve tipografileri de **Assets** paneline, tam tasarım-token setiyse **Tokens** paneline düşer - Lolly'nin kendi paletinin kullandığı aynı DTCG token setidir bu. Penpot buradan kendi kopyasını tutar: Tokens panelinde yapılan bir düzenleme, kendiliğinden değil, [Brand Studio'nun içe aktarımı](/info/design-import.html) üzerinden markaya geri döner.
+SVG dışa aktaran araçların çoğu ayrıca Penpot'ta düzenlemeye devam etmeye hazır bir **Penpot dosyası** (`.penpot`) da dışa aktarır.
 
 | Ne yaptın | Penpot'ta |
 |---|---|
-| Metin | Düzenlenebilir metin nesneleri - bir yazım hatasını düzelt veya yeniden biçimlendir |
-| Şekiller, yollar, gradyanlar, görseller | Kendi düzenlenebilir vektör şekilleri |
-| Bir marka token'ından gelen renk veya yazı tipi | Canlı bir token bağlantısı - token'ı düzenle, onu devralan her şekil izler |
+| Metin | Düzenlenebilir metin nesneleri: bir yazım hatasını düzelt veya yeniden stillendir |
+| Şekiller, yollar, gradyanlar ve görseller | Kendi düzenlenebilir vektör şekilleri |
+| Bir tasarım sistemi token'ından renk veya yazı tipi | Canlı bir token bağlantısı: token'ı düzenle ve onu devralan her şekil izler |
 | Tüm tasarım | Assets panelinde yeniden kullanılabilir bir bileşen |
-| Karmaşık bir illüstrasyon veya canlı tuval | Kendi başına bir görsel olarak gömülür, etrafındaki düzenlenebilir içerik dokunulmamış kalır |
+| Karmaşık bir çizim veya canlı tuval | Kendi başına bir görsel olarak gömülür; çevresindeki düzenlenebilir içeriğe dokunulmaz |
+
+Design'dan her çerçeve bir Penpot panosu olur. Tasarım sisteminin renkleri ve tipografileri Assets paneline, tam token kümesi Tokens paneline iner. Penpot oradan kendi kopyasını tutar: Penpot'ta düzenlenen bir token, [Design System Setup](/info/brand-studio.html) içindeki içe aktarma yoluyla geri gelir.
 
 ![Penpot seçiliyken dışa aktarma paneli: .penpot dosyası ve indirmenin yanında Send to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
-Açmak için Penpot'u başlat, bir proje seç ve **Import**'u (İçe Aktar) seç. Dışa aktarma panelinden Penpot'a giriş yapılmışsa, **Send to Penpot** bu adımı senin yerine yapar - orada bir proje seç, dosya doğrudan içine gider.
+Dosyayı açmak için Penpot'u başlat, bir proje seç ve **Import** seç. Dışa aktarma panelinden Penpot'ta oturum açtıysan **Send to Penpot** bu adımı senin için yapar.
 
-## SCORM (kurs paketleri)
+### Word, OpenDocument ve InDesign
 
-Desteklenen bir araçtan, bir proje klasöründen veya bir seçimden **Kursu dışa aktar**'ı seç. Design'da, **SCORM (LMS)**'i ve İndir'i seçmek de bu kurs iş akışını açar. Lolly oluşturmayı kaydeder, kurs içeriğini ve sırasını gözden geçirmene izin verir, ardından modülü ve onun dışa aktarma iletişim kutusunu açar.
+**Doc Studio**, gerçek paragraflar ve başlıklarla **Word** (DOCX) ve **OpenDocument** (ODT) dışa aktarır.
 
-- <!--i:layout--> Her kaynak için mevcut sunumu seç: durağan sayfalar, video olarak hareket, ses veya indirilebilir bir kaynak. Modüle yerel ders metni ve okuma alternatifleri ekle.
-- <!--i:play--> Öğrenci oynatıcısını önizle ve açıklamaları ile altyazıları gözden geçir. Hareket, sessiz animasyon dahil video olarak dahil edilir. Bir araç onu kaydedilmiş girdilerden yeniden oluşturamadığında önce bitmiş bir kaydı dışa aktar.
-- <!--i:file--> Web Sitesi, SCORM 1.2, SCORM 2004 4th Edition veya deneysel bir xAPI hedefi seç. Gerçek içeriği ve ZIP boyutunu kontrol et, ardından kontrol edilen sürümü kaydet ve indir.
-- <!--i:check--> Tamamlama, her gerekli dersi onaylamayı ve Bitir'i seçmeyi gerektirir. Web sitesi oynatıcısı ilerlemeyi tarayıcıda saklar; bir LMS paketi kendi alıcı LMS'ine bağlanır.
+**Design**, **InDesign IDML (static subset)** dışa aktarır: metin, dikdörtgenler, oval şekiller ve PNG veya JPEG görseller; çalışma alanı başına bir yayılım. Desteklenen satır içi biçimlendirme düzenlenebilir kalır, görseller `Links` içinde taşınır ve koordinatlar InDesign noktalarına dönüşür. Yeniden bağlama, yazı tipi ikamesi ve değişen metin sarma dikkat gerektirebilir. Efektler, animasyon, bileşik hikâyeler ve desteklenmeyen geometri, onları listeleyen bir raporla dışa aktarmayı durdurur. IDML özgün belgeyi korumaz; bu yüzden bitmiş çalışma için PDF gönder.
+
+### Zaman çizelgeleri: dotLottie ve Premiere
+
+Design'ın zaman çizelgesinden **dotLottie**, Lottie araçlarında düzenlenebilir kalan bir animasyon yazar; neleri koruduğunu [Lottie animations](/info/sequence-editor.html#lottie-animations) listeler. **Premiere XML + media**, zamanlanmış klipleri ve özgün medyalarını Premiere için paketler; bkz. [Premiere XML exchange](/info/sequence-editor.html#premiere-xml-exchange).
+
+### SCORM (kurs paketleri)
+
+Kurs dışa aktarma, Settings → Preferences → Feature flags altında **Training and courses** seçeneğini açana kadar kapalıdır.
+
+Sonra desteklenen bir araçtan, bir proje klasöründen veya bir seçimden **Export course** seç. Design'da **SCORM (LMS)** seçip **Download** düğmesine basmak aynı kurs iş akışını açar. Lolly işi kaydeder, kurs içeriğini ve sırasını incelemene izin verir, sonra modülü ve dışa aktarma iletişim kutusunu açar.
+
+- <!--i:layers--> Her kaynak için bir sunum seç: durağan sayfalar, video olarak hareket, ses veya indirilebilir bir kaynak. Modülde ders metni ve okuma alternatifleri ekle.
+- <!--i:clock--> Öğrenci oynatıcısını önizle ve açıklamaları ile altyazıları incele. Sessiz animasyon dahil hareket, video olarak eklenir.
+- <!--i:document--> Website, SCORM 1.2, SCORM 2004 4th Edition veya deneysel bir xAPI hedefi seç. İçeriği ve ZIP boyutunu denetle, sonra denetlenen sürümü kaydet ve indir.
+- <!--i:check--> Tamamlama, her zorunlu dersin onaylanmasını ve Finish seçilmesini gerektirir.
 
 ![SCORM (LMS) seçiliyken bir Design destesindeki dışa aktarma paneli](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
-Paket, bitmiş içeriğini içerir ve bir Lolly hesabı gerektirmez. Bir Web Sitesi ZIP'ini bir HTTP(S) sunucusuna çıkar; bir LMS ZIP'ini içeriğini değiştirmeden içe aktar. Kursu dağıtmadan önce hedeflenen varış noktasını test et.
+Paket bitmiş içeriğini tutar ve Lolly hesabı gerektirmez. Bir Website ZIP'ini bir HTTP(S) sunucusuna koy; bir LMS ZIP'ini değiştirmeden içe aktar. Kursu paylaşmadan önce hedefi test et. Birkaç kayıtlı yaratımdan kurulan bir kurs için bkz. [Create a training course](/info/training-creators.html).
 
-Birkaç kaydedilmiş oluşturmadan, içe aktarılmış medyadan ve kaynaklardan bir araya getirilen bir kurs için [Bir eğitim kursu oluştur](/info/create/training-creators.html) kullan. Öğrenim modülünün kendi sıralı taslağı, açık ders onayları, öğrenci önizlemesi ve sürümlenmiş paket geçmişi vardır. CLI yolu, zaten dışa aktardığın medyayı paketleyebilir.
+### DXF (kesim dosyaları)
 
-## DXF (kesim dosyaları)
+Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding ve Wordmark, lazer kesicilerin, vinil plotterların ve CNC yazılımlarının okuduğu AutoCAD R12 değişim biçimi olan **DXF** dışa aktarır. Geometri milimetre cinsinden dış çizgi yolları olarak yazılır, metin dış çizgilenir ve renk, genellikle kesicinin işlemini yöneten en yakın AutoCAD Color Index'e eşlenir. DXF yalnızca çizgi sanatıdır: fotoğrafik veya filtreli bir bölgenin kesim yolu yoktur ve bir uyarıyla bırakılır. Raster içeriği korumak için SVG veya PDF kullan.
 
-Vektör araçları (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, logo varyantları, Diagram Builder) **DXF** olarak dışa aktarabilir - lazer kesicilerin, vinil plotterların ve CNC/CAD yazılımının okuduğu AutoCAD R12 değişim formatı. Geometri, **milimetre cinsinden kontur yolları** olarak yazılır (eğriler ince bir toleransla düzleştirilir), metin kontur yollarına dönüştürülür ve renk en yakın AutoCAD Color Index'e eşlenir (bu genellikle bir kesicideki aracı/işlemi yönlendirir). DXF yalnızca çizgi sanatıdır - fotoğrafik veya filtrelenmiş bir bölgenin kesim yolu formu yoktur ve atlanır (Lolly uyarır), bu yüzden raster içeriği korumak gerektiğinde SVG/PDF kullan.
-
-Street Map en net örnektir: tüm tasarım zaten çizgilerden oluşur, yani her yol ve kanal, düşecek hiçbir şey olmadan bir kesim yoluna dönüşür.
+Street Map en net örnektir. Tüm tasarım zaten çizgilerden oluşur; bu yüzden her yol ve kanal bir kesim yolu olur.
 
 ::: showcase
 ![Krem üzerine mürekkeple çizilmiş bir Street Map Paris render'ı - saf çizgi sanatı, böylece her çizgi bir kesiciye giden yolculuğu atlatır](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Dparis%26roadColor%3D1a1a2e%26waterColor%3D93c5fd%26background%3Dfaf7f2%26full&width=1440&height=900&dpi=96&waitMs=3200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-street-map-cut)
@@ -197,165 +212,196 @@ Street Map en net örnektir: tüm tasarım zaten çizgilerden oluşur, yani her 
 Kaydır, ve kamera gerçek geometrinin içinden geri çekilir: yedi yol, hiçbir yerde piksel yok, her zumda kıl payı netliğinde her çizgi. Bu, bir kesicinin okuduğu dosyanın aynısıdır.
 :::
 
-## Animasyonlu SVG
+## Baskı
 
-Hareket araçları (Animated Ad, Lottie Ad) **Animasyonlu SVG** dışa aktarabilir - kendi kendine yeten, *vektör* bir animasyon. Her kareyi piksellere örnekleyen GIF/APNG/WebP'nin aksine, animasyonlu bir SVG, gömülü CSS anahtar kareleriyle vektör anlık görüntülerini üst üste yığar, böylece **hiçbir kodek ve harici çalışma zamanı olmadan her boyuta ölçeklenir** - bir tarayıcı sekmesinde veya bir `<img>` içinde döngüye girer. Metin anahatlı kalır, böylece her yerde işlenir. Animasyonlu formatların **Süre** / kare hızı denetimlerini paylaşır ve (kare başına bir bitmap'ten daha ağır olduğu için) daha düşük bir varsayılan kare hızı kullanır.
+**Print PDF**, adlandırılmış bir baskı koşuluna karşı, varsayılan olarak **Coated FOGRA39** ile CMYK yazar. Ölçülmüş mürekkep değerli marka örnekleri tam olarak dönüştürülür; diğer renkler standart bir aygıt dönüşümü kullanır. **Print TIFF** bir RIP için DeviceCMYK pikselleri yazar ve aynı baskı koşulunu TIFF meta verisinde kaydeder. Colour profile denetimi ikisini de yönetir; ayrıntı [Colour profiles](#colour-profiles) altında.
 
-## Saydamlık
+**Print marks & bleed** baskı biçimlerinde kendi kartına sahiptir: milimetre cinsinden taşma payı ve Crop, Registration, Bleed, Colour bars ile Stamp ayrıntıları.
 
-Bunu destekleyen araçlar bir **saydam arka plan** düğmesi sunar (örn. *No BG*). Saydamlık; PNG, WebP, AVIF, SVG (durağan ve animasyonlu), APNG ve Animated WebP tarafından korunur. JPG ve PDF her zaman opaktır ve TIFF beyaza düzleşir (HDR yolunda siyaha - aşağıya bak).
+Bazı araçlar **çok sayfalı bir PDF** kurar: bir kapak, gerektiği kadar sayfaya akan içerik ve bir arka sayfa; *Booklet* aracındaki gibi. Her sayfa A4, US Letter veya A5 boyutunda gerçek bir dikey PDF sayfasıdır ve herhangi bir bloğu yeni bir sayfaya zorlayabilirsin. Bunlar, tek sayfalı Print PDF'e ait olan kesim veya taşma işaretleri olmayan RGB belgelerdir. Bir Design PDF'i ayrıca bir **Notes handout** da olabilir: her slayt için altında konuşmacı notlarıyla bir dikey sayfa.
 
-## Renk uzayları
+**Before you export.** Panelin altındaki **Before you export** kartı, bir matbaanın göreceği şeyi söyler: biçim, boyut ve taşma payı, kesim ve taşma alanları, mürekkep kapsama, plaka sayıları ve sayfa sayısı; başlığının yanında bir kararla. Asla bir dışa aktarmayı engellemez. Design, tasarım sisteminin kurumsal stil kurallarını katman katman ve belgenin metni için yazım sinyalini içeren kendi denetimleriyle kartı her zaman gösterir ([Before you export](/info/design.html#before-you-export)) ve **Print preflight** açıkken bu baskı denetimlerini ekler. Diğer araçlarda Settings → Preferences → Feature flags altında **Print preflight** aç; varsayılan olarak kapalıdır ve bir Lolly Work dağıtımı bunu üyeleri için açabilir.
 
-Ayrı tutulmaya değer iki farklı soru: Lolly'nin **okuyup düşünebildiği** renk uzayları hangileri, **yazdığı** uzaylar hangileri.
+**After you export.** Dosya hazır olduğunda Lolly onu geri okur ve seçtiklerinle karşılaştırır: biçim, piksel veya sayfa boyutu, klip uzunluğu, saydam arka plan, CMYK renk, HDR, Content Credentials ve bir PDF veya ZIP parolası. Farklı olan her şey dışa aktarma kartına yazılır. Her ölçüm ayardan değil dosyadan gelir ve dosyanın yanıtlayamadığı bir özellik eşleşme sayılmaz. Komut satırı tam karşılaştırmayı `--export-report` ile yazar (bkz. [Render with the CLI](/info/cli-rendering.html)).
 
-**Okuma.** Bir rengin yazıldığı her yerde - bir aracın stil sayfası, içe aktarılmış bir SVG'nin boyası, bir tasarım token'ının değeri, bir CSS kısaltması içindeki gölge veya gradyan - Lolly tam **CSS Color 4** kelime dağarcığını okur: `#hex`, `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()`, CSS adlandırılmış renkleri ve önceden tanımlı uzaylardaki `color()` - `srgb`, `srgb-linear`, `display-p3`, `a98-rgb`, `prophoto-rgb`, `rec2020`, `xyz-d50`, `xyz-d65` - `none` anahtar sözcüğü olarak yazılan bileşenler dahil. Tek bir ayrıştırıcı bunu tüm platform için yapar, böylece tarayıcı ve her dışa aktarma walker'ı bir renk dizisinin ne anlama geldiği konusunda hemfikirdir.
+Design'ın denetleyici denetimleri ve Design System Setup'taki marka karşılaştırması ayrı denetimlerdir: tasarıma bakarlar, bu iki kart ise dosyaya.
 
-Bu, kulağa geldiğinden daha önemli, çünkü bir tarayıcı modern CSS'yi modern CSS'ye çözer. `color-mix(in oklab, …)` yaz ve Chrome `oklab(…)` hesaplar; `oklch()` olarak saklanan bir marka token'ı kullan ve dışa aktarma walker'ının gördüğü değer tam olarak budur. Bu biçimlerdeki renkler düşürülmek yerine doğru okunur - sadece `rgb()` anlayan bir walker'ın yaptığı, marka renkli metni siyah olarak dışa aktarmak, tonlanmış panelleri ve tablo çizgilerini kaybetmek ve `oklch(0.7 0.1 200) 0px 2px 4px`'i 0.7 ile 0.1'lik bir gölge kayması olarak okumaktı.
+::: details Bir fiyat kartından maliyet
+Preflight'ın altında bir maliyet kartı, yalnızca birinin sağladığı fiyatları kullanarak aynı sayıları paraya çevirir. Preflight kartının kendisi kapalı olsa bile bu sayıları okur. İki şeye ihtiyaç duyar: bir fiyat listesinin fiyatlayabileceği bir iş (plakalar, tabakalar, alan, sayfalar, varyant satırları veya çıktı dosyaları; yani düz bir logo PNG'si onu asla göstermez) ve bir **rate card**, matbaandan bir JSON fiyat listesi. Varsayılan bir derleme hiç taşımaz ve onu yüklemek için uygulama içinde bir yol yoktur. Bir rate card, bir dağıtımın gönderdiği bir katalog varlığı olarak ya da kendi sunucusunda barındıran birinin veya bir denetim düzleminin açtığı isteğe bağlı rate-card uzantısı aracılığıyla gelir. Rate card yoksa hiçbir şey gösterilmez.
 
-**Düşünme.** Renk matematiği ham kanallarda değil, algısal olarak gerçekleşir. Palet türetme, rampalar, uyumlar ve kontrast **OKLCH/OKLab**'de çalışır ve gamut dışı bir renk, kanalları kırpmak yerine CSS Color 4'ün kendi gamut eşleme algoritmasıyla - algısal mesafe kontrolüyle kroma azaltma - aralığa getirilir, böylece canlı bir renk, düzleştirilmiş bir renk yerine gerçekten kabul edeceğin en yakın renkte yerleşir. Gradyanlar seçtiğin bir uzayda enterpolasyon yapar (varsayılan olarak OKLab, veya `oklch`, `lab`, `lch`, `srgb`, `srgb-linear`, `hsl`, kutupsal olanlar için bir ton geçiş yönüyle), ve karıştırma **ön çarpımlıdır**, bu yüzden saydamlığa doğru bir geçiş, yol boyunca siyaha doğru koyulaşmak yerine doğru rengi korur. Tek bir enterpolatör hem önizlemeye hem de dışa aktarma walker'larına hizmet eder - bu da konik bir gradyanın ekranda bir şekilde, dışa aktarılan dosyada başka bir şekilde karıştırılmasını engelleyen şeydir.
+Her rakam, senin sağladığın bir oran çarpı Lolly'nin saydığı bir miktardır; örneğin `4 plate × €35.00` ve toplam kaynağını taşır: kartın düzenleyicisi ve oranlarının tarihi. Varsayılan para birimi ve yer tutucu fiyat yoktur. Dosyanın kendisi hakkında söyledikleri aktarılan söz olarak kalır: *"The file says: … Lolly has not verified this."*
 
-**Yazma.** Çıktı kasıtlı olarak girdiden daha dardır, çünkü bir dosya onu açan her şey tarafından okunabilir olmalıdır ve bir uzay yalnızca sayılar gerçekten ona dönüştürüldüğünde çıktıda *belirtilir*. Ekran ve web formatları **sRGB** olarak yazılır ve öyle etiketlenir; baskı formatları adlandırılmış bir baskı koşuluna (aşağıda) karşı **CMYK** olarak yazılır; ve HDR yolu **Rec.2100 PQ**'dur (yukarıda). Dışa aktarmaya ulaşan geniş gamutlu bir renk, yanlış etiketlenmek yerine sRGB'ye eşlenir - `color(display-p3 …)`'ü bir vektör dosyasına taşımak, bugünkü dışa aktarmaların yaptığını iddia ettiği bir şey değil, planlanan bir genişletmedir. OKLab'da tasarlanan bir gradyan, çıkışta düz sRGB duraklarına *pişirilir*, ek duraklar yalnızca sRGB'nin algısal eğriden görünür biçimde saptığı yerlere eklenir, çünkü bir SVG `<linearGradient>`'i ve bir PDF eksenel gölgelendirmesinin niyeti taşıyacak bir enterpolasyon-uzayı ayarı yoktur. Tek tasarlanan değer, üç işleyici, hiç sapma yok.
+Bir rakam hesaplanamadığında tablo doldurulmak yerine geri çekilir:
 
-## Renk profilleri
+- Kartın fiyatlamadığı satırlar **hiç toplam olmaması** anlamına gelir; yalnızca kaç tanesinin fiyatsız olduğunu söyleyen bir başlık.
+- Üst sınır olan bir miktar ara toplamına **"up to"** taşır.
+- Geçerlilik tarihini aşan oranlar, *Use these rates anyway* düğmesine basana kadar **yalnızca sayıları** gösterir; sonra son kullanma tarihi rakamla birlikte gider.
+- Bir **bağlantı** üzerinden açıldığında, bu cihazda isteyene kadar para gizli kalır. CLI `--rate-card=<file.json>` değerini yerel bir dosya olarak alır ve asla bir bağlantı parametresi olarak değil.
 
-Renkler renk yönetimli uygulamalarda (baskı büroları, Photoshop, tarayıcılar) sadakatle yeniden üretilsin diye, dışa aktarmalar bir **renk profiliyle etiketlenir**:
+Kart her dışa aktarma aşamasından çıkarılır; bu yüzden dosyayı asla değiştirmez. Bu bir teklif değil aritmetiktir; yalnızca matbaan teklif verebilir.
+:::
 
-- **PNG / JPG** gömülü bir **sRGB** ICC profili taşır - önizlemenin gerçekten işlendiği renk uzayı - böylece tahmin edilecek hiçbir şey kalmaz. (Yalnızca etiketleme; pikseller yeniden kodlanmaz.)
-- **Baskı PDF'i (CMYK)**, *OutputIntent*'inde hedef bir **baskı koşulu** bildirir (varsayılan *Coated FOGRA39*), bir RIP/baskı bürosuna CMYK mürekkeplerinin nasıl okunması gerektiğini söyler. Ölçülmüş mürekkep değerlerine sahip marka renk örnekleri tam olarak dönüştürülür; diğer renkler standart bir cihaz dönüşümü kullanır. Bu bildirim bir *isim*dir: Lolly ile hiçbir CMYK profili gelmez ve PDF/X-4, profilin gömülü olmasını ister, bu yüzden adlandırılmış bir koşul PDF/X-4 uyumluluğu iddia etmeden çıktı niyetini yazar. Kendi CMYK profilini yükle ve Renk profili denetiminde **Embed** satırını seç, o zaman dosyanın *DestOutputProfile*'ı olarak gömülür - bu noktada PDF gerçekten PDF/X-4 olabilir ve dosyanın geri kalanı izin verdiğinde bunu iddia eder. Üç şey iddiayı geri tutarken çıktı niyetini korur (bir RIP hâlâ onu ister): CMYK geçişinin dönüştüremediği RGB sanat çalışması, `prov` kanıt-kenar boşluğu kredi metni (gömülü olmayan standart bir yazı tipiyle çizilir ve X-4 bunlar için istisna tanımaz) ve **Strong** bir parola, çünkü X-4 şifrelemeyi yasaklar. Bildirdiği koşul, sonra o profilden okunur: profilin kanıtladığı yerde kayıtlı bir isim, kanıtlamadığı yerde profilin kendi adı altında `Custom` - böylece dosya bir baskı koşulunu adlandırırken başka birinin ölçümlerini taşıyamaz.
-- **Baskı TIFF'i (CMYK)** etiketlenmemiş **DeviceCMYK** pikselleri yazar ve aynı baskı koşulunu bir profil gömmek yerine TIFF meta verisinde (*ImageDescription*) köken olarak kaydeder. Aynı Renk profili denetimi her iki CMYK formatını da yönetir - bir TIFF hiç baskı profili gömemez, bu yüzden bir **Embed** satırı orada yalnızca o profilin kendi adını kaydeder, başka bir şey değil.
-- **TIFF (RGB)** düz, sıkıştırılmamış sRGB kardeşidir - arşivleme veya bir editör gidiş-dönüşü için seçilen DPI'da kayıpsız bir raster, köken aynı TIFF meta verisinde kaydedilir. Herhangi bir saydamlık beyaza düzleşir (bu profil alfa taşımaz). CMYK TIFF gibi bu da yalnızca masaüstündedir, çünkü tarayıcılar bir TIFF'i önizleyemez ve mobil indirmeler çıkmaza girer.
-- **SVG**, **EMF**, **EPS** ve **DXF**, gömülü profili olmayan çözünürlükten ve profilden bağımsız vektörlerdir - SVG'nin renkleri düz sRGB'dir, EMF'nin ve EPS'nin renkleri cihaz RGB'sidir (ve **EPS (CMYK)** naif DeviceCMYK yazar) ve **DXF** en yakın AutoCAD Color Index'i taşır. (SVG, EPS ve DXF, PDF gibi, her metni vektör yollarına anahatlar, böylece sonuç yazı tipi kurulu olmayan yerde bile işlenir. EMF bunun yerine metni varsayılan olarak CANLI tutar - Office ve Google Slides'ta seçilebilir ve düzenlenebilir kalan gerçek metadosya metin kayıtları, formatın ifade edemediği koşular için yalnızca anahatlara döner; dışa aktarma panelindeki "Outline fonts" seçeneği her yerde yolları zorlar.) **SVG** ayrıca HTML'den CSS `box-shadow`'unu yeniden üretir - her dış gölge kutunun arkasına, tarayıcıyla eşleşecek şekilde kaydırılmış/yayılmış ve Gauss bulanıklaştırılmış olarak boyanır, iç gölgeler ise aynı şekilde kutunun içine boyanır.
+## Hareket ve ses
 
-Bu otomatiktir - üzerinde oynanacak bir ayar yoktur. Küçük görseller ve önizlemeler küçük kalmak için etiketi atlar. Bir profil *bir seçimdir*, çünkü yalnızca etiketlemek yerine pikselleri değiştirir - aşağıdaki **HDR**'ye bak.
+### Video
 
-## HDR (parlak renkler)
+Animasyonlu araçlar **MP4** ve **WebM** dışa aktarır. Seçici yalnızca bu tarayıcının yapabildiği kapsayıcıları gösterir ve yapamadığını isteyen paylaşılan bir `?format=` bağlantısı eşleşen bir dosya adıyla diğerine döner. Animasyonlu araçlar ayrıca kayıttan önce animasyonlar ve yazı tiplerinin oturması için tuvali bir an sabit tutan **Start after** ve bitmiş klibin uzunluğu olan **Duration** sunar. **Motion blur** (Off, Draft quality, Standard veya High; bir **Shutter angle** ile) hızlı hareketi render süresi pahasına bulanıklaştırır. Tarayıcının desteklediği yerde **Record live**, bunun yerine bir ekran paylaşımı aracılığıyla ekrandaki önizlemeyi gerçek zamanlı kaydeder.
 
-Sıradan dışa aktarmalar sRGB'dir: beyaz beyazdır ve doygun bir marka rengi ekranın normal beyazı kadar parlaktır. HDR uyumlu bir ekranda bunun üzerinde çok fazla alan vardır ve dışa aktarma panelindeki **HDR** kartı bunu kullanır - marka renklerin ve beyaz metnin gerçekten *parlaması* için tepe parlaklığa doğru yükseltilir, koyu alanlar ise koyu kalır ve parlamaya kontrastını verir.
+![Animasyonlu bir dışa aktarmanın zamanlama ayarları: Start after, Duration, Shutter angle ile Motion blur ve Record live](/t/url-shot?url=%2F%23%2Ftool%2Flottie-digi-ad%3Fformat%3Dmp4%26options&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=.video-params&walker=1&format=svg&dark=1&filename=exp-video-settings)
+
+**Quality** Smaller file, Balanced veya Best quality seçer. **Advanced** **Codec**, **Frame rate**, **Rate mode** ve **Hardware acceleration** seçeneklerini açar. Bir aracın altyazıları olduğunda **Captions**, videonun yanında bir **Embedded track** ya da bir **Sidecar .vtt + .srt** seçer. Bir bağlantı kaliteyi, codec'i, kare hızını, süreyi ve başlangıç gecikmesini `vq`, `codec`, `fps`, `seconds` ve `wait` olarak taşır ([URL parameters](/info/url-parameters.html)).
+
+Video dışa aktarmaları seslerini korur. Bir araç klibin altına bir **music bed** serebilir: klip uzunluğuna döngülenmiş veya kırpılmış, görüntünün kendi sesinin altında solma, ses düzeyi ve kısma olan bir ses varlığı. Kayıt araçları canlı seslerini dosyaya taşır.
+
+Tıklamalı sunum olarak kalan bir Design sunumu yine de video olarak çıkabilir. Present menüsündeki **Export slides as video**, dışa aktarma sayfasını MP4 üzerinde açar. Her slayt kendi bekleme süresi kadar ya da yoksa dışa aktarma sayfasının Duration değeri kadar oynar ve sunumun slayt geçişi aralarında bir çözülme olarak oynar. Belgenin kendisi değişmez.
+
+### Animasyonlu görseller
+
+**GIF** her yerde oynar ve sohbet ile e-postaya uygundur; videodan daha büyüktür ve daha az rengi vardır. **APNG** ve **Animated WebP** tam rengi ve saydamlığı korur. **Lottie Ad** ayrıca **Animated SVG** dışa aktarır: gömülü CSS anahtar kareleriyle vektör kareler; böylece herhangi bir boyuta ölçeklenir ve codec olmadan bir tarayıcı sekmesinde veya bir `<img>` içinde döner. Metni dış çizgilenir ve her kare bir bitmap'ten daha ağır olduğu için daha düşük bir varsayılan kare hızı kullanır. Bunların hepsi sessizdir.
+
+### Ses
+
+Bazı araçlar sesi tek başına dışa aktarır. **Voice Recorder** canlı seviye göstergesiyle bir mikrofon çekimi yakalar ve cihazında kodlanmış **MP3**, **WAV**, **M4A (AAC)** veya **Opus (WebM)** olarak kaydeder. `wav`, `mp3`, `m4a` ve `opus` sıradan biçim kimlikleridir; bu yüzden bir ses dışa aktarması bir PNG kadar paylaşılabilir ve betiklenebilirdir.
+
+Varlık seçici bir müzik zemini için MP3 ve FLAC'ten MIDI ve izleyici modüllerine geniş bir ses yelpazesini kabul eder; [Formats](/info/formats.html) onları listeler. Bir [Rondocode song](/info/rondocode.html) klibinin istediği uzunlukta oynar.
+
+## Renk ve HDR
+
+Lolly her modern CSS rengini okur, renk matematiğini algısal olarak yapar ve her dosyayı bir okuyucunun açabileceği bir uzayda yazar: ekranlar için sRGB, baskı için CMYK ve HDR için Rec.2100 PQ. Nasıl olduğunu [Colour in the engine](/info/colour-engine.html) açıklar. **Wide colour / HDR** olarak ayarlanmış bir Design belgesi, [Wide colour and HDR editing](/info/hdr-editing.html) bölümünde anlatılan kendi kurallarını izler.
+
+### Renk profilleri
+
+Dışa aktarmalar bir renk profiliyle etiketlenir; böylece matbaalar, Photoshop ve tarayıcılar gibi renk yönetimli uygulamalar renkleri senin gördüğün gibi okur. Bu otomatik olur; küçük resimler ve önizlemeler küçük kalmak için etiketi atlar.
+
+- **PNG ve JPG**, önizlemenin çizildiği uzay olan gömülü bir **sRGB** ICC profili taşır. Pikseller etiketlenir, yeniden kodlanmaz.
+- **Print PDF (CMYK)** baskı koşulunu *OutputIntent* içinde bildirir ve bir matbaaya CMYK mürekkeplerinin nasıl okunması gerektiğini söyler.
+- **Print TIFF (CMYK)** etiketsiz DeviceCMYK pikselleri yazar ve baskı koşulunu TIFF meta verisinde kaydeder. Bir TIFF bir baskı profili gömemez; bu yüzden bir **Embed** satırı yalnızca o profilin adını kaydeder.
+- **TIFF (RGB)** arşiv veya bir düzenleyiciyle gidiş dönüş için sıkıştırılmamış sRGB kardeşidir. Saydamlığı beyaza düzleştirir. İki TIFF de yalnızca masaüstüdür, çünkü tarayıcılar bir TIFF'i önizleyemez.
+- **SVG**, **EMF**, **EPS** ve **DXF**, gömülü profili olmayan vektörlerdir: SVG'nin renkleri sRGB'dir, EMF ve EPS aygıt RGB'sini kullanır, **EPS (CMYK)** DeviceCMYK yazar ve DXF AutoCAD Color Index kullanır. SVG, EPS ve DXF metni yollara dış çizgiler. EMF metni Office ve Google Slides'ta canlı ve düzenlenebilir tutar, yalnızca biçimin ifade edemediği parçalar için dış çizgilere döner; dışa aktarma panelinin **Outline fonts** seçeneği her yerde yolları zorlar. SVG ayrıca CSS kutu gölgelerini, içte ve dışta yeniden üretir.
+
+::: details PDF/X-4 ve kendi baskı profilin
+Lolly ile hiçbir CMYK profili gelmez. Adlandırılmış bir baskı koşulu, PDF/X-4 uyumluluğunu iddia etmeden çıktı amacını yazar, çünkü PDF/X-4 profilin gömülmesini ister.
+
+Kendi CMYK profilini yükle ve Colour profile denetiminde **Embed** satırını seç. Dosyanın *DestOutputProfile* değeri olarak gömülür ve dosyanın geri kalanı izin verdiğinde PDF, PDF/X-4 iddiasında bulunur. Bildirdiği baskı koşulu o profilden okunur: profilin kanıtladığı yerde kayıtlı bir ad ya da profilin kendi adı altında `Custom`.
+
+Üç şey iddiayı esirgerken çıktı amacını korur: CMYK geçişinin dönüştüremediği RGB çalışma, `prov` kanıt kenar boşluğu atıf metni (gömülü olmayan standart bir yazı tipiyle çizilir) ve **Strong** bir parola, çünkü PDF/X-4 şifrelemeyi yasaklar. Her PDF ayrıca PDF/X-4 meta verisi taşır: sayfa kutuları, XMP, bir belge kimliği ve profiliyle bir sRGB çıktı amacı.
+:::
+
+### HDR (parlak renkler)
+
+Bu, sıradan bir çalışmayı HDR ekranlar için parlaklaştıran dışa aktarma panelinin **HDR** kartıdır. HDR özgünlerini düzenleme boyunca korumak farklı bir özelliktir: [Wide colour and HDR editing](/info/hdr-editing.html).
+
+Sıradan bir dışa aktarma sRGB'dir: doygun bir marka rengi, ekranın normal beyazı kadar parlaktır. Bir HDR ekranın bunun üstünde boşluğu vardır. **HDR** kartı marka renklerini ve beyaz metni tepe parlaklığa doğru güçlendirirken koyu alanlar koyu kalır ve parıltıya kontrastını verir.
 
 ![Dışa aktarma panelindeki HDR kartı, açık, altında görünen White / Reach / Dark lift / Focus kadranlarıyla](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Formatlar.** Sinyali taşıyacak bir yeri olan raster formatlar: **PNG**, **JPG**, **AVIF** ve **TIFF**. (WebP değil - 8 bit olduğu ve çalışan bir HDR çözme yolu olmadığı için, bir PQ WebP sadece karanlık görünürdü. Vektörlerin ve PDF'in ise hiç HDR modeli yok.)
-- Renk etiketlemenin aksine **varsayılan olarak kapalıdır** - pikselleri değiştirir, bu yüzden isteğe bağlıdır. Kartı işaretle veya bir paylaşım bağlantısında `hdr=1` geçir.
-- **Aslında ne yazılıyor.** Pikseller **Rec.2100 PQ**'ya yeniden kodlanır - SMPTE ST 2084 (PQ) aktarım eğrisiyle BT.2020 birincil renkleri - ve konteyner, renk yönetimli bir uygulamanın onları o şekilde okuması gerektiğini bilmesi için eşleşen sinyali taşır: oluşturulmuş bir **`cicp` etiketli ICC v4 profili** (JPG, TIFF), bir **`cICP` parçası** (PNG) veya yeniden yazılmış bir `colr` kutusu (AVIF). Artırım **algısal (OKLab) parlaklığa** göre kısılır, böylece orta ve üstü renkler tepe noktaya vurur, koyu renkler ise patlatılmak yerine yumuşatılır; ayrıca ton koruyucudur - marka yeşili daha parlak olur, naneli olmaz.
-- **Kadranlar.** Kart açıldığında ortaya çıkan dört tanesi: **White** (tepe parlaklık tavanı, 400–2000 nit), **Reach** (parıltının tonlar arasında ne kadar aşağı yayıldığı), **Dark lift** (koyu tonların ne kadar aydınlatıldığı - `0` onları koyu tutar) ve **Focus** (artırımın ne kadar renk zenginliği koruduğu). Bunlar kompakt ayarlı bir değerle aynı parametrede taşınır - `hdr=1600-60-0-50`, White 1600, Reach 60, Dark lift 0, Focus 50 demektir - böylece ayarlanmış bir görünüm bağlantıdan yeniden üretilebilir.
-- **Nerede göreceksin.** Bir HDR ekranda renk yönetimli görüntüleyiciler: Apple cihazlarında Preview / Quick Look / Safari, bir HDR monitörde Chrome. Sıradan bir SDR ekranda dosya yine de normal bir görsel olarak görünür.
-- **Yayınlamadan önce bilmen gerekenler.** Birçok platform yüklediğin şeyi **yeniden kodlar** ve HDR sinyalini kaldırır - sosyal ağlar, mesajlaşma uygulamaları, bazı CMS'ler - bu da görselin karanlık veya solgun görünmesine yol açabilir. HDR'yi hedefi kontrol ettiğin yerlerde kullan (kendi oluşturduğun bir site, bir video duvarı, parlak bir panelde bir deste), her şey için varsayılan olarak değil.
-- **Saydamlık.** PNG ve AVIF alfa kanallarını korur; JPG her zamanki gibi opaktır. **TIFF** yolu, SDR yolunun beyazı yerine **siyah** üzerine düzleştirir - PQ'da beyaz, 10.000 nit'lik koddur, bu yüzden onun üzerine düzleştirmek her kenarı kör edici bir hale ile çevrelerdi.
-- **Terminalden aynı baytlar.** `--export=png` veya `--export=jpg` ile birlikte `--hdr=1`, [CLI](/info/cli.html)'de de 16 bit Rec.2100 PQ PNG'yi ve ISO 21496-1 kazanç haritalı JPEG'i yazar, bir tarayıcı yerine aynı motor kodlayıcılarından - böylece `<svg>` tabanlı bir araç, yolda hiçbir Chromium olmadan bir HDR dosyası üretir ve PNG, web kabuğununkiyle bayt bayt aynıdır. AVIF ve TIFF şimdilik web kabuğu dışa aktarımları olarak kalır.
+- **Biçimler.** PNG, JPG, AVIF ve TIFF. WebP 8 bittir ve çalışan bir HDR çözme yolu yoktur; vektörlerin ve PDF'in HDR modeli yoktur.
+- **Varsayılan olarak kapalı**, çünkü pikselleri değiştirir. Kartı işaretle ya da bir paylaşım bağlantısında `hdr=1` ver.
+- **Kadranlar.** **White** (tepe parlaklık tavanı, 400 ila 2000 nit), **Reach** (parıltının tonlar boyunca ne kadar aşağı yayıldığı), **Dark lift** (koyuların ne kadar parladığı; `0` onları koyu tutar) ve **Focus** (güçlendirmenin ne kadar renk zenginliği koruduğu). Tek bir değer olarak taşınırlar: `hdr=1600-60-0-50` White 1600, Reach 60, Dark lift 0 ve Focus 50 demektir.
+- **Ne yazılır.** PNG, bir `cICP` parçasıyla 16 bit Rec.2100 PQ alır. JPG bir ISO 21496-1 kazanç haritası JPEG'idir: sıradan bir SDR resim artı eklenmiş bir kazanç haritası. AVIF yeniden yazılmış bir `colr` kutusu alır. TIFF, bir `cicp` etiketi taşıyan üretilmiş bir ICC v4 profiliyle PQ pikselleri alır ve siyaha düzleşir, çünkü beyaz PQ'da 10.000 nitlik koddur ve her kenarı bir haleyle çevrelerdi. Güçlendirme algısal (OKLab) açıklığı izler ve tonu korur; bir marka yeşili nane değil, daha parlak olur.
+- **Parıltının göründüğü yer.** Bir HDR ekranda renk yönetimli görüntüleyiciler: Apple cihazlarda Preview, Quick Look ve Safari veya bir HDR monitörde Chrome. Bir SDR ekran normal bir görsel gösterir.
+- **Göndermeden önce.** Birçok platform yüklemeleri yeniden kodlar ve HDR sinyalini çıkarır; bu da görselin koyu veya soluk kalmasına yol açabilir. HDR'yi hedefi denetlediğin yerlerde kullan; örneğin kendi sitende, bir video duvarında veya parlak bir panelde bir sunumda.
+- **Terminalden.** `--export=png` veya `--export=jpg` ile `--hdr=1`, aynı PNG'yi ve kazanç haritalı JPEG'i, aynı motor kodlayıcılarından, yolda tarayıcı olmadan [CLI](/info/cli.html) üzerinde yazar. AVIF ve TIFF şimdilik web dışa aktarmaları olarak kalır.
 
-## Video
+## Dosyanla birlikte neler gider
 
-Animasyonlu araçlar hareketi **MP4**, **WebM** veya **GIF** olarak dışa aktarır - ve sunulduğu yerde, **APNG**, **Animated WebP** veya vektör **Animasyonlu SVG** (yukarıda). Hangi video kapsayıcısını gördüğün tarayıcına bağlıdır - seçici yalnızca gerçekten kaydedebildiğini gösterir:
+Bitmiş bir dosya resmin yanında birkaç kayıt taşıyabilir. Bazıları piksellerin yanında gider ve dosya yeniden kaydedildiğinde ya da sıyrıldığında kaybolur; iki işaret pikselin içinde yaşar.
 
-| Tarayıcı | Gösterir |
-|---|---|
-| Safari / iOS | **MP4** |
-| Firefox | **WebM** |
-| Chrome / Edge 126+ / Android | **MP4 ve WebM** |
-| Eski Chrome | **WebM** |
+::: figure exporting-what-travels
+Her kaydın nerede yaşadığı, varsayılan olarak açık olup olmadığı ve her birini hangi bağlantı parametresinin denetlediği.
+:::
 
-GIF her yerde çalışır (sohbet/e-posta için harika; video'dan daha büyük ve daha düşük renklidir). Animasyonlu araçlar ayrıca **Wait** (kaydetmeden önce animasyonun oturması için beklenecek saniye) ve **Duration** (klip uzunluğu) sunar.
-
-> Tarayıcının kaydedemediği bir kapsayıcı isteyen paylaşılan bir `?format=…` bağlantısı, incelikle diğerine döner ve dosya adı, kaydedilen kapsayıcıyla eşleşir.
-
-**Ses.** Video dışa aktarmaları sessiz değildir. Bir araç klibin altına bir **müzik altyapısı** yerleştirebilir - katalogdan bir ses varlığı, klip uzunluğuna döngülenmiş veya kırpılmış, giriş/çıkış solması, ses düzeyi ve görüntünün kendi sesinin altında otomatik kısma ile - ve kayıt araçları görüntülerinin canlı sesini doğrudan dosyaya taşır. **MP4** ve **WebM** karıştırılmış izi korur; GIF ve animasyonlu görsel formatları (APNG, Animated WebP, Animasyonlu SVG) doğaları gereği sessizdir.
-
-## Ses
-
-Bazı araçlar **sesi tek başına** dışa aktarır, yalnızca bir video izi olarak değil. **Voice Recorder**, canlı bir seviye ölçeriyle ve nazik yönlendirmeyle bir mikrofon çekimi yakalar, ardından **MP3** (varsayılan, tarayıcında kod dönüştürülür) veya kendi yerel kapsayıcısında kaydeder - tarayıcının kaydettiği hangisiyse, **M4A** (AAC), **OGG** veya **WebM** (Opus). Her şey gibi, kodlama cihazında gerçekleşir - hiçbir şey yüklenmez.
-
-*İçeri getirdiğin* ses de aynı derecede geniştir. Varlık seçici **MP3**, **WAV**, **OGG**/**Opus**, **M4A**/**AAC** ve **FLAC** (bayt bayt korunur ve cihazda çözülür), **MIDI** (`.mid` - içe aktarmada küçük bir cihaz üstü sentezleyici izine dönüştürülür) ve **tracker modülleri** - **MOD**, **XM**, **IT**, **S3M**, **STM**, **MTM** (dahil bir oynatıcı tarafından cihazda çözülür, birkaç kilobaytlık şarkı verisi) kabul eder. Bunların herhangi biri bir video dışa aktarmanın altında **müzik altyapısı** olabilir veya Neurospicy Mode'un ortam çalarında oynatılabilir.
-
-Ses aşağıdaki `format=` / `--export=` hattının *bir parçasıdır*: `wav`, `mp3`, `m4a` ve `opus` sıradan format kimlikleridir, bu yüzden yalnızca ses dışa aktarma bir PNG kadar paylaşılabilir ve komut dosyasıyla çalıştırılabilir. Çıkan şey yalnızca sestir, görsel yoktur.
-
-## Köken ve filigran
-
-Formatın desteklediği yerde, dışa aktarmalar **köken meta verisi** taşır - yazılım, kaynak, aracın adı ve profil kredi satırın - yerel olarak gömülü (PNG iTXt, JPEG EXIF, PDF bilgisi, SVG `<metadata>`, GIF yorumu). Bu yalnızca yazarlıktır; hiçbir şey yüklenmez. **Experimental** araçlar ek olarak görünür bir filigran damgalar, ana bilgisayar tarafından uygulanır, böylece aracı düzenleyerek kaldırılamaz.
-
-**Lolly Damgası.** Raster dışa aktarmalar ayrıca Lolly'nin kendi **görünmez piksel filigranını** taşır - *Lolly Imprint* - Content Credentials gibi **varsayılan olarak açık**. Kimlik bilgisi ve köken meta verisi piksellerin *yanında* seyahat edip yeniden kaydetmede, ekran görüntüsünde veya bir meta veri temizlemesinde kaybolurken, Damga piksellerin *içinde* yaşar ve yeniden sıkıştırmadan sağ çıkar - böylece görselin bir kopyası daha sonra bile Lolly yapımı olarak tanınabilir. Kriptografik bir garanti değil, kalıcı bir ipucudur ve yalnızca varlık bildirir (kişisel veri taşımaz). **PNG, JPG, WebP, AVIF, TIFF ve BMP**'de, ve bir **PDF veya PPTX**'e bileşimlenmiş Lolly tarafından işlenmiş rasterlerde yolculuk eder - hiçbir zaman *senin* gömdüğün bir görselde değil, yalnızca Lolly'nin kendisinin işlediğinde. Dışa aktarma panelindeki **Lolly Imprint** kartının işaretini kaldır ya da bir paylaşım bağlantısında `imprint=0` geçir. (AVIF'in yeniden kodlamadan sağ çıkması henüz kalibre edilmedi; PDF/PPTX tespiti gömülü Lolly rasterlerini kapsar.) [/verify](/verify) bunu cihazda tespit eder - bkz. [Content Credentials Kimliği](/info/content-credentials-identity.html#the-lolly-imprint).
-
-**Kalıcı kimlik bilgisi.** Damganın yanında ikinci, daha ağır bir işaret durur: "made with Lolly" bağlantısının bir meta veri temizlemesinden, yeniden kodlamadan ve TrustMark farkında araçlar tarafından (Lolly'ninkiler kadar) yeniden okunmadan sağ çıkması için Lolly'nin kimliğini piksellerin *içine* yazmak üzere cihaz üstü bir sinir modeli (TrustMark formatı) kullanan **Durable credential**. **Varsayılan olarak kapalıdır** - saf JavaScript Damgadan farklı olarak dışa aktarma başına bir sinir geçişine artı tek seferlik bir model indirmesine mal olur, bu yüzden sessiz bir vergi değil, kasıtlı bir katılımdır. Yalnızca raster (**PNG, JPG, WebP, AVIF, TIFF**), dışa aktarma panelinde işaretlenir veya bir paylaşım bağlantısında `durable=1` olarak geçirilir. Masaüstü ve mobil uygulamalarda, modeli çevrimdışı getirecek bir kaynak olmadığı için kart işlevsiz gösterilmek yerine tamamen gizlenir.
-
-**İçerik koruması.** Dışa aktarma panelinde, verdiğin **Lisans**, yerleştirdiğin her şeyin **Kaynak kredileri**, *Password protect*, **C2PA Credentials**, **Lolly Imprint** ve **Kalıcı kimlik bilgisi**, tek bir daraltılmış, formata duyarlı **İçerik koruması** grubuna katlanır, böylece bir dosyanın kökeni, hakları ve koruma seçenekleri tek bir yerde yaşar. Grup yalnızca seçilen formata uygulanan kartları gösterir. Bir bağlantı veya kaydedilmiş bir belge zaten bir lisans bildiriyorsa, ya da bir kaynağın senden bir karar beklediği durumlarda kendiliğinden açılır.
-
-**Lisans.** Başkalarının çalışmanı nasıl kullanabileceğini seç: varsayılan olarak *Yok (tüm hakları saklıdır)*, ya da CC0 1.0, Public Domain Mark 1.0, ya da Creative Commons 4.0 lisanslarından biri (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Lisans adı ve tapusuna bir bağlantı, dosyanın lisans meta verisine (formatın bu alanlara sahip olduğu yerde EXIF, XMP ve RIFF) ve Content Credential'ına yazılır. Seçim belgeyle birlikte kaydedilir ve bir paylaşım bağlantısında `licence=` olarak yolculuk eder. Lolly seçtiğin lisansı yazar. Koşulları kontrol etmez veya uygulamaz. Claim gibi kendi lisans alanı olan bir araç, bunun yerine o alanı korur ve ikinci bir seçici göstermez. Baskı işaretleri kasıtlı olarak bunun *dışındadır*: koruma değil baskı üretim geometrisidir, bu yüzden **Baskı işaretleri ve taşma payı** - milimetre cinsinden taşma ölçümü artı Crop, Registration, Bleed, Colour bars ve Stamp details - baskı formatlarında kendi üst düzey kartını korur.
+Dışa aktarma paneli **Licence**, **Source credits**, *Password protect*, **C2PA Credentials**, **Lolly Imprint** ve **Durable credential** öğelerini yalnızca seçilen biçimin kullanabileceği kartları gösteren tek bir **Content protection** grubuna katlar. Bir bağlantı veya belge zaten bir lisans bildirdiğinde ya da bir kaynak senden bir karar gerektirdiğinde kendiliğinden açılır. **Design system** kartı grubun dışında, her dışa aktarmada görünür kalır.
 
 ![Bir PNG dışa aktarmada açılmış Content protection grubu, yalnızca ona uygulanan kartları gösteriyor](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
-**Dışa aktarmadan önce (baskı ön kontrolü).** Profilinin özellik bayraklarında **Print preflight**'ı (`export-preflight`) aç - **varsayılan olarak kapalıdır**, bu yüzden bir sohbet mesajı için PNG dışa aktaran bir birey asla baskı öncesi bulgularla pusuya düşürülmez ve bir dağıtımın kontrol düzlemi ([lolly.work](https://lolly.work)) üyeleri için varsayılan olarak açabilir - ve baskı kurallarının iş hakkında söyleyecek doğru bir şeyi olduğunda panelin altında, düğmelerin hemen üzerinde bir **Before you export** kartı belirir: format, boyut ve taşma, ardından kırpma ve taşma alanları, mürekkep kaplaması, plaka sayıları ve sayfa sayısı, başlığının yanında bir hükümle birlikte. Her ayarın altında durur çünkü o ayarlar hakkında bir ifadedir, onlardan bir tanesi daha değil - ve asla bir dışa aktarmayı engellemez. Bir baskı bürosunun az sonra göreceği şeyi sana söyler.
+### Provenance ve filigran
 
-**Fiyat listesinden hesaplanan maliyet.** Ön kontrolün altında - hepsinin sonuncusu, hâlâ düğmelerin üzerinde - aynı sayıları paraya çeviren bir kart durur ve bunu yalnızca birinin ona verdiği fiyatlardan yapar. Ön kontrol geçişinin saydığı her şeyi okur, ön kontrol kartının kendisi açık olsun olmasın, ve iki şeyin doğru olması gerekir: işin bir fiyat listesinin fiyatlandırabileceği bir şeyi olması (plakalar, tabakalar, alan, sayfalar, varyant satırları veya çıktı dosyaları - böylece düz bir logo PNG'si onu asla göstermez) **ve** bir **rate card**'ın var olması. Bir rate card, yazıcından gelen bir JSON fiyat listesidir. Varsayılan bir derleme hiçbirini taşımaz ve uygulama içinde birini yükleyecek bir yolu yoktur: ya bir dağıtımın sunduğu bir katalog varlığı olarak gelir ya da bir self-hoster'ın veya kontrol düzleminin açtığı isteğe bağlı rate-card uzantısı yoluyla gelir. Rate card olmadan hiçbir şey gösterilmez - ne bir istem ne boş bir tablo.
+Biçimin alanları olduğu yerde dışa aktarmalar **provenance metadata** taşır: yazılım, kaynak, aracın adı ve profil atıf satırın; PNG iTXt, JPEG EXIF, PDF bilgisi, SVG `<metadata>` veya bir GIF yorumuna yazılır. Yalnızca yazarlığı kaydeder ve hiçbir şey yüklenmez. **Experimental** araçlar ayrıca görünür bir filigran damgalar; ana bilgisayar tarafından uygulanır, böylece aracı düzenlemek işareti kaldıramaz.
 
-Her şeyin üzerine kurulu olduğu kural, **asla para uydurmadığıdır**. Her rakam senin sağladığın bir oranın Lolly'nin saydığı bir miktarla çarpımıdır - `4 plate × €35.00` - ve toplam, rakamla aynı cümlede kendi kaynağını adlandırır: kartın adlandırdığı yayıncı ve kartın oranlarının hangi tarihten olduğunu söylediği tarih. Varsayılan para birimi yoktur, yer tutucu yoktur ve eksik bir fiyatın yerine geçen sıfır yoktur. Dosyanın kendisi hakkında söylediği şey aktarılmış söz olarak kalır: *"Dosya şunu söylüyor: … Lolly bunu doğrulamadı."*
+**Lolly Imprint**, **varsayılan olarak açık** görünmez bir piksel filigranıdır. Kimlik bilgisi ve meta veri piksellerin yanında gider ve bir yeniden kaydetmede, ekran görüntüsünde veya meta veri temizlemede kaybolur. Imprint piksellerde yaşar ve yeniden sıkıştırmadan sağ çıkar; bu yüzden bir kopya yine Lolly yapımı olarak tanınabilir. Kriptografik bir garanti değil bir ipucudur ve kişisel veri taşımaz. JPEG XL, PNG, JPG, WebP, AVIF, TIFF ve BMP içinde ve Lolly'nin bir PDF veya PPTX içine render ettiği rasterlerde gider, gömdüğün bir görselde asla. Imprint'i dışarıda bırakmak için **Lolly Imprint** işaretini kaldır ya da `imprint=0` ver. AVIF'in yeniden kodlamadan sağ çıkışı henüz kalibre edilmedi. [Verify](/verify) onu cihazında algılar; bkz. [The Lolly Imprint](/info/what-verify-checks.html#the-lolly-imprint).
 
-Ve dürüstçe hesaplayamadığında, çalışma tablosu grileşmiş veya doldurulmuş bir rakama düşmek yerine **tamamen kaybolur**:
+**Durable credential**, Lolly'nin kimliğini TrustMark biçiminde cihaz üzerindeki bir sinir ağı modeliyle piksellere yazar; böylece "made with Lolly" bağlantısı bir meta veri temizlemeden ve yeniden kodlamadan sağ çıkar ve TrustMark farkındalıklı araçlarca okunabilir. **Varsayılan olarak kapalıdır**, çünkü dışa aktarma başına bir sinir ağı geçişine ve tek seferlik bir model indirmesine mal olur. PNG, JPG, WebP, AVIF ve TIFF'i kapsar; panelde işaretle ya da `durable=1` ver. Masaüstü ve mobil uygulamalar kartı gizler, çünkü çevrimdışıyken modeli getirebilecekleri bir kaynak yoktur.
 
-- Kartın fiyatlandırmadığı satırlar **hiç toplam olmaması** anlamına gelir - yalnızca kaçının fiyatlandırılmadığını söyleyen bir başlık. Kısmi bir toplam daha küçük bir cevap değil, yanlış bir cevaptır.
-- Tam bir sayım değil bir tavan olan bir miktar, alt toplamına kadar **"up to"**yu taşır, böylece bir sınır asla düz bir rakama dönüştürülmez.
-- Geçerlilik tarihini geçmiş oranlar, sen *Use these rates anyway*'e basana kadar yalnızca **sayıları** gösterir - ve o zaman son kullanma tarihi rakamla birlikte gelir, böylece süresi dolmuş bir toplam güncel bir toplam olarak okunamaz.
-- Bir **bağlantı** üzerinden açıldığında, bu cihazda istemedikçe para gizli kalır. Ne kart ne de o açığa çıkarma asla bir URL'de seyahat eder - CLI'nin `--rate-card=<file.json>`'ı bir bağlantı parametresi olarak değil yerel bir dosya bayrağı olarak almasının aynı nedeni.
+**Licence.** Başkalarının çalışmanı nasıl kullanabileceğini seç: varsayılan olarak *None (all rights reserved)*, CC0 1.0, Public Domain Mark 1.0 veya bir Creative Commons 4.0 lisansı (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Lisans adı ve metnine bağlantı, dosyanın lisans meta verisine (biçimde varsa EXIF, XMP ve RIFF) ve Content Credential'ına gider. Seçim belgeyle birlikte kaydedilir ve bir bağlantıda `licence=` olarak gider. Lolly seçtiğin lisansı yazar; koşulları denetlemez veya uygulamaz. Claim gibi kendi lisans alanı olan bir araç o alanı korur.
 
-Kart bir bezemedir, asla içerik değil: her dışa aktarma aşamasından soyulur, bu yüzden indirdiğin dosyanın bir pikselini bile oynatamaz. Ve bir tekliften çok bir aritmetiktir - yalnızca yazıcın sana bir teklif verebilir.
+### Tasarım sistemi kaydı
 
-**Bileşimlenmiş render'lar.** Bir araç başka bir aracın çıktısını gömdüğünde (örn. bir *Event Name Badge*'in bir *QR Code*'u gömmesi), iç içe render ebeveynin dışa aktarmasına satır içi yerleştirilir - SVG ve PDF'de **gerçek bir vektör** olarak kalır ve PNG/JPG/WebP'de keskin bir şekilde rasterleştirilir. Gömülü çocuk bir ara üründür: kendi filigranı *yok*, kendi kökeni *yok*; yalnızca bitmiş ebeveyn varlık taşır. (Bileşim SVG'yi ve raster formatlarını kapsar; HTML/MD/TXT bileşimlenemez.)
+Bir dışa aktarma, dosyayı yapan tasarım sistemini kaydeder: adı, çizildiği yayımlanmış sürüm (çalışma sürümü olmadığında) ve çizildiği [colourway](/info/colourways.html). Bir tasarım sisteminin bildirdiği yoğunluk gibi diğer her tema seçimi aynı şekilde kaydedilir. Açık veya koyu seçimi dışarıda bırakılır, çünkü resim zaten hangisinin kullanıldığını gösterir.
 
-## Parola koruması
+**Hiçbir şey yazılmadan önce kaydı görürsün.** Varsayılan olarak işaretli **Design system** kartı, dosyanın taşıyacağı tam sözcükleri, örneğin *Records: Acme · Colourway: Beach*, ve açıklamanın nasıl okunacağını gösterir. Bir tasarım sisteminin adı sahiplerinin yazdığı şeydir; bu yüzden kart onu yazıldığı gibi gösterir. Kaydı o dışa aktarmanın dışında bırakmak için kartın işaretini kaldır. Design'ın belge paneli aynı sözcükleri *Embedded in exports* altında listeler.
 
-Tamamen cihaz üzerinde çalışan iki bağımsız kilit türü.
+**Açıklama, colourway'i aracın yanında verir.** Kart işaretliyken *"Made with https://lolly.tools : Chart"*, *"Made with https://lolly.tools : Chart (Beach colourway)"* olur. Tasarım sisteminin kendi adı açıklamada değil kayıtta kalır. Araç adı olmayan bir açıklama ya da bir aracın kendi girdilerinden yazdığı bir açıklama olduğu gibi bırakılır. `tokenAxes` yoluyla colourway'leri yok sayan bir araç hiçbirini kaydetmez ve PDF kanıt atfı (`prov` baskı işareti) aynı kuralı izler.
 
-**PDF açma şifresi** - dışa aktarma panelindeki *Şifreyle koru* kartı, bir şifre yazıldığında iki kademe sunar:
+**Bir ajana rehberlik eden marka becerileri.** Bir ajan parçayı yaptığında ve okuyup izlediği [brand skills](/info/brand-skills.html) öğelerini adlandırdığında kayıt ayrıca her beceriyi revizyonuyla listeler; örneğin *Guided by: acme-brand 1.0*. Sözcükler becerinin işe rehberlik ettiği anlamına gelir. Bir denetim değildir: Lolly parçayı bir beceriye karşı sınamaz. Listeyi yalnızca ajanın kendi beyanı ekler; bugün bu, [MCP server](/info/mcp.html)'ın `lolly_render` komutunun `brandSkills` argümanı demektir, yani uygulamada veya bir paylaşım bağlantısından yapılan bir parça hiçbirini taşımaz. Content Credential listeyi `brandSkills` olarak, her becerinin kimliği, adı, revizyonu ve SHA-256 karmasıyla tek bir JSON değeri olarak tutar. XMP paketi ve SVG meta verisi aynı değeri `lolly:BrandSkills` olarak tutar, kayıttan yazılan bir PDF her beceri için bir anahtar sözcük kazanır ve açıklama olduğu gibi kalır. Dahili bir beceri kimliği, adı, revizyonu ve karmasıyla kaydedilir, asla metniyle değil. Aynı anahtarlar listeyi kaydın geri kalanıyla birlikte dışarıda bırakır: **Design system** kartı, `_madewith=0`, `--no-madewith` ve `madeWith: false`. MCP sunucusu dosyayı bir tarayıcıda çizdiğinde (bir PDF, bir JPEG ve tarayıcısız yolunun yazamadığı diğer biçimler), dosyanın kendi meta verisi liste tutmaz ve yalnızca bir Content Credential tutabilir. Kaydı korumak için `c2pa` ver; kimlik bilgisi olmadan render, marka becerilerinin kaydedilmediği konusunda uyarır.
 
-![Bir PDF dışa aktarımında açılmış Şifreyle koru kartı, şifre alanı ve iki kilit kademesiyle](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+**Kaydı geri okumak.** [Verify](/verify), kaydı bir dosyanın kimlik bilgisi ayrıntılarında **Design system** olarak ve marka becerilerini **Guided by** olarak listeler. *Recreate with these settings* aracı kaydedilen sürümde ve colourway'de yeniden açar. Bağlantı, bu cihaz aynı kimlik ve ada sahip bir tasarım sistemi tutuyorsa kaydedilen tasarım sistemiyle, aksi hâlde etkin tasarım sistemin ile açılır.
 
-- **Zayıf** - basit bir 40-bit şifre (RC4). Hafif bir caydırıcı, gerçek bir koruma değil: şifresi bir paylaşım bağlantısında (düz metin olarak) yolculuk edebilir. Sadece RGB `pdf`.
-- **Güçlü** - AES-256 (PDF 2.0). Şifresi dışa aktarımda girilir ve **asla** bir bağlantıya konmaz. Güçlü kademe **Yazdır / CMYK PDF'ler** için ve **bir toplu zip içindeki her PDF** için de geçerlidir (toplu onay diyalogu şifreyi toplar). PDF/X-4 şifrelemeyi yasakladığından, Güçlü kilitli bir Yazdır PDF'i CMYK'sını, kesim işaretlerini ve çıktı amacını korur ama PDF/X-4 uyumluluk beyanını düşürür.
+::: details Neyin nereye yazıldığı ve hangi çalıştırmaların kaydı dışarıda bıraktığı
+| Nerede | Ne yazılır |
+|---|---|
+| Content Credential | `tools.lolly.export` iddiasında `designSystem` (kimlik), `designSystemLabel`, `designVersion` ve `themes`; her biri düz bir metin değeri; `themes` seçimlerin bir JSON listesidir |
+| PNG, JPEG, WebP ve JXL | Dosyanın XMP paketinin `lolly:` özellikleri olarak aynı dört değer, `https://lolly.tools/ns/export/1.0/` ad alanında |
+| SVG | `<metadata>` bloğunun içinde aynı `lolly:` özellikleri |
+| PDF | *Design system: Acme* ve *Colourway: Beach* gibi anahtar sözcükler |
+| Açıklama alanı olan her biçim | Açıklama, colourway aracın yanında |
 
-Her iki kademe de Content Credentials ile karşılıklı dışlayıcıdır (şifrelenmiş bir PDF kimlik bilgisini alamaz).
+Kart yalnızca kaydedilecek bir şey olduğunda ve biçim kaydı tutabildiğinde görünür. CSV, JSON, bir takvim dosyası ve diğer metin veya veri biçimleri meta veri tutmaz ve EPS, EMF, DXF ve BMP'nin kayıt için alanı yoktur. HTML, Markdown ve CSS kaydı yalnızca Content Credential içinde tutar; bu yüzden onlar için kart açıklama satırı göstermez ve **C2PA Credentials** kapalıyken gizlenir. Tasarım sisteminin vermediği bir alan dosyanın dışında kalır.
 
-**Kilitli indirmeler (tüm zip + derinlemesine savunma)** - bir **ZIP** dışa aktarımı (dışa aktarma panelinin, bir aracın birden çok biçimini bir araya toplayan *ZIP* biçimi), bir **klasör** indirmesi (Projeler → İndir) veya **toplu ızgara** tüm zip'i tek bir şifreyle iki kademede kilitleyebilir:
+Bir paylaşım bağlantısı kaydı `_madewith=0` ile kapatır ([URL parameters](/info/url-parameters.html)); komut satırı `--no-madewith` alır, [MCP server](/info/mcp.html)'ın `lolly_render` komutu `madeWith: false` alır ve terminal uygulamasının dışa aktarma panelinde bir **Design system** satırı vardır. Komut satırı, bir araç render'ı ve `lolly run` ile kayıtlı bir Design oturumundan dışa aktarılan her dosya için, bitmiş bir dosyanın taşıdığı sözcükleri standart hata çıktısına yazar ve bir MCP render'ı bunları dosyanın yanında yazar; ikisi de dosyadan geri okunur. Komut satırının tarayıcısız çizdiği bir PNG dosya meta verisi taşımaz; bu yüzden kaydı yalnızca kimlik bilgisinde gider. Cihaz üzerindeki yardımcı araçlar hiç meta veri eklemez.
 
-- **Zayıf** - geleneksel **ZipCrypto**, yalnızca bir caydırıcı. Şifresi bir `?password=` paylaşım bağlantısında yolculuk edebilir.
-- **Güçlü** - **AES-256** şifrelemesi. Dışa aktarımda girilir, asla bir bağlantıya konmaz.
+**Design system** kartı olmayan çalıştırmalar kaydı dışarıda bırakır: bir Batch çalıştırması, Projects'ten dışa aktarılan bir klasör ve bir 3D koleksiyon dışa aktarması; terminal uygulamasında da bir CSV toplu işi, bir Projects klasörü veya seçim dışa aktarması ve her şeyi render et görünümü. Tasarım sistemini kaydetmek için araçtan tek bir dosya dışa aktar.
+:::
 
-Dışa aktarma panelindeki aynı *Şifreyle koru* kartı hem PDF hem de ZIP kilitlerini yönetir. Tek şifre **her** üyeyi korur - görseller, SVG, her şeyi, PDF'ler dahil (kendi kilidi olmayan PDF dışı dosyaları yalnızca zip kapsayıcısı koruyabilir). Ve bu **derinlemesine savunmadır**: içindeki herhangi bir PDF *ayrıca* aynı şifreyle tek tek AES-256 ile kilitlenir, böylece zip açıldıktan sonra bile PDF kilitli kalır. İstem, indirmeyi başlattığında görünür; boş bir şifre kilit olmadığı anlamına gelir.
+### Content Credentials (C2PA)
 
-**Şifre korumalı paylaşım bağlantıları** - herhangi bir paylaşım bağlantısı, açıldığında alıcıdan şifre istenecek şekilde şifrelenebilir. Tüm bağlantı durumu, şifreden türetilen bir anahtar (PBKDF2) altında AES-256 ile şifrelenir; yalnızca şifreli metin yolculuk eder, böylece **şifre asla bağlantıda değildir** ve şifre çözme **alıcının tarayıcısında** gerçekleşir - bağlantıyı sunan sunucu URL'de yalnızca şifreli metni görür, ne şifreyi ne de çözülmüş tasarımı asla görmez. **Paylaş** diyalogunda açarsın. Şifrelenmiş bir bağlantı yalnızca Lolly içinde *açılabilir* (görsel olarak gömülemez, çünkü o yol bir istem gösteremez). Bkz. [URL Modu → Şifrelenmiş bağlantılar](/info/url-mode.html).
+Dışa aktarmalar **Content Credentials** taşıyabilir: dosyayı neyin, ne zaman ve nerede yaptığını kaydeden, dosyanın baytlarının bir karmasına bağlı, imzalı bir [C2PA](https://c2pa.org) bildirimi; böylece sonraki her düzenleme algılanabilir. Şartnameyi C2PA yayımlar ve Lolly herhangi bir C2PA okuyucusunun inceleyebileceği standart bildirimler yazar.
 
-## Content Credentials (C2PA)
+![C2PA Credentials kartı, işaretli, onay kutusunun yanında kimlik bilgisi ömrüyle](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
 
-Dışa aktarımlar **Content Credentials** taşıyabilir - dosyanın Lolly ile yapıldığını ve o zamandan beri değiştirilmediğini kurcalamaya dayanıklı bir şekilde kaydeden, dosyaya gömülü imzalı bir [C2PA](https://c2pa.org) manifestosu. Bu, yukarıdaki köken (provenance) meta verisinin standart yolla ilerleyen sürümüdür: dosyanın bayt hash'ine bağlanan kriptografik bir iddia (dosyayı ne oluşturdu, ne zaman, kim tarafından ve nerede), böylece sonraki bir düzenleme C2PA farkında bir görüntüleyici tarafından tespit edilebilir. Standart, [Content Authenticity Initiative](https://contentauthenticity.org) (Adobe, BBC, Microsoft, Nikon ve diğerleri) tarafından yürütülüyor, dolayısıyla Lolly'nin yazdığı kimlik bilgileri kameraların, haber odalarının ve yaratıcı paketlerin benimsediği kimlik bilgileriyle aynıdır.
-
-![Önceden işaretlenmiş C2PA Credentials kartı, yanında kimlik bilgisi ömrüyle](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
-
-- **Biçimler.** C2PA gömme yapabilen her kapsayıcı: **PDF** (hem RGB hem Yazdır), **PNG / Animasyonlu PNG**, **JPG**, **GIF**, **SVG**, **TIFF** (RGB ve Yazdır), **WebP** (durağan ve animasyonlu), **AVIF**, **MP4**, **WebM** ve ses kapsayıcıları **MP3**, **WAV**, **M4A** ve **OGG/Opus** - böylece kaydedilmiş veya sentezlenmiş bir ses klibi de bir resim gibi aynı kimlik bilgisiyle çıkar. Bir **ZIP** demeti desteklenen her üyeyi ayrı ayrı damgalar, bir **Animasyonlu SVG**'nin bunu edindiği yer de burasıdır (altında sıradan bir SVG belgesidir; doğrudan bir Animasyonlu SVG dışa aktarımı kendi kartını sunmaz). MP4, AVIF ve M4A, spesifikasyonun BMFF bağlamasını, MP3 ise ID3v2 eşlemesini kullanır, böylece `c2patool` ve diğer C2PA farkında görüntüleyiciler bunları doğrulayabilir; **WebM** ve **OGG/Opus**'un henüz standartlaştırılmış bir C2PA eşlemesi yok, bu yüzden Lolly manifestoyu sırasıyla bir Matroska eki ve bir OpusTags alanı olarak taşır, bunları Lolly'nin kendi doğrulayıcısı (ve CLI'si) denetler. (`ico`, `eps`, `emf`, `dxf`, `bmp`, `pptx`, Office biçimleri ve metin/veri biçimlerinin C2PA kapsayıcısı yoktur.)
-- **Varsayılan olarak açık.** Dışa aktarma panelindeki **C2PA Credentials** kartı neredeyse her araç için önceden seçilidir - tek bir dışa aktarımda kimlik bilgisini atlamak için işareti kaldır (veya bir paylaşım bağlantısında `c2pa=off` geçir). Bir araç, manifestosunda tamamen vazgeçebilir.
-- **Neyi kaydeder.** Dosyayı oluşturan araç ve uygulama, imzalama zamanı, dışa aktarma yüzeyi (tarayıcı motoru ailesi + işletim sistemi ailesi - bilerek kaba, asla bir parmak izi) ve - yalnızca *Profil → Bilgilerimi kullan* açıkken - adın ve e-postan işin yazarı olarak.
-- **Alıcıların gördüğü.** İçerik kimlik bilgilerini inceleyen araçlar (Adobe uygulamaları, `c2patool`, contentcredentials.org/verify) manifestoyu okuyup iddiayı gösterecektir. Lolly, bir güven listesinden bir sertifika yerine **cihazında** oluşturulan bir anahtarla imzaladığı için, görüntüleyiciler bunu *doğrulanmamış* bir kimlik bilgisi olarak bildirir. Yapı ve kurcalamaya dayanıklılık gerçektir; yalnızca imzalayan kimliği bir otorite tarafından teyit edilmemiştir. Bunu yükseltmek için bir **doğrulanmış kimlik** kaydedebilirsin (Profil → Content Credentials): Lolly CA'dan kısa ömürlü bir sertifika, imzalama anahtarı yine hiç cihazından çıkmadan e-postanı dışa aktarımlarına bağlar - bkz. [Content Credentials Identity](/info/content-credentials-identity.html).
-- **Bir dosyayı kontrol etme.** Lolly kendi kimlik bilgilerini de doğrular: [/verify](/verify) üzerine herhangi bir dosya bırak (veya CLI'de `lolly validate <file>` çalıştır) cihaz üzerinde bir rapor için - dosyanın gerçekten Lolly ile yapıldığı ve o zamandan beri değişmediği başlıkta yer alır. Web Doğrula görünümü kimlik bilgisinin çok ötesini okur: **AI tarafından üretilmiş içeriği** işaretler, **Lolly Damgası**'nı tespit eder, **SEAL** imzalarını ve (isteğe bağlı) üçüncü taraf piksel filigranlarını kontrol eder ve **gizli veriyi** ortaya çıkarır - hepsi cihaz üzerinde, hiçbir şey yüklenmeden. Bkz. [Content Credentials Identity → Beyond the credential](/info/content-credentials-identity.html#beyond-the-credential-what-else-verify-shows).
-- **Gizlilik.** Her şey cihazında olur: imzalama anahtarı dışa aktarım için oluşturulur ve tarayıcıdan asla çıkmaz, hiçbir şey yüklenmez ve iddia yalnızca köken meta verisinin zaten taşıdığını içerir. Gizlilik araçları (*kendi* dosyalarının cihaz üzerinde dönüşümleri) asla kimlik bilgisi eklemez ve *Gizli Veriyi Sil*, diğer gömülü meta veriler gibi bir C2PA manifestosunu da kaldırır.
-- **Etkileşimler.** PDF'ler için, Content Credentials ve **şifre koruması** (her iki kademe de - yukarıya bak) karşılıklı dışlayıcıdır (şifrelenmiş bir PDF kimlik bilgisi ekini alamaz). Kimlik bilgisi, tamamlanmış baytlar üzerinde son adım olarak eklenir - DPI/EXIF/renk profili damgalamasından, PDF/X meta verisinden ve baskı işaretlerinden sonra.
+- **Varsayılan olarak açık.** **C2PA Credentials** kartı hemen her araç için önceden seçili gelir. Bir dışa aktarma için işaretini kaldır ya da bir bağlantıda `c2pa=off` ver. Bir araç bildiriminde vazgeçebilir.
+- **Biçimler.** PDF (RGB ve Print), PNG ve APNG, JPG, GIF, SVG, TIFF (RGB ve Print), WebP (durağan ve animasyonlu), AVIF, MP4, WebM, ses kapsayıcıları MP3, WAV, M4A, OGG/Opus ve FLAC ile HTML, Markdown ve CSS. Bir ZIP desteklenen her üyeyi damgalar; bir Animated SVG'nin bir tane alma biçimi budur. MP4, AVIF ve M4A standart BMFF bağlamasını, MP3 ID3v2 eşlemesini kullanır; bu yüzden `c2patool` ve diğer okuyucular bunları doğrular. WebM ve OGG/Opus'un henüz standart bir eşlemesi yoktur; bu yüzden Lolly bildirimi bir Matroska eki ve bir OpusTags alanı olarak taşır ve bunu Lolly'nin kendi doğrulayıcısı denetler. ICO, EPS, EMF, DXF, BMP, PPTX, Office biçimleri ve diğer metin ve veri biçimlerinin C2PA kapsayıcısı yoktur.
+- **Ne kaydeder.** Dosyayı yapan araç ve uygulama, imzalama zamanı, dışa aktaran kabuk, **Design system** kartı işaretliyken [tasarım sistemi ve colourway](#the-design-system-record) ve etkin girdilerin parmak izleri. Girdi metni, profile bağlı alanlar, etkin olmayan denetimler, tarayıcı sürümleri ve işletim sistemi ayrıntıları dışarıda bırakılır. Adın ve e-postan yalnızca Settings → Preferences → Your details altında **Use my details to create** açıkken yazar olarak görünür. Bir dışa aktarmanın yerleştirdiği kaynaklar bileşen olarak gider: emoji gibi [credited works](#source-credits) ve bir video veya ses dışa aktarmasında [Rondocode songs](/info/rondocode.html#songs-in-the-credential).
+- **Alıcılar ne görür.** Adobe uygulamaları, `c2patool` ve contentcredentials.org/verify gibi C2PA araçları bildirimi okur ve iddiayı gösterir. Lolly, bir güven listesinden alınan bir sertifikayla değil, cihazında üretilen bir anahtarla imzalar; bu yüzden görüntüleyiciler *unverified* bir kimlik bilgisi bildirir: yapı ve kurcalama kanıtı gerçektir, imzalayan için kefil olunmaz. Bunu değiştirmek için Settings → Preferences → Content Credentials altında bir **verified identity** kaydet; bkz. [Content Credentials Identity](/info/content-credentials-identity.html).
+- **Bir dosyayı denetleme.** Herhangi bir dosyayı [Verify](/verify) üzerine bırak ya da `lolly validate <file>` çalıştır; dosyayı Lolly'nin yapıp yapmadığıyla ve sonradan değişip değişmediğiyle başlayan, cihaz üzerindeki bir rapor için. Verify ayrıca kimlik bilgisinin ötesine de bakar; bkz. [What Verify checks](/info/what-verify-checks.html).
+- **Gizlilik.** İmzalama anahtarı dışa aktarma için üretilir ve cihazından asla çıkmaz ve iddia yalnızca kaynak bilgisi meta verisinin zaten taşıdığını tutar. Kendi dosyalarını dönüştüren gizlilik yardımcı araçları kimlik bilgisi eklemez ve *Strip Hidden Data* bir C2PA bildirimini diğer her meta veri gibi kaldırır. Rondocode yardımcı aracı yeni ses yapar; bu yüzden yazdığını imzalar ([Rondocode songs](/info/rondocode.html#files-from-the-rondocode-utility)).
+- **Etkileşimler.** Parola korumalı bir PDF her iki katmanda da Content Credentials taşıyamaz. Kimlik bilgisi, DPI, EXIF, renk profili, PDF/X meta verisi ve baskı işaretlerinden sonra, bitmiş baytların üzerine en son eklenir.
 
 ### Kaynak atıfları
 
-Başkasının işini yerleştiren bir dışa aktarma, o kaynağı kimlik bilgisine de kaydeder. Sabitlenmiş bir setten çizilen bir emoji, günlük durumdur: iş, yaratıcısı, lisansı, tam baytların nereden geldiği ve neyin değiştiği, hepsi dosyayla birlikte yolculuk eder. Dışa aktarma panelinin **Kaynak atıfları** satırı, indirmeden önce kaynakların teslimden ne istediğini söyler ve indirmeden sonra atıfların dosyada olduğunu söylemeden önce teslim edilen baytları geri okur. Paylaşmak üzere olduğun yeniden renklendirilmiş bir CC BY-SA glifi gibi, seçmeni isteyen bir lisans, çıkış yollarıyla birlikte bir kart alır; indirme asla engellenmez. [Yaratıcı haklar ve atıflar](/info/creative-rights.html) sayfasında sözcükler, incelenen lisanslar ve sende kalanlar bulunur.
+Başkasının çalışmasını yerleştiren bir dışa aktarma o kaynağı kimlik bilgisinde kaydeder. Seçilen emoji setinden çizilen bir emoji gündelik örnektir: çalışma, yaratıcısı, lisans, tam baytların nereden geldiği ve neyin değiştiği, dosyayla birlikte gider. Şablonu SVG olan bir araçtaki metin sistemin kendi emojisini korur; bu yüzden orada hiçbir şey atfedilmez. **Source credits** satırı, indirmeden önce kaynakların teslimattan ne istediğini söyler ve indirmeden sonra atıfların dosyada olduğunu söylemeden önce teslim edilen baytları geri okur. Paylaşmak üzere olduğun, yeniden renklendirilmiş bir CC BY-SA glifi gibi senden seçim yapmanı isteyen bir lisans, seçeneklerle bir kart alır; indirme asla engellenmez. Ifadeyi, incelenen lisansları ve neyin sende kaldığını [Creative rights and credits](/info/creative-rights.html) içerir.
+
+## Parola koruması
+
+İki tür kilit, ikisi de cihazında yapılır. Dışa aktarma panelinin *Password protect* kartı ikisini de yönetir.
+
+![Bir PDF dışa aktarımında açılmış Şifreyle koru kartı, şifre alanı ve iki kilit kademesiyle](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+
+**Bir PDF açma parolası** bir parola yazdığında iki katmana sahiptir:
+
+- **Weak**: 40 bit RC4, koruma değil caydırıcı. Parolası bir paylaşım bağlantısında düz metin olarak gidebilir. Yalnızca RGB `pdf`.
+- **Strong**: AES-256 (PDF 2.0). Dışa aktarmada yazılır ve asla bir bağlantıya konmaz. Ayrıca Print PDF'lere ve bir toplu ZIP içindeki her PDF'e uygulanır. Strong kilitli bir Print PDF, CMYK'sini, işaretlerini ve çıktı amacını korur ama PDF/X-4 iddiasını düşürür.
+
+**Kilitli bir ZIP**, bir ZIP dışa aktarmasını, Projects'ten bir klasör indirmesini veya bir toplu işi iki katmanlı tek bir parolayla kapsar: **Weak** (ZipCrypto, bir caydırıcı; bir `?password=` bağlantısında gidebilir) veya **Strong** (AES-256, dışa aktarmada yazılır, asla bir bağlantıda değil). Parola her üyeyi korur ve içindeki her PDF ayrıca kendi başına AES-256 ile kilitlenir; böylece ZIP açıldıktan sonra da kilitli kalır. İstem indirme başladığında belirir; boş bir parola kilit yok demektir.
+
+**Parola korumalı bir paylaşım bağlantısı** açılmadan önce alıcıdan bir parola ister. Tüm bağlantı durumu parolayı türetilen bir anahtarla (PBKDF2) AES-256 ile şifrelenir; böylece yalnızca şifreli metin gider ve şifre çözme alıcının tarayıcısında olur. Bağlantıyı sunan sunucu parolayı veya tasarımı asla görmez. **Share** iletişim kutusunda aç. Şifreli bir bağlantı yalnızca Lolly'de açılır, asla gömülü bir görsel olarak değil. Bkz. [URL Mode](/info/url-mode.html).
 
 ## Telefonda
 
-Dışa aktarma denetimleri, yüzen **Dışa aktar** düğmesinin arkasında yer alır; bu düğme, dokunmaya göre boyutlandırılmış aynı biçimleri, boyutu, kopyalamayı, indirmeyi ve paylaşımı sunan **Dışa aktar** sayfasını açar.
+Dışa aktarma denetimleri yüzen **Export** düğmesinin arkasında durur; bu, **Export** sayfasını açar: aynı biçimler, boyut, kopyalama, indirme ve paylaşım; dokunmaya göre boyutlandırılmış.
 
-## Biçim referansı
+## Bağlantılar ve CLI için biçim kimlikleri
 
-Ana bilgisayarın işleyebildiği her kimlik, gruplandırılmış. Bunlar aynı zamanda URL `format=` parametresinin ve CLI `--export=` bayrağının değerleridir - bkz. [URL Modu](/info/url-mode.html) ve [CLI](/info/cli.html). Bir aracın menüsü yalnızca o aracın üretebildiği formatları gösterir, bu yüzden her zaman bu listeden daha kısadır.
+Bunlar URL `format=` parametresi ve CLI `--export=` bayrağı için değerlerdir (bkz. [URL parameters](/info/url-parameters.html) ve [CLI](/info/cli.html)). Bir aracın menüsü yalnızca o aracın yapabildiği biçimleri gösterir; bu yüzden her zaman bu listeden kısadır.
 
 | Tür | Kimlikler |
 |---|---|
-| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
-| Vektör | `svg` · `svgz` (gzip'li SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (kesim dosyası) |
-| Sayfa ve belge | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (SCORM kurs paketi, bir zip) · `penpot` (Penpot tasarım dosyası) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Hareket | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` |
-| Ses | `wav` · `mp3` · `m4a` · `opus` |
-| Metin ve veri | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (GIMP paleti) |
-| Paket | `zip` |
+| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `jxl` · `jxl-lossless` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
+| Vektör | `svg` · `svgz` (gzip'lenmiş SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (kesim dosyası) |
+| Sayfa ve belge | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot tasarım dosyası) · `scorm` (kurs paketi, bir ZIP) |
+| Hareket | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
+| Ses | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` |
+| Metin ve veri | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `css` · `scss` · `gpl` (GIMP palette) |
+| Paketler ve bundle'lar | `zip` · `rpm` ve `tar.gz` (render, bir Linux paketine mühürlenmiş) |
 
-Birkaç kimlik daha ortak render yolu yerine **bir aracın kendi dışa aktarma kancasından** gelir: `ase` (Adobe Swatch Exchange, Palette Lab'dan), `exr` ve `hdr` (Darkroom'un yüksek dinamik aralık rasterları) ve `ttf` / `otf` / `woff` (Font Convert). Bir biçimi aynı şekilde seçerler - seçici, `format=`, `--export=` - baytlar sadece araç tarafından üretilir. Font Convert tek istisnadır: *senin* sağladığın bir yazı tipi dosyasını dönüştürür, dolayısıyla düz bir URL'nin render edecek hiçbir şeyi yoktur.
+Birkaç kimlik bir aracın kendi dışa aktarma kodundan gelir: `ase` (Palette Lab'den Adobe Swatch Exchange) ve `exr` ile `hdr` (Darkroom'dan yüksek dinamik aralıklı rasterler). **Convert Font** sağladığın bir yazı tipi dosyasından `ttf`, `otf` ve `woff` yazar; bu yüzden çıplak bir bağlantının render edecek bir şeyi yoktur.

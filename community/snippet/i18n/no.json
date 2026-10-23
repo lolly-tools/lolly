@@ -1,6 +1,6 @@
 {
   "name": "Kodesnutt",
-  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "description": "Vis tekst i et skrivebordsvindu, som stillbilde eller som en regissert interaksjon med skriving, markeringer, autofullføring og bevegelse.",
   "inputs.code.label": "Kode",
   "inputs.code.placeholder": "Lim inn koden din her…",
   "inputs.fileName.label": "Filnavn",

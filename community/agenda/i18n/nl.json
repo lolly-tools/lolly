@@ -1,6 +1,6 @@
 {
   "name": "Agenda",
-  "description": "Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars.",
+  "description": "Maak van één programma huisstijlschermen, interactieve webpagina's, geanimeerde overzichten, PowerPoint-dia's en agenda's.",
   "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} sessies, {{trackCount}} nummers",
   "inputs.title.label": "Evenement",
   "inputs.title.help": "Wordt bovenaan elke lay-out afgedrukt en geeft het geëxporteerde bestand een naam.",

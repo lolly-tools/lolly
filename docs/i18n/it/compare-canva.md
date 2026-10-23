@@ -2,26 +2,26 @@
 
 _Ultima verifica: 28 settembre 2026._
 
-Lolly crea grafiche in linea con il brand, post social, presentazioni e layout nel browser. Insieme a [lolly.work](https://lolly.work), supporta anche progetti condivisi, collaborazione di lavoro in tempo reale, asset approvati e policy dell'organizzazione.
+Se il tuo team oggi crea post social, slide e volantini in Canva, questa pagina dice dove Lolly svolge lo stesso compito e dove Canva resta la scelta migliore.
+
+## Cosa fa meglio Canva
+
+Canva combina in un unico servizio gestito una grande libreria di template e immagini stock, app e flussi di lavoro di team ospitati. Quel contenuto già pronto e quell'esperienza aiutano quando ti serve un punto di partenza oggi. Vedi i [template di Canva](https://www.canva.com/templates/) e il [marketplace di app](https://www.canva.com/apps/). La sua modifica live ha anche una lunga storia operativa su una scala che le collab di lavoro di Lolly non hanno raggiunto.
 
 ## Dove si sovrappongono
 
-Entrambi permettono di partire da un template e produrre una grafica finita senza essere un designer. Entrambi supportano flussi di lavoro di team e controlli del brand: [Canva li include nei suoi piani business](https://www.canva.com/canva-business/); Lolly separa le app creative dal servizio per organizzazioni.
+Entrambi permettono di partire da un template e produrre una grafica finita senza essere designer. Entrambi supportano il lavoro di team e i controlli sul brand: [Canva li raggruppa nei suoi piani business](https://www.canva.com/canva-business/), mentre Lolly tiene separati l'app creativa e il server per organizzazioni.
 
-Lolly funziona in modo autonomo sul tuo dispositivo, senza account. lolly.work aggiunge SSO, provisioning SCIM, ruoli, cataloghi condivisi, approvazioni e report di utilizzo quando la tua organizzazione ne ha bisogno. Fa parte del progetto Lolly, è distribuito separatamente ed è open source con licenza MPL-2.0, come Lolly stessa.
+## Come Lolly svolge il compito in comune
 
-## Template e lavoro di squadra
+Uno strumento Lolly codifica le modifiche che le persone possono fare, e lo stesso strumento gira nel browser, nell'app desktop o nella CLI. Un layout creato sulla tela di Design può diventare uno [strumento con regole](/info/create-a-tool.html), e uno strumento può creare molti file da una tabella di valori.
 
-Canva combina in un unico servizio un'ampia libreria di template e stock, app e flussi di lavoro di team ospitati. Quei contenuti già pronti e quell'esperienza gestita possono essere utili nella scelta di un punto di partenza. Vedi i [template di Canva](https://www.canva.com/templates/) e il [marketplace delle app](https://www.canva.com/apps/).
+![La tela libera di Design, dove i colori, i caratteri e le risorse offerti sono quelli del design system](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
-Gli strumenti di Lolly codificano le modifiche consentite e possono essere riutilizzati nel browser, nell'app desktop o nella CLI. Un design può diventare uno [strumento con regole](/info/create-a-tool.html), e lo stesso strumento può produrre molti output a partire da una tabella di valori. lolly.work gestisce accessi, lavoro condiviso e policy attorno a questi strumenti.
+Lolly standalone continua a creare ed esportare sul dispositivo, senza account, e funziona offline una volta salvate le sue risorse. Due persone possono modificare dal vivo in una [collab privata](/info/collaborate.html), da dispositivo a dispositivo. Le Content Credentials sono attive per impostazione predefinita per le esportazioni supportate, e puoi disattivarle.
 
-La modifica in tempo reale è disponibile sia con le [collab private](/info/collaborate.html), che collegano direttamente due dispositivi, sia con le collab di lavoro tramite l'istanza lolly.work di un'organizzazione. Le collab di lavoro includono modifiche condivise, cursori e sessioni di team salvate. L'attuale distribuzione lato server usa un singolo nodo di collaborazione; la sua scala e la sua storia operativa differiscono da quelle del servizio consolidato di Canva.
+## Con un'organizzazione
 
-## Dove vive il lavoro
+Lolly Work, eseguito sul server della tua organizzazione, aggiunge accesso, progetti condivisi, collab di lavoro live, risorse approvate e policy. [What runs where](/info/compare.html#what-runs-where) mette le due parti a confronto, con i limiti che ogni confronto condivide.
 
-Lolly autonomo mantiene creazione ed esportazione sul dispositivo e può lavorare offline una volta disponibili i suoi asset. La collaborazione di lavoro, l'archiviazione di team e il rendering lato server usano i servizi configurati dall'organizzazione. Questa scelta di distribuzione è la differenza: un'organizzazione può gestire in proprio entrambe le parti di Lolly, senza costi di licenza software per utente, pagando però il proprio hosting e la propria amministrazione.
-
-Le Content Credentials sono facoltative per le esportazioni supportate. lolly.work può firmare l'output lato server con un'identità dell'organizzazione configurata; un verificatore deve fidarsi di quell'identità prima di mostrare il firmatario come attendibile. Consulta [Identità di Content Credentials](/info/content-credentials-identity.html) e la [panoramica della soluzione combinata](/info/compare.html).
-
-Canva è un marchio del suo proprietario. Questa pagina descrive dove le due soluzioni si sovrappongono e non è affiliata a Canva.
+Canva è un marchio del suo titolare. Questa pagina descrive dove i due prodotti si sovrappongono e non è affiliata a Canva.

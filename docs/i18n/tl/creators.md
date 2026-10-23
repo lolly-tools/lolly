@@ -1,60 +1,75 @@
-# Lolly para sa mga Creator
+# Gumawa
 
-Punan mo ang ilang field at lalabas ang isang tapos na file, na may mga font, kulay at layout na naisaayos na sa sarili mong device. Naipapadala mo ito sa loob ng ilang minuto pero mukhang ilang oras kang naubos, at dahil nakabaon na sa tool ang mga alituntunin ng brand, hindi kailanman ang pangalan mo ang nasa off-brand na file. Piliin ang landas sa ibaba na tumutugma sa ginagawa mo ngayon.
+Pupunan mo ang ilang field at lalabas ang tapos na file, na ang mga font, kulay at layout ay nadesisyunan na, sa sarili mong device. Dahil nasa tool ang mga patakaran ng brand, hindi kailanman ikaw ang may pangalan sa off-brand na file. Piliin ang lane na tugma sa ginagawa mo ngayon.
 
-Ikaw ay isang kamay sa isang relay: maaaring i-scale ng isang developer ang tool na ginagamit mo tungo sa isang pipeline, at maaari itong patakbuhin nang self-serve ng isang kasamahan, kaya sinusubaybayan ng [Ang Siklo ng Buhay ng Isang Kampanya](/info/overview.html#the-lifecycle-of-a-campaign) ang isang asset sa lahat ng tatlong pares ng kamay.
-
-Bago ka lang dito? Magsimula sa **[Gumawa ng Iyong Unang File](/info/make-something.html)** at bumalik kapag alam mo na kung aling bahagi ang gusto mong palalimin pa. Tinatalakay ng [Mga Tanong at Sagot](/info/faq.html) ang mga itinatanong ng mga tao bago sila magtiwala sa isang libreng tool. Ang [Paano Ihahambing ang Lolly](/info/positioning.html) ay ang tapat na paglalahad kung kailan mas mainam pumili ng iba.
+Bago ka rito? Magsimula sa **[Gawin ang una mong file](/info/make-something.html)**. Ipinapakita ng [Paano gumagana ang Lolly](/info/how-lolly-works.html) kung paano ring tatakbo ang tool na ginagamit mo mula sa script o phone ng kasamahan, at sinasaklaw ng [Mga tanong at sagot](/info/faq.html) ang itinatanong ng mga tao bago magtiwala sa libreng tool.
 
 ## Gumawa
 
-Pumili ng tool, punan ang ilang field at i-download ang tapos na file. O buksan ang Design canvas at ilatag ito nang malaya: sa magkabilang paraan, ang mga kulay, uri ng titik at espasyo ay nagmumula sa iyong brand sa halip na sa alaala, at wala sa mga ito ang nangangailangan ng account.
+Pumili ng tool at punan ito, o malayang mag-layout ng page sa Design canvas.
 
-- **[Gumawa ng Iyong Unang File](/info/make-something.html)** - isang maikling aralin na walang kailangang i-set up: gumawa ng QR code, i-download ito at mag-save ng nae-edit na kopya. Magsimula rito kung hindi mo pa nabubuksan ang Lolly noon.
-- **[Paggamit ng Lolly](/info/using.html)** - ang canvas, ang mga control, pag-save, Projects at paggamit sa telepono: kung paano kumikilos ang app mismo.
-- **[Ang Brand Studio](/info/brand-studio.html)** - kung kailan dapat sarili mo ang mga logo, kulay at uri ng titik sa halip na ang mga default.
-- **[Mag-import ng Disenyo](/info/design-import.html)** - kung kailan umiiral na ang artwork bilang isang `.fig`, `.penpot`, `.ai`, `.idml` o SVG file at gusto mo itong maging editable sa halip na flattened.
-- **[Mga View ng Utility](/info/utilities.html)** - ang spreadsheet, ang converter, ang Colour Lab, ang PDF extractor at Script audio, para sa mga trabahong hindi tool render.
-- **[Extension ng Browser](/info/extension.html)** - kunin ang isang live web page at muling gamitin ito bilang asset sa sarili mong mga disenyo.
-- **[Paghahanap](/info/search.html)** - isang field na umaabot sa iyong mga tool, sa naka-save mong trabaho, sa catalogue at sa iyong mga setting.
-- **[Ask Lolly](/info/ask.html)** - mag-type ng tanong at makuha ang katugmang seksyon ng mga gabay na ito, may link na diretso rito.
-- **[Ang Dashboard](/info/dashboard.html)** - kung ano ang kaya ng device na ito, ang iyong design system nang read-only at isang tingin sa storage.
-- **[Ang Iyong Mga Paborito](/info/favourites.html)** - markahan ng star ang madalas mong gamitin para magkaroon ito ng sarili nitong tile sa itaas ng grid.
-- **[Mga Profile](/info/profile.html)** - ang mga detalyeng ginagamit ng mga tool para mag-pre-fill at ang apat na accessibility switch na nagpapakalma sa app nang hindi ginagalaw ang isang pixel man lang ng iyong ie-export.
+- **[Gawin ang una mong file](/info/make-something.html)** - isang maikling aralin na walang kailangang i-set up: isang QR code, na-download at na-save bilang mae-edit na kopya.
+- **[Paggamit ng Lolly](/info/using.html)** - ang canvas, ang mga kontrol, pag-save, Projects at paggamit sa phone: kung paano kumikilos ang app mismo.
+- **[Mga template](/info/templates.html)** - magsimula mula sa naka-save na layout sa halip na blangkong tool.
+- **[Text sa Design](/info/text-composition.html)** - mga heading, umaagos na text at type na kasya sa kahon nito.
+- **[3D Studio](/info/3d-studio.html)** - SVG artwork at 3D model na inayos, ininawan at nire-render bilang iisang eksena.
+- **[Mga utility](/info/utilities.html)** - ayusin ang file sa device mo: ibahagi nang ligtas, ihambing ang dalawang bersyon, palitan ang format, kunin ang mga salita o i-check ang kulay.
+- **[Browser extension](/info/extension.html)** - mag-screenshot ng live na web page mula sa web app, o magbasa ng site para magsimula ng design system.
+
+## Gawing iyo
+
+Ang design system mo ang nagpapasya kung ano ang itsura ng bawat tool.
+
+- **[Design System Setup](/info/brand-studio.html)** - mga logo, kulay, type at iba pa, itakda nang minsan sa `#/start`.
+- **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - mga colourway sa totoong gawa, at paglipat sa sarili mong design system.
+- **[Brand architectures](/info/brand-architectures.html)** - ilang design system, o isa na may ilang colourway, para sa isang organisasyon.
+- **[Import a design](/info/design-import.html)** - isang `.fig`, `.penpot`, `.ai`, `.idml` o SVG file na binubuksan bilang mae-edit na layout sa halip na flat na larawan.
+- **[Rebrand a deck](/info/rebrand.html)** - PowerPoint deck na inilipat sa design system mo, buo ang mga chart at animation.
+- **[Share a design with rules](/info/create-a-tool.html)** - gawing tool ang layout na pupunan ng ibang tao.
+
+## Hanapin at itago ang gawa mo
+
+- **[Hanapin at bawiin ang gawa mo](/info/find-your-work.html)** - kung saan napunta ang naka-save, na-download o hindi pa na-save na file.
+- **[Search](/info/search.html)** at **[Ask Lolly](/info/ask.html)** - isang field para sa mga tool, naka-save na gawa, asset at setting mo, at mga sagot mula sa mga gabay na ito.
+- **[Settings](/info/dashboard.html)** - ang kaya ng device na ito, ang design system mo na read-only at ang storage mo.
+- **[Mga paborito mo](/info/favourites.html)** at **[Mga profile](/info/profile.html)** - mga naka-star na tool, ang mga detalyeng pre-fill ng mga tool at ang mga accessibility switch.
+- **[Sync your devices](/info/sync.html)** - parehong gawa sa computer at phone mo, sa pamamagitan ng storage na pinili mo.
 
 ## Mag-animate
 
-Text na gumagalaw, mga eksena sa isang timeline at motion na nananatiling on-brand. Ang motion export ay kino-composite frame by frame mula sa isang driven clock sa halip na nire-record mula sa screen, kaya hindi kailanman lumilihis ang timing at ang parehong link ay nagre-render ng parehong clip sa kahit anong haba.
+Text na gumagalaw, mga eksena sa timeline at motion na nananatiling on-brand. Ang motion export ay iginuguhit frame por frame mula sa driven clock sa halip na nire-record mula sa screen, kaya ang parehong link ay gumagawa ng parehong clip.
 
-- **[Pag-a-animate](/info/animating.html)** - mga keyframe, tunay na depth at isang scene camera na lumilipad sa ibabaw ng resulta.
-- **[Ang Sequence Editor](/info/sequence-editor.html)** - ang timeline mismo: mga clip, overlay lane, trim at split, transition at ang audio mix.
-- **[Pag-export at Mga Format](/info/exporting.html)** - ang bahagi ng video, GIF at animated PNG ng export panel, kapag tama na ang motion.
+- **[Animating](/info/animating.html)** - mga keyframe, tunay na depth at scene camera.
+- **[Ang sequence editor](/info/sequence-editor.html)** - mga clip, overlay lane, trim at split, mga transition at ang audio mix.
+- **[Wide Colour at HDR](/info/hdr-editing.html)** - kulay na lampas sa karaniwang saklaw, sa mga screen at format na kayang magpakita ng dagdag na saklaw.
 
-## Mag-record
+## Mag-record at mag-present
 
-Mag-record ng malinaw na take gamit ang count-in, level meter at magiliw na coaching, o gawing tapos na video ang isang voice note na gumagalaw kasabay ng tunog. Wala pang hiwalay na Record page: dala ito ng Paggamit ng Lolly, sa seksyon ng timeline.
+Mag-record ng malinis na take na may count-in at level meter, o ilagay ang sarili mo sa harap ng mga slide mo.
 
-- **[Paggamit ng Lolly](/info/using.html#timeline-sequence)** - pag-record ng voiceover nang diretso sa timeline, kung saan naka-save ang take at kung paano ito umaabot sa mix.
-- **[Gumawa ng iyong unang file](/info/make-something.html#other-first-projects)** - ang audiogram, para sa mga pagkakataong mas gusto mong marinig kaysa makita.
-- **[Mga View ng Utility](/info/utilities.html)** - Script audio, kapag ang mga salita ang nauna at ang boses ang sumusunod.
-
-## Magpresenta
-
-Ilagay ang iyong camera, logo at pangalan sa ibabaw ng isang Design deck o Countdown, na may pribadong control sa isang hiwalay na window.
-
-- **[Presenting with camera](/info/presenting.html)** - framing, mga naka-save na eksena, pagbabahagi sa audience, lokal na pag-record, at ang kasalukuyang mga limitasyon ng trial.
+- **[Ang Design timeline](/info/design.html#timeline-sequence)** - pagre-record ng voiceover diretso sa timeline.
+- **[Gawin ang una mong file](/info/make-something.html#other-first-projects)** - ang audiogram, para kapag mas gusto mong marinig kaysa makita.
+- **[Pagpe-present gamit ang camera](/info/presenting.html)** - ang camera, logo at pangalan mo sa ibabaw ng deck o Countdown, na may pribadong kontrol sa hiwalay na window.
+- **[Mga live page na tumatanggap ng clicker](/info/interactive-pages.html)** at **[Mga agenda screen](/info/agenda.html)** - mga page at programa para sa silid.
 
 ## Makipagtulungan
 
-Dalawang tao, dalawang device, isang session, in-edit nang live. Mag-scan ng code sa kabilang panig ng mesa at magkakaroon ng parehong trabaho ang dalawang screen, walang account at walang server sa gitna - at walang internet kahit konti kapag magkasama ang dalawang device sa iisang network.
+Dalawang tao, dalawang device, isang design, live na ine-edit, walang account at walang server sa gitna.
 
-- **[Pagtutulungan](/info/collaborate.html)** - pagsisimula ng session, kung ano ang naglalakbay sa pagitan ng mga device at kung ano ang mangyayari kapag naputol ang network.
-- **[Paggamit ng Lolly](/info/using.html#sharing-your-work)** - ang tahimik na mga paraan ng paghahatid ng trabaho: isang share link na dala ang buong state, o isang `.lolly` file.
+- **[Magtulungan](/info/collaborate.html)** - mga pribadong collab sa pagitan ng mga device, at mga work collab sa pamamagitan ng Lolly Work ng organisasyon mo.
+- **[Paggamit ng Lolly](/info/using.html#sharing-your-work)** - isang share link na nagdadala ng buong state, o isang `.lolly` file.
+- **[Gamitin ang Lolly sa organisasyon mo](/info/organisation.html)** - sign-in, mga team project at managed na setting, kapag nagpapatakbo ng Lolly Work ang organisasyon mo.
 
 ## Mag-post
 
-Ipadala ito kung saan ito hiniling: isang link na dala ang disenyo, isang print-true na PDF, isang video, isang deck o isang folder ng mga variant. Ang parehong source ang gumagawa sa bawat isa sa mga ito, kaya minsan mo lang itong bubuuin.
+Ipadala kung saan ito hiningi: link, print-true na PDF, video, deck o folder ng mga variant, lahat mula sa iisang source.
 
-- **[Pag-export at Mga Format](/info/exporting.html)** - mga print unit, DPI, bleed at crop mark, video, batch run at ang export panel mismo.
-- **[Bawat Format na Kayang Buksan at Gawin ng Lolly](/info/formats.html)** - ang buong listahan ng papasok at palabas, may card na simpleng wika sa likod ng bawat chip.
-- **[Paglipat ng Data](/info/data-transfer.html)** - ang backup bundle, para sa paglipat ng lahat ng nagawa mo sa ibang device.
+- **[Mag-export ng file](/info/exporting.html)** - mga print unit, bleed at crop mark, video, batch run at ang export panel.
+- **[Bawat format na kayang buksan at gawin ng Lolly](/info/formats.html)** - ang buong listahan ng papasok at palabas.
+- **[Creative rights at mga credit](/info/creative-rights.html)** - ang mga lisensya ng ginamit mo, at ang mga credit na sumasama sa file.
+
+## Mga playbook ng team at paghahambing
+
+- **Para sa team mo:** [sales](/info/sales.html), [marketing](/info/marketing.html), [ang newsroom](/info/press.html) at [legal](/info/legal.html).
+- **[Paano naghahambing ang Lolly](/info/positioning.html)** - sa ano mahusay ang Lolly, at kailan dapat humanap ng iba.
+- **[Ang Lolly na inihambing, tool por tool](/info/compare.html)** - Canva, Adobe, Figma, Penpot, brand portal, rendering API at online converter.

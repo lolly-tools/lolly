@@ -1,60 +1,75 @@
-# Lolly pro tvůrce
+# Tvoř
 
-Vyplníš pár polí a vyjede hotový soubor, s písmy, barvami a rozvržením už rozhodnutými přímo na tvém zařízení. Dodáš za minuty a vypadá to, že jsi strávil hodiny, a protože pravidla značky jsou zapečená přímo do nástroje, nikdy to není tvé jméno na souboru mimo značku. Vyber si níže dráhu, která odpovídá tomu, co dnes děláš.
+Vyplníš pár polí a vyjde hotový soubor, s již určenými písmy, barvami a rozvržením, na tvém vlastním zařízení. Protože pravidla značky jsou v nástroji, nikdy to není tvé jméno na souboru mimo značku. Vyber dráhu, která odpovídá tomu, co dnes děláš.
 
-Jsi jednou rukou ve štafetě: vývojář může nástroj, který používáš, rozšířit do pipeline a kolega ho může spustit samoobslužně, takže [Životní cyklus kampaně](/info/overview.html#the-lifecycle-of-a-campaign) sleduje jeden asset skrz všechny tři páry rukou.
-
-Jsi tu nový? Začni na **[Vytvoř svůj první soubor](/info/make-something.html)** a vrať se, až budeš vědět, kterou část chceš prozkoumat hlouběji. [Otázky a odpovědi](/info/faq.html) pokrývá to, na co se lidé ptají, než začnou důvěřovat bezplatnému nástroji. [Jak si Lolly stojí ve srovnání](/info/positioning.html) je upřímný přehled toho, kdy sáhnout po něčem jiném.
+Jsi tu nový? Začni s **[Vytvoř svůj první soubor](/info/make-something.html)**. [Jak Lolly funguje](/info/how-lolly-works.html) ukazuje, jak nástroj, který používáš, může běžet i ze skriptu nebo na telefonu kolegy, a [Otázky a odpovědi](/info/faq.html) pokrývají, na co se lidé ptají, než bezplatnému nástroji uvěří.
 
 ## Tvorba
 
-Vyber si nástroj, vyplň pár polí a stáhni si hotový soubor. Nebo otevři plátno Design a rozvrhni si to od ruky: tak jako tak barvy, písmo a rozestupy vycházejí z tvé značky, ne z paměti, a nic nevyžaduje účet.
+Vyber nástroj a vyplň ho, nebo rozvrhni stránku volně na plátně Design.
 
-- **[Vytvoř svůj první soubor](/info/make-something.html)** - jedna krátká lekce bez čehokoliv k nastavování: vytvoř QR kód, stáhni ho a ulož si upravitelnou kopii. Začni tady, pokud jsi Lolly ještě nikdy neotevřel.
-- **[Používání Lolly](/info/using.html)** - plátno, ovládací prvky, ukládání, Projects a použití na telefonu: jak se aplikace samotná chová.
-- **[Brand Studio](/info/brand-studio.html)** - kdy by loga, barvy a písmo měly být tvoje vlastní, ne výchozí.
-- **[Importuj návrh](/info/design-import.html)** - když grafika už existuje jako soubor `.fig`, `.penpot`, `.ai`, `.idml` nebo SVG a chceš ji editovatelnou, ne zploštělou.
-- **[Pomocná zobrazení](/info/utilities.html)** - tabulkový procesor, konvertor, Colour Lab, PDF extraktor a Script audio, pro úkoly, které nejsou renderem nástroje.
-- **[Rozšíření pro prohlížeč](/info/extension.html)** - zachyť živou webovou stránku a znovu ji použij jako asset ve vlastních návrzích.
-- **[Hledání](/info/search.html)** - jedno pole, které dosáhne na tvé nástroje, uloženou práci, katalog a nastavení.
-- **[Ask Lolly](/info/ask.html)** - napiš otázku a dostaneš zpět odpovídající část těchto průvodců, s odkazem přímo do ní.
-- **[Dashboard](/info/dashboard.html)** - co tohle zařízení umí, tvůj design systém jen ke čtení a pohled na úložiště.
-- **[Tvoje oblíbené](/info/favourites.html)** - označ hvězdičkou, co používáš často, a získá to vlastní dlaždici nad mřížkou.
-- **[Profily](/info/profile.html)** - údaje, ze kterých se nástroje předvyplňují, a čtyři přepínače přístupnosti, které zklidní aplikaci, aniž by pohnuly jediným pixelem toho, co exportuješ.
+- **[Vytvoř svůj první soubor](/info/make-something.html)** - jedna krátká lekce bez čehokoli k nastavení: QR kód, stažený a uložený jako upravitelná kopie.
+- **[Používání Lolly](/info/using.html)** - plátno, ovládací prvky, ukládání, Projects a použití na telefonu: jak se aplikace sama chová.
+- **[Šablony](/info/templates.html)** - začni z uloženého rozvržení místo prázdného nástroje.
+- **[Text v Design](/info/text-composition.html)** - nadpisy, plynulý text a písmo, které se vejde do pole.
+- **[3D Studio](/info/3d-studio.html)** - umělecká díla SVG a 3D modely uspořádané, nasvícené a vykreslené jako jedna scéna.
+- **[Utility](/info/utilities.html)** - oprav soubor na svém zařízení: bezpečně ho sdílej, porovnej dvě verze, změň jeho formát, vytáhni slova nebo zkontroluj barvu.
+- **[Rozšíření prohlížeče](/info/extension.html)** - pořiď snímek živé webové stránky z webové aplikace nebo přečti web pro založení designového systému.
+
+## Udělej to po svém
+
+Tvůj designový systém určuje, jak vypadá každý nástroj.
+
+- **[Design System Setup](/info/brand-studio.html)** - loga, barvy, písmo a zbytek, nastavené jednou na `#/start`.
+- **[Lolly Demo v praxi](/info/lolly-demo-in-use.html)** - colourways na skutečné práci a přepnutí na vlastní designový systém.
+- **[Architektury značek](/info/brand-architectures.html)** - několik designových systémů, nebo jeden s několika colourways, pro jednu organizaci.
+- **[Import návrhu](/info/design-import.html)** - soubor `.fig`, `.penpot`, `.ai`, `.idml` nebo SVG otevřený jako upravitelné rozvržení, ne plochý obrázek.
+- **[Rebrand prezentace](/info/rebrand.html)** - prezentace PowerPoint přenesená do tvého designového systému, s grafy a animacemi nedotčenými.
+- **[Sdílej návrh s pravidly](/info/create-a-tool.html)** - změň rozvržení na nástroj, který vyplňují ostatní.
+
+## Najdi a uchovej svou práci
+
+- **[Najdi a obnov svou práci](/info/find-your-work.html)** - kam zmizel uložený, stažený nebo neuložený soubor.
+- **[Hledání](/info/search.html)** a **[Ask Lolly](/info/ask.html)** - jedno pole pro tvé nástroje, uloženou práci, assety a nastavení a odpovědi z těchto průvodců.
+- **[Settings](/info/dashboard.html)** - co toto zařízení umí, tvůj designový systém jen pro čtení a tvé úložiště.
+- **[Tvé oblíbené](/info/favourites.html)** a **[Profily](/info/profile.html)** - nástroje s hvězdičkou, údaje, které nástroje předvyplňují, a přepínače přístupnosti.
+- **[Synchronizace zařízení](/info/sync.html)** - stejná práce na počítači i telefonu, přes úložiště, které si zvolíš.
 
 ## Animace
 
-Text, který se hýbe, scény na časové ose a pohyb, který zůstává v souladu se značkou. Export pohybu se skládá snímek po snímku z řízených hodin, ne zaznamenáváním z obrazovky, takže časování nikdy neujíždí a stejný odkaz vykreslí stejný klip v libovolné délce.
+Text, který se hýbe, scény na časové ose a pohyb, který zůstává ve značce. Pohybový export se kreslí snímek po snímku z řízených hodin, ne nahrává z obrazovky, takže stejný odkaz vytvoří stejný klip.
 
-- **[Animace](/info/animating.html)** - klíčové snímky, skutečná hloubka a scénická kamera pro přelet nad výsledkem.
-- **[Editor sekvencí](/info/sequence-editor.html)** - samotná časová osa: klipy, překryvné dráhy, ořez a rozdělení, přechody a mix zvuku.
-- **[Export a formáty](/info/exporting.html)** - část exportního panelu pro video, GIF a animovaný PNG, jakmile je pohyb hotový.
+- **[Animace](/info/animating.html)** - klíčové snímky, skutečná hloubka a kamera scény.
+- **[Editor sekvencí](/info/sequence-editor.html)** - klipy, překryvné dráhy, ořez a rozdělení, přechody a míchání zvuku.
+- **[Široká barva a HDR](/info/hdr-editing.html)** - barva za obvyklým rozsahem, na obrazovkách a ve formátech, které ten rozsah navíc zobrazí.
 
-## Nahrávání
+## Nahrávej a prezentuj
 
-Nahraj čistý záběr s odpočtem, měřičem úrovně a jemným koučováním, nebo proměň hlasovou poznámku v hotové video, které se hýbe se zvukem. Samostatná stránka Nahrávání zatím neexistuje: nese ji Používání Lolly, v sekci časové osy.
+Nahraj čistý záznam s odpočtem a měřičem úrovně, nebo se postav před své snímky.
 
-- **[Používání Lolly](/info/using.html#timeline-sequence)** - nahrávání komentáře přímo na časovou osu, kam se záběr uloží a jak se dostane do mixu.
+- **[Časová osa Design](/info/design.html#timeline-sequence)** - nahrání komentáře rovnou na časovou osu.
 - **[Vytvoř svůj první soubor](/info/make-something.html#other-first-projects)** - audiogram, pro chvíle, kdy chceš být spíš slyšet než vidět.
-- **[Pomocná zobrazení](/info/utilities.html)** - Script audio, když jsou slova první a hlas přijde až po nich.
-
-## Prezentace
-
-Polož svou kameru, logo a jméno přes prezentaci Design nebo Countdown, se soukromými ovládacími prvky v samostatném okně.
-
-- **[Prezentování s kamerou](/info/presenting.html)** - rámování, uložené scény, sdílení s publikem, lokální nahrávání a aktuální omezení zkušební verze.
+- **[Prezentace s kamerou](/info/presenting.html)** - tvá kamera, logo a jméno nad prezentací nebo Countdown, se soukromými ovládacími prvky v samostatném okně.
+- **[Živé stránky, které berou ovladač](/info/interactive-pages.html)** a **[Obrazovky programu](/info/agenda.html)** - stránky a programy pro místnost.
 
 ## Spolupráce
 
-Dva lidé, dvě zařízení, jedna relace, upravovaná naživo. Naskenuj kód přes stůl a obě obrazovky drží stejnou práci, bez účtu a bez serveru uprostřed - a bez internetu vůbec, pokud jsou obě zařízení na stejné síti.
+Dva lidé, dvě zařízení, jeden návrh, upravovaný živě, bez účtu a bez serveru uprostřed.
 
-- **[Práce společně](/info/collaborate.html)** - jak zahájit relaci, co putuje mezi zařízeními a co se stane, když síť vypadne.
-- **[Používání Lolly](/info/using.html#sharing-your-work)** - tišší způsoby, jak práci předat dál: sdílený odkaz, který nese celý stav, nebo jeden soubor `.lolly`.
+- **[Spolupráce](/info/collaborate.html)** - soukromé kolaborace mezi zařízeními a pracovní kolaborace přes Lolly Work tvé organizace.
+- **[Používání Lolly](/info/using.html#sharing-your-work)** - sdílený odkaz, který nese celý stav, nebo jeden soubor `.lolly`.
+- **[Používej Lolly ve své organizaci](/info/organisation.html)** - přihlášení, týmové projekty a spravovaná nastavení, když tvá organizace provozuje Lolly Work.
 
 ## Publikace
 
-Pošli to tam, kam to bylo požadováno: odkaz, který nese návrh, tiskově věrné PDF, video, prezentaci nebo složku variant. Stejný zdroj vytvoří každou z nich, takže to postavíš jen jednou.
+Pošli to tam, kam se žádalo: odkaz, tiskově věrné PDF, video, prezentaci nebo složku variant, vše ze stejného zdroje.
 
-- **[Export a formáty](/info/exporting.html)** - tiskové jednotky, DPI, spadávka a ořezové značky, video, dávkové běhy a samotný exportní panel.
-- **[Každý formát, který Lolly umí otevřít a vytvořit](/info/formats.html)** - úplný seznam vstupů a výstupů, s kartou ve srozumitelném jazyce za každým čipem.
-- **[Přenos dat](/info/data-transfer.html)** - záložní balíček, pro přesun všeho, co jsi vytvořil, na jiné zařízení.
+- **[Export souboru](/info/exporting.html)** - tiskové jednotky, spadávka a ořezové značky, video, dávkové běhy a panel exportu.
+- **[Každý formát, který Lolly umí otevřít a vytvořit](/info/formats.html)** - úplný seznam vstupů a výstupů.
+- **[Tvůrčí práva a uvedení autorů](/info/creative-rights.html)** - licence toho, co jsi použil, a uvedení autorů, které putuje se souborem.
+
+## Týmové příručky a srovnání
+
+- **Pro tvůj tým:** [prodej](/info/sales.html), [marketing](/info/marketing.html), [redakce](/info/press.html) a [právní oddělení](/info/legal.html).
+- **[Jak se Lolly srovnává](/info/positioning.html)** - v čem je Lolly dobrá a kdy sáhnout po něčem jiném.
+- **[Lolly srovnaná nástroj po nástroji](/info/compare.html)** - Canva, Adobe, Figma, Penpot, portály značek, vykreslovací API a online převodníky.

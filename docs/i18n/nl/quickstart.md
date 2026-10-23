@@ -1,94 +1,88 @@
-# Snelstart
+# Start
 
-Lolly zet jouw regels - kleuren, typografie, lay-outs, logica - om in tools waarmee iedereen afgewerkte bestanden maakt: afbeeldingen, pdf's, social cards, video, door een paar velden in te vullen. Er valt weinig te leren en er is niets te uploaden: maken en exporteren gebeurt op je eigen apparaat, online of offline.
+Aan het eind van deze pagina dragen je tools je eigen kleuren en lettertypen, en is het werk dat je al hebt klaar voor hergebruik. Je hebt geen account nodig, en maken en exporteren draaien op je apparaat.
 
-Dit is de ene pagina die je als eerste leest. Twee dingen maken je productief: **maak Lolly van jou** en **breng mee wat je al hebt** (je ontwerpbestanden en tokens). Al het andere is maar één link verderop.
+::: timeline
+- <!--i:sparkle--> **Maak één bestand.** [Maak je eerste bestand](/info/make-something.html) leidt je in een paar minuten door een QR-code.
+- <!--i:palette--> **Zet je merk erin.** Begin met één kleur, een tokensbestand of een afgerond ontwerp.
+- <!--i:layers--> **Maak er meer van hetzelfde.** Deel een link, vul een spreadsheet of draai de tool vanuit een script.
+:::
 
-> Nieuw bij Lolly en wil je gewoon iets maken? [Je eerste bestand maken](/info/make-something.html) neemt je mee door het maken van een QR-code, of [open de app](/#/), kies een willekeurige tool uit de galerij, vul de velden in en klik op **Exporteren**. Kom hier terug wanneer je wilt dat het *jouw* merk draagt.
+Nieuw met het idee zelf? [Wat is Lolly?](/info/what-is-lolly.html) is de introductie van vijf minuten, en [Hoe Lolly werkt](/info/how-lolly-works.html) laat zien wie wat doet.
 
-![De weergave Hulpprogramma's - de werkpaarden op je eigen apparaat zoals Strip Hidden Data, Compress PDF en Convert Image, allemaal op één plek](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+## Zet je merk erin
 
-## 1. Maak het van jou - configureer je Design System
+lolly.tools opent in **Lolly Demo**, het eigen voorbeeld-design system van Lolly; [Maak kennis met Lolly Demo](/info/lolly-demo.html) laat zien wat je ziet. Jouw design system vervangt het: een kleine set designtokens, dus kleuren, lettertypen en een paar regels, waarmee elke tool tekent. Stel het één keer in, en alles wat je maakt begint on-brand.
 
-Je merk in Lolly is een klein **design-tokens**-document - kleuren, lettertypen en een paar regels - waar elke tool tegen rendert. Stel het één keer in en alles wat je maakt is per constructie on-brand, niet pas na controle. Er zijn drie manieren om te beginnen; kies degene die aansluit bij waar je merk nu al leeft.
+Kies de route die past bij wat je hebt:
 
-### Begin vanaf nul (de design-systembouwer)
+- <!--i:palette--> **Eén kleur.** Open **Design System Setup** (`#/start`), geef je design system een naam en kies een primaire kleur. Lolly leidt daar een compleet, toegankelijk palet uit af, met lichte en donkere vlakken, tekst en accenten. Kies een lettertype en je hebt een werkend merk.
+- <!--i:upload--> **Een tokensbestand.** **Add from…**, onderaan de kamerbalk in Design System Setup, neemt een DTCG-, Tokens Studio- of Penpot-tokensbestand, een SVG of een `LollyBrand`-pakket aan. Zet het erin en het palet vult zich. Zolang het design system nog leeg is, opent **Start from a reference** in de kamer Overview dezelfde kiezer.
+- <!--i:pentool--> **Een afgerond ontwerp.** Kies in Design **Import a design** en zet een `.fig`-, `.penpot`-, `.ai`-, `.idml`- of SVG-bestand erin. Zie [Neem mee wat je al hebt](#bring-in-what-you-already-have) hieronder.
 
-Bij de eerste keer starten kom je uit in de **galerij**, met daaroverheen een kort welkomstvenster dat drie ingangen biedt - **Maak het van jou** (de Brand Studio op `#/start`), **Breng je ontwerp mee** (sleep er een Figma-, Penpot-, InDesign- of PDF-bestand in en het opent als een bewerkbare lay-out - de snelste route naar [Breng mee wat je al hebt](#2-bring-in-what-you-already-have) hieronder) en **Verken de tools van de community** - plus een rij talen als Engels de jouwe niet is. Kies de eerste kaart en je belandt in de [**Brand Studio**](/info/brand-studio.html). Geef het een naam en een primaire kleur, en Lolly *leidt* daar een compleet, toegankelijk palet van af - light/dark-oppervlakken, tekst, accenten - met dezelfde kleurwiskunde die de engine overal elders gebruikt.
+De eerste keer dat je de galerij opent, biedt een korte welkomstboodschap dezelfde keuzes: **Make it yours** opent Design System Setup, **Bring your design** opent een bestandskiezer voor een ontwerp en **Explore the community tools** sluit de welkomstboodschap.
 
-![De Colours-room van de Brand Studio bij een verse installatie - één live chip, één veld, en de hele eerste beslissing](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Kies een lettertype en je hebt binnen een minuut een werkend merk. Van daaruit laten de zes rooms van de studio - Overview, Colours, Type, Logos, Tokens, Files - je zo ver gaan als je wilt, in elke volgorde, en verfijn je alles telkens wanneer je terugkomt. Het tabblad **Design system** van het dashboard (`#/d`) toont het resultaat alleen-lezen en verwijst terug naar `#/start`, waar het bewerken gebeurt (een vergrendeld design system blijft alleen-lezen, terwijl je eigen lokale systemen bewerkbaar blijven).
+![De kamer Colours van Design System Setup bij een verse installatie: één live chip, één veld en de hele eerste beslissing](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-### Importeer een merk dat je al hebt
+Vanaf daar brengen zeven kamers het zo ver als je wilt, in elke volgorde: **Overview**, **Colours**, **Type**, **Logos**, **Tokens**, **Files** en **Usage & rules**. Elk voorbeeld in de app wordt bijgewerkt terwijl je typt. [Design System Setup](/info/brand-studio.html) behandelt elke kamer.
 
-Als je merk al is vastgelegd als design tokens - vanuit **Penpot**, **Tokens Studio** (Figma) of een gewoon **DTCG**-bestand - breng het dan in één keer binnen in plaats van alles over te typen. Twee routes:
+Lettertypen blijven op je apparaat. Kies een Google Font en Lolly bewaart het bestand als merkasset, zodat je typografie offline meereist en er niets wordt opgehaald wanneer een tool tekent.
 
-- <!--i:palette--> **In de app:** de [design-systembouwer: Brand Studio](/info/brand-studio.html) (`#/start`) neemt het aan via **Add from…** onderaan de ruimtebalk - een tokenbestand, een Penpot-export, een SVG of een `LollyBrand`-pack. Sleep het erin en het palet licht op.
-- <!--i:code--> **Vanaf de command line**, om een herbruikbaar merkpakket op te zetten:
+### Een design system bekijken, wisselen en delen
+
+- **Zie het actieve.** **Settings → Design system** toont het actieve design system als omslag en pagina's, alleen-lezen.
+- **Wissel ertussen.** **Settings → Preferences → Design systems** somt elk design system op dit apparaat op. Eén organisatie kan meerdere design systems draaien, of één met meerdere colourways; [Brand architectures](/info/brand-architectures.html) brengt de opzetten in kaart.
+- **Deel er één.** Exporteer het design system als `LollyBrand`-pakket: één bestand dat een collega importeert om hetzelfde palet, dezelfde lettertypen en regels te krijgen.
+
+Een design system dat je build of organisatie levert is **beheerd**: het toont een slot en blijft alleen-lezen. Om er een te wijzigen, maak je een bewerkbare kopie via **Settings → Preferences → Design systems**.
+
+![Het tabblad Design system in Settings: het actieve design system als omslag en pagina's](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D)
+
+Je design system bestaat uit DTCG-tokens, het formaat dat Penpot leest en schrijft en dat Tokens Studio naar Figma brengt, dus het palet waarmee je ontwerpt en het palet dat Lolly toepast zijn één document. [Design Tokens](/info/design-tokens.html) geeft de details.
+
+::: details Voor ontwikkelaars: een merkpakket bouwen vanaf de opdrachtregel
+Om in een checkout een herbruikbaar merkpakket op te zetten, accepteert `ingest:brand` de drie containers die Penpot en Tokens Studio exporteren: één `tokens.json`, een map met bestanden per set met `$metadata.json`, of een `project.penpot`-archief.
 
 ```bash
-# a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
 pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
-`ingest:brand` accepteert alle drie de containers waarin Penpot / Tokens Studio hetzelfde document exporteren - een losse `tokens.json`, een map (`$metadata.json` + bestanden per set) of een `project.penpot`-archief. Met `--activate` registreert het het merk als profiel, schakelt het ernaar over en bouwt het de catalogus opnieuw op. Zie [Configuratie](/info/configuration.html) voor hoe merkpakketten en profielen samenhangen.
+`--activate` registreert het merk als profiel en bouwt en valideert de catalogus ervan. Het wijzigt nooit het standaardprofiel: draai met `LOLLY_PROFILE=acme` om het nieuwe pakket te gebruiken. [Configuration](/info/configuration.html) legt uit hoe merkpakketten en profielen samenhangen.
+:::
 
-### Verfijn het in de app
+## Neem mee wat je al hebt
 
-Zodra een merk actief is, blijf je het vormgeven in de [**Brand Studio**](/info/brand-studio.html) (`#/start`) - verander een kleur of een rol en elke preview in de app wordt bijgewerkt terwijl je typt. (Het tabblad **Design system** op `#/d` *toont* het merk alleen-lezen; in de Studio bewerk je het.)
+Je begint niet op een blanco pagina.
 
-![Het Design-system-tabblad van het dashboard - het actieve merk alleen-lezen getoond](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D) Hetzelfde merk wordt samengevat op de kaart **Profiel → Je merk**. Lettertypen zijn echt: kies er een uit Google Fonts en Lolly slaat het bestand **op je apparaat** op als merkasset, zodat je typografie ook offline meegaat en er bij het renderen niets wordt opgehaald.
+**Ontwerpbestanden.** Afgerond werk uit Figma, Penpot, Illustrator, InDesign of een willekeurige SVG-app opent in Design als een levende lay-out: tekst blijft bewerkbaar, vormen blijven vormen en afbeeldingen komen in je bibliotheek. Het bestand wordt in je browser gelezen en er wordt niets geüpload. [Import a design](/info/design-import.html) noemt elk formaat en wat er wordt overgenomen.
 
-Als je tevreden bent, **exporteer het merk als een `LollyBrand`-pack** - één bestand dat een collega kan importeren om exact hetzelfde palet, dezelfde lettertypen en dezelfde regels te krijgen. Zo verplaatst een merk zich tussen mensen en machines zonder server ertussenin.
+**Decks.** Zet een PowerPoint-`.pptx` op Lolly om de dia's als assets op te bergen, schrijf een nieuw deck vanuit Markdown in **Markdown Slides**, of gebruik [Rebrand a deck](/info/rebrand.html) om het hele deck over te zetten naar je design system.
 
-> **Merktokens gaan beide kanten op.** Omdat het merk van Lolly DTCG-tokens *is* - het formaat dat Penpot native leest en schrijft en dat Tokens Studio naar Figma brengt - zijn het palet waar je *mee* ontwerpt en het palet dat Lolly *afdwingt* één document, geen twee lijsten die je handmatig synchroon houdt. Zie [Design Tokens](/info/design-tokens.html).
-
-## 2. Breng mee wat je al hebt
-
-Je begint niet bij een leeg blad. Lolly opent het ontwerpwerk en de open formaten die je al hebt.
-
-### Open-source ontwerpbestanden
-
-Afgewerkt werk in **Figma, Penpot, Illustrator, InDesign of een willekeurige SVG-app** hoeft niet opgesloten te blijven in de app waarin je het hebt getekend. Open **Design**, klik op **Ontwerp importeren**, en het bestand opent als een *levende lay-out* - geen platgeslagen plaatje. Elke laag wordt een bewerkbaar vak: tekst blijft herschrijfbaar, vormen blijven vormen, afbeeldingen komen in je bibliotheek terecht en complexe vectorkunst blijft getrouw bewaard. Het is bij aankomst al afgestemd op je merklettertypen en kleurregels.
-
-| Je hebt | Breng het binnen als |
-|---|---|
-| Een Figma-frame | Native `.fig` (File → Save local copy), of een SVG-export |
-| Een Penpot-ontwerp | De `.penpot`-export ervan, of een willekeurige SVG |
-| Een Illustrator-bestand | Native `.ai` (PDF-compatibel) of `.pdf` - opent direct |
-| Een InDesign-lay-out | `.idml` (File → Export → InDesign Markup) |
-| Iets anders | **Elke SVG** - de universele ingang |
-
-De hele import gebeurt **op je apparaat** - het bestand wordt in je browser geparsed en er wordt niets geüpload. Alle details, en precies wat er behouden blijft, staan in [Een ontwerp importeren](/info/design-import.html).
-
-Heb je in plaats daarvan een **PowerPoint-presentatie**? Sleep de `.pptx` naar elk upload-oppervlak om de slides als assets vast te leggen, schrijf een nieuwe presentatie vanuit Markdown in **Markdown Slides**, of voer **Rebrand** uit om dezelfde presentatie terug te krijgen met een nieuw thema, met grafieken en animaties intact.
+**Gegevens.** Plak of zet een CSV- of JSON-tabel erin en de herhalende velden van een tool vullen zich ermee, of [Batch](/info/batch.html#make-many-versions-of-one-design) maakt één afgerond bestand per rij.
 
 ### Van eenmalig ontwerp naar template
 
-Dit is de beloning: een geïmporteerde lay-out is een gewone Design-sessie, dus zodra je die **opslaat**, staat hij op een URL. Iedereen met Lolly kan die URL openen, de tekst aanpassen, een afbeelding vervangen en zijn eigen versie renderen - zonder ontwerpapp, en de vergrendelde onderdelen blijven vergrendeld. Een eenmalig ontwerp wordt een herbruikbare tool. Dat is het hele idee, bereikt zonder ook maar een regel configuratie te schrijven.
+Een geïmporteerde lay-out is een gewone Design-sessie. **Share with rules** maakt er een tool van: jij kiest welke delen anderen mogen wijzigen, en zij vullen alleen die in.
 
-### Open data en open tools
+![Houd de Design-master, kies invoer en grenzen in een auteurskopie, deel dan een herbruikbare .lolly-tool die ontvangers invullen](/info/diagrams/concepts/share-with-rules.svg)
 
-De [community-toolset](/info/builders.html) is open source en merk-onafhankelijk - QR-codes, plattegronden, filters, privacyhulpmiddelen - en rendert tegen *jouw* merk zodra je het activeert.
+[Een ontwerp delen met regels](/info/create-a-tool.html) leidt je door elke stap.
 
-Voer tools ook met je eigen open data: plak of sleep een **CSV**- of **JSON**-tabel en de herhalende velden van een tool vullen zich daarmee, één afgewerkte asset per rij.
+## Maak er veel, deel en automatiseer
 
-## 3. Maak iets, deel het dan of automatiseer het resultaat
+- <!--i:download--> **Exporteer.** Tools maken SVG, PDF, PNG, JPG, WebP, video en meer, in de formaten die elke tool biedt, op echte drukformaten wanneer je dat nodig hebt. Zie [Export a file](/info/exporting.html).
+- <!--i:link--> **Deel een link.** De instellingen van een tool reizen mee in zijn link, zodat de link overal hetzelfde bestand heropent.
+- <!--i:layers--> **Maak er één per rij.** Stuur een tool aan vanuit een spreadsheet in [Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:cpu--> **Automatiseer.** Dezelfde render draait vanuit de [CLI](/info/cli.html) en vanuit een [AI-agent](/info/ai-agents.html).
 
-Met een actief merk en je materiaal bij de hand levert elke tool een afgewerkt bestand op:
-
-- <!--i:download--> **Render** elke tool naar **SVG, PDF, PNG, JPG, WebP, video** en meer - op echte drukformaten en fysieke eenheden wanneer je dat nodig hebt. Zie [Exporteren & formaten](/info/exporting.html).
-- <!--i:link--> **Deel een link.** Elke tooltoestand is een URL, dus een afgewerkte asset is reproduceerbaar en via parameters aan te spreken - commit de link, genereer opnieuw wanneer nodig.
-- <!--i:layers--> **Doe het in bulk.** Stuur een template aan vanuit een spreadsheet in de [batch-grid](/info/exporting.html): één afgewerkte asset per rij.
-- <!--i:cpu--> **Automatiseer het.** Dezelfde render draait vanaf de [CLI](/info/cli.html) en vanuit een [AI-agent](/info/ai-agents.html) - een URL is de API.
-
-"Een URL is de API" is letterlijk bedoeld. De grafiek hieronder is door niemand getekend: het type, de kop en de hele datatabel zijn in de adresbalk getypt, en dezelfde link rendert dezelfde grafiek op elk apparaat.
+Een link is een volledig verzoek. Niemand tekende de grafiek hieronder: het type, de kop en de hele gegevenstabel werden in de adresbalk getypt, en dezelfde link tekent op elk apparaat dezelfde grafiek.
 
 ![Een vlakdiagram van maandelijkse aanmeldingen, waarvan elke waarde als queryparameter binnenkwam in plaats van via een klik](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Darea%26d%3DMonth%2CSignups%250AJan%2C120%250AFeb%2C180%250AMar%2C265%250AApr%2C340%250AMay%2C455%26t%3DSignups%2520this%2520year%26full&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
 ## Waar je hierna heen kunt
 
-Drie paden, afhankelijk van waarvoor je hier bent:
-
-- <!--i:people--> **[Lolly voor makers](/info/creators.html)** - jij maakt dingen. De voordelen, en hoe je het meeste uit de app haalt.
-- <!--i:code--> **[Lolly voor bouwers](/info/builders.html)** - jij bouwt tools, integreert en implementeert. De technische documentatie.
-- <!--i:shieldcheck--> **[Lolly voor beheerders](/info/operators.html)** - jij bent verantwoordelijk voor merk, beveiliging en uitrol binnen een organisatie.
+- <!--i:people--> **[Maken](/info/creators.html)**: maken, animeren, opnemen, delen en exporteren.
+- <!--i:code--> **[Automatiseren](/info/builders.html)**: design systems, tools schrijven, de opdrachtregel, links en agents.
+- <!--i:usercheck--> **[Beheren](/info/operators.html)**: Lolly draaien voor een team met Lolly Work.
+- <!--i:server--> **[Uitrollen](/info/operate.html)**: Lolly en Lolly Work hosten.
+- <!--i:shieldcheck--> **[Vertrouwen](/info/trust.html)**: privacy, beveiliging en zelf een bestand controleren.

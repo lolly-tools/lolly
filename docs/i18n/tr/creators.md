@@ -1,60 +1,75 @@
-# Yaratıcılar için Lolly
+# Create
 
-Birkaç alanı doldurursun ve yazı tipleri, renkler ve düzen zaten kendi cihazında karara bağlanmış, bitmiş bir dosya çıkar. Dakikalar içinde teslim edersin ve saatler harcamış gibi görünür, marka kuralları aracın içine gömülü olduğu için de marka dışı dosyada asla senin adın olmaz. Bugün yaptığın işe uyan aşağıdaki şeridi seç.
+Birkaç alanı doldurursun ve bitmiş bir dosya çıkar; yazı tipleri, renkler ve düzen önceden kararlaştırılmış, kendi cihazında. Marka kuralları aracın içinde olduğu için markaya aykırı dosyada asla senin adın olmaz. Bugün yaptığın işe uyan şeridi seç.
 
-Bir bayrak yarışındaki ellerden birisin: bir geliştirici kullandığın aracı bir işlem hattına ölçeklendirebilir, bir meslektaşın onu kendi kendine çalıştırabilir, bu yüzden [Bir kampanyanın yaşam döngüsü](/info/overview.html#the-lifecycle-of-a-campaign) tek bir varlığı bu üç çift elin tamamından geçerken izler.
-
-Yeni misin? **[İlk dosyanı oluştur](/info/make-something.html)** ile başla, hangi bölüme daha derin bakmak istediğini öğrendiğinde geri dön. [Sorular ve yanıtlar](/info/faq.html), insanların ücretsiz bir araca güvenmeden önce sorduklarını ele alır. [Lolly nasıl karşılaştırılır](/info/positioning.html), ne zaman başka bir şeye yönelmen gerektiğinin dürüst anlatımıdır.
+Burada yeni misin? **[İlk dosyanı yap](/info/make-something.html)** ile başla. [How Lolly works](/info/how-lolly-works.html), kullandığın bir aracın bir betikten veya bir meslektaşının telefonundan da nasıl çalışabileceğini gösterir; [Questions & answers](/info/faq.html) ise insanların ücretsiz bir araca güvenmeden önce sorduklarını kapsar.
 
 ## Oluştur
 
-Bir araç seç, birkaç alanı doldur ve bitmiş dosyayı indir. Ya da Design tuvalini aç ve serbest elle düzenle: her iki durumda da renkler, yazı tipi ve boşluklar hafızandan değil markandan gelir ve hiçbiri hesap gerektirmez.
+Bir araç seç ve doldur ya da bir sayfayı Design tuvalinde serbestçe düzenle.
 
-- **[İlk dosyanı oluştur](/info/make-something.html)** - kurulum gerektirmeyen tek bir kısa ders: bir QR kodu yap, indir ve düzenlenebilir bir kopyasını kaydet. Lolly'yi daha önce hiç açmadıysan buradan başla.
-- **[Lolly'yi kullanma](/info/using.html)** - tuval, denetimler, kaydetme, Projeler ve telefon kullanımı: uygulamanın kendisi nasıl davranır.
-- **[Brand Studio](/info/brand-studio.html)** - logoların, renklerin ve yazı tipinin varsayılanlar yerine kendine ait olması gerektiğinde.
-- **[Bir tasarımı içe aktar](/info/design-import.html)** - çalışma zaten bir `.fig`, `.penpot`, `.ai`, `.idml` veya SVG dosyası olarak varsa ve onu düzleştirilmiş değil düzenlenebilir istiyorsan.
-- **[Yardımcı görünümler](/info/utilities.html)** - bir araç render'ı olmayan işler için elektronik tablo, dönüştürücü, Colour Lab, PDF çıkarıcı ve Script audio.
-- **[Tarayıcı Uzantısı](/info/extension.html)** - canlı bir web sayfasını yakala ve kendi tasarımlarında bir varlık olarak yeniden kullan.
-- **[Arama](/info/search.html)** - araçlarına, kaydedilmiş çalışmana, kataloğa ve ayarlarına ulaşan tek bir alan.
-- **[Lolly'ye sor](/info/ask.html)** - bir soru yaz ve bu kılavuzların eşleşen bölümünü, doğrudan içine giden bir bağlantıyla birlikte al.
-- **[Kontrol Paneli](/info/dashboard.html)** - bu cihazın neler yapabildiği, tasarım sistemin salt okunur biçimde ve depolamaya kısa bir bakış.
-- **[Favorilerin](/info/favourites.html)** - sık kullandığını yıldızla, böylece ızgaranın üstünde kendine ait bir kutucuk kazansın.
-- **[Profiller](/info/profile.html)** - araçların önceden dolduracağı bilgiler ve dışa aktardığın hiçbir pikseli oynatmadan uygulamayı sakinleştiren dört erişilebilirlik anahtarı.
+- **[İlk dosyanı yap](/info/make-something.html)** - kurulacak hiçbir şey olmayan kısa bir ders: bir QR kodu, indirilmiş ve düzenlenebilir bir kopya olarak kaydedilmiş.
+- **[Using Lolly](/info/using.html)** - tuval, denetimler, kaydetme, Projects ve telefon kullanımı: uygulamanın kendisi nasıl davranır.
+- **[Templates](/info/templates.html)** - boş bir araç yerine kaydedilmiş bir düzenden başla.
+- **[Text in Design](/info/text-composition.html)** - başlıklar, akan metin ve kutusuna sığan yazı.
+- **[3D Studio](/info/3d-studio.html)** - SVG çalışmaları ve 3D modeller tek sahne olarak düzenlenir, aydınlatılır ve render edilir.
+- **[Utilities](/info/utilities.html)** - bir dosyayı cihazında düzelt: güvenle paylaş, iki sürümü karşılaştır, biçimini değiştir, sözcükleri çıkar veya bir rengi denetle.
+- **[Browser extension](/info/extension.html)** - web uygulamasından canlı bir web sayfasının ekran görüntüsünü al ya da bir tasarım sistemi başlatmak için bir siteyi oku.
+
+## Kendine ait yap
+
+Tasarım sistemin, her aracın nasıl göründüğüne karar verir.
+
+- **[Design System Setup](/info/brand-studio.html)** - logolar, renkler, yazı ve gerisi, `#/start` adresinde bir kez ayarlanır.
+- **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - gerçek işlerde colourway'ler ve kendi tasarım sistemine geçiş.
+- **[Brand architectures](/info/brand-architectures.html)** - bir kuruluş için birkaç tasarım sistemi ya da birkaç colourway'li tek bir sistem.
+- **[Import a design](/info/design-import.html)** - düz bir resim yerine düzenlenebilir bir düzen olarak açılan bir `.fig`, `.penpot`, `.ai`, `.idml` veya SVG dosyası.
+- **[Rebrand a deck](/info/rebrand.html)** - grafikleri ve animasyonları bozulmadan tasarım sistemine taşınan bir PowerPoint sunumu.
+- **[Share a design with rules](/info/create-a-tool.html)** - bir düzeni başkalarının doldurduğu bir araca dönüştür.
+
+## İşini bul ve sakla
+
+- **[Find and recover your work](/info/find-your-work.html)** - kaydedilmiş, indirilmiş veya kaydedilmemiş bir dosyanın nereye gittiği.
+- **[Search](/info/search.html)** ve **[Ask Lolly](/info/ask.html)** - araçların, kayıtlı işlerin, varlıkların ve ayarların için tek bir alan ve bu kılavuzlardan yanıtlar.
+- **[Settings](/info/dashboard.html)** - bu cihazın neler yapabildiği, salt okunur tasarım sistemin ve depolaman.
+- **[Your favourites](/info/favourites.html)** ve **[Profiles](/info/profile.html)** - yıldızlı araçlar, araçların önceden doldurduğu bilgiler ve erişilebilirlik anahtarları.
+- **[Sync your devices](/info/sync.html)** - seçtiğin depolama üzerinden bilgisayarında ve telefonunda aynı iş.
 
 ## Canlandır
 
-Hareket eden metin, bir zaman çizelgesindeki sahneler ve markaya sadık kalan hareket. Bir hareket dışa aktarımı ekrandan kaydedilmek yerine kare kare, yönlendirilmiş bir saatten bileştirilir, bu yüzden zamanlama asla kaymaz ve aynı bağlantı her uzunlukta aynı klibi oluşturur.
+Hareket eden metin, zaman çizelgesindeki sahneler ve markaya uygun kalan hareket. Bir hareket dışa aktarması ekrandan kaydedilmek yerine sürülen bir saatten kare kare çizilir; bu yüzden aynı bağlantı aynı klibi üretir.
 
-- **[Canlandırma](/info/animating.html)** - anahtar kareler, gerçek derinlik ve sonucun üzerinde uçmak için bir sahne kamerası.
-- **[Sıra düzenleyici](/info/sequence-editor.html)** - zaman çizelgesinin kendisi: klipler, kaplama şeritleri, kırpma ve bölme, geçişler ve ses karışımı.
-- **[Dışa Aktarma ve Biçimler](/info/exporting.html)** - hareket doğru olduğunda, dışa aktarma panelinin video, GIF ve animasyonlu PNG tarafı.
+- **[Animating](/info/animating.html)** - anahtar kareler, gerçek derinlik ve bir sahne kamerası.
+- **[The sequence editor](/info/sequence-editor.html)** - klipler, bindirme şeritleri, kırpma ve bölme, geçişler ve ses karışımı.
+- **[Wide Colour and HDR](/info/hdr-editing.html)** - olağan aralığın ötesinde renk; ek aralığı gösterebilen ekranlarda ve biçimlerde.
 
-## Kaydet
+## Kaydet ve sun
 
-Geri sayım, bir seviye ölçer ve nazik yönlendirmelerle temiz bir çekim kaydet, ya da bir sesli notu sesle birlikte hareket eden bitmiş bir videoya dönüştür. Henüz ayrı bir Kaydet sayfası yok: bunu Lolly'yi Kullanma sayfası, zaman çizelgesi bölümünde ele alır.
+Geri sayım ve seviye göstergesiyle temiz bir çekim kaydet ya da kendini slaytlarının önüne koy.
 
-- **[Lolly'yi kullanma](/info/using.html#timeline-sequence)** - bir seslendirmeyi doğrudan zaman çizelgesine kaydetme, çekimin nerede kaydedildiği ve karışıma nasıl ulaştığı.
-- **[İlk dosyanı oluştur](/info/make-something.html#other-first-projects)** - görülmek yerine duyulmayı tercih ettiğinde, ses grafiği sahnesi.
-- **[Yardımcı görünümler](/info/utilities.html)** - önce kelimeler geldiğinde ve ses sonra geldiğinde, Script audio.
-
-## Sun
-
-Kameranı, logonu ve adını bir Design sunumunun veya Countdown'ın üzerine yerleştir; özel denetimler ayrı bir pencerede.
-
-- **[Kamerayla sunum](/info/presenting.html)** - kadrajlama, kaydedilmiş sahneler, izleyiciyle paylaşım, yerel kayıt ve mevcut deneme sürümü sınırlamaları.
+- **[The Design timeline](/info/design.html#timeline-sequence)** - seslendirmeyi doğrudan zaman çizelgesine kaydetme.
+- **[İlk dosyanı yap](/info/make-something.html#other-first-projects)** - görülmektense duyulmayı tercih ettiğinde audiogram.
+- **[Presenting with camera](/info/presenting.html)** - bir sunumun veya Countdown'un üzerinde kameran, logon ve adın; özel denetimler ayrı bir pencerede.
+- **[Live pages that take the clicker](/info/interactive-pages.html)** ve **[Agenda screens](/info/agenda.html)** - oda için sayfalar ve programlar.
 
 ## İş Birliği Yap
 
-İki kişi, iki cihaz, tek oturum, canlı düzenlenir. Masanın karşısında bir kodu tara ve her iki ekran da aynı çalışmayı tutar; aralarında hesap yok, sunucu yok - ve her iki cihaz da aynı ağdaysa internet bile gerekmez.
+İki kişi, iki cihaz, tek tasarım, canlı düzenlenir; hesap yok ve arada sunucu yok.
 
-- **[Birlikte çalışma](/info/collaborate.html)** - bir oturum başlatmak, cihazlar arasında neyin taşındığı ve ağ koptuğunda ne olduğu.
-- **[Lolly'yi kullanma](/info/using.html#sharing-your-work)** - çalışmayı devretmenin daha sessiz yolları: tüm durumu taşıyan bir paylaşım bağlantısı ya da tek bir `.lolly` dosyası.
+- **[Working together](/info/collaborate.html)** - cihazlar arasında özel collab'lar ve kuruluşunun Lolly Work'ü üzerinden work collab'lar.
+- **[Using Lolly](/info/using.html#sharing-your-work)** - tüm durumu taşıyan bir paylaşım bağlantısı ya da tek bir `.lolly` dosyası.
+- **[Use Lolly at your organisation](/info/organisation.html)** - kuruluşun Lolly Work çalıştırdığında giriş, team projects ve yönetilen ayarlar.
 
 ## Yayınla
 
-İstenen yere gönder: tasarımı taşıyan bir bağlantı, baskıya sadık bir PDF, bir video, bir sunum ya da bir varyant klasörü. Hepsini aynı kaynak üretir, bu yüzden bir kez inşa edersin.
+İstendiği yere gönder: bir bağlantı, baskıya uygun bir PDF, bir video, bir sunum veya bir varyant klasörü; hepsi aynı kaynaktan.
 
-- **[Dışa Aktarma ve Biçimler](/info/exporting.html)** - baskı birimleri, DPI, taşma payı ve kesim işaretleri, video, toplu çalıştırmalar ve dışa aktarma panelinin kendisi.
-- **[Lolly'nin açabildiği ve yapabildiği her biçim](/info/formats.html)** - her çipin arkasında sade bir dille yazılmış bir kartla, eksiksiz giriş-çıkış listesi.
-- **[Veri Aktarımı](/info/data-transfer.html)** - yaptığın her şeyi başka bir cihaza taşımak için yedekleme paketi.
+- **[Export a file](/info/exporting.html)** - baskı birimleri, taşma payı ve kesim işaretleri, video, toplu çalıştırmalar ve dışa aktarma paneli.
+- **[Every format Lolly can open and make](/info/formats.html)** - girdi ve çıktı biçimlerinin tam listesi.
+- **[Creative rights and credits](/info/creative-rights.html)** - kullandıklarının lisansları ve dosyayla birlikte giden atıflar.
+
+## Ekip rehberleri ve karşılaştırmalar
+
+- **Ekibin için:** [satış](/info/sales.html), [pazarlama](/info/marketing.html), [haber odası](/info/press.html) ve [hukuk](/info/legal.html).
+- **[How Lolly compares](/info/positioning.html)** - Lolly'nin neyde iyi olduğu ve ne zaman başka bir şeye uzanman gerektiği.
+- **[Lolly compared, tool by tool](/info/compare.html)** - Canva, Adobe, Figma, Penpot, marka portalları, render API'leri ve çevrimiçi dönüştürücüler.

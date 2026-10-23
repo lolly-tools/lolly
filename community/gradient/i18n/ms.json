@@ -1,6 +1,6 @@
 {
   "name": "Gradient",
-  "description": "Kecerunan gaya jaringan yang lembut daripada sampel warna jenama anda. Seret titik warna terus pada kanvas, atau hidupkan Hanyut dan eksport gelung itu sebagai WebM, MP4 atau GIF.",
+  "description": "Lima cara membina kecerunan daripada swatch sistem reka bentuk: Blend jejari lembut, jaringan tampalan Coons sebenar sebagai SVG tajam (Subdivide) atau raster licin (Mesh), titik Warp bebas dan ombak Flow beranimasi. Seret semuanya terus pada kanvas; eksport imej pegun atau gelung video tanpa sambungan.",
   "a11yLabel": "Gradien jaringan yang mencampurkan {{count}} warna",
   "inputs.count.label": "Titik warna",
   "inputs.color1.label": "Warna 1 (asas)",

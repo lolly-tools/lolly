@@ -1,6 +1,8 @@
 # Encuentra y recupera tu trabajo
 
-Todo lo que haces en Lolly permanece en el navegador o la app donde lo hiciste, en ese dispositivo, a menos que actives [Sincronización](/info/sync.html). El trabajo guardado está en **Proyectos**. Un archivo descargado está donde lo puso tu navegador o tu sistema, y normalmente una copia espera en **Recursos**. En la mayoría de las herramientas, el trabajo que nunca guardaste también se conserva. Esta página cubre cada uno de estos casos, además de una pestaña cerrada, datos del navegador borrados, versiones anteriores, elementos eliminados y el traslado a otro dispositivo.
+Falta algo: un diseño que nunca guardaste, un archivo que descargaste, la versión de la semana pasada, o todo después de borrar el navegador. Empieza con la tabla, y luego sigue la sección a la que apunta.
+
+El trabajo personal permanece en el navegador o la aplicación en que lo creaste, en ese dispositivo, a menos que actives [Sync](/info/sync.html). Una organización que use Lolly Work opcional también guarda **Team projects** en su servidor, como se explica más abajo.
 
 | Qué hiciste | Dónde mirar |
 |---|---|
@@ -10,13 +12,23 @@ Todo lo que haces en Lolly permanece en el navegador o la app donde lo hiciste, 
 | Ninguna de las dos, en una herramienta que no lo hace | Solo la pestaña en la que trabajaste, hasta que la cierres |
 | Lo eliminaste en la aplicación | **Papelera**, en **Proyectos**, **Recursos** o **Ajustes → Almacenamiento**, durante 30 días |
 
+::: figure find-your-work-places
+Dónde vive tu trabajo: el almacenamiento propio del navegador guarda Projects, History y Trash; las descargas van a las carpetas de tu dispositivo; Sync y un archivo de copia de seguridad son las copias fuera del navegador.
+:::
+
+::: details Encontrar el trabajo compartido en Lolly Work (opcional)
+Abre el Lolly de tu organización e inicia sesión, y luego mira en **Projects → Team projects**. Las sesiones compartidas las guarda esa instancia y aparecen según tu acceso. Iniciar sesión puede restaurar el acceso a esas sesiones en otro dispositivo; no restaura tu biblioteca personal ni la copia de seguridad del dispositivo.
+
+En una [collab de trabajo](/info/collaborate.html#work-collabs-with-lolly-work-optional), espera a **Saved to work** antes de salir. Si falta un proyecto compartido, comprueba que estás conectado a la instancia correcta y pregunta a su operador por el acceso o la conservación. Borrar los datos del navegador elimina las copias locales, no la copia del servidor de la organización. Consulta [Use Lolly at your organisation](/info/organisation.html).
+:::
+
 ## Encuentra algo que guardaste
 
 1. Pulsa **Inicio** en la esquina superior izquierda de la herramienta.
 2. Abre la pestaña **Proyectos** en la parte superior de la pantalla de inicio (el icono de carpeta en un móvil).
 3. Mira en la primera pantalla. Ahí está el trabajo guardado en **Mi biblioteca**, y cada proyecto es una carpeta. Para buscar en todas las carpetas a la vez, escribe en **Buscar en todos los proyectos…** al pie de la pantalla.
 
-Un elemento lleva el nombre del archivo que escribiste en el panel de exportación, o el de su herramienta, como **QR Code**, si no escribiste ninguno. Abre el elemento y todos los ajustes vuelven, listos para cambiarlos y exportar de nuevo. Para guardar así el trabajo nuevo, consulta [Guardar y continuar](/info/using.html#saving-continuing).
+Un elemento se nombra según el nombre de archivo que escribiste en el panel de exportación, o según su herramienta, como **QR Code**, si no escribiste ninguno. Abre el elemento y todos los ajustes están de vuelta, listos para cambiar y exportar de nuevo. Para conservar así el trabajo nuevo, consulta [Saving & continuing](/info/using.html#saving-continuing).
 
 ::: note ¿No está en Proyectos?
 - Puede estar en **Papelera**: consulta [Recupera algo que eliminaste](#get-back-something-you-deleted).
@@ -35,14 +47,14 @@ root. The alt says so. Revisit (and re-caption) if the pipeline gains a
 storage-seeding hook.
 -->
 
-- <!--i:folder--> **Carpetas anidables.** Agrupa las sesiones guardadas en carpetas, y carpetas dentro de carpetas, tan profundo como quieras. Crea una carpeta, cámbiale el nombre o arrastra un mosaico sobre otra carpeta para moverlo; una ruta de navegación te lleva de vuelta hacia arriba. Las sesiones guardadas sin carpeta aparecen directamente en la raíz de **Proyectos**.
-- <!--i:clock--> **Ordena a tu manera.** **Opciones de vista**, el botón de controles deslizantes arriba a la derecha, ofrece **Cuadrícula** o **Lista** y ordena por **Nombre**, **Fecha de adición**, **Última modificación** (el valor predeterminado), **Tamaño** y, dentro de una carpeta, **Por herramienta**. Las carpetas van siempre primero sea cual sea el orden activo - el orden solo coloca las sesiones y las carpetas dentro de su propio grupo.
-- <!--i:document--> **Archiva trabajo nuevo directamente.** **Nuevo recurso** abre el selector compartido. Elige **Plantillas** para empezar desde una plantilla guardada: ábrela para editarla o usa **+ Añadir** para guardar una nueva creación de inmediato.
-- <!--i:checklist--> **Selección múltiple (escritorio).** Marca la casilla de un mosaico, arrastra un recuadro de selección sobre el espacio vacío o usa **Shift/Cmd-click**; haz **clic derecho** en un mosaico para su menú contextual. La barra de selección ofrece entonces **Renderizar selección**, **Mover a…**, **Nueva carpeta**, **Eliminar** (que mueve a la Papelera), **Editar juntos** para entre dos y ocho sesiones de una sola herramienta, una junto a otra bajo una sola barra lateral, y **Editar como hoja**, que abre una selección de cualquier tamaño o mezcla como filas en la cuadrícula por lotes.
-- <!--i:download--> **Renderiza toda una carpeta o selección.** **Carpeta de renderizado** exporta cada sesión guardada en una carpeta - incluidas sus subcarpetas - como un único `.zip` anidado. **Renderizar selección** hace lo mismo para cualquier selección múltiple, y una sola sesión se renderiza directamente a su propio archivo. No hace falta Batch/Pro.
-- <!--i:link--> **Salta directamente al trabajo guardado de una herramienta.** Marca una o más herramientas en la galería de Herramientas y elige **Ver sesiones** en la barra de selección - Proyectos se abre mostrando solo las sesiones hechas con esas herramientas, con un **Borrar** para volver a la vista completa.
-- <!--i:link--> **Comparte una sesión guardada.** Haz clic derecho en una sesión (en un móvil, pulsa **•••** en su mosaico) → **Compartir enlace** para copiar un enlace que la reabre con los mismos ajustes; las imágenes de tu dispositivo no viajan con el enlace (el diálogo completo de Compartir: consulta [Compartir tu trabajo](/info/using.html#sharing-your-work)).
-- <!--i:pentool--> **Cambia el nombre o copia una.** Haz clic derecho en una sesión (en un móvil, pulsa **•••** en su mosaico) para **Cambiar nombre**, **Duplicar** (una copia en la misma carpeta) y **Mover a…**.
+- <!--i:folder--> **Carpetas anidables.** Agrupa las sesiones guardadas en carpetas, y carpetas dentro de carpetas, tan hondo como quieras. Crea una carpeta, renómbrala o arrastra un mosaico sobre otra carpeta para moverlo; una ruta de migas te lleva de vuelta hacia arriba. Las sesiones guardadas sin carpeta aparecen directamente en la raíz de **Projects**.
+- <!--i:clock--> **Ordena a tu manera.** **View options**, el botón de deslizadores arriba a la derecha, ofrece **Grid** o **List** y ordena por **Name**, **Date added**, **Last modified** (el predeterminado), **Size** y, dentro de una carpeta, **By tool**. Las carpetas siempre van primero sea cual sea el orden activo: el orden solo ordena las sesiones y carpetas dentro de su propio grupo.
+- <!--i:document--> **Archiva el trabajo nuevo directamente.** **New asset** abre el selector compartido. Elige **Templates** para empezar desde una plantilla guardada: ábrela para editar, o usa **+ Add** para guardar una creación nueva de inmediato.
+- <!--i:checklist--> **Selección múltiple (escritorio).** Marca la casilla de un mosaico, arrastra un recuadro de selección por el espacio vacío o haz **clic con Shift/Cmd**; **haz clic derecho** en un mosaico para su menú contextual. La barra de selección ofrece entonces **Render selection**, **Move to…**, **New folder**, **Delete** (que mueve a la Papelera), **Edit together** para dos a ocho sesiones de una sola herramienta, lado a lado bajo una barra lateral, y **Edit as sheet**, que abre una selección de cualquier tamaño o mezcla como filas en la cuadrícula de lotes.
+- <!--i:download--> **Renderiza una carpeta o selección entera.** **Render folder** exporta todas las sesiones guardadas de una carpeta - incluidas sus subcarpetas - como un `.zip` anidado. **Render selection** hace lo mismo para cualquier selección múltiple, y una sola sesión se renderiza directamente a su propio archivo.
+- <!--i:link--> **Salta directamente al trabajo guardado de una herramienta.** Marca una o más herramientas en la galería Tools y elige **View sessions** en la barra de selección - Projects se abre mostrando solo las sesiones creadas con esas herramientas, con un **Clear** para volver a la vista completa.
+- <!--i:link--> **Comparte una sesión guardada.** Haz clic derecho en una sesión (en un teléfono, pulsa **•••** en su mosaico) → **Share link** para copiar un enlace que la reabre con los mismos ajustes; las imágenes de tu dispositivo no viajan con un enlace (el diálogo Share completo: consulta [Sharing your work](/info/using.html#sharing-your-work)).
+- <!--i:pentool--> **Renombra o copia una.** Haz clic derecho en una sesión (en un teléfono, pulsa **•••** en su mosaico) para **Rename**, **Duplicate** (una copia en la misma carpeta) y **Move to…**.
 
 ![El popover de opciones de vista en Proyectos: Diseño con Cuadrícula y Lista, y Ordenar por configurado en Última modificación, junto a un botón que invierte el orden](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
 <!--
@@ -71,11 +83,18 @@ not visible in the closed menu, so the alt does not list them.
 
 Lo que vuelve depende de cómo saliste y de qué herramienta usaste:
 
-- **Cerraste la pestaña, o volviste en otro momento.** El trabajo sin guardar se pierde, excepto en las [herramientas que guardan mientras trabajas](#which-tools-save-as-you-work): ábrelo desde **Proyectos**.
-- **Recargaste la página en la misma pestaña.** Tus ajustes vuelven desde la dirección de la página. En las herramientas que no guardan mientras trabajas, las imágenes y archivos que añadiste desde tu dispositivo, y el texto de una línea de más de 150 caracteres, no vuelven, porque la dirección no los contiene.
-- **Pulsaste Inicio, o el botón de retroceso arriba a la izquierda.** Si cambiaste algo desde la última vez que guardaste, descargaste o copiaste, un diálogo de **Ediciones sin guardar** pregunta si guardar antes. **Guardar y salir** guarda el trabajo y te lleva a **Proyectos**, o de vuelta a la carpeta de proyecto desde la que abriste el trabajo. **Salir de todos modos** descarta tus cambios: un elemento guardado vuelve a como lo dejaste la última vez que lo guardaste, y una creación que nunca guardaste desaparece de **Proyectos**. **Cancelar** te mantiene en la herramienta.
+- **Cerraste la pestaña, o volviste otro día.** El trabajo sin guardar se pierde, excepto en las [herramientas que guardan mientras trabajas](#which-tools-save-as-you-work): abre ese trabajo desde **Projects**.
+- **Recargaste la página en la misma pestaña.** Tus ajustes vuelven desde la dirección de la página. En las herramientas que no guardan mientras trabajas, las imágenes y los archivos que añadiste desde tu dispositivo, y el texto de una sola línea de más de 150 caracteres, no vuelven, porque la dirección no los contiene.
+- **Pulsaste Home, o el botón de atrás arriba a la izquierda.** Si cambiaste algo desde la última vez que guardaste, descargaste o copiaste, un diálogo **Unsaved edits** pregunta si guardar antes. **Save & leave** guarda el trabajo y te lleva a **Projects**, o de vuelta a la carpeta del proyecto desde la que abriste el trabajo. **Leave anyway** descarta tus cambios: un elemento guardado vuelve a como lo guardaste por última vez, y una creación que nunca guardaste sale de **Projects**. **Cancel** te mantiene en la herramienta.
 
 Lolly solo pregunta cuando pulsas **Inicio** o el botón de retroceso en una herramienta. Cerrar la pestaña, recargar y el propio botón Atrás de tu navegador nunca preguntan. Para estar seguro, pulsa **Guardar como**, o **Guardar** en el panel de exportación, antes de salir de una herramienta.
+
+Cuando la recuperación automática no está disponible, una nota junto a los controles de edición dice qué conservar:
+
+- En una herramienta que trabaja sobre un archivo que aportas, guarda tus ajustes y conserva también los archivos originales.
+- En una herramienta de grabación, o una utilidad sin acción Save, guarda o descarga el resultado antes de salir.
+- Las aplicaciones de escritorio y móviles indican cuándo necesitas guardar a mano.
+- En una colaboración privada, la persona que invitó conserva el documento y su historial, incluidos los cambios de la otra persona. La persona que se unió trabaja sobre una copia temporal y debería guardar una copia aparte antes de que termine la sesión.
 
 ::: note ¿Saliste sin guardar por error?
 En las herramientas que guardan mientras trabajas, el Historial conserva una copia de los cambios descartados. Abre la página **Historial**, encuéntralos bajo **Cambios** y pulsa **Abrir como copia**. En otras herramientas los cambios han desaparecido.
@@ -84,12 +103,15 @@ En las herramientas que guardan mientras trabajas, el Historial conserva una cop
 ::: details Qué herramientas guardan mientras trabajas
 En la app web, toda herramienta que crea un documento guarda mientras trabajas: Design, Chart, QR Code, Text, Sandbox y el resto. Estas herramientas no lo hacen:
 
-- las herramientas que trabajan sobre un archivo que tú aportas, como Redact, Sign o Convert Image, porque Lolly nunca conserva una copia de ese archivo;
+- las herramientas que trabajan sobre un archivo que aportas, como Redact, Sign o Convert Image, porque Lolly nunca conserva una copia de ese archivo;
 - las herramientas que graban desde tu cámara, micrófono o pantalla, como Record, Screen Capture y Voice Recorder;
-- 3D y Darkroom, que toman un archivo propio;
 - una herramienta sin nada que cambiar, como Countdown.
 
-En las demás herramientas, tu primer cambio archiva el trabajo en **Proyectos** como si lo hubieras guardado, y los cambios posteriores se conservan mientras trabajas, en cuanto la herramienta termina de dibujar. Así que una creación sin guardar sigue en Proyectos después de cerrar la pestaña y se vuelve a abrir con sus cambios marcados como sin guardar. **Salir de todos modos** los descarta igualmente, y el Historial conserva una copia de los cambios descartados durante 30 días. Abrir la herramienta de nuevo desde la pantalla de inicio empieza una creación nueva; abre la anterior desde Proyectos.
+En las demás herramientas, tu primer cambio archiva el trabajo en **Projects** como si hubieras guardado, y los cambios posteriores se conservan mientras trabajas una vez que la herramienta ha terminado de dibujar. Una creación sin guardar sigue en Projects tras cerrar la pestaña, y se reabre con sus cambios marcados como sin guardar.
+
+**Leave anyway** sigue descartando esos cambios, y History conserva una copia de las ediciones descartadas durante 30 días. Volver a abrir la herramienta desde la pantalla de inicio empieza una creación nueva; abre la anterior desde Projects.
+
+3D y Darkroom guardan mientras trabajas, pero no conservan un archivo que cargas en ellos, como un modelo 3D o una LUT. History y **Save** conservan el nombre, el tipo y el tamaño del archivo, no el archivo. Cuando vuelves a abrir el trabajo, una nota indica qué archivo era, y la herramienta funciona sin él hasta que lo cargues de nuevo. Conserva tus archivos originales.
 
 Con [Sincronización](/info/sync.html) activada, una creación archivada así llega a tus otros dispositivos como cualquier otra cosa en Proyectos. Sus versiones permanecen en el dispositivo donde se hicieron.
 
@@ -138,7 +160,7 @@ Los puntos de control automáticos se van reduciendo con el tiempo: uno por minu
 
 Cuando el almacenamiento del Historial se llena, se eliminan primero los puntos de control automáticos más antiguos de las creaciones que no has abierto en 30 días. Un guardado siempre se conserva, incluso entonces: se escribe como el trabajo actual, y el Historial indica que ese guardado no se conserva como versión. **Ajustes → Almacenamiento** muestra cuánto usa el Historial.
 
-La página **History** (`#/history`, o **Open app history** en el panel) cubre todas las creaciones en este navegador. En un ordenador, abre la página desde el botón de reloj arriba a la derecha de la pantalla de inicio o de **Proyectos**. En un móvil, ve a la galería de herramientas en la pantalla de inicio, pulsa el botón redondo del logotipo arriba a la derecha y elige **Sesiones guardadas**, que abre History. Desde **Proyectos** ese elemento todavía no hace nada.
+La página **History** (`#/history`) abarca todas las creaciones de este navegador. Para abrirla, pulsa el botón de reloj arriba a la derecha de la pantalla de inicio o de **Projects**, elige **Saved sessions** en el menú del perfil (en un teléfono, el botón redondo del logotipo arriba a la derecha), o pulsa **Open app history** en el panel History de una herramienta. Las aplicaciones de escritorio y móviles no tienen página History, así que allí el botón de reloj de la pantalla de inicio y **Saved sessions** abren **Your recent work**: tus últimas sesiones guardadas y exportaciones, con un enlace a Projects.
 
 - **Recent** lista tus creaciones, las más nuevas primero, con **Resume**.
 - **Changes** pone los puntos de control, las descargas y los resultados de Convert en una sola línea de tiempo. Una descarga tiene **Reopen settings**.
@@ -174,7 +196,7 @@ Los inicios de sesión, las claves y la frase de contraseña de sincronización 
 ::: details Qué contiene el archivo de copia de seguridad
 El archivo se llama `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (las partes del nombre vienen de tu perfil y se omiten si no están definidas; `<n>` es un contador por día para que las exportaciones del mismo día no choquen). Contiene tu perfil, con tus carpetas, Papelera, plantillas y favoritos; cada sesión guardada con su miniatura; tus imágenes subidas, tipografías, logotipos y las copias de tus descargas; tus sistemas de diseño; tus preferencias (tema, ancho de la barra lateral, estadísticas de actividad locales); versiones guardadas y resultados de Convert; y, desde la app web, el historial de versiones de tus creaciones.
 
-La caché del catálogo no está incluida - se vuelve a descargar sola en el dispositivo nuevo. Cada parte lleva checksum, así que un archivo dañado en tránsito se detecta al importar en lugar de restaurarse a medias. Las sesiones guardadas se reenlazan automáticamente con tus imágenes importadas. Las apps web, de escritorio y móviles leen el mismo archivo; la app de terminal escribe una copia de seguridad más simple propia, que este formato no lee. **📦 Export my data & render everything** crea el mismo archivo más un segundo zip con cada sesión guardada renderizada a su salida. (Especificación completa del formato: [Transferencia de datos](/info/data-transfer.html).)
+La caché del catálogo no se incluye: se vuelve a descargar sola en el nuevo dispositivo. Cada parte lleva suma de verificación, así que un archivo dañado en tránsito se detecta al importar en lugar de restaurarse a medias. Las sesiones guardadas se vuelven a vincular automáticamente a tus imágenes importadas. Las aplicaciones web, de escritorio y móviles leen el mismo archivo; la aplicación de terminal escribe una copia de seguridad más sencilla propia, que este formato no lee. **Export my data & render everything** crea el mismo archivo más un segundo zip con cada sesión guardada renderizada a su salida. (Especificación completa del formato: [Data transfer](/info/data-transfer.html).)
 :::
 
 ## Si borras los datos de tu navegador
@@ -185,11 +207,13 @@ En la app web, Lolly guarda todo en el almacenamiento de tu navegador para este 
 Pulsa **Exportar mis datos** bajo **Ajustes → Almacenamiento**, y guarda el archivo en otro lugar.
 :::
 
-Cuando la app arranca, Lolly le pide al navegador que no borre su almacenamiento cuando al dispositivo le quede poco espacio. El navegador decide. Bajo **Ajustes → Disponible sin conexión**, una línea que empieza por **Protected** significa que el navegador aceptó; "The browser may clear downloads if the device runs low on space" significa que no, y **Protect downloads** vuelve a preguntar. Si el navegador no aceptó, puede borrar el trabajo guardado además de las descargas cuando escasee el espacio, así que conserva un archivo reciente de **Exportar mis datos**.
+Cuando la aplicación arranca, Lolly pide al navegador que no borre su almacenamiento cuando el dispositivo se queda sin espacio, y el navegador decide. En **Settings → Available offline**, una línea que empieza por **Protected** significa que el navegador aceptó. "The browser may clear downloads if the device runs low on space" significa que no, y **Protect downloads** lo vuelve a pedir.
+
+Si el navegador no aceptó, puede borrar el trabajo guardado además de las descargas cuando se agota el espacio, así que conserva un archivo reciente de **Export my data**.
 
 **Ajustes → Almacenamiento** muestra cuánto espacio usa cada tipo de dato. Su fila **Historial** cuenta los puntos de control automáticos, sus vistas previas y los borradores de recuperación; **Eliminar puntos de control automáticos de más de 30 días** libera ese espacio y conserva las versiones guardadas y con nombre. **Borrar caché** elimina los archivos de catálogo descargados, que se vuelven a descargar cuando hacen falta. **Borrar todos mis datos** te pide que escribas una palabra, desactiva Sincronización y luego elimina todo lo que Lolly guarda en este navegador: tu perfil y tus ajustes, las sesiones guardadas con su historial y la Papelera, los archivos subidos, las tipografías y los sistemas de diseño, el registro de descargas, los resultados de Convert, los modelos de IA descargados y las copias sin conexión. Los archivos que descargaste se quedan donde los guardaste. La aplicación arranca entonces como en la primera visita.
 
-![La tarjeta de almacenamiento en una pantalla de ancho de teléfono: cada categoría de datos del dispositivo con su nombre, y el botón Borrar todos mis datos abajo](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![La tarjeta de almacenamiento en una pantalla del ancho de un teléfono: cada categoría de datos del dispositivo con su nombre, con el botón Clear all my data al final](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 En las apps de escritorio y móviles, las sesiones guardadas son archivos en la propia carpeta de datos de la app y el resto está en el propio almacenamiento de la app, así que borrar un navegador web no las afecta.
 

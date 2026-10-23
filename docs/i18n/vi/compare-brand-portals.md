@@ -2,34 +2,35 @@
 
 _Kiểm tra lần cuối: 28 tháng 9 năm 2026._
 
-Lolly và [lolly.work](https://lolly.work) cùng bao quát các quy trình sáng tạo và quản trị mà các nhóm dùng cổng thương hiệu để làm: tài sản đã duyệt, mẫu bị khóa, kiểm soát truy cập, đánh giá và phân phối. Hãy so sánh giải pháp kết hợp đó với Bynder, Frontify, Marq hoặc Brandfolder khi chọn cách mọi người tìm tài sản thương hiệu và tạo tài sản mới.
+Nếu tổ chức của bạn giữ tài nguyên đã duyệt trong Bynder, Frontify, Marq hoặc Brandfolder, trang này so sánh điều đó với Lolly cộng Lolly Work: mọi người tìm tài nguyên thương hiệu ra sao, và tạo tệp mới từ đó thế nào.
 
-## Sáng tạo và dịch vụ tổ chức
+## Một cổng thông tin lâu đời làm tốt hơn điều gì
 
-Engine và ứng dụng của Lolly tạo ra các tệp. Mẫu, design token và đầu vào được phép xác định những gì một người có thể thay đổi, và việc kết xuất có thể ở lại trên thiết bị của họ. Lolly độc lập không cần tài khoản.
+Các cổng lâu đời cung cấp lưu trữ được quản lý, hỗ trợ và quy trình quản lý tài nguyên phong phú. Chẳng hạn, [DAM doanh nghiệp của Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kết hợp khám phá tài nguyên, kiểm soát truy cập, quy trình phê duyệt và phân phối. Bộ Lolly còn non trẻ hơn và chuỗi phê duyệt của nó tuần tự thay vì quy trình rẽ nhánh tùy ý. [Work status and roadmap](/info/work-status.html) ghi các giới hạn triển khai của nó.
 
-lolly.work là dịch vụ tổ chức trong cùng dự án, được duy trì trong một [kho riêng](https://github.com/lolly-tools/lolly-work) và triển khai cùng với Lolly. Dịch vụ này bổ sung nhận diện, lưu trữ dùng chung, chính sách, phê duyệt và báo cáo. Cả hai phần đều là mã nguồn mở theo MPL-2.0. Sự tách biệt này cho phép một cá nhân dùng Lolly độc lập và một tổ chức vận hành giải pháp kết hợp trên hạ tầng do mình kiểm soát.
+## Điểm giao nhau
 
-## Giải pháp kết hợp cung cấp những gì
+Cả hai đều bao gồm tài nguyên đã duyệt, mẫu bị khóa, kiểm soát truy cập, xem xét và phân phối. Lolly làm ra các tệp: mẫu, design token và đầu vào được phép định nghĩa người dùng được đổi gì, và kết xuất có thể ở lại thiết bị của họ. Lolly Work thêm danh tính, lưu trữ chung, chính sách, phê duyệt và báo cáo trên hạ tầng mà tổ chức kiểm soát.
 
-| Nhu cầu | Lolly + lolly.work |
+![Hệ thống thiết kế đang dùng trong Settings, hiện dưới dạng bìa và các trang: màu sắc, kiểu chữ và logo mà mọi công cụ vẽ bằng chúng](/info/shots/dashboard-brand.svg)
+
+## Lolly và Lolly Work cung cấp gì
+
+| Nhu cầu | Lolly + Lolly Work |
 |---|---|
-| Đăng nhập và cấp phát | Đăng nhập một lần (SSO) OIDC, nhiều nhà cung cấp danh tính, cấp phát người dùng SCIM 2.0 và thành viên nhóm, và vô hiệu hóa tài khoản sẽ thu hồi các phiên hiện có. Nhà cung cấp danh tính chỉ hỗ trợ SAML có thể kết nối qua cầu nối OIDC như Keycloak. |
-| Mẫu đã duyệt | Lolly xác định các đầu vào có thể chỉnh sửa của mẫu; lolly.work áp dụng chế độ hiển thị theo nhóm và chính sách đầu vào để khóa giá trị, giới hạn lựa chọn hoặc ẩn các điều khiển. |
-| Thư viện tài sản dùng chung | Tệp tải lên thuộc về instance, bộ sưu tập, siêu dữ liệu tùy chỉnh và danh mục có kiểm soát truy cập, cùng các trình kết nối đọc thư viện DAM và lưu trữ hiện có. |
-| Đánh giá | Các bước phê duyệt theo thứ tự, nhóm người phê duyệt đủ điều kiện, quy tắc đủ số phiếu (quorum) và phân tách nhiệm vụ; quy trình đánh giá có thể chi phối việc gửi vào danh mục và việc phân phối đến các đích của tổ chức. |
-| Lịch sử và khả năng sử dụng của tài sản | Phiên bản và khôi phục cho tài sản thuộc về instance, lưu giữ và tạm giữ, lịch phát hành, hết hạn và thu hồi. Các nhà cung cấp được kết nối giữ lịch sử nguồn của riêng họ. |
-| Báo cáo | Số lượt dùng và tải xuống tài sản, hoạt động công cụ và xuất tệp, bảng điều khiển và nhật ký kiểm toán. Việc ghi nhận nguồn sử dụng tuân theo chính sách telemetry của bản triển khai; thiết lập ghi nhận mặc định yêu cầu sự đồng ý. |
-| Phân phối | Liên kết có thời hạn và có thể thu hồi, bộ sưu tập dùng chung, quyền truy cập cho khách và phân phối đến các đích đã cấu hình của tổ chức. |
+| Đăng nhập và cấp tài khoản | Đăng nhập một lần OIDC, nhiều nhà cung cấp danh tính, cấp người dùng SCIM 2.0 và tư cách thành viên nhóm, và vô hiệu hóa tài khoản thu hồi các phiên hiện có. Một nhà cung cấp danh tính chỉ dùng SAML có thể kết nối qua cầu OIDC như Keycloak. |
+| Mẫu đã duyệt | Lolly định nghĩa đầu vào chỉnh sửa được của mẫu; Lolly Work áp dụng hiển thị theo nhóm và chính sách đầu vào để khóa giá trị, hạn chế lựa chọn hoặc ẩn điều khiển. |
+| Thư viện tài nguyên chung | Tệp tải lên thuộc phiên bản, bộ sưu tập, siêu dữ liệu tùy chỉnh và danh mục có kiểm soát truy cập, cùng trình kết nối đọc các thư viện DAM và lưu trữ hiện có. |
+| Xem xét | Các bước phê duyệt có thứ tự, nhóm người duyệt đủ điều kiện, quy tắc đủ số phiếu và phân tách nhiệm vụ; xem xét có thể quản trị bản gửi danh mục và bàn giao tới các đích của tổ chức. |
+| Lịch sử và tính sẵn có của tài nguyên | Phiên bản và hoàn nguyên cho tài nguyên thuộc phiên bản, lưu giữ và tạm giữ, thời điểm có sẵn theo lịch, hết hạn và thu hồi. Nhà cung cấp kết nối giữ lịch sử nguồn của riêng họ. |
+| Giấy phép và ghi công | Lolly ghi giấy phép của mỗi nguồn mà một tệp dùng và chuẩn bị phần ghi công cần có; [Creative rights and credits](/info/creative-rights.html) giải thích nó ghi gì và phần ghi công được viết ở đâu. Nó không xác nhận quyền. |
+| Báo cáo | Số lần dùng và tải tài nguyên, hoạt động công cụ và xuất, bảng điều khiển và nhật ký kiểm toán. Việc gán lượt dùng theo chính sách telemetry của bản triển khai; cài đặt gán mặc định đòi sự đồng ý. |
+| Phân phối | Liên kết hết hạn, thu hồi được, bộ sưu tập chung, truy cập khách và bàn giao tới các đích tổ chức đã cấu hình. |
 
-[Hướng dẫn dành cho người vận hành lolly.work](https://github.com/lolly-tools/lolly-work/tree/main/docs) mô tả các tính năng này và cách cấu hình. Đây là những khả năng có sẵn, không phải các tính năng đòi hỏi phải xây thêm một hệ thống khác xung quanh Lolly.
+[Catalog and content](/info/work-catalog.html), [Approvals](/info/work-approvals.html) và [Policy and governance](/info/work-governance.html) mô tả các tính năng này và cấu hình của chúng.
 
-## Chọn quy trình cổng thương hiệu
+## Giữ cổng thông tin hiện có của bạn
 
-Các cổng thương hiệu lâu năm cung cấp dịch vụ lưu trữ được quản lý, hỗ trợ và nhiều quy trình DAM phong phú. Ví dụ, [DAM doanh nghiệp của Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) kết hợp khám phá tài sản, kiểm soát truy cập, quy trình phê duyệt và phân phối. Hãy so sánh đúng quy trình đánh giá và quyền sử dụng mà bạn cần: Lolly cung cấp siêu dữ liệu, kiểm soát truy cập và khả năng sử dụng, còn việc thông qua pháp lý và nghĩa vụ giấy phép vẫn cần quy trình của tổ chức. Chuỗi phê duyệt của Lolly là tuần tự; chúng không mô hình hóa các quy trình rẽ nhánh tùy ý.
+Một DAM hiện có có thể vẫn là nguồn chân lý. Các trình kết nối danh mục của Lolly Work đưa tài nguyên đã duyệt của nó vào Lolly, nơi mọi người tạo tệp mới theo quy tắc của tổ chức. Đó là một lựa chọn tích hợp; thư viện và phê duyệt riêng của Lolly có đó khi tổ chức muốn tự vận hành. [What runs where](/info/compare.html#what-runs-where) liệt kê các giới hạn mà mọi so sánh dùng chung.
 
-Hệ thống Lolly còn non trẻ hơn, và [trang tình trạng lolly.work](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) ghi lại các giới hạn triển khai của nó. Đặc biệt, trang lolly.work công khai là môi trường thử nghiệm để đánh giá. Một bản triển khai bền vững cho tổ chức cần lưu trữ lâu dài và một người vận hành. Tự lưu trữ không tính phí giấy phép phần mềm theo từng người dùng; hạ tầng và quản trị vẫn tốn chi phí.
-
-Một hệ thống DAM hiện có cũng có thể tiếp tục là nguồn dữ liệu gốc. Các trình kết nối danh mục của lolly.work đưa tài sản đã duyệt của nó vào Lolly, nơi mọi người tạo tệp mới theo quy tắc của tổ chức. Đó là một lựa chọn tích hợp; thư viện và quy trình phê duyệt riêng của Lolly vẫn có sẵn khi tổ chức muốn tự quản lý các quy trình đó.
-
-Xem [Lolly so sánh thế nào](/info/positioning.html) để biết so sánh về khả năng và [So sánh Lolly theo từng công cụ](/info/compare.html) cho phần còn lại của bộ bài này. Tên nhà cung cấp chỉ để nhận diện các sản phẩm được so sánh; Lolly không liên kết với họ.
+Xem [How Lolly compares](/info/positioning.html) để so sánh khả năng. Tên nhà cung cấp chỉ nhằm xác định các sản phẩm được so sánh; Lolly không liên kết với họ.

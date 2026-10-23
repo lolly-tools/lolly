@@ -1,87 +1,87 @@
-# Quyền sáng tạo, ghi công và những gì luôn thuộc về bạn
+# Quyền sáng tạo và ghi công
 
-Bạn nên có thể sử dụng tác phẩm tốt do người khác tạo ra mà không cần trở thành chuyên gia về cấp phép, và không lặng lẽ bỏ qua những người đã tạo ra nó. Vì vậy Lolly giữ lại nguồn của mọi tác phẩm mà nó sử dụng, đọc giấy phép đã được ghi nhận cho tác phẩm đó, tính ra giấy phép đó yêu cầu gì đối với cách sử dụng mà bạn thực sự đang thực hiện, tự làm phần việc mà một chương trình có thể làm, và nêu rõ phần việc chỉ bạn mới có thể làm.
+Bạn nên dùng được tác phẩm tốt của người khác mà không phải trở thành chuyên gia cấp phép, và không lặng lẽ bỏ qua những người đã làm ra tác phẩm. Vì vậy Lolly giữ nguồn của mọi tác phẩm nó dùng, đọc giấy phép được ghi cho nó, tính xem giấy phép đó đòi gì ở việc sử dụng thực tế của bạn, làm phần mà một chương trình làm được và cho bạn biết phần chỉ bạn làm được.
 
-Không điều nào trong số này là tư vấn pháp lý và cũng không phải là phán quyết về dự án của bạn. Lolly ghi lại các sự kiện, áp dụng một tập hợp nhỏ các quy tắc được đọc từ chính văn bản pháp lý của các giấy phép, và cho thấy cách nó tính toán. Một giấy phép có điều kiện là một lựa chọn bình thường, được phép. Nó không bao giờ được trình bày như một tài sản bị lỗi.
+Không điều nào trong này là tư vấn pháp lý, và không điều nào là phán quyết về dự án của bạn. Lolly ghi lại dữ kiện, áp dụng một tập nhỏ quy tắc đọc từ chính văn bản pháp lý của các giấy phép và cho thấy cách nó làm. Một giấy phép có điều kiện là một lựa chọn bình thường, được phép. Nó không bao giờ bị trình bày như tài nguyên hỏng.
+
+## Bạn gặp điều này ở đâu
+
+Các bộ emoji là trường hợp thường gặp. Twemoji theo CC BY 4.0, nên một tiêu đề có emoji xuất ra với tác phẩm được ghi công và bạn không phải làm gì thêm. Cả hai bộ OpenMoji theo CC BY-SA 4.0, nên nhuộm lại một glyph của chúng bằng xử lý thương hiệu là một sự chuyển thể, và chia sẻ bản chuyển thể đó yêu cầu bạn chọn một giấy phép tương thích một lần. Fluent (MIT), Noto và Blobmoji (đều Apache 2.0) cũng được đăng ký, và mỗi bộ được phân giải theo giấy phép đã xem xét của riêng nó.
+
+Chọn một bộ không bao giờ bị chặn, và điều khiển bộ hiện giấy phép ngay nơi bạn chọn. Cùng các quy tắc áp dụng cho một minh họa danh mục, một LUT, một phông chữ và bất kỳ tác phẩm đã ghi nào khác.
 
 ## Ba sự kiện, được giữ tách biệt
 
 "CC BY 4.0", "cách dùng này cần một ghi công" và "phần ghi công đã có trong tệp bạn vừa tải xuống" là ba tuyên bố khác nhau, và Lolly giữ chúng tách biệt:
 
-- **Bằng chứng** là những gì một nguồn đã khai báo, được ghi lại đúng như khi tìm thấy, cùng với ai đã nói điều đó và nó được đọc ở đâu. Một lần nhập sau này không bao giờ ghi đè lên một bản ghi trước đó.
-- **Nghĩa vụ** là những gì các quy tắc đã xem xét rút ra từ bằng chứng đó cho một cách dùng, một tuyến phân phối và một đối tượng khán giả. Các điều kiện chia sẻ vẫn ở dạng có điều kiện trong khi bạn đang làm việc riêng tư.
-- **Việc phân phối** là những gì các byte hoàn chỉnh thực sự mang theo, được đo bằng cách đọc lại chúng. Lolly chỉ nói rằng ghi công đã được đưa vào sau khi một người đọc đã tìm thấy nó trong tệp được phân phối.
+- **Evidence** là những gì một nguồn đã khai báo, được ghi lại như khi tìm thấy, kèm ai nói và đọc ở đâu. Một lần nhập sau không bao giờ ghi đè bản ghi trước.
+- **Obligation** là những gì các quy tắc đã xem xét rút ra từ bằng chứng đó cho một việc sử dụng, một lộ trình giao và một nhóm khán giả. Các điều kiện áp dụng khi chia sẻ vẫn ở trạng thái có điều kiện trong khi bạn làm việc riêng tư.
+- **Delivery** là những gì các byte hoàn chỉnh thực sự mang, đo bằng cách đọc lại chúng. Lolly chỉ nói phần ghi công đã được đưa vào sau khi một trình đọc tìm thấy chúng trong tệp đã giao.
 
-## Nơi bạn gặp điều này đầu tiên
+![Bằng chứng nguồn đã ghi và việc sử dụng đã chọn đưa vào các quy tắc đã xem xét. Bản xuất chuẩn bị phần ghi công, rồi một bước kiểm tra giao hàng đọc các byte hoàn chỉnh để báo cáo phần ghi công nào đã tìm thấy hoặc còn cần.](/info/diagrams/concepts/rights-evidence-to-delivery.svg)
 
-Các bộ emoji là trường hợp thường gặp hằng ngày. Twemoji có giấy phép CC BY 4.0, nên một tiêu đề có emoji trong đó xuất ra với tác phẩm đã được ghi công và không còn gì cho bạn phải làm. Cả hai bộ OpenMoji đều thuộc CC BY-SA 4.0, nên việc đổi màu một glyph của chúng theo cách xử lý thương hiệu là một bản phóng tác, và việc chia sẻ bản phóng tác đó yêu cầu bạn chọn một giấy phép tương thích, một lần. Việc chọn bộ không bao giờ bị chặn, và bộ điều khiển chọn bộ nêu tên giấy phép ngay tại nơi bạn chọn. Cùng những quy tắc đó trả lời cho một minh họa trong danh mục, một LUT, một phông chữ và bất kỳ tác phẩm đã ghi nhận nào khác.
+## Bạn thấy gì, và nên làm gì
 
-## Những từ Lolly dùng
+Cùng các dòng chữ này xuất hiện trong bảng xuất, Verify, dòng lệnh và kết quả máy đọc được, xấp xỉ theo thứ tự bạn sẽ gặp chúng thường xuyên đến đâu.
 
-Một bộ từ vựng duy nhất xuyên suốt bảng xuất, Verify, dòng lệnh và kết quả của máy.
-
-| Điều bạn thấy | Điều đó có nghĩa là gì |
+| Bạn thấy | Nghĩa là gì |
 |---|---|
-| Ghi công nguồn sẽ được đưa vào. | Ghi công đã được chuẩn bị và tuyến đường có thể mang nó theo. Chưa có gì được ghi, nên đây không phải là thông báo thành công. |
-| Ghi công đã có trong siêu dữ liệu của tệp này. | Các byte đã phân phối được đọc lại, thông tin xác thực đã được xác minh và mọi nguồn bắt buộc đều được tìm thấy trong đó. |
-| Ghi công và thông tin xác thực nằm trong gói tải xuống. | Ghi công đi kèm như một tệp đồng hành bên cạnh tác phẩm. Hãy giữ chúng cùng nhau khi bạn chuyển tiếp chúng. |
-| Thêm ghi công này vào phần mô tả bài đăng. | Tuyến đường đã chọn không mang theo thông tin xác thực lẫn ghi công có thể đọc được, nên phần văn bản ghi công là việc bạn tự dán vào. |
-| Nếu bạn chia sẻ bản phóng tác này, nó cần một giấy phép tương thích. | Một nguồn ShareAlike đã bị thay đổi và kết quả đang hướng đến nơi khác ngoài sử dụng riêng tư. Việc chọn là một hành động, không phải một hộp thoại cho từng vị trí đặt. |
-| Giấy phép nguồn chưa được ghi nhận. | Không có gì được ghi nhận cho nguồn này. Đó là một khoảng trống cần lấp đầy, không phải một phát hiện bất lợi cho tác phẩm. |
-| Điều kiện đã được ghi nhận, chưa được diễn giải. | Mã định danh được nhận diện và các điều kiện của nó được liệt kê, và không quy tắc nào ở đây đọc chúng. Không tự động thông qua, không tự động cấm. |
-| Hai khai báo giấy phép mâu thuẫn nhau. | Hai bản ghi nêu tên hai giấy phép khác nhau và chưa có gì chọn ra quyền cấp phép nào áp dụng. |
-| Không yêu cầu ghi công theo cống hiến CC0 đã ghi nhận. | Cống hiến này không yêu cầu gì cả. Một ghi công mang tính lịch sự vẫn được đề nghị. |
-| Ghi công không có trong tệp đã được phân phối. | Một ghi công đã được hứa hẹn, việc đọc lại không tìm thấy nó, và tệp vẫn là của bạn. Hãy xuất lại, hoặc dùng văn bản ghi công theo cách thủ công. |
+| Source credits will be included. | Phần ghi công đã được chuẩn bị và lộ trình có thể mang nó. Chưa có gì được ghi, nên đây không phải thông báo thành công. |
+| Credits included in this file's metadata. | Các byte đã giao được đọc lại, credential được xác minh và mọi nguồn bắt buộc đều được tìm thấy trong credential. |
+| Credits and credentials are in the download package. | Phần ghi công đi dưới dạng tệp đi kèm với tác phẩm. Hãy giữ chúng cùng nhau khi chuyển tiếp. |
+| If you share this adaptation, it needs a compatible licence. | Một nguồn ShareAlike đã bị thay đổi và kết quả đang hướng tới nơi khác ngoài dùng riêng. Chọn là một hành động, không phải một hộp thoại cho mỗi vị trí. |
+| Add this credit to the post description. | Lộ trình đã chọn không mang credential cũng không mang phần ghi công đọc được, nên văn bản ghi công là việc của bạn để dán. |
+| No required credit under the recorded CC0 dedication. | Bản tuyên bố không đòi gì. Dù vậy, một lời ghi công xã giao vẫn được đưa ra. |
+| Source licence not recorded. | Không có gì được ghi cho nguồn này. Đó là chỗ trống cần điền, không phải phát hiện chống lại tác phẩm. Nó không bao giờ là bằng chứng rằng tác phẩm được tự do chuyển tiếp. |
+| Conditions recorded, not yet interpreted. | Định danh được nhận ra và điều kiện của nó được liệt kê, và không quy tắc nào ở đây đọc chúng. Không tự động cho qua, không tự động cấm. |
+| Two licence declarations disagree. | Hai bản ghi nêu hai giấy phép khác nhau và chưa có gì chọn quyền cấp nào áp dụng. |
+| The credits are not in the file that was delivered. | Phần ghi công đã được hứa, lần đọc lại không tìm thấy nó và tệp vẫn là của bạn. Hãy xuất lại, hoặc dùng văn bản ghi công bằng tay. |
 
-Lolly không dùng các cụm "copyright verified", "legally safe", "fully cleared" hay "rights cleared", và không có một huy hiệu giấy phép xanh duy nhất nào ở bất cứ đâu trong sản phẩm. Những từ đó sẽ tuyên bố một điều mà không chương trình nào có thể kiểm tra được.
-
-## Các giấy phép mà Lolly đã xem xét
-
-Phiên bản quy tắc `rights-rules-2026-09-13.2`. Mỗi quy tắc dưới đây được đọc từ chính văn bản pháp lý của giấy phép, và phần trích dẫn nguồn gốc của nó cũng được ghi chú bên cạnh trong `engine/src/rights-profiles.ts` cũng như ở đây. Một phiên bản và một cổng (port) được giữ nguyên như đã ghi nhận: một khai báo CC BY 3.0 giữ nguyên phiên bản riêng của nó chứ không được báo cáo thành 4.0 chỉ vì bộ chọn của ứng dụng ưu tiên 4.0.
-
-| Giấy phép | Yêu cầu gì với cách dùng mà Lolly có thể thực hiện | Đọc từ |
-|---|---|---|
-| CC BY 4.0 | Người tạo, tiêu đề, thông báo bản quyền, tên và liên kết giấy phép, liên kết nguồn và chỉ báo thay đổi, mỗi mục chỉ khi nguồn đã cung cấp. Không loại trừ cách dùng nào, kể cả dùng thương mại. | [Văn bản pháp lý](https://creativecommons.org/licenses/by/4.0/legalcode.en), mục 2(a)(1) và 3(a) |
-| CC BY-SA 4.0 | Cùng yêu cầu ghi công đó. Ngoài ra, nếu bạn chia sẻ một bản phóng tác, nó phải được phát hành theo một giấy phép tương thích: CC BY-SA 4.0, Free Art License 1.3, hoặc GPL-3.0-or-later, vốn chỉ chạy theo một chiều. Ba giấy phép đó được mang theo dưới dạng dữ liệu từ danh sách của Creative Commons, không bao giờ được khớp theo tên. | [Văn bản pháp lý](https://creativecommons.org/licenses/by-sa/4.0/legalcode.en), mục 3(a) và 3(b); [danh sách giấy phép tương thích](https://creativecommons.org/compatible-licenses/) |
-| CC0 1.0 | Không gì cả. Cống hiến này không mang điều kiện nào, nên Lolly đề nghị một ghi công mang tính lịch sự và không bao giờ trình bày nó như bắt buộc. | [Bản cống hiến](https://creativecommons.org/publicdomain/zero/1.0/legalcode.en), mục 2 và 3; [CC FAQ](https://creativecommons.org/faq/) về việc ghi công |
-| CC-PDDC | Không gì cả. Điều được ghi nhận là chính lời khẳng định và ai đã đưa ra nó, vì một chứng nhận là tuyên bố của một bên chứ không phải bằng chứng. | Các đoạn trong [bản cống hiến và chứng nhận](https://creativecommons.org/licenses/publicdomain/) |
-| Apache License 2.0 | Các thông báo từ nguồn và văn bản ghi công trong tệp NOTICE đi kèm theo một tác phẩm được phân phối. Việc sử dụng ở thời gian chạy không yêu cầu gì. Một giấy phép yêu cầu văn bản thông báo mà tác phẩm không mang theo sẽ được báo cáo là một khoảng trống. | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), mục 4, điều kiện 1 đến 4 |
-| MIT | Dòng bản quyền và thông báo cấp phép đi kèm với các bản sao và các phần đáng kể. Sử dụng ở thời gian chạy và mang tính tham chiếu không yêu cầu gì. | [MIT](https://opensource.org/license/mit), điều kiện về thông báo cấp phép |
-| SIL OFL 1.1 | Việc dựng văn bản bằng phông chữ này không yêu cầu gì đối với văn bản đó. Việc chuyển tiếp tệp phông chữ mang theo giấy phép, thông báo bản quyền và quy tắc về tên dành riêng. | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/), điều kiện 2, 3 và 5; [OFL FAQ](https://openfontlicense.org/ofl-faq/) về tài liệu |
-
-### Đã ghi nhận, chưa diễn giải
-
-CC BY-NC, CC BY-ND và các tổ hợp NC-SA, NC-ND đều được nhận diện, các điều kiện của chúng được liệt kê, và không quy tắc nào ở đây đọc chúng. Chúng báo cáo `licence.unknown` kèm một dòng nêu tên các điều kiện. Không thể suy ra bối cảnh thương mại từ một mức giá hay một tài khoản, và mỗi văn bản kết hợp cần được xem xét riêng trước khi một quy tắc chạm vào nó.
-
-Ba câu trả lời trung thực hơn nữa, không câu nào là sự cho phép:
-
-- Một mã định danh `LicenseRef-` trả về đúng như chính nó. Nó trỏ đến một định nghĩa đã lưu trữ và không bao giờ là độc quyền chỉ vì cách viết.
-- Một khai báo mà không có gì nhận ra được trả về ở dạng chưa phân tích, cùng với văn bản gốc được giữ bên cạnh.
-- `A OR B` là một lựa chọn mà chủ sở hữu quyền đưa ra, nên mọi phương án đều được trả về và không phương án nào được chọn sẵn. `A AND B` mang tính cộng dồn, và các quy tắc này ghi nhận nó thay vì đọc gộp hai hồ sơ với nhau.
-
-Thông tin giấy phép bị thiếu không bao giờ được đọc như bằng chứng rằng một tác phẩm được tự do chuyển tiếp.
-
-## Lolly làm gì cho bạn
-
-- **Trong danh mục.** Trang thông tin của một tác phẩm hiển thị nguồn và người tạo của nó, tên giấy phép chuẩn hóa cùng nhãn gốc được giữ lại bên dưới, một ghi công có thể sao chép nếu có ghi nhận, và một dòng nêu rõ việc sử dụng nó yêu cầu điều gì. Một ô thẻ nêu rõ yêu cầu; nó không bao giờ khẳng định rằng một lần xuất đã hoàn tất.
-- **Trong bảng xuất.** Một thẻ Ghi công nguồn xuất hiện bên trong Content protection ngay khi một bản dựng dùng đến tác phẩm đã ghi nhận, bên cạnh Licence bạn chọn cho bản xuất của riêng mình. Nó hiển thị trạng thái, văn bản ghi công ẩn sau Details, một nút Copy credit, và một thẻ nội tuyến khi có quyết định còn nợ. Một quyết định không bao giờ là một hộp thoại chặn: một lượt tải xuống còn thao tác dang dở vẫn tiếp tục, và tác phẩm riêng tư vẫn dùng được.
-- **Trong tệp.** Một bản xuất đặt vào tác phẩm đã ghi nhận sẽ ghi một thành phần nguồn Content Credentials cho mỗi tác phẩm riêng biệt, được gắn với các byte gốc tại địa chỉ công khai của chúng, mang theo người tạo, giấy phép cùng liên kết của nó, nguồn, phiên bản sửa đổi và các thay đổi. Lolly ký vào những gì nó đã quan sát được. Nó không bao giờ ký một tuyên bố thay mặt cho nghệ sĩ gốc, và Verify cho biết điều nào trong hai điều đó đã xảy ra.
-- **Sau khi ghi.** Các byte đã phân phối được đọc lại trước khi bất cứ điều gì nói rằng ghi công đã được đưa vào. Một thông tin xác thực không xác minh được thì không được tính là một ghi công đã được phân phối.
-- **Trong một tệp `.lolly` có thể chỉnh sửa.** Các byte chỉ di chuyển khi một giấy phép đã xem xét ghi nhận quyền chuyển tiếp nguồn, và tệp `CREDITS.txt` của gói liệt kê những gì đã di chuyển, theo giấy phép nào, và những gì đã bị giữ lại cùng lý do. Một giấy phép chưa được ghi nhận sẽ bị giữ lại. Bạn vẫn có thể chủ động đưa vào nội dung bị giữ lại, và tệp ghi công sẽ ghi nhận rằng đó là lựa chọn của bạn.
-- **Trong Verify.** Một bảng Sources liệt kê mọi nguồn mà một tệp ghi nhận, cùng một bản tóm tắt đã tính toán, ghi công, một nút Copy credit, một liên kết Open source chỉ mở khi có yêu cầu, và các giới hạn đã nêu rõ của những gì đã được kiểm tra. Câu hỏi Check for this use chỉ được đặt ra khi bạn chọn một cách dùng, và không có gì được tải về để trả lời nó.
-- **Khi bạn xóa siêu dữ liệu.** Việc gỡ bỏ cho bạn biết tệp không còn mang bao nhiêu ghi công nguồn nữa, cung cấp văn bản ghi công, và cung cấp một tệp sạch cùng với phần ghi công đặt bên cạnh. Các byte đã gỡ bỏ không bao giờ bị đóng dấu lại.
+Lolly không bao giờ nói "copyright verified", "legally safe", "fully cleared" hay "rights cleared", và không có huy hiệu giấy phép xanh duy nhất nào trong sản phẩm. Những từ đó sẽ khẳng định điều mà không chương trình nào kiểm tra được.
 
 ## Những gì luôn thuộc về bạn
 
-- **Lựa chọn giấy phép của bạn là của bạn.** Việc xác nhận quyền với một tệp tách ba trạng thái vốn từng là một: không khai báo giấy phép công khai nào, một thông báo bảo lưu mọi quyền rõ ràng, và một cấp phép công khai thực sự. Lolly chỉ viết một dòng quyền cho hai trạng thái sau, và không bao giờ lấy từ hồ sơ của bạn.
-- **Tác phẩm của bạn không bị cấp lại giấy phép thay bạn.** Điều khoản của một nguồn và tuyên bố đầu ra của riêng bạn là các bản ghi tách biệt. Một điều kiện ShareAlike áp dụng cho bản phóng tác mà nó chi phối, không tự động áp dụng cho mọi thứ khác bạn đã tạo ra.
-- **Tác phẩm riêng tư vẫn dùng được.** Các điều kiện áp dụng khi chia sẻ chỉ được nêu ra khi việc chia sẻ đang được xem xét. Không có gì ở đây biến thành lệnh cấm nhập, và không có bảng câu hỏi cấp phép nào đứng giữa bạn và tệp của chính bạn.
-- **Một quyết định được ghi nhớ gắn với chính các sự kiện của nó.** Mỗi lựa chọn bạn ghi lại được đóng dấu bằng một vân tay của các tác phẩm, cách dùng, tuyến đường và đối tượng khán giả mà nó được đưa ra cho. Thay đổi bộ, cách xử lý, định dạng hoặc đối tượng khán giả và câu hỏi sẽ được hỏi lại. Không có công tắc "bỏ qua giấy phép" chung chung nào, vì việc nhấp bỏ qua một cảnh báo không thể mang lại một ghi công hay cấp một sự cho phép.
-- **Thông tin của bạn tách biệt khỏi ghi công của bên thứ ba.** Việc xóa siêu dữ liệu cá nhân của chính bạn không xóa đi một nghệ sĩ đã được ghi công, và một ghi công bắt buộc không bao giờ là cái cớ để xuất ra thông tin liên hệ của bạn.
+- **Lựa chọn giấy phép là của bạn.** Việc claim một tệp tách ba trạng thái từng là một: không có giấy phép công khai nào được khai báo, một thông báo bảo lưu mọi quyền tường minh và một quyền cấp phép công khai thực sự. Lolly chỉ ghi dòng quyền cho hai trạng thái sau, và không bao giờ từ hồ sơ của bạn.
+- **Tác phẩm của bạn không bị cấp phép lại thay bạn.** Điều khoản của một nguồn và khai báo đầu ra của chính bạn là các bản ghi riêng. Điều kiện ShareAlike áp dụng cho bản chuyển thể mà nó chi phối, không tự động cho mọi thứ khác bạn làm.
+- **Công việc riêng tư vẫn dùng được.** Điều kiện áp dụng khi chia sẻ được nêu khi việc chia sẻ trong tầm nhìn. Không gì ở đây thành lệnh cấm nhập, và không bảng câu hỏi cấp phép nào đứng giữa bạn và tệp của chính bạn.
+- **Một quyết định được ghi nhớ theo chính các dữ kiện của nó.** Mỗi lựa chọn bạn ghi lại được đóng dấu bằng dấu vân tay của các tác phẩm, cách sử dụng, lộ trình và khán giả mà nó được đưa ra. Đổi bộ, cách xử lý, định dạng hoặc khán giả và câu hỏi được hỏi lại. Không có công tắc "ignore licences" tổng quát, vì nhấp tắt một cảnh báo không thể giao một phần ghi công hay cấp một quyền.
+- **Thông tin của bạn tách biệt với phần ghi công của bên thứ ba.** Gỡ siêu dữ liệu cá nhân của chính bạn không gỡ nghệ sĩ được ghi công, và một lời ghi công bắt buộc không bao giờ là cớ để xuất thông tin liên hệ của bạn.
 
-## Trên dòng lệnh
+## Lolly làm gì ở từng nơi
 
-Một bản dựng in ra một khối `Rights:` tới standard error khi việc đánh giá có một ghi công bắt buộc hoặc một vấn đề. Nó mang theo trạng thái, mỗi vấn đề một dòng dạng `code - summary`, kết quả đọc lại của tệp đã phân phối, và văn bản ghi công để dán vào.
+- **Trong danh mục.** Trang của một tác phẩm hiện nguồn và người tạo, tên giấy phép chuẩn với nhãn gốc được giữ bên dưới, một lời ghi công sao chép được nơi có ghi và một dòng nói việc dùng nó đòi gì. Một ô nêu yêu cầu; nó không bao giờ khẳng định một bản xuất đã hoàn tất.
+- **Trong bảng xuất.** Thẻ Source credits xuất hiện bên trong Content protection khi một bản kết xuất dùng tác phẩm đã ghi, cạnh Licence bạn chọn cho bản xuất của chính bạn. Nó hiện trạng thái, văn bản ghi công sau Details, nút Copy credit và một thẻ nội dòng khi cần quyết định. Một quyết định không bao giờ là hộp thoại chặn: một lần tải xuống còn việc chưa làm vẫn tiếp tục.
+- **Trong tệp.** Một bản xuất đặt tác phẩm đã ghi sẽ ghi một thành phần nguồn Content Credentials cho mỗi tác phẩm riêng biệt, gắn với byte gốc tại địa chỉ công khai của chúng, và mang người tạo, giấy phép cùng liên kết của nó, nguồn, bản sửa đổi và các thay đổi. Lolly ký những gì nó quan sát. Nó không bao giờ ký một khẳng định thay mặt nghệ sĩ gốc, và Verify nói rõ điều nào đã xảy ra.
+- **Trong một gói.** Một lần tải không chứa được credential, như hoạt ảnh `.lottie`, mang phần ghi công dưới dạng `CREDITS.txt` và `credits.json` bên trong gói. Chúng được đọc lại sau khi ghi, và không credential có chữ ký nào được khẳng định cho chúng.
+- **Sau khi ghi.** Các byte đã giao được đọc lại trước khi bất cứ gì nói phần ghi công đã có. Một credential không xác minh được không tính là phần ghi công đã giao.
+- **Trong tệp `.lolly` chỉnh sửa được.** Byte chỉ đi cùng khi một giấy phép đã xem xét ghi quyền chuyển tiếp nguồn. `CREDITS.txt` của gói liệt kê những gì đã đi, theo giấy phép nào và những gì bị giữ lại kèm lý do. Giấy phép chưa ghi bị giữ lại. Bạn vẫn có thể cố ý đưa nội dung bị giữ lại vào, và tệp ghi công ghi rằng đó là lựa chọn của bạn.
+- **Trong Verify.** Bảng Sources liệt kê mọi nguồn mà tệp ghi, với bản tóm tắt được tính, phần ghi công, nút Copy credit, liên kết Open source chỉ mở khi bạn yêu cầu và các giới hạn đã nêu về những gì được kiểm tra. Câu hỏi Check for this use chỉ xuất hiện khi bạn chọn một cách dùng, và không gì được tải để trả lời câu hỏi đó.
+- **Khi bạn gỡ siêu dữ liệu.** Việc lột cho bạn biết tệp không còn mang bao nhiêu phần ghi công nguồn, đưa văn bản ghi công và đề nghị một tệp sạch với phần ghi công trong một tệp riêng. Byte đã lột không bao giờ được đóng dấu lại.
+
+::: details Các giấy phép Lolly đã xem xét
+Phiên bản quy tắc `rights-rules-2026-09-13.2`. Mỗi quy tắc được đọc từ chính văn bản pháp lý của giấy phép, và phần nó lấy từ đó được trích dẫn ở đây và cạnh quy tắc trong `engine/src/rights-profiles.ts`. Phiên bản và cổng được giữ như đã ghi: một khai báo CC BY 3.0 giữ phiên bản riêng của nó thay vì bị báo là 4.0 vì bộ chọn của ứng dụng ưa 4.0.
+
+| Giấy phép | Điều nó đòi ở một việc dùng mà Lolly có thể thực hiện | Đọc từ |
+|---|---|---|
+| CC BY 4.0 | Người tạo, tiêu đề, thông báo bản quyền, tên giấy phép và liên kết, liên kết nguồn và chỉ dẫn về thay đổi, mỗi thứ khi nguồn cung cấp. Không việc dùng nào bị loại trừ, kể cả dùng thương mại. | [Legal code](https://creativecommons.org/licenses/by/4.0/legalcode.en), mục 2(a)(1) và 3(a) |
+| CC BY-SA 4.0 | Cùng phần ghi công. Thêm vào đó, nếu bạn chia sẻ một bản chuyển thể, nó phải ra dưới giấy phép tương thích: CC BY-SA 4.0, Free Art License 1.3 hoặc GPL-3.0-or-later, vận hành một chiều. Ba giấy phép đó được mang dưới dạng dữ liệu từ danh sách của Creative Commons, không bao giờ khớp theo tên. | [Legal code](https://creativecommons.org/licenses/by-sa/4.0/legalcode.en), mục 3(a) và 3(b); [danh sách giấy phép tương thích](https://creativecommons.org/compatible-licenses/) |
+| CC0 1.0 | Không gì. Bản tuyên bố không kèm điều kiện, nên Lolly đưa ra lời ghi công xã giao và không bao giờ trình bày nó như bắt buộc. | [Bản tuyên bố](https://creativecommons.org/publicdomain/zero/1.0/legalcode.en), mục 2 và 3; [CC FAQ](https://creativecommons.org/faq/) về ghi công |
+| CC-PDDC | Không gì. Điều được ghi là chính lời khẳng định và ai đưa ra, vì chứng nhận là lời của một bên chứ không phải bằng chứng. | Các đoạn [tuyên bố và chứng nhận](https://creativecommons.org/licenses/publicdomain/) |
+| Apache License 2.0 | Các thông báo từ nguồn và văn bản ghi công của tệp NOTICE đi cùng một tác phẩm được phân phối. Việc dùng lúc chạy không đòi gì. Giấy phép đòi văn bản thông báo mà tác phẩm không mang thì được báo là chỗ trống. | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), mục 4, điều kiện 1 đến 4 |
+| MIT | Dòng bản quyền và thông báo cấp phép đi cùng bản sao và các phần đáng kể. Việc dùng lúc chạy và tham chiếu không đòi gì. | [MIT](https://opensource.org/license/mit), điều kiện thông báo cấp phép |
+| SIL OFL 1.1 | Kết xuất văn bản bằng phông chữ không đòi gì ở văn bản. Chuyển tiếp tệp phông chữ mang theo giấy phép, thông báo bản quyền và quy tắc tên được bảo lưu. | [OFL 1.1](https://openfontlicense.org/open-font-license-official-text/), điều kiện 2, 3 và 5; [OFL FAQ](https://openfontlicense.org/ofl-faq/) về tài liệu |
+
+**Đã ghi, chưa diễn giải.** CC BY-NC, CC BY-ND và các tổ hợp NC-SA và NC-ND được nhận ra, điều kiện của chúng được liệt kê và không quy tắc nào ở đây đọc chúng. Chúng báo `licence.unknown` với một dòng nêu các điều kiện. Ngữ cảnh thương mại không thể đọc từ giá hay tài khoản, và mỗi văn bản tổ hợp cần được xem xét riêng trước khi một quy tắc đọc văn bản đó.
+
+Ba câu trả lời trung thực hơn nữa, không câu nào là sự cho phép:
+
+- Một định danh `LicenseRef-` trả về chính nó. Nó trỏ tới một định nghĩa đã lưu và không bao giờ là độc quyền chỉ vì cách viết.
+- Một khai báo không gì nhận ra trả về chưa phân tích, và văn bản gốc được giữ.
+- `A OR B` là một lựa chọn mà chủ sở hữu quyền đưa ra, nên mọi phương án được trả về và không cái nào được chọn. `A AND B` là tích lũy, và các quy tắc này ghi lại nó thay vì đọc hai hồ sơ cùng nhau.
+:::
+
+::: details Trên dòng lệnh và qua MCP
+Một lần kết xuất in khối `Rights:` ra lỗi chuẩn khi việc đánh giá có phần ghi công bắt buộc hoặc một vấn đề. Nó mang trạng thái, một dòng cho mỗi vấn đề dưới dạng `code - summary`, tệp đã giao được đọc lại thành gì và văn bản ghi công để dán.
 
 ```
 Rights: actions-required
@@ -91,7 +91,7 @@ Rights: actions-required
   "water wave (OpenMoji Color 17.0.0)" by Vanessa Boutzikoudi (OpenMoji), CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/, source https://raw.githubusercontent.com/hfg-gmuend/openmoji/f9fc506a3f913be9897ab0181d611d4c910a4104/color/svg/1F30A.svg, changes: recoloured.
 ```
 
-Hai tuyên bố đó độc lập với nhau, và đó chính là lý do để giữ chúng tách biệt: ghi công đã có trong tệp, nhưng một quyết định về giấy phép vẫn còn nợ trước khi tệp được chia sẻ. Tệp vẫn được ghi ra dù thế nào đi nữa.
+Ở đây phần ghi công đã nằm trong tệp, và một quyết định về giấy phép vẫn cần trước khi tệp được chia sẻ. Tệp được ghi dù thế nào.
 
 | Trạng thái | Ý nghĩa | Exit |
 |---|---|---|
@@ -101,37 +101,34 @@ Hai tuyên bố đó độc lập với nhau, và đó chính là lý do để g
 | `unknown` | Các vấn đề duy nhất là những khoảng trống: một giấy phép chưa được ghi nhận, hoặc các điều kiện chưa được diễn giải. | 0 |
 | `delivery-failed` | Được đặt bởi một biên nhận, không bao giờ bởi một đánh giá: một ghi công đã hứa không được tìm thấy trong các byte đã phân phối. Bảng xuất hiển thị điều đó; CLI báo cáo cùng sự thật đó trong dòng đọc lại của nó thay vào đó. | không in ra |
 
-Exit 4 là mã mà CLI này đã dùng cho một kiểm tra bảo vệ từng nói không. Nó cố tình không phải là 3, nghĩa là "thử lại trên một runner khác", vì một quyết định giấy phép sẽ chờ trên mọi runner đang tồn tại.
+Exit 4 là mã mà CLI này vốn cho khi một kiểm tra bảo vệ nói không. Nó không phải 3, nghĩa là "retry on another runner", vì một quyết định về giấy phép sẽ chờ trên mọi runner hiện có.
 
 `--rights=private` tuyên bố rằng bản dựng này không được phân phối cho bất kỳ ai. Khối này vẫn được in ra và ghi công vẫn ở đó để sao chép; điều được gỡ bỏ là điều kiện áp dụng khi chia sẻ, và không có tuyên bố phân phối nào được ghi nhận. Không có cờ nào để bỏ qua một điều kiện: `--rights=ignore` là một lỗi sử dụng.
 
-Các mã vấn đề ổn định và máy đọc được, độc lập với bản dịch:
+Các mã vấn đề ổn định và máy đọc được, độc lập với bản dịch: `attribution.source-missing`, `attribution.delivery-missing`, `licence.adaptation-choice`, `licence.use-not-covered`, `licence.grant-conflict`, `licence.unknown`, `source.redistribution-unknown`, `credential.ingredient-missing`.
 
-`attribution.source-missing`, `attribution.delivery-missing`, `licence.adaptation-choice`, `licence.use-not-covered`, `licence.grant-conflict`, `licence.unknown`, `source.redistribution-unknown`, `credential.ingredient-missing`.
+Qua MCP, `lolly_verify` trả về payload `rights` với bản tóm tắt, một hàng cho mỗi nguồn đã ghi và các giới hạn đã nêu. Một `lolly_render` không trình duyệt trả về `status`, `issues`, `credits`, `fingerprint` và cờ `creditsInFile` đo bằng cách đọc lại các byte.
+:::
 
-Qua MCP, `lolly_verify` trả về một payload `rights` cùng bản tóm tắt, mỗi nguồn đã ghi nhận một dòng và các giới hạn đã nêu; một `lolly_render` không cần trình duyệt trả về `status`, `issues`, `credits`, `fingerprint` và một cờ `creditsInFile` được đo bằng cách đọc lại các byte.
+::: details Các quy tắc nằm ở đâu
+Năm module engine, tất cả đều thuần: không mạng, không đồng hồ, không hệ thống tệp. Dữ liệu quy tắc có phiên bản và nằm trong kho mã, không bao giờ được tải về.
 
-## Các quy tắc nằm ở đâu
-
-Bốn mô-đun engine, tất cả đều thuần khiết: không mạng, không đồng hồ, không hệ tệp. Dữ liệu quy tắc được đánh phiên bản và nằm trong kho lưu trữ, không bao giờ được tải về.
-
-| Mô-đun | Nó chứa gì |
+| Module | Nó chứa gì |
 |---|---|
-| `engine/src/rights-profiles.ts` | Bảng mã định danh, trình đọc biểu thức SPDX tối giản, các hồ sơ đã xem xét cùng trích dẫn của chúng, và quy tắc duy nhất cho một liên kết mà một ghi công có thể in ra. |
-| `engine/src/rights-evaluate.ts` | Phân loại, các vấn đề, kế hoạch ghi công và vân tay. Có tính tất định: cùng sự kiện theo thứ tự khác nhau cho cùng một kết quả. |
-| `engine/src/rights-attribution.ts` | Ghi công có thể đọc được, các tệp đồng hành, các thành phần nguồn và biên nhận được đo sau khi ghi. |
-| `engine/src/rights-report.ts` | Một thông tin xác thực đã xác minh, được đọc lại thành ba câu hỏi mà Verify đặt ra. |
+| `engine/src/rights-profiles.ts` | Bảng định danh, trình đọc biểu thức SPDX tối thiểu, các hồ sơ đã xem xét cùng trích dẫn của chúng và một quy tắc cho liên kết mà phần ghi công có thể in. |
+| `engine/src/rights-evaluate.ts` | Phân loại, vấn đề, kế hoạch ghi công và dấu vân tay. Tất định: cùng dữ kiện theo thứ tự khác cho cùng câu trả lời. |
+| `engine/src/rights-attribution.ts` | Phần ghi công đọc được, các tệp đi kèm, các thành phần nguồn và biên nhận đo sau khi ghi. |
+| `engine/src/rights-companion.ts` | Việc đọc lại phần ghi công của gói (`CREDITS.txt` và `credits.json` bên trong bản tải xuống dạng ZIP), xác nhận phần ghi công mà không khẳng định có credential có chữ ký. |
+| `engine/src/rights-report.ts` | Một credential đã xác minh được đọc lại thành ba câu hỏi mà Verify đặt ra. |
 
-Các tệp kỳ vọng trong `tests/fixtures/rights/` được soạn từ văn bản giấy phép chứ không phải từ đầu ra của bộ đánh giá, và README của nó trích dẫn phần văn bản đứng sau mỗi kỳ vọng.
+Các tệp kỳ vọng trong `tests/fixtures/rights/` được viết từ văn bản giấy phép thay vì từ đầu ra của bộ đánh giá, và README của chúng trích dẫn mục đằng sau mỗi kỳ vọng.
+:::
 
-## Những gì điều này không làm
+## Những gì điều này chưa làm
 
-Được nêu rõ ràng, vì một khoảng trống không được gọi tên sẽ đọc như một lời hứa.
-
-- **NC và ND không được diễn giải.** Các điều kiện của chúng được ghi nhận và báo cáo là chưa xác định.
-- **Không có điểm đến nào được xác nhận.** Lolly chuẩn bị một chú thích; việc một connector chấp nhận một yêu cầu không phải là bằng chứng rằng ghi công đã đến được một người đọc, và không có gì ở đây hứa rằng một lần tải lên, chụp màn hình hay chuyển mã sau này sẽ giữ lại siêu dữ liệu ẩn.
-- **Các trường ghi công trong siêu dữ liệu gốc không được viết từ kế hoạch.** Ghi công di chuyển trong Content Credentials và trong văn bản có thể đọc được. Các trường ghi công theo từng nguồn của IPTC và XMP chưa được điền từ kế hoạch ghi công.
-- **Chưa xây dựng tính năng sửa lỗi và rút lại.** Việc thêm một người tạo còn thiếu hoặc một sửa lỗi cục bộ cho một tác phẩm đã ghi nhận, và việc rút lại một bản ghi, chưa có giao diện.
-- **Chưa xây dựng các nhà cung cấp được kết nối.** Kho ảnh đã mua, một quyền tùy chỉnh và một tài khoản nhà cung cấp chưa có đường nhập, nên các quyền cấp phép của họ chỉ có thể được ghi nhận như tuyên bố của chính bạn.
-- **Chính sách tổ chức không được kết hợp với các kết quả này.** Chính sách xuất và điều kiện giấy phép hiện vẫn tách biệt, và một phê duyệt của tổ chức không phải là sự cho phép từ chủ sở hữu quyền.
-- **Một vài tuyến phân phối vẫn chưa nằm trên đường dẫn này.** Việc tải xuống bản gốc trong danh mục, một ZIP hàng loạt, một bản tải xuống phái sinh, Send và Copy image chưa đánh giá hay mang theo các ghi công này.
+- **Không có đích nào được xác nhận.** Lolly chuẩn bị một chú thích. Một trình kết nối chấp nhận yêu cầu không phải bằng chứng rằng phần ghi công đã tới người đọc, và không gì ở đây hứa rằng một lần tải lên, chụp màn hình hay chuyển mã sau đó giữ siêu dữ liệu ẩn.
+- **Các trường ghi công siêu dữ liệu gốc không được ghi từ kế hoạch.** Phần ghi công đi trong Content Credentials và trong văn bản đọc được. Các trường ghi công theo nguồn của IPTC và XMP chưa được điền từ kế hoạch ghi công.
+- **Chỉnh sửa và rút lại chưa được xây.** Thêm người tạo còn thiếu hoặc một chỉnh sửa cục bộ vào tác phẩm đã ghi, và rút lại một bản ghi, chưa có giao diện.
+- **Nhà cung cấp kết nối chưa được xây.** Ảnh stock đã mua, quyền riêng và tài khoản nhà cung cấp chưa có đường nhập, nên quyền cấp của chúng chỉ ghi được dưới dạng lời khai của chính bạn.
+- **Chính sách tổ chức chưa được kết hợp với các kết quả này.** Chính sách xuất và điều kiện giấy phép hiện là riêng biệt, và sự phê duyệt của tổ chức không phải sự cho phép của chủ sở hữu quyền.
+- **Nhiều lộ trình giao chưa nằm trên đường này.** Tải một bản gốc danh mục, ZIP hàng loạt, Send và Copy image chưa đánh giá hay mang các phần ghi công này. Cắt, chỉnh màu, bản sao có khung, chuyển đổi Download as và chỉnh sửa video thì có: một nguồn có giấy phép đã ghi và không có Content Credentials riêng đi dưới dạng thành phần nguồn không ký cùng phần ghi công của nó, một LUT được ghi công theo giấy phép riêng và không bao giờ là của bức ảnh, và tệp không mang được phần ghi công mà nguồn của nó đòi thì không được lưu. Chưa có gì đọc lại những tệp đó, nên phần ghi công của chúng được ghi, chưa được xác nhận. Retouch, xóa nền và phóng to ảnh đơn, và trích xuất âm thanh chỉ giữ credential riêng của nguồn.

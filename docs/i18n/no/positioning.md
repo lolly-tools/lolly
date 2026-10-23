@@ -1,88 +1,86 @@
 # Hvordan Lolly sammenligner seg
 
-Hva Lolly gjør som dagens kreative verktøy ikke gjør, og hva den bevisst overlater til dem.
-
-For versjonen verktøy for verktøy, én side hver for Canva, Adobe, Figma, rendrings-API-er og nettbaserte konvertere, se [Lolly sammenlignet, verktøy for verktøy](/info/compare.html). Hver side beskriver hva det andre verktøyet gjør bedre, og hva Lolly gjør i stedet.
-
-> **Status:** Lolly er utgitt: versjon 1.0 kom som åpen kildekode 30. august 2026. Sikkerheten har ennå ikke hatt en uavhengig revisjon, og adopsjonsbeleggene er noen måneder gamle. Siden [Adopsjon og styring](/info/adoption-governance.html#status) dekker gjeldende tilstand.
+Lolly er to deler av ett åpen kildekode-prosjekt. **Lolly** er motoren, appene og verktøyene for å lage, redigere, konvertere og eksportere på enheten din, uten konto. **Lolly Work** er organisasjonsserveren, kjørt på din egen infrastruktur, for pålogging, delte prosjekter, godkjenninger og servergjengivelse. Begge er MPL-2.0. Denne siden sammenligner paret med de andre måtene folk designer, styrer og produserer filer på.
 
 ## Dagens verktøy
 
-Hver ring nedenfor viser hvor fullstendig en produktklasse leverer en kapabilitet **slik den leveres i dag** - ikke slik den markedsføres - der hver klasse vurderes ut fra sin beste representant. Lolly vurderes med samme kniv: den får den eneste røde ringen på tavlen, for modenhet. Åpne et radnavn for resonnementet bak vurderingene. Kolonnene er sortert etter Overall completeness-raden øverst - gjennomsnittet av de vurderte radene, med utgiftsraden ekskludert.
+Hver ring scorer hvor fullstendig en produktklasse leverer en kapabilitet, der hver klasse scores på sin beste representant. Kolonnen Lolly dekker Lolly og Lolly Work sammen, og hver rad sier hvilken del som leverer hva. Åpne et radnavn for begrunnelsen bak scoren. Kolonner er sortert etter raden Overall completeness øverst: gjennomsnittet av de scorede radene, med utgiftsraden utelatt.
 
 ::: figure positioning-comparison
-Funksjonsfullstendighet på tvers av dagens kreative verktøy, undersøkt august 2026. Poengsetting: 0 fraværende, 25 omvei-nivå, 50 reell, men avgrenset eller delvis, 75 sterk med forbehold, 100 kjernekompetanse.
+Kapabilitetssammenligning: konkurrentundersøkelse og score fra august 2026; dekning for Lolly + Lolly Work gjennomgått 28. september 2026. Scoring: 0 fraværende, 25 nødløsning, 50 reell men begrenset eller delvis, 75 sterk med forbehold, 100 kjernekompetanse.
 :::
 
-**Vurderingsnotater.** Tilgjengelige funksjoner og produksjonsmodenhet er to separate hensyn. Lollys modenhetsscore gjenspeiler en første offentlig utgivelse i august 2026 uten uavhengig sikkerhetsrevisjon ennå; at SSO, godkjenninger eller serverrendering finnes, etablerer ikke en produksjonshistorikk. Funksjonsbeskrivelsene nedenfor inkluderer lolly.work, mens konkurrentenes score beholder sin daterte augustvurdering.
+::: details Scoringsnotater
+Tilgjengelige funksjoner og produksjonsmodenhet er adskilt. Lolly er utgitt: versjon 1.0 ble sluppet som åpen kildekode 30. august 2026, sikkerheten er ennå ikke uavhengig revidert, og bevisene for bruk er noen måneder gamle ([Adoption & Governance](/info/adoption-governance.html#status) har gjeldende status). Å ha enkel pålogging, godkjenninger eller servergjengivelse etablerer ikke en produksjonshistorikk, så modenhetsscoren gjenspeiler det. Konkurrentscorene beholder sin daterte gjennomgang fra august.
 
-Canva vurderes ut fra sitt beste familiemedlem per rad, siden det eier Affinity og Cavalry (begge gitt bort gratis oktober 2025). Offline- og on-device-rendring skårer 75 gjennom Affinity - en desktop-pakke som fortsatt krever en verifisert konto og har telemetri, samme fradrag som Adobe også får - mens Canvas eget offline-modus kun redigerer forhåndssynkroniserte design, én enhet, begrenset tidsvindu. Autofyll skårer 50: reelt, men Enterprise-låst, asynkront, kun tekst og bilde. Figmas massegenerering steg fra 25 til 50 da Buzz leverte regneark-utfylling (gratis betaversjon, august 2026).
+Én regel styrer tavlen. Full pott (100), på rader som berører innholdet eller identiteten din, krever en kapabilitet du kan bruke uten konto og uten skyforutsetning; rader om selve produktet, som modenhet og brukervennlighet, er unntatt. Den regelen koster Adobe på Content Credentials: den bredeste leverte implementasjonen (Photoshop, Lightroom, Premiere, Firefly) signerer lokalt og i skyen, men aldri uten en Adobe-konto og -identitet, så 75. Den setter tak for gjengivelses-API-ene på masseproduksjon og automatisering av samme grunn.
 
-Én regel styrer tavlen: Full (100), på rader som berører innholdet eller identiteten din, krever en kapabilitet du kan bruke uten konto og uten skybetingelse; rader som beskriver produktet selv (modenhet, brukervennlighet) er unntatt. Det koster Adobe på opphav: den bredeste leverte C2PA-en (Photoshop, Lightroom, Premiere, Firefly) signerer lokalt og i skyen, men aldri uten en Adobe-konto og identitet, altså 75. Det begrenser rendrings-API-ene på massegenerering og automatisering av samme grunn.
+Canva scores på sitt beste familiemedlem per rad, siden det eier Affinity og Cavalry (begge gitt bort i oktober 2025). Gjengivelse uten nett og på enheten scorer 75 gjennom Affinity, en skrivebordspakke som fortsatt trenger en verifisert konto og bærer telemetri, fratrekket Adobe også tar; Canvas egen frakoblede modus redigerer bare forhåndssynkroniserte design, på én enhet, i et begrenset vindu. Autofill scorer 50: det er ekte men Enterprise-begrenset og asynkront, og det fyller bare tekst og bilder. Figmas masseproduksjon steg fra 25 til 50 da Buzz leverte regnearkfylling (en gratis beta, august 2026).
 
-Lollys opphavsskår på 75 gjenspeiler on-device offline-signering: arkitektonisk sterkere, men ikke revidert, og en enhetsnøkkel leses som uverifisert i standard validatorer inntil en identitet eller en organisasjons egen CA går god for den. Penpots 50 kommer via det offisielle Lolly Export-tillegget: samme motorsignering, opt-in, oppgitt som Lollys egen. Penpot har også tavlens eneste utenfor-skala-ring, 90 på on-device-rendring - nettleser-canvas, lagring til din egen suverene sky (til og med en bærbar), privat eksport; bare server-hoppet skiller den fra Lolly. Cloudinary får sin egen kolonne: en mediepipeline (DAM, transformasjons-API, CDN), og den eneste sky-kolonnen som leverer C2PA (50, fordi fl_c2pa signerer ved levering, og attesterer levert-av-Cloudinary, ikke laget-av-deg).
+Lollys score på 75 for Content Credentials dekker signering på enheten og Lolly Works serversignering med en konfigurert organisasjonsidentitet; en verifiserer må fortsatt stole på signereren ([Content Credentials Identity](/info/content-credentials-identity.html)). Penpots 50 kommer gjennom Lollys egen eksportplugin for Penpot: den samme motorsigneringen, valgfri og oppgitt som Lollys. Penpot scorer 90 på gjengivelse på enheten: et nettleserlerret med et lagringsmål på serveren sin, som kan selvhostes. Cloudinary får sin egen kolonne for ressursbiblioteket, transformasjons-API-et og CDN-et; august-gjennomgangen scoret leveringssigneringen til 50.
 
-Sanntidssamarbeid går motsatt vei: Figma setter skala-benchmarken (200 redaktører), og Lollys parvise, luftgapte P2P skårer Partial. Pris er et anslag, merket som det: listeprisregning på realistiske brukermikser, bevisst bredt, for skala, ikke innkjøp. Rendrings-API-ene får 75 på begrensninger: maler låst, ingen merkevarestyringslag.
+Lollys live samarbeid omfatter direkte private collabs mellom to enheter og autentiserte work collabs gjennom Lolly Work, med delte redigeringer, markører og lagrede teamøkter. Scoren Partial gjenspeiler den nåværende work-installasjonen med én node og den korte driftshistorikken, ikke fravær av teamredigering. Prisanslag er daterte listepris-regnestykker for størrelsesorden, ikke innkjøp.
+:::
 
-Gapet: ingenting som leveres i dag er constraints-first og offline uten konto og uten server i rendringsveien, og ingen har kopiert kontoklausulen. Lolly leverer nå sitt eget åpne canvas - **Design**, et canvas for direktemanipulering - men fargene, typografien og ressursene på det følger merkevarens globale innstillinger, så selv fri arrangering forblir constraints-first.
+## Når du bør velge Lolly
 
-Det Lolly fortsatt **ikke** er, er en ubegrenset designpakke; designere vil fortsette å bruke Illustrator og Figma for skreddersydd arbeid - og når det arbeidet må bli en styrt, reproduserbar ressurs, bringer Design-verktøyets [Importer et design](/info/design-import.html) den ferdige Figma-, Penpot-, Illustrator-, InDesign- eller PDF-filen inn på canvaset som redigerbare, merkevaretilpassede bokser.
+::: cols
+## Velg Lolly når
 
-![Designs frie canvas, der fargene, skrifttypene og ressursene som tilbys, er merkevarens egne](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+- Den samme typen fil trengs om og om igjen: arrangementsfliser, navneskilt, sertifikater, varsler, sosiale kort
+- Mange filer kommer fra én mal og en tabell med verdier, i [Batch](/info/batch.html#make-many-versions-of-one-design) eller CLI-et
+- Fargene, skriften og ressursene må holde seg innenfor designsystemet, selv på et åpent lerret
+- Et ferdig Figma-, Penpot-, Illustrator-, InDesign- eller PDF-design skal bli redigerbart og repeterbart ([Import a design](/info/design-import.html))
+- Filene må lages på dine egne enheter eller servere
 
-## Bruk det til
+## Velg noe annet når
 
-- Rask generering av operasjonaliserte kreative ressurser (event-fliser, merker, signaturer, varsler)
-- Fri arrangering på det åpne canvaset (Design) når delene - farger, typografi, ikoner, bilder - må forbli tilpasset merkevarens globale innstillinger
-- Å bringe inn et ferdig Figma-, Penpot-, Illustrator-, InDesign- eller PDF-design (Design-verktøyets Importer et design) slik at det kan redigeres, styres og re-rendres deterministisk i alle Lolly-formater
-- Én-til-mange «fyll ut tre felt, få den ferdige ressursen»-flyter - inkludert bulkkjøring fra et regneark/CSV i `/pro`-batchrutenettet (lim inn eller importer rader, én ferdig ressurs per rad, last ned som en zip)
-- Alltid-på, gjentagende merkevareutganger
-- Ting der sentral kontroll over merkevareuttrykk betyr mer enn uttrykksmessig fleksibilitet
+- Arbeidet er detaljert fotoretusjering eller illustrasjon
+- Du designer og prototyper et applikasjonsgrensesnitt
+- Du trenger et stort bilde- og malbibliotek klart første dag
+- Du trenger en administrert tjeneste med lang erfaring i stor skala
+:::
 
-Deck Studio er et godt mål på taket her: en hel lysbildepresentasjon deklarert som data, lagt ut live på canvaset og eksportert som en native redigerbar PowerPoint.
+Importerte design og delte designtokener lar et team kombinere Lolly med spesialiserte applikasjoner, mens Lolly Work styrer delte ressurser, gjennomgang og levering.
 
-![Deck Studio i delt visning - presentasjonens lysbilder listet som blokker til venstre, den utlagte presentasjonen rendret til høyre](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+En hel presentasjon viser taket: i **Markdown Slides** deklareres en presentasjon som data, legges ut live og eksporteres som en innebygd, redigerbar PowerPoint-fil.
 
-## Ikke bruk det til
+![Markdown Slides i delt visning: presentasjonens lysbilder listet som blokker til venstre, den utlagte presentasjonen gjengitt til høyre](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
-- Skreddersydd eller flaggskip-heroinnhold (reklameskilt, store videoer)
-- Unikt kampanjearbeid som virkelig trenger en designer
-- Idéutvikling som må slippe helt unna merkevaresystemet - Lollys åpne canvas følger fortsatt fargene, typografien og ressursene til merkevarens globale innstillinger, og det er nettopp poenget
+## Reglene ligger i verktøyet
+
+Lolly legger gjenbrukbare merkevareregler i verktøyet: farger, skrifter, utfallsmarger, avstand og tillatte inndata. Malen låser delene en mottaker ikke må endre. Lolly Work legger gruppetilgang og inndatapolicyer rundt den malen, med godkjenningskjeder for katalogoppføringer og levering.
+
+Å sjekke et verktøy én gang gjør repeterbar produksjon enklere, fordi hvert resultat arver layoutreglene. Tekst, opplastede bilder og bruksrettigheter kan fortsatt trenge kontroll, og Lolly Work leverer delte kataloger og godkjenningstrinn for det. For det kreative teamet er verktøyet et rekkverk: du kommer fortsatt med dataene, teksten og bildet, og verktøyet holder hvert resultat på merkevaren.
+
+![Produsentens hele jobb: skrive ordene. Skrift, farge og avstand ble avgjort da verktøyet ble laget](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+
+Tre ting til skiller denne tilnærmingen:
+
+- **Den endelige filen, fra inndata.** Inndata inn, ferdig fil ut, uten "lagre den nå fra designverktøyet og rydd opp".
+- **Verktøy setter sammen verktøy.** Ett verktøy kan bygge inn gjengivelsen til et annet verktøy i én ferdig fil, uten kodekobling mellom dem.
+- **Åpent hele veien ned.** Motoren er åpen kildekode, og verktøy, ressurser og designtokener er filer du kan ha i versjonskontroll eller administrere i Lolly Work, ikke rader i noen andres database.
+
+Dristig design overlever rekkverkene. Dette bykartet i plakatkvalitet er ekte vektorbaner for vei og vann, fra en rullegardin og to fargefelt som ikke kan pekes utenfor designsystemet:
+
+![Amsterdams kanalringer og veinett tegnet kant til kant i designsystemets eget blekk, hver strek plassert av malen i stedet for for hånd](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
 
 ## Innover probabilistisk, skaler deterministisk
 
-De fleste «AI-kreativ»-pitchene plasserer modellen på feil side av en gammel linje. Skrivere og illuminatorer avgjorde allerede hvor den grensen går: du jobber løst på skissen, der alt kan prøves og ingenting er forpliktende, og så går du til trykkpressen, som er skremmende nettopp fordi den forplikter. Skissene var der kunsten lå. Pressen var hvordan den reiste. To redskaper, to jobber, hver oppfinnsom på sin egen måte, og det trykte verket kunne stoles på fordi pressen holdt sitt løfte ved hvert trykk.
+De fleste "AI creative"-innleggene plasserer modellen på feil side av en gammel linje. Skriverne og illuminatorene avgjorde hvor den går. Du arbeider løst på skissen, der alt kan prøves og ingenting er forpliktet. Så går du til trykkpressen, som forplikter. Skissene var der kunsten lå, og pressen var hvordan den reiste, og det trykte verket kunne stoles på fordi pressen holdt løftet sitt for hvert avtrykk.
 
-Lolly er pressen, ikke skissen. Ta med hva du vil til idéutviklingen - en modell, en designer, en serviett - men i det øyeblikket en idé må bli mange ressurser, går den gjennom noe som rendrer på samme måte hver gang, fra inndata hvem som helst kan lese tilbake. Det er det sammenligningen ovenfor egentlig handler om: ikke hvem som har den beste generatoren, men hvem som gjør det forpliktende steget reproduserbart.
+Lolly er pressen. Ta med det du vil til ideene, en modell, en designer eller en grov tegning, men i det øyeblikket en idé må bli mange filer, går den gjennom noe som gjengir på samme måte hver gang, fra inndata hvem som helst kan lese tilbake. Sammenligningen ovenfor handler egentlig om hvem som gjør det forpliktede trinnet repeterbart.
 
 > Stol på den kreative prosessen, skaler med presisjon.
 
-## Reglene ligger i verktøyet og malene dets
+## Gratis for alltid
 
-Alle andre verktøy på markedet produserer en *fil*, og en fil kan bare ses i etterkant. Lolly flytter merkevarereglene **ett steg oppstrøms**. Eksakte heksfarger, lisensierte skriftfiler, utfallsmarginer, avstander - alt sammen er hardkodet inn i verktøyets HTML og CSS, slik at malen *ikke kan* levere en ressurs som bryter med merkevaren. Selve oppsettet håndhever reglene.
+**Hvis det gjengis på enheten din, er det gratis for alltid.** Motoren, skallene, verktøyene og formatene er åpen kildekode, og en utgitt versjon kan ikke tas tilbake. Lolly Work er også åpen kildekode. En organisasjon betaler for infrastrukturen og driften den velger, uten programvarelisens per bruker eller per gjengivelse for selvhosting. [Questions & answers](/info/faq.html) forteller historien bak løftet.
 
-Så det som er verdt å se på, er **verktøyet**, ikke hver fil det lager. Få verktøyet riktig, og hver ressurs det noensinne produserer, er merkevaretro av konstruksjon. Hvordan du sjekker arbeidet ditt, og hvem som gjør det, er fortsatt opp til deg; Lolly gjør det som sjekkes mindre og outputen raskere å lage.
+## Hvor innholdet ditt bor
 
-Dette er endringen den deterministiske motoren faktisk gir. For det kreative teamet er det et vern, ikke en erstatning - du kaster fortsatt ballen (dataene, teksten, bildet), og koden er kanten i bowlingbanen som holder hvert kast unna rennen.
+Lollys kreative arbeid kan kjøre på maskinvare du eier, og designtokenene, skriftene, logoene og verktøyene er filer du kan beholde. Med Lolly Work bor delte prosjekter, ressurser, policy og revisjonsposter i lagring organisasjonen din konfigurerer. [Trust](/info/trust.html) forklarer hvorfor det betyr noe, og [Privacy Policy](/info/privacy.html) og [Verify It Yourself](/info/verify-yourself.html) lar deg sjekke påstanden i stedet for å ta vårt ord for det.
 
-![Produsentens hele jobb: skriv ordene. Skrift, farge og avstand var avgjort da verktøyet ble laget](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+## Verktøy for verktøy
 
-## Hva dette gir på en unik måte
-
-- **Vilt designpotensial levert trygt i kontekst.** Verktøy kan uttrykke dristige designideer innenfor hardkodede vernegrenser.
-
-- **Programvarestyrt innholdsautomatisering som leverer den ferdige ressursen.** Inndata → ferdig fil. Ingen «lagre det nå fra designverktøyet ditt og etterbehandle det».
-- **Verktøy setter sammen verktøy.** Ett verktøy kan bygge inn et annet verktøys rendering og levere det som del av én enkelt ferdig ressurs, uten kode-kobling mellom verktøyene - en grunnleggende funksjon ingen åpen-lerret- eller DAM-mal-produkt på markedet tilbyr.
-- **Leverandørnøytralitet.** Full funksjons- og kostnadskontroll. Motoren er åpen kildekode. Verktøy og ressurser er git-sporet innhold, ikke låst inne i en SaaS-database.
-
-Det første av disse er det folk undervurderer. Et byplakat-kvalitets kart, tegnet som ekte vektor-vei- og vannbaner, fra en nedtrekksmeny og to fargefelt som ikke kan settes utenfor merkevaren:
-
-![Amsterdams kanalringer og veinett tegnet kant til kant i merkevarens egen blekk, hvert strøk plassert av malen fremfor for hånd](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
-
-## Innholdssuverenitet
-
-Det finnes et navn for det forrige avsnittet summerer opp til: suverenitet. Mediepipelinen din kjører på maskinvare du selv eier. Merkevaren din - tokenene, skriftene, logoene, verktøyene som håndhever dem - lever i filer du selv har, i versjonskontroll du selv styrer, ikke i en leverandørs database med en eksportknapp. Rendering skjer på enheten foran deg, så en ressurs går aldri via en tredjepart for å eksistere, og hele veien fra inndata til ferdig fil er åpen kildekode og inspiserbar. Om alle SaaS-designleverandører forsvant i morgen, ville en Lolly-installasjon ikke merke det.
-
-Dette betyr noe for alle hvis arbeid bør overleve et abonnement: forelderen hvis fotobok ligger på den bærbare like mye som det offentlige organet hvis merkevarebibliotek ligger under anskaffelsesregler. For organisasjoner - offentlige organer, regulerte bransjer, alle hvis merkevare er en strategisk ressurs fremfor en pynt - er «hvor bor innholdet vårt og hvem kan slå det av» et styringsspørsmål, ikke en preferanse. Suverenitet er her en egenskap ved arkitekturen fremfor en vertsfunksjon lagt til for compliance, og sidene [Personvernerklæring](/info/privacy.html) og [Verifiser selv](/info/verify-yourself.html) finnes slik at du kan sjekke den påstanden fremfor å bare ta den for gitt.
-
-Under alt dette ligger ett løfte, formulert som en forpliktelse fremfor en funksjon: **hvis det rendres på enheten din, er det gratis for alltid.** Motoren, skallene, verktøyene, formatene - hele den lokale kreative veien er åpen kildekode og forblir det. Løftet har en mekanisme: en versjon som er utgitt, er lisensiert slik at den ikke kan trekkes tilbake, og det finnes ingen bidragsyteravtale som kunne relisensiere arbeidet senere. Hele grensen får plass i én setning: alt som rendres på enheten din er gratis og åpen kildekode, for alltid; å koordinere mennesker og maskiner over et nettverk er jobben til et separat kontrollplan, [lolly.work](https://lolly.work).
+[Lolly compared, tool by tool](/info/compare.html) sammenligner Lolly med Canva, Adobe, Figma, Penpot, merkevareportaler, gjengivelses-API-er og nettbaserte konverterere, én side hver, og setter opp [what runs where](/info/compare.html#what-runs-where).

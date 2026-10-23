@@ -2,24 +2,28 @@
 
 _Dernière vérification : 28 septembre 2026._
 
-Lolly génère des assets à partir de modèles et de données sur ton appareil, en CI ou via l'API serveur de [lolly.work](https://lolly.work). La solution combinée couvre le rendu automatisé ainsi que l'identité, les politiques et la livraison qui entourent les tâches de production d'une organisation.
+Si tu génères aujourd'hui des images à partir de modèles via une API, cette page dit comment Lolly fait la même tâche sur ton propre appareil, en CI ou sur ton propre serveur.
+
+## Ce que les API de rendu hébergées font mieux
+
+[Bannerbear](https://www.bannerbear.com/) et [Placid](https://placid.app/) proposent le rendu sous forme de services gérés, avec leur propre infrastructure, leurs intégrations et leur support. Tu envoies une requête et quelqu'un d'autre fait tourner les serveurs.
 
 ## Où ils se recoupent
 
-[Bannerbear](https://www.bannerbear.com/) et [Placid](https://placid.app/) génèrent des images et d'autres médias à partir de modèles via des API et des intégrations. Lolly adopte la même approche, un modèle plus des entrées, avec le [mode URL](/info/url-mode.html), la [CLI](/info/cli.html), une grille de lot et des points d'accès serveur pour soumettre le travail.
+Les deux transforment un modèle plus des entrées en média. Lolly prend ses entrées d'un [lien](/info/url-mode.html), de la [CLI](/info/cli.html), d'une grille de lot ou d'un point d'accès serveur.
 
-## Ce que fournit lolly.work
+## Comment Lolly fait la tâche commune
 
-lolly.work est le service d'organisation du projet Lolly, déployé séparément. Il exécute le moteur Lolly derrière une API, applique les politiques de visibilité des outils et d'entrée, et sert les fichiers rendus et les liens de partage signés. Son [service de rendu récupérable](https://github.com/lolly-tools/lolly-work/blob/main/docs/renders.md) prend en charge les tâches individuelles et les lots, la soumission idempotente, le statut, les nouvelles tentatives bornées, l'annulation et la conservation des sorties. Le travail interrompu peut reprendre après un redémarrage du serveur lorsqu'un stockage persistant est configuré.
+Le même outil se rend sur un portable, dans une tâche de CI ou sur un serveur, à partir des mêmes entrées. Le rendu local et en CI n'exige aucun service.
 
-Le serveur utilise un chemin de rendu SVG/PNG rapide et un worker Chromium facultatif pour les outils qui ont besoin d'un navigateur. L'automatisation s'authentifie avec des jetons de service, et la sortie terminée peut être envoyée par [livraison encadrée](https://github.com/lolly-tools/lolly-work/blob/main/docs/delivery.md) vers des destinations de l'organisation. Une identité de signature configurée active la signature C2PA sur les sorties serveur prises en charge.
+![Réglages d'export en lot : nom de fichier, format par défaut, unités, DPI et nombre de lignes à rendre](/info/shots/use-batch-toolbar.svg)
+
+Sur un serveur, [Lolly Work](/info/compare.html#what-runs-where) exécute le moteur de Lolly derrière une API et applique la visibilité des outils et les politiques d'entrées. Son [service de rendu récupérable](/info/work-renders.html) prend en charge les tâches uniques et les lots, la soumission idempotente, le statut, les nouvelles tentatives bornées, l'annulation et les sorties conservées, et le travail interrompu reprend après un redémarrage quand un stockage persistant est configuré.
+
+Le serveur a un chemin rapide SVG et PNG et un worker Chromium facultatif pour les outils qui ont besoin d'un navigateur. L'automatisation se connecte avec des jetons de service, la sortie terminée peut passer par une [livraison approuvée](/info/work-delivery.html) vers des destinations d'organisation, et une identité de signature configurée ajoute des Content Credentials à la sortie prise en charge.
 
 ## Qui exploite le service
 
-Bannerbear et Placid proposent le rendu sous forme de services gérés, avec leur propre infrastructure et leurs intégrations. Avec Lolly, un particulier peut effectuer le rendu en local ou une équipe peut exploiter lolly.work sur sa propre infrastructure. Les deux dépôts Lolly sont open source sous MPL-2.0 ; l'auto-hébergement n'entraîne aucun coût de licence logicielle par rendu, tandis que le calcul, le stockage et l'exploitation restent des coûts à prévoir.
+Avec Lolly, une personne rend en local, ou une équipe fait tourner Lolly Work sur sa propre infrastructure. Soumettre une tâche serveur envoie ses entrées et les ressources nécessaires à cette instance, ce qui diffère du chemin sur l'appareil. Un service durable exige une base de données persistante et un stockage de sortie, et les outils qui dépendent d'un navigateur ont besoin du worker Chromium ; [Install Lolly Work](/info/work-install.html) décrit les deux.
 
-Le site public lolly.work est un bac à sable d'évaluation, et non un engagement d'hébergement en production. Un service durable demande une base de données et un stockage de sorties persistants ; les outils dépendant du navigateur ont besoin du worker Chromium. Le [guide d'installation](https://github.com/lolly-tools/lolly-work/blob/main/docs/install.md) et la [page d'état](https://github.com/lolly-tools/lolly-work/blob/main/docs/status.md) décrivent ces exigences et les limites actuelles.
-
-Le rendu local et en CI reste disponible sans le service d'organisation. Soumettre une tâche serveur envoie ses entrées et les assets nécessaires à cette instance ; c'est distinct du chemin sur l'appareil. Consulte la [vue d'ensemble de la solution combinée](/info/compare.html).
-
-Bannerbear et Placid sont des marques de leurs propriétaires. Cette page décrit les points de recoupement entre les solutions et n'est affiliée à aucune des deux.
+Bannerbear et Placid sont des marques de leurs propriétaires. Cette page décrit où les produits se recoupent et n'est pas affiliée à l'un ni à l'autre.
