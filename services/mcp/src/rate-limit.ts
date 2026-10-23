@@ -11,6 +11,7 @@
 
 import { createHash } from 'node:crypto';
 import type { WriteObserver } from '../../shared/http-lifecycle.mjs';
+import { hostedDeployment } from './hosted.ts';
 
 export interface RateLimitDecision {
   ok: boolean;
@@ -173,8 +174,7 @@ export function restStoreConfig(env: NodeJS.ProcessEnv): { url: string; token: s
 export function createRateLimiter(env: NodeJS.ProcessEnv, namespace = 'mcp', onWrite?: WriteObserver): RateLimiter {
   const store = restStoreConfig(env);
   if (store) return new RedisRestRateLimiter({ ...store, namespace, onWrite });
-  const hosted = !!env.VERCEL || env.LOLLY_MCP_HOSTED === '1' || env.NODE_ENV === 'production';
-  if (hosted && env.LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT !== '1') {
+  if (hostedDeployment(env) && env.LOLLY_ALLOW_IN_MEMORY_RATE_LIMIT !== '1') {
     console.warn(`[rate-limit] ${UNCONFIGURED_REASON}`);
     return new UnconfiguredRateLimiter(UNCONFIGURED_REASON);
   }
