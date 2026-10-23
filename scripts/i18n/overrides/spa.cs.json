@@ -1683,5 +1683,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "Zatím není žádná barva zamčená na přesnou tiskovou barvu. Zamkni jednu v tiskovém nastavení barvy v {start}.",
   "Ink and paper": "Inkoust a papír",
   "Named colours": "Pojmenované barvy",
-  "Emphasis": "Zdůraznění"
+  "Emphasis": "Zdůraznění",
+  "Zoom to selection": "Přiblížit na výběr"
 }

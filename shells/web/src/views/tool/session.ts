@@ -9,6 +9,7 @@ import { readColumnPref, writeColumnPref } from './shared.ts';
  * from mountTool() by scripts/split-closure.ts.
  */
 import { replaceRouteUrl, routeParams, settledWrite, updateRouteParams, type SettledWrite } from '../../lib/url-state.ts';
+import { endCanvasCost, startCanvasCost } from '../../lib/canvas-feedback.ts';
 import { copyBesidePackParams, copyWorkspaceParams, packableContent, RESULT_CONTEXT_PARAMS, WORKSPACE_PARAMS } from '../../lib/tool-url-state.ts';
 import { encodeAddressModelParam } from '../../lib/url-budget.ts';
 import type { FontStyleSlice } from '../../bridge/text-svg.ts';
@@ -178,8 +179,16 @@ function dropSettling(tview: ToolViewCtx, written: boolean): boolean {
   return written;
 }
 
+/** Closes one address write's span in the `url-sync` lab lane (lib/canvas-feedback.ts). */
+function closeUrlSync(started: number, written: boolean): boolean {
+  endCanvasCost('url-sync', started);
+  return written;
+}
+
 /** Build the address from the live model and replace the current one. */
 function writeAddress(tview: ToolViewCtx): boolean {
+  // -1, and inert, outside a lab run.
+  const started = startCanvasCost();
   const { TOOL_URL_BASE, actionsEl, barSeq, dirtyParams, runtime, templateSeededIds } = tview;
   tview.urlGauge?.costWhenShown(() => costShareMeter(tview));
 
@@ -189,7 +198,7 @@ function writeAddress(tview: ToolViewCtx): boolean {
     const slot = tview.actionsApi?.getSlot?.() ?? tview.slot;
     if (slot) params.set('slot', slot);
     ++barSeq.v;
-    return dropSettling(tview, replaceRouteUrl(TOOL_URL_BASE + (params.size ? `?${params}` : '')));
+    return closeUrlSync(started, dropSettling(tview, replaceRouteUrl(TOOL_URL_BASE + (params.size ? `?${params}` : ''))));
   }
 
   // A password-protected (`zx`) link stays ENCRYPTED in the address bar until the
@@ -201,7 +210,7 @@ function writeAddress(tview: ToolViewCtx): boolean {
     const params = new URLSearchParams(tview.encLinkQuery);
     copyWorkspaceParams(params, routeParams());
     ++barSeq.v;
-    return dropSettling(tview, replaceRouteUrl(`${TOOL_URL_BASE}?${params}`));
+    return closeUrlSync(started, dropSettling(tview, replaceRouteUrl(`${TOOL_URL_BASE}?${params}`)));
   }
 
   const params = new URLSearchParams();
@@ -266,7 +275,7 @@ function writeAddress(tview: ToolViewCtx): boolean {
         /* keep the readable URL already written */
       });
   }
-  return dropSettling(tview, written);
+  return closeUrlSync(started, dropSettling(tview, written));
 }
 export function markUserDirty(tview: ToolViewCtx, id?: string): void {
   const { dirtyParams } = tview;
@@ -1577,9 +1586,7 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
                 options: DESIGN_INTENT_OPTIONS,
               },
               zoom: {
-                fitAll: () => {
-                  tview.stageZoom?.fit();
-                },
+                fitAll: () => tview.stageZoom?.fit(),
                 // Deliberately the overlay's own focus path (`fc-focus-rect`), not a rect this
                 // view converts: the overlay owns the canvas→client mapping, and the navigator
                 // and the timeline already frame artboards through exactly this door.
@@ -1587,6 +1594,8 @@ export async function bakeFraming(tview: ToolViewCtx, key: string): Promise<void
                   const id = design.activeFrameId();
                   if (id) design.artboard.focus(id);
                 },
+                fitSelection: () => tview.stageZoom?.fitSelection(),
+                hasSelection: () => design.selection.get().length > 0,
                 zoomBy: (f) => {
                   tview.stageZoom?.zoomBy(f);
                 },

@@ -31,6 +31,8 @@ const sourceKeys = new WeakMap<Box[], string>();
 const activeSources = new WeakMap<Box[], boolean>();
 const gridReceipts = new WeakMap<FcCtx, { source: Box[]; text: string; grids: GridProjection[] }>();
 const layers = new WeakMap<FcCtx, HTMLElement>();
+/** Where the overlay was drawn: the stage point of native (0, 0), and the scale. */
+const drawnAt = new WeakMap<FcCtx, { x: number; y: number; scale: number }>();
 const spacingGestures = new WeakSet<FcCtx>();
 const on = (value: unknown): boolean =>
   value === true || value === 'true' || value === 1 || value === '1';
@@ -702,12 +704,18 @@ export function paint(fc: FcCtx): void {
     root.className = 'fc-layout-overlay';
     root.setAttribute('data-export-hide', '');
     root.style.pointerEvents = 'none';
+    // Laid over the whole overlay, so the lines and controls inside keep the overlay's
+    // coordinates whether or not `follow` has slid the layer.
+    root.style.position = 'absolute';
+    root.style.inset = '0';
     fc.overlay.insertBefore(root, fc.chrome);
     layers.set(fc, root);
   }
   if (!root) return;
   if (spacingGestures.has(fc)) return;
   root.replaceChildren();
+  root.style.transform = '';
+  drawnAt.delete(fc);
   if (fc.editing || fc.penEdit || fc.penDraft || fc.selection.size !== 1) return;
   const boxes = fc.select.getBoxes(),
     selected = boxes.find((b) => fc.selection.has(key(b)));
@@ -717,6 +725,7 @@ export function paint(fc: FcCtx): void {
   if (!parent || !isContainer(parent)) return;
   const m = fc.stage.metrics(),
     svg = root.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  drawnAt.set(fc, { ...fc.stage.nativeToStage(0, 0, m), scale: m.scale });
   Object.assign(svg.style, {
     position: 'absolute',
     inset: '0',
@@ -802,6 +811,25 @@ export function paint(fc: FcCtx): void {
   gapControl(fc, root, parent, 'layoutGapX', px.x, px.y, 'x', t('Column gap'));
   gapControl(fc, root, parent, 'layoutGapY', py.x, py.y, 'y', t('Row gap'));
 }
+/**
+ * The view moved and nothing else did (chrome-sync.ts, renderChromeView). A pan slides
+ * what is drawn by the distance the view travelled rather than building it again; a zoom
+ * changes the scale, which a slide cannot follow, so it draws afresh.
+ */
+export function follow(fc: FcCtx): void {
+  const root = layers.get(fc),
+    at = drawnAt.get(fc);
+  if (!root || !at || spacingGestures.has(fc)) return;
+  const m = fc.stage.metrics(),
+    o = fc.stage.nativeToStage(0, 0, m);
+  if (m.scale !== at.scale) {
+    paint(fc);
+    return;
+  }
+  const dx = o.x - at.x,
+    dy = o.y - at.y;
+  root.style.transform = dx || dy ? `translate(${dx}px, ${dy}px)` : '';
+}
 export function layoutOps(fc: FcCtx) {
   return {
     has: sourceHasLayout,
@@ -817,6 +845,7 @@ export function layoutOps(fc: FcCtx) {
     drop: bindOp(fc, drop),
     nudge: bindOp(fc, nudge),
     paint: bindOp(fc, paint),
+    follow: bindOp(fc, follow),
     tracks: bindOp(fc, tracks),
     failure,
   };

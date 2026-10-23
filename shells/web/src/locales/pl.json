@@ -8034,5 +8034,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "Żaden kolor nie jest jeszcze zablokowany na dokładny kolor druku. Zablokuj jeden w ustawieniach druku koloru w {start}.",
   "Ink and paper": "Tusz i papier",
   "Named colours": "Nazwane kolory",
-  "Emphasis": "Wyróżnienie"
+  "Emphasis": "Wyróżnienie",
+  "Zoom to selection": "Powiększ do wyboru"
 }

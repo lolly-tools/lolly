@@ -1,37 +1,37 @@
 # Image Relay (kind: `imagerelay`)
 
-Federate an Image Relay DAM **read-only**. Canto acquired Image Relay in September 2024 and is
-moving that customer base onto its own platform, so read [Off-boarding](#off-boarding) before
-you plan anything else here. OAuth2 (BYOT) - see the
-[shared OAuth onboarding](README.md#kinds-whose-consent-flow-is-not-registered-canto-imagerelay-optimizely-cmp).
+Connect an Image Relay DAM and its files appear in the Lolly Work catalog for the groups you
+choose, with an expiry date if you keep one in a custom field. Image Relay stays the source:
+Work reads through an app you register and never writes back.
+
+Canto acquired Image Relay in September 2024. If your tenant has moved to Canto, use the
+[Canto source](canto.md). If you are not sure which applies, read [Off-boarding](#off-boarding)
+first.
 
 ## What you need from Image Relay
 
-- **An OAuth2 app** you register in Image Relay, granting **read** access to the files/folders
-  you want to federate. BYOT: the client id/secret are yours, and so is the refresh token your
-  tenant's OAuth grant issues against them.
-- Optionally, **a folder id** to scope federation to one folder (with `recursive` for its
-  descendants).
-- If you model asset expiry in Image Relay, **which custom-metadata field** holds the date -
-  Image Relay has no native availability field, so you map it (below).
+- **An OAuth2 app** you register in Image Relay, with **read** access to the files and folders
+  you want to federate. The client id, secret and the refresh token your tenant issues against
+  them are yours.
+- Optionally, **a folder id** to federate one folder, with `recursive` for its subfolders.
+- If you keep expiry dates, **the custom-metadata field** that holds them. Image Relay has no
+  native availability field, so you map one.
 
 ## Credential shape
 
-One sealed OAuth JSON blob - the client id/secret of the app you registered, and the refresh
-token your grant against it issued:
+One sealed OAuth credential, pasted rather than captured:
 
 ```json
 { "clientId": "…", "clientSecret": "…", "refreshToken": "…" }
 ```
 
 ```bash
-lw providers credential acme-imagerelay   # prompts for the blob; never argv, never shell history
+lw providers credential acme-imagerelay   # prompts for the JSON; never argv, never shell history
 ```
 
-Capture that refresh token by running **Image Relay's own documented OAuth2
-authorization-code flow** once by hand against the app you registered. No consent flow is
-registered for this kind, so `lw providers auth` refuses it: see the
-[shared OAuth onboarding](README.md#kinds-whose-consent-flow-is-not-registered-canto-imagerelay-optimizely-cmp).
+Get the refresh token by running **Image Relay's own documented OAuth2 authorization-code flow**
+once by hand against your app. `lw providers auth` refuses this kind; see
+[OAuth sources](README.md#kinds-whose-consent-flow-is-not-registered-canto-imagerelay-optimizely-cmp).
 
 ## instance.json / `lw providers add`
 
@@ -46,54 +46,44 @@ registered for this kind, so `lw providers auth` refuses it: see the
 }
 ```
 
-- `options.folderId` / `options.recursive` scope federation; `options.baseUrl`/`tokenUrl`
-  override the defaults (`api.imagerelay.com/api/v2`, and that host's `/oauth/token`).
-- **`mapping.availabilityFields`** is how expiry gets imported: name the custom-metadata field
-  that holds the date (here `"Expiry Date"` → an
-  [availability window](../catalog.md#imported-availability-windows) `availableUntil`). Omit
-  it and the manual `catalog.expire` arm is the whole story.
-- Image Relay sends **no approval signal**, so leave `exposure.requireApproved` off: with it
-  on, nothing federates.
+- `options.folderId` and `options.recursive` scope federation. `options.baseUrl` and
+  `options.tokenUrl` override the defaults (`api.imagerelay.com/api/v2` and that host's
+  `/oauth/token`).
+- **`mapping.availabilityFields`** imports expiry: name the custom field that holds the date
+  (here `"Expiry Date"`, which becomes an
+  [availability window](../catalog.md#imported-availability-windows) `availableUntil`). Without
+  it, the manual `catalog.expire` control is the only expiry.
+- Image Relay sends **no approval signal**, so leave `exposure.requireApproved` off. With it on,
+  nothing federates.
 
 ## Verify
 
 ```bash
 lw providers preview --kind imagerelay --options '{"folderId":"1234"}'   # dry run, nothing stored
-lw providers credential acme-imagerelay
 lw providers health acme-imagerelay
 ```
 
 | Error | Meaning |
 |---|---|
-| `oauth token refresh failed (401)` | client id/secret or refresh token wrong, or the grant revoked - re-capture the credential |
-| `oauth token refresh failed (400)` | the token endpoint rejects the **request shape**; re-capturing cannot fix it - the runbook's row 5a says what to edit |
-| `imagerelay api 401` | token exchange worked, tenant rejected the access token |
-| `imagerelay url outside allowed hosts` | a `baseUrl`/`tokenUrl` override or download link points off `imagerelay.com` (API, token and download hosts are all pinned to that family) |
-
-With a real tenant in hand, run the
-[Image Relay live-verify runbook](imagerelay-live-verify.md): the ordered pass that confirms
-every guessed endpoint and field name, and which constant to edit when one is wrong.
+| `oauth token refresh failed (401)` | The client id, secret or refresh token is wrong, or the grant was revoked. Capture the credential again. |
+| `oauth token refresh failed (400)` | The token endpoint refuses the request format. A new credential cannot fix this; report it with the [tenant check](tenant-check.md#image-relay). |
+| `imagerelay api 401` | The token exchange worked; the tenant refused the access token. |
+| `imagerelay url outside allowed hosts` | A `baseUrl` or `tokenUrl` override, or a download link, points outside `imagerelay.com`. |
 
 ## Notes / limits
 
-- Download links are signed + short-lived (`expiringUrls`) - fetched per request, streamed,
-  host-pinned to `imagerelay.com`. The driver sends a mandatory `User-Agent` and self-caps at
-  **5 requests/second**.
-- A file Image Relay reports as **deleted** is dropped from federation (a positive signal, not
-  an inference).
-- Does **not** accept published exports.
+- **Not yet confirmed against a live tenant.** The endpoints and field names come from Image
+  Relay's documentation. [Check a source on your own tenant](tenant-check.md#image-relay) lists
+  what to look at. Contributors changing the driver follow its
+  [maintainer runbook](imagerelay-live-verify.md) in the Lolly Work repository.
+- **Signed, short-lived download links,** fetched on each request and pinned to `imagerelay.com`.
+  The driver sends the `User-Agent` Image Relay requires and keeps to **5 requests a second**.
+- **Deleted files leave the catalog.** A file Image Relay reports as deleted is dropped.
 
 ## Off-boarding
 
-**An exit target, the urgent one.** Canto owns the platform now, so run the vendor's migration
-once, into a store you own.
-
-Kind-specific: which driver you exit through depends on where the vendor has put your tenant -
-a legacy tenant exits through this driver, a migrated `<name>.canto.com` tenant through
-[`canto`](canto.md), and a tenant with both alive runs `imagerelay` first. The fork matrix in
-the playbook covers all four cases. Expiry rides `mapping.availabilityFields` (above), and that
+Image Relay can be left through the exit. Which driver you leave through depends on where
+your tenant now lives: a legacy tenant through this one, a migrated `<name>.canto.com` tenant
+through [`canto`](canto.md), and a tenant with both alive through `imagerelay` first.
+[Leave a DAM](../offboarding.md) covers all four cases, with timing and cadence. The expiry
 mapping carries over to `canto` with only the field name changed.
-
-Motion, cadence and the per-DAM readiness table: [off-boarding](../offboarding.md).
-
-See also: [OAuth onboarding](README.md#kinds-whose-consent-flow-is-not-registered-canto-imagerelay-optimizely-cmp) · [catalog](../catalog.md) · [permissions](../permissions.md).

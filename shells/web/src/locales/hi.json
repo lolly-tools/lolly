@@ -8034,5 +8034,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "अभी कोई रंग सटीक इंक पर लॉक नहीं है। {start} में किसी रंग की प्रिंट सेटिंग से एक लॉक करें।",
   "Ink and paper": "इंक और काग़ज़",
   "Named colours": "नामित रंग",
-  "Emphasis": "ज़ोर"
+  "Emphasis": "ज़ोर",
+  "Zoom to selection": "चयन पर ज़ूम करें"
 }

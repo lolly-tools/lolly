@@ -1819,5 +1819,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "Nessun colore è ancora bloccato su un inchiostro esatto. Bloccane uno dalle impostazioni di stampa di un colore in {start}.",
   "Ink and paper": "Inchiostro e carta",
   "Named colours": "Colori con nome",
-  "Emphasis": "Enfasi"
+  "Emphasis": "Enfasi",
+  "Zoom to selection": "Zoom sulla selezione"
 }

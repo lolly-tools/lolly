@@ -89,8 +89,13 @@ export function designShortcutGroups(
     {
       label: t('View and panels'),
       rows: [
+        // The view keys live in tool-stage-nav.ts (onKeyDown). The Shift digits are
+        // matched on the physical key, so they hold on every keyboard layout.
         { keys: '0', label: t('Fit all') },
+        { keys: 'Shift 1', label: t('Fit all') },
         { keys: '1', label: t('Actual size') },
+        { keys: 'Shift 0', label: t('Actual size') },
+        { keys: 'Shift 2', label: t('Zoom to selection') },
         { keys: '+ / −', label: t('Zoom in / out') },
         { keys: 'Shift R', label: t('Toggle rulers and guides') },
         { keys: '/  or  \\', label: t('Hide / show editor chrome') },

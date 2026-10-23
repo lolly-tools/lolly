@@ -1681,5 +1681,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "Nog geen kleur is vastgezet op een exacte inkt. Zet er een vast via de printinstelling van een kleur in {start}.",
   "Ink and paper": "Inkt en papier",
   "Named colours": "Benoemde kleuren",
-  "Emphasis": "Nadruk"
+  "Emphasis": "Nadruk",
+  "Zoom to selection": "Inzoomen op selectie"
 }

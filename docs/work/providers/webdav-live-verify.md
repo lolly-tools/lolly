@@ -30,7 +30,7 @@ root the driver builds and in how the server spells its hrefs.
 
 ```bash
 export LW_BASE=https://lolly.example
-lw login --email you@acme.example          # or: lw login --cookie 'lw_session=…'
+lw login                                   # device sign-in; or: lw login --cookie 'lw_session=…'
 
 lw providers preview --kind webdav \
     --options '{"baseUrl":"https://cloud.example","flavor":"nextcloud","username":"lolly-federation","root":"Brand"}'
@@ -98,7 +98,7 @@ right and this table is stale.
 | 2 | The generic files root is `<baseUrl>/<root>` and nothing else | Same: the first line is the path. A generic server mounting DAV somewhere else needs that whole path as `options.baseUrl` | `options.baseUrl` / `options.root` on the entry - the generic arm builds no template of its own |
 | 3 | `PROPFIND` with `Depth: 1`, the body from `propfindBody()`, and a trailing slash on a collection URL, are what the server wants | Step 1 is the answer: a `405` is the method, a `400` is the body, a `301`/`302` is usually the slash. This driver passes `redirect: 'manual'` and treats a `3xx` as a failure naming the host it was being sent to, so a redirect is a failure, not a detour | `propfind` and `urlFor`; the body is `propfindBody`, the refusal is in `request` |
 | 4 | Sizes ride `getcontentlength`, stamps `getlastmodified`, content types `getcontenttype`, and a directory is a `resourcetype` carrying a `collection` child | ABSENT `getcontentlength (PROP_SIZE_KEYS)` and friends, with the real names in NOT MAPPED. A file with no size and no stamp on any resource also prints a sync note naming both constants | `PROP_SIZE_KEYS` / `PROP_MODIFIED_KEYS` / `PROP_CONTENT_TYPE_KEYS` / `PROP_RESOURCETYPE_KEYS` / `COLLECTION_ELEMENT` |
-| 5 | Nextcloud returns `oc:tags` on a plain `PROPFIND`, with its values as child elements | ABSENT `tags (PROP_TAGS_KEYS)` means the server did not return it, which is recoverable: tags are optional and nothing else depends on them. Values riding as text rather than children shows as one comma-joined string in the record block | `PROP_TAGS_KEYS`, and the `childTexts` read in `toAsset`. `oc:fileid` is deliberately not requested - it cannot address bytes, so a rename federates as a new asset either way |
+| 5 | Nextcloud returns `oc:tags` on a plain `PROPFIND`, with its values as child elements | ABSENT `tags (PROP_TAGS_KEYS)` means the server did not return it, which is recoverable: tags are optional and nothing else depends on them. Values riding as text rather than children shows as one comma-joined string in the record block | `PROP_TAGS_KEYS`, and the `childTexts` read in `toAsset`. `oc:fileid` is not requested - it cannot address bytes, so a rename federates as a new asset either way |
 | 6 | The multistatus layout: `multistatus` > `response` > `href` plus one `propstat` per status, readable properties under the `200` one | The two hard failures name themselves - `PROPFIND answered without a multistatus root element` and `the multistatus body carried no response element`. A wrong `propstat` or `status` name reads instead as every property absent at once | `MULTISTATUS_ELEMENT` / `RESPONSE_ELEMENT` / `HREF_ELEMENT` / `PROPSTAT_ELEMENT` / `PROP_ELEMENT` / `STATUS_ELEMENT` |
 | 7 | Hrefs come back either absolute-path or as a full URL, percent-encoded the way `decodeURIComponent` reads | The failure is loud: `none of the N resource(s) PROPFIND returned sit under the files root this driver built`, naming the root it built. A single file whose href will not read is counted in `skipped` on the sync instead. This is why step 1 wants a filename with a space or a non-ASCII character in it | `hrefPath` and `relFromRoot`. An href naming another host is refused outright (`webdav href points at <host>, not the configured host <host>`), which is the host pin and is not a bug to fix |
 | 8 | About 4 requests a second is polite | Not in the report - WebDAV publishes no rate limit at all, so this is caution rather than a documented ceiling. A small self-hosted box may want less | `DEFAULT_GAP_MS`, or `options.minGapMs` per entry, which is the one to reach for |
@@ -202,4 +202,5 @@ If you have a generic server too, repeat steps 1 through 3 against it with
 
 See also: [the WebDAV guide](webdav.md) · [the CLI](../cli.md) · the DAM runbooks:
 [canto](canto-live-verify.md) · [imagerelay](imagerelay-live-verify.md) ·
-[intelligencebank](intelligencebank-live-verify.md) · [acquia-dam](acquia-dam-live-verify.md).
+[intelligencebank](intelligencebank-live-verify.md) · [acquia-dam](acquia-dam-live-verify.md) ·
+[cloudinary](cloudinary-live-verify.md) · [orange-logic](orange-logic-live-verify.md).

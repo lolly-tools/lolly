@@ -8034,5 +8034,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "لا توجد ألوان مثبتة على حبر دقيق بعد. ثبّت لونًا من إعداد الطباعة الخاص به في {start}.",
   "Ink and paper": "الحبر والورق",
   "Named colours": "ألوان مسمّاة",
-  "Emphasis": "التأكيد"
+  "Emphasis": "التأكيد",
+  "Zoom to selection": "تكبير إلى التحديد"
 }

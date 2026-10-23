@@ -40,7 +40,9 @@ export interface DocsRegistry {
   sectionSubtitles: false;
   sections: DocsSection[];
   pages: DocsPage[];
-  workImport: { repository: string; commit: string; version: string; files: Record<string, { source: string; sha256: string }> };
+  /** The Lolly Work release these guides describe: its tag commit, version and Helm chart version
+   *  (read by the %work{version} and %work{chart} tokens, docs/version-tokens.ts). */
+  workImport: { repository: string; commit: string; version: string; chart: string; files: Record<string, { source: string; sha256: string }> };
 }
 
 export const DOCS_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');

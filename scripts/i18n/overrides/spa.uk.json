@@ -1817,5 +1817,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "Жоден колір ще не закріплено за точним друкарським кольором. Закріпіть один у налаштуваннях друку кольору в {start}.",
   "Ink and paper": "Фарба й папір",
   "Named colours": "Іменовані кольори",
-  "Emphasis": "Акцент"
+  "Emphasis": "Акцент",
+  "Zoom to selection": "Масштабувати до вибору"
 }

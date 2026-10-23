@@ -6,6 +6,7 @@ import { styleTextControls, textControlAction, textControlGroup, textControlGrid
 import type { IconName } from '../../lib/icons.ts';
 import { t } from '../../i18n.ts';
 import { bindOp, type FcCtx } from './context.ts';
+import type { CanvasIndex } from './shared.ts';
 export function open(fc: FcCtx, anchor: HTMLElement, id: string, frameOptions = false, targetId?: string): void {
   if(fc.storyPath.frame(id)?.path){fc.storyPathUi.open(anchor,id);return;}
   if (fc.editing) fc.textEdit.commitTextEdit(); fc.toolbox.closePopover();
@@ -88,13 +89,25 @@ export function open(fc: FcCtx, anchor: HTMLElement, id: string, frameOptions = 
   panel.style.top = `${Math.max(top+8,Math.min(rect.bottom+8,top+height-panel.offsetHeight-8))}px`;
   panel.querySelector<HTMLElement>('.btn--primary,input,select,.text-control-footer button')?.focus();
 }
-export function paint(fc: FcCtx): void {
+/** The ports the last full paint placed, each with the text frame it hangs off, and the
+ *  canvas index current then: a paint since may have added a frame that needs one. */
+const placed = new WeakMap<FcCtx, { index: CanvasIndex; ports: Array<{ button: HTMLButtonElement; svg: SVGSVGElement; port: string }> }>();
+function place(button: HTMLButtonElement, rect: DOMRect, port: string, stage: DOMRect): void {
+  button.style.left = `${Math.max(4,Math.min((port==='input'?rect.left:rect.right)-stage.left,stage.width-button.offsetWidth-4))}px`;
+  button.style.top = `${Math.max(4,Math.min((port==='input'?rect.top-button.offsetHeight-4:rect.bottom+4)-stage.top,stage.height-button.offsetHeight-4))}px`;
+}
+/**
+ * The text ports and threads. A `view` paint (the view moved, nothing else) moves the
+ * ports the last full paint placed instead of sweeping the canvas for text frames again:
+ * which frames carry ports answers to the selection and the text, and neither moved.
+ */
+export function paint(fc: FcCtx, view = false): void {
   if (!fc.storyText.available()) return;
   fc.storyPathUi.paint();
   let chrome = fc.overlay.querySelector<HTMLElement>('[data-text-flow-chrome]');
   if (!chrome) {chrome=document.createElement('div');chrome.dataset.textFlowChrome='';chrome.setAttribute('data-export-hide','');fc.overlay.append(chrome);}
   chrome.hidden = !!fc.editing; if (fc.editing) return;
-  const snapshot=fc.storyText.read(),orphans=snapshot.document.stories.filter(story=>!story.frameIds.length);
+  const snapshot=fc.storyText.snapshot(),orphans=snapshot.document.stories.filter(story=>!story.frameIds.length);
   let recovery=chrome.querySelector<HTMLButtonElement>('[data-text-unplaced]');
   if(orphans.length){if(!recovery){recovery=document.createElement('button');recovery.type='button';recovery.dataset.textUnplaced='';recovery.className='fc-text-flow-port';recovery.style.left='40px';recovery.style.bottom='12px';recovery.addEventListener('click',()=>fc.storyRecovery.unplaced(recovery!));chrome.append(recovery);}recovery.textContent=t('Place text ({n})',{n:orphans.length});recovery.style.left=`${Math.max(40,(fc.navReserveLeft||0)+12)}px`;}
   else recovery?.remove();
@@ -109,20 +122,29 @@ export function paint(fc: FcCtx): void {
   }
   threads.innerHTML=paths.join('');
 
+  const held = view ? placed.get(fc) : undefined;
+  if (held && held.index === fc.stage.canvasIndex() && held.ports.every(p=>p.svg.isConnected && p.button.isConnected)) {
+    const rects = held.ports.map(p=>p.svg.getBoundingClientRect());
+    for (let n = 0; n < held.ports.length; n++) place(held.ports[n]!.button,rects[n]!,held.ports[n]!.port,stage);
+    return;
+  }
+  const next: Array<{ button: HTMLButtonElement; svg: SVGSVGElement; port: string }> = [];
   for (const svg of fc.canvasEl.querySelectorAll<SVGSVGElement>('svg[data-text-frame]')) {
     const id = svg.dataset.textFrame!, selected = fc.selection.has(id), overflow = svg.hasAttribute('data-text-overset');
-    if(snapshot.frames.find(frame=>frame.id===id)?.mode==='path')continue;
+    // The cheap test first: a find over every frame, for every frame, was quadratic.
     if (!selected && !overflow) continue;
+    if(snapshot.frames.find(frame=>frame.id===id)?.mode==='path')continue;
     const rect = svg.getBoundingClientRect();
     for (const port of selected ? ['input','output'] : ['output']) {
       const key = `${id}:${port}`; keep.add(key);
       let button = [...chrome.querySelectorAll<HTMLButtonElement>('[data-text-port]')].find(button=>button.dataset.textPort===key);
       if (!button) {button=document.createElement('button');button.type='button';button.dataset.textPort=key;button.className='fc-text-flow-port';button.addEventListener('pointerdown',event=>event.stopPropagation());button.addEventListener('click',event=>{event.stopPropagation();fc.storyFlowUi.open(button!,id);});chrome.append(button);}
       button.textContent = port==='input'?t('In'):overflow?t('Overflow'):t('Continue text'); button.setAttribute('aria-label',port==='input'?t('Text input port'):overflow?t('View text overflow'):t('Continue text'));
-      button.style.left = `${Math.max(4,Math.min((port==='input'?rect.left:rect.right)-stage.left,stage.width-button.offsetWidth-4))}px`;
-      button.style.top = `${Math.max(4,Math.min((port==='input'?rect.top-button.offsetHeight-4:rect.bottom+4)-stage.top,stage.height-button.offsetHeight-4))}px`;
+      place(button, rect, port, stage);
+      next.push({ button, svg, port });
     }
   }
+  placed.set(fc, { index: fc.stage.canvasIndex(), ports: next });
   for (const button of chrome.querySelectorAll<HTMLButtonElement>('[data-text-port]')) if (!keep.has(button.dataset.textPort!)) button.remove();
 }
 export function storyFlowUiOps(fc: FcCtx) {return {open:bindOp(fc,open),paint:bindOp(fc,paint)};}

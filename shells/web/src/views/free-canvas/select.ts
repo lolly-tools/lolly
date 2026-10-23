@@ -341,9 +341,9 @@ export function syncTimelineBtn(fc: FcCtx): void {
  * one expression that can ever be wrong.
  */
 export function seqHiddenId(fc: FcCtx, id: string): boolean {
-  const { SEQ_OFF_CLASS, canvasEl, timeCfg } = fc;
+  const { SEQ_OFF_CLASS, timeCfg } = fc;
   if (!timeCfg) return false;
-  const el = canvasEl.querySelector(`.lolly-box[data-box-id="${fc.keys.cssEscape(id)}"]`);
+  const el = fc.stage.boxEl(id);
   return el?.classList.contains(SEQ_OFF_CLASS) ?? false;
 }
 /**
@@ -405,9 +405,8 @@ export function selectionLive(fc: FcCtx, boxes: Box[]): boolean {
  * disagree with the picture on the canvas (plans/104 section 6.5).
  */
 export function seqPoseId(fc: FcCtx, id: string): SeqPose | null {
-  const { canvasEl } = fc;
   if (!fc.seqPoseOf) return null;
-  const el = canvasEl.querySelector<HTMLElement>(`.lolly-box[data-box-id="${fc.keys.cssEscape(id)}"]`);
+  const el = fc.stage.boxEl(id);
   return el ? fc.seqPoseOf(el) : null;
 }
 export function selectOps(fc: FcCtx) {

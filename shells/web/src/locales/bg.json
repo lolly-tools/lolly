@@ -8034,5 +8034,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "Все още няма цветове, заключени към точен печатен цвят. Заключи един от настройката за печат на цвета в {start}.",
   "Ink and paper": "Мастило и хартия",
   "Named colours": "Именувани цветове",
-  "Emphasis": "Акцент"
+  "Emphasis": "Акцент",
+  "Zoom to selection": "Мащабиране до селекцията"
 }

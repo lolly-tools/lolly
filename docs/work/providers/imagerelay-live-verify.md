@@ -25,7 +25,7 @@ first and confirm this is the driver you exit through at all.
 
 ```bash
 export LW_BASE=https://lolly.example
-lw login --cookie 'lw_session=…'          # dev instances: lw login --email you@acme.example
+lw login                                   # device sign-in; or: lw login --cookie 'lw_session=…'
 
 lw providers preview --kind imagerelay
 ```
@@ -188,5 +188,7 @@ to the [`canto` driver](canto-live-verify.md), a different API; the tenant knowl
 constants you edited and to what, and the step 3 fidelity result per file type.
 
 See also: [the Image Relay guide](imagerelay.md) · [off-boarding](../offboarding.md) ·
-[the CLI](../cli.md) · the other three runbooks: [canto](canto-live-verify.md) ·
-[intelligencebank](intelligencebank-live-verify.md) · [acquia-dam](acquia-dam-live-verify.md).
+[the CLI](../cli.md) · the other runbooks: [canto](canto-live-verify.md) ·
+[intelligencebank](intelligencebank-live-verify.md) · [acquia-dam](acquia-dam-live-verify.md) ·
+[cloudinary](cloudinary-live-verify.md) · [orange-logic](orange-logic-live-verify.md) ·
+[webdav](webdav-live-verify.md).

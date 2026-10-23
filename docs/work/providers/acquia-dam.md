@@ -1,21 +1,24 @@
 # Acquia DAM / Widen (kind: `acquia-dam`)
 
-Federate an Acquia DAM (Widen) collective **read-only**. Widen is the governance-rich
-enterprise DAM, so it brings **native** availability and approval - no custom-field mapping
-needed. It is also an exit target ([Off-boarding](#off-boarding)).
+Connect an Acquia DAM (Widen) collective and its assets appear in the Lolly Work catalog, with
+Widen's own release and expiry dates and approval statuses carried across. No
+custom-field mapping is needed. Widen stays the source: Work reads with your token and never
+writes back.
 
 ## What you need from Widen
 
-- **A Widen API token** (personal access token) with read access to the assets/categories you
-  want to federate. In Widen: *Account → API* (or your admin issues one). It is a bearer
-  token - treat it as a secret.
-- Optionally, a **search query** to scope what federates (else the whole collective).
-- No app registration or OAuth flow - scope what federates with lolly-side **exposure**, not
-  the token.
+- **A Widen API token** (a user access token) with read access to the assets and categories you
+  want to federate. An Acquia DAM administrator creates one under
+  *Admin > Global settings > API setup*: register an integration, then choose
+  **Generate User Access Token**. It is a bearer token, so treat it as a secret.
+- Optionally, **a search query** to limit what federates. Without one, the whole collective
+  federates.
+- No app registration or OAuth flow. Choose what federates with Work's **exposure** settings,
+  not with the token.
 
 ## Credential shape
 
-A single bearer token string - the Widen API token. Store it write-only:
+A single bearer token string: the Widen API token.
 
 ```bash
 lw providers credential acme-widen     # prompts; never argv, never shell history
@@ -33,13 +36,12 @@ lw providers credential acme-widen     # prompts; never argv, never shell histor
 }
 ```
 
-- `options.query` scopes federation with a Widen search query; `options.approvedStatuses`
-  (default `["active"]`) is the set of asset statuses that count as **approved**.
-- Widen's **`release_date`** and **`expiration_date`** import natively as an
-  [availability window](../catalog.md#imported-availability-windows) - no
-  `mapping.availabilityFields` needed.
-- `exposure.requireApproved: true` federates only assets whose status is in
-  `approvedStatuses`. Categories fold into sections for `includeSections` scoping.
+- `options.query` limits federation with a Widen search query.
+- `options.approvedStatuses` (default `["active"]`) lists the asset statuses that count as
+  **approved**. `exposure.requireApproved: true` federates only those.
+- Widen's **`release_date`** and **`expiration_date`** import as an
+  [availability window](../catalog.md#imported-availability-windows) with no mapping.
+- Categories become sections for `includeSections`.
 
 ## Verify
 
@@ -48,28 +50,21 @@ lw providers preview --kind acquia-dam --options '{}'
 lw providers health acme-widen
 ```
 
-`401`/`403` → the token is wrong or lacks access; an empty sample under `requireApproved`
-means nothing matches `approvedStatuses`.
-
-With a real collective in hand, run the
-[Acquia DAM live-verify runbook](acquia-dam-live-verify.md): the ordered pass that confirms
-every guessed endpoint and field name, and which constant to edit when one is wrong.
+`401` or `403` means the token is wrong or lacks access. An empty sample with `requireApproved`
+on means nothing matches `approvedStatuses`.
 
 ## Notes / limits
 
-- Download/embed URLs are signed + short-lived (`expiringUrls`) - fetched per request,
-  streamed; host-pinned to `widencollective.com` / `widencdn.net` (no open proxy).
-- Does **not** accept published exports.
+- **Not yet confirmed against a live collective.** The endpoints and field names come from
+  Widen's documentation. [Check a source on your own tenant](tenant-check.md#acquia-dam-widen)
+  lists what to look at. Contributors changing the driver follow its
+  [maintainer runbook](acquia-dam-live-verify.md) in the Lolly Work repository.
+- **Signed, short-lived download links,** fetched on each request and pinned to
+  `widencollective.com` and `widencdn.net`.
 
 ## Off-boarding
 
-**An exit target**, and the least mapping work of the set.
-
-Kind-specific: `release_date`/`expiration_date` import as
-[availability windows](../catalog.md#imported-availability-windows) and asset statuses map onto
-approval through `approvedStatuses`, so nothing has to be re-entered by hand. Bytes come out
-through `embeds.original`, falling back to the `_links.download` href.
-
-Motion, cadence and the per-DAM readiness table: [off-boarding](../offboarding.md).
-
-See also: [catalog](../catalog.md) · [permissions](../permissions.md).
+Widen can be left through the exit with the least mapping work of the DAMs here: its dates and
+statuses come across as they are, so nothing has to be entered again by hand. Files come out
+through `embeds.original`, falling back to the `_links.download` link. Timing, cadence and the
+readiness of each DAM: [Leave a DAM](../offboarding.md).

@@ -5,7 +5,7 @@
     { "word": "is inclusive", "slug": "inclusive-design" },
     { "word": "is ethical AI", "slug": "ai-stance" },
     { "word": "is private", "slug": "privacy" },
-    { "word": "is free", "slug": "positioning" }
+    { "word": "is free", "slug": "faq" }
   ],
   "ctas": [
     { "href": "/", "label": "Launch App", "class": "hero-btn btn-primary" },
