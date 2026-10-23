@@ -152,7 +152,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Recover and inspect render jobs | [work/renders.md](work/renders.md) |
 | Organisation delivery destinations | [work/delivery.md](work/delivery.md) |
 | Manage organisation AI policy | [work/ai-policy.md](work/ai-policy.md) |
-| Provider guides | [work/providers/README.md](work/providers/README.md) |
+| Connect an asset source | [work/providers/README.md](work/providers/README.md) |
 | WebDAV / Nextcloud | [work/providers/webdav.md](work/providers/webdav.md) |
 | S3 / S3-compatible | [work/providers/s3.md](work/providers/s3.md) |
 | Git raw manifest | [work/providers/git.md](work/providers/git.md) |
@@ -168,6 +168,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Dropbox | [work/providers/dropbox.md](work/providers/dropbox.md) |
 | Google Drive | [work/providers/gdrive.md](work/providers/gdrive.md) |
 | Microsoft 365 / SharePoint | [work/providers/o365.md](work/providers/o365.md) |
+| Check a source on your own tenant | [work/providers/tenant-check.md](work/providers/tenant-check.md) |
 | Preview a project transfer | [work/project-portability.md](work/project-portability.md) |
 
 ## Deploy
@@ -195,13 +196,6 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | WebAssembly and Kubewarden choices | [work/wasm-deployment.md](work/wasm-deployment.md) |
 | Work instance configuration | [work/configuration.md](work/configuration.md) |
 | Configure Work export signing | [work/c2pa.md](work/c2pa.md) |
-| Cloudinary tenant verification | [work/providers/cloudinary-live-verify.md](work/providers/cloudinary-live-verify.md) |
-| Orange Logic tenant verification | [work/providers/orange-logic-live-verify.md](work/providers/orange-logic-live-verify.md) |
-| WebDAV live-verify runbook | [work/providers/webdav-live-verify.md](work/providers/webdav-live-verify.md) |
-| Canto live-verify runbook | [work/providers/canto-live-verify.md](work/providers/canto-live-verify.md) |
-| Image Relay live-verify runbook | [work/providers/imagerelay-live-verify.md](work/providers/imagerelay-live-verify.md) |
-| IntelligenceBank live-verify runbook | [work/providers/intelligencebank-live-verify.md](work/providers/intelligencebank-live-verify.md) |
-| Acquia DAM live-verify runbook | [work/providers/acquia-dam-live-verify.md](work/providers/acquia-dam-live-verify.md) |
 | Operations runbook | [work/operations.md](work/operations.md) |
 | Fast frontend updates | [work/frontend-updates.md](work/frontend-updates.md) |
 | Public model verification reuse | [work/public-model-proof-reuse.md](work/public-model-proof-reuse.md) |

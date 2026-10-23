@@ -2249,7 +2249,7 @@
     },
     {
       "slug": "work-provider-guides",
-      "title": "Provider guides",
+      "title": "Connect an asset source",
       "src": "work/providers/README.md",
       "section": "manage",
       "group": "Shared assets and provider connections",
@@ -2257,7 +2257,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "The shared skeleton every guide follows, the OAuth onboarding, and which drivers are fixture-verified only.",
+      "description": "Bring files from a drive, bucket, repository or DAM into the Lolly Work catalog: choose a source, connect it in four steps and see what each one supports.",
       "work": {
         "slug": "provider-guides",
         "path": "providers/README.md",
@@ -2291,7 +2291,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "AWS S3, MinIO, Ceph RGW: a private bucket federated read-only, zero-dependency SigV4.",
+      "description": "AWS S3, MinIO or Ceph RGW: a private bucket federated read-only, every request freshly signed.",
       "work": {
         "slug": "provider-s3",
         "path": "providers/s3.md",
@@ -2308,7 +2308,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "The GitOps-native source: a catalog manifest under version control, served over raw HTTP.",
+      "description": "A catalog manifest kept in a git repository and read over raw HTTP from the branch you choose.",
       "work": {
         "slug": "provider-git",
         "path": "providers/git.md",
@@ -2359,7 +2359,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Read-only federation, plus the off-boarding path now that Canto owns the platform.",
+      "description": "Read-only federation with mapped expiry, and which driver to leave through after a move to Canto.",
       "work": {
         "slug": "provider-imagerelay",
         "path": "providers/imagerelay.md",
@@ -2393,7 +2393,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Governance-rich enterprise DAM: native availability and approval, no custom-field mapping.",
+      "description": "Widen's own release and expiry dates and approval statuses, with no custom-field mapping.",
       "work": {
         "slug": "provider-acquia-dam",
         "path": "providers/acquia-dam.md",
@@ -2452,40 +2452,6 @@
       }
     },
     {
-      "slug": "work-provider-cloudinary-live-verify",
-      "title": "Cloudinary tenant verification",
-      "src": "work/providers/cloudinary-live-verify.md",
-      "section": "operate",
-      "group": "Provider qualification runbooks",
-      "path": "operate/provider-cloudinary-live-verify",
-      "icon": "globe",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Qualify access, original fidelity, paging and costs on the organisation tenant.",
-      "work": {
-        "slug": "provider-cloudinary-live-verify",
-        "path": "providers/cloudinary-live-verify.md",
-        "icon": "providers"
-      }
-    },
-    {
-      "slug": "work-provider-orange-logic-live-verify",
-      "title": "Orange Logic tenant verification",
-      "src": "work/providers/orange-logic-live-verify.md",
-      "section": "operate",
-      "group": "Provider qualification runbooks",
-      "path": "operate/provider-orange-logic-live-verify",
-      "icon": "globe",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Qualify scoped discovery and permitted renditions without claiming original migration.",
-      "work": {
-        "slug": "provider-orange-logic-live-verify",
-        "path": "providers/orange-logic-live-verify.md",
-        "icon": "providers"
-      }
-    },
-    {
       "slug": "work-provider-penpot",
       "title": "Penpot",
       "src": "work/providers/penpot.md",
@@ -2495,7 +2461,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "An open, self-hostable design-system source: token feed plus curated component export.",
+      "description": "Design tokens from a Penpot you host feed a Work design system; boards are imported one at a time.",
       "work": {
         "slug": "provider-penpot",
         "path": "providers/penpot.md",
@@ -2554,87 +2520,34 @@
       }
     },
     {
-      "slug": "work-provider-webdav-live-verify",
-      "title": "WebDAV live-verify runbook",
-      "src": "work/providers/webdav-live-verify.md",
-      "section": "operate",
-      "group": "Provider qualification runbooks",
-      "path": "operate/provider-webdav-live-verify",
+      "slug": "work-provider-tenant-check",
+      "title": "Check a source on your own tenant",
+      "src": "work/providers/tenant-check.md",
+      "section": "manage",
+      "group": "Shared assets and provider connections",
+      "path": "manage/provider-tenant-check",
       "icon": "globe",
-      "aliases": [],
+      "aliases": [
+        "operate/provider-cloudinary-live-verify",
+        "operate/provider-orange-logic-live-verify",
+        "operate/provider-webdav-live-verify",
+        "operate/provider-canto-live-verify",
+        "operate/provider-imagerelay-live-verify",
+        "operate/provider-intelligencebank-live-verify",
+        "operate/provider-acquia-dam-live-verify",
+        "work-provider-cloudinary-live-verify",
+        "work-provider-orange-logic-live-verify",
+        "work-provider-webdav-live-verify",
+        "work-provider-canto-live-verify",
+        "work-provider-imagerelay-live-verify",
+        "work-provider-intelligencebank-live-verify",
+        "work-provider-acquia-dam-live-verify"
+      ],
       "contentLicense": "MPL-2.0",
-      "description": "The server-day checklist for the WebDAV driver's unconfirmed URL templates and property names.",
+      "description": "Before you rely on a source built from vendor documentation, confirm its fields, its original files and who sees them on your own tenant.",
       "work": {
-        "slug": "provider-webdav-live-verify",
-        "path": "providers/webdav-live-verify.md",
-        "icon": "providers"
-      }
-    },
-    {
-      "slug": "work-provider-canto-live-verify",
-      "title": "Canto live-verify runbook",
-      "src": "work/providers/canto-live-verify.md",
-      "section": "operate",
-      "group": "Provider qualification runbooks",
-      "path": "operate/provider-canto-live-verify",
-      "icon": "globe",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "The tenant-day checklist that turns the fixture-verified Canto driver into a confirmed one.",
-      "work": {
-        "slug": "provider-canto-live-verify",
-        "path": "providers/canto-live-verify.md",
-        "icon": "providers"
-      }
-    },
-    {
-      "slug": "work-provider-imagerelay-live-verify",
-      "title": "Image Relay live-verify runbook",
-      "src": "work/providers/imagerelay-live-verify.md",
-      "section": "operate",
-      "group": "Provider qualification runbooks",
-      "path": "operate/provider-imagerelay-live-verify",
-      "icon": "globe",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "The tenant-day checklist for the Image Relay driver's unconfirmed endpoints and fields.",
-      "work": {
-        "slug": "provider-imagerelay-live-verify",
-        "path": "providers/imagerelay-live-verify.md",
-        "icon": "providers"
-      }
-    },
-    {
-      "slug": "work-provider-intelligencebank-live-verify",
-      "title": "IntelligenceBank live-verify runbook",
-      "src": "work/providers/intelligencebank-live-verify.md",
-      "section": "operate",
-      "group": "Provider qualification runbooks",
-      "path": "operate/provider-intelligencebank-live-verify",
-      "icon": "globe",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "The tenant-day checklist for the IntelligenceBank v3 driver's unconfirmed endpoints and fields.",
-      "work": {
-        "slug": "provider-intelligencebank-live-verify",
-        "path": "providers/intelligencebank-live-verify.md",
-        "icon": "providers"
-      }
-    },
-    {
-      "slug": "work-provider-acquia-dam-live-verify",
-      "title": "Acquia DAM live-verify runbook",
-      "src": "work/providers/acquia-dam-live-verify.md",
-      "section": "operate",
-      "group": "Provider qualification runbooks",
-      "path": "operate/provider-acquia-dam-live-verify",
-      "icon": "globe",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "The tenant-day checklist for the Widen v2 driver's unconfirmed endpoints and fields.",
-      "work": {
-        "slug": "provider-acquia-dam-live-verify",
-        "path": "providers/acquia-dam-live-verify.md",
+        "slug": "provider-tenant-check",
+        "path": "providers/tenant-check.md",
         "icon": "providers"
       }
     },
