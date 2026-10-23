@@ -117,13 +117,12 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | TUI | [tui.md](tui.md) |
 | MCP Server | [mcp.md](mcp.md) |
 | AI Agents | [ai-agents.md](ai-agents.md) |
-| Contributing Setup | [contributing-setup.md](contributing-setup.md) |
+| Get the source | [contributing-setup.md](contributing-setup.md) |
 | Build Guide | [build-guide.md](build-guide.md) |
 | Build the CLI and TUI | [build-terminal.md](build-terminal.md) |
 | Build the desktop app | [build-desktop.md](build-desktop.md) |
 | Build the mobile apps | [build-mobile.md](build-mobile.md) |
-| Build with Open Build Service | [build-obs.md](build-obs.md) |
-| Build the web container and Helm chart | [build-kubernetes.md](build-kubernetes.md) |
+| Linux packages | [build-obs.md](build-obs.md) |
 | Building for iOS | [ios-build.md](ios-build.md) |
 | Read verified catalog resources | [catalog-resource-reading.md](catalog-resource-reading.md) |
 | Data Transfer | [data-transfer.md](data-transfer.md) |
@@ -176,7 +175,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | --- | --- |
 | Configure connector origins | [connector-origins.md](connector-origins.md) |
 | Choose a deployment | [deployment.md](deployment.md) |
-| CI qualification | [ci-qualification.md](ci-qualification.md) |
+| Run on Kubernetes | [build-kubernetes.md](build-kubernetes.md) |
 | Delivery deployment | [deploy-delivery.md](deploy-delivery.md) |
 | Sovereign creative production | [sovereign-production.md](sovereign-production.md) |
 | Deploy | [operate.md](operate.md) |

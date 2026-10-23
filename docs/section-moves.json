@@ -553,12 +553,12 @@
   "build-guide": {
     "cli": {
       "slug": "build-terminal",
-      "anchor": "cli",
+      "anchor": "run-them-from-the-checkout",
       "label": "CLI"
     },
     "development-use-no-build-needed": {
       "slug": "build-terminal",
-      "anchor": "development-use-no-build-needed",
+      "anchor": "run-them-from-the-checkout",
       "label": "Development use (no build needed)"
     },
     "standalone-binary": {
@@ -568,17 +568,17 @@
     },
     "tui": {
       "slug": "build-terminal",
-      "anchor": "tui",
+      "anchor": "run-them-from-the-checkout",
       "label": "TUI"
     },
     "browser-render-tier-raster-pdf-video-url-capture": {
       "slug": "build-terminal",
-      "anchor": "browser-render-tier-raster-pdf-video-url-capture",
+      "anchor": "what-renders-without-a-browser",
       "label": "Browser render tier (raster / PDF / video / URL capture)"
     },
     "desktop-app-macos-windows-linux": {
       "slug": "build-desktop",
-      "anchor": "desktop-app-macos-windows-linux",
+      "anchor": "prerequisites",
       "label": "Desktop app (macOS / Windows / Linux)"
     },
     "prerequisites": {
@@ -608,98 +608,150 @@
     },
     "mobile-apps-ios-android": {
       "slug": "build-mobile",
-      "anchor": "mobile-apps-ios-android",
+      "anchor": "prerequisites",
       "label": "Mobile apps (iOS / Android)"
     },
     "android": {
       "slug": "build-mobile",
-      "anchor": "android",
+      "anchor": "prerequisites",
       "label": "Android"
     },
     "ios-macos-only": {
-      "slug": "build-mobile",
-      "anchor": "ios-macos-only",
+      "slug": "ios-build",
+      "anchor": "prerequisites",
       "label": "iOS (macOS only)"
     },
     "first-time-platform-init": {
       "slug": "build-mobile",
-      "anchor": "first-time-platform-init",
+      "anchor": "the-native-projects-are-in-the-repository",
       "label": "First-time platform init"
     },
     "icons-mobile": {
       "slug": "build-mobile",
-      "anchor": "icons-mobile",
+      "anchor": "icons",
       "label": "Icons (mobile)"
     },
     "open-build-service-obs": {
       "slug": "build-obs",
-      "anchor": "open-build-service-obs",
+      "anchor": "what-the-open-build-service-would-add",
       "label": "Open Build Service (OBS)"
     },
     "what-obs-can-build-for-lolly": {
       "slug": "build-obs",
-      "anchor": "what-obs-can-build-for-lolly",
+      "anchor": "what-the-open-build-service-would-add",
       "label": "What OBS can build for Lolly"
     },
     "how-it-fits-lolly-s-artifacts": {
       "slug": "build-obs",
-      "anchor": "how-it-fits-lolly-s-artifacts",
+      "anchor": "what-a-package-carries",
       "label": "How it fits Lolly's artifacts"
     },
     "build-environment-constraints": {
       "slug": "build-obs",
-      "anchor": "build-environment-constraints",
+      "anchor": "build-with-no-network",
       "label": "Build-environment constraints"
     },
     "illustrative-project-layout": {
       "slug": "build-obs",
-      "anchor": "recipes-in-the-repository",
+      "anchor": "what-ships-today",
       "label": "Recipes in the repository"
     },
     "web-shell-on-kubernetes-helm": {
       "slug": "build-kubernetes",
-      "anchor": "web-shell-on-kubernetes-helm",
+      "anchor": "use-the-published-images",
       "label": "Web shell on Kubernetes (Helm)"
     },
     "why-the-suse-application-collection": {
       "slug": "build-kubernetes",
-      "anchor": "why-the-suse-application-collection",
+      "anchor": "build-your-own-image",
       "label": "Why the SUSE Application Collection"
     },
     "1-build-the-image": {
       "slug": "build-kubernetes",
-      "anchor": "1-build-the-image",
+      "anchor": "build-your-own-image",
       "label": "1. Build the image"
     },
     "2-swapping-in-a-suse-nginx-base-optional": {
       "slug": "build-kubernetes",
-      "anchor": "2-swapping-in-a-suse-nginx-base-optional",
+      "anchor": "build-your-own-image",
       "label": "2. Swapping in a SUSE nginx base (optional)"
     },
     "3-what-the-nginx-config-already-handles": {
       "slug": "build-kubernetes",
-      "anchor": "3-what-the-nginx-config-already-handles",
+      "anchor": "what-the-nginx-config-already-handles",
       "label": "3. What the nginx config already handles"
     },
     "4-the-chart": {
       "slug": "build-kubernetes",
-      "anchor": "4-the-chart",
+      "anchor": "what-the-chart-deploys",
       "label": "4. The chart"
     },
     "5-install": {
       "slug": "build-kubernetes",
-      "anchor": "5-install",
+      "anchor": "install-the-chart",
       "label": "5. Install"
     },
     "6-the-optional-services": {
       "slug": "build-kubernetes",
-      "anchor": "6-the-optional-services",
+      "anchor": "turn-on-mcp-or-ca",
       "label": "6. The optional services"
     },
     "tls-the-suse-curated-way-optional": {
       "slug": "build-kubernetes",
-      "anchor": "tls-the-suse-curated-way-optional",
+      "anchor": "tls-with-cert-manager",
       "label": "TLS, the SUSE-curated way (optional)"
+    },
+    "getting-the-source": {
+      "slug": "contributing-setup",
+      "anchor": "clone-and-set-up",
+      "label": "Getting the source"
+    },
+    "prerequisites-all-targets": {
+      "slug": "contributing-setup",
+      "anchor": "what-you-need-first",
+      "label": "Prerequisites (all targets)"
+    },
+    "the-private-suse-brand-pack": {
+      "slug": "contributing-setup",
+      "anchor": "the-private-suse-pack",
+      "label": "The private SUSE brand pack"
+    },
+    "how-the-tauri-shells-relate-to-the-web-shell": {
+      "slug": "build-guide",
+      "anchor": "one-source-three-apps",
+      "label": "How the Tauri shells relate to the web shell"
+    }
+  },
+  "deployment": {
+    "removing-a-catalogue-design-system": {
+      "slug": "configuration",
+      "anchor": "removing-a-catalogue-design-system",
+      "label": "Removing a catalogue design system"
+    },
+    "container-kubernetes": {
+      "slug": "build-kubernetes",
+      "anchor": "use-the-published-images",
+      "label": "Container & Kubernetes"
+    },
+    "k3s-rke2-and-suse-dependency-images": {
+      "slug": "build-kubernetes",
+      "anchor": "small-clusters-the-lean-profile",
+      "label": "K3s, RKE2 and SUSE dependency images"
+    },
+    "complete-public-and-private-routing-on-k3s": {
+      "slug": "build-kubernetes",
+      "anchor": "one-node-public-and-private-routes-the-sovereign-profile",
+      "label": "Complete public and private routing on K3s"
+    },
+    "managed-enterprise-identity": {
+      "slug": "deployment",
+      "anchor": "organisation-services-with-lolly-work",
+      "label": "Managed enterprise identity"
+    },
+    "upcloud-and-evroc": {
+      "slug": "deployment",
+      "anchor": "organisation-services-with-lolly-work",
+      "label": "UpCloud and Evroc"
     }
   }
 }

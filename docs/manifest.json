@@ -1190,9 +1190,9 @@
     },
     {
       "slug": "contributing-setup",
-      "title": "Contributing Setup",
+      "title": "Get the source",
       "src": "contributing-setup.md",
-      "description": "Get a development checkout sized to what you're here to do: slim clone personas for tool authors and engine developers, and how to upgrade to the full thing later.",
+      "description": "Clone Lolly, install what it needs and open the web app from source: the setup script, a full or partial clone, what a clone leaves out and how to fix a failed setup.",
       "section": "build",
       "path": "build/contributing-setup",
       "icon": "download",
@@ -1204,7 +1204,7 @@
       "slug": "build-guide",
       "title": "Build Guide",
       "src": "build-guide.md",
-      "description": "Build Lolly for each target: the CLI binary, the desktop app, mobile, and the web PWA. Prerequisites, commands and what each build produces.",
+      "description": "Pick the Lolly app you want to build from source: the CLI and TUI, desktop, Android, iOS, Linux packages, the web app and its container image.",
       "section": "build",
       "path": "build/build-guide",
       "icon": "box",
@@ -1221,7 +1221,7 @@
       "slug": "build-terminal",
       "title": "Build the CLI and TUI",
       "src": "build-terminal.md",
-      "description": "Run the terminal shells from source or package the CLI binary.",
+      "description": "Run the CLI and TUI from a checkout, see which formats need a browser, and package the CLI for other machines.",
       "section": "build",
       "path": "build/build-terminal",
       "icon": "box",
@@ -1238,7 +1238,7 @@
       "slug": "build-desktop",
       "title": "Build the desktop app",
       "src": "build-desktop.md",
-      "description": "Set up and package the Tauri desktop shell.",
+      "description": "Run the desktop app from source and package it for macOS, Windows and Linux, with the brand each build ships.",
       "section": "build",
       "path": "build/build-desktop",
       "icon": "box",
@@ -1255,7 +1255,7 @@
       "slug": "build-mobile",
       "title": "Build the mobile apps",
       "src": "build-mobile.md",
-      "description": "Set up, develop and package Android and iOS shells.",
+      "description": "Run the Android app on an emulator or phone and build a signed APK and AAB; iOS has its own page.",
       "section": "build",
       "path": "build/build-mobile",
       "icon": "box",
@@ -1270,31 +1270,14 @@
     },
     {
       "slug": "build-obs",
-      "title": "Build with Open Build Service",
+      "title": "Linux packages",
       "src": "build-obs.md",
-      "description": "Plan OBS recipes for Lolly artifacts and their dependencies.",
+      "description": "The RPM, deb, Flatpak and Arch recipes in the repository, what each package carries, building with no network, and what the Open Build Service would add.",
       "section": "build",
       "path": "build/build-obs",
       "icon": "box",
       "aliases": [
         "operate/build-obs"
-      ],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Build and contribute to the apps",
-      "secondarySections": [
-        "operate"
-      ]
-    },
-    {
-      "slug": "build-kubernetes",
-      "title": "Build the web container and Helm chart",
-      "src": "build-kubernetes.md",
-      "description": "Build the web image and deploy the chart with optional services.",
-      "section": "build",
-      "path": "build/build-kubernetes",
-      "icon": "box",
-      "aliases": [
-        "operate/build-kubernetes"
       ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Build and contribute to the apps",
@@ -1311,7 +1294,8 @@
       "icon": "box",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Build and contribute to the apps"
+      "group": "Build and contribute to the apps",
+      "description": "Run Lolly in the iPhone Simulator, sign a build for a device or TestFlight, and release through the protected App Store workflow."
     },
     {
       "slug": "catalog-resource-reading",
@@ -1346,19 +1330,22 @@
       "icon": "upload",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Hosting and installation"
+      "group": "Hosting and installation",
+      "description": "Pick how Lolly reaches people: hand out the apps, host the web app on any static server or Kubernetes, or add Lolly Work. The routes and headers a host must serve."
     },
     {
-      "slug": "ci-qualification",
-      "title": "CI qualification",
-      "src": "ci-qualification.md",
-      "description": "Qualify rapid UI updates and full releases with exact source and CI evidence.",
+      "slug": "build-kubernetes",
+      "title": "Run on Kubernetes",
+      "src": "build-kubernetes.md",
+      "description": "Install Lolly on your own cluster from the published images and Helm chart, turn on MCP or CA, build your own image, and use the lean and sovereign profiles.",
       "section": "operate",
-      "path": "operate/ci-qualification",
-      "icon": "checklist",
-      "aliases": [],
+      "path": "operate/build-kubernetes",
+      "icon": "box",
+      "aliases": [
+        "build/build-kubernetes"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Updates, qualification and release history"
+      "group": "Hosting and installation"
     },
     {
       "slug": "deploy-delivery",
