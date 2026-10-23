@@ -349,6 +349,11 @@ Export options:
   --wait=<s> --codec=<c>   settle time before frame one, codec h264|hevc|vp9|av1,
   --vq=smaller|balanced|best   and quality - the export panel's fields, as URL params
   --lang=<xx>              use a tool's manifest translation sidecar
+  --emoji=<id@version>     draw emoji from this installed set (\`none\` clears a choice)
+  --emojifx=<treatment>    the set's brand treatment: original, influence:<bps>, snap,
+                           mono or duotone, with an optional ,unprotected
+  --emojistyle=<json>      an exact emoji style snapshot, as a share link carries it;
+                           it wins over --emoji and --emojifx
   --designv=<slug|latest>  the design-system version to render against: a published
                            version's slug, or \`latest\` for the edit head. Beats a
                            tool's own pin; a slug this catalog does not ship falls
