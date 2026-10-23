@@ -1,0 +1,11 @@
+digraph token_three_places {
+  rankdir=TB
+  node [shape=box]
+  token [label="One colour token\ncolor.semantic.primary"]
+  tool [label="Tool render\nlinked values redraw"]
+  picker [label="Colour picker\nswatches by name"]
+  penpot [label="Penpot export\nDTCG tokens"]
+  token -> tool
+  token -> picker
+  token -> penpot
+}

@@ -1,6 +1,8 @@
 # Meet Lolly Demo
 
-Lolly Demo is Lolly's own design system, the one lolly.tools opens with. Your brand is the show. Lolly is the Studio.
+Lolly Demo is Lolly's own design system, the one lolly.tools opens with, which is why everything starts out green. Your brand is the show. Lolly is the Studio.
+
+Lolly Demo is a sample. Switch to **Lolly Starter**, a blank design system, or to your own in [Settings → Design systems](/#/settings?focus=design-systems-section), and [Start](/info/quickstart.html#put-your-brand-in) shows how to make one.
 
 ::: figure lolly-demo-parts
 Choose a part to open its standards.

@@ -26,10 +26,12 @@ const REPO = new URL('..', import.meta.url).pathname;
 const DOCS = join(REPO, 'docs');
 const BUILT = join(REPO, 'shells/web/public/info');
 
-/** Resolve published pages before their old flat redirect stubs. */
+/** Resolve published pages before their redirect stubs: the old flat URL, and the old
+ *  door of a page that moved to another pathway (build-kubernetes went from build to operate). */
+const isStub = (path: string): boolean => path.endsWith('.html') && /<meta http-equiv="refresh"/i.test(readFileSync(path, 'utf-8'));
 function builtPage(slug: string, ext = 'html', lang = ''): string {
   const root = join(BUILT,lang);
-  return ['start','create','build','operate','trust',''].map(door => join(root,door,`${slug}.${ext}`)).find(path => existsSync(path)) || join(root,`${slug}.${ext}`);
+  return ['start','create','build','operate','trust',''].map(door => join(root,door,`${slug}.${ext}`)).find(path => existsSync(path) && !isStub(path)) || join(root,`${slug}.${ext}`);
 }
 
 /** The exact marker shapes docs/build.ts matches (post-esc) and strips from twins:
@@ -208,7 +210,7 @@ test('the build guide ships the Kubernetes block, decorative and unannounced', {
   const keys = [...block[1]!.matchAll(/class="doc-logo-mark" data-logo="([a-z0-9-]+)"/g)].map(m => m[1]);
   assert.deepEqual(keys, ['kubernetes', 'helm'], 'the block does not carry the two marks its section is about');
   // The heading it introduces still owns its own line - and its own anchor.
-  assert.match(body, /<h2 id="web-shell-on-kubernetes-helm">Web shell on Kubernetes \(Helm\)<\/h2>/);
+  assert.match(body, /<h2 id="use-the-published-images">Use the published images<\/h2>/);
   assert.ok(!/<!--lb:/.test(body), 'an unrendered block marker ships as an HTML comment');
   assert.ok(!/&lt;!--lb:/.test(body), 'a block marker ships as VISIBLE text');
 });
@@ -220,7 +222,7 @@ test('the built build-guide carries the marks it is the flagship for', { skip: b
   }
   // The mark inside the Kubernetes h2 must not have leaked into the heading's id - 
   // that id is a published anchor (the jump nav, search results, deep links).
-  assert.match(body, /<h2 id="web-shell-on-kubernetes-helm"/);
+  assert.match(body, /<h2 id="use-the-published-images"/);
 });
 
 test('the markdown twin carries no logo markers', { skip: built }, () => {

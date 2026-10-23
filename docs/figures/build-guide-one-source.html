@@ -1,0 +1,72 @@
+<!--
+  Concept: One source, three apps: shells/web/src feeds the web, desktop and mobile builds; the two Tauri shells swap a few bridge modules (storage, file delivery, capabilities, plus capture on desktop and user assets on mobile) and the desktop adds notifications, updates and zoom.
+  Band Contract: static fragment scoped under .bos, reads the docs theme tokens with fallbacks, no
+  script, no motion, no network, so the complete figure renders with JS disabled and in both themes.
+  Sources: shells/tauri-desktop/vite.config.js (overrideBridgeModules), shells/tauri-desktop/bridge-overrides/ and shells/tauri-mobile/bridge-overrides/ file lists, tauri.conf.json frontendDist.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by
+  Andy Fitzsimon on 2026-10-23. The C2PA signature added at bank time is the first provenance record
+  of this file.
+-->
+<style>
+.bos{--bos-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--bos-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --bos-ground:hsl(var(--secondary,84.5 55% 92.2%));--bos-paper:hsl(var(--card,0 0% 100%));
+ --bos-accent:hsl(var(--primary,176.5 89.5% 11.2%));--bos-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --bos-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--bos-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --bos-wash:color-mix(in oklab,var(--bos-accent) 12%,var(--bos-paper));
+ --bos-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--bos-ink);background:var(--bos-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.bos *{box-sizing:border-box}
+.bos ul,.bos ol{list-style:none;margin:0;padding:0}
+.bos li{list-style:none;margin:0;font-size:inherit}
+.bos p{margin:0}
+.bos code{font:500 .8em/1.3 var(--bos-mono);background:var(--bos-soft);border-radius:5px;padding:.08em .32em;white-space:nowrap}
+.bos b{font-weight:600}
+.bos .bos-cap{font:600 11px/1.3 var(--bos-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--bos-muted)}
+.bos .bos-card{background:var(--bos-paper);border-radius:16px;box-shadow:0 0 0 1px var(--bos-line);padding:14px}
+.bos .bos-title{font-weight:600;font-size:1.02rem;line-height:1.2}
+.bos .bos-note{font-size:.84rem;color:var(--bos-muted)}
+.bos .bos-tag{display:inline-block;font:600 11px/1.2 var(--bos-mono);letter-spacing:.03em;padding:3px 8px;border-radius:999px;background:var(--bos-wash);color:var(--bos-ink)}
+.bos .bos-tag.bos-solid{background:var(--bos-accent);color:var(--bos-on-accent)}
+.bos .bos-down{display:flex;justify-content:center;padding:6px 0}
+.bos .bos-down i{display:block;width:2px;height:18px;background:var(--bos-line);position:relative}
+.bos .bos-down i::after{content:"";position:absolute;left:-5px;bottom:-6px;border:6px solid transparent;border-top-color:var(--bos-muted);border-bottom:0}
+.bos .bos-src{text-align:center;max-width:30rem;margin:0 auto;display:grid;gap:6px;justify-items:center}
+.bos .bos-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:4px}
+.bos .bos-chips li{font-size:.82rem;padding:3px 10px;border-radius:999px;background:var(--bos-wash)}
+.bos .bos-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.bos .bos-cols>li{display:grid;gap:7px;align-content:start}
+.bos .bos-out code{white-space:normal;word-break:break-all}
+.bos .bos-swap{font-size:.84rem;line-height:1.35}
+@container (max-width:620px){.bos .bos-cols{grid-template-columns:minmax(0,1fr)}}
+</style>
+<div class="bos">
+<div class="bos-card bos-src">
+<p class="bos-cap">One source</p>
+<p class="bos-title"><code>shells/web/src/</code></p>
+<ul class="bos-chips"><li>engine</li><li>tools</li><li>templates</li><li>render path</li></ul>
+</div>
+<div class="bos-down" aria-hidden="true"><i></i></div>
+<ul class="bos-cols">
+<li class="bos-card">
+<p class="bos-cap">Web app</p>
+<p class="bos-title">Your browser</p>
+<p class="bos-out"><code>shells/web/dist/</code></p>
+<p class="bos-note">Saves to IndexedDB and downloads through the browser.</p>
+</li>
+<li class="bos-card">
+<p class="bos-cap">Desktop app</p>
+<p class="bos-title">macOS, Windows, Linux</p>
+<p class="bos-out"><code>shells/tauri-desktop/dist/</code></p>
+<p class="bos-swap"><span class="bos-tag">swaps</span> storage, file delivery, capabilities, page capture</p>
+<p class="bos-swap"><span class="bos-tag">adds</span> notifications, updates, zoom</p>
+</li>
+<li class="bos-card">
+<p class="bos-cap">Mobile app</p>
+<p class="bos-title">Android, iOS</p>
+<p class="bos-out"><code>shells/tauri-mobile/dist/</code></p>
+<p class="bos-swap"><span class="bos-tag">swaps</span> storage, file delivery, capabilities, user assets</p>
+</li>
+</ul>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ6Wp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnDanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDpkNTVhOWEzYS04MDRjLTRhNDQtODVlMC1mNmM4YWU4OGUzNTcAAAAEQGp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNjoyNzozOFoAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GRJ6Zmxlbmd0aBkNmmRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFgg1tFjIFPj1xPebuUmqHsGc6E8PAGywOs12KnNq/RBsHtjcGFkSAAAAAAAAAAAAAAA1mp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAAKJjYm9yp2dzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHZidWlsZC1ndWlkZS1vbmUtc291cmNlZGRhdGV4GDIwMjYtMTAtMjNUMDY6Mjc6MzguMDA4WmhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALUanVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAqVjYm9ypmhkYzp0aXRsZXZidWlsZC1ndWlkZS1vbmUtc291cmNlamluc3RhbmNlSUR4LXVybjp1dWlkOjhjY2E3OGRiLWI0YmMtNDIwZC04MzA5LWZhOWM4ZjkzMjZhYXRjbGFpbV9nZW5lcmF0b3JfaW5mb6NkbmFtZWVMb2xseWd2ZXJzaW9uZzEuMjgxLjBrc3BlY1ZlcnNpb25lMi40LjByY3JlYXRlZF9hc3NlcnRpb25zhaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggyY2m+W/ALrbHmSaqOc9PohIQONzxNznBCMFz+zxFWaiiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFgg8ZOP3jCSapEVMRx8hNav1JWSEQS7alqPAvy1VAfszN2iY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvdG9vbHMubG9sbHkuZXhwb3J0ZGhhc2hYIGFFh/1tOpVXflwNfxVMAZwA3yYx1OuEPcIXPWFS8Yp/omN1cmx4KHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2Nhd2cubWV0YWRhdGFkaGFzaFgg7iYlKJf/Z3Tb+oGzES2uAj7yXJtuDKwUN6DDNEbaboSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYILULL+IgRwhuFb2Z97+uFQ7MwZxWugE0GKMzzeUhYpqraXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMGNib3LShFkB36IBJhghgVkB1jCCAdIwggF5oAMCAQICCUaKzGKKzvQ3yTAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYxMDIzMDYyNjM4WhcNMzYxMDIwMDYyNzM4WjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASMkwiL7lKt8yKFpahU9+AuKBRcgQTIRBuxKwl8nMCXr7w9P3vujbeZemtI9gTTgnqv3cOmQNP7IVIyi9qxZa/To3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQUNytN3WN40GB0BeCDNTw41DK4k9cwHwYDVR0jBBgwFoAUNytN3WN40GB0BeCDNTw41DK4k9cwCgYIKoZIzj0EAwIDRwAwRAIgMxcM0DX0nfJrB1a5xi+Ps1/5rjTaAzrFKljbA39TctMCIGdleVNWAN16PzKZVNSd7xiwWMYOz55vfqddza/TRroJoPZYQK8UJW2EAWBGdi6YR7K0Af31gPKK4dJQmDbAuYhKjW2kRoApPCHDvcChIMu9ntheRBXtWWlT/pUXiillCHq3tYU= -----END C2PA MANIFEST----- -->
