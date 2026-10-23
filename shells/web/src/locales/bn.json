@@ -8034,5 +8034,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "এখনও কোনো রং সঠিক কালিতে লক করা নেই। {start}-এ কোনো রঙের প্রিন্ট সেটিং থেকে একটি লক করুন।",
   "Ink and paper": "কালি ও কাগজ",
   "Named colours": "নামযুক্ত রং",
-  "Emphasis": "জোর"
+  "Emphasis": "জোর",
+  "Zoom to selection": "নির্বাচনে জুম করুন"
 }

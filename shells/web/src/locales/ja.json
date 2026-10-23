@@ -8034,5 +8034,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "正確なインクに固定されたカラーはまだありません。{start}でカラーの印刷設定から固定できます。",
   "Ink and paper": "インクと紙",
   "Named colours": "名前付きカラー",
-  "Emphasis": "強調"
+  "Emphasis": "強調",
+  "Zoom to selection": "選択範囲にズーム"
 }

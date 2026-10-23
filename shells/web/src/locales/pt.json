@@ -8034,5 +8034,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "Nenhuma cor está travada em uma tinta exata ainda. Trave uma pelo ajuste de impressão de uma cor em {start}.",
   "Ink and paper": "Tinta e papel",
   "Named colours": "Cores nomeadas",
-  "Emphasis": "Ênfase"
+  "Emphasis": "Ênfase",
+  "Zoom to selection": "Zoom na seleção"
 }

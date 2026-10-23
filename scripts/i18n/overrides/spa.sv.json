@@ -1681,5 +1681,6 @@
   "No colours are locked to an exact ink yet. Lock one from a colour's print setting in {start}.": "Ingen färg är låst till en exakt tryckfärg ännu. Lås en från en färgs tryckinställning i {start}.",
   "Ink and paper": "Bläck och papper",
   "Named colours": "Namngivna färger",
-  "Emphasis": "Betoning"
+  "Emphasis": "Betoning",
+  "Zoom to selection": "Zooma till markering"
 }
