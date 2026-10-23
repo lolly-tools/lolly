@@ -11,6 +11,7 @@ import { designBrief } from '../../../engine/src/design-brief.ts';
 import { briefCatalogSummary, readProfileBriefCatalog, readProfileTokenDocument } from '@lolly-tools/node-shell/design-brief';
 import { exportProfileBrandSkill, listProfileBrandSkills, profileBrandSkillCoverage, readProfileBrandSkill } from '@lolly-tools/node-shell/brand-skills';
 import { isHostedServer } from './rebrand.ts';
+import { isPublicBrandSkillAsset } from '@lolly-tools/core/brand-skill-v1';
 import { createTokenSet, pickHeadAssetId } from '@lolly/engine';
 import { assetIndex, contentUrl, previewsDir, REPO_ROOT } from './paths.ts';
 import { loadIndex, loadToolCached } from './catalog.ts';
@@ -90,7 +91,8 @@ async function assetsListing(uri: string): Promise<ResourceContent> {
   const idx = assetIndex<AssetIndex>();
   // Same listing shape host.assets.query resolves (id/type/name/tags), minus bytes;
   // fetch an individual asset via lolly://asset/{id}.
-  const assets = idx.assets.map(a => ({
+  // A hosted server never names an internal brand skill (plan 323).
+  const assets = idx.assets.filter(a => !isHostedServer() || isPublicBrandSkillAsset(a)).map(a => ({
     id: a.id, type: a.type,
     ...(a.name ? { name: a.name } : {}),
     tags: a.tags ?? [],
@@ -111,6 +113,7 @@ async function previewResource(uri: string, id: string): Promise<ResourceContent
 }
 
 async function assetResource(uri: string, id: string): Promise<ResourceContent> {
+  if (isHostedServer() && !isPublicBrandSkillAsset(assetIndex<AssetIndex>().assets.find(a => a.id === id))) throw new Error(`Asset not found: ${id}`);
   return withHost({}, async (_dom, host) => {
     const ref = await host.assets.get(id);
     const parsed = parseDataUrl(ref.url);
@@ -132,7 +135,7 @@ async function assetResource(uri: string, id: string): Promise<ResourceContent> 
  */
 export function designContextResource(uri = 'lolly://design-context'): ResourceContent {
   const tokens = readProfileTokenDocument();
-  const catalog = readProfileBriefCatalog();
+  const catalog = readProfileBriefCatalog({ skillAudience: isHostedServer() ? 'public' : 'all' });
   const origin = tokens ? { kind: 'profile' as const, profile: tokens.profile, tokensAsset: tokens.tokensAsset } : null;
   const brief = designBrief(tokens?.doc ?? null, catalog, { ...(tokens?.label ? { name: tokens.label } : {}), theme: undefined });
   const result = { ...brief, origin, catalog: briefCatalogSummary(catalog) };

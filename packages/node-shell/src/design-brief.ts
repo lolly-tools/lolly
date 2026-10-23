@@ -32,6 +32,11 @@ export interface ProfileSourceOptsV1 {
   profile?: string;
   /** A checkout or content root other than the one the marker walk finds. */
   root?: string;
+  /**
+   * Which brand skills the facts may name (plan 323): `public` (the default, for hosted
+   * surfaces) leaves internal skills out entirely; `all` is for the developer's own pack.
+   */
+  skillAudience?: 'public' | 'all';
 }
 
 /** The profile's token document and where it came from. */
@@ -113,10 +118,14 @@ export function readProfileBriefCatalog(opts: ProfileSourceOptsV1 = {}): (Design
       ...(typeof raw.license === 'string' ? { license: raw.license } : {}),
       ...(a.deprecated === true ? { deprecated: true } : {}),
     };
-  }).map((row, i) => {
+  }).flatMap((row, i) => {
     // A brand skill carries its index row (plan 323), so the brief lists it without bodies.
-    const skill = row.type === 'skill' ? brandSkillIndexEntry(assets[i]) : null;
-    return skill ? { ...row, skill } : row;
+    // An internal one is not named at all unless the caller may see it.
+    if (row.type !== 'skill') return [row];
+    const skill = brandSkillIndexEntry(assets[i]);
+    if (!skill) return [row];
+    if (skill.audience !== 'public' && opts.skillAudience !== 'all') return [];
+    return [{ ...row, skill }];
   });
   const iconThemes = palette('icon-themes');
   const photoTreatments = palette('photo-treatments');

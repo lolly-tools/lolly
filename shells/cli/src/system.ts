@@ -301,7 +301,8 @@ export async function systemCli(positionals: string[], flags: Flags, json = fals
     // profile's own design system only: a --file or terminal system gets them only when it
     // is that same token document, so another brand never inherits them.
     const { briefCatalogSummary, readBriefCatalogFor } = await import('@lolly-tools/node-shell/design-brief');
-    const catalog = readBriefCatalogFor(origin?.kind, doc);
+    // The terminal reads the developer's own pack, so internal brand skills are named too.
+    const catalog = readBriefCatalogFor(origin?.kind, doc, { skillAudience: 'all' });
     const brief = designBrief(doc, catalog, { ...(name ? { name } : {}), theme: flags.theme });
     let result: unknown = { ...brief, origin, catalog: briefCatalogSummary(catalog) };
     if (action === 'check') {

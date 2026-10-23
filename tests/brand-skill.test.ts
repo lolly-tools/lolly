@@ -364,7 +364,11 @@ test('audience: a public listing withholds internal skills, the developer\'s own
     assert.equal(pub.withheld, 1);
     assert.equal(await readProfileBrandSkill('acme-secret', { root, audience: 'public' }), null);
     assert.ok(await readProfileBrandSkill('acme-secret', { root, audience: 'all' }));
-    // A static build is public whatever profile made it: the internal skill is not in it.
+    // The brief's catalog facts never name an internal skill unless the caller may see it.
+    const briefIds = (audience?: 'all') => readProfileBriefCatalog({ root, ...(audience ? { skillAudience: audience } : {}) })!.assets!.map((a) => a.id);
+    assert.deepEqual(briefIds(), ['acme/skill/brand']);
+    assert.deepEqual(briefIds('all'), ['acme/skill/brand', 'acme/skill/secret']);
+        // A static build is public whatever profile made it: the internal skill is not in it.
     const dist = join(root, 'dist');
     materializeInto(dist, contentRoots({ root }));
     const served = JSON.parse(readFileSync(join(dist, 'catalog/assets/index.json'), 'utf8'));

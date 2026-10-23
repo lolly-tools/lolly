@@ -82,7 +82,7 @@ function visible(meta: BrandSkillMetaV1, audience: BrandSkillAudienceScopeV1): b
 
 function brief(opts: ProfileSourceOptsV1) {
   const tokens = readProfileTokenDocument(opts);
-  const catalog = readProfileBriefCatalog(opts);
+  const catalog = readProfileBriefCatalog({ ...opts, skillAudience: 'all' });
   return designBrief(tokens?.doc ?? null, catalog, tokens?.label ? { name: tokens.label } : {});
 }
 
