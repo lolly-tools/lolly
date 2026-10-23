@@ -1,14 +1,10 @@
 # CLI batch and automation
 
-Run batches, preflight outputs and integrate predictable results into scripts and CI.
+Put Lolly in a pipeline: render a spreadsheet of files, gate a whole catalog in CI, preflight a print job and check documents before they ship. Every command answers with an exit code a script can branch on, listed in the [CLI reference](/info/cli-reference.html#exit-codes) with the `--json` envelope.
 
-Part of [CLI](/info/cli.html).
+## Render many files from a spreadsheet (lolly batch)
 
-## Batch
-
-A batch is **many URL-mode rows under one file** - the same principle as a single render, tabulated. `lolly batch <rows.csv>` renders one output per row into a directory (a directory by design, not a zip: a folder composes with your own `zip`/`tar`; the TUI's batch packs a zip instead).
-
-Write a starter grid for one or more tools, with their input columns and the reserved columns:
+A batch is **many URL-mode rows in one file**: each row is a render, with its inputs as cells. Write a starter grid for one or more tools, with their input columns and the output columns:
 
 ```bash
 pnpm --silent run cli batch --template=qr-code,asset-export > rows.csv
@@ -17,10 +13,8 @@ pnpm --silent run cli batch --template=qr-code,asset-export > rows.csv
 Fill in one row per file, then render every row into `./out/NN-<name>.<fmt>`:
 
 ```bash
-pnpm run cli batch rows.csv --out-dir=./out
+lolly batch rows.csv --out-dir=./out
 ```
-
-The header row lists the columns: a **`toolId`** column is required; **`format` · `width` · `height` · `unit` · `dpi` · `filename`** are per-row output settings; every other column is a **tool input id** whose cell is a value (any URL-mode form - plain text, JSON/tilde blocks, `id.field` vectors). Rows can mix tools freely. Example:
 
 ```csv
 toolId,format,url,color,src
@@ -29,126 +23,138 @@ qr-code,png,https://lolly.tools,#30ba78,
 asset-export,pdf,,,lolly/logo/primary
 ```
 
-(The last row places a catalog asset by its id. `lolly assets` lists the ids your profile carries.)
+Each row becomes one file, numbered in row order:
 
-The header *is* the namespace here - a batch has no `--input.<id>=` escape - so an input whose id is one of those reserved names (`asset-export` declares `width` and `height`) cannot be set per row, and `--template=` leaves it out rather than emitting a second column with the same name. It says which inputs it dropped. Render those with `lolly run … --input.width=…`.
+| Row in `rows.csv` | File in `./out` |
+|---|---|
+| `qr-code,svg,https://example.com,#0c322c,` | `01-qr-code.svg` |
+| `qr-code,png,https://lolly.tools,#30ba78,` | `02-qr-code.png` |
+| `asset-export,pdf,,,lolly/logo/primary` | `03-asset-export.pdf` |
 
-`--template=` writes the input columns plus those six output columns. It is not the whole set: **any reserved URL param works as a column**, because a row's cells are read exactly as a URL's query is. `bleed`/`marks`/`press-profile` ride that way; add them to the header by hand.
+A **`toolId`** column is required. **`format`**, **`width`**, **`height`**, **`unit`**, **`dpi`** and **`filename`** are per-row output settings. Every other column is a **tool input id**, and its cell takes any URL-mode form: plain text, JSON or tilde-separated blocks, `id.field` vectors. Rows can mix tools freely, and the last row above places a catalog asset by its id (`lolly assets` lists the ids your profile carries).
 
-**A transform tool (`hooks.exportFile`: a file in, bytes out) runs from a batch too.** A row puts its input file in the tool's own file-input column, the path resolving against the working directory exactly as it does on `lolly run`. Leave that row's `format`, `width`, `height`, `unit` and `dpi` cells blank - a transform's output follows its input file's container, so it takes no export format, and `--template=` warns which columns to leave blank for the tools you named. The output is written `<seq>-<name>.<ext>`, the name from the row's `filename` column or the input file and the extension from the bytes the tool actually produced.
+Any reserved URL parameter also works as a column, because a row's cells are read exactly as a link's query is. `bleed`, `marks` and `press-profile` work that way; add them to the header by hand.
 
-**`batch` renders bare.** Unlike a single `lolly run`, a batch row carries no Content Credentials and no Imprint unless it asks - a batch is a build step, and a regenerated folder should not differ from its predecessor in every file. A `c2pa` column (or `imprint`, or `durable`) opts a row back in and is read exactly as `?c2pa=` is. `smoke` renders bare for the same reason.
+The header *is* the namespace, so a batch has no `--input.<id>=` escape. An input whose id is one of those reserved names (`asset-export` declares `width` and `height`) cannot be set per row. `--template=` leaves it out and says which inputs it dropped; render those with `lolly run … --input.width=…`.
 
-`--keep-going` renders past a failing row (otherwise the batch stops with a non-zero exit). Either way the batch's exit code is the **worst row's** code, not a flat 1, and `--json` gives one document with a per-row `exit` so a pipeline can retry just the exit-3 rows on a runner that has a browser. `--output` is refused: a batch has many outputs and one path cannot name them - use `--out-dir=`.
+**A transform tool runs from a batch too** (a file in, bytes out, such as `strip-data`). Put the input file's path in the tool's own file column; it resolves against the working directory, as on `lolly run`. Leave that row's `format`, `width`, `height`, `unit` and `dpi` blank, because the output follows the input file, and `--template=` warns which columns those are. The output is named from the row's `filename` or the input file, with the extension of the bytes the tool produced.
 
-## Render-check the catalog (`lolly smoke`)
+**`batch` renders bare.** A row carries no Content Credentials and no Imprint unless it asks, because a regenerated folder should not differ from the last one in every file. A `c2pa`, `imprint` or `durable` column opts a row back in, read exactly as `?c2pa=` is.
+
+A batch stops at a failing row unless you pass `--keep-going`. Either way, its exit code is the **worst row's**, and `--json` gives one document with a per-row `exit`, so a pipeline can retry just the exit-`3` rows on a runner that has a browser. A batch writes a folder rather than one archive, so you choose your own `zip` or `tar`; the TUI's batch packs a ZIP instead. `--output` is refused, because one path cannot name many files; use `--out-dir`.
+
+The app's **Batch** view (`#/batch`) is the same idea as an interactive grid.
+
+## Render-check the catalog (lolly smoke)
 
 ```bash
-pnpm run cli smoke                              # render EVERY tool at manifest defaults
-pnpm run cli smoke --only=qr-code,chart         # just these ids
-pnpm run cli smoke --format=svg                 # force one Node-native format
+lolly smoke                              # render every tool at manifest defaults
+lolly smoke --only=qr-code,chart         # just these ids
+lolly smoke --format=svg                 # force one browser-free format
 ```
 
-`lolly smoke` is the catalog-wide render gate: every tool in the active profile renders at its manifest defaults to its first Node-native format - browser-free; a tool whose declared formats are all browser-only falls back to an `html` render, which still exercises load → hydrate → hooks. Every output is checked for blank or empty results, each tool prints a ✓/✗ row and the exit code is non-zero if anything fails - so wired into CI, a `hooks.js` regression can never ship a tool that renders blank.
+`lolly smoke` is the catalog-wide render gate. Every tool in the active profile renders at its defaults to its first browser-free format. A tool whose formats are all browser-only falls back to an `html` render, which still runs load, hydrate and hooks. Each output is checked for blank or empty results, each tool prints a ✓ or ✗ row, and the exit code is non-zero if anything fails. Wired into CI, a `hooks.js` regression cannot ship a tool that renders blank. `smoke` renders bare, like `batch`.
 
-A transform tool (`hooks.exportFile`: a file in, bytes out - `strip-data`, `compress-pdf`, and the rest of the on-device utilities) has nothing to render at manifest defaults, so smoke runs it once over a small committed fixture instead, chosen by the file type its input accepts, through the same transform path `lolly <tool> --source=<file>` takes. It passes when the output is non-empty and its bytes are one of the formats the tool declares, and a hook error is a real failure. A tool is skipped, with a reason, rather than run for any of these: it is gated on a live-capture capability (camera, microphone, screen, capture); its file input accepts no fixture type; its hook needs the browser tier or a model this host does not have staged; its file input is hidden at manifest defaults (`showIf`); or a forced `--format` differs from the fixture's container. The fixtures live in the source checkout's `tests/fixtures`, so an installed CLI with no checkout skips every transform and reports why.
+A transform tool (`strip-data`, `compress-pdf` and the other on-device utilities) has nothing to render at its defaults, so smoke runs it once over a small committed fixture, chosen by the file types its input accepts. It passes when the output is non-empty and is one of the formats the tool declares; a hook error is a real failure.
 
-## Preflight an export (`lolly preflight`)
+::: details When smoke skips a tool
+A tool is skipped, with the reason, when:
+
+- it needs a live-capture capability (camera, microphone, screen, capture);
+- its file input accepts no fixture type;
+- its hook needs the paint tier or a model this machine has not staged;
+- its file input is hidden at its defaults (`showIf`);
+- a forced `--format` differs from the fixture's container.
+
+The fixtures live in the checkout's `tests/fixtures`, so an installed CLI with no checkout skips every transform and says why.
+:::
+
+## Preflight an export (lolly preflight)
 
 ```bash
 pnpm --silent run cli preflight qr-code --export=pdf-cmyk     # count and check, do not render
 pnpm --silent run cli preflight qr-code --export=pdf-cmyk \
     --width=210 --height=297 --unit=mm --bleed=3mm --marks=crop,reg
-pnpm --silent run cli preflight qr-code --export=svg --json | jq   # the machine artifact
-pnpm --silent run cli preflight 'https://lolly.tools/#/tool/qr-code?url=…&format=pdf-cmyk'
+pnpm --silent run cli preflight qr-code --export=svg --json | jq   # the machine report
+pnpm --silent run cli preflight 'https://lolly.tools/t/qr-code?url=…&format=pdf-cmyk'
 ```
 
-`lolly preflight` answers "what am I about to export, and is anything wrong with it" without rendering anything. It takes the SAME render flags a real run takes - `--export`, `--width`/`--height`/`--unit`/`--dpi`, `--bleed`, `--marks`, `--press-profile`, `--cuts`, `--hdr`, `--durable`, `--z`/`--zx` and a pasted share link (https or `lolly://`) - because preflighting settings other than the ones a render would use is worthless. The rules live in the engine (`engine/src/preflight.ts`), so the web export panel and this subcommand report the same findings for the same job.
-
-That includes `--input.<id>=<value>`: a tool whose own input is called `width` is preflighted exactly as it would render, and a reserved flag that shadows one of the tool's inputs prints the same warning here as it does on `lolly run` (and carries it into the report as `collect.reserved-flag-shadows-input`).
-
-It has five flags of its own:
+`lolly preflight` answers "what am I about to export, and is anything wrong with it" without rendering. It takes the **same** render flags a real run takes, including `--input.<id>=` and a pasted share link (`https` or `lolly://`), because checking other settings than the render would use proves nothing. The rules live in the engine (`engine/src/preflight.ts`), so the app's export panel and this command report the same findings for the same job. A reserved flag that shadows a tool input warns here as it does on `lolly run`, and the report records it as `collect.reserved-flag-shadows-input`.
 
 | Flag | Effect |
 |---|---|
-| `--json` | one JSON document on stdout and nothing else |
-| `--strict` | warnings fail the run too (opt-in CI gate) |
-| `--rate-card=<file>` | price the job from a local rate-card file, adding the cost block to the report. A path only - rates are never read off a pasted link's query, so a shared URL can never bring money with it |
-| `--run-length=<n>` | the quantity the cost is worked out for (a run of n) |
-| `--use-expired-rates` | opt in past a card's `validUntil` - expired rates otherwise suppress the money figures while the counts still show |
+| `--json` | One JSON document on stdout and nothing else. |
+| `--strict` | Warnings fail the run too: an opt-in CI gate. |
+| `--rate-card=<file>` | Price the job from a local rate-card file, adding a cost block. A path only: rates are never read from a pasted link, so a shared URL can never carry prices. |
+| `--run-length=<n>` | The quantity the cost is worked out for. |
+| `--use-expired-rates` | Opt in past a card's `validUntil`; otherwise expired rates hide the money figures while the counts still show. |
 
-There is no `--out`. The report always goes to stdout, so redirect it: `lolly preflight qr-code --json > report.json`.
+There is no `--out`: the report goes to stdout, so redirect it (`lolly preflight qr-code --json > report.json`). Three flags are refused rather than ignored: `--rates` (the flag is `--rate-card`), `--batch` (not built yet, and a silently ignored `--batch=rows.csv` would print one job's report that reads like fifty) and `--out`.
 
-Exit codes: **0** it ran and there is nothing to fix, **4** (`REFUSED`) it ran and a check said no - at least one error finding, or a warning under `--strict`, **2** (`USAGE`) it could not run at all: unknown tool, unreadable manifest, a `zx=` link with no password, a refused flag. It never returns `1`: a preflight that ran is not a failed run, and `4` is the code `lolly validate` already uses for the same event, so one CI branch handles both. A count that cannot be TAKEN is never a failure: "needs the artwork on screen", "no brand palette resolved", "no physical page size was set" are stated gaps in the report, and they exit 0 permanently. With `--json`, stdout carries exactly one JSON document on **every** path, including exit 2 - the shared envelope, with the report as `result` and, on the failure path, `ok:false` plus an `error` - so `lolly preflight X --json > r.json` never leaves an unparseable file behind. Read the findings at `.result.findings`.
+Preflight exits `0` when there is nothing to fix, `4` when a check says no (an error finding, or a warning under `--strict`) and `2` when it could not run: an unknown tool, an unreadable manifest, a `zx=` link with no password or a refused flag. It never exits `1`. A count that cannot be **taken**, such as "needs the artwork on screen", "no brand palette resolved" or "no physical page size was set", is a stated gap in the report, not a failure. With `--json`, stdout holds exactly one document on every path, including exit `2`; read the findings at `.result.findings`.
 
-The report's `job` member carries the collection context as well as the tool and format - `source`, `modelPhase`, `stageMounted`, `paletteResolved` and an echo of the settings the findings were taken against. A clean report taken headlessly with an unresolved palette and an un-run `onInit` must not look identical to one taken with all three in hand, because the artifact is the copy that travels.
+The report's `job` records the context it was taken in as well as the tool and format: `source`, `modelPhase`, `stageMounted`, `paletteResolved` and the settings the findings were taken against. A clean report taken headlessly, with no palette and no `onInit` run, must not look like one taken with all three, because the report is the copy that travels.
 
-The report's optional `checks` list records execution coverage. Each named
-rule is `completed` or `undetermined`; completion also includes rules that do
-not apply to this job. A rule that throws adds a `check.incomplete` gap and
-contributes no partial measurements. Older reports without `checks` have
-unknown execution coverage. Findings and gaps still qualify the result: exit
-0 does not establish that every production requirement was measured.
+The optional `checks` list records which rules ran: each is `completed` (including rules that do not apply to this job) or `undetermined`. A rule that throws adds a `check.incomplete` gap and no partial measurements. Older reports without `checks` have unknown coverage. Exit `0` does not mean every production requirement was measured; for that, see [Production checks](/info/production-checks.html).
 
-Three flags it refuses rather than silently ignoring: `--rates` (not a flag; the rate card flag is `--rate-card=<file>`), `--batch` (not implemented yet; a silently-ignored `--batch=rows.csv` would print a confident single-job report that reads like a 50-row answer) and `--out` (removed before GA, with the redirect named in the message).
+::: warning A finish plate knocks out the artwork beneath
+If your brand declares a spot ink that is really a **finish** (a foil, an emboss, a spot varnish, a cutting rule), Lolly writes it as its own named plate in every CMYK file (the CMYK PDF, the CMYK TIFF and `eps-cmyk`), with a 100% black mask as its process fallback, so a RIP that flattens spots prints an obvious mask rather than a plausible metallic. Overprint is not built anywhere in Lolly, so that plate knocks out the artwork beneath the finish. Agree with your printer how they want the finish supplied before you send the file.
+:::
 
-The finding to know about: if your brand declares a spot ink that is actually a FINISH (a foil, an emboss, a spot varnish, a cutting rule), Lolly writes it as its own named plate whose process fallback is a 100% black mask, in every CMYK sink - the CMYK PDF, the CMYK TIFF and `eps-cmyk` in both the browser and this CLI. It is never given the swatch's own colour build, so a RIP that flattens spots paints an unmistakable mask rather than a plausible metallic. What is still wrong, and what the error actually says: **overprint is implemented nowhere in the platform, so the finish plate knocks out the artwork beneath it**. Agree with your printer how they want the finish supplied before sending the file.
+## Check a Design document in CI (lolly check)
 
-## Check a Design document in CI (`lolly check`)
-
-`lolly check` gives one findings list for a Design document, a `.lolly` or an export: structure, the painted-page checks (when a browser tier is present), brand and house rules, the Verify layout clues and, with `--source`, fidelity to the source deck. [Read a deck, then check the recreation](/info/cli.html#read-a-deck-then-check-the-recreation) describes each family.
+`lolly check` gives one findings list for a Design document, a `.lolly` or an export, and its exit code is the branch:
 
 ```bash
 lolly check slides.lolly --source=old.inventory.json --json > check.json
 ```
 
-The exit code is the branch: **0** nothing to fix, **5** findings to review and none of them errors, **4** an error finding (or any warning under `--strict`), **3** `--browser=require` on a runner with no browser tier to render a document, **2** a usage error (a misspelled flag is refused, never ignored) and **1** a family that failed to run, or an export with no page that could be decoded. A runner with no browser reports the render family as `unavailable`, with the reason, and still runs the rest, so use `--browser=require` where those checks must run. An export has no render family, so the requirement does not apply to an export, and one command line can check documents and their PDF exports together. Text recognition is off unless `--ocr` is given, so the Verify family gives the same answer on every runner. Read the findings at `.result.findings`, each with a stable `code`, its `severity` and the `layerId` it points at.
-
-## Organisation jobs with lolly.work
-
-The `lolly` CLI renders on the machine running the command. For jobs an organisation needs to retain, inspect, retry or deliver centrally, optional **lolly.work** provides a separate `lw` client and authenticated APIs at `/api/v1/renders` and `/api/v1/render-batches`.
-
-These submit work to the organisation's server, using its tool permissions and policy. Requests support idempotency keys, status, cancellation, retries and retained output; durable recovery needs a persistent deployment. Browser-dependent formats need the configured render worker. Automation can authenticate with a scoped service token. Governed delivery can use completed render output without uploading those bytes again.
-
-Use the lolly.work [render jobs](/info/work-renders.html), [CLI](/info/work-cli.html) and [delivery](/info/work-delivery.html) guides for request formats and commands. These are service operations; the local batch and CI examples on this page continue to work independently.
+It exits `0` when there is nothing to fix, `5` when there are findings to review and none are errors, `4` on an error finding (or any warning under `--strict`), `3` with `--browser=require` on a runner with no paint tier, `2` on a usage error and `1` when a family failed to run. A runner with no browser reports the render family as `unavailable` and still runs the rest, so pass `--browser=require` where those checks must run. Text recognition is off unless you pass `--ocr`, so every runner gives the same answer. Read the findings at `.result.findings`, each with a stable `code`, its `severity` and the `layerId` it points at. [Check the recreation](/info/cli-decks.html#check-the-recreation) describes each family.
 
 ## Scripting & CI
 
-The same inputs give the same **render** every time - that is what makes a tool a build artifact rather than a generation - so you can run the CLI wherever you generate other build outputs. ("The same render" is not "the same bytes": see the measurements below, and note that a default render is *signed*, which alone is enough to move the bytes.)
+The same inputs give the same **render** every time, which makes a tool a build step rather than a generator. Run the CLI wherever you make other build outputs:
 
 ```bash
 # Generate an OG image at build time instead of committing a binary:
-pnpm run cli link-card --url=https://example.com --heading="Ship it." --export=png --output=./public/og.png
+lolly link-card --url=https://example.com --heading="Ship today." --export=png --output=./public/og.png
 ```
+
+The same render is not always the same bytes. A default render is signed, and the signature alone moves the bytes; the next two sections measure what that costs and which formats can repeat byte for byte.
 
 ### What provenance costs
 
-Content Credentials and the Imprint are on by default here, exactly as in the app. Turning them off is a supported choice, so here is what it buys, measured on one machine (Apple silicon, Node tier, five runs per case, best-to-worst spread shown). Your numbers will differ; the pattern will not.
+Content Credentials and the Imprint are on by default, as in the app. They cost different things:
+
+- **A credential is a signature and a metadata block.** It adds about 2 KB and no measurable time.
+- **The Imprint is a pixel watermark.** On a raster it costs time that grows with the pixel count (about 0.06 s at 600 px, 0.35 s at 2000 px), and it grows a lossless PNG, because the mark adds fine detail that compression cannot squeeze out. The effect is far smaller in a lossy format and absent in a vector one, which has no pixels to mark.
+
+::: figure cli-automation-provenance
+How much bigger a QR code file gets than its bare render, for each mark.
+:::
+
+Leaving both on means the file carries a statement of where it came from that any C2PA reader can check, naming you if you have [set up an identity](/info/cli-signing.html), plus a mark that survives a re-encode or a screenshot, which a metadata credential does not. Turning them off with `--no-provenance` gives byte-identical output and the "bare" sizes below. `smoke` and `batch` already render bare.
+
+::: details The measurements
+Measured in August 2026 on one machine (Apple silicon, Node tier, five runs per case, best to worst shown). Your numbers will differ; the pattern will not.
 
 | Case | Time | Output |
 |---|---|---|
-| `qr-code --export=svg` bare | 0.38 - 0.39 s | 17,205 B |
-| same, defaults (credential; SVG carries no Imprint) | 0.39 - 0.44 s | 19,946 B (+2,741 B, +16%) |
-| `qr-code --export=png` 600 px, bare | 0.46 - 0.47 s | 14,786 B |
-| same, credential only (`--imprint=0`) | 0.46 - 0.48 s | 16,799 B (+14%) |
-| same, Imprint only (`--c2pa=off`) | 0.52 - 0.66 s | 36,572 B (+147%) |
-| same, defaults (both) | 0.52 - 0.70 s | 38,586 B (+161%) |
-| `qr-code --export=png` 2000 px, bare | 0.48 - 0.49 s | 62,357 B |
-| same, defaults | 0.83 - 0.93 s | 228,825 B (+267%) |
-
-The two marks cost different things. **A credential is a signature and a metadata block**: about 2 KB, and no measurable time. **The Imprint is a pixel watermark**, so on a raster it costs time that scales with pixel count (about 0.06 s at 600 px, about 0.35 s at 2000 px) and it grows the file, because the mark adds fine detail that lossless PNG compression cannot squeeze away. That size effect is much smaller in a lossy format, and absent in a vector one, which has no pixels to mark.
-
-Leaving them on means the file carries a verifiable statement of where it came from: a credential that any C2PA reader can check and that names your identity if you have [set one up](/info/cli-signing.html), plus a mark that survives a re-encode or a screenshot, which a metadata credential does not. Turning them off means byte-reproducible output, the times and sizes in the "bare" rows and no embedded timestamp.
-
-`--no-provenance` is the switch, per run. `smoke` and `batch` already render bare, because a machine path wants reproducibility by default.
+| `qr-code --export=svg` bare | 0.38 to 0.39 s | 17,205 B |
+| same, defaults (credential; SVG carries no Imprint) | 0.39 to 0.44 s | 19,946 B (+2,741 B, +16%) |
+| `qr-code --export=png` 600 px, bare | 0.46 to 0.47 s | 14,786 B |
+| same, credential only (`--imprint=0`) | 0.46 to 0.48 s | 16,799 B (+14%) |
+| same, Imprint only (`--c2pa=off`) | 0.52 to 0.66 s | 36,572 B (+147%) |
+| same, defaults (both) | 0.52 to 0.70 s | 38,586 B (+161%) |
+| `qr-code --export=png` 2000 px, bare | 0.48 to 0.49 s | 62,357 B |
+| same, defaults | 0.83 to 0.93 s | 228,825 B (+267%) |
+:::
 
 ### How far byte-identical output goes
 
-Reproducible *renders* and reproducible *bytes* are not the same promise, and only some formats keep the second one.
+A default render is **not** byte-reproducible. A credential is signed with a fresh key and a fresh timestamp every time, and the Imprint moves the pixels. Pass `--no-provenance` for a bare render:
 
-**Start here: a default render is not byte-reproducible, and that is deliberate.** Content Credentials and the Lolly Imprint are on by default (as in the app), and a credential is signed with a fresh key and a fresh timestamp every time. Pass **`--no-provenance`** for a bare render, which is what the rows below are measured with. `smoke` and `batch` already do.
-
-```
+```text
 $ lolly qr-code --url=https://example.com --export=svg --output=d1.svg   # twice, defaults
 $ lolly qr-code --url=https://example.com --export=svg --output=d2.svg
 DIFFER
@@ -157,9 +163,7 @@ $ lolly qr-code --url=https://example.com --export=svg --no-provenance --output=
 IDENTICAL
 ```
 
-Same result for `--export=png` (the browser-free resvg tier), measured the same way.
-
-Measured, not assumed - two consecutive runs of the same command, hashed, **with `--no-provenance`**:
+Even bare, only some formats repeat byte for byte. Measured by hashing two consecutive runs of the same command with `--no-provenance` (PNG from the browser-free tier gives the same result as SVG above):
 
 | Path | Byte-identical across runs? | Measured with |
 |---|---|---|
@@ -167,79 +171,19 @@ Measured, not assumed - two consecutive runs of the same command, hashed, **with
 | **JSON, CSV, VCF, MD** | **Yes**, for the format. | `color-palette --export=csv`, `chart --export=md`, `meeting-planner --export=json`; no public tool exports VCF |
 | **ICS** | **No.** RFC 5545 requires a `DTSTAMP`, which is the clock: two runs a second apart differ in exactly that line. | `calendar-ics --export=ics` |
 | **PNG** from an `<svg>`-based tool (the resvg tier) | **Yes.** | `qr-code --export=png` |
-| **PDF** | **No.** Every PDF carries `/CreationDate` and `/ModDate`; two runs a second apart differ in those bytes (128 differing bytes in a measured 57 KB file with `--c2pa=off`, all of them in the trailer and metadata). | `qr-code --export=pdf --c2pa=off` |
-| **JPG, WebP, HTML-layout PNG** (the headless-Chromium tier) | **No.** The browser's paint and encode are not byte-reproducible run to run; the file length itself moves between runs. | `qr-code --export=jpg`, `qr-code --export=webp` |
-| **Video** (`gif`/`apng`/`webm`/`mp4`) and **PPTX** | **No**, for the row above's reason plus a frame-timed capture. These do render here, and what they cost and produce is measured ([Video and timelines](/info/cli-rendering.html#video-and-timelines)); it is their run-to-run byte identity that is not, and nothing about a browser encode suggests it holds. | `design --export=mp4`, `design --export=webm`, `deck-studio --export=pptx` |
-| Anything carrying `--c2pa`, `--durable` or `--imprint` - **which is the default** | **No.** Each credential is signed with a fresh timestamp; the Imprint moves the pixels. Drop them with `--no-provenance`. | `qr-code --export=svg` (defaults) |
+| **PDF** | **No.** Every PDF carries `/CreationDate` and `/ModDate`: 128 bytes differed in a measured 57 KB file with `--c2pa=off`, all in the trailer and metadata. | `qr-code --export=pdf --c2pa=off` |
+| **JPG, WebP, HTML-layout PNG** (the paint tier) | **No.** The browser's paint and encode change run to run; even the file length moves. | `qr-code --export=jpg`, `qr-code --export=webp` |
+| **Video** (`gif`, `apng`, `webm`, `mp4`) and **PPTX** | **No**, for the same reason plus a frame-timed capture. They render here ([Video and timelines](/info/cli-rendering.html#video-and-timelines)); it is their byte identity that does not hold. | `design --export=mp4`, `design --export=webm`, `deck-studio --export=pptx` |
+| Anything with `--c2pa`, `--durable` or `--imprint`, **which is the default** | **No.** Each credential has a fresh timestamp, and the Imprint moves the pixels. | `qr-code --export=svg` (defaults) |
 
-Two caveats the table cannot carry. **Format-level reproducibility is not tool-level reproducibility**: a tool that renders the current time, the weather or a live clock produces different bytes in any format, and that is the tool doing its job. And these are *this machine, back to back* - a different OS, a different font set or a different engine version will move the bytes of anything that shapes text.
+Two limits the table cannot show. Format-level reproducibility is not tool-level: a tool that draws the current time or the weather gives different bytes in any format, and that is the tool doing its job. And these runs were on one machine, back to back; a different OS, font set or engine version moves the bytes of anything that shapes text.
 
-So: check a hash of an SVG into a lockfile if you like - **rendered with `--no-provenance`** - and do **not** build a CI gate on the hash of a PDF, an ICS, a JPEG, a browser-tier PNG, or anything signed. Compare those by rendering and inspecting, not by digest.
+So check the hash of an SVG rendered with `--no-provenance` into a lockfile if you like. Do **not** build a CI gate on the hash of a PDF, an ICS, a JPEG, a paint-tier PNG or anything signed: compare those by rendering and inspecting. [Determinism](/info/determinism.html) explains why the same inputs give the same render.
 
-### Exit codes
+## Organisation jobs with Lolly Work
 
-One code per outcome, so a pipeline can branch instead of grepping stderr. Frozen at GA:
+The `lolly` CLI renders on the machine that runs the command. When an organisation needs jobs it can keep, inspect, retry or deliver centrally, the optional Lolly Work control plane offers a separate `lw` client and authenticated APIs at `/api/v1/renders` and `/api/v1/render-batches`.
 
-| Code | Name | Meaning |
-|---|---|---|
-| 0 | `OK` | The requested thing was produced. |
-| 1 | `FAILED` | It was possible, it ran, it failed (a hook threw, the render produced nothing). |
-| 2 | `USAGE` | Wrong invocation: unknown tool, undeclared format, missing argument, unreadable path, or a `learning build` source that only a change to the module can fix (`LEARNING_NO_RENDITION`, `LEARNING_DEVICE_FILE`, `LEARNING_LOCAL_PATH`). |
-| 3 | `UNAVAILABLE_HERE` | Impossible in **this** installation - no browser, an unmet capability, a Tier B render that could not produce the file, an on-device model that is not staged (`error.kind` `MODEL_NOT_STAGED` or `MODEL_NOT_INSTALLED`), a runtime this install does not carry (`CAPABILITY_UNAVAILABLE`), `--hdr` with `--durable` (`HDR_DURABLE_UNAVAILABLE`), or a `learning build` source this install cannot render (`LEARNING_FORMAT_UNAVAILABLE`, `MOTION_RENDERER_UNAVAILABLE`). May well succeed on another runner; this is the code to retry elsewhere on. |
-| 4 | `REFUSED` | A protective check **this shell** ran said no: the bytes were not the format claimed, a credential is present but broken, `--strict` promoted a gate-class warning, `--depth=float` over an 8-bit render, `lolly check` with an error finding (or any warning under `--strict`), `lolly package` on a Design document whose pictures have no bytes or are not catalog ids, or whose output already exists, `lolly compose` on a spec it refuses (with the JSON pointer of the key) or an output that already exists, and a Design document whose authoring keys cannot be lowered (`AUTHORING_INVALID`). A render whose sources still need a rights decision also exits 4 and still writes its file; `learning build` does the same and lists those blocks in `result.rightsDecisionsRequired`. A gate inside a tool's own hook (`--verify`) throws like any other hook and exits with `1`. |
-| 5 | `NOT_FOUND` | A legitimate negative answer. `validate`: no credential present. `rebrand compile`: every deck compiled, and at least one needs review. `check`: findings to review, none of them errors. Not an error; with `--json` the envelope carries the full result and `ok: false`. |
-| 6 | `AUTH` | Missing or wrong password. |
-| 70 | `INTERNAL` | Unclassified exception: a bug in Lolly. Distinct so an agent stops retrying it. |
+Those jobs run on the organisation's server, under its tool permissions and policy. Requests support idempotency keys, status, cancellation, retries and retained output; recovery after a restart needs a persistent deployment. Formats that need a browser need the configured render worker. Automation can sign in with a scoped service token, and governed delivery can use finished render output without uploading the bytes again.
 
-Messages go to stderr (`--verbose`, or `DEBUG=1`, adds stack traces). Input validation failures list each offending field.
-
-### Machine interface (`--json`)
-
-`--json` is valid on `list`, `describe`, `assets`, `validate`, `smoke`, `batch`, `preflight`, `models`, `mix`, `speak`, `transcribe`, `ocr`, `detect-ai`, `reword`, `rebrand`, `read`, `check`, `compose`, `look` (with `--output`), `sample`, `trace`, `system`, `start`, `files`, `prepare` and `learning`, and on `measure --text`, `measure --text-layers` and `package` of a Design document. It puts **one JSON document on stdout and nothing else**; every human line moves to stderr. It is **not** available on a render, because a render's stdout is the exported file - asking for both is a usage error rather than a silently ignored flag. `lolly speak --out=- --json` is refused for the same reason: the WAV and the document cannot both be stdout.
-
-Every one of those except `ocr`, `detect-ai` and `reword` answers in the shared envelope below. Those three currently emit their own smaller `{ "ok": true, "command": …, … }` document instead - one JSON document on stdout either way, but do not expect `schemaVersion` or `warnings` from those three yet.
-
-Every command answers in the same envelope:
-
-```json
-{
-  "schemaVersion": 1,
-  "command": "validate",
-  "ok": true,
-  "engine": "1.115.0",
-  "cli": "0.1.0",
-  "result": { },
-  "warnings": [{ "code": "UNKNOWN_FLAG", "message": "…", "kind": "usage" }],
-  "error": null
-}
-```
-
-The two version strings are whatever *this* installation runs, not a fixed pair - read them from the envelope rather than from this page.
-
-The envelope covers the **failure** path too: a missing file, an unknown tool, a crash - stdout still carries a complete document, so `lolly … --json > r.json` never leaves an unparseable file behind. On that path `result` is `null` and `error` is filled in:
-
-```json
-"error": { "code": "UNAVAILABLE_HERE", "exit": 3, "kind": "FORMAT_UNAVAILABLE", "message": "…" }
-```
-
-Branch on `error.kind` and `error.exit`, never on `error.message` - the wording is not a stable interface. `ok` mirrors the exit code; note that a real *answer* can be non-zero (`validate` reporting no credential exits 5 with a full `result`).
-
-**Compatibility rules.** Keys may be added inside `result`, `error` and `warnings` at any time, and enum values may be added, so a consumer must ignore unknown keys and have a default branch. `schemaVersion` increments only when a key is removed, retyped, or changes meaning.
-
-### Discovery, for an agent
-
-```bash
-lolly list --json          # every tool + what THIS installation can do
-lolly describe qr-code --json    # one tool's full input schema
-```
-
-`list --json` carries a `result.environment` block: the engine and CLI versions, the resolved content root, the host capabilities this shell provides, the browser-free formats and a per-tier availability report (`domFree`, `raster`, `desktop`, `browser`, `images`) with the reason each unavailable tier is unavailable. Each tool in the list carries `capabilities`, `unmetCapabilities`, `nativeFormats` and `runnableHere` - so an agent can tell that `screencap` will exit 3 here **before** it tries, rather than after.
-
-`describe --json` returns each input's declared spec plus three things the manifest cannot know: `flag` (the actual command-line spelling), `urlParam` (the compact alias, when the tool declares one) and `syntax` (how a non-scalar type is expressed). For the handful of inputs whose id collides with a reserved export flag - `width`, `height`, `format` - `flag` is `--input.<id>=` and `shadowedByReservedParam` is `true`, which is exactly the case where reading the bare id off the manifest would set the export size instead of the input.
-
-[Back to CLI](/info/cli.html).
-
-Production still exports can require byte-bound checks and a finite set of
-permitted input repairs. See [Production checks](production-checks.md) for the
-contract, `--production`, `--production-repairs`, reference files and report
-sidecars. Missing required measurements prevent a verified output.
+The Lolly Work [render jobs](/info/work-renders.html), [lw CLI](/info/work-cli.html) and [delivery](/info/work-delivery.html) guides give the request formats and commands. The local batch and CI examples on this page keep working without Lolly Work.

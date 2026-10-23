@@ -110,9 +110,10 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | lolly CLI: create and process files | [cli.md](cli.md) |
 | Render with the CLI | [cli-rendering.md](cli-rendering.md) |
 | CLI file and media utilities | [cli-files.md](cli-files.md) |
+| Rebuild a deck from the terminal | [cli-decks.md](cli-decks.md) |
 | Production checks | [production-checks.md](production-checks.md) |
 | CLI batch and automation | [cli-automation.md](cli-automation.md) |
-| CLI verification and configuration | [cli-reference.md](cli-reference.md) |
+| CLI reference | [cli-reference.md](cli-reference.md) |
 | Signing from the terminal | [cli-signing.md](cli-signing.md) |
 | TUI | [tui.md](tui.md) |
 | MCP Server | [mcp.md](mcp.md) |
