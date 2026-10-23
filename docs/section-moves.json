@@ -441,28 +441,28 @@
     },
     "file-inputs-on-device-utilities": {
       "slug": "cli-files",
-      "anchor": "file-inputs-on-device-utilities",
-      "label": "File inputs & on-device utilities"
+      "anchor": "clean-or-convert-a-file",
+      "label": "Clean or convert a file"
     },
     "redaction-instructions-one-string-many-files": {
       "slug": "cli-files",
-      "anchor": "redaction-instructions-one-string-many-files",
-      "label": "Redaction instructions: one string, many files"
+      "anchor": "redact-many-copies-with-one-link",
+      "label": "Redact many copies with one link"
     },
     "speech": {
       "slug": "cli-files",
-      "anchor": "speech",
-      "label": "Speech"
+      "anchor": "text-to-speech-and-back",
+      "label": "Text to speech and back"
     },
     "the-models-and-who-decides-they-download": {
       "slug": "cli-files",
-      "anchor": "the-models-and-who-decides-they-download",
-      "label": "The models, and who decides they download"
+      "anchor": "download-the-models",
+      "label": "Download the models"
     },
     "on-device-ml": {
       "slug": "cli-files",
-      "anchor": "on-device-ml",
-      "label": "On-device ML"
+      "anchor": "run-the-on-device-models",
+      "label": "Run the on-device models"
     },
     "composed-tools": {
       "slug": "cli-rendering",
@@ -471,8 +471,8 @@
     },
     "batch": {
       "slug": "cli-automation",
-      "anchor": "batch",
-      "label": "Batch"
+      "anchor": "render-many-files-from-a-spreadsheet-lolly-batch",
+      "label": "Render many files from a spreadsheet (lolly batch)"
     },
     "render-check-the-catalog-lolly-smoke": {
       "slug": "cli-automation",
@@ -500,17 +500,17 @@
       "label": "How far byte-identical output goes"
     },
     "exit-codes": {
-      "slug": "cli-automation",
+      "slug": "cli-reference",
       "anchor": "exit-codes",
       "label": "Exit codes"
     },
     "machine-interface-json": {
-      "slug": "cli-automation",
-      "anchor": "machine-interface-json",
-      "label": "Machine interface (--json)"
+      "slug": "cli-reference",
+      "anchor": "the-json-envelope",
+      "label": "The --json envelope"
     },
     "discovery-for-an-agent": {
-      "slug": "cli-automation",
+      "slug": "cli-reference",
       "anchor": "discovery-for-an-agent",
       "label": "Discovery, for an agent"
     },
@@ -540,14 +540,274 @@
       "label": "Shell completion (lolly completion)"
     },
     "point-it-at-another-brand-pack-lolly-root": {
-      "slug": "cli-reference",
-      "anchor": "point-it-at-another-brand-pack-lolly-root",
-      "label": "Point it at another brand pack (LOLLY_ROOT)"
+      "slug": "cli",
+      "anchor": "a-standalone-cli-carries-no-tools-and-no-catalog",
+      "label": "A standalone CLI carries no tools and no catalog"
     },
     "where-saved-sessions-live": {
       "slug": "cli-reference",
       "anchor": "where-saved-sessions-live",
       "label": "Where saved sessions live"
+    },
+    "choose-a-guide": {
+      "slug": "cli",
+      "anchor": "where-to-go-next",
+      "label": "Where to go next"
+    },
+    "discovering-tools-assets": {
+      "slug": "cli",
+      "anchor": "find-tools-inputs-and-assets",
+      "label": "Find tools, inputs and assets"
+    },
+    "document-compiler-verbs": {
+      "slug": "cli-reference",
+      "anchor": "document-verbs",
+      "label": "Document verbs"
+    },
+    "look-at-a-picture-in-its-own-coordinates": {
+      "slug": "cli-reference",
+      "anchor": "look-at-a-picture-in-its-own-coordinates",
+      "label": "Look at a picture in its own coordinates"
+    },
+    "verbs-and-why-they-exist": {
+      "slug": "cli",
+      "anchor": "every-command",
+      "label": "Every command"
+    },
+    "global-flags": {
+      "slug": "cli-reference",
+      "anchor": "global-flags",
+      "label": "Global flags"
+    },
+    "rendering": {
+      "slug": "cli",
+      "anchor": "make-your-first-file",
+      "label": "Make your first file"
+    },
+    "review-a-timed-composition": {
+      "slug": "cli-rendering",
+      "anchor": "review-a-timed-composition",
+      "label": "Review a timed composition"
+    },
+    "the-output-extension-is-a-format-request": {
+      "slug": "cli-rendering",
+      "anchor": "the-output-extension-is-a-format-request",
+      "label": "The output extension is a format request"
+    },
+    "rebrand-renovate-an-old-deck": {
+      "slug": "cli-decks",
+      "anchor": "renovate-in-place-with-lolly-rebrand",
+      "label": "Renovate in place with lolly rebrand"
+    },
+    "read-a-deck-then-check-the-recreation": {
+      "slug": "cli-decks",
+      "anchor": "read-the-old-deck",
+      "label": "Read the old deck"
+    },
+    "author-measure-and-package-a-design-document": {
+      "slug": "cli-decks",
+      "anchor": "write-and-fit-the-text",
+      "label": "Write and fit the text"
+    },
+    "compose-slides-from-the-slide-master": {
+      "slug": "cli-decks",
+      "anchor": "compose-slides-from-the-slide-master",
+      "label": "Compose slides from the slide master"
+    },
+    "related": {
+      "slug": "cli",
+      "anchor": "where-to-go-next",
+      "label": "Where to go next"
+    },
+    "motion-delivery-checks": {
+      "slug": "cli-rendering",
+      "anchor": "motion-delivery-checks",
+      "label": "Motion delivery checks"
+    }
+  },
+  "cli-automation": {
+    "batch": {
+      "slug": "cli-automation",
+      "anchor": "render-many-files-from-a-spreadsheet-lolly-batch",
+      "label": "Render many files from a spreadsheet (lolly batch)"
+    },
+    "exit-codes": {
+      "slug": "cli-reference",
+      "anchor": "exit-codes",
+      "label": "Exit codes"
+    },
+    "machine-interface-json": {
+      "slug": "cli-reference",
+      "anchor": "the-json-envelope",
+      "label": "The --json envelope"
+    },
+    "discovery-for-an-agent": {
+      "slug": "cli-reference",
+      "anchor": "discovery-for-an-agent",
+      "label": "Discovery, for an agent"
+    }
+  },
+  "cli-files": {
+    "file-inputs-on-device-utilities": {
+      "slug": "cli-files",
+      "anchor": "clean-or-convert-a-file",
+      "label": "Clean or convert a file"
+    },
+    "redaction-instructions-one-string-many-files": {
+      "slug": "cli-files",
+      "anchor": "redact-many-copies-with-one-link",
+      "label": "Redact many copies with one link"
+    },
+    "speech": {
+      "slug": "cli-files",
+      "anchor": "text-to-speech-and-back",
+      "label": "Text to speech and back"
+    },
+    "the-models-and-who-decides-they-download": {
+      "slug": "cli-files",
+      "anchor": "download-the-models",
+      "label": "Download the models"
+    },
+    "on-device-ml": {
+      "slug": "cli-files",
+      "anchor": "run-the-on-device-models",
+      "label": "Run the on-device models"
+    }
+  },
+  "cli-reference": {
+    "point-it-at-another-brand-pack-lolly-root": {
+      "slug": "cli",
+      "anchor": "a-standalone-cli-carries-no-tools-and-no-catalog",
+      "label": "A standalone CLI carries no tools and no catalog"
+    }
+  },
+  "cli-signing": {
+    "1-install-and-prerequisites": {
+      "slug": "cli",
+      "anchor": "install",
+      "label": "Install"
+    },
+    "2-first-run": {
+      "slug": "cli",
+      "anchor": "make-your-first-file",
+      "label": "Make your first file"
+    },
+    "3-the-user-profile": {
+      "slug": "cli-signing",
+      "anchor": "what-the-credential-records",
+      "label": "What the credential records"
+    },
+    "4-set-up-a-signing-identity": {
+      "slug": "cli-signing",
+      "anchor": "get-a-certificate",
+      "label": "Get a certificate"
+    },
+    "4-1-get-a-certificate": {
+      "slug": "cli-signing",
+      "anchor": "get-a-certificate",
+      "label": "Get a certificate"
+    },
+    "4-2-where-to-put-the-key": {
+      "slug": "cli-signing",
+      "anchor": "store-the-key",
+      "label": "Store the key"
+    },
+    "4-3-sign": {
+      "slug": "cli-signing",
+      "anchor": "sign",
+      "label": "Sign"
+    },
+    "4-4-an-encrypted-key": {
+      "slug": "cli-signing",
+      "anchor": "sign",
+      "label": "Sign"
+    },
+    "4-5-in-ci": {
+      "slug": "cli-signing",
+      "anchor": "sign-in-ci",
+      "label": "Sign in CI"
+    },
+    "4-6-prove-it-worked": {
+      "slug": "cli-signing",
+      "anchor": "prove-it-worked",
+      "label": "Prove it worked"
+    },
+    "4-7-the-two-flags-and-five-variables": {
+      "slug": "cli-signing",
+      "anchor": "the-two-flags-and-five-variables",
+      "label": "The two flags and five variables"
+    },
+    "5-trust-anchors": {
+      "slug": "cli-signing",
+      "anchor": "pin-your-root",
+      "label": "Pin your root"
+    },
+    "6-provenance-defaults": {
+      "slug": "cli-signing",
+      "anchor": "what-the-credential-records",
+      "label": "What the credential records"
+    },
+    "7-automation": {
+      "slug": "cli-signing",
+      "anchor": "sign-in-ci",
+      "label": "Sign in CI"
+    },
+    "8-troubleshooting": {
+      "slug": "cli-signing",
+      "anchor": "troubleshooting",
+      "label": "Troubleshooting"
+    },
+    "security": {
+      "slug": "cli-signing",
+      "anchor": "what-a-signature-proves",
+      "label": "What a signature proves"
+    }
+  },
+  "production-checks": {
+    "in-verify": {
+      "slug": "production-checks",
+      "anchor": "check-in-verify",
+      "label": "Check in Verify"
+    },
+    "requirements": {
+      "slug": "production-checks",
+      "anchor": "write-the-requirements",
+      "label": "Write the requirements"
+    },
+    "reusable-design-and-chart-requirements": {
+      "slug": "production-checks",
+      "anchor": "what-each-place-can-measure",
+      "label": "What each place can measure"
+    },
+    "native-comparison": {
+      "slug": "production-checks",
+      "anchor": "compare-with-a-reference-image",
+      "label": "Compare with a reference image"
+    },
+    "capability-matrix": {
+      "slug": "production-checks",
+      "anchor": "what-each-place-can-measure",
+      "label": "What each place can measure"
+    },
+    "encoded-motion-requirements": {
+      "slug": "production-checks",
+      "anchor": "check-a-video-delivery",
+      "label": "Check a video delivery"
+    },
+    "cli-and-mcp": {
+      "slug": "production-checks",
+      "anchor": "check-from-the-terminal-and-mcp",
+      "label": "Check from the terminal and MCP"
+    },
+    "permitted-repairs": {
+      "slug": "production-checks",
+      "anchor": "let-lolly-try-permitted-fixes",
+      "label": "Let Lolly try permitted fixes"
+    },
+    "decisions-and-reproducibility": {
+      "slug": "production-checks",
+      "anchor": "decisions-and-evidence",
+      "label": "Decisions and evidence"
     }
   },
   "build-guide": {

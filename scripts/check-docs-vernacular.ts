@@ -297,12 +297,12 @@ const ALLOW: Record<string, string[]> = {
   // "speech to text" instead.
   'docs/tool-hooks.md': ['### Transcribing audio (`render.transcribe`)', '"transcribe": { "source": "clip"'],
   // `lolly transcribe` (plan 183): the literal SUBCOMMAND a script author types,
-  // in the reserved-verb list, the two `--json` lists, its own paragraph, two
-  // command examples and the verbatim `lolly models ls` output. The prose around
-  // them says "speech to text" and "reads a clip back as text" instead.
+  // in the verb list, the `--json` list, its own paragraph, two command
+  // examples and the `lolly models ls` table. The prose around them says
+  // "speech to text" and "reads a clip back as text" instead.
   'docs/cli.md': ['`speak`, `transcribe`, `mix`'],
-  'docs/cli-files.md': ['pnpm run cli transcribe ./clip.wav --lang=en --json', '**`lolly transcribe <clip.wav>`** reads a clip back as text', '$ lolly transcribe ./interview.m4a', 'whisper    transcription (lolly transcribe)'],
-  'docs/cli-automation.md': ['`speak`, `transcribe`, `ocr`'],
+  'docs/cli-files.md': ['lolly transcribe ./clip.wav --lang=en --json', '**`lolly transcribe <clip.wav>`** reads a clip back as text', '$ lolly transcribe ./interview.m4a', '| `whisper` | `lolly transcribe` |'],
+  'docs/cli-reference.md': ['`speak`, `transcribe`, `ocr`'],
   // host.speech transcription: the industry feature name and literal API names
   'docs/host-api.md': ['speech synthesis + transcription',
     'Transcription (v1.99) is the reverse',
