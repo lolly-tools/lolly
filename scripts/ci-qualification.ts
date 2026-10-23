@@ -169,9 +169,21 @@ export function inspectScope(id: Identity, root = process.cwd(), policyPath = fi
     policySha256: hash(policy), changedPathsSha256: hash(JSON.stringify(changes)), changes };
 }
 
+/**
+ * "Re-run failed jobs" carries a successful scope job over from an earlier attempt of the same run, so the scope
+ * receipt can record an earlier attempt than the aggregator that reads the receipt. That receipt still describes
+ * this run: the same event, base, source and head commits give the same classification, and main() re-derives
+ * the scope from Git. So the attempt may be earlier, never later; every other identity field, the run id and
+ * every commit included, must match exactly. A receipt from another run or another commit is refused.
+ */
 export function validateScope(value: unknown, id: Identity): Scope {
   const scope = object(value);
-  for (const [key, expected] of Object.entries(id)) need(scope[key] === expected, `Scope ${key} differs`);
+  for (const [key, expected] of Object.entries(id)) {
+    if (key === 'runAttempt') {
+      need(Number.isSafeInteger(scope.runAttempt) && Number(scope.runAttempt) >= 1 && Number(scope.runAttempt) <= id.runAttempt,
+        'Scope runAttempt differs');
+    } else need(scope[key] === expected, `Scope ${key} differs`);
+  }
   need(scope.version === 1 && typeof scope.publicReadyEligible === 'boolean' && scope.policyCommit === id.base, 'Invalid scope policy');
   need(Array.isArray(scope.changes) && Array.isArray(scope.reasons) && scope.changes.length <= 4096, 'Missing scope inventory');
   need(scope.changedPathsSha256 === hash(JSON.stringify(scope.changes)), 'Scope inventory digest differs');
@@ -280,7 +292,7 @@ export async function qualify(id: Identity, scope: Scope, tier: Tier, out: strin
       pages.forEach((page, i) => { writeFileSync(resolve(out, `jobs-${i + 1}.original.json`), page.bytes, { flag: 'wx' }); });
       writeFileSync(resolve(out, 'scope.json'), `${JSON.stringify(scope, null, 2)}\n`, { flag: 'wx' });
       const report = { version: 1, status: 'CI_QUALIFIED', qualificationTier: tier, fullSuiteQualified: tier === 'release-ready', ...id,
-        workflow: WORKFLOW, scope: { publicReadyEligible: scope.publicReadyEligible, lane: scope.lane,
+        workflow: WORKFLOW, scope: { runAttempt: scope.runAttempt, publicReadyEligible: scope.publicReadyEligible, lane: scope.lane,
           dependencyChange: scope.dependencyChange, policyCommit: scope.policyCommit,
           policySha256: scope.policySha256, changedPathsSha256: scope.changedPathsSha256 },
         requiredJobs: assessment.required.map(name => { const job = assessment.jobs.find(job => job.name === name)!;

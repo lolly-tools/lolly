@@ -427,7 +427,8 @@ export function paint(tview: ToolViewCtx): void {
   // is live, which makes this one nullable read per painted frame (section 11.14).
   tview.collabReanchor?.();
 
-  tview.session.syncUrl();
+  // The address follows once the paints settle, not on every frame (session.ts).
+  tview.session.scheduleSyncUrl();
 
   // When a size-driving select changes, set the export dimensions to the chosen
   // option - so picking "A6 landscape" actually exports an A6-landscape page.

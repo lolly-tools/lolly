@@ -288,6 +288,12 @@ Successful tier jobs upload `public-ready-<runId>-<runAttempt>` or
 a run are named by run only (`ci-scope-<runId>`, `test-skips-<shard>-<runId>`),
 and a download takes the newest upload of each name, so after "Re-run failed
 jobs" the new attempt finds the files that carried-over jobs uploaded earlier.
+A carried-over scope job's receipt names the attempt that ran the job, so the
+policy accepts a scope receipt from an earlier attempt of the same run. The run
+ID, repository, branch, event and every commit (base, source, tree and head)
+must still match exactly, the attempt may be earlier but never later, and the
+scope is still derived again from Git. The aggregators run the base commit's
+copy of the policy, so a pull request benefits once its base includes this rule.
 Each receipt contains `qualification.json`, `scope.json`, the unchanged
 `run.original.json` and every `jobs-<page>.original.json` provider page. Artifacts
 stay available for 14 days; a private operator must keep the evidence its release
@@ -298,7 +304,9 @@ The version 1 qualification record contains:
 - `status: CI_QUALIFIED`, `qualificationTier` and `fullSuiteQualified`;
 - the exact `source`, `tree`, `base`, provider `headSha`, repository name and
   numeric ID, head repository and branch, event, run ID, attempt and workflow path;
-- `scope.publicReadyEligible`, `lane` (`public-ready`, `docs-and-tests` or
+- `scope.runAttempt` (the attempt whose scope job classified the change, which
+  is earlier than `runAttempt` after a failed-only rerun),
+  `scope.publicReadyEligible`, `lane` (`public-ready`, `docs-and-tests` or
   `full`), `dependencyChange`, `policyCommit`, `policySha256` and
   `changedPathsSha256` (the policy digest is null only for full-only bootstrap);
 - `requiredJobs`, each with its provider job ID, exact name and success conclusion;
