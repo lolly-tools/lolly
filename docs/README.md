@@ -180,18 +180,18 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Delivery deployment | [deploy-delivery.md](deploy-delivery.md) |
 | Sovereign creative production | [sovereign-production.md](sovereign-production.md) |
 | Deploy | [operate.md](operate.md) |
-| Run your own server | [work/self-host.md](work/self-host.md) |
+| Run Lolly Work | [work/self-host.md](work/self-host.md) |
 | Release 1.1.2 | [work/release-1-1-2.md](work/release-1-1-2.md) |
-| Release 1.1.1 | [work/release-1-1-1.md](work/release-1-1-1.md) |
-| Release 1.1.0 (historical record) | [work/release-1-1-0.md](work/release-1-1-0.md) |
+| Past releases | [work/past-releases.md](work/past-releases.md) |
 | Lolly Work architecture | [work/overview.md](work/overview.md) |
 | Install Lolly Work | [work/install.md](work/install.md) |
+| Install the ready-made package | [work/ready-made-package.md](work/ready-made-package.md) |
+| Install on Kubernetes | [work/platform-deployment.md](work/platform-deployment.md) |
 | Official installation routes | [work/official-installations.md](work/official-installations.md) |
 | Set up enterprise identity | [work/enterprise-identity.md](work/enterprise-identity.md) |
 | Configure your first Work instance | [work/customer-setup.md](work/customer-setup.md) |
-| Lolly Work deployment options | [work/deployment.md](work/deployment.md) |
-| UpCloud, Evroc and fewer hosting services | [work/cloud-deployment.md](work/cloud-deployment.md) |
-| Deploy with your platform team | [work/platform-deployment.md](work/platform-deployment.md) |
+| How a Work deployment fits together | [work/deployment.md](work/deployment.md) |
+| Run Work on UpCloud or Evroc | [work/cloud-deployment.md](work/cloud-deployment.md) |
 | WebAssembly and Kubewarden choices | [work/wasm-deployment.md](work/wasm-deployment.md) |
 | Work instance configuration | [work/configuration.md](work/configuration.md) |
 | Configure Work export signing | [work/c2pa.md](work/c2pa.md) |
@@ -202,12 +202,9 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Image Relay live-verify runbook | [work/providers/imagerelay-live-verify.md](work/providers/imagerelay-live-verify.md) |
 | IntelligenceBank live-verify runbook | [work/providers/intelligencebank-live-verify.md](work/providers/intelligencebank-live-verify.md) |
 | Acquia DAM live-verify runbook | [work/providers/acquia-dam-live-verify.md](work/providers/acquia-dam-live-verify.md) |
-| Operations runbook | [work/operations.md](work/operations.md) |
-| Fast frontend updates | [work/frontend-updates.md](work/frontend-updates.md) |
-| Public model verification reuse | [work/public-model-proof-reuse.md](work/public-model-proof-reuse.md) |
+| Keep Lolly Work running | [work/operations.md](work/operations.md) |
 | Build a verified instance pack | [work/instance-pack-production.md](work/instance-pack-production.md) |
-| Production evidence | [work/production-readiness.md](work/production-readiness.md) |
-| Application release classification | [work/application-release-classification.md](work/application-release-classification.md) |
+| Check a deployment before production | [work/production-readiness.md](work/production-readiness.md) |
 | Shell deployment workflow | [work/shell-deployment-workflow.md](work/shell-deployment-workflow.md) |
 | Telemetry and dashboards | [work/telemetry.md](work/telemetry.md) |
 | Audit log | [work/audit.md](work/audit.md) |

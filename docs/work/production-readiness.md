@@ -1,16 +1,21 @@
-# Production evidence
+# Check a deployment before production
 
-Run the read-only checker from a source checkout with development dependencies
-installed (`pnpm install --frozen-lockfile`). It checks an instance configuration
-against a strict, sign-in gated OIDC profile and can probe an explicitly supplied
-staging origin. It does not change the deployment or approve production.
+Before people rely on an instance, run the read-only readiness checker against its
+configuration, or against the Kubernetes manifests you are about to apply. It reports
+what it can prove from those files and a staging address, and lists what it cannot see,
+so you know which evidence is still yours to gather. It changes nothing and approves
+nothing.
+
+Run it from a source checkout with development dependencies installed
+(`pnpm install --frozen-lockfile`). It checks the configuration against a strict,
+sign-in gated OIDC profile:
 
 ```sh
 pnpm run readiness -- --config /path/to/instance.json --out evidence.json
 ```
 
-For Kubernetes, render the environment configuration with Helm first,
-then supply the result. Use external secret references: rendered chart-managed
+For Kubernetes, render the environment configuration with Helm first, then pass the
+result, optionally with a staging address to probe. Use external secret references: rendered chart-managed
 Secret resources can contain credentials and are refused by this evidence profile.
 
 ```sh

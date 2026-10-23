@@ -1700,15 +1700,15 @@
     },
     {
       "slug": "work-self-host",
-      "title": "Run your own server",
+      "title": "Run Lolly Work",
       "src": "work/self-host.md",
       "section": "operate",
-      "group": "Updates, qualification and release history",
+      "group": "Hosting and installation",
       "path": "operate/run-your-own-server",
       "icon": "server",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Release downloads and installation paths for YunoHost, Linux, macOS, Windows and Kubernetes.",
+      "description": "Pick the path that matches what you have: the public demo, a trial on your computer, one Linux server, YunoHost or Kubernetes. Downloads and checksums for the current release.",
       "work": {
         "slug": "self-host",
         "path": "self-host.md",
@@ -1725,7 +1725,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Work 1.1.2 paired with Lolly 1.1.2: matched components, what Lolly 1.1.2 needs from Work, changes since 1.1.1, migrations and qualification.",
+      "description": "The current release: Work 1.1.2 paired with Lolly 1.1.2, what Lolly 1.1.2 needs from Work, changes since 1.1.1, migrations, images and YunoHost packaging.",
       "work": {
         "slug": "release-1-1-2",
         "path": "release-1-1-2.md",
@@ -1733,36 +1733,24 @@
       }
     },
     {
-      "slug": "work-release-1-1-1",
-      "title": "Release 1.1.1",
-      "src": "work/release-1-1-1.md",
+      "slug": "work-past-releases",
+      "title": "Past releases",
+      "src": "work/past-releases.md",
       "section": "operate",
       "group": "Updates, qualification and release history",
-      "path": "operate/release-1-1-1",
+      "path": "operate/past-releases",
       "icon": "document",
-      "aliases": [],
+      "aliases": [
+        "work-release-1-1-1",
+        "work-release-1-1-0",
+        "operate/release-1-1-1",
+        "operate/release-1-1-0"
+      ],
       "contentLicense": "MPL-2.0",
-      "description": "Work 1.1.1 paired with Lolly 1.1.1: matched components, changes since 1.1.0, migrations and qualification.",
+      "description": "Work 1.1.1 and 1.1.0 kept as a record: matched components, changes, migrations, image digests and YunoHost packaging.",
       "work": {
-        "slug": "release-1-1-1",
-        "path": "release-1-1-1.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-release-1-1-0",
-      "title": "Release 1.1.0 (historical record)",
-      "src": "work/release-1-1-0.md",
-      "section": "operate",
-      "group": "Updates, qualification and release history",
-      "path": "operate/release-1-1-0",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Shared Lolly and Work release candidate, matched component versions, qualification, migration and rollback.",
-      "work": {
-        "slug": "release-1-1-0",
-        "path": "release-1-1-0.md",
+        "slug": "past-releases",
+        "path": "past-releases.md",
         "icon": "overview"
       }
     },
@@ -1793,10 +1781,44 @@
       "icon": "server",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Nothing → a running, configured, governed instance: local demo, first config, sign-in, Postgres, secrets, Compose, systemd, Helm.",
+      "description": "From a source checkout to a running instance on one server: try it locally, make it yours, add PostgreSQL and secrets, then run it with Compose, systemd or YunoHost.",
       "work": {
         "slug": "install",
         "path": "install.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-ready-made-package",
+      "title": "Install the ready-made package",
+      "src": "work/ready-made-package.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/ready-made-package",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "One Docker Compose folder with Work, PostgreSQL, the matching web app and automatic HTTPS, for a fresh VM, UpCloud or Dokploy, with backup, restore and update steps.",
+      "work": {
+        "slug": "ready-made-package",
+        "path": "ready-made-package.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-platform-deployment",
+      "title": "Install on Kubernetes",
+      "src": "work/platform-deployment.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/platform-deployment",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Try Lolly Work on a cluster in one command, then install it for production with Helm on K3s, RKE2 or Rancher, and prepare new SLES or openSUSE Leap hosts.",
+      "work": {
+        "slug": "platform-deployment",
+        "path": "platform-deployment.md",
         "icon": "overview"
       }
     },
@@ -1805,12 +1827,12 @@
       "title": "Official installation routes",
       "src": "work/official-installations.md",
       "section": "operate",
-      "group": "Updates, qualification and release history",
+      "group": "Hosting and installation",
       "path": "operate/official-installations",
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Project-owned images, Helm/Rancher, European clouds, YunoHost and neutral VM/Dokploy packages, with publication and qualification status.",
+      "description": "Which project packages exist, what each has passed, how to verify release signatures, and how to mirror every download for a restricted network.",
       "work": {
         "slug": "official-installations",
         "path": "official-installations.md",
@@ -1844,7 +1866,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "An illustrated six-step journey through deployment, owner identity, SCIM, assets and a checked sample, with configuration apply and recovery.",
+      "description": "A six-step walk through Customer setup: deployment, owner identity, SCIM, assets and a checked sample, then applying the generated configuration.",
       "work": {
         "slug": "customer-setup",
         "path": "customer-setup.md",
@@ -1853,7 +1875,7 @@
     },
     {
       "slug": "work-deployment",
-      "title": "Lolly Work deployment options",
+      "title": "How a Work deployment fits together",
       "src": "work/deployment.md",
       "section": "operate",
       "group": "Hosting and installation",
@@ -1861,7 +1883,7 @@
       "icon": "server",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Helm/Rancher, Compose, Vercel, air-gap: what each path carries and what it doesn't.",
+      "description": "The parts every Lolly Work deployment runs, which ones you can leave out, the two ways to render, the Helm values to know and offline operation.",
       "work": {
         "slug": "deployment",
         "path": "deployment.md",
@@ -1870,7 +1892,7 @@
     },
     {
       "slug": "work-cloud-deployment",
-      "title": "UpCloud, Evroc and fewer hosting services",
+      "title": "Run Work on UpCloud or Evroc",
       "src": "work/cloud-deployment.md",
       "section": "operate",
       "group": "Hosting and installation",
@@ -1878,27 +1900,10 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Two cloud targets, OpenTofu/Terraform, private VM boundaries, database restore and public-host migration.",
+      "description": "What the OpenTofu and Terraform modules create, how the two providers differ, moving a PostgreSQL database safely, and capacity and recovery checks.",
       "work": {
         "slug": "cloud-deployment",
         "path": "cloud-deployment.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-platform-deployment",
-      "title": "Deploy with your platform team",
-      "src": "work/platform-deployment.md",
-      "section": "operate",
-      "group": "Hosting and installation",
-      "path": "operate/platform-deployment",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Reader, operator and developer paths for SUSE hosts, K3s/RKE2, Ansible/Salt, OCI builds and cloud or on-premises deployment.",
-      "work": {
-        "slug": "platform-deployment",
-        "path": "platform-deployment.md",
         "icon": "overview"
       }
     },
@@ -1912,7 +1917,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Optional policy and component hosting tracks, current WASI compatibility, runtime qualification and bounded worker canaries.",
+      "description": "Optional WebAssembly tracks: evaluating Kubewarden admission policies and preparing a component host. A normal install needs neither.",
       "work": {
         "slug": "wasm-deployment",
         "path": "wasm-deployment.md",
@@ -2196,7 +2201,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Give this deploy a signing identity so exports carry a verifiable credential.",
+      "description": "Give a deployment a signing identity so server exports carry a verifiable Content Credential: a self-made root in one command, or your organisation's CA.",
       "work": {
         "slug": "c2pa",
         "path": "c2pa.md",
@@ -2640,7 +2645,7 @@
     },
     {
       "slug": "work-operations",
-      "title": "Operations runbook",
+      "title": "Keep Lolly Work running",
       "src": "work/operations.md",
       "section": "operate",
       "group": "Operations, monitoring and recovery",
@@ -2648,44 +2653,10 @@
       "icon": "server",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Migrations, collaboration drain, backup, rate limits, metrics, guarded upgrades and engine pin.",
+      "description": "Upgrades, backups and restores, secret rotation, health and storage alerts, rate limits, scan hooks, notifications and SIEM forwarding, in the order the jobs come round.",
       "work": {
         "slug": "operations",
         "path": "operations.md",
-        "icon": "audit"
-      }
-    },
-    {
-      "slug": "work-frontend-updates",
-      "title": "Fast frontend updates",
-      "src": "work/frontend-updates.md",
-      "section": "operate",
-      "group": "Updates, qualification and release history",
-      "path": "operate/frontend-updates",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Qualified source updates with reused runtimes, private shell publication, public root and validator maps, and accepted baselines.",
-      "work": {
-        "slug": "frontend-updates",
-        "path": "frontend-updates.md",
-        "icon": "audit"
-      }
-    },
-    {
-      "slug": "work-public-model-proof-reuse",
-      "title": "Public model verification reuse",
-      "src": "work/public-model-proof-reuse.md",
-      "section": "operate",
-      "group": "Updates, qualification and release history",
-      "path": "operate/public-model-proof-reuse",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Bounded verification reuse for an unchanged serving process, invalidation rules, and measured release timings.",
-      "work": {
-        "slug": "public-model-proof-reuse",
-        "path": "public-model-proof-reuse.md",
         "icon": "audit"
       }
     },
@@ -2708,7 +2679,7 @@
     },
     {
       "slug": "work-production-readiness",
-      "title": "Production evidence",
+      "title": "Check a deployment before production",
       "src": "work/production-readiness.md",
       "section": "operate",
       "group": "Operations, monitoring and recovery",
@@ -2716,27 +2687,10 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Read-only configuration checks, staging probes and the evidence still needed before production.",
+      "description": "Run the read-only checker against your configuration or rendered manifests, read its results, and add the evidence only you can supply.",
       "work": {
         "slug": "production-readiness",
         "path": "production-readiness.md",
-        "icon": "audit"
-      }
-    },
-    {
-      "slug": "work-application-release-classification",
-      "title": "Application release classification",
-      "src": "work/application-release-classification.md",
-      "section": "operate",
-      "group": "Updates, qualification and release history",
-      "path": "operate/application-release-classification",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Advisory Git comparison for web-shell changes, conservative shared-source boundaries and required release qualification.",
-      "work": {
-        "slug": "application-release-classification",
-        "path": "application-release-classification.md",
         "icon": "audit"
       }
     },
@@ -2748,9 +2702,16 @@
       "group": "Updates, qualification and release history",
       "path": "operate/shell-deployment-workflow",
       "icon": "document",
-      "aliases": [],
+      "aliases": [
+        "work-frontend-updates",
+        "work-public-model-proof-reuse",
+        "work-application-release-classification",
+        "operate/frontend-updates",
+        "operate/public-model-proof-reuse",
+        "operate/application-release-classification"
+      ],
       "contentLicense": "MPL-2.0",
-      "description": "Qualified main CI requests, reusable prepared artifacts and guarded publication with resumable successful phases.",
+      "description": "Publish a qualified Lolly web app build to a private Work instance without rebuilding its image: prepare the request, then run and resume the deployment.",
       "work": {
         "slug": "shell-deployment-workflow",
         "path": "shell-deployment-workflow.md",
@@ -2909,11 +2870,6 @@
         "sha256": "4c75d441d0c52fe7956c7013dd12123f38064a36f1e259561b4303759b03bd53",
         "originalPath": "docs/api.md"
       },
-      "application-release-classification.md": {
-        "source": "work/application-release-classification.md",
-        "sha256": "38e3c308f1a471f350fd1c29fef84af457d83b793e9c61a47df931868011706f",
-        "originalPath": "docs/application-release-classification.md"
-      },
       "approvals.md": {
         "source": "work/approvals.md",
         "sha256": "3ddffad3e43478fda9bf66fb77d3d654c26696f75c4831c28f94b3f6ae24c40f",
@@ -2988,11 +2944,6 @@
         "source": "work/file-preview.md",
         "sha256": "74de415d593fc82db6eeee32be9330a347910f4899e0d94cbeba4d3bb8bd6ca6",
         "originalPath": "docs/file-preview.md"
-      },
-      "frontend-updates.md": {
-        "source": "work/frontend-updates.md",
-        "sha256": "b40209a07941b69beb08c3fc6e221cadeb781dbd4b893488c3125ccad5724e3b",
-        "originalPath": "docs/frontend-updates.md"
       },
       "governance.md": {
         "source": "work/governance.md",
@@ -3188,21 +3139,6 @@
         "source": "work/providers/webdav.md",
         "sha256": "811c374d8f27154d3cbf0602fb480f7e6d3b245442165b2d9572b86e2983548c",
         "originalPath": "docs/providers/webdav.md"
-      },
-      "public-model-proof-reuse.md": {
-        "source": "work/public-model-proof-reuse.md",
-        "sha256": "fdf63a796d5dd701092a933c3efca6f8cfe3ff3a9b5423033d57a6fb62a45c6f",
-        "originalPath": "docs/public-model-proof-reuse.md"
-      },
-      "release-1-1-0.md": {
-        "source": "work/release-1-1-0.md",
-        "sha256": "46dc3709d765c7b1662c79f004068ccbe7a6eafa44538eee9d7a9991c2ebc927",
-        "originalPath": "docs/release-1-1-0.md"
-      },
-      "release-1-1-1.md": {
-        "source": "work/release-1-1-1.md",
-        "sha256": "595ce11fc401df20d7e7d45dc8844456df4fb35ed84468303a96e9012b7762cd",
-        "originalPath": "docs/release-1-1-1.md"
       },
       "renders.md": {
         "source": "work/renders.md",

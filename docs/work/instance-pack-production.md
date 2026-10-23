@@ -1,10 +1,18 @@
-# Build a raw Work pack from a signed Lolly release
+# Build a verified instance pack
 
-Work mounts a directory containing tools and catalogue data. This raw directory
-is different from Lolly's distributable `.lolly` archive. Build it from the exact
-signed frontend release when tools, asset addresses or generated renditions have
-changed. Rebuilding it from the source resolver can produce different indexes
-and tool bytes from those the frontend verifies.
+You need this page when your instance serves your own tools or design system and you
+are releasing a new version of them. Work mounts a plain folder of tools and catalogue
+data, the raw pack. It is not Lolly's distributable `.lolly` archive. Build it from the
+exact signed web app release whenever tools, asset addresses or generated renditions
+change, so the server serves the same bytes the web app verifies. Rebuilding it from the
+source resolver instead can produce different indexes and tool bytes.
+
+::: timeline
+- <!--i:seal--> **Start from a signed release.** An extracted final web app release and its reviewed custody file.
+- <!--i:shieldcheck--> **Verify the release.** The producer checks the manifest, the public key pin and the signed catalogue with Lolly's own verifier.
+- <!--i:folder--> **Copy the raw pack.** Exact identity files under `tools/` and `catalog/`, with signed indexes untouched.
+- <!--i:server--> **Mount it in Work.** Work signs the catalogue for each caller when it serves the pack.
+:::
 
 Run the maintained producer from a qualified Work checkout with its vendored
 engine and resolver pinned to the reviewed Lolly source. Use clean, isolated
@@ -97,6 +105,8 @@ manifest, existing public pin, source, profile and committed verifier, then chec
 the exact raw projection. Successful offline preparation remains separate from
 staging, live runtime qualification and production promotion.
 
-The existing source-resolver mode remains available for local trials and older
-content workflows. It uses version 1 provenance and can prune excluded catalogue
-paths. Do not use that mode to reproduce a processed signed release.
+::: details The older source-resolver mode
+The source-resolver mode remains available for local trials and older content
+workflows. It uses version 1 provenance and can prune excluded catalogue paths. Do not
+use that mode to reproduce a processed signed release.
+:::
