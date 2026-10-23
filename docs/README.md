@@ -80,6 +80,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | --- | --- |
 | Automate | [builders.md](builders.md) |
 | Design tool contract | [design-tool-contract.md](design-tool-contract.md) |
+| AI Agents | [ai-agents.md](ai-agents.md) |
 | Learning integration | [learning-integration.md](learning-integration.md) |
 | Authored text composition | [../engine/text-composition.md](../engine/text-composition.md) |
 | Lolly architecture | [overview.md](overview.md) |
@@ -116,7 +117,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Work prose and screenshots retain
 | Signing from the terminal | [cli-signing.md](cli-signing.md) |
 | TUI | [tui.md](tui.md) |
 | MCP Server | [mcp.md](mcp.md) |
-| AI Agents | [ai-agents.md](ai-agents.md) |
+| Agents in an open document | [open-document-agents.md](open-document-agents.md) |
 | Contributing Setup | [contributing-setup.md](contributing-setup.md) |
 | Build Guide | [build-guide.md](build-guide.md) |
 | Build the CLI and TUI | [build-terminal.md](build-terminal.md) |

@@ -701,5 +701,22 @@
       "anchor": "tls-the-suse-curated-way-optional",
       "label": "TLS, the SUSE-curated way (optional)"
     }
+  },
+  "mcp": {
+    "work-in-the-open-document": {
+      "slug": "open-document-agents",
+      "anchor": "invite-an-agent-from-share",
+      "label": "Work in the open document"
+    },
+    "operate-a-document-relay": {
+      "slug": "open-document-agents",
+      "anchor": "run-a-document-relay",
+      "label": "Operate a document relay"
+    },
+    "browser-site-tools-webmcp": {
+      "slug": "open-document-agents",
+      "anchor": "site-tools-in-the-browser-webmcp",
+      "label": "Browser site tools (WebMCP)"
+    }
   }
 }
