@@ -121,6 +121,12 @@
       "Mono or stereo (max 2 ch)",
       "Content Credentials (BMFF binding)"
     ],
+    "AAC": [
+      "AAC-LC (mp4a.40.2) via WebCodecs",
+      "Bare ADTS stream, no MP4 box",
+      "Same encoder as M4A",
+      "Title, artist and comment in an ID3 tag"
+    ],
     "PPTX": [
       "Editable text boxes, not pictures",
       "One slide per page",
@@ -211,15 +217,17 @@
     ],
     "OGG": [
       "Vorbis or Opus inside",
-      "Kept byte-for-byte",
+      "Kept byte-for-byte on import",
       "Decoded on device",
-      "Drives a video music bed"
+      "Exports Opus in an Ogg file",
+      "Content Credential (Lolly verifier)"
     ],
     "FLAC": [
       "Lossless compressed audio",
-      "Kept byte-for-byte",
+      "Kept byte-for-byte on import",
       "Decoded on device",
-      "Import-only soundtrack source"
+      "Lossless export via libFLAC, never resampled",
+      "Content Credential (Lolly verifier)"
     ],
     "MIDI": [
       "Score, not a recording",
@@ -464,6 +472,13 @@
       "Zipped 3D-printing package",
       "Read on device, never uploaded",
       "Rendered by 3D Studio as a still or turntable"
+    ],
+    "RPM": [
+      "RPM v4, noarch, unsigned",
+      "Wraps an SVG, PNG, JPG or WebP render",
+      "Brand fonts as a font package",
+      "lolly pack and lolly icons in the terminal",
+      "Byte-identical output for the same input"
     ]
   },
   "_unsupported_note": "Known gaps per format token, shown in the dialog under 'Not yet supported'. Editorial and accurate, not exhaustive: seed only what is genuinely true today. A format with no entry shows no gap list. Expand this during the format-support roadmap review.",
@@ -503,6 +518,16 @@
     "Premiere XML": [
       "Export carries unprocessed media clips only: titles, shapes, effects, speed changes and keyframes need video export",
       "Authored canvas placement and fitting are not transferred"
+    ],
+    "AAC": [
+      "No Content Credential (export M4A for one)"
+    ],
+    "FLAC": [
+      "Export refuses a sample rate libFLAC does not accept, with a message"
+    ],
+    "RPM": [
+      "No GPG signature: sign the package with rpmsign before publishing it to a repository",
+      "Data packages only (noarch); no compiled programs"
     ]
   },
   "formats": [
@@ -852,6 +877,26 @@
       }
     },
     {
+      "token": "AAC",
+      "name": "AAC",
+      "full": "Advanced Audio Coding (ADTS stream)",
+      "category": "Audio",
+      "dir": "both",
+      "features": [
+        "audio",
+        "lossy"
+      ],
+      "desc": "Bare AAC audio: the same lossy codec as M4A without the MP4 wrapper, as an ADTS stream that most players and broadcast tools take directly. Lolly adds an .aac to your library and decodes it on your device for a music bed. A Design sequence, or Download as on an audio file in your library, writes one with the same AAC-LC encoder as M4A, in browsers that provide that encoder. A bare ADTS stream has no place for a Content Credential, so choose M4A when the file should carry one.",
+      "metadata": {
+        "reads": [],
+        "writes": [
+          "id3"
+        ],
+        "preserves": "none",
+        "note": "When export metadata is on, title, artist and comment travel in an ID3v2 tag at the head of the stream. No Content Credential: ADTS has no container to hold one."
+      }
+    },
+    {
       "token": "PPTX",
       "name": "PPTX",
       "full": "PowerPoint Open XML Presentation",
@@ -1167,16 +1212,20 @@
       "name": "OGG",
       "full": "Ogg Vorbis / Opus",
       "category": "Audio",
-      "dir": "in",
+      "dir": "both",
       "features": [
         "audio",
-        "lossy"
+        "lossy",
+        "provenance"
       ],
-      "desc": "An open, royalty-free compressed audio format (usually Vorbis or Opus inside), a free-software alternative to MP3. Lolly keeps the file intact and decodes it on-device, so an OGG track can drive a video's music bed or play in the ambient player.",
+      "desc": "An open, royalty-free compressed audio format (usually Vorbis or Opus inside), a free-software alternative to MP3. Lolly keeps an imported file intact and decodes it on your device, so an OGG track can drive a video's music bed or play in the ambient player. A Design sequence, or Download as on an audio file in your library, writes Opus in an Ogg file, encoded on your device, with a Content Credential that Lolly's own verifier reads (c2patool has no Ogg reader).",
       "metadata": {
         "reads": [],
-        "writes": [],
-        "preserves": "n/a"
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "Title, artist and comment are written as Vorbis comments. The credential travels in the OpusTags comment header, which Lolly's own verifier reads."
       }
     },
     {
@@ -1184,16 +1233,20 @@
       "name": "FLAC",
       "full": "Free Lossless Audio Codec",
       "category": "Audio",
-      "dir": "in",
+      "dir": "both",
       "features": [
         "audio",
-        "lossless"
+        "lossless",
+        "provenance"
       ],
-      "desc": "Lossless compressed audio: full CD-or-better quality with no detail thrown away, but smaller than WAV. Popular with music archivists. Lolly keeps a FLAC byte-for-byte and decodes it on your device, ready to use as a soundtrack under a video.",
+      "desc": "Lossless compressed audio: full CD-or-better quality with no detail thrown away, but smaller than WAV. Popular with music archivists. Lolly keeps an imported FLAC byte for byte and decodes it on your device, ready as a soundtrack under a video. A Design sequence, or Download as on an audio file in your library, writes a lossless FLAC at the clip's own sample rate, encoded on your device, with a Content Credential that Lolly's own verifier reads (c2patool has no FLAC reader).",
       "metadata": {
         "reads": [],
-        "writes": [],
-        "preserves": "n/a"
+        "writes": [
+          "c2pa"
+        ],
+        "preserves": "none",
+        "note": "Title, artist and comment are written as a Vorbis comment block. The credential rides in an APPLICATION metadata block, which Lolly's own verifier reads."
       }
     },
     {
@@ -2004,6 +2057,24 @@
         "writes": [],
         "preserves": "none",
         "note": "USTAR headers keep each member name, mode and timestamp; the archive holds no descriptive metadata."
+      }
+    },
+    {
+      "token": "RPM",
+      "name": "RPM",
+      "full": "RPM package (v4, noarch)",
+      "category": "Bundle",
+      "dir": "out",
+      "features": [
+        "multi-file-bundle",
+        "compression"
+      ],
+      "desc": "The package format of RPM-based Linux distributions, installed with rpm, zypper or dnf. Any tool that renders SVG, PNG, JPG or WebP can wrap the render as an RPM that installs the file system-wide at a path you choose. Your brand fonts download as a font package, and the CLI builds icon, font and file packages with lolly icons and lolly pack. Built on your device, deterministic for the same input, and unsigned.",
+      "metadata": {
+        "reads": [],
+        "writes": [],
+        "preserves": "n/a",
+        "note": "The package header carries the name, version, summary, licence, vendor and URL you enter. That is package metadata, not a document metadata standard, so no field above is claimed."
       }
     }
   ]

@@ -306,7 +306,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
   },
   {
     flag: 'formats', id: 'cap-formats', title: 'Export formats', icon: ICONS.image,
-    desc: '59 formats across vector, raster, layered, print, motion, audio, documents, data, design tokens and bundles. A tool offers only the formats its author declared, and the picker hides any your browser can’t produce.',
+    desc: '63 formats across vector, raster, layered, print, motion, audio, documents, data, design tokens and bundles. A tool offers only the formats its author declared, and the picker hides any your browser can’t produce.',
     cards: [
       { icon: ICONS.vector, title: 'Vector', shot: 'vt-wordmark-vector', keywords: 'svg svgz eps emf wmf dxf illustrator postscript outlines paths cut file laser cnc plotter penpot boards indesign idml', features: [
         { name: 'SVG · SVGZ', desc: 'Infinitely scalable and self-contained - text is outlined to paths (HarfBuzz-shaped) so it renders identically without the font installed. SVGZ is the same file gzip-compressed, 60 to 70% smaller.' },
@@ -332,8 +332,9 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'Lottie (.lottie)', desc: 'Placed Lottie clips, with the layers, timing and colours you edited in the timeline, export as one composed dotLottie animation. Anything it cannot carry is reported rather than silently dropped.' },
         { name: 'Premiere XML', desc: 'A Design sequence of unprocessed video, audio and image clips goes to Premiere Pro as a zip holding <code>sequence.xml</code> and the original media. Titles, effects and speed changes go out as video instead.' },
       ] },
-      { icon: ICONS.film, title: 'Audio', keywords: 'mp3 m4a wav opus audio soundtrack voice recorder audiogram sequence studio lossless encode', features: [
+      { icon: ICONS.film, title: 'Audio', keywords: 'mp3 m4a aac wav flac opus ogg audio soundtrack voice recorder audiogram sequence studio lossless encode download as', features: [
         { name: 'MP3 · M4A · WAV · Opus', desc: 'Recording and audio tools (the Voice Recorder, Audiogram and a Design sequence) export their soundtrack on its own - compact MP3, M4A or Opus, or full-quality lossless WAV - encoded on your device.' },
+        { name: 'AAC · Ogg · FLAC', desc: 'A Design sequence, and Download as on an audio file in your library, also write a bare AAC stream, Opus in an Ogg file, or lossless FLAC at the clip’s own sample rate. Ogg and FLAC carry Content Credentials; a bare AAC stream has no place for one, so choose M4A when the file should carry one.' },
       ] },
       { icon: ICONS.doc, title: 'Documents & data', keywords: 'pptx powerpoint keynote html markdown md txt json csv ics calendar vcf contact vcard docx word odt libreoffice scorm lms course srt vtt webvtt captions subtitles', features: [
         { name: 'PowerPoint (PPTX)', desc: 'Multi-page and layout tools export an editable deck - each page decomposed into native text boxes, real shapes, and extractable images and vectors (logos embedded as real SVG). Built to hand a colleague content they can edit and reuse, not a flat screenshot.' },
@@ -357,7 +358,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
   },
   {
     flag: 'import', id: 'cap-import', title: 'Import formats', icon: ICONS.install,
-    desc: '55 formats, from photos and design files to decks, documents, tables, audio, video and 3D models. Every file is parsed on your device and never uploaded: design files open as an editable layout, images join your local library, and data fills a tool’s blocks.',
+    desc: '56 formats, from photos and design files to decks, documents, tables, audio, video and 3D models. Every file is parsed on your device and never uploaded: design files open as an editable layout, images join your local library, and data fills a tool’s blocks.',
     cards: [
       { icon: ICONS.image, title: 'Images', shot: 'auth-assets-uploads', keywords: 'png jpg jpeg webp avif heic heif jxl jpeg xl bmp ico favicon iphone photo exif gps strip gif apng animated svg svgz sanitise', features: [
         { name: 'PNG · JPG · WebP · AVIF · HEIC/HEIF', desc: 'Drop a photo or graphic into any image picker or your <strong>My images</strong> library. Stills are downscaled and stripped of EXIF/GPS on ingest; iPhone HEIC/HEIF decodes even where the browser can’t, via a bundled fallback. AVIF reads wherever the browser decodes it.' },
@@ -387,7 +388,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
         { name: 'MP4 · MOV · WebM', desc: 'Video files are stored <em>verbatim</em> - never transcoded - and their dimensions probed locally, ready to place in motion tools.' },
       ] },
       { icon: ICONS.sound, title: 'Sound & music', keywords: 'mp3 m4a aac wav ogg vorbis opus flac midi mod xm it s3m tracker music soundtrack bed audio import', features: [
-        { name: 'MP3 · M4A · WAV · OGG · FLAC', desc: 'Kept byte for byte and decoded on your device, ready to be a video’s music bed or to play in the ambient player.' },
+        { name: 'MP3 · M4A · AAC · WAV · OGG · FLAC', desc: 'Kept byte for byte and decoded on your device, ready to be a video’s music bed or to play in the ambient player.' },
         { name: 'MIDI · tracker modules', desc: 'A <code>.mid</code> score becomes a small on-device synth track, and MOD, XM, IT, S3M, STM and MTM tracker music plays through a bundled player.' },
       ] },
       { icon: ICONS.cube, title: '3D models', keywords: '3d glb gltf stl 3mf model mesh import render', features: [
