@@ -144,7 +144,7 @@ Each guide shows its own `options`. These blocks work the same way for every kin
 | `sync.maxAssets` | The most files one sync federates (default: the instance limit, 100,000). A sync that stops there is marked as truncated, with a note. |
 
 A source written into `instance.json` under `catalogProviders` is **config-managed**. Work
-creates it at boot, the console shows it read-only ("via instance.json"), and its credential
+creates it at boot and the console shows it read-only ("via instance.json"). Its credential
 comes from the environment variable its `credentialRef` gives. Change it in your deployment and
 redeploy.
 

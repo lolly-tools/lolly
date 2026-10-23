@@ -18,21 +18,22 @@ it makes. Admins can review all agent activity under **Agents** in the console.
 ## An agent cannot
 
 - Reach other projects, administrator tools or provider credentials.
-- Replace a whole session, change membership, or rename or delete project contents.
+- Replace a whole session or change membership.
+- Rename or delete project contents.
 - Keep working after expiry, revocation, your loss of access or a disabled account.
 - Get an account or a project membership of its own.
 :::
 
-![An agent invitation: you choose Invite agent, a connection key is shown once, the agent's MCP client keeps it in private settings, the agent works in the document or project with no more than your access, and the audit trail records every call.](/info/diagrams/work-integrations/agent-invite.svg)
+![An agent invitation: you choose Invite agent, a connection key is shown once, the agent's MCP client keeps it in private settings, the agent works in the document or project with no more than your access and the audit trail records every call.](/info/diagrams/work-integrations/agent-invite.svg)
 
 ## Invite an agent to a document
 
 1. In a shared Design document, open **Collaboration settings** (the sliders button in the live
    room bar) and choose **Invite agent**. **People** has the same button.
 2. Give the agent a name, choose **Viewer** (reads the document) or **Editor** (makes changes
-   alongside its collaborators), and pick when it expires: 1 hour, 24 hours or 7 days.
+   alongside its collaborators) and pick when it expires: 1 hour, 24 hours or 7 days.
 3. Choose **Create invitation**. The dialog shows the MCP endpoint and a connection key. Choose
-   **Copy MCP configuration**, or **Copy instructions** for a ready-made message, and paste it
+   **Copy MCP configuration** (or **Copy instructions** for a ready-made message) and paste it
    into the agent's private MCP settings.
 
 MCP (Model Context Protocol) is the standard way AI clients connect to tools. This endpoint
@@ -46,7 +47,7 @@ invitation can never exceed your own current permissions.
 ## Invite an agent to a project
 
 1. Open a shared project in Lolly and choose the **Agents** tab.
-2. Enter an agent name, choose **Can edit** or **Can view**, and pick when the invitation
+2. Enter an agent name, choose **Can edit** or **Can view** and pick when the invitation
    expires: one hour, one day or seven days.
 3. Choose **Create agent invitation**, then **Copy agent instructions** and send them privately
    to your agent. The connection key is shown only now.
@@ -65,7 +66,7 @@ document and project invitations combined.
 ## Activity attribution
 
 Collaborators see the agent's name and its inviter in the room. The audit trail records the
-invitation and revocation by the member, the agent's connections and disconnections, and every
+invitation and revocation by the member, the agent's connections and disconnections and every
 authenticated tool call, including reads, refused calls and partly accepted edit batches.
 
 Agent events carry `agentId`, `agentLabel`, `invitedBy` (`user:<id>`), `actingFor`, and the

@@ -151,7 +151,7 @@ mismatch or a refused download fails the check. A sample is not a full inventory
 
 | Symptom | What it means |
 |---|---|
-| `webdav propfind 401 - the server rejected the credential` | Wrong login, wrong password, or the account password where an app password is required. |
+| `webdav propfind 401 - the server rejected the credential` | Wrong login or password, or the account password where an app password is required. |
 | `webdav propfind 403 - the server rejected the credential` | The credential works but this account may not read the folder. Check the share. |
 | `webdav propfind 404 for /remote.php/dav/files/…` | The files root is wrong: usually `username` is the display name rather than the login, or `root` is a folder the account cannot see. |
 | `webdav propfind 405 for /…` | The server, or a proxy in front of the server, does not allow `PROPFIND`. |
@@ -173,8 +173,8 @@ lw providers preview --kind webdav --shape --options '{"baseUrl":"https://cloud.
   the check. [Check a source on your own tenant](tenant-check.md#webdav-nextcloud) lists what to
   look at. Contributors changing the driver follow its
   [maintainer runbook](webdav-live-verify.md) in the Lolly Work repository.
-- **No search, thumbnails or expiring links.** Nextcloud's SEARCH method is not used, there is
-  no rendition endpoint, and files stream through Work on each request.
+- **No search, thumbnails or expiring links.** Nextcloud's SEARCH method is not used and there
+  is no rendition endpoint. Files stream through Work on each request.
 - **A rename arrives as a new file.** The catalog id is the file's path under the root, so
   moving or renaming a file upstream creates a new entry. Nextcloud's `oc:fileid` survives a
   rename but cannot fetch bytes, so the driver does not use that property.

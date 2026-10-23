@@ -1,6 +1,6 @@
 # Check a source on your own tenant
 
-Several Lolly Work sources were built from vendor documentation, without a live account to test
+Several Lolly Work sources were built from public documentation, without a live account to test
 against. Before you rely on one, run a short check on your own tenant. It confirms that Work
 reads the fields it expects, that the files it serves are the real originals, and that only the
 right people see them. Nothing in the check writes to the source. Allow about half an hour.
@@ -21,8 +21,8 @@ right people see them. Nothing in the check writes to the source. Allow about ha
 | [Brandfolder](brandfolder.md) | The two availability field names | no |
 
 [Google Drive](gdrive.md) has no open checklist in its driver, but it has its own
-[acceptance check](#google-drive) to run before go-live. Every other source follows a stable
-public API and carries no checklist.
+[acceptance check](#google-drive) to run before go-live. The other sources (S3, git, Dropbox and
+Microsoft 365) carry no checklist in their drivers.
 
 ## Before you start
 
@@ -296,13 +296,13 @@ versions, delegated sign-in or actions that change the source, needs its own evi
 
 | Area | Evidence to collect |
 |---|---|
-| API and identity | Product or module, API revision, tenant or workspace, service or delegated mode, scopes, and how permissions and revocation behave live. |
+| API and identity | Product or module, API revision, tenant or workspace, service or delegated mode, scopes and how permissions and revocation behave live. |
 | Content | The selected original, file and version with its observed checksum; past bytes checked separately from past metadata, policy and review snapshots. |
 | Search | Allowed combinations per mode, required exact filters, paging and order, result caps, whether counts and facets are complete, and how an unavailable source is reported. |
 | Readiness | Exactly which action or representation can proceed. Accepted upload, pending processing, preview, original, review and publication are separate observations. |
-| Review | The subject, purpose or target, revision, origin, and whether a person or a rule decided. A flag alone is incomplete evidence. |
-| Side effects | Explicit bounded targets, create or replace and conflict rules, destination authority, budget, and reconciliation after an uncertain result. |
-| Portability | Schema, revision and locale mappings where needed, retained evidence, and a demonstrated exit listing the fields it cannot carry. |
+| Review | The subject, purpose or target, revision and origin, and whether a person or a rule decided. A flag alone is incomplete evidence. |
+| Side effects | Explicit bounded targets, create or replace and conflict rules, destination authority and budget, and reconciliation after an uncertain result. |
+| Portability | Schema, revision and locale mappings where needed, retained evidence and a demonstrated exit listing the fields it cannot carry. |
 
 Documentation and fixture results are not the same as a tenant observation or a release
 qualification. None of this adds a new source kind, a delegated sign-in mode or a resolver for

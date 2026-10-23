@@ -78,7 +78,7 @@ points anywhere else. An unsigned pack is hosted but labelled dev-only - a key-p
 app build will refuse that engine version.
 
 Lolly Work treats the pack as a signed byte artifact, not as a second token processor.
-It does not parse, rewrite, or filter `tokens.json`: the shell-reserved
+It does not parse, rewrite or filter `tokens.json`: the shell-reserved
 `lolly.foundation` and `lolly.ui` namespaces (including aliases between them) download
 exactly as the OSS builder produced them.
 
