@@ -1,0 +1,81 @@
+<!--
+  Concept: How one origin answers each kind of address: app routes fall back to the app, docs and catalog paths serve real files with a 404 when missing, /any-site/ carries the second policy, and the optional services own their API paths.
+  Band Contract: static fragment scoped under .drm, reads the docs theme tokens with fallbacks, no
+  script, no motion, no network, so the complete figure renders with JS disabled and in both themes.
+  Sources: deploy/docker/public.nginx.conf (locations), deploy/docker/nginx.conf, deploy/docker/public.caddy (service routes), docs/server-surface.md.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by
+  Andy Fitzsimon on 2026-10-23. The C2PA signature added at bank time is the first provenance record
+  of this file.
+-->
+<style>
+.drm{--drm-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--drm-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --drm-ground:hsl(var(--secondary,84.5 55% 92.2%));--drm-paper:hsl(var(--card,0 0% 100%));
+ --drm-accent:hsl(var(--primary,176.5 89.5% 11.2%));--drm-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --drm-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);--drm-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --drm-wash:color-mix(in oklab,var(--drm-accent) 12%,var(--drm-paper));
+ --drm-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--drm-ink);background:var(--drm-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.drm *{box-sizing:border-box}
+.drm ul,.drm ol{list-style:none;margin:0;padding:0}
+.drm li{list-style:none;margin:0;font-size:inherit}
+.drm p{margin:0}
+.drm code{font:500 .8em/1.3 var(--drm-mono);background:var(--drm-soft);border-radius:5px;padding:.08em .32em;white-space:nowrap}
+.drm b{font-weight:600}
+.drm .drm-cap{font:600 11px/1.3 var(--drm-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--drm-muted)}
+.drm .drm-card{background:var(--drm-paper);border-radius:16px;box-shadow:0 0 0 1px var(--drm-line);padding:14px}
+.drm .drm-title{font-weight:600;font-size:1.02rem;line-height:1.2}
+.drm .drm-note{font-size:.84rem;color:var(--drm-muted)}
+.drm .drm-tag{display:inline-block;font:600 11px/1.2 var(--drm-mono);letter-spacing:.03em;padding:3px 8px;border-radius:999px;background:var(--drm-wash);color:var(--drm-ink)}
+.drm .drm-tag.drm-solid{background:var(--drm-accent);color:var(--drm-on-accent)}
+.drm .drm-down{display:flex;justify-content:center;padding:6px 0}
+.drm .drm-down i{display:block;width:2px;height:18px;background:var(--drm-line);position:relative}
+.drm .drm-down i::after{content:"";position:absolute;left:-5px;bottom:-6px;border:6px solid transparent;border-top-color:var(--drm-muted);border-bottom:0}
+.drm .drm-origin{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
+.drm .drm-origin code{font-size:.9rem}
+.drm .drm-rows{display:grid;gap:8px}
+.drm .drm-row{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1.4fr) 10.5rem;gap:6px 14px;align-items:center;background:var(--drm-paper);border-radius:14px;box-shadow:0 0 0 1px var(--drm-line);padding:10px 12px}
+.drm .drm-row.drm-opt{background:var(--drm-wash)}
+.drm .drm-paths{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center}
+.drm .drm-how{font-size:.88rem}
+.drm .drm-who{justify-self:end}
+.drm .drm-key{margin-top:10px}
+@container (max-width:620px){.drm .drm-row{grid-template-columns:minmax(0,1fr)}.drm .drm-who{justify-self:start}}
+</style>
+<div class="drm">
+<p class="drm-origin"><span class="drm-cap">One origin</span> <code>lolly.example.com</code></p>
+<ul class="drm-rows">
+<li class="drm-row">
+<p class="drm-paths"><code>/</code> <code>/d</code> <code>/t/&lt;id&gt;</code> <span class="drm-note">and other app routes</span></p>
+<p class="drm-how"><b>The app.</b> A clean route gets its prerendered page; anything else falls back to <code>index.html</code>.</p>
+<p class="drm-who"><span class="drm-tag">web server</span></p>
+</li>
+<li class="drm-row">
+<p class="drm-paths"><code>/info/…</code> <code>/tools/…</code> <code>/catalog/…</code></p>
+<p class="drm-how"><b>Real files.</b> A missing file answers 404, never the app.</p>
+<p class="drm-who"><span class="drm-tag">web server</span></p>
+</li>
+<li class="drm-row">
+<p class="drm-paths"><code>/any-site/</code></p>
+<p class="drm-how"><b>The app under a second policy</b> whose <code>frame-src</code> admits any secure web page.</p>
+<p class="drm-who"><span class="drm-tag">web server</span></p>
+</li>
+<li class="drm-row drm-opt">
+<p class="drm-paths"><code>/api/mcp</code> <code>/tool/&lt;id&gt;.&lt;ext&gt;</code> <code>/.well-known/oauth-*</code></p>
+<p class="drm-how"><b>AI agents, public renders</b> and the image pass-through behind Add from URL.</p>
+<p class="drm-who"><span class="drm-tag drm-solid">MCP service</span></p>
+</li>
+<li class="drm-row drm-opt">
+<p class="drm-paths"><code>/api/ca</code></p>
+<p class="drm-how"><b>Signing certificates</b> for verified Content Credentials.</p>
+<p class="drm-who"><span class="drm-tag drm-solid">CA service</span></p>
+</li>
+<li class="drm-row drm-opt">
+<p class="drm-paths"><code>/api/penpot</code></p>
+<p class="drm-how"><b>Send to Penpot.</b></p>
+<p class="drm-who"><span class="drm-tag drm-solid">Penpot pass-through</span></p>
+</li>
+</ul>
+<p class="drm-key drm-note">Shaded rows are the optional services. Route them first, and keep the app fallback last so it cannot swallow them.</p>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ52p1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnBanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDozZmE3ZjViNy1mYjc4LTQ1MTQtOWJlOC1lZGE1MzczNjBmZWIAAAAEPmp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAATxqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAELY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4Rmh0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvdHJhaW5lZEFsZ29yaXRobWljTWVkaWFrZGVzY3JpcHRpb254OEF1dGhvcmVkIHdpdGggQ2xhdWRlIENvZGUgZm9yIHRoZSBMb2xseSBkb2NzIGZpZ3VyZSBiYW5rbXNvZnR3YXJlQWdlbnSiZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wZHdoZW50MjAyNi0xMC0yM1QwNjoyNzozOFoAAACsanVtYgAAAChqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmhhc2guZGF0YQAAAAB8Y2JvcqVqZXhjbHVzaW9uc4GiZXN0YXJ0GRWGZmxlbmd0aBkNlmRuYW1lbmp1bWJmIG1hbmlmZXN0Y2FsZ2ZzaGEyNTZkaGFzaFggRUY/bqVZe3rMibealXdQR9M0csE3jMfOyOhWKpPaffZjcGFkSAAAAAAAAAAAAAAA1Gp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDdG9vbHMubG9sbHkuZXhwb3J0AAAAAKBjYm9yp2dzdXJmYWNlZGRvY3NmZm9ybWF0bWh0bWwtZnJhZ21lbnRkdG9vbHRkZXBsb3ltZW50LXJvdXRlLW1hcGRkYXRleBgyMDI2LTEwLTIzVDA2OjI3OjM4LjAxOVpoYXJ0aWZhY3RmZmlndXJlaWdlbmVyYXRvcmtDbGF1ZGUgQ29kZWttb2RlbFZlbmRvcmlBbnRocm9waWMAAACNanVtYgAAACdqdW1kanNvbgARABCAAACqADibcQNjYXdnLm1ldGFkYXRhAAAAAF5qc29ueyJAY29udGV4dCI6eyJkYyI6Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIn0sImRjOmNyZWF0b3IiOlsiQW5keSBGaXR6c2ltb24iXX0AAADEanVtYgAAACxqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmFpLWRpc2Nsb3N1cmUAAAAAkGNib3KkaW1vZGVsVHlwZXBjMnBhLnR5cGVzLm1vZGVsaW1vZGVsTmFtZW9DbGF1ZGUgT3B1cyA1LjVvbW9kZWxJZGVudGlmaWVyb2NsYXVkZS1vcHVzLTUtNW5jb250ZW50UHJvZmlsZaFzaHVtYW5PdmVyc2lnaHRMZXZlbG1wcm9tcHRfZ3VpZGVkAAAC0mp1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAKjY2JvcqZoZGM6dGl0bGV0ZGVwbG95bWVudC1yb3V0ZS1tYXBqaW5zdGFuY2VJRHgtdXJuOnV1aWQ6ZGY4MWU2YjYtN2E1Yi00OTkzLTkxYTQtZGZkODUwZmRiMDY1dGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGtzcGVjVmVyc2lvbmUyLjQuMHJjcmVhdGVkX2Fzc2VydGlvbnOFomN1cmx4KnNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWN0aW9ucy52MmRoYXNoWCDJjab5b8AutseZJqo5z0+iEhA43PE3OcEIwXP7PEVZqKJjdXJseClzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmhhc2guZGF0YWRoYXNoWCDF4FnCoZ4QaMF+85O5lLhjPcQhn18rd/oroZnqDEJo46JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy90b29scy5sb2xseS5leHBvcnRkaGFzaFggZ4m35gXVgKgVJ0zcCXDezNwxhzNzVnBFdQOsVr9oZqWiY3VybHgoc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvY2F3Zy5tZXRhZGF0YWRoYXNoWCDuJiUol/9ndNv6gbMRLa4CPvJcm24MrBQ3oMM0RtpuhKJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFpLWRpc2Nsb3N1cmVkaGFzaFggtQsv4iBHCG4VvZn3v64VDszBnFa6ATQYozPN5SFimqtpc2lnbmF0dXJleBlzZWxmI2p1bWJmPWMycGEuc2lnbmF0dXJlY2FsZ2ZzaGEyNTYAAAJianVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAAAIyY2JvctKEWQHhogEmGCGBWQHYMIIB1DCCAXmgAwIBAgIJWcw+q8xto9YyMAoGCCqGSM49BAMCMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDAeFw0yNjEwMjMwNjI2MzhaFw0zNjEwMjAwNjI3MzhaMDUxDjAMBgNVBAoMBUxvbGx5MSMwIQYDVQQDDBpMb2xseSBPbi1EZXZpY2UgQ3JlZGVudGlhbDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABGlyPnBPoVNsNzchCKdMYHd+YZfBTJ06utWDcQIkY7TzQtj1sx7pyw3ltPRpalN6lX/yKQGJLCdKihG30JN5VCSjcjBwMAkGA1UdEwQCMAAwDgYDVR0PAQH/BAQDAgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMEMB0GA1UdDgQWBBTIh4499DgdVf0O0btOCLBNZBbNFjAfBgNVHSMEGDAWgBTIh4499DgdVf0O0btOCLBNZBbNFjAKBggqhkjOPQQDAgNJADBGAiEAtsAghSjY/nYeRR9k0d5I6/IkZtN2EXEoSFbePsrEBB0CIQDontO0FpCPiYI9itP9lKs0rM8EBbU9PdaDeswEQGqNFqD2WEAIrcP9qleH/Jl2l4FFE0vf9/aHsoW8O5Toh6Hss1kCtOQIjNToeEMex6I5wO/MYjodPaw07caZYYXNzaLkz5gC -----END C2PA MANIFEST----- -->
