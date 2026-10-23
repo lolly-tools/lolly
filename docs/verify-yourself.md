@@ -60,34 +60,8 @@ Each deployment chooses (`LOLLY_DISABLE_RENDER_GET=1`): on an instance that sets
 
 **7. Check the services your deployment enables.** [Server Surface](/info/server-surface.html) lists the optional services and links their detailed references. For Lolly Work, include its authenticated APIs, collaboration connection, storage and configured providers. A probe of the public lolly.tools does not test a private organisation instance.
 
-If you run your own instance, [Delivery deployment](/info/deploy-delivery.html) has the release checks for it: model integrity, the edge probe, display renditions and the private download gateway. The checks below add what that page does not cover.
+If you run your own instance, [Delivery deployment](/info/deploy-delivery.html) has the release checks for it: model integrity, the edge probe and its sample list, display renditions, the private download gateway and the signed catalog in a browser.
 
-::: details Check a delivery release of your own instance
-These qualify one build and route configuration. The code being present, or a source test passing, does not show that a live deployment passes.
-
-**Check the signed catalog before its indexes.** In DevTools, watch the catalog envelope load before `index.<sha16>.json`. The envelope must cover the exact tool, asset and slim index bytes. Repeat the sync: unchanged responses can return 304, but the saved bytes must still pass their full hashes. In IndexedDB's profile store, `catalog-trust-v1:` records hold the accepted snapshot and its sequence together. A changed index, a forged higher sequence or an older signed envelope must show a refusal and leave that record unchanged. Run those negative cases against a test instance, not a shared production catalog.
-
-**Check offline verification.** Accept a verified catalog, go offline, reload and use a cached tool. The catalog reports its offline verification state. A plain-HTTP context without WebCrypto must say that verification is unavailable rather than claim it verified the signature.
-
-**Give the edge probe a reviewed sample list.** Each sample gives the expected full hash, taken from the release manifest or asset index, and the checks to run:
-
-```json
-[
-  {
-    "origin": "https://your-instance.example",
-    "path": "/catalog/assets/example.0123456789abcdef.svg",
-    "cls": "public-immutable",
-    "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-    "checkConditional": true,
-    "checkRange": true,
-    "requireStrongETag": true,
-    "compress": true
-  }
-]
-```
-
-Replace the illustrative path and hash with the real release values. For private resources, add samples for two readers with separate `credentialEnv` names and `credentialType: "cookie"` or `"bearer"`, using resources expected to differ between them, so a response shared by mistake shows up. Keep the credentials in the environment, never in the sample URL.
-:::
 
 ## In the source
 

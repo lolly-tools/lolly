@@ -90,6 +90,12 @@ Principal-bound MCP result downloads are optional and off by default. An operato
 Qualification must show that a result link is bound to the same validated bearer used for its render, refuses another bearer and expires within 300 seconds. Output bytes use private temporary files, with expiry pruning and removal on clean shutdown; the lookup and ownership state stay in memory. Check per-bearer and gateway holding limits, daily CPU and decoded-byte accounting for holds and downloads, restart invalidation and private refusals, as well as successful responses. Require `private, no-store` and `Referrer-Policy: no-referrer`, and do not turn this into an anonymous output cache. Private workspace editing and invited document agents are separate services.
 :::
 
+## Check the signed catalog in a browser
+
+**Load the envelope before its indexes.** In DevTools, watch the catalog envelope load before `index.<sha16>.json`. The envelope must cover the exact tool, asset and slim index bytes. Repeat the sync: unchanged responses can return 304, but the saved bytes must still pass their full hashes. In IndexedDB's profile store, `catalog-trust-v1:` records hold the accepted snapshot and its sequence together. A changed index, a forged higher sequence or an older signed envelope must show a refusal and leave that record unchanged. Run those negative cases against a test instance, not a shared production catalog.
+
+**Verify offline.** Accept a verified catalog, go offline, reload and use a cached tool. The catalog reports its offline verification state. A plain-HTTP context without WebCrypto must say that verification is unavailable rather than claim it verified the signature.
+
 ## Disclose and qualify before enabling an edge
 
 For every browser-facing or server-side delivery hostname, record the processor, its function, the hosting region, the legal jurisdictions, the metadata it receives, its log retention and the transfer arrangements that apply. A same-origin reverse proxy can still be a processor, because it terminates TLS. Regions can differ by hostname and by identity or asset provider, so do not infer a whole deployment's jurisdiction from its VM. Publish those choices in the instance's privacy policy before activation.
@@ -99,6 +105,25 @@ Run the read-only probe against a reviewed sample list. Keep credentials in the 
 ```bash
 node scripts/edge-probe.ts --samples /path/to/samples.json --out /path/to/private-receipt.json
 ```
+
+Each sample in the list gives the expected full hash, taken from the release manifest or asset index, and the checks to run:
+
+```json
+[
+  {
+    "origin": "https://your-instance.example",
+    "path": "/catalog/assets/example.0123456789abcdef.svg",
+    "cls": "public-immutable",
+    "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "checkConditional": true,
+    "checkRange": true,
+    "requireStrongETag": true,
+    "compress": true
+  }
+]
+```
+
+Replace the illustrative path and hash with the real release values. For private resources, add samples for two readers with separate `credentialEnv` names and `credentialType: "cookie"` or `"bearer"`, using resources expected to differ between them, so a response shared by mistake shows up. Keep the credentials in the environment, never in the sample URL.
 
 For a public catalog, `--catalog` derives samples from the live signed index instead of a hand-written list. Pin the catalog public key in the environment and pass your own shell samples:
 

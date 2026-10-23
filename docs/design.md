@@ -119,11 +119,7 @@ A box can hold more than a picture. Both kinds below keep a recipe rather than a
 
 ### 3D scenes
 
-Choose **3D scene** from the rail's add menu and drag out a frame: 3D Studio opens on the new box, and what you set there comes back to the canvas. Afterwards, select the box and press **Edit in 3D Studio** in the Inspector's **3D scene** section. Applying writes the edited scene back as one undo step; closing without applying changes nothing. The box's place, size, shadow and timing stay in their usual sections.
-
-Every scene box shows a poster, a still drawn off screen at the box's size, and the selected scene box is the one live scene. A document with twenty scenes still uses one drawing context, and a document with no 3D box loads no 3D code at all. The live scene is for looking, not orbiting: change a scene through **Edit in 3D Studio**. On the timeline a scene follows the playhead like a video clip. In an export each scene is drawn fresh at the size the file needs, and a scene that cannot be drawn fails the export and says why. A device that cannot open a floating-point graphics context keeps the poster and says why inside the box.
-
-A scene stores 3D Studio's own link query, so a scene built on your own upload shows the studio's default picture on someone else's device unless the document travels as a `.lolly` file. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) has the studio side.
+Choose **3D scene** from the rail's add menu and drag out a frame: 3D Studio opens on the new box, and what you set there comes back to the canvas. Afterwards, **Edit in 3D Studio** in the Inspector's **3D scene** section reopens the studio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) covers posters, the timeline, export and sharing.
 
 ### Tools inside a design
 
@@ -171,7 +167,7 @@ Where a concrete colour or font suggestion exists, its button changes that one l
 
 The house rules a design system brings with it, such as approved colour pairings or a logo per surface, are not part of this card yet. `lolly check` applies them to a saved Design document, layer by layer; [Usage & rules](/info/brand-studio.html#usage-rules) lists them.
 
-The print checks (bleed, resolution, ink coverage and plate counts) join the same card when you turn on **Settings → Feature flags → Print preflight**. In other tools that flag is what shows the card at all; [Exporting & Formats](/info/exporting.html) describes the print checks.
+The print checks (bleed, resolution, ink coverage and plate counts) join the same card when you turn on **Settings → Feature flags → Print preflight**. In other tools that flag is what shows the card at all; [Export a file](/info/exporting.html) describes the print checks.
 
 ## Presenting
 
@@ -199,7 +195,7 @@ A small control bar fades in when you move the pointer and hides again when you 
 - **Morph.** When consecutive slides both hold a box with the same **Morph match** name (`hero`, say), the transition moves, resizes and recolours that box instead of cutting. A deck-wide **Morph** transition does the same for every matched pair.
 - **Narration.** Each artboard's **Speaker notes** can be read aloud. In the Inspector's **Document** section choose a **Voice**, optionally a second voice to **Blend with**, the **Speed** and a **Lead-in** and **Tail** in milliseconds; **Show captions when presenting** shows the words as they are spoken. The voice runs on your device, and the same notes become the soundtrack of a video export, slide audio in a PowerPoint export and the narrated film in a [SCORM package](/info/create/exporting.html#scorm-course-packages).
 
-The deck is a link too. `?present` opens straight into it and `s=` picks the slide (a position, an artboard id or `id.step` for a build step), and the address follows you, so what you send is the slide you are on. [Reserved URL parameters](/info/url-parameters.html#reserved-parameters) documents them.
+The deck is a link too. `?present` opens straight into it and `s=` picks the slide (a position, an artboard id or `id.step` for a build step), and the address follows you, so what you send is the slide you are on. [Reserved URL parameters](/info/url-parameters.html#what-happens-on-open) documents them.
 
 **Present with camera** places your camera, a logo and a name caption over the slides, with private controls and saved scenes; see [Presenting with camera](/info/presenting.html). A **Web page** box can take the clicker during a talk when you turn on **Make interactive** in its inspector: at its **Focus on click** step, Up and Down control the page while Next continues the deck. [Live pages that take the clicker](/info/interactive-pages.html) covers focus styles, scroll stops and site approval.
 
@@ -209,4 +205,4 @@ The deck is a link too. `?present` opens straight into it and `s=` picks the sli
 - **[Animating](/info/animating.html)**: keyframes, depth, the scene camera and Lift layers.
 - **[Import a design](/info/design-import.html)**: open a Figma, Penpot, Illustrator or InDesign file as editable boxes.
 - **[Share a design with rules](/info/create-a-tool.html)**: turn a Design document into a tool with only the inputs you choose.
-- **[Exporting & Formats](/info/exporting.html)**: formats, sizes, print units and video.
+- **[Export a file](/info/exporting.html)**: formats, sizes, print units and video.
