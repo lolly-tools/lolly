@@ -6,8 +6,8 @@ Darkroom grades photos and video: a warm portrait for a speaker card, a black-an
 
 Open **Darkroom** and choose an image. The controls run from broad to fine:
 
-- **Light and colour**: Temperature, Tint, Exposure, Contrast, Highlights, Shadows, Saturation, Vibrance and Dehaze.
-- **Levels** and **curves**, for the whole image or one channel, with **Auto levels**.
+- **Develop**: Temperature, Tint, Exposure, Contrast, Highlights, Shadows, Saturation, Vibrance and Dehaze.
+- **Levels & curves**, for the whole image or one channel, with **Auto levels**.
 - **Colour mix** for the hue, saturation and lightness of eight colour bands, **Convert to black & white** with per-colour mixing and a tint, and colour balance for shadows, midtones and highlights with **Preserve luminosity**.
 - **Film look**, such as Chrome slide, Teal & orange or Bleach bypass, with **Look strength**.
 - **LUT**: a built-in preset or your own `.cube` or `.3dl` file, with **LUT intensity**.
@@ -34,7 +34,7 @@ lolly adobe preset look.xmp
 - **Grade a video** applies the same colour look to every frame of a clip, at its detected rate from 1 to 60 fps; variable-rate input becomes fixed-rate output. Grading keeps a loop's matching seam but cannot repair a cut in the source. Leave moving grain off when the first and last frames must match exactly.
 - **Save** the session as a user template, a starting point for the next grade.
 
-The **Motion** templates are starting points for looping clips, each with moving grain off: **Warm editorial** (soft highlights and warm colour), **Clean colour** (a small contrast lift for product clips) and **Editorial mono** (black and white with open shadows). Export a still or a LUT, or grade a finished loop.
+The **Motion looks** templates are starting points for looping clips, each with moving grain off: **Warm editorial** (soft highlights and warm colour), **Clean colour** (a small contrast lift for product clips) and **Editorial mono** (black and white with open shadows). Export a still or a LUT, or grade a finished loop.
 
 A Darkroom share link can also go straight into Design: the **Photo title** motion starter there takes your upload or an edited Darkroom link (see [Animating](/info/animating.html#start-from-a-motion-starter)).
 

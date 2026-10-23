@@ -124,14 +124,14 @@ A clip with speech offers two on-device doors in its right-click menu, and **Gen
 
 **Project frame rate** sets the editing grid and the default movie export rate: 24, 25, 30, 50 or 60 fps (existing documents use 30). Frame steps, splits, trims and transition handles follow that grid. An explicit export **Frame rate**, or the `fps` link parameter, overrides the file's rate. Changing the project rate leaves clip times in place. A video clip's Timing controls show its source rate; VFR means the source uses variable frame spacing.
 
-Press **M** to add a marker at the playhead, or **Shift+M** to add one with a label. Click a marker on the ruler to edit its label, colour and type: Marker, Chapter, Range or Note. **Ctrl+Left** and **Ctrl+Right** visit the previous and next marker. Markers and in and out points are snap targets, saved with the document and its link, and never extend the duration. The **Markers** menu exports chapters as a WebVTT sidecar.
+Press **M** to add a marker at the playhead, or **Shift+M** to add one with a label. Click a marker on the ruler to edit its label, colour and type: Marker, Chapter, Range or Note. **Ctrl+Left** and **Ctrl+Right** visit the previous and next marker. Markers and in and out points are snap targets, saved with the document and its link, and never extend the duration. The **Markers** menu exports chapters as a WebVTT sidecar, timed from the start of the whole sequence.
 
 To export part of a sequence:
 
 ::: timeline
 - <!--i:clock--> Press **I** at the start of the part you want.
 - <!--i:clock--> Press **O** at its end. The ruler highlights the range and the export bar shows its times.
-- <!--i:search--> Choose **Markers > Preview mix** to render the range with picture and sound, including effects the live preview cannot show. The preview is at most 960 pixels wide.
+- <!--i:search--> Choose **Markers > Preview mix** to render the range with picture and sound, including effects the live preview cannot show. The preview is at most 960 pixels wide; the export uses the output size you chose.
 - <!--i:download--> Export. Movie and audio files contain only that interval, with motion and sound in their original positions.
 :::
 
@@ -151,9 +151,9 @@ Drop a `.lottie` package or Lottie `.json` file on the gallery and choose **Edit
 
 Each instance keeps its own animation choice. Trim, split, duplicate, change speed and animate position, scale, rotation or opacity with the usual controls. The original package stays intact in your library, and a `.lolly` document carries the source and your edits to another device.
 
-Expand a clip with **+**, or choose **Animation layers**, to edit its internal layers: names, visibility, source in and out frames, transform values and keys, easing, and static fill and stroke colours. The playhead previews the result. Internal edits apply to this clip only, and **Reset internal edits** restores the original.
+Expand a clip with **+**, or choose **Animation layers**, to edit its internal layers: names, visibility, source in and out frames, transform values and keys, easing and static fill and stroke colours. The playhead previews the result. Internal edits apply to this clip only, and **Reset internal edits** restores the original.
 
-Choose **dotLottie** in Export to download the edited sequence as one animation. It supports imported shape animations, nested compositions, embedded still images, solid native shapes and paths, and outer transform keys. The project frame rate and in and out range apply.
+Choose **dotLottie** in Export to download the edited sequence as one animation. It supports imported shape animations, nested compositions, embedded still images, solid native shapes, paths and outer transform keys. The project frame rate and in and out range apply.
 
 ::: details What dotLottie keeps and refuses
 Sources keep their original timing, including fractional frame rates; a new document uses a 30 fps editing grid when the source rate is outside the five project choices. Source keys keep their own frame times and easing. Existing spatial position keys can be edited, but a key cannot be inserted inside a curved spatial path. Animated fill and stroke properties are preserved. For nested time-remapped compositions, selecting a source key does not guess a timeline position; scrub to preview.
@@ -183,7 +183,7 @@ A timed canvas shows one instant, and three promises keep editing predictable:
 
 - **Moving the playhead never changes what is selected.** Scrubbing is looking, not choosing, so a value typed into a panel always reaches the clip you picked.
 - **Selecting in the timeline moves the playhead** inside that clip, so the thing you selected is on screen. It moves only when it has to: never while playing, never for an Always on box and never when the playhead is already inside.
-- **An off-playhead selection is flagged.** If you select a clip and scrub away, the canvas removes the outline and handles and shows a banner with **Go to it**, which seeks to the clip's start. While the selection is off-playhead, keys that would change the design are refused; Escape, Tab and Select all still work.
+- **An off-playhead selection is flagged.** If you select a clip and scrub away, the canvas removes the outline and handles and shows a banner with **Go to it**, which seeks to the clip's start. The banner stays away during playback, where scenes coming and going is expected. While the selection is off-playhead, keys that would change the design are refused; Escape, Tab and Select all still work.
 
 The timeline's own inspector (Length, Trim in, Speed, the two transitions and Mute) and the tool sidebar edit the selected clip wherever the playhead is. They are the precise route and the accessible one.
 
@@ -217,4 +217,4 @@ Every timeline shortcut is a bare letter or punctuation key, because the familia
 
 ## Wide colour and HDR
 
-Sequence follows the Design document's **Colour** setting, so a Wide colour / HDR document keeps its float pixels and 10-bit video through the timeline; see [Wide colour and HDR editing](/info/hdr-editing.html).
+Sequence follows the Design document's **Colour** setting, so a Wide colour / HDR document keeps its float pixels and 10-bit video through the timeline. Turn on HDR output for a 10-bit PQ movie, or export an SDR copy from the same document; see [Wide colour and HDR editing](/info/hdr-editing.html).

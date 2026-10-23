@@ -6,7 +6,7 @@ In [Design](/info/using.html), open the **Lolly menu** (the Lolly mark), choose 
 
 ::: cols
 ## Replace the board
-The default. One page replaces the board and the artboard takes the file's frame size. A multi-page file asks which page.
+The default. One page replaces the board and the artboard takes the file's frame size. A multi-page PDF or deck asks which page; an InDesign file opens its first spread.
 ## As artboards
 Every page or slide becomes its own artboard, each one editable.
 ## As timed scenes
@@ -22,7 +22,7 @@ Every frame becomes a scene on the timeline, ready for timing, music and a voice
 | **`.fig`** | Figma: *File → Save local copy* | Decoded in the browser, with no Figma account, plugin or API key. |
 | **`.penpot`** or **`.zip`** | Penpot's export | Boards, layers, pages and groups; a native `.penpot` file also keeps its layouts (see [Penpot layouts](#penpot-layouts-kept-or-fixed)). |
 | **`.ai`** or **`.pdf`** | Illustrator, saved with the default *PDF-compatible* option, or any PDF | Vector paint, text and images read straight from the page. |
-| **`.idml`** | InDesign: *File → Export → InDesign Markup* | Every spread and its margins. A raw `.indd` cannot be read, so export IDML first. |
+| **`.idml`** | InDesign: *File → Export → InDesign Markup* | Every spread and its margins, as artboards or scenes; **Replace the board** opens the first spread. A raw `.indd` cannot be read, so export IDML first. |
 | **`.psd`** or **`.psb`** | Photoshop | Text, shapes and paths stay editable; other layers come in as pictures in place (see [Photoshop files](#photoshop-files)). |
 | **`.pptx`** | PowerPoint | One slide on the board (a longer deck asks which), or every slide as an artboard or a timed scene. |
 | **`.xml`** | Premiere (Final Cut Pro 7 XML), or a Lolly XML + media ZIP | Choose **Replace the board**; the clips open in Sequence (see [Premiere XML exchange](/info/sequence-editor.html#premiere-xml-exchange)). |

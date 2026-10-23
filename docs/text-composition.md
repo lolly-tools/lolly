@@ -2,7 +2,7 @@
 
 Set a headline, flow a long article across frames and pages, or curve a line of type around a badge, all directly on Design's canvas. The text bar holds font, size, weight, colour, emoji and paragraph controls, and the Inspector offers the same settings. A scope caption tells you whether a change affects the selected text, its paragraphs or whole stories.
 
-Emoji come from the chosen **Emoji set** (Twemoji, OpenMoji, Fluent, Noto or Blobmoji) rather than your computer's font, so an export draws the same picture on every device, and each export credits the glyphs it uses ([Creative rights and credits](/info/creative-rights.html)).
+Emoji come from an emoji set (Twemoji, OpenMoji, Fluent, Noto or Blobmoji, with the default chosen under Settings → Preferences → Emoji) rather than your computer's font, so an export draws the same picture on every device, and each export credits the glyphs it uses ([Creative rights and credits](/info/creative-rights.html)).
 
 ## Headings and paragraphs
 

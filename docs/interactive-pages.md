@@ -12,13 +12,13 @@ Click steps on one slide: the page appears, then takes focus; Up and Down go to 
 - <!--i:globe--> Select a **Web page** box and enter its link in the inspector. Choose its viewport width, poster and load rule.
 - <!--i:check--> Turn on **Make interactive**. **Focus on click** defaults to the click after the page appears; choose **0** to start focused when the slide opens. Each interactive page on a slide needs its own focus step.
 - <!--i:sparkle--> Choose a **Highlight**: Ring, Spotlight, Zoom or None. The colour picker offers your palette, and **Use document accent** restores the default. Reduced motion turns Zoom into a still ring.
-- <!--i:sliders--> Choose what **Up and Down** do: Scroll the page, Act like the keyboard, or Nothing. The inspector reports what the loaded page can receive.
+- <!--i:sliders--> Choose what **Up and Down** do: Scroll the page, Act like the keyboard or Nothing. The inspector reports what the loaded page can receive.
 - <!--i:sliders--> Open **Scroll and depth** to set a start position and stops (see [Long pages](#start-positions-and-stops)).
 :::
 
 The inspector refuses duplicate focus steps, invalid depths and a focus step that comes before the click that reveals its page. Switching interaction off keeps the other settings for later.
 
-A Web page box shows a page only once its site is approved under Settings → Trusted sites, or after **Allow pages from any site** in the web app. Approval is each person's or organisation's own choice. An unapproved or unavailable page stays a poster, and no permission question interrupts the presentation. The interaction settings themselves belong to the document: they travel in its shared link and stay the same for collaborators.
+A Web page box shows a page only once its site is approved under Settings → Preferences → Trusted sites, or after **Allow pages from any site** in the web app. Approval is each person's or organisation's own choice. An unapproved or unavailable page stays a poster, and no permission question interrupts the presentation. The interaction settings themselves belong to the document: they travel in its shared link and stay the same for collaborators.
 
 ## Drive it with the clicker
 
