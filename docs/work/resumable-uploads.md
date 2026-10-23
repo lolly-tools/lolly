@@ -12,7 +12,8 @@ Three kinds of upload use the same parts:
   bytes and a render reads them through its read ticket.
 - **Catalog submission.** An original for `POST /api/v1/catalog/submit`.
 - **Automation input.** The bytes for `/api/v1/inspect` and `/api/v1/optimize`, as an upload or a
-  readable [file reference](api.md#file-references).
+  readable [file reference](api.md#file-references). Those routes still take a small file inline
+  as `bytesBase64`.
 
 ![A resumable upload: begin with the size and checksums, send 1 MiB parts in any order, ask what arrived after a drop, send only the missing parts, then finalize, where every byte is checked.](/info/diagrams/work-integrations/upload-parts.svg)
 
@@ -35,9 +36,10 @@ lw upload ./keynote.mp4 --project prj_ab12        # a shared file in a project
 lw upload ./master.tif --scope catalog-submission  # an original to submit to the catalog
 ```
 
-`lw upload` reads the file one part at a time and keeps each unfinished upload's id under
-`~/.config/lolly-work/uploads/`. If it stops, run the same command again and it carries on.
-Every option and scope is on the [`lw` CLI page](cli.md#resumable-uploads).
+`--scope` takes `catalog-submission`, `automation-input` or `file`. `lw upload` reads the file
+one part at a time and keeps each unfinished upload's id under `~/.config/lolly-work/uploads/`.
+If it stops, run the same command again and it carries on. Every option is on the
+[`lw` CLI page](cli.md#resumable-uploads).
 
 ## Upload from your own client
 
@@ -62,7 +64,7 @@ and a checksum to name it by, for example
 |---|---|---|
 | Largest file | 25 MiB for project files, 64 MiB for scoped uploads | `policy.projectFiles.maxFileBytes` and `policy.uploads.maxFileBytes`, which can only be set lower than the 4 GiB ceiling. A catalog original is also capped at `policy.submit.maxBytes`. |
 | Ceiling | 4 GiB | 4,096 parts, whose declared checksums still fit the 512 KiB begin request. |
-| Unfinished uploads | 16 per person | Counted separately for project files and for scoped uploads. |
+| Unfinished uploads | 16 per person | Counted separately for project files and for scoped uploads. One person's unfinished project files may also reserve at most twice the largest file size at once. |
 | Resume window | 15 minutes after the begin or the last accepted part | And never later than `uploadTtlHours` after the begin (24 hours by default). |
 | Finished scoped upload | 24 hours (`policy.uploads.readyTtlHours`) | 168 hours for a file reference (`policy.uploads.fileTtlHours`). A project file lasts until deleted. |
 
@@ -99,7 +101,8 @@ they own. If any remains, for example because the person is still uploading, the
 ## Why parts, not tus
 
 ::: details The decision, recorded on 2026-10-17
-Project files already used begin, parts and finalize. Two things were missing: a client that lost
+Project files already used begin, parts and finalize, and they had taken the place of a separate
+per-session relay that was designed but never built. Two things were missing: a client that lost
 its place could not ask which parts had arrived, and migration 0041 capped a project file at
 256 MiB. Catalog submission and automation had no way to send a file larger than one request.
 

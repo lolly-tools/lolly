@@ -204,7 +204,8 @@ The refresh token comes from the vendor's own documented OAuth2 authorization-co
 once by hand against the app you registered:
 
 1. Register an app under your own contract in the vendor's console, with a redirect URI you
-   control. Each guide says where the vendor keeps app keys.
+   control. In Canto, an admin creates the App ID and Secret under
+   *Settings > Configuration Options > API Keys*.
 2. Run the vendor's documented authorize step for that app, asking for read scopes plus offline
    access, and collect the authorization code.
 3. Exchange that code for a **refresh token** at the vendor's documented token endpoint.
@@ -218,9 +219,13 @@ a kind's authorize and token endpoints moves the kind into the section above.
 ## Instance settings two features need
 
 - **The exit** writes copies into the instance's own
-  [blob store](../catalog.md#where-instance-bytes-live). Set that up before you materialize.
-- **Publish-out** to Optimizely CMP accepts only exports signed by Lolly, so the instance needs
-  an export signer ([c2pa](../c2pa.md)). Without one, the publish route refuses every export.
+  [blob store](../catalog.md#where-instance-bytes-live). That is Postgres by default
+  (`blobs.driver: "pg"`). For S3, set `blobs.s3.bucket` (and `endpoint` for MinIO or Ceph) and
+  the environment-only credential `LW_BLOBS_S3_CREDENTIAL` before you materialize.
+- **Publish-out** to Optimizely CMP signs nothing itself. It checks that the export already
+  carries Lolly's export assertion, so the instance needs an export signer (`render.c2pa` and
+  `LW_C2PA_SIGNING_KEY`, see [c2pa](../c2pa.md)). Without one, exports are unsigned and the
+  publish route refuses them.
 
 ## Leave a platform, or check one first
 
@@ -228,3 +233,16 @@ a kind's authorize and token endpoints moves the kind into the section above.
   what each DAM carries across.
 - [Check a source on your own tenant](tenant-check.md): confirm the unconfirmed endpoints, field
   names and file fidelity before you rely on a source.
+
+::: details For contributors: how these guides are checked
+The Lolly Work repository's `tests/provider-config-contract.test.ts` treats these pages as a
+contract, so a driver change that outruns its guide fails CI there. It checks that:
+
+- every shipped kind has a guide with the required headings, whose `instance.json` example
+  parses through `parseConfig` and whose `options` keys match the driver;
+- only the one kind that can publish out has a `## Publishing` section;
+- every DAM kind has an `## Off-boarding` section and a row in [Leave a DAM](../offboarding.md);
+- every `lw` command on any page exists in `cli/lw.ts`, with `lw providers auth <id>` allowed
+  only for a kind `oauthFlowFor` registers a consent flow for;
+- every driver hardened for a tenant check has the maintainer runbook its error messages name.
+:::

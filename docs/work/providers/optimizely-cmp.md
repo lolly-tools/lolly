@@ -1,7 +1,7 @@
 # Optimizely CMP (kind: `optimizely-cmp`)
 
-Connect the Optimizely CMP web DAM your website already uses, and its public assets appear in
-the Lolly Work catalog. Optimizely stays the owner of those assets. If you turn on publishing,
+Connect the Optimizely CMP web DAM your website already uses, and its assets appear in the
+Lolly Work catalog. Optimizely stays the owner of those assets. If you turn on publishing,
 finished Lolly exports can also go the other way: into CMP, carrying their Content Credentials
 onto the website.
 

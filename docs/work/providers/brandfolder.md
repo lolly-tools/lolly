@@ -1,7 +1,7 @@
 # Brandfolder (kind: `brandfolder`)
 
-Connect a Brandfolder and its approved assets appear in the Lolly Work catalog, with
-Brandfolder's approval flag and availability dates carried across. Brandfolder stays the source
+Connect a Brandfolder and its assets appear in the Lolly Work catalog, with Brandfolder's
+approval flag and availability dates carried across. Brandfolder stays the source
 of truth: Work stores references plus its own governance settings, and reads the files when
 someone uses them.
 

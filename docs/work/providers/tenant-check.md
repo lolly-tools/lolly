@@ -2,7 +2,7 @@
 
 Several Lolly Work sources were built from public documentation, without a live account to test
 against. Before you rely on one, run a short check on your own tenant. It confirms that Work
-reads the fields it expects, that the files it serves are the real originals, and that only the
+reads the fields it expects, that the files it serves are the real originals and that only the
 right people see them. Nothing in the check writes to the source. Allow about half an hour.
 
 ## Which sources need a check
@@ -26,11 +26,12 @@ Microsoft 365) carry no checklist in their drivers.
 
 ## Before you start
 
-- A tenant you are allowed to test against, under your own contract, and its credential.
+- A tenant you may test against under your own contract, and its credential.
 - A few files you can also download from the source's own interface, one per file type you
   plan to use.
-- On the Work instance: `catalog.provider.manage` for most steps, `catalog.provider.credential`
-  (owners) to seal the credential and enable the source, and `catalog.provider.read` for drift.
+- On the Work instance: `catalog.provider.manage` for most steps, `catalog.provider.read` for
+  drift and `catalog.provider.credential` (owners) to seal the credential, enable the source and
+  disable it again.
 
 ## How a check works
 
@@ -39,7 +40,7 @@ Microsoft 365) carry no checklist in their drivers.
   to Work.
 - **Dry run.** `lw providers preview` checks health and maps a sample without saving anything.
   Exit code `2` means health failed; the guide's error table says why.
-- **Shape report.** Add `--shape`, and `--remote-id <id>` for kinds with a detail call, and save
+- **Shape report.** Add `--shape` (with `--remote-id <id>` for kinds with a detail call) and save
   the output. It lists field names and types, never values.
 - **A real source for admins only.** Add the source with `"groups":["admin"]`, seal the
   credential, enable and sync. Read the count, the sections and every note.
@@ -215,8 +216,8 @@ the exact text of any error and the product version.
 - Use two members in different groups and compare cards, results, counts, thumbnails and
   originals. A service credential's wider view must never become member access.
 - Exercise paging, a rate limit, an outage and recovery. Record real request and credit use,
-  cache freshness and limits for several callers, and whether structured metadata appears in
-  both the list and the detail call.
+  cache freshness and the limits for several callers. Note whether structured metadata appears
+  in both the list and the detail call.
 - Materialize a sample and check checksums and kept metadata before planning an exit. Note which
   proof, rights or history data needs a separate export.
 - A `401` is authentication, a `403` a permission or entitlement, a `429` the shared request
@@ -280,7 +281,7 @@ versions, delegated sign-in or actions that change the source, needs its own evi
 
 ::: details What to record before relying on a source for a new task
 - **Files and versions.** Qualify the selected file, the difference between its original and its
-  previews, and how the source handles revisions. The federated metadata version is only a cache
+  previews and how the source handles revisions. The federated metadata version is only a cache
   change token: exact past bytes need a qualified revision or a permitted retained copy, with a
   verified checksum. See [cache versions and exact source references](../catalog.md#cache-versions-and-exact-source-references).
 - **Identity.** Record whether the connection exposes an administrator-chosen subset through a
@@ -291,16 +292,16 @@ versions, delegated sign-in or actions that change the source, needs its own evi
   model each need their own permission, even from one vendor. An upstream approved flag describes
   the source's state; review scope and territory or channel eligibility need their own evidence.
 - **Batches.** A viewer's current context must never silently become a batch's targets or
-  destination. Preview the targets, keep each item's identity through retries, and check each
+  destination. Preview the targets, keep each item's identity through retries and check each
   item's authority when it is admitted and again when it is committed.
 
 | Area | Evidence to collect |
 |---|---|
 | API and identity | Product or module, API revision, tenant or workspace, service or delegated mode, scopes and how permissions and revocation behave live. |
 | Content | The selected original, file and version with its observed checksum; past bytes checked separately from past metadata, policy and review snapshots. |
-| Search | Allowed combinations per mode, required exact filters, paging and order, result caps, whether counts and facets are complete, and how an unavailable source is reported. |
+| Search | Allowed combinations per mode, required exact filters, paging and order, result caps, whether counts and facets are complete and how an unavailable source is reported. |
 | Readiness | Exactly which action or representation can proceed. Accepted upload, pending processing, preview, original, review and publication are separate observations. |
-| Review | The subject, purpose or target, revision and origin, and whether a person or a rule decided. A flag alone is incomplete evidence. |
+| Review | The subject, purpose or target, revision and origin. Whether a person or a rule decided. A flag alone is incomplete evidence. |
 | Side effects | Explicit bounded targets, create or replace and conflict rules, destination authority and budget, and reconciliation after an uncertain result. |
 | Portability | Schema, revision and locale mappings where needed, retained evidence and a demonstrated exit listing the fields it cannot carry. |
 

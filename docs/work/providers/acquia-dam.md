@@ -1,7 +1,7 @@
 # Acquia DAM / Widen (kind: `acquia-dam`)
 
-Connect an Acquia DAM (Widen) collective and its approved assets appear in the Lolly Work
-catalog, with Widen's own release and expiry dates and approval statuses carried across. No
+Connect an Acquia DAM (Widen) collective and its assets appear in the Lolly Work catalog, with
+Widen's own release and expiry dates and approval statuses carried across. No
 custom-field mapping is needed. Widen stays the source: Work reads with your token and never
 writes back.
 

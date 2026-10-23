@@ -36,9 +36,9 @@ refreshes once after an HTTP 401. Alternatively, store a bearer token as plain t
 with `bearerToken`. There is no browser consent flow or refresh-token credential for this kind.
 
 Use the write-only credential panel or `lw providers credential orange-media`, never options,
-the command line or a source URL. A config-managed source gives, in
-`credentialRef`, the name of an environment variable holding the credential. A token bound to an IP address needs a stable outbound path from the Work
-instance.
+the command line or a source URL. A config-managed source gives, in `credentialRef`, the name of
+an environment variable holding the credential. A token bound to an IP address needs a stable
+outbound path from the Work instance.
 
 ## instance.json
 

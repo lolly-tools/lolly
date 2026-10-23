@@ -32,7 +32,7 @@ lw login --email admin@example.test         # the dev provider (dev.enabled only
 
 | You want to | Commands | More |
 |---|---|---|
-| See who you are and what is connected | `whoami`, `summary`, `fleet`, `instance`, `preview` | [Reading](#reading) |
+| See who you are, what is connected and whether the audit chain holds | `whoami`, `summary`, `fleet`, `instance`, `links`, `audit`, `preview` | [Reading](#reading) |
 | Host the signed instance pack | `instance pack`, `instance pack-rm` | [Hosting the instance pack](#hosting-the-instance-pack) |
 | Let people sign in | `invite add`, `invite ls`, `invite rm` | [Invitations](#invitations) |
 | Give automation its own identity | `tokens` | [Service tokens](#service-tokens) |

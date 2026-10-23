@@ -2,8 +2,7 @@
 
 Keep your catalog as a JSON manifest in a git repository, and Lolly Work federates the files it
 lists, read over raw HTTP from the branch you choose. Changes go through your usual review and
-merge, so the repository history is the catalog's history. Git is one option; every other
-source works the same way inside Work.
+merge, so the repository history is the catalog's history.
 
 ## What you need from the repo host
 

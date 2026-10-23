@@ -1,8 +1,8 @@
 # Canto (kind: `canto`)
 
-Connect a Canto DAM and its approved files appear in the Lolly Work catalog for the groups you
-choose, with Canto's approval states and an optional expiry date carried across. Canto stays the
-source: Work reads through your API key and never writes back. The same connection can copy
+Connect a Canto DAM and its files appear in the Lolly Work catalog for the groups you choose,
+with Canto's approval states and an optional expiry date carried across. Canto stays the source:
+Work reads through an app you register and never writes back. The same connection can copy
 the files into your own store when you want them there.
 
 Canto acquired Image Relay in September 2024, so this kind serves Canto tenants and Image Relay

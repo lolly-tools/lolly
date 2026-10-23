@@ -28,8 +28,8 @@ because a shared service credential does not carry each member's own folder perm
 
 JSON with `apiKey` and `apiSecret`, stored through the write-only credential control or
 `lw providers credential cloud-media`. Never put either value in options, on the command line or
-in a URL. A config-managed source gives, in `credentialRef`, the name of an environment variable holding
-that JSON. The secret signs short-lived downloads on the server; no secret or signed link
+in a URL. A config-managed source gives, in `credentialRef`, the name of an environment variable
+holding that JSON. The secret signs short-lived downloads on the server; no secret or signed link
 enters the catalog.
 
 ```json

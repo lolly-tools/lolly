@@ -32,8 +32,9 @@ with `flavor: "generic"`.
 
 - **The URL your server mounts DAV at**, as `options.baseUrl`: `https://dav.example/store` for
   an Apache `Alias` with `Dav On`, or
-  `https://cloud.example/remote.php/dav/files/<login>` for ownCloud. The driver appends
-  `options.root` and nothing else.
+  `https://cloud.example/remote.php/dav/files/<login>` for ownCloud. ownCloud's files path
+  matches Nextcloud's, so give the whole path as the base and keep `flavor` generic. The driver
+  appends `options.root` and nothing else.
 - **A read-only account** over HTTP Basic, on a read-only mount or with no write permission.
   The driver sends only `PROPFIND` and `GET`.
 - **`PROPFIND` with `Depth: 1` must reach the server.** A reverse proxy that passes only `GET`
@@ -78,8 +79,8 @@ here: change your deployment and redeploy.
 
 ## Credential shape
 
-One string: the login and the app password joined by a colon, or a bearer token for a server
-behind a token-issuing proxy. The driver accepts nothing else and refuses before sending a
+One string: the login and the password joined by a colon, or a bearer token for a server behind
+a token-issuing proxy. For Nextcloud the password must be the app password. The driver accepts nothing else and refuses before sending a
 request.
 
 ```

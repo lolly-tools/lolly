@@ -1,4 +1,4 @@
-# Invite an agent to a document or project
+# Invite an agent
 
 You can let an AI agent read or edit a shared Design document, or a whole shared project, on
 your behalf. The agent works with your permissions for a period you choose, from one hour to
@@ -29,7 +29,7 @@ it makes. Admins can review all agent activity under **Agents** in the console.
 ## Invite an agent to a document
 
 1. In a shared Design document, open **Collaboration settings** (the sliders button in the live
-   room bar) and choose **Invite agent**. **People** has the same button.
+   room bar) and choose **Invite agent**. The **People with access** sheet has the same button.
 2. Give the agent a name, choose **Viewer** (reads the document) or **Editor** (makes changes
    alongside its collaborators) and pick when it expires: 1 hour, 24 hours or 7 days.
 3. Choose **Create invitation**. The dialog shows the MCP endpoint and a connection key. Choose
@@ -77,9 +77,9 @@ never copied into them. Project operations made through REST keep the same attri
 In the console's Activity timeline, agents stay distinct from people. Each delegated action
 identifies the agent and links its inviter to People. You can filter by one agent, and filtering
 by a person or group also includes their invited agents. An invitation or revocation stays
-attributed to the person who made that change. Older agent events that already identify the inviter are
-shown as agent activity without rewriting the audit chain; where the inviter is unknown, the
-attribution is left blank.
+attributed to the person who made that change. Older agent events that already identify the
+inviter are shown as agent activity without rewriting the audit chain; where the inviter is
+unknown, the attribution is left blank.
 
 The record shows who created the invitation. It cannot show which local process launched an
 agent, or who later used a forwarded connection key.
