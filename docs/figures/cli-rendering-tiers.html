@@ -1,0 +1,84 @@
+<!--
+  Concept: where each format renders on the CLI. Three rungs: formats Node writes from the tool's own
+  shapes and data; pixels drawn by resvg from an svg-based tool; and a paint engine for everything
+  else, taken from the first of three renderers that answers.
+  Band Contract: static fragment scoped under .crt, reads the docs theme tokens with fallbacks, no
+  script, no motion, no links out. Collapses to one column in a narrow container.
+  Sources: NODE_FORMATS in packages/node-shell/src/raster.ts; the BMP and JPEG XL paths in
+  shells/cli/src/bridge.ts (resvg raster of the tool's own SVG); the renderer order in
+  docs/cli-rendering.md and packages/node-shell/src/desktop-renderer.ts; the tier report in
+  shells/cli/src/environment.ts.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.crt{--crt-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--crt-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --crt-ground:hsl(var(--secondary,84.5 55% 92.2%));--crt-paper:hsl(var(--card,0 0% 100%));
+ --crt-accent:hsl(var(--primary,176.5 89.5% 11.2%));--crt-on-accent:hsl(var(--primary-foreground,0 0% 100%));
+ --crt-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .13);--crt-soft:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .06);
+ --crt-head:#033633;--crt-mark:#008657;
+ --crt-display:"Outfit","SUSE",ui-sans-serif,system-ui,sans-serif;--crt-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--crt-ink);background:var(--crt-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size;display:grid;gap:10px}
+:is([data-theme="dark"],[data-theme="brand"]) .crt{--crt-head:#ffffff;--crt-mark:#50c369}
+.crt *{box-sizing:border-box}
+.crt ol,.crt ul{list-style:none;margin:0;padding:0}
+.crt li{list-style:none;margin:0;font-size:inherit}
+.crt p{margin:0}
+.crt .crt-rung{display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;align-items:start;background:var(--crt-paper);border-radius:18px;padding:14px;box-shadow:0 0 0 1px var(--crt-line)}
+.crt .crt-n{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:600 18px/1 var(--crt-display);background:var(--crt-accent);color:var(--crt-on-accent)}
+.crt .crt-body{display:grid;gap:8px;min-width:0}
+.crt .crt-title{font:500 19px/1.15 var(--crt-display);color:var(--crt-head)}
+.crt .crt-how{font-size:14px;color:var(--crt-muted)}
+.crt .crt-chips{display:flex;flex-wrap:wrap;gap:6px}
+.crt .crt-chips li{font:600 12px/1 var(--crt-mono);letter-spacing:.02em;padding:6px 9px;border-radius:999px;background:var(--crt-soft);box-shadow:inset 0 0 0 1px var(--crt-line)}
+.crt .crt-cmd{display:inline-flex;align-items:center;gap:8px;font:500 13px/1.2 var(--crt-mono);color:var(--crt-ink)}
+.crt .crt-cmd b{font:600 11px/1 var(--crt-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--crt-mark)}
+.crt .crt-order{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;counter-reset:crt}
+.crt .crt-order li{display:grid;gap:3px;padding:10px;border-radius:12px;background:var(--crt-soft);font-size:13px;line-height:1.25;counter-increment:crt}
+.crt .crt-order li::before{content:counter(crt);font:600 11px/1 var(--crt-mono);color:var(--crt-mark)}
+.crt .crt-order span{color:var(--crt-muted)}
+.crt .crt-foot{font:500 13px/1.3 var(--crt-mono);color:var(--crt-muted);padding-inline:4px}
+@container (max-width:420px){
+ .crt .crt-rung{grid-template-columns:minmax(0,1fr)}
+ .crt .crt-order{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+<div class="crt">
+<ol>
+<li class="crt-rung"><span class="crt-n" aria-hidden="true">1</span><div class="crt-body">
+<p class="crt-title">Nothing extra</p>
+<p class="crt-how">Node writes these from the tool's own shapes and data.</p>
+<ul class="crt-chips" aria-label="Formats">
+<li>SVG</li><li>SVGZ</li><li>EMF</li><li>WMF</li><li>EPS</li><li>DXF</li><li>HTML</li><li>JSON</li><li>CSV</li><li>ICS</li><li>VCF</li><li>MD</li><li>Penpot</li><li>Lottie</li><li>IDML</li><li>Premiere XML</li>
+</ul>
+<p class="crt-cmd"><b>Needs</b>the CLI</p>
+</div></li>
+</ol>
+<ol start="2">
+<li class="crt-rung"><span class="crt-n" aria-hidden="true">2</span><div class="crt-body">
+<p class="crt-title">Pixels from a vector tool</p>
+<p class="crt-how">resvg draws an svg-based tool's own SVG, still with no browser.</p>
+<ul class="crt-chips" aria-label="Formats">
+<li>PNG</li><li>BMP</li><li>JPEG XL</li><li>HDR PNG</li><li>Gain-map JPG</li><li>EXR</li><li>HDR</li>
+</ul>
+<p class="crt-cmd"><b>Needs</b>resvg, installed with the CLI</p>
+</div></li>
+</ol>
+<ol start="3">
+<li class="crt-rung"><span class="crt-n" aria-hidden="true">3</span><div class="crt-body">
+<p class="crt-title">A paint engine</p>
+<p class="crt-how">Everything else, rendered by the first of these that answers.</p>
+<ul class="crt-chips" aria-label="Formats">
+<li>JPG</li><li>WebP</li><li>AVIF</li><li>TIFF</li><li>Most PDF</li><li>PPTX</li><li>MP4</li><li>WebM</li><li>GIF</li><li>APNG</li><li>PNG from page layouts</li><li>ICO</li><li>TXT</li>
+</ul>
+<ol class="crt-order" aria-label="Renderer order">
+<li>The desktop app<span>already running</span></li>
+<li>The desktop app<span>started in the background</span></li>
+<li>Headless Chromium<span>lolly install-browser</span></li>
+</ol>
+</div></li>
+</ol>
+<p class="crt-foot">lolly list --json reports which rungs this machine has</p>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAJ8mp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnManVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDoxMTdkOGE5My1jNzcyLTRkYTctODZjYS00NDM2ZDM0OWVmZTcAAAAESmp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDU6NTY6MDZaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkVo2ZsZW5ndGgZDaZkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYIC6CJ2YSozuzqsWX+a2VFO1MhXmAkatitN5DL6DcZYhuY3BhZEgAAAAAAAAAAAAAANNqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACfY2Jvcqdnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2xzY2xpLXJlbmRlcmluZy10aWVyc2RkYXRleBgyMDI2LTEwLTIzVDA1OjU2OjA2LjQ4MlpoYXJ0aWZhY3RmZmlndXJlaWdlbmVyYXRvcmtDbGF1ZGUgQ29kZWttb2RlbFZlbmRvcmlBbnRocm9waWMAAACNanVtYgAAACdqdW1kanNvbgARABCAAACqADibcQNjYXdnLm1ldGFkYXRhAAAAAF5qc29ueyJAY29udGV4dCI6eyJkYyI6Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIn0sImRjOmNyZWF0b3IiOlsiQW5keSBGaXR6c2ltb24iXX0AAADEanVtYgAAACxqdW1kY2JvcgARABCAAACqADibcQNjMnBhLmFpLWRpc2Nsb3N1cmUAAAAAkGNib3KkaW1vZGVsVHlwZXBjMnBhLnR5cGVzLm1vZGVsaW1vZGVsTmFtZW9DbGF1ZGUgT3B1cyA1LjVvbW9kZWxJZGVudGlmaWVyb2NsYXVkZS1vcHVzLTUtNW5jb250ZW50UHJvZmlsZaFzaHVtYW5PdmVyc2lnaHRMZXZlbG1wcm9tcHRfZ3VpZGVkAAAC0Wp1bWIAAAAnanVtZGMyY2wAEQAQgAAAqgA4m3EDYzJwYS5jbGFpbS52MgAAAAKiY2JvcqZoZGM6dGl0bGVzY2xpLXJlbmRlcmluZy10aWVyc2ppbnN0YW5jZUlEeC11cm46dXVpZDpjZjk2NGQ2Ny02MmVlLTQ2ODItYjY3YS0xNTEyYWQ5Mzg2Y2J0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVlTG9sbHlndmVyc2lvbmcxLjI4MS4wa3NwZWNWZXJzaW9uZTIuNC4wcmNyZWF0ZWRfYXNzZXJ0aW9uc4WiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIHefIFHTH8uTfhgE0ftTJAvWAyIMjWlOy02FO5K3wepbomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIIP2Z+jQkwaz6JXYIpZEzWLVS+lP0bVY/TffgoEvTGUXomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL3Rvb2xzLmxvbGx5LmV4cG9ydGRoYXNoWCCbPpbYZUNrL/GTpPXi317CcNoi0ZQoZxeoYgw1rrjFKKJjdXJseChzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jYXdnLm1ldGFkYXRhZGhhc2hYIO4mJSiX/2d02/qBsxEtrgI+8lybbgysFDegwzRG2m6EomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuYWktZGlzY2xvc3VyZWRoYXNoWCC1Cy/iIEcIbhW9mfe/rhUOzMGcVroBNBijM83lIWKaq2lzaWduYXR1cmV4GXNlbGYjanVtYmY9YzJwYS5zaWduYXR1cmVjYWxnZnNoYTI1NgAAAmJqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAAjJjYm9y0oRZAeGiASYYIYFZAdgwggHUMIIBeaADAgECAglWDncZ7KSVMMkwCgYIKoZIzj0EAwIwNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMB4XDTI2MTAyMzA1NTUwNloXDTM2MTAyMDA1NTYwNlowNTEOMAwGA1UECgwFTG9sbHkxIzAhBgNVBAMMGkxvbGx5IE9uLURldmljZSBDcmVkZW50aWFsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEgQW/HO9Xk4/yD5+vHSPoK7HDsXBAx1G3/lJIe2+JWdDlemEOfiFvprgV74PI+RBFOacBdAXVGZb4Z3yK5UCUKaNyMHAwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwQwHQYDVR0OBBYEFL+kwijDueC6FgYqM98qGYbXf3t9MB8GA1UdIwQYMBaAFL+kwijDueC6FgYqM98qGYbXf3t9MAoGCCqGSM49BAMCA0kAMEYCIQCuQoV2gOIn4/fejoQXteHsgyiVowDnIpcw00jaoKvf3gIhAPLp5LdRAxeFI5IxAp/mjMvVt4lTz1g1jVcOQY33U7b4oPZYQF6z/C+oH0BWwj745OJ8Y6c9IdesxQSWt1K24uUTfUCBDh3ohYkLge/fH9uPnYdDc0qAl1eEh7wFqcciw9+CjR8= -----END C2PA MANIFEST----- -->

@@ -22,7 +22,7 @@ in the other runbooks.
 
 ```bash
 export LW_BASE=https://lolly.example
-lw login --email you@acme.example          # or: lw login --cookie 'lw_session=…'
+lw login                                   # device sign-in; or: lw login --cookie 'lw_session=…'
 
 lw providers preview --kind acquia-dam --options '{"query":"ft:(png OR svg)"}'
 ```
@@ -180,4 +180,6 @@ lw providers rm acme-widen
 
 See also: [the Acquia DAM guide](acquia-dam.md) · [off-boarding](../offboarding.md) ·
 [the CLI](../cli.md) · the other runbooks: [canto](canto-live-verify.md) ·
-[imagerelay](imagerelay-live-verify.md) · [intelligencebank](intelligencebank-live-verify.md).
+[imagerelay](imagerelay-live-verify.md) · [intelligencebank](intelligencebank-live-verify.md) ·
+[cloudinary](cloudinary-live-verify.md) · [orange-logic](orange-logic-live-verify.md) ·
+[webdav](webdav-live-verify.md).

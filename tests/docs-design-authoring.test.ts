@@ -41,6 +41,7 @@ const read = (rel: string): string => readFileSync(resolve(ROOT, rel), 'utf8');
 /** The pages that document the W5/W8 surfaces. */
 const PAGES = [
   'docs/cli.md',
+  'docs/cli-decks.md',
   'docs/cli-automation.md',
   'docs/mcp.md',
   'docs/ai-agents.md',
@@ -112,7 +113,7 @@ test('every flag the docs show on lolly compose is one it accepts (plan 291 W6)'
     }
   }
   assert.ok(seen >= 6, `expected the docs to show lolly compose at least six times, saw ${seen}`);
-  for (const page of ['docs/cli.md', 'skills/lolly/reference/design.md', 'skills/lolly/reference/recreate.md'])
+  for (const page of ['docs/cli-decks.md', 'skills/lolly/reference/design.md', 'skills/lolly/reference/recreate.md'])
     assert.ok(pagesShowing.has(page), `${page} shows no lolly compose command`);
 });
 
@@ -161,9 +162,9 @@ test('the docs describe what plan 291 M3b shipped and drop the limits it fixed',
     assert.ok(design.includes(`\`${code}\``), `design.md's compose section does not say when compose writes ${code}`);
   }
   // The CLI and MCP pages name the deck-level keys and join.
-  const cli = sectionOf(read('docs/cli.md'), /^## Compose slides from the slide master$/m);
+  const cli = sectionOf(read('docs/cli-decks.md'), /^## Compose slides from the slide master$/m);
   const mcp = sectionOf(read('docs/mcp.md'), /^### Compose, measure and package a Design document$/m);
-  for (const [page, text] of [['docs/cli.md', cli], ['docs/mcp.md', mcp]] as const) {
+  for (const [page, text] of [['docs/cli-decks.md', cli], ['docs/mcp.md', mcp]] as const) {
     assert.ok(text, `${page} lost its compose section`);
     for (const key of ['furniture', 'emphasis', 'case', 'join']) assert.ok(text.includes(`\`${key}\``), `${page}'s compose section does not name \`${key}\``);
   }
@@ -257,7 +258,7 @@ test('the docs say what --s takes on a Design run, as the runtime error does', (
   // The runtime's own words for the address (shells/cli/src/frame-page.ts).
   assert.ok(read('shells/cli/src/frame-page.ts').includes('a number is the 1-based position, anything else is a frame id'),
     'frame-page.ts changed what --s takes; update the docs and this test');
-  for (const page of ['docs/cli.md', 'skills/lolly/reference/surfaces.md']) {
+  for (const page of ['docs/cli-decks.md', 'skills/lolly/reference/surfaces.md']) {
     const text = read(page).replace(/\s+/g, ' ');
     assert.ok(/1-based slide number/.test(text) && /frame id/.test(text), `${page} should say --s is a 1-based slide number or a frame id`);
     assert.ok(/a frame's name is not an address/i.test(text), `${page} should say a frame name is not an --s address`);
@@ -267,7 +268,7 @@ test('the docs say what --s takes on a Design run, as the runtime error does', (
 });
 
 test('the docs say a placeholder picture is drawn only once lolly package gives it bytes', () => {
-  for (const page of ['docs/cli.md', 'skills/lolly/reference/design.md']) {
+  for (const page of ['docs/cli-decks.md', 'skills/lolly/reference/design.md']) {
     const text = read(page).replace(/\s+/g, ' ');
     assert.ok(text.includes('photo:title'), `${page} no longer shows the placeholder pattern; drop it from this test`);
     assert.ok(/gets its bytes only/.test(text), `${page} should say a placeholder gets its bytes only from lolly package`);
@@ -292,7 +293,7 @@ test('the docs describe one document in every theme, as plan 291 M4 built it', (
   // The playbook ends with one document exported in every theme.
   const recreate = read('skills/lolly/reference/recreate.md');
   for (const word of ['--themes=light,dark', 'delivery.json', '"themes": ["light", "dark"]', '?treatment=']) assert.ok(recreate.includes(word), `recreate.md does not mention ${word}`);
-  for (const page of ['docs/cli.md', 'skills/lolly/reference/surfaces.md', 'skills/lolly/SKILL.md']) assert.ok(read(page).includes('--themes'), `${page} does not mention --themes`);
+  for (const page of ['docs/cli-decks.md', 'skills/lolly/reference/surfaces.md', 'skills/lolly/SKILL.md']) assert.ok(read(page).includes('--themes'), `${page} does not mention --themes`);
   const mcp = read('docs/mcp.md');
   assert.ok(mcp.includes('_themes') && /`themes` \(a list of theme names, or `"all"`\)/.test(mcp), 'docs/mcp.md should describe lolly_check themes and the render route\'s _themes');
   assert.ok(read('shells/cli/bin/lolly.ts').includes('--themes=<a,b|all>'), 'the CLI help should list --themes');
@@ -382,7 +383,7 @@ test('the docs say --themes paints the page in every theme, as lolly check does'
     assert.ok(!/(?:render|the painted page)[^.;]*run once, in the first theme/i.test(text), `${page} says the render family runs once under --themes; it runs in each theme`);
     assert.ok(!/brand and Verify (?:findings|finding|families)/.test(text) || /render, brand and Verify/.test(text), `${page} names only the brand and Verify families as per theme`);
   }
-  for (const page of ['skills/lolly/reference/design.md', 'skills/lolly/reference/recreate.md', 'skills/lolly/reference/surfaces.md', 'docs/cli.md', 'docs/mcp.md']) {
+  for (const page of ['skills/lolly/reference/design.md', 'skills/lolly/reference/recreate.md', 'skills/lolly/reference/surfaces.md', 'docs/cli-decks.md', 'docs/mcp.md']) {
     assert.match(read(page).replace(/\s+/g, ' '), /render, brand and Verify/, `${page} should say the render family runs in each theme`);
   }
 });

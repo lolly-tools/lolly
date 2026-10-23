@@ -1,0 +1,59 @@
+<!--
+  Concept: the click steps of one slide with an interactive Web page box. Step 0 the slide opens, step 1
+  the page appears, step 2 the focus step highlights the page: Up and Down go into the page, Next releases
+  it and moves the deck on, Escape releases it for this visit.
+  Contract: static fragment scoped under .ifs, reads the docs theme tokens with fallbacks, no script, no
+  motion, no network.
+  Sources: Make interactive and Focus on click in shells/web/src/views/design-web-interact.ts, the key
+  handling in views/present-mode.ts, and docs/interactive-pages.md.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.ifs{--ifs-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--ifs-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --ifs-ground:hsl(var(--secondary,84.5 55% 92.2%));--ifs-paper:hsl(var(--card,0 0% 100%));
+ --ifs-accent:hsl(var(--primary,176.5 89.5% 11.2%));--ifs-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);
+ --ifs-wash:color-mix(in oklab,var(--ifs-accent) 10%,var(--ifs-paper));
+ --ifs-mono:"SUSE Mono",ui-monospace,Menlo,Consolas,monospace;
+ color:var(--ifs-ink);background:var(--ifs-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.ifs *{box-sizing:border-box}
+.ifs p{margin:0}
+.ifs ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.ifs li{list-style:none;margin:0;display:flex;flex-direction:column;gap:6px;font-size:inherit}
+.ifs .ifs-step{font:600 .72em/1.2 var(--ifs-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ifs-muted)}
+.ifs .ifs-slide{position:relative;aspect-ratio:16/9;background:var(--ifs-paper);border-radius:8px;box-shadow:0 0 0 1px var(--ifs-line);overflow:hidden}
+.ifs .ifs-title{position:absolute;left:8%;top:12%;width:40%;height:9%;border-radius:3px;background:var(--ifs-accent);opacity:.7}
+.ifs .ifs-text{position:absolute;left:8%;top:28%;width:32%;height:5%;border-radius:3px;background:var(--ifs-ink);opacity:.2}
+.ifs .ifs-page{position:absolute;right:7%;top:14%;width:44%;height:72%;border-radius:5px;background:var(--ifs-wash);box-shadow:0 0 0 1px var(--ifs-line);overflow:hidden}
+.ifs .ifs-page i{display:block;height:7%;margin:9% 10% 0;border-radius:2px;background:var(--ifs-ink);opacity:.18}
+.ifs .ifs-page i:first-child{background:var(--ifs-accent);opacity:.5;width:50%}
+.ifs .ifs-focus{box-shadow:0 0 0 3px var(--ifs-accent),0 0 0 7px color-mix(in oklab,var(--ifs-accent) 25%,transparent)}
+.ifs .ifs-dim::after{content:"";position:absolute;inset:0;background:var(--ifs-ink);opacity:.12}
+.ifs .ifs-what{font-size:.86em}
+.ifs .ifs-keys{display:flex;flex-wrap:wrap;gap:4px;font-size:.74em}
+.ifs .ifs-keys span{border-radius:5px;padding:1px 6px;box-shadow:0 0 0 1px var(--ifs-line);background:var(--ifs-paper)}
+.ifs .ifs-keys b{font-weight:600}
+@container (max-width:520px){.ifs ol{grid-template-columns:minmax(0,1fr)}}
+</style>
+<div class="ifs" role="group" aria-label="Three click steps on a slide with an interactive web page">
+  <ol>
+    <li>
+      <p class="ifs-step">Step 0</p>
+      <div class="ifs-slide" role="img" aria-label="The slide opens with its title and text"><span class="ifs-title"></span><span class="ifs-text"></span></div>
+      <p class="ifs-what">The slide opens.</p>
+    </li>
+    <li>
+      <p class="ifs-step">Step 1</p>
+      <div class="ifs-slide" role="img" aria-label="The web page appears on the slide"><span class="ifs-title"></span><span class="ifs-text"></span><span class="ifs-page"><i></i><i></i><i></i><i></i></span></div>
+      <p class="ifs-what">The page appears, live once its site is approved.</p>
+    </li>
+    <li>
+      <p class="ifs-step">Step 2: focus</p>
+      <div class="ifs-slide ifs-dim" role="img" aria-label="The page is highlighted with a ring while the rest of the slide dims"><span class="ifs-title"></span><span class="ifs-text"></span><span class="ifs-page ifs-focus"><i></i><i></i><i></i><i></i></span></div>
+      <p class="ifs-what">The page is highlighted while the deck keeps the keyboard.</p>
+      <p class="ifs-keys"><span><b>Up / Down</b> move the page</span><span><b>Next</b> moves on</span><span><b>Esc</b> releases</span></p>
+    </li>
+  </ol>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKBWp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnfanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDplZWZmZDA1MC0yYWU0LTRhZTAtYWY0ZC05YWEzZGQ0MjE4MDcAAAAEVGp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDc6MjU6NThaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkRRWZsZW5ndGgZDb5kbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYINZUu2SY0mtM08QuPiTKHX5hh/Z/edKngMlBZd1JlxYXY3BhZEgAAAAAAAAAAAAAAN1qdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAACpY2Jvcqdnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2x4HGludGVyYWN0aXZlLXBhZ2VzLWZvY3VzLXN0ZXBkZGF0ZXgYMjAyNi0xMC0yM1QwNzoyNTo1OC4xMjJaaGFydGlmYWN0ZmZpZ3VyZWlnZW5lcmF0b3JrQ2xhdWRlIENvZGVrbW9kZWxWZW5kb3JpQW50aHJvcGljAAAAjWp1bWIAAAAnanVtZGpzb24AEQAQgAAAqgA4m3EDY2F3Zy5tZXRhZGF0YQAAAABeanNvbnsiQGNvbnRleHQiOnsiZGMiOiJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyJ9LCJkYzpjcmVhdG9yIjpbIkFuZHkgRml0enNpbW9uIl19AAAAxGp1bWIAAAAsanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5haS1kaXNjbG9zdXJlAAAAAJBjYm9ypGltb2RlbFR5cGVwYzJwYS50eXBlcy5tb2RlbGltb2RlbE5hbWVvQ2xhdWRlIE9wdXMgNS41b21vZGVsSWRlbnRpZmllcm9jbGF1ZGUtb3B1cy01LTVuY29udGVudFByb2ZpbGWhc2h1bWFuT3ZlcnNpZ2h0TGV2ZWxtcHJvbXB0X2d1aWRlZAAAAttqdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACrGNib3KmaGRjOnRpdGxleBxpbnRlcmFjdGl2ZS1wYWdlcy1mb2N1cy1zdGVwamluc3RhbmNlSUR4LXVybjp1dWlkOjUxYTI0YTUwLTdmYzYtNDVlMy1hODRlLTYzYmJkZGRiMGVlN3RjbGFpbV9nZW5lcmF0b3JfaW5mb6NkbmFtZWVMb2xseWd2ZXJzaW9uZzEuMjgxLjBrc3BlY1ZlcnNpb25lMi40LjByY3JlYXRlZF9hc3NlcnRpb25zhaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgghrsyF3tHWNIidb2wgI76/vGZV/HyhmbU2grZQdSRTyeiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggdXS4Vd4uCc1mafEpg7/XOQuzCIOszVxnZTvVAnkGPeuiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvdG9vbHMubG9sbHkuZXhwb3J0ZGhhc2hYIMHPBBjotTqWG9qLt5fnsjfrmq3dPI1vLSlDd2p9J4qfomN1cmx4KHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2Nhd2cubWV0YWRhdGFkaGFzaFgg7iYlKJf/Z3Tb+oGzES2uAj7yXJtuDKwUN6DDNEbaboSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYILULL+IgRwhuFb2Z97+uFQ7MwZxWugE0GKMzzeUhYpqraXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYWp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMWNib3LShFkB4KIBJhghgVkB1zCCAdMwggF5oAMCAQICCU5pPMo1OdIYJDAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYxMDIzMDcyNDU4WhcNMzYxMDIwMDcyNTU4WjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAARx5JDvkKlkPPy+B9cx0gExwQGE+vAPpwlybcQUVD6lpgDAa75BfdJJTg+TSnlbLcqPZt2c5iEeL0prTG1kXkH+o3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQUGASIyiXr36UAiQzZ7GP+rrUPHwowHwYDVR0jBBgwFoAUGASIyiXr36UAiQzZ7GP+rrUPHwowCgYIKoZIzj0EAwIDSAAwRQIhAJPKdCVDo/TYTB6Bt2JctmA3Y9OCxbZQvLyRCioq9RO6AiB4tmX/ECctsDK6MFMeTg3w6tgCKZD0Dul0voW6l/pBrqD2WEBy22UeWU/EVeTtjh0Z8/659rel0byC/fcQQM6j5SpWusKqeI7ZHDvIwU9WqlGB4ztxmsFy+87fTn4v7/oEgeGR -----END C2PA MANIFEST----- -->

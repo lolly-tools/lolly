@@ -127,8 +127,8 @@
     },
     "hooks-hooks-js": {
       "slug": "tool-hooks",
-      "anchor": "hooks-hooks-js",
-      "label": "Hooks (hooks.js)"
+      "anchor": "how-a-hook-works",
+      "label": "How a hook works"
     },
     "shared-helper-regions-community-shared": {
       "slug": "tool-hooks",
@@ -182,8 +182,8 @@
     },
     "publishing": {
       "slug": "tool-publishing",
-      "anchor": "publishing",
-      "label": "Publishing"
+      "anchor": "publish-to-a-catalog",
+      "label": "Publish to a catalog"
     },
     "try-it-without-the-monorepo": {
       "slug": "tool-publishing",
@@ -204,6 +204,51 @@
       "slug": "tool-publishing",
       "anchor": "example-tools",
       "label": "Example tools"
+    },
+    "design-system-colours-in-templates-and-styles": {
+      "slug": "tool-rendering",
+      "anchor": "design-system-colours-in-templates-and-styles",
+      "label": "Design system colours in templates and styles"
+    },
+    "opening-catalog-assets": {
+      "slug": "tool-manifest",
+      "anchor": "opening-catalog-assets-openwith",
+      "label": "Opening catalog assets (openWith)"
+    },
+    "personal-values-in-links": {
+      "slug": "tool-inputs",
+      "anchor": "personal-values-in-links",
+      "label": "Personal values in links"
+    },
+    "colours-that-are-the-content": {
+      "slug": "tool-manifest",
+      "anchor": "colours-that-are-the-content",
+      "label": "Colours that are the content"
+    },
+    "start-from-a-design-you-already-have": {
+      "slug": "create-a-tool",
+      "anchor": "share-a-design-with-rules",
+      "label": "Share a design with rules"
+    },
+    "generate-a-tool-from-design": {
+      "slug": "create-a-tool",
+      "anchor": "share-a-design-with-rules",
+      "label": "Share a design with rules (generate a tool from Design)"
+    },
+    "choose-a-guide": {
+      "slug": "authoring-tools",
+      "anchor": "find-the-part-you-need",
+      "label": "Find the part you need"
+    },
+    "authoring-with-ai-agents": {
+      "slug": "authoring-tools",
+      "anchor": "build-with-an-agent",
+      "label": "Build with an agent"
+    },
+    "anatomy": {
+      "slug": "authoring-tools",
+      "anchor": "what-each-file-does",
+      "label": "What each file does"
     }
   },
   "url-mode": {
@@ -274,83 +319,73 @@
     },
     "reserved-parameters": {
       "slug": "url-parameters",
-      "anchor": "reserved-parameters",
+      "anchor": "what-happens-on-open",
       "label": "Reserved parameters"
     },
-    "packed-links-z": {
-      "slug": "url-parameters",
-      "anchor": "packed-links-z",
-      "label": "Packed links (z)"
-    },
-    "encrypted-links-zx": {
-      "slug": "url-parameters",
-      "anchor": "encrypted-links-zx",
-      "label": "Encrypted links (zx)"
-    },
     "physical-units-unit-dpi": {
-      "slug": "url-parameters",
+      "slug": "url-export",
       "anchor": "physical-units-unit-dpi",
       "label": "Physical units (unit= + dpi=)"
     },
     "print-marks-bleed-bleed-marks": {
-      "slug": "url-parameters",
-      "anchor": "print-marks-bleed-bleed-marks",
-      "label": "Print marks & bleed (bleed= + marks=)"
+      "slug": "url-export",
+      "anchor": "print-ready-output",
+      "label": "Print-ready output"
     },
     "contact-sheets-cuts": {
-      "slug": "url-parameters",
-      "anchor": "contact-sheets-cuts",
-      "label": "Contact sheets (cuts=)"
+      "slug": "url-export",
+      "anchor": "contact-sheets",
+      "label": "Contact sheets"
     },
     "format-with-format": {
       "slug": "url-export",
-      "anchor": "format-with-format",
-      "label": "Format with format="
+      "anchor": "download-a-file",
+      "label": "Download a file"
     },
     "download-with-export": {
       "slug": "url-export",
-      "anchor": "download-with-export",
-      "label": "Download with export"
+      "anchor": "download-a-file",
+      "label": "Download a file"
     },
     "download-filename-with-filename": {
       "slug": "url-export",
-      "anchor": "download-filename-with-filename",
-      "label": "Download filename with filename="
+      "anchor": "download-a-file",
+      "label": "Download a file"
     },
     "copy-to-clipboard-with-copy": {
       "slug": "url-export",
-      "anchor": "copy-to-clipboard-with-copy",
-      "label": "Copy to clipboard with copy"
+      "anchor": "copy-to-the-clipboard",
+      "label": "Copy to the clipboard"
     },
     "canvas-dimensions-with-width-height": {
       "slug": "url-export",
-      "anchor": "canvas-dimensions-with-width-height",
-      "label": "Canvas dimensions with width= / height="
+      "anchor": "set-the-size",
+      "label": "Set the size"
     },
     "fullscreen-with-full": {
       "slug": "url-export",
-      "anchor": "fullscreen-with-full",
-      "label": "Fullscreen with full"
+      "anchor": "open-clean-embed-or-publish",
+      "label": "Open clean, embed or publish"
     },
     "land-on-the-export-panel-with-options": {
       "slug": "url-export",
-      "anchor": "land-on-the-export-panel-with-options",
-      "label": "Land on the export panel with options"
+      "anchor": "open-clean-embed-or-publish",
+      "label": "Open clean, embed or publish"
     },
     "transparent-background": {
       "slug": "url-export",
-      "anchor": "transparent-background",
-      "label": "Transparent background"
+      "anchor": "transparency-and-outlined-text",
+      "label": "Transparency and outlined text"
     },
     "loading-saved-state-with-slot": {
       "slug": "url-export",
-      "anchor": "loading-saved-state-with-slot",
-      "label": "Loading saved state with slot="
+      "anchor": "resume-a-saved-session",
+      "label": "Resume a saved session"
     },
     "app-links": {
       "slug": "url-app-links",
-      "anchor": "app-links",
-      "label": "App links"
+      "anchor": "app-views",
+      "label": "App views"
     },
     "the-lolly-scheme": {
       "slug": "url-app-links",
@@ -379,28 +414,28 @@
     },
     "batch-batch": {
       "slug": "url-app-links",
-      "anchor": "batch-batch",
-      "label": "Batch (#/batch)"
+      "anchor": "batch-and-multi-edit",
+      "label": "Batch and Multi-edit"
     },
     "multi-edit-multi": {
       "slug": "url-app-links",
-      "anchor": "multi-edit-multi",
-      "label": "Multi-edit (#/multi)"
+      "anchor": "batch-and-multi-edit",
+      "label": "Batch and Multi-edit"
     },
     "design-system-studio-start": {
       "slug": "url-app-links",
-      "anchor": "design-system-studio-start",
-      "label": "Design system studio (#/start)"
+      "anchor": "design-system-setup-start",
+      "label": "Design System Setup (#/start)"
     },
     "dashboard-d": {
       "slug": "url-app-links",
-      "anchor": "dashboard-d",
-      "label": "Dashboard (#/d)"
+      "anchor": "settings-settings",
+      "label": "Settings (#/settings)"
     },
     "profile-profile": {
       "slug": "url-app-links",
-      "anchor": "profile-profile",
-      "label": "Profile (#/profile)"
+      "anchor": "settings-settings",
+      "label": "Settings (#/settings)"
     },
     "the-remaining-views": {
       "slug": "url-app-links",
@@ -411,6 +446,56 @@
       "slug": "url-app-links",
       "anchor": "on-a-tool-route",
       "label": "On a tool route"
+    },
+    "url-structure": {
+      "slug": "url-mode",
+      "anchor": "read-a-link",
+      "label": "Read a link"
+    },
+    "clean-url-redirect": {
+      "slug": "url-mode",
+      "anchor": "read-a-link",
+      "label": "Read a link"
+    },
+    "combining-parameters": {
+      "slug": "url-mode",
+      "anchor": "read-a-link",
+      "label": "Read a link"
+    },
+    "cli-usage": {
+      "slug": "url-mode",
+      "anchor": "the-same-link-on-the-command-line",
+      "label": "The same link on the command line"
+    },
+    "shareable-link": {
+      "slug": "url-mode",
+      "anchor": "share-a-link",
+      "label": "Share a link"
+    },
+    "pre-filled-embed": {
+      "slug": "url-mode",
+      "anchor": "embed-a-tool-in-a-page",
+      "label": "Embed a tool in a page"
+    },
+    "automation-ci": {
+      "slug": "url-mode",
+      "anchor": "automate-in-a-build-step",
+      "label": "Automate in a build step"
+    },
+    "reviewing-personal-values-in-generated-links": {
+      "slug": "url-app-links",
+      "anchor": "what-a-link-carries",
+      "label": "What a link carries"
+    },
+    "integration-patterns": {
+      "slug": "url-mode",
+      "anchor": "share-embed-or-automate",
+      "label": "Share, embed or automate"
+    },
+    "choose-a-guide": {
+      "slug": "url-mode",
+      "anchor": "where-to-go-next",
+      "label": "Where to go next"
     }
   },
   "cli": {
@@ -441,28 +526,28 @@
     },
     "file-inputs-on-device-utilities": {
       "slug": "cli-files",
-      "anchor": "file-inputs-on-device-utilities",
-      "label": "File inputs & on-device utilities"
+      "anchor": "clean-or-convert-a-file",
+      "label": "Clean or convert a file"
     },
     "redaction-instructions-one-string-many-files": {
       "slug": "cli-files",
-      "anchor": "redaction-instructions-one-string-many-files",
-      "label": "Redaction instructions: one string, many files"
+      "anchor": "redact-many-copies-with-one-link",
+      "label": "Redact many copies with one link"
     },
     "speech": {
       "slug": "cli-files",
-      "anchor": "speech",
-      "label": "Speech"
+      "anchor": "text-to-speech-and-back",
+      "label": "Text to speech and back"
     },
     "the-models-and-who-decides-they-download": {
       "slug": "cli-files",
-      "anchor": "the-models-and-who-decides-they-download",
-      "label": "The models, and who decides they download"
+      "anchor": "download-the-models",
+      "label": "Download the models"
     },
     "on-device-ml": {
       "slug": "cli-files",
-      "anchor": "on-device-ml",
-      "label": "On-device ML"
+      "anchor": "run-the-on-device-models",
+      "label": "Run the on-device models"
     },
     "composed-tools": {
       "slug": "cli-rendering",
@@ -471,8 +556,8 @@
     },
     "batch": {
       "slug": "cli-automation",
-      "anchor": "batch",
-      "label": "Batch"
+      "anchor": "render-many-files-from-a-spreadsheet-lolly-batch",
+      "label": "Render many files from a spreadsheet (lolly batch)"
     },
     "render-check-the-catalog-lolly-smoke": {
       "slug": "cli-automation",
@@ -500,17 +585,17 @@
       "label": "How far byte-identical output goes"
     },
     "exit-codes": {
-      "slug": "cli-automation",
+      "slug": "cli-reference",
       "anchor": "exit-codes",
       "label": "Exit codes"
     },
     "machine-interface-json": {
-      "slug": "cli-automation",
-      "anchor": "machine-interface-json",
-      "label": "Machine interface (--json)"
+      "slug": "cli-reference",
+      "anchor": "the-json-envelope",
+      "label": "The --json envelope"
     },
     "discovery-for-an-agent": {
-      "slug": "cli-automation",
+      "slug": "cli-reference",
       "anchor": "discovery-for-an-agent",
       "label": "Discovery, for an agent"
     },
@@ -540,25 +625,285 @@
       "label": "Shell completion (lolly completion)"
     },
     "point-it-at-another-brand-pack-lolly-root": {
-      "slug": "cli-reference",
-      "anchor": "point-it-at-another-brand-pack-lolly-root",
-      "label": "Point it at another brand pack (LOLLY_ROOT)"
+      "slug": "cli",
+      "anchor": "a-standalone-cli-carries-no-tools-and-no-catalog",
+      "label": "A standalone CLI carries no tools and no catalog"
     },
     "where-saved-sessions-live": {
       "slug": "cli-reference",
       "anchor": "where-saved-sessions-live",
       "label": "Where saved sessions live"
+    },
+    "choose-a-guide": {
+      "slug": "cli",
+      "anchor": "where-to-go-next",
+      "label": "Where to go next"
+    },
+    "discovering-tools-assets": {
+      "slug": "cli",
+      "anchor": "find-tools-inputs-and-assets",
+      "label": "Find tools, inputs and assets"
+    },
+    "document-compiler-verbs": {
+      "slug": "cli-reference",
+      "anchor": "document-verbs",
+      "label": "Document verbs"
+    },
+    "look-at-a-picture-in-its-own-coordinates": {
+      "slug": "cli-reference",
+      "anchor": "look-at-a-picture-in-its-own-coordinates",
+      "label": "Look at a picture in its own coordinates"
+    },
+    "verbs-and-why-they-exist": {
+      "slug": "cli",
+      "anchor": "every-command",
+      "label": "Every command"
+    },
+    "global-flags": {
+      "slug": "cli-reference",
+      "anchor": "global-flags",
+      "label": "Global flags"
+    },
+    "rendering": {
+      "slug": "cli",
+      "anchor": "make-your-first-file",
+      "label": "Make your first file"
+    },
+    "review-a-timed-composition": {
+      "slug": "cli-rendering",
+      "anchor": "review-a-timed-composition",
+      "label": "Review a timed composition"
+    },
+    "the-output-extension-is-a-format-request": {
+      "slug": "cli-rendering",
+      "anchor": "the-output-extension-is-a-format-request",
+      "label": "The output extension is a format request"
+    },
+    "rebrand-renovate-an-old-deck": {
+      "slug": "cli-decks",
+      "anchor": "renovate-in-place-with-lolly-rebrand",
+      "label": "Renovate in place with lolly rebrand"
+    },
+    "read-a-deck-then-check-the-recreation": {
+      "slug": "cli-decks",
+      "anchor": "read-the-old-deck",
+      "label": "Read the old deck"
+    },
+    "author-measure-and-package-a-design-document": {
+      "slug": "cli-decks",
+      "anchor": "write-and-fit-the-text",
+      "label": "Write and fit the text"
+    },
+    "compose-slides-from-the-slide-master": {
+      "slug": "cli-decks",
+      "anchor": "compose-slides-from-the-slide-master",
+      "label": "Compose slides from the slide master"
+    },
+    "related": {
+      "slug": "cli",
+      "anchor": "where-to-go-next",
+      "label": "Where to go next"
+    },
+    "motion-delivery-checks": {
+      "slug": "cli-rendering",
+      "anchor": "motion-delivery-checks",
+      "label": "Motion delivery checks"
+    }
+  },
+  "cli-automation": {
+    "batch": {
+      "slug": "cli-automation",
+      "anchor": "render-many-files-from-a-spreadsheet-lolly-batch",
+      "label": "Render many files from a spreadsheet (lolly batch)"
+    },
+    "exit-codes": {
+      "slug": "cli-reference",
+      "anchor": "exit-codes",
+      "label": "Exit codes"
+    },
+    "machine-interface-json": {
+      "slug": "cli-reference",
+      "anchor": "the-json-envelope",
+      "label": "The --json envelope"
+    },
+    "discovery-for-an-agent": {
+      "slug": "cli-reference",
+      "anchor": "discovery-for-an-agent",
+      "label": "Discovery, for an agent"
+    }
+  },
+  "cli-files": {
+    "file-inputs-on-device-utilities": {
+      "slug": "cli-files",
+      "anchor": "clean-or-convert-a-file",
+      "label": "Clean or convert a file"
+    },
+    "redaction-instructions-one-string-many-files": {
+      "slug": "cli-files",
+      "anchor": "redact-many-copies-with-one-link",
+      "label": "Redact many copies with one link"
+    },
+    "speech": {
+      "slug": "cli-files",
+      "anchor": "text-to-speech-and-back",
+      "label": "Text to speech and back"
+    },
+    "the-models-and-who-decides-they-download": {
+      "slug": "cli-files",
+      "anchor": "download-the-models",
+      "label": "Download the models"
+    },
+    "on-device-ml": {
+      "slug": "cli-files",
+      "anchor": "run-the-on-device-models",
+      "label": "Run the on-device models"
+    }
+  },
+  "cli-reference": {
+    "point-it-at-another-brand-pack-lolly-root": {
+      "slug": "cli",
+      "anchor": "a-standalone-cli-carries-no-tools-and-no-catalog",
+      "label": "A standalone CLI carries no tools and no catalog"
+    }
+  },
+  "cli-signing": {
+    "1-install-and-prerequisites": {
+      "slug": "cli",
+      "anchor": "install",
+      "label": "Install"
+    },
+    "2-first-run": {
+      "slug": "cli",
+      "anchor": "make-your-first-file",
+      "label": "Make your first file"
+    },
+    "3-the-user-profile": {
+      "slug": "cli-signing",
+      "anchor": "what-the-credential-records",
+      "label": "What the credential records"
+    },
+    "4-set-up-a-signing-identity": {
+      "slug": "cli-signing",
+      "anchor": "get-a-certificate",
+      "label": "Get a certificate"
+    },
+    "4-1-get-a-certificate": {
+      "slug": "cli-signing",
+      "anchor": "get-a-certificate",
+      "label": "Get a certificate"
+    },
+    "4-2-where-to-put-the-key": {
+      "slug": "cli-signing",
+      "anchor": "store-the-key",
+      "label": "Store the key"
+    },
+    "4-3-sign": {
+      "slug": "cli-signing",
+      "anchor": "sign",
+      "label": "Sign"
+    },
+    "4-4-an-encrypted-key": {
+      "slug": "cli-signing",
+      "anchor": "sign",
+      "label": "Sign"
+    },
+    "4-5-in-ci": {
+      "slug": "cli-signing",
+      "anchor": "sign-in-ci",
+      "label": "Sign in CI"
+    },
+    "4-6-prove-it-worked": {
+      "slug": "cli-signing",
+      "anchor": "prove-it-worked",
+      "label": "Prove it worked"
+    },
+    "4-7-the-two-flags-and-five-variables": {
+      "slug": "cli-signing",
+      "anchor": "the-two-flags-and-five-variables",
+      "label": "The two flags and five variables"
+    },
+    "5-trust-anchors": {
+      "slug": "cli-signing",
+      "anchor": "pin-your-root",
+      "label": "Pin your root"
+    },
+    "6-provenance-defaults": {
+      "slug": "cli-signing",
+      "anchor": "what-the-credential-records",
+      "label": "What the credential records"
+    },
+    "7-automation": {
+      "slug": "cli-signing",
+      "anchor": "sign-in-ci",
+      "label": "Sign in CI"
+    },
+    "8-troubleshooting": {
+      "slug": "cli-signing",
+      "anchor": "troubleshooting",
+      "label": "Troubleshooting"
+    },
+    "security": {
+      "slug": "cli-signing",
+      "anchor": "what-a-signature-proves",
+      "label": "What a signature proves"
+    }
+  },
+  "production-checks": {
+    "in-verify": {
+      "slug": "production-checks",
+      "anchor": "check-in-verify",
+      "label": "Check in Verify"
+    },
+    "requirements": {
+      "slug": "production-checks",
+      "anchor": "write-the-requirements",
+      "label": "Write the requirements"
+    },
+    "reusable-design-and-chart-requirements": {
+      "slug": "production-checks",
+      "anchor": "what-each-place-can-measure",
+      "label": "What each place can measure"
+    },
+    "native-comparison": {
+      "slug": "production-checks",
+      "anchor": "compare-with-a-reference-image",
+      "label": "Compare with a reference image"
+    },
+    "capability-matrix": {
+      "slug": "production-checks",
+      "anchor": "what-each-place-can-measure",
+      "label": "What each place can measure"
+    },
+    "encoded-motion-requirements": {
+      "slug": "production-checks",
+      "anchor": "check-a-video-delivery",
+      "label": "Check a video delivery"
+    },
+    "cli-and-mcp": {
+      "slug": "production-checks",
+      "anchor": "check-from-the-terminal-and-mcp",
+      "label": "Check from the terminal and MCP"
+    },
+    "permitted-repairs": {
+      "slug": "production-checks",
+      "anchor": "let-lolly-try-permitted-fixes",
+      "label": "Let Lolly try permitted fixes"
+    },
+    "decisions-and-reproducibility": {
+      "slug": "production-checks",
+      "anchor": "decisions-and-evidence",
+      "label": "Decisions and evidence"
     }
   },
   "build-guide": {
     "cli": {
       "slug": "build-terminal",
-      "anchor": "cli",
+      "anchor": "run-them-from-the-checkout",
       "label": "CLI"
     },
     "development-use-no-build-needed": {
       "slug": "build-terminal",
-      "anchor": "development-use-no-build-needed",
+      "anchor": "run-them-from-the-checkout",
       "label": "Development use (no build needed)"
     },
     "standalone-binary": {
@@ -568,17 +913,17 @@
     },
     "tui": {
       "slug": "build-terminal",
-      "anchor": "tui",
+      "anchor": "run-them-from-the-checkout",
       "label": "TUI"
     },
     "browser-render-tier-raster-pdf-video-url-capture": {
       "slug": "build-terminal",
-      "anchor": "browser-render-tier-raster-pdf-video-url-capture",
+      "anchor": "what-renders-without-a-browser",
       "label": "Browser render tier (raster / PDF / video / URL capture)"
     },
     "desktop-app-macos-windows-linux": {
       "slug": "build-desktop",
-      "anchor": "desktop-app-macos-windows-linux",
+      "anchor": "prerequisites",
       "label": "Desktop app (macOS / Windows / Linux)"
     },
     "prerequisites": {
@@ -608,98 +953,1262 @@
     },
     "mobile-apps-ios-android": {
       "slug": "build-mobile",
-      "anchor": "mobile-apps-ios-android",
+      "anchor": "prerequisites",
       "label": "Mobile apps (iOS / Android)"
     },
     "android": {
       "slug": "build-mobile",
-      "anchor": "android",
+      "anchor": "prerequisites",
       "label": "Android"
     },
     "ios-macos-only": {
-      "slug": "build-mobile",
-      "anchor": "ios-macos-only",
+      "slug": "ios-build",
+      "anchor": "prerequisites",
       "label": "iOS (macOS only)"
     },
     "first-time-platform-init": {
       "slug": "build-mobile",
-      "anchor": "first-time-platform-init",
+      "anchor": "the-native-projects-are-in-the-repository",
       "label": "First-time platform init"
     },
     "icons-mobile": {
       "slug": "build-mobile",
-      "anchor": "icons-mobile",
+      "anchor": "icons",
       "label": "Icons (mobile)"
     },
     "open-build-service-obs": {
       "slug": "build-obs",
-      "anchor": "open-build-service-obs",
+      "anchor": "what-the-open-build-service-would-add",
       "label": "Open Build Service (OBS)"
     },
     "what-obs-can-build-for-lolly": {
       "slug": "build-obs",
-      "anchor": "what-obs-can-build-for-lolly",
+      "anchor": "what-the-open-build-service-would-add",
       "label": "What OBS can build for Lolly"
     },
     "how-it-fits-lolly-s-artifacts": {
       "slug": "build-obs",
-      "anchor": "how-it-fits-lolly-s-artifacts",
+      "anchor": "what-a-package-carries",
       "label": "How it fits Lolly's artifacts"
     },
     "build-environment-constraints": {
       "slug": "build-obs",
-      "anchor": "build-environment-constraints",
+      "anchor": "build-with-no-network",
       "label": "Build-environment constraints"
     },
     "illustrative-project-layout": {
       "slug": "build-obs",
-      "anchor": "illustrative-project-layout",
-      "label": "Illustrative project layout"
+      "anchor": "what-ships-today",
+      "label": "Recipes in the repository"
     },
     "web-shell-on-kubernetes-helm": {
       "slug": "build-kubernetes",
-      "anchor": "web-shell-on-kubernetes-helm",
+      "anchor": "use-the-published-images",
       "label": "Web shell on Kubernetes (Helm)"
     },
     "why-the-suse-application-collection": {
       "slug": "build-kubernetes",
-      "anchor": "why-the-suse-application-collection",
+      "anchor": "build-your-own-image",
       "label": "Why the SUSE Application Collection"
     },
     "1-build-the-image": {
       "slug": "build-kubernetes",
-      "anchor": "1-build-the-image",
+      "anchor": "build-your-own-image",
       "label": "1. Build the image"
     },
     "2-swapping-in-a-suse-nginx-base-optional": {
       "slug": "build-kubernetes",
-      "anchor": "2-swapping-in-a-suse-nginx-base-optional",
+      "anchor": "build-your-own-image",
       "label": "2. Swapping in a SUSE nginx base (optional)"
     },
     "3-what-the-nginx-config-already-handles": {
       "slug": "build-kubernetes",
-      "anchor": "3-what-the-nginx-config-already-handles",
+      "anchor": "what-the-nginx-config-already-handles",
       "label": "3. What the nginx config already handles"
     },
     "4-the-chart": {
       "slug": "build-kubernetes",
-      "anchor": "4-the-chart",
+      "anchor": "what-the-chart-deploys",
       "label": "4. The chart"
     },
     "5-install": {
       "slug": "build-kubernetes",
-      "anchor": "5-install",
+      "anchor": "install-the-chart",
       "label": "5. Install"
     },
     "6-the-optional-services": {
       "slug": "build-kubernetes",
-      "anchor": "6-the-optional-services",
+      "anchor": "turn-on-mcp-or-ca",
       "label": "6. The optional services"
     },
     "tls-the-suse-curated-way-optional": {
       "slug": "build-kubernetes",
-      "anchor": "tls-the-suse-curated-way-optional",
+      "anchor": "tls-with-cert-manager",
       "label": "TLS, the SUSE-curated way (optional)"
+    },
+    "getting-the-source": {
+      "slug": "contributing-setup",
+      "anchor": "clone-and-set-up",
+      "label": "Getting the source"
+    },
+    "prerequisites-all-targets": {
+      "slug": "contributing-setup",
+      "anchor": "what-you-need-first",
+      "label": "Prerequisites (all targets)"
+    },
+    "the-private-suse-brand-pack": {
+      "slug": "contributing-setup",
+      "anchor": "the-private-suse-pack",
+      "label": "The private SUSE brand pack"
+    },
+    "how-the-tauri-shells-relate-to-the-web-shell": {
+      "slug": "build-guide",
+      "anchor": "one-source-three-apps",
+      "label": "How the Tauri shells relate to the web shell"
+    }
+  },
+  "deployment": {
+    "removing-a-catalogue-design-system": {
+      "slug": "configuration",
+      "anchor": "removing-a-catalogue-design-system",
+      "label": "Removing a catalogue design system"
+    },
+    "container-kubernetes": {
+      "slug": "build-kubernetes",
+      "anchor": "use-the-published-images",
+      "label": "Container & Kubernetes"
+    },
+    "k3s-rke2-and-suse-dependency-images": {
+      "slug": "build-kubernetes",
+      "anchor": "small-clusters-the-lean-profile",
+      "label": "K3s, RKE2 and SUSE dependency images"
+    },
+    "complete-public-and-private-routing-on-k3s": {
+      "slug": "build-kubernetes",
+      "anchor": "one-node-public-and-private-routes-the-sovereign-profile",
+      "label": "Complete public and private routing on K3s"
+    },
+    "managed-enterprise-identity": {
+      "slug": "deployment",
+      "anchor": "organisation-services-with-lolly-work",
+      "label": "Managed enterprise identity"
+    },
+    "upcloud-and-evroc": {
+      "slug": "deployment",
+      "anchor": "organisation-services-with-lolly-work",
+      "label": "UpCloud and Evroc"
+    }
+  },
+  "mcp": {
+    "work-in-the-open-document": {
+      "slug": "open-document-agents",
+      "anchor": "invite-an-agent-from-share",
+      "label": "Work in the open document"
+    },
+    "operate-a-document-relay": {
+      "slug": "open-document-agents",
+      "anchor": "run-a-document-relay",
+      "label": "Operate a document relay"
+    },
+    "browser-site-tools-webmcp": {
+      "slug": "open-document-agents",
+      "anchor": "site-tools-in-the-browser-webmcp",
+      "label": "Browser site tools (WebMCP)"
+    }
+  },
+  "url-parameters": {
+    "reserved-parameters": {
+      "slug": "url-parameters",
+      "anchor": "what-happens-on-open",
+      "label": "What happens on open"
+    },
+    "packed-links-z": {
+      "slug": "url-mode",
+      "anchor": "packed-links-z",
+      "label": "Packed links (z)"
+    },
+    "encrypted-links-zx": {
+      "slug": "url-mode",
+      "anchor": "encrypted-links-zx",
+      "label": "Encrypted links (zx)"
+    },
+    "physical-units-unit-dpi": {
+      "slug": "url-export",
+      "anchor": "physical-units-unit-dpi",
+      "label": "Physical units (unit= + dpi=)"
+    },
+    "print-marks-bleed-bleed-marks": {
+      "slug": "url-export",
+      "anchor": "print-ready-output",
+      "label": "Print-ready output"
+    },
+    "contact-sheets-cuts": {
+      "slug": "url-export",
+      "anchor": "contact-sheets",
+      "label": "Contact sheets"
+    }
+  },
+  "url-export": {
+    "format-with-format": {
+      "slug": "url-export",
+      "anchor": "download-a-file",
+      "label": "Download a file"
+    },
+    "download-with-export": {
+      "slug": "url-export",
+      "anchor": "download-a-file",
+      "label": "Download a file"
+    },
+    "download-filename-with-filename": {
+      "slug": "url-export",
+      "anchor": "download-a-file",
+      "label": "Download a file"
+    },
+    "copy-to-clipboard-with-copy": {
+      "slug": "url-export",
+      "anchor": "copy-to-the-clipboard",
+      "label": "Copy to the clipboard"
+    },
+    "canvas-dimensions-with-width-height": {
+      "slug": "url-export",
+      "anchor": "set-the-size",
+      "label": "Set the size"
+    },
+    "fullscreen-with-full": {
+      "slug": "url-export",
+      "anchor": "open-clean-embed-or-publish",
+      "label": "Open clean, embed or publish"
+    },
+    "land-on-the-export-panel-with-options": {
+      "slug": "url-export",
+      "anchor": "open-clean-embed-or-publish",
+      "label": "Open clean, embed or publish"
+    },
+    "transparent-background": {
+      "slug": "url-export",
+      "anchor": "transparency-and-outlined-text",
+      "label": "Transparency and outlined text"
+    },
+    "loading-saved-state-with-slot": {
+      "slug": "url-export",
+      "anchor": "resume-a-saved-session",
+      "label": "Resume a saved session"
+    }
+  },
+  "url-app-links": {
+    "app-links": {
+      "slug": "url-app-links",
+      "anchor": "app-views",
+      "label": "App views"
+    },
+    "batch-batch": {
+      "slug": "url-app-links",
+      "anchor": "batch-and-multi-edit",
+      "label": "Batch and Multi-edit"
+    },
+    "multi-edit-multi": {
+      "slug": "url-app-links",
+      "anchor": "batch-and-multi-edit",
+      "label": "Batch and Multi-edit"
+    },
+    "design-system-studio-start": {
+      "slug": "url-app-links",
+      "anchor": "design-system-setup-start",
+      "label": "Design System Setup (#/start)"
+    },
+    "dashboard-d": {
+      "slug": "url-app-links",
+      "anchor": "settings-settings",
+      "label": "Settings (#/settings)"
+    },
+    "profile-profile": {
+      "slug": "url-app-links",
+      "anchor": "settings-settings",
+      "label": "Settings (#/settings)"
+    }
+  },
+  "token-workflows": {
+    "colourways": {
+      "slug": "colourways",
+      "anchor": "colourways",
+      "label": "Colourways"
+    },
+    "what-a-theme-group-means": {
+      "slug": "design-tokens",
+      "anchor": "what-a-theme-group-means",
+      "label": "What a theme group means"
+    },
+    "design-system-context": {
+      "slug": "token-workflows",
+      "anchor": "in-design",
+      "label": "In Design"
+    },
+    "theme-choices": {
+      "slug": "token-workflows",
+      "anchor": "choose-themes-for-one-document",
+      "label": "Choose themes for one document"
+    },
+    "linked-values": {
+      "slug": "token-workflows",
+      "anchor": "link-a-field-to-a-token",
+      "label": "Link a field to a token"
+    },
+    "reviewing-changes": {
+      "slug": "token-workflows",
+      "anchor": "review-a-change",
+      "label": "Review a change"
+    },
+    "saved-work-and-tools-that-use-a-token": {
+      "slug": "token-workflows",
+      "anchor": "find-what-uses-a-token",
+      "label": "Find what uses a token"
+    },
+    "published-fonts": {
+      "slug": "token-workflows",
+      "anchor": "review-a-change",
+      "label": "Review a change"
+    },
+    "linking-many-documents-at-once": {
+      "slug": "token-workflows",
+      "anchor": "link-many-documents-at-once",
+      "label": "Link many documents at once"
+    },
+    "shared-interface": {
+      "slug": "token-workflows",
+      "anchor": "inspect-a-token",
+      "label": "Inspect a token"
+    }
+  },
+  "design-tokens": {
+    "penpot-interop": {
+      "slug": "design-tokens",
+      "anchor": "round-trip-with-penpot",
+      "label": "Round-trip with Penpot"
+    },
+    "take-your-tokens-to-penpot": {
+      "slug": "design-tokens",
+      "anchor": "round-trip-with-penpot",
+      "label": "Round-trip with Penpot"
+    },
+    "how-tools-consume-tokens": {
+      "slug": "design-tokens",
+      "anchor": "how-tools-use-tokens",
+      "label": "How tools use tokens"
+    },
+    "the-four-layers": {
+      "slug": "design-tokens",
+      "anchor": "how-the-token-engine-is-built",
+      "label": "How the token engine is built"
+    },
+    "token-workflows": {
+      "slug": "token-workflows",
+      "anchor": "inspect-a-token",
+      "label": "Token workflows"
+    }
+  },
+  "training-creators": {
+    "publish-on-your-own-website": {
+      "slug": "training-delivery",
+      "anchor": "publish-on-your-own-website",
+      "label": "Publish on your own website"
+    },
+    "choose-a-format-for-each-customer": {
+      "slug": "training-delivery",
+      "anchor": "choose-a-format-for-each-customer",
+      "label": "Choose a format for each customer"
+    },
+    "lms-presets-and-the-tested-label": {
+      "slug": "training-delivery",
+      "anchor": "choose-a-format-for-each-customer",
+      "label": "LMS presets and the Tested label"
+    },
+    "test-in-litmos-or-a-partner-lms": {
+      "slug": "training-delivery",
+      "anchor": "test-in-your-lms",
+      "label": "Test in your LMS"
+    },
+    "update-a-course-without-changing-an-existing-release": {
+      "slug": "training-delivery",
+      "anchor": "update-a-course-without-changing-an-existing-release",
+      "label": "Update a course without changing an existing release"
+    },
+    "when-something-goes-wrong": {
+      "slug": "training-delivery",
+      "anchor": "when-something-goes-wrong",
+      "label": "When something goes wrong"
+    },
+    "for-a-creator-working-with-the-cli": {
+      "slug": "learning-integration",
+      "anchor": "build-courses-from-the-command-line",
+      "label": "Build courses from the command line"
+    },
+    "give-teams-reusable-material-tools": {
+      "slug": "create-a-tool",
+      "anchor": "use-it-for-training-materials",
+      "label": "Use it for training materials"
+    }
+  },
+  "exporting": {
+    "rendering-many-at-once": {
+      "slug": "exporting",
+      "anchor": "many-files-at-once",
+      "label": "Many files at once"
+    },
+    "choosing-a-format": {
+      "slug": "exporting",
+      "anchor": "pick-a-format",
+      "label": "Pick a format"
+    },
+    "size-print-units": {
+      "slug": "exporting",
+      "anchor": "size-and-print-units",
+      "label": "Size and print units"
+    },
+    "multi-page-pdf": {
+      "slug": "exporting",
+      "anchor": "print",
+      "label": "Print"
+    },
+    "making-many-things-at-once": {
+      "slug": "exporting",
+      "anchor": "many-files-at-once",
+      "label": "Many files at once"
+    },
+    "animated-svg": {
+      "slug": "exporting",
+      "anchor": "animated-images",
+      "label": "Animated images"
+    },
+    "colour-spaces": {
+      "slug": "colour-engine",
+      "anchor": "reading",
+      "label": "Reading"
+    },
+    "songs-in-the-credential": {
+      "slug": "rondocode",
+      "anchor": "songs-in-the-credential",
+      "label": "Songs in the credential"
+    },
+    "files-from-the-rondocode-utility": {
+      "slug": "rondocode",
+      "anchor": "files-from-the-rondocode-utility",
+      "label": "Files from the Rondocode utility"
+    },
+    "format-reference": {
+      "slug": "exporting",
+      "anchor": "format-ids-for-links-and-the-cli",
+      "label": "Format ids for links and the CLI"
+    }
+  },
+  "design-import": {
+    "what-you-can-import": {
+      "slug": "design-import",
+      "anchor": "what-comes-in-from-each-app",
+      "label": "What comes in from each app"
+    },
+    "what-each-app-is-for": {
+      "slug": "design-import",
+      "anchor": "what-comes-in-from-each-app",
+      "label": "What comes in from each app"
+    },
+    "dynamic-layouts": {
+      "slug": "design-layout",
+      "anchor": "dynamic-layouts",
+      "label": "Dynamic layouts"
+    },
+    "groups-and-pages": {
+      "slug": "design-layout",
+      "anchor": "groups-and-pages",
+      "label": "Groups and pages"
+    },
+    "it-conforms-to-the-brand": {
+      "slug": "design-import",
+      "anchor": "fonts-and-colours-on-your-design-system",
+      "label": "Fonts and colours on your design system"
+    },
+    "rendering": {
+      "slug": "design-import",
+      "anchor": "keep-going",
+      "label": "Keep going"
+    },
+    "photoshop-precision-and-preservation": {
+      "slug": "design-import",
+      "anchor": "photoshop-files",
+      "label": "Photoshop files"
+    },
+    "adobe-photo-presets": {
+      "slug": "darkroom",
+      "anchor": "bring-in-an-adobe-photo-preset",
+      "label": "Bring in an Adobe photo preset"
+    },
+    "motion-starters": {
+      "slug": "animating",
+      "anchor": "start-from-a-motion-starter",
+      "label": "Start from a motion starter"
+    },
+    "premiere-xml-exchange": {
+      "slug": "sequence-editor",
+      "anchor": "premiere-xml-exchange",
+      "label": "Premiere XML exchange"
+    },
+    "frames-become-a-video": {
+      "slug": "design-import",
+      "anchor": "make-it-a-video",
+      "label": "Make it a video"
+    },
+    "animate-the-editable-layout": {
+      "slug": "animating",
+      "anchor": "choreograph-one-click-a-whole-motion-arc",
+      "label": "Choreograph: one click, a whole motion arc"
+    },
+    "from-a-one-off-design-to-a-reusable-template": {
+      "slug": "design-import",
+      "anchor": "keep-going",
+      "label": "Keep going"
+    },
+    "round-tripping-the-brand-itself": {
+      "slug": "design-import",
+      "anchor": "keep-going",
+      "label": "Keep going"
+    },
+    "limits-safety": {
+      "slug": "design-import",
+      "anchor": "limits-and-safety",
+      "label": "Limits and safety"
+    },
+    "every-format-lolly-can-read": {
+      "slug": "formats",
+      "anchor": "bringing-files-in",
+      "label": "Bringing files in"
+    },
+    "images": {
+      "slug": "formats",
+      "anchor": "bringing-files-in",
+      "label": "Bringing files in"
+    },
+    "decks-and-documents": {
+      "slug": "formats",
+      "anchor": "bringing-files-in",
+      "label": "Bringing files in"
+    },
+    "data": {
+      "slug": "formats",
+      "anchor": "bringing-files-in",
+      "label": "Bringing files in"
+    },
+    "video": {
+      "slug": "formats",
+      "anchor": "bringing-files-in",
+      "label": "Bringing files in"
+    },
+    "audio": {
+      "slug": "formats",
+      "anchor": "bringing-files-in",
+      "label": "Bringing files in"
+    },
+    "content-credentials-verify": {
+      "slug": "formats",
+      "anchor": "bringing-files-in",
+      "label": "Bringing files in"
+    },
+    "metadata-read-so-it-can-be-removed": {
+      "slug": "formats",
+      "anchor": "bringing-files-in",
+      "label": "Bringing files in"
+    }
+  },
+  "sequence-editor": {
+    "the-one-rule": {
+      "slug": "sequence-editor",
+      "anchor": "how-selection-follows-the-playhead",
+      "label": "How selection follows the playhead"
+    },
+    "what-a-click-on-the-canvas-hits": {
+      "slug": "sequence-editor",
+      "anchor": "how-selection-follows-the-playhead",
+      "label": "How selection follows the playhead"
+    },
+    "trimming-from-the-keyboard": {
+      "slug": "sequence-editor",
+      "anchor": "trimming",
+      "label": "Trimming"
+    },
+    "the-shortcut-sheet": {
+      "slug": "sequence-editor",
+      "anchor": "keyboard-shortcuts",
+      "label": "Keyboard shortcuts"
+    },
+    "project-timing-markers-and-ranges": {
+      "slug": "sequence-editor",
+      "anchor": "markers-ranges-and-frame-rate",
+      "label": "Markers, ranges and frame rate"
+    },
+    "detaching-a-clip-s-audio": {
+      "slug": "sequence-editor",
+      "anchor": "detach-audio",
+      "label": "Detach audio"
+    }
+  },
+  "interactive-pages": {
+    "drive-the-presentation": {
+      "slug": "interactive-pages",
+      "anchor": "drive-it-with-the-clicker",
+      "label": "Drive it with the clicker"
+    },
+    "choose-the-scrolling-method": {
+      "slug": "interactive-pages",
+      "anchor": "pages-lolly-can-and-cannot-reach",
+      "label": "Pages Lolly can and cannot reach"
+    }
+  },
+  "agenda": {
+    "editing-the-programme": {
+      "slug": "agenda",
+      "anchor": "enter-the-programme",
+      "label": "Enter the programme"
+    },
+    "screens-and-motion": {
+      "slug": "agenda",
+      "anchor": "screens-that-rotate",
+      "label": "Screens that rotate"
+    },
+    "interactive-html": {
+      "slug": "agenda",
+      "anchor": "the-attendee-page",
+      "label": "The attendee page"
+    },
+    "powerpoint-and-print": {
+      "slug": "agenda",
+      "anchor": "powerpoint-pdf-and-print",
+      "label": "PowerPoint, PDF and print"
+    },
+    "event-kit": {
+      "slug": "agenda",
+      "anchor": "the-event-kit",
+      "label": "The event kit"
+    }
+  },
+  "text-composition": {
+    "save-export-and-recover": {
+      "slug": "text-composition",
+      "anchor": "share-and-export",
+      "label": "Share and export"
+    }
+  },
+  "hdr-editing": {
+    "working-with-originals": {
+      "slug": "hdr-editing",
+      "anchor": "bring-in-originals",
+      "label": "Bring in originals"
+    },
+    "export": {
+      "slug": "hdr-editing",
+      "anchor": "export-hdr-or-an-sdr-copy",
+      "label": "Export: HDR or an SDR copy"
+    },
+    "current-limits": {
+      "slug": "hdr-editing",
+      "anchor": "export-hdr-or-an-sdr-copy",
+      "label": "Export: HDR or an SDR copy"
+    }
+  },
+  "presenting": {
+    "prepare-a-layout": {
+      "slug": "presenting",
+      "anchor": "set-up-the-picture",
+      "label": "Set up the picture"
+    },
+    "during-the-presentation": {
+      "slug": "presenting",
+      "anchor": "during-the-talk",
+      "label": "During the talk"
+    },
+    "record-the-audience-picture": {
+      "slug": "presenting",
+      "anchor": "record-what-the-audience-sees",
+      "label": "Record what the audience sees"
+    },
+    "try-an-obs-studio-video-feed": {
+      "slug": "presenting",
+      "anchor": "record-what-the-audience-sees",
+      "label": "Record what the audience sees"
+    }
+  },
+  "3d-studio": {
+    "light-materials-and-depth": {
+      "slug": "3d-studio",
+      "anchor": "light-the-scene",
+      "label": "Light the scene"
+    },
+    "promotional-backdrops": {
+      "slug": "3d-studio",
+      "anchor": "start-from-a-template",
+      "label": "Start from a template"
+    },
+    "words-in-the-brand-font": {
+      "slug": "3d-studio",
+      "anchor": "what-goes-in-front-of-the-camera",
+      "label": "What goes in front of the camera"
+    },
+    "move-the-camera": {
+      "slug": "3d-studio",
+      "anchor": "camera-keys-and-moves",
+      "label": "Camera keys and moves"
+    },
+    "place-the-lights": {
+      "slug": "3d-studio",
+      "anchor": "light-the-scene",
+      "label": "Light the scene"
+    },
+    "lighting-environments": {
+      "slug": "3d-studio",
+      "anchor": "light-the-scene",
+      "label": "Light the scene"
+    },
+    "colour-and-alpha": {
+      "slug": "3d-studio",
+      "anchor": "get-the-file-you-need",
+      "label": "Get the file you need"
+    },
+    "shape-quality-and-framing": {
+      "slug": "3d-studio",
+      "anchor": "get-the-file-you-need",
+      "label": "Get the file you need"
+    },
+    "arrange-several-objects-in-one-scene": {
+      "slug": "3d-studio",
+      "anchor": "arrange-several-objects",
+      "label": "Arrange several objects"
+    },
+    "models-from-a-brand-pack": {
+      "slug": "3d-studio",
+      "anchor": "start-from-a-template",
+      "label": "Start from a template"
+    },
+    "save-and-reuse": {
+      "slug": "3d-studio",
+      "anchor": "reuse-a-look",
+      "label": "Reuse a look"
+    },
+    "save-and-reuse-a-studio": {
+      "slug": "3d-studio",
+      "anchor": "reuse-a-look",
+      "label": "Reuse a look"
+    },
+    "motion": {
+      "slug": "3d-studio",
+      "anchor": "make-it-move",
+      "label": "Make it move"
+    },
+    "burst": {
+      "slug": "3d-studio",
+      "anchor": "make-it-move",
+      "label": "Make it move"
+    },
+    "camera-moves": {
+      "slug": "3d-studio",
+      "anchor": "camera-keys-and-moves",
+      "label": "Camera keys and moves"
+    },
+    "what-an-edit-redraws": {
+      "slug": "3d-studio",
+      "anchor": "expert-controls",
+      "label": "Expert controls"
+    },
+    "current-limits": {
+      "slug": "3d-studio",
+      "anchor": "expert-controls",
+      "label": "Expert controls"
+    }
+  },
+  "using": {
+    "opening-a-tool": {
+      "slug": "using",
+      "anchor": "find-your-way-around",
+      "label": "Opening a tool"
+    },
+    "ask-lolly": {
+      "slug": "ask",
+      "anchor": "asking-a-question",
+      "label": "Ask Lolly"
+    },
+    "the-canvas-preview": {
+      "slug": "using",
+      "anchor": "zoom-and-pan-the-preview",
+      "label": "The canvas (preview)"
+    },
+    "the-free-canvas-design": {
+      "slug": "design",
+      "anchor": "the-design-window",
+      "label": "The free canvas (Design)"
+    },
+    "resize-scale-and-rotate": {
+      "slug": "design",
+      "anchor": "resize-scale-and-rotate",
+      "label": "Resize, scale and rotate"
+    },
+    "layers-and-inspector": {
+      "slug": "design",
+      "anchor": "the-navigator-and-the-inspector",
+      "label": "Layers and Inspector"
+    },
+    "drawing-your-own-shapes-the-pen": {
+      "slug": "design",
+      "anchor": "draw-your-own-shapes",
+      "label": "Drawing your own shapes (the pen)"
+    },
+    "combining-shapes-path-operations": {
+      "slug": "design",
+      "anchor": "combine-shapes",
+      "label": "Combining shapes (path operations)"
+    },
+    "3d-scenes": {
+      "slug": "design",
+      "anchor": "3d-scenes",
+      "label": "3D scenes"
+    },
+    "tools-inside-a-design": {
+      "slug": "design",
+      "anchor": "tools-inside-a-design",
+      "label": "Tools inside a design"
+    },
+    "timeline-sequence": {
+      "slug": "design",
+      "anchor": "timeline-sequence",
+      "label": "Timeline (Sequence)"
+    },
+    "presenting": {
+      "slug": "design",
+      "anchor": "presenting",
+      "label": "Presenting"
+    },
+    "live-pages-that-take-the-clicker": {
+      "slug": "design",
+      "anchor": "presenting",
+      "label": "Live pages that take the clicker"
+    },
+    "controls-inputs": {
+      "slug": "using",
+      "anchor": "change-what-the-tool-lets-you-change",
+      "label": "Controls (inputs)"
+    },
+    "your-details-headshot": {
+      "slug": "profile",
+      "anchor": "what-s-in-a-profile",
+      "label": "Your details & headshot"
+    },
+    "projects": {
+      "slug": "find-your-work",
+      "anchor": "find-something-you-saved",
+      "label": "Projects"
+    },
+    "live-camera-motion-reactive-tools": {
+      "slug": "using",
+      "anchor": "live-camera",
+      "label": "Live camera (motion-reactive tools)"
+    },
+    "my-images": {
+      "slug": "using",
+      "anchor": "assets-your-library",
+      "label": "My images"
+    },
+    "sound-accessibility": {
+      "slug": "using",
+      "anchor": "settings-sound-and-comfort",
+      "label": "Sound & accessibility"
+    },
+    "storage-privacy": {
+      "slug": "find-your-work",
+      "anchor": "if-you-clear-your-browser-data",
+      "label": "Storage & privacy"
+    },
+    "moving-to-another-device": {
+      "slug": "find-your-work",
+      "anchor": "move-your-work-to-another-device",
+      "label": "Moving to another device"
+    },
+    "batch-pro-mode": {
+      "slug": "batch",
+      "anchor": "make-many-versions-of-one-design",
+      "label": "Batch (Pro) mode"
+    },
+    "editing-side-by-side-multi-edit": {
+      "slug": "batch",
+      "anchor": "edit-several-saved-designs-together",
+      "label": "Editing side by side (Multi-edit)"
+    },
+    "offline-install": {
+      "slug": "dashboard",
+      "anchor": "available-offline",
+      "label": "Offline & install"
+    },
+    "importing-a-design-figma-penpot-illustrator-indesign": {
+      "slug": "design-import",
+      "anchor": "import-a-design-figma-penpot-illustrator-indesign",
+      "label": "Importing a design (Figma, Penpot, Illustrator, InDesign)"
+    },
+    "exporting": {
+      "slug": "exporting",
+      "anchor": "exporting-formats",
+      "label": "Exporting"
+    }
+  },
+  "profile": {
+    "a-profile-is-a-context-not-just-a-person": {
+      "slug": "profile",
+      "anchor": "you-a-team-or-a-role",
+      "label": "A profile is a context"
+    },
+    "as-an-individual": {
+      "slug": "profile",
+      "anchor": "you-a-team-or-a-role",
+      "label": "As an individual"
+    },
+    "as-a-function-a-role-you-wear-sometimes": {
+      "slug": "profile",
+      "anchor": "you-a-team-or-a-role",
+      "label": "As a function"
+    },
+    "one-install-one-active-profile-many-you-can-keep": {
+      "slug": "profile",
+      "anchor": "keep-several-use-one",
+      "label": "One install, one active profile"
+    },
+    "accessibility": {
+      "slug": "dashboard",
+      "anchor": "accessibility",
+      "label": "Accessibility"
+    },
+    "your-lolly-instance": {
+      "slug": "dashboard",
+      "anchor": "lolly-instance",
+      "label": "Your Lolly instance"
+    },
+    "available-offline": {
+      "slug": "dashboard",
+      "anchor": "available-offline",
+      "label": "Available offline"
+    },
+    "moving-a-profile-to-a-new-device": {
+      "slug": "find-your-work",
+      "anchor": "move-your-work-to-another-device",
+      "label": "Moving a profile to a new device"
+    },
+    "profile-vs-platform-vs-capabilities": {
+      "slug": "profile",
+      "anchor": "profile-design-system-and-capabilities",
+      "label": "Profile vs Platform vs Capabilities"
+    },
+    "profile-means-two-other-things-elsewhere-not-this-one": {
+      "slug": "profile",
+      "anchor": "profile-design-system-and-capabilities",
+      "label": "Profile means two other things"
+    }
+  },
+  "brand-studio": {
+    "the-expert-wings": {
+      "slug": "brand-studio",
+      "anchor": "the-expert-sections",
+      "label": "The expert wings"
+    },
+    "one-colour-a-whole-palette": {
+      "slug": "brand-studio",
+      "anchor": "find-more-colours",
+      "label": "One colour, a whole palette"
+    },
+    "build-the-palette-harmony-generator": {
+      "slug": "brand-studio",
+      "anchor": "find-more-colours",
+      "label": "Build the palette (harmony generator)"
+    },
+    "the-palette-the-chart-and-each-swatch": {
+      "slug": "brand-studio",
+      "anchor": "the-palette-and-each-swatch",
+      "label": "The palette, the chart and each swatch"
+    },
+    "take-the-palette-elsewhere": {
+      "slug": "using",
+      "anchor": "take-your-palette-and-fonts-anywhere",
+      "label": "Take the palette elsewhere"
+    },
+    "read-source-evidence": {
+      "slug": "brand-studio",
+      "anchor": "review-a-reference",
+      "label": "Read source evidence"
+    },
+    "when-the-brand-is-fixed": {
+      "slug": "brand-studio",
+      "anchor": "manage-your-design-systems",
+      "label": "When the brand is fixed"
+    },
+    "remove-a-local-design-system": {
+      "slug": "brand-studio",
+      "anchor": "removing-a-design-system",
+      "label": "Remove a local design system"
+    },
+    "check-a-composition-against-the-design-system": {
+      "slug": "design",
+      "anchor": "check-a-composition-against-the-design-system",
+      "label": "Check a composition against the design system"
+    },
+    "use-design-context-locally": {
+      "slug": "brand-studio",
+      "anchor": "use-design-context-outside-the-app",
+      "label": "Use design context locally"
+    }
+  },
+  "search": {
+    "where-it-lives": {
+      "slug": "search",
+      "anchor": "open-search",
+      "label": "Where it lives"
+    },
+    "what-it-doesn-t-do": {
+      "slug": "search",
+      "anchor": "limits",
+      "label": "What it doesn't do"
+    }
+  },
+  "ask": {
+    "what-it-is": {
+      "slug": "ask",
+      "anchor": "asking-a-question",
+      "label": "What it is"
+    }
+  },
+  "favourites": {
+    "this-is-local-not-part-of-the-design-system": {
+      "slug": "favourites",
+      "anchor": "your-favourites-stay-on-your-device",
+      "label": "This is local, not part of the design system"
+    }
+  },
+  "content-credentials-identity": {
+    "what-you-get": {
+      "slug": "content-credentials-identity",
+      "anchor": "put-your-name-on-your-files",
+      "label": "Put your name on your files"
+    },
+    "verifying-a-file": {
+      "slug": "content-credentials-identity",
+      "anchor": "check-a-file",
+      "label": "Check a file"
+    },
+    "beyond-the-credential-what-else-verify-shows": {
+      "slug": "what-verify-checks",
+      "anchor": "what-verify-checks",
+      "label": "What Verify checks"
+    },
+    "the-lolly-imprint": {
+      "slug": "what-verify-checks",
+      "anchor": "the-lolly-imprint",
+      "label": "The Lolly Imprint"
+    },
+    "ai-generated-content": {
+      "slug": "what-verify-checks",
+      "anchor": "ai-generated-content",
+      "label": "AI-generated content"
+    },
+    "likely-carries-a-maker-s-own-watermark": {
+      "slug": "what-verify-checks",
+      "anchor": "a-maker-s-own-watermark-likely-present",
+      "label": "A maker's own watermark, likely present"
+    },
+    "deep-scan-opt-in-trustmark-content-seal": {
+      "slug": "what-verify-checks",
+      "anchor": "deep-scan-trustmark-and-content-seal",
+      "label": "Deep scan: TrustMark and Content Seal"
+    },
+    "seal-signatures-a-cryptographic-signature-not-a-pixel-watermark": {
+      "slug": "what-verify-checks",
+      "anchor": "seal-signatures",
+      "label": "SEAL signatures"
+    },
+    "hidden-data-appended-payloads-steganalysis": {
+      "slug": "what-verify-checks",
+      "anchor": "hidden-data",
+      "label": "Hidden data"
+    },
+    "where-each-check-runs": {
+      "slug": "what-verify-checks",
+      "anchor": "where-each-check-runs",
+      "label": "Where each check runs"
+    },
+    "why-identity-not-app-identity": {
+      "slug": "content-credentials-engineering",
+      "anchor": "why-the-certificate-identifies-a-person-not-the-app",
+      "label": "Why the certificate identifies a person, not the app"
+    },
+    "trust-tiers-what-a-verifier-can-conclude": {
+      "slug": "content-credentials-identity",
+      "anchor": "what-a-verifier-can-conclude",
+      "label": "What a verifier can conclude"
+    },
+    "credential-lifetime": {
+      "slug": "content-credentials-identity",
+      "anchor": "how-long-a-credential-stays-valid",
+      "label": "How long a credential stays valid"
+    }
+  },
+  "work-identity": {
+    "oidc-sso": {
+      "slug": "work-identity-providers",
+      "anchor": "openid-connect-sign-in",
+      "label": "OpenID Connect sign-in"
+    },
+    "more-than-one-idp": {
+      "slug": "work-identity-providers",
+      "anchor": "more-than-one-idp",
+      "label": "More than one IdP"
+    },
+    "planned-sign-ins": {
+      "slug": "work-identity-providers",
+      "anchor": "planned-sign-ins",
+      "label": "Planned sign-ins"
+    },
+    "provider-recipes": {
+      "slug": "work-identity-providers",
+      "anchor": "provider-recipes",
+      "label": "Provider recipes"
+    },
+    "reverse-proxy-sign-in": {
+      "slug": "work-identity-providers",
+      "anchor": "reverse-proxy-sign-in",
+      "label": "Reverse-proxy sign-in"
+    },
+    "the-dev-provider": {
+      "slug": "work-identity-providers",
+      "anchor": "the-dev-provider",
+      "label": "The dev provider"
+    },
+    "invite-links": {
+      "slug": "work-invitations",
+      "anchor": "invite-links",
+      "label": "Invite links"
+    },
+    "setting-a-password-from-the-link": {
+      "slug": "work-invitations",
+      "anchor": "setting-a-password-from-the-link",
+      "label": "Setting a password from the link"
+    },
+    "new-link-and-invite-again": {
+      "slug": "work-invitations",
+      "anchor": "new-link-and-invite-again",
+      "label": "New link and Invite again"
+    },
+    "github-addresses": {
+      "slug": "work-invitations",
+      "anchor": "github-addresses",
+      "label": "GitHub addresses"
+    },
+    "asking-to-join": {
+      "slug": "work-invitations",
+      "anchor": "asking-to-join",
+      "label": "Asking to join"
+    },
+    "using-another-account": {
+      "slug": "work-invitations",
+      "anchor": "using-another-account",
+      "label": "Using another account"
+    },
+    "scim-provisioning": {
+      "slug": "work-enterprise-identity",
+      "anchor": "scim-provisioning",
+      "label": "SCIM provisioning"
+    },
+    "service-tokens": {
+      "slug": "work-enterprise-identity",
+      "anchor": "service-tokens",
+      "label": "Service tokens"
+    },
+    "what-a-shell-sees": {
+      "slug": "work-permissions",
+      "anchor": "checking-your-work",
+      "label": "Checking your work"
+    }
+  },
+  "work-sharing": {
+    "team-projects-and-sessions": {
+      "slug": "work-team-projects",
+      "anchor": "team-projects",
+      "label": "Team projects"
+    },
+    "who-sees-a-project": {
+      "slug": "work-team-projects",
+      "anchor": "who-sees-a-project",
+      "label": "Who sees a project"
+    },
+    "people-and-roles": {
+      "slug": "work-team-projects",
+      "anchor": "people-and-roles",
+      "label": "People and roles"
+    },
+    "inviting-people": {
+      "slug": "work-invitations",
+      "anchor": "invite-people-to-a-project",
+      "label": "Invite people to a project"
+    },
+    "invite-policy": {
+      "slug": "work-invitations",
+      "anchor": "invite-policy",
+      "label": "Invite policy"
+    },
+    "asking-for-access": {
+      "slug": "work-invitations",
+      "anchor": "asking-for-access",
+      "label": "Asking for access"
+    },
+    "notices": {
+      "slug": "work-invitations",
+      "anchor": "notices",
+      "label": "Notices"
+    },
+    "saving-from-lolly": {
+      "slug": "work-team-projects",
+      "anchor": "saving-from-lolly",
+      "label": "Saving from Lolly"
+    },
+    "shared-files": {
+      "slug": "work-team-projects",
+      "anchor": "shared-files",
+      "label": "Shared files"
+    },
+    "who-changed-what": {
+      "slug": "work-team-projects",
+      "anchor": "who-changed-what",
+      "label": "Who changed what"
+    },
+    "team-links": {
+      "slug": "work-team-projects",
+      "anchor": "team-links",
+      "label": "Team links"
+    },
+    "when-two-people-save-the-same-session": {
+      "slug": "work-team-projects",
+      "anchor": "when-two-people-save-the-same-session",
+      "label": "When two people save the same session"
+    },
+    "shared-subfolders": {
+      "slug": "work-team-projects",
+      "anchor": "shared-subfolders",
+      "label": "Shared subfolders"
+    }
+  },
+  "work-permissions": {
+    "who-can-see-who-has-access": {
+      "slug": "work-team-projects",
+      "anchor": "who-can-see-who-has-access",
+      "label": "Who can see who has access"
+    },
+    "sign-out-on-all-devices": {
+      "slug": "work-identity",
+      "anchor": "offboarding-disable-and-revocation",
+      "label": "Offboarding, disable and revocation"
+    },
+    "sending-organization-output-deliverycreate": {
+      "slug": "work-delivery",
+      "anchor": "who-may-send",
+      "label": "Who may send"
     }
   }
 }

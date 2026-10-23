@@ -10,8 +10,8 @@ into your own store. About 30 minutes.
 - A Canto tenant you are allowed to test against: its subdomain (`acme` in
   `https://acme.canto.com`) and its regional domain (`com`, `global` or `de`).
 - The sealed OAuth blob, `{"clientId":"…","clientSecret":"…","refreshToken":"…"}`. The client
-  id and secret are the App ID and Secret Canto support issues to the tenant owner: lolly
-  registers no Canto app (BYOT).
+  id and secret are the App ID and Secret of an API key a Canto admin creates under
+  *Settings > Configuration Options > API Keys*: Lolly Work registers no Canto app (BYOT).
 - A refresh token minted against that App ID, obtained by hand through Canto's own documented
   authorization-code flow: `lw providers auth` registers no consent flow for this kind. Record
   the authorize and token URLs you used; confirming them is rows 2 and 2a.
@@ -23,7 +23,7 @@ into your own store. About 30 minutes.
 
 ```bash
 export LW_BASE=https://lolly.example
-lw login --cookie 'lw_session=…'          # dev instances: lw login --email you@acme.example
+lw login                                   # device sign-in; or: lw login --cookie 'lw_session=…'
 
 lw providers preview --kind canto --options '{"tenant":"acme","domain":"com"}'
 ```
@@ -172,6 +172,7 @@ should now say what was confirmed, on what date, and what remains open.
 you edited and to what, and the step 3 fidelity result per scheme.
 
 See also: [the Canto guide](canto.md) · [off-boarding](../offboarding.md) ·
-[the CLI](../cli.md) · the other three runbooks:
+[the CLI](../cli.md) · the other runbooks:
 [imagerelay](imagerelay-live-verify.md) · [intelligencebank](intelligencebank-live-verify.md) ·
-[acquia-dam](acquia-dam-live-verify.md).
+[acquia-dam](acquia-dam-live-verify.md) · [cloudinary](cloudinary-live-verify.md) ·
+[orange-logic](orange-logic-live-verify.md) · [webdav](webdav-live-verify.md).

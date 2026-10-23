@@ -1,30 +1,53 @@
-# `lw` CLI
+# `lw` CLI: administer Lolly Work
 
-A thin wrapper over the same API the console uses, so the two grow in parity by
-construction. Run it as `pnpm run cli <args>` from the repo, or `node cli/lw.ts`. To get
-the plain `lw` the examples below use, run `npm link` once in the checkout - that is the
-only thing that puts it on `PATH` (it is not in the container image or the Helm pod, so
-`lw` drives a deploy from a checkout, not from inside the deployment).
+`lw` runs a Lolly Work instance from a terminal: people and invitations, asset sources, the
+catalog, renders and delivery, audit and governance. It calls the same API as the console, so
+the two stay in step, and anything an admin does in the console can go in a script. To render
+artwork from a terminal, use the `lolly` command instead ([the Lolly CLI](https://lolly.tools/info/build/cli.html)).
+
+## Install and sign in
+
+Run `lw` from a Lolly Work checkout as `pnpm run cli <args>` or `node cli/lw.ts`. Run `npm link`
+once in the checkout to get the plain `lw` the examples use. It is not in the container image or
+the Helm pod, so you drive a deployment from a checkout, not from inside the deployment.
 
 ```bash
 export LW_BASE=https://lolly.example.com    # or pass --base <url>
-pnpm run cli summary
-pnpm run cli --json audit head            # machine output
+lw login                                    # device code: confirm it in a signed-in browser
+lw summary
+lw --json audit head                        # machine output
 ```
 
-## Signing in
+Plain `lw login` prints a short code and the instance's `/activate` URL. Open that URL in any
+browser where you are already signed in, type the code and approve; the CLI collects an ordinary
+session on its next poll. Codes are database rows, so any replica can answer, and the flow works
+on every deployment. The session is stored at `~/.config/lolly-work/session` (mode 0600).
 
 ```bash
-lw login                                    # device code: confirm it in a signed-in browser
-lw login --email admin@example.test         # dev provider (dev.enabled only)
 lw login --cookie 'lw_session=…'            # paste a browser session (works everywhere)
+lw login --email admin@example.test         # the dev provider (dev.enabled only)
 ```
 
-Plain `lw login` runs the device-code flow (plans/34): it prints a short code and the
-instance's `/activate` URL; open that in any browser where you are already signed in,
-type the code, approve - and the CLI collects an ordinary session on its next poll. The
-flow works on every deploy shape - codes are database rows, so any replica answers the poll.
-The session cookie is stored at `~/.config/lolly-work/session` (mode 0600).
+## Command map
+
+| You want to | Commands | More |
+|---|---|---|
+| See who you are, what is connected and whether the audit chain holds | `whoami`, `summary`, `fleet`, `instance`, `links`, `audit`, `preview` | [Reading](#reading) |
+| Host the signed instance pack | `instance pack`, `instance pack-rm` | [Hosting the instance pack](#hosting-the-instance-pack) |
+| Let people sign in | `invite add`, `invite ls`, `invite rm` | [Invitations](#invitations) |
+| Give automation its own identity | `tokens` | [Service tokens](#service-tokens) |
+| Render and recover renders | `renders`, `render-batches` | [Recoverable renders](#recoverable-renders) |
+| Send finished files to a destination | `destinations`, `deliveries` | [Organization delivery](#organization-delivery) |
+| Manage grants and policy as code | `grants`, `export`, `apply` | [Governance](#governance) |
+| Provision people from an identity provider | `scim token` | [SCIM provisioning tokens](#scim-provisioning-tokens) |
+| Apply retention and handle accounts | `retention run`, `users` | [Data lifecycle](#data-lifecycle) |
+| Connect and leave asset sources | `providers` | [Catalog providers](#catalog-providers) |
+| Add and review catalog assets | `catalog submit`, `catalog queue`, `catalog approve`, `catalog return` | [Catalog submit](#catalog-submit) |
+| Send a large file | `upload` | [Resumable uploads](#resumable-uploads) |
+| Edit metadata, collections and versions | `catalog fields`, `catalog meta`, `catalog collection`, `catalog versions` | [Org-defined metadata](#org-defined-metadata) |
+| Post a message to members | `msg send` | [Messaging](#messaging) |
+| Review design-system sources or a project | `brand`, `projects transfer-preview` | [Design-system sources](#design-system-sources-and-project-transfer) |
+| Run database and signing setup | `migrate`, `audit retire-key`, `c2pa init` | [Local infrastructure](#local-infrastructure-commands) |
 
 ## Reading
 
@@ -35,6 +58,7 @@ lw fleet              # which shells/engines are connected (and this deploy's en
 lw fleet installs     # registered installs - devices that spoke install/<id> while signed in
 lw instance           # the public instance manifest - what a fresh app reads first
 lw links [--all]
+lw links revoke <id>
 lw audit verify       # exits 2 if the chain is broken
 lw audit head         # seq · hash · count · intact  (exits 2 if broken)
                       # "intact (N rows signed with a retired key before …)" after a rotation
@@ -54,7 +78,7 @@ points anywhere else. An unsigned pack is hosted but labelled dev-only - a key-p
 app build will refuse that engine version.
 
 Lolly Work treats the pack as a signed byte artifact, not as a second token processor.
-It does not parse, rewrite, or filter `tokens.json`: the shell-reserved
+It does not parse, rewrite or filter `tokens.json`: the shell-reserved
 `lolly.foundation` and `lolly.ui` namespaces (including aliases between them) download
 exactly as the OSS builder produced them.
 
@@ -184,6 +208,16 @@ lw retention run            # apply the stated retention policy now (trims telem
 lw users erase <id>         # erasure: delete the person's row + de-attribute their telemetry
 ```
 
+Account offboarding and subject export have their own commands, all owner-only and
+documented in [account lifecycle](account-lifecycle.md):
+
+```bash
+lw users erase-preview <id>       # read-only reference counts and erasure scope
+lw users subject-export <id>      # one bounded page of the account's metadata (--category, --cursor, --limit)
+lw users offboard-preview <id>    # direct issuance counts and what remains to review
+lw users offboard <id>            # disable, end sessions, revoke direct issuance (content is kept)
+```
+
 `retention run` also runs daily on a long-lived server; on serverless, cron it with a service
 token (`LW_TOKEN=… lw retention run`). It also removes unfinished project-file uploads more
 than an hour past their expiry, and expired [scoped uploads](#resumable-uploads), and reports
@@ -211,63 +245,27 @@ lw providers publish <id> --in <export-file> [--name <name>]   # owner-grantable
 lw providers rm <id>
 ```
 
-Kinds: `webdav`, `s3`, `git`, `brandfolder`, `dropbox`, `gdrive`, `o365`, `optimizely-cmp`,
-`imagerelay`, `canto`, `acquia-dam`, `intelligencebank`, `penpot`, `mock`. See
-[catalog](catalog.md), the first-connection walkthrough in
-[install section 9](install.md#9-connect-a-source), and the per-kind
-[provider guides](providers/README.md).
+Every kind, what each supports and how to connect one is in
+[Connect an asset source](providers/README.md), including how to read a preview. The
+first-connection walkthrough is [install section 9](install.md#9-connect-a-source), and the
+catalog side is in [catalog](catalog.md).
 
-### `preview` - the dry run
+- **`preview`** builds a throwaway source from the flags, checks its health and maps up to ten
+  files, then discards the record, so no id is needed or created. The credential is prompted
+  hidden even for a dry run. `--json` prints the raw response, and exit code `2` means the
+  health check failed.
+- **`preview --shape`** returns no sample. It reports the call the driver made and the field
+  labels and value types the service returned, compared with what the driver reads; never a
+  value. `--remote-id <id>` adds a report on the per-file detail call.
+  [Check a source on your own tenant](providers/tenant-check.md#read-the-shape-report) explains
+  the report.
+- **`credential --expires`** records the vendor's expiry date, so `lw providers list` warns
+  from 14 days before.
+- **`drift`** compares each materialized copy with the source's current change stamp. It is the
+  cadence check during an exit ([Leave a DAM](offboarding.md)), and it is read-only, so it is
+  safe on a schedule.
 
-The safe first contact with a tenant, and the command every provider guide's `## Verify`
-section starts with. It builds an **ephemeral** record from the flags, health-checks it, and
-maps up to ten of its assets - then throws the record away. Nothing is stored, nothing is
-enabled, and no provider id is needed (or created), so a wrong option costs you a retry
-rather than an audited record to delete.
-
-```bash
-lw providers preview --kind canto --options '{"tenant":"acme","domain":"com"}'
-credential for the canto preview (empty if this kind needs none): ▒▒▒▒▒▒
-health ok - canto
-mapped sample: 10 of 100 on the first page
-  id                                name                        type      tags                              formats
-  ext/preview/image:AB12C           Summit Keynote Background   image     provider:preview Backgrounds la…  png
-```
-
-The credential is prompted hidden, exactly like `lw providers credential` - it is a real
-tenant secret even in a dry run, so it never reaches argv or shell history. Press enter on
-the prompt for a source that needs none (a public `git` manifest, an open `s3` bucket).
-
-Read the table as a mapping check: the `id` is the federated id this kind would mint, `type`
-is what `mapping.typeMap`/`defaultType` resolved to, and sections arrive **as tags** unless
-you set `mapping.sectionTags: false`. The sample passes the **same exposure slice a real sync
-applies**, so what you see is what would federate - and what the slice removed is counted on
-the same line (`, N EXCLUDED by the exposure slice`), so an empty sample says whether it was
-the slice or the options scope. `--json` prints the raw response for scripting. Exit code `2`
-means the health check failed.
-
-`--shape` answers the other question, and returns **no sample**: the call the driver made, and
-the key labels and value **types** the tenant returned, diffed against the key labels the driver
-reads. Never a value, so the output redirects straight to a file you can send. Only the drivers
-whose field names are still taken from vendor documentation implement it - every other kind
-answers that it carries no live-verify debt. It is the first command in each live-verify
-runbook ([canto](providers/canto-live-verify.md), [imagerelay](providers/imagerelay-live-verify.md),
-[intelligencebank](providers/intelligencebank-live-verify.md),
-[acquia-dam](providers/acquia-dam-live-verify.md)), which explains the report's three diff
-groups.
-
-`--remote-id <id>` alongside `--shape` adds a second report, on the per-asset **detail** call
-the byte path makes (the one that carries the download link). Only the kinds whose bytes need
-that call implement it - `imagerelay`, `intelligencebank`, `acquia-dam`; a kind that builds its
-binary path out of the list record, like `canto`, answers that there is no other response to
-describe. It fetches JSON about one asset, never its bytes.
-
-### `drift` - what has changed upstream since you materialized
-
-The cadence check during a staged exit ([off-boarding](offboarding.md)). It compares the
-`sourceUpdatedAt` stamped on each materialized copy against the `updatedAt` the source
-carries **now**, and lists what has moved:
-
+::: details Reading drift output
 ```bash
 lw providers drift acme-canto
 acme-canto: 2 drifted of 118 compared (118 materialized asset(s) in all)
@@ -277,12 +275,12 @@ never materialized (3): image:GH56I, image:JK78L, video:MN90P
 remedy: lw providers materialize acme-canto --remote-id <remoteId> - idempotent per (provider, remoteId), so a re-run resumes rather than duplicates.
 ```
 
-It is read-only: it stores nothing and re-materializes nothing, so it is safe on a schedule.
-A copy taken when the source carried no timestamp is compared against its `materializedAt`
-instead.
+It compares the `sourceUpdatedAt` stamped on each copy with the `updatedAt` the source carries
+now. A copy taken when the source carried no timestamp is compared with its `materializedAt`
+instead. It stores nothing and re-materializes nothing.
 
-`compared` counts only the copies that got a real answer; every other copy is counted, and
-printed, under its own reason:
+`compared` counts only the copies that got a real answer. Every other copy is counted and
+printed under its own reason:
 
 ```
 not compared: 4 copy(ies) whose upstream record carries no change stamp the driver can read - check this kind's UPDATED_AT_KEYS against its live-verify runbook.
@@ -291,9 +289,10 @@ not compared: 1 copy(ies) whose remote id is no longer in the listing at all.
 read with care: 3 comparison(s) used a stamp that names no timezone (shape NN/NN/NNNN NN:NN) - it was read in THIS server's timezone, so those answers can be off by its UTC offset.
 ```
 
-The stamp **shapes** are printed, never the stamps: digits collapse to `N` and letters to
-`A` (`NNNNNNNNNN` is an epoch integer, `NN/NN/NNNN NN:NN` a zoneless local datetime), so
-the line identifies the format for a driver fix without leaking an upstream value.
+The stamp **shapes** are printed, never the stamps: digits become `N` and letters `A`
+(`NNNNNNNNNN` is an epoch integer, `NN/NN/NNNN NN:NN` a local date and time with no zone), so a
+line tells a driver fix the format without leaking an upstream value.
+:::
 
 ## Catalog submit
 
@@ -354,7 +353,7 @@ The fields an org defines for itself, on assets it already serves
 
 ```bash
 lw catalog fields                                            # what this instance defines
-lw catalog meta suse/tokens/brand --field region=EMEA --field campaign="Autumn Launch"
+lw catalog meta lolly/logo/primary --field region=EMEA --field campaign="Autumn Launch"
 lw catalog meta inst/ab12cd34 --field region= --name "Campaign Hero 2026" --tags campaign,hero
 ```
 
@@ -373,7 +372,7 @@ Named, ordered, group-visible sets of catalog assets
 ```bash
 lw catalog collections                                       # every set, with its size and audience
 lw catalog collection launch-kit --name "Launch kit" \
-    --members inst/ab12cd34,ext/brandfolder/a1,suse/logos/mark \
+    --members inst/ab12cd34,ext/brandfolder/a1,lolly/logo/mono \
     --groups design,sales --label "Everything for the spring launch."
 lw catalog collection launch-kit --members inst/ab12cd34      # replaces the member list whole
 lw catalog collection launch-kit --rm
@@ -412,6 +411,18 @@ lw msg send --title "Update by Aug 15" \
     [--groups marketing,legal] [--shells tauri] [--max-engine 1.52.99]
 ```
 
+## Design-system sources and project transfer
+
+```bash
+lw brand                                             # design-system sources and your permissions
+lw brand preview <action> <source-id> [--replacement <id>] > review.json   # review an impact as JSON
+lw brand apply review.json                           # apply that reviewed revision
+lw projects transfer-preview <id> [--json] [--out file.json]   # read-only project inventory
+```
+
+See [design-system administration](design-system-administration.md#review-and-apply) and
+[project transfer preview](project-portability.md).
+
 ## Local infrastructure commands
 
 These talk to something other than the API base:
@@ -439,6 +450,7 @@ skip it and use your own chain. See [c2pa](c2pa.md).
 | Flag | Meaning |
 |---|---|
 | `--base <url>` / `LW_BASE` | which deploy to talk to (default `http://localhost:8787`) |
+| `--token <token>` / `LW_TOKEN` | act as a [service token](#service-tokens); takes precedence over a stored session |
 | `--json` | machine-readable output |
 
 Exit codes: `1` on any API error or usage mistake (including `migrate --check` with a
