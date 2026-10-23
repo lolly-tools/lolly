@@ -199,7 +199,7 @@ lw scim token revoke <id>
 
 Owner-only (`scim.manage`). The secret is stored only as its hash and is unrecoverable, so
 the mint is the one moment you can copy the bearer. The IdP then drives `/scim/v2` with that bearer. See
-[identity](identity.md#scim-provisioning).
+[SCIM provisioning](enterprise-identity.md#scim-provisioning).
 
 ## Data lifecycle
 

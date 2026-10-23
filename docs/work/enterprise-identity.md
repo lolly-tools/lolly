@@ -300,8 +300,11 @@ lw tokens create --label ci --role admin --days 90
 - Presenting it resolves to a synthetic principal with the token's role and no groups. The
   role evaluator, grants and the audit trail treat it exactly like a person, so there is no
   second authorization model.
-- Tokens work on the action-gated API and are refused on the routes where a person decides:
-  approvals, submissions and live editing.
+- Tokens work on the action-gated API, which includes submitting a file or a finished upload
+  to the catalog. The routes where a person decides or acts refuse them: approvals, deciding a
+  catalog submission, submitting a project file to the catalog, a delivery to a destination
+  that needs approval, live editing and comments. The full list is in [Who can call
+  what](api.md#who-can-call-what).
 - Authenticate the CLI with `LW_TOKEN=<token>` or `--token`, and revoke a token with one
   command.
 

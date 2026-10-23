@@ -266,7 +266,7 @@ carries `created: boolean`, and an address handled without one reads
   the existing invitation unchanged with `created: false`. A pending invitation that has
   expired is revoked and replaced.
 - `passwordSetup`: the invite link may also set a password for the address, once, while
-  it has none (see [identity](identity.md#setting-a-password-from-the-link)). Honoured only
+  it has none (see [setting a password from the link](invitations.md#setting-a-password-from-the-link)). Honoured only
   for an admin or owner while a `password` entry is configured, and ignored otherwise.
   Whoever holds such a link can set the password, so send it privately.
 - Revoking an accepted invitation that belongs to an owner needs the owner role
@@ -274,7 +274,7 @@ carries `created: boolean`, and an address handled without one reads
 - Inviting an address closes its open request to join, if it has one.
 
 Nothing is emailed. Send each person their `link`, which opens the
-[invite page](identity.md#invite-links) for that invitation. `signInUrl` is
+[invite page](invitations.md#invite-links) for that invitation. `signInUrl` is
 `instance.baseUrl`. Audit actions: `invite.create` (with `via`: `console`, `project`,
 `request` or `reinvite`, plus `from` for an invitation made again and `passwordSetup`),
 `invite.link` (a new link), `invite.open` (the first sign-in started from a link),
@@ -307,7 +307,7 @@ still verifies during a rotation) over the invitation id, the project id (none f
 workspace link) and the invitation's link version. It is never stored. A token identifies an
 invitation and never admits anyone: the person still signs in, with the invited address.
 New link raises the version, so every earlier link stops working. See
-[identity](identity.md#invite-links) for the pages and the sign-in they start.
+[invite links](invitations.md#invite-links) for the pages and the sign-in they start.
 
 **Pages and forms.** Server-rendered HTML in English, with no script.
 
@@ -365,7 +365,7 @@ type RequestView = {
 ```
 
 Who may answer, what each approval does, and how requests close are in
-[sharing](sharing.md#asking-for-access) and [identity](identity.md#asking-to-join). Here, the
+[asking for access](invitations.md#asking-for-access) and [asking to join](invitations.md#asking-to-join). Here, the
 race rule: an approver is checked again on every list, approve and decline, against the project
 stored on the request, never an id the client sends, and exactly one answer wins, because
 approve claims the request first, then acts. If the action then fails on a database error, the answer is
@@ -398,12 +398,12 @@ A minted token rides `Authorization: Bearer lwt_…` and resolves to a synthetic
 principal carrying the token's role (no groups): permissions, grants and audit see it like any
 member (`user:svc_<id>` actor). [Who can call what](#who-can-call-what) lists where a token is
 accepted and refused, and [Automate with the Work API](automation-api.md) shows a first call.
-See [identity](identity.md#service-tokens).
+See [service tokens](enterprise-identity.md#service-tokens).
 
 ### SCIM provisioning
 
 Admin (cookie, owner-only) mints the bearer; the protocol half is what the IdP calls with the bearer.
-See [identity](identity.md#scim-provisioning).
+See [SCIM provisioning](enterprise-identity.md#scim-provisioning).
 
 | Route | Auth |
 |---|---|
@@ -441,7 +441,7 @@ comments and the live room where people and agents edit together.
 | `PUT /api/v1/sessions/:id` | editor and `session.edit`. Session bodies (this and the `POST` above) may be up to 4 MiB; other routes take 512 KiB |
 | `DELETE /api/v1/sessions/:id` | `session.delete`, editor, and the caller must be the session's creator or a manager of the project (its owner, a manager member, or a holder of `project.manage`; admins and owners hold it by default and a deny grant applies to them too) |
 | `GET /api/v1/projects/:id/members` | viewer - who is on the project, with more for managers; the shape is [below](#the-members-answer) |
-| `POST /api/v1/projects/:id/invite` | manager - body `{ emails, role, passwordSetup? }`; `200 { results: [{ email, status: added \| invited \| already \| refused, reason?, invitationId?, link?, expiresAt? }], link, message }`. A result's `link` is that address's own invite link for this project; the top-level `link` is `<appUrl or baseUrl>/#/team/project/<id>`. `message: { workspace, inviter, providers, note? }` is what Lolly needs to compose an invite message. `passwordSetup` is honoured only for an admin or owner with `user.invite` while a `password` entry is configured. New addresses follow `policy.invites`. A caller without `user.invite` may send 100 addresses an hour (`429 RATE_LIMITED`). Reasons are listed in [sharing](sharing.md#inviting-people) |
+| `POST /api/v1/projects/:id/invite` | manager - body `{ emails, role, passwordSetup? }`; `200 { results: [{ email, status: added \| invited \| already \| refused, reason?, invitationId?, link?, expiresAt? }], link, message }`. A result's `link` is that address's own invite link for this project; the top-level `link` is `<appUrl or baseUrl>/#/team/project/<id>`. `message: { workspace, inviter, providers, note? }` is what Lolly needs to compose an invite message. `passwordSetup` is honoured only for an admin or owner with `user.invite` while a `password` entry is configured. New addresses follow `policy.invites`. A caller without `user.invite` may send 100 addresses an hour (`429 RATE_LIMITED`). Reasons are listed in [inviting people to a project](invitations.md#invite-people-to-a-project) |
 | `PATCH /api/v1/projects/:id/members/:userId` | manager - body `{ role }`; `409` for the owner |
 | `PUT /api/v1/projects/:id/members/:userId/expiry` | manager - body `{ expiresAt }`, an ISO time in the future or `null` to clear; within `policy.sharing.maxGrantDays`. A membership past its end date gives no access and stays listed so it can be extended; sharing with the person again, an accepted invitation or an approved request also restores it, with no end date. Editors who may share cannot set end dates: an end date a minute away is a removal, and removal is for managers. `409` for the owner |
 | `GET /api/v1/projects/:id/sharing` | viewer - `{ general: { audience: restricted \| instance, role }, grants: [{ principal: { kind: group, name } \| { kind: custom-group, id, name, memberCount }, role, expiresAt? }], expiries, settings: { viewersCanComment, viewersCanExport, editorsCanShare }, policy: { audiences, instanceMaxRole, roles, customGroups, maxGrantDays? }, canManage }`. `expiries` maps member ids to end dates, for managers only. `viewersCanComment: false` stops viewers creating comments and replies (`403`). `viewersCanExport` is advice to shells only: a viewer can render on their own device, so the server cannot enforce that restriction. Read by `@lolly-tools/core/sharing-v1` `readShareState` |
@@ -463,7 +463,7 @@ comments and the live room where people and agents edit together.
 | `GET/POST /api/v1/collab/nearby` | `collab.join` - the nearby-discovery handover lane |
 
 Roles on a project (viewer, commenter, editor, manager, owner) are described in
-[sharing](sharing.md#people-and-roles). A commenter reads and comments like a viewer and
+[people and roles](team-projects.md#people-and-roles). A commenter reads and comments like a viewer and
 never changes artwork. A viewer or commenter asked to write gets `403 READ_ONLY`;
 someone who cannot see the project gets `403 FORBIDDEN`.
 
@@ -520,7 +520,7 @@ a second.
   groups the caller is in, unless the caller is an admin or owner.
 - `adminAccess` is `listed` for an admin or owner caller, who also gets the `admin` rows, and
   `note` for any other manager, who gets no `admin` rows and sees group rows at the level the
-  group gives; see [permissions](permissions.md#who-can-see-who-has-access).
+  group gives; see [who can see who has access](team-projects.md#who-can-see-who-has-access).
 - `invitations` lists the pending invitations that carry the project and those that expired in
   the last 30 days: `{ id, email, role, createdAt, expiresAt?, status: pending | expired,
   openedAt?, invitedByName?, passwordSetup, link? }`, where `link` is the invite link for this
@@ -888,7 +888,7 @@ unfinished uploads of each kind at once. Errors keep the usual
 
 ### Project files
 
-Files shared inside a project ([sharing](sharing.md#shared-files)). While
+Files shared inside a project ([shared files](team-projects.md#shared-files)). While
 `sharing.projectFiles` in org-config is `false` (policy off, or the memory store), every
 route here answers `404 NOT_FOUND` with the message `project files are off`.
 
@@ -1282,7 +1282,7 @@ Message targeting is groups × shell selectors × engine-version range. Besides 
 console's messages, the server writes `approval`, `expiry`, `collab` and `share` messages,
 `request` (someone asks for access and you may answer) and `notice` (an answer to your request,
 an accepted invitation, a welcome, an invitation entry that no longer works). `data.kind`
-identifies which, and `data.at` is when it happened; [sharing](sharing.md#notices) lists the
+identifies which, and `data.at` is when it happened; [notices](invitations.md#notices) lists the
 kinds.
 
 The inbox hides a message whose subject the caller can no longer reach: a project share

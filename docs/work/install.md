@@ -540,7 +540,7 @@ already made:
   beside the server. `instance.pack` starts as that web app's own tools and catalog
   (the neutral starter brand), copied into the app's data folder so you can replace
   it with your own pack.
-- Sign-in is the [reverse-proxy provider](identity.md#reverse-proxy-sign-in): the
+- Sign-in is the [reverse-proxy provider](identity-providers.md#reverse-proxy-sign-in): the
   YunoHost portal authenticates, SSOwat attaches the identity headers, nginx adds
   the shared secret and the server reads each member's groups and this app's role
   permissions from the host's LDAP. Development sign-in is off.

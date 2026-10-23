@@ -64,7 +64,7 @@ contract, so run these checks before you rely on an integration.
   through each one and shows which integrations it has actually observed.
 - **Sources.** Each [provider guide](providers/README.md) says what has been confirmed against
   a real tenant and what to verify on yours: field names, approval mapping and original-file
-  checksums.
+  checksums. [Check a source on your own tenant](providers/tenant-check.md) gives the steps.
 - **Delivery.** The S3 adapter has been checked live against an S3-compatible host. WebDAV
   and signed HTTPS have wire tests and opt-in checks that have not yet run against a real
   receiver. Brandfolder and Cloudinary are fixture-tested.

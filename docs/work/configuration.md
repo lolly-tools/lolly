@@ -88,7 +88,7 @@ the evaluation overlay and example JSON select evaluation.
 | `connectorOrigins` | *unset* | exact HTTPS origins (no paths, wildcards or credentials; at most 32) that the served shell's custom connectors may reach. Added to the shell's `connect-src` only; every other directive and header is unchanged. Use it where the ingress cannot replace response headers, for example a shared cluster with snippet annotations disabled. The shell build's `VITE_CONNECTOR_ORIGINS` must list the same origins, and each provider's CORS must allow the workspace origin |
 | `brandTokens` | *unset* | map source IDs (`mounted` or `profile:<name>`) to explicit tokens asset IDs; required when a source has multiple independent heads |
 | `connectPack` | *unset* | a `.lolly` instance pack to HOST from boot - a path relative to `pack` (or absolute). Seeded only before any durable branding decision, while no download is suppressed or hosted, so an ephemeral deploy offers `/connect/pack.lolly` without an owner ever uploading; an owner's own upload always wins, and a file naming a different instance base is refused loudly at seed time |
-| `inviteNote` | *unset* | one plain-text line shown on the invite page and at the end of copied invite messages, such as which sign-in to use when an organisation blocks one. Trimmed, at most 240 characters, no line breaks; an empty line is the same as unset. See [invite links](identity.md#invite-links) |
+| `inviteNote` | *unset* | one plain-text line shown on the invite page and at the end of copied invite messages, such as which sign-in to use when an organisation blocks one. Trimmed, at most 240 characters, no line breaks; an empty line is the same as unset. See [invite links](invitations.md#invite-links) |
 | `homeView` | *unset* | the view a signed-in member's Lolly opens on when they arrive at the bare address: `tools` (the tools gallery) or `projects` (their Projects). Unset means tools. A link to a tool, a team project or a view still opens where it points, and choosing Tools later still shows the tools. Sent to members' shells in `GET /api/v1/org-config` as `home`; a shell that predates the setting ignores `home` |
 | `homeUrl` | *unset* | optional destination for the Home button and arrival at the bare address, overriding `homeView`. A root-relative URL such as `/#/p?team=project-id`, or an HTTPS URL for an organisation's own landing page. Credentials, protocol-relative URLs and executable schemes are refused. Explicit document and view links keep their destinations |
 
@@ -115,11 +115,11 @@ in evaluation only; production still refuses the old shell.
 | `groupsClaim` | `groups` | the claim carrying group membership |
 | `claimMap` | `given_name` / `family_name` / `email` / `title` | which claims fill firstname, lastname, email, title. `email_verified` vouches only for the `email` claim: a remapped email counts as verified only when it equals `email`, otherwise only under `emailVerification: trusted` |
 | `roleGroups` | `{}` | exact groups for owner/admin/approver/author/member/viewer. Highest match wins; unmatched accounts are members. Omitted high roles retain literal legacy names; omitted member/viewer have no mapping. An explicit empty array disables that role mapping. Each group can appear once. Applies to IdP and local groups, including existing accounts after restart. |
-| `additional` | `[]` | further IdPs beside the primary - each `{ id, kind?, issuer, clientId, displayName, groupsClaim?, claimMap?, clientSecretRef? }`. `kind` is `oidc` (default), `github` or `password`. A GitHub entry takes no `issuer`, needs `clientSecretRef`, refuses `scopes`, `authParams`, `hostedDomain` and `tenantId`, and accepts only `emailVerification: "claim"` (see the [GitHub recipe](identity.md#provider-recipes)). A `password` entry is described below. Unset claims inherit the primary's; the secret rides the env var `clientSecretRef` names; subs store namespaced `<id>:<sub>`. With several houses, plain `/api/auth/login` serves a chooser. Each entry may also set the per-IdP keys below (`hostedDomain`, `tenantId`, `emailVerification`, `scopes`, `authParams`); those are never inherited from the primary. See [identity](identity.md#more-than-one-idp) |
+| `additional` | `[]` | further IdPs beside the primary - each `{ id, kind?, issuer, clientId, displayName, groupsClaim?, claimMap?, clientSecretRef? }`. `kind` is `oidc` (default), `github` or `password`. A GitHub entry takes no `issuer`, needs `clientSecretRef`, refuses `scopes`, `authParams`, `hostedDomain` and `tenantId`, and accepts only `emailVerification: "claim"` (see the [GitHub recipe](identity-providers.md#github)). A `password` entry is described below. Unset claims inherit the primary's; the secret rides the env var `clientSecretRef` names; subs store namespaced `<id>:<sub>`. With several houses, plain `/api/auth/login` serves a chooser. Each entry may also set the per-IdP keys below (`hostedDomain`, `tenantId`, `emailVerification`, `scopes`, `authParams`); those are never inherited from the primary. See [more than one IdP](identity-providers.md#more-than-one-idp) |
 | `admission` | absent | who may sign in, checked on every OIDC, GitHub, password and proxy sign-in before a user row is written: `{ emails?: string[], domains?: string[], invitations?: boolean (default true) }`. Absent = every verified sign-in is admitted (production setup warns). `{}` admits invitations only. Admission by email, domain or invitation needs a verified email (see `emailVerification`). See [who may sign in](identity.md#who-may-sign-in) |
 | `linkedStandingDays` | `30` | whole days, 1-365. How long one sign-in's IdP groups, and the account's own sign-in's standing under `admission`, carry over to the person's other linked sign-ins. See [one person, several sign-ins](identity.md#one-person-several-sign-ins) |
 | `bootstrapOwners` | `[]` | emails that get the owner group (first `roleGroups.owner` name, else `owner`) on first account creation once admitted with a verified email. The group remains in local membership until an owner removes the group. Audited as `auth.bootstrap-owner`. Each must be admitted by `admission.emails` or `admission.domains`; refused when `roleGroups.owner` is `[]` |
-| `pending` | absent | up to eight provider names (each up to 80 characters) shown as disabled choices, such as **Company SSO (pending)**, on the sign-in and invitation pages. Adds no sign-in route. See [planned sign-ins](identity.md#planned-sign-ins) |
+| `pending` | absent | up to eight provider names (each up to 80 characters) shown as disabled choices, such as **Company SSO (pending)**, on the sign-in and invitation pages. Adds no sign-in route. See [planned sign-ins](identity-providers.md#planned-sign-ins) |
 | `hostedDomain` | absent | per IdP. Google Workspace domain: the `hd` claim must equal it (a mismatch or missing claim refuses), and it is sent as the `hd` authorization parameter |
 | `tenantId` | absent | per IdP. Microsoft Entra directory id (GUID): the `tid` claim must equal this id |
 | `emailVerification` | `claim` | per IdP. `claim`: email-based admission needs `email_verified: true`. `trusted`: every email this IdP sends counts as verified (tenant-pinned IdPs that omit the claim) |
@@ -218,9 +218,9 @@ replace the offboarding integration.
 | `invites.domains` | `[]` | when not empty, a new address must be at one of these domains (a leading `@` is dropped, matching is case-insensitive) |
 | `invites.maxTtlHours` | `720` | how long an invitation made from a project stays open; at most 8784 (366 days) |
 | `invites.projectRoles` | all four | which project roles may be given by invitation, role change or group grant: any of `viewer`, `commenter`, `editor`, `manager`. A commenter reads and comments but never changes artwork |
-| `invites.passwordDomains` | `[]` | domains whose people usually sign in with email and password, the same rule as `domains`. When every address on a console or project invite is at one of them, "Can set a password" starts ticked, so the invite link also sets the password. It only suggests: the tick stays an admin's choice. See [setting a password from the link](identity.md#setting-a-password-from-the-link) |
-| `requests.project` | `true` | members may ask for access to a project or session link they cannot open, and viewers may ask to edit. See [asking for access](sharing.md#asking-for-access) |
-| `requests.join` | `false` | a person who signed in but is not admitted may ask the admins to let them in, from the refusal page. Off by default, because it lets anyone who can sign in somewhere reach the admins. See [asking to join](identity.md#asking-to-join) |
+| `invites.passwordDomains` | `[]` | domains whose people usually sign in with email and password, the same rule as `domains`. When every address on a console or project invite is at one of them, "Can set a password" starts ticked, so the invite link also sets the password. It only suggests: the tick stays an admin's choice. See [setting a password from the link](invitations.md#setting-a-password-from-the-link) |
+| `requests.project` | `true` | members may ask for access to a project or session link they cannot open, and viewers may ask to edit. See [asking for access](invitations.md#asking-for-access) |
+| `requests.join` | `false` | a person who signed in but is not admitted may ask the admins to let them in, from the refusal page. Off by default, because it lets anyone who can sign in somewhere reach the admins. See [asking to join](invitations.md#asking-to-join) |
 | `requests.ttlDays` | `14` | whole days, 1 to 60. How long a request stays open before it expires, with its notice |
 | `requests.joinOpenMax` | `50` | whole number, 1 to 1000. The most requests to join and to use another account for an invitation that may be open at once across the instance; past it, new ones are held (the person sees the same page, nothing is stored) |
 | `sharing.instance.enabled` | `true` | whether a project may be shared with everyone signed in to this instance (never guests or service tokens). `false` also stops shares made before the change |
@@ -236,7 +236,7 @@ The tier and the domain list govern invitations, which let someone new sign in; 
 with someone who already has an account needs manager on the project and an allowed role only.
 The console does not edit this block (its configuration document covers grants, overlays, chains,
 providers, flags and catalog fields), so change it in the configuration and redeploy. See
-[sharing](sharing.md#invite-policy).
+[invite policy](invitations.md#invite-policy).
 
 ```json
 "policy": {
@@ -274,7 +274,7 @@ default, and suggests the password tick for `example.com` addresses:
 
 | Key | Default | What it does |
 |---|---|---|
-| `projectFiles.enabled` | `true` | shared files inside team projects. They also need a durable store: on the memory store they are off whatever this says. See [sharing](sharing.md#shared-files) |
+| `projectFiles.enabled` | `true` | shared files inside team projects. They also need a durable store: on the memory store they are off whatever this says. See [shared files](team-projects.md#shared-files) |
 | `projectFiles.maxFileBytes` | `26214400` | largest single file (25 MiB); at most `4294967296` (4 GiB, migration 0075). Over it: `413 PROJECT_FILE_TOO_LARGE` |
 | `projectFiles.projectBudgetBytes` | `134217728` | bytes of files one project may hold (128 MiB). Over it: `413 PROJECT_FILE_BUDGET` |
 | `projectFiles.instanceBudgetBytes` | `268435456` | bytes of files all projects together may hold (256 MiB). Over it: `413 INSTANCE_FILE_BUDGET` |
@@ -431,7 +431,7 @@ warns at boot when it finds both.
 
 Reverse-proxy sign-in: an authenticating proxy in front of the instance (YunoHost's SSOwat,
 Authelia, oauth2-proxy) states who the person is in request headers. See
-[identity](identity.md#reverse-proxy-sign-in) for the contract and the security posture.
+[reverse-proxy sign-in](identity-providers.md#reverse-proxy-sign-in) for the contract and the security posture.
 
 | Key | Default | What it does |
 |---|---|---|

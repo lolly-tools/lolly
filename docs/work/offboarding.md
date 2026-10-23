@@ -63,8 +63,9 @@ windows](catalog.md#imported-availability-windows)) and how approval maps. Every
 
 Every driver here is built from public documentation and tested against recorded fixtures.
 "Live confirmation open" means the field names have not been checked against a real tenant,
-which happens on your own tenant under your own contract. Each provider guide says how to run
-that check; do it before you commit to an exit schedule.
+which happens on your own tenant under your own contract. [Check a source on your own
+tenant](providers/tenant-check.md) says how to run that check; do it before you commit to an
+exit schedule.
 
 | Kind | Driver | What imports | Original bytes out | Exit verdict |
 |---|---|---|---|---|
