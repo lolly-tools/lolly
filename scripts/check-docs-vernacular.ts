@@ -310,13 +310,10 @@ const ALLOW: Record<string, string[]> = {
     '`transcribeModelBytes()`', '`transcribe(src, opts?)`', 'SpeechTranscript',
     // plan 183: the two CLI subcommands that surface this API headlessly
     '`lolly speak` and `lolly transcribe` are its discovery surface'],
-  'docs/overview.md': ['TTS/transcription',
-    // Positioning prose that predates the self-reference ban - grandfathered like the
-    // code ratchet; the ban stops NEW uses of "(this line is X)"/"the boundary is X"/
-    // "the X is structural", it doesn't force a rewrite of meaningful existing copy.
-    'The line is sharp on purpose'],
-  'docs/faq.md': ['That line is drawn in the licence',
-    'The boundary is structural rather than promised'],
+  // Positioning prose that predates the self-reference ban - grandfathered like the
+  // code ratchet; the ban stops NEW uses of "(this line is X)"/"the boundary is X"/
+  // "the X is structural", it doesn't force a rewrite of meaningful existing copy.
+  'docs/faq.md': ['That line is drawn in the licence'],
   // The sequence editor's transcript: "Edit transcript" is the literal button label
   // and the transcript editor is that UI's real object (plans/174), not prose flourish.
   'docs/sequence-editor.md': ['### Subtitles and the transcript',
