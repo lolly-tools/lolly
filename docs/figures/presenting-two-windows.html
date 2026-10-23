@@ -1,0 +1,78 @@
+<!--
+  Concept: Present with camera opens two windows. The audience window is one 16:9 picture (slides, the
+  camera inset, the logo top right and the lower third) and is the one shared in the call. The private
+  controls window holds the current and next slide, speaker notes, and the Camera, Logo, Lower third and
+  Saved scenes controls.
+  Contract: static fragment scoped under .ptw, reads the docs theme tokens with fallbacks, no script, no
+  motion, no network.
+  Sources: shells/web/src/views/present-production/ (scene.ts 1280 x 720, controls.ts, prepared-scenes.ts)
+  and docs/presenting.md.
+  Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
+  2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+-->
+<style>
+.ptw{--ptw-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--ptw-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
+ --ptw-ground:hsl(var(--secondary,84.5 55% 92.2%));--ptw-paper:hsl(var(--card,0 0% 100%));
+ --ptw-accent:hsl(var(--primary,176.5 89.5% 11.2%));--ptw-line:hsl(var(--card-foreground,201.2 48.6% 6.9%) / .14);
+ --ptw-wash:color-mix(in oklab,var(--ptw-accent) 12%,var(--ptw-paper));
+ color:var(--ptw-ink);background:var(--ptw-ground);border-radius:1.2em;padding:clamp(12px,2.6vw,22px);
+ font-size:1rem;line-height:1.35;text-align:start;container-type:inline-size}
+.ptw *{box-sizing:border-box}
+.ptw p{margin:0}
+.ptw ul{list-style:none;margin:0;padding:0}
+.ptw li{list-style:none;margin:0;font-size:inherit}
+.ptw .ptw-row{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;align-items:start}
+.ptw .ptw-label{font-weight:600;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ptw .ptw-tag{font-size:.75em;font-weight:600;border-radius:999px;padding:1px 8px;background:var(--ptw-accent);color:hsl(var(--primary-foreground,0 0% 100%))}
+.ptw .ptw-tag.ptw-private{background:transparent;color:var(--ptw-muted);box-shadow:0 0 0 1px var(--ptw-line)}
+.ptw .ptw-win{background:var(--ptw-paper);border-radius:12px;box-shadow:0 0 0 1px var(--ptw-line);overflow:hidden}
+.ptw .ptw-bar{height:14px;background:var(--ptw-wash);border-bottom:1px solid var(--ptw-line)}
+.ptw .ptw-stage{position:relative;aspect-ratio:16/9;background:var(--ptw-wash);margin:10px;border-radius:6px;overflow:hidden}
+.ptw .ptw-slide{position:absolute;left:7%;top:12%;width:52%;display:flex;flex-direction:column;gap:6px}
+.ptw .ptw-line1{height:10px;width:85%;background:var(--ptw-accent);border-radius:3px;opacity:.75}
+.ptw .ptw-line2{height:6px;width:65%;background:var(--ptw-ink);border-radius:3px;opacity:.25}
+.ptw .ptw-line3{height:6px;width:55%;background:var(--ptw-ink);border-radius:3px;opacity:.25}
+.ptw .ptw-cam{position:absolute;right:6%;bottom:12%;width:26%;aspect-ratio:4/3;border-radius:8px;background:var(--ptw-paper);box-shadow:0 0 0 2px var(--ptw-paper),0 0 0 3px var(--ptw-line);display:grid;place-items:center}
+.ptw .ptw-cam svg{width:46%;height:auto;fill:var(--ptw-muted);opacity:.6}
+.ptw .ptw-logo{position:absolute;right:5%;top:8%;width:9%;aspect-ratio:1;border-radius:50%;background:var(--ptw-accent)}
+.ptw .ptw-third{position:absolute;left:5%;bottom:9%;background:var(--ptw-paper);border-radius:4px;padding:3px 8px;font-size:.66em;line-height:1.2;box-shadow:0 0 0 1px var(--ptw-line)}
+.ptw .ptw-third b{display:block;font-weight:600}
+.ptw .ptw-ctl{margin:10px;display:grid;gap:8px}
+.ptw .ptw-pair{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ptw .ptw-mini{aspect-ratio:16/9;border-radius:4px;background:var(--ptw-wash);box-shadow:0 0 0 1px var(--ptw-line);font-size:.66em;color:var(--ptw-muted);display:flex;align-items:flex-end;padding:3px 5px}
+.ptw .ptw-notes{font-size:.72em;color:var(--ptw-muted);background:var(--ptw-ground);border-radius:4px;padding:5px 7px}
+.ptw .ptw-chips{display:flex;flex-wrap:wrap;gap:4px}
+.ptw .ptw-chips li{font-size:.7em;border-radius:999px;padding:1px 7px;box-shadow:0 0 0 1px var(--ptw-line)}
+.ptw .ptw-cap{margin-top:8px;font-size:.82em;color:var(--ptw-muted)}
+@container (max-width:520px){.ptw .ptw-row{grid-template-columns:minmax(0,1fr)}}
+</style>
+<div class="ptw" role="group" aria-label="The audience window and the private controls window">
+  <div class="ptw-row">
+    <div>
+      <p class="ptw-label">Audience window <span class="ptw-tag">Share this in your call</span></p>
+      <div class="ptw-win">
+        <div class="ptw-bar"></div>
+        <div class="ptw-stage" role="img" aria-label="A 16:9 picture: the slide on the left, the camera inset bottom right, the logo top right and a name caption bottom left">
+          <div class="ptw-slide"><span class="ptw-line1"></span><span class="ptw-line2"></span><span class="ptw-line3"></span></div>
+          <span class="ptw-logo"></span>
+          <span class="ptw-cam"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg></span>
+          <p class="ptw-third"><b>Sam Rivera</b>Product lead</p>
+        </div>
+      </div>
+      <p class="ptw-cap">One clean picture, 1280 × 720.</p>
+    </div>
+    <div>
+      <p class="ptw-label">Private controls <span class="ptw-tag ptw-private">Stays on your side</span></p>
+      <div class="ptw-win">
+        <div class="ptw-bar"></div>
+        <div class="ptw-ctl">
+          <div class="ptw-pair"><span class="ptw-mini">Current</span><span class="ptw-mini">Next</span></div>
+          <p class="ptw-notes">Speaker notes</p>
+          <ul class="ptw-chips"><li>Camera</li><li>Logo</li><li>Lower third</li><li>Saved scenes</li><li>Recording</li></ul>
+        </div>
+      </div>
+      <p class="ptw-cap">Edits wait here until Apply scene.</p>
+    </div>
+  </div>
+</div>
+<!-- -----BEGIN C2PA MANIFEST----- data:application/c2pa;base64,AAAKDmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAAAnoanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46dXVpZDpjMDcwMjFiMy04MDgwLTQ1MTEtOGFkNS1kZjc1YTBkZmIzMjcAAAAEZGp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAUlqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAEYY2JvcqFnYWN0aW9uc4GlZmFjdGlvbmxjMnBhLmNyZWF0ZWRxZGlnaXRhbFNvdXJjZVR5cGV4U2h0dHA6Ly9jdi5pcHRjLm9yZy9uZXdzY29kZXMvZGlnaXRhbHNvdXJjZXR5cGUvY29tcG9zaXRlV2l0aFRyYWluZWRBbGdvcml0aG1pY01lZGlha2Rlc2NyaXB0aW9ueDhBdXRob3JlZCB3aXRoIENsYXVkZSBDb2RlIGZvciB0aGUgTG9sbHkgZG9jcyBmaWd1cmUgYmFua21zb2Z0d2FyZUFnZW50omRuYW1lZUxvbGx5Z3ZlcnNpb25nMS4yODEuMGR3aGVudDIwMjYtMTAtMjNUMDU6NTA6MTBaAAAArGp1bWIAAAAoanVtZGNib3IAEQAQgAAAqgA4m3EDYzJwYS5oYXNoLmRhdGEAAAAAfGNib3KlamV4Y2x1c2lvbnOBomVzdGFydBkWc2ZsZW5ndGgZDcpkbmFtZW5qdW1iZiBtYW5pZmVzdGNhbGdmc2hhMjU2ZGhhc2hYICnoM7/wbReHOppTuXBba/ZK6123vkISnXA0hfz42XwGY3BhZEgAAAAAAAAAAAAAAO1qdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA3Rvb2xzLmxvbGx5LmV4cG9ydAAAAAC5Y2Jvcqhnc3VyZmFjZWRkb2NzZmZvcm1hdG1odG1sLWZyYWdtZW50ZHRvb2x2cHJlc2VudGluZy10d28td2luZG93c2RkYXRleBgyMDI2LTEwLTIzVDA1OjUwOjEwLjgxOVpqZGltZW5zaW9uc2syNCDDlyAyNCBweGhhcnRpZmFjdGZmaWd1cmVpZ2VuZXJhdG9ya0NsYXVkZSBDb2Rla21vZGVsVmVuZG9yaUFudGhyb3BpYwAAAI1qdW1iAAAAJ2p1bWRqc29uABEAEIAAAKoAOJtxA2Nhd2cubWV0YWRhdGEAAAAAXmpzb257IkBjb250ZXh0Ijp7ImRjIjoiaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8ifSwiZGM6Y3JlYXRvciI6WyJBbmR5IEZpdHpzaW1vbiJdfQAAAMRqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWktZGlzY2xvc3VyZQAAAACQY2JvcqRpbW9kZWxUeXBlcGMycGEudHlwZXMubW9kZWxpbW9kZWxOYW1lb0NsYXVkZSBPcHVzIDUuNW9tb2RlbElkZW50aWZpZXJvY2xhdWRlLW9wdXMtNS01bmNvbnRlbnRQcm9maWxloXNodW1hbk92ZXJzaWdodExldmVsbXByb21wdF9ndWlkZWQAAALUanVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAqVjYm9ypmhkYzp0aXRsZXZwcmVzZW50aW5nLXR3by13aW5kb3dzamluc3RhbmNlSUR4LXVybjp1dWlkOjNmZDI5NGNiLTZkYjUtNGExNi1iYjgxLTFlMTcwMTliMjQ2OHRjbGFpbV9nZW5lcmF0b3JfaW5mb6NkbmFtZWVMb2xseWd2ZXJzaW9uZzEuMjgxLjBrc3BlY1ZlcnNpb25lMi40LjByY3JlYXRlZF9hc3NlcnRpb25zhaJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggMK+xB3tNfD6oD0wdxh+0bbqNY3k59/FDnRLKcncWes2iY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggW/YkSWLLsDCUMglKyWXj8nXXT+iFMKh7t9EFHUaZFOSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvdG9vbHMubG9sbHkuZXhwb3J0ZGhhc2hYIOqvDdO7iTxKuihgW28zPepPz7YtEiS+0O0oo+kFH2WJomN1cmx4KHNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2Nhd2cubWV0YWRhdGFkaGFzaFgg7iYlKJf/Z3Tb+oGzES2uAj7yXJtuDKwUN6DDNEbaboSiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5haS1kaXNjbG9zdXJlZGhhc2hYILULL+IgRwhuFb2Z97+uFQ7MwZxWugE0GKMzzeUhYpqraXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAACYWp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAACMWNib3LShFkB4KIBJhghgVkB1zCCAdMwggF5oAMCAQICCWZPAywpwdLGyDAKBggqhkjOPQQDAjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwHhcNMjYxMDIzMDU0OTEwWhcNMzYxMDIwMDU1MDEwWjA1MQ4wDAYDVQQKDAVMb2xseTEjMCEGA1UEAwwaTG9sbHkgT24tRGV2aWNlIENyZWRlbnRpYWwwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAATNomBkpAcfySFiUhLcmp0luRtm2ctJ/TG6Bje9PQatbAl4M3LrEBXyLOGObHCJEScC7244IctnkFfPnIGLD/cdo3IwcDAJBgNVHRMEAjAAMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDBDAdBgNVHQ4EFgQUsGhX7/m7hkjvbRqujd70n2jklywwHwYDVR0jBBgwFoAUsGhX7/m7hkjvbRqujd70n2jklywwCgYIKoZIzj0EAwIDSAAwRQIhAJd6/Ksh+TVYAX8s83NVlvYSrMUHAadIU+vWihGDOPyiAiBRHxMk4O4LxXPHtD0kO60aAaczjpCm1OcevvAoB9VhT6D2WED3wZjsKgSyliJ1TObdO0nNTbSy9TFE5UQhJ4hUpdobDLx899U5QZnBlP5jS7wtoYYD+ImutMBJgZt1tfmgl+tA -----END C2PA MANIFEST----- -->

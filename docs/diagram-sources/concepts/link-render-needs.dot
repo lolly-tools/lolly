@@ -1,0 +1,13 @@
+digraph link_render_needs {
+  rankdir=TB
+  node [shape=box]
+  link [label="The link\nplain text"]
+  tool [label="The tool\na directory"]
+  engine [label="An engine\nin range"]
+  assets [label="The assets\npermanent ids"]
+  render [label="The same render\nno account needed"]
+  link -> render
+  tool -> render
+  engine -> render
+  assets -> render
+}
